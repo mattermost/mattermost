@@ -37,7 +37,8 @@
         "RestrictTeamNames": true,
         "EnableCustomBrand": false,
         "CustomBrandText": "",
-        "RestrictDirectMessage": "any"
+        "RestrictDirectMessage": "any",
+        "RestrictTeamInvite": "system_admin"
     },
     "SqlSettings": {
         "DriverName": "mysql",

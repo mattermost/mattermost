@@ -119,6 +119,16 @@ export default class NavbarDropdown extends React.Component {
                     </li>
                 );
             }
+
+            if (global.window.mm_license.IsLicensed === 'true') {
+                if (global.window.mm_config.RestrictTeamInvite === Constants.TEAM_INVITE_SYSTEM_ADMIN && !isSystemAdmin) {
+                    teamLink = null;
+                    inviteLink = null;
+                } else if (global.window.mm_config.RestrictTeamInvite === Constants.TEAM_INVITE_TEAM_ADMIN && !isAdmin) {
+                    teamLink = null;
+                    inviteLink = null;
+                }
+            }
         }
 
         if (isAdmin) {

@@ -363,9 +363,10 @@ func TestTeamPermDelete(t *testing.T) {
 }
 
 func TestInviteMembers(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup().InitBasic().InitSystemAdmin()
 	th.BasicClient.Logout()
 	Client := th.BasicClient
+	SystemAdminClient := th.SystemAdminClient
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
@@ -389,9 +390,53 @@ func TestInviteMembers(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	invites = &model.Invites{Invites: []map[string]string{}}
-	if _, err := Client.InviteMembers(invites); err == nil {
+	invites2 := &model.Invites{Invites: []map[string]string{}}
+	if _, err := Client.InviteMembers(invites2); err == nil {
 		t.Fatal("Should have errored out on no invites to send")
+	}
+
+	restrictTeamInvite := *utils.Cfg.TeamSettings.RestrictTeamInvite
+	defer func() {
+		*utils.Cfg.TeamSettings.RestrictTeamInvite = restrictTeamInvite
+	}()
+	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.TEAM_INVITE_TEAM_ADMIN
+
+	th.LoginBasic2()
+	LinkUserToTeam(th.BasicUser2, team)
+
+	if _, err := Client.InviteMembers(invites); err != nil {
+		t.Fatal(err)
+	}
+
+	isLicensed := utils.IsLicensed
+	defer func() {
+		utils.IsLicensed = isLicensed
+	}()
+	utils.IsLicensed = true
+
+	if _, err := Client.InviteMembers(invites); err == nil {
+		t.Fatal("should have errored not team admin and licensed")
+	}
+
+	UpdateUserToTeamAdmin(th.BasicUser2, team)
+	Client.Logout()
+	th.LoginBasic2()
+	Client.SetTeamId(team.Id)
+
+	if _, err := Client.InviteMembers(invites); err != nil {
+		t.Fatal(err)
+	}
+
+	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.TEAM_INVITE_SYSTEM_ADMIN
+
+	if _, err := Client.InviteMembers(invites); err == nil {
+		t.Fatal("should have errored not system admin and licensed")
+	}
+
+	LinkUserToTeam(th.SystemAdminUser, team)
+
+	if _, err := SystemAdminClient.InviteMembers(invites); err != nil {
+		t.Fatal(err)
 	}
 }
 

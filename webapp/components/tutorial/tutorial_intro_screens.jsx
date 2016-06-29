@@ -106,32 +106,45 @@ export default class TutorialIntroScreens extends React.Component {
     createScreenThree() {
         const team = TeamStore.getCurrent();
         let inviteModalLink;
+        let inviteText;
 
-        if (team.type === Constants.INVITE_TEAM) {
-            inviteModalLink = (
-                <a
-                    className='intro-links'
-                    href='#'
-                    onClick={GlobalActions.showInviteMemberModal}
-                >
+        if (global.window.mm_license.IsLicensed !== 'true' || global.window.mm_config.RestrictTeamInvite === Constants.TEAM_INVITE_ALL) {
+            if (team.type === Constants.INVITE_TEAM) {
+                inviteModalLink = (
+                    <a
+                        className='intro-links'
+                        href='#'
+                        onClick={GlobalActions.showInviteMemberModal}
+                    >
+                        <FormattedMessage
+                            id='tutorial_intro.invite'
+                            defaultMessage='Invite teammates'
+                        />
+                    </a>
+                );
+            } else {
+                inviteModalLink = (
+                    <a
+                        className='intro-links'
+                        href='#'
+                        onClick={GlobalActions.showGetTeamInviteLinkModal}
+                    >
+                        <FormattedMessage
+                            id='tutorial_intro.teamInvite'
+                            defaultMessage='Invite teammates'
+                        />
+                    </a>
+                );
+            }
+
+            inviteText = (
+                <p>
+                    {inviteModalLink}
                     <FormattedMessage
-                        id='tutorial_intro.invite'
-                        defaultMessage='Invite teammates'
+                        id='tutorial_intro.whenReady'
+                        defaultMessage=' when you’re ready.'
                     />
-                </a>
-            );
-        } else {
-            inviteModalLink = (
-                <a
-                    className='intro-links'
-                    href='#'
-                    onClick={GlobalActions.showGetTeamInviteLinkModal}
-                >
-                    <FormattedMessage
-                        id='tutorial_intro.teamInvite'
-                        defaultMessage='Invite teammates'
-                    />
-                </a>
+                </p>
             );
         }
 
@@ -170,13 +183,7 @@ export default class TutorialIntroScreens extends React.Component {
                         defaultMessage='You’re all set'
                     />
                 </h3>
-                <p>
-                    {inviteModalLink}
-                    <FormattedMessage
-                        id='tutorial_intro.whenReady'
-                        defaultMessage=' when you’re ready.'
-                    />
-                </p>
+                {inviteText}
                 {supportInfo}
                 <FormattedMessage
                     id='tutorial_intro.end'

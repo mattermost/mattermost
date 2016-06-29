@@ -180,6 +180,7 @@ export default class AdminSidebar extends React.Component {
 
         let license = null;
         let audits = null;
+        let policy = null;
 
         if (window.mm_config.BuildEnterpriseReady === 'true') {
             if (window.mm_license.IsLicensed === 'true') {
@@ -210,6 +211,18 @@ export default class AdminSidebar extends React.Component {
                         />
                     );
                 }
+
+                policy = (
+                    <AdminSidebarSection
+                        name='policy'
+                        title={
+                            <FormattedMessage
+                                id='admin.sidebar.policy'
+                                defaultMessage='Policy'
+                            />
+                        }
+                    />
+                );
             }
 
             license = (
@@ -328,6 +341,7 @@ export default class AdminSidebar extends React.Component {
                                         />
                                     }
                                 />
+                                {policy}
                                 <AdminSidebarSection
                                     name='privacy'
                                     title={
