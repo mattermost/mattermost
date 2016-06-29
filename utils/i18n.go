@@ -15,9 +15,16 @@ var T i18n.TranslateFunc
 var locales map[string]string = make(map[string]string)
 var settings model.LocalizationSettings
 
+// this functions loads translations from filesystem
+// and assign english while loading server config
+func TranslationsPreInit() {
+	InitTranslationsWithDir("i18n")
+	T = TfuncWithFallback("en")
+}
+
 func InitTranslations(localizationSettings model.LocalizationSettings) {
 	settings = localizationSettings
-	InitTranslationsWithDir("i18n")
+	T = GetTranslationsBySystemLocale()
 }
 
 func InitTranslationsWithDir(dir string) {
@@ -30,8 +37,6 @@ func InitTranslationsWithDir(dir string) {
 			i18n.MustLoadTranslationFile(i18nDirectory + filename)
 		}
 	}
-
-	T = GetTranslationsBySystemLocale()
 }
 
 func GetTranslationsBySystemLocale() i18n.TranslateFunc {
