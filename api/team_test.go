@@ -399,7 +399,7 @@ func TestInviteMembers(t *testing.T) {
 	defer func() {
 		*utils.Cfg.TeamSettings.RestrictTeamInvite = restrictTeamInvite
 	}()
-	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.TEAM_INVITE_TEAM_ADMIN
+	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN
 
 	th.LoginBasic2()
 	LinkUserToTeam(th.BasicUser2, team)
@@ -427,7 +427,7 @@ func TestInviteMembers(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.TEAM_INVITE_SYSTEM_ADMIN
+	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_SYSTEM_ADMIN
 
 	if _, err := Client.InviteMembers(invites); err == nil {
 		t.Fatal("should have errored not system admin and licensed")

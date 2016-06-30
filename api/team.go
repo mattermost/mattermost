@@ -400,12 +400,12 @@ func inviteMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if utils.IsLicensed {
-		if *utils.Cfg.TeamSettings.RestrictTeamInvite == model.TEAM_INVITE_SYSTEM_ADMIN && !c.IsSystemAdmin() {
+		if *utils.Cfg.TeamSettings.RestrictTeamInvite == model.PERMISSIONS_SYSTEM_ADMIN && !c.IsSystemAdmin() {
 			c.Err = model.NewLocAppError("inviteMembers", "api.team.invite_members.restricted_system_admin.app_error", nil, "")
 			return
 		}
 
-		if *utils.Cfg.TeamSettings.RestrictTeamInvite == model.TEAM_INVITE_TEAM_ADMIN && !c.IsTeamAdmin() {
+		if *utils.Cfg.TeamSettings.RestrictTeamInvite == model.PERMISSIONS_TEAM_ADMIN && !c.IsTeamAdmin() {
 			c.Err = model.NewLocAppError("inviteMembers", "api.team.invite_members.restricted_team_admin.app_error", nil, "")
 			return
 		}
