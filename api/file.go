@@ -149,7 +149,7 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		path := "channels/" + channelId + "/users/" + c.Session.UserId + "/" + uid + "/" + filename
+		path := "teams/" + c.TeamId + "/channels/" + channelId + "/users/" + c.Session.UserId + "/" + uid + "/" + filename
 
 		if err := WriteFile(buf.Bytes(), path); err != nil {
 			c.Err = err
@@ -172,7 +172,7 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func handleImages(filenames []string, fileData [][]byte, teamId, channelId, userId string) {
-	dest := "channels/" + channelId + "/users/" + userId + "/"
+	dest := "teams/" + teamId + "/channels/" + channelId + "/users/" + userId + "/"
 
 	for i, filename := range filenames {
 		name := filename[:strings.LastIndex(filename, ".")]
@@ -318,21 +318,18 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cchan := Srv.Store.Channel().CheckPermissionsToNoTeam(channelId, c.Session.UserId)
+	cchan := Srv.Store.Channel().CheckPermissionsTo(c.TeamId, channelId, c.Session.UserId)
 
-	path := "channels/" + channelId + "/users/" + userId + "/" + filename
+	path := "teams/" + c.TeamId + "/channels/" + channelId + "/users/" + userId + "/" + filename
 	var info *model.FileInfo
 
 	if cached, ok := fileInfoCache.Get(path); ok {
 		info = cached.(*model.FileInfo)
 	} else {
-		err, bytes := getFileData(c.TeamId, channelId, userId, filename)
-		if err != nil {
-			c.Err = err
-			return
-		}
+		fileData := make(chan []byte)
+		go readFile(path, fileData)
 
-		newInfo, err := model.GetInfoForBytes(filename, bytes)
+		newInfo, err := model.GetInfoForBytes(filename, <-fileData)
 		if err != nil {
 			c.Err = err
 			return
@@ -359,7 +356,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	userId := params["user_id"]
 	filename := params["filename"]
 
-	if !c.HasPermissionsToChannel(Srv.Store.Channel().CheckPermissionsToNoTeam(channelId, userId), "getFile") {
+	if !c.HasPermissionsToChannel(Srv.Store.Channel().CheckPermissionsTo(teamId, channelId, userId), "getFile") {
 		return
 	}
 
@@ -417,6 +414,10 @@ func getFileData(teamId string, channelId string, userId string, filename string
 		return err, nil
 	}
 
+	if len(teamId) != 26 {
+		return NewInvalidParamError("getFileData", "team_id"), nil
+	}
+
 	if len(channelId) != 26 {
 		return NewInvalidParamError("getFileData", "channel_id"), nil
 	}
@@ -429,19 +430,17 @@ func getFileData(teamId string, channelId string, userId string, filename string
 		return NewInvalidParamError("getFileData", "filename"), nil
 	}
 
-	path := "channels/" + channelId + "/users/" + userId + "/" + filename
+	path := "teams/" + teamId + "/channels/" + channelId + "/users/" + userId + "/" + filename
 
-	// try using the new path and then fall back to the old one if that doesn't work
-	if bytes, readErr := ReadFile(path); readErr == nil {
-		return nil, bytes
-	} else if bytes, readErr := ReadFile("teams/" + teamId + "/" + path); readErr == nil {
-		return nil, bytes
-	} else {
-		l4g.Error(readErr)
+	fileChan := make(chan []byte)
+	go readFile(path, fileChan)
 
+	if bytes := <-fileChan; bytes == nil {
 		err := model.NewLocAppError("writeFileResponse", "api.file.get_file.not_found.app_error", nil, "path="+path)
 		err.StatusCode = http.StatusNotFound
 		return err, nil
+	} else {
+		return nil, bytes
 	}
 }
 
