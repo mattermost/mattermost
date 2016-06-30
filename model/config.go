@@ -623,7 +623,9 @@ func (o *Config) SetDefaults() {
 
 	if o.ServiceSettings.WebserverMode == nil {
 		o.ServiceSettings.WebserverMode = new(string)
-		*o.ServiceSettings.WebserverMode = "regular"
+		*o.ServiceSettings.WebserverMode = "gzip"
+	} else if *o.ServiceSettings.WebserverMode == "regular" {
+		*o.ServiceSettings.WebserverMode = "gzip"
 	}
 
 	if o.ServiceSettings.EnableCustomEmoji == nil {
