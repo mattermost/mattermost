@@ -71,6 +71,10 @@ class EmojiStore extends EventEmitter {
         }
     }
 
+    getSystemEmojis() {
+        return this.systemEmojis;
+    }
+
     getCustomEmojiMap() {
         return this.customEmojis;
     }

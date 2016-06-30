@@ -74,6 +74,7 @@
   "add_emoji.name.help": "Choose a name for your emoji made of up to 64 characters consisting of lowercase letters, numbers, and the symbols '-' and '_'.",
   "add_emoji.nameRequired": "A name is required for the emoji",
   "add_emoji.nameInvalid": "An emoji's name can only contain numbers, letters, and the symbols '-' and '_'.",
+  "add_emoji.nameTaken": "This name is already in use by a system emoji. Please choose another name.",
   "add_emoji.preview": "Preview",
   "add_emoji.preview.sentence": "This is a sentence with {image} in it.",
   "add_emoji.save": "Save",

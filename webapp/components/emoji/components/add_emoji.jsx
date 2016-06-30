@@ -4,6 +4,7 @@
 import React from 'react';
 
 import * as AsyncClient from 'utils/async_client.jsx';
+import EmojiStore from 'stores/emoji_store.jsx';
 
 import BackstageHeader from 'components/backstage/components/backstage_header.jsx';
 import {FormattedMessage} from 'react-intl';
@@ -72,6 +73,18 @@ export default class AddEmoji extends React.Component {
                     <FormattedMessage
                         id='add_emoji.nameInvalid'
                         defaultMessage="An emoji's name can only contain lowercase letters, numbers, and the symbols '-' and '_'."
+                    />
+                )
+            });
+
+            return;
+        } else if (EmojiStore.getSystemEmojis().has(emoji.name)) {
+            this.setState({
+                saving: false,
+                error: (
+                    <FormattedMessage
+                        id='add_emoji.nameTaken'
+                        defaultMessage='This name is already in use by a system emoji. Please choose another name.'
                     />
                 )
             });
