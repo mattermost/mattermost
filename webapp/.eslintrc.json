@@ -183,7 +183,7 @@
         "react/jsx-indent-props": [2, 4],
         "react/jsx-key": 2,
         "react/jsx-max-props-per-line": [2, { "maximum": 1 }],
-        "react/jsx-no-bind": 1,
+        "react/jsx-no-bind": 0,
         "react/jsx-no-duplicate-props": [2, { "ignoreCase": false }],
         "react/jsx-no-literals": 2,
         "react/jsx-no-target-blank": 2,
