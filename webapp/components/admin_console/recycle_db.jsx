@@ -67,7 +67,7 @@ export default class RecycleDbButton extends React.Component {
         let helpText = (
             <FormattedHTMLMessage
                 id='admin.recycle.recycleDescription'
-                defaultMessage='Deployments using multiple databases can switch from one master database to another without restarting the Mattermost server by updating "config.json" to the new desired confugration and using the <a href="../general/configuration"><b>Configuration > Reload Configuration from Disk</b></a> feature to load the new settings while the server is running. The administrator should then use <b>Recycle Database Connections</b> feature to recycle the database connections based on the new settings.'
+                defaultMessage='Deployments using multiple databases can switch from one master database to another without restarting the Mattermost server by updating "config.json" to the new desired configuration and using the <a href="../general/configuration"><b>Configuration > Reload Configuration from Disk</b></a> feature to load the new settings while the server is running. The administrator should then use <b>Recycle Database Connections</b> feature to recycle the database connections based on the new settings.'
             />
         );
 
