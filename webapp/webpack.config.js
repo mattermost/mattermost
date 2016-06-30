@@ -28,7 +28,8 @@ var config = {
     output: {
         path: 'dist',
         publicPath: '/static/',
-        filename: 'bundle.js'
+        filename: 'bundle.js',
+        chunkFilename: '[name].[hash].[chunkhash].js'
     },
     module: {
         loaders: [
@@ -73,10 +74,10 @@ var config = {
             },
             {
                 test: /\.(png|eot|tiff|svg|woff2|woff|ttf|gif|mp3|jpg)$/,
-                loader: 'file',
-                query: {
-                    name: 'files/[hash].[ext]'
-                }
+                loaders: [
+                    'file?name=files/[hash].[ext]',
+                    'image-webpack'
+                ]
             },
             {
                 test: /\.html$/,
@@ -108,10 +109,8 @@ var config = {
         }),
         new webpack.optimize.CommonsChunkPlugin({
             minChunks: 2,
-            children: true,
-            name: 'main'
+            children: true
         })
-        //new webpack.optimize.AggressiveMergingPlugin()
     ],
     resolve: {
         alias: {

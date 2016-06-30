@@ -51,6 +51,7 @@
     "file-loader": "0.8.5",
     "html-loader": "0.4.3",
     "imports-loader": "0.6.5",
+    "image-webpack-loader": "1.8.0",
     "jquery-deferred": "0.3.0",
     "jsdom": "9.0.0",
     "jsdom-global": "1.7.0",
