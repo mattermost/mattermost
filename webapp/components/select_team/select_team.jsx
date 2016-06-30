@@ -119,7 +119,7 @@ export default class SelectTeam extends React.Component {
                     <div>
                         <FormattedMessage
                             id='signup_team.no_teams'
-                            defaultMessage='No teams have been created.'
+                            defaultMessage='No teams have been created. Please contact your administrator.'
                         />
                     </div>
                 </div>
