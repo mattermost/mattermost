@@ -16,12 +16,13 @@ const MaxUserSuggestions = 40;
 
 class AtMentionSuggestion extends Suggestion {
     render() {
-        const {item, isSelection} = this.props;
+        const isSelection = this.props.isSelection;
+        const user = this.props.item;
 
         let username;
         let description;
         let icon;
-        if (item.username === 'all') {
+        if (user.username === 'all') {
             username = 'all';
             description = (
                 <FormattedMessage
@@ -33,7 +34,7 @@ class AtMentionSuggestion extends Suggestion {
                 />
             );
             icon = <i className='mention__image fa fa-users fa-2x'/>;
-        } else if (item.username === 'channel') {
+        } else if (user.username === 'channel') {
             username = 'channel';
             description = (
                 <FormattedMessage
@@ -43,12 +44,20 @@ class AtMentionSuggestion extends Suggestion {
             );
             icon = <i className='mention__image fa fa-users fa-2x'/>;
         } else {
-            username = item.username;
-            description = Utils.getFullName(item);
+            username = user.username;
+
+            if ((user.first_name || user.last_name) && user.nickname) {
+                description = ` - ${Utils.getFullName(user)} (${user.nickname})`;
+            } else if (user.nickname) {
+                description = ` - (${user.nickname})`;
+            } else if (user.first_name || user.last_name) {
+                description = ` - ${Utils.getFullName(user)}`;
+            }
+
             icon = (
                 <img
                     className='mention__image'
-                    src={Client.getUsersRoute() + '/' + item.id + '/image?time=' + item.update_at}
+                    src={Client.getUsersRoute() + '/' + user.id + '/image?time=' + user.update_at}
                 />
             );
         }
