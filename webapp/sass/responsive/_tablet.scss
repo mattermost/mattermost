@@ -75,6 +75,34 @@
         &.move--left {
             @include translateX(0);
         }
+
+        &.sidebar--right--expanded {
+            width: calc(100% - 280px);
+
+            .sidebar--right__bg {
+                background-color: alpha-color($black, .4);
+                visibility: visible;
+            }
+
+            .search-bar__container {
+                padding-left: 10px;
+            }
+
+            .sidebar-right-container {
+                position: relative;
+                z-index: 5;
+            }
+
+            .sidebar--right__expand {
+                .fa-expand {
+                    display: none;
+                }
+
+                .fa-compress {
+                    display: inline-block;
+                }
+            }
+        }
     }
 
     .inner-wrap {
@@ -90,6 +118,7 @@
 
                 .post__link {
                     margin: 4px 0 7px;
+                    vertical-align: bottom;
                 }
 
                 .post__time {

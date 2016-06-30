@@ -230,6 +230,8 @@ export default class RhsThread extends React.Component {
                     <RhsHeaderPost
                         fromSearch={this.props.fromSearch}
                         isMentionSearch={this.props.isMentionSearch}
+                        toggleSize={this.props.toggleSize}
+                        shrink={this.props.shrink}
                     />
                     <Scrollbars
                         autoHide={true}
@@ -293,5 +295,7 @@ RhsThread.propTypes = {
     fromSearch: React.PropTypes.string,
     isMentionSearch: React.PropTypes.bool,
     currentUser: React.PropTypes.object.isRequired,
-    useMilitaryTime: React.PropTypes.bool.isRequired
+    useMilitaryTime: React.PropTypes.bool.isRequired,
+    toggleSize: React.PropTypes.function,
+    shrink: React.PropTypes.function
 };

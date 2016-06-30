@@ -8,6 +8,18 @@
     position: fixed;
     right: 0;
     width: 400px;
+    z-index: 5;
+
+    .sidebar--right__bg {
+        @include single-transition(background-color, .5s, ease);
+        background-color: alpha-color($black, 0);
+        height: 100%;
+        left: -100%;
+        position: absolute;
+        top: 0;
+        visibility: hidden;
+        width: 300%;
+    }
 
     .post-body {
         img {
@@ -46,17 +58,29 @@
     }
 
     .sidebar--right__back {
-        @include opacity(.8);
+        @include single-transition(all, .2s, ease-in);
+        @include opacity(.5);
         color: inherit;
         display: inline-block;
-        font-size: 13px;
+        font-size: 26px;
         margin: 0 0 0 -14px;
         text-align: center;
+        vertical-align: top;
         width: 30px;
+
+        &:hover,
+        &:active {
+            color: inherit;
+            opacity: .8;
+        }
+
+        i {
+            position: relative;
+            top: -2px;
+        }
     }
 
     .sidebar-right__body {
-        @include border-radius(2px 0 0 0);
         @include display-flex;
         @include flex(1 1 auto);
         @include flex-direction(column);
@@ -79,18 +103,22 @@
         word-break: break-word;
     }
 
+    .sidebar--right__buttons {
+        float: right;
+    }
+
     .sidebar--right__close {
         @include single-transition(all, .2s, ease-in);
         background: none;
         border: none;
-        float: right;
-        font-size: 22px;
+        font-size: 20px;
         height: 22px;
         line-height: 0;
         margin: 11px 0 0;
         opacity: .5;
         outline: none;
-        width: 22px;
+        padding: 0;
+        width: 30px;
 
         &:hover,
         &:active {
@@ -99,7 +127,19 @@
 
         i {
             position: relative;
+        }
+    }
+
+    .sidebar--right__expand {
+        @extend .sidebar--right__close;
+        font-size: 17px;
+
+        i {
             top: -2px;
+        }
+
+        .fa-compress {
+            display: none;
         }
     }
 
@@ -110,7 +150,7 @@
         font-size: 1em;
         height: 44px;
         line-height: 44px;
-        padding: 0 1em;
+        padding: 0 5px 0 15px;
         text-transform: uppercase;
     }
 

@@ -25,6 +25,8 @@ export default class SidebarRight extends React.Component {
         this.onSearchChange = this.onSearchChange.bind(this);
         this.onUserChange = this.onUserChange.bind(this);
         this.onShowSearch = this.onShowSearch.bind(this);
+        this.onShrink = this.onShrink.bind(this);
+        this.toggleSize = this.toggleSize.bind(this);
 
         this.doStrangeThings = this.doStrangeThings.bind(this);
 
@@ -32,6 +34,7 @@ export default class SidebarRight extends React.Component {
             searchVisible: SearchStore.getSearchResults() !== null,
             isMentionSearch: SearchStore.getIsMentionSearch(),
             postRightVisible: !!PostStore.getSelectedPost(),
+            expanded: false,
             fromSearch: false,
             currentUser: UserStore.getCurrentUser(),
             useMilitaryTime: PreferenceStore.getBool(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, Constants.Preferences.USE_MILITARY_TIME, false)
@@ -110,6 +113,10 @@ export default class SidebarRight extends React.Component {
         });
     }
 
+    onShrink() {
+        this.setState({expanded: false});
+    }
+
     onSearchChange() {
         this.setState({
             searchVisible: SearchStore.getSearchResults() !== null,
@@ -131,14 +138,25 @@ export default class SidebarRight extends React.Component {
         }
     }
 
+    toggleSize() {
+        this.setState({expanded: !this.state.expanded});
+    }
+
     render() {
         let content = null;
+        let expandedClass = '';
+
+        if (this.state.expanded) {
+            expandedClass = 'sidebar--right--expanded';
+        }
 
         if (this.state.searchVisible) {
             content = (
                 <SearchResults
                     isMentionSearch={this.state.isMentionSearch}
                     useMilitaryTime={this.state.useMilitaryTime}
+                    toggleSize={this.toggleSize}
+                    shrink={this.onShrink}
                 />
             );
         } else if (this.state.postRightVisible) {
@@ -148,15 +166,21 @@ export default class SidebarRight extends React.Component {
                     isMentionSearch={this.state.isMentionSearch}
                     currentUser={this.state.currentUser}
                     useMilitaryTime={this.state.useMilitaryTime}
+                    toggleSize={this.toggleSize}
+                    shrink={this.onShrink}
                 />
             );
         }
 
         return (
             <div
-                className='sidebar--right'
+                className={'sidebar--right ' + expandedClass}
                 id='sidebar-right'
             >
+                <div
+                    onClick={this.onShrink}
+                    className='sidebar--right__bg'
+                />
                 <div className='sidebar-right-container'>
                     {content}
                 </div>
