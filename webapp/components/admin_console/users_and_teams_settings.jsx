@@ -86,7 +86,7 @@ export default class UsersAndTeamsSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.team.teamCreationDescription'
-                            defaultMessage='When false, the ability to create teams is disabled. The create team button displays error when pressed.'
+                            defaultMessage='When false, only System Administrators can create teams.'
                         />
                     }
                     value={this.state.enableTeamCreation}

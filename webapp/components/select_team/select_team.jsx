@@ -152,6 +152,16 @@ export default class SelectTeam extends React.Component {
 
         var isSystemAdmin = Utils.isSystemAdmin(UserStore.getCurrentUser().roles);
 
+        let teamHelp = null;
+        if (isSystemAdmin && (global.window.mm_config.EnableTeamCreation === 'false')) {
+            teamHelp = (
+                <FormattedMessage
+                    id='login.createTeamAdminOnly'
+                    defaultMessage='This option is only available for System Administrators, and does not show up for other users.'
+                />
+            );
+        }
+
         let teamSignUp;
         if (isSystemAdmin || (global.window.mm_config.EnableTeamCreation === 'true' && !Utils.isMobileApp())) {
             teamSignUp = (
@@ -165,6 +175,9 @@ export default class SelectTeam extends React.Component {
                             defaultMessage='Create a new team'
                         />
                     </Link>
+                    <div>
+                        {teamHelp}
+                    </div>
                 </div>
             );
         }
