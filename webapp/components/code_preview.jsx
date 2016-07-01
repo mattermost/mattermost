@@ -106,10 +106,12 @@ export default class CodePreview extends React.Component {
 
         const highlighted = SyntaxHighlighting.highlight(this.state.lang, this.state.code);
 
+        const fileName = this.props.filename.substring(this.props.filename.lastIndexOf('/') + 1, this.props.filename.length);
+
         return (
             <div className='post-code'>
                 <span className='post-code__language'>
-                    {`${this.props.filename} - ${language}`}
+                    {`${fileName} - ${language}`}
                 </span>
                 <code className='hljs'>
                     <table>
