@@ -279,8 +279,14 @@ func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 }
 
 func (c *Context) LogError(err *model.AppError) {
-	l4g.Error(utils.T("api.context.log.error"), c.Path, err.Where, err.StatusCode,
-		c.RequestId, c.Session.UserId, c.IpAddress, err.SystemMessage(utils.T), err.DetailedError)
+
+	// filter out endless reconnects
+	if c.Path == "/api/v3/users/websocket" && err.StatusCode == 401 {
+		c.LogDebug(err)
+	} else {
+		l4g.Error(utils.T("api.context.log.error"), c.Path, err.Where, err.StatusCode,
+			c.RequestId, c.Session.UserId, c.IpAddress, err.SystemMessage(utils.T), err.DetailedError)
+	}
 }
 
 func (c *Context) LogDebug(err *model.AppError) {
