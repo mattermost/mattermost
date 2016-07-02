@@ -447,7 +447,7 @@ class InviteMemberModal extends React.Component {
                         <p>
                             <FormattedMessage
                                 id='invite_member.content'
-                                defaultMessage='Email is currently disabled for your team, and email invitations cannot be sent. Contact your system administrator to enable email and email invitations.'
+                                defaultMessage='Email is currently disabled for your team, and email invitations cannot be sent. Contact your System Administrator to enable email and email invitations.'
                             />
                         </p>
                         {teamInviteLink}
@@ -459,7 +459,7 @@ class InviteMemberModal extends React.Component {
                         <p>
                             <FormattedMessage
                                 id='invite_member.disabled'
-                                defaultMessage='User creation has been disabled for your team. Please ask your team administrator for details.'
+                                defaultMessage='User creation has been disabled for your team. Please ask your Team Administrator for details.'
                             />
                         </p>
                     </div>
