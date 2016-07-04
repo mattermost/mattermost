@@ -39,18 +39,17 @@
 
 .backstage-content {
     background-color: $bg--gray;
-    display: inline-block;
-    margin: 46px;
+    margin: 46px auto;
     max-width: 960px;
+    padding-left: 135px;
     vertical-align: top;
-    width: 100%;
 }
 
 .backstage-sidebar {
-    display: inline-block;
-    margin: 46px 20px;
-    width: 240px;
+    padding: 46px 20px;
+    position: absolute;
     vertical-align: top;
+    width: 260px;
 
     ul {
         list-style: none;
