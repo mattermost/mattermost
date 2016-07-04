@@ -63,7 +63,7 @@ class EmojiStore extends EventEmitter {
     }
 
     removeCustomEmoji(id) {
-        for (const [, emoji] of this.customEmojis) {
+        for (const [name, emoji] of this.customEmojis) {
             if (emoji.id === id) {
                 this.customEmojis.delete(name);
                 break;
