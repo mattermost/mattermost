@@ -1301,11 +1301,11 @@
   },
   {
     "id": "api.team.invite_members.restricted_system_admin.app_error",
-    "translation": "Inviting new users to a team is restricted to System Administrators."
+    "translation": "新しいユーザーをチームに招待できるのは、システム管理者だけです。"
   },
   {
     "id": "api.team.invite_members.restricted_team_admin.app_error",
-    "translation": "Inviting new users to a team is restricted to Team and System Administrators."
+    "translation": "新しいユーザーをチームに招待できるのは、チーム管理者とシステム管理者だけです。"
   },
   {
     "id": "api.team.invite_members.send.error",
@@ -2518,6 +2518,14 @@
   {
     "id": "model.config.is_valid.file_thumb_width.app_error",
     "translation": "ファイル設定のサムネイルの幅が不正です。ゼロ以上の数を指定してください。"
+  },
+  {
+    "id": "model.config.is_valid.ldap_max_page_size.app_error",
+    "translation": "Invalid max page size value."
+  },
+  {
+    "id": "model.config.is_valid.ldap_required.app_error",
+    "translation": "必要なLDAPフィールドがありません。"
   },
   {
     "id": "model.config.is_valid.ldap_required.app_error",
