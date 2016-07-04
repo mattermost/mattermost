@@ -53,54 +53,70 @@ class ChannelStoreClass extends EventEmitter {
         this.extraInfos = {};
         this.unreadCounts = {};
     }
+
     get POST_MODE_CHANNEL() {
         return 1;
     }
+
     get POST_MODE_FOCUS() {
         return 2;
     }
+
     emitChange() {
         this.emit(CHANGE_EVENT);
     }
+
     addChangeListener(callback) {
         this.on(CHANGE_EVENT, callback);
     }
+
     removeChangeListener(callback) {
         this.removeListener(CHANGE_EVENT, callback);
     }
+
     emitMoreChange() {
         this.emit(MORE_CHANGE_EVENT);
     }
+
     addMoreChangeListener(callback) {
         this.on(MORE_CHANGE_EVENT, callback);
     }
+
     removeMoreChangeListener(callback) {
         this.removeListener(MORE_CHANGE_EVENT, callback);
     }
+
     emitExtraInfoChange() {
         this.emit(EXTRA_INFO_EVENT);
     }
+
     addExtraInfoChangeListener(callback) {
         this.on(EXTRA_INFO_EVENT, callback);
     }
+
     removeExtraInfoChangeListener(callback) {
         this.removeListener(EXTRA_INFO_EVENT, callback);
     }
     emitLeave(id) {
         this.emit(LEAVE_EVENT, id);
     }
+
     addLeaveListener(callback) {
         this.on(LEAVE_EVENT, callback);
     }
+
     removeLeaveListener(callback) {
         this.removeListener(LEAVE_EVENT, callback);
     }
+
     findFirstBy(field, value) {
         return this.doFindFirst(field, value, this.getChannels());
     }
+
     findFirstMoreBy(field, value) {
         return this.doFindFirst(field, value, this.getMoreChannels());
     }
+
     doFindFirst(field, value, channels) {
         for (var i = 0; i < channels.length; i++) {
             if (channels[i][field] === value) {
@@ -110,33 +126,43 @@ class ChannelStoreClass extends EventEmitter {
 
         return null;
     }
+
     get(id) {
         return this.findFirstBy('id', id);
     }
+
     getMember(id) {
         return this.getAllMembers()[id];
     }
+
     getByName(name) {
         return this.findFirstBy('name', name);
     }
+
     getByDisplayName(displayName) {
         return this.findFirstBy('display_name', displayName);
     }
+
     getMoreByName(name) {
         return this.findFirstMoreBy('name', name);
     }
+
     getAll() {
         return this.getChannels();
     }
+
     getAllMembers() {
         return this.getChannelMembers();
     }
+
     getMoreAll() {
         return this.getMoreChannels();
     }
+
     setCurrentId(id) {
         this.currentId = id;
     }
+
     resetCounts(id) {
         const cm = this.channelMembers;
         for (var cmid in cm) {
@@ -151,9 +177,11 @@ class ChannelStoreClass extends EventEmitter {
             }
         }
     }
+
     getCurrentId() {
         return this.currentId;
     }
+
     getCurrent() {
         var currentId = this.getCurrentId();
 
@@ -163,6 +191,7 @@ class ChannelStoreClass extends EventEmitter {
 
         return null;
     }
+
     getCurrentMember() {
         var currentId = this.getCurrentId();
 
@@ -172,15 +201,18 @@ class ChannelStoreClass extends EventEmitter {
 
         return null;
     }
+
     setChannelMember(member) {
         var members = this.getChannelMembers();
         members[member.channel_id] = member;
         this.storeChannelMembers(members);
         this.emitChange();
     }
+
     getCurrentExtraInfo() {
         return this.getExtraInfo(this.getCurrentId());
     }
+
     getExtraInfo(channelId) {
         var extra = null;
 
@@ -197,6 +229,7 @@ class ChannelStoreClass extends EventEmitter {
 
         return extra;
     }
+
     pStoreChannel(channel) {
         var channels = this.getChannels();
         var found;
@@ -220,35 +253,45 @@ class ChannelStoreClass extends EventEmitter {
         channels.sort(Utils.sortByDisplayName);
         this.storeChannels(channels);
     }
+
     storeChannels(channels) {
         this.channels = channels;
     }
+
     getChannels() {
         return this.channels;
     }
+
     pStoreChannelMember(channelMember) {
         var members = this.getChannelMembers();
         members[channelMember.channel_id] = channelMember;
         this.storeChannelMembers(members);
     }
+
     storeChannelMembers(channelMembers) {
         this.channelMembers = channelMembers;
     }
+
     getChannelMembers() {
         return this.channelMembers;
     }
+
     storeMoreChannels(channels) {
         this.moreChannels = channels;
     }
+
     getMoreChannels() {
         return this.moreChannels;
     }
+
     storeExtraInfos(extraInfos) {
         this.extraInfos = extraInfos;
     }
+
     getExtraInfos() {
         return this.extraInfos;
     }
+
     isDefault(channel) {
         return channel.name === Constants.DEFAULT_CHANNEL;
     }

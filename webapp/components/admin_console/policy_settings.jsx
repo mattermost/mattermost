@@ -89,7 +89,7 @@ export default class PolicySettings extends AdminSettings {
                     helpText={
                         <FormattedHTMLMessage
                             id='admin.general.policy.restrictPublicChannelManagementDescription'
-                            defaultMessage='Selecting "All team members" allows any team members to create, rename, and set the header or purpose for public channels.<br/><br/>Selecting "Team and System Admins" restricts channel management permissions for public channels to Team and System Admins, including creating, renaming, and setting the channel header or purpose.<br/><br/>Selecting "System Admins" restricts channel management permissions for public channels to System Admins, including creating, renaming, and setting the channel header or purpose.'
+                            defaultMessage='Selecting "All team members" allows any team members to create, delete, rename, and set the header or purpose for public channels.<br/><br/>Selecting "Team and System Admins" restricts channel management permissions for public channels to Team and System Admins, including creating, deleting, renaming, and setting the channel header or purpose.<br/><br/>Selecting "System Admins" restricts channel management permissions for public channels to System Admins, including creating, deleting, renaming, and setting the channel header or purpose.'
                         />
                     }
                 />
@@ -111,7 +111,7 @@ export default class PolicySettings extends AdminSettings {
                     helpText={
                         <FormattedHTMLMessage
                             id='admin.general.policy.restrictPrivateChannelManagementDescription'
-                            defaultMessage='Selecting "All team members" allows any team members to create, rename, and set the header or purpose for private groups.<br/><br/>Selecting "Team and System Admins" restricts group management permissions for private groups to Team and System Admins, including creating, renaming, and setting the group header or purpose.<br/><br/>Selecting "System Admins" restricts group management permissions for private groups to System Admins, including creating, renaming, and setting the group header or purpose.'
+                            defaultMessage='Selecting "All team members" allows any team members to create, delete, rename, and set the header or purpose for private groups.<br/><br/>Selecting "Team and System Admins" restricts group management permissions for private groups to Team and System Admins, including creating, deleting, renaming, and setting the group header or purpose.<br/><br/>Selecting "System Admins" restricts group management permissions for private groups to System Admins, including creating, deleting, renaming, and setting the group header or purpose.'
                         />
                     }
                 />

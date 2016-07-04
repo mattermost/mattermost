@@ -977,8 +977,11 @@ func TestDeleteChannel(t *testing.T) {
 
 	channel2 = th.CreateChannel(Client, team)
 	channel3 = th.CreatePrivateChannel(Client, team)
+	channel4 := th.CreateChannel(Client, team)
 	Client.Must(Client.AddChannelMember(channel2.Id, th.BasicUser.Id))
 	Client.Must(Client.AddChannelMember(channel3.Id, th.BasicUser.Id))
+	Client.Must(Client.AddChannelMember(channel4.Id, th.BasicUser.Id))
+	Client.Must(Client.LeaveChannel(channel4.Id))
 
 	Client.Login(th.BasicUser.Email, th.BasicUser.Password)
 
@@ -1037,6 +1040,11 @@ func TestDeleteChannel(t *testing.T) {
 	}
 	if _, err := Client.DeleteChannel(channel3.Id); err == nil {
 		t.Fatal("should have errored not system admin")
+	}
+
+	// Only one left in channel, should be able to delete
+	if _, err := Client.DeleteChannel(channel4.Id); err != nil {
+		t.Fatal(err)
 	}
 
 	th.LoginSystemAdmin()

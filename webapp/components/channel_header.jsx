@@ -382,6 +382,27 @@ export default class ChannelHeader extends React.Component {
                 </li>
             );
 
+            const deleteOption = (
+                <li
+                    key='delete_channel'
+                    role='presentation'
+                >
+                    <ToggleModalButton
+                        role='menuitem'
+                        dialogType={DeleteChannelModal}
+                        dialogProps={{channel}}
+                    >
+                        <FormattedMessage
+                            id='channel_header.delete'
+                            defaultMessage='Delete {term}...'
+                            values={{
+                                term: (channelTerm)
+                            }}
+                        />
+                    </ToggleModalButton>
+                </li>
+            );
+
             if (this.showManagementOptions(channel, isAdmin, isSystemAdmin)) {
                 dropdownContents.push(
                     <li
@@ -447,27 +468,10 @@ export default class ChannelHeader extends React.Component {
                 );
 
                 if (!ChannelStore.isDefault(channel)) {
-                    dropdownContents.push(
-                        <li
-                            key='delete_channel'
-                            role='presentation'
-                        >
-                            <ToggleModalButton
-                                role='menuitem'
-                                dialogType={DeleteChannelModal}
-                                dialogProps={{channel}}
-                            >
-                                <FormattedMessage
-                                    id='channel_header.delete'
-                                    defaultMessage='Delete {term}...'
-                                    values={{
-                                        term: (channelTerm)
-                                    }}
-                                />
-                            </ToggleModalButton>
-                        </li>
-                    );
+                    dropdownContents.push(deleteOption);
                 }
+            } else if (this.state.userCount === 1) {
+                dropdownContents.push(deleteOption);
             }
 
             const canLeave = channel.type === Constants.PRIVATE_CHANNEL ? this.state.userCount > 1 : true;

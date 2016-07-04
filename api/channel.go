@@ -686,6 +686,7 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	sc := Srv.Store.Channel().Get(id)
 	scm := Srv.Store.Channel().GetMember(id, c.Session.UserId)
+	cmc := Srv.Store.Channel().GetMemberCount(id)
 	uc := Srv.Store.User().Get(c.Session.UserId)
 	ihc := Srv.Store.Webhook().GetIncomingByChannel(id)
 	ohc := Srv.Store.Webhook().GetOutgoingByChannel(id)
@@ -699,6 +700,9 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else if scmresult := <-scm; scmresult.Err != nil {
 		c.Err = scmresult.Err
 		return
+	} else if cmcresult := <-cmc; cmcresult.Err != nil {
+		c.Err = cmcresult.Err
+		return
 	} else if ihcresult := <-ihc; ihcresult.Err != nil {
 		c.Err = ihcresult.Err
 		return
@@ -707,14 +711,18 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		channel := cresult.Data.(*model.Channel)
+		memberCount := cmcresult.Data.(int64)
 		user := uresult.Data.(*model.User)
 		incomingHooks := ihcresult.Data.([]*model.IncomingWebhook)
 		outgoingHooks := ohcresult.Data.([]*model.OutgoingWebhook)
 		// Don't need to do anything with channel member, just wanted to confirm it exists
 
-		if err := CanManageChannel(c, channel); err != nil {
-			c.Err = err
-			return
+		// Allow delete if user is the only member left in channel
+		if memberCount > 1 {
+			if err := CanManageChannel(c, channel); err != nil {
+				c.Err = err
+				return
+			}
 		}
 
 		if !c.HasPermissionsToTeam(channel.TeamId, "deleteChannel") {
