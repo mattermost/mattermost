@@ -95,24 +95,6 @@ class WebClientClass extends Client {
             return success(res.body);
         });
     }
-
-    uploadCertificateFile(file, success, error) {
-        request.
-        post(`${this.getAdminRoute()}/add_certificate`).
-        set(this.defaultHeaders).
-        accept('application/json').
-        attach('certificate', file, file.name).
-        end(this.handleResponse.bind(this, 'uploadCertificateFile', success, error));
-    }
-
-    removeCertificateFile(filename, success, error) {
-        request.
-        post(`${this.getAdminRoute()}/remove_certificate`).
-        set(this.defaultHeaders).
-        accept('application/json').
-        send({filename}).
-        end(this.handleResponse.bind(this, 'removeCertificateFile', success, error));
-    }
 }
 
 var WebClient = new WebClientClass();
