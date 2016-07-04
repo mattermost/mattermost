@@ -620,6 +620,24 @@ class SecurityTab extends React.Component {
                 );
             }
 
+            let samlOption;
+            if (global.window.mm_config.EnableSaml === 'true' && user.auth_service === '') {
+                samlOption = (
+                    <div>
+                        <Link
+                            className='btn btn-primary'
+                            to={'/claim/email_to_oauth?email=' + encodeURIComponent(user.email) + '&old_type=' + user.auth_service + '&new_type=' + Constants.SAML_SERVICE}
+                        >
+                            <FormattedMessage
+                                id='user.settings.security.switchSaml'
+                                defaultMessage='Switch to using SAML SSO'
+                            />
+                        </Link>
+                        <br/>
+                    </div>
+                );
+            }
+
             const inputs = [];
             inputs.push(
                 <div key='userSignInOption'>
@@ -627,6 +645,7 @@ class SecurityTab extends React.Component {
                     {gitlabOption}
                     <br/>
                     {ldapOption}
+                    {samlOption}
                     {googleOption}
                 </div>
             );
@@ -681,6 +700,13 @@ class SecurityTab extends React.Component {
                     defaultMessage='LDAP'
                 />
             );
+        } else if (this.props.user.auth_service === Constants.SAML_SERVICE) {
+            describe = (
+                <FormattedMessage
+                    id='user.settings.security.saml'
+                    defaultMessage='SAML'
+                />
+            );
         }
 
         return (
@@ -701,6 +727,7 @@ class SecurityTab extends React.Component {
         numMethods = global.window.mm_config.EnableSignUpWithGitLab === 'true' ? numMethods + 1 : numMethods;
         numMethods = global.window.mm_config.EnableSignUpWithGoogle === 'true' ? numMethods + 1 : numMethods;
         numMethods = global.window.mm_config.EnableLdap === 'true' ? numMethods + 1 : numMethods;
+        numMethods = global.window.mm_config.EnableSaml === 'true' ? numMethods + 1 : numMethods;
 
         let signInSection;
         if (global.window.mm_config.EnableSignUpWithEmail === 'true' && numMethods > 0) {

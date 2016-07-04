@@ -41,6 +41,7 @@ func InitAdmin() {
 	BaseRoutes.Admin.Handle("/reset_mfa", ApiAdminSystemRequired(adminResetMfa)).Methods("POST")
 	BaseRoutes.Admin.Handle("/reset_password", ApiAdminSystemRequired(adminResetPassword)).Methods("POST")
 	BaseRoutes.Admin.Handle("/ldap_sync_now", ApiAdminSystemRequired(ldapSyncNow)).Methods("POST")
+	BaseRoutes.Admin.Handle("/saml_metadata", ApiAppHandler(samlMetadata)).Methods("GET")
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -581,4 +582,23 @@ func ldapSyncNow(c *Context, w http.ResponseWriter, r *http.Request) {
 	rdata := map[string]string{}
 	rdata["status"] = "ok"
 	w.Write([]byte(model.MapToJson(rdata)))
+}
+
+func samlMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
+	samlInterface := einterfaces.GetSamlInterface()
+
+	if samlInterface == nil {
+		c.Err = model.NewLocAppError("loginWithSaml", "api.admin.saml.not_available.app_error", nil, "")
+		c.Err.StatusCode = http.StatusFound
+		return
+	}
+
+	if result, err := samlInterface.GetMetadata(); err != nil {
+		c.Err = model.NewLocAppError("loginWithSaml", "api.admin.saml.metadata.app_error", nil, "err="+err.Message)
+		return
+	} else {
+		w.Header().Set("Content-Type", "application/xml")
+		w.Header().Set("Content-Disposition", "attachment; filename=\"metadata.xml\"")
+		w.Write([]byte(result))
+	}
 }

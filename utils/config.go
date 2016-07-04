@@ -192,6 +192,10 @@ func LoadConfig(fileName string) {
 		// This restarts the job if nessisary (works for config reloads)
 		ldapI.StartLdapSyncJob()
 	}
+
+	if samlI := einterfaces.GetSamlInterface(); samlI != nil {
+		samlI.ConfigureSP()
+	}
 }
 
 func getClientConfig(c *model.Config) map[string]string {
@@ -276,6 +280,11 @@ func getClientConfig(c *model.Config) map[string]string {
 
 		if *License.Features.Compliance {
 			props["EnableCompliance"] = strconv.FormatBool(*c.ComplianceSettings.Enable)
+		}
+
+		if *License.Features.SAML {
+			props["EnableSaml"] = strconv.FormatBool(*c.SamlSettings.Enable)
+			props["SamlLoginButtonText"] = *c.SamlSettings.LoginButtonText
 		}
 	}
 

@@ -477,6 +477,11 @@ func RenderWebError(err *model.AppError, w http.ResponseWriter, r *http.Request)
 	link := "/"
 	linkMessage := T("api.templates.error.link")
 
+	status := http.StatusTemporaryRedirect
+	if err.StatusCode != http.StatusInternalServerError {
+		status = err.StatusCode
+	}
+
 	http.Redirect(
 		w,
 		r,
@@ -485,7 +490,7 @@ func RenderWebError(err *model.AppError, w http.ResponseWriter, r *http.Request)
 			"&details="+url.QueryEscape(details)+
 			"&link="+url.QueryEscape(link)+
 			"&linkmessage="+url.QueryEscape(linkMessage),
-		http.StatusTemporaryRedirect)
+		status)
 }
 
 func Handle404(w http.ResponseWriter, r *http.Request) {
