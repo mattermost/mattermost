@@ -9,15 +9,17 @@ import EmojiStore from 'stores/emoji_store.jsx';
 import BackstageHeader from 'components/backstage/components/backstage_header.jsx';
 import {FormattedMessage} from 'react-intl';
 import FormError from 'components/form_error.jsx';
-import {browserHistory, Link} from 'react-router';
+import {Link} from 'react-router';
 import SpinnerButton from 'components/spinner_button.jsx';
 
 export default class AddEmoji extends React.Component {
-    static get propTypes() {
-        return {
-            team: React.PropTypes.object.isRequired,
-            user: React.PropTypes.object.isRequired
-        };
+    static propTypes = {
+        team: React.PropTypes.object.isRequired,
+        user: React.PropTypes.object.isRequired
+    }
+
+    static contextTypes = {
+        router: React.PropTypes.object.isRequired
     }
 
     constructor(props) {
@@ -110,7 +112,8 @@ export default class AddEmoji extends React.Component {
             emoji,
             this.state.image,
             () => {
-                browserHistory.push('/' + this.props.team.name + '/emoji');
+                // for some reason, browserHistory.push doesn't trigger a state change even though the url changes
+                this.context.router.push('/' + this.props.team.name + '/emoji');
             },
             (err) => {
                 this.setState({
