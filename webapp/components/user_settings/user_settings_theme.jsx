@@ -76,11 +76,16 @@ export default class ThemeSetting extends React.Component {
             theme.codeTheme = Constants.DEFAULT_CODE_THEME;
         }
 
-        // show the "apply to all teams" checkbox if the user is on more than one team
-        const showAllTeamsCheckbox = Object.keys(TeamStore.getAll()).length > 1;
+        let showAllTeamsCheckbox = false;
+        let applyToAllTeams = true;
 
-        // check the "apply to all teams" checkbox by default if the user has any team-specific themes
-        const applyToAllTeams = PreferenceStore.getCategory(Preferences.CATEGORY_THEME).size === 1;
+        if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.LDAP === 'true') {
+            // show the "apply to all teams" checkbox if the user is on more than one team
+            showAllTeamsCheckbox = Object.keys(TeamStore.getAll()).length > 1;
+
+            // check the "apply to all teams" checkbox by default if the user has any team-specific themes
+            applyToAllTeams = PreferenceStore.getCategory(Preferences.CATEGORY_THEME).size <= 1;
+        }
 
         return {
             teamId: TeamStore.getCurrentId(),
