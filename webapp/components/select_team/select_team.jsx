@@ -49,10 +49,10 @@ export default class SelectTeam extends React.Component {
     }
 
     render() {
-        var content;
-
-        var teamContents = [];
-        var isAlreadyMember = new Map();
+        let content = null;
+        let teamContents = [];
+        const isAlreadyMember = new Map();
+        const isSystemAdmin = Utils.isSystemAdmin(UserStore.getCurrentUser().roles);
 
         for (var index in this.state.teamMembers) {
             if (this.state.teamMembers.hasOwnProperty(index)) {
@@ -78,33 +78,6 @@ export default class SelectTeam extends React.Component {
             }
         }
 
-        if (!teamContents || teamContents.length === 0) {
-            teamContents = (
-                <div className='signup-team-dir-err'>
-                    <div>
-                        <FormattedMessage
-                            id='signup_team.no_teams'
-                            defaultMessage='You do not appear to be a member of any team.  Please ask your administrator for an invite, join an open team if one exists or possibly create a new team.'
-                        />
-                    </div>
-                </div>
-            );
-        }
-
-        content = (
-            <div className='signup__content'>
-                <h4>
-                    <FormattedMessage
-                        id='signup_team.choose'
-                        defaultMessage='Teams you are a member of:'
-                    />
-                </h4>
-                <div className='signup-team-all'>
-                    {teamContents}
-                </div>
-            </div>
-        );
-
         var openTeamContents = [];
 
         for (var id in this.state.teamListings) {
@@ -129,6 +102,70 @@ export default class SelectTeam extends React.Component {
             }
         }
 
+        if (!this.state.teamListings.length && (global.window.mm_config.EnableTeamCreation === 'true' || isSystemAdmin)) {
+            teamContents = (
+                <div className='signup-team-dir-err'>
+                    <div>
+                        <FormattedMessage
+                            id='signup_team.no_teams_canCreate'
+                            defaultMessage='No teams have been created. You may create one by clicking "Create a new team".'
+                        />
+                    </div>
+                </div>
+            );
+        } else if (!this.state.teamListings.length) {
+            teamContents = (
+                <div className='signup-team-dir-err'>
+                    <div>
+                        <FormattedMessage
+                            id='signup_team.no_teams'
+                            defaultMessage='No teams have been created. Please contact your administrator.'
+                        />
+                    </div>
+                </div>
+            );
+        } else if (teamContents.length === 0 && openTeamContents.length === 0 && (global.window.mm_config.EnableTeamCreation === 'true' || isSystemAdmin)) {
+            teamContents = (
+                <div className='signup-team-dir-err'>
+                    <div>
+                        <FormattedMessage
+                            id='signup_team.no_open_teams_canCreate'
+                            defaultMessage='No open teams have been created. Please ask your administrator for an invite or create a new team.'
+                        />
+                    </div>
+                </div>
+            );
+        } else if (teamContents.length === 0 && openTeamContents.length === 0) {
+            teamContents = (
+                <div className='signup-team-dir-err'>
+                    <div>
+                        <FormattedMessage
+                            id='signup_team.no_open_teams'
+                            defaultMessage='No open teams have been created. Please ask your administrator for an invite.'
+                        />
+                    </div>
+                </div>
+            );
+        } else if (teamContents.length === 0 && openTeamContents.length > 0) {
+            teamContents = null;
+        }
+
+        if (teamContents) {
+            content = (
+                <div className='signup__content'>
+                    <h4>
+                        <FormattedMessage
+                            id='signup_team.choose'
+                            defaultMessage='Teams you are a member of:'
+                        />
+                    </h4>
+                    <div className='signup-team-all'>
+                        {teamContents}
+                    </div>
+                </div>
+            );
+        }
+
         var openContent;
         if (openTeamContents.length > 0) {
             openContent = (
@@ -149,8 +186,6 @@ export default class SelectTeam extends React.Component {
         if (!this.state.loaded) {
             openContent = <LoadingScreen/>;
         }
-
-        var isSystemAdmin = Utils.isSystemAdmin(UserStore.getCurrentUser().roles);
 
         let teamHelp = null;
         if (isSystemAdmin && (global.window.mm_config.EnableTeamCreation === 'false')) {
