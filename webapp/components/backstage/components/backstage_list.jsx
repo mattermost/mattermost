@@ -10,20 +10,17 @@ import LoadingScreen from 'components/loading_screen.jsx';
 
 export default class BackstageList extends React.Component {
     static propTypes = {
-        listClassName: React.PropTypes.string,
         children: React.PropTypes.node,
         header: React.PropTypes.node.isRequired,
         addLink: React.PropTypes.string,
         addText: React.PropTypes.node,
         emptyText: React.PropTypes.node,
         loading: React.PropTypes.bool.isRequired,
-        searchPlaceholder: React.PropTypes.string,
-        type: React.PropTypes.oneOf(['table', 'list'])
+        searchPlaceholder: React.PropTypes.string
     }
 
     static defaultProps = {
-        searchPlaceholder: Utils.localizeMessage('backstage.search', 'Search'),
-        type: 'list'
+        searchPlaceholder: Utils.localizeMessage('backstage.search', 'Search')
     }
 
     constructor(props) {
@@ -81,19 +78,6 @@ export default class BackstageList extends React.Component {
             );
         }
 
-        let listClassName = 'backstage-list';
-        if (this.props.listClassName) {
-            listClassName += ' ' + this.props.listClassName;
-        }
-
-        if (this.props.type === 'table') {
-            children = (
-                <table>
-                    {children}
-                </table>
-            );
-        }
-
         return (
             <div className='backstage-content'>
                 <div className='backstage-header'>
@@ -115,7 +99,7 @@ export default class BackstageList extends React.Component {
                         />
                     </div>
                 </div>
-                <div className={listClassName}>
+                <div className='backstage-list'>
                     {children}
                 </div>
             </div>
