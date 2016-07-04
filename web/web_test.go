@@ -20,6 +20,7 @@ var URL string
 
 func Setup() {
 	if api.Srv == nil {
+		utils.TranslationsPreInit()
 		utils.LoadConfig("config.json")
 		utils.InitTranslations(utils.Cfg.LocalizationSettings)
 		api.NewServer()

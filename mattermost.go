@@ -74,12 +74,12 @@ func doLoadConfig(filename string) (err string) {
 			err = fmt.Sprintf("%v", r)
 		}
 	}()
+	utils.TranslationsPreInit()
 	utils.LoadConfig(filename)
 	return ""
 }
 
 func main() {
-
 	parseCmds()
 
 	if errstr := doLoadConfig(flagConfigFile); errstr != "" {
