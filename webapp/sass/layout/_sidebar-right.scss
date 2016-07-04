@@ -14,11 +14,16 @@
         @include single-transition(background-color, .5s, ease);
         background-color: alpha-color($black, 0);
         height: 100%;
-        left: -100%;
         position: absolute;
         top: 0;
         visibility: hidden;
         width: 300%;
+    }
+
+    &.move--left {
+        .sidebar--right__bg {
+            left: -100%;
+        }
     }
 
     .post-body {
