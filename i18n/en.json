@@ -2196,6 +2196,18 @@
     "translation": "An error occurred while configuring SAML Service Provider, err=%v"
   },
   {
+    "id": "ent.saml.configure.load_idp_cert.app_error",
+    "translation": "SAML Idp Certificate File does not exists"
+  },
+  {
+    "id": "ent.saml.configure.load_private_key.app_error",
+    "translation": "SAML Private Key File does not exists"
+  },
+  {
+    "id": "ent.saml.configure.load_public_cert.app_error",
+    "translation": "SAML Public Certificate File does not exists"
+  },
+  {
     "id": "ent.saml.do_login.decrypt.app_error",
     "translation": "An error occurred while decrypting the response from the Identity Provider"
   },
@@ -2218,6 +2230,10 @@
   {
     "id": "ent.saml.metadata.app_error",
     "translation": "An error occurred while building Service Provider Metadata"
+  },
+  {
+    "id": "ent.saml.service_disable.app_error",
+    "translation": "SAML is not configured or supported on this server"
   },
   {
     "id": "ent.saml.update_saml_user.unable_error",
@@ -2576,6 +2592,14 @@
     "translation": "Invalid thumbnail width for file settings.  Must be a positive number."
   },
   {
+    "id": "model.config.is_valid.ldap_max_page_size.app_error",
+    "translation": "Invalid max page size value."
+  },
+  {
+    "id": "model.config.is_valid.ldap_required.app_error",
+    "translation": "Required LDAP field missing."
+  },
+  {
     "id": "model.config.is_valid.ldap_required.app_error",
     "translation": "Required LDAP field missing."
   },
@@ -2586,14 +2610,6 @@
   {
     "id": "model.config.is_valid.ldap_sync_interval.app_error",
     "translation": "Invalid sync interval time. Must be at least one minute."
-  },
-  {
-    "id": "model.config.is_valid.ldap_required.app_error",
-    "translation": "Required LDAP field missing."
-  },
-  {
-    "id": "model.config.is_valid.ldap_max_page_size.app_error",
-    "translation": "Invalid max page size value."
   },
   {
     "id": "model.config.is_valid.listen_address.app_error",
@@ -2632,12 +2648,36 @@
     "translation": "Invalid Email attribute for SAML settings. Must be set."
   },
   {
+    "id": "model.config.is_valid.saml_first_name_attribute.app_error",
+    "translation": "Invalid First Name attribute for SAML settings. Must be set."
+  },
+  {
+    "id": "model.config.is_valid.saml_idp_cert.app_error",
+    "translation": "Idp Certificate File missing in SAML Settings"
+  },
+  {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
     "translation": "Invalid Identity Provider Descriptor URL for SAML settings. Must be set."
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
     "translation": "Invalid Identity Provider URL for SAML settings. Must be set."
+  },
+  {
+    "id": "model.config.is_valid.saml_last_name_attribute.app_error",
+    "translation": "Invalid Last Name attribute for SAML settings. Must be set."
+  },
+  {
+    "id": "model.config.is_valid.saml_private_key.app_error",
+    "translation": "Private Key File missing in SAML Settings"
+  },
+  {
+    "id": "model.config.is_valid.saml_public_cert.app_error",
+    "translation": "Public Certificate File missing in SAML Settings"
+  },
+  {
+    "id": "model.config.is_valid.saml_username_attribute.app_error",
+    "translation": "Invalid Username attribute for SAML settings. Must be set."
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",
@@ -4370,29 +4410,5 @@
   {
     "id": "web.watcher_fail.error",
     "translation": "Failed to add directory to watcher %v"
-  },
-  {
-    "id": "model.config.is_valid.saml_idp_cert.app_error",
-    "translation": "Idp Certificate File missing in SAML Settings"
-  },
-  {
-    "id": "model.config.is_valid.saml_public_cert.app_error",
-    "translation": "Public Certificate File missing in SAML Settings"
-  },
-  {
-    "id": "model.config.is_valid.saml_private_key.app_error",
-    "translation": "Private Key File missing in SAML Settings"
-  },
-  {
-    "id": "ent.saml.configure.load_private_key.app_error",
-    "translation": "SAML Private Key File does not exists"
-  },
-  {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "SAML Idp Certificate File does not exists"
-  },
-  {
-    "id": "ent.saml.configure.load_public_cert.app_error",
-    "translation": "SAML Public Certificate File does not exists"
   }
 ]

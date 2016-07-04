@@ -852,10 +852,6 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if *o.SamlSettings.Enable {
-		if len(*o.SamlSettings.EmailAttribute) == 0 {
-			return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_email_attribute.app_error", nil, "")
-		}
-
 		if len(*o.SamlSettings.IdpUrl) == 0 {
 			return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_idp_url.app_error", nil, "")
 		}
@@ -866,6 +862,22 @@ func (o *Config) IsValid() *AppError {
 
 		if len(*o.SamlSettings.IdpCertificateFile) == 0 {
 			return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_idp_cert.app_error", nil, "")
+		}
+
+		if len(*o.SamlSettings.EmailAttribute) == 0 {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_email_attribute.app_error", nil, "")
+		}
+
+		if len(*o.SamlSettings.UsernameAttribute) == 0 {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_username_attribute.app_error", nil, "")
+		}
+
+		if len(*o.SamlSettings.FirstNameAttribute) == 0 {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_first_name_attribute.app_error", nil, "")
+		}
+
+		if len(*o.SamlSettings.LastNameAttribute) == 0 {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_last_name_attribute.app_error", nil, "")
 		}
 
 		if *o.SamlSettings.Verify {
