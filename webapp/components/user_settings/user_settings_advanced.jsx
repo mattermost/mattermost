@@ -20,6 +20,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
     constructor(props) {
         super(props);
 
+        this.getStateFromStores = this.getStateFromStores.bind(this);
         this.updateSection = this.updateSection.bind(this);
         this.updateSetting = this.updateSetting.bind(this);
         this.toggleFeature = this.toggleFeature.bind(this);
@@ -27,6 +28,10 @@ export default class AdvancedSettingsDisplay extends React.Component {
 
         this.renderFormattingSection = this.renderFormattingSection.bind(this);
 
+        this.state = this.getStateFromStores();
+    }
+
+    getStateFromStores() {
         const preReleaseFeaturesKeys = Object.keys(PreReleaseFeatures);
         const advancedSettings = PreferenceStore.getCategory(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS);
         const settings = {
@@ -57,7 +62,11 @@ export default class AdvancedSettingsDisplay extends React.Component {
             }
         }
 
-        this.state = {preReleaseFeatures: PreReleaseFeatures, settings, preReleaseFeaturesKeys, enabledFeatures};
+        return {preReleaseFeatures: PreReleaseFeatures,
+            settings,
+            preReleaseFeaturesKeys,
+            enabledFeatures
+        };
     }
 
     updateSetting(setting, value) {
@@ -118,6 +127,9 @@ export default class AdvancedSettingsDisplay extends React.Component {
 
     updateSection(section) {
         $('.settings-modal .modal-body').scrollTop(0).perfectScrollbar('update');
+        if (!section) {
+            this.setState(this.getStateFromStores());
+        }
         this.props.updateSection(section);
     }
 
