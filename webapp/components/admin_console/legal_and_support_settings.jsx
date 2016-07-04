@@ -141,7 +141,7 @@ export default class LegalAndSupportSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.support.emailTitle'
-                            defaultMessage='Support email:'
+                            defaultMessage='Support Email:'
                         />
                     }
                     helpText={

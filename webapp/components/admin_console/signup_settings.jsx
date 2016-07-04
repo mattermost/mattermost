@@ -75,7 +75,7 @@ export default class SignupSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.email.inviteSaltTitle'
-                            defaultMessage='Invite Salt:'
+                            defaultMessage='Email Invite Salt:'
                         />
                     }
                     helpText={

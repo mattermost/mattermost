@@ -184,7 +184,7 @@ export default class PushSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.email.pushTitle'
-                            defaultMessage='Send Push Notifications: '
+                            defaultMessage='Enable Push Notifications: '
                         />
                     }
                     value={this.state.pushNotificationServerType}

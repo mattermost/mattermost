@@ -49,7 +49,7 @@ export default class PublicLinkSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.image.shareTitle'
-                            defaultMessage='Share Public File Link: '
+                            defaultMessage='Enable Public File Links: '
                         />
                     }
                     helpText={

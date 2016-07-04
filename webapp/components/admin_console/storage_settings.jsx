@@ -87,7 +87,15 @@ export default class StorageSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.image.storeTitle'
-                            defaultMessage='Store Files In:'
+                            defaultMessage='File Storage System:'
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.image.storeDescription'
+                            defaultMessage='Storage system where files and image attachments are saved.<br /><br />
+                            Selecting "Amazon S3" enables fields to enter your Amazon credentials and bucket details.<br /><br />
+                            Selecting "Local File System" enables the field to specify a local file directory.'
                         />
                     }
                     value={this.state.driverName}
@@ -98,14 +106,14 @@ export default class StorageSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.image.localTitle'
-                            defaultMessage='Local Directory Location:'
+                            defaultMessage='Local Storage Directory:'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.image.localExample', 'Ex "./data/"')}
                     helpText={
                         <FormattedMessage
                             id='admin.image.localDescription'
-                            defaultMessage='Directory to which image files are written. If blank, will be set to ./data/.'
+                            defaultMessage='Directory to which files and images are written. If blank, defaults to ./data/.'
                         />
                     }
                     value={this.state.directory}
@@ -117,7 +125,7 @@ export default class StorageSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.image.amazonS3IdTitle'
-                            defaultMessage='Amazon S3 Access Key Id:'
+                            defaultMessage='Amazon S3 Access Key ID:'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.image.amazonS3IdExample', 'Ex "AKIADTOVBGERKLCBV"')}
