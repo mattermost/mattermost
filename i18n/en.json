@@ -48,6 +48,22 @@
     "translation": "September"
   },
   {
+    "id": "api.admin.add_certificate.array.app_error",
+    "translation": "Empty array under 'certificate' in request"
+  },
+  {
+    "id": "api.admin.add_certificate.no_file.app_error",
+    "translation": "No file under 'certificate' in request"
+  },
+  {
+    "id": "api.admin.add_certificate.open.app_error",
+    "translation": "Could not open certificate file"
+  },
+  {
+    "id": "api.admin.add_certificate.saving.app_error",
+    "translation": "Could not save certificate file"
+  },
+  {
     "id": "api.admin.file_read_error",
     "translation": "Error reading log file"
   },
@@ -70,6 +86,10 @@
   {
     "id": "api.admin.recycle_db_start.warn",
     "translation": "Attempting to recycle the database connection"
+  },
+  {
+    "id": "api.admin.remove_certificate.delete.app_error",
+    "translation": "An error occurred while deleting the certificate. Make sure the file config/{{.Filename}} exists."
   },
   {
     "id": "api.admin.saml.metadata.app_error",
@@ -2645,15 +2665,19 @@
   },
   {
     "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
-    "translation": "Invalid Assertion Consumer Service URL for SAML settings. Must be set."
+    "translation": "Assertion Consumer Service URL for SAML must be a valid URL and start with http:// or https://."
   },
   {
     "id": "model.config.is_valid.saml_email_attribute.app_error",
-    "translation": "Invalid Email attribute for SAML settings. Must be set."
+    "translation": "Invalid Email attribute. Must be set."
+  },
+  {
+    "id": "model.config.is_valid.saml_idp_cert.app_error",
+    "translation": "Idp Certificate File missing. Did you forget to upload it?"
   },
   {
     "id": "model.config.is_valid.saml_first_name_attribute.app_error",
-    "translation": "Invalid First Name attribute for SAML settings. Must be set."
+    "translation": "Invalid First Name attribute. Must be set."
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
@@ -2661,15 +2685,23 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "Invalid Identity Provider Descriptor URL for SAML settings. Must be set."
+    "translation": "Identity Provider Descriptor URL must be a valid URL and start with http:// or https://."
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
-    "translation": "Invalid Identity Provider URL for SAML settings. Must be set."
+    "translation": "Identity Provider Single Sign-On URL must be a valid URL and start with http:// or https://."
+  },
+  {
+    "id": "model.config.is_valid.saml_private_key.app_error",
+    "translation": "Private Key File missing. Did you forget to upload it?"
+  },
+  {
+    "id": "model.config.is_valid.saml_public_cert.app_error",
+    "translation": "Public Certificate File missing. Did you forget to upload it?"
   },
   {
     "id": "model.config.is_valid.saml_last_name_attribute.app_error",
-    "translation": "Invalid Last Name attribute for SAML settings. Must be set."
+    "translation": "Invalid Last Name attribute. Must be set."
   },
   {
     "id": "model.config.is_valid.saml_private_key.app_error",
@@ -2681,7 +2713,7 @@
   },
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
-    "translation": "Invalid Username attribute for SAML settings. Must be set."
+    "translation": "Invalid Username attribute. Must be set."
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",

@@ -173,16 +173,16 @@
         "Encrypt": false,
         "IdpUrl": "",
         "IdpDescriptorUrl": "",
-        "LoginButtonText": "",
+        "AssertionConsumerServiceURL": "",
         "IdpCertificateFile": "",
         "PublicCertificateFile": "",
         "PrivateKeyFile": "",
-        "AssertionConsumerServiceURL": "",
         "FirstNameAttribute": "",
         "LastNameAttribute": "",
         "EmailAttribute": "",
         "UsernameAttribute": "",
         "NicknameAttribute": "",
-        "LocaleAttribute": ""
+        "LocaleAttribute": "",
+        "LoginButtonText": ""
     }
 }

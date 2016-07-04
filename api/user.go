@@ -2491,6 +2491,11 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err.StatusCode = http.StatusFound
 		return
 	} else {
+		if err := checkUserAdditionalAuthenticationCriteria(user, ""); err != nil {
+			c.Err = err
+			c.Err.StatusCode = http.StatusFound
+			return
+		}
 		action := relayProps["action"]
 		switch action {
 		case model.OAUTH_ACTION_SIGNUP:

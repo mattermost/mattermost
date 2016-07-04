@@ -229,16 +229,17 @@ type LocalizationSettings struct {
 
 type SamlSettings struct {
 	// Basic
-	Enable                      *bool
-	Verify                      *bool
-	Encrypt                     *bool
-	IdpCertificateFile          *string
-	PublicCertificateFile       *string
-	PrivateKeyFile              *string
+	Enable  *bool
+	Verify  *bool
+	Encrypt *bool
+
 	IdpUrl                      *string
 	IdpDescriptorUrl            *string
-	LoginButtonText             *string
 	AssertionConsumerServiceURL *string
+
+	IdpCertificateFile    *string
+	PublicCertificateFile *string
+	PrivateKeyFile        *string
 
 	// User Mapping
 	FirstNameAttribute *string
@@ -247,6 +248,8 @@ type SamlSettings struct {
 	UsernameAttribute  *string
 	NicknameAttribute  *string
 	LocaleAttribute    *string
+
+	LoginButtonText *string
 }
 
 type Config struct {
@@ -696,7 +699,7 @@ func (o *Config) SetDefaults() {
 		*o.SamlSettings.AssertionConsumerServiceURL = ""
 	}
 
-	if o.SamlSettings.LoginButtonText == nil {
+	if o.SamlSettings.LoginButtonText == nil || *o.SamlSettings.LoginButtonText == "" {
 		o.SamlSettings.LoginButtonText = new(string)
 		*o.SamlSettings.LoginButtonText = USER_AUTH_SERVICE_SAML_TEXT
 	}
@@ -857,7 +860,7 @@ func (o *Config) IsValid() *AppError {
 			return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_idp_url.app_error", nil, "")
 		}
 
-		if len(*o.SamlSettings.IdpDescriptorUrl) == 0 {
+		if len(*o.SamlSettings.IdpDescriptorUrl) == 0 || !IsValidHttpUrl(*o.SamlSettings.IdpDescriptorUrl) {
 			return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_idp_descriptor_url.app_error", nil, "")
 		}
 
@@ -882,7 +885,7 @@ func (o *Config) IsValid() *AppError {
 		}
 
 		if *o.SamlSettings.Verify {
-			if len(*o.SamlSettings.AssertionConsumerServiceURL) == 0 {
+			if len(*o.SamlSettings.AssertionConsumerServiceURL) == 0 || !IsValidHttpUrl(*o.SamlSettings.AssertionConsumerServiceURL) {
 				return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_assertion_consumer_service_url.app_error", nil, "")
 			}
 		}
@@ -895,6 +898,10 @@ func (o *Config) IsValid() *AppError {
 			if len(*o.SamlSettings.PrivateKeyFile) == 0 {
 				return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_private_key.app_error", nil, "")
 			}
+		}
+
+		if len(*o.SamlSettings.EmailAttribute) == 0 {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_email_attribute.app_error", nil, "")
 		}
 	}
 
