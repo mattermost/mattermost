@@ -38,6 +38,7 @@ export default class LdapSettings extends AdminSettings {
             syncIntervalMinutes: props.config.LdapSettings.SyncIntervalMinutes,
             skipCertificateVerification: props.config.LdapSettings.SkipCertificateVerification,
             queryTimeout: props.config.LdapSettings.QueryTimeout,
+            maxPageSize: props.config.LdapSettings.MaxPageSize,
             loginFieldName: props.config.LdapSettings.LoginFieldName
         });
     }
@@ -60,6 +61,7 @@ export default class LdapSettings extends AdminSettings {
         config.LdapSettings.SyncIntervalMinutes = this.parseIntNonZero(this.state.syncIntervalMinutes);
         config.LdapSettings.SkipCertificateVerification = this.state.skipCertificateVerification;
         config.LdapSettings.QueryTimeout = this.parseIntNonZero(this.state.queryTimeout);
+        config.LdapSettings.MaxPageSize = this.parseInt(this.state.maxPageSize);
         config.LdapSettings.LoginFieldName = this.state.loginFieldName;
 
         return config;
@@ -383,6 +385,25 @@ export default class LdapSettings extends AdminSettings {
                         />
                     }
                     value={this.state.queryTimeout}
+                    onChange={this.handleChange}
+                    disabled={!this.state.enable}
+                />
+                <TextSetting
+                    id='maxPageSize'
+                    label={
+                        <FormattedMessage
+                            id='admin.ldap.maxPageSizeTitle'
+                            defaultMessage='Maximum Page Size'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.ldap.maxPageSizeEx', 'Ex "2000"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.ldap.maxPageSizeHelpText'
+                            defaultMessage='The maximum number of users the Mattermost server will request from the LDAP server at one time. 0 is unlimited.'
+                        />
+                    }
+                    value={this.state.maxPageSize}
                     onChange={this.handleChange}
                     disabled={!this.state.enable}
                 />
