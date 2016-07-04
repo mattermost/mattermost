@@ -65,7 +65,6 @@ export default class RhsThread extends React.Component {
     componentDidMount() {
         PostStore.addSelectedPostChangeListener(this.onPostChange);
         PostStore.addChangeListener(this.onPostChange);
-        PreferenceStore.addChangeListener(this.forceUpdateInfo);
         PreferenceStore.addChangeListener(this.onPreferenceChange);
         UserStore.addChangeListener(this.onUserChange);
 
@@ -77,7 +76,6 @@ export default class RhsThread extends React.Component {
     componentWillUnmount() {
         PostStore.removeSelectedPostChangeListener(this.onPostChange);
         PostStore.removeChangeListener(this.onPostChange);
-        PreferenceStore.removeChangeListener(this.forceUpdateInfo);
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
         UserStore.removeChangeListener(this.onUserChange);
 
@@ -141,6 +139,7 @@ export default class RhsThread extends React.Component {
         this.setState({
             compactDisplay: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT
         });
+        this.forceUpdateInfo();
     }
     onPostChange() {
         if (this.mounted) {
