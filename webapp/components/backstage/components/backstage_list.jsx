@@ -9,23 +9,21 @@ import {Link} from 'react-router';
 import LoadingScreen from 'components/loading_screen.jsx';
 
 export default class BackstageList extends React.Component {
-    static get propTypes() {
-        return {
-            listClassName: React.PropTypes.string,
-            children: React.PropTypes.node,
-            header: React.PropTypes.node.isRequired,
-            addLink: React.PropTypes.string,
-            addText: React.PropTypes.node,
-            emptyText: React.PropTypes.node,
-            loading: React.PropTypes.bool.isRequired,
-            searchPlaceholder: React.PropTypes.string
-        };
+    static propTypes = {
+        listClassName: React.PropTypes.string,
+        children: React.PropTypes.node,
+        header: React.PropTypes.node.isRequired,
+        addLink: React.PropTypes.string,
+        addText: React.PropTypes.node,
+        emptyText: React.PropTypes.node,
+        loading: React.PropTypes.bool.isRequired,
+        searchPlaceholder: React.PropTypes.string,
+        type: React.PropTypes.oneOf(['table', 'list'])
     }
 
-    static get defaultProps() {
-        return {
-            searchPlaceholder: Utils.localizeMessage('backstage.search', 'Search')
-        };
+    static defaultProps = {
+        searchPlaceholder: Utils.localizeMessage('backstage.search', 'Search'),
+        type: 'list'
     }
 
     constructor(props) {
@@ -86,6 +84,14 @@ export default class BackstageList extends React.Component {
         let listClassName = 'backstage-list';
         if (this.props.listClassName) {
             listClassName += ' ' + this.props.listClassName;
+        }
+
+        if (this.props.type === 'table') {
+            children = (
+                <table>
+                    {children}
+                </table>
+            );
         }
 
         return (

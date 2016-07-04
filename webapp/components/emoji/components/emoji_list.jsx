@@ -105,36 +105,35 @@ export default class EmojiList extends React.Component {
                 addLink={addLink}
                 searchPlaceholder={Utils.localizeMessage('emoji_list.search', 'Search Custom Emoji')}
                 loading={this.state.loading}
+                type='table'
             >
-                <table>
-                    <tr className='backstage-list__item emoji-list__table-header'>
-                        <th className='emoji-list__name'>
-                            <FormattedMessage
-                                id='emoji_list.name'
-                                defaultMessage='Name'
-                            />
-                        </th>
-                        <th className='emoji-list__image'>
-                            <FormattedMessage
-                                id='emoji_list.image'
-                                defaultMessage='Image'
-                            />
-                        </th>
-                        <th className='emoji-list__creator'>
-                            <FormattedMessage
-                                id='emoji_list.creator'
-                                defaultMessage='Creator'
-                            />
-                        </th>
-                        <th className='emoji-list_actions'>
-                            <FormattedMessage
-                                id='emoji_list.actions'
-                                defaultMessage='Actions'
-                            />
-                        </th>
-                    </tr>
-                    {emojis}
-                </table>
+                <tr className='backstage-list__item emoji-list__table-header'>
+                    <th className='emoji-list__name'>
+                        <FormattedMessage
+                            id='emoji_list.name'
+                            defaultMessage='Name'
+                        />
+                    </th>
+                    <th className='emoji-list__image'>
+                        <FormattedMessage
+                            id='emoji_list.image'
+                            defaultMessage='Image'
+                        />
+                    </th>
+                    <th className='emoji-list__creator'>
+                        <FormattedMessage
+                            id='emoji_list.creator'
+                            defaultMessage='Creator'
+                        />
+                    </th>
+                    <th className='emoji-list_actions'>
+                        <FormattedMessage
+                            id='emoji_list.actions'
+                            defaultMessage='Actions'
+                        />
+                    </th>
+                </tr>
+                {emojis}
             </BackstageList>
         );
     }
