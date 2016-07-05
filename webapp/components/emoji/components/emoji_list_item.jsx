@@ -80,6 +80,21 @@ export default class EmojiListItem extends React.Component {
             );
         }
 
+        let deleteButton = null;
+        if (this.props.onDelete) {
+            deleteButton = (
+                <a
+                    href='#'
+                    onClick={this.handleDelete}
+                >
+                    <FormattedMessage
+                        id='emoji_list.delete'
+                        defaultMessage='Delete'
+                    />
+                </a>
+            );
+        }
+
         return (
             <tr className='backstage-list__item'>
                 <td className='emoji-list__name'>
@@ -95,15 +110,7 @@ export default class EmojiListItem extends React.Component {
                     {creatorName}
                 </td>
                 <td className='emoji-list-item_actions'>
-                    <a
-                        href='#'
-                        onClick={this.handleDelete}
-                    >
-                        <FormattedMessage
-                            id='emoji_list.delete'
-                            defaultMessage='Delete'
-                        />
-                    </a>
+                {deleteButton}
                 </td>
             </tr>
         );

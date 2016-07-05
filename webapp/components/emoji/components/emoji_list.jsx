@@ -95,6 +95,7 @@ export default class EmojiList extends React.Component {
 
     render() {
         const filter = this.state.filter.toLowerCase();
+        const isSystemAdmin = Utils.isSystemAdmin(this.props.user.roles);
 
         let emojis = [];
         if (this.state.loading) {
@@ -114,11 +115,16 @@ export default class EmojiList extends React.Component {
             );
         } else {
             for (const [, emoji] of this.state.emojis) {
+                let onDelete = null;
+                if (isSystemAdmin || this.props.user.id === emoji.creator_id) {
+                    onDelete = this.deleteEmoji;
+                }
+
                 emojis.push(
                     <EmojiListItem
                         key={emoji.id}
                         emoji={emoji}
-                        onDelete={this.deleteEmoji}
+                        onDelete={onDelete}
                         filter={filter}
                     />
                 );
