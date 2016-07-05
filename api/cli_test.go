@@ -61,7 +61,7 @@ func TestCliCreateUserWithTeam(t *testing.T) {
 	email := "success+" + id + "@simulator.amazonses.com"
 	username := "name" + id
 
-	cmd := exec.Command("bash", "-c", `go run ../mattermost.go -create_user -team_name="`+th.SystemAdminTeam.Name+`" -email="`+email+`" -password="mypassword" -username="`+username+`"`)
+	cmd := exec.Command("bash", "-c", `go run ../mattermost.go -create_user -team_name="`+th.SystemAdminTeam.Name+`" -email="`+email+`" -password="mypassword1" -username="`+username+`"`)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Log(string(output))
@@ -94,7 +94,7 @@ func TestCliCreateUserWithoutTeam(t *testing.T) {
 	email := "success+" + id + "@simulator.amazonses.com"
 	username := "name" + id
 
-	cmd := exec.Command("bash", "-c", `go run ../mattermost.go -create_user -email="`+email+`" -password="mypassword" -username="`+username+`"`)
+	cmd := exec.Command("bash", "-c", `go run ../mattermost.go -create_user -email="`+email+`" -password="mypassword1" -username="`+username+`"`)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Log(string(output))

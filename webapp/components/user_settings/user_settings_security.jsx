@@ -26,7 +26,7 @@ const holders = defineMessages({
     },
     passwordLengthError: {
         id: 'user.settings.security.passwordLengthError',
-        defaultMessage: 'New passwords must be at least {chars} characters'
+        defaultMessage: 'New passwords must be at least {min} characters and at most {max} characters.'
     },
     passwordMatchError: {
         id: 'user.settings.security.passwordMatchError',
@@ -90,8 +90,12 @@ class SecurityTab extends React.Component {
             return;
         }
 
-        if (newPassword.length < Constants.MIN_PASSWORD_LENGTH) {
-            this.setState({passwordError: formatMessage(holders.passwordLengthError, {chars: Constants.MIN_PASSWORD_LENGTH}), serverError: ''});
+        const passwordErr = Utils.isValidPassword(newPassword);
+        if (passwordErr !== '') {
+            this.setState({
+                passwordError: passwordErr,
+                serverError: ''
+            });
             return;
         }
 
