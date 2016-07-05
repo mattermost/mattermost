@@ -891,12 +891,12 @@ func (o *Config) IsValid() *AppError {
 		}
 
 		if *o.SamlSettings.Encrypt {
-			if len(*o.SamlSettings.PublicCertificateFile) == 0 {
-				return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_public_cert.app_error", nil, "")
-			}
-
 			if len(*o.SamlSettings.PrivateKeyFile) == 0 {
 				return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_private_key.app_error", nil, "")
+			}
+
+			if len(*o.SamlSettings.PublicCertificateFile) == 0 {
+				return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_public_cert.app_error", nil, "")
 			}
 		}
 
