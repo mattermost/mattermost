@@ -256,6 +256,7 @@ func getClientConfig(c *model.Config) map[string]string {
 
 	props["EnableCustomEmoji"] = strconv.FormatBool(*c.ServiceSettings.EnableCustomEmoji)
 	props["RestrictCustomEmojiCreation"] = *c.ServiceSettings.RestrictCustomEmojiCreation
+	props["MaxFileSize"] = strconv.FormatInt(*c.FileSettings.MaxFileSize, 10)
 
 	if IsLicensed {
 		if *License.Features.CustomBrand {

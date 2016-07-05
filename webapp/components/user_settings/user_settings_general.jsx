@@ -95,6 +95,7 @@ class UserSettingsGeneralTab extends React.Component {
         this.updateSection = this.updateSection.bind(this);
 
         this.state = this.setupInitialState(props);
+        this.setState({maxFileSize: global.window.mm_config.MaxFileSize});
     }
     submitUsername(e) {
         e.preventDefault();
@@ -221,7 +222,7 @@ class UserSettingsGeneralTab extends React.Component {
         if (picture.type !== 'image/jpeg' && picture.type !== 'image/png') {
             this.setState({clientError: formatMessage(holders.validImage)});
             return;
-        } else if (picture.size > Constants.MAX_FILE_SIZE) {
+        } else if (picture.size > this.state.maxFileSize) {
             this.setState({clientError: formatMessage(holders.imageTooLarge)});
             return;
         }
