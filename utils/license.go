@@ -146,3 +146,23 @@ func GetClientLicenseEtag() string {
 
 	return model.Etag(fmt.Sprintf("%x", md5.Sum([]byte(value))))
 }
+
+func GetSantizedClientLicense() map[string]string {
+	sanitizedLicense := make(map[string]string)
+
+	for k, v := range ClientLicense {
+		sanitizedLicense[k] = v
+	}
+
+	if IsLicensed {
+		delete(sanitizedLicense, "Name")
+		delete(sanitizedLicense, "Email")
+		delete(sanitizedLicense, "Company")
+		delete(sanitizedLicense, "PhoneNumber")
+		delete(sanitizedLicense, "IssuedAt")
+		delete(sanitizedLicense, "StartsAt")
+		delete(sanitizedLicense, "ExpiresAt")
+	}
+
+	return sanitizedLicense
+}
