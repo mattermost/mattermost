@@ -44,7 +44,7 @@ export default class BackstageSidebar extends React.Component {
             return null;
         }
 
-        if (window.mm_config.RestrictCustomEmojiCreation !== 'all' && !TeamStore.isAdmin(this.props.user.id, this.props.team.id)) {
+        if (window.mm_config.RestrictCustomEmojiCreation !== 'all' && !TeamStore.isTeamAdmin(this.props.user.id, this.props.team.id)) {
             return null;
         }
 

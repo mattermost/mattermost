@@ -180,12 +180,15 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -c ./enterprise/ldap && ./ldap.test -test.v -test.timeout=120s -test.coverprofile=cldap.out || exit 1
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -c ./enterprise/compliance && ./compliance.test -test.v -test.timeout=120s -test.coverprofile=ccompliance.out || exit 1
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -c ./enterprise/emoji && ./emoji.test -test.v -test.timeout=120s -test.coverprofile=cemoji.out || exit 1
 
 	tail -n +2 cldap.out >> ecover.out
 	tail -n +2 ccompliance.out >> ecover.out
-	rm -f cldap.out ccompliance.out
+	tail -n +2 cemoji.out >> ecover.out
+	rm -f cldap.out ccompliance.out cemoji.out
 	rm -r ldap.test
 	rm -r compliance.test
+	rm -r emoji.test
 endif
 
 internal-test-web-client: start-docker prepare-enterprise

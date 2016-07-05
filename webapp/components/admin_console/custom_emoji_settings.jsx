@@ -27,7 +27,10 @@ export default class CustomEmojiSettings extends AdminSettings {
 
     getConfigFromState(config) {
         config.ServiceSettings.EnableCustomEmoji = this.state.enableCustomEmoji;
-        config.ServiceSettings.RestrictCustomEmojiCreation = this.state.restrictCustomEmojiCreation;
+
+        if (global.window.mm_license.IsLicensed === 'true') {
+            config.ServiceSettings.RestrictCustomEmojiCreation = this.state.restrictCustomEmojiCreation;
+        }
 
         return config;
     }
@@ -44,6 +47,35 @@ export default class CustomEmojiSettings extends AdminSettings {
     }
 
     renderSettings() {
+        let restrictSetting = null;
+        if (global.window.mm_license.IsLicensed === 'true') {
+            restrictSetting = (
+                <DropdownSetting
+                    id='restrictCustomEmojiCreation'
+                    values={[
+                        {value: 'all', text: Utils.localizeMessage('admin.customization.restrictCustomEmojiCreationAll', 'Allow everyone to create custom emoji')},
+                        {value: 'admin', text: Utils.localizeMessage('admin.customization.restrictCustomEmojiCreationAdmin', 'Allow system and team admins to create custom emoji')},
+                        {value: 'system_admin', text: Utils.localizeMessage('admin.customization.restrictCustomEmojiCreationSystemAdmin', 'Only allow system admins to create custom emoji')}
+                    ]}
+                    label={
+                        <FormattedMessage
+                            id='admin.customization.restrictCustomEmojiCreationTitle'
+                            defaultMessage='Restrict Custom Emoji Creation:'
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.customization.restrictCustomEmojiCreationDesc'
+                            defaultMessage='Restrict the creation of custom emoji to certain users.'
+                        />
+                    }
+                    value={this.state.restrictCustomEmojiCreation}
+                    onChange={this.handleChange}
+                    disabled={!this.state.enableCustomEmoji}
+                />
+            );
+        }
+
         return (
             <SettingsGroup>
                 <BooleanSetting
@@ -63,28 +95,7 @@ export default class CustomEmojiSettings extends AdminSettings {
                     value={this.state.enableCustomEmoji}
                     onChange={this.handleChange}
                 />
-                <DropdownSetting
-                    id='restrictCustomEmojiCreation'
-                    values={[
-                        {value: 'all', text: Utils.localizeMessage('admin.customization.restrictCustomEmojiCreationAll', 'Allow everyone to create custom emoji')},
-                        {value: 'system_admin', text: Utils.localizeMessage('admin.customization.restrictCustomEmojiCreationSystemAdmin', 'Only allow system admins to create custom emoji')}
-                    ]}
-                    label={
-                        <FormattedMessage
-                            id='admin.customization.restrictCustomEmojiCreationTitle'
-                            defaultMessage='Restrict Custom Emoji Creation:'
-                        />
-                    }
-                    helpText={
-                        <FormattedMessage
-                            id='admin.customization.restrictCustomEmojiCreationDesc'
-                            defaultMessage='Restrict the creation of custom emoji to certain users.'
-                        />
-                    }
-                    value={this.state.restrictCustomEmojiCreation}
-                    onChange={this.handleChange}
-                    disabled={!this.state.enableCustomEmoji}
-                />
+                {restrictSetting}
             </SettingsGroup>
         );
     }

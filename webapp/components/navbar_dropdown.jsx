@@ -177,8 +177,7 @@ export default class NavbarDropdown extends React.Component {
             );
         }
 
-        if (window.mm_config.EnableCustomEmoji === 'true' &&
-            (isSystemAdmin || window.mm_config.RestrictCustomEmojiCreation === 'all')) {
+        if (window.mm_config.EnableCustomEmoji === 'true') {
             customEmojiLink = (
                 <li>
                     <Link to={'/' + Utils.getTeamNameFromUrl() + '/emoji'}>

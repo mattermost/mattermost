@@ -5,6 +5,7 @@ import React from 'react';
 
 import * as AsyncClient from 'utils/async_client.jsx';
 import EmojiStore from 'stores/emoji_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import {FormattedMessage} from 'react-intl';
@@ -22,6 +23,8 @@ export default class EmojiList extends React.Component {
 
     constructor(props) {
         super(props);
+
+        this.canCreateEmojis = this.canCreateEmojis.bind(this);
 
         this.handleEmojiChange = this.handleEmojiChange.bind(this);
 
@@ -65,6 +68,31 @@ export default class EmojiList extends React.Component {
         AsyncClient.deleteEmoji(emoji.id);
     }
 
+    canCreateEmojis() {
+        if (global.window.mm_license.IsLicensed !== 'true') {
+            return true;
+        }
+
+        if (Utils.isSystemAdmin(this.props.user.roles)) {
+            return true;
+        }
+
+        if (window.mm_config.RestrictCustomEmojiCreation === 'all') {
+            return true;
+        }
+
+        if (window.mm_config.RestrictCustomEmojiCreation === 'admin') {
+            // check whether the user is an admin on any of their teams
+            for (const member of TeamStore.getTeamMembers()) {
+                if (Utils.isAdmin(member.roles)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     render() {
         const filter = this.state.filter.toLowerCase();
 
@@ -98,7 +126,7 @@ export default class EmojiList extends React.Component {
         }
 
         let addLink = null;
-        if (window.mm_config.RestrictCustomEmojiCreation === 'all' || Utils.isSystemAdmin(this.props.user.roles)) {
+        if (this.canCreateEmojis()) {
             addLink = (
                 <Link
                     className='add-link'

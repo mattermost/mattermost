@@ -151,6 +151,7 @@
   "admin.customization.enableCustomEmojiTitle": "Enable Custom Emoji:",
   "admin.customization.restrictCustomEmojiCreationAll": "Allow everyone to create custom emoji",
   "admin.customization.restrictCustomEmojiCreationDesc": "Restrict the creation of custom emoji to certain users.",
+  "admin.customization.restrictCustomEmojiCreationAdmin": "Allow system and team admins to create custom emoji",
   "admin.customization.restrictCustomEmojiCreationSystemAdmin": "Only allow system admins to create custom emoji",
   "admin.customization.restrictCustomEmojiCreationTitle": "Restrict Custom Emoji Creation:",
   "admin.customization.support": "Legal and Support",
