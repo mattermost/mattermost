@@ -25,3 +25,17 @@ body {
 .word-break--all {
     word-break: break-all;
 }
+
+.fa {
+    &.fa-margin--left {
+        margin-left: 2px;
+    }
+
+    &.fa-margin--right {
+        margin-right: 2px;
+    }
+}
+
+.font-weight--normal {
+    font-weight: normal;
+}

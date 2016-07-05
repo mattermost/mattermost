@@ -86,8 +86,19 @@ body.ios {
 
     b,
     i,
+    span {
+        margin: 0 2px;
+        position: relative;
+        top: -1px;
+    }
+
+    b {
+        @include opacity(.9);
+    }
+
     code {
-        margin-right: 3px;
+        background: transparent;
+        padding: 0;
     }
 
     .textbox-preview-link {
@@ -402,6 +413,11 @@ body.ios {
             right: 0;
             top: 1px;
 
+            svg {
+                height: 18px;
+                width: 18px;
+            }
+
             &:hover,
             &:active {
                 @include opacity(.9);
@@ -452,7 +468,7 @@ body.ios {
 
         .dropdown-menu {
             &.bottom {
-                bottom: 25px;
+                bottom: 19px;
                 top: auto;
             }
         }
@@ -481,6 +497,14 @@ body.ios {
 
     &.post--highlight {
         background-color: beige;
+    }
+
+    &.post--hide-controls {
+        .post__header {
+            .col__reply {
+                display: none;
+            }
+        }
     }
 
     &.post--compact {
@@ -557,6 +581,16 @@ body.ios {
                 padding: 0;
                 width: 100%;
 
+                svg {
+                    display: inline-block;
+                    height: 13px;
+                    margin: 5px 4px 0 0;
+                    opacity: .5;
+                    position: relative;
+                    vertical-align: top;
+                    width: 13px;
+                }
+
                 > div {
                     display: none;
                 }
@@ -594,6 +628,10 @@ body.ios {
                 width: 20px;
             }
         }
+    }
+
+    .post--fail {
+        position: relative;
     }
 
     p {
@@ -634,33 +672,6 @@ body.ios {
         &.same--user {
             padding: 0 .5em 0 1em;
 
-            &.post--system {
-                padding: 8px .5em 0 1em;
-
-                .post__header {
-                    height: auto;
-                    margin-bottom: 2px;
-
-                    .col__name {
-                        display: inline-block;
-                    }
-
-                    .col__reply {
-
-                    }
-                }
-
-                .post__time {
-                    @include opacity(.6);
-                    font-size: .9em;
-                    left: inherit;
-                    line-height: inherit;
-                    position: inherit;
-                    text-rendering: inherit;
-                    top: inherit;
-                }
-            }
-
             &:hover {
                 .post__time {
                     @include opacity(.5);
@@ -682,7 +693,7 @@ body.ios {
                 }
 
                 .col__reply {
-                    top: 6px;
+                    top: -1px;
                 }
             }
         }
@@ -721,7 +732,7 @@ body.ios {
 
             .post__header {
                 .col__reply {
-                    top: 53px;
+                    top: -4px;
                 }
             }
         }
@@ -775,11 +786,14 @@ body.ios {
         }
 
         .col__reply {
+            border: 1px solid transparent;
+            border-radius: 2px;
+            min-width: 70px;
+            padding: 2px 5px;
             position: absolute;
             right: 0;
-            top: 30px;
+            top: -4px;
             white-space: nowrap;
-            width: 65px;
         }
 
         .permalink-popover {
@@ -841,6 +855,7 @@ body.ios {
             min-width: 130px;
             padding: 2px 0;
             right: 0;
+            top: 20px;
 
             li {
                 display: block;
@@ -864,15 +879,15 @@ body.ios {
         @include opacity(.5);
         color: inherit;
         display: inline-block;
+        float: right;
         font-family: 'Open Sans', sans-serif;
         font-size: 20px;
         font-weight: 600;
         height: 20px;
         line-height: 20px;
         position: relative;
-        right: 15px;
+        right: -10px;
         text-decoration: none;
-        top: -5px;
         vertical-align: top;
         visibility: hidden;
         width: 20px;
@@ -885,9 +900,8 @@ body.ios {
     .post__body {
         @include legacy-pie-clearfix;
         padding: .2em .5em;
-        width: calc(100% - 75px);
+        width: 100%;
         word-wrap: break-word;
-        position: relative;
 
         p {
             margin: 0 0 .4em;
@@ -1013,12 +1027,8 @@ body.ios {
     }
 
     .post__time {
-        font-size: .9em;
-    }
-
-    .post__time,
-    &.post--system .post__body {
         @include opacity(.6);
+        font-size: .9em;
     }
 
     .post-loading-gif {

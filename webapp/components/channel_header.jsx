@@ -478,7 +478,7 @@ export default class ChannelHeader extends React.Component {
                                             aria-expanded='true'
                                         >
                                             <strong className='heading'><StatusIcon status={this.getTeammateStatus()}/>{channelTitle} </strong>
-                                            <span className='glyphicon glyphicon-chevron-down header-dropdown__icon'/>
+                                            <span className='fa fa-chevron-down header-dropdown__icon'/>
                                         </a>
                                         <ul
                                             className='dropdown-menu'

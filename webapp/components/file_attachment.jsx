@@ -206,7 +206,11 @@ class FileAttachment extends React.Component {
                         className='post-image__name'
                         rel='noopener noreferrer'
                     >
-                        <i className='glyphicon glyphicon-paperclip'/>{trimmedFilename}
+                        <span
+                            className='icon'
+                            dangerouslySetInnerHTML={{__html: Constants.ATTACHMENT_ICON_SVG}}
+                        />
+                        {trimmedFilename}
                     </a>
                 </OverlayTrigger>
             );

@@ -75,7 +75,7 @@ export default class RecycleDbButton extends React.Component {
         if (this.state.loading) {
             contents = (
                 <span>
-                    <span className='glyphicon glyphicon-refresh glyphicon-refresh-animate'/>
+                    <span className='fa fa-refresh icon--rotate'/>
                     {Utils.localizeMessage('admin.recycle.loading', ' Recycling...')}
                 </span>
             );

@@ -194,9 +194,19 @@ export default class RhsComment extends React.Component {
             );
         }
 
+        let profilePic = (
+            <img
+                src={Client.getUsersRoute() + '/' + post.user_id + '/image?time=' + timestamp}
+                height='36'
+                width='36'
+            />
+        );
+
         let compactClass = '';
+        let profilePicContainer = (<div className='post__img'>{profilePic}</div>);
         if (this.props.compactDisplay) {
             compactClass = 'post--compact';
+            profilePicContainer = '';
         }
 
         var dropdown = this.createDropdown();
@@ -216,13 +226,7 @@ export default class RhsComment extends React.Component {
         return (
             <div className={'post post--thread ' + currentUserCss + ' ' + compactClass}>
                 <div className='post__content'>
-                    <div className='post__img'>
-                        <img
-                            src={Client.getUsersRoute() + '/' + post.user_id + '/image?time=' + timestamp}
-                            height='36'
-                            width='36'
-                        />
-                    </div>
+                    {profilePicContainer}
                     <div>
                         <ul className='post__header'>
                             <li className='col col__name'>

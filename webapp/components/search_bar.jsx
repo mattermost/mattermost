@@ -142,7 +142,7 @@ class SearchBar extends React.Component {
     render() {
         var isSearching = null;
         if (this.state.isSearching) {
-            isSearching = <span className={'glyphicon glyphicon-refresh glyphicon-refresh-animate'}></span>;
+            isSearching = <span className={'fa fa-refresh fa-refresh-animate icon--refresh icon--rotate'}></span>;
         }
 
         let helpClass = 'search-help-popover';
@@ -174,7 +174,7 @@ class SearchBar extends React.Component {
                     style={{overflow: 'visible'}}
                     autoComplete='off'
                 >
-                    <span className='glyphicon glyphicon-search sidebar__search-icon'/>
+                    <span className='fa fa-search sidebar__search-icon'/>
                     <SuggestionBox
                         ref='search'
                         className='form-control search-bar'

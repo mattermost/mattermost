@@ -135,7 +135,7 @@ export default class AboutBuildModal extends React.Component {
                                         id='about.version'
                                         defaultMessage='Version:'
                                     />
-                                    {'\u00a0' + config.Version + '\u00a0' + config.BuildNumber}
+                                    {'\u00a0' + config.Version + '\u00a0 (' + config.BuildNumber + ')'}
                                 </div>
                                 <div>
                                     <FormattedMessage

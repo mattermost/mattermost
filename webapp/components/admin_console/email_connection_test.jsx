@@ -85,7 +85,7 @@ export default class EmailConnectionTestButton extends React.Component {
         if (this.state.testing) {
             contents = (
                 <span>
-                    <span className='glyphicon glyphicon-refresh glyphicon-refresh-animate'/>
+                    <span className='fa fa-refresh icon--rotate'/>
                     {Utils.localizeMessage('admin.email.testing', 'Testing...')}
                 </span>
             );

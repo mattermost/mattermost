@@ -57,7 +57,7 @@ export default class FilePreview extends React.Component {
                             className='file-preview__remove'
                             onClick={this.handleRemove}
                         >
-                            <i className='glyphicon glyphicon-remove'/>
+                            <i className='fa fa-remove'/>
                         </a>
                     </div>
                 );
@@ -73,7 +73,7 @@ export default class FilePreview extends React.Component {
                             className='file-preview__remove'
                             onClick={this.handleRemove}
                         >
-                            <i className='glyphicon glyphicon-remove'/>
+                            <i className='fa fa-remove'/>
                         </a>
                     </div>
                 );
@@ -96,7 +96,7 @@ export default class FilePreview extends React.Component {
                         className='file-preview__remove'
                         onClick={this.handleRemove}
                     >
-                        <i className='glyphicon glyphicon-remove'/>
+                        <i className='fa fa-remove'/>
                     </a>
                 </div>
             );

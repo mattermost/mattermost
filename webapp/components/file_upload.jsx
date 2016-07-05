@@ -318,9 +318,10 @@ class FileUpload extends React.Component {
                 ref='input'
                 className='btn btn-file'
             >
-                <span>
-                    <i className='glyphicon glyphicon-paperclip'/>
-                </span>
+                <span
+                    className='icon'
+                    dangerouslySetInnerHTML={{__html: Constants.ATTACHMENT_ICON_SVG}}
+                />
                 <input
                     ref='fileInput'
                     type='file'

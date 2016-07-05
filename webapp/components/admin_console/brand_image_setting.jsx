@@ -105,9 +105,14 @@ export default class BrandImageSetting extends React.Component {
     }
 
     render() {
-        let btnClass = 'btn';
+        let btnPrimaryClass = 'btn';
         if (this.state.brandImage) {
-            btnClass += ' btn-primary';
+            btnPrimaryClass += ' btn-primary';
+        }
+
+        let letbtnDefaultClass = 'btn';
+        if (!this.props.disabled) {
+            letbtnDefaultClass += ' btn-default';
         }
 
         let img = null;
@@ -152,7 +157,7 @@ export default class BrandImageSetting extends React.Component {
                 <div className='col-sm-8'>
                     <div className='file__upload'>
                         <button
-                            className='btn btn-default'
+                            className={letbtnDefaultClass}
                             disabled={this.props.disabled}
                         >
                             <FormattedMessage
@@ -169,12 +174,12 @@ export default class BrandImageSetting extends React.Component {
                         />
                     </div>
                     <button
-                        className={btnClass}
+                        className={btnPrimaryClass}
                         disabled={this.props.disabled || !this.state.brandImage}
                         onClick={this.handleImageSubmit}
                         id='upload-button'
-                        data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> ' + Utils.localizeMessage('admin.team.uploading', 'Uploading..')}
-                        data-complete-text={'<span class=\'glyphicon glyphicon-ok\'></span> ' + Utils.localizeMessage('admin.team.uploaded', 'Uploaded!')}
+                        data-loading-text={'<span class=\'fa fa-refresh fa-rotate\'></span> ' + Utils.localizeMessage('admin.team.uploading', 'Uploading..')}
+                        data-complete-text={'<span class=\'fa fa-check\'></span> ' + Utils.localizeMessage('admin.team.uploaded', 'Uploaded!')}
                     >
                         <FormattedMessage
                             id='admin.team.upload'

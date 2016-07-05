@@ -85,8 +85,9 @@
             margin-bottom: 0;
 
             .col__reply {
-                top: 0;
+                top: -3px;
                 width: 65px;
+                z-index: auto;
             }
 
             .col__name {
@@ -146,7 +147,7 @@
             &.post--comment {
                 .post__header {
                     .col__reply {
-                        top: 0;
+                        top: -3px;
                     }
                 }
             }
@@ -155,6 +156,12 @@
                 &.post__reply--hide {
                     visibility: hidden;
                 }
+            }
+        }
+
+        &.current--user {
+            .post__link {
+                margin: 0 0 8px;
             }
         }
 
@@ -355,9 +362,10 @@
                     margin-top: 10px;
                 }
 
-                button.close {
+                .close {
                     font-size: 27px;
                     font-weight: normal;
+                    margin-top: -2px;
                 }
 
                 .modal-title {
@@ -453,8 +461,8 @@
                         }
 
                         &.minimize-settings {
-                            padding: 0;
                             display: none;
+                            padding: 0;
 
                             .user-settings {
                                 padding: 70px 20px 30px;
@@ -469,13 +477,12 @@
                     .nav {
                         > li {
                             > a {
-                                border-top: 1px solid #dddddd;
+                                border-top: 1px solid transparent;
                                 font-size: 1.1em;
                                 line-height: 2.7;
-                                color: #555555;
 
-                                .glyphicon {
-                                    margin-left: 7px;
+                                .icon {
+                                    margin: 0 7px;
                                 }
                             }
                         }
@@ -667,7 +674,8 @@
             padding: 7px 20px 0 49px;
             position: relative;
 
-            .glyphicon-refresh-animate {
+            .icon--refresh {
+                @include opacity(.6);
                 color: $black;
                 right: 33px;
                 top: 15px;
@@ -793,7 +801,6 @@
         @include translate3d(100%, 0, 0);
         right: 0;
         width: 100%;
-        z-index: 5;
 
         .sidebar__collapse,
         .sidebar__search-icon {

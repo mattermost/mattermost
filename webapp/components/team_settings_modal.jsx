@@ -68,11 +68,11 @@ class TeamSettingsModal extends React.Component {
     render() {
         const {formatMessage} = this.props.intl;
         const tabs = [];
-        tabs.push({name: 'general', uiName: formatMessage(holders.generalTab), icon: 'glyphicon glyphicon-cog'});
-        tabs.push({name: 'import', uiName: formatMessage(holders.importTab), icon: 'glyphicon glyphicon-upload'});
+        tabs.push({name: 'general', uiName: formatMessage(holders.generalTab), icon: 'icon fa fa-cog'});
+        tabs.push({name: 'import', uiName: formatMessage(holders.importTab), icon: 'icon fa fa-upload'});
 
         // To enable export uncomment this line
-        //tabs.push({name: 'export', uiName: formatMessage(holders.exportTab), icon: 'glyphicon glyphicon-download'});
+        //tabs.push({name: 'export', uiName: formatMessage(holders.exportTab), icon: 'fa fa-download'});
 
         return (
             <div

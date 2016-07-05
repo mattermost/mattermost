@@ -65,7 +65,7 @@ export default class ChannelInviteButton extends React.Component {
                 onClick={this.handleClick}
                 spinning={this.state.addingUser}
             >
-                <i className='glyphicon glyphicon-envelope'/>
+                <i className='fa fa-envelope fa-margin--right'/>
                 <FormattedMessage
                     id='channel_invite.add'
                     defaultMessage=' Add'

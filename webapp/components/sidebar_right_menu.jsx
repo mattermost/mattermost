@@ -175,7 +175,7 @@ export default class SidebarRightMenu extends React.Component {
                             href='#'
                             onClick={GlobalActions.showGetTeamInviteLinkModal}
                         >
-                            <i className='icon glyphicon glyphicon-link'></i>
+                            <i className='icon fa fa-link'></i>
                             <FormattedMessage
                                 id='sidebar_right_menu.teamLink'
                                 defaultMessage='Get Team Invite Link'

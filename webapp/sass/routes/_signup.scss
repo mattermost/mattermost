@@ -291,21 +291,23 @@
             color: #444444;
         }
 
-        .glyphicon {
-            &.glyphicon-ok,
-            &.glyphicon-refresh {
+        .fa {
+            position: relative;
+
+            &.fa-check,
+            &.fa-refresh {
                 font-size: .9em;
                 left: -2px;
                 margin-right: .5em;
             }
 
-            &.glyphicon-chevron-right {
+            &.fa-chevron-right {
                 font-size: .8em;
-                right: -2px;
-                top: 0px;
+                right: -5px;
+                top: 0;
             }
 
-            &.glyphicon-chevron-left {
+            &.fa-chevron-left {
                 font-size: .8em;
                 left: -2px;
                 top: 0px;
@@ -443,19 +445,21 @@
     }
 
     .signup-team-dir__arrow {
-        color: #999999;
+        color: $dark-gray;
         float: right;
-        font-size: .9em;
-        line-height: 3.5em;
+        font-size: 1.5em;
+        line-height: 25px;
+        position: relative;
+        top: .66em;
     }
 }
 
 
 .authorize-box {
+    border: 1px solid $black;
+    height: 280px;
     margin: 100px auto;
     width: 500px;
-    height: 280px;
-    border: 1px solid black;
 }
 
 .authorize-inner {
@@ -467,6 +471,6 @@
 }
 
 .verify_panel {
-    margin: 60px auto auto auto;
+    margin: 60px auto auto;
     max-width: 380px;
 }
