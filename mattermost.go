@@ -1529,26 +1529,26 @@ COMMANDS:
             platform -assign_role -email="user@example.com" -role="system_admin"
 
     -join_channel                      Joins a user to the channel.  It requires the -email, channel_name and
-                                       -team_name.  You may need to logout of your current session
+                                       -team_name flags.  You may need to logout of your current session
                                        for the new channel to be applied.  Requires an enterprise license.
         Example:
             platform -join_channel -email="user@example.com" -team_name="name" -channel_name="channel_name"
 
     -leave_channel                     Removes a user from the channel.  It requires the -email, channel_name and
-                                       -team_name.  You may need to logout of your current session
+                                       -team_name flags.  You may need to logout of your current session
                                        for the channel to be removed.  Requires an enterprise license.
         Example:
             platform -leave_channel -email="user@example.com" -team_name="name" -channel_name="channel_name"
 
-    -list_channels                     Lists all private/public channels for a given team.
+    -list_channels                     Lists all public channels and private groups for a given team.
                                        It will append ' (archived)' to the channel name if archived.  It requires the 
                                        -team_name flag.  Requires an enterprise license.
         Example:
             platform -list_channels -team_name="name"
 
     -restore_channel                   Restores a previously deleted channel.
-                                       It requires the -channel_name flag and
-                                       -team_name flag.  Requires an enterprise license.
+                                       It requires the -channel_name and
+                                       -team_name flags.  Requires an enterprise license.
         Example:
             platform -restore_channel -team_name="name" -channel_name="channel_name"
 
