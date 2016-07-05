@@ -8,7 +8,6 @@ export default class FormError extends React.Component {
         // accepts either a single error or an array of errors
         return {
             error: React.PropTypes.node,
-            noMargin: React.PropTypes.node,
             errors: React.PropTypes.arrayOf(React.PropTypes.node)
         };
     }
@@ -27,7 +26,6 @@ export default class FormError extends React.Component {
 
         // look for the first truthy error to display
         let message = this.props.error;
-        const noMargin = this.props.noMargin;
 
         if (!message) {
             for (const error of this.props.errors) {
@@ -41,18 +39,8 @@ export default class FormError extends React.Component {
             return null;
         }
 
-        if (noMargin) {
-            return (
-                <div className='has-error'>
-                    <label className='control-label'>
-                        {message}
-                    </label>
-                </div>
-            );
-        }
-
         return (
-            <div className='form-group has-error'>
+            <div className='col-sm-12 has-error'>
                 <label className='control-label'>
                     {message}
                 </label>

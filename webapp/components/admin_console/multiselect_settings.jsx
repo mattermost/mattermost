@@ -54,10 +54,7 @@ export default class MultiSelectSetting extends React.Component {
                     onChange={this.handleChange}
                     value={this.props.selected}
                 />
-                <FormError
-                    noMargin={true}
-                    error={this.state.error}
-                />
+                <FormError error={this.state.error}/>
             </Setting>
         );
     }
