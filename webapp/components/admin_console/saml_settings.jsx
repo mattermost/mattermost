@@ -130,7 +130,7 @@ export default class SamlSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.saml.idpCertificateFileTitle'
-                            defaultMessage='Identity Provider Pubilc Certificate:'
+                            defaultMessage='Identity Provider Public Certificate:'
                         />
                     }
                     helpText={
@@ -153,7 +153,7 @@ export default class SamlSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.saml.idpCertificateFileTitle'
-                            defaultMessage='Identity Provider Pubilc Certificate:'
+                            defaultMessage='Identity Provider Public Certificate:'
                         />
                     }
                     helpText={
@@ -230,7 +230,7 @@ export default class SamlSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.saml.publicCertificateFileRemoveDesc'
-                            defaultMessage='Remove the certificate used to generate the signature on a SAML request to the Identity Provider when Mattermost is the Service Provider for a service provider-initiated SAML login.'
+                            defaultMessage='Remove the certificate used to generate the signature on a SAML request to the Identity Provider for a service provider initiated SAML login, when Mattermost is the Service Provider.'
                         />
                     }
                     removeButtonText={Utils.localizeMessage('admin.saml.remove.sp_certificate', 'Remove Service Provider Certificate')}
@@ -253,7 +253,7 @@ export default class SamlSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.saml.publicCertificateFileDesc'
-                            defaultMessage='The certificate used to generate the signature on a SAML request to the Identity Provider when Mattermost is the Service Provider for a service provider-initiated SAML login.'
+                            defaultMessage='The certificate used to generate the signature on a SAML request to the Identity Provider for a service provider initiated SAML login, when Mattermost is the Service Provider.'
                         />
                     }
                     uploadingText={Utils.localizeMessage('admin.saml.uploading.certificate', 'Uploading Certificate...')}
@@ -288,7 +288,7 @@ export default class SamlSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.saml.idpUrlTitle'
-                            defaultMessage='Identity Provider SSO URL:'
+                            defaultMessage='SAML SSO URL:'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.saml.idpUrlEx', 'Ex "https://idp.example.org/SAML2/SSO/Login"')}
@@ -352,7 +352,7 @@ export default class SamlSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.saml.assertionConsumerServiceURLDesc'
-                            defaultMessage='Enter https://<your-mattermost-url>/login/sso/saml.   Make sure you use HTTP or HTTPS in your URL depending on your server configuration.'
+                            defaultMessage='Enter https://<your-mattermost-url>/login/sso/saml. Make sure you use HTTP or HTTPS in your URL depending on your server configuration. This field is also known as the Assertion Consumer Service URL.'
                         />
                     }
                     value={this.state.assertionConsumerServiceURL}
@@ -409,7 +409,7 @@ export default class SamlSettings extends AdminSettings {
                     placeholder={Utils.localizeMessage('admin.saml.usernameAttrEx', 'Ex "Username"')}
                     helpText={
                         <FormattedMessage
-                            id='admin.saml.uernameAttrDesc'
+                            id='admin.saml.usernameAttrDesc'
                             defaultMessage='The attribute in the SAML Assertion that will be used to populate the username field in Mattermost.'
                         />
                     }

@@ -52,7 +52,7 @@ export default class RemoveFileSetting extends Setting {
                 inputId={this.props.id}
             >
                 <div>
-                    <div className='help-text no-margin'>
+                    <div className='help-text remove-filename'>
                         {this.props.fileName}
                     </div>
                     <button

@@ -2006,7 +2006,7 @@ func emailToOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	m := map[string]string{}
 	if service == model.USER_AUTH_SERVICE_SAML {
-		m["follow_link"] = *utils.Cfg.SamlSettings.AssertionConsumerServiceURL + "?action=" + model.OAUTH_ACTION_EMAIL_TO_SSO + "&email=" + email
+		m["follow_link"] = c.GetSiteURL() + "/login/sso/saml?action=" + model.OAUTH_ACTION_EMAIL_TO_SSO + "&email=" + email
 	} else {
 		if authUrl, err := GetAuthorizationCode(c, service, stateProps, ""); err != nil {
 			c.LogAuditWithUserId(user.Id, "fail - oauth issue")

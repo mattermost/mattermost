@@ -2220,20 +2220,28 @@
     "translation": "An error occurred while configuring SAML Service Provider, err=%v"
   },
   {
+    "id": "ent.saml.configure.encryption_not_enabled.app_error",
+    "translation": "SAML login was unsuccessful because encryption is not enabled. Please contact your System Administrator."
+  },
+  {
     "id": "ent.saml.configure.load_idp_cert.app_error",
     "translation": "SAML Idp Certificate File does not exists"
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
-    "translation": "SAML Private Key File does not exists"
+    "translation": "SAML login was unsuccessful because the Service Provider Private Key was not found. Please contact your System Administrator."
   },
   {
     "id": "ent.saml.configure.load_public_cert.app_error",
     "translation": "SAML Public Certificate File does not exists"
   },
   {
+    "id": "ent.saml.configure.not_encrypted_response.app_error",
+    "translation": "SAML login was unsuccessful as the Identity Provider response is not encrypted. Please contact your System Administrator."
+  },
+  {
     "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "An error occurred while decrypting the response from the Identity Provider"
+    "translation": "SAML login was unsuccessful because an error occurred while decrypting the response from the Identity Provider. Please contact your System Administrator."
   },
   {
     "id": "ent.saml.do_login.empty_response.app_error",
@@ -2665,15 +2673,11 @@
   },
   {
     "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
-    "translation": "Assertion Consumer Service URL for SAML must be a valid URL and start with http:// or https://."
+    "translation": "Service Provider Login URL must be a valid URL and start with http:// or https://."
   },
   {
     "id": "model.config.is_valid.saml_email_attribute.app_error",
     "translation": "Invalid Email attribute. Must be set."
-  },
-  {
-    "id": "model.config.is_valid.saml_idp_cert.app_error",
-    "translation": "Idp Certificate File missing. Did you forget to upload it?"
   },
   {
     "id": "model.config.is_valid.saml_first_name_attribute.app_error",
@@ -2681,15 +2685,19 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
-    "translation": "Idp Certificate File missing in SAML Settings"
+    "translation": "Identity Provider Certificate File missing. Did you forget to upload it?"
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "Identity Provider Descriptor URL must be a valid URL and start with http:// or https://."
+    "translation": "Identity Provider Issuer URL must be a valid URL and start with http:// or https://."
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
-    "translation": "Identity Provider Single Sign-On URL must be a valid URL and start with http:// or https://."
+    "translation": "SAML SSO URL must be a valid URL and start with http:// or https://."
+  },
+  {
+    "id": "model.config.is_valid.saml_last_name_attribute.app_error",
+    "translation": "Invalid Last Name attribute. Must be set."
   },
   {
     "id": "model.config.is_valid.saml_private_key.app_error",
@@ -2698,18 +2706,6 @@
   {
     "id": "model.config.is_valid.saml_public_cert.app_error",
     "translation": "Public Certificate File missing. Did you forget to upload it?"
-  },
-  {
-    "id": "model.config.is_valid.saml_last_name_attribute.app_error",
-    "translation": "Invalid Last Name attribute. Must be set."
-  },
-  {
-    "id": "model.config.is_valid.saml_private_key.app_error",
-    "translation": "Private Key File missing in SAML Settings"
-  },
-  {
-    "id": "model.config.is_valid.saml_public_cert.app_error",
-    "translation": "Public Certificate File missing in SAML Settings"
   },
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
