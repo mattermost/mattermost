@@ -41,7 +41,7 @@ export default class ManageLanguage extends React.Component {
         this.submitUser(user);
     }
     submitUser(user) {
-        Client.updateUser(user,
+        Client.updateUser(user, 'language',
             () => {
                 GlobalActions.newLocalizationSelected(user.locale);
             },

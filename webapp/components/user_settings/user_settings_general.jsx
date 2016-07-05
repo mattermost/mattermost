@@ -96,6 +96,7 @@ class UserSettingsGeneralTab extends React.Component {
 
         this.state = this.setupInitialState(props);
     }
+
     submitUsername(e) {
         e.preventDefault();
 
@@ -119,8 +120,9 @@ class UserSettingsGeneralTab extends React.Component {
 
         user.username = username;
 
-        this.submitUser(user, false);
+        this.submitUser(user, 'username', false);
     }
+
     submitNickname(e) {
         e.preventDefault();
 
@@ -134,8 +136,9 @@ class UserSettingsGeneralTab extends React.Component {
 
         user.nickname = nickname;
 
-        this.submitUser(user, false);
+        this.submitUser(user, 'nickname', false);
     }
+
     submitName(e) {
         e.preventDefault();
 
@@ -151,8 +154,9 @@ class UserSettingsGeneralTab extends React.Component {
         user.first_name = firstName;
         user.last_name = lastName;
 
-        this.submitUser(user, false);
+        this.submitUser(user, 'fullname', false);
     }
+
     submitEmail(e) {
         e.preventDefault();
 
@@ -178,10 +182,11 @@ class UserSettingsGeneralTab extends React.Component {
         }
 
         user.email = email;
-        this.submitUser(user, true);
+        this.submitUser(user, 'email', true);
     }
-    submitUser(user, emailUpdated) {
-        Client.updateUser(user,
+
+    submitUser(user, type, emailUpdated) {
+        Client.updateUser(user, type,
             () => {
                 this.updateSection('');
                 AsyncClient.getMe();
@@ -204,6 +209,7 @@ class UserSettingsGeneralTab extends React.Component {
             }
         );
     }
+
     submitPicture(e) {
         e.preventDefault();
 
@@ -241,24 +247,31 @@ class UserSettingsGeneralTab extends React.Component {
             }
         );
     }
+
     updateUsername(e) {
         this.setState({username: e.target.value});
     }
+
     updateFirstName(e) {
         this.setState({firstName: e.target.value});
     }
+
     updateLastName(e) {
         this.setState({lastName: e.target.value});
     }
+
     updateNickname(e) {
         this.setState({nickname: e.target.value});
     }
+
     updateEmail(e) {
         this.setState({email: e.target.value});
     }
+
     updateConfirmEmail(e) {
         this.setState({confirmEmail: e.target.value});
     }
+
     updatePicture(e) {
         if (e.target.files && e.target.files[0]) {
             this.setState({picture: e.target.files[0]});
@@ -269,6 +282,7 @@ class UserSettingsGeneralTab extends React.Component {
             this.setState({picture: null});
         }
     }
+
     updateSection(section) {
         $('.settings-modal .modal-body').scrollTop(0).perfectScrollbar('update');
         const emailChangeInProgress = this.state.emailChangeInProgress;
@@ -276,12 +290,14 @@ class UserSettingsGeneralTab extends React.Component {
         this.submitActive = false;
         this.props.updateSection(section);
     }
+
     setupInitialState(props) {
         const user = props.user;
 
         return {username: user.username, firstName: user.first_name, lastName: user.last_name, nickname: user.nickname,
                         email: user.email, confirmEmail: '', picture: null, loadingPicture: false, emailChangeInProgress: false};
     }
+
     createEmailSection() {
         let emailSection;
 
@@ -497,6 +513,7 @@ class UserSettingsGeneralTab extends React.Component {
 
         return emailSection;
     }
+
     render() {
         const user = this.props.user;
         const {formatMessage} = this.props.intl;
