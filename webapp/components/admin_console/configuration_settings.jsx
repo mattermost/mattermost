@@ -24,6 +24,12 @@ export default class ConfigurationSettings extends AdminSettings {
         });
     }
 
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.config.ServiceSettings.ListenAddress !== this.props.config.ServiceSettings.ListenAddress) {
+            this.setState({listenAddress: nextProps.config.ServiceSettings.ListenAddress});
+        }
+    }
+
     getConfigFromState(config) {
         config.ServiceSettings.ListenAddress = this.state.listenAddress;
 
