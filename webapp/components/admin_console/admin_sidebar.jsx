@@ -176,6 +176,7 @@ export default class AdminSidebar extends React.Component {
 
     render() {
         let ldapSettings = null;
+        let samlSettings = null;
         let complianceSettings = null;
 
         let license = null;
@@ -192,6 +193,20 @@ export default class AdminSidebar extends React.Component {
                                 <FormattedMessage
                                     id='admin.sidebar.ldap'
                                     defaultMessage='LDAP'
+                                />
+                            }
+                        />
+                    );
+                }
+
+                if (global.window.mm_license.SAML === 'true') {
+                    samlSettings = (
+                        <AdminSidebarSection
+                            name='saml'
+                            title={
+                                <FormattedMessage
+                                    id='admin.sidebar.saml'
+                                    defaultMessage='SAML'
                                 />
                             }
                         />
@@ -391,6 +406,7 @@ export default class AdminSidebar extends React.Component {
                                     }
                                 />
                                 {ldapSettings}
+                                {samlSettings}
                             </AdminSidebarSection>
                             <AdminSidebarSection
                                 name='security'

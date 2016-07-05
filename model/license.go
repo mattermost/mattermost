@@ -39,6 +39,7 @@ type Features struct {
 	Compliance     *bool `json:"compliance"`
 	CustomBrand    *bool `json:"custom_brand"`
 	MHPNS          *bool `json:"mhpns"`
+	SAML           *bool `json:"saml"`
 	FutureFeatures *bool `json:"future_features"`
 }
 
@@ -81,6 +82,11 @@ func (f *Features) SetDefaults() {
 	if f.MHPNS == nil {
 		f.MHPNS = new(bool)
 		*f.MHPNS = *f.FutureFeatures
+	}
+
+	if f.SAML == nil {
+		f.SAML = new(bool)
+		*f.SAML = *f.FutureFeatures
 	}
 }
 

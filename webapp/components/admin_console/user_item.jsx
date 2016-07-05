@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import Client from 'utils/web_client.jsx';
+import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 import UserStore from 'stores/user_store.jsx';
 import ConfirmModal from '../confirm_modal.jsx';
@@ -374,12 +375,13 @@ export default class UserItem extends React.Component {
         let authServiceText;
         let passwordReset;
         if (user.auth_service) {
+            const service = (user.auth_service === Constants.LDAP_SERVICE || user.auth_service === Constants.SAML_SERVICE) ? user.auth_service.toUpperCase() : Utils.toTitleCase(user.auth_service);
             authServiceText = (
                 <FormattedHTMLMessage
                     id='admin.user_item.authServiceNotEmail'
                     defaultMessage=', <strong>Sign-in Method:</strong> {service}'
                     values={{
-                        service: Utils.toTitleCase(user.auth_service)
+                        service
                     }}
                 />
             );

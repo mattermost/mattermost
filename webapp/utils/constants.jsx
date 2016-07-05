@@ -227,6 +227,7 @@ export default {
     GOOGLE_SERVICE: 'google',
     EMAIL_SERVICE: 'email',
     LDAP_SERVICE: 'ldap',
+    SAML_SERVICE: 'saml',
     USERNAME_SERVICE: 'username',
     SIGNIN_CHANGE: 'signin_change',
     PASSWORD_CHANGE: 'password_change',

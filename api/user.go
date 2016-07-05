@@ -5,6 +5,7 @@ package api
 
 import (
 	"bytes"
+	b64 "encoding/base64"
 	"fmt"
 	"hash/fnv"
 	"html/template"
@@ -71,6 +72,9 @@ func InitUser() {
 	BaseRoutes.NeedUser.Handle("/sessions", ApiUserRequired(getSessions)).Methods("GET")
 	BaseRoutes.NeedUser.Handle("/audits", ApiUserRequired(getAudits)).Methods("GET")
 	BaseRoutes.NeedUser.Handle("/image", ApiUserRequiredTrustRequester(getProfileImage)).Methods("GET")
+
+	BaseRoutes.Root.Handle("/login/sso/saml", AppHandlerIndependent(loginWithSaml)).Methods("GET")
+	BaseRoutes.Root.Handle("/login/sso/saml", AppHandlerIndependent(completeSaml)).Methods("POST")
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2005,12 +2009,16 @@ func emailToOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	stateProps["email"] = email
 
 	m := map[string]string{}
-	if authUrl, err := GetAuthorizationCode(c, service, stateProps, ""); err != nil {
-		c.LogAuditWithUserId(user.Id, "fail - oauth issue")
-		c.Err = err
-		return
+	if service == model.USER_AUTH_SERVICE_SAML {
+		m["follow_link"] = c.GetSiteURL() + "/login/sso/saml?action=" + model.OAUTH_ACTION_EMAIL_TO_SSO + "&email=" + email
 	} else {
-		m["follow_link"] = authUrl
+		if authUrl, err := GetAuthorizationCode(c, service, stateProps, ""); err != nil {
+			c.LogAuditWithUserId(user.Id, "fail - oauth issue")
+			c.Err = err
+			return
+		} else {
+			m["follow_link"] = authUrl
+		}
 	}
 
 	c.LogAuditWithUserId(user.Id, "success")
@@ -2418,4 +2426,92 @@ func checkMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		rdata["mfa_required"] = strconv.FormatBool(result.Data.(*model.User).MfaActive)
 	}
 	w.Write([]byte(model.MapToJson(rdata)))
+}
+
+func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
+	samlInterface := einterfaces.GetSamlInterface()
+
+	if samlInterface == nil {
+		c.Err = model.NewLocAppError("loginWithSaml", "api.user.saml.not_available.app_error", nil, "")
+		c.Err.StatusCode = http.StatusFound
+		return
+	}
+
+	teamId, err := getTeamIdFromQuery(r.URL.Query())
+	if err != nil {
+		c.Err = err
+		return
+	}
+	action := r.URL.Query().Get("action")
+	relayState := ""
+
+	if len(action) != 0 {
+		relayProps := map[string]string{}
+		relayProps["team_id"] = teamId
+		relayProps["action"] = action
+		if action == model.OAUTH_ACTION_EMAIL_TO_SSO {
+			relayProps["email"] = r.URL.Query().Get("email")
+		}
+		relayState = b64.StdEncoding.EncodeToString([]byte(model.MapToJson(relayProps)))
+	}
+
+	if data, err := samlInterface.BuildRequest(relayState); err != nil {
+		c.Err = err
+		return
+	} else {
+		w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
+		http.Redirect(w, r, data.URL, http.StatusFound)
+	}
+}
+
+func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
+	samlInterface := einterfaces.GetSamlInterface()
+
+	if samlInterface == nil {
+		c.Err = model.NewLocAppError("completeSaml", "api.user.saml.not_available.app_error", nil, "")
+		c.Err.StatusCode = http.StatusFound
+		return
+	}
+
+	//Validate that the user is with SAML and all that
+	encodedXML := r.FormValue("SAMLResponse")
+	relayState := r.FormValue("RelayState")
+
+	relayProps := make(map[string]string)
+	if len(relayState) > 0 {
+		stateStr := ""
+		if b, err := b64.StdEncoding.DecodeString(relayState); err != nil {
+			c.Err = model.NewLocAppError("completeSaml", "api.user.authorize_oauth_user.invalid_state.app_error", nil, err.Error())
+			c.Err.StatusCode = http.StatusFound
+			return
+		} else {
+			stateStr = string(b)
+		}
+		relayProps = model.MapFromJson(strings.NewReader(stateStr))
+	}
+
+	if user, err := samlInterface.DoLogin(encodedXML, relayProps); err != nil {
+		c.Err = err
+		c.Err.StatusCode = http.StatusFound
+		return
+	} else {
+		if err := checkUserAdditionalAuthenticationCriteria(user, ""); err != nil {
+			c.Err = err
+			c.Err.StatusCode = http.StatusFound
+			return
+		}
+		action := relayProps["action"]
+		switch action {
+		case model.OAUTH_ACTION_SIGNUP:
+			teamId := relayProps["team_id"]
+			go addDirectChannels(teamId, user)
+			break
+		case model.OAUTH_ACTION_EMAIL_TO_SSO:
+			RevokeAllSession(c, user.Id)
+			go sendSignInChangeEmail(c, user.Email, c.GetSiteURL(), strings.Title(model.USER_AUTH_SERVICE_SAML)+" SSO")
+			break
+		}
+		doLogin(c, w, r, user, "")
+		http.Redirect(w, r, GetProtocol(r)+"://"+r.Host, http.StatusFound)
+	}
 }

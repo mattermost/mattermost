@@ -412,6 +412,24 @@ class UserSettingsGeneralTab extends React.Component {
                         {helpText}
                     </div>
                 );
+            } else if (this.props.user.auth_service === Constants.SAML_SERVICE) {
+                inputs.push(
+                    <div
+                        key='oauthEmailInfo'
+                        className='form-group'
+                    >
+                        <div className='setting-list__hint'>
+                            <FormattedMessage
+                                id='user.settings.general.emailSamlCantUpdate'
+                                defaultMessage='Login occurs through SAML. Email cannot be updated. Email address used for notifications is {email}.'
+                                values={{
+                                    email: this.state.email
+                                }}
+                            />
+                        </div>
+                        {helpText}
+                    </div>
+                );
             }
 
             emailSection = (
@@ -473,6 +491,16 @@ class UserSettingsGeneralTab extends React.Component {
                     <FormattedMessage
                         id='user.settings.general.loginLdap'
                         defaultMessage='Login done through LDAP ({email})'
+                        values={{
+                            email: this.state.email
+                        }}
+                    />
+                );
+            } else if (this.props.user.auth_service === Constants.SAML_SERVICE) {
+                describe = (
+                    <FormattedMessage
+                        id='user.settings.general.loginSaml'
+                        defaultMessage='Login done through SAML ({email})'
                         values={{
                             email: this.state.email
                         }}
