@@ -77,6 +77,7 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.LogAudit("fail - bad channel permissions")
 			return
 		}
+		c.Err = nil
 	}
 
 	if result := <-Srv.Store.Webhook().SaveIncoming(hook); result.Err != nil {

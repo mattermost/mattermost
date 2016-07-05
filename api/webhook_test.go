@@ -18,6 +18,7 @@ func TestCreateIncomingHook(t *testing.T) {
 	team := th.SystemAdminTeam
 	channel1 := th.CreateChannel(Client, team)
 	channel2 := th.CreatePrivateChannel(Client, team)
+	channel3 := th.CreateChannel(Client, team)
 	user2 := th.CreateUser(Client)
 	LinkUserToTeam(user2, team)
 
@@ -66,6 +67,13 @@ func TestCreateIncomingHook(t *testing.T) {
 		if result.Data.(*model.IncomingWebhook).TeamId != team.Id {
 			t.Fatal("bad team id wasn't overwritten")
 		}
+	}
+
+	Client.Must(Client.LeaveChannel(channel3.Id))
+
+	hook = &model.IncomingWebhook{ChannelId: channel3.Id, UserId: user.Id, TeamId: team.Id}
+	if _, err := Client.CreateIncomingWebhook(hook); err != nil {
+		t.Fatal(err)
 	}
 
 	Client.Logout()
