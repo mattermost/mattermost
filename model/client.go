@@ -345,6 +345,10 @@ func (c *Client) FindTeamByName(name string) (*Result, *AppError) {
 	}
 }
 
+//  Adds a user directly to the team without sending an invite.
+//  The teamId and userId are required.  You must be a valid member of the team and/or
+//  have the correct role to add new users to the team.  Returns a map of user_id=userId
+//  if successful, otherwise returns an AppError.
 func (c *Client) AddUserToTeam(teamId string, userId string) (*Result, *AppError) {
 	if len(teamId) == 0 {
 		teamId = c.GetTeamId()
@@ -375,6 +379,10 @@ func (c *Client) AddUserToTeamFromInvite(hash, dataToHash, inviteId string) (*Re
 	}
 }
 
+//  Removes a user directly from the team.
+//  The teamId and userId are required.  You must be a valid member of the team and/or
+//  have the correct role to remove a user from the team.  Returns a map of user_id=userId
+//  if successful, otherwise returns an AppError.
 func (c *Client) RemoveUserFromTeam(teamId string, userId string) (*Result, *AppError) {
 	if len(teamId) == 0 {
 		teamId = c.GetTeamId()
