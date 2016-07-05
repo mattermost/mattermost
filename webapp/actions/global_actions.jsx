@@ -160,11 +160,6 @@ export function emitPostFocusEvent(postId) {
     );
 }
 
-export function emitProfilesForDmList() {
-    AsyncClient.getProfilesForDirectMessageList();
-    AsyncClient.getTeamMembers(TeamStore.getCurrentId());
-}
-
 export function emitCloseRightHandSide() {
     AppDispatcher.handleServerAction({
         type: ActionTypes.RECEIVED_SEARCH,

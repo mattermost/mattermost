@@ -1,35 +1,38 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import {Modal} from 'react-bootstrap';
-import FilteredUserList from './filtered_user_list.jsx';
-import UserStore from 'stores/user_store.jsx';
-import TeamStore from 'stores/team_store.jsx';
-import * as Utils from 'utils/utils.jsx';
-import * as GlobalActions from 'actions/global_actions.jsx';
-
-import {FormattedMessage} from 'react-intl';
-import {browserHistory} from 'react-router/es6';
+import FilteredUserList from 'components/filtered_user_list.jsx';
 import SpinnerButton from 'components/spinner_button.jsx';
 import LoadingScreen from 'components/loading_screen.jsx';
 
+import {getMoreDmList} from 'actions/user_actions.jsx';
+
+import UserStore from 'stores/user_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
+
+import * as Utils from 'utils/utils.jsx';
+
 import React from 'react';
+import {Modal} from 'react-bootstrap';
+import {FormattedMessage} from 'react-intl';
+import {browserHistory} from 'react-router/es6';
 
 export default class MoreDirectChannels extends React.Component {
     constructor(props) {
         super(props);
 
         this.handleHide = this.handleHide.bind(this);
-        this.handleOnEnter = this.handleOnEnter.bind(this);
         this.handleShowDirectChannel = this.handleShowDirectChannel.bind(this);
         this.handleUserChange = this.handleUserChange.bind(this);
         this.onTeamChange = this.onTeamChange.bind(this);
         this.createJoinDirectChannelButton = this.createJoinDirectChannelButton.bind(this);
 
         this.state = {
-            users: null,
-            teamMembers: null,
-            loadingDMChannel: -1
+            users: UserStore.getProfilesForDmList(),
+            teamMembers: TeamStore.getMembersForTeam(),
+            loadingDMChannel: -1,
+            usersLoaded: false,
+            teamMembersLoaded: false
         };
     }
 
@@ -73,17 +76,6 @@ export default class MoreDirectChannels extends React.Component {
         }
     }
 
-    handleOnEnter() {
-        this.setState({
-            users: null,
-            teamMembers: null
-        });
-    }
-
-    handleOnEntered() {
-        GlobalActions.emitProfilesForDmList();
-    }
-
     handleShowDirectChannel(teammate, e) {
         e.preventDefault();
 
@@ -107,13 +99,15 @@ export default class MoreDirectChannels extends React.Component {
 
     handleUserChange() {
         this.setState({
-            users: UserStore.getProfilesForDmList()
+            users: UserStore.getProfilesForDmList(),
+            usersLoaded: true
         });
     }
 
     onTeamChange() {
         this.setState({
-            teamMembers: TeamStore.getMembersForTeam()
+            teamMembers: TeamStore.getMembersForTeam(),
+            teamMembersLoaded: true
         });
     }
 
@@ -139,7 +133,7 @@ export default class MoreDirectChannels extends React.Component {
         }
 
         var body = null;
-        if (this.state.users == null || this.state.teamMembers == null) {
+        if (!this.state.usersLoaded || !this.state.teamMembersLoaded) {
             body = (<LoadingScreen/>);
         } else {
             var showTeamToggle = false;
@@ -163,8 +157,7 @@ export default class MoreDirectChannels extends React.Component {
                 dialogClassName='more-modal more-direct-channels'
                 show={this.props.show}
                 onHide={this.handleHide}
-                onEnter={this.handleOnEnter}
-                onEntered={this.handleOnEntered}
+                onEntered={getMoreDmList}
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title>
