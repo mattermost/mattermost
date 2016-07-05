@@ -1550,7 +1550,7 @@ COMMANDS:
                                        It requires the -channel_name flag and
                                        -team_name flag.  Requires an enterprise license.
         Example:
-            platform -list_channels -team_name="name"
+            platform -restore_channel -team_name="name" -channel_name="channel_name"
 
     -reset_password                   Resets the password for a user.  It requires the
                                       -email and -password flag.
