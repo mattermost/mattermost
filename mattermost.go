@@ -280,6 +280,7 @@ func parseCmds() {
 	flag.BoolVar(&flagCmdInviteUser, "invite_user", false, "")
 	flag.BoolVar(&flagCmdAssignRole, "assign_role", false, "")
 	flag.BoolVar(&flagCmdJoinChannel, "join_channel", false, "")
+	flag.BoolVar(&flagCmdLeaveChannel, "leave_channel", false, "")
 	flag.BoolVar(&flagCmdListChannels, "list_channels", false, "")
 	flag.BoolVar(&flagCmdRestoreChannel, "restore_channel", false, "")
 	flag.BoolVar(&flagCmdJoinTeam, "join_team", false, "")
