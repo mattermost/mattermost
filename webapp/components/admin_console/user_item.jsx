@@ -541,9 +541,9 @@ export default class UserItem extends React.Component {
                             className='dropdown-menu member-menu'
                             role='menu'
                         >
+                            {removeFromTeam}
                             {makeAdmin}
                             {makeMember}
-                            {removeFromTeam}
                             {makeActive}
                             {makeNotActive}
                             {makeSystemAdmin}

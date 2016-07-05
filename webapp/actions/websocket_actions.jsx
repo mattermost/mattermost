@@ -221,6 +221,8 @@ function handleLeaveTeamEvent(msg) {
         if (TeamStore.getCurrentId() === msg.team_id) {
             browserHistory.push('/');
         }
+    } else if (TeamStore.getCurrentId() === msg.team_id) {
+        GlobalActions.emitProfilesForDmList();
     }
 }
 

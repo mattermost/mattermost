@@ -354,9 +354,9 @@ export default class TeamMembersDropdown extends React.Component {
                     className='dropdown-menu member-menu'
                     role='menu'
                 >
+                    {removeFromTeam}
                     {makeAdmin}
                     {makeMember}
-                    {removeFromTeam}
                     {makeActive}
                     {makeNotActive}
                 </ul>
