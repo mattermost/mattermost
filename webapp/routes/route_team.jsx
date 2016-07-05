@@ -15,6 +15,9 @@ import Client from 'utils/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 
+import emojiRoute from 'routes/route_emoji.jsx';
+import integrationsRoute from 'routes/route_integrations.jsx';
+
 function onChannelEnter(nextState, replace, callback) {
     doChannelChange(nextState, replace, callback);
 }
@@ -120,52 +123,52 @@ function onPermalinkEnter(nextState) {
 
 export default {
     path: ':team',
-    getComponents: (location, callback) => {
-        System.import('components/needs_team.jsx').then(RouteUtils.importComponentSuccess(callback));
-    },
     onEnter: preNeedsTeam,
     indexRoute: {onEnter: (nextState, replace) => replace('/' + nextState.params.team + '/channels/town-square')},
     childRoutes: [
+        integrationsRoute,
+        emojiRoute,
         {
-            path: 'channels/:channel',
-            onEnter: onChannelEnter,
             getComponents: (location, callback) => {
-                Promise.all([
-                    System.import('components/sidebar.jsx'),
-                    System.import('components/channel_view.jsx')
-                ]).then(
-                (comarr) => callback(null, {sidebar: comarr[0].default, center: comarr[1].default})
-                );
-            }
-        },
-        {
-            path: 'pl/:postid',
-            onEnter: onPermalinkEnter,
-            getComponents: (location, callback) => {
-                Promise.all([
-                    System.import('components/sidebar.jsx'),
-                    System.import('components/permalink_view.jsx')
-                ]).then(
-                (comarr) => callback(null, {sidebar: comarr[0].default, center: comarr[1].default})
-                );
-            }
-        },
-        {
-            path: 'tutorial',
-            getComponents: (location, callback) => {
-                Promise.all([
-                    System.import('components/sidebar.jsx'),
-                    System.import('components/tutorial/tutorial_view.jsx')
-                ]).then(
-                (comarr) => callback(null, {sidebar: comarr[0].default, center: comarr[1].default})
-                );
-            }
-        },
-        {
-            path: 'settings',
-            getChildRoutes: (location, callback) => {
-                System.import('routes/route_integrations.jsx').then((comp) => callback(null, [comp.default]));
-            }
+                System.import('components/needs_team.jsx').then(RouteUtils.importComponentSuccess(callback));
+            },
+            childRoutes: [
+                {
+                    path: 'channels/:channel',
+                    onEnter: onChannelEnter,
+                    getComponents: (location, callback) => {
+                        Promise.all([
+                            System.import('components/sidebar.jsx'),
+                            System.import('components/channel_view.jsx')
+                        ]).then(
+                        (comarr) => callback(null, {sidebar: comarr[0].default, center: comarr[1].default})
+                        );
+                    }
+                },
+                {
+                    path: 'pl/:postid',
+                    onEnter: onPermalinkEnter,
+                    getComponents: (location, callback) => {
+                        Promise.all([
+                            System.import('components/sidebar.jsx'),
+                            System.import('components/permalink_view.jsx')
+                        ]).then(
+                        (comarr) => callback(null, {sidebar: comarr[0].default, center: comarr[1].default})
+                        );
+                    }
+                },
+                {
+                    path: 'tutorial',
+                    getComponents: (location, callback) => {
+                        Promise.all([
+                            System.import('components/sidebar.jsx'),
+                            System.import('components/tutorial/tutorial_view.jsx')
+                        ]).then(
+                        (comarr) => callback(null, {sidebar: comarr[0].default, center: comarr[1].default})
+                        );
+                    }
+                }
+            ]
         }
     ]
 };

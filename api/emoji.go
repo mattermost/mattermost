@@ -16,6 +16,7 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
+	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -32,7 +33,7 @@ func InitEmoji() {
 	BaseRoutes.Emoji.Handle("/list", ApiUserRequired(getEmoji)).Methods("GET")
 	BaseRoutes.Emoji.Handle("/create", ApiUserRequired(createEmoji)).Methods("POST")
 	BaseRoutes.Emoji.Handle("/delete", ApiUserRequired(deleteEmoji)).Methods("POST")
-	BaseRoutes.Emoji.Handle("/{id:[A-Za-z0-9_]+}", ApiUserRequired(getEmojiImage)).Methods("GET")
+	BaseRoutes.Emoji.Handle("/{id:[A-Za-z0-9_]+}", ApiUserRequiredTrustRequester(getEmojiImage)).Methods("GET")
 }
 
 func getEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -58,7 +59,8 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !(*utils.Cfg.ServiceSettings.RestrictCustomEmojiCreation == model.RESTRICT_EMOJI_CREATION_ALL || c.IsSystemAdmin()) {
+	if emojiInterface := einterfaces.GetEmojiInterface(); emojiInterface != nil &&
+		!emojiInterface.CanUserCreateEmoji(c.Session.Roles, c.Session.TeamMembers) {
 		c.Err = model.NewLocAppError("createEmoji", "api.emoji.create.permissions.app_error", nil, "user_id="+c.Session.UserId)
 		c.Err.StatusCode = http.StatusUnauthorized
 		return

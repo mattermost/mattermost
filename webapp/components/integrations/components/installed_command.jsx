@@ -3,15 +3,15 @@
 
 import React from 'react';
 
-import ChannelStore from 'stores/channel_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
-export default class InstalledIncomingWebhook extends React.Component {
+export default class InstalledCommand extends React.Component {
     static get propTypes() {
         return {
-            incomingWebhook: React.PropTypes.object.isRequired,
+            command: React.PropTypes.object.isRequired,
+            onRegenToken: React.PropTypes.func.isRequired,
             onDelete: React.PropTypes.func.isRequired,
             filter: React.PropTypes.string
         };
@@ -20,65 +20,68 @@ export default class InstalledIncomingWebhook extends React.Component {
     constructor(props) {
         super(props);
 
+        this.handleRegenToken = this.handleRegenToken.bind(this);
         this.handleDelete = this.handleDelete.bind(this);
+
+        this.matchesFilter = this.matchesFilter.bind(this);
+    }
+
+    handleRegenToken(e) {
+        e.preventDefault();
+
+        this.props.onRegenToken(this.props.command);
     }
 
     handleDelete(e) {
         e.preventDefault();
 
-        this.props.onDelete(this.props.incomingWebhook);
+        this.props.onDelete(this.props.command);
     }
 
-    matchesFilter(incomingWebhook, channel, filter) {
+    matchesFilter(command, filter) {
         if (!filter) {
             return true;
         }
 
-        if (incomingWebhook.display_name.toLowerCase().indexOf(filter) !== -1 ||
-            incomingWebhook.description.toLowerCase().indexOf(filter) !== -1) {
-            return true;
-        }
-
-        if (incomingWebhook.channel_id) {
-            if (channel && channel.name.toLowerCase().indexOf(filter) !== -1) {
-                return true;
-            }
-        }
-
-        return false;
+        return command.display_name.toLowerCase().indexOf(filter) !== -1 ||
+            command.description.toLowerCase().indexOf(filter) !== -1 ||
+            command.trigger.toLowerCase().indexOf(filter) !== -1;
     }
 
     render() {
-        const incomingWebhook = this.props.incomingWebhook;
-        const channel = ChannelStore.get(incomingWebhook.channel_id);
+        const command = this.props.command;
+        const filter = this.props.filter ? this.props.filter.toLowerCase() : '';
 
-        if (!this.matchesFilter(incomingWebhook, channel, this.props.filter)) {
+        if (!this.matchesFilter(command, filter)) {
             return null;
         }
 
-        let displayName;
-        if (incomingWebhook.display_name) {
-            displayName = incomingWebhook.display_name;
-        } else if (channel) {
-            displayName = channel.display_name;
+        let name;
+        if (command.display_name) {
+            name = command.display_name;
         } else {
-            displayName = (
+            name = (
                 <FormattedMessage
-                    id='installed_incoming_webhooks.unknown_channel'
-                    defaultMessage='A Private Webhook'
+                    id='installed_commands.unnamed_command'
+                    defaultMessage='Unnamed Slash Command'
                 />
             );
         }
 
         let description = null;
-        if (incomingWebhook.description) {
+        if (command.description) {
             description = (
                 <div className='item-details__row'>
                     <span className='item-details__description'>
-                        {incomingWebhook.description}
+                        {command.description}
                     </span>
                 </div>
             );
+        }
+
+        let trigger = '- /' + command.trigger;
+        if (command.auto_complete && command.auto_complete_hint) {
+            trigger += ' ' + command.auto_complete_hint;
         }
 
         return (
@@ -86,35 +89,48 @@ export default class InstalledIncomingWebhook extends React.Component {
                 <div className='item-details'>
                     <div className='item-details__row'>
                         <span className='item-details__name'>
-                            {displayName}
+                            {name}
+                        </span>
+                        <span className='item-details__trigger'>
+                            {trigger}
                         </span>
                     </div>
                     {description}
                     <div className='item-details__row'>
-                        <span className='item-details__url'>
+                        <span className='item-details__token'>
                             <FormattedMessage
-                                id='installed_integrations.url'
-                                defaultMessage='URL: {url}'
+                                id='installed_integrations.token'
+                                defaultMessage='Token: {token}'
                                 values={{
-                                    url: Utils.getWindowLocationOrigin() + '/hooks/' + incomingWebhook.id
+                                    token: command.token
                                 }}
                             />
                         </span>
                     </div>
-                    <div className='tem-details__row'>
+                    <div className='item-details__row'>
                         <span className='item-details__creation'>
                             <FormattedMessage
                                 id='installed_integrations.creation'
                                 defaultMessage='Created by {creator} on {createAt, date, full}'
                                 values={{
-                                    creator: Utils.displayUsername(incomingWebhook.user_id),
-                                    createAt: incomingWebhook.create_at
+                                    creator: Utils.displayUsername(command.creator_id),
+                                    createAt: command.create_at
                                 }}
                             />
                         </span>
                     </div>
                 </div>
                 <div className='item-actions'>
+                    <a
+                        href='#'
+                        onClick={this.handleRegenToken}
+                    >
+                        <FormattedMessage
+                            id='installed_integrations.regenToken'
+                            defaultMessage='Regenerate Token'
+                        />
+                    </a>
+                    {' - '}
                     <a
                         href='#'
                         onClick={this.handleDelete}

@@ -38,8 +38,9 @@ const (
 
 	FAKE_SETTING = "********************************"
 
-	RESTRICT_EMOJI_CREATION_ALL   = "all"
-	RESTRICT_EMOJI_CREATION_ADMIN = "system_admin"
+	RESTRICT_EMOJI_CREATION_ALL          = "all"
+	RESTRICT_EMOJI_CREATION_ADMIN        = "admin"
+	RESTRICT_EMOJI_CREATION_SYSTEM_ADMIN = "system_admin"
 )
 
 type ServiceSettings struct {

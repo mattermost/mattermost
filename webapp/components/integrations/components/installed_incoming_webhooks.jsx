@@ -8,11 +8,17 @@ import IntegrationStore from 'stores/integration_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 
+import BackstageList from 'components/backstage/components/backstage_list.jsx';
 import {FormattedMessage} from 'react-intl';
 import InstalledIncomingWebhook from './installed_incoming_webhook.jsx';
-import InstalledIntegrations from './installed_integrations.jsx';
 
 export default class InstalledIncomingWebhooks extends React.Component {
+    static get propTypes() {
+        return {
+            team: React.propTypes.object.isRequired
+        };
+    }
+
     constructor(props) {
         super(props);
 
@@ -65,7 +71,7 @@ export default class InstalledIncomingWebhooks extends React.Component {
         });
 
         return (
-            <InstalledIntegrations
+            <BackstageList
                 header={
                     <FormattedMessage
                         id='installed_incoming_webhooks.header'
@@ -78,17 +84,18 @@ export default class InstalledIncomingWebhooks extends React.Component {
                         defaultMessage='Add Incoming Webhook'
                     />
                 }
-                addLink={'/' + Utils.getTeamNameFromUrl() + '/settings/integrations/incoming_webhooks/add'}
+                addLink={'/' + this.props.team.name + '/integrations/incoming_webhooks/add'}
                 emptyText={
                     <FormattedMessage
                         id='installed_incoming_webhooks.empty'
                         defaultMessage='No incoming webhooks found'
                     />
                 }
+                searchPlaceholder={Utils.localizeMessage('installed_incoming_webhooks.search', 'Search Incoming Webhooks')}
                 loading={this.state.loading}
             >
                 {incomingWebhooks}
-            </InstalledIntegrations>
+            </BackstageList>
         );
     }
 }

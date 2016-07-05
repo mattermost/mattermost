@@ -85,6 +85,7 @@ export default class NavbarDropdown extends React.Component {
         var isSystemAdmin = false;
         var teamSettings = null;
         let integrationsLink = null;
+        let customEmojiLink = null;
 
         if (currentUser != null) {
             isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
@@ -166,10 +167,23 @@ export default class NavbarDropdown extends React.Component {
         if (integrationsEnabled && (isAdmin || window.mm_config.EnableOnlyAdminIntegrations !== 'true')) {
             integrationsLink = (
                 <li>
-                    <Link to={'/' + Utils.getTeamNameFromUrl() + '/settings/integrations'}>
+                    <Link to={'/' + Utils.getTeamNameFromUrl() + '/integrations'}>
                         <FormattedMessage
                             id='navbar_dropdown.integrations'
                             defaultMessage='Integrations'
+                        />
+                    </Link>
+                </li>
+            );
+        }
+
+        if (window.mm_config.EnableCustomEmoji === 'true') {
+            customEmojiLink = (
+                <li>
+                    <Link to={'/' + Utils.getTeamNameFromUrl() + '/emoji'}>
+                        <FormattedMessage
+                            id='navbar_dropdown.emoji'
+                            defaultMessage='Custom Emoji'
                         />
                     </Link>
                 </li>
@@ -327,8 +341,10 @@ export default class NavbarDropdown extends React.Component {
                             </a>
                         </li>
                         <li className='divider'></li>
-                        {teamSettings}
                         {integrationsLink}
+                        {customEmojiLink}
+                        <li className='divider'></li>
+                        {teamSettings}
                         {manageLink}
                         {sysAdminLink}
                         {teams}

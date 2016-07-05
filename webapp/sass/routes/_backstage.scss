@@ -1,35 +1,11 @@
-body {
-    &.backstage {
-        height: auto;
-        overflow: auto;
-
-        .inner-wrap {
-            @include translateX(0);
-            margin-right: 0 !important;
-
-            &:before {
-                display: none;
-            }
-        }
-
-        .sidebar--right,
-        .sidebar--menu,
-        .navbar {
-            display: none;
-        }
-    }
-}
-
-.backstage-content {
-    background-color: $bg--gray;
-    height: 100%;
-    margin: 46px auto;
-    max-width: 960px;
-    padding-left: 135px;
+.backstage {
+    height: 100vh;
+    width: 100vw;
 }
 
 .backstage-navbar {
     background: $white;
+    height: 41px;
     border-bottom: 1px solid $light-gray;
     padding: 10px 20px;
     z-index: 10;
@@ -51,13 +27,29 @@ body {
     }
 }
 
+.backstage-body {
+    background-color: $bg--gray;
+    bottom: 0;
+    display: inline-block;
+    height: calc(100vh - 41px);
+    overflow: auto;
+    top: 0;
+    width: 100%;
+}
+
+.backstage-content {
+    background-color: $bg--gray;
+    margin: 46px auto;
+    max-width: 960px;
+    padding-left: 135px;
+    vertical-align: top;
+}
+
 .backstage-sidebar {
-    height: 100%;
-    left: 0;
-    padding: 50px 20px;
+    padding: 46px 20px;
     position: absolute;
+    vertical-align: top;
     width: 260px;
-    z-index: 5;
 
     ul {
         list-style: none;
@@ -69,6 +61,7 @@ body {
     border: 1px solid $light-gray;
 
     .category-title {
+        color: $black;
         display: block;
         line-height: 36px;
         padding: 0 10px;
@@ -76,7 +69,8 @@ body {
     }
 
     .category-title--active {
-        color: $black;
+        background-color: $primary-color;
+        color: $white;
     }
 
     .category-title__text {
@@ -110,8 +104,8 @@ body {
     }
 }
 
-.backstage__sidebar__category + .backstage__sidebar__category {
-    border-top-width: 0;
+.backstage-sidebar__category + .backstage-sidebar__category {
+    margin-top: 1em;
 }
 
 .backstage-header__divider {
@@ -130,7 +124,7 @@ body {
         margin: 5px 0;
     }
 
-    .add-integrations-link {
+    .add-link {
         float: right;
     }
 }
@@ -139,45 +133,45 @@ body {
     display: flex;
     flex-direction: row;
     width: 100%;
+}
 
-    .backstage-filters__sort {
-        flex-grow: 1;
-        flex-shrink: 0;
-        line-height: 30px;
+.backstage-filters__sort {
+    flex-grow: 1;
+    flex-shrink: 0;
+    line-height: 30px;
 
-        .filter-sort {
-            text-decoration: none;
+    .filter-sort {
+        text-decoration: none;
 
-            &.filter-sort--active {
-                color: inherit;
-                cursor: default;
-            }
-        }
-
-        .divider {
-            margin-left: 8px;
-            margin-right: 8px;
+        &.filter-sort--active {
+            color: inherit;
+            cursor: default;
         }
     }
 
-    .backstage-filter__search {
-        flex-grow: 0;
-        flex-shrink: 0;
-        position: relative;
-        width: 270px;
+    .divider {
+        margin-left: 8px;
+        margin-right: 8px;
+    }
+}
 
-        .fa {
-            @include opacity(.4);
-            left: 11px;
-            position: absolute;
-            top: 11px;
-        }
+.backstage-filter__search {
+    flex-grow: 0;
+    flex-shrink: 0;
+    position: relative;
+    width: 270px;
 
-        input {
-            background: $white;
-            border-bottom: none;
-            padding-left: 30px;
-        }
+    .fa {
+        @include opacity(.4);
+        left: 11px;
+        position: absolute;
+        top: 11px;
+    }
+
+    input {
+        background: $white;
+        border-bottom-width: 0;
+        padding-left: 30px;
     }
 }
 
@@ -331,4 +325,74 @@ body {
 
 .integration-option__description {
     color: $dark-gray;
+}
+
+.emoji-list .backstage-filter__search input {
+    border-bottom-width: 1px;
+}
+
+.emoji-list__help {
+    display: block;
+    padding: 1em 0;
+}
+
+.emoji-list__table {
+    width: 100%;
+
+    .backstage-list__item {
+        display: table-row;
+    }
+
+    .backstage-list__empty td {
+        padding: 15px 20px;
+    }
+}
+
+.emoji-list__table-header {
+    font-weight: bold;
+}
+
+.emoji-list__name {
+    padding: 20px 0px 20px 15px;
+    width: 30%;
+}
+
+.emoji-list__image {
+    padding: 15px 0px;
+    width: 15%;
+}
+
+&.emoji-list__creator {
+    padding: 15px 0px;
+    width: 40%;
+}
+
+&.emoji-list__actions {
+    padding: 20px 15px 20px 0px;
+    width: 15%;
+}
+
+.add-emoji__upload {
+    display: inline-block;
+    margin: 0 10px 10px 0;
+    position: relative;
+
+    input {
+        @include opacity(0);
+        height: 100%;
+        left: 0;
+        position: absolute;
+        top: 0;
+        width: 100%;
+        z-index: 5;
+    }
+}
+
+.add-emoji__filename,
+.add-emoji__preview {
+    padding-top: 7px;
+
+    .emoticon {
+        margin-bottom: 0;
+    }
 }

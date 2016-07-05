@@ -86,6 +86,11 @@ export default {
         UPDATED_COMMAND: null,
         REMOVED_COMMAND: null,
 
+        RECEIVED_CUSTOM_EMOJIS: null,
+        RECEIVED_CUSTOM_EMOJI: null,
+        UPDATED_CUSTOM_EMOJI: null,
+        REMOVED_CUSTOM_EMOJI: null,
+
         RECEIVED_MSG: null,
 
         RECEIVED_MY_TEAM: null,

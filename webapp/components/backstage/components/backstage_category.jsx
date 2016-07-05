@@ -59,6 +59,7 @@ export default class BackstageCategory extends React.Component {
                     to={link}
                     className='category-title'
                     activeClassName='category-title--active'
+                    onlyActiveOnIndex={true}
                 >
                     <i className={'fa ' + icon}/>
                     <span className='category-title__text'>

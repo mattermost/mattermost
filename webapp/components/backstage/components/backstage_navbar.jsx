@@ -1,52 +1,28 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
-
 import React from 'react';
-
-import TeamStore from 'stores/team_store.jsx';
 
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router/es6';
 
 export default class BackstageNavbar extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.handleChange = this.handleChange.bind(this);
-
-        this.state = {
-            team: TeamStore.getCurrent()
+    static get propTypes() {
+        return {
+            team: React.propTypes.object.isRequired
         };
     }
 
-    componentDidMount() {
-        TeamStore.addChangeListener(this.handleChange);
-        $('body').addClass('backstage');
-    }
-
-    componentWillUnmount() {
-        TeamStore.removeChangeListener(this.handleChange);
-        $('body').removeClass('backstage');
-    }
-
-    handleChange() {
-        this.setState({
-            team: TeamStore.getCurrent()
-        });
-    }
-
     render() {
-        if (!this.state.team) {
+        if (!this.props.team) {
             return null;
         }
 
         return (
-            <div className='backstage-navbar row'>
+            <div className='backstage-navbar'>
                 <Link
                     className='backstage-navbar__back'
-                    to={`/${this.state.team.name}/channels/town-square`}
+                    to={`/${this.props.team.name}/channels/town-square`}
                 >
                     <i className='fa fa-angle-left'/>
                     <span>

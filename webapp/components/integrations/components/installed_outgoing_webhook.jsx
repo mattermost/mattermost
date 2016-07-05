@@ -65,8 +65,9 @@ export default class InstalledOutgoingWebhook extends React.Component {
     render() {
         const outgoingWebhook = this.props.outgoingWebhook;
         const channel = ChannelStore.get(outgoingWebhook.channel_id);
+        const filter = this.props.filter ? this.props.filter.toLowerCase() : '';
 
-        if (!this.matchesFilter(outgoingWebhook, channel, this.props.filter)) {
+        if (!this.matchesFilter(outgoingWebhook, channel, filter)) {
             return null;
         }
 

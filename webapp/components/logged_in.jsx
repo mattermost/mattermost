@@ -156,6 +156,11 @@ export default class LoggedIn extends React.Component {
                 e.preventDefault();
             }
         });
+
+        // Get custom emoji from the server
+        if (window.mm_config.EnableCustomEmoji === 'true') {
+            AsyncClient.listEmoji();
+        }
     }
 
     componentWillUnmount() {
