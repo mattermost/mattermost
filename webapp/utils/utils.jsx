@@ -33,17 +33,11 @@ export function cleanUpUrlable(input) {
 }
 
 export function isMac() {
-    if (navigator.userAgent.indexOf('Mac') !== -1) {
-        return true;
-    }
-    return false;
+    return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
 }
 
 export function cmdOrCtrlPressed(e) {
-    if ((isMac() && e.metaKey) || (!isMac() && e.ctrlKey)) {
-        return true;
-    }
-    return false;
+    return (isMac() && e.metaKey) || (!isMac() && e.ctrlKey);
 }
 
 export function isChrome() {
