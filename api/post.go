@@ -654,6 +654,11 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 				(post.UserId != profile.Id || post.Props["from_webhook"] == "true") &&
 				!post.IsSystemMessage() {
 				allActivityPushUserIds = append(allActivityPushUserIds, profile.Id)
+			} else if channelMember, err := GetChannelMember(channel.Id, profile.Id); err == nil &&
+				channelMember.NotifyProps["push"] == model.CHANNEL_NOTIFY_ALL &&
+				(post.UserId != profile.Id || post.Props["from_webhook"] == "true") &&
+				!post.IsSystemMessage() {
+				allActivityPushUserIds = append(allActivityPushUserIds, profile.Id)
 			}
 		}
 	}
@@ -743,7 +748,24 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 			}
 
 			if DoesStatusAllowPushNotification(profileMap[id], status, post.ChannelId) {
-				sendPushNotification(post, profileMap[id], channel, senderName, true)
+				if channel.Type == model.CHANNEL_DIRECT && profileMap[id].NotifyProps["push"] != model.CHANNEL_NOTIFY_NONE {
+					sendPushNotification(post, profileMap[id], channel, senderName, true)
+				} else if channelMember, err := GetChannelMember(channel.Id, id); err == nil {
+					notifyLevel := channelMember.NotifyProps["push"]
+
+					// Check against channel member NotifyProps for mentioned users
+					if notifyLevel == model.CHANNEL_NOTIFY_DEFAULT && profileMap[id].NotifyProps["push"] != model.CHANNEL_NOTIFY_NONE {
+						sendPushNotification(post, profileMap[id], channel, senderName, true)
+					} else if notifyLevel == model.CHANNEL_NOTIFY_ALL {
+						sendPushNotification(post, profileMap[id], channel, senderName, true)
+					} else if notifyLevel == model.CHANNEL_NOTIFY_MENTION {
+						sendPushNotification(post, profileMap[id], channel, senderName, true)
+					} else if notifyLevel == "" && profileMap[id].NotifyProps["push"] != model.CHANNEL_NOTIFY_NONE {
+						sendPushNotification(post, profileMap[id], channel, senderName, true)
+					}
+				} else {
+					l4g.Warn(utils.T("api.send_notifications.get_channel_member.warn"), channel.Id, id)
+				}
 			}
 		}
 
@@ -757,6 +779,21 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 
 				if DoesStatusAllowPushNotification(profileMap[id], status, post.ChannelId) {
 					sendPushNotification(post, profileMap[id], channel, senderName, false)
+
+					if channelMember, err := GetChannelMember(channel.Id, id); err == nil {
+						notifyLevel := channelMember.NotifyProps["push"]
+
+						// Check against channel member NotifyProps for always notify users
+						if notifyLevel == model.CHANNEL_NOTIFY_DEFAULT && profileMap[id].NotifyProps["push"] == model.CHANNEL_NOTIFY_ALL {
+							sendPushNotification(post, profileMap[id], channel, senderName, false)
+						} else if notifyLevel == model.CHANNEL_NOTIFY_ALL {
+							sendPushNotification(post, profileMap[id], channel, senderName, false)
+						} else if notifyLevel == "" {
+							sendPushNotification(post, profileMap[id], channel, senderName, false)
+						}
+					} else {
+						l4g.Warn(utils.T("api.send_notifications.get_channel_member.warn"), channel.Id, id)
+					}
 				}
 			}
 		}

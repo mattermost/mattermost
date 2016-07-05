@@ -4,13 +4,14 @@
 package api
 
 import (
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/store"
-	"github.com/mattermost/platform/utils"
 	"net/http"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
+	"github.com/mattermost/platform/utils"
 )
 
 func TestCreateChannel(t *testing.T) {
@@ -1321,6 +1322,7 @@ func TestUpdateNotifyProps(t *testing.T) {
 	data["channel_id"] = channel1.Id
 	data["user_id"] = user.Id
 	data["desktop"] = model.CHANNEL_NOTIFY_MENTION
+	data["push"] = model.CHANNEL_NOTIFY_MENTION
 
 	timeBeforeUpdate := model.GetMillis()
 	time.Sleep(100 * time.Millisecond)
@@ -1463,5 +1465,27 @@ func TestFuzzyChannel(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+	}
+}
+
+func TestChannelGetChannelMember(t *testing.T) {
+	th := Setup().InitBasic()
+	channel := th.BasicChannel
+	user := th.BasicUser
+
+	if _, err := GetChannelMember(channel.Id, user.Id); err != nil {
+		t.Fatal("Should not fail, user in channel")
+	}
+
+	if _, err := GetChannelMember("abc", user.Id); err == nil {
+		t.Fatal("Should have failed, channel id invalid")
+	}
+
+	if _, err := GetChannelMember(channel.Id, "abc"); err == nil {
+		t.Fatal("Should have failed, user id invalid")
+	}
+
+	if member, err := GetChannelMember(channel.Id, user.Id); err == nil && member.ChannelId != channel.Id {
+		t.Fatal("Wrong channel member")
 	}
 }

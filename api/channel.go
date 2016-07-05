@@ -1172,6 +1172,10 @@ func updateNotifyProps(c *Context, w http.ResponseWriter, r *http.Request) {
 		member.NotifyProps["desktop"] = desktop
 	}
 
+	if push, exists := data["push"]; exists {
+		member.NotifyProps["push"] = push
+	}
+
 	if result := <-Srv.Store.Channel().UpdateMember(&member); result.Err != nil {
 		c.Err = result.Err
 		return
@@ -1180,4 +1184,13 @@ func updateNotifyProps(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(model.MapToJson(member.NotifyProps)))
 	}
 
+}
+
+func GetChannelMember(channelId, userId string) (model.ChannelMember, *model.AppError) {
+	result := <-Srv.Store.Channel().GetMember(channelId, userId)
+	if result.Err != nil {
+		return model.ChannelMember{}, result.Err
+	}
+
+	return result.Data.(model.ChannelMember), nil
 }
