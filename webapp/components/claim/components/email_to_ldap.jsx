@@ -14,34 +14,43 @@ export default class EmailToLDAP extends React.Component {
 
         this.submit = this.submit.bind(this);
 
-        this.state = {};
+        this.state = {
+            passwordError: '',
+            ldapError: '',
+            ldapPasswordError: '',
+            serverError: ''
+        };
     }
     submit(e) {
         e.preventDefault();
-        var state = {};
+        var state = {
+            passwordError: '',
+            ldapError: '',
+            ldapPasswordError: '',
+            serverError: ''
+        };
 
         const password = ReactDOM.findDOMNode(this.refs.emailpassword).value;
         if (!password) {
-            state.error = Utils.localizeMessage('claim.email_to_ldap.pwdError', 'Please enter your password.');
+            state.passwordError = Utils.localizeMessage('claim.email_to_ldap.pwdError', 'Please enter your password.');
             this.setState(state);
             return;
         }
 
         const ldapId = ReactDOM.findDOMNode(this.refs.ldapid).value.trim();
         if (!ldapId) {
-            state.error = Utils.localizeMessage('claim.email_to_ldap.ldapIdError', 'Please enter your LDAP ID.');
+            state.ldapError = Utils.localizeMessage('claim.email_to_ldap.ldapIdError', 'Please enter your LDAP ID.');
             this.setState(state);
             return;
         }
 
         const ldapPassword = ReactDOM.findDOMNode(this.refs.ldappassword).value;
         if (!ldapPassword) {
-            state.error = Utils.localizeMessage('claim.email_to_ldap.ldapPasswordError', 'Please enter your LDAP password.');
+            state.ldapPasswordError = Utils.localizeMessage('claim.email_to_ldap.ldapPasswordError', 'Please enter your LDAP password.');
             this.setState(state);
             return;
         }
 
-        state.error = null;
         this.setState(state);
 
         Client.emailToLdap(
@@ -55,19 +64,37 @@ export default class EmailToLDAP extends React.Component {
                 }
             },
             (err) => {
-                this.setState({error: err.message});
+                this.setState({serverError: err.message});
             }
         );
     }
     render() {
-        var error = null;
-        if (this.state.error) {
-            error = <div className='form-group has-error'><label className='control-label'>{this.state.error}</label></div>;
+        let serverError = null;
+        let formClass = 'form-group';
+        if (this.state.serverError) {
+            serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
+            formClass += ' has-error';
         }
 
-        var formClass = 'form-group';
-        if (error) {
-            formClass += ' has-error';
+        let passwordError = null;
+        let passwordClass = 'form-group';
+        if (this.state.passwordError) {
+            passwordError = <div className='form-group has-error'><label className='control-label'>{this.state.passwordError}</label></div>;
+            passwordClass += ' has-error';
+        }
+
+        let ldapError = null;
+        let ldapClass = 'form-group';
+        if (this.state.ldapError) {
+            ldapError = <div className='form-group has-error'><label className='control-label'>{this.state.ldapError}</label></div>;
+            ldapClass += ' has-error';
+        }
+
+        let ldapPasswordError = null;
+        let ldapPasswordClass = 'form-group';
+        if (this.state.ldapPasswordError) {
+            ldapPasswordError = <div className='form-group has-error'><label className='control-label'>{this.state.ldapPasswordError}</label></div>;
+            ldapPasswordClass += ' has-error';
         }
 
         let loginPlaceholder;
@@ -92,7 +119,10 @@ export default class EmailToLDAP extends React.Component {
                         defaultMessage='Switch Email/Password Account to LDAP'
                     />
                 </h3>
-                <form onSubmit={this.submit}>
+                <form
+                    onSubmit={this.submit}
+                    className={formClass}
+                >
                     <p>
                         <FormattedMessage
                             id='claim.email_to_ldap.ssoType'
@@ -119,7 +149,7 @@ export default class EmailToLDAP extends React.Component {
                         style={{display: 'none'}}
                         name='fakeusernameremembered'
                     />
-                    <div className={formClass}>
+                    <div className={passwordClass}>
                         <input
                             type='password'
                             className='form-control'
@@ -130,13 +160,14 @@ export default class EmailToLDAP extends React.Component {
                             spellCheck='false'
                         />
                     </div>
+                    {passwordError}
                     <p>
                         <FormattedMessage
                             id='claim.email_to_ldap.enterLdapPwd'
                             defaultMessage='Enter the ID and password for your LDAP account'
                         />
                     </p>
-                    <div className={formClass}>
+                    <div className={ldapClass}>
                         <input
                             type='text'
                             className='form-control'
@@ -147,7 +178,8 @@ export default class EmailToLDAP extends React.Component {
                             spellCheck='false'
                         />
                     </div>
-                    <div className={formClass}>
+                    {ldapError}
+                    <div className={ldapPasswordClass}>
                         <input
                             type='password'
                             className='form-control'
@@ -158,7 +190,7 @@ export default class EmailToLDAP extends React.Component {
                             spellCheck='false'
                         />
                     </div>
-                    {error}
+                    {ldapPasswordError}
                     <button
                         type='submit'
                         className='btn btn-primary'
@@ -168,6 +200,7 @@ export default class EmailToLDAP extends React.Component {
                             defaultMessage='Switch account to LDAP'
                         />
                     </button>
+                    {serverError}
                 </form>
             </div>
         );
