@@ -22,6 +22,12 @@ func TestGetEmoji(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.BasicClient
 
+	EnableCustomEmoji := *utils.Cfg.ServiceSettings.EnableCustomEmoji
+	defer func() {
+		*utils.Cfg.ServiceSettings.EnableCustomEmoji = EnableCustomEmoji
+	}()
+	*utils.Cfg.ServiceSettings.EnableCustomEmoji = true
+
 	emojis := []*model.Emoji{
 		{
 			CreatorId: model.NewId(),
