@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server stop-client stop-server restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist setup-mac prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-client
+.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist setup-mac prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-client
 
 # For golang 1.5.x compatibility (remove when we don't want to support it anymore)
 export GO15VENDOREXPERIMENT=1
@@ -180,12 +180,15 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -c ./enterprise/ldap && ./ldap.test -test.v -test.timeout=120s -test.coverprofile=cldap.out || exit 1
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -c ./enterprise/compliance && ./compliance.test -test.v -test.timeout=120s -test.coverprofile=ccompliance.out || exit 1
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -c ./enterprise/emoji && ./emoji.test -test.v -test.timeout=120s -test.coverprofile=cemoji.out || exit 1
 
 	tail -n +2 cldap.out >> ecover.out
 	tail -n +2 ccompliance.out >> ecover.out
-	rm -f cldap.out ccompliance.out
+	tail -n +2 cemoji.out >> ecover.out
+	rm -f cldap.out ccompliance.out cemoji.out
 	rm -r ldap.test
 	rm -r compliance.test
+	rm -r emoji.test
 endif
 
 internal-test-web-client: start-docker prepare-enterprise
@@ -340,6 +343,8 @@ stop-client:
 
 
 stop: stop-server stop-client
+
+restart: restart-server restart-client
 
 restart-server: | stop-server run-server
 

@@ -22,6 +22,12 @@ func TestGetEmoji(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.BasicClient
 
+	EnableCustomEmoji := *utils.Cfg.ServiceSettings.EnableCustomEmoji
+	defer func() {
+		*utils.Cfg.ServiceSettings.EnableCustomEmoji = EnableCustomEmoji
+	}()
+	*utils.Cfg.ServiceSettings.EnableCustomEmoji = true
+
 	emojis := []*model.Emoji{
 		{
 			CreatorId: model.NewId(),
@@ -95,13 +101,10 @@ func TestCreateEmoji(t *testing.T) {
 	Client := th.BasicClient
 
 	EnableCustomEmoji := *utils.Cfg.ServiceSettings.EnableCustomEmoji
-	RestrictCustomEmojiCreation := *utils.Cfg.ServiceSettings.RestrictCustomEmojiCreation
 	defer func() {
 		*utils.Cfg.ServiceSettings.EnableCustomEmoji = EnableCustomEmoji
-		*utils.Cfg.ServiceSettings.RestrictCustomEmojiCreation = RestrictCustomEmojiCreation
 	}()
 	*utils.Cfg.ServiceSettings.EnableCustomEmoji = false
-	*utils.Cfg.ServiceSettings.RestrictCustomEmojiCreation = model.RESTRICT_EMOJI_CREATION_ALL
 
 	emoji := &model.Emoji{
 		CreatorId: th.BasicUser.Id,
@@ -213,28 +216,6 @@ func TestCreateEmoji(t *testing.T) {
 	if _, err := Client.CreateEmoji(emoji, createTestGif(t, 10, 10), "image.gif"); err == nil {
 		t.Fatal("shouldn't be able to create an emoji as another user")
 	}
-
-	*utils.Cfg.ServiceSettings.RestrictCustomEmojiCreation = model.RESTRICT_EMOJI_CREATION_ADMIN
-
-	// try to create an emoji when only system admins are allowed to create them
-	emoji = &model.Emoji{
-		CreatorId: th.BasicUser.Id,
-		Name:      model.NewId(),
-	}
-	if _, err := Client.CreateEmoji(emoji, createTestGif(t, 10, 10), "image.gif"); err == nil {
-		t.Fatal("shouldn't be able to create an emoji when not a system admin")
-	}
-
-	emoji = &model.Emoji{
-		CreatorId: th.SystemAdminUser.Id,
-		Name:      model.NewId(),
-	}
-	if emojiResult, err := th.SystemAdminClient.CreateEmoji(emoji, createTestPng(t, 10, 10), "image.png"); err != nil {
-		t.Fatal(err)
-	} else {
-		emoji = emojiResult
-	}
-	th.SystemAdminClient.MustGeneric(th.SystemAdminClient.DeleteEmoji(emoji.Id))
 }
 
 func TestDeleteEmoji(t *testing.T) {

@@ -42,7 +42,7 @@ const holders = defineMessages({
     },
     openInviteTitle: {
         id: 'general_tab.openInviteTitle',
-        defaultMessage: 'Allow anyone to join this team'
+        defaultMessage: 'Allow any user with an account on this server to join this team'
     },
     codeTitle: {
         id: 'general_tab.codeTitle',
@@ -371,7 +371,7 @@ class GeneralTab extends React.Component {
                                 >
                                     <FormattedMessage
                                         id='general_tab.regenerate'
-                                        defaultMessage='Re-Generate'
+                                        defaultMessage='Regenerate'
                                     />
                                 </a>
                             </div>

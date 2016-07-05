@@ -180,6 +180,7 @@ export default class AdminSidebar extends React.Component {
 
         let license = null;
         let audits = null;
+        let policy = null;
 
         if (window.mm_config.BuildEnterpriseReady === 'true') {
             if (window.mm_license.IsLicensed === 'true') {
@@ -210,6 +211,18 @@ export default class AdminSidebar extends React.Component {
                         />
                     );
                 }
+
+                policy = (
+                    <AdminSidebarSection
+                        name='policy'
+                        title={
+                            <FormattedMessage
+                                id='admin.sidebar.policy'
+                                defaultMessage='Policy'
+                            />
+                        }
+                    />
+                );
             }
 
             license = (
@@ -266,7 +279,7 @@ export default class AdminSidebar extends React.Component {
                             title={
                                 <FormattedMessage
                                     id='admin.sidebar.reports'
-                                    defaultMessage='SITE REPORTS'
+                                    defaultMessage='REPORTING'
                                 />
                             }
                         >
@@ -275,7 +288,7 @@ export default class AdminSidebar extends React.Component {
                                 title={
                                     <FormattedMessage
                                         id='admin.sidebar.view_statistics'
-                                        defaultMessage='View Statistics'
+                                        defaultMessage='Site Statistics'
                                     />
                                 }
                             />
@@ -328,6 +341,7 @@ export default class AdminSidebar extends React.Component {
                                         />
                                     }
                                 />
+                                {policy}
                                 <AdminSidebarSection
                                     name='privacy'
                                     title={

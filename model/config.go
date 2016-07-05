@@ -32,10 +32,15 @@ const (
 	DIRECT_MESSAGE_ANY  = "any"
 	DIRECT_MESSAGE_TEAM = "team"
 
+	TEAM_INVITE_ALL          = "all"
+	TEAM_INVITE_TEAM_ADMIN   = "team_admin"
+	TEAM_INVITE_SYSTEM_ADMIN = "system_admin"
+
 	FAKE_SETTING = "********************************"
 
-	RESTRICT_EMOJI_CREATION_ALL   = "all"
-	RESTRICT_EMOJI_CREATION_ADMIN = "system_admin"
+	RESTRICT_EMOJI_CREATION_ALL          = "all"
+	RESTRICT_EMOJI_CREATION_ADMIN        = "admin"
+	RESTRICT_EMOJI_CREATION_SYSTEM_ADMIN = "system_admin"
 )
 
 type ServiceSettings struct {
@@ -174,6 +179,7 @@ type TeamSettings struct {
 	EnableCustomBrand         *bool
 	CustomBrandText           *string
 	RestrictDirectMessage     *string
+	RestrictTeamInvite        *string
 }
 
 type LdapSettings struct {
@@ -203,6 +209,7 @@ type LdapSettings struct {
 	// Advanced
 	SkipCertificateVerification *bool
 	QueryTimeout                *int
+	MaxPageSize                 *int
 
 	// Customization
 	LoginFieldName *string
@@ -346,6 +353,11 @@ func (o *Config) SetDefaults() {
 		*o.TeamSettings.RestrictDirectMessage = DIRECT_MESSAGE_ANY
 	}
 
+	if o.TeamSettings.RestrictTeamInvite == nil {
+		o.TeamSettings.RestrictTeamInvite = new(string)
+		*o.TeamSettings.RestrictTeamInvite = TEAM_INVITE_ALL
+	}
+
 	if o.EmailSettings.EnableSignInWithEmail == nil {
 		o.EmailSettings.EnableSignInWithEmail = new(bool)
 
@@ -486,6 +498,11 @@ func (o *Config) SetDefaults() {
 		*o.LdapSettings.EmailAttribute = ""
 	}
 
+	if o.LdapSettings.UsernameAttribute == nil {
+		o.LdapSettings.UsernameAttribute = new(string)
+		*o.LdapSettings.UsernameAttribute = ""
+	}
+
 	if o.LdapSettings.NicknameAttribute == nil {
 		o.LdapSettings.NicknameAttribute = new(string)
 		*o.LdapSettings.NicknameAttribute = ""
@@ -509,6 +526,11 @@ func (o *Config) SetDefaults() {
 	if o.LdapSettings.QueryTimeout == nil {
 		o.LdapSettings.QueryTimeout = new(int)
 		*o.LdapSettings.QueryTimeout = 60
+	}
+
+	if o.LdapSettings.MaxPageSize == nil {
+		o.LdapSettings.MaxPageSize = new(int)
+		*o.LdapSettings.MaxPageSize = 0
 	}
 
 	if o.LdapSettings.LoginFieldName == nil {
@@ -707,6 +729,24 @@ func (o *Config) IsValid() *AppError {
 
 	if *o.LdapSettings.SyncIntervalMinutes <= 0 {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_sync_interval.app_error", nil, "")
+	}
+
+	if *o.LdapSettings.MaxPageSize < 0 {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_max_page_size.app_error", nil, "")
+	}
+
+	if *o.LdapSettings.Enable {
+		if *o.LdapSettings.LdapServer == "" ||
+			*o.LdapSettings.BaseDN == "" ||
+			*o.LdapSettings.BindUsername == "" ||
+			*o.LdapSettings.BindPassword == "" ||
+			*o.LdapSettings.FirstNameAttribute == "" ||
+			*o.LdapSettings.LastNameAttribute == "" ||
+			*o.LdapSettings.EmailAttribute == "" ||
+			*o.LdapSettings.UsernameAttribute == "" ||
+			*o.LdapSettings.IdAttribute == "" {
+			return NewLocAppError("Config.IsValid", "Required LDAP field missing", nil, "")
+		}
 	}
 
 	return nil

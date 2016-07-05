@@ -40,6 +40,7 @@ func InitAdmin() {
 	BaseRoutes.Admin.Handle("/get_brand_image", ApiAppHandlerTrustRequester(getBrandImage)).Methods("GET")
 	BaseRoutes.Admin.Handle("/reset_mfa", ApiAdminSystemRequired(adminResetMfa)).Methods("POST")
 	BaseRoutes.Admin.Handle("/reset_password", ApiAdminSystemRequired(adminResetPassword)).Methods("POST")
+	BaseRoutes.Admin.Handle("/ldap_sync_now", ApiAdminSystemRequired(ldapSyncNow)).Methods("POST")
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -556,6 +557,26 @@ func adminResetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.LogAudit("")
+
+	rdata := map[string]string{}
+	rdata["status"] = "ok"
+	w.Write([]byte(model.MapToJson(rdata)))
+}
+
+func ldapSyncNow(c *Context, w http.ResponseWriter, r *http.Request) {
+	go func() {
+		if utils.IsLicensed && *utils.License.Features.LDAP && *utils.Cfg.LdapSettings.Enable {
+			if ldapI := einterfaces.GetLdapInterface(); ldapI != nil {
+				if err := ldapI.Syncronize(); err != nil {
+					l4g.Error("%v", err.Error())
+				} else {
+					l4g.Info(utils.T("ent.ldap.syncdone.info"))
+				}
+			} else {
+				l4g.Error("%v", model.NewLocAppError("saveComplianceReport", "ent.compliance.licence_disable.app_error", nil, "").Error())
+			}
+		}
+	}()
 
 	rdata := map[string]string{}
 	rdata["status"] = "ok"

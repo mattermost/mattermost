@@ -52,7 +52,6 @@ readme.md
 @example.com
 ./make-compiled-client.sh
 test.:test
-https://<your-mattermost-url>/signup/gitlab
 `https://example.com`
 
 #### Only the links within these sentences should auto-link:

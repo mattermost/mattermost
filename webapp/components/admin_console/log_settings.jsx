@@ -68,7 +68,7 @@ export default class LogSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.log.consoleTitle'
-                            defaultMessage='Log To The Console: '
+                            defaultMessage='Output logs to console: '
                         />
                     }
                     helpText={
@@ -104,7 +104,7 @@ export default class LogSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.log.fileTitle'
-                            defaultMessage='Log To File: '
+                            defaultMessage='Output logs to file: '
                         />
                     }
                     helpText={
@@ -140,7 +140,7 @@ export default class LogSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.log.locationTitle'
-                            defaultMessage='File Location:'
+                            defaultMessage='File Log Directory:'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.log.locationPlaceholder', 'Enter your file location')}
@@ -159,7 +159,7 @@ export default class LogSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.log.formatTitle'
-                            defaultMessage='File Format:'
+                            defaultMessage='File Log Format:'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.log.formatPlaceholder', 'Enter your file format')}

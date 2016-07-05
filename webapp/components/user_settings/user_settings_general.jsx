@@ -160,12 +160,13 @@ class UserSettingsGeneralTab extends React.Component {
         const email = this.state.email.trim().toLowerCase();
         const confirmEmail = this.state.confirmEmail.trim().toLowerCase();
 
-        if (user.email === email) {
+        const {formatMessage} = this.props.intl;
+
+        if (user.email === email && confirmEmail === '') {
             this.updateSection('');
             return;
         }
 
-        const {formatMessage} = this.props.intl;
         if (email === '' || !Utils.isEmail(email)) {
             this.setState({emailError: formatMessage(holders.validEmail), clientError: '', serverError: ''});
             return;

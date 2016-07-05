@@ -1300,6 +1300,14 @@
     "translation": "誰も招待しません。"
   },
   {
+    "id": "api.team.invite_members.restricted_system_admin.app_error",
+    "translation": "新しいユーザーをチームに招待できるのは、システム管理者だけです。"
+  },
+  {
+    "id": "api.team.invite_members.restricted_team_admin.app_error",
+    "translation": "新しいユーザーをチームに招待できるのは、チーム管理者とシステム管理者だけです。"
+  },
+  {
     "id": "api.team.invite_members.send.error",
     "translation": "招待の電子メールを送信できませんでした err=%v"
   },
@@ -1429,7 +1437,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "チャンネルへ移動する"
+    "translation": "投稿へ行く"
   },
   {
     "id": "api.templates.post_body.info",
@@ -2108,6 +2116,10 @@
     "translation": "ユーザーがLDAPサーバーに登録されていません"
   },
   {
+    "id": "ent.ldap.mattermost_user_update",
+    "translation": "MattermostユーザーはLDAPサーバーによってアップデートされました。"
+  },
+  {
     "id": "ent.ldap.syncdone.info",
     "translation": "LDAPの同期が完了しました"
   },
@@ -2506,6 +2518,18 @@
   {
     "id": "model.config.is_valid.file_thumb_width.app_error",
     "translation": "ファイル設定のサムネイルの幅が不正です。ゼロ以上の数を指定してください。"
+  },
+  {
+    "id": "model.config.is_valid.ldap_max_page_size.app_error",
+    "translation": "Invalid max page size value."
+  },
+  {
+    "id": "model.config.is_valid.ldap_required.app_error",
+    "translation": "必要なLDAPフィールドがありません。"
+  },
+  {
+    "id": "model.config.is_valid.ldap_required.app_error",
+    "translation": "必要なLDAPフィールドがありません。"
   },
   {
     "id": "model.config.is_valid.ldap_security.app_error",

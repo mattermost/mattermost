@@ -23,10 +23,17 @@ export default class SearchResultsItem extends React.Component {
         super(props);
 
         this.handleFocusRHSClick = this.handleFocusRHSClick.bind(this);
+        this.shrinkSidebar = this.shrinkSidebar.bind(this);
     }
 
     hideSidebar() {
-        $('.inner-wrap, .sidebar--right').removeClass('move--left');
+        $('.sidebar--right').removeClass('move--left');
+    }
+
+    shrinkSidebar() {
+        setTimeout(() => {
+            this.props.shrink();
+        });
     }
 
     handleFocusRHSClick(e) {
@@ -143,6 +150,7 @@ export default class SearchResultsItem extends React.Component {
 
                                                     this.hideSidebar();
                                                 }
+                                                this.shrinkSidebar();
                                                 browserHistory.push('/' + window.location.pathname.split('/')[1] + '/pl/' + post.id);
                                             }
                                         }
@@ -187,5 +195,6 @@ SearchResultsItem.propTypes = {
     channel: React.PropTypes.object,
     isMentionSearch: React.PropTypes.bool,
     term: React.PropTypes.string,
-    useMilitaryTime: React.PropTypes.bool.isRequired
+    useMilitaryTime: React.PropTypes.bool.isRequired,
+    shrink: React.PropTypes.function
 };

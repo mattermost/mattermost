@@ -513,7 +513,7 @@
   },
   {
     "id": "api.command_shortcuts.list",
-    "translation": "### Tastaturkürzel\n\n#### Navigation\n\nALT+HOCH: Vorheriger Kanal oder Direktnachricht in linker Sidebar\nALT+RUNTER: Nächster Kanal oder Direktnachricht in linker Sidebar\nALT+SHIFT+HOCH: Vorheriger Kanal oder Direktnachricht in linker Sidebar mit ungelesenen Nachrichten\nALT+SHIFT+RUNTER: Nächster Kanal oder Direktnachricht in linker Sidebar mit ungelesenen Nachrichten\nSTRG/CMD+K: Kanalschnellwechselfenster öffnen\nSTRG/CMD+SHIFT+A: Benutzereinstellungen öffnen\nSTRG/CMD+SHIFT+M: Öffnet die letzten Erwähnungen\n\n#### Dateien\n\nSTRG/CMD+U: Datei(en) hochladen\n\n#### Nachrichten\n\nSTRG/CMD+HOCH (im leerem Eingabefeld): Letzte Nachricht oder Slash Befehl erneut ausgeben\nSTRG/CMD+RUNTER (im leerem Eingabefeld): Nächste Nachricht oder Slash Befehl erneut ausgeben\nHOCH (in leerem Eingabefeld): Letzte Nachricht im aktuellen Kanal bearbeiten\n@[Zeichen]+TAB: Autovervollständigen @Benutzername beginnend mit [Zeichen]\n:[Zeichen]+TAB: Autovervollständigen Emoji beginnend mit [zeigen]\n\n#### Browser Kommandos\n\nALT+LEFT/CMD+[: Vorheriger Kanal in Ihrer Historie\nALT+RIGHT/CMD+]: Nächster Kanal in Ihrer Historie\nSTRG/CMD+PLUS: Schrift vergrößern (Hineinzoomen)\nSTRG/CMD+MINUS: Schrift verkleinern (Herauszoomen)\nSHIFT+HOCH (in Eingabefeld): Text bis zur vorherigen Zeile markieren\nSHIFT+RUNTER (in Eingabefeld): Text bis zur nächsten Zeile markieren\nSHIFT+ENTER (in Eingabefeld): Neue Zeile erstellen\n"
+    "translation": "### Tastaturkürzel\n\n#### Navigation\n\nALT+HOCH: Vorheriger Kanal oder Direktnachricht in linker Sidebar\nALT+RUNTER: Nächster Kanal oder Direktnachricht in linker Sidebar\nALT+SHIFT+HOCH: Vorheriger Kanal oder Direktnachricht in linker Sidebar mit ungelesenen Nachrichten\nALT+SHIFT+RUNTER: Nächster Kanal oder Direktnachricht in linker Sidebar mit ungelesenen Nachrichten\nSTRG/CMD+K: Kanalschnellwechselfenster öffnen\nSTRG/CMD+SHIFT+A: Benutzereinstellungen öffnen\nSTRG/CMD+SHIFT+M: Öffnet die letzten Erwähnungen\n\n#### Dateien\n\nSTRG/CMD+U: Datei(en) hochladen\n\n#### Nachrichten\n\nSTRG/CMD+HOCH (im leerem Eingabefeld): Letzte Nachricht oder Slash Befehl erneut ausgeben\nSTRG/CMD+RUNTER (im leerem Eingabefeld): Nächste Nachricht oder Slash Befehl erneut ausgeben\nHOCH (in leerem Eingabefeld): Letzte Nachricht im aktuellen Kanal bearbeiten\n@[Zeichen]+TAB: Autovervollständigen @Benutzername beginnend mit [Zeichen]\n:[Zeichen]+TAB: Autovervollständigen Emoji beginnend mit [Zeichen]\n\n#### Browser Kommandos\n\nALT+LEFT/CMD+[: Vorheriger Kanal in Ihrer Historie\nALT+RIGHT/CMD+]: Nächster Kanal in Ihrer Historie\nSTRG/CMD+PLUS: Schrift vergrößern (Hineinzoomen)\nSTRG/CMD+MINUS: Schrift verkleinern (Herauszoomen)\nSHIFT+HOCH (in Eingabefeld): Text bis zur vorherigen Zeile markieren\nSHIFT+RUNTER (in Eingabefeld): Text bis zur nächsten Zeile markieren\nSHIFT+ENTER (in Eingabefeld): Neue Zeile erstellen\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -1300,6 +1300,14 @@
     "translation": "Keiner zum Einladen."
   },
   {
+    "id": "api.team.invite_members.restricted_system_admin.app_error",
+    "translation": "Nur Systemadmins dürfen neue Mitglieder zum Team einladen."
+  },
+  {
+    "id": "api.team.invite_members.restricted_team_admin.app_error",
+    "translation": "Nur Systemadmins und Teamadmins dürfen neue Mitglieder zum Team einladen."
+  },
+  {
     "id": "api.team.invite_members.send.error",
     "translation": "Die Einladungsmail konnte nicht gesendet werden. err=%v"
   },
@@ -1429,7 +1437,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Gehe zu Kanal"
+    "translation": "Gehe zum Beitrag"
   },
   {
     "id": "api.templates.post_body.info",
@@ -2108,6 +2116,10 @@
     "translation": "Benutzer nicht auf LDAP Server registriert"
   },
   {
+    "id": "ent.ldap.mattermost_user_update",
+    "translation": "Mattermost hat vom LDAP Server ein Update erhalten"
+  },
+  {
     "id": "ent.ldap.syncdone.info",
     "translation": "LDAD Synchronisation abgeschlossen"
   },
@@ -2506,6 +2518,18 @@
   {
     "id": "model.config.is_valid.file_thumb_width.app_error",
     "translation": "Ungültige Thumbnauilbreite in Dateieinstellungen.  Muss eine positive Zahl sein."
+  },
+  {
+    "id": "model.config.is_valid.ldap_max_page_size.app_error",
+    "translation": "Invalid max page size value."
+  },
+  {
+    "id": "model.config.is_valid.ldap_required.app_error",
+    "translation": "Notwendiges LDAP Feld fehlt."
+  },
+  {
+    "id": "model.config.is_valid.ldap_required.app_error",
+    "translation": "Notwendiges LDAP Feld fehlt."
   },
   {
     "id": "model.config.is_valid.ldap_security.app_error",

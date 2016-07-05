@@ -5,9 +5,9 @@
         "SegmentDeveloperKey": "",
         "GoogleDeveloperKey": "",
         "EnableOAuthServiceProvider": false,
-        "EnableIncomingWebhooks": false,
-        "EnableOutgoingWebhooks": false,
-        "EnableCommands": false,
+        "EnableIncomingWebhooks": true,
+        "EnableOutgoingWebhooks": true,
+        "EnableCommands": true,
         "EnableOnlyAdminIntegrations": true,
         "EnablePostUsernameOverride": false,
         "EnablePostIconOverride": false,
@@ -24,7 +24,7 @@
         "WebsocketSecurePort": 443,
         "WebsocketPort": 80,
         "WebserverMode": "regular",
-        "EnableCustomEmoji": true,
+        "EnableCustomEmoji": false,
         "RestrictCustomEmojiCreation": "all"
     },
     "TeamSettings": {
@@ -37,7 +37,8 @@
         "RestrictTeamNames": true,
         "EnableCustomBrand": false,
         "CustomBrandText": "",
-        "RestrictDirectMessage": "any"
+        "RestrictDirectMessage": "any",
+        "RestrictTeamInvite": "system_admin"
     },
     "SqlSettings": {
         "DriverName": "mysql",

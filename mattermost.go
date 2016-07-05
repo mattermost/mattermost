@@ -72,19 +72,19 @@ var flagRunCmds bool
 func doLoadConfig(filename string) (err string) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = fmt.Sprintf("Error loding config, err=%v", r)
+			err = fmt.Sprintf("%v", r)
 		}
 	}()
+	utils.TranslationsPreInit()
 	utils.LoadConfig(filename)
 	return ""
 }
 
 func main() {
-
 	parseCmds()
 
 	if errstr := doLoadConfig(flagConfigFile); errstr != "" {
-		l4g.Exit("Unable to load mattermost configuration file:", errstr)
+		l4g.Exit("Unable to load mattermost configuration file: ", errstr)
 		return
 	}
 
@@ -132,10 +132,6 @@ func main() {
 
 		if complianceI := einterfaces.GetComplianceInterface(); complianceI != nil {
 			complianceI.StartComplianceDailyJob()
-		}
-
-		if ldapI := einterfaces.GetLdapInterface(); ldapI != nil {
-			ldapI.StartLdapSyncJob()
 		}
 
 		// wait for kill signal before attempting to gracefully shutdown

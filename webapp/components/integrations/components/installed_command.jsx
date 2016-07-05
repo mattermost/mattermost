@@ -50,8 +50,9 @@ export default class InstalledCommand extends React.Component {
 
     render() {
         const command = this.props.command;
+        const filter = this.props.filter ? this.props.filter.toLowerCase() : '';
 
-        if (!this.matchesFilter(command, this.props.filter)) {
+        if (!this.matchesFilter(command, filter)) {
             return null;
         }
 
@@ -61,7 +62,7 @@ export default class InstalledCommand extends React.Component {
         } else {
             name = (
                 <FormattedMessage
-                    id='installed_integraions.unnamed_command'
+                    id='installed_commands.unnamed_command'
                     defaultMessage='Unnamed Slash Command'
                 />
             );
@@ -126,7 +127,7 @@ export default class InstalledCommand extends React.Component {
                     >
                         <FormattedMessage
                             id='installed_integrations.regenToken'
-                            defaultMessage='Regen Token'
+                            defaultMessage='Regenerate Token'
                         />
                     </a>
                     {' - '}

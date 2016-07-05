@@ -5,11 +5,16 @@ import React from 'react';
 
 import {FormattedMessage} from 'react-intl';
 import IntegrationOption from './integration_option.jsx';
-import * as Utils from 'utils/utils.jsx';
 
 import WebhookIcon from 'images/webhook_icon.jpg';
 
 export default class Integrations extends React.Component {
+    static get propTypes() {
+        return {
+            team: React.propTypes.object.isRequired
+        };
+    }
+
     render() {
         const options = [];
 
@@ -30,7 +35,7 @@ export default class Integrations extends React.Component {
                             defaultMessage='Incoming webhooks allow external integrations to send messages'
                         />
                     }
-                    link={'/' + Utils.getTeamNameFromUrl() + '/settings/integrations/incoming_webhooks'}
+                    link={'/' + this.props.team.name + '/integrations/incoming_webhooks'}
                 />
             );
         }
@@ -52,7 +57,7 @@ export default class Integrations extends React.Component {
                             defaultMessage='Outgoing webhooks allow external integrations to receive and respond to messages'
                         />
                     }
-                    link={'/' + Utils.getTeamNameFromUrl() + '/settings/integrations/outgoing_webhooks'}
+                    link={'/' + this.props.team.name + '/integrations/outgoing_webhooks'}
                 />
             );
         }
@@ -74,7 +79,7 @@ export default class Integrations extends React.Component {
                             defaultMessage='Slash commands send events to an external integration'
                         />
                     }
-                    link={'/' + Utils.getTeamNameFromUrl() + '/settings/integrations/commands'}
+                    link={'/' + this.props.team.name + '/integrations/commands'}
                 />
             );
         }

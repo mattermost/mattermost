@@ -880,6 +880,20 @@ func (c *Client) GetSystemAnalytics(name string) (*Result, *AppError) {
 	}
 }
 
+// Initiate immediate synchronization of LDAP users.
+// The synchronization will be performed asynchronously and this function will
+// always return OK unless you don't have permissions.
+// You must be the system administrator to use this function.
+func (c *Client) LdapSyncNow() (*Result, *AppError) {
+	if r, err := c.DoApiPost("/admin/ldap_sync_now", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) CreateChannel(channel *Channel) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/channels/create", channel.ToJson()); err != nil {
 		return nil, err
@@ -986,6 +1000,7 @@ func (c *Client) JoinChannel(id string) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetChannelRoute(id)+"/join", ""); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), nil}, nil
 	}
@@ -995,6 +1010,7 @@ func (c *Client) JoinChannelByName(name string) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetChannelNameRoute(name)+"/join", ""); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), nil}, nil
 	}
@@ -1004,6 +1020,7 @@ func (c *Client) LeaveChannel(id string) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetChannelRoute(id)+"/leave", ""); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), nil}, nil
 	}
@@ -1013,6 +1030,7 @@ func (c *Client) DeleteChannel(id string) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetChannelRoute(id)+"/delete", ""); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), nil}, nil
 	}
@@ -1024,6 +1042,7 @@ func (c *Client) AddChannelMember(id, user_id string) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetChannelRoute(id)+"/add", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), nil}, nil
 	}
@@ -1035,6 +1054,7 @@ func (c *Client) RemoveChannelMember(id, user_id string) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetChannelRoute(id)+"/remove", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), nil}, nil
 	}
@@ -1044,6 +1064,7 @@ func (c *Client) UpdateLastViewedAt(channelId string) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetChannelRoute(channelId)+"/update_last_viewed_at", ""); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), nil}, nil
 	}
@@ -1413,6 +1434,7 @@ func (c *Client) PostToWebhook(id, payload string) (*Result, *AppError) {
 	if r, err := c.DoPost("/hooks/"+id, payload, "application/x-www-form-urlencoded"); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), nil}, nil
 	}
@@ -1454,6 +1476,7 @@ func (c *Client) SetPreferences(preferences *Preferences) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/preferences/save", preferences.ToJson()); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), preferences}, nil
 	}

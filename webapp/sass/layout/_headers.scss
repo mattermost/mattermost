@@ -143,9 +143,16 @@
         &.popover {
             white-space: normal;
         }
-    }
 
-    @import "../components/status-icon";
+        .status {
+            width: 18px;
+
+            svg {
+                max-height: 20px;
+                width: 16px;
+            }
+        }
+    }
 }
 
 .channel-intro {

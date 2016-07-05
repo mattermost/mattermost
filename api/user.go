@@ -190,7 +190,7 @@ func CheckUserDomain(user *model.User, domains string) bool {
 
 	matched := false
 	for _, d := range domainArray {
-		if strings.HasSuffix(user.Email, "@"+d) {
+		if strings.HasSuffix(strings.ToLower(user.Email), "@"+d) {
 			matched = true
 			break
 		}
@@ -2263,12 +2263,10 @@ func resendVerification(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.User().GetByEmail(email); result.Err != nil {
-		c.Err = result.Err
+	if user, error := getUserForLogin(email, false); error != nil {
+		c.Err = error
 		return
 	} else {
-		user := result.Data.(*model.User)
-
 		if user.LastActivityAt > 0 {
 			go SendEmailChangeVerifyEmail(c, user.Id, user.Email, c.GetSiteURL())
 		} else {

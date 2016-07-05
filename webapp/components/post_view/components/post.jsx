@@ -84,6 +84,10 @@ export default class Post extends React.Component {
             return true;
         }
 
+        if (nextProps.emojis !== this.props.emojis) {
+            return true;
+        }
+
         return false;
     }
     render() {
@@ -200,6 +204,7 @@ export default class Post extends React.Component {
                                 handleCommentClick={this.handleCommentClick}
                                 compactDisplay={this.props.compactDisplay}
                                 previewCollapsed={this.props.previewCollapsed}
+                                emojis={this.props.emojis}
                             />
                         </div>
                     </div>
@@ -225,5 +230,6 @@ Post.propTypes = {
     compactDisplay: React.PropTypes.bool,
     previewCollapsed: React.PropTypes.string,
     commentCount: React.PropTypes.number,
-    useMilitaryTime: React.PropTypes.bool.isRequired
+    useMilitaryTime: React.PropTypes.bool.isRequired,
+    emojis: React.PropTypes.object.isRequired
 };

@@ -49,7 +49,7 @@ export default class PublicLinkSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.image.shareTitle'
-                            defaultMessage='Share Public File Link: '
+                            defaultMessage='Enable Public File Links: '
                         />
                     }
                     helpText={
@@ -72,7 +72,7 @@ export default class PublicLinkSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.image.publicLinkDescription'
-                            defaultMessage='32-character salt added to signing of public image links. Randomly generated on install. Click "Re-Generate" to create new salt.'
+                            defaultMessage='32-character salt added to signing of public image links. Randomly generated on install. Click "Regenerate" to create new salt.'
                         />
                     }
                     value={this.state.publicLinkSalt}

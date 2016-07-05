@@ -10,6 +10,7 @@ import ConfigurationSettings from 'components/admin_console/configuration_settin
 import LocalizationSettings from 'components/admin_console/localization_settings.jsx';
 import UsersAndTeamsSettings from 'components/admin_console/users_and_teams_settings.jsx';
 import PrivacySettings from 'components/admin_console/privacy_settings.jsx';
+import PolicySettings from 'components/admin_console/policy_settings.jsx';
 import LogSettings from 'components/admin_console/log_settings.jsx';
 import EmailAuthenticationSettings from 'components/admin_console/email_authentication_settings.jsx';
 import GitLabSettings from 'components/admin_console/gitlab_settings.jsx';
@@ -61,6 +62,10 @@ export default (
             <Route
                 path='privacy'
                 component={PrivacySettings}
+            />
+            <Route
+                path='policy'
+                component={PolicySettings}
             />
             <Route
                 path='compliance'

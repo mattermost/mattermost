@@ -4,6 +4,7 @@
 import PostList from './components/post_list.jsx';
 import LoadingScreen from 'components/loading_screen.jsx';
 
+import EmojiStore from 'stores/emoji_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import PostStore from 'stores/post_store.jsx';
@@ -24,6 +25,7 @@ export default class PostViewController extends React.Component {
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.onUserChange = this.onUserChange.bind(this);
         this.onPostsChange = this.onPostsChange.bind(this);
+        this.onEmojisChange = this.onEmojisChange.bind(this);
         this.onPostsViewJumpRequest = this.onPostsViewJumpRequest.bind(this);
         this.onPostListScroll = this.onPostListScroll.bind(this);
         this.onActivate = this.onActivate.bind(this);
@@ -53,7 +55,8 @@ export default class PostViewController extends React.Component {
             displayPostsInCenter: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED,
             compactDisplay: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT,
             previewsCollapsed: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLLAPSE_DISPLAY, 'false'),
-            useMilitaryTime: PreferenceStore.getBool(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, false)
+            useMilitaryTime: PreferenceStore.getBool(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, false),
+            emojis: EmojiStore.getEmojis()
         };
     }
 
@@ -102,11 +105,18 @@ export default class PostViewController extends React.Component {
         });
     }
 
+    onEmojisChange() {
+        this.setState({
+            emojis: EmojiStore.getEmojis()
+        });
+    }
+
     onActivate() {
         PreferenceStore.addChangeListener(this.onPreferenceChange);
         UserStore.addChangeListener(this.onUserChange);
         PostStore.addChangeListener(this.onPostsChange);
         PostStore.addPostsViewJumpListener(this.onPostsViewJumpRequest);
+        EmojiStore.addChangeListener(this.onEmojisChange);
     }
 
     onDeactivate() {
@@ -114,6 +124,7 @@ export default class PostViewController extends React.Component {
         UserStore.removeChangeListener(this.onUserChange);
         PostStore.removeChangeListener(this.onPostsChange);
         PostStore.removePostsViewJumpListener(this.onPostsViewJumpRequest);
+        EmojiStore.removeChangeListener(this.onEmojisChange);
     }
 
     componentWillReceiveProps(nextProps) {
@@ -265,6 +276,7 @@ export default class PostViewController extends React.Component {
                     previewsCollapsed={this.state.previewsCollapsed}
                     useMilitaryTime={this.state.useMilitaryTime}
                     lastViewed={this.state.lastViewed}
+                    emojis={this.state.emojis}
                 />
             );
         }

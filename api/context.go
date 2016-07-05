@@ -279,7 +279,18 @@ func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 }
 
 func (c *Context) LogError(err *model.AppError) {
-	l4g.Error(utils.T("api.context.log.error"), c.Path, err.Where, err.StatusCode,
+
+	// filter out endless reconnects
+	if c.Path == "/api/v3/users/websocket" && err.StatusCode == 401 {
+		c.LogDebug(err)
+	} else {
+		l4g.Error(utils.T("api.context.log.error"), c.Path, err.Where, err.StatusCode,
+			c.RequestId, c.Session.UserId, c.IpAddress, err.SystemMessage(utils.T), err.DetailedError)
+	}
+}
+
+func (c *Context) LogDebug(err *model.AppError) {
+	l4g.Debug(utils.T("api.context.log.error"), c.Path, err.Where, err.StatusCode,
 		c.RequestId, c.Session.UserId, c.IpAddress, err.SystemMessage(utils.T), err.DetailedError)
 }
 
@@ -481,7 +492,13 @@ func Handle404(w http.ResponseWriter, r *http.Request) {
 	err := model.NewLocAppError("Handle404", "api.context.404.app_error", nil, "")
 	err.Translate(utils.T)
 	err.StatusCode = http.StatusNotFound
-	l4g.Error("%v: code=404 ip=%v", r.URL.Path, GetIpAddress(r))
+
+	// filter out old paths that are poluting the log file
+	if strings.Contains(r.URL.Path, "/api/v1/") {
+		l4g.Debug("%v: code=404 ip=%v", r.URL.Path, GetIpAddress(r))
+	} else {
+		l4g.Error("%v: code=404 ip=%v", r.URL.Path, GetIpAddress(r))
+	}
 
 	if IsApiCall(r) {
 		w.WriteHeader(err.StatusCode)

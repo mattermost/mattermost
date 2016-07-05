@@ -86,6 +86,11 @@ export default {
         UPDATED_COMMAND: null,
         REMOVED_COMMAND: null,
 
+        RECEIVED_CUSTOM_EMOJIS: null,
+        RECEIVED_CUSTOM_EMOJI: null,
+        UPDATED_CUSTOM_EMOJI: null,
+        REMOVED_CUSTOM_EMOJI: null,
+
         RECEIVED_MSG: null,
 
         RECEIVED_MY_TEAM: null,
@@ -757,5 +762,8 @@ export default {
     MAX_PREV_MSGS: 100,
     POST_COLLAPSE_TIMEOUT: 1000 * 60 * 5, // five minutes
     LICENSE_EXPIRY_NOTIFICATION: 1000 * 60 * 60 * 24 * 15, // 15 days
-    LICENSE_GRACE_PERIOD: 1000 * 60 * 60 * 24 * 15 // 15 days
+    LICENSE_GRACE_PERIOD: 1000 * 60 * 60 * 24 * 15, // 15 days
+    TEAM_INVITE_ALL: 'all',
+    TEAM_INVITE_TEAM_ADMIN: 'team_admin',
+    TEAM_INVITE_SYSTEM_ADMIN: 'system_admin'
 };

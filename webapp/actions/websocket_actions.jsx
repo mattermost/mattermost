@@ -21,7 +21,8 @@ const SocketEvents = Constants.SocketEvents;
 import {browserHistory} from 'react-router/es6';
 
 const MAX_WEBSOCKET_FAILS = 7;
-const WEBSOCKET_RETRY_TIME = 3000;
+const MIN_WEBSOCKET_RETRY_TIME = 3000; // 3 sec
+const MAX_WEBSOCKET_RETRY_TIME = 300000; // 5 mins
 
 var conn = null;
 var connectFailCount = 0;
@@ -74,8 +75,16 @@ export function initialize() {
 
             connectFailCount = connectFailCount + 1;
 
+            var retryTime = MIN_WEBSOCKET_RETRY_TIME;
+
             if (connectFailCount > MAX_WEBSOCKET_FAILS) {
                 ErrorStore.storeLastError({message: Utils.localizeMessage('channel_loader.socketError', 'Please check connection, Mattermost unreachable. If issue persists, ask administrator to check WebSocket port.')});
+
+                // If we've failed a bunch of connections then start backing off
+                retryTime = MIN_WEBSOCKET_RETRY_TIME * connectFailCount * connectFailCount;
+                if (retryTime > MAX_WEBSOCKET_RETRY_TIME) {
+                    retryTime = MAX_WEBSOCKET_RETRY_TIME;
+                }
             }
 
             ErrorStore.setConnectionErrorCount(connectFailCount);
@@ -85,7 +94,7 @@ export function initialize() {
                 () => {
                     initialize();
                 },
-                WEBSOCKET_RETRY_TIME
+                retryTime
             );
         };
 

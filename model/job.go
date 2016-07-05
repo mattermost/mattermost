@@ -28,8 +28,11 @@ func removeTaskByName(name string) {
 	delete(tasks, name)
 }
 
-func getTaskByName(name string) *ScheduledTask {
-	return tasks[name]
+func GetTaskByName(name string) *ScheduledTask {
+	if task, ok := tasks[name]; ok {
+		return task
+	}
+	return nil
 }
 
 func GetAllTasks() *map[string]*ScheduledTask {

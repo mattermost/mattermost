@@ -63,7 +63,7 @@ export default class UsersAndTeamsSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.team.userCreationTitle'
-                            defaultMessage='Enable User Creation: '
+                            defaultMessage='Enable Account Creation: '
                         />
                     }
                     helpText={
@@ -86,7 +86,7 @@ export default class UsersAndTeamsSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.team.teamCreationDescription'
-                            defaultMessage='When false, the ability to create teams is disabled. The create team button displays error when pressed.'
+                            defaultMessage='When false, only System Administrators can create teams.'
                         />
                     }
                     value={this.state.enableTeamCreation}
@@ -115,7 +115,7 @@ export default class UsersAndTeamsSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.team.restrictTitle'
-                            defaultMessage='Restrict Creation To Domains:'
+                            defaultMessage='Restrict account creation to specified email domains:'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.team.restrictExample', 'Ex "corp.mattermost.com, mattermost.org"')}

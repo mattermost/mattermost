@@ -63,10 +63,12 @@ class NotificationStoreClass extends EventEmitter {
             }
 
             let title = Utils.localizeMessage('channel_loader.posted', 'Posted');
-            if (channel) {
-                title = channel.display_name;
-            } else if (msgProps.channel_display_name) {
+            if (!channel) {
                 title = msgProps.channel_display_name;
+            } else if (channel.type === Constants.DM_CHANNEL) {
+                title = Utils.localizeMessage('notification.dm', 'Direct Message');
+            } else {
+                title = channel.display_name;
             }
 
             let notifyText = post.message.replace(/\n+/g, ' ');

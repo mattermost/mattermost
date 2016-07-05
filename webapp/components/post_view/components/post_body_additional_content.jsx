@@ -35,6 +35,9 @@ export default class PostBodyAdditionalContent extends React.Component {
         if (!Utils.areObjectsEqual(nextProps.post, this.props.post)) {
             return true;
         }
+        if (!Utils.areObjectsEqual(nextProps.message, this.props.message)) {
+            return true;
+        }
         if (nextState.embedVisible !== this.state.embedVisible) {
             return true;
         }

@@ -168,13 +168,11 @@ func LoadConfig(fileName string) {
 	config.SetDefaults()
 
 	if err := config.IsValid(); err != nil {
-		panic(T("utils.config.load_config.validating.panic",
-			map[string]interface{}{"Filename": fileName, "Error": err.Message}))
+		panic(err.Error())
 	}
 
 	if err := ValidateLdapFilter(&config); err != nil {
-		panic(T("utils.config.load_config.validating.panic",
-			map[string]interface{}{"Filename": fileName, "Error": err.Message}))
+		panic(err.Error())
 	}
 
 	configureLog(&config.LogSettings)
@@ -188,6 +186,12 @@ func LoadConfig(fileName string) {
 
 	Cfg = &config
 	ClientCfg = getClientConfig(Cfg)
+
+	// Actions that need to run every time the config is loaded
+	if ldapI := einterfaces.GetLdapInterface(); ldapI != nil {
+		// This restarts the job if nessisary (works for config reloads)
+		ldapI.StartLdapSyncJob()
+	}
 }
 
 func getClientConfig(c *model.Config) map[string]string {
@@ -206,6 +210,7 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["EnableOpenServer"] = strconv.FormatBool(*c.TeamSettings.EnableOpenServer)
 	props["RestrictTeamNames"] = strconv.FormatBool(*c.TeamSettings.RestrictTeamNames)
 	props["RestrictDirectMessage"] = *c.TeamSettings.RestrictDirectMessage
+	props["RestrictTeamInvite"] = *c.TeamSettings.RestrictTeamInvite
 
 	props["EnableOAuthServiceProvider"] = strconv.FormatBool(c.ServiceSettings.EnableOAuthServiceProvider)
 	props["SegmentDeveloperKey"] = c.ServiceSettings.SegmentDeveloperKey

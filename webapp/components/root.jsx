@@ -1,9 +1,6 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-//import $ from 'jquery';
-//import Client from 'utils/web_client.jsx';
-
 import * as GlobalActions from 'actions/global_actions.jsx';
 import LocalizationStore from 'stores/localization_store.jsx';
 import Client from 'utils/web_client.jsx';

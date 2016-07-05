@@ -19,7 +19,6 @@
         display: block;
 
         .backstage-filter__search {
-            border-bottom: 1px solid $light-gray;
             margin: 10px 0;
             width: 100%;
         }
@@ -314,15 +313,15 @@
         }
     }
 
-    .row--invite {
-        .col-sm-6 {
-            &:first-child {
-                padding-right: 15px;
+    .app__body {
+        .row--invite {
+            .col-sm-6 {
+                &:first-child {
+                    padding-right: 15px;
+                }
             }
         }
-    }
 
-    .app__body {
         .modal {
             .info__label {
                 padding-bottom: 5px;
@@ -590,8 +589,17 @@
 
             .navbar-brand {
                 white-space: nowrap;
+            }
 
-                @import "../components/status-icon";
+            .status {
+                margin: 0 5px 0 3px;
+                top: 2px;
+                width: 16px;
+
+                svg {
+                    max-height: 20px;
+                    width: 16px;
+                }
             }
         }
     }
@@ -1050,4 +1058,10 @@
             min-height: 440px;
         }
     }
+}
+
+// on iOS, allow clicks within an input's label to actually propagate through to the input itself
+// http://stackoverflow.com/a/34810294/6325807
+label span {
+    pointer-events: none;
 }

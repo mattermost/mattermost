@@ -2,83 +2,65 @@
 // See License.txt for license information.
 
 import * as RouteUtils from 'routes/route_utils.jsx';
-import {Route, IndexRoute, Redirect} from 'react-router/es6';
-import React from 'react';
 
-import BackstageNavbar from 'components/backstage/backstage_navbar.jsx';
-import BackstageSidebar from 'components/backstage/backstage_sidebar.jsx';
-import Integrations from 'components/backstage/integrations.jsx';
-import InstalledIncomingWebhooks from 'components/backstage/installed_incoming_webhooks.jsx';
-import InstalledOutgoingWebhooks from 'components/backstage/installed_outgoing_webhooks.jsx';
-import InstalledCommands from 'components/backstage/installed_commands.jsx';
-import AddIncomingWebhook from 'components/backstage/add_incoming_webhook.jsx';
-import AddOutgoingWebhook from 'components/backstage/add_outgoing_webhook.jsx';
-import AddCommand from 'components/backstage/add_command.jsx';
-
-export default (
-    <Route path='integrations'>
-        <IndexRoute
-            components={{
-                navbar: BackstageNavbar,
-                sidebar: BackstageSidebar,
-                center: Integrations
-            }}
-        />
-        <Route path='incoming_webhooks'>
-            <IndexRoute
-                components={{
-                    navbar: BackstageNavbar,
-                    sidebar: BackstageSidebar,
-                    center: InstalledIncomingWebhooks
-                }}
-            />
-            <Route
-                path='add'
-                components={{
-                    navbar: BackstageNavbar,
-                    sidebar: BackstageSidebar,
-                    center: AddIncomingWebhook
-                }}
-            />
-        </Route>
-        <Route path='outgoing_webhooks'>
-            <IndexRoute
-                components={{
-                    navbar: BackstageNavbar,
-                    sidebar: BackstageSidebar,
-                    center: InstalledOutgoingWebhooks
-                }}
-            />
-            <Route
-                path='add'
-                components={{
-                    navbar: BackstageNavbar,
-                    sidebar: BackstageSidebar,
-                    center: AddOutgoingWebhook
-                }}
-            />
-        </Route>
-        <Route path='commands'>
-            <IndexRoute
-                components={{
-                    navbar: BackstageNavbar,
-                    sidebar: BackstageSidebar,
-                    center: InstalledCommands
-                }}
-            />
-            <Route
-                path='add'
-                components={{
-                    navbar: BackstageNavbar,
-                    sidebar: BackstageSidebar,
-                    center: AddCommand
-                }}
-            />
-        </Route>
-        <Redirect
-            from='*'
-            to='/error'
-            query={RouteUtils.notFoundParams}
-        />
-    </Route>
-);
+export default {
+    path: 'integrations',
+    getComponents: (location, callback) => {
+        System.import('components/backstage/backstage_controller.jsx').then(RouteUtils.importComponentSuccess(callback));
+    },
+    indexRoute: {
+        getComponents: (location, callback) => {
+            System.import('components/integrations/components/integrations.jsx').then(RouteUtils.importComponentSuccess(callback));
+        }
+    },
+    childRoutes: [
+        {
+            path: 'incoming_webhooks',
+            indexRoute: {
+                getComponents: (location, callback) => {
+                    System.import('components/integrations/components/installed_incoming_webhooks.jsx').then(RouteUtils.importComponentSuccess(callback));
+                }
+            },
+            childRoutes: [
+                {
+                    path: 'add',
+                    getComponents: (location, callback) => {
+                        System.import('components/integrations/components/add_incoming_webhook.jsx').then(RouteUtils.importComponentSuccess(callback));
+                    }
+                }
+            ]
+        },
+        {
+            path: 'outgoing_webhooks',
+            indexRoute: {
+                getComponents: (location, callback) => {
+                    System.import('components/integrations/components/installed_outgoing_webhooks.jsx').then(RouteUtils.importComponentSuccess(callback));
+                }
+            },
+            childRoutes: [
+                {
+                    path: 'add',
+                    getComponents: (location, callback) => {
+                        System.import('components/integrations/components/add_outgoing_webhook.jsx').then(RouteUtils.importComponentSuccess(callback));
+                    }
+                }
+            ]
+        },
+        {
+            path: 'commands',
+            indexRoute: {
+                getComponents: (location, callback) => {
+                    System.import('components/integrations/components/installed_commands.jsx').then(RouteUtils.importComponentSuccess(callback));
+                }
+            },
+            childRoutes: [
+                {
+                    path: 'add',
+                    getComponents: (location, callback) => {
+                        System.import('components/integrations/components/add_command.jsx').then(RouteUtils.importComponentSuccess(callback));
+                    }
+                }
+            ]
+        }
+    ]
+};

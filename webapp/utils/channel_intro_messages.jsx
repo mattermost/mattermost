@@ -7,6 +7,8 @@ import EditChannelHeaderModal from 'components/edit_channel_header_modal.jsx';
 import ToggleModalButton from 'components/toggle_modal_button.jsx';
 import UserProfile from 'components/user_profile.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
+import UserStore from 'stores/user_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
 import Constants from 'utils/constants.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import Client from 'utils/web_client.jsx';
@@ -94,7 +96,7 @@ export function createOffTopicIntroMessage(channel) {
 }
 
 export function createDefaultIntroMessage(channel) {
-    const inviteModalLink = (
+    let inviteModalLink = (
         <a
             className='intro-links'
             href='#'
@@ -107,6 +109,17 @@ export function createDefaultIntroMessage(channel) {
             />
         </a>
     );
+
+    const isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
+    const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
+
+    if (global.window.mm_license.IsLicensed === 'true') {
+        if (global.window.mm_config.RestrictTeamInvite === Constants.TEAM_INVITE_SYSTEM_ADMIN && !isSystemAdmin) {
+            inviteModalLink = null;
+        } else if (global.window.mm_config.RestrictTeamInvite === Constants.TEAM_INVITE_TEAM_ADMIN && !isAdmin) {
+            inviteModalLink = null;
+        }
+    }
 
     return (
         <div className='channel-intro'>

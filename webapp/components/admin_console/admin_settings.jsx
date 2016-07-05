@@ -115,8 +115,10 @@ export default class AdminSettings extends React.Component {
                 >
                     {this.renderSettings()}
                     <div className='form-group'>
+                        <FormError error={this.state.serverError}/>
+                    </div>
+                    <div className='form-group'>
                         <div className='col-sm-12'>
-                            <FormError error={this.state.serverError}/>
                             <SaveButton
                                 saving={this.state.saving}
                                 disabled={!this.state.saveNeeded || (this.canSave && !this.canSave())}

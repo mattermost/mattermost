@@ -6,7 +6,7 @@ import React from 'react';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
-import BackstageHeader from './backstage_header.jsx';
+import BackstageHeader from 'components/backstage/components/backstage_header.jsx';
 import {FormattedMessage} from 'react-intl';
 import FormError from 'components/form_error.jsx';
 import {browserHistory, Link} from 'react-router/es6';
@@ -17,6 +17,12 @@ const REQUEST_POST = 'P';
 const REQUEST_GET = 'G';
 
 export default class AddCommand extends React.Component {
+    static get propTypes() {
+        return {
+            team: React.propTypes.object.isRequired
+        };
+    }
+
     constructor(props) {
         super(props);
 
@@ -155,7 +161,7 @@ export default class AddCommand extends React.Component {
         AsyncClient.addCommand(
             command,
             () => {
-                browserHistory.push('/' + Utils.getTeamNameFromUrl() + '/settings/integrations/commands');
+                browserHistory.push('/' + this.props.team.name + '/integrations/commands');
             },
             (err) => {
                 this.setState({
@@ -300,7 +306,7 @@ export default class AddCommand extends React.Component {
         return (
             <div className='backstage-content row'>
                 <BackstageHeader>
-                    <Link to={'/' + Utils.getTeamNameFromUrl() + '/settings/integrations/commands'}>
+                    <Link to={'/' + this.props.team.name + '/integrations/commands'}>
                         <FormattedMessage
                             id='installed_command.header'
                             defaultMessage='Slash Commands'
@@ -312,7 +318,10 @@ export default class AddCommand extends React.Component {
                     />
                 </BackstageHeader>
                 <div className='backstage-form'>
-                    <form className='form-horizontal'>
+                    <form
+                        className='form-horizontal'
+                        onSubmit={this.handleSubmit}
+                    >
                         <div className='form-group'>
                             <label
                                 className='control-label col-sm-4'
@@ -531,7 +540,7 @@ export default class AddCommand extends React.Component {
                             <FormError errors={[this.state.serverError, this.state.clientError]}/>
                             <Link
                                 className='btn btn-sm'
-                                to={'/' + Utils.getTeamNameFromUrl() + '/settings/integrations/commands'}
+                                to={'/' + this.props.team.name + '/integrations/commands'}
                             >
                                 <FormattedMessage
                                     id='add_command.cancel'
