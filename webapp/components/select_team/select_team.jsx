@@ -102,29 +102,7 @@ export default class SelectTeam extends React.Component {
             }
         }
 
-        if (!this.state.teamListings.length && (global.window.mm_config.EnableTeamCreation === 'true' || isSystemAdmin)) {
-            teamContents = (
-                <div className='signup-team-dir-err'>
-                    <div>
-                        <FormattedMessage
-                            id='signup_team.no_teams_canCreate'
-                            defaultMessage='No teams have been created. You may create one by clicking "Create a new team".'
-                        />
-                    </div>
-                </div>
-            );
-        } else if (!this.state.teamListings.length) {
-            teamContents = (
-                <div className='signup-team-dir-err'>
-                    <div>
-                        <FormattedMessage
-                            id='signup_team.no_teams'
-                            defaultMessage='No teams have been created. Please contact your administrator.'
-                        />
-                    </div>
-                </div>
-            );
-        } else if (teamContents.length === 0 && openTeamContents.length === 0 && (global.window.mm_config.EnableTeamCreation === 'true' || isSystemAdmin)) {
+        if (this.state.teamMembers.length === 0 && teamContents.length === 0 && openTeamContents.length === 0 && (global.window.mm_config.EnableTeamCreation === 'true' || isSystemAdmin)) {
             teamContents = (
                 <div className='signup-team-dir-err'>
                     <div>
@@ -135,7 +113,7 @@ export default class SelectTeam extends React.Component {
                     </div>
                 </div>
             );
-        } else if (teamContents.length === 0 && openTeamContents.length === 0) {
+        } else if (this.state.teamMembers.length === 0 && teamContents.length === 0 && openTeamContents.length === 0) {
             teamContents = (
                 <div className='signup-team-dir-err'>
                     <div>
