@@ -50,7 +50,7 @@ export default class ExternalServiceSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.service.segmentTitle'
-                            defaultMessage='Segment Developer Key:'
+                            defaultMessage='Segment Write Key:'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.service.segmentExample', 'Ex "g3fgGOXJAQ43QV7rAh6iwQCkV4cA1Gs"')}
@@ -68,7 +68,7 @@ export default class ExternalServiceSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.service.googleTitle'
-                            defaultMessage='Google Developer Key:'
+                            defaultMessage='Google API Key:'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.service.googleExample', 'Ex "7rAh6iwQCkV4cA1Gsg3fgGOXJAQ43QV"')}

@@ -59,7 +59,7 @@ export default class GitLabSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.gitlab.enableTitle'
-                            defaultMessage='Enable Sign Up With GitLab: '
+                            defaultMessage='Enable authentication with GitLab: '
                         />
                     }
                     helpText={
@@ -71,7 +71,7 @@ export default class GitLabSettings extends AdminSettings {
                             <br/>
                             <FormattedHTMLMessage
                                 id='admin.gitlab.EnableHtmlDesc'
-                                defaultMessage='<ol><li>Log in to your GitLab account and go to Profile Settings -> Applications.</li><li>Enter Redirect URIs "<your-mattermost-url>/login/gitlab/complete" (example: http://localhost:8065/login/gitlab/complete) and "<your-mattermost-url>/signup/gitlab/complete". </li><li>Then use "Secret" and "Id" fields from GitLab to complete the options below.</li><li>Complete the Endpoint URLs below. </li></ol>'
+                                defaultMessage='<ol><li>Log in to your GitLab account and go to Profile Settings -> Applications.</li><li>Enter Redirect URIs "<your-mattermost-url>/login/gitlab/complete" (example: http://localhost:8065/login/gitlab/complete) and "<your-mattermost-url>/signup/gitlab/complete". </li><li>Then use "Application Secret Key" and "Application ID" fields from GitLab to complete the options below.</li><li>Complete the Endpoint URLs below. </li></ol>'
                             />
                         </div>
                     }
@@ -83,7 +83,7 @@ export default class GitLabSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.gitlab.clientIdTitle'
-                            defaultMessage='Id:'
+                            defaultMessage='Application ID:'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.gitlab.clientIdExample', 'Ex "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"')}
@@ -102,7 +102,7 @@ export default class GitLabSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.gitlab.clientSecretTitle'
-                            defaultMessage='Secret:'
+                            defaultMessage='Application Secret Key:'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.gitlab.clientSecretExample', 'Ex "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"')}
