@@ -830,7 +830,7 @@ func (s SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) StoreChan
 			query += " AND Channels.TeamId = :TeamId"
 		}
 
-		query += ` AND Posts.CreateAt <= :EndTime
+		query += ` AND Posts.CreateAt >= :StartTime AND Posts.CreateAt <= :EndTime
 			    ORDER BY Name DESC) AS t1
 			GROUP BY Name
 			ORDER BY Name DESC
@@ -853,7 +853,7 @@ func (s SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) StoreChan
 				query += " AND Channels.TeamId = :TeamId"
 			}
 
-			query += ` AND Posts.CreateAt <= :EndTime
+			query += ` AND Posts.CreateAt >= :StartTime AND Posts.CreateAt <= :EndTime
 				    ORDER BY Name DESC) AS t1
 				GROUP BY Name
 				ORDER BY Name DESC
@@ -861,12 +861,13 @@ func (s SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) StoreChan
 		}
 
 		end := utils.MillisFromTime(utils.EndOfDay(utils.Yesterday()))
+		start := utils.MillisFromTime(utils.StartOfDay(utils.Yesterday().AddDate(0, 0, -31)))
 
 		var rows model.AnalyticsRows
 		_, err := s.GetReplica().Select(
 			&rows,
 			query,
-			map[string]interface{}{"TeamId": teamId, "EndTime": end})
+			map[string]interface{}{"TeamId": teamId, "StartTime": start, "EndTime": end})
 		if err != nil {
 			result.Err = model.NewLocAppError("SqlPostStore.AnalyticsUserCountsWithPostsByDay", "store.sql_post.analytics_user_counts_posts_by_day.app_error", nil, err.Error())
 		} else {
