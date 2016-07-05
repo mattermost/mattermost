@@ -48,6 +48,22 @@
     "translation": "September"
   },
   {
+    "id": "api.admin.add_certificate.array.app_error",
+    "translation": "Empty array under 'certificate' in request"
+  },
+  {
+    "id": "api.admin.add_certificate.no_file.app_error",
+    "translation": "No file under 'certificate' in request"
+  },
+  {
+    "id": "api.admin.add_certificate.open.app_error",
+    "translation": "Could not open certificate file"
+  },
+  {
+    "id": "api.admin.add_certificate.saving.app_error",
+    "translation": "Could not save certificate file"
+  },
+  {
     "id": "api.admin.file_read_error",
     "translation": "Error reading log file"
   },
@@ -70,6 +86,10 @@
   {
     "id": "api.admin.recycle_db_start.warn",
     "translation": "Attempting to recycle the database connection"
+  },
+  {
+    "id": "api.admin.remove_certificate.delete.app_error",
+    "translation": "An error occurred while deleting the certificate. Make sure the file config/{{.Filename}} exists."
   },
   {
     "id": "api.admin.saml.metadata.app_error",
@@ -2185,35 +2205,43 @@
   },
   {
     "id": "ent.saml.build_request.app_error",
-    "translation": "An error occurred while building the request"
+    "translation": "An error occurred while initiating the request to the Identity Provider. Please contact your System Administrator."
   },
   {
     "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "An error occurred while encoding the request"
+    "translation": "An error occurred while encoding the request for the Identity Provider. Please contact your System Administrator."
   },
   {
     "id": "ent.saml.build_request.encoding_signed.app_error",
-    "translation": "An error occurred while encoding the signed request"
+    "translation": "An error occurred while encoding the signed request for the Identity Provider. Please contact your System Administrator."
   },
   {
     "id": "ent.saml.configure.app_error",
     "translation": "An error occurred while configuring SAML Service Provider, err=%v"
   },
   {
+    "id": "ent.saml.configure.encryption_not_enabled.app_error",
+    "translation": "SAML login was unsuccessful because encryption is not enabled. Please contact your System Administrator."
+  },
+  {
     "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "SAML Idp Certificate File does not exists"
+    "translation": "Identity Provider Public Certificate File was not found. Please contact your System Administrator."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
-    "translation": "SAML Private Key File does not exists"
+    "translation": "SAML login was unsuccessful because the Service Provider Private Key was not found. Please contact your System Administrator."
   },
   {
     "id": "ent.saml.configure.load_public_cert.app_error",
-    "translation": "SAML Public Certificate File does not exists"
+    "translation": "Service Provider Public Certificate File was not found. Please contact your System Administrator."
+  },
+  {
+    "id": "ent.saml.configure.not_encrypted_response.app_error",
+    "translation": "SAML login was unsuccessful as the Identity Provider response is not encrypted. Please contact your System Administrator."
   },
   {
     "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "An error occurred while decrypting the response from the Identity Provider"
+    "translation": "SAML login was unsuccessful because an error occurred while decrypting the response from the Identity Provider. Please contact your System Administrator."
   },
   {
     "id": "ent.saml.do_login.empty_response.app_error",
@@ -2221,23 +2249,23 @@
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
-    "translation": "An error occurred while parsing the response from the Identity Provider"
+    "translation": "An error occurred while parsing the response from the Identity Provider. Please contact your System Administrator."
   },
   {
     "id": "ent.saml.do_login.validate.app_error",
-    "translation": "An error occurred while validating the response from the Identity Provider"
+    "translation": "An error occurred while validating the response from the Identity Provider. Please contact your System Administrator."
   },
   {
     "id": "ent.saml.license_disable.app_error",
-    "translation": "Your license does not support using SAML authentication"
+    "translation": "Your license does not support SAML authentication."
   },
   {
     "id": "ent.saml.metadata.app_error",
-    "translation": "An error occurred while building Service Provider Metadata"
+    "translation": "An error occurred while building Service Provider Metadata."
   },
   {
     "id": "ent.saml.service_disable.app_error",
-    "translation": "SAML is not configured or supported on this server"
+    "translation": "SAML is not configured or supported on this server."
   },
   {
     "id": "ent.saml.update_saml_user.unable_error",
@@ -2645,43 +2673,43 @@
   },
   {
     "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
-    "translation": "Invalid Assertion Consumer Service URL for SAML settings. Must be set."
+    "translation": "Service Provider Login URL must be a valid URL and start with http:// or https://."
   },
   {
     "id": "model.config.is_valid.saml_email_attribute.app_error",
-    "translation": "Invalid Email attribute for SAML settings. Must be set."
+    "translation": "Invalid Email attribute. Must be set."
   },
   {
     "id": "model.config.is_valid.saml_first_name_attribute.app_error",
-    "translation": "Invalid First Name attribute for SAML settings. Must be set."
+    "translation": "Invalid First Name attribute. Must be set."
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
-    "translation": "Idp Certificate File missing in SAML Settings"
+    "translation": "Identity Provider Public Certificate missing. Did you forget to upload it?"
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "Invalid Identity Provider Descriptor URL for SAML settings. Must be set."
+    "translation": "Identity Provider Issuer URL must be a valid URL and start with http:// or https://."
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
-    "translation": "Invalid Identity Provider URL for SAML settings. Must be set."
+    "translation": "SAML SSO URL must be a valid URL and start with http:// or https://."
   },
   {
     "id": "model.config.is_valid.saml_last_name_attribute.app_error",
-    "translation": "Invalid Last Name attribute for SAML settings. Must be set."
+    "translation": "Invalid Last Name attribute. Must be set."
   },
   {
     "id": "model.config.is_valid.saml_private_key.app_error",
-    "translation": "Private Key File missing in SAML Settings"
+    "translation": "Service Provider Private Key missing. Did you forget to upload it?"
   },
   {
     "id": "model.config.is_valid.saml_public_cert.app_error",
-    "translation": "Public Certificate File missing in SAML Settings"
+    "translation": "Service Provider Public Certificate missing. Did you forget to upload it?"
   },
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
-    "translation": "Invalid Username attribute for SAML settings. Must be set."
+    "translation": "Invalid Username attribute. Must be set."
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",

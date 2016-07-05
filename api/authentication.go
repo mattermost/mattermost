@@ -9,6 +9,7 @@ import (
 	"github.com/mattermost/platform/utils"
 
 	"net/http"
+	"strings"
 )
 
 func checkPasswordAndAllCriteria(user *model.User, password string, mfaToken string) *model.AppError {
@@ -145,7 +146,11 @@ func authenticateUser(user *model.User, password, mfaToken string) (*model.User,
 			return ldapUser, nil
 		}
 	} else if user.AuthService != "" {
-		err := model.NewLocAppError("login", "api.user.login.use_auth_service.app_error", map[string]interface{}{"AuthService": user.AuthService}, "")
+		authService := user.AuthService
+		if authService == model.USER_AUTH_SERVICE_SAML || authService == model.USER_AUTH_SERVICE_LDAP {
+			authService = strings.ToUpper(authService)
+		}
+		err := model.NewLocAppError("login", "api.user.login.use_auth_service.app_error", map[string]interface{}{"AuthService": authService}, "")
 		err.StatusCode = http.StatusBadRequest
 		return user, err
 	} else {

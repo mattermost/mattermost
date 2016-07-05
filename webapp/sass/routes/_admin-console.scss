@@ -132,6 +132,12 @@
             .btn {
                 font-size: 13px;
             }
+
+            &.remove-filename {
+                margin-bottom: 5px;
+                top: -2px;
+                position: relative;
+            }
         }
 
         .alert {

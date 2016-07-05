@@ -3,6 +3,7 @@
 
 import * as Utils from 'utils/utils.jsx';
 import Client from 'utils/web_client.jsx';
+import Constants from 'utils/constants.jsx';
 
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -55,7 +56,8 @@ export default class EmailToOAuth extends React.Component {
             formClass += ' has-error';
         }
 
-        const uiType = Utils.toTitleCase(this.props.newType) + ' SSO';
+        const type = (this.props.newType === Constants.SAML_SERVICE ? Constants.SAML_SERVICE.toUpperCase() : Utils.toTitleCase(this.props.newType));
+        const uiType = `${type} SSO`;
 
         return (
             <div>
@@ -74,7 +76,7 @@ export default class EmailToOAuth extends React.Component {
                             id='claim.email_to_oauth.ssoType'
                             defaultMessage='Upon claiming your account, you will only be able to login with {type} SSO'
                             values={{
-                                type: Utils.toTitleCase(this.props.newType)
+                                type
                             }}
                         />
                     </p>
@@ -83,7 +85,7 @@ export default class EmailToOAuth extends React.Component {
                             id='claim.email_to_oauth.ssoNote'
                             defaultMessage='You must already have a valid {type} account'
                             values={{
-                                type: Utils.toTitleCase(this.props.newType)
+                                type
                             }}
                         />
                     </p>
