@@ -1301,11 +1301,11 @@
   },
   {
     "id": "api.team.invite_members.restricted_system_admin.app_error",
-    "translation": "Inviting new users to a team is restricted to System Administrators."
+    "translation": "Convite a novos usuários para uma equipe está restrito para o Administrador do Sistema"
   },
   {
     "id": "api.team.invite_members.restricted_team_admin.app_error",
-    "translation": "Inviting new users to a team is restricted to Team and System Administrators."
+    "translation": "Convite a novos usuários para uma equipe está restrito para o Administrador do Sistema e Equipe"
   },
   {
     "id": "api.team.invite_members.send.error",
@@ -1437,7 +1437,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Go To Post"
+    "translation": "Ir Para o Post"
   },
   {
     "id": "api.templates.post_body.info",
@@ -2117,7 +2117,7 @@
   },
   {
     "id": "ent.ldap.mattermost_user_update",
-    "translation": "Mattermost user was updated by LDAP server."
+    "translation": "Usuário Mattermost foi atualizado pelo servidor LDAP."
   },
   {
     "id": "ent.ldap.syncdone.info",
@@ -2520,8 +2520,16 @@
     "translation": "Definição da largura do thumbnail inválida.  Deve ser um número positivo."
   },
   {
+    "id": "model.config.is_valid.ldap_max_page_size.app_error",
+    "translation": "Invalid max page size value."
+  },
+  {
     "id": "model.config.is_valid.ldap_required.app_error",
-    "translation": "Required LDAP field missing."
+    "translation": "Campo LDAP requerido não foi preenchido."
+  },
+  {
+    "id": "model.config.is_valid.ldap_required.app_error",
+    "translation": "Campo LDAP requerido não foi preenchido."
   },
   {
     "id": "model.config.is_valid.ldap_security.app_error",

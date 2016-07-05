@@ -201,7 +201,7 @@
   },
   {
     "id": "api.channel.get_channel.wrong_team.app_error",
-    "translation": "There is no channel with channel_id={{.ChannelId}} on team with team_id={{.TeamId}}"
+    "translation": "il n'existe pas de canal dont l'identifiant est ={{.ChannelId}} pour l'équipe dont le nom est={{.TeamId}}"
   },
   {
     "id": "api.channel.get_channel_counts.app_error",
@@ -2518,6 +2518,14 @@
   {
     "id": "model.config.is_valid.file_thumb_width.app_error",
     "translation": "Largeur des aperçus invalide dans les paramètres de fichiers. Doit être un entier positif."
+  },
+  {
+    "id": "model.config.is_valid.ldap_max_page_size.app_error",
+    "translation": "Invalid max page size value."
+  },
+  {
+    "id": "model.config.is_valid.ldap_required.app_error",
+    "translation": "Required LDAP field missing."
   },
   {
     "id": "model.config.is_valid.ldap_required.app_error",

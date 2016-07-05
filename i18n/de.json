@@ -1301,11 +1301,11 @@
   },
   {
     "id": "api.team.invite_members.restricted_system_admin.app_error",
-    "translation": "Inviting new users to a team is restricted to System Administrators."
+    "translation": "Nur Systemadmins dürfen neue Mitglieder zum Team einladen."
   },
   {
     "id": "api.team.invite_members.restricted_team_admin.app_error",
-    "translation": "Inviting new users to a team is restricted to Team and System Administrators."
+    "translation": "Nur Systemadmins und Teamadmins dürfen neue Mitglieder zum Team einladen."
   },
   {
     "id": "api.team.invite_members.send.error",
@@ -1437,7 +1437,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Go To Post"
+    "translation": "Gehe zum Beitrag"
   },
   {
     "id": "api.templates.post_body.info",
@@ -2117,7 +2117,7 @@
   },
   {
     "id": "ent.ldap.mattermost_user_update",
-    "translation": "Mattermost user was updated by LDAP server."
+    "translation": "Mattermost hat vom LDAP Server ein Update erhalten"
   },
   {
     "id": "ent.ldap.syncdone.info",
@@ -2520,8 +2520,16 @@
     "translation": "Ungültige Thumbnauilbreite in Dateieinstellungen.  Muss eine positive Zahl sein."
   },
   {
+    "id": "model.config.is_valid.ldap_max_page_size.app_error",
+    "translation": "Invalid max page size value."
+  },
+  {
     "id": "model.config.is_valid.ldap_required.app_error",
-    "translation": "Required LDAP field missing."
+    "translation": "Notwendiges LDAP Feld fehlt."
+  },
+  {
+    "id": "model.config.is_valid.ldap_required.app_error",
+    "translation": "Notwendiges LDAP Feld fehlt."
   },
   {
     "id": "model.config.is_valid.ldap_security.app_error",
