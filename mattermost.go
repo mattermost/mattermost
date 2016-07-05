@@ -47,6 +47,7 @@ var flagCmdInviteUser bool
 var flagCmdAssignRole bool
 var flagCmdJoinChannel bool
 var flagCmdLeaveChannel bool
+var flagCmdListChannels bool
 var flagCmdJoinTeam bool
 var flagCmdVersion bool
 var flagCmdRunWebClientTests bool
@@ -275,6 +276,7 @@ func parseCmds() {
 	flag.BoolVar(&flagCmdAssignRole, "assign_role", false, "")
 	flag.BoolVar(&flagCmdJoinChannel, "join_channel", false, "")
 	flag.BoolVar(&flagCmdLeaveChannel, "leave_channel", false, "")
+	flag.BoolVar(&flagCmdListChannels, "list_channels", false, "")
 	flag.BoolVar(&flagCmdJoinTeam, "join_team", false, "")
 	flag.BoolVar(&flagCmdVersion, "version", false, "")
 	flag.BoolVar(&flagCmdRunWebClientTests, "run_web_client_tests", false, "")
@@ -296,6 +298,7 @@ func parseCmds() {
 		flagCmdAssignRole ||
 		flagCmdJoinChannel ||
 		flagCmdLeaveChannel ||
+		flagCmdListChannels ||
 		flagCmdJoinTeam ||
 		flagCmdResetPassword ||
 		flagCmdResetMfa ||
@@ -319,6 +322,7 @@ func runCmds() {
 	cmdAssignRole()
 	cmdJoinChannel()
 	cmdLeaveChannel()
+	cmdListChannels()
 	cmdJoinTeam()
 	cmdResetPassword()
 	cmdResetMfa()
@@ -1039,6 +1043,48 @@ func cmdLeaveChannel() {
 	}
 }
 
+func cmdListChannels() {
+	if flagCmdListChannels {
+		if len(flagTeamName) == 0 {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		if !utils.IsLicensed {
+			fmt.Fprintln(os.Stderr, utils.T("cli.license.critical"))
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		var team *model.Team
+		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
+			l4g.Error("%v", result.Err)
+			flushLogAndExit(1)
+		} else {
+			team = result.Data.(*model.Team)
+		}
+
+		if result := <-api.Srv.Store.Channel().GetAll(team.Id); result.Err != nil {
+			l4g.Error("%v", result.Err)
+			flushLogAndExit(1)
+		} else {
+			channels := result.Data.([]*model.Channel)
+
+			for _, channel := range channels {
+
+				if channel.DeleteAt > 0 {
+					fmt.Fprintln(os.Stdout, channel.Name+" (archived)")
+				} else {
+					fmt.Fprintln(os.Stdout, channel.Name)
+				}
+			}
+		}
+
+		os.Exit(0)
+	}
+}
+
 func cmdJoinTeam() {
 	if flagCmdJoinTeam {
 		if len(flagTeamName) == 0 {
@@ -1409,7 +1455,7 @@ COMMANDS:
         Example:
 				platform -invite_user -team_name="name" -email="user@example.com" -site_url="https://mattermost.example.com"
 
-    -join_team                        Joins a user to the team.  It required the -email and
+    -join_team                        Joins a user to the team.  It requires the -email and
                                        -team_name.  You may need to logout of your current session
                                        for the new team to be applied.
         Example:
@@ -1422,17 +1468,23 @@ COMMANDS:
         Example:
             platform -assign_role -email="user@example.com" -role="system_admin"
 
-    -join_channel                      Joins a user to the channel.  It required the -email, channel_name and
+    -join_channel                      Joins a user to the channel.  It requires the -email, channel_name and
                                        -team_name.  You may need to logout of your current session
                                        for the new channel to be applied.
         Example:
             platform -join_channel -email="user@example.com" -team_name="name" -channel_name="channel_name"
 
-    -leave_channel                     Removes a user from the channel.  It required the -email, channel_name and
+    -leave_channel                     Removes a user from the channel.  It requires the -email, channel_name and
                                        -team_name.  You may need to logout of your current session
                                        for the channel to be removed.
         Example:
             platform -leave_channel -email="user@example.com" -team_name="name" -channel_name="channel_name"
+
+    -list_channels                     Lists all private/public channels for a given team.
+                                       It will append ' (archived)' to the channel name if archived.  It requires the 
+                                       -team_name flag.
+        Example:
+            platform -list_channels -team_name="name"
 
     -reset_password                   Resets the password for a user.  It requires the
                                       -email and -password flag.

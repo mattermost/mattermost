@@ -948,6 +948,28 @@ func (s SqlChannelStore) GetForExport(teamId string) StoreChannel {
 	return storeChannel
 }
 
+func (s SqlChannelStore) GetAll(teamId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var data []*model.Channel
+		_, err := s.GetReplica().Select(&data, "SELECT * FROM Channels WHERE TeamId = :TeamId AND Type != 'D' ORDER BY Name", map[string]interface{}{"TeamId": teamId})
+
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlChannelStore.GetAll", "store.sql_channel.get_all.app_error", nil, "teamId="+teamId+", err="+err.Error())
+		} else {
+			result.Data = data
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (s SqlChannelStore) AnalyticsTypeCount(teamId string, channelType string) StoreChannel {
 	storeChannel := make(StoreChannel)
 

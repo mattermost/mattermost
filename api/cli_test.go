@@ -234,6 +234,41 @@ func TestCliRemoveChannel(t *testing.T) {
 	}
 }
 
+func TestCliListChannels(t *testing.T) {
+	if disableCliTests {
+		return
+	}
+
+	th := Setup().InitBasic()
+	channel := th.CreateChannel(th.BasicClient, th.BasicTeam)
+	th.BasicClient.Must(th.BasicClient.DeleteChannel(channel.Id))
+
+	// These test cannot run since this feature requires an enteprise license
+
+	// cmd := exec.Command("bash", "-c", `go run ../mattermost.go -list_channels -team_name="`+th.BasicTeam.Name+`"`)
+	// output, err := cmd.CombinedOutput()
+	// if err != nil {
+	// 	t.Log(string(output))
+	// 	t.Fatal(err)
+	// }
+
+	// if !strings.Contains(string(output), "town-square") {
+	// 	t.Fatal("should have channels")
+	// }
+
+	// if !strings.Contains(string(output), channel.Name+" (archived)") {
+	// 	t.Fatal("should have archived channel")
+	// }
+
+	// should fail because channel does not have license
+	cmd3 := exec.Command("bash", "-c", `go run ../mattermost.go -list_channels -team_name="`+th.BasicTeam.Name+``)
+	output3, err3 := cmd3.CombinedOutput()
+	if err3 == nil {
+		t.Log(string(output3))
+		t.Fatal()
+	}
+}
+
 func TestCliJoinTeam(t *testing.T) {
 	if disableCliTests {
 		return
