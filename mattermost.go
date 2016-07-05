@@ -48,6 +48,7 @@ var flagCmdAssignRole bool
 var flagCmdJoinChannel bool
 var flagCmdLeaveChannel bool
 var flagCmdListChannels bool
+var flagCmdRestoreChannel bool
 var flagCmdJoinTeam bool
 var flagCmdVersion bool
 var flagCmdRunWebClientTests bool
@@ -202,6 +203,10 @@ func doSecurityAndDiagnostics() {
 					v.Set(utils.PROP_DIAGNOSTIC_ACTIVE_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
 				}
 
+				if tcr := <-api.Srv.Store.Team().AnalyticsTeamCount(); tcr.Err == nil {
+					v.Set(utils.PROP_DIAGNOSTIC_TEAM_COUNT, strconv.FormatInt(tcr.Data.(int64), 10))
+				}
+
 				res, err := http.Get(utils.DIAGNOSTIC_URL + "/security?" + v.Encode())
 				if err != nil {
 					l4g.Error(utils.T("mattermost.security_info.error"))
@@ -275,8 +280,8 @@ func parseCmds() {
 	flag.BoolVar(&flagCmdInviteUser, "invite_user", false, "")
 	flag.BoolVar(&flagCmdAssignRole, "assign_role", false, "")
 	flag.BoolVar(&flagCmdJoinChannel, "join_channel", false, "")
-	flag.BoolVar(&flagCmdLeaveChannel, "leave_channel", false, "")
 	flag.BoolVar(&flagCmdListChannels, "list_channels", false, "")
+	flag.BoolVar(&flagCmdRestoreChannel, "restore_channel", false, "")
 	flag.BoolVar(&flagCmdJoinTeam, "join_team", false, "")
 	flag.BoolVar(&flagCmdVersion, "version", false, "")
 	flag.BoolVar(&flagCmdRunWebClientTests, "run_web_client_tests", false, "")
@@ -299,6 +304,7 @@ func parseCmds() {
 		flagCmdJoinChannel ||
 		flagCmdLeaveChannel ||
 		flagCmdListChannels ||
+		flagCmdRestoreChannel ||
 		flagCmdJoinTeam ||
 		flagCmdResetPassword ||
 		flagCmdResetMfa ||
@@ -323,6 +329,7 @@ func runCmds() {
 	cmdJoinChannel()
 	cmdLeaveChannel()
 	cmdListChannels()
+	cmdRestoreChannel()
 	cmdJoinTeam()
 	cmdResetPassword()
 	cmdResetMfa()
@@ -1085,6 +1092,58 @@ func cmdListChannels() {
 	}
 }
 
+func cmdRestoreChannel() {
+	if flagCmdRestoreChannel {
+		if len(flagTeamName) == 0 {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		if len(flagChannelName) == 0 {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -channel_name")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		if !utils.IsLicensed {
+			fmt.Fprintln(os.Stderr, utils.T("cli.license.critical"))
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		var team *model.Team
+		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
+			l4g.Error("%v", result.Err)
+			flushLogAndExit(1)
+		} else {
+			team = result.Data.(*model.Team)
+		}
+
+		var channel *model.Channel
+		if result := <-api.Srv.Store.Channel().GetAll(team.Id); result.Err != nil {
+			l4g.Error("%v", result.Err)
+			flushLogAndExit(1)
+		} else {
+			channels := result.Data.([]*model.Channel)
+
+			for _, ctemp := range channels {
+				if ctemp.Name == flagChannelName {
+					channel = ctemp
+					break
+				}
+			}
+		}
+
+		if result := <-api.Srv.Store.Channel().SetDeleteAt(channel.Id, 0, model.GetMillis()); result.Err != nil {
+			l4g.Error("%v", result.Err)
+			flushLogAndExit(1)
+		}
+
+		os.Exit(0)
+	}
+}
+
 func cmdJoinTeam() {
 	if flagCmdJoinTeam {
 		if len(flagTeamName) == 0 {
@@ -1470,19 +1529,25 @@ COMMANDS:
 
     -join_channel                      Joins a user to the channel.  It requires the -email, channel_name and
                                        -team_name.  You may need to logout of your current session
-                                       for the new channel to be applied.
+                                       for the new channel to be applied.  Requires an enterprise license.
         Example:
             platform -join_channel -email="user@example.com" -team_name="name" -channel_name="channel_name"
 
     -leave_channel                     Removes a user from the channel.  It requires the -email, channel_name and
                                        -team_name.  You may need to logout of your current session
-                                       for the channel to be removed.
+                                       for the channel to be removed.  Requires an enterprise license.
         Example:
             platform -leave_channel -email="user@example.com" -team_name="name" -channel_name="channel_name"
 
     -list_channels                     Lists all private/public channels for a given team.
                                        It will append ' (archived)' to the channel name if archived.  It requires the 
-                                       -team_name flag.
+                                       -team_name flag.  Requires an enterprise license.
+        Example:
+            platform -list_channels -team_name="name"
+
+    -restore_channel                   Restores a previously deleted channel.
+                                       It requires the -channel_name flag and
+                                       -team_name flag.  Requires an enterprise license.
         Example:
             platform -list_channels -team_name="name"
 
