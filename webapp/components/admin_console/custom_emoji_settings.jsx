@@ -54,8 +54,8 @@ export default class CustomEmojiSettings extends AdminSettings {
                     id='restrictCustomEmojiCreation'
                     values={[
                         {value: 'all', text: Utils.localizeMessage('admin.customization.restrictCustomEmojiCreationAll', 'Allow everyone to create custom emoji')},
-                        {value: 'admin', text: Utils.localizeMessage('admin.customization.restrictCustomEmojiCreationAdmin', 'Allow system and team admins to create custom emoji')},
-                        {value: 'system_admin', text: Utils.localizeMessage('admin.customization.restrictCustomEmojiCreationSystemAdmin', 'Only allow system admins to create custom emoji')}
+                        {value: 'admin', text: Utils.localizeMessage('admin.customization.restrictCustomEmojiCreationAdmin', 'Allow System and Team Admins to create custom emoji')},
+                        {value: 'system_admin', text: Utils.localizeMessage('admin.customization.restrictCustomEmojiCreationSystemAdmin', 'Only allow System Admins to create custom emoji')}
                     ]}
                     label={
                         <FormattedMessage
@@ -89,7 +89,7 @@ export default class CustomEmojiSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.customization.enableCustomEmojiDesc'
-                            defaultMessage='Enable users to create custom emoji for use in chat messages.'
+                            defaultMessage='Enable users to create custom emoji for use in messages. When enabled, Custom Emoji settings can be accessed by switching to a team and clicking the three dots above the channel sidebar, and selecting "Custom Emoji".'
                         />
                     }
                     value={this.state.enableCustomEmoji}
