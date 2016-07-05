@@ -890,7 +890,11 @@ func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	il.ClientCfg = utils.ClientCfg
-	il.LicenseCfg = utils.ClientLicense
+	if c.IsSystemAdmin() {
+		il.LicenseCfg = utils.ClientLicense
+	} else {
+		il.LicenseCfg = utils.GetSantizedClientLicense()
+	}
 
 	w.Write([]byte(il.ToJson()))
 }
