@@ -45,6 +45,8 @@ var flagCmdCreateTeam bool
 var flagCmdCreateUser bool
 var flagCmdInviteUser bool
 var flagCmdAssignRole bool
+var flagCmdJoinChannel bool
+var flagCmdLeaveChannel bool
 var flagCmdJoinTeam bool
 var flagCmdVersion bool
 var flagCmdRunWebClientTests bool
@@ -63,6 +65,7 @@ var flagLicenseFile string
 var flagEmail string
 var flagPassword string
 var flagTeamName string
+var flagChannelName string
 var flagSiteURL string
 var flagConfirmBackup string
 var flagRole string
@@ -260,6 +263,7 @@ func parseCmds() {
 	flag.StringVar(&flagEmail, "email", "", "")
 	flag.StringVar(&flagPassword, "password", "", "")
 	flag.StringVar(&flagTeamName, "team_name", "", "")
+	flag.StringVar(&flagChannelName, "channel_name", "", "")
 	flag.StringVar(&flagSiteURL, "site_url", "", "")
 	flag.StringVar(&flagConfirmBackup, "confirm_backup", "", "")
 	flag.StringVar(&flagRole, "role", "", "")
@@ -269,6 +273,8 @@ func parseCmds() {
 	flag.BoolVar(&flagCmdCreateUser, "create_user", false, "")
 	flag.BoolVar(&flagCmdInviteUser, "invite_user", false, "")
 	flag.BoolVar(&flagCmdAssignRole, "assign_role", false, "")
+	flag.BoolVar(&flagCmdJoinChannel, "join_channel", false, "")
+	flag.BoolVar(&flagCmdLeaveChannel, "leave_channel", false, "")
 	flag.BoolVar(&flagCmdJoinTeam, "join_team", false, "")
 	flag.BoolVar(&flagCmdVersion, "version", false, "")
 	flag.BoolVar(&flagCmdRunWebClientTests, "run_web_client_tests", false, "")
@@ -288,6 +294,8 @@ func parseCmds() {
 		flagCmdCreateUser ||
 		flagCmdInviteUser ||
 		flagCmdAssignRole ||
+		flagCmdJoinChannel ||
+		flagCmdLeaveChannel ||
 		flagCmdJoinTeam ||
 		flagCmdResetPassword ||
 		flagCmdResetMfa ||
@@ -309,6 +317,8 @@ func runCmds() {
 	cmdCreateUser()
 	cmdInviteUser()
 	cmdAssignRole()
+	cmdJoinChannel()
+	cmdLeaveChannel()
 	cmdJoinTeam()
 	cmdResetPassword()
 	cmdResetMfa()
@@ -903,10 +913,136 @@ func cmdAssignRole() {
 	}
 }
 
+func cmdJoinChannel() {
+	if flagCmdJoinChannel {
+		if len(flagTeamName) == 0 {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		if len(flagEmail) == 0 {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -email")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		if len(flagChannelName) == 0 {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -channel_name")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		if !utils.IsLicensed {
+			fmt.Fprintln(os.Stderr, utils.T("cli.license.critical"))
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		var team *model.Team
+		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
+			l4g.Error("%v", result.Err)
+			flushLogAndExit(1)
+		} else {
+			team = result.Data.(*model.Team)
+		}
+
+		var user *model.User
+		if result := <-api.Srv.Store.User().GetByEmail(flagEmail); result.Err != nil {
+			l4g.Error("%v", result.Err)
+			flushLogAndExit(1)
+		} else {
+			user = result.Data.(*model.User)
+		}
+
+		var channel *model.Channel
+		if result := <-api.Srv.Store.Channel().GetByName(team.Id, flagChannelName); result.Err != nil {
+			l4g.Error("%v", result.Err)
+			flushLogAndExit(1)
+		} else {
+			channel = result.Data.(*model.Channel)
+		}
+
+		_, err := api.AddUserToChannel(user, channel)
+		if err != nil {
+			l4g.Error("%v", err)
+			flushLogAndExit(1)
+		}
+
+		os.Exit(0)
+	}
+}
+
+func cmdLeaveChannel() {
+	if flagCmdLeaveChannel {
+		if len(flagTeamName) == 0 {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		if len(flagEmail) == 0 {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -email")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		if len(flagChannelName) == 0 {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -channel_name")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		if flagChannelName == model.DEFAULT_CHANNEL {
+			fmt.Fprintln(os.Stderr, "flag has invalid argument: -channel_name (cannot leave town-square)")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		if !utils.IsLicensed {
+			fmt.Fprintln(os.Stderr, utils.T("cli.license.critical"))
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		var team *model.Team
+		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
+			l4g.Error("%v", result.Err)
+			flushLogAndExit(1)
+		} else {
+			team = result.Data.(*model.Team)
+		}
+
+		var user *model.User
+		if result := <-api.Srv.Store.User().GetByEmail(flagEmail); result.Err != nil {
+			l4g.Error("%v", result.Err)
+			flushLogAndExit(1)
+		} else {
+			user = result.Data.(*model.User)
+		}
+
+		var channel *model.Channel
+		if result := <-api.Srv.Store.Channel().GetByName(team.Id, flagChannelName); result.Err != nil {
+			l4g.Error("%v", result.Err)
+			flushLogAndExit(1)
+		} else {
+			channel = result.Data.(*model.Channel)
+		}
+
+		err := api.RemoveUserFromChannel(user.Id, user.Id, channel)
+		if err != nil {
+			l4g.Error("%v", err)
+			flushLogAndExit(1)
+		}
+
+		os.Exit(0)
+	}
+}
+
 func cmdJoinTeam() {
 	if flagCmdJoinTeam {
 		if len(flagTeamName) == 0 {
-			fmt.Fprintln(os.Stderr, "flag needs an argument: -email")
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
 			flag.Usage()
 			os.Exit(1)
 		}
@@ -1285,6 +1421,18 @@ COMMANDS:
                                       applied.
         Example:
             platform -assign_role -email="user@example.com" -role="system_admin"
+
+    -join_channel                      Joins a user to the channel.  It required the -email, channel_name and
+                                       -team_name.  You may need to logout of your current session
+                                       for the new channel to be applied.
+        Example:
+            platform -join_channel -email="user@example.com" -team_name="name" -channel_name="channel_name"
+
+    -leave_channel                     Removes a user from the channel.  It required the -email, channel_name and
+                                       -team_name.  You may need to logout of your current session
+                                       for the channel to be removed.
+        Example:
+            platform -leave_channel -email="user@example.com" -team_name="name" -channel_name="channel_name"
 
     -reset_password                   Resets the password for a user.  It requires the
                                       -email and -password flag.
