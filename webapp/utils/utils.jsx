@@ -1342,24 +1342,36 @@ export function isValidPassword(password) {
             error = true;
         }
 
-        if (global.window.mm_config.PasswordRequireLowercase === 'true' && !password.match(/[a-z]/)) {
+        if (global.window.mm_config.PasswordRequireLowercase === 'true') {
+            if (!password.match(/[a-z]/)) {
+                error = true;
+            }
+
             errorId = errorId + 'Lowercase';
-            error = true;
         }
 
-        if (global.window.mm_config.PasswordRequireUppercase === 'true' && !password.match(/[0-9]/)) {
+        if (global.window.mm_config.PasswordRequireUppercase === 'true') {
+            if (!password.match(/[0-9]/)) {
+                error = true;
+            }
+
             errorId = errorId + 'Uppercase';
-            error = true;
         }
 
-        if (global.window.mm_config.PasswordRequireNumber === 'true' && !password.match(/[A-Z]/)) {
+        if (global.window.mm_config.PasswordRequireNumber === 'true') {
+            if (!password.match(/[A-Z]/)) {
+                error = true;
+            }
+
             errorId = errorId + 'Number';
-            error = true;
         }
 
-        if (global.window.mm_config.PasswordRequireSymbol === 'true' && !password.match(/[ !"\\#$%&'()*+,-./:;<=>?@[\]^_`|~]/)) {
+        if (global.window.mm_config.PasswordRequireSymbol === 'true') {
+            if (!password.match(/[ !"\\#$%&'()*+,-./:;<=>?@[\]^_`|~]/)) {
+                error = true;
+            }
+
             errorId = errorId + 'Symbol';
-            error = true;
         }
 
         minimumLength = global.window.mm_config.PasswordMinimumLength;

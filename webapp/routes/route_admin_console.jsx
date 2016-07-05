@@ -16,7 +16,6 @@ import EmailAuthenticationSettings from 'components/admin_console/email_authenti
 import GitLabSettings from 'components/admin_console/gitlab_settings.jsx';
 import LdapSettings from 'components/admin_console/ldap_settings.jsx';
 import SignupSettings from 'components/admin_console/signup_settings.jsx';
-import LoginSettings from 'components/admin_console/login_settings.jsx';
 import PasswordSettings from 'components/admin_console/password_settings.jsx';
 import PublicLinkSettings from 'components/admin_console/public_link_settings.jsx';
 import SessionSettings from 'components/admin_console/session_settings.jsx';
@@ -97,10 +96,6 @@ export default (
             <Route
                 path='sign_up'
                 component={SignupSettings}
-            />
-            <Route
-                path='login'
-                component={LoginSettings}
             />
             <Route
                 path='password'

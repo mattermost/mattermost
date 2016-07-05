@@ -18,23 +18,35 @@ func IsPasswordValid(password string) *model.AppError {
 			isError = true
 		}
 
-		if *Cfg.PasswordSettings.Lowercase && !strings.ContainsAny(password, model.LOWERCASE_LETTERS) {
-			isError = true
+		if *Cfg.PasswordSettings.Lowercase {
+			if !strings.ContainsAny(password, model.LOWERCASE_LETTERS) {
+				isError = true
+			}
+
 			id = id + "_lowercase"
 		}
 
-		if *Cfg.PasswordSettings.Uppercase && !strings.ContainsAny(password, model.UPPERCASE_LETTERS) {
-			isError = true
+		if *Cfg.PasswordSettings.Uppercase {
+			if !strings.ContainsAny(password, model.UPPERCASE_LETTERS) {
+				isError = true
+			}
+
 			id = id + "_uppercase"
 		}
 
-		if *Cfg.PasswordSettings.Number && !strings.ContainsAny(password, model.NUMBERS) {
-			isError = true
+		if *Cfg.PasswordSettings.Number {
+			if !strings.ContainsAny(password, model.NUMBERS) {
+				isError = true
+			}
+
 			id = id + "_number"
 		}
 
-		if *Cfg.PasswordSettings.Symbol && !strings.ContainsAny(password, model.SYMBOLS) {
-			isError = true
+		if *Cfg.PasswordSettings.Symbol {
+			if !strings.ContainsAny(password, model.SYMBOLS) {
+				isError = true
+			}
+
 			id = id + "_symbol"
 		}
 
