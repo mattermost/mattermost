@@ -3172,6 +3172,10 @@
     "translation": "More than 1 read replica functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license."
   },
   {
+    "id": "cli.license.critical",
+    "translation": "Feature requires an enterprise license. Please contact your system administrator about upgrading your enterprise license."
+  },
+  {
     "id": "store.sql.remove_index.critical",
     "translation": "Failed to remove index %v"
   },
@@ -3289,6 +3293,10 @@
   },
   {
     "id": "store.sql_channel.get_for_export.app_error",
+    "translation": "We couldn't get all the channels"
+  },
+  {
+    "id": "store.sql_channel.get_all.app_error",
     "translation": "We couldn't get all the channels"
   },
   {
