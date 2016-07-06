@@ -1,13 +1,19 @@
 Please make sure you've read the [pull request](http://docs.mattermost.com/developer/contribution-guide.html#preparing-a-pull-request) section of our [code contribution guidelines](http://docs.mattermost.com/developer/contribution-guide.html).
 
+When filling in a section please remove the help text and the above text.
+
 #### Summary
-Brief description of what this pull request does
+[A brief description of what this pull request does.]
 
-#### Unit Tests
-Have you updated the unit tests or added new ones to cover your changes? If not, you probably should
+#### Ticket Link
+[Please link the GitHub issue or Jira ticket this PR addresses.]
 
-#### Issue/Ticket Link
-Please link the GitHub issue or Jira ticket this PR addresses
-
-#### Has Critical Changes
-Does your PR touch critical sections of the codebase including, but not limited to, authentication, authorization or permissions?
+#### Checklist
+[Place an '[x]' (no spaces) in all applicable fields.]
+- [ ] Added or updated unit tests (required for all new features)
+- [ ] Added API documentation (required for all new APIs)
+- [ ] Has driver changes that have been merged and package.json updated
+- [ ] Has enterprise changes (please link)
+- [ ] Has UI changes
+- [ ] Includes text changes and localization files updated
+- [ ] Touches critical sections of the codebase (auth, upgrade, etc.)
