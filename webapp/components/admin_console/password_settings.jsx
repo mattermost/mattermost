@@ -81,7 +81,7 @@ export default class PasswordSettings extends AdminSettings {
     }
 
     getSampleErrorMsg() {
-        if (this.props.config.PasswordSettings.MinimumLength > Constants.MAX_PASSWORD_LENGTH) {
+        if (this.props.config.PasswordSettings.MinimumLength > Constants.MAX_PASSWORD_LENGTH || this.props.config.PasswordSettings.MinimumLength < Constants.MIN_PASSWORD_LENGTH) {
             return (
                 <FormattedMessage
                     id='user.settings.security.passwordMinLength'
@@ -164,7 +164,11 @@ export default class PasswordSettings extends AdminSettings {
                         helpText={
                             <FormattedMessage
                                 id='admin.password.minimumLengthDescription'
-                                defaultMessage='Minimum number of characters required for a valid password.'
+                                defaultMessage='Minimum number of characters required for a valid password. Must be a whole number greater than or equal to {min} and less than or equal to {max}.'
+                                values={{
+                                    min: Constants.MIN_PASSWORD_LENGTH,
+                                    max: Constants.MAX_PASSWORD_LENGTH
+                                }}
                             />
                         }
                         value={this.state.passwordMinimumLength}
@@ -257,25 +261,6 @@ export default class PasswordSettings extends AdminSettings {
         return (
             <SettingsGroup>
                 {passwordSettings}
-                <TextSetting
-                    id='maximumLoginAttempts'
-                    label={
-                        <FormattedMessage
-                            id='admin.service.attemptTitle'
-                            defaultMessage='Maximum Login Attempts:'
-                        />
-                    }
-                    placeholder={Utils.localizeMessage('admin.service.attemptExample', 'Ex "10"')}
-                    helpText={
-                        <FormattedMessage
-                            id='admin.service.attemptDescription'
-                            defaultMessage='Login attempts allowed before user is locked out and required to reset password via email.'
-                        />
-                    }
-                    value={this.state.maximumLoginAttempts}
-                    onChange={this.handleChange}
-                />
-                {mfaSetting}
                 <GeneratedSetting
                     id='passwordResetSalt'
                     label={
@@ -300,6 +285,25 @@ export default class PasswordSettings extends AdminSettings {
                         />
                     }
                 />
+                <TextSetting
+                    id='maximumLoginAttempts'
+                    label={
+                        <FormattedMessage
+                            id='admin.service.attemptTitle'
+                            defaultMessage='Maximum Login Attempts:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.service.attemptExample', 'Ex "10"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.service.attemptDescription'
+                            defaultMessage='Login attempts allowed before user is locked out and required to reset password via email.'
+                        />
+                    }
+                    value={this.state.maximumLoginAttempts}
+                    onChange={this.handleChange}
+                />
+                {mfaSetting}
             </SettingsGroup>
         );
     }

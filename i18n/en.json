@@ -2684,12 +2684,8 @@
     "translation": "Maximum password length must be greater than or equal to minimum password length."
   },
   {
-    "id": "model.config.is_valid.password_length_max.app_error",
-    "translation": "Minimum password length must be a whole number less than or equal to {{.MaxLength}}."
-  },
-  {
-    "id": "model.config.is_valid.password_length_min.app_error",
-    "translation": "Minimum password length must be greater than or equal to {{.MinLength}}."
+    "id": "model.config.is_valid.password_length.app_error",
+    "translation": "Minimum password length must be a whole number greater than or equal to {{.MinLength}} and less than or equal to {{.MaxLength}}."
   },
   {
     "id": "model.config.is_valid.rate_mem.app_error",

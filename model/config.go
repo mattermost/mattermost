@@ -956,12 +956,8 @@ func (o *Config) IsValid() *AppError {
 		}
 	}
 
-	if *o.PasswordSettings.MinimumLength < PASSWORD_MINIMUM_LENGTH {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.password_length_min.app_error", map[string]interface{}{"MinLength": PASSWORD_MINIMUM_LENGTH}, "")
-	}
-
-	if *o.PasswordSettings.MinimumLength > PASSWORD_MAXIMUM_LENGTH {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.password_length_max.app_error", map[string]interface{}{"MaxLength": PASSWORD_MAXIMUM_LENGTH}, "")
+	if *o.PasswordSettings.MinimumLength < PASSWORD_MINIMUM_LENGTH || *o.PasswordSettings.MinimumLength > PASSWORD_MAXIMUM_LENGTH {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.password_length.app_error", map[string]interface{}{"MinLength": PASSWORD_MINIMUM_LENGTH, "MaxLength": PASSWORD_MAXIMUM_LENGTH}, "")
 	}
 
 	return nil
