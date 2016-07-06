@@ -1402,6 +1402,12 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	team_id := props["team_id"]
+
+	// Set context TeamId as the team_id in the request cause at this point c.TeamId is empty
+	if len(c.TeamId) == 0 {
+		c.TeamId = team_id
+	}
+
 	if !(len(user_id) == 26 || len(user_id) == 0) {
 		c.SetInvalidParam("updateRoles", "team_id")
 		return
@@ -1413,9 +1419,9 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// If you are not the system admin then you can only demote yourself
-	if !c.IsSystemAdmin() && user_id != c.Session.UserId {
-		c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.system_admin_needed.app_error", nil, "")
+	// If you are not the team admin then you can only demote yourself
+	if !c.IsTeamAdmin() && user_id != c.Session.UserId {
+		c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.team_admin_needed.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
@@ -1433,6 +1439,13 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		user = result.Data.(*model.User)
+	}
+
+	// only another system admin can remove another system admin
+	if model.IsInRole(user.Roles, model.ROLE_SYSTEM_ADMIN) && !c.IsSystemAdmin() {
+		c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.system_admin_needed.app_error", nil, "")
+		c.Err.StatusCode = http.StatusForbidden
+		return
 	}
 
 	// if the team role has changed then lets update team members
