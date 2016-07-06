@@ -214,4 +214,5 @@ TeamStore.dispatchToken = AppDispatcher.register((payload) => {
     }
 });
 
+window.TeamStore = TeamStore;
 export default TeamStore;

@@ -4,6 +4,7 @@
 import React from 'react';
 
 import TeamStore from 'stores/team_store.jsx';
+import * as Utils from 'utils/utils.jsx';
 
 import BackstageCategory from './backstage_category.jsx';
 import BackstageSection from './backstage_section.jsx';
@@ -18,7 +19,7 @@ export default class BackstageSidebar extends React.Component {
     }
 
     renderCustomEmoji() {
-        if (window.mm_config.EnableCustomEmoji !== 'true') {
+        if (window.mm_config.EnableCustomEmoji !== 'true' || !Utils.canCreateCustomEmoji(this.props.user)) {
             return null;
         }
 
@@ -44,7 +45,7 @@ export default class BackstageSidebar extends React.Component {
             return null;
         }
 
-        if (window.mm_config.RestrictCustomEmojiCreation !== 'all' && !TeamStore.isTeamAdmin(this.props.user.id, this.props.team.id)) {
+        if (window.mm_config.EnableOnlyAdminIntegrations !== 'false' && !TeamStore.isTeamAdmin(this.props.user.id, this.props.team.id)) {
             return null;
         }
 
