@@ -95,6 +95,7 @@ class UserSettingsGeneralTab extends React.Component {
         this.updateSection = this.updateSection.bind(this);
 
         this.state = this.setupInitialState(props);
+        this.setState({maxFileSize: global.window.mm_config.MaxFileSize});
     }
     submitUsername(e) {
         e.preventDefault();
@@ -221,7 +222,7 @@ class UserSettingsGeneralTab extends React.Component {
         if (picture.type !== 'image/jpeg' && picture.type !== 'image/png') {
             this.setState({clientError: formatMessage(holders.validImage)});
             return;
-        } else if (picture.size > Constants.MAX_FILE_SIZE) {
+        } else if (picture.size > this.state.maxFileSize) {
             this.setState({clientError: formatMessage(holders.imageTooLarge)});
             return;
         }
@@ -411,6 +412,24 @@ class UserSettingsGeneralTab extends React.Component {
                         {helpText}
                     </div>
                 );
+            } else if (this.props.user.auth_service === Constants.SAML_SERVICE) {
+                inputs.push(
+                    <div
+                        key='oauthEmailInfo'
+                        className='form-group'
+                    >
+                        <div className='setting-list__hint'>
+                            <FormattedMessage
+                                id='user.settings.general.emailSamlCantUpdate'
+                                defaultMessage='Login occurs through SAML. Email cannot be updated. Email address used for notifications is {email}.'
+                                values={{
+                                    email: this.state.email
+                                }}
+                            />
+                        </div>
+                        {helpText}
+                    </div>
+                );
             }
 
             emailSection = (
@@ -472,6 +491,16 @@ class UserSettingsGeneralTab extends React.Component {
                     <FormattedMessage
                         id='user.settings.general.loginLdap'
                         defaultMessage='Login done through LDAP ({email})'
+                        values={{
+                            email: this.state.email
+                        }}
+                    />
+                );
+            } else if (this.props.user.auth_service === Constants.SAML_SERVICE) {
+                describe = (
+                    <FormattedMessage
+                        id='user.settings.general.loginSaml'
+                        defaultMessage='Login done through SAML ({email})'
                         values={{
                             email: this.state.email
                         }}

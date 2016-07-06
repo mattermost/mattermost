@@ -189,7 +189,7 @@ export default class UserSettingsDisplay extends React.Component {
                         <br/>
                         <FormattedMessage
                             id='user.settings.display.collapseDesc'
-                            defaultMessage='Toggle whether to automatically collapse all image previews.'
+                            defaultMessage='Expand links to show a preview of content, when available.'
                         />
                     </div>
                 </div>
@@ -200,7 +200,7 @@ export default class UserSettingsDisplay extends React.Component {
                     title={
                         <FormattedMessage
                             id='user.settings.display.collapseDisplay'
-                            defaultMessage='Auto Collapse Previews'
+                            defaultMessage='Link previews'
                         />
                     }
                     inputs={inputs}
@@ -518,6 +518,13 @@ export default class UserSettingsDisplay extends React.Component {
                                 id='user.settings.display.messageDisplayClean'
                                 defaultMessage='Standard'
                             />
+                            {': '}
+                            <span className='font-weight--normal'>
+                                <FormattedMessage
+                                    id='user.settings.display.messageDisplayCleanDes'
+                                    defaultMessage='Easy to scan and read.'
+                                />
+                            </span>
                         </label>
                         <br/>
                     </div>
@@ -533,6 +540,13 @@ export default class UserSettingsDisplay extends React.Component {
                                 id='user.settings.display.messageDisplayCompact'
                                 defaultMessage='Compact'
                             />
+                            {': '}
+                            <span className='font-weight--normal'>
+                                <FormattedMessage
+                                    id='user.settings.display.messageDisplayCompactDes'
+                                    defaultMessage='Fit as many messages on the screen as we can.'
+                                />
+                            </span>
                         </label>
                         <br/>
                     </div>
@@ -599,7 +613,7 @@ export default class UserSettingsDisplay extends React.Component {
 
         if (this.props.activeSection === Preferences.CHANNEL_DISPLAY_MODE) {
             const channelDisplayMode = [false, false];
-            if (this.state.channelDisplayMode === Preferences.CHANNEL_DISPLAY_MODE_CENTERED) {
+            if (this.state.channelDisplayMode === Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN) {
                 channelDisplayMode[0] = true;
             } else {
                 channelDisplayMode[1] = true;
@@ -613,11 +627,11 @@ export default class UserSettingsDisplay extends React.Component {
                                 type='radio'
                                 name='channelDisplayMode'
                                 checked={channelDisplayMode[0]}
-                                onChange={this.handleChannelDisplayModeRadio.bind(this, Preferences.CHANNEL_DISPLAY_MODE_CENTERED)}
+                                onChange={this.handleChannelDisplayModeRadio.bind(this, Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN)}
                             />
                             <FormattedMessage
-                                id='user.settings.display.fixedWidthCentered'
-                                defaultMessage='Fixed width, centered'
+                                id='user.settings.display.fullScreen'
+                                defaultMessage='Full width'
                             />
                         </label>
                         <br/>
@@ -628,11 +642,11 @@ export default class UserSettingsDisplay extends React.Component {
                                 type='radio'
                                 name='channelDisplayMode'
                                 checked={channelDisplayMode[1]}
-                                onChange={this.handleChannelDisplayModeRadio.bind(this, Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN)}
+                                onChange={this.handleChannelDisplayModeRadio.bind(this, Preferences.CHANNEL_DISPLAY_MODE_CENTERED)}
                             />
                             <FormattedMessage
-                                id='user.settings.display.fullScreen'
-                                defaultMessage='Full width'
+                                id='user.settings.display.fixedWidthCentered'
+                                defaultMessage='Fixed width, centered'
                             />
                         </label>
                         <br/>
@@ -666,18 +680,18 @@ export default class UserSettingsDisplay extends React.Component {
             );
         } else {
             let describe;
-            if (this.state.channelDisplayMode === Preferences.CHANNEL_DISPLAY_MODE_CENTERED) {
+            if (this.state.channelDisplayMode === Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN) {
                 describe = (
                     <FormattedMessage
-                        id='user.settings.display.fixedWidthCentered'
-                        defaultMessage='Fixed width, centered'
+                        id='user.settings.display.fullScreen'
+                        defaultMessage='Full width'
                     />
                 );
             } else {
                 describe = (
                     <FormattedMessage
-                        id='user.settings.display.fullScreen'
-                        defaultMessage='Full width'
+                        id='user.settings.display.fixedWidthCentered'
+                        defaultMessage='Fixed width, centered'
                     />
                 );
             }

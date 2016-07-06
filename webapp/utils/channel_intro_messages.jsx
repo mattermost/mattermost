@@ -114,9 +114,9 @@ export function createDefaultIntroMessage(channel) {
     const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
 
     if (global.window.mm_license.IsLicensed === 'true') {
-        if (global.window.mm_config.RestrictTeamInvite === Constants.TEAM_INVITE_SYSTEM_ADMIN && !isSystemAdmin) {
+        if (global.window.mm_config.RestrictTeamInvite === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
             inviteModalLink = null;
-        } else if (global.window.mm_config.RestrictTeamInvite === Constants.TEAM_INVITE_TEAM_ADMIN && !isAdmin) {
+        } else if (global.window.mm_config.RestrictTeamInvite === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
             inviteModalLink = null;
         }
     }

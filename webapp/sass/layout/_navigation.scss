@@ -46,8 +46,10 @@
                 width: 21px;
             }
 
-            .glyphicon-search {
-                top: -1px;
+            .icon-search {
+                font-size: 17px;
+                position: relative;
+                top: -2px;
             }
 
             .icon--white {
@@ -80,7 +82,8 @@
             }
 
             .header-dropdown__icon {
-                top: 1px;
+                margin-left: 0;
+                top: -1px;
             }
 
             .dropdown-toggle {

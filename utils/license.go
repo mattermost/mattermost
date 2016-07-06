@@ -121,6 +121,7 @@ func getClientLicense(l *model.License) map[string]string {
 		props["Users"] = strconv.Itoa(*l.Features.Users)
 		props["LDAP"] = strconv.FormatBool(*l.Features.LDAP)
 		props["MFA"] = strconv.FormatBool(*l.Features.MFA)
+		props["SAML"] = strconv.FormatBool(*l.Features.SAML)
 		props["GoogleSSO"] = strconv.FormatBool(*l.Features.GoogleSSO)
 		props["Compliance"] = strconv.FormatBool(*l.Features.Compliance)
 		props["CustomBrand"] = strconv.FormatBool(*l.Features.CustomBrand)
@@ -145,4 +146,24 @@ func GetClientLicenseEtag() string {
 	}
 
 	return model.Etag(fmt.Sprintf("%x", md5.Sum([]byte(value))))
+}
+
+func GetSantizedClientLicense() map[string]string {
+	sanitizedLicense := make(map[string]string)
+
+	for k, v := range ClientLicense {
+		sanitizedLicense[k] = v
+	}
+
+	if IsLicensed {
+		delete(sanitizedLicense, "Name")
+		delete(sanitizedLicense, "Email")
+		delete(sanitizedLicense, "Company")
+		delete(sanitizedLicense, "PhoneNumber")
+		delete(sanitizedLicense, "IssuedAt")
+		delete(sanitizedLicense, "StartsAt")
+		delete(sanitizedLicense, "ExpiresAt")
+	}
+
+	return sanitizedLicense
 }

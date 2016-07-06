@@ -175,7 +175,7 @@ export default class SidebarRightMenu extends React.Component {
                             href='#'
                             onClick={GlobalActions.showGetTeamInviteLinkModal}
                         >
-                            <i className='icon glyphicon glyphicon-link'></i>
+                            <i className='icon fa fa-link'></i>
                             <FormattedMessage
                                 id='sidebar_right_menu.teamLink'
                                 defaultMessage='Get Team Invite Link'
@@ -186,10 +186,10 @@ export default class SidebarRightMenu extends React.Component {
             }
 
             if (global.window.mm_license.IsLicensed === 'true') {
-                if (global.window.mm_config.RestrictTeamInvite === Constants.TEAM_INVITE_SYSTEM_ADMIN && !isSystemAdmin) {
+                if (global.window.mm_config.RestrictTeamInvite === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
                     teamLink = null;
                     inviteLink = null;
-                } else if (global.window.mm_config.RestrictTeamInvite === Constants.TEAM_INVITE_TEAM_ADMIN && !isAdmin) {
+                } else if (global.window.mm_config.RestrictTeamInvite === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
                     teamLink = null;
                     inviteLink = null;
                 }

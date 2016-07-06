@@ -39,3 +39,4 @@ import:
 - package: gopkg.in/throttled/throttled.v1
   subpackages:
   - store
+- package: github.com/kardianos/osext

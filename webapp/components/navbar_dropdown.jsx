@@ -70,7 +70,7 @@ export default class NavbarDropdown extends React.Component {
         document.removeEventListener('keydown', this.openAccountSettings);
     }
     openAccountSettings(e) {
-        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.keyCode === Constants.KeyCodes.A) {
+        if (Utils.cmdOrCtrlPressed(e) && e.shiftKey && e.keyCode === Constants.KeyCodes.A) {
             e.preventDefault();
             this.setState({showUserSettingsModal: true});
         }
@@ -122,10 +122,10 @@ export default class NavbarDropdown extends React.Component {
             }
 
             if (global.window.mm_license.IsLicensed === 'true') {
-                if (global.window.mm_config.RestrictTeamInvite === Constants.TEAM_INVITE_SYSTEM_ADMIN && !isSystemAdmin) {
+                if (global.window.mm_config.RestrictTeamInvite === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
                     teamLink = null;
                     inviteLink = null;
-                } else if (global.window.mm_config.RestrictTeamInvite === Constants.TEAM_INVITE_TEAM_ADMIN && !isAdmin) {
+                } else if (global.window.mm_config.RestrictTeamInvite === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
                     teamLink = null;
                     inviteLink = null;
                 }

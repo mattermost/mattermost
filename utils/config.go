@@ -192,6 +192,10 @@ func LoadConfig(fileName string) {
 		// This restarts the job if nessisary (works for config reloads)
 		ldapI.StartLdapSyncJob()
 	}
+
+	if samlI := einterfaces.GetSamlInterface(); samlI != nil {
+		samlI.ConfigureSP()
+	}
 }
 
 func getClientConfig(c *model.Config) map[string]string {
@@ -211,6 +215,8 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["RestrictTeamNames"] = strconv.FormatBool(*c.TeamSettings.RestrictTeamNames)
 	props["RestrictDirectMessage"] = *c.TeamSettings.RestrictDirectMessage
 	props["RestrictTeamInvite"] = *c.TeamSettings.RestrictTeamInvite
+	props["RestrictPublicChannelManagement"] = *c.TeamSettings.RestrictPublicChannelManagement
+	props["RestrictPrivateChannelManagement"] = *c.TeamSettings.RestrictPrivateChannelManagement
 
 	props["EnableOAuthServiceProvider"] = strconv.FormatBool(c.ServiceSettings.EnableOAuthServiceProvider)
 	props["SegmentDeveloperKey"] = c.ServiceSettings.SegmentDeveloperKey
@@ -230,7 +236,6 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["EnableSignInWithEmail"] = strconv.FormatBool(*c.EmailSettings.EnableSignInWithEmail)
 	props["EnableSignInWithUsername"] = strconv.FormatBool(*c.EmailSettings.EnableSignInWithUsername)
 	props["RequireEmailVerification"] = strconv.FormatBool(c.EmailSettings.RequireEmailVerification)
-	props["FeedbackEmail"] = c.EmailSettings.FeedbackEmail
 
 	props["EnableSignUpWithGitLab"] = strconv.FormatBool(c.GitLabSettings.Enable)
 	props["EnableSignUpWithGoogle"] = strconv.FormatBool(c.GoogleSettings.Enable)
@@ -257,6 +262,7 @@ func getClientConfig(c *model.Config) map[string]string {
 
 	props["EnableCustomEmoji"] = strconv.FormatBool(*c.ServiceSettings.EnableCustomEmoji)
 	props["RestrictCustomEmojiCreation"] = *c.ServiceSettings.RestrictCustomEmojiCreation
+	props["MaxFileSize"] = strconv.FormatInt(*c.FileSettings.MaxFileSize, 10)
 
 	if IsLicensed {
 		if *License.Features.CustomBrand {
@@ -276,6 +282,11 @@ func getClientConfig(c *model.Config) map[string]string {
 
 		if *License.Features.Compliance {
 			props["EnableCompliance"] = strconv.FormatBool(*c.ComplianceSettings.Enable)
+		}
+
+		if *License.Features.SAML {
+			props["EnableSaml"] = strconv.FormatBool(*c.SamlSettings.Enable)
+			props["SamlLoginButtonText"] = *c.SamlSettings.LoginButtonText
 		}
 	}
 

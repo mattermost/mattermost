@@ -44,6 +44,7 @@ class FileUpload extends React.Component {
         this.keyUpload = this.keyUpload.bind(this);
 
         this.state = {
+            maxFileSize: global.window.mm_config.MaxFileSize,
             requests: {}
         };
     }
@@ -75,7 +76,7 @@ class FileUpload extends React.Component {
         const tooLargeFiles = [];
 
         for (let i = 0; i < files.length && numUploads < uploadsRemaining; i++) {
-            if (files[i].size > Constants.MAX_FILE_SIZE) {
+            if (files[i].size > this.state.maxFileSize) {
                 tooLargeFiles.push(files[i]);
                 continue;
             }
@@ -106,9 +107,9 @@ class FileUpload extends React.Component {
         } else if (tooLargeFiles.length > 1) {
             var tooLargeFilenames = tooLargeFiles.map((file) => file.name).join(', ');
 
-            this.props.onUploadError(formatMessage(holders.filesAbove, {max: (Constants.MAX_FILE_SIZE / 1000000), filenames: tooLargeFilenames}));
+            this.props.onUploadError(formatMessage(holders.filesAbove, {max: (this.state.maxFileSize / 1048576), filenames: tooLargeFilenames}));
         } else if (tooLargeFiles.length > 0) {
-            this.props.onUploadError(formatMessage(holders.fileAbove, {max: (Constants.MAX_FILE_SIZE / 1000000), filename: tooLargeFiles[0].name}));
+            this.props.onUploadError(formatMessage(holders.fileAbove, {max: (this.state.maxFileSize / 1048576), filename: tooLargeFiles[0].name}));
         }
     }
 
@@ -279,7 +280,7 @@ class FileUpload extends React.Component {
     }
 
     keyUpload(e) {
-        if ((e.ctrlKey || e.metaKey) && e.keyCode === Constants.KeyCodes.U) {
+        if (Utils.cmdOrCtrlPressed(e) && e.keyCode === Constants.KeyCodes.U) {
             e.preventDefault();
             if (this.props.postType === 'post' && document.activeElement.id === 'post_textbox' || this.props.postType === 'comment' && document.activeElement.id === 'reply_textbox') {
                 $(this.refs.fileInput).focus().trigger('click');
@@ -317,9 +318,10 @@ class FileUpload extends React.Component {
                 ref='input'
                 className='btn btn-file'
             >
-                <span>
-                    <i className='glyphicon glyphicon-paperclip'/>
-                </span>
+                <span
+                    className='icon'
+                    dangerouslySetInnerHTML={{__html: Constants.ATTACHMENT_ICON_SVG}}
+                />
                 <input
                     ref='fileInput'
                     type='file'

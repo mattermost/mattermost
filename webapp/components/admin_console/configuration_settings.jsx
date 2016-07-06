@@ -10,6 +10,7 @@ import {FormattedMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
 import ReloadConfigButton from './reload_config.jsx';
+import WebserverModeDropdownSetting from './webserver_mode_dropdown_setting.jsx';
 
 export default class ConfigurationSettings extends AdminSettings {
     constructor(props) {
@@ -20,12 +21,20 @@ export default class ConfigurationSettings extends AdminSettings {
         this.renderSettings = this.renderSettings.bind(this);
 
         this.state = Object.assign(this.state, {
-            listenAddress: props.config.ServiceSettings.ListenAddress
+            listenAddress: props.config.ServiceSettings.ListenAddress,
+            webserverMode: props.config.ServiceSettings.WebserverMode
         });
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.config.ServiceSettings.ListenAddress !== this.props.config.ServiceSettings.ListenAddress) {
+            this.setState({listenAddress: nextProps.config.ServiceSettings.ListenAddress});
+        }
     }
 
     getConfigFromState(config) {
         config.ServiceSettings.ListenAddress = this.state.listenAddress;
+        config.ServiceSettings.WebserverMode = this.state.webserverMode;
 
         return config;
     }
@@ -61,6 +70,11 @@ export default class ConfigurationSettings extends AdminSettings {
                     }
                     value={this.state.listenAddress}
                     onChange={this.handleChange}
+                />
+                <WebserverModeDropdownSetting
+                    value={this.state.webserverMode}
+                    onChange={this.handleChange}
+                    disabled={false}
                 />
                 <ReloadConfigButton/>
             </SettingsGroup>

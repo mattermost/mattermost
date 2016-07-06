@@ -16,7 +16,6 @@
     .sidebar--right {
         @include single-transition(all, .5s, ease);
         @include translateX(100%);
-        z-index: 5;
 
         &.move--left {
             -webkit-transform: translateX(0) !important;
@@ -113,21 +112,24 @@
 
     .post {
         &.post--compact {
+
+            .channel__wrap & {
+                .post__time {
+                    font-size: .85em;
+                    left: -70px;
+                    position: absolute;
+                    text-align: right;
+                    top: 6px;
+                    width: 60px;
+                }
+            }
+
             &:not(.post--thread) {
                 padding: 5px .5em 0 70px;
 
                 .post__link {
                     margin: 4px 0 7px;
                     vertical-align: bottom;
-                }
-
-                .post__time {
-                    font-size: .85em;
-                    left: -70px;
-                    position: absolute;
-                    text-align: right;
-                    top: 4px;
-                    width: 60px;
                 }
 
                 span {
@@ -156,7 +158,7 @@
                     }
 
                     .col__reply {
-                        top: 2px;
+                        top: -1px;
                     }
                 }
 
@@ -176,7 +178,7 @@
                     &.post--comment {
                         .post__header {
                             .col__reply {
-                                top: 0;
+                                top: -1px;
                             }
                         }
                     }
@@ -191,7 +193,7 @@
                 }
 
                 .post__content {
-                    padding-right: 85px;
+                    padding-right: 45px;
                 }
             }
 
@@ -202,13 +204,25 @@
 
                     .post__header {
                         .col__reply {
-                            top: 4px;
+                            top: -1px;
                         }
                     }
 
                     .post__img {
                         img {
                             display: none;
+                        }
+                    }
+
+                    &.post--root {
+                        .post__img {
+                            img {
+                                display: block;
+                            }
+                        }
+
+                        .post__time {
+                            @include opacity(.6);
                         }
                     }
                 }
@@ -241,26 +255,16 @@
             &.same--user {
                 .post__time {
                     @include opacity(0);
-                    font-size: 11px;
-                    left: -4px;
-                    line-height: 37px;
-                    position: absolute;
-                    text-rendering: auto;
-                    top: -2px;
                 }
 
-                &.post--compact {
-                    &.post--system {
-                        .post__time {
-                            position: absolute;
-                            top: 3px;
-                        }
-                    }
-
+                &:not(.post--compact) {
                     .post__time {
-                        font-size: .85em;
-                        left: -70px;
-                        top: -5px;
+                        font-size: 11px;
+                        left: -4px;
+                        line-height: 37px;
+                        position: absolute;
+                        text-rendering: auto;
+                        top: -2px;
                     }
                 }
             }

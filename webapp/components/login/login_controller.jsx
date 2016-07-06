@@ -43,6 +43,7 @@ export default class LoginController extends React.Component {
             ldapEnabled: global.window.mm_license.IsLicensed === 'true' && global.window.mm_config.EnableLdap === 'true',
             usernameSigninEnabled: global.window.mm_config.EnableSignInWithUsername === 'true',
             emailSigninEnabled: global.window.mm_config.EnableSignInWithEmail === 'true',
+            samlEnabled: global.window.mm_license.IsLicensed === 'true' && global.window.mm_config.EnableSaml === 'true',
             loginId: '', // the browser will set a default for this
             password: '',
             showMfa: false
@@ -319,6 +320,7 @@ export default class LoginController extends React.Component {
         const ldapEnabled = this.state.ldapEnabled;
         const gitlabSigninEnabled = global.window.mm_config.EnableSignUpWithGitLab === 'true';
         const googleSigninEnabled = global.window.mm_config.EnableSignUpWithGoogle === 'true';
+        const samlSigninEnabled = this.state.samlEnabled;
         const usernameSigninEnabled = this.state.usernameSigninEnabled;
         const emailSigninEnabled = this.state.emailSigninEnabled;
 
@@ -416,7 +418,7 @@ export default class LoginController extends React.Component {
             );
         }
 
-        if ((emailSigninEnabled || usernameSigninEnabled || ldapEnabled) && (gitlabSigninEnabled || googleSigninEnabled)) {
+        if ((emailSigninEnabled || usernameSigninEnabled || ldapEnabled) && (gitlabSigninEnabled || googleSigninEnabled || samlSigninEnabled)) {
             loginControls.push(
                 <div
                     key='divider'
@@ -472,6 +474,20 @@ export default class LoginController extends React.Component {
                         />
                     </span>
                 </Link>
+            );
+        }
+
+        if (samlSigninEnabled) {
+            loginControls.push(
+                <a
+                    className='btn btn-custom-login saml'
+                    key='gitlab'
+                    href={'/login/sso/saml' + this.props.location.search}
+                >
+                    <span>
+                        {window.mm_config.SamlLoginButtonText}
+                    </span>
+                </a>
             );
         }
 

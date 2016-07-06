@@ -243,7 +243,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
             return (
                 <FormattedMessage
                     id='user.settings.advance.embed_preview'
-                    defaultMessage='Show preview snippet of links below message'
+                    defaultMessage='Show experimental previews of link content, when available'
                 />
             );
         default:

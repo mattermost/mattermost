@@ -3,8 +3,12 @@
 
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
+
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
+
+import UserStore from 'stores/user_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
@@ -113,6 +117,47 @@ class NewChannelModal extends React.Component {
             serverError = <div className='form-group has-error'><p className='input__help error'>{this.props.serverError}</p></div>;
         }
 
+        let createPublicChannelLink = (
+            <a
+                href='#'
+                onClick={this.props.onTypeSwitched}
+            >
+                <FormattedMessage
+                    id='channel_modal.publicChannel1'
+                    defaultMessage='Create a public channel'
+                />
+            </a>
+        );
+
+        let createPrivateChannelLink = (
+            <a
+                href='#'
+                onClick={this.props.onTypeSwitched}
+            >
+                <FormattedMessage
+                    id='channel_modal.privateGroup2'
+                    defaultMessage='Create a private group'
+                />
+            </a>
+        );
+
+        const isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
+        const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
+
+        if (global.window.mm_license.IsLicensed === 'true') {
+            if (global.window.mm_config.RestrictPublicChannelManagement === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
+                createPublicChannelLink = null;
+            } else if (global.window.mm_config.RestrictPublicChannelManagement === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
+                createPublicChannelLink = null;
+            }
+
+            if (global.window.mm_config.RestrictPrivateChannelManagement === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
+                createPrivateChannelLink = null;
+            } else if (global.window.mm_config.RestrictPrivateChannelManagement === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
+                createPrivateChannelLink = null;
+            }
+        }
+
         var channelTerm = '';
         var channelSwitchText = '';
         switch (this.props.channelType) {
@@ -129,15 +174,7 @@ class NewChannelModal extends React.Component {
                         id='channel_modal.privateGroup1'
                         defaultMessage='Create a new private group with restricted membership. '
                     />
-                    <a
-                        href='#'
-                        onClick={this.props.onTypeSwitched}
-                    >
-                        <FormattedMessage
-                            id='channel_modal.publicChannel1'
-                            defaultMessage='Create a public channel'
-                        />
-                    </a>
+                    {createPublicChannelLink}
                 </div>
             );
             break;
@@ -154,15 +191,7 @@ class NewChannelModal extends React.Component {
                         id='channel_modal.publicChannel2'
                         defaultMessage='Create a new public channel anyone can join. '
                     />
-                    <a
-                        href='#'
-                        onClick={this.props.onTypeSwitched}
-                    >
-                        <FormattedMessage
-                            id='channel_modal.privateGroup2'
-                            defaultMessage='Create a private group'
-                        />
-                    </a>
+                    {createPrivateChannelLink}
                 </div>
             );
             break;

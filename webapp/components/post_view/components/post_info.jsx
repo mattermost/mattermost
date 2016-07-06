@@ -20,7 +20,6 @@ export default class PostInfo extends React.Component {
 
         this.dropdownPosition = this.dropdownPosition.bind(this);
         this.handlePermalink = this.handlePermalink.bind(this);
-        this.removePost = this.removePost.bind(this);
     }
     dropdownPosition(e) {
         var position = $('#post-list').height() - $(e.target).offset().top;
@@ -165,25 +164,6 @@ export default class PostInfo extends React.Component {
         GlobalActions.showGetPostLinkModal(this.props.post);
     }
 
-    removePost() {
-        GlobalActions.emitRemovePost(this.props.post);
-    }
-    createRemovePostButton(post) {
-        if (!Utils.isPostEphemeral(post)) {
-            return null;
-        }
-
-        return (
-            <a
-                href='#'
-                className='post__remove theme'
-                type='button'
-                onClick={this.removePost}
-            >
-                {'×'}
-            </a>
-        );
-    }
     render() {
         var post = this.props.post;
         var comments = '';
@@ -232,7 +212,6 @@ export default class PostInfo extends React.Component {
                         {dropdown}
                     </div>
                     {comments}
-                    {this.createRemovePostButton(post)}
                 </li>
             </ul>
         );

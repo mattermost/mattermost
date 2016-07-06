@@ -48,6 +48,22 @@
     "translation": "Septiembre"
   },
   {
+    "id": "api.admin.add_certificate.array.app_error",
+    "translation": "Solicitud con matriz vacia en 'certificate'"
+  },
+  {
+    "id": "api.admin.add_certificate.no_file.app_error",
+    "translation": "No hay un archivo bajo la solicitud de 'certificate'"
+  },
+  {
+    "id": "api.admin.add_certificate.open.app_error",
+    "translation": "No se pudo abrir el archivo del certificado"
+  },
+  {
+    "id": "api.admin.add_certificate.saving.app_error",
+    "translation": "No se pudo guardar el archivo con el certificado"
+  },
+  {
     "id": "api.admin.file_read_error",
     "translation": "Error leyendo el archivo de registro"
   },
@@ -70,6 +86,14 @@
   {
     "id": "api.admin.recycle_db_start.warn",
     "translation": "Tratando de reciclar la conexión de base de datos"
+  },
+  {
+    "id": "api.admin.remove_certificate.delete.app_error",
+    "translation": "Se ha producido un error al eliminar el certificado. Asegúrese de que el archivo config/{{.Filename}} existe."
+  },
+  {
+    "id": "api.admin.saml.metadata.app_error",
+    "translation": "Se ha producido un error mientras que la se contruía los Metadatos del Proveedor de Servicio"
   },
   {
     "id": "api.admin.test_email.body",
@@ -581,7 +605,7 @@
   },
   {
     "id": "api.emoji.create.parse.app_error",
-    "translation": "No se puede crear el emoji. La imagen supera el máximo de tamaño de archivo."
+    "translation": "No se puede crear el emoji. No se comprendió la solicitud."
   },
   {
     "id": "api.emoji.create.permissions.app_error",
@@ -589,7 +613,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "No se puede crear el emoji. No se comprendió la solicitud."
+    "translation": "No se pudo crear el emoji. La imagen debe tener un tamaño inferior a 64 KB."
   },
   {
     "id": "api.emoji.delete.permissions.app_error",
@@ -621,7 +645,7 @@
   },
   {
     "id": "api.emoji.upload.large_image.app_error",
-    "translation": "No se puede crear el emoji. Imagen supera las dimensiones máximas."
+    "translation": "No se pudo crear el emoji. La imagen debe tener un máximo de 128 x 128 pixels."
   },
   {
     "id": "api.export.json.app_error",
@@ -1100,6 +1124,10 @@
     "translation": "session.user_id={{.SessionUserId}}, preference.user_id={{.PreferenceUserId}}"
   },
   {
+    "id": "api.saml.save_certificate.app_error",
+    "translation": "El certificado no se ha guardado correctamente."
+  },
+  {
     "id": "api.server.new_server.init.info",
     "translation": "Inicializando el Servidor..."
   },
@@ -1257,7 +1285,7 @@
   },
   {
     "id": "api.team.import_team.array.app_error",
-    "translation": "Solicitud con matriz vacia en 'archivo'"
+    "translation": "Solicitud con matriz vacia en 'file'"
   },
   {
     "id": "api.team.import_team.integer.app_error",
@@ -1605,7 +1633,7 @@
   },
   {
     "id": "api.user.check_user_mfa.not_available.app_error",
-    "translation": "AMF on está configurado o no es soportado en este servidor"
+    "translation": "AMF no está configurado o no es soportado en este servidor"
   },
   {
     "id": "api.user.check_user_password.invalid.app_error",
@@ -1802,6 +1830,10 @@
   {
     "id": "api.user.reset_password.wrong_team.app_error",
     "translation": "Intentando restablecer la contraseña para el usuario en el equipo equivocado."
+  },
+  {
+    "id": "api.user.saml.not_available.app_error",
+    "translation": "SAML no está configurado o no es soportado en este servidor"
   },
   {
     "id": "api.user.send_email_change_email_and_forget.error",
@@ -2080,6 +2112,10 @@
     "translation": "Iniciado el trabajo '{{.JobName}}' para exportar el Cumplimiento en '{{.FilePath}}'"
   },
   {
+    "id": "ent.emoji.licence_disable.app_error",
+    "translation": "Las restricciones de los Emoji Personalizados están desactivadas por la licencia actual. Por favor contacta a un Administrador del Sistema sobre como actualizar a una licencia enterprise."
+  },
+  {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
     "translation": "No se pudo enlazar con el servidor LDAP. Revisa las opciones de BindUsername y BindPassword."
   },
@@ -2166,6 +2202,74 @@
   {
     "id": "ent.mfa.validate_token.authenticate.app_error",
     "translation": "Error intentando autenticar el token AMF"
+  },
+  {
+    "id": "ent.saml.build_request.app_error",
+    "translation": "Se ha producido un error mientras se inicia la solicitud al Proveedor de Identidad. Por favor, póngase en contacto con su Administrador del Sistema."
+  },
+  {
+    "id": "ent.saml.build_request.encoding.app_error",
+    "translation": "Se ha producido un error mientras se codificaba la solicitud para el Proveedor de Identidad. Por favor, póngase en contacto con su Administrador del Sistema."
+  },
+  {
+    "id": "ent.saml.build_request.encoding_signed.app_error",
+    "translation": "Se ha producido un error mientras se firmaba la solicitud codificada para el Proveedor de Identidad. Por favor, póngase en contacto con su Administrador del Sistema."
+  },
+  {
+    "id": "ent.saml.configure.app_error",
+    "translation": "Se ha producido un error durante la configuración de Proveedor de Servicios SAML, err=%v"
+  },
+  {
+    "id": "ent.saml.configure.encryption_not_enabled.app_error",
+    "translation": "El inicio de sesión con SAML no tuvo éxito porque el cifrado no está habilitado. Por favor, póngase en contacto con su Administrador del Sistema."
+  },
+  {
+    "id": "ent.saml.configure.load_idp_cert.app_error",
+    "translation": "El archivo del Certificado Público del Proveedor de identidad no fue encontrado. Por favor, póngase en contacto con su Administrador del Sistema."
+  },
+  {
+    "id": "ent.saml.configure.load_private_key.app_error",
+    "translation": "El inicio de sesión con SAML no tuvo éxito porque no se encontró la Llave Privada del Proveedor de Servicios. Por favor, póngase en contacto con su Administrador del Sistema."
+  },
+  {
+    "id": "ent.saml.configure.load_public_cert.app_error",
+    "translation": "El archivo del Certificado Público del Proveedor de Servicios no se encontró. Por favor, póngase en contacto con su Administrador del Sistema."
+  },
+  {
+    "id": "ent.saml.configure.not_encrypted_response.app_error",
+    "translation": "El inicio de sesión con SAML no tuvo éxito porque la respuesta del Proveedor de Identidad está cifrada. Por favor, póngase en contacto con su Administrador del Sistema."
+  },
+  {
+    "id": "ent.saml.do_login.decrypt.app_error",
+    "translation": "El inicio de sesión con SAML no tuvo éxito porque se ha producido un error al descifrar la respuesta del Proveedor de Identidad. Por favor, póngase en contacto con su Administrador del Sistema."
+  },
+  {
+    "id": "ent.saml.do_login.empty_response.app_error",
+    "translation": "Hemos recibido una respuesta vacía desde el Proveedor de Identidad"
+  },
+  {
+    "id": "ent.saml.do_login.parse.app_error",
+    "translation": "Se ha producido un error al analizar la respuesta del Proveedor de Identidad. Por favor, póngase en contacto con su Administrador del Sistema."
+  },
+  {
+    "id": "ent.saml.do_login.validate.app_error",
+    "translation": "Se ha producido un error al validar la respuesta del Proveedor de Identidad. Por favor, póngase en contacto con su Administrador del Sistema."
+  },
+  {
+    "id": "ent.saml.license_disable.app_error",
+    "translation": "Su licencia no admite la autenticación con SAML."
+  },
+  {
+    "id": "ent.saml.metadata.app_error",
+    "translation": "Se ha producido un error mientras se construían los Metadatos del Proveedor de Servicio."
+  },
+  {
+    "id": "ent.saml.service_disable.app_error",
+    "translation": "SAML no está configurado o no es soportado en este servidor"
+  },
+  {
+    "id": "ent.saml.update_saml_user.unable_error",
+    "translation": "No se puede actualizar el usuario SAML existente. Se Permite el inicio de sesión de todos modos. err=%v"
   },
   {
     "id": "error.generic.link_message",
@@ -2521,7 +2625,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",
-    "translation": "Invalid max page size value."
+    "translation": "El valor del tamaño de página no es válido."
   },
   {
     "id": "model.config.is_valid.ldap_required.app_error",
@@ -2566,6 +2670,46 @@
   {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
     "translation": "Restricción de mensaje directo inválidao.  Debe ser 'any' o 'team'"
+  },
+  {
+    "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
+    "translation": "El URL de Inicio de sesión del Proveedor de Servicio debe ser un URL válido y comenzar con http:// o https://"
+  },
+  {
+    "id": "model.config.is_valid.saml_email_attribute.app_error",
+    "translation": "Atributo de Correo Electrónico no válido. Se debe establecer."
+  },
+  {
+    "id": "model.config.is_valid.saml_first_name_attribute.app_error",
+    "translation": "Atributo del Nombre no válido. Se debe establecer."
+  },
+  {
+    "id": "model.config.is_valid.saml_idp_cert.app_error",
+    "translation": "Falta el Certificado Público del Proveedor de Identidad. ¿Te olvideste de subirlo?"
+  },
+  {
+    "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
+    "translation": "El URL del Emisor del Proveedor de Identidad debe ser un URL válida y empezar con http:// o https://."
+  },
+  {
+    "id": "model.config.is_valid.saml_idp_url.app_error",
+    "translation": "SAML SSO URL debe ser una URL válida y empezar con http:// o https://."
+  },
+  {
+    "id": "model.config.is_valid.saml_last_name_attribute.app_error",
+    "translation": "Atributo del Apellido no válido. Se debe establecer."
+  },
+  {
+    "id": "model.config.is_valid.saml_private_key.app_error",
+    "translation": "Falta la Llave Privada del Proveedor de Servicios. ¿Te olvideste de subirla?"
+  },
+  {
+    "id": "model.config.is_valid.saml_public_cert.app_error",
+    "translation": "Falta el Certificado Público del Proveedor de Servicio. ¿Te olvideste de subirlo?"
+  },
+  {
+    "id": "model.config.is_valid.saml_username_attribute.app_error",
+    "translation": "Atributo Usuario no válido. Se debe establecer."
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",
@@ -3792,6 +3936,10 @@
     "translation": "Esta cuenta no tiene autenticación por LDAP. Por favor inicia sesión utilizando el correo electrónico y contraseña."
   },
   {
+    "id": "store.sql_user.save.email_exists.saml_app_error",
+    "translation": "Esta cuenta no tiene autenticación por SAML. Por favor inicia sesión utilizando el correo electrónico y contraseña."
+  },
+  {
     "id": "store.sql_user.save.existing.app_error",
     "translation": "Debe ejecutarse actualizar para un usuario existente"
   },
@@ -3809,6 +3957,10 @@
   },
   {
     "id": "store.sql_user.save.username_exists.ldap_app_error",
+    "translation": "Una cuenta con ese nombre de usuario ya existe. Por favor contacta a tu Administrador."
+  },
+  {
+    "id": "store.sql_user.save.username_exists.saml_app_error",
     "translation": "Una cuenta con ese nombre de usuario ya existe. Por favor contacta a tu Administrador."
   },
   {

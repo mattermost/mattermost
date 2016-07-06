@@ -26,7 +26,7 @@ export default class SaveButton extends React.Component {
         if (saving) {
             contents = (
                 <span>
-                    <span className='glyphicon glyphicon-refresh glyphicon-refresh-animate'/>
+                    <span className='icon fa fa-refresh icon--rotate'/>
                     <FormattedMessage
                         id='admin.saving'
                         defaultMessage='Saving Config...'

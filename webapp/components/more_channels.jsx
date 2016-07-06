@@ -6,8 +6,11 @@ import LoadingScreen from './loading_screen.jsx';
 import NewChannelFlow from './new_channel_flow.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
+import UserStore from 'stores/user_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
 
 import * as Utils from 'utils/utils.jsx';
+import Constants from 'utils/constants.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 
@@ -132,6 +135,41 @@ export default class MoreChannels extends React.Component {
             serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
         }
 
+        let createNewChannelButton = (
+            <button
+                type='button'
+                className='btn btn-primary channel-create-btn'
+                onClick={this.handleNewChannel}
+            >
+                <FormattedMessage
+                    id='more_channels.create'
+                    defaultMessage='Create New Channel'
+                />
+            </button>
+        );
+
+        let createChannelHelpText = (
+            <p className='secondary-message'>
+                <FormattedMessage
+                    id='more_channels.createClick'
+                    defaultMessage="Click 'Create New Channel' to make a new one"
+                />
+            </p>
+        );
+
+        const isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
+        const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
+
+        if (global.window.mm_license.IsLicensed === 'true') {
+            if (global.window.mm_config.RestrictPublicChannelManagement === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
+                createNewChannelButton = null;
+                createChannelHelpText = null;
+            } else if (global.window.mm_config.RestrictPublicChannelManagement === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
+                createNewChannelButton = null;
+                createChannelHelpText = null;
+            }
+        }
+
         var moreChannels;
 
         if (this.state.channels != null) {
@@ -153,12 +191,7 @@ export default class MoreChannels extends React.Component {
                                 defaultMessage='No more channels to join'
                             />
                         </p>
-                        <p className='secondary-message'>
-                            <FormattedMessage
-                                id='more_channels.createClick'
-                                defaultMessage="Click 'Create New Channel' to make a new one"
-                            />
-                        </p>
+                        {createChannelHelpText}
                     </div>
                 );
             }
@@ -195,16 +228,7 @@ export default class MoreChannels extends React.Component {
                                     defaultMessage='More Channels'
                                 />
                             </h4>
-                            <button
-                                type='button'
-                                className='btn btn-primary channel-create-btn'
-                                onClick={this.handleNewChannel}
-                            >
-                                <FormattedMessage
-                                    id='more_channels.create'
-                                    defaultMessage='Create New Channel'
-                                />
-                            </button>
+                            {createNewChannelButton}
                             <NewChannelFlow
                                 show={this.state.showNewChannelModal}
                                 channelType={this.state.channelType}

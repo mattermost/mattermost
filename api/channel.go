@@ -59,6 +59,11 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		channel.TeamId = c.TeamId
 	}
 
+	if err := CanManageChannel(c, channel); err != nil {
+		c.Err = err
+		return
+	}
+
 	if !c.HasPermissionsToTeam(channel.TeamId, "createChannel") {
 		return
 	}
@@ -178,6 +183,32 @@ func CreateDefaultChannels(c *Context, teamId string) ([]*model.Channel, *model.
 	return channels, nil
 }
 
+func CanManageChannel(c *Context, channel *model.Channel) *model.AppError {
+	if utils.IsLicensed {
+		if channel.Type == model.CHANNEL_OPEN {
+			if *utils.Cfg.TeamSettings.RestrictPublicChannelManagement == model.PERMISSIONS_SYSTEM_ADMIN && !c.IsSystemAdmin() {
+				return model.NewLocAppError("CanManageChannel", "api.channel.can_manage_channel.public_restricted_system_admin.app_error", nil, "")
+			}
+
+			if *utils.Cfg.TeamSettings.RestrictPublicChannelManagement == model.PERMISSIONS_TEAM_ADMIN && !c.IsTeamAdmin() {
+				return model.NewLocAppError("CanManageChannel", "api.channel.can_manage_channel.public_restricted_team_admin.app_error", nil, "")
+			}
+		}
+
+		if channel.Type == model.CHANNEL_PRIVATE {
+			if *utils.Cfg.TeamSettings.RestrictPrivateChannelManagement == model.PERMISSIONS_SYSTEM_ADMIN && !c.IsSystemAdmin() {
+				return model.NewLocAppError("CanManageChannel", "api.channel.can_manage_channel.private_restricted_system_admin.app_error", nil, "")
+			}
+
+			if *utils.Cfg.TeamSettings.RestrictPrivateChannelManagement == model.PERMISSIONS_TEAM_ADMIN && !c.IsTeamAdmin() {
+				return model.NewLocAppError("CanManageChannel", "api.channel.can_manage_channel.private_restricted_team_admin.app_error", nil, "")
+			}
+		}
+	}
+
+	return nil
+}
+
 func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	channel := model.ChannelFromJson(r.Body)
@@ -198,15 +229,14 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		oldChannel := cresult.Data.(*model.Channel)
-		channelMember := cmcresult.Data.(model.ChannelMember)
+		// Don't need to do anything with channel member, just wanted to confirm it exists
 
-		if !c.HasPermissionsToTeam(oldChannel.TeamId, "updateChannel") {
+		if err := CanManageChannel(c, oldChannel); err != nil {
+			c.Err = err
 			return
 		}
 
-		if !strings.Contains(channelMember.Roles, model.CHANNEL_ROLE_ADMIN) && !c.IsTeamAdmin() {
-			c.Err = model.NewLocAppError("updateChannel", "api.channel.update_channel.permission.app_error", nil, "")
-			c.Err.StatusCode = http.StatusForbidden
+		if !c.HasPermissionsToTeam(oldChannel.TeamId, "updateChannel") {
 			return
 		}
 
@@ -275,7 +305,12 @@ func updateChannelHeader(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		channel := cresult.Data.(*model.Channel)
-		// Don't need to do anything channel member, just wanted to confirm it exists
+		// Don't need to do anything with channel member, just wanted to confirm it exists
+
+		if err := CanManageChannel(c, channel); err != nil {
+			c.Err = err
+			return
+		}
 
 		if channel.TeamId != "" && !c.HasPermissionsToTeam(channel.TeamId, "updateChannelHeader") {
 			return
@@ -348,7 +383,12 @@ func updateChannelPurpose(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		channel := cresult.Data.(*model.Channel)
-		// Don't need to do anything channel member, just wanted to confirm it exists
+		// Don't need to do anything with channel member, just wanted to confirm it exists
+
+		if err := CanManageChannel(c, channel); err != nil {
+			c.Err = err
+			return
+		}
 
 		if !c.HasPermissionsToTeam(channel.TeamId, "updateChannelPurpose") {
 			return
@@ -646,6 +686,7 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	sc := Srv.Store.Channel().Get(id)
 	scm := Srv.Store.Channel().GetMember(id, c.Session.UserId)
+	cmc := Srv.Store.Channel().GetMemberCount(id)
 	uc := Srv.Store.User().Get(c.Session.UserId)
 	ihc := Srv.Store.Webhook().GetIncomingByChannel(id)
 	ohc := Srv.Store.Webhook().GetOutgoingByChannel(id)
@@ -659,6 +700,9 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else if scmresult := <-scm; scmresult.Err != nil {
 		c.Err = scmresult.Err
 		return
+	} else if cmcresult := <-cmc; cmcresult.Err != nil {
+		c.Err = cmcresult.Err
+		return
 	} else if ihcresult := <-ihc; ihcresult.Err != nil {
 		c.Err = ihcresult.Err
 		return
@@ -667,18 +711,21 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		channel := cresult.Data.(*model.Channel)
+		memberCount := cmcresult.Data.(int64)
 		user := uresult.Data.(*model.User)
-		channelMember := scmresult.Data.(model.ChannelMember)
 		incomingHooks := ihcresult.Data.([]*model.IncomingWebhook)
 		outgoingHooks := ohcresult.Data.([]*model.OutgoingWebhook)
+		// Don't need to do anything with channel member, just wanted to confirm it exists
 
-		if !c.HasPermissionsToTeam(channel.TeamId, "deleteChannel") {
-			return
+		// Allow delete if user is the only member left in channel
+		if memberCount > 1 {
+			if err := CanManageChannel(c, channel); err != nil {
+				c.Err = err
+				return
+			}
 		}
 
-		if !strings.Contains(channelMember.Roles, model.CHANNEL_ROLE_ADMIN) && !c.IsTeamAdmin() {
-			c.Err = model.NewLocAppError("deleteChannel", "api.channel.delete_channel.permissions.app_error", nil, "")
-			c.Err.StatusCode = http.StatusForbidden
+		if !c.HasPermissionsToTeam(channel.TeamId, "deleteChannel") {
 			return
 		}
 
