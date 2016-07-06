@@ -454,20 +454,20 @@ func TestAdminResetPassword(t *testing.T) {
 	Client := th.SystemAdminClient
 	team := th.SystemAdminTeam
 
-	user := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	LinkUserToTeam(user, team)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
-	if _, err := Client.AdminResetPassword("", "newpwd"); err == nil {
+	if _, err := Client.AdminResetPassword("", "newpwd1"); err == nil {
 		t.Fatal("Should have errored - empty user id")
 	}
 
-	if _, err := Client.AdminResetPassword("123", "newpwd"); err == nil {
+	if _, err := Client.AdminResetPassword("123", "newpwd1"); err == nil {
 		t.Fatal("Should have errored - bad user id")
 	}
 
-	if _, err := Client.AdminResetPassword("12345678901234567890123456", "newpwd"); err == nil {
+	if _, err := Client.AdminResetPassword("12345678901234567890123456", "newpwd1"); err == nil {
 		t.Fatal("Should have errored - bad user id")
 	}
 
@@ -481,15 +481,15 @@ func TestAdminResetPassword(t *testing.T) {
 	LinkUserToTeam(user2, team)
 	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
 
-	if _, err := Client.AdminResetPassword(user.Id, "newpwd"); err != nil {
+	if _, err := Client.AdminResetPassword(user.Id, "newpwd1"); err != nil {
 		t.Fatal(err)
 	}
 
 	Client.Logout()
-	Client.Must(Client.LoginById(user.Id, "newpwd"))
+	Client.Must(Client.LoginById(user.Id, "newpwd1"))
 	Client.SetTeamId(team.Id)
 
-	if _, err := Client.AdminResetPassword(user.Id, "newpwd"); err == nil {
+	if _, err := Client.AdminResetPassword(user.Id, "newpwd1"); err == nil {
 		t.Fatal("Should have errored - not sytem admin")
 	}
 }

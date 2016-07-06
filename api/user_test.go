@@ -31,7 +31,7 @@ func TestCreateUser(t *testing.T) {
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
 
-	user := model.User{Email: strings.ToLower("success+"+model.NewId()) + "@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "hello", Username: "n" + model.NewId()}
+	user := model.User{Email: strings.ToLower("success+"+model.NewId()) + "@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "hello1", Username: "n" + model.NewId()}
 
 	ruser, err := Client.CreateUser(&user, "")
 	if err != nil {
@@ -54,6 +54,7 @@ func TestCreateUser(t *testing.T) {
 
 	ruser.Data.(*model.User).Id = ""
 	ruser.Data.(*model.User).Username = "n" + model.NewId()
+	ruser.Data.(*model.User).Password = "passwd1"
 	if _, err := Client.CreateUser(ruser.Data.(*model.User), ""); err != nil {
 		if err.Message != "An account with that email already exists." {
 			t.Fatal(err)
@@ -100,7 +101,7 @@ func TestLogin(t *testing.T) {
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
 
-	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Username: "corey" + model.NewId(), Password: "pwd"}
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Username: "corey" + model.NewId(), Password: "passwd1"}
 	ruser, _ := Client.CreateUser(&user, "")
 	LinkUserToTeam(ruser.Data.(*model.User), rteam.Data.(*model.Team))
 	store.Must(Srv.Store.User().VerifyEmail(ruser.Data.(*model.User).Id))
@@ -167,7 +168,7 @@ func TestLogin(t *testing.T) {
 	team2 := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_INVITE}
 	rteam2 := Client.Must(Client.CreateTeam(&team2))
 
-	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 
 	if _, err := Client.CreateUserFromSignup(&user2, "junk", "1231312"); err == nil {
 		t.Fatal("Should have errored, signed up without hashed email")
@@ -193,7 +194,7 @@ func TestLogin(t *testing.T) {
 		Email:       strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com",
 		Nickname:    "Corey Hulen",
 		Username:    "corey" + model.NewId(),
-		Password:    "pwd",
+		Password:    "passwd1",
 		AuthService: model.USER_AUTH_SERVICE_LDAP,
 	}
 	user3 = Client.Must(Client.CreateUser(user3, "")).Data.(*model.User)
@@ -211,7 +212,7 @@ func TestLoginByLdap(t *testing.T) {
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
 
-	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Username: "corey" + model.NewId(), Password: "pwd"}
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Username: "corey" + model.NewId(), Password: "passwd1"}
 	ruser, _ := Client.CreateUser(&user, "")
 	LinkUserToTeam(ruser.Data.(*model.User), rteam.Data.(*model.Team))
 	store.Must(Srv.Store.User().VerifyEmail(ruser.Data.(*model.User).Id))
@@ -303,12 +304,12 @@ func TestGetUser(t *testing.T) {
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
 
-	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	ruser, _ := Client.CreateUser(&user, "")
 	LinkUserToTeam(ruser.Data.(*model.User), rteam.Data.(*model.Team))
 	store.Must(Srv.Store.User().VerifyEmail(ruser.Data.(*model.User).Id))
 
-	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	ruser2, _ := Client.CreateUser(&user2, "")
 	LinkUserToTeam(ruser2.Data.(*model.User), rteam.Data.(*model.Team))
 	store.Must(Srv.Store.User().VerifyEmail(ruser2.Data.(*model.User).Id))
@@ -316,7 +317,7 @@ func TestGetUser(t *testing.T) {
 	team2 := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam2, _ := Client.CreateTeam(&team2)
 
-	user3 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user3 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	ruser3, _ := Client.CreateUser(&user3, "")
 	LinkUserToTeam(ruser3.Data.(*model.User), rteam2.Data.(*model.Team))
 	store.Must(Srv.Store.User().VerifyEmail(ruser3.Data.(*model.User).Id))
@@ -385,7 +386,7 @@ func TestGetUser(t *testing.T) {
 	c.IpAddress = "cmd_line"
 	UpdateUserRoles(c, ruser.Data.(*model.User), model.ROLE_SYSTEM_ADMIN)
 
-	Client.Login(user.Email, "pwd")
+	Client.Login(user.Email, "passwd1")
 
 	if _, err := Client.GetProfiles(rteam2.Data.(*model.Team).Id, ""); err != nil {
 		t.Fatal(err)
@@ -435,7 +436,7 @@ func TestGetAudits(t *testing.T) {
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
 
-	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	ruser, _ := Client.CreateUser(&user, "")
 	LinkUserToTeam(ruser.Data.(*model.User), rteam.Data.(*model.Team))
 	store.Must(Srv.Store.User().VerifyEmail(ruser.Data.(*model.User).Id))
@@ -490,12 +491,12 @@ func TestUserCreateImage(t *testing.T) {
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
-	user := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	LinkUserToTeam(user, team)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
-	Client.Login(user.Email, "pwd")
+	Client.Login(user.Email, "passwd1")
 
 	Client.DoApiGet("/users/"+user.Id+"/image", "", "")
 
@@ -525,7 +526,7 @@ func TestUserUploadProfileImage(t *testing.T) {
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
-	user := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	LinkUserToTeam(user, team)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
@@ -539,7 +540,7 @@ func TestUserUploadProfileImage(t *testing.T) {
 			t.Fatal("Should have errored")
 		}
 
-		Client.Login(user.Email, "pwd")
+		Client.Login(user.Email, "passwd1")
 		Client.SetTeamId(team.Id)
 
 		if _, upErr := Client.UploadProfileFile(body.Bytes(), writer.FormDataContentType()); upErr == nil {
@@ -634,7 +635,7 @@ func TestUserUpdate(t *testing.T) {
 
 	time1 := model.GetMillis()
 
-	user := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd", LastActivityAt: time1, LastPingAt: time1, Roles: ""}
+	user := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", LastActivityAt: time1, LastPingAt: time1, Roles: ""}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	LinkUserToTeam(user, team)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
@@ -643,7 +644,7 @@ func TestUserUpdate(t *testing.T) {
 		t.Fatal("Should have errored")
 	}
 
-	Client.Login(user.Email, "pwd")
+	Client.Login(user.Email, "passwd1")
 	Client.SetTeamId(team.Id)
 
 	time.Sleep(100 * time.Millisecond)
@@ -678,12 +679,12 @@ func TestUserUpdate(t *testing.T) {
 		}
 	}
 
-	user2 := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user2 := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
 	LinkUserToTeam(user2, team)
 	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
 
-	Client.Login(user2.Email, "pwd")
+	Client.Login(user2.Email, "passwd1")
 	Client.SetTeamId(team.Id)
 
 	user.Nickname = "Tim Timmy"
@@ -701,18 +702,18 @@ func TestUserUpdatePassword(t *testing.T) {
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 	Client.SetTeamId(team.Id)
 
-	user := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	LinkUserToTeam(user, team)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
-	if _, err := Client.UpdateUserPassword(user.Id, "pwd", "newpwd"); err == nil {
+	if _, err := Client.UpdateUserPassword(user.Id, "passwd1", "newpasswd1"); err == nil {
 		t.Fatal("Should have errored")
 	}
 
-	Client.Login(user.Email, "pwd")
+	Client.Login(user.Email, "passwd1")
 
-	if _, err := Client.UpdateUserPassword("123", "pwd", "newpwd"); err == nil {
+	if _, err := Client.UpdateUserPassword("123", "passwd1", "newpwd"); err == nil {
 		t.Fatal("Should have errored")
 	}
 
@@ -720,11 +721,11 @@ func TestUserUpdatePassword(t *testing.T) {
 		t.Fatal("Should have errored")
 	}
 
-	if _, err := Client.UpdateUserPassword(user.Id, "pwd", "npwd"); err == nil {
+	if _, err := Client.UpdateUserPassword(user.Id, "passwd1", "npwd"); err == nil {
 		t.Fatal("Should have errored")
 	}
 
-	if _, err := Client.UpdateUserPassword("12345678901234567890123456", "pwd", "newpwd"); err == nil {
+	if _, err := Client.UpdateUserPassword("12345678901234567890123456", "passwd1", "newpwd1"); err == nil {
 		t.Fatal("Should have errored")
 	}
 
@@ -732,7 +733,7 @@ func TestUserUpdatePassword(t *testing.T) {
 		t.Fatal("Should have errored")
 	}
 
-	if _, err := Client.UpdateUserPassword(user.Id, "pwd", "newpwd"); err != nil {
+	if _, err := Client.UpdateUserPassword(user.Id, "passwd1", "newpwd1"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -741,17 +742,17 @@ func TestUserUpdatePassword(t *testing.T) {
 		t.Fatal("LastPasswordUpdate should have changed")
 	}
 
-	if _, err := Client.Login(user.Email, "newpwd"); err != nil {
+	if _, err := Client.Login(user.Email, "newpwd1"); err != nil {
 		t.Fatal(err)
 	}
 
-	user2 := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user2 := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
 	LinkUserToTeam(user2, team)
 
-	Client.Login(user2.Email, "pwd")
+	Client.Login(user2.Email, "passwd1")
 
-	if _, err := Client.UpdateUserPassword(user.Id, "pwd", "newpwd"); err == nil {
+	if _, err := Client.UpdateUserPassword(user.Id, "passwd1", "newpwd"); err == nil {
 		t.Fatal("Should have errored")
 	}
 }
@@ -763,12 +764,12 @@ func TestUserUpdateRoles(t *testing.T) {
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
-	user := &model.User{Email: "success+" + model.NewId() + "@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user := &model.User{Email: "success+" + model.NewId() + "@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	LinkUserToTeam(user, team)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
-	user2 := &model.User{Email: "success+" + model.NewId() + "@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user2 := &model.User{Email: "success+" + model.NewId() + "@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
 	LinkUserToTeam(user2, team)
 	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
@@ -781,7 +782,7 @@ func TestUserUpdateRoles(t *testing.T) {
 		t.Fatal("Should have errored, not logged in")
 	}
 
-	Client.Login(user2.Email, "pwd")
+	Client.Login(user2.Email, "passwd1")
 	Client.SetTeamId(team.Id)
 
 	if _, err := Client.UpdateUserRoles(data); err == nil {
@@ -791,12 +792,12 @@ func TestUserUpdateRoles(t *testing.T) {
 	team2 := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team2 = Client.Must(Client.CreateTeam(team2)).Data.(*model.Team)
 
-	user3 := &model.User{Email: "success+" + model.NewId() + "@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user3 := &model.User{Email: "success+" + model.NewId() + "@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	user3 = Client.Must(Client.CreateUser(user3, "")).Data.(*model.User)
 	LinkUserToTeam(user3, team2)
 	store.Must(Srv.Store.User().VerifyEmail(user3.Id))
 
-	Client.Login(user3.Email, "pwd")
+	Client.Login(user3.Email, "passwd1")
 	Client.SetTeamId(team2.Id)
 
 	data["user_id"] = user2.Id
@@ -805,7 +806,7 @@ func TestUserUpdateRoles(t *testing.T) {
 		t.Fatal("Should have errored, wrong team")
 	}
 
-	Client.Login(user.Email, "pwd")
+	Client.Login(user.Email, "passwd1")
 
 	data["user_id"] = "junk"
 
@@ -962,12 +963,12 @@ func TestUserUpdateDeviceId(t *testing.T) {
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
-	user := &model.User{Email: "success+" + model.NewId() + "@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user := &model.User{Email: "success+" + model.NewId() + "@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	LinkUserToTeam(user, team)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
-	Client.Login(user.Email, "pwd")
+	Client.Login(user.Email, "passwd1")
 	Client.SetTeamId(team.Id)
 	deviceId := model.PUSH_NOTIFY_APPLE + ":1234567890"
 
@@ -993,12 +994,12 @@ func TestUserUpdateActive(t *testing.T) {
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
-	user := &model.User{Email: "success+" + model.NewId() + "@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user := &model.User{Email: "success+" + model.NewId() + "@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	LinkUserToTeam(user, team)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
-	user2 := &model.User{Email: "success+" + model.NewId() + "@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user2 := &model.User{Email: "success+" + model.NewId() + "@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
 	LinkUserToTeam(user2, team)
 	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
@@ -1007,7 +1008,7 @@ func TestUserUpdateActive(t *testing.T) {
 		t.Fatal("Should have errored, not logged in")
 	}
 
-	Client.Login(user2.Email, "pwd")
+	Client.Login(user2.Email, "passwd1")
 	Client.SetTeamId(team.Id)
 
 	if _, err := Client.UpdateActive(user.Id, false); err == nil {
@@ -1019,19 +1020,19 @@ func TestUserUpdateActive(t *testing.T) {
 	team2 := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team2 = Client.Must(Client.CreateTeam(team2)).Data.(*model.Team)
 
-	user3 := &model.User{Email: "success+" + model.NewId() + "@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user3 := &model.User{Email: "success+" + model.NewId() + "@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	user3 = Client.Must(Client.CreateUser(user3, "")).Data.(*model.User)
 	LinkUserToTeam(user2, team2)
 	store.Must(Srv.Store.User().VerifyEmail(user3.Id))
 
-	Client.Login(user3.Email, "pwd")
+	Client.Login(user3.Email, "passwd1")
 	Client.SetTeamId(team2.Id)
 
 	if _, err := Client.UpdateActive(user.Id, false); err == nil {
 		t.Fatal("Should have errored, not yourself")
 	}
 
-	Client.Login(user.Email, "pwd")
+	Client.Login(user.Email, "passwd1")
 	Client.SetTeamId(team.Id)
 
 	if _, err := Client.UpdateActive("junk", false); err == nil {
@@ -1050,12 +1051,12 @@ func TestUserPermDelete(t *testing.T) {
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
-	user1 := &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user1 := &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
 	LinkUserToTeam(user1, team)
 	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
 
-	Client.Login(user1.Email, "pwd")
+	Client.Login(user1.Email, "passwd1")
 	Client.SetTeamId(team.Id)
 
 	channel1 := &model.Channel{DisplayName: "TestGetPosts", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
@@ -1092,7 +1093,7 @@ func TestSendPasswordReset(t *testing.T) {
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
-	user := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	LinkUserToTeam(user, team)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
@@ -1125,7 +1126,7 @@ func TestResetPassword(t *testing.T) {
 	Client := th.SystemAdminClient
 	team := th.SystemAdminTeam
 
-	user := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	LinkUserToTeam(user, team)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
@@ -1159,16 +1160,16 @@ func TestResetPassword(t *testing.T) {
 	for i := 0; i < model.PASSWORD_RECOVERY_CODE_SIZE; i++ {
 		code += "a"
 	}
-	if _, err := Client.ResetPassword(code, "newpwd"); err == nil {
+	if _, err := Client.ResetPassword(code, "newpwd1"); err == nil {
 		t.Fatal("Should have errored - bad code")
 	}
 
-	if _, err := Client.ResetPassword(recovery.Code, "newpwd"); err != nil {
+	if _, err := Client.ResetPassword(recovery.Code, "newpwd1"); err != nil {
 		t.Fatal(err)
 	}
 
 	Client.Logout()
-	Client.Must(Client.LoginById(user.Id, "newpwd"))
+	Client.Must(Client.LoginById(user.Id, "newpwd1"))
 	Client.SetTeamId(team.Id)
 
 	Client.Must(Client.SendPasswordReset(user.Email))
@@ -1184,7 +1185,7 @@ func TestResetPassword(t *testing.T) {
 		t.Fatal(result.Err)
 	}
 
-	if _, err := Client.ResetPassword(recovery.Code, "newpwd"); err == nil {
+	if _, err := Client.ResetPassword(recovery.Code, "newpwd1"); err == nil {
 		t.Fatal("Should have errored - sso user")
 	}
 }
@@ -1196,7 +1197,7 @@ func TestUserUpdateNotify(t *testing.T) {
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
-	user := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd", Roles: ""}
+	user := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", Roles: ""}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	LinkUserToTeam(user, team)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
@@ -1211,7 +1212,7 @@ func TestUserUpdateNotify(t *testing.T) {
 		t.Fatal("Should have errored - not logged in")
 	}
 
-	Client.Login(user.Email, "pwd")
+	Client.Login(user.Email, "passwd1")
 	Client.SetTeamId(team.Id)
 
 	if result, err := Client.UpdateUserNotify(data); err != nil {
@@ -1279,7 +1280,7 @@ func TestFuzzyUserCreate(t *testing.T) {
 			testEmail = utils.FUZZY_STRINGS_EMAILS[i]
 		}
 
-		user := model.User{Email: strings.ToLower(model.NewId()) + testEmail, Nickname: testName, Password: "hello"}
+		user := model.User{Email: strings.ToLower(model.NewId()) + testEmail, Nickname: testName, Password: "hello1"}
 
 		ruser, err := Client.CreateUser(&user, "")
 		if err != nil {
@@ -1297,12 +1298,12 @@ func TestStatuses(t *testing.T) {
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
 
-	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	ruser := Client.Must(Client.CreateUser(&user, "")).Data.(*model.User)
 	LinkUserToTeam(ruser, rteam.Data.(*model.Team))
 	store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
 
-	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	ruser2 := Client.Must(Client.CreateUser(&user2, "")).Data.(*model.User)
 	LinkUserToTeam(ruser2, rteam.Data.(*model.Team))
 	store.Must(Srv.Store.User().VerifyEmail(ruser2.Id))
@@ -1339,7 +1340,7 @@ func TestEmailToOAuth(t *testing.T) {
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
 
-	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	ruser := Client.Must(Client.CreateUser(&user, "")).Data.(*model.User)
 	LinkUserToTeam(ruser, rteam.Data.(*model.Team))
 	store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
@@ -1349,7 +1350,7 @@ func TestEmailToOAuth(t *testing.T) {
 		t.Fatal("should have failed - empty data")
 	}
 
-	m["password"] = "pwd"
+	m["password"] = "passwd1"
 	_, err := Client.EmailToOAuth(m)
 	if err == nil {
 		t.Fatal("should have failed - missing team_name, service, email")
@@ -1390,12 +1391,12 @@ func TestOAuthToEmail(t *testing.T) {
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
 
-	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	ruser := Client.Must(Client.CreateUser(&user, "")).Data.(*model.User)
 	LinkUserToTeam(ruser, rteam.Data.(*model.Team))
 	store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
 
-	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	ruser2 := Client.Must(Client.CreateUser(&user2, "")).Data.(*model.User)
 	LinkUserToTeam(ruser2, rteam.Data.(*model.Team))
 	store.Must(Srv.Store.User().VerifyEmail(ruser2.Id))
@@ -1411,7 +1412,7 @@ func TestOAuthToEmail(t *testing.T) {
 		t.Fatal("should have failed - empty data")
 	}
 
-	m["password"] = "pwd"
+	m["password"] = "passwd1"
 	_, err := Client.OAuthToEmail(m)
 	if err == nil {
 		t.Fatal("should have failed - missing team_name, service, email")
@@ -1441,7 +1442,7 @@ func TestLDAPToEmail(t *testing.T) {
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
 
-	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	ruser := Client.Must(Client.CreateUser(&user, "")).Data.(*model.User)
 	LinkUserToTeam(ruser, rteam.Data.(*model.Team))
 	store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
@@ -1453,7 +1454,7 @@ func TestLDAPToEmail(t *testing.T) {
 		t.Fatal("should have failed - empty data")
 	}
 
-	m["email_password"] = "pwd"
+	m["email_password"] = "passwd1"
 	_, err := Client.LDAPToEmail(m)
 	if err == nil {
 		t.Fatal("should have failed - missing team_name, ldap_password, email")
@@ -1464,7 +1465,7 @@ func TestLDAPToEmail(t *testing.T) {
 		t.Fatal("should have failed - missing email, ldap_password")
 	}
 
-	m["ldap_password"] = "pwd"
+	m["ldap_password"] = "passwd1"
 	if _, err := Client.LDAPToEmail(m); err == nil {
 		t.Fatal("should have failed - missing email")
 	}
@@ -1494,7 +1495,7 @@ func TestEmailToLDAP(t *testing.T) {
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
 
-	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	ruser := Client.Must(Client.CreateUser(&user, "")).Data.(*model.User)
 	LinkUserToTeam(ruser, rteam.Data.(*model.Team))
 	store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
@@ -1506,7 +1507,7 @@ func TestEmailToLDAP(t *testing.T) {
 		t.Fatal("should have failed - empty data")
 	}
 
-	m["email_password"] = "pwd"
+	m["email_password"] = "passwd1"
 	_, err := Client.EmailToLDAP(m)
 	if err == nil {
 		t.Fatal("should have failed - missing team_name, ldap_id, ldap_password, email")
@@ -1522,7 +1523,7 @@ func TestEmailToLDAP(t *testing.T) {
 		t.Fatal("should have failed - missing email, ldap_password")
 	}
 
-	m["ldap_password"] = "pwd"
+	m["ldap_password"] = "passwd1"
 	if _, err := Client.EmailToLDAP(m); err == nil {
 		t.Fatal("should have failed - missing email")
 	}
@@ -1545,7 +1546,7 @@ func TestEmailToLDAP(t *testing.T) {
 		t.Fatal("should have failed - bad password")
 	}
 
-	m["email_password"] = "pwd"
+	m["email_password"] = "passwd1"
 	if _, err := Client.EmailToLDAP(m); err == nil {
 		t.Fatal("should have failed - missing ldap bits or user")
 	}
@@ -1625,7 +1626,7 @@ func TestGenerateMfaQrCode(t *testing.T) {
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
 
-	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	ruser, _ := Client.CreateUser(&user, "")
 	LinkUserToTeam(ruser.Data.(*model.User), rteam.Data.(*model.Team))
 	store.Must(Srv.Store.User().VerifyEmail(ruser.Data.(*model.User).Id))
@@ -1663,7 +1664,7 @@ func TestUpdateMfa(t *testing.T) {
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
 
-	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	ruser, _ := Client.CreateUser(&user, "")
 	LinkUserToTeam(ruser.Data.(*model.User), rteam.Data.(*model.Team))
 	store.Must(Srv.Store.User().VerifyEmail(ruser.Data.(*model.User).Id))
@@ -1702,7 +1703,7 @@ func TestCheckMfa(t *testing.T) {
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
 
-	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	ruser, _ := Client.CreateUser(&user, "")
 	LinkUserToTeam(ruser.Data.(*model.User), rteam.Data.(*model.Team))
 	store.Must(Srv.Store.User().VerifyEmail(ruser.Data.(*model.User).Id))

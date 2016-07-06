@@ -19,6 +19,9 @@ const (
 	DATABASE_DRIVER_MYSQL    = "mysql"
 	DATABASE_DRIVER_POSTGRES = "postgres"
 
+	PASSWORD_MAXIMUM_LENGTH = 64
+	PASSWORD_MINIMUM_LENGTH = 5
+
 	SERVICE_GITLAB = "gitlab"
 	SERVICE_GOOGLE = "google"
 
@@ -100,6 +103,14 @@ type LogSettings struct {
 	FileFormat             string
 	FileLocation           string
 	EnableWebhookDebugging bool
+}
+
+type PasswordSettings struct {
+	MinimumLength *int
+	Lowercase     *bool
+	Number        *bool
+	Uppercase     *bool
+	Symbol        *bool
 }
 
 type FileSettings struct {
@@ -259,6 +270,7 @@ type Config struct {
 	TeamSettings         TeamSettings
 	SqlSettings          SqlSettings
 	LogSettings          LogSettings
+	PasswordSettings     PasswordSettings
 	FileSettings         FileSettings
 	EmailSettings        EmailSettings
 	RateLimitSettings    RateLimitSettings
@@ -354,6 +366,31 @@ func (o *Config) SetDefaults() {
 	if o.ServiceSettings.EnableMultifactorAuthentication == nil {
 		o.ServiceSettings.EnableMultifactorAuthentication = new(bool)
 		*o.ServiceSettings.EnableMultifactorAuthentication = false
+	}
+
+	if o.PasswordSettings.MinimumLength == nil {
+		o.PasswordSettings.MinimumLength = new(int)
+		*o.PasswordSettings.MinimumLength = PASSWORD_MINIMUM_LENGTH
+	}
+
+	if o.PasswordSettings.Lowercase == nil {
+		o.PasswordSettings.Lowercase = new(bool)
+		*o.PasswordSettings.Lowercase = false
+	}
+
+	if o.PasswordSettings.Number == nil {
+		o.PasswordSettings.Number = new(bool)
+		*o.PasswordSettings.Number = false
+	}
+
+	if o.PasswordSettings.Uppercase == nil {
+		o.PasswordSettings.Uppercase = new(bool)
+		*o.PasswordSettings.Uppercase = false
+	}
+
+	if o.PasswordSettings.Symbol == nil {
+		o.PasswordSettings.Symbol = new(bool)
+		*o.PasswordSettings.Symbol = false
 	}
 
 	if o.TeamSettings.RestrictTeamNames == nil {
@@ -917,6 +954,10 @@ func (o *Config) IsValid() *AppError {
 		if len(*o.SamlSettings.EmailAttribute) == 0 {
 			return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_email_attribute.app_error", nil, "")
 		}
+	}
+
+	if *o.PasswordSettings.MinimumLength < PASSWORD_MINIMUM_LENGTH || *o.PasswordSettings.MinimumLength > PASSWORD_MAXIMUM_LENGTH {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.password_length.app_error", map[string]interface{}{"MinLength": PASSWORD_MINIMUM_LENGTH, "MaxLength": PASSWORD_MAXIMUM_LENGTH}, "")
 	}
 
 	return nil

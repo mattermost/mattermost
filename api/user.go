@@ -245,6 +245,10 @@ func CreateUser(user *model.User) (*model.User, *model.AppError) {
 	user.MakeNonNil()
 	user.Locale = *utils.Cfg.LocalizationSettings.DefaultClientLocale
 
+	if err := utils.IsPasswordValid(user.Password); user.AuthService == "" && err != nil {
+		return nil, err
+	}
+
 	if result := <-Srv.Store.User().Save(user); result.Err != nil {
 		l4g.Error(utils.T("api.user.create_user.save.error"), result.Err)
 		return nil, result.Err
@@ -1295,6 +1299,11 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := utils.IsPasswordValid(user.Password); user.Password != "" && err != nil {
+		c.Err = err
+		return
+	}
+
 	if result := <-Srv.Store.User().Update(user, false); result.Err != nil {
 		c.Err = result.Err
 		return
@@ -1339,8 +1348,9 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	newPassword := props["new_password"]
-	if len(newPassword) < 5 {
-		c.SetInvalidParam("updatePassword", "new_password")
+
+	if err := utils.IsPasswordValid(newPassword); err != nil {
+		c.Err = err
 		return
 	}
 
@@ -1732,15 +1742,15 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 
-	newPassword := props["new_password"]
-	if len(newPassword) < model.MIN_PASSWORD_LENGTH {
-		c.SetInvalidParam("resetPassword", "new_password")
-		return
-	}
-
 	code := props["code"]
 	if len(code) != model.PASSWORD_RECOVERY_CODE_SIZE {
 		c.SetInvalidParam("resetPassword", "code")
+		return
+	}
+
+	newPassword := props["new_password"]
+	if err := utils.IsPasswordValid(newPassword); err != nil {
+		c.Err = err
 		return
 	}
 
@@ -2042,8 +2052,8 @@ func oauthToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 
 	password := props["password"]
-	if len(password) == 0 {
-		c.SetInvalidParam("oauthToEmail", "password")
+	if err := utils.IsPasswordValid(password); err != nil {
+		c.Err = err
 		return
 	}
 
@@ -2174,8 +2184,8 @@ func ldapToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	emailPassword := props["email_password"]
-	if len(emailPassword) == 0 {
-		c.SetInvalidParam("ldapToEmail", "email_password")
+	if err := utils.IsPasswordValid(emailPassword); err != nil {
+		c.Err = err
 		return
 	}
 
