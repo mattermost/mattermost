@@ -48,6 +48,22 @@
     "translation": "Septembre"
   },
   {
+    "id": "api.admin.add_certificate.array.app_error",
+    "translation": "Tableau vide pour les 'fichiers' dans la requête"
+  },
+  {
+    "id": "api.admin.add_certificate.no_file.app_error",
+    "translation": "Aucun fichier pour les 'fichiers' dans la requête"
+  },
+  {
+    "id": "api.admin.add_certificate.open.app_error",
+    "translation": "Could not open certificate file"
+  },
+  {
+    "id": "api.admin.add_certificate.saving.app_error",
+    "translation": "Could not save certificate file"
+  },
+  {
     "id": "api.admin.file_read_error",
     "translation": "Erreur lors de la lecture du fichier de log"
   },
@@ -70,6 +86,14 @@
   {
     "id": "api.admin.recycle_db_start.warn",
     "translation": "Essaye de recycler la connexion à la base de données"
+  },
+  {
+    "id": "api.admin.remove_certificate.delete.app_error",
+    "translation": "An error occurred while deleting the certificate. Make sure the file config/{{.Filename}} exists."
+  },
+  {
+    "id": "api.admin.saml.metadata.app_error",
+    "translation": "An error occurred while building Service Provider Metadata"
   },
   {
     "id": "api.admin.test_email.body",
@@ -577,27 +601,27 @@
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
-    "translation": "Unable to create emoji. Another emoji with the same name already exists."
+    "translation": "Impossible de créer cet Emoji. Un autre Emoji du même nom existe déjà."
   },
   {
     "id": "api.emoji.create.parse.app_error",
-    "translation": "Impossible de créer un emoji. L'image dépasse la taille maximale."
-  },
-  {
-    "id": "api.emoji.create.permissions.app_error",
-    "translation": "Droits insuffisants pour supprimer la commande"
-  },
-  {
-    "id": "api.emoji.create.too_large.app_error",
     "translation": "Impossible de créer un emoji. Impossible de comprendre la demande."
   },
   {
+    "id": "api.emoji.create.permissions.app_error",
+    "translation": "Droits insuffisants pour créer des Emoji."
+  },
+  {
+    "id": "api.emoji.create.too_large.app_error",
+    "translation": "Unable to create emoji. Image must be less than 64 KB in size."
+  },
+  {
     "id": "api.emoji.delete.permissions.app_error",
-    "translation": "Droits insuffisants pour supprimer la commande"
+    "translation": "Droits insuffisants pour supprimer des Emoji."
   },
   {
     "id": "api.emoji.disabled.app_error",
-    "translation": "Les commandes ont été désactivées par l'administrateur."
+    "translation": "Les Emoji ont été désactivées par l'administrateur."
   },
   {
     "id": "api.emoji.get_image.decode.app_error",
@@ -621,7 +645,7 @@
   },
   {
     "id": "api.emoji.upload.large_image.app_error",
-    "translation": "Impossible de créer emoji. L'image dépasse les dimensions maximales."
+    "translation": "Unable to create emoji. Image must be at most 128 by 128 pixels."
   },
   {
     "id": "api.export.json.app_error",
@@ -1100,6 +1124,10 @@
     "translation": "session.user_id={{.SessionUserId}}, preference.user_id={{.PreferenceUserId}}"
   },
   {
+    "id": "api.saml.save_certificate.app_error",
+    "translation": "Certificate did not save properly."
+  },
+  {
     "id": "api.server.new_server.init.info",
     "translation": "Le serveur démarre..."
   },
@@ -1301,11 +1329,11 @@
   },
   {
     "id": "api.team.invite_members.restricted_system_admin.app_error",
-    "translation": "Inviting new users to a team is restricted to System Administrators."
+    "translation": "Seuls les administrateurs système peuvent inviter de nouveaux utilisateurs."
   },
   {
     "id": "api.team.invite_members.restricted_team_admin.app_error",
-    "translation": "Inviting new users to a team is restricted to Team and System Administrators."
+    "translation": "Seuls les administrateurs d'équipe et administrateurs système peuvent inviter de nouveaux utilisateurs."
   },
   {
     "id": "api.team.invite_members.send.error",
@@ -1437,7 +1465,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Go To Post"
+    "translation": "Aller au message"
   },
   {
     "id": "api.templates.post_body.info",
@@ -1804,6 +1832,10 @@
     "translation": "Tentative de réinitaliser le mot de passe d'un utilisateur dans une équipe incorrecte."
   },
   {
+    "id": "api.user.saml.not_available.app_error",
+    "translation": "MFA n'est pas configuré ou supporté sur ce serveur"
+  },
+  {
     "id": "api.user.send_email_change_email_and_forget.error",
     "translation": "Impossible d'envoyer le courriel de changement d'adresse électronique err=%v"
   },
@@ -2080,6 +2112,10 @@
     "translation": "Compliance export started for job '{{.JobName}}' at '{{.FilePath}}'"
   },
   {
+    "id": "ent.emoji.licence_disable.app_error",
+    "translation": "Fonctionnalité de conformité désactivée par la licence courante. Veuillez contacter votre administrateur système concernant la mise à niveau de votre licence entreprise."
+  },
+  {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
     "translation": "Impossible de se connecter au serveur LDAP. Vérifiez l'utilisateur et le mot de passe du compte utilisé pour se connecter au serveur LDAP."
   },
@@ -2117,7 +2153,7 @@
   },
   {
     "id": "ent.ldap.mattermost_user_update",
-    "translation": "Mattermost user was updated by LDAP server."
+    "translation": "L'utilisateur Mattermost a été mis à jour par le serveur LDAP."
   },
   {
     "id": "ent.ldap.syncdone.info",
@@ -2166,6 +2202,74 @@
   {
     "id": "ent.mfa.validate_token.authenticate.app_error",
     "translation": "Erreur tentative d'authentification MFA token"
+  },
+  {
+    "id": "ent.saml.build_request.app_error",
+    "translation": "An error occurred while initiating the request to the Identity Provider. Please contact your System Administrator."
+  },
+  {
+    "id": "ent.saml.build_request.encoding.app_error",
+    "translation": "An error occurred while encoding the request for the Identity Provider. Please contact your System Administrator."
+  },
+  {
+    "id": "ent.saml.build_request.encoding_signed.app_error",
+    "translation": "An error occurred while encoding the signed request for the Identity Provider. Please contact your System Administrator."
+  },
+  {
+    "id": "ent.saml.configure.app_error",
+    "translation": "An error occurred while configuring SAML Service Provider, err=%v"
+  },
+  {
+    "id": "ent.saml.configure.encryption_not_enabled.app_error",
+    "translation": "SAML login was unsuccessful because encryption is not enabled. Please contact your System Administrator."
+  },
+  {
+    "id": "ent.saml.configure.load_idp_cert.app_error",
+    "translation": "Identity Provider Public Certificate File was not found. Please contact your System Administrator."
+  },
+  {
+    "id": "ent.saml.configure.load_private_key.app_error",
+    "translation": "SAML login was unsuccessful because the Service Provider Private Key was not found. Please contact your System Administrator."
+  },
+  {
+    "id": "ent.saml.configure.load_public_cert.app_error",
+    "translation": "Service Provider Public Certificate File was not found. Please contact your System Administrator."
+  },
+  {
+    "id": "ent.saml.configure.not_encrypted_response.app_error",
+    "translation": "SAML login was unsuccessful as the Identity Provider response is not encrypted. Please contact your System Administrator."
+  },
+  {
+    "id": "ent.saml.do_login.decrypt.app_error",
+    "translation": "SAML login was unsuccessful because an error occurred while decrypting the response from the Identity Provider. Please contact your System Administrator."
+  },
+  {
+    "id": "ent.saml.do_login.empty_response.app_error",
+    "translation": "We received an empty response from the Identity Provider"
+  },
+  {
+    "id": "ent.saml.do_login.parse.app_error",
+    "translation": "An error occurred while parsing the response from the Identity Provider. Please contact your System Administrator."
+  },
+  {
+    "id": "ent.saml.do_login.validate.app_error",
+    "translation": "An error occurred while validating the response from the Identity Provider. Please contact your System Administrator."
+  },
+  {
+    "id": "ent.saml.license_disable.app_error",
+    "translation": "Your license does not support SAML authentication."
+  },
+  {
+    "id": "ent.saml.metadata.app_error",
+    "translation": "An error occurred while building Service Provider Metadata."
+  },
+  {
+    "id": "ent.saml.service_disable.app_error",
+    "translation": "MFA n'est pas configuré ou supporté sur ce serveur"
+  },
+  {
+    "id": "ent.saml.update_saml_user.unable_error",
+    "translation": "Unable to update existing SAML user. Allowing login anyway. err=%v"
   },
   {
     "id": "error.generic.link_message",
@@ -2385,7 +2489,7 @@
   },
   {
     "id": "model.client.create_emoji.emoji.app_error",
-    "translation": "Impossible de joindre l'image à la demande"
+    "translation": "Impossible d'attacher un Emoji à la requête"
   },
   {
     "id": "model.client.create_emoji.image.app_error",
@@ -2521,15 +2625,15 @@
   },
   {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",
-    "translation": "Invalid max page size value."
+    "translation": "Valeur de la taille maximale de page invalide."
   },
   {
     "id": "model.config.is_valid.ldap_required.app_error",
-    "translation": "Required LDAP field missing."
+    "translation": "Champ LDAP manquant."
   },
   {
     "id": "model.config.is_valid.ldap_required.app_error",
-    "translation": "Required LDAP field missing."
+    "translation": "Champ LDAP manquant."
   },
   {
     "id": "model.config.is_valid.ldap_security.app_error",
@@ -2566,6 +2670,46 @@
   {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
     "translation": "La restriction du message direct est invalide. Doit être 'tout', ou 'équipe'"
+  },
+  {
+    "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
+    "translation": "URL invalude. Il doit s'agir d'une URL valide et commencer par http:// ou https://"
+  },
+  {
+    "id": "model.config.is_valid.saml_email_attribute.app_error",
+    "translation": "Invalid Email attribute. Must be set."
+  },
+  {
+    "id": "model.config.is_valid.saml_first_name_attribute.app_error",
+    "translation": "Invalid First Name attribute. Must be set."
+  },
+  {
+    "id": "model.config.is_valid.saml_idp_cert.app_error",
+    "translation": "Identity Provider Public Certificate missing. Did you forget to upload it?"
+  },
+  {
+    "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
+    "translation": "Identity Provider Issuer URL must be a valid URL and start with http:// or https://."
+  },
+  {
+    "id": "model.config.is_valid.saml_idp_url.app_error",
+    "translation": "URL invalude. Il doit s'agir d'une URL valide et commencer par http:// ou https://"
+  },
+  {
+    "id": "model.config.is_valid.saml_last_name_attribute.app_error",
+    "translation": "Invalid Last Name attribute. Must be set."
+  },
+  {
+    "id": "model.config.is_valid.saml_private_key.app_error",
+    "translation": "Service Provider Private Key missing. Did you forget to upload it?"
+  },
+  {
+    "id": "model.config.is_valid.saml_public_cert.app_error",
+    "translation": "Service Provider Public Certificate missing. Did you forget to upload it?"
+  },
+  {
+    "id": "model.config.is_valid.saml_username_attribute.app_error",
+    "translation": "Invalid Username attribute. Must be set."
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",
@@ -3317,11 +3461,11 @@
   },
   {
     "id": "store.sql_emoji.get_by_name.app_error",
-    "translation": "Nous n'avons pas pu obtenir le message"
+    "translation": "Impossible de récupérer l'Emoji"
   },
   {
     "id": "store.sql_emoji.save.app_error",
-    "translation": "Nous n'avons pas pu enregistrer le message"
+    "translation": "Nous n'avons pas pu enregistrer l'Emoji"
   },
   {
     "id": "store.sql_license.get.app_error",
@@ -3792,6 +3936,10 @@
     "translation": "Ce compte n'utilise pas l'authentification LDAP. Veuillez vous connecter avec votre adresse électronique et votre mot de passe."
   },
   {
+    "id": "store.sql_user.save.email_exists.saml_app_error",
+    "translation": "Ce compte n'utilise pas l'authentification LDAP. Veuillez vous connecter avec votre adresse électronique et votre mot de passe."
+  },
+  {
     "id": "store.sql_user.save.existing.app_error",
     "translation": "La mise à jour doit être appelée pour un utilisateur existant."
   },
@@ -3809,6 +3957,10 @@
   },
   {
     "id": "store.sql_user.save.username_exists.ldap_app_error",
+    "translation": "Un compte avec ce nom d'utilisateur existe déjà. Veuillez contacter votre administrateur."
+  },
+  {
+    "id": "store.sql_user.save.username_exists.saml_app_error",
     "translation": "Un compte avec ce nom d'utilisateur existe déjà. Veuillez contacter votre administrateur."
   },
   {
@@ -3845,7 +3997,7 @@
   },
   {
     "id": "store.sql_user.update_auth_data.email_exists.app_error",
-    "translation": "Unable to switch account to {{.Service}}. An account using the email {{.Email}} already exists."
+    "translation": "Impossible de convertir le compte à {{.Service}}. Un compte utilisant cette adresse électronique {{.Email}} existe déjà."
   },
   {
     "id": "store.sql_user.update_failed_pwd_attempts.app_error",
