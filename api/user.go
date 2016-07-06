@@ -246,7 +246,6 @@ func CreateUser(user *model.User) (*model.User, *model.AppError) {
 	user.Locale = *utils.Cfg.LocalizationSettings.DefaultClientLocale
 
 	if err := utils.IsPasswordValid(user.Password); user.AuthService == "" && err != nil {
-		err.StatusCode = http.StatusInternalServerError
 		return nil, err
 	}
 
@@ -1302,7 +1301,6 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if err := utils.IsPasswordValid(user.Password); user.Password != "" && err != nil {
 		c.Err = err
-		c.Err.StatusCode = http.StatusNotAcceptable
 		return
 	}
 
@@ -1353,7 +1351,6 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if err := utils.IsPasswordValid(newPassword); err != nil {
 		c.Err = err
-		c.Err.StatusCode = http.StatusNotAcceptable
 		return
 	}
 
@@ -1754,7 +1751,6 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	newPassword := props["new_password"]
 	if err := utils.IsPasswordValid(newPassword); err != nil {
 		c.Err = err
-		c.Err.StatusCode = http.StatusNotAcceptable
 		return
 	}
 
@@ -2058,7 +2054,6 @@ func oauthToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	password := props["password"]
 	if err := utils.IsPasswordValid(password); err != nil {
 		c.Err = err
-		c.Err.StatusCode = http.StatusNotAcceptable
 		return
 	}
 
@@ -2191,7 +2186,6 @@ func ldapToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	emailPassword := props["email_password"]
 	if err := utils.IsPasswordValid(emailPassword); err != nil {
 		c.Err = err
-		c.Err.StatusCode = http.StatusNotAcceptable
 		return
 	}
 
