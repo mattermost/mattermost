@@ -309,6 +309,12 @@ run-server: prepare-enterprise start-docker
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
 	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) *.go &
 
+run-cli: prepare-enterprise start-docker
+	@echo Running mattermost for development
+	@echo Example should be like >'make ARGS="-version" run-cli'
+
+	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) *.go ${ARGS}
+
 run-client:
 	@echo Running mattermost client for development
 

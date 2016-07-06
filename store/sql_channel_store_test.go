@@ -200,6 +200,15 @@ func TestChannelStoreGet(t *testing.T) {
 			t.Fatal("invalid returned channel")
 		}
 	}
+
+	if r3 := <-store.Channel().GetAll(o1.TeamId); r3.Err != nil {
+		t.Fatal(r3.Err)
+	} else {
+		channels := r3.Data.([]*model.Channel)
+		if len(channels) == 0 {
+			t.Fatal("too little")
+		}
+	}
 }
 
 func TestChannelStoreDelete(t *testing.T) {

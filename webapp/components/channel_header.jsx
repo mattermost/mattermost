@@ -101,6 +101,10 @@ export default class ChannelHeader extends React.Component {
         document.removeEventListener('keydown', this.openRecentMentions);
     }
 
+    shouldComponentUpdate(nextProps) {
+        return !!nextProps.channelId;
+    }
+
     onListenerChange() {
         const newState = this.getStateFromStores();
         if (!Utils.areObjectsEqual(newState, this.state)) {

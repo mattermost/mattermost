@@ -135,6 +135,175 @@ func TestCliAssignRole(t *testing.T) {
 	}
 }
 
+func TestCliJoinChannel(t *testing.T) {
+	if disableCliTests {
+		return
+	}
+
+	th := Setup().InitBasic()
+	channel := th.CreateChannel(th.BasicClient, th.BasicTeam)
+
+	// These test cannot run since this feature requires an enteprise license
+
+	// cmd := exec.Command("bash", "-c", `go run ../mattermost.go -join_channel -team_name="`+th.BasicTeam.Name+`" -channel_name="`+channel.Name+`" -email="`+th.BasicUser2.Email+`"`)
+	// output, err := cmd.CombinedOutput()
+	// if err != nil {
+	// 	t.Log(string(output))
+	// 	t.Fatal(err)
+	// }
+
+	// // Joining twice should succeed
+	// cmd1 := exec.Command("bash", "-c", `go run ../mattermost.go -join_channel -team_name="`+th.BasicTeam.Name+`" -channel_name="`+channel.Name+`" -email="`+th.BasicUser2.Email+`"`)
+	// output1, err1 := cmd1.CombinedOutput()
+	// if err1 != nil {
+	// 	t.Log(string(output1))
+	// 	t.Fatal(err1)
+	// }
+
+	// should fail because channel does not exist
+	cmd2 := exec.Command("bash", "-c", `go run ../mattermost.go -join_channel -team_name="`+th.BasicTeam.Name+`" -channel_name="`+channel.Name+`asdf" -email="`+th.BasicUser2.Email+`"`)
+	output2, err2 := cmd2.CombinedOutput()
+	if err2 == nil {
+		t.Log(string(output2))
+		t.Fatal()
+	}
+
+	// should fail because channel does not have license
+	cmd3 := exec.Command("bash", "-c", `go run ../mattermost.go -join_channel -team_name="`+th.BasicTeam.Name+`" -channel_name="`+channel.Name+`" -email="`+th.BasicUser2.Email+`"`)
+	output3, err3 := cmd3.CombinedOutput()
+	if err3 == nil {
+		t.Log(string(output3))
+		t.Fatal()
+	}
+}
+
+func TestCliRemoveChannel(t *testing.T) {
+	if disableCliTests {
+		return
+	}
+
+	th := Setup().InitBasic()
+	channel := th.CreateChannel(th.BasicClient, th.BasicTeam)
+
+	// These test cannot run since this feature requires an enteprise license
+
+	// cmd := exec.Command("bash", "-c", `go run ../mattermost.go -join_channel -team_name="`+th.BasicTeam.Name+`" -channel_name="`+channel.Name+`" -email="`+th.BasicUser2.Email+`"`)
+	// output, err := cmd.CombinedOutput()
+	// if err != nil {
+	// 	t.Log(string(output))
+	// 	t.Fatal(err)
+	// }
+
+	// cmd0 := exec.Command("bash", "-c", `go run ../mattermost.go -leave_channel -team_name="`+th.BasicTeam.Name+`" -channel_name="`+channel.Name+`" -email="`+th.BasicUser2.Email+`"`)
+	// output0, err0 := cmd0.CombinedOutput()
+	// if err0 != nil {
+	// 	t.Log(string(output0))
+	// 	t.Fatal(err0)
+	// }
+
+	// // Leaving twice should succeed
+	// cmd1 := exec.Command("bash", "-c", `go run ../mattermost.go -leave_channel -team_name="`+th.BasicTeam.Name+`" -channel_name="`+channel.Name+`" -email="`+th.BasicUser2.Email+`"`)
+	// output1, err1 := cmd1.CombinedOutput()
+	// if err1 != nil {
+	// 	t.Log(string(output1))
+	// 	t.Fatal(err1)
+	// }
+
+	// cannot leave town-square
+	cmd1a := exec.Command("bash", "-c", `go run ../mattermost.go -leave_channel -team_name="`+th.BasicTeam.Name+`" -channel_name="town-square" -email="`+th.BasicUser2.Email+`"`)
+	output1a, err1a := cmd1a.CombinedOutput()
+	if err1a == nil {
+		t.Log(string(output1a))
+		t.Fatal()
+	}
+
+	// should fail because channel does not exist
+	cmd2 := exec.Command("bash", "-c", `go run ../mattermost.go -leave_channel -team_name="`+th.BasicTeam.Name+`" -channel_name="`+channel.Name+`asdf" -email="`+th.BasicUser2.Email+`"`)
+	output2, err2 := cmd2.CombinedOutput()
+	if err2 == nil {
+		t.Log(string(output2))
+		t.Fatal()
+	}
+
+	// should fail because channel does not have license
+	cmd3 := exec.Command("bash", "-c", `go run ../mattermost.go -leave_channel -team_name="`+th.BasicTeam.Name+`" -channel_name="`+channel.Name+`" -email="`+th.BasicUser2.Email+`"`)
+	output3, err3 := cmd3.CombinedOutput()
+	if err3 == nil {
+		t.Log(string(output3))
+		t.Fatal()
+	}
+}
+
+func TestCliListChannels(t *testing.T) {
+	if disableCliTests {
+		return
+	}
+
+	th := Setup().InitBasic()
+	channel := th.CreateChannel(th.BasicClient, th.BasicTeam)
+	th.BasicClient.Must(th.BasicClient.DeleteChannel(channel.Id))
+
+	// These test cannot run since this feature requires an enteprise license
+
+	// cmd := exec.Command("bash", "-c", `go run ../mattermost.go -list_channels -team_name="`+th.BasicTeam.Name+`"`)
+	// output, err := cmd.CombinedOutput()
+	// if err != nil {
+	// 	t.Log(string(output))
+	// 	t.Fatal(err)
+	// }
+
+	// if !strings.Contains(string(output), "town-square") {
+	// 	t.Fatal("should have channels")
+	// }
+
+	// if !strings.Contains(string(output), channel.Name+" (archived)") {
+	// 	t.Fatal("should have archived channel")
+	// }
+
+	// should fail because channel does not have license
+	cmd3 := exec.Command("bash", "-c", `go run ../mattermost.go -list_channels -team_name="`+th.BasicTeam.Name+``)
+	output3, err3 := cmd3.CombinedOutput()
+	if err3 == nil {
+		t.Log(string(output3))
+		t.Fatal()
+	}
+}
+
+func TestCliRestoreChannel(t *testing.T) {
+	if disableCliTests {
+		return
+	}
+
+	th := Setup().InitBasic()
+	channel := th.CreateChannel(th.BasicClient, th.BasicTeam)
+	th.BasicClient.Must(th.BasicClient.DeleteChannel(channel.Id))
+
+	// These test cannot run since this feature requires an enteprise license
+
+	// cmd := exec.Command("bash", "-c", `go run ../mattermost.go -restore_channel -team_name="`+th.BasicTeam.Name+`" -channel_name="`+channel.Name+`"`)
+	// output, err := cmd.CombinedOutput()
+	// if err != nil {
+	// 	t.Log(string(output))
+	// 	t.Fatal(err)
+	// }
+
+	// // restoring twice should succeed
+	// cmd1 := exec.Command("bash", "-c", `go run ../mattermost.go -restore_channel -team_name="`+th.BasicTeam.Name+`" -channel_name="`+channel.Name+`"`)
+	// output1, err1 := cmd1.CombinedOutput()
+	// if err1 != nil {
+	// 	t.Log(string(output1))
+	// 	t.Fatal(err1)
+	// }
+
+	// should fail because channel does not have license
+	cmd3 := exec.Command("bash", "-c", `go run ../mattermost.go -restore_channel -team_name="`+th.BasicTeam.Name+`" -channel_name="`+channel.Name+`"`)
+	output3, err3 := cmd3.CombinedOutput()
+	if err3 == nil {
+		t.Log(string(output3))
+		t.Fatal()
+	}
+}
+
 func TestCliJoinTeam(t *testing.T) {
 	if disableCliTests {
 		return

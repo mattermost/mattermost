@@ -77,12 +77,14 @@ type ChannelStore interface {
 	Get(id string) StoreChannel
 	GetFromMaster(id string) StoreChannel
 	Delete(channelId string, time int64) StoreChannel
+	SetDeleteAt(channelId string, deleteAt int64, updateAt int64) StoreChannel
 	PermanentDeleteByTeam(teamId string) StoreChannel
 	GetByName(team_id string, domain string) StoreChannel
 	GetChannels(teamId string, userId string) StoreChannel
 	GetMoreChannels(teamId string, userId string) StoreChannel
 	GetChannelCounts(teamId string, userId string) StoreChannel
 	GetForExport(teamId string) StoreChannel
+	GetAll(teamId string) StoreChannel
 
 	SaveMember(member *model.ChannelMember) StoreChannel
 	UpdateMember(member *model.ChannelMember) StoreChannel
