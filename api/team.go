@@ -17,7 +17,6 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 )
 
@@ -39,6 +38,7 @@ func InitTeam() {
 	BaseRoutes.NeedTeam.Handle("/invite_members", ApiUserRequired(inviteMembers)).Methods("POST")
 
 	BaseRoutes.NeedTeam.Handle("/add_user_to_team", ApiUserRequired(addUserToTeam)).Methods("POST")
+	BaseRoutes.NeedTeam.Handle("/remove_user_from_team", ApiUserRequired(removeUserFromTeam)).Methods("POST")
 
 	// These should be moved to the global admin console
 	BaseRoutes.NeedTeam.Handle("/import_team", ApiUserRequired(importTeam)).Methods("POST")
@@ -266,11 +266,23 @@ func JoinUserToTeam(team *model.Team, user *model.User) *model.AppError {
 		channelRole = model.CHANNEL_ROLE_ADMIN
 	}
 
-	if tmr := <-Srv.Store.Team().SaveMember(tm); tmr.Err != nil {
-		if tmr.Err.Id == store.TEAM_MEMBER_EXISTS_ERROR {
+	if etmr := <-Srv.Store.Team().GetMember(team.Id, user.Id); etmr.Err == nil {
+		// Membership alredy exists.  Check if deleted and and update, otherwise do nothing
+		rtm := etmr.Data.(model.TeamMember)
+
+		// Do nothing if already added
+		if rtm.DeleteAt == 0 {
 			return nil
 		}
-		return tmr.Err
+
+		if tmr := <-Srv.Store.Team().UpdateMember(tm); tmr.Err != nil {
+			return tmr.Err
+		}
+	} else {
+		// Membership appears to be missing.  Lets try to add.
+		if tmr := <-Srv.Store.Team().SaveMember(tm); tmr.Err != nil {
+			return tmr.Err
+		}
 	}
 
 	if uua := <-Srv.Store.User().UpdateUpdateAt(user.Id); uua.Err != nil {
@@ -287,6 +299,56 @@ func JoinUserToTeam(team *model.Team, user *model.User) *model.AppError {
 
 	// This message goes to every channel, so the channelId is irrelevant
 	go Publish(model.NewMessage("", "", user.Id, model.ACTION_NEW_USER))
+
+	return nil
+}
+
+func LeaveTeam(team *model.Team, user *model.User) *model.AppError {
+
+	var teamMember model.TeamMember
+
+	if result := <-Srv.Store.Team().GetMember(team.Id, user.Id); result.Err != nil {
+		return model.NewLocAppError("RemoveUserFromTeam", "api.team.remove_user_from_team.missing.app_error", nil, result.Err.Error())
+	} else {
+		teamMember = result.Data.(model.TeamMember)
+	}
+
+	var channelMembers *model.ChannelList
+
+	if result := <-Srv.Store.Channel().GetChannels(team.Id, user.Id); result.Err != nil {
+		if result.Err.Id == "store.sql_channel.get_channels.not_found.app_error" {
+			channelMembers = &model.ChannelList{make([]*model.Channel, 0), make(map[string]*model.ChannelMember)}
+		} else {
+			return result.Err
+		}
+
+	} else {
+		channelMembers = result.Data.(*model.ChannelList)
+	}
+
+	for _, channel := range channelMembers.Channels {
+		if channel.Type != model.CHANNEL_DIRECT {
+			if result := <-Srv.Store.Channel().RemoveMember(channel.Id, user.Id); result.Err != nil {
+				return result.Err
+			}
+		}
+	}
+
+	teamMember.Roles = ""
+	teamMember.DeleteAt = model.GetMillis()
+
+	if result := <-Srv.Store.Team().UpdateMember(&teamMember); result.Err != nil {
+		return result.Err
+	}
+
+	if uua := <-Srv.Store.User().UpdateUpdateAt(user.Id); uua.Err != nil {
+		return uua.Err
+	}
+
+	RemoveAllSessionsForUserId(user.Id)
+	InvalidateCacheForUser(user.Id)
+
+	go Publish(model.NewMessage(team.Id, "", user.Id, model.ACTION_LEAVE_TEAM))
 
 	return nil
 }
@@ -475,6 +537,51 @@ func addUserToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	err := JoinUserToTeam(team, user)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(model.MapToJson(params)))
+}
+
+func removeUserFromTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := model.MapFromJson(r.Body)
+	userId := params["user_id"]
+
+	if len(userId) != 26 {
+		c.SetInvalidParam("removeUserFromTeam", "user_id")
+		return
+	}
+
+	tchan := Srv.Store.Team().Get(c.TeamId)
+	uchan := Srv.Store.User().Get(userId)
+
+	var team *model.Team
+	if result := <-tchan; result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		team = result.Data.(*model.Team)
+	}
+
+	var user *model.User
+	if result := <-uchan; result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		user = result.Data.(*model.User)
+	}
+
+	if c.Session.UserId != user.Id {
+		if !c.IsTeamAdmin() {
+			c.Err = model.NewLocAppError("removeUserFromTeam", "api.team.update_team.permissions.app_error", nil, "userId="+c.Session.UserId)
+			c.Err.StatusCode = http.StatusForbidden
+			return
+		}
+	}
+
+	err := LeaveTeam(team, user)
 	if err != nil {
 		c.Err = err
 		return

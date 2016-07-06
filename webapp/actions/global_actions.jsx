@@ -288,6 +288,13 @@ export function showInviteMemberModal() {
     });
 }
 
+export function showLeaveTeamModal() {
+    AppDispatcher.handleViewAction({
+        type: ActionTypes.TOGGLE_LEAVE_TEAM_MODAL,
+        value: true
+    });
+}
+
 export function showRegisterAppModal() {
     AppDispatcher.handleViewAction({
         type: ActionTypes.TOGGLE_REGISTER_APP_MODAL,

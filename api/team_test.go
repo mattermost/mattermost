@@ -158,13 +158,46 @@ func TestAddUserToTeam(t *testing.T) {
 	}
 
 	user2 := th.CreateUser(th.BasicClient)
-	if result, err := th.BasicClient.AddUserToTeam(user2.Id); err != nil {
+	if result, err := th.BasicClient.AddUserToTeam("", user2.Id); err != nil {
 		t.Fatal(err)
 	} else {
 		rm := result.Data.(map[string]string)
 		if rm["user_id"] != user2.Id {
 			t.Fatal("email's didn't match")
 		}
+	}
+}
+
+func TestRemoveUserFromTeam(t *testing.T) {
+	th := Setup().InitSystemAdmin().InitBasic()
+
+	if _, err := th.BasicClient.RemoveUserFromTeam(th.SystemAdminTeam.Id, th.SystemAdminUser.Id); err == nil {
+		t.Fatal("should fail not enough permissions")
+	} else {
+		if err.Id != "api.context.permissions.app_error" {
+			t.Fatal("wrong error")
+		}
+	}
+
+	if _, err := th.BasicClient.RemoveUserFromTeam("", th.SystemAdminUser.Id); err == nil {
+		t.Fatal("should fail not enough permissions")
+	} else {
+		if err.Id != "api.team.update_team.permissions.app_error" {
+			t.Fatal("wrong error")
+		}
+	}
+
+	if _, err := th.BasicClient.RemoveUserFromTeam("", th.BasicUser.Id); err != nil {
+		t.Fatal("should have removed the user from the team")
+	}
+
+	th.BasicClient.Logout()
+	th.LoginSystemAdmin()
+
+	th.SystemAdminClient.Must(th.SystemAdminClient.AddUserToTeam(th.BasicTeam.Id, th.BasicUser.Id))
+
+	if _, err := th.SystemAdminClient.RemoveUserFromTeam(th.BasicTeam.Id, th.BasicUser.Id); err != nil {
+		t.Fatal("should have removed the user from the team")
 	}
 }
 

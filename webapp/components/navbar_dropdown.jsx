@@ -236,6 +236,20 @@ export default class NavbarDropdown extends React.Component {
             );
         }
 
+        teams.push(
+            <li key='leaveTeam_li'>
+                <a
+                    href='#'
+                    onClick={GlobalActions.showLeaveTeamModal}
+                >
+                    <FormattedMessage
+                        id='navbar_dropdown.leave'
+                        defaultMessage='Leave Team'
+                    />
+                </a>
+            </li>
+        );
+
         if (this.state.teamMembers && this.state.teamMembers.length > 1) {
             teams.push(
                 <li

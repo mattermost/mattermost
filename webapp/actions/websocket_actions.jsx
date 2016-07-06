@@ -135,6 +135,10 @@ function handleMessage(msg) {
         handleNewUserEvent();
         break;
 
+    case SocketEvents.LEAVE_TEAM:
+        handleLeaveTeamEvent(msg);
+        break;
+
     case SocketEvents.USER_ADDED:
         handleUserAddedEvent(msg);
         break;
@@ -217,6 +221,19 @@ function handleNewUserEvent() {
     AsyncClient.getProfiles();
     AsyncClient.getDirectProfiles();
     AsyncClient.getChannelExtraInfo();
+}
+
+function handleLeaveTeamEvent(msg) {
+    if (UserStore.getCurrentId() === msg.user_id) {
+        TeamStore.removeTeamMember(msg.team_id);
+
+        // if the are on the team begin removed redirect them to the root
+        if (TeamStore.getCurrentId() === msg.team_id) {
+            browserHistory.push('/');
+        }
+    } else if (TeamStore.getCurrentId() === msg.team_id) {
+        GlobalActions.emitProfilesForDmList();
+    }
 }
 
 function handleDirectAddedEvent(msg) {

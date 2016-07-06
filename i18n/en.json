@@ -1264,6 +1264,10 @@
     "translation": "Unable to open zip file"
   },
   {
+    "id": "api.team.remove_user_from_team.missing.app_error",
+    "translation": "The user does not appear to be part of this team."
+  },
+  {
     "id": "api.team.create_team.email_disabled.app_error",
     "translation": "Team sign-up with email is disabled."
   },
@@ -4222,6 +4226,27 @@
   {
     "id": "utils.mail.test.configured.error",
     "translation": "SMTP server settings do not appear to be configured properly err=%v details=%v"
+  },
+
+  {
+    "id": "utils.mail.test.configured.error",
+    "translation": "SMTP server settings do not appear to be configured properly err=%v details=%v"
+  },
+  {
+    "id": "leave_team_modal.title",
+    "translation": "Leave the team?"
+  },
+  {
+    "id": "leave_team_modal.desc",
+    "translation": "You will be removed from all public channels and private groups.  If the team is private you will not be able to rejoin the team.  Are you sure?"
+  },
+  {
+    "id": "leave_team_modal.no",
+    "translation": "No"
+  },
+  {
+    "id": "leave_team_modal.yes",
+    "translation": "Yes"
   },
   {
     "id": "web.admin_console.title",

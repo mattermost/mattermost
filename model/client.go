@@ -345,10 +345,18 @@ func (c *Client) FindTeamByName(name string) (*Result, *AppError) {
 	}
 }
 
-func (c *Client) AddUserToTeam(userId string) (*Result, *AppError) {
+//  Adds a user directly to the team without sending an invite.
+//  The teamId and userId are required.  You must be a valid member of the team and/or
+//  have the correct role to add new users to the team.  Returns a map of user_id=userId
+//  if successful, otherwise returns an AppError.
+func (c *Client) AddUserToTeam(teamId string, userId string) (*Result, *AppError) {
+	if len(teamId) == 0 {
+		teamId = c.GetTeamId()
+	}
+
 	data := make(map[string]string)
 	data["user_id"] = userId
-	if r, err := c.DoApiPost(c.GetTeamRoute()+"/add_user_to_team", MapToJson(data)); err != nil {
+	if r, err := c.DoApiPost(fmt.Sprintf("/teams/%v", teamId)+"/add_user_to_team", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)
@@ -368,6 +376,26 @@ func (c *Client) AddUserToTeamFromInvite(hash, dataToHash, inviteId string) (*Re
 		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), TeamFromJson(r.Body)}, nil
+	}
+}
+
+//  Removes a user directly from the team.
+//  The teamId and userId are required.  You must be a valid member of the team and/or
+//  have the correct role to remove a user from the team.  Returns a map of user_id=userId
+//  if successful, otherwise returns an AppError.
+func (c *Client) RemoveUserFromTeam(teamId string, userId string) (*Result, *AppError) {
+	if len(teamId) == 0 {
+		teamId = c.GetTeamId()
+	}
+
+	data := make(map[string]string)
+	data["user_id"] = userId
+	if r, err := c.DoApiPost(fmt.Sprintf("/teams/%v", teamId)+"/remove_user_from_team", MapToJson(data)); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
 }
 

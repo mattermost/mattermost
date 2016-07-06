@@ -113,6 +113,7 @@ export default {
 
         TOGGLE_IMPORT_THEME_MODAL: null,
         TOGGLE_INVITE_MEMBER_MODAL: null,
+        TOGGLE_LEAVE_TEAM_MODAL: null,
         TOGGLE_DELETE_POST_MODAL: null,
         TOGGLE_GET_POST_LINK_MODAL: null,
         TOGGLE_GET_TEAM_INVITE_LINK_MODAL: null,
@@ -160,6 +161,7 @@ export default {
         CHANNEL_VIEWED: 'channel_viewed',
         DIRECT_ADDED: 'direct_added',
         NEW_USER: 'new_user',
+        LEAVE_TEAM: 'leave_team',
         USER_ADDED: 'user_added',
         USER_REMOVED: 'user_removed',
         TYPING: 'typing',

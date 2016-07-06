@@ -334,6 +334,43 @@ func TestCliJoinTeam(t *testing.T) {
 	}
 }
 
+func TestCliLeaveTeam(t *testing.T) {
+	if disableCliTests {
+		return
+	}
+
+	th := Setup().InitBasic()
+
+	cmd := exec.Command("bash", "-c", `go run ../mattermost.go -leave_team -team_name="`+th.BasicTeam.Name+`" -email="`+th.BasicUser.Email+`"`)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Log(string(output))
+		t.Fatal(err)
+	}
+
+	profiles := th.BasicClient.Must(th.BasicClient.GetProfiles(th.BasicTeam.Id, "")).Data.(map[string]*model.User)
+
+	found := false
+
+	for _, user := range profiles {
+		if user.Email == th.BasicUser.Email {
+			found = true
+		}
+
+	}
+
+	if !found {
+		t.Fatal("profile still should be in team even if deleted")
+	}
+
+	if result := <-Srv.Store.Team().GetTeamsByUserId(th.BasicUser.Id); result.Err != nil {
+		teamMembers := result.Data.([]*model.TeamMember)
+		if len(teamMembers) > 0 {
+			t.Fatal("Shouldn't be in team")
+		}
+	}
+}
+
 func TestCliResetPassword(t *testing.T) {
 	if disableCliTests {
 		return
