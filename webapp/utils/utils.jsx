@@ -32,6 +32,14 @@ export function cleanUpUrlable(input) {
     return cleaned;
 }
 
+export function isMac() {
+    return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+}
+
+export function cmdOrCtrlPressed(e) {
+    return (isMac() && e.metaKey) || (!isMac() && e.ctrlKey);
+}
+
 export function isChrome() {
     if (navigator.userAgent.indexOf('Chrome') > -1) {
         return true;
