@@ -97,6 +97,26 @@ export default class InstalledOutgoingWebhooks extends React.Component {
                         defaultMessage='No outgoing webhooks found'
                     />
                 }
+                helpText={
+                    <FormattedMessage
+                        id='installed_outgoing_webhooks.help'
+                        defaultMessage='Create outgoing webhook URLs for use in external integrations. Please see {link} to learn more.'
+                        values={{
+                            link: (
+                                <a
+                                    target='_blank'
+                                    rel='noopener noreferrer'
+                                    href='http://docs.mattermost.com/developer/webhooks-outgoing.html'
+                                >
+                                    <FormattedMessage
+                                        id='installed_outgoing_webhooks.helpLink'
+                                        defaultMessage='documentation'
+                                    />
+                                </a>
+                            )
+                        }}
+                    />
+                }
                 searchPlaceholder={Utils.localizeMessage('installed_outgoing_webhooks.search', 'Search Outgoing Webhooks')}
                 loading={this.state.loading}
             >
