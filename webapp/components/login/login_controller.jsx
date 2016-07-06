@@ -336,7 +336,10 @@ export default class LoginController extends React.Component {
                     onSubmit={this.preSubmit}
                 >
                     <div className='signup__email-container'>
-                        <FormError error={this.state.serverError}/>
+                        <FormError
+                            error={this.state.serverError}
+                            margin={true}
+                        />
                         <div className={'form-group' + errorClass}>
                             <input
                                 className='form-control'

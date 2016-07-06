@@ -393,7 +393,10 @@ export default class SignupUserComplete extends React.Component {
                 onSubmit={this.handleLdapSignup}
             >
                 <div className='signup__email-container'>
-                    <FormError error={this.state.ldapError}/>
+                    <FormError
+                        error={this.state.ldapError}
+                        margin={true}
+                    />
                     <div className={'form-group' + errorClass}>
                         <input
                             className='form-control'
