@@ -205,6 +205,8 @@ func doSecurityAndDiagnostics() {
 				}
 
 				bulletins := model.SecurityBulletinsFromJson(res.Body)
+				ioutil.ReadAll(res.Body)
+				res.Body.Close()
 
 				for _, bulletin := range bulletins {
 					if bulletin.AppliesToVersion == model.CurrentVersion {

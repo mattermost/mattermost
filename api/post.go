@@ -803,8 +803,11 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 			request, _ := http.NewRequest("POST", *utils.Cfg.EmailSettings.PushNotificationServer+model.API_URL_SUFFIX_V1+"/send_push", strings.NewReader(msg.ToJson()))
 
 			l4g.Debug(utils.T("api.post.send_notifications_and_forget.push_notification.debug"), msg.DeviceId, msg.Message)
-			if _, err := httpClient.Do(request); err != nil {
+			if resp, err := httpClient.Do(request); err != nil {
 				l4g.Error(utils.T("api.post.send_notifications_and_forget.push_notification.error"), user.Id, err)
+			} else {
+				ioutil.ReadAll(resp.Body)
+				resp.Body.Close()
 			}
 
 			// notification sent, don't need to check other sessions

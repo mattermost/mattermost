@@ -8,6 +8,7 @@ import (
 	b64 "encoding/base64"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -195,6 +196,11 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	} else {
+		defer func() {
+			ioutil.ReadAll(body)
+			body.Close()
+		}()
+
 		action := props["action"]
 		switch action {
 		case model.OAUTH_ACTION_SIGNUP:
@@ -578,6 +584,10 @@ func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser
 		return nil, "", nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_failed.app_error", nil, err.Error())
 	} else {
 		ar = model.AccessResponseFromJson(resp.Body)
+		defer func() {
+			ioutil.ReadAll(resp.Body)
+			resp.Body.Close()
+		}()
 		if ar == nil {
 			return nil, "", nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_response.app_error", nil, "")
 		}
