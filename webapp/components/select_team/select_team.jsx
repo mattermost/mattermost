@@ -108,7 +108,7 @@ export default class SelectTeam extends React.Component {
                     <div>
                         <FormattedMessage
                             id='signup_team.no_open_teams_canCreate'
-                            defaultMessage='No open teams have been created. Please ask your administrator for an invite or create a new team.'
+                            defaultMessage='No teams are available to join. Please create a new team or ask your administrator for an invite.'
                         />
                     </div>
                 </div>
@@ -119,7 +119,7 @@ export default class SelectTeam extends React.Component {
                     <div>
                         <FormattedMessage
                             id='signup_team.no_open_teams'
-                            defaultMessage='No open teams have been created. Please ask your administrator for an invite.'
+                            defaultMessage='No teams are available to join. Please ask your administrator for an invite.'
                         />
                     </div>
                 </div>
@@ -134,7 +134,7 @@ export default class SelectTeam extends React.Component {
                     <h4>
                         <FormattedMessage
                             id='signup_team.choose'
-                            defaultMessage='Teams you are a member of:'
+                            defaultMessage='Your teams:'
                         />
                     </h4>
                     <div className='signup-team-all'>
@@ -151,7 +151,7 @@ export default class SelectTeam extends React.Component {
                     <h4>
                         <FormattedMessage
                             id='signup_team.join_open'
-                            defaultMessage='Open teams you can join: '
+                            defaultMessage='Teams you can join: '
                         />
                     </h4>
                     <div className='signup-team-all'>
@@ -204,8 +204,8 @@ export default class SelectTeam extends React.Component {
                         className='signup-team-login'
                     >
                         <FormattedMessage
-                            id='navbar_dropdown.console'
-                            defaultMessage='System Console'
+                            id='signup_team_system_console'
+                            defaultMessage='Go to System Console'
                         />
                     </Link>
                 </div>
