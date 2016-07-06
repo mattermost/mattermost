@@ -157,6 +157,7 @@
         "SyncIntervalMinutes": 60,
         "SkipCertificateVerification": false,
         "QueryTimeout": 60,
+        "MaxPageSize": 0,
         "LoginFieldName": ""
     },
     "ComplianceSettings": {
@@ -185,6 +186,6 @@
         "UsernameAttribute": "",
         "NicknameAttribute": "",
         "LocaleAttribute": "",
-        "LoginButtonText": ""
+        "LoginButtonText": "With SAML"
     }
 }
