@@ -84,7 +84,7 @@ class ImportThemeModal extends React.Component {
         const user = UserStore.getCurrentUser();
         user.theme_props = theme;
 
-        Client.updateUser(user,
+        Client.updateUserTheme(user,
             (data) => {
                 AppDispatcher.handleServerAction({
                     type: ActionTypes.RECEIVED_ME,
