@@ -167,6 +167,15 @@ export default {
         EPHEMERAL_MESSAGE: 'ephemeral_message'
     },
 
+    UserUpdateEvents: {
+        USERNAME: 'username',
+        FULLNAME: 'fullname',
+        NICKNAME: 'nickname',
+        EMAIL: 'email',
+        THEME: 'theme',
+        LANGUAGE: 'language'
+    },
+
     ScrollTypes: {
         FREE: 1,
         BOTTOM: 2,

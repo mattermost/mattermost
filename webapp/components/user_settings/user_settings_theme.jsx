@@ -111,7 +111,7 @@ export default class ThemeSetting extends React.Component {
         var user = UserStore.getCurrentUser();
         user.theme_props = this.state.theme;
 
-        Client.updateUser(user,
+        Client.updateUser(user, Constants.UserUpdateEvents.THEME,
             (data) => {
                 AppDispatcher.handleServerAction({
                     type: ActionTypes.RECEIVED_ME,
