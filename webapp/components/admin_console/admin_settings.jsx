@@ -60,13 +60,15 @@ export default class AdminSettings extends React.Component {
             serverError: null
         });
 
-        const config = this.getConfigFromState(this.props.config);
+        // clone config so that we aren't modifying data in the stores
+        let config = JSON.parse(JSON.stringify(this.props.config));
+        config = this.getConfigFromState(config);
 
         Client.saveConfig(
             config,
             () => {
-                AsyncClient.getConfig((newConfig) => {
-                    this.setState(this.getStateFromConfig(newConfig));
+                AsyncClient.getConfig((savedConfig) => {
+                    this.setState(this.getStateFromConfig(savedConfig));
                 });
 
                 this.setState({
