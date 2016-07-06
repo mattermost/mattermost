@@ -140,7 +140,7 @@ export default class EmojiList extends React.Component {
                         />
                     </div>
                 </div>
-                <span className='emoji-list__help'>
+                <span className='backstage-list__help'>
                     <FormattedMessage
                         id='emoji_list.help'
                         defaultMessage='Custom emoji are available to everyone on your server and will show up in the emoji autocomplete menu.'

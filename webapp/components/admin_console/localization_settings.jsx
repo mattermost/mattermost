@@ -24,9 +24,6 @@ export default class LocalizationSettings extends AdminSettings {
 
         this.state = Object.assign(this.state, {
             hasErrors: false,
-            defaultServerLocale: props.config.LocalizationSettings.DefaultServerLocale,
-            defaultClientLocale: props.config.LocalizationSettings.DefaultClientLocale,
-            availableLocales: props.config.LocalizationSettings.AvailableLocales ? props.config.LocalizationSettings.AvailableLocales.split(',') : [],
             languages: Object.keys(locales).map((l) => {
                 return {value: locales[l].value, text: locales[l].name};
             })
@@ -43,6 +40,14 @@ export default class LocalizationSettings extends AdminSettings {
         config.LocalizationSettings.AvailableLocales = this.state.availableLocales.join(',');
 
         return config;
+    }
+
+    getStateFromConfig(config) {
+        return {
+            defaultServerLocale: config.LocalizationSettings.DefaultServerLocale,
+            defaultClientLocale: config.LocalizationSettings.DefaultClientLocale,
+            availableLocales: config.LocalizationSettings.AvailableLocales ? config.LocalizationSettings.AvailableLocales.split(',') : []
+        };
     }
 
     renderTitle() {

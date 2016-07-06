@@ -19,16 +19,6 @@ export default class LogSettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        this.state = Object.assign(this.state, {
-            enableConsole: props.config.LogSettings.EnableConsole,
-            consoleLevel: props.config.LogSettings.ConsoleLevel,
-            enableFile: props.config.LogSettings.EnableFile,
-            fileLevel: props.config.LogSettings.FileLevel,
-            fileLocation: props.config.LogSettings.FileLocation,
-            fileFormat: props.config.LogSettings.FileFormat,
-            enableWebhookDebugging: props.config.LogSettings.EnableWebhookDebugging
-        });
     }
 
     getConfigFromState(config) {
@@ -41,6 +31,18 @@ export default class LogSettings extends AdminSettings {
         config.LogSettings.EnableWebhookDebugging = this.state.enableWebhookDebugging;
 
         return config;
+    }
+
+    getStateFromConfig(config) {
+        return {
+            enableConsole: config.LogSettings.EnableConsole,
+            consoleLevel: config.LogSettings.ConsoleLevel,
+            enableFile: config.LogSettings.EnableFile,
+            fileLevel: config.LogSettings.FileLevel,
+            fileLocation: config.LogSettings.FileLocation,
+            fileFormat: config.LogSettings.FileFormat,
+            enableWebhookDebugging: config.LogSettings.EnableWebhookDebugging
+        };
     }
 
     renderTitle() {

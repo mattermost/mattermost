@@ -91,6 +91,26 @@ export default class InstalledIncomingWebhooks extends React.Component {
                         defaultMessage='No incoming webhooks found'
                     />
                 }
+                helpText={
+                    <FormattedMessage
+                        id='installed_incoming_webhooks.help'
+                        defaultMessage='Create incoming webhook URLs for use in external integrations. Please see {link} to learn more.'
+                        values={{
+                            link: (
+                                <a
+                                    target='_blank'
+                                    rel='noopener noreferrer'
+                                    href='http://docs.mattermost.com/developer/webhooks-incoming.html'
+                                >
+                                    <FormattedMessage
+                                        id='installed_incoming_webhooks.helpLink'
+                                        defaultMessage='documentation'
+                                    />
+                                </a>
+                            )
+                        }}
+                    />
+                }
                 searchPlaceholder={Utils.localizeMessage('installed_incoming_webhooks.search', 'Search Incoming Webhooks')}
                 loading={this.state.loading}
             >

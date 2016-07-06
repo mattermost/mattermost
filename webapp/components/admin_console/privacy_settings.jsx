@@ -15,11 +15,6 @@ export default class PrivacySettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        this.state = Object.assign(this.state, {
-            showEmailAddress: props.config.PrivacySettings.ShowEmailAddress,
-            showFullName: props.config.PrivacySettings.ShowFullName
-        });
     }
 
     getConfigFromState(config) {
@@ -27,6 +22,13 @@ export default class PrivacySettings extends AdminSettings {
         config.PrivacySettings.ShowFullName = this.state.showFullName;
 
         return config;
+    }
+
+    getStateFromConfig(config) {
+        return {
+            showEmailAddress: config.PrivacySettings.ShowEmailAddress,
+            showFullName: config.PrivacySettings.ShowFullName
+        };
     }
 
     renderTitle() {

@@ -97,6 +97,26 @@ export default class InstalledCommands extends React.Component {
                         defaultMessage='No slash commands found'
                     />
                 }
+                helpText={
+                    <FormattedMessage
+                        id='installed_commands.help'
+                        defaultMessage='Create slash commands for use in external integrations. Please see {link} to learn more.'
+                        values={{
+                            link: (
+                                <a
+                                    target='_blank'
+                                    rel='noopener noreferrer'
+                                    href='http://docs.mattermost.com/developer/slash-commands.html'
+                                >
+                                    <FormattedMessage
+                                        id='installed_commands.helpLink'
+                                        defaultMessage='documentation'
+                                    />
+                                </a>
+                            )
+                        }}
+                    />
+                }
                 searchPlaceholder={Utils.localizeMessage('installed_commands.search', 'Search Slash Commands')}
                 loading={this.state.loading}
             >

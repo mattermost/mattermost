@@ -20,19 +20,6 @@ export default class EmailSettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        this.state = Object.assign(this.state, {
-            sendEmailNotifications: props.config.EmailSettings.SendEmailNotifications,
-            feedbackName: props.config.EmailSettings.FeedbackName,
-            feedbackEmail: props.config.EmailSettings.FeedbackEmail,
-            feedbackOrganization: props.config.EmailSettings.FeedbackOrganization,
-            smtpUsername: props.config.EmailSettings.SMTPUsername,
-            smtpPassword: props.config.EmailSettings.SMTPPassword,
-            smtpServer: props.config.EmailSettings.SMTPServer,
-            smtpPort: props.config.EmailSettings.SMTPPort,
-            connectionSecurity: props.config.EmailSettings.ConnectionSecurity,
-            enableSecurityFixAlert: props.config.ServiceSettings.EnableSecurityFixAlert
-        });
     }
 
     getConfigFromState(config) {
@@ -48,6 +35,21 @@ export default class EmailSettings extends AdminSettings {
         config.ServiceSettings.EnableSecurityFixAlert = this.state.enableSecurityFixAlert;
 
         return config;
+    }
+
+    getStateFromConfig(config) {
+        return {
+            sendEmailNotifications: config.EmailSettings.SendEmailNotifications,
+            feedbackName: config.EmailSettings.FeedbackName,
+            feedbackEmail: config.EmailSettings.FeedbackEmail,
+            feedbackOrganization: config.EmailSettings.FeedbackOrganization,
+            smtpUsername: config.EmailSettings.SMTPUsername,
+            smtpPassword: config.EmailSettings.SMTPPassword,
+            smtpServer: config.EmailSettings.SMTPServer,
+            smtpPort: config.EmailSettings.SMTPPort,
+            connectionSecurity: config.EmailSettings.ConnectionSecurity,
+            enableSecurityFixAlert: config.ServiceSettings.EnableSecurityFixAlert
+        };
     }
 
     renderTitle() {

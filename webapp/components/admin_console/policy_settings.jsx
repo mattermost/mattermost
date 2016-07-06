@@ -19,12 +19,6 @@ export default class PolicySettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        this.state = Object.assign(this.state, {
-            restrictTeamInvite: props.config.TeamSettings.RestrictTeamInvite,
-            restrictPublicChannelManagement: props.config.TeamSettings.RestrictPublicChannelManagement,
-            restrictPrivateChannelManagement: props.config.TeamSettings.RestrictPrivateChannelManagement
-        });
     }
 
     getConfigFromState(config) {
@@ -33,6 +27,14 @@ export default class PolicySettings extends AdminSettings {
         config.TeamSettings.RestrictPrivateChannelManagement = this.state.restrictPrivateChannelManagement;
 
         return config;
+    }
+
+    getStateFromConfig(config) {
+        return {
+            restrictTeamInvite: config.TeamSettings.RestrictTeamInvite,
+            restrictPublicChannelManagement: config.TeamSettings.RestrictPublicChannelManagement,
+            restrictPrivateChannelManagement: config.TeamSettings.RestrictPrivateChannelManagement
+        };
     }
 
     renderTitle() {

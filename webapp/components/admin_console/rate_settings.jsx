@@ -18,14 +18,6 @@ export default class RateSettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        this.state = Object.assign(this.state, {
-            enableRateLimiter: props.config.RateLimitSettings.EnableRateLimiter,
-            perSec: props.config.RateLimitSettings.PerSec,
-            memoryStoreSize: props.config.RateLimitSettings.MemoryStoreSize,
-            varyByRemoteAddr: props.config.RateLimitSettings.VaryByRemoteAddr,
-            varyByHeader: props.config.RateLimitSettings.VaryByHeader
-        });
     }
 
     getConfigFromState(config) {
@@ -36,6 +28,16 @@ export default class RateSettings extends AdminSettings {
         config.RateLimitSettings.VaryByHeader = this.state.varyByHeader;
 
         return config;
+    }
+
+    getStateFromConfig(config) {
+        return {
+            enableRateLimiter: config.RateLimitSettings.EnableRateLimiter,
+            perSec: config.RateLimitSettings.PerSec,
+            memoryStoreSize: config.RateLimitSettings.MemoryStoreSize,
+            varyByRemoteAddr: config.RateLimitSettings.VaryByRemoteAddr,
+            varyByHeader: config.RateLimitSettings.VaryByHeader
+        };
     }
 
     renderTitle() {
