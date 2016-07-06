@@ -1,7 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
+
 import ChannelStore from 'stores/channel_store.jsx';
 import PostStore from 'stores/post_store.jsx';
 import UserStore from 'stores/user_store.jsx';
@@ -10,19 +11,21 @@ import ErrorStore from 'stores/error_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import SearchStore from 'stores/search_store.jsx';
+
+import * as Websockets from 'actions/websocket_actions.jsx';
+import {handleNewPost} from 'actions/post_actions.jsx';
+
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
-import * as AsyncClient from 'utils/async_client.jsx';
+
 import Client from 'utils/web_client.jsx';
+import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
-import * as Websockets from './websocket_actions.jsx';
-import * as I18n from 'i18n/i18n.jsx';
-
-import {trackPage} from 'actions/analytics_actions.jsx';
-
-import {browserHistory} from 'react-router/es6';
 
 import en from 'i18n/en.json';
+import * as I18n from 'i18n/i18n.jsx';
+import {trackPage} from 'actions/analytics_actions.jsx';
+import {browserHistory} from 'react-router/es6';
 
 export function emitChannelClickEvent(channel) {
     function userVisitedFakeChannel(chan, success, fail) {
@@ -225,29 +228,6 @@ export function emitLoadMorePostsFocusedBottomEvent() {
     AsyncClient.getPostsAfter(latestPostId, 0, Constants.POST_CHUNK_SIZE, !!id);
 }
 
-export function emitPostRecievedEvent(post, msg) {
-    if (ChannelStore.getCurrentId() === post.channel_id) {
-        if (window.isActive) {
-            AsyncClient.updateLastViewedAt();
-        } else {
-            AsyncClient.getChannel(post.channel_id);
-        }
-    } else if (msg && (TeamStore.getCurrentId() === msg.team_id || msg.props.channel_type === Constants.DM_CHANNEL)) {
-        AsyncClient.getChannel(post.channel_id);
-    }
-
-    var websocketMessageProps = null;
-    if (msg) {
-        websocketMessageProps = msg.props;
-    }
-
-    AppDispatcher.handleServerAction({
-        type: ActionTypes.RECEIVED_POST,
-        post,
-        websocketMessageProps
-    });
-}
-
 export function emitUserPostedEvent(post) {
     AppDispatcher.handleServerAction({
         type: ActionTypes.CREATE_POST,
@@ -384,7 +364,7 @@ export function sendEphemeralPost(message, channelId) {
         props: {}
     };
 
-    emitPostRecievedEvent(post);
+    handleNewPost(post);
 }
 
 export function newLocalizationSelected(locale) {

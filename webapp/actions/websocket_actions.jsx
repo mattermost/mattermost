@@ -14,6 +14,7 @@ import Client from 'utils/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
+import {handleNewPost} from 'actions/post_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 const SocketEvents = Constants.SocketEvents;
@@ -190,7 +191,7 @@ export function close() {
 
 function handleNewPostEvent(msg) {
     const post = JSON.parse(msg.props.post);
-    GlobalActions.emitPostRecievedEvent(post, msg);
+    handleNewPost(post, msg);
 }
 
 function handlePostEditEvent(msg) {
