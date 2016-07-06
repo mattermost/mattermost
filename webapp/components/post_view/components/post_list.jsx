@@ -136,7 +136,9 @@ export default class PostList extends React.Component {
         }
     }
 
-    loadMorePostsTop() {
+    loadMorePostsTop(e) {
+        e.preventDefault();
+
         if (this.props.isFocusPost) {
             return GlobalActions.emitLoadMorePostsFocusedTopEvent();
         }
