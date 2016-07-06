@@ -45,9 +45,9 @@ export default class EmojiListItem extends React.Component {
 
         if (creator) {
             if (creator.username.toLowerCase().indexOf(filter) !== -1 ||
-                (creator.first_name && creator.first_name.toLowerCase().indexOf(filter)) ||
-                (creator.last_name && creator.last_name.toLowerCase().indexOf(filter)) ||
-                (creator.nickname && creator.nickname.toLowerCase().indexOf(filter))) {
+                (creator.first_name && creator.first_name.toLowerCase().indexOf(filter) !== -1) ||
+                (creator.last_name && creator.last_name.toLowerCase().indexOf(filter) !== -1) ||
+                (creator.nickname && creator.nickname.toLowerCase().indexOf(filter) !== -1)) {
                 return true;
             }
         }

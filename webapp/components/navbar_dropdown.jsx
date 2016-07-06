@@ -30,6 +30,8 @@ export default class NavbarDropdown extends React.Component {
         this.onTeamChange = this.onTeamChange.bind(this);
         this.openAccountSettings = this.openAccountSettings.bind(this);
 
+        this.renderCustomEmojiLink = this.renderCustomEmojiLink.bind(this);
+
         this.state = {
             showUserSettingsModal: false,
             showAboutModal: false,
@@ -37,9 +39,11 @@ export default class NavbarDropdown extends React.Component {
             teamMembers: TeamStore.getTeamMembers()
         };
     }
+
     handleAboutModal() {
         this.setState({showAboutModal: true});
     }
+
     aboutModalDismissed() {
         this.setState({showAboutModal: false});
     }
@@ -69,12 +73,31 @@ export default class NavbarDropdown extends React.Component {
         TeamStore.removeChangeListener(this.onTeamChange);
         document.removeEventListener('keydown', this.openAccountSettings);
     }
+
     openAccountSettings(e) {
         if (Utils.cmdOrCtrlPressed(e) && e.shiftKey && e.keyCode === Constants.KeyCodes.A) {
             e.preventDefault();
             this.setState({showUserSettingsModal: true});
         }
     }
+
+    renderCustomEmojiLink() {
+        if (window.mm_config.EnableCustomEmoji !== 'true' || !Utils.canCreateCustomEmoji(this.props.currentUser)) {
+            return null;
+        }
+
+        return (
+            <li>
+                <Link to={'/' + Utils.getTeamNameFromUrl() + '/emoji'}>
+                    <FormattedMessage
+                        id='navbar_dropdown.emoji'
+                        defaultMessage='Custom Emoji'
+                    />
+                </Link>
+            </li>
+        );
+    }
+
     render() {
         var teamLink = '';
         var inviteLink = '';
@@ -85,7 +108,10 @@ export default class NavbarDropdown extends React.Component {
         var isSystemAdmin = false;
         var teamSettings = null;
         let integrationsLink = null;
-        let customEmojiLink = null;
+
+        if (!currentUser) {
+            return null;
+        }
 
         if (currentUser != null) {
             isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
@@ -171,19 +197,6 @@ export default class NavbarDropdown extends React.Component {
                         <FormattedMessage
                             id='navbar_dropdown.integrations'
                             defaultMessage='Integrations'
-                        />
-                    </Link>
-                </li>
-            );
-        }
-
-        if (window.mm_config.EnableCustomEmoji === 'true') {
-            customEmojiLink = (
-                <li>
-                    <Link to={'/' + Utils.getTeamNameFromUrl() + '/emoji'}>
-                        <FormattedMessage
-                            id='navbar_dropdown.emoji'
-                            defaultMessage='Custom Emoji'
                         />
                     </Link>
                 </li>
@@ -342,7 +355,7 @@ export default class NavbarDropdown extends React.Component {
                         </li>
                         <li className='divider'></li>
                         {integrationsLink}
-                        {customEmojiLink}
+                        {this.renderCustomEmojiLink()}
                         <li className='divider'></li>
                         {teamSettings}
                         {manageLink}

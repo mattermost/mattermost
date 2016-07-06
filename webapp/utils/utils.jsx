@@ -1341,3 +1341,29 @@ export function localizeMessage(id, defaultMessage) {
 export function mod(a, b) {
     return ((a % b) + b) % b;
 }
+
+export function canCreateCustomEmoji(user) {
+    if (global.window.mm_license.IsLicensed !== 'true') {
+        return true;
+    }
+
+    if (isSystemAdmin(user.roles)) {
+        return true;
+    }
+
+    // already checked for system admin for both these cases
+    if (window.mm_config.RestrictCustomEmojiCreation === 'system_admin') {
+        return false;
+    } else if (window.mm_config.RestrictCustomEmojiCreation === 'admin') {
+        // check whether the user is an admin on any of their teams
+        for (const member of TeamStore.getTeamMembers()) {
+            if (isAdmin(member.roles)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    return true;
+}

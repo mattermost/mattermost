@@ -5,7 +5,6 @@ import React from 'react';
 
 import * as AsyncClient from 'utils/async_client.jsx';
 import EmojiStore from 'stores/emoji_store.jsx';
-import TeamStore from 'stores/team_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import {FormattedMessage} from 'react-intl';
@@ -23,8 +22,6 @@ export default class EmojiList extends React.Component {
 
     constructor(props) {
         super(props);
-
-        this.canCreateEmojis = this.canCreateEmojis.bind(this);
 
         this.handleEmojiChange = this.handleEmojiChange.bind(this);
 
@@ -68,31 +65,6 @@ export default class EmojiList extends React.Component {
         AsyncClient.deleteEmoji(emoji.id);
     }
 
-    canCreateEmojis() {
-        if (global.window.mm_license.IsLicensed !== 'true') {
-            return true;
-        }
-
-        if (Utils.isSystemAdmin(this.props.user.roles)) {
-            return true;
-        }
-
-        if (window.mm_config.RestrictCustomEmojiCreation === 'all') {
-            return true;
-        }
-
-        if (window.mm_config.RestrictCustomEmojiCreation === 'admin') {
-            // check whether the user is an admin on any of their teams
-            for (const member of TeamStore.getTeamMembers()) {
-                if (Utils.isAdmin(member.roles)) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
     render() {
         const filter = this.state.filter.toLowerCase();
         const isSystemAdmin = Utils.isSystemAdmin(this.props.user.roles);
@@ -131,26 +103,6 @@ export default class EmojiList extends React.Component {
             }
         }
 
-        let addLink = null;
-        if (this.canCreateEmojis()) {
-            addLink = (
-                <Link
-                    className='add-link'
-                    to={'/' + this.props.team.name + '/emoji/add'}
-                >
-                    <button
-                        type='button'
-                        className='btn btn-primary'
-                    >
-                        <FormattedMessage
-                            id='emoji_list.add'
-                            defaultMessage='Add Custom Emoji'
-                        />
-                    </button>
-                </Link>
-            );
-        }
-
         return (
             <div className='backstage-content emoji-list'>
                 <div className='backstage-header'>
@@ -160,7 +112,20 @@ export default class EmojiList extends React.Component {
                             defaultMessage='Custom Emoji'
                         />
                     </h1>
-                    {addLink}
+                    <Link
+                        className='add-link'
+                        to={'/' + this.props.team.name + '/emoji/add'}
+                    >
+                        <button
+                            type='button'
+                            className='btn btn-primary'
+                        >
+                            <FormattedMessage
+                                id='emoji_list.add'
+                                defaultMessage='Add Custom Emoji'
+                            />
+                        </button>
+                    </Link>
                 </div>
                 <div className='backstage-filters'>
                     <div className='backstage-filter__search'>
