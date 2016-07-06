@@ -64,6 +64,7 @@ export default class Navbar extends React.Component {
         state.showChannelSwitchModal = false;
         this.state = state;
     }
+
     getStateFromStores() {
         return {
             channel: ChannelStore.getCurrent(),
@@ -73,9 +74,11 @@ export default class Navbar extends React.Component {
             currentUser: UserStore.getCurrentUser()
         };
     }
+
     isStateValid() {
         return this.state.channel && this.state.member && this.state.users && this.state.currentUser;
     }
+
     componentDidMount() {
         ChannelStore.addChangeListener(this.onChange);
         ChannelStore.addExtraInfoChangeListener(this.onChange);
@@ -83,15 +86,18 @@ export default class Navbar extends React.Component {
         $('.inner-wrap').click(this.hideSidebars);
         document.addEventListener('keydown', this.showChannelSwitchModal);
     }
+
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onChange);
         ChannelStore.removeExtraInfoChangeListener(this.onChange);
         UserStore.removeStatusesChangeListener(this.onChange);
         document.removeEventListener('keydown', this.showChannelSwitchModal);
     }
+
     handleSubmit(e) {
         e.preventDefault();
     }
+
     handleLeave() {
         Client.leaveChannel(this.state.channel.id,
             () => {
@@ -103,6 +109,7 @@ export default class Navbar extends React.Component {
             }
         );
     }
+
     hideSidebars(e) {
         var windowWidth = $(window).outerWidth();
         if (windowWidth <= 768) {
@@ -124,22 +131,27 @@ export default class Navbar extends React.Component {
             }
         }
     }
+
     toggleLeftSidebar() {
         $('.app__body .inner-wrap').toggleClass('move--right');
         $('.app__body .sidebar--left').toggleClass('move--right');
     }
+
     toggleRightSidebar() {
         $('.app__body .inner-wrap').toggleClass('move--left-small');
         $('.app__body .sidebar--menu').toggleClass('move--left');
     }
+
     showSearch() {
         AppDispatcher.handleServerAction({
             type: ActionTypes.SHOW_SEARCH
         });
     }
+
     onChange() {
         this.setState(this.getStateFromStores());
     }
+
     showEditChannelHeaderModal() {
         // this can't be done using a ToggleModalButton because we can't use one inside an OverlayTrigger
         if (this.refs.headerOverlay) {
@@ -150,6 +162,7 @@ export default class Navbar extends React.Component {
             showEditChannelHeaderModal: true
         });
     }
+
     showRenameChannelModal(e) {
         e.preventDefault();
 
@@ -157,11 +170,13 @@ export default class Navbar extends React.Component {
             showRenameChannelModal: true
         });
     }
+
     hideRenameChannelModal() {
         this.setState({
             showRenameChannelModal: false
         });
     }
+
     showChannelSwitchModal(e) {
         if (Utils.cmdOrCtrlPressed(e) && e.keyCode === Constants.KeyCodes.K) {
             e.preventDefault();
@@ -170,12 +185,38 @@ export default class Navbar extends React.Component {
             });
         }
     }
+
     hideChannelSwitchModal() {
         this.setState({
             showChannelSwitchModal: false
         });
     }
-    createDropdown(channel, channelTitle, isAdmin, isDirect, popoverContent) {
+
+    showManagementOptions(channel, isAdmin, isSystemAdmin) {
+        if (global.window.mm_license.IsLicensed !== 'true') {
+            return true;
+        }
+
+        if (channel.type === Constants.OPEN_CHANNEL) {
+            if (global.window.mm_config.RestrictPublicChannelManagement === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
+                return false;
+            }
+            if (global.window.mm_config.RestrictPublicChannelManagement === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
+                return false;
+            }
+        } else if (channel.type === Constants.PRIVATE_CHANNEL) {
+            if (global.window.mm_config.RestrictPrivateChannelManagement === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
+                return false;
+            }
+            if (global.window.mm_config.RestrictPrivateChannelManagement === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    createDropdown(channel, channelTitle, isAdmin, isSystemAdmin, isDirect, popoverContent) {
         if (channel) {
             let channelTerm = (
                 <FormattedMessage
@@ -192,160 +233,81 @@ export default class Navbar extends React.Component {
                 );
             }
 
-            var viewInfoOption = (
-                <li role='presentation'>
-                    <ToggleModalButton
-                        role='menuitem'
-                        dialogType={ChannelInfoModal}
-                        dialogProps={{channel}}
-                    >
-                        <FormattedMessage
-                            id='navbar.viewInfo'
-                            defaultMessage='View Info'
-                        />
-                    </ToggleModalButton>
-                </li>
-            );
+            let viewInfoOption;
+            let addMembersOption;
+            let manageMembersOption;
+            let setChannelHeaderOption;
+            let setChannelPurposeOption;
+            let notificationPreferenceOption;
+            let renameChannelOption;
+            let deleteChannelOption;
+            let leaveChannelOption;
 
-            var setChannelHeaderOption = (
-                <li role='presentation'>
-                    <a
-                        role='menuitem'
-                        href='#'
-                        onClick={this.showEditChannelHeaderModal}
-                    >
-                        <FormattedMessage
-                            id='channel_header.setHeader'
-                            defaultMessage='Set {term} Header...'
-                            values={{
-                                term: (channelTerm)
-                            }}
-                        />
-                    </a>
-                </li>
-            );
-
-            var setChannelPurposeOption = null;
-            if (!isDirect) {
-                setChannelPurposeOption = (
+            if (isDirect) {
+                setChannelHeaderOption = (
                     <li role='presentation'>
                         <a
                             role='menuitem'
                             href='#'
-                            onClick={() => this.setState({showEditChannelPurposeModal: true})}
+                            onClick={this.showEditChannelHeaderModal}
                         >
                             <FormattedMessage
-                                id='channel_header.setPurpose'
-                                defaultMessage='Set {term} Purpose...'
-                                values={{
-                                    term: (channelTerm)
-                                }}
+                                id='channel_header.channelHeader'
+                                defaultMessage='Set Channel Header...'
                             />
                         </a>
                     </li>
                 );
-            }
-
-            var addMembersOption;
-            var leaveChannelOption;
-            if (!isDirect && !ChannelStore.isDefault(channel)) {
-                addMembersOption = (
+            } else {
+                viewInfoOption = (
                     <li role='presentation'>
                         <ToggleModalButton
                             role='menuitem'
-                            dialogType={ChannelInviteModal}
-                            dialogProps={{channel, currentUser: this.state.currentUser}}
+                            dialogType={ChannelInfoModal}
+                            dialogProps={{channel}}
                         >
                             <FormattedMessage
-                                id='navbar.addMembers'
-                                defaultMessage='Add Members'
+                                id='navbar.viewInfo'
+                                defaultMessage='View Info'
                             />
                         </ToggleModalButton>
                     </li>
                 );
 
-                const canLeave = channel.type === Constants.PRIVATE_CHANNEL ? this.state.userCount > 1 : true;
-                if (canLeave) {
-                    leaveChannelOption = (
-                        <li role='presentation'>
-                            <a
-                                role='menuitem'
-                                href='#'
-                                onClick={this.handleLeave}
-                            >
-                                <FormattedMessage
-                                    id='channel_header.leave'
-                                    defaultMessage='Leave {term}'
-                                    values={{
-                                        term: (channelTerm)
-                                    }}
-                                />
-                            </a>
-                        </li>
-                    );
-                }
-            }
-
-            var manageMembersOption;
-            var renameChannelOption;
-            var deleteChannelOption;
-            if (!isDirect && isAdmin) {
                 if (!ChannelStore.isDefault(channel)) {
-                    manageMembersOption = (
-                        <li role='presentation'>
-                            <a
-                                role='menuitem'
-                                href='#'
-                                onClick={() => this.setState({showMembersModal: true})}
-                            >
-                                <FormattedMessage
-                                    id='navbar.manageMembers'
-                                    defaultMessage='Manage Members'
-                                />
-                            </a>
-                        </li>
-                    );
-
-                    deleteChannelOption = (
+                    addMembersOption = (
                         <li role='presentation'>
                             <ToggleModalButton
                                 role='menuitem'
-                                dialogType={DeleteChannelModal}
-                                dialogProps={{channel}}
+                                dialogType={ChannelInviteModal}
+                                dialogProps={{channel, currentUser: this.state.currentUser}}
                             >
                                 <FormattedMessage
-                                    id='channel_header.delete'
-                                    defaultMessage='Delete {term}...'
-                                    values={{
-                                        term: (channelTerm)
-                                    }}
+                                    id='navbar.addMembers'
+                                    defaultMessage='Add Members'
                                 />
                             </ToggleModalButton>
                         </li>
                     );
+
+                    if (isAdmin) {
+                        manageMembersOption = (
+                            <li role='presentation'>
+                                <a
+                                    role='menuitem'
+                                    href='#'
+                                    onClick={() => this.setState({showMembersModal: true})}
+                                >
+                                    <FormattedMessage
+                                        id='navbar.manageMembers'
+                                        defaultMessage='Manage Members'
+                                    />
+                                </a>
+                            </li>
+                        );
+                    }
                 }
 
-                renameChannelOption = (
-                    <li role='presentation'>
-                        <a
-                            role='menuitem'
-                            href='#'
-                            onClick={this.showRenameChannelModal}
-                        >
-                            <FormattedMessage
-                                id='channel_header.rename'
-                                defaultMessage='Rename {term}...'
-                                values={{
-                                    term: (channelTerm)
-                                }}
-                            />
-                        </a>
-                    </li>
-                );
-            }
-
-            var notificationPreferenceOption;
-            if (!isDirect) {
                 notificationPreferenceOption = (
                     <li role='presentation'>
                         <ToggleModalButton
@@ -364,6 +326,105 @@ export default class Navbar extends React.Component {
                         </ToggleModalButton>
                     </li>
                 );
+
+                if (this.showManagementOptions(channel, isAdmin, isSystemAdmin)) {
+                    setChannelHeaderOption = (
+                        <li role='presentation'>
+                            <a
+                                role='menuitem'
+                                href='#'
+                                onClick={this.showEditChannelHeaderModal}
+                            >
+                                <FormattedMessage
+                                    id='channel_header.setHeader'
+                                    defaultMessage='Set {term} Header...'
+                                    values={{
+                                        term: (channelTerm)
+                                    }}
+                                />
+                            </a>
+                        </li>
+                    );
+
+                    setChannelPurposeOption = (
+                        <li role='presentation'>
+                            <a
+                                role='menuitem'
+                                href='#'
+                                onClick={() => this.setState({showEditChannelPurposeModal: true})}
+                            >
+                                <FormattedMessage
+                                    id='channel_header.setPurpose'
+                                    defaultMessage='Set {term} Purpose...'
+                                    values={{
+                                        term: (channelTerm)
+                                    }}
+                                />
+                            </a>
+                        </li>
+                    );
+
+                    renameChannelOption = (
+                        <li role='presentation'>
+                            <a
+                                role='menuitem'
+                                href='#'
+                                onClick={this.showRenameChannelModal}
+                            >
+                                <FormattedMessage
+                                    id='channel_header.rename'
+                                    defaultMessage='Rename {term}...'
+                                    values={{
+                                        term: (channelTerm)
+                                    }}
+                                />
+                            </a>
+                        </li>
+                    );
+                }
+
+                if (this.showManagementOptions(channel, isAdmin, isSystemAdmin) || this.state.userCount === 1) {
+                    if (!ChannelStore.isDefault(channel)) {
+                        deleteChannelOption = (
+                            <li role='presentation'>
+                                <ToggleModalButton
+                                    role='menuitem'
+                                    dialogType={DeleteChannelModal}
+                                    dialogProps={{channel}}
+                                >
+                                    <FormattedMessage
+                                        id='channel_header.delete'
+                                        defaultMessage='Delete {term}...'
+                                        values={{
+                                            term: (channelTerm)
+                                        }}
+                                    />
+                                </ToggleModalButton>
+                            </li>
+                        );
+                    }
+                }
+
+                const canLeave = channel.type === Constants.PRIVATE_CHANNEL ? this.state.userCount > 1 : true;
+                if (!ChannelStore.isDefault(channel) && canLeave) {
+                    leaveChannelOption = (
+                        <li role='presentation'>
+                            <a
+                                role='menuitem'
+                                href='#'
+                                onClick={this.handleLeave}
+                            >
+                                <FormattedMessage
+                                    id='channel_header.leave'
+                                    defaultMessage='Leave {term}'
+                                    values={{
+                                        term: (channelTerm)
+                                    }}
+                                />
+                            </a>
+                        </li>
+                    );
+                }
             }
 
             return (
@@ -419,6 +480,7 @@ export default class Navbar extends React.Component {
             </div>
         );
     }
+
     createCollapseButtons(currentId) {
         var buttons = [];
         if (currentId == null) {
@@ -505,6 +567,7 @@ export default class Navbar extends React.Component {
         var channelTitle = this.props.teamDisplayName;
         var popoverContent;
         var isAdmin = false;
+        var isSystemAdmin = false;
         var isDirect = false;
 
         var editChannelHeaderModal = null;
@@ -527,7 +590,8 @@ export default class Navbar extends React.Component {
                 </Popover>
             );
 
-            isAdmin = Utils.isAdmin(this.state.member.roles) || TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
+            isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
+            isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
 
             if (channel.type === 'O') {
                 channelTitle = channel.display_name;
@@ -632,7 +696,7 @@ export default class Navbar extends React.Component {
             </button>
         );
 
-        var channelMenuDropdown = this.createDropdown(channel, channelTitle, isAdmin, isDirect, popoverContent);
+        var channelMenuDropdown = this.createDropdown(channel, channelTitle, isAdmin, isSystemAdmin, isDirect, popoverContent);
 
         return (
             <div>
