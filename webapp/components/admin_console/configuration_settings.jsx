@@ -19,17 +19,12 @@ export default class ConfigurationSettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        this.state = Object.assign(this.state, {
-            listenAddress: props.config.ServiceSettings.ListenAddress,
-            webserverMode: props.config.ServiceSettings.WebserverMode
-        });
     }
 
     componentWillReceiveProps(nextProps) {
-        if (nextProps.config.ServiceSettings.ListenAddress !== this.props.config.ServiceSettings.ListenAddress) {
-            this.setState({listenAddress: nextProps.config.ServiceSettings.ListenAddress});
-        }
+        // special case for this page since we don't update AdminSettings components when the
+        // stored config changes, but we want this page to update when you reload the config
+        this.setState(this.getStateFromConfig(nextProps.config));
     }
 
     getConfigFromState(config) {
@@ -37,6 +32,13 @@ export default class ConfigurationSettings extends AdminSettings {
         config.ServiceSettings.WebserverMode = this.state.webserverMode;
 
         return config;
+    }
+
+    getStateFromConfig(config) {
+        return {
+            listenAddress: config.ServiceSettings.ListenAddress,
+            webserverMode: config.ServiceSettings.WebserverMode
+        };
     }
 
     renderTitle() {

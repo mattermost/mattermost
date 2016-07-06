@@ -15,15 +15,6 @@ export default class LegalAndSupportSettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        this.state = Object.assign(this.state, {
-            termsOfServiceLink: props.config.SupportSettings.TermsOfServiceLink,
-            privacyPolicyLink: props.config.SupportSettings.PrivacyPolicyLink,
-            aboutLink: props.config.SupportSettings.AboutLink,
-            helpLink: props.config.SupportSettings.HelpLink,
-            reportAProblemLink: props.config.SupportSettings.ReportAProblemLink,
-            supportEmail: props.config.SupportSettings.SupportEmail
-        });
     }
 
     getConfigFromState(config) {
@@ -35,6 +26,17 @@ export default class LegalAndSupportSettings extends AdminSettings {
         config.SupportSettings.SupportEmail = this.state.supportEmail;
 
         return config;
+    }
+
+    getStateFromConfig(config) {
+        return {
+            termsOfServiceLink: config.SupportSettings.TermsOfServiceLink,
+            privacyPolicyLink: config.SupportSettings.PrivacyPolicyLink,
+            aboutLink: config.SupportSettings.AboutLink,
+            helpLink: config.SupportSettings.HelpLink,
+            reportAProblemLink: config.SupportSettings.ReportAProblemLink,
+            supportEmail: config.SupportSettings.SupportEmail
+        };
     }
 
     renderTitle() {

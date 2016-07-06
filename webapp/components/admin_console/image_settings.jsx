@@ -17,15 +17,6 @@ export default class ImageSettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        this.state = Object.assign(this.state, {
-            thumbnailWidth: props.config.FileSettings.ThumbnailWidth,
-            thumbnailHeight: props.config.FileSettings.ThumbnailHeight,
-            profileWidth: props.config.FileSettings.ProfileWidth,
-            profileHeight: props.config.FileSettings.ProfileHeight,
-            previewWidth: props.config.FileSettings.PreviewWidth,
-            previewHeight: props.config.FileSettings.PreviewHeight
-        });
     }
 
     getConfigFromState(config) {
@@ -37,6 +28,17 @@ export default class ImageSettings extends AdminSettings {
         config.FileSettings.PreviewHeight = this.parseInt(this.state.previewHeight);
 
         return config;
+    }
+
+    getStateFromConfig(config) {
+        return {
+            thumbnailWidth: config.FileSettings.ThumbnailWidth,
+            thumbnailHeight: config.FileSettings.ThumbnailHeight,
+            profileWidth: config.FileSettings.ProfileWidth,
+            profileHeight: config.FileSettings.ProfileHeight,
+            previewWidth: config.FileSettings.PreviewWidth,
+            previewHeight: config.FileSettings.PreviewHeight
+        };
     }
 
     renderTitle() {

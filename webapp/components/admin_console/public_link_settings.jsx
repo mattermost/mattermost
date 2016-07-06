@@ -16,11 +16,6 @@ export default class PublicLinkSettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        this.state = Object.assign(this.state, {
-            enablePublicLink: props.config.FileSettings.EnablePublicLink,
-            publicLinkSalt: props.config.FileSettings.PublicLinkSalt
-        });
     }
 
     getConfigFromState(config) {
@@ -28,6 +23,13 @@ export default class PublicLinkSettings extends AdminSettings {
         config.FileSettings.PublicLinkSalt = this.state.publicLinkSalt;
 
         return config;
+    }
+
+    getStateFromConfig(config) {
+        return {
+            enablePublicLink: config.FileSettings.EnablePublicLink,
+            publicLinkSalt: config.FileSettings.PublicLinkSalt
+        };
     }
 
     renderTitle() {

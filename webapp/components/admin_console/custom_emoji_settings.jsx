@@ -18,11 +18,6 @@ export default class CustomEmojiSettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        this.state = Object.assign(this.state, {
-            enableCustomEmoji: props.config.ServiceSettings.EnableCustomEmoji,
-            restrictCustomEmojiCreation: props.config.ServiceSettings.RestrictCustomEmojiCreation
-        });
     }
 
     getConfigFromState(config) {
@@ -33,6 +28,13 @@ export default class CustomEmojiSettings extends AdminSettings {
         }
 
         return config;
+    }
+
+    getStateFromConfig(config) {
+        return {
+            enableCustomEmoji: config.ServiceSettings.EnableCustomEmoji,
+            restrictCustomEmojiCreation: config.ServiceSettings.RestrictCustomEmojiCreation
+        };
     }
 
     renderTitle() {

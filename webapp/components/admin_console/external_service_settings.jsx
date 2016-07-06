@@ -17,11 +17,6 @@ export default class ExternalServiceSettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        this.state = Object.assign(this.state, {
-            segmentDeveloperKey: props.config.ServiceSettings.SegmentDeveloperKey,
-            googleDeveloperKey: props.config.ServiceSettings.GoogleDeveloperKey
-        });
     }
 
     getConfigFromState(config) {
@@ -29,6 +24,13 @@ export default class ExternalServiceSettings extends AdminSettings {
         config.ServiceSettings.GoogleDeveloperKey = this.state.googleDeveloperKey;
 
         return config;
+    }
+
+    getStateFromConfig(config) {
+        return {
+            segmentDeveloperKey: config.ServiceSettings.SegmentDeveloperKey,
+            googleDeveloperKey: config.ServiceSettings.GoogleDeveloperKey
+        };
     }
 
     renderTitle() {

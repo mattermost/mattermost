@@ -17,13 +17,6 @@ export default class SessionSettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        this.state = Object.assign(this.state, {
-            sessionLengthWebInDays: props.config.ServiceSettings.SessionLengthWebInDays,
-            sessionLengthMobileInDays: props.config.ServiceSettings.SessionLengthMobileInDays,
-            sessionLengthSSOInDays: props.config.ServiceSettings.SessionLengthSSOInDays,
-            sessionCacheInMinutes: props.config.ServiceSettings.SessionCacheInMinutes
-        });
     }
 
     getConfigFromState(config) {
@@ -33,6 +26,15 @@ export default class SessionSettings extends AdminSettings {
         config.ServiceSettings.SessionCacheInMinutes = this.parseIntNonZero(this.state.sessionCacheInMinutes);
 
         return config;
+    }
+
+    getStateFromConfig(config) {
+        return {
+            sessionLengthWebInDays: config.ServiceSettings.SessionLengthWebInDays,
+            sessionLengthMobileInDays: config.ServiceSettings.SessionLengthMobileInDays,
+            sessionLengthSSOInDays: config.ServiceSettings.SessionLengthSSOInDays,
+            sessionCacheInMinutes: config.ServiceSettings.SessionCacheInMinutes
+        };
     }
 
     renderTitle() {

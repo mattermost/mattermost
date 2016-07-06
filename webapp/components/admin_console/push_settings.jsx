@@ -28,34 +28,6 @@ export default class PushSettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        let pushNotificationServerType = PUSH_NOTIFICATIONS_CUSTOM;
-        let agree = false;
-        if (!props.config.EmailSettings.SendPushNotifications) {
-            pushNotificationServerType = PUSH_NOTIFICATIONS_OFF;
-        } else if (props.config.EmailSettings.PushNotificationServer === Constants.MHPNS &&
-            global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.MHPNS === 'true') {
-            pushNotificationServerType = PUSH_NOTIFICATIONS_MHPNS;
-            agree = true;
-        } else if (props.config.EmailSettings.PushNotificationServer === Constants.MTPNS) {
-            pushNotificationServerType = PUSH_NOTIFICATIONS_MTPNS;
-        } else {
-            pushNotificationServerType = PUSH_NOTIFICATIONS_CUSTOM;
-        }
-
-        let pushNotificationServer = this.props.config.EmailSettings.PushNotificationServer;
-        if (pushNotificationServerType === PUSH_NOTIFICATIONS_MTPNS) {
-            pushNotificationServer = Constants.MTPNS;
-        } else if (pushNotificationServerType === PUSH_NOTIFICATIONS_MHPNS) {
-            pushNotificationServer = Constants.MHPNS;
-        }
-
-        this.state = Object.assign(this.state, {
-            pushNotificationServerType,
-            pushNotificationServer,
-            pushNotificationContents: props.config.EmailSettings.PushNotificationContents,
-            agree
-        });
     }
 
     canSave() {
@@ -94,6 +66,36 @@ export default class PushSettings extends AdminSettings {
         config.EmailSettings.PushNotificationContents = this.state.pushNotificationContents;
 
         return config;
+    }
+
+    getStateFromConfig(config) {
+        let pushNotificationServerType = PUSH_NOTIFICATIONS_CUSTOM;
+        let agree = false;
+        if (!config.EmailSettings.SendPushNotifications) {
+            pushNotificationServerType = PUSH_NOTIFICATIONS_OFF;
+        } else if (config.EmailSettings.PushNotificationServer === Constants.MHPNS &&
+            global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.MHPNS === 'true') {
+            pushNotificationServerType = PUSH_NOTIFICATIONS_MHPNS;
+            agree = true;
+        } else if (config.EmailSettings.PushNotificationServer === Constants.MTPNS) {
+            pushNotificationServerType = PUSH_NOTIFICATIONS_MTPNS;
+        } else {
+            pushNotificationServerType = PUSH_NOTIFICATIONS_CUSTOM;
+        }
+
+        let pushNotificationServer = config.EmailSettings.PushNotificationServer;
+        if (pushNotificationServerType === PUSH_NOTIFICATIONS_MTPNS) {
+            pushNotificationServer = Constants.MTPNS;
+        } else if (pushNotificationServerType === PUSH_NOTIFICATIONS_MHPNS) {
+            pushNotificationServer = Constants.MHPNS;
+        }
+
+        return {
+            pushNotificationServerType,
+            pushNotificationServer,
+            pushNotificationContents: config.EmailSettings.PushNotificationContents,
+            agree
+        };
     }
 
     renderTitle() {

@@ -15,11 +15,6 @@ export default class DeveloperSettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        this.state = Object.assign(this.state, {
-            enableTesting: props.config.ServiceSettings.EnableTesting,
-            enableDeveloper: props.config.ServiceSettings.EnableDeveloper
-        });
     }
 
     getConfigFromState(config) {
@@ -27,6 +22,13 @@ export default class DeveloperSettings extends AdminSettings {
         config.ServiceSettings.EnableDeveloper = this.state.enableDeveloper;
 
         return config;
+    }
+
+    getStateFromConfig(config) {
+        return {
+            enableTesting: config.ServiceSettings.EnableTesting,
+            enableDeveloper: config.ServiceSettings.EnableDeveloper
+        };
     }
 
     renderTitle() {
