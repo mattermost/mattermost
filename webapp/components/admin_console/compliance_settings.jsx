@@ -18,12 +18,6 @@ export default class ComplianceSettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        this.state = Object.assign(this.state, {
-            enable: props.config.ComplianceSettings.Enable,
-            directory: props.config.ComplianceSettings.Directory,
-            enableDaily: props.config.ComplianceSettings.EnableDaily
-        });
     }
 
     getConfigFromState(config) {
@@ -32,6 +26,14 @@ export default class ComplianceSettings extends AdminSettings {
         config.ComplianceSettings.EnableDaily = this.state.enableDaily;
 
         return config;
+    }
+
+    getStateFromConfig(config) {
+        return {
+            enable: config.ComplianceSettings.Enable,
+            directory: config.ComplianceSettings.Directory,
+            enableDaily: config.ComplianceSettings.EnableDaily
+        };
     }
 
     renderTitle() {

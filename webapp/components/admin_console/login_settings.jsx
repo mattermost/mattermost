@@ -19,12 +19,6 @@ export default class LoginSettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        this.state = Object.assign(this.state, {
-            passwordResetSalt: props.config.EmailSettings.PasswordResetSalt,
-            maximumLoginAttempts: props.config.ServiceSettings.MaximumLoginAttempts,
-            enableMultifactorAuthentication: props.config.ServiceSettings.EnableMultifactorAuthentication
-        });
     }
 
     getConfigFromState(config) {
@@ -35,6 +29,14 @@ export default class LoginSettings extends AdminSettings {
         }
 
         return config;
+    }
+
+    getStateFromConfig(config) {
+        return {
+            passwordResetSalt: config.EmailSettings.PasswordResetSalt,
+            maximumLoginAttempts: config.ServiceSettings.MaximumLoginAttempts,
+            enableMultifactorAuthentication: config.ServiceSettings.EnableMultifactorAuthentication
+        };
     }
 
     renderTitle() {

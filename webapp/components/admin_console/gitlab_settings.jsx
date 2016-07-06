@@ -18,15 +18,6 @@ export default class GitLabSettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        this.state = Object.assign(this.state, {
-            enable: props.config.GitLabSettings.Enable,
-            id: props.config.GitLabSettings.Id,
-            secret: props.config.GitLabSettings.Secret,
-            userApiEndpoint: props.config.GitLabSettings.UserApiEndpoint,
-            authEndpoint: props.config.GitLabSettings.AuthEndpoint,
-            tokenEndpoint: props.config.GitLabSettings.TokenEndpoint
-        });
     }
 
     getConfigFromState(config) {
@@ -38,6 +29,17 @@ export default class GitLabSettings extends AdminSettings {
         config.GitLabSettings.TokenEndpoint = this.state.tokenEndpoint;
 
         return config;
+    }
+
+    getStateFromConfig(config) {
+        return {
+            enable: config.GitLabSettings.Enable,
+            id: config.GitLabSettings.Id,
+            secret: config.GitLabSettings.Secret,
+            userApiEndpoint: config.GitLabSettings.UserApiEndpoint,
+            authEndpoint: config.GitLabSettings.AuthEndpoint,
+            tokenEndpoint: config.GitLabSettings.TokenEndpoint
+        };
     }
 
     renderTitle() {

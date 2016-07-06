@@ -19,28 +19,6 @@ export default class LdapSettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        this.state = Object.assign(this.state, {
-            enable: props.config.LdapSettings.Enable,
-            ldapServer: props.config.LdapSettings.LdapServer,
-            ldapPort: props.config.LdapSettings.LdapPort,
-            connectionSecurity: props.config.LdapSettings.ConnectionSecurity,
-            baseDN: props.config.LdapSettings.BaseDN,
-            bindUsername: props.config.LdapSettings.BindUsername,
-            bindPassword: props.config.LdapSettings.BindPassword,
-            userFilter: props.config.LdapSettings.UserFilter,
-            firstNameAttribute: props.config.LdapSettings.FirstNameAttribute,
-            lastNameAttribute: props.config.LdapSettings.LastNameAttribute,
-            nicknameAttribute: props.config.LdapSettings.NicknameAttribute,
-            emailAttribute: props.config.LdapSettings.EmailAttribute,
-            usernameAttribute: props.config.LdapSettings.UsernameAttribute,
-            idAttribute: props.config.LdapSettings.IdAttribute,
-            syncIntervalMinutes: props.config.LdapSettings.SyncIntervalMinutes,
-            skipCertificateVerification: props.config.LdapSettings.SkipCertificateVerification,
-            queryTimeout: props.config.LdapSettings.QueryTimeout,
-            maxPageSize: props.config.LdapSettings.MaxPageSize,
-            loginFieldName: props.config.LdapSettings.LoginFieldName
-        });
     }
 
     getConfigFromState(config) {
@@ -65,6 +43,30 @@ export default class LdapSettings extends AdminSettings {
         config.LdapSettings.LoginFieldName = this.state.loginFieldName;
 
         return config;
+    }
+
+    getStateFromConfig(config) {
+        return {
+            enable: config.LdapSettings.Enable,
+            ldapServer: config.LdapSettings.LdapServer,
+            ldapPort: config.LdapSettings.LdapPort,
+            connectionSecurity: config.LdapSettings.ConnectionSecurity,
+            baseDN: config.LdapSettings.BaseDN,
+            bindUsername: config.LdapSettings.BindUsername,
+            bindPassword: config.LdapSettings.BindPassword,
+            userFilter: config.LdapSettings.UserFilter,
+            firstNameAttribute: config.LdapSettings.FirstNameAttribute,
+            lastNameAttribute: config.LdapSettings.LastNameAttribute,
+            nicknameAttribute: config.LdapSettings.NicknameAttribute,
+            emailAttribute: config.LdapSettings.EmailAttribute,
+            usernameAttribute: config.LdapSettings.UsernameAttribute,
+            idAttribute: config.LdapSettings.IdAttribute,
+            syncIntervalMinutes: config.LdapSettings.SyncIntervalMinutes,
+            skipCertificateVerification: config.LdapSettings.SkipCertificateVerification,
+            queryTimeout: config.LdapSettings.QueryTimeout,
+            maxPageSize: config.LdapSettings.MaxPageSize,
+            loginFieldName: config.LdapSettings.LoginFieldName
+        };
     }
 
     renderTitle() {

@@ -24,11 +24,11 @@ export default class AdminSettings extends React.Component {
         this.handleSubmit = this.handleSubmit.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
 
-        this.state = {
+        this.state = Object.assign(this.getStateFromConfig(props.config), {
             saveNeeded: false,
             saving: false,
             serverError: null
-        };
+        });
     }
 
     handleChange(id, value) {
@@ -65,7 +65,10 @@ export default class AdminSettings extends React.Component {
         Client.saveConfig(
             config,
             () => {
-                AsyncClient.getConfig();
+                AsyncClient.getConfig((newConfig) => {
+                    this.setState(this.getStateFromConfig(newConfig));
+                });
+
                 this.setState({
                     saveNeeded: false,
                     saving: false

@@ -405,7 +405,7 @@ export function getComplianceReports() {
     );
 }
 
-export function getConfig() {
+export function getConfig(success, error) {
     if (isCallInProgress('getConfig')) {
         return;
     }
@@ -419,10 +419,17 @@ export function getConfig() {
                 type: ActionTypes.RECEIVED_CONFIG,
                 config: data
             });
+
+            if (success) {
+                success(data);
+            }
         },
         (err) => {
             callTracker.getConfig = 0;
-            dispatchError(err, 'getConfig');
+
+            if (!error) {
+                dispatchError(err, 'getConfig');
+            }
         }
     );
 }

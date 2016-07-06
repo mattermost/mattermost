@@ -18,11 +18,6 @@ export default class ConnectionSettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        this.state = Object.assign(this.state, {
-            allowCorsFrom: props.config.ServiceSettings.AllowCorsFrom,
-            enableInsecureOutgoingConnections: props.config.ServiceSettings.EnableInsecureOutgoingConnections
-        });
     }
 
     getConfigFromState(config) {
@@ -30,6 +25,13 @@ export default class ConnectionSettings extends AdminSettings {
         config.ServiceSettings.EnableInsecureOutgoingConnections = this.state.enableInsecureOutgoingConnections;
 
         return config;
+    }
+
+    getStateFromConfig(config) {
+        return {
+            allowCorsFrom: config.ServiceSettings.AllowCorsFrom,
+            enableInsecureOutgoingConnections: config.ServiceSettings.EnableInsecureOutgoingConnections
+        };
     }
 
     renderTitle() {

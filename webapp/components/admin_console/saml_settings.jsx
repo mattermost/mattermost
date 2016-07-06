@@ -24,27 +24,6 @@ export default class SamlSettings extends AdminSettings {
         this.renderSettings = this.renderSettings.bind(this);
         this.uploadCertificate = this.uploadCertificate.bind(this);
         this.removeCertificate = this.removeCertificate.bind(this);
-
-        const settings = props.config.SamlSettings;
-
-        this.state = Object.assign(this.state, {
-            enable: settings.Enable,
-            verify: settings.Verify,
-            encrypt: settings.Encrypt,
-            idpUrl: settings.IdpUrl,
-            idpDescriptorUrl: settings.IdpDescriptorUrl,
-            assertionConsumerServiceURL: settings.AssertionConsumerServiceURL,
-            idpCertificateFile: settings.IdpCertificateFile,
-            publicCertificateFile: settings.PublicCertificateFile,
-            privateKeyFile: settings.PrivateKeyFile,
-            firstNameAttribute: settings.FirstNameAttribute,
-            lastNameAttribute: settings.LastNameAttribute,
-            emailAttribute: settings.EmailAttribute,
-            usernameAttribute: settings.UsernameAttribute,
-            nicknameAttribute: settings.NicknameAttribute,
-            localeAttribute: settings.LocaleAttribute,
-            loginButtonText: settings.LoginButtonText
-        });
     }
 
     getConfigFromState(config) {
@@ -66,6 +45,29 @@ export default class SamlSettings extends AdminSettings {
         config.SamlSettings.LoginButtonText = this.state.loginButtonText;
 
         return config;
+    }
+
+    getStateFromConfig(config) {
+        const settings = config.SamlSettings;
+
+        return {
+            enable: settings.Enable,
+            verify: settings.Verify,
+            encrypt: settings.Encrypt,
+            idpUrl: settings.IdpUrl,
+            idpDescriptorUrl: settings.IdpDescriptorUrl,
+            assertionConsumerServiceURL: settings.AssertionConsumerServiceURL,
+            idpCertificateFile: settings.IdpCertificateFile,
+            publicCertificateFile: settings.PublicCertificateFile,
+            privateKeyFile: settings.PrivateKeyFile,
+            firstNameAttribute: settings.FirstNameAttribute,
+            lastNameAttribute: settings.LastNameAttribute,
+            emailAttribute: settings.EmailAttribute,
+            usernameAttribute: settings.UsernameAttribute,
+            nicknameAttribute: settings.NicknameAttribute,
+            localeAttribute: settings.LocaleAttribute,
+            loginButtonText: settings.LoginButtonText
+        };
     }
 
     uploadCertificate(id, file, callback) {

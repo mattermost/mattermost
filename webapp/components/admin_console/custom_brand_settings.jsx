@@ -19,12 +19,6 @@ export default class CustomBrandSettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        this.state = Object.assign(this.state, {
-            siteName: props.config.TeamSettings.SiteName,
-            enableCustomBrand: props.config.TeamSettings.EnableCustomBrand,
-            customBrandText: props.config.TeamSettings.CustomBrandText
-        });
     }
 
     getConfigFromState(config) {
@@ -35,6 +29,14 @@ export default class CustomBrandSettings extends AdminSettings {
         }
 
         return config;
+    }
+
+    getStateFromConfig(config) {
+        return {
+            siteName: config.TeamSettings.SiteName,
+            enableCustomBrand: config.TeamSettings.EnableCustomBrand,
+            customBrandText: config.TeamSettings.CustomBrandText
+        };
     }
 
     renderTitle() {

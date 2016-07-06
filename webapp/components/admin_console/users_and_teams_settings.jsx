@@ -22,15 +22,6 @@ export default class UsersAndTeamsSettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        this.state = Object.assign(this.state, {
-            enableUserCreation: props.config.TeamSettings.EnableUserCreation,
-            enableTeamCreation: props.config.TeamSettings.EnableTeamCreation,
-            maxUsersPerTeam: props.config.TeamSettings.MaxUsersPerTeam,
-            restrictCreationToDomains: props.config.TeamSettings.RestrictCreationToDomains,
-            restrictTeamNames: props.config.TeamSettings.RestrictTeamNames,
-            restrictDirectMessage: props.config.TeamSettings.RestrictDirectMessage
-        });
     }
 
     getConfigFromState(config) {
@@ -42,6 +33,17 @@ export default class UsersAndTeamsSettings extends AdminSettings {
         config.TeamSettings.RestrictDirectMessage = this.state.restrictDirectMessage;
 
         return config;
+    }
+
+    getStateFromConfig(config) {
+        return {
+            enableUserCreation: config.TeamSettings.EnableUserCreation,
+            enableTeamCreation: config.TeamSettings.EnableTeamCreation,
+            maxUsersPerTeam: config.TeamSettings.MaxUsersPerTeam,
+            restrictCreationToDomains: config.TeamSettings.RestrictCreationToDomains,
+            restrictTeamNames: config.TeamSettings.RestrictTeamNames,
+            restrictDirectMessage: config.TeamSettings.RestrictDirectMessage
+        };
     }
 
     renderTitle() {

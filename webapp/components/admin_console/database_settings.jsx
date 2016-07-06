@@ -20,15 +20,6 @@ export default class DatabaseSettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        this.state = Object.assign(this.state, {
-            driverName: this.props.config.SqlSettings.DriverName,
-            dataSource: this.props.config.SqlSettings.DataSource,
-            maxIdleConns: props.config.SqlSettings.MaxIdleConns,
-            maxOpenConns: props.config.SqlSettings.MaxOpenConns,
-            atRestEncryptKey: props.config.SqlSettings.AtRestEncryptKey,
-            trace: props.config.SqlSettings.Trace
-        });
     }
 
     getConfigFromState(config) {
@@ -40,6 +31,17 @@ export default class DatabaseSettings extends AdminSettings {
         config.SqlSettings.Trace = this.state.trace;
 
         return config;
+    }
+
+    getStateFromConfig(config) {
+        return {
+            driverName: config.SqlSettings.DriverName,
+            dataSource: config.SqlSettings.DataSource,
+            maxIdleConns: config.SqlSettings.MaxIdleConns,
+            maxOpenConns: config.SqlSettings.MaxOpenConns,
+            atRestEncryptKey: config.SqlSettings.AtRestEncryptKey,
+            trace: config.SqlSettings.Trace
+        };
     }
 
     renderTitle() {

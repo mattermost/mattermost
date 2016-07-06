@@ -21,16 +21,6 @@ export default class StorageSettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        this.state = Object.assign(this.state, {
-            maxFileSize: props.config.FileSettings.MaxFileSize / 1024 / 1024,
-            driverName: props.config.FileSettings.DriverName,
-            directory: props.config.FileSettings.Directory,
-            amazonS3AccessKeyId: props.config.FileSettings.AmazonS3AccessKeyId,
-            amazonS3SecretAccessKey: props.config.FileSettings.AmazonS3SecretAccessKey,
-            amazonS3Bucket: props.config.FileSettings.AmazonS3Bucket,
-            amazonS3Region: props.config.FileSettings.AmazonS3Region
-        });
     }
 
     getConfigFromState(config) {
@@ -43,6 +33,18 @@ export default class StorageSettings extends AdminSettings {
         config.FileSettings.AmazonS3Region = this.state.amazonS3Region;
 
         return config;
+    }
+
+    getStateFromConfig(config) {
+        return {
+            maxFileSize: config.FileSettings.MaxFileSize / 1024 / 1024,
+            driverName: config.FileSettings.DriverName,
+            directory: config.FileSettings.Directory,
+            amazonS3AccessKeyId: config.FileSettings.AmazonS3AccessKeyId,
+            amazonS3SecretAccessKey: config.FileSettings.AmazonS3SecretAccessKey,
+            amazonS3Bucket: config.FileSettings.AmazonS3Bucket,
+            amazonS3Region: config.FileSettings.AmazonS3Region
+        };
     }
 
     renderTitle() {
