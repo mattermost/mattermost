@@ -15,6 +15,7 @@ export default class BackstageList extends React.Component {
         addLink: React.PropTypes.string,
         addText: React.PropTypes.node,
         emptyText: React.PropTypes.node,
+        helpText: React.PropTypes.node,
         loading: React.PropTypes.bool.isRequired,
         searchPlaceholder: React.PropTypes.string
     }
@@ -99,6 +100,9 @@ export default class BackstageList extends React.Component {
                         />
                     </div>
                 </div>
+                <span className='backstage-list__help'>
+                    {this.props.helpText}
+                </span>
                 <div className='backstage-list'>
                     {children}
                 </div>

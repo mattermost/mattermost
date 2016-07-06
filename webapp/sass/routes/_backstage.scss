@@ -196,7 +196,6 @@
 
     input {
         background: $white;
-        border-bottom-width: 0;
         padding-left: 30px;
     }
 }
@@ -206,6 +205,11 @@
     border: 1px solid $light-gray;
     padding: 5px 15px;
     min-height: 50px;
+}
+
+.backstage-list__help {
+    display: block;
+    padding: 1em 0;
 }
 
 .backstage-list__item {
@@ -351,15 +355,6 @@
 
 .integration-option__description {
     color: $dark-gray;
-}
-
-.emoji-list .backstage-filter__search input {
-    border-bottom-width: 1px;
-}
-
-.emoji-list__help {
-    display: block;
-    padding: 1em 0;
 }
 
 .emoji-list__table {
