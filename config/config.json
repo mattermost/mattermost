@@ -38,7 +38,9 @@
         "EnableCustomBrand": false,
         "CustomBrandText": "",
         "RestrictDirectMessage": "any",
-        "RestrictTeamInvite": "system_admin"
+        "RestrictTeamInvite": "all",
+        "RestrictPublicChannelManagement": "all",
+        "RestrictPrivateChannelManagement": "all"
     },
     "SqlSettings": {
         "DriverName": "mysql",

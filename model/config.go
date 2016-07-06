@@ -32,9 +32,9 @@ const (
 	DIRECT_MESSAGE_ANY  = "any"
 	DIRECT_MESSAGE_TEAM = "team"
 
-	TEAM_INVITE_ALL          = "all"
-	TEAM_INVITE_TEAM_ADMIN   = "team_admin"
-	TEAM_INVITE_SYSTEM_ADMIN = "system_admin"
+	PERMISSIONS_ALL          = "all"
+	PERMISSIONS_TEAM_ADMIN   = "team_admin"
+	PERMISSIONS_SYSTEM_ADMIN = "system_admin"
 
 	FAKE_SETTING = "********************************"
 
@@ -169,17 +169,19 @@ type SupportSettings struct {
 }
 
 type TeamSettings struct {
-	SiteName                  string
-	MaxUsersPerTeam           int
-	EnableTeamCreation        bool
-	EnableUserCreation        bool
-	EnableOpenServer          *bool
-	RestrictCreationToDomains string
-	RestrictTeamNames         *bool
-	EnableCustomBrand         *bool
-	CustomBrandText           *string
-	RestrictDirectMessage     *string
-	RestrictTeamInvite        *string
+	SiteName                         string
+	MaxUsersPerTeam                  int
+	EnableTeamCreation               bool
+	EnableUserCreation               bool
+	EnableOpenServer                 *bool
+	RestrictCreationToDomains        string
+	RestrictTeamNames                *bool
+	EnableCustomBrand                *bool
+	CustomBrandText                  *string
+	RestrictDirectMessage            *string
+	RestrictTeamInvite               *string
+	RestrictPublicChannelManagement  *string
+	RestrictPrivateChannelManagement *string
 }
 
 type LdapSettings struct {
@@ -381,7 +383,17 @@ func (o *Config) SetDefaults() {
 
 	if o.TeamSettings.RestrictTeamInvite == nil {
 		o.TeamSettings.RestrictTeamInvite = new(string)
-		*o.TeamSettings.RestrictTeamInvite = TEAM_INVITE_ALL
+		*o.TeamSettings.RestrictTeamInvite = PERMISSIONS_ALL
+	}
+
+	if o.TeamSettings.RestrictPublicChannelManagement == nil {
+		o.TeamSettings.RestrictPublicChannelManagement = new(string)
+		*o.TeamSettings.RestrictPublicChannelManagement = PERMISSIONS_ALL
+	}
+
+	if o.TeamSettings.RestrictPrivateChannelManagement == nil {
+		o.TeamSettings.RestrictPrivateChannelManagement = new(string)
+		*o.TeamSettings.RestrictPrivateChannelManagement = PERMISSIONS_ALL
 	}
 
 	if o.EmailSettings.EnableSignInWithEmail == nil {

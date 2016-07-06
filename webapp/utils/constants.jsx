@@ -762,7 +762,7 @@ export default {
     POST_COLLAPSE_TIMEOUT: 1000 * 60 * 5, // five minutes
     LICENSE_EXPIRY_NOTIFICATION: 1000 * 60 * 60 * 24 * 15, // 15 days
     LICENSE_GRACE_PERIOD: 1000 * 60 * 60 * 24 * 15, // 15 days
-    TEAM_INVITE_ALL: 'all',
-    TEAM_INVITE_TEAM_ADMIN: 'team_admin',
-    TEAM_INVITE_SYSTEM_ADMIN: 'system_admin'
+    PERMISSIONS_ALL: 'all',
+    PERMISSIONS_TEAM_ADMIN: 'team_admin',
+    PERMISSIONS_SYSTEM_ADMIN: 'system_admin'
 };

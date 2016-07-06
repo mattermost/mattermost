@@ -312,6 +312,22 @@
     "translation": "The channel has been archived or deleted"
   },
   {
+    "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
+    "translation": "Public Channel management and creation is restricted to System Administrators."
+  },
+  {
+    "id": "api.channel.can_manage_channel.public_restricted_team_admin.app_error",
+    "translation": "Public Channel management and creation is restricted to Team and System Administrators."
+  },
+  {
+    "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
+    "translation": "Private Group management and creation is restricted to System Administrators."
+  },
+  {
+    "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
+    "translation": "Private Group management and creation is restricted to Team and System Administrators."
+  },
+  {
     "id": "api.channel.update_channel.permission.app_error",
     "translation": "You do not have the appropriate permissions"
   },

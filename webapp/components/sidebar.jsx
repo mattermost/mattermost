@@ -682,6 +682,55 @@ export default class Sidebar extends React.Component {
             />
         );
 
+        const isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
+        const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
+
+        let createPublicChannelIcon = (
+            <OverlayTrigger
+                delayShow={500}
+                placement='top'
+                overlay={createChannelTootlip}
+            >
+                <a
+                    className='add-channel-btn'
+                    href='#'
+                    onClick={this.showNewChannelModal.bind(this, Constants.OPEN_CHANNEL)}
+                >
+                    {'+'}
+                </a>
+            </OverlayTrigger>
+        );
+
+        let createPrivateChannelIcon = (
+            <OverlayTrigger
+                delayShow={500}
+                placement='top'
+                overlay={createGroupTootlip}
+            >
+                <a
+                    className='add-channel-btn'
+                    href='#'
+                    onClick={this.showNewChannelModal.bind(this, Constants.PRIVATE_CHANNEL)}
+                >
+                    {'+'}
+                </a>
+            </OverlayTrigger>
+        );
+
+        if (global.window.mm_license.IsLicensed === 'true') {
+            if (global.window.mm_config.RestrictPublicChannelManagement === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
+                createPublicChannelIcon = null;
+            } else if (global.window.mm_config.RestrictPublicChannelManagement === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
+                createPublicChannelIcon = null;
+            }
+
+            if (global.window.mm_config.RestrictPrivateChannelManagement === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
+                createPrivateChannelIcon = null;
+            } else if (global.window.mm_config.RestrictPrivateChannelManagement === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
+                createPrivateChannelIcon = null;
+            }
+        }
+
         return (
             <div
                 className='sidebar--left'
@@ -728,19 +777,7 @@ export default class Sidebar extends React.Component {
                                     id='sidebar.channels'
                                     defaultMessage='Channels'
                                 />
-                                <OverlayTrigger
-                                    delayShow={500}
-                                    placement='top'
-                                    overlay={createChannelTootlip}
-                                >
-                                    <a
-                                        className='add-channel-btn'
-                                        href='#'
-                                        onClick={this.showNewChannelModal.bind(this, 'O')}
-                                    >
-                                        {'+'}
-                                    </a>
-                                </OverlayTrigger>
+                                {createPublicChannelIcon}
                             </h4>
                         </li>
                         {publicChannelItems}
@@ -765,19 +802,7 @@ export default class Sidebar extends React.Component {
                                     id='sidebar.pg'
                                     defaultMessage='Private Groups'
                                 />
-                                <OverlayTrigger
-                                    delayShow={500}
-                                    placement='top'
-                                    overlay={createGroupTootlip}
-                                >
-                                    <a
-                                        className='add-channel-btn'
-                                        href='#'
-                                        onClick={this.showNewChannelModal.bind(this, 'P')}
-                                    >
-                                        {'+'}
-                                    </a>
-                                </OverlayTrigger>
+                                {createPrivateChannelIcon}
                             </h4>
                         </li>
                         {privateChannelItems}

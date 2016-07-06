@@ -108,7 +108,7 @@ export default class TutorialIntroScreens extends React.Component {
         let inviteModalLink;
         let inviteText;
 
-        if (global.window.mm_license.IsLicensed !== 'true' || global.window.mm_config.RestrictTeamInvite === Constants.TEAM_INVITE_ALL) {
+        if (global.window.mm_license.IsLicensed !== 'true' || global.window.mm_config.RestrictTeamInvite === Constants.PERMISSIONS_ALL) {
             if (team.type === Constants.INVITE_TEAM) {
                 inviteModalLink = (
                     <a
