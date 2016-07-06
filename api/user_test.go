@@ -910,7 +910,7 @@ func TestUserUpdateRolesMoreCases(t *testing.T) {
 	data["user_id"] = th.BasicUser2.Id
 	data["new_roles"] = model.ROLE_TEAM_ADMIN
 	data["team_id"] = th.BasicTeam.Id
-	if _, err := th.BasicClient.UpdateUserRoles(data); err == nil {
+	if _, err := th.BasicClient.UpdateUserRoles(data); err != nil {
 		t.Fatal("Should have succeeded since they are team admin")
 	}
 
@@ -926,7 +926,7 @@ func TestUserUpdateRolesMoreCases(t *testing.T) {
 	data["user_id"] = th.BasicUser2.Id
 	data["new_roles"] = ""
 	data["team_id"] = th.BasicTeam.Id
-	if _, err := th.BasicClient.UpdateUserRoles(data); err == nil {
+	if _, err := th.BasicClient.UpdateUserRoles(data); err != nil {
 		t.Fatal("Should have succeeded since they are team admin")
 	}
 
