@@ -7,6 +7,8 @@ import ConnectionSecurityDropdownSetting from './connection_security_dropdown_se
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
 
+import SyncNowButton from './sync_now_button.jsx';
+
 import * as Utils from 'utils/utils.jsx';
 
 import React from 'react';
@@ -426,6 +428,9 @@ export default class LdapSettings extends AdminSettings {
                     }
                     value={this.state.loginFieldName}
                     onChange={this.handleChange}
+                    disabled={!this.state.enable}
+                />
+                <SyncNowButton
                     disabled={!this.state.enable}
                 />
             </SettingsGroup>
