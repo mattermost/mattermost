@@ -54,7 +54,7 @@ class EditChannelHeaderModal extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        if (this.props !== nextProps) {
+        if (this.props.channel.header !== nextProps.channel.header && !this.props.show) {
             this.setState({
                 header: nextProps.channel.header,
                 submitted: false
