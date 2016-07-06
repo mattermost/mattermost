@@ -3569,7 +3569,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 This product contains a modified portion of 'go-saml', a SAML client library for Go written by RobotsAndPencils.
 
 * HOMEPAGE: 
-  * https://github.com/mattermost/RobotsAndPencils/go-saml
+  * https://github.com/RobotsAndPencils/go-saml
 
 * LICENSE: 
 
