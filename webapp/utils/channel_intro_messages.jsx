@@ -85,7 +85,6 @@ export function createDMIntroMessage(channel, centeredIntro) {
 }
 
 export function createOffTopicIntroMessage(channel, centeredIntro) {
-    console.log('Off topic running')
     return (
         <div className={'channel-intro ' + centeredIntro}>
             <FormattedHTMLMessage
