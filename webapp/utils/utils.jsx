@@ -14,9 +14,12 @@ import * as AsyncClient from './async_client.jsx';
 import Client from './web_client.jsx';
 
 import {browserHistory} from 'react-router/es6';
+import {FormattedMessage} from 'react-intl';
 
 import icon50 from 'images/icon50x50.png';
 import bing from 'images/bing.mp3';
+
+import React from 'react';
 
 export function isEmail(email) {
     // writing a regex to match all valid email addresses is really, really hard (see http://stackoverflow.com/a/201378)
@@ -1366,4 +1369,67 @@ export function canCreateCustomEmoji(user) {
     }
 
     return true;
+}
+
+export function isValidPassword(password) {
+    let errorMsg = '';
+    let errorId = 'user.settings.security.passwordError';
+    let error = false;
+    let minimumLength = Constants.MIN_PASSWORD_LENGTH;
+
+    if (global.window.mm_config.BuildEnterpriseReady === 'true' && global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.PasswordRequirements === 'true') {
+        if (password.length < parseInt(global.window.mm_config.PasswordMinimumLength, 10) || password.length > Constants.MAX_PASSWORD_LENGTH) {
+            error = true;
+        }
+
+        if (global.window.mm_config.PasswordRequireLowercase === 'true') {
+            if (!password.match(/[a-z]/)) {
+                error = true;
+            }
+
+            errorId = errorId + 'Lowercase';
+        }
+
+        if (global.window.mm_config.PasswordRequireUppercase === 'true') {
+            if (!password.match(/[0-9]/)) {
+                error = true;
+            }
+
+            errorId = errorId + 'Uppercase';
+        }
+
+        if (global.window.mm_config.PasswordRequireNumber === 'true') {
+            if (!password.match(/[A-Z]/)) {
+                error = true;
+            }
+
+            errorId = errorId + 'Number';
+        }
+
+        if (global.window.mm_config.PasswordRequireSymbol === 'true') {
+            if (!password.match(/[ !"\\#$%&'()*+,-./:;<=>?@[\]^_`|~]/)) {
+                error = true;
+            }
+
+            errorId = errorId + 'Symbol';
+        }
+
+        minimumLength = global.window.mm_config.PasswordMinimumLength;
+    } else if (password.length < Constants.MIN_PASSWORD_LENGTH) {
+        error = true;
+    }
+
+    if (error) {
+        errorMsg = (
+            <FormattedMessage
+                id={errorId}
+                default='Your password must be at least {min} characters.'
+                values={{
+                    min: minimumLength
+                }}
+            />
+        );
+    }
+
+    return errorMsg;
 }

@@ -18,6 +18,7 @@ export default class OAuthToEmail extends React.Component {
 
         this.state = {};
     }
+
     submit(e) {
         e.preventDefault();
         const state = {};
@@ -26,6 +27,14 @@ export default class OAuthToEmail extends React.Component {
         if (!password) {
             state.error = Utils.localizeMessage('claim.oauth_to_email.enterPwd', 'Please enter a password.');
             this.setState(state);
+            return;
+        }
+
+        const passwordErr = Utils.isValidPassword(password);
+        if (passwordErr !== '') {
+            this.setState({
+                error: passwordErr
+            });
             return;
         }
 

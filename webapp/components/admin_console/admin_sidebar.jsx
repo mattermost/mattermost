@@ -428,11 +428,11 @@ export default class AdminSidebar extends React.Component {
                                     }
                                 />
                                 <AdminSidebarSection
-                                    name='login'
+                                    name='password'
                                     title={
                                         <FormattedMessage
-                                            id='admin.sidebar.login'
-                                            defaultMessage='Login'
+                                            id='admin.sidebar.password'
+                                            defaultMessage='Password'
                                         />
                                     }
                                 />

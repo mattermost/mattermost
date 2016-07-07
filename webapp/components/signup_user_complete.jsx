@@ -317,21 +317,14 @@ export default class SignupUserComplete extends React.Component {
         }
 
         const providedPassword = ReactDOM.findDOMNode(this.refs.password).value;
-        if (!providedPassword || providedPassword.length < Constants.MIN_PASSWORD_LENGTH) {
+        const pwdError = Utils.isValidPassword(providedPassword);
+        if (pwdError != null) {
             this.setState({
                 nameError: '',
                 emailError: '',
-                passwordError: (
-                    <FormattedMessage
-                        id='signup_user_completed.passwordLength'
-                        values={{
-                            min: Constants.MIN_PASSWORD_LENGTH
-                        }}
-                    />
-                ),
+                passwordError: pwdError,
                 serverError: ''
             });
-            return;
         }
 
         this.setState({
@@ -393,7 +386,10 @@ export default class SignupUserComplete extends React.Component {
                 onSubmit={this.handleLdapSignup}
             >
                 <div className='signup__email-container'>
-                    <FormError error={this.state.ldapError}/>
+                    <FormError
+                        error={this.state.ldapError}
+                        margin={true}
+                    />
                     <div className={'form-group' + errorClass}>
                         <input
                             className='form-control'

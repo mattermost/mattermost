@@ -234,6 +234,7 @@ function handleLeaveTeamEvent(msg) {
         }
     } else if (TeamStore.getCurrentId() === msg.team_id) {
         UserActions.getMoreDmList();
+        GlobalActions.emitProfilesForDmList();
     }
 }
 
