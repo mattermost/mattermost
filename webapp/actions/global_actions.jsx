@@ -205,6 +205,19 @@ export function emitPostFocusRightHandSideFromSearch(post, isMentionSearch) {
     );
 }
 
+export function emitLeaveTeam() {
+    Client.removeUserFromTeam(
+        TeamStore.getCurrentId(),
+        UserStore.getCurrentId(),
+        () => {
+            // DO nothing.  The websocket should cause a re-direct
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'removeUserFromTeam');
+        }
+    );
+}
+
 export function emitLoadMorePostsEvent() {
     const id = ChannelStore.getCurrentId();
     loadMorePostsTop(id, false);
