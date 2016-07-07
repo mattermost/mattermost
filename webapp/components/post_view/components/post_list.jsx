@@ -238,6 +238,7 @@ export default class PostList extends React.Component {
             }
 
             let commentCount = 0;
+            let nonOwnCommentsExists = false;
             let isCommentMention = false;
             let commentRootId;
             if (parentPost) {
@@ -250,6 +251,9 @@ export default class PostList extends React.Component {
                 for (const postId in posts) {
                     if (posts[postId].root_id === commentRootId) {
                         commentCount += 1;
+                        if (posts[postId].user_id !== this.props.currentUser.id) {
+                            nonOwnCommentsExists = true;
+                        }
                         if (posts[postId].user_id === this.props.currentUser.id && commentsNotifyLevel === 'any' && !isCommentMention) {
                             for (const nextPostId in posts) {
                                 if (posts[nextPostId].root_id === commentRootId && posts[nextPostId].user_id !== this.props.currentUser.id &&
@@ -261,7 +265,7 @@ export default class PostList extends React.Component {
                         }
                     }
                 }
-                if (commentCount > 0 && posts[commentRootId].user_id === this.props.currentUser.id && commentsNotifyLevel !== 'never') {
+                if (nonOwnCommentsExists && posts[commentRootId].user_id === this.props.currentUser.id && commentsNotifyLevel !== 'never') {
                     isCommentMention = true;
                 }
             }
