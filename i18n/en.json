@@ -1772,6 +1772,10 @@
     "translation": "Password field must not be blank"
   },
   {
+    "id": "api.user.login.invalid_credentials",
+    "translation": "User ID or password incorrect."
+  },
+  {
     "id": "api.user.login.inactive.app_error",
     "translation": "Login failed because your account has been set to inactive.  Please contact an administrator."
   },
