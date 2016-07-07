@@ -162,6 +162,10 @@
     margin: 0 auto 15px;
     padding: 0 15px;
 
+    &.channel-intro--centered {
+        max-width: 1020px;
+    }
+
     .intro-links {
         display: inline-block;
         margin: 0 1.5em 10px 0;
