@@ -1020,6 +1020,7 @@
   "emoji_list.creator": "Creator",
   "emoji_list.delete": "Delete",
   "emoji_list.empty": "No Custom Emoji Found",
+  "emoji_list.help": "Custom emoji are available to everyone on your server and will appear in the emoji autocomplete menu. Other users may need to refresh the page before new emojis appear.",
   "emoji_list.image": "Image",
   "emoji_list.name": "Name",
   "emoji_list.search": "Search Custom Emoji",
