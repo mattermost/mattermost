@@ -257,6 +257,12 @@
                     @include opacity(0);
                 }
 
+                .post__header {
+                    .col__reply {
+                        top: -21px;
+                    }
+                }
+
                 &:not(.post--compact) {
                     .post__time {
                         font-size: 11px;
