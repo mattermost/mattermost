@@ -80,6 +80,19 @@ export default class PasswordSettings extends AdminSettings {
         return config;
     }
 
+    getStateFromConfig(config) {
+        return {
+            passwordMinimumLength: config.PasswordSettings.MinimumLength,
+            passwordLowercase: config.PasswordSettings.Lowercase,
+            passwordNumber: config.PasswordSettings.Number,
+            passwordUppercase: config.PasswordSettings.Uppercase,
+            passwordSymbol: config.PasswordSettings.Symbol,
+            maximumLoginAttempts: config.ServiceSettings.MaximumLoginAttempts,
+            enableMultifactorAuthentication: config.ServiceSettings.EnableMultifactorAuthentication,
+            passwordResetSalt: config.EmailSettings.PasswordResetSalt
+        };
+    }
+
     getSampleErrorMsg() {
         if (this.props.config.PasswordSettings.MinimumLength > Constants.MAX_PASSWORD_LENGTH || this.props.config.PasswordSettings.MinimumLength < Constants.MIN_PASSWORD_LENGTH) {
             return (
@@ -161,6 +174,7 @@ export default class PasswordSettings extends AdminSettings {
                                 defaultMessage='Minimum Password Length:'
                             />
                         }
+                        placeholder={Utils.localizeMessage('admin.password.minimumLengthExample', 'Ex "5"')}
                         helpText={
                             <FormattedMessage
                                 id='admin.password.minimumLengthDescription'

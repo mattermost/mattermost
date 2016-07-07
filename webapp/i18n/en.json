@@ -410,6 +410,7 @@
   "admin.password.lowercase": "At least one lowercase letter",
   "admin.password.minimumLength": "Minimum Password Length:",
   "admin.password.minimumLengthDescription": "Minimum number of characters required for a valid password. Must be a whole number greater than or equal to {min} and less than or equal to {max}.",
+  "admin.password.minimumLengthExample": "Ex \"5\"",
   "admin.password.number": "At least one number",
   "admin.password.preview": "Error message preview",
   "admin.password.requirements": "Password Requirements:",
