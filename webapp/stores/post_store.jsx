@@ -92,7 +92,12 @@ class PostStoreClass extends EventEmitter {
     }
 
     getPost(channelId, postId) {
-        const posts = this.postsInfo[channelId].postList;
+        const postInfo = this.postsInfo[channelId];
+        if (postInfo == null) {
+            return null;
+        }
+
+        const posts = postInfo.postList;
         let post = null;
 
         if (posts.posts.hasOwnProperty(postId)) {
