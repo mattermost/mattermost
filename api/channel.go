@@ -562,6 +562,11 @@ func AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelM
 
 	if result := <-tmchan; result.Err != nil {
 		return nil, result.Err
+	} else {
+		teamMember := result.Data.(model.TeamMember)
+		if teamMember.DeleteAt > 0 {
+			return nil, model.NewLocAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.deleted.app_error", nil, "")
+		}
 	}
 
 	if result := <-cmchan; result.Err != nil {
