@@ -166,7 +166,7 @@ export default class SamlSettings extends AdminSettings {
                     }
                     uploadingText={Utils.localizeMessage('admin.saml.uploading.certificate', 'Uploading Certificate...')}
                     disabled={!this.state.enable}
-                    fileType='.crt'
+                    fileType='.crt,.cer'
                     onSubmit={this.uploadCertificate}
                 />
             );
@@ -260,7 +260,7 @@ export default class SamlSettings extends AdminSettings {
                     }
                     uploadingText={Utils.localizeMessage('admin.saml.uploading.certificate', 'Uploading Certificate...')}
                     disabled={!this.state.enable || !this.state.encrypt}
-                    fileType='.crt'
+                    fileType='.crt,.cer'
                     onSubmit={this.uploadCertificate}
                 />
             );
