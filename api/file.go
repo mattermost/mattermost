@@ -356,7 +356,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	userId := params["user_id"]
 	filename := params["filename"]
 
-	if !c.HasPermissionsToChannel(Srv.Store.Channel().CheckPermissionsTo(teamId, channelId, userId), "getFile") {
+	if !c.HasPermissionsToChannel(Srv.Store.Channel().CheckPermissionsTo(teamId, channelId, c.Session.UserId), "getFile") {
 		return
 	}
 
