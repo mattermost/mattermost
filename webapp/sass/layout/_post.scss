@@ -468,7 +468,8 @@ body.ios {
 
         .dropdown-menu {
             &.bottom {
-                bottom: 19px;
+                bottom: -3px;
+                right: 22px;
                 top: auto;
             }
         }
