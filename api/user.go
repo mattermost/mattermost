@@ -449,8 +449,8 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		if result := <-Srv.Store.User().Get(id); result.Err != nil {
 			c.LogAuditWithUserId(user.Id, "failure")
-			c.Err = result.Err
-			c.Err.StatusCode = http.StatusBadRequest
+			//c.Err = model.NewLocAppError("login", "api.user.login.invalid_credentials", nil, result.Err.Error())
+			c.Err = model.NewLocAppError("login", "api.user.login.invalid_credentials", nil, "")
 			return
 		} else {
 			user = result.Data.(*model.User)
@@ -460,7 +460,8 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		if user, err = getUserForLogin(loginId, ldapOnly); err != nil {
 			c.LogAudit("failure")
-			c.Err = err
+			//c.Err = model.NewLocAppError("login", "api.user.login.invalid_credentials", nil, err.Error())
+			c.Err = model.NewLocAppError("login", "api.user.login.invalid_credentials", nil, "")
 			return
 		}
 
@@ -470,7 +471,8 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	// and then authenticate them
 	if user, err = authenticateUser(user, password, mfaToken); err != nil {
 		c.LogAuditWithUserId(user.Id, "failure")
-		c.Err = err
+		//c.Err = model.NewLocAppError("login", "api.user.login.invalid_credentials", nil, err.Error())
+		c.Err = model.NewLocAppError("login", "api.user.login.invalid_credentials", nil, "")
 		return
 	}
 
