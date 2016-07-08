@@ -49,19 +49,19 @@
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
-    "translation": "Tableau vide pour les 'fichiers' dans la requête"
+    "translation": "Tableau vide pour les 'certificats' dans la requête"
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
-    "translation": "Aucun fichier pour les 'fichiers' dans la requête"
+    "translation": "Aucun fichier pour les 'certificats' dans la requête"
   },
   {
     "id": "api.admin.add_certificate.open.app_error",
-    "translation": "Could not open certificate file"
+    "translation": "Impossible d'ouvrir le fichier du certificat"
   },
   {
     "id": "api.admin.add_certificate.saving.app_error",
-    "translation": "Could not save certificate file"
+    "translation": "Impossible d'enregistrer le certificat"
   },
   {
     "id": "api.admin.file_read_error",
@@ -89,11 +89,11 @@
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "An error occurred while deleting the certificate. Make sure the file config/{{.Filename}} exists."
+    "translation": "Erreur lors de la suppression du certificat. Veuillez vérifier que le fichier config/{{.Filename}} existe."
   },
   {
     "id": "api.admin.saml.metadata.app_error",
-    "translation": "An error occurred while building Service Provider Metadata"
+    "translation": "Une erreur s'est produite lors de la construction des métadonnées du fournisseur de services"
   },
   {
     "id": "api.admin.test_email.body",
@@ -170,6 +170,22 @@
   {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "Impossible d'ajouter l'utilisateur à ce type de canal"
+  },
+  {
+    "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
+    "translation": "La création et l'administration de groupes privés sont réservées aux administrateurs systèmes."
+  },
+  {
+    "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
+    "translation": "La création et l'administration du canal public sont réservées aux administrateurs systèmes et administrateurs d'équipes."
+  },
+  {
+    "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
+    "translation": "La création et l'administration du canal public sont réservées aux administrateurs systèmes."
+  },
+  {
+    "id": "api.channel.can_manage_channel.public_restricted_team_admin.app_error",
+    "translation": "La création et l'administration du canal public sont réservées aux administrateurs systèmes et administrateurs d'équipe."
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -537,7 +553,7 @@
   },
   {
     "id": "api.command_shortcuts.list",
-    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in left hand sidebar\nALT+DOWN: Next channel or direct message in left hand sidebar\nALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\nCTRL/CMD+K: Open a quick channel switcher dialog\nCTRL/CMD+SHIFT+A: Open account settings\nCTRL/CMD+SHIFT+M: Open recent mentions\n\n#### Files\n\nCTRL/CMD+U: Upload file(s)\n\n#### Messages\n\nCTRL/CMD+UP (in empty input field): Reprint the previous message or slash command you entered\nCTRL/CMD+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n#### Built-in Browser Commands\n\nALT+LEFT/CMD+[: Previous channel in your history\nALT+RIGHT/CMD+]: Next channel in your history\nCTRL/CMD+PLUS: Increase font size (zoom in)\nCTRL/CMD+MINUS: Decrease font size (zoom out)\nSHIFT+UP (in input field): Highlight text to the previous line\nSHIFT+DOWN (in input field): Highlight text to the next line\nSHIFT+ENTER (in input field): Create a new line\n"
+    "translation": "### Raccourcis clavier\n\n#### Navigation\n\nALT+HAUT: Canal ou message privé précédent dans la barre de gauche\nALT+BAS: Canal ou message privé suivant dans la barre de gauche\nALT+SHIFT+HAUT: Canal ou message privé précédent avec messages non-lus dans la barre de gauche\nALT+SHIFT+BAS: Canal ou message privé suivant avec messages non-lus dans la barre de gauche\nCTRL/CMD+K: Fenêtre de changemetn de canal rapide\nCTRL/CMD+SHIFT+A: Préférences du compte\nCTRL/CMD+SHIFT+M: Dernières mentions\n\n#### Fichiers\n\nCTRL/CMD+U: Télécharger des fichiers\n\n#### Messages\n\nCTRL/CMD+HAUT (dans un champ vide): Affiche le message ou commande slash précédent\nCTRL/CMD+DOWN (dans un champ vide): Affiche le message ou commande slash suivant\nHAUT (dans un champ vide): Édite votre dernier message dans le canal actuel\n@[lettre]+TAB: Autocomplète un @nom commençant par [lettre]\n:[lettre]+TAB: Autocomplète emoji commençant par [lettre]\n\n#### Commandes du navigateur intégré\n\nALT+GAUCH/CMD+[: Canal précédent dans votre historique\nALT+RIGHT/CMD+]: Canal suivant dans votre historique\nCTRL/CMD+PLUS: Augmente la taille de la police\nCTRL/CMD+MOINS: Diminue la taille de la police\nSHIFT+HAUT (dans un champ de saisie): Surligne le texte jusqu'à la ligne précédente\nSHIFT+BAS (dans un champ de saisie): Surligne le texte jusqu'à la ligne suivante\nSHIFT+ENTRÉE (dans un champ de saisie): Saut de ligne\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -613,7 +629,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Unable to create emoji. Image must be less than 64 KB in size."
+    "translation": "Impossible de créer un emoji. L'image doit faire moins de 64Ko."
   },
   {
     "id": "api.emoji.delete.permissions.app_error",
@@ -1360,6 +1376,10 @@
     "translation": "Équipe %v supprimée définitivement id=%v"
   },
   {
+    "id": "api.team.remove_user_from_team.missing.app_error",
+    "translation": "The user does not appear to be part of this team."
+  },
+  {
     "id": "api.team.signup_team.email_disabled.app_error",
     "translation": "L'inscription avec une adresse électronique est désactivée."
   },
@@ -1756,6 +1776,10 @@
     "translation": "Votre compte a été désactivé.  Veuillez contacter un administrateur."
   },
   {
+    "id": "api.user.login.invalid_credentials",
+    "translation": "User ID or password incorrect."
+  },
+  {
     "id": "api.user.login.not_provided.app_error",
     "translation": "Veuillez entrer soit un identifiant utilisateur, soit le nom d'une équipe"
   },
@@ -2068,6 +2092,10 @@
     "translation": "Droits insuffisants pour regénérer le jeton du webhook sortant"
   },
   {
+    "id": "cli.license.critical",
+    "translation": "Fonctionnalité de conformité désactivée par la licence courante. Veuillez contacter votre administrateur système concernant la mise à niveau de votre licence entreprise."
+  },
+  {
     "id": "ent.brand.save_brand_image.decode.app_error",
     "translation": "Impossible de décoder l'image."
   },
@@ -2261,7 +2289,7 @@
   },
   {
     "id": "ent.saml.metadata.app_error",
-    "translation": "An error occurred while building Service Provider Metadata."
+    "translation": "Une erreur s'est produite lors de la construction des métadonnées du fournisseur de services"
   },
   {
     "id": "ent.saml.service_disable.app_error",
@@ -2294,6 +2322,22 @@
   {
     "id": "error.not_found.title",
     "translation": "Page introuvable"
+  },
+  {
+    "id": "leave_team_modal.desc",
+    "translation": "You will be removed from all public channels and private groups.  If the team is private you will not be able to rejoin the team.  Are you sure?"
+  },
+  {
+    "id": "leave_team_modal.no",
+    "translation": "No"
+  },
+  {
+    "id": "leave_team_modal.title",
+    "translation": "Leave the team?"
+  },
+  {
+    "id": "leave_team_modal.yes",
+    "translation": "Yes"
   },
   {
     "id": "manaultesting.get_channel_id.no_found.debug",
@@ -2660,6 +2704,14 @@
     "translation": "Nombre maximum d'utilisateurs par équipe invalide dans les paramètres d'équipes. Doit être un entier positif."
   },
   {
+    "id": "model.config.is_valid.password_length.app_error",
+    "translation": "Minimum password length must be a whole number greater than or equal to {{.MinLength}} and less than or equal to {{.MaxLength}}."
+  },
+  {
+    "id": "model.config.is_valid.password_length_max_min.app_error",
+    "translation": "Maximum password length must be greater than or equal to minimum password length."
+  },
+  {
     "id": "model.config.is_valid.rate_mem.app_error",
     "translation": "Taille du stockage mémoire invalide pour les paramètres de limite de fréquence. Doit être un entier positif."
   },
@@ -2689,7 +2741,7 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "Identity Provider Issuer URL must be a valid URL and start with http:// or https://."
+    "translation": "URL invalude. Il doit s'agir d'une URL valide et commencer par http:// ou https://"
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
@@ -3037,7 +3089,67 @@
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Mot de passe invalide"
+    "translation": "Your password must contain at least {{.Min}} characters."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter and at least one number."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one number, and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter and at least one uppercase letter."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one uppercase letter, and at least one number."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one uppercase letter, at least one number, and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one uppercase letter, and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one number."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one number and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter and at least one number."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter, at least one number, and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter and at least one symbol (e.g. \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.team_id.app_error",
@@ -3246,6 +3358,10 @@
   {
     "id": "store.sql_channel.get.find.app_error",
     "translation": "Nous avons rencontré une erreur lors de la recherche du canal"
+  },
+  {
+    "id": "store.sql_channel.get_all.app_error",
+    "translation": "Nous n'avons pas pu charger tous les canaux"
   },
   {
     "id": "store.sql_channel.get_by_name.existing.app_error",
@@ -4194,6 +4310,10 @@
   {
     "id": "utils.mail.send_mail.to_address.app_error",
     "translation": "Échec de l'ajout de l'adresse électronique"
+  },
+  {
+    "id": "utils.mail.test.configured.error",
+    "translation": "Les paramètres de serveur SMTP ne semblent pas avoir été configurés correctement err=%v détails=%v"
   },
   {
     "id": "utils.mail.test.configured.error",

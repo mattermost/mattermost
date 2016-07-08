@@ -49,19 +49,19 @@
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
-    "translation": "Leeres Array unterhalb von 'Datei' in der Anfrage"
+    "translation": "Leeres Array unterhalb von 'certificate' in der Anfrage"
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
-    "translation": "keine Datei unter 'file' in der Anfrage"
+    "translation": "keine Datei unter 'certificate' in der Anfrage"
   },
   {
     "id": "api.admin.add_certificate.open.app_error",
-    "translation": "Could not open certificate file"
+    "translation": "Konnte die Zertifikatsdatei nicht öffnen"
   },
   {
     "id": "api.admin.add_certificate.saving.app_error",
-    "translation": "Could not save certificate file"
+    "translation": "Konnte die Zertifikatsdatei nicht speichern"
   },
   {
     "id": "api.admin.file_read_error",
@@ -89,11 +89,11 @@
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "An error occurred while deleting the certificate. Make sure the file config/{{.Filename}} exists."
+    "translation": "Ein Fehler ist beim Löschen des Zertifikats aufgetreten. Stellen Sie sicher, dass die Datei config/{{.Filename}} existiert."
   },
   {
     "id": "api.admin.saml.metadata.app_error",
-    "translation": "An error occurred while building Service Provider Metadata"
+    "translation": "Beim Erstellen der Service Provider Metadaten ist ein Fehler aufgetreten"
   },
   {
     "id": "api.admin.test_email.body",
@@ -170,6 +170,22 @@
   {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "Der Benutzer konnte dem Channel-Typ nicht hinzugefügt werden"
+  },
+  {
+    "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
+    "translation": "Management und Erstellung von privaten Gruppen ist auf Systemadministratoren begrenzt."
+  },
+  {
+    "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
+    "translation": "Management und Erstellung von privaten Gruppen ist auf Team- und Systemadministratoren begrenzt."
+  },
+  {
+    "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
+    "translation": "Management und Erstellung von öffentlichen Kanälen ist auf Systemadministratoren begrenzt."
+  },
+  {
+    "id": "api.channel.can_manage_channel.public_restricted_team_admin.app_error",
+    "translation": "Management und Erstellung von öffentlichen Kanälen ist auf Team- und Systemadministratoren begrenzt."
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -613,7 +629,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Unable to create emoji. Image must be less than 64 KB in size."
+    "translation": "Das Emoji konnte nicht erstellt werden. Das Bild darf maximal 64 KB groß sein."
   },
   {
     "id": "api.emoji.delete.permissions.app_error",
@@ -645,7 +661,7 @@
   },
   {
     "id": "api.emoji.upload.large_image.app_error",
-    "translation": "Unable to create emoji. Image must be at most 128 by 128 pixels."
+    "translation": "Das Emoji konnte nicht erstellt werden. Das Bild darf maximal 128 x 128 pixel groß sein."
   },
   {
     "id": "api.export.json.app_error",
@@ -1125,7 +1141,7 @@
   },
   {
     "id": "api.saml.save_certificate.app_error",
-    "translation": "Certificate did not save properly."
+    "translation": "Das Zertifikat konnte nicht korrekt gespeichert werden."
   },
   {
     "id": "api.server.new_server.init.info",
@@ -1358,6 +1374,10 @@
   {
     "id": "api.team.permanent_delete_team.deleted.warn",
     "translation": "Team gelöscht. %v id=%v"
+  },
+  {
+    "id": "api.team.remove_user_from_team.missing.app_error",
+    "translation": "Der Benutzer scheint nicht Teil dieses Teams zu sein."
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",
@@ -1756,6 +1776,10 @@
     "translation": "Login nicht möglich weil Ihr Account inaktiv ist.   Bitte melden Sie sich bei einem Administrator."
   },
   {
+    "id": "api.user.login.invalid_credentials",
+    "translation": "User ID or password incorrect."
+  },
+  {
     "id": "api.user.login.not_provided.app_error",
     "translation": "Entweder Nutzername oder Teamname und E-Mail-Addresse müssen angegeben werden"
   },
@@ -1833,7 +1857,7 @@
   },
   {
     "id": "api.user.saml.not_available.app_error",
-    "translation": "MFA ist auf diesem Server nicht konfiguriert oder wird nicht unterstützt"
+    "translation": "SAML ist auf diesem Server nicht konfiguriert oder wird nicht unterstützt"
   },
   {
     "id": "api.user.send_email_change_email_and_forget.error",
@@ -2068,6 +2092,10 @@
     "translation": "Die Berechtigungen für die Erneuerung des Webhooks-Tokens sind ungeeignet"
   },
   {
+    "id": "cli.license.critical",
+    "translation": "Feature erfordert Enterprise Lizenz. Bitte kontaktieren Sie Ihren Systemadministrator wegen Upgrade Ihrer Enterprise Lizenz."
+  },
+  {
     "id": "ent.brand.save_brand_image.decode.app_error",
     "translation": "Konnte Bild nicht dekodieren."
   },
@@ -2113,7 +2141,7 @@
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
-    "translation": "Compliance Funktionalität durch die aktuelle Lizenz deaktiviert. Bitte kontaktieren Sie Ihren Systemadministrator wegen eines Enterprise Lizenzupgrades."
+    "translation": "Benutzerdefinierte Emojireaktionen durch die aktuelle Lizenz deaktiviert. Bitte kontaktieren Sie Ihren Systemadministrator wegen eines Enterprise Lizenzupgrades."
   },
   {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
@@ -2205,71 +2233,71 @@
   },
   {
     "id": "ent.saml.build_request.app_error",
-    "translation": "An error occurred while initiating the request to the Identity Provider. Please contact your System Administrator."
+    "translation": "Bei der Verbindung zum Identitäten Anbieter trat ein Fehler auf. Bitte kontaktieren Sie Ihren Systemadministrator."
   },
   {
     "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "An error occurred while encoding the request for the Identity Provider. Please contact your System Administrator."
+    "translation": "Beim Kodieren der Anfrage für den Identitäten Anbieter trat ein Fehler auf. Bitte kontaktieren Sie Ihren Systemadministrator."
   },
   {
     "id": "ent.saml.build_request.encoding_signed.app_error",
-    "translation": "An error occurred while encoding the signed request for the Identity Provider. Please contact your System Administrator."
+    "translation": "Fehler beim enkodieren der verschlüsselten Anfrage an den Identitätsprovider. Bitte kontaktieren Sie Ihren Systemadministrator."
   },
   {
     "id": "ent.saml.configure.app_error",
-    "translation": "An error occurred while configuring SAML Service Provider, err=%v"
+    "translation": "Fehler beim Konfigurieren des SAML Service Providers, err=%v"
   },
   {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
-    "translation": "SAML login was unsuccessful because encryption is not enabled. Please contact your System Administrator."
+    "translation": "SAML login war nicht erfolgreich da Verschlüsselung nicht aktiviert ist. Bitte kontaktieren Sie Ihren Systemadministrator."
   },
   {
     "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Identity Provider Public Certificate File was not found. Please contact your System Administrator."
+    "translation": "Datei des öffentlichen Zertifikats des Identitätsproviders nicht gefunden. Bitte kontaktieren Sie Ihren Systemadministrator."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
-    "translation": "SAML login was unsuccessful because the Service Provider Private Key was not found. Please contact your System Administrator."
+    "translation": "SAML Login war nicht erfolgreich da der private Schlüssel des Service Providers nicht gefunden wurde. Bitte kontaktieren Sie Ihren Systemadministrator."
   },
   {
     "id": "ent.saml.configure.load_public_cert.app_error",
-    "translation": "Service Provider Public Certificate File was not found. Please contact your System Administrator."
+    "translation": "Datei für das öffentliche Zertifikat des Serviceproviders nicht gefunden. Bitte kontaktieren Sie Ihren Systemadministrator."
   },
   {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
-    "translation": "SAML login was unsuccessful as the Identity Provider response is not encrypted. Please contact your System Administrator."
+    "translation": "SAML Login war nicht erfolgreich da die Antwort des Identitätsproviders nicht verschlüsselt war. Bitte kontaktieren Sie Ihren Systemadministrator."
   },
   {
     "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "SAML login was unsuccessful because an error occurred while decrypting the response from the Identity Provider. Please contact your System Administrator."
+    "translation": "SAML Login war nicht erfolgreich da ein Fehler beim entschlüsseln der Antwort des Identitätsproviders auftrat. Bitte kontaktieren Sie Ihren Systemadministrator."
   },
   {
     "id": "ent.saml.do_login.empty_response.app_error",
-    "translation": "We received an empty response from the Identity Provider"
+    "translation": "Leere Antwort vom Identitätsprovider erhalten"
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
-    "translation": "An error occurred while parsing the response from the Identity Provider. Please contact your System Administrator."
+    "translation": "Es trat ein Fehler beim Verarbeiten der Antwort des Identitätsproviders auf. Bitte kontaktieren Sie Ihren Systemadministrator."
   },
   {
     "id": "ent.saml.do_login.validate.app_error",
-    "translation": "An error occurred while validating the response from the Identity Provider. Please contact your System Administrator."
+    "translation": "Es trat ein Fehler beim Validieren der Antwort des Identitätsproviders auf. Bitte kontaktieren Sie Ihren Systemadministrator."
   },
   {
     "id": "ent.saml.license_disable.app_error",
-    "translation": "Your license does not support SAML authentication."
+    "translation": "Ihre Lizenz unterstützt keine SAML Authentifizierung."
   },
   {
     "id": "ent.saml.metadata.app_error",
-    "translation": "An error occurred while building Service Provider Metadata."
+    "translation": "Beim Erstellen der Service Provider Metadaten ist ein Fehler aufgetreten."
   },
   {
     "id": "ent.saml.service_disable.app_error",
-    "translation": "MFA ist auf diesem Server nicht konfiguriert oder wird nicht unterstützt"
+    "translation": "SAML ist auf diesem Server nicht konfiguriert oder wird nicht unterstützt."
   },
   {
     "id": "ent.saml.update_saml_user.unable_error",
-    "translation": "Unable to update existing SAML user. Allowing login anyway. err=%v"
+    "translation": "Konnte existierenden SAML User nicht aktualisieren. Erlaube login trotzdem. err=%v"
   },
   {
     "id": "error.generic.link_message",
@@ -2294,6 +2322,22 @@
   {
     "id": "error.not_found.title",
     "translation": "Seite nicht gefunden"
+  },
+  {
+    "id": "leave_team_modal.desc",
+    "translation": "Sie werden von allen öffentlichen Kanälen und privaten Gruppen entferne.  Wenn das Team privat ist können Sie nicht erneut beitreten.  Sind Sie sich sicher?"
+  },
+  {
+    "id": "leave_team_modal.no",
+    "translation": "Nein"
+  },
+  {
+    "id": "leave_team_modal.title",
+    "translation": "Dieses Team verlassen?"
+  },
+  {
+    "id": "leave_team_modal.yes",
+    "translation": "Ja"
   },
   {
     "id": "manaultesting.get_channel_id.no_found.debug",
@@ -2545,7 +2589,7 @@
   },
   {
     "id": "model.command.is_valid.url_http.app_error",
-    "translation": "Ungültige URL. Muss eine gültige URL sein und mit http:// oder https:// starten"
+    "translation": "Ungültige URL. Muss eine gültige URL sein und mit http:// oder https:// beginnen."
   },
   {
     "id": "model.command.is_valid.user_id.app_error",
@@ -2660,6 +2704,14 @@
     "translation": "Ungültige maximale Anzahl an Benutzers pro Team in Teameinstellungen.  Muss eine positive Zahl sein."
   },
   {
+    "id": "model.config.is_valid.password_length.app_error",
+    "translation": "Minimale Passwortlänge muss eine ganze Zahl größer oder gleich zu  {{.MinLength}} und weniger oder gleich zu {{.MaxLength}} sein."
+  },
+  {
+    "id": "model.config.is_valid.password_length_max_min.app_error",
+    "translation": "Maximale Passwortlänge muss größer oder gleich der minimalen Länge sein."
+  },
+  {
     "id": "model.config.is_valid.rate_mem.app_error",
     "translation": "Ungültige Speichergröße für Anfragenbegrenzer Einstellungen.  Muss eine positive Zahl sein."
   },
@@ -2673,43 +2725,43 @@
   },
   {
     "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
-    "translation": "Ungültige URL. Muss eine gültige URL sein und mit http:// oder https:// starten"
+    "translation": "Service Provider Login URL muss eine gültige URL sein und mit http:// oder https:// beginnen."
   },
   {
     "id": "model.config.is_valid.saml_email_attribute.app_error",
-    "translation": "Invalid Email attribute. Must be set."
+    "translation": "Ungültiges E-Mail Attribut. Muss gesetzt sein."
   },
   {
     "id": "model.config.is_valid.saml_first_name_attribute.app_error",
-    "translation": "Invalid First Name attribute. Must be set."
+    "translation": "Ungültiges Vornamen Attribut. Muss gesetzt sein."
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
-    "translation": "Identity Provider Public Certificate missing. Did you forget to upload it?"
+    "translation": "Öffentliches Zertifikat des Identitätsproviders fehlt. Haben Sie vergessen es hochzuladen?"
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "Identity Provider Issuer URL must be a valid URL and start with http:// or https://."
+    "translation": "Identitätsprovider Issuer URL muss eine gültige URL sein und mit http:// oder https:// beginnen."
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
-    "translation": "Ungültige URL. Muss eine gültige URL sein und mit http:// oder https:// starten"
+    "translation": "SAML SSO URL muss eine gültige URL sein und mit http:// oder https:// beginnen."
   },
   {
     "id": "model.config.is_valid.saml_last_name_attribute.app_error",
-    "translation": "Invalid Last Name attribute. Must be set."
+    "translation": "Ungültiges Nachnamen Attribut. Muss gesetzt sein."
   },
   {
     "id": "model.config.is_valid.saml_private_key.app_error",
-    "translation": "Service Provider Private Key missing. Did you forget to upload it?"
+    "translation": "Privater Schlüssel des Service Providers fehlt. Haben Sie vergessen Ihn hochzuladen?"
   },
   {
     "id": "model.config.is_valid.saml_public_cert.app_error",
-    "translation": "Service Provider Public Certificate missing. Did you forget to upload it?"
+    "translation": "Öffentliches Zertifikat des Service Providers fehlt. Haben Sie vergessen es hochzuladen?"
   },
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
-    "translation": "Invalid Username attribute. Must be set."
+    "translation": "Ungültiges Benuternamen Attribut. Muss gesetzt sein."
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",
@@ -3037,7 +3089,67 @@
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Ungültiges Passwort"
+    "translation": "Ihr Passwort muss mindestens {{.Min}} Zeichen lang sein."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase.app_error",
+    "translation": "Ihr Passwort muss mindestens {{.Min}} Zeichen lang sein und mindestens einen Kleinbuchstaben enthalten."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number.app_error",
+    "translation": "Ihr Passwort muss mindestens {{.Min}} Zeichen lang sein und mindestens einen Kleinbuchstaben und eine Ziffer enthalten."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
+    "translation": "Ihr Passwort muss mindestens {{.Min}} Zeichen lang sein und mindestens einen Kleinbuchstaben, eine Ziffer und ein Symbol (wie \"~!@#$%^&*()\") enthalten."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
+    "translation": "Ihr Passwort muss mindestens {{.Min}} Zeichen lang sein und mindestens einen Kleinbuchstaben und ein Symbol (wie \"~!@#$%^&*()\"). enthalten."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
+    "translation": "Ihr Passwort muss mindestens {{.Min}} Zeichen lang sein und mindestens einen Kleinbuchstaben und einen Großbuchstaben enthalten."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
+    "translation": "Ihr Passwort muss mindestens {{.Min}} Zeichen lang sein und mindestens einen Kleinbuchstaben, einen Großbuchstaben und eine Ziffer enthalten."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
+    "translation": "Ihr Passwort muss mindestens {{.Min}} Zeichen lang sein und mindestens einen Kleinbuchstaben, einen Großbuchstaben, eine Ziffer und ein Symbol (wie \"~!@#$%^&*()\") enthalten."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
+    "translation": "Ihr Passwort muss mindestens {{.Min}} Zeichen lang sein und mindestens einen Kleinbuchstaben, einen Großbuchstaben und ein Symbol (wie \"~!@#$%^&*()\") enthalten."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number.app_error",
+    "translation": "Ihr Passwort muss mindestens {{.Min}} Zeichen lang sein und mindestens eine Ziffer enthalten."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number_symbol.app_error",
+    "translation": "Ihr Passwort muss mindestens {{.Min}} Zeichen lang sein und mindestens eine Ziffer und ein Symbol (wie \"~!@#$%^&*()\") enthalten."
+  },
+  {
+    "id": "model.user.is_valid.pwd_symbol.app_error",
+    "translation": "Ihr Passwort muss mindestens {{.Min}} Zeichen lang sein und mindestens ein Symbol (wie \"~!@#$%^&*()\") enthalten."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase.app_error",
+    "translation": "Ihr Passwort muss mindestens {{.Min}} Zeichen lang sein und mindestens einen Großbuchstaben enthalten."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number.app_error",
+    "translation": "Ihr Passwort muss mindestens {{.Min}} Zeichen lang sein und mindestens einen Großbuchstaben und eine Ziffer enthalten."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
+    "translation": "Ihr Passwort muss mindestens {{.Min}} Zeichen lang sein und mindestens einen Großbuchstaben, eine Ziffer und ein Symbol (wie \"~!@#$%^&*()\") enthalten."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
+    "translation": "Ihr Passwort muss mindestens {{.Min}} Zeichen lang sein und mindestens einen Großbuchstaben und ein Symbol (wie \"~!@#$%^&*()\") enthalten."
   },
   {
     "id": "model.user.is_valid.team_id.app_error",
@@ -3246,6 +3358,10 @@
   {
     "id": "store.sql_channel.get.find.app_error",
     "translation": "Wir konnte den Kanal nicht finden"
+  },
+  {
+    "id": "store.sql_channel.get_all.app_error",
+    "translation": "Wir konnten nicht alle Kanäle laden"
   },
   {
     "id": "store.sql_channel.get_by_name.existing.app_error",
@@ -3465,7 +3581,7 @@
   },
   {
     "id": "store.sql_emoji.save.app_error",
-    "translation": "Wir konnten das Emoji nicht speichern "
+    "translation": "Wir konnten das Emoji nicht speichern"
   },
   {
     "id": "store.sql_license.get.app_error",
@@ -3937,7 +4053,7 @@
   },
   {
     "id": "store.sql_user.save.email_exists.saml_app_error",
-    "translation": "Dieser Account verwendet keine LDAP Authentifikation. Bitte melden Sie sich mit E-Mail-Adresse und Passwort an."
+    "translation": "Dieser Account verwendet keine SAML Authentifikation. Bitte melden Sie sich mit E-Mail-Adresse und Passwort an."
   },
   {
     "id": "store.sql_user.save.existing.app_error",
@@ -4194,6 +4310,10 @@
   {
     "id": "utils.mail.send_mail.to_address.app_error",
     "translation": "Fehler beim Hinzufügen der E-Mail Adresse"
+  },
+  {
+    "id": "utils.mail.test.configured.error",
+    "translation": "SMTP Einstellungen scheinen nicht korrekt konfiguriert zu sein err=%v details=%v"
   },
   {
     "id": "utils.mail.test.configured.error",
