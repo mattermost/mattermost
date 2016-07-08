@@ -49,19 +49,19 @@
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
-    "translation": "リクエストの'file'以下の配列が空です"
+    "translation": "リクエストの'certificate'以下の配列が空です"
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
-    "translation": "リクエストの'file'以下にファイルがありません"
+    "translation": "リクエストの'certificate'以下にファイルがありません"
   },
   {
     "id": "api.admin.add_certificate.open.app_error",
-    "translation": "Could not open certificate file"
+    "translation": "証明書ファイルを開くことができませんでした"
   },
   {
     "id": "api.admin.add_certificate.saving.app_error",
-    "translation": "Could not save certificate file"
+    "translation": "証明書ファイルを保存できませんでした"
   },
   {
     "id": "api.admin.file_read_error",
@@ -89,11 +89,11 @@
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "An error occurred while deleting the certificate. Make sure the file config/{{.Filename}} exists."
+    "translation": "証明書を削除する際にエラーが発生しました。config/{{.Filename}}にファイルが存在することを確認してください、"
   },
   {
     "id": "api.admin.saml.metadata.app_error",
-    "translation": "An error occurred while building Service Provider Metadata"
+    "translation": "サービスプロバイダーのメタデータを構築中にエラーが発生しました"
   },
   {
     "id": "api.admin.test_email.body",
@@ -170,6 +170,22 @@
   {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "この種類のチャンネルにはユーザーを追加することはできません"
+  },
+  {
+    "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
+    "translation": "プライベートグループの作成と管理は、システム管理者しかできません。"
+  },
+  {
+    "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
+    "translation": "プライベートグループの作成と管理は、チーム管理者かシステム管理者しかできません。"
+  },
+  {
+    "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
+    "translation": "公開チャンネルの作成と管理は、システム管理者しかできません。"
+  },
+  {
+    "id": "api.channel.can_manage_channel.public_restricted_team_admin.app_error",
+    "translation": "公開チャンネルの作成と管理は、チーム管理者かシステム管理者しかできません。"
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -613,7 +629,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Unable to create emoji. Image must be less than 64 KB in size."
+    "translation": "絵文字を作成できません。画像サイズは64KB未満でなければなりません。"
   },
   {
     "id": "api.emoji.delete.permissions.app_error",
@@ -645,7 +661,7 @@
   },
   {
     "id": "api.emoji.upload.large_image.app_error",
-    "translation": "Unable to create emoji. Image must be at most 128 by 128 pixels."
+    "translation": "絵文字を作成できません。画像は128x128ピクセル以内である必要があります。"
   },
   {
     "id": "api.export.json.app_error",
@@ -1125,7 +1141,7 @@
   },
   {
     "id": "api.saml.save_certificate.app_error",
-    "translation": "Certificate did not save properly."
+    "translation": "証明書が正常に保存されませんでした。"
   },
   {
     "id": "api.server.new_server.init.info",
@@ -1358,6 +1374,10 @@
   {
     "id": "api.team.permanent_delete_team.deleted.warn",
     "translation": "チーム%vを完全に削除しました id=%v"
+  },
+  {
+    "id": "api.team.remove_user_from_team.missing.app_error",
+    "translation": "The user does not appear to be part of this team."
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",
@@ -1756,6 +1776,10 @@
     "translation": "あなたのアカウントは無効化されています。システム管理者に連絡してください。"
   },
   {
+    "id": "api.user.login.invalid_credentials",
+    "translation": "User ID or password incorrect."
+  },
+  {
     "id": "api.user.login.not_provided.app_error",
     "translation": "ユーザーIDまたはチーム名と電子メールアドレスの組み合わせを指定しなくてはいけません"
   },
@@ -1833,7 +1857,7 @@
   },
   {
     "id": "api.user.saml.not_available.app_error",
-    "translation": "MFAは設定されていないか、このサーバーではサポートされていません"
+    "translation": "SAMLは設定されていないか、このサーバーではサポートされていません"
   },
   {
     "id": "api.user.send_email_change_email_and_forget.error",
@@ -2068,6 +2092,10 @@
     "translation": "外向きのウェブフックトークンを再生成するのに十分な権限が付与されていません"
   },
   {
+    "id": "cli.license.critical",
+    "translation": "カスタム絵文字の制限機能が現在のライセンスでは無効になっています。システム管理者にエンタープライズライセンスをアップグレードするように連絡してください。"
+  },
+  {
     "id": "ent.brand.save_brand_image.decode.app_error",
     "translation": "画像をデコードできません。"
   },
@@ -2113,7 +2141,7 @@
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
-    "translation": "コンプライアンス機能が現在のライセンスでは無効になっています。システム管理者にエンタープライズライセンスをアップグレードするように連絡してください。"
+    "translation": "カスタム絵文字の制限機能が現在のライセンスでは無効になっています。システム管理者にエンタープライズライセンスをアップグレードするように連絡してください。"
   },
   {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
@@ -2261,11 +2289,11 @@
   },
   {
     "id": "ent.saml.metadata.app_error",
-    "translation": "An error occurred while building Service Provider Metadata."
+    "translation": "サービスプロバイダーのメタデータを構築中にエラーが発生しました"
   },
   {
     "id": "ent.saml.service_disable.app_error",
-    "translation": "MFAは設定されていないか、このサーバーではサポートされていません"
+    "translation": "SAMLは設定されていないか、このサーバーではサポートされていません"
   },
   {
     "id": "ent.saml.update_saml_user.unable_error",
@@ -2294,6 +2322,22 @@
   {
     "id": "error.not_found.title",
     "translation": "ページが見付かりません"
+  },
+  {
+    "id": "leave_team_modal.desc",
+    "translation": "You will be removed from all public channels and private groups.  If the team is private you will not be able to rejoin the team.  Are you sure?"
+  },
+  {
+    "id": "leave_team_modal.no",
+    "translation": "No"
+  },
+  {
+    "id": "leave_team_modal.title",
+    "translation": "Leave the team?"
+  },
+  {
+    "id": "leave_team_modal.yes",
+    "translation": "Yes"
   },
   {
     "id": "manaultesting.get_channel_id.no_found.debug",
@@ -2660,6 +2704,14 @@
     "translation": "チーム設定のチーム毎の最大ユーザー数が不正です。正の数を指定してください。"
   },
   {
+    "id": "model.config.is_valid.password_length.app_error",
+    "translation": "Minimum password length must be a whole number greater than or equal to {{.MinLength}} and less than or equal to {{.MaxLength}}."
+  },
+  {
+    "id": "model.config.is_valid.password_length_max_min.app_error",
+    "translation": "Maximum password length must be greater than or equal to minimum password length."
+  },
+  {
     "id": "model.config.is_valid.rate_mem.app_error",
     "translation": "投稿頻度設定のメモリー保存サイズが不正です。正の数を指定してください。"
   },
@@ -2689,7 +2741,7 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "Identity Provider Issuer URL must be a valid URL and start with http:// or https://."
+    "translation": "不正なURLです。正しいURLはhttp://またはhttps://で始まります"
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
@@ -3037,7 +3089,67 @@
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
-    "translation": "不正なパスワードです"
+    "translation": "Your password must contain at least {{.Min}} characters."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter and at least one number."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one number, and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter and at least one uppercase letter."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one uppercase letter, and at least one number."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one uppercase letter, at least one number, and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one uppercase letter, and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one number."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one number and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter and at least one number."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter, at least one number, and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter and at least one symbol (e.g. \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.team_id.app_error",
@@ -3246,6 +3358,10 @@
   {
     "id": "store.sql_channel.get.find.app_error",
     "translation": "チャンネルを探す際にエラーが発生しました"
+  },
+  {
+    "id": "store.sql_channel.get_all.app_error",
+    "translation": "チャンネルが全ては取得できませんでした"
   },
   {
     "id": "store.sql_channel.get_by_name.existing.app_error",
@@ -3937,7 +4053,7 @@
   },
   {
     "id": "store.sql_user.save.email_exists.saml_app_error",
-    "translation": "このアカウントはLDAP認証を使用していません。電子メールアドレスとパスワードを使ってサインインしてください。"
+    "translation": "このアカウントはSAML認証を使用していません。電子メールアドレスとパスワードを使ってサインインしてください。"
   },
   {
     "id": "store.sql_user.save.existing.app_error",
@@ -4194,6 +4310,10 @@
   {
     "id": "utils.mail.send_mail.to_address.app_error",
     "translation": "宛先の電子メールアドレスを追加できませんでした"
+  },
+  {
+    "id": "utils.mail.test.configured.error",
+    "translation": "SMTPサーバー用の設定が正しくありません err=%v details=%v"
   },
   {
     "id": "utils.mail.test.configured.error",
