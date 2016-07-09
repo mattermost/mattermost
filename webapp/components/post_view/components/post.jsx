@@ -205,7 +205,7 @@ export default class Post extends React.Component {
 
         let dropdownOpenedClass = '';
         if (this.state.dropdownOpened) {
-            dropdownOpenedClass = 'post--dropdown-opened';
+            dropdownOpenedClass = 'post--hovered';
         }
 
         return (
