@@ -64,7 +64,7 @@ export default class WebhookSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.service.webhooksDescription'
-                            defaultMessage='When true, incoming webhooks will be allowed. To help combat phishing attacks, all posts from webhooks will be labelled by a BOT tag.'
+                            defaultMessage='When true, incoming webhooks will be allowed. To help combat phishing attacks, all posts from webhooks will be labelled by a BOT tag. See <a href="http://docs.mattermost.com/developer/webhooks-incoming.html" target="_blank">documentation</a> to learn more.'
                         />
                     }
                     value={this.state.enableIncomingWebhooks}
@@ -81,7 +81,7 @@ export default class WebhookSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.service.outWebhooksDesc'
-                            defaultMessage='When true, outgoing webhooks will be allowed.'
+                            defaultMessage='When true, outgoing webhooks will be allowed. See <a href="http://docs.mattermost.com/developer/webhooks-outgoing.html" target="_blank">documentation</a> to learn more.'
                         />
                     }
                     value={this.state.enableOutgoingWebhooks}
@@ -98,7 +98,7 @@ export default class WebhookSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.service.cmdsDesc'
-                            defaultMessage='When true, user created slash commands will be allowed.'
+                            defaultMessage='When true, custom slash commands will be allowed. See <a href="http://docs.mattermost.com/developer/slash-commands.html" target="_blank">documentation</a> to learn more.'
                         />
                     }
                     value={this.state.enableCommands}
