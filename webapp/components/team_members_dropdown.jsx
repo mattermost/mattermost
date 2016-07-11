@@ -186,7 +186,7 @@ export default class TeamMembersDropdown extends React.Component {
         }
 
         const me = UserStore.getCurrentUser();
-        let showMakeMember = teamMember.roles === 'admin' || user.roles === 'system_admin';
+        let showMakeMember = teamMember.roles === 'admin' && user.roles !== 'system_admin';
         let showMakeAdmin = teamMember.roles === '' && user.roles !== 'system_admin';
         let showMakeActive = false;
         let showMakeNotActive = user.roles !== 'system_admin';
