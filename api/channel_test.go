@@ -833,6 +833,25 @@ func TestJoinChannelByName(t *testing.T) {
 	}
 }
 
+func TestJoinChannelByNameDisabledUser(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+	team := th.BasicTeam
+
+	channel1 := &model.Channel{DisplayName: "A Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
+
+	Client.Must(th.BasicClient.RemoveUserFromTeam(th.BasicTeam.Id, th.BasicUser.Id))
+
+	if _, err := AddUserToChannel(th.BasicUser, channel1); err == nil {
+		t.Fatal("shoudn't be able to join channel")
+	} else {
+		if err.Id != "api.channel.add_user.to.channel.failed.deleted.app_error" {
+			t.Fatal("wrong error")
+		}
+	}
+}
+
 func TestLeaveChannel(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.BasicClient
