@@ -18,9 +18,12 @@ export default class Post extends React.Component {
         super(props);
 
         this.handleCommentClick = this.handleCommentClick.bind(this);
+        this.handleDropdownOpened = this.handleDropdownOpened.bind(this);
         this.forceUpdateInfo = this.forceUpdateInfo.bind(this);
 
-        this.state = {};
+        this.state = {
+            dropdownOpened: false
+        };
     }
     handleCommentClick(e) {
         e.preventDefault();
@@ -35,11 +38,16 @@ export default class Post extends React.Component {
             results: null
         });
     }
+    handleDropdownOpened(opened) {
+        this.setState({
+            dropdownOpened: opened
+        });
+    }
     forceUpdateInfo() {
         this.refs.info.forceUpdate();
         this.refs.header.forceUpdate();
     }
-    shouldComponentUpdate(nextProps) {
+    shouldComponentUpdate(nextProps, nextState) {
         if (!Utils.areObjectsEqual(nextProps.post, this.props.post)) {
             return true;
         }
@@ -85,6 +93,14 @@ export default class Post extends React.Component {
         }
 
         if (nextProps.emojis !== this.props.emojis) {
+            return true;
+        }
+
+        if (nextProps.emojis !== this.props.emojis) {
+            return true;
+        }
+
+        if (nextState.dropdownOpened !== this.state.dropdownOpened) {
             return true;
         }
 
@@ -187,11 +203,16 @@ export default class Post extends React.Component {
             profilePicContainer = '';
         }
 
+        let dropdownOpenedClass = '';
+        if (this.state.dropdownOpened) {
+            dropdownOpenedClass = 'post--hovered';
+        }
+
         return (
             <div>
                 <div
                     id={'post_' + post.id}
-                    className={'post ' + sameUserClass + ' ' + compactClass + ' ' + rootUser + ' ' + postType + ' ' + currentUserCss + ' ' + shouldHighlightClass + ' ' + systemMessageClass + ' ' + hideControls}
+                    className={'post ' + sameUserClass + ' ' + compactClass + ' ' + rootUser + ' ' + postType + ' ' + currentUserCss + ' ' + shouldHighlightClass + ' ' + systemMessageClass + ' ' + hideControls + ' ' + dropdownOpenedClass}
                 >
                     <div className={'post__content ' + centerClass}>
                         {profilePicContainer}
@@ -202,6 +223,7 @@ export default class Post extends React.Component {
                                 sameRoot={this.props.sameRoot}
                                 commentCount={commentCount}
                                 handleCommentClick={this.handleCommentClick}
+                                handleDropdownOpened={this.handleDropdownOpened}
                                 isLastComment={this.props.isLastComment}
                                 sameUser={this.props.sameUser}
                                 user={this.props.user}
