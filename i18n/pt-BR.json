@@ -164,6 +164,10 @@
     "translation": "Não foi possível adicionar o usuário no canal"
   },
   {
+    "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
+    "translation": "Failed to add user to channel because they have been removed from the team."
+  },
+  {
     "id": "api.channel.add_user_to_channel.deleted.app_error",
     "translation": "O canal foi deletado ou arquivado"
   },
@@ -1777,7 +1781,7 @@
   },
   {
     "id": "api.user.login.invalid_credentials",
-    "translation": "User ID or password incorrect."
+    "translation": "ID do usuário ou senha incorreta."
   },
   {
     "id": "api.user.login.not_provided.app_error",
@@ -2093,7 +2097,7 @@
   },
   {
     "id": "cli.license.critical",
-    "translation": "Funcionalidade Compliance desabilitada pela licença atual. Entre em contato com o administrador do sistema sobre como atualizar sua licença enterprise."
+    "translation": "Funcionalidade requer uma licença enterprise. Entre em contato com o administrador do sistema sobre como atualizar sua licença enterprise."
   },
   {
     "id": "ent.brand.save_brand_image.decode.app_error",
@@ -2325,7 +2329,7 @@
   },
   {
     "id": "leave_team_modal.desc",
-    "translation": "You will be removed from all public channels and private groups.  If the team is private you will not be able to rejoin the team.  Are you sure?"
+    "translation": "Você será removido de todos os canais públicos e grupos privados.  Se a equipe é privada você não será capaz de se juntar à equipe.  Você tem certeza?"
   },
   {
     "id": "leave_team_modal.no",
@@ -2333,7 +2337,7 @@
   },
   {
     "id": "leave_team_modal.title",
-    "translation": "Leave the team?"
+    "translation": "Deixar a equipe?"
   },
   {
     "id": "leave_team_modal.yes",
@@ -2741,27 +2745,27 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "URL inválida. Deve ser uma URL válida e começar com http:// ou https://"
+    "translation": "URL Emissora do Provedor de Identidade deve ser uma URL válida e começar com http:// ou https://."
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
-    "translation": "URL inválida. Deve ser uma URL válida e começar com http:// ou https://"
+    "translation": "URL SAML SSO deve ser uma URL válida e começar com http:// ou https://."
   },
   {
     "id": "model.config.is_valid.saml_last_name_attribute.app_error",
-    "translation": "Atributo Primeiro Nome Inválido. Deve ser definido."
+    "translation": "Atributo Último Nome Inválido. Deve ser definido."
   },
   {
     "id": "model.config.is_valid.saml_private_key.app_error",
-    "translation": "Service Provider Private Key missing. Did you forget to upload it?"
+    "translation": "Chave Privada do Provedor de Serviço. Esqueceu-se de carregá-lo?"
   },
   {
     "id": "model.config.is_valid.saml_public_cert.app_error",
-    "translation": "Faltando Certificado Público do Provedor de Identidade. Esqueceu-se de carregá-lo?"
+    "translation": "Faltando Certificado Público do Provedor de Serviço. Esqueceu-se de carregá-lo?"
   },
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
-    "translation": "Atributo Primeiro Nome Inválido. Deve ser definido."
+    "translation": "Atributo Usuário Inválido. Deve ser definido."
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",
@@ -3089,67 +3093,67 @@
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters."
+    "translation": "Sua senha precisa conter no mínimo {{.Min}} caracteres."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter."
+    "translation": "Sua senha deve conter no mínimo {{.Min}} caracteres composta de pelo menos uma letra minúscula."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_number.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter and at least one number."
+    "translation": "Sua senha deve conter no mínimo {{.Min}} caracteres composta de pelo menos uma letra minúscula e pelo menos um número."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one number, and at least one symbol (e.g. \"~!@#$%^&*()\")."
+    "translation": "Sua senha deve conter no mínimo {{.Min}} caracteres composta de pelo menos uma letra minúscula, pelo menos um número e um símbolo (ex. \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter and at least one symbol (e.g. \"~!@#$%^&*()\")."
+    "translation": "Sua senha deve conter no mínimo {{.Min}} caracteres composta de pelo menos uma letra minúscula e pelo menos um símbolo (ex. \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter and at least one uppercase letter."
+    "translation": "Sua senha deve conter no mínimo {{.Min}} caracteres composta de pelo menos uma letra minúscula e pelo menos uma letra maiúscula."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one uppercase letter, and at least one number."
+    "translation": "Sua senha deve conter no mínimo {{.Min}} caracteres composta de pelo menos uma letra minúscula, pelo menos uma letra maiúscula, e pelo menos um número."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one uppercase letter, at least one number, and at least one symbol (e.g. \"~!@#$%^&*()\")."
+    "translation": "Sua senha deve conter no mínimo {{.Min}} caracteres composta de pelo menos uma letra minúscula, pelo menos uma letra maiúscula, e pelo menos um número, e pelo menos um símbolo (ex. \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one uppercase letter, and at least one symbol (e.g. \"~!@#$%^&*()\")."
+    "translation": "Sua senha deve conter no mínimo {{.Min}} caracteres composta de pelo menos uma letra minúscula, pelo menos uma letra maiúscula, e pelo menos um símbolo (ex. \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_number.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one number."
+    "translation": "Sua senha deve conter no mínimo {{.Min}} caracteres composta de pelo menos um número."
   },
   {
     "id": "model.user.is_valid.pwd_number_symbol.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one number and at least one symbol (e.g. \"~!@#$%^&*()\")."
+    "translation": "Sua senha deve conter no mínimo {{.Min}} caracteres composta de pelo menos um número e pelo menos um símbolo (ex. \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_symbol.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one symbol (e.g. \"~!@#$%^&*()\")."
+    "translation": "Sua senha deve conter no mínimo {{.Min}} caracteres composta de pelo menos um símbolo (ex. \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_uppercase.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter."
+    "translation": "Sua senha deve conter no mínimo {{.Min}} caracteres composta de pelo menos uma letra maiúscula."
   },
   {
     "id": "model.user.is_valid.pwd_uppercase_number.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter and at least one number."
+    "translation": "Sua senha deve conter no mínimo {{.Min}} caracteres composta de pelo menos uma letra maiúscula e pelo menos um número."
   },
   {
     "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter, at least one number, and at least one symbol (e.g. \"~!@#$%^&*()\")."
+    "translation": "Sua senha deve conter no mínimo {{.Min}} caracteres composta de pelo menos uma letra maiúscula e pelo menos um número e pelo menos um símbolo (ex. \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter and at least one symbol (e.g. \"~!@#$%^&*()\")."
+    "translation": "Sua senha deve conter no mínimo {{.Min}} caracteres composta de pelo menos uma letra maiúscula e pelo menos um símbolo (ex. \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.team_id.app_error",
@@ -4053,7 +4057,7 @@
   },
   {
     "id": "store.sql_user.save.email_exists.saml_app_error",
-    "translation": "Está conta não usa autenticação LDAP. Por favor faça login usando email e senha."
+    "translation": "Está conta não usa autenticação SAML. Por favor faça login usando email e senha."
   },
   {
     "id": "store.sql_user.save.existing.app_error",

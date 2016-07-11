@@ -164,6 +164,10 @@
     "translation": "Échec de l'ajout utilisateur"
   },
   {
+    "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
+    "translation": "Failed to add user to channel because they have been removed from the team."
+  },
+  {
     "id": "api.channel.add_user_to_channel.deleted.app_error",
     "translation": "Le canal a été archivé ou effacé"
   },
@@ -621,7 +625,7 @@
   },
   {
     "id": "api.emoji.create.parse.app_error",
-    "translation": "Impossible de créer un emoji. Impossible de comprendre la demande."
+    "translation": "Impossible de créer un emoji. Impossible de comprendre la requête."
   },
   {
     "id": "api.emoji.create.permissions.app_error",
@@ -661,7 +665,7 @@
   },
   {
     "id": "api.emoji.upload.large_image.app_error",
-    "translation": "Unable to create emoji. Image must be at most 128 by 128 pixels."
+    "translation": "Impossible de créer un emoji. L'image doit faire au plus 128x128 pixels."
   },
   {
     "id": "api.export.json.app_error",
@@ -1141,7 +1145,7 @@
   },
   {
     "id": "api.saml.save_certificate.app_error",
-    "translation": "Certificate did not save properly."
+    "translation": "Le certificat ne s'est pas enregistré correctement."
   },
   {
     "id": "api.server.new_server.init.info",
@@ -1377,7 +1381,7 @@
   },
   {
     "id": "api.team.remove_user_from_team.missing.app_error",
-    "translation": "The user does not appear to be part of this team."
+    "translation": "L'utilisateur n'appartient pas à cette équipe."
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",
@@ -1777,7 +1781,7 @@
   },
   {
     "id": "api.user.login.invalid_credentials",
-    "translation": "User ID or password incorrect."
+    "translation": "Nom d'utilisateur ou mot de passe invalide."
   },
   {
     "id": "api.user.login.not_provided.app_error",
@@ -1857,7 +1861,7 @@
   },
   {
     "id": "api.user.saml.not_available.app_error",
-    "translation": "MFA n'est pas configuré ou supporté sur ce serveur"
+    "translation": "SAML n'est pas configuré ou supporté sur ce serveur."
   },
   {
     "id": "api.user.send_email_change_email_and_forget.error",
@@ -2093,7 +2097,7 @@
   },
   {
     "id": "cli.license.critical",
-    "translation": "Fonctionnalité de conformité désactivée par la licence courante. Veuillez contacter votre administrateur système concernant la mise à niveau de votre licence entreprise."
+    "translation": "Fonctionnalité désactivée pour la licence courante. Veuillez contacter votre administrateur système concernant la mise à niveau de votre licence entreprise."
   },
   {
     "id": "ent.brand.save_brand_image.decode.app_error",
@@ -2141,7 +2145,7 @@
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
-    "translation": "Fonctionnalité de conformité désactivée par la licence courante. Veuillez contacter votre administrateur système concernant la mise à niveau de votre licence entreprise."
+    "translation": "Emoji personnalisés désactivés par la licence courante. Veuillez contacter votre administrateur système concernant la mise à niveau de votre licence entreprise."
   },
   {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
@@ -2233,39 +2237,39 @@
   },
   {
     "id": "ent.saml.build_request.app_error",
-    "translation": "An error occurred while initiating the request to the Identity Provider. Please contact your System Administrator."
+    "translation": "Erreur lors de la requête au fournisseur d'identité. Veuillez contacter votre administrateur système."
   },
   {
     "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "An error occurred while encoding the request for the Identity Provider. Please contact your System Administrator."
+    "translation": "Erreur lors de l'encodage de la requête pour le fournisseur d'identité. Veuillez contacter votre administrateur système."
   },
   {
     "id": "ent.saml.build_request.encoding_signed.app_error",
-    "translation": "An error occurred while encoding the signed request for the Identity Provider. Please contact your System Administrator."
+    "translation": "Erreur d'encodage de la requête signée vers le fournisseur d'identité. Veuillez contacter votre administrateur système."
   },
   {
     "id": "ent.saml.configure.app_error",
-    "translation": "An error occurred while configuring SAML Service Provider, err=%v"
+    "translation": "Erreur lors de la configuration du fournisseur SAML, err=%v"
   },
   {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
-    "translation": "SAML login was unsuccessful because encryption is not enabled. Please contact your System Administrator."
+    "translation": "La connexion SAML a échoué car le chiffrement n'est pas activé. Veuillez contacter votre administrateur système."
   },
   {
     "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Identity Provider Public Certificate File was not found. Please contact your System Administrator."
+    "translation": "Le fichier de certificat de fournisseur d'identité est introuvable. Veuillez contacter votre administrateur système."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
-    "translation": "SAML login was unsuccessful because the Service Provider Private Key was not found. Please contact your System Administrator."
+    "translation": "La connexion SAML a échoué car la clé privée du fournisseur d'identité est introuvable. Veuillez contacter votre administrateur système."
   },
   {
     "id": "ent.saml.configure.load_public_cert.app_error",
-    "translation": "Service Provider Public Certificate File was not found. Please contact your System Administrator."
+    "translation": "Le certificat public du fournisseur est introuvable. Veuillez contacter votre administrateur système."
   },
   {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
-    "translation": "SAML login was unsuccessful as the Identity Provider response is not encrypted. Please contact your System Administrator."
+    "translation": "La connexion SAML a échoué car la réponse du fournisseur d'identité n'est pas chiffrée. Veuillez contacter votre administrateur système."
   },
   {
     "id": "ent.saml.do_login.decrypt.app_error",
@@ -2277,15 +2281,15 @@
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
-    "translation": "An error occurred while parsing the response from the Identity Provider. Please contact your System Administrator."
+    "translation": "Erreur lors de l'encodage de la requête pour le fournisseur d'identité. Veuillez contacter votre administrateur système."
   },
   {
     "id": "ent.saml.do_login.validate.app_error",
-    "translation": "An error occurred while validating the response from the Identity Provider. Please contact your System Administrator."
+    "translation": "Erreur lors de l'encodage de la requête pour le fournisseur d'identité. Veuillez contacter votre administrateur système."
   },
   {
     "id": "ent.saml.license_disable.app_error",
-    "translation": "Your license does not support SAML authentication."
+    "translation": "Votre licence ne permet pas l'authentification SAML."
   },
   {
     "id": "ent.saml.metadata.app_error",
@@ -2293,7 +2297,7 @@
   },
   {
     "id": "ent.saml.service_disable.app_error",
-    "translation": "MFA n'est pas configuré ou supporté sur ce serveur"
+    "translation": "SAML n'est pas configuré ou supporté sur ce serveur"
   },
   {
     "id": "ent.saml.update_saml_user.unable_error",
@@ -2325,19 +2329,19 @@
   },
   {
     "id": "leave_team_modal.desc",
-    "translation": "You will be removed from all public channels and private groups.  If the team is private you will not be able to rejoin the team.  Are you sure?"
+    "translation": "Vous serez supprimé de tous les canaux et groupes privés. Si l'équipe est privée, vous ne pourrez plus la rejoindre à nouveau. Êtes-vous sûr ?"
   },
   {
     "id": "leave_team_modal.no",
-    "translation": "No"
+    "translation": "Non"
   },
   {
     "id": "leave_team_modal.title",
-    "translation": "Leave the team?"
+    "translation": "Quitter l'équipe ?"
   },
   {
     "id": "leave_team_modal.yes",
-    "translation": "Yes"
+    "translation": "Oui"
   },
   {
     "id": "manaultesting.get_channel_id.no_found.debug",
@@ -2725,15 +2729,15 @@
   },
   {
     "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
-    "translation": "URL invalude. Il doit s'agir d'une URL valide et commencer par http:// ou https://"
+    "translation": "URL invalide. Il doit s'agir d'une URL valide et commencer par http:// ou https://"
   },
   {
     "id": "model.config.is_valid.saml_email_attribute.app_error",
-    "translation": "Invalid Email attribute. Must be set."
+    "translation": "L'attribut \"Username\" est invalide. Il doit être renseigné."
   },
   {
     "id": "model.config.is_valid.saml_first_name_attribute.app_error",
-    "translation": "Invalid First Name attribute. Must be set."
+    "translation": "L'attribut \"Username\" est invalide. Il doit être renseigné."
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
@@ -2741,15 +2745,15 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "URL invalude. Il doit s'agir d'une URL valide et commencer par http:// ou https://"
+    "translation": "URL invalide. Il doit s'agir d'une URL valide et commencer par http:// ou https://."
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
-    "translation": "URL invalude. Il doit s'agir d'une URL valide et commencer par http:// ou https://"
+    "translation": "URL SSO SAML invalide. Il doit s'agir d'une URL valide et commencer par http:// ou https://."
   },
   {
     "id": "model.config.is_valid.saml_last_name_attribute.app_error",
-    "translation": "Invalid Last Name attribute. Must be set."
+    "translation": "L'attribut \"Username\" est invalide. Il doit être renseigné."
   },
   {
     "id": "model.config.is_valid.saml_private_key.app_error",
@@ -2761,7 +2765,7 @@
   },
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
-    "translation": "Invalid Username attribute. Must be set."
+    "translation": "L'attribut \"Username\" est invalide. Il doit être renseigné."
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",
@@ -3089,67 +3093,67 @@
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters."
+    "translation": "Votre mot de passe doit contenir au moins {{.Min}} caractères."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter."
+    "translation": "Votre mot de passe doit contenir au moins {{.Min}} caractères et une lettre minuscule."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_number.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter and at least one number."
+    "translation": "Votre mot de passe doit contenir au moins {{.Min}} caractères, une lettre minuscule et un chiffre."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one number, and at least one symbol (e.g. \"~!@#$%^&*()\")."
+    "translation": "Votre mot de passe doit contenir au moins {{.Min}} caractères, une lettre minuscule, un chiffre et un symbole (parmi \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter and at least one symbol (e.g. \"~!@#$%^&*()\")."
+    "translation": "Votre mot de passe doit contenir au moins {{.Min}} caractères, une lettre minuscule et un symbole (parmi \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter and at least one uppercase letter."
+    "translation": "Votre mot de passe doit contenir au moins {{.Min}} caractères, une lettre minuscule et une majuscule."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one uppercase letter, and at least one number."
+    "translation": "Votre mot de passe doit contenir au moins {{.Min}} caractères, une lettre minuscule, une majuscule et un chiffre."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one uppercase letter, at least one number, and at least one symbol (e.g. \"~!@#$%^&*()\")."
+    "translation": "Votre mot de passe doit contenir au moins {{.Min}} caractères, une lettre minuscule, une majuscule, un chiffre et un symbole (parmi \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one uppercase letter, and at least one symbol (e.g. \"~!@#$%^&*()\")."
+    "translation": "Votre mot de passe doit contenir au moins {{.Min}} caractères, une lettre minuscule, une majuscule et un symbole (parmi \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_number.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one number."
+    "translation": "Votre mot de passe doit contenir au moins {{.Min}} caractères, un chiffre."
   },
   {
     "id": "model.user.is_valid.pwd_number_symbol.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one number and at least one symbol (e.g. \"~!@#$%^&*()\")."
+    "translation": "Votre mot de passe doit contenir au moins {{.Min}} caractères, un chiffre et un symbole (parmi \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_symbol.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one symbol (e.g. \"~!@#$%^&*()\")."
+    "translation": "Votre mot de passe doit contenir au moins {{.Min}} caractères, un symbole (parmi \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_uppercase.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter."
+    "translation": "Votre mot de passe doit contenir au moins {{.Min}} caractères, une lettre majuscule."
   },
   {
     "id": "model.user.is_valid.pwd_uppercase_number.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter and at least one number."
+    "translation": "Votre mot de passe doit contenir au moins {{.Min}} caractères, une lettre majuscule et un chiffre."
   },
   {
     "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter, at least one number, and at least one symbol (e.g. \"~!@#$%^&*()\")."
+    "translation": "Votre mot de passe doit contenir au moins {{.Min}} caractères, une lettre majuscule, un chiffre et un symbole (parmi \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter and at least one symbol (e.g. \"~!@#$%^&*()\")."
+    "translation": "Votre mot de passe doit contenir au moins {{.Min}} caractères, une lettre majuscule et un symbole (parmi \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.team_id.app_error",
@@ -4053,7 +4057,7 @@
   },
   {
     "id": "store.sql_user.save.email_exists.saml_app_error",
-    "translation": "Ce compte n'utilise pas l'authentification LDAP. Veuillez vous connecter avec votre adresse électronique et votre mot de passe."
+    "translation": "Ce compte n'utilise pas l'authentification SAML. Veuillez vous connecter avec votre adresse électronique et votre mot de passe."
   },
   {
     "id": "store.sql_user.save.existing.app_error",
