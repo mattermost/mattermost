@@ -2309,7 +2309,7 @@
   },
   {
     "id": "error.not_found.message",
-    "translation": "The page you where trying to reach does not exist."
+    "translation": "The page you were trying to reach does not exist."
   },
   {
     "id": "error.not_found.title",
