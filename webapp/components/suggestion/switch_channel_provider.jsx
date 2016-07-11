@@ -57,7 +57,13 @@ export default class SwitchChannelProvider {
                 }
             }
 
-            channels.sort((a, b) => a.display_name.localeCompare(b.display_name));
+            channels.sort((a, b) => {
+                if (a.display_name === b.display_name) {
+                    return a.name.localeCompare(b.name);
+                }
+                return a.display_name.localeCompare(b.display_name);
+            });
+
             const channelNames = channels.map((channel) => channel.name);
 
             SuggestionStore.addSuggestions(suggestionId, channelNames, channels, SwitchChannelSuggestion, channelPrefix);
