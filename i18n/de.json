@@ -97,7 +97,7 @@
   },
   {
     "id": "api.admin.test_email.body",
-    "translation": "<br/><br/><br/>Dein Mattermost E-Mail Setup scheint korrekt zu sein!"
+    "translation": "<br/><br/><br/>Ihr Mattermost E-Mail Setup scheint korrekt zu sein!"
   },
   {
     "id": "api.admin.test_email.missing_server",
@@ -162,6 +162,10 @@
   {
     "id": "api.channel.add_user.to.channel.failed.app_error",
     "translation": "Benutzer konnte dem Channel nicht hinzugefügt werden"
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
+    "translation": "Failed to add user to channel because they have been removed from the team."
   },
   {
     "id": "api.channel.add_user_to_channel.deleted.app_error",
@@ -1065,7 +1069,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_mention",
-    "translation": " hat dich erwähnt in "
+    "translation": " hat Sie erwähnt in "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_message",
@@ -1469,7 +1473,7 @@
   },
   {
     "id": "api.templates.invite_subject",
-    "translation": "{{ .SenderName }} hat dich eingeladen dem Team {{ .TeamDisplayName }} auf {{.SiteName}} beizutreten"
+    "translation": "{{ .SenderName }} hat Sie eingeladen dem Team {{ .TeamDisplayName }} auf {{.SiteName}} beizutreten"
   },
   {
     "id": "api.templates.password_change_body.info",
@@ -1777,7 +1781,7 @@
   },
   {
     "id": "api.user.login.invalid_credentials",
-    "translation": "User ID or password incorrect."
+    "translation": "Benutzername oder Passwort inkorrekt."
   },
   {
     "id": "api.user.login.not_provided.app_error",
