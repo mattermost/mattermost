@@ -18,15 +18,19 @@ export default class PostInfo extends React.Component {
     constructor(props) {
         super(props);
 
-        this.dropdownPosition = this.dropdownPosition.bind(this);
+        this.handleDropdownClick = this.handleDropdownClick.bind(this);
         this.handlePermalink = this.handlePermalink.bind(this);
     }
-    dropdownPosition(e) {
+    handleDropdownClick(e) {
         var position = $('#post-list').height() - $(e.target).offset().top;
         var dropdown = $(e.target).closest('.col__reply').find('.dropdown-menu');
         if (position < dropdown.height()) {
             dropdown.addClass('bottom');
         }
+    }
+    componentDidMount() {
+        $('#post_dropdown' + this.props.post.id).on('shown.bs.dropdown', () => this.props.handleDropdownOpened(true));
+        $('#post_dropdown' + this.props.post.id).on('hidden.bs.dropdown', () => this.props.handleDropdownOpened(false));
     }
     createDropdown() {
         var post = this.props.post;
@@ -140,14 +144,16 @@ export default class PostInfo extends React.Component {
         }
 
         return (
-            <div>
+            <div
+                id={'post_dropdown' + this.props.post.id}
+            >
                 <a
                     href='#'
                     className='dropdown-toggle post__dropdown theme'
                     type='button'
                     data-toggle='dropdown'
                     aria-expanded='false'
-                    onClick={this.dropdownPosition}
+                    onClick={this.handleDropdownClick}
                 />
                 <ul
                     className='dropdown-menu'
@@ -231,6 +237,7 @@ PostInfo.propTypes = {
     isLastComment: React.PropTypes.bool.isRequired,
     allowReply: React.PropTypes.string.isRequired,
     handleCommentClick: React.PropTypes.func.isRequired,
+    handleDropdownOpened: React.PropTypes.func.isRequired,
     sameUser: React.PropTypes.bool.isRequired,
     currentUser: React.PropTypes.object.isRequired,
     compactDisplay: React.PropTypes.bool,

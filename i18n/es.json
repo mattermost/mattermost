@@ -164,12 +164,32 @@
     "translation": "Falla al agregar el usuario al canal"
   },
   {
+    "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
+    "translation": "Failed to add user to channel because they have been removed from the team."
+  },
+  {
     "id": "api.channel.add_user_to_channel.deleted.app_error",
     "translation": "El canal ha sido archivado o eliminado"
   },
   {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "No se puede agregar al usuario a este tipo de canal"
+  },
+  {
+    "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
+    "translation": "La gestión y creación de Grupos Privados está restringido a los Administradores del Sistema."
+  },
+  {
+    "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
+    "translation": "La gestión y creación de Grupos Privados está restringido a los Administradores de Equipo y Sistema."
+  },
+  {
+    "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
+    "translation": "La gestión y creación de Canales Públicos está restringido a los Administradores del Sistema."
+  },
+  {
+    "id": "api.channel.can_manage_channel.public_restricted_team_admin.app_error",
+    "translation": "La gestión y creación de Canales Públicos está restringido a los Administradores de Equipo y Sistema."
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -1360,6 +1380,10 @@
     "translation": "Equipo eliminado permanentemente %v id=%v"
   },
   {
+    "id": "api.team.remove_user_from_team.missing.app_error",
+    "translation": "El usuario no parece ser parte de este equipo."
+  },
+  {
     "id": "api.team.signup_team.email_disabled.app_error",
     "translation": "El registro a equipos por correo electrónico está deshabilitado."
   },
@@ -1756,6 +1780,10 @@
     "translation": "El inicio de sesión falló porque tu cuenta ha sido desactivada. Por favor contacta a un administrador."
   },
   {
+    "id": "api.user.login.invalid_credentials",
+    "translation": "ID de usuario o contraseña incorrectos."
+  },
+  {
     "id": "api.user.login.not_provided.app_error",
     "translation": "Ya sea el id de usuario o el nombre del equipo y la dirección de correo del usuario deben ser suministradas"
   },
@@ -2068,6 +2096,10 @@
     "translation": "Permisos inapropiados para regenerar un token para el Webhook saliente"
   },
   {
+    "id": "cli.license.critical",
+    "translation": "La característica requiere una licencia enterprise. Por favor, póngase en contacto con su Administrador del Sistema acerca de la actualización de su licencia enterprise."
+  },
+  {
     "id": "ent.brand.save_brand_image.decode.app_error",
     "translation": "No se puede decodificar la imagen."
   },
@@ -2294,6 +2326,22 @@
   {
     "id": "error.not_found.title",
     "translation": "Página no encontrada"
+  },
+  {
+    "id": "leave_team_modal.desc",
+    "translation": "Serás removido de todos los canales públicos y privados.  Si el equipo es privado no serás capaz de regresar al equipo.  ¿Estás seguro?"
+  },
+  {
+    "id": "leave_team_modal.no",
+    "translation": "No"
+  },
+  {
+    "id": "leave_team_modal.title",
+    "translation": "¿Abandonar el equipo?"
+  },
+  {
+    "id": "leave_team_modal.yes",
+    "translation": "Sí"
   },
   {
     "id": "manaultesting.get_channel_id.no_found.debug",
@@ -2658,6 +2706,14 @@
   {
     "id": "model.config.is_valid.max_users.app_error",
     "translation": "Número inválido del máximo de usuarios por equipo en la configuración de equipo.  Debe ser un número positivo."
+  },
+  {
+    "id": "model.config.is_valid.password_length.app_error",
+    "translation": "Longitud mínima de la contraseña debe ser un número entero mayor que o igual a {{.MinLength}} y menor o igual que {{.MaxLength}}."
+  },
+  {
+    "id": "model.config.is_valid.password_length_max_min.app_error",
+    "translation": "Longitud máxima de la contraseña debe ser mayor que o igual a la longitud mínima de la contraseña."
   },
   {
     "id": "model.config.is_valid.rate_mem.app_error",
@@ -3037,7 +3093,67 @@
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Contraseña inválida"
+    "translation": "La contraseña debe contener al menos {{.Min}} caracteres."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase.app_error",
+    "translation": "La contraseña debe contener al menos {{.Min}} caracteres compuesta de al menos una letra minúscula."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number.app_error",
+    "translation": "La contraseña debe contener al menos {{.Min}} caracteres compuesta de al menos una letra minúscula y al menos un número."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
+    "translation": "La contraseña debe contener al menos {{.Min}} caracteres compuesta de al menos una letra minúscula, al menos un número, y al menos un símbolo (por ejemplo,\"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
+    "translation": "La contraseña debe contener al menos {{.Min}} caracteres compuesta de al menos una letra minúscula, y al menos un símbolo (por ejemplo,\"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
+    "translation": "La contraseña debe contener al menos {{.Min}} caracteres compuesta de al menos una letra minúscula, y al menos una letra en mayúscula."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
+    "translation": "La contraseña debe contener al menos {{.Min}} caracteres compuesta de al menos una letra minúscula, al menos una letra mayúscula y al menos un número."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
+    "translation": "La contraseña debe contener al menos {{.Min}} caracteres compuesta de al menos una letra minúscula, al menos una letra mayúscula, al menos un número, y al menos un símbolo (por ejemplo,\"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
+    "translation": "La contraseña debe contener al menos {{.Min}} caracteres compuesta de al menos una letra minúscula, al menos una letra mayúscula y al menos un símbolo (por ejemplo,\"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number.app_error",
+    "translation": "La contraseña debe contener al menos {{.Min}} caracteres compuesta de al menos un número."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number_symbol.app_error",
+    "translation": "La contraseña debe contener al menos {{.Min}} caracteres compuesta de al menos un número y al menos un símbolo (por ejemplo,\"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_symbol.app_error",
+    "translation": "La contraseña debe contener al menos {{.Min}} caracteres compuesta de al menos un símbolo (por ejemplo,\"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase.app_error",
+    "translation": "La contraseña debe contener al menos {{.Min}} caracteres compuesta de al menos una letra mayúscula."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number.app_error",
+    "translation": "La contraseña debe contener al menos {{.Min}} caracteres compuesta de al menos una letra mayúscula y al menos un número."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
+    "translation": "La contraseña debe contener al menos {{.Min}} caracteres compuesta de al menos una letra mayúscula, al menos un número, y al menos un símbolo (por ejemplo,\"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
+    "translation": "La contraseña debe contener al menos {{.Min}} caracteres compuesta de al menos una letra mayúscula y al menos un símbolo (por ejemplo,\"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.team_id.app_error",
@@ -3246,6 +3362,10 @@
   {
     "id": "store.sql_channel.get.find.app_error",
     "translation": "Encontramos un error buscando el canal"
+  },
+  {
+    "id": "store.sql_channel.get_all.app_error",
+    "translation": "No pudimos obtener todos los canales"
   },
   {
     "id": "store.sql_channel.get_by_name.existing.app_error",
@@ -4194,6 +4314,10 @@
   {
     "id": "utils.mail.send_mail.to_address.app_error",
     "translation": "Falla al agregar el correo electrónico para"
+  },
+  {
+    "id": "utils.mail.test.configured.error",
+    "translation": "El servidor SMTP parece no estar configurado apropiadamente err=%v details=%v"
   },
   {
     "id": "utils.mail.test.configured.error",

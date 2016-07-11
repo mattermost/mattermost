@@ -14,6 +14,7 @@ import Client from 'utils/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
+import * as UserActions from 'actions/user_actions.jsx';
 import {handleNewPost} from 'actions/post_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
@@ -232,6 +233,7 @@ function handleLeaveTeamEvent(msg) {
             browserHistory.push('/');
         }
     } else if (TeamStore.getCurrentId() === msg.team_id) {
+        UserActions.getMoreDmList();
         GlobalActions.emitProfilesForDmList();
     }
 }

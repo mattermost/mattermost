@@ -49,19 +49,19 @@
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
-    "translation": "Matriz vazia em 'file' na requisição"
+    "translation": "Matriz vazia sob o 'certificado' na requisição"
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
-    "translation": "Nenhum arquivo sobre a 'file' no pedido"
+    "translation": "Nenhum arquivo sob o 'certificado' na requisição"
   },
   {
     "id": "api.admin.add_certificate.open.app_error",
-    "translation": "Could not open certificate file"
+    "translation": "Não foi possível abrir o arquivo do certificado"
   },
   {
     "id": "api.admin.add_certificate.saving.app_error",
-    "translation": "Could not save certificate file"
+    "translation": "Não foi possível salvar o arquivo do certificado"
   },
   {
     "id": "api.admin.file_read_error",
@@ -89,11 +89,11 @@
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "An error occurred while deleting the certificate. Make sure the file config/{{.Filename}} exists."
+    "translation": "Um erro aconteceu ao apagar o certificado. Verifique se o arquivo config/{{.Filename}} existe."
   },
   {
     "id": "api.admin.saml.metadata.app_error",
-    "translation": "An error occurred while building Service Provider Metadata"
+    "translation": "Um erro aconteceu enquanto construindo o Service Provider Metadata"
   },
   {
     "id": "api.admin.test_email.body",
@@ -164,12 +164,32 @@
     "translation": "Não foi possível adicionar o usuário no canal"
   },
   {
+    "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
+    "translation": "Failed to add user to channel because they have been removed from the team."
+  },
+  {
     "id": "api.channel.add_user_to_channel.deleted.app_error",
     "translation": "O canal foi deletado ou arquivado"
   },
   {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "Não foi possível adicionar usuário para este tipo de canal"
+  },
+  {
+    "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
+    "translation": "Gerenciamento de Canais Privados e criação é restrito apenas para Administradores do Sistema."
+  },
+  {
+    "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
+    "translation": "Gerenciamento de Canais Privados e criação é restrito apenas para o Time e Administradores do Sistema."
+  },
+  {
+    "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
+    "translation": "Gerenciamento de Canais Públicos e criação é restrito apenas para Administradores do Sistema."
+  },
+  {
+    "id": "api.channel.can_manage_channel.public_restricted_team_admin.app_error",
+    "translation": "Gerenciamento de Canais Públicos e criação é restrito apenas para o Time e Administradores do Sistema."
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -605,7 +625,7 @@
   },
   {
     "id": "api.emoji.create.parse.app_error",
-    "translation": "Não foi possível criar o emoji. A requisição não foi entendida."
+    "translation": "Não foi possível criar o emoji. A requisição está errada."
   },
   {
     "id": "api.emoji.create.permissions.app_error",
@@ -613,7 +633,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Unable to create emoji. Image must be less than 64 KB in size."
+    "translation": "Não foi possível criar o emoji. A imagem tem que ser menor que 64 KB em tamanho."
   },
   {
     "id": "api.emoji.delete.permissions.app_error",
@@ -645,7 +665,7 @@
   },
   {
     "id": "api.emoji.upload.large_image.app_error",
-    "translation": "Unable to create emoji. Image must be at most 128 by 128 pixels."
+    "translation": "Não foi possível criar o emoji. A imagem deve ser, no máximo 128 por 128 pixels."
   },
   {
     "id": "api.export.json.app_error",
@@ -1125,7 +1145,7 @@
   },
   {
     "id": "api.saml.save_certificate.app_error",
-    "translation": "Certificate did not save properly."
+    "translation": "O certificado não foi salvo corretamente."
   },
   {
     "id": "api.server.new_server.init.info",
@@ -1358,6 +1378,10 @@
   {
     "id": "api.team.permanent_delete_team.deleted.warn",
     "translation": "Equipe permanentemente deletada %v id=%v"
+  },
+  {
+    "id": "api.team.remove_user_from_team.missing.app_error",
+    "translation": "O usuário não parece ser parte desta equipe."
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",
@@ -1756,6 +1780,10 @@
     "translation": "Login falhou devido a sua conta estar inativa.  Por favor entre em contado com um administrador."
   },
   {
+    "id": "api.user.login.invalid_credentials",
+    "translation": "ID do usuário ou senha incorreta."
+  },
+  {
     "id": "api.user.login.not_provided.app_error",
     "translation": "Id do usuário ou o nome da equipe e e-mail deve ser fornecido"
   },
@@ -1833,7 +1861,7 @@
   },
   {
     "id": "api.user.saml.not_available.app_error",
-    "translation": "MFA não configurado ou disponível neste servidor"
+    "translation": "SAML não está configurado ou disponível neste servidor."
   },
   {
     "id": "api.user.send_email_change_email_and_forget.error",
@@ -2068,6 +2096,10 @@
     "translation": "Permissões inadequadas para re-gerar o token do webhook de saída"
   },
   {
+    "id": "cli.license.critical",
+    "translation": "Funcionalidade requer uma licença enterprise. Entre em contato com o administrador do sistema sobre como atualizar sua licença enterprise."
+  },
+  {
     "id": "ent.brand.save_brand_image.decode.app_error",
     "translation": "Não foi possível ler a imagem."
   },
@@ -2113,7 +2145,7 @@
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
-    "translation": "Funcionalidade Compliance desabilitada pela licença atual. Entre em contato com o administrador do sistema sobre como atualizar sua licença enterprise."
+    "translation": "Emoji personalizado desabilitado pela licença atual. Entre em contato com o administrador do sistema sobre como atualizar sua licença enterprise."
   },
   {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
@@ -2205,71 +2237,71 @@
   },
   {
     "id": "ent.saml.build_request.app_error",
-    "translation": "An error occurred while initiating the request to the Identity Provider. Please contact your System Administrator."
+    "translation": "Ocorreu um erro ao iniciar a solicitação para o Provedor de Identidade. Entre em contato com o Administrador do Sistema."
   },
   {
     "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "An error occurred while encoding the request for the Identity Provider. Please contact your System Administrator."
+    "translation": "Ocorreu um erro durante a codificação do pedido para o Provedor de Identidade. Entre em contato com o Administrador do Sistema."
   },
   {
     "id": "ent.saml.build_request.encoding_signed.app_error",
-    "translation": "An error occurred while encoding the signed request for the Identity Provider. Please contact your System Administrator."
+    "translation": "Ocorreu um erro durante a codificação do pedido assinado para o Provedor de Identidade. Entre em contato com o Administrador do Sistema."
   },
   {
     "id": "ent.saml.configure.app_error",
-    "translation": "An error occurred while configuring SAML Service Provider, err=%v"
+    "translation": "Ocorreu um erro durante a configuração do Provedor de Serviço SAML, err=%v"
   },
   {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
-    "translation": "SAML login was unsuccessful because encryption is not enabled. Please contact your System Administrator."
+    "translation": "SAML login não foi bem sucedido pois a criptografia não está ativada. Entre em contato com o Administrador do Sistema."
   },
   {
     "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Identity Provider Public Certificate File was not found. Please contact your System Administrator."
+    "translation": "O Arquivo do Certificado Publico do Provedor de Identidade não foi encontrado. Entre em contato com o Administrador do Sistema."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
-    "translation": "SAML login was unsuccessful because the Service Provider Private Key was not found. Please contact your System Administrator."
+    "translation": "SAML login não foi bem sucedido pois a Chave Privada do Provedor do Serviço não foi encontrada. Entre em contato com a Administrador do Sistema."
   },
   {
     "id": "ent.saml.configure.load_public_cert.app_error",
-    "translation": "Service Provider Public Certificate File was not found. Please contact your System Administrator."
+    "translation": "O Arquivo do Certificado Publico do Provedor de Serviço não foi encontrado. Entre em contato com o Administrador do Sistema."
   },
   {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
-    "translation": "SAML login was unsuccessful as the Identity Provider response is not encrypted. Please contact your System Administrator."
+    "translation": "SAML login não foi bem sucedido pois a resposta do Provedor de Identidade não está criptografada. Entre em contato com a Administrador do Sistema."
   },
   {
     "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "SAML login was unsuccessful because an error occurred while decrypting the response from the Identity Provider. Please contact your System Administrator."
+    "translation": "SAML login não foi bem sucedida porque ocorreu um erro ao descriptografar a resposta do Provedor de Identidade. Entre em contato com o Administrador do Sistema."
   },
   {
     "id": "ent.saml.do_login.empty_response.app_error",
-    "translation": "We received an empty response from the Identity Provider"
+    "translation": "Recebido uma resposta em branco do Provedor de Identidade"
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
-    "translation": "An error occurred while parsing the response from the Identity Provider. Please contact your System Administrator."
+    "translation": "Ocorreu um erro ao analisar a resposta do Provedor de Identidade. Entre em contato com o Administrador do Sistema."
   },
   {
     "id": "ent.saml.do_login.validate.app_error",
-    "translation": "An error occurred while validating the response from the Identity Provider. Please contact your System Administrator."
+    "translation": "Ocorreu um erro ao validar a resposta do Provedor de Identidade. Entre em contato com o Administrador do Sistema."
   },
   {
     "id": "ent.saml.license_disable.app_error",
-    "translation": "Your license does not support SAML authentication."
+    "translation": "Sua licença não suporta autenticação SAML."
   },
   {
     "id": "ent.saml.metadata.app_error",
-    "translation": "An error occurred while building Service Provider Metadata."
+    "translation": "Ocorreu um erro ao construir Serviço de Provedor de Metadados."
   },
   {
     "id": "ent.saml.service_disable.app_error",
-    "translation": "MFA não configurado ou disponível neste servidor"
+    "translation": "SAML não está configurado ou disponível neste servidor."
   },
   {
     "id": "ent.saml.update_saml_user.unable_error",
-    "translation": "Unable to update existing SAML user. Allowing login anyway. err=%v"
+    "translation": "Não é possível atualizar o usuário SAML existente. Permitindo o login de qualquer maneira. err=%v"
   },
   {
     "id": "error.generic.link_message",
@@ -2294,6 +2326,22 @@
   {
     "id": "error.not_found.title",
     "translation": "Página não encontrada"
+  },
+  {
+    "id": "leave_team_modal.desc",
+    "translation": "Você será removido de todos os canais públicos e grupos privados.  Se a equipe é privada você não será capaz de se juntar à equipe.  Você tem certeza?"
+  },
+  {
+    "id": "leave_team_modal.no",
+    "translation": "Não"
+  },
+  {
+    "id": "leave_team_modal.title",
+    "translation": "Deixar a equipe?"
+  },
+  {
+    "id": "leave_team_modal.yes",
+    "translation": "Sim"
   },
   {
     "id": "manaultesting.get_channel_id.no_found.debug",
@@ -2660,6 +2708,14 @@
     "translation": "Inválido máximo de usuários por equipe em configurações de equipe.  Deve ser um número positivo."
   },
   {
+    "id": "model.config.is_valid.password_length.app_error",
+    "translation": "Tamanho mínimo de senha deve ser um número inteiro maior ou igual a {{.MinLength}} e menor ou igual a {{.MaxLength}}."
+  },
+  {
+    "id": "model.config.is_valid.password_length_max_min.app_error",
+    "translation": "Tamanho máximo da senha deve ser maior ou igual ao tamanho mínimo de senha."
+  },
+  {
     "id": "model.config.is_valid.rate_mem.app_error",
     "translation": "Tamanho do armazenamento de memória inválido para configurações de limite de velocidade.  Deve ser um número positivo"
   },
@@ -2673,43 +2729,43 @@
   },
   {
     "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
-    "translation": "URL inválida. Deve ser uma URL válida e começar com http:// ou https://"
+    "translation": "URL do Provedor de Serviço de Login deve ser uma URL válida e começar com http:// ou https://."
   },
   {
     "id": "model.config.is_valid.saml_email_attribute.app_error",
-    "translation": "Invalid Email attribute. Must be set."
+    "translation": "Atributo Email Inválido. Deve ser definido."
   },
   {
     "id": "model.config.is_valid.saml_first_name_attribute.app_error",
-    "translation": "Invalid First Name attribute. Must be set."
+    "translation": "Atributo Primeiro Nome Inválido. Deve ser definido."
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
-    "translation": "Identity Provider Public Certificate missing. Did you forget to upload it?"
+    "translation": "Faltando Certificado Público do Provedor de Identidade. Esqueceu-se de carregá-lo?"
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "Identity Provider Issuer URL must be a valid URL and start with http:// or https://."
+    "translation": "URL Emissora do Provedor de Identidade deve ser uma URL válida e começar com http:// ou https://."
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
-    "translation": "URL inválida. Deve ser uma URL válida e começar com http:// ou https://"
+    "translation": "URL SAML SSO deve ser uma URL válida e começar com http:// ou https://."
   },
   {
     "id": "model.config.is_valid.saml_last_name_attribute.app_error",
-    "translation": "Invalid Last Name attribute. Must be set."
+    "translation": "Atributo Último Nome Inválido. Deve ser definido."
   },
   {
     "id": "model.config.is_valid.saml_private_key.app_error",
-    "translation": "Service Provider Private Key missing. Did you forget to upload it?"
+    "translation": "Chave Privada do Provedor de Serviço. Esqueceu-se de carregá-lo?"
   },
   {
     "id": "model.config.is_valid.saml_public_cert.app_error",
-    "translation": "Service Provider Public Certificate missing. Did you forget to upload it?"
+    "translation": "Faltando Certificado Público do Provedor de Serviço. Esqueceu-se de carregá-lo?"
   },
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
-    "translation": "Invalid Username attribute. Must be set."
+    "translation": "Atributo Usuário Inválido. Deve ser definido."
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",
@@ -3037,7 +3093,67 @@
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Senha inválida"
+    "translation": "Sua senha precisa conter no mínimo {{.Min}} caracteres."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase.app_error",
+    "translation": "Sua senha deve conter no mínimo {{.Min}} caracteres composta de pelo menos uma letra minúscula."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number.app_error",
+    "translation": "Sua senha deve conter no mínimo {{.Min}} caracteres composta de pelo menos uma letra minúscula e pelo menos um número."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
+    "translation": "Sua senha deve conter no mínimo {{.Min}} caracteres composta de pelo menos uma letra minúscula, pelo menos um número e um símbolo (ex. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
+    "translation": "Sua senha deve conter no mínimo {{.Min}} caracteres composta de pelo menos uma letra minúscula e pelo menos um símbolo (ex. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
+    "translation": "Sua senha deve conter no mínimo {{.Min}} caracteres composta de pelo menos uma letra minúscula e pelo menos uma letra maiúscula."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
+    "translation": "Sua senha deve conter no mínimo {{.Min}} caracteres composta de pelo menos uma letra minúscula, pelo menos uma letra maiúscula, e pelo menos um número."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
+    "translation": "Sua senha deve conter no mínimo {{.Min}} caracteres composta de pelo menos uma letra minúscula, pelo menos uma letra maiúscula, e pelo menos um número, e pelo menos um símbolo (ex. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
+    "translation": "Sua senha deve conter no mínimo {{.Min}} caracteres composta de pelo menos uma letra minúscula, pelo menos uma letra maiúscula, e pelo menos um símbolo (ex. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number.app_error",
+    "translation": "Sua senha deve conter no mínimo {{.Min}} caracteres composta de pelo menos um número."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number_symbol.app_error",
+    "translation": "Sua senha deve conter no mínimo {{.Min}} caracteres composta de pelo menos um número e pelo menos um símbolo (ex. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_symbol.app_error",
+    "translation": "Sua senha deve conter no mínimo {{.Min}} caracteres composta de pelo menos um símbolo (ex. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase.app_error",
+    "translation": "Sua senha deve conter no mínimo {{.Min}} caracteres composta de pelo menos uma letra maiúscula."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number.app_error",
+    "translation": "Sua senha deve conter no mínimo {{.Min}} caracteres composta de pelo menos uma letra maiúscula e pelo menos um número."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
+    "translation": "Sua senha deve conter no mínimo {{.Min}} caracteres composta de pelo menos uma letra maiúscula e pelo menos um número e pelo menos um símbolo (ex. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
+    "translation": "Sua senha deve conter no mínimo {{.Min}} caracteres composta de pelo menos uma letra maiúscula e pelo menos um símbolo (ex. \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.team_id.app_error",
@@ -3246,6 +3362,10 @@
   {
     "id": "store.sql_channel.get.find.app_error",
     "translation": "Encontramos um erro ao procurar o canal"
+  },
+  {
+    "id": "store.sql_channel.get_all.app_error",
+    "translation": "Não foi possível obter todos os canais"
   },
   {
     "id": "store.sql_channel.get_by_name.existing.app_error",
@@ -3937,7 +4057,7 @@
   },
   {
     "id": "store.sql_user.save.email_exists.saml_app_error",
-    "translation": "Está conta não usa autenticação LDAP. Por favor faça login usando email e senha."
+    "translation": "Está conta não usa autenticação SAML. Por favor faça login usando email e senha."
   },
   {
     "id": "store.sql_user.save.existing.app_error",
@@ -4194,6 +4314,10 @@
   {
     "id": "utils.mail.send_mail.to_address.app_error",
     "translation": "Falha ao adicionar o endereço de email"
+  },
+  {
+    "id": "utils.mail.test.configured.error",
+    "translation": "Configurações do servidor SMTP não parecem estar configuradas corretamente err=%v detalhes=%v"
   },
   {
     "id": "utils.mail.test.configured.error",

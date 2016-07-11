@@ -495,6 +495,20 @@ body.ios {
         }
     }
 
+    &.post--hovered {
+        .dropdown,
+        .comment-icon__container,
+        .post__reply,
+        .post__remove,
+        .permalink-icon {
+            visibility: visible;
+        }
+
+        .post__body {
+            background: transparent !important;
+        }
+    }
+
     &.post--highlight {
         background-color: beige;
     }
@@ -672,7 +686,8 @@ body.ios {
         &.same--user {
             padding: 0 .5em 0 1em;
 
-            &:hover {
+            &:hover,
+            &.post--hovered {
                 .post__time {
                     @include opacity(.5);
                 }

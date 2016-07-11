@@ -484,7 +484,7 @@ export default class LoginController extends React.Component {
             loginControls.push(
                 <a
                     className='btn btn-custom-login saml'
-                    key='gitlab'
+                    key='saml'
                     href={'/login/sso/saml' + this.props.location.search}
                 >
                     <span>

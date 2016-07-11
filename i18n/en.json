@@ -164,12 +164,32 @@
     "translation": "Failed to add user to channel"
   },
   {
+    "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
+    "translation": "Failed to add user to channel because they have been removed from the team."
+  },
+  {
     "id": "api.channel.add_user_to_channel.deleted.app_error",
     "translation": "The channel has been archived or deleted"
   },
   {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "Can not add user to this channel type"
+  },
+  {
+    "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
+    "translation": "Private Group management and creation is restricted to System Administrators."
+  },
+  {
+    "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
+    "translation": "Private Group management and creation is restricted to Team and System Administrators."
+  },
+  {
+    "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
+    "translation": "Public Channel management and creation is restricted to System Administrators."
+  },
+  {
+    "id": "api.channel.can_manage_channel.public_restricted_team_admin.app_error",
+    "translation": "Public Channel management and creation is restricted to Team and System Administrators."
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -310,22 +330,6 @@
   {
     "id": "api.channel.update_channel.deleted.app_error",
     "translation": "The channel has been archived or deleted"
-  },
-  {
-    "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
-    "translation": "Public Channel management and creation is restricted to System Administrators."
-  },
-  {
-    "id": "api.channel.can_manage_channel.public_restricted_team_admin.app_error",
-    "translation": "Public Channel management and creation is restricted to Team and System Administrators."
-  },
-  {
-    "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
-    "translation": "Private Group management and creation is restricted to System Administrators."
-  },
-  {
-    "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
-    "translation": "Private Group management and creation is restricted to Team and System Administrators."
   },
   {
     "id": "api.channel.update_channel.permission.app_error",
@@ -1264,10 +1268,6 @@
     "translation": "Unable to open zip file"
   },
   {
-    "id": "api.team.remove_user_from_team.missing.app_error",
-    "translation": "The user does not appear to be part of this team."
-  },
-  {
     "id": "api.team.create_team.email_disabled.app_error",
     "translation": "Team sign-up with email is disabled."
   },
@@ -1378,6 +1378,10 @@
   {
     "id": "api.team.permanent_delete_team.deleted.warn",
     "translation": "Permanently deleted team %v id=%v"
+  },
+  {
+    "id": "api.team.remove_user_from_team.missing.app_error",
+    "translation": "The user does not appear to be part of this team."
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",
@@ -1776,6 +1780,10 @@
     "translation": "Login failed because your account has been set to inactive.  Please contact an administrator."
   },
   {
+    "id": "api.user.login.invalid_credentials",
+    "translation": "User ID or password incorrect."
+  },
+  {
     "id": "api.user.login.not_provided.app_error",
     "translation": "Either user id or team name and user email must be provided"
   },
@@ -2088,6 +2096,10 @@
     "translation": "Inappropriate permissions to regenerate outcoming webhook token"
   },
   {
+    "id": "cli.license.critical",
+    "translation": "Feature requires an enterprise license. Please contact your system administrator about upgrading your enterprise license."
+  },
+  {
     "id": "ent.brand.save_brand_image.decode.app_error",
     "translation": "Unable to decode image."
   },
@@ -2314,6 +2326,22 @@
   {
     "id": "error.not_found.title",
     "translation": "Page not found"
+  },
+  {
+    "id": "leave_team_modal.desc",
+    "translation": "You will be removed from all public channels and private groups.  If the team is private you will not be able to rejoin the team.  Are you sure?"
+  },
+  {
+    "id": "leave_team_modal.no",
+    "translation": "No"
+  },
+  {
+    "id": "leave_team_modal.title",
+    "translation": "Leave the team?"
+  },
+  {
+    "id": "leave_team_modal.yes",
+    "translation": "Yes"
   },
   {
     "id": "manaultesting.get_channel_id.no_found.debug",
@@ -2680,12 +2708,12 @@
     "translation": "Invalid maximum users per team for team settings.  Must be a positive number."
   },
   {
-    "id": "model.config.is_valid.password_length_max_min.app_error",
-    "translation": "Maximum password length must be greater than or equal to minimum password length."
-  },
-  {
     "id": "model.config.is_valid.password_length.app_error",
     "translation": "Minimum password length must be a whole number greater than or equal to {{.MinLength}} and less than or equal to {{.MaxLength}}."
+  },
+  {
+    "id": "model.config.is_valid.password_length_max_min.app_error",
+    "translation": "Maximum password length must be greater than or equal to minimum password length."
   },
   {
     "id": "model.config.is_valid.rate_mem.app_error",
@@ -3072,48 +3100,32 @@
     "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter."
   },
   {
-    "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter and at least one uppercase letter."
-  },
-  {
     "id": "model.user.is_valid.pwd_lowercase_number.app_error",
     "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter and at least one number."
-  },
-  {
-    "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter and at least one symbol (e.g. \"~!@#$%^&*()\")."
-  },
-  {
-    "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one uppercase letter, and at least one number."
-  },
-  {
-    "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one uppercase letter, and at least one symbol (e.g. \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
     "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one number, and at least one symbol (e.g. \"~!@#$%^&*()\")."
   },
   {
+    "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter and at least one uppercase letter."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one uppercase letter, and at least one number."
+  },
+  {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
     "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one uppercase letter, at least one number, and at least one symbol (e.g. \"~!@#$%^&*()\")."
   },
   {
-    "id": "model.user.is_valid.pwd_uppercase.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter."
-  },
-  {
-    "id": "model.user.is_valid.pwd_uppercase_number.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter and at least one number."
-  },
-  {
-    "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter and at least one symbol (e.g. \"~!@#$%^&*()\")."
-  },
-  {
-    "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter, at least one number, and at least one symbol (e.g. \"~!@#$%^&*()\")."
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one uppercase letter, and at least one symbol (e.g. \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_number.app_error",
@@ -3126,6 +3138,22 @@
   {
     "id": "model.user.is_valid.pwd_symbol.app_error",
     "translation": "Your password must contain at least {{.Min}} characters made up of at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter and at least one number."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter, at least one number, and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter and at least one symbol (e.g. \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.team_id.app_error",
@@ -3244,10 +3272,6 @@
     "translation": "More than 1 read replica functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license."
   },
   {
-    "id": "cli.license.critical",
-    "translation": "Feature requires an enterprise license. Please contact your system administrator about upgrading your enterprise license."
-  },
-  {
     "id": "store.sql.remove_index.critical",
     "translation": "Failed to remove index %v"
   },
@@ -3340,6 +3364,10 @@
     "translation": "We encountered an error finding the channel"
   },
   {
+    "id": "store.sql_channel.get_all.app_error",
+    "translation": "We couldn't get all the channels"
+  },
+  {
     "id": "store.sql_channel.get_by_name.existing.app_error",
     "translation": "We couldn't find the existing channel"
   },
@@ -3365,10 +3393,6 @@
   },
   {
     "id": "store.sql_channel.get_for_export.app_error",
-    "translation": "We couldn't get all the channels"
-  },
-  {
-    "id": "store.sql_channel.get_all.app_error",
     "translation": "We couldn't get all the channels"
   },
   {
@@ -4295,26 +4319,9 @@
     "id": "utils.mail.test.configured.error",
     "translation": "SMTP server settings do not appear to be configured properly err=%v details=%v"
   },
-
   {
     "id": "utils.mail.test.configured.error",
     "translation": "SMTP server settings do not appear to be configured properly err=%v details=%v"
-  },
-  {
-    "id": "leave_team_modal.title",
-    "translation": "Leave the team?"
-  },
-  {
-    "id": "leave_team_modal.desc",
-    "translation": "You will be removed from all public channels and private groups.  If the team is private you will not be able to rejoin the team.  Are you sure?"
-  },
-  {
-    "id": "leave_team_modal.no",
-    "translation": "No"
-  },
-  {
-    "id": "leave_team_modal.yes",
-    "translation": "Yes"
   },
   {
     "id": "web.admin_console.title",

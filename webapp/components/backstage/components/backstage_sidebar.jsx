@@ -45,7 +45,9 @@ export default class BackstageSidebar extends React.Component {
             return null;
         }
 
-        if (window.mm_config.EnableOnlyAdminIntegrations !== 'false' && !TeamStore.isTeamAdmin(this.props.user.id, this.props.team.id)) {
+        if (window.mm_config.EnableOnlyAdminIntegrations !== 'false' &&
+            !Utils.isSystemAdmin(this.props.user.roles) &&
+            !TeamStore.isTeamAdmin(this.props.user.id, this.props.team.id)) {
             return null;
         }
 

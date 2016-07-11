@@ -49,19 +49,19 @@
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
-    "translation": "リクエストの'file'以下の配列が空です"
+    "translation": "リクエストの'certificate'以下の配列が空です"
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
-    "translation": "リクエストの'file'以下にファイルがありません"
+    "translation": "リクエストの'certificate'以下にファイルがありません"
   },
   {
     "id": "api.admin.add_certificate.open.app_error",
-    "translation": "Could not open certificate file"
+    "translation": "証明書ファイルを開くことができませんでした"
   },
   {
     "id": "api.admin.add_certificate.saving.app_error",
-    "translation": "Could not save certificate file"
+    "translation": "証明書ファイルを保存できませんでした"
   },
   {
     "id": "api.admin.file_read_error",
@@ -89,11 +89,11 @@
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "An error occurred while deleting the certificate. Make sure the file config/{{.Filename}} exists."
+    "translation": "証明書を削除する際にエラーが発生しました。config/{{.Filename}}にファイルが存在することを確認してください、"
   },
   {
     "id": "api.admin.saml.metadata.app_error",
-    "translation": "An error occurred while building Service Provider Metadata"
+    "translation": "サービスプロバイダーのメタデータを構築中にエラーが発生しました"
   },
   {
     "id": "api.admin.test_email.body",
@@ -164,12 +164,32 @@
     "translation": "ユーザーをチャンネルに追加できませんでした"
   },
   {
+    "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
+    "translation": "Failed to add user to channel because they have been removed from the team."
+  },
+  {
     "id": "api.channel.add_user_to_channel.deleted.app_error",
     "translation": "チャンネルはアーカイブされているか削除されています"
   },
   {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "この種類のチャンネルにはユーザーを追加することはできません"
+  },
+  {
+    "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
+    "translation": "プライベートグループの作成と管理は、システム管理者しかできません。"
+  },
+  {
+    "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
+    "translation": "プライベートグループの作成と管理は、チーム管理者かシステム管理者しかできません。"
+  },
+  {
+    "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
+    "translation": "公開チャンネルの作成と管理は、システム管理者しかできません。"
+  },
+  {
+    "id": "api.channel.can_manage_channel.public_restricted_team_admin.app_error",
+    "translation": "公開チャンネルの作成と管理は、チーム管理者かシステム管理者しかできません。"
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -613,7 +633,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Unable to create emoji. Image must be less than 64 KB in size."
+    "translation": "絵文字を作成できません。画像サイズは64KB未満でなければなりません。"
   },
   {
     "id": "api.emoji.delete.permissions.app_error",
@@ -645,7 +665,7 @@
   },
   {
     "id": "api.emoji.upload.large_image.app_error",
-    "translation": "Unable to create emoji. Image must be at most 128 by 128 pixels."
+    "translation": "絵文字を作成できません。画像は128x128ピクセル以内である必要があります。"
   },
   {
     "id": "api.export.json.app_error",
@@ -1125,7 +1145,7 @@
   },
   {
     "id": "api.saml.save_certificate.app_error",
-    "translation": "Certificate did not save properly."
+    "translation": "証明書が正常に保存されませんでした。"
   },
   {
     "id": "api.server.new_server.init.info",
@@ -1358,6 +1378,10 @@
   {
     "id": "api.team.permanent_delete_team.deleted.warn",
     "translation": "チーム%vを完全に削除しました id=%v"
+  },
+  {
+    "id": "api.team.remove_user_from_team.missing.app_error",
+    "translation": "ユーザーはこのチームの一員ではありません。"
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",
@@ -1756,6 +1780,10 @@
     "translation": "あなたのアカウントは無効化されています。システム管理者に連絡してください。"
   },
   {
+    "id": "api.user.login.invalid_credentials",
+    "translation": "ユーザーIDまたはパスワードが間違っています。"
+  },
+  {
     "id": "api.user.login.not_provided.app_error",
     "translation": "ユーザーIDまたはチーム名と電子メールアドレスの組み合わせを指定しなくてはいけません"
   },
@@ -1833,7 +1861,7 @@
   },
   {
     "id": "api.user.saml.not_available.app_error",
-    "translation": "MFAは設定されていないか、このサーバーではサポートされていません"
+    "translation": "SAMLは設定されていないか、このサーバーではサポートされていません"
   },
   {
     "id": "api.user.send_email_change_email_and_forget.error",
@@ -2068,6 +2096,10 @@
     "translation": "外向きのウェブフックトークンを再生成するのに十分な権限が付与されていません"
   },
   {
+    "id": "cli.license.critical",
+    "translation": "機能にはエンタープライズライセンスが必要です。システム管理者にエンタープライズライセンスにアップグレードするように連絡してください。"
+  },
+  {
     "id": "ent.brand.save_brand_image.decode.app_error",
     "translation": "画像をデコードできません。"
   },
@@ -2113,7 +2145,7 @@
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
-    "translation": "コンプライアンス機能が現在のライセンスでは無効になっています。システム管理者にエンタープライズライセンスをアップグレードするように連絡してください。"
+    "translation": "カスタム絵文字の制限機能が現在のライセンスでは無効になっています。システム管理者にエンタープライズライセンスをアップグレードするように連絡してください。"
   },
   {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
@@ -2205,71 +2237,71 @@
   },
   {
     "id": "ent.saml.build_request.app_error",
-    "translation": "An error occurred while initiating the request to the Identity Provider. Please contact your System Administrator."
+    "translation": "認証プロバイダーへのリクエストを初期化する際にエラーが発生しました。システム管理者に連絡してください。"
   },
   {
     "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "An error occurred while encoding the request for the Identity Provider. Please contact your System Administrator."
+    "translation": "認証プロバイダーへのリクエストをエンコードする際にエラーが発生しました。システム管理者に連絡してください。"
   },
   {
     "id": "ent.saml.build_request.encoding_signed.app_error",
-    "translation": "An error occurred while encoding the signed request for the Identity Provider. Please contact your System Administrator."
+    "translation": "認証プロバイダーへのサイン済みリクエストをエンコードする際にエラーが発生しました。システム管理者に連絡してください。"
   },
   {
     "id": "ent.saml.configure.app_error",
-    "translation": "An error occurred while configuring SAML Service Provider, err=%v"
+    "translation": "SAMLサービスプロバイダーを設定する際にエラーが発生しました。err=%v"
   },
   {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
-    "translation": "SAML login was unsuccessful because encryption is not enabled. Please contact your System Administrator."
+    "translation": "SAMLログインは、暗号化が有効になっていないため、失敗しました。システム管理者に連絡してください。"
   },
   {
     "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Identity Provider Public Certificate File was not found. Please contact your System Administrator."
+    "translation": "認証プロバイダーの公開証明書ファイルが見付かりません。システム管理者に連絡してください。"
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
-    "translation": "SAML login was unsuccessful because the Service Provider Private Key was not found. Please contact your System Administrator."
+    "translation": "SAMLログインは、サービスプロバイダーの秘密鍵が見付からないため失敗しました。システム管理者に連絡してください。"
   },
   {
     "id": "ent.saml.configure.load_public_cert.app_error",
-    "translation": "Service Provider Public Certificate File was not found. Please contact your System Administrator."
+    "translation": "サービスプロバイダーの公開証明書ファイルが見付かりません。システム管理者に連絡してください。"
   },
   {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
-    "translation": "SAML login was unsuccessful as the Identity Provider response is not encrypted. Please contact your System Administrator."
+    "translation": "SAMLログインは、認証プロバイダーのレスポンスが暗号化されていないため失敗しました。システム管理者に連絡してください。"
   },
   {
     "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "SAML login was unsuccessful because an error occurred while decrypting the response from the Identity Provider. Please contact your System Administrator."
+    "translation": "SAMLログインは、認証プロバイダーからのレスポンスを復号する際にエラーが発生したため、失敗しました。システム管理者に連絡してください。"
   },
   {
     "id": "ent.saml.do_login.empty_response.app_error",
-    "translation": "We received an empty response from the Identity Provider"
+    "translation": "認証プロバイダーから空のレスポンスを受け取りました"
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
-    "translation": "An error occurred while parsing the response from the Identity Provider. Please contact your System Administrator."
+    "translation": "認証プロバイダーからのレスポンスを解析中にエラーが発生しました。システム管理者に連絡してください。"
   },
   {
     "id": "ent.saml.do_login.validate.app_error",
-    "translation": "An error occurred while validating the response from the Identity Provider. Please contact your System Administrator."
+    "translation": "認証プロバイダーからのレスポンスの妥当性を確認中にエラーが発生しました。システム管理者に連絡してください。"
   },
   {
     "id": "ent.saml.license_disable.app_error",
-    "translation": "Your license does not support SAML authentication."
+    "translation": "現在のライセンスではSAML認証はサポートされていません。"
   },
   {
     "id": "ent.saml.metadata.app_error",
-    "translation": "An error occurred while building Service Provider Metadata."
+    "translation": "サービスプロバイダーのメタデータを構築中にエラーが発生しました"
   },
   {
     "id": "ent.saml.service_disable.app_error",
-    "translation": "MFAは設定されていないか、このサーバーではサポートされていません"
+    "translation": "SAMLは設定されていないか、このサーバーではサポートされていません"
   },
   {
     "id": "ent.saml.update_saml_user.unable_error",
-    "translation": "Unable to update existing SAML user. Allowing login anyway. err=%v"
+    "translation": "既存のSAMLユーザーをアップデートすることはできません。ログインは有効です。err=%v"
   },
   {
     "id": "error.generic.link_message",
@@ -2294,6 +2326,22 @@
   {
     "id": "error.not_found.title",
     "translation": "ページが見付かりません"
+  },
+  {
+    "id": "leave_team_modal.desc",
+    "translation": "全ての公開チャンネルとプライベートグループから脱退します。チームがプライベートな場合、再度参加することはできません。実行してよろしいですか?"
+  },
+  {
+    "id": "leave_team_modal.no",
+    "translation": "いいえ"
+  },
+  {
+    "id": "leave_team_modal.title",
+    "translation": "チームから脱退しますか?"
+  },
+  {
+    "id": "leave_team_modal.yes",
+    "translation": "はい"
   },
   {
     "id": "manaultesting.get_channel_id.no_found.debug",
@@ -2625,7 +2673,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",
-    "translation": "Invalid max page size value."
+    "translation": "最大ページサイズの値が不正です。"
   },
   {
     "id": "model.config.is_valid.ldap_required.app_error",
@@ -2660,6 +2708,14 @@
     "translation": "チーム設定のチーム毎の最大ユーザー数が不正です。正の数を指定してください。"
   },
   {
+    "id": "model.config.is_valid.password_length.app_error",
+    "translation": "最小パスワード長さは、{{.MinLength}}以上、{{.MaxLength}}以下に設定してください。"
+  },
+  {
+    "id": "model.config.is_valid.password_length_max_min.app_error",
+    "translation": "最大パスワード長さは、最小パスワード長さ以上に設定してください、"
+  },
+  {
     "id": "model.config.is_valid.rate_mem.app_error",
     "translation": "投稿頻度設定のメモリー保存サイズが不正です。正の数を指定してください。"
   },
@@ -2673,43 +2729,43 @@
   },
   {
     "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
-    "translation": "不正なURLです。正しいURLはhttp://またはhttps://で始まります"
+    "translation": "サービスプロバイダーのURLを正しく設定してください。URLはhttp://またはhttps://で始まります。"
   },
   {
     "id": "model.config.is_valid.saml_email_attribute.app_error",
-    "translation": "Invalid Email attribute. Must be set."
+    "translation": "電子メールの属性値が不正です。設定してください。"
   },
   {
     "id": "model.config.is_valid.saml_first_name_attribute.app_error",
-    "translation": "Invalid First Name attribute. Must be set."
+    "translation": "ファーストネームの属性値が不正です。設定してください。"
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
-    "translation": "Identity Provider Public Certificate missing. Did you forget to upload it?"
+    "translation": "認証プロバイダーの公開証明書が見付かりません。アップロードを忘れていませんか?"
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "Identity Provider Issuer URL must be a valid URL and start with http:// or https://."
+    "translation": "認証プロバイダーのURLを正しく設定してください。URLはhttp://またはhttps://で始まります。"
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
-    "translation": "不正なURLです。正しいURLはhttp://またはhttps://で始まります"
+    "translation": "SAML SSOのURLを正しく設定してください。URLはhttp://またはhttps://で始まります。"
   },
   {
     "id": "model.config.is_valid.saml_last_name_attribute.app_error",
-    "translation": "Invalid Last Name attribute. Must be set."
+    "translation": "ラストネームの属性値が不正です。設定してください。"
   },
   {
     "id": "model.config.is_valid.saml_private_key.app_error",
-    "translation": "Service Provider Private Key missing. Did you forget to upload it?"
+    "translation": "サービスプロバイダーの秘密鍵が見付かりません。アップロードを忘れていませんか?"
   },
   {
     "id": "model.config.is_valid.saml_public_cert.app_error",
-    "translation": "Service Provider Public Certificate missing. Did you forget to upload it?"
+    "translation": "サービスプロバイダーの公開証明書が見付かりません。アップロードを忘れていませんか?"
   },
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
-    "translation": "Invalid Username attribute. Must be set."
+    "translation": "ユーザー名の属性値が不正です。設定してください。"
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",
@@ -3037,7 +3093,67 @@
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
-    "translation": "不正なパスワードです"
+    "translation": "パスワードは{{.Min}}文字以上に設定してください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字は英小文字にしてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字ずつの英小文字と数字を含めてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字ずつの英小文字と数字、記号(例: \"~!@#$%^&*()\")を含めてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字ずつの英小文字と記号(例: \"~!@#$%^&*()\")を含めてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字ずつ英小文字と英大文字を含めてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字ずつの英小文字と英大文字、数字を含めてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字ずつの英大文字と数字、記号(例: \"~!@#$%^&*()\")を含めてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字ずつの英小文字と英大文字、記号(例: \"~!@#$%^&*()\")を含めてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_number.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字は数字にしてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_number_symbol.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字ずつの数字、記号(例: \"~!@#$%^&*()\")を含めてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_symbol.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字は記号(例: \"~!@#$%^&*()\")にしてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字は英大文字にしてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字ずつの英大文字と数字を含めてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字ずつの英大文字と数字、記号(例: \"~!@#$%^&*()\")を含めてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字ずつの英大文字と記号(例: \"~!@#$%^&*()\")を含めてください。"
   },
   {
     "id": "model.user.is_valid.team_id.app_error",
@@ -3246,6 +3362,10 @@
   {
     "id": "store.sql_channel.get.find.app_error",
     "translation": "チャンネルを探す際にエラーが発生しました"
+  },
+  {
+    "id": "store.sql_channel.get_all.app_error",
+    "translation": "チャンネルが全ては取得できませんでした"
   },
   {
     "id": "store.sql_channel.get_by_name.existing.app_error",
@@ -3937,7 +4057,7 @@
   },
   {
     "id": "store.sql_user.save.email_exists.saml_app_error",
-    "translation": "このアカウントはLDAP認証を使用していません。電子メールアドレスとパスワードを使ってサインインしてください。"
+    "translation": "このアカウントはSAML認証を使用していません。電子メールアドレスとパスワードを使ってサインインしてください。"
   },
   {
     "id": "store.sql_user.save.existing.app_error",
@@ -4194,6 +4314,10 @@
   {
     "id": "utils.mail.send_mail.to_address.app_error",
     "translation": "宛先の電子メールアドレスを追加できませんでした"
+  },
+  {
+    "id": "utils.mail.test.configured.error",
+    "translation": "SMTPサーバー用の設定が正しくありません err=%v details=%v"
   },
   {
     "id": "utils.mail.test.configured.error",
