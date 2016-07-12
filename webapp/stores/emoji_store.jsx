@@ -54,12 +54,13 @@ class EmojiStore extends EventEmitter {
             this.addCustomEmoji(emoji);
         }
 
-        // add custom emojis to the map first so that they can't override system ones
-        this.emojis = new Map([...this.customEmojis, ...this.systemEmojis]);
+        this.updateEmojiMap();
     }
 
     addCustomEmoji(emoji) {
         this.customEmojis.set(emoji.name, emoji);
+
+        // this doesn't update this.emojis, but it's only called by setCustomEmojis which does that afterwards
     }
 
     removeCustomEmoji(id) {
@@ -69,6 +70,13 @@ class EmojiStore extends EventEmitter {
                 break;
             }
         }
+
+        this.updateEmojiMap();
+    }
+
+    updateEmojiMap() {
+        // add custom emojis to the map first so that they can't override system ones
+        this.emojis = new Map([...this.customEmojis, ...this.systemEmojis]);
     }
 
     getSystemEmojis() {
