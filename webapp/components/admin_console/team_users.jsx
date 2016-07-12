@@ -186,7 +186,7 @@ export default class UserList extends React.Component {
         var memberList = this.state.users.map((user) => {
             var teamMember = this.getTeamMemberForUser(user.id);
 
-            if (teamMember.delete_at > 0) {
+            if (!teamMember || teamMember.delete_at > 0) {
                 return null;
             }
 
