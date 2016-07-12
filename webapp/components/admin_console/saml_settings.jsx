@@ -76,7 +76,7 @@ export default class SamlSettings extends AdminSettings {
             () => {
                 const fileName = file.name;
                 this.handleChange(id, fileName);
-                this.setState({[id]: fileName});
+                this.setState({[id]: fileName, [`${id}Error`]: null});
                 if (callback && typeof callback === 'function') {
                     callback();
                 }
@@ -94,12 +94,13 @@ export default class SamlSettings extends AdminSettings {
             this.state[id],
             () => {
                 this.handleChange(id, '');
-                this.setState({[id]: null});
+                this.setState({[id]: null, [`${id}Error`]: null});
             },
             (error) => {
                 if (callback && typeof callback === 'function') {
-                    callback(error.message);
+                    callback();
                 }
+                this.setState({[id]: null, [`${id}Error`]: error.message});
             }
         );
     }
@@ -168,6 +169,7 @@ export default class SamlSettings extends AdminSettings {
                     disabled={!this.state.enable}
                     fileType='.crt,.cer'
                     onSubmit={this.uploadCertificate}
+                    error={this.state.idpCertificateFileError}
                 />
             );
         }
@@ -215,6 +217,7 @@ export default class SamlSettings extends AdminSettings {
                     disabled={!this.state.enable || !this.state.encrypt}
                     fileType='.key'
                     onSubmit={this.uploadCertificate}
+                    error={this.state.privateKeyFileError}
                 />
             );
         }
@@ -262,6 +265,7 @@ export default class SamlSettings extends AdminSettings {
                     disabled={!this.state.enable || !this.state.encrypt}
                     fileType='.crt,.cer'
                     onSubmit={this.uploadCertificate}
+                    error={this.state.publicCertificateFileError}
                 />
             );
         }
