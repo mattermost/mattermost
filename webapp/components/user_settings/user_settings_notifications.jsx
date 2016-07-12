@@ -2,7 +2,6 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
-import ReactDOM from 'react-dom';
 import SettingItemMin from '../setting_item_min.jsx';
 import SettingItemMax from '../setting_item_max.jsx';
 
@@ -205,26 +204,26 @@ class NotificationsTab extends React.Component {
     }
     handleNotifyRadio(notifyLevel) {
         this.setState({notifyLevel});
-        ReactDOM.findDOMNode(this.refs.wrapper).focus();
+        this.refs.wrapper.focus();
     }
 
     handleNotifyCommentsRadio(notifyCommentsLevel) {
         this.setState({notifyCommentsLevel});
-        ReactDOM.findDOMNode(this.refs.wrapper).focus();
+        this.refs.wrapper.focus();
     }
 
     handlePushRadio(notifyPushLevel) {
         this.setState({notifyPushLevel});
-        ReactDOM.findDOMNode(this.refs.wrapper).focus();
+        this.refs.wrapper.focus();
     }
 
     handleEmailRadio(enableEmail) {
         this.setState({enableEmail});
-        ReactDOM.findDOMNode(this.refs.wrapper).focus();
+        this.refs.wrapper.focus();
     }
     handleSoundRadio(enableSound) {
         this.setState({enableSound});
-        ReactDOM.findDOMNode(this.refs.wrapper).focus();
+        this.refs.wrapper.focus();
     }
     updateUsernameKey(val) {
         this.setState({usernameKey: val});
@@ -239,10 +238,10 @@ class NotificationsTab extends React.Component {
         this.setState({channelKey: val});
     }
     updateCustomMentionKeys() {
-        var checked = ReactDOM.findDOMNode(this.refs.customcheck).checked;
+        var checked = this.refs.customcheck.checked;
 
         if (checked) {
-            var text = ReactDOM.findDOMNode(this.refs.custommentions).value;
+            var text = this.refs.custommentions.value;
 
             // remove all spaces and split string into individual keys
             this.setState({customKeys: text.replace(/ /g, ''), customKeysChecked: true});
@@ -251,7 +250,7 @@ class NotificationsTab extends React.Component {
         }
     }
     onCustomChange() {
-        ReactDOM.findDOMNode(this.refs.customcheck).checked = true;
+        this.refs.customcheck.checked = true;
         this.updateCustomMentionKeys();
     }
     createPushNotificationSection() {
