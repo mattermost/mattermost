@@ -13,11 +13,24 @@ import (
 )
 
 func checkPasswordAndAllCriteria(user *model.User, password string, mfaToken string) *model.AppError {
+	if err := checkUserAdditionalAuthenticationCriteria(user, mfaToken); err != nil {
+		return err
+	}
+
 	if err := checkUserPassword(user, password); err != nil {
 		return err
 	}
 
-	if err := checkUserAdditionalAuthenticationCriteria(user, mfaToken); err != nil {
+	return nil
+}
+
+// This to be used for places we check the users password when they are already logged in
+func doubleCheckPassword(user *model.User, password string) *model.AppError {
+	if err := checkUserLoginAttempts(user); err != nil {
+		return err
+	}
+
+	if err := checkUserPassword(user, password); err != nil {
 		return err
 	}
 

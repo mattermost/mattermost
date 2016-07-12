@@ -474,7 +474,11 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	if user, err = authenticateUser(user, password, mfaToken); err != nil {
 		c.LogAuditWithUserId(user.Id, "failure")
 		//c.Err = model.NewLocAppError("login", "api.user.login.invalid_credentials", nil, err.Error())
-		c.Err = model.NewLocAppError("login", "api.user.login.invalid_credentials", nil, "")
+		if err.Id == "api.user.login.not_verified.app_error" {
+			c.Err = err
+		} else {
+			c.Err = model.NewLocAppError("login", "api.user.login.invalid_credentials", nil, "")
+		}
 		return
 	}
 
@@ -1386,8 +1390,12 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !model.ComparePassword(user.Password, currentPassword) {
-		c.Err = model.NewLocAppError("updatePassword", "api.user.update_password.incorrect.app_error", nil, "")
+	if err := doubleCheckPassword(user, currentPassword); err != nil {
+		if err.Id == "api.user.check_user_password.invalid.app_error" {
+			c.Err = model.NewLocAppError("updatePassword", "api.user.update_password.incorrect.app_error", nil, "")
+		} else {
+			c.Err = err
+		}
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}

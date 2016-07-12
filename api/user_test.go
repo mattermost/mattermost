@@ -249,6 +249,42 @@ func TestLoginWithDeviceId(t *testing.T) {
 	}
 }
 
+func TestPasswordGuessLockout(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+	user := th.BasicUser
+	Client.Must(Client.Logout())
+
+	enableSignInWithEmail := *utils.Cfg.EmailSettings.EnableSignInWithEmail
+	passwordAttempts := utils.Cfg.ServiceSettings.MaximumLoginAttempts
+	defer func() {
+		*utils.Cfg.EmailSettings.EnableSignInWithEmail = enableSignInWithEmail
+		utils.Cfg.ServiceSettings.MaximumLoginAttempts = passwordAttempts
+	}()
+	*utils.Cfg.EmailSettings.EnableSignInWithEmail = true
+	utils.Cfg.ServiceSettings.MaximumLoginAttempts = 2
+
+	// OK to log in
+	if _, err := Client.Login(user.Username, user.Password); err != nil {
+		t.Fatal(err)
+	}
+
+	Client.Must(Client.Logout())
+
+	// Fail twice
+	if _, err := Client.Login(user.Email, "notthepassword"); err == nil {
+		t.Fatal("Shouldn't be able to login with bad password.")
+	}
+	if _, err := Client.Login(user.Email, "notthepassword"); err == nil {
+		t.Fatal("Shouldn't be able to login with bad password.")
+	}
+
+	// Locked out
+	if _, err := Client.Login(user.Email, user.Password); err == nil {
+		t.Fatal("Shouldn't be able to login with password when account is locked out.")
+	}
+}
+
 func TestSessions(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.BasicClient
@@ -744,6 +780,26 @@ func TestUserUpdatePassword(t *testing.T) {
 
 	if _, err := Client.Login(user.Email, "newpwd1"); err != nil {
 		t.Fatal(err)
+	}
+
+	// Test lockout
+	passwordAttempts := utils.Cfg.ServiceSettings.MaximumLoginAttempts
+	defer func() {
+		utils.Cfg.ServiceSettings.MaximumLoginAttempts = passwordAttempts
+	}()
+	utils.Cfg.ServiceSettings.MaximumLoginAttempts = 2
+
+	// Fail twice
+	if _, err := Client.UpdateUserPassword(user.Id, "badpwd", "newpwd"); err == nil {
+		t.Fatal("Should have errored")
+	}
+	if _, err := Client.UpdateUserPassword(user.Id, "badpwd", "newpwd"); err == nil {
+		t.Fatal("Should have errored")
+	}
+
+	// Should fail because account is locked out
+	if _, err := Client.UpdateUserPassword(user.Id, "newpwd1", "newpwd2"); err == nil {
+		t.Fatal("Should have errored")
 	}
 
 	user2 := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
