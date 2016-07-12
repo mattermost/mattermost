@@ -103,6 +103,10 @@ func (me *TestHelper) CreateClient() *model.Client {
 	return model.NewClient("http://localhost" + utils.Cfg.ServiceSettings.ListenAddress)
 }
 
+func (me *TestHelper) CreateWebSocketClient() (*model.WebSocketClient, *model.AppError) {
+	return model.NewWebSocketClient("ws://localhost"+utils.Cfg.ServiceSettings.ListenAddress, me.BasicClient.AuthToken)
+}
+
 func (me *TestHelper) CreateTeam(client *model.Client) *model.Team {
 	id := model.NewId()
 	team := &model.Team{

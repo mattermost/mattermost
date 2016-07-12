@@ -8,7 +8,6 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"testing"
-	"time"
 )
 
 func TestCreateIncomingHook(t *testing.T) {
@@ -628,13 +627,4 @@ func TestIncomingWebhooks(t *testing.T) {
 	if _, err := Client.DoPost(url, "{\"text\":\"this is a test\"}", "application/json"); err == nil {
 		t.Fatal("should have failed - webhooks turned off")
 	}
-}
-
-func TestZZWebSocketTearDown(t *testing.T) {
-	// *IMPORTANT* - Kind of hacky
-	// This should be the last function in any test file
-	// that calls Setup()
-	// Should be in the last file too sorted by name
-	time.Sleep(2 * time.Second)
-	TearDown()
 }

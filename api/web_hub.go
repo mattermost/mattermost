@@ -13,7 +13,7 @@ type Hub struct {
 	connections       map[*WebConn]bool
 	register          chan *WebConn
 	unregister        chan *WebConn
-	broadcast         chan *model.Message
+	broadcast         chan *model.WebSocketEvent
 	stop              chan string
 	invalidateUser    chan string
 	invalidateChannel chan string
@@ -23,13 +23,13 @@ var hub = &Hub{
 	register:          make(chan *WebConn),
 	unregister:        make(chan *WebConn),
 	connections:       make(map[*WebConn]bool),
-	broadcast:         make(chan *model.Message),
+	broadcast:         make(chan *model.WebSocketEvent),
 	stop:              make(chan string),
 	invalidateUser:    make(chan string),
 	invalidateChannel: make(chan string),
 }
 
-func Publish(message *model.Message) {
+func Publish(message *model.WebSocketEvent) {
 	hub.Broadcast(message)
 }
 
@@ -49,7 +49,7 @@ func (h *Hub) Unregister(webConn *WebConn) {
 	h.unregister <- webConn
 }
 
-func (h *Hub) Broadcast(message *model.Message) {
+func (h *Hub) Broadcast(message *model.WebSocketEvent) {
 	if message != nil {
 		h.broadcast <- message
 	}
@@ -108,11 +108,10 @@ func (h *Hub) Start() {
 	}()
 }
 
-func shouldSendEvent(webCon *WebConn, msg *model.Message) bool {
-
+func shouldSendEvent(webCon *WebConn, msg *model.WebSocketEvent) bool {
 	if webCon.UserId == msg.UserId {
 		// Don't need to tell the user they are typing
-		if msg.Action == model.ACTION_TYPING {
+		if msg.Event == model.WEBSOCKET_EVENT_TYPING {
 			return false
 		}
 
@@ -127,11 +126,11 @@ func shouldSendEvent(webCon *WebConn, msg *model.Message) bool {
 		}
 	} else {
 		// Don't share a user's view or preference events with other users
-		if msg.Action == model.ACTION_CHANNEL_VIEWED {
+		if msg.Event == model.WEBSOCKET_EVENT_CHANNEL_VIEWED {
 			return false
-		} else if msg.Action == model.ACTION_PREFERENCE_CHANGED {
+		} else if msg.Event == model.WEBSOCKET_EVENT_PREFERENCE_CHANGED {
 			return false
-		} else if msg.Action == model.ACTION_EPHEMERAL_MESSAGE {
+		} else if msg.Event == model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE {
 			// For now, ephemeral messages are sent directly to individual users
 			return false
 		}
@@ -146,7 +145,7 @@ func shouldSendEvent(webCon *WebConn, msg *model.Message) bool {
 		}
 
 		// Only report events to users who are in the channel for the event execept deleted events
-		if len(msg.ChannelId) > 0 && msg.Action != model.ACTION_CHANNEL_DELETED {
+		if len(msg.ChannelId) > 0 && msg.Event != model.WEBSOCKET_EVENT_CHANNEL_DELETED {
 			allowed := webCon.HasPermissionsToChannel(msg.ChannelId)
 
 			if !allowed {

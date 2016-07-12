@@ -329,7 +329,7 @@ func makeDirectChannelVisible(teamId string, channelId string) {
 			if saveResult := <-Srv.Store.Preference().Save(&model.Preferences{*preference}); saveResult.Err != nil {
 				l4g.Error(utils.T("api.post.make_direct_channel_visible.save_pref.error"), member.UserId, otherUserId, saveResult.Err.Message)
 			} else {
-				message := model.NewMessage(teamId, channelId, member.UserId, model.ACTION_PREFERENCE_CHANGED)
+				message := model.NewWebSocketEvent(teamId, channelId, member.UserId, model.WEBSOCKET_EVENT_PREFERENCE_CHANGED)
 				message.Add("preference", preference.ToJson())
 
 				go Publish(message)
@@ -344,7 +344,7 @@ func makeDirectChannelVisible(teamId string, channelId string) {
 				if updateResult := <-Srv.Store.Preference().Save(&model.Preferences{preference}); updateResult.Err != nil {
 					l4g.Error(utils.T("api.post.make_direct_channel_visible.update_pref.error"), member.UserId, otherUserId, updateResult.Err.Message)
 				} else {
-					message := model.NewMessage(teamId, channelId, member.UserId, model.ACTION_PREFERENCE_CHANGED)
+					message := model.NewWebSocketEvent(teamId, channelId, member.UserId, model.WEBSOCKET_EVENT_PREFERENCE_CHANGED)
 					message.Add("preference", preference.ToJson())
 
 					go Publish(message)
@@ -627,7 +627,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 		}
 	}
 
-	message := model.NewMessage(c.TeamId, post.ChannelId, post.UserId, model.ACTION_POSTED)
+	message := model.NewWebSocketEvent(c.TeamId, post.ChannelId, post.UserId, model.WEBSOCKET_EVENT_POSTED)
 	message.Add("post", post.ToJson())
 	message.Add("channel_type", channel.Type)
 	message.Add("channel_display_name", channel.DisplayName)
@@ -905,7 +905,7 @@ func SendEphemeralPost(teamId, userId string, post *model.Post) {
 		post.Filenames = []string{}
 	}
 
-	message := model.NewMessage(teamId, post.ChannelId, userId, model.ACTION_EPHEMERAL_MESSAGE)
+	message := model.NewWebSocketEvent(teamId, post.ChannelId, userId, model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE)
 	message.Add("post", post.ToJson())
 
 	go Publish(message)
@@ -967,7 +967,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		rpost := result.Data.(*model.Post)
 
-		message := model.NewMessage(c.TeamId, rpost.ChannelId, c.Session.UserId, model.ACTION_POST_EDITED)
+		message := model.NewWebSocketEvent(c.TeamId, rpost.ChannelId, c.Session.UserId, model.WEBSOCKET_EVENT_POST_EDITED)
 		message.Add("post", rpost.ToJson())
 
 		go Publish(message)
@@ -1231,7 +1231,7 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		message := model.NewMessage(c.TeamId, post.ChannelId, c.Session.UserId, model.ACTION_POST_DELETED)
+		message := model.NewWebSocketEvent(c.TeamId, post.ChannelId, c.Session.UserId, model.WEBSOCKET_EVENT_POST_DELETED)
 		message.Add("post", post.ToJson())
 
 		go Publish(message)

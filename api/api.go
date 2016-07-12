@@ -48,6 +48,8 @@ type Routes struct {
 	Public *mux.Router // 'api/v3/public'
 
 	Emoji *mux.Router // 'api/v3/emoji'
+
+	WebSocket *WebSocketRouter // websocket api
 }
 
 var BaseRoutes *Routes
@@ -75,6 +77,8 @@ func InitApi() {
 	BaseRoutes.License = BaseRoutes.ApiRoot.PathPrefix("/license").Subrouter()
 	BaseRoutes.Public = BaseRoutes.ApiRoot.PathPrefix("/public").Subrouter()
 	BaseRoutes.Emoji = BaseRoutes.ApiRoot.PathPrefix("/emoji").Subrouter()
+
+	BaseRoutes.WebSocket = NewWebSocketRouter()
 
 	InitUser()
 	InitTeam()

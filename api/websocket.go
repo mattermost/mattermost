@@ -33,7 +33,7 @@ func connect(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wc := NewWebConn(ws, c.Session.UserId, c.Session.Token)
+	wc := NewWebConn(c, ws)
 	hub.Register(wc)
 	go wc.writePump()
 	wc.readPump()

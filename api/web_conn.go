@@ -6,10 +6,12 @@ package api
 import (
 	"time"
 
-	l4g "github.com/alecthomas/log4go"
-	"github.com/gorilla/websocket"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+
+	l4g "github.com/alecthomas/log4go"
+	"github.com/gorilla/websocket"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 const (
@@ -22,32 +24,36 @@ const (
 
 type WebConn struct {
 	WebSocket               *websocket.Conn
-	Send                    chan *model.Message
+	Send                    chan model.WebSocketMessage
 	SessionToken            string
 	UserId                  string
+	T                       goi18n.TranslateFunc
+	Locale                  string
 	hasPermissionsToChannel map[string]bool
 	hasPermissionsToTeam    map[string]bool
 }
 
-func NewWebConn(ws *websocket.Conn, userId string, sessionToken string) *WebConn {
+func NewWebConn(c *Context, ws *websocket.Conn) *WebConn {
 	go func() {
-		achan := Srv.Store.User().UpdateUserAndSessionActivity(userId, sessionToken, model.GetMillis())
-		pchan := Srv.Store.User().UpdateLastPingAt(userId, model.GetMillis())
+		achan := Srv.Store.User().UpdateUserAndSessionActivity(c.Session.UserId, c.Session.Token, model.GetMillis())
+		pchan := Srv.Store.User().UpdateLastPingAt(c.Session.UserId, model.GetMillis())
 
 		if result := <-achan; result.Err != nil {
-			l4g.Error(utils.T("api.web_conn.new_web_conn.last_activity.error"), userId, sessionToken, result.Err)
+			l4g.Error(utils.T("api.web_conn.new_web_conn.last_activity.error"), c.Session.UserId, c.Session.Token, result.Err)
 		}
 
 		if result := <-pchan; result.Err != nil {
-			l4g.Error(utils.T("api.web_conn.new_web_conn.last_ping.error"), userId, result.Err)
+			l4g.Error(utils.T("api.web_conn.new_web_conn.last_ping.error"), c.Session.UserId, result.Err)
 		}
 	}()
 
 	return &WebConn{
-		Send:                    make(chan *model.Message, 64),
+		Send:                    make(chan model.WebSocketMessage, 64),
 		WebSocket:               ws,
-		UserId:                  userId,
-		SessionToken:            sessionToken,
+		UserId:                  c.Session.UserId,
+		SessionToken:            c.Session.Token,
+		T:                       c.T,
+		Locale:                  c.Locale,
 		hasPermissionsToChannel: make(map[string]bool),
 		hasPermissionsToTeam:    make(map[string]bool),
 	}
@@ -73,12 +79,11 @@ func (c *WebConn) readPump() {
 	})
 
 	for {
-		var msg model.Message
-		if err := c.WebSocket.ReadJSON(&msg); err != nil {
+		var req model.WebSocketRequest
+		if err := c.WebSocket.ReadJSON(&req); err != nil {
 			return
 		} else {
-			msg.UserId = c.UserId
-			go Publish(&msg)
+			BaseRoutes.WebSocket.ServeWebSocket(c, &req)
 		}
 	}
 }
