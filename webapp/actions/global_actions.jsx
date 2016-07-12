@@ -438,7 +438,6 @@ export function viewLoggedIn() {
 var lastTimeTypingSent = 0;
 export function emitLocalUserTypingEvent(channelId, parentId) {
     const t = Date.now();
-    const teamId = TeamStore.getCurrentId();
     if ((t - lastTimeTypingSent) > Constants.UPDATE_TYPING_MS) {
         WebSocketClient.userTyping(channelId, parentId);
         lastTimeTypingSent = t;
