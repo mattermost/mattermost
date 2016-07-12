@@ -65,6 +65,7 @@ class NewChannelFlow extends React.Component {
             channelDisplayName: '',
             channelName: '',
             channelPurpose: '',
+            channelHeader: '',
             nameModified: false
         };
     }
@@ -78,6 +79,7 @@ class NewChannelFlow extends React.Component {
                 channelDisplayName: '',
                 channelName: '',
                 channelPurpose: '',
+                channelHeader: '',
                 nameModified: false
             });
         }
@@ -99,6 +101,7 @@ class NewChannelFlow extends React.Component {
             name: this.state.channelName,
             display_name: this.state.channelDisplayName,
             purpose: this.state.channelPurpose,
+            header: this.state.channelHeader,
             type: this.state.channelType
         };
         Client.createChannel(
@@ -153,7 +156,8 @@ class NewChannelFlow extends React.Component {
     channelDataChanged(data) {
         this.setState({
             channelDisplayName: data.displayName,
-            channelPurpose: data.purpose
+            channelPurpose: data.purpose,
+            channelHeader: data.header
         });
         if (!this.state.nameModified) {
             this.setState({channelName: Utils.cleanUpUrlable(data.displayName.trim())});
