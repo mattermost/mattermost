@@ -1781,7 +1781,7 @@
   },
   {
     "id": "api.user.login.invalid_credentials",
-    "translation": "Your login credentials are incorrect."
+    "translation": "User ID or password incorrect."
   },
   {
     "id": "api.user.login.not_provided.app_error",
