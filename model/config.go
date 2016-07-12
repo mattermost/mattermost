@@ -44,6 +44,8 @@ const (
 	RESTRICT_EMOJI_CREATION_ALL          = "all"
 	RESTRICT_EMOJI_CREATION_ADMIN        = "admin"
 	RESTRICT_EMOJI_CREATION_SYSTEM_ADMIN = "system_admin"
+
+	SITENAME_MAX_LENGTH = 30
 )
 
 type ServiceSettings struct {
@@ -958,6 +960,10 @@ func (o *Config) IsValid() *AppError {
 
 	if *o.PasswordSettings.MinimumLength < PASSWORD_MINIMUM_LENGTH || *o.PasswordSettings.MinimumLength > PASSWORD_MAXIMUM_LENGTH {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.password_length.app_error", map[string]interface{}{"MinLength": PASSWORD_MINIMUM_LENGTH, "MaxLength": PASSWORD_MAXIMUM_LENGTH}, "")
+	}
+
+	if len(o.TeamSettings.SiteName) > SITENAME_MAX_LENGTH {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.sitename_length.app_error", map[string]interface{}{"MaxLength": SITENAME_MAX_LENGTH}, "")
 	}
 
 	return nil
