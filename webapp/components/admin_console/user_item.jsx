@@ -505,6 +505,11 @@ export default class UserItem extends React.Component {
             );
         }
 
+        let displayedName = Utils.getDisplayName(user);
+        if (displayedName !== user.username) {
+            displayedName += ' (@' + user.username + ')';
+        }
+
         return (
             <div className='more-modal__row'>
                 <img
@@ -514,7 +519,7 @@ export default class UserItem extends React.Component {
                     width='36'
                 />
                 <div className='more-modal__details'>
-                    <div className='more-modal__name'>{Utils.getDisplayName(user)}</div>
+                    <div className='more-modal__name'>{displayedName}</div>
                     <div className='more-modal__description'>
                         <FormattedHTMLMessage
                             id='admin.user_item.emailTitle'
