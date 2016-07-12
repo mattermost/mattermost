@@ -18,10 +18,14 @@ import DelayedAction from 'utils/delayed_action.jsx';
 import Constants from 'utils/constants.jsx';
 const ScrollTypes = Constants.ScrollTypes;
 
+import PreferenceStore from 'stores/preference_store.jsx';
+
 import {FormattedDate, FormattedMessage} from 'react-intl';
 
 import React from 'react';
 import ReactDOM from 'react-dom';
+
+const Preferences = Constants.Preferences;
 
 export default class PostList extends React.Component {
     constructor(props) {
@@ -44,16 +48,17 @@ export default class PostList extends React.Component {
 
         this.scrollStopAction = new DelayedAction(this.handleScrollStop);
 
+        this.state = {
+            isScrolling: false,
+            fullWidthIntro: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN,
+            topPostId: null
+        };
+
         if (props.channel) {
-            this.introText = createChannelIntroMessage(props.channel);
+            this.introText = createChannelIntroMessage(props.channel, this.state.fullWidthIntro);
         } else {
             this.introText = this.getArchivesIntroMessage();
         }
-
-        this.state = {
-            isScrolling: false,
-            topPostId: null
-        };
     }
 
     isAtBottom() {
@@ -395,7 +400,7 @@ export default class PostList extends React.Component {
 
     getArchivesIntroMessage() {
         return (
-            <div className='channel-intro'>
+            <div className={'channel-intro'}>
                 <h4 className='channel-intro__title'>
                     <FormattedMessage
                         id='post_focus_view.beginning'
