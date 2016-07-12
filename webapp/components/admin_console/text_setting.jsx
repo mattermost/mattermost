@@ -30,7 +30,7 @@ export default class TextSetting extends React.Component {
     static get defaultProps() {
         return {
             type: 'input',
-            maxLength: Constants.MAX_TEXTSETTING_LENGTH,
+            maxLength: Constants.MAX_TEXTSETTING_LENGTH
         };
     }
 
