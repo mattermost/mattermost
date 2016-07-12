@@ -23,28 +23,18 @@ export default class RemoveFileSetting extends Setting {
     constructor(props) {
         super(props);
         this.handleRemove = this.handleRemove.bind(this);
-
-        this.state = {
-            serverError: null
-        };
     }
 
     handleRemove(e) {
         e.preventDefault();
 
         $(this.refs.remove_button).button('loading');
-        this.props.onSubmit(this.props.id, (error) => {
+        this.props.onSubmit(this.props.id, () => {
             $(this.refs.remove_button).button('reset');
-            this.setState({serverError: error});
         });
     }
 
     render() {
-        let serverError;
-        if (this.state.serverError) {
-            serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
-        }
-
         return (
             <Setting
                 label={this.props.label}
@@ -64,7 +54,6 @@ export default class RemoveFileSetting extends Setting {
                     >
                         {this.props.removeButtonText}
                     </button>
-                    {serverError}
                 </div>
             </Setting>
         );
