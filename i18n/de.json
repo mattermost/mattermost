@@ -165,7 +165,7 @@
   },
   {
     "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
-    "translation": "Failed to add user to channel because they have been removed from the team."
+    "translation": "Fehler beim Hinzufügen des Benutzers zum Kanal, da dieser aus dem Team entfernt worden ist."
   },
   {
     "id": "api.channel.add_user_to_channel.deleted.app_error",
