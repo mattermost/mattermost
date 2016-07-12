@@ -1388,8 +1388,12 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !model.ComparePassword(user.Password, currentPassword) {
-		c.Err = model.NewLocAppError("updatePassword", "api.user.update_password.incorrect.app_error", nil, "")
+	if err := doubleCheckPassword(user, currentPassword); err != nil {
+		if err.Id == "api.user.check_user_password.invalid.app_error" {
+			c.Err = model.NewLocAppError("updatePassword", "api.user.update_password.incorrect.app_error", nil, "")
+		} else {
+			c.Err = err
+		}
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
