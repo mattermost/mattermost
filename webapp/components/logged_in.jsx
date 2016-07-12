@@ -9,6 +9,7 @@ import BrowserStore from 'stores/browser_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as Websockets from 'actions/websocket_actions.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {browserHistory} from 'react-router/es6';
@@ -71,6 +72,8 @@ export default class LoggedIn extends React.Component {
 
         if (this.state.user) {
             this.setupUser(this.state.user);
+        } else {
+            GlobalActions.emitUserLoggedOutEvent('/login');
         }
     }
 
