@@ -21,6 +21,7 @@ func InitGeneral() {
 	BaseRoutes.General.Handle("/log_client", ApiAppHandler(logClient)).Methods("POST")
 	BaseRoutes.General.Handle("/ping", ApiAppHandler(ping)).Methods("GET")
 
+	BaseRoutes.WebSocket.Handle("ping", ApiWebSocketHandler(webSocketPing))
 }
 
 func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -70,4 +71,9 @@ func ping(c *Context, w http.ResponseWriter, r *http.Request) {
 	m["server_time"] = fmt.Sprintf("%v", model.GetMillis())
 	m["node_id"] = ""
 	w.Write([]byte(model.MapToJson(m)))
+}
+
+func webSocketPing(req *model.WebSocketRequest, responseData map[string]interface{}) *model.AppError {
+	responseData["text"] = "pong"
+	return nil
 }

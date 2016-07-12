@@ -32,6 +32,7 @@ const (
 	HEADER_REQUESTED_WITH_XML = "XMLHttpRequest"
 	STATUS                    = "status"
 	STATUS_OK                 = "OK"
+	STATUS_FAIL               = "FAIL"
 
 	API_URL_SUFFIX_V1 = "/api/v1"
 	API_URL_SUFFIX_V3 = "/api/v3"

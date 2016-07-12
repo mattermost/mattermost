@@ -600,6 +600,18 @@
     "translation": "%v:%v code=%v rid=%v uid=%v ip=%v %v [details: %v]"
   },
   {
+    "id": "api.web_socket_router.log.error",
+    "translation": "websocket routing error: seq=%v uid=%v %v [details: %v]"
+  },
+  {
+    "id": "api.web_socket_handler.log.error",
+    "translation": "%v:%v seq=%v uid=%v %v [details: %v]"
+  },
+  {
+    "id": "api.websocket_handler.invalid_param.app_error",
+    "translation": "Invalid {{.Name}} parameter"
+  },
+  {
     "id": "api.context.permissions.app_error",
     "translation": "You do not have the appropriate permissions"
   },

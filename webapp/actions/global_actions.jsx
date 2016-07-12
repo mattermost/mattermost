@@ -12,7 +12,6 @@ import TeamStore from 'stores/team_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import SearchStore from 'stores/search_store.jsx';
 
-import * as Websockets from 'actions/websocket_actions.jsx';
 import {handleNewPost} from 'actions/post_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
@@ -20,6 +19,7 @@ const ActionTypes = Constants.ActionTypes;
 
 import Client from 'utils/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
+import WebSocketClient from 'utils/websocket_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import en from 'i18n/en.json';
@@ -439,7 +439,7 @@ var lastTimeTypingSent = 0;
 export function emitLocalUserTypingEvent(channelId, parentId) {
     const t = Date.now();
     if ((t - lastTimeTypingSent) > Constants.UPDATE_TYPING_MS) {
-        Websockets.sendMessage({channel_id: channelId, action: 'typing', props: {parent_id: parentId}, state: {}});
+        WebSocketClient.userTyping(channelId, parentId);
         lastTimeTypingSent = t;
     }
 }

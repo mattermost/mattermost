@@ -75,6 +75,8 @@ func InitUser() {
 
 	BaseRoutes.Root.Handle("/login/sso/saml", AppHandlerIndependent(loginWithSaml)).Methods("GET")
 	BaseRoutes.Root.Handle("/login/sso/saml", AppHandlerIndependent(completeSaml)).Methods("POST")
+
+	BaseRoutes.WebSocket.Handle("user_typing", ApiWebSocketHandler(userTyping))
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -269,7 +271,7 @@ func CreateUser(user *model.User) (*model.User, *model.AppError) {
 		ruser.Sanitize(map[string]bool{})
 
 		// This message goes to every channel, so the channelId is irrelevant
-		go Publish(model.NewMessage("", "", ruser.Id, model.ACTION_NEW_USER))
+		go Publish(model.NewWebSocketEvent("", "", ruser.Id, model.WEBSOCKET_EVENT_NEW_USER))
 
 		return ruser, nil
 	}
@@ -2539,4 +2541,23 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		doLogin(c, w, r, user, "")
 		http.Redirect(w, r, GetProtocol(r)+"://"+r.Host, http.StatusFound)
 	}
+}
+
+func userTyping(req *model.WebSocketRequest, responseData map[string]interface{}) *model.AppError {
+	var ok bool
+	var channelId string
+	if channelId, ok = req.Data["channel_id"].(string); !ok || len(channelId) != 26 {
+		return NewInvalidWebSocketParamError(req.Action, "channel_id")
+	}
+
+	var parentId string
+	if parentId, ok = req.Data["parent_id"].(string); !ok {
+		parentId = ""
+	}
+
+	event := model.NewWebSocketEvent("", channelId, req.Session.UserId, model.WEBSOCKET_EVENT_TYPING)
+	event.Add("parent_id", parentId)
+	go Publish(event)
+
+	return nil
 }
