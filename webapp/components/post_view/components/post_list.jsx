@@ -11,8 +11,6 @@ import * as GlobalActions from 'actions/global_actions.jsx';
 
 import {createChannelIntroMessage} from 'utils/channel_intro_messages.jsx';
 
-import UserStore from 'stores/user_store.jsx';
-
 import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
 import DelayedAction from 'utils/delayed_action.jsx';
@@ -247,7 +245,7 @@ export default class PostList extends React.Component {
                 commentRootId = post.id;
             }
             if (commentRootId) {
-                const commentsNotifyLevel = UserStore.getCurrentUser().notify_props.comments || 'never';
+                const commentsNotifyLevel = this.props.currentUser.notify_props.comments || 'never';
                 for (const postId in posts) {
                     if (posts[postId].root_id === commentRootId) {
                         commentCount += 1;
