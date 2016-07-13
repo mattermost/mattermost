@@ -343,7 +343,10 @@
             a {
                 border-radius: 0;
                 color: $gray;
-                padding: 8px 5px 8px 15px;
+                overflow: hidden;
+                padding: 8px 15px;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }
 
             .icon {
@@ -382,10 +385,7 @@
                     @include alpha-property(background-color, $black, .1);
                     border-radius: 0;
                     font-weight: 400;
-                    overflow: hidden;
                     position: relative;
-                    text-overflow: ellipsis;
-                    white-space: nowrap;
                 }
             }
         }
