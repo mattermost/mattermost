@@ -1,40 +1,49 @@
 {
     "name": "Mattermost",
+    "description": "Mattermost is an open source, self-hosted Slack-alternative",
     "icons": [{
-        "src": "/static/images/favicon/android-chrome-36x36.png",
-        "type": "image/png",
-        "sizes": "36x36"
-    }, {
-        "src": "/static/images/favicon/android-chrome-48x48.png",
-        "type": "image/png",
-        "sizes": "48x48"
-    }, {
-        "src": "/static/images/favicon/android-chrome-72x72.png",
-        "type": "image/png",
-        "sizes": "72x72"
-    }, {
-        "src": "/static/images/favicon/android-chrome-96x96.png",
-        "type": "image/png",
-        "sizes": "96x96"
-    }, {
-        "src": "/static/images/favicon/android-chrome-144x144.png",
-        "type": "image/png",
-        "sizes": "144x144"
-    }, {
         "src": "/static/images/favicon/android-chrome-192x192.png",
         "type": "image/png",
         "sizes": "192x192"
     }, {
-        "src": "/static/images/favicon/android-chrome-256x256.png",
+        "src": "/static/images/favicon/apple-touch-icon-120x120.png",
         "type": "image/png",
-        "sizes": "256x256"
+        "sizes": "120x120"
     }, {
-        "src": "/static/images/favicon/android-chrome-384x384.png",
+        "src": "/static/images/favicon/apple-touch-icon-144x144.png",
         "type": "image/png",
-        "sizes": "384x384"
+        "sizes": "144x144"
     }, {
-        "src": "/static/images/favicon/android-chrome-512x512.png",
+        "src": "/static/images/favicon/apple-touch-icon-152x152.png",
         "type": "image/png",
-        "sizes": "512x512"
+        "sizes": "152x152"
+    }, {
+        "src": "/static/images/favicon/apple-touch-icon-57x57.png",
+        "type": "image/png",
+        "sizes": "57x57"
+    }, {
+        "src": "/static/images/favicon/apple-touch-icon-60x60.png",
+        "type": "image/png",
+        "sizes": "60x60"
+    }, {
+        "src": "/static/images/favicon/apple-touch-icon-72x72.png",
+        "type": "image/png",
+        "sizes": "72x72"
+    }, {
+        "src": "/static/images/favicon/apple-touch-icon-76x76.png",
+        "type": "image/png",
+        "sizes": "76x76"
+    }, {
+        "src": "/static/images/favicon/favicon-16x16.png",
+        "type": "image/png",
+        "sizes": "16x16"
+    }, {
+        "src": "/static/images/favicon/favicon-32x32.png",
+        "type": "image/png",
+        "sizes": "32x32"
+    }, {
+        "src": "/static/images/favicon/favicon-96x96.png",
+        "type": "image/png",
+        "sizes": "96x96"
     }]
 }
