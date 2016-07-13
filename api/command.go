@@ -286,6 +286,7 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	cmd.Trigger = strings.ToLower(cmd.Trigger)
 	cmd.CreatorId = c.Session.UserId
 	cmd.TeamId = c.TeamId
 

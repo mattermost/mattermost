@@ -72,7 +72,7 @@ export default class AddCommand extends React.Component {
         const command = {
             display_name: this.state.displayName,
             description: this.state.description,
-            trigger: this.state.trigger.trim(),
+            trigger: this.state.trigger.trim().toLowerCase(),
             url: this.state.url.trim(),
             method: this.state.method,
             username: this.state.username,
