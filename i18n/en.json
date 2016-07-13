@@ -1589,11 +1589,11 @@
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "You've joined the {{ .TeamDisplayName }} team"
+    "translation": "You've joined {{ .ServerURL }}"
   },
   {
     "id": "api.templates.verify_subject",
-    "translation": "[{{ .TeamDisplayName }} {{ .SiteName }}] Email Verification"
+    "translation": "[{{ .SiteName }}] Email Verification"
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -1605,7 +1605,7 @@
   },
   {
     "id": "api.templates.welcome_body.info2",
-    "translation": "You can sign-in to your new team from the web address:"
+    "translation": "You can sign in from:"
   },
   {
     "id": "api.templates.welcome_body.info3",
@@ -1613,11 +1613,11 @@
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "You've joined the {{ .TeamDisplayName }} team"
+    "translation": "You've joined {{ .ServerURL }}"
   },
   {
     "id": "api.templates.welcome_subject",
-    "translation": "You joined {{ .TeamDisplayName }}"
+    "translation": "You joined {{ .ServerURL }}"
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",

@@ -349,17 +349,19 @@ func CreateOAuthUser(c *Context, w http.ResponseWriter, r *http.Request, service
 }
 
 func sendWelcomeEmail(c *Context, userId string, email string, siteURL string, verified bool) {
+	rawUrl, _ := url.Parse(siteURL)
+
 	subjectPage := utils.NewHTMLTemplate("welcome_subject", c.Locale)
-	subjectPage.Props["Subject"] = c.T("api.templates.welcome_subject", map[string]interface{}{"TeamDisplayName": siteURL})
+	subjectPage.Props["Subject"] = c.T("api.templates.welcome_subject", map[string]interface{}{"ServerURL": rawUrl.Host})
 
 	bodyPage := utils.NewHTMLTemplate("welcome_body", c.Locale)
 	bodyPage.Props["SiteURL"] = siteURL
-	bodyPage.Props["Title"] = c.T("api.templates.welcome_body.title", map[string]interface{}{"TeamDisplayName": siteURL})
+	bodyPage.Props["Title"] = c.T("api.templates.welcome_body.title", map[string]interface{}{"ServerURL": rawUrl.Host})
 	bodyPage.Props["Info"] = c.T("api.templates.welcome_body.info")
 	bodyPage.Props["Button"] = c.T("api.templates.welcome_body.button")
 	bodyPage.Props["Info2"] = c.T("api.templates.welcome_body.info2")
 	bodyPage.Props["Info3"] = c.T("api.templates.welcome_body.info3")
-	bodyPage.Props["TeamURL"] = siteURL
+	bodyPage.Props["SiteURL"] = siteURL
 
 	if !verified {
 		link := fmt.Sprintf("%s/do_verify_email?uid=%s&hid=%s&email=%s", siteURL, userId, model.HashPassword(userId), url.QueryEscape(email))
@@ -411,13 +413,15 @@ func addDirectChannels(teamId string, user *model.User) {
 func SendVerifyEmail(c *Context, userId, userEmail, siteURL string) {
 	link := fmt.Sprintf("%s/do_verify_email?uid=%s&hid=%s&email=%s", siteURL, userId, model.HashPassword(userId), url.QueryEscape(userEmail))
 
+	url, _ := url.Parse(siteURL)
+
 	subjectPage := utils.NewHTMLTemplate("verify_subject", c.Locale)
 	subjectPage.Props["Subject"] = c.T("api.templates.verify_subject",
-		map[string]interface{}{"TeamDisplayName": utils.ClientCfg["SiteName"], "SiteName": utils.ClientCfg["SiteName"]})
+		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"]})
 
 	bodyPage := utils.NewHTMLTemplate("verify_body", c.Locale)
 	bodyPage.Props["SiteURL"] = siteURL
-	bodyPage.Props["Title"] = c.T("api.templates.verify_body.title", map[string]interface{}{"TeamDisplayName": utils.ClientCfg["SiteName"]})
+	bodyPage.Props["Title"] = c.T("api.templates.verify_body.title", map[string]interface{}{"ServerURL": url.Host})
 	bodyPage.Props["Info"] = c.T("api.templates.verify_body.info")
 	bodyPage.Props["VerifyUrl"] = link
 	bodyPage.Props["Button"] = c.T("api.templates.verify_body.button")
