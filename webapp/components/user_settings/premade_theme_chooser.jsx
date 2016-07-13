@@ -54,20 +54,6 @@ export default class PremadeThemeChooser extends React.Component {
                 <div className='clearfix'>
                     {premadeThemes}
                 </div>
-                <div className='clearfix'>
-                    <div className='col-sm-12 padding-bottom x2'>
-                        <a
-                            href='http://docs.mattermost.com/help/settings/theme-colors.html#custom-theme-examples'
-                            target='_blank'
-                            rel='noopener noreferrer'
-                        >
-                            <FormattedMessage
-                                id='user.settings.display.theme.otherThemes'
-                                defaultMessage='See other themes'
-                            />
-                        </a>
-                    </div>
-                </div>
             </div>
         );
     }

@@ -171,6 +171,9 @@
                         .theme-label {
                             font-weight: 400;
                             margin-top: 5px;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                            white-space: nowrap;
                         }
 
                         img {
