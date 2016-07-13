@@ -26,7 +26,7 @@ export function handleNewPost(post, msg) {
 
     var websocketMessageProps = null;
     if (msg) {
-        websocketMessageProps = msg.props;
+        websocketMessageProps = msg.data;
     }
 
     if (post.root_id && PostStore.getPost(post.channel_id, post.root_id) == null) {
