@@ -569,6 +569,24 @@
         }
     }
 
+    // Since system console is not responsive we're overriding bootstrap styles for it
+    .admin-sidebar {
+        .navbar-nav {
+            margin-top: 0;
+
+            > li {
+                float: left;
+            }
+
+            .dropdown-menu {
+                background: $white;
+                left: auto;
+                position: absolute;
+                right: 0;
+            }
+        }
+    }
+
     #navbar {
         .navbar-default {
             .navbar-header {
