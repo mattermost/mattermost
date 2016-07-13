@@ -2189,7 +2189,7 @@
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
-    "translation": "User is not permitted to use Mattermost. (LDAP user filter)"
+    "translation": "Your LDAP account does not have permission to use this Mattermost server. Please ask your System Administrator to check the LDAP user filter."
   },
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
