@@ -2543,7 +2543,9 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		switch action {
 		case model.OAUTH_ACTION_SIGNUP:
 			teamId := relayProps["team_id"]
-			go addDirectChannels(teamId, user)
+			if len(teamId) > 0 {
+				go addDirectChannels(teamId, user)
+			}
 			break
 		case model.OAUTH_ACTION_EMAIL_TO_SSO:
 			RevokeAllSession(c, user.Id)
