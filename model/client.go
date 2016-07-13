@@ -1415,8 +1415,9 @@ func (c *Client) AdminResetPassword(userId, newPassword string) (*Result, *AppEr
 	}
 }
 
-func (c *Client) GetStatuses(data []string) (*Result, *AppError) {
-	if r, err := c.DoApiPost("/users/status", ArrayToJson(data)); err != nil {
+// GetStatuses returns a map of string statuses using user id as the key
+func (c *Client) GetStatuses() (*Result, *AppError) {
+	if r, err := c.DoApiGet("/users/status", "", ""); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)

@@ -134,6 +134,7 @@ func main() {
 
 		setDiagnosticId()
 		go runSecurityAndDiagnosticsJob()
+		go resetStatuses()
 
 		if complianceI := einterfaces.GetComplianceInterface(); complianceI != nil {
 			complianceI.StartComplianceDailyJob()
@@ -146,6 +147,12 @@ func main() {
 		<-c
 
 		api.StopServer()
+	}
+}
+
+func resetStatuses() {
+	if result := <-api.Srv.Store.Status().ResetAll(); result.Err != nil {
+		l4g.Error(utils.T("mattermost.reset_status.error"), result.Err.Error())
 	}
 }
 
@@ -200,7 +207,7 @@ func doSecurityAndDiagnostics() {
 					v.Set(utils.PROP_DIAGNOSTIC_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
 				}
 
-				if ucr := <-api.Srv.Store.User().GetTotalActiveUsersCount(); ucr.Err == nil {
+				if ucr := <-api.Srv.Store.Status().GetTotalActiveUsersCount(); ucr.Err == nil {
 					v.Set(utils.PROP_DIAGNOSTIC_ACTIVE_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
 				}
 

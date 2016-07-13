@@ -92,6 +92,8 @@ func (wsc *WebSocketClient) SendMessage(action string, data map[string]interface
 	wsc.Conn.WriteJSON(req)
 }
 
+// UserTyping will push a user_typing event out to all connected users
+// who are in the specified channel
 func (wsc *WebSocketClient) UserTyping(channelId, parentId string) {
 	data := map[string]interface{}{
 		"channel_id": channelId,
@@ -99,4 +101,9 @@ func (wsc *WebSocketClient) UserTyping(channelId, parentId string) {
 	}
 
 	wsc.SendMessage("user_typing", data)
+}
+
+// GetStatuses will return a map of string statuses using user id as the key
+func (wsc *WebSocketClient) GetStatuses() {
+	wsc.SendMessage("get_statuses", nil)
 }

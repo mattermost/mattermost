@@ -125,7 +125,7 @@ export default class Sidebar extends React.Component {
 
             directChannel.display_name = Utils.displayUsername(teammateId);
             directChannel.teammate_id = teammateId;
-            directChannel.status = UserStore.getStatus(teammateId);
+            directChannel.status = UserStore.getStatus(teammateId) || 'offline';
 
             if (UserStore.hasTeamProfile(teammateId)) {
                 directChannels.push(directChannel);

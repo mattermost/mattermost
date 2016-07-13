@@ -8,13 +8,12 @@ import UserStore from 'stores/user_store.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import * as Utils from 'utils/utils.jsx';
-import * as Websockets from 'actions/websocket_actions.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
+import * as WebSocketActions from 'actions/websocket_actions.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {browserHistory} from 'react-router/es6';
 
-const CLIENT_STATUS_INTERVAL = 30000;
 const BACKSPACE_CHAR = 8;
 
 import React from 'react';
@@ -26,8 +25,8 @@ export default class LoggedIn extends React.Component {
         this.onUserChanged = this.onUserChanged.bind(this);
         this.setupUser = this.setupUser.bind(this);
 
-        // Initalize websockets
-        Websockets.initialize();
+        // Initalize websocket
+        WebSocketActions.initialize();
 
         // Force logout of all tabs if one tab is logged out
         $(window).bind('storage', (e) => {
@@ -109,10 +108,6 @@ export default class LoggedIn extends React.Component {
         // Listen for user
         UserStore.addChangeListener(this.onUserChanged);
 
-        // Get all statuses regularally. (Soon to be switched to websocket)
-        AsyncClient.getStatuses();
-        this.intervalId = setInterval(() => AsyncClient.getStatuses(), CLIENT_STATUS_INTERVAL);
-
         // ???
         $('body').on('mouseenter mouseleave', '.post', function mouseOver(ev) {
             if (ev.type === 'mouseenter') {
@@ -144,7 +139,7 @@ export default class LoggedIn extends React.Component {
             }
         });
 
-        // Pervent backspace from navigating back a page
+        // Prevent backspace from navigating back a page
         $(window).on('keydown.preventBackspace', (e) => {
             if (e.which === BACKSPACE_CHAR && !$(e.target).is('input, textarea')) {
                 e.preventDefault();
@@ -159,9 +154,8 @@ export default class LoggedIn extends React.Component {
 
     componentWillUnmount() {
         $('#root').attr('class', '');
-        clearInterval(this.intervalId);
 
-        Websockets.close();
+        WebSocketActions.close();
         UserStore.removeChangeListener(this.onUserChanged);
 
         $('body').off('click.userpopover');

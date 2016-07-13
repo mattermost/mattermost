@@ -292,18 +292,11 @@ class UserStoreClass extends EventEmitter {
     }
 
     setStatuses(statuses) {
-        this.pSetStatuses(statuses);
-        this.emitStatusesChange();
-    }
-
-    pSetStatuses(statuses) {
-        this.statuses = statuses;
+        this.statuses = Object.assign(this.statuses, statuses);
     }
 
     setStatus(userId, status) {
-        var statuses = this.getStatuses();
-        statuses[userId] = status;
-        this.pSetStatuses(statuses);
+        this.statuses[userId] = status;
         this.emitStatusesChange();
     }
 
@@ -370,7 +363,7 @@ UserStore.dispatchToken = AppDispatcher.register((payload) => {
         UserStore.emitAuditsChange();
         break;
     case ActionTypes.RECEIVED_STATUSES:
-        UserStore.pSetStatuses(action.statuses);
+        UserStore.setStatuses(action.statuses);
         UserStore.emitStatusesChange();
         break;
     default:

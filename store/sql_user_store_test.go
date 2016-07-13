@@ -129,50 +129,6 @@ func TestUserStoreUpdateUpdateAt(t *testing.T) {
 
 }
 
-func TestUserStoreUpdateLastPingAt(t *testing.T) {
-	Setup()
-
-	u1 := &model.User{}
-	u1.Email = model.NewId()
-	Must(store.User().Save(u1))
-	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}))
-
-	if err := (<-store.User().UpdateLastPingAt(u1.Id, 1234567890)).Err; err != nil {
-		t.Fatal(err)
-	}
-
-	if r1 := <-store.User().Get(u1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		if r1.Data.(*model.User).LastPingAt != 1234567890 {
-			t.Fatal("LastPingAt not updated correctly")
-		}
-	}
-
-}
-
-func TestUserStoreUpdateLastActivityAt(t *testing.T) {
-	Setup()
-
-	u1 := &model.User{}
-	u1.Email = model.NewId()
-	Must(store.User().Save(u1))
-	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}))
-
-	if err := (<-store.User().UpdateLastActivityAt(u1.Id, 1234567890)).Err; err != nil {
-		t.Fatal(err)
-	}
-
-	if r1 := <-store.User().Get(u1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		if r1.Data.(*model.User).LastActivityAt != 1234567890 {
-			t.Fatal("LastActivityAt not updated correctly")
-		}
-	}
-
-}
-
 func TestUserStoreUpdateFailedPasswordAttempts(t *testing.T) {
 	Setup()
 
@@ -189,41 +145,7 @@ func TestUserStoreUpdateFailedPasswordAttempts(t *testing.T) {
 		t.Fatal(r1.Err)
 	} else {
 		if r1.Data.(*model.User).FailedAttempts != 3 {
-			t.Fatal("LastActivityAt not updated correctly")
-		}
-	}
-
-}
-
-func TestUserStoreUpdateUserAndSessionActivity(t *testing.T) {
-	Setup()
-
-	u1 := &model.User{}
-	u1.Email = model.NewId()
-	Must(store.User().Save(u1))
-	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}))
-
-	s1 := model.Session{}
-	s1.UserId = u1.Id
-	Must(store.Session().Save(&s1))
-
-	if err := (<-store.User().UpdateUserAndSessionActivity(u1.Id, s1.Id, 1234567890)).Err; err != nil {
-		t.Fatal(err)
-	}
-
-	if r1 := <-store.User().Get(u1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		if r1.Data.(*model.User).LastActivityAt != 1234567890 {
-			t.Fatal("LastActivityAt not updated correctly for user")
-		}
-	}
-
-	if r2 := <-store.Session().Get(s1.Id); r2.Err != nil {
-		t.Fatal(r2.Err)
-	} else {
-		if r2.Data.(*model.Session).LastActivityAt != 1234567890 {
-			t.Fatal("LastActivityAt not updated correctly for session")
+			t.Fatal("FailedAttempts not updated correctly")
 		}
 	}
 
@@ -259,25 +181,6 @@ func TestUserCount(t *testing.T) {
 	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}))
 
 	if result := <-store.User().GetTotalUsersCount(); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		count := result.Data.(int64)
-		if count <= 0 {
-			t.Fatal()
-		}
-	}
-}
-
-func TestActiveUserCount(t *testing.T) {
-	Setup()
-
-	u1 := &model.User{}
-	u1.Email = model.NewId()
-	Must(store.User().Save(u1))
-	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}))
-	<-store.User().UpdateLastActivityAt(u1.Id, model.GetMillis())
-
-	if result := <-store.User().GetTotalActiveUsersCount(); result.Err != nil {
 		t.Fatal(result.Err)
 	} else {
 		count := result.Data.(int64)

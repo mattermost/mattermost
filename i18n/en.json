@@ -1980,12 +1980,12 @@
     "translation": "Bad verify email link."
   },
   {
-    "id": "api.web_conn.new_web_conn.last_activity.error",
+    "id": "api.status.last_activity.error",
     "translation": "Failed to update LastActivityAt for user_id=%v and session_id=%v, err=%v"
   },
   {
-    "id": "api.web_conn.new_web_conn.last_ping.error",
-    "translation": "Failed to update LastPingAt for user_id=%v, err=%v"
+    "id": "api.status.save_status.error",
+    "translation": "Failed to save status for user_id=%v, err=%v"
   },
   {
     "id": "api.web_hub.start.stopping.debug",
@@ -4036,8 +4036,32 @@
     "translation": "We encountered an error while finding user profiles"
   },
   {
-    "id": "store.sql_user.get_total_active_users_count.app_error",
-    "translation": "We could not count the users"
+    "id": "store.sql_status.get_total_active_users_count.app_error",
+    "translation": "We could not count the active users"
+  },
+  {
+    "id": "store.sql_status.reset_all.app_error",
+    "translation": "Encountered an error resetting all the statuses"
+  },
+  {
+    "id": "store.sql_status.get_online_away.app_error",
+    "translation": "Encountered an error retrieving all the online/away statuses"
+  },
+  {
+    "id": "store.sql_status.get.app_error",
+    "translation": "Encountered an error retrieving the status"
+  },
+  {
+    "id": "store.sql_status.get.missing.app_error",
+    "translation": "No entry for that status exists"
+  },
+  {
+    "id": "store.sql_status.update.app_error",
+    "translation": "Encountered an error updating the status"
+  },
+  {
+    "id": "store.sql_status.save.app_error",
+    "translation": "Encountered an error saving the status"
   },
   {
     "id": "store.sql_user.get_total_users_count.app_error",

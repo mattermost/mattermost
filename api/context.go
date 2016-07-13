@@ -20,6 +20,7 @@ import (
 )
 
 var sessionCache *utils.Cache = utils.NewLru(model.SESSION_CACHE_SIZE)
+var statusCache *utils.Cache = utils.NewLru(model.STATUS_CACHE_SIZE)
 
 var allowedMethods []string = []string{
 	"POST",
@@ -196,11 +197,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.Err == nil && h.isUserActivity && token != "" && len(c.Session.UserId) > 0 {
-		go func() {
-			if err := (<-Srv.Store.User().UpdateUserAndSessionActivity(c.Session.UserId, c.Session.Id, model.GetMillis())).Err; err != nil {
-				l4g.Error(utils.T("api.context.last_activity_at.error"), c.Session.UserId, c.Session.Id, err)
-			}
-		}()
+		SetStatusOnline(c.Session.UserId, c.Session.Id)
 	}
 
 	if c.Err == nil {

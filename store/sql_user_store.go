@@ -108,6 +108,10 @@ func (us SqlUserStore) UpgradeSchemaIfNeeded() {
 			us.Preference().Save(&data)
 		}
 	}
+
+	// ADDED for 3.3 remove for 3.7
+	us.RemoveColumnIfExists("Users", "LastActivityAt")
+	us.RemoveColumnIfExists("Users", "LastPingAt")
 }
 
 func themeMigrationFailed(err error) {
@@ -187,8 +191,6 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) StoreCha
 			user.Password = oldUser.Password
 			user.LastPasswordUpdate = oldUser.LastPasswordUpdate
 			user.LastPictureUpdate = oldUser.LastPictureUpdate
-			user.LastActivityAt = oldUser.LastActivityAt
-			user.LastPingAt = oldUser.LastPingAt
 			user.EmailVerified = oldUser.EmailVerified
 			user.FailedAttempts = oldUser.FailedAttempts
 			user.MfaSecret = oldUser.MfaSecret
@@ -272,65 +274,6 @@ func (us SqlUserStore) UpdateUpdateAt(userId string) StoreChannel {
 
 		if _, err := us.GetMaster().Exec("UPDATE Users SET UpdateAt = :Time WHERE Id = :UserId", map[string]interface{}{"Time": curTime, "UserId": userId}); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.UpdateUpdateAt", "store.sql_user.update_update.app_error", nil, "user_id="+userId)
-		} else {
-			result.Data = userId
-		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
-}
-
-func (us SqlUserStore) UpdateLastPingAt(userId string, time int64) StoreChannel {
-	storeChannel := make(StoreChannel)
-
-	go func() {
-		result := StoreResult{}
-
-		if _, err := us.GetMaster().Exec("UPDATE Users SET LastPingAt = :LastPingAt WHERE Id = :UserId", map[string]interface{}{"LastPingAt": time, "UserId": userId}); err != nil {
-			result.Err = model.NewLocAppError("SqlUserStore.UpdateLastPingAt", "store.sql_user.update_last_ping.app_error", nil, "user_id="+userId)
-		} else {
-			result.Data = userId
-		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
-}
-
-func (us SqlUserStore) UpdateLastActivityAt(userId string, time int64) StoreChannel {
-	storeChannel := make(StoreChannel)
-
-	go func() {
-		result := StoreResult{}
-
-		if _, err := us.GetMaster().Exec("UPDATE Users SET LastActivityAt = :LastActivityAt WHERE Id = :UserId", map[string]interface{}{"LastActivityAt": time, "UserId": userId}); err != nil {
-			result.Err = model.NewLocAppError("SqlUserStore.UpdateLastActivityAt", "store.sql_user.update_last_activity.app_error", nil, "user_id="+userId)
-		} else {
-			result.Data = userId
-		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
-}
-
-func (us SqlUserStore) UpdateUserAndSessionActivity(userId string, sessionId string, time int64) StoreChannel {
-	storeChannel := make(StoreChannel)
-
-	go func() {
-		result := StoreResult{}
-
-		if _, err := us.GetMaster().Exec("UPDATE Users SET LastActivityAt = :UserLastActivityAt WHERE Id = :UserId", map[string]interface{}{"UserLastActivityAt": time, "UserId": userId}); err != nil {
-			result.Err = model.NewLocAppError("SqlUserStore.UpdateLastActivityAt", "store.sql_user.update_last_activity.app_error", nil, "1 user_id="+userId+" session_id="+sessionId+" err="+err.Error())
-		} else if _, err := us.GetMaster().Exec("UPDATE Sessions SET LastActivityAt = :SessionLastActivityAt WHERE Id = :SessionId", map[string]interface{}{"SessionLastActivityAt": time, "SessionId": sessionId}); err != nil {
-			result.Err = model.NewLocAppError("SqlUserStore.UpdateLastActivityAt", "store.sql_user.update_last_activity.app_error", nil, "2 user_id="+userId+" session_id="+sessionId+" err="+err.Error())
 		} else {
 			result.Data = userId
 		}
@@ -977,27 +920,6 @@ func (us SqlUserStore) GetTotalUsersCount() StoreChannel {
 
 		if count, err := us.GetReplica().SelectInt("SELECT COUNT(Id) FROM Users"); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.GetTotalUsersCount", "store.sql_user.get_total_users_count.app_error", nil, err.Error())
-		} else {
-			result.Data = count
-		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
-}
-
-func (us SqlUserStore) GetTotalActiveUsersCount() StoreChannel {
-	storeChannel := make(StoreChannel)
-
-	go func() {
-		result := StoreResult{}
-
-		time := model.GetMillis() - (1000 * 60 * 60 * 24)
-
-		if count, err := us.GetReplica().SelectInt("SELECT COUNT(Id) FROM Users WHERE LastActivityAt > :Time", map[string]interface{}{"Time": time}); err != nil {
-			result.Err = model.NewLocAppError("SqlUserStore.GetTotalActiveUsersCount", "store.sql_user.get_total_active_users_count.app_error", nil, err.Error())
 		} else {
 			result.Data = count
 		}
