@@ -263,7 +263,8 @@ function autolinkHashtags(text, tokens) {
 
             newTokens.set(newAlias, {
                 value: `<a class='mention-link' href='#' data-hashtag='${token.originalText}'>${token.originalText}</a>`,
-                originalText: token.originalText
+                originalText: token.originalText,
+                hashtag: token.originalText.substring(1)
             });
 
             output = output.replace(alias, newAlias);
@@ -276,19 +277,19 @@ function autolinkHashtags(text, tokens) {
     }
 
     // look for hashtags in the text
-    function replaceHashtagWithToken(fullMatch, prefix, hashtag) {
+    function replaceHashtagWithToken(fullMatch, prefix, originalText) {
         const index = tokens.size;
         const alias = `MM_HASHTAG${index}`;
 
-        let value = hashtag;
-
-        if (hashtag.length > Constants.MIN_HASHTAG_LINK_LENGTH) {
-            value = `<a class='mention-link' href='#' data-hashtag='${hashtag}'>${hashtag}</a>`;
+        if (text.length < Constants.MIN_HASHTAG_LINK_LENGTH + 1) {
+            // too short to be a hashtag
+            return fullMatch;
         }
 
         tokens.set(alias, {
-            value,
-            originalText: hashtag
+            value: `<a class='mention-link' href='#' data-hashtag='${originalText}'>${originalText}</a>`,
+            originalText,
+            hashtag: originalText.substring(1)
         });
 
         return prefix + alias;
@@ -393,9 +394,11 @@ export function highlightSearchTerms(text, tokens, searchTerm) {
 
     for (const term of terms) {
         // highlight existing tokens matching search terms
+        const trimmedTerm = term.replace(/\*$/, '').toLowerCase();
         var newTokens = new Map();
         for (const [alias, token] of tokens) {
-            if (token.originalText.toLowerCase() === term.replace(/\*$/, '').toLowerCase()) {
+            if (token.originalText.toLowerCase() === trimmedTerm ||
+                (token.hashtag && token.hashtag.toLowerCase() === trimmedTerm)) {
                 const index = tokens.size + newTokens.size;
                 const newAlias = `MM_SEARCHTERM${index}`;
 
