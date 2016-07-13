@@ -552,7 +552,6 @@ func adminResetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	newPassword := props["new_password"]
 	if err := utils.IsPasswordValid(newPassword); err != nil {
 		c.Err = err
-		c.SetInvalidParam("adminResetPassword", "new_password")
 		return
 	}
 
