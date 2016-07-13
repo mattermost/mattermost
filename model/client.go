@@ -1649,3 +1649,36 @@ func (c *Client) DeleteEmoji(id string) (bool, *AppError) {
 func (c *Client) GetCustomEmojiImageUrl(id string) string {
 	return c.GetEmojiRoute() + "/" + id
 }
+
+// Uploads a x509 base64 Certificate or Private Key file to be used with SAML.
+// data byte array is required and needs to be a Multi-Part with 'certificate' as the field name
+// contentType is also required. Returns nil if succesful, otherwise returns an AppError
+func (c *Client) UploadCertificateFile(data []byte, contentType string) *AppError {
+	url := c.ApiUrl + "/admin/add_certificate"
+	rq, _ := http.NewRequest("POST", url, bytes.NewReader(data))
+	rq.Header.Set("Content-Type", contentType)
+
+	if len(c.AuthToken) > 0 {
+		rq.Header.Set(HEADER_AUTH, "BEARER "+c.AuthToken)
+	}
+
+	if rp, err := c.HttpClient.Do(rq); err != nil {
+		return NewLocAppError(url, "model.client.connecting.app_error", nil, err.Error())
+	} else if rp.StatusCode >= 300 {
+		return AppErrorFromJson(rp.Body)
+	} else {
+		defer closeBody(rp)
+		return nil
+	}
+}
+
+// Removes a x509 base64 Certificate or Private Key file used with SAML.
+// filename is required. Returns nil if succesful, otherwise returns an AppError
+func (c *Client) RemoveCertificateFile(filename string) *AppError {
+	if r, err := c.DoApiPost("/admin/remove_certificate", MapToJson(map[string]string{"filename": filename})); err != nil {
+		return err
+	} else {
+		defer closeBody(r)
+		return nil
+	}
+}
