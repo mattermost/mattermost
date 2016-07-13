@@ -104,6 +104,11 @@ export default class AboutBuildModal extends React.Component {
             }
         }
 
+        let version = '\u00a0' + config.Version;
+        if (config.BuildNumber !== config.Version) {
+            version += '\u00a0 (' + config.BuildNumber + ')';
+        }
+
         return (
             <Modal
                 dialogClassName='about-modal'
@@ -135,7 +140,7 @@ export default class AboutBuildModal extends React.Component {
                                         id='about.version'
                                         defaultMessage='Version:'
                                     />
-                                    {'\u00a0' + config.Version + '\u00a0 (' + config.BuildNumber + ')'}
+                                    {version}
                                 </div>
                                 <div>
                                     <FormattedMessage
