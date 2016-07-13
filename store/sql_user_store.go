@@ -510,7 +510,7 @@ func (s SqlUserStore) GetEtagForDirectProfiles(userId string) StoreChannel {
 			        WHERE
 			            UserId = :UserId
 			                AND Category = 'direct_channel_show')
-			ORDER BY UpdateAt DESC LIMIT 1
+			ORDER BY UpdateAt DESC
         `, map[string]interface{}{"UserId": userId})
 
 		if err != nil || len(ids) == 0 {
