@@ -88,7 +88,7 @@ func (me *msgProvider) DoCommand(c *Context, channelId string, message string) *
 					}
 				}
 
-				return &model.CommandResponse{GotoLocation: c.GetTeamURL() + "/channels/" + channelName, Text: c.T("api.command_msg.success"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+				return &model.CommandResponse{GotoLocation: c.GetTeamURL() + "/channels/" + channelName, Text: "", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 			}
 		}
 	}

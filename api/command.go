@@ -249,7 +249,7 @@ func handleResponse(c *Context, w http.ResponseWriter, response *model.CommandRe
 		if _, err := CreatePost(c, post, true); err != nil {
 			c.Err = model.NewLocAppError("command", "api.command.execute_command.save.app_error", nil, "")
 		}
-	} else if response.ResponseType == model.COMMAND_RESPONSE_TYPE_EPHEMERAL {
+	} else if response.ResponseType == model.COMMAND_RESPONSE_TYPE_EPHEMERAL && response.Text != "" {
 		post.Message = response.Text
 		post.CreateAt = model.GetMillis()
 		SendEphemeralPost(
