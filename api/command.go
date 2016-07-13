@@ -106,6 +106,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	parts := strings.Split(command, " ")
 	trigger := parts[0][1:]
+	trigger = strings.ToLower(trigger)
 	message := strings.Join(parts[1:], " ")
 	provider := GetCommandProvider(trigger)
 
