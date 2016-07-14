@@ -277,6 +277,9 @@ func (c *Client) GetPing() (map[string]string, *AppError) {
 
 // Team Routes Section
 
+// SignupTeam sends an email with a team sign-up link to the provided address if email
+// verification is enabled, otherwise it returns a map with a "follow_link" entry
+// containing the team sign-up link.
 func (c *Client) SignupTeam(email string, displayName string) (*Result, *AppError) {
 	m := make(map[string]string)
 	m["email"] = email
@@ -290,6 +293,8 @@ func (c *Client) SignupTeam(email string, displayName string) (*Result, *AppErro
 	}
 }
 
+// CreateTeamFromSignup creates a team based on the provided TeamSignup struct. On success
+// it returns the TeamSignup struct.
 func (c *Client) CreateTeamFromSignup(teamSignup *TeamSignup) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/teams/create_from_signup", teamSignup.ToJson()); err != nil {
 		return nil, err
@@ -300,6 +305,8 @@ func (c *Client) CreateTeamFromSignup(teamSignup *TeamSignup) (*Result, *AppErro
 	}
 }
 
+// CreateTeam creates a team based on the provided Team struct. On success it returns
+// the Team struct with the Id, CreateAt and other server-decided fields populated.
 func (c *Client) CreateTeam(team *Team) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/teams/create", team.ToJson()); err != nil {
 		return nil, err
@@ -310,6 +317,7 @@ func (c *Client) CreateTeam(team *Team) (*Result, *AppError) {
 	}
 }
 
+// GetAllTeams returns a map of all teams using team ids as the key.
 func (c *Client) GetAllTeams() (*Result, *AppError) {
 	if r, err := c.DoApiGet("/teams/all", "", ""); err != nil {
 		return nil, err
@@ -320,6 +328,8 @@ func (c *Client) GetAllTeams() (*Result, *AppError) {
 	}
 }
 
+// GetAllTeamListings returns a map of all teams that are available to join
+// using team ids as the key. Must be authenticated.
 func (c *Client) GetAllTeamListings() (*Result, *AppError) {
 	if r, err := c.DoApiGet("/teams/all_team_listings", "", ""); err != nil {
 		return nil, err
@@ -330,6 +340,8 @@ func (c *Client) GetAllTeamListings() (*Result, *AppError) {
 	}
 }
 
+// FindTeamByName returns the strings "true" or "false" depending on if a team
+// with the provided name was found.
 func (c *Client) FindTeamByName(name string) (*Result, *AppError) {
 	m := make(map[string]string)
 	m["name"] = name
@@ -366,6 +378,8 @@ func (c *Client) AddUserToTeam(teamId string, userId string) (*Result, *AppError
 	}
 }
 
+// AddUserToTeamFromInvite adds a user to a team based off data provided in an invite link.
+// Either hash and dataToHash are required or inviteId is required.
 func (c *Client) AddUserToTeamFromInvite(hash, dataToHash, inviteId string) (*Result, *AppError) {
 	data := make(map[string]string)
 	data["hash"] = hash
@@ -410,6 +424,9 @@ func (c *Client) InviteMembers(invites *Invites) (*Result, *AppError) {
 	}
 }
 
+// UpdateTeam updates a team based on the changes in the provided team struct. On success
+// it returns a sanitized version of the updated team. Must be authenticated as a team admin
+// for that team or a system admin.
 func (c *Client) UpdateTeam(team *Team) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/update", team.ToJson()); err != nil {
 		return nil, err
@@ -420,6 +437,9 @@ func (c *Client) UpdateTeam(team *Team) (*Result, *AppError) {
 	}
 }
 
+// User Routes Section
+
+// CreateUser creates a user in the system based on the provided user struct.
 func (c *Client) CreateUser(user *User, hash string) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/users/create", user.ToJson()); err != nil {
 		return nil, err
@@ -430,6 +450,8 @@ func (c *Client) CreateUser(user *User, hash string) (*Result, *AppError) {
 	}
 }
 
+// CreateUserWithInvite creates a user based on the provided user struct. Either the hash and
+// data strings or the inviteId is required from the invite.
 func (c *Client) CreateUserWithInvite(user *User, hash string, data string, inviteId string) (*Result, *AppError) {
 
 	url := "/users/create?d=" + url.QueryEscape(data) + "&h=" + url.QueryEscape(hash) + "&iid=" + url.QueryEscape(inviteId)
@@ -453,6 +475,7 @@ func (c *Client) CreateUserFromSignup(user *User, data string, hash string) (*Re
 	}
 }
 
+// GetUser returns a user based on a provided user id string. Must be authenticated.
 func (c *Client) GetUser(id string, etag string) (*Result, *AppError) {
 	if r, err := c.DoApiGet("/users/"+id+"/get", "", etag); err != nil {
 		return nil, err
@@ -463,6 +486,7 @@ func (c *Client) GetUser(id string, etag string) (*Result, *AppError) {
 	}
 }
 
+// GetMe returns the current user.
 func (c *Client) GetMe(etag string) (*Result, *AppError) {
 	if r, err := c.DoApiGet("/users/me", "", etag); err != nil {
 		return nil, err
@@ -473,6 +497,8 @@ func (c *Client) GetMe(etag string) (*Result, *AppError) {
 	}
 }
 
+// GetProfilesForDirectMessageList returns a map of users for a team that can be direct
+// messaged, using user id as the key. Must be authenticated.
 func (c *Client) GetProfilesForDirectMessageList(teamId string) (*Result, *AppError) {
 	if r, err := c.DoApiGet("/users/profiles_for_dm_list/"+teamId, "", ""); err != nil {
 		return nil, err
@@ -483,6 +509,8 @@ func (c *Client) GetProfilesForDirectMessageList(teamId string) (*Result, *AppEr
 	}
 }
 
+// GetProfiles returns a map of users for a team using user id as the key. Must
+// be authenticated.
 func (c *Client) GetProfiles(teamId string, etag string) (*Result, *AppError) {
 	if r, err := c.DoApiGet("/users/profiles/"+teamId, "", etag); err != nil {
 		return nil, err
@@ -493,6 +521,8 @@ func (c *Client) GetProfiles(teamId string, etag string) (*Result, *AppError) {
 	}
 }
 
+// GetDirectProfiles gets a map of users that are currently shown in the sidebar,
+// using user id as the key. Must be authenticated.
 func (c *Client) GetDirectProfiles(etag string) (*Result, *AppError) {
 	if r, err := c.DoApiGet("/users/direct_profiles", "", etag); err != nil {
 		return nil, err
@@ -503,6 +533,7 @@ func (c *Client) GetDirectProfiles(etag string) (*Result, *AppError) {
 	}
 }
 
+// LoginById authenticates a user by user id and password.
 func (c *Client) LoginById(id string, password string) (*Result, *AppError) {
 	m := make(map[string]string)
 	m["id"] = id
@@ -510,6 +541,8 @@ func (c *Client) LoginById(id string, password string) (*Result, *AppError) {
 	return c.login(m)
 }
 
+// Login authenticates a user by login id, which can be username, email or some sort
+// of SSO identifier based on configuration, and a password.
 func (c *Client) Login(loginId string, password string) (*Result, *AppError) {
 	m := make(map[string]string)
 	m["login_id"] = loginId
@@ -517,6 +550,7 @@ func (c *Client) Login(loginId string, password string) (*Result, *AppError) {
 	return c.login(m)
 }
 
+// LoginByLdap authenticates a user by LDAP id and password.
 func (c *Client) LoginByLdap(loginId string, password string) (*Result, *AppError) {
 	m := make(map[string]string)
 	m["login_id"] = loginId
@@ -525,6 +559,9 @@ func (c *Client) LoginByLdap(loginId string, password string) (*Result, *AppErro
 	return c.login(m)
 }
 
+// LoginWithDevice authenticates a user by login id (username, email or some sort
+// of SSO identifier based on configuration), password and attaches a device id to
+// the session.
 func (c *Client) LoginWithDevice(loginId string, password string, deviceId string) (*Result, *AppError) {
 	m := make(map[string]string)
 	m["login_id"] = loginId
@@ -551,6 +588,7 @@ func (c *Client) login(m map[string]string) (*Result, *AppError) {
 	}
 }
 
+// Logout terminates the current user's session.
 func (c *Client) Logout() (*Result, *AppError) {
 	if r, err := c.DoApiPost("/users/logout", ""); err != nil {
 		return nil, err
@@ -565,6 +603,9 @@ func (c *Client) Logout() (*Result, *AppError) {
 	}
 }
 
+// CheckMfa returns a map with key "mfa_required" with the string value "true" or "false",
+// indicating whether MFA is required to log the user in, based on a provided login id
+// (username, email or some sort of SSO identifier based on configuration).
 func (c *Client) CheckMfa(loginId string) (*Result, *AppError) {
 	m := make(map[string]string)
 	m["login_id"] = loginId
@@ -578,6 +619,8 @@ func (c *Client) CheckMfa(loginId string) (*Result, *AppError) {
 	}
 }
 
+// GenerateMfaQrCode returns a QR code imagem containing the secret, to be scanned
+// by a multi-factor authentication mobile application. Must be authenticated.
 func (c *Client) GenerateMfaQrCode() (*Result, *AppError) {
 	if r, err := c.DoApiGet("/users/generate_mfa_qr", "", ""); err != nil {
 		return nil, err
@@ -588,6 +631,9 @@ func (c *Client) GenerateMfaQrCode() (*Result, *AppError) {
 	}
 }
 
+// UpdateMfa activates multi-factor authenticates for the current user if activate
+// is true and a valid token is provided. If activate is false, then token is not
+// required and multi-factor authentication is disabled for the current user.
 func (c *Client) UpdateMfa(activate bool, token string) (*Result, *AppError) {
 	m := make(map[string]interface{})
 	m["activate"] = activate
