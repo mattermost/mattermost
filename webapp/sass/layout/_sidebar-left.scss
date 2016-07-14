@@ -178,6 +178,10 @@
                     border-radius: 0;
                     font-weight: 400;
                     position: relative;
+
+                    &.unread-title {
+                        font-weight: 600;
+                    }
                 }
             }
         }

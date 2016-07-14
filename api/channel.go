@@ -44,6 +44,7 @@ func InitChannel() {
 	BaseRoutes.NeedChannel.Handle("/add", ApiUserRequired(addMember)).Methods("POST")
 	BaseRoutes.NeedChannel.Handle("/remove", ApiUserRequired(removeMember)).Methods("POST")
 	BaseRoutes.NeedChannel.Handle("/update_last_viewed_at", ApiUserRequired(updateLastViewedAt)).Methods("POST")
+	BaseRoutes.NeedChannel.Handle("/set_last_viewed_at", ApiUserRequired(setLastViewedAt)).Methods("POST")
 }
 
 func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -789,6 +790,34 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		result["id"] = channel.Id
 		w.Write([]byte(model.MapToJson(result)))
 	}
+}
+
+func setLastViewedAt(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	id := params["channel_id"]
+
+	data := model.StringInterfaceFromJson(r.Body)
+	newLastViewedAt := int64(data["last_viewed_at"].(float64))
+
+	Srv.Store.Channel().SetLastViewedAt(id, c.Session.UserId, newLastViewedAt)
+
+	preference := model.Preference{
+		UserId:   c.Session.UserId,
+		Category: model.PREFERENCE_CATEGORY_LAST,
+		Name:     model.PREFERENCE_NAME_LAST_CHANNEL,
+		Value:    id,
+	}
+
+	Srv.Store.Preference().Save(&model.Preferences{preference})
+
+	message := model.NewWebSocketEvent(c.TeamId, id, c.Session.UserId, model.WEBSOCKET_EVENT_CHANNEL_VIEWED)
+	message.Add("channel_id", id)
+
+	go Publish(message)
+
+	result := make(map[string]string)
+	result["id"] = id
+	w.Write([]byte(model.MapToJson(result)))
 }
 
 func updateLastViewedAt(c *Context, w http.ResponseWriter, r *http.Request) {

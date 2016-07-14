@@ -145,6 +145,43 @@ export function updateLastViewedAt(id) {
     );
 }
 
+export function setLastViewedAt(lastViewedAt, id) {
+    let channelId;
+    if (id) {
+        channelId = id;
+    } else {
+        channelId = ChannelStore.getCurrentId();
+    }
+
+    if (channelId == null) {
+        return;
+    }
+
+    if (lastViewedAt == null) {
+        return;
+    }
+
+    if (isCallInProgress(`setLastViewedAt${channelId}${lastViewedAt}`)) {
+        return;
+    }
+
+    callTracker[`setLastViewedAt${channelId}${lastViewedAt}`] = utils.getTimestamp();
+    Client.setLastViewedAt(
+        channelId,
+        lastViewedAt,
+        () => {
+            callTracker.setLastViewedAt = 0;
+            ErrorStore.clearLastError();
+        },
+        (err) => {
+            callTracker.setLastViewedAt = 0;
+            var count = ErrorStore.getConnectionErrorCount();
+            ErrorStore.setConnectionErrorCount(count + 1);
+            dispatchError(err, 'setLastViewedAt');
+        }
+    );
+}
+
 export function getMoreChannels(force) {
     if (isCallInProgress('getMoreChannels')) {
         return;
