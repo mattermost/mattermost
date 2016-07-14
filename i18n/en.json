@@ -2780,6 +2780,10 @@
     "translation": "Invalid Username attribute. Must be set."
   },
   {
+    "id": "model.config.is_valid.sitename_length.app_error",
+    "translation": "Site name must be less than or equal to {{.MaxLength}} characters."
+  },
+  {
     "id": "model.config.is_valid.sql_data_src.app_error",
     "translation": "Invalid data source for SQL settings.  Must be set."
   },

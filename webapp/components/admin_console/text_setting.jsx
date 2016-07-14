@@ -4,6 +4,7 @@
 import React from 'react';
 
 import Setting from './setting.jsx';
+import Constants from 'utils/constants.jsx';
 
 export default class TextSetting extends React.Component {
     static get propTypes() {
@@ -16,6 +17,7 @@ export default class TextSetting extends React.Component {
                 React.PropTypes.string,
                 React.PropTypes.number
             ]).isRequired,
+            maxLength: React.PropTypes.number,
             onChange: React.PropTypes.func.isRequired,
             disabled: React.PropTypes.bool,
             type: React.PropTypes.oneOf([
@@ -27,7 +29,8 @@ export default class TextSetting extends React.Component {
 
     static get defaultProps() {
         return {
-            type: 'input'
+            type: 'input',
+            maxLength: Constants.MAX_TEXTSETTING_LENGTH
         };
     }
 
@@ -51,6 +54,7 @@ export default class TextSetting extends React.Component {
                     type='text'
                     placeholder={this.props.placeholder}
                     value={this.props.value}
+                    maxLength={this.props.maxLength}
                     onChange={this.handleChange}
                     disabled={this.props.disabled}
                 />

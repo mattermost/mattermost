@@ -11,6 +11,7 @@ import BrandImageSetting from './brand_image_setting.jsx';
 import {FormattedMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
+import Constants from 'utils/constants.jsx';
 
 export default class CustomBrandSettings extends AdminSettings {
     constructor(props) {
@@ -115,6 +116,7 @@ export default class CustomBrandSettings extends AdminSettings {
                             defaultMessage='Site Name:'
                         />
                     }
+                    maxLength={Constants.MAX_SITENAME_LENGTH}
                     placeholder={Utils.localizeMessage('admin.team.siteNameExample', 'Ex "Mattermost"')}
                     helpText={
                         <FormattedMessage
