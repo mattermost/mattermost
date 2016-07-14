@@ -322,10 +322,8 @@ export default class CreatePost extends React.Component {
         document.addEventListener('keydown', this.showShortcuts);
     }
 
-    componentDidUpdate(prevProps, prevState) {
-        if (prevState.channelId !== this.state.channelId) {
-            this.focusTextbox();
-        }
+    componentDidUpdate() {
+        this.focusTextbox();
     }
 
     componentWillUnmount() {

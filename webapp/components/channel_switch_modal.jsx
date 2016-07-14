@@ -82,8 +82,8 @@ export default class SwitchChannelModal extends React.Component {
         }
 
         if (channel !== null) {
-            ChannelActions.goToChannel(channel);
             this.onHide();
+            ChannelActions.goToChannel(channel);
         } else if (this.state.text !== '') {
             this.setState({
                 error: Utils.localizeMessage('channel_switch_modal.not_found', 'No matches found.')
