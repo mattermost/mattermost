@@ -28,6 +28,14 @@ export function executeCommand(channelId, message, suggest, success, error) {
 
     msg = msg.substring(0, msg.indexOf(' ')).toLowerCase() + msg.substring(msg.indexOf(' '), msg.length);
 
+    if (message.indexOf('/shortcuts') !== -1 && Utils.isMac()) {
+        msg += ' mac';
+    }
+
+    if (!Utils.isMac() && message.indexOf('/shortcuts') !== -1 && message.indexOf('mac') !== -1) {
+        msg = '/shortcuts';
+    }
+
     Client.executeCommand(channelId, msg, suggest, success, error);
 }
 
