@@ -37,6 +37,11 @@ class EditPostModal extends React.Component {
         this.handleEditPostEvent = this.handleEditPostEvent.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
+        this.onModalHidden = this.onModalHidden.bind(this);
+        this.onModalShow = this.onModalShow.bind(this);
+        this.onModalShown = this.onModalShown.bind(this);
+        this.onModalHide = this.onModalHide.bind(this);
+        this.onModalKeyDown = this.onModalKeyDown.bind(this);
 
         this.state = {editText: '', originalText: '', title: '', post_id: '', channel_id: '', comments: 0, refocusId: '', typing: false};
     }
@@ -116,46 +121,55 @@ class EditPostModal extends React.Component {
             ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter')
         });
     }
-    componentDidMount() {
-        var self = this;
-
-        $(ReactDOM.findDOMNode(this.refs.modal)).on('hidden.bs.modal', () => {
-            self.setState({editText: '', originalText: '', title: '', channel_id: '', post_id: '', comments: 0, refocusId: '', error: '', typing: false});
+    onModalHidden() {
+        this.setState({editText: '', originalText: '', title: '', channel_id: '', post_id: '', comments: 0, refocusId: '', error: '', typing: false});
+    }
+    onModalShow(e) {
+        var button = e.relatedTarget;
+        if (!button) {
+            return;
+        }
+        this.setState({
+            editText: $(button).attr('data-message'),
+            originalText: $(button).attr('data-message'),
+            title: $(button).attr('data-title'),
+            channel_id: $(button).attr('data-channelid'),
+            post_id: $(button).attr('data-postid'),
+            comments: $(button).attr('data-comments'),
+            refocusId: $(button).attr('data-refocusid'),
+            typing: false
         });
-
-        $(ReactDOM.findDOMNode(this.refs.modal)).on('show.bs.modal', (e) => {
-            var button = e.relatedTarget;
-            if (!button) {
-                return;
-            }
-            self.setState({
-                editText: $(button).attr('data-message'),
-                originalText: $(button).attr('data-message'),
-                title: $(button).attr('data-title'),
-                channel_id: $(button).attr('data-channelid'),
-                post_id: $(button).attr('data-postid'),
-                comments: $(button).attr('data-comments'),
-                refocusId: $(button).attr('data-refocusid'),
-                typing: false
+    }
+    onModalShown() {
+        this.refs.editbox.focus();
+    }
+    onModalHide() {
+        if (this.state.refocusId !== '') {
+            setTimeout(() => {
+                $(this.state.refocusId).get(0).focus();
             });
-        });
-
-        $(ReactDOM.findDOMNode(this.refs.modal)).on('shown.bs.modal', () => {
-            self.refs.editbox.focus();
-        });
-
-        $(ReactDOM.findDOMNode(this.refs.modal)).on('hide.bs.modal', () => {
-            if (self.state.refocusId !== '') {
-                setTimeout(() => {
-                    $(self.state.refocusId).get(0).focus();
-                });
-            }
-        });
-
+        }
+    }
+    onModalKeyDown(e) {
+        if (e.which === Constants.KeyCodes.ESCAPE) {
+            e.stopPropagation();
+        }
+    }
+    componentDidMount() {
+        $(this.refs.modal).on('hidden.bs.modal', this.onModalHidden);
+        $(this.refs.modal).on('show.bs.modal', this.onModalShow);
+        $(this.refs.modal).on('shown.bs.modal', this.onModalShown);
+        $(this.refs.modal).on('hide.bs.modal', this.onModalHide);
+        $(this.refs.modal).on('keydown', this.onModalKeyDown);
         PostStore.addEditPostListener(this.handleEditPostEvent);
         PreferenceStore.addChangeListener(this.onPreferenceChange);
     }
     componentWillUnmount() {
+        $(this.refs.modal).off('hidden.bs.modal', this.onModalHidden);
+        $(this.refs.modal).off('show.bs.modal', this.onModalShow);
+        $(this.refs.modal).off('shown.bs.modal', this.onModalShown);
+        $(this.refs.modal).off('hide.bs.modal', this.onModalHide);
+        $(this.refs.modal).off('keydown', this.onModalKeyDown);
         PostStore.removeEditPostListner(this.handleEditPostEvent);
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
     }

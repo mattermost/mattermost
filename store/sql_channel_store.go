@@ -856,6 +856,58 @@ func (s SqlChannelStore) CheckOpenChannelPermissions(teamId string, channelId st
 	return storeChannel
 }
 
+func (s SqlChannelStore) SetLastViewedAt(channelId string, userId string, newLastViewedAt int64) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var query string
+
+		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+			query = `UPDATE
+				ChannelMembers
+			SET
+			    MentionCount = 0,
+			    MsgCount = Channels.TotalMsgCount - (SELECT COUNT(*)
+			    					 FROM Posts
+			    					 WHERE ChannelId = :ChannelId
+			    					 AND CreateAt > :NewLastViewedAt),
+			    LastViewedAt = :NewLastViewedAt
+			FROM
+				Channels
+			WHERE
+			    Channels.Id = ChannelMembers.ChannelId
+			        AND UserId = :UserId
+			        AND ChannelId = :ChannelId`
+		} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
+			query = `UPDATE
+				ChannelMembers, Channels
+			SET
+			    ChannelMembers.MentionCount = 0,
+			    ChannelMembers.MsgCount = Channels.TotalMsgCount - (SELECT COUNT(*)
+										FROM Posts
+										WHERE ChannelId = :ChannelId
+										AND CreateAt > :NewLastViewedAt),
+			    ChannelMembers.LastViewedAt = :NewLastViewedAt
+			WHERE
+			    Channels.Id = ChannelMembers.ChannelId
+			        AND UserId = :UserId
+			        AND ChannelId = :ChannelId`
+		}
+
+		_, err := s.GetMaster().Exec(query, map[string]interface{}{"ChannelId": channelId, "UserId": userId, "NewLastViewedAt": newLastViewedAt})
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlChannelStore.SetLastViewedAt", "store.sql_channel.set_last_viewed_at.app_error", nil, "channel_id="+channelId+", user_id="+userId+", "+err.Error())
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (s SqlChannelStore) UpdateLastViewedAt(channelId string, userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 

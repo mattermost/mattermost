@@ -128,6 +128,7 @@ export default class SuggestionBox extends React.Component {
                 e.preventDefault();
             } else if (e.which === KeyCodes.ESCAPE) {
                 GlobalActions.emitClearSuggestions(this.suggestionId);
+                e.stopPropagation();
             } else if (this.props.onKeyDown) {
                 this.props.onKeyDown(e);
             }

@@ -13,6 +13,7 @@ const CHANGE_EVENT = 'change';
 const LEAVE_EVENT = 'leave';
 const MORE_CHANGE_EVENT = 'change';
 const EXTRA_INFO_EVENT = 'extra_info';
+const LAST_VIEVED_EVENT = 'last_viewed';
 
 class ChannelStoreClass extends EventEmitter {
     constructor(props) {
@@ -32,6 +33,9 @@ class ChannelStoreClass extends EventEmitter {
         this.emitLeave = this.emitLeave.bind(this);
         this.addLeaveListener = this.addLeaveListener.bind(this);
         this.removeLeaveListener = this.removeLeaveListener.bind(this);
+        this.emitLastViewed = this.emitLastViewed.bind(this);
+        this.addLastViewedListener = this.addLastViewedListener.bind(this);
+        this.removeLastViewedListener = this.removeLastViewedListener.bind(this);
         this.findFirstBy = this.findFirstBy.bind(this);
         this.get = this.get.bind(this);
         this.getMember = this.getMember.bind(this);
@@ -107,6 +111,18 @@ class ChannelStoreClass extends EventEmitter {
 
     removeLeaveListener(callback) {
         this.removeListener(LEAVE_EVENT, callback);
+    }
+
+    emitLastViewed(lastViewed, ownNewMessage) {
+        this.emit(LAST_VIEVED_EVENT, lastViewed, ownNewMessage);
+    }
+
+    addLastViewedListener(callback) {
+        this.on(LAST_VIEVED_EVENT, callback);
+    }
+
+    removeLastViewedListener(callback) {
+        this.removeListener(LAST_VIEVED_EVENT, callback);
     }
 
     findFirstBy(field, value) {

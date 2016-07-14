@@ -99,6 +99,7 @@ type ChannelStore interface {
 	CheckOpenChannelPermissions(teamId string, channelId string) StoreChannel
 	CheckPermissionsToByName(teamId string, channelName string, userId string) StoreChannel
 	UpdateLastViewedAt(channelId string, userId string) StoreChannel
+	SetLastViewedAt(channelId string, userId string, newLastViewedAt int64) StoreChannel
 	IncrementMentionCount(channelId string, userId string) StoreChannel
 	AnalyticsTypeCount(teamId string, channelType string) StoreChannel
 	ExtraUpdateByUser(userId string, time int64) StoreChannel
