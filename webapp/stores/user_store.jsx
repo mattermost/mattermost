@@ -9,6 +9,7 @@ import LocalizationStore from './localization_store.jsx';
 
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
+const UserStatuses = Constants.UserStatuses;
 
 const CHANGE_EVENT_DM_LIST = 'change_dm_list';
 const CHANGE_EVENT = 'change';
@@ -305,7 +306,7 @@ class UserStoreClass extends EventEmitter {
     }
 
     getStatus(id) {
-        return this.getStatuses()[id];
+        return this.getStatuses()[id] || UserStatuses.OFFLINE;
     }
 
     getNoAccounts() {

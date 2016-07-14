@@ -211,6 +211,12 @@ export const Constants = {
         POST: 5
     },
 
+    UserStatuses: {
+        OFFLINE: 'offline',
+        AWAY: 'away',
+        ONLINE: 'online'
+    },
+
     SPECIAL_MENTIONS: ['all', 'channel'],
     CHARACTER_LIMIT: 4000,
     IMAGE_TYPES: ['jpg', 'gif', 'bmp', 'png', 'jpeg'],
