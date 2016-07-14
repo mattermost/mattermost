@@ -493,14 +493,6 @@
     }
 
     .post-create__container {
-        .post-right__container & {
-            padding: 0 1em;
-
-            .msg-typing {
-                display: none;
-            }
-        }
-
         form {
             padding: .5em 0;
         }
@@ -524,6 +516,7 @@
             .post-body__cell {
                 display: table-cell;
                 padding-left: 45px;
+
                 .sidebar--right & {
                     padding-left: 0;
                 }
@@ -531,12 +524,12 @@
 
             .app__content & {
                 .btn-file {
-                    width: 45px;
-                    padding: 0;
-                    line-height: 36px;
                     bottom: -2px;
                     left: 0;
+                    line-height: 36px;
+                    padding: 0;
                     top: auto;
+                    width: 45px;
                 }
             }
 
@@ -573,6 +566,24 @@
             position: relative;
             right: auto;
             top: auto;
+        }
+    }
+
+    // Since system console is not responsive we're overriding bootstrap styles for it
+    .admin-sidebar {
+        .navbar-nav {
+            margin-top: 0;
+
+            > li {
+                float: left;
+            }
+
+            .dropdown-menu {
+                background: $white;
+                left: auto;
+                position: absolute;
+                right: 0;
+            }
         }
     }
 
@@ -802,6 +813,25 @@
         right: 0;
         width: 100%;
 
+        .post-create__container {
+            form {
+                padding: .5em 1em;
+            }
+
+            .msg-typing:empty {
+                display: none;
+            }
+
+            .post-create-footer {
+                padding: 1em 0;
+
+                .control-label {
+                    margin: .5em 0;
+                    top: 0;
+                }
+            }
+        }
+
         .sidebar__collapse,
         .sidebar__search-icon {
             display: block;
@@ -871,8 +901,8 @@
     }
 
     .app__content {
-        padding-top: 45px;
         margin: 0;
+        padding-top: 45px;
 
         .channel__wrap & {
             padding-top: 45px;

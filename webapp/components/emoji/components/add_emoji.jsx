@@ -277,7 +277,10 @@ export default class AddEmoji extends React.Component {
                         </div>
                         {preview}
                         <div className='backstage-form__footer'>
-                            <FormError error={this.state.error}/>
+                            <FormError
+                                type='backstage'
+                                error={this.state.error}
+                            />
                             <Link
                                 className='btn btn-sm'
                                 to={'/' + this.props.team.name + '/emoji'}

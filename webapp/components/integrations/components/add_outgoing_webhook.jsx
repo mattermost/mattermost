@@ -319,7 +319,10 @@ export default class AddOutgoingWebhook extends React.Component {
                             </div>
                         </div>
                         <div className='backstage-form__footer'>
-                            <FormError errors={[this.state.serverError, this.state.clientError]}/>
+                            <FormError
+                                type='backstage'
+                                errors={[this.state.serverError, this.state.clientError]}
+                            />
                             <Link
                                 className='btn btn-sm'
                                 to={'/' + this.props.team.name + '/integrations/outgoing_webhooks'}

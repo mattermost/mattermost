@@ -257,8 +257,26 @@ export default class ThemeSetting extends React.Component {
             inputs.push(custom);
 
             inputs.push(
-                <div key='importSlackThemeButton'>
+                <div>
                     <br/>
+                    <a
+                        href='http://docs.mattermost.com/help/settings/theme-colors.html#custom-theme-examples'
+                        target='_blank'
+                        rel='noopener noreferrer'
+                    >
+                        <FormattedMessage
+                            id='user.settings.display.theme.otherThemes'
+                            defaultMessage='See other themes'
+                        />
+                    </a>
+                </div>
+            );
+
+            inputs.push(
+                <div
+                    key='importSlackThemeButton'
+                    className='padding-top'
+                >
                     <a
                         className='theme'
                         onClick={this.handleImportModal}
