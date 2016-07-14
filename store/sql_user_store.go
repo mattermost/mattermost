@@ -83,7 +83,9 @@ func (us SqlUserStore) UpgradeSchemaIfNeeded() {
 			SELECT
 				Id, '`+model.PREFERENCE_CATEGORY_THEME+`', '', ThemeProps
 			FROM
-				Users`, params); err != nil {
+				Users
+			WHERE
+				Users.ThemeProps != 'null'`, params); err != nil {
 			themeMigrationFailed(err)
 		}
 
