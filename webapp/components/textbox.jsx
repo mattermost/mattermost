@@ -176,11 +176,6 @@ export default class Textbox extends React.Component {
             </div>
         );
 
-        const otherProps = {};
-        if (!this.props.typing) {
-            otherProps.value = this.props.messageText;
-        }
-
         return (
             <div
                 ref='wrapper'
@@ -194,7 +189,7 @@ export default class Textbox extends React.Component {
                     spellCheck='true'
                     maxLength={Constants.MAX_POST_LEN}
                     placeholder={this.props.createMessage}
-                    onUserInput={this.props.onUserInput}
+                    onInput={this.props.onInput}
                     onKeyPress={this.handleKeyPress}
                     onKeyDown={this.handleKeyDown}
                     onHeightChange={this.handleHeightChange}
@@ -202,7 +197,7 @@ export default class Textbox extends React.Component {
                     listComponent={SuggestionList}
                     providers={this.suggestionProviders}
                     channelId={this.props.channelId}
-                    {...otherProps}
+                    value={this.props.messageText}
                 />
                 <div
                     ref='preview'
@@ -239,10 +234,9 @@ Textbox.propTypes = {
     id: React.PropTypes.string.isRequired,
     channelId: React.PropTypes.string,
     messageText: React.PropTypes.string.isRequired,
-    onUserInput: React.PropTypes.func.isRequired,
+    onInput: React.PropTypes.func.isRequired,
     onKeyPress: React.PropTypes.func.isRequired,
     createMessage: React.PropTypes.string.isRequired,
     onKeyDown: React.PropTypes.func,
-    supportsCommands: React.PropTypes.bool.isRequired,
-    typing: React.PropTypes.bool.isRequired
+    supportsCommands: React.PropTypes.bool.isRequired
 };

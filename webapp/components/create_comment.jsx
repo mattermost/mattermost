@@ -19,33 +19,14 @@ import * as GlobalActions from 'actions/global_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 
-import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 const ActionTypes = Constants.ActionTypes;
 const KeyCodes = Constants.KeyCodes;
 
-const holders = defineMessages({
-    commentLength: {
-        id: 'create_comment.commentLength',
-        defaultMessage: 'Comment length must be less than {max} characters.'
-    },
-    comment: {
-        id: 'create_comment.comment',
-        defaultMessage: 'Add Comment'
-    },
-    addComment: {
-        id: 'create_comment.addComment',
-        defaultMessage: 'Add a comment...'
-    },
-    commentTitle: {
-        id: 'create_comment.commentTitle',
-        defaultMessage: 'Comment'
-    }
-});
-
 import React from 'react';
 
-class CreateComment extends React.Component {
+export default class CreateComment extends React.Component {
     constructor(props) {
         super(props);
 
@@ -53,7 +34,7 @@ class CreateComment extends React.Component {
 
         this.handleSubmit = this.handleSubmit.bind(this);
         this.commentMsgKeyPress = this.commentMsgKeyPress.bind(this);
-        this.handleUserInput = this.handleUserInput.bind(this);
+        this.handleInput = this.handleInput.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleUploadClick = this.handleUploadClick.bind(this);
         this.handleUploadStart = this.handleUploadStart.bind(this);
@@ -76,8 +57,7 @@ class CreateComment extends React.Component {
             previews: draft.previews,
             submitting: false,
             ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
-            showPostDeletedModal: false,
-            typing: false
+            showPostDeletedModal: false
         };
     }
 
@@ -126,7 +106,15 @@ class CreateComment extends React.Component {
         }
 
         if (post.message.length > Constants.CHARACTER_LIMIT) {
-            this.setState({postError: this.props.intl.formatMessage(holders.commentLength, {max: Constants.CHARACTER_LIMIT})});
+            this.setState({
+                postError: (
+                    <FormattedMessage
+                        id='create_comment.commentLength'
+                        defaultMessage='Comment length must be less than {max} characters.'
+                        values={{max: Constants.CHARACTER_LIMIT}}
+                    />
+                )
+            });
             return;
         }
 
@@ -175,8 +163,7 @@ class CreateComment extends React.Component {
             submitting: false,
             postError: null,
             previews: [],
-            serverError: null,
-            typing: false
+            serverError: null
         });
     }
 
@@ -192,15 +179,16 @@ class CreateComment extends React.Component {
         GlobalActions.emitLocalUserTypingEvent(this.props.channelId, this.props.rootId);
     }
 
-    handleUserInput(messageText) {
+    handleInput(e) {
+        const messageText = e.target.value;
+
         const draft = PostStore.getCommentDraft(this.props.rootId);
         draft.message = messageText;
         PostStore.storeCommentDraft(this.props.rootId, draft);
 
         $('.post-right__scroll').parent().scrollTop($('.post-right__scroll')[0].scrollHeight);
 
-        const typing = messageText !== '';
-        this.setState({messageText, typing});
+        this.setState({messageText});
     }
 
     handleKeyDown(e) {
@@ -220,7 +208,7 @@ class CreateComment extends React.Component {
             AppDispatcher.handleViewAction({
                 type: ActionTypes.RECEIVED_EDIT_POST,
                 refocusId: '#reply_textbox',
-                title: this.props.intl.formatMessage(holders.commentTitle),
+                title: Utils.localizeMessage('create_comment.commentTitle', 'Comment'),
                 message: lastPost.message,
                 postId: lastPost.id,
                 channelId: lastPost.channel_id,
@@ -319,7 +307,7 @@ class CreateComment extends React.Component {
     componentWillReceiveProps(newProps) {
         if (newProps.rootId !== this.props.rootId) {
             const draft = PostStore.getCommentDraft(newProps.rootId);
-            this.setState({messageText: draft.message, uploadsInProgress: draft.uploadsInProgress, previews: draft.previews, typing: false});
+            this.setState({messageText: draft.message, uploadsInProgress: draft.uploadsInProgress, previews: draft.previews});
         }
     }
 
@@ -395,7 +383,6 @@ class CreateComment extends React.Component {
             );
         }
 
-        const {formatMessage} = this.props.intl;
         return (
             <form onSubmit={this.handleSubmit}>
                 <div className='post-create'>
@@ -405,12 +392,11 @@ class CreateComment extends React.Component {
                     >
                         <div className='post-body__cell'>
                             <Textbox
-                                onUserInput={this.handleUserInput}
+                                onInput={this.handleInput}
                                 onKeyPress={this.commentMsgKeyPress}
                                 onKeyDown={this.handleKeyDown}
                                 messageText={this.state.messageText}
-                                typing={this.state.typing}
-                                createMessage={formatMessage(holders.addComment)}
+                                createMessage={Utils.localizeMessage('create_comment.addComment', 'Add a comment...')}
                                 initialText=''
                                 supportsCommands={false}
                                 id='reply_textbox'
@@ -436,7 +422,7 @@ class CreateComment extends React.Component {
                         <input
                             type='button'
                             className='btn btn-primary comment-btn pull-right'
-                            value={formatMessage(holders.comment)}
+                            value={Utils.localizeMessage('create_comment.comment', 'Add Comment')}
                             onClick={this.handleSubmit}
                         />
                         {uploadsInProgressText}
@@ -455,9 +441,6 @@ class CreateComment extends React.Component {
 }
 
 CreateComment.propTypes = {
-    intl: intlShape.isRequired,
     channelId: React.PropTypes.string.isRequired,
     rootId: React.PropTypes.string.isRequired
 };
-
-export default injectIntl(CreateComment);

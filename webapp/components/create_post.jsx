@@ -23,7 +23,7 @@ import PreferenceStore from 'stores/preference_store.jsx';
 
 import Constants from 'utils/constants.jsx';
 
-import {intlShape, injectIntl, defineMessages, FormattedHTMLMessage} from 'react-intl';
+import {FormattedHTMLMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
 
 const Preferences = Constants.Preferences;
@@ -31,24 +31,9 @@ const TutorialSteps = Constants.TutorialSteps;
 const ActionTypes = Constants.ActionTypes;
 const KeyCodes = Constants.KeyCodes;
 
-const holders = defineMessages({
-    comment: {
-        id: 'create_post.comment',
-        defaultMessage: 'Comment'
-    },
-    post: {
-        id: 'create_post.post',
-        defaultMessage: 'Post'
-    },
-    write: {
-        id: 'create_post.write',
-        defaultMessage: 'Write a message...'
-    }
-});
-
 import React from 'react';
 
-class CreatePost extends React.Component {
+export default class CreatePost extends React.Component {
     constructor(props) {
         super(props);
 
@@ -57,7 +42,7 @@ class CreatePost extends React.Component {
         this.getCurrentDraft = this.getCurrentDraft.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.postMsgKeyPress = this.postMsgKeyPress.bind(this);
-        this.handleUserInput = this.handleUserInput.bind(this);
+        this.handleInput = this.handleInput.bind(this);
         this.handleUploadClick = this.handleUploadClick.bind(this);
         this.handleUploadStart = this.handleUploadStart.bind(this);
         this.handleFileUploadComplete = this.handleFileUploadComplete.bind(this);
@@ -87,8 +72,7 @@ class CreatePost extends React.Component {
             ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
             fullWidthTextBox: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN,
             showTutorialTip: false,
-            showPostDeletedModal: false,
-            typing: false
+            showPostDeletedModal: false
         };
     }
 
@@ -133,7 +117,7 @@ class CreatePost extends React.Component {
 
         MessageHistoryStore.storeMessageInHistory(this.state.messageText);
 
-        this.setState({submitting: true, serverError: null, typing: false});
+        this.setState({submitting: true, serverError: null});
 
         if (post.message.indexOf('/') === 0) {
             ChannelActions.executeCommand(
@@ -223,9 +207,9 @@ class CreatePost extends React.Component {
         GlobalActions.emitLocalUserTypingEvent(this.state.channelId, '');
     }
 
-    handleUserInput(messageText) {
-        const typing = messageText !== '';
-        this.setState({messageText, typing});
+    handleInput(e) {
+        const messageText = e.target.value;
+        this.setState({messageText});
 
         const draft = PostStore.getCurrentDraft();
         draft.message = messageText;
@@ -372,7 +356,7 @@ class CreatePost extends React.Component {
         if (this.state.channelId !== channelId) {
             const draft = this.getCurrentDraft();
 
-            this.setState({channelId, messageText: draft.messageText, initialText: draft.messageText, submitting: false, typing: false, serverError: null, postError: null, previews: draft.previews, uploadsInProgress: draft.uploadsInProgress});
+            this.setState({channelId, messageText: draft.messageText, initialText: draft.messageText, submitting: false, serverError: null, postError: null, previews: draft.previews, uploadsInProgress: draft.uploadsInProgress});
         }
     }
 
@@ -408,8 +392,13 @@ class CreatePost extends React.Component {
             if (!lastPost) {
                 return;
             }
-            const {formatMessage} = this.props.intl;
-            var type = (lastPost.root_id && lastPost.root_id.length > 0) ? formatMessage(holders.comment) : formatMessage(holders.post);
+
+            let type;
+            if (lastPost.root_id && lastPost.root_id.length > 0) {
+                type = Utils.localizeMessage('create_post.comment', 'Comment');
+            } else {
+                type = Utils.localizeMessage('create_post.post', 'Post');
+            }
 
             AppDispatcher.handleViewAction({
                 type: ActionTypes.RECEIVED_EDIT_POST,
@@ -519,12 +508,11 @@ class CreatePost extends React.Component {
                     <div className='post-create-body'>
                         <div className='post-body__cell'>
                             <Textbox
-                                onUserInput={this.handleUserInput}
+                                onInput={this.handleInput}
                                 onKeyPress={this.postMsgKeyPress}
                                 onKeyDown={this.handleKeyDown}
                                 messageText={this.state.messageText}
-                                typing={this.state.typing}
-                                createMessage={this.props.intl.formatMessage(holders.write)}
+                                createMessage={Utils.localizeMessage('create_post.write', 'Write a message...')}
                                 channelId={this.state.channelId}
                                 id='post_textbox'
                                 ref='textbox'
@@ -566,9 +554,3 @@ class CreatePost extends React.Component {
         );
     }
 }
-
-CreatePost.propTypes = {
-    intl: intlShape.isRequired
-};
-
-export default injectIntl(CreatePost);

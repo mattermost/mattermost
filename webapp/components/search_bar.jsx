@@ -3,7 +3,7 @@
 
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
-import client from 'utils/web_client.jsx';
+import Client from 'utils/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import SearchStore from 'stores/search_store.jsx';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
@@ -11,30 +11,23 @@ import SuggestionBox from './suggestion/suggestion_box.jsx';
 import SearchChannelProvider from './suggestion/search_channel_provider.jsx';
 import SearchSuggestionList from './suggestion/search_suggestion_list.jsx';
 import SearchUserProvider from './suggestion/search_user_provider.jsx';
-import * as utils from 'utils/utils.jsx';
+import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
-import {intlShape, injectIntl, defineMessages, FormattedMessage, FormattedHTMLMessage} from 'react-intl';
+import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
 var ActionTypes = Constants.ActionTypes;
 import {Popover} from 'react-bootstrap';
 
-const holders = defineMessages({
-    search: {
-        id: 'search_bar.search',
-        defaultMessage: 'Search'
-    }
-});
-
 import React from 'react';
 
-class SearchBar extends React.Component {
+export default class SearchBar extends React.Component {
     constructor() {
         super();
         this.mounted = false;
 
         this.onListenerChange = this.onListenerChange.bind(this);
-        this.handleUserInput = this.handleUserInput.bind(this);
+        this.handleInput = this.handleInput.bind(this);
         this.handleUserFocus = this.handleUserFocus.bind(this);
         this.handleUserBlur = this.handleUserBlur.bind(this);
         this.performSearch = this.performSearch.bind(this);
@@ -46,24 +39,28 @@ class SearchBar extends React.Component {
 
         this.suggestionProviders = [new SearchChannelProvider(), new SearchUserProvider()];
     }
+
     getSearchTermStateFromStores() {
         var term = SearchStore.getSearchTerm() || '';
         return {
             searchTerm: term
         };
     }
+
     componentDidMount() {
         SearchStore.addSearchTermChangeListener(this.onListenerChange);
         this.mounted = true;
     }
+
     componentWillUnmount() {
         SearchStore.removeSearchTermChangeListener(this.onListenerChange);
         this.mounted = false;
     }
+
     onListenerChange(doSearch, isMentionSearch) {
         if (this.mounted) {
             var newState = this.getSearchTermStateFromStores();
-            if (!utils.areObjectsEqual(newState, this.state)) {
+            if (!Utils.areObjectsEqual(newState, this.state)) {
                 this.setState(newState);
             }
             if (doSearch) {
@@ -71,9 +68,11 @@ class SearchBar extends React.Component {
             }
         }
     }
+
     clearFocus() {
         $('.search-bar__container').removeClass('focused');
     }
+
     handleClose(e) {
         e.preventDefault();
 
@@ -94,30 +93,34 @@ class SearchBar extends React.Component {
             postId: null
         });
     }
-    handleUserInput(text) {
-        var term = text;
+
+    handleInput(e) {
+        var term = e.target.value;
         SearchStore.storeSearchTerm(term);
         SearchStore.emitSearchTermChange(false);
         this.setState({searchTerm: term});
     }
+
     handleUserBlur() {
         this.setState({focused: false});
     }
+
     handleUserFocus() {
         $('.search-bar__container').addClass('focused');
 
         this.setState({focused: true});
     }
+
     performSearch(terms, isMentionSearch) {
         if (terms.length) {
             this.setState({isSearching: true});
 
-            client.search(
+            Client.search(
                 terms,
                 isMentionSearch,
                 (data) => {
                     this.setState({isSearching: false});
-                    if (utils.isMobile()) {
+                    if (Utils.isMobile()) {
                         ReactDOM.findDOMNode(this.refs.search).value = '';
                     }
 
@@ -134,6 +137,7 @@ class SearchBar extends React.Component {
             );
         }
     }
+
     handleSubmit(e) {
         e.preventDefault();
         this.performSearch(this.state.searchTerm.trim());
@@ -178,11 +182,11 @@ class SearchBar extends React.Component {
                     <SuggestionBox
                         ref='search'
                         className='form-control search-bar'
-                        placeholder={this.props.intl.formatMessage(holders.search)}
+                        placeholder={Utils.localizeMessage('search_bar.search', 'Search')}
                         value={this.state.searchTerm}
                         onFocus={this.handleUserFocus}
                         onBlur={this.handleUserBlur}
-                        onUserInput={this.handleUserInput}
+                        onInput={this.handleInput}
                         listComponent={SearchSuggestionList}
                         providers={this.suggestionProviders}
                         type='search'
@@ -203,10 +207,3 @@ class SearchBar extends React.Component {
         );
     }
 }
-
-SearchBar.propTypes = {
-    intl: intlShape.isRequired
-};
-
-export default injectIntl(SearchBar);
-
