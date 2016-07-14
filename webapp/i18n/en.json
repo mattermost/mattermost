@@ -528,7 +528,7 @@
   "admin.service.corsTitle": "Enable cross-origin requests from:",
   "admin.service.developerDesc": "When true, Javascript errors are shown in a red bar at the top of the user interface. Not recommended for use in production. ",
   "admin.service.developerTitle": "Enable Developer Mode: ",
-  "admin.service.googleDescription": "Set this key to enable embedding of YouTube video previews based on hyperlinks appearing in messages or comments. Instructions to obtain a key available at <a href=\"https://www.youtube.com/watch?v=Im69kzhpR3I\" target=\"_blank\">https://www.youtube.com/watch?v=Im69kzhpR3I</a>. Leaving the field blank disables the automatic generation of YouTube video previews from links.",
+  "admin.service.googleDescription": "Set this key to enable the display of titles for embedded YouTube video previews. Without the key, YouTube previews will still be created based on hyperlinks appearing in messages or comments but they will not show the video title. View a <a href=\"https://www.youtube.com/watch?v=Im69kzhpR3I\" target=\"_blank\">Google Developers Tutorial</a> for instructions on how to obtain a key.",
   "admin.service.googleExample": "Ex \"7rAh6iwQCkV4cA1Gsg3fgGOXJAQ43QV\"",
   "admin.service.googleTitle": "Google API Key:",
   "admin.service.iconDescription": "When true, webhooks and slash commands will be allowed to change the icon they post with. Note, combined with allowing username overriding, this could open users up to phishing attacks.",
