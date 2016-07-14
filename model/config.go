@@ -895,16 +895,40 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if *o.LdapSettings.Enable {
-		if *o.LdapSettings.LdapServer == "" ||
-			*o.LdapSettings.BaseDN == "" ||
-			*o.LdapSettings.BindUsername == "" ||
-			*o.LdapSettings.BindPassword == "" ||
-			*o.LdapSettings.FirstNameAttribute == "" ||
-			*o.LdapSettings.LastNameAttribute == "" ||
-			*o.LdapSettings.EmailAttribute == "" ||
-			*o.LdapSettings.UsernameAttribute == "" ||
-			*o.LdapSettings.IdAttribute == "" {
-			return NewLocAppError("Config.IsValid", "Required LDAP field missing", nil, "")
+		if *o.LdapSettings.LdapServer == "" {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_server", nil, "")
+		}
+
+		if *o.LdapSettings.BaseDN == "" {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_basedn", nil, "")
+		}
+
+		if *o.LdapSettings.BindUsername == "" {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_bind_username", nil, "")
+		}
+
+		if *o.LdapSettings.BindPassword == "" {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_bind_password", nil, "")
+		}
+
+		if *o.LdapSettings.FirstNameAttribute == "" {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_firstname", nil, "")
+		}
+
+		if *o.LdapSettings.LastNameAttribute == "" {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_lastname", nil, "")
+		}
+
+		if *o.LdapSettings.EmailAttribute == "" {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_email", nil, "")
+		}
+
+		if *o.LdapSettings.UsernameAttribute == "" {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_username", nil, "")
+		}
+
+		if *o.LdapSettings.IdAttribute == "" {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_id", nil, "")
 		}
 	}
 

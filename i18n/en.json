@@ -2716,6 +2716,42 @@
     "translation": "Invalid sync interval time. Must be at least one minute."
   },
   {
+    "id": "model.config.is_valid.ldap_server",
+    "translation": "LDAP field \"LDAP Server\" is required."
+  },
+  {
+    "id": "model.config.is_valid.ldap_basedn",
+    "translation": "LDAP field \"BaseDN\" is required."
+  },
+  {
+    "id": "model.config.is_valid.ldap_bind_username",
+    "translation": "LDAP field \"Bind Username\" is required."
+  },
+  {
+    "id": "model.config.is_valid.ldap_bind_password",
+    "translation": "LDAP field \"Bind Password\" is required."
+  },
+  {
+    "id": "model.config.is_valid.ldap_firstname",
+    "translation": "LDAP field \"First Name Attribute\" is required."
+  },
+  {
+    "id": "model.config.is_valid.ldap_lastname",
+    "translation": "LDAP field \"Last Name Attribute\" is required."
+  },
+  {
+    "id": "model.config.is_valid.ldap_email",
+    "translation": "LDAP field \"Email Attribute\" is required."
+  },
+  {
+    "id": "model.config.is_valid.ldap_username",
+    "translation": "LDAP field \"Username Attribute\" is required."
+  },
+  {
+    "id": "model.config.is_valid.ldap_id",
+    "translation": "LDAP field \"ID Attribute\" is required."
+  },
+  {
     "id": "model.config.is_valid.listen_address.app_error",
     "translation": "Invalid listen address for service settings Must be set."
   },
