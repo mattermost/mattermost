@@ -282,7 +282,8 @@ class FileUpload extends React.Component {
     keyUpload(e) {
         if (Utils.cmdOrCtrlPressed(e) && e.keyCode === Constants.KeyCodes.U) {
             e.preventDefault();
-            if (this.props.postType === 'post' && document.activeElement.id === 'post_textbox' || this.props.postType === 'comment' && document.activeElement.id === 'reply_textbox') {
+            if ((this.props.postType === 'post' && document.activeElement.id === 'post_textbox') ||
+                (this.props.postType === 'comment' && document.activeElement.id === 'reply_textbox')) {
                 $(this.refs.fileInput).focus().trigger('click');
             }
         }

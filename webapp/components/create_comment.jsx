@@ -181,7 +181,7 @@ class CreateComment extends React.Component {
     }
 
     commentMsgKeyPress(e) {
-        if (this.state.ctrlSend && e.ctrlKey || !this.state.ctrlSend) {
+        if ((this.state.ctrlSend && e.ctrlKey) || !this.state.ctrlSend) {
             if (e.which === KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
                 e.preventDefault();
                 ReactDOM.findDOMNode(this.refs.textbox).blur();
@@ -313,7 +313,7 @@ class CreateComment extends React.Component {
         draft.uploadsInProgress = uploadsInProgress;
         PostStore.storeCommentDraft(this.props.rootId, draft);
 
-        this.setState({previews: previews, uploadsInProgress: uploadsInProgress});
+        this.setState({previews, uploadsInProgress});
     }
 
     componentWillReceiveProps(newProps) {

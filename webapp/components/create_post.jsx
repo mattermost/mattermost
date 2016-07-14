@@ -212,7 +212,7 @@ class CreatePost extends React.Component {
     }
 
     postMsgKeyPress(e) {
-        if (this.state.ctrlSend && e.ctrlKey || !this.state.ctrlSend) {
+        if ((this.state.ctrlSend && e.ctrlKey) || !this.state.ctrlSend) {
             if (e.which === KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
                 e.preventDefault();
                 ReactDOM.findDOMNode(this.refs.textbox).blur();

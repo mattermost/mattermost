@@ -106,11 +106,6 @@ export default class AdminSettings extends React.Component {
     }
 
     render() {
-        let saveClass = 'btn';
-        if (this.state.saveNeeded) {
-            saveClass += 'btn-primary';
-        }
-
         return (
             <div className='wrapper--fixed'>
                 {this.renderTitle()}

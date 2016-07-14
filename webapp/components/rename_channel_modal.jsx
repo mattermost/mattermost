@@ -203,7 +203,7 @@ export default class RenameChannelModal extends React.Component {
             const displayName = ReactDOM.findDOMNode(this.refs.displayName).value.trim();
             const channelName = Utils.cleanUpUrlable(displayName);
             ReactDOM.findDOMNode(this.refs.channelName).value = channelName;
-            this.setState({channelName: channelName});
+            this.setState({channelName});
         }
     }
 
