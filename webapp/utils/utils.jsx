@@ -1297,7 +1297,7 @@ export function fillArray(value, length) {
 // Checks if a data transfer contains files not text, folders, etc..
 // Slightly modified from http://stackoverflow.com/questions/6848043/how-do-i-detect-a-file-is-being-dragged-rather-than-a-draggable-element-on-my-pa
 export function isFileTransfer(files) {
-    if (isBrowserIE()) {
+    if (isBrowserIE() || isBrowserEdge()) {
         return files.types != null && files.types.contains('Files');
     }
 
