@@ -89,8 +89,9 @@ class NewChannelModal extends React.Component {
 
     handleChange() {
         const newData = {
-            displayName: ReactDOM.findDOMNode(this.refs.display_name).value,
-            purpose: ReactDOM.findDOMNode(this.refs.channel_purpose).value
+            displayName: this.refs.display_name.value,
+            header: this.refs.channel_header.value,
+            purpose: this.refs.channel_purpose.value
         };
         this.props.onDataChanged(newData);
     }
@@ -258,7 +259,7 @@ class NewChannelModal extends React.Component {
                                     </p>
                                 </div>
                             </div>
-                            <div className='form-group less'>
+                            <div className='form-group'>
                                 <div className='col-sm-3'>
                                     <label className='form__label control-label'>
                                         <FormattedMessage
@@ -288,6 +289,43 @@ class NewChannelModal extends React.Component {
                                         <FormattedMessage
                                             id='channel_modal.descriptionHelp'
                                             defaultMessage='Describe how this {term} should be used.'
+                                            values={{
+                                                term: (channelTerm)
+                                            }}
+                                        />
+                                    </p>
+                                </div>
+                            </div>
+                            <div className='form-group less'>
+                                <div className='col-sm-3'>
+                                    <label className='form__label control-label'>
+                                        <FormattedMessage
+                                            id='channel_modal.header'
+                                            defaultMessage='Header'
+                                        />
+                                    </label>
+                                    <label className='form__label light'>
+                                        <FormattedMessage
+                                            id='channel_modal.optional'
+                                            defaultMessage='(optional)'
+                                        />
+                                    </label>
+                                </div>
+                                <div className='col-sm-9'>
+                                    <textarea
+                                        className='form-control no-resize'
+                                        ref='channel_header'
+                                        rows='4'
+                                        placeholder={this.props.intl.formatMessage({id: 'channel_modal.header'})}
+                                        maxLength='128'
+                                        value={this.props.channelData.header}
+                                        onChange={this.handleChange}
+                                        tabIndex='2'
+                                    />
+                                    <p className='input__help'>
+                                        <FormattedMessage
+                                            id='channel_modal.headerHelp'
+                                            defaultMessage='Set text that will appear in the header of the {term} beside the {term} name. For example, include frequently used links by typing [Link Title](http://example.com).'
                                             values={{
                                                 term: (channelTerm)
                                             }}

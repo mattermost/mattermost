@@ -870,6 +870,8 @@
   "channel_modal.displayNameError": "This field is required",
   "channel_modal.edit": "Edit",
   "channel_modal.group": "Group",
+  "channel_modal.header": "Header",
+  "channel_modal.headerHelp": "Set text that will appear in the header of the {term} beside the {term} name. For example, include frequently used links by typing [Link Title](http://example.com).",
   "channel_modal.modalTitle": "New ",
   "channel_modal.name": "Name",
   "channel_modal.nameEx": "E.g.: \"Bugs\", \"Marketing\", \"客户支持\"",
