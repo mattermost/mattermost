@@ -54,6 +54,16 @@ class PreferenceStoreClass extends EventEmitter {
         return parseInt(this.preferences.get(key), 10);
     }
 
+    getObject(category, name, defaultValue = null) {
+        const key = this.getKey(category, name);
+
+        if (!this.preferences.has(key)) {
+            return defaultValue;
+        }
+
+        return JSON.parse(this.preferences.get(key));
+    }
+
     getCategory(category) {
         const prefix = category + '--';
 
@@ -78,6 +88,10 @@ class PreferenceStoreClass extends EventEmitter {
         }
     }
 
+    deletePreference(preference) {
+        this.preferences.delete(this.getKey(preference.category, preference.name));
+    }
+
     clear() {
         this.preferences.clear();
     }
@@ -94,6 +108,18 @@ class PreferenceStoreClass extends EventEmitter {
         this.removeListener(CHANGE_EVENT, callback);
     }
 
+    getTheme(teamId) {
+        if (this.preferences.has(this.getKey(Constants.Preferences.CATEGORY_THEME, teamId))) {
+            return this.getObject(Constants.Preferences.CATEGORY_THEME, teamId);
+        }
+
+        if (this.preferences.has(this.getKey(Constants.Preferences.CATEGORY_THEME, ''))) {
+            return this.getObject(Constants.Preferences.CATEGORY_THEME, '');
+        }
+
+        return Constants.THEMES.default;
+    }
+
     handleEventPayload(payload) {
         const action = payload.action;
 
@@ -106,6 +132,12 @@ class PreferenceStoreClass extends EventEmitter {
         }
         case ActionTypes.RECEIVED_PREFERENCES:
             this.setPreferencesFromServer(action.preferences);
+            this.emitChange();
+            break;
+        case ActionTypes.DELETED_PREFERENCES:
+            for (const preference of action.preferences) {
+                this.deletePreference(preference);
+            }
             this.emitChange();
             break;
         }

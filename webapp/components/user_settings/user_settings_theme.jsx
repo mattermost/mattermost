@@ -8,28 +8,18 @@ import PremadeThemeChooser from './premade_theme_chooser.jsx';
 import SettingItemMin from '../setting_item_min.jsx';
 import SettingItemMax from '../setting_item_max.jsx';
 
+import PreferenceStore from 'stores/preference_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
 import AppDispatcher from '../../dispatcher/app_dispatcher.jsx';
-import Client from 'utils/web_client.jsx';
+import * as UserActions from 'actions/user_actions.jsx';
+
 import * as Utils from 'utils/utils.jsx';
 
-import Constants from 'utils/constants.jsx';
+import {FormattedMessage} from 'react-intl';
 
-import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
-
-const ActionTypes = Constants.ActionTypes;
-
-const holders = defineMessages({
-    themeTitle: {
-        id: 'user.settings.display.theme.title',
-        defaultMessage: 'Theme'
-    },
-    themeDescribe: {
-        id: 'user.settings.display.theme.describe',
-        defaultMessage: 'Open to manage your theme'
-    }
-});
+import {ActionTypes, Constants, Preferences} from 'utils/constants.jsx';
 
 import React from 'react';
 
@@ -47,6 +37,7 @@ export default class ThemeSetting extends React.Component {
 
         this.originalTheme = Object.assign({}, this.state.theme);
     }
+
     componentDidMount() {
         UserStore.addChangeListener(this.onChange);
 
@@ -54,17 +45,20 @@ export default class ThemeSetting extends React.Component {
             $(ReactDOM.findDOMNode(this.refs[this.state.theme])).addClass('active-border');
         }
     }
+
     componentDidUpdate() {
         if (this.props.selected) {
             $('.color-btn').removeClass('active-border');
             $(ReactDOM.findDOMNode(this.refs[this.state.theme])).addClass('active-border');
         }
     }
+
     componentWillReceiveProps(nextProps) {
         if (this.props.selected && !nextProps.selected) {
             this.resetFields();
         }
     }
+
     componentWillUnmount() {
         UserStore.removeChangeListener(this.onChange);
 
@@ -73,27 +67,35 @@ export default class ThemeSetting extends React.Component {
             Utils.applyTheme(state.theme);
         }
     }
+
     getStateFromStores() {
-        const user = UserStore.getCurrentUser();
-        let theme = null;
+        const teamId = TeamStore.getCurrentId();
 
-        if ($.isPlainObject(user.theme_props) && !$.isEmptyObject(user.theme_props)) {
-            theme = Object.assign({}, user.theme_props);
-        } else {
-            theme = $.extend(true, {}, Constants.THEMES.default);
-        }
-
-        let type = 'premade';
-        if (theme.type === 'custom') {
-            type = 'custom';
-        }
-
+        const theme = PreferenceStore.getTheme(teamId);
         if (!theme.codeTheme) {
             theme.codeTheme = Constants.DEFAULT_CODE_THEME;
         }
 
-        return {theme, type};
+        let showAllTeamsCheckbox = false;
+        let applyToAllTeams = true;
+
+        if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.LDAP === 'true') {
+            // show the "apply to all teams" checkbox if the user is on more than one team
+            showAllTeamsCheckbox = Object.keys(TeamStore.getAll()).length > 1;
+
+            // check the "apply to all teams" checkbox by default if the user has any team-specific themes
+            applyToAllTeams = PreferenceStore.getCategory(Preferences.CATEGORY_THEME).size <= 1;
+        }
+
+        return {
+            teamId: TeamStore.getCurrentId(),
+            theme,
+            type: theme.type || 'premade',
+            showAllTeamsCheckbox,
+            applyToAllTeams
+        };
     }
+
     onChange() {
         const newState = this.getStateFromStores();
 
@@ -103,21 +105,20 @@ export default class ThemeSetting extends React.Component {
 
         this.props.setEnforceFocus(true);
     }
+
     scrollToTop() {
         $('.ps-container.modal-body').scrollTop(0);
     }
+
     submitTheme(e) {
         e.preventDefault();
-        var user = UserStore.getCurrentUser();
-        user.theme_props = this.state.theme;
 
-        Client.updateUser(user, Constants.UserUpdateEvents.THEME,
-            (data) => {
-                AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECEIVED_ME,
-                    me: data
-                });
+        const teamId = this.state.applyToAllTeams ? '' : this.state.teamId;
 
+        UserActions.saveTheme(
+            teamId,
+            this.state.theme,
+            () => {
                 this.props.setRequireConfirm(false);
                 this.originalTheme = Object.assign({}, this.state.theme);
                 this.scrollToTop();
@@ -130,6 +131,7 @@ export default class ThemeSetting extends React.Component {
             }
         );
     }
+
     updateTheme(theme) {
         let themeChanged = this.state.theme.length === theme.length;
         if (!themeChanged) {
@@ -148,9 +150,11 @@ export default class ThemeSetting extends React.Component {
         this.setState({theme});
         Utils.applyTheme(theme);
     }
+
     updateType(type) {
         this.setState({type});
     }
+
     resetFields() {
         const state = this.getStateFromStores();
         state.serverError = null;
@@ -161,17 +165,18 @@ export default class ThemeSetting extends React.Component {
 
         this.props.setRequireConfirm(false);
     }
+
     handleImportModal() {
         AppDispatcher.handleViewAction({
             type: ActionTypes.TOGGLE_IMPORT_THEME_MODAL,
-            value: true
+            value: true,
+            callback: this.updateTheme
         });
 
         this.props.setEnforceFocus(false);
     }
-    render() {
-        const {formatMessage} = this.props.intl;
 
+    render() {
         var serverError;
         if (this.state.serverError) {
             serverError = this.state.serverError;
@@ -266,9 +271,29 @@ export default class ThemeSetting extends React.Component {
                 </div>
             );
 
+            let allTeamsCheckbox = null;
+            if (this.state.showAllTeamsCheckbox) {
+                allTeamsCheckbox = (
+                    <div className='checkbox user-settings__submit-checkbox'>
+                        <label>
+                            <input
+                                type='checkbox'
+                                checked={this.state.applyToAllTeams}
+                                onChange={(e) => this.setState({applyToAllTeams: e.target.checked})}
+                            />
+                            <FormattedMessage
+                                id='user.settings.display.theme.applyToAllTeams'
+                                defaultMessage='Apply New Theme to All Teams'
+                            />
+                        </label>
+                    </div>
+                );
+            }
+
             themeUI = (
                 <SettingItemMax
                     inputs={inputs}
+                    submitExtra={allTeamsCheckbox}
                     submit={this.submitTheme}
                     server_error={serverError}
                     width='full'
@@ -281,8 +306,18 @@ export default class ThemeSetting extends React.Component {
         } else {
             themeUI = (
                 <SettingItemMin
-                    title={formatMessage(holders.themeTitle)}
-                    describe={formatMessage(holders.themeDescribe)}
+                    title={
+                        <FormattedMessage
+                            id='user.settings.display.theme.title'
+                            defaultMessage='Theme'
+                        />
+                    }
+                    describe={
+                        <FormattedMessage
+                            id='user.settings.display.theme.describe'
+                            defaultMessage='Open to manage your theme'
+                        />
+                    }
                     updateSection={() => {
                         this.props.updateSection('theme');
                     }}
@@ -295,11 +330,8 @@ export default class ThemeSetting extends React.Component {
 }
 
 ThemeSetting.propTypes = {
-    intl: intlShape.isRequired,
     selected: React.PropTypes.bool.isRequired,
     updateSection: React.PropTypes.func.isRequired,
     setRequireConfirm: React.PropTypes.func.isRequired,
     setEnforceFocus: React.PropTypes.func.isRequired
 };
-
-export default injectIntl(ThemeSetting);

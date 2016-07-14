@@ -852,6 +852,29 @@ export function savePreferences(preferences, success, error) {
     );
 }
 
+export function deletePreferences(preferences, success, error) {
+    Client.deletePreferences(
+        preferences,
+        (data) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.DELETED_PREFERENCES,
+                preferences
+            });
+
+            if (success) {
+                success(data);
+            }
+        },
+        (err) => {
+            dispatchError(err, 'deletePreferences');
+
+            if (error) {
+                error();
+            }
+        }
+    );
+}
+
 export function getSuggestedCommands(command, suggestionId, component) {
     Client.listCommands(
         (data) => {

@@ -1556,6 +1556,16 @@ func (c *Client) GetPreferenceCategory(category string) (*Result, *AppError) {
 	}
 }
 
+// DeletePreferences deletes a list of preferences owned by the current user. If successful,
+// it will return status=ok. Otherwise, an error will be returned.
+func (c *Client) DeletePreferences(preferences *Preferences) (bool, *AppError) {
+	if r, err := c.DoApiPost("/preferences/delete", preferences.ToJson()); err != nil {
+		return false, err
+	} else {
+		return c.CheckStatusOK(r), nil
+	}
+}
+
 func (c *Client) CreateOutgoingWebhook(hook *OutgoingWebhook) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/hooks/outgoing/create", hook.ToJson()); err != nil {
 		return nil, err

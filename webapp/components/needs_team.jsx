@@ -41,17 +41,32 @@ export default class NeedsTeam extends React.Component {
     constructor(params) {
         super(params);
 
-        this.onChanged = this.onChanged.bind(this);
+        this.onTeamChanged = this.onTeamChanged.bind(this);
+        this.onPreferencesChanged = this.onPreferencesChanged.bind(this);
+
+        const team = TeamStore.getCurrent();
 
         this.state = {
-            team: TeamStore.getCurrent()
+            team,
+            theme: PreferenceStore.getTheme(team.id)
         };
     }
 
-    onChanged() {
+    onTeamChanged() {
+        const team = TeamStore.getCurrent();
+
         this.setState({
-            team: TeamStore.getCurrent()
+            team,
+            theme: PreferenceStore.getTheme(team.id)
         });
+    }
+
+    onPreferencesChanged(category) {
+        if (!category || category === Preferences.CATEGORY_THEME) {
+            this.setState({
+                theme: PreferenceStore.getTheme(this.state.team.id)
+            });
+        }
     }
 
     componentWillMount() {
@@ -63,7 +78,8 @@ export default class NeedsTeam extends React.Component {
     }
 
     componentDidMount() {
-        TeamStore.addChangeListener(this.onChanged);
+        TeamStore.addChangeListener(this.onTeamChanged);
+        PreferenceStore.addChangeListener(this.onPreferencesChanged);
 
         // Emit view action
         GlobalActions.viewLoggedIn();
@@ -80,10 +96,19 @@ export default class NeedsTeam extends React.Component {
         $(window).on('blur', () => {
             window.isActive = false;
         });
+
+        Utils.applyTheme(this.state.theme);
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        if (!Utils.areObjectsEqual(prevState.theme, this.state.theme)) {
+            Utils.applyTheme(this.state.theme);
+        }
     }
 
     componentWillUnmount() {
-        TeamStore.removeChangeListener(this.onChanged);
+        TeamStore.removeChangeListener(this.onTeamChanged);
+        PreferenceStore.removeChangeListener(this.onPreferencesChanged);
         $(window).off('focus');
         $(window).off('blur');
     }

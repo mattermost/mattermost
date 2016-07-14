@@ -1140,6 +1140,14 @@
     "translation": "Unable to get post"
   },
   {
+    "id": "api.preference.delete_preferences.decode.app_error",
+    "translation": "Unable to decode preferences from request"
+  },
+  {
+    "id": "api.preference.delete_preferences.user_id.app_error",
+    "translation": "Unable to delete preferences for other user"
+  },
+  {
     "id": "api.preference.init.debug",
     "translation": "Initializing preference api routes"
   },
@@ -3012,6 +3020,10 @@
     "translation": "Invalid name"
   },
   {
+    "id": "model.preference.is_valid.theme.app_error",
+    "translation": "Invalid theme"
+  },
+  {
     "id": "model.preference.is_valid.value.app_error",
     "translation": "Value is too long"
   },
@@ -3174,10 +3186,6 @@
   {
     "id": "model.user.is_valid.team_id.app_error",
     "translation": "Invalid team id"
-  },
-  {
-    "id": "model.user.is_valid.theme.app_error",
-    "translation": "Invalid theme"
   },
   {
     "id": "model.user.is_valid.update_at.app_error",
@@ -3776,6 +3784,10 @@
     "translation": "We couldn't update the Post"
   },
   {
+    "id": "store.sql_preference.delete.app_error",
+    "translation": "We encountered an error while deleting preferences"
+  },
+  {
     "id": "store.sql_preference.delete_unused_features.debug",
     "translation": "Deleting any unused pre-release features"
   },
@@ -4054,6 +4066,10 @@
   {
     "id": "store.sql_user.get_unread_count.app_error",
     "translation": "We could not get the unread message count for the user"
+  },
+  {
+    "id": "store.sql_user.migrate_theme.critical",
+    "translation": "Failed to migrate User.ThemeProps to Preferences table %v"
   },
   {
     "id": "store.sql_user.missing_account.const",

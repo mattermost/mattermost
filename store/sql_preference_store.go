@@ -26,7 +26,7 @@ func NewSqlPreferenceStore(sqlStore *SqlStore) PreferenceStore {
 		table.ColMap("UserId").SetMaxSize(26)
 		table.ColMap("Category").SetMaxSize(32)
 		table.ColMap("Name").SetMaxSize(32)
-		table.ColMap("Value").SetMaxSize(128)
+		table.ColMap("Value").SetMaxSize(2000)
 	}
 
 	return s
@@ -99,6 +99,8 @@ func (s SqlPreferenceStore) Save(preferences *model.Preferences) StoreChannel {
 
 func (s SqlPreferenceStore) save(transaction *gorp.Transaction, preference *model.Preference) StoreResult {
 	result := StoreResult{}
+
+	preference.PreUpdate()
 
 	if result.Err = preference.IsValid(); result.Err != nil {
 		return result
@@ -296,6 +298,29 @@ func (s SqlPreferenceStore) IsFeatureEnabled(feature, userId string) StoreChanne
 			result.Err = model.NewLocAppError("SqlPreferenceStore.IsFeatureEnabled", "store.sql_preference.is_feature_enabled.app_error", nil, err.Error())
 		} else {
 			result.Data = value == "true"
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlPreferenceStore) Delete(userId, category, name string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		if _, err := s.GetMaster().Exec(
+			`DELETE FROM
+				Preferences
+			WHERE
+				UserId = :UserId
+				AND Category = :Category
+				AND Name = :Name`, map[string]interface{}{"UserId": userId, "Category": category, "Name": name}); err != nil {
+			result.Err = model.NewLocAppError("SqlPreferenceStore.Delete", "store.sql_preference.delete.app_error", nil, err.Error())
 		}
 
 		storeChannel <- result

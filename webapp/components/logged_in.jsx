@@ -92,15 +92,6 @@ export default class LoggedIn extends React.Component {
                 id: user.id
             });
         }
-
-        // Update CSS classes to match user theme
-        if (user) {
-            if ($.isPlainObject(user.theme_props) && !$.isEmptyObject(user.theme_props)) {
-                Utils.applyTheme(user.theme_props);
-            } else {
-                Utils.applyTheme(Constants.THEMES.default);
-            }
-        }
     }
 
     onUserChanged() {

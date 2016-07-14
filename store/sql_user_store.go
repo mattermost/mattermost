@@ -9,7 +9,9 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
+	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -40,7 +42,6 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 		table.ColMap("Roles").SetMaxSize(64)
 		table.ColMap("Props").SetMaxSize(4000)
 		table.ColMap("NotifyProps").SetMaxSize(2000)
-		table.ColMap("ThemeProps").SetMaxSize(2000)
 		table.ColMap("Locale").SetMaxSize(5)
 		table.ColMap("MfaSecret").SetMaxSize(128)
 	}
@@ -53,25 +54,64 @@ func (us SqlUserStore) UpgradeSchemaIfNeeded() {
 	us.CreateColumnIfNotExists("Users", "Locale", "varchar(5)", "character varying(5)", model.DEFAULT_LOCALE)
 
 	// ADDED for 3.2 REMOVE for 3.6
-	var data []*model.User
-	if _, err := us.GetReplica().Select(&data, "SELECT * FROM Users WHERE ThemeProps LIKE '%solarized%'"); err == nil {
-		for _, user := range data {
-			shouldUpdate := false
-			if user.ThemeProps["codeTheme"] == "solarized_dark" {
-				user.ThemeProps["codeTheme"] = "solarized-dark"
-				shouldUpdate = true
-			} else if user.ThemeProps["codeTheme"] == "solarized_light" {
-				user.ThemeProps["codeTheme"] = "solarized-light"
-				shouldUpdate = true
-			}
+	if us.DoesColumnExist("Users", "ThemeProps") {
+		params := map[string]interface{}{
+			"Category": model.PREFERENCE_CATEGORY_THEME,
+			"Name":     "",
+		}
 
-			if shouldUpdate {
-				if result := <-us.Update(user, true); result.Err != nil {
-					return
-				}
+		transaction, err := us.GetMaster().Begin()
+		if err != nil {
+			themeMigrationFailed(err)
+		}
+
+		// increase size of Value column of Preferences table to match the size of the ThemeProps column
+		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+			if _, err := transaction.Exec("ALTER TABLE Preferences ALTER COLUMN Value TYPE varchar(2000)"); err != nil {
+				themeMigrationFailed(err)
+			}
+		} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
+			if _, err := transaction.Exec("ALTER TABLE Preferences MODIFY Value text"); err != nil {
+				themeMigrationFailed(err)
 			}
 		}
+
+		// copy data across
+		if _, err := transaction.Exec(
+			`INSERT INTO
+				Preferences(UserId, Category, Name, Value)
+			SELECT
+				Id, '`+model.PREFERENCE_CATEGORY_THEME+`', '', ThemeProps
+			FROM
+				Users`, params); err != nil {
+			themeMigrationFailed(err)
+		}
+
+		// delete old data
+		if _, err := transaction.Exec("ALTER TABLE Users DROP COLUMN ThemeProps"); err != nil {
+			themeMigrationFailed(err)
+		}
+
+		if err := transaction.Commit(); err != nil {
+			themeMigrationFailed(err)
+		}
+
+		// rename solarized_* code themes to solarized-* to match client changes in 3.0
+		var data model.Preferences
+		if _, err := us.GetReplica().Select(&data, "SELECT * FROM Preferences WHERE Category = '"+model.PREFERENCE_CATEGORY_THEME+"' AND Value LIKE '%solarized_%'"); err == nil {
+			for i := range data {
+				data[i].Value = strings.Replace(data[i].Value, "solarized_", "solarized-", -1)
+			}
+
+			us.Preference().Save(&data)
+		}
 	}
+}
+
+func themeMigrationFailed(err error) {
+	l4g.Critical(utils.T("store.sql_user.migrate_theme.critical"), err)
+	time.Sleep(time.Second)
+	panic(fmt.Sprintf(utils.T("store.sql_user.migrate_theme.critical"), err.Error()))
 }
 
 func (us SqlUserStore) CreateIndexesIfNotExists() {
