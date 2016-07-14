@@ -29,13 +29,20 @@ func InitWeb() {
 		staticDir := utils.FindDir(CLIENT_DIR)
 		l4g.Debug("Using client directory at %v", staticDir)
 		if *utils.Cfg.ServiceSettings.WebserverMode == "gzip" {
-			mainrouter.PathPrefix("/static/").Handler(gziphandler.GzipHandler(http.StripPrefix("/static/", http.FileServer(http.Dir(staticDir)))))
+			mainrouter.PathPrefix("/static/").Handler(gziphandler.GzipHandler(staticHandler(http.StripPrefix("/static/", http.FileServer(http.Dir(staticDir))))))
 		} else {
-			mainrouter.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(staticDir))))
+			mainrouter.PathPrefix("/static/").Handler(staticHandler(http.StripPrefix("/static/", http.FileServer(http.Dir(staticDir)))))
 		}
 
 		mainrouter.Handle("/{anything:.*}", api.AppHandlerIndependent(root)).Methods("GET")
 	}
+}
+
+func staticHandler(handler http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "max-age=31556926, public")
+		handler.ServeHTTP(w, r)
+	})
 }
 
 var browsersNotSupported string = "MSIE/8;MSIE/9;MSIE/10;Internet Explorer/8;Internet Explorer/9;Internet Explorer/10;Safari/7;Safari/8"
@@ -68,5 +75,6 @@ func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Cache-Control", "no-cache, max-age=31556926, public")
 	http.ServeFile(w, r, utils.FindDir(CLIENT_DIR)+"root.html")
 }

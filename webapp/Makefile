@@ -20,6 +20,8 @@ test: .npminstall
 build: .npminstall
 	@echo Building mattermost Webapp
 
+	rm -rf dist
+
 	npm run build
 
 run: .npminstall
