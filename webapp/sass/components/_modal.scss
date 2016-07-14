@@ -384,7 +384,7 @@
 
             .loader-percent {
                 bottom: 0;
-                color: $dark-gray;
+                color: alpha-color($white, 0.8);
                 height: 20px;
                 left: 0;
                 margin: auto;
