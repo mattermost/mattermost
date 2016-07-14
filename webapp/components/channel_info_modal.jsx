@@ -5,6 +5,7 @@ import * as Utils from 'utils/utils.jsx';
 
 import {FormattedMessage} from 'react-intl';
 import {Modal} from 'react-bootstrap';
+import * as TextFormatting from 'utils/text_formatting.jsx';
 
 import React from 'react';
 
@@ -32,6 +33,7 @@ export default class ChannelInfoModal extends React.Component {
                 display_name: notFound,
                 name: notFound,
                 purpose: notFound,
+                header: notFound,
                 id: notFound
             };
         }
@@ -43,6 +45,39 @@ export default class ChannelInfoModal extends React.Component {
         }
 
         const channelURL = Utils.getTeamURLFromAddressBar() + '/channels/' + channel.name;
+
+        let channelPurpose = null;
+        if (channel.purpose) {
+            channelPurpose = (
+                <div className='form-group'>
+                    <div className='info__label'>
+                        <FormattedMessage
+                            id='channel_info.purpose'
+                            defaultMessage='Purpose:'
+                        />
+                    </div>
+                    <div className='info__value'>{channel.purpose}</div>
+                </div>
+            );
+        }
+
+        let channelHeader = null;
+        if (channel.header) {
+            channelHeader = (
+                <div className='form-group'>
+                    <div className='info__label'>
+                        <FormattedMessage
+                            id='channel_info.header'
+                            defaultMessage='Header:'
+                        />
+                    </div>
+                    <div
+                        className='info__value'
+                        dangerouslySetInnerHTML={{__html: TextFormatting.formatText(channel.header, {singleline: false, mentionHighlight: false})}}
+                    />
+                </div>
+            );
+        }
 
         return (
             <Modal
@@ -60,15 +95,8 @@ export default class ChannelInfoModal extends React.Component {
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body ref='modalBody'>
-                    <div className='form-group'>
-                        <div className='info__label'>
-                            <FormattedMessage
-                                id='channel_info.purpose'
-                                defaultMessage='Purpose:'
-                            />
-                        </div>
-                        <div className='info__value'>{channel.purpose}</div>
-                    </div>
+                    {channelPurpose}
+                    {channelHeader}
                     <div className='form-group'>
                         <div className='info__label'>
                             <FormattedMessage

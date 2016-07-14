@@ -842,6 +842,7 @@
   "channel_header.viewInfo": "View Info",
   "channel_info.about": "About",
   "channel_info.close": "Close",
+  "channel_info.header": "Header:",
   "channel_info.id": "ID: ",
   "channel_info.name": "Name:",
   "channel_info.notFound": "No Channel Found",
