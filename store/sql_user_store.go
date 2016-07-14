@@ -4,6 +4,7 @@
 package store
 
 import (
+	"crypto/md5"
 	"database/sql"
 	"fmt"
 	"strconv"
@@ -480,9 +481,10 @@ func (s SqlUserStore) GetEtagForDirectProfiles(userId string) StoreChannel {
 	go func() {
 		result := StoreResult{}
 
-		updateAt, err := s.GetReplica().SelectInt(`
+		var ids []string
+		_, err := s.GetReplica().Select(ids, `
 			SELECT
-			    UpdateAt
+			    Id
 			FROM
 			    Users
 			WHERE
@@ -508,12 +510,14 @@ func (s SqlUserStore) GetEtagForDirectProfiles(userId string) StoreChannel {
 			        WHERE
 			            UserId = :UserId
 			                AND Category = 'direct_channel_show')
-			ORDER BY UpdateAt DESC LIMIT 1
+			ORDER BY UpdateAt DESC
         `, map[string]interface{}{"UserId": userId})
-		if err != nil {
-			result.Data = fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.GetMillis(), utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
+
+		if err != nil || len(ids) == 0 {
+			result.Data = fmt.Sprintf("%v.%v.0.%v.%v", model.CurrentVersion, model.GetMillis(), utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
 		} else {
-			result.Data = fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, updateAt, utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
+			allIds := strings.Join(ids, "")
+			result.Data = fmt.Sprintf("%v.%v.%v.%v.%v", model.CurrentVersion, md5.Sum([]byte(allIds)), len(ids), utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
 		}
 
 		storeChannel <- result
