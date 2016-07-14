@@ -64,7 +64,7 @@ export default class PasswordSettings extends AdminSettings {
 
     getConfigFromState(config) {
         if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.PasswordRequirements === 'true') {
-            config.PasswordSettings.MinimumLength = this.parseIntNonZero(this.state.passwordMinimumLength, 10);
+            config.PasswordSettings.MinimumLength = this.parseIntNonZero(this.state.passwordMinimumLength, Constants.MIN_PASSWORD_LENGTH);
             config.PasswordSettings.Lowercase = this.refs.lowercase.checked;
             config.PasswordSettings.Uppercase = this.refs.uppercase.checked;
             config.PasswordSettings.Number = this.refs.number.checked;
