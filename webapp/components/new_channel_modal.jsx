@@ -259,7 +259,7 @@ class NewChannelModal extends React.Component {
                                     </p>
                                 </div>
                             </div>
-                            <div className='form-group less'>
+                            <div className='form-group'>
                                 <div className='col-sm-3'>
                                     <label className='form__label control-label'>
                                         <FormattedMessage
@@ -295,6 +295,8 @@ class NewChannelModal extends React.Component {
                                         />
                                     </p>
                                 </div>
+                            </div>
+                            <div className='form-group less'>
                                 <div className='col-sm-3'>
                                     <label className='form__label control-label'>
                                         <FormattedMessage
