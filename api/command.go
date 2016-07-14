@@ -106,6 +106,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	parts := strings.Split(command, " ")
 	trigger := parts[0][1:]
+	trigger = strings.ToLower(trigger)
 	message := strings.Join(parts[1:], " ")
 	provider := GetCommandProvider(trigger)
 
@@ -286,6 +287,7 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	cmd.Trigger = strings.ToLower(cmd.Trigger)
 	cmd.CreatorId = c.Session.UserId
 	cmd.TeamId = c.TeamId
 
