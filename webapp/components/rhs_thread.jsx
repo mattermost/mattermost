@@ -118,6 +118,10 @@ export default class RhsThread extends React.Component {
             return true;
         }
 
+        if (!Utils.areObjectsEqual(nextProps.currentUser, this.props.currentUser)) {
+            return true;
+        }
+
         return false;
     }
     forceUpdateInfo() {
@@ -216,7 +220,7 @@ export default class RhsThread extends React.Component {
 
         let profile;
         if (UserStore.getCurrentId() === selected.user_id) {
-            profile = UserStore.getCurrentUser();
+            profile = this.props.currentUser;
         } else {
             profile = profiles[selected.user_id];
         }

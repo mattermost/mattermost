@@ -47,6 +47,10 @@ export default class RhsComment extends React.Component {
             return true;
         }
 
+        if (!Utils.areObjectsEqual(nextProps.currentUser, this.props.currentUser)) {
+            return true;
+        }
+
         return false;
     }
     createDropdown() {
