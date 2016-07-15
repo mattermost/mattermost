@@ -1802,6 +1802,8 @@ func TestUserTyping(t *testing.T) {
 	defer WebSocketClient2.Close()
 	WebSocketClient2.Listen()
 
+	time.Sleep(300 * time.Millisecond)
+
 	WebSocketClient.UserTyping(th.BasicChannel.Id, "")
 
 	time.Sleep(300 * time.Millisecond)
