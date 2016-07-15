@@ -684,52 +684,12 @@
     "translation": "Unable to create emoji. Image must be at most 128 by 128 pixels."
   },
   {
-    "id": "api.export.json.app_error",
-    "translation": "Unable to convert to json"
-  },
-  {
-    "id": "api.export.open.app_error",
-    "translation": "Unable to open file"
-  },
-  {
-    "id": "api.export.open_dir.app_error",
-    "translation": "Unable to open directory"
-  },
-  {
-    "id": "api.export.open_file.app_error",
-    "translation": "Unable to open file for export"
-  },
-  {
-    "id": "api.export.options.create.app_error",
-    "translation": "Unable to create options file"
-  },
-  {
-    "id": "api.export.options.write.app_error",
-    "translation": "Unable to write to options file"
-  },
-  {
-    "id": "api.export.read_dir.app_error",
-    "translation": "Unable to read directory"
-  },
-  {
-    "id": "api.export.s3.app_error",
-    "translation": "S3 is not supported for local storage export."
-  },
-  {
     "id": "api.file.file_upload.exceeds",
     "translation": "File exceeds max image size."
   },
   {
     "id": "api.file.file_upload.exceeds",
     "translation": "File exceeds max image size."
-  },
-  {
-    "id": "api.file.get_export.retrieve.app_error",
-    "translation": "Unable to retrieve exported file. Please re-export"
-  },
-  {
-    "id": "api.file.get_export.team_admin.app_error",
-    "translation": "Only a team admin can retrieve exported data."
   },
   {
     "id": "api.file.get_file.not_found.app_error",
@@ -1314,10 +1274,6 @@
   {
     "id": "api.team.email_teams.sending.error",
     "translation": "An error occurred while sending an email in emailTeams err=%v"
-  },
-  {
-    "id": "api.team.export_team.admin.app_error",
-    "translation": "Only a team admin can export data."
   },
   {
     "id": "api.team.get_invite_info.not_open_team",
@@ -3456,10 +3412,6 @@
     "translation": "We couldn't get the extra info for channel members"
   },
   {
-    "id": "store.sql_channel.get_for_export.app_error",
-    "translation": "We couldn't get all the channels"
-  },
-  {
     "id": "store.sql_channel.get_member.app_error",
     "translation": "We couldn't get the channel member"
   },
@@ -3752,20 +3704,12 @@
     "translation": "We couldn't get user counts with posts"
   },
   {
-    "id": "store.sql_post.compliance_export.app_error",
-    "translation": "We couldn't get posts for compliance export"
-  },
-  {
     "id": "store.sql_post.delete.app_error",
     "translation": "We couldn't delete the post"
   },
   {
     "id": "store.sql_post.get.app_error",
     "translation": "We couldn't get the post"
-  },
-  {
-    "id": "store.sql_post.get_for_export.app_error",
-    "translation": "We couldn't get the posts for the channel"
   },
   {
     "id": "store.sql_post.get_parents_posts.app_error",
@@ -4074,10 +4018,6 @@
   {
     "id": "store.sql_user.get_by_username.app_error",
     "translation": "We couldn't find an existing account matching your username for this team. This team may require an invite from the team owner to join."
-  },
-  {
-    "id": "store.sql_user.get_for_export.app_error",
-    "translation": "We encountered an error while finding user profiles"
   },
   {
     "id": "store.sql_user.get_for_login.app_error",

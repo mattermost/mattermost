@@ -17,10 +17,6 @@ const holders = defineMessages({
     importTab: {
         id: 'team_settings_modal.importTab',
         defaultMessage: 'Import'
-    },
-    exportTab: {
-        id: 'team_settings_modal.exportTab',
-        defaultMessage: 'Export'
     }
 });
 
@@ -70,9 +66,6 @@ class TeamSettingsModal extends React.Component {
         const tabs = [];
         tabs.push({name: 'general', uiName: formatMessage(holders.generalTab), icon: 'icon fa fa-cog'});
         tabs.push({name: 'import', uiName: formatMessage(holders.importTab), icon: 'icon fa fa-upload'});
-
-        // To enable export uncomment this line
-        //tabs.push({name: 'export', uiName: formatMessage(holders.exportTab), icon: 'fa fa-download'});
 
         return (
             <div

@@ -982,28 +982,6 @@ func (s SqlChannelStore) IncrementMentionCount(channelId string, userId string) 
 	return storeChannel
 }
 
-func (s SqlChannelStore) GetForExport(teamId string) StoreChannel {
-	storeChannel := make(StoreChannel)
-
-	go func() {
-		result := StoreResult{}
-
-		var data []*model.Channel
-		_, err := s.GetReplica().Select(&data, "SELECT * FROM Channels WHERE TeamId = :TeamId AND DeleteAt = 0 AND Type = 'O'", map[string]interface{}{"TeamId": teamId})
-
-		if err != nil {
-			result.Err = model.NewLocAppError("SqlChannelStore.GetAllChannels", "store.sql_channel.get_for_export.app_error", nil, "teamId="+teamId+", err="+err.Error())
-		} else {
-			result.Data = data
-		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
-}
-
 func (s SqlChannelStore) GetAll(teamId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 

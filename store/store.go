@@ -83,7 +83,6 @@ type ChannelStore interface {
 	GetChannels(teamId string, userId string) StoreChannel
 	GetMoreChannels(teamId string, userId string) StoreChannel
 	GetChannelCounts(teamId string, userId string) StoreChannel
-	GetForExport(teamId string) StoreChannel
 	GetAll(teamId string) StoreChannel
 
 	SaveMember(member *model.ChannelMember) StoreChannel
@@ -117,7 +116,6 @@ type PostStore interface {
 	GetPostsSince(channelId string, time int64) StoreChannel
 	GetEtag(channelId string) StoreChannel
 	Search(teamId string, userId string, params *model.SearchParams) StoreChannel
-	GetForExport(channelId string) StoreChannel
 	AnalyticsUserCountsWithPostsByDay(teamId string) StoreChannel
 	AnalyticsPostCountsByDay(teamId string) StoreChannel
 	AnalyticsPostCount(teamId string, mustHaveFile bool, mustHaveHashtag bool) StoreChannel
@@ -151,7 +149,6 @@ type UserStore interface {
 	GetEtagForProfiles(teamId string) StoreChannel
 	GetEtagForDirectProfiles(userId string) StoreChannel
 	UpdateFailedPasswordAttempts(userId string, attempts int) StoreChannel
-	GetForExport(teamId string) StoreChannel
 	GetTotalUsersCount() StoreChannel
 	GetTotalActiveUsersCount() StoreChannel
 	GetSystemAdminProfiles() StoreChannel
