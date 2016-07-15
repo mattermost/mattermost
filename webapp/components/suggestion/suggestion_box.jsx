@@ -21,8 +21,8 @@ export default class SuggestionBox extends React.Component {
 
         this.handleDocumentClick = this.handleDocumentClick.bind(this);
 
-        this.handleChange = this.handleChange.bind(this);
         this.handleCompleteWord = this.handleCompleteWord.bind(this);
+        this.handleInput = this.handleInput.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handlePretextChanged = this.handlePretextChanged.bind(this);
 
@@ -70,27 +70,24 @@ export default class SuggestionBox extends React.Component {
         }
     }
 
-    handleChange(e) {
+    handleInput(e) {
         const textbox = ReactDOM.findDOMNode(this.refs.textbox);
         const caret = Utils.getCaretPosition(textbox);
         const pretext = textbox.value.substring(0, caret);
 
         GlobalActions.emitSuggestionPretextChanged(this.suggestionId, pretext);
 
-        if (this.props.onUserInput) {
-            this.props.onUserInput(textbox.value);
-        }
-
-        if (this.props.onChange) {
-            this.props.onChange(e);
+        if (this.props.onInput) {
+            this.props.onInput(e);
         }
     }
 
     handleCompleteWord(term, matchedPretext) {
-        const textbox = ReactDOM.findDOMNode(this.refs.textbox);
+        const textbox = this.refs.textbox;
         const caret = Utils.getCaretPosition(textbox);
         const text = textbox.value;
         const pretext = text.substring(0, caret);
+
         let prefix;
         if (pretext.endsWith(matchedPretext)) {
             prefix = pretext.substring(0, pretext.length - matchedPretext.length);
@@ -104,10 +101,17 @@ export default class SuggestionBox extends React.Component {
 
         const suffix = text.substring(caret);
 
-        if (this.props.onUserInput) {
-            this.props.onUserInput(prefix + term + ' ' + suffix);
+        this.refs.textbox.value = prefix + term + ' ' + suffix;
+
+        if (this.props.onInput) {
+            // fake an input event to send back to parent components
+            const e = {
+                target: this.refs.textbox
+            };
+
+            // don't call handleInput or we'll get into an event loop
+            this.props.onInput(e);
         }
-        this.refs.textbox.value = (prefix + term + ' ' + suffix);
 
         // set the caret position after the next rendering
         window.requestAnimationFrame(() => {
@@ -144,18 +148,15 @@ export default class SuggestionBox extends React.Component {
     }
 
     render() {
-        const newProps = Object.assign({}, this.props, {
-            onChange: this.handleChange,
-            onKeyDown: this.handleKeyDown
-        });
-
         let textbox = null;
         if (this.props.type === 'input') {
             textbox = (
                 <input
                     ref='textbox'
                     type='text'
-                    {...newProps}
+                    {...this.props}
+                    onInput={this.handleInput}
+                    onKeyDown={this.handleKeyDown}
                 />
             );
         } else if (this.props.type === 'search') {
@@ -163,7 +164,9 @@ export default class SuggestionBox extends React.Component {
                 <input
                     ref='textbox'
                     type='search'
-                    {...newProps}
+                    {...this.props}
+                    onInput={this.handleInput}
+                    onKeyDown={this.handleKeyDown}
                 />
             );
         } else if (this.props.type === 'textarea') {
@@ -171,7 +174,9 @@ export default class SuggestionBox extends React.Component {
                 <TextareaAutosize
                     id={this.suggestionId}
                     ref='textbox'
-                    {...newProps}
+                    {...this.props}
+                    onInput={this.handleInput}
+                    onKeyDown={this.handleKeyDown}
                 />
             );
         }
@@ -213,12 +218,10 @@ SuggestionBox.propTypes = {
     listComponent: React.PropTypes.func.isRequired,
     type: React.PropTypes.oneOf(['input', 'textarea', 'search']).isRequired,
     value: React.PropTypes.string.isRequired,
-    onUserInput: React.PropTypes.func,
     providers: React.PropTypes.arrayOf(React.PropTypes.object),
     listStyle: React.PropTypes.string,
 
     // explicitly name any input event handlers we override and need to manually call
-    onChange: React.PropTypes.func,
-    onKeyDown: React.PropTypes.func,
-    onHeightChange: React.PropTypes.func
+    onInput: React.PropTypes.func,
+    onKeyDown: React.PropTypes.func
 };

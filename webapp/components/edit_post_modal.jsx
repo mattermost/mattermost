@@ -11,31 +11,25 @@ import BrowserStore from 'stores/browser_store.jsx';
 import PostStore from 'stores/post_store.jsx';
 import MessageHistoryStore from 'stores/message_history_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
+import * as Utils from 'utils/utils.jsx';
 
 import Constants from 'utils/constants.jsx';
 
-import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 var KeyCodes = Constants.KeyCodes;
 
-const holders = defineMessages({
-    editPost: {
-        id: 'edit_post.editPost',
-        defaultMessage: 'Edit the post...'
-    }
-});
-
 import React from 'react';
 
-class EditPostModal extends React.Component {
+export default class EditPostModal extends React.Component {
     constructor(props) {
         super(props);
 
         this.handleEdit = this.handleEdit.bind(this);
-        this.handleEditInput = this.handleEditInput.bind(this);
         this.handleEditKeyPress = this.handleEditKeyPress.bind(this);
         this.handleEditPostEvent = this.handleEditPostEvent.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
+        this.handleInput = this.handleInput.bind(this);
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.onModalHidden = this.onModalHidden.bind(this);
         this.onModalShow = this.onModalShow.bind(this);
@@ -43,8 +37,9 @@ class EditPostModal extends React.Component {
         this.onModalHide = this.onModalHide.bind(this);
         this.onModalKeyDown = this.onModalKeyDown.bind(this);
 
-        this.state = {editText: '', originalText: '', title: '', post_id: '', channel_id: '', comments: 0, refocusId: '', typing: false};
+        this.state = {editText: '', originalText: '', title: '', post_id: '', channel_id: '', comments: 0, refocusId: ''};
     }
+
     handleEdit() {
         var updatedPost = {};
         updatedPost.message = this.state.editText.trim();
@@ -82,10 +77,13 @@ class EditPostModal extends React.Component {
 
         $('#edit_post').modal('hide');
     }
-    handleEditInput(editMessage) {
-        const typing = editMessage !== '';
-        this.setState({editText: editMessage, typing});
+
+    handleInput(e) {
+        this.setState({
+            editText: e.target.value
+        });
     }
+
     handleEditKeyPress(e) {
         if (!this.state.ctrlSend && e.which === KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
             e.preventDefault();
@@ -97,6 +95,7 @@ class EditPostModal extends React.Component {
             this.handleSubmit(e);
         }
     }
+
     handleEditPostEvent(options) {
         this.setState({
             editText: options.message || '',
@@ -105,25 +104,28 @@ class EditPostModal extends React.Component {
             post_id: options.postId || '',
             channel_id: options.channelId || '',
             comments: options.comments || 0,
-            refocusId: options.refocusId || '',
-            typing: false
+            refocusId: options.refocusId || ''
         });
 
         $(ReactDOM.findDOMNode(this.refs.modal)).modal('show');
     }
+
     handleKeyDown(e) {
         if (this.state.ctrlSend && e.keyCode === KeyCodes.ENTER && e.ctrlKey === true) {
             this.handleEdit(e);
         }
     }
+
     onPreferenceChange() {
         this.setState({
             ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter')
         });
     }
+
     onModalHidden() {
         this.setState({editText: '', originalText: '', title: '', channel_id: '', post_id: '', comments: 0, refocusId: '', error: '', typing: false});
     }
+
     onModalShow(e) {
         var button = e.relatedTarget;
         if (!button) {
@@ -140,9 +142,11 @@ class EditPostModal extends React.Component {
             typing: false
         });
     }
+
     onModalShown() {
         this.refs.editbox.focus();
     }
+
     onModalHide() {
         if (this.state.refocusId !== '') {
             setTimeout(() => {
@@ -150,11 +154,13 @@ class EditPostModal extends React.Component {
             });
         }
     }
+
     onModalKeyDown(e) {
         if (e.which === Constants.KeyCodes.ESCAPE) {
             e.stopPropagation();
         }
     }
+
     componentDidMount() {
         $(this.refs.modal).on('hidden.bs.modal', this.onModalHidden);
         $(this.refs.modal).on('show.bs.modal', this.onModalShow);
@@ -164,6 +170,7 @@ class EditPostModal extends React.Component {
         PostStore.addEditPostListener(this.handleEditPostEvent);
         PreferenceStore.addChangeListener(this.onPreferenceChange);
     }
+
     componentWillUnmount() {
         $(this.refs.modal).off('hidden.bs.modal', this.onModalHidden);
         $(this.refs.modal).off('show.bs.modal', this.onModalShow);
@@ -173,6 +180,7 @@ class EditPostModal extends React.Component {
         PostStore.removeEditPostListner(this.handleEditPostEvent);
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
     }
+
     render() {
         var error = (<div className='form-group'><br/></div>);
         if (this.state.error) {
@@ -212,12 +220,11 @@ class EditPostModal extends React.Component {
                         </div>
                         <div className='edit-modal-body modal-body'>
                             <Textbox
-                                onUserInput={this.handleEditInput}
+                                onInput={this.handleInput}
                                 onKeyPress={this.handleEditKeyPress}
                                 onKeyDown={this.handleKeyDown}
                                 messageText={this.state.editText}
-                                typing={this.state.typing}
-                                createMessage={this.props.intl.formatMessage(holders.editPost)}
+                                createMessage={Utils.localizeMessage('edit_post.editPost', 'Edit the post...')}
                                 supportsCommands={false}
                                 id='edit_textbox'
                                 ref='editbox'
@@ -252,9 +259,3 @@ class EditPostModal extends React.Component {
         );
     }
 }
-
-EditPostModal.propTypes = {
-    intl: intlShape.isRequired
-};
-
-export default injectIntl(EditPostModal);
