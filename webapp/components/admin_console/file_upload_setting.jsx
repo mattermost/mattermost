@@ -18,7 +18,8 @@ export default class FileUploadSetting extends Setting {
             uploadingText: React.PropTypes.node,
             onSubmit: React.PropTypes.func.isRequired,
             disabled: React.PropTypes.bool,
-            fileType: React.PropTypes.string.isRequired
+            fileType: React.PropTypes.string.isRequired,
+            error: React.PropTypes.string
         };
     }
 
@@ -29,7 +30,8 @@ export default class FileUploadSetting extends Setting {
         this.handleSubmit = this.handleSubmit.bind(this);
 
         this.state = {
-            fileName: null
+            fileName: null,
+            serverError: props.error
         };
     }
 

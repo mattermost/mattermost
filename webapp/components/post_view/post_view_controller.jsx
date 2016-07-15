@@ -260,6 +260,10 @@ export default class PostViewController extends React.Component {
             return true;
         }
 
+        if (nextState.emojis !== this.state.emojis) {
+            return true;
+        }
+
         return false;
     }
 
