@@ -4,7 +4,7 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const nodeExternals = require('webpack-node-externals');
 
-const htmlExtract = new ExtractTextPlugin('html', 'root.html');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const NPM_TARGET = process.env.npm_lifecycle_event; //eslint-disable-line no-process-env
 
@@ -28,8 +28,8 @@ var config = {
     output: {
         path: 'dist',
         publicPath: '/static/',
-        filename: 'bundle.js',
-        chunkFilename: '[name].[hash].[chunkhash].js'
+        filename: '[name].[hash].js',
+        chunkFilename: '[name].[chunkhash].js'
     },
     module: {
         loaders: [
@@ -90,7 +90,7 @@ var config = {
             },
             {
                 test: /\.html$/,
-                loader: htmlExtract.extract('html?attrs=link:href')
+                loader: 'html?attrs=link:href'
             }
         ]
     },
@@ -101,7 +101,6 @@ var config = {
         new webpack.ProvidePlugin({
             'window.jQuery': 'jquery'
         }),
-        htmlExtract,
         new CopyWebpackPlugin([
             {from: 'images/emoji', to: 'emoji'},
             {from: 'images/logo-email.png', to: 'images'},
@@ -168,7 +167,18 @@ if (!DEV) {
 
 // Test mode configuration
 if (TEST) {
+    config.entry = ['babel-polyfill', './root.jsx'];
+    config.target = 'node';
     config.externals = [nodeExternals()];
+} else {
+    // For some reason this breaks mocha. So it goes here.
+    config.plugins.push(
+        new HtmlWebpackPlugin({
+            filename: 'root.html',
+            inject: 'head',
+            template: 'root.html'
+        })
+    );
 }
 
 module.exports = config;
