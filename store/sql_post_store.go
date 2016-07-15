@@ -784,30 +784,6 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 	return storeChannel
 }
 
-func (s SqlPostStore) GetForExport(channelId string) StoreChannel {
-	storeChannel := make(StoreChannel)
-
-	go func() {
-		result := StoreResult{}
-
-		var posts []*model.Post
-		_, err := s.GetReplica().Select(
-			&posts,
-			"SELECT * FROM Posts WHERE ChannelId = :ChannelId AND DeleteAt = 0",
-			map[string]interface{}{"ChannelId": channelId})
-		if err != nil {
-			result.Err = model.NewLocAppError("SqlPostStore.GetForExport", "store.sql_post.get_for_export.app_error", nil, "channelId="+channelId+err.Error())
-		} else {
-			result.Data = posts
-		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
-}
-
 func (s SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 

@@ -969,34 +969,6 @@ func (us SqlUserStore) VerifyEmail(userId string) StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) GetForExport(teamId string) StoreChannel {
-
-	storeChannel := make(StoreChannel)
-
-	go func() {
-		result := StoreResult{}
-
-		var users []*model.User
-
-		if _, err := us.GetReplica().Select(&users, "SELECT Users.* FROM Users, TeamMembers WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId", map[string]interface{}{"TeamId": teamId}); err != nil {
-			result.Err = model.NewLocAppError("SqlUserStore.GetForExport", "store.sql_user.get_for_export.app_error", nil, err.Error())
-		} else {
-			for _, u := range users {
-				u.Password = ""
-				u.AuthData = new(string)
-				*u.AuthData = ""
-			}
-
-			result.Data = users
-		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
-}
-
 func (us SqlUserStore) GetTotalUsersCount() StoreChannel {
 	storeChannel := make(StoreChannel)
 

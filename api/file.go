@@ -65,7 +65,6 @@ func InitFile() {
 	BaseRoutes.Files.Handle("/get/{channel_id:[A-Za-z0-9]+}/{user_id:[A-Za-z0-9]+}/{filename:([A-Za-z0-9]+/)?.+(\\.[A-Za-z0-9]{3,})?}", ApiUserRequiredTrustRequester(getFile)).Methods("GET")
 	BaseRoutes.Files.Handle("/get_info/{channel_id:[A-Za-z0-9]+}/{user_id:[A-Za-z0-9]+}/{filename:([A-Za-z0-9]+/)?.+(\\.[A-Za-z0-9]{3,})?}", ApiUserRequired(getFileInfo)).Methods("GET")
 	BaseRoutes.Files.Handle("/get_public_link", ApiUserRequired(getPublicLink)).Methods("POST")
-	BaseRoutes.Files.Handle("/get_export", ApiUserRequired(getExport)).Methods("GET")
 
 	BaseRoutes.Public.Handle("/files/get/{team_id:[A-Za-z0-9]+}/{channel_id:[A-Za-z0-9]+}/{user_id:[A-Za-z0-9]+}/{filename:([A-Za-z0-9]+/)?.+(\\.[A-Za-z0-9]{3,})?}", ApiAppHandlerTrustRequesterIndependent(getPublicFile)).Methods("GET")
 }
@@ -526,23 +525,6 @@ func getPublicLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(model.StringToJson(url)))
-}
-
-func getExport(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.HasPermissionsToTeam(c.TeamId, "export") || !c.IsTeamAdmin() {
-		c.Err = model.NewLocAppError("getExport", "api.file.get_export.team_admin.app_error", nil, "userId="+c.Session.UserId)
-		c.Err.StatusCode = http.StatusForbidden
-		return
-	}
-	data, err := ReadFile(EXPORT_PATH + EXPORT_FILENAME)
-	if err != nil {
-		c.Err = model.NewLocAppError("getExport", "api.file.get_export.retrieve.app_error", nil, err.Error())
-		return
-	}
-
-	w.Header().Set("Content-Disposition", "attachment; filename="+EXPORT_FILENAME)
-	w.Header().Set("Content-Type", "application/octet-stream")
-	w.Write(data)
 }
 
 func WriteFile(f []byte, path string) *model.AppError {

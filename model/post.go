@@ -162,9 +162,6 @@ func (o *Post) AddProp(key string, value interface{}) {
 	o.Props[key] = value
 }
 
-func (o *Post) PreExport() {
-}
-
 func (o *Post) IsSystemMessage() bool {
 	return len(o.Type) >= len(POST_SYSTEM_MESSAGE_PREFIX) && o.Type[:len(POST_SYSTEM_MESSAGE_PREFIX)] == POST_SYSTEM_MESSAGE_PREFIX
 }
