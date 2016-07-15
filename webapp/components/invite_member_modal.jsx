@@ -131,7 +131,7 @@ class InviteMemberModal extends React.Component {
             invites.push(invite);
         }
 
-        this.setState({emailErrors: emailErrors, firstNameErrors: firstNameErrors, lastNameErrors: lastNameErrors});
+        this.setState({emailErrors, firstNameErrors, lastNameErrors});
 
         if (!valid || invites.length === 0) {
             return;
@@ -151,7 +151,7 @@ class InviteMemberModal extends React.Component {
             (err) => {
                 if (err.id === 'api.team.invite_members.already.app_error') {
                     emailErrors[err.detailed_error] = err.message;
-                    this.setState({emailErrors: emailErrors});
+                    this.setState({emailErrors});
                 } else {
                     this.setState({serverError: err.message});
                 }
@@ -193,7 +193,7 @@ class InviteMemberModal extends React.Component {
         var count = this.state.idCount + 1;
         var inviteIds = this.state.inviteIds;
         inviteIds.push(count);
-        this.setState({inviteIds: inviteIds, idCount: count});
+        this.setState({inviteIds, idCount: count});
     }
 
     clearFields() {
@@ -225,7 +225,7 @@ class InviteMemberModal extends React.Component {
         if (!inviteIds.length) {
             inviteIds.push(++count);
         }
-        this.setState({inviteIds: inviteIds, idCount: count});
+        this.setState({inviteIds, idCount: count});
     }
 
     showGetTeamInviteLinkModal() {
@@ -435,7 +435,7 @@ class InviteMemberModal extends React.Component {
                                 id='invite_member.teamInviteLink'
                                 defaultMessage='You can also invite people using the {link}.'
                                 values={{
-                                    link: (link)
+                                    link
                                 }}
                             />
                         </p>

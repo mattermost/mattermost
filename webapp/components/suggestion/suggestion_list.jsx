@@ -87,7 +87,7 @@ export default class SuggestionList extends React.Component {
                 content.scrollTop(itemTop - contentTopPadding);
             } else if (itemBottom + contentTopPadding + contentBottomPadding > contentTop + visibleContentHeight) {
                 // the item has gone off the bottom of the visible space
-                content.scrollTop(itemBottom - visibleContentHeight + contentTopPadding + contentBottomPadding);
+                content.scrollTop((itemBottom - visibleContentHeight) + contentTopPadding + contentBottomPadding);
             }
         }
     }

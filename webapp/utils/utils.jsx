@@ -139,7 +139,7 @@ export function notifyMe(title, body, channel, teamId) {
         Notification.requestPermission((permission) => {
             if (permission === 'granted') {
                 try {
-                    var notification = new Notification(title, {body: body, tag: body, icon: icon50});
+                    var notification = new Notification(title, {body, tag: body, icon: icon50});
                     notification.onclick = () => {
                         window.focus();
                         if (channel) {
@@ -413,7 +413,7 @@ export function insertHtmlEntities(text) {
 export function searchForTerm(term) {
     AppDispatcher.handleServerAction({
         type: ActionTypes.RECEIVED_SEARCH_TERM,
-        term: term,
+        term,
         do_search: true
     });
 }
@@ -494,7 +494,7 @@ export function splitFileLocation(fileLocation) {
     var filePath = fileSplit.join('.');
     var filename = filePath.split('/')[filePath.split('/').length - 1];
 
-    return {ext: ext, name: filename, path: filePath};
+    return {ext, name: filename, path: filePath};
 }
 
 export function getPreviewImagePath(filename) {
@@ -1079,7 +1079,7 @@ export function generateId() {
         if (c === 'x') {
             v = r;
         } else {
-            v = r & 0x3 | 0x8;
+            v = (r & 0x3) | 0x8;
         }
 
         return v.toString(16);

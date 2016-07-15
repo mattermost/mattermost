@@ -636,7 +636,7 @@ export default class Navbar extends React.Component {
                                 defaultMessage='No channel header yet.{newline}{link} to add one.'
                                 values={{
                                     newline: (<br/>),
-                                    link: (link)
+                                    link
                                 }}
                             />
                         </div>

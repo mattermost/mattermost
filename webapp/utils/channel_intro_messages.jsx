@@ -194,7 +194,7 @@ export function createStandardIntroMessage(channel, centeredIntro) {
                 values={{
                     name: (uiName),
                     type: (uiType),
-                    date: (date)
+                    date
                 }}
             />
         );
@@ -207,7 +207,7 @@ export function createStandardIntroMessage(channel, centeredIntro) {
                     values={{
                         name: (uiName),
                         type: (uiType),
-                        date: (date),
+                        date,
                         creator: creatorName
                     }}
                 />

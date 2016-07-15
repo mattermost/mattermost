@@ -116,7 +116,7 @@ export default class RemovedFromChannelModal extends React.Component {
                                         id='removed_channel.remover'
                                         defaultMessage='{remover} removed you from {channel}'
                                         values={{
-                                            remover: (remover),
+                                            remover,
                                             channel: (channelName)
                                         }}
                                     />

@@ -295,8 +295,17 @@ class UserSettingsGeneralTab extends React.Component {
     setupInitialState(props) {
         const user = props.user;
 
-        return {username: user.username, firstName: user.first_name, lastName: user.last_name, nickname: user.nickname,
-                        email: user.email, confirmEmail: '', picture: null, loadingPicture: false, emailChangeInProgress: false};
+        return {
+            username: user.username,
+            firstName: user.first_name,
+            lastName: user.last_name,
+            nickname: user.nickname,
+            email: user.email,
+            confirmEmail: '',
+            picture: null,
+            loadingPicture: false,
+            emailChangeInProgress: false
+        };
     }
 
     createEmailSection() {
