@@ -255,12 +255,10 @@ class GeneralTab extends React.Component {
     }
 
     updateName(e) {
-        e.preventDefault();
         this.setState({name: e.target.value});
     }
 
     updateInviteId(e) {
-        e.preventDefault();
         this.setState({invite_id: e.target.value});
     }
 
