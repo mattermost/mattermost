@@ -19,6 +19,15 @@ class AtMentionSuggestion extends Suggestion {
         const isSelection = this.props.isSelection;
         const user = this.props.item;
 
+        // fake user to represent a bar in the suggestion list
+        if (user.is_separator) {
+            return (
+                <div className='suggestion-separator'>
+                    <hr className='separator__hr'/>
+                </div>
+            );
+        }
+
         let username;
         let description;
         let icon;
@@ -88,57 +97,86 @@ class AtMentionSuggestion extends Suggestion {
     }
 }
 
+function filterUsersByPrefix(users, prefix, limit) {
+    const filtered = [];
+
+    for (const id of Object.keys(users)) {
+        if (filtered.length >= limit) {
+            break;
+        }
+
+        const user = users[id];
+
+        if (user.delete_at > 0) {
+            continue;
+        }
+
+        if (user.username.startsWith(prefix) ||
+            (user.first_name && user.first_name.toLowerCase().startsWith(prefix)) ||
+            (user.last_name && user.last_name.toLowerCase().startsWith(prefix)) ||
+            (user.nickname && user.nickname.toLowerCase().startsWith(prefix))) {
+            filtered.push(user);
+        }
+    }
+
+    return filtered;
+}
+
 export default class AtMentionProvider {
     handlePretextChanged(suggestionId, pretext) {
         const captured = (/@([a-z0-9\-\._]*)$/i).exec(pretext.toLowerCase());
         if (captured) {
             const prefix = captured[1];
 
+            // Group users into members and nonmembers of the channel.
             const users = UserStore.getActiveOnlyProfiles(true);
-
-            const filtered = [];
-
-            for (const id of Object.keys(users)) {
-                const user = users[id];
-
-                if (user.delete_at > 0) {
-                    continue;
-                }
-
-                if (user.username.startsWith(prefix) ||
-                    (user.first_name && user.first_name.toLowerCase().startsWith(prefix)) ||
-                    (user.last_name && user.last_name.toLowerCase().startsWith(prefix)) ||
-                    (user.nickname && user.nickname.toLowerCase().startsWith(prefix))) {
-                    filtered.push(user);
-                }
-
-                if (filtered.length >= MaxUserSuggestions) {
-                    break;
+            const channelMembers = {};
+            const extra = ChannelStore.getCurrentExtraInfo();
+            for (let i = 0; i < extra.members.length; i++) {
+                const id = extra.members[i].id;
+                if (users[id]) {
+                    channelMembers[id] = users[id];
+                    Reflect.deleteProperty(users, id);
                 }
             }
+            const channelNonmembers = users;
 
-            if (!pretext.startsWith('/msg')) {
-                // add dummy users to represent the @channel and @all special mentions when not using the /msg command
-                if ('channel'.startsWith(prefix)) {
-                    filtered.push({username: 'channel'});
-                }
-                if ('all'.startsWith(prefix)) {
-                    filtered.push({username: 'all'});
-                }
-            }
+            // Filter users by prefix.
+            const filteredMembers = filterUsersByPrefix(
+                    channelMembers, prefix, MaxUserSuggestions);
+            const filteredNonmembers = filterUsersByPrefix(
+                    channelNonmembers, prefix, MaxUserSuggestions - filteredMembers.length);
+            const filteredSpecialMentions = pretext.startsWith('/msg') ?
+                [] : ['channel', 'all'].filter((item) => {
+                    // eslint-disable-line no-use-before-define
+                    return item.startsWith(prefix);
+                }).map((name) => {
+                    return {username: name};
+                });
 
-            filtered.sort((a, b) => {
-                const aPrefix = a.username.startsWith(prefix);
-                const bPrefix = b.username.startsWith(prefix);
+            // Sort users by username.
+            [filteredMembers, filteredNonmembers].forEach((items) => {
+                items.sort((a, b) => {
+                    const aPrefix = a.username.startsWith(prefix);
+                    const bPrefix = b.username.startsWith(prefix);
 
-                if (aPrefix === bPrefix) {
-                    return a.username.localeCompare(b.username);
-                } else if (aPrefix) {
-                    return -1;
-                }
+                    if (aPrefix === bPrefix) {
+                        return a.username.localeCompare(b.username);
+                    } else if (aPrefix) {
+                        return -1;
+                    }
 
-                return 1;
+                    return 1;
+                });
             });
+
+            // Make separators to separate channel members, special mentions and channel nonmembers.
+            const separator1 = (filteredMembers.length > 0 && filteredSpecialMentions.length > 0) ?
+                [{username: '-1', is_separator: true}] : [];
+            const separator2 = ((filteredSpecialMentions.length > 0) && (filteredNonmembers.length > 0)) ?
+                [{username: '-2', is_separator: true}] : [];
+
+            const filtered = filteredMembers.concat(separator1).concat(filteredSpecialMentions).concat(separator2).concat(filteredNonmembers);
 
             const mentions = filtered.map((user) => '@' + user.username);
 
