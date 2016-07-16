@@ -8,6 +8,7 @@ import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Client from 'client/web_client.jsx';
+import Constants from 'utils/constants.jsx';
 
 import {FormattedMessage} from 'react-intl';
 import Suggestion from './suggestion.jsx';
@@ -98,60 +99,91 @@ class AtMentionSuggestion extends Suggestion {
     }
 }
 
+function filterUsersByPrefix(users, prefix, limit) {
+    const filtered = [];
+
+    for (const id of Object.keys(users)) {
+        if (filtered.length >= limit) {
+            break;
+        }
+
+        const user = users[id];
+
+        if (user.delete_at > 0) {
+            continue;
+        }
+
+        if (user.username.startsWith(prefix) ||
+            (user.first_name && user.first_name.toLowerCase().startsWith(prefix)) ||
+            (user.last_name && user.last_name.toLowerCase().startsWith(prefix)) ||
+            (user.nickname && user.nickname.toLowerCase().startsWith(prefix))) {
+            filtered.push(user);
+        }
+    }
+
+    return filtered;
+}
+
 export default class AtMentionProvider {
     handlePretextChanged(suggestionId, pretext) {
         const captured = (/@([a-z0-9\-\._]*)$/i).exec(pretext.toLowerCase());
         if (captured) {
             const prefix = captured[1];
 
+            // Group users into members and nonmembers of the channel.
             const users = UserStore.getActiveOnlyProfiles(true);
-
-            const filtered = [];
-
-            for (const id of Object.keys(users)) {
-                const user = users[id];
-
-                if (user.delete_at > 0) {
-                    continue;
-                }
-
-                if (user.username.startsWith(prefix) ||
-                    (user.first_name && user.first_name.toLowerCase().startsWith(prefix)) ||
-                    (user.last_name && user.last_name.toLowerCase().startsWith(prefix)) ||
-                    (user.nickname && user.nickname.toLowerCase().startsWith(prefix))) {
-                    filtered.push(user);
-                }
-
-                if (filtered.length >= MaxUserSuggestions) {
-                    break;
+            const channelMembers = {};
+            const extra = ChannelStore.getCurrentExtraInfo();
+            for (let i = 0; i < extra.members.length; i++) {
+                const id = extra.members[i].id;
+                if (users[id]) {
+                    channelMembers[id] = users[id];
+                    Reflect.deleteProperty(users, id);
                 }
             }
+            const channelNonmembers = users;
 
+            // Filter users by prefix.
+            const filteredMembers = filterUsersByPrefix(
+                    channelMembers, prefix, MaxUserSuggestions);
+            const filteredNonmembers = filterUsersByPrefix(
+                    channelNonmembers, prefix, MaxUserSuggestions - filteredMembers.length);
+            let filteredSpecialMentions = [];
             if (!pretext.startsWith('/msg')) {
-                // add dummy users to represent the @channel and @all special mentions when not using the /msg command
-                if ('channel'.startsWith(prefix)) {
-                    filtered.push({username: 'channel'});
-                }
-                if ('all'.startsWith(prefix)) {
-                    filtered.push({username: 'all'});
-                }
-                if ('here'.startsWith(prefix)) {
-                    filtered.push({username: 'here'});
-                }
+                filteredSpecialMentions = ['here', 'channel', 'all'].filter((item) => {
+                    return item.startsWith(prefix);
+                }).map((name) => {
+                    return {username: name};
+                });
             }
 
-            filtered.sort((a, b) => {
-                const aPrefix = a.username.startsWith(prefix);
-                const bPrefix = b.username.startsWith(prefix);
+            // Sort users by username.
+            [filteredMembers, filteredNonmembers].forEach((items) => {
+                items.sort((a, b) => {
+                    const aPrefix = a.username.startsWith(prefix);
+                    const bPrefix = b.username.startsWith(prefix);
 
-                if (aPrefix === bPrefix) {
-                    return a.username.localeCompare(b.username);
-                } else if (aPrefix) {
-                    return -1;
-                }
+                    if (aPrefix === bPrefix) {
+                        return a.username.localeCompare(b.username);
+                    } else if (aPrefix) {
+                        return -1;
+                    }
 
-                return 1;
+                    return 1;
+                });
             });
+
+            filteredMembers.forEach((item) => {
+                item.type = Constants.MENTION_MEMBERS;
+            });
+            filteredNonmembers.forEach((item) => {
+                item.type = Constants.MENTION_NONMEMBERS;
+            });
+            filteredSpecialMentions.forEach((item) => {
+                item.type = Constants.MENTION_SPECIAL;
+            });
+
+            const filtered = filteredMembers.concat(filteredSpecialMentions).concat(filteredNonmembers);
 
             const mentions = filtered.map((user) => '@' + user.username);
 

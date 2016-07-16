@@ -44,3 +44,33 @@
 .suggestion-list--bottom {
     position: relative;
 }
+
+.suggestion-list__divider {
+    line-height: 21px;
+    margin: 5px 0px 0px 5px;
+    position: relative;
+
+    &:first-child {
+        margin-top: 5px;
+    }
+
+    > span {
+        color: rgba(51,51,51,0.7);
+        background: #f2f4f8;
+        display: inline-block;
+        padding-right: 10px;
+        position: relative;
+        z-index: 5;
+    }
+
+    &:before {
+        @include opacity(.2);
+        background: $dark-gray;
+        content: '';
+        height: 1px;
+        left: 0;
+        position: absolute;
+        top: 10px;
+        width: 100%;
+    }
+}
