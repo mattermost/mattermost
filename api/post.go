@@ -25,6 +25,11 @@ import (
 	"github.com/mattermost/platform/utils"
 )
 
+const (
+	TRIGGERWORDS_FULL       = 0
+	TRIGGERWORDS_STARTSWITH = 1
+)
+
 func InitPost() {
 	l4g.Debug(utils.T("api.post.init.debug"))
 
@@ -383,12 +388,14 @@ func handleWebhookEvents(c *Context, post *model.Post, team *model.Team, channel
 
 	relevantHooks := []*model.OutgoingWebhook{}
 	for _, hook := range hooks {
-		if hook.ChannelId == post.ChannelId {
-			if len(hook.TriggerWords) == 0 || hook.HasTriggerWord(firstWord) {
+		if hook.ChannelId == post.ChannelId || len(hook.ChannelId) == 0 {
+			if hook.ChannelId == post.ChannelId && len(hook.TriggerWords) == 0 {
+				relevantHooks = append(relevantHooks, hook)
+			} else if hook.TriggerWhen == TRIGGERWORDS_FULL && hook.HasTriggerWord(firstWord) {
+				relevantHooks = append(relevantHooks, hook)
+			} else if hook.TriggerWhen == TRIGGERWORDS_STARTSWITH && hook.TriggerWordStartsWith(firstWord) {
 				relevantHooks = append(relevantHooks, hook)
 			}
-		} else if len(hook.ChannelId) == 0 && hook.HasTriggerWord(firstWord) {
-			relevantHooks = append(relevantHooks, hook)
 		}
 	}
 

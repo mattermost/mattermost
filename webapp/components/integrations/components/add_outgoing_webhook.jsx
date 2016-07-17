@@ -29,6 +29,7 @@ export default class AddOutgoingWebhook extends React.Component {
         this.updateContentType = this.updateContentType.bind(this);
         this.updateChannelId = this.updateChannelId.bind(this);
         this.updateTriggerWords = this.updateTriggerWords.bind(this);
+        this.updateTriggerWhen = this.updateTriggerWhen.bind(this);
         this.updateCallbackUrls = this.updateCallbackUrls.bind(this);
 
         this.state = {
@@ -37,6 +38,7 @@ export default class AddOutgoingWebhook extends React.Component {
             contentType: 'application/x-www-form-urlencoded',
             channelId: '',
             triggerWords: '',
+            triggerWhen: 0,
             callbackUrls: '',
             saving: false,
             serverError: '',
@@ -108,6 +110,7 @@ export default class AddOutgoingWebhook extends React.Component {
         const hook = {
             channel_id: this.state.channelId,
             trigger_words: triggerWords,
+            trigger_when: parseInt(this.state.triggerWhen, 10),
             callback_urls: callbackUrls,
             display_name: this.state.displayName,
             content_type: this.state.contentType,
@@ -155,6 +158,12 @@ export default class AddOutgoingWebhook extends React.Component {
     updateTriggerWords(e) {
         this.setState({
             triggerWords: e.target.value
+        });
+    }
+
+    updateTriggerWhen(e) {
+        this.setState({
+            triggerWhen: e.target.value
         });
     }
 
@@ -295,6 +304,41 @@ export default class AddOutgoingWebhook extends React.Component {
                                     value={this.state.triggerWords}
                                     onChange={this.updateTriggerWords}
                                 />
+                            </div>
+                        </div>
+                        <div className='form-group'>
+                            <label
+                                className='control-label col-sm-4'
+                                htmlFor='triggerWords'
+                            >
+                                <FormattedMessage
+                                    id='add_outgoing_webhook.triggerWordsTriggerWhen'
+                                    defaultMessage='Trigger When'
+                                />
+                            </label>
+                            <div className='col-md-5 col-sm-8'>
+                                <select
+                                    className='form-control'
+                                    value={this.state.triggerWhen}
+                                    onChange={this.updateTriggerWhen}
+                                >
+                                    <option
+                                        value='0'
+                                    >
+                                        <FormattedMessage
+                                            id='add_outgoing_webhook.triggerWordsTriggerWhenFullWord'
+                                            defaultMessage='First word matches a trigger word exactly'
+                                        />
+                                    </option>
+                                    <option
+                                        value='1'
+                                    >
+                                        <FormattedMessage
+                                            id='add_outgoing_webhook.triggerWordsTriggerWhenStartsWith'
+                                            defaultMessage='First word starts with a trigger word'
+                                        />
+                                    </option>
+                                </select>
                             </div>
                         </div>
                         <div className='form-group'>
