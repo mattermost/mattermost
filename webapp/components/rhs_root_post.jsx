@@ -44,6 +44,10 @@ export default class RhsRootPost extends React.Component {
             return true;
         }
 
+        if (!Utils.areObjectsEqual(nextProps.currentUser, this.props.currentUser)) {
+            return true;
+        }
+
         return false;
     }
     render() {
