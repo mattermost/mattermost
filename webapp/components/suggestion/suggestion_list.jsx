@@ -5,7 +5,6 @@ import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import SuggestionStore from 'stores/suggestion_store.jsx';
-import Constants from 'utils/constants.jsx';
 
 import React from 'react';
 
@@ -83,22 +82,12 @@ export default class SuggestionList extends React.Component {
             const itemBottomMargin = parseInt(item.css('margin-bottom'), 10) + parseInt(item.css('padding-bottom'), 10);
             const itemBottom = item[0].offsetTop + item.height() + itemBottomMargin;
 
-            if (this.props.location === 'top') {
-                if (itemTop - contentTopPadding < contentTop) {
-                    // the item is off the top of the visible space
-                    content.scrollTop(itemTop - contentTopPadding);
-                } else if (itemBottom + contentTopPadding + contentBottomPadding > contentTop + visibleContentHeight) {
-                    // the item has gone off the bottom of the visible space
-                    content.scrollTop((itemBottom - visibleContentHeight) + contentTopPadding + contentBottomPadding);
-                }
-            } else if (this.props.location === 'bottom') {
-                if (itemTop - contentTopPadding - Constants.CHANNEL_SWITCHER_SCROLL_ADJUSTMENT < contentTop) {
-                    // the item is off the top of the visible space
-                    content.scrollTop(itemTop - contentTopPadding - Constants.CHANNEL_SWITCHER_SCROLL_ADJUSTMENT);
-                } else if (itemBottom + contentTopPadding + contentBottomPadding > contentTop + visibleContentHeight) {
-                    // the item has gone off the bottom of the visible space
-                    content.scrollTop((itemBottom - visibleContentHeight) + contentTopPadding + contentBottomPadding);
-                }
+            if (itemTop - contentTopPadding < contentTop) {
+                // the item is off the top of the visible space
+                content.scrollTop(itemTop - contentTopPadding);
+            } else if (itemBottom + contentTopPadding + contentBottomPadding > contentTop + visibleContentHeight) {
+                // the item has gone off the bottom of the visible space
+                content.scrollTop((itemBottom - visibleContentHeight) + contentTopPadding + contentBottomPadding);
             }
         }
     }
