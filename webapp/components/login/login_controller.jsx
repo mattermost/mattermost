@@ -520,6 +520,7 @@ export default class LoginController extends React.Component {
                     key='saml'
                     href={'/login/sso/saml' + this.props.location.search}
                 >
+                    <span className='icon fa fa-lock fa--margin-top'/>
                     <span>
                         {window.mm_config.SamlLoginButtonText}
                     </span>
