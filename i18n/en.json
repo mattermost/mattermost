@@ -1077,7 +1077,7 @@
   },
   {
     "id": "api.post.update_mention_count_and_forget.update_error",
-    "translation": "Failed to update mention count for user_id=%v on channel_id=%v err=%v"
+    "translation": "Failed to update mention count, post_id=%v channel_id=%v err=%v"
   },
   {
     "id": "api.post.update_post.find.app_error",
