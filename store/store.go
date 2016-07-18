@@ -268,4 +268,5 @@ type StatusStore interface {
 	GetOnlineAway() StoreChannel
 	ResetAll() StoreChannel
 	GetTotalActiveUsersCount() StoreChannel
+	UpdateLastActivityAt(userId string, lastActivityAt int64) StoreChannel
 }

@@ -60,6 +60,10 @@ func TestSqlStatusStore(t *testing.T) {
 			t.Fatal("should be offline")
 		}
 	}
+
+	if result := <-store.Status().UpdateLastActivityAt(status.UserId, 10); result.Err != nil {
+		t.Fatal(result.Err)
+	}
 }
 
 func TestActiveUserCount(t *testing.T) {

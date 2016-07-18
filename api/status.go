@@ -8,6 +8,7 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 )
 
@@ -54,12 +55,14 @@ func GetAllStatuses() (map[string]interface{}, *model.AppError) {
 
 func SetStatusOnline(userId string, sessionId string) {
 	broadcast := false
+	saveStatus := false
 
 	var status *model.Status
 	var err *model.AppError
 	if status, err = GetStatus(userId); err != nil {
 		status = &model.Status{userId, model.STATUS_ONLINE, model.GetMillis()}
 		broadcast = true
+		saveStatus = true
 	} else {
 		if status.Status != model.STATUS_ONLINE {
 			broadcast = true
@@ -71,7 +74,13 @@ func SetStatusOnline(userId string, sessionId string) {
 	statusCache.Add(status.UserId, status)
 
 	achan := Srv.Store.Session().UpdateLastActivityAt(sessionId, model.GetMillis())
-	schan := Srv.Store.Status().SaveOrUpdate(status)
+
+	var schan store.StoreChannel
+	if saveStatus {
+		schan = Srv.Store.Status().SaveOrUpdate(status)
+	} else {
+		schan = Srv.Store.Status().UpdateLastActivityAt(status.UserId, status.LastActivityAt)
+	}
 
 	if result := <-achan; result.Err != nil {
 		l4g.Error(utils.T("api.status.last_activity.error"), userId, sessionId, result.Err)

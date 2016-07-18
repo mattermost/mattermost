@@ -147,3 +147,20 @@ func (s SqlStatusStore) GetTotalActiveUsersCount() StoreChannel {
 
 	return storeChannel
 }
+
+func (s SqlStatusStore) UpdateLastActivityAt(userId string, lastActivityAt int64) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		if _, err := s.GetMaster().Exec("UPDATE Status SET LastActivityAt = :Time WHERE UserId = :UserId", map[string]interface{}{"UserId": userId, "Time": lastActivityAt}); err != nil {
+			result.Err = model.NewLocAppError("SqlStatusStore.UpdateLastActivityAt", "store.sql_status.update_last_activity_at.app_error", nil, "")
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
