@@ -11,7 +11,7 @@ import TutorialTip from './tutorial/tutorial_tip.jsx';
 
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as ChannelActions from 'actions/channel_actions.jsx';
 

@@ -7,7 +7,7 @@ import * as Utils from '../../utils/utils.jsx';
 import AdminStore from '../../stores/admin_store.jsx';
 import UserStore from '../../stores/user_store.jsx';
 
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 import * as AsyncClient from '../../utils/async_client.jsx';
 
 import {FormattedMessage, FormattedDate, FormattedTime} from 'react-intl';

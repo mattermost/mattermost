@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 import ModalStore from 'stores/modal_store.jsx';
 
 import {Modal} from 'react-bootstrap';

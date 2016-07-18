@@ -27,7 +27,7 @@ import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 import Constants from 'utils/constants.jsx';
 const UserStatuses = Constants.UserStatuses;
 

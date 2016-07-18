@@ -1,7 +1,7 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import Client from 'mattermost/client.jsx';
+import Client from './client.jsx';
 import TeamStore from '../stores/team_store.jsx';
 import BrowserStore from '../stores/browser_store.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';

@@ -9,7 +9,7 @@ import SettingPicture from '../setting_picture.jsx';
 import UserStore from 'stores/user_store.jsx';
 import ErrorStore from 'stores/error_store.jsx';
 
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 import Constants from 'utils/constants.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';

@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import {FormattedMessage} from 'react-intl';

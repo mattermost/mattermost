@@ -17,9 +17,9 @@ import {handleNewPost} from 'actions/post_actions.jsx';
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
-import WebSocketClient from 'utils/websocket_client.jsx';
+import WebSocketClient from 'client/web_websocket_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import en from 'i18n/en.json';

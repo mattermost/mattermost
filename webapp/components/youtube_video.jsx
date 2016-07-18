@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import ChannelStore from 'stores/channel_store.jsx';
-import WebClient from 'utils/web_client.jsx';
+import WebClient from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 const ytRegex = /(?:http|https):\/\/(?:www\.)?(?:(?:youtube\.com\/(?:(?:v\/)|(\/u\/\w\/)|(?:(?:watch|embed\/watch)(?:\/|.*v=))|(?:embed\/)|(?:user\/[^\/]+\/u\/[0-9]\/)))|(?:youtu\.be\/))([^#&\?]*)/;

@@ -5,7 +5,7 @@ import $ from 'jquery';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import FormError from 'components/form_error.jsx';

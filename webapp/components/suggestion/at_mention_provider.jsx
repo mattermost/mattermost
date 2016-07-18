@@ -7,7 +7,7 @@ import SuggestionStore from 'stores/suggestion_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import * as Utils from 'utils/utils.jsx';
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 
 import {FormattedMessage} from 'react-intl';
 import Suggestion from './suggestion.jsx';

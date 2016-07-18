@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 import SuggestionStore from 'stores/suggestion_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 

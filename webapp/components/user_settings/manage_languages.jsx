@@ -3,7 +3,7 @@
 
 import SettingItemMax from '../setting_item_max.jsx';
 
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 import * as I18n from 'i18n/i18n.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import Constants from 'utils/constants.jsx';

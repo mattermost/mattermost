@@ -12,7 +12,7 @@ import RemoveFileSetting from './remove_file_setting.jsx';
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 export default class SamlSettings extends AdminSettings {

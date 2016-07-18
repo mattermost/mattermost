@@ -5,7 +5,7 @@ import $ from 'jquery';
 import SettingItemMin from './setting_item_min.jsx';
 import SettingItemMax from './setting_item_max.jsx';
 
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
