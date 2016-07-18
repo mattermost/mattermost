@@ -49,7 +49,7 @@ class FileAttachment extends React.Component {
 
             if (type === 'image') {
                 var self = this; // Need this reference since we use the given "this"
-                $('<img/>').attr('src', fileInfo.path + '_thumb.jpg').load(function loadWrapper(path, name) {
+                $('<img/>').attr('src', fileInfo.path + '_thumb.jpg').on('load', (function loadWrapper(path, name) {
                     return function loader() {
                         $(this).remove();
                         if (name in self.refs) {
@@ -71,7 +71,7 @@ class FileAttachment extends React.Component {
                             self.addBackgroundImage(name, path);
                         }
                     };
-                }(fileInfo.path, filename));
+                }(fileInfo.path, filename)));
             }
         }
     }
