@@ -207,6 +207,7 @@ function highlightCurrentMentions(text, tokens) {
     let output = text;
 
     const mentionKeys = UserStore.getCurrentMentionKeys();
+    mentionKeys.push('@here');
 
     // look for any existing tokens which are self mentions and should be highlighted
     var newTokens = new Map();

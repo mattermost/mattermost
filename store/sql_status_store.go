@@ -98,7 +98,27 @@ func (s SqlStatusStore) GetOnlineAway() StoreChannel {
 
 		var statuses []*model.Status
 		if _, err := s.GetReplica().Select(&statuses, "SELECT * FROM Status WHERE Status = :Online OR Status = :Away", map[string]interface{}{"Online": model.STATUS_ONLINE, "Away": model.STATUS_AWAY}); err != nil {
-			result.Err = model.NewLocAppError("SqlStatusStore.GetOnline", "store.sql_status.get_online_away.app_error", nil, err.Error())
+			result.Err = model.NewLocAppError("SqlStatusStore.GetOnlineAway", "store.sql_status.get_online_away.app_error", nil, err.Error())
+		} else {
+			result.Data = statuses
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlStatusStore) GetOnline() StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var statuses []*model.Status
+		if _, err := s.GetReplica().Select(&statuses, "SELECT * FROM Status WHERE Status = :Online", map[string]interface{}{"Online": model.STATUS_ONLINE}); err != nil {
+			result.Err = model.NewLocAppError("SqlStatusStore.GetOnline", "store.sql_status.get_online.app_error", nil, err.Error())
 		} else {
 			result.Data = statuses
 		}

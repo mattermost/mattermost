@@ -477,6 +477,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 
 	mentionedUserIds := make(map[string]bool)
 	alwaysNotifyUserIds := []string{}
+	hereNotification := false
 
 	if channel.Type == model.CHANNEL_DIRECT {
 
@@ -537,6 +538,11 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 		splitMessage := strings.Fields(post.Message)
 		var userIds []string
 		for _, word := range splitMessage {
+			if word == "@here" {
+				hereNotification = true
+				continue
+			}
+
 			// Non-case-sensitive check for regular keys
 			if ids, match := keywordMap[strings.ToLower(word)]; match {
 				userIds = append(userIds, ids...)
@@ -620,6 +626,24 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 
 			if userAllowsEmails && status.Status != model.STATUS_ONLINE {
 				sendNotificationEmail(c, post, profileMap[id], channel, team, senderName)
+			}
+		}
+	}
+
+	if hereNotification {
+		if result := <-Srv.Store.Status().GetOnline(); result.Err != nil {
+			l4g.Warn(utils.T("api.post.notification.here.warn"), result.Err)
+			return
+		} else {
+			statuses := result.Data.([]*model.Status)
+			for _, status := range statuses {
+				_, profileFound := profileMap[status.UserId]
+				_, alreadyAdded := mentionedUserIds[status.UserId]
+
+				if status.Status == model.STATUS_ONLINE && profileFound && !alreadyAdded {
+					mentionedUsersList = append(mentionedUsersList, status.UserId)
+					go updateMentionCount(post.ChannelId, status.UserId)
+				}
 			}
 		}
 	}
