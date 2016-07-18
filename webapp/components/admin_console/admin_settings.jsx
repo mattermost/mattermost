@@ -85,20 +85,26 @@ export default class AdminSettings extends React.Component {
         );
     }
 
-    parseInt(str) {
+    parseInt(str, defaultValue) {
         const n = parseInt(str, 10);
 
         if (isNaN(n)) {
+            if (defaultValue) {
+                return defaultValue;
+            }
             return 0;
         }
 
         return n;
     }
 
-    parseIntNonZero(str) {
+    parseIntNonZero(str, defaultValue) {
         const n = parseInt(str, 10);
 
         if (isNaN(n) || n < 1) {
+            if (defaultValue) {
+                return defaultValue;
+            }
             return 1;
         }
 

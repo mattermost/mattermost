@@ -764,6 +764,7 @@ export const Constants = {
         }
     },
     OVERLAY_TIME_DELAY: 400,
+    DEFAULT_MAX_USERS_PER_TEAM: 50,
     MIN_TEAMNAME_LENGTH: 4,
     MAX_TEAMNAME_LENGTH: 15,
     MIN_USERNAME_LENGTH: 3,
