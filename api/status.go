@@ -112,7 +112,7 @@ func SetStatusAwayIfNeeded(userId string) {
 		return
 	}
 
-	if model.GetMillis()-status.LastActivityAt <= *utils.Cfg.TeamSettings.UserStatusAwayTimeout*1000 {
+	if !IsUserAway(status.LastActivityAt) {
 		return
 	}
 
@@ -139,4 +139,8 @@ func GetStatus(userId string) (*model.Status, *model.AppError) {
 	} else {
 		return result.Data.(*model.Status), nil
 	}
+}
+
+func IsUserAway(lastActivityAt int64) bool {
+	return model.GetMillis()-lastActivityAt >= *utils.Cfg.TeamSettings.UserStatusAwayTimeout*1000
 }

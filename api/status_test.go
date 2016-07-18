@@ -94,6 +94,7 @@ func TestStatuses(t *testing.T) {
 	time.Sleep(1500 * time.Millisecond)
 
 	SetStatusAwayIfNeeded(th.BasicUser2.Id)
+	SetStatusAwayIfNeeded(th.BasicUser2.Id)
 
 	WebSocketClient2.Close()
 	time.Sleep(300 * time.Millisecond)

@@ -125,6 +125,8 @@ func main() {
 	if flagRunCmds {
 		runCmds()
 	} else {
+		resetStatuses()
+
 		api.StartServer()
 
 		// If we allow testing then listen for manual testing URL hits
@@ -134,7 +136,6 @@ func main() {
 
 		setDiagnosticId()
 		go runSecurityAndDiagnosticsJob()
-		go resetStatuses()
 
 		if complianceI := einterfaces.GetComplianceInterface(); complianceI != nil {
 			complianceI.StartComplianceDailyJob()
