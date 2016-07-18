@@ -161,7 +161,10 @@ export default class NavbarDropdown extends React.Component {
         if (isAdmin) {
             manageLink = (
                 <li>
-                    <ToggleModalButton dialogType={TeamMembersModal}>
+                    <ToggleModalButton
+                        dialogType={TeamMembersModal}
+                        dialogProps={{isAdmin}}
+                    >
                         <FormattedMessage
                             id='navbar_dropdown.manageMembers'
                             defaultMessage='Manage Members'
@@ -182,6 +185,20 @@ export default class NavbarDropdown extends React.Component {
                             defaultMessage='Team Settings'
                         />
                     </a>
+                </li>
+            );
+        } else {
+            manageLink = (
+                <li>
+                    <ToggleModalButton
+                        dialogType={TeamMembersModal}
+                        dialogProps={{isAdmin}}
+                    >
+                        <FormattedMessage
+                            id='navbar_dropdown.viewMembers'
+                            defaultMessage='View Members'
+                        />
+                    </ToggleModalButton>
                 </li>
             );
         }

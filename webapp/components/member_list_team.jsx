@@ -60,17 +60,23 @@ export default class MemberListTeam extends React.Component {
     }
 
     render() {
+        let teamMembersDropdown = null;
+        if (this.props.isAdmin) {
+            teamMembersDropdown = [TeamMembersDropdown];
+        }
+
         return (
             <FilteredUserList
                 style={this.props.style}
                 users={this.state.users}
                 teamMembers={this.state.teamMembers}
-                actions={[TeamMembersDropdown]}
+                actions={teamMembersDropdown}
             />
         );
     }
 }
 
 MemberListTeam.propTypes = {
-    style: React.PropTypes.object
+    style: React.PropTypes.object,
+    isAdmin: React.PropTypes.bool
 };

@@ -145,11 +145,16 @@ export default class ChannelMembersModal extends React.Component {
                 maxHeight = Utils.windowHeight() - 300;
             }
 
+            let removeButton = null;
+            if (this.props.isAdmin) {
+                removeButton = [this.createRemoveMemberButton];
+            }
+
             content = (
                 <FilteredUserList
                     style={{maxHeight}}
                     users={this.state.memberList}
-                    actions={[this.createRemoveMemberButton]}
+                    actions={removeButton}
                 />
             );
         }
@@ -218,5 +223,6 @@ ChannelMembersModal.defaultProps = {
 ChannelMembersModal.propTypes = {
     show: React.PropTypes.bool.isRequired,
     onModalDismissed: React.PropTypes.func.isRequired,
-    channel: React.PropTypes.object.isRequired
+    channel: React.PropTypes.object.isRequired,
+    isAdmin: React.PropTypes.bool.isRequired
 };
