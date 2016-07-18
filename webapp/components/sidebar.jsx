@@ -92,7 +92,7 @@ export default class Sidebar extends React.Component {
         const currentUserId = UserStore.getCurrentId();
 
         const channels = Object.assign([], ChannelStore.getAll());
-        channels.sort((a, b) => a.display_name.localeCompare(b.display_name));
+        channels.sort(this.sortChannelsByDisplayName);
 
         const publicChannels = channels.filter((channel) => channel.type === Constants.OPEN_CHANNEL);
         const privateChannels = channels.filter((channel) => channel.type === Constants.PRIVATE_CHANNEL);
@@ -363,6 +363,10 @@ export default class Sidebar extends React.Component {
     }
 
     sortChannelsByDisplayName(a, b) {
+        if (a.display_name === b.display_name) {
+            return a.name.localeCompare(b.name);
+        }
+
         return a.display_name.localeCompare(b.display_name);
     }
 
