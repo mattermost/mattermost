@@ -9,6 +9,7 @@ import LocalizationStore from './localization_store.jsx';
 
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
+const UserStatuses = Constants.UserStatuses;
 
 const CHANGE_EVENT_DM_LIST = 'change_dm_list';
 const CHANGE_EVENT = 'change';
@@ -292,18 +293,11 @@ class UserStoreClass extends EventEmitter {
     }
 
     setStatuses(statuses) {
-        this.pSetStatuses(statuses);
-        this.emitStatusesChange();
-    }
-
-    pSetStatuses(statuses) {
-        this.statuses = statuses;
+        this.statuses = Object.assign(this.statuses, statuses);
     }
 
     setStatus(userId, status) {
-        var statuses = this.getStatuses();
-        statuses[userId] = status;
-        this.pSetStatuses(statuses);
+        this.statuses[userId] = status;
         this.emitStatusesChange();
     }
 
@@ -312,7 +306,7 @@ class UserStoreClass extends EventEmitter {
     }
 
     getStatus(id) {
-        return this.getStatuses()[id];
+        return this.getStatuses()[id] || UserStatuses.OFFLINE;
     }
 
     getNoAccounts() {
@@ -370,7 +364,7 @@ UserStore.dispatchToken = AppDispatcher.register((payload) => {
         UserStore.emitAuditsChange();
         break;
     case ActionTypes.RECEIVED_STATUSES:
-        UserStore.pSetStatuses(action.statuses);
+        UserStore.setStatuses(action.statuses);
         UserStore.emitStatusesChange();
         break;
     default:

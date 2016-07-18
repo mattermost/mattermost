@@ -7,9 +7,7 @@ import (
 	"time"
 
 	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/utils"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/websocket"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
@@ -34,18 +32,7 @@ type WebConn struct {
 }
 
 func NewWebConn(c *Context, ws *websocket.Conn) *WebConn {
-	go func() {
-		achan := Srv.Store.User().UpdateUserAndSessionActivity(c.Session.UserId, c.Session.Token, model.GetMillis())
-		pchan := Srv.Store.User().UpdateLastPingAt(c.Session.UserId, model.GetMillis())
-
-		if result := <-achan; result.Err != nil {
-			l4g.Error(utils.T("api.web_conn.new_web_conn.last_activity.error"), c.Session.UserId, c.Session.Token, result.Err)
-		}
-
-		if result := <-pchan; result.Err != nil {
-			l4g.Error(utils.T("api.web_conn.new_web_conn.last_ping.error"), c.Session.UserId, result.Err)
-		}
-	}()
+	go SetStatusOnline(c.Session.UserId, c.Session.Id)
 
 	return &WebConn{
 		Send:                    make(chan model.WebSocketMessage, 64),
@@ -68,13 +55,7 @@ func (c *WebConn) readPump() {
 	c.WebSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
 	c.WebSocket.SetPongHandler(func(string) error {
 		c.WebSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
-
-		go func() {
-			if result := <-Srv.Store.User().UpdateLastPingAt(c.UserId, model.GetMillis()); result.Err != nil {
-				l4g.Error(utils.T("api.web_conn.new_web_conn.last_ping.error"), c.UserId, result.Err)
-			}
-		}()
-
+		go SetStatusAwayIfNeeded(c.UserId)
 		return nil
 	})
 

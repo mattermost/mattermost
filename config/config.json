@@ -40,7 +40,8 @@
         "RestrictDirectMessage": "any",
         "RestrictTeamInvite": "all",
         "RestrictPublicChannelManagement": "all",
-        "RestrictPrivateChannelManagement": "all"
+        "RestrictPrivateChannelManagement": "all",
+        "UserStatusAwayTimeout": 300
     },
     "SqlSettings": {
         "DriverName": "mysql",

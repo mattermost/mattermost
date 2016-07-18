@@ -67,9 +67,22 @@ func (h *Hub) Start() {
 				h.connections[webCon] = true
 
 			case webCon := <-h.unregister:
+				userId := webCon.UserId
 				if _, ok := h.connections[webCon]; ok {
 					delete(h.connections, webCon)
 					close(webCon.Send)
+				}
+
+				found := false
+				for webCon := range h.connections {
+					if userId == webCon.UserId {
+						found = true
+						break
+					}
+				}
+
+				if !found {
+					go SetStatusOffline(userId)
 				}
 			case userId := <-h.invalidateUser:
 				for webCon := range h.connections {

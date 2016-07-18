@@ -191,7 +191,8 @@ export const Constants = {
         USER_REMOVED: 'user_removed',
         TYPING: 'typing',
         PREFERENCE_CHANGED: 'preference_changed',
-        EPHEMERAL_MESSAGE: 'ephemeral_message'
+        EPHEMERAL_MESSAGE: 'ephemeral_message',
+        STATUS_CHANGED: 'status_change'
     },
 
     UserUpdateEvents: {
@@ -208,6 +209,12 @@ export const Constants = {
         SIDEBBAR_OPEN: 3,
         NEW_MESSAGE: 4,
         POST: 5
+    },
+
+    UserStatuses: {
+        OFFLINE: 'offline',
+        AWAY: 'away',
+        ONLINE: 'online'
     },
 
     SPECIAL_MENTIONS: ['all', 'channel'],

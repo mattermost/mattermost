@@ -29,6 +29,7 @@ import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import Client from 'utils/web_client.jsx';
 import Constants from 'utils/constants.jsx';
+const UserStatuses = Constants.UserStatuses;
 
 import {FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
@@ -189,6 +190,7 @@ export default class ChannelHeader extends React.Component {
             if (teammate) {
                 return UserStore.getStatus(teammate.id);
             }
+            return UserStatuses.OFFLINE;
         }
         return null;
     }

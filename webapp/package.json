@@ -18,7 +18,7 @@
     "keymirror": "0.1.1",
     "marked": "mattermost/marked#12d2be4cdf54d4ec95fead934e18840b6a2c1a7b",
     "match-at": "0.1.0",
-    "mattermost": "mattermost/mattermost-javascript#4cdaeba22ff82bf93dc417af1ab4e89e3248d624",
+    "mattermost": "mattermost/mattermost-javascript#84b6f1ebf33aa4b5d8e7ddd7be97d3f5bff5ed17",
     "object-assign": "4.1.0",
     "perfect-scrollbar": "0.6.12",
     "react": "15.2.1",

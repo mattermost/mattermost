@@ -669,9 +669,7 @@ func TestUserUpdate(t *testing.T) {
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
-	time1 := model.GetMillis()
-
-	user := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", LastActivityAt: time1, LastPingAt: time1, Roles: ""}
+	user := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", Roles: ""}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	LinkUserToTeam(user, team)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
@@ -683,15 +681,7 @@ func TestUserUpdate(t *testing.T) {
 	Client.Login(user.Email, "passwd1")
 	Client.SetTeamId(team.Id)
 
-	time.Sleep(100 * time.Millisecond)
-
-	time2 := model.GetMillis()
-
-	time.Sleep(100 * time.Millisecond)
-
 	user.Nickname = "Jim Jimmy"
-	user.LastActivityAt = time2
-	user.LastPingAt = time2
 	user.Roles = model.ROLE_TEAM_ADMIN
 	user.LastPasswordUpdate = 123
 
@@ -700,12 +690,6 @@ func TestUserUpdate(t *testing.T) {
 	} else {
 		if result.Data.(*model.User).Nickname != "Jim Jimmy" {
 			t.Fatal("Nickname did not update properly")
-		}
-		if result.Data.(*model.User).LastActivityAt == time2 {
-			t.Fatal("LastActivityAt should not have updated")
-		}
-		if result.Data.(*model.User).LastPingAt == time2 {
-			t.Fatal("LastPingAt should not have updated")
 		}
 		if result.Data.(*model.User).Roles != "" {
 			t.Fatal("Roles should not have updated")
@@ -1345,48 +1329,6 @@ func TestFuzzyUserCreate(t *testing.T) {
 
 		LinkUserToTeam(ruser.Data.(*model.User), rteam.Data.(*model.Team))
 	}
-}
-
-func TestStatuses(t *testing.T) {
-	th := Setup()
-	Client := th.CreateClient()
-
-	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	rteam, _ := Client.CreateTeam(&team)
-
-	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
-	ruser := Client.Must(Client.CreateUser(&user, "")).Data.(*model.User)
-	LinkUserToTeam(ruser, rteam.Data.(*model.Team))
-	store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
-
-	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
-	ruser2 := Client.Must(Client.CreateUser(&user2, "")).Data.(*model.User)
-	LinkUserToTeam(ruser2, rteam.Data.(*model.Team))
-	store.Must(Srv.Store.User().VerifyEmail(ruser2.Id))
-
-	Client.Login(user.Email, user.Password)
-	Client.SetTeamId(team.Id)
-
-	userIds := []string{ruser2.Id}
-
-	r1, err := Client.GetStatuses(userIds)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	statuses := r1.Data.(map[string]string)
-
-	if len(statuses) != 1 {
-		t.Log(statuses)
-		t.Fatal("invalid number of statuses")
-	}
-
-	for _, status := range statuses {
-		if status != model.USER_OFFLINE && status != model.USER_AWAY && status != model.USER_ONLINE {
-			t.Fatal("one of the statuses had an invalid value")
-		}
-	}
-
 }
 
 func TestEmailToOAuth(t *testing.T) {

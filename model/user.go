@@ -16,11 +16,6 @@ import (
 
 const (
 	ROLE_SYSTEM_ADMIN          = "system_admin"
-	USER_AWAY_TIMEOUT          = 5 * 60 * 1000 // 5 minutes
-	USER_OFFLINE_TIMEOUT       = 1 * 60 * 1000 // 1 minute
-	USER_OFFLINE               = "offline"
-	USER_AWAY                  = "away"
-	USER_ONLINE                = "online"
 	USER_NOTIFY_ALL            = "all"
 	USER_NOTIFY_MENTION        = "mention"
 	USER_NOTIFY_NONE           = "none"
@@ -44,8 +39,6 @@ type User struct {
 	FirstName          string    `json:"first_name"`
 	LastName           string    `json:"last_name"`
 	Roles              string    `json:"roles"`
-	LastActivityAt     int64     `json:"last_activity_at,omitempty"`
-	LastPingAt         int64     `json:"last_ping_at,omitempty"`
 	AllowMarketing     bool      `json:"allow_marketing,omitempty"`
 	Props              StringMap `json:"props,omitempty"`
 	NotifyProps        StringMap `json:"notify_props,omitempty"`
@@ -222,14 +215,6 @@ func (u *User) Etag(showFullName, showEmail bool) string {
 	return Etag(u.Id, u.UpdateAt, showFullName, showEmail)
 }
 
-func (u *User) IsOffline() bool {
-	return (GetMillis()-u.LastPingAt) > USER_OFFLINE_TIMEOUT && (GetMillis()-u.LastActivityAt) > USER_OFFLINE_TIMEOUT
-}
-
-func (u *User) IsAway() bool {
-	return (GetMillis() - u.LastActivityAt) > USER_AWAY_TIMEOUT
-}
-
 // Remove any private data from the user object
 func (u *User) Sanitize(options map[string]bool) {
 	u.Password = ""
@@ -258,7 +243,6 @@ func (u *User) ClearNonProfileFields() {
 	u.MfaActive = false
 	u.MfaSecret = ""
 	u.EmailVerified = false
-	u.LastPingAt = 0
 	u.AllowMarketing = false
 	u.Props = StringMap{}
 	u.NotifyProps = StringMap{}

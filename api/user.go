@@ -54,7 +54,6 @@ func InitUser() {
 	BaseRoutes.Users.Handle("/newimage", ApiUserRequired(uploadProfileImage)).Methods("POST")
 	BaseRoutes.Users.Handle("/me", ApiAppHandler(getMe)).Methods("GET")
 	BaseRoutes.Users.Handle("/initial_load", ApiAppHandler(getInitialLoad)).Methods("GET")
-	BaseRoutes.Users.Handle("/status", ApiUserRequiredActivity(getStatuses, false)).Methods("POST")
 	BaseRoutes.Users.Handle("/direct_profiles", ApiUserRequired(getDirectProfiles)).Methods("GET")
 	BaseRoutes.Users.Handle("/profiles/{id:[A-Za-z0-9]+}", ApiUserRequired(getProfiles)).Methods("GET")
 	BaseRoutes.Users.Handle("/profiles_for_dm_list/{id:[A-Za-z0-9]+}", ApiUserRequired(getProfilesForDirectMessageList)).Methods("GET")
@@ -1955,35 +1954,6 @@ func updateUserNotify(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIds := model.ArrayFromJson(r.Body)
-	if len(userIds) == 0 {
-		c.SetInvalidParam("getStatuses", "userIds")
-		return
-	}
-
-	if result := <-Srv.Store.User().GetProfileByIds(userIds); result.Err != nil {
-		c.Err = result.Err
-		return
-	} else {
-		profiles := result.Data.(map[string]*model.User)
-
-		statuses := map[string]string{}
-		for _, profile := range profiles {
-			if profile.IsOffline() {
-				statuses[profile.Id] = model.USER_OFFLINE
-			} else if profile.IsAway() {
-				statuses[profile.Id] = model.USER_AWAY
-			} else {
-				statuses[profile.Id] = model.USER_ONLINE
-			}
-		}
-
-		w.Write([]byte(model.MapToJson(statuses)))
-		return
-	}
-}
-
 func IsUsernameTaken(name string) bool {
 
 	if !model.IsValidUsername(name) {
@@ -2312,7 +2282,7 @@ func resendVerification(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = error
 		return
 	} else {
-		if user.LastActivityAt > 0 {
+		if _, err := GetStatus(user.Id); err != nil {
 			go SendEmailChangeVerifyEmail(c, user.Id, user.Email, c.GetSiteURL())
 		} else {
 			go SendVerifyEmail(c, user.Id, user.Email, c.GetSiteURL())
@@ -2551,11 +2521,11 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func userTyping(req *model.WebSocketRequest, responseData map[string]interface{}) *model.AppError {
+func userTyping(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
 	var ok bool
 	var channelId string
 	if channelId, ok = req.Data["channel_id"].(string); !ok || len(channelId) != 26 {
-		return NewInvalidWebSocketParamError(req.Action, "channel_id")
+		return nil, NewInvalidWebSocketParamError(req.Action, "channel_id")
 	}
 
 	var parentId string
@@ -2567,5 +2537,5 @@ func userTyping(req *model.WebSocketRequest, responseData map[string]interface{}
 	event.Add("parent_id", parentId)
 	go Publish(event)
 
-	return nil
+	return nil, nil
 }

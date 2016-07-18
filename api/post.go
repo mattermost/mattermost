@@ -597,7 +597,13 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 		for _, id := range mentionedUsersList {
 			userAllowsEmails := profileMap[id].NotifyProps["email"] != "false"
 
-			if userAllowsEmails && (profileMap[id].IsAway() || profileMap[id].IsOffline()) {
+			var status *model.Status
+			var err *model.AppError
+			if status, err = GetStatus(id); err != nil {
+				status = &model.Status{id, model.STATUS_OFFLINE, 0}
+			}
+
+			if userAllowsEmails && status.Status != model.STATUS_ONLINE {
 				sendNotificationEmail(c, post, profileMap[id], channel, team, senderName)
 			}
 		}

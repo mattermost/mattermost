@@ -2,6 +2,9 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
+
+import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import PostStore from 'stores/post_store.jsx';
@@ -14,12 +17,14 @@ import Client from 'utils/web_client.jsx';
 import WebSocketClient from 'utils/websocket_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
+
 import * as GlobalActions from 'actions/global_actions.jsx';
 import * as UserActions from 'actions/user_actions.jsx';
 import {handleNewPost} from 'actions/post_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 const SocketEvents = Constants.SocketEvents;
+const ActionTypes = Constants.ActionTypes;
 
 import {browserHistory} from 'react-router/es6';
 
@@ -34,10 +39,10 @@ export function initialize() {
 
         const connUrl = protocol + location.host + ((/:\d+/).test(location.host) ? '' : Utils.getWebsocketPort(protocol)) + Client.getUsersRoute() + '/websocket';
 
-        WebSocketClient.initialize(connUrl);
         WebSocketClient.setEventCallback(handleEvent);
         WebSocketClient.setReconnectCallback(handleReconnect);
         WebSocketClient.setCloseCallback(handleClose);
+        WebSocketClient.initialize(connUrl);
     }
 }
 
@@ -45,9 +50,21 @@ export function close() {
     WebSocketClient.close();
 }
 
+export function getStatuses() {
+    WebSocketClient.getStatuses(
+        (resp) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_STATUSES,
+                statuses: resp.data
+            });
+        }
+    );
+}
+
 function handleReconnect() {
     AsyncClient.getChannels();
     AsyncClient.getPosts(ChannelStore.getCurrentId());
+    getStatuses();
     ErrorStore.clearLastError();
     ErrorStore.emitChange();
 }
@@ -110,6 +127,10 @@ function handleEvent(msg) {
 
     case SocketEvents.TYPING:
         handleUserTypingEvent(msg);
+        break;
+
+    case SocketEvents.STATUS_CHANGED:
+        handleStatusChangedEvent(msg);
         break;
 
     default:
@@ -217,4 +238,8 @@ function handlePreferenceChangedEvent(msg) {
 
 function handleUserTypingEvent(msg) {
     GlobalActions.emitRemoteUserTypingEvent(msg.channel_id, msg.user_id, msg.data.parent_id);
+}
+
+function handleStatusChangedEvent(msg) {
+    UserStore.setStatus(msg.user_id, msg.data.status);
 }
