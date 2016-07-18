@@ -139,10 +139,10 @@ class MattermostMarkdownRenderer extends marked.Renderer {
             const unescaped = decodeURIComponent(unescape(href)).replace(/[^\w:]/g, '').toLowerCase();
 
             if (unescaped.indexOf('javascript:') === 0 || unescaped.indexOf('vbscript:') === 0 || unescaped.indexOf('data:') === 0) { // eslint-disable-line no-script-url
-                return '';
+                return text;
             }
         } catch (e) {
-            return '';
+            return text;
         }
 
         if (!(/[a-z+.-]+:/i).test(outHref)) {
