@@ -10,6 +10,13 @@ import React from 'react';
 import icon50 from 'images/icon50x50.png';
 
 export default class Authorize extends React.Component {
+    static get propTypes() {
+        return {
+            location: React.PropTypes.object.isRequired,
+            params: React.PropTypes.object.isRequired
+        };
+    }
+
     constructor(props) {
         super(props);
 
@@ -18,17 +25,31 @@ export default class Authorize extends React.Component {
 
         this.state = {};
     }
-    handleAllow() {
-        const responseType = this.props.responseType;
-        const clientId = this.props.clientId;
-        const redirectUri = this.props.redirectUri;
-        const state = this.props.state;
-        const scope = this.props.scope;
 
-        Client.allowOAuth2(responseType, clientId, redirectUri, state, scope,
+    componentWillMount() {
+        Client.getOAuthAppInfo(
+            this.props.location.query.client_id,
+            (app) => {
+                this.setState({app});
+            }
+        );
+    }
+
+    componentDidMount() {
+        // if we get to this point remove the antiClickjack blocker
+        const blocker = document.getElementById('antiClickjack');
+        if (blocker) {
+            blocker.parentNode.removeChild(blocker);
+        }
+    }
+
+    handleAllow() {
+        const params = this.props.location.query;
+
+        Client.allowOAuth2(params.response_type, params.client_id, params.redirect_uri, params.state, params.scope,
             (data) => {
                 if (data.redirect) {
-                    window.location.replace(data.redirect);
+                    window.location.href = data.redirect;
                 }
             },
             () => {
@@ -36,28 +57,42 @@ export default class Authorize extends React.Component {
             }
         );
     }
+
     handleDeny() {
-        window.location.replace(this.props.redirectUri + '?error=access_denied');
+        window.location.replace(this.props.location.query.redirect_uri + '?error=access_denied');
     }
+
     render() {
+        const app = this.state.app;
+        if (!app) {
+            return null;
+        }
+
+        let icon;
+        if (app.icon_url) {
+            icon = app.icon_url;
+        } else {
+            icon = icon50;
+        }
+
         return (
             <div className='container-fluid'>
                 <div className='prompt'>
                     <div className='prompt__heading'>
                         <div className='prompt__app-icon'>
                             <img
-                                src={icon50}
+                                src={icon}
                                 width='50'
                                 height='50'
                                 alt=''
                             />
                         </div>
                         <div className='text'>
-                            <FormattedMessage
+                            <FormattedHTMLMessage
                                 id='authorize.title'
-                                defaultMessage='An application would like to connect to your {teamName} account'
+                                defaultMessage='<strong>{appName}</strong> would like to connect to your <strong>Mattermost</strong> user account'
                                 values={{
-                                    teamName: this.props.teamName
+                                    appName: app.name
                                 }}
                             />
                         </div>
@@ -67,7 +102,7 @@ export default class Authorize extends React.Component {
                             id='authorize.app'
                             defaultMessage='The app <strong>{appName}</strong> would like the ability to access and modify your basic information.'
                             values={{
-                                appName: this.props.appName
+                                appName: app.name
                             }}
                         />
                     </p>
@@ -76,7 +111,7 @@ export default class Authorize extends React.Component {
                             id='authorize.access'
                             defaultMessage='Allow <strong>{appName}</strong> access?'
                             values={{
-                                appName: this.props.appName
+                                appName: app.name
                             }}
                         />
                     </h2>
@@ -107,13 +142,3 @@ export default class Authorize extends React.Component {
         );
     }
 }
-
-Authorize.propTypes = {
-    appName: React.PropTypes.string,
-    teamName: React.PropTypes.string,
-    responseType: React.PropTypes.string,
-    clientId: React.PropTypes.string,
-    redirectUri: React.PropTypes.string,
-    state: React.PropTypes.string,
-    scope: React.PropTypes.string
-};

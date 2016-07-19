@@ -1446,6 +1446,8 @@ func (c *Client) GetTeamMembers(teamId string) (*Result, *AppError) {
 	}
 }
 
+// RegisterApp creates a new OAuth2 app to be used with the OAuth2 Provider. On success
+// it returns the created app. Must be authenticated as a user.
 func (c *Client) RegisterApp(app *OAuthApp) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/oauth/register", app.ToJson()); err != nil {
 		return nil, err
@@ -1456,6 +1458,9 @@ func (c *Client) RegisterApp(app *OAuthApp) (*Result, *AppError) {
 	}
 }
 
+// AllowOAuth allows a new session by an OAuth2 App. On success
+// it returns the url to be redirected back to the app which initiated the oauth2 flow.
+// Must be authenticated as a user.
 func (c *Client) AllowOAuth(rspType, clientId, redirect, scope, state string) (*Result, *AppError) {
 	if r, err := c.DoApiGet("/oauth/allow?response_type="+rspType+"&client_id="+clientId+"&redirect_uri="+url.QueryEscape(redirect)+"&scope="+scope+"&state="+url.QueryEscape(state), "", ""); err != nil {
 		return nil, err
@@ -1466,8 +1471,47 @@ func (c *Client) AllowOAuth(rspType, clientId, redirect, scope, state string) (*
 	}
 }
 
+// GetOAuthAppsByUser returns the OAuth2 Apps registered by the user. On success
+// it returns a list of OAuth2 Apps from the same user or all the registered apps if the user
+// is a System Administrator. Must be authenticated as a user.
+func (c *Client) GetOAuthAppsByUser() (*Result, *AppError) {
+	if r, err := c.DoApiGet("/oauth/list", "", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), OAuthAppListFromJson(r.Body)}, nil
+	}
+}
+
+// GetOAuthAppInfo lookup an OAuth2 App using the client_id. On success
+// it returns a Sanitized OAuth2 App. Must be authenticated as a user.
+func (c *Client) GetOAuthAppInfo(clientId string) (*Result, *AppError) {
+	if r, err := c.DoApiGet("/oauth/app/"+clientId, "", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), OAuthAppFromJson(r.Body)}, nil
+	}
+}
+
+// DeleteOAuthApp deletes an OAuth2 app, the app must be deleted by the same user who created it or
+// a System Administrator. On success returs Status OK. Must be authenticated as a user.
+func (c *Client) DeleteOAuthApp(id string) (*Result, *AppError) {
+	data := make(map[string]string)
+	data["id"] = id
+	if r, err := c.DoApiPost("/oauth/delete", MapToJson(data)); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) GetAccessToken(data url.Values) (*Result, *AppError) {
-	if r, err := c.DoApiPost("/oauth/access_token", data.Encode()); err != nil {
+	if r, err := c.DoPost(API_URL_SUFFIX+"/oauth/access_token", data.Encode(), "application/x-www-form-urlencoded"); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)

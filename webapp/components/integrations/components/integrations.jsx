@@ -7,6 +7,7 @@ import {FormattedMessage} from 'react-intl';
 import IntegrationOption from './integration_option.jsx';
 
 import WebhookIcon from 'images/webhook_icon.jpg';
+import AppIcon from 'images/oauth_icon.png';
 
 export default class Integrations extends React.Component {
     static get propTypes() {
@@ -17,8 +18,9 @@ export default class Integrations extends React.Component {
 
     render() {
         const options = [];
+        const config = window.mm_config;
 
-        if (window.mm_config.EnableIncomingWebhooks === 'true') {
+        if (config.EnableIncomingWebhooks === 'true') {
             options.push(
                 <IntegrationOption
                     key='incomingWebhook'
@@ -40,7 +42,7 @@ export default class Integrations extends React.Component {
             );
         }
 
-        if (window.mm_config.EnableOutgoingWebhooks === 'true') {
+        if (config.EnableOutgoingWebhooks === 'true') {
             options.push(
                 <IntegrationOption
                     key='outgoingWebhook'
@@ -62,7 +64,7 @@ export default class Integrations extends React.Component {
             );
         }
 
-        if (window.mm_config.EnableCommands === 'true') {
+        if (config.EnableCommands === 'true') {
             options.push(
                 <IntegrationOption
                     key='command'
@@ -80,6 +82,28 @@ export default class Integrations extends React.Component {
                         />
                     }
                     link={'/' + this.props.team.name + '/integrations/commands'}
+                />
+            );
+        }
+
+        if (config.EnableOAuthServiceProvider === 'true') {
+            options.push(
+                <IntegrationOption
+                    key='oauth2Apps'
+                    image={AppIcon}
+                    title={
+                        <FormattedMessage
+                            id='integrations.oauthApps.title'
+                            defaultMessage='OAuth2 Apps'
+                        />
+                    }
+                    description={
+                        <FormattedMessage
+                            id='integrations.oauthApps.description'
+                            defaultMessage='OAuth2 Apps allow external applications to authenticate users using Mattermost user accounts'
+                        />
+                    }
+                    link={'/' + this.props.team.name + '/integrations/oauth2-apps'}
                 />
             );
         }

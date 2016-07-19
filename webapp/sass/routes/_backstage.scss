@@ -216,6 +216,7 @@
     border-bottom: 1px solid $light-gray;
     display: flex;
     padding: 20px 15px;
+    position: relative;
 
     &:last-child {
         border: none;
@@ -276,6 +277,7 @@
     background-color: $white;
     border: 1px solid $light-gray;
     padding: 40px 30px 30px;
+    position: relative;
 
     label {
         font-weight: normal;
@@ -320,6 +322,17 @@
     .has-error {
         float: left;
         margin: 0;
+    }
+}
+
+.integration__icon {
+    position: absolute;
+    height: 100px;
+    width: 100px;
+    right: 20px;
+
+    &.integration-list__icon {
+        top: 50px;
     }
 }
 

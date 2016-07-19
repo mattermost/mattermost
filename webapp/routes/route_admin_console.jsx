@@ -146,6 +146,10 @@ export default (
                 path='external'
                 component={ExternalServiceSettings}
             />
+            <Route
+                path='oauth2'
+                component={OAuthSettings}
+            />
         </Route>
         <Route path='files'>
             <IndexRedirect to='storage'/>

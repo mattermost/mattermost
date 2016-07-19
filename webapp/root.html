@@ -34,20 +34,13 @@
 
     <!-- CSS Should always go first -->
     <link rel='stylesheet' class='code_theme'>
-    <style id='antiClickjack'>body{display:none !important;}</style>
 
-    <script type='text/javascript'>
-        if (self === top) {
-            var blocker = document.getElementById('antiClickjack');
-            blocker.parentNode.removeChild(blocker);
-        }
-    </script>
 </head>
 <body>
     <div id='root'>
         <div
             class='loading-screen'
-            style='relative'
+            style='position: relative'
         >
             <div class='loading__content'>
                 <div class='round round-1'></div>

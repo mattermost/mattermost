@@ -2484,15 +2484,23 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	action := r.URL.Query().Get("action")
+	redirectTo := r.URL.Query().Get("redirect_to")
+	relayProps := map[string]string{}
 	relayState := ""
 
 	if len(action) != 0 {
-		relayProps := map[string]string{}
 		relayProps["team_id"] = teamId
 		relayProps["action"] = action
 		if action == model.OAUTH_ACTION_EMAIL_TO_SSO {
 			relayProps["email"] = r.URL.Query().Get("email")
 		}
+	}
+
+	if len(redirectTo) != 0 {
+		relayProps["redirect_to"] = redirectTo
+	}
+
+	if len(relayProps) > 0 {
 		relayState = b64.StdEncoding.EncodeToString([]byte(model.MapToJson(relayProps)))
 	}
 
@@ -2555,6 +2563,11 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			break
 		}
 		doLogin(c, w, r, user, "")
+
+		if val, ok := relayProps["redirect_to"]; ok {
+			http.Redirect(w, r, c.GetSiteURL()+val, http.StatusFound)
+			return
+		}
 		http.Redirect(w, r, GetProtocol(r)+"://"+r.Host, http.StatusFound)
 	}
 }

@@ -22,6 +22,9 @@ const (
 	PREFERENCE_CATEGORY_THEME = "theme"
 	// the name for theme props is the team id
 
+	PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP = "oauth_app"
+	// the name for oauth_app is the client_id and value is the current scope
+
 	PREFERENCE_CATEGORY_LAST     = "last"
 	PREFERENCE_NAME_LAST_CHANNEL = "channel"
 )

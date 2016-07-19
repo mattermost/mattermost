@@ -25,8 +25,10 @@ type OAuthApp struct {
 	ClientSecret string      `json:"client_secret"`
 	Name         string      `json:"name"`
 	Description  string      `json:"description"`
+	IconURL      string      `json:"icon_url"`
 	CallbackUrls StringArray `json:"callback_urls"`
 	Homepage     string      `json:"homepage"`
+	IsTrusted    bool        `json:"is_trusted"`
 }
 
 // IsValid validates the app and returns an error if it isn't configured
@@ -61,12 +63,18 @@ func (a *OAuthApp) IsValid() *AppError {
 		return NewLocAppError("OAuthApp.IsValid", "model.oauth.is_valid.callback.app_error", nil, "app_id="+a.Id)
 	}
 
-	if len(a.Homepage) == 0 || len(a.Homepage) > 256 {
+	if len(a.Homepage) == 0 || len(a.Homepage) > 256 || !IsValidHttpUrl(a.Homepage) {
 		return NewLocAppError("OAuthApp.IsValid", "model.oauth.is_valid.homepage.app_error", nil, "app_id="+a.Id)
 	}
 
 	if utf8.RuneCountInString(a.Description) > 512 {
 		return NewLocAppError("OAuthApp.IsValid", "model.oauth.is_valid.description.app_error", nil, "app_id="+a.Id)
+	}
+
+	if len(a.IconURL) > 0 {
+		if len(a.IconURL) > 512 || !IsValidHttpUrl(a.IconURL) {
+			return NewLocAppError("OAuthApp.IsValid", "model.oauth.is_valid.icon_url.app_error", nil, "app_id="+a.Id)
+		}
 	}
 
 	return nil
@@ -85,10 +93,6 @@ func (a *OAuthApp) PreSave() {
 
 	a.CreateAt = GetMillis()
 	a.UpdateAt = a.CreateAt
-
-	if len(a.ClientSecret) > 0 {
-		a.ClientSecret = HashPassword(a.ClientSecret)
-	}
 }
 
 // PreUpdate should be run before updating the app in the db.
@@ -153,6 +157,26 @@ func OAuthAppMapFromJson(data io.Reader) map[string]*OAuthApp {
 	err := decoder.Decode(&apps)
 	if err == nil {
 		return apps
+	} else {
+		return nil
+	}
+}
+
+func OAuthAppListToJson(l []*OAuthApp) string {
+	b, err := json.Marshal(l)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
+func OAuthAppListFromJson(data io.Reader) []*OAuthApp {
+	decoder := json.NewDecoder(data)
+	var o []*OAuthApp
+	err := decoder.Decode(&o)
+	if err == nil {
+		return o
 	} else {
 		return nil
 	}
