@@ -158,21 +158,14 @@ export default class NavbarDropdown extends React.Component {
             }
         }
 
-        if (isAdmin) {
-            manageLink = (
-                <li>
-                    <ToggleModalButton
-                        dialogType={TeamMembersModal}
-                        dialogProps={{isAdmin}}
-                    >
-                        <FormattedMessage
-                            id='navbar_dropdown.manageMembers'
-                            defaultMessage='Manage Members'
-                        />
-                    </ToggleModalButton>
-                </li>
-            );
+        let membersName = (
+            <FormattedMessage
+                id='navbar_dropdown.manageMembers'
+                defaultMessage='Manage Members'
+            />
+        );
 
+        if (isAdmin) {
             teamSettings = (
                 <li>
                     <a
@@ -188,20 +181,24 @@ export default class NavbarDropdown extends React.Component {
                 </li>
             );
         } else {
-            manageLink = (
-                <li>
-                    <ToggleModalButton
-                        dialogType={TeamMembersModal}
-                        dialogProps={{isAdmin}}
-                    >
-                        <FormattedMessage
-                            id='navbar_dropdown.viewMembers'
-                            defaultMessage='View Members'
-                        />
-                    </ToggleModalButton>
-                </li>
+            membersName = (
+                <FormattedMessage
+                    id='navbar_dropdown.viewMembers'
+                    defaultMessage='View Members'
+                />
             );
         }
+
+        manageLink = (
+            <li>
+                <ToggleModalButton
+                    dialogType={TeamMembersModal}
+                    dialogProps={{isAdmin}}
+                >
+                    {membersName}
+                </ToggleModalButton>
+            </li>
+        );
 
         const integrationsEnabled =
             window.mm_config.EnableIncomingWebhooks === 'true' ||
