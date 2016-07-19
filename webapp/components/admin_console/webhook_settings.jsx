@@ -5,7 +5,7 @@ import React from 'react';
 
 import AdminSettings from './admin_settings.jsx';
 import BooleanSetting from './boolean_setting.jsx';
-import {FormattedMessage} from 'react-intl';
+import {FormattedHTMLMessage, FormattedMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 
 export default class WebhookSettings extends AdminSettings {
@@ -62,7 +62,7 @@ export default class WebhookSettings extends AdminSettings {
                         />
                     }
                     helpText={
-                        <FormattedMessage
+                        <FormattedHTMLMessage
                             id='admin.service.webhooksDescription'
                             defaultMessage='When true, incoming webhooks will be allowed. To help combat phishing attacks, all posts from webhooks will be labelled by a BOT tag. See <a href="http://docs.mattermost.com/developer/webhooks-incoming.html" target="_blank">documentation</a> to learn more.'
                         />
@@ -79,7 +79,7 @@ export default class WebhookSettings extends AdminSettings {
                         />
                     }
                     helpText={
-                        <FormattedMessage
+                        <FormattedHTMLMessage
                             id='admin.service.outWebhooksDesc'
                             defaultMessage='When true, outgoing webhooks will be allowed. See <a href="http://docs.mattermost.com/developer/webhooks-outgoing.html" target="_blank">documentation</a> to learn more.'
                         />
@@ -96,7 +96,7 @@ export default class WebhookSettings extends AdminSettings {
                         />
                     }
                     helpText={
-                        <FormattedMessage
+                        <FormattedHTMLMessage
                             id='admin.service.cmdsDesc'
                             defaultMessage='When true, custom slash commands will be allowed. See <a href="http://docs.mattermost.com/developer/slash-commands.html" target="_blank">documentation</a> to learn more.'
                         />
