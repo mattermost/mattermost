@@ -535,9 +535,8 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 			return model.SplitRunes[c]
 		}
 		splitMessage := strings.Fields(post.Message)
+		var userIds []string
 		for _, word := range splitMessage {
-			var userIds []string
-
 			// Non-case-sensitive check for regular keys
 			if ids, match := keywordMap[strings.ToLower(word)]; match {
 				userIds = append(userIds, ids...)
@@ -565,14 +564,30 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 					}
 				}
 			}
+		}
 
-			for _, userId := range userIds {
-				if post.UserId == userId && post.Props["from_webhook"] != "true" {
-					continue
+		if len(post.RootId) > 0 {
+			if result := <-Srv.Store.Post().Get(post.RootId); result.Err != nil {
+				l4g.Error(utils.T("api.post.send_notifications_and_forget.comment_thread.error"), post.RootId, result.Err)
+				return
+			} else {
+				list := result.Data.(*model.PostList)
+
+				for _, threadPost := range list.Posts {
+					profile := profileMap[threadPost.UserId]
+					if profile.NotifyProps["comments"] == "any" || (profile.NotifyProps["comments"] == "root" && threadPost.Id == list.Order[0]) {
+						userIds = append(userIds, threadPost.UserId)
+					}
 				}
-
-				mentionedUserIds[userId] = true
 			}
+		}
+
+		for _, userId := range userIds {
+			if post.UserId == userId && post.Props["from_webhook"] != "true" {
+				continue
+			}
+
+			mentionedUserIds[userId] = true
 		}
 
 		for id := range mentionedUserIds {

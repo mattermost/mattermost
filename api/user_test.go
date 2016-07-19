@@ -1247,6 +1247,7 @@ func TestUserUpdateNotify(t *testing.T) {
 	data["email"] = "true"
 	data["desktop"] = "all"
 	data["desktop_sound"] = "false"
+	data["comments"] = "any"
 
 	if _, err := Client.UpdateUserNotify(data); err == nil {
 		t.Fatal("Should have errored - not logged in")
@@ -1266,6 +1267,9 @@ func TestUserUpdateNotify(t *testing.T) {
 		}
 		if result.Data.(*model.User).NotifyProps["email"] != data["email"] {
 			t.Fatal("NotifyProps did not update properly - email")
+		}
+		if result.Data.(*model.User).NotifyProps["comments"] != data["comments"] {
+			t.Fatal("NotifyProps did not update properly - comments")
 		}
 	}
 
@@ -1299,6 +1303,12 @@ func TestUserUpdateNotify(t *testing.T) {
 	data["email"] = ""
 	if _, err := Client.UpdateUserNotify(data); err == nil {
 		t.Fatal("Should have errored - empty email")
+	}
+
+	data["email"] = "true"
+	data["comments"] = ""
+	if _, err := Client.UpdateUserNotify(data); err == nil {
+		t.Fatal("Should have errored - empty comments")
 	}
 }
 
