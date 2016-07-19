@@ -227,3 +227,18 @@ This text should be on a new line.
 1. [ ] One
 2. [ ] Two
 3. [x] Completed item
+
+### Multiple Lists
+
+**Expected:**
+```
+List A:
+1. One
+List B:
+2. Two
+```
+
+List A:
+1. One
+List B:
+2. Two
