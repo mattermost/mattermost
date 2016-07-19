@@ -7,7 +7,7 @@ import UserStore from 'stores/user_store.jsx';
 import {Popover, Overlay} from 'react-bootstrap';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 
 import {FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';

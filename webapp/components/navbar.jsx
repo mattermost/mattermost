@@ -21,7 +21,7 @@ import TeamStore from 'stores/team_store.jsx';
 
 import ChannelSwitchModal from './channel_switch_modal.jsx';
 
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 

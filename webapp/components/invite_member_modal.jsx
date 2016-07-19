@@ -5,7 +5,7 @@ import ReactDOM from 'react-dom';
 import * as utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import ModalStore from 'stores/modal_store.jsx';
 import UserStore from 'stores/user_store.jsx';

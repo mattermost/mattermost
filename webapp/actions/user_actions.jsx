@@ -3,7 +3,7 @@
 
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 
 import PreferenceStore from 'stores/preference_store.jsx';
 import TeamStore from 'stores/team_store.jsx';

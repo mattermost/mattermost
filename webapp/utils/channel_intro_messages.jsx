@@ -11,7 +11,7 @@ import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import Constants from 'utils/constants.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 
 import React from 'react';
 import {FormattedMessage, FormattedHTMLMessage, FormattedDate} from 'react-intl';

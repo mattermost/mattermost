@@ -363,6 +363,11 @@ type TeamForUpgrade struct {
 
 func setupClientTests() {
 	*utils.Cfg.TeamSettings.EnableOpenServer = true
+	*utils.Cfg.ServiceSettings.EnableCommands = false
+	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+	*utils.Cfg.ServiceSettings.EnableCustomEmoji = true
+	utils.Cfg.ServiceSettings.EnableIncomingWebhooks = false
+	utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = false
 }
 
 func executeTestCommand(cmd *exec.Cmd) {
@@ -391,24 +396,11 @@ func runWebClientTests() {
 	executeTestCommand(cmd)
 }
 
-func runJavascriptClientTests() {
-	os.Chdir("../mattermost-driver-javascript")
-	cmd := exec.Command("npm", "test")
-	executeTestCommand(cmd)
-}
-
 func cmdRunClientTests() {
 	if flagCmdRunWebClientTests {
-		api.StartServer()
 		setupClientTests()
+		api.StartServer()
 		runWebClientTests()
-		api.StopServer()
-	}
-
-	if flagCmdRunJavascriptClientTests {
-		api.StartServer()
-		setupClientTests()
-		runJavascriptClientTests()
 		api.StopServer()
 	}
 }

@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
-import Client from './web_client.jsx';
+import Client from 'client/web_client.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import BrowserStore from 'stores/browser_store.jsx';

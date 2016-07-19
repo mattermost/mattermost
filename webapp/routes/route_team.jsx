@@ -11,7 +11,7 @@ import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 import * as AsyncClient from 'utils/async_client.jsx';
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 

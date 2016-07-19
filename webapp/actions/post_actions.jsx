@@ -12,7 +12,7 @@ import * as PostUtils from 'utils/post_utils.jsx';
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 
 export function handleNewPost(post, msg) {

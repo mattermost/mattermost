@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import AdminStore from 'stores/admin_store.jsx';
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 import FormError from 'components/form_error.jsx';
 import LoadingScreen from '../loading_screen.jsx';
 import UserItem from './user_item.jsx';

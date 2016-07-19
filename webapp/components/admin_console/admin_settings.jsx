@@ -4,7 +4,7 @@
 import React from 'react';
 
 import * as AsyncClient from 'utils/async_client.jsx';
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 
 import FormError from 'components/form_error.jsx';
 import SaveButton from 'components/admin_console/save_button.jsx';

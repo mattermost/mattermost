@@ -11,7 +11,7 @@ import TeamStore from 'stores/team_store.jsx';
 import Constants from 'utils/constants.jsx';
 var ActionTypes = Constants.ActionTypes;
 import * as AsyncClient from './async_client.jsx';
-import Client from './web_client.jsx';
+import Client from 'client/web_client.jsx';
 
 import {browserHistory} from 'react-router/es6';
 import {FormattedMessage} from 'react-intl';

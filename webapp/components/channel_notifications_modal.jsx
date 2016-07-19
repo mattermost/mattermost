@@ -6,7 +6,7 @@ import {Modal} from 'react-bootstrap';
 import SettingItemMin from './setting_item_min.jsx';
 import SettingItemMax from './setting_item_max.jsx';
 
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 
 import {FormattedMessage} from 'react-intl';

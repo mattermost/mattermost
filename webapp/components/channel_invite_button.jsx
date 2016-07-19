@@ -4,7 +4,7 @@
 import React from 'react';
 
 import * as AsyncClient from 'utils/async_client.jsx';
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 
 import {FormattedMessage} from 'react-intl';
 import SpinnerButton from 'components/spinner_button.jsx';

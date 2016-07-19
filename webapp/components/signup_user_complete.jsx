@@ -11,7 +11,7 @@ import BrowserStore from 'stores/browser_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
 import * as Utils from 'utils/utils.jsx';
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 import Constants from 'utils/constants.jsx';
 
 import React from 'react';

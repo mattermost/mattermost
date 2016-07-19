@@ -4,7 +4,7 @@
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import * as AsyncClient from 'utils/async_client.jsx';
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 import Constants from 'utils/constants.jsx';
 import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
 import PreferenceStore from 'stores/preference_store.jsx';

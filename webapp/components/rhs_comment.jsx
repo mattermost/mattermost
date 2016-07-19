@@ -12,7 +12,7 @@ import * as GlobalActions from 'actions/global_actions.jsx';
 
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as Utils from 'utils/utils.jsx';
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 
 import Constants from 'utils/constants.jsx';
 

@@ -4,7 +4,7 @@
 import ReactDOM from 'react-dom';
 import TeamStore from 'stores/team_store.jsx';
 import * as Utils from 'utils/utils.jsx';
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import Constants from 'utils/constants.jsx';
 

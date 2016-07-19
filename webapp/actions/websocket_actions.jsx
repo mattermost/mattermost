@@ -13,8 +13,8 @@ import BrowserStore from 'stores/browser_store.jsx';
 import ErrorStore from 'stores/error_store.jsx';
 import NotificationStore from 'stores/notification_store.jsx'; //eslint-disable-line no-unused-vars
 
-import Client from 'utils/web_client.jsx';
-import WebSocketClient from 'utils/websocket_client.jsx';
+import Client from 'client/web_client.jsx';
+import WebSocketClient from 'client/web_websocket_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 
