@@ -6,6 +6,7 @@ const es = require('!!file?name=i18n/[name].[hash].[ext]!./es.json');
 const fr = require('!!file?name=i18n/[name].[hash].[ext]!./fr.json');
 const ja = require('!!file?name=i18n/[name].[hash].[ext]!./ja.json');
 const pt_BR = require('!!file?name=i18n/[name].[hash].[ext]!./pt-BR.json'); //eslint-disable-line camelcase
+const zh_TW = require('!!file?name=i18n/[name].[hash].[ext]!./zh_TW.json'); //eslint-disable-line camelcase
 
 import {addLocaleData} from 'react-intl';
 import deLocaleData from 'react-intl/locale-data/de';
@@ -14,6 +15,7 @@ import esLocaleData from 'react-intl/locale-data/es';
 import frLocaleData from 'react-intl/locale-data/fr';
 import jaLocaleData from 'react-intl/locale-data/ja';
 import ptLocaleData from 'react-intl/locale-data/pt';
+import zhLocaleData from 'react-intl/locale-data/zh';
 
 // should match the values in model/config.go
 const languages = {
@@ -46,6 +48,11 @@ const languages = {
         value: 'pt-BR',
         name: 'Portugues (Beta)',
         url: pt_BR
+    },
+    'zh-TW': {
+        value: 'zh-TW',
+        name: '中文 (繁體) (Beta)',
+        url: zh_TW
     }
 };
 
@@ -98,7 +105,8 @@ export function safariFix(callback) {
         'intl/locale-data/jsonp/es.js',
         'intl/locale-data/jsonp/fr.js',
         'intl/locale-data/jsonp/ja.js',
-        'intl/locale-data/jsonp/pt.js'
+        'intl/locale-data/jsonp/pt.js',
+        'intl/locale-data/jsonp/zh.js'
     ], (require) => {
         require('intl');
         require('intl/locale-data/jsonp/de.js');
@@ -107,6 +115,7 @@ export function safariFix(callback) {
         require('intl/locale-data/jsonp/fr.js');
         require('intl/locale-data/jsonp/ja.js');
         require('intl/locale-data/jsonp/pt.js');
+        require('intl/locale-data/jsonp/zh.js');
         callback();
     });
 }
@@ -118,4 +127,5 @@ export function doAddLocaleData() {
     addLocaleData(frLocaleData);
     addLocaleData(jaLocaleData);
     addLocaleData(ptLocaleData);
+    addLocaleData(zhLocaleData);
 }

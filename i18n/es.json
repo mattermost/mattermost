@@ -557,7 +557,11 @@
   },
   {
     "id": "api.command_shortcuts.list",
-    "translation": "### Atajos de Teclado\n\n#### Navegación\n\nALT+ARRIBA: Canal o mensaje directo previo en la barra lateral izquierda\nALT+ABAJO: Canal o mensaje directo siguiente en la barra lateral izquierda\nALT+MAYUS+ARRIBA: Canal o mensaje directo previo en la barra lateral izquierda con mensajes no leídos\nALT+MAYUS+ABAJO: Canal o mensaje directo siguiente en la barra lateral izquierda con mensajes no leídos\nCTRL/CMD+K: Abre un cuadro de dialogo para cambiar rápidamente de canal\nCTRL/CMD+MAYUS+A: Abre la configuración de la cuenta\nCTRL/CMD+MAYUS+M: Abre las menciones recientes\n\n#### Archivos\n\nCTRL/CMD+U: Subir archivo(s)\n\n#### Mensajes\n\nCTRL/CMD+ARRIBA (con el cuadro de texto vacío): Reimprime el último mensaje o comando de barra que ingresaste\nCTRL/CMD+ABAJO (con el cuadro de texto vacío): Reimprime el siguiente mensaje o comando de barra que ingresaste\nARRIBA (con el cuadro de texto vacío): Edita tu último mensaje en el canal en el que te encuentras\n@[carácter]+TAB: Auto completa @nombre que comience por [carácter]\n:[carácter]+TAB: Auto completa el emoji que comience por [carácter]\n\n#### Comandos incluidos en el Navegador\n\nALT+IZQ/CMD+[: Canal anterior en tu historial\nALT+DER/CMD+]: Canal siguiente en tu historial\nCTRL/CMD+MAS: Incrementa el tamaño de las letras (hace zoom)\nCTRL/CMD+MENOS: Reduce el tamaño de las letras (quita zoom)\nSHIFT+ARRIBA (en el cuadro de texto): Selecciona el texto en las lineas de arriba\nSHIFT+ABAJO (en el cuadro de texto): Selecciona el texto en las lineas de abajo\nSHIFT+RETORNO (en el cuadro de texto): Crea una nueva línea\n"
+    "translation": "### Atajos de Teclado\n\n#### Navegación\n\nALT+ARRIBA: Canal o mensaje directo previo en la barra lateral izquierda\nALT+ABAJO: Canal o mensaje directo siguiente en la barra lateral izquierda\nALT+MAYUS+ARRIBA: Canal o mensaje directo previo en la barra lateral izquierda con mensajes no leídos\nALT+MAYUS+ABAJO: Canal o mensaje directo siguiente en la barra lateral izquierda con mensajes no leídos\nCTRL+K: Abre un cuadro de dialogo para cambiar rápidamente de canal\nCTRL+MAYUS+A: Abre la configuración de la cuenta\nCTRL+MAYUS+M: Abre las menciones recientes\n\n#### Archivos\n\nCTRL+U: Subir archivo(s)\n\n#### Mensajes\n\nCTRL+ARRIBA (con el cuadro de texto vacío): Reimprime el último mensaje o comando de barra que ingresaste\nCTRL+ABAJO (con el cuadro de texto vacío): Reimprime el siguiente mensaje o comando de barra que ingresaste\nARRIBA (con el cuadro de texto vacío): Edita tu último mensaje en el canal en el que te encuentras\n@[carácter]+TAB: Auto completa @nombre que comience por [carácter]\n:[carácter]+TAB: Auto completa el emoji que comience por [carácter]\n\n#### Comandos incluidos en el Navegador\n\nALT+IZQ+[: Canal anterior en tu historial\nALT+DER+]: Canal siguiente en tu historial\nCTRL+MAS: Incrementa el tamaño de las letras (hace zoom)\nCTRL+MENOS: Reduce el tamaño de las letras (quita zoom)\nSHIFT+ARRIBA (en el cuadro de texto): Selecciona el texto en las lineas de arriba\nSHIFT+ABAJO (en el cuadro de texto): Selecciona el texto en las lineas de abajo\nSHIFT+RETORNO (en el cuadro de texto): Crea una nueva línea\n"
+  },
+  {
+    "id": "api.command_shortcuts.list_mac",
+    "translation": "### Atajos de Teclado\n\n#### Navegación\n\nALT+ARRIBA: Canal o mensaje directo previo en la barra lateral izquierda\nALT+ABAJO: Canal o mensaje directo siguiente en la barra lateral izquierda\nALT+MAYUS+ARRIBA: Canal o mensaje directo previo en la barra lateral izquierda con mensajes no leídos\nALT+MAYUS+ABAJO: Canal o mensaje directo siguiente en la barra lateral izquierda con mensajes no leídos\nCMD+K: Abre un cuadro de dialogo para cambiar rápidamente de canal\nCMD+MAYUS+A: Abre la configuración de la cuenta\nCMD+MAYUS+M: Abre las menciones recientes\n\n#### Archivos\n\nCMD+U: Subir archivo(s)\n\n#### Mensajes\n\nCMD+ARRIBA (con el cuadro de texto vacío): Reimprime el último mensaje o comando de barra que ingresaste\nCMD+ABAJO (con el cuadro de texto vacío): Reimprime el siguiente mensaje o comando de barra que ingresaste\nARRIBA (con el cuadro de texto vacío): Edita tu último mensaje en el canal en el que te encuentras\n@[carácter]+TAB: Auto completa @nombre que comience por [carácter]\n:[carácter]+TAB: Auto completa el emoji que comience por [carácter]\n\n#### Comandos incluidos en el Navegador\n\nCMD+[: Canal anterior en tu historial\nCMD+]: Canal siguiente en tu historial\nCMD+MAS: Incrementa el tamaño de las letras (hace zoom)\nCMD+MENOS: Reduce el tamaño de las letras (quita zoom)\nSHIFT+ARRIBA (en el cuadro de texto): Selecciona el texto en las lineas de arriba\nSHIFT+ABAJO (en el cuadro de texto): Selecciona el texto en las lineas de abajo\nSHIFT+RETORNO (en el cuadro de texto): Crea una nueva línea\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -668,52 +672,12 @@
     "translation": "No se pudo crear el emoji. La imagen debe tener un máximo de 128 x 128 pixels."
   },
   {
-    "id": "api.export.json.app_error",
-    "translation": "No se puede convertir a JSON"
-  },
-  {
-    "id": "api.export.open.app_error",
-    "translation": "No se puede abrir el archivo"
-  },
-  {
-    "id": "api.export.open_dir.app_error",
-    "translation": "No se puede abrir el directorio"
-  },
-  {
-    "id": "api.export.open_file.app_error",
-    "translation": "No se puede abrir el archivo a exportar"
-  },
-  {
-    "id": "api.export.options.create.app_error",
-    "translation": "No se puede crear el archivo de opciones"
-  },
-  {
-    "id": "api.export.options.write.app_error",
-    "translation": "No se puede escribir al archivo de opciones"
-  },
-  {
-    "id": "api.export.read_dir.app_error",
-    "translation": "No se puede leer el directorio"
-  },
-  {
-    "id": "api.export.s3.app_error",
-    "translation": "S3 no está soportado para exportar al almacenamiento local."
-  },
-  {
     "id": "api.file.file_upload.exceeds",
     "translation": "El archivo excede el tamaño máximo para una imagen."
   },
   {
     "id": "api.file.file_upload.exceeds",
     "translation": "El archivo excede el tamaño máximo para una imagen."
-  },
-  {
-    "id": "api.file.get_export.retrieve.app_error",
-    "translation": "No se puede recuperar el archivo exportado. Por favor vuelve a exportarlo"
-  },
-  {
-    "id": "api.file.get_export.team_admin.app_error",
-    "translation": "Sólo un administrador del equipo puede recuperar la data exportada."
   },
   {
     "id": "api.file.get_file.not_found.app_error",
@@ -1128,6 +1092,14 @@
     "translation": "No se puede obtener el mensaje"
   },
   {
+    "id": "api.preference.delete_preferences.decode.app_error",
+    "translation": "No se puede descodificar las preferencias de la solicitud"
+  },
+  {
+    "id": "api.preference.delete_preferences.user_id.app_error",
+    "translation": "No se puede eliminar las preferencias de otros usuarios"
+  },
+  {
     "id": "api.preference.init.debug",
     "translation": "Inicializando las rutas de preferencias del API"
   },
@@ -1268,6 +1240,14 @@
     "translation": "No se puede abrir el archivo comprimido"
   },
   {
+    "id": "api.status.last_activity.error",
+    "translation": "Falla al actualizar LastActivityAt para user_id=%v and session_id=%v, err=%v"
+  },
+  {
+    "id": "api.status.save_status.error",
+    "translation": "Falla al guardar el estado del user_id=%v, err=%v"
+  },
+  {
     "id": "api.team.create_team.email_disabled.app_error",
     "translation": "El registro a equipos por correo electrónico está deshabilitado."
   },
@@ -1290,10 +1270,6 @@
   {
     "id": "api.team.email_teams.sending.error",
     "translation": "Ocurrió un error al enviar un correo en emailTeams err=%v"
-  },
-  {
-    "id": "api.team.export_team.admin.app_error",
-    "translation": "Sólo un administrador del equipo puede exportar data."
   },
   {
     "id": "api.team.get_invite_info.not_open_team",
@@ -1577,11 +1553,11 @@
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "Te haz unido al equipo {{ .TeamDisplayName }}"
+    "translation": "Te has unido a {{ .ServerURL }}"
   },
   {
     "id": "api.templates.verify_subject",
-    "translation": "[{{ .TeamDisplayName }} {{ .SiteName }}] Correo de Verificación"
+    "translation": "[{{ .SiteName }}] Correo electrónico de Verificación"
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -1593,7 +1569,7 @@
   },
   {
     "id": "api.templates.welcome_body.info2",
-    "translation": "Puedes iniciar sesión en tu nuevo equipo desde la dirección web:"
+    "translation": "Puedes acceder desde:"
   },
   {
     "id": "api.templates.welcome_body.info3",
@@ -1601,11 +1577,11 @@
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "Te haz unido al equipo {{ .TeamDisplayName }}"
+    "translation": "Te has unido a {{ .ServerURL }}"
   },
   {
     "id": "api.templates.welcome_subject",
-    "translation": "Te haz unido a {{ .TeamDisplayName }}"
+    "translation": "Te uniste a {{ .ServerURL }}"
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
@@ -2000,14 +1976,6 @@
     "translation": "Enlace de verificación de correo electrónico errado."
   },
   {
-    "id": "api.web_conn.new_web_conn.last_activity.error",
-    "translation": "Falla al actualizar LastActivityAt para user_id=%v and session_id=%v, err=%v"
-  },
-  {
-    "id": "api.web_conn.new_web_conn.last_ping.error",
-    "translation": "Falla al actualizar LastPingAt para el user_id=%v, err=%v"
-  },
-  {
     "id": "api.web_hub.start.stopping.debug",
     "translation": "deteniendo conexiones %v"
   },
@@ -2022,6 +1990,14 @@
   {
     "id": "api.web_socket.init.debug",
     "translation": "Inicializando rutas del API para los web socket"
+  },
+  {
+    "id": "api.web_socket_handler.log.error",
+    "translation": "%v:%v seq=%v uid=%v %v [detalles: %v]"
+  },
+  {
+    "id": "api.web_socket_router.log.error",
+    "translation": "error en el enrutamiento del websocket: seq=%v uid=%v %v [detalles: %v]"
   },
   {
     "id": "api.web_team_hun.start.debug",
@@ -2094,6 +2070,10 @@
   {
     "id": "api.webhook.regen_outgoing_token.permissions.app_error",
     "translation": "Permisos inapropiados para regenerar un token para el Webhook saliente"
+  },
+  {
+    "id": "api.websocket_handler.invalid_param.app_error",
+    "translation": "Parámetro {{.Name}} inválido"
   },
   {
     "id": "cli.license.critical",
@@ -2177,7 +2157,7 @@
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
-    "translation": "El usuario no tiene permitido utilizar Mattermost. (filtro de usuario LDAP)"
+    "translation": "Tu cuenta LDAP no tiene permiso para utilizar este servidor de Mattermost. Por favor, solicita a tu Administrador de Sistema que revise el filtro de usuarios LDAP."
   },
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
@@ -2672,6 +2652,34 @@
     "translation": "El ancho para la imagen de miniatura es inválido en la configuración de archivos.  Debe ser un número positivo."
   },
   {
+    "id": "model.config.is_valid.ldap_basedn",
+    "translation": "El campo LDAP \"BaseDN\" es obligatorio."
+  },
+  {
+    "id": "model.config.is_valid.ldap_bind_password",
+    "translation": "El campo LDAP \"Enlazar Contraseña\" es obligatorio."
+  },
+  {
+    "id": "model.config.is_valid.ldap_bind_username",
+    "translation": "El campo LDAP \"Enlazar nombre de Usuario\" es obligatorio."
+  },
+  {
+    "id": "model.config.is_valid.ldap_email",
+    "translation": "El campo LDAP \"Atributo Correo electrónico\" es obligatorio."
+  },
+  {
+    "id": "model.config.is_valid.ldap_firstname",
+    "translation": "El campo LDAP \"Atributo del Nombre\" es obligatorio."
+  },
+  {
+    "id": "model.config.is_valid.ldap_id",
+    "translation": "El campo LDAP \"Atributo ID\" es obligatorio."
+  },
+  {
+    "id": "model.config.is_valid.ldap_lastname",
+    "translation": "El campo LDAP \"Atributo Apellido\" es obligatorio."
+  },
+  {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",
     "translation": "El valor del tamaño de página no es válido."
   },
@@ -2688,8 +2696,16 @@
     "translation": "Conexión segura inválida en la configuración de LDAP.  Debe ser '', 'TLS', o 'STARTTLS'"
   },
   {
+    "id": "model.config.is_valid.ldap_server",
+    "translation": "El campo LDAP \"Servidor LDAP\" es obligatorio."
+  },
+  {
     "id": "model.config.is_valid.ldap_sync_interval.app_error",
     "translation": "Intervalo de sincronización inválido. De ser de al menos un minuto."
+  },
+  {
+    "id": "model.config.is_valid.ldap_username",
+    "translation": "El campo LDAP \"Atributo Nombre de Usuario\" es obligatorio."
   },
   {
     "id": "model.config.is_valid.listen_address.app_error",
@@ -2766,6 +2782,10 @@
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
     "translation": "Atributo Usuario no válido. Se debe establecer."
+  },
+  {
+    "id": "model.config.is_valid.sitename_length.app_error",
+    "translation": "Nombre del sitio debe ser menor o igual a {{.MaxLength}} caracteres."
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",
@@ -2996,6 +3016,10 @@
     "translation": "Nombre inválido"
   },
   {
+    "id": "model.preference.is_valid.theme.app_error",
+    "translation": "Tema no válido"
+  },
+  {
     "id": "model.preference.is_valid.value.app_error",
     "translation": "El valor es muy largo"
   },
@@ -3158,10 +3182,6 @@
   {
     "id": "model.user.is_valid.team_id.app_error",
     "translation": "Id del Equipo inválido"
-  },
-  {
-    "id": "model.user.is_valid.theme.app_error",
-    "translation": "Tema inválido"
   },
   {
     "id": "model.user.is_valid.update_at.app_error",
@@ -3392,10 +3412,6 @@
     "translation": "No pudimos obtener información extra de los miembros del canal"
   },
   {
-    "id": "store.sql_channel.get_for_export.app_error",
-    "translation": "No pudimos obtener todos los canales"
-  },
-  {
     "id": "store.sql_channel.get_member.app_error",
     "translation": "No pudimos obtener el miembro del canal"
   },
@@ -3498,6 +3514,10 @@
   {
     "id": "store.sql_channel.save_member.save.app_error",
     "translation": "No pudimos guardar el miembro del canal"
+  },
+  {
+    "id": "store.sql_channel.set_last_viewed_at.app_error",
+    "translation": "No se pudo establecer el tiempo de la última vista"
   },
   {
     "id": "store.sql_channel.update.app_error",
@@ -3684,20 +3704,12 @@
     "translation": "No pudimos obtener la cantidad de usuarios con mensajes"
   },
   {
-    "id": "store.sql_post.compliance_export.app_error",
-    "translation": "No pudimos obtener los mensajes para exportar el informe de cumplimiento"
-  },
-  {
     "id": "store.sql_post.delete.app_error",
     "translation": "No pudimos eliminar el mensaje"
   },
   {
     "id": "store.sql_post.get.app_error",
     "translation": "No pudimos obtener el mensaje"
-  },
-  {
-    "id": "store.sql_post.get_for_export.app_error",
-    "translation": "No pudimos obtener los mensajes para el canal"
   },
   {
     "id": "store.sql_post.get_parents_posts.app_error",
@@ -3754,6 +3766,10 @@
   {
     "id": "store.sql_post.update.app_error",
     "translation": "No pudimos actualizar el Mensaje"
+  },
+  {
+    "id": "store.sql_preference.delete.app_error",
+    "translation": "Encontramos un error mientras eliminabamos las preferencias"
   },
   {
     "id": "store.sql_preference.delete_unused_features.debug",
@@ -3866,6 +3882,34 @@
   {
     "id": "store.sql_session.update_roles.app_error",
     "translation": "No pudimos actualizar los roles"
+  },
+  {
+    "id": "store.sql_status.get.app_error",
+    "translation": "Detectado un error al recuperar el estado"
+  },
+  {
+    "id": "store.sql_status.get.missing.app_error",
+    "translation": "No existe ninguna entrada para que el estado"
+  },
+  {
+    "id": "store.sql_status.get_online_away.app_error",
+    "translation": "Detectado un error al recuperar todos los estados de en línea/ausente"
+  },
+  {
+    "id": "store.sql_status.get_total_active_users_count.app_error",
+    "translation": "No pudimos contar los usuarios activos"
+  },
+  {
+    "id": "store.sql_status.reset_all.app_error",
+    "translation": "Se ha encontrado un error al restablecer todos los estados"
+  },
+  {
+    "id": "store.sql_status.save.app_error",
+    "translation": "Encontramos un error al guardar el estado"
+  },
+  {
+    "id": "store.sql_status.update.app_error",
+    "translation": "Encontramos un error actualizando el estado"
   },
   {
     "id": "store.sql_system.get.app_error",
@@ -4004,10 +4048,6 @@
     "translation": "No pudimos encontrar una cuenta existente que coincida con tu nombre de usuario para este equipo. Es posible que necesites una invitación por parte del dueño del equipo para unirte."
   },
   {
-    "id": "store.sql_user.get_for_export.app_error",
-    "translation": "Encontramos un error mientras buscabamos los perfiles de usuario"
-  },
-  {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "No pudimos encontrar una cuenta existente con tus credenciales. Es posible que requieras una invitación por parte del dueño del equipo para poder unirte."
   },
@@ -4024,16 +4064,16 @@
     "translation": "Encontramos un error mientras buscabamos los perfiles de usuario"
   },
   {
-    "id": "store.sql_user.get_total_active_users_count.app_error",
-    "translation": "No pudimos contar los usuarios"
-  },
-  {
     "id": "store.sql_user.get_total_users_count.app_error",
     "translation": "No pudimos contar los usuarios"
   },
   {
     "id": "store.sql_user.get_unread_count.app_error",
     "translation": "No pudimos obtener la cantidad de mensajes sin leer del usuario"
+  },
+  {
+    "id": "store.sql_user.migrate_theme.critical",
+    "translation": "Falla al migrar User.ThemeProps a la table Preferences %v"
   },
   {
     "id": "store.sql_user.missing_account.const",
