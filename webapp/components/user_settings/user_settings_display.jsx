@@ -142,7 +142,7 @@ export default class UserSettingsDisplay extends React.Component {
     createCollapseSection() {
         if (this.props.activeSection === 'collapse') {
             const collapseFormat = [false, false];
-            if (this.state.collapseDisplay === 'true') {
+            if (this.state.collapseDisplay === 'false') {
                 collapseFormat[0] = true;
             } else {
                 collapseFormat[1] = true;
@@ -161,7 +161,7 @@ export default class UserSettingsDisplay extends React.Component {
                                 type='radio'
                                 name='collapseFormat'
                                 checked={collapseFormat[0]}
-                                onChange={this.handleCollapseRadio.bind(this, 'true')}
+                                onChange={this.handleCollapseRadio.bind(this, 'false')}
                             />
                             <FormattedMessage
                                 id='user.settings.display.collapseOn'
@@ -176,7 +176,7 @@ export default class UserSettingsDisplay extends React.Component {
                                 type='radio'
                                 name='collapseFormat'
                                 checked={collapseFormat[1]}
-                                onChange={this.handleCollapseRadio.bind(this, 'false')}
+                                onChange={this.handleCollapseRadio.bind(this, 'true')}
                             />
                             <FormattedMessage
                                 id='user.settings.display.collapseOff'
@@ -212,7 +212,7 @@ export default class UserSettingsDisplay extends React.Component {
         }
 
         let describe;
-        if (this.state.collapseDisplay === 'true') {
+        if (this.state.collapseDisplay === 'false') {
             describe = (
                 <FormattedMessage
                     id='user.settings.display.collapseOn'
@@ -237,7 +237,7 @@ export default class UserSettingsDisplay extends React.Component {
                 title={
                     <FormattedMessage
                         id='user.settings.display.collapseDisplay'
-                        defaultMessage='Auto Collapse Previews'
+                        defaultMessage='Link previews'
                     />
                 }
                 describe={describe}

@@ -43,7 +43,7 @@ export const Preferences = {
     CHANNEL_DISPLAY_MODE: 'channel_display_mode',
     CHANNEL_DISPLAY_MODE_CENTERED: 'centered',
     CHANNEL_DISPLAY_MODE_FULL_SCREEN: 'full',
-    CHANNEL_DISPLAY_MODE_DEFAULT: 'centered',
+    CHANNEL_DISPLAY_MODE_DEFAULT: 'full',
     MESSAGE_DISPLAY: 'message_display',
     MESSAGE_DISPLAY_CLEAN: 'clean',
     MESSAGE_DISPLAY_COMPACT: 'compact',
