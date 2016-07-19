@@ -70,6 +70,26 @@ export default class SamlSettings extends AdminSettings {
         };
     }
 
+    componentWillMount() {
+        Client.samlCertificateStatus(
+            (data) => {
+                const files = {};
+                if (!data.IdpCertificateFile) {
+                    files.idpCertificateFile = '';
+                }
+
+                if (!data.PublicCertificateFile) {
+                    files.publicCertificateFile = '';
+                }
+
+                if (!data.PrivateKeyFile) {
+                    files.privateKeyFile = '';
+                }
+                this.setState(files);
+            }
+        );
+    }
+
     uploadCertificate(id, file, callback) {
         Client.uploadCertificateFile(
             file,

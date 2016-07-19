@@ -3,6 +3,10 @@
 
 package utils
 
+import (
+	"os"
+)
+
 func StringArrayIntersection(arr1, arr2 []string) []string {
 	arrMap := map[string]bool{}
 	result := []string{}
@@ -18,4 +22,15 @@ func StringArrayIntersection(arr1, arr2 []string) []string {
 	}
 
 	return result
+}
+
+func FileExistsInConfigFolder(filename string) bool {
+	if len(filename) == 0 {
+		return false
+	}
+
+	if _, err := os.Stat(FindConfigFile(filename)); err == nil {
+		return true
+	}
+	return false
 }

@@ -1667,4 +1667,17 @@ export default class Client {
         send({filename}).
         end(this.handleResponse.bind(this, 'removeCertificateFile', success, error));
     }
+
+    samlCertificateStatus(success, error) {
+        request.get(`${this.getAdminRoute()}/saml_cert_status`).
+        set(this.defaultHeaders).
+        type('application/json').
+        accept('application/json').
+        end((err, res) => {
+            if (err) {
+                return error(err);
+            }
+            return success(res.body);
+        });
+    }
 }

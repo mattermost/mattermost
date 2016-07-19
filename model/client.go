@@ -1730,12 +1730,23 @@ func (c *Client) UploadCertificateFile(data []byte, contentType string) *AppErro
 }
 
 // Removes a x509 base64 Certificate or Private Key file used with SAML.
-// filename is required. Returns nil if succesful, otherwise returns an AppError
+// filename is required. Returns nil if successful, otherwise returns an AppError
 func (c *Client) RemoveCertificateFile(filename string) *AppError {
 	if r, err := c.DoApiPost("/admin/remove_certificate", MapToJson(map[string]string{"filename": filename})); err != nil {
 		return err
 	} else {
 		defer closeBody(r)
 		return nil
+	}
+}
+
+// Checks if the x509 base64 Certificates and Private Key files used with SAML exists on the file system.
+// Returns a map[string]interface{} if successful, otherwise returns an AppError. Must be System Admin authenticated.
+func (c *Client) SamlCertificateStatus(filename string) (map[string]interface{}, *AppError) {
+	if r, err := c.DoApiGet("/admin/remove_certificate", "", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return StringInterfaceFromJson(r.Body), nil
 	}
 }
