@@ -77,7 +77,11 @@ export default class NavbarDropdown extends React.Component {
     openAccountSettings(e) {
         if (Utils.cmdOrCtrlPressed(e) && e.shiftKey && e.keyCode === Constants.KeyCodes.A) {
             e.preventDefault();
-            this.setState({showUserSettingsModal: true});
+            if (this.state.showUserSettingsModal === false) {
+                this.setState({showUserSettingsModal: true});
+            } else {
+                this.setState({showUserSettingsModal: false});
+            }
         }
     }
 

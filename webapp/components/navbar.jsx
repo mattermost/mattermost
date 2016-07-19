@@ -180,9 +180,11 @@ export default class Navbar extends React.Component {
     showChannelSwitchModal(e) {
         if (Utils.cmdOrCtrlPressed(e) && e.keyCode === Constants.KeyCodes.K) {
             e.preventDefault();
-            this.setState({
-                showChannelSwitchModal: true
-            });
+            if (this.state.showChannelSwitchModal === false) {
+                this.setState({showChannelSwitchModal: true});
+            } else {
+                this.setState({showChannelSwitchModal: false});
+            }
         }
     }
 
