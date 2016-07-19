@@ -43,6 +43,7 @@ export default class SignupUserComplete extends React.Component {
             usedBefore: false,
             email: '',
             teamDisplayName: '',
+            signupDisabledError: '',
             teamName: '',
             teamId: '',
             openServer: false,
@@ -160,6 +161,15 @@ export default class SignupUserComplete extends React.Component {
             openServer,
             inviteId,
             loading
+        });
+
+        this.setState({
+            signupDisabledError: (
+                <FormattedMessage
+                    id='signup_user_completed.none'
+                    defaultMessage='No user creation method has been enabled. Please contact an administrator for access.'
+                />
+            )
         });
     }
 
@@ -724,12 +734,10 @@ export default class SignupUserComplete extends React.Component {
 
         if (signupMessage.length === 0 && !emailSignup && !ldapSignup) {
             emailSignup = (
-                <div>
-                    <FormattedMessage
-                        id='signup_user_completed.none'
-                        defaultMessage='No user creation method has been enabled.  Please contact an administrator for access.'
-                    />
-                </div>
+                <FormError
+                    error={this.state.signupDisabledError}
+                    margin={true}
+                />
             );
         }
 
