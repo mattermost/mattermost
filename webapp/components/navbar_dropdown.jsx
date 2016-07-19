@@ -332,6 +332,26 @@ export default class NavbarDropdown extends React.Component {
             );
         }
 
+        let nativeAppDivider = null;
+        let nativeAppLink = null;
+        if (global.window.mm_config.AppDownloadLink) {
+            nativeAppDivider = <li className='divider'/>;
+            nativeAppLink = (
+                <li>
+                    <Link
+                        target='_blank'
+                        rel='noopener noreferrer'
+                        to={global.window.mm_config.AppDownloadLink}
+                    >
+                        <FormattedMessage
+                            id='navbar_dropdown.nativeApps'
+                            defaultMessage='Download Native Apps'
+                        />
+                    </Link>
+                </li>
+            );
+        }
+
         return (
             <ul className='nav navbar-nav navbar-right'>
                 <li
@@ -403,6 +423,8 @@ export default class NavbarDropdown extends React.Component {
                                 />
                             </a>
                         </li>
+                        {nativeAppDivider}
+                        {nativeAppLink}
                         <UserSettingsModal
                             show={this.state.showUserSettingsModal}
                             onModalDismissed={() => this.setState({showUserSettingsModal: false})}
