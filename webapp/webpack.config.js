@@ -45,7 +45,12 @@ var config = {
             },
             {
                 test: /\.json$/,
+                exclude: /manifest\.json$/,
                 loader: 'json'
+            },
+            {
+                test: /manifest\.json$/,
+                loader: 'file?name=files/[hash].[ext]'
             },
             {
                 test: /(node_modules|non_npm_dependencies)\/.+\.(js|jsx)$/,
@@ -86,7 +91,8 @@ var config = {
         new CopyWebpackPlugin([
             {from: 'images/emoji', to: 'emoji'},
             {from: 'images/logo-email.png', to: 'images'},
-            {from: 'images/circles.png', to: 'images'}
+            {from: 'images/circles.png', to: 'images'},
+            {from: 'images/favicon', to: 'images/favicon'}
         ]),
         new webpack.LoaderOptionsPlugin({
             minimize: !DEV,
