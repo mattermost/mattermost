@@ -105,6 +105,11 @@ func main() {
 	l4g.Info(utils.T("mattermost.working_dir"), pwd)
 	l4g.Info(utils.T("mattermost.config_file"), utils.FindConfigFile(flagConfigFile))
 
+	// Enable developer settings if this is a "dev" build
+	if model.BuildNumber == "dev" {
+		*utils.Cfg.ServiceSettings.EnableDeveloper = true
+	}
+
 	// Special case for upgrading the db to 3.0
 	// ADDED for 3.0 REMOVE for 3.4
 	cmdUpdateDb30()
