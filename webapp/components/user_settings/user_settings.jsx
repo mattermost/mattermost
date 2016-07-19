@@ -6,7 +6,6 @@ import * as utils from 'utils/utils.jsx';
 import NotificationsTab from './user_settings_notifications.jsx';
 import SecurityTab from './user_settings_security.jsx';
 import GeneralTab from './user_settings_general.jsx';
-import DeveloperTab from './user_settings_developer.jsx';
 import DisplayTab from './user_settings_display.jsx';
 import AdvancedTab from './user_settings_advanced.jsx';
 
@@ -72,17 +71,6 @@ export default class UserSettings extends React.Component {
                         activeSection={this.props.activeSection}
                         updateSection={this.props.updateSection}
                         updateTab={this.props.updateTab}
-                        closeModal={this.props.closeModal}
-                        collapseModal={this.props.collapseModal}
-                    />
-                </div>
-            );
-        } else if (this.props.activeTab === 'developer') {
-            return (
-                <div>
-                    <DeveloperTab
-                        activeSection={this.props.activeSection}
-                        updateSection={this.props.updateSection}
                         closeModal={this.props.closeModal}
                         collapseModal={this.props.collapseModal}
                     />

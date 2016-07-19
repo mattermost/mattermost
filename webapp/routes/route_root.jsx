@@ -101,6 +101,12 @@ export default {
                                             System.import('components/select_team/select_team.jsx').then(RouteUtils.importComponentSuccess(callback));
                                         }
                                     },
+                                    {
+                                        path: '*authorize',
+                                        getComponents: (location, callback) => {
+                                            System.import('components/authorize.jsx').then(RouteUtils.importComponentSuccess(callback));
+                                        }
+                                    },
                                     createTeamRoute
                                 ]
                             )

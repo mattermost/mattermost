@@ -99,6 +99,7 @@ export default class NavbarDropdown extends React.Component {
     }
 
     render() {
+        const config = global.window.mm_config;
         var teamLink = '';
         var inviteLink = '';
         var manageLink = '';
@@ -131,7 +132,7 @@ export default class NavbarDropdown extends React.Component {
                 </li>
             );
 
-            if (this.props.teamType === Constants.OPEN_TEAM && global.window.mm_config.EnableUserCreation === 'true') {
+            if (this.props.teamType === Constants.OPEN_TEAM && config.EnableUserCreation === 'true') {
                 teamLink = (
                     <li>
                         <a
@@ -148,10 +149,10 @@ export default class NavbarDropdown extends React.Component {
             }
 
             if (global.window.mm_license.IsLicensed === 'true') {
-                if (global.window.mm_config.RestrictTeamInvite === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
+                if (config.RestrictTeamInvite === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
                     teamLink = null;
                     inviteLink = null;
-                } else if (global.window.mm_config.RestrictTeamInvite === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
+                } else if (config.RestrictTeamInvite === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
                     teamLink = null;
                     inviteLink = null;
                 }
@@ -201,10 +202,11 @@ export default class NavbarDropdown extends React.Component {
         );
 
         const integrationsEnabled =
-            window.mm_config.EnableIncomingWebhooks === 'true' ||
-            window.mm_config.EnableOutgoingWebhooks === 'true' ||
-            window.mm_config.EnableCommands === 'true';
-        if (integrationsEnabled && (isAdmin || window.mm_config.EnableOnlyAdminIntegrations !== 'true')) {
+            config.EnableIncomingWebhooks === 'true' ||
+            config.EnableOutgoingWebhooks === 'true' ||
+            config.EnableCommands === 'true' ||
+            config.EnableOAuthServiceProvider === 'true';
+        if (integrationsEnabled && (isAdmin || config.EnableOnlyAdminIntegrations !== 'true')) {
             integrationsLink = (
                 <li>
                     <Link to={'/' + Utils.getTeamNameFromUrl() + '/integrations'}>
@@ -234,7 +236,7 @@ export default class NavbarDropdown extends React.Component {
 
         var teams = [];
 
-        if (global.window.mm_config.EnableTeamCreation === 'true') {
+        if (config.EnableTeamCreation === 'true') {
             teams.push(
                 <li key='newTeam_li'>
                     <Link
@@ -297,13 +299,13 @@ export default class NavbarDropdown extends React.Component {
         }
 
         let helpLink = null;
-        if (global.window.mm_config.HelpLink) {
+        if (config.HelpLink) {
             helpLink = (
                 <li>
                     <Link
                         target='_blank'
                         rel='noopener noreferrer'
-                        to={global.window.mm_config.HelpLink}
+                        to={config.HelpLink}
                     >
                         <FormattedMessage
                             id='navbar_dropdown.help'
@@ -315,13 +317,13 @@ export default class NavbarDropdown extends React.Component {
         }
 
         let reportLink = null;
-        if (global.window.mm_config.ReportAProblemLink) {
+        if (config.ReportAProblemLink) {
             reportLink = (
                 <li>
                     <Link
                         target='_blank'
                         rel='noopener noreferrer'
-                        to={global.window.mm_config.ReportAProblemLink}
+                        to={config.ReportAProblemLink}
                     >
                         <FormattedMessage
                             id='navbar_dropdown.report'

@@ -11,6 +11,7 @@ import (
 const (
 	AUTHCODE_EXPIRE_TIME   = 60 * 10 // 10 minutes
 	AUTHCODE_RESPONSE_TYPE = "code"
+	DEFAULT_SCOPE          = "user"
 )
 
 type AuthData struct {
@@ -70,6 +71,10 @@ func (ad *AuthData) PreSave() {
 
 	if ad.CreateAt == 0 {
 		ad.CreateAt = GetMillis()
+	}
+
+	if len(ad.Scope) == 0 {
+		ad.Scope = DEFAULT_SCOPE
 	}
 }
 

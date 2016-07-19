@@ -308,13 +308,6 @@ export function showLeaveTeamModal() {
     });
 }
 
-export function showRegisterAppModal() {
-    AppDispatcher.handleViewAction({
-        type: ActionTypes.TOGGLE_REGISTER_APP_MODAL,
-        value: true
-    });
-}
-
 export function emitSuggestionPretextChanged(suggestionId, pretext) {
     AppDispatcher.handleViewAction({
         type: ActionTypes.SUGGESTION_PRETEXT_CHANGED,

@@ -1498,6 +1498,36 @@ export default class Client {
             end(this.handleResponse.bind(this, 'allowOAuth2', success, error));
     }
 
+    listOAuthApps(success, error) {
+        request.
+        get(`${this.getOAuthRoute()}/list`).
+        set(this.defaultHeaders).
+        type('application/json').
+        accept('application/json').
+        send().
+        end(this.handleResponse.bind(this, 'getOAuthApps', success, error));
+    }
+
+    deleteOAuthApp(id, success, error) {
+        request.
+        post(`${this.getOAuthRoute()}/delete`).
+        set(this.defaultHeaders).
+        type('application/json').
+        accept('application/json').
+        send({id}).
+        end(this.handleResponse.bind(this, 'deleteOAuthApp', success, error));
+    }
+
+    getOAuthAppInfo(id, success, error) {
+        request.
+        get(`${this.getOAuthRoute()}/app/${id}`).
+        set(this.defaultHeaders).
+        type('application/json').
+        accept('application/json').
+        send().
+        end(this.handleResponse.bind(this, 'getOAuthAppInfo', success, error));
+    }
+
     // Routes for Hooks
 
     addIncomingHook(hook, success, error) {

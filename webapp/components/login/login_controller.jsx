@@ -146,11 +146,12 @@ export default class LoginController extends React.Component {
             token,
             () => {
                 // check for query params brought over from signup_user_complete
-                if (this.props.location.query.id || this.props.location.query.h) {
+                const query = this.props.location.query;
+                if (query.id || query.h) {
                     Client.addUserToTeamFromInvite(
-                        this.props.location.query.d,
-                        this.props.location.query.h,
-                        this.props.location.query.id,
+                        query.d,
+                        query.h,
+                        query.id,
                         () => {
                             this.finishSignin();
                         },
@@ -200,8 +201,13 @@ export default class LoginController extends React.Component {
     finishSignin() {
         GlobalActions.emitInitialLoad(
             () => {
+                const query = this.props.location.query;
                 GlobalActions.loadDefaultLocale();
-                browserHistory.push('/select_team');
+                if (query.redirect_to) {
+                    browserHistory.push(query.redirect_to);
+                } else {
+                    browserHistory.push('/select_team');
+                }
             }
         );
     }
@@ -400,7 +406,7 @@ export default class LoginController extends React.Component {
                             defaultMessage="Don't have an account? "
                         />
                         <Link
-                            to={'/signup_user_complete'}
+                            to={'/signup_user_complete' + this.props.location.search}
                             className='signup-team-login'
                         >
                             <FormattedMessage
@@ -475,7 +481,7 @@ export default class LoginController extends React.Component {
                 <Link
                     className='btn btn-custom-login google'
                     key='google'
-                    to={Client.getOAuthRoute() + '/google/login'}
+                    to={Client.getOAuthRoute() + '/google/login' + this.props.location.search}
                 >
                     <span className='icon'/>
                     <span>

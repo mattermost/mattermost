@@ -14,6 +14,7 @@ func TestOAuthAppJson(t *testing.T) {
 	a1.Name = "TestOAuthApp" + NewId()
 	a1.CallbackUrls = []string{"https://nowhere.com"}
 	a1.Homepage = "https://nowhere.com"
+	a1.IconURL = "https://nowhere.com/icon_image.png"
 	a1.ClientSecret = NewId()
 
 	json := a1.ToJson()
@@ -30,6 +31,7 @@ func TestOAuthAppPreSave(t *testing.T) {
 	a1.Name = "TestOAuthApp" + NewId()
 	a1.CallbackUrls = []string{"https://nowhere.com"}
 	a1.Homepage = "https://nowhere.com"
+	a1.IconURL = "https://nowhere.com/icon_image.png"
 	a1.ClientSecret = NewId()
 	a1.PreSave()
 	a1.Etag()
@@ -42,6 +44,7 @@ func TestOAuthAppPreUpdate(t *testing.T) {
 	a1.Name = "TestOAuthApp" + NewId()
 	a1.CallbackUrls = []string{"https://nowhere.com"}
 	a1.Homepage = "https://nowhere.com"
+	a1.IconURL = "https://nowhere.com/icon_image.png"
 	a1.ClientSecret = NewId()
 	a1.PreUpdate()
 }
@@ -89,6 +92,11 @@ func TestOAuthAppIsValid(t *testing.T) {
 	}
 
 	app.Homepage = "https://nowhere.com"
+	if err := app.IsValid(); err != nil {
+		t.Fatal()
+	}
+
+	app.IconURL = "https://nowhere.com/icon_image.png"
 	if err := app.IsValid(); err != nil {
 		t.Fatal()
 	}

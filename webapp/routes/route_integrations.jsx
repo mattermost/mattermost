@@ -61,6 +61,22 @@ export default {
                     }
                 }
             ]
+        },
+        {
+            path: 'oauth2-apps',
+            indexRoute: {
+                getComponents: (location, callback) => {
+                    System.import('components/integrations/components/installed_oauth_apps.jsx').then(RouteUtils.importComponentSuccess(callback));
+                }
+            },
+            childRoutes: [
+                {
+                    path: 'add',
+                    getComponents: (location, callback) => {
+                        System.import('components/integrations/components/add_oauth_app.jsx').then(RouteUtils.importComponentSuccess(callback));
+                    }
+                }
+            ]
         }
     ]
 };

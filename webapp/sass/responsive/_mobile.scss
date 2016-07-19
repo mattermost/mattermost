@@ -1076,6 +1076,10 @@
             @include translate3d(260px, 0, 0);
         }
     }
+
+    .integration__icon {
+        display: none;
+    }
 }
 
 @media screen and (max-height: 640px) {

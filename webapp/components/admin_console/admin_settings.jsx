@@ -8,7 +8,6 @@ import Client from 'client/web_client.jsx';
 
 import FormError from 'components/form_error.jsx';
 import SaveButton from 'components/admin_console/save_button.jsx';
-import Constants from 'utils/constants.jsx';
 
 export default class AdminSettings extends React.Component {
     static get propTypes() {
@@ -22,7 +21,6 @@ export default class AdminSettings extends React.Component {
 
         this.handleChange = this.handleChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
-        this.onKeyDown = this.onKeyDown.bind(this);
 
         this.state = Object.assign(this.getStateFromConfig(props.config), {
             saveNeeded: false,
@@ -36,20 +34,6 @@ export default class AdminSettings extends React.Component {
             saveNeeded: true,
             [id]: value
         });
-    }
-
-    componentDidMount() {
-        document.addEventListener('keydown', this.onKeyDown);
-    }
-
-    componentWillUnmount() {
-        document.removeEventListener('keydown', this.onKeyDown);
-    }
-
-    onKeyDown(e) {
-        if (e.keyCode === Constants.KeyCodes.ENTER) {
-            this.handleSubmit(e);
-        }
     }
 
     handleSubmit(e) {
@@ -118,6 +102,7 @@ export default class AdminSettings extends React.Component {
                 <form
                     className='form-horizontal'
                     role='form'
+                    onSubmit={this.handleSubmit}
                 >
                     {this.renderSettings()}
                     <div className='form-group'>

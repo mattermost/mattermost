@@ -521,6 +521,15 @@ export default class AdminSidebar extends React.Component {
                                         />
                                     }
                                 />
+                                <AdminSidebarSection
+                                    name='oauth2'
+                                    title={
+                                        <FormattedMessage
+                                            id='admin.sidebar.oauth'
+                                            defaultMessage='OAuth2 Provider'
+                                        />
+                                    }
+                                />
                             </AdminSidebarSection>
                             <AdminSidebarSection
                                 name='files'

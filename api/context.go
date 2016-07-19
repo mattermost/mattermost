@@ -69,6 +69,10 @@ func UserRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Han
 	return &handler{h, true, false, false, false, false, false}
 }
 
+func AppHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	return &handler{h, false, false, false, false, false, true}
+}
+
 func ApiAdminSystemRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	return &handler{h, true, true, true, false, false, false}
 }
@@ -103,7 +107,6 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.RequestId = model.NewId()
 	c.IpAddress = GetIpAddress(r)
 	c.TeamId = mux.Vars(r)["team_id"]
-	h.isApi = IsApiCall(r)
 
 	token := ""
 	isTokenFromQueryString := false
@@ -145,10 +148,10 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)
 	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v", model.CurrentVersion, utils.CfgLastModified))
 
-	// Instruct the browser not to display us in an iframe for anti-clickjacking
+	// Instruct the browser not to display us in an iframe unless is the same origin for anti-clickjacking
 	if !h.isApi {
-		w.Header().Set("X-Frame-Options", "DENY")
-		w.Header().Set("Content-Security-Policy", "frame-ancestors 'none'")
+		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
+		w.Header().Set("Content-Security-Policy", "frame-ancestors 'self'")
 	} else {
 		// All api response bodies will be JSON formatted by default
 		w.Header().Set("Content-Type", "application/json")

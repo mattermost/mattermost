@@ -31,7 +31,6 @@ import DeletePostModal from 'components/delete_post_modal.jsx';
 import MoreChannelsModal from 'components/more_channels.jsx';
 import TeamSettingsModal from 'components/team_settings_modal.jsx';
 import RemovedFromChannelModal from 'components/removed_from_channel_modal.jsx';
-import RegisterAppModal from 'components/register_app_modal.jsx';
 import ImportThemeModal from 'components/user_settings/import_theme_modal.jsx';
 import InviteMemberModal from 'components/invite_member_modal.jsx';
 import LeaveTeamModal from 'components/leave_team_modal.jsx';
@@ -162,7 +161,6 @@ export default class NeedsTeam extends React.Component {
                     <EditPostModal/>
                     <DeletePostModal/>
                     <RemovedFromChannelModal/>
-                    <RegisterAppModal/>
                     <SelectTeamModal/>
                 </div>
             </div>

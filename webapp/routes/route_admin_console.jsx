@@ -14,6 +14,7 @@ import PolicySettings from 'components/admin_console/policy_settings.jsx';
 import LogSettings from 'components/admin_console/log_settings.jsx';
 import EmailAuthenticationSettings from 'components/admin_console/email_authentication_settings.jsx';
 import GitLabSettings from 'components/admin_console/gitlab_settings.jsx';
+import OAuthSettings from 'components/admin_console/oauth_settings.jsx';
 import LdapSettings from 'components/admin_console/ldap_settings.jsx';
 import SamlSettings from 'components/admin_console/saml_settings.jsx';
 import SignupSettings from 'components/admin_console/signup_settings.jsx';
@@ -140,6 +141,10 @@ export default (
             <Route
                 path='external'
                 component={ExternalServiceSettings}
+            />
+            <Route
+                path='oauth2'
+                component={OAuthSettings}
             />
         </Route>
         <Route path='files'>
