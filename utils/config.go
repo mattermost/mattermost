@@ -264,6 +264,10 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["RestrictCustomEmojiCreation"] = *c.ServiceSettings.RestrictCustomEmojiCreation
 	props["MaxFileSize"] = strconv.FormatInt(*c.FileSettings.MaxFileSize, 10)
 
+	props["AppDownloadLink"] = *c.NativeAppSettings.AppDownloadLink
+	props["AndroidAppDownloadLink"] = *c.NativeAppSettings.AndroidAppDownloadLink
+	props["IosAppDownloadLink"] = *c.NativeAppSettings.IosAppDownloadLink
+
 	if IsLicensed {
 		if *License.Features.CustomBrand {
 			props["EnableCustomBrand"] = strconv.FormatBool(*c.TeamSettings.EnableCustomBrand)
