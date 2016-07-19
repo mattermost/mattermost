@@ -204,11 +204,17 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.handleFunc(c, w, r)
 	}
 
+	// Handle errors that have occoured
 	if c.Err != nil {
 		c.Err.Translate(c.T)
 		c.Err.RequestId = c.RequestId
 		c.LogError(c.Err)
 		c.Err.Where = r.URL.Path
+
+		// Block out detailed error whenn not in developer mode
+		if !*utils.Cfg.ServiceSettings.EnableDeveloper {
+			c.Err.DetailedError = ""
+		}
 
 		if h.isApi {
 			w.WriteHeader(c.Err.StatusCode)
