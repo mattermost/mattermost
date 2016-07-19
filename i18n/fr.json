@@ -165,7 +165,7 @@
   },
   {
     "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
-    "translation": "Failed to add user to channel because they have been removed from the team."
+    "translation": "Impossible d'ajouter l'utilisateur au canal car il a été exclu de l'équipe."
   },
   {
     "id": "api.channel.add_user_to_channel.deleted.app_error",
@@ -560,6 +560,10 @@
     "translation": "### Raccourcis clavier\n\n#### Navigation\n\nALT+HAUT: Canal ou message privé précédent dans la barre de gauche\nALT+BAS: Canal ou message privé suivant dans la barre de gauche\nALT+SHIFT+HAUT: Canal ou message privé précédent avec messages non-lus dans la barre de gauche\nALT+SHIFT+BAS: Canal ou message privé suivant avec messages non-lus dans la barre de gauche\nCTRL/CMD+K: Fenêtre de changemetn de canal rapide\nCTRL/CMD+SHIFT+A: Préférences du compte\nCTRL/CMD+SHIFT+M: Dernières mentions\n\n#### Fichiers\n\nCTRL/CMD+U: Télécharger des fichiers\n\n#### Messages\n\nCTRL/CMD+HAUT (dans un champ vide): Affiche le message ou commande slash précédent\nCTRL/CMD+DOWN (dans un champ vide): Affiche le message ou commande slash suivant\nHAUT (dans un champ vide): Édite votre dernier message dans le canal actuel\n@[lettre]+TAB: Autocomplète un @nom commençant par [lettre]\n:[lettre]+TAB: Autocomplète emoji commençant par [lettre]\n\n#### Commandes du navigateur intégré\n\nALT+GAUCH/CMD+[: Canal précédent dans votre historique\nALT+RIGHT/CMD+]: Canal suivant dans votre historique\nCTRL/CMD+PLUS: Augmente la taille de la police\nCTRL/CMD+MOINS: Diminue la taille de la police\nSHIFT+HAUT (dans un champ de saisie): Surligne le texte jusqu'à la ligne précédente\nSHIFT+BAS (dans un champ de saisie): Surligne le texte jusqu'à la ligne suivante\nSHIFT+ENTRÉE (dans un champ de saisie): Saut de ligne\n"
   },
   {
+    "id": "api.command_shortcuts.list_mac",
+    "translation": "### Raccourcis clavier\n\n#### Navigation\n\nALT+HAUT: Canal ou message privé précédent dans la barre de gauche\nALT+BAS: Canal ou message privé suivant dans la barre de gauche\nALT+SHIFT+HAUT: Canal ou message privé précédent avec messages non-lus dans la barre de gauche\nALT+SHIFT+BAS: Canal ou message privé suivant avec messages non-lus dans la barre de gauche\nCTRL/CMD+K: Fenêtre de changemetn de canal rapide\nCTRL/CMD+SHIFT+A: Préférences du compte\nCTRL/CMD+SHIFT+M: Dernières mentions\n\n#### Fichiers\n\nCTRL/CMD+U: Télécharger des fichiers\n\n#### Messages\n\nCTRL/CMD+HAUT (dans un champ vide): Affiche le message ou commande slash précédent\nCTRL/CMD+DOWN (dans un champ vide): Affiche le message ou commande slash suivant\nHAUT (dans un champ vide): Édite votre dernier message dans le canal actuel\n@[lettre]+TAB: Autocomplète un @nom commençant par [lettre]\n:[lettre]+TAB: Autocomplète emoji commençant par [lettre]\n\n#### Commandes du navigateur intégré\n\nALT+GAUCH/CMD+[: Canal précédent dans votre historique\nALT+RIGHT/CMD+]: Canal suivant dans votre historique\nCTRL/CMD+PLUS: Augmente la taille de la police\nCTRL/CMD+MOINS: Diminue la taille de la police\nSHIFT+HAUT (dans un champ de saisie): Surligne le texte jusqu'à la ligne précédente\nSHIFT+BAS (dans un champ de saisie): Surligne le texte jusqu'à la ligne suivante\nSHIFT+ENTRÉE (dans un champ de saisie): Saut de ligne\n"
+  },
+  {
     "id": "api.command_shortcuts.name",
     "translation": "raccourcis clavier"
   },
@@ -668,52 +672,12 @@
     "translation": "Impossible de créer un emoji. L'image doit faire au plus 128x128 pixels."
   },
   {
-    "id": "api.export.json.app_error",
-    "translation": "Impossible de convertir en json"
-  },
-  {
-    "id": "api.export.open.app_error",
-    "translation": "Il est impossible d'ouvrir le fichier"
-  },
-  {
-    "id": "api.export.open_dir.app_error",
-    "translation": "Impossible d'ouvrir le répertoire"
-  },
-  {
-    "id": "api.export.open_file.app_error",
-    "translation": "Impossible d'ouvrir le fichier pour export"
-  },
-  {
-    "id": "api.export.options.create.app_error",
-    "translation": "Impossible de créer le fichier d'options"
-  },
-  {
-    "id": "api.export.options.write.app_error",
-    "translation": "Impossible d'écrire le fichier d'options"
-  },
-  {
-    "id": "api.export.read_dir.app_error",
-    "translation": "Impossible de lire le répertoire"
-  },
-  {
-    "id": "api.export.s3.app_error",
-    "translation": "S3 n'est pas supporté pour l'export du stockage local."
-  },
-  {
     "id": "api.file.file_upload.exceeds",
     "translation": "Le fichier dépasse la limite de taille pour les images."
   },
   {
     "id": "api.file.file_upload.exceeds",
     "translation": "Le fichier dépasse la limite de taille pour les images."
-  },
-  {
-    "id": "api.file.get_export.retrieve.app_error",
-    "translation": "Impossible d'obtenir le fichier exporté. Veuillez re-exporter."
-  },
-  {
-    "id": "api.file.get_export.team_admin.app_error",
-    "translation": "Seul l'administrateur d'équipe peut charger les données exportées."
   },
   {
     "id": "api.file.get_file.not_found.app_error",
@@ -1128,6 +1092,14 @@
     "translation": "Impossible de récupérer le message"
   },
   {
+    "id": "api.preference.delete_preferences.decode.app_error",
+    "translation": "Impossible de décoder les préférences depuis la requête"
+  },
+  {
+    "id": "api.preference.delete_preferences.user_id.app_error",
+    "translation": "Impossible d'enregistrer les préférences pour un autre utilisateur"
+  },
+  {
     "id": "api.preference.init.debug",
     "translation": "Initialisation des routes de l'api des préférences"
   },
@@ -1268,6 +1240,14 @@
     "translation": "Impossible d'ouvrir le fichier zip"
   },
   {
+    "id": "api.status.last_activity.error",
+    "translation": "Échec de la mise à jour de LastActivityAt pour user_id=%v et session_id=%v, err=%v"
+  },
+  {
+    "id": "api.status.save_status.error",
+    "translation": "Echec de la mise-à-jour de LastPingAt pour user_id=%v, err=%v"
+  },
+  {
     "id": "api.team.create_team.email_disabled.app_error",
     "translation": "L'inscription d'équipe via adresse électronique est désactivée."
   },
@@ -1290,10 +1270,6 @@
   {
     "id": "api.team.email_teams.sending.error",
     "translation": "Une erreur est survenue durant l'envoi d'un courriel dans emailTeams err=%v"
-  },
-  {
-    "id": "api.team.export_team.admin.app_error",
-    "translation": "Seul l'administrateur d'équipe peut exporter les données."
   },
   {
     "id": "api.team.get_invite_info.not_open_team",
@@ -1577,11 +1553,11 @@
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "Vous avez rejoint l'équipe {{.TeamDisplayName}}"
+    "translation": "Bienvenue sur {{ .ServerURL }}"
   },
   {
     "id": "api.templates.verify_subject",
-    "translation": "[{{ .TeamDisplayName }} {{ .SiteName}}] Vérification d'adresse électronique"
+    "translation": "Vérification de l'adresse électronique pour [{{ .SiteName }}]"
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -1593,7 +1569,7 @@
   },
   {
     "id": "api.templates.welcome_body.info2",
-    "translation": "Vous pouvez rejoindre votre nouvelle équipe avec l'URL suivante :"
+    "translation": "Vous pouvez vous connecter avec :"
   },
   {
     "id": "api.templates.welcome_body.info3",
@@ -1601,11 +1577,11 @@
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "Vous avez rejoint l'équipe {{ .TeamDisplayName }} "
+    "translation": "Bienvenue sur {{ .ServerURL }}"
   },
   {
     "id": "api.templates.welcome_subject",
-    "translation": "Vous avez rejoint l'équipe {{ .TeamDisplayName }} "
+    "translation": "Vous avez rejoint {{ .ServerURL }}"
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
@@ -2000,14 +1976,6 @@
     "translation": "Mauvais lien de vérification de l'adresse électronique."
   },
   {
-    "id": "api.web_conn.new_web_conn.last_activity.error",
-    "translation": "Échec de la mise à jour de LastActivityAt pour user_id=%v et session_id=%v, err=%v"
-  },
-  {
-    "id": "api.web_conn.new_web_conn.last_ping.error",
-    "translation": "Echec de la mise-à-jour de LastPingAt pour user_id=%v, err=%v"
-  },
-  {
     "id": "api.web_hub.start.stopping.debug",
     "translation": "Arrêt des connexions %v en cours"
   },
@@ -2022,6 +1990,14 @@
   {
     "id": "api.web_socket.init.debug",
     "translation": "Initialisation des routes de l'api web socket"
+  },
+  {
+    "id": "api.web_socket_handler.log.error",
+    "translation": "%v:%v seq=%v uid=%v %v [details: %v]"
+  },
+  {
+    "id": "api.web_socket_router.log.error",
+    "translation": "erreur websocket : seq=%v uid=%v %v [details: %v]"
   },
   {
     "id": "api.web_team_hun.start.debug",
@@ -2094,6 +2070,10 @@
   {
     "id": "api.webhook.regen_outgoing_token.permissions.app_error",
     "translation": "Droits insuffisants pour regénérer le jeton du webhook sortant"
+  },
+  {
+    "id": "api.websocket_handler.invalid_param.app_error",
+    "translation": "Paramètre {{.Name}} invalide"
   },
   {
     "id": "cli.license.critical",
@@ -2177,7 +2157,7 @@
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
-    "translation": "L'utilisateur n'a pas le droit d'utiliser Mattermost. (filtre d'utilisateur LDAP)"
+    "translation": "Your LDAP account does not have permission to use this Mattermost server. Please ask your System Administrator to check the LDAP user filter."
   },
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
@@ -2672,6 +2652,34 @@
     "translation": "Largeur des aperçus invalide dans les paramètres de fichiers. Doit être un entier positif."
   },
   {
+    "id": "model.config.is_valid.ldap_basedn",
+    "translation": "LDAP field \"BaseDN\" is required."
+  },
+  {
+    "id": "model.config.is_valid.ldap_bind_password",
+    "translation": "LDAP field \"Bind Password\" is required."
+  },
+  {
+    "id": "model.config.is_valid.ldap_bind_username",
+    "translation": "LDAP field \"Bind Username\" is required."
+  },
+  {
+    "id": "model.config.is_valid.ldap_email",
+    "translation": "LDAP field \"Email Attribute\" is required."
+  },
+  {
+    "id": "model.config.is_valid.ldap_firstname",
+    "translation": "LDAP field \"First Name Attribute\" is required."
+  },
+  {
+    "id": "model.config.is_valid.ldap_id",
+    "translation": "LDAP field \"ID Attribute\" is required."
+  },
+  {
+    "id": "model.config.is_valid.ldap_lastname",
+    "translation": "LDAP field \"Last Name Attribute\" is required."
+  },
+  {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",
     "translation": "Valeur de la taille maximale de page invalide."
   },
@@ -2688,8 +2696,16 @@
     "translation": "Sécurité de connexion invalide dans les paramètres de messagerie. Doit être '', 'TLS' ou 'STARTTLS'"
   },
   {
+    "id": "model.config.is_valid.ldap_server",
+    "translation": "LDAP field \"LDAP Server\" is required."
+  },
+  {
     "id": "model.config.is_valid.ldap_sync_interval.app_error",
     "translation": "La synchronisation du temps d'interval est invalide. Doit être au moins d'une minute."
+  },
+  {
+    "id": "model.config.is_valid.ldap_username",
+    "translation": "LDAP field \"Username Attribute\" is required."
   },
   {
     "id": "model.config.is_valid.listen_address.app_error",
@@ -2733,11 +2749,11 @@
   },
   {
     "id": "model.config.is_valid.saml_email_attribute.app_error",
-    "translation": "L'attribut \"Username\" est invalide. Il doit être renseigné."
+    "translation": "L'attribut \"Email\" est invalide. Il doit être renseigné."
   },
   {
     "id": "model.config.is_valid.saml_first_name_attribute.app_error",
-    "translation": "L'attribut \"Username\" est invalide. Il doit être renseigné."
+    "translation": "L'attribut \"Prénom\" est invalide. Il doit être renseigné."
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
@@ -2753,7 +2769,7 @@
   },
   {
     "id": "model.config.is_valid.saml_last_name_attribute.app_error",
-    "translation": "L'attribut \"Username\" est invalide. Il doit être renseigné."
+    "translation": "L'attribut \"Nom de famille\" est invalide. Il doit être renseigné."
   },
   {
     "id": "model.config.is_valid.saml_private_key.app_error",
@@ -2766,6 +2782,10 @@
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
     "translation": "L'attribut \"Username\" est invalide. Il doit être renseigné."
+  },
+  {
+    "id": "model.config.is_valid.sitename_length.app_error",
+    "translation": "Site name must be less than or equal to {{.MaxLength}} characters."
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",
@@ -2996,6 +3016,10 @@
     "translation": "Nom invalide"
   },
   {
+    "id": "model.preference.is_valid.theme.app_error",
+    "translation": "Thème invalide"
+  },
+  {
     "id": "model.preference.is_valid.value.app_error",
     "translation": "La valeur est trop longue"
   },
@@ -3158,10 +3182,6 @@
   {
     "id": "model.user.is_valid.team_id.app_error",
     "translation": "Id équipe invalide"
-  },
-  {
-    "id": "model.user.is_valid.theme.app_error",
-    "translation": "Thème invalide"
   },
   {
     "id": "model.user.is_valid.update_at.app_error",
@@ -3392,10 +3412,6 @@
     "translation": "Nous n'avons pas pu charger les informations supplémentaires sur les membres du canal"
   },
   {
-    "id": "store.sql_channel.get_for_export.app_error",
-    "translation": "Nous n'avons pas pu charger tous les canaux"
-  },
-  {
     "id": "store.sql_channel.get_member.app_error",
     "translation": "Nous n'avons pas pu obtenir les membres du canal"
   },
@@ -3498,6 +3514,10 @@
   {
     "id": "store.sql_channel.save_member.save.app_error",
     "translation": "Nous n'avons pas pu enregistrer le membre du canal"
+  },
+  {
+    "id": "store.sql_channel.set_last_viewed_at.app_error",
+    "translation": "Nous n'avons pas pu mettre à jour la date de dernier affichage."
   },
   {
     "id": "store.sql_channel.update.app_error",
@@ -3684,20 +3704,12 @@
     "translation": "Nous n'avons pas pu obtenir le nombre d'utilisateur avec des messages"
   },
   {
-    "id": "store.sql_post.compliance_export.app_error",
-    "translation": "Nous n'avons pas pu obtenir les messages pour l'export de conformité"
-  },
-  {
     "id": "store.sql_post.delete.app_error",
     "translation": "Nous n'avons pas pu supprimer le message"
   },
   {
     "id": "store.sql_post.get.app_error",
     "translation": "Nous n'avons pas pu obtenir le message"
-  },
-  {
-    "id": "store.sql_post.get_for_export.app_error",
-    "translation": "Nous n'avons pas pu obtenir les messages du canal"
   },
   {
     "id": "store.sql_post.get_parents_posts.app_error",
@@ -3754,6 +3766,10 @@
   {
     "id": "store.sql_post.update.app_error",
     "translation": "Nous n'avons pas pu mettre à jour le message"
+  },
+  {
+    "id": "store.sql_preference.delete.app_error",
+    "translation": "Nous avons rencontré une erreur durant la suppression des préférences"
   },
   {
     "id": "store.sql_preference.delete_unused_features.debug",
@@ -3866,6 +3882,34 @@
   {
     "id": "store.sql_session.update_roles.app_error",
     "translation": "Nous n'avons pas pu mettre à jour les rôles"
+  },
+  {
+    "id": "store.sql_status.get.app_error",
+    "translation": "Encountered an error retrieving the status"
+  },
+  {
+    "id": "store.sql_status.get.missing.app_error",
+    "translation": "No entry for that status exists"
+  },
+  {
+    "id": "store.sql_status.get_online_away.app_error",
+    "translation": "Encountered an error retrieving all the online/away statuses"
+  },
+  {
+    "id": "store.sql_status.get_total_active_users_count.app_error",
+    "translation": "Nous n'avons pas pu compter les utilisateurs"
+  },
+  {
+    "id": "store.sql_status.reset_all.app_error",
+    "translation": "Encountered an error resetting all the statuses"
+  },
+  {
+    "id": "store.sql_status.save.app_error",
+    "translation": "Nous avons rencontré une erreur durant l'enregistrement de la licence"
+  },
+  {
+    "id": "store.sql_status.update.app_error",
+    "translation": "Nous avons rencontré une erreur lors de la mise à jour de l'équipe"
   },
   {
     "id": "store.sql_system.get.app_error",
@@ -4004,10 +4048,6 @@
     "translation": "Nous n'avons pas pu trouver un compte existant correspondant à votre nom d'utilisateur pour cette équipe. Cette équipe nécessite peut-être une invitation de la part du propriétaire pour pouvoir la rejoindre."
   },
   {
-    "id": "store.sql_user.get_for_export.app_error",
-    "translation": "Nous avons rencontré une erreur lors de la recherche des profils utilisateurs"
-  },
-  {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "Nous n'avons pas pu trouver un compte existant correspondant à votre nom d'utilisateur pour cette équipe. Cette équipe nécessite peut-être une invitation de la part du propriétaire pour pouvoir la rejoindre."
   },
@@ -4024,16 +4064,16 @@
     "translation": "Nous avons rencontré une erreur lors de la recherche des profils utilisateurs"
   },
   {
-    "id": "store.sql_user.get_total_active_users_count.app_error",
-    "translation": "Nous n'avons pas pu compter les utilisateurs"
-  },
-  {
     "id": "store.sql_user.get_total_users_count.app_error",
     "translation": "Nous n'avons pas pu compter les utilisateurs"
   },
   {
     "id": "store.sql_user.get_unread_count.app_error",
     "translation": "Nous n'avons pas pu compter le nombre de messages non lus pour l'utilisateur"
+  },
+  {
+    "id": "store.sql_user.migrate_theme.critical",
+    "translation": "Failed to migrate User.ThemeProps to Preferences table %v"
   },
   {
     "id": "store.sql_user.missing_account.const",

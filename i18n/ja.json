@@ -560,6 +560,10 @@
     "translation": "### キーボードショートカット\n\n#### 移動\n\nALT+UP: 左側のサイドバーの前のチャンネルまたはダイレクトメッセージ\nALT+DOWN: 左側のサイドバーの次のチャンネルまたはダイレクトメッセージ\nALT+SHIFT+UP: 未読のメッセージのある左側のサイドバーの前のチャンネルまたはダイレクトメッセージ\nALT+SHIFT+DOWN: 未読のメッセージのある左側のサイドバーの次のチャンネルまたはダイレクトメッセージ\nCTRL/CMD+SHIFT+K: 簡易チャンネル変更ダイアログボックスを開く\nCTRL/CMD+SHIFT+A: アカウント設定を開く\nCTRL/CMD+SHIFT+M: 最近のあなたについての投稿を開く\n\n#### ファイル\n\nCTRL/CMD+U: ファイルをアップロードする\n\n#### メッセージ\n\nCTRL/CMD+UP (空の入力欄で): 前のメッセージまたはスラッシュコマンドを表示する\nCTRL/CMD+DOWN (空の入力欄で): 次のメッセージまたはスラッシュコマンドを表示する\nUP (空の入力欄で): 現在のチャンネルの最新のメッセージを編集する\n@[文字]+TAB: [文字]で始まる@usernameを補完する\n:[文字]+TAB: [文字]で始まる絵文字を補完する\n\n#### ブラウザー内蔵のコマンド\n\nALT+LEFT/CMD+[: 履歴の前のチャンネル\nALT+RIGHT/CMD+]: 履歴の次のチャンネル\nCTRL/CMD+PLUS: フォントサイズを大きくする (ズームイン)\nCTRL/CMD+MINUS: フォントサイズを小さくする (ズームアウト)\nSHIFT+UP (入力欄で): 前の行を反転させる\nSHIFT+DOWN (入力欄で): 次の行を反転させる\nSHIFT+ENTER (入力欄で): 改行する\n"
   },
   {
+    "id": "api.command_shortcuts.list_mac",
+    "translation": "### キーボードショートカット\n\n#### 移動\n\nALT+UP: 左側のサイドバーの前のチャンネルまたはダイレクトメッセージ\nALT+DOWN: 左側のサイドバーの次のチャンネルまたはダイレクトメッセージ\nALT+SHIFT+UP: 未読のメッセージのある左側のサイドバーの前のチャンネルまたはダイレクトメッセージ\nALT+SHIFT+DOWN: 未読のメッセージのある左側のサイドバーの次のチャンネルまたはダイレクトメッセージ\nCTRL/CMD+SHIFT+K: 簡易チャンネル変更ダイアログボックスを開く\nCTRL/CMD+SHIFT+A: アカウント設定を開く\nCTRL/CMD+SHIFT+M: 最近のあなたについての投稿を開く\n\n#### ファイル\n\nCTRL/CMD+U: ファイルをアップロードする\n\n#### メッセージ\n\nCTRL/CMD+UP (空の入力欄で): 前のメッセージまたはスラッシュコマンドを表示する\nCTRL/CMD+DOWN (空の入力欄で): 次のメッセージまたはスラッシュコマンドを表示する\nUP (空の入力欄で): 現在のチャンネルの最新のメッセージを編集する\n@[文字]+TAB: [文字]で始まる@usernameを補完する\n:[文字]+TAB: [文字]で始まる絵文字を補完する\n\n#### ブラウザー内蔵のコマンド\n\nALT+LEFT/CMD+[: 履歴の前のチャンネル\nALT+RIGHT/CMD+]: 履歴の次のチャンネル\nCTRL/CMD+PLUS: フォントサイズを大きくする (ズームイン)\nCTRL/CMD+MINUS: フォントサイズを小さくする (ズームアウト)\nSHIFT+UP (入力欄で): 前の行を反転させる\nSHIFT+DOWN (入力欄で): 次の行を反転させる\nSHIFT+ENTER (入力欄で): 改行する\n"
+  },
+  {
     "id": "api.command_shortcuts.name",
     "translation": "ショートカット"
   },
@@ -668,52 +672,12 @@
     "translation": "絵文字を作成できません。画像は128x128ピクセル以内である必要があります。"
   },
   {
-    "id": "api.export.json.app_error",
-    "translation": "JSONに変換できません"
-  },
-  {
-    "id": "api.export.open.app_error",
-    "translation": "ファイルを開けません"
-  },
-  {
-    "id": "api.export.open_dir.app_error",
-    "translation": "ディレクトリーを開けません"
-  },
-  {
-    "id": "api.export.open_file.app_error",
-    "translation": "エクスポートするファイルが開けません"
-  },
-  {
-    "id": "api.export.options.create.app_error",
-    "translation": "オプションファイルを作成できません"
-  },
-  {
-    "id": "api.export.options.write.app_error",
-    "translation": "オプションファイルに書き込めません"
-  },
-  {
-    "id": "api.export.read_dir.app_error",
-    "translation": "ディレクトリーを読み取れません"
-  },
-  {
-    "id": "api.export.s3.app_error",
-    "translation": "S3はローカルストレージへのエクスポートではサポートされません。"
-  },
-  {
     "id": "api.file.file_upload.exceeds",
     "translation": "ファイルが最大の画像サイズを超過しました。"
   },
   {
     "id": "api.file.file_upload.exceeds",
     "translation": "ファイルが最大の画像サイズを超過しました。"
-  },
-  {
-    "id": "api.file.get_export.retrieve.app_error",
-    "translation": "エクスポートしたファイルを取得できませんでした。再度エクスポートしてください"
-  },
-  {
-    "id": "api.file.get_export.team_admin.app_error",
-    "translation": "チーム管理者のみがエクスポートされたデータを取得できます。"
   },
   {
     "id": "api.file.get_file.not_found.app_error",
@@ -1128,6 +1092,14 @@
     "translation": "投稿を取得できません"
   },
   {
+    "id": "api.preference.delete_preferences.decode.app_error",
+    "translation": "リクエストから設定をデコードできません"
+  },
+  {
+    "id": "api.preference.delete_preferences.user_id.app_error",
+    "translation": "他のユーザーの設定は削除できません"
+  },
+  {
     "id": "api.preference.init.debug",
     "translation": "設定APIルートを初期化しています"
   },
@@ -1268,6 +1240,14 @@
     "translation": "ZIPファイルを開くことができません"
   },
   {
+    "id": "api.status.last_activity.error",
+    "translation": "LastActivityAtを更新できませんでした user_id=%v、session_id=%v、err=%v"
+  },
+  {
+    "id": "api.status.save_status.error",
+    "translation": "user_id=%vのLastPingAtを更新できませんでした err=%v"
+  },
+  {
     "id": "api.team.create_team.email_disabled.app_error",
     "translation": "電子メールによるチームへの利用登録は無効です。"
   },
@@ -1290,10 +1270,6 @@
   {
     "id": "api.team.email_teams.sending.error",
     "translation": "emailTeamsで電子メール送る際にエラーが発生しました err=%v"
-  },
-  {
-    "id": "api.team.export_team.admin.app_error",
-    "translation": "チーム管理者のみがデータをエクスポートできます。"
   },
   {
     "id": "api.team.get_invite_info.not_open_team",
@@ -1577,11 +1553,11 @@
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "あなたは{{ .TeamDisplayName }}チームに参加しました"
+    "translation": "{{ .ServerURL }}に参加しました"
   },
   {
     "id": "api.templates.verify_subject",
-    "translation": "[{{ .TeamDisplayName }} {{ .SiteName }}] 電子メールアドレスの確認"
+    "translation": "[{{ .SiteName }}] 電子メール確認"
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -1593,7 +1569,7 @@
   },
   {
     "id": "api.templates.welcome_body.info2",
-    "translation": "ウェブアドレスからあなたの新しいチームにサインインすることができます:"
+    "translation": "You can sign in from:"
   },
   {
     "id": "api.templates.welcome_body.info3",
@@ -1601,11 +1577,11 @@
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "あなたは{{ .TeamDisplayName }}チームに参加しました"
+    "translation": "{{ .ServerURL }}に参加しました"
   },
   {
     "id": "api.templates.welcome_subject",
-    "translation": "あなたは{{ .TeamDisplayName }}に参加しました"
+    "translation": "{{ .ServerURL }}に参加しました"
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
@@ -2000,14 +1976,6 @@
     "translation": "不正な電子メール確認リンクです。"
   },
   {
-    "id": "api.web_conn.new_web_conn.last_activity.error",
-    "translation": "LastActivityAtを更新できませんでした user_id=%v、session_id=%v、err=%v"
-  },
-  {
-    "id": "api.web_conn.new_web_conn.last_ping.error",
-    "translation": "user_id=%vのLastPingAtを更新できませんでした err=%v"
-  },
-  {
     "id": "api.web_hub.start.stopping.debug",
     "translation": "%vの接続を停止しています"
   },
@@ -2022,6 +1990,14 @@
   {
     "id": "api.web_socket.init.debug",
     "translation": "ウェブソケットAPIルートを初期化しています"
+  },
+  {
+    "id": "api.web_socket_handler.log.error",
+    "translation": "%v:%v seq=%v uid=%v %v [details: %v]"
+  },
+  {
+    "id": "api.web_socket_router.log.error",
+    "translation": "websocket routing error: seq=%v uid=%v %v [details: %v]"
   },
   {
     "id": "api.web_team_hun.start.debug",
@@ -2094,6 +2070,10 @@
   {
     "id": "api.webhook.regen_outgoing_token.permissions.app_error",
     "translation": "外向きのウェブフックトークンを再生成するのに十分な権限が付与されていません"
+  },
+  {
+    "id": "api.websocket_handler.invalid_param.app_error",
+    "translation": "不正な{{.Name}}パラメーターです"
   },
   {
     "id": "cli.license.critical",
@@ -2177,7 +2157,7 @@
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
-    "translation": "このユーザーはMattermostを使う権限がありません(LDAPユーザーフィルター)。"
+    "translation": "Your LDAP account does not have permission to use this Mattermost server. Please ask your System Administrator to check the LDAP user filter."
   },
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
@@ -2672,6 +2652,34 @@
     "translation": "ファイル設定のサムネイルの幅が不正です。ゼロ以上の数を指定してください。"
   },
   {
+    "id": "model.config.is_valid.ldap_basedn",
+    "translation": "LDAP field \"BaseDN\" is required."
+  },
+  {
+    "id": "model.config.is_valid.ldap_bind_password",
+    "translation": "LDAP field \"Bind Password\" is required."
+  },
+  {
+    "id": "model.config.is_valid.ldap_bind_username",
+    "translation": "LDAP field \"Bind Username\" is required."
+  },
+  {
+    "id": "model.config.is_valid.ldap_email",
+    "translation": "LDAP field \"Email Attribute\" is required."
+  },
+  {
+    "id": "model.config.is_valid.ldap_firstname",
+    "translation": "LDAP field \"First Name Attribute\" is required."
+  },
+  {
+    "id": "model.config.is_valid.ldap_id",
+    "translation": "LDAP field \"ID Attribute\" is required."
+  },
+  {
+    "id": "model.config.is_valid.ldap_lastname",
+    "translation": "LDAP field \"Last Name Attribute\" is required."
+  },
+  {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",
     "translation": "最大ページサイズの値が不正です。"
   },
@@ -2688,8 +2696,16 @@
     "translation": "LDAP設定の接続セキュリティーが不正です。'TLS'か'STARTTLS'にしてください"
   },
   {
+    "id": "model.config.is_valid.ldap_server",
+    "translation": "LDAP field \"LDAP Server\" is required."
+  },
+  {
     "id": "model.config.is_valid.ldap_sync_interval.app_error",
     "translation": "同期の時間間隔が不正です。少なくとも1分間以上にしてください。"
+  },
+  {
+    "id": "model.config.is_valid.ldap_username",
+    "translation": "LDAP field \"Username Attribute\" is required."
   },
   {
     "id": "model.config.is_valid.listen_address.app_error",
@@ -2766,6 +2782,10 @@
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
     "translation": "ユーザー名の属性値が不正です。設定してください。"
+  },
+  {
+    "id": "model.config.is_valid.sitename_length.app_error",
+    "translation": "Site name must be less than or equal to {{.MaxLength}} characters."
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",
@@ -2996,6 +3016,10 @@
     "translation": "不正な名前です"
   },
   {
+    "id": "model.preference.is_valid.theme.app_error",
+    "translation": "不正なテーマです"
+  },
+  {
     "id": "model.preference.is_valid.value.app_error",
     "translation": "値が長過ぎます"
   },
@@ -3158,10 +3182,6 @@
   {
     "id": "model.user.is_valid.team_id.app_error",
     "translation": "不正なチームIDです"
-  },
-  {
-    "id": "model.user.is_valid.theme.app_error",
-    "translation": "不正なテーマです"
   },
   {
     "id": "model.user.is_valid.update_at.app_error",
@@ -3392,10 +3412,6 @@
     "translation": "チャンネルメンバーに関する追加の情報を取得できませんでした"
   },
   {
-    "id": "store.sql_channel.get_for_export.app_error",
-    "translation": "チャンネルが全ては取得できませんでした"
-  },
-  {
     "id": "store.sql_channel.get_member.app_error",
     "translation": "チャンネルのメンバーが取得できませんでした"
   },
@@ -3498,6 +3514,10 @@
   {
     "id": "store.sql_channel.save_member.save.app_error",
     "translation": "チャンネルのメンバーを保存できませんでした"
+  },
+  {
+    "id": "store.sql_channel.set_last_viewed_at.app_error",
+    "translation": "最終閲覧日時を更新できませんでした"
   },
   {
     "id": "store.sql_channel.update.app_error",
@@ -3684,20 +3704,12 @@
     "translation": "投稿したユーザー数を取得できませんでした"
   },
   {
-    "id": "store.sql_post.compliance_export.app_error",
-    "translation": "コンプライアンスエクスポート用の投稿を取得できませんでした"
-  },
-  {
     "id": "store.sql_post.delete.app_error",
     "translation": "投稿を削除できませんでした"
   },
   {
     "id": "store.sql_post.get.app_error",
     "translation": "投稿を取得できませんでした"
-  },
-  {
-    "id": "store.sql_post.get_for_export.app_error",
-    "translation": "チャンネルの投稿を取得できませんでした"
   },
   {
     "id": "store.sql_post.get_parents_posts.app_error",
@@ -3754,6 +3766,10 @@
   {
     "id": "store.sql_post.update.app_error",
     "translation": "投稿を更新できませんでした"
+  },
+  {
+    "id": "store.sql_preference.delete.app_error",
+    "translation": "設定を削除する際にエラーが発生しました"
   },
   {
     "id": "store.sql_preference.delete_unused_features.debug",
@@ -3866,6 +3882,34 @@
   {
     "id": "store.sql_session.update_roles.app_error",
     "translation": "役割を更新できませんでした"
+  },
+  {
+    "id": "store.sql_status.get.app_error",
+    "translation": "Encountered an error retrieving the status"
+  },
+  {
+    "id": "store.sql_status.get.missing.app_error",
+    "translation": "No entry for that status exists"
+  },
+  {
+    "id": "store.sql_status.get_online_away.app_error",
+    "translation": "Encountered an error retrieving all the online/away statuses"
+  },
+  {
+    "id": "store.sql_status.get_total_active_users_count.app_error",
+    "translation": "ユーザー数を取得できませんでした"
+  },
+  {
+    "id": "store.sql_status.reset_all.app_error",
+    "translation": "Encountered an error resetting all the statuses"
+  },
+  {
+    "id": "store.sql_status.save.app_error",
+    "translation": "ライセンスを保存する際にエラーが発生しました"
+  },
+  {
+    "id": "store.sql_status.update.app_error",
+    "translation": "チームを更新する際にエラーが発生しました"
   },
   {
     "id": "store.sql_system.get.app_error",
@@ -4004,10 +4048,6 @@
     "translation": "このチームのユーザー名に合致する既存のアカウントを見付けられませんでした。このチームに参加するには、チームのオーナーから招待を受ける必要があります。"
   },
   {
-    "id": "store.sql_user.get_for_export.app_error",
-    "translation": "ユーザーのプロフィールを探す際にエラーが発生しました"
-  },
-  {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "あなたの認証情報に合致する既存のアカウントを見付けられませんでした。このチームに参加するには、チームのオーナーから招待を受ける必要があります。"
   },
@@ -4024,16 +4064,16 @@
     "translation": "ユーザーのプロフィールを探す際にエラーが発生しました"
   },
   {
-    "id": "store.sql_user.get_total_active_users_count.app_error",
-    "translation": "ユーザー数を取得できませんでした"
-  },
-  {
     "id": "store.sql_user.get_total_users_count.app_error",
     "translation": "ユーザー数を取得できませんでした"
   },
   {
     "id": "store.sql_user.get_unread_count.app_error",
     "translation": "ユーザーの未読のメッセージ数を取得できませんでした"
+  },
+  {
+    "id": "store.sql_user.migrate_theme.critical",
+    "translation": "Failed to migrate User.ThemeProps to Preferences table %v"
   },
   {
     "id": "store.sql_user.missing_account.const",

@@ -77,7 +77,7 @@
   },
   {
     "id": "api.admin.init.debug",
-    "translation": "Initialisiere Datei-API-Routen"
+    "translation": "Initialisiere Admin-API-Routen"
   },
   {
     "id": "api.admin.recycle_db_end.warn",
@@ -557,7 +557,11 @@
   },
   {
     "id": "api.command_shortcuts.list",
-    "translation": "### Tastaturkürzel\n\n#### Navigation\n\nALT+HOCH: Vorheriger Kanal oder Direktnachricht in linker Sidebar\nALT+RUNTER: Nächster Kanal oder Direktnachricht in linker Sidebar\nALT+SHIFT+HOCH: Vorheriger Kanal oder Direktnachricht in linker Sidebar mit ungelesenen Nachrichten\nALT+SHIFT+RUNTER: Nächster Kanal oder Direktnachricht in linker Sidebar mit ungelesenen Nachrichten\nSTRG/CMD+K: Kanalschnellwechselfenster öffnen\nSTRG/CMD+SHIFT+A: Benutzereinstellungen öffnen\nSTRG/CMD+SHIFT+M: Öffnet die letzten Erwähnungen\n\n#### Dateien\n\nSTRG/CMD+U: Datei(en) hochladen\n\n#### Nachrichten\n\nSTRG/CMD+HOCH (im leerem Eingabefeld): Letzte Nachricht oder Slash Befehl erneut ausgeben\nSTRG/CMD+RUNTER (im leerem Eingabefeld): Nächste Nachricht oder Slash Befehl erneut ausgeben\nHOCH (in leerem Eingabefeld): Letzte Nachricht im aktuellen Kanal bearbeiten\n@[Zeichen]+TAB: Autovervollständigen @Benutzername beginnend mit [Zeichen]\n:[Zeichen]+TAB: Autovervollständigen Emoji beginnend mit [Zeichen]\n\n#### Browser Kommandos\n\nALT+LEFT/CMD+[: Vorheriger Kanal in Ihrer Historie\nALT+RIGHT/CMD+]: Nächster Kanal in Ihrer Historie\nSTRG/CMD+PLUS: Schrift vergrößern (Hineinzoomen)\nSTRG/CMD+MINUS: Schrift verkleinern (Herauszoomen)\nSHIFT+HOCH (in Eingabefeld): Text bis zur vorherigen Zeile markieren\nSHIFT+RUNTER (in Eingabefeld): Text bis zur nächsten Zeile markieren\nSHIFT+ENTER (in Eingabefeld): Neue Zeile erstellen\n"
+    "translation": "### Tastaturkürzel\n\n#### Navigation\n\nALT+HOCH: Vorheriger Kanal oder Direktnachricht in linker Sidebar\nALT+RUNTER: Nächster Kanal oder Direktnachricht in linker Sidebar\nALT+SHIFT+HOCH: Vorheriger Kanal oder Direktnachricht in linker Sidebar mit ungelesenen Nachrichten\nALT+SHIFT+RUNTER: Nächster Kanal oder Direktnachricht in linker Sidebar mit ungelesenen Nachrichten\nSTRG+K: Kanalschnellwechselfenster öffnen\nSTRG+SHIFT+A: Benutzereinstellungen öffnen\nSTRG+SHIFT+M: Öffnet die letzten Erwähnungen\n\n#### Dateien\n\nSTRG+U: Datei(en) hochladen\n\n#### Nachrichten\n\nSTRG+HOCH (im leerem Eingabefeld): Letzte Nachricht oder Slash Befehl erneut ausgeben\nSTRG+RUNTER (im leerem Eingabefeld): Nächste Nachricht oder Slash Befehl erneut ausgeben\nHOCH (in leerem Eingabefeld): Letzte Nachricht im aktuellen Kanal bearbeiten\n@[Zeichen]+TAB: Autovervollständigen @Benutzername beginnend mit [Zeichen]\n:[Zeichen]+TAB: Autovervollständigen Emoji beginnend mit [Zeichen]\n\n#### Browser Kommandos\n\nALT+LEFT: Vorheriger Kanal in Ihrer Historie\nALT+RIGH: Nächster Kanal in Ihrer Historie\nSTRG+PLUS: Schrift vergrößern (Hineinzoomen)\nSTRG+MINUS: Schrift verkleinern (Herauszoomen)\nSHIFT+HOCH (in Eingabefeld): Text bis zur vorherigen Zeile markieren\nSHIFT+RUNTER (in Eingabefeld): Text bis zur nächsten Zeile markieren\nSHIFT+ENTER (in Eingabefeld): Neue Zeile erstellen\n"
+  },
+  {
+    "id": "api.command_shortcuts.list_mac",
+    "translation": "### Tastaturkürzel\n\n#### Navigation\n\nALT+HOCH: Vorheriger Kanal oder Direktnachricht in linker Sidebar\nALT+RUNTER: Nächster Kanal oder Direktnachricht in linker Sidebar\nALT+SHIFT+HOCH: Vorheriger Kanal oder Direktnachricht in linker Sidebar mit ungelesenen Nachrichten\nALT+SHIFT+RUNTER: Nächster Kanal oder Direktnachricht in linker Sidebar mit ungelesenen Nachrichten\nCMD+K: Kanalschnellwechselfenster öffnen\nCMD+SHIFT+A: Benutzereinstellungen öffnen\nCMD+SHIFT+M: Öffnet die letzten Erwähnungen\n\n#### Dateien\n\nCMD+U: Datei(en) hochladen\n\n#### Nachrichten\n\nCMD+HOCH (im leerem Eingabefeld): Letzte Nachricht oder Slash Befehl erneut ausgeben\nCMD+RUNTER (im leerem Eingabefeld): Nächste Nachricht oder Slash Befehl erneut ausgeben\nHOCH (in leerem Eingabefeld): Letzte Nachricht im aktuellen Kanal bearbeiten\n@[Zeichen]+TAB: Autovervollständigen @Benutzername beginnend mit [Zeichen]\n:[Zeichen]+TAB: Autovervollständigen Emoji beginnend mit [Zeichen]\n\n#### Browser Kommandos\n\nCMD+[: Vorheriger Kanal in Ihrer Historie\nCMD+]: Nächster Kanal in Ihrer Historie\nCMD+PLUS: Schrift vergrößern (Hineinzoomen)\nCMD+MINUS: Schrift verkleinern (Herauszoomen)\nSHIFT+HOCH (in Eingabefeld): Text bis zur vorherigen Zeile markieren\nSHIFT+RUNTER (in Eingabefeld): Text bis zur nächsten Zeile markieren\nSHIFT+ENTER (in Eingabefeld): Neue Zeile erstellen\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -668,52 +672,12 @@
     "translation": "Das Emoji konnte nicht erstellt werden. Das Bild darf maximal 128 x 128 pixel groß sein."
   },
   {
-    "id": "api.export.json.app_error",
-    "translation": "Konvertierung zu json nicht möglich"
-  },
-  {
-    "id": "api.export.open.app_error",
-    "translation": "Datei konnte nicht geöffnet werden"
-  },
-  {
-    "id": "api.export.open_dir.app_error",
-    "translation": "Ordner kann nicht geöffnet werden"
-  },
-  {
-    "id": "api.export.open_file.app_error",
-    "translation": "Datei zum Export kann nicht geöffnet werden"
-  },
-  {
-    "id": "api.export.options.create.app_error",
-    "translation": "Erstellung der Options-Datei nicht möglich"
-  },
-  {
-    "id": "api.export.options.write.app_error",
-    "translation": "Schreiben in die Options-Datei nicht möglich"
-  },
-  {
-    "id": "api.export.read_dir.app_error",
-    "translation": "Verzeichnis kann nicht gelesen werden"
-  },
-  {
-    "id": "api.export.s3.app_error",
-    "translation": "S3 wird für den local storage Export nicht unterstützt."
-  },
-  {
     "id": "api.file.file_upload.exceeds",
     "translation": "Datei überschreitet die maximale Bildgröße."
   },
   {
     "id": "api.file.file_upload.exceeds",
     "translation": "Datei überschreitet die maximale Bildgröße."
-  },
-  {
-    "id": "api.file.get_export.retrieve.app_error",
-    "translation": "Abruf der Export-Datei nicht möglich. Bitte nochmal exportieren"
-  },
-  {
-    "id": "api.file.get_export.team_admin.app_error",
-    "translation": "Nur ein Team-Mitglied kann exportierte Daten abrufen."
   },
   {
     "id": "api.file.get_file.not_found.app_error",
@@ -1117,7 +1081,7 @@
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
-    "translation": "{{.PostId}} wurde schon gelöscht"
+    "translation": "{{.PostId}} wurde bereits gelöscht"
   },
   {
     "id": "api.post.update_post.system_message.app_error",
@@ -1126,6 +1090,14 @@
   {
     "id": "api.post_get_post_by_id.get.app_error",
     "translation": "Konnte die Nachricht nicht finden"
+  },
+  {
+    "id": "api.preference.delete_preferences.decode.app_error",
+    "translation": "Konnte Einstellungen von Anfrage nicht dekodieren"
+  },
+  {
+    "id": "api.preference.delete_preferences.user_id.app_error",
+    "translation": "Konnte die Einstellungen für den anderen Benutzer nicht löschen"
   },
   {
     "id": "api.preference.init.debug",
@@ -1165,7 +1137,7 @@
   },
   {
     "id": "api.server.start_server.starting.critical",
-    "translation": "Fehler beim Starten des Servers: %v"
+    "translation": "Fehler beim Starten des Servers, err:%v"
   },
   {
     "id": "api.server.start_server.starting.info",
@@ -1268,6 +1240,14 @@
     "translation": "Zip Datei konnte nicht geöffnet werden"
   },
   {
+    "id": "api.status.last_activity.error",
+    "translation": "Fehler beim Update von LastActivityAt von user_id=%v und session_id=%v, err=%v"
+  },
+  {
+    "id": "api.status.save_status.error",
+    "translation": "Fehler beim Aktualisieren von LastPingAt für user_id=%v, err=%v"
+  },
+  {
     "id": "api.team.create_team.email_disabled.app_error",
     "translation": "Team Anmeldung mit einer E-Mail Adresse ist ausgeschaltet."
   },
@@ -1290,10 +1270,6 @@
   {
     "id": "api.team.email_teams.sending.error",
     "translation": "Fehler während dem Senden einer E-Mail ist aufgetreten: err=%v"
-  },
-  {
-    "id": "api.team.export_team.admin.app_error",
-    "translation": "Nur ein Team-Administrator kann Daten exportieren."
   },
   {
     "id": "api.team.get_invite_info.not_open_team",
@@ -1429,7 +1405,7 @@
   },
   {
     "id": "api.templates.email_organization",
-    "translation": "Versandt durch"
+    "translation": "Versandt durch "
   },
   {
     "id": "api.templates.error.link",
@@ -1529,7 +1505,7 @@
   },
   {
     "id": "api.templates.signup_team_body.info",
-    "translation": "{{ .SiteName }} ist der Platz für all Ihre Teamkommunikation, durchsuchbar und überall verfügbar. <br> Sie werden mehr aus {{ .SiteName }} herausholen wenn Ihr Team in konstantem Kontakt bleibt - laden Sie sie ins System ein."
+    "translation": "{{ .SiteName }} ist der Platz für all Ihre Teamkommunikation, durchsuchbar und überall verfügbar.<br> Sie werden mehr aus {{ .SiteName }} herausholen wenn Ihr Team in konstantem Kontakt bleibt - laden Sie sie ins System ein."
   },
   {
     "id": "api.templates.signup_team_body.title",
@@ -1577,11 +1553,11 @@
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "Sie sind dem {{ .TeamDisplayName }} Team beigetreten"
+    "translation": "Sie sind {{ .ServerURL }} beigetreten"
   },
   {
     "id": "api.templates.verify_subject",
-    "translation": "[{{ .TeamDisplayName }} {{ .SiteName }}] E-Mail-Adresse bestätigen"
+    "translation": "[{{ .SiteName }}] E-Mail Bestätigung"
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -1593,7 +1569,7 @@
   },
   {
     "id": "api.templates.welcome_body.info2",
-    "translation": "Sie können bei Ihrem neuen Team bei folgender Web-Adresse anmelden:"
+    "translation": "Sie können sich anmelden von:"
   },
   {
     "id": "api.templates.welcome_body.info3",
@@ -1601,11 +1577,11 @@
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "Sie sind dem {{ .TeamDisplayName }} Team beigetreten"
+    "translation": "Sie sind {{ .ServerURL }} beigetreten"
   },
   {
     "id": "api.templates.welcome_subject",
-    "translation": "Sie sind {{ .TeamDisplayName }} beigetreten"
+    "translation": "Sie sind {{ .ServerURL }} beigetreten"
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
@@ -1861,7 +1837,7 @@
   },
   {
     "id": "api.user.saml.not_available.app_error",
-    "translation": "SAML ist auf diesem Server nicht konfiguriert oder wird nicht unterstützt"
+    "translation": "SAML ist auf diesem Server nicht konfiguriert oder wird nicht unterstützt."
   },
   {
     "id": "api.user.send_email_change_email_and_forget.error",
@@ -2000,14 +1976,6 @@
     "translation": "Fehlerhafter E-Mail-Adresse Bestätigungslink."
   },
   {
-    "id": "api.web_conn.new_web_conn.last_activity.error",
-    "translation": "Fehler beim Update von LastActivityAt von user_id=%v und session_id=%v, err=%v"
-  },
-  {
-    "id": "api.web_conn.new_web_conn.last_ping.error",
-    "translation": "Fehler beim Aktualisieren von LastPingAt für user_id=%v, err=%v"
-  },
-  {
     "id": "api.web_hub.start.stopping.debug",
     "translation": "%v Verbindungen werden beendet"
   },
@@ -2022,6 +1990,14 @@
   {
     "id": "api.web_socket.init.debug",
     "translation": "Initialisieren Web-Socket-Api-Routen"
+  },
+  {
+    "id": "api.web_socket_handler.log.error",
+    "translation": "%v:%v seq=%v uid=%v %v [details: %v]"
+  },
+  {
+    "id": "api.web_socket_router.log.error",
+    "translation": "Websocket Routing Fehler: seq=%v uid=%v %v [details: %v]"
   },
   {
     "id": "api.web_team_hun.start.debug",
@@ -2094,6 +2070,10 @@
   {
     "id": "api.webhook.regen_outgoing_token.permissions.app_error",
     "translation": "Die Berechtigungen für die Erneuerung des Webhooks-Tokens sind ungeeignet"
+  },
+  {
+    "id": "api.websocket_handler.invalid_param.app_error",
+    "translation": "Ungültiger {{.Name}} Parameter"
   },
   {
     "id": "cli.license.critical",
@@ -2177,7 +2157,7 @@
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
-    "translation": "Benutzer nicht erlaubt Mattermost zu nutzen. (LDAP Benutzerfilter)"
+    "translation": "Ihr LDAP Account hat keine Berechtigung diesen Mattermost Server zu benutzen. Bitte fragen Sie Ihren Systemadministrator, den LDAP Benutzer Filter zu überprüfen."
   },
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
@@ -2185,7 +2165,7 @@
   },
   {
     "id": "ent.ldap.mattermost_user_update",
-    "translation": "Mattermost hat vom LDAP Server ein Update erhalten"
+    "translation": "Mattermost Benutzer durch LDAP Server aktualisiert."
   },
   {
     "id": "ent.ldap.syncdone.info",
@@ -2537,11 +2517,11 @@
   },
   {
     "id": "model.client.create_emoji.emoji.app_error",
-    "translation": "Die Emoji-Daten können der Anfrage nicht angefügt werden."
+    "translation": "Die Emoji-Daten können der Anfrage nicht angefügt werden"
   },
   {
     "id": "model.client.create_emoji.image.app_error",
-    "translation": "Das Bild kann der Anfrage nicht beigefügt werden "
+    "translation": "Das Bild kann der Anfrage nicht beigefügt werden"
   },
   {
     "id": "model.client.create_emoji.writer.app_error",
@@ -2672,6 +2652,34 @@
     "translation": "Ungültige Thumbnauilbreite in Dateieinstellungen.  Muss eine positive Zahl sein."
   },
   {
+    "id": "model.config.is_valid.ldap_basedn",
+    "translation": "LDAP Feld \"BaseDN\" ist erforderlich."
+  },
+  {
+    "id": "model.config.is_valid.ldap_bind_password",
+    "translation": "LDAP Feld \"Bind Passwort\" ist erforderlich."
+  },
+  {
+    "id": "model.config.is_valid.ldap_bind_username",
+    "translation": "LDAP Feld \"Bind Benutername\" ist erforderlich."
+  },
+  {
+    "id": "model.config.is_valid.ldap_email",
+    "translation": "LDAP Feld \"E-Mail Attribut\" ist erforderlich."
+  },
+  {
+    "id": "model.config.is_valid.ldap_firstname",
+    "translation": "LDAP Feld \"Vornamenattribut\" ist erforderlich."
+  },
+  {
+    "id": "model.config.is_valid.ldap_id",
+    "translation": "LDAP Feld \"ID Attribut\" ist erforderlich."
+  },
+  {
+    "id": "model.config.is_valid.ldap_lastname",
+    "translation": "LDAP Feld \"Nachnameattribut\" ist erforderlich."
+  },
+  {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",
     "translation": "Ungültiger Wert für die MaxPageSize."
   },
@@ -2685,11 +2693,19 @@
   },
   {
     "id": "model.config.is_valid.ldap_security.app_error",
-    "translation": "Ungültige Verbindungssicherheit in LDAP Einstellungen.  Muss '', 'TLS' oder STARTTLS' sein"
+    "translation": "Ungültige Verbindungssicherheit in LDAP Einstellungen.  Muss '', 'TLS' oder 'STARTTLS' sein"
+  },
+  {
+    "id": "model.config.is_valid.ldap_server",
+    "translation": "LDAP Feld \"LDAP Server\" ist erforderlich."
   },
   {
     "id": "model.config.is_valid.ldap_sync_interval.app_error",
     "translation": "Ungültiges Synchronisationsintervall. Muss mindestens eine Minute sein."
+  },
+  {
+    "id": "model.config.is_valid.ldap_username",
+    "translation": "LDAP Feld \"Benutzername Attribut\" ist erforderlich."
   },
   {
     "id": "model.config.is_valid.listen_address.app_error",
@@ -2709,7 +2725,7 @@
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
-    "translation": "Minimale Passwortlänge muss eine ganze Zahl größer oder gleich zu  {{.MinLength}} und weniger oder gleich zu {{.MaxLength}} sein."
+    "translation": "Minimale Passwortlänge muss eine ganze Zahl größer oder gleich zu {{.MinLength}} und weniger oder gleich zu {{.MaxLength}} sein."
   },
   {
     "id": "model.config.is_valid.password_length_max_min.app_error",
@@ -2717,15 +2733,15 @@
   },
   {
     "id": "model.config.is_valid.rate_mem.app_error",
-    "translation": "Ungültige Speichergröße für Anfragenbegrenzer Einstellungen.  Muss eine positive Zahl sein."
+    "translation": "Ungültige Speichergröße für Anfragenbegrenzer Einstellungen.  Muss eine positive Zahl sein"
   },
   {
     "id": "model.config.is_valid.rate_sec.app_error",
-    "translation": "Ungültige pro Sekunde Angabe für Anfragenbegrenzer Einstellungen.  Muss eine positive Zahl sein."
+    "translation": "Ungültige pro Sekunde Angabe für Anfragenbegrenzer Einstellungen.  Muss eine positive Zahl sein"
   },
   {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
-    "translation": "Ungültige Direktnachrichten Begrenzung.  Muss 'any' oder 'team' sein."
+    "translation": "Ungültige Direktnachrichten Begrenzung.  Muss 'any' oder 'team' sein"
   },
   {
     "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
@@ -2768,12 +2784,16 @@
     "translation": "Ungültiges Benuternamen Attribut. Muss gesetzt sein."
   },
   {
+    "id": "model.config.is_valid.sitename_length.app_error",
+    "translation": "Der Name der Site darf bis zu {{.MaxLength}} Zeichen lang sein."
+  },
+  {
     "id": "model.config.is_valid.sql_data_src.app_error",
-    "translation": "Ungültige Datenquelle in SQL Einstellungen. Muss gesetzt sein."
+    "translation": "Ungültige Datenquelle in SQL Einstellungen.  Muss gesetzt sein."
   },
   {
     "id": "model.config.is_valid.sql_driver.app_error",
-    "translation": "Ungültiger Treibername in SQL Einstellungen. Muss 'mysql' oder 'postgres' sein."
+    "translation": "Ungültiger Treibername in SQL Einstellungen.  Muss 'mysql' oder 'postgres' sein"
   },
   {
     "id": "model.config.is_valid.sql_idle.app_error",
@@ -2996,6 +3016,10 @@
     "translation": "Ungültiger Name"
   },
   {
+    "id": "model.preference.is_valid.theme.app_error",
+    "translation": "Ungültiges Motiv"
+  },
+  {
     "id": "model.preference.is_valid.value.app_error",
     "translation": "Wert ist zu lang"
   },
@@ -3160,10 +3184,6 @@
     "translation": "Ungültige Team ID"
   },
   {
-    "id": "model.user.is_valid.theme.app_error",
-    "translation": "Ungültiges Theme"
-  },
-  {
     "id": "model.user.is_valid.update_at.app_error",
     "translation": "Aktualisiert am muss eine gültige Zeit sein"
   },
@@ -3321,7 +3341,7 @@
   },
   {
     "id": "store.sql_audit.get.limit.app_error",
-    "translation": "Die Grenze für Paging wurde überschritten."
+    "translation": "Die Grenze für Paging wurde überschritten"
   },
   {
     "id": "store.sql_audit.permanent_delete_by_user.app_error",
@@ -3390,10 +3410,6 @@
   {
     "id": "store.sql_channel.get_extra_members.app_error",
     "translation": "Konnte Extrainformationen für Kanalmitglieder nicht abrufen"
-  },
-  {
-    "id": "store.sql_channel.get_for_export.app_error",
-    "translation": "Wir konnten nicht alle Kanäle finden"
   },
   {
     "id": "store.sql_channel.get_member.app_error",
@@ -3477,7 +3493,7 @@
   },
   {
     "id": "store.sql_channel.save_direct_channel.not_direct.app_error",
-    "translation": "Bei SaveDirectChannel wurde kein direkter Kanal versucht anzulegen."
+    "translation": "Bei SaveDirectChannel wurde kein direkter Kanal versucht anzulegen"
   },
   {
     "id": "store.sql_channel.save_direct_channel.open_transaction.app_error",
@@ -3498,6 +3514,10 @@
   {
     "id": "store.sql_channel.save_member.save.app_error",
     "translation": "Wir konnten die Kanalmitglieder nicht speichern"
+  },
+  {
+    "id": "store.sql_channel.set_last_viewed_at.app_error",
+    "translation": "Konnte zuletzt betrachten Zeitpunkt nicht aktualisieren"
   },
   {
     "id": "store.sql_channel.update.app_error",
@@ -3684,10 +3704,6 @@
     "translation": "Konnte Benutzeranzahl mit Nachrichten nicht abrufen"
   },
   {
-    "id": "store.sql_post.compliance_export.app_error",
-    "translation": "Konnte Nachrichten für Compliance Export nicht abrufen"
-  },
-  {
     "id": "store.sql_post.delete.app_error",
     "translation": "Wir konnten die Nachricht nicht löschen"
   },
@@ -3696,16 +3712,12 @@
     "translation": "Wir konnten die Nachricht nicht finden"
   },
   {
-    "id": "store.sql_post.get_for_export.app_error",
-    "translation": "Wir konnten die Nachrichten des Kanals nicht finden"
-  },
-  {
     "id": "store.sql_post.get_parents_posts.app_error",
     "translation": "Wir konnten die vorgelagerte Nachricht zu diesem Kanal nicht erhalten"
   },
   {
     "id": "store.sql_post.get_posts.app_error",
-    "translation": "Die Grenze für Paging wurde überschritten."
+    "translation": "Die Grenze für Paging wurde überschritten"
   },
   {
     "id": "store.sql_post.get_posts_around.get.app_error",
@@ -3754,6 +3766,10 @@
   {
     "id": "store.sql_post.update.app_error",
     "translation": "Wir konnten die Nachricht nicht updaten"
+  },
+  {
+    "id": "store.sql_preference.delete.app_error",
+    "translation": "Es trat ein Fehler beim Löschen der Einstellungen auf"
   },
   {
     "id": "store.sql_preference.delete_unused_features.debug",
@@ -3866,6 +3882,34 @@
   {
     "id": "store.sql_session.update_roles.app_error",
     "translation": "Wir konnten die Rollen nicht ändern"
+  },
+  {
+    "id": "store.sql_status.get.app_error",
+    "translation": "Encountered an error retrieving the status"
+  },
+  {
+    "id": "store.sql_status.get.missing.app_error",
+    "translation": "No entry for that status exists"
+  },
+  {
+    "id": "store.sql_status.get_online_away.app_error",
+    "translation": "Encountered an error retrieving all the online/away statuses"
+  },
+  {
+    "id": "store.sql_status.get_total_active_users_count.app_error",
+    "translation": "Wir konnten die Benutzer nicht zählen"
+  },
+  {
+    "id": "store.sql_status.reset_all.app_error",
+    "translation": "Encountered an error resetting all the statuses"
+  },
+  {
+    "id": "store.sql_status.save.app_error",
+    "translation": "Wir konnten die Lizenz nicht speichern"
+  },
+  {
+    "id": "store.sql_status.update.app_error",
+    "translation": "Es trat ein Fehler beim Aktualisieren des Teams auf"
   },
   {
     "id": "store.sql_system.get.app_error",
@@ -4004,10 +4048,6 @@
     "translation": "Es konnte kein existierender Account entsprechend Ihres Benutzernamens für dieses Teams gefunden werden. Dieses Team erfordert eventuell eine Einladung vom Teambesitzer um beizutreten."
   },
   {
-    "id": "store.sql_user.get_for_export.app_error",
-    "translation": "Es traf ein Fehler beim Finden der Benutzerprofile auf"
-  },
-  {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "Es konnte kein existierender Account entsprechend Ihrer Zugangsdaten gefunden werden. Dieses Team erfordert eventuell eine Einladung vom Teambesitzer um beizutreten."
   },
@@ -4024,16 +4064,16 @@
     "translation": "Es trat ein Fehler beim Finden der Benutzerprofile auf"
   },
   {
-    "id": "store.sql_user.get_total_active_users_count.app_error",
-    "translation": "Wir konnten die Benutzer nicht zählen"
-  },
-  {
     "id": "store.sql_user.get_total_users_count.app_error",
     "translation": "Wir konnten die Benutzer nicht zählen"
   },
   {
     "id": "store.sql_user.get_unread_count.app_error",
     "translation": "Es konnte nicht die Anzahl der ungelesenen Nachrichten für den Benutzer abgerufen werden"
+  },
+  {
+    "id": "store.sql_user.migrate_theme.critical",
+    "translation": "Fehler beim Migrieren von User.ThemeProps in die Einstellungen Tabelle %v"
   },
   {
     "id": "store.sql_user.missing_account.const",
@@ -4117,7 +4157,7 @@
   },
   {
     "id": "store.sql_user.update_auth_data.email_exists.app_error",
-    "translation": "Es war nicht möglich den Account zu {{.Service}} zu wechseln. Es existiert bereits ein Account mit der E-Mail: {{.Email}}"
+    "translation": "Es war nicht möglich den Account zu {{.Service}} zu wechseln. Es existiert bereits ein Account mit der E-Mail-Adresse {{.Email}}."
   },
   {
     "id": "store.sql_user.update_failed_pwd_attempts.app_error",
@@ -4193,7 +4233,7 @@
   },
   {
     "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
-    "translation": "Der  Webhook konnte nicht gelöscht werden"
+    "translation": "Der Webhook konnte nicht gelöscht werden"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
