@@ -179,6 +179,7 @@ describe('Client.User', function() {
                 email: 'false',
                 first_name: 'false',
                 mention_keys: '',
+                comments: 'any',
                 user_id: user.id
             };
 
