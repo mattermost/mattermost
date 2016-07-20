@@ -686,7 +686,7 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 	sessionCache.Remove(c.Session.Token)
 	c.Session.SetExpireInDays(*utils.Cfg.ServiceSettings.SessionLengthMobileInDays)
 
-	maxAge = *utils.Cfg.ServiceSettings.SessionLengthMobileInDays * 60 * 60 * 24
+	maxAge := *utils.Cfg.ServiceSettings.SessionLengthMobileInDays * 60 * 60 * 24
 
 	secure := false
 	if GetProtocol(r) == "https" {
@@ -696,7 +696,7 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
 	sessionCookie := &http.Cookie{
 		Name:     model.SESSION_COOKIE_TOKEN,
-		Value:    session.Token,
+		Value:    c.Session.Token,
 		Path:     "/",
 		MaxAge:   maxAge,
 		Expires:  expiresAt,
