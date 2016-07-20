@@ -581,6 +581,7 @@ body.ios {
 
         .post-image__column {
             @include border-radius(2px);
+            border: 1px solid $gray;
             font-size: .9em;
             height: 26px;
             line-height: 25px;
@@ -594,6 +595,7 @@ body.ios {
             .post-image__details {
                 background: transparent;
                 border: none;
+                font-size: inherit;
                 padding: 0;
                 width: 100%;
 

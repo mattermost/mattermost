@@ -120,7 +120,7 @@ class FileAttachment extends React.Component {
             var re3 = new RegExp('\\)', 'g');
             var url = fileUrl.replace(re1, '%20').replace(re2, '%28').replace(re3, '%29');
 
-            $(imgDiv).css('background-image', 'url(' + url + '_thumb.jpg)');
+            $(imgDiv).html("<img src='" + url + "_preview.jpg'/>");
         }
     }
     removeBackgroundImage(name) {
@@ -151,33 +151,16 @@ class FileAttachment extends React.Component {
             thumbnail = <div className={'file-icon ' + utils.getIconClassName(type)}/>;
         }
 
-        var fileSizeString = '';
-        if (this.state.fileSize < 0) {
-            Client.getFileInfo(
-                filename,
-                (data) => {
-                    if (this.canSetState) {
-                        this.setState({fileSize: parseInt(data.size, 10)});
-                    }
-                },
-                () => {
-                    // Do nothing
-                }
-            );
-        } else {
-            fileSizeString = utils.fileSizeToString(this.state.fileSize);
-        }
-
         var filenameString = decodeURIComponent(utils.getFileName(filename));
         var trimmedFilename;
-        if (filenameString.length > 35) {
-            trimmedFilename = filenameString.substring(0, Math.min(35, filenameString.length)) + '...';
+        if (filenameString.length > 30) {
+            trimmedFilename = filenameString.substring(0, Math.min(30, filenameString.length)) + '...';
         } else {
             trimmedFilename = filenameString;
         }
         var filenameOverlay = (
             <OverlayTrigger
-                delayShow={1000}
+                delayShow={500}
                 placement='top'
                 overlay={<Tooltip id='file-name__tooltip'>{this.props.intl.formatMessage(holders.download) + ' "' + filenameString + '"'}</Tooltip>}
             >
@@ -188,7 +171,8 @@ class FileAttachment extends React.Component {
                     target='_blank'
                     rel='noopener noreferrer'
                 >
-                    {trimmedFilename}
+                    <span className='fa fa-download'/>
+                    {' ' + trimmedFilename}
                 </a>
             </OverlayTrigger>
         );
@@ -196,7 +180,7 @@ class FileAttachment extends React.Component {
         if (this.props.compactDisplay) {
             filenameOverlay = (
                 <OverlayTrigger
-                    delayShow={1000}
+                    delayShow={500}
                     placement='top'
                     overlay={<Tooltip id='file-name__tooltip'>{filenameString}</Tooltip>}
                 >
@@ -216,35 +200,24 @@ class FileAttachment extends React.Component {
             );
         }
 
+        let postImageClass = 'post-image__column';
+        let postThumbnailClass = 'post-image__thumbnail';
+        let postImageDetailsClass = 'post-image__details';
+
         return (
             <div
-                className='post-image__column'
+                className={postImageClass}
                 key={filename}
             >
                 <a
-                    className='post-image__thumbnail'
+                    className={postThumbnailClass}
                     href='#'
                     onClick={this.onAttachmentClick}
                 >
                     {thumbnail}
                 </a>
-                <div className='post-image__details'>
+                <div className={postImageDetailsClass}>
                     {filenameOverlay}
-                    <div>
-                        <a
-                            href={fileUrl}
-                            download={filenameString}
-                            className='post-image__download'
-                            target='_blank'
-                            rel='noopener noreferrer'
-                        >
-                            <span
-                                className='fa fa-download'
-                            />
-                        </a>
-                        <span className='post-image__type'>{fileInfo.ext.toUpperCase()}</span>
-                        <span className='post-image__size'>{fileSizeString}</span>
-                    </div>
                 </div>
             </div>
         );
@@ -263,7 +236,9 @@ FileAttachment.propTypes = {
     // handler for when the thumbnail is clicked passed the index above
     handleImageClick: React.PropTypes.func,
 
-    compactDisplay: React.PropTypes.bool
+    compactDisplay: React.PropTypes.bool,
+
+    isSingle: React.PropTypes.bool
 };
 
 export default injectIntl(FileAttachment);
