@@ -39,6 +39,8 @@ export default class LoginController extends React.Component {
         this.handleLoginIdChange = this.handleLoginIdChange.bind(this);
         this.handlePasswordChange = this.handlePasswordChange.bind(this);
 
+        this.checkSignUpEnabled = this.checkSignUpEnabled.bind(this);
+
         this.state = {
             ldapEnabled: global.window.mm_license.IsLicensed === 'true' && global.window.mm_config.EnableLdap === 'true',
             usernameSigninEnabled: global.window.mm_config.EnableSignInWithUsername === 'true',
@@ -268,6 +270,12 @@ export default class LoginController extends React.Component {
         return '';
     }
 
+    checkSignUpEnabled() {
+        return global.window.mm_config.EnableSignUpWithEmail === 'true' ||
+            global.window.mm_config.EnableSignUpWithGitLab === 'true' ||
+            global.window.mm_config.EnableSignUpWithGoogle === 'true';
+    }
+
     createLoginOptions() {
         const extraParam = Utils.getUrlParameter('extra');
         let extraBox = '';
@@ -380,7 +388,7 @@ export default class LoginController extends React.Component {
             );
         }
 
-        if (global.window.mm_config.EnableOpenServer === 'true') {
+        if (global.window.mm_config.EnableOpenServer === 'true' && this.checkSignUpEnabled()) {
             loginControls.push(
                 <div
                     className='form-group'
