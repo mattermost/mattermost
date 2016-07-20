@@ -45,6 +45,7 @@ func InitAdmin() {
 	BaseRoutes.Admin.Handle("/saml_metadata", ApiAppHandler(samlMetadata)).Methods("GET")
 	BaseRoutes.Admin.Handle("/add_certificate", ApiAdminSystemRequired(addCertificate)).Methods("POST")
 	BaseRoutes.Admin.Handle("/remove_certificate", ApiAdminSystemRequired(removeCertificate)).Methods("POST")
+	BaseRoutes.Admin.Handle("/saml_cert_status", ApiAdminSystemRequired(samlCertificateStatus)).Methods("GET")
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -658,4 +659,14 @@ func removeCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ReturnStatusOK(w)
+}
+
+func samlCertificateStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	status := make(map[string]interface{})
+
+	status["IdpCertificateFile"] = utils.FileExistsInConfigFolder(*utils.Cfg.SamlSettings.IdpCertificateFile)
+	status["PrivateKeyFile"] = utils.FileExistsInConfigFolder(*utils.Cfg.SamlSettings.PrivateKeyFile)
+	status["PublicCertificateFile"] = utils.FileExistsInConfigFolder(*utils.Cfg.SamlSettings.PublicCertificateFile)
+
+	w.Write([]byte(model.StringInterfaceToJson(status)))
 }
