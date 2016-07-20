@@ -283,12 +283,12 @@ func (me SqlSessionStore) UpdateRoles(userId, roles string) StoreChannel {
 	return storeChannel
 }
 
-func (me SqlSessionStore) UpdateDeviceId(id, deviceId string) StoreChannel {
+func (me SqlSessionStore) UpdateDeviceId(id string, deviceId string, expireAt int64) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
 		result := StoreResult{}
-		if _, err := me.GetMaster().Exec("UPDATE Sessions SET DeviceId = :DeviceId WHERE Id = :Id", map[string]interface{}{"DeviceId": deviceId, "Id": id}); err != nil {
+		if _, err := me.GetMaster().Exec("UPDATE Sessions SET DeviceId = :DeviceId, ExpireAt = :ExpireAt WHERE Id = :Id", map[string]interface{}{"DeviceId": deviceId, "Id": id, "ExpireAt": expireAt}); err != nil {
 			result.Err = model.NewLocAppError("SqlSessionStore.UpdateDeviceId", "store.sql_session.update_device_id.app_error", nil, err.Error())
 		} else {
 			result.Data = deviceId

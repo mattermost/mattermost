@@ -83,7 +83,11 @@ func (me *Session) IsExpired() bool {
 }
 
 func (me *Session) SetExpireInDays(days int) {
-	me.ExpiresAt = GetMillis() + (1000 * 60 * 60 * 24 * int64(days))
+	if me.CreateAt == 0 {
+		me.ExpiresAt = GetMillis() + (1000 * 60 * 60 * 24 * int64(days))
+	} else {
+		me.ExpiresAt = me.CreateAt + (1000 * 60 * 60 * 24 * int64(days))
+	}
 }
 
 func (me *Session) AddProp(key string, value string) {
