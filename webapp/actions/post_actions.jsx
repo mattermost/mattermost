@@ -120,12 +120,17 @@ export function flagPost(postId) {
     AsyncClient.savePreference(Preferences.CATEGORY_FLAGGED_POST, postId, 'true');
 }
 
-export function unflagPost(postId) {
-    AsyncClient.savePreference(Preferences.CATEGORY_FLAGGED_POST, postId, 'false');
+export function unflagPost(postId, success) {
+    const pref = {
+        user_id: UserStore.getCurrentId(),
+        category: Preferences.CATEGORY_FLAGGED_POST,
+        name: postId
+    };
+    AsyncClient.deletePreferences([pref], success);
 }
 
 export function getFlaggedPosts() {
-    Client.getFlaggedPosts(
+    Client.getFlaggedPosts(0, Constants.POST_CHUNK_SIZE,
         (data) => {
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_SEARCH,

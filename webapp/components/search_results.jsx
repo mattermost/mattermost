@@ -181,6 +181,7 @@ export default class SearchResults extends React.Component {
                         isMentionSearch={this.props.isMentionSearch}
                         useMilitaryTime={this.props.useMilitaryTime}
                         shrink={this.props.shrink}
+                        isFlagged={this.props.isFlaggedPosts}
                     />
                 );
             }, this);

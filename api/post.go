@@ -29,7 +29,7 @@ func InitPost() {
 	l4g.Debug(utils.T("api.post.init.debug"))
 
 	BaseRoutes.NeedTeam.Handle("/posts/search", ApiUserRequired(searchPosts)).Methods("POST")
-	BaseRoutes.NeedTeam.Handle("/posts/flagged", ApiUserRequiredActivity(getFlaggedPosts, false)).Methods("GET")
+	BaseRoutes.NeedTeam.Handle("/posts/flagged/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequiredActivity(getFlaggedPosts, false)).Methods("GET")
 	BaseRoutes.NeedTeam.Handle("/posts/{post_id}", ApiUserRequired(getPostById)).Methods("GET")
 	BaseRoutes.NeedTeam.Handle("/pltmp/{post_id}", ApiUserRequired(getPermalinkTmp)).Methods("GET")
 
@@ -999,28 +999,27 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getFlaggedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
-	postIds := []string{}
-	if result := <-Srv.Store.Preference().GetCategory(c.Session.UserId, model.PREFERENCE_CATEGORY_FLAGGED_POST); result.Err != nil {
-		c.Err = result.Err
+	params := mux.Vars(r)
+
+	offset, err := strconv.Atoi(params["offset"])
+	if err != nil {
+		c.SetInvalidParam("getFlaggedPosts", "offset")
 		return
-	} else {
-		prefs := result.Data.(model.Preferences)
-		for _, pref := range prefs {
-			if pref.Value == "true" {
-				postIds = append(postIds, pref.Name)
-			}
-		}
+	}
+
+	limit, err := strconv.Atoi(params["limit"])
+	if err != nil {
+		c.SetInvalidParam("getFlaggedPosts", "limit")
+		return
 	}
 
 	posts := &model.PostList{}
 
-	if len(postIds) > 0 {
-		if result := <-Srv.Store.Post().GetPostsByIds(postIds); result.Err != nil {
-			c.Err = result.Err
-			return
-		} else {
-			posts = result.Data.(*model.PostList)
-		}
+	if result := <-Srv.Store.Post().GetFlaggedPosts(c.Session.UserId, offset, limit); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		posts = result.Data.(*model.PostList)
 	}
 
 	w.Write([]byte(posts.ToJson()))

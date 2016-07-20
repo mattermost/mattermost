@@ -142,27 +142,15 @@ func (s SqlPostStore) Update(oldPost *model.Post, newMessage string, newHashtags
 	return storeChannel
 }
 
-func (s SqlPostStore) GetPostsByIds(postIds []string) StoreChannel {
+func (s SqlPostStore) GetFlaggedPosts(userId string, offset int, limit int) StoreChannel {
 	storeChannel := make(StoreChannel)
 	go func() {
 		result := StoreResult{}
 		pl := &model.PostList{}
 
-		props := make(map[string]interface{})
-		idQuery := ""
-
-		for index, postId := range postIds {
-			if len(idQuery) > 0 {
-				idQuery += ", "
-			}
-
-			props["postId"+strconv.Itoa(index)] = postId
-			idQuery += ":postId" + strconv.Itoa(index)
-		}
-
 		var posts []*model.Post
-		if _, err := s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE Id IN ("+idQuery+") ORDER BY CreateAt ASC", props); err != nil {
-			result.Err = model.NewLocAppError("SqlPostStore.GetPostsByIds", "store.sql_post.get_posts_by_ids.app_error", nil, err.Error())
+		if _, err := s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE Id IN (SELECT Name FROM Preferences WHERE UserId = :UserId AND Category = :Category) ORDER BY CreateAt ASC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "Offset": offset, "Limit": limit}); err != nil {
+			result.Err = model.NewLocAppError("SqlPostStore.GetFlaggedPosts", "store.sql_post.get_flagged_posts.app_error", nil, err.Error())
 		} else {
 			for _, post := range posts {
 				pl.AddPost(post)

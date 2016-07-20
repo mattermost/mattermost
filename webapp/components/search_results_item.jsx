@@ -6,16 +6,19 @@ import UserProfile from './user_profile.jsx';
 
 import UserStore from 'stores/user_store.jsx';
 
-import * as GlobalActions from 'actions/global_actions.jsx';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
+import {unflagPost, getFlaggedPosts} from 'actions/post_actions.jsx';
+
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
+
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 
-import {FormattedMessage, FormattedDate} from 'react-intl';
 import React from 'react';
+import {FormattedMessage, FormattedDate} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
 
 export default class SearchResultsItem extends React.Component {
@@ -24,6 +27,7 @@ export default class SearchResultsItem extends React.Component {
 
         this.handleFocusRHSClick = this.handleFocusRHSClick.bind(this);
         this.shrinkSidebar = this.shrinkSidebar.bind(this);
+        this.unflagPost = this.unflagPost.bind(this);
     }
 
     hideSidebar() {
@@ -39,6 +43,13 @@ export default class SearchResultsItem extends React.Component {
     handleFocusRHSClick(e) {
         e.preventDefault();
         GlobalActions.emitPostFocusRightHandSideFromSearch(this.props.post, this.props.isMentionSearch);
+    }
+
+    unflagPost(e) {
+        e.preventDefault();
+        unflagPost(this.props.post.id,
+            () => getFlaggedPosts()
+        );
     }
 
     render() {
@@ -76,9 +87,23 @@ export default class SearchResultsItem extends React.Component {
         }
 
         let botIndicator;
-
         if (post.props && post.props.from_webhook) {
             botIndicator = <li className='bot-indicator'>{Constants.BOT_NAME}</li>;
+        }
+
+        let flag;
+        if (this.props.isFlagged) {
+            flag = (
+                <li>
+                    <a
+                        href='#'
+                        className={'flag-icon__container'}
+                        onClick={this.unflagPost}
+                    >
+                        <i className='fa fa-flag'/>
+                    </a>
+                </li>
+            );
         }
 
         return (
@@ -162,6 +187,7 @@ export default class SearchResultsItem extends React.Component {
                                         />
                                     </a>
                                 </li>
+                                {flag}
                                 <li>
                                     <a
                                         href='#'
@@ -196,5 +222,6 @@ SearchResultsItem.propTypes = {
     isMentionSearch: React.PropTypes.bool,
     term: React.PropTypes.string,
     useMilitaryTime: React.PropTypes.bool.isRequired,
-    shrink: React.PropTypes.function
+    shrink: React.PropTypes.function,
+    isFlagged: React.PropTypes.bool
 };
