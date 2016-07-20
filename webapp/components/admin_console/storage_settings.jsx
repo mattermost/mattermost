@@ -7,7 +7,7 @@ import * as Utils from 'utils/utils.jsx';
 
 import AdminSettings from './admin_settings.jsx';
 import DropdownSetting from './dropdown_setting.jsx';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
 
@@ -74,7 +74,7 @@ export default class StorageSettings extends AdminSettings {
                         />
                     }
                     helpText={
-                        <FormattedMessage
+                        <FormattedHTMLMessage
                             id='admin.image.storeDescription'
                             defaultMessage='Storage system where files and image attachments are saved.<br /><br />
                             Selecting "Amazon S3" enables fields to enter your Amazon credentials and bucket details.<br /><br />
