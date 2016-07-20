@@ -367,6 +367,24 @@ export default class ChannelHeader extends React.Component {
                             </a>
                         </li>
                     );
+                } else {
+                    dropdownContents.push(
+                        <li
+                            key='view_members'
+                            role='presentation'
+                        >
+                            <a
+                                role='menuitem'
+                                href='#'
+                                onClick={() => this.setState({showMembersModal: true})}
+                            >
+                                <FormattedMessage
+                                    id='channel_header.viewMembers'
+                                    defaultMessage='View Members'
+                                />
+                            </a>
+                        </li>
+                    );
                 }
             }
 
@@ -586,6 +604,7 @@ export default class ChannelHeader extends React.Component {
                     show={this.state.showMembersModal}
                     onModalDismissed={() => this.setState({showMembersModal: false})}
                     channel={channel}
+                    isAdmin={isAdmin}
                 />
                 <RenameChannelModal
                     show={this.state.showRenameChannelModal}

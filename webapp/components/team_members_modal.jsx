@@ -66,7 +66,10 @@ export default class TeamMembersModal extends React.Component {
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <MemberListTeam style={{maxHeight}}/>
+                    <MemberListTeam
+                        style={{maxHeight}}
+                        isAdmin={this.props.isAdmin}
+                    />
                 </Modal.Body>
                 <Modal.Footer>
                     <button
@@ -87,5 +90,6 @@ export default class TeamMembersModal extends React.Component {
 
 TeamMembersModal.propTypes = {
     show: React.PropTypes.bool.isRequired,
-    onHide: React.PropTypes.func.isRequired
+    onHide: React.PropTypes.func.isRequired,
+    isAdmin: React.PropTypes.bool.isRequired
 };
