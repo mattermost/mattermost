@@ -33,6 +33,7 @@
                                                 <p>{{.Props.Info3}}</p>
                                             </td>
                                         </tr>
+                                        {{if .Props.AppDownloadLink}}
                                         <tr>
                                             <td style="border-bottom: 1px solid #ddd; padding: 0 0 20px;">
                                                 <p>{{.Props.AppDownloadInfo}}</p>
@@ -42,6 +43,7 @@
                                                 </a>
                                             </td>
                                         </tr>
+                                        {{end}}
                                     </table>
                                 </td>
                             </tr>
