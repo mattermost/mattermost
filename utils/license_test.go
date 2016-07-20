@@ -32,8 +32,8 @@ func TestSetLicense(t *testing.T) {
 	l3.Customer = &model.Customer{}
 	l3.StartsAt = model.GetMillis() + 10000
 	l3.ExpiresAt = model.GetMillis() + 100000
-	if ok := SetLicense(l3); ok {
-		t.Fatal("license should have failed")
+	if ok := SetLicense(l3); !ok {
+		t.Fatal("license should have passed")
 	}
 }
 

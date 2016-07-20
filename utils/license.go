@@ -49,7 +49,7 @@ func LoadLicense(licenseBytes []byte) {
 func SetLicense(license *model.License) bool {
 	license.Features.SetDefaults()
 
-	if !license.IsExpired() && license.IsStarted() {
+	if !license.IsExpired() {
 		License = license
 		IsLicensed = true
 		ClientLicense = getClientLicense(license)
