@@ -167,7 +167,7 @@ class UserSettingsGeneralTab extends React.Component {
 
         const {formatMessage} = this.props.intl;
 
-        if (user.email === email && confirmEmail === '') {
+        if (email === user.email && (confirmEmail === '' || confirmEmail === user.email)) {
             this.updateSection('');
             return;
         }
