@@ -1,7 +1,7 @@
 # Markdown List Testing
 Verify that all list types render as expected.
 
-### Single-item Ordered List
+### Single-Item Ordered List
 
 **Expected:**
 ```
@@ -11,7 +11,7 @@ Verify that all list types render as expected.
 **Actual:**
 7. Single Item
 
-### Multi-item Ordered List
+### Multi-Item Ordered List
 
 **Expected:**
 ```
@@ -47,7 +47,7 @@ Verify that all list types render as expected.
   1. Echo
   1. Foxtrot
 
-### Single-item Unordered List
+### Single-Item Unordered List
 
 **Expected:**
 ```
@@ -57,7 +57,7 @@ Verify that all list types render as expected.
 **Actual:**
 * Single Item
 
-### Multi-item Unordered List
+### Multi-Item Unordered List
 
 **Expected:**
 ```
@@ -179,39 +179,20 @@ Verify that all list types render as expected.
 1. One
 2. Two
 
-### Carriage Return and New Line After a List
+### New Line After a List
 
 **Expected:**
 ```
 1. One
-- Two
+2. Two
 This text should be on a new line.
 ```
 
 **Actual:**
 
 1. One
-- Two
- This text should be on a new line.
-
-**Expected:**
-```
-List:
-
-- One
-- Two
-
-This line should have a line break above it.
-```
-
-**Actual:**
-
-List:
-
-- One
-- Two
-
-This line should have a line break above it.
+2. Two
+This text should be on a new line.
 
 ### Task Lists
 
@@ -246,3 +227,18 @@ This line should have a line break above it.
 1. [ ] One
 2. [ ] Two
 3. [x] Completed item
+
+### Multiple Lists
+
+**Expected:**
+```
+List A:
+1. One
+List B:
+2. Two
+```
+
+List A:
+1. One
+List B:
+2. Two
