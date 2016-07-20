@@ -1012,6 +1012,10 @@
     "translation": "Falla al actualizar las preferencias del canal directo user_id=%v other_user_id=%v err=%v"
   },
   {
+    "id": "api.post.send_notifications_and_forget.comment_thread.error",
+    "translation": "Failed to retrieve comment thread posts in notifications root_post_id=%v, err=%v"
+  },
+  {
     "id": "api.post.send_notifications_and_forget.mention_body",
     "translation": "Tienes una mención nueva."
   },
