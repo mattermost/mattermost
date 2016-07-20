@@ -80,6 +80,10 @@
     "translation": "Initializing admin api routes"
   },
   {
+    "id": "api.status.init.debug",
+    "translation": "Initializing status api routes"
+  },
+  {
     "id": "api.admin.recycle_db_end.warn",
     "translation": "Finished recycling the database connection"
   },
