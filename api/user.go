@@ -360,6 +360,8 @@ func sendWelcomeEmail(c *Context, userId string, email string, siteURL string, v
 	bodyPage.Props["Button"] = c.T("api.templates.welcome_body.button")
 	bodyPage.Props["Info2"] = c.T("api.templates.welcome_body.info2")
 	bodyPage.Props["Info3"] = c.T("api.templates.welcome_body.info3")
+	bodyPage.Props["AppDownloadInfo"] = c.T("api.templates.welcome_body.app_download_info")
+	bodyPage.Props["AppDownloadLink"] = *utils.Cfg.NativeAppSettings.AppDownloadLink
 	bodyPage.Props["SiteURL"] = siteURL
 
 	if !verified {

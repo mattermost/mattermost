@@ -92,7 +92,8 @@ var config = {
             {from: 'images/emoji', to: 'emoji'},
             {from: 'images/logo-email.png', to: 'images'},
             {from: 'images/circles.png', to: 'images'},
-            {from: 'images/favicon', to: 'images/favicon'}
+            {from: 'images/favicon', to: 'images/favicon'},
+            {from: 'images/appIcons.png', to: 'images'}
         ]),
         new webpack.LoaderOptionsPlugin({
             minimize: !DEV,
