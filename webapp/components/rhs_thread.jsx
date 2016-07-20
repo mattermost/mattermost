@@ -1,22 +1,25 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
-import PostStore from 'stores/post_store.jsx';
-import UserStore from 'stores/user_store.jsx';
-import PreferenceStore from 'stores/preference_store.jsx';
-import * as Utils from 'utils/utils.jsx';
 import SearchBox from './search_bar.jsx';
 import CreateComment from './create_comment.jsx';
 import RhsHeaderPost from './rhs_header_post.jsx';
 import RootPost from './rhs_root_post.jsx';
 import Comment from './rhs_comment.jsx';
+import FileUploadOverlay from './file_upload_overlay.jsx';
+
+import PostStore from 'stores/post_store.jsx';
+import UserStore from 'stores/user_store.jsx';
+import PreferenceStore from 'stores/preference_store.jsx';
+
+import * as Utils from 'utils/utils.jsx';
+
 import Constants from 'utils/constants.jsx';
 const Preferences = Constants.Preferences;
-import FileUploadOverlay from './file_upload_overlay.jsx';
-import Scrollbars from 'react-custom-scrollbars';
 
+import $ from 'jquery';
 import React from 'react';
+import Scrollbars from 'react-custom-scrollbars';
 
 export function renderView(props) {
     return (
@@ -62,6 +65,7 @@ export default class RhsThread extends React.Component {
 
         this.state = state;
     }
+
     componentDidMount() {
         PostStore.addSelectedPostChangeListener(this.onPostChange);
         PostStore.addChangeListener(this.onPostChange);
@@ -73,6 +77,7 @@ export default class RhsThread extends React.Component {
 
         this.mounted = true;
     }
+
     componentWillUnmount() {
         PostStore.removeSelectedPostChangeListener(this.onPostChange);
         PostStore.removeChangeListener(this.onPostChange);
@@ -83,6 +88,7 @@ export default class RhsThread extends React.Component {
 
         this.mounted = false;
     }
+
     componentDidUpdate(prevProps, prevState) {
         const prevPostsArray = prevState.postsArray || [];
         const curPostsArray = this.state.postsArray || [];
@@ -97,6 +103,7 @@ export default class RhsThread extends React.Component {
             this.scrollToBottom();
         }
     }
+
     shouldComponentUpdate(nextProps, nextState) {
         if (!Utils.areObjectsEqual(nextState.postsArray, this.state.postsArray)) {
             return true;
@@ -124,6 +131,7 @@ export default class RhsThread extends React.Component {
 
         return false;
     }
+
     forceUpdateInfo() {
         if (this.state.postList) {
             for (var postId in this.state.postList.posts) {
@@ -133,23 +141,27 @@ export default class RhsThread extends React.Component {
             }
         }
     }
+
     handleResize() {
         this.setState({
             windowWidth: Utils.windowWidth(),
             windowHeight: Utils.windowHeight()
         });
     }
+
     onPreferenceChange() {
         this.setState({
             compactDisplay: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT
         });
         this.forceUpdateInfo();
     }
+
     onPostChange() {
         if (this.mounted) {
             this.setState(this.getPosts());
         }
     }
+
     getPosts() {
         const selected = PostStore.getSelectedPost();
         const posts = PostStore.getSelectedPostThread();
@@ -192,15 +204,18 @@ export default class RhsThread extends React.Component {
 
         return {postsArray, selected};
     }
+
     onUserChange() {
         const profiles = JSON.parse(JSON.stringify(UserStore.getProfiles()));
         this.setState({profiles});
     }
+
     scrollToBottom() {
         if ($('.post-right__scroll')[0]) {
             $('.post-right__scroll').parent().scrollTop($('.post-right__scroll')[0].scrollHeight);
         }
     }
+
     render() {
         const postsArray = this.state.postsArray;
         const selected = this.state.selected;
