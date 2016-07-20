@@ -638,6 +638,10 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 		} else {
 			statuses := result.Data.([]*model.Status)
 			for _, status := range statuses {
+				if status.UserId == post.UserId {
+					continue
+				}
+
 				_, profileFound := profileMap[status.UserId]
 				_, alreadyAdded := mentionedUserIds[status.UserId]
 
