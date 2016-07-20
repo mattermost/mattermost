@@ -142,6 +142,43 @@ func (s SqlPostStore) Update(oldPost *model.Post, newMessage string, newHashtags
 	return storeChannel
 }
 
+func (s SqlPostStore) GetPostsByIds(postIds []string) StoreChannel {
+	storeChannel := make(StoreChannel)
+	go func() {
+		result := StoreResult{}
+		pl := &model.PostList{}
+
+		props := make(map[string]interface{})
+		idQuery := ""
+
+		for index, postId := range postIds {
+			if len(idQuery) > 0 {
+				idQuery += ", "
+			}
+
+			props["postId"+strconv.Itoa(index)] = postId
+			idQuery += ":postId" + strconv.Itoa(index)
+		}
+
+		var posts []*model.Post
+		if _, err := s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE Id IN ("+idQuery+") ORDER BY CreateAt ASC", props); err != nil {
+			result.Err = model.NewLocAppError("SqlPostStore.GetPostsByIds", "store.sql_post.get_posts_by_ids.app_error", nil, err.Error())
+		} else {
+			for _, post := range posts {
+				pl.AddPost(post)
+				pl.AddOrder(post.Id)
+			}
+		}
+
+		result.Data = pl
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (s SqlPostStore) Get(id string) StoreChannel {
 	storeChannel := make(StoreChannel)
 

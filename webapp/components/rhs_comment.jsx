@@ -9,6 +9,7 @@ import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
+import {flagPost, unflagPost} from 'actions/post_actions.jsx';
 
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -27,19 +28,27 @@ export default class RhsComment extends React.Component {
         super(props);
 
         this.handlePermalink = this.handlePermalink.bind(this);
+        this.flagPost = this.flagPost.bind(this);
+        this.unflagPost = this.unflagPost.bind(this);
 
         this.state = {};
     }
+
     handlePermalink(e) {
         e.preventDefault();
         GlobalActions.showGetPostLinkModal(this.props.post);
     }
+
     shouldComponentUpdate(nextProps) {
         if (nextProps.compactDisplay !== this.props.compactDisplay) {
             return true;
         }
 
         if (nextProps.useMilitaryTime !== this.props.useMilitaryTime) {
+            return true;
+        }
+
+        if (nextProps.isFlagged !== this.props.isFlagged) {
             return true;
         }
 
@@ -53,6 +62,17 @@ export default class RhsComment extends React.Component {
 
         return false;
     }
+
+    flagPost(e) {
+        e.preventDefault();
+        flagPost(this.props.post.id);
+    }
+
+    unflagPost(e) {
+        e.preventDefault();
+        unflagPost(this.props.post.id);
+    }
+
     createDropdown() {
         var post = this.props.post;
 
@@ -153,6 +173,7 @@ export default class RhsComment extends React.Component {
             </div>
             );
     }
+
     render() {
         var post = this.props.post;
 
@@ -227,6 +248,16 @@ export default class RhsComment extends React.Component {
             );
         }
 
+        let flag;
+        let flagFunc;
+        if (this.props.isFlagged) {
+            flag = <i className='fa fa-flag'/>;
+            flagFunc = this.unflagPost;
+        } else {
+            flag = <i className='fa fa-flag-o'/>;
+            flagFunc = this.flagPost;
+        }
+
         return (
             <div className={'post post--thread ' + currentUserCss + ' ' + compactClass}>
                 <div className='post__content'>
@@ -252,6 +283,13 @@ export default class RhsComment extends React.Component {
                             </li>
                             <li className='col col__reply'>
                                 {dropdown}
+                                <a
+                                    href='#'
+                                    className={'flag-icon__container'}
+                                    onClick={flagFunc}
+                                >
+                                    {flag}
+                                </a>
                             </li>
                         </ul>
                         <div className='post__body'>
@@ -273,5 +311,6 @@ RhsComment.propTypes = {
     user: React.PropTypes.object.isRequired,
     currentUser: React.PropTypes.object.isRequired,
     compactDisplay: React.PropTypes.bool,
-    useMilitaryTime: React.PropTypes.bool.isRequired
+    useMilitaryTime: React.PropTypes.bool.isRequired,
+    isFlagged: React.PropTypes.bool
 };

@@ -51,7 +51,8 @@ export const Preferences = {
     COLLAPSE_DISPLAY: 'collapse_previews',
     COLLAPSE_DISPLAY_DEFAULT: 'false',
     USE_MILITARY_TIME: 'use_military_time',
-    CATEGORY_THEME: 'theme'
+    CATEGORY_THEME: 'theme',
+    CATEGORY_FLAGGED_POST: 'flagged_post'
 };
 
 export const ActionTypes = keyMirror({

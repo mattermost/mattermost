@@ -1,17 +1,20 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import ChannelStore from 'stores/channel_store.jsx';
 import UserProfile from './user_profile.jsx';
+import PostBodyAdditionalContent from 'components/post_view/components/post_body_additional_content.jsx';
+import FileAttachmentList from './file_attachment_list.jsx';
+
+import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
-import * as TextFormatting from 'utils/text_formatting.jsx';
-import FileAttachmentList from './file_attachment_list.jsx';
-import PostBodyAdditionalContent from 'components/post_view/components/post_body_additional_content.jsx';
+
 import * as GlobalActions from 'actions/global_actions.jsx';
+import {flagPost, unflagPost} from 'actions/post_actions.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
+import * as TextFormatting from 'utils/text_formatting.jsx';
 
 import Constants from 'utils/constants.jsx';
 
@@ -24,19 +27,27 @@ export default class RhsRootPost extends React.Component {
         super(props);
 
         this.handlePermalink = this.handlePermalink.bind(this);
+        this.flagPost = this.flagPost.bind(this);
+        this.unflagPost = this.unflagPost.bind(this);
 
         this.state = {};
     }
+
     handlePermalink(e) {
         e.preventDefault();
         GlobalActions.showGetPostLinkModal(this.props.post);
     }
+
     shouldComponentUpdate(nextProps) {
         if (nextProps.compactDisplay !== this.props.compactDisplay) {
             return true;
         }
 
         if (nextProps.useMilitaryTime !== this.props.useMilitaryTime) {
+            return true;
+        }
+
+        if (nextProps.isFlagged !== this.props.isFlagged) {
             return true;
         }
 
@@ -50,6 +61,17 @@ export default class RhsRootPost extends React.Component {
 
         return false;
     }
+
+    flagPost(e) {
+        e.preventDefault();
+        flagPost(this.props.post.id);
+    }
+
+    unflagPost(e) {
+        e.preventDefault();
+        unflagPost(this.props.post.id);
+    }
+
     render() {
         const post = this.props.post;
         const user = this.props.user;
@@ -248,6 +270,16 @@ export default class RhsRootPost extends React.Component {
             />
         );
 
+        let flag;
+        let flagFunc;
+        if (this.props.isFlagged) {
+            flag = <i className='fa fa-flag'/>;
+            flagFunc = this.unflagPost;
+        } else {
+            flag = <i className='fa fa-flag-o'/>;
+            flagFunc = this.flagPost;
+        }
+
         return (
             <div className={'post post--root post--thread ' + userCss + ' ' + systemMessageClass + ' ' + compactClass}>
                 <div className='post-right-channel__name'>{channelName}</div>
@@ -274,6 +306,13 @@ export default class RhsRootPost extends React.Component {
                                 <div>
                                     {rootOptions}
                                 </div>
+                                <a
+                                    href='#'
+                                    className={'flag-icon__container'}
+                                    onClick={flagFunc}
+                                >
+                                    {flag}
+                                </a>
                             </li>
                         </ul>
                         <div className='post__body'>
@@ -299,5 +338,6 @@ RhsRootPost.propTypes = {
     currentUser: React.PropTypes.object.isRequired,
     commentCount: React.PropTypes.number,
     compactDisplay: React.PropTypes.bool,
-    useMilitaryTime: React.PropTypes.bool.isRequired
+    useMilitaryTime: React.PropTypes.bool.isRequired,
+    isFlagged: React.PropTypes.bool
 };

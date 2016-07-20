@@ -2,17 +2,20 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
-import * as Utils from 'utils/utils.jsx';
+
 import PostTime from './post_time.jsx';
+
 import * as GlobalActions from 'actions/global_actions.jsx';
+import * as PostActions from 'actions/post_actions.jsx';
+
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
+import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
-import {FormattedMessage} from 'react-intl';
-
 import React from 'react';
+import {FormattedMessage} from 'react-intl';
 
 export default class PostInfo extends React.Component {
     constructor(props) {
@@ -20,7 +23,10 @@ export default class PostInfo extends React.Component {
 
         this.handleDropdownClick = this.handleDropdownClick.bind(this);
         this.handlePermalink = this.handlePermalink.bind(this);
+        this.flagPost = this.flagPost.bind(this);
+        this.unflagPost = this.unflagPost.bind(this);
     }
+
     handleDropdownClick(e) {
         var position = $('#post-list').height() - $(e.target).offset().top;
         var dropdown = $(e.target).closest('.col__reply').find('.dropdown-menu');
@@ -28,10 +34,12 @@ export default class PostInfo extends React.Component {
             dropdown.addClass('bottom');
         }
     }
+
     componentDidMount() {
         $('#post_dropdown' + this.props.post.id).on('shown.bs.dropdown', () => this.props.handleDropdownOpened(true));
         $('#post_dropdown' + this.props.post.id).on('hidden.bs.dropdown', () => this.props.handleDropdownOpened(false));
     }
+
     createDropdown() {
         var post = this.props.post;
         var isOwner = this.props.currentUser.id === post.user_id;
@@ -170,6 +178,16 @@ export default class PostInfo extends React.Component {
         GlobalActions.showGetPostLinkModal(this.props.post);
     }
 
+    flagPost(e) {
+        e.preventDefault();
+        PostActions.flagPost(this.props.post.id);
+    }
+
+    unflagPost(e) {
+        e.preventDefault();
+        PostActions.unflagPost(this.props.post.id);
+    }
+
     render() {
         var post = this.props.post;
         var comments = '';
@@ -205,6 +223,16 @@ export default class PostInfo extends React.Component {
 
         var dropdown = this.createDropdown();
 
+        let flag;
+        let flagFunc;
+        if (this.props.isFlagged) {
+            flag = <i className='fa fa-flag'/>;
+            flagFunc = this.unflagPost;
+        } else {
+            flag = <i className='fa fa-flag-o'/>;
+            flagFunc = this.flagPost;
+        }
+
         return (
             <ul className='post__header--info'>
                 <li className='col'>
@@ -222,6 +250,13 @@ export default class PostInfo extends React.Component {
                     >
                         {dropdown}
                     </div>
+                    <a
+                        href='#'
+                        className={'flag-icon__container'}
+                        onClick={flagFunc}
+                    >
+                        {flag}
+                    </a>
                     {comments}
                 </li>
             </ul>
@@ -247,5 +282,6 @@ PostInfo.propTypes = {
     sameUser: React.PropTypes.bool.isRequired,
     currentUser: React.PropTypes.object.isRequired,
     compactDisplay: React.PropTypes.bool,
-    useMilitaryTime: React.PropTypes.bool.isRequired
+    useMilitaryTime: React.PropTypes.bool.isRequired,
+    isFlagged: React.PropTypes.bool
 };

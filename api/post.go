@@ -29,6 +29,7 @@ func InitPost() {
 	l4g.Debug(utils.T("api.post.init.debug"))
 
 	BaseRoutes.NeedTeam.Handle("/posts/search", ApiUserRequired(searchPosts)).Methods("POST")
+	BaseRoutes.NeedTeam.Handle("/posts/flagged", ApiUserRequiredActivity(getFlaggedPosts, false)).Methods("GET")
 	BaseRoutes.NeedTeam.Handle("/posts/{post_id}", ApiUserRequired(getPostById)).Methods("GET")
 	BaseRoutes.NeedTeam.Handle("/pltmp/{post_id}", ApiUserRequired(getPermalinkTmp)).Methods("GET")
 
@@ -995,6 +996,34 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		w.Write([]byte(rpost.ToJson()))
 	}
+}
+
+func getFlaggedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
+	postIds := []string{}
+	if result := <-Srv.Store.Preference().GetCategory(c.Session.UserId, model.PREFERENCE_CATEGORY_FLAGGED_POST); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		prefs := result.Data.(model.Preferences)
+		for _, pref := range prefs {
+			if pref.Value == "true" {
+				postIds = append(postIds, pref.Name)
+			}
+		}
+	}
+
+	posts := &model.PostList{}
+
+	if len(postIds) > 0 {
+		if result := <-Srv.Store.Post().GetPostsByIds(postIds); result.Err != nil {
+			c.Err = result.Err
+			return
+		} else {
+			posts = result.Data.(*model.PostList)
+		}
+	}
+
+	w.Write([]byte(posts.ToJson()))
 }
 
 func getPosts(c *Context, w http.ResponseWriter, r *http.Request) {

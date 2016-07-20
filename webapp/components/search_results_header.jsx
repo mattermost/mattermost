@@ -89,6 +89,13 @@ export default class SearchResultsHeader extends React.Component {
                     defaultMessage='Recent Mentions'
                 />
             );
+        } else if (this.props.isFlaggedPosts) {
+            title = (
+                <FormattedMessage
+                    id='search_header.title3'
+                    defaultMessage='Flagged Posts'
+                />
+            );
         }
 
         return (
@@ -140,5 +147,6 @@ export default class SearchResultsHeader extends React.Component {
 SearchResultsHeader.propTypes = {
     isMentionSearch: React.PropTypes.bool,
     toggleSize: React.PropTypes.function,
-    shrink: React.PropTypes.function
+    shrink: React.PropTypes.function,
+    isFlaggedPosts: React.PropTypes.bool
 };

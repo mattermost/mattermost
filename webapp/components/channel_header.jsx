@@ -27,18 +27,16 @@ import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
-import Client from 'client/web_client.jsx';
+import {getFlaggedPosts} from 'actions/post_actions.jsx';
+
 import Constants from 'utils/constants.jsx';
 const UserStatuses = Constants.UserStatuses;
-
-import {FormattedMessage} from 'react-intl';
-import {browserHistory} from 'react-router/es6';
-
 const ActionTypes = Constants.ActionTypes;
 
-import {Tooltip, OverlayTrigger, Popover} from 'react-bootstrap';
-
 import React from 'react';
+import {FormattedMessage} from 'react-intl';
+import {browserHistory} from 'react-router/es6';
+import {Tooltip, OverlayTrigger, Popover} from 'react-bootstrap';
 
 export default class ChannelHeader extends React.Component {
     constructor(props) {
@@ -50,6 +48,7 @@ export default class ChannelHeader extends React.Component {
         this.showRenameChannelModal = this.showRenameChannelModal.bind(this);
         this.hideRenameChannelModal = this.hideRenameChannelModal.bind(this);
         this.openRecentMentions = this.openRecentMentions.bind(this);
+        this.getFlagged = this.getFlagged.bind(this);
 
         const state = this.getStateFromStores();
         state.showEditChannelPurposeModal = false;
@@ -159,6 +158,11 @@ export default class ChannelHeader extends React.Component {
         });
     }
 
+    getFlagged(e) {
+        e.preventDefault();
+        getFlaggedPosts();
+    }
+
     openRecentMentions(e) {
         if (Utils.cmdOrCtrlPressed(e) && e.shiftKey && e.keyCode === Constants.KeyCodes.M) {
             e.preventDefault();
@@ -233,6 +237,16 @@ export default class ChannelHeader extends React.Component {
                 />
             </Tooltip>
         );
+
+        const flaggedTooltip = (
+            <Tooltip id='flaggedTooltip'>
+                <FormattedMessage
+                    id='channel_header.flagged'
+                    defaultMessage='Flagged Posts'
+                />
+            </Tooltip>
+        );
+
         const popoverContent = (
             <Popover
                 id='header-popover'
@@ -570,6 +584,23 @@ export default class ChannelHeader extends React.Component {
                                             onClick={this.searchMentions}
                                         >
                                             {'@'}
+                                        </a>
+                                    </OverlayTrigger>
+                                </div>
+                            </th>
+                            <th>
+                                <div className='dropdown channel-header__links'>
+                                    <OverlayTrigger
+                                        delayShow={Constants.OVERLAY_TIME_DELAY}
+                                        placement='bottom'
+                                        overlay={flaggedTooltip}
+                                    >
+                                        <a
+                                            href='#'
+                                            type='button'
+                                            onClick={this.getFlagged}
+                                        >
+                                            <i className='fa fa-flag'/>
                                         </a>
                                     </OverlayTrigger>
                                 </div>

@@ -125,7 +125,16 @@ export default class SearchResults extends React.Component {
 
         var ctls = null;
 
-        if (!searchTerm && noResults) {
+        if (this.props.isFlaggedPosts && noResults) {
+            ctls = (
+                <div className='sidebar--right__subheader'>
+                    <FormattedHTMLMessage
+                        id='search_results.usage2'
+                        defaultMessage='<ul><li>You have no <b>flagged posts</b></li><li>To flag a post, click on the <i class="fa fa-flag-o"></i> next to it</li></ul>'
+                    />
+                </div>
+            );
+        } else if (!searchTerm && noResults) {
             ctls = (
                 <div className='sidebar--right__subheader'>
                     <FormattedHTMLMessage
@@ -185,6 +194,7 @@ export default class SearchResults extends React.Component {
                         isMentionSearch={this.props.isMentionSearch}
                         toggleSize={this.props.toggleSize}
                         shrink={this.props.shrink}
+                        isFlaggedPosts={this.props.isFlaggedPosts}
                     />
                     <div
                         id='search-items-container'
@@ -202,5 +212,6 @@ SearchResults.propTypes = {
     isMentionSearch: React.PropTypes.bool,
     useMilitaryTime: React.PropTypes.bool.isRequired,
     toggleSize: React.PropTypes.function,
-    shrink: React.PropTypes.function
+    shrink: React.PropTypes.function,
+    isFlaggedPosts: React.PropTypes.bool
 };

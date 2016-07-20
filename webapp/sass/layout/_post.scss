@@ -485,6 +485,7 @@ body.ios {
     &:hover {
         .dropdown,
         .comment-icon__container,
+        .flag-icon__container,
         .post__reply,
         .post__remove {
             visibility: visible;
@@ -1107,6 +1108,22 @@ body.ios {
         path {
             fill: inherit;
         }
+    }
+
+    .flag-icon__container {
+        display: inline-block;
+        fill: $primary-color;
+        visibility: hidden;
+
+        &:focus {
+            outline: none;
+        }
+
+        &.icon--visible {
+            visibility: visible;
+        }
+
+        margin-right:5px;
     }
 
     .web-embed-data {
