@@ -557,11 +557,11 @@
   },
   {
     "id": "api.command_shortcuts.list",
-    "translation": "### Raccourcis clavier\n\n#### Navigation\n\nALT+HAUT: Canal ou message privé précédent dans la barre de gauche\nALT+BAS: Canal ou message privé suivant dans la barre de gauche\nALT+SHIFT+HAUT: Canal ou message privé précédent avec messages non-lus dans la barre de gauche\nALT+SHIFT+BAS: Canal ou message privé suivant avec messages non-lus dans la barre de gauche\nCTRL/CMD+K: Fenêtre de changemetn de canal rapide\nCTRL/CMD+SHIFT+A: Préférences du compte\nCTRL/CMD+SHIFT+M: Dernières mentions\n\n#### Fichiers\n\nCTRL/CMD+U: Télécharger des fichiers\n\n#### Messages\n\nCTRL/CMD+HAUT (dans un champ vide): Affiche le message ou commande slash précédent\nCTRL/CMD+DOWN (dans un champ vide): Affiche le message ou commande slash suivant\nHAUT (dans un champ vide): Édite votre dernier message dans le canal actuel\n@[lettre]+TAB: Autocomplète un @nom commençant par [lettre]\n:[lettre]+TAB: Autocomplète emoji commençant par [lettre]\n\n#### Commandes du navigateur intégré\n\nALT+GAUCH/CMD+[: Canal précédent dans votre historique\nALT+RIGHT/CMD+]: Canal suivant dans votre historique\nCTRL/CMD+PLUS: Augmente la taille de la police\nCTRL/CMD+MOINS: Diminue la taille de la police\nSHIFT+HAUT (dans un champ de saisie): Surligne le texte jusqu'à la ligne précédente\nSHIFT+BAS (dans un champ de saisie): Surligne le texte jusqu'à la ligne suivante\nSHIFT+ENTRÉE (dans un champ de saisie): Saut de ligne\n"
+    "translation": "### Raccourcis clavier\n\n#### Navigation\n\nALT+HAUT: Canal ou message privé précédent dans la barre de gauche\nALT+BAS: Canal ou message privé suivant dans la barre de gauche\nALT+SHIFT+HAUT: Canal ou message privé précédent avec messages non-lus dans la barre de gauche\nALT+SHIFT+BAS: Canal ou message privé suivant avec messages non-lus dans la barre de gauche\nCTRL+K: Fenêtre de changemetn de canal rapide\nCTRL+SHIFT+A: Préférences du compte\nCTRL+SHIFT+M: Dernières mentions\n\n#### Fichiers\n\nCTRL+U: Télécharger des fichiers\n\n#### Messages\n\nCTRL+HAUT (dans un champ vide): Affiche le message ou commande slash précédent\nCTRL+DOWN (dans un champ vide): Affiche le message ou commande slash suivant\nHAUT (dans un champ vide): Édite votre dernier message dans le canal actuel\n@[lettre]+TAB: Autocomplète un @nom commençant par [lettre]\n:[lettre]+TAB: Autocomplète emoji commençant par [lettre]\n\n#### Commandes du navigateur intégré\n\nALT+GAUCH+[: Canal précédent dans votre historique\nALT+RIGHT+]: Canal suivant dans votre historique\nCTRL+PLUS: Augmente la taille de la police\nCTRL+MOINS: Diminue la taille de la police\nSHIFT+HAUT (dans un champ de saisie): Surligne le texte jusqu'à la ligne précédente\nSHIFT+BAS (dans un champ de saisie): Surligne le texte jusqu'à la ligne suivante\nSHIFT+ENTRÉE (dans un champ de saisie): Saut de ligne\n"
   },
   {
     "id": "api.command_shortcuts.list_mac",
-    "translation": "### Raccourcis clavier\n\n#### Navigation\n\nALT+HAUT: Canal ou message privé précédent dans la barre de gauche\nALT+BAS: Canal ou message privé suivant dans la barre de gauche\nALT+SHIFT+HAUT: Canal ou message privé précédent avec messages non-lus dans la barre de gauche\nALT+SHIFT+BAS: Canal ou message privé suivant avec messages non-lus dans la barre de gauche\nCTRL/CMD+K: Fenêtre de changemetn de canal rapide\nCTRL/CMD+SHIFT+A: Préférences du compte\nCTRL/CMD+SHIFT+M: Dernières mentions\n\n#### Fichiers\n\nCTRL/CMD+U: Télécharger des fichiers\n\n#### Messages\n\nCTRL/CMD+HAUT (dans un champ vide): Affiche le message ou commande slash précédent\nCTRL/CMD+DOWN (dans un champ vide): Affiche le message ou commande slash suivant\nHAUT (dans un champ vide): Édite votre dernier message dans le canal actuel\n@[lettre]+TAB: Autocomplète un @nom commençant par [lettre]\n:[lettre]+TAB: Autocomplète emoji commençant par [lettre]\n\n#### Commandes du navigateur intégré\n\nALT+GAUCH/CMD+[: Canal précédent dans votre historique\nALT+RIGHT/CMD+]: Canal suivant dans votre historique\nCTRL/CMD+PLUS: Augmente la taille de la police\nCTRL/CMD+MOINS: Diminue la taille de la police\nSHIFT+HAUT (dans un champ de saisie): Surligne le texte jusqu'à la ligne précédente\nSHIFT+BAS (dans un champ de saisie): Surligne le texte jusqu'à la ligne suivante\nSHIFT+ENTRÉE (dans un champ de saisie): Saut de ligne\n"
+    "translation": "### Raccourcis clavier\n\n#### Navigation\n\nALT+HAUT: Canal ou message privé précédent dans la barre de gauche\nALT+BAS: Canal ou message privé suivant dans la barre de gauche\nALT+SHIFT+HAUT: Canal ou message privé précédent avec messages non-lus dans la barre de gauche\nALT+SHIFT+BAS: Canal ou message privé suivant avec messages non-lus dans la barre de gauche\nCMD+K: Fenêtre de changemetn de canal rapide\nCMD+SHIFT+A: Préférences du compte\nCMD+SHIFT+M: Dernières mentions\n\n#### Fichiers\n\nCMD+U: Télécharger des fichiers\n\n#### Messages\n\nCMD+HAUT (dans un champ vide): Affiche le message ou commande slash précédent\nCMD+DOWN (dans un champ vide): Affiche le message ou commande slash suivant\nHAUT (dans un champ vide): Édite votre dernier message dans le canal actuel\n@[lettre]+TAB: Autocomplète un @nom commençant par [lettre]\n:[lettre]+TAB: Autocomplète emoji commençant par [lettre]\n\n#### Commandes du navigateur intégré\n\nCMD+[: Canal précédent dans votre historique\nCMD+]: Canal suivant dans votre historique\nCMD+PLUS: Augmente la taille de la police\nCMD+MOINS: Diminue la taille de la police\nSHIFT+HAUT (dans un champ de saisie): Surligne le texte jusqu'à la ligne précédente\nSHIFT+BAS (dans un champ de saisie): Surligne le texte jusqu'à la ligne suivante\nSHIFT+ENTRÉE (dans un champ de saisie): Saut de ligne\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -1010,6 +1010,10 @@
   {
     "id": "api.post.make_direct_channel_visible.update_pref.error",
     "translation": "Échec de la mise à jour des préférences du canal direct user_id=%v other_user_id=%v err=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.comment_thread.error",
+    "translation": "Failed to retrieve comment thread posts in notifications root_post_id=%v, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.mention_body",
@@ -3885,7 +3889,7 @@
   },
   {
     "id": "store.sql_status.get.app_error",
-    "translation": "Encountered an error retrieving the status"
+    "translation": "Nous avons rencontré une erreur durant l'enregistrement de la licence"
   },
   {
     "id": "store.sql_status.get.missing.app_error",
@@ -3901,7 +3905,7 @@
   },
   {
     "id": "store.sql_status.reset_all.app_error",
-    "translation": "Encountered an error resetting all the statuses"
+    "translation": "Nous avons rencontré une erreur durant l'enregistrement de la licence"
   },
   {
     "id": "store.sql_status.save.app_error",

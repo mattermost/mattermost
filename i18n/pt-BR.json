@@ -1012,6 +1012,10 @@
     "translation": "Falha ao atualizar as preferencias do canal direto user_id=%v other_user_id=%v err=%v"
   },
   {
+    "id": "api.post.send_notifications_and_forget.comment_thread.error",
+    "translation": "Failed to retrieve comment thread posts in notifications root_post_id=%v, err=%v"
+  },
+  {
     "id": "api.post.send_notifications_and_forget.mention_body",
     "translation": "Você tem uma nova menção."
   },
@@ -1245,7 +1249,7 @@
   },
   {
     "id": "api.status.save_status.error",
-    "translation": "Falha ao atualizar LastPingAt para user_id=%v, err=%v"
+    "translation": "Falha ao salvar o status para user_id=%v, err=%v"
   },
   {
     "id": "api.team.create_team.email_disabled.app_error",
@@ -3885,31 +3889,31 @@
   },
   {
     "id": "store.sql_status.get.app_error",
-    "translation": "Encountered an error retrieving the status"
+    "translation": "Encontrado um erro ao obter o status"
   },
   {
     "id": "store.sql_status.get.missing.app_error",
-    "translation": "No entry for that status exists"
+    "translation": "Nenhuma entrada para este status existe"
   },
   {
     "id": "store.sql_status.get_online_away.app_error",
-    "translation": "Encountered an error retrieving all the online/away statuses"
+    "translation": "Encontrado um erro ao obter todos os status online/ausente"
   },
   {
     "id": "store.sql_status.get_total_active_users_count.app_error",
-    "translation": "Não foi possível contar os usuários"
+    "translation": "Não foi possível contar os usuários ativos"
   },
   {
     "id": "store.sql_status.reset_all.app_error",
-    "translation": "Encountered an error resetting all the statuses"
+    "translation": "Encontrado um erro ao resetar todos os status"
   },
   {
     "id": "store.sql_status.save.app_error",
-    "translation": "Encontramos um erro ao salvar a lincença"
+    "translation": "Encontrado um erro ao salvar o status"
   },
   {
     "id": "store.sql_status.update.app_error",
-    "translation": "Encontramos um erro ao atualizar a equipe"
+    "translation": "Encontrado um erro ao enviar o status"
   },
   {
     "id": "store.sql_system.get.app_error",
@@ -4073,7 +4077,7 @@
   },
   {
     "id": "store.sql_user.migrate_theme.critical",
-    "translation": "Failed to migrate User.ThemeProps to Preferences table %v"
+    "translation": "Migração do usuário falhou. ThemeProps to Preferences table %v"
   },
   {
     "id": "store.sql_user.missing_account.const",
