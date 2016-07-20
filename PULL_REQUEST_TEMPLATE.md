@@ -9,10 +9,10 @@ When filling in a section please remove the help text and the above text.
 [Please link the GitHub issue or Jira ticket this PR addresses.]
 
 #### Checklist
-[Place an '[x]' (no spaces) in all applicable fields.]
+[Place an '[x]' (no spaces) in all applicable fields. Please remove unrelated fields.]
 - [ ] Added or updated unit tests (required for all new features)
 - [ ] Added API documentation (required for all new APIs)
-- [ ] Has driver changes that have been merged and package.json updated
+- [ ] All new/modified APIs include changes to the drivers
 - [ ] Has enterprise changes (please link)
 - [ ] Has UI changes
 - [ ] Includes text changes and localization files updated
