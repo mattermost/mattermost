@@ -684,8 +684,29 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	sessionCache.Remove(c.Session.Token)
+	c.Session.SetExpireInDays(*utils.Cfg.ServiceSettings.SessionLengthMobileInDays)
 
-	if result := <-Srv.Store.Session().UpdateDeviceId(c.Session.Id, deviceId); result.Err != nil {
+	maxAge := *utils.Cfg.ServiceSettings.SessionLengthMobileInDays * 60 * 60 * 24
+
+	secure := false
+	if GetProtocol(r) == "https" {
+		secure = true
+	}
+
+	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
+	sessionCookie := &http.Cookie{
+		Name:     model.SESSION_COOKIE_TOKEN,
+		Value:    c.Session.Token,
+		Path:     "/",
+		MaxAge:   maxAge,
+		Expires:  expiresAt,
+		HttpOnly: true,
+		Secure:   secure,
+	}
+
+	http.SetCookie(w, sessionCookie)
+
+	if result := <-Srv.Store.Session().UpdateDeviceId(c.Session.Id, deviceId, c.Session.ExpiresAt); result.Err != nil {
 		c.Err = result.Err
 		return
 	}
