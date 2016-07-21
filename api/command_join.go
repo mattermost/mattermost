@@ -45,6 +45,11 @@ func (me *JoinProvider) DoCommand(c *Context, channelId string, message string) 
 				if v.Type != model.CHANNEL_OPEN {
 					return &model.CommandResponse{Text: c.T("api.command_join.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 				}
+
+				if err, _ := JoinChannelById(c, c.Session.UserId, channelId); err != nil {
+					return &model.CommandResponse{Text: c.T("api.command_join.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+				}
+
 				return &model.CommandResponse{GotoLocation: c.GetTeamURL() + "/channels/" + v.Name, Text: c.T("api.command_join.success"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 			}
 		}
