@@ -141,10 +141,18 @@ export default class EmojiList extends React.Component {
                     </div>
                 </div>
                 <span className='backstage-list__help'>
-                    <FormattedMessage
-                        id='emoji_list.help'
-                        defaultMessage='Custom emoji are available to everyone on your server and will appear in the emoji autocomplete menu. Other users may need to refresh the page before new emojis appear.'
-                    />
+                    <p>
+                        <FormattedMessage
+                            id='emoji_list.help'
+                            defaultMessage="Custom emoji are available to everyone on your server. Type ':' in a message box to bring up the emoji selection menu. Other users may need to refresh the page before new emojis appear."
+                        />
+                    </p>
+                    <p>
+                        <FormattedMessage
+                            id='emoji_list.help2'
+                            defaultMessage="Tip: If you add #, ##, or ### as the first character on a new line containing emoji, you can use larger sized emoji. To try it out, send a message such as: '# :smile:'."
+                        />
+                    </p>
                 </span>
                 <div className='backstage-list'>
                     <table className='emoji-list__table'>
