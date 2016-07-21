@@ -7,6 +7,7 @@ import ReactDOM from 'react-dom';
 import Client from 'client/web_client.jsx';
 import Constants from 'utils/constants.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
+import DelayedAction from 'utils/delayed_action.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import {intlShape, injectIntl, defineMessages} from 'react-intl';
@@ -32,6 +33,8 @@ const holders = defineMessages({
 
 import React from 'react';
 
+const OverlayTimeout = 500;
+
 class FileUpload extends React.Component {
     constructor(props) {
         super(props);
@@ -39,6 +42,7 @@ class FileUpload extends React.Component {
         this.uploadFiles = this.uploadFiles.bind(this);
         this.handleChange = this.handleChange.bind(this);
         this.handleDrop = this.handleDrop.bind(this);
+        this.registerDragEvents = this.registerDragEvents.bind(this);
         this.cancelUpload = this.cancelUpload.bind(this);
         this.pasteUpload = this.pasteUpload.bind(this);
         this.keyUpload = this.keyUpload.bind(this);
@@ -132,53 +136,57 @@ class FileUpload extends React.Component {
     }
 
     componentDidMount() {
-        var self = this;
         if (this.props.postType === 'post') {
-            $('.row.main').dragster({
-                enter(dragsterEvent, e) {
-                    var files = e.originalEvent.dataTransfer;
-
-                    if (Utils.isFileTransfer(files)) {
-                        $('.center-file-overlay').removeClass('hidden');
-                    }
-                },
-                leave(dragsterEvent, e) {
-                    var files = e.originalEvent.dataTransfer;
-
-                    if (Utils.isFileTransfer(files)) {
-                        $('.center-file-overlay').addClass('hidden');
-                    }
-                },
-                drop(dragsterEvent, e) {
-                    $('.center-file-overlay').addClass('hidden');
-                    self.handleDrop(e);
-                }
-            });
+            this.registerDragEvents('.row.main', '.center-file-overlay');
         } else if (this.props.postType === 'comment') {
-            $('.post-right__container').dragster({
-                enter(dragsterEvent, e) {
-                    var files = e.originalEvent.dataTransfer;
-
-                    if (Utils.isFileTransfer(files)) {
-                        $('.right-file-overlay').removeClass('hidden');
-                    }
-                },
-                leave(dragsterEvent, e) {
-                    var files = e.originalEvent.dataTransfer;
-
-                    if (Utils.isFileTransfer(files)) {
-                        $('.right-file-overlay').addClass('hidden');
-                    }
-                },
-                drop(dragsterEvent, e) {
-                    $('.right-file-overlay').addClass('hidden');
-                    self.handleDrop(e);
-                }
-            });
+            this.registerDragEvents('.post-right__container', '.right-file-overlay');
         }
 
         document.addEventListener('paste', this.pasteUpload);
         document.addEventListener('keydown', this.keyUpload);
+    }
+
+    registerDragEvents(containerSelector, overlaySelector) {
+        const self = this;
+
+        const overlay = $(overlaySelector);
+
+        const dragTimeout = new DelayedAction(() => {
+            if (!overlay.hasClass('hidden')) {
+                overlay.addClass('hidden');
+            }
+        });
+
+        $(containerSelector).dragster({
+            enter(dragsterEvent, e) {
+                var files = e.originalEvent.dataTransfer;
+
+                if (Utils.isFileTransfer(files)) {
+                    $(overlaySelector).removeClass('hidden');
+                }
+            },
+            leave(dragsterEvent, e) {
+                var files = e.originalEvent.dataTransfer;
+
+                if (Utils.isFileTransfer(files) && !overlay.hasClass('hidden')) {
+                    overlay.addClass('hidden');
+                }
+
+                dragTimeout.cancel();
+            },
+            over() {
+                dragTimeout.fireAfter(OverlayTimeout);
+            },
+            drop(dragsterEvent, e) {
+                if (!overlay.hasClass('hidden')) {
+                    overlay.addClass('hidden');
+                }
+
+                dragTimeout.cancel();
+
+                self.handleDrop(e);
+            }
+        });
     }
 
     componentWillUnmount() {
