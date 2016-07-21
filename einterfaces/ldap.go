@@ -15,6 +15,8 @@ type LdapInterface interface {
 	ValidateFilter(filter string) *model.AppError
 	Syncronize() *model.AppError
 	StartLdapSyncJob()
+	SyncNow()
+	GetAllLdapUsers() ([]*model.User, *model.AppError)
 }
 
 var theLdapInterface LdapInterface

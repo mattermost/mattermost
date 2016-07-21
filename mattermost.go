@@ -61,6 +61,7 @@ var flagCmdPermanentDeleteTeam bool
 var flagCmdPermanentDeleteAllUsers bool
 var flagCmdResetDatabase bool
 var flagCmdRunLdapSync bool
+var flagCmdMigrateAccounts bool
 var flagUsername string
 var flagCmdUploadLicense bool
 var flagConfigFile string
@@ -73,6 +74,9 @@ var flagSiteURL string
 var flagConfirmBackup string
 var flagRole string
 var flagRunCmds bool
+var flagFromAuth string
+var flagToAuth string
+var flagMatchField string
 
 func doLoadConfig(filename string) (err string) {
 	defer func() {
@@ -288,6 +292,9 @@ func parseCmds() {
 	flag.StringVar(&flagChannelName, "channel_name", "", "")
 	flag.StringVar(&flagSiteURL, "site_url", "", "")
 	flag.StringVar(&flagConfirmBackup, "confirm_backup", "", "")
+	flag.StringVar(&flagFromAuth, "from_auth", "", "")
+	flag.StringVar(&flagToAuth, "to_auth", "", "")
+	flag.StringVar(&flagMatchField, "match_field", "email", "")
 	flag.StringVar(&flagRole, "role", "", "")
 
 	flag.BoolVar(&flagCmdUpdateDb30, "upgrade_db_30", false, "")
@@ -311,6 +318,7 @@ func parseCmds() {
 	flag.BoolVar(&flagCmdPermanentDeleteAllUsers, "permanent_delete_all_users", false, "")
 	flag.BoolVar(&flagCmdResetDatabase, "reset_database", false, "")
 	flag.BoolVar(&flagCmdRunLdapSync, "ldap_sync", false, "")
+	flag.BoolVar(&flagCmdMigrateAccounts, "migrate_accounts", false, "")
 	flag.BoolVar(&flagCmdUploadLicense, "upload_license", false, "")
 
 	flag.Parse()
@@ -335,6 +343,7 @@ func parseCmds() {
 		flagCmdPermanentDeleteAllUsers ||
 		flagCmdResetDatabase ||
 		flagCmdRunLdapSync ||
+		flagCmdMigrateAccounts ||
 		flagCmdUploadLicense)
 }
 
@@ -359,6 +368,7 @@ func runCmds() {
 	cmdResetDatabase()
 	cmdUploadLicense()
 	cmdRunLdapSync()
+	cmdRunMigrateAccounts()
 }
 
 type TeamForUpgrade struct {
@@ -1475,6 +1485,44 @@ func cmdRunLdapSync() {
 	}
 }
 
+func cmdRunMigrateAccounts() {
+	if flagCmdMigrateAccounts {
+		if len(flagFromAuth) == 0 || (flagFromAuth != "email" && flagFromAuth != "gitlab" && flagFromAuth != "saml") {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -from_auth")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		if len(flagToAuth) == 0 || flagToAuth != "ldap" {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -from_auth")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		// Email auth in Mattermost system is represented by ""
+		if flagFromAuth == "email" {
+			flagFromAuth = ""
+		}
+
+		if len(flagMatchField) == 0 || (flagMatchField != "email" && flagMatchField != "username") {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -match_field")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		if migrate := einterfaces.GetAccountMigrationInterface(); migrate != nil {
+			if err := migrate.MigrateToLdap(flagFromAuth, flagMatchField); err != nil {
+				fmt.Println("ERROR: Account migration failed.")
+				l4g.Error("%v", err.Error())
+				flushLogAndExit(1)
+			} else {
+				fmt.Println("SUCCESS: Account migration complete.")
+				flushLogAndExit(0)
+			}
+		}
+	}
+}
+
 func cmdUploadLicense() {
 	if flagCmdUploadLicense {
 		if model.BuildEnterpriseReady != "true" {
@@ -1651,6 +1699,11 @@ COMMANDS:
 
         Example:
             platform -upload_license -license="/path/to/license/example.mattermost-license"
+			
+	-migrate_accounts				  Migrates accounts from one authentication provider to anouther. Requires -from_auth -to_auth and -match_field flags. Supported options for -from_auth: email, gitlab, saml. Supported options for -to_auth ldap. Supported options for -match_field email, username. Will display any accounts that are not migrated succesfully.
+
+        Example:
+            platform -migrate_accounts -from_auth email -to_auth ldap -match_field username
 
     -upgrade_db_30                   Upgrades the database from a version 2.x schema to version 3 see
                                       http://www.mattermost.org/upgrading-to-mattermost-3-0/
