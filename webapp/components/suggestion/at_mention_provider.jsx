@@ -43,6 +43,15 @@ class AtMentionSuggestion extends Suggestion {
                 />
             );
             icon = <i className='mention__image fa fa-users fa-2x'/>;
+        } else if (user.username === 'here') {
+            username = 'here';
+            description = (
+                <FormattedMessage
+                    id='suggestion.mention.here'
+                    defaultMessage='Notifies everyone in the channel and online'
+                />
+            );
+            icon = <i className='mention__image fa fa-users fa-2x'/>;
         } else {
             username = user.username;
 
@@ -125,6 +134,9 @@ export default class AtMentionProvider {
                 }
                 if ('all'.startsWith(prefix)) {
                     filtered.push({username: 'all'});
+                }
+                if ('here'.startsWith(prefix)) {
+                    filtered.push({username: 'here'});
                 }
             }
 

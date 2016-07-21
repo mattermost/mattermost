@@ -55,14 +55,12 @@ func GetAllStatuses() (map[string]interface{}, *model.AppError) {
 
 func SetStatusOnline(userId string, sessionId string) {
 	broadcast := false
-	saveStatus := false
 
 	var status *model.Status
 	var err *model.AppError
 	if status, err = GetStatus(userId); err != nil {
 		status = &model.Status{userId, model.STATUS_ONLINE, model.GetMillis()}
 		broadcast = true
-		saveStatus = true
 	} else {
 		if status.Status != model.STATUS_ONLINE {
 			broadcast = true
@@ -76,7 +74,7 @@ func SetStatusOnline(userId string, sessionId string) {
 	achan := Srv.Store.Session().UpdateLastActivityAt(sessionId, model.GetMillis())
 
 	var schan store.StoreChannel
-	if saveStatus {
+	if broadcast {
 		schan = Srv.Store.Status().SaveOrUpdate(status)
 	} else {
 		schan = Srv.Store.Status().UpdateLastActivityAt(status.UserId, status.LastActivityAt)

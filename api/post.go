@@ -477,6 +477,8 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 
 	mentionedUserIds := make(map[string]bool)
 	alwaysNotifyUserIds := []string{}
+	hereNotification := false
+	updateMentionChans := []store.StoreChannel{}
 
 	if channel.Type == model.CHANNEL_DIRECT {
 
@@ -537,6 +539,11 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 		splitMessage := strings.Fields(post.Message)
 		var userIds []string
 		for _, word := range splitMessage {
+			if word == "@here" {
+				hereNotification = true
+				continue
+			}
+
 			// Non-case-sensitive check for regular keys
 			if ids, match := keywordMap[strings.ToLower(word)]; match {
 				userIds = append(userIds, ids...)
@@ -591,7 +598,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 		}
 
 		for id := range mentionedUserIds {
-			go updateMentionCount(post.ChannelId, id)
+			updateMentionChans = append(updateMentionChans, Srv.Store.Channel().IncrementMentionCount(post.ChannelId, id))
 		}
 	}
 
@@ -620,6 +627,28 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 
 			if userAllowsEmails && status.Status != model.STATUS_ONLINE {
 				sendNotificationEmail(c, post, profileMap[id], channel, team, senderName)
+			}
+		}
+	}
+
+	if hereNotification {
+		if result := <-Srv.Store.Status().GetOnline(); result.Err != nil {
+			l4g.Warn(utils.T("api.post.notification.here.warn"), result.Err)
+			return
+		} else {
+			statuses := result.Data.([]*model.Status)
+			for _, status := range statuses {
+				if status.UserId == post.UserId {
+					continue
+				}
+
+				_, profileFound := profileMap[status.UserId]
+				_, alreadyAdded := mentionedUserIds[status.UserId]
+
+				if status.Status == model.STATUS_ONLINE && profileFound && !alreadyAdded {
+					mentionedUsersList = append(mentionedUsersList, status.UserId)
+					updateMentionChans = append(updateMentionChans, Srv.Store.Channel().IncrementMentionCount(post.ChannelId, status.UserId))
+				}
 			}
 		}
 	}
@@ -669,6 +698,14 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 
 	if len(mentionedUsersList) != 0 {
 		message.Add("mentions", model.ArrayToJson(mentionedUsersList))
+	}
+
+	// Make sure all mention updates are complete to prevent race
+	// Probably better to batch these DB updates in the future
+	for _, uchan := range updateMentionChans {
+		if result := <-uchan; result.Err != nil {
+			l4g.Warn(utils.T("api.post.update_mention_count_and_forget.update_error"), post.Id, post.ChannelId, result.Err)
+		}
 	}
 
 	go Publish(message)
@@ -834,12 +871,6 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 			// notification sent, don't need to check other sessions
 			break
 		}
-	}
-}
-
-func updateMentionCount(channelId, userId string) {
-	if result := <-Srv.Store.Channel().IncrementMentionCount(channelId, userId); result.Err != nil {
-		l4g.Error(utils.T("api.post.update_mention_count_and_forget.update_error"), userId, channelId, result.Err)
 	}
 }
 

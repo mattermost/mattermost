@@ -928,6 +928,10 @@
     "translation": "{{.Username}} was mentioned, but they did not receive a notification because they do not belong to this channel."
   },
   {
+    "id": "api.post.notification.here.warn",
+    "translation": "Unable to send notification to online users with @here, err=%v"
+  },
+  {
     "id": "api.post.create_post.bad_filename.error",
     "translation": "Bad filename discarded, filename=%v"
   },
@@ -1077,7 +1081,7 @@
   },
   {
     "id": "api.post.update_mention_count_and_forget.update_error",
-    "translation": "Failed to update mention count for user_id=%v on channel_id=%v err=%v"
+    "translation": "Failed to update mention count, post_id=%v channel_id=%v err=%v"
   },
   {
     "id": "api.post.update_post.find.app_error",
@@ -3902,6 +3906,10 @@
   {
     "id": "store.sql_status.get_online_away.app_error",
     "translation": "Encountered an error retrieving all the online/away statuses"
+  },
+  {
+    "id": "store.sql_status.get_online.app_error",
+    "translation": "Encountered an error retrieving all the online statuses"
   },
   {
     "id": "store.sql_status.get_total_active_users_count.app_error",

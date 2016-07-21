@@ -48,6 +48,17 @@ func TestSqlStatusStore(t *testing.T) {
 		}
 	}
 
+	if result := <-store.Status().GetOnline(); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		statuses := result.Data.([]*model.Status)
+		for _, status := range statuses {
+			if status.Status != model.STATUS_ONLINE {
+				t.Fatal("should not have returned offline statuses")
+			}
+		}
+	}
+
 	if err := (<-store.Status().ResetAll()).Err; err != nil {
 		t.Fatal(err)
 	}
