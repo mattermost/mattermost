@@ -5,6 +5,7 @@ const de = require('!!file?name=i18n/[name].[hash].[ext]!./de.json');
 const es = require('!!file?name=i18n/[name].[hash].[ext]!./es.json');
 const fr = require('!!file?name=i18n/[name].[hash].[ext]!./fr.json');
 const ja = require('!!file?name=i18n/[name].[hash].[ext]!./ja.json');
+const nl = require('!!file?name=i18n/[name].[hash].[ext]!./nl.json');
 const pt_BR = require('!!file?name=i18n/[name].[hash].[ext]!./pt-BR.json'); //eslint-disable-line camelcase
 const zh_TW = require('!!file?name=i18n/[name].[hash].[ext]!./zh_TW.json'); //eslint-disable-line camelcase
 
@@ -14,6 +15,7 @@ import enLocaleData from 'react-intl/locale-data/en';
 import esLocaleData from 'react-intl/locale-data/es';
 import frLocaleData from 'react-intl/locale-data/fr';
 import jaLocaleData from 'react-intl/locale-data/ja';
+import nlLocaleData from 'react-intl/locale-data/nl';
 import ptLocaleData from 'react-intl/locale-data/pt';
 import zhLocaleData from 'react-intl/locale-data/zh';
 
@@ -43,6 +45,11 @@ const languages = {
         value: 'ja',
         name: '日本語 (Beta)',
         url: ja
+    },
+    nl: {
+        value: 'nl',
+        name: 'Nederlands (Beta)',
+        url: nl
     },
     'pt-BR': {
         value: 'pt-BR',
@@ -105,6 +112,7 @@ export function safariFix(callback) {
         'intl/locale-data/jsonp/es.js',
         'intl/locale-data/jsonp/fr.js',
         'intl/locale-data/jsonp/ja.js',
+        'intl/locale-data/jsonp/nl.js',
         'intl/locale-data/jsonp/pt.js',
         'intl/locale-data/jsonp/zh.js'
     ], (require) => {
@@ -114,6 +122,7 @@ export function safariFix(callback) {
         require('intl/locale-data/jsonp/es.js');
         require('intl/locale-data/jsonp/fr.js');
         require('intl/locale-data/jsonp/ja.js');
+        require('intl/locale-data/jsonp/nl.js');
         require('intl/locale-data/jsonp/pt.js');
         require('intl/locale-data/jsonp/zh.js');
         callback();
@@ -126,6 +135,7 @@ export function doAddLocaleData() {
     addLocaleData(esLocaleData);
     addLocaleData(frLocaleData);
     addLocaleData(jaLocaleData);
+    addLocaleData(nlLocaleData);
     addLocaleData(ptLocaleData);
     addLocaleData(zhLocaleData);
 }

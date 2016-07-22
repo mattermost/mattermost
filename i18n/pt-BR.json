@@ -1012,8 +1012,12 @@
     "translation": "Falha ao atualizar as preferencias do canal direto user_id=%v other_user_id=%v err=%v"
   },
   {
+    "id": "api.post.notification.here.warn",
+    "translation": "Unable to send notification to online users with @here, err=%v"
+  },
+  {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
-    "translation": "Failed to retrieve comment thread posts in notifications root_post_id=%v, err=%v"
+    "translation": "Falha ao obter os comentários da mensagem em notificações root_post_id=%v, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.mention_body",
@@ -1242,6 +1246,10 @@
   {
     "id": "api.slackimport.slack_import.zip.app_error",
     "translation": "Não foi possível abrir o arquivo zip"
+  },
+  {
+    "id": "api.status.init.debug",
+    "translation": "Inicializando post api routes"
   },
   {
     "id": "api.status.last_activity.error",
@@ -1562,6 +1570,10 @@
   {
     "id": "api.templates.verify_subject",
     "translation": "[{{ .SiteName }}] Verificação Email"
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_info",
+    "translation": "For the best experience, download the apps for PC, Mac, iOS and Android from:"
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -3894,6 +3906,10 @@
   {
     "id": "store.sql_status.get.missing.app_error",
     "translation": "Nenhuma entrada para este status existe"
+  },
+  {
+    "id": "store.sql_status.get_online.app_error",
+    "translation": "Encontrado um erro ao obter todos os status online/ausente"
   },
   {
     "id": "store.sql_status.get_online_away.app_error",

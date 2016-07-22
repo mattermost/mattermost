@@ -1012,8 +1012,12 @@
     "translation": "更新直接訊息頻道的偏好設定失敗 user_id=%v other_user_id=%v err=%v"
   },
   {
+    "id": "api.post.notification.here.warn",
+    "translation": "無法寄送 @here 通知給在線使用者 err=%v"
+  },
+  {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
-    "translation": "Failed to retrieve comment thread posts in notifications root_post_id=%v, err=%v"
+    "translation": "在發送通知時取得註解文章失敗 root_post_id=%v err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.mention_body",
@@ -1073,7 +1077,7 @@
   },
   {
     "id": "api.post.update_mention_count_and_forget.update_error",
-    "translation": "更新提及的計數失敗 user_id=%v 於 channel_id=%v err=%v"
+    "translation": "更新提及的計數失敗 post_id=%v channel_id=%v err=%v"
   },
   {
     "id": "api.post.update_post.find.app_error",
@@ -1242,6 +1246,10 @@
   {
     "id": "api.slackimport.slack_import.zip.app_error",
     "translation": "無法開啟 zip 檔案"
+  },
+  {
+    "id": "api.status.init.debug",
+    "translation": "正在初始化狀態 API 路徑"
   },
   {
     "id": "api.status.last_activity.error",
@@ -1562,6 +1570,10 @@
   {
     "id": "api.templates.verify_subject",
     "translation": "{{ .SiteName }}] 電子郵件地址驗證"
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_info",
+    "translation": "For the best experience, download the apps for PC, Mac, iOS and Android from:"
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -3894,6 +3906,10 @@
   {
     "id": "store.sql_status.get.missing.app_error",
     "translation": "該狀態沒有對應的資料存在"
+  },
+  {
+    "id": "store.sql_status.get_online.app_error",
+    "translation": "嘗試取得所有使用者的在線狀態時遇到錯誤"
   },
   {
     "id": "store.sql_status.get_online_away.app_error",
