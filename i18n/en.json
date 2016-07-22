@@ -2664,6 +2664,10 @@
     "translation": "User not registered on AD/LDAP server"
   },
   {
+    "id": "ent.ldap.getallldapusers.get_all.app_error",
+    "translation": "Unable to get all users using AD/LDAP via GetAllLdapUsers"
+  },
+  {
     "id": "ent.ldap.mattermost_user_update",
     "translation": "Mattermost user was updated by AD/LDAP server."
   },

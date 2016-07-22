@@ -590,7 +590,7 @@ func adminResetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func ldapSyncNow(c *Context, w http.ResponseWriter, r *http.Request) {
 	go func() {
-		if utils.IsLicensed && *utils.License.Features.LDAP && *utils.Cfg.LdapSettings.Enable {
+		if *utils.Cfg.LdapSettings.Enable {
 			if ldapI := einterfaces.GetLdapInterface(); ldapI != nil {
 				ldapI.SyncNow()
 			} else {
@@ -605,7 +605,7 @@ func ldapSyncNow(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func ldapTest(c *Context, w http.ResponseWriter, r *http.Request) {
-	if ldapI := einterfaces.GetLdapInterface(); ldapI != nil && utils.IsLicensed && *utils.License.Features.LDAP && *utils.Cfg.LdapSettings.Enable {
+	if ldapI := einterfaces.GetLdapInterface(); ldapI != nil && *utils.Cfg.LdapSettings.Enable {
 		if err := ldapI.RunTest(); err != nil {
 			c.Err = err
 			c.Err.StatusCode = 500

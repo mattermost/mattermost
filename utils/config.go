@@ -292,20 +292,17 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["AppDownloadLink"] = *c.NativeAppSettings.AppDownloadLink
 	props["AndroidAppDownloadLink"] = *c.NativeAppSettings.AndroidAppDownloadLink
 	props["IosAppDownloadLink"] = *c.NativeAppSettings.IosAppDownloadLink
+	props["EnableLdap"] = strconv.FormatBool(*c.LdapSettings.Enable)
+	props["LdapLoginFieldName"] = *c.LdapSettings.LoginFieldName
+	props["NicknameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.NicknameAttribute != "")
+	props["FirstNameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.FirstNameAttribute != "")
+	props["LastNameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.LastNameAttribute != "")
 
 	if IsLicensed {
 		if *License.Features.CustomBrand {
 			props["EnableCustomBrand"] = strconv.FormatBool(*c.TeamSettings.EnableCustomBrand)
 			props["CustomBrandText"] = *c.TeamSettings.CustomBrandText
 			props["CustomDescriptionText"] = *c.TeamSettings.CustomDescriptionText
-		}
-
-		if *License.Features.LDAP {
-			props["EnableLdap"] = strconv.FormatBool(*c.LdapSettings.Enable)
-			props["LdapLoginFieldName"] = *c.LdapSettings.LoginFieldName
-			props["NicknameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.NicknameAttribute != "")
-			props["FirstNameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.FirstNameAttribute != "")
-			props["LastNameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.LastNameAttribute != "")
 		}
 
 		if *License.Features.MFA {

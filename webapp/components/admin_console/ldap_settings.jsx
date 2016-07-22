@@ -84,11 +84,6 @@ export default class LdapSettings extends AdminSettings {
     }
 
     renderSettings() {
-        const licenseEnabled = global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.LDAP === 'true';
-        if (!licenseEnabled) {
-            return null;
-        }
-
         return (
             <SettingsGroup>
                 <BooleanSetting
