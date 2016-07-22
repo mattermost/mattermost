@@ -65,11 +65,7 @@ export function isIosChrome() {
 export function isMobileApp() {
     const userAgent = navigator.userAgent;
 
-    // the mobile app has different user agents for the native api calls and the shim, so handle them both
-    const isApi = userAgent.indexOf('Mattermost') !== -1;
-    const isShim = userAgent.indexOf('iPhone') !== -1 && userAgent.indexOf('Safari') === -1 && userAgent.indexOf('Chrome') === -1;
-
-    return isApi || isShim;
+    return userAgent.indexOf('iPhone') !== -1 && userAgent.indexOf('Safari') === -1 && userAgent.indexOf('CriOS') === -1;
 }
 
 export function isInRole(roles, inRole) {
