@@ -130,7 +130,7 @@ export default class SearchResults extends React.Component {
                 <div className='sidebar--right__subheader'>
                     <FormattedHTMLMessage
                         id='search_results.usage2'
-                        defaultMessage='<ul><li>You have no <b>flagged posts</b></li><li>To flag a post, click on the <i class="fa fa-flag-o"></i> next to it</li></ul>'
+                        defaultMessage='<ul><li>You have no <b>starred posts</b></li><li>To star a post, click on the <i class="fa fa-star-o"></i> next to it</li></ul>'
                     />
                 </div>
             );
