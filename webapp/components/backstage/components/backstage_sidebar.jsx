@@ -106,7 +106,7 @@ export default class BackstageSidebar extends React.Component {
                     title={
                         <FormattedMessage
                             id='backstage_sidebar.integrations.oauthApps'
-                            defaultMessage='OAuth2 Apps'
+                            defaultMessage='OAuth 2.0 Applications'
                         />
                     }
                 />

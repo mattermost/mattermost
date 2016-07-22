@@ -63,6 +63,12 @@ func (a *OAuthApp) IsValid() *AppError {
 		return NewLocAppError("OAuthApp.IsValid", "model.oauth.is_valid.callback.app_error", nil, "app_id="+a.Id)
 	}
 
+	for _, callback := range a.CallbackUrls {
+		if !IsValidHttpUrl(callback) {
+			return NewLocAppError("OAuthApp.IsValid", "model.oauth.is_valid.callback.app_error", nil, "")
+		}
+	}
+
 	if len(a.Homepage) == 0 || len(a.Homepage) > 256 || !IsValidHttpUrl(a.Homepage) {
 		return NewLocAppError("OAuthApp.IsValid", "model.oauth.is_valid.homepage.app_error", nil, "app_id="+a.Id)
 	}
