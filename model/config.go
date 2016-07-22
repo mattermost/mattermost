@@ -268,6 +268,12 @@ type SamlSettings struct {
 	LoginButtonText *string
 }
 
+type NativeAppSettings struct {
+	AppDownloadLink        *string
+	AndroidAppDownloadLink *string
+	IosAppDownloadLink     *string
+}
+
 type Config struct {
 	ServiceSettings      ServiceSettings
 	TeamSettings         TeamSettings
@@ -285,6 +291,7 @@ type Config struct {
 	ComplianceSettings   ComplianceSettings
 	LocalizationSettings LocalizationSettings
 	SamlSettings         SamlSettings
+	NativeAppSettings    NativeAppSettings
 }
 
 func (o *Config) ToJson() string {
@@ -791,6 +798,21 @@ func (o *Config) SetDefaults() {
 	if o.SamlSettings.LocaleAttribute == nil {
 		o.SamlSettings.LocaleAttribute = new(string)
 		*o.SamlSettings.LocaleAttribute = ""
+	}
+
+	if o.NativeAppSettings.AppDownloadLink == nil {
+		o.NativeAppSettings.AppDownloadLink = new(string)
+		*o.NativeAppSettings.AppDownloadLink = "https://about.mattermost.com/downloads/"
+	}
+
+	if o.NativeAppSettings.AndroidAppDownloadLink == nil {
+		o.NativeAppSettings.AndroidAppDownloadLink = new(string)
+		*o.NativeAppSettings.AndroidAppDownloadLink = "https://about.mattermost.com/mattermost-android-app/"
+	}
+
+	if o.NativeAppSettings.IosAppDownloadLink == nil {
+		o.NativeAppSettings.IosAppDownloadLink = new(string)
+		*o.NativeAppSettings.IosAppDownloadLink = "https://about.mattermost.com/mattermost-ios-app/"
 	}
 }
 

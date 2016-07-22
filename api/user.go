@@ -362,6 +362,11 @@ func sendWelcomeEmail(c *Context, userId string, email string, siteURL string, v
 	bodyPage.Props["Info3"] = c.T("api.templates.welcome_body.info3")
 	bodyPage.Props["SiteURL"] = siteURL
 
+	if *utils.Cfg.NativeAppSettings.AppDownloadLink != "" {
+		bodyPage.Props["AppDownloadInfo"] = c.T("api.templates.welcome_body.app_download_info")
+		bodyPage.Props["AppDownloadLink"] = *utils.Cfg.NativeAppSettings.AppDownloadLink
+	}
+
 	if !verified {
 		link := fmt.Sprintf("%s/do_verify_email?uid=%s&hid=%s&email=%s", siteURL, userId, model.HashPassword(userId), url.QueryEscape(email))
 		bodyPage.Props["VerifyUrl"] = link

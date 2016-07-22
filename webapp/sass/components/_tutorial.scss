@@ -183,7 +183,7 @@
             display: inline-block;
             margin-bottom: 50px;
             max-width: 310px;
-            min-height: 370px;
+            min-height: 410px;
             position: relative;
             text-align: left;
         }
@@ -233,4 +233,8 @@
             background: $primary-color;
         }
     }
+}
+
+.tutorial__app-icons {
+    margin: 2em 0;
 }

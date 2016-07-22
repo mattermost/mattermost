@@ -31,6 +31,7 @@ import ImageSettings from 'components/admin_console/image_settings.jsx';
 import CustomBrandSettings from 'components/admin_console/custom_brand_settings.jsx';
 import CustomEmojiSettings from 'components/admin_console/custom_emoji_settings.jsx';
 import LegalAndSupportSettings from 'components/admin_console/legal_and_support_settings.jsx';
+import NativeAppLinkSettings from 'components/admin_console/native_app_link_settings.jsx';
 import ComplianceSettings from 'components/admin_console/compliance_settings.jsx';
 import RateSettings from 'components/admin_console/rate_settings.jsx';
 import DeveloperSettings from 'components/admin_console/developer_settings.jsx';
@@ -165,6 +166,10 @@ export default (
             <Route
                 path='legal_and_support'
                 component={LegalAndSupportSettings}
+            />
+            <Route
+                path='native_app_links'
+                component={NativeAppLinkSettings}
             />
         </Route>
         <Route path='advanced'>

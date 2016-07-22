@@ -581,6 +581,16 @@ export default class AdminSidebar extends React.Component {
                                         />
                                     }
                                 />
+                                <AdminSidebarSection
+                                    name='native_app_links'
+                                    title={
+                                        <FormattedMessage
+                                            id='admin.sidebar.nativeAppLinks'
+                                            defaultMessage='Native App Links'
+                                        />
+
+                                    }
+                                />
                             </AdminSidebarSection>
                             <AdminSidebarSection
                                 name='advanced'

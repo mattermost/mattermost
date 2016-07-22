@@ -295,6 +295,25 @@ export default class SidebarRightMenu extends React.Component {
             this.openRightSidebar();
         }
 
+        let nativeAppLink = null;
+        if (global.window.mm_config.AppDownloadLink && !Utils.isMobileApp()) {
+            nativeAppLink = (
+                <li>
+                    <Link
+                        target='_blank'
+                        rel='noopener noreferrer'
+                        to={global.window.mm_config.AppDownloadLink}
+                    >
+                        <i className='icon fa fa-mobile'></i>
+                        <FormattedMessage
+                            id='sidebar_right_menu.nativeApps'
+                            defaultMessage='Download Native Apps'
+                        />
+                    </Link>
+                </li>
+            );
+        }
+
         return (
             <div
                 className='sidebar--menu'
@@ -378,6 +397,7 @@ export default class SidebarRightMenu extends React.Component {
                                 />
                             </a>
                         </li>
+                        {nativeAppLink}
                     </ul>
                 </div>
                 <UserSettingsModal

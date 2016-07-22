@@ -7,12 +7,12 @@ import PreferenceStore from 'stores/preference_store.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 
-import Constants from 'utils/constants.jsx';
+import {Constants, Preferences} from 'utils/constants.jsx';
 
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
 
-const Preferences = Constants.Preferences;
+import AppIcons from 'images/appIcons.png';
 
 const NUM_SCREENS = 3;
 
@@ -91,6 +91,46 @@ export default class TutorialIntroScreens extends React.Component {
     createScreenTwo() {
         const circles = this.createCircles();
 
+        let appDownloadLink = null;
+        let appDownloadImage = null;
+        if (global.window.mm_config.AppDownloadLink) {
+            // not using a FormattedHTMLMessage here since mm_config.AppDownloadLink is configurable and could be used
+            // to inject HTML if we're not careful
+            appDownloadLink = (
+                <FormattedMessage
+                    id='tutorial_intro.mobileApps'
+                    defaultMessage='Install the apps for {link} for easy access and notifications on the go.'
+                    values={{
+                        link: (
+                            <a
+                                href={global.window.mm_config.AppDownloadLink}
+                                target='_blank'
+                                rel='noopener noreferrer'
+                            >
+                                <FormattedMessage
+                                    id='tutorial_intro.mobileAppsLinkText'
+                                    defaultMessage='PC, Mac, iOS and Android'
+                                />
+                            </a>
+                        )
+                    }}
+                />
+            );
+
+            appDownloadImage = (
+                <a
+                    href={global.window.mm_config.AppDownloadLink}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                >
+                    <img
+                        className='tutorial__app-icons'
+                        src={AppIcons}
+                    />
+                </a>
+            );
+        }
+
         return (
             <div>
                 <FormattedHTMLMessage
@@ -99,6 +139,8 @@ export default class TutorialIntroScreens extends React.Component {
                     <p>Communication happens in public discussion channels, private groups and direct messages.</p>
                     <p>Everything is archived and searchable from any web-enabled desktop, laptop or phone.</p>'
                 />
+                {appDownloadLink}
+                {appDownloadImage}
                 {circles}
             </div>
         );

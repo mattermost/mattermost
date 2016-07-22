@@ -1572,6 +1572,10 @@
     "translation": "[{{ .SiteName }}] Email Verification"
   },
   {
+    "id": "api.templates.welcome_body.app_download_info",
+    "translation": "For the best experience, download the apps for PC, Mac, iOS and Android from:"
+  },
+  {
     "id": "api.templates.welcome_body.button",
     "translation": "Verify Email"
   },
