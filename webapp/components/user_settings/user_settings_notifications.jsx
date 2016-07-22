@@ -9,13 +9,14 @@ import UserStore from 'stores/user_store.jsx';
 
 import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
+import * as UserAgent from 'utils/user_agent.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
 
 function getNotificationsStateFromStores() {
     var user = UserStore.getCurrentUser();
-    var soundNeeded = !Utils.isBrowserFirefox();
+    var soundNeeded = !UserAgent.isFirefox();
 
     var sound = 'true';
     if (user.notify_props && user.notify_props.desktop_sound) {

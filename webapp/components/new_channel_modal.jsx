@@ -4,6 +4,7 @@
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
 
+import * as UserAgent from 'utils/user_agent.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
@@ -53,9 +54,11 @@ class NewChannelModal extends React.Component {
     }
 
     componentDidMount() {
-        if (Utils.isBrowserIE()) {
+        // ???
+        if (UserAgent.isInternetExplorer()) {
             $('body').addClass('browser--ie');
         }
+
         PreferenceStore.addChangeListener(this.onPreferenceChange);
     }
 

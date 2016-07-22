@@ -12,6 +12,7 @@ import Constants from 'utils/constants.jsx';
 var ActionTypes = Constants.ActionTypes;
 import * as AsyncClient from './async_client.jsx';
 import Client from 'client/web_client.jsx';
+import * as UserAgent from 'utils/user_agent.jsx';
 
 import {browserHistory} from 'react-router/es6';
 import {FormattedMessage} from 'react-intl';
@@ -41,31 +42,6 @@ export function isMac() {
 
 export function cmdOrCtrlPressed(e) {
     return (isMac() && e.metaKey) || (!isMac() && e.ctrlKey);
-}
-
-export function isChrome() {
-    if (navigator.userAgent.indexOf('Chrome') > -1) {
-        return true;
-    }
-    return false;
-}
-
-export function isSafari() {
-    if (navigator.userAgent.indexOf('Safari') !== -1 && navigator.userAgent.indexOf('Chrome') === -1) {
-        return true;
-    }
-    return false;
-}
-
-export function isIosChrome() {
-    // https://developer.chrome.com/multidevice/user-agent
-    return navigator.userAgent.indexOf('CriOS') !== -1;
-}
-
-export function isMobileApp() {
-    const userAgent = navigator.userAgent;
-
-    return userAgent.indexOf('iPhone') !== -1 && userAgent.indexOf('Safari') === -1 && userAgent.indexOf('CriOS') === -1;
 }
 
 export function isInRole(roles, inRole) {
@@ -160,7 +136,7 @@ export function notifyMe(title, body, channel, teamId) {
 var canDing = true;
 
 export function ding() {
-    if (!isBrowserFirefox() && canDing) {
+    if (!UserAgent.isFirefox() && canDing) {
         var audio = new Audio(bing);
         audio.play();
         canDing = false;
@@ -775,7 +751,7 @@ export function updateCodeTheme(userTheme) {
         xmlHTTP.open('GET', cssPath, true);
         xmlHTTP.onload = function onLoad() {
             $link.attr('href', cssPath);
-            if (isBrowserFirefox()) {
+            if (UserAgent.isFirefox()) {
                 $link.one('load', () => {
                     changeCss('code.hljs', 'visibility: visible');
                 });
@@ -1084,25 +1060,6 @@ export function generateId() {
     return id;
 }
 
-export function isBrowserFirefox() {
-    return navigator && navigator.userAgent && navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
-}
-
-// Checks if browser is IE10 or IE11
-export function isBrowserIE() {
-    if (window.navigator && window.navigator.userAgent) {
-        var ua = window.navigator.userAgent;
-
-        return ua.indexOf('Trident/7.0') > 0 || ua.indexOf('Trident/6.0') > 0;
-    }
-
-    return false;
-}
-
-export function isBrowserEdge() {
-    return window.navigator && navigator.userAgent && navigator.userAgent.toLowerCase().indexOf('edge') > -1;
-}
-
 export function getDirectChannelName(id, otherId) {
     let handle;
 
@@ -1293,7 +1250,7 @@ export function fillArray(value, length) {
 // Checks if a data transfer contains files not text, folders, etc..
 // Slightly modified from http://stackoverflow.com/questions/6848043/how-do-i-detect-a-file-is-being-dragged-rather-than-a-draggable-element-on-my-pa
 export function isFileTransfer(files) {
-    if (isBrowserIE() || isBrowserEdge()) {
+    if (UserAgent.isInternetExplorer() || UserAgent.isEdge()) {
         return files.types != null && files.types.contains('Files');
     }
 
