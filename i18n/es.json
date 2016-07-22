@@ -1012,8 +1012,12 @@
     "translation": "Falla al actualizar las preferencias del canal directo user_id=%v other_user_id=%v err=%v"
   },
   {
+    "id": "api.post.notification.here.warn",
+    "translation": "No se pudo enviar notificaciones a los usuarios en línea con @here, err=%v"
+  },
+  {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
-    "translation": "Failed to retrieve comment thread posts in notifications root_post_id=%v, err=%v"
+    "translation": "No se pudo recuperar el hilo de comentarios en las notificaciones root_post_id=%v, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.mention_body",
@@ -1073,7 +1077,7 @@
   },
   {
     "id": "api.post.update_mention_count_and_forget.update_error",
-    "translation": "Falla al actualizar el contador de mensiones para user_id=%v on channel_id=%v err=%v"
+    "translation": "Falla al actualizar el contador de mensiones para post_id=%v channel_id=%v err=%v"
   },
   {
     "id": "api.post.update_post.find.app_error",
@@ -1242,6 +1246,10 @@
   {
     "id": "api.slackimport.slack_import.zip.app_error",
     "translation": "No se puede abrir el archivo comprimido"
+  },
+  {
+    "id": "api.status.init.debug",
+    "translation": "Inicializando rutas del API para los estatus"
   },
   {
     "id": "api.status.last_activity.error",
@@ -1562,6 +1570,10 @@
   {
     "id": "api.templates.verify_subject",
     "translation": "[{{ .SiteName }}] Correo electrónico de Verificación"
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_info",
+    "translation": "For the best experience, download the apps for PC, Mac, iOS and Android from:"
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -3894,6 +3906,10 @@
   {
     "id": "store.sql_status.get.missing.app_error",
     "translation": "No existe ninguna entrada para que el estado"
+  },
+  {
+    "id": "store.sql_status.get_online.app_error",
+    "translation": "Detectado un error al recuperar todos los estados en línea"
   },
   {
     "id": "store.sql_status.get_online_away.app_error",
