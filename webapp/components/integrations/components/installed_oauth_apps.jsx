@@ -76,23 +76,29 @@ export default class InstalledOAuthApps extends React.Component {
                 header={
                     <FormattedMessage
                         id='installed_oauth_apps.header'
-                        defaultMessage='Installed OAuth2 Apps'
+                        defaultMessage='OAuth 2.0 Applications'
+                    />
+                }
+                helpText={
+                    <FormattedMessage
+                        id='installed_oauth_apps.help'
+                        defaultMessage='OAuth 2.0 Applications are available to everyone on your server.'
                     />
                 }
                 addText={
                     <FormattedMessage
                         id='installed_oauth_apps.add'
-                        defaultMessage='Add OAuth2 App'
+                        defaultMessage='Add OAuth 2.0 Application'
                     />
                 }
                 addLink={'/' + this.props.team.name + '/integrations/oauth2-apps/add'}
                 emptyText={
                     <FormattedMessage
                         id='installed_oauth_apps.empty'
-                        defaultMessage='No OAuth2 Apps found'
+                        defaultMessage='No OAuth 2.0 Applications found'
                     />
                 }
-                searchPlaceholder={localizeMessage('installed_oauth_apps.search', 'Search OAuth2 Apps')}
+                searchPlaceholder={localizeMessage('installed_oauth_apps.search', 'Search OAuth 2.0 Applications')}
                 loading={this.state.loading}
             >
                 {oauthApps}

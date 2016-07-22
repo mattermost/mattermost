@@ -74,7 +74,7 @@ export default class AddOAuthApp extends React.Component {
                 clientError: (
                     <FormattedMessage
                         id='add_oauth_app.nameRequired'
-                        defaultMessage='The name for the OAuth2 App is required'
+                        defaultMessage='Name for the OAuth 2.0 application is required.'
                     />
                 )
             });
@@ -88,7 +88,7 @@ export default class AddOAuthApp extends React.Component {
                 clientError: (
                     <FormattedMessage
                         id='add_oauth_app.descriptionRequired'
-                        defaultMessage='The description for the OAuth2 App is required'
+                        defaultMessage='Description for the OAuth 2.0 application is required.'
                     />
                 )
             });
@@ -102,7 +102,7 @@ export default class AddOAuthApp extends React.Component {
                 clientError: (
                     <FormattedMessage
                         id='add_oauth_app.homepageRequired'
-                        defaultMessage='The homepage for the OAuth2 App is required'
+                        defaultMessage='Homepage for the OAuth 2.0 application is required.'
                     />
                 )
             });
@@ -125,7 +125,7 @@ export default class AddOAuthApp extends React.Component {
                 clientError: (
                     <FormattedMessage
                         id='add_oauth_app.callbackUrlsRequired'
-                        defaultMessage='One or more callback URLs are required'
+                        defaultMessage='One or more callback URLs are required.'
                     />
                 )
             });
@@ -258,6 +258,12 @@ export default class AddOAuthApp extends React.Component {
                                         defaultMessage='No'
                                     />
                                 </label>
+                                <div className='form__help'>
+                                    <FormattedMessage
+                                        id='add_oauth_app.trusted.help'
+                                        defaultMessage="When true, the OAuth 2.0 application is considered trusted by the Mattermost server and doesn't require the user to accept authorization. When false, an additional window will appear, asking the user to accept or deny the authorization."
+                                    />
+                                </div>
                             </div>
                         </div>
                         <div className='form-group'>
@@ -279,6 +285,12 @@ export default class AddOAuthApp extends React.Component {
                                     value={this.state.name}
                                     onChange={this.updateName}
                                 />
+                                <div className='form__help'>
+                                    <FormattedMessage
+                                        id='add_oauth_app.name.help'
+                                        defaultMessage='Choose a name for your OAuth 2.0 application made of up to 64 characters.'
+                                    />
+                                </div>
                             </div>
                         </div>
                         <div className='form-group'>
@@ -300,6 +312,12 @@ export default class AddOAuthApp extends React.Component {
                                     value={this.state.description}
                                     onChange={this.updateDescription}
                                 />
+                                <div className='form__help'>
+                                    <FormattedMessage
+                                        id='add_oauth_app.description.help'
+                                        defaultMessage='Provide a description for your application.'
+                                    />
+                                </div>
                             </div>
                         </div>
                         <div className='form-group'>
@@ -321,6 +339,12 @@ export default class AddOAuthApp extends React.Component {
                                     value={this.state.homepage}
                                     onChange={this.updateHomepage}
                                 />
+                                <div className='form__help'>
+                                    <FormattedMessage
+                                        id='add_oauth_app.homepage.help'
+                                        defaultMessage='The URL for the homepage of the OAuth 2.0 application. Make sure you use HTTP or HTTPS in your URL depending on your server configuration.'
+                                    />
+                                </div>
                             </div>
                         </div>
                         <div className='form-group'>
@@ -342,6 +366,12 @@ export default class AddOAuthApp extends React.Component {
                                     className='form-control'
                                     onChange={this.updateIconUrl}
                                 />
+                                <div className='form__help'>
+                                    <FormattedMessage
+                                        id='add_oauth_app.icon.help'
+                                        defaultMessage='The URL for the homepage of the OAuth 2.0 application. Make sure you use HTTP or HTTPS in your URL depending on your server configuration.'
+                                    />
+                                </div>
                             </div>
                         </div>
                         <div className='form-group'>
@@ -363,6 +393,12 @@ export default class AddOAuthApp extends React.Component {
                                     value={this.state.callbackUrls}
                                     onChange={this.updateCallbackUrls}
                                 />
+                                <div className='form__help'>
+                                    <FormattedMessage
+                                        id='add_oauth_app.callbackUrls.help'
+                                        defaultMessage='The redirect URIs to which the service will redirect users after accepting or denying authorization of your application, and which will handle authorization codes or access tokens. Must be a valid URL and start with http:// or https://.'
+                                    />
+                                </div>
                             </div>
                         </div>
                         <div className='backstage-form__footer'>

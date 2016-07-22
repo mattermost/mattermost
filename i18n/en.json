@@ -2961,7 +2961,7 @@
   },
   {
     "id": "model.oauth.is_valid.callback.app_error",
-    "translation": "Invalid callback urls"
+    "translation": "Callback URL must be a valid URL and start with http:// or https://."
   },
   {
     "id": "model.oauth.is_valid.client_secret.app_error",
@@ -2981,11 +2981,11 @@
   },
   {
     "id": "model.oauth.is_valid.homepage.app_error",
-    "translation": "Invalid homepage"
+    "translation": "Homepage must be a valid URL and start with http:// or https://."
   },
   {
     "id": "model.oauth.is_valid.icon_url.app_error",
-    "translation": "Invalid Icon URL"
+    "translation": "Icon URL must be a valid URL and start with http:// or https://."
   },
   {
     "id": "model.oauth.is_valid.name.app_error",

@@ -94,13 +94,13 @@ export default class Integrations extends React.Component {
                     title={
                         <FormattedMessage
                             id='integrations.oauthApps.title'
-                            defaultMessage='OAuth2 Apps'
+                            defaultMessage='OAuth 2.0 Applications'
                         />
                     }
                     description={
                         <FormattedMessage
                             id='integrations.oauthApps.description'
-                            defaultMessage='OAuth2 Apps allow external applications to authenticate users using Mattermost user accounts'
+                            defaultMessage='Auth 2.0 allows external applications to make authorized requests to the Mattermost API.'
                         />
                     }
                     link={'/' + this.props.team.name + '/integrations/oauth2-apps'}

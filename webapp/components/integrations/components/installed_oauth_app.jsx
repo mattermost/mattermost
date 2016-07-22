@@ -70,7 +70,7 @@ export default class InstalledOAuthApp extends React.Component {
             name = (
                 <FormattedMessage
                     id='installed_integrations.unnamed_oauth_app'
-                    defaultMessage='Unnamed OAuth2 App'
+                    defaultMessage='Unnamed OAuth 2.0 Application'
                 />
             );
         }

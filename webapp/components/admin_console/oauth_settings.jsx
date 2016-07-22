@@ -44,7 +44,7 @@ export default class OAuthSettings extends AdminSettings {
             <h3>
                 <FormattedMessage
                     id='admin.integrations.oauth'
-                    defaultMessage='OAuth2 Provider'
+                    defaultMessage='OAuth 2.0 Service Provider'
                 />
             </h3>
         );
@@ -58,13 +58,13 @@ export default class OAuthSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.oauth.providerTitle'
-                            defaultMessage='Enable OAuth2 Service Provider:'
+                            defaultMessage='Enable OAuth 2.0 Service Provider:'
                         />
                     }
                     helpText={
                         <FormattedMessage
                             id='admin.oauth.providerDescription'
-                            defaultMessage='When true, Mattermost can act as an OAuth2 Service Provider to authenticate users.'
+                            defaultMessage='When true, Mattermost can act as an OAuth 2.0 Service Provider to authenticate users.'
                         />
                     }
                     value={this.state.enableOAuthServiceProvider}
