@@ -16,6 +16,7 @@ import * as Utils from 'utils/utils.jsx';
 import Client from 'client/web_client.jsx';
 
 import Constants from 'utils/constants.jsx';
+import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 
 import {FormattedMessage, FormattedDate} from 'react-intl';
 
@@ -250,11 +251,29 @@ export default class RhsComment extends React.Component {
 
         let flag;
         let flagFunc;
+        let flagVisibile;
+        let starTooltip = (
+            <Tooltip id='starTooltip'>
+                <FormattedMessage
+                    id='post_star.star'
+                    defaultMessage='Star this message'
+                />
+            </Tooltip>
+        );
         if (this.props.isFlagged) {
-            flag = <i className='fa fa-flag'/>;
+            flagVisibile = 'visible';
+            flag = <i className='fa fa-star'/>;
             flagFunc = this.unflagPost;
+            starTooltip = (
+                <Tooltip id='starTooltip'>
+                    <FormattedMessage
+                        id='post_star.star'
+                        defaultMessage='Unstar this message'
+                    />
+                </Tooltip>
+            );
         } else {
-            flag = <i className='fa fa-flag-o'/>;
+            flag = <i className='fa fa-star-o'/>;
             flagFunc = this.flagPost;
         }
 
@@ -280,16 +299,22 @@ export default class RhsComment extends React.Component {
                                         minute='2-digit'
                                     />
                                 </time>
+                                <OverlayTrigger
+                                    delayShow={Constants.OVERLAY_TIME_DELAY}
+                                    placement='top'
+                                    overlay={starTooltip}
+                                >
+                                    <a
+                                        href='#'
+                                        className={'star-icon__container ' + flagVisibile}
+                                        onClick={flagFunc}
+                                    >
+                                        {flag}
+                                    </a>
+                                </OverlayTrigger>
                             </li>
                             <li className='col col__reply'>
                                 {dropdown}
-                                <a
-                                    href='#'
-                                    className={'flag-icon__container'}
-                                    onClick={flagFunc}
-                                >
-                                    {flag}
-                                </a>
                             </li>
                         </ul>
                         <div className='post__body'>

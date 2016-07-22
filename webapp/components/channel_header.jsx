@@ -242,7 +242,7 @@ export default class ChannelHeader extends React.Component {
             <Tooltip id='flaggedTooltip'>
                 <FormattedMessage
                     id='channel_header.flagged'
-                    defaultMessage='Flagged Posts'
+                    defaultMessage='Starred Posts'
                 />
             </Tooltip>
         );
@@ -600,7 +600,7 @@ export default class ChannelHeader extends React.Component {
                                             type='button'
                                             onClick={this.getFlagged}
                                         >
-                                            <i className='fa fa-flag'/>
+                                            <i className='fa fa-star-o'/>
                                         </a>
                                     </OverlayTrigger>
                                 </div>

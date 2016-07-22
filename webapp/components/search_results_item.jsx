@@ -15,6 +15,7 @@ import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
 
 import Constants from 'utils/constants.jsx';
+import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 const ActionTypes = Constants.ActionTypes;
 
 import React from 'react';
@@ -92,17 +93,39 @@ export default class SearchResultsItem extends React.Component {
         }
 
         let flag;
+        let flagVisible;
+        let starTooltip = (
+            <Tooltip id='starTooltip'>
+                <FormattedMessage
+                    id='post_star.star'
+                    defaultMessage='Star this message'
+                />
+            </Tooltip>
+        );
         if (this.props.isFlagged) {
+            flagVisible = 'visible';
+            starTooltip = (
+                <Tooltip id='starTooltip'>
+                    <FormattedMessage
+                        id='post_star.star'
+                        defaultMessage='Unstar this message'
+                    />
+                </Tooltip>
+            );
             flag = (
-                <li>
+                <OverlayTrigger
+                    delayShow={Constants.OVERLAY_TIME_DELAY}
+                    placement='top'
+                    overlay={starTooltip}
+                >
                     <a
                         href='#'
-                        className={'flag-icon__container'}
+                        className={'star-icon__container ' + flagVisible}
                         onClick={this.unflagPost}
                     >
-                        <i className='fa fa-flag'/>
+                        <i className='fa fa-star'/>
                     </a>
-                </li>
+                </OverlayTrigger>
             );
         }
 
@@ -150,8 +173,19 @@ export default class SearchResultsItem extends React.Component {
                                             minute='2-digit'
                                         />
                                     </time>
+                                    {flag}
                                 </li>
-                                <li>
+                                <li className='col__controls'>
+                                    <a
+                                        href='#'
+                                        className='comment-icon__container search-item__comment'
+                                        onClick={this.handleFocusRHSClick}
+                                    >
+                                        <span
+                                            className='comment-icon'
+                                            dangerouslySetInnerHTML={{__html: Constants.REPLY_ICON}}
+                                        />
+                                    </a>
                                     <a
                                         onClick={
                                             () => {
@@ -184,19 +218,6 @@ export default class SearchResultsItem extends React.Component {
                                         <FormattedMessage
                                             id='search_item.jump'
                                             defaultMessage='Jump'
-                                        />
-                                    </a>
-                                </li>
-                                {flag}
-                                <li>
-                                    <a
-                                        href='#'
-                                        className='comment-icon__container search-item__comment'
-                                        onClick={this.handleFocusRHSClick}
-                                    >
-                                        <span
-                                            className='comment-icon'
-                                            dangerouslySetInnerHTML={{__html: Constants.REPLY_ICON}}
                                         />
                                     </a>
                                 </li>

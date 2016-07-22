@@ -485,7 +485,7 @@ body.ios {
     &:hover {
         .dropdown,
         .comment-icon__container,
-        .flag-icon__container,
+        .star-icon__container,
         .post__reply,
         .post__remove {
             visibility: visible;
@@ -561,7 +561,7 @@ body.ios {
             .img-div {
                 max-height: 150px;
                 max-width: 150px;
-        }
+            }
 
             p {
                 line-height: inherit;
@@ -573,7 +573,7 @@ body.ios {
 
             ol,
             ul {
-            clear: both;
+                clear: both;
                 padding-left: 20px;
             }
         }
@@ -684,6 +684,13 @@ body.ios {
     }
 
     &.same--root {
+
+        .star-icon__container {
+            left: 36px;
+            position: absolute;
+            top: 6px;
+        }
+
         &.same--user {
             padding: 0 .5em 0 1em;
 
@@ -830,7 +837,9 @@ body.ios {
     }
 
     .post__img {
-        width: 42px;
+        padding-right: 10px;
+        text-align: right;
+        width: 50px;
 
         svg {
             height: 32px;
@@ -1071,6 +1080,7 @@ body.ios {
         display: inline-block;
         margin-right: 6px;
         visibility: hidden;
+
         svg {
             fill: inherit;
             position: relative;
@@ -1110,10 +1120,19 @@ body.ios {
         }
     }
 
-    .flag-icon__container {
+    .star-icon__container {
         display: inline-block;
-        fill: $primary-color;
+        font-size: 12px;
+        margin-left: 5px;
         visibility: hidden;
+
+        &.visible {
+            visibility: visible;
+        }
+
+        .fa-star-o {
+            @include opacity(.8);
+        }
 
         &:focus {
             outline: none;
@@ -1123,7 +1142,6 @@ body.ios {
             visibility: visible;
         }
 
-        margin-right:5px;
     }
 
     .web-embed-data {

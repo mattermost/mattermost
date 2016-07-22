@@ -13,6 +13,7 @@ import UserStore from 'stores/user_store.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
+import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
@@ -225,11 +226,29 @@ export default class PostInfo extends React.Component {
 
         let flag;
         let flagFunc;
+        let flagVisibile;
+        let starTooltip = (
+            <Tooltip id='starTooltip'>
+                <FormattedMessage
+                    id='post_star.star'
+                    defaultMessage='Star this message'
+                />
+            </Tooltip>
+        );
         if (this.props.isFlagged) {
-            flag = <i className='fa fa-flag'/>;
+            flagVisibile = 'visible';
+            flag = <i className='fa fa-star'/>;
             flagFunc = this.unflagPost;
+            starTooltip = (
+                <Tooltip id='starTooltip'>
+                    <FormattedMessage
+                        id='post_star.star'
+                        defaultMessage='Unstar this message'
+                    />
+                </Tooltip>
+            );
         } else {
-            flag = <i className='fa fa-flag-o'/>;
+            flag = <i className='fa fa-star-o'/>;
             flagFunc = this.flagPost;
         }
 
@@ -242,6 +261,19 @@ export default class PostInfo extends React.Component {
                         compactDisplay={this.props.compactDisplay}
                         useMilitaryTime={this.props.useMilitaryTime}
                     />
+                    <OverlayTrigger
+                        delayShow={Constants.OVERLAY_TIME_DELAY}
+                        placement='top'
+                        overlay={starTooltip}
+                    >
+                        <a
+                            href='#'
+                            className={'star-icon__container ' + flagVisibile}
+                            onClick={flagFunc}
+                        >
+                            {flag}
+                        </a>
+                    </OverlayTrigger>
                 </li>
                 <li className='col col__reply'>
                     <div
@@ -250,13 +282,6 @@ export default class PostInfo extends React.Component {
                     >
                         {dropdown}
                     </div>
-                    <a
-                        href='#'
-                        className={'flag-icon__container'}
-                        onClick={flagFunc}
-                    >
-                        {flag}
-                    </a>
                     {comments}
                 </li>
             </ul>
