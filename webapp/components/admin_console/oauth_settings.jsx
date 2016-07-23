@@ -392,7 +392,7 @@ export default class OAuthSettings extends AdminSettings {
             contents = this.renderOffice365();
             helpText = (
                 <FormattedHTMLMessage
-                    id='admin.google.EnableHtmlDesc'
+                    id='admin.office365.EnableHtmlDesc'
                     defaultMessage="<ol><li><a href='https://login.microsoftonline.com/'>Log in</a> to your Microsoft or Office 365 account. Make sure it's the account on the same <a href='https://msdn.microsoft.com/en-us/library/azure/jj573650.aspx#Anchor_0'>tenant</a> that you would like users to log in with.</li><li>Go to <a href='https://apps.dev.microsoft.com'>https://apps.dev.microsoft.com</a>, click <strong>Add an app</strong> and use <strong>Mattermost - your-company-name</strong> as the application name.</li><li>Under <strong>Application Secrets</strong>, click <strong>Generate New Password</strong> and copy it somewhere safe; you will need it below.</li>Under <strong>Platforms</strong>, click <strong>Add Platform</strong>, choose <strong>Web</strong> and enter <strong>your-mattermost-url/signup/office365/complete</strong> (example: http://localhost:8065/login/office365/complete) under <strong>Redirect URIs</strong>. Also uncheck <strong>Allow Implicit Flow</strong>.</li><li>Finally, click <strong>Save</strong> and fill out the fields below.</li></ol>"
                 />
             );
