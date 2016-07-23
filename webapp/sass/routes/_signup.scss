@@ -256,6 +256,23 @@
                 }
             }
 
+            &.office365 {
+                background: #0079d6;
+
+                &:hover {
+                    background: darken(#0079d6, 10%);
+                }
+
+                span {
+                    vertical-align: middle;
+                }
+
+                .icon {
+                    margin-left:-10px;
+                    background-image: url('../images/office365Logo.png');
+                }
+            }
+
             &.ldap {
                 background: #dd4b39;
 

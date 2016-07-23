@@ -419,6 +419,42 @@ class UserSettingsGeneralTab extends React.Component {
                         {helpText}
                     </div>
                 );
+            } else if (this.props.user.auth_service === Constants.GOOGLE_SERVICE) {
+                inputs.push(
+                    <div
+                        key='oauthEmailInfo'
+                        className='form-group'
+                    >
+                        <div className='setting-list__hint'>
+                            <FormattedMessage
+                                id='user.settings.general.emailGoogleCantUpdate'
+                                defaultMessage='Login occurs through Google Apps. Email cannot be updated. Email address used for notifications is {email}.'
+                                values={{
+                                    email: this.state.email
+                                }}
+                            />
+                        </div>
+                        {helpText}
+                    </div>
+                );
+            } else if (this.props.user.auth_service === Constants.OFFICE365_SERVICE) {
+                inputs.push(
+                    <div
+                        key='oauthEmailInfo'
+                        className='form-group'
+                    >
+                        <div className='setting-list__hint'>
+                            <FormattedMessage
+                                id='user.settings.general.emailOffice365CantUpdate'
+                                defaultMessage='Login occurs through Office 365. Email cannot be updated. Email address used for notifications is {email}.'
+                                values={{
+                                    email: this.state.email
+                                }}
+                            />
+                        </div>
+                        {helpText}
+                    </div>
+                );
             } else if (this.props.user.auth_service === Constants.LDAP_SERVICE) {
                 inputs.push(
                     <div
@@ -506,6 +542,26 @@ class UserSettingsGeneralTab extends React.Component {
                     <FormattedMessage
                         id='user.settings.general.loginGitlab'
                         defaultMessage='Login done through GitLab ({email})'
+                        values={{
+                            email: this.state.email
+                        }}
+                    />
+                );
+            } else if (this.props.user.auth_service === Constants.GOOGLE_SERVICE) {
+                describe = (
+                    <FormattedMessage
+                        id='user.settings.general.loginGoogle'
+                        defaultMessage='Login done through Google Apps ({email})'
+                        values={{
+                            email: this.state.email
+                        }}
+                    />
+                );
+            } else if (this.props.user.auth_service === Constants.OFFICE365_SERVICE) {
+                describe = (
+                    <FormattedMessage
+                        id='user.settings.general.loginOffice365'
+                        defaultMessage='Login done through Office 365 ({email})'
                         values={{
                             email: this.state.email
                         }}

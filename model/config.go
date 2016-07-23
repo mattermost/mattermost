@@ -22,8 +22,9 @@ const (
 	PASSWORD_MAXIMUM_LENGTH = 64
 	PASSWORD_MINIMUM_LENGTH = 5
 
-	SERVICE_GITLAB = "gitlab"
-	SERVICE_GOOGLE = "google"
+	SERVICE_GITLAB    = "gitlab"
+	SERVICE_GOOGLE    = "google"
+	SERVICE_OFFICE365 = "office365"
 
 	WEBSERVER_MODE_REGULAR  = "regular"
 	WEBSERVER_MODE_GZIP     = "gzip"
@@ -287,6 +288,7 @@ type Config struct {
 	SupportSettings      SupportSettings
 	GitLabSettings       SSOSettings
 	GoogleSettings       SSOSettings
+	Office365Settings    SSOSettings
 	LdapSettings         LdapSettings
 	ComplianceSettings   ComplianceSettings
 	LocalizationSettings LocalizationSettings
@@ -309,6 +311,8 @@ func (o *Config) GetSSOService(service string) *SSOSettings {
 		return &o.GitLabSettings
 	case SERVICE_GOOGLE:
 		return &o.GoogleSettings
+	case SERVICE_OFFICE365:
+		return &o.Office365Settings
 	}
 
 	return nil
