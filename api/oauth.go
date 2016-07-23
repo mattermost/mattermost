@@ -609,8 +609,6 @@ func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Authorization", "Bearer "+ar.AccessToken)
 
-	l4g.Debug(ar.AccessToken)
-
 	if resp, err := client.Do(req); err != nil {
 		return nil, "", nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.service.app_error",
 			map[string]interface{}{"Service": service}, err.Error())
