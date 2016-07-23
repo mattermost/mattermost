@@ -26,9 +26,9 @@ func InitOAuth() {
 
 	BaseRoutes.OAuth.Handle("/register", ApiUserRequired(registerOAuthApp)).Methods("POST")
 	BaseRoutes.OAuth.Handle("/allow", ApiUserRequired(allowOAuth)).Methods("GET")
-	BaseRoutes.OAuth.Handle("/{service:[A-Za-z]+}/complete", AppHandlerIndependent(completeOAuth)).Methods("GET")
-	BaseRoutes.OAuth.Handle("/{service:[A-Za-z]+}/login", AppHandlerIndependent(loginWithOAuth)).Methods("GET")
-	BaseRoutes.OAuth.Handle("/{service:[A-Za-z]+}/signup", AppHandlerIndependent(signupWithOAuth)).Methods("GET")
+	BaseRoutes.OAuth.Handle("/{service:[A-Za-z0-9]+}/complete", AppHandlerIndependent(completeOAuth)).Methods("GET")
+	BaseRoutes.OAuth.Handle("/{service:[A-Za-z0-9]+}/login", AppHandlerIndependent(loginWithOAuth)).Methods("GET")
+	BaseRoutes.OAuth.Handle("/{service:[A-Za-z0-9]+}/signup", AppHandlerIndependent(signupWithOAuth)).Methods("GET")
 	BaseRoutes.OAuth.Handle("/authorize", ApiUserRequired(authorizeOAuth)).Methods("GET")
 	BaseRoutes.OAuth.Handle("/access_token", ApiAppHandler(getAccessToken)).Methods("POST")
 
@@ -36,9 +36,9 @@ func InitOAuth() {
 	BaseRoutes.Root.Handle("/access_token", ApiAppHandler(getAccessToken)).Methods("POST")
 
 	// Handle all the old routes, to be later removed
-	BaseRoutes.Root.Handle("/{service:[A-Za-z]+}/complete", AppHandlerIndependent(completeOAuth)).Methods("GET")
-	BaseRoutes.Root.Handle("/signup/{service:[A-Za-z]+}/complete", AppHandlerIndependent(completeOAuth)).Methods("GET")
-	BaseRoutes.Root.Handle("/login/{service:[A-Za-z]+}/complete", AppHandlerIndependent(completeOAuth)).Methods("GET")
+	BaseRoutes.Root.Handle("/{service:[A-Za-z0-9]+}/complete", AppHandlerIndependent(completeOAuth)).Methods("GET")
+	BaseRoutes.Root.Handle("/signup/{service:[A-Za-z0-9]+}/complete", AppHandlerIndependent(completeOAuth)).Methods("GET")
+	BaseRoutes.Root.Handle("/login/{service:[A-Za-z0-9]+}/complete", AppHandlerIndependent(completeOAuth)).Methods("GET")
 }
 
 func registerOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -608,6 +608,8 @@ func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Authorization", "Bearer "+ar.AccessToken)
+
+	l4g.Debug(ar.AccessToken)
 
 	if resp, err := client.Do(req); err != nil {
 		return nil, "", nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.service.app_error",
