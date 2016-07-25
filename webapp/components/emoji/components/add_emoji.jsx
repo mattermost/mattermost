@@ -56,6 +56,11 @@ export default class AddEmoji extends React.Component {
             name: this.state.name.trim().toLowerCase()
         };
 
+        // trim surrounding colons if the user accidentally included them in the name
+        if (emoji.name.startsWith(':') && emoji.name.endsWith(':')) {
+            emoji.name = emoji.name.substring(1, emoji.name.length - 1);
+        }
+
         if (!emoji.name) {
             this.setState({
                 saving: false,
