@@ -165,7 +165,23 @@
             }
         }
 
+        .star-icon__container {
+            left: auto;
+            position: relative;
+            top: auto;
+
+            &:not(.visible) {
+                display: none;
+            }
+        }
+
         &.same--root {
+            .star-icon__container {
+                left: auto;
+                position: relative;
+                top: auto;
+            }
+
             &.same--user {
                 .post__header {
                     height: auto;

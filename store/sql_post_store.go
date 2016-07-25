@@ -142,6 +142,31 @@ func (s SqlPostStore) Update(oldPost *model.Post, newMessage string, newHashtags
 	return storeChannel
 }
 
+func (s SqlPostStore) GetFlaggedPosts(userId string, offset int, limit int) StoreChannel {
+	storeChannel := make(StoreChannel)
+	go func() {
+		result := StoreResult{}
+		pl := &model.PostList{}
+
+		var posts []*model.Post
+		if _, err := s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE Id IN (SELECT Name FROM Preferences WHERE UserId = :UserId AND Category = :Category) ORDER BY CreateAt ASC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "Offset": offset, "Limit": limit}); err != nil {
+			result.Err = model.NewLocAppError("SqlPostStore.GetFlaggedPosts", "store.sql_post.get_flagged_posts.app_error", nil, err.Error())
+		} else {
+			for _, post := range posts {
+				pl.AddPost(post)
+				pl.AddOrder(post.Id)
+			}
+		}
+
+		result.Data = pl
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (s SqlPostStore) Get(id string) StoreChannel {
 	storeChannel := make(StoreChannel)
 

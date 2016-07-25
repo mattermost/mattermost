@@ -120,7 +120,8 @@ export default class SidebarRight extends React.Component {
     onSearchChange() {
         this.setState({
             searchVisible: SearchStore.getSearchResults() !== null,
-            isMentionSearch: SearchStore.getIsMentionSearch()
+            isMentionSearch: SearchStore.getIsMentionSearch(),
+            isFlaggedPosts: SearchStore.getIsFlaggedPosts()
         });
     }
 
@@ -154,6 +155,7 @@ export default class SidebarRight extends React.Component {
             content = (
                 <SearchResults
                     isMentionSearch={this.state.isMentionSearch}
+                    isFlaggedPosts={this.state.isFlaggedPosts}
                     useMilitaryTime={this.state.useMilitaryTime}
                     toggleSize={this.toggleSize}
                     shrink={this.onShrink}

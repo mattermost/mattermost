@@ -58,7 +58,8 @@ export default class PostViewController extends React.Component {
             compactDisplay: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT,
             previewsCollapsed: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLLAPSE_DISPLAY, 'false'),
             useMilitaryTime: PreferenceStore.getBool(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, false),
-            emojis: EmojiStore.getEmojis()
+            emojis: EmojiStore.getEmojis(),
+            flaggedPosts: PreferenceStore.getCategory(Constants.Preferences.CATEGORY_FLAGGED_POST)
         };
     }
 
@@ -87,7 +88,8 @@ export default class PostViewController extends React.Component {
             displayPostsInCenter: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED,
             compactDisplay: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT,
             previewsCollapsed: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLLAPSE_DISPLAY, 'false') + previewSuffix,
-            useMilitaryTime: PreferenceStore.getBool(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, false)
+            useMilitaryTime: PreferenceStore.getBool(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, false),
+            flaggedPosts: PreferenceStore.getCategory(Constants.Preferences.CATEGORY_FLAGGED_POST)
         });
     }
 
@@ -224,6 +226,10 @@ export default class PostViewController extends React.Component {
             return true;
         }
 
+        if (!Utils.areObjectsEqual(nextState.flaggedPosts, this.state.flaggedPosts)) {
+            return true;
+        }
+
         if (nextState.lastViewed !== this.state.lastViewed) {
             return true;
         }
@@ -292,6 +298,7 @@ export default class PostViewController extends React.Component {
                     compactDisplay={this.state.compactDisplay}
                     previewsCollapsed={this.state.previewsCollapsed}
                     useMilitaryTime={this.state.useMilitaryTime}
+                    flaggedPosts={this.state.flaggedPosts}
                     lastViewed={this.state.lastViewed}
                     emojis={this.state.emojis}
                     ownNewMessage={this.state.ownNewMessage}

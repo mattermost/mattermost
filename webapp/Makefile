@@ -24,7 +24,7 @@ build: .npminstall
 
 	npm run build
 
-run: .npminstall
+run:
 	@echo Running mattermost Webapp for development
 
 	npm run run &
