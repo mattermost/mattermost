@@ -73,9 +73,14 @@ type ServiceSettings struct {
 	WebsocketSecurePort               *int
 	WebsocketPort                     *int
 	WebserverMode                     *string
-	NodesForCluster                   []string
 	EnableCustomEmoji                 *bool
 	RestrictCustomEmojiCreation       *string
+}
+
+type ClusterSettings struct {
+	Enable                 *bool
+	InternodeListenAddress *string
+	InternodeUrls          []string
 }
 
 type SSOSettings struct {
@@ -293,6 +298,7 @@ type Config struct {
 	LocalizationSettings LocalizationSettings
 	SamlSettings         SamlSettings
 	NativeAppSettings    NativeAppSettings
+	ClusterSettings      ClusterSettings
 }
 
 func (o *Config) ToJson() string {
@@ -691,8 +697,18 @@ func (o *Config) SetDefaults() {
 		*o.ServiceSettings.RestrictCustomEmojiCreation = RESTRICT_EMOJI_CREATION_ALL
 	}
 
-	if o.ServiceSettings.NodesForCluster == nil {
-		o.ServiceSettings.NodesForCluster = []string{}
+	if o.ClusterSettings.InternodeListenAddress == nil {
+		o.ClusterSettings.InternodeListenAddress = new(string)
+		*o.ClusterSettings.InternodeListenAddress = ":8075"
+	}
+
+	if o.ClusterSettings.Enable == nil {
+		o.ClusterSettings.Enable = new(bool)
+		*o.ClusterSettings.Enable = false
+	}
+
+	if o.ClusterSettings.InternodeUrls == nil {
+		o.ClusterSettings.InternodeUrls = []string{}
 	}
 
 	if o.ComplianceSettings.Enable == nil {

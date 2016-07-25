@@ -23,7 +23,6 @@
         "SessionCacheInMinutes": 10,
         "WebsocketSecurePort": 443,
         "WebsocketPort": 80,
-        "NodesForCluster": [],
         "WebserverMode": "gzip",
         "EnableCustomEmoji": false,
         "RestrictCustomEmojiCreation": "all"
@@ -201,5 +200,10 @@
         "AppDownloadLink": "https://about.mattermost.com/downloads/",
         "AndroidAppDownloadLink": "https://about.mattermost.com/mattermost-android-app/",
         "IosAppDownloadLink": "https://about.mattermost.com/mattermost-ios-app/"
+    },
+    "ClusterSettings": {
+        "Enable": true,
+        "InternodeListenAddress": ":8075",
+        "InternodeUrls": ["http://localhost"]
     }
 }
