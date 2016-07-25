@@ -3,7 +3,6 @@ import:
 - package: github.com/NYTimes/gziphandler
 - package: github.com/alecthomas/log4go
 - package: github.com/braintree/manners
-- package: github.com/cloudfoundry/jibber_jabber
 - package: github.com/dgryski/dgoogauth
 - package: github.com/disintegration/imaging
 - package: github.com/go-gorp/gorp

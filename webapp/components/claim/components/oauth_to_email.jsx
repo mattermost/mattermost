@@ -2,12 +2,13 @@
 // See License.txt for license information.
 
 import * as Utils from 'utils/utils.jsx';
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
+import Constants from 'utils/constants.jsx';
 
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {FormattedMessage} from 'react-intl';
-import {browserHistory} from 'react-router';
+import {browserHistory} from 'react-router/es6';
 
 export default class OAuthToEmail extends React.Component {
     constructor(props) {
@@ -17,18 +18,27 @@ export default class OAuthToEmail extends React.Component {
 
         this.state = {};
     }
+
     submit(e) {
         e.preventDefault();
         const state = {};
 
-        const password = ReactDOM.findDOMNode(this.refs.password).value.trim();
+        const password = ReactDOM.findDOMNode(this.refs.password).value;
         if (!password) {
             state.error = Utils.localizeMessage('claim.oauth_to_email.enterPwd', 'Please enter a password.');
             this.setState(state);
             return;
         }
 
-        const confirmPassword = ReactDOM.findDOMNode(this.refs.passwordconfirm).value.trim();
+        const passwordErr = Utils.isValidPassword(password);
+        if (passwordErr !== '') {
+            this.setState({
+                error: passwordErr
+            });
+            return;
+        }
+
+        const confirmPassword = ReactDOM.findDOMNode(this.refs.passwordconfirm).value;
         if (!confirmPassword || password !== confirmPassword) {
             state.error = Utils.localizeMessage('claim.oauth_to_email.pwdNotMatch', 'Password do not match.');
             this.setState(state);
@@ -46,8 +56,8 @@ export default class OAuthToEmail extends React.Component {
                     browserHistory.push(data.follow_link);
                 }
             },
-            (error) => {
-                this.setState({error});
+            (err) => {
+                this.setState({error: err.message});
             }
         );
     }
@@ -62,7 +72,7 @@ export default class OAuthToEmail extends React.Component {
             formClass += ' has-error';
         }
 
-        const uiType = Utils.toTitleCase(this.props.currentType) + ' SSO';
+        const uiType = `${(this.props.currentType === Constants.SAML_SERVICE ? Constants.SAML_SERVICE.toUpperCase() : Utils.toTitleCase(this.props.currentType))} SSO`;
 
         return (
             <div>
@@ -85,7 +95,7 @@ export default class OAuthToEmail extends React.Component {
                     <p>
                         <FormattedMessage
                             id='claim.oauth_to_email.enterNewPwd'
-                            defaultMessage='Enter a new password for your {site} account'
+                            defaultMessage='Enter a new password for your {site} email account'
                             values={{
                                 site: global.window.mm_config.SiteName
                             }}

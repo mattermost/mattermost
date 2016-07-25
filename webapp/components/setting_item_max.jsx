@@ -2,10 +2,32 @@
 // See License.txt for license information.
 
 import {FormattedMessage} from 'react-intl';
+import * as Utils from 'utils/utils.jsx';
+import Constants from 'utils/constants.jsx';
 
 import React from 'react';
 
 export default class SettingItemMax extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.onKeyDown = this.onKeyDown.bind(this);
+    }
+
+    onKeyDown(e) {
+        if (e.keyCode === Constants.KeyCodes.ENTER) {
+            this.props.submit(e);
+        }
+    }
+
+    componentDidMount() {
+        document.addEventListener('keydown', this.onKeyDown);
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener('keydown', this.onKeyDown);
+    }
+
     render() {
         var clientError = null;
         if (this.props.client_error) {
@@ -25,16 +47,14 @@ export default class SettingItemMax extends React.Component {
         var submit = '';
         if (this.props.submit) {
             submit = (
-                <a
+                <input
+                    type='submit'
                     className='btn btn-sm btn-primary'
                     href='#'
                     onClick={this.props.submit}
+                    value={Utils.localizeMessage('setting_item_max.save', 'Save')}
                 >
-                    <FormattedMessage
-                        id='setting_item_max.save'
-                        defaultMessage='Save'
-                    />
-                </a>
+                </input>
             );
         }
 
@@ -64,6 +84,7 @@ export default class SettingItemMax extends React.Component {
                         </li>
                         <li className='setting-list-item'>
                             <hr/>
+                            {this.props.submitExtra}
                             {serverError}
                             {clientError}
                             {submit}
@@ -93,5 +114,6 @@ SettingItemMax.propTypes = {
     updateSection: React.PropTypes.func,
     submit: React.PropTypes.func,
     title: React.PropTypes.node,
-    width: React.PropTypes.string
+    width: React.PropTypes.string,
+    submitExtra: React.PropTypes.node
 };

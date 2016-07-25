@@ -20,6 +20,7 @@ import (
 )
 
 var sessionCache *utils.Cache = utils.NewLru(model.SESSION_CACHE_SIZE)
+var statusCache *utils.Cache = utils.NewLru(model.STATUS_CACHE_SIZE)
 
 var allowedMethods []string = []string{
 	"POST",
@@ -139,7 +140,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	protocol := GetProtocol(r)
-	c.setSiteURL(protocol + "://" + r.Host)
+	c.SetSiteURL(protocol + "://" + r.Host)
 
 	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)
 	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v", model.CurrentVersion, utils.CfgLastModified))
@@ -196,22 +197,24 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.Err == nil && h.isUserActivity && token != "" && len(c.Session.UserId) > 0 {
-		go func() {
-			if err := (<-Srv.Store.User().UpdateUserAndSessionActivity(c.Session.UserId, c.Session.Id, model.GetMillis())).Err; err != nil {
-				l4g.Error(utils.T("api.context.last_activity_at.error"), c.Session.UserId, c.Session.Id, err)
-			}
-		}()
+		SetStatusOnline(c.Session.UserId, c.Session.Id)
 	}
 
 	if c.Err == nil {
 		h.handleFunc(c, w, r)
 	}
 
+	// Handle errors that have occoured
 	if c.Err != nil {
 		c.Err.Translate(c.T)
 		c.Err.RequestId = c.RequestId
 		c.LogError(c.Err)
 		c.Err.Where = r.URL.Path
+
+		// Block out detailed error whenn not in developer mode
+		if !*utils.Cfg.ServiceSettings.EnableDeveloper {
+			c.Err.DetailedError = ""
+		}
 
 		if h.isApi {
 			w.WriteHeader(c.Err.StatusCode)
@@ -279,7 +282,18 @@ func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 }
 
 func (c *Context) LogError(err *model.AppError) {
-	l4g.Error(utils.T("api.context.log.error"), c.Path, err.Where, err.StatusCode,
+
+	// filter out endless reconnects
+	if c.Path == "/api/v3/users/websocket" && err.StatusCode == 401 {
+		c.LogDebug(err)
+	} else {
+		l4g.Error(utils.T("api.context.log.error"), c.Path, err.Where, err.StatusCode,
+			c.RequestId, c.Session.UserId, c.IpAddress, err.SystemMessage(utils.T), err.DetailedError)
+	}
+}
+
+func (c *Context) LogDebug(err *model.AppError) {
+	l4g.Debug(utils.T("api.context.log.error"), c.Path, err.Where, err.StatusCode,
 		c.RequestId, c.Session.UserId, c.IpAddress, err.SystemMessage(utils.T), err.DetailedError)
 }
 
@@ -417,7 +431,7 @@ func (c *Context) SetTeamURLFromSession() {
 	}
 }
 
-func (c *Context) setSiteURL(url string) {
+func (c *Context) SetSiteURL(url string) {
 	c.siteURL = url
 }
 
@@ -457,70 +471,6 @@ func GetIpAddress(r *http.Request) string {
 	return address
 }
 
-// func IsTestDomain(r *http.Request) bool {
-
-// 	if strings.Index(r.Host, "localhost") == 0 {
-// 		return true
-// 	}
-
-// 	if strings.Index(r.Host, "dockerhost") == 0 {
-// 		return true
-// 	}
-
-// 	if strings.Index(r.Host, "test") == 0 {
-// 		return true
-// 	}
-
-// 	if strings.Index(r.Host, "127.0.") == 0 {
-// 		return true
-// 	}
-
-// 	if strings.Index(r.Host, "192.168.") == 0 {
-// 		return true
-// 	}
-
-// 	if strings.Index(r.Host, "10.") == 0 {
-// 		return true
-// 	}
-
-// 	if strings.Index(r.Host, "176.") == 0 {
-// 		return true
-// 	}
-
-// 	return false
-// }
-
-// func IsBetaDomain(r *http.Request) bool {
-
-// 	if strings.Index(r.Host, "beta") == 0 {
-// 		return true
-// 	}
-
-// 	if strings.Index(r.Host, "ci") == 0 {
-// 		return true
-// 	}
-
-// 	return false
-// }
-
-// var privateIpAddress = []*net.IPNet{
-// 	{IP: net.IPv4(10, 0, 0, 1), Mask: net.IPv4Mask(255, 0, 0, 0)},
-// 	{IP: net.IPv4(176, 16, 0, 1), Mask: net.IPv4Mask(255, 255, 0, 0)},
-// 	{IP: net.IPv4(192, 168, 0, 1), Mask: net.IPv4Mask(255, 255, 255, 0)},
-// 	{IP: net.IPv4(127, 0, 0, 1), Mask: net.IPv4Mask(255, 255, 255, 252)},
-// }
-
-// func IsPrivateIpAddress(ipAddress string) bool {
-
-// 	for _, pips := range privateIpAddress {
-// 		if pips.Contains(net.ParseIP(ipAddress)) {
-// 			return true
-// 		}
-// 	}
-
-// 	return false
-// }
-
 func RenderWebError(err *model.AppError, w http.ResponseWriter, r *http.Request) {
 	T, _ := utils.GetTranslationsAndLocale(w, r)
 
@@ -530,6 +480,11 @@ func RenderWebError(err *model.AppError, w http.ResponseWriter, r *http.Request)
 	link := "/"
 	linkMessage := T("api.templates.error.link")
 
+	status := http.StatusTemporaryRedirect
+	if err.StatusCode != http.StatusInternalServerError {
+		status = err.StatusCode
+	}
+
 	http.Redirect(
 		w,
 		r,
@@ -538,14 +493,20 @@ func RenderWebError(err *model.AppError, w http.ResponseWriter, r *http.Request)
 			"&details="+url.QueryEscape(details)+
 			"&link="+url.QueryEscape(link)+
 			"&linkmessage="+url.QueryEscape(linkMessage),
-		http.StatusTemporaryRedirect)
+		status)
 }
 
 func Handle404(w http.ResponseWriter, r *http.Request) {
 	err := model.NewLocAppError("Handle404", "api.context.404.app_error", nil, "")
 	err.Translate(utils.T)
 	err.StatusCode = http.StatusNotFound
-	l4g.Error("%v: code=404 ip=%v", r.URL.Path, GetIpAddress(r))
+
+	// filter out old paths that are poluting the log file
+	if strings.Contains(r.URL.Path, "/api/v1/") {
+		l4g.Debug("%v: code=404 ip=%v", r.URL.Path, GetIpAddress(r))
+	} else {
+		l4g.Error("%v: code=404 ip=%v", r.URL.Path, GetIpAddress(r))
+	}
 
 	if IsApiCall(r) {
 		w.WriteHeader(err.StatusCode)

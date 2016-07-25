@@ -8,12 +8,12 @@ import UserStore from 'stores/user_store.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import * as Utils from 'utils/utils.jsx';
-import * as Websockets from 'action_creators/websocket_actions.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
+import * as WebSocketActions from 'actions/websocket_actions.jsx';
 import Constants from 'utils/constants.jsx';
 
-import {browserHistory} from 'react-router';
+import {browserHistory} from 'react-router/es6';
 
-const CLIENT_STATUS_INTERVAL = 30000;
 const BACKSPACE_CHAR = 8;
 
 import React from 'react';
@@ -25,61 +25,8 @@ export default class LoggedIn extends React.Component {
         this.onUserChanged = this.onUserChanged.bind(this);
         this.setupUser = this.setupUser.bind(this);
 
-        this.state = {
-            user: UserStore.getCurrentUser()
-        };
-
-        if (this.state.user) {
-            this.setupUser(this.state.user);
-        }
-    }
-
-    isValidState() {
-        return this.state.user != null;
-    }
-
-    setupUser(user) {
-        // Update segment indentify
-        if (global.window.mm_config.SegmentDeveloperKey != null && global.window.mm_config.SegmentDeveloperKey !== '') {
-            global.window.analytics.identify(user.id, {
-                name: user.nickname,
-                email: user.email,
-                createdAt: user.create_at,
-                username: user.username,
-                id: user.id
-            });
-        }
-
-        // Update CSS classes to match user theme
-        if (user) {
-            if ($.isPlainObject(user.theme_props) && !$.isEmptyObject(user.theme_props)) {
-                Utils.applyTheme(user.theme_props);
-            } else {
-                Utils.applyTheme(Constants.THEMES.default);
-            }
-        }
-    }
-
-    onUserChanged() {
-        // Grab the current user
-        const user = UserStore.getCurrentUser();
-        if (!Utils.areObjectsEqual(this.state.user, user)) {
-            this.setupUser(user);
-            this.setState({
-                user
-            });
-        }
-    }
-
-    componentWillMount() {
-        // Listen for user
-        UserStore.addChangeListener(this.onUserChanged);
-
-        // Initalize websockets
-        Websockets.initialize();
-
-        // Get all statuses regularally. (Soon to be switched to websocket)
-        this.intervalId = setInterval(() => AsyncClient.getStatuses(), CLIENT_STATUS_INTERVAL);
+        // Initalize websocket
+        WebSocketActions.initialize();
 
         // Force logout of all tabs if one tab is logged out
         $(window).bind('storage', (e) => {
@@ -107,6 +54,59 @@ export default class LoggedIn extends React.Component {
 
         // Because current CSS requires the root tag to have specific stuff
         $('#root').attr('class', 'channel-view');
+
+        // Device tracking setup
+        var iOS = (/(iPad|iPhone|iPod)/g).test(navigator.userAgent);
+        if (iOS) {
+            $('body').addClass('ios');
+        }
+
+        // if preferences have already been stored in local storage do not wait until preference store change is fired and handled in channel.jsx
+        const selectedFont = PreferenceStore.get(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'selected_font', Constants.DEFAULT_FONT);
+        Utils.applyFont(selectedFont);
+
+        this.state = {
+            user: UserStore.getCurrentUser()
+        };
+
+        if (this.state.user) {
+            this.setupUser(this.state.user);
+        } else {
+            GlobalActions.emitUserLoggedOutEvent('/login');
+        }
+    }
+
+    isValidState() {
+        return this.state.user != null;
+    }
+
+    setupUser(user) {
+        // Update segment indentify
+        if (global.window.mm_config.SegmentDeveloperKey != null && global.window.mm_config.SegmentDeveloperKey !== '') {
+            global.window.analytics.identify(user.id, {
+                name: user.nickname,
+                email: user.email,
+                createdAt: user.create_at,
+                username: user.username,
+                id: user.id
+            });
+        }
+    }
+
+    onUserChanged() {
+        // Grab the current user
+        const user = UserStore.getCurrentUser();
+        if (!Utils.areObjectsEqual(this.state.user, user)) {
+            this.setupUser(user);
+            this.setState({
+                user
+            });
+        }
+    }
+
+    componentDidMount() {
+        // Listen for user
+        UserStore.addChangeListener(this.onUserChanged);
 
         // ???
         $('body').on('mouseenter mouseleave', '.post', function mouseOver(ev) {
@@ -139,29 +139,23 @@ export default class LoggedIn extends React.Component {
             }
         });
 
-        // Device tracking setup
-        var iOS = (/(iPad|iPhone|iPod)/g).test(navigator.userAgent);
-        if (iOS) {
-            $('body').addClass('ios');
-        }
-
-        // if preferences have already been stored in local storage do not wait until preference store change is fired and handled in channel.jsx
-        const selectedFont = PreferenceStore.get(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'selected_font', Constants.DEFAULT_FONT);
-        Utils.applyFont(selectedFont);
-
-        // Pervent backspace from navigating back a page
+        // Prevent backspace from navigating back a page
         $(window).on('keydown.preventBackspace', (e) => {
             if (e.which === BACKSPACE_CHAR && !$(e.target).is('input, textarea')) {
                 e.preventDefault();
             }
         });
+
+        // Get custom emoji from the server
+        if (window.mm_config.EnableCustomEmoji === 'true') {
+            AsyncClient.listEmoji();
+        }
     }
 
     componentWillUnmount() {
         $('#root').attr('class', '');
-        clearInterval(this.intervalId);
 
-        Websockets.close();
+        WebSocketActions.close();
         UserStore.removeChangeListener(this.onUserChanged);
 
         $('body').off('click.userpopover');

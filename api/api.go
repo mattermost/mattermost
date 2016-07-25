@@ -10,7 +10,6 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 
-	_ "github.com/cloudfoundry/jibber_jabber"
 	_ "github.com/nicksnyder/go-i18n/i18n"
 )
 
@@ -26,7 +25,7 @@ type Routes struct {
 
 	Channels        *mux.Router // 'api/v3/teams/{team_id:[A-Za-z0-9]+}/channels'
 	NeedChannel     *mux.Router // 'api/v3/teams/{team_id:[A-Za-z0-9]+}/channels/{channel_id:[A-Za-z0-9]+}'
-	NeedChannelName *mux.Router // 'api/v3/teams/{team_id:[A-Za-z0-9]+}/channels/name/{channel_name:[A-Za-z0-9-]+}'
+	NeedChannelName *mux.Router // 'api/v3/teams/{team_id:[A-Za-z0-9]+}/channels/name/{channel_name:[A-Za-z0-9_-]+}'
 
 	Posts    *mux.Router // 'api/v3/teams/{team_id:[A-Za-z0-9]+}/channels/{channel_id:[A-Za-z0-9]+}/posts'
 	NeedPost *mux.Router // 'api/v3/teams/{team_id:[A-Za-z0-9]+}/channels/{channel_id:[A-Za-z0-9]+}/posts/{post_id:[A-Za-z0-9]+}'
@@ -40,11 +39,17 @@ type Routes struct {
 
 	Admin *mux.Router // 'api/v3/admin'
 
+	General *mux.Router // 'api/v3/general'
+
 	Preferences *mux.Router // 'api/v3/preferences'
 
 	License *mux.Router // 'api/v3/license'
 
 	Public *mux.Router // 'api/v3/public'
+
+	Emoji *mux.Router // 'api/v3/emoji'
+
+	WebSocket *WebSocketRouter // websocket api
 }
 
 var BaseRoutes *Routes
@@ -59,7 +64,7 @@ func InitApi() {
 	BaseRoutes.NeedTeam = BaseRoutes.Teams.PathPrefix("/{team_id:[A-Za-z0-9]+}").Subrouter()
 	BaseRoutes.Channels = BaseRoutes.NeedTeam.PathPrefix("/channels").Subrouter()
 	BaseRoutes.NeedChannel = BaseRoutes.Channels.PathPrefix("/{channel_id:[A-Za-z0-9]+}").Subrouter()
-	BaseRoutes.NeedChannelName = BaseRoutes.Channels.PathPrefix("/name/{channel_name:[A-Za-z0-9-]+}").Subrouter()
+	BaseRoutes.NeedChannelName = BaseRoutes.Channels.PathPrefix("/name/{channel_name:[A-Za-z0-9_-]+}").Subrouter()
 	BaseRoutes.Posts = BaseRoutes.NeedChannel.PathPrefix("/posts").Subrouter()
 	BaseRoutes.NeedPost = BaseRoutes.Posts.PathPrefix("/{post_id:[A-Za-z0-9]+}").Subrouter()
 	BaseRoutes.Commands = BaseRoutes.NeedTeam.PathPrefix("/commands").Subrouter()
@@ -67,9 +72,13 @@ func InitApi() {
 	BaseRoutes.Hooks = BaseRoutes.NeedTeam.PathPrefix("/hooks").Subrouter()
 	BaseRoutes.OAuth = BaseRoutes.ApiRoot.PathPrefix("/oauth").Subrouter()
 	BaseRoutes.Admin = BaseRoutes.ApiRoot.PathPrefix("/admin").Subrouter()
+	BaseRoutes.General = BaseRoutes.ApiRoot.PathPrefix("/general").Subrouter()
 	BaseRoutes.Preferences = BaseRoutes.ApiRoot.PathPrefix("/preferences").Subrouter()
 	BaseRoutes.License = BaseRoutes.ApiRoot.PathPrefix("/license").Subrouter()
 	BaseRoutes.Public = BaseRoutes.ApiRoot.PathPrefix("/public").Subrouter()
+	BaseRoutes.Emoji = BaseRoutes.ApiRoot.PathPrefix("/emoji").Subrouter()
+
+	BaseRoutes.WebSocket = NewWebSocketRouter()
 
 	InitUser()
 	InitTeam()
@@ -79,10 +88,13 @@ func InitApi() {
 	InitFile()
 	InitCommand()
 	InitAdmin()
+	InitGeneral()
 	InitOAuth()
 	InitWebhook()
 	InitPreference()
 	InitLicense()
+	InitEmoji()
+	InitStatus()
 
 	// 404 on any api route before web.go has a chance to serve it
 	Srv.Router.Handle("/api/{anything:.*}", http.HandlerFunc(Handle404))
@@ -99,4 +111,10 @@ func HandleEtag(etag string, w http.ResponseWriter, r *http.Request) bool {
 	}
 
 	return false
+}
+
+func ReturnStatusOK(w http.ResponseWriter) {
+	m := make(map[string]string)
+	m[model.STATUS] = model.STATUS_OK
+	w.Write([]byte(model.MapToJson(m)))
 }

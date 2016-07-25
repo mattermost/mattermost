@@ -7,9 +7,9 @@ import * as Utils from 'utils/utils.jsx';
 import ErrorBar from 'components/error_bar.jsx';
 import LoadingScreen from 'components/loading_screen.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
-import * as GlobalActions from 'action_creators/global_actions.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 
-import {Link} from 'react-router';
+import {Link} from 'react-router/es6';
 
 import {FormattedMessage} from 'react-intl';
 
@@ -49,10 +49,10 @@ export default class SelectTeam extends React.Component {
     }
 
     render() {
-        var content;
-
-        var teamContents = [];
-        var isAlreadyMember = new Map();
+        let content = null;
+        let teamContents = [];
+        const isAlreadyMember = new Map();
+        const isSystemAdmin = Utils.isSystemAdmin(UserStore.getCurrentUser().roles);
 
         for (var index in this.state.teamMembers) {
             if (this.state.teamMembers.hasOwnProperty(index)) {
@@ -69,7 +69,7 @@ export default class SelectTeam extends React.Component {
                         >
                             <span className='signup-team-dir__name'>{team.display_name}</span>
                             <span
-                                className='glyphicon glyphicon-menu-right right signup-team-dir__arrow'
+                                className='fa fa-angle-right right signup-team-dir__arrow'
                                 aria-hidden='true'
                             />
                         </Link>
@@ -77,33 +77,6 @@ export default class SelectTeam extends React.Component {
                 );
             }
         }
-
-        if (!teamContents || teamContents.length === 0) {
-            teamContents = (
-                <div className='signup-team-dir-err'>
-                    <div>
-                        <FormattedMessage
-                            id='signup_team.no_teams'
-                            defaultMessage='You do not appear to be a member of any team.  Please ask your administrator for an invite, join an open team if one exists or possibly create a new team.'
-                        />
-                    </div>
-                </div>
-            );
-        }
-
-        content = (
-            <div className='signup__content'>
-                <h4>
-                    <FormattedMessage
-                        id='signup_team.choose'
-                        defaultMessage='Teams you are a member of:'
-                    />
-                </h4>
-                <div className='signup-team-all'>
-                    {teamContents}
-                </div>
-            </div>
-        );
 
         var openTeamContents = [];
 
@@ -120,13 +93,55 @@ export default class SelectTeam extends React.Component {
                         >
                             <span className='signup-team-dir__name'>{openTeam.display_name}</span>
                             <span
-                                className='glyphicon glyphicon-menu-right right signup-team-dir__arrow'
+                                className='fa fa-angle-right right signup-team-dir__arrow'
                                 aria-hidden='true'
                             />
                         </Link>
                     </div>
                 );
             }
+        }
+
+        if (this.state.teamMembers.length === 0 && teamContents.length === 0 && openTeamContents.length === 0 && (global.window.mm_config.EnableTeamCreation === 'true' || isSystemAdmin)) {
+            teamContents = (
+                <div className='signup-team-dir-err'>
+                    <div>
+                        <FormattedMessage
+                            id='signup_team.no_open_teams_canCreate'
+                            defaultMessage='No teams are available to join. Please create a new team or ask your administrator for an invite.'
+                        />
+                    </div>
+                </div>
+            );
+        } else if (this.state.teamMembers.length === 0 && teamContents.length === 0 && openTeamContents.length === 0) {
+            teamContents = (
+                <div className='signup-team-dir-err'>
+                    <div>
+                        <FormattedMessage
+                            id='signup_team.no_open_teams'
+                            defaultMessage='No teams are available to join. Please ask your administrator for an invite.'
+                        />
+                    </div>
+                </div>
+            );
+        } else if (teamContents.length === 0 && openTeamContents.length > 0) {
+            teamContents = null;
+        }
+
+        if (teamContents) {
+            content = (
+                <div className='signup__content'>
+                    <h4>
+                        <FormattedMessage
+                            id='signup_team.choose'
+                            defaultMessage='Your teams:'
+                        />
+                    </h4>
+                    <div className='signup-team-all'>
+                        {teamContents}
+                    </div>
+                </div>
+            );
         }
 
         var openContent;
@@ -136,7 +151,7 @@ export default class SelectTeam extends React.Component {
                     <h4>
                         <FormattedMessage
                             id='signup_team.join_open'
-                            defaultMessage='Open teams you can join: '
+                            defaultMessage='Teams you can join: '
                         />
                     </h4>
                     <div className='signup-team-all'>
@@ -150,7 +165,15 @@ export default class SelectTeam extends React.Component {
             openContent = <LoadingScreen/>;
         }
 
-        var isSystemAdmin = Utils.isSystemAdmin(UserStore.getCurrentUser().roles);
+        let teamHelp = null;
+        if (isSystemAdmin && (global.window.mm_config.EnableTeamCreation === 'false')) {
+            teamHelp = (
+                <FormattedMessage
+                    id='login.createTeamAdminOnly'
+                    defaultMessage='This option is only available for System Administrators, and does not show up for other users.'
+                />
+            );
+        }
 
         let teamSignUp;
         if (isSystemAdmin || (global.window.mm_config.EnableTeamCreation === 'true' && !Utils.isMobileApp())) {
@@ -165,6 +188,9 @@ export default class SelectTeam extends React.Component {
                             defaultMessage='Create a new team'
                         />
                     </Link>
+                    <div>
+                        {teamHelp}
+                    </div>
                 </div>
             );
         }
@@ -178,8 +204,8 @@ export default class SelectTeam extends React.Component {
                         className='signup-team-login'
                     >
                         <FormattedMessage
-                            id='navbar_dropdown.console'
-                            defaultMessage='System Console'
+                            id='signup_team_system_console'
+                            defaultMessage='Go to System Console'
                         />
                     </Link>
                 </div>

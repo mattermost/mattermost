@@ -49,7 +49,7 @@ func LoadLicense(licenseBytes []byte) {
 func SetLicense(license *model.License) bool {
 	license.Features.SetDefaults()
 
-	if !license.IsExpired() && license.IsStarted() {
+	if !license.IsExpired() {
 		License = license
 		IsLicensed = true
 		ClientLicense = getClientLicense(license)
@@ -121,10 +121,12 @@ func getClientLicense(l *model.License) map[string]string {
 		props["Users"] = strconv.Itoa(*l.Features.Users)
 		props["LDAP"] = strconv.FormatBool(*l.Features.LDAP)
 		props["MFA"] = strconv.FormatBool(*l.Features.MFA)
+		props["SAML"] = strconv.FormatBool(*l.Features.SAML)
 		props["GoogleSSO"] = strconv.FormatBool(*l.Features.GoogleSSO)
 		props["Compliance"] = strconv.FormatBool(*l.Features.Compliance)
 		props["CustomBrand"] = strconv.FormatBool(*l.Features.CustomBrand)
 		props["MHPNS"] = strconv.FormatBool(*l.Features.MHPNS)
+		props["PasswordRequirements"] = strconv.FormatBool(*l.Features.PasswordRequirements)
 		props["IssuedAt"] = strconv.FormatInt(l.IssuedAt, 10)
 		props["StartsAt"] = strconv.FormatInt(l.StartsAt, 10)
 		props["ExpiresAt"] = strconv.FormatInt(l.ExpiresAt, 10)
@@ -145,4 +147,24 @@ func GetClientLicenseEtag() string {
 	}
 
 	return model.Etag(fmt.Sprintf("%x", md5.Sum([]byte(value))))
+}
+
+func GetSantizedClientLicense() map[string]string {
+	sanitizedLicense := make(map[string]string)
+
+	for k, v := range ClientLicense {
+		sanitizedLicense[k] = v
+	}
+
+	if IsLicensed {
+		delete(sanitizedLicense, "Name")
+		delete(sanitizedLicense, "Email")
+		delete(sanitizedLicense, "Company")
+		delete(sanitizedLicense, "PhoneNumber")
+		delete(sanitizedLicense, "IssuedAt")
+		delete(sanitizedLicense, "StartsAt")
+		delete(sanitizedLicense, "ExpiresAt")
+	}
+
+	return sanitizedLicense
 }

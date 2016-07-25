@@ -4,49 +4,29 @@
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
-import Client from 'utils/web_client.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
-import ChannelStore from 'stores/channel_store.jsx';
+import Client from 'client/web_client.jsx';
 import UserStore from 'stores/user_store.jsx';
 import PostDeletedModal from './post_deleted_modal.jsx';
 import PostStore from 'stores/post_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
+import MessageHistoryStore from 'stores/message_history_store.jsx';
 import Textbox from './textbox.jsx';
 import MsgTyping from './msg_typing.jsx';
 import FileUpload from './file_upload.jsx';
 import FilePreview from './file_preview.jsx';
 import * as Utils from 'utils/utils.jsx';
-import * as GlobalActions from 'action_creators/global_actions.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 
-import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 const ActionTypes = Constants.ActionTypes;
 const KeyCodes = Constants.KeyCodes;
 
-const holders = defineMessages({
-    commentLength: {
-        id: 'create_comment.commentLength',
-        defaultMessage: 'Comment length must be less than {max} characters.'
-    },
-    comment: {
-        id: 'create_comment.comment',
-        defaultMessage: 'Add Comment'
-    },
-    addComment: {
-        id: 'create_comment.addComment',
-        defaultMessage: 'Add a comment...'
-    },
-    commentTitle: {
-        id: 'create_comment.commentTitle',
-        defaultMessage: 'Comment'
-    }
-});
-
 import React from 'react';
 
-class CreateComment extends React.Component {
+export default class CreateComment extends React.Component {
     constructor(props) {
         super(props);
 
@@ -54,7 +34,7 @@ class CreateComment extends React.Component {
 
         this.handleSubmit = this.handleSubmit.bind(this);
         this.commentMsgKeyPress = this.commentMsgKeyPress.bind(this);
-        this.handleUserInput = this.handleUserInput.bind(this);
+        this.handleInput = this.handleInput.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleUploadClick = this.handleUploadClick.bind(this);
         this.handleUploadStart = this.handleUploadStart.bind(this);
@@ -68,11 +48,11 @@ class CreateComment extends React.Component {
         this.hidePostDeletedModal = this.hidePostDeletedModal.bind(this);
 
         PostStore.clearCommentDraftUploads();
+        MessageHistoryStore.resetHistoryIndex('comment');
 
         const draft = PostStore.getCommentDraft(this.props.rootId);
         this.state = {
             messageText: draft.message,
-            lastMessage: '',
             uploadsInProgress: draft.uploadsInProgress,
             previews: draft.previews,
             submitting: false,
@@ -80,18 +60,22 @@ class CreateComment extends React.Component {
             showPostDeletedModal: false
         };
     }
+
     componentDidMount() {
         PreferenceStore.addChangeListener(this.onPreferenceChange);
         this.focusTextbox();
     }
+
     componentWillUnmount() {
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
     }
+
     onPreferenceChange() {
         this.setState({
             ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter')
         });
     }
+
     componentDidUpdate(prevProps, prevState) {
         if (prevState.uploadsInProgress < this.state.uploadsInProgress) {
             $('.post-right__scroll').scrollTop($('.post-right__scroll')[0].scrollHeight);
@@ -101,6 +85,7 @@ class CreateComment extends React.Component {
             this.focusTextbox();
         }
     }
+
     handleSubmit(e) {
         e.preventDefault();
 
@@ -121,9 +106,19 @@ class CreateComment extends React.Component {
         }
 
         if (post.message.length > Constants.CHARACTER_LIMIT) {
-            this.setState({postError: this.props.intl.formatMessage(holders.commentLength, {max: Constants.CHARACTER_LIMIT})});
+            this.setState({
+                postError: (
+                    <FormattedMessage
+                        id='create_comment.commentLength'
+                        defaultMessage='Comment length must be less than {max} characters.'
+                        values={{max: Constants.CHARACTER_LIMIT}}
+                    />
+                )
+            });
             return;
         }
+
+        MessageHistoryStore.storeMessageInHistory(this.state.messageText);
 
         const userId = UserStore.getCurrentId();
 
@@ -136,19 +131,11 @@ class CreateComment extends React.Component {
         post.user_id = userId;
         post.create_at = time;
 
-        PostStore.storePendingPost(post);
-        PostStore.storeCommentDraft(this.props.rootId, null);
-
+        GlobalActions.emitUserCommentedEvent(post);
         Client.createPost(
             post,
             (data) => {
-                AsyncClient.getPosts(this.props.channelId);
-
-                const channel = ChannelStore.get(this.props.channelId);
-                const member = ChannelStore.getMember(this.props.channelId);
-                member.msg_count = channel.total_msg_count;
-                member.last_viewed_at = Date.now();
-                ChannelStore.setChannelMember(member);
+                PostStore.removePendingPost(post.channel_id, post.pending_post_id);
 
                 AppDispatcher.handleServerAction({
                     type: ActionTypes.RECEIVED_POST,
@@ -173,15 +160,15 @@ class CreateComment extends React.Component {
 
         this.setState({
             messageText: '',
-            lastMessage: this.state.messageText,
             submitting: false,
             postError: null,
             previews: [],
             serverError: null
         });
     }
+
     commentMsgKeyPress(e) {
-        if (this.state.ctrlSend && e.ctrlKey || !this.state.ctrlSend) {
+        if (!Utils.isMobile() && ((this.state.ctrlSend && e.ctrlKey) || !this.state.ctrlSend)) {
             if (e.which === KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
                 e.preventDefault();
                 ReactDOM.findDOMNode(this.refs.textbox).blur();
@@ -191,14 +178,19 @@ class CreateComment extends React.Component {
 
         GlobalActions.emitLocalUserTypingEvent(this.props.channelId, this.props.rootId);
     }
-    handleUserInput(messageText) {
+
+    handleInput(e) {
+        const messageText = e.target.value;
+
         const draft = PostStore.getCommentDraft(this.props.rootId);
         draft.message = messageText;
         PostStore.storeCommentDraft(this.props.rootId, draft);
 
         $('.post-right__scroll').parent().scrollTop($('.post-right__scroll')[0].scrollHeight);
-        this.setState({messageText: messageText});
+
+        this.setState({messageText});
     }
+
     handleKeyDown(e) {
         if (this.state.ctrlSend && e.keyCode === KeyCodes.ENTER && e.ctrlKey === true) {
             this.commentMsgKeyPress(e);
@@ -216,7 +208,7 @@ class CreateComment extends React.Component {
             AppDispatcher.handleViewAction({
                 type: ActionTypes.RECEIVED_EDIT_POST,
                 refocusId: '#reply_textbox',
-                title: this.props.intl.formatMessage(holders.commentTitle),
+                title: Utils.localizeMessage('create_comment.commentTitle', 'Comment'),
                 message: lastPost.message,
                 postId: lastPost.id,
                 channelId: lastPost.channel_id,
@@ -224,21 +216,21 @@ class CreateComment extends React.Component {
             });
         }
 
-        if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.keyCode === KeyCodes.UP) {
-            const lastPost = PostStore.getCurrentUsersLatestPost(this.props.channelId, this.props.rootId);
-            if (!lastPost) {
-                return;
+        if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
+            const lastMessage = MessageHistoryStore.nextMessageInHistory(e.keyCode, this.state.messageText, 'comment');
+            if (lastMessage !== null) {
+                e.preventDefault();
+                this.setState({
+                    messageText: lastMessage
+                });
             }
-            let message = lastPost.message;
-            if (this.state.lastMessage !== '') {
-                message = this.state.lastMessage;
-            }
-            this.setState({messageText: message});
         }
     }
+
     handleUploadClick() {
         this.focusTextbox();
     }
+
     handleUploadStart(clientIds) {
         const draft = PostStore.getCommentDraft(this.props.rootId);
 
@@ -251,6 +243,7 @@ class CreateComment extends React.Component {
         // but this also resets the focus after a drag and drop
         this.focusTextbox();
     }
+
     handleFileUploadComplete(filenames, clientIds) {
         const draft = PostStore.getCommentDraft(this.props.rootId);
 
@@ -268,6 +261,7 @@ class CreateComment extends React.Component {
 
         this.setState({uploadsInProgress: draft.uploadsInProgress, previews: draft.previews});
     }
+
     handleUploadError(err, clientId) {
         if (clientId === -1) {
             this.setState({serverError: err});
@@ -284,6 +278,7 @@ class CreateComment extends React.Component {
             this.setState({uploadsInProgress: draft.uploadsInProgress, serverError: err});
         }
     }
+
     removePreview(id) {
         const previews = this.state.previews;
         const uploadsInProgress = this.state.uploadsInProgress;
@@ -306,32 +301,38 @@ class CreateComment extends React.Component {
         draft.uploadsInProgress = uploadsInProgress;
         PostStore.storeCommentDraft(this.props.rootId, draft);
 
-        this.setState({previews: previews, uploadsInProgress: uploadsInProgress});
+        this.setState({previews, uploadsInProgress});
     }
+
     componentWillReceiveProps(newProps) {
         if (newProps.rootId !== this.props.rootId) {
             const draft = PostStore.getCommentDraft(newProps.rootId);
             this.setState({messageText: draft.message, uploadsInProgress: draft.uploadsInProgress, previews: draft.previews});
         }
     }
+
     getFileCount() {
         return this.state.previews.length + this.state.uploadsInProgress.length;
     }
+
     focusTextbox() {
         if (!Utils.isMobile()) {
             this.refs.textbox.focus();
         }
     }
+
     showPostDeletedModal() {
         this.setState({
             showPostDeletedModal: true
         });
     }
+
     hidePostDeletedModal() {
         this.setState({
             showPostDeletedModal: false
         });
     }
+
     render() {
         let serverError = null;
         if (this.state.serverError) {
@@ -382,7 +383,6 @@ class CreateComment extends React.Component {
             );
         }
 
-        const {formatMessage} = this.props.intl;
         return (
             <form onSubmit={this.handleSubmit}>
                 <div className='post-create'>
@@ -392,11 +392,11 @@ class CreateComment extends React.Component {
                     >
                         <div className='post-body__cell'>
                             <Textbox
-                                onUserInput={this.handleUserInput}
+                                onInput={this.handleInput}
                                 onKeyPress={this.commentMsgKeyPress}
                                 onKeyDown={this.handleKeyDown}
                                 messageText={this.state.messageText}
-                                createMessage={formatMessage(holders.addComment)}
+                                createMessage={Utils.localizeMessage('create_comment.addComment', 'Add a comment...')}
                                 initialText=''
                                 supportsCommands={false}
                                 id='reply_textbox'
@@ -422,7 +422,7 @@ class CreateComment extends React.Component {
                         <input
                             type='button'
                             className='btn btn-primary comment-btn pull-right'
-                            value={formatMessage(holders.comment)}
+                            value={Utils.localizeMessage('create_comment.comment', 'Add Comment')}
                             onClick={this.handleSubmit}
                         />
                         {uploadsInProgressText}
@@ -441,9 +441,6 @@ class CreateComment extends React.Component {
 }
 
 CreateComment.propTypes = {
-    intl: intlShape.isRequired,
     channelId: React.PropTypes.string.isRequired,
     rootId: React.PropTypes.string.isRequired
 };
-
-export default injectIntl(CreateComment);

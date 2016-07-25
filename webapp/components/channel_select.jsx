@@ -6,12 +6,24 @@ import React from 'react';
 import Constants from 'utils/constants.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import * as Utils from 'utils/utils.jsx';
+import * as AsyncClient from 'utils/async_client.jsx';
 
 export default class ChannelSelect extends React.Component {
     static get propTypes() {
         return {
             onChange: React.PropTypes.func,
-            value: React.PropTypes.string
+            value: React.PropTypes.string,
+            selectOpen: React.PropTypes.bool.isRequired,
+            selectPrivate: React.PropTypes.bool.isRequired,
+            selectDm: React.PropTypes.bool.isRequired
+        };
+    }
+
+    static get defaultProps() {
+        return {
+            selectOpen: false,
+            selectPrivate: false,
+            selectDm: false
         };
     }
 
@@ -19,17 +31,16 @@ export default class ChannelSelect extends React.Component {
         super(props);
 
         this.handleChannelChange = this.handleChannelChange.bind(this);
+        this.compareByDisplayName = this.compareByDisplayName.bind(this);
+
+        AsyncClient.getMoreChannels(true);
 
         this.state = {
-            channels: []
+            channels: ChannelStore.getAll().sort(this.compareByDisplayName)
         };
     }
 
-    componentWillMount() {
-        this.setState({
-            channels: ChannelStore.getAll()
-        });
-
+    componentDidMount() {
         ChannelStore.addChangeListener(this.handleChannelChange);
     }
 
@@ -39,8 +50,12 @@ export default class ChannelSelect extends React.Component {
 
     handleChannelChange() {
         this.setState({
-            channels: ChannelStore.getAll()
+            channels: ChannelStore.getAll().concat(ChannelStore.getMoreAll()).sort(this.compareByDisplayName)
         });
+    }
+
+    compareByDisplayName(channelA, channelB) {
+        return channelA.display_name.localeCompare(channelB.display_name);
     }
 
     render() {
@@ -54,7 +69,25 @@ export default class ChannelSelect extends React.Component {
         ];
 
         this.state.channels.forEach((channel) => {
-            if (channel.type === Constants.OPEN_CHANNEL) {
+            if (channel.type === Constants.OPEN_CHANNEL && this.props.selectOpen) {
+                options.push(
+                    <option
+                        key={channel.id}
+                        value={channel.id}
+                    >
+                        {channel.display_name}
+                    </option>
+                );
+            } else if (channel.type === Constants.PRIVATE_CHANNEL && this.props.selectPrivate) {
+                options.push(
+                    <option
+                        key={channel.id}
+                        value={channel.id}
+                    >
+                        {channel.display_name}
+                    </option>
+                );
+            } else if (channel.type === Constants.DM_CHANNEL && this.props.selectDm) {
                 options.push(
                     <option
                         key={channel.id}

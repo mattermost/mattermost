@@ -61,7 +61,7 @@ func TestCliCreateUserWithTeam(t *testing.T) {
 	email := "success+" + id + "@simulator.amazonses.com"
 	username := "name" + id
 
-	cmd := exec.Command("bash", "-c", `go run ../mattermost.go -create_user -team_name="`+th.SystemAdminTeam.Name+`" -email="`+email+`" -password="mypassword" -username="`+username+`"`)
+	cmd := exec.Command("bash", "-c", `go run ../mattermost.go -create_user -team_name="`+th.SystemAdminTeam.Name+`" -email="`+email+`" -password="mypassword1" -username="`+username+`"`)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Log(string(output))
@@ -94,7 +94,7 @@ func TestCliCreateUserWithoutTeam(t *testing.T) {
 	email := "success+" + id + "@simulator.amazonses.com"
 	username := "name" + id
 
-	cmd := exec.Command("bash", "-c", `go run ../mattermost.go -create_user -email="`+email+`" -password="mypassword" -username="`+username+`"`)
+	cmd := exec.Command("bash", "-c", `go run ../mattermost.go -create_user -email="`+email+`" -password="mypassword1" -username="`+username+`"`)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Log(string(output))
@@ -135,6 +135,175 @@ func TestCliAssignRole(t *testing.T) {
 	}
 }
 
+func TestCliJoinChannel(t *testing.T) {
+	if disableCliTests {
+		return
+	}
+
+	th := Setup().InitBasic()
+	channel := th.CreateChannel(th.BasicClient, th.BasicTeam)
+
+	// These test cannot run since this feature requires an enteprise license
+
+	// cmd := exec.Command("bash", "-c", `go run ../mattermost.go -join_channel -team_name="`+th.BasicTeam.Name+`" -channel_name="`+channel.Name+`" -email="`+th.BasicUser2.Email+`"`)
+	// output, err := cmd.CombinedOutput()
+	// if err != nil {
+	// 	t.Log(string(output))
+	// 	t.Fatal(err)
+	// }
+
+	// // Joining twice should succeed
+	// cmd1 := exec.Command("bash", "-c", `go run ../mattermost.go -join_channel -team_name="`+th.BasicTeam.Name+`" -channel_name="`+channel.Name+`" -email="`+th.BasicUser2.Email+`"`)
+	// output1, err1 := cmd1.CombinedOutput()
+	// if err1 != nil {
+	// 	t.Log(string(output1))
+	// 	t.Fatal(err1)
+	// }
+
+	// should fail because channel does not exist
+	cmd2 := exec.Command("bash", "-c", `go run ../mattermost.go -join_channel -team_name="`+th.BasicTeam.Name+`" -channel_name="`+channel.Name+`asdf" -email="`+th.BasicUser2.Email+`"`)
+	output2, err2 := cmd2.CombinedOutput()
+	if err2 == nil {
+		t.Log(string(output2))
+		t.Fatal()
+	}
+
+	// should fail because channel does not have license
+	cmd3 := exec.Command("bash", "-c", `go run ../mattermost.go -join_channel -team_name="`+th.BasicTeam.Name+`" -channel_name="`+channel.Name+`" -email="`+th.BasicUser2.Email+`"`)
+	output3, err3 := cmd3.CombinedOutput()
+	if err3 == nil {
+		t.Log(string(output3))
+		t.Fatal()
+	}
+}
+
+func TestCliRemoveChannel(t *testing.T) {
+	if disableCliTests {
+		return
+	}
+
+	th := Setup().InitBasic()
+	channel := th.CreateChannel(th.BasicClient, th.BasicTeam)
+
+	// These test cannot run since this feature requires an enteprise license
+
+	// cmd := exec.Command("bash", "-c", `go run ../mattermost.go -join_channel -team_name="`+th.BasicTeam.Name+`" -channel_name="`+channel.Name+`" -email="`+th.BasicUser2.Email+`"`)
+	// output, err := cmd.CombinedOutput()
+	// if err != nil {
+	// 	t.Log(string(output))
+	// 	t.Fatal(err)
+	// }
+
+	// cmd0 := exec.Command("bash", "-c", `go run ../mattermost.go -leave_channel -team_name="`+th.BasicTeam.Name+`" -channel_name="`+channel.Name+`" -email="`+th.BasicUser2.Email+`"`)
+	// output0, err0 := cmd0.CombinedOutput()
+	// if err0 != nil {
+	// 	t.Log(string(output0))
+	// 	t.Fatal(err0)
+	// }
+
+	// // Leaving twice should succeed
+	// cmd1 := exec.Command("bash", "-c", `go run ../mattermost.go -leave_channel -team_name="`+th.BasicTeam.Name+`" -channel_name="`+channel.Name+`" -email="`+th.BasicUser2.Email+`"`)
+	// output1, err1 := cmd1.CombinedOutput()
+	// if err1 != nil {
+	// 	t.Log(string(output1))
+	// 	t.Fatal(err1)
+	// }
+
+	// cannot leave town-square
+	cmd1a := exec.Command("bash", "-c", `go run ../mattermost.go -leave_channel -team_name="`+th.BasicTeam.Name+`" -channel_name="town-square" -email="`+th.BasicUser2.Email+`"`)
+	output1a, err1a := cmd1a.CombinedOutput()
+	if err1a == nil {
+		t.Log(string(output1a))
+		t.Fatal()
+	}
+
+	// should fail because channel does not exist
+	cmd2 := exec.Command("bash", "-c", `go run ../mattermost.go -leave_channel -team_name="`+th.BasicTeam.Name+`" -channel_name="`+channel.Name+`asdf" -email="`+th.BasicUser2.Email+`"`)
+	output2, err2 := cmd2.CombinedOutput()
+	if err2 == nil {
+		t.Log(string(output2))
+		t.Fatal()
+	}
+
+	// should fail because channel does not have license
+	cmd3 := exec.Command("bash", "-c", `go run ../mattermost.go -leave_channel -team_name="`+th.BasicTeam.Name+`" -channel_name="`+channel.Name+`" -email="`+th.BasicUser2.Email+`"`)
+	output3, err3 := cmd3.CombinedOutput()
+	if err3 == nil {
+		t.Log(string(output3))
+		t.Fatal()
+	}
+}
+
+func TestCliListChannels(t *testing.T) {
+	if disableCliTests {
+		return
+	}
+
+	th := Setup().InitBasic()
+	channel := th.CreateChannel(th.BasicClient, th.BasicTeam)
+	th.BasicClient.Must(th.BasicClient.DeleteChannel(channel.Id))
+
+	// These test cannot run since this feature requires an enteprise license
+
+	// cmd := exec.Command("bash", "-c", `go run ../mattermost.go -list_channels -team_name="`+th.BasicTeam.Name+`"`)
+	// output, err := cmd.CombinedOutput()
+	// if err != nil {
+	// 	t.Log(string(output))
+	// 	t.Fatal(err)
+	// }
+
+	// if !strings.Contains(string(output), "town-square") {
+	// 	t.Fatal("should have channels")
+	// }
+
+	// if !strings.Contains(string(output), channel.Name+" (archived)") {
+	// 	t.Fatal("should have archived channel")
+	// }
+
+	// should fail because channel does not have license
+	cmd3 := exec.Command("bash", "-c", `go run ../mattermost.go -list_channels -team_name="`+th.BasicTeam.Name+``)
+	output3, err3 := cmd3.CombinedOutput()
+	if err3 == nil {
+		t.Log(string(output3))
+		t.Fatal()
+	}
+}
+
+func TestCliRestoreChannel(t *testing.T) {
+	if disableCliTests {
+		return
+	}
+
+	th := Setup().InitBasic()
+	channel := th.CreateChannel(th.BasicClient, th.BasicTeam)
+	th.BasicClient.Must(th.BasicClient.DeleteChannel(channel.Id))
+
+	// These test cannot run since this feature requires an enteprise license
+
+	// cmd := exec.Command("bash", "-c", `go run ../mattermost.go -restore_channel -team_name="`+th.BasicTeam.Name+`" -channel_name="`+channel.Name+`"`)
+	// output, err := cmd.CombinedOutput()
+	// if err != nil {
+	// 	t.Log(string(output))
+	// 	t.Fatal(err)
+	// }
+
+	// // restoring twice should succeed
+	// cmd1 := exec.Command("bash", "-c", `go run ../mattermost.go -restore_channel -team_name="`+th.BasicTeam.Name+`" -channel_name="`+channel.Name+`"`)
+	// output1, err1 := cmd1.CombinedOutput()
+	// if err1 != nil {
+	// 	t.Log(string(output1))
+	// 	t.Fatal(err1)
+	// }
+
+	// should fail because channel does not have license
+	cmd3 := exec.Command("bash", "-c", `go run ../mattermost.go -restore_channel -team_name="`+th.BasicTeam.Name+`" -channel_name="`+channel.Name+`"`)
+	output3, err3 := cmd3.CombinedOutput()
+	if err3 == nil {
+		t.Log(string(output3))
+		t.Fatal()
+	}
+}
+
 func TestCliJoinTeam(t *testing.T) {
 	if disableCliTests {
 		return
@@ -162,6 +331,43 @@ func TestCliJoinTeam(t *testing.T) {
 
 	if !found {
 		t.Fatal("Failed to create User")
+	}
+}
+
+func TestCliLeaveTeam(t *testing.T) {
+	if disableCliTests {
+		return
+	}
+
+	th := Setup().InitBasic()
+
+	cmd := exec.Command("bash", "-c", `go run ../mattermost.go -leave_team -team_name="`+th.BasicTeam.Name+`" -email="`+th.BasicUser.Email+`"`)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Log(string(output))
+		t.Fatal(err)
+	}
+
+	profiles := th.BasicClient.Must(th.BasicClient.GetProfiles(th.BasicTeam.Id, "")).Data.(map[string]*model.User)
+
+	found := false
+
+	for _, user := range profiles {
+		if user.Email == th.BasicUser.Email {
+			found = true
+		}
+
+	}
+
+	if !found {
+		t.Fatal("profile still should be in team even if deleted")
+	}
+
+	if result := <-Srv.Store.Team().GetTeamsByUserId(th.BasicUser.Id); result.Err != nil {
+		teamMembers := result.Data.([]*model.TeamMember)
+		if len(teamMembers) > 0 {
+			t.Fatal("Shouldn't be in team")
+		}
 	}
 }
 

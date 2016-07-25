@@ -15,6 +15,18 @@
         }
     }
 
+    &.btn-default {
+        background: alpha-color($black, .7);
+        color: $white;
+
+        &:hover,
+        &:focus,
+        &:active {
+            background: alpha-color($black, .8);
+            color: $white;
+        }
+    }
+
     &.btn-danger {
         color: $white;
 

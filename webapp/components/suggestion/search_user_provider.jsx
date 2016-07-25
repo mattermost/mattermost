@@ -1,15 +1,17 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import SuggestionStore from 'stores/suggestion_store.jsx';
-import UserStore from 'stores/user_store.jsx';
-import Client from 'utils/web_client.jsx';
-
 import React from 'react';
 
-class SearchUserSuggestion extends React.Component {
+import Client from 'client/web_client.jsx';
+import SuggestionStore from 'stores/suggestion_store.jsx';
+import UserStore from 'stores/user_store.jsx';
+
+import Suggestion from './suggestion.jsx';
+
+class SearchUserSuggestion extends Suggestion {
     render() {
-        const {item, isSelection, onClick} = this.props;
+        const {item, isSelection} = this.props;
 
         let className = 'search-autocomplete__item';
         if (isSelection) {
@@ -19,7 +21,7 @@ class SearchUserSuggestion extends React.Component {
         return (
             <div
                 className={className}
-                onClick={onClick}
+                onClick={this.handleClick}
             >
                 <img
                     className='profile-img rounded'
@@ -30,12 +32,6 @@ class SearchUserSuggestion extends React.Component {
         );
     }
 }
-
-SearchUserSuggestion.propTypes = {
-    item: React.PropTypes.object.isRequired,
-    isSelection: React.PropTypes.bool,
-    onClick: React.PropTypes.func
-};
 
 export default class SearchUserProvider {
     handlePretextChanged(suggestionId, pretext) {
@@ -58,8 +54,7 @@ export default class SearchUserProvider {
 
             const usernames = filtered.map((user) => user.username);
 
-            SuggestionStore.setMatchedPretext(suggestionId, usernamePrefix);
-            SuggestionStore.addSuggestions(suggestionId, usernames, filtered, SearchUserSuggestion);
+            SuggestionStore.addSuggestions(suggestionId, usernames, filtered, SearchUserSuggestion, usernamePrefix);
         }
     }
 }

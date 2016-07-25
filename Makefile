@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server stop-client stop-server restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist setup-mac prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-client
+.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist setup-mac prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-client
 
 # For golang 1.5.x compatibility (remove when we don't want to support it anymore)
 export GO15VENDOREXPERIMENT=1
@@ -15,10 +15,12 @@ BUILD_ENTERPRISE_DIR ?= ../enterprise
 BUILD_ENTERPRISE ?= true
 BUILD_ENTERPRISE_READY = false
 BUILD_TYPE_NAME = team
+BUILD_HASH_ENTERPRISE = none
 ifneq ($(wildcard $(BUILD_ENTERPRISE_DIR)/.),)
 	ifeq ($(BUILD_ENTERPRISE),true)
 		BUILD_ENTERPRISE_READY = true
 		BUILD_TYPE_NAME = enterprise
+		BUILD_HASH_ENTERPRISE = $(shell cd $(BUILD_ENTERPRISE_DIR) && git rev-parse HEAD)
 	else
 		BUILD_ENTERPRISE_READY = false
 		BUILD_TYPE_NAME = team
@@ -37,6 +39,7 @@ GO_LINKER_FLAGS ?= -ldflags \
 				   "-X github.com/mattermost/platform/model.BuildNumber=$(BUILD_NUMBER)\
 				    -X 'github.com/mattermost/platform/model.BuildDate=$(BUILD_DATE)'\
 				    -X github.com/mattermost/platform/model.BuildHash=$(BUILD_HASH)\
+				    -X github.com/mattermost/platform/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
 				    -X github.com/mattermost/platform/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)"
 
 # Output paths
@@ -153,21 +156,51 @@ check-style: check-client-style check-server-style
 test-server: start-docker prepare-enterprise
 	@echo Running server tests
 
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=340s ./api || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=12s ./model || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=180s ./store || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./utils || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./web || exit 1
+	rm -f cover.out
+	echo "mode: count" > cover.out
+
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=440s -covermode=count -coverprofile=capi.out ./api || exit 1
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=60s -covermode=count -coverprofile=cmodel.out ./model || exit 1
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=180s -covermode=count -coverprofile=cstore.out ./store || exit 1
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s -covermode=count -coverprofile=cutils.out ./utils || exit 1
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s -covermode=count -coverprofile=cweb.out ./web || exit 1
+
+	tail -n +2 capi.out >> cover.out
+	tail -n +2 cmodel.out >> cover.out
+	tail -n +2 cstore.out >> cover.out
+	tail -n +2 cutils.out >> cover.out
+	tail -n +2 cweb.out >> cover.out
+	rm -f capi.out cmodel.out cstore.out cutils.out cweb.out
+
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running Enterprise tests
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -c ./enterprise/ldap && ./ldap.test -test.v -test.timeout=120s || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -c ./enterprise/compliance && ./compliance.test -test.v -test.timeout=120s || exit 1
+
+	rm -f ecover.out
+	echo "mode: count" > ecover.out
+
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -c ./enterprise/ldap && ./ldap.test -test.v -test.timeout=120s -test.coverprofile=cldap.out || exit 1
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -c ./enterprise/compliance && ./compliance.test -test.v -test.timeout=120s -test.coverprofile=ccompliance.out || exit 1
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -c ./enterprise/emoji && ./emoji.test -test.v -test.timeout=120s -test.coverprofile=cemoji.out || exit 1
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -c ./enterprise/saml && ./saml.test -test.v -test.timeout=60s -test.coverprofile=csaml.out || exit 1
+
+	tail -n +2 cldap.out >> ecover.out
+	tail -n +2 ccompliance.out >> ecover.out
+	tail -n +2 cemoji.out >> ecover.out
+	tail -n +2 csaml.out >> ecover.out
+	rm -f cldap.out ccompliance.out cemoji.out csaml.out
 	rm -r ldap.test
 	rm -r compliance.test
+	rm -r emoji.test
+	rm -r saml.test
+	rm -f config/*.crt
+	rm -f config/*.key
 endif
 
-internal-test-client: start-docker prepare-enterprise
-	$(GO) run $(GOFLAGS) *.go -run_client_tests
+internal-test-web-client: start-docker prepare-enterprise
+	$(GO) run $(GOFLAGS) *.go -run_web_client_tests
+
+internal-test-javascript-client: start-docker prepare-enterprise
+	$(GO) run $(GOFLAGS) *.go -run_javascript_client_tests
 
 test-client: start-docker prepare-enterprise
 	@echo Running client tests
@@ -175,6 +208,12 @@ test-client: start-docker prepare-enterprise
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) test
 
 test: test-server test-client
+
+cover:
+	@echo Opening coverage info in browser. If this failed run make test first
+
+	$(GO) tool cover -html=cover.out
+	$(GO) tool cover -html=ecover.out
 
 .prebuild:
 	@echo Preparation for running go code
@@ -229,9 +268,6 @@ package: build build-client
 	@# Package webapp
 	mkdir -p $(DIST_PATH)/webapp/dist
 	cp -RL $(BUILD_WEBAPP_DIR)/dist $(DIST_PATH)/webapp
-	mv $(DIST_PATH)/webapp/dist/bundle.js $(DIST_PATH)/webapp/dist/bundle-$(BUILD_NUMBER).js
-	sed -i'.bak' 's|bundle.js|bundle-$(BUILD_NUMBER).js|g' $(DIST_PATH)/webapp/dist/root.html
-	rm $(DIST_PATH)/webapp/dist/root.html.bak
 
 	@# Help files
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -275,6 +311,12 @@ run-server: prepare-enterprise start-docker
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
 	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) *.go &
 
+run-cli: prepare-enterprise start-docker
+	@echo Running mattermost for development
+	@echo Example should be like >'make ARGS="-version" run-cli'
+
+	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) *.go ${ARGS}
+
 run-client:
 	@echo Running mattermost client for development
 
@@ -310,6 +352,8 @@ stop-client:
 
 stop: stop-server stop-client
 
+restart: restart-server restart-client
+
 restart-server: | stop-server run-server
 
 restart-client: | stop-client run-client
@@ -330,6 +374,10 @@ clean: stop-docker
 	rm -f api/mattermost.log
 	rm -f .prepare-go
 	rm -f enterprise
+	rm -f cover.out
+	rm -f ecover.out
+	rm -f *.out
+	rm -f *.test
 
 nuke: clean clean-docker
 	@echo BOOM

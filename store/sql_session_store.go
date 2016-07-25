@@ -75,7 +75,13 @@ func (me SqlSessionStore) Save(session *model.Session) StoreChannel {
 			result.Err = model.NewLocAppError("SqlSessionStore.Save", "store.sql_session.save.app_error", nil, "id="+session.Id+", "+rtcs.Err.Error())
 			return
 		} else {
-			session.TeamMembers = rtcs.Data.([]*model.TeamMember)
+			tempMembers := rtcs.Data.([]*model.TeamMember)
+			session.TeamMembers = make([]*model.TeamMember, 0, len(tempMembers))
+			for _, tm := range tempMembers {
+				if tm.DeleteAt == 0 {
+					session.TeamMembers = append(session.TeamMembers, tm)
+				}
+			}
 		}
 
 		storeChannel <- result
@@ -106,7 +112,13 @@ func (me SqlSessionStore) Get(sessionIdOrToken string) StoreChannel {
 				result.Err = model.NewLocAppError("SqlSessionStore.Get", "store.sql_session.get.app_error", nil, "sessionIdOrToken="+sessionIdOrToken+", "+rtcs.Err.Error())
 				return
 			} else {
-				sessions[0].TeamMembers = rtcs.Data.([]*model.TeamMember)
+				tempMembers := rtcs.Data.([]*model.TeamMember)
+				sessions[0].TeamMembers = make([]*model.TeamMember, 0, len(tempMembers))
+				for _, tm := range tempMembers {
+					if tm.DeleteAt == 0 {
+						sessions[0].TeamMembers = append(sessions[0].TeamMembers, tm)
+					}
+				}
 			}
 		}
 
@@ -144,7 +156,13 @@ func (me SqlSessionStore) GetSessions(userId string) StoreChannel {
 			return
 		} else {
 			for _, session := range sessions {
-				session.TeamMembers = rtcs.Data.([]*model.TeamMember)
+				tempMembers := rtcs.Data.([]*model.TeamMember)
+				session.TeamMembers = make([]*model.TeamMember, 0, len(tempMembers))
+				for _, tm := range tempMembers {
+					if tm.DeleteAt == 0 {
+						session.TeamMembers = append(session.TeamMembers, tm)
+					}
+				}
 			}
 		}
 
@@ -265,12 +283,12 @@ func (me SqlSessionStore) UpdateRoles(userId, roles string) StoreChannel {
 	return storeChannel
 }
 
-func (me SqlSessionStore) UpdateDeviceId(id, deviceId string) StoreChannel {
+func (me SqlSessionStore) UpdateDeviceId(id string, deviceId string, expiresAt int64) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
 		result := StoreResult{}
-		if _, err := me.GetMaster().Exec("UPDATE Sessions SET DeviceId = :DeviceId WHERE Id = :Id", map[string]interface{}{"DeviceId": deviceId, "Id": id}); err != nil {
+		if _, err := me.GetMaster().Exec("UPDATE Sessions SET DeviceId = :DeviceId, ExpiresAt = :ExpiresAt WHERE Id = :Id", map[string]interface{}{"DeviceId": deviceId, "Id": id, "ExpiresAt": expiresAt}); err != nil {
 			result.Err = model.NewLocAppError("SqlSessionStore.UpdateDeviceId", "store.sql_session.update_device_id.app_error", nil, err.Error())
 		} else {
 			result.Data = deviceId

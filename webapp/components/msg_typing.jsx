@@ -71,7 +71,7 @@ class MsgTyping extends React.Component {
                     defaultMessage='{users} and {last} are typing...'
                     values={{
                         users: (users.join(', ')),
-                        last: (last)
+                        last
                     }}
                 />
             );

@@ -79,14 +79,14 @@ func TestConnection(config *model.Config) {
 
 	conn, err1 := connectToSMTPServer(config)
 	if err1 != nil {
-		l4g.Error(T("utils.mail.test.configured.error"), err1.Message, err1.DetailedError)
+		l4g.Error(T("utils.mail.test.configured.error"), T(err1.Message), err1.DetailedError)
 		return
 	}
 	defer conn.Close()
 
 	c, err2 := newSMTPClient(conn, config)
 	if err2 != nil {
-		l4g.Error(T("utils.mail.test.configured.error"), err2.Message, err2.DetailedError)
+		l4g.Error(T("utils.mail.test.configured.error"), T(err2.Message), err2.DetailedError)
 		return
 	}
 	defer c.Quit()

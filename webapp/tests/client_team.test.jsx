@@ -106,7 +106,6 @@ describe('Client.Team', function() {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().getAllTeamListings(
                 function(data) {
-                    console.log(data);
                     assert.equal(data != null, true);
                     done();
                 },
@@ -193,6 +192,7 @@ describe('Client.Team', function() {
                 TestHelper.fakeUser(),
                 function(user2) {
                     TestHelper.basicClient().addUserToTeam(
+                        '',
                         user2.id,
                         function(data) {
                             assert.equal(data.user_id, user2.id);
@@ -202,6 +202,22 @@ describe('Client.Team', function() {
                             done(new Error(err.message));
                         }
                     );
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
+    it('removeUserFromTeam', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().removeUserFromTeam(
+                '',
+                TestHelper.basicUser().id,
+                function(data) {
+                    assert.equal(data.user_id, TestHelper.basicUser().id);
+                    done();
                 },
                 function(err) {
                     done(new Error(err.message));

@@ -28,7 +28,7 @@
     .post {
         &.post--root {
             border-bottom: 1px solid #ddd;
-            padding-bottom: 1.2em;
+            padding-bottom: 1em;
 
             .post__body {
                 background: transparent !important;
@@ -37,6 +37,8 @@
 
         .post__header {
             .col__reply {
+                background: transparent !important;
+                border: none !important;
                 text-align: right;
                 top: 0;
             }
@@ -137,8 +139,8 @@
 }
 
 .post-right__scroll {
-    @include flex(1 1 auto);
     -webkit-overflow-scrolling: touch;
+    @include flex(1 1 auto);
     overflow: auto;
     position: relative;
 

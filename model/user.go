@@ -16,18 +16,12 @@ import (
 
 const (
 	ROLE_SYSTEM_ADMIN          = "system_admin"
-	USER_AWAY_TIMEOUT          = 5 * 60 * 1000 // 5 minutes
-	USER_OFFLINE_TIMEOUT       = 1 * 60 * 1000 // 1 minute
-	USER_OFFLINE               = "offline"
-	USER_AWAY                  = "away"
-	USER_ONLINE                = "online"
 	USER_NOTIFY_ALL            = "all"
 	USER_NOTIFY_MENTION        = "mention"
 	USER_NOTIFY_NONE           = "none"
 	DEFAULT_LOCALE             = "en"
 	USER_AUTH_SERVICE_EMAIL    = "email"
 	USER_AUTH_SERVICE_USERNAME = "username"
-	MIN_PASSWORD_LENGTH        = 5
 )
 
 type User struct {
@@ -45,12 +39,9 @@ type User struct {
 	FirstName          string    `json:"first_name"`
 	LastName           string    `json:"last_name"`
 	Roles              string    `json:"roles"`
-	LastActivityAt     int64     `json:"last_activity_at,omitempty"`
-	LastPingAt         int64     `json:"last_ping_at,omitempty"`
 	AllowMarketing     bool      `json:"allow_marketing,omitempty"`
 	Props              StringMap `json:"props,omitempty"`
 	NotifyProps        StringMap `json:"notify_props,omitempty"`
-	ThemeProps         StringMap `json:"theme_props,omitempty"`
 	LastPasswordUpdate int64     `json:"last_password_update,omitempty"`
 	LastPictureUpdate  int64     `json:"last_picture_update,omitempty"`
 	FailedAttempts     int       `json:"failed_attempts,omitempty"`
@@ -95,10 +86,6 @@ func (u *User) IsValid() *AppError {
 		return NewLocAppError("User.IsValid", "model.user.is_valid.last_name.app_error", nil, "user_id="+u.Id)
 	}
 
-	if len(u.Password) > 128 {
-		return NewLocAppError("User.IsValid", "model.user.is_valid.pwd.app_error", nil, "user_id="+u.Id)
-	}
-
 	if u.AuthData != nil && len(*u.AuthData) > 128 {
 		return NewLocAppError("User.IsValid", "model.user.is_valid.auth_data.app_error", nil, "user_id="+u.Id)
 	}
@@ -109,10 +96,6 @@ func (u *User) IsValid() *AppError {
 
 	if len(u.Password) > 0 && u.AuthData != nil && len(*u.AuthData) > 0 {
 		return NewLocAppError("User.IsValid", "model.user.is_valid.auth_data_pwd.app_error", nil, "user_id="+u.Id)
-	}
-
-	if len(u.ThemeProps) > 2000 {
-		return NewLocAppError("User.IsValid", "model.user.is_valid.theme.app_error", nil, "user_id="+u.Id)
 	}
 
 	return nil
@@ -136,7 +119,6 @@ func (u *User) PreSave() {
 
 	u.Username = strings.ToLower(u.Username)
 	u.Email = strings.ToLower(u.Email)
-	u.Locale = strings.ToLower(u.Locale)
 
 	u.CreateAt = GetMillis()
 	u.UpdateAt = u.CreateAt
@@ -166,7 +148,6 @@ func (u *User) PreSave() {
 func (u *User) PreUpdate() {
 	u.Username = strings.ToLower(u.Username)
 	u.Email = strings.ToLower(u.Email)
-	u.Locale = strings.ToLower(u.Locale)
 	u.UpdateAt = GetMillis()
 
 	if u.AuthData != nil && *u.AuthData == "" {
@@ -191,10 +172,10 @@ func (u *User) PreUpdate() {
 func (u *User) SetDefaultNotifications() {
 	u.NotifyProps = make(map[string]string)
 	u.NotifyProps["email"] = "true"
+	u.NotifyProps["push"] = USER_NOTIFY_MENTION
 	u.NotifyProps["desktop"] = USER_NOTIFY_ALL
 	u.NotifyProps["desktop_sound"] = "true"
 	u.NotifyProps["mention_keys"] = u.Username + ",@" + u.Username
-	u.NotifyProps["all"] = "true"
 	u.NotifyProps["channel"] = "true"
 
 	if u.FirstName == "" {
@@ -230,16 +211,8 @@ func (u *User) ToJson() string {
 }
 
 // Generate a valid strong etag so the browser can cache the results
-func (u *User) Etag() string {
-	return Etag(u.Id, u.UpdateAt)
-}
-
-func (u *User) IsOffline() bool {
-	return (GetMillis()-u.LastPingAt) > USER_OFFLINE_TIMEOUT && (GetMillis()-u.LastActivityAt) > USER_OFFLINE_TIMEOUT
-}
-
-func (u *User) IsAway() bool {
-	return (GetMillis() - u.LastActivityAt) > USER_AWAY_TIMEOUT
+func (u *User) Etag(showFullName, showEmail bool) string {
+	return Etag(u.Id, u.UpdateAt, showFullName, showEmail)
 }
 
 // Remove any private data from the user object
@@ -270,11 +243,9 @@ func (u *User) ClearNonProfileFields() {
 	u.MfaActive = false
 	u.MfaSecret = ""
 	u.EmailVerified = false
-	u.LastPingAt = 0
 	u.AllowMarketing = false
 	u.Props = StringMap{}
 	u.NotifyProps = StringMap{}
-	u.ThemeProps = StringMap{}
 	u.LastPasswordUpdate = 0
 	u.LastPictureUpdate = 0
 	u.FailedAttempts = 0
@@ -349,13 +320,13 @@ func isValidRole(role string) bool {
 	return false
 }
 
-// Make sure you acually want to use this function. In context.go there are functions to check permssions
+// Make sure you acually want to use this function. In context.go there are functions to check permissions
 // This function should not be used to check permissions.
 func (u *User) IsInRole(inRole string) bool {
 	return IsInRole(u.Roles, inRole)
 }
 
-// Make sure you acually want to use this function. In context.go there are functions to check permssions
+// Make sure you acually want to use this function. In context.go there are functions to check permissions
 // This function should not be used to check permissions.
 func IsInRole(userRoles string, inRole string) bool {
 	roles := strings.Split(userRoles, " ")
@@ -382,17 +353,6 @@ func (u *User) IsLDAPUser() bool {
 		return true
 	}
 	return false
-}
-
-func (u *User) PreExport() {
-	u.Password = ""
-	u.AuthData = new(string)
-	*u.AuthData = ""
-	u.LastActivityAt = 0
-	u.LastPingAt = 0
-	u.LastPasswordUpdate = 0
-	u.LastPictureUpdate = 0
-	u.FailedAttempts = 0
 }
 
 // UserFromJson will decode the input and return a User

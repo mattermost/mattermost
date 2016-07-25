@@ -2,10 +2,10 @@
 // See License.txt for license information.
 
 import {FormattedMessage} from 'react-intl';
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 import LoadingScreen from './loading_screen.jsx';
 
-import {browserHistory, Link} from 'react-router';
+import {browserHistory, Link} from 'react-router/es6';
 
 import React from 'react';
 

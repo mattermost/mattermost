@@ -18,14 +18,6 @@ export default class RateSettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        this.state = Object.assign(this.state, {
-            enableRateLimiter: props.config.RateLimitSettings.EnableRateLimiter,
-            perSec: props.config.RateLimitSettings.PerSec,
-            memoryStoreSize: props.config.RateLimitSettings.MemoryStoreSize,
-            varyByRemoteAddr: props.config.RateLimitSettings.VaryByRemoteAddr,
-            varyByHeader: props.config.RateLimitSettings.VaryByHeader
-        });
     }
 
     getConfigFromState(config) {
@@ -36,6 +28,16 @@ export default class RateSettings extends AdminSettings {
         config.RateLimitSettings.VaryByHeader = this.state.varyByHeader;
 
         return config;
+    }
+
+    getStateFromConfig(config) {
+        return {
+            enableRateLimiter: config.RateLimitSettings.EnableRateLimiter,
+            perSec: config.RateLimitSettings.PerSec,
+            memoryStoreSize: config.RateLimitSettings.MemoryStoreSize,
+            varyByRemoteAddr: config.RateLimitSettings.VaryByRemoteAddr,
+            varyByHeader: config.RateLimitSettings.VaryByHeader
+        };
     }
 
     renderTitle() {
@@ -65,7 +67,7 @@ export default class RateSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.rate.enableLimiterTitle'
-                            defaultMessage='Enable Rate Limiter: '
+                            defaultMessage='Enable Rate Limiting: '
                         />
                     }
                     helpText={
@@ -82,7 +84,7 @@ export default class RateSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.rate.queriesTitle'
-                            defaultMessage='Number Of Queries Per Second:'
+                            defaultMessage='Maximum Queries per Second:'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.rate.queriesExample', 'Ex "10"')}
@@ -108,7 +110,7 @@ export default class RateSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.rate.memoryDescription'
-                            defaultMessage='Maximum number of users sessions connected to the system as determined by "Vary By Remote Address" and "Vary By Header" settings below.'
+                            defaultMessage='Maximum number of users sessions connected to the system as determined by "Vary rate limit by remote address" and "Vary rate limit by HTTP header".'
                         />
                     }
                     value={this.state.memoryStoreSize}
@@ -120,7 +122,7 @@ export default class RateSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.rate.remoteTitle'
-                            defaultMessage='Vary By Remote Address: '
+                            defaultMessage='Vary rate limit by remote address: '
                         />
                     }
                     helpText={
@@ -138,7 +140,7 @@ export default class RateSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.rate.httpHeaderTitle'
-                            defaultMessage='Vary By HTTP Header:'
+                            defaultMessage='Vary rate limit by HTTP header:'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.rate.httpHeaderExample', 'Ex "X-Real-IP", "X-Forwarded-For"')}

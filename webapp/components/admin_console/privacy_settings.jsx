@@ -15,11 +15,6 @@ export default class PrivacySettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        this.state = Object.assign(this.state, {
-            showEmailAddress: props.config.PrivacySettings.ShowEmailAddress,
-            showFullName: props.config.PrivacySettings.ShowFullName
-        });
     }
 
     getConfigFromState(config) {
@@ -29,12 +24,19 @@ export default class PrivacySettings extends AdminSettings {
         return config;
     }
 
+    getStateFromConfig(config) {
+        return {
+            showEmailAddress: config.PrivacySettings.ShowEmailAddress,
+            showFullName: config.PrivacySettings.ShowFullName
+        };
+    }
+
     renderTitle() {
         return (
             <h3>
                 <FormattedMessage
-                    id='admin.general.title'
-                    defaultMessage='General Settings'
+                    id='admin.general.privacy'
+                    defaultMessage='Privacy'
                 />
             </h3>
         );
@@ -42,14 +44,7 @@ export default class PrivacySettings extends AdminSettings {
 
     renderSettings() {
         return (
-            <SettingsGroup
-                header={
-                    <FormattedMessage
-                        id='admin.general.privacy'
-                        defaultMessage='Privacy'
-                    />
-                }
-            >
+            <SettingsGroup>
                 <BooleanSetting
                     id='showEmailAddress'
                     label={

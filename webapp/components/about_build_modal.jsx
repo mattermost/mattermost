@@ -65,7 +65,7 @@ export default class AboutBuildModal extends React.Component {
             subTitle = (
                 <FormattedMessage
                     id='about.enterpriseEditionSt'
-                    defaultMessage='Modern enterprise communication from behind your firewall.'
+                    defaultMessage='Modern communication from behind your firewall.'
                 />
             );
 
@@ -104,6 +104,11 @@ export default class AboutBuildModal extends React.Component {
             }
         }
 
+        let version = '\u00a0' + config.Version;
+        if (config.BuildNumber !== config.Version) {
+            version += '\u00a0 (' + config.BuildNumber + ')';
+        }
+
         return (
             <Modal
                 dialogClassName='about-modal'
@@ -135,7 +140,14 @@ export default class AboutBuildModal extends React.Component {
                                         id='about.version'
                                         defaultMessage='Version:'
                                     />
-                                    {'\u00a0' + config.Version + '\u00a0' + config.BuildNumber}
+                                    {version}
+                                </div>
+                                <div>
+                                    <FormattedMessage
+                                        id='about.database'
+                                        defaultMessage='Database:'
+                                    />
+                                    {'\u00a0' + config.SQLDriverName}
                                 </div>
                             </div>
                             {licensee}
@@ -157,6 +169,12 @@ export default class AboutBuildModal extends React.Component {
                                 defaultMessage='Build Hash:'
                             />
                             &nbsp;{config.BuildHash}
+                            <br/>
+                            <FormattedMessage
+                                id='about.hashee'
+                                defaultMessage='EE Build Hash:'
+                            />
+                            &nbsp;{config.BuildHashEnterprise}
                         </p>
                         <p>
                             <FormattedMessage

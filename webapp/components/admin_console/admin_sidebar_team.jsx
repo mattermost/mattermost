@@ -77,7 +77,7 @@ export default class AdminSidebarTeam extends React.Component {
                     title={
                         <FormattedMessage
                             id='admin.sidebar.statistics'
-                            defaultMessage='- Statistics'
+                            defaultMessage='- Team Statistics'
                         />
                     }
                 />

@@ -5,14 +5,14 @@ import React from 'react';
 
 import $ from 'jquery';
 
-import {browserHistory} from 'react-router';
+import {browserHistory} from 'react-router/es6';
 import * as Utils from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
-import * as GlobalActions from 'action_creators/global_actions.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 import Constants from 'utils/constants.jsx';
 const TutorialSteps = Constants.TutorialSteps;
 const Preferences = Constants.Preferences;
@@ -34,23 +34,39 @@ import RemovedFromChannelModal from 'components/removed_from_channel_modal.jsx';
 import RegisterAppModal from 'components/register_app_modal.jsx';
 import ImportThemeModal from 'components/user_settings/import_theme_modal.jsx';
 import InviteMemberModal from 'components/invite_member_modal.jsx';
+import LeaveTeamModal from 'components/leave_team_modal.jsx';
 import SelectTeamModal from 'components/admin_console/select_team_modal.jsx';
 
 export default class NeedsTeam extends React.Component {
     constructor(params) {
         super(params);
 
-        this.onChanged = this.onChanged.bind(this);
+        this.onTeamChanged = this.onTeamChanged.bind(this);
+        this.onPreferencesChanged = this.onPreferencesChanged.bind(this);
+
+        const team = TeamStore.getCurrent();
 
         this.state = {
-            team: TeamStore.getCurrent()
+            team,
+            theme: PreferenceStore.getTheme(team.id)
         };
     }
 
-    onChanged() {
+    onTeamChanged() {
+        const team = TeamStore.getCurrent();
+
         this.setState({
-            team: TeamStore.getCurrent()
+            team,
+            theme: PreferenceStore.getTheme(team.id)
         });
+    }
+
+    onPreferencesChanged(category) {
+        if (!category || category === Preferences.CATEGORY_THEME) {
+            this.setState({
+                theme: PreferenceStore.getTheme(this.state.team.id)
+            });
+        }
     }
 
     componentWillMount() {
@@ -62,7 +78,8 @@ export default class NeedsTeam extends React.Component {
     }
 
     componentDidMount() {
-        TeamStore.addChangeListener(this.onChanged);
+        TeamStore.addChangeListener(this.onTeamChanged);
+        PreferenceStore.addChangeListener(this.onPreferencesChanged);
 
         // Emit view action
         GlobalActions.viewLoggedIn();
@@ -79,10 +96,19 @@ export default class NeedsTeam extends React.Component {
         $(window).on('blur', () => {
             window.isActive = false;
         });
+
+        Utils.applyTheme(this.state.theme);
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        if (!Utils.areObjectsEqual(prevState.theme, this.state.theme)) {
+            Utils.applyTheme(this.state.theme);
+        }
     }
 
     componentWillUnmount() {
-        TeamStore.removeChangeListener(this.onChanged);
+        TeamStore.removeChangeListener(this.onTeamChanged);
+        PreferenceStore.removeChangeListener(this.onPreferencesChanged);
         $(window).off('focus');
         $(window).off('blur');
     }
@@ -122,13 +148,14 @@ export default class NeedsTeam extends React.Component {
                 <ErrorBar/>
                 <div className='container-fluid'>
                     <SidebarRight/>
-                    <SidebarRightMenu/>
+                    <SidebarRightMenu teamType={this.state.team.type}/>
                     {content}
 
                     <GetPostLinkModal/>
                     <GetPublicLinkModal/>
                     <GetTeamInviteLinkModal/>
                     <InviteMemberModal/>
+                    <LeaveTeamModal/>
                     <ImportThemeModal/>
                     <TeamSettingsModal/>
                     <MoreChannelsModal/>

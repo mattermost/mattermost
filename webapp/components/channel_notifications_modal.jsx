@@ -6,7 +6,7 @@ import {Modal} from 'react-bootstrap';
 import SettingItemMin from './setting_item_min.jsx';
 import SettingItemMax from './setting_item_max.jsx';
 
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 
 import {FormattedMessage} from 'react-intl';
@@ -132,6 +132,7 @@ export default class ChannelNotificationsModal extends React.Component {
                         <label>
                             <input
                                 type='radio'
+                                name='desktopNotificationLevel'
                                 checked={notifyActive[0]}
                                 onChange={this.handleUpdateNotifyLevel.bind(this, 'default')}
                             />
@@ -149,6 +150,7 @@ export default class ChannelNotificationsModal extends React.Component {
                         <label>
                             <input
                                 type='radio'
+                                name='desktopNotificationLevel'
                                 checked={notifyActive[1]}
                                 onChange={this.handleUpdateNotifyLevel.bind(this, 'all')}
                             />
@@ -160,6 +162,7 @@ export default class ChannelNotificationsModal extends React.Component {
                         <label>
                             <input
                                 type='radio'
+                                name='desktopNotificationLevel'
                                 checked={notifyActive[2]}
                                 onChange={this.handleUpdateNotifyLevel.bind(this, 'mention')}
                             />
@@ -171,6 +174,7 @@ export default class ChannelNotificationsModal extends React.Component {
                         <label>
                             <input
                                 type='radio'
+                                name='desktopNotificationLevel'
                                 checked={notifyActive[3]}
                                 onChange={this.handleUpdateNotifyLevel.bind(this, 'none')}
                             />
@@ -182,7 +186,6 @@ export default class ChannelNotificationsModal extends React.Component {
 
             const handleUpdateSection = function updateSection(e) {
                 this.updateSection('');
-                this.onListenerChange();
                 e.preventDefault();
             }.bind(this);
 
@@ -286,6 +289,7 @@ export default class ChannelNotificationsModal extends React.Component {
                         <label>
                             <input
                                 type='radio'
+                                name='markUnreadLevel'
                                 checked={this.state.unreadLevel === 'all'}
                                 onChange={this.handleUpdateMarkUnreadLevel.bind(this, 'all')}
                             />
@@ -300,6 +304,7 @@ export default class ChannelNotificationsModal extends React.Component {
                         <label>
                             <input
                                 type='radio'
+                                name='markUnreadLevel'
                                 checked={this.state.unreadLevel === 'mention'}
                                 onChange={this.handleUpdateMarkUnreadLevel.bind(this, 'mention')}
                             />
@@ -312,7 +317,6 @@ export default class ChannelNotificationsModal extends React.Component {
 
             const handleUpdateSection = function handleUpdateSection(e) {
                 this.updateSection('');
-                this.onListenerChange();
                 e.preventDefault();
             }.bind(this);
 

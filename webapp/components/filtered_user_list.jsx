@@ -39,17 +39,28 @@ class FilteredUserList extends React.Component {
         this.state = {
             filter: '',
             users: this.filterUsers(props.teamMembers, props.users),
-            selected: 'team'
+            selected: 'team',
+            teamMembers: props.teamMembers
         };
     }
 
-    componentWillUpdate(nextProps) {
+    componentWillReceiveProps(nextProps) {
         // assume the user list is immutable
         if (this.props.users !== nextProps.users) {
             this.setState({
                 users: this.filterUsers(nextProps.teamMembers, nextProps.users)
             });
         }
+
+        if (this.props.teamMembers !== nextProps.teamMembers) {
+            this.setState({
+                users: this.filterUsers(nextProps.teamMembers, nextProps.users)
+            });
+        }
+    }
+
+    componentDidMount() {
+        ReactDOM.findDOMNode(this.refs.filter).focus();
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -66,6 +77,10 @@ class FilteredUserList extends React.Component {
         var filteredUsers = users.filter((user) => {
             for (const index in teamMembers) {
                 if (teamMembers.hasOwnProperty(index) && teamMembers[index].user_id === user.id) {
+                    if (teamMembers[index].delete_at > 0) {
+                        return false;
+                    }
+
                     return true;
                 }
             }
@@ -107,6 +122,7 @@ class FilteredUserList extends React.Component {
                 return user.username.toLowerCase().indexOf(filter) !== -1 ||
                     (user.first_name && user.first_name.toLowerCase().indexOf(filter) !== -1) ||
                     (user.last_name && user.last_name.toLowerCase().indexOf(filter) !== -1) ||
+                    (user.email && user.email.toLowerCase().indexOf(filter) !== -1) ||
                     (user.nickname && user.nickname.toLowerCase().indexOf(filter) !== -1);
             });
         }

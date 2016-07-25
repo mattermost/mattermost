@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/url"
+	"strconv"
 )
 
 type OutgoingWebhook struct {
@@ -22,6 +24,47 @@ type OutgoingWebhook struct {
 	CallbackURLs StringArray `json:"callback_urls"`
 	DisplayName  string      `json:"display_name"`
 	Description  string      `json:"description"`
+	ContentType  string      `json:"content_type"`
+}
+
+type OutgoingWebhookPayload struct {
+	Token       string `json:"token"`
+	TeamId      string `json:"team_id"`
+	TeamDomain  string `json:"team_domain"`
+	ChannelId   string `json:"channel_id"`
+	ChannelName string `json:"channel_name"`
+	Timestamp   int64  `json:"timestamp"`
+	UserId      string `json:"user_id"`
+	UserName    string `json:"user_name"`
+	PostId      string `json:"post_id"`
+	Text        string `json:"text"`
+	TriggerWord string `json:"trigger_word"`
+}
+
+func (o *OutgoingWebhookPayload) ToJSON() string {
+	b, err := json.Marshal(o)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
+func (o *OutgoingWebhookPayload) ToFormValues() string {
+	v := url.Values{}
+	v.Set("token", o.Token)
+	v.Set("team_id", o.TeamId)
+	v.Set("team_domain", o.TeamDomain)
+	v.Set("channel_id", o.ChannelId)
+	v.Set("channel_name", o.ChannelName)
+	v.Set("timestamp", strconv.FormatInt(o.Timestamp/1000, 10))
+	v.Set("user_id", o.UserId)
+	v.Set("user_name", o.UserName)
+	v.Set("post_id", o.PostId)
+	v.Set("text", o.Text)
+	v.Set("trigger_word", o.TriggerWord)
+
+	return v.Encode()
 }
 
 func (o *OutgoingWebhook) ToJson() string {
@@ -122,6 +165,10 @@ func (o *OutgoingWebhook) IsValid() *AppError {
 
 	if len(o.Description) > 128 {
 		return NewLocAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.description.app_error", nil, "")
+	}
+
+	if len(o.ContentType) > 128 {
+		return NewLocAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.content_type.app_error", nil, "")
 	}
 
 	return nil

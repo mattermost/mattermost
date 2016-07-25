@@ -6,7 +6,7 @@ import BrowserStore from 'stores/browser_store.jsx';
 import {FormattedMessage} from 'react-intl';
 
 import React from 'react';
-import {Link, browserHistory} from 'react-router';
+import {Link, browserHistory} from 'react-router/es6';
 
 export default class SignupTeamComplete extends React.Component {
     constructor(props) {

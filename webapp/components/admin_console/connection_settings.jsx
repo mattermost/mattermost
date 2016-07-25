@@ -18,11 +18,6 @@ export default class ConnectionSettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        this.state = Object.assign(this.state, {
-            allowCorsFrom: props.config.ServiceSettings.AllowCorsFrom,
-            enableInsecureOutgoingConnections: props.config.ServiceSettings.EnableInsecureOutgoingConnections
-        });
     }
 
     getConfigFromState(config) {
@@ -32,12 +27,19 @@ export default class ConnectionSettings extends AdminSettings {
         return config;
     }
 
+    getStateFromConfig(config) {
+        return {
+            allowCorsFrom: config.ServiceSettings.AllowCorsFrom,
+            enableInsecureOutgoingConnections: config.ServiceSettings.EnableInsecureOutgoingConnections
+        };
+    }
+
     renderTitle() {
         return (
             <h3>
                 <FormattedMessage
-                    id='admin.security.title'
-                    defaultMessage='Security Settings'
+                    id='admin.security.connection'
+                    defaultMessage='Connections'
                 />
             </h3>
         );
@@ -45,20 +47,13 @@ export default class ConnectionSettings extends AdminSettings {
 
     renderSettings() {
         return (
-            <SettingsGroup
-                header={
-                    <FormattedMessage
-                        id='admin.security.connection'
-                        defaultMessage='Connections'
-                    />
-                }
-            >
+            <SettingsGroup>
                 <TextSetting
                     id='allowCorsFrom'
                     label={
                         <FormattedMessage
                             id='admin.service.corsTitle'
-                            defaultMessage='Allow Cross-origin Requests from:'
+                            defaultMessage='Enable cross-origin requests from:'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.service.corsEx', 'http://example.com')}

@@ -10,43 +10,30 @@ import PostDeletedModal from './post_deleted_modal.jsx';
 import TutorialTip from './tutorial/tutorial_tip.jsx';
 
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
-import * as GlobalActions from 'action_creators/global_actions.jsx';
-import Client from 'utils/web_client.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
+import Client from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
+import * as ChannelActions from 'actions/channel_actions.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
 import PostStore from 'stores/post_store.jsx';
+import MessageHistoryStore from 'stores/message_history_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 
 import Constants from 'utils/constants.jsx';
 
-import {intlShape, injectIntl, defineMessages, FormattedHTMLMessage} from 'react-intl';
-import {browserHistory} from 'react-router';
+import {FormattedHTMLMessage} from 'react-intl';
+import {browserHistory} from 'react-router/es6';
 
 const Preferences = Constants.Preferences;
 const TutorialSteps = Constants.TutorialSteps;
 const ActionTypes = Constants.ActionTypes;
 const KeyCodes = Constants.KeyCodes;
 
-const holders = defineMessages({
-    comment: {
-        id: 'create_post.comment',
-        defaultMessage: 'Comment'
-    },
-    post: {
-        id: 'create_post.post',
-        defaultMessage: 'Post'
-    },
-    write: {
-        id: 'create_post.write',
-        defaultMessage: 'Write a message...'
-    }
-});
-
 import React from 'react';
 
-class CreatePost extends React.Component {
+export default class CreatePost extends React.Component {
     constructor(props) {
         super(props);
 
@@ -55,7 +42,7 @@ class CreatePost extends React.Component {
         this.getCurrentDraft = this.getCurrentDraft.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.postMsgKeyPress = this.postMsgKeyPress.bind(this);
-        this.handleUserInput = this.handleUserInput.bind(this);
+        this.handleInput = this.handleInput.bind(this);
         this.handleUploadClick = this.handleUploadClick.bind(this);
         this.handleUploadStart = this.handleUploadStart.bind(this);
         this.handleFileUploadComplete = this.handleFileUploadComplete.bind(this);
@@ -69,6 +56,7 @@ class CreatePost extends React.Component {
         this.focusTextbox = this.focusTextbox.bind(this);
         this.showPostDeletedModal = this.showPostDeletedModal.bind(this);
         this.hidePostDeletedModal = this.hidePostDeletedModal.bind(this);
+        this.showShortcuts = this.showShortcuts.bind(this);
 
         PostStore.clearDraftUploads();
 
@@ -77,17 +65,17 @@ class CreatePost extends React.Component {
         this.state = {
             channelId: ChannelStore.getCurrentId(),
             messageText: draft.messageText,
-            lastMessage: '',
             uploadsInProgress: draft.uploadsInProgress,
             previews: draft.previews,
             submitting: false,
             initialText: draft.messageText,
-            ctrlSend: false,
-            centerTextbox: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED,
+            ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
+            fullWidthTextBox: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN,
             showTutorialTip: false,
             showPostDeletedModal: false
         };
     }
+
     getCurrentDraft() {
         const draft = PostStore.getCurrentDraft();
         const safeDraft = {previews: [], messageText: '', uploadsInProgress: []};
@@ -106,6 +94,7 @@ class CreatePost extends React.Component {
 
         return safeDraft;
     }
+
     handleSubmit(e) {
         e.preventDefault();
 
@@ -126,10 +115,12 @@ class CreatePost extends React.Component {
             return;
         }
 
+        MessageHistoryStore.storeMessageInHistory(this.state.messageText);
+
         this.setState({submitting: true, serverError: null});
-        this.setState({lastMessage: this.state.messageText});
+
         if (post.message.indexOf('/') === 0) {
-            Client.executeCommand(
+            ChannelActions.executeCommand(
                 this.state.channelId,
                 post.message,
                 false,
@@ -156,6 +147,7 @@ class CreatePost extends React.Component {
             this.sendMessage(post);
         }
     }
+
     sendMessage(post) {
         post.channel_id = this.state.channelId;
         post.filenames = this.state.previews;
@@ -171,8 +163,13 @@ class CreatePost extends React.Component {
         this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
 
         Client.createPost(post,
-            () => {
-                // DO nothing. Websockets will handle this.
+            (data) => {
+                PostStore.removePendingPost(post.pending_post_id);
+
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECEIVED_POST,
+                    post: data
+                });
             },
             (err) => {
                 if (err.id === 'api.post.create_post.root_id.app_error') {
@@ -191,13 +188,15 @@ class CreatePost extends React.Component {
             }
         );
     }
+
     focusTextbox() {
         if (!Utils.isMobile()) {
             this.refs.textbox.focus();
         }
     }
+
     postMsgKeyPress(e) {
-        if (this.state.ctrlSend && e.ctrlKey || !this.state.ctrlSend) {
+        if (!Utils.isMobile() && ((this.state.ctrlSend && e.ctrlKey) || !this.state.ctrlSend)) {
             if (e.which === KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
                 e.preventDefault();
                 ReactDOM.findDOMNode(this.refs.textbox).blur();
@@ -207,16 +206,20 @@ class CreatePost extends React.Component {
 
         GlobalActions.emitLocalUserTypingEvent(this.state.channelId, '');
     }
-    handleUserInput(messageText) {
+
+    handleInput(e) {
+        const messageText = e.target.value;
         this.setState({messageText});
 
         const draft = PostStore.getCurrentDraft();
         draft.message = messageText;
         PostStore.storeCurrentDraft(draft);
     }
+
     handleUploadClick() {
         this.focusTextbox();
     }
+
     handleUploadStart(clientIds, channelId) {
         const draft = PostStore.getDraft(channelId);
 
@@ -229,6 +232,7 @@ class CreatePost extends React.Component {
         // but this also resets the focus after a drag and drop
         this.focusTextbox();
     }
+
     handleFileUploadComplete(filenames, clientIds, channelId) {
         const draft = PostStore.getDraft(channelId);
 
@@ -248,6 +252,7 @@ class CreatePost extends React.Component {
             this.setState({uploadsInProgress: draft.uploadsInProgress, previews: draft.previews});
         }
     }
+
     handleUploadError(err, clientId, channelId) {
         let message = err;
         if (message && typeof message !== 'string') {
@@ -272,6 +277,7 @@ class CreatePost extends React.Component {
 
         this.setState({serverError: message});
     }
+
     removePreview(id) {
         const previews = Object.assign([], this.state.previews);
         const uploadsInProgress = this.state.uploadsInProgress;
@@ -296,31 +302,55 @@ class CreatePost extends React.Component {
 
         this.setState({previews, uploadsInProgress});
     }
+
     componentWillMount() {
         const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 999);
 
         // wait to load these since they may have changed since the component was constructed (particularly in the case of skipping the tutorial)
         this.setState({
             ctrlSend: PreferenceStore.getBool(Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
-            centerTextbox: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED,
+            fullWidthTextBox: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN,
             showTutorialTip: tutorialStep === TutorialSteps.POST_POPOVER
         });
     }
+
     componentDidMount() {
         ChannelStore.addChangeListener(this.onChange);
         PreferenceStore.addChangeListener(this.onPreferenceChange);
 
         this.focusTextbox();
+        document.addEventListener('keydown', this.showShortcuts);
     }
+
     componentDidUpdate(prevProps, prevState) {
         if (prevState.channelId !== this.state.channelId) {
             this.focusTextbox();
         }
     }
+
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onChange);
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
+        document.removeEventListener('keydown', this.showShortcuts);
     }
+    showShortcuts(e) {
+        if ((e.ctrlKey || e.metaKey) && e.keyCode === Constants.KeyCodes.FORWARD_SLASH) {
+            e.preventDefault();
+            ChannelActions.executeCommand(
+                this.state.channelId,
+                '/shortcuts ',
+                false,
+                null,
+                (err) => {
+                    this.setState({
+                        serverError: err.message,
+                        submitting: false
+                    });
+                }
+            );
+        }
+    }
+
     onChange() {
         const channelId = ChannelStore.getCurrentId();
         if (this.state.channelId !== channelId) {
@@ -329,14 +359,16 @@ class CreatePost extends React.Component {
             this.setState({channelId, messageText: draft.messageText, initialText: draft.messageText, submitting: false, serverError: null, postError: null, previews: draft.previews, uploadsInProgress: draft.uploadsInProgress});
         }
     }
+
     onPreferenceChange() {
         const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 999);
         this.setState({
             showTutorialTip: tutorialStep === TutorialSteps.POST_POPOVER,
             ctrlSend: PreferenceStore.getBool(Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
-            centerTextbox: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED
+            fullWidthTextBox: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN
         });
     }
+
     getFileCount(channelId) {
         if (channelId === this.state.channelId) {
             return this.state.previews.length + this.state.uploadsInProgress.length;
@@ -345,6 +377,7 @@ class CreatePost extends React.Component {
         const draft = PostStore.getDraft(channelId);
         return draft.previews.length + draft.uploadsInProgress.length;
     }
+
     handleKeyDown(e) {
         if (this.state.ctrlSend && e.keyCode === KeyCodes.ENTER && e.ctrlKey === true) {
             this.postMsgKeyPress(e);
@@ -359,8 +392,13 @@ class CreatePost extends React.Component {
             if (!lastPost) {
                 return;
             }
-            const {formatMessage} = this.props.intl;
-            var type = (lastPost.root_id && lastPost.root_id.length > 0) ? formatMessage(holders.comment) : formatMessage(holders.post);
+
+            let type;
+            if (lastPost.root_id && lastPost.root_id.length > 0) {
+                type = Utils.localizeMessage('create_post.comment', 'Comment');
+            } else {
+                type = Utils.localizeMessage('create_post.post', 'Post');
+            }
 
             AppDispatcher.handleViewAction({
                 type: ActionTypes.RECEIVED_EDIT_POST,
@@ -373,29 +411,29 @@ class CreatePost extends React.Component {
             });
         }
 
-        if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.keyCode === KeyCodes.UP) {
-            const channelId = ChannelStore.getCurrentId();
-            const lastPost = PostStore.getCurrentUsersLatestPost(channelId);
-            if (!lastPost) {
-                return;
+        if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
+            const lastMessage = MessageHistoryStore.nextMessageInHistory(e.keyCode, this.state.messageText, 'post');
+            if (lastMessage !== null) {
+                e.preventDefault();
+                this.setState({
+                    messageText: lastMessage
+                });
             }
-            let message = lastPost.message;
-            if (this.state.lastMessage !== '') {
-                message = this.state.lastMessage;
-            }
-            this.setState({messageText: message});
         }
     }
+
     showPostDeletedModal() {
         this.setState({
             showPostDeletedModal: true
         });
     }
+
     hidePostDeletedModal() {
         this.setState({
             showPostDeletedModal: false
         });
     }
+
     createTutorialTip() {
         const screens = [];
 
@@ -416,6 +454,7 @@ class CreatePost extends React.Component {
             />
         );
     }
+
     render() {
         let serverError = null;
         if (this.state.serverError) {
@@ -453,7 +492,7 @@ class CreatePost extends React.Component {
         }
 
         let centerClass = '';
-        if (this.state.centerTextbox) {
+        if (!this.state.fullWidthTextBox) {
             centerClass = 'center';
         }
 
@@ -469,11 +508,11 @@ class CreatePost extends React.Component {
                     <div className='post-create-body'>
                         <div className='post-body__cell'>
                             <Textbox
-                                onUserInput={this.handleUserInput}
+                                onInput={this.handleInput}
                                 onKeyPress={this.postMsgKeyPress}
                                 onKeyDown={this.handleKeyDown}
                                 messageText={this.state.messageText}
-                                createMessage={this.props.intl.formatMessage(holders.write)}
+                                createMessage={Utils.localizeMessage('create_post.write', 'Write a message...')}
                                 channelId={this.state.channelId}
                                 id='post_textbox'
                                 ref='textbox'
@@ -515,9 +554,3 @@ class CreatePost extends React.Component {
         );
     }
 }
-
-CreatePost.propTypes = {
-    intl: intlShape.isRequired
-};
-
-export default injectIntl(CreatePost);

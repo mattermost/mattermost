@@ -8,7 +8,6 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"testing"
-	"time"
 )
 
 func TestCreateIncomingHook(t *testing.T) {
@@ -18,6 +17,7 @@ func TestCreateIncomingHook(t *testing.T) {
 	team := th.SystemAdminTeam
 	channel1 := th.CreateChannel(Client, team)
 	channel2 := th.CreatePrivateChannel(Client, team)
+	channel3 := th.CreateChannel(Client, team)
 	user2 := th.CreateUser(Client)
 	LinkUserToTeam(user2, team)
 
@@ -66,6 +66,13 @@ func TestCreateIncomingHook(t *testing.T) {
 		if result.Data.(*model.IncomingWebhook).TeamId != team.Id {
 			t.Fatal("bad team id wasn't overwritten")
 		}
+	}
+
+	Client.Must(Client.LeaveChannel(channel3.Id))
+
+	hook = &model.IncomingWebhook{ChannelId: channel3.Id, UserId: user.Id, TeamId: team.Id}
+	if _, err := Client.CreateIncomingWebhook(hook); err != nil {
+		t.Fatal(err)
 	}
 
 	Client.Logout()
@@ -260,6 +267,17 @@ func TestCreateOutgoingHook(t *testing.T) {
 
 	if rhook.TeamId != team.Id {
 		t.Fatal("team ids didn't match")
+	}
+
+	hook = &model.OutgoingWebhook{ChannelId: channel1.Id, TriggerWords: []string{"cats", "dogs"}, CallbackURLs: []string{"http://nowhere.com", "http://cats.com"}}
+	hook1 := &model.OutgoingWebhook{ChannelId: channel1.Id, TriggerWords: []string{"cats"}, CallbackURLs: []string{"http://nowhere.com"}}
+
+	if _, err := Client.CreateOutgoingWebhook(hook); err != nil {
+		t.Fatal("multiple trigger words and urls failed")
+	}
+
+	if _, err := Client.CreateOutgoingWebhook(hook1); err == nil {
+		t.Fatal("should have failed - duplicate trigger words and urls")
 	}
 
 	hook = &model.OutgoingWebhook{ChannelId: "junk", CallbackURLs: []string{"http://nowhere.com"}}
@@ -609,13 +627,4 @@ func TestIncomingWebhooks(t *testing.T) {
 	if _, err := Client.DoPost(url, "{\"text\":\"this is a test\"}", "application/json"); err == nil {
 		t.Fatal("should have failed - webhooks turned off")
 	}
-}
-
-func TestZZWebSocketTearDown(t *testing.T) {
-	// *IMPORTANT* - Kind of hacky
-	// This should be the last function in any test file
-	// that calls Setup()
-	// Should be in the last file too sorted by name
-	time.Sleep(2 * time.Second)
-	TearDown()
 }

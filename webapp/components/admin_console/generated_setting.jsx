@@ -27,8 +27,8 @@ export default class GeneratedSetting extends React.Component {
             disabled: false,
             regenerateText: (
                 <FormattedMessage
-                    id='admin.email.regenerate'
-                    defaultMessage='Re-Generate'
+                    id='admin.regenerate'
+                    defaultMessage='Regenerate'
                 />
             )
         };
@@ -83,13 +83,15 @@ export default class GeneratedSetting extends React.Component {
                     <div className='help-text'>
                         {this.props.helpText}
                     </div>
-                    <button
-                        className='btn btn-default'
-                        onClick={this.regenerate}
-                        disabled={this.props.disabled}
-                    >
-                        {this.props.regenerateText}
-                    </button>
+                    <div className='help-text'>
+                        <button
+                            className='btn btn-default'
+                            onClick={this.regenerate}
+                            disabled={this.props.disabled}
+                        >
+                            {this.props.regenerateText}
+                        </button>
+                    </div>
                 </div>
             </div>
         );

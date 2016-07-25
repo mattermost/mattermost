@@ -4,16 +4,15 @@
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
-import * as Utils from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
-import * as GlobalActions from 'action_creators/global_actions.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 
-import Constants from 'utils/constants.jsx';
+import {Constants, Preferences} from 'utils/constants.jsx';
 
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
-import {browserHistory} from 'react-router';
+import {browserHistory} from 'react-router/es6';
 
-const Preferences = Constants.Preferences;
+import AppIcons from 'images/appIcons.png';
 
 const NUM_SCREENS = 3;
 
@@ -92,6 +91,46 @@ export default class TutorialIntroScreens extends React.Component {
     createScreenTwo() {
         const circles = this.createCircles();
 
+        let appDownloadLink = null;
+        let appDownloadImage = null;
+        if (global.window.mm_config.AppDownloadLink) {
+            // not using a FormattedHTMLMessage here since mm_config.AppDownloadLink is configurable and could be used
+            // to inject HTML if we're not careful
+            appDownloadLink = (
+                <FormattedMessage
+                    id='tutorial_intro.mobileApps'
+                    defaultMessage='Install the apps for {link} for easy access and notifications on the go.'
+                    values={{
+                        link: (
+                            <a
+                                href={global.window.mm_config.AppDownloadLink}
+                                target='_blank'
+                                rel='noopener noreferrer'
+                            >
+                                <FormattedMessage
+                                    id='tutorial_intro.mobileAppsLinkText'
+                                    defaultMessage='PC, Mac, iOS and Android'
+                                />
+                            </a>
+                        )
+                    }}
+                />
+            );
+
+            appDownloadImage = (
+                <a
+                    href={global.window.mm_config.AppDownloadLink}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                >
+                    <img
+                        className='tutorial__app-icons'
+                        src={AppIcons}
+                    />
+                </a>
+            );
+        }
+
         return (
             <div>
                 <FormattedHTMLMessage
@@ -100,6 +139,8 @@ export default class TutorialIntroScreens extends React.Component {
                     <p>Communication happens in public discussion channels, private groups and direct messages.</p>
                     <p>Everything is archived and searchable from any web-enabled desktop, laptop or phone.</p>'
                 />
+                {appDownloadLink}
+                {appDownloadImage}
                 {circles}
             </div>
         );
@@ -107,32 +148,45 @@ export default class TutorialIntroScreens extends React.Component {
     createScreenThree() {
         const team = TeamStore.getCurrent();
         let inviteModalLink;
+        let inviteText;
 
-        if (team.type === Constants.INVITE_TEAM) {
-            inviteModalLink = (
-                <a
-                    className='intro-links'
-                    href='#'
-                    onClick={GlobalActions.showInviteMemberModal}
-                >
+        if (global.window.mm_license.IsLicensed !== 'true' || global.window.mm_config.RestrictTeamInvite === Constants.PERMISSIONS_ALL) {
+            if (team.type === Constants.INVITE_TEAM) {
+                inviteModalLink = (
+                    <a
+                        className='intro-links'
+                        href='#'
+                        onClick={GlobalActions.showInviteMemberModal}
+                    >
+                        <FormattedMessage
+                            id='tutorial_intro.invite'
+                            defaultMessage='Invite teammates'
+                        />
+                    </a>
+                );
+            } else {
+                inviteModalLink = (
+                    <a
+                        className='intro-links'
+                        href='#'
+                        onClick={GlobalActions.showGetTeamInviteLinkModal}
+                    >
+                        <FormattedMessage
+                            id='tutorial_intro.teamInvite'
+                            defaultMessage='Invite teammates'
+                        />
+                    </a>
+                );
+            }
+
+            inviteText = (
+                <p>
+                    {inviteModalLink}
                     <FormattedMessage
-                        id='tutorial_intro.invite'
-                        defaultMessage='Invite teammates'
+                        id='tutorial_intro.whenReady'
+                        defaultMessage=' when you’re ready.'
                     />
-                </a>
-            );
-        } else {
-            inviteModalLink = (
-                <a
-                    className='intro-links'
-                    href='#'
-                    onClick={GlobalActions.showGetTeamInviteLinkModal}
-                >
-                    <FormattedMessage
-                        id='tutorial_intro.teamInvite'
-                        defaultMessage='Invite teammates'
-                    />
-                </a>
+                </p>
             );
         }
 
@@ -171,13 +225,7 @@ export default class TutorialIntroScreens extends React.Component {
                         defaultMessage='You’re all set'
                     />
                 </h3>
-                <p>
-                    {inviteModalLink}
-                    <FormattedMessage
-                        id='tutorial_intro.whenReady'
-                        defaultMessage=' when you’re ready.'
-                    />
-                </p>
+                {inviteText}
                 {supportInfo}
                 <FormattedMessage
                     id='tutorial_intro.end'
@@ -218,40 +266,34 @@ export default class TutorialIntroScreens extends React.Component {
         );
     }
     render() {
-        const height = Utils.windowHeight() - 100;
         const screen = this.createScreen();
 
         return (
-            <div
-                className='tutorials__scroll'
-                style={{height}}
-            >
-                <div className='tutorial-steps__container'>
-                    <div className='tutorial__content'>
-                        <div className='tutorial__steps'>
-                            {screen}
-                            <div className='tutorial__footer'>
-                                <button
-                                    className='btn btn-primary'
-                                    tabIndex='1'
-                                    onClick={this.handleNext}
-                                >
-                                    <FormattedMessage
-                                        id='tutorial_intro.next'
-                                        defaultMessage='Next'
-                                    />
-                                </button>
-                                <a
-                                    className='tutorial-skip'
-                                    href='#'
-                                    onClick={this.skipTutorial}
-                                >
-                                    <FormattedMessage
-                                        id='tutorial_intro.skip'
-                                        defaultMessage='Skip tutorial'
-                                    />
-                                </a>
-                            </div>
+            <div className='tutorial-steps__container'>
+                <div className='tutorial__content'>
+                    <div className='tutorial__steps'>
+                        {screen}
+                        <div className='tutorial__footer'>
+                            <button
+                                className='btn btn-primary'
+                                tabIndex='1'
+                                onClick={this.handleNext}
+                            >
+                                <FormattedMessage
+                                    id='tutorial_intro.next'
+                                    defaultMessage='Next'
+                                />
+                            </button>
+                            <a
+                                className='tutorial-skip'
+                                href='#'
+                                onClick={this.skipTutorial}
+                            >
+                                <FormattedMessage
+                                    id='tutorial_intro.skip'
+                                    defaultMessage='Skip tutorial'
+                                />
+                            </a>
                         </div>
                     </div>
                 </div>

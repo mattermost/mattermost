@@ -3,24 +3,31 @@
 
 import FormError from 'components/form_error.jsx';
 import LoadingScreen from 'components/loading_screen.jsx';
-import * as GlobalActions from 'action_creators/global_actions.jsx';
+
+import * as GlobalActions from 'actions/global_actions.jsx';
+import {track} from 'actions/analytics_actions.jsx';
 
 import BrowserStore from 'stores/browser_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
 import * as Utils from 'utils/utils.jsx';
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 import Constants from 'utils/constants.jsx';
-
-import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
-import {browserHistory, Link} from 'react-router';
 
 import React from 'react';
 import ReactDOM from 'react-dom';
+import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
+import {browserHistory, Link} from 'react-router/es6';
 
 import logoImage from 'images/logo.png';
 
 export default class SignupUserComplete extends React.Component {
+    static get propTypes() {
+        return {
+            location: React.PropTypes.object
+        };
+    }
+
     constructor(props) {
         super(props);
 
@@ -36,6 +43,7 @@ export default class SignupUserComplete extends React.Component {
             usedBefore: false,
             email: '',
             teamDisplayName: '',
+            signupDisabledError: '',
             teamName: '',
             teamId: '',
             openServer: false,
@@ -66,10 +74,10 @@ export default class SignupUserComplete extends React.Component {
                     data,
                     hash,
                     inviteId,
-                    () => {
+                    (team) => {
                         GlobalActions.emitInitialLoad(
                             () => {
-                                browserHistory.push('/select_team');
+                                browserHistory.push('/' + team.name);
                             }
                         );
                     },
@@ -154,6 +162,15 @@ export default class SignupUserComplete extends React.Component {
             inviteId,
             loading
         });
+
+        this.setState({
+            signupDisabledError: (
+                <FormattedMessage
+                    id='signup_user_completed.none'
+                    defaultMessage='No user creation method has been enabled. Please contact an administrator for access.'
+                />
+            )
+        });
     }
 
     handleLdapSignup(e) {
@@ -166,11 +183,24 @@ export default class SignupUserComplete extends React.Component {
             this.state.ldapPassword,
             null,
             () => {
-                GlobalActions.emitInitialLoad(
-                    () => {
-                        browserHistory.push('/select_team');
-                    }
-                );
+                if (this.props.location.query.id || this.props.location.query.h) {
+                    Client.addUserToTeamFromInvite(
+                        this.props.location.query.d,
+                        this.props.location.query.h,
+                        this.props.location.query.id,
+                        () => {
+                            this.finishSignup();
+                        },
+                        () => {
+                            // there's not really a good way to deal with this, so just let the user log in like normal
+                            this.finishSignup();
+                        }
+                    );
+
+                    return;
+                }
+
+                this.finishSignup();
             },
             (err) => {
                 if (err.id === 'ent.ldap.do_login.user_not_registered.app_error' || err.id === 'ent.ldap.do_login.user_filtered.app_error') {
@@ -198,8 +228,17 @@ export default class SignupUserComplete extends React.Component {
         );
     }
 
+    finishSignup() {
+        GlobalActions.emitInitialLoad(
+            () => {
+                GlobalActions.loadDefaultLocale();
+                browserHistory.push('/select_team');
+            }
+        );
+    }
+
     handleUserCreated(user, data) {
-        Client.track('signup', 'signup_user_02_complete');
+        track('signup', 'signup_user_02_complete');
         Client.loginById(
             data.id,
             user.password,
@@ -287,22 +326,15 @@ export default class SignupUserComplete extends React.Component {
             return;
         }
 
-        const providedPassword = ReactDOM.findDOMNode(this.refs.password).value.trim();
-        if (!providedPassword || providedPassword.length < Constants.MIN_PASSWORD_LENGTH) {
+        const providedPassword = ReactDOM.findDOMNode(this.refs.password).value;
+        const pwdError = Utils.isValidPassword(providedPassword);
+        if (pwdError != null) {
             this.setState({
                 nameError: '',
                 emailError: '',
-                passwordError: (
-                    <FormattedMessage
-                        id='signup_user_completed.passwordLength'
-                        values={{
-                            min: Constants.MIN_PASSWORD_LENGTH
-                        }}
-                    />
-                ),
+                passwordError: pwdError,
                 serverError: ''
             });
-            return;
         }
 
         this.setState({
@@ -364,7 +396,10 @@ export default class SignupUserComplete extends React.Component {
                 onSubmit={this.handleLdapSignup}
             >
                 <div className='signup__email-container'>
-                    <FormError error={this.state.ldapError}/>
+                    <FormError
+                        error={this.state.ldapError}
+                        margin={true}
+                    />
                     <div className={'form-group' + errorClass}>
                         <input
                             className='form-control'
@@ -373,6 +408,7 @@ export default class SignupUserComplete extends React.Component {
                             onChange={this.handleLdapIdChange}
                             placeholder={ldapIdPlaceholder}
                             spellCheck='false'
+                            autoCapitalize='off'
                         />
                     </div>
                     <div className={'form-group' + errorClass}>
@@ -404,7 +440,7 @@ export default class SignupUserComplete extends React.Component {
     }
 
     render() {
-        Client.track('signup', 'signup_user_01_welcome');
+        track('signup', 'signup_user_01_welcome');
 
         // If we have been used then just display a message
         if (this.state.usedBefore) {
@@ -513,6 +549,7 @@ export default class SignupUserComplete extends React.Component {
                         maxLength='128'
                         autoFocus={true}
                         spellCheck='false'
+                        autoCapitalize='off'
                     />
                     {emailError}
                     {emailHelpText}
@@ -557,6 +594,20 @@ export default class SignupUserComplete extends React.Component {
            );
         }
 
+        if (global.window.mm_config.EnableSaml === 'true' && global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.SAML === 'true') {
+            signupMessage.push(
+                <a
+                    className='btn btn-custom-login saml'
+                    key='saml'
+                    href={`/login/sso/saml${window.location.search}${window.location.search ? '&' : '?'}action=signup`}
+                >
+                    <span>
+                        {global.window.mm_config.SamlLoginButtonText}
+                    </span>
+                </a>
+            );
+        }
+
         let ldapSignup;
         if (global.window.mm_config.EnableLdap === 'true' && global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.LDAP) {
             ldapSignup = (
@@ -596,6 +647,7 @@ export default class SignupUserComplete extends React.Component {
                                     placeholder=''
                                     maxLength={Constants.MAX_USERNAME_LENGTH}
                                     spellCheck='false'
+                                    autoCapitalize='off'
                                 />
                                 {nameError}
                                 {nameHelpText}
@@ -682,12 +734,10 @@ export default class SignupUserComplete extends React.Component {
 
         if (signupMessage.length === 0 && !emailSignup && !ldapSignup) {
             emailSignup = (
-                <div>
-                    <FormattedMessage
-                        id='signup_user_completed.none'
-                        defaultMessage='No user creation method has been enabled.  Please contact an administrator for access.'
-                    />
-                </div>
+                <FormError
+                    error={this.state.signupDisabledError}
+                    margin={true}
+                />
             );
         }
 
@@ -725,6 +775,22 @@ export default class SignupUserComplete extends React.Component {
                                 defaultMessage="Let's create your account"
                             />
                         </h4>
+                        <span className='color--light'>
+                            <FormattedMessage
+                                id='signup_user_completed.haveAccount'
+                                defaultMessage='Already have an account?'
+                            />
+                            {' '}
+                            <Link
+                                to={'/login'}
+                                query={this.props.location.query}
+                            >
+                                <FormattedMessage
+                                    id='signup_user_completed.signIn'
+                                    defaultMessage='Click here to sign in.'
+                                />
+                            </Link>
+                        </span>
                         {signupMessage}
                         {ldapSignup}
                         {emailSignup}
@@ -736,9 +802,3 @@ export default class SignupUserComplete extends React.Component {
         );
     }
 }
-
-SignupUserComplete.defaultProps = {
-};
-SignupUserComplete.propTypes = {
-    location: React.PropTypes.object
-};

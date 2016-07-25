@@ -15,7 +15,12 @@ func TestShortcutsCommand(t *testing.T) {
 	channel := th.BasicChannel
 
 	rs := Client.Must(Client.Command(channel.Id, "/shortcuts ", false)).Data.(*model.CommandResponse)
-	if !strings.Contains(rs.Text, "ALT") {
+	if !strings.Contains(rs.Text, "CTRL") {
 		t.Fatal("failed to display shortcuts")
+	}
+
+	rs = Client.Must(Client.Command(channel.Id, "/shortcuts mac", false)).Data.(*model.CommandResponse)
+	if !strings.Contains(rs.Text, "CMD") {
+		t.Fatal("failed to display Mac shortcuts")
 	}
 }

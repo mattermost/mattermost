@@ -4,11 +4,10 @@
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import * as AsyncClient from 'utils/async_client.jsx';
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 import Constants from 'utils/constants.jsx';
-
 import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
-
+import PreferenceStore from 'stores/preference_store.jsx';
 import {Modal} from 'react-bootstrap';
 
 const holders = defineMessages({
@@ -26,8 +25,23 @@ export default class EditChannelPurposeModal extends React.Component {
 
         this.handleHide = this.handleHide.bind(this);
         this.handleSave = this.handleSave.bind(this);
+        this.handleKeyDown = this.handleKeyDown.bind(this);
+        this.onPreferenceChange = this.onPreferenceChange.bind(this);
 
-        this.state = {serverError: ''};
+        this.ctrlSend = PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter');
+
+        this.state = {
+            serverError: '',
+            submitted: false
+        };
+    }
+
+    componentDidMount() {
+        PreferenceStore.addChangeListener(this.onPreferenceChange);
+    }
+
+    componentWillUnmount() {
+        PreferenceStore.removeChangeListener(this.onPreferenceChange);
     }
 
     componentDidUpdate() {
@@ -44,10 +58,26 @@ export default class EditChannelPurposeModal extends React.Component {
         }
     }
 
+    onPreferenceChange() {
+        this.ctrlSend = PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter');
+    }
+
+    handleKeyDown(e) {
+        if (this.ctrlSend && e.keyCode === Constants.KeyCodes.ENTER && e.ctrlKey) {
+            e.preventDefault();
+            this.handleSave(e);
+        } else if (!this.ctrlSend && e.keyCode === Constants.KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
+            e.preventDefault();
+            this.handleSave(e);
+        }
+    }
+
     handleSave() {
         if (!this.props.channel) {
             return;
         }
+
+        this.setState({submitted: true});
 
         Client.updateChannelPurpose(
             this.props.channel.id,
@@ -145,6 +175,7 @@ export default class EditChannelPurposeModal extends React.Component {
                         rows='6'
                         maxLength='128'
                         defaultValue={this.props.channel.purpose}
+                        onKeyDown={this.handleKeyDown}
                     />
                     {serverError}
                 </Modal.Body>
@@ -162,6 +193,7 @@ export default class EditChannelPurposeModal extends React.Component {
                     <button
                         type='button'
                         className='btn btn-primary'
+                        disabled={this.state.submitted}
                         onClick={this.handleSave}
                     >
                         <FormattedMessage

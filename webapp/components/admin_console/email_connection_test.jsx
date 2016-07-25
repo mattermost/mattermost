@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import {FormattedMessage} from 'react-intl';
@@ -85,7 +85,7 @@ export default class EmailConnectionTestButton extends React.Component {
         if (this.state.testing) {
             contents = (
                 <span>
-                    <span className='glyphicon glyphicon-refresh glyphicon-refresh-animate'/>
+                    <span className='fa fa-refresh icon--rotate'/>
                     {Utils.localizeMessage('admin.email.testing', 'Testing...')}
                 </span>
             );

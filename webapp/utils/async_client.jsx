@@ -2,12 +2,11 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
-import Client from './web_client.jsx';
-import * as GlobalActions from 'action_creators/global_actions.jsx';
+import Client from 'client/web_client.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
-import PreferenceStore from 'stores/preference_store.jsx';
 import PostStore from 'stores/post_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import * as utils from './utils.jsx';
@@ -141,6 +140,43 @@ export function updateLastViewedAt(id) {
             var count = ErrorStore.getConnectionErrorCount();
             ErrorStore.setConnectionErrorCount(count + 1);
             dispatchError(err, 'updateLastViewedAt');
+        }
+    );
+}
+
+export function setLastViewedAt(lastViewedAt, id) {
+    let channelId;
+    if (id) {
+        channelId = id;
+    } else {
+        channelId = ChannelStore.getCurrentId();
+    }
+
+    if (channelId == null) {
+        return;
+    }
+
+    if (lastViewedAt == null) {
+        return;
+    }
+
+    if (isCallInProgress(`setLastViewedAt${channelId}${lastViewedAt}`)) {
+        return;
+    }
+
+    callTracker[`setLastViewedAt${channelId}${lastViewedAt}`] = utils.getTimestamp();
+    Client.setLastViewedAt(
+        channelId,
+        lastViewedAt,
+        () => {
+            callTracker.setLastViewedAt = 0;
+            ErrorStore.clearLastError();
+        },
+        (err) => {
+            callTracker.setLastViewedAt = 0;
+            var count = ErrorStore.getConnectionErrorCount();
+            ErrorStore.setConnectionErrorCount(count + 1);
+            dispatchError(err, 'setLastViewedAt');
         }
     );
 }
@@ -405,7 +441,7 @@ export function getComplianceReports() {
     );
 }
 
-export function getConfig() {
+export function getConfig(success, error) {
     if (isCallInProgress('getConfig')) {
         return;
     }
@@ -419,10 +455,17 @@ export function getConfig() {
                 type: ActionTypes.RECEIVED_CONFIG,
                 config: data
             });
+
+            if (success) {
+                success(data);
+            }
         },
         (err) => {
             callTracker.getConfig = 0;
-            dispatchError(err, 'getConfig');
+
+            if (!error) {
+                dispatchError(err, 'getConfig');
+            }
         }
     );
 }
@@ -603,7 +646,7 @@ export function getPosts(id) {
     );
 }
 
-export function getPostsBefore(postId, offset, numPost) {
+export function getPostsBefore(postId, offset, numPost, isPost) {
     const channelId = ChannelStore.getCurrentId();
     if (channelId == null) {
         return;
@@ -624,7 +667,8 @@ export function getPostsBefore(postId, offset, numPost) {
                 id: channelId,
                 before: true,
                 numRequested: numPost,
-                post_list: data
+                post_list: data,
+                isPost
             });
 
             getProfiles();
@@ -638,7 +682,7 @@ export function getPostsBefore(postId, offset, numPost) {
     );
 }
 
-export function getPostsAfter(postId, offset, numPost) {
+export function getPostsAfter(postId, offset, numPost, isPost) {
     const channelId = ChannelStore.getCurrentId();
     if (channelId == null) {
         return;
@@ -659,7 +703,8 @@ export function getPostsAfter(postId, offset, numPost) {
                 id: channelId,
                 before: false,
                 numRequested: numPost,
-                post_list: data
+                post_list: data,
+                isPost
             });
 
             getProfiles();
@@ -698,21 +743,12 @@ export function getMe() {
 }
 
 export function getStatuses() {
-    const preferences = PreferenceStore.getCategory(Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW);
-
-    const teammateIds = [];
-    for (const [name, value] of preferences) {
-        if (value === 'true') {
-            teammateIds.push(name);
-        }
-    }
-
-    if (isCallInProgress('getStatuses') || teammateIds.length === 0) {
+    if (isCallInProgress('getStatuses')) {
         return;
     }
 
     callTracker.getStatuses = utils.getTimestamp();
-    Client.getStatuses(teammateIds,
+    Client.getStatuses(
         (data) => {
             callTracker.getStatuses = 0;
 
@@ -798,6 +834,29 @@ export function savePreferences(preferences, success, error) {
         },
         (err) => {
             dispatchError(err, 'savePreferences');
+
+            if (error) {
+                error();
+            }
+        }
+    );
+}
+
+export function deletePreferences(preferences, success, error) {
+    Client.deletePreferences(
+        preferences,
+        (data) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.DELETED_PREFERENCES,
+                preferences
+            });
+
+            if (success) {
+                success(data);
+            }
+        },
+        (err) => {
+            dispatchError(err, 'deletePreferences');
 
             if (error) {
                 error();
@@ -1379,6 +1438,91 @@ export function getPublicLink(filename, success, error) {
             } else {
                 dispatchError(err, 'getPublicLink');
             }
+        }
+    );
+}
+
+export function listEmoji() {
+    if (isCallInProgress('listEmoji')) {
+        return;
+    }
+
+    callTracker.listEmoji = utils.getTimestamp();
+
+    Client.listEmoji(
+        (data) => {
+            callTracker.listEmoji = 0;
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_CUSTOM_EMOJIS,
+                emojis: data
+            });
+        },
+        (err) => {
+            callTracker.listEmoji = 0;
+            dispatchError(err, 'listEmoji');
+        }
+    );
+}
+
+export function addEmoji(emoji, image, success, error) {
+    const callName = 'addEmoji' + emoji.name;
+
+    if (isCallInProgress(callName)) {
+        return;
+    }
+
+    callTracker[callName] = utils.getTimestamp();
+
+    Client.addEmoji(
+        emoji,
+        image,
+        (data) => {
+            callTracker[callName] = 0;
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_CUSTOM_EMOJI,
+                emoji: data
+            });
+
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            callTracker[callName] = 0;
+
+            if (error) {
+                error(err);
+            } else {
+                dispatchError(err, 'addEmoji');
+            }
+        }
+    );
+}
+
+export function deleteEmoji(id) {
+    const callName = 'deleteEmoji' + id;
+
+    if (isCallInProgress(callName)) {
+        return;
+    }
+
+    callTracker[callName] = utils.getTimestamp();
+
+    Client.deleteEmoji(
+        id,
+        () => {
+            callTracker[callName] = 0;
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.REMOVED_CUSTOM_EMOJI,
+                id
+            });
+        },
+        (err) => {
+            callTracker[callName] = 0;
+            dispatchError(err, 'deleteEmoji');
         }
     );
 }

@@ -65,7 +65,6 @@ class UserSettingsModal extends React.Component {
         this.handleConfirm = this.handleConfirm.bind(this);
         this.handleCancelConfirmation = this.handleCancelConfirmation.bind(this);
 
-        this.deactivateTab = this.deactivateTab.bind(this);
         this.closeModal = this.closeModal.bind(this);
         this.collapseModal = this.collapseModal.bind(this);
 
@@ -108,7 +107,6 @@ class UserSettingsModal extends React.Component {
             return;
         }
 
-        this.deactivateTab();
         this.props.onModalDismissed();
         return;
     }
@@ -124,8 +122,6 @@ class UserSettingsModal extends React.Component {
     // Called to hide the settings pane when on mobile
     handleCollapse() {
         $(ReactDOM.findDOMNode(this.refs.modalBody)).closest('.modal-dialog').removeClass('display--content');
-
-        this.deactivateTab();
 
         this.setState({
             active_tab: '',
@@ -167,14 +163,6 @@ class UserSettingsModal extends React.Component {
         }
     }
 
-    // Called to let settings tab perform cleanup before being closed
-    deactivateTab() {
-        const activeTab = this.refs.userSettings.getActiveTab();
-        if (activeTab && activeTab.deactivate) {
-            activeTab.deactivate();
-        }
-    }
-
     // Called by settings tabs when their close button is pressed
     closeModal() {
         if (this.requireConfirm) {
@@ -197,8 +185,6 @@ class UserSettingsModal extends React.Component {
         if (!skipConfirm && this.requireConfirm) {
             this.showConfirmModal(() => this.updateTab(tab, true));
         } else {
-            this.deactivateTab();
-
             this.setState({
                 active_tab: tab,
                 active_section: ''
@@ -225,15 +211,15 @@ class UserSettingsModal extends React.Component {
         }
         var tabs = [];
 
-        tabs.push({name: 'general', uiName: formatMessage(holders.general), icon: 'glyphicon glyphicon-cog'});
-        tabs.push({name: 'security', uiName: formatMessage(holders.security), icon: 'glyphicon glyphicon-lock'});
-        tabs.push({name: 'notifications', uiName: formatMessage(holders.notifications), icon: 'glyphicon glyphicon-exclamation-sign'});
+        tabs.push({name: 'general', uiName: formatMessage(holders.general), icon: 'icon fa fa-gear'});
+        tabs.push({name: 'security', uiName: formatMessage(holders.security), icon: 'icon fa fa-lock'});
+        tabs.push({name: 'notifications', uiName: formatMessage(holders.notifications), icon: 'icon fa fa-exclamation-circle'});
         if (global.window.mm_config.EnableOAuthServiceProvider === 'true') {
-            tabs.push({name: 'developer', uiName: formatMessage(holders.developer), icon: 'glyphicon glyphicon-th'});
+            tabs.push({name: 'developer', uiName: formatMessage(holders.developer), icon: 'icon fa fa-th'});
         }
 
-        tabs.push({name: 'display', uiName: formatMessage(holders.display), icon: 'glyphicon glyphicon-eye-open'});
-        tabs.push({name: 'advanced', uiName: formatMessage(holders.advanced), icon: 'glyphicon glyphicon-list-alt'});
+        tabs.push({name: 'display', uiName: formatMessage(holders.display), icon: 'icon fa fa-eye'});
+        tabs.push({name: 'advanced', uiName: formatMessage(holders.advanced), icon: 'icon fa fa-list-alt'});
 
         return (
             <Modal

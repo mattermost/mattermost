@@ -3,6 +3,7 @@
 
 import $ from 'jquery';
 import Constants from 'utils/constants.jsx';
+import * as Utils from 'utils/utils.jsx';
 import 'bootstrap-colorpicker';
 
 import {Popover, OverlayTrigger} from 'react-bootstrap';
@@ -98,23 +99,33 @@ const messages = defineMessages({
 
 import React from 'react';
 
+const HEX_CODE_LENGTH = 7;
+
 class CustomThemeChooser extends React.Component {
     constructor(props) {
         super(props);
 
         this.onPickerChange = this.onPickerChange.bind(this);
-        this.onInputChange = this.onInputChange.bind(this);
         this.pasteBoxChange = this.pasteBoxChange.bind(this);
         this.toggleContent = this.toggleContent.bind(this);
+        this.onCodeThemeChange = this.onCodeThemeChange.bind(this);
 
         this.state = {};
     }
+
     componentDidMount() {
         $('.color-picker').colorpicker({
             format: 'hex'
         });
         $('.color-picker').on('changeColor', this.onPickerChange);
+        $('.group--code').on('change', this.onCodeThemeChange);
     }
+
+    componentWillUnmount() {
+        $('.color-picker').off('changeColor', this.onPickerChange);
+        $('.group--code').off('change', this.onCodeThemeChange);
+    }
+
     componentDidUpdate() {
         const theme = this.props.theme;
         Constants.THEME_ELEMENTS.forEach((element) => {
@@ -124,18 +135,19 @@ class CustomThemeChooser extends React.Component {
             }
         });
     }
+
     onPickerChange(e) {
+        const inputBox = e.target.childNodes[0];
+        if (document.activeElement === inputBox && inputBox.value.length !== HEX_CODE_LENGTH) {
+            return;
+        }
+
         const theme = this.props.theme;
         theme[e.target.id] = e.color.toHex();
         theme.type = 'custom';
         this.props.updateTheme(theme);
     }
-    onInputChange(e) {
-        const theme = this.props.theme;
-        theme[e.target.parentNode.id] = e.target.value;
-        theme.type = 'custom';
-        this.props.updateTheme(theme);
-    }
+
     pasteBoxChange(e) {
         const text = e.target.value;
 
@@ -143,13 +155,17 @@ class CustomThemeChooser extends React.Component {
             return;
         }
 
+        // theme vectors are currently represented as a number of hex color codes followed by the code theme
+
         const colors = text.split(',');
 
         const theme = {type: 'custom'};
         let index = 0;
         Constants.THEME_ELEMENTS.forEach((element) => {
             if (index < colors.length - 1) {
-                theme[element.id] = colors[index];
+                if (Utils.isHexColor(colors[index])) {
+                    theme[element.id] = colors[index];
+                }
             }
             index++;
         });
@@ -157,6 +173,7 @@ class CustomThemeChooser extends React.Component {
 
         this.props.updateTheme(theme);
     }
+
     toggleContent(e) {
         e.stopPropagation();
         if ($(e.target).hasClass('theme-elements__header')) {
@@ -167,6 +184,13 @@ class CustomThemeChooser extends React.Component {
             $(e.target).closest('.theme-elements__header').toggleClass('open');
         }
     }
+
+    onCodeThemeChange(e) {
+        const theme = this.props.theme;
+        theme.codeTheme = e.target.value;
+        this.props.updateTheme(theme);
+    }
+
     render() {
         const {formatMessage} = this.props.intl;
         const theme = this.props.theme;
@@ -220,8 +244,7 @@ class CustomThemeChooser extends React.Component {
                             <select
                                 className='form-control'
                                 type='text'
-                                value={theme[element.id]}
-                                onChange={this.onInputChange}
+                                defaultValue={theme[element.id]}
                             >
                                 {codeThemeOptions}
                             </select>
@@ -253,8 +276,7 @@ class CustomThemeChooser extends React.Component {
                             <input
                                 className='form-control'
                                 type='text'
-                                value={theme[element.id]}
-                                onChange={this.onInputChange}
+                                defaultValue={theme[element.id]}
                             />
                             <span className='input-group-addon'><i></i></span>
                         </div>
@@ -276,8 +298,7 @@ class CustomThemeChooser extends React.Component {
                             <input
                                 className='form-control'
                                 type='text'
-                                value={theme[element.id]}
-                                onChange={this.onInputChange}
+                                defaultValue={theme[element.id]}
                             />
                             <span className='input-group-addon'><i></i></span>
                         </div>
@@ -299,8 +320,7 @@ class CustomThemeChooser extends React.Component {
                             <input
                                 className='form-control'
                                 type='text'
-                                value={theme[element.id]}
-                                onChange={this.onInputChange}
+                                defaultValue={theme[element.id]}
                             />
                             <span className='input-group-addon'><i></i></span>
                         </div>
@@ -337,7 +357,10 @@ class CustomThemeChooser extends React.Component {
                         className='theme-elements__header'
                         onClick={this.toggleContent}
                     >
-                        {'Sidebar Styles'}
+                        <FormattedMessage
+                            id='user.settings.custom_theme.sidebarTitle'
+                            defaultMessage='Sidebar Styles'
+                        />
                         <div className='header__icon'>
                             <i className='fa fa-plus'></i>
                             <i className='fa fa-minus'></i>
@@ -352,7 +375,10 @@ class CustomThemeChooser extends React.Component {
                         className='theme-elements__header'
                         onClick={this.toggleContent}
                     >
-                        {'Center Channel Styles'}
+                        <FormattedMessage
+                            id='user.settings.custom_theme.centerChannelTitle'
+                            defaultMessage='Center Channel Styles'
+                        />
                         <div className='header__icon'>
                             <i className='fa fa-plus'></i>
                             <i className='fa fa-minus'></i>
@@ -367,7 +393,10 @@ class CustomThemeChooser extends React.Component {
                         className='theme-elements__header'
                         onClick={this.toggleContent}
                     >
-                        {'Link and Button Styles'}
+                        <FormattedMessage
+                            id='user.settings.custom_theme.linkButtonTitle'
+                            defaultMessage='Link and Button Styles'
+                        />
                         <div className='header__icon'>
                             <i className='fa fa-plus'></i>
                             <i className='fa fa-minus'></i>

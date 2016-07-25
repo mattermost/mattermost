@@ -3,7 +3,6 @@
 
 import TeamStore from 'stores/team_store.jsx';
 import ImportTab from './team_import_tab.jsx';
-import ExportTab from './team_export_tab.jsx';
 import GeneralTab from './team_general_tab.jsx';
 import * as Utils from 'utils/utils.jsx';
 
@@ -55,13 +54,6 @@ export default class TeamSettings extends React.Component {
                         activeSection={this.props.activeSection}
                         updateSection={this.props.updateSection}
                     />
-                </div>
-            );
-            break;
-        case 'export':
-            result = (
-                <div>
-                    <ExportTab/>
                 </div>
             );
             break;

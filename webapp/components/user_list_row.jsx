@@ -4,7 +4,7 @@
 import Constants from 'utils/constants.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import * as Utils from 'utils/utils.jsx';
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 import React from 'react';
 
 export default function UserListRow({user, teamMember, actions, actionProps}) {
@@ -17,16 +17,19 @@ export default function UserListRow({user, teamMember, actions, actionProps}) {
         name = `${Utils.getFullName(user)} (@${user.username})`;
     }
 
-    const buttons = actions.map((Action, index) => {
-        return (
-            <Action
-                key={index.toString()}
-                user={user}
-                teamMember={teamMember}
-                {...actionProps}
-            />
-        );
-    });
+    let buttons = null;
+    if (actions) {
+        buttons = actions.map((Action, index) => {
+            return (
+                <Action
+                    key={index.toString()}
+                    user={user}
+                    teamMember={teamMember}
+                    {...actionProps}
+                />
+            );
+        });
+    }
 
     return (
         <div

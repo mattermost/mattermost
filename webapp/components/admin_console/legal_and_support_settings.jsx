@@ -15,15 +15,6 @@ export default class LegalAndSupportSettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        this.state = Object.assign(this.state, {
-            termsOfServiceLink: props.config.SupportSettings.TermsOfServiceLink,
-            privacyPolicyLink: props.config.SupportSettings.PrivacyPolicyLink,
-            aboutLink: props.config.SupportSettings.AboutLink,
-            helpLink: props.config.SupportSettings.HelpLink,
-            reportAProblemLink: props.config.SupportSettings.ReportAProblemLink,
-            supportEmail: props.config.SupportSettings.SupportEmail
-        });
     }
 
     getConfigFromState(config) {
@@ -37,12 +28,23 @@ export default class LegalAndSupportSettings extends AdminSettings {
         return config;
     }
 
+    getStateFromConfig(config) {
+        return {
+            termsOfServiceLink: config.SupportSettings.TermsOfServiceLink,
+            privacyPolicyLink: config.SupportSettings.PrivacyPolicyLink,
+            aboutLink: config.SupportSettings.AboutLink,
+            helpLink: config.SupportSettings.HelpLink,
+            reportAProblemLink: config.SupportSettings.ReportAProblemLink,
+            supportEmail: config.SupportSettings.SupportEmail
+        };
+    }
+
     renderTitle() {
         return (
             <h3>
                 <FormattedMessage
-                    id='admin.customization.title'
-                    defaultMessage='Customization Settings'
+                    id='admin.customization.support'
+                    defaultMessage='Legal and Support'
                 />
             </h3>
         );
@@ -50,14 +52,7 @@ export default class LegalAndSupportSettings extends AdminSettings {
 
     renderSettings() {
         return (
-            <SettingsGroup
-                header={
-                    <FormattedMessage
-                        id='admin.customization.support'
-                        defaultMessage='Legal and Support'
-                    />
-                }
-            >
+            <SettingsGroup>
                 <TextSetting
                     id='termsOfServiceLink'
                     label={
@@ -148,13 +143,13 @@ export default class LegalAndSupportSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.support.emailTitle'
-                            defaultMessage='Support email:'
+                            defaultMessage='Support Email:'
                         />
                     }
                     helpText={
                         <FormattedMessage
                             id='admin.support.emailHelp'
-                            defaultMessage='Email shown during tutorial for end users to ask support questions.'
+                            defaultMessage='Email address displayed on email notifications and during tutorial for end users to ask support questions.'
                         />
                     }
                     value={this.state.supportEmail}

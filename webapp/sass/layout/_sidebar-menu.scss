@@ -68,12 +68,17 @@
                 line-height: 40px;
                 padding: 0 15px;
 
-                .fa,
-                .glyphicon {
+                .icon {
+                    display: inline-block;
                     left: -5px;
                     position: relative;
                     text-align: center;
                     width: 25px;
+                }
+
+                .mentions {
+                    font-size: 17px;
+                    font-weight: bold;
                 }
             }
         }

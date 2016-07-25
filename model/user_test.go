@@ -33,7 +33,7 @@ func TestUserJson(t *testing.T) {
 func TestUserPreSave(t *testing.T) {
 	user := User{Password: "test"}
 	user.PreSave()
-	user.Etag()
+	user.Etag(true, true)
 }
 
 func TestUserPreUpdate(t *testing.T) {

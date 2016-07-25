@@ -2,14 +2,14 @@
 // See License.txt for license information.
 
 import * as Utils from 'utils/utils.jsx';
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 import UserStore from 'stores/user_store.jsx';
 
 import NewChannelModal from './new_channel_modal.jsx';
 import ChangeURLModal from './change_url_modal.jsx';
 
 import {intlShape, injectIntl, defineMessages} from 'react-intl';
-import {browserHistory} from 'react-router';
+import {browserHistory} from 'react-router/es6';
 
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import Constants from 'utils/constants.jsx';
@@ -65,6 +65,7 @@ class NewChannelFlow extends React.Component {
             channelDisplayName: '',
             channelName: '',
             channelPurpose: '',
+            channelHeader: '',
             nameModified: false
         };
     }
@@ -78,6 +79,7 @@ class NewChannelFlow extends React.Component {
                 channelDisplayName: '',
                 channelName: '',
                 channelPurpose: '',
+                channelHeader: '',
                 nameModified: false
             });
         }
@@ -99,6 +101,7 @@ class NewChannelFlow extends React.Component {
             name: this.state.channelName,
             display_name: this.state.channelDisplayName,
             purpose: this.state.channelPurpose,
+            header: this.state.channelHeader,
             type: this.state.channelType
         };
         Client.createChannel(
@@ -153,7 +156,8 @@ class NewChannelFlow extends React.Component {
     channelDataChanged(data) {
         this.setState({
             channelDisplayName: data.displayName,
-            channelPurpose: data.purpose
+            channelPurpose: data.purpose,
+            channelHeader: data.header
         });
         if (!this.state.nameModified) {
             this.setState({channelName: Utils.cleanUpUrlable(data.displayName.trim())});

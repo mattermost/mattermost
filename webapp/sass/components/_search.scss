@@ -11,7 +11,7 @@
     padding: 12px 8px 0 0;
 }
 
-.glyphicon-refresh-animate {
+.icon--rotate {
     @include animation(spin .7s infinite linear);
 }
 
@@ -88,7 +88,7 @@
         }
     }
 
-    .glyphicon-refresh-animate {
+    .icon--refresh {
         @include opacity(0.5);
         position: absolute;
         right: 27px;

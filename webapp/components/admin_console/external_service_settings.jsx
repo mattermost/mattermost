@@ -17,11 +17,6 @@ export default class ExternalServiceSettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        this.state = Object.assign(this.state, {
-            segmentDeveloperKey: props.config.ServiceSettings.SegmentDeveloperKey,
-            googleDeveloperKey: props.config.ServiceSettings.GoogleDeveloperKey
-        });
     }
 
     getConfigFromState(config) {
@@ -31,12 +26,19 @@ export default class ExternalServiceSettings extends AdminSettings {
         return config;
     }
 
+    getStateFromConfig(config) {
+        return {
+            segmentDeveloperKey: config.ServiceSettings.SegmentDeveloperKey,
+            googleDeveloperKey: config.ServiceSettings.GoogleDeveloperKey
+        };
+    }
+
     renderTitle() {
         return (
             <h3>
                 <FormattedMessage
-                    id='admin.integration.title'
-                    defaultMessage='Integration Settings'
+                    id='admin.integrations.external'
+                    defaultMessage='External Services'
                 />
             </h3>
         );
@@ -44,27 +46,20 @@ export default class ExternalServiceSettings extends AdminSettings {
 
     renderSettings() {
         return (
-            <SettingsGroup
-                header={
-                    <FormattedMessage
-                        id='admin.integrations.external'
-                        defaultMessage='External Services'
-                    />
-                }
-            >
+            <SettingsGroup>
                 <TextSetting
                     id='segmentDeveloperKey'
                     label={
                         <FormattedMessage
                             id='admin.service.segmentTitle'
-                            defaultMessage='Segment Developer Key:'
+                            defaultMessage='Segment Write Key:'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.service.segmentExample', 'Ex "g3fgGOXJAQ43QV7rAh6iwQCkV4cA1Gs"')}
                     helpText={
                         <FormattedMessage
                             id='admin.service.segmentDescription'
-                            defaultMessage='For users running a SaaS services, sign up for a key at Segment.com to track metrics.'
+                            defaultMessage='Segment.com is an online service that can be optionally used to track detailed system statistics. You can obtain a key by signing-up for a free account at Segment.com.'
                         />
                     }
                     value={this.state.segmentDeveloperKey}
@@ -75,14 +70,14 @@ export default class ExternalServiceSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.service.googleTitle'
-                            defaultMessage='Google Developer Key:'
+                            defaultMessage='Google API Key:'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.service.googleExample', 'Ex "7rAh6iwQCkV4cA1Gsg3fgGOXJAQ43QV"')}
                     helpText={
                         <FormattedHTMLMessage
                             id='admin.service.googleDescription'
-                            defaultMessage='Set this key to enable embedding of YouTube video previews based on hyperlinks appearing in messages or comments. Instructions to obtain a key available at <a href="https://www.youtube.com/watch?v=Im69kzhpR3I" target="_blank">https://www.youtube.com/watch?v=Im69kzhpR3I</a>. Leaving the field blank disables the automatic generation of YouTube video previews from links.'
+                            defaultMessage='Set this key to enable the display of titles for embedded YouTube video previews. Without the key, YouTube previews will still be created based on hyperlinks appearing in messages or comments but they will not show the video title. View a <a href="https://www.youtube.com/watch?v=Im69kzhpR3I" target="_blank">Google Developers Tutorial</a> for instructions on how to obtain a key.'
                         />
                     }
                     value={this.state.googleDeveloperKey}

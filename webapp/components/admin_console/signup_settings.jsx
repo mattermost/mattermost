@@ -16,12 +16,6 @@ export default class SignupSettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        this.state = Object.assign(this.state, {
-            requireEmailVerification: props.config.EmailSettings.RequireEmailVerification,
-            inviteSalt: props.config.EmailSettings.InviteSalt,
-            enableOpenServer: props.config.TeamSettings.EnableOpenServer
-        });
     }
 
     getConfigFromState(config) {
@@ -32,12 +26,20 @@ export default class SignupSettings extends AdminSettings {
         return config;
     }
 
+    getStateFromConfig(config) {
+        return {
+            requireEmailVerification: config.EmailSettings.RequireEmailVerification,
+            inviteSalt: config.EmailSettings.InviteSalt,
+            enableOpenServer: config.TeamSettings.EnableOpenServer
+        };
+    }
+
     renderTitle() {
         return (
             <h3>
                 <FormattedMessage
-                    id='admin.security.title'
-                    defaultMessage='Security Settings'
+                    id='admin.security.signup'
+                    defaultMessage='Signup'
                 />
             </h3>
         );
@@ -45,14 +47,7 @@ export default class SignupSettings extends AdminSettings {
 
     renderSettings() {
         return (
-            <SettingsGroup
-                header={
-                    <FormattedMessage
-                        id='admin.security.signup'
-                        defaultMessage='Signup'
-                    />
-                }
-            >
+            <SettingsGroup>
                 <BooleanSetting
                     id='requireEmailVerification'
                     label={
@@ -82,13 +77,13 @@ export default class SignupSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.email.inviteSaltTitle'
-                            defaultMessage='Invite Salt:'
+                            defaultMessage='Email Invite Salt:'
                         />
                     }
                     helpText={
                         <FormattedMessage
                             id='admin.email.inviteSaltDescription'
-                            defaultMessage='32-character salt added to signing of email invites. Randomly generated on install. Click "Re-Generate" to create new salt.'
+                            defaultMessage='32-character salt added to signing of email invites. Randomly generated on install. Click "Regenerate" to create new salt.'
                         />
                     }
                     value={this.state.inviteSalt}

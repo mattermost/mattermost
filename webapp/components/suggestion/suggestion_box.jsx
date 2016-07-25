@@ -5,7 +5,7 @@ import $ from 'jquery';
 import ReactDOM from 'react-dom';
 
 import Constants from 'utils/constants.jsx';
-import * as GlobalActions from 'action_creators/global_actions.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 import SuggestionStore from 'stores/suggestion_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 
@@ -21,17 +21,17 @@ export default class SuggestionBox extends React.Component {
 
         this.handleDocumentClick = this.handleDocumentClick.bind(this);
 
-        this.handleChange = this.handleChange.bind(this);
         this.handleCompleteWord = this.handleCompleteWord.bind(this);
+        this.handleInput = this.handleInput.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handlePretextChanged = this.handlePretextChanged.bind(this);
 
         this.suggestionId = Utils.generateId();
+        SuggestionStore.registerSuggestionBox(this.suggestionId);
     }
 
     componentDidMount() {
-        SuggestionStore.registerSuggestionBox(this.suggestionId);
-        $(document).on('click', this.handleDocumentClick);
+        $(document).on('click touchstart', this.handleDocumentClick);
 
         SuggestionStore.addCompleteWordListener(this.suggestionId, this.handleCompleteWord);
         SuggestionStore.addPretextChangedListener(this.suggestionId, this.handlePretextChanged);
@@ -42,7 +42,7 @@ export default class SuggestionBox extends React.Component {
         SuggestionStore.removePretextChangedListener(this.suggestionId, this.handlePretextChanged);
 
         SuggestionStore.unregisterSuggestionBox(this.suggestionId);
-        $(document).off('click', this.handleDocumentClick);
+        $(document).off('click touchstart', this.handleDocumentClick);
     }
 
     getTextbox() {
@@ -58,6 +58,11 @@ export default class SuggestionBox extends React.Component {
 
     handleDocumentClick(e) {
         const container = $(ReactDOM.findDOMNode(this));
+        if ($('.suggestion-list__content').length) {
+            if (!($(e.target).hasClass('suggestion-list__content') || $(e.target).parents().hasClass('suggestion-list__content'))) {
+                $('body').removeClass('modal-open');
+            }
+        }
         if (!(container.is(e.target) || container.has(e.target).length > 0)) {
             // we can't just use blur for this because it fires and hides the children before
             // their click handlers can be called
@@ -65,32 +70,47 @@ export default class SuggestionBox extends React.Component {
         }
     }
 
-    handleChange(e) {
+    handleInput(e) {
         const textbox = ReactDOM.findDOMNode(this.refs.textbox);
         const caret = Utils.getCaretPosition(textbox);
         const pretext = textbox.value.substring(0, caret);
 
         GlobalActions.emitSuggestionPretextChanged(this.suggestionId, pretext);
 
-        if (this.props.onUserInput) {
-            this.props.onUserInput(textbox.value);
-        }
-
-        if (this.props.onChange) {
-            this.props.onChange(e);
+        if (this.props.onInput) {
+            this.props.onInput(e);
         }
     }
 
-    handleCompleteWord(term) {
-        const textbox = ReactDOM.findDOMNode(this.refs.textbox);
+    handleCompleteWord(term, matchedPretext) {
+        const textbox = this.refs.textbox;
         const caret = Utils.getCaretPosition(textbox);
+        const text = textbox.value;
+        const pretext = text.substring(0, caret);
 
-        const text = this.props.value;
-        const prefix = text.substring(0, caret - SuggestionStore.getMatchedPretext(this.suggestionId).length);
+        let prefix;
+        if (pretext.endsWith(matchedPretext)) {
+            prefix = pretext.substring(0, pretext.length - matchedPretext.length);
+        } else {
+            // the pretext has changed since we got a term to complete so see if the term still fits the pretext
+            const termWithoutMatched = term.substring(matchedPretext.length);
+            const overlap = SuggestionBox.findOverlap(pretext, termWithoutMatched);
+
+            prefix = pretext.substring(0, pretext.length - overlap.length - matchedPretext.length);
+        }
+
         const suffix = text.substring(caret);
 
-        if (this.props.onUserInput) {
-            this.props.onUserInput(prefix + term + ' ' + suffix);
+        this.refs.textbox.value = prefix + term + ' ' + suffix;
+
+        if (this.props.onInput) {
+            // fake an input event to send back to parent components
+            const e = {
+                target: this.refs.textbox
+            };
+
+            // don't call handleInput or we'll get into an event loop
+            this.props.onInput(e);
         }
 
         // set the caret position after the next rendering
@@ -112,6 +132,7 @@ export default class SuggestionBox extends React.Component {
                 e.preventDefault();
             } else if (e.which === KeyCodes.ESCAPE) {
                 GlobalActions.emitClearSuggestions(this.suggestionId);
+                e.stopPropagation();
             } else if (this.props.onKeyDown) {
                 this.props.onKeyDown(e);
             }
@@ -127,18 +148,15 @@ export default class SuggestionBox extends React.Component {
     }
 
     render() {
-        const newProps = Object.assign({}, this.props, {
-            onChange: this.handleChange,
-            onKeyDown: this.handleKeyDown
-        });
-
         let textbox = null;
         if (this.props.type === 'input') {
             textbox = (
                 <input
                     ref='textbox'
                     type='text'
-                    {...newProps}
+                    {...this.props}
+                    onInput={this.handleInput}
+                    onKeyDown={this.handleKeyDown}
                 />
             );
         } else if (this.props.type === 'search') {
@@ -146,7 +164,9 @@ export default class SuggestionBox extends React.Component {
                 <input
                     ref='textbox'
                     type='search'
-                    {...newProps}
+                    {...this.props}
+                    onInput={this.handleInput}
+                    onKeyDown={this.handleKeyDown}
                 />
             );
         } else if (this.props.type === 'textarea') {
@@ -154,7 +174,9 @@ export default class SuggestionBox extends React.Component {
                 <TextareaAutosize
                     id={this.suggestionId}
                     ref='textbox'
-                    {...newProps}
+                    {...this.props}
+                    onInput={this.handleInput}
+                    onKeyDown={this.handleKeyDown}
                 />
             );
         }
@@ -164,25 +186,42 @@ export default class SuggestionBox extends React.Component {
         return (
             <div>
                 {textbox}
-                <SuggestionListComponent suggestionId={this.suggestionId}/>
+                <SuggestionListComponent
+                    suggestionId={this.suggestionId}
+                    location={this.props.listStyle}
+                />
             </div>
         );
+    }
+
+    // Finds the longest substring that's at both the end of b and the start of a. For example,
+    // if a = "firepit" and b = "pitbull", findOverlap would return "pit".
+    static findOverlap(a, b) {
+        for (let i = b.length; i > 0; i--) {
+            const substring = b.substring(0, i);
+
+            if (a.endsWith(substring)) {
+                return substring;
+            }
+        }
+
+        return '';
     }
 }
 
 SuggestionBox.defaultProps = {
-    type: 'input'
+    type: 'input',
+    listStyle: 'top'
 };
 
 SuggestionBox.propTypes = {
     listComponent: React.PropTypes.func.isRequired,
     type: React.PropTypes.oneOf(['input', 'textarea', 'search']).isRequired,
     value: React.PropTypes.string.isRequired,
-    onUserInput: React.PropTypes.func,
     providers: React.PropTypes.arrayOf(React.PropTypes.object),
+    listStyle: React.PropTypes.string,
 
     // explicitly name any input event handlers we override and need to manually call
-    onChange: React.PropTypes.func,
-    onKeyDown: React.PropTypes.func,
-    onHeightChange: React.PropTypes.func
+    onInput: React.PropTypes.func,
+    onKeyDown: React.PropTypes.func
 };

@@ -1,34 +1,34 @@
 # Markdown List Testing
 Verify that all list types render as expected.
 
-### Single-item Ordered List
+### Single-Item Ordered List
 
-**Expected:**  
+**Expected:**
 ```
 7. Single Item
 ```
 
-**Actual:**  
+**Actual:**
 7. Single Item
 
-### Multi-item Ordered List  
+### Multi-Item Ordered List
 
-**Expected:**  
+**Expected:**
 ```
 1. One
 2. Two
 3. Three
 ```
 
-**Actual:**  
+**Actual:**
 
-3. One  
-2. Two  
-1. Three  
+1. One
+1. Two
+1. Three
 
 ### Nested Ordered List
 
-**Expected:**  
+**Expected:**
 ```
 1. Alpha
     1. Bravo
@@ -38,42 +38,42 @@ Verify that all list types render as expected.
     2. Foxtrot
 ```
 
-**Actual:**  
+**Actual:**
 
 1. Alpha
-  1. Bravo  
-1. Charlie  
-1. Delta  
-  1. Echo  
-  1. Foxtrot  
+  1. Bravo
+1. Charlie
+1. Delta
+  1. Echo
+  1. Foxtrot
 
-### Single-item Unordered List
+### Single-Item Unordered List
 
-**Expected:**  
+**Expected:**
 ```
 • Single Item
 ```
 
-**Actual:**  
+**Actual:**
 * Single Item
 
-### Multi-item Unordered List
+### Multi-Item Unordered List
 
-**Expected:**  
+**Expected:**
 ```
 • One
 • Two
 • Three
 ```
 
-**Actual:**  
+**Actual:**
 * One
 - Two
 + Three
 
 ### Nested Unordered List
 
-**Expected:**  
+**Expected:**
 ```
 • Alpha
     • Bravo
@@ -83,7 +83,7 @@ Verify that all list types render as expected.
     • Foxtrot
 ```
 
-**Actual:**  
+**Actual:**
 + Alpha
     * Bravo
 - Charlie
@@ -93,36 +93,36 @@ Verify that all list types render as expected.
 
 ### Mixed List Starting Ordered
 
-**Expected:**  
+**Expected:**
 ```
 1. One
 2. Two
 3. Three
 ```
 
-**Actual:**  
+**Actual:**
 
-1. One  
-+ Two  
-- Three  
+1. One
++ Two
+- Three
 
 ### Mixed List Starting Unordered
 
-**Expected:**  
+**Expected:**
 ```
 • Monday
 • Tuesday
 • Wednesday
 ```
 
-**Actual:**  
+**Actual:**
 + Monday
 1. Tuesday
 * Wednesday
 
 ### Nested Mixed List
 
-**Expected:**  
+**Expected:**
 ```
 • Alpha
     1. Bravo
@@ -138,11 +138,11 @@ Verify that all list types render as expected.
     • Lima
 • Mike
     1. November
-        1. Oscar
-            1. Papa
+        4. Oscar
+            5. Papa
 ```
 
-**Actual:**  
+**Actual:**
 - Alpha
     1. Bravo
         * Charlie
@@ -152,8 +152,8 @@ Verify that all list types render as expected.
     + Golf
         1. Hotel
     - India
-        2. Juliet
-        3. Kilo
+        1. Juliet
+        2. Kilo
     * Lima
 1. Mike
     1. November
@@ -162,7 +162,7 @@ Verify that all list types render as expected.
 
 ### Ordered Lists Separated by Carriage Returns
 
-**Expected:**  
+**Expected:**
 ```
 1. One
   • Two
@@ -171,48 +171,28 @@ Verify that all list types render as expected.
 2. Two
 ```
 
-**Actual:**  
+**Actual:**
 
 1. One
-  - Two 
-    
-    
+  - Two
+
 1. One
 2. Two
 
-### Carriage Return and New Line After a List
-
-**Expected:**  
-```
-1. One
- - Two
-This text should be on a new line.
-```
-
-**Actual:**  
-
-1. One
- - Two
-This text should be on a new line.
+### New Line After a List
 
 **Expected:**
 ```
-List:
-
-- One
-- Two
-
-This line should have a line break above it.
+1. One
+2. Two
+This text should be on a new line.
 ```
 
-**Actual:**  
+**Actual:**
 
-List:
-
-- One
-- Two
-
-This line should have a line break above it.
+1. One
+2. Two
+This text should be on a new line.
 
 ### Task Lists
 
@@ -225,7 +205,7 @@ This line should have a line break above it.
 [x] Completed item
 ```
 
-**Actual:**  
+**Actual:**
 
 - [ ] One
   - [ ] Subpoint one
@@ -242,9 +222,23 @@ This line should have a line break above it.
 3. [x] Completed item
 ```
 
-**Actual:**  
+**Actual:**
 
 1. [ ] One
 2. [ ] Two
 3. [x] Completed item
 
+### Multiple Lists
+
+**Expected:**
+```
+List A:
+1. One
+List B:
+2. Two
+```
+
+List A:
+1. One
+List B:
+2. Two

@@ -7,7 +7,9 @@ export default class FormError extends React.Component {
     static get propTypes() {
         // accepts either a single error or an array of errors
         return {
+            type: React.PropTypes.node,
             error: React.PropTypes.node,
+            margin: React.PropTypes.node,
             errors: React.PropTypes.arrayOf(React.PropTypes.node)
         };
     }
@@ -39,8 +41,28 @@ export default class FormError extends React.Component {
             return null;
         }
 
+        if (this.props.type === 'backstage') {
+            return (
+                <div className='pull-left has-error'>
+                    <label className='control-label'>
+                        {message}
+                    </label>
+                </div>
+            );
+        }
+
+        if (this.props.margin) {
+            return (
+                <div className='form-group has-error'>
+                    <label className='control-label'>
+                        {message}
+                    </label>
+                </div>
+            );
+        }
+
         return (
-            <div className='form-group has-error'>
+            <div className='col-sm-12 has-error'>
                 <label className='control-label'>
                     {message}
                 </label>

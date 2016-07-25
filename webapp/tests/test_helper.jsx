@@ -1,7 +1,7 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import Client from '../node_modules/mattermost/client.jsx';
+import Client from 'client/client.jsx';
 import jqd from 'jquery-deferred';
 
 class TestHelperClass {
@@ -36,7 +36,7 @@ class TestHelperClass {
             if (c === 'x') {
                 v = r;
             } else {
-                v = r & 0x3 | 0x8;
+                v = (r & 0x3) | 0x8;
             }
 
             return v.toString(16);

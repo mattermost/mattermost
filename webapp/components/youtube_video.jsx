@@ -1,13 +1,13 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
 import ChannelStore from 'stores/channel_store.jsx';
+import WebClient from 'client/web_client.jsx';
+import * as Utils from 'utils/utils.jsx';
 
 const ytRegex = /(?:http|https):\/\/(?:www\.)?(?:(?:youtube\.com\/(?:(?:v\/)|(\/u\/\w\/)|(?:(?:watch|embed\/watch)(?:\/|.*v=))|(?:embed\/)|(?:user\/[^\/]+\/u\/[0-9]\/)))|(?:youtu\.be\/))([^#&\?]*)/;
 
 import React from 'react';
-import {Link} from 'react-router';
 
 export default class YoutubeVideo extends React.Component {
     constructor(props) {
@@ -15,12 +15,16 @@ export default class YoutubeVideo extends React.Component {
 
         this.updateStateFromProps = this.updateStateFromProps.bind(this);
         this.handleReceivedMetadata = this.handleReceivedMetadata.bind(this);
+        this.handleMetadataError = this.handleMetadataError.bind(this);
+        this.loadWithoutKey = this.loadWithoutKey.bind(this);
 
         this.play = this.play.bind(this);
         this.stop = this.stop.bind(this);
         this.stopOnChannelChange = this.stopOnChannelChange.bind(this);
 
         this.state = {
+            loaded: false,
+            failed: false,
             playing: false,
             title: ''
         };
@@ -40,6 +44,10 @@ export default class YoutubeVideo extends React.Component {
         const match = link.trim().match(ytRegex);
         if (!match || match[2].length !== 11) {
             return;
+        }
+
+        if (props.show === false) {
+            this.stop();
         }
 
         this.setState({
@@ -78,25 +86,50 @@ export default class YoutubeVideo extends React.Component {
     }
 
     componentDidMount() {
-        if (global.window.mm_config.GoogleDeveloperKey) {
-            $.ajax({
-                async: true,
-                url: 'https://www.googleapis.com/youtube/v3/videos',
-                type: 'GET',
-                data: {part: 'snippet', id: this.state.videoId, key: global.window.mm_config.GoogleDeveloperKey},
-                success: this.handleReceivedMetadata
-            });
+        const key = global.window.mm_config.GoogleDeveloperKey;
+        if (key) {
+            WebClient.getYoutubeVideoInfo(key, this.state.videoId,
+                this.handleReceivedMetadata, this.handleMetadataError);
+        } else {
+            this.loadWithoutKey();
         }
     }
 
+    loadWithoutKey() {
+        this.setState({
+            loaded: true,
+            thumb: 'https://i.ytimg.com/vi/' + this.state.videoId + '/hqdefault.jpg'
+        });
+    }
+
+    handleMetadataError() {
+        this.setState({
+            failed: true,
+            loaded: true,
+            title: Utils.localizeMessage('youtube_video.notFound', 'Video not found')
+        });
+    }
+
     handleReceivedMetadata(data) {
-        if (!data.items.length || !data.items[0].snippet) {
+        if (!data || !data.items || !data.items.length || !data.items[0].snippet) {
+            this.setState({
+                failed: true,
+                loaded: true,
+                title: Utils.localizeMessage('youtube_video.notFound', 'Video not found')
+            });
             return null;
         }
-        var metadata = data.items[0].snippet;
+        const metadata = data.items[0].snippet;
+        let thumb = 'https://i.ytimg.com/vi/' + this.state.videoId + '/hqdefault.jpg';
+        if (metadata.liveBroadcastContent === 'live') {
+            thumb = 'https://i.ytimg.com/vi/' + this.state.videoId + '/hqdefault_live.jpg';
+        }
+
         this.setState({
+            loaded: true,
             receivedYoutubeData: true,
-            title: metadata.title
+            title: metadata.title,
+            thumb
         });
         return null;
     }
@@ -120,13 +153,41 @@ export default class YoutubeVideo extends React.Component {
     }
 
     render() {
-        let header = 'Youtube';
+        if (!this.state.loaded) {
+            return <div className='video-loading'/>;
+        }
+
+        let header;
         if (this.state.title) {
-            header = header + ' - ';
+            header = (
+                <h4>
+                    <span className='video-type'>{'Youtube - '}</span>
+                    <span className='video-title'>
+                        <a
+                            href={this.props.link}
+                            target='blank'
+                            rel='noopener noreferrer'
+                        >
+                            {this.state.title}
+                        </a>
+                    </span>
+                </h4>
+            );
         }
 
         let content;
-        if (this.state.playing) {
+        if (this.state.failed) {
+            content = (
+                <div>
+                    <div className='video-thumbnail__container'>
+                        <div className='video-thumbnail__error'>
+                            <div><i className='fa fa-warning fa-2x'/></div>
+                            <div>{Utils.localizeMessage('youtube_video.notFound', 'Video not found')}</div>
+                        </div>
+                    </div>
+                </div>
+            );
+        } else if (this.state.playing) {
             content = (
                 <iframe
                     src={'https://www.youtube.com/embed/' + this.state.videoId + '?autoplay=1&autohide=1&border=0&wmode=opaque&fs=1&enablejsapi=1' + this.state.time}
@@ -143,7 +204,7 @@ export default class YoutubeVideo extends React.Component {
                     <div className='video-thumbnail__container'>
                         <img
                             className='video-thumbnail'
-                            src={'https://i.ytimg.com/vi/' + this.state.videoId + '/hqdefault.jpg'}
+                            src={this.state.thumb}
                         />
                         <div className='block'>
                             <span className='play-button'><span/></span>
@@ -155,10 +216,7 @@ export default class YoutubeVideo extends React.Component {
 
         return (
             <div>
-                <h4>
-                    <span className='video-type'>{header}</span>
-                    <span className='video-title'><Link to={this.props.link}>{this.state.title}</Link></span>
-                </h4>
+                {header}
                 <div
                     className='video-div embed-responsive-item'
                     onClick={this.play}
@@ -176,5 +234,6 @@ export default class YoutubeVideo extends React.Component {
 
 YoutubeVideo.propTypes = {
     channelId: React.PropTypes.string.isRequired,
-    link: React.PropTypes.string.isRequired
+    link: React.PropTypes.string.isRequired,
+    show: React.PropTypes.bool.isRequired
 };

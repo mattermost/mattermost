@@ -5,6 +5,7 @@ package api
 
 import (
 	"github.com/mattermost/platform/model"
+	"strings"
 )
 
 type ShortcutsProvider struct {
@@ -33,5 +34,11 @@ func (me *ShortcutsProvider) GetCommand(c *Context) *model.Command {
 }
 
 func (me *ShortcutsProvider) DoCommand(c *Context, channelId string, message string) *model.CommandResponse {
-	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: c.T("api.command_shortcuts.list")}
+	stringId := "api.command_shortcuts.list"
+
+	if strings.Contains(message, "mac") {
+		stringId = "api.command_shortcuts.list_mac"
+	}
+
+	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: c.T(stringId)}
 }

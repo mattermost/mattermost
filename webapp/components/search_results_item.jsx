@@ -6,26 +6,34 @@ import UserProfile from './user_profile.jsx';
 
 import UserStore from 'stores/user_store.jsx';
 
-import * as GlobalActions from 'action_creators/global_actions.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as Utils from 'utils/utils.jsx';
+import * as PostUtils from 'utils/post_utils.jsx';
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 
 import {FormattedMessage, FormattedDate} from 'react-intl';
 import React from 'react';
-import {browserHistory} from 'react-router';
+import {browserHistory} from 'react-router/es6';
 
 export default class SearchResultsItem extends React.Component {
     constructor(props) {
         super(props);
 
         this.handleFocusRHSClick = this.handleFocusRHSClick.bind(this);
+        this.shrinkSidebar = this.shrinkSidebar.bind(this);
     }
 
     hideSidebar() {
-        $('.inner-wrap, .sidebar--right').removeClass('move--left');
+        $('.sidebar--right').removeClass('move--left');
+    }
+
+    shrinkSidebar() {
+        setTimeout(() => {
+            this.props.shrink();
+        });
     }
 
     handleFocusRHSClick(e) {
@@ -67,6 +75,12 @@ export default class SearchResultsItem extends React.Component {
             disableProfilePopover = true;
         }
 
+        let botIndicator;
+
+        if (post.props && post.props.from_webhook) {
+            botIndicator = <li className='bot-indicator'>{Constants.BOT_NAME}</li>;
+        }
+
         return (
             <div className='search-item__container'>
                 <div className='date-separator'>
@@ -87,25 +101,26 @@ export default class SearchResultsItem extends React.Component {
                     <div className='post__content'>
                         <div className='post__img'>
                             <img
-                                src={Utils.getProfilePicSrcForPost(post, timestamp)}
+                                src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
                                 height='36'
                                 width='36'
                             />
                         </div>
                         <div>
                             <ul className='post__header'>
-                                <li className='col__name'><strong>
+                                <li className='col col__name'><strong>
                                     <UserProfile
                                         user={user}
                                         overwriteName={overrideUsername}
                                         disablePopover={disableProfilePopover}
                                     />
                                 </strong></li>
+                                {botIndicator}
                                 <li className='col'>
                                     <time className='search-item-time'>
                                         <FormattedDate
                                             value={post.create_at}
-                                            hour12={!Utils.isMilitaryTime()}
+                                            hour12={!this.props.useMilitaryTime}
                                             hour='2-digit'
                                             minute='2-digit'
                                         />
@@ -135,6 +150,7 @@ export default class SearchResultsItem extends React.Component {
 
                                                     this.hideSidebar();
                                                 }
+                                                this.shrinkSidebar();
                                                 browserHistory.push('/' + window.location.pathname.split('/')[1] + '/pl/' + post.id);
                                             }
                                         }
@@ -178,5 +194,7 @@ SearchResultsItem.propTypes = {
     user: React.PropTypes.object,
     channel: React.PropTypes.object,
     isMentionSearch: React.PropTypes.bool,
-    term: React.PropTypes.string
+    term: React.PropTypes.string,
+    useMilitaryTime: React.PropTypes.bool.isRequired,
+    shrink: React.PropTypes.function
 };

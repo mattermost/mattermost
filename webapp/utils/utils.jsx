@@ -11,14 +11,15 @@ import TeamStore from 'stores/team_store.jsx';
 import Constants from 'utils/constants.jsx';
 var ActionTypes = Constants.ActionTypes;
 import * as AsyncClient from './async_client.jsx';
-import Client from './web_client.jsx';
+import Client from 'client/web_client.jsx';
 
-import React from 'react';
-import {browserHistory} from 'react-router';
-import {FormattedTime} from 'react-intl';
+import {browserHistory} from 'react-router/es6';
+import {FormattedMessage} from 'react-intl';
 
 import icon50 from 'images/icon50x50.png';
 import bing from 'images/bing.mp3';
+
+import React from 'react';
 
 export function isEmail(email) {
     // writing a regex to match all valid email addresses is really, really hard (see http://stackoverflow.com/a/201378)
@@ -34,36 +35,12 @@ export function cleanUpUrlable(input) {
     return cleaned;
 }
 
-export function isTestDomain() {
-    if ((/^localhost/).test(window.location.hostname)) {
-        return true;
-    }
+export function isMac() {
+    return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+}
 
-    if ((/^dockerhost/).test(window.location.hostname)) {
-        return true;
-    }
-
-    if ((/^test/).test(window.location.hostname)) {
-        return true;
-    }
-
-    if ((/^127.0./).test(window.location.hostname)) {
-        return true;
-    }
-
-    if ((/^192.168./).test(window.location.hostname)) {
-        return true;
-    }
-
-    if ((/^10./).test(window.location.hostname)) {
-        return true;
-    }
-
-    if ((/^176./).test(window.location.hostname)) {
-        return true;
-    }
-
-    return false;
+export function cmdOrCtrlPressed(e) {
+    return (isMac() && e.metaKey) || (!isMac() && e.ctrlKey);
 }
 
 export function isChrome() {
@@ -88,11 +65,7 @@ export function isIosChrome() {
 export function isMobileApp() {
     const userAgent = navigator.userAgent;
 
-    // the mobile app has different user agents for the native api calls and the shim, so handle them both
-    const isApi = userAgent.indexOf('Mattermost') !== -1;
-    const isShim = userAgent.indexOf('iPhone') !== -1 && userAgent.indexOf('Safari') === -1 && userAgent.indexOf('Chrome') === -1;
-
-    return isApi || isShim;
+    return userAgent.indexOf('iPhone') !== -1 && userAgent.indexOf('Safari') === -1 && userAgent.indexOf('CriOS') === -1;
 }
 
 export function isInRole(roles, inRole) {
@@ -151,7 +124,7 @@ export function getCookie(name) {
 
 var requestedNotificationPermission = false;
 
-export function notifyMe(title, body, channel) {
+export function notifyMe(title, body, channel, teamId) {
     if (!('Notification' in window)) {
         return;
     }
@@ -162,11 +135,13 @@ export function notifyMe(title, body, channel) {
         Notification.requestPermission((permission) => {
             if (permission === 'granted') {
                 try {
-                    var notification = new Notification(title, {body: body, tag: body, icon: icon50});
+                    var notification = new Notification(title, {body, tag: body, icon: icon50});
                     notification.onclick = () => {
                         window.focus();
                         if (channel) {
-                            browserHistory.push(getTeamURLNoOriginFromAddressBar() + '/channels/' + channel.name);
+                            browserHistory.push(TeamStore.getTeamUrl(teamId) + '/channels/' + channel.name);
+                        } else if (teamId) {
+                            browserHistory.push(TeamStore.getTeamUrl(teamId) + '/channels/town-square');
                         } else {
                             browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/town-square');
                         }
@@ -253,56 +228,6 @@ export function displayTime(ticks, utc) {
     }
 
     return hours + ':' + minutes + ampm + timezone;
-}
-
-export function displayTimeFormatted(ticks) {
-    const useMilitaryTime = PreferenceStore.getBool(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'use_military_time');
-
-    return (
-        <FormattedTime
-            value={ticks}
-            hour='numeric'
-            minute='numeric'
-            hour12={!useMilitaryTime}
-        />
-    );
-}
-
-export function isMilitaryTime() {
-    return PreferenceStore.getBool(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'use_military_time');
-}
-
-export function displayDateTime(ticks) {
-    var seconds = Math.floor((Date.now() - ticks) / 1000);
-
-    var interval = Math.floor(seconds / 3600);
-
-    if (interval > 24) {
-        return this.displayTime(ticks);
-    }
-
-    if (interval > 1) {
-        return interval + ' hours ago';
-    }
-
-    if (interval === 1) {
-        return interval + ' hour ago';
-    }
-
-    interval = Math.floor(seconds / 60);
-    if (interval >= 2) {
-        return interval + ' minutes ago';
-    }
-
-    if (interval >= 1) {
-        return '1 minute ago';
-    }
-
-    return 'just now';
-}
-
-export function displayCommentDateTime(ticks) {
-    return displayDate(ticks) + ' ' + displayTime(ticks);
 }
 
 // returns Unix timestamp in milliseconds
@@ -484,7 +409,7 @@ export function insertHtmlEntities(text) {
 export function searchForTerm(term) {
     AppDispatcher.handleServerAction({
         type: ActionTypes.RECEIVED_SEARCH_TERM,
-        term: term,
+        term,
         do_search: true
     });
 }
@@ -565,7 +490,7 @@ export function splitFileLocation(fileLocation) {
     var filePath = fileSplit.join('.');
     var filename = filePath.split('/')[filePath.split('/').length - 1];
 
-    return {ext: ext, name: filename, path: filePath};
+    return {ext, name: filename, path: filePath};
 }
 
 export function getPreviewImagePath(filename) {
@@ -588,6 +513,10 @@ export function toTitleCase(str) {
     return str.replace(/\w\S*/g, doTitleCase);
 }
 
+export function isHexColor(value) {
+    return value && (/^#[0-9a-f]{3}([0-9a-f]{3})?$/i).test(value);
+}
+
 export function applyTheme(theme) {
     if (theme.sidebarBg) {
         changeCss('.app__body .sidebar--left, .app__body .sidebar--left .sidebar__divider .sidebar__divider__text, .app__body .modal .settings-modal .settings-table .settings-links, .app__body .sidebar--menu', 'background:' + theme.sidebarBg, 1);
@@ -599,7 +528,7 @@ export function applyTheme(theme) {
         changeCss('@media(max-width: 768px){.app__body .modal .settings-modal .settings-table .nav>li>a', 'color:' + theme.sidebarText, 1);
         changeCss('.app__body .sidebar--left .nav-pills__container li>h4, .app__body .sidebar--left .add-channel-btn', 'color:' + changeOpacity(theme.sidebarText, 0.6), 1);
         changeCss('.app__body .sidebar--left .add-channel-btn:hover, .app__body .sidebar--left .add-channel-btn:focus', 'color:' + theme.sidebarText, 1);
-        changeCss('.app__body .sidebar--left .status .offline--icon, .app__body .sidebar--left .status .offline--icon', 'fill:' + theme.sidebarText, 1);
+        changeCss('.app__body .sidebar--left .status .offline--icon', 'fill:' + theme.sidebarText, 1);
         changeCss('@media(max-width: 768px){.app__body .modal .settings-modal .settings-table .nav>li>a', 'border-color:' + changeOpacity(theme.sidebarText, 0.2), 2);
     }
 
@@ -644,10 +573,14 @@ export function applyTheme(theme) {
 
     if (theme.onlineIndicator) {
         changeCss('.app__body .sidebar--left .status .online--icon', 'fill:' + theme.onlineIndicator, 1);
+        changeCss('.app__body .channel-header__info .status .online--icon', 'fill:' + theme.onlineIndicator, 1);
+        changeCss('.app__body .navbar .status .online--icon', 'fill:' + theme.onlineIndicator, 1);
     }
 
     if (theme.awayIndicator) {
         changeCss('.app__body .sidebar--left .status .away--icon', 'fill:' + theme.awayIndicator, 1);
+        changeCss('.app__body .channel-header__info .status .away--icon', 'fill:' + theme.awayIndicator, 1);
+        changeCss('.app__body .navbar .status .away--icon', 'fill:' + theme.awayIndicator, 1);
     }
 
     if (theme.mentionBj) {
@@ -661,7 +594,8 @@ export function applyTheme(theme) {
     }
 
     if (theme.centerChannelBg) {
-        changeCss('.app__body .app__content, .app__body .markdown__table, .app__body .markdown__table tbody tr, .app__body .suggestion-list__content, .app__body .modal .modal-content', 'background:' + theme.centerChannelBg, 1);
+        changeCss('@media(min-width: 768px){.app__body .post:hover .post__header .col__reply, .app__body .post.post--hovered .post__header .col__reply', 'background:' + theme.centerChannelBg, 1);
+        changeCss('.app__body .app__content, .app__body .markdown__table, .app__body .markdown__table tbody tr, .app__body .suggestion-list__content, .app__body .modal .modal-content, .app__body .post.post--compact .post-image__column', 'background:' + theme.centerChannelBg, 1);
         changeCss('#post-list .post-list-holder-by-time', 'background:' + theme.centerChannelBg, 1);
         changeCss('#post-create', 'background:' + theme.centerChannelBg, 1);
         changeCss('.app__body .date-separator .separator__text, .app__body .new-separator .separator__text', 'background:' + theme.centerChannelBg, 1);
@@ -672,6 +606,7 @@ export function applyTheme(theme) {
         changeCss('.app__body .popover.left>.arrow:after', 'border-left-color:' + theme.centerChannelBg, 1);
         changeCss('.app__body .popover.top>.arrow:after, .app__body .tip-overlay.tip-overlay--chat .arrow', 'border-top-color:' + theme.centerChannelBg, 1);
         changeCss('@media(min-width: 768px){.app__body .search-bar__container .search__form .search-bar, .app__body .form-control', 'background:' + theme.centerChannelBg, 1);
+        changeCss('@media(min-width: 768px){.app__body .sidebar--right.sidebar--right--expanded .sidebar-right-container', 'background:' + theme.centerChannelBg, 1);
         changeCss('.app__body .attachment__content', 'background:' + theme.centerChannelBg, 1);
         changeCss('body.app__body', 'scrollbar-face-color:' + theme.centerChannelBg, 2);
         changeCss('body.app__body', 'scrollbar-track-color:' + theme.centerChannelBg, 2);
@@ -680,9 +615,12 @@ export function applyTheme(theme) {
 
     if (theme.centerChannelColor) {
         changeCss('.app__body .post-list__arrows', 'fill:' + changeOpacity(theme.centerChannelColor, 0.3), 1);
+        changeCss('@media(min-width: 768px){.app__body .post:hover .post__header .col__reply, .app__body .post.post--hovered .post__header .col__reply', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 2);
         changeCss('.app__body .sidebar--left, .app__body .sidebar--right .sidebar--right__header, .app__body .suggestion-list__content .command', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
-        changeCss('.app__body .app__content, .app__body .post-create__container .post-create-body .btn-file, .app__body .post-create__container .post-create-footer .msg-typing, .app__body .suggestion-list__content .command, .app__body .modal .modal-content, .app__body .dropdown-menu, .app__body .popover, .app__body .mentions__name, .app__body .tip-overlay', 'color:' + theme.centerChannelColor, 1);
-        changeCss('.app__body #archive-link-home', 'background:' + changeOpacity(theme.centerChannelColor, 0.15), 1);
+        changeCss('.app__body .post.post--system .post__body', 'color:' + changeOpacity(theme.centerChannelColor, 0.6), 1);
+        changeCss('.app__body .input-group-addon, .app__body .app__content, .app__body .post-create__container .post-create-body .btn-file, .app__body .post-create__container .post-create-footer .msg-typing, .app__body .suggestion-list__content .command, .app__body .modal .modal-content, .app__body .dropdown-menu, .app__body .popover, .app__body .mentions__name, .app__body .tip-overlay, .app__body .form-control[disabled], .app__body .form-control[readonly], .app__body fieldset[disabled] .form-control', 'color:' + theme.centerChannelColor, 1);
+        changeCss('.app__body .post .post__link', 'color:' + changeOpacity(theme.centerChannelColor, 0.65), 1);
+        changeCss('.app__body #archive-link-home, .video-div .video-thumbnail__error', 'background:' + changeOpacity(theme.centerChannelColor, 0.15), 1);
         changeCss('.app__body #post-create', 'color:' + theme.centerChannelColor, 2);
         changeCss('.app__body .mentions--top, .app__body .suggestion-list', 'box-shadow:' + changeOpacity(theme.centerChannelColor, 0.2) + ' 1px -3px 12px', 3);
         changeCss('.app__body .mentions--top, .app__body .suggestion-list', '-webkit-box-shadow:' + changeOpacity(theme.centerChannelColor, 0.2) + ' 1px -3px 12px', 2);
@@ -711,16 +649,16 @@ export function applyTheme(theme) {
         changeCss('.app__body .input-group-addon, .app__body .search-bar__container .search__form, .app__body .form-control', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
         changeCss('.app__body .form-control:focus', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.3), 1);
         changeCss('.app__body .attachment .attachment__content', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.3), 1);
-        changeCss('.app__body .channel-intro .channel-intro__content, .app__body .webhooks__container', 'background:' + changeOpacity(theme.centerChannelColor, 0.05), 1);
+        changeCss('.app__body .input-group-addon, .app__body .channel-intro .channel-intro__content, .app__body .webhooks__container', 'background:' + changeOpacity(theme.centerChannelColor, 0.05), 1);
         changeCss('.app__body .date-separator .separator__text', 'color:' + theme.centerChannelColor, 2);
         changeCss('.app__body .date-separator .separator__hr, .app__body .modal-footer, .app__body .modal .custom-textarea', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
         changeCss('.app__body .search-item-container, .app__body .post-right__container .post.post--root', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.1), 1);
         changeCss('.app__body .modal .custom-textarea:focus', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.3), 1);
         changeCss('.app__body .channel-intro, .app__body .modal .settings-modal .settings-table .settings-content .divider-dark, .app__body hr, .app__body .modal .settings-modal .settings-table .settings-links, .app__body .modal .settings-modal .settings-table .settings-content .appearance-section .theme-elements__header', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
-        changeCss('.app__body .post.current--user .post__body, .app__body .post.post--comment.other--root.current--user .post-comment, .app__body pre, .app__body .post-right__container .post.post--root', 'background:' + changeOpacity(theme.centerChannelColor, 0.07), 1);
+        changeCss('.app__body .post.current--user .post__body, .app__body .post.post--comment.other--root.current--user .post-comment, .app__body pre, .app__body .post-right__container .post.post--root', 'background:' + changeOpacity(theme.centerChannelColor, 0.05), 1);
         changeCss('.app__body .post.post--comment.other--root.current--user .post-comment, .app__body .more-modal__list .more-modal__row, .app__body .member-div:first-child, .app__body .member-div, .app__body .access-history__table .access__report, .app__body .activity-log__table', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.1), 2);
         changeCss('@media(max-width: 1800px){.app__body .inner-wrap.move--left .post.post--comment.same--root', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.07), 2);
-        changeCss('.app__body .post:hover, .app__body .more-modal__list .more-modal__row:hover, .app__body .modal .settings-modal .settings-table .settings-content .section-min:hover', 'background:' + changeOpacity(theme.centerChannelColor, 0.07), 1);
+        changeCss('.app__body .post:hover, .app__body .post.post--hovered, .app__body .more-modal__list .more-modal__row:hover, .app__body .modal .settings-modal .settings-table .settings-content .section-min:hover', 'background:' + changeOpacity(theme.centerChannelColor, 0.08), 1);
         changeCss('.app__body .date-separator.hovered--before:after, .app__body .date-separator.hovered--after:before, .app__body .new-separator.hovered--after:before, .app__body .new-separator.hovered--before:after', 'background:' + changeOpacity(theme.centerChannelColor, 0.07), 1);
         changeCss('.app__body .suggestion-list__content .command:hover, .app__body .mentions__name:hover, .app__body .suggestion--selected, .app__body .dropdown-menu>li>a:focus, .app__body .dropdown-menu>li>a:hover, .app__body .bot-indicator', 'background:' + changeOpacity(theme.centerChannelColor, 0.15), 1);
         changeCss('code, .app__body .form-control[disabled], .app__body .form-control[readonly], .app__body fieldset[disabled] .form-control', 'background:' + changeOpacity(theme.centerChannelColor, 0.1), 1);
@@ -730,11 +668,14 @@ export function applyTheme(theme) {
         changeCss('.app__body .search-help-popover .search-autocomplete__item.selected', 'background:' + changeOpacity(theme.centerChannelColor, 0.15), 1);
         changeCss('::-webkit-scrollbar-thumb', 'background:' + changeOpacity(theme.centerChannelColor, 0.4), 1);
         changeCss('body', 'scrollbar-arrow-color:' + theme.centerChannelColor, 4);
-        changeCss('.app__body .modal .about-modal .about-modal__logo svg, .app__body .post .post__img svg', 'fill:' + theme.centerChannelColor, 1);
+        changeCss('.app__body .post-create__container .post-create-body .btn-file svg, .app__body .post.post--compact .post-image__column .post-image__details svg, .app__body .modal .about-modal .about-modal__logo svg, .app__body .post .post__img svg', 'fill:' + theme.centerChannelColor, 1);
         changeCss('.app__body .scrollbar--horizontal, .app__body .scrollbar--vertical', 'background:' + changeOpacity(theme.centerChannelColor, 0.5), 2);
         changeCss('.app__body .post-list__new-messages-below', 'background:' + changeColor(theme.centerChannelColor, 0.5), 2);
         changeCss('.app__body .post.post--comment .post__body', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
+        changeCss('@media(min-width: 768px){.app__body .post.post--compact.same--root.post--comment .post__content', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
         changeCss('.app__body .post.post--comment.current--user .post__body', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
+        changeCss('.app__body .channel-header__info .status .offline--icon', 'fill:' + theme.centerChannelColor, 1);
+        changeCss('.app__body .navbar .status .offline--icon', 'fill:' + theme.centerChannelColor, 1);
     }
 
     if (theme.newMessageSeparator) {
@@ -744,6 +685,7 @@ export function applyTheme(theme) {
 
     if (theme.linkColor) {
         changeCss('.app__body a, .app__body a:focus, .app__body a:hover, .app__body .btn, .app__body .btn:focus, .app__body .btn:hover', 'color:' + theme.linkColor, 1);
+        changeCss('.app__body .attachment .attachment__container', 'border-left-color:' + changeOpacity(theme.linkColor, 0.5), 1);
         changeCss('.app__body .post .comment-icon__container, .app__body .post .post__reply', 'fill:' + theme.linkColor, 1);
     }
 
@@ -812,18 +754,6 @@ export function changeCss(className, classValue, classRepeat) {
 
     // append additional style
     classContainer.html('<style>' + className + ' {' + classValue + '}</style>');
-}
-
-export function rgb2hex(rgbIn) {
-    if (/^#[0-9A-F]{6}$/i.test(rgbIn)) {
-        return rgbIn;
-    }
-
-    var rgb = rgbIn.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
-    function hex(x) {
-        return ('0' + parseInt(x, 10).toString(16)).slice(-2);
-    }
-    return '#' + hex(rgb[1]) + hex(rgb[2]) + hex(rgb[3]);
 }
 
 export function updateCodeTheme(userTheme) {
@@ -941,14 +871,7 @@ export function isValidUsername(name) {
 }
 
 export function isMobile() {
-    return window.innerWidth <= 768;
-}
-
-export function isComment(post) {
-    if ('root_id' in post) {
-        return post.root_id !== '' && post.root_id != null;
-    }
-    return false;
+    return window.innerWidth <= Constants.MOBILE_SCREEN_WIDTH;
 }
 
 export function getDirectTeammate(channelId) {
@@ -1069,7 +992,10 @@ export function getDisplayName(user) {
 }
 
 export function displayUsername(userId) {
-    const user = UserStore.getProfile(userId);
+    return displayUsernameForUser(UserStore.getProfile(userId));
+}
+
+export function displayUsernameForUser(user) {
     const nameFormat = PreferenceStore.get(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'false');
 
     let username = '';
@@ -1149,7 +1075,7 @@ export function generateId() {
         if (c === 'x') {
             v = r;
         } else {
-            v = r & 0x3 | 0x8;
+            v = (r & 0x3) | 0x8;
         }
 
         return v.toString(16);
@@ -1187,6 +1113,13 @@ export function getDirectChannelName(id, otherId) {
     }
 
     return handle;
+}
+
+export function getDirectChannelNameByUsername(username, otherUsername) {
+    const id = UserStore.getProfileByUsername(username).id;
+    const otherId = UserStore.getProfileByUsername(otherUsername).id;
+
+    return getDirectChannelName(id, otherId);
 }
 
 // Used to get the id of the other user from a DM channel
@@ -1347,10 +1280,6 @@ export function isFeatureEnabled(feature) {
     return PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, Constants.FeatureTogglePrefix + feature.label);
 }
 
-export function isSystemMessage(post) {
-    return post.type && (post.type.lastIndexOf(Constants.SYSTEM_MESSAGE_PREFIX) === 0);
-}
-
 export function fillArray(value, length) {
     const arr = [];
 
@@ -1364,7 +1293,7 @@ export function fillArray(value, length) {
 // Checks if a data transfer contains files not text, folders, etc..
 // Slightly modified from http://stackoverflow.com/questions/6848043/how-do-i-detect-a-file-is-being-dragged-rather-than-a-draggable-element-on-my-pa
 export function isFileTransfer(files) {
-    if (isBrowserIE()) {
+    if (isBrowserIE() || isBrowserEdge()) {
         return files.types != null && files.types.contains('Files');
     }
 
@@ -1408,17 +1337,95 @@ export function localizeMessage(id, defaultMessage) {
     return id;
 }
 
-export function getProfilePicSrcForPost(post, timestamp) {
-    let src = Client.getUsersRoute() + '/' + post.user_id + '/image?time=' + timestamp;
-    if (post.props && post.props.from_webhook && global.window.mm_config.EnablePostIconOverride === 'true') {
-        if (post.props.override_icon_url) {
-            src = post.props.override_icon_url;
-        } else {
-            src = Constants.DEFAULT_WEBHOOK_LOGO;
-        }
-    } else if (isSystemMessage(post)) {
-        src = Constants.SYSTEM_MESSAGE_PROFILE_IMAGE;
+export function mod(a, b) {
+    return ((a % b) + b) % b;
+}
+
+export function canCreateCustomEmoji(user) {
+    if (global.window.mm_license.IsLicensed !== 'true') {
+        return true;
     }
 
-    return src;
+    if (isSystemAdmin(user.roles)) {
+        return true;
+    }
+
+    // already checked for system admin for both these cases
+    if (window.mm_config.RestrictCustomEmojiCreation === 'system_admin') {
+        return false;
+    } else if (window.mm_config.RestrictCustomEmojiCreation === 'admin') {
+        // check whether the user is an admin on any of their teams
+        for (const member of TeamStore.getTeamMembers()) {
+            if (isAdmin(member.roles)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    return true;
+}
+
+export function isValidPassword(password) {
+    let errorMsg = '';
+    let errorId = 'user.settings.security.passwordError';
+    let error = false;
+    let minimumLength = Constants.MIN_PASSWORD_LENGTH;
+
+    if (global.window.mm_config.BuildEnterpriseReady === 'true' && global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.PasswordRequirements === 'true') {
+        if (password.length < parseInt(global.window.mm_config.PasswordMinimumLength, 10) || password.length > Constants.MAX_PASSWORD_LENGTH) {
+            error = true;
+        }
+
+        if (global.window.mm_config.PasswordRequireLowercase === 'true') {
+            if (!password.match(/[a-z]/)) {
+                error = true;
+            }
+
+            errorId = errorId + 'Lowercase';
+        }
+
+        if (global.window.mm_config.PasswordRequireUppercase === 'true') {
+            if (!password.match(/[0-9]/)) {
+                error = true;
+            }
+
+            errorId = errorId + 'Uppercase';
+        }
+
+        if (global.window.mm_config.PasswordRequireNumber === 'true') {
+            if (!password.match(/[A-Z]/)) {
+                error = true;
+            }
+
+            errorId = errorId + 'Number';
+        }
+
+        if (global.window.mm_config.PasswordRequireSymbol === 'true') {
+            if (!password.match(/[ !"\\#$%&'()*+,-./:;<=>?@[\]^_`|~]/)) {
+                error = true;
+            }
+
+            errorId = errorId + 'Symbol';
+        }
+
+        minimumLength = global.window.mm_config.PasswordMinimumLength;
+    } else if (password.length < Constants.MIN_PASSWORD_LENGTH) {
+        error = true;
+    }
+
+    if (error) {
+        errorMsg = (
+            <FormattedMessage
+                id={errorId}
+                default='Your password must be at least {min} characters.'
+                values={{
+                    min: minimumLength
+                }}
+            />
+        );
+    }
+
+    return errorMsg;
 }

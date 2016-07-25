@@ -2,12 +2,12 @@
 // See License.txt for license information.
 
 import ReactDOM from 'react-dom';
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {FormattedMessage} from 'react-intl';
-import {browserHistory} from 'react-router';
+import {browserHistory} from 'react-router/es6';
 
 import React from 'react';
 
@@ -22,14 +22,16 @@ class PasswordResetForm extends React.Component {
     handlePasswordReset(e) {
         e.preventDefault();
 
-        const password = ReactDOM.findDOMNode(this.refs.password).value.trim();
+        const password = ReactDOM.findDOMNode(this.refs.password).value;
         if (!password || password.length < Constants.MIN_PASSWORD_LENGTH) {
             this.setState({
                 error: (
                     <FormattedMessage
                         id='password_form.error'
                         defaultMessage='Please enter at least {chars} characters.'
-                        chars={Constants.MIN_PASSWORD_LENGTH}
+                        values={{
+                            chars: Constants.MIN_PASSWORD_LENGTH
+                        }}
                     />
                 )
             });

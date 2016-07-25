@@ -4,12 +4,12 @@
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import * as Utils from 'utils/utils.jsx';
-import client from 'utils/web_client.jsx';
+import client from 'client/web_client.jsx';
 
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
 import React from 'react';
-import {Link} from 'react-router';
+import {Link} from 'react-router/es6';
 
 class PasswordResetSendLink extends React.Component {
     constructor(props) {

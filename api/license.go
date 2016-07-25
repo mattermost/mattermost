@@ -5,12 +5,13 @@ package api
 
 import (
 	"bytes"
-	l4g "github.com/alecthomas/log4go"
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/utils"
 	"io"
 	"net/http"
 	"strings"
+
+	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 const (
@@ -48,7 +49,7 @@ func LoadLicense() {
 
 func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("attempt")
-	err := r.ParseMultipartForm(model.MAX_FILE_SIZE)
+	err := r.ParseMultipartForm(*utils.Cfg.FileSettings.MaxFileSize)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

@@ -193,7 +193,7 @@ func TestPreferenceGetAll(t *testing.T) {
 	}
 }
 
-func TestPreferenceDelete(t *testing.T) {
+func TestPreferenceDeleteByUser(t *testing.T) {
 	Setup()
 
 	userId := model.NewId()
@@ -365,5 +365,30 @@ func TestDeleteUnusedFeatures(t *testing.T) {
 		t.Fatal(err)
 	} else if val == 0 {
 		t.Fatalf("Found %d features with value 'true', expected to find at least %d features", val, 2)
+	}
+}
+
+func TestPreferenceDelete(t *testing.T) {
+	Setup()
+
+	preference := model.Preference{
+		UserId:   model.NewId(),
+		Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
+		Name:     model.NewId(),
+		Value:    "value1a",
+	}
+
+	Must(store.Preference().Save(&model.Preferences{preference}))
+
+	if prefs := Must(store.Preference().GetAll(preference.UserId)).(model.Preferences); len([]model.Preference(prefs)) != 1 {
+		t.Fatal("should've returned 1 preference")
+	}
+
+	if result := <-store.Preference().Delete(preference.UserId, preference.Category, preference.Name); result.Err != nil {
+		t.Fatal(result.Err)
+	}
+
+	if prefs := Must(store.Preference().GetAll(preference.UserId)).(model.Preferences); len([]model.Preference(prefs)) != 0 {
+		t.Fatal("should've returned no preferences")
 	}
 }

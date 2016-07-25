@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import AdminStore from 'stores/admin_store.jsx';
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 import FormError from 'components/form_error.jsx';
 import LoadingScreen from '../loading_screen.jsx';
 import UserItem from './user_item.jsx';
@@ -43,6 +43,22 @@ export default class UserList extends React.Component {
 
     componentDidMount() {
         this.getCurrentTeamProfiles();
+
+        AdminStore.addAllTeamsChangeListener(this.onAllTeamsChange);
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.params.team !== this.props.params.team) {
+            this.setState({
+                team: AdminStore.getTeam(nextProps.params.team)
+            });
+
+            this.getTeamProfiles(nextProps.params.team);
+        }
+    }
+
+    componentWillUnmount() {
+        AdminStore.removeAllTeamsChangeListener(this.onAllTeamsChange);
     }
 
     onAllTeamsChange() {
@@ -144,10 +160,6 @@ export default class UserList extends React.Component {
         return null;
     }
 
-    componentWillReceiveProps(newProps) {
-        this.getTeamProfiles(newProps.team.id);
-    }
-
     render() {
         if (!this.state.team) {
             return null;
@@ -173,6 +185,10 @@ export default class UserList extends React.Component {
 
         var memberList = this.state.users.map((user) => {
             var teamMember = this.getTeamMemberForUser(user.id);
+
+            if (!teamMember || teamMember.delete_at > 0) {
+                return null;
+            }
 
             return (
                 <UserItem

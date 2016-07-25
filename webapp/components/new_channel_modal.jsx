@@ -3,7 +3,13 @@
 
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
+
 import * as Utils from 'utils/utils.jsx';
+import Constants from 'utils/constants.jsx';
+
+import UserStore from 'stores/user_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
+import PreferenceStore from 'stores/preference_store.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
 
@@ -24,23 +30,51 @@ class NewChannelModal extends React.Component {
 
         this.handleSubmit = this.handleSubmit.bind(this);
         this.handleChange = this.handleChange.bind(this);
+        this.onEnterKeyDown = this.onEnterKeyDown.bind(this);
+        this.onPreferenceChange = this.onPreferenceChange.bind(this);
+
+        this.ctrlSend = PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter');
 
         this.state = {
             displayNameError: ''
         };
     }
+
     componentWillReceiveProps(nextProps) {
         if (nextProps.show === true && this.props.show === false) {
             this.setState({
                 displayNameError: ''
             });
+
+            document.addEventListener('keydown', this.onEnterKeyDown);
+        } else if (nextProps.show === false && this.props.show === true) {
+            document.removeEventListener('keydown', this.onEnterKeyDown);
         }
     }
+
     componentDidMount() {
         if (Utils.isBrowserIE()) {
             $('body').addClass('browser--ie');
         }
+        PreferenceStore.addChangeListener(this.onPreferenceChange);
     }
+
+    componentWillUnmount() {
+        PreferenceStore.removeChangeListener(this.onPreferenceChange);
+    }
+
+    onPreferenceChange() {
+        this.ctrlSend = PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter');
+    }
+
+    onEnterKeyDown(e) {
+        if (this.ctrlSend && e.keyCode === Constants.KeyCodes.ENTER && e.ctrlKey) {
+            this.handleSubmit(e);
+        } else if (!this.ctrlSend && e.keyCode === Constants.KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
+            this.handleSubmit(e);
+        }
+    }
+
     handleSubmit(e) {
         e.preventDefault();
 
@@ -52,13 +86,16 @@ class NewChannelModal extends React.Component {
 
         this.props.onSubmitChannel();
     }
+
     handleChange() {
         const newData = {
-            displayName: ReactDOM.findDOMNode(this.refs.display_name).value,
-            purpose: ReactDOM.findDOMNode(this.refs.channel_purpose).value
+            displayName: this.refs.display_name.value,
+            header: this.refs.channel_header.value,
+            purpose: this.refs.channel_purpose.value
         };
         this.props.onDataChanged(newData);
     }
+
     render() {
         var displayNameError = null;
         var serverError = null;
@@ -81,6 +118,47 @@ class NewChannelModal extends React.Component {
             serverError = <div className='form-group has-error'><p className='input__help error'>{this.props.serverError}</p></div>;
         }
 
+        let createPublicChannelLink = (
+            <a
+                href='#'
+                onClick={this.props.onTypeSwitched}
+            >
+                <FormattedMessage
+                    id='channel_modal.publicChannel1'
+                    defaultMessage='Create a public channel'
+                />
+            </a>
+        );
+
+        let createPrivateChannelLink = (
+            <a
+                href='#'
+                onClick={this.props.onTypeSwitched}
+            >
+                <FormattedMessage
+                    id='channel_modal.privateGroup2'
+                    defaultMessage='Create a private group'
+                />
+            </a>
+        );
+
+        const isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
+        const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
+
+        if (global.window.mm_license.IsLicensed === 'true') {
+            if (global.window.mm_config.RestrictPublicChannelManagement === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
+                createPublicChannelLink = null;
+            } else if (global.window.mm_config.RestrictPublicChannelManagement === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
+                createPublicChannelLink = null;
+            }
+
+            if (global.window.mm_config.RestrictPrivateChannelManagement === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
+                createPrivateChannelLink = null;
+            } else if (global.window.mm_config.RestrictPrivateChannelManagement === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
+                createPrivateChannelLink = null;
+            }
+        }
+
         var channelTerm = '';
         var channelSwitchText = '';
         switch (this.props.channelType) {
@@ -97,15 +175,7 @@ class NewChannelModal extends React.Component {
                         id='channel_modal.privateGroup1'
                         defaultMessage='Create a new private group with restricted membership. '
                     />
-                    <a
-                        href='#'
-                        onClick={this.props.onTypeSwitched}
-                    >
-                        <FormattedMessage
-                            id='channel_modal.publicChannel1'
-                            defaultMessage='Create a public channel'
-                        />
-                    </a>
+                    {createPublicChannelLink}
                 </div>
             );
             break;
@@ -122,15 +192,7 @@ class NewChannelModal extends React.Component {
                         id='channel_modal.publicChannel2'
                         defaultMessage='Create a new public channel anyone can join. '
                     />
-                    <a
-                        href='#'
-                        onClick={this.props.onTypeSwitched}
-                    >
-                        <FormattedMessage
-                            id='channel_modal.privateGroup2'
-                            defaultMessage='Create a private group'
-                        />
-                    </a>
+                    {createPrivateChannelLink}
                 </div>
             );
             break;
@@ -197,7 +259,7 @@ class NewChannelModal extends React.Component {
                                     </p>
                                 </div>
                             </div>
-                            <div className='form-group less'>
+                            <div className='form-group'>
                                 <div className='col-sm-3'>
                                     <label className='form__label control-label'>
                                         <FormattedMessage
@@ -227,6 +289,43 @@ class NewChannelModal extends React.Component {
                                         <FormattedMessage
                                             id='channel_modal.descriptionHelp'
                                             defaultMessage='Describe how this {term} should be used.'
+                                            values={{
+                                                term: (channelTerm)
+                                            }}
+                                        />
+                                    </p>
+                                </div>
+                            </div>
+                            <div className='form-group less'>
+                                <div className='col-sm-3'>
+                                    <label className='form__label control-label'>
+                                        <FormattedMessage
+                                            id='channel_modal.header'
+                                            defaultMessage='Header'
+                                        />
+                                    </label>
+                                    <label className='form__label light'>
+                                        <FormattedMessage
+                                            id='channel_modal.optional'
+                                            defaultMessage='(optional)'
+                                        />
+                                    </label>
+                                </div>
+                                <div className='col-sm-9'>
+                                    <textarea
+                                        className='form-control no-resize'
+                                        ref='channel_header'
+                                        rows='4'
+                                        placeholder={this.props.intl.formatMessage({id: 'channel_modal.header'})}
+                                        maxLength='128'
+                                        value={this.props.channelData.header}
+                                        onChange={this.handleChange}
+                                        tabIndex='2'
+                                    />
+                                    <p className='input__help'>
+                                        <FormattedMessage
+                                            id='channel_modal.headerHelp'
+                                            defaultMessage='Set text that will appear in the header of the {term} beside the {term} name. For example, include frequently used links by typing [Link Title](http://example.com).'
                                             values={{
                                                 term: (channelTerm)
                                             }}

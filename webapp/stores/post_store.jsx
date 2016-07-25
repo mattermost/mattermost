@@ -92,7 +92,12 @@ class PostStoreClass extends EventEmitter {
     }
 
     getPost(channelId, postId) {
-        const posts = this.postsInfo[channelId].postList;
+        const postInfo = this.postsInfo[channelId];
+        if (postInfo == null) {
+            return null;
+        }
+
+        const posts = postInfo.postList;
         let post = null;
 
         if (posts.posts.hasOwnProperty(postId)) {
@@ -231,13 +236,14 @@ class PostStoreClass extends EventEmitter {
         this.postsInfo[post.channel_id].postList = postList;
     }
 
-    storeFocusedPost(postId, postList) {
+    storeFocusedPost(postId, channelId, postList) {
         const focusedPost = postList.posts[postId];
         if (!focusedPost) {
             return;
         }
         this.currentFocusedPostId = postId;
         this.storePosts(postId, postList);
+        this.storePosts(channelId, postList);
     }
 
     checkBounds(id, numRequested, postList, before) {
@@ -260,7 +266,11 @@ class PostStoreClass extends EventEmitter {
     clearChannelVisibility(id, atBottom) {
         this.makePostsInfo(id);
         this.postsInfo[id].endVisible = Constants.POST_CHUNK_SIZE;
-        this.postsInfo[id].atTop = false;
+        if (this.postsInfo[id].postList) {
+            this.postsInfo[id].atTop = this.postsInfo[id].atTop && Constants.POST_CHUNK_SIZE >= this.postsInfo[id].postList.order.length;
+        } else {
+            this.postsInfo[id].atTop = false;
+        }
         this.postsInfo[id].atBottom = atBottom;
     }
 
@@ -403,11 +413,11 @@ class PostStoreClass extends EventEmitter {
             return null;
         }
 
-        let posts;
+        const posts = {};
         let pendingPosts;
         for (const k in this.postsInfo) {
             if (this.postsInfo[k].postList && this.postsInfo[k].postList.posts.hasOwnProperty(this.selectedPostId)) {
-                posts = this.postsInfo[k].postList.posts;
+                Object.assign(posts, this.postsInfo[k].postList.posts);
                 if (this.postsInfo[k].pendingPosts != null) {
                     pendingPosts = this.postsInfo[k].pendingPosts.posts;
                 }
@@ -547,7 +557,7 @@ PostStore.dispatchToken = AppDispatcher.register((payload) => {
 
     switch (action.type) {
     case ActionTypes.RECEIVED_POSTS: {
-        const id = PostStore.currentFocusedPostId == null ? action.id : PostStore.currentFocusedPostId;
+        const id = PostStore.currentFocusedPostId !== null && action.isPost ? PostStore.currentFocusedPostId : action.id;
         PostStore.storePosts(id, makePostListNonNull(action.post_list));
         PostStore.checkBounds(id, action.numRequested, makePostListNonNull(action.post_list), action.before);
         PostStore.emitChange();
@@ -555,7 +565,7 @@ PostStore.dispatchToken = AppDispatcher.register((payload) => {
     }
     case ActionTypes.RECEIVED_FOCUSED_POST:
         PostStore.clearChannelVisibility(action.postId, false);
-        PostStore.storeFocusedPost(action.postId, makePostListNonNull(action.post_list));
+        PostStore.storeFocusedPost(action.postId, action.channelId, makePostListNonNull(action.post_list));
         PostStore.emitChange();
         break;
     case ActionTypes.RECEIVED_POST:
@@ -574,6 +584,10 @@ PostStore.dispatchToken = AppDispatcher.register((payload) => {
         PostStore.storePendingPost(action.post);
         PostStore.storeDraft(action.post.channel_id, null);
         PostStore.jumpPostsViewToBottom();
+        break;
+    case ActionTypes.CREATE_COMMENT:
+        PostStore.storePendingPost(action.post);
+        PostStore.storeCommentDraft(action.post.root_id, null);
         break;
     case ActionTypes.POST_DELETED:
         PostStore.deletePost(action.post);

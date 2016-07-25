@@ -4,13 +4,19 @@
 package api
 
 import (
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/utils"
+	"encoding/json"
 	"net/http"
-	//"strings"
+	"net/http/httptest"
+	"net/url"
+	"reflect"
+	"strings"
+
 	"fmt"
 	"testing"
 	"time"
+
+	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 func TestCreatePost(t *testing.T) {
@@ -104,6 +110,142 @@ func TestCreatePost(t *testing.T) {
 	if _, err = Client.DoApiPost("/channels/"+channel3.Id+"/create", "garbage"); err == nil {
 		t.Fatal("should have been an error")
 	}
+}
+
+func testCreatePostWithOutgoingHook(
+	t *testing.T,
+	hookContentType string,
+	expectedContentType string,
+) {
+	th := Setup().InitSystemAdmin()
+	Client := th.SystemAdminClient
+	team := th.SystemAdminTeam
+	user := th.SystemAdminUser
+	channel := th.CreateChannel(Client, team)
+
+	enableOutgoingHooks := utils.Cfg.ServiceSettings.EnableOutgoingWebhooks
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingHooks
+	}()
+	utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = true
+
+	var hook *model.OutgoingWebhook
+	var post *model.Post
+
+	// Create a test server that is the target of the outgoing webhook. It will
+	// validate the webhook body fields and write to the success channel on
+	// success/failure.
+	success := make(chan bool)
+	wait := make(chan bool, 1)
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		<-wait
+
+		requestContentType := r.Header.Get("Content-Type")
+		if requestContentType != expectedContentType {
+			t.Logf("Content-Type is %s, should be %s", requestContentType, expectedContentType)
+			success <- false
+			return
+		}
+
+		expectedPayload := &model.OutgoingWebhookPayload{
+			Token:       hook.Token,
+			TeamId:      hook.TeamId,
+			TeamDomain:  team.Name,
+			ChannelId:   post.ChannelId,
+			ChannelName: channel.Name,
+			Timestamp:   post.CreateAt,
+			UserId:      post.UserId,
+			UserName:    user.Username,
+			PostId:      post.Id,
+			Text:        post.Message,
+			TriggerWord: strings.Fields(post.Message)[0],
+		}
+
+		// depending on the Content-Type, we expect to find a JSON or form encoded payload
+		if requestContentType == "application/json" {
+			decoder := json.NewDecoder(r.Body)
+			o := &model.OutgoingWebhookPayload{}
+			decoder.Decode(&o)
+
+			if !reflect.DeepEqual(expectedPayload, o) {
+				t.Logf("JSON payload is %+v, should be %+v", o, expectedPayload)
+				success <- false
+				return
+			}
+		} else {
+			err := r.ParseForm()
+			if err != nil {
+				t.Logf("Error parsing form: %q", err)
+				success <- false
+				return
+			}
+
+			expectedFormValues, _ := url.ParseQuery(expectedPayload.ToFormValues())
+			if !reflect.DeepEqual(expectedFormValues, r.Form) {
+				t.Logf("Form values are %q, should be %q", r.Form, expectedFormValues)
+				success <- false
+				return
+			}
+		}
+
+		success <- true
+	}))
+	defer ts.Close()
+
+	// create an outgoing webhook, passing it the test server URL
+	triggerWord := "bingo"
+	hook = &model.OutgoingWebhook{
+		ChannelId:    channel.Id,
+		ContentType:  hookContentType,
+		TriggerWords: []string{triggerWord},
+		CallbackURLs: []string{ts.URL},
+	}
+
+	if result, err := Client.CreateOutgoingWebhook(hook); err != nil {
+		t.Fatal(err)
+	} else {
+		hook = result.Data.(*model.OutgoingWebhook)
+	}
+
+	// create a post to trigger the webhook
+	message := triggerWord + " lorem ipusm"
+	post = &model.Post{
+		ChannelId: channel.Id,
+		Message:   message,
+	}
+
+	if result, err := Client.CreatePost(post); err != nil {
+		t.Fatal(err)
+	} else {
+		post = result.Data.(*model.Post)
+	}
+
+	wait <- true
+
+	// We wait for the test server to write to the success channel and we make
+	// the test fail if that doesn't happen before the timeout.
+	select {
+	case ok := <-success:
+		if !ok {
+			t.Fatal("Test server was sent an invalid webhook.")
+		}
+	case <-time.After(time.Second):
+		t.Fatal("Timeout, test server wasn't sent the webhook.")
+	}
+}
+
+func TestCreatePostWithOutgoingHook_form_urlencoded(t *testing.T) {
+	testCreatePostWithOutgoingHook(t, "application/x-www-form-urlencoded", "application/x-www-form-urlencoded")
+}
+
+func TestCreatePostWithOutgoingHook_json(t *testing.T) {
+	testCreatePostWithOutgoingHook(t, "application/json", "application/json")
+}
+
+// hooks created before we added the ContentType field should be considered as
+// application/x-www-form-urlencoded
+func TestCreatePostWithOutgoingHook_no_content_type(t *testing.T) {
+	testCreatePostWithOutgoingHook(t, "", "application/x-www-form-urlencoded")
 }
 
 func TestUpdatePost(t *testing.T) {

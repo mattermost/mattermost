@@ -3,22 +3,18 @@
 
 import UserProfile from './user_profile.jsx';
 import FileAttachmentList from './file_attachment_list.jsx';
+import PendingPostOptions from 'components/post_view/components/pending_post_options.jsx';
 
-import PostStore from 'stores/post_store.jsx';
-import ChannelStore from 'stores/channel_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
-import * as GlobalActions from 'action_creators/global_actions.jsx';
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as Utils from 'utils/utils.jsx';
-import Client from 'utils/web_client.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
+import Client from 'client/web_client.jsx';
 
 import Constants from 'utils/constants.jsx';
-const ActionTypes = Constants.ActionTypes;
 
 import {FormattedMessage, FormattedDate} from 'react-intl';
 
@@ -30,47 +26,28 @@ export default class RhsComment extends React.Component {
     constructor(props) {
         super(props);
 
-        this.retryComment = this.retryComment.bind(this);
         this.handlePermalink = this.handlePermalink.bind(this);
 
         this.state = {};
-    }
-    retryComment(e) {
-        e.preventDefault();
-
-        var post = this.props.post;
-        Client.createPost(post,
-            (data) => {
-                AsyncClient.getPosts(post.channel_id);
-
-                var channel = ChannelStore.get(post.channel_id);
-                var member = ChannelStore.getMember(post.channel_id);
-                member.msg_count = channel.total_msg_count;
-                member.last_viewed_at = (new Date()).getTime();
-                ChannelStore.setChannelMember(member);
-
-                AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECEIVED_POST,
-                    post: data
-                });
-            },
-            () => {
-                post.state = Constants.POST_FAILED;
-                PostStore.updatePendingPost(post);
-                this.forceUpdate();
-            }
-        );
-
-        post.state = Constants.POST_LOADING;
-        PostStore.updatePendingPost(post);
-        this.forceUpdate();
     }
     handlePermalink(e) {
         e.preventDefault();
         GlobalActions.showGetPostLinkModal(this.props.post);
     }
     shouldComponentUpdate(nextProps) {
+        if (nextProps.compactDisplay !== this.props.compactDisplay) {
+            return true;
+        }
+
+        if (nextProps.useMilitaryTime !== this.props.useMilitaryTime) {
+            return true;
+        }
+
         if (!Utils.areObjectsEqual(nextProps.post, this.props.post)) {
+            return true;
+        }
+
+        if (!Utils.areObjectsEqual(nextProps.currentUser, this.props.currentUser)) {
             return true;
         }
 
@@ -186,6 +163,11 @@ export default class RhsComment extends React.Component {
 
         var timestamp = this.props.currentUser.update_at;
 
+        let botIndicator;
+
+        if (post.props && post.props.from_webhook) {
+            botIndicator = <li className='bot-indicator'>{Constants.BOT_NAME}</li>;
+        }
         let loading;
         let postClass = '';
         let message = (
@@ -198,18 +180,7 @@ export default class RhsComment extends React.Component {
 
         if (post.state === Constants.POST_FAILED) {
             postClass += ' post-fail';
-            loading = (
-                <a
-                    className='theme post-retry pull-right'
-                    href='#'
-                    onClick={this.retryComment}
-                >
-                    <FormattedMessage
-                        id='rhs_comment.retry'
-                        defaultMessage='Retry'
-                    />
-                </a>
-            );
+            loading = <PendingPostOptions post={this.props.post}/>;
         } else if (post.state === Constants.POST_LOADING) {
             postClass += ' post-waiting';
             loading = (
@@ -227,6 +198,21 @@ export default class RhsComment extends React.Component {
             );
         }
 
+        let profilePic = (
+            <img
+                src={Client.getUsersRoute() + '/' + post.user_id + '/image?time=' + timestamp}
+                height='36'
+                width='36'
+            />
+        );
+
+        let compactClass = '';
+        let profilePicContainer = (<div className='post__img'>{profilePic}</div>);
+        if (this.props.compactDisplay) {
+            compactClass = 'post--compact';
+            profilePicContainer = '';
+        }
+
         var dropdown = this.createDropdown();
 
         var fileAttachment;
@@ -236,25 +222,21 @@ export default class RhsComment extends React.Component {
                     filenames={post.filenames}
                     channelId={post.channel_id}
                     userId={post.user_id}
+                    compactDisplay={this.props.compactDisplay}
                 />
             );
         }
 
         return (
-            <div className={'post ' + currentUserCss}>
+            <div className={'post post--thread ' + currentUserCss + ' ' + compactClass}>
                 <div className='post__content'>
-                    <div className='post__img'>
-                        <img
-                            src={Client.getUsersRoute() + '/' + post.user_id + '/image?time=' + timestamp}
-                            height='36'
-                            width='36'
-                        />
-                    </div>
+                    {profilePicContainer}
                     <div>
                         <ul className='post__header'>
-                            <li className='col__name'>
+                            <li className='col col__name'>
                                 <strong><UserProfile user={this.props.user}/></strong>
                             </li>
+                            {botIndicator}
                             <li className='col'>
                                 <time className='post__time'>
                                     <FormattedDate
@@ -262,7 +244,7 @@ export default class RhsComment extends React.Component {
                                         day='numeric'
                                         month='long'
                                         year='numeric'
-                                        hour12={!Utils.isMilitaryTime()}
+                                        hour12={!this.props.useMilitaryTime}
                                         hour='2-digit'
                                         minute='2-digit'
                                     />
@@ -289,5 +271,7 @@ export default class RhsComment extends React.Component {
 RhsComment.propTypes = {
     post: React.PropTypes.object,
     user: React.PropTypes.object.isRequired,
-    currentUser: React.PropTypes.object.isRequired
+    currentUser: React.PropTypes.object.isRequired,
+    compactDisplay: React.PropTypes.bool,
+    useMilitaryTime: React.PropTypes.bool.isRequired
 };

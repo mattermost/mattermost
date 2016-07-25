@@ -67,9 +67,13 @@ web/sass-files/sass/.sass-cache/
 
 # Default local file storage
 data/*
+webapp/data/*
 api/data/*
 
 enterprise
+
+cover.out
+ecover.out
 
 .agignore
 .ctags

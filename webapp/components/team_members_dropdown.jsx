@@ -3,7 +3,7 @@
 
 import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import ConfirmModal from './confirm_modal.jsx';
@@ -12,13 +12,14 @@ import TeamStore from 'stores/team_store.jsx';
 import {FormattedMessage} from 'react-intl';
 
 import React from 'react';
-import {browserHistory} from 'react-router';
+import {browserHistory} from 'react-router/es6';
 
 export default class TeamMembersDropdown extends React.Component {
     constructor(props) {
         super(props);
 
         this.handleMakeMember = this.handleMakeMember.bind(this);
+        this.handleRemoveFromTeam = this.handleRemoveFromTeam.bind(this);
         this.handleMakeActive = this.handleMakeActive.bind(this);
         this.handleMakeNotActive = this.handleMakeNotActive.bind(this);
         this.handleMakeAdmin = this.handleMakeAdmin.bind(this);
@@ -51,6 +52,19 @@ export default class TeamMembersDropdown extends React.Component {
                 }
             );
         }
+    }
+    handleRemoveFromTeam() {
+        Client.removeUserFromTeam(
+                '',
+                this.props.user.id,
+                () => {
+                    AsyncClient.getTeamMembers(TeamStore.getCurrentId());
+                    AsyncClient.getProfiles();
+                },
+                (err) => {
+                    this.setState({serverError: err.message});
+                }
+            );
     }
     handleMakeActive() {
         Client.updateActive(this.props.user.id, true,
@@ -171,7 +185,8 @@ export default class TeamMembersDropdown extends React.Component {
             );
         }
 
-        let showMakeMember = teamMember.roles === 'admin' || user.roles === 'system_admin';
+        const me = UserStore.getCurrentUser();
+        let showMakeMember = teamMember.roles === 'admin' && user.roles !== 'system_admin';
         let showMakeAdmin = teamMember.roles === '' && user.roles !== 'system_admin';
         let showMakeActive = false;
         let showMakeNotActive = user.roles !== 'system_admin';
@@ -225,6 +240,24 @@ export default class TeamMembersDropdown extends React.Component {
             );
         }
 
+        let removeFromTeam = null;
+        if (this.props.user.id !== me.id) {
+            removeFromTeam = (
+                <li role='presentation'>
+                    <a
+                        role='menuitem'
+                        href='#'
+                        onClick={this.handleRemoveFromTeam}
+                    >
+                        <FormattedMessage
+                            id='team_members_dropdown.leave_team'
+                            defaultMessage='Remove From Team'
+                        />
+                    </a>
+                </li>
+            );
+        }
+
         let makeActive = null;
         if (showMakeActive) {
             // makeActive = (
@@ -260,7 +293,7 @@ export default class TeamMembersDropdown extends React.Component {
             //     </li>
             // );
         }
-        const me = UserStore.getCurrentUser();
+
         let makeDemoteModal = null;
         if (this.props.user.id === me.id) {
             const title = (
@@ -321,6 +354,7 @@ export default class TeamMembersDropdown extends React.Component {
                     className='dropdown-menu member-menu'
                     role='menu'
                 >
+                    {removeFromTeam}
                     {makeAdmin}
                     {makeMember}
                     {makeActive}

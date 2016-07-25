@@ -4,7 +4,7 @@
 import React from 'react';
 
 import * as AsyncClient from 'utils/async_client.jsx';
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 
 import {FormattedMessage} from 'react-intl';
 import SpinnerButton from 'components/spinner_button.jsx';
@@ -65,7 +65,7 @@ export default class ChannelInviteButton extends React.Component {
                 onClick={this.handleClick}
                 spinning={this.state.addingUser}
             >
-                <i className='glyphicon glyphicon-envelope'/>
+                <i className='fa fa-envelope fa-margin--right'/>
                 <FormattedMessage
                     id='channel_invite.add'
                     defaultMessage=' Add'

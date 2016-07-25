@@ -5,7 +5,7 @@ import React from 'react';
 
 import AdminSettings from './admin_settings.jsx';
 import BooleanSetting from './boolean_setting.jsx';
-import {FormattedMessage} from 'react-intl';
+import {FormattedHTMLMessage, FormattedMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 
 export default class WebhookSettings extends AdminSettings {
@@ -15,15 +15,6 @@ export default class WebhookSettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        this.state = Object.assign(this.state, {
-            enableIncomingWebhooks: props.config.ServiceSettings.EnableIncomingWebhooks,
-            enableOutgoingWebhooks: props.config.ServiceSettings.EnableOutgoingWebhooks,
-            enableCommands: props.config.ServiceSettings.EnableCommands,
-            enableOnlyAdminIntegrations: props.config.ServiceSettings.EnableOnlyAdminIntegrations,
-            enablePostUsernameOverride: props.config.ServiceSettings.EnablePostUsernameOverride,
-            enablePostIconOverride: props.config.ServiceSettings.EnablePostIconOverride
-        });
     }
 
     getConfigFromState(config) {
@@ -37,12 +28,23 @@ export default class WebhookSettings extends AdminSettings {
         return config;
     }
 
+    getStateFromConfig(config) {
+        return {
+            enableIncomingWebhooks: config.ServiceSettings.EnableIncomingWebhooks,
+            enableOutgoingWebhooks: config.ServiceSettings.EnableOutgoingWebhooks,
+            enableCommands: config.ServiceSettings.EnableCommands,
+            enableOnlyAdminIntegrations: config.ServiceSettings.EnableOnlyAdminIntegrations,
+            enablePostUsernameOverride: config.ServiceSettings.EnablePostUsernameOverride,
+            enablePostIconOverride: config.ServiceSettings.EnablePostIconOverride
+        };
+    }
+
     renderTitle() {
         return (
             <h3>
                 <FormattedMessage
-                    id='admin.integration.title'
-                    defaultMessage='Integration Settings'
+                    id='admin.integrations.webhook'
+                    defaultMessage='Webhooks and Commands'
                 />
             </h3>
         );
@@ -50,14 +52,7 @@ export default class WebhookSettings extends AdminSettings {
 
     renderSettings() {
         return (
-            <SettingsGroup
-                header={
-                    <FormattedMessage
-                        id='admin.integrations.webhook'
-                        defaultMessage='Webhooks and Commands'
-                    />
-                }
-            >
+            <SettingsGroup>
                 <BooleanSetting
                     id='enableIncomingWebhooks'
                     label={
@@ -67,9 +62,9 @@ export default class WebhookSettings extends AdminSettings {
                         />
                     }
                     helpText={
-                        <FormattedMessage
+                        <FormattedHTMLMessage
                             id='admin.service.webhooksDescription'
-                            defaultMessage='When true, incoming webhooks will be allowed. To help combat phishing attacks, all posts from webhooks will be labelled by a BOT tag.'
+                            defaultMessage='When true, incoming webhooks will be allowed. To help combat phishing attacks, all posts from webhooks will be labelled by a BOT tag. See <a href="http://docs.mattermost.com/developer/webhooks-incoming.html" target="_blank">documentation</a> to learn more.'
                         />
                     }
                     value={this.state.enableIncomingWebhooks}
@@ -84,9 +79,9 @@ export default class WebhookSettings extends AdminSettings {
                         />
                     }
                     helpText={
-                        <FormattedMessage
+                        <FormattedHTMLMessage
                             id='admin.service.outWebhooksDesc'
-                            defaultMessage='When true, outgoing webhooks will be allowed.'
+                            defaultMessage='When true, outgoing webhooks will be allowed. See <a href="http://docs.mattermost.com/developer/webhooks-outgoing.html" target="_blank">documentation</a> to learn more.'
                         />
                     }
                     value={this.state.enableOutgoingWebhooks}
@@ -97,13 +92,13 @@ export default class WebhookSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.service.cmdsTitle'
-                            defaultMessage='Enable Slash Commands: '
+                            defaultMessage='Enable Custom Slash Commands: '
                         />
                     }
                     helpText={
-                        <FormattedMessage
+                        <FormattedHTMLMessage
                             id='admin.service.cmdsDesc'
-                            defaultMessage='When true, user created slash commands will be allowed.'
+                            defaultMessage='When true, custom slash commands will be allowed. See <a href="http://docs.mattermost.com/developer/slash-commands.html" target="_blank">documentation</a> to learn more.'
                         />
                     }
                     value={this.state.enableCommands}
@@ -114,7 +109,7 @@ export default class WebhookSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.service.integrationAdmin'
-                            defaultMessage='Enable Integrations for Admin Only: '
+                            defaultMessage='Restrict creating integrations to Team and System Admins: '
                         />
                     }
                     helpText={
@@ -131,7 +126,7 @@ export default class WebhookSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.service.overrideTitle'
-                            defaultMessage='Enable Overriding Usernames from Webhooks and Slash Commands: '
+                            defaultMessage='Enable webhooks and slash commands to override usernames:'
                         />
                     }
                     helpText={
@@ -148,7 +143,7 @@ export default class WebhookSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.service.iconTitle'
-                            defaultMessage='Enable Overriding Icon from Webhooks and Slash Commands: '
+                            defaultMessage='Enable webhooks and slash commands to override profile picture icons:'
                         />
                     }
                     helpText={

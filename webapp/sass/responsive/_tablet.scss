@@ -16,7 +16,6 @@
     .sidebar--right {
         @include single-transition(all, .5s, ease);
         @include translateX(100%);
-        z-index: 5;
 
         &.move--left {
             -webkit-transform: translateX(0) !important;
@@ -75,6 +74,34 @@
         &.move--left {
             @include translateX(0);
         }
+
+        &.sidebar--right--expanded {
+            width: calc(100% - 280px);
+
+            .sidebar--right__bg {
+                background-color: alpha-color($black, .4);
+                visibility: visible;
+            }
+
+            .search-bar__container {
+                padding-left: 10px;
+            }
+
+            .sidebar-right-container {
+                position: relative;
+                z-index: 5;
+            }
+
+            .sidebar--right__expand {
+                .fa-expand {
+                    display: none;
+                }
+
+                .fa-compress {
+                    display: inline-block;
+                }
+            }
+        }
     }
 
     .inner-wrap {
@@ -85,74 +112,117 @@
 
     .post {
         &.post--compact {
-            padding: 5px .5em 0 80px;
 
-            .post__link {
-                margin: 4px 0 7px;
-            }
-
-            .post__time {
-                font-size: .85em;
-                left: -70px;
-                position: absolute;
-                top: 2px;
-            }
-
-            span {
-                p {
-                    &:last-child {
-                        margin-bottom: .3em;
-                    }
+            .channel__wrap & {
+                .post__time {
+                    font-size: .85em;
+                    left: -70px;
+                    position: absolute;
+                    text-align: right;
+                    top: 6px;
+                    width: 60px;
                 }
             }
 
-            .post__header {
-                float: left;
-                height: 18px;
-                padding-top: 3px;
+            &:not(.post--thread) {
+                padding: 5px .5em 0 70px;
 
-                .col__name {
-                    font-weight: bold;
+                .post__link {
+                    margin: 4px 0 7px;
+                    vertical-align: bottom;
                 }
 
-                .col__reply {
-                    top: 2px;
-                }
-            }
-
-            &.other--root {
-                .post__body {
-                    > div {
-                        &:first-child {
-                            min-height: 21px;
+                span {
+                    p {
+                        &:last-child {
+                            margin-bottom: .3em;
                         }
                     }
                 }
 
-                .post__link + .post__body {
+                .post__header {
+                    float: left;
+                    height: 21px;
+                    padding-top: 3px;
+
+                    .col__name {
+                        font-weight: bold;
+                        margin-right: 2px;
+                        padding-right: 5px;
+                        position: relative;
+                        z-index: 1;
+                    }
+
+                    .colon {
+                        display: inline;
+                    }
+
+                    .col__reply {
+                        top: -1px;
+                    }
+                }
+
+                &.other--root {
+                    .post__body {
+                        > div {
+                            &:first-child {
+                                min-height: 21px;
+                            }
+                        }
+                    }
+
+                    .post__link + .post__body {
+                        clear: both;
+                    }
+
+                    &.post--comment {
+                        .post__header {
+                            .col__reply {
+                                top: -1px;
+                            }
+                        }
+                    }
+                }
+
+                .post-code {
                     clear: both;
                 }
 
-                &.post--comment {
-                    .post__header {
-                        .col__reply {
-                            top: 0;
-                        }
-                    }
+                .post__body {
+                    width: 100%;
                 }
-            }
 
-            .post-code {
-                clear: both;
+                .post__content {
+                    padding-right: 45px;
+                }
             }
 
             &.same--root {
                 &.same--user {
-                    padding-left: 80px;
+                    padding-left: 70px;
+                    padding-top: 0;
+
+                    .post__header {
+                        .col__reply {
+                            top: -1px;
+                        }
+                    }
 
                     .post__img {
                         img {
                             display: none;
+                        }
+                    }
+
+                    &.post--root {
+                        .post__img {
+                            img {
+                                display: block;
+                            }
+                        }
+
+                        .post__time {
+                            @include opacity(.6);
                         }
                     }
                 }
@@ -179,33 +249,28 @@
                     }
                 }
             }
-
-            .post__body {
-                width: 100%;
-            }
-
-            .post__content {
-                padding-right: 85px;
-            }
         }
 
         &.same--root {
             &.same--user {
                 .post__time {
                     @include opacity(0);
-                    font-size: 11px;
-                    left: -4px;
-                    line-height: 37px;
-                    position: absolute;
-                    text-rendering: auto;
-                    top: -2px;
                 }
 
-                &.post--compact {
+                .post__header {
+                    .col__reply {
+                        top: -21px;
+                    }
+                }
+
+                &:not(.post--compact) {
                     .post__time {
-                        font-size: .85em;
-                        left: -70px;
-                        top: -5px;
+                        font-size: 11px;
+                        left: -4px;
+                        line-height: 37px;
+                        position: absolute;
+                        text-rendering: auto;
+                        top: -2px;
                     }
                 }
             }

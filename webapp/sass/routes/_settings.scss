@@ -141,15 +141,10 @@
                     }
 
                     .group--code {
-
                         select {
                             @include appearance(none);
                             appearance: none;
                             padding-right: 25px;
-                        }
-
-                        select::ms-expand {
-                            display: none;
                         }
 
                         &:before {
@@ -163,6 +158,10 @@
                             text-rendering: auto;
                             top: 11px;
                             z-index: 5;
+
+                            .browser--ie & {
+                                display: none;
+                            }
                         }
                     }
 
@@ -172,6 +171,9 @@
                         .theme-label {
                             font-weight: 400;
                             margin-top: 5px;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                            white-space: nowrap;
                         }
 
                         img {
@@ -270,6 +272,7 @@
                         display: none;
                         font-size: 12px;
                         margin-right: 5px;
+
                         &.fa-chevron-down {
                             margin-right: 0;
                             position: relative;
@@ -291,6 +294,14 @@
 
                 .divider-light {
                     border-bottom: 1px solid lightgrey;
+
+                    & + .divider-light {
+                        display: none;
+                    }
+
+                    & + .divider-dark {
+                        display: none;
+                    }
                 }
 
                 .setting-list {
@@ -334,13 +345,19 @@
 
             a {
                 border-radius: 0;
-                color: #777;
-                padding: 8px 5px 8px 15px;
+                color: $gray;
+                overflow: hidden;
+                padding: 8px 15px;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }
 
-            .glyphicon {
+            .icon {
+                font-size: 15px;
+                margin-right: 10px;
+                text-align: center;
                 top: 2px;
-                width: 25px;
+                width: 14px;
             }
 
             &:hover {
@@ -371,10 +388,7 @@
                     @include alpha-property(background-color, $black, .1);
                     border-radius: 0;
                     font-weight: 400;
-                    overflow: hidden;
                     position: relative;
-                    text-overflow: ellipsis;
-                    white-space: nowrap;
                 }
             }
         }
@@ -463,4 +477,9 @@
 
 .no-resize {
     resize: none;
+}
+
+.user-settings__submit-checkbox {
+    padding-top: 0px;
+    padding-bottom: 20px;
 }

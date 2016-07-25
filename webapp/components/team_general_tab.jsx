@@ -5,7 +5,7 @@ import $ from 'jquery';
 import SettingItemMin from './setting_item_min.jsx';
 import SettingItemMax from './setting_item_max.jsx';
 
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
@@ -42,7 +42,7 @@ const holders = defineMessages({
     },
     openInviteTitle: {
         id: 'general_tab.openInviteTitle',
-        defaultMessage: 'Allow anyone to join this team'
+        defaultMessage: 'Allow any user with an account on this server to join this team'
     },
     codeTitle: {
         id: 'general_tab.codeTitle',
@@ -255,12 +255,10 @@ class GeneralTab extends React.Component {
     }
 
     updateName(e) {
-        e.preventDefault();
         this.setState({name: e.target.value});
     }
 
     updateInviteId(e) {
-        e.preventDefault();
         this.setState({invite_id: e.target.value});
     }
 
@@ -314,7 +312,7 @@ class GeneralTab extends React.Component {
                         <br/>
                         <FormattedMessage
                             id='general_tab.openInviteDesc'
-                            defaultMessage='When allowed, a link to this team will be including on the landing page allowing anyone with an account to join this team.'
+                            defaultMessage='When allowed, a link to this team will be included on the landing page allowing anyone with an account to join this team.'
                         />
                     </div>
                 </div>
@@ -371,7 +369,7 @@ class GeneralTab extends React.Component {
                                 >
                                     <FormattedMessage
                                         id='general_tab.regenerate'
-                                        defaultMessage='Re-Generate'
+                                        defaultMessage='Regenerate'
                                     />
                                 </a>
                             </div>

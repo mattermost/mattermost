@@ -7,27 +7,34 @@ import EditChannelHeaderModal from 'components/edit_channel_header_modal.jsx';
 import ToggleModalButton from 'components/toggle_modal_button.jsx';
 import UserProfile from 'components/user_profile.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
+import UserStore from 'stores/user_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
 import Constants from 'utils/constants.jsx';
-import * as GlobalActions from 'action_creators/global_actions.jsx';
-import Client from 'utils/web_client.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
+import Client from 'client/web_client.jsx';
 
 import React from 'react';
 import {FormattedMessage, FormattedHTMLMessage, FormattedDate} from 'react-intl';
 
-export function createChannelIntroMessage(channel) {
+export function createChannelIntroMessage(channel, fullWidthIntro) {
+    let centeredIntro = '';
+    if (!fullWidthIntro) {
+        centeredIntro = 'channel-intro--centered';
+    }
+
     if (channel.type === 'D') {
-        return createDMIntroMessage(channel);
+        return createDMIntroMessage(channel, centeredIntro);
     } else if (ChannelStore.isDefault(channel)) {
-        return createDefaultIntroMessage(channel);
+        return createDefaultIntroMessage(channel, centeredIntro);
     } else if (channel.name === Constants.OFFTOPIC_CHANNEL) {
-        return createOffTopicIntroMessage(channel);
+        return createOffTopicIntroMessage(channel, centeredIntro);
     } else if (channel.type === 'O' || channel.type === 'P') {
-        return createStandardIntroMessage(channel);
+        return createStandardIntroMessage(channel, centeredIntro);
     }
     return null;
 }
 
-export function createDMIntroMessage(channel) {
+export function createDMIntroMessage(channel, centeredIntro) {
     var teammate = Utils.getDirectTeammate(channel.id);
 
     if (teammate) {
@@ -37,7 +44,7 @@ export function createDMIntroMessage(channel) {
         }
 
         return (
-            <div className='channel-intro'>
+            <div className={'channel-intro ' + centeredIntro}>
                 <div className='post-profile-img__container channel-intro-img'>
                     <img
                         className='post-profile-img'
@@ -66,7 +73,7 @@ export function createDMIntroMessage(channel) {
     }
 
     return (
-        <div className='channel-intro'>
+        <div className={'channel-intro ' + centeredIntro}>
             <p className='channel-intro-text'>
                 <FormattedMessage
                     id='intro_messages.teammate'
@@ -77,9 +84,9 @@ export function createDMIntroMessage(channel) {
     );
 }
 
-export function createOffTopicIntroMessage(channel) {
+export function createOffTopicIntroMessage(channel, centeredIntro) {
     return (
-        <div className='channel-intro'>
+        <div className={'channel-intro ' + centeredIntro}>
             <FormattedHTMLMessage
                 id='intro_messages.offTopic'
                 defaultMessage='<h4 class="channel-intro__title">Beginning of {display_name}</h4><p class="channel-intro__content">This is the start of {display_name}, a channel for non-work-related conversations.<br/></p>'
@@ -93,8 +100,8 @@ export function createOffTopicIntroMessage(channel) {
     );
 }
 
-export function createDefaultIntroMessage(channel) {
-    const inviteModalLink = (
+export function createDefaultIntroMessage(channel, centeredIntro) {
+    let inviteModalLink = (
         <a
             className='intro-links'
             href='#'
@@ -108,8 +115,19 @@ export function createDefaultIntroMessage(channel) {
         </a>
     );
 
+    const isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
+    const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
+
+    if (global.window.mm_license.IsLicensed === 'true') {
+        if (global.window.mm_config.RestrictTeamInvite === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
+            inviteModalLink = null;
+        } else if (global.window.mm_config.RestrictTeamInvite === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
+            inviteModalLink = null;
+        }
+    }
+
     return (
-        <div className='channel-intro'>
+        <div className={'channel-intro ' + centeredIntro}>
             <FormattedHTMLMessage
                 id='intro_messages.default'
                 defaultMessage="<h4 class='channel-intro__title'>Beginning of {display_name}</h4><p class='channel-intro__content'><strong>Welcome to {display_name}!</strong><br/><br/>This is the first channel teammates see when they sign up - use it for posting updates everyone needs to know.</p>"
@@ -124,7 +142,7 @@ export function createDefaultIntroMessage(channel) {
     );
 }
 
-export function createStandardIntroMessage(channel) {
+export function createStandardIntroMessage(channel, centeredIntro) {
     var uiName = channel.display_name;
     var creatorName = '';
 
@@ -176,7 +194,7 @@ export function createStandardIntroMessage(channel) {
                 values={{
                     name: (uiName),
                     type: (uiType),
-                    date: (date)
+                    date
                 }}
             />
         );
@@ -189,7 +207,7 @@ export function createStandardIntroMessage(channel) {
                     values={{
                         name: (uiName),
                         type: (uiType),
-                        date: (date),
+                        date,
                         creator: creatorName
                     }}
                 />
@@ -198,7 +216,7 @@ export function createStandardIntroMessage(channel) {
     }
 
     return (
-        <div className='channel-intro'>
+        <div className={'channel-intro ' + centeredIntro}>
             <h4 className='channel-intro__title'>
                 <FormattedMessage
                     id='intro_messages.beginning'

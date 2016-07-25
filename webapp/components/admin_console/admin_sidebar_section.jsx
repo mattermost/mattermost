@@ -3,13 +3,14 @@
 
 import React from 'react';
 
-import {Link} from 'react-router';
+import {Link} from 'react-router/es6';
 
 export default class AdminSidebarSection extends React.Component {
     static get propTypes() {
         return {
             name: React.PropTypes.string.isRequired,
             title: React.PropTypes.node.isRequired,
+            type: React.PropTypes.string,
             parentLink: React.PropTypes.string,
             subsection: React.PropTypes.bool,
             children: React.PropTypes.arrayOf(React.PropTypes.element),
@@ -59,20 +60,39 @@ export default class AdminSidebarSection extends React.Component {
             className += ' sidebar-subsection';
         }
 
-        return (
-            <li className={className}>
-                <Link
+        let sidebarItem = (
+            <Link
+                className={`${className}-title`}
+                activeClassName={`${className}-title ${className}-title--active`}
+                onlyActiveOnIndex={this.props.onlyActiveOnIndex}
+                onClick={this.handleClick}
+                to={link}
+            >
+                <span className={`${className}-title__text`}>
+                    {this.props.title}
+                </span>
+                {this.props.action}
+            </Link>
+        );
+
+        if (this.props.type === 'text') {
+            sidebarItem = (
+                <div
                     className={`${className}-title`}
                     activeClassName={`${className}-title ${className}-title--active`}
                     onlyActiveOnIndex={this.props.onlyActiveOnIndex}
-                    onClick={this.handleClick}
-                    to={link}
                 >
                     <span className={`${className}-title__text`}>
                         {this.props.title}
                     </span>
                     {this.props.action}
-                </Link>
+                </div>
+            );
+        }
+
+        return (
+            <li className={className}>
+                {sidebarItem}
                 {clonedChildren}
             </li>
         );

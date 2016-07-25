@@ -156,7 +156,7 @@ func TestSessionUpdateDeviceId(t *testing.T) {
 	s1.UserId = model.NewId()
 	Must(store.Session().Save(&s1))
 
-	if rs1 := (<-store.Session().UpdateDeviceId(s1.Id, model.PUSH_NOTIFY_APPLE+":1234567890")); rs1.Err != nil {
+	if rs1 := (<-store.Session().UpdateDeviceId(s1.Id, model.PUSH_NOTIFY_APPLE+":1234567890", s1.ExpiresAt)); rs1.Err != nil {
 		t.Fatal(rs1.Err)
 	}
 
@@ -164,7 +164,7 @@ func TestSessionUpdateDeviceId(t *testing.T) {
 	s2.UserId = model.NewId()
 	Must(store.Session().Save(&s2))
 
-	if rs2 := (<-store.Session().UpdateDeviceId(s2.Id, model.PUSH_NOTIFY_APPLE+":1234567890")); rs2.Err != nil {
+	if rs2 := (<-store.Session().UpdateDeviceId(s2.Id, model.PUSH_NOTIFY_APPLE+":1234567890", s1.ExpiresAt)); rs2.Err != nil {
 		t.Fatal(rs2.Err)
 	}
 }

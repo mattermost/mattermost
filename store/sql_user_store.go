@@ -4,12 +4,16 @@
 package store
 
 import (
+	"crypto/md5"
 	"database/sql"
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
+	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 const (
@@ -38,7 +42,6 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 		table.ColMap("Roles").SetMaxSize(64)
 		table.ColMap("Props").SetMaxSize(4000)
 		table.ColMap("NotifyProps").SetMaxSize(2000)
-		table.ColMap("ThemeProps").SetMaxSize(2000)
 		table.ColMap("Locale").SetMaxSize(5)
 		table.ColMap("MfaSecret").SetMaxSize(128)
 	}
@@ -49,6 +52,72 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 func (us SqlUserStore) UpgradeSchemaIfNeeded() {
 	// ADDED for 2.0 REMOVE for 2.4
 	us.CreateColumnIfNotExists("Users", "Locale", "varchar(5)", "character varying(5)", model.DEFAULT_LOCALE)
+
+	// ADDED for 3.2 REMOVE for 3.6
+	if us.DoesColumnExist("Users", "ThemeProps") {
+		params := map[string]interface{}{
+			"Category": model.PREFERENCE_CATEGORY_THEME,
+			"Name":     "",
+		}
+
+		transaction, err := us.GetMaster().Begin()
+		if err != nil {
+			themeMigrationFailed(err)
+		}
+
+		// increase size of Value column of Preferences table to match the size of the ThemeProps column
+		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+			if _, err := transaction.Exec("ALTER TABLE Preferences ALTER COLUMN Value TYPE varchar(2000)"); err != nil {
+				themeMigrationFailed(err)
+			}
+		} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
+			if _, err := transaction.Exec("ALTER TABLE Preferences MODIFY Value text"); err != nil {
+				themeMigrationFailed(err)
+			}
+		}
+
+		// copy data across
+		if _, err := transaction.Exec(
+			`INSERT INTO
+				Preferences(UserId, Category, Name, Value)
+			SELECT
+				Id, '`+model.PREFERENCE_CATEGORY_THEME+`', '', ThemeProps
+			FROM
+				Users
+			WHERE
+				Users.ThemeProps != 'null'`, params); err != nil {
+			themeMigrationFailed(err)
+		}
+
+		// delete old data
+		if _, err := transaction.Exec("ALTER TABLE Users DROP COLUMN ThemeProps"); err != nil {
+			themeMigrationFailed(err)
+		}
+
+		if err := transaction.Commit(); err != nil {
+			themeMigrationFailed(err)
+		}
+
+		// rename solarized_* code themes to solarized-* to match client changes in 3.0
+		var data model.Preferences
+		if _, err := us.GetReplica().Select(&data, "SELECT * FROM Preferences WHERE Category = '"+model.PREFERENCE_CATEGORY_THEME+"' AND Value LIKE '%solarized_%'"); err == nil {
+			for i := range data {
+				data[i].Value = strings.Replace(data[i].Value, "solarized_", "solarized-", -1)
+			}
+
+			us.Preference().Save(&data)
+		}
+	}
+
+	// ADDED for 3.3 remove for 3.7
+	us.RemoveColumnIfExists("Users", "LastActivityAt")
+	us.RemoveColumnIfExists("Users", "LastPingAt")
+}
+
+func themeMigrationFailed(err error) {
+	l4g.Critical(utils.T("store.sql_user.migrate_theme.critical"), err)
+	time.Sleep(time.Second)
+	panic(fmt.Sprintf(utils.T("store.sql_user.migrate_theme.critical"), err.Error()))
 }
 
 func (us SqlUserStore) CreateIndexesIfNotExists() {
@@ -122,8 +191,6 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) StoreCha
 			user.Password = oldUser.Password
 			user.LastPasswordUpdate = oldUser.LastPasswordUpdate
 			user.LastPictureUpdate = oldUser.LastPictureUpdate
-			user.LastActivityAt = oldUser.LastActivityAt
-			user.LastPingAt = oldUser.LastPingAt
 			user.EmailVerified = oldUser.EmailVerified
 			user.FailedAttempts = oldUser.FailedAttempts
 			user.MfaSecret = oldUser.MfaSecret
@@ -218,65 +285,6 @@ func (us SqlUserStore) UpdateUpdateAt(userId string) StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) UpdateLastPingAt(userId string, time int64) StoreChannel {
-	storeChannel := make(StoreChannel)
-
-	go func() {
-		result := StoreResult{}
-
-		if _, err := us.GetMaster().Exec("UPDATE Users SET LastPingAt = :LastPingAt WHERE Id = :UserId", map[string]interface{}{"LastPingAt": time, "UserId": userId}); err != nil {
-			result.Err = model.NewLocAppError("SqlUserStore.UpdateLastPingAt", "store.sql_user.update_last_ping.app_error", nil, "user_id="+userId)
-		} else {
-			result.Data = userId
-		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
-}
-
-func (us SqlUserStore) UpdateLastActivityAt(userId string, time int64) StoreChannel {
-	storeChannel := make(StoreChannel)
-
-	go func() {
-		result := StoreResult{}
-
-		if _, err := us.GetMaster().Exec("UPDATE Users SET LastActivityAt = :LastActivityAt WHERE Id = :UserId", map[string]interface{}{"LastActivityAt": time, "UserId": userId}); err != nil {
-			result.Err = model.NewLocAppError("SqlUserStore.UpdateLastActivityAt", "store.sql_user.update_last_activity.app_error", nil, "user_id="+userId)
-		} else {
-			result.Data = userId
-		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
-}
-
-func (us SqlUserStore) UpdateUserAndSessionActivity(userId string, sessionId string, time int64) StoreChannel {
-	storeChannel := make(StoreChannel)
-
-	go func() {
-		result := StoreResult{}
-
-		if _, err := us.GetMaster().Exec("UPDATE Users SET LastActivityAt = :UserLastActivityAt WHERE Id = :UserId", map[string]interface{}{"UserLastActivityAt": time, "UserId": userId}); err != nil {
-			result.Err = model.NewLocAppError("SqlUserStore.UpdateLastActivityAt", "store.sql_user.update_last_activity.app_error", nil, "1 user_id="+userId+" session_id="+sessionId+" err="+err.Error())
-		} else if _, err := us.GetMaster().Exec("UPDATE Sessions SET LastActivityAt = :SessionLastActivityAt WHERE Id = :SessionId", map[string]interface{}{"SessionLastActivityAt": time, "SessionId": sessionId}); err != nil {
-			result.Err = model.NewLocAppError("SqlUserStore.UpdateLastActivityAt", "store.sql_user.update_last_activity.app_error", nil, "2 user_id="+userId+" session_id="+sessionId+" err="+err.Error())
-		} else {
-			result.Data = userId
-		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
-}
-
 func (us SqlUserStore) UpdatePassword(userId, hashedPassword string) StoreChannel {
 
 	storeChannel := make(StoreChannel)
@@ -347,7 +355,11 @@ func (us SqlUserStore) UpdateAuthData(userId string, service string, authData *s
 		query += " WHERE Id = :UserId"
 
 		if _, err := us.GetMaster().Exec(query, map[string]interface{}{"LastPasswordUpdate": updateAt, "UpdateAt": updateAt, "UserId": userId, "AuthService": service, "AuthData": authData, "Email": email}); err != nil {
-			result.Err = model.NewLocAppError("SqlUserStore.UpdateAuthData", "store.sql_user.update_auth_data.app_error", nil, "id="+userId+", "+err.Error())
+			if IsUniqueConstraintError(err.Error(), []string{"Email", "users_email_key", "idx_users_email_unique"}) {
+				result.Err = model.NewLocAppError("SqlUserStore.UpdateAuthData", "store.sql_user.update_auth_data.email_exists.app_error", map[string]interface{}{"Service": service, "Email": email}, "user_id="+userId+", "+err.Error())
+			} else {
+				result.Err = model.NewLocAppError("SqlUserStore.UpdateAuthData", "store.sql_user.update_auth_data.app_error", nil, "id="+userId+", "+err.Error())
+			}
 		} else {
 			result.Data = userId
 		}
@@ -454,9 +466,10 @@ func (s SqlUserStore) GetEtagForDirectProfiles(userId string) StoreChannel {
 	go func() {
 		result := StoreResult{}
 
-		updateAt, err := s.GetReplica().SelectInt(`
+		var ids []string
+		_, err := s.GetReplica().Select(ids, `
 			SELECT
-			    UpdateAt
+			    Id
 			FROM
 			    Users
 			WHERE
@@ -482,12 +495,14 @@ func (s SqlUserStore) GetEtagForDirectProfiles(userId string) StoreChannel {
 			        WHERE
 			            UserId = :UserId
 			                AND Category = 'direct_channel_show')
-			ORDER BY UpdateAt DESC LIMIT 1
+			ORDER BY UpdateAt DESC
         `, map[string]interface{}{"UserId": userId})
-		if err != nil {
-			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
+
+		if err != nil || len(ids) == 0 {
+			result.Data = fmt.Sprintf("%v.%v.0.%v.%v", model.CurrentVersion, model.GetMillis(), utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
 		} else {
-			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, updateAt)
+			allIds := strings.Join(ids, "")
+			result.Data = fmt.Sprintf("%v.%v.%v.%v.%v", model.CurrentVersion, md5.Sum([]byte(allIds)), len(ids), utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
 		}
 
 		storeChannel <- result
@@ -505,9 +520,9 @@ func (s SqlUserStore) GetEtagForAllProfiles() StoreChannel {
 
 		updateAt, err := s.GetReplica().SelectInt("SELECT UpdateAt FROM Users ORDER BY UpdateAt DESC LIMIT 1")
 		if err != nil {
-			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
+			result.Data = fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.GetMillis(), utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
 		} else {
-			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, updateAt)
+			result.Data = fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, updateAt, utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
 		}
 
 		storeChannel <- result
@@ -557,9 +572,9 @@ func (s SqlUserStore) GetEtagForProfiles(teamId string) StoreChannel {
 
 		updateAt, err := s.GetReplica().SelectInt("SELECT UpdateAt FROM Users, TeamMembers WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId ORDER BY UpdateAt DESC LIMIT 1", map[string]interface{}{"TeamId": teamId})
 		if err != nil {
-			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
+			result.Data = fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.GetMillis(), utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
 		} else {
-			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, updateAt)
+			result.Data = fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, updateAt, utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
 		}
 
 		storeChannel <- result
@@ -793,6 +808,27 @@ func (us SqlUserStore) GetByAuth(authData *string, authService string) StoreChan
 	return storeChannel
 }
 
+func (us SqlUserStore) GetAllUsingAuthService(authService string) StoreChannel {
+
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+		var data []*model.User
+
+		if _, err := us.GetReplica().Select(&data, "SELECT * FROM Users WHERE AuthService = :AuthService", map[string]interface{}{"AuthService": authService}); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.GetByAuth", "store.sql_user.get_by_auth.other.app_error", nil, "authService="+authService+", "+err.Error())
+		}
+
+		result.Data = data
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (us SqlUserStore) GetByUsername(username string) StoreChannel {
 
 	storeChannel := make(StoreChannel)
@@ -876,34 +912,6 @@ func (us SqlUserStore) VerifyEmail(userId string) StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) GetForExport(teamId string) StoreChannel {
-
-	storeChannel := make(StoreChannel)
-
-	go func() {
-		result := StoreResult{}
-
-		var users []*model.User
-
-		if _, err := us.GetReplica().Select(&users, "SELECT Users.* FROM Users, TeamMembers WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId", map[string]interface{}{"TeamId": teamId}); err != nil {
-			result.Err = model.NewLocAppError("SqlUserStore.GetForExport", "store.sql_user.get_for_export.app_error", nil, err.Error())
-		} else {
-			for _, u := range users {
-				u.Password = ""
-				u.AuthData = new(string)
-				*u.AuthData = ""
-			}
-
-			result.Data = users
-		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
-}
-
 func (us SqlUserStore) GetTotalUsersCount() StoreChannel {
 	storeChannel := make(StoreChannel)
 
@@ -912,27 +920,6 @@ func (us SqlUserStore) GetTotalUsersCount() StoreChannel {
 
 		if count, err := us.GetReplica().SelectInt("SELECT COUNT(Id) FROM Users"); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.GetTotalUsersCount", "store.sql_user.get_total_users_count.app_error", nil, err.Error())
-		} else {
-			result.Data = count
-		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
-}
-
-func (us SqlUserStore) GetTotalActiveUsersCount() StoreChannel {
-	storeChannel := make(StoreChannel)
-
-	go func() {
-		result := StoreResult{}
-
-		time := model.GetMillis() - (1000 * 60 * 60 * 24)
-
-		if count, err := us.GetReplica().SelectInt("SELECT COUNT(Id) FROM Users WHERE LastActivityAt > :Time", map[string]interface{}{"Time": time}); err != nil {
-			result.Err = model.NewLocAppError("SqlUserStore.GetTotalActiveUsersCount", "store.sql_user.get_total_active_users_count.app_error", nil, err.Error())
 		} else {
 			result.Data = count
 		}

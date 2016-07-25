@@ -4,7 +4,7 @@
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import * as utils from 'utils/utils.jsx';
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {intlShape, injectIntl, defineMessages} from 'react-intl';
@@ -25,6 +25,7 @@ class FileAttachment extends React.Component {
 
         this.loadFiles = this.loadFiles.bind(this);
         this.addBackgroundImage = this.addBackgroundImage.bind(this);
+        this.onAttachmentClick = this.onAttachmentClick.bind(this);
 
         this.canSetState = false;
         this.state = {fileSize: -1};
@@ -48,7 +49,7 @@ class FileAttachment extends React.Component {
 
             if (type === 'image') {
                 var self = this; // Need this reference since we use the given "this"
-                $('<img/>').attr('src', fileInfo.path + '_thumb.jpg').load(function loadWrapper(path, name) {
+                $('<img/>').attr('src', fileInfo.path + '_thumb.jpg').on('load', (function loadWrapper(path, name) {
                     return function loader() {
                         $(this).remove();
                         if (name in self.refs) {
@@ -70,7 +71,7 @@ class FileAttachment extends React.Component {
                             self.addBackgroundImage(name, path);
                         }
                     };
-                }(fileInfo.path, filename));
+                }(fileInfo.path, filename)));
             }
         }
     }
@@ -126,6 +127,10 @@ class FileAttachment extends React.Component {
         if (name in this.refs) {
             $(ReactDOM.findDOMNode(this.refs[name])).css('background-image', 'initial');
         }
+    }
+    onAttachmentClick(e) {
+        e.preventDefault();
+        this.props.handleImageClick(this.props.index);
     }
     render() {
         var filename = this.props.filename;
@@ -197,11 +202,15 @@ class FileAttachment extends React.Component {
                 >
                     <a
                         href='#'
-                        onClick={() => this.props.handleImageClick(this.props.index)}
+                        onClick={this.onAttachmentClick}
                         className='post-image__name'
                         rel='noopener noreferrer'
                     >
-                        <i className='glyphicon glyphicon-paperclip'/>{trimmedFilename}
+                        <span
+                            className='icon'
+                            dangerouslySetInnerHTML={{__html: Constants.ATTACHMENT_ICON_SVG}}
+                        />
+                        {trimmedFilename}
                     </a>
                 </OverlayTrigger>
             );
@@ -215,7 +224,7 @@ class FileAttachment extends React.Component {
                 <a
                     className='post-image__thumbnail'
                     href='#'
-                    onClick={() => this.props.handleImageClick(this.props.index)}
+                    onClick={this.onAttachmentClick}
                 >
                     {thumbnail}
                 </a>

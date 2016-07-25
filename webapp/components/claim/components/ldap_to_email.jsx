@@ -2,7 +2,8 @@
 // See License.txt for license information.
 
 import * as Utils from 'utils/utils.jsx';
-import Client from 'utils/web_client.jsx';
+
+import {switchFromLdapToEmail} from 'actions/user_actions.jsx';
 
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -14,59 +15,90 @@ export default class LDAPToEmail extends React.Component {
 
         this.submit = this.submit.bind(this);
 
-        this.state = {};
+        this.state = {
+            passwordError: '',
+            confirmError: '',
+            ldapPasswordError: '',
+            serverError: ''
+        };
     }
+
     submit(e) {
         e.preventDefault();
-        var state = {};
+        var state = {
+            passwordError: '',
+            confirmError: '',
+            ldapPasswordError: '',
+            serverError: ''
+        };
 
-        const password = ReactDOM.findDOMNode(this.refs.password).value.trim();
-        if (!password) {
-            state.error = Utils.localizeMessage('claim.ldap_to_email.pwdError', 'Please enter your password.');
+        const ldapPassword = ReactDOM.findDOMNode(this.refs.ldappassword).value;
+        if (!ldapPassword) {
+            state.ldapPasswordError = Utils.localizeMessage('claim.ldap_to_email.ldapPasswordError', 'Please enter your LDAP password.');
             this.setState(state);
             return;
         }
 
-        const confirmPassword = ReactDOM.findDOMNode(this.refs.passwordconfirm).value.trim();
+        const password = ReactDOM.findDOMNode(this.refs.password).value;
+        if (!password) {
+            state.passwordError = Utils.localizeMessage('claim.ldap_to_email.pwdError', 'Please enter your password.');
+            this.setState(state);
+            return;
+        }
+
+        const passwordErr = Utils.isValidPassword(password);
+        if (passwordErr !== '') {
+            this.setState({
+                passwordError: passwordErr
+            });
+            return;
+        }
+
+        const confirmPassword = ReactDOM.findDOMNode(this.refs.passwordconfirm).value;
         if (!confirmPassword || password !== confirmPassword) {
             state.error = Utils.localizeMessage('claim.ldap_to_email.pwdNotMatch', 'Passwords do not match.');
             this.setState(state);
             return;
         }
 
-        const ldapPassword = ReactDOM.findDOMNode(this.refs.ldappassword).value.trim();
-        if (!ldapPassword) {
-            state.error = Utils.localizeMessage('claim.ldap_to_email.ldapPasswordError', 'Please enter your LDAP password.');
-            this.setState(state);
-            return;
-        }
-
-        state.error = null;
         this.setState(state);
 
-        Client.ldapToEmail(
+        switchFromLdapToEmail(
             this.props.email,
             password,
             ldapPassword,
-            (data) => {
-                if (data.follow_link) {
-                    window.location.href = data.follow_link;
-                }
-            },
-            (error) => {
-                this.setState({error});
-            }
+            null,
+            (err) => this.setState({serverError: err.message})
         );
     }
+
     render() {
-        var error = null;
-        if (this.state.error) {
-            error = <div className='form-group has-error'><label className='control-label'>{this.state.error}</label></div>;
+        let serverError = null;
+        let formClass = 'form-group';
+        if (this.state.serverError) {
+            serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
+            formClass += ' has-error';
         }
 
-        var formClass = 'form-group';
-        if (error) {
-            formClass += ' has-error';
+        let passwordError = null;
+        let passwordClass = 'form-group';
+        if (this.state.passwordError) {
+            passwordError = <div className='form-group has-error'><label className='control-label'>{this.state.passwordError}</label></div>;
+            passwordClass += ' has-error';
+        }
+
+        let ldapPasswordError = null;
+        let ldapPasswordClass = 'form-group';
+        if (this.state.ldapPasswordError) {
+            ldapPasswordError = <div className='form-group has-error'><label className='control-label'>{this.state.ldapPasswordError}</label></div>;
+            ldapPasswordClass += ' has-error';
+        }
+
+        let confirmError = null;
+        let confimClass = 'form-group';
+        if (this.state.confirmError) {
+            confirmError = <div className='form-group has-error'><label className='control-label'>{this.state.confirmError}</label></div>;
+            confimClass += ' has-error';
         }
 
         let passwordPlaceholder;
@@ -84,7 +116,10 @@ export default class LDAPToEmail extends React.Component {
                         defaultMessage='Switch LDAP Account to Email/Password'
                     />
                 </h3>
-                <form onSubmit={this.submit}>
+                <form
+                    onSubmit={this.submit}
+                    className={formClass}
+                >
                     <p>
                         <FormattedMessage
                             id='claim.ldap_to_email.ssoType'
@@ -110,7 +145,7 @@ export default class LDAPToEmail extends React.Component {
                             }}
                         />
                     </p>
-                    <div className={formClass}>
+                    <div className={ldapPasswordClass}>
                         <input
                             type='password'
                             className='form-control'
@@ -120,13 +155,14 @@ export default class LDAPToEmail extends React.Component {
                             spellCheck='false'
                         />
                     </div>
+                    {ldapPasswordError}
                     <p>
                         <FormattedMessage
                             id='claim.ldap_to_email.enterPwd'
                             defaultMessage='Enter a new password for your email account'
                         />
                     </p>
-                    <div className={formClass}>
+                    <div className={passwordClass}>
                         <input
                             type='password'
                             className='form-control'
@@ -136,7 +172,8 @@ export default class LDAPToEmail extends React.Component {
                             spellCheck='false'
                         />
                     </div>
-                    <div className={formClass}>
+                    {passwordError}
+                    <div className={confimClass}>
                         <input
                             type='password'
                             className='form-control'
@@ -146,7 +183,7 @@ export default class LDAPToEmail extends React.Component {
                             spellCheck='false'
                         />
                     </div>
-                    {error}
+                    {confirmError}
                     <button
                         type='submit'
                         className='btn btn-primary'
@@ -156,6 +193,7 @@ export default class LDAPToEmail extends React.Component {
                             defaultMessage='Switch account to email/password'
                         />
                     </button>
+                    {serverError}
                 </form>
             </div>
         );

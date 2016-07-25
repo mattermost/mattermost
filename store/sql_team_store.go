@@ -4,8 +4,14 @@
 package store
 
 import (
+	"database/sql"
+
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+)
+
+const (
+	TEAM_MEMBER_EXISTS_ERROR = "store.sql_team.save_member.exists.app_error"
 )
 
 type SqlTeamStore struct {
@@ -35,6 +41,7 @@ func NewSqlTeamStore(sqlStore *SqlStore) TeamStore {
 }
 
 func (s SqlTeamStore) UpgradeSchemaIfNeeded() {
+	s.CreateColumnIfNotExists("TeamMembers", "DeleteAt", "bigint(20)", "bigint", "0")
 }
 
 func (s SqlTeamStore) CreateIndexesIfNotExists() {
@@ -258,7 +265,7 @@ func (s SqlTeamStore) GetTeamsByUserId(userId string) StoreChannel {
 		result := StoreResult{}
 
 		var data []*model.Team
-		if _, err := s.GetReplica().Select(&data, "SELECT Teams.* FROM Teams, TeamMembers WHERE TeamMembers.TeamId = Teams.Id AND TeamMembers.UserId = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
+		if _, err := s.GetReplica().Select(&data, "SELECT Teams.* FROM Teams, TeamMembers WHERE TeamMembers.TeamId = Teams.Id AND TeamMembers.UserId = :UserId AND TeamMembers.DeleteAt = 0 AND Teams.DeleteAt = 0", map[string]interface{}{"UserId": userId}); err != nil {
 			result.Err = model.NewLocAppError("SqlTeamStore.GetTeamsByUserId", "store.sql_team.get_all.app_error", nil, err.Error())
 		}
 
@@ -370,8 +377,8 @@ func (s SqlTeamStore) SaveMember(member *model.TeamMember) StoreChannel {
 		}
 
 		if err := s.GetMaster().Insert(member); err != nil {
-			if IsUniqueConstraintError(err.Error(), []string{"TeamId", "teammembers_pkey"}) {
-				result.Err = model.NewLocAppError("SqlTeamStore.SaveMember", "store.sql_team.save_member.exists.app_error", nil, "team_id="+member.TeamId+", user_id="+member.UserId+", "+err.Error())
+			if IsUniqueConstraintError(err.Error(), []string{"TeamId", "teammembers_pkey", "PRIMARY"}) {
+				result.Err = model.NewLocAppError("SqlTeamStore.SaveMember", TEAM_MEMBER_EXISTS_ERROR, nil, "team_id="+member.TeamId+", user_id="+member.UserId+", "+err.Error())
 			} else {
 				result.Err = model.NewLocAppError("SqlTeamStore.SaveMember", "store.sql_team.save_member.save.app_error", nil, "team_id="+member.TeamId+", user_id="+member.UserId+", "+err.Error())
 			}
@@ -420,7 +427,11 @@ func (s SqlTeamStore) GetMember(teamId string, userId string) StoreChannel {
 		var member model.TeamMember
 		err := s.GetReplica().SelectOne(&member, "SELECT * FROM TeamMembers WHERE TeamId = :TeamId AND UserId = :UserId", map[string]interface{}{"TeamId": teamId, "UserId": userId})
 		if err != nil {
-			result.Err = model.NewLocAppError("SqlTeamStore.GetMember", "store.sql_team.get_member.app_error", nil, "teamId="+teamId+" userId="+userId+" "+err.Error())
+			if err == sql.ErrNoRows {
+				result.Err = model.NewLocAppError("SqlTeamStore.GetMember", "store.sql_team.get_member.missing.app_error", nil, "teamId="+teamId+" userId="+userId+" "+err.Error())
+			} else {
+				result.Err = model.NewLocAppError("SqlTeamStore.GetMember", "store.sql_team.get_member.app_error", nil, "teamId="+teamId+" userId="+userId+" "+err.Error())
+			}
 		} else {
 			result.Data = member
 		}

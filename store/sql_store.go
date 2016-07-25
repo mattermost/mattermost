@@ -52,6 +52,8 @@ type SqlStore struct {
 	preference    PreferenceStore
 	license       LicenseStore
 	recovery      PasswordRecoveryStore
+	emoji         EmojiStore
+	status        StatusStore
 	SchemaVersion string
 }
 
@@ -101,7 +103,7 @@ func NewSqlStore() Store {
 		}
 	}
 
-	// This is a speical case for upgrading the schema to the 3.0 user model
+	// This is a special case for upgrading the schema to the 3.0 user model
 	// ADDED for 3.0 REMOVE for 3.4
 	if sqlStore.SchemaVersion == "2.2.0" ||
 		sqlStore.SchemaVersion == "2.1.0" ||
@@ -127,6 +129,8 @@ func NewSqlStore() Store {
 	sqlStore.preference = NewSqlPreferenceStore(sqlStore)
 	sqlStore.license = NewSqlLicenseStore(sqlStore)
 	sqlStore.recovery = NewSqlPasswordRecoveryStore(sqlStore)
+	sqlStore.emoji = NewSqlEmojiStore(sqlStore)
+	sqlStore.status = NewSqlStatusStore(sqlStore)
 
 	err := sqlStore.master.CreateTablesIfNotExists()
 	if err != nil {
@@ -149,6 +153,8 @@ func NewSqlStore() Store {
 	sqlStore.preference.(*SqlPreferenceStore).UpgradeSchemaIfNeeded()
 	sqlStore.license.(*SqlLicenseStore).UpgradeSchemaIfNeeded()
 	sqlStore.recovery.(*SqlPasswordRecoveryStore).UpgradeSchemaIfNeeded()
+	sqlStore.emoji.(*SqlEmojiStore).UpgradeSchemaIfNeeded()
+	sqlStore.status.(*SqlStatusStore).UpgradeSchemaIfNeeded()
 
 	sqlStore.team.(*SqlTeamStore).CreateIndexesIfNotExists()
 	sqlStore.channel.(*SqlChannelStore).CreateIndexesIfNotExists()
@@ -164,6 +170,8 @@ func NewSqlStore() Store {
 	sqlStore.preference.(*SqlPreferenceStore).CreateIndexesIfNotExists()
 	sqlStore.license.(*SqlLicenseStore).CreateIndexesIfNotExists()
 	sqlStore.recovery.(*SqlPasswordRecoveryStore).CreateIndexesIfNotExists()
+	sqlStore.emoji.(*SqlEmojiStore).CreateIndexesIfNotExists()
+	sqlStore.status.(*SqlStatusStore).CreateIndexesIfNotExists()
 
 	sqlStore.preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
 
@@ -183,7 +191,7 @@ func NewSqlStore() Store {
 }
 
 // ADDED for 3.0 REMOVE for 3.4
-// This is a speical case for upgrading the schema to the 3.0 user model
+// This is a special case for upgrading the schema to the 3.0 user model
 func NewSqlStoreForUpgrade30() *SqlStore {
 	sqlStore := initConnection()
 
@@ -686,6 +694,14 @@ func (ss SqlStore) License() LicenseStore {
 
 func (ss SqlStore) PasswordRecovery() PasswordRecoveryStore {
 	return ss.recovery
+}
+
+func (ss SqlStore) Emoji() EmojiStore {
+	return ss.emoji
+}
+
+func (ss SqlStore) Status() StatusStore {
+	return ss.status
 }
 
 func (ss SqlStore) DropAllTables() {

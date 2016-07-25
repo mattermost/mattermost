@@ -1,6 +1,7 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import Banner from 'components/admin_console/banner.jsx';
 import LineChart from './line_chart.jsx';
 import DoughnutChart from './doughnut_chart.jsx';
 import StatisticCount from './statistic_count.jsx';
@@ -8,11 +9,12 @@ import StatisticCount from './statistic_count.jsx';
 import AnalyticsStore from 'stores/analytics_store.jsx';
 
 import * as Utils from 'utils/utils.jsx';
+import {isLicenseExpired, isLicenseExpiring, displayExpiryDate} from 'utils/license_utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import Constants from 'utils/constants.jsx';
 const StatTypes = Constants.StatTypes;
 
-import {injectIntl, intlShape, defineMessages, FormattedMessage} from 'react-intl';
+import {injectIntl, intlShape, defineMessages, FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
 const holders = defineMessages({
     analyticsPublicChannels: {
@@ -81,6 +83,7 @@ class SystemAnalytics extends React.Component {
 
         let advancedCounts;
         let advancedGraphs;
+        let banner;
         if (global.window.mm_license.IsLicensed === 'true') {
             advancedCounts = (
                 <div className='row'>
@@ -156,6 +159,36 @@ class SystemAnalytics extends React.Component {
                     />
                 </div>
             );
+
+            if (isLicenseExpired()) {
+                banner = (
+                    <Banner
+                        description={
+                            <FormattedHTMLMessage
+                                id='analytics.system.expiredBanner'
+                                defaultMessage='The Enterprise license expired on {date}. You have 15 days from this date to renew the license, please contact <a href="mailto:commercial@mattermost.com">commercial@mattermost.com</a>.'
+                                values={{
+                                    date: displayExpiryDate()
+                                }}
+                            />
+                        }
+                    />
+                );
+            } else if (isLicenseExpiring()) {
+                banner = (
+                    <Banner
+                        description={
+                            <FormattedHTMLMessage
+                                id='analytics.system.expiringBanner'
+                                defaultMessage='The Enterprise license is expiring on {date}. To renew your license, please contact <a href="mailto:commercial@mattermost.com">commercial@mattermost.com</a>.'
+                                values={{
+                                    date: displayExpiryDate()
+                                }}
+                            />
+                        }
+                    />
+                );
+            }
         }
 
         const postCountsDay = formatPostsPerDayData(stats[StatTypes.POST_PER_DAY]);
@@ -169,6 +202,7 @@ class SystemAnalytics extends React.Component {
                         defaultMessage='System Statistics'
                     />
                 </h3>
+                {banner}
                 <div className='row'>
                     <StatisticCount
                         title={
@@ -222,6 +256,11 @@ class SystemAnalytics extends React.Component {
                             />
                         }
                         data={postCountsDay}
+                        options={{
+                            legend: {
+                                display: false
+                            }
+                        }}
                         width='740'
                         height='225'
                     />
@@ -235,6 +274,11 @@ class SystemAnalytics extends React.Component {
                             />
                         }
                         data={userCountsWithPostsDay}
+                        options={{
+                            legend: {
+                                display: false
+                            }
+                        }}
                         width='740'
                         height='225'
                     />
@@ -252,46 +296,28 @@ export default injectIntl(SystemAnalytics);
 
 export function formatChannelDoughtnutData(totalPublic, totalPrivate, intl) {
     const {formatMessage} = intl;
-    const channelTypeData = [
-        {
-            value: totalPublic,
-            color: '#46BFBD',
-            highlight: '#5AD3D1',
-            label: formatMessage(holders.analyticsPublicChannels)
-        },
-        {
-            value: totalPrivate,
-            color: '#FDB45C',
-            highlight: '#FFC870',
-            label: formatMessage(holders.analyticsPrivateGroups)
-        }
-    ];
+    const channelTypeData = {
+        labels: [formatMessage(holders.analyticsPublicChannels), formatMessage(holders.analyticsPrivateGroups)],
+        datasets: [{
+            data: [totalPublic, totalPrivate],
+            backgroundColor: ['#46BFBD', '#FDB45C'],
+            hoverBackgroundColor: ['#5AD3D1', '#FFC870']
+        }]
+    };
 
     return channelTypeData;
 }
 
 export function formatPostDoughtnutData(filePosts, hashtagPosts, totalPosts, intl) {
     const {formatMessage} = intl;
-    const postTypeData = [
-        {
-            value: filePosts,
-            color: '#46BFBD',
-            highlight: '#5AD3D1',
-            label: formatMessage(holders.analyticsFilePosts)
-        },
-        {
-            value: hashtagPosts,
-            color: '#F7464A',
-            highlight: '#FF5A5E',
-            label: formatMessage(holders.analyticsHashtagPosts)
-        },
-        {
-            value: totalPosts - filePosts - hashtagPosts,
-            color: '#FDB45C',
-            highlight: '#FFC870',
-            label: formatMessage(holders.analyticsTextPosts)
-        }
-    ];
+    const postTypeData = {
+        labels: [formatMessage(holders.analyticsFilePosts), formatMessage(holders.analyticsHashtagPosts), formatMessage(holders.analyticsTextPosts)],
+        datasets: [{
+            data: [filePosts, hashtagPosts, (totalPosts - filePosts - hashtagPosts)],
+            backgroundColor: ['#46BFBD', '#F7464A', '#FDB45C'],
+            hoverBackgroundColor: ['#5AD3D1', '#FF5A5E', '#FFC870']
+        }]
+    };
 
     return postTypeData;
 }
@@ -301,11 +327,11 @@ export function formatPostsPerDayData(data) {
         labels: [],
         datasets: [{
             fillColor: 'rgba(151,187,205,0.2)',
-            strokeColor: 'rgba(151,187,205,1)',
-            pointColor: 'rgba(151,187,205,1)',
-            pointStrokeColor: '#fff',
-            pointHighlightFill: '#fff',
-            pointHighlightStroke: 'rgba(151,187,205,1)',
+            borderColor: 'rgba(151,187,205,1)',
+            pointBackgroundColor: 'rgba(151,187,205,1)',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: 'rgba(151,187,205,1)',
             data: []
         }]
     };
@@ -325,12 +351,13 @@ export function formatUsersWithPostsPerDayData(data) {
     var chartData = {
         labels: [],
         datasets: [{
+            label: '',
             fillColor: 'rgba(151,187,205,0.2)',
-            strokeColor: 'rgba(151,187,205,1)',
-            pointColor: 'rgba(151,187,205,1)',
-            pointStrokeColor: '#fff',
-            pointHighlightFill: '#fff',
-            pointHighlightStroke: 'rgba(151,187,205,1)',
+            borderColor: 'rgba(151,187,205,1)',
+            pointBackgroundColor: 'rgba(151,187,205,1)',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: 'rgba(151,187,205,1)',
             data: []
         }]
     };

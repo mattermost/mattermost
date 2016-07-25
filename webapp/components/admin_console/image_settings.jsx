@@ -17,15 +17,6 @@ export default class ImageSettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        this.state = Object.assign(this.state, {
-            thumbnailWidth: props.config.FileSettings.ThumbnailWidth,
-            thumbnailHeight: props.config.FileSettings.ThumbnailHeight,
-            profileWidth: props.config.FileSettings.ProfileWidth,
-            profileHeight: props.config.FileSettings.ProfileHeight,
-            previewWidth: props.config.FileSettings.PreviewWidth,
-            previewHeight: props.config.FileSettings.PreviewHeight
-        });
     }
 
     getConfigFromState(config) {
@@ -39,12 +30,23 @@ export default class ImageSettings extends AdminSettings {
         return config;
     }
 
+    getStateFromConfig(config) {
+        return {
+            thumbnailWidth: config.FileSettings.ThumbnailWidth,
+            thumbnailHeight: config.FileSettings.ThumbnailHeight,
+            profileWidth: config.FileSettings.ProfileWidth,
+            profileHeight: config.FileSettings.ProfileHeight,
+            previewWidth: config.FileSettings.PreviewWidth,
+            previewHeight: config.FileSettings.PreviewHeight
+        };
+    }
+
     renderTitle() {
         return (
             <h3>
                 <FormattedMessage
-                    id='admin.files.title'
-                    defaultMessage='File Settings'
+                    id='admin.files.images'
+                    defaultMessage='Images'
                 />
             </h3>
         );
@@ -52,20 +54,13 @@ export default class ImageSettings extends AdminSettings {
 
     renderSettings() {
         return (
-            <SettingsGroup
-                header={
-                    <FormattedMessage
-                        id='admin.files.images'
-                        defaultMessage='Images'
-                    />
-                }
-            >
+            <SettingsGroup>
                 <TextSetting
                     id='thumbnailWidth'
                     label={
                         <FormattedMessage
                             id='admin.image.thumbWidthTitle'
-                            defaultMessage='Thumbnail Width:'
+                            defaultMessage='Attachment Thumbnail Width:'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.image.thumbWidthExample', 'Ex "120"')}
@@ -83,7 +78,7 @@ export default class ImageSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.image.thumbHeightTitle'
-                            defaultMessage='Thumbnail Height:'
+                            defaultMessage='Attachment Thumbnail Height:'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.image.thumbHeightExample', 'Ex "100"')}
@@ -101,7 +96,7 @@ export default class ImageSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.image.profileWidthTitle'
-                            defaultMessage='Profile Width:'
+                            defaultMessage='Profile Picture Width:'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.image.profileWidthExample', 'Ex "1024"')}
@@ -119,7 +114,7 @@ export default class ImageSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.image.profileHeightTitle'
-                            defaultMessage='Profile Height:'
+                            defaultMessage='Profile Picture Height:'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.image.profileHeightExample', 'Ex "0"')}
@@ -137,7 +132,7 @@ export default class ImageSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.image.previewWidthTitle'
-                            defaultMessage='Preview Width:'
+                            defaultMessage='Image Preview Width:'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.image.previewWidthExample', 'Ex "1024"')}
@@ -155,7 +150,7 @@ export default class ImageSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.image.previewHeightTitle'
-                            defaultMessage='Preview Height:'
+                            defaultMessage='Image Preview Height:'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.image.previewHeightExample', 'Ex "0"')}

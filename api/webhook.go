@@ -4,6 +4,7 @@
 package api
 
 import (
+	"io"
 	"net/http"
 	"strings"
 
@@ -76,6 +77,7 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.LogAudit("fail - bad channel permissions")
 			return
 		}
+		c.Err = nil
 	}
 
 	if result := <-Srv.Store.Webhook().SaveIncoming(hook); result.Err != nil {
@@ -212,6 +214,23 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else if len(hook.TriggerWords) == 0 {
 		c.Err = model.NewLocAppError("createOutgoingHook", "api.webhook.create_outgoing.triggers.app_error", nil, "")
 		return
+	}
+
+	if result := <-Srv.Store.Webhook().GetOutgoingByTeam(c.TeamId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		allHooks := result.Data.([]*model.OutgoingWebhook)
+
+		for _, existingOutHook := range allHooks {
+			urlIntersect := utils.StringArrayIntersection(existingOutHook.CallbackURLs, hook.CallbackURLs)
+			triggerIntersect := utils.StringArrayIntersection(existingOutHook.TriggerWords, hook.TriggerWords)
+
+			if existingOutHook.ChannelId == hook.ChannelId && len(urlIntersect) != 0 && len(triggerIntersect) != 0 {
+				c.Err = model.NewLocAppError("createOutgoingHook", "api.webhook.create_outgoing.intersect.app_error", nil, "")
+				return
+			}
+		}
 	}
 
 	if result := <-Srv.Store.Webhook().SaveOutgoing(hook); result.Err != nil {
@@ -356,13 +375,32 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	r.ParseForm()
 
-	var parsedRequest *model.IncomingWebhookRequest
+	var payload io.Reader
 	contentType := r.Header.Get("Content-Type")
 	if strings.Split(contentType, "; ")[0] == "application/x-www-form-urlencoded" {
-		parsedRequest = model.IncomingWebhookRequestFromJson(strings.NewReader(r.FormValue("payload")))
+		payload = strings.NewReader(r.FormValue("payload"))
 	} else {
-		parsedRequest = model.IncomingWebhookRequestFromJson(r.Body)
+		payload = r.Body
 	}
+
+	if utils.Cfg.LogSettings.EnableWebhookDebugging {
+		var err error
+		payload, err = utils.DebugReader(
+			payload,
+			utils.T("api.webhook.incoming.debug"),
+		)
+		if err != nil {
+			c.Err = model.NewLocAppError(
+				"incomingWebhook",
+				"api.webhook.incoming.debug.error",
+				nil,
+				err.Error(),
+			)
+			return
+		}
+	}
+
+	parsedRequest := model.IncomingWebhookRequestFromJson(payload)
 
 	if parsedRequest == nil {
 		c.Err = model.NewLocAppError("incomingWebhook", "web.incoming_webhook.parse.app_error", nil, "")

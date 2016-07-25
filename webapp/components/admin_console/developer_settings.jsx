@@ -15,11 +15,6 @@ export default class DeveloperSettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        this.state = Object.assign(this.state, {
-            enableTesting: props.config.ServiceSettings.EnableTesting,
-            enableDeveloper: props.config.ServiceSettings.EnableDeveloper
-        });
     }
 
     getConfigFromState(config) {
@@ -27,6 +22,13 @@ export default class DeveloperSettings extends AdminSettings {
         config.ServiceSettings.EnableDeveloper = this.state.enableDeveloper;
 
         return config;
+    }
+
+    getStateFromConfig(config) {
+        return {
+            enableTesting: config.ServiceSettings.EnableTesting,
+            enableDeveloper: config.ServiceSettings.EnableDeveloper
+        };
     }
 
     renderTitle() {
@@ -48,13 +50,13 @@ export default class DeveloperSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.service.testingTitle'
-                            defaultMessage='Enable Testing: '
+                            defaultMessage='Enable Testing Commands: '
                         />
                     }
                     helpText={
                         <FormattedMessage
                             id='admin.service.testingDescription'
-                            defaultMessage='(Developer Option) When true, /loadtest slash command is enabled to load test accounts and test data. Changing this will require a server restart before taking effect.'
+                            defaultMessage='When true, /loadtest slash command is enabled to load test accounts, data and text formatting. Changing this requires a server restart before taking effect.'
                         />
                     }
                     value={this.state.enableTesting}
@@ -71,7 +73,7 @@ export default class DeveloperSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.service.developerDesc'
-                            defaultMessage='(Developer Option) When true, extra information around errors will be displayed in the UI.'
+                            defaultMessage='When true, Javascript errors are shown in a red bar at the top of the user interface. Not recommended for use in production. '
                         />
                     }
                     value={this.state.enableDeveloper}

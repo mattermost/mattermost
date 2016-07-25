@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import * as TextFormatting from './text_formatting.jsx';
-import * as syntaxHightlighting from './syntax_hightlighting.jsx';
+import * as SyntaxHighlighting from './syntax_hightlighting.jsx';
 
 import marked from 'marked';
 import katex from 'katex';
@@ -43,11 +43,70 @@ class MattermostMarkdownRenderer extends marked.Renderer {
             usedLanguage = 'xml';
         }
 
-        return syntaxHightlighting.formatCode(usedLanguage, code);
+        let className = 'post-code';
+        if (!usedLanguage) {
+            className += ' post-code--wrap';
+        }
+
+        let header = '';
+        if (SyntaxHighlighting.canHighlight(usedLanguage)) {
+            header = (
+                '<span class="post-code__language">' +
+                    SyntaxHighlighting.getLanguageName(language) +
+                '</span>'
+            );
+        }
+
+        // if we have to apply syntax highlighting AND highlighting of search terms, create two copies
+        // of the code block, one with syntax highlighting applied and another with invisible text, but
+        // search term highlighting and overlap them
+        const content = SyntaxHighlighting.highlight(usedLanguage, code);
+        let searchedContent = '';
+
+        if (this.formattingOptions.searchTerm) {
+            const tokens = new Map();
+
+            let searched = TextFormatting.sanitizeHtml(code);
+            searched = TextFormatting.highlightSearchTerms(searched, tokens, this.formattingOptions.searchTerm);
+
+            if (tokens.size > 0) {
+                searched = TextFormatting.replaceTokens(searched, tokens);
+
+                searchedContent = (
+                    '<div class="post-code__search-highlighting">' +
+                        searched +
+                    '</div>'
+                );
+            }
+        }
+
+        return (
+            '<div class="' + className + '">' +
+                header +
+                '<code class="hljs">' +
+                    searchedContent +
+                    content +
+                '</code>' +
+            '</div>'
+        );
     }
 
     codespan(text) {
-        return '<span class="codespan__pre-wrap">' + super.codespan(text) + '</span>';
+        let output = text;
+
+        if (this.formattingOptions.searchTerm) {
+            const tokens = new Map();
+            output = TextFormatting.highlightSearchTerms(output, tokens, this.formattingOptions.searchTerm);
+            output = TextFormatting.replaceTokens(output, tokens);
+        }
+
+        return (
+            '<span class="codespan__pre-wrap">' +
+                '<code>' +
+                    output +
+                '</code>' +
+            '</span>'
+        );
     }
 
     br() {
@@ -80,30 +139,31 @@ class MattermostMarkdownRenderer extends marked.Renderer {
             const unescaped = decodeURIComponent(unescape(href)).replace(/[^\w:]/g, '').toLowerCase();
 
             if (unescaped.indexOf('javascript:') === 0 || unescaped.indexOf('vbscript:') === 0 || unescaped.indexOf('data:') === 0) { // eslint-disable-line no-script-url
-                return '';
+                return text;
             }
         } catch (e) {
-            return '';
+            return text;
         }
 
         if (!(/[a-z+.-]+:/i).test(outHref)) {
             outHref = `http://${outHref}`;
         }
 
-        let output = '<a class="theme markdown__link" ';
+        let output = '<a class="theme markdown__link" href="' + outHref + '" rel="noreferrer"';
 
         // special case for links that are inside the app
         if (outHref.startsWith(global.location.origin)) {
-            output += 'data-link="' + outHref.substring(global.location.origin.length) + '"';
+            output += ' data-link="' + outHref.substring(global.location.origin.length) + '"';
         } else {
-            output += 'href="' + outHref + '" target="_blank" rel="noreferrer"';
+            output += ' target="_blank"';
         }
 
         if (title) {
             output += ' title="' + title + '"';
         }
 
-        output += '>' + text + '</a>';
+        // remove any links added to the text by hashtag or mention parsing since they'll break this link
+        output += '>' + text.replace(/<\/?a[^>]*>/g, '') + '</a>';
 
         return output;
     }
@@ -120,313 +180,24 @@ class MattermostMarkdownRenderer extends marked.Renderer {
         return `<div class="table-responsive"><table class="markdown__table"><thead>${header}</thead><tbody>${body}</tbody></table></div>`;
     }
 
-    listitem(text) {
+    listitem(text, bullet) {
         const taskListReg = /^\[([ |xX])\] /;
         const isTaskList = taskListReg.exec(text);
 
         if (isTaskList) {
             return `<li class="list-item--task-list">${'<input type="checkbox" disabled="disabled" ' + (isTaskList[1] === ' ' ? '' : 'checked="checked" ') + '/> '}${text.replace(taskListReg, '')}</li>`;
         }
+
+        if (/^\d+.$/.test(bullet)) {
+            // this is a numbered list item so override the numbering
+            return `<li value="${parseInt(bullet, 10)}">${text}</li>`;
+        }
+
         return `<li>${text}</li>`;
     }
 
     text(txt) {
         return TextFormatting.doFormatText(txt, this.formattingOptions);
-    }
-}
-
-class MattermostLexer extends marked.Lexer {
-    token(originalSrc, top, bq) {
-        let src = originalSrc.replace(/^ +$/gm, '');
-
-        while (src) {
-            // newline
-            let cap = this.rules.newline.exec(src);
-            if (cap) {
-                src = src.substring(cap[0].length);
-                if (cap[0].length > 1) {
-                    this.tokens.push({
-                        type: 'space'
-                    });
-                }
-            }
-
-            // code
-            cap = this.rules.code.exec(src);
-            if (cap) {
-                src = src.substring(cap[0].length);
-                cap = cap[0].replace(/^ {4}/gm, '');
-                this.tokens.push({
-                    type: 'code',
-                    text: this.options.pedantic ? cap : cap.replace(/\n+$/, '')
-                });
-                continue;
-            }
-
-            // fences (gfm)
-            cap = this.rules.fences.exec(src);
-            if (cap) {
-                src = src.substring(cap[0].length);
-                this.tokens.push({
-                    type: 'code',
-                    lang: cap[2],
-                    text: cap[3] || ''
-                });
-                continue;
-            }
-
-            // heading
-            cap = this.rules.heading.exec(src);
-            if (cap) {
-                src = src.substring(cap[0].length);
-                this.tokens.push({
-                    type: 'heading',
-                    depth: cap[1].length,
-                    text: cap[2]
-                });
-                continue;
-            }
-
-            // table no leading pipe (gfm)
-            cap = this.rules.nptable.exec(src);
-            if (top && cap) {
-                src = src.substring(cap[0].length);
-
-                const item = {
-                    type: 'table',
-                    header: cap[1].replace(/^ *| *\| *$/g, '').split(/ *\| */),
-                    align: cap[2].replace(/^ *|\| *$/g, '').split(/ *\| */),
-                    cells: cap[3].replace(/\n$/, '').split('\n')
-                };
-
-                for (let i = 0; i < item.align.length; i++) {
-                    if (/^ *-+: *$/.test(item.align[i])) {
-                        item.align[i] = 'right';
-                    } else if (/^ *:-+: *$/.test(item.align[i])) {
-                        item.align[i] = 'center';
-                    } else if (/^ *:-+ *$/.test(item.align[i])) {
-                        item.align[i] = 'left';
-                    } else {
-                        item.align[i] = null;
-                    }
-                }
-
-                for (let i = 0; i < item.cells.length; i++) {
-                    item.cells[i] = item.cells[i].split(/ *\| */);
-                }
-
-                this.tokens.push(item);
-
-                continue;
-            }
-
-            // lheading
-            cap = this.rules.lheading.exec(src);
-            if (cap) {
-                src = src.substring(cap[0].length);
-                this.tokens.push({
-                    type: 'heading',
-                    depth: cap[2] === '=' ? 1 : 2,
-                    text: cap[1]
-                });
-                continue;
-            }
-
-            // hr
-            cap = this.rules.hr.exec(src);
-            if (cap) {
-                src = src.substring(cap[0].length);
-                this.tokens.push({
-                    type: 'hr'
-                });
-                continue;
-            }
-
-            // blockquote
-            cap = this.rules.blockquote.exec(src);
-            if (cap) {
-                src = src.substring(cap[0].length);
-
-                this.tokens.push({
-                    type: 'blockquote_start'
-                });
-
-                cap = cap[0].replace(/^ *> ?/gm, '');
-
-                // Pass `top` to keep the current
-                // "toplevel" state. This is exactly
-                // how markdown.pl works.
-                this.token(cap, top, true);
-
-                this.tokens.push({
-                    type: 'blockquote_end'
-                });
-
-                continue;
-            }
-
-            // list
-            cap = this.rules.list.exec(src);
-            if (cap) {
-                src = src.substring(cap[0].length);
-                const bull = cap[2];
-
-                this.tokens.push({
-                    type: 'list_start',
-                    ordered: bull.length > 1
-                });
-
-                // Get each top-level item.
-                cap = cap[0].match(this.rules.item);
-
-                let next = false;
-                const l = cap.length;
-                let i = 0;
-
-                for (; i < l; i++) {
-                    let item = cap[i];
-
-                    // Remove the list item's bullet
-                    // so it is seen as the next token.
-                    let space = item.length;
-                    item = item.replace(/^ *([*+-]|\d+\.) +/, '');
-
-                    // Outdent whatever the
-                    // list item contains. Hacky.
-                    if (~item.indexOf('\n ')) {
-                        space -= item.length;
-                        item = this.options.pedantic ?
-                            item.replace(/^ {1,4}/gm, '') :
-                            item.replace(new RegExp('^ {1,' + space + '}', 'gm'), '');
-                    }
-
-                    // Determine whether the next list item belongs here.
-                    // Backpedal if it does not belong in this list.
-                    if (this.options.smartLists && i !== l - 1) {
-                        const b = this.rules.bullet.exec(cap[i + 1])[0];
-                        if (bull !== b && !(bull.length > 1 && b.length > 1)) {
-                            src = cap.slice(i + 1).join('\n') + src;
-                            i = l - 1;
-                        }
-                    }
-
-                    // Determine whether item is loose or not.
-                    // Use: /(^|\n)(?! )[^\n]+\n\n(?!\s*$)/
-                    // for discount behavior.
-                    let loose = next || (/\n\n(?!\s*$)/).test(item);
-                    if (i !== l - 1) {
-                        next = item.charAt(item.length - 1) === '\n';
-                        if (!loose) {
-                            loose = next;
-                        }
-                    }
-
-                    this.tokens.push({
-                        type: loose ?
-                            'loose_item_start' :
-                            'list_item_start'
-                    });
-
-                    // Recurse.
-                    this.token(item, false, bq);
-
-                    this.tokens.push({
-                        type: 'list_item_end'
-                    });
-                }
-
-                this.tokens.push({
-                    type: 'list_end'
-                });
-
-                continue;
-            }
-
-            // html
-            cap = this.rules.html.exec(src);
-            if (cap) {
-                src = src.substring(cap[0].length);
-                this.tokens.push({
-                    type: this.options.sanitize ? 'paragraph' : 'html',
-                    pre: !this.options.sanitizer && (cap[1] === 'pre' || cap[1] === 'script' || cap[1] === 'style'),
-                    text: cap[0]
-                });
-                continue;
-            }
-
-            // def
-            cap = this.rules.def.exec(src);
-            if ((!bq && top) && cap) {
-                src = src.substring(cap[0].length);
-                this.tokens.links[cap[1].toLowerCase()] = {
-                    href: cap[2],
-                    title: cap[3]
-                };
-                continue;
-            }
-
-            // table (gfm)
-            cap = this.rules.table.exec(src);
-            if (top && cap) {
-                src = src.substring(cap[0].length);
-
-                const item = {
-                    type: 'table',
-                    header: cap[1].replace(/^ *| *\| *$/g, '').split(/ *\| */),
-                    align: cap[2].replace(/^ *|\| *$/g, '').split(/ *\| */),
-                    cells: cap[3].replace(/(?: *\| *)?\n$/, '').split('\n')
-                };
-
-                for (let i = 0; i < item.align.length; i++) {
-                    if (/^ *-+: *$/.test(item.align[i])) {
-                        item.align[i] = 'right';
-                    } else if (/^ *:-+: *$/.test(item.align[i])) {
-                        item.align[i] = 'center';
-                    } else if (/^ *:-+ *$/.test(item.align[i])) {
-                        item.align[i] = 'left';
-                    } else {
-                        item.align[i] = null;
-                    }
-                }
-
-                for (let i = 0; i < item.cells.length; i++) {
-                    item.cells[i] = item.cells[i].replace(/^ *\| *| *\| *$/g, '').split(/ *\| */);
-                }
-
-                this.tokens.push(item);
-
-                continue;
-            }
-
-            // top-level paragraph
-            cap = this.rules.paragraph.exec(src);
-            if (top && cap) {
-                src = src.substring(cap[0].length);
-                this.tokens.push({
-                    type: 'paragraph',
-                    text: cap[1].charAt(cap[1].length - 1) === '\n' ? cap[1].slice(0, -1) : cap[1]
-                });
-                continue;
-            }
-
-            // text
-            cap = this.rules.text.exec(src);
-            if (cap) {
-                // Top-level should never reach here.
-                src = src.substring(cap[0].length);
-                this.tokens.push({
-                    type: 'text',
-                    text: cap[0]
-                });
-                continue;
-            }
-
-            if (src) {
-                throw new Error('Infinite loop on byte: ' + src.charCodeAt(0));
-            }
-        }
-
-        return this.tokens;
     }
 }
 
@@ -438,9 +209,7 @@ export function format(text, options) {
         tables: true
     };
 
-    const tokens = new MattermostLexer(markdownOptions).lex(text);
-
-    return new marked.Parser(markdownOptions).parse(tokens);
+    return marked(text, markdownOptions);
 }
 
 // Marked helper functions that should probably just be exported

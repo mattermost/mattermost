@@ -19,15 +19,6 @@ export default class LogSettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        this.state = Object.assign(this.state, {
-            enableConsole: props.config.LogSettings.EnableConsole,
-            consoleLevel: props.config.LogSettings.ConsoleLevel,
-            enableFile: props.config.LogSettings.EnableFile,
-            fileLevel: props.config.LogSettings.FileLevel,
-            fileLocation: props.config.LogSettings.FileLocation,
-            fileFormat: props.config.LogSettings.FileFormat
-        });
     }
 
     getConfigFromState(config) {
@@ -37,16 +28,29 @@ export default class LogSettings extends AdminSettings {
         config.LogSettings.FileLevel = this.state.fileLevel;
         config.LogSettings.FileLocation = this.state.fileLocation;
         config.LogSettings.FileFormat = this.state.fileFormat;
+        config.LogSettings.EnableWebhookDebugging = this.state.enableWebhookDebugging;
 
         return config;
+    }
+
+    getStateFromConfig(config) {
+        return {
+            enableConsole: config.LogSettings.EnableConsole,
+            consoleLevel: config.LogSettings.ConsoleLevel,
+            enableFile: config.LogSettings.EnableFile,
+            fileLevel: config.LogSettings.FileLevel,
+            fileLocation: config.LogSettings.FileLocation,
+            fileFormat: config.LogSettings.FileFormat,
+            enableWebhookDebugging: config.LogSettings.EnableWebhookDebugging
+        };
     }
 
     renderTitle() {
         return (
             <h3>
                 <FormattedMessage
-                    id='admin.general.title'
-                    defaultMessage='General Settings'
+                    id='admin.general.log'
+                    defaultMessage='Logging'
                 />
             </h3>
         );
@@ -60,21 +64,13 @@ export default class LogSettings extends AdminSettings {
         ];
 
         return (
-            <SettingsGroup
-                header={
-                    <FormattedMessage
-                        id='admin.general.log'
-                        defaultMessage='Logging'
-                    />
-
-                }
-            >
+            <SettingsGroup>
                 <BooleanSetting
                     id='enableConsole'
                     label={
                         <FormattedMessage
                             id='admin.log.consoleTitle'
-                            defaultMessage='Log To The Console: '
+                            defaultMessage='Output logs to console: '
                         />
                     }
                     helpText={
@@ -110,7 +106,7 @@ export default class LogSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.log.fileTitle'
-                            defaultMessage='Log To File: '
+                            defaultMessage='Output logs to file: '
                         />
                     }
                     helpText={
@@ -146,7 +142,7 @@ export default class LogSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.log.locationTitle'
-                            defaultMessage='File Location:'
+                            defaultMessage='File Log Directory:'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.log.locationPlaceholder', 'Enter your file location')}
@@ -165,7 +161,7 @@ export default class LogSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.log.formatTitle'
-                            defaultMessage='File Format:'
+                            defaultMessage='File Log Format:'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.log.formatPlaceholder', 'Enter your file format')}
@@ -173,6 +169,23 @@ export default class LogSettings extends AdminSettings {
                     value={this.state.fileFormat}
                     onChange={this.handleChange}
                     disabled={!this.state.enableFile}
+                />
+                <BooleanSetting
+                    id='enableWebhookDebugging'
+                    label={
+                        <FormattedMessage
+                            id='admin.log.enableWebhookDebugging'
+                            defaultMessage='Enable Webhook Debugging:'
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.log.enableWebhookDebuggingDescription'
+                            defaultMessage='You can set this to false to disable the debug logging of all incoming webhook request bodies.'
+                        />
+                    }
+                    value={this.state.enableWebhookDebugging}
+                    onChange={this.handleChange}
                 />
             </SettingsGroup>
         );

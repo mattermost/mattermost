@@ -4,7 +4,7 @@
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import * as Utils from 'utils/utils.jsx';
-import * as GlobalActions from 'action_creators/global_actions.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
@@ -16,7 +16,7 @@ import UserSettingsModal from './user_settings/user_settings_modal.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router';
+import {Link} from 'react-router/es6';
 
 import React from 'react';
 
@@ -30,6 +30,8 @@ export default class NavbarDropdown extends React.Component {
         this.onTeamChange = this.onTeamChange.bind(this);
         this.openAccountSettings = this.openAccountSettings.bind(this);
 
+        this.renderCustomEmojiLink = this.renderCustomEmojiLink.bind(this);
+
         this.state = {
             showUserSettingsModal: false,
             showAboutModal: false,
@@ -37,9 +39,11 @@ export default class NavbarDropdown extends React.Component {
             teamMembers: TeamStore.getTeamMembers()
         };
     }
+
     handleAboutModal() {
         this.setState({showAboutModal: true});
     }
+
     aboutModalDismissed() {
         this.setState({showAboutModal: false});
     }
@@ -69,12 +73,31 @@ export default class NavbarDropdown extends React.Component {
         TeamStore.removeChangeListener(this.onTeamChange);
         document.removeEventListener('keydown', this.openAccountSettings);
     }
+
     openAccountSettings(e) {
-        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.keyCode === Constants.KeyCodes.A) {
+        if (Utils.cmdOrCtrlPressed(e) && e.shiftKey && e.keyCode === Constants.KeyCodes.A) {
             e.preventDefault();
-            this.setState({showUserSettingsModal: true});
+            this.setState({showUserSettingsModal: !this.state.showUserSettingsModal});
         }
     }
+
+    renderCustomEmojiLink() {
+        if (window.mm_config.EnableCustomEmoji !== 'true' || !Utils.canCreateCustomEmoji(this.props.currentUser)) {
+            return null;
+        }
+
+        return (
+            <li>
+                <Link to={'/' + Utils.getTeamNameFromUrl() + '/emoji'}>
+                    <FormattedMessage
+                        id='navbar_dropdown.emoji'
+                        defaultMessage='Custom Emoji'
+                    />
+                </Link>
+            </li>
+        );
+    }
+
     render() {
         var teamLink = '';
         var inviteLink = '';
@@ -85,6 +108,10 @@ export default class NavbarDropdown extends React.Component {
         var isSystemAdmin = false;
         var teamSettings = null;
         let integrationsLink = null;
+
+        if (!currentUser) {
+            return null;
+        }
 
         if (currentUser != null) {
             isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
@@ -119,20 +146,26 @@ export default class NavbarDropdown extends React.Component {
                     </li>
                 );
             }
+
+            if (global.window.mm_license.IsLicensed === 'true') {
+                if (global.window.mm_config.RestrictTeamInvite === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
+                    teamLink = null;
+                    inviteLink = null;
+                } else if (global.window.mm_config.RestrictTeamInvite === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
+                    teamLink = null;
+                    inviteLink = null;
+                }
+            }
         }
 
-        if (isAdmin) {
-            manageLink = (
-                <li>
-                    <ToggleModalButton dialogType={TeamMembersModal}>
-                        <FormattedMessage
-                            id='navbar_dropdown.manageMembers'
-                            defaultMessage='Manage Members'
-                        />
-                    </ToggleModalButton>
-                </li>
-            );
+        let membersName = (
+            <FormattedMessage
+                id='navbar_dropdown.manageMembers'
+                defaultMessage='Manage Members'
+            />
+        );
 
+        if (isAdmin) {
             teamSettings = (
                 <li>
                     <a
@@ -147,16 +180,34 @@ export default class NavbarDropdown extends React.Component {
                     </a>
                 </li>
             );
+        } else {
+            membersName = (
+                <FormattedMessage
+                    id='navbar_dropdown.viewMembers'
+                    defaultMessage='View Members'
+                />
+            );
         }
+
+        manageLink = (
+            <li>
+                <ToggleModalButton
+                    dialogType={TeamMembersModal}
+                    dialogProps={{isAdmin}}
+                >
+                    {membersName}
+                </ToggleModalButton>
+            </li>
+        );
 
         const integrationsEnabled =
             window.mm_config.EnableIncomingWebhooks === 'true' ||
             window.mm_config.EnableOutgoingWebhooks === 'true' ||
             window.mm_config.EnableCommands === 'true';
-        if (integrationsEnabled && (isAdmin || window.EnableOnlyAdminIntegrations !== 'true')) {
+        if (integrationsEnabled && (isAdmin || window.mm_config.EnableOnlyAdminIntegrations !== 'true')) {
             integrationsLink = (
                 <li>
-                    <Link to={'/' + Utils.getTeamNameFromUrl() + '/settings/integrations'}>
+                    <Link to={'/' + Utils.getTeamNameFromUrl() + '/integrations'}>
                         <FormattedMessage
                             id='navbar_dropdown.integrations'
                             defaultMessage='Integrations'
@@ -199,6 +250,20 @@ export default class NavbarDropdown extends React.Component {
             );
         }
 
+        teams.push(
+            <li key='leaveTeam_li'>
+                <a
+                    href='#'
+                    onClick={GlobalActions.showLeaveTeamModal}
+                >
+                    <FormattedMessage
+                        id='navbar_dropdown.leave'
+                        defaultMessage='Leave Team'
+                    />
+                </a>
+            </li>
+        );
+
         if (this.state.teamMembers && this.state.teamMembers.length > 1) {
             teams.push(
                 <li
@@ -218,6 +283,10 @@ export default class NavbarDropdown extends React.Component {
                                 <Link
                                     to={'/' + team.name + '/channels/town-square'}
                                 >
+                                    <FormattedMessage
+                                        id='navbar_dropdown.switchTo'
+                                        defaultMessage='Switch to '
+                                    />
                                     {team.display_name}
                                 </Link>
                             </li>
@@ -263,6 +332,26 @@ export default class NavbarDropdown extends React.Component {
             );
         }
 
+        let nativeAppDivider = null;
+        let nativeAppLink = null;
+        if (global.window.mm_config.AppDownloadLink) {
+            nativeAppDivider = <li className='divider'/>;
+            nativeAppLink = (
+                <li>
+                    <Link
+                        target='_blank'
+                        rel='noopener noreferrer'
+                        to={global.window.mm_config.AppDownloadLink}
+                    >
+                        <FormattedMessage
+                            id='navbar_dropdown.nativeApps'
+                            defaultMessage='Download Native Apps'
+                        />
+                    </Link>
+                </li>
+            );
+        }
+
         return (
             <ul className='nav navbar-nav navbar-right'>
                 <li
@@ -288,7 +377,10 @@ export default class NavbarDropdown extends React.Component {
                         <li>
                             <a
                                 href='#'
-                                onClick={() => this.setState({showUserSettingsModal: true})}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    this.setState({showUserSettingsModal: true});
+                                }}
                             >
                                 <FormattedMessage
                                     id='navbar_dropdown.accountSettings'
@@ -310,8 +402,10 @@ export default class NavbarDropdown extends React.Component {
                             </a>
                         </li>
                         <li className='divider'></li>
-                        {teamSettings}
                         {integrationsLink}
+                        {this.renderCustomEmojiLink()}
+                        <li className='divider'></li>
+                        {teamSettings}
                         {manageLink}
                         {sysAdminLink}
                         {teams}
@@ -329,6 +423,8 @@ export default class NavbarDropdown extends React.Component {
                                 />
                             </a>
                         </li>
+                        {nativeAppDivider}
+                        {nativeAppLink}
                         <UserSettingsModal
                             show={this.state.showUserSettingsModal}
                             onModalDismissed={() => this.setState({showUserSettingsModal: false})}

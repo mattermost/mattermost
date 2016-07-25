@@ -65,7 +65,6 @@ func InitFile() {
 	BaseRoutes.Files.Handle("/get/{channel_id:[A-Za-z0-9]+}/{user_id:[A-Za-z0-9]+}/{filename:([A-Za-z0-9]+/)?.+(\\.[A-Za-z0-9]{3,})?}", ApiUserRequiredTrustRequester(getFile)).Methods("GET")
 	BaseRoutes.Files.Handle("/get_info/{channel_id:[A-Za-z0-9]+}/{user_id:[A-Za-z0-9]+}/{filename:([A-Za-z0-9]+/)?.+(\\.[A-Za-z0-9]{3,})?}", ApiUserRequired(getFileInfo)).Methods("GET")
 	BaseRoutes.Files.Handle("/get_public_link", ApiUserRequired(getPublicLink)).Methods("POST")
-	BaseRoutes.Files.Handle("/get_export", ApiUserRequired(getExport)).Methods("GET")
 
 	BaseRoutes.Public.Handle("/files/get/{team_id:[A-Za-z0-9]+}/{channel_id:[A-Za-z0-9]+}/{user_id:[A-Za-z0-9]+}/{filename:([A-Za-z0-9]+/)?.+(\\.[A-Za-z0-9]{3,})?}", ApiAppHandlerTrustRequesterIndependent(getPublicFile)).Methods("GET")
 }
@@ -77,13 +76,13 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.ContentLength > model.MAX_FILE_SIZE {
+	if r.ContentLength > *utils.Cfg.FileSettings.MaxFileSize {
 		c.Err = model.NewLocAppError("uploadFile", "api.file.upload_file.too_large.app_error", nil, "")
 		c.Err.StatusCode = http.StatusRequestEntityTooLarge
 		return
 	}
 
-	err := r.ParseMultipartForm(model.MAX_FILE_SIZE)
+	err := r.ParseMultipartForm(*utils.Cfg.FileSettings.MaxFileSize)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -356,7 +355,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	userId := params["user_id"]
 	filename := params["filename"]
 
-	if !c.HasPermissionsToChannel(Srv.Store.Channel().CheckPermissionsTo(teamId, channelId, userId), "getFile") {
+	if !c.HasPermissionsToChannel(Srv.Store.Channel().CheckPermissionsTo(teamId, channelId, c.Session.UserId), "getFile") {
 		return
 	}
 
@@ -528,23 +527,6 @@ func getPublicLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.StringToJson(url)))
 }
 
-func getExport(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.HasPermissionsToTeam(c.TeamId, "export") || !c.IsTeamAdmin() {
-		c.Err = model.NewLocAppError("getExport", "api.file.get_export.team_admin.app_error", nil, "userId="+c.Session.UserId)
-		c.Err.StatusCode = http.StatusForbidden
-		return
-	}
-	data, err := ReadFile(EXPORT_PATH + EXPORT_FILENAME)
-	if err != nil {
-		c.Err = model.NewLocAppError("getExport", "api.file.get_export.retrieve.app_error", nil, err.Error())
-		return
-	}
-
-	w.Header().Set("Content-Disposition", "attachment; filename="+EXPORT_FILENAME)
-	w.Header().Set("Content-Type", "application/octet-stream")
-	w.Write(data)
-}
-
 func WriteFile(f []byte, path string) *model.AppError {
 
 	if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
@@ -623,7 +605,8 @@ func MoveFile(oldPath, newPath string) *model.AppError {
 
 func WriteFileLocally(f []byte, path string) *model.AppError {
 	if err := os.MkdirAll(filepath.Dir(path), 0774); err != nil {
-		return model.NewLocAppError("WriteFile", "api.file.write_file_locally.create_dir.app_error", nil, err.Error())
+		directory, _ := filepath.Abs(filepath.Dir(path))
+		return model.NewLocAppError("WriteFile", "api.file.write_file_locally.create_dir.app_error", nil, "directory="+directory+", err="+err.Error())
 	}
 
 	if err := ioutil.WriteFile(path, f, 0644); err != nil {

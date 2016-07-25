@@ -11,6 +11,7 @@ import BrandImageSetting from './brand_image_setting.jsx';
 import {FormattedMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
+import Constants from 'utils/constants.jsx';
 
 export default class CustomBrandSettings extends AdminSettings {
     constructor(props) {
@@ -19,12 +20,6 @@ export default class CustomBrandSettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        this.state = Object.assign(this.state, {
-            siteName: props.config.TeamSettings.SiteName,
-            enableCustomBrand: props.config.TeamSettings.EnableCustomBrand,
-            customBrandText: props.config.TeamSettings.CustomBrandText
-        });
     }
 
     getConfigFromState(config) {
@@ -37,12 +32,20 @@ export default class CustomBrandSettings extends AdminSettings {
         return config;
     }
 
+    getStateFromConfig(config) {
+        return {
+            siteName: config.TeamSettings.SiteName,
+            enableCustomBrand: config.TeamSettings.EnableCustomBrand,
+            customBrandText: config.TeamSettings.CustomBrandText
+        };
+    }
+
     renderTitle() {
         return (
             <h3>
                 <FormattedMessage
-                    id='admin.customization.title'
-                    defaultMessage='Customization Settings'
+                    id='admin.customization.customBrand'
+                    defaultMessage='Custom Branding'
                 />
             </h3>
         );
@@ -104,14 +107,7 @@ export default class CustomBrandSettings extends AdminSettings {
         }
 
         return (
-            <SettingsGroup
-                header={
-                    <FormattedMessage
-                        id='admin.customization.customBrand'
-                        defaultMessage='Custom Branding'
-                    />
-                }
-            >
+            <SettingsGroup>
                 <TextSetting
                     id='siteName'
                     label={
@@ -120,6 +116,7 @@ export default class CustomBrandSettings extends AdminSettings {
                             defaultMessage='Site Name:'
                         />
                     }
+                    maxLength={Constants.MAX_SITENAME_LENGTH}
                     placeholder={Utils.localizeMessage('admin.team.siteNameExample', 'Ex "Mattermost"')}
                     helpText={
                         <FormattedMessage

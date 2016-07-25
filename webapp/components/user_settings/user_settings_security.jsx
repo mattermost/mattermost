@@ -8,15 +8,16 @@ import AccessHistoryModal from '../access_history_modal.jsx';
 import ActivityLogModal from '../activity_log_modal.jsx';
 import ToggleModalButton from '../toggle_modal_button.jsx';
 
+import PreferenceStore from 'stores/preference_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage, FormattedHTMLMessage, FormattedTime, FormattedDate} from 'react-intl';
-import {Link} from 'react-router';
+import {Link} from 'react-router/es6';
 
 const holders = defineMessages({
     currentPasswordError: {
@@ -25,7 +26,7 @@ const holders = defineMessages({
     },
     passwordLengthError: {
         id: 'user.settings.security.passwordLengthError',
-        defaultMessage: 'New passwords must be at least {chars} characters'
+        defaultMessage: 'New passwords must be at least {min} characters and at most {max} characters.'
     },
     passwordMatchError: {
         id: 'user.settings.security.passwordMatchError',
@@ -61,16 +62,20 @@ class SecurityTab extends React.Component {
 
         this.state = this.getDefaultState();
     }
+
     getDefaultState() {
         return {
             currentPassword: '',
             newPassword: '',
             confirmPassword: '',
+            passwordError: '',
+            serverError: '',
             authService: this.props.user.auth_service,
             mfaShowQr: false,
             mfaToken: ''
         };
     }
+
     submitPassword(e) {
         e.preventDefault();
 
@@ -85,8 +90,12 @@ class SecurityTab extends React.Component {
             return;
         }
 
-        if (newPassword.length < Constants.MIN_PASSWORD_LENGTH) {
-            this.setState({passwordError: formatMessage(holders.passwordLengthError, {chars: Constants.MIN_PASSWORD_LENGTH}), serverError: ''});
+        const passwordErr = Utils.isValidPassword(newPassword);
+        if (passwordErr !== '') {
+            this.setState({
+                passwordError: passwordErr,
+                serverError: ''
+            });
             return;
         }
 
@@ -117,6 +126,7 @@ class SecurityTab extends React.Component {
             }
         );
     }
+
     activateMfa() {
         Client.updateMfa(
             this.state.mfaToken,
@@ -138,6 +148,7 @@ class SecurityTab extends React.Component {
             }
         );
     }
+
     deactivateMfa() {
         Client.updateMfa(
             '',
@@ -159,22 +170,28 @@ class SecurityTab extends React.Component {
             }
         );
     }
+
     updateCurrentPassword(e) {
         this.setState({currentPassword: e.target.value});
     }
+
     updateNewPassword(e) {
         this.setState({newPassword: e.target.value});
     }
+
     updateConfirmPassword(e) {
         this.setState({confirmPassword: e.target.value});
     }
+
     updateMfaToken(e) {
         this.setState({mfaToken: e.target.value});
     }
+
     showQrCode(e) {
         e.preventDefault();
         this.setState({mfaShowQr: true});
     }
+
     createMfaSection() {
         let updateSectionStatus;
         let submit;
@@ -293,7 +310,7 @@ class SecurityTab extends React.Component {
 
             updateSectionStatus = function resetSection(e) {
                 this.props.updateSection('');
-                this.setState({mfaToken: '', mfaShowQr: false, mfaError: null});
+                this.setState({mfaToken: '', mfaShowQr: false, mfaError: null, serverError: null});
                 e.preventDefault();
             }.bind(this);
 
@@ -329,6 +346,7 @@ class SecurityTab extends React.Component {
             />
         );
     }
+
     createPasswordSection() {
         let updateSectionStatus;
 
@@ -460,7 +478,7 @@ class SecurityTab extends React.Component {
 
         if (this.props.user.auth_service === '') {
             const d = new Date(this.props.user.last_password_update);
-            const hours12 = !Utils.isMilitaryTime();
+            const hours12 = !PreferenceStore.getBool(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, Constants.Preferences.USE_MILITARY_TIME, false);
 
             describe = (
                 <FormattedMessage
@@ -519,6 +537,7 @@ class SecurityTab extends React.Component {
             />
         );
     }
+
     createSignInSection() {
         let updateSectionStatus;
         const user = this.props.user;
@@ -536,7 +555,7 @@ class SecurityTab extends React.Component {
                 }
 
                 emailOption = (
-                    <div>
+                    <div className='padding-bottom x2'>
                         <Link
                             className='btn btn-primary'
                             to={link}
@@ -554,7 +573,7 @@ class SecurityTab extends React.Component {
             let gitlabOption;
             if (global.window.mm_config.EnableSignUpWithGitLab === 'true' && user.auth_service === '') {
                 gitlabOption = (
-                    <div>
+                    <div className='padding-bottom x2'>
                         <Link
                             className='btn btn-primary'
                             to={'/claim/email_to_oauth?email=' + encodeURIComponent(user.email) + '&old_type=' + user.auth_service + '&new_type=' + Constants.GITLAB_SERVICE}
@@ -572,7 +591,7 @@ class SecurityTab extends React.Component {
             let googleOption;
             if (global.window.mm_config.EnableSignUpWithGoogle === 'true' && user.auth_service === '') {
                 googleOption = (
-                    <div>
+                    <div className='padding-bottom x2'>
                         <Link
                             className='btn btn-primary'
                             to={'/' + teamName + '/claim/email_to_oauth?email=' + encodeURIComponent(user.email) + '&old_type=' + user.auth_service + '&new_type=' + Constants.GOOGLE_SERVICE}
@@ -590,7 +609,7 @@ class SecurityTab extends React.Component {
             let ldapOption;
             if (global.window.mm_config.EnableLdap === 'true' && user.auth_service === '') {
                 ldapOption = (
-                    <div>
+                    <div className='padding-bottom x2'>
                         <Link
                             className='btn btn-primary'
                             to={'/claim/email_to_ldap?email=' + encodeURIComponent(user.email)}
@@ -605,13 +624,31 @@ class SecurityTab extends React.Component {
                 );
             }
 
+            let samlOption;
+            if (global.window.mm_config.EnableSaml === 'true' && user.auth_service === '') {
+                samlOption = (
+                    <div className='padding-bottom x2'>
+                        <Link
+                            className='btn btn-primary'
+                            to={'/claim/email_to_oauth?email=' + encodeURIComponent(user.email) + '&old_type=' + user.auth_service + '&new_type=' + Constants.SAML_SERVICE}
+                        >
+                            <FormattedMessage
+                                id='user.settings.security.switchSaml'
+                                defaultMessage='Switch to using SAML SSO'
+                            />
+                        </Link>
+                        <br/>
+                    </div>
+                );
+            }
+
             const inputs = [];
             inputs.push(
                 <div key='userSignInOption'>
                     {emailOption}
                     {gitlabOption}
-                    <br/>
                     {ldapOption}
+                    {samlOption}
                     {googleOption}
                 </div>
             );
@@ -666,6 +703,13 @@ class SecurityTab extends React.Component {
                     defaultMessage='LDAP'
                 />
             );
+        } else if (this.props.user.auth_service === Constants.SAML_SERVICE) {
+            describe = (
+                <FormattedMessage
+                    id='user.settings.security.saml'
+                    defaultMessage='SAML'
+                />
+            );
         }
 
         return (
@@ -676,13 +720,17 @@ class SecurityTab extends React.Component {
             />
         );
     }
+
     render() {
+        const user = this.props.user;
+
         const passwordSection = this.createPasswordSection();
 
         let numMethods = 0;
         numMethods = global.window.mm_config.EnableSignUpWithGitLab === 'true' ? numMethods + 1 : numMethods;
         numMethods = global.window.mm_config.EnableSignUpWithGoogle === 'true' ? numMethods + 1 : numMethods;
         numMethods = global.window.mm_config.EnableLdap === 'true' ? numMethods + 1 : numMethods;
+        numMethods = global.window.mm_config.EnableSaml === 'true' ? numMethods + 1 : numMethods;
 
         let signInSection;
         if (global.window.mm_config.EnableSignUpWithEmail === 'true' && numMethods > 0) {
@@ -690,7 +738,9 @@ class SecurityTab extends React.Component {
         }
 
         let mfaSection;
-        if (global.window.mm_config.EnableMultifactorAuthentication === 'true' && global.window.mm_license.IsLicensed === 'true') {
+        if (global.window.mm_config.EnableMultifactorAuthentication === 'true' &&
+                global.window.mm_license.IsLicensed === 'true' &&
+                (user.auth_service === '' || user.auth_service === Constants.LDAP_SERVICE)) {
             mfaSection = this.createMfaSection();
         }
 

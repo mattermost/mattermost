@@ -86,6 +86,13 @@ func (t *HTMLTemplate) addDefaultProps() {
 	}
 
 	t.Props["Footer"] = localT("api.templates.email_footer")
+
+	if *Cfg.EmailSettings.FeedbackOrganization != "" {
+		t.Props["Organization"] = localT("api.templates.email_organization") + *Cfg.EmailSettings.FeedbackOrganization
+	} else {
+		t.Props["Organization"] = ""
+	}
+
 	t.Html["EmailInfo"] = template.HTML(localT("api.templates.email_info",
 		map[string]interface{}{"SupportEmail": Cfg.SupportSettings.SupportEmail, "SiteName": Cfg.TeamSettings.SiteName}))
 }

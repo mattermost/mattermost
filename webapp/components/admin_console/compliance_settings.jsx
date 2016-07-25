@@ -18,12 +18,6 @@ export default class ComplianceSettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        this.state = Object.assign(this.state, {
-            enable: props.config.ComplianceSettings.Enable,
-            directory: props.config.ComplianceSettings.Directory,
-            enableDaily: props.config.ComplianceSettings.EnableDaily
-        });
     }
 
     getConfigFromState(config) {
@@ -32,6 +26,14 @@ export default class ComplianceSettings extends AdminSettings {
         config.ComplianceSettings.EnableDaily = this.state.enableDaily;
 
         return config;
+    }
+
+    getStateFromConfig(config) {
+        return {
+            enable: config.ComplianceSettings.Enable,
+            directory: config.ComplianceSettings.Directory,
+            enableDaily: config.ComplianceSettings.EnableDaily
+        };
     }
 
     renderTitle() {
@@ -70,7 +72,7 @@ export default class ComplianceSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.compliance.enableTitle'
-                            defaultMessage='Enable Compliance:'
+                            defaultMessage='Enable Compliance Reporting:'
                         />
                     }
                     helpText={
@@ -88,7 +90,7 @@ export default class ComplianceSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.compliance.directoryTitle'
-                            defaultMessage='Compliance Directory Location:'
+                            defaultMessage='Compliance Report Directory:'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.sql.maxOpenExample', 'Ex "10"')}

@@ -8,6 +8,7 @@ import MoreDirectChannels from './more_direct_channels.jsx';
 import SidebarHeader from './sidebar_header.jsx';
 import UnreadChannelIndicator from './unread_channel_indicator.jsx';
 import TutorialTip from './tutorial/tutorial_tip.jsx';
+import StatusIcon from './status_icon.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
@@ -16,6 +17,7 @@ import PreferenceStore from 'stores/preference_store.jsx';
 
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
+import * as ChannelActions from 'actions/channel_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 
@@ -28,7 +30,7 @@ import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 import loadingGif from 'images/load.gif';
 
 import React from 'react';
-import {browserHistory, Link} from 'react-router';
+import {browserHistory, Link} from 'react-router/es6';
 
 import favicon from 'images/favicon/favicon-16x16.png';
 import redFavicon from 'images/favicon/redfavicon-16x16.png';
@@ -57,6 +59,11 @@ export default class Sidebar extends React.Component {
         this.createChannelElement = this.createChannelElement.bind(this);
         this.updateTitle = this.updateTitle.bind(this);
 
+        this.navigateChannelShortcut = this.navigateChannelShortcut.bind(this);
+        this.navigateUnreadChannelShortcut = this.navigateUnreadChannelShortcut.bind(this);
+        this.getDisplayedChannels = this.getDisplayedChannels.bind(this);
+        this.updateScrollbarOnChannelChange = this.updateScrollbarOnChannelChange.bind(this);
+
         this.isLeaving = new Map();
 
         const state = this.getStateFromStores();
@@ -65,6 +72,7 @@ export default class Sidebar extends React.Component {
         state.loadingDMChannel = -1;
         this.state = state;
     }
+
     getTotalUnreadCount() {
         let msgs = 0;
         let mentions = 0;
@@ -77,13 +85,14 @@ export default class Sidebar extends React.Component {
 
         return {msgs, mentions};
     }
+
     getStateFromStores() {
         const members = ChannelStore.getAllMembers();
         const currentChannelId = ChannelStore.getCurrentId();
         const currentUserId = UserStore.getCurrentId();
 
         const channels = Object.assign([], ChannelStore.getAll());
-        channels.sort((a, b) => a.display_name.localeCompare(b.display_name));
+        channels.sort(this.sortChannelsByDisplayName);
 
         const publicChannels = channels.filter((channel) => channel.type === Constants.OPEN_CHANNEL);
         const privateChannels = channels.filter((channel) => channel.type === Constants.PRIVATE_CHANNEL);
@@ -116,7 +125,7 @@ export default class Sidebar extends React.Component {
 
             directChannel.display_name = Utils.displayUsername(teammateId);
             directChannel.teammate_id = teammateId;
-            directChannel.status = UserStore.getStatus(teammateId);
+            directChannel.status = UserStore.getStatus(teammateId) || 'offline';
 
             if (UserStore.hasTeamProfile(teammateId)) {
                 directChannels.push(directChannel);
@@ -155,18 +164,29 @@ export default class Sidebar extends React.Component {
 
         this.updateTitle();
         this.updateUnreadIndicators();
+
+        document.addEventListener('keydown', this.navigateChannelShortcut);
+        document.addEventListener('keydown', this.navigateUnreadChannelShortcut);
     }
+
     shouldComponentUpdate(nextProps, nextState) {
         if (!Utils.areObjectsEqual(nextState, this.state)) {
             return true;
         }
         return false;
     }
+
     componentDidUpdate(prevProps, prevState) {
         this.updateTitle();
         this.updateUnreadIndicators();
         if (!Utils.isMobile()) {
             $('.sidebar--left .nav-pills__container').perfectScrollbar();
+        }
+
+        // reset the scrollbar upon switching teams
+        if (this.state.currentTeam !== prevState.currentTeam) {
+            this.refs.container.scrollTop = 0;
+            $('.nav-pills__container').perfectScrollbar('update');
         }
 
         // close the LHS on mobile when you change channels
@@ -175,16 +195,21 @@ export default class Sidebar extends React.Component {
             $('.app__body .sidebar--left').removeClass('move--right');
         }
     }
+
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onChange);
         UserStore.removeChangeListener(this.onChange);
         UserStore.removeStatusesChangeListener(this.onChange);
         TeamStore.removeChangeListener(this.onChange);
         PreferenceStore.removeChangeListener(this.onChange);
+        document.removeEventListener('keydown', this.navigateChannelShortcut);
+        document.removeEventListener('keydown', this.navigateUnreadChannelShortcut);
     }
+
     onChange() {
         this.setState(this.getStateFromStores());
     }
+
     updateTitle() {
         const channel = ChannelStore.getCurrent();
         if (channel && this.state.currentTeam) {
@@ -207,9 +232,11 @@ export default class Sidebar extends React.Component {
             document.title = mentionTitle + unreadTitle + currentChannelName + ' - ' + this.state.currentTeam.display_name + ' ' + currentSiteName;
         }
     }
+
     onScroll() {
         this.updateUnreadIndicators();
     }
+
     updateUnreadIndicators() {
         const container = $(ReactDOM.findDOMNode(this.refs.container));
 
@@ -236,6 +263,77 @@ export default class Sidebar extends React.Component {
             showTopUnread,
             showBottomUnread
         });
+    }
+
+    updateScrollbarOnChannelChange(channel) {
+        const curChannel = this.refs[channel.name].getBoundingClientRect();
+        if ((curChannel.top - Constants.CHANNEL_SCROLL_ADJUSTMENT < 0) || (curChannel.top + curChannel.height > this.refs.container.getBoundingClientRect().height)) {
+            this.refs.container.scrollTop = this.refs.container.scrollTop + (curChannel.top - Constants.CHANNEL_SCROLL_ADJUSTMENT);
+            $('.nav-pills__container').perfectScrollbar('update');
+        }
+    }
+
+    navigateChannelShortcut(e) {
+        if (e.altKey && !e.shiftKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
+            e.preventDefault();
+            const allChannels = this.getDisplayedChannels();
+            const curChannelId = this.state.activeId;
+            let curIndex = -1;
+            for (let i = 0; i < allChannels.length; i++) {
+                if (allChannels[i].id === curChannelId) {
+                    curIndex = i;
+                }
+            }
+            let nextChannel = allChannels[curIndex];
+            let nextIndex = curIndex;
+            if (e.keyCode === Constants.KeyCodes.DOWN) {
+                nextIndex = curIndex + 1;
+            } else if (e.keyCode === Constants.KeyCodes.UP) {
+                nextIndex = curIndex - 1;
+            }
+            nextChannel = allChannels[Utils.mod(nextIndex, allChannels.length)];
+            ChannelActions.goToChannel(nextChannel);
+            this.updateScrollbarOnChannelChange(nextChannel);
+        }
+    }
+
+    navigateUnreadChannelShortcut(e) {
+        if (e.altKey && e.shiftKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
+            e.preventDefault();
+            const allChannels = this.getDisplayedChannels();
+            const curChannelId = this.state.activeId;
+            let curIndex = -1;
+            for (let i = 0; i < allChannels.length; i++) {
+                if (allChannels[i].id === curChannelId) {
+                    curIndex = i;
+                }
+            }
+            let nextChannel = allChannels[curIndex];
+            let nextIndex = curIndex;
+            let count = 0;
+            let increment = 0;
+            if (e.keyCode === Constants.KeyCodes.UP) {
+                increment = -1;
+            } else if (e.keyCode === Constants.KeyCodes.DOWN) {
+                increment = 1;
+            }
+            let unreadCounts = ChannelStore.getUnreadCount(allChannels[nextIndex].id);
+            while (count < allChannels.length && unreadCounts.msgs === 0 && unreadCounts.mentions === 0) {
+                nextIndex += increment;
+                count++;
+                nextIndex = Utils.mod(nextIndex, allChannels.length);
+                unreadCounts = ChannelStore.getUnreadCount(allChannels[nextIndex].id);
+            }
+            if (unreadCounts.msgs !== 0 || unreadCounts.mentions !== 0) {
+                nextChannel = allChannels[nextIndex];
+                ChannelActions.goToChannel(nextChannel);
+                this.updateScrollbarOnChannelChange(nextChannel);
+            }
+        }
+    }
+
+    getDisplayedChannels() {
+        return this.state.publicChannels.concat(this.state.privateChannels).concat(this.state.directChannels).concat(this.state.directNonTeamChannels);
     }
 
     handleLeaveDirectChannel(e, channel) {
@@ -265,6 +363,10 @@ export default class Sidebar extends React.Component {
     }
 
     sortChannelsByDisplayName(a, b) {
+        if (a.display_name === b.display_name) {
+            return a.name.localeCompare(b.name);
+        }
+
         return a.display_name.localeCompare(b.display_name);
     }
 
@@ -276,6 +378,7 @@ export default class Sidebar extends React.Component {
     showNewChannelModal(type) {
         this.setState({newChannelModalType: type});
     }
+
     hideNewChannelModal() {
         this.setState({newChannelModalType: ''});
     }
@@ -283,8 +386,18 @@ export default class Sidebar extends React.Component {
     showMoreDirectChannelsModal() {
         this.setState({showDirectChannelsModal: true});
     }
+
     hideMoreDirectChannelsModal() {
         this.setState({showDirectChannelsModal: false});
+    }
+
+    openLeftSidebar() {
+        if (Utils.isMobile()) {
+            setTimeout(() => {
+                document.querySelector('.app__body .inner-wrap').classList.add('move--right');
+                document.querySelector('.app__body .sidebar--left').classList.add('move--right');
+            });
+        }
     }
 
     createTutorialTip() {
@@ -395,30 +508,14 @@ export default class Sidebar extends React.Component {
             rowClass += ' has-badge';
         }
 
-        // set up status icon for direct message channels
-        var status = null;
-        if (channel.type === 'D') {
-            var statusIcon = '';
-            if (channel.status === 'online') {
-                statusIcon = Constants.ONLINE_ICON_SVG;
-            } else if (channel.status === 'away') {
-                statusIcon = Constants.AWAY_ICON_SVG;
-            } else {
-                statusIcon = Constants.OFFLINE_ICON_SVG;
-            }
-            status = (
-                <span
-                    className='status'
-                    dangerouslySetInnerHTML={{__html: statusIcon}}
-                />
-            );
-        }
-
         var icon = null;
         if (channel.type === 'O') {
             icon = <div className='status'><i className='fa fa-globe'></i></div>;
         } else if (channel.type === 'P') {
             icon = <div className='status'><i className='fa fa-lock'></i></div>;
+        } else {
+            // set up status icon for direct message channels (status is null for other channel types)
+            icon = <StatusIcon status={channel.status}/>;
         }
 
         let closeButton = null;
@@ -452,6 +549,7 @@ export default class Sidebar extends React.Component {
         let tutorialTip = null;
         if (this.state.showTutorialTip && channel.name === Constants.DEFAULT_CHANNEL) {
             tutorialTip = this.createTutorialTip();
+            this.openLeftSidebar();
         }
 
         let link = '';
@@ -472,7 +570,6 @@ export default class Sidebar extends React.Component {
                     className={rowClass}
                 >
                     {icon}
-                    {status}
                     {channel.display_name}
                     {badge}
                     {closeButton}
@@ -546,8 +643,8 @@ export default class Sidebar extends React.Component {
                     onClick={this.showMoreDirectChannelsModal}
                 >
                     <FormattedMessage
-                        id='sidebar.more'
-                        defaultMessage='More'
+                        id='sidebar.moreElips'
+                        defaultMessage='More...'
                     />
                 </a>
             </li>
@@ -588,6 +685,55 @@ export default class Sidebar extends React.Component {
                 defaultMessage='Unread post(s) below'
             />
         );
+
+        const isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
+        const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
+
+        let createPublicChannelIcon = (
+            <OverlayTrigger
+                delayShow={500}
+                placement='top'
+                overlay={createChannelTootlip}
+            >
+                <a
+                    className='add-channel-btn'
+                    href='#'
+                    onClick={this.showNewChannelModal.bind(this, Constants.OPEN_CHANNEL)}
+                >
+                    {'+'}
+                </a>
+            </OverlayTrigger>
+        );
+
+        let createPrivateChannelIcon = (
+            <OverlayTrigger
+                delayShow={500}
+                placement='top'
+                overlay={createGroupTootlip}
+            >
+                <a
+                    className='add-channel-btn'
+                    href='#'
+                    onClick={this.showNewChannelModal.bind(this, Constants.PRIVATE_CHANNEL)}
+                >
+                    {'+'}
+                </a>
+            </OverlayTrigger>
+        );
+
+        if (global.window.mm_license.IsLicensed === 'true') {
+            if (global.window.mm_config.RestrictPublicChannelManagement === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
+                createPublicChannelIcon = null;
+            } else if (global.window.mm_config.RestrictPublicChannelManagement === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
+                createPublicChannelIcon = null;
+            }
+
+            if (global.window.mm_config.RestrictPrivateChannelManagement === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
+                createPrivateChannelIcon = null;
+            } else if (global.window.mm_config.RestrictPrivateChannelManagement === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
+                createPrivateChannelIcon = null;
+            }
+        }
 
         return (
             <div
@@ -635,19 +781,7 @@ export default class Sidebar extends React.Component {
                                     id='sidebar.channels'
                                     defaultMessage='Channels'
                                 />
-                                <OverlayTrigger
-                                    delayShow={500}
-                                    placement='top'
-                                    overlay={createChannelTootlip}
-                                >
-                                    <a
-                                        className='add-channel-btn'
-                                        href='#'
-                                        onClick={this.showNewChannelModal.bind(this, 'O')}
-                                    >
-                                        {'+'}
-                                    </a>
-                                </OverlayTrigger>
+                                {createPublicChannelIcon}
                             </h4>
                         </li>
                         {publicChannelItems}
@@ -672,19 +806,7 @@ export default class Sidebar extends React.Component {
                                     id='sidebar.pg'
                                     defaultMessage='Private Groups'
                                 />
-                                <OverlayTrigger
-                                    delayShow={500}
-                                    placement='top'
-                                    overlay={createGroupTootlip}
-                                >
-                                    <a
-                                        className='add-channel-btn'
-                                        href='#'
-                                        onClick={this.showNewChannelModal.bind(this, 'P')}
-                                    >
-                                        {'+'}
-                                    </a>
-                                </OverlayTrigger>
+                                {createPrivateChannelIcon}
                             </h4>
                         </li>
                         {privateChannelItems}

@@ -20,6 +20,13 @@ import (
 	"github.com/pborman/uuid"
 )
 
+const (
+	LOWERCASE_LETTERS = "abcdefghijklmnopqrstuvwxyz"
+	UPPERCASE_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	NUMBERS           = "0123456789"
+	SYMBOLS           = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
+)
+
 type StringInterface map[string]interface{}
 type StringMap map[string]string
 type StringArray []string
@@ -27,12 +34,12 @@ type EncryptStringMap map[string]string
 
 type AppError struct {
 	Id            string                 `json:"id"`
-	Message       string                 `json:"message"`        // Message to be display to the end user without debugging information
-	DetailedError string                 `json:"detailed_error"` // Internal error string to help the developer
-	RequestId     string                 `json:"request_id"`     // The RequestId that's also set in the header
-	StatusCode    int                    `json:"status_code"`    // The http status code
-	Where         string                 `json:"-"`              // The function where it happened in the form of Struct.Func
-	IsOAuth       bool                   `json:"is_oauth"`       // Whether the error is OAuth specific
+	Message       string                 `json:"message"`               // Message to be display to the end user without debugging information
+	DetailedError string                 `json:"detailed_error"`        // Internal error string to help the developer
+	RequestId     string                 `json:"request_id,omitempty"`  // The RequestId that's also set in the header
+	StatusCode    int                    `json:"status_code,omitempty"` // The http status code
+	Where         string                 `json:"-"`                     // The function where it happened in the form of Struct.Func
+	IsOAuth       bool                   `json:"is_oauth,omitempty"`    // Whether the error is OAuth specific
 	params        map[string]interface{} `json:"-"`
 }
 
@@ -315,10 +322,9 @@ func Etag(parts ...interface{}) string {
 }
 
 var validHashtag = regexp.MustCompile(`^(#[A-Za-zäöüÄÖÜß]+[A-Za-z0-9äöüÄÖÜß_\-]*[A-Za-z0-9äöüÄÖÜß])$`)
-var puncStart = regexp.MustCompile(`^[.,()&$!\?\[\]{}':;\\<>\-+=%^*|]+`)
+var puncStart = regexp.MustCompile(`^[^\pL\d\s#]+`)
 var hashtagStart = regexp.MustCompile(`^#{2,}`)
-var puncEnd = regexp.MustCompile(`[.,()&$#!\?\[\]{}':;\\<>\-+=%^*|]+$`)
-var puncEndWildcard = regexp.MustCompile(`[.,()&$#!\?\[\]{}':;\\<>\-+=%^|]+$`)
+var puncEnd = regexp.MustCompile(`[^\pL\d\s]+$`)
 
 func ParseHashtags(text string) (string, string) {
 	words := strings.Fields(text)

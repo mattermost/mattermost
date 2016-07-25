@@ -4,10 +4,11 @@
 import React from 'react';
 
 import * as AsyncClient from 'utils/async_client.jsx';
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 
 import FormError from 'components/form_error.jsx';
 import SaveButton from 'components/admin_console/save_button.jsx';
+import Constants from 'utils/constants.jsx';
 
 export default class AdminSettings extends React.Component {
     static get propTypes() {
@@ -21,12 +22,13 @@ export default class AdminSettings extends React.Component {
 
         this.handleChange = this.handleChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.onKeyDown = this.onKeyDown.bind(this);
 
-        this.state = {
+        this.state = Object.assign(this.getStateFromConfig(props.config), {
             saveNeeded: false,
             saving: false,
             serverError: null
-        };
+        });
     }
 
     handleChange(id, value) {
@@ -34,6 +36,20 @@ export default class AdminSettings extends React.Component {
             saveNeeded: true,
             [id]: value
         });
+    }
+
+    componentDidMount() {
+        document.addEventListener('keydown', this.onKeyDown);
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener('keydown', this.onKeyDown);
+    }
+
+    onKeyDown(e) {
+        if (e.keyCode === Constants.KeyCodes.ENTER) {
+            this.handleSubmit(e);
+        }
     }
 
     handleSubmit(e) {
@@ -44,12 +60,17 @@ export default class AdminSettings extends React.Component {
             serverError: null
         });
 
-        const config = this.getConfigFromState(this.props.config);
+        // clone config so that we aren't modifying data in the stores
+        let config = JSON.parse(JSON.stringify(this.props.config));
+        config = this.getConfigFromState(config);
 
         Client.saveConfig(
             config,
             () => {
-                AsyncClient.getConfig();
+                AsyncClient.getConfig((savedConfig) => {
+                    this.setState(this.getStateFromConfig(savedConfig));
+                });
+
                 this.setState({
                     saveNeeded: false,
                     saving: false
@@ -64,20 +85,26 @@ export default class AdminSettings extends React.Component {
         );
     }
 
-    parseInt(str) {
+    parseInt(str, defaultValue) {
         const n = parseInt(str, 10);
 
         if (isNaN(n)) {
+            if (defaultValue) {
+                return defaultValue;
+            }
             return 0;
         }
 
         return n;
     }
 
-    parseIntNonZero(str) {
+    parseIntNonZero(str, defaultValue) {
         const n = parseInt(str, 10);
 
         if (isNaN(n) || n < 1) {
+            if (defaultValue) {
+                return defaultValue;
+            }
             return 1;
         }
 
@@ -85,11 +112,6 @@ export default class AdminSettings extends React.Component {
     }
 
     render() {
-        let saveClass = 'btn';
-        if (this.state.saveNeeded) {
-            saveClass += 'btn-primary';
-        }
-
         return (
             <div className='wrapper--fixed'>
                 {this.renderTitle()}
@@ -99,8 +121,10 @@ export default class AdminSettings extends React.Component {
                 >
                     {this.renderSettings()}
                     <div className='form-group'>
+                        <FormError error={this.state.serverError}/>
+                    </div>
+                    <div className='form-group'>
                         <div className='col-sm-12'>
-                            <FormError error={this.state.serverError}/>
                             <SaveButton
                                 saving={this.state.saving}
                                 disabled={!this.state.saveNeeded || (this.canSave && !this.canSave())}

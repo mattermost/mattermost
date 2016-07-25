@@ -9,7 +9,7 @@ import SettingPicture from '../setting_picture.jsx';
 import UserStore from 'stores/user_store.jsx';
 import ErrorStore from 'stores/error_store.jsx';
 
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 import Constants from 'utils/constants.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -95,7 +95,9 @@ class UserSettingsGeneralTab extends React.Component {
         this.updateSection = this.updateSection.bind(this);
 
         this.state = this.setupInitialState(props);
+        this.setState({maxFileSize: global.window.mm_config.MaxFileSize});
     }
+
     submitUsername(e) {
         e.preventDefault();
 
@@ -119,8 +121,9 @@ class UserSettingsGeneralTab extends React.Component {
 
         user.username = username;
 
-        this.submitUser(user, false);
+        this.submitUser(user, Constants.UserUpdateEvents.USERNAME, false);
     }
+
     submitNickname(e) {
         e.preventDefault();
 
@@ -134,8 +137,9 @@ class UserSettingsGeneralTab extends React.Component {
 
         user.nickname = nickname;
 
-        this.submitUser(user, false);
+        this.submitUser(user, Constants.UserUpdateEvents.NICKNAME, false);
     }
+
     submitName(e) {
         e.preventDefault();
 
@@ -151,8 +155,9 @@ class UserSettingsGeneralTab extends React.Component {
         user.first_name = firstName;
         user.last_name = lastName;
 
-        this.submitUser(user, false);
+        this.submitUser(user, Constants.UserUpdateEvents.FULLNAME, false);
     }
+
     submitEmail(e) {
         e.preventDefault();
 
@@ -160,12 +165,13 @@ class UserSettingsGeneralTab extends React.Component {
         const email = this.state.email.trim().toLowerCase();
         const confirmEmail = this.state.confirmEmail.trim().toLowerCase();
 
-        if (user.email === email) {
+        const {formatMessage} = this.props.intl;
+
+        if (email === user.email && (confirmEmail === '' || confirmEmail === user.email)) {
             this.updateSection('');
             return;
         }
 
-        const {formatMessage} = this.props.intl;
         if (email === '' || !Utils.isEmail(email)) {
             this.setState({emailError: formatMessage(holders.validEmail), clientError: '', serverError: ''});
             return;
@@ -177,10 +183,11 @@ class UserSettingsGeneralTab extends React.Component {
         }
 
         user.email = email;
-        this.submitUser(user, true);
+        this.submitUser(user, Constants.UserUpdateEvents.EMAIL, true);
     }
-    submitUser(user, emailUpdated) {
-        Client.updateUser(user,
+
+    submitUser(user, type, emailUpdated) {
+        Client.updateUser(user, type,
             () => {
                 this.updateSection('');
                 AsyncClient.getMe();
@@ -203,6 +210,7 @@ class UserSettingsGeneralTab extends React.Component {
             }
         );
     }
+
     submitPicture(e) {
         e.preventDefault();
 
@@ -220,7 +228,7 @@ class UserSettingsGeneralTab extends React.Component {
         if (picture.type !== 'image/jpeg' && picture.type !== 'image/png') {
             this.setState({clientError: formatMessage(holders.validImage)});
             return;
-        } else if (picture.size > Constants.MAX_FILE_SIZE) {
+        } else if (picture.size > this.state.maxFileSize) {
             this.setState({clientError: formatMessage(holders.imageTooLarge)});
             return;
         }
@@ -240,24 +248,31 @@ class UserSettingsGeneralTab extends React.Component {
             }
         );
     }
+
     updateUsername(e) {
         this.setState({username: e.target.value});
     }
+
     updateFirstName(e) {
         this.setState({firstName: e.target.value});
     }
+
     updateLastName(e) {
         this.setState({lastName: e.target.value});
     }
+
     updateNickname(e) {
         this.setState({nickname: e.target.value});
     }
+
     updateEmail(e) {
         this.setState({email: e.target.value});
     }
+
     updateConfirmEmail(e) {
         this.setState({confirmEmail: e.target.value});
     }
+
     updatePicture(e) {
         if (e.target.files && e.target.files[0]) {
             this.setState({picture: e.target.files[0]});
@@ -268,6 +283,7 @@ class UserSettingsGeneralTab extends React.Component {
             this.setState({picture: null});
         }
     }
+
     updateSection(section) {
         $('.settings-modal .modal-body').scrollTop(0).perfectScrollbar('update');
         const emailChangeInProgress = this.state.emailChangeInProgress;
@@ -275,12 +291,23 @@ class UserSettingsGeneralTab extends React.Component {
         this.submitActive = false;
         this.props.updateSection(section);
     }
+
     setupInitialState(props) {
         const user = props.user;
 
-        return {username: user.username, firstName: user.first_name, lastName: user.last_name, nickname: user.nickname,
-                        email: user.email, confirmEmail: '', picture: null, loadingPicture: false, emailChangeInProgress: false};
+        return {
+            username: user.username,
+            firstName: user.first_name,
+            lastName: user.last_name,
+            nickname: user.nickname,
+            email: user.email,
+            confirmEmail: '',
+            picture: null,
+            loadingPicture: false,
+            emailChangeInProgress: false
+        };
     }
+
     createEmailSection() {
         let emailSection;
 
@@ -342,7 +369,7 @@ class UserSettingsGeneralTab extends React.Component {
                             <div className='col-sm-7'>
                                 <input
                                     className='form-control'
-                                    type='text'
+                                    type='email'
                                     onChange={this.updateEmail}
                                     value={this.state.email}
                                 />
@@ -363,7 +390,7 @@ class UserSettingsGeneralTab extends React.Component {
                             <div className='col-sm-7'>
                                 <input
                                     className='form-control'
-                                    type='text'
+                                    type='email'
                                     onChange={this.updateConfirmEmail}
                                     value={this.state.confirmEmail}
                                 />
@@ -402,6 +429,24 @@ class UserSettingsGeneralTab extends React.Component {
                             <FormattedMessage
                                 id='user.settings.general.emailLdapCantUpdate'
                                 defaultMessage='Login occurs through LDAP. Email cannot be updated. Email address used for notifications is {email}.'
+                                values={{
+                                    email: this.state.email
+                                }}
+                            />
+                        </div>
+                        {helpText}
+                    </div>
+                );
+            } else if (this.props.user.auth_service === Constants.SAML_SERVICE) {
+                inputs.push(
+                    <div
+                        key='oauthEmailInfo'
+                        className='form-group'
+                    >
+                        <div className='setting-list__hint'>
+                            <FormattedMessage
+                                id='user.settings.general.emailSamlCantUpdate'
+                                defaultMessage='Login occurs through SAML. Email cannot be updated. Email address used for notifications is {email}.'
                                 values={{
                                     email: this.state.email
                                 }}
@@ -476,6 +521,16 @@ class UserSettingsGeneralTab extends React.Component {
                         }}
                     />
                 );
+            } else if (this.props.user.auth_service === Constants.SAML_SERVICE) {
+                describe = (
+                    <FormattedMessage
+                        id='user.settings.general.loginSaml'
+                        defaultMessage='Login done through SAML ({email})'
+                        values={{
+                            email: this.state.email
+                        }}
+                    />
+                );
             }
 
             emailSection = (
@@ -496,6 +551,7 @@ class UserSettingsGeneralTab extends React.Component {
 
         return emailSection;
     }
+
     render() {
         const user = this.props.user;
         const {formatMessage} = this.props.intl;
@@ -596,7 +652,7 @@ class UserSettingsGeneralTab extends React.Component {
                     <span>
                         <FormattedMessage
                             id='user.settings.general.field_handled_externally'
-                            defaultMessage='This field is handled through your login provider. If you want to change it, you need to do so though your login provider.'
+                            defaultMessage='This field is handled through your login provider. If you want to change it, you need to do so through your login provider.'
                         />
                     </span>
                 );
@@ -649,7 +705,7 @@ class UserSettingsGeneralTab extends React.Component {
         if (this.props.activeSection === 'nickname') {
             let extraInfo;
             let submit = null;
-            if (this.props.user.auth_service === 'ldap' && global.window.mm_config.NicknameAttributeSet) {
+            if (this.props.user.auth_service === 'ldap' && global.window.mm_config.NicknameAttributeSet === 'true') {
                 extraInfo = (
                     <span>
                         <FormattedMessage
@@ -681,6 +737,8 @@ class UserSettingsGeneralTab extends React.Component {
                                 type='text'
                                 onChange={this.updateNickname}
                                 value={this.state.nickname}
+                                maxLength={Constants.MAX_NICKNAME_LENGTH}
+                                autoCapitalize='off'
                             />
                         </div>
                     </div>
@@ -764,6 +822,7 @@ class UserSettingsGeneralTab extends React.Component {
                                 type='text'
                                 onChange={this.updateUsername}
                                 value={this.state.username}
+                                autoCapitalize='off'
                             />
                         </div>
                     </div>

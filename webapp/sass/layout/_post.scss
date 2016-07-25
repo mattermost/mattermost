@@ -86,8 +86,19 @@ body.ios {
 
     b,
     i,
+    span {
+        margin: 0 2px;
+        position: relative;
+        top: -1px;
+    }
+
+    b {
+        @include opacity(.9);
+    }
+
     code {
-        margin-right: 3px;
+        background: transparent;
+        padding: 0;
     }
 
     .textbox-preview-link {
@@ -176,6 +187,7 @@ body.ios {
     font-weight: 600;
     height: 100%;
     left: 0;
+    pointer-events: none;
     position: absolute;
     text-align: center;
     top: 0;
@@ -402,6 +414,11 @@ body.ios {
             right: 0;
             top: 1px;
 
+            svg {
+                height: 18px;
+                width: 18px;
+            }
+
             &:hover,
             &:active {
                 @include opacity(.9);
@@ -442,7 +459,7 @@ body.ios {
 .post-list__table {
     display: table;
     height: 100%;
-    min-height: 100%;
+    min-height: 350px;
     table-layout: fixed;
     width: 100%;
 
@@ -452,7 +469,7 @@ body.ios {
 
         .dropdown-menu {
             &.bottom {
-                bottom: 25px;
+                bottom: 19px;
                 top: auto;
             }
         }
@@ -479,25 +496,86 @@ body.ios {
         }
     }
 
+    &.post--hovered {
+        .dropdown,
+        .comment-icon__container,
+        .post__reply,
+        .post__remove,
+        .permalink-icon {
+            visibility: visible;
+        }
+
+        .post__body {
+            background: transparent !important;
+        }
+    }
+
     &.post--highlight {
         background-color: beige;
     }
 
+    &.post--hide-controls {
+        .post__header {
+            .col__reply {
+                display: none;
+            }
+        }
+    }
+
     &.post--compact {
+        &.post--thread {
+            .post__header {
+                padding-top: 3px;
+            }
+        }
+
+        blockquote {
+            display: inline-block;
+            font-size: 1em;
+            margin-left: 0;
+            padding: 3px 0 0 25px;
+            vertical-align: top;
+
+            &:before {
+                font-size: 15px;
+                left: 4px;
+                top: 2px;
+            }
+        }
 
         .markdown__heading {
             font-size: 1em;
             margin: 0 0 7px;
         }
 
-        .post__body {
-            background: transparent !important;
-            margin-top: -1px;
-            padding: 3px 0;
+        .post__header {
+            height: 22px;
         }
 
-        .post-image__columns {
+        .post__body {
+            background: transparent !important;
+            line-height: 1.6;
+            margin-top: -1px;
+            padding: 3px 0;
+
+            .img-div {
+                max-height: 150px;
+                max-width: 150px;
+        }
+
+            p {
+                line-height: inherit;
+            }
+
+            p + p {
+                margin-top: 1em;
+            }
+
+            ol,
+            ul {
             clear: both;
+                padding-left: 20px;
+            }
         }
 
         .post-image__column {
@@ -506,6 +584,7 @@ body.ios {
             height: 26px;
             line-height: 25px;
             padding: 0 7px;
+            width: auto;
 
             .post-image__thumbnail {
                 display: none;
@@ -516,6 +595,16 @@ body.ios {
                 border: none;
                 padding: 0;
                 width: 100%;
+
+                svg {
+                    display: inline-block;
+                    height: 13px;
+                    margin: 5px 4px 0 0;
+                    opacity: .5;
+                    position: relative;
+                    vertical-align: top;
+                    width: 13px;
+                }
 
                 > div {
                     display: none;
@@ -546,7 +635,7 @@ body.ios {
 
         .post__img {
             padding-top: 3px;
-            width: 28px;
+            width: 27px;
 
             img,
             svg {
@@ -554,6 +643,10 @@ body.ios {
                 width: 20px;
             }
         }
+    }
+
+    .post--fail {
+        position: relative;
     }
 
     p {
@@ -585,8 +678,8 @@ body.ios {
 
     &.post--comment {
         .post__body {
-            padding-left: 7px;
             border-left: 4px solid $gray;
+            padding-left: 7px;
         }
     }
 
@@ -594,7 +687,8 @@ body.ios {
         &.same--user {
             padding: 0 .5em 0 1em;
 
-            &:hover {
+            &:hover,
+            &.post--hovered {
                 .post__time {
                     @include opacity(.5);
                 }
@@ -615,7 +709,7 @@ body.ios {
                 }
 
                 .col__reply {
-                    top: 6px;
+                    top: -1px;
                 }
             }
         }
@@ -654,7 +748,7 @@ body.ios {
 
             .post__header {
                 .col__reply {
-                    top: 53px;
+                    top: -4px;
                 }
             }
         }
@@ -696,16 +790,26 @@ body.ios {
                 @include clearfix;
                 max-width: 200px;
                 text-overflow: ellipsis;
+                vertical-align: top;
                 white-space: nowrap;
+            }
+
+            .colon {
+                display: none;
+                font-weight: 900;
+                margin-left: 2px;
             }
         }
 
         .col__reply {
+            border: 1px solid transparent;
+            border-radius: 2px;
+            min-width: 70px;
+            padding: 2px 5px;
             position: absolute;
-            right: 10px;
-            top: 30px;
+            right: 0;
+            top: -4px;
             white-space: nowrap;
-            width: 65px;
         }
 
         .permalink-popover {
@@ -767,6 +871,7 @@ body.ios {
             min-width: 130px;
             padding: 2px 0;
             right: 0;
+            top: 20px;
 
             li {
                 display: block;
@@ -790,15 +895,15 @@ body.ios {
         @include opacity(.5);
         color: inherit;
         display: inline-block;
+        float: right;
         font-family: 'Open Sans', sans-serif;
         font-size: 20px;
         font-weight: 600;
         height: 20px;
         line-height: 20px;
         position: relative;
-        right: 15px;
+        right: -10px;
         text-decoration: none;
-        top: -5px;
         vertical-align: top;
         visibility: hidden;
         width: 20px;
@@ -811,7 +916,7 @@ body.ios {
     .post__body {
         @include legacy-pie-clearfix;
         padding: .2em .5em;
-        width: calc(100% - 75px);
+        width: 100%;
         word-wrap: break-word;
 
         p {
@@ -835,14 +940,18 @@ body.ios {
         ul,
         ol {
             margin-bottom: .4em;
+            padding-left: 20px;
 
             p {
                 margin-bottom: 0;
             }
 
-            li ul,
-            li ol {
-                padding: 10px 0 0 20px;
+            li {
+                ul,
+                ol {
+                    margin: 0;
+                    padding: 0 0 0 20px;
+                }
             }
 
             li.list-item--task-list ul,
@@ -878,6 +987,20 @@ body.ios {
                 margin-right: 8px;
             }
         }
+
+        .pending-post-actions {
+            position: absolute;
+            right: 0;
+            top: 0;
+            padding: 5px 7px;
+            background: rgba(0, 0, 0, .7);
+            color: white;
+            font-size: .9em;
+
+            a {
+                color: white;
+            }
+        }
     }
 
     .post__link {
@@ -898,8 +1021,12 @@ body.ios {
         cursor: pointer;
         display: inline-block;
         font: normal normal normal 14px/1 FontAwesome;
-        margin: 5px 0 10px;
+        margin: 0 0 10px;
         text-rendering: auto;
+
+        &.pull-left {
+            margin: 5px 5px 0 0;
+        }
 
         &:hover {
             text-decoration: none;
@@ -916,12 +1043,8 @@ body.ios {
     }
 
     .post__time {
-        font-size: .9em;
-    }
-
-    .post__time,
-    &.post--system .post__body {
         @include opacity(.6);
+        font-size: .9em;
     }
 
     .post-loading-gif {
@@ -1023,104 +1146,8 @@ body.ios {
     font-family: inherit;
     font-size: 11px;
     font-weight: 600;
-    margin: 0 0 0 -4px;
+    margin: 0 10px 0 -4px;
     padding: 2px 4px;
-}
-
-.attachment {
-    .attachment__content {
-        border-radius: 4px;
-        border-style: solid;
-        border-width: 1px;
-        margin: 0 0 5px 0;
-        padding: 2px 5px;
-    }
-
-    .attachment__thumb-pretext {
-        background: transparent;
-        border: none;
-        margin-left: 5px;
-    }
-
-    .attachment__container {
-        border-left-style: solid;
-        border-left-width: 4px;
-        padding: 2px 0 2px 10px;
-
-        &.attachment__container--good {
-            border-left-color: #00c100;
-        }
-
-        &.attachment__container--warning {
-            border-left-color: #dede01;
-        }
-
-        &.attachment__container--danger {
-            border-left-color: #e40303;
-        }
-    }
-
-    .attachment__body {
-        float: left;
-        overflow-x: auto;
-        overflow-y: hidden;
-        padding-right: 5px;
-        width: 80%;
-
-        &.attachment__body--no_thumb {
-            width: 100%;
-        }
-    }
-
-    .attachment__text p:last-of-type {
-        display: inline-block;
-    }
-
-    .attachment__title {
-        font-size: 16px;
-        height: 22px;
-        line-height: 16px;
-        margin: 5px 0;
-        padding: 0;
-
-        a {
-            font-size: 16px;
-        }
-    }
-
-    .attachment__author-icon {
-        @include border-radius(50px);
-        height: 14px;
-        margin-right: 5px;
-        width: 14px;
-    }
-
-    .attachment__image {
-        margin-bottom: 1em;
-        max-width: 100%;
-    }
-
-    .attachment__thumb-container {
-        float: right;
-        width: 20%;
-
-        img {
-            max-height: 75px;
-            max-width: 100%;
-        }
-    }
-
-    .attachment___fields {
-        width: 100%;
-
-        .attachment___field-caption {
-            font-weight: 700;
-        }
-
-        .attachment___field p {
-            margin: 0;
-        }
-    }
 }
 
 .permalink-text {

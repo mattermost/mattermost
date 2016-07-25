@@ -168,17 +168,14 @@ func LoadConfig(fileName string) {
 	config.SetDefaults()
 
 	if err := config.IsValid(); err != nil {
-		panic(T("utils.config.load_config.validating.panic",
-			map[string]interface{}{"Filename": fileName, "Error": err.Message}))
+		panic(err.Error())
 	}
 
 	if err := ValidateLdapFilter(&config); err != nil {
-		panic(T("utils.config.load_config.validating.panic",
-			map[string]interface{}{"Filename": fileName, "Error": err.Message}))
+		panic(err.Error())
 	}
 
 	configureLog(&config.LogSettings)
-	TestConnection(&config)
 
 	if config.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
 		dir := config.FileSettings.Directory
@@ -189,6 +186,16 @@ func LoadConfig(fileName string) {
 
 	Cfg = &config
 	ClientCfg = getClientConfig(Cfg)
+
+	// Actions that need to run every time the config is loaded
+	if ldapI := einterfaces.GetLdapInterface(); ldapI != nil {
+		// This restarts the job if nessisary (works for config reloads)
+		ldapI.StartLdapSyncJob()
+	}
+
+	if samlI := einterfaces.GetSamlInterface(); samlI != nil {
+		samlI.ConfigureSP()
+	}
 }
 
 func getClientConfig(c *model.Config) map[string]string {
@@ -198,6 +205,7 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["BuildNumber"] = model.BuildNumber
 	props["BuildDate"] = model.BuildDate
 	props["BuildHash"] = model.BuildHash
+	props["BuildHashEnterprise"] = model.BuildHashEnterprise
 	props["BuildEnterpriseReady"] = model.BuildEnterpriseReady
 
 	props["SiteName"] = c.TeamSettings.SiteName
@@ -206,6 +214,9 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["EnableOpenServer"] = strconv.FormatBool(*c.TeamSettings.EnableOpenServer)
 	props["RestrictTeamNames"] = strconv.FormatBool(*c.TeamSettings.RestrictTeamNames)
 	props["RestrictDirectMessage"] = *c.TeamSettings.RestrictDirectMessage
+	props["RestrictTeamInvite"] = *c.TeamSettings.RestrictTeamInvite
+	props["RestrictPublicChannelManagement"] = *c.TeamSettings.RestrictPublicChannelManagement
+	props["RestrictPrivateChannelManagement"] = *c.TeamSettings.RestrictPrivateChannelManagement
 
 	props["EnableOAuthServiceProvider"] = strconv.FormatBool(c.ServiceSettings.EnableOAuthServiceProvider)
 	props["SegmentDeveloperKey"] = c.ServiceSettings.SegmentDeveloperKey
@@ -216,14 +227,15 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["EnableOnlyAdminIntegrations"] = strconv.FormatBool(*c.ServiceSettings.EnableOnlyAdminIntegrations)
 	props["EnablePostUsernameOverride"] = strconv.FormatBool(c.ServiceSettings.EnablePostUsernameOverride)
 	props["EnablePostIconOverride"] = strconv.FormatBool(c.ServiceSettings.EnablePostIconOverride)
+	props["EnableTesting"] = strconv.FormatBool(c.ServiceSettings.EnableTesting)
 	props["EnableDeveloper"] = strconv.FormatBool(*c.ServiceSettings.EnableDeveloper)
 
 	props["SendEmailNotifications"] = strconv.FormatBool(c.EmailSettings.SendEmailNotifications)
+	props["SendPushNotifications"] = strconv.FormatBool(*c.EmailSettings.SendPushNotifications)
 	props["EnableSignUpWithEmail"] = strconv.FormatBool(c.EmailSettings.EnableSignUpWithEmail)
 	props["EnableSignInWithEmail"] = strconv.FormatBool(*c.EmailSettings.EnableSignInWithEmail)
 	props["EnableSignInWithUsername"] = strconv.FormatBool(*c.EmailSettings.EnableSignInWithUsername)
 	props["RequireEmailVerification"] = strconv.FormatBool(c.EmailSettings.RequireEmailVerification)
-	props["FeedbackEmail"] = c.EmailSettings.FeedbackEmail
 
 	props["EnableSignUpWithGitLab"] = strconv.FormatBool(c.GitLabSettings.Enable)
 	props["EnableSignUpWithGoogle"] = strconv.FormatBool(c.GoogleSettings.Enable)
@@ -244,7 +256,17 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["WebsocketPort"] = fmt.Sprintf("%v", *c.ServiceSettings.WebsocketPort)
 	props["WebsocketSecurePort"] = fmt.Sprintf("%v", *c.ServiceSettings.WebsocketSecurePort)
 
-	props["AllowCorsFrom"] = *c.ServiceSettings.AllowCorsFrom
+	props["DefaultClientLocale"] = *c.LocalizationSettings.DefaultClientLocale
+	props["AvailableLocales"] = *c.LocalizationSettings.AvailableLocales
+	props["SQLDriverName"] = c.SqlSettings.DriverName
+
+	props["EnableCustomEmoji"] = strconv.FormatBool(*c.ServiceSettings.EnableCustomEmoji)
+	props["RestrictCustomEmojiCreation"] = *c.ServiceSettings.RestrictCustomEmojiCreation
+	props["MaxFileSize"] = strconv.FormatInt(*c.FileSettings.MaxFileSize, 10)
+
+	props["AppDownloadLink"] = *c.NativeAppSettings.AppDownloadLink
+	props["AndroidAppDownloadLink"] = *c.NativeAppSettings.AndroidAppDownloadLink
+	props["IosAppDownloadLink"] = *c.NativeAppSettings.IosAppDownloadLink
 
 	if IsLicensed {
 		if *License.Features.CustomBrand {
@@ -264,6 +286,19 @@ func getClientConfig(c *model.Config) map[string]string {
 
 		if *License.Features.Compliance {
 			props["EnableCompliance"] = strconv.FormatBool(*c.ComplianceSettings.Enable)
+		}
+
+		if *License.Features.SAML {
+			props["EnableSaml"] = strconv.FormatBool(*c.SamlSettings.Enable)
+			props["SamlLoginButtonText"] = *c.SamlSettings.LoginButtonText
+		}
+
+		if *License.Features.PasswordRequirements {
+			props["PasswordMinimumLength"] = fmt.Sprintf("%v", *c.PasswordSettings.MinimumLength)
+			props["PasswordRequireLowercase"] = strconv.FormatBool(*c.PasswordSettings.Lowercase)
+			props["PasswordRequireUppercase"] = strconv.FormatBool(*c.PasswordSettings.Uppercase)
+			props["PasswordRequireNumber"] = strconv.FormatBool(*c.PasswordSettings.Number)
+			props["PasswordRequireSymbol"] = strconv.FormatBool(*c.PasswordSettings.Symbol)
 		}
 	}
 

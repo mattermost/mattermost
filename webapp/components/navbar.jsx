@@ -13,12 +13,15 @@ import ChannelNotificationsModal from './channel_notifications_modal.jsx';
 import DeleteChannelModal from './delete_channel_modal.jsx';
 import RenameChannelModal from './rename_channel_modal.jsx';
 import ToggleModalButton from './toggle_modal_button.jsx';
+import StatusIcon from './status_icon.jsx';
 
 import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
-import Client from 'utils/web_client.jsx';
+import ChannelSwitchModal from './channel_switch_modal.jsx';
+
+import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
@@ -30,11 +33,9 @@ import {FormattedMessage} from 'react-intl';
 
 import {Popover, OverlayTrigger} from 'react-bootstrap';
 
-import {Link, browserHistory} from 'react-router';
+import {Link, browserHistory} from 'react-router/es6';
 
 import React from 'react';
-
-import * as GlobalActions from 'action_creators/global_actions.jsx';
 
 export default class Navbar extends React.Component {
     constructor(props) {
@@ -52,46 +53,51 @@ export default class Navbar extends React.Component {
         this.createCollapseButtons = this.createCollapseButtons.bind(this);
         this.createDropdown = this.createDropdown.bind(this);
 
-        this.navigateChannelShortcut = this.navigateChannelShortcut.bind(this);
-        this.navigateUnreadChannelShortcut = this.navigateUnreadChannelShortcut.bind(this);
-        this.getDisplayedChannels = this.getDisplayedChannels.bind(this);
-        this.compareByName = this.compareByName.bind(this);
-        this.compareByDmName = this.compareByDmName.bind(this);
+        this.showChannelSwitchModal = this.showChannelSwitchModal.bind(this);
+        this.hideChannelSwitchModal = this.hideChannelSwitchModal.bind(this);
 
         const state = this.getStateFromStores();
         state.showEditChannelPurposeModal = false;
         state.showEditChannelHeaderModal = false;
         state.showMembersModal = false;
         state.showRenameChannelModal = false;
+        state.showChannelSwitchModal = false;
         this.state = state;
     }
+
     getStateFromStores() {
         return {
             channel: ChannelStore.getCurrent(),
             member: ChannelStore.getCurrentMember(),
             users: ChannelStore.getCurrentExtraInfo().members,
+            userCount: ChannelStore.getCurrentExtraInfo().member_count,
             currentUser: UserStore.getCurrentUser()
         };
     }
+
     isStateValid() {
         return this.state.channel && this.state.member && this.state.users && this.state.currentUser;
     }
+
     componentDidMount() {
         ChannelStore.addChangeListener(this.onChange);
         ChannelStore.addExtraInfoChangeListener(this.onChange);
+        UserStore.addStatusesChangeListener(this.onChange);
         $('.inner-wrap').click(this.hideSidebars);
-        document.addEventListener('keydown', this.navigateChannelShortcut);
-        document.addEventListener('keydown', this.navigateUnreadChannelShortcut);
+        document.addEventListener('keydown', this.showChannelSwitchModal);
     }
+
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onChange);
         ChannelStore.removeExtraInfoChangeListener(this.onChange);
-        document.removeEventListener('keydown', this.navigateChannelShortcut);
-        document.removeEventListener('keydown', this.navigateUnreadChannelShortcut);
+        UserStore.removeStatusesChangeListener(this.onChange);
+        document.removeEventListener('keydown', this.showChannelSwitchModal);
     }
+
     handleSubmit(e) {
         e.preventDefault();
     }
+
     handleLeave() {
         Client.leaveChannel(this.state.channel.id,
             () => {
@@ -103,6 +109,7 @@ export default class Navbar extends React.Component {
             }
         );
     }
+
     hideSidebars(e) {
         var windowWidth = $(window).outerWidth();
         if (windowWidth <= 768) {
@@ -124,22 +131,27 @@ export default class Navbar extends React.Component {
             }
         }
     }
+
     toggleLeftSidebar() {
         $('.app__body .inner-wrap').toggleClass('move--right');
         $('.app__body .sidebar--left').toggleClass('move--right');
     }
+
     toggleRightSidebar() {
         $('.app__body .inner-wrap').toggleClass('move--left-small');
         $('.app__body .sidebar--menu').toggleClass('move--left');
     }
+
     showSearch() {
         AppDispatcher.handleServerAction({
             type: ActionTypes.SHOW_SEARCH
         });
     }
+
     onChange() {
         this.setState(this.getStateFromStores());
     }
+
     showEditChannelHeaderModal() {
         // this can't be done using a ToggleModalButton because we can't use one inside an OverlayTrigger
         if (this.refs.headerOverlay) {
@@ -150,6 +162,7 @@ export default class Navbar extends React.Component {
             showEditChannelHeaderModal: true
         });
     }
+
     showRenameChannelModal(e) {
         e.preventDefault();
 
@@ -157,219 +170,142 @@ export default class Navbar extends React.Component {
             showRenameChannelModal: true
         });
     }
+
     hideRenameChannelModal() {
         this.setState({
             showRenameChannelModal: false
         });
     }
-    navigateChannelShortcut(e) {
-        if (e.altKey && !e.shiftKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
-            e.preventDefault();
-            const allChannels = this.getDisplayedChannels();
-            const curChannel = ChannelStore.getCurrent();
-            const curIndex = allChannels.indexOf(curChannel);
-            let nextChannel = curChannel;
-            let nextIndex = curIndex;
-            if (e.keyCode === Constants.KeyCodes.DOWN) {
-                nextIndex = Math.min(curIndex + 1, allChannels.length - 1);
-            } else if (e.keyCode === Constants.KeyCodes.UP) {
-                nextIndex = Math.max(curIndex - 1, 0);
-            }
-            nextChannel = allChannels[nextIndex];
-            GlobalActions.emitChannelClickEvent(nextChannel);
-        }
-    }
-    navigateUnreadChannelShortcut(e) {
-        if (e.altKey && e.shiftKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
-            e.preventDefault();
-            const allChannels = this.getDisplayedChannels();
-            const curChannel = ChannelStore.getCurrent();
-            const curIndex = allChannels.indexOf(curChannel);
-            let nextChannel = curChannel;
-            let nextIndex = curIndex;
-            if (e.keyCode === Constants.KeyCodes.UP) {
-                while (nextIndex >= 0 && ChannelStore.getUnreadCount(allChannels[nextIndex].id).msgs === 0 && ChannelStore.getUnreadCount(allChannels[nextIndex].id).mentions === 0) {
-                    nextIndex--;
-                }
-            } else if (e.keyCode === Constants.KeyCodes.DOWN) {
-                while (nextIndex <= allChannels.length - 1 && ChannelStore.getUnreadCount(allChannels[nextIndex].id).msgs === 0 && ChannelStore.getUnreadCount(allChannels[nextIndex].id).mentions === 0) {
-                    nextIndex++;
-                }
-            }
-            if (nextIndex !== curIndex && ChannelStore.getUnreadCount(allChannels[nextIndex].id).msgs !== 0 || ChannelStore.getUnreadCount(allChannels[nextIndex].id).mentions !== 0) {
-                nextChannel = allChannels[nextIndex];
-                GlobalActions.emitChannelClickEvent(nextChannel);
-            }
-        }
-    }
-    getDisplayedChannels() {
-        const allChannels = ChannelStore.getAll();
-        const open = [];
-        const priv = [];
-        const dm = [];
 
-        for (let i = 0; i < allChannels.length; i++) {
-            if (allChannels[i].type === 'O') {
-                open.push(allChannels[i]);
-            } else if (allChannels[i].type === 'P') {
-                priv.push(allChannels[i]);
-            } else {
-                dm.push(allChannels[i]);
+    showChannelSwitchModal(e) {
+        if (Utils.cmdOrCtrlPressed(e) && e.keyCode === Constants.KeyCodes.K) {
+            e.preventDefault();
+            this.setState({showChannelSwitchModal: !this.state.showChannelSwitchModal});
+        }
+    }
+
+    hideChannelSwitchModal() {
+        this.setState({
+            showChannelSwitchModal: false
+        });
+    }
+
+    showManagementOptions(channel, isAdmin, isSystemAdmin) {
+        if (global.window.mm_license.IsLicensed !== 'true') {
+            return true;
+        }
+
+        if (channel.type === Constants.OPEN_CHANNEL) {
+            if (global.window.mm_config.RestrictPublicChannelManagement === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
+                return false;
+            }
+            if (global.window.mm_config.RestrictPublicChannelManagement === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
+                return false;
+            }
+        } else if (channel.type === Constants.PRIVATE_CHANNEL) {
+            if (global.window.mm_config.RestrictPrivateChannelManagement === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
+                return false;
+            }
+            if (global.window.mm_config.RestrictPrivateChannelManagement === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
+                return false;
             }
         }
-        open.sort(this.compareByName);
-        priv.sort(this.compareByName);
-        dm.sort(this.compareByDmName);
 
-        return open.concat(priv).concat(dm);
+        return true;
     }
-    compareByName(a, b) {
-        return a.name.toLowerCase() - b.name.toLowerCase();
-    }
-    compareByDmName(a, b) {
-        return UserStore.getProfile(a.name).username.toLowerCase() - UserStore.getProfile(b.name).username.toLowerCase();
-    }
-    createDropdown(channel, channelTitle, isAdmin, isDirect, popoverContent) {
+
+    createDropdown(channel, channelTitle, isAdmin, isSystemAdmin, isDirect, popoverContent) {
         if (channel) {
-            var viewInfoOption = (
-                <li role='presentation'>
-                    <ToggleModalButton
-                        role='menuitem'
-                        dialogType={ChannelInfoModal}
-                        dialogProps={{channel}}
-                    >
-                        <FormattedMessage
-                            id='navbar.viewInfo'
-                            defaultMessage='View Info'
-                        />
-                    </ToggleModalButton>
-                </li>
-            );
+            let channelTerm = (
+                <FormattedMessage
+                    id='channel_header.channel'
+                    defaultMessage='Channel'
+                />
+                );
+            if (channel.type === Constants.PRIVATE_CHANNEL) {
+                channelTerm = (
+                    <FormattedMessage
+                        id='channel_header.group'
+                        defaultMessage='Group'
+                    />
+                );
+            }
 
-            var setChannelHeaderOption = (
-                <li role='presentation'>
-                    <a
-                        role='menuitem'
-                        href='#'
-                        onClick={this.showEditChannelHeaderModal}
-                    >
-                        <FormattedMessage
-                            id='navbar.setHeader'
-                            defaultMessage='Set Channel Header...'
-                        />
-                    </a>
-                </li>
-            );
+            let viewInfoOption;
+            let addMembersOption;
+            let manageMembersOption;
+            let setChannelHeaderOption;
+            let setChannelPurposeOption;
+            let notificationPreferenceOption;
+            let renameChannelOption;
+            let deleteChannelOption;
+            let leaveChannelOption;
 
-            var setChannelPurposeOption = null;
-            if (!isDirect) {
-                setChannelPurposeOption = (
+            if (isDirect) {
+                setChannelHeaderOption = (
                     <li role='presentation'>
                         <a
                             role='menuitem'
                             href='#'
-                            onClick={() => this.setState({showEditChannelPurposeModal: true})}
+                            onClick={this.showEditChannelHeaderModal}
                         >
                             <FormattedMessage
-                                id='navbar.setPurpose'
-                                defaultMessage='Set Channel Purpose...'
+                                id='channel_header.channelHeader'
+                                defaultMessage='Set Channel Header...'
                             />
                         </a>
                     </li>
                 );
-            }
-
-            var addMembersOption;
-            var leaveChannelOption;
-            if (!isDirect && !ChannelStore.isDefault(channel)) {
-                addMembersOption = (
+            } else {
+                viewInfoOption = (
                     <li role='presentation'>
                         <ToggleModalButton
                             role='menuitem'
-                            dialogType={ChannelInviteModal}
-                            dialogProps={{channel, currentUser: this.state.currentUser}}
+                            dialogType={ChannelInfoModal}
+                            dialogProps={{channel}}
                         >
                             <FormattedMessage
-                                id='navbar.addMembers'
-                                defaultMessage='Add Members'
+                                id='navbar.viewInfo'
+                                defaultMessage='View Info'
                             />
                         </ToggleModalButton>
                     </li>
                 );
 
-                const canLeave = channel.type === Constants.PRIVATE_CHANNEL ? this.state.userCount > 1 : true;
-                if (canLeave) {
-                    leaveChannelOption = (
-                        <li role='presentation'>
-                            <a
-                                role='menuitem'
-                                href='#'
-                                onClick={this.handleLeave}
-                            >
-                                <FormattedMessage
-                                    id='navbar.leave'
-                                    defaultMessage='Leave Channel'
-                                />
-                            </a>
-                        </li>
-                    );
-                }
-            }
-
-            var manageMembersOption;
-            var renameChannelOption;
-            var deleteChannelOption;
-            if (!isDirect && isAdmin) {
                 if (!ChannelStore.isDefault(channel)) {
-                    manageMembersOption = (
-                        <li role='presentation'>
-                            <a
-                                role='menuitem'
-                                href='#'
-                                onClick={() => this.setState({showMembersModal: true})}
-                            >
-                                <FormattedMessage
-                                    id='navbar.manageMembers'
-                                    defaultMessage='Manage Members'
-                                />
-                            </a>
-                        </li>
-                    );
-
-                    deleteChannelOption = (
+                    addMembersOption = (
                         <li role='presentation'>
                             <ToggleModalButton
                                 role='menuitem'
-                                dialogType={DeleteChannelModal}
-                                dialogProps={{channel}}
+                                dialogType={ChannelInviteModal}
+                                dialogProps={{channel, currentUser: this.state.currentUser}}
                             >
                                 <FormattedMessage
-                                    id='navbar.delete'
-                                    defaultMessage='Delete Channel...'
+                                    id='navbar.addMembers'
+                                    defaultMessage='Add Members'
                                 />
                             </ToggleModalButton>
                         </li>
                     );
+
+                    if (isAdmin) {
+                        manageMembersOption = (
+                            <li role='presentation'>
+                                <a
+                                    role='menuitem'
+                                    href='#'
+                                    onClick={() => this.setState({showMembersModal: true})}
+                                >
+                                    <FormattedMessage
+                                        id='navbar.manageMembers'
+                                        defaultMessage='Manage Members'
+                                    />
+                                </a>
+                            </li>
+                        );
+                    }
                 }
 
-                renameChannelOption = (
-                    <li role='presentation'>
-                        <a
-                            role='menuitem'
-                            href='#'
-                            onClick={this.showRenameChannelModal}
-                        >
-                            <FormattedMessage
-                                id='navbar.rename'
-                                defaultMessage='Rename Channel...'
-                            />
-                        </a>
-                    </li>
-                );
-            }
-
-            var notificationPreferenceOption;
-            if (!isDirect) {
                 notificationPreferenceOption = (
                     <li role='presentation'>
                         <ToggleModalButton
@@ -388,6 +324,105 @@ export default class Navbar extends React.Component {
                         </ToggleModalButton>
                     </li>
                 );
+
+                if (this.showManagementOptions(channel, isAdmin, isSystemAdmin)) {
+                    setChannelHeaderOption = (
+                        <li role='presentation'>
+                            <a
+                                role='menuitem'
+                                href='#'
+                                onClick={this.showEditChannelHeaderModal}
+                            >
+                                <FormattedMessage
+                                    id='channel_header.setHeader'
+                                    defaultMessage='Set {term} Header...'
+                                    values={{
+                                        term: (channelTerm)
+                                    }}
+                                />
+                            </a>
+                        </li>
+                    );
+
+                    setChannelPurposeOption = (
+                        <li role='presentation'>
+                            <a
+                                role='menuitem'
+                                href='#'
+                                onClick={() => this.setState({showEditChannelPurposeModal: true})}
+                            >
+                                <FormattedMessage
+                                    id='channel_header.setPurpose'
+                                    defaultMessage='Set {term} Purpose...'
+                                    values={{
+                                        term: (channelTerm)
+                                    }}
+                                />
+                            </a>
+                        </li>
+                    );
+
+                    renameChannelOption = (
+                        <li role='presentation'>
+                            <a
+                                role='menuitem'
+                                href='#'
+                                onClick={this.showRenameChannelModal}
+                            >
+                                <FormattedMessage
+                                    id='channel_header.rename'
+                                    defaultMessage='Rename {term}...'
+                                    values={{
+                                        term: (channelTerm)
+                                    }}
+                                />
+                            </a>
+                        </li>
+                    );
+                }
+
+                if (this.showManagementOptions(channel, isAdmin, isSystemAdmin) || this.state.userCount === 1) {
+                    if (!ChannelStore.isDefault(channel)) {
+                        deleteChannelOption = (
+                            <li role='presentation'>
+                                <ToggleModalButton
+                                    role='menuitem'
+                                    dialogType={DeleteChannelModal}
+                                    dialogProps={{channel}}
+                                >
+                                    <FormattedMessage
+                                        id='channel_header.delete'
+                                        defaultMessage='Delete {term}...'
+                                        values={{
+                                            term: (channelTerm)
+                                        }}
+                                    />
+                                </ToggleModalButton>
+                            </li>
+                        );
+                    }
+                }
+
+                const canLeave = channel.type === Constants.PRIVATE_CHANNEL ? this.state.userCount > 1 : true;
+                if (!ChannelStore.isDefault(channel) && canLeave) {
+                    leaveChannelOption = (
+                        <li role='presentation'>
+                            <a
+                                role='menuitem'
+                                href='#'
+                                onClick={this.handleLeave}
+                            >
+                                <FormattedMessage
+                                    id='channel_header.leave'
+                                    defaultMessage='Leave {term}'
+                                    values={{
+                                        term: (channelTerm)
+                                    }}
+                                />
+                            </a>
+                        </li>
+                    );
+                }
             }
 
             return (
@@ -410,8 +445,8 @@ export default class Navbar extends React.Component {
                             data-toggle='dropdown'
                             aria-expanded='true'
                         >
-                            <span className='heading'>{channelTitle} </span>
-                            <span className='glyphicon glyphicon-chevron-down header-dropdown__icon'></span>
+                            <span className='heading'><StatusIcon status={this.getTeammateStatus()}/>{channelTitle} </span>
+                            <span className='fa fa-chevron-down header-dropdown__icon'></span>
                         </a>
                         <ul
                             className='dropdown-menu'
@@ -443,6 +478,7 @@ export default class Navbar extends React.Component {
             </div>
         );
     }
+
     createCollapseButtons(currentId) {
         var buttons = [];
         if (currentId == null) {
@@ -504,6 +540,21 @@ export default class Navbar extends React.Component {
 
         return buttons;
     }
+
+    getTeammateStatus() {
+        const channel = this.state.channel;
+
+        // get status for direct message channels
+        if (channel.type === 'D') {
+            const currentUserId = this.state.currentUser.id;
+            const teammate = this.state.users.find((user) => user.id !== currentUserId);
+            if (teammate) {
+                return UserStore.getStatus(teammate.id);
+            }
+        }
+        return null;
+    }
+
     render() {
         if (!this.isStateValid()) {
             return null;
@@ -514,12 +565,14 @@ export default class Navbar extends React.Component {
         var channelTitle = this.props.teamDisplayName;
         var popoverContent;
         var isAdmin = false;
+        var isSystemAdmin = false;
         var isDirect = false;
 
         var editChannelHeaderModal = null;
         var editChannelPurposeModal = null;
         let renameChannelModal = null;
         let channelMembersModal = null;
+        let channelSwitchModal = null;
 
         if (channel) {
             popoverContent = (
@@ -535,7 +588,8 @@ export default class Navbar extends React.Component {
                 </Popover>
             );
 
-            isAdmin = Utils.isAdmin(this.state.member.roles) || TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
+            isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
+            isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
 
             if (channel.type === 'O') {
                 channelTitle = channel.display_name;
@@ -580,7 +634,7 @@ export default class Navbar extends React.Component {
                                 defaultMessage='No channel header yet.{newline}{link} to add one.'
                                 values={{
                                     newline: (<br/>),
-                                    link: (link)
+                                    link
                                 }}
                             />
                         </div>
@@ -619,6 +673,13 @@ export default class Navbar extends React.Component {
                     channel={channel}
                 />
             );
+
+            channelSwitchModal = (
+                <ChannelSwitchModal
+                    show={this.state.showChannelSwitchModal}
+                    onHide={this.hideChannelSwitchModal}
+                />
+            );
         }
 
         var collapseButtons = this.createCollapseButtons(currentId);
@@ -629,11 +690,11 @@ export default class Navbar extends React.Component {
                 className='navbar-toggle pull-right'
                 onClick={this.showSearch}
             >
-                <span className='glyphicon glyphicon-search icon--white'/>
+                <span className='fa fa-search icon-search icon--white'/>
             </button>
         );
 
-        var channelMenuDropdown = this.createDropdown(channel, channelTitle, isAdmin, isDirect, popoverContent);
+        var channelMenuDropdown = this.createDropdown(channel, channelTitle, isAdmin, isSystemAdmin, isDirect, popoverContent);
 
         return (
             <div>
@@ -653,6 +714,7 @@ export default class Navbar extends React.Component {
                 {editChannelPurposeModal}
                 {renameChannelModal}
                 {channelMembersModal}
+                {channelSwitchModal}
             </div>
         );
     }

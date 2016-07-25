@@ -1,34 +1,40 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import React from 'react';
+
 import SuggestionStore from 'stores/suggestion_store.jsx';
+import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import * as Utils from 'utils/utils.jsx';
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 
 import {FormattedMessage} from 'react-intl';
+import Suggestion from './suggestion.jsx';
 
 const MaxUserSuggestions = 40;
 
-import React from 'react';
-
-class AtMentionSuggestion extends React.Component {
+class AtMentionSuggestion extends Suggestion {
     render() {
-        const {item, isSelection, onClick} = this.props;
+        const isSelection = this.props.isSelection;
+        const user = this.props.item;
 
         let username;
         let description;
         let icon;
-        if (item.username === 'all') {
+        if (user.username === 'all') {
             username = 'all';
             description = (
                 <FormattedMessage
                     id='suggestion.mention.all'
-                    defaultMessage='Notifies everyone in the team'
+                    defaultMessage='Notifies everyone in the channel, use in {townsquare} to notify the whole team'
+                    values={{
+                        townsquare: ChannelStore.getByName('town-square').display_name
+                    }}
                 />
             );
             icon = <i className='mention__image fa fa-users fa-2x'/>;
-        } else if (item.username === 'channel') {
+        } else if (user.username === 'channel') {
             username = 'channel';
             description = (
                 <FormattedMessage
@@ -37,13 +43,30 @@ class AtMentionSuggestion extends React.Component {
                 />
             );
             icon = <i className='mention__image fa fa-users fa-2x'/>;
+        } else if (user.username === 'here') {
+            username = 'here';
+            description = (
+                <FormattedMessage
+                    id='suggestion.mention.here'
+                    defaultMessage='Notifies everyone in the channel and online'
+                />
+            );
+            icon = <i className='mention__image fa fa-users fa-2x'/>;
         } else {
-            username = item.username;
-            description = Utils.getFullName(item);
+            username = user.username;
+
+            if ((user.first_name || user.last_name) && user.nickname) {
+                description = `- ${Utils.getFullName(user)} (${user.nickname})`;
+            } else if (user.nickname) {
+                description = `- (${user.nickname})`;
+            } else if (user.first_name || user.last_name) {
+                description = `- ${Utils.getFullName(user)}`;
+            }
+
             icon = (
                 <img
                     className='mention__image'
-                    src={Client.getUsersRoute() + '/' + item.id + '/image?time=' + item.update_at}
+                    src={Client.getUsersRoute() + '/' + user.id + '/image?time=' + user.update_at}
                 />
             );
         }
@@ -56,7 +79,7 @@ class AtMentionSuggestion extends React.Component {
         return (
             <div
                 className={className}
-                onClick={onClick}
+                onClick={this.handleClick}
             >
                 <div className='pull-left'>
                     {icon}
@@ -66,6 +89,7 @@ class AtMentionSuggestion extends React.Component {
                         {'@' + username}
                     </span>
                     <span className='mention__fullname'>
+                        {' '}
                         {description}
                     </span>
                 </div>
@@ -74,25 +98,27 @@ class AtMentionSuggestion extends React.Component {
     }
 }
 
-AtMentionSuggestion.propTypes = {
-    item: React.PropTypes.object.isRequired,
-    isSelection: React.PropTypes.bool,
-    onClick: React.PropTypes.func
-};
-
 export default class AtMentionProvider {
     handlePretextChanged(suggestionId, pretext) {
-        const captured = (/@([a-z0-9\-\._]*)$/i).exec(pretext);
+        const captured = (/@([a-z0-9\-\._]*)$/i).exec(pretext.toLowerCase());
         if (captured) {
-            const usernamePrefix = captured[1];
+            const prefix = captured[1];
 
             const users = UserStore.getActiveOnlyProfiles(true);
-            let filtered = [];
+
+            const filtered = [];
 
             for (const id of Object.keys(users)) {
                 const user = users[id];
 
-                if (user.username.startsWith(usernamePrefix) && user.delete_at <= 0) {
+                if (user.delete_at > 0) {
+                    continue;
+                }
+
+                if (user.username.startsWith(prefix) ||
+                    (user.first_name && user.first_name.toLowerCase().startsWith(prefix)) ||
+                    (user.last_name && user.last_name.toLowerCase().startsWith(prefix)) ||
+                    (user.nickname && user.nickname.toLowerCase().startsWith(prefix))) {
                     filtered.push(user);
                 }
 
@@ -102,18 +128,34 @@ export default class AtMentionProvider {
             }
 
             if (!pretext.startsWith('/msg')) {
-                // add dummy users to represent the @channel special mention when not using the /msg command
-                if ('channel'.startsWith(usernamePrefix)) {
+                // add dummy users to represent the @channel and @all special mentions when not using the /msg command
+                if ('channel'.startsWith(prefix)) {
                     filtered.push({username: 'channel'});
+                }
+                if ('all'.startsWith(prefix)) {
+                    filtered.push({username: 'all'});
+                }
+                if ('here'.startsWith(prefix)) {
+                    filtered.push({username: 'here'});
                 }
             }
 
-            filtered = filtered.sort((a, b) => a.username.localeCompare(b.username));
+            filtered.sort((a, b) => {
+                const aPrefix = a.username.startsWith(prefix);
+                const bPrefix = b.username.startsWith(prefix);
+
+                if (aPrefix === bPrefix) {
+                    return a.username.localeCompare(b.username);
+                } else if (aPrefix) {
+                    return -1;
+                }
+
+                return 1;
+            });
 
             const mentions = filtered.map((user) => '@' + user.username);
 
-            SuggestionStore.setMatchedPretext(suggestionId, captured[0]);
-            SuggestionStore.addSuggestions(suggestionId, mentions, filtered, AtMentionSuggestion);
+            SuggestionStore.addSuggestions(suggestionId, mentions, filtered, AtMentionSuggestion, captured[0]);
         }
     }
 }

@@ -29,6 +29,29 @@
         }
     }
 
+    .row--invite {
+        .col-sm-6 {
+            &:first-child {
+                padding-right: 0;
+            }
+        }
+    }
+
+    .modal__hint {
+        @include opacity(.8);
+        display: block;
+        font-size: .9em;
+        margin: 0 0 10px;
+    }
+
+    .modal__error {
+        color: $red;
+        float: left;
+        font-size: .95em;
+        font-weight: normal;
+        margin-top: 6px;
+    }
+
     .more-table {
         margin: 0;
         table-layout: fixed;
@@ -66,9 +89,15 @@
         }
 
         .info__label {
+            @include opacity(.5);
+            font-size: .9em;
             font-weight: 600;
-            padding-right: 0;
-            text-align: right;
+            margin-bottom: 3px;
+        }
+
+        .info__value {
+            padding-left: 10px;
+            word-break: break-word;
         }
 
         .team-member-list {
@@ -111,7 +140,7 @@
             border: 1px solid $light-gray;
             color: $white;
             min-height: 56px;
-            padding: 15px 15px 11px;
+            padding: 14px 15px 11px;
 
             .modal-title {
                 color: $bg--gray;
@@ -179,8 +208,8 @@
         }
 
         .modal-content {
-            border-radius: 0;
-            box-shadow: none;
+            @include box-shadow(0 0 10px rgba($black, .5));
+            border-radius: $border-rad;
         }
 
         .modal-chevron-icon {
@@ -355,7 +384,7 @@
 
             .loader-percent {
                 bottom: 0;
-                color: $dark-gray;
+                color: alpha-color($white, 0.8);
                 height: 20px;
                 left: 0;
                 margin: auto;
@@ -398,24 +427,6 @@
                 .public-link {
                     margin-right: 5px;
                 }
-            }
-        }
-    }
-
-
-    .invite {
-        margin-right: 40px;
-    }
-
-    .row--invite {
-        @include clearfix;
-        margin-right: 40px;
-
-        .col-sm-6 {
-            padding: 0 0 0 15px;
-
-            &:first-child {
-                padding-left: 0;
             }
         }
     }

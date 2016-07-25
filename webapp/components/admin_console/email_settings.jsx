@@ -20,24 +20,13 @@ export default class EmailSettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        this.state = Object.assign(this.state, {
-            sendEmailNotifications: props.config.EmailSettings.SendEmailNotifications,
-            feedbackName: props.config.EmailSettings.FeedbackName,
-            feedbackEmail: props.config.EmailSettings.FeedbackEmail,
-            smtpUsername: props.config.EmailSettings.SMTPUsername,
-            smtpPassword: props.config.EmailSettings.SMTPPassword,
-            smtpServer: props.config.EmailSettings.SMTPServer,
-            smtpPort: props.config.EmailSettings.SMTPPort,
-            connectionSecurity: props.config.EmailSettings.ConnectionSecurity,
-            enableSecurityFixAlert: props.config.ServiceSettings.EnableSecurityFixAlert
-        });
     }
 
     getConfigFromState(config) {
         config.EmailSettings.SendEmailNotifications = this.state.sendEmailNotifications;
         config.EmailSettings.FeedbackName = this.state.feedbackName;
         config.EmailSettings.FeedbackEmail = this.state.feedbackEmail;
+        config.EmailSettings.FeedbackOrganization = this.state.feedbackOrganization;
         config.EmailSettings.SMTPUsername = this.state.smtpUsername;
         config.EmailSettings.SMTPPassword = this.state.smtpPassword;
         config.EmailSettings.SMTPServer = this.state.smtpServer;
@@ -48,12 +37,27 @@ export default class EmailSettings extends AdminSettings {
         return config;
     }
 
+    getStateFromConfig(config) {
+        return {
+            sendEmailNotifications: config.EmailSettings.SendEmailNotifications,
+            feedbackName: config.EmailSettings.FeedbackName,
+            feedbackEmail: config.EmailSettings.FeedbackEmail,
+            feedbackOrganization: config.EmailSettings.FeedbackOrganization,
+            smtpUsername: config.EmailSettings.SMTPUsername,
+            smtpPassword: config.EmailSettings.SMTPPassword,
+            smtpServer: config.EmailSettings.SMTPServer,
+            smtpPort: config.EmailSettings.SMTPPort,
+            connectionSecurity: config.EmailSettings.ConnectionSecurity,
+            enableSecurityFixAlert: config.ServiceSettings.EnableSecurityFixAlert
+        };
+    }
+
     renderTitle() {
         return (
             <h3>
                 <FormattedMessage
-                    id='admin.notifications.title'
-                    defaultMessage='Notification Settings'
+                    id='admin.notifications.email'
+                    defaultMessage='Email'
                 />
             </h3>
         );
@@ -61,20 +65,13 @@ export default class EmailSettings extends AdminSettings {
 
     renderSettings() {
         return (
-            <SettingsGroup
-                header={
-                    <FormattedMessage
-                        id='admin.notifications.email'
-                        defaultMessage='Email'
-                    />
-                }
-            >
+            <SettingsGroup>
                 <BooleanSetting
                     id='sendEmailNotifications'
                     label={
                         <FormattedMessage
                             id='admin.email.notificationsTitle'
-                            defaultMessage='Send Email Notifications: '
+                            defaultMessage='Enable Email Notifications: '
                         />
                     }
                     helpText={
@@ -110,7 +107,7 @@ export default class EmailSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.email.notificationEmailTitle'
-                            defaultMessage='Notification Email Address:'
+                            defaultMessage='Notification From Address:'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.email.notificationEmailExample', 'Ex: "mattermost@yourcompany.com", "admin@yourcompany.com"')}
@@ -125,11 +122,30 @@ export default class EmailSettings extends AdminSettings {
                     disabled={!this.state.sendEmailNotifications}
                 />
                 <TextSetting
+                    id='feedbackOrganization'
+                    label={
+                        <FormattedMessage
+                            id='admin.email.notificationOrganization'
+                            defaultMessage='Notification Footer Mailing Address:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.email.notificationOrganizationExample', 'Ex: "© ABC Corporation, 565 Knight Way, Palo Alto, California, 94305, USA"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.email.notificationOrganizationDescription'
+                            defaultMessage='Organization name and address displayed on email notifications from Mattermost, such as "© ABC Corporation, 565 Knight Way, Palo Alto, California, 94305, USA". If the field is left empty, the organization name and address will not be displayed.'
+                        />
+                    }
+                    value={this.state.feedbackOrganization}
+                    onChange={this.handleChange}
+                    disabled={!this.state.sendEmailNotifications}
+                />
+                <TextSetting
                     id='smtpUsername'
                     label={
                         <FormattedMessage
                             id='admin.email.smtpUsernameTitle'
-                            defaultMessage='SMTP Username:'
+                            defaultMessage='SMTP Server Username:'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.email.smtpUsernameExample', 'Ex: "admin@yourcompany.com", "AKIADTOVBGERKLCBV"')}
@@ -148,7 +164,7 @@ export default class EmailSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.email.smtpPasswordTitle'
-                            defaultMessage='SMTP Password:'
+                            defaultMessage='SMTP Server Password:'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.email.smtpPasswordExample', 'Ex: "yourpassword", "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"')}
@@ -186,7 +202,7 @@ export default class EmailSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.email.smtpPortTitle'
-                            defaultMessage='SMTP Port:'
+                            defaultMessage='SMTP Server Port:'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.email.smtpPortExample', 'Ex: "25", "465"')}

@@ -9,14 +9,28 @@ import (
 	"github.com/mattermost/platform/utils"
 
 	"net/http"
+	"strings"
 )
 
 func checkPasswordAndAllCriteria(user *model.User, password string, mfaToken string) *model.AppError {
+	if err := checkUserAdditionalAuthenticationCriteria(user, mfaToken); err != nil {
+		return err
+	}
+
 	if err := checkUserPassword(user, password); err != nil {
 		return err
 	}
 
-	if err := checkUserAdditionalAuthenticationCriteria(user, mfaToken); err != nil {
+	return nil
+}
+
+// This to be used for places we check the users password when they are already logged in
+func doubleCheckPassword(user *model.User, password string) *model.AppError {
+	if err := checkUserLoginAttempts(user); err != nil {
+		return err
+	}
+
+	if err := checkUserPassword(user, password); err != nil {
 		return err
 	}
 
@@ -56,9 +70,12 @@ func checkLdapUserPasswordAndAllCriteria(ldapId *string, password string, mfaTok
 		user = ldapUser
 	}
 
-	if err := checkUserAdditionalAuthenticationCriteria(user, mfaToken); err != nil {
-		err.StatusCode = http.StatusUnauthorized
-		return user, err
+	if err := checkUserMfa(user, mfaToken); err != nil {
+		return nil, err
+	}
+
+	if err := checkUserNotDisabled(user); err != nil {
+		return nil, err
 	}
 
 	// user successfully authenticated
@@ -142,7 +159,11 @@ func authenticateUser(user *model.User, password, mfaToken string) (*model.User,
 			return ldapUser, nil
 		}
 	} else if user.AuthService != "" {
-		err := model.NewLocAppError("login", "api.user.login.use_auth_service.app_error", map[string]interface{}{"AuthService": user.AuthService}, "")
+		authService := user.AuthService
+		if authService == model.USER_AUTH_SERVICE_SAML || authService == model.USER_AUTH_SERVICE_LDAP {
+			authService = strings.ToUpper(authService)
+		}
+		err := model.NewLocAppError("login", "api.user.login.use_auth_service.app_error", map[string]interface{}{"AuthService": authService}, "")
 		err.StatusCode = http.StatusBadRequest
 		return user, err
 	} else {

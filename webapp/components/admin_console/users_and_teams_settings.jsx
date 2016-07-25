@@ -4,6 +4,7 @@
 import React from 'react';
 
 import * as Utils from 'utils/utils.jsx';
+import Constants from 'utils/constants.jsx';
 
 import AdminSettings from './admin_settings.jsx';
 import BooleanSetting from './boolean_setting.jsx';
@@ -22,21 +23,12 @@ export default class UsersAndTeamsSettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
-
-        this.state = Object.assign(this.state, {
-            enableUserCreation: props.config.TeamSettings.EnableUserCreation,
-            enableTeamCreation: props.config.TeamSettings.EnableTeamCreation,
-            maxUsersPerTeam: props.config.TeamSettings.MaxUsersPerTeam,
-            restrictCreationToDomains: props.config.TeamSettings.RestrictCreationToDomains,
-            restrictTeamNames: props.config.TeamSettings.RestrictTeamNames,
-            restrictDirectMessage: props.config.TeamSettings.RestrictDirectMessage
-        });
     }
 
     getConfigFromState(config) {
         config.TeamSettings.EnableUserCreation = this.state.enableUserCreation;
         config.TeamSettings.EnableTeamCreation = this.state.enableTeamCreation;
-        config.TeamSettings.MaxUsersPerTeam = this.parseIntNonZero(this.state.maxUsersPerTeam);
+        config.TeamSettings.MaxUsersPerTeam = this.parseIntNonZero(this.state.maxUsersPerTeam, Constants.DEFAULT_MAX_USERS_PER_TEAM);
         config.TeamSettings.RestrictCreationToDomains = this.state.restrictCreationToDomains;
         config.TeamSettings.RestrictTeamNames = this.state.restrictTeamNames;
         config.TeamSettings.RestrictDirectMessage = this.state.restrictDirectMessage;
@@ -44,12 +36,23 @@ export default class UsersAndTeamsSettings extends AdminSettings {
         return config;
     }
 
+    getStateFromConfig(config) {
+        return {
+            enableUserCreation: config.TeamSettings.EnableUserCreation,
+            enableTeamCreation: config.TeamSettings.EnableTeamCreation,
+            maxUsersPerTeam: config.TeamSettings.MaxUsersPerTeam,
+            restrictCreationToDomains: config.TeamSettings.RestrictCreationToDomains,
+            restrictTeamNames: config.TeamSettings.RestrictTeamNames,
+            restrictDirectMessage: config.TeamSettings.RestrictDirectMessage
+        };
+    }
+
     renderTitle() {
         return (
             <h3>
                 <FormattedMessage
-                    id='admin.general.title'
-                    defaultMessage='General Settings'
+                    id='admin.general.usersAndTeams'
+                    defaultMessage='Users and Teams'
                 />
             </h3>
         );
@@ -57,20 +60,13 @@ export default class UsersAndTeamsSettings extends AdminSettings {
 
     renderSettings() {
         return (
-            <SettingsGroup
-                header={
-                    <FormattedMessage
-                        id='admin.general.usersAndTeams'
-                        defaultMessage='Users and Teams'
-                    />
-                }
-            >
+            <SettingsGroup>
                 <BooleanSetting
                     id='enableUserCreation'
                     label={
                         <FormattedMessage
                             id='admin.team.userCreationTitle'
-                            defaultMessage='Enable User Creation: '
+                            defaultMessage='Enable Account Creation: '
                         />
                     }
                     helpText={
@@ -93,7 +89,7 @@ export default class UsersAndTeamsSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.team.teamCreationDescription'
-                            defaultMessage='When false, the ability to create teams is disabled. The create team button displays error when pressed.'
+                            defaultMessage='When false, only System Administrators can create teams.'
                         />
                     }
                     value={this.state.enableTeamCreation}
@@ -122,7 +118,7 @@ export default class UsersAndTeamsSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.team.restrictTitle'
-                            defaultMessage='Restrict Creation To Domains:'
+                            defaultMessage='Restrict account creation to specified email domains:'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.team.restrictExample', 'Ex "corp.mattermost.com, mattermost.org"')}

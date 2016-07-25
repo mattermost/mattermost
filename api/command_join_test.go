@@ -41,18 +41,7 @@ func TestJoinCommands(t *testing.T) {
 
 	c1 := Client.Must(Client.GetChannels("")).Data.(*model.ChannelList)
 
-	if len(c1.Channels) != 6 { // 4 because of town-square, off-topic and direct
-		t.Fatal("didn't join channel")
-	}
-
-	found := false
-	for _, c := range c1.Channels {
-		if c.Name == channel2.Name {
-			found = true
-			break
-		}
-	}
-	if !found {
+	if len(c1.Channels) != 5 {
 		t.Fatal("didn't join channel")
 	}
 }

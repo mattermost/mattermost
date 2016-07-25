@@ -1,6 +1,14 @@
 @charset 'UTF-8';
 
 @media screen and (max-width: 768px) {
+    #post-list {
+        .post-list-holder-by-time {
+            .modal-open & {
+                @include clearfix;
+            }
+        }
+    }
+
     .post-code__language {
         @include opacity(.6);
         @include transition(none);
@@ -11,7 +19,6 @@
         display: block;
 
         .backstage-filter__search {
-            border-bottom: 1px solid $light-gray;
             margin: 10px 0;
             width: 100%;
         }
@@ -24,6 +31,10 @@
                 padding-left: 15px;
             }
         }
+    }
+
+    .member-select__container {
+        margin-top: 10px;
     }
 
     .user-popover {
@@ -47,15 +58,10 @@
     }
 
     .channel-intro {
-        margin: 0 15px 35px;
+        margin: 0 0 35px;
     }
 
     .post {
-        &.post--compact {
-
-
-        }
-
         .post__dropdown {
             display: inline-block;
             height: 20px;
@@ -79,8 +85,9 @@
             margin-bottom: 0;
 
             .col__reply {
-                top: 0;
+                top: -3px;
                 width: 65px;
+                z-index: auto;
             }
 
             .col__name {
@@ -129,11 +136,18 @@
             }
         }
 
+        &.post--comment {
+            .post__body {
+                margin-top: 5px;
+                padding: 2px 0 0 7px;
+            }
+        }
+
         &.other--root {
             &.post--comment {
                 .post__header {
                     .col__reply {
-                        top: 0;
+                        top: -3px;
                     }
                 }
             }
@@ -145,12 +159,14 @@
             }
         }
 
+        &.current--user {
+            .post__link {
+                margin: 0 0 8px;
+            }
+        }
+
         &.same--root {
             &.same--user {
-                .post__time {
-                    display: none;
-                }
-
                 .post__header {
                     height: auto;
                     margin-top: 5px;
@@ -286,7 +302,7 @@
     .signup-team__container {
         font-size: .9em;
         margin-bottom: 30px;
-        padding: 30px 0;
+        padding: 60px 10px 0;
 
         .signup-team__name {
             font-size: 2em;
@@ -304,13 +320,15 @@
         }
     }
 
-    .row--invite {
-        .col-sm-6 {
-            padding: 0;
-        }
-    }
-
     .app__body {
+        .row--invite {
+            .col-sm-6 {
+                &:first-child {
+                    padding-right: 15px;
+                }
+            }
+        }
+
         .modal {
             .info__label {
                 padding-bottom: 5px;
@@ -344,9 +362,10 @@
                     margin-top: 10px;
                 }
 
-                button.close {
+                .close {
                     font-size: 27px;
                     font-weight: normal;
+                    margin-top: -2px;
                 }
 
                 .modal-title {
@@ -442,8 +461,8 @@
                         }
 
                         &.minimize-settings {
-                            padding: 0;
                             display: none;
+                            padding: 0;
 
                             .user-settings {
                                 padding: 70px 20px 30px;
@@ -458,13 +477,12 @@
                     .nav {
                         > li {
                             > a {
-                                border-top: 1px solid #dddddd;
+                                border-top: 1px solid transparent;
                                 font-size: 1.1em;
                                 line-height: 2.7;
-                                color: #555555;
 
-                                .glyphicon {
-                                    margin-left: 7px;
+                                .icon {
+                                    margin: 0 7px;
                                 }
                             }
                         }
@@ -475,14 +493,6 @@
     }
 
     .post-create__container {
-        .post-right__container & {
-            padding: 0 1em;
-
-            .msg-typing {
-                display: none;
-            }
-        }
-
         form {
             padding: .5em 0;
         }
@@ -506,6 +516,7 @@
             .post-body__cell {
                 display: table-cell;
                 padding-left: 45px;
+
                 .sidebar--right & {
                     padding-left: 0;
                 }
@@ -513,12 +524,12 @@
 
             .app__content & {
                 .btn-file {
-                    width: 45px;
-                    padding: 0;
-                    line-height: 36px;
                     bottom: -2px;
                     left: 0;
+                    line-height: 36px;
+                    padding: 0;
                     top: auto;
+                    width: 45px;
                 }
             }
 
@@ -558,6 +569,24 @@
         }
     }
 
+    // Since system console is not responsive we're overriding bootstrap styles for it
+    .admin-sidebar {
+        .navbar-nav {
+            margin-top: 0;
+
+            > li {
+                float: left;
+            }
+
+            .dropdown-menu {
+                background: $white;
+                left: auto;
+                position: absolute;
+                right: 0;
+            }
+        }
+    }
+
     #navbar {
         .navbar-default {
             .navbar-header {
@@ -578,6 +607,17 @@
 
             .navbar-brand {
                 white-space: nowrap;
+            }
+
+            .status {
+                margin: 0 5px 0 3px;
+                top: 2px;
+                width: 16px;
+
+                svg {
+                    max-height: 20px;
+                    width: 16px;
+                }
             }
         }
     }
@@ -645,7 +685,8 @@
             padding: 7px 20px 0 49px;
             position: relative;
 
-            .glyphicon-refresh-animate {
+            .icon--refresh {
+                @include opacity(.6);
                 color: $black;
                 right: 33px;
                 top: 15px;
@@ -771,7 +812,25 @@
         @include translate3d(100%, 0, 0);
         right: 0;
         width: 100%;
-        z-index: 5;
+
+        .post-create__container {
+            form {
+                padding: .5em 1em;
+            }
+
+            .msg-typing:empty {
+                display: none;
+            }
+
+            .post-create-footer {
+                padding: 1em 0;
+
+                .control-label {
+                    margin: .5em 0;
+                    top: 0;
+                }
+            }
+        }
 
         .sidebar__collapse,
         .sidebar__search-icon {
@@ -842,8 +901,8 @@
     }
 
     .app__content {
-        padding-top: 45px;
         margin: 0;
+        padding-top: 45px;
 
         .channel__wrap & {
             padding-top: 45px;
@@ -1021,9 +1080,8 @@
 
 @media screen and (max-height: 640px) {
     .signup-team__container {
-        padding: 30px 0;
-        margin-bottom: 30px;
         font-size: .9em;
+        margin-bottom: 30px;
 
         .signup-team__name {
             font-size: 2em;
@@ -1037,4 +1095,10 @@
             min-height: 440px;
         }
     }
+}
+
+// on iOS, allow clicks within an input's label to actually propagate through to the input itself
+// http://stackoverflow.com/a/34810294/6325807
+label span {
+    pointer-events: none;
 }

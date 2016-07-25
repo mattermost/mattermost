@@ -7,7 +7,7 @@ import * as Utils from '../../utils/utils.jsx';
 import AdminStore from '../../stores/admin_store.jsx';
 import UserStore from '../../stores/user_store.jsx';
 
-import Client from 'utils/web_client.jsx';
+import Client from 'client/web_client.jsx';
 import * as AsyncClient from '../../utils/async_client.jsx';
 
 import {FormattedMessage, FormattedDate, FormattedTime} from 'react-intl';
@@ -25,6 +25,7 @@ export default class ComplianceReports extends React.Component {
         this.getDateTime = this.getDateTime.bind(this);
 
         this.state = {
+            enabled: AdminStore.getConfig().ComplianceSettings.Enable,
             reports: AdminStore.getComplianceReports(),
             serverError: null
         };
@@ -33,7 +34,7 @@ export default class ComplianceReports extends React.Component {
     componentDidMount() {
         AdminStore.addComplianceReportsChangeListener(this.onComplianceReportsListenerChange);
 
-        if (global.window.mm_license.IsLicensed !== 'true' || global.window.mm_config.EnableCompliance !== 'true') {
+        if (global.window.mm_license.IsLicensed !== 'true' || !this.state.enabled) {
             return;
         }
 
@@ -112,7 +113,7 @@ export default class ComplianceReports extends React.Component {
     render() {
         var content = null;
 
-        if (global.window.mm_license.IsLicensed !== 'true' || global.window.mm_config.EnableCompliance !== 'true') {
+        if (global.window.mm_license.IsLicensed !== 'true' || !this.state.enabled) {
             return <div/>;
         }
 
