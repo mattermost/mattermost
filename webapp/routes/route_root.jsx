@@ -105,6 +105,18 @@ export default {
                                 ]
                             )
                         },
+                        {
+                            path: 'get_ios_app',
+                            getComponents: (location, callback) => {
+                                System.import('components/get_ios_app/get_ios_app.jsx').then(RouteUtils.importComponentSuccess(callback));
+                            }
+                        },
+                        {
+                            path: 'get_android_app',
+                            getComponents: (location, callback) => {
+                                System.import('components/get_android_app/get_android_app.jsx').then(RouteUtils.importComponentSuccess(callback));
+                            }
+                        },
                         teamRoute
                     ]
                 )

@@ -57,6 +57,18 @@ export function isIosChrome() {
     return userAgent.indexOf('CriOS') !== -1;
 }
 
+export function isIosWeb() {
+    return isIosSafari() || isIosChrome();
+}
+
+export function isAndroidChrome() {
+    return userAgent.indexOf('Android') !== -1 && userAgent.indexOf('Chrome') !== -1 && !userAgent.indexOf('Version') === -1;
+}
+
+export function isAndroidWeb() {
+    return isAndroidChrome();
+}
+
 export function isMobileApp() {
     return userAgent.indexOf('iPhone') !== -1 && userAgent.indexOf('Safari') === -1 && userAgent.indexOf('CriOS') === -1;
 }

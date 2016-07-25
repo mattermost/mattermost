@@ -12,6 +12,7 @@ import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
 
+import * as UserAgent from 'utils/user_agent.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
@@ -201,7 +202,14 @@ export default class LoginController extends React.Component {
         GlobalActions.emitInitialLoad(
             () => {
                 GlobalActions.loadDefaultLocale();
-                browserHistory.push('/select_team');
+
+                if (UserAgent.isIosWeb()) {
+                    browserHistory.push('/get_ios_app');
+                } else if (UserAgent.isAndroidWeb()) {
+                    browserHistory.push('/get_android_app');
+                } else {
+                    browserHistory.push('/select_team');
+                }
             }
         );
     }
