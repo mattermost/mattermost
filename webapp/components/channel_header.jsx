@@ -224,6 +224,8 @@ export default class ChannelHeader extends React.Component {
     }
 
     render() {
+        const flagIcon = Constants.FLAG_ICON_SVG;
+
         if (!this.validState()) {
             return null;
         }
@@ -242,7 +244,7 @@ export default class ChannelHeader extends React.Component {
             <Tooltip id='flaggedTooltip'>
                 <FormattedMessage
                     id='channel_header.flagged'
-                    defaultMessage='Starred Posts'
+                    defaultMessage='Flagged Posts'
                 />
             </Tooltip>
         );
@@ -600,7 +602,10 @@ export default class ChannelHeader extends React.Component {
                                             type='button'
                                             onClick={this.getFlagged}
                                         >
-                                            <i className='fa fa-star-o'/>
+                                            <span
+                                                className='icon icon__flag'
+                                                dangerouslySetInnerHTML={{__html: flagIcon}}
+                                            />
                                         </a>
                                     </OverlayTrigger>
                                 </div>

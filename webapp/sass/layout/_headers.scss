@@ -389,9 +389,13 @@
             top: 14px;
         }
 
-        .fa-flag {
-            position: relative;
-            top: 1px;
+        .icon__flag {
+            svg {
+                height: 18px;
+                position: relative;
+                top: 2px;
+                width: 19px;
+            }
         }
 
         > a {

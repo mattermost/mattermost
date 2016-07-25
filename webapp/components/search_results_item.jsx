@@ -59,6 +59,7 @@ export default class SearchResultsItem extends React.Component {
         const timestamp = UserStore.getCurrentUser().update_at;
         const user = this.props.user || {};
         const post = this.props.post;
+        const flagIconActive = Constants.FLAG_ICON_ACTIVE_SVG;
 
         if (channel) {
             channelName = channel.display_name;
@@ -93,22 +94,22 @@ export default class SearchResultsItem extends React.Component {
         }
 
         let flag;
-        let flagVisible;
-        let starTooltip = (
-            <Tooltip id='starTooltip'>
+        let flagVisible = '';
+        let flagTooltip = (
+            <Tooltip id='flagTooltip'>
                 <FormattedMessage
-                    id='post_star.star'
-                    defaultMessage='Star this message'
+                    id='flag_post.flag'
+                    defaultMessage='Flag this post'
                 />
             </Tooltip>
         );
         if (this.props.isFlagged) {
             flagVisible = 'visible';
-            starTooltip = (
-                <Tooltip id='starTooltip'>
+            flagTooltip = (
+                <Tooltip id='flagTooltip'>
                     <FormattedMessage
-                        id='post_star.star'
-                        defaultMessage='Unstar this message'
+                        id='flag_post.unflag'
+                        defaultMessage='Unflag this post'
                     />
                 </Tooltip>
             );
@@ -116,14 +117,17 @@ export default class SearchResultsItem extends React.Component {
                 <OverlayTrigger
                     delayShow={Constants.OVERLAY_TIME_DELAY}
                     placement='top'
-                    overlay={starTooltip}
+                    overlay={flagTooltip}
                 >
                     <a
                         href='#'
-                        className={'star-icon__container ' + flagVisible}
+                        className={'flag-icon__container ' + flagVisible}
                         onClick={this.unflagPost}
                     >
-                        <i className='fa fa-star'/>
+                        <span
+                            className='icon'
+                            dangerouslySetInnerHTML={{__html: flagIconActive}}
+                        />
                     </a>
                 </OverlayTrigger>
             );

@@ -93,7 +93,7 @@ export default class SearchResultsHeader extends React.Component {
             title = (
                 <FormattedMessage
                     id='search_header.title3'
-                    defaultMessage='Starred Posts'
+                    defaultMessage='Flagged Posts'
                 />
             );
         }

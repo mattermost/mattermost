@@ -177,6 +177,8 @@ export default class RhsComment extends React.Component {
 
     render() {
         var post = this.props.post;
+        const flagIcon = Constants.FLAG_ICON_SVG;
+        const flagIconActive = Constants.FLAG_ICON_ACTIVE_SVG;
 
         var currentUserCss = '';
         if (this.props.currentUser === post.user_id) {
@@ -251,29 +253,39 @@ export default class RhsComment extends React.Component {
 
         let flag;
         let flagFunc;
-        let flagVisibile;
-        let starTooltip = (
-            <Tooltip id='starTooltip'>
+        let flagVisibile = '';
+        let flagTooltip = (
+            <Tooltip id='flagTooltip'>
                 <FormattedMessage
-                    id='post_star.star'
-                    defaultMessage='Star this message'
+                    id='flag_post.flag'
+                    defaultMessage='Flag this post'
                 />
             </Tooltip>
         );
         if (this.props.isFlagged) {
             flagVisibile = 'visible';
-            flag = <i className='fa fa-star'/>;
+            flag = (
+                <span
+                    className='icon'
+                    dangerouslySetInnerHTML={{__html: flagIconActive}}
+                />
+            );
             flagFunc = this.unflagPost;
-            starTooltip = (
-                <Tooltip id='starTooltip'>
+            flagTooltip = (
+                <Tooltip id='flagTooltip'>
                     <FormattedMessage
-                        id='post_star.star'
-                        defaultMessage='Unstar this message'
+                        id='flag_post.unflag'
+                        defaultMessage='Unflag this post'
                     />
                 </Tooltip>
             );
         } else {
-            flag = <i className='fa fa-star-o'/>;
+            flag = (
+                <span
+                    className='icon'
+                    dangerouslySetInnerHTML={{__html: flagIcon}}
+                />
+            );
             flagFunc = this.flagPost;
         }
 
@@ -302,11 +314,11 @@ export default class RhsComment extends React.Component {
                                 <OverlayTrigger
                                     delayShow={Constants.OVERLAY_TIME_DELAY}
                                     placement='top'
-                                    overlay={starTooltip}
+                                    overlay={flagTooltip}
                                 >
                                     <a
                                         href='#'
-                                        className={'star-icon__container ' + flagVisibile}
+                                        className={'flag-icon__container ' + flagVisibile}
                                         onClick={flagFunc}
                                     >
                                         {flag}
