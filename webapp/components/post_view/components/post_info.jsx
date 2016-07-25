@@ -196,7 +196,6 @@ export default class PostInfo extends React.Component {
         var highlightMentionClass = '';
         var commentCountText = this.props.commentCount;
         const flagIcon = Constants.FLAG_ICON_SVG;
-        const flagIconActive = Constants.FLAG_ICON_ACTIVE_SVG;
 
         if (this.props.commentCount >= 1) {
             showCommentClass = ' icon--show';
@@ -242,7 +241,7 @@ export default class PostInfo extends React.Component {
             flag = (
                 <span
                     className='icon'
-                    dangerouslySetInnerHTML={{__html: flagIconActive}}
+                    dangerouslySetInnerHTML={{__html: flagIcon}}
                 />
             );
             flagFunc = this.unflagPost;

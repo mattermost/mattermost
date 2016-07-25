@@ -83,7 +83,6 @@ export default class RhsRootPost extends React.Component {
         var timestamp = UserStore.getProfile(post.user_id).update_at;
         var channel = ChannelStore.get(post.channel_id);
         const flagIcon = Constants.FLAG_ICON_SVG;
-        const flagIconActive = Constants.FLAG_ICON_ACTIVE_SVG;
 
         var type = 'Post';
         if (post.root_id.length > 0) {
@@ -289,7 +288,7 @@ export default class RhsRootPost extends React.Component {
             flag = (
                 <span
                     className='icon'
-                    dangerouslySetInnerHTML={{__html: flagIconActive}}
+                    dangerouslySetInnerHTML={{__html: flagIcon}}
                 />
             );
             flagFunc = this.unflagPost;

@@ -178,7 +178,6 @@ export default class RhsComment extends React.Component {
     render() {
         var post = this.props.post;
         const flagIcon = Constants.FLAG_ICON_SVG;
-        const flagIconActive = Constants.FLAG_ICON_ACTIVE_SVG;
 
         var currentUserCss = '';
         if (this.props.currentUser === post.user_id) {
@@ -267,7 +266,7 @@ export default class RhsComment extends React.Component {
             flag = (
                 <span
                     className='icon'
-                    dangerouslySetInnerHTML={{__html: flagIconActive}}
+                    dangerouslySetInnerHTML={{__html: flagIcon}}
                 />
             );
             flagFunc = this.unflagPost;

@@ -59,7 +59,7 @@ export default class SearchResultsItem extends React.Component {
         const timestamp = UserStore.getCurrentUser().update_at;
         const user = this.props.user || {};
         const post = this.props.post;
-        const flagIconActive = Constants.FLAG_ICON_ACTIVE_SVG;
+        const flagIcon = Constants.FLAG_ICON_SVG;
 
         if (channel) {
             channelName = channel.display_name;
@@ -126,7 +126,7 @@ export default class SearchResultsItem extends React.Component {
                     >
                         <span
                             className='icon'
-                            dangerouslySetInnerHTML={{__html: flagIconActive}}
+                            dangerouslySetInnerHTML={{__html: flagIcon}}
                         />
                     </a>
                 </OverlayTrigger>
