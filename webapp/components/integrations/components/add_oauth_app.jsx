@@ -273,7 +273,7 @@ export default class AddOAuthApp extends React.Component {
                             >
                                 <FormattedMessage
                                     id='installed_oauth_apps.name'
-                                    defaultMessage='Name'
+                                    defaultMessage='Display Name'
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
@@ -288,7 +288,7 @@ export default class AddOAuthApp extends React.Component {
                                 <div className='form__help'>
                                     <FormattedMessage
                                         id='add_oauth_app.name.help'
-                                        defaultMessage='Choose a name for your OAuth 2.0 application made of up to 64 characters.'
+                                        defaultMessage='Display name for your OAuth 2.0 application made of up to 64 characters.'
                                     />
                                 </div>
                             </div>
@@ -315,7 +315,7 @@ export default class AddOAuthApp extends React.Component {
                                 <div className='form__help'>
                                     <FormattedMessage
                                         id='add_oauth_app.description.help'
-                                        defaultMessage='Provide a description for your application.'
+                                        defaultMessage='Description for your OAuth 2.0 application.'
                                     />
                                 </div>
                             </div>
