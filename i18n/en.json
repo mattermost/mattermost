@@ -1900,6 +1900,10 @@
     "translation": "You do not have the appropriate permissions"
   },
   {
+    "id": "api.user.update_active.no_deactivate_ldap.app_error",
+    "translation": "You can not modify the activation status of LDAP accounts. Please modify through the LDAP server."
+  },
+  {
     "id": "api.user.update_mfa.not_available.app_error",
     "translation": "MFA not configured or available on this server"
   },
