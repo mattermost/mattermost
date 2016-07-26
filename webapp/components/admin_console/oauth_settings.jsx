@@ -399,7 +399,7 @@ export default class OAuthSettings extends AdminSettings {
         }
 
         const oauthTypes = [];
-        oauthTypes.push({value: 'off', text: Utils.localizeMessage('admin.oauth.off', 'Do not allow sign-in via an OAuth2 provider')});
+        oauthTypes.push({value: 'off', text: Utils.localizeMessage('admin.oauth.off', 'Do not allow sign-in via an OAuth 2.0 provider.')});
         oauthTypes.push({value: Constants.GITLAB_SERVICE, text: Utils.localizeMessage('admin.oauth.gitlab', 'GitLab')});
         if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.GoogleSSO === 'true') {
             oauthTypes.push({value: Constants.GOOGLE_SERVICE, text: Utils.localizeMessage('admin.oauth.google', 'Google Apps')});
@@ -414,7 +414,7 @@ export default class OAuthSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.oauth.select'
-                            defaultMessage='Select OAuth2 service provider: '
+                            defaultMessage='Select OAuth 2.0 Service Provider:'
                         />
                     }
                     helpText={helpText}
