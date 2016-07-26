@@ -1427,6 +1427,7 @@
   "signup_user_completed.expired": "You've already completed the signup process for this invitation or this invitation has expired.",
   "signup_user_completed.gitlab": "with GitLab",
   "signup_user_completed.google": "with Google",
+  "signup_user_completed.office365": "with Office 365",
   "signup_user_completed.haveAccount": "Already have an account?",
   "signup_user_completed.invalid_invite": "The invite link was invalid.  Please speak with your Administrator to receive an invitation.",
   "signup_user_completed.lets": "Let's create your account",
