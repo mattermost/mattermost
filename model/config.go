@@ -931,14 +931,6 @@ func (o *Config) IsValid() *AppError {
 			return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_basedn", nil, "")
 		}
 
-		if *o.LdapSettings.BindUsername == "" {
-			return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_bind_username", nil, "")
-		}
-
-		if *o.LdapSettings.BindPassword == "" {
-			return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_bind_password", nil, "")
-		}
-
 		if *o.LdapSettings.FirstNameAttribute == "" {
 			return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_firstname", nil, "")
 		}
