@@ -123,6 +123,7 @@ func getClientLicense(l *model.License) map[string]string {
 		props["MFA"] = strconv.FormatBool(*l.Features.MFA)
 		props["SAML"] = strconv.FormatBool(*l.Features.SAML)
 		props["GoogleSSO"] = strconv.FormatBool(*l.Features.GoogleSSO)
+		props["Office365SSO"] = strconv.FormatBool(*l.Features.Office365SSO)
 		props["Compliance"] = strconv.FormatBool(*l.Features.Compliance)
 		props["CustomBrand"] = strconv.FormatBool(*l.Features.CustomBrand)
 		props["MHPNS"] = strconv.FormatBool(*l.Features.MHPNS)

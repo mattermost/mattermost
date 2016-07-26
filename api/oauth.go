@@ -624,7 +624,7 @@ func CompleteSwitchWithOAuth(c *Context, w http.ResponseWriter, r *http.Request,
 	provider := einterfaces.GetOauthProvider(service)
 	if provider == nil {
 		c.Err = model.NewLocAppError("CompleteClaimWithOAuth", "api.user.complete_switch_with_oauth.unavailable.app_error",
-			map[string]interface{}{"Service": service}, "")
+			map[string]interface{}{"Service": strings.Title(service)}, "")
 		return
 	} else {
 		ssoUser := provider.GetUserFromJson(userData)

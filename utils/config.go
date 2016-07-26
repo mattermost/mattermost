@@ -238,8 +238,6 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["RequireEmailVerification"] = strconv.FormatBool(c.EmailSettings.RequireEmailVerification)
 
 	props["EnableSignUpWithGitLab"] = strconv.FormatBool(c.GitLabSettings.Enable)
-	props["EnableSignUpWithGoogle"] = strconv.FormatBool(c.GoogleSettings.Enable)
-	props["EnableSignUpWithOffice365"] = strconv.FormatBool(c.Office365Settings.Enable)
 
 	props["ShowEmailAddress"] = strconv.FormatBool(c.PrivacySettings.ShowEmailAddress)
 
@@ -292,6 +290,14 @@ func getClientConfig(c *model.Config) map[string]string {
 		if *License.Features.SAML {
 			props["EnableSaml"] = strconv.FormatBool(*c.SamlSettings.Enable)
 			props["SamlLoginButtonText"] = *c.SamlSettings.LoginButtonText
+		}
+
+		if *License.Features.GoogleSSO {
+			props["EnableSignUpWithGoogle"] = strconv.FormatBool(c.GoogleSettings.Enable)
+		}
+
+		if *License.Features.Office365SSO {
+			props["EnableSignUpWithOffice365"] = strconv.FormatBool(c.Office365Settings.Enable)
 		}
 
 		if *License.Features.PasswordRequirements {

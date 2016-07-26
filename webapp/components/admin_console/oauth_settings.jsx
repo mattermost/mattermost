@@ -401,9 +401,13 @@ export default class OAuthSettings extends AdminSettings {
         const oauthTypes = [];
         oauthTypes.push({value: 'off', text: Utils.localizeMessage('admin.oauth.off', 'Do not allow sign-in via an OAuth 2.0 provider.')});
         oauthTypes.push({value: Constants.GITLAB_SERVICE, text: Utils.localizeMessage('admin.oauth.gitlab', 'GitLab')});
-        if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.GoogleSSO === 'true') {
-            oauthTypes.push({value: Constants.GOOGLE_SERVICE, text: Utils.localizeMessage('admin.oauth.google', 'Google Apps')});
-            oauthTypes.push({value: Constants.OFFICE365_SERVICE, text: Utils.localizeMessage('admin.oauth.office365', 'Office 365')});
+        if (global.window.mm_license.IsLicensed === 'true') {
+            if (global.window.mm_license.GoogleSSO === 'true') {
+                oauthTypes.push({value: Constants.GOOGLE_SERVICE, text: Utils.localizeMessage('admin.oauth.google', 'Google Apps')});
+            }
+            if (global.window.mm_license.Office365SSO === 'true') {
+                oauthTypes.push({value: Constants.OFFICE365_SERVICE, text: Utils.localizeMessage('admin.oauth.office365', 'Office 365')});
+            }
         }
 
         return (

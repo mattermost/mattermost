@@ -1665,7 +1665,7 @@
   },
   {
     "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-    "translation": "{{.Service}} oauth not available on this server"
+    "translation": "{{.Service}} SSO through OAuth 2.0 not available on this server"
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
@@ -1681,7 +1681,7 @@
   },
   {
     "id": "api.user.create_oauth_user.not_available.app_error",
-    "translation": "{{.Service}} oauth not available on this server"
+    "translation": "{{.Service}} SSO through OAuth 2.0 not available on this server"
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
@@ -1793,7 +1793,7 @@
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
-    "translation": "{{.Service}} oauth not available on this server"
+    "translation": "{{.Service}} SSO through OAuth 2.0 not available on this server"
   },
   {
     "id": "api.user.login_by_oauth.parse.app_error",
