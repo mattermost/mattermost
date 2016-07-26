@@ -709,7 +709,7 @@ class SecurityTab extends React.Component {
             describe = (
                 <FormattedMessage
                     id='user.settings.security.gitlab'
-                    defaultMessage='GitLab SSO'
+                    defaultMessage='GitLab'
                 />
             );
         } else if (this.props.user.auth_service === Constants.GOOGLE_SERVICE) {
