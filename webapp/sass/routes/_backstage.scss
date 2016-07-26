@@ -40,7 +40,7 @@
 .backstage-content {
     background-color: $bg--gray;
     margin: 46px auto;
-    max-width: 960px;
+    max-width: 1200px;
     padding-left: 135px;
     vertical-align: top;
 }
@@ -340,12 +340,12 @@
     background-color: $white;
     border: 1px solid $light-gray;
     display: inline-block;
-    height: 210px;
     margin: 0 30px 30px 0;
+    min-height: 230px;
     padding: 20px;
     text-align: center;
     vertical-align: top;
-    width: 250px;
+    width: 290px;
 
     &:last-child {
         margin-right: 0;
@@ -359,6 +359,7 @@
 
 .integration-option__image {
     height: 80px;
+    margin: .5em 0 .7em;
     width: 80px;
 }
 
