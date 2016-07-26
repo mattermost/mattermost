@@ -91,24 +91,22 @@ export default class RhsRootPost extends React.Component {
 
         var dropdownContents = [];
 
-        if (!Utils.isMobile()) {
-            dropdownContents.push(
-                <li
-                    key='rhs-root-permalink'
-                    role='presentation'
+        dropdownContents.push(
+            <li
+                key='rhs-root-permalink'
+                role='presentation'
+            >
+                <a
+                    href='#'
+                    onClick={this.handlePermalink}
                 >
-                    <a
-                        href='#'
-                        onClick={this.handlePermalink}
-                    >
-                        <FormattedMessage
-                            id='rhs_root.permalink'
-                            defaultMessage='Permalink'
-                        />
-                    </a>
-                </li>
-            );
-        }
+                    <FormattedMessage
+                        id='rhs_root.permalink'
+                        defaultMessage='Permalink'
+                    />
+                </a>
+            </li>
+        );
 
         if (isOwner && !isSystemMessage) {
             dropdownContents.push(
