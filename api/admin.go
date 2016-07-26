@@ -150,6 +150,11 @@ func saveConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if *cfg.ClusterSettings.Enable {
+		c.Err = model.NewLocAppError("ValidateFilter", "ent.cluster.validate_config.app_error", nil, "")
+		return
+	}
+
 	c.LogAudit("")
 
 	utils.SaveConfig(utils.CfgFileName, cfg)

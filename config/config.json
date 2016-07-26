@@ -202,8 +202,8 @@
         "IosAppDownloadLink": "https://about.mattermost.com/mattermost-ios-app/"
     },
     "ClusterSettings": {
-        "Enable": true,
+        "Enable": false,
         "InternodeListenAddress": ":8075",
-        "InternodeUrls": ["http://localhost"]
+        "InternodeUrls": []
     }
 }

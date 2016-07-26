@@ -182,16 +182,19 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -c ./enterprise/compliance && ./compliance.test -test.v -test.timeout=120s -test.coverprofile=ccompliance.out || exit 1
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -c ./enterprise/emoji && ./emoji.test -test.v -test.timeout=120s -test.coverprofile=cemoji.out || exit 1
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -c ./enterprise/saml && ./saml.test -test.v -test.timeout=60s -test.coverprofile=csaml.out || exit 1
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -c ./enterprise/cluster && ./cluster.test -test.v -test.timeout=60s -test.coverprofile=ccluster.out || exit 1
 
 	tail -n +2 cldap.out >> ecover.out
 	tail -n +2 ccompliance.out >> ecover.out
 	tail -n +2 cemoji.out >> ecover.out
 	tail -n +2 csaml.out >> ecover.out
-	rm -f cldap.out ccompliance.out cemoji.out csaml.out
+	tail -n +2 ccluster.out >> ecover.out
+	rm -f cldap.out ccompliance.out cemoji.out csaml.out ccluster.out
 	rm -r ldap.test
 	rm -r compliance.test
 	rm -r emoji.test
 	rm -r saml.test
+	rm -r cluster.test
 	rm -f config/*.crt
 	rm -f config/*.key
 endif

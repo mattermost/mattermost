@@ -36,7 +36,7 @@ func ClusterInfoFromJson(data io.Reader) *ClusterInfo {
 	}
 }
 
-func (me *ClusterInfo) haveEstablishedInitialContact() bool {
+func (me *ClusterInfo) HaveEstablishedInitialContact() bool {
 	if me.Id != "" {
 		return true
 	}

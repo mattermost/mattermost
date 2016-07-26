@@ -4650,6 +4650,17 @@
   {
     "id": "ent.cluster.incompatibile.warn",
     "translation": "Potentail incompatibile version detected for clustering with %v"
+  },
+  {
+    "id": "ent.cluster.validate_config.app_error",
+    "translation": "Admin console is in read-only mode because high availability is enabled"
+  },
+  {
+    "id": "ent.cluster.debug_fail.debug",
+    "translation": "Cluster send failed at `%v` detail=%v, extra=%v, retry number=%v"
+  },
+  {
+    "id": "ent.cluster.final_fail.error",
+    "translation": "Cluster send final fail at `%v` detail=%v, extra=%v, retry number=%v"
   }
-  
 ]

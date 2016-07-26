@@ -3,9 +3,18 @@
 
 package einterfaces
 
+import (
+	"github.com/mattermost/platform/model"
+)
+
 type ClusterInterface interface {
 	StartInterNodeCommunication()
 	StopInterNodeCommunication()
+	RemoveAllSessionsForUserId(userId string)
+	InvalidateCacheForUser(userId string)
+	InvalidateCacheForChannel(channelId string)
+	Publish(event *model.WebSocketEvent)
+	UpdateStatus(status *model.Status)
 }
 
 var theClusterInterface ClusterInterface
