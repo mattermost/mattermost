@@ -1,6 +1,19 @@
 @charset 'UTF-8';
 
 @media screen and (max-width: 768px) {
+    .prompt {
+        .prompt__heading {
+            display: block;
+
+            > div {
+                &:first-child {
+                    display: block;
+                    margin: 0 0 1em;
+                }
+            }
+        }
+    }
+
     #post-list {
         .post-list-holder-by-time {
             .modal-open & {
