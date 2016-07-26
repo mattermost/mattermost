@@ -222,7 +222,7 @@ export default class OAuthSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.office365.clientSecretTitle'
-                            defaultMessage='Application Secret:'
+                            defaultMessage='Application Secret Password:'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.office365.clientSecretExample', 'Ex "shAieM47sNBfgl20f8ci294"')}
@@ -385,7 +385,7 @@ export default class OAuthSettings extends AdminSettings {
             helpText = (
                 <FormattedHTMLMessage
                     id='admin.google.EnableHtmlDesc'
-                    defaultMessage="<ol><li><a href='https://accounts.google.com/login'>Log in</a> to your Google account.</li><li>Go to <a href='https://console.developers.google.com'>https://console.developers.google.com</a>, click <strong>Credentials</strong> in the sidebar on the left and use <strong>Mattermost - your-company-name</strong> as the project name.</li><li>Click the <strong>OAuth consent screen</strong> header and fill in <strong>Mattermost</strong> as the <strong>Product name to show users</strong>. Click <strong>Save</strong>.</li>Under the <strong>Credentials</strong> header, click <strong>Create credentials</strong>, choose <strong>OAuth client ID</strong> and select <strong>Web Application</strong>.</li><li>Under <strong>Restrictions</strong> and <strong>Authorized redirect URIs</strong> enter <strong>your-mattermost-url/signup/google/complete</strong> (example: http://localhost:8065/login/google/complete). Click <strong>Create</strong>.</li><li>Save the <strong>client ID</strong> and <strong>client secret></strong> for later to fill out the fields below.</li><li>Finally, go to the <a href='https://console.developers.google.com/apis/api/plus/overview'>Google+ API</a> and click <strong>Enable</strong>. This might take a few minutes to propagate through Google's systems.</li></ol>"
+                    defaultMessage="<ol><li><a href='https://accounts.google.com/login'>Log in</a> to your Google account.</li><li>Go to <a href='https://console.developers.google.com'>https://console.developers.google.com</a>, click <strong>Credentials</strong> in the left hand sidebar and enter <strong>Mattermost - <your-company-name></strong> as the project name.</li><li>Click the <strong>OAuth consent screen</strong> header and enter <strong>Mattermost</strong> as the <strong>Product name to show users</strong>. Click <strong>Save</strong>.</li><li>Under the <strong>Credentials</strong> header, click <strong>Create credentials</strong>, choose <strong>OAuth client ID</strong> and select <strong>Web Application</strong>.</li><li>Under <strong>Restrictions</strong> and <strong>Authorized redirect URIs</strong> enter <strong><your-mattermost-url>/signup/google/complete</strong> (example: http://localhost:8065/signup/google/complete). Click <strong>Create</strong>.</li><li>Save the <strong>client ID</strong> and <strong>client secret</strong> to later complete the fields below.</li><li>Finally, go to <a href='https://console.developers.google.com/apis/api/plus/overview'>Google+ API</a> and click <strong>Enable</strong>. This might take a few minutes to propagate through Google's systems.</li><li>Complete the <strong>Client ID</strong> and <strong>Client Secret</strong> fields below.</li></ol>"
                 />
             );
         } else if (this.state.oauthType === Constants.OFFICE365_SERVICE) {
@@ -393,13 +393,13 @@ export default class OAuthSettings extends AdminSettings {
             helpText = (
                 <FormattedHTMLMessage
                     id='admin.office365.EnableHtmlDesc'
-                    defaultMessage="<ol><li><a href='https://login.microsoftonline.com/'>Log in</a> to your Microsoft or Office 365 account. Make sure it's the account on the same <a href='https://msdn.microsoft.com/en-us/library/azure/jj573650.aspx#Anchor_0'>tenant</a> that you would like users to log in with.</li><li>Go to <a href='https://apps.dev.microsoft.com'>https://apps.dev.microsoft.com</a>, click <strong>Add an app</strong> and use <strong>Mattermost - your-company-name</strong> as the application name.</li><li>Under <strong>Application Secrets</strong>, click <strong>Generate New Password</strong> and copy it somewhere safe; you will need it below.</li>Under <strong>Platforms</strong>, click <strong>Add Platform</strong>, choose <strong>Web</strong> and enter <strong>your-mattermost-url/signup/office365/complete</strong> (example: http://localhost:8065/login/office365/complete) under <strong>Redirect URIs</strong>. Also uncheck <strong>Allow Implicit Flow</strong>.</li><li>Finally, click <strong>Save</strong> and fill out the fields below.</li></ol>"
+                    defaultMessage="<ol><li><a href='https://login.microsoftonline.com/'>Log in</a> to your Microsoft or Office 365 account. Make sure it's the account on the same <a href='https://msdn.microsoft.com/en-us/library/azure/jj573650.aspx#Anchor_0'>tenant</a> that you would like users to log in with.</li><li>Go to <a href='https://apps.dev.microsoft.com'>https://apps.dev.microsoft.com</a>, click <strong>Add an app</strong> and use <strong>Mattermost - <your-company-name></strong> as the application name.</li><li>Under <strong>Application Secrets</strong>, click <strong>Generate New Password</strong> and save it to later complete the field below.</li><li>Under <strong>Platforms</strong>, click <strong>Add Platform</strong>, choose <strong>Web</strong> and enter <strong><your-mattermost-url>/signup/office365/complete</strong> (example: http://localhost:8065/signup/office365/complete) under <strong>Redirect URIs</strong>. Also uncheck <strong>Allow Implicit Flow</strong>.</li><li>Finally, click <strong>Save</strong> and complete the <strong>Application ID</strong> and <strong>Application Secret Password</strong> fields below.</li></ol>"
                 />
             );
         }
 
         const oauthTypes = [];
-        oauthTypes.push({value: 'off', text: Utils.localizeMessage('admin.oauth.off', 'Do not allow sign-in via an OAuth2 provider')});
+        oauthTypes.push({value: 'off', text: Utils.localizeMessage('admin.oauth.off', 'Do not allow sign-in via an OAuth 2.0 provider.')});
         oauthTypes.push({value: Constants.GITLAB_SERVICE, text: Utils.localizeMessage('admin.oauth.gitlab', 'GitLab')});
         if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.GoogleSSO === 'true') {
             oauthTypes.push({value: Constants.GOOGLE_SERVICE, text: Utils.localizeMessage('admin.oauth.google', 'Google Apps')});
@@ -414,7 +414,7 @@ export default class OAuthSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.oauth.select'
-                            defaultMessage='Select OAuth2 service provider: '
+                            defaultMessage='Select OAuth 2.0 Service Provider:'
                         />
                     }
                     helpText={helpText}
