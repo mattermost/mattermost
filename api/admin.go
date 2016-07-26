@@ -572,11 +572,7 @@ func ldapSyncNow(c *Context, w http.ResponseWriter, r *http.Request) {
 	go func() {
 		if utils.IsLicensed && *utils.License.Features.LDAP && *utils.Cfg.LdapSettings.Enable {
 			if ldapI := einterfaces.GetLdapInterface(); ldapI != nil {
-				if err := ldapI.Syncronize(); err != nil {
-					l4g.Error("%v", err.Error())
-				} else {
-					l4g.Info(utils.T("ent.ldap.syncdone.info"))
-				}
+				ldapI.SyncNow()
 			} else {
 				l4g.Error("%v", model.NewLocAppError("saveComplianceReport", "ent.compliance.licence_disable.app_error", nil, "").Error())
 			}

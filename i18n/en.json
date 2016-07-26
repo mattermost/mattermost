@@ -2100,6 +2100,14 @@
     "translation": "Feature requires an enterprise license. Please contact your system administrator about upgrading your enterprise license."
   },
   {
+    "id": "ent.migration.migratetoldap.duplicate_field",
+    "translation": "Unable to migrate LDAP users with specified field. Duplicate entry detected. Please remove all duplcates and try again."
+  },
+  {
+    "id": "ent.migration.migratetoldap.user_not_found",
+    "translation": "Unable to find user on LDAP server: "
+  },
+  {
     "id": "ent.brand.save_brand_image.decode.app_error",
     "translation": "Unable to decode image."
   },

@@ -84,6 +84,12 @@ func (task *ScheduledTask) Cancel() {
 	removeTaskByName(task.Name)
 }
 
+// Executes the task immediatly. A recurring task will be run regularally after interval.
+func (task *ScheduledTask) Execute() {
+	task.function()
+	task.timer.Reset(task.Interval)
+}
+
 func (task *ScheduledTask) String() string {
 	return fmt.Sprintf(
 		"%s\nInterval: %s\nRecurring: %t\n",
