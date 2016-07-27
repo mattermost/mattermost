@@ -521,11 +521,11 @@ export default class AdminSidebar extends React.Component {
                                 }
                             >
                                 <AdminSidebarSection
-                                    name='webhooks'
+                                    name='custom'
                                     title={
                                         <FormattedMessage
-                                            id='admin.sidebar.webhooks'
-                                            defaultMessage='Webhooks and Commands'
+                                            id='admin.sidebar.customIntegrations'
+                                            defaultMessage='Custom Integrations'
                                         />
                                     }
                                 />
@@ -535,15 +535,6 @@ export default class AdminSidebar extends React.Component {
                                         <FormattedMessage
                                             id='admin.sidebar.external'
                                             defaultMessage='External Services'
-                                        />
-                                    }
-                                />
-                                <AdminSidebarSection
-                                    name='oauth2'
-                                    title={
-                                        <FormattedMessage
-                                            id='admin.sidebar.oauth'
-                                            defaultMessage='OAuth 2.0 Service Provider'
                                         />
                                     }
                                 />

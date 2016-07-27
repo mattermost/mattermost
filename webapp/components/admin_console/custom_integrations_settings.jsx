@@ -24,6 +24,7 @@ export default class WebhookSettings extends AdminSettings {
         config.ServiceSettings.EnableOnlyAdminIntegrations = this.state.enableOnlyAdminIntegrations;
         config.ServiceSettings.EnablePostUsernameOverride = this.state.enablePostUsernameOverride;
         config.ServiceSettings.EnablePostIconOverride = this.state.enablePostIconOverride;
+        config.ServiceSettings.EnableOAuthServiceProvider = this.state.enableOAuthServiceProvider;
 
         return config;
     }
@@ -35,7 +36,8 @@ export default class WebhookSettings extends AdminSettings {
             enableCommands: config.ServiceSettings.EnableCommands,
             enableOnlyAdminIntegrations: config.ServiceSettings.EnableOnlyAdminIntegrations,
             enablePostUsernameOverride: config.ServiceSettings.EnablePostUsernameOverride,
-            enablePostIconOverride: config.ServiceSettings.EnablePostIconOverride
+            enablePostIconOverride: config.ServiceSettings.EnablePostIconOverride,
+            enableOAuthServiceProvider: config.ServiceSettings.EnableOAuthServiceProvider
         };
     }
 
@@ -43,8 +45,8 @@ export default class WebhookSettings extends AdminSettings {
         return (
             <h3>
                 <FormattedMessage
-                    id='admin.integrations.webhook'
-                    defaultMessage='Webhooks and Commands'
+                    id='admin.integrations.custom'
+                    defaultMessage='Custom Integrations'
                 />
             </h3>
         );
@@ -102,6 +104,23 @@ export default class WebhookSettings extends AdminSettings {
                         />
                     }
                     value={this.state.enableCommands}
+                    onChange={this.handleChange}
+                />
+                <BooleanSetting
+                    id='enableOAuthServiceProvider'
+                    label={
+                        <FormattedMessage
+                            id='admin.oauth.providerTitle'
+                            defaultMessage='Enable OAuth 2.0 Service Provider: '
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.oauth.providerDescription'
+                            defaultMessage='When true, Mattermost can act as an OAuth 2.0 service provider allowing external applications to authorize API requests to Mattermost.'
+                        />
+                    }
+                    value={this.state.enableOAuthServiceProvider}
                     onChange={this.handleChange}
                 />
                 <BooleanSetting
