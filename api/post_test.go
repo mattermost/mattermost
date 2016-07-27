@@ -924,3 +924,38 @@ func TestGetOutOfChannelMentions(t *testing.T) {
 		t.Fatalf("getOutOfChannelMentions returned %v when two users on a different team were mentioned", mentioned)
 	}
 }
+
+func TestGetFlaggedPosts(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+	user1 := th.BasicUser
+	post1 := th.BasicPost
+
+	preferences := &model.Preferences{
+		{
+			UserId:   user1.Id,
+			Category: model.PREFERENCE_CATEGORY_FLAGGED_POST,
+			Name:     post1.Id,
+			Value:    "true",
+		},
+	}
+	Client.Must(Client.SetPreferences(preferences))
+
+	r1 := Client.Must(Client.GetFlaggedPosts(0, 2)).Data.(*model.PostList)
+
+	if len(r1.Order) == 0 {
+		t.Fatal("should have gotten a flagged post")
+	}
+
+	if _, ok := r1.Posts[post1.Id]; !ok {
+		t.Fatal("missing flagged post")
+	}
+
+	Client.DeletePreferences(preferences)
+
+	r2 := Client.Must(Client.GetFlaggedPosts(0, 2)).Data.(*model.PostList)
+
+	if len(r2.Order) != 0 {
+		t.Fatal("should not have gotten a flagged post")
+	}
+}
