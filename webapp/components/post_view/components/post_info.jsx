@@ -20,6 +20,7 @@ export default class PostInfo extends React.Component {
 
         this.handleDropdownClick = this.handleDropdownClick.bind(this);
         this.handlePermalink = this.handlePermalink.bind(this);
+        this.removePost = this.removePost.bind(this);
     }
     handleDropdownClick(e) {
         var position = $('#post-list').height() - $(e.target).offset().top;
@@ -170,6 +171,23 @@ export default class PostInfo extends React.Component {
         GlobalActions.showGetPostLinkModal(this.props.post);
     }
 
+    removePost() {
+        GlobalActions.emitRemovePost(this.props.post);
+    }
+
+    createRemovePostButton() {
+        return (
+            <a
+                href='#'
+                className='post__remove theme'
+                type='button'
+                onClick={this.removePost}
+            >
+                {'×'}
+            </a>
+        );
+    }
+
     render() {
         var post = this.props.post;
         var comments = '';
@@ -203,7 +221,26 @@ export default class PostInfo extends React.Component {
             );
         }
 
-        var dropdown = this.createDropdown();
+        let options;
+        if (Utils.isPostEphemeral(post)) {
+            options = (
+                <li className='col col__remove'>
+                    {this.createRemovePostButton()}
+                </li>
+            );
+        } else {
+            options = (
+                <li className='col col__reply'>
+                    <div
+                        className='dropdown'
+                        ref='dotMenu'
+                    >
+                        {this.createDropdown()}
+                    </div>
+                    {comments}
+                </li>
+            );
+        }
 
         return (
             <ul className='post__header--info'>
@@ -215,15 +252,7 @@ export default class PostInfo extends React.Component {
                         useMilitaryTime={this.props.useMilitaryTime}
                     />
                 </li>
-                <li className='col col__reply'>
-                    <div
-                        className='dropdown'
-                        ref='dotMenu'
-                    >
-                        {dropdown}
-                    </div>
-                    {comments}
-                </li>
+                {options}
             </ul>
         );
     }

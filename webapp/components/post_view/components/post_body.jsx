@@ -154,26 +154,13 @@ export default class PostBody extends React.Component {
         }
 
         let message;
-        let removeButton;
         if (this.props.post.state === Constants.POST_DELETED) {
-            removeButton = (
-                <a
-                    href='#'
-                    className='post__remove theme'
-                    type='button'
-                    onClick={this.removePost}
-                >
-                    {'×'}
-                </a>
-            );
-
             message = (
                 <p>
                     <FormattedMessage
                         id='post_body.deleted'
                         defaultMessage='(message deleted)'
                     />
-                    {removeButton}
                 </p>
             );
         } else {

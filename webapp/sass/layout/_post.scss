@@ -812,6 +812,11 @@ body.ios {
             white-space: nowrap;
         }
 
+        .col__remove {
+            position: absolute;
+            right: 10px;
+        }
+
         .permalink-popover {
             min-width: 0;
 
