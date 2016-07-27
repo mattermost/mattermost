@@ -100,6 +100,10 @@ export default class Post extends React.Component {
             return true;
         }
 
+        if (nextProps.isFlagged !== this.props.isFlagged) {
+            return true;
+        }
+
         if (!Utils.areObjectsEqual(nextProps.user, this.props.user)) {
             return true;
         }
@@ -245,6 +249,7 @@ export default class Post extends React.Component {
                                 compactDisplay={this.props.compactDisplay}
                                 displayNameType={this.props.displayNameType}
                                 useMilitaryTime={this.props.useMilitaryTime}
+                                isFlagged={this.props.isFlagged}
                             />
                             <PostBody
                                 post={post}
@@ -281,5 +286,6 @@ Post.propTypes = {
     commentCount: React.PropTypes.number,
     isCommentMention: React.PropTypes.bool,
     useMilitaryTime: React.PropTypes.bool.isRequired,
-    emojis: React.PropTypes.object.isRequired
+    emojis: React.PropTypes.object.isRequired,
+    isFlagged: React.PropTypes.bool
 };

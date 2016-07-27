@@ -8,6 +8,7 @@ import EmojiStore from 'stores/emoji_store.jsx';
 import PostStore from 'stores/post_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
+import PreferenceStore from 'stores/preference_store.jsx';
 
 import Constants from 'utils/constants.jsx';
 const ScrollTypes = Constants.ScrollTypes;
@@ -22,6 +23,7 @@ export default class PostFocusView extends React.Component {
         this.onPostsChange = this.onPostsChange.bind(this);
         this.onUserChange = this.onUserChange.bind(this);
         this.onEmojiChange = this.onEmojiChange.bind(this);
+        this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.onPostListScroll = this.onPostListScroll.bind(this);
 
         const focusedPostId = PostStore.getFocusedPostId();
@@ -41,7 +43,8 @@ export default class PostFocusView extends React.Component {
             scrollPostId: focusedPostId,
             atTop: PostStore.getVisibilityAtTop(focusedPostId),
             atBottom: PostStore.getVisibilityAtBottom(focusedPostId),
-            emojis: EmojiStore.getEmojis()
+            emojis: EmojiStore.getEmojis(),
+            flaggedPosts: PreferenceStore.getCategory(Constants.Preferences.CATEGORY_FLAGGED_POST)
         };
     }
 
@@ -50,6 +53,7 @@ export default class PostFocusView extends React.Component {
         PostStore.addChangeListener(this.onPostsChange);
         UserStore.addChangeListener(this.onUserChange);
         EmojiStore.addChangeListener(this.onEmojiChange);
+        PreferenceStore.addChangeListener(this.onPreferenceChange);
     }
 
     componentWillUnmount() {
@@ -98,6 +102,12 @@ export default class PostFocusView extends React.Component {
         });
     }
 
+    onPreferenceChange() {
+        this.setState({
+            flaggedPosts: PreferenceStore.getCategory(Constants.Preferences.CATEGORY_FLAGGED_POST)
+        });
+    }
+
     onPostListScroll() {
         this.setState({scrollType: ScrollTypes.FREE});
     }
@@ -128,6 +138,7 @@ export default class PostFocusView extends React.Component {
                     postsToHighlight={postsToHighlight}
                     isFocusPost={true}
                     emojis={this.state.emojis}
+                    flaggedPosts={this.state.flaggedPosts}
                 />
             );
         }
