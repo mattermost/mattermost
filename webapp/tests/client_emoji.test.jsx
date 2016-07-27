@@ -17,6 +17,10 @@ describe('Client.Emoji', function() {
         fs.writeFileSync(testGif, buffer);
     });
 
+    after(function() {
+        fs.unlinkSync('test.gif');
+    });
+
     it('addEmoji', function(done) {
         TestHelper.initBasic(() => {
             const name = TestHelper.generateId();
