@@ -4,6 +4,7 @@
 import $ from 'jquery';
 import UserProfile from './user_profile.jsx';
 
+import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
@@ -151,7 +152,7 @@ export default class SearchResultsItem extends React.Component {
                                                     this.hideSidebar();
                                                 }
                                                 this.shrinkSidebar();
-                                                browserHistory.push('/' + window.location.pathname.split('/')[1] + '/pl/' + post.id);
+                                                browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/pl/' + post.id);
                                             }
                                         }
                                         className='search-item__jump'

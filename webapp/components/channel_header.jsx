@@ -123,7 +123,7 @@ export default class ChannelHeader extends React.Component {
                 });
 
                 const townsquare = ChannelStore.getByName('town-square');
-                browserHistory.push(Utils.getTeamURLNoOriginFromAddressBar() + '/channels/' + townsquare.name);
+                browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + townsquare.name);
             },
             (err) => {
                 AsyncClient.dispatchError(err, 'handleLeave');

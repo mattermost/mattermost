@@ -74,7 +74,7 @@ export default class MoreChannels extends React.Component {
             channel,
             () => {
                 $(ReactDOM.findDOMNode(this.refs.modal)).modal('hide');
-                browserHistory.push(Utils.getTeamURLNoOriginFromAddressBar() + '/channels/' + channel.name);
+                browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + channel.name);
                 this.setState({joiningChannel: ''});
             },
             (err) => {

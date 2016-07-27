@@ -4,6 +4,7 @@
 import ReactDOM from 'react-dom';
 import Constants from 'utils/constants.jsx';
 import {Modal, Tooltip, OverlayTrigger} from 'react-bootstrap';
+import TeamStore from 'stores/team_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import {FormattedMessage} from 'react-intl';
@@ -130,8 +131,8 @@ export default class ChangeUrlModal extends React.Component {
             serverError = <div className='form-group has-error'><p className='input__help error'>{this.props.serverError}</p></div>;
         }
 
-        const fullTeamUrl = Utils.getTeamURLFromAddressBar();
-        const teamURL = Utils.getShortenedTeamURL();
+        const fullTeamUrl = TeamStore.getCurrentTeamUrl();
+        const teamURL = Utils.getShortenedTeamURL(TeamStore.getCurrentTeamUrl());
         const urlTooltip = (
             <Tooltip id='urlTooltip'>{fullTeamUrl}</Tooltip>
         );
