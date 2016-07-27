@@ -9,7 +9,7 @@ import (
 )
 
 func TestClusterInfoJson(t *testing.T) {
-	cluster := ClusterInfo{Id: NewId(), InternodeUrl: NewId(), Hostname: NewId()}
+	cluster := ClusterInfo{Id: NewId(), InterNodeUrl: NewId(), Hostname: NewId()}
 	json := cluster.ToJson()
 	result := ClusterInfoFromJson(strings.NewReader(json))
 

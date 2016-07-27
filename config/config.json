@@ -203,7 +203,7 @@
     },
     "ClusterSettings": {
         "Enable": false,
-        "InternodeListenAddress": ":8075",
-        "InternodeUrls": []
+        "InterNodeListenAddress": ":8075",
+        "InterNodeUrls": []
     }
 }

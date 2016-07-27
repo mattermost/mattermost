@@ -79,8 +79,8 @@ type ServiceSettings struct {
 
 type ClusterSettings struct {
 	Enable                 *bool
-	InternodeListenAddress *string
-	InternodeUrls          []string
+	InterNodeListenAddress *string
+	InterNodeUrls          []string
 }
 
 type SSOSettings struct {
@@ -697,9 +697,9 @@ func (o *Config) SetDefaults() {
 		*o.ServiceSettings.RestrictCustomEmojiCreation = RESTRICT_EMOJI_CREATION_ALL
 	}
 
-	if o.ClusterSettings.InternodeListenAddress == nil {
-		o.ClusterSettings.InternodeListenAddress = new(string)
-		*o.ClusterSettings.InternodeListenAddress = ":8075"
+	if o.ClusterSettings.InterNodeListenAddress == nil {
+		o.ClusterSettings.InterNodeListenAddress = new(string)
+		*o.ClusterSettings.InterNodeListenAddress = ":8075"
 	}
 
 	if o.ClusterSettings.Enable == nil {
@@ -707,8 +707,8 @@ func (o *Config) SetDefaults() {
 		*o.ClusterSettings.Enable = false
 	}
 
-	if o.ClusterSettings.InternodeUrls == nil {
-		o.ClusterSettings.InternodeUrls = []string{}
+	if o.ClusterSettings.InterNodeUrls == nil {
+		o.ClusterSettings.InterNodeUrls = []string{}
 	}
 
 	if o.ComplianceSettings.Enable == nil {

@@ -10,7 +10,9 @@ import (
 
 type ClusterInfo struct {
 	Id                 string `json:"id"`
-	InternodeUrl       string `json:"internode_url"`
+	Version            string `json:"version"`
+	ConfigHash         string `json:"config_hash"`
+	InterNodeUrl       string `json:"internode_url"`
 	Hostname           string `json:"hostname"`
 	LastSuccessfulPing int64  `json:"last_ping"`
 	IsAlive            bool   `json:"is_alive"`
