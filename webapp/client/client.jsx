@@ -40,7 +40,7 @@ export default class Client {
     }
 
     getTeamId() {
-        if (this.teamId === '') {
+        if (!this.teamId) {
             console.error('You are trying to use a route that requires a team_id, but you have not called setTeamId() in client.jsx'); // eslint-disable-line no-console
         }
 
