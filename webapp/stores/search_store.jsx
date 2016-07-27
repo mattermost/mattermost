@@ -18,6 +18,7 @@ class SearchStoreClass extends EventEmitter {
 
         this.searchResults = null;
         this.isMentionSearch = false;
+        this.isFlaggedPosts = false;
         this.searchTerm = '';
     }
 
@@ -77,6 +78,10 @@ class SearchStoreClass extends EventEmitter {
         return this.isMentionSearch;
     }
 
+    getIsFlaggedPosts() {
+        return this.isFlaggedPosts;
+    }
+
     storeSearchTerm(term) {
         this.searchTerm = term;
     }
@@ -85,9 +90,10 @@ class SearchStoreClass extends EventEmitter {
         return this.searchTerm;
     }
 
-    storeSearchResults(results, isMentionSearch) {
+    storeSearchResults(results, isMentionSearch, isFlaggedPosts) {
         this.searchResults = results;
         this.isMentionSearch = isMentionSearch;
+        this.isFlaggedPosts = isFlaggedPosts;
     }
 }
 
@@ -98,7 +104,7 @@ SearchStore.dispatchToken = AppDispatcher.register((payload) => {
 
     switch (action.type) {
     case ActionTypes.RECEIVED_SEARCH:
-        SearchStore.storeSearchResults(action.results, action.is_mention_search);
+        SearchStore.storeSearchResults(action.results, action.is_mention_search, action.is_flagged_posts);
         SearchStore.emitSearchChange();
         break;
     case ActionTypes.RECEIVED_SEARCH_TERM:

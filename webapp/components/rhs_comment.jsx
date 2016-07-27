@@ -9,12 +9,14 @@ import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
+import {flagPost, unflagPost} from 'actions/post_actions.jsx';
 
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Client from 'client/web_client.jsx';
 
 import Constants from 'utils/constants.jsx';
+import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 
 import {FormattedMessage, FormattedDate} from 'react-intl';
 
@@ -27,19 +29,27 @@ export default class RhsComment extends React.Component {
         super(props);
 
         this.handlePermalink = this.handlePermalink.bind(this);
+        this.flagPost = this.flagPost.bind(this);
+        this.unflagPost = this.unflagPost.bind(this);
 
         this.state = {};
     }
+
     handlePermalink(e) {
         e.preventDefault();
         GlobalActions.showGetPostLinkModal(this.props.post);
     }
+
     shouldComponentUpdate(nextProps) {
         if (nextProps.compactDisplay !== this.props.compactDisplay) {
             return true;
         }
 
         if (nextProps.useMilitaryTime !== this.props.useMilitaryTime) {
+            return true;
+        }
+
+        if (nextProps.isFlagged !== this.props.isFlagged) {
             return true;
         }
 
@@ -53,6 +63,17 @@ export default class RhsComment extends React.Component {
 
         return false;
     }
+
+    flagPost(e) {
+        e.preventDefault();
+        flagPost(this.props.post.id);
+    }
+
+    unflagPost(e) {
+        e.preventDefault();
+        unflagPost(this.props.post.id);
+    }
+
     createDropdown() {
         var post = this.props.post;
 
@@ -153,8 +174,10 @@ export default class RhsComment extends React.Component {
             </div>
             );
     }
+
     render() {
         var post = this.props.post;
+        const flagIcon = Constants.FLAG_ICON_SVG;
 
         var currentUserCss = '';
         if (this.props.currentUser === post.user_id) {
@@ -227,6 +250,44 @@ export default class RhsComment extends React.Component {
             );
         }
 
+        let flag;
+        let flagFunc;
+        let flagVisibile = '';
+        let flagTooltip = (
+            <Tooltip id='flagTooltip'>
+                <FormattedMessage
+                    id='flag_post.flag'
+                    defaultMessage='Flag this post'
+                />
+            </Tooltip>
+        );
+        if (this.props.isFlagged) {
+            flagVisibile = 'visible';
+            flag = (
+                <span
+                    className='icon'
+                    dangerouslySetInnerHTML={{__html: flagIcon}}
+                />
+            );
+            flagFunc = this.unflagPost;
+            flagTooltip = (
+                <Tooltip id='flagTooltip'>
+                    <FormattedMessage
+                        id='flag_post.unflag'
+                        defaultMessage='Unflag this post'
+                    />
+                </Tooltip>
+            );
+        } else {
+            flag = (
+                <span
+                    className='icon'
+                    dangerouslySetInnerHTML={{__html: flagIcon}}
+                />
+            );
+            flagFunc = this.flagPost;
+        }
+
         return (
             <div className={'post post--thread ' + currentUserCss + ' ' + compactClass}>
                 <div className='post__content'>
@@ -249,6 +310,19 @@ export default class RhsComment extends React.Component {
                                         minute='2-digit'
                                     />
                                 </time>
+                                <OverlayTrigger
+                                    delayShow={Constants.OVERLAY_TIME_DELAY}
+                                    placement='top'
+                                    overlay={flagTooltip}
+                                >
+                                    <a
+                                        href='#'
+                                        className={'flag-icon__container ' + flagVisibile}
+                                        onClick={flagFunc}
+                                    >
+                                        {flag}
+                                    </a>
+                                </OverlayTrigger>
                             </li>
                             <li className='col col__reply'>
                                 {dropdown}
@@ -273,5 +347,6 @@ RhsComment.propTypes = {
     user: React.PropTypes.object.isRequired,
     currentUser: React.PropTypes.object.isRequired,
     compactDisplay: React.PropTypes.bool,
-    useMilitaryTime: React.PropTypes.bool.isRequired
+    useMilitaryTime: React.PropTypes.bool.isRequired,
+    isFlagged: React.PropTypes.bool
 };
