@@ -112,6 +112,7 @@ type PostStore interface {
 	Delete(postId string, time int64) StoreChannel
 	PermanentDeleteByUser(userId string) StoreChannel
 	GetPosts(channelId string, offset int, limit int) StoreChannel
+	GetFlaggedPosts(userId string, offset int, limit int) StoreChannel
 	GetPostsBefore(channelId string, postId string, numPosts int, offset int) StoreChannel
 	GetPostsAfter(channelId string, postId string, numPosts int, offset int) StoreChannel
 	GetPostsSince(channelId string, time int64) StoreChannel

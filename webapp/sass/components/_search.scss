@@ -137,23 +137,31 @@
     }
 }
 
-.search-item__jump {
-    @include opacity(.8);
+.col__controls {
     font-size: 13px;
     position: absolute;
     right: 0;
     top: 0;
 
-    &:hover {
-        @include opacity(1);
-    }
-}
+    a {
+        @include opacity(.8);
+        vertical-align: top;
 
-.search-item__comment {
-    margin-right: 35px;
-    position: absolute;
-    right: 0;
-    top: 0;
+        &:hover {
+            @include opacity(1);
+        }
+    }
+
+
+    .search-item__jump {
+        font-size: 13px;
+        position: relative;
+        top: 1px;
+    }
+
+    .search-item__comment {
+        margin-right: 5px;
+    }
 }
 
 .search-item-time {
