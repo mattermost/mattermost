@@ -521,14 +521,8 @@
                 border-radius: 100%;
             }
 
-            &.status-online:after {
-                background: #7DBE00;
-            }
             &.status-offline:after {
                 background: #D3D3D3;
-            }
-            &.status-away:after {
-                background: #DCBD4E;
             }
         }
     }
