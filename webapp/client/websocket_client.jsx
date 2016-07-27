@@ -10,7 +10,6 @@ export default class WebSocketClient {
         this.conn = null;
         this.sequence = 1;
         this.connectFailCount = 0;
-        this.manuallyClosed = false;
         this.eventCallback = null;
         this.responseCallbacks = {};
         this.reconnectCallback = null;
@@ -26,8 +25,6 @@ export default class WebSocketClient {
         if (this.connectFailCount === 0) {
             console.log('websocket connecting to ' + connectionUrl); //eslint-disable-line no-console
         }
-
-        this.manuallyClosed = false;
 
         this.conn = new WebSocket(connectionUrl);
 
@@ -49,10 +46,6 @@ export default class WebSocketClient {
 
             if (this.connectFailCount === 0) {
                 console.log('websocket closed'); //eslint-disable-line no-console
-            }
-
-            if (this.manuallyClosed) {
-                return;
             }
 
             this.connectFailCount++;
@@ -124,11 +117,13 @@ export default class WebSocketClient {
     }
 
     close() {
-        this.manuallyClosed = true;
         this.connectFailCount = 0;
         this.sequence = 1;
         if (this.conn && this.conn.readyState === WebSocket.OPEN) {
+            this.conn.onclose = () => {}; //eslint-disable-line no-empty-function
             this.conn.close();
+            this.conn = null;
+            console.log('websocket closed'); //eslint-disable-line no-console
         }
     }
 

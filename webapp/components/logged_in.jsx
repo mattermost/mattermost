@@ -25,9 +25,6 @@ export default class LoggedIn extends React.Component {
         this.onUserChanged = this.onUserChanged.bind(this);
         this.setupUser = this.setupUser.bind(this);
 
-        // Initalize websocket
-        WebSocketActions.initialize();
-
         // Force logout of all tabs if one tab is logged out
         $(window).bind('storage', (e) => {
             // when one tab on a browser logs out, it sets __logout__ in localStorage to trigger other tabs to log out
@@ -105,6 +102,9 @@ export default class LoggedIn extends React.Component {
     }
 
     componentDidMount() {
+        // Initalize websocket
+        WebSocketActions.initialize();
+
         // Listen for user
         UserStore.addChangeListener(this.onUserChanged);
 
