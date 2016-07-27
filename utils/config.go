@@ -185,7 +185,7 @@ func LoadConfig(fileName string) {
 	}
 
 	Cfg = &config
-	ClientCfg = getClientConfig(Cfg)
+	RegenerateClientConfig()
 
 	// Actions that need to run every time the config is loaded
 	if ldapI := einterfaces.GetLdapInterface(); ldapI != nil {
@@ -198,6 +198,10 @@ func LoadConfig(fileName string) {
 	}
 }
 
+func RegenerateClientConfig() {
+	ClientCfg = getClientConfig(Cfg)
+}
+
 func getClientConfig(c *model.Config) map[string]string {
 	props := make(map[string]string)
 
@@ -208,6 +212,7 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["BuildHashEnterprise"] = model.BuildHashEnterprise
 	props["BuildEnterpriseReady"] = model.BuildEnterpriseReady
 
+	props["SiteURL"] = *c.ServiceSettings.SiteURL
 	props["SiteName"] = c.TeamSettings.SiteName
 	props["EnableTeamCreation"] = strconv.FormatBool(c.TeamSettings.EnableTeamCreation)
 	props["EnableUserCreation"] = strconv.FormatBool(c.TeamSettings.EnableUserCreation)

@@ -39,7 +39,6 @@ type Context struct {
 	Err          *model.AppError
 	teamURLValid bool
 	teamURL      string
-	siteURL      string
 	T            goi18n.TranslateFunc
 	Locale       string
 	TeamId       string
@@ -139,8 +138,11 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		isTokenFromQueryString = true
 	}
 
-	protocol := GetProtocol(r)
-	c.SetSiteURL(protocol + "://" + r.Host)
+	// if the site url in the config isn't specified, infer if from this request and write it back to the config
+	if *utils.Cfg.ServiceSettings.SiteURL == "" {
+		*utils.Cfg.ServiceSettings.SiteURL = GetProtocol(r) + "://" + r.Host
+		utils.RegenerateClientConfig()
+	}
 
 	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)
 	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v", model.CurrentVersion, utils.CfgLastModified))
@@ -180,7 +182,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.Path = r.URL.Path
 	} else {
 		splitURL := strings.Split(r.URL.Path, "/")
-		c.setTeamURL(protocol+"://"+r.Host+"/"+splitURL[1], true)
+		c.setTeamURL(c.GetSiteURL()+"/"+splitURL[1], true)
 		c.Path = "/" + strings.Join(splitURL[2:], "/")
 	}
 
@@ -431,10 +433,6 @@ func (c *Context) SetTeamURLFromSession() {
 	}
 }
 
-func (c *Context) SetSiteURL(url string) {
-	c.siteURL = url
-}
-
 func (c *Context) GetTeamURLFromTeam(team *model.Team) string {
 	return c.GetSiteURL() + "/" + team.Name
 }
@@ -450,7 +448,7 @@ func (c *Context) GetTeamURL() string {
 }
 
 func (c *Context) GetSiteURL() string {
-	return c.siteURL
+	return *utils.Cfg.ServiceSettings.SiteURL
 }
 
 func IsApiCall(r *http.Request) bool {
