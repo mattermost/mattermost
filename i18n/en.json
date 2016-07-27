@@ -104,6 +104,10 @@
     "translation": "SMTP Server is required"
   },
   {
+    "id": "api.admin.test_email.reenter_password",
+    "translation": "The SMTP server, port, or username has changed. Please re-enter the SMTP password to test connection."
+  },
+  {
     "id": "api.admin.test_email.subject",
     "translation": "Mattermost - Testing Email Settings"
   },

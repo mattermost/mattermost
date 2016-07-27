@@ -46,9 +46,14 @@ export default class EmailConnectionTestButton extends React.Component {
                 });
             },
             (err) => {
+                let fail = err.message;
+                if (err.detailed_error) {
+                    fail += ' - ' + err.detailed_error;
+                }
+
                 this.setState({
                     testing: false,
-                    fail: err.message + ' - ' + err.detailed_error
+                    fail
                 });
             }
         );
