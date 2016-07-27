@@ -310,7 +310,8 @@ export const Constants = {
         'valet',
         'all',
         'channel',
-        'here'
+        'here',
+        'matterbot'
     ],
     MONTHS: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
     MAX_DMS: 20,
