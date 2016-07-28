@@ -20,27 +20,6 @@ function getPrefix() {
 }
 
 class BrowserStoreClass {
-    constructor() {
-        this.getItem = this.getItem.bind(this);
-        this.setItem = this.setItem.bind(this);
-        this.removeItem = this.removeItem.bind(this);
-        this.setGlobalItem = this.setGlobalItem.bind(this);
-        this.getGlobalItem = this.getGlobalItem.bind(this);
-        this.removeGlobalItem = this.removeGlobalItem.bind(this);
-        this.actionOnItemsWithPrefix = this.actionOnItemsWithPrefix.bind(this);
-        this.actionOnGlobalItemsWithPrefix = this.actionOnGlobalItemsWithPrefix.bind(this);
-        this.isLocalStorageSupported = this.isLocalStorageSupported.bind(this);
-        this.getLastServerVersion = this.getLastServerVersion.bind(this);
-        this.setLastServerVersion = this.setLastServerVersion.bind(this);
-        this.clear = this.clear.bind(this);
-        this.clearAll = this.clearAll.bind(this);
-        this.checkedLocalStorageSupported = '';
-        this.signalLogout = this.signalLogout.bind(this);
-        this.isSignallingLogout = this.isSignallingLogout.bind(this);
-        this.signalLogin = this.signalLogin.bind(this);
-        this.isSignallingLogin = this.isSignallingLogin.bind(this);
-    }
-
     setItem(name, value) {
         this.setGlobalItem(getPrefix() + name, value);
     }
@@ -162,9 +141,10 @@ class BrowserStoreClass {
     }
 
     clear() {
-        // don't clear the logout id so IE11 can tell which tab sent a logout request
+        // persist some values through logout since they're independent of which user is logged in
         const logoutId = sessionStorage.getItem('__logout__');
         const serverVersion = this.getLastServerVersion();
+        const landingPageSeen = this.hasSeenLandingPage();
 
         sessionStorage.clear();
         localStorage.clear();
@@ -176,11 +156,10 @@ class BrowserStoreClass {
         if (serverVersion) {
             this.setLastServerVersion(serverVersion);
         }
-    }
 
-    clearAll() {
-        sessionStorage.clear();
-        localStorage.clear();
+        if (landingPageSeen) {
+            this.setLandingPageSeen(landingPageSeen);
+        }
     }
 
     isLocalStorageSupported() {
@@ -209,6 +188,14 @@ class BrowserStoreClass {
         }
 
         return this.checkedLocalStorageSupported;
+    }
+
+    hasSeenLandingPage() {
+        return JSON.parse(sessionStorage.getItem('__landingPageSeen__'));
+    }
+
+    setLandingPageSeen(landingPageSeen) {
+        return sessionStorage.setItem('__landingPageSeen__', JSON.stringify(landingPageSeen));
     }
 }
 
