@@ -160,8 +160,8 @@ export default class AddCommand extends React.Component {
 
         AsyncClient.addCommand(
             command,
-            () => {
-                browserHistory.push('/' + this.props.team.name + '/integrations/commands');
+            (data) => {
+                browserHistory.push('/' + this.props.team.name + '/integrations/confirm?type=commands&id=' + data.token);
             },
             (err) => {
                 this.setState({
@@ -313,7 +313,7 @@ export default class AddCommand extends React.Component {
                         />
                     </Link>
                     <FormattedMessage
-                        id='add_command.header'
+                        id='integrations.add'
                         defaultMessage='Add'
                     />
                 </BackstageHeader>
