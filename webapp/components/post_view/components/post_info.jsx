@@ -83,6 +83,44 @@ export default class PostInfo extends React.Component {
              );
         }
 
+        if (Utils.isMobile()) {
+            if (this.props.isFlagged) {
+                dropdownContents.push(
+                    <li
+                        key='mobileFlag'
+                        role='presentation'
+                    >
+                        <a
+                            href='#'
+                            onClick={this.unflagPost}
+                        >
+                            <FormattedMessage
+                                id='rhs_root.mobile.unflag'
+                                defaultMessage='Unflag'
+                            />
+                        </a>
+                    </li>
+                );
+            } else {
+                dropdownContents.push(
+                    <li
+                        key='mobileFlag'
+                        role='presentation'
+                    >
+                        <a
+                            href='#'
+                            onClick={this.flagPost}
+                        >
+                            <FormattedMessage
+                                id='rhs_root.mobile.flag'
+                                defaultMessage='Flag'
+                            />
+                        </a>
+                    </li>
+                );
+            }
+        }
+
         dropdownContents.push(
             <li
                 key='copyLink'
@@ -262,7 +300,7 @@ export default class PostInfo extends React.Component {
 
         let flag;
         let flagFunc;
-        let flagVisibile = '';
+        let flagVisible = '';
         let flagTooltip = (
             <Tooltip id='flagTooltip'>
                 <FormattedMessage
@@ -272,7 +310,7 @@ export default class PostInfo extends React.Component {
             </Tooltip>
         );
         if (this.props.isFlagged) {
-            flagVisibile = 'visible';
+            flagVisible = 'visible';
             flag = (
                 <span
                     className='icon'
@@ -308,13 +346,14 @@ export default class PostInfo extends React.Component {
                         useMilitaryTime={this.props.useMilitaryTime}
                     />
                     <OverlayTrigger
+                        key={'flagtooltipkey' + flagVisible}
                         delayShow={Constants.OVERLAY_TIME_DELAY}
                         placement='top'
                         overlay={flagTooltip}
                     >
                         <a
                             href='#'
-                            className={'flag-icon__container ' + flagVisibile}
+                            className={'flag-icon__container ' + flagVisible}
                             onClick={flagFunc}
                         >
                             {flag}

@@ -12,6 +12,7 @@ import TeamStore from 'stores/team_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
+import {getFlaggedPosts} from 'actions/post_actions.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
@@ -35,6 +36,7 @@ export default class SidebarRightMenu extends React.Component {
         this.handleAboutModal = this.handleAboutModal.bind(this);
         this.searchMentions = this.searchMentions.bind(this);
         this.aboutModalDismissed = this.aboutModalDismissed.bind(this);
+        this.getFlagged = this.getFlagged.bind(this);
 
         const state = this.getStateFromStores();
         state.showUserSettingsModal = false;
@@ -51,6 +53,11 @@ export default class SidebarRightMenu extends React.Component {
 
     aboutModalDismissed() {
         this.setState({showAboutModal: false});
+    }
+
+    getFlagged(e) {
+        e.preventDefault();
+        getFlaggedPosts();
     }
 
     componentDidMount() {
@@ -341,6 +348,18 @@ export default class SidebarRightMenu extends React.Component {
                                 <FormattedMessage
                                     id='sidebar_right_menu.recentMentions'
                                     defaultMessage='Recent Mentions'
+                                />
+                            </a>
+                        </li>
+                        <li>
+                            <a
+                                href='#'
+                                onClick={this.getFlagged}
+                            >
+                                <i className='icon fa fa-flag'></i>
+                                <FormattedMessage
+                                    id='sidebar_right_menu.flagged'
+                                    defaultMessage='Flagged Posts'
                                 />
                             </a>
                         </li>
