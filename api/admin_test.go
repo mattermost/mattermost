@@ -25,6 +25,18 @@ func TestGetLogs(t *testing.T) {
 	}
 }
 
+func TestGetClusterInfos(t *testing.T) {
+	th := Setup().InitSystemAdmin().InitBasic()
+
+	if _, err := th.BasicClient.GetClusterStatus(); err == nil {
+		t.Fatal("Shouldn't have permissions")
+	}
+
+	if _, err := th.SystemAdminClient.GetClusterStatus(); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestGetAllAudits(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 

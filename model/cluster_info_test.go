@@ -17,3 +17,16 @@ func TestClusterInfoJson(t *testing.T) {
 		t.Fatal("Ids do not match")
 	}
 }
+
+func TestClusterInfosJson(t *testing.T) {
+	cluster := ClusterInfo{Id: NewId(), InterNodeUrl: NewId(), Hostname: NewId()}
+	clusterInfos := make([]*ClusterInfo, 1)
+	clusterInfos[0] = &cluster
+	json := ClusterInfosToJson(clusterInfos)
+	result := ClusterInfosFromJson(strings.NewReader(json))
+
+	if clusterInfos[0].Id != result[0].Id {
+		t.Fatal("Ids do not match")
+	}
+
+}

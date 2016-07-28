@@ -1,7 +1,8 @@
 @charset 'UTF-8';
 
 .compliance-panel__table,
-.audit-panel__table {
+.audit-panel__table,
+.cluster-panel__table {
     background-color: $white;
     border: 1px solid $border-gray;
     margin-top: 10px;

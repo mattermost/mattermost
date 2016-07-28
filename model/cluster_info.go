@@ -45,3 +45,22 @@ func (me *ClusterInfo) HaveEstablishedInitialContact() bool {
 
 	return false
 }
+
+func ClusterInfosToJson(objmap []*ClusterInfo) string {
+	if b, err := json.Marshal(objmap); err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
+func ClusterInfosFromJson(data io.Reader) []*ClusterInfo {
+	decoder := json.NewDecoder(data)
+
+	var objmap []*ClusterInfo
+	if err := decoder.Decode(&objmap); err != nil {
+		return make([]*ClusterInfo, 0)
+	} else {
+		return objmap
+	}
+}

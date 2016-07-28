@@ -10,11 +10,15 @@ import (
 type ClusterInterface interface {
 	StartInterNodeCommunication()
 	StopInterNodeCommunication()
+	GetClusterInfos() []*model.ClusterInfo
 	RemoveAllSessionsForUserId(userId string)
 	InvalidateCacheForUser(userId string)
 	InvalidateCacheForChannel(channelId string)
 	Publish(event *model.WebSocketEvent)
 	UpdateStatus(status *model.Status)
+	GetLogs() ([]string, *model.AppError)
+	GetClusterId() string
+	ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) *model.AppError
 }
 
 var theClusterInterface ClusterInterface

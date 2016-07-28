@@ -177,6 +177,7 @@ export default class AdminSidebar extends React.Component {
     render() {
         let ldapSettings = null;
         let samlSettings = null;
+        let clusterSettings = null;
         let complianceSettings = null;
 
         let license = null;
@@ -207,6 +208,20 @@ export default class AdminSidebar extends React.Component {
                                 <FormattedMessage
                                     id='admin.sidebar.saml'
                                     defaultMessage='SAML'
+                                />
+                            }
+                        />
+                    );
+                }
+
+                if (global.window.mm_license.Cluster === 'true') {
+                    clusterSettings = (
+                        <AdminSidebarSection
+                            name='cluster'
+                            title={
+                                <FormattedMessage
+                                    id='admin.sidebar.cluster'
+                                    defaultMessage='High Availability'
                                 />
                             }
                         />
@@ -629,6 +644,7 @@ export default class AdminSidebar extends React.Component {
                                         />
                                     }
                                 />
+                                {clusterSettings}
                             </AdminSidebarSection>
                         </AdminSidebarCategory>
                         {this.renderTeams()}

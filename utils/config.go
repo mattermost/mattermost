@@ -295,6 +295,10 @@ func getClientConfig(c *model.Config) map[string]string {
 			props["SamlLoginButtonText"] = *c.SamlSettings.LoginButtonText
 		}
 
+		if *License.Features.Cluster {
+			props["EnableCluster"] = strconv.FormatBool(*c.ClusterSettings.Enable)
+		}
+
 		if *License.Features.PasswordRequirements {
 			props["PasswordMinimumLength"] = fmt.Sprintf("%v", *c.PasswordSettings.MinimumLength)
 			props["PasswordRequireLowercase"] = strconv.FormatBool(*c.PasswordSettings.Lowercase)

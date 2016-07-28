@@ -20,6 +20,7 @@ import (
 const (
 	HEADER_REQUEST_ID         = "X-Request-ID"
 	HEADER_VERSION_ID         = "X-Version-ID"
+	HEADER_CLUSTER_ID         = "X-Cluster-ID"
 	HEADER_ETAG_SERVER        = "ETag"
 	HEADER_ETAG_CLIENT        = "If-None-Match"
 	HEADER_FORWARDED          = "X-Forwarded-For"
@@ -805,6 +806,15 @@ func (c *Client) GetLogs() (*Result, *AppError) {
 		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), ArrayFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) GetClusterStatus() ([]*ClusterInfo, *AppError) {
+	if r, err := c.DoApiGet("/admin/cluster_status", "", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return ClusterInfosFromJson(r.Body), nil
 	}
 }
 

@@ -144,6 +144,9 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)
 	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v", model.CurrentVersion, utils.CfgHash))
+	if einterfaces.GetClusterInterface() != nil {
+		w.Header().Set(model.HEADER_CLUSTER_ID, einterfaces.GetClusterInterface().GetClusterId())
+	}
 
 	// Instruct the browser not to display us in an iframe for anti-clickjacking
 	if !h.isApi {

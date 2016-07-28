@@ -4636,6 +4636,10 @@
     "translation": "Cluster internode communication is listening on %v with hostname=%v id=%v"
   },
   {
+    "id": "ent.cluster.config_changed.info",
+    "translation": "Cluster configuration has changed for id=%v.  Attempting to restart cluster service.  To ensure the cluster is configured correctly you should not rely on this restart because we detected a core configuration change."
+  },
+  {
     "id": "ent.cluster.stopping.info",
     "translation": "Cluster internode communication is stopping on %v with hostname=%v id=%v"
   },
@@ -4649,15 +4653,11 @@
   },
   {
     "id": "ent.cluster.incompatibile.warn",
-    "translation": "Potentail incompatibile version detected for clustering with %v"
+    "translation": "Potential incompatibile version detected for clustering with %v"
   },
   {
     "id": "ent.cluster.incompatibile_config.warn",
-    "translation": "Potentail incompatibile config detected for clustering with %v"
-  },
-  {
-    "id": "ent.cluster.validate_config.app_error",
-    "translation": "Admin console is in read-only mode because high availability is enabled"
+    "translation": "Potential incompatibile config detected for clustering with %v"
   },
   {
     "id": "ent.cluster.debug_fail.debug",
