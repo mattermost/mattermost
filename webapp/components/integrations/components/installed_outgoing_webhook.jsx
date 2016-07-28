@@ -66,6 +66,8 @@ export default class InstalledOutgoingWebhook extends React.Component {
         const outgoingWebhook = this.props.outgoingWebhook;
         const channel = ChannelStore.get(outgoingWebhook.channel_id);
         const filter = this.props.filter ? this.props.filter.toLowerCase() : '';
+        const triggerWordsFull = 0;
+        const triggerWordsStartsWith = 1;
 
         if (!this.matchesFilter(outgoingWebhook, channel, filter)) {
             return null;
@@ -127,6 +129,23 @@ export default class InstalledOutgoingWebhook extends React.Component {
             </div>
         );
 
+        let triggerWhen;
+        if (outgoingWebhook.trigger_when === triggerWordsFull) {
+            triggerWhen = (
+                <FormattedMessage
+                    id='add_outgoing_webhook.triggerWordsTriggerWhenFullWord'
+                    defaultMessage='First word matches a trigger word exactly'
+                />
+            );
+        } else if (outgoingWebhook.trigger_when === triggerWordsStartsWith) {
+            triggerWhen = (
+                <FormattedMessage
+                    id='add_outgoing_webhook.triggerWordsTriggerWhenStartsWith'
+                    defaultMessage='First word starts with a trigger word'
+                />
+            );
+        }
+
         return (
             <div className='backstage-list__item'>
                 <div className='item-details'>
@@ -148,6 +167,17 @@ export default class InstalledOutgoingWebhook extends React.Component {
                         </span>
                     </div>
                     {triggerWords}
+                    <div className='item-details__row'>
+                        <span className='item-details__trigger-when'>
+                            <FormattedMessage
+                                id='installed_integrations.triggerWhen'
+                                defaultMessage='Trigger When: {triggerWhen}'
+                                values={{
+                                    triggerWhen
+                                }}
+                            />
+                        </span>
+                    </div>
                     <div className='item-details__row'>
                         <span className='item-details__token'>
                             <FormattedMessage

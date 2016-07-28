@@ -349,7 +349,7 @@ export default class LdapSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.ldap.syncIntervalHelpText'
-                            defaultMessage='LDAP Synchronization is the process by which Mattermost updates its users to reflect any updated data on the LDAP server. For example if a name for a user is updated on the LDAP server, the change will be reflected in Mattermost when the synchronization is performed. Accounts that have been removed from the LDAP server will have their active sessions cleared and no longer be able to login to Mattermost. Mattermost will perform this synchronization regularly according to the interval supplied here. For example, if 60 is supplied, Mattermost will update the users every hour.'
+                            defaultMessage='LDAP Synchronization updates Mattermost user information to reflect updates on the LDAP server. For example, when a user’s name changes on the LDAP server, the change updates in Mattermost when synchronization is performed. Accounts removed from or disabled in the LDAP server have their Mattermost accounts set to “Inactive” and have their account sessions revoked. Mattermost performs synchronization on the interval entered. For example, if 60 is entered, Mattermost synchronizes every 60 minutes.'
                         />
                     }
                     value={this.state.syncIntervalMinutes}

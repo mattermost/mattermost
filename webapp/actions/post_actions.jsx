@@ -22,8 +22,10 @@ export function handleNewPost(post, msg) {
         } else {
             AsyncClient.getChannel(post.channel_id);
         }
-    } else if (msg && (TeamStore.getCurrentId() === msg.team_id || msg.props.channel_type === Constants.DM_CHANNEL)) {
-        AsyncClient.getChannel(post.channel_id);
+    } else if (msg && (TeamStore.getCurrentId() === msg.team_id || msg.data.channel_type === Constants.DM_CHANNEL)) {
+        if (Client.teamId) {
+            AsyncClient.getChannel(post.channel_id);
+        }
     }
 
     var websocketMessageProps = null;

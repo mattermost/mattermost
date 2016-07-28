@@ -260,6 +260,11 @@ export default class UserItem extends React.Component {
             showMakeNotActive = false;
         }
 
+        let disableActivationToggle = false;
+        if (user.auth_service === Constants.LDAP_SERVICE) {
+            disableActivationToggle = true;
+        }
+
         let makeSystemAdmin = null;
         if (showMakeSystemAdmin) {
             makeSystemAdmin = (
@@ -332,10 +337,18 @@ export default class UserItem extends React.Component {
             );
         }
 
+        let menuClass = '';
+        if (disableActivationToggle) {
+            menuClass = 'disabled';
+        }
+
         let makeActive = null;
         if (showMakeActive) {
             makeActive = (
-                <li role='presentation'>
+                <li
+                    role='presentation'
+                    className={menuClass}
+                >
                     <a
                         role='menuitem'
                         href='#'
@@ -353,7 +366,10 @@ export default class UserItem extends React.Component {
         let makeNotActive = null;
         if (showMakeNotActive) {
             makeNotActive = (
-                <li role='presentation'>
+                <li
+                    role='presentation'
+                    className={menuClass}
+                >
                     <a
                         role='menuitem'
                         href='#'

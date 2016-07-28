@@ -62,8 +62,10 @@ export function getStatuses() {
 }
 
 function handleReconnect() {
-    AsyncClient.getChannels();
-    AsyncClient.getPosts(ChannelStore.getCurrentId());
+    if (Client.teamId) {
+        AsyncClient.getChannels();
+        AsyncClient.getPosts(ChannelStore.getCurrentId());
+    }
     getStatuses();
     ErrorStore.clearLastError();
     ErrorStore.emitChange();

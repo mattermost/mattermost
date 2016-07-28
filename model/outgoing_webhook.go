@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/url"
 	"strconv"
+	"strings"
 )
 
 type OutgoingWebhook struct {
@@ -21,6 +22,7 @@ type OutgoingWebhook struct {
 	ChannelId    string      `json:"channel_id"`
 	TeamId       string      `json:"team_id"`
 	TriggerWords StringArray `json:"trigger_words"`
+	TriggerWhen  int         `json:"trigger_when"`
 	CallbackURLs StringArray `json:"callback_urls"`
 	DisplayName  string      `json:"display_name"`
 	Description  string      `json:"description"`
@@ -171,6 +173,10 @@ func (o *OutgoingWebhook) IsValid() *AppError {
 		return NewLocAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.content_type.app_error", nil, "")
 	}
 
+	if o.TriggerWhen > 1 {
+		return NewLocAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.content_type.app_error", nil, "")
+	}
+
 	return nil
 }
 
@@ -198,6 +204,20 @@ func (o *OutgoingWebhook) HasTriggerWord(word string) bool {
 
 	for _, trigger := range o.TriggerWords {
 		if trigger == word {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (o *OutgoingWebhook) TriggerWordStartsWith(word string) bool {
+	if len(o.TriggerWords) == 0 || len(word) == 0 {
+		return false
+	}
+
+	for _, trigger := range o.TriggerWords {
+		if strings.HasPrefix(word, trigger) {
 			return true
 		}
 	}

@@ -163,3 +163,14 @@ func TestOutgoingWebhookPreUpdate(t *testing.T) {
 	o := OutgoingWebhook{}
 	o.PreUpdate()
 }
+
+func TestOutgoingWebhookTriggerWordStartsWith(t *testing.T) {
+	o := OutgoingWebhook{Id: NewId()}
+	o.TriggerWords = append(o.TriggerWords, "foo")
+	if !o.TriggerWordStartsWith("foobar") {
+		t.Fatal("Should return true")
+	}
+	if o.TriggerWordStartsWith("barfoo") {
+		t.Fatal("Should return false")
+	}
+}

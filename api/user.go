@@ -1608,14 +1608,21 @@ func updateActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ruser := UpdateActive(c, user, active)
+	if user.IsLDAPUser() {
+		c.Err = model.NewLocAppError("updateActive", "api.user.update_active.no_deactivate_ldap.app_error", nil, "userId="+user_id)
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
 
-	if c.Err == nil {
+	if ruser, err := UpdateActive(user, active); err != nil {
+		c.Err = err
+	} else {
+		c.LogAuditWithUserId(ruser.Id, fmt.Sprintf("active=%v", active))
 		w.Write([]byte(ruser.ToJson()))
 	}
 }
 
-func UpdateActive(c *Context, user *model.User, active bool) *model.User {
+func UpdateActive(user *model.User, active bool) (*model.User, *model.AppError) {
 	if active {
 		user.DeleteAt = 0
 	} else {
@@ -1623,24 +1630,21 @@ func UpdateActive(c *Context, user *model.User, active bool) *model.User {
 	}
 
 	if result := <-Srv.Store.User().Update(user, true); result.Err != nil {
-		c.Err = result.Err
-		return nil
+		return nil, result.Err
 	} else {
-		c.LogAuditWithUserId(user.Id, fmt.Sprintf("active=%v", active))
-
 		if user.DeleteAt > 0 {
-			RevokeAllSession(c, user.Id)
+			RevokeAllSessionsNoContext(user.Id)
 		}
 
 		if extra := <-Srv.Store.Channel().ExtraUpdateByUser(user.Id, model.GetMillis()); extra.Err != nil {
-			c.Err = extra.Err
+			return nil, extra.Err
 		}
 
 		ruser := result.Data.([2]*model.User)[0]
 		options := utils.Cfg.GetSanitizeOptions()
 		options["passwordupdate"] = false
 		ruser.Sanitize(options)
-		return ruser
+		return ruser, nil
 	}
 }
 
@@ -1653,7 +1657,9 @@ func PermanentDeleteUser(c *Context, user *model.User) *model.AppError {
 		l4g.Warn(utils.T("api.user.permanent_delete_user.system_admin.warn"), user.Email)
 	}
 
-	UpdateActive(c, user, false)
+	if _, err := UpdateActive(user, false); err != nil {
+		return err
+	}
 
 	if result := <-Srv.Store.Session().PermanentDeleteSessionsByUser(user.Id); result.Err != nil {
 		return result.Err

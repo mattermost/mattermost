@@ -496,7 +496,7 @@ func (o *Config) SetDefaults() {
 
 	if o.SupportSettings.TermsOfServiceLink == nil {
 		o.SupportSettings.TermsOfServiceLink = new(string)
-		*o.SupportSettings.TermsOfServiceLink = "/static/help/terms.html"
+		*o.SupportSettings.TermsOfServiceLink = ""
 	}
 
 	if !IsSafeLink(o.SupportSettings.PrivacyPolicyLink) {
@@ -505,7 +505,7 @@ func (o *Config) SetDefaults() {
 
 	if o.SupportSettings.PrivacyPolicyLink == nil {
 		o.SupportSettings.PrivacyPolicyLink = new(string)
-		*o.SupportSettings.PrivacyPolicyLink = "/static/help/privacy.html"
+		*o.SupportSettings.PrivacyPolicyLink = ""
 	}
 
 	if !IsSafeLink(o.SupportSettings.AboutLink) {
@@ -514,7 +514,7 @@ func (o *Config) SetDefaults() {
 
 	if o.SupportSettings.AboutLink == nil {
 		o.SupportSettings.AboutLink = new(string)
-		*o.SupportSettings.AboutLink = "/static/help/about.html"
+		*o.SupportSettings.AboutLink = ""
 	}
 
 	if !IsSafeLink(o.SupportSettings.HelpLink) {
@@ -523,7 +523,7 @@ func (o *Config) SetDefaults() {
 
 	if o.SupportSettings.HelpLink == nil {
 		o.SupportSettings.HelpLink = new(string)
-		*o.SupportSettings.HelpLink = "/static/help/help.html"
+		*o.SupportSettings.HelpLink = ""
 	}
 
 	if !IsSafeLink(o.SupportSettings.ReportAProblemLink) {
@@ -532,7 +532,7 @@ func (o *Config) SetDefaults() {
 
 	if o.SupportSettings.ReportAProblemLink == nil {
 		o.SupportSettings.ReportAProblemLink = new(string)
-		*o.SupportSettings.ReportAProblemLink = "/static/help/report_problem.html"
+		*o.SupportSettings.ReportAProblemLink = ""
 	}
 
 	if o.SupportSettings.SupportEmail == nil {
@@ -950,14 +950,6 @@ func (o *Config) IsValid() *AppError {
 
 		if *o.LdapSettings.BaseDN == "" {
 			return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_basedn", nil, "")
-		}
-
-		if *o.LdapSettings.BindUsername == "" {
-			return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_bind_username", nil, "")
-		}
-
-		if *o.LdapSettings.BindPassword == "" {
-			return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_bind_password", nil, "")
 		}
 
 		if *o.LdapSettings.FirstNameAttribute == "" {
