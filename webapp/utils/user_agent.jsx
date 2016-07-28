@@ -62,7 +62,7 @@ export function isIosWeb() {
 }
 
 export function isAndroidChrome() {
-    return userAgent.indexOf('Android') !== -1 && userAgent.indexOf('Chrome') !== -1 && !userAgent.indexOf('Version') === -1;
+    return userAgent.indexOf('Android') !== -1 && userAgent.indexOf('Chrome') !== -1 && userAgent.indexOf('Version') === -1;
 }
 
 export function isAndroidWeb() {
