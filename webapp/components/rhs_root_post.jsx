@@ -115,7 +115,43 @@ export default class RhsRootPost extends React.Component {
 
         var dropdownContents = [];
 
-        if (!Utils.isMobile()) {
+        if (Utils.isMobile()) {
+            if (this.props.isFlagged) {
+                dropdownContents.push(
+                    <li
+                        key='mobileFlag'
+                        role='presentation'
+                    >
+                        <a
+                            href='#'
+                            onClick={this.unflagPost}
+                        >
+                            <FormattedMessage
+                                id='rhs_root.mobile.unflag'
+                                defaultMessage='Unflag'
+                            />
+                        </a>
+                    </li>
+                );
+            } else {
+                dropdownContents.push(
+                    <li
+                        key='mobileFlag'
+                        role='presentation'
+                    >
+                        <a
+                            href='#'
+                            onClick={this.flagPost}
+                        >
+                            <FormattedMessage
+                                id='rhs_root.mobile.flag'
+                                defaultMessage='Flag'
+                            />
+                        </a>
+                    </li>
+                );
+            }
+        } else {
             dropdownContents.push(
                 <li
                     key='rhs-root-permalink'
