@@ -39,12 +39,14 @@
         }
     }
 
-    .dropdown-menu {
+    .navbar-nav > li > .dropdown-menu {
         max-height: 80vh;
         max-width: 200px;
         overflow-x: hidden;
         overflow-y: auto;
         width: 200px;
+        margin-top: 3px;
+        margin-left: 2px;
     }
 
     .search__form {
