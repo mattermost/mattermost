@@ -7,7 +7,7 @@ import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import BackstageHeader from 'components/backstage/components/backstage_header.jsx';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 import FormError from 'components/form_error.jsx';
 import {browserHistory, Link} from 'react-router/es6';
 import SpinnerButton from 'components/spinner_button.jsx';
@@ -39,6 +39,9 @@ export default class AddCommand extends React.Component {
         this.updateAutocompleteHint = this.updateAutocompleteHint.bind(this);
         this.updateAutocompleteDescription = this.updateAutocompleteDescription.bind(this);
 
+        this.renderDone = this.renderDone.bind(this);
+        this.handleDone = this.handleDone.bind(this);
+
         this.state = {
             displayName: '',
             description: '',
@@ -51,6 +54,8 @@ export default class AddCommand extends React.Component {
             autocompleteHint: '',
             autocompleteDescription: '',
             saving: false,
+            isDone: false,
+            token: '',
             serverError: '',
             clientError: null
         };
@@ -66,7 +71,8 @@ export default class AddCommand extends React.Component {
         this.setState({
             saving: true,
             serverError: '',
-            clientError: ''
+            clientError: '',
+            token: ''
         });
 
         const command = {
@@ -160,8 +166,11 @@ export default class AddCommand extends React.Component {
 
         AsyncClient.addCommand(
             command,
-            () => {
-                browserHistory.push('/' + this.props.team.name + '/integrations/commands');
+            (data) => {
+                this.setState({
+                    isDone: true,
+                    token: data.token
+                });
             },
             (err) => {
                 this.setState({
@@ -169,6 +178,48 @@ export default class AddCommand extends React.Component {
                     serverError: err.message
                 });
             }
+        );
+    }
+
+    handleDone() {
+        browserHistory.push('/' + this.props.team.name + '/integrations/commands');
+        this.setState({
+            isDone: false,
+            token: ''
+        });
+    }
+
+    renderDone() {
+        return (
+            <div>
+                <div className='backstage-list__help'>
+                    <FormattedHTMLMessage
+                        id='add_command.doneHelp'
+                        defaultMessage='Your slash command has been set up. The following token will be sent in the outgoing payload. Please use it to verify the request came from your Mattermost team (see <a href="https://docs.mattermost.com/developer/slash-commands.html">documentation</a> for further details).'
+                    />
+                </div>
+                <div className='backstage-list__help'>
+                    <FormattedMessage
+                        id='add_command.token'
+                        defaultMessage='Token: {token}'
+                        values={{
+                            token: this.state.token
+                        }}
+                    />
+                </div>
+                <div className='backstage-list__help'>
+                    <SpinnerButton
+                        className='btn btn-primary'
+                        type='submit'
+                        onClick={this.handleDone}
+                    >
+                        <FormattedMessage
+                            id='integrations.done'
+                            defaultMessage='Done'
+                        />
+                    </SpinnerButton>
+                </div>
+            </div>
         );
     }
 
@@ -303,20 +354,11 @@ export default class AddCommand extends React.Component {
             )];
         }
 
-        return (
-            <div className='backstage-content row'>
-                <BackstageHeader>
-                    <Link to={'/' + this.props.team.name + '/integrations/commands'}>
-                        <FormattedMessage
-                            id='installed_command.header'
-                            defaultMessage='Slash Commands'
-                        />
-                    </Link>
-                    <FormattedMessage
-                        id='add_command.header'
-                        defaultMessage='Add'
-                    />
-                </BackstageHeader>
+        let content = null;
+        if (this.state.isDone) {
+            content = this.renderDone();
+        } else {
+            content = (
                 <div className='backstage-form'>
                     <form
                         className='form-horizontal'
@@ -564,6 +606,24 @@ export default class AddCommand extends React.Component {
                         </div>
                     </form>
                 </div>
+            );
+        }
+
+        return (
+            <div className='backstage-content row'>
+                <BackstageHeader>
+                    <Link to={'/' + this.props.team.name + '/integrations/commands'}>
+                        <FormattedMessage
+                            id='installed_command.header'
+                            defaultMessage='Slash Commands'
+                        />
+                    </Link>
+                    <FormattedMessage
+                        id='add_command.header'
+                        defaultMessage='Add'
+                    />
+                </BackstageHeader>
+                {content}
             </div>
         );
     }

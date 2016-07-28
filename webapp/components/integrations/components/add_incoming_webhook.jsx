@@ -4,10 +4,11 @@
 import React from 'react';
 
 import * as AsyncClient from 'utils/async_client.jsx';
+import * as Utils from 'utils/utils.jsx';
 
 import BackstageHeader from 'components/backstage/components/backstage_header.jsx';
 import ChannelSelect from 'components/channel_select.jsx';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 import FormError from 'components/form_error.jsx';
 import {browserHistory, Link} from 'react-router/es6';
 import SpinnerButton from 'components/spinner_button.jsx';
@@ -23,6 +24,8 @@ export default class AddIncomingWebhook extends React.Component {
         super(props);
 
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.renderDone = this.renderDone.bind(this);
+        this.handleDone = this.handleDone.bind(this);
 
         this.updateDisplayName = this.updateDisplayName.bind(this);
         this.updateDescription = this.updateDescription.bind(this);
@@ -33,6 +36,8 @@ export default class AddIncomingWebhook extends React.Component {
             description: '',
             channelId: '',
             saving: false,
+            isDone: false,
+            token: '',
             serverError: '',
             clientError: null
         };
@@ -48,7 +53,8 @@ export default class AddIncomingWebhook extends React.Component {
         this.setState({
             saving: true,
             serverError: '',
-            clientError: ''
+            clientError: '',
+            token: ''
         });
 
         if (!this.state.channelId) {
@@ -73,8 +79,11 @@ export default class AddIncomingWebhook extends React.Component {
 
         AsyncClient.addIncomingHook(
             hook,
-            () => {
-                browserHistory.push('/' + this.props.team.name + '/integrations/incoming_webhooks');
+            (data) => {
+                this.setState({
+                    isDone: true,
+                    token: data.id
+                });
             },
             (err) => {
                 this.setState({
@@ -82,6 +91,48 @@ export default class AddIncomingWebhook extends React.Component {
                     serverError: err.message
                 });
             }
+        );
+    }
+
+    handleDone() {
+        browserHistory.push('/' + this.props.team.name + '/integrations/incoming_webhooks');
+        this.setState({
+            isDone: false,
+            token: ''
+        });
+    }
+
+    renderDone() {
+        return (
+            <div>
+                <div className='backstage-list__help'>
+                    <FormattedHTMLMessage
+                        id='add_incoming_webhook.doneHelp'
+                        defaultMessage='Your incoming webhook has been set up. Please send data to the following URL (see <a href="https://docs.mattermost.com/developer/webhooks-incoming.html">documentation</a> for further details).'
+                    />
+                </div>
+                <div className='backstage-list__help'>
+                    <FormattedMessage
+                        id='add_incoming_webhook.url'
+                        defaultMessage='URL: {url}'
+                        values={{
+                            url: Utils.getWindowLocationOrigin() + '/hooks/' + this.state.token
+                        }}
+                    />
+                </div>
+                <div className='backstage-list__help'>
+                    <SpinnerButton
+                        className='btn btn-primary'
+                        type='submit'
+                        onClick={this.handleDone}
+                    >
+                        <FormattedMessage
+                            id='add_incoming_webhook.done'
+                            defaultMessage='Done'
+                        />
+                    </SpinnerButton>
+                </div>
+            </div>
         );
     }
 
@@ -104,20 +155,11 @@ export default class AddIncomingWebhook extends React.Component {
     }
 
     render() {
-        return (
-            <div className='backstage-content'>
-                <BackstageHeader>
-                    <Link to={'/' + this.props.team.name + '/integrations/incoming_webhooks'}>
-                        <FormattedMessage
-                            id='installed_incoming_webhooks.header'
-                            defaultMessage='Incoming Webhooks'
-                        />
-                    </Link>
-                    <FormattedMessage
-                        id='add_incoming_webhook.header'
-                        defaultMessage='Add'
-                    />
-                </BackstageHeader>
+        let content = null;
+        if (this.state.isDone) {
+            content = this.renderDone();
+        } else {
+            content = (
                 <div className='backstage-form'>
                     <form
                         className='form-horizontal'
@@ -213,6 +255,24 @@ export default class AddIncomingWebhook extends React.Component {
                         </div>
                     </form>
                 </div>
+            );
+        }
+
+        return (
+            <div className='backstage-content'>
+                <BackstageHeader>
+                    <Link to={'/' + this.props.team.name + '/integrations/incoming_webhooks'}>
+                        <FormattedMessage
+                            id='installed_incoming_webhooks.header'
+                            defaultMessage='Incoming Webhooks'
+                        />
+                    </Link>
+                    <FormattedMessage
+                        id='add_incoming_webhook.header'
+                        defaultMessage='Add'
+                    />
+                </BackstageHeader>
+                {content}
             </div>
         );
     }
