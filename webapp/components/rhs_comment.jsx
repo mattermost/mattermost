@@ -87,6 +87,44 @@ export default class RhsComment extends React.Component {
 
         var dropdownContents = [];
 
+        if (Utils.isMobile()) {
+            if (this.props.isFlagged) {
+                dropdownContents.push(
+                    <li
+                        key='mobileFlag'
+                        role='presentation'
+                    >
+                        <a
+                            href='#'
+                            onClick={this.unflagPost}
+                        >
+                            <FormattedMessage
+                                id='rhs_root.mobile.unflag'
+                                defaultMessage='Unflag'
+                            />
+                        </a>
+                    </li>
+                );
+            } else {
+                dropdownContents.push(
+                    <li
+                        key='mobileFlag'
+                        role='presentation'
+                    >
+                        <a
+                            href='#'
+                            onClick={this.flagPost}
+                        >
+                            <FormattedMessage
+                                id='rhs_root.mobile.flag'
+                                defaultMessage='Flag'
+                            />
+                        </a>
+                    </li>
+                );
+            }
+        }
+
         dropdownContents.push(
             <li
                 key='rhs-root-permalink'
@@ -250,7 +288,7 @@ export default class RhsComment extends React.Component {
 
         let flag;
         let flagFunc;
-        let flagVisibile = '';
+        let flagVisible = '';
         let flagTooltip = (
             <Tooltip id='flagTooltip'>
                 <FormattedMessage
@@ -260,7 +298,7 @@ export default class RhsComment extends React.Component {
             </Tooltip>
         );
         if (this.props.isFlagged) {
-            flagVisibile = 'visible';
+            flagVisible = 'visible';
             flag = (
                 <span
                     className='icon'
@@ -309,13 +347,14 @@ export default class RhsComment extends React.Component {
                                     />
                                 </time>
                                 <OverlayTrigger
+                                    key={'commentflagtooltipkey' + flagVisible}
                                     delayShow={Constants.OVERLAY_TIME_DELAY}
                                     placement='top'
                                     overlay={flagTooltip}
                                 >
                                     <a
                                         href='#'
-                                        className={'flag-icon__container ' + flagVisibile}
+                                        className={'flag-icon__container ' + flagVisible}
                                         onClick={flagFunc}
                                     >
                                         {flag}
