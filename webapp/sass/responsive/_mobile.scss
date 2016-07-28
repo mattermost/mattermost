@@ -81,6 +81,16 @@
             }
         }
 
+        &.same--root {
+            &.same--user {
+                .flag-icon__container {
+                    left: auto;
+                    position: relative;
+                    top: 1px;
+                }
+            }
+        }
+
         .post__content {
             padding: 0 10px 0 0;
         }

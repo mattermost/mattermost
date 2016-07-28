@@ -685,13 +685,6 @@ body.ios {
     }
 
     &.same--root {
-
-        .flag-icon__container {
-            left: 36px;
-            position: absolute;
-            top: 8px;
-        }
-
         &.same--user {
             padding: 0 .5em 0 1em;
 
@@ -700,6 +693,12 @@ body.ios {
                 .post__time {
                     @include opacity(.5);
                 }
+            }
+
+            .flag-icon__container {
+                left: 36px;
+                position: absolute;
+                top: 8px;
             }
 
             .post__img {
