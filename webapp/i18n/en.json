@@ -363,7 +363,7 @@
   "admin.ldap.skipCertificateVerification": "Skip Certificate Verification",
   "admin.ldap.skipCertificateVerificationDesc": "Skips the certificate verification step for TLS or STARTTLS connections. Not recommended for production environments where TLS is required. For testing only.",
   "admin.ldap.syncFailure": "Sync Failure: {error}",
-  "admin.ldap.syncIntervalHelpText": "LDAP Synchronization is the process by which Mattermost updates its users to reflect any updated data on the LDAP server. For example if a name for a user is updated on the LDAP server, the change will be reflected in Mattermost when the synchronization is performed. Accounts that have been removed from the LDAP server will have their active sessions cleared and no longer be able to login to Mattermost. Mattermost will perform this synchronization regularly according to the interval supplied here. For example, if 60 is supplied, Mattermost will update the users every hour.",
+  "admin.ldap.syncIntervalHelpText": "LDAP Synchronization updates Mattermost user information to reflect updates on the LDAP server. For example, when a user’s name changes on the LDAP server, the change updates in Mattermost when synchronization is performed. Accounts removed from or disabled in the LDAP server have their Mattermost accounts set to “Inactive” and have their account sessions revoked. Mattermost performs synchronization on the interval entered. For example, if 60 is entered, Mattermost synchronizes every 60 minutes.",
   "admin.ldap.syncIntervalTitle": "Synchronization Interval (minutes)",
   "admin.ldap.syncNowHelpText": "Initiates an LDAP synchronization immediately.",
   "admin.ldap.sync_button": "LDAP Synchronize Now",
