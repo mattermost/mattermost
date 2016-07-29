@@ -195,6 +195,19 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// if the user hasn't changed their email settings, fill in the actual SMTP password so that
+	// the user can verify an existing SMTP connection
+	if cfg.EmailSettings.SMTPPassword == model.FAKE_SETTING {
+		if cfg.EmailSettings.SMTPServer == utils.Cfg.EmailSettings.SMTPServer &&
+			cfg.EmailSettings.SMTPPort == utils.Cfg.EmailSettings.SMTPPort &&
+			cfg.EmailSettings.SMTPUsername == utils.Cfg.EmailSettings.SMTPUsername {
+			cfg.EmailSettings.SMTPPassword = utils.Cfg.EmailSettings.SMTPPassword
+		} else {
+			c.Err = model.NewLocAppError("testEmail", "api.admin.test_email.reenter_password", nil, "")
+			return
+		}
+	}
+
 	if result := <-Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
 		c.Err = result.Err
 		return
