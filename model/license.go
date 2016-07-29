@@ -43,7 +43,9 @@ type Features struct {
 	MHPNS                *bool `json:"mhpns"`
 	SAML                 *bool `json:"saml"`
 	PasswordRequirements *bool `json:"password_requirements"`
-	FutureFeatures       *bool `json:"future_features"`
+	// after we enabled more features for web rtc we'll need to control them with this
+	WebRTC         *bool `json:"webrtc"`
+	FutureFeatures *bool `json:"future_features"`
 }
 
 func (f *Features) SetDefaults() {
@@ -105,6 +107,11 @@ func (f *Features) SetDefaults() {
 	if f.PasswordRequirements == nil {
 		f.PasswordRequirements = new(bool)
 		*f.PasswordRequirements = *f.FutureFeatures
+	}
+
+	if f.WebRTC == nil {
+		f.WebRTC = new(bool)
+		*f.WebRTC = *f.FutureFeatures
 	}
 }
 
