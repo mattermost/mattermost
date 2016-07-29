@@ -503,7 +503,28 @@
         @include border-radius(60px);
         flex-grow: 0;
         flex-shrink: 0;
-        margin-right: 8px;
+	  	max-width: none;
+
+        &-wrapper {
+            position: relative;
+            display: inline-block;
+            margin-right: 8px;
+
+            &:after {
+                content: "";
+                right: 0;
+                bottom: 0;
+                width: 25%;
+                height: 25%;
+                display: block;
+                position: absolute;
+                border-radius: 100%;
+            }
+
+            &.status-offline:after {
+                background: #D3D3D3;
+            }
+        }
     }
 
     .more-modal__details {

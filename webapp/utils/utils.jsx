@@ -575,12 +575,14 @@ export function applyTheme(theme) {
         changeCss('.app__body .sidebar--left .status .online--icon', 'fill:' + theme.onlineIndicator, 1);
         changeCss('.app__body .channel-header__info .status .online--icon', 'fill:' + theme.onlineIndicator, 1);
         changeCss('.app__body .navbar .status .online--icon', 'fill:' + theme.onlineIndicator, 1);
+        changeCss('.more-modal__list .more-modal__image-wrapper.status-online:after', 'background:' + theme.onlineIndicator, 1);
     }
 
     if (theme.awayIndicator) {
         changeCss('.app__body .sidebar--left .status .away--icon', 'fill:' + theme.awayIndicator, 1);
         changeCss('.app__body .channel-header__info .status .away--icon', 'fill:' + theme.awayIndicator, 1);
         changeCss('.app__body .navbar .status .away--icon', 'fill:' + theme.awayIndicator, 1);
+        changeCss('.more-modal__list .more-modal__image-wrapper.status-away:after', 'background:' + theme.awayIndicator, 1);
     }
 
     if (theme.mentionBj) {

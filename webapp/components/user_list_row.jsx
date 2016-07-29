@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import UserStore from 'stores/user_store.jsx';
 import Constants from 'utils/constants.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -31,17 +32,23 @@ export default function UserListRow({user, teamMember, actions, actionProps}) {
         });
     }
 
+    if (!user.status) {
+        var status = UserStore.getStatus(user.id);
+        user.status = status ? 'status-' + status : '';
+    }
     return (
         <div
             key={user.id}
             className='more-modal__row'
         >
-            <img
-                className='more-modal__image'
-                width='38'
-                height='38'
-                src={`${Client.getUsersRoute()}/${user.id}/image?time=${user.update_at}`}
-            />
+            <span className={`more-modal__image-wrapper ${user.status}`}>
+                <img
+                    className='more-modal__image'
+                    width='38'
+                    height='38'
+                    src={`${Client.getUsersRoute()}/${user.id}/image?time=${user.update_at}`}
+                />
+            </span>
             <div
                 className='more-modal__details'
             >
