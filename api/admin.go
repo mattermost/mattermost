@@ -184,19 +184,25 @@ func saveConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if *utils.Cfg.ClusterSettings.Enable {
+		c.Err = model.NewLocAppError("saveConfig", "ent.cluster.save_config.error", nil, "")
+		return
+	}
+
 	c.LogAudit("")
 
-	oldCfg := utils.Cfg
+	//oldCfg := utils.Cfg
 	utils.SaveConfig(utils.CfgFileName, cfg)
 	utils.LoadConfig(utils.CfgFileName)
 
-	if einterfaces.GetClusterInterface() != nil {
-		err := einterfaces.GetClusterInterface().ConfigChanged(cfg, oldCfg, true)
-		if err != nil {
-			c.Err = err
-			return
-		}
-	}
+	// Future feature is to sync the configuration files
+	// if einterfaces.GetClusterInterface() != nil {
+	// 	err := einterfaces.GetClusterInterface().ConfigChanged(cfg, oldCfg, true)
+	// 	if err != nil {
+	// 		c.Err = err
+	// 		return
+	// 	}
+	// }
 
 	rdata := map[string]string{}
 	rdata["status"] = "OK"

@@ -4648,6 +4648,10 @@
     "translation": "Cluster internode communication is listening on %v with hostname=%v id=%v"
   },
   {
+    "id": "ent.cluster.save_config.error",
+    "translation": "System Console is set to read-only when High Availability is enabled."
+  },
+  {
     "id": "ent.cluster.config_changed.info",
     "translation": "Cluster configuration has changed for id=%v.  Attempting to restart cluster service.  To ensure the cluster is configured correctly you should not rely on this restart because we detected a core configuration change."
   },

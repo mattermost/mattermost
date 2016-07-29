@@ -142,6 +142,7 @@ export default class ClusterSettings extends AdminSettings {
                     }
                     value={this.state.enable}
                     onChange={this.overrideHandleChange}
+                    disabled={true}
                 />
                 <TextSetting
                     id='interNodeListenAddress'
@@ -160,7 +161,7 @@ export default class ClusterSettings extends AdminSettings {
                     }
                     value={this.state.interNodeListenAddress}
                     onChange={this.overrideHandleChange}
-                    disabled={!this.state.enable}
+                    disabled={true}
                 />
                 <TextSetting
                     id='interNodeUrls'
@@ -179,7 +180,7 @@ export default class ClusterSettings extends AdminSettings {
                     }
                     value={this.state.interNodeUrls}
                     onChange={this.overrideHandleChange}
-                    disabled={!this.state.enable}
+                    disabled={true}
                 />
             </SettingsGroup>
         );

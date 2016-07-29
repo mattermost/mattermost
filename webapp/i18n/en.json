@@ -516,7 +516,7 @@
   "admin.saml.verifyTitle": "Verify Signature:",
   "admin.cluster.loadedFrom": "This config file was loaded from Node ID {clusterId}.  If you are accessing the System Console through a load balancer you may experience issues.",
   "admin.cluster.should_not_change": "WARNING: these settings may not sync with the other servers in the cluster.  You must verify the config files are identical and restart the cluster.  We will attempt to save the settings across the servers.  Changing from disabled to enabled will not start the High Availability inter-node communication and you will need to modify the config.json on the other servers and restart Mattermost.  Please see the documentation on how to enable and join or remove a server to the cluster. If you are accessing the System Console through a load balancer you may experience issues.  Yoy may need to access the admin console for each server in the cluster by accessing the internal/private ip address of the server.",
-  "admin.cluster.noteDescription": "Changing properties in this section may require a server restart before taking effect.",
+  "admin.cluster.noteDescription": "Changing properties in this section will require a server restart before taking effect and will set the System Console to read-only mode.  You must enable this via the configuration file.",
   "admin.cluster.enableTitle": "Enable Login With High Availability:",
   "admin.cluster.enableDescription": "When true, Mattermost will run in High Availability mode. Please see <a href=\"http://docs.mattermost.com/deployment/cluster.html\" target=\"_blank\">documentation</a> to learn more about configuring High Availability for Mattermost.",
   "admin.cluster.interNodeListenAddressTitle": "Inter-Node Listen Address:",
