@@ -26,9 +26,9 @@ func InitOAuth() {
 
 	BaseRoutes.OAuth.Handle("/register", ApiUserRequired(registerOAuthApp)).Methods("POST")
 	BaseRoutes.OAuth.Handle("/allow", ApiUserRequired(allowOAuth)).Methods("GET")
-	BaseRoutes.OAuth.Handle("/{service:[A-Za-z]+}/complete", AppHandlerIndependent(completeOAuth)).Methods("GET")
-	BaseRoutes.OAuth.Handle("/{service:[A-Za-z]+}/login", AppHandlerIndependent(loginWithOAuth)).Methods("GET")
-	BaseRoutes.OAuth.Handle("/{service:[A-Za-z]+}/signup", AppHandlerIndependent(signupWithOAuth)).Methods("GET")
+	BaseRoutes.OAuth.Handle("/{service:[A-Za-z0-9]+}/complete", AppHandlerIndependent(completeOAuth)).Methods("GET")
+	BaseRoutes.OAuth.Handle("/{service:[A-Za-z0-9]+}/login", AppHandlerIndependent(loginWithOAuth)).Methods("GET")
+	BaseRoutes.OAuth.Handle("/{service:[A-Za-z0-9]+}/signup", AppHandlerIndependent(signupWithOAuth)).Methods("GET")
 	BaseRoutes.OAuth.Handle("/authorize", ApiUserRequired(authorizeOAuth)).Methods("GET")
 	BaseRoutes.OAuth.Handle("/access_token", ApiAppHandler(getAccessToken)).Methods("POST")
 
@@ -36,9 +36,9 @@ func InitOAuth() {
 	BaseRoutes.Root.Handle("/access_token", ApiAppHandler(getAccessToken)).Methods("POST")
 
 	// Handle all the old routes, to be later removed
-	BaseRoutes.Root.Handle("/{service:[A-Za-z]+}/complete", AppHandlerIndependent(completeOAuth)).Methods("GET")
-	BaseRoutes.Root.Handle("/signup/{service:[A-Za-z]+}/complete", AppHandlerIndependent(completeOAuth)).Methods("GET")
-	BaseRoutes.Root.Handle("/login/{service:[A-Za-z]+}/complete", AppHandlerIndependent(completeOAuth)).Methods("GET")
+	BaseRoutes.Root.Handle("/{service:[A-Za-z0-9]+}/complete", AppHandlerIndependent(completeOAuth)).Methods("GET")
+	BaseRoutes.Root.Handle("/signup/{service:[A-Za-z0-9]+}/complete", AppHandlerIndependent(completeOAuth)).Methods("GET")
+	BaseRoutes.Root.Handle("/login/{service:[A-Za-z0-9]+}/complete", AppHandlerIndependent(completeOAuth)).Methods("GET")
 }
 
 func registerOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -624,7 +624,7 @@ func CompleteSwitchWithOAuth(c *Context, w http.ResponseWriter, r *http.Request,
 	provider := einterfaces.GetOauthProvider(service)
 	if provider == nil {
 		c.Err = model.NewLocAppError("CompleteClaimWithOAuth", "api.user.complete_switch_with_oauth.unavailable.app_error",
-			map[string]interface{}{"Service": service}, "")
+			map[string]interface{}{"Service": strings.Title(service)}, "")
 		return
 	} else {
 		ssoUser := provider.GetUserFromJson(userData)

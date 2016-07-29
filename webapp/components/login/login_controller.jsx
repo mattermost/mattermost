@@ -328,6 +328,7 @@ export default class LoginController extends React.Component {
         const ldapEnabled = this.state.ldapEnabled;
         const gitlabSigninEnabled = global.window.mm_config.EnableSignUpWithGitLab === 'true';
         const googleSigninEnabled = global.window.mm_config.EnableSignUpWithGoogle === 'true';
+        const office365SigninEnabled = global.window.mm_config.EnableSignUpWithOffice365 === 'true';
         const samlSigninEnabled = this.state.samlEnabled;
         const usernameSigninEnabled = this.state.usernameSigninEnabled;
         const emailSigninEnabled = this.state.emailSigninEnabled;
@@ -429,7 +430,7 @@ export default class LoginController extends React.Component {
             );
         }
 
-        if ((emailSigninEnabled || usernameSigninEnabled || ldapEnabled) && (gitlabSigninEnabled || googleSigninEnabled || samlSigninEnabled)) {
+        if ((emailSigninEnabled || usernameSigninEnabled || ldapEnabled) && (gitlabSigninEnabled || googleSigninEnabled || samlSigninEnabled || office365SigninEnabled)) {
             loginControls.push(
                 <div
                     key='divider'
@@ -472,10 +473,10 @@ export default class LoginController extends React.Component {
 
         if (googleSigninEnabled) {
             loginControls.push(
-                <Link
+                <a
                     className='btn btn-custom-login google'
                     key='google'
-                    to={Client.getOAuthRoute() + '/google/login'}
+                    href={Client.getOAuthRoute() + '/google/login' + this.props.location.search}
                 >
                     <span className='icon'/>
                     <span>
@@ -484,7 +485,25 @@ export default class LoginController extends React.Component {
                             defaultMessage='Google Apps'
                         />
                     </span>
-                </Link>
+                </a>
+            );
+        }
+
+        if (office365SigninEnabled) {
+            loginControls.push(
+                <a
+                    className='btn btn-custom-login office365'
+                    key='office365'
+                    href={Client.getOAuthRoute() + '/office365/login' + this.props.location.search}
+                >
+                    <span className='icon'/>
+                    <span>
+                        <FormattedMessage
+                            id='login.office365'
+                            defaultMessage='Office 365'
+                        />
+                    </span>
+                </a>
             );
         }
 
