@@ -139,7 +139,7 @@ class CustomThemeChooser extends React.Component {
     }
 
     closeColorpicker(e) {
-        if (!$(e.target).closest('.color-picker').length) {
+        if (!$(e.target).closest('.color-picker').length && Utils.isMobile()) {
             $('.color-picker').colorpicker('hide');
         }
     }
