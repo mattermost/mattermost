@@ -735,6 +735,10 @@ func RevokeSessionById(c *Context, sessionId string) {
 				c.Err = result.Err
 			}
 		}
+
+		if webrtcInterface := einterfaces.GetWebRTCInterface(); webrtcInterface != nil {
+			webrtcInterface.RevokeToken(session.Id)
+		}
 	}
 }
 
@@ -757,6 +761,10 @@ func RevokeAllSession(c *Context, userId string) {
 					return
 				}
 			}
+
+			if webrtcInterface := einterfaces.GetWebRTCInterface(); webrtcInterface != nil {
+				webrtcInterface.RevokeToken(session.Id)
+			}
 		}
 	}
 }
@@ -777,6 +785,10 @@ func RevokeAllSessionsNoContext(userId string) *model.AppError {
 				if result := <-Srv.Store.Session().Remove(session.Id); result.Err != nil {
 					return result.Err
 				}
+			}
+
+			if webrtcInterface := einterfaces.GetWebRTCInterface(); webrtcInterface != nil {
+				webrtcInterface.RevokeToken(session.Id)
 			}
 		}
 	}

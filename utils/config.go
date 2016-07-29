@@ -315,6 +315,10 @@ func getClientConfig(c *model.Config) map[string]string {
 			props["PasswordRequireNumber"] = strconv.FormatBool(*c.PasswordSettings.Number)
 			props["PasswordRequireSymbol"] = strconv.FormatBool(*c.PasswordSettings.Symbol)
 		}
+
+		if *License.Features.WebRTC {
+			props["EnableWebrtc"] = strconv.FormatBool(*c.WebrtcSettings.Enable)
+		}
 	}
 
 	return props

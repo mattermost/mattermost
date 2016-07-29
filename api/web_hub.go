@@ -164,6 +164,9 @@ func shouldSendEvent(webCon *WebConn, msg *model.WebSocketEvent) bool {
 		} else if msg.Event == model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE {
 			// For now, ephemeral messages are sent directly to individual users
 			return false
+		} else if msg.Event == model.WEBSOCKET_EVENT_WEBRTC {
+			// No need to tell anyone that a webrtc event is going on
+			return false
 		}
 
 		// Only report events to users who are in the team for the event

@@ -219,5 +219,15 @@
         "Enable": false,
         "InterNodeListenAddress": ":8075",
         "InterNodeUrls": []
+    },
+    "WebrtcSettings": {
+        "Enable": false,
+        "GatewayWebsocketUrl": "",
+        "GatewayAdminUrl": "",
+        "GatewayAdminSecret": "",
+        "StunURI": "",
+        "TurnURI": "",
+        "TurnUsername": "",
+        "TurnSharedKey": ""
     }
 }

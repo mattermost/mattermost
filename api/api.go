@@ -49,6 +49,8 @@ type Routes struct {
 
 	Emoji *mux.Router // 'api/v3/emoji'
 
+	Webrtc *mux.Router // 'api/v3/webrtc'
+
 	WebSocket *WebSocketRouter // websocket api
 }
 
@@ -77,6 +79,7 @@ func InitApi() {
 	BaseRoutes.License = BaseRoutes.ApiRoot.PathPrefix("/license").Subrouter()
 	BaseRoutes.Public = BaseRoutes.ApiRoot.PathPrefix("/public").Subrouter()
 	BaseRoutes.Emoji = BaseRoutes.ApiRoot.PathPrefix("/emoji").Subrouter()
+	BaseRoutes.Webrtc = BaseRoutes.ApiRoot.PathPrefix("/webrtc").Subrouter()
 
 	BaseRoutes.WebSocket = NewWebSocketRouter()
 
@@ -95,6 +98,7 @@ func InitApi() {
 	InitLicense()
 	InitEmoji()
 	InitStatus()
+	InitWebRtc()
 
 	// 404 on any api route before web.go has a chance to serve it
 	Srv.Router.Handle("/api/{anything:.*}", http.HandlerFunc(Handle404))
