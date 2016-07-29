@@ -180,6 +180,7 @@ export default class AdminSidebar extends React.Component {
         let samlSettings = null;
         let clusterSettings = null;
         let complianceSettings = null;
+        let webrtcSettings = null;
 
         let license = null;
         let audits = null;
@@ -250,6 +251,20 @@ export default class AdminSidebar extends React.Component {
                             <FormattedMessage
                                 id='admin.sidebar.compliance'
                                 defaultMessage='Compliance'
+                            />
+                        }
+                    />
+                );
+            }
+
+            if (global.window.mm_license.WebRTC === 'true') {
+                webrtcSettings = (
+                    <AdminSidebarSection
+                        name='webrtc'
+                        title={
+                            <FormattedMessage
+                                id='admin.sidebar.webrtc'
+                                defaultMessage='WebRTC'
                             />
                         }
                     />
@@ -572,6 +587,7 @@ export default class AdminSidebar extends React.Component {
                                         />
                                     }
                                 />
+                                {webrtcSettings}
                                 <AdminSidebarSection
                                     name='external'
                                     title={
