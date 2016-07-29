@@ -426,3 +426,15 @@ func IsSafeLink(link *string) bool {
 
 	return true
 }
+
+func IsValidWebsocketUrl(rawUrl string) bool {
+	if strings.Index(rawUrl, "ws://") != 0 && strings.Index(rawUrl, "wss://") != 0 {
+		return false
+	}
+
+	if _, err := url.ParseRequestURI(rawUrl); err != nil {
+		return false
+	}
+
+	return true
+}
