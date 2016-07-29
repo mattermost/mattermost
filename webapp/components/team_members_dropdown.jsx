@@ -338,6 +338,10 @@ export default class TeamMembersDropdown extends React.Component {
             );
         }
 
+        if (!removeFromTeam && !makeAdmin && !makeMember && !makeActive && !makeNotActive) {
+            return <div>{currentRoles}</div>;
+        }
+
         return (
             <div className='dropdown member-drop'>
                 <a
