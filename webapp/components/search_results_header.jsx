@@ -3,6 +3,7 @@
 
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import Constants from 'utils/constants.jsx';
+import * as Utils from 'utils/utils.jsx';
 import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 
 import {FormattedMessage} from 'react-intl';
@@ -17,6 +18,22 @@ export default class SearchResultsHeader extends React.Component {
 
         this.handleClose = this.handleClose.bind(this);
         this.toggleSize = this.toggleSize.bind(this);
+        this.closeShortcut = this.closeShortcut.bind(this);
+    }
+
+    componentDidMount() {
+        document.addEventListener('keydown', this.closeShortcut);
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener('keydown', this.closeShortcut);
+    }
+
+    closeShortcut(e) {
+        if (e.keyCode === Constants.KeyCodes.M && e.shiftKey && Utils.cmdOrCtrlPressed(e)) {
+            e.preventDefault();
+            this.handleClose(e);
+        }
     }
 
     handleClose(e) {
