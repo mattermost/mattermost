@@ -22,6 +22,8 @@ import SidebarRight from 'components/sidebar_right.jsx';
 import SidebarRightMenu from 'components/sidebar_right_menu.jsx';
 import Navbar from 'components/navbar.jsx';
 
+import WebrtcNotification from './webrtc/components/webrtc_notification.jsx';
+
 // Modals
 import GetPostLinkModal from 'components/get_post_link_modal.jsx';
 import GetPublicLinkModal from 'components/get_public_link_modal.jsx';
@@ -145,6 +147,7 @@ export default class NeedsTeam extends React.Component {
         return (
             <div className='channel-view'>
                 <ErrorBar/>
+                <WebrtcNotification/>
                 <div className='container-fluid'>
                     <SidebarRight/>
                     <SidebarRightMenu teamType={this.state.team.type}/>
