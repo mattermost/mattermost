@@ -15,6 +15,7 @@ import NotificationStore from 'stores/notification_store.jsx'; //eslint-disable-
 
 import Client from 'client/web_client.jsx';
 import WebSocketClient from 'client/web_websocket_client.jsx';
+import * as WebrtcActions from './webrtc_actions.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 
@@ -22,9 +23,7 @@ import * as GlobalActions from 'actions/global_actions.jsx';
 import * as UserActions from 'actions/user_actions.jsx';
 import {handleNewPost} from 'actions/post_actions.jsx';
 
-import Constants from 'utils/constants.jsx';
-const SocketEvents = Constants.SocketEvents;
-const ActionTypes = Constants.ActionTypes;
+import {Constants, SocketEvents, ActionTypes} from 'utils/constants.jsx';
 
 import {browserHistory} from 'react-router/es6';
 
@@ -133,6 +132,10 @@ function handleEvent(msg) {
 
     case SocketEvents.STATUS_CHANGED:
         handleStatusChangedEvent(msg);
+        break;
+
+    case SocketEvents.WEBRTC:
+        handleWebrtc(msg);
         break;
 
     default:
@@ -249,4 +252,9 @@ function handleUserTypingEvent(msg) {
 
 function handleStatusChangedEvent(msg) {
     UserStore.setStatus(msg.user_id, msg.data.status);
+}
+
+function handleWebrtc(msg) {
+    const data = msg.data;
+    return WebrtcActions.handle(data);
 }

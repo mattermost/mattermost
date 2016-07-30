@@ -119,6 +119,10 @@ export default class Client {
         return `${this.url}${this.urlVersion}/users/${userId}`;
     }
 
+    getWebrtcRoute() {
+        return `${this.url}${this.urlVersion}/webrtc`;
+    }
+
     setTranslations(messages) {
         this.translations = messages;
     }
@@ -1679,5 +1683,13 @@ export default class Client {
             }
             return success(res.body);
         });
+    }
+
+    webrtcToken(success, error) {
+        request.post(`${this.getWebrtcRoute()}/token`).
+        set(this.defaultHeaders).
+        type('application/json').
+        accept('application/json').
+        end(this.handleResponse.bind(this, 'webrtcToken', success, error));
     }
 }
