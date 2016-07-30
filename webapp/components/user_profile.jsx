@@ -4,22 +4,29 @@
 import * as Utils from 'utils/utils.jsx';
 import Client from 'client/web_client.jsx';
 import UserStore from 'stores/user_store.jsx';
+import * as WebrtcActions from 'actions/webrtc_actions.jsx';
+import Constants from 'utils/constants.jsx';
+const UserStatuses = Constants.UserStatuses;
 
 import {Popover, OverlayTrigger} from 'react-bootstrap';
-
-var id = 0;
-
-function nextId() {
-    id = id + 1;
-    return id;
-}
+import {FormattedMessage} from 'react-intl';
 
 import React from 'react';
 
 export default class UserProfile extends React.Component {
     constructor(props) {
         super(props);
-        this.uniqueId = nextId();
+
+        this.initWebrtc = this.initWebrtc.bind(this);
+        this.state = {
+            currentUserId: UserStore.getCurrentId()
+        };
+    }
+
+    initWebrtc() {
+        if (UserStore.getStatus(this.props.user.id) !== UserStatuses.OFFLINE) {
+            WebrtcActions.initWebrtc(this.props.user.id, true);
+        }
     }
 
     shouldComponentUpdate(nextProps) {
@@ -68,6 +75,64 @@ export default class UserProfile extends React.Component {
             return <div className='user-popover'>{name}</div>;
         }
 
+        let webrtc;
+        const userMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+
+        if (global.window.mm_config.EnableWebrtc === 'true' && global.window.mm_license.WebRTC === 'true' &&
+            userMedia && this.props.user.id !== this.state.currentUserId) {
+            const isOnline = UserStore.getStatus(this.props.user.id) !== UserStatuses.OFFLINE;
+            let circleClass = 'offline';
+            let offlineClass = 'off';
+            if (isOnline) {
+                circleClass = '';
+                offlineClass = 'on';
+            }
+
+            webrtc = (
+                <div
+                    className='webrtc__user-profile'
+                    key='makeCall'
+                >
+                    <a
+                        href='#'
+                        onClick={() => this.initWebrtc()}
+                        disabled={!isOnline}
+                    >
+                        <svg
+                            id='webrtc-btn'
+                            xmlns='http://www.w3.org/2000/svg'
+                        >
+                            <circle
+                                className={circleClass}
+                                cx='16'
+                                cy='16'
+                                r='18'
+                            >
+                                <title>
+                                    <FormattedMessage
+                                        id='user_profile.webrtc.call'
+                                        defaultMessage='Start Video Call'
+                                    />
+                                </title>
+                            </circle>
+                            <path
+                                className={offlineClass}
+                                transform='scale(0.4), translate(17,16)'
+                                d='M40 8H15.64l8 8H28v4.36l1.13 1.13L36 16v12.36l7.97 7.97L44 36V12c0-2.21-1.79-4-4-4zM4.55 2L2 4.55l4.01 4.01C4.81 9.24 4 10.52 4 12v24c0 2.21 1.79 4 4 4h29.45l4 4L44 41.46 4.55 2zM12 16h1.45L28 30.55V32H12V16z'
+                                fill='white'
+                            />
+                            <path
+                                className='off'
+                                transform='scale(0.4), translate(17,16)'
+                                d='M40 8H8c-2.21 0-4 1.79-4 4v24c0 2.21 1.79 4 4 4h32c2.21 0 4-1.79 4-4V12c0-2.21-1.79-4-4-4zm-4 24l-8-6.4V32H12V16h16v6.4l8-6.4v16z'
+                                fill='white'
+                            />
+                        </svg>
+                    </a>
+                </div>
+            );
+        }
+
         var dataContent = [];
         dataContent.push(
             <img
@@ -96,6 +161,8 @@ export default class UserProfile extends React.Component {
                 </div>
             );
         }
+
+        dataContent.push(webrtc);
 
         if (global.window.mm_config.ShowEmailAddress === 'true' || UserStore.isSystemAdminForCurrentUser() || this.props.user === UserStore.getCurrentUser()) {
             dataContent.push(
