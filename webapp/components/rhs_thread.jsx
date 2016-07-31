@@ -257,6 +257,7 @@ export default class RhsThread extends React.Component {
                 <div className='search-bar__container sidebar--right__search-header'>{searchForm}</div>
                 <div className='sidebar-right__body'>
                     <RhsHeaderPost
+                        fromFlaggedPosts={this.props.fromFlaggedPosts}
                         fromSearch={this.props.fromSearch}
                         isMentionSearch={this.props.isMentionSearch}
                         toggleSize={this.props.toggleSize}
@@ -329,6 +330,7 @@ RhsThread.defaultProps = {
 
 RhsThread.propTypes = {
     fromSearch: React.PropTypes.string,
+    fromFlaggedPosts: React.PropTypes.bool,
     isMentionSearch: React.PropTypes.bool,
     currentUser: React.PropTypes.object.isRequired,
     useMilitaryTime: React.PropTypes.bool.isRequired,
