@@ -64,7 +64,7 @@ export default class LegalAndSupportSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.support.termsDesc'
-                            defaultMessage='Link to Terms of Service available to users on desktop and on mobile. Leaving this blank will hide the option to display a notice.'
+                            defaultMessage='Link to the terms under which users may use your online service. By default, this includes the "Mattermost Conditions of Use (End Users)" explaining the terms under which Mattermost software is provided to end users. If you change the default link to add your own terms for using the service you provide, your new terms must include a link to the default terms so end users are aware of the Mattermost Conditions of Use (End User) for Mattermost software.'
                         />
                     }
                     value={this.state.termsOfServiceLink}

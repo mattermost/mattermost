@@ -681,7 +681,7 @@
   "admin.support.privacyTitle": "Privacy Policy link:",
   "admin.support.problemDesc": "Link to help documentation from team site main menu. By default this points to the peer-to-peer troubleshooting forum where users can search for, find and request help with technical issues.",
   "admin.support.problemTitle": "Report a Problem link:",
-  "admin.support.termsDesc": "Link to Terms of Service available to users on desktop and on mobile. Leaving this blank will hide the option to display a notice.",
+  "admin.support.termsDesc": "Link to the terms under which users may use your online service. By default, this includes the \"Mattermost Conditions of Use (End Users)\" explaining the terms under which Mattermost software is provided to end users. If you change the default link to add your own terms for using the service you provide, your new terms must include a link to the default terms so end users are aware of the Mattermost Conditions of Use (End User) for Mattermost software.",
   "admin.support.termsTitle": "Terms of Service link:",
   "admin.system_analytics.activeUsers": "Active Users With Posts",
   "admin.system_analytics.title": "the System",
