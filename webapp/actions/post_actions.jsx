@@ -139,6 +139,13 @@ export function getFlaggedPosts() {
                 results: data,
                 is_flagged_posts: true
             });
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_SEARCH_TERM,
+                term: null,
+                do_search: false,
+                is_mention_search: false
+            });
         },
         (err) => {
             AsyncClient.dispatchError(err, 'getFlaggedPosts');
