@@ -18,12 +18,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nicksnyder/go-i18n/i18n"
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
+	"github.com/nicksnyder/go-i18n/i18n"
 )
 
 const (
@@ -722,6 +722,12 @@ func sendNotificationEmail(c *Context, post *model.Post, user *model.User, chann
 	// skip if inactive
 	if user.DeleteAt > 0 {
 		return
+	}
+
+	if *utils.Cfg.EmailSettings.EnableEmailBatching && user.NotifyProps["email_batching"] == "true" {
+		if err := AddNotificationEmailToBatch(user, post, team); err == nil {
+			return
+		}
 	}
 
 	var channelName string
