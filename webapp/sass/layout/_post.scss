@@ -695,12 +695,6 @@ body.ios {
                 }
             }
 
-            .flag-icon__container {
-                left: 36px;
-                position: absolute;
-                top: 8px;
-            }
-
             .post__img {
                 img {
                     display: none;
@@ -811,7 +805,7 @@ body.ios {
         .col__reply {
             border: 1px solid transparent;
             border-radius: 2px;
-            min-width: 70px;
+            min-width: 92px;
             padding: 2px 5px;
             position: absolute;
             right: 0;
@@ -844,7 +838,7 @@ body.ios {
     .post__img {
         padding-right: 10px;
         text-align: right;
-        width: 50px;
+        width: 42px;
 
         svg {
             height: 32px;
@@ -1128,7 +1122,7 @@ body.ios {
     .flag-icon__container {
         display: inline-block;
         font-size: 12px;
-        margin-left: 5px;
+        margin-right: 5px;
         position: relative;
         top: 1px;
         visibility: hidden;

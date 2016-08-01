@@ -277,27 +277,6 @@ export default class PostInfo extends React.Component {
             );
         }
 
-        let options;
-        if (Utils.isPostEphemeral(post)) {
-            options = (
-                <li className='col col__remove'>
-                    {this.createRemovePostButton()}
-                </li>
-            );
-        } else {
-            options = (
-                <li className='col col__reply'>
-                    <div
-                        className='dropdown'
-                        ref='dotMenu'
-                    >
-                        {this.createDropdown()}
-                    </div>
-                    {comments}
-                </li>
-            );
-        }
-
         let flag;
         let flagFunc;
         let flagVisible = '';
@@ -322,7 +301,7 @@ export default class PostInfo extends React.Component {
                 <Tooltip id='flagTooltip'>
                     <FormattedMessage
                         id='flag_post.unflag'
-                        defaultMessage='Unflag'
+                        defaultMessage='Unflag this post'
                     />
                 </Tooltip>
             );
@@ -336,15 +315,22 @@ export default class PostInfo extends React.Component {
             flagFunc = this.flagPost;
         }
 
-        return (
-            <ul className='post__header--info'>
-                <li className='col'>
-                    <PostTime
-                        eventTime={post.create_at}
-                        sameUser={this.props.sameUser}
-                        compactDisplay={this.props.compactDisplay}
-                        useMilitaryTime={this.props.useMilitaryTime}
-                    />
+        let options;
+        if (Utils.isPostEphemeral(post)) {
+            options = (
+                <li className='col col__remove'>
+                    {this.createRemovePostButton()}
+                </li>
+            );
+        } else {
+            options = (
+                <li className='col col__reply'>
+                    <div
+                        className='dropdown'
+                        ref='dotMenu'
+                    >
+                        {this.createDropdown()}
+                    </div>
                     <OverlayTrigger
                         key={'flagtooltipkey' + flagVisible}
                         delayShow={Constants.OVERLAY_TIME_DELAY}
@@ -359,6 +345,20 @@ export default class PostInfo extends React.Component {
                             {flag}
                         </a>
                     </OverlayTrigger>
+                    {comments}
+                </li>
+            );
+        }
+
+        return (
+            <ul className='post__header--info'>
+                <li className='col'>
+                    <PostTime
+                        eventTime={post.create_at}
+                        sameUser={this.props.sameUser}
+                        compactDisplay={this.props.compactDisplay}
+                        useMilitaryTime={this.props.useMilitaryTime}
+                    />
                 </li>
                 {options}
             </ul>
