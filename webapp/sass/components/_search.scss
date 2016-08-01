@@ -143,6 +143,10 @@
     right: 0;
     top: 0;
 
+    .flag-icon__container {
+        top: 4px;
+    }
+
     a {
         @include opacity(.8);
         vertical-align: top;

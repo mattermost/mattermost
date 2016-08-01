@@ -277,27 +277,6 @@ export default class PostInfo extends React.Component {
             );
         }
 
-        let options;
-        if (Utils.isPostEphemeral(post)) {
-            options = (
-                <li className='col col__remove'>
-                    {this.createRemovePostButton()}
-                </li>
-            );
-        } else {
-            options = (
-                <li className='col col__reply'>
-                    <div
-                        className='dropdown'
-                        ref='dotMenu'
-                    >
-                        {this.createDropdown()}
-                    </div>
-                    {comments}
-                </li>
-            );
-        }
-
         let flag;
         let flagFunc;
         let flagVisibile = '';
@@ -336,15 +315,22 @@ export default class PostInfo extends React.Component {
             flagFunc = this.flagPost;
         }
 
-        return (
-            <ul className='post__header--info'>
-                <li className='col'>
-                    <PostTime
-                        eventTime={post.create_at}
-                        sameUser={this.props.sameUser}
-                        compactDisplay={this.props.compactDisplay}
-                        useMilitaryTime={this.props.useMilitaryTime}
-                    />
+        let options;
+        if (Utils.isPostEphemeral(post)) {
+            options = (
+                <li className='col col__remove'>
+                    {this.createRemovePostButton()}
+                </li>
+            );
+        } else {
+            options = (
+                <li className='col col__reply'>
+                    <div
+                        className='dropdown'
+                        ref='dotMenu'
+                    >
+                        {this.createDropdown()}
+                    </div>
                     <OverlayTrigger
                         delayShow={Constants.OVERLAY_TIME_DELAY}
                         placement='top'
@@ -358,6 +344,20 @@ export default class PostInfo extends React.Component {
                             {flag}
                         </a>
                     </OverlayTrigger>
+                    {comments}
+                </li>
+            );
+        }
+
+        return (
+            <ul className='post__header--info'>
+                <li className='col'>
+                    <PostTime
+                        eventTime={post.create_at}
+                        sameUser={this.props.sameUser}
+                        compactDisplay={this.props.compactDisplay}
+                        useMilitaryTime={this.props.useMilitaryTime}
+                    />
                 </li>
                 {options}
             </ul>

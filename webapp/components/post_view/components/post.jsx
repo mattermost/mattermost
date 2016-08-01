@@ -175,7 +175,7 @@ export default class Post extends React.Component {
         let postType = '';
         if (type !== 'Post') {
             postType = 'post--comment';
-        } else if (commentCount > 0) {
+        } else if (commentCount > 0 || this.props.isFlagged) {
             postType = 'post--root';
             sameUserClass = '';
             rootUser = '';

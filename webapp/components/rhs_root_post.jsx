@@ -367,6 +367,9 @@ export default class RhsRootPost extends React.Component {
                                         minute='2-digit'
                                     />
                                 </time>
+                            </li>
+                            <li className='col col__reply'>
+                                {rootOptions}
                                 <OverlayTrigger
                                     delayShow={Constants.OVERLAY_TIME_DELAY}
                                     placement='top'
@@ -380,9 +383,6 @@ export default class RhsRootPost extends React.Component {
                                         {flag}
                                     </a>
                                 </OverlayTrigger>
-                            </li>
-                            <li className='col col__reply'>
-                                {rootOptions}
                             </li>
                         </ul>
                         <div className='post__body'>

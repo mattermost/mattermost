@@ -177,9 +177,9 @@ export default class SearchResultsItem extends React.Component {
                                             minute='2-digit'
                                         />
                                     </time>
-                                    {flag}
                                 </li>
                                 <li className='col__controls'>
+                                    {flag}
                                     <a
                                         href='#'
                                         className='comment-icon__container search-item__comment'
