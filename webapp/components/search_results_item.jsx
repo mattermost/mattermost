@@ -110,7 +110,7 @@ export default class SearchResultsItem extends React.Component {
                 <Tooltip id='flagTooltip'>
                     <FormattedMessage
                         id='flag_post.unflag'
-                        defaultMessage='Unflag'
+                        defaultMessage='Unflag this post'
                     />
                 </Tooltip>
             );
@@ -178,9 +178,9 @@ export default class SearchResultsItem extends React.Component {
                                             minute='2-digit'
                                         />
                                     </time>
-                                    {flag}
                                 </li>
                                 <li className='col__controls'>
+                                    {flag}
                                     <a
                                         href='#'
                                         className='comment-icon__container search-item__comment'
