@@ -310,7 +310,7 @@ export default class RhsComment extends React.Component {
                 <Tooltip id='flagTooltip'>
                     <FormattedMessage
                         id='flag_post.unflag'
-                        defaultMessage='Unflag'
+                        defaultMessage='Unflag this post'
                     />
                 </Tooltip>
             );

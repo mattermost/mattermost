@@ -332,7 +332,7 @@ export default class RhsRootPost extends React.Component {
                 <Tooltip id='flagTooltip'>
                     <FormattedMessage
                         id='flag_post.unflag'
-                        defaultMessage='Unflag'
+                        defaultMessage='Unflag this post'
                     />
                 </Tooltip>
             );
