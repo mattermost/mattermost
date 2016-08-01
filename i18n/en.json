@@ -628,6 +628,61 @@
     "translation": "An unknown error has occurred. Please contact support."
   },
   {
+    "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
+    "translation": "Email batching job's receiving channel was full. Please increase the EmailBatchingBufferSize."
+  },
+  {
+    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
+    "translation": "Email batching has been disabled by the system administrator"
+  },
+  {
+    "id": "api.email_batching.check_pending_emails.status.app_error",
+    "translation": "Unable to find status of recipient for batched email notification"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.channel.app_error",
+    "translation": "Unable to find channel of post for batched email notification"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.date",
+    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.direct_message",
+    "translation": "Direct Message"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.go_to_post",
+    "translation": "Go to Post"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.sender.app_error",
+    "translation": "Unable to find sender of post for batched email notification"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.body_text",
+    "translation": {
+      "one": "You have {{.Count}} new message.",
+      "other": "You have {{.Count}} new messages."
+    }
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.preferences.app_error",
+    "translation": "Unable to find display preferences of recipient for batched email notification"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.send.app_error",
+    "translation": "Failed to send batched email notification to %v: %v"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subject",
+    "translation": "[{{.SiteName}}] New Notifications for {{.Month}} {{.Day}}, {{.Year}}"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.user.app_error",
+    "translation": "Unable to find recipient for batched email notification"
+  },
+  {
     "id": "api.emoji.create.duplicate.app_error",
     "translation": "Unable to create emoji. Another emoji with the same name already exists."
   },
