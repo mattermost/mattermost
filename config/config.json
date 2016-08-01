@@ -110,7 +110,10 @@
         "PasswordResetSalt": "vZ4DcKyVVRlKHHJpexcuXzojkE5PZ5eL",
         "SendPushNotifications": false,
         "PushNotificationServer": "",
-        "PushNotificationContents": "generic"
+        "PushNotificationContents": "generic",
+        "EnableEmailBatching": true,
+        "EmailBatchingBufferSize": 256,
+        "EmailBatchingInterval": 30
     },
     "RateLimitSettings": {
         "EnableRateLimiter": true,
