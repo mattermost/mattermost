@@ -280,7 +280,7 @@ func CreateOAuthUser(c *Context, w http.ResponseWriter, r *http.Request, service
 	var user *model.User
 	provider := einterfaces.GetOauthProvider(service)
 	if provider == nil {
-		c.Err = model.NewLocAppError("CreateOAuthUser", "api.user.create_oauth_user.not_available.app_error", map[string]interface{}{"Service": service}, "")
+		c.Err = model.NewLocAppError("CreateOAuthUser", "api.user.create_oauth_user.not_available.app_error", map[string]interface{}{"Service": strings.Title(service)}, "")
 		return nil
 	} else {
 		user = provider.GetUserFromJson(userData)
@@ -532,7 +532,7 @@ func LoginByOAuth(c *Context, w http.ResponseWriter, r *http.Request, service st
 	provider := einterfaces.GetOauthProvider(service)
 	if provider == nil {
 		c.Err = model.NewLocAppError("LoginByOAuth", "api.user.login_by_oauth.not_available.app_error",
-			map[string]interface{}{"Service": service}, "")
+			map[string]interface{}{"Service": strings.Title(service)}, "")
 		return nil
 	} else {
 		authData = provider.GetAuthDataFromJson(bytes.NewReader(buf.Bytes()))

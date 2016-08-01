@@ -141,6 +141,8 @@ export default class SearchBar extends React.Component {
     handleSubmit(e) {
         e.preventDefault();
         this.performSearch(this.state.searchTerm.trim());
+        $(ReactDOM.findDOMNode(this.refs.search)).find('input').blur();
+        this.clearFocus();
     }
 
     render() {

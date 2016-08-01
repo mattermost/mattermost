@@ -69,7 +69,7 @@ export default class PolicySettings extends AdminSettings {
                     helpText={
                         <FormattedHTMLMessage
                             id='admin.general.policy.teamInviteDescription'
-                            defaultMessage='Selecting "All team members" allows any team member to invite others using an email invitation or team invite link.<br/><br/>Selecting "Team and System Admins" hides the email invitation and team invite link in the Main Menu from users who are not Team or System Admins. Note: If "Get Team Invite Link" is used to share a link, it will need to be regenerated after the desired users joined the team.<br/><br/>Selecting "System Admins" hides the email invitation and team invite link in the Main Menu from users who are not System Admins. Note: If "Get Team Invite Link" is used to share a link, it will need to be regenerated after the desired users joined the team.'
+                            defaultMessage='Set policy on who can invite others to a team using <b>Invite New Member</b> to invite new users by email, or the <b>Get Team Invite Link</b> options from the Main Menu. If <b>Get Team Invite Link</b> is used to share a link, you can expire the invite code from <b>Team Settings</b> > <b>Invite Code</b> after the desired users join the team.'
                         />
                     }
                 />
@@ -91,7 +91,7 @@ export default class PolicySettings extends AdminSettings {
                     helpText={
                         <FormattedHTMLMessage
                             id='admin.general.policy.restrictPublicChannelManagementDescription'
-                            defaultMessage='Selecting "All team members" allows any team members to create, delete, rename, and set the header or purpose for public channels.<br/><br/>Selecting "Team and System Admins" restricts channel management permissions for public channels to Team and System Admins, including creating, deleting, renaming, and setting the channel header or purpose.<br/><br/>Selecting "System Admins" restricts channel management permissions for public channels to System Admins, including creating, deleting, renaming, and setting the channel header or purpose.'
+                            defaultMessage='Set policy on who can create, delete, rename, and set the header or purpose for public channels.'
                         />
                     }
                 />
@@ -113,7 +113,7 @@ export default class PolicySettings extends AdminSettings {
                     helpText={
                         <FormattedHTMLMessage
                             id='admin.general.policy.restrictPrivateChannelManagementDescription'
-                            defaultMessage='Selecting "All team members" allows any team members to create, delete, rename, and set the header or purpose for private groups.<br/><br/>Selecting "Team and System Admins" restricts group management permissions for private groups to Team and System Admins, including creating, deleting, renaming, and setting the group header or purpose.<br/><br/>Selecting "System Admins" restricts group management permissions for private groups to System Admins, including creating, deleting, renaming, and setting the group header or purpose.'
+                            defaultMessage='Set policy on who can create, delete, rename, and set the header or purpose for private groups.'
                         />
                     }
                 />

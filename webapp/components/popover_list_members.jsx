@@ -88,18 +88,24 @@ export default class PopoverListMembers extends React.Component {
                 }
 
                 if (name) {
+                    if (!m.status) {
+                        var status = UserStore.getStatus(m.id);
+                        m.status = status ? 'status-' + status : '';
+                    }
                     popoverHtml.push(
                         <div
                             className='more-modal__row'
                             key={'popover-member-' + i}
                         >
 
-                            <img
-                                className='more-modal__image'
-                                width='26px'
-                                height='26px'
-                                src={`${Client.getUsersRoute()}/${m.id}/image?time=${m.update_at}`}
-                            />
+                            <span className={`more-modal__image-wrapper ${m.status}`}>
+                                <img
+                                    className='more-modal__image'
+                                    width='26px'
+                                    height='26px'
+                                    src={`${Client.getUsersRoute()}/${m.id}/image?time=${m.update_at}`}
+                                />
+                            </span>
                             <div className='more-modal__details'>
                                 <div
                                     className='more-modal__name'

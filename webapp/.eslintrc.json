@@ -24,7 +24,8 @@
         "describe": true,
         "it": true,
         "expect": true,
-        "before": true
+        "before": true,
+        "after": true
     },
     "rules": {
         "array-bracket-spacing": [2, "never"],

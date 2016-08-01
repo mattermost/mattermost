@@ -1,7 +1,6 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
 import SettingItemMin from '../setting_item_min.jsx';
 import SettingItemMax from '../setting_item_max.jsx';
 import AccessHistoryModal from '../access_history_modal.jsx';
@@ -9,13 +8,14 @@ import ActivityLogModal from '../activity_log_modal.jsx';
 import ToggleModalButton from '../toggle_modal_button.jsx';
 
 import PreferenceStore from 'stores/preference_store.jsx';
-import TeamStore from 'stores/team_store.jsx';
 
 import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
+import $ from 'jquery';
+import React from 'react';
 import {intlShape, injectIntl, defineMessages, FormattedMessage, FormattedHTMLMessage, FormattedTime, FormattedDate} from 'react-intl';
 import {Link} from 'react-router/es6';
 
@@ -41,8 +41,6 @@ const holders = defineMessages({
         defaultMessage: 'Close'
     }
 });
-
-import React from 'react';
 
 class SecurityTab extends React.Component {
     constructor(props) {
@@ -543,10 +541,99 @@ class SecurityTab extends React.Component {
         const user = this.props.user;
 
         if (this.props.activeSection === 'signin') {
-            const teamName = TeamStore.getCurrent().name;
-
             let emailOption;
-            if (global.window.mm_config.EnableSignUpWithEmail === 'true' && user.auth_service !== '') {
+            let gitlabOption;
+            let googleOption;
+            let office365Option;
+            let ldapOption;
+            let samlOption;
+
+            if (user.auth_service === '') {
+                if (global.window.mm_config.EnableSignUpWithGitLab === 'true') {
+                    gitlabOption = (
+                        <div className='padding-bottom x2'>
+                            <Link
+                                className='btn btn-primary'
+                                to={'/claim/email_to_oauth?email=' + encodeURIComponent(user.email) + '&old_type=' + user.auth_service + '&new_type=' + Constants.GITLAB_SERVICE}
+                            >
+                                <FormattedMessage
+                                    id='user.settings.security.switchGitlab'
+                                    defaultMessage='Switch to using GitLab SSO'
+                                />
+                            </Link>
+                            <br/>
+                        </div>
+                    );
+                }
+
+                if (global.window.mm_config.EnableSignUpWithGoogle === 'true') {
+                    googleOption = (
+                        <div className='padding-bottom x2'>
+                            <Link
+                                className='btn btn-primary'
+                                to={'/claim/email_to_oauth?email=' + encodeURIComponent(user.email) + '&old_type=' + user.auth_service + '&new_type=' + Constants.GOOGLE_SERVICE}
+                            >
+                                <FormattedMessage
+                                    id='user.settings.security.switchGoogle'
+                                    defaultMessage='Switch to using Google SSO'
+                                />
+                            </Link>
+                            <br/>
+                        </div>
+                    );
+                }
+
+                if (global.window.mm_config.EnableSignUpWithOffice365 === 'true') {
+                    office365Option = (
+                        <div className='padding-bottom x2'>
+                            <Link
+                                className='btn btn-primary'
+                                to={'/claim/email_to_oauth?email=' + encodeURIComponent(user.email) + '&old_type=' + user.auth_service + '&new_type=' + Constants.OFFICE365_SERVICE}
+                            >
+                                <FormattedMessage
+                                    id='user.settings.security.switchOffice365'
+                                    defaultMessage='Switch to using Office 365 SSO'
+                                />
+                            </Link>
+                            <br/>
+                        </div>
+                    );
+                }
+
+                if (global.window.mm_config.EnableLdap === 'true') {
+                    ldapOption = (
+                        <div className='padding-bottom x2'>
+                            <Link
+                                className='btn btn-primary'
+                                to={'/claim/email_to_ldap?email=' + encodeURIComponent(user.email)}
+                            >
+                                <FormattedMessage
+                                    id='user.settings.security.switchLdap'
+                                    defaultMessage='Switch to using LDAP'
+                                />
+                            </Link>
+                            <br/>
+                        </div>
+                    );
+                }
+
+                if (global.window.mm_config.EnableSaml === 'true') {
+                    samlOption = (
+                        <div className='padding-bottom x2'>
+                            <Link
+                                className='btn btn-primary'
+                                to={'/claim/email_to_oauth?email=' + encodeURIComponent(user.email) + '&old_type=' + user.auth_service + '&new_type=' + Constants.SAML_SERVICE}
+                            >
+                                <FormattedMessage
+                                    id='user.settings.security.switchSaml'
+                                    defaultMessage='Switch to using SAML SSO'
+                                />
+                            </Link>
+                            <br/>
+                        </div>
+                    );
+                }
+            } else if (global.window.mm_config.EnableSignUpWithEmail === 'true') {
                 let link;
                 if (user.auth_service === Constants.LDAP_SERVICE) {
                     link = '/claim/ldap_to_email?email=' + encodeURIComponent(user.email);
@@ -570,86 +657,15 @@ class SecurityTab extends React.Component {
                 );
             }
 
-            let gitlabOption;
-            if (global.window.mm_config.EnableSignUpWithGitLab === 'true' && user.auth_service === '') {
-                gitlabOption = (
-                    <div className='padding-bottom x2'>
-                        <Link
-                            className='btn btn-primary'
-                            to={'/claim/email_to_oauth?email=' + encodeURIComponent(user.email) + '&old_type=' + user.auth_service + '&new_type=' + Constants.GITLAB_SERVICE}
-                        >
-                            <FormattedMessage
-                                id='user.settings.security.switchGitlab'
-                                defaultMessage='Switch to using GitLab SSO'
-                            />
-                        </Link>
-                        <br/>
-                    </div>
-                );
-            }
-
-            let googleOption;
-            if (global.window.mm_config.EnableSignUpWithGoogle === 'true' && user.auth_service === '') {
-                googleOption = (
-                    <div className='padding-bottom x2'>
-                        <Link
-                            className='btn btn-primary'
-                            to={'/' + teamName + '/claim/email_to_oauth?email=' + encodeURIComponent(user.email) + '&old_type=' + user.auth_service + '&new_type=' + Constants.GOOGLE_SERVICE}
-                        >
-                            <FormattedMessage
-                                id='user.settings.security.switchGoogle'
-                                defaultMessage='Switch to using Google SSO'
-                            />
-                        </Link>
-                        <br/>
-                    </div>
-                );
-            }
-
-            let ldapOption;
-            if (global.window.mm_config.EnableLdap === 'true' && user.auth_service === '') {
-                ldapOption = (
-                    <div className='padding-bottom x2'>
-                        <Link
-                            className='btn btn-primary'
-                            to={'/claim/email_to_ldap?email=' + encodeURIComponent(user.email)}
-                        >
-                            <FormattedMessage
-                                id='user.settings.security.switchLdap'
-                                defaultMessage='Switch to using LDAP'
-                            />
-                        </Link>
-                        <br/>
-                    </div>
-                );
-            }
-
-            let samlOption;
-            if (global.window.mm_config.EnableSaml === 'true' && user.auth_service === '') {
-                samlOption = (
-                    <div className='padding-bottom x2'>
-                        <Link
-                            className='btn btn-primary'
-                            to={'/claim/email_to_oauth?email=' + encodeURIComponent(user.email) + '&old_type=' + user.auth_service + '&new_type=' + Constants.SAML_SERVICE}
-                        >
-                            <FormattedMessage
-                                id='user.settings.security.switchSaml'
-                                defaultMessage='Switch to using SAML SSO'
-                            />
-                        </Link>
-                        <br/>
-                    </div>
-                );
-            }
-
             const inputs = [];
             inputs.push(
                 <div key='userSignInOption'>
                     {emailOption}
                     {gitlabOption}
+                    {googleOption}
+                    {office365Option}
                     {ldapOption}
                     {samlOption}
-                    {googleOption}
                 </div>
             );
 
@@ -693,7 +709,21 @@ class SecurityTab extends React.Component {
             describe = (
                 <FormattedMessage
                     id='user.settings.security.gitlab'
-                    defaultMessage='GitLab SSO'
+                    defaultMessage='GitLab'
+                />
+            );
+        } else if (this.props.user.auth_service === Constants.GOOGLE_SERVICE) {
+            describe = (
+                <FormattedMessage
+                    id='user.settings.security.google'
+                    defaultMessage='Google'
+                />
+            );
+        } else if (this.props.user.auth_service === Constants.OFFICE365_SERVICE) {
+            describe = (
+                <FormattedMessage
+                    id='user.settings.security.office365'
+                    defaultMessage='Office 365'
                 />
             );
         } else if (this.props.user.auth_service === Constants.LDAP_SERVICE) {

@@ -4,6 +4,7 @@
     border-radius: $border-rad;
 
     &.colorpicker {
+        min-width: 125px;
         z-index: 2500;
     }
 

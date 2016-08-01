@@ -142,10 +142,19 @@
         "Enable": false,
         "Secret": "",
         "Id": "",
-        "Scope": "",
-        "AuthEndpoint": "",
-        "TokenEndpoint": "",
-        "UserApiEndpoint": ""
+        "Scope": "profile email",
+        "AuthEndpoint": "https://accounts.google.com/o/oauth2/v2/auth",
+        "TokenEndpoint": "https://www.googleapis.com/oauth2/v4/token",
+        "UserApiEndpoint": "https://www.googleapis.com/plus/v1/people/me"
+    },
+    "Office365Settings": {
+        "Enable": false,
+        "Secret": "",
+        "Id": "",
+        "Scope": "User.Read",
+        "AuthEndpoint": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+        "TokenEndpoint": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+        "UserApiEndpoint": "https://graph.microsoft.com/v1.0/me"
     },
     "LdapSettings": {
         "Enable": false,
