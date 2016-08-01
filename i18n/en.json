@@ -2636,6 +2636,18 @@
     "translation": "To must be greater than From"
   },
   {
+    "id": "model.access.is_valid.cluster_email_batching.app_error",
+    "translation": "Unable to enable email batching (EmailSettings.EnableEmailBatching) when clustering (ClusterSettings.Enable) is enabled"
+  },
+  {
+    "id": "model.config.is_valid.email_batching_buffer_size.app_error",
+    "translation": "Invalid email batching buffer size for email settings.  Must be zero or a positive number."
+  },
+  {
+    "id": "model.config.is_valid.email_batching_interval.app_error",
+    "translation": "Invalid email batching interval for email settings.  Must be 30 seconds or more."
+  },
+  {
     "id": "model.config.is_valid.email_reset_salt.app_error",
     "translation": "Invalid password reset salt for email settings.  Must be 32 chars or more."
   },
@@ -2657,7 +2669,7 @@
   },
   {
     "id": "model.config.is_valid.file_preview_height.app_error",
-    "translation": "Invalid preview height for file settings.  Must be a zero or positive number."
+    "translation": "Invalid preview height for file settings.  Must be zero or a positive number."
   },
   {
     "id": "model.config.is_valid.file_preview_width.app_error",
