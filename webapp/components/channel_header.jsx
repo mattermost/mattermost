@@ -55,6 +55,7 @@ export default class ChannelHeader extends React.Component {
         state.showEditChannelPurposeModal = false;
         state.showMembersModal = false;
         state.showRenameChannelModal = false;
+        state.showRecentMentions = false;
         this.state = state;
     }
 
@@ -162,6 +163,12 @@ export default class ChannelHeader extends React.Component {
     openRecentMentions(e) {
         if (Utils.cmdOrCtrlPressed(e) && e.shiftKey && e.keyCode === Constants.KeyCodes.M) {
             e.preventDefault();
+            this.setState({
+                openRecentMentions: !this.state.openRecentMentions
+            });
+        }
+
+        if (this.state.openRecentMentions) {
             this.searchMentions(e);
         }
     }
