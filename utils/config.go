@@ -271,6 +271,7 @@ func getClientConfig(c *model.Config) map[string]string {
 		if *License.Features.CustomBrand {
 			props["EnableCustomBrand"] = strconv.FormatBool(*c.TeamSettings.EnableCustomBrand)
 			props["CustomBrandText"] = *c.TeamSettings.CustomBrandText
+			props["CustomDescriptionText"] = *c.TeamSettings.CustomDescriptionText
 		}
 
 		if *License.Features.LDAP {

@@ -35,6 +35,18 @@ export default class CreateTeamController extends React.Component {
     }
 
     render() {
+        let description = null;
+        if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.CustomBrand === 'true' && global.window.mm_config.EnableCustomBrand === 'true') {
+            description = global.window.mm_config.CustomDescriptionText;
+        } else {
+            description = (
+                <FormattedMessage
+                    id='web.root.signup_info'
+                    defaultMessage='All team communication in one place, searchable and accessible anywhere'
+                />
+            );
+        }
+
         return (
             <div>
                 <ErrorBar/>
@@ -50,9 +62,7 @@ export default class CreateTeamController extends React.Component {
                     <div className='signup-team__container'>
                         <h1>{global.window.mm_config.SiteName}</h1>
                         <h4 className='color--light'>
-                            <FormattedMessage
-                                id='web.root.singup_info'
-                            />
+                            {description}
                         </h4>
                         <div className='signup__content'>
                             {React.cloneElement(this.props.children, {
