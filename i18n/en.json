@@ -1032,6 +1032,20 @@
     "translation": "You do not have the appropriate permissions"
   },
   {
+    "id": "api.post.get_message_for_notification.files_sent",
+    "translation": {
+      "one": "{{.Count}} file sent: {{.Filenames}}",
+      "other": "{{.Count}} files sent: {{.Filenames}}"
+    }
+  },
+  {
+    "id": "api.post.get_message_for_notification.images_sent",
+    "translation": {
+      "one": "{{.Count}} image sent: {{.Filenames}}",
+      "other": "{{.Count}} images sent: {{.Filenames}}"
+    }
+  },
+  {
     "id": "api.post.get_out_of_channel_mentions.regex.error",
     "translation": "Failed to compile @mention regex user_id=%v, err=%v"
   },
