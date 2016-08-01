@@ -39,6 +39,10 @@ func Publish(message *model.WebSocketEvent) {
 	}
 }
 
+func PublishSkipClusterSend(message *model.WebSocketEvent) {
+	hub.Broadcast(message)
+}
+
 func InvalidateCacheForUser(userId string) {
 	hub.invalidateUser <- userId
 
