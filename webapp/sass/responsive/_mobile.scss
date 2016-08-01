@@ -1,6 +1,10 @@
 @charset 'UTF-8';
 
 @media screen and (max-width: 768px) {
+    .scrollbar--view {
+        margin-right: 0 !important;
+    }
+
     #post-list {
         .post-list-holder-by-time {
             .modal-open & {
@@ -64,11 +68,11 @@
     .post {
         .post__dropdown {
             display: inline-block;
-            height: 20px;
-            line-height: 9px;
+            height: 28px;
+            line-height: 21px;
             text-align: center;
             text-decoration: none;
-            width: 20px;
+            width: 28px;
 
             &:after {
                 content: '...';
@@ -393,6 +397,18 @@
                         display: block;
 
                         .settings-content {
+                            .appearance-section {
+                                .theme-elements {
+                                    .element {
+                                        margin-right: 10px;
+
+                                        &:nth-child(2n) {
+                                            margin-right: 10px;
+                                        }
+                                    }
+                                }
+                            }
+
                             &.minimize-settings {
                                 display: block;
                             }

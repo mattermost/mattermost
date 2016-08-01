@@ -119,11 +119,13 @@ class CustomThemeChooser extends React.Component {
         });
         $('.color-picker').on('changeColor', this.onPickerChange);
         $('.group--code').on('change', this.onCodeThemeChange);
+        document.addEventListener('click', this.closeColorpicker);
     }
 
     componentWillUnmount() {
         $('.color-picker').off('changeColor', this.onPickerChange);
         $('.group--code').off('change', this.onCodeThemeChange);
+        document.removeEventListener('click', this.closeColorpicker);
     }
 
     componentDidUpdate() {
@@ -134,6 +136,12 @@ class CustomThemeChooser extends React.Component {
                 $('#' + element.id).colorpicker('update');
             }
         });
+    }
+
+    closeColorpicker(e) {
+        if (!$(e.target).closest('.color-picker').length && Utils.isMobile()) {
+            $('.color-picker').colorpicker('hide');
+        }
     }
 
     onPickerChange(e) {
