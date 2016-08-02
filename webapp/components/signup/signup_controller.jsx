@@ -58,12 +58,12 @@ export default class SignupController extends React.Component {
         if (this.state.emailEnabled) {
             signupControls.push(
                 <Link
-                    className='btn btn-custom-login email'
+                    className='btn btn-custom-login btn--full email'
                     key='email'
                     to={'/signup_email' + window.location.search}
                 >
 
-                    <span className='icon'/>
+                    <span className='icon fa fa-envelope'/>
                     <span>
                         <FormattedMessage
                             id='signup.email'
@@ -77,7 +77,7 @@ export default class SignupController extends React.Component {
         if (this.state.gitlabEnabled) {
             signupControls.push(
                 <Link
-                    className='btn btn-custom-login gitlab'
+                    className='btn btn-custom-login btn--full gitlab'
                     key='gitlab'
                     to={Client.getOAuthRoute() + '/gitlab/signup' + window.location.search}
                 >
@@ -95,7 +95,7 @@ export default class SignupController extends React.Component {
         if (this.state.googleEnabled) {
             signupControls.push(
                 <Link
-                    className='btn btn-custom-login google'
+                    className='btn btn-custom-login btn--full google'
                     key='google'
                     to={Client.getOAuthRoute() + '/google/signup' + window.location.search + '&team=' + encodeURIComponent(this.state.teamName)}
                 >
@@ -113,7 +113,7 @@ export default class SignupController extends React.Component {
         if (this.state.office365Enabled) {
             signupControls.push(
                 <a
-                    className='btn btn-custom-login office365'
+                    className='btn btn-custom-login btn--full office365'
                     key='office365'
                     href={Client.getOAuthRoute() + '/office365/signup' + window.location.search + '&team=' + encodeURIComponent(this.state.teamName)}
                 >
@@ -131,11 +131,11 @@ export default class SignupController extends React.Component {
         if (this.state.ldapEnabled) {
             signupControls.push(
                 <Link
-                    className='btn btn-custom-login ldap'
+                    className='btn btn-custom-login btn--full ldap'
                     key='ldap'
                     to={'/signup_ldap'}
                 >
-                    <span className='icon'/>
+                    <span className='icon fa fa-folder-open fa--margin-top'/>
                     <span>
                         <FormattedMessage
                             id='signup.ldap'
@@ -149,11 +149,11 @@ export default class SignupController extends React.Component {
         if (this.state.samlEnabled) {
             signupControls.push(
                 <Link
-                    className='btn btn-custom-login saml'
+                    className='btn btn-custom-login btn--full saml'
                     key='saml'
                     to={'/login/sso/saml'}
                 >
-                    <span className='icon'/>
+                    <span className='icon fa fa-lock fa--margin-top'/>
                     <span>
                         <FormattedMessage
                             id='signup.saml'
