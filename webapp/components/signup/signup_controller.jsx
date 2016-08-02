@@ -76,10 +76,10 @@ export default class SignupController extends React.Component {
 
         if (this.state.gitlabEnabled) {
             signupControls.push(
-                <Link
+                <a
                     className='btn btn-custom-login btn--full gitlab'
                     key='gitlab'
-                    to={Client.getOAuthRoute() + '/gitlab/signup' + window.location.search}
+                    href={Client.getOAuthRoute() + '/gitlab/signup' + window.location.search}
                 >
                     <span className='icon'/>
                     <span>
@@ -88,16 +88,16 @@ export default class SignupController extends React.Component {
                             defaultMessage='GitLab Single-Sign-On'
                         />
                     </span>
-                </Link>
+                </a>
             );
         }
 
         if (this.state.googleEnabled) {
             signupControls.push(
-                <Link
+                <a
                     className='btn btn-custom-login btn--full google'
                     key='google'
-                    to={Client.getOAuthRoute() + '/google/signup' + window.location.search + '&team=' + encodeURIComponent(this.state.teamName)}
+                    href={Client.getOAuthRoute() + '/google/signup' + window.location.search + '&team=' + encodeURIComponent(this.state.teamName)}
                 >
                     <span className='icon'/>
                     <span>
@@ -106,7 +106,7 @@ export default class SignupController extends React.Component {
                             defaultMessage='Google Account'
                         />
                     </span>
-                </Link>
+                </a>
             );
         }
 
