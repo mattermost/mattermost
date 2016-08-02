@@ -105,6 +105,51 @@ export default class EmailNotificationSetting extends React.Component {
             );
         }
 
+        let batchingOptions = null;
+        let batchingInfo = null;
+        if (window.mm_config.EnableEmailBatching === 'true') {
+            batchingOptions = (
+                <div>
+                    <div className='radio'>
+                        <label>
+                            <input
+                                type='radio'
+                                name='emailNotifications'
+                                checked={this.props.enableEmail === 'true' && this.state.emailInterval === 15}
+                                onChange={this.handleChange.bind(this, 'true', 15)}
+                            />
+                            <FormattedMessage
+                                id='user.settings.notifications.email.everyXMinutes'
+                                defaultMessage='Every {count} minutes'
+                                values={{count: 15}}
+                            />
+                        </label>
+                    </div>
+                    <div className='radio'>
+                        <label>
+                            <input
+                                type='radio'
+                                name='emailNotifications'
+                                checked={this.props.enableEmail === 'true' && this.state.emailInterval === 60}
+                                onChange={this.handleChange.bind(this, 'true', 60)}
+                            />
+                            <FormattedMessage
+                                id='user.settings.notifications.everyHour'
+                                defaultMessage='Every hour'
+                            />
+                        </label>
+                    </div>
+                </div>
+            );
+
+            batchingInfo = (
+                <FormattedMessage
+                    id='user.settings.notifications.emailBatchingInfo'
+                    defaultMessage='Notifications are combined into a single email and sent at the maximum frequency selected here.'
+                />
+            );
+        }
+
         return (
             <SettingItemMax
                 title={localizeMessage('user.settings.notifications.emailNotifications', 'Send Email notifications')}
@@ -124,35 +169,7 @@ export default class EmailNotificationSetting extends React.Component {
                                 />
                             </label>
                         </div>
-                        <div className='radio'>
-                            <label>
-                                <input
-                                    type='radio'
-                                    name='emailNotifications'
-                                    checked={this.props.enableEmail === 'true' && this.state.emailInterval === 15}
-                                    onChange={this.handleChange.bind(this, 'true', 15)}
-                                />
-                                <FormattedMessage
-                                    id='user.settings.notifications.email.everyXMinutes'
-                                    defaultMessage='Every {count} minutes'
-                                    values={{count: 15}}
-                                />
-                            </label>
-                        </div>
-                        <div className='radio'>
-                            <label>
-                                <input
-                                    type='radio'
-                                    name='emailNotifications'
-                                    checked={this.props.enableEmail === 'true' && this.state.emailInterval === 60}
-                                    onChange={this.handleChange.bind(this, 'true', 60)}
-                                />
-                                <FormattedMessage
-                                    id='user.settings.notifications.everyHour'
-                                    defaultMessage='Every hour'
-                                />
-                            </label>
-                        </div>
+                        {batchingOptions}
                         <div className='radio'>
                             <label>
                                 <input
@@ -171,11 +188,13 @@ export default class EmailNotificationSetting extends React.Component {
                         <div>
                             <FormattedMessage
                                 id='user.settings.notifications.emailInfo'
-                                defaultMessage='Email notifications that are sent for mentions and direct messages when you are offline or away from {siteName} for more than 5 minutes. Notifications are combined into a single email and sent at the maximum frequency selected here.'
+                                defaultMessage='Email notifications that are sent for mentions and direct messages when you are offline or away from {siteName} for more than 5 minutes.'
                                 values={{
                                     siteName: global.window.mm_config.SiteName
                                 }}
                             />
+                            {' '}
+                            {batchingInfo}
                         </div>
                     </div>
                 ]}
