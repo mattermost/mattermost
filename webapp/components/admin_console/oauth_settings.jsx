@@ -43,9 +43,9 @@ export default class OAuthSettings extends AdminSettings {
             config.GoogleSettings.Enable = true;
             config.GoogleSettings.Id = this.state.id;
             config.GoogleSettings.Secret = this.state.secret;
-            config.GoogleSettings.UserApiEndpoint = this.state.userApiEndpoint;
-            config.GoogleSettings.AuthEndpoint = this.state.authEndpoint;
-            config.GoogleSettings.TokenEndpoint = this.state.tokenEndpoint;
+            config.GoogleSettings.UserApiEndpoint = 'https://www.googleapis.com/plus/v1/people/me';
+            config.GoogleSettings.AuthEndpoint = 'https://accounts.google.com/o/oauth2/v2/auth';
+            config.GoogleSettings.TokenEndpoint = 'https://www.googleapis.com/oauth2/v4/token';
             config.GoogleSettings.Scope = 'profile email';
         }
 
@@ -53,9 +53,9 @@ export default class OAuthSettings extends AdminSettings {
             config.Office365Settings.Enable = true;
             config.Office365Settings.Id = this.state.id;
             config.Office365Settings.Secret = this.state.secret;
-            config.Office365Settings.UserApiEndpoint = this.state.userApiEndpoint;
-            config.Office365Settings.AuthEndpoint = this.state.authEndpoint;
-            config.Office365Settings.TokenEndpoint = this.state.tokenEndpoint;
+            config.Office365Settings.UserApiEndpoint = 'https://graph.microsoft.com/v1.0/me';
+            config.Office365Settings.AuthEndpoint = 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize';
+            config.Office365Settings.TokenEndpoint = 'https://login.microsoftonline.com/common/oauth2/v2.0/token';
             config.Office365Settings.Scope = 'User.Read';
         }
 
