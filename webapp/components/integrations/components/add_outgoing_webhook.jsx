@@ -7,7 +7,7 @@ import * as AsyncClient from 'utils/async_client.jsx';
 
 import BackstageHeader from 'components/backstage/components/backstage_header.jsx';
 import ChannelSelect from 'components/channel_select.jsx';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 import FormError from 'components/form_error.jsx';
 import {browserHistory, Link} from 'react-router/es6';
 import SpinnerButton from 'components/spinner_button.jsx';
@@ -32,6 +32,9 @@ export default class AddOutgoingWebhook extends React.Component {
         this.updateTriggerWhen = this.updateTriggerWhen.bind(this);
         this.updateCallbackUrls = this.updateCallbackUrls.bind(this);
 
+        this.renderDone = this.renderDone.bind(this);
+        this.handleDone = this.handleDone.bind(this);
+
         this.state = {
             displayName: '',
             description: '',
@@ -41,6 +44,8 @@ export default class AddOutgoingWebhook extends React.Component {
             triggerWhen: 0,
             callbackUrls: '',
             saving: false,
+            isDone: false,
+            token: '',
             serverError: '',
             clientError: null
         };
@@ -56,7 +61,8 @@ export default class AddOutgoingWebhook extends React.Component {
         this.setState({
             saving: true,
             serverError: '',
-            clientError: ''
+            clientError: '',
+            token: ''
         });
 
         const triggerWords = [];
@@ -119,8 +125,11 @@ export default class AddOutgoingWebhook extends React.Component {
 
         AsyncClient.addOutgoingHook(
             hook,
-            () => {
-                browserHistory.push('/' + this.props.team.name + '/integrations/outgoing_webhooks');
+            (data) => {
+                this.setState({
+                    isDone: true,
+                    token: data.token
+                });
             },
             (err) => {
                 this.setState({
@@ -129,6 +138,14 @@ export default class AddOutgoingWebhook extends React.Component {
                 });
             }
         );
+    }
+
+    handleDone() {
+        browserHistory.push('/' + this.props.team.name + '/integrations/outgoing_webhooks');
+        this.setState({
+            isDone: false,
+            token: ''
+        });
     }
 
     updateDisplayName(e) {
@@ -173,23 +190,49 @@ export default class AddOutgoingWebhook extends React.Component {
         });
     }
 
+    renderDone() {
+        return (
+            <div>
+                <div className='backstage-list__help'>
+                    <FormattedHTMLMessage
+                        id='add_outgoing_webhook.doneHelp'
+                        defaultMessage='Your outgoing webhook has been set up. The following token will be sent in the outgoing payload. Please use it to verify the request came from your Mattermost team (see <a href="https://docs.mattermost.com/developer/webhooks-outgoing.html">documentation</a> for further details).'
+                    />
+                </div>
+                <div className='backstage-list__help'>
+                    <FormattedMessage
+                        id='add_outgoing_webhook.token'
+                        defaultMessage='Token: {token}'
+                        values={{
+                            token: this.state.token
+                        }}
+                    />
+                </div>
+                <div className='backstage-list__help'>
+                    <SpinnerButton
+                        className='btn btn-primary'
+                        type='submit'
+                        onClick={this.handleDone}
+                    >
+                        <FormattedMessage
+                            id='integrations.done'
+                            defaultMessage='Done'
+                        />
+                    </SpinnerButton>
+                </div>
+            </div>
+        );
+    }
+
     render() {
         const contentTypeOption1 = 'application/x-www-form-urlencoded';
         const contentTypeOption2 = 'application/json';
-        return (
-            <div className='backstage-content'>
-                <BackstageHeader>
-                    <Link to={'/' + this.props.team.name + '/integrations/outgoing_webhooks'}>
-                        <FormattedMessage
-                            id='installed_outgoing_webhooks.header'
-                            defaultMessage='Outgoing Webhooks'
-                        />
-                    </Link>
-                    <FormattedMessage
-                        id='add_outgoing_webhook.header'
-                        defaultMessage='Add'
-                    />
-                </BackstageHeader>
+
+        let content = null;
+        if (this.state.isDone) {
+            content = this.renderDone();
+        } else {
+            content = (
                 <div className='backstage-form'>
                     <form
                         className='form-horizontal'
@@ -390,6 +433,24 @@ export default class AddOutgoingWebhook extends React.Component {
                         </div>
                     </form>
                 </div>
+            );
+        }
+
+        return (
+            <div className='backstage-content'>
+                <BackstageHeader>
+                    <Link to={'/' + this.props.team.name + '/integrations/outgoing_webhooks'}>
+                        <FormattedMessage
+                            id='installed_outgoing_webhooks.header'
+                            defaultMessage='Outgoing Webhooks'
+                        />
+                    </Link>
+                    <FormattedMessage
+                        id='add_outgoing_webhook.header'
+                        defaultMessage='Add'
+                    />
+                </BackstageHeader>
+                {content}
             </div>
         );
     }
