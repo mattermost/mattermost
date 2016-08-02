@@ -209,6 +209,8 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 				c.LogAudit("fail - bad channel permissions")
 				c.Err = model.NewLocAppError("createOutgoingHook", "api.webhook.create_outgoing.permissions.app_error", nil, "")
 				return
+			} else {
+				c.Err = nil
 			}
 		}
 	} else if len(hook.TriggerWords) == 0 {
