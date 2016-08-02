@@ -12,7 +12,6 @@ import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 import * as AsyncClient from 'utils/async_client.jsx';
 import Client from 'client/web_client.jsx';
-import * as Utils from 'utils/utils.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 
 import emojiRoute from 'routes/route_emoji.jsx';
@@ -57,7 +56,7 @@ function doChannelChange(state, replace, callback) {
 function preNeedsTeam(nextState, replace, callback) {
     // First check to make sure you're in the current team
     // for the current url.
-    var teamName = Utils.getTeamNameFromUrl();
+    const teamName = nextState.params.team;
     var team = TeamStore.getByName(teamName);
     const oldTeamId = TeamStore.getCurrentId();
 

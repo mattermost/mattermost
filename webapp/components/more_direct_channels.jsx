@@ -87,7 +87,7 @@ export default class MoreDirectChannels extends React.Component {
         Utils.openDirectChannelToUser(
             teammate,
             (channel) => {
-                browserHistory.push(Utils.getTeamURLNoOriginFromAddressBar() + '/channels/' + channel.name);
+                browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/' + channel.name);
                 this.setState({loadingDMChannel: -1});
                 this.handleHide();
             },

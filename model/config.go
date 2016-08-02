@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"net/url"
 )
 
 const (
@@ -50,6 +51,7 @@ const (
 )
 
 type ServiceSettings struct {
+	SiteURL                           *string
 	ListenAddress                     string
 	MaximumLoginAttempts              int
 	SegmentDeveloperKey               string
@@ -361,6 +363,11 @@ func (o *Config) SetDefaults() {
 
 	if len(o.EmailSettings.PasswordResetSalt) == 0 {
 		o.EmailSettings.PasswordResetSalt = NewRandomString(32)
+	}
+
+	if o.ServiceSettings.SiteURL == nil {
+		o.ServiceSettings.SiteURL = new(string)
+		*o.ServiceSettings.SiteURL = ""
 	}
 
 	if o.ServiceSettings.EnableDeveloper == nil {
@@ -830,6 +837,16 @@ func (o *Config) IsValid() *AppError {
 
 	if o.ServiceSettings.MaximumLoginAttempts <= 0 {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.login_attempts.app_error", nil, "")
+	}
+
+	if len(*o.ServiceSettings.SiteURL) != 0 {
+		if _, err := url.ParseRequestURI(*o.ServiceSettings.SiteURL); err != nil {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.site_url.app_error", nil, "")
+		}
+	}
+
+	if len(o.ServiceSettings.ListenAddress) == 0 {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.listen_address.app_error", nil, "")
 	}
 
 	if len(o.ServiceSettings.ListenAddress) == 0 {

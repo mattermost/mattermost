@@ -277,7 +277,7 @@ export default class LoginController extends React.Component {
     }
 
     createLoginOptions() {
-        const extraParam = Utils.getUrlParameter('extra');
+        const extraParam = this.props.location.query.extra;
         let extraBox = '';
         if (extraParam) {
             if (extraParam === Constants.SIGNIN_CHANGE) {

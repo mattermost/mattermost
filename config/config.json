@@ -1,5 +1,6 @@
 {
     "ServiceSettings": {
+        "SiteURL": "",
         "ListenAddress": ":8065",
         "MaximumLoginAttempts": 10,
         "SegmentDeveloperKey": "",

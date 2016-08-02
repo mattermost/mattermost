@@ -3,6 +3,7 @@
 
 import * as Utils from 'utils/utils.jsx';
 import Client from 'client/web_client.jsx';
+import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
 import NewChannelModal from './new_channel_modal.jsx';
@@ -117,7 +118,7 @@ class NewChannelFlow extends React.Component {
                         });
 
                         this.props.onModalDismissed();
-                        browserHistory.push(Utils.getTeamURLNoOriginFromAddressBar() + '/channels/' + data2.channel.name);
+                        browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + data2.channel.name);
                     }
                 );
             },

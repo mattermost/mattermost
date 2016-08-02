@@ -2816,6 +2816,10 @@
     "translation": "Invalid Username attribute. Must be set."
   },
   {
+    "id": "model.config.is_valid.site_url.app_error",
+    "translation": "Site URL must be a valid URL and start with http:// or https://"
+  },
+  {
     "id": "model.config.is_valid.sitename_length.app_error",
     "translation": "Site name must be less than or equal to {{.MaxLength}} characters."
   },
