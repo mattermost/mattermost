@@ -56,14 +56,14 @@ export default class SessionSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.service.webSessionDays'
-                            defaultMessage='Session length for email and LDAP authentication (days):'
+                            defaultMessage='Session length LDAP and email (days):'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.service.sessionDaysEx', 'Ex "30"')}
                     helpText={
                         <FormattedMessage
                             id='admin.service.webSessionDaysDesc'
-                            defaultMessage='Email or LDAP sessions will expire after the number of days specified and will require users to sign in again.'
+                            defaultMessage='The number of days from the last time a user entered their credentials to the expiry of the users session. After changing this setting, the new session length will take effect after the next time the user enters their credentials.'
                         />
                     }
                     value={this.state.sessionLengthWebInDays}
@@ -74,14 +74,14 @@ export default class SessionSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.service.mobileSessionDays'
-                            defaultMessage='Session length for mobile apps (days):'
+                            defaultMessage='Session length mobile (days):'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.service.sessionDaysEx', 'Ex "30"')}
                     helpText={
                         <FormattedMessage
                             id='admin.service.mobileSessionDaysDesc'
-                            defaultMessage='Mobile sessions will expire after the number of days specified and will require users to sign in again.'
+                            defaultMessage='The number of days from the last time a user entered their credentials to the expiry of the users session. After changing this setting, the new session length will take effect after the next time the user enters their credentials.'
                         />
                     }
                     value={this.state.sessionLengthMobileInDays}
@@ -92,14 +92,14 @@ export default class SessionSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.service.ssoSessionDays'
-                            defaultMessage='Session length for GitLab SSO authentication (days):'
+                            defaultMessage='Session length SSO (days):'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.service.sessionDaysEx', 'Ex "30"')}
                     helpText={
                         <FormattedMessage
                             id='admin.service.ssoSessionDaysDesc'
-                            defaultMessage='GitLab single-sign-on sessions will expire after the number of days specified and will require users to sign in again.'
+                            defaultMessage='The number of days from the last time a user entered their credentials to the expiry of the users session. If the authentication method is SAML or GitLab, the user may automatically be logged back in to Mattermost if they are already logged in to SAML or GitLab. After changing this setting, the setting will take effect after the next time the user enters their credentials. '
                         />
                     }
                     value={this.state.sessionLengthSSOInDays}
