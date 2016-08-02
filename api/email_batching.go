@@ -5,6 +5,7 @@ package api
 
 import (
 	"database/sql"
+	"fmt"
 	"html/template"
 	"strconv"
 	"time"
@@ -221,7 +222,7 @@ func renderBatchedPost(template *utils.HTMLTemplate, post *model.Post, teamName 
 		"Month":    translateFunc(tm.Month().String()),
 		"Day":      tm.Day(),
 		"Hour":     tm.Hour(),
-		"Minute":   tm.Minute(),
+		"Minute":   fmt.Sprintf("%02d", tm.Minute()),
 		"Timezone": timezone,
 	})
 
