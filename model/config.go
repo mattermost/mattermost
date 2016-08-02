@@ -499,7 +499,7 @@ func (o *Config) SetDefaults() {
 
 	if o.SupportSettings.TermsOfServiceLink == nil {
 		o.SupportSettings.TermsOfServiceLink = new(string)
-		*o.SupportSettings.TermsOfServiceLink = ""
+		*o.SupportSettings.TermsOfServiceLink = "https://about.mattermost.com/default-terms/"
 	}
 
 	if !IsSafeLink(o.SupportSettings.PrivacyPolicyLink) {
