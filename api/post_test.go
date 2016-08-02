@@ -930,7 +930,7 @@ func TestGetMessageForNotification(t *testing.T) {
 	translateFunc := utils.GetUserTranslations("en")
 
 	post := &model.Post{
-		Message: "test",
+		Message:   "test",
 		Filenames: model.StringArray{},
 	}
 
