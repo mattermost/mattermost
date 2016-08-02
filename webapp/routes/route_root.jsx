@@ -15,10 +15,10 @@ import * as UserAgent from 'utils/user_agent.jsx';
 
 function preLogin(nextState, replace, callback) {
     // redirect to the mobile landing page if the user hasn't seen it before
-    if (UserAgent.isIosWeb() && !BrowserStore.hasSeenLandingPage()) {
+    if (window.mm_config.IosAppDownloadLink && UserAgent.isIosWeb() && !BrowserStore.hasSeenLandingPage()) {
         replace('/get_ios_app');
         BrowserStore.setLandingPageSeen(true);
-    } else if (UserAgent.isAndroidWeb() && !BrowserStore.hasSeenLandingPage()) {
+    } else if (window.mm_config.AndroidAppDownloadLink && UserAgent.isAndroidWeb() && !BrowserStore.hasSeenLandingPage()) {
         replace('/get_android_app');
         BrowserStore.setLandingPageSeen(true);
     }
