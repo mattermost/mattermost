@@ -20,6 +20,12 @@ export default class UserProfile extends React.Component {
     constructor(props) {
         super(props);
         this.uniqueId = nextId();
+
+        this.handleClick = this.handleClick.bind(this);
+
+        this.state = {
+            showPopover: true
+        };
     }
 
     shouldComponentUpdate(nextProps) {
@@ -46,6 +52,12 @@ export default class UserProfile extends React.Component {
         return false;
     }
 
+    handleClick() {
+        this.setState({
+            showPopover: !this.state.showPopover
+        });
+    }
+
     render() {
         let name = '...';
         let email = '';
@@ -69,54 +81,76 @@ export default class UserProfile extends React.Component {
         }
 
         var dataContent = [];
-        dataContent.push(
-            <img
-                className='user-popover__image'
-                src={profileImg}
-                height='128'
-                width='128'
-                key='user-popover-image'
-            />
-        );
-
-        if (global.window.mm_config.ShowEmailAddress === 'true' || UserStore.isSystemAdminForCurrentUser() || this.props.user === UserStore.getCurrentUser()) {
+        if (this.state.showPopover) {
             dataContent.push(
-                <div
-                    data-toggle='tooltip'
-                    title={email}
-                    key='user-popover-email'
-                >
-                    <a
-                        href={'mailto:' + email}
-                        className='text-nowrap text-lowercase user-popover__email'
-                    >
-                        {email}
-                    </a>
-                </div>
+                <img
+                    className='user-popover__image'
+                    src={profileImg}
+                    height='128'
+                    width='128'
+                    key='user-popover-image'
+                />
             );
+
+            let fullname = Utils.getFullName(this.props.user);
+            if (fullname) {
+                dataContent.push(
+                    <div
+                        data-toggle='tooltip'
+                        title={fullname}
+                        key='user-popover-fullname'
+                    >
+
+                        <p
+                            className='text-nowrap'
+                        >
+                            {fullname}
+                        </p>
+                    </div>
+                );
+            }
+
+            if (global.window.mm_config.ShowEmailAddress === 'true' || UserStore.isSystemAdminForCurrentUser() || this.props.user === UserStore.getCurrentUser()) {
+                dataContent.push(
+                    <div
+                        data-toggle='tooltip'
+                        title={email}
+                        key='user-popover-email'
+                    >
+                        <a
+                            href={'mailto:' + email}
+                            className='text-nowrap text-lowercase user-popover__email'
+                        >
+                            {email}
+                        </a>
+                    </div>
+                );
+            }
         }
 
         return (
-            <OverlayTrigger
-                trigger='click'
-                placement='right'
-                rootClose={true}
-                overlay={
-                    <Popover
-                        title={name}
-                        id='user-profile-popover'
-                    >
-                        {dataContent}
-                    </Popover>
-                }
-            >
-                <div
-                    className='user-popover'
-                    id={'profile_' + this.uniqueId}
+            <div onClick={this.handleClick}>
+                <OverlayTrigger
+                    trigger='click'
+                    placement='right'
+                    rootClose={true}
+                    overlay={
+                        <Popover
+                            title={'@' + this.props.user.username}
+                            id='user-profile-popover'
+                        >
+                            {dataContent}
+                        </Popover>
+                    }
                 >
-                    {name}
-                </div>
-            </OverlayTrigger>
+                    <div
+                        className='user-popover'
+                        id={'profile_' + this.uniqueId}
+                    >
+                        {name}
+                    </div>
+                </OverlayTrigger>
+            </div>
         );
     }
 }
