@@ -765,6 +765,18 @@ export default class SignupUserComplete extends React.Component {
             ldapSignup = null;
         }
 
+        let description = null;
+        if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.CustomBrand === 'true' && global.window.mm_config.EnableCustomBrand === 'true') {
+            description = global.window.mm_config.CustomDescriptionText;
+        } else {
+            description = (
+                <FormattedMessage
+                    id='web.root.signup_info'
+                    defaultMessage='All team communication in one place, searchable and accessible anywhere'
+                />
+            );
+        }
+
         return (
             <div>
                 <div className='signup-header'>
@@ -783,9 +795,7 @@ export default class SignupUserComplete extends React.Component {
                         />
                         <h1>{global.window.mm_config.SiteName}</h1>
                         <h4 className='color--light'>
-                            <FormattedMessage
-                                id='web.root.singup_info'
-                            />
+                            {description}
                         </h4>
                         <h4 className='color--light'>
                             <FormattedMessage

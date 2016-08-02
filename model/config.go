@@ -192,6 +192,7 @@ type TeamSettings struct {
 	RestrictTeamNames                *bool
 	EnableCustomBrand                *bool
 	CustomBrandText                  *string
+	CustomDescriptionText            *string
 	RestrictDirectMessage            *string
 	RestrictTeamInvite               *string
 	RestrictPublicChannelManagement  *string
@@ -420,6 +421,11 @@ func (o *Config) SetDefaults() {
 	if o.TeamSettings.CustomBrandText == nil {
 		o.TeamSettings.CustomBrandText = new(string)
 		*o.TeamSettings.CustomBrandText = ""
+	}
+
+	if o.TeamSettings.CustomDescriptionText == nil {
+		o.TeamSettings.CustomDescriptionText = new(string)
+		*o.TeamSettings.CustomDescriptionText = ""
 	}
 
 	if o.TeamSettings.EnableOpenServer == nil {

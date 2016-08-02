@@ -691,6 +691,9 @@
   "admin.team.brandTextDescription": "The custom branding Markdown-formatted text you would like to appear below your custom brand image on your login screen.",
   "admin.team.brandTextTitle": "Custom Brand Text:",
   "admin.team.brandTitle": "Enable Custom Branding: ",
+  "admin.team.brandDescriptionTitle": "Site Description",
+  "admin.team.brandDescriptionHelp": "Description of service shown in login screens and UI.",
+  "admin.team.brandDescriptionExample": "All team communication in one place, searchable and accessible anywhere",
   "admin.team.chooseImage": "Choose New Image",
   "admin.team.dirDesc": "When true, teams that are configured to show in team directory will show on main page inplace of creating a new team.",
   "admin.team.dirTitle": "Enable Team Directory: ",
@@ -1748,6 +1751,6 @@
   "web.footer.privacy": "Privacy",
   "web.footer.terms": "Terms",
   "web.header.back": "Back",
-  "web.root.singup_info": "All team communication in one place, searchable and accessible anywhere",
+  "web.root.signup_info": "All team communication in one place, searchable and accessible anywhere",
   "youtube_video.notFound": "Video not found"
 }

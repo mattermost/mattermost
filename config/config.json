@@ -37,6 +37,7 @@
         "RestrictTeamNames": true,
         "EnableCustomBrand": false,
         "CustomBrandText": "",
+        "CustomDescriptionText": "",
         "RestrictDirectMessage": "any",
         "RestrictTeamInvite": "all",
         "RestrictPublicChannelManagement": "all",

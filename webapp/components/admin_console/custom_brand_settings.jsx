@@ -27,6 +27,7 @@ export default class CustomBrandSettings extends AdminSettings {
         if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.CustomBrand === 'true') {
             config.TeamSettings.EnableCustomBrand = this.state.enableCustomBrand;
             config.TeamSettings.CustomBrandText = this.state.customBrandText;
+            config.TeamSettings.customDescriptionText = this.state.customDescriptionText;
         }
 
         return config;
@@ -36,7 +37,8 @@ export default class CustomBrandSettings extends AdminSettings {
         return {
             siteName: config.TeamSettings.SiteName,
             enableCustomBrand: config.TeamSettings.EnableCustomBrand,
-            customBrandText: config.TeamSettings.CustomBrandText
+            customBrandText: config.TeamSettings.CustomBrandText,
+            customDescriptionText: config.TeamSettings.CustomDescriptionText
         };
     }
 
@@ -100,6 +102,30 @@ export default class CustomBrandSettings extends AdminSettings {
                         />
                     }
                     value={this.state.customBrandText}
+                    onChange={this.handleChange}
+                    disabled={!this.state.enableCustomBrand}
+                />
+            );
+
+            enterpriseSettings.push(
+                <TextSetting
+                    key='customDescriptionText'
+                    id='customDescriptionText'
+                    type='textarea'
+                    label={
+                        <FormattedMessage
+                            id='admin.team.brandDescriptionTitle'
+                            defaultMessage='Site Description'
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.team.brandDescriptionHelp'
+                            defaultMessage='Description of service shown in login screens and UI.'
+                        />
+                    }
+                    value={this.state.customDescriptionText}
+                    placeholder={Utils.localizeMessage('web.root.signup_info', 'All team communication in one place, searchable and accessible anywhere')}
                     onChange={this.handleChange}
                     disabled={!this.state.enableCustomBrand}
                 />
