@@ -61,7 +61,6 @@ func MakeEmailBatchingJob(bufferSize int) *EmailBatchingJob {
 }
 
 func (job *EmailBatchingJob) Start() {
-	l4g.Debug("starting")
 	if task := model.GetTaskByName(EMAIL_BATCHING_TASK_NAME); task != nil {
 		task.Cancel()
 	}
@@ -86,7 +85,6 @@ func (job *EmailBatchingJob) Add(user *model.User, post *model.Post, team *model
 }
 
 func (job *EmailBatchingJob) CheckPendingEmails() {
-	l4g.Debug("checking...")
 	job.handleNewNotifications()
 
 	// it's a bit weird to pass the send email function through here, but it makes it so that we can test
@@ -101,7 +99,6 @@ func (job *EmailBatchingJob) handleNewNotifications() {
 	for receiving {
 		select {
 		case notification := <-job.newNotifications:
-			l4g.Debug("receiing for " + notification.userId)
 			userId := notification.userId
 
 			if _, ok := job.pendingNotifications[userId]; !ok {
@@ -110,7 +107,6 @@ func (job *EmailBatchingJob) handleNewNotifications() {
 				job.pendingNotifications[userId] = append(job.pendingNotifications[userId], notification)
 			}
 		default:
-			l4g.Debug("done receiving")
 			receiving = false
 		}
 	}
@@ -119,7 +115,6 @@ func (job *EmailBatchingJob) handleNewNotifications() {
 func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler func(string, []*batchedNotification)) {
 	// look for users who've acted since pending posts were received
 	for userId, notifications := range job.pendingNotifications {
-		l4g.Debug("checking for " + userId)
 		schan := Srv.Store.Status().Get(userId)
 		pchan := Srv.Store.Preference().Get(userId, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL)
 		batchStartTime := notifications[0].post.CreateAt
@@ -130,7 +125,6 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 			delete(job.pendingNotifications, userId)
 			continue
 		} else if status := result.Data.(*model.Status); status.LastActivityAt >= batchStartTime {
-			l4g.Debug("removing for act")
 			delete(job.pendingNotifications, userId)
 			continue
 		}
@@ -149,23 +143,14 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 				delete(job.pendingNotifications, userId)
 				continue
 			} else {
-				l4g.Debug("interval is ", value)
 				interval = value
 			}
 		}
 
-		l4g.Debug("now = ", now)
-		l4g.Debug("start = ", time.Unix(batchStartTime/1000, 0))
-		l4g.Debug("diff = ", now.Sub(time.Unix(batchStartTime/1000, 0)))
-		l4g.Debug("interval = ", time.Duration(interval)*time.Minute)
-
 		// send the email notification if it's been long enough
 		if now.Sub(time.Unix(batchStartTime/1000, 0)) > time.Duration(interval)*time.Minute {
-			l4g.Debug("sending")
 			go handler(userId, notifications)
 			delete(job.pendingNotifications, userId)
-		} else {
-			l4g.Debug("not sending")
 		}
 	}
 }
