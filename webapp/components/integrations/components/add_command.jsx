@@ -261,8 +261,8 @@ export default class AddCommand extends React.Component {
                         />
                         <div className='form__help'>
                             <FormattedMessage
-                                id='add_command.autocompleteDescription.help'
-                                defaultMessage='Optional hint in the autocomplete list about command parameters'
+                                id='add_command.autocompleteHint.help'
+                                defaultMessage='(Optional) Arguments associated with your slash command, displayed as help in the autocomplete list.'
                             />
                         </div>
                     </div>
@@ -295,7 +295,7 @@ export default class AddCommand extends React.Component {
                         <div className='form__help'>
                             <FormattedMessage
                                 id='add_command.autocompleteDescription.help'
-                                defaultMessage='Optional short description of slash command for the autocomplete list.'
+                                defaultMessage='(Optional) Short description of slash command for the autocomplete list.'
                             />
                         </div>
                     </div>
@@ -341,6 +341,12 @@ export default class AddCommand extends React.Component {
                                     value={this.state.displayName}
                                     onChange={this.updateDisplayName}
                                 />
+                                <div className='form__help'>
+                                    <FormattedMessage
+                                        id='add_command.displayName.help'
+                                        defaultMessage='Display name for your slash command made of up to 64 characters.'
+                                    />
+                                </div>
                             </div>
                         </div>
                         <div className='form-group'>
@@ -362,6 +368,12 @@ export default class AddCommand extends React.Component {
                                     value={this.state.description}
                                     onChange={this.updateDescription}
                                 />
+                                <div className='form__help'>
+                                    <FormattedMessage
+                                        id='add_command.description.help'
+                                        defaultMessage='Description for your incoming webhook.'
+                                    />
+                                </div>
                             </div>
                         </div>
                         <div className='form-group'>
@@ -386,14 +398,34 @@ export default class AddCommand extends React.Component {
                                 />
                                 <div className='form__help'>
                                     <FormattedMessage
-                                        id='add_command.trigger.help1'
-                                        defaultMessage='Examples: /patient, /client /employee'
+                                        id='add_command.trigger.help'
+                                        defaultMessage='Trigger word must be unique, and cannot begin with a slash or contain any spaces.'
                                     />
                                 </div>
                                 <div className='form__help'>
                                     <FormattedMessage
-                                        id='add_command.trigger.help2'
-                                        defaultMessage='Reserved: /echo, /join, /logout, /me, /shrug'
+                                        id='add_command.trigger.helpExamples'
+                                        defaultMessage='Examples: client, employee, patient, weather'
+                                    />
+                                </div>
+                                <div className='form__help'>
+                                    <FormattedMessage
+                                        id='add_command.trigger.helpReserved'
+                                        defaultMessage='Reserved: {link}'
+                                        values={{
+                                            link: (
+                                                <a
+                                                    href='https://docs.mattermost.com/help/messaging/executing-commands.html#built-in-commands'
+                                                    target='_blank'
+                                                    rel='noopener noreferrer'
+                                                >
+                                                    <FormattedMessage
+                                                        id='add_command.trigger.helpReservedLinkText'
+                                                        defaultMessage='see list of built-in slash commands'
+                                                    />
+                                                </a>
+                                            )
+                                        }}
                                     />
                                 </div>
                             </div>
@@ -481,7 +513,7 @@ export default class AddCommand extends React.Component {
                                 <div className='form__help'>
                                     <FormattedMessage
                                         id='add_command.username.help'
-                                        defaultMessage='Choose a username override for responses for this slash command. Usernames can consist of up to 22 characters consisting of lowercase letters, numbers and the symbols "-", "_", and ".".'
+                                        defaultMessage='(Optional) Choose a username override for responses for this slash command. Usernames can consist of up to 22 characters consisting of lowercase letters, numbers and they symbols "-", "_", and "." .'
                                     />
                                 </div>
                             </div>
@@ -509,28 +541,32 @@ export default class AddCommand extends React.Component {
                                 <div className='form__help'>
                                     <FormattedMessage
                                         id='add_command.iconUrl.help'
-                                        defaultMessage='Choose a profile picture override for the post responses to this slash command. Enter the URL of a .png or .jpg file at least 128 pixels by 128 pixels.'
+                                        defaultMessage='(Optional) Choose a profile picture override for the post responses to this slash command. Enter the URL of a .png or .jpg file at least 128 pixels by 128 pixels.'
                                     />
                                 </div>
                             </div>
                         </div>
-                        <div className='form-group padding-bottom'>
-                            <div className='col-sm-12'>
-                                <div className='checkbox'>
-                                    <input
-                                        type='checkbox'
-                                        checked={this.state.autocomplete}
-                                        onChange={this.updateAutocomplete}
-                                    />
-                                    <FormattedMessage
-                                        id='add_command.autocomplete'
-                                        defaultMessage='Autocomplete'
-                                    />
-                                </div>
+                        <div className='form-group'>
+                            <label
+                                className='control-label col-sm-4'
+                                htmlFor='autocomplete'
+                            >
+                                <FormattedMessage
+                                    id='add_command.iconUrl'
+                                    defaultMessage='Response Icon'
+                                />
+                            </label>
+                            <div className='col-md-5 col-sm-8 checkbox'>
+                                <input
+                                    id='autocomplete'
+                                    type='checkbox'
+                                    checked={this.state.autocomplete}
+                                    onChange={this.updateAutocomplete}
+                                />
                                 <div className='form__help'>
                                     <FormattedMessage
                                         id='add_command.autocomplete.help'
-                                        defaultMessage='Show this command in the autocomplete list'
+                                        defaultMessage='(Optional) Show slash command in autocomplete list.'
                                     />
                                 </div>
                             </div>

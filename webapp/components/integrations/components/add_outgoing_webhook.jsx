@@ -214,6 +214,12 @@ export default class AddOutgoingWebhook extends React.Component {
                                     value={this.state.displayName}
                                     onChange={this.updateDisplayName}
                                 />
+                                <div className='form__help'>
+                                    <FormattedMessage
+                                        id='add_outgoing_webhook.displayName.help'
+                                        defaultMessage='Display name for your incoming webhook made of up to 64 characters.'
+                                    />
+                                </div>
                             </div>
                         </div>
                         <div className='form-group'>
@@ -235,6 +241,12 @@ export default class AddOutgoingWebhook extends React.Component {
                                     value={this.state.description}
                                     onChange={this.updateDescription}
                                 />
+                                <div className='form__help'>
+                                    <FormattedMessage
+                                        id='add_outgoing_webhook.description.help'
+                                        defaultMessage='Description for your incoming webhook.'
+                                    />
+                                </div>
                             </div>
                         </div>
                         <div className='form-group'>
@@ -264,6 +276,24 @@ export default class AddOutgoingWebhook extends React.Component {
                                         {contentTypeOption2}
                                     </option>
                                 </select>
+                                <div className='form__help'>
+                                    <FormattedMessage
+                                        id='add_outgoing_webhook.contentType.help1'
+                                        defaultMessage='Choose the content type by which the response will be sent.'
+                                    />
+                                </div>
+                                <div className='form__help'>
+                                    <FormattedMessage
+                                        id='add_outgoing_webhook.contentType.help2'
+                                        defaultMessage='If application/x-www-form-urlencoded is chosen, the server assumes you will be encoding the parameters in a URL format.'
+                                    />
+                                </div>
+                                <div className='form__help'>
+                                    <FormattedMessage
+                                        id='add_outgoing_webhook.contentType.help3'
+                                        defaultMessage='If application/json is chosen, the server assumes you will posting JSON data.'
+                                    />
+                                </div>
                             </div>
                         </div>
                         <div className='form-group'>
@@ -283,6 +313,12 @@ export default class AddOutgoingWebhook extends React.Component {
                                     onChange={this.updateChannelId}
                                     selectOpen={true}
                                 />
+                                <div className='form__help'>
+                                    <FormattedMessage
+                                        id='add_outgoing_webhook.channel.help'
+                                        defaultMessage='Public channel to receive webhook payloads. Optional if at least one Trigger Word is specified.'
+                                    />
+                                </div>
                             </div>
                         </div>
                         <div className='form-group'>
@@ -304,6 +340,12 @@ export default class AddOutgoingWebhook extends React.Component {
                                     value={this.state.triggerWords}
                                     onChange={this.updateTriggerWords}
                                 />
+                                <div className='form__help'>
+                                    <FormattedMessage
+                                        id='add_outgoing_webhook.triggerWords.help'
+                                        defaultMessage='Messages that start with one of the specified words will trigger the outgoing webhook. Optional if Channel is selected.'
+                                    />
+                                </div>
                             </div>
                         </div>
                         <div className='form-group'>
@@ -339,6 +381,12 @@ export default class AddOutgoingWebhook extends React.Component {
                                         />
                                     </option>
                                 </select>
+                                <div className='form__help'>
+                                    <FormattedMessage
+                                        id='add_outgoing_webhook.triggerWordsTriggerWhen.help'
+                                        defaultMessage='Choose when to trigger the outgoing webhook; if the first word of a message matches a Trigger Word exactly, or if it starts with a Trigger Word.'
+                                    />
+                                </div>
                             </div>
                         </div>
                         <div className='form-group'>
@@ -360,6 +408,12 @@ export default class AddOutgoingWebhook extends React.Component {
                                     value={this.state.callbackUrls}
                                     onChange={this.updateCallbackUrls}
                                 />
+                                <div className='form__help'>
+                                    <FormattedMessage
+                                        id='add_outgoing_webhook.callbackUrls.help'
+                                        defaultMessage='The URL that messages will be sent to.'
+                                    />
+                                </div>
                             </div>
                         </div>
                         <div className='backstage-form__footer'>
