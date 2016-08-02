@@ -6,9 +6,6 @@ import FormError from 'components/form_error.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {track} from 'actions/analytics_actions.jsx';
 
-import BrowserStore from 'stores/browser_store.jsx';
-import UserStore from 'stores/user_store.jsx';
-
 import * as Utils from 'utils/utils.jsx';
 import Client from 'client/web_client.jsx';
 
@@ -33,129 +30,8 @@ export default class SignupLdap extends React.Component {
         this.handleLdapIdChange = this.handleLdapIdChange.bind(this);
         this.handleLdapPasswordChange = this.handleLdapPasswordChange.bind(this);
 
-        this.state = {
-            data: '',
-            hash: '',
-            usedBefore: false,
-            email: '',
-            teamDisplayName: '',
-            teamName: '',
-            teamId: '',
-            openServer: false,
-            loading: true,
-            inviteId: '',
-            ldapId: '',
-            ldapPassword: ''
-        };
-    }
-
-    componentWillMount() {
-        let data = this.props.location.query.d;
-        let hash = this.props.location.query.h;
-        const inviteId = this.props.location.query.id;
-        let usedBefore = false;
-        let email = '';
-        let teamDisplayName = '';
-        let teamName = '';
-        let teamId = '';
-        let openServer = false;
-        let loading = true;
-
-        if ((inviteId && inviteId.length > 0) || (hash && hash.length > 0)) {
-            // if we are already logged in then attempt to just join the team
-            if (UserStore.getCurrentUser()) {
-                loading = true;
-                Client.addUserToTeamFromInvite(
-                    data,
-                    hash,
-                    inviteId,
-                    (team) => {
-                        GlobalActions.emitInitialLoad(
-                            () => {
-                                browserHistory.push('/' + team.name);
-                            }
-                        );
-                    },
-                    (err) => {
-                        this.setState({
-                            noOpenServerError: true,
-                            serverError: err.message,
-                            loading: false
-                        });
-                    }
-                );
-            } else if (hash) {
-                // If we have a hash in the url then we are attempting to access a private team
-                const parsedData = JSON.parse(data);
-                usedBefore = BrowserStore.getGlobalItem(hash);
-                email = parsedData.email;
-                teamDisplayName = parsedData.display_name;
-                teamName = parsedData.name;
-                teamId = parsedData.id;
-                loading = false;
-            } else {
-                loading = true;
-                Client.getInviteInfo(
-                    inviteId,
-                    (inviteData) => {
-                        if (!inviteData) {
-                            return;
-                        }
-
-                        this.setState({
-                            serverError: null,
-                            teamDisplayName: inviteData.display_name,
-                            teamName: inviteData.name,
-                            teamId: inviteData.id,
-                            loading: false
-                        });
-                    },
-                    () => {
-                        this.setState({
-                            noOpenServerError: true,
-                            loading: false,
-                            serverError:
-                                <FormattedMessage
-                                    id='signup_user_completed.invalid_invite'
-                                    defaultMessage='The invite link was invalid.  Please speak with your Administrator to receive an invitation.'
-                                />
-                        });
-                    }
-                );
-
-                data = '';
-                hash = '';
-            }
-        } else if (global.window.mm_config.EnableOpenServer === 'true' || UserStore.getNoAccounts()) {
-            // If this is the first account then let them create an account anyway.
-            // The server will verify it's the first account before allowing creation.
-            // Of if the server is open then we don't care.
-            openServer = true;
-            loading = false;
-        } else {
-            loading = false;
-            this.setState({
-                noOpenServerError: true,
-                serverError:
-                    <FormattedMessage
-                        id='signup_user_completed.no_open_server'
-                        defaultMessage='This server does not allow open signups.  Please speak with your Administrator to receive an invitation.'
-                    />,
-                loading: false
-            });
-        }
-
-        this.setState({
-            data,
-            hash,
-            usedBefore,
-            email,
-            teamDisplayName,
-            teamName,
-            teamId,
-            openServer,
-            inviteId,
-            loading
+        this.state = ({
+            ldapError: ''
         });
     }
 
@@ -322,7 +198,7 @@ export default class SignupLdap extends React.Component {
         }
 
         let terms = null;
-        if (!this.state.noOpenServerError && ldapSignup) {
+        if (ldapSignup) {
             terms = (
                 <p>
                     <FormattedHTMLMessage
@@ -334,10 +210,6 @@ export default class SignupLdap extends React.Component {
                     />
                 </p>
             );
-        }
-
-        if (this.state.noOpenServerError) {
-            ldapSignup = null;
         }
 
         let description = null;

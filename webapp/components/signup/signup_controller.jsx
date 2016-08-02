@@ -4,10 +4,14 @@
 import React from 'react';
 
 import FormError from 'components/form_error.jsx';
+import LoadingScreen from 'components/loading_screen.jsx';
 
 import UserStore from 'stores/user_store.jsx';
+import BrowserStore from 'stores/browser_store.jsx';
+
 import * as AsyncClient from 'utils/async_client.jsx';
 import Client from 'client/web_client.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 
 import logoImage from 'images/logo.png';
 import ErrorBar from 'components/error_bar.jsx';
@@ -26,7 +30,10 @@ export default class SignupController extends React.Component {
             office365Enabled: global.window.mm_config.EnableSignUpWithOffice365 === 'true',
             ldapEnabled: global.window.mm_license.IsLicensed === 'true' && global.window.mm_config.EnableLdap === 'true',
             samlEnabled: global.window.mm_license.IsLicensed === 'true' && global.window.mm_config.EnableSaml === 'true',
-            teamName: ''
+            teamName: '',
+            serverError: '',
+            noOpenServerError: false,
+            loading: true
         };
     }
 
@@ -34,25 +41,101 @@ export default class SignupController extends React.Component {
         if (window.location.query) {
             const hash = window.location.query.h;
             const data = window.location.query.d;
+            const inviteId = window.location.query.id;
 
-            if (hash) {
-                const parsedData = JSON.parse(data);
+            if ((inviteId && inviteId.length > 0) || (hash && hash.length > 0)) {
+                if (UserStore.getCurrentUser()) {
+                    Client.addUserToTeamFromInvite(
+                        data,
+                        hash,
+                        inviteId,
+                        (team) => {
+                            GlobalActions.emitInitialLoad(
+                                () => {
+                                    browserHistory.push('/' + team.name);
+                                }
+                            );
+                        },
+                        (err) => {
+                            this.setState({
+                                serverError: err.message
+                            });
+                        }
+                    );
+                } else if (hash) {
+                    const parsedData = JSON.parse(data);
+                    this.setState({
+                        teamName: parsedData.name,
+                        usedBefore: BrowserStore.getGlobalItem(hash),
+                        loading: false
+                    });
+                } else {
+                    Client.getInviteInfo(
+                        inviteId,
+                        (inviteData) => {
+                            if (!inviteData) {
+                                return;
+                            }
+
+                            this.setState({
+                                serverError: '',
+                                teamName: inviteData.name,
+                                loading: false
+                            });
+                        },
+                        () => {
+                            this.setState({
+                                noOpenServerError: true,
+                                loading: false,
+                                serverError:
+                                    <FormattedMessage
+                                        id='signup_user_completed.invalid_invite'
+                                        defaultMessage='The invite link was invalid.  Please speak with your Administrator to receive an invitation.'
+                                    />
+                            });
+                        }
+                    );
+                }
+            } else if (UserStore.getCurrentUser()) {
+                browserHistory.push('/select_team');
+            } else if (global.window.mm_config.EnableOpenServer !== 'true' && !UserStore.getNoAccounts()) {
                 this.setState({
-                    teamName: parsedData.name
+                    noOpenServerError: true,
+                    loading: false,
+                    serverError:
+                        <FormattedMessage
+                            id='signup_user_completed.no_open_server'
+                            defaultMessage='This server does not allow open signups.  Please speak with your Administrator to receive an invitation.'
+                        />
                 });
             }
+        } else {
+            this.setState({
+                loading: false
+            });
         }
     }
 
     componentDidMount() {
-        if (UserStore.getCurrentUser()) {
-            browserHistory.push('/select_team');
-        }
-
         AsyncClient.checkVersion();
     }
 
     render() {
+        if (this.state.loading) {
+            return (<LoadingScreen/>);
+        }
+
+        if (this.state.usedBefore) {
+            return (
+                <div>
+                    <FormattedMessage
+                        id='signup_user_completed.expired'
+                        defaultMessage="You've already completed the signup process for this invitation or this invitation has expired."
+                    />
+                </div>
+            );
+        }
+
         let signupControls = [];
 
         if (this.state.emailEnabled) {
@@ -179,6 +262,19 @@ export default class SignupController extends React.Component {
             );
         }
 
+        let serverError = null;
+        if (this.state.serverError) {
+            serverError = (
+                <div className={'form-group has-error'}>
+                    <label className='control-label'>{this.state.serverError}</label>
+                </div>
+            );
+        }
+
+        if (this.state.noOpenServerError || this.state.usedBefore) {
+            signupControls = null;
+        }
+
         return (
             <div>
                 <ErrorBar/>
@@ -212,6 +308,7 @@ export default class SignupController extends React.Component {
                                 </strong></h5>
                             </div>
                             {signupControls}
+                            {serverError}
                         </div>
                     </div>
                 </div>

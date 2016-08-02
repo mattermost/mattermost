@@ -35,17 +35,13 @@ export default class SignupEmail extends React.Component {
         this.state = {
             data: '',
             hash: '',
-            usedBefore: false,
             email: '',
             teamDisplayName: '',
-            signupDisabledError: '',
             teamName: '',
             teamId: '',
-            openServer: false,
             loading: true,
             inviteId: '',
-            ldapId: '',
-            ldapPassword: ''
+            noOpenServerError: global.window.mm_config.EnableOpenServer !== 'true' && !UserStore.getNoAccounts()
         };
     }
 
@@ -53,41 +49,16 @@ export default class SignupEmail extends React.Component {
         let data = this.props.location.query.d;
         let hash = this.props.location.query.h;
         const inviteId = this.props.location.query.id;
-        let usedBefore = false;
         let email = '';
         let teamDisplayName = '';
         let teamName = '';
         let teamId = '';
-        let openServer = false;
         let loading = true;
 
         if ((inviteId && inviteId.length > 0) || (hash && hash.length > 0)) {
-            // if we are already logged in then attempt to just join the team
-            if (UserStore.getCurrentUser()) {
-                loading = true;
-                Client.addUserToTeamFromInvite(
-                    data,
-                    hash,
-                    inviteId,
-                    (team) => {
-                        GlobalActions.emitInitialLoad(
-                            () => {
-                                browserHistory.push('/' + team.name);
-                            }
-                        );
-                    },
-                    (err) => {
-                        this.setState({
-                            noOpenServerError: true,
-                            serverError: err.message,
-                            loading: false
-                        });
-                    }
-                );
-            } else if (hash) {
+            if (hash) {
                 // If we have a hash in the url then we are attempting to access a private team
                 const parsedData = JSON.parse(data);
-                usedBefore = BrowserStore.getGlobalItem(hash);
                 email = parsedData.email;
                 teamDisplayName = parsedData.display_name;
                 teamName = parsedData.name;
@@ -126,45 +97,19 @@ export default class SignupEmail extends React.Component {
                 data = '';
                 hash = '';
             }
-        } else if (global.window.mm_config.EnableOpenServer === 'true' || UserStore.getNoAccounts()) {
-            // If this is the first account then let them create an account anyway.
-            // The server will verify it's the first account before allowing creation.
-            // Of if the server is open then we don't care.
-            openServer = true;
-            loading = false;
         } else {
             loading = false;
-            this.setState({
-                noOpenServerError: true,
-                serverError:
-                    <FormattedMessage
-                        id='signup_user_completed.no_open_server'
-                        defaultMessage='This server does not allow open signups.  Please speak with your Administrator to receive an invitation.'
-                    />,
-                loading: false
-            });
         }
 
         this.setState({
             data,
             hash,
-            usedBefore,
             email,
             teamDisplayName,
             teamName,
             teamId,
-            openServer,
             inviteId,
             loading
-        });
-
-        this.setState({
-            signupDisabledError: (
-                <FormattedMessage
-                    id='signup_user_completed.none'
-                    defaultMessage='No user creation method has been enabled. Please contact an administrator for access.'
-                />
-            )
         });
     }
 
@@ -314,18 +259,6 @@ export default class SignupEmail extends React.Component {
 
     render() {
         track('signup', 'signup_user_01_welcome');
-
-        // If we have been used then just display a message
-        if (this.state.usedBefore) {
-            return (
-                <div>
-                    <FormattedMessage
-                        id='signup_user_completed.expired'
-                        defaultMessage="You've already completed the signup process for this invitation or this invitation has expired."
-                    />
-                </div>
-            );
-        }
 
         if (this.state.loading) {
             return (<LoadingScreen/>);
