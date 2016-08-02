@@ -727,8 +727,7 @@ func sendNotificationEmail(c *Context, post *model.Post, user *model.User, chann
 	}
 
 	if *utils.Cfg.EmailSettings.EnableEmailBatching {
-		if result := <-Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL);
-			result.Err == nil && result.Data.(model.Preference).Value != "0" {
+		if result := <-Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL); result.Err == nil && result.Data.(model.Preference).Value != "0" {
 			if err := AddNotificationEmailToBatch(user, post, team); err == nil {
 				return
 			}
