@@ -165,7 +165,8 @@ export const WebrtcActionTypes = keyMirror({
     BUSY: null,
     FAILED: null,
     UNSUPPORTED: null,
-    MUTED: null
+    MUTED: null,
+    IN_PROGRESS: null
 });
 
 export const UserStatuses = {
@@ -799,6 +800,8 @@ export const Constants = {
         }
     },
     OVERLAY_TIME_DELAY: 400,
+    WEBRTC_TIME_DELAY: 750,
+    WEBRTC_CLEAR_ERROR_DALAY: 5000,
     DEFAULT_MAX_USERS_PER_TEAM: 50,
     MIN_TEAMNAME_LENGTH: 4,
     MAX_TEAMNAME_LENGTH: 15,

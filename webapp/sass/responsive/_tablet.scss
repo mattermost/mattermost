@@ -17,7 +17,8 @@
         @include single-transition(all, .5s, ease);
         @include translateX(100%);
 
-        &.move--left {
+        &.move--left,
+        &.webrtc--show {
             -webkit-transform: translateX(0) !important;
             -moz-transform: translateX(0) !important;
             -ms-transform: translateX(0) !important;
@@ -53,7 +54,8 @@
             margin-right: 0 !important;
         }
 
-        &.move--left {
+        &.move--left,
+        &.webrtc--show {
             margin-right: 0 !important;
 
             .channel-header__links {
@@ -72,7 +74,8 @@
     }
 
     .sidebar--right {
-        &.move--left {
+        &.move--left,
+        &.webrtc--show {
             @include translateX(0);
         }
 
@@ -106,7 +109,8 @@
     }
 
     .inner-wrap {
-        &.move--left {
+        &.move--left,
+        &.webrtc--show {
             margin-right: 400px;
         }
     }

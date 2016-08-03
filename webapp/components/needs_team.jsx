@@ -21,6 +21,7 @@ import ErrorBar from 'components/error_bar.jsx';
 import SidebarRight from 'components/sidebar_right.jsx';
 import SidebarRightMenu from 'components/sidebar_right_menu.jsx';
 import Navbar from 'components/navbar.jsx';
+import WebrtcSidebar from './webrtc/components/webrtc_sidebar.jsx';
 
 import WebrtcNotification from './webrtc/components/webrtc_notification.jsx';
 
@@ -152,6 +153,7 @@ export default class NeedsTeam extends React.Component {
                 <div className='container-fluid'>
                     <SidebarRight/>
                     <SidebarRightMenu teamType={this.state.team.type}/>
+                    <WebrtcSidebar/>
                     {content}
 
                     <GetPostLinkModal/>

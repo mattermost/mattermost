@@ -1,11 +1,11 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import Constants from 'utils/constants.jsx';
-const ActionTypes = Constants.ActionTypes;
+import {ActionTypes, WebrtcActionTypes} from 'utils/constants.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import ModalStore from 'stores/modal_store.jsx';
 import UserStore from 'stores/user_store.jsx';
+import WebrtcStore from 'stores/webrtc_store.jsx';
 
 import {intlShape, injectIntl, FormattedMessage} from 'react-intl';
 
@@ -40,12 +40,18 @@ class LeaveTeamModal extends React.Component {
         });
     }
 
-    handleSubmit() {
-        GlobalActions.emitLeaveTeam();
-
+    handleSubmit(e) {
         this.setState({
             show: false
         });
+
+        if (WebrtcStore.isBusy()) {
+            WebrtcStore.emitChanged({action: WebrtcActionTypes.IN_PROGRESS});
+            e.preventDefault();
+            return;
+        }
+
+        GlobalActions.emitLeaveTeam();
     }
 
     handleHide() {

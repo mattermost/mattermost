@@ -829,7 +829,7 @@
   "admin.webrtc.gatewayAdminSecretDescription": "Enter your admin secret password to access the Gateway Admin URL.",
   "admin.webrtc.gatewayAdminSecretExample": "Ex \"PVRzWNN1Tg6szn7IQWvhpAvLByScWxdy\"",
   "admin.webrtc.gatewayAdminSecretTitle": "Gateway Admin Secret:",
-  "admin.webrtc.gatewayAdminUrlDescription": "Enter https://<mattermost-webrtc-gateway-url>:<port>. Make sure you use HTTP or HTTPS in your URL depending on your server configuration. Mattermost WebRTC uses this URL to obtain valid tokens for each peer to establish the connection.",
+  "admin.webrtc.gatewayAdminUrlDescription": "Enter https://<mattermost-webrtc-gateway-url>:<port>/admin. Make sure you use HTTP or HTTPS in your URL depending on your server configuration. Mattermost WebRTC uses this URL to obtain valid tokens for each peer to establish the connection.",
   "admin.webrtc.gatewayAdminUrlExample": "Ex \"https://webrtc.mattermost.com:7089/admin\"",
   "admin.webrtc.gatewayAdminUrlTitle": "Gateway Admin URL:",
   "admin.webrtc.gatewayWebsocketUrlDescription": "Enter wss://<mattermost-webrtc-gateway-url>:<port>. Make sure you use WS or WSS in your URL depending on your server configuration. This is the websocket used to signal and establish communication between the peers.",
@@ -1081,7 +1081,7 @@
   "claim.oauth_to_email.switchTo": "Switch {type} to email and password",
   "claim.oauth_to_email.title": "Switch {type} Account to Email",
   "confirm_modal.cancel": "Cancel",
-  "connecting_screen": "Connecting",
+  "calling_screen": "Calling",
   "create_comment.addComment": "Add a comment...",
   "create_comment.comment": "Add Comment",
   "create_comment.commentLength": "Comment length must be less than {max} characters.",
@@ -2035,8 +2035,8 @@
   "webrtc.declined": "Your call has been declined by {username}.",
   "webrtc.failed": "There was a problem connecting the video call.",
   "webrtc.hangup": "Hangup",
-  "webrtc.header": "Video Call with {username}",
-  "webrtc.inProgress": "You have a video call in progress. Hangup before closing this window.",
+  "webrtc.header": "Call with {username}",
+  "webrtc.inProgress": "You have a call in progress. Please hangup first.",
   "webrtc.mediaError": "Unable to access camera or microphone.",
   "webrtc.mute_audio": "Mute microphone",
   "webrtc.noAnswer": "{username} is not answering the call.",
@@ -2048,5 +2048,8 @@
   "webrtc.unmute_audio": "Unmute microphone",
   "webrtc.unpause_video": "Turn on camera",
   "webrtc.unsupported": "{username} client does not support video calls.",
-  "youtube_video.notFound": "Video not found"
+  "youtube_video.notFound": "Video not found",
+  "channel_header.webrtc.unavailable": "New call unavailable until your existing call ends",
+  "user_profile.webrtc.unavailable": "New call unavailable until your existing call ends",
+  "admin.sidebar.webrtc": "WebRTC (Beta)"
 }

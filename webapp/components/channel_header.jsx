@@ -21,8 +21,10 @@ import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import SearchStore from 'stores/search_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
+import WebrtcStore from 'stores/webrtc_store.jsx';
 
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 import * as WebrtcActions from 'actions/webrtc_actions.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
@@ -30,7 +32,7 @@ import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import {getFlaggedPosts} from 'actions/post_actions.jsx';
 
-import {ActionTypes, Constants, Preferences} from 'utils/constants.jsx';
+import {ActionTypes, Constants, Preferences, UserStatuses} from 'utils/constants.jsx';
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
@@ -66,7 +68,8 @@ export default class ChannelHeader extends React.Component {
             users: extraInfo.members,
             userCount: extraInfo.member_count,
             currentUser: UserStore.getCurrentUser(),
-            enableFormatting: PreferenceStore.getBool(Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', true)
+            enableFormatting: PreferenceStore.getBool(Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', true),
+            isBusy: WebrtcStore.isBusy()
         };
     }
 
@@ -87,6 +90,8 @@ export default class ChannelHeader extends React.Component {
         SearchStore.addSearchChangeListener(this.onListenerChange);
         PreferenceStore.addChangeListener(this.onListenerChange);
         UserStore.addChangeListener(this.onListenerChange);
+        UserStore.addStatusesChangeListener(this.onListenerChange);
+        WebrtcStore.addChangedListener(this.onListenerChange);
         $('.sidebar--left .dropdown-menu').perfectScrollbar();
         document.addEventListener('keydown', this.openRecentMentions);
     }
@@ -97,6 +102,8 @@ export default class ChannelHeader extends React.Component {
         SearchStore.removeSearchChangeListener(this.onListenerChange);
         PreferenceStore.removeChangeListener(this.onListenerChange);
         UserStore.removeChangeListener(this.onListenerChange);
+        UserStore.removeStatusesChangeListener(this.onListenerChange);
+        WebrtcStore.removeChangedListener(this.onListenerChange);
         document.removeEventListener('keydown', this.openRecentMentions);
     }
 
@@ -208,6 +215,7 @@ export default class ChannelHeader extends React.Component {
 
     initWebrtc(contactId, isOnline) {
         if (isOnline) {
+            GlobalActions.emitCloseRightHandSide();
             WebrtcActions.initWebrtc(contactId, true);
         }
     }
@@ -274,11 +282,29 @@ export default class ChannelHeader extends React.Component {
 
             if (global.window.mm_config.EnableWebrtc === 'true' && global.window.mm_license.WebRTC === 'true' && userMedia) {
                 const isOffline = UserStore.getStatus(contact.id) === UserStatuses.OFFLINE;
+                const busy = this.state.isBusy;
                 let circleClass = '';
                 let offlineClass = 'on';
-                if (isOffline) {
+                let webrtcMessage;
+
+                if (isOffline || busy) {
                     circleClass = 'offline';
                     offlineClass = 'off';
+                    if (busy) {
+                        webrtcMessage = (
+                            <FormattedMessage
+                                id='channel_header.webrtc.unavailable'
+                                defaultMessage='New call unavailable until your existing call ends'
+                            />
+                        );
+                    }
+                } else {
+                    webrtcMessage = (
+                        <FormattedMessage
+                            id='channel_header.webrtc.call'
+                            defaultMessage='Start Video Call'
+                        />
+                    );
                 }
 
                 webrtc = (
@@ -300,10 +326,7 @@ export default class ChannelHeader extends React.Component {
                                     r='18'
                                 >
                                     <title>
-                                        <FormattedMessage
-                                            id='channel_header.webrtc.call'
-                                            defaultMessage='Start Video Call'
-                                        />
+                                        {webrtcMessage}
                                     </title>
                                 </circle>
                                 <path
