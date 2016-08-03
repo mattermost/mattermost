@@ -1677,7 +1677,7 @@
   "user.settings.notifications.emailBatchingInfo": "Notifications are combined into a single email and sent at the maximum frequency selected here.",
   "user.settings.notifications.emailInfo": "Email notifications that are sent for mentions and direct messages when you are offline or away from {siteName} for more than 5 minutes.",
   "user.settings.notifications.emailNotifications": "Send Email notifications",
-  "user.settings.notifications.everyXMinutes": "Every {count, number} {count, plural, one {minute} other {minutes}}",
+  "user.settings.notifications.everyXMinutes": "Every {count, plural, one {minute} other {{count, number} minutes}}",
   "user.settings.notifications.everyHour": "Every hour",
   "user.settings.notifications.header": "Notifications",
   "user.settings.notifications.immediately": "Immediately",

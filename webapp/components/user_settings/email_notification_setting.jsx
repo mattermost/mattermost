@@ -13,6 +13,10 @@ import SettingItemMax from 'components/setting_item_max.jsx';
 
 import {Preferences} from 'utils/constants.jsx';
 
+const INTERVAL_IMMEDIATE = 30; // "immediate" is a 30 second interval
+const INTERVAL_FIFTEEN_MINUTES = 15 * 60;
+const INTERVAL_HOUR = 60 * 60;
+
 export default class EmailNotificationSetting extends React.Component {
     static propTypes = {
         activeSection: React.PropTypes.string.isRequired,
@@ -32,7 +36,7 @@ export default class EmailNotificationSetting extends React.Component {
         this.collapse = this.collapse.bind(this);
 
         this.state = {
-            emailInterval: PreferenceStore.getInt(Preferences.CATEGORY_NOTIFICATIONS, Preferences.EMAIL_INTERVAL, 0)
+            emailInterval: PreferenceStore.getInt(Preferences.CATEGORY_NOTIFICATIONS, Preferences.EMAIL_INTERVAL, INTERVAL_IMMEDIATE)
         };
     }
 
@@ -62,7 +66,7 @@ export default class EmailNotificationSetting extends React.Component {
 
             if (this.props.enableEmail === 'true') {
                 switch (this.state.emailInterval) {
-                case 0:
+                case INTERVAL_IMMEDIATE:
                     description = (
                         <FormattedMessage
                             id='user.settings.notifications.email.immediately'
@@ -70,7 +74,7 @@ export default class EmailNotificationSetting extends React.Component {
                         />
                     );
                     break;
-                case 60:
+                case INTERVAL_HOUR:
                     description = (
                         <FormattedMessage
                             id='user.settings.notifications.email.everyHour'
@@ -82,8 +86,8 @@ export default class EmailNotificationSetting extends React.Component {
                     description = (
                         <FormattedMessage
                             id='user.settings.notifications.email.everyXMinutes'
-                            defaultMessage='Every {count, number} {count, plural, one {minute} other {minutes}}'
-                            values={{count: this.state.emailInterval}}
+                            defaultMessage='Every {count, plural, one {minute} other {{count, number} minutes}}'
+                            values={{count: this.state.emailInterval / 60}}
                         />
                     );
                 }
@@ -115,13 +119,13 @@ export default class EmailNotificationSetting extends React.Component {
                             <input
                                 type='radio'
                                 name='emailNotifications'
-                                checked={this.props.enableEmail === 'true' && this.state.emailInterval === 15}
-                                onChange={this.handleChange.bind(this, 'true', 15)}
+                                checked={this.props.enableEmail === 'true' && this.state.emailInterval === INTERVAL_FIFTEEN_MINUTES}
+                                onChange={this.handleChange.bind(this, 'true', INTERVAL_FIFTEEN_MINUTES)}
                             />
                             <FormattedMessage
                                 id='user.settings.notifications.email.everyXMinutes'
                                 defaultMessage='Every {count} minutes'
-                                values={{count: 15}}
+                                values={{count: INTERVAL_FIFTEEN_MINUTES / 60}}
                             />
                         </label>
                     </div>
@@ -130,8 +134,8 @@ export default class EmailNotificationSetting extends React.Component {
                             <input
                                 type='radio'
                                 name='emailNotifications'
-                                checked={this.props.enableEmail === 'true' && this.state.emailInterval === 60}
-                                onChange={this.handleChange.bind(this, 'true', 60)}
+                                checked={this.props.enableEmail === 'true' && this.state.emailInterval === INTERVAL_HOUR}
+                                onChange={this.handleChange.bind(this, 'true', INTERVAL_HOUR)}
                             />
                             <FormattedMessage
                                 id='user.settings.notifications.everyHour'
@@ -160,8 +164,8 @@ export default class EmailNotificationSetting extends React.Component {
                                 <input
                                     type='radio'
                                     name='emailNotifications'
-                                    checked={this.props.enableEmail === 'true' && this.state.emailInterval === 0}
-                                    onChange={this.handleChange.bind(this, 'true', 0)}
+                                    checked={this.props.enableEmail === 'true' && this.state.emailInterval === INTERVAL_IMMEDIATE}
+                                    onChange={this.handleChange.bind(this, 'true', INTERVAL_IMMEDIATE)}
                                 />
                                 <FormattedMessage
                                     id='user.settings.notifications.email.immediately'
@@ -176,7 +180,7 @@ export default class EmailNotificationSetting extends React.Component {
                                     type='radio'
                                     name='emailNotifications'
                                     checked={this.props.enableEmail === 'false'}
-                                    onChange={this.handleChange.bind(this, 'false', 0)}
+                                    onChange={this.handleChange.bind(this, 'false', INTERVAL_IMMEDIATE)}
                                 />
                                 <FormattedMessage
                                     id='user.settings.notifications.never'
