@@ -186,8 +186,7 @@ func LoadConfig(fileName string) {
 
 	Cfg = &config
 	CfgHash = fmt.Sprintf("%x", md5.Sum([]byte(Cfg.ToJson())))
-
-	ClientCfg = getClientConfig(Cfg)
+	RegenerateClientConfig()
 
 	// Actions that need to run every time the config is loaded
 	if ldapI := einterfaces.GetLdapInterface(); ldapI != nil {
@@ -200,6 +199,10 @@ func LoadConfig(fileName string) {
 	}
 }
 
+func RegenerateClientConfig() {
+	ClientCfg = getClientConfig(Cfg)
+}
+
 func getClientConfig(c *model.Config) map[string]string {
 	props := make(map[string]string)
 
@@ -210,6 +213,7 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["BuildHashEnterprise"] = model.BuildHashEnterprise
 	props["BuildEnterpriseReady"] = model.BuildEnterpriseReady
 
+	props["SiteURL"] = *c.ServiceSettings.SiteURL
 	props["SiteName"] = c.TeamSettings.SiteName
 	props["EnableTeamCreation"] = strconv.FormatBool(c.TeamSettings.EnableTeamCreation)
 	props["EnableUserCreation"] = strconv.FormatBool(c.TeamSettings.EnableUserCreation)
@@ -273,6 +277,7 @@ func getClientConfig(c *model.Config) map[string]string {
 		if *License.Features.CustomBrand {
 			props["EnableCustomBrand"] = strconv.FormatBool(*c.TeamSettings.EnableCustomBrand)
 			props["CustomBrandText"] = *c.TeamSettings.CustomBrandText
+			props["CustomDescriptionText"] = *c.TeamSettings.CustomDescriptionText
 		}
 
 		if *License.Features.LDAP {

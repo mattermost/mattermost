@@ -47,7 +47,7 @@ func (s SqlWebhookStore) UpgradeSchemaIfNeeded() {
 	s.CreateColumnIfNotExists("OutgoingWebhooks", "DisplayName", "varchar(64)", "varchar(64)", "")
 	s.CreateColumnIfNotExists("OutgoingWebhooks", "Description", "varchar(128)", "varchar(128)", "")
 	s.CreateColumnIfNotExists("OutgoingWebhooks", "ContentType", "varchar(128)", "varchar(128)", "")
-	s.CreateColumnIfNotExists("OutgoingWebhooks", "TriggerWhen", "tinyint", "tinyint", "0")
+	s.CreateColumnIfNotExists("OutgoingWebhooks", "TriggerWhen", "tinyint", "boolean", "0")
 }
 
 func (s SqlWebhookStore) CreateIndexesIfNotExists() {

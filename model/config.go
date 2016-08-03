@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"net/url"
 )
 
 const (
@@ -50,6 +51,7 @@ const (
 )
 
 type ServiceSettings struct {
+	SiteURL                           *string
 	ListenAddress                     string
 	MaximumLoginAttempts              int
 	SegmentDeveloperKey               string
@@ -198,6 +200,7 @@ type TeamSettings struct {
 	RestrictTeamNames                *bool
 	EnableCustomBrand                *bool
 	CustomBrandText                  *string
+	CustomDescriptionText            *string
 	RestrictDirectMessage            *string
 	RestrictTeamInvite               *string
 	RestrictPublicChannelManagement  *string
@@ -369,6 +372,11 @@ func (o *Config) SetDefaults() {
 		o.EmailSettings.PasswordResetSalt = NewRandomString(32)
 	}
 
+	if o.ServiceSettings.SiteURL == nil {
+		o.ServiceSettings.SiteURL = new(string)
+		*o.ServiceSettings.SiteURL = ""
+	}
+
 	if o.ServiceSettings.EnableDeveloper == nil {
 		o.ServiceSettings.EnableDeveloper = new(bool)
 		*o.ServiceSettings.EnableDeveloper = false
@@ -427,6 +435,11 @@ func (o *Config) SetDefaults() {
 	if o.TeamSettings.CustomBrandText == nil {
 		o.TeamSettings.CustomBrandText = new(string)
 		*o.TeamSettings.CustomBrandText = ""
+	}
+
+	if o.TeamSettings.CustomDescriptionText == nil {
+		o.TeamSettings.CustomDescriptionText = new(string)
+		*o.TeamSettings.CustomDescriptionText = ""
 	}
 
 	if o.TeamSettings.EnableOpenServer == nil {
@@ -500,7 +513,7 @@ func (o *Config) SetDefaults() {
 
 	if o.SupportSettings.TermsOfServiceLink == nil {
 		o.SupportSettings.TermsOfServiceLink = new(string)
-		*o.SupportSettings.TermsOfServiceLink = ""
+		*o.SupportSettings.TermsOfServiceLink = "https://about.mattermost.com/default-terms/"
 	}
 
 	if !IsSafeLink(o.SupportSettings.PrivacyPolicyLink) {
@@ -845,6 +858,16 @@ func (o *Config) IsValid() *AppError {
 
 	if o.ServiceSettings.MaximumLoginAttempts <= 0 {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.login_attempts.app_error", nil, "")
+	}
+
+	if len(*o.ServiceSettings.SiteURL) != 0 {
+		if _, err := url.ParseRequestURI(*o.ServiceSettings.SiteURL); err != nil {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.site_url.app_error", nil, "")
+		}
+	}
+
+	if len(o.ServiceSettings.ListenAddress) == 0 {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.listen_address.app_error", nil, "")
 	}
 
 	if len(o.ServiceSettings.ListenAddress) == 0 {

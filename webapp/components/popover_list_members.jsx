@@ -3,6 +3,7 @@
 
 import $ from 'jquery';
 
+import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import {Popover, Overlay} from 'react-bootstrap';
 import * as Utils from 'utils/utils.jsx';
@@ -36,7 +37,7 @@ export default class PopoverListMembers extends React.Component {
         Utils.openDirectChannelToUser(
             teammate,
             (channel, channelAlreadyExisted) => {
-                browserHistory.push(Utils.getTeamURLNoOriginFromAddressBar() + '/channels/' + channel.name);
+                browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + channel.name);
                 if (channelAlreadyExisted) {
                     this.closePopover();
                 }

@@ -4,10 +4,10 @@
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import ChannelStore from 'stores/channel_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 
-import * as Utils from 'utils/utils.jsx';
 import {FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
 
@@ -36,7 +36,7 @@ export default class RemovedFromChannelModal extends React.Component {
         var townSquare = ChannelStore.getByName('town-square');
         setTimeout(
             () => {
-                browserHistory.push(Utils.getTeamURLNoOriginFromAddressBar() + '/channels/' + townSquare.name);
+                browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + townSquare.name);
             },
         1);
 

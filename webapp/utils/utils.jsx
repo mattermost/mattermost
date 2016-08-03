@@ -99,20 +99,6 @@ export function isSystemAdmin(roles) {
     return false;
 }
 
-export function getDomainWithOutSub() {
-    var parts = window.location.host.split('.');
-
-    if (parts.length === 1) {
-        if (parts[0].indexOf('dockerhost') > -1) {
-            return 'dockerhost:8065';
-        }
-
-        return 'localhost:8065';
-    }
-
-    return parts[1] + '.' + parts[2];
-}
-
 export function getCookie(name) {
     var value = '; ' + document.cookie;
     var parts = value.split('; ' + name + '=');
@@ -169,18 +155,6 @@ export function ding() {
             return;
         }, 3000);
     }
-}
-
-export function getUrlParameter(sParam) {
-    var sPageURL = window.location.search.substring(1);
-    var sURLVariables = sPageURL.split('&');
-    for (var i = 0; i < sURLVariables.length; i++) {
-        var sParameterName = sURLVariables[i].split('=');
-        if (sParameterName[0] === sParam) {
-            return sParameterName[1];
-        }
-    }
-    return null;
 }
 
 export function getDateForUnixTicks(ticks) {
@@ -1015,18 +989,6 @@ export function displayUsernameForUser(user) {
     return username;
 }
 
-//IE10 does not set window.location.origin automatically so this must be called instead when using it
-export function getWindowLocationOrigin() {
-    var windowLocationOrigin = window.location.origin;
-    if (!windowLocationOrigin) {
-        windowLocationOrigin = window.location.protocol + '//' + window.location.hostname;
-        if (window.location.port) {
-            windowLocationOrigin += ':' + window.location.port;
-        }
-    }
-    return windowLocationOrigin;
-}
-
 // Converts a file size in bytes into a human-readable string of the form '123MB'.
 export function fileSizeToString(bytes) {
     // it's unlikely that we'll have files bigger than this
@@ -1045,7 +1007,7 @@ export function fileSizeToString(bytes) {
 
 // Converts a filename (like those attached to Post objects) to a url that can be used to retrieve attachments from the server.
 export function getFileUrl(filename) {
-    return getWindowLocationOrigin() + Client.getFilesRoute() + '/get' + filename;
+    return Client.getFilesRoute() + '/get' + filename;
 }
 
 // Gets the name of a file (including extension) from a given url or file path.
@@ -1151,20 +1113,7 @@ export function importSlack(file, success, error) {
     Client.importSlack(formData, success, error);
 }
 
-export function getTeamURLFromAddressBar() {
-    return window.location.origin + '/' + window.location.pathname.split('/')[1];
-}
-
-export function getTeamNameFromUrl() {
-    return window.location.pathname.split('/')[1];
-}
-
-export function getTeamURLNoOriginFromAddressBar() {
-    return '/' + window.location.pathname.split('/')[1];
-}
-
-export function getShortenedTeamURL() {
-    const teamURL = getTeamURLFromAddressBar();
+export function getShortenedTeamURL(teamURL = '') {
     if (teamURL.length > 35) {
         return teamURL.substring(0, 10) + '...' + teamURL.substring(teamURL.length - 12, teamURL.length) + '/';
     }

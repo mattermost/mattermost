@@ -277,7 +277,7 @@ export default class LoginController extends React.Component {
     }
 
     createLoginOptions() {
-        const extraParam = Utils.getUrlParameter('extra');
+        const extraParam = this.props.location.query.extra;
         let extraBox = '';
         if (extraParam) {
             if (extraParam === Constants.SIGNIN_CHANGE) {
@@ -549,6 +549,18 @@ export default class LoginController extends React.Component {
             }
         }
 
+        let description = null;
+        if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.CustomBrand === 'true' && global.window.mm_config.EnableCustomBrand === 'true') {
+            description = global.window.mm_config.CustomDescriptionText;
+        } else {
+            description = (
+                <FormattedMessage
+                    id='web.root.signup_info'
+                    defaultMessage='All team communication in one place, searchable and accessible anywhere'
+                />
+            );
+        }
+
         return (
             <div>
                 <ErrorBar/>
@@ -564,9 +576,7 @@ export default class LoginController extends React.Component {
                         <div className='signup__content'>
                             <h1>{global.window.mm_config.SiteName}</h1>
                             <h4 className='color--light'>
-                                <FormattedMessage
-                                    id='web.root.singup_info'
-                                />
+                                {description}
                             </h4>
                             {content}
                         </div>

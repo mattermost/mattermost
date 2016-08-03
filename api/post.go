@@ -457,7 +457,6 @@ func handleWebhookEvents(c *Context, post *model.Post, team *model.Team, channel
 							Err:          nil,
 							teamURLValid: c.teamURLValid,
 							teamURL:      c.teamURL,
-							siteURL:      c.siteURL,
 							T:            c.T,
 							Locale:       c.Locale,
 							TeamId:       hook.TeamId,

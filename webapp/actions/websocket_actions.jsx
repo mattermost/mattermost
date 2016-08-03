@@ -32,12 +32,26 @@ const MAX_WEBSOCKET_FAILS = 7;
 
 export function initialize() {
     if (window.WebSocket) {
-        let protocol = 'ws://';
-        if (window.location.protocol === 'https:') {
-            protocol = 'wss://';
+        let connUrl = window.mm_config.SiteURL;
+
+        // replace the protocol with a websocket one
+        if (connUrl.startsWith('https:')) {
+            connUrl = connUrl.replace(/^https:/, 'wss:');
+        } else {
+            connUrl = connUrl.replace(/^http:/, 'ws:');
         }
 
-        const connUrl = protocol + location.host + ((/:\d+/).test(location.host) ? '' : Utils.getWebsocketPort(protocol)) + Client.getUsersRoute() + '/websocket';
+        // append a port number if one isn't already specified
+        if (!(/:\d+$/).test(connUrl)) {
+            if (connUrl.startsWith('wss:')) {
+                connUrl += ':' + global.window.mm_config.WebsocketSecurePort;
+            } else {
+                connUrl += ':' + global.window.mm_config.WebsocketPort;
+            }
+        }
+
+        // append the websocket api path
+        connUrl += Client.getUsersRoute() + '/websocket';
 
         WebSocketClient.setEventCallback(handleEvent);
         WebSocketClient.setReconnectCallback(handleReconnect);

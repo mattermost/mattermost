@@ -88,7 +88,7 @@ export default class NavbarDropdown extends React.Component {
 
         return (
             <li>
-                <Link to={'/' + Utils.getTeamNameFromUrl() + '/emoji'}>
+                <Link to={'/' + this.props.teamName + '/emoji'}>
                     <FormattedMessage
                         id='navbar_dropdown.emoji'
                         defaultMessage='Custom Emoji'
@@ -207,7 +207,7 @@ export default class NavbarDropdown extends React.Component {
         if (integrationsEnabled && (isAdmin || window.mm_config.EnableOnlyAdminIntegrations !== 'true')) {
             integrationsLink = (
                 <li>
-                    <Link to={'/' + Utils.getTeamNameFromUrl() + '/integrations'}>
+                    <Link to={'/' + this.props.teamName + '/integrations'}>
                         <FormattedMessage
                             id='navbar_dropdown.integrations'
                             defaultMessage='Integrations'

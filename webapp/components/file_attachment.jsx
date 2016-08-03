@@ -102,7 +102,7 @@ class FileAttachment extends React.Component {
     getFileInfoFromName(name) {
         var fileInfo = utils.splitFileLocation(name);
 
-        fileInfo.path = utils.getWindowLocationOrigin() + Client.getFilesRoute() + '/get' + fileInfo.path;
+        fileInfo.path = Client.getFilesRoute() + '/get' + fileInfo.path;
 
         return fileInfo;
     }

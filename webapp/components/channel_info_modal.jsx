@@ -5,6 +5,7 @@ import * as Utils from 'utils/utils.jsx';
 
 import {FormattedMessage} from 'react-intl';
 import {Modal} from 'react-bootstrap';
+import TeamStore from 'stores/team_store.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
 
 import React from 'react';
@@ -44,7 +45,7 @@ export default class ChannelInfoModal extends React.Component {
             channelIcon = (<span className='fa fa-lock'/>);
         }
 
-        const channelURL = Utils.getTeamURLFromAddressBar() + '/channels/' + channel.name;
+        const channelURL = TeamStore.getCurrentTeamUrl() + '/channels/' + channel.name;
 
         let channelPurpose = null;
         if (channel.purpose) {

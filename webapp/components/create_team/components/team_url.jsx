@@ -105,7 +105,7 @@ export default class TeamUrl extends React.Component {
             nameDivClass += ' has-error';
         }
 
-        const title = `${Utils.getWindowLocationOrigin()}/`;
+        const title = `${window.mm_config.SiteURL}/`;
         const urlTooltip = (
             <Tooltip id='urlTooltip'>{title}</Tooltip>
         );

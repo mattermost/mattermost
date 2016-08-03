@@ -1,5 +1,6 @@
 {
     "ServiceSettings": {
+        "SiteURL": "",
         "ListenAddress": ":8065",
         "MaximumLoginAttempts": 10,
         "SegmentDeveloperKey": "",
@@ -37,6 +38,7 @@
         "RestrictTeamNames": true,
         "EnableCustomBrand": false,
         "CustomBrandText": "",
+        "CustomDescriptionText": "",
         "RestrictDirectMessage": "any",
         "RestrictTeamInvite": "all",
         "RestrictPublicChannelManagement": "all",
