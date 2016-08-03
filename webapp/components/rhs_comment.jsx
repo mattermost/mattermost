@@ -310,7 +310,7 @@ export default class RhsComment extends React.Component {
                 <Tooltip id='flagTooltip'>
                     <FormattedMessage
                         id='flag_post.unflag'
-                        defaultMessage='Unflag this post'
+                        defaultMessage='Unflag'
                     />
                 </Tooltip>
             );
@@ -346,9 +346,6 @@ export default class RhsComment extends React.Component {
                                         minute='2-digit'
                                     />
                                 </time>
-                            </li>
-                            <li className='col col__reply'>
-                                {dropdown}
                                 <OverlayTrigger
                                     key={'commentflagtooltipkey' + flagVisible}
                                     delayShow={Constants.OVERLAY_TIME_DELAY}
@@ -363,6 +360,9 @@ export default class RhsComment extends React.Component {
                                         {flag}
                                     </a>
                                 </OverlayTrigger>
+                            </li>
+                            <li className='col col__reply'>
+                                {dropdown}
                             </li>
                         </ul>
                         <div className='post__body'>

@@ -201,14 +201,32 @@
                 }
 
                 .post__content {
-                    padding-right: 70px;
+                    padding-right: 45px;
                 }
+            }
+
+            .flag-icon__container {
+                left: -16px;
+                position: absolute;
+                top: 7px;
+            }
+
+            .sidebar--right & .flag-icon__container {
+                left: auto;
+                position: relative;
+                top: 1px;
             }
 
             &.same--root {
                 &.same--user {
                     padding-left: 70px;
                     padding-top: 0;
+
+                    .flag-icon__container {
+                        left: -16px;
+                        position: absolute;
+                        top: 7px;
+                    }
 
                     .post__header {
                         .col__reply {

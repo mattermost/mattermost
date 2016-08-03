@@ -332,7 +332,7 @@ export default class RhsRootPost extends React.Component {
                 <Tooltip id='flagTooltip'>
                     <FormattedMessage
                         id='flag_post.unflag'
-                        defaultMessage='Unflag this post'
+                        defaultMessage='Unflag'
                     />
                 </Tooltip>
             );
@@ -367,9 +367,6 @@ export default class RhsRootPost extends React.Component {
                                         minute='2-digit'
                                     />
                                 </time>
-                            </li>
-                            <li className='col col__reply'>
-                                {rootOptions}
                                 <OverlayTrigger
                                     key={'rootpostflagtooltipkey' + flagVisible}
                                     delayShow={Constants.OVERLAY_TIME_DELAY}
@@ -384,6 +381,9 @@ export default class RhsRootPost extends React.Component {
                                         {flag}
                                     </a>
                                 </OverlayTrigger>
+                            </li>
+                            <li className='col col__reply'>
+                                {rootOptions}
                             </li>
                         </ul>
                         <div className='post__body'>

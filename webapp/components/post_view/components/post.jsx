@@ -173,12 +173,12 @@ export default class Post extends React.Component {
         }
 
         let postType = '';
-        if (type !== 'Post' && !this.props.isFlagged) {
+        if (type !== 'Post') {
             postType = 'post--comment';
-        } else if (commentCount > 0 || this.props.isFlagged) {
+        } else if (commentCount > 0) {
             postType = 'post--root';
             sameUserClass = '';
-            rootUser = 'other--root';
+            rootUser = '';
         }
 
         let systemMessageClass = '';

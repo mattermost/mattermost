@@ -7,6 +7,7 @@ import SearchStore from 'stores/search_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import SearchBox from './search_bar.jsx';
 import * as Utils from 'utils/utils.jsx';
+import Constants from 'utils/constants.jsx';
 import SearchResultsHeader from './search_results_header.jsx';
 import SearchResultsItem from './search_results_item.jsx';
 
@@ -122,16 +123,35 @@ export default class SearchResults extends React.Component {
         var noResults = (!results || !results.order || !results.order.length);
         const searchTerm = this.state.searchTerm;
         const profiles = this.state.profiles || {};
+        const flagIcon = Constants.FLAG_ICON_SVG;
 
         var ctls = null;
 
         if (this.props.isFlaggedPosts && noResults) {
             ctls = (
                 <div className='sidebar--right__subheader'>
-                    <FormattedHTMLMessage
-                        id='search_results.usage2'
-                        defaultMessage='<ul><li>You have no <b>flagged posts</b></li><li>To flag a post, click on the <i class="fa fa-flag-o"></i> next to it</li></ul>'
-                    />
+                    <ul>
+                        <li>
+                            <FormattedHTMLMessage
+                                id='search_results.usageFlag1'
+                                defaultMessage='You have no <b>flagged posts</b>'
+                            />
+                        </li>
+                        <li>
+                            <FormattedHTMLMessage
+                                id='search_results.usageFlag2'
+                                defaultMessage='To flag a post, click on the '
+                            />
+                            <span
+                                className='usage__icon'
+                                dangerouslySetInnerHTML={{__html: flagIcon}}
+                            />
+                            <FormattedHTMLMessage
+                                id='search_results.usageFlag3'
+                                defaultMessage=' next to it'
+                            />
+                        </li>
+                    </ul>
                 </div>
             );
         } else if (!searchTerm && noResults) {
