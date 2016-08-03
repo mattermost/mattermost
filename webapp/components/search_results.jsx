@@ -140,7 +140,7 @@ export default class SearchResults extends React.Component {
                         <li>
                             <FormattedHTMLMessage
                                 id='search_results.usageFlag2'
-                                defaultMessage='You can add a flag to messages and comments by clicking '
+                                defaultMessage='You can add a flag to messages and comments by clicking the '
                             />
                             <span
                                 className='usage__icon'
@@ -148,7 +148,7 @@ export default class SearchResults extends React.Component {
                             />
                             <FormattedHTMLMessage
                                 id='search_results.usageFlag3'
-                                defaultMessage=' next to the timestamp.'
+                                defaultMessage=' icon next to the timestamp.'
                             />
                         </li>
                         <li>
