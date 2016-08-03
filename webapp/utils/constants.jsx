@@ -767,6 +767,14 @@ export const Constants = {
             description: 'Show preview snippet of links below message'
         }
     },
+    Images: {
+        SINGLE_IMAGE_MAX_WIDTH: 500,
+        SINGLE_IMAGE_MAX_HEIGHT: 400,
+        SINGLE_IMAGE_RATIO: 0.8,
+        MULTI_IMAGE_MAX_WIDTH: 100,
+        MULTI_IMAGE_MAX_HEIGHT: 65,
+        MULTI_IMAGE_RATIO: 0.65
+    },
     OVERLAY_TIME_DELAY: 400,
     DEFAULT_MAX_USERS_PER_TEAM: 50,
     MIN_TEAMNAME_LENGTH: 4,
