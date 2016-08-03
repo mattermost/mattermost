@@ -142,6 +142,12 @@ export default class AddIncomingWebhook extends React.Component {
                                     value={this.state.displayName}
                                     onChange={this.updateDisplayName}
                                 />
+                                <div className='form__help'>
+                                    <FormattedMessage
+                                        id='add_incoming_webhook.displayName.help'
+                                        defaultMessage='Display name for your incoming webhook made of up to 64 characters.'
+                                    />
+                                </div>
                             </div>
                         </div>
                         <div className='form-group'>
@@ -163,6 +169,12 @@ export default class AddIncomingWebhook extends React.Component {
                                     value={this.state.description}
                                     onChange={this.updateDescription}
                                 />
+                                <div className='form__help'>
+                                    <FormattedMessage
+                                        id='add_incoming_webhook.description.help'
+                                        defaultMessage='Description for your incoming webhook.'
+                                    />
+                                </div>
                             </div>
                         </div>
                         <div className='form-group'>
@@ -183,6 +195,12 @@ export default class AddIncomingWebhook extends React.Component {
                                     selectOpen={true}
                                     selectPrivate={true}
                                 />
+                                <div className='form__help'>
+                                    <FormattedMessage
+                                        id='add_incoming_webhook.channel.help'
+                                        defaultMessage='Public channel or private group that receives the webhook payloads. You must belong to the private group when setting up the webhook.'
+                                    />
+                                </div>
                             </div>
                         </div>
                         <div className='backstage-form__footer'>
