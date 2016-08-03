@@ -32,6 +32,7 @@ export default class EmailSettings extends AdminSettings {
         config.EmailSettings.SMTPServer = this.state.smtpServer;
         config.EmailSettings.SMTPPort = this.state.smtpPort;
         config.EmailSettings.ConnectionSecurity = this.state.connectionSecurity;
+        config.EmailSettings.EnableEmailBatching = this.state.enableEmailBatching;
         config.ServiceSettings.EnableSecurityFixAlert = this.state.enableSecurityFixAlert;
 
         return config;
@@ -48,6 +49,7 @@ export default class EmailSettings extends AdminSettings {
             smtpServer: config.EmailSettings.SMTPServer,
             smtpPort: config.EmailSettings.SMTPPort,
             connectionSecurity: config.EmailSettings.ConnectionSecurity,
+            enableEmailBatching: config.EmailSettings.EnableEmailBatching,
             enableSecurityFixAlert: config.ServiceSettings.EnableSecurityFixAlert
         };
     }
@@ -82,6 +84,24 @@ export default class EmailSettings extends AdminSettings {
                     }
                     value={this.state.sendEmailNotifications}
                     onChange={this.handleChange}
+                />
+                <BooleanSetting
+                    id='enableEmailBatching'
+                    label={
+                        <FormattedMessage
+                            id='admin.email.enableEmailBatchingTitle'
+                            defaultMessage='Enable Email Batching: '
+                        />
+                    }
+                    helpText={
+                        <FormattedHTMLMessage
+                            id='admin.email.enableEmailBatchingDesc'
+                            defaultMessage='When true, users can have email notifications for multiple direct messages and mentions combined into a single email, configurable in <b>Account Settings > Notifications</b>. This setting cannot be enabled when High Availability Mode is enabled.'
+                        />
+                    }
+                    value={this.state.enableEmailBatching/* && !(this.props.config.ClusterSettings && this.props.config.ClusterSettings.Enable)*/}
+                    onChange={this.handleChange}
+                    disabled={!this.state.sendEmailNotifications/* || (this.props.config.ClusterSettings && this.props.config.ClusterSettings.Enable)*/}
                 />
                 <TextSetting
                     id='feedbackName'

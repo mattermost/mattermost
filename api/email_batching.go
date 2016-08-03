@@ -25,7 +25,12 @@ var emailBatchingJob *EmailBatchingJob
 
 func InitEmailBatching() {
 	if *utils.Cfg.EmailSettings.EnableEmailBatching {
-		emailBatchingJob = MakeEmailBatchingJob(*utils.Cfg.EmailSettings.EmailBatchingBufferSize)
+		if emailBatchingJob == nil {
+			emailBatchingJob = MakeEmailBatchingJob(*utils.Cfg.EmailSettings.EmailBatchingBufferSize)
+		}
+
+		// note that we don't support changing EmailBatchingBufferSize without restarting the server
+
 		emailBatchingJob.Start()
 	}
 }
