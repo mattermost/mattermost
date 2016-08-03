@@ -116,7 +116,7 @@
             .channel__wrap & {
                 .post__time {
                     font-size: .85em;
-                    left: -75px;
+                    left: -79px;
                     position: absolute;
                     text-align: right;
                     top: 6px;
@@ -133,7 +133,7 @@
             }
 
             &:not(.post--thread) {
-                padding: 5px .5em 0 70px;
+                padding: 5px .5em 0 72px;
 
                 .post__link {
                     margin: 4px 0 7px;
@@ -206,7 +206,7 @@
             }
 
             .flag-icon__container {
-                left: -16px;
+                left: -21px;
                 position: absolute;
                 top: 7px;
             }
@@ -219,11 +219,11 @@
 
             &.same--root {
                 &.same--user {
-                    padding-left: 70px;
+                    padding-left: 72px;
                     padding-top: 0;
 
                     .flag-icon__container {
-                        left: -16px;
+                        left: -19px;
                         position: absolute;
                         top: 7px;
                     }

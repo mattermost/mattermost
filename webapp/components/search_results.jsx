@@ -134,13 +134,13 @@ export default class SearchResults extends React.Component {
                         <li>
                             <FormattedHTMLMessage
                                 id='search_results.usageFlag1'
-                                defaultMessage='You have no <b>flagged posts</b>'
+                                defaultMessage="You haven't flagged any messages yet."
                             />
                         </li>
                         <li>
                             <FormattedHTMLMessage
                                 id='search_results.usageFlag2'
-                                defaultMessage='To flag a post, click on the '
+                                defaultMessage='You can add a flag to messages and comments by clicking the '
                             />
                             <span
                                 className='usage__icon'
@@ -148,7 +148,13 @@ export default class SearchResults extends React.Component {
                             />
                             <FormattedHTMLMessage
                                 id='search_results.usageFlag3'
-                                defaultMessage=' next to it'
+                                defaultMessage=' icon next to the timestamp.'
+                            />
+                        </li>
+                        <li>
+                            <FormattedHTMLMessage
+                                id='search_results.usageFlag4'
+                                defaultMessage='Flags are a way to mark messages for follow up. Your flags are personal, and cannot be seen by other users.'
                             />
                         </li>
                     </ul>
