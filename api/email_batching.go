@@ -190,7 +190,7 @@ func sendBatchedEmailNotification(userId string, notifications []*batchedNotific
 
 	tm := time.Unix(notifications[0].post.CreateAt/1000, 0)
 
-	subject := translateFunc("api.email_batching.send_batched_email_notification.subject", map[string]interface{}{
+	subject := translateFunc("api.email_batching.send_batched_email_notification.subject", len(notifications), map[string]interface{}{
 		"SiteName": utils.Cfg.TeamSettings.SiteName,
 		"Year":     tm.Year(),
 		"Month":    translateFunc(tm.Month().String()),

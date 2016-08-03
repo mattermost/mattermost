@@ -662,7 +662,7 @@
   {
     "id": "api.email_batching.send_batched_email_notification.body_text",
     "translation": {
-      "one": "You have {{.Count}} new message.",
+      "one": "You have a new message.",
       "other": "You have {{.Count}} new messages."
     }
   },
@@ -676,7 +676,10 @@
   },
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
-    "translation": "[{{.SiteName}}] New Notifications for {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": {
+      "one": "[{{.SiteName}}] New Notification for {{.Month}} {{.Day}}, {{.Year}}",
+      "other": "[{{.SiteName}}] New Notifications for {{.Month}} {{.Day}}, {{.Year}}"
+    }
   },
   {
     "id": "api.email_batching.send_batched_email_notification.user.app_error",
