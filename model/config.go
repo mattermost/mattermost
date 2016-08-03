@@ -515,7 +515,7 @@ func (o *Config) SetDefaults() {
 
 	if o.EmailSettings.EnableEmailBatching == nil {
 		o.EmailSettings.EnableEmailBatching = new(bool)
-		*o.EmailSettings.EnableEmailBatching = true
+		*o.EmailSettings.EnableEmailBatching = false
 	}
 
 	if o.EmailSettings.EmailBatchingBufferSize == nil {
