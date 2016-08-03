@@ -8,7 +8,11 @@
     position: fixed;
     right: 0;
     width: 400px;
-    z-index: 5;
+    z-index: 6;
+
+    &.webrtc {
+        z-index: 5;
+    }
 
     .sidebar--right__bg {
         @include single-transition(background-color, .5s, ease);
@@ -20,7 +24,8 @@
         width: 300%;
     }
 
-    &.move--left {
+    &.move--left,
+    &.webrtc--show {
         .sidebar--right__bg {
             left: -100%;
         }
