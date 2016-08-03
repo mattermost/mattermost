@@ -50,99 +50,99 @@
 
 #videos {
     font-size: 0;
+    left: 0;
     pointer-events: none;
     position: relative;
+    text-align: center;
+    top: 5px;
     transition: all 1s;
     width: 100%;
-    left: 0;
-    top: 5px;
-    text-align: center;
 
     #main-video video {
-        height: 100%;
-        max-height: 100%;
-        max-width: 1280px;
-        object-fit: cover;
-        transition: opacity 1s;
         -moz-transform: scale(-1, 1);
         -ms-transform: scale(-1, 1);
         -o-transform: scale(-1, 1);
         -webkit-transform: scale(-1, 1);
-        transform: scale(-1, 1);
-        width: 98%;
         background-color: rgba(239, 239, 239, 0.4);
-        border: 1px solid rgba(0, 0, 0, 0.2);
+        border: 1px solid alpha-color($black, .2);
+        height: 100%;
+        max-height: 100%;
+        max-width: 1280px;
+        object-fit: cover;
+        transform: scale(-1, 1);
+        transition: opacity 1s;
+        width: 98%;
     }
 
     #local-video {
         border: 1px solid gray;
-        top: 10px;
-        right: 10px;
         max-width: 30%;
-        position: absolute;
-        transition: opacity 1s;
         opacity: 1;
+        position: absolute;
+        right: 12px;
+        top: 10px;
+        transition: opacity 1s;
         z-index: 2;
 
         video {
-            object-fit: cover;
-            transition: opacity 1s;
             -moz-transform: scale(-1, 1);
             -ms-transform: scale(-1, 1);
             -o-transform: scale(-1, 1);
             -webkit-transform: scale(-1, 1);
-            transform: scale(-1, 1);
             height: 100%;
-            width: 100%;
             max-height: 100%;
             max-width: 100%;
+            object-fit: cover;
+            transform: scale(-1, 1);
+            transition: opacity 1s;
+            width: 100%;
         }
     }
 
     .webrtc__local-image {
-        border: 1px solid gray;
-        top: 10px;
-        right: 10px;
-        position: absolute;
-        transition: opacity 1s;
+        background-color: $black;
+        border: 1px solid $gray;
         opacity: 1;
-        z-index: 2;
         overflow: hidden;
+        position: absolute;
+        right: 10px;
+        top: 10px;
+        transition: opacity 1s;
         width: 30%;
-        background-color: #000;
+        z-index: 2;
 
         img {
-            height: 64px;
-            width: 64px;
             border-radius: 50%;
+            height: 64px;
             max-width: 100%;
+            width: 64px;
         }
     }
 
     .webrtc__remote-image {
+        background-color: $black;
+        border: 1px solid alpha-color($black, .2);
         height: 100%;
         max-height: 100%;
         max-width: 98%;
         object-fit: cover;
-        width: 98%;
-        background-color: black;
-        border: 1px solid rgba(0, 0, 0, 0.2);
         overflow: hidden;
+        width: 98%;
 
         img {
+            border-radius: 50%;
             height: 100%;
-            width: 100%;
             max-height: 256px;
             max-width: 256px;
-            border-radius: 50%;
+            width: 100%;
         }
     }
 
     .webrtc__remote-mute {
-        position: absolute;
-        z-index: 9999;
         bottom: 0;
+        position: absolute;
         right: 10px;
+        z-index: 9999;
     }
 }
 
@@ -150,7 +150,6 @@
     margin-top: 1.2em;
     text-align: center;
 
-    #call,
     .webrtc-icons__call {
         border-radius: 48px;
 
@@ -173,7 +172,6 @@
         }
     }
 
-    #cancel,
     .webrtc-icons__cancel {
         border-radius: 48px;
 
@@ -192,89 +190,41 @@
 }
 
 .webrtc-icons {
-
-    &.active svg {
-        transform: translateY(0);
+    &.active {
+        svg {
+            transform: translateY(0);
+        }
     }
 
     svg {
         border-radius: 48px;
         margin: 5px;
 
-        path.on {
-            display: block;
-        }
+        path {
+            &.on {
+                display: block;
+            }
 
-        path.off {
-            display: none;
-        }
-    }
-
-    #mute-audio {
-        transition: 40ms;
-
-        &:hover {
-            box-shadow: 4px 4px 10px #666;
-            cursor: pointer;
-
-            circle {
-                fill: #ab47bc;
+            &.off {
+                display: none;
             }
         }
-
-        &:hover,
-        .on {
-            background: #ab47bc;
-        }
-    }
-
-    #mute-video {
-        transition: 120ms;
-
-        &:hover {
-            box-shadow: 4px 4px 10px #666;
-            cursor: pointer;
-
-            circle {
-                fill: #ff9f00;
-            }
-        }
-
-        &:hover,
-        .on {
-            background: #ff9f00;
-        }
-    }
-
-    #hangup {
-        transition: 360ms;
-
-        &:hover {
-            box-shadow: 4px 4px 10px #666;
-            cursor: pointer;
-            background: #dd2c00;
-
-            circle {
-                fill: #dd2c00;
-            }
-        }
-
     }
 }
 
 .connecting {
     position: absolute;
-    width: 100%;
     top: 0;
+    width: 100%;
 
     .loading-screen {
-        top: 75px;
+        background-color: rgba(0,0,0, .3);
         color: $connecting;
-        position: relative;
-        padding:20px;
-        width: 97%;
         margin-left: 5px;
-        background-color: rgba(0,0,0, 0.3);
+        padding: 20px;
+        position: relative;
+        top: 75px;
+        width: 97%;
 
         .loading__content {
             .round {
@@ -299,8 +249,7 @@
         margin-top: 1.2em;
         text-align: center;
 
-        #call,
-        .webrtc-icons__call {
+        .webrtc-icons__pickup {
             circle {
                 fill: $button--pickup;
             }
@@ -309,7 +258,7 @@
                 cursor: pointer;
 
                 circle {
-                    fill: darken($button--pickup, 5%);
+                    fill: darken($button--pickup, 3%);
                 }
             }
         }
@@ -323,8 +272,8 @@
         }
 
         #local-video {
-            right: calc(12%);
             max-width: 22%;
+            right: 18px;
         }
     }
 }

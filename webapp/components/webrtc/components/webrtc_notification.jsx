@@ -170,7 +170,7 @@ export default class WebrtcNotification extends React.Component {
             );
             const answerBtn = (
                 <svg
-                    className='webrtc-icons__call'
+                    className='webrtc-icons__pickup'
                     xmlns='http://www.w3.org/2000/svg'
                     width='48'
                     height='48'
