@@ -114,7 +114,7 @@ func TestCheckPendingNotifications(t *testing.T) {
 		UserId:   id1,
 		Category: model.PREFERENCE_CATEGORY_NOTIFICATIONS,
 		Name:     model.PREFERENCE_NAME_EMAIL_INTERVAL,
-		Value:    "1",
+		Value:    "60",
 	}}))
 
 	// test that notifications aren't sent before interval

@@ -138,23 +138,20 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 		// get how long we need to wait to send notifications to the user
 		var interval int64
 		if result := <-pchan; result.Err != nil {
-			l4g.Error(utils.T("api.email_batching.check_pending_emails.preference.app_error"), result.Err)
-			delete(job.pendingNotifications, userId)
-			continue
+			// default to 30 seconds to match the send "immediate" setting
+			interval, _ = strconv.ParseInt(model.PREFERENCE_DEFAULT_EMAIL_INTERVAL, 10, 64)
 		} else {
 			preference := result.Data.(model.Preference)
 
 			if value, err := strconv.ParseInt(preference.Value, 10, 64); err != nil {
-				l4g.Error(utils.T("api.email_batching.check_pending_emails.preference.app_error"), err)
-				delete(job.pendingNotifications, userId)
-				continue
+				interval, _ = strconv.ParseInt(model.PREFERENCE_DEFAULT_EMAIL_INTERVAL, 10, 64)
 			} else {
 				interval = value
 			}
 		}
 
 		// send the email notification if it's been long enough
-		if now.Sub(time.Unix(batchStartTime/1000, 0)) > time.Duration(interval)*time.Minute {
+		if now.Sub(time.Unix(batchStartTime/1000, 0)) > time.Duration(interval)*time.Second {
 			go handler(userId, notifications)
 			delete(job.pendingNotifications, userId)
 		}
