@@ -1,80 +1,8 @@
 @charset 'UTF-8';
 
-$video-circle-btn: #2f81b7;
-$video-circle-hover: #56C303;
-$video-circle-offline: #666;
-$connecting: #ffffff;
-$webrtc-notification-bg: rgba(112, 128, 144, 0.76);
-
-@mixin webrtc-button {
-    #webrtc-btn {
-        transition: 120ms;
-        border-radius: 48px;
-        display: block;
-        margin: 0 0 3vh 0;
-        width: 32px;
-        height: 32px;
-
-        &.on,
-        &:hover {
-            background: $video-circle-hover;
-        }
-
-        &:hover {
-            box-shadow: 4px 4px 10px #666;
-        }
-
-        &:hover circle {
-            fill: $video-circle-hover;
-        }
-
-        circle {
-            fill: $video-circle-btn;
-            fill-opacity: .6;
-
-            &.offline {
-                fill: $video-circle-offline;
-            }
-        }
-
-        path.on {
-            display: none;
-        }
-
-        path.off {
-            display: block;
-        }
-
-        &.on path.on {
-            display: block;
-        }
-
-        &.on path.off {
-            display: none;
-        }
-
-        &.on circle {
-            fill-opacity: 0;
-        }
-    }
-
-    a[disabled] {
-        #webrtc-btn {
-            &:hover {
-                background: none;
-                box-shadow: none;
-            }
-
-            &:hover circle {
-                fill: $video-circle-offline;
-            }
-        }
-    }
-}
-
 .webrtc__user-profile {
-    text-align: center;
     @include webrtc-button;
+    text-align: center;
 
     #webrtc-btn {
         display: inherit;
@@ -82,44 +10,38 @@ $webrtc-notification-bg: rgba(112, 128, 144, 0.76);
 }
 
 .webrtc__header {
-    position: relative;
+    @include webrtc-button;
     float: left;
     margin-right: 10px;
-    top: 10px;
-
-    @include webrtc-button;
-
+    position: relative;
+    top: 13px;
 }
 
 .webrtc__error {
     .has-error {
-        text-align: center;
         padding: 0 20px;
+        text-align: center;
 
         .control-label {
-            -webkit-border-radius: 3px;
-            -moz-border-radius: 3px;
-            -ms-border-radius: 3px;
-            -o-border-radius: 3px;
-            border-radius: 3px;
+            @include border-radius(3px);
             background: #f2f2f2;
             color: #a94442;
             font-size: 14px;
             font-weight: normal;
-            margin: 1em 0 0;
+            margin: 1em 0 -1em;
             padding: .7em 1em;
             width: 100%;
+            font-size: .95em;
 
             &:before {
+                -moz-osx-font-smoothing: grayscale;
+                -webkit-font-smoothing: antialiased;
                 color: #a94442;
                 content: '\F071';
-                margin-right: 4px;
                 display: inline-block;
                 font: normal normal normal 14px/1 FontAwesome;
-                font-size: inherit;
+                margin-right: 4px;
                 text-rendering: auto;
-                -webkit-font-smoothing: antialiased;
-                -moz-osx-font-smoothing: grayscale;
                 transform: translate(0, 0);
             }
         }
@@ -225,30 +147,28 @@ $webrtc-notification-bg: rgba(112, 128, 144, 0.76);
 }
 
 .webrtc-buttons {
+    margin-top: 1.2em;
     text-align: center;
-    margin-top: 10px;
 
     #call,
     .webrtc-icons__call {
         border-radius: 48px;
 
         circle {
-            fill: $video-circle-btn;
+            fill: $button--ready;
         }
 
         &:hover {
             cursor: pointer;
-            box-shadow: 4px 4px 10px #666;
 
             circle {
-                fill: $video-circle-hover;
+                fill: darken($button--ready, 5%);
             }
         }
 
         &[disabled] {
             circle {
                 fill: $video-circle-offline;
-                fill-opacity: .6;
             }
         }
     }
@@ -258,15 +178,14 @@ $webrtc-notification-bg: rgba(112, 128, 144, 0.76);
         border-radius: 48px;
 
         circle {
-            fill: #ff9f00;
+            fill: $button--cancel;
         }
 
         &:hover {
             cursor: pointer;
-            box-shadow: 4px 4px 10px #666;
 
             circle {
-                fill: #dd2c00;
+                fill: darken($button--cancel, 5%);
             }
         }
     }
@@ -275,16 +194,12 @@ $webrtc-notification-bg: rgba(112, 128, 144, 0.76);
 .webrtc-icons {
 
     &.active svg {
-        transform: translateY(0)
+        transform: translateY(0);
     }
 
     svg {
-        box-shadow: 2px 2px 24px #444;
         border-radius: 48px;
-        transform: translateY(calc(2vw - 96px));
-        transition: all .1s;
-        transition-timing-function: ease-in-out;
-        margin: 0 10px;
+        margin: 5px;
 
         path.on {
             display: block;
@@ -370,16 +285,35 @@ $webrtc-notification-bg: rgba(112, 128, 144, 0.76);
 }
 
 .webrtc-notification {
-    position: absolute;
-    color: white;
-    height: 230px;
-    width: 400px;
-    top: calc(50% - 115px);
-    left: calc(50% - 200px);
     background-color: $webrtc-notification-bg;
-    padding: 10px 30px;
+    color: $white;
+    left: calc(50% - 200px);
+    padding: 20px 30px 10px;
+    position: absolute;
     text-align: center;
+    top: calc(50% - 115px);
+    width: 400px;
     z-index: 99999;
+
+    .webrtc-buttons {
+        margin-top: 1.2em;
+        text-align: center;
+
+        #call,
+        .webrtc-icons__call {
+            circle {
+                fill: $button--pickup;
+            }
+
+            &:hover {
+                cursor: pointer;
+
+                circle {
+                    fill: darken($button--pickup, 5%);
+                }
+            }
+        }
+    }
 }
 
 .sidebar--right--expanded {
