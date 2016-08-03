@@ -13,7 +13,7 @@ export default class WebrtcHeader extends React.Component {
         const title = (
             <FormattedMessage
                 id='webrtc.header'
-                defaultMessage='Video Call with {username}'
+                defaultMessage='Call with {username}'
                 values={{
                     username: this.props.username
                 }}
