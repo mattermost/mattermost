@@ -10,7 +10,8 @@ import (
 
 func TestAccessJson(t *testing.T) {
 	a1 := AccessData{}
-	a1.AuthCode = NewId()
+	a1.ClientId = NewId()
+	a1.UserId = NewId()
 	a1.Token = NewId()
 	a1.RefreshToken = NewId()
 
@@ -29,7 +30,12 @@ func TestAccessIsValid(t *testing.T) {
 		t.Fatal("should have failed")
 	}
 
-	ad.AuthCode = NewId()
+	ad.ClientId = NewId()
+	if err := ad.IsValid(); err == nil {
+		t.Fatal("should have failed")
+	}
+
+	ad.UserId = NewId()
 	if err := ad.IsValid(); err == nil {
 		t.Fatal("should have failed")
 	}

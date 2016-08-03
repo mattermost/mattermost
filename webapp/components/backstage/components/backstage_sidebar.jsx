@@ -39,20 +39,22 @@ export default class BackstageSidebar extends React.Component {
     }
 
     renderIntegrations() {
-        if (window.mm_config.EnableIncomingWebhooks !== 'true' &&
-            window.mm_config.EnableOutgoingWebhooks !== 'true' &&
-            window.mm_config.EnableCommands !== 'true') {
+        const config = window.mm_config;
+        if (config.EnableIncomingWebhooks !== 'true' &&
+            config.EnableOutgoingWebhooks !== 'true' &&
+            config.EnableCommands !== 'true' &&
+            config.EnableOAuthServiceProvider !== 'true') {
             return null;
         }
 
-        if (window.mm_config.EnableOnlyAdminIntegrations !== 'false' &&
+        if (config.EnableOnlyAdminIntegrations !== 'false' &&
             !Utils.isSystemAdmin(this.props.user.roles) &&
             !TeamStore.isTeamAdmin(this.props.user.id, this.props.team.id)) {
             return null;
         }
 
         let incomingWebhooks = null;
-        if (window.mm_config.EnableIncomingWebhooks === 'true') {
+        if (config.EnableIncomingWebhooks === 'true') {
             incomingWebhooks = (
                 <BackstageSection
                     name='incoming_webhooks'
@@ -67,7 +69,7 @@ export default class BackstageSidebar extends React.Component {
         }
 
         let outgoingWebhooks = null;
-        if (window.mm_config.EnableOutgoingWebhooks === 'true') {
+        if (config.EnableOutgoingWebhooks === 'true') {
             outgoingWebhooks = (
                 <BackstageSection
                     name='outgoing_webhooks'
@@ -82,7 +84,7 @@ export default class BackstageSidebar extends React.Component {
         }
 
         let commands = null;
-        if (window.mm_config.EnableCommands === 'true') {
+        if (config.EnableCommands === 'true') {
             commands = (
                 <BackstageSection
                     name='commands'
@@ -92,6 +94,21 @@ export default class BackstageSidebar extends React.Component {
                             defaultMessage='Slash Commands'
                         />
                     )}
+                />
+            );
+        }
+
+        let oauthApps = null;
+        if (config.EnableOAuthServiceProvider === 'true') {
+            oauthApps = (
+                <BackstageSection
+                    name='oauth2-apps'
+                    title={
+                        <FormattedMessage
+                            id='backstage_sidebar.integrations.oauthApps'
+                            defaultMessage='OAuth 2.0 Applications'
+                        />
+                    }
                 />
             );
         }
@@ -111,6 +128,7 @@ export default class BackstageSidebar extends React.Component {
                 {incomingWebhooks}
                 {outgoingWebhooks}
                 {commands}
+                {oauthApps}
             </BackstageCategory>
         );
     }

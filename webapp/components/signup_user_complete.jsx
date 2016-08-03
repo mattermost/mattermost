@@ -231,8 +231,13 @@ export default class SignupUserComplete extends React.Component {
     finishSignup() {
         GlobalActions.emitInitialLoad(
             () => {
+                const query = this.props.location.query;
                 GlobalActions.loadDefaultLocale();
-                browserHistory.push('/select_team');
+                if (query.redirect_to) {
+                    browserHistory.push(query.redirect_to);
+                } else {
+                    browserHistory.push('/select_team');
+                }
             }
         );
     }
@@ -250,7 +255,12 @@ export default class SignupUserComplete extends React.Component {
 
                 GlobalActions.emitInitialLoad(
                     () => {
-                        browserHistory.push('/select_team');
+                        const query = this.props.location.query;
+                        if (query.redirect_to) {
+                            browserHistory.push(query.redirect_to);
+                        } else {
+                            browserHistory.push('/select_team');
+                        }
                     }
                 );
             },

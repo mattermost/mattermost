@@ -39,6 +39,10 @@ func TestOAuthStoreGetApp(t *testing.T) {
 	if err := (<-store.OAuth().GetAppByUser(a1.CreatorId)).Err; err != nil {
 		t.Fatal(err)
 	}
+
+	if err := (<-store.OAuth().GetApps()).Err; err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestOAuthStoreUpdateApp(t *testing.T) {
@@ -78,7 +82,8 @@ func TestOAuthStoreSaveAccessData(t *testing.T) {
 	Setup()
 
 	a1 := model.AccessData{}
-	a1.AuthCode = model.NewId()
+	a1.ClientId = model.NewId()
+	a1.UserId = model.NewId()
 	a1.Token = model.NewId()
 	a1.RefreshToken = model.NewId()
 
@@ -91,9 +96,11 @@ func TestOAuthStoreGetAccessData(t *testing.T) {
 	Setup()
 
 	a1 := model.AccessData{}
-	a1.AuthCode = model.NewId()
+	a1.ClientId = model.NewId()
+	a1.UserId = model.NewId()
 	a1.Token = model.NewId()
 	a1.RefreshToken = model.NewId()
+	a1.ExpiresAt = model.GetMillis()
 	Must(store.OAuth().SaveAccessData(&a1))
 
 	if result := <-store.OAuth().GetAccessData(a1.Token); result.Err != nil {
@@ -105,11 +112,11 @@ func TestOAuthStoreGetAccessData(t *testing.T) {
 		}
 	}
 
-	if err := (<-store.OAuth().GetAccessDataByAuthCode(a1.AuthCode)).Err; err != nil {
+	if err := (<-store.OAuth().GetPreviousAccessData(a1.UserId, a1.ClientId)).Err; err != nil {
 		t.Fatal(err)
 	}
 
-	if err := (<-store.OAuth().GetAccessDataByAuthCode("junk")).Err; err != nil {
+	if err := (<-store.OAuth().GetPreviousAccessData("user", "junk")).Err; err != nil {
 		t.Fatal(err)
 	}
 }
@@ -118,7 +125,8 @@ func TestOAuthStoreRemoveAccessData(t *testing.T) {
 	Setup()
 
 	a1 := model.AccessData{}
-	a1.AuthCode = model.NewId()
+	a1.ClientId = model.NewId()
+	a1.UserId = model.NewId()
 	a1.Token = model.NewId()
 	a1.RefreshToken = model.NewId()
 	Must(store.OAuth().SaveAccessData(&a1))
@@ -127,8 +135,7 @@ func TestOAuthStoreRemoveAccessData(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if result := <-store.OAuth().GetAccessDataByAuthCode(a1.AuthCode); result.Err != nil {
-		t.Fatal(result.Err)
+	if result := (<-store.OAuth().GetPreviousAccessData(a1.UserId, a1.ClientId)); result.Err != nil {
 	} else {
 		if result.Data != nil {
 			t.Fatal("did not delete access token")
@@ -191,6 +198,19 @@ func TestOAuthStoreRemoveAuthDataByUser(t *testing.T) {
 	Must(store.OAuth().SaveAuthData(&a1))
 
 	if err := (<-store.OAuth().PermanentDeleteAuthDataByUser(a1.UserId)).Err; err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestOAuthStoreDeleteApp(t *testing.T) {
+	a1 := model.OAuthApp{}
+	a1.CreatorId = model.NewId()
+	a1.Name = "TestApp" + model.NewId()
+	a1.CallbackUrls = []string{"https://nowhere.com"}
+	a1.Homepage = "https://nowhere.com"
+	Must(store.OAuth().SaveApp(&a1))
+
+	if err := (<-store.OAuth().DeleteApp(a1.Id)).Err; err != nil {
 		t.Fatal(err)
 	}
 }

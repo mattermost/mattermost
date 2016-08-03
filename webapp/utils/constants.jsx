@@ -106,6 +106,9 @@ export const ActionTypes = keyMirror({
     RECEIVED_COMMAND: null,
     UPDATED_COMMAND: null,
     REMOVED_COMMAND: null,
+    RECEIVED_OAUTHAPPS: null,
+    RECEIVED_OAUTHAPP: null,
+    REMOVED_OAUTHAPP: null,
 
     RECEIVED_CUSTOM_EMOJIS: null,
     RECEIVED_CUSTOM_EMOJI: null,
@@ -138,7 +141,6 @@ export const ActionTypes = keyMirror({
     TOGGLE_DELETE_POST_MODAL: null,
     TOGGLE_GET_POST_LINK_MODAL: null,
     TOGGLE_GET_TEAM_INVITE_LINK_MODAL: null,
-    TOGGLE_REGISTER_APP_MODAL: null,
     TOGGLE_GET_PUBLIC_LINK_MODAL: null,
 
     SUGGESTION_PRETEXT_CHANGED: null,

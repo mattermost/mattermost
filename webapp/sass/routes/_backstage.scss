@@ -40,7 +40,7 @@
 .backstage-content {
     background-color: $bg--gray;
     margin: 46px auto;
-    max-width: 960px;
+    max-width: 1200px;
     padding-left: 135px;
     vertical-align: top;
 }
@@ -216,6 +216,7 @@
     border-bottom: 1px solid $light-gray;
     display: flex;
     padding: 20px 15px;
+    position: relative;
 
     &:last-child {
         border: none;
@@ -276,6 +277,7 @@
     background-color: $white;
     border: 1px solid $light-gray;
     padding: 40px 30px 30px;
+    position: relative;
 
     label {
         font-weight: normal;
@@ -323,16 +325,27 @@
     }
 }
 
+.integration__icon {
+    position: absolute;
+    height: 100px;
+    width: 100px;
+    right: 20px;
+
+    &.integration-list__icon {
+        top: 50px;
+    }
+}
+
 .integration-option {
     background-color: $white;
     border: 1px solid $light-gray;
     display: inline-block;
-    height: 210px;
     margin: 0 30px 30px 0;
+    min-height: 230px;
     padding: 20px;
     text-align: center;
     vertical-align: top;
-    width: 250px;
+    width: 290px;
 
     &:last-child {
         margin-right: 0;
@@ -346,6 +359,7 @@
 
 .integration-option__image {
     height: 80px;
+    margin: .5em 0 .7em;
     width: 80px;
 }
 

@@ -1,6 +1,19 @@
 @charset 'UTF-8';
 
 @media screen and (max-width: 768px) {
+    .prompt {
+        .prompt__heading {
+            display: block;
+
+            > div {
+                &:first-child {
+                    display: block;
+                    margin: 0 0 1em;
+                }
+            }
+        }
+    }
+
     .scrollbar--view {
         margin-right: 0 !important;
     }
@@ -1091,6 +1104,10 @@
         &.move--right {
             @include translate3d(260px, 0, 0);
         }
+    }
+
+    .integration__icon {
+        display: none;
     }
 }
 

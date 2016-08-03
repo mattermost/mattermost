@@ -4,6 +4,7 @@
 package store
 
 import (
+	"github.com/go-gorp/gorp"
 	"github.com/mattermost/platform/model"
 	"strings"
 )
@@ -24,6 +25,7 @@ func NewSqlOAuthStore(sqlStore *SqlStore) OAuthStore {
 		table.ColMap("Description").SetMaxSize(512)
 		table.ColMap("CallbackUrls").SetMaxSize(1024)
 		table.ColMap("Homepage").SetMaxSize(256)
+		table.ColMap("IconURL").SetMaxSize(512)
 
 		tableAuth := db.AddTableWithName(model.AuthData{}, "OAuthAuthData").SetKeys(false, "Code")
 		tableAuth.ColMap("UserId").SetMaxSize(26)
@@ -34,21 +36,36 @@ func NewSqlOAuthStore(sqlStore *SqlStore) OAuthStore {
 		tableAuth.ColMap("Scope").SetMaxSize(128)
 
 		tableAccess := db.AddTableWithName(model.AccessData{}, "OAuthAccessData").SetKeys(false, "Token")
-		tableAccess.ColMap("AuthCode").SetMaxSize(128)
+		tableAccess.ColMap("ClientId").SetMaxSize(26)
+		tableAccess.ColMap("UserId").SetMaxSize(26)
 		tableAccess.ColMap("Token").SetMaxSize(26)
 		tableAccess.ColMap("RefreshToken").SetMaxSize(26)
 		tableAccess.ColMap("RedirectUri").SetMaxSize(256)
+		tableAccess.SetUniqueTogether("ClientId", "UserId")
 	}
 
 	return as
 }
 
 func (as SqlOAuthStore) UpgradeSchemaIfNeeded() {
+	as.CreateColumnIfNotExists("OAuthApps", "IsTrusted", "tinyint(1)", "boolean", "0")
+	as.CreateColumnIfNotExists("OAuthApps", "IconURL", "varchar(512)", "varchar(512)", "")
+	as.CreateColumnIfNotExists("OAuthAccessData", "ClientId", "varchar(26)", "varchar(26)", "")
+	as.CreateColumnIfNotExists("OAuthAccessData", "UserId", "varchar(26)", "varchar(26)", "")
+	as.CreateColumnIfNotExists("OAuthAccessData", "ExpiresAt", "bigint", "bigint", "0")
+
+	// ADDED for 3.3 REMOVE for 3.7
+	if as.DoesColumnExist("OAuthAccessData", "AuthCode") {
+		as.RemoveIndexIfExists("idx_oauthaccessdata_auth_code", "OAuthAccessData")
+		as.RemoveColumnIfExists("OAuthAccessData", "AuthCode")
+	}
 }
 
 func (as SqlOAuthStore) CreateIndexesIfNotExists() {
 	as.CreateIndexIfNotExists("idx_oauthapps_creator_id", "OAuthApps", "CreatorId")
-	as.CreateIndexIfNotExists("idx_oauthaccessdata_auth_code", "OAuthAccessData", "AuthCode")
+	as.CreateIndexIfNotExists("idx_oauthaccessdata_client_id", "OAuthAccessData", "ClientId")
+	as.CreateIndexIfNotExists("idx_oauthaccessdata_user_id", "OAuthAccessData", "UserId")
+	as.CreateIndexIfNotExists("idx_oauthaccessdata_refresh_token", "OAuthAccessData", "RefreshToken")
 	as.CreateIndexIfNotExists("idx_oauthauthdata_client_id", "OAuthAuthData", "Code")
 }
 
@@ -172,6 +189,62 @@ func (as SqlOAuthStore) GetAppByUser(userId string) StoreChannel {
 	return storeChannel
 }
 
+func (as SqlOAuthStore) GetApps() StoreChannel {
+
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var apps []*model.OAuthApp
+
+		if _, err := as.GetReplica().Select(&apps, "SELECT * FROM OAuthApps"); err != nil {
+			result.Err = model.NewLocAppError("SqlOAuthStore.GetAppByUser", "store.sql_oauth.get_apps.find.app_error", nil, "err="+err.Error())
+		}
+
+		result.Data = apps
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (as SqlOAuthStore) DeleteApp(id string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		// wrap in a transaction so that if one fails, everything fails
+		transaction, err := as.GetMaster().Begin()
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlOAuthStore.DeleteApp", "store.sql_oauth.delete.open_transaction.app_error", nil, err.Error())
+		} else {
+			if extrasResult := as.deleteApp(transaction, id); extrasResult.Err != nil {
+				result = extrasResult
+			}
+
+			if result.Err == nil {
+				if err := transaction.Commit(); err != nil {
+					// don't need to rollback here since the transaction is already closed
+					result.Err = model.NewLocAppError("SqlOAuthStore.DeleteApp", "store.sql_oauth.delete.commit_transaction.app_error", nil, err.Error())
+				}
+			} else {
+				if err := transaction.Rollback(); err != nil {
+					result.Err = model.NewLocAppError("SqlOAuthStore.DeleteApp", "store.sql_oauth.delete.rollback_transaction.app_error", nil, err.Error())
+				}
+			}
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (as SqlOAuthStore) SaveAccessData(accessData *model.AccessData) StoreChannel {
 
 	storeChannel := make(StoreChannel)
@@ -221,7 +294,7 @@ func (as SqlOAuthStore) GetAccessData(token string) StoreChannel {
 	return storeChannel
 }
 
-func (as SqlOAuthStore) GetAccessDataByAuthCode(authCode string) StoreChannel {
+func (as SqlOAuthStore) GetAccessDataByRefreshToken(token string) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -230,11 +303,35 @@ func (as SqlOAuthStore) GetAccessDataByAuthCode(authCode string) StoreChannel {
 
 		accessData := model.AccessData{}
 
-		if err := as.GetReplica().SelectOne(&accessData, "SELECT * FROM OAuthAccessData WHERE AuthCode = :AuthCode", map[string]interface{}{"AuthCode": authCode}); err != nil {
+		if err := as.GetReplica().SelectOne(&accessData, "SELECT * FROM OAuthAccessData WHERE RefreshToken = :Token", map[string]interface{}{"Token": token}); err != nil {
+			result.Err = model.NewLocAppError("SqlOAuthStore.GetAccessData", "store.sql_oauth.get_access_data.app_error", nil, err.Error())
+		} else {
+			result.Data = &accessData
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+
+	}()
+
+	return storeChannel
+}
+
+func (as SqlOAuthStore) GetPreviousAccessData(userId, clientId string) StoreChannel {
+
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		accessData := model.AccessData{}
+
+		if err := as.GetReplica().SelectOne(&accessData, "SELECT * FROM OAuthAccessData WHERE ClientId = :ClientId AND UserId = :UserId",
+			map[string]interface{}{"ClientId": clientId, "UserId": userId}); err != nil {
 			if strings.Contains(err.Error(), "no rows") {
 				result.Data = nil
 			} else {
-				result.Err = model.NewLocAppError("SqlOAuthStore.GetAccessDataByAuthCode", "store.sql_oauth.get_access_data_by_code.app_error", nil, err.Error())
+				result.Err = model.NewLocAppError("SqlOAuthStore.GetPreviousAccessData", "store.sql_oauth.get_previous_access_data.app_error", nil, err.Error())
 			}
 		} else {
 			result.Data = &accessData
@@ -243,6 +340,27 @@ func (as SqlOAuthStore) GetAccessDataByAuthCode(authCode string) StoreChannel {
 		storeChannel <- result
 		close(storeChannel)
 
+	}()
+
+	return storeChannel
+}
+
+func (as SqlOAuthStore) UpdateAccessData(accessData *model.AccessData) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		if _, err := as.GetMaster().Exec("UPDATE OAuthAccessData SET Token = :Token, ExpiresAt = :ExpiresAt WHERE ClientId = :ClientId AND UserID = :UserId",
+			map[string]interface{}{"Token": accessData.Token, "ExpiresAt": accessData.ExpiresAt, "ClientId": accessData.ClientId, "UserId": accessData.UserId}); err != nil {
+			result.Err = model.NewLocAppError("SqlOAuthStore.Update", "store.sql_oauth.update_access_data.app_error", nil,
+				"clientId="+accessData.ClientId+",userId="+accessData.UserId+", "+err.Error())
+		} else {
+			result.Data = accessData
+		}
+
+		storeChannel <- result
+		close(storeChannel)
 	}()
 
 	return storeChannel
@@ -339,7 +457,7 @@ func (as SqlOAuthStore) PermanentDeleteAuthDataByUser(userId string) StoreChanne
 	go func() {
 		result := StoreResult{}
 
-		_, err := as.GetMaster().Exec("DELETE FROM OAuthAuthData WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
+		_, err := as.GetMaster().Exec("DELETE FROM OAuthAccessData WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
 		if err != nil {
 			result.Err = model.NewLocAppError("SqlOAuthStore.RemoveAuthDataByUserId", "store.sql_oauth.permanent_delete_auth_data_by_user.app_error", nil, "err="+err.Error())
 		}
@@ -349,4 +467,42 @@ func (as SqlOAuthStore) PermanentDeleteAuthDataByUser(userId string) StoreChanne
 	}()
 
 	return storeChannel
+}
+
+func (as SqlOAuthStore) deleteApp(transaction *gorp.Transaction, clientId string) StoreResult {
+	result := StoreResult{}
+
+	if _, err := transaction.Exec("DELETE FROM OAuthApps WHERE Id = :Id", map[string]interface{}{"Id": clientId}); err != nil {
+		result.Err = model.NewLocAppError("SqlOAuthStore.DeleteApp", "store.sql_oauth.delete_app.app_error", nil, "id="+clientId+", err="+err.Error())
+		return result
+	}
+
+	return as.deleteOAuthTokens(transaction, clientId)
+}
+
+func (as SqlOAuthStore) deleteOAuthTokens(transaction *gorp.Transaction, clientId string) StoreResult {
+	result := StoreResult{}
+
+	if _, err := transaction.Exec("DELETE FROM OAuthAccessData WHERE ClientId = :Id", map[string]interface{}{"Id": clientId}); err != nil {
+		result.Err = model.NewLocAppError("SqlOAuthStore.DeleteApp", "store.sql_oauth.delete_app.app_error", nil, "id="+clientId+", err="+err.Error())
+		return result
+	}
+
+	return as.deleteAppExtras(transaction, clientId)
+}
+
+func (as SqlOAuthStore) deleteAppExtras(transaction *gorp.Transaction, clientId string) StoreResult {
+	result := StoreResult{}
+
+	if _, err := transaction.Exec(
+		`DELETE FROM
+			Preferences
+		WHERE
+			Category = :Category
+			AND Name = :Name`, map[string]interface{}{"Category": model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP, "Name": clientId}); err != nil {
+		result.Err = model.NewLocAppError("SqlOAuthStore.DeleteApp", "store.sql_preference.delete.app_error", nil, err.Error())
+		return result
+	}
+
+	return result
 }

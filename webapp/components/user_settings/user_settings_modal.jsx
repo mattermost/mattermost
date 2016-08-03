@@ -27,10 +27,6 @@ const holders = defineMessages({
         id: 'user.settings.modal.notifications',
         defaultMessage: 'Notifications'
     },
-    developer: {
-        id: 'user.settings.modal.developer',
-        defaultMessage: 'Developer'
-    },
     display: {
         id: 'user.settings.modal.display',
         defaultMessage: 'Display'
@@ -214,10 +210,6 @@ class UserSettingsModal extends React.Component {
         tabs.push({name: 'general', uiName: formatMessage(holders.general), icon: 'icon fa fa-gear'});
         tabs.push({name: 'security', uiName: formatMessage(holders.security), icon: 'icon fa fa-lock'});
         tabs.push({name: 'notifications', uiName: formatMessage(holders.notifications), icon: 'icon fa fa-exclamation-circle'});
-        if (global.window.mm_config.EnableOAuthServiceProvider === 'true') {
-            tabs.push({name: 'developer', uiName: formatMessage(holders.developer), icon: 'icon fa fa-th'});
-        }
-
         tabs.push({name: 'display', uiName: formatMessage(holders.display), icon: 'icon fa fa-eye'});
         tabs.push({name: 'advanced', uiName: formatMessage(holders.advanced), icon: 'icon fa fa-list-alt'});
 

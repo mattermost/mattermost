@@ -20,6 +20,8 @@ class IntegrationStore extends EventEmitter {
         this.outgoingWebhooks = new Map();
 
         this.commands = new Map();
+
+        this.oauthApps = new Map();
     }
 
     addChangeListener(callback) {
@@ -149,6 +151,35 @@ class IntegrationStore extends EventEmitter {
         this.setCommands(teamId, commands);
     }
 
+    hasReceivedOAuthApps(userId) {
+        return this.oauthApps.has(userId);
+    }
+
+    getOAuthApps(userId) {
+        return this.oauthApps.get(userId) || [];
+    }
+
+    setOAuthApps(userId, oauthApps) {
+        this.oauthApps.set(userId, oauthApps);
+    }
+
+    addOAuthApp(oauthApp) {
+        const userId = oauthApp.creator_id;
+        const oauthApps = this.getOAuthApps(userId);
+
+        oauthApps.push(oauthApp);
+
+        this.setOAuthApps(userId, oauthApps);
+    }
+
+    removeOAuthApp(userId, id) {
+        let apps = this.getOAuthApps(userId);
+
+        apps = apps.filter((app) => app.id !== id);
+
+        this.setOAuthApps(userId, apps);
+    }
+
     handleEventPayload(payload) {
         const action = payload.action;
 
@@ -195,6 +226,18 @@ class IntegrationStore extends EventEmitter {
             break;
         case ActionTypes.REMOVED_COMMAND:
             this.removeCommand(action.teamId, action.id);
+            this.emitChange();
+            break;
+        case ActionTypes.RECEIVED_OAUTHAPPS:
+            this.setOAuthApps(action.userId, action.oauthApps);
+            this.emitChange();
+            break;
+        case ActionTypes.RECEIVED_OAUTHAPP:
+            this.addOAuthApp(action.oauthApp);
+            this.emitChange();
+            break;
+        case ActionTypes.REMOVED_OAUTHAPP:
+            this.removeOAuthApp(action.userId, action.id);
             this.emitChange();
             break;
         }

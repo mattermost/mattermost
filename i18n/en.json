@@ -889,7 +889,75 @@
   },
   {
     "id": "api.oauth.allow_oauth.turn_off.app_error",
-    "translation": "The system admin has turned off OAuth service providing."
+    "translation": "The system admin has turned off OAuth2 Service Provider."
+  },
+  {
+    "id": "api.oauth.authorize_oauth.disabled.app_error",
+    "translation": "The system admin has turned off OAuth2 Service Provider."
+  },
+  {
+    "id": "api.oauth.authorize_oauth.missing.app_error",
+    "translation": "Missing one or more of response_type, client_id, or redirect_uri"
+  },
+  {
+    "id": "api.oauth.delete.permissions.app_error",
+    "translation": "Inappropriate permissions to delete the OAuth2 App"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_client_id.app_error",
+    "translation": "invalid_request: Bad client_id"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
+    "translation": "invalid_request: Missing client_secret"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_grant.app_error",
+    "translation": "invalid_request: Bad grant_type"
+  },
+  {
+    "id": "api.oauth.get_access_token.credentials.app_error",
+    "translation": "invalid_client: Invalid client credentials"
+  },
+  {
+    "id": "api.oauth.get_access_token.disabled.app_error",
+    "translation": "The system admin has turned off OAuth2 Service Provider."
+  },
+  {
+    "id": "api.oauth.get_access_token.expired_code.app_error",
+    "translation": "invalid_grant: Invalid or expired authorization code"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal.app_error",
+    "translation": "server_error: Encountered internal server error while accessing database"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_saving.app_error",
+    "translation": "server_error: Encountered internal server error while saving access token to database"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_session.app_error",
+    "translation": "server_error: Encountered internal server error while saving session to database"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_user.app_error",
+    "translation": "server_error: Encountered internal server error while pulling user from database"
+  },
+  {
+    "id": "api.oauth.get_access_token.missing_code.app_error",
+    "translation": "invalid_request: Missing code"
+  },
+  {
+    "id": "api.oauth.get_access_token.missing_refresh_token.app_error",
+    "translation": "invalid_request: Missing refresh_token"
+  },
+  {
+    "id": "api.oauth.get_access_token.redirect_uri.app_error",
+    "translation": "invalid_request: Supplied redirect_uri does not match authorization code redirect_uri"
+  },
+  {
+    "id": "api.oauth.get_access_token.refresh_token.app_error",
+    "translation": "invalid_grant: Invalid refresh token"
   },
   {
     "id": "api.oauth.get_auth_data.find.error",
@@ -901,11 +969,7 @@
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
-    "translation": "The system admin has turned off OAuth service providing."
-  },
-  {
-    "id": "api.oauth.revoke_access_token.del_code.app_error",
-    "translation": "Error deleting authorization code from DB"
+    "translation": "The system admin has turned off OAuth2 Service Provider."
   },
   {
     "id": "api.oauth.revoke_access_token.del_session.app_error",
@@ -918,6 +982,18 @@
   {
     "id": "api.oauth.revoke_access_token.get.app_error",
     "translation": "Error getting access token from DB before deletion"
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "translation": "User sign-up is disabled."
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "translation": "The signup link has expired"
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "translation": "The signup link does not appear to be valid"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
@@ -2440,8 +2516,8 @@
     "translation": "Invalid access token"
   },
   {
-    "id": "model.access.is_valid.auth_code.app_error",
-    "translation": "Invalid auth code"
+    "id": "model.access.is_valid.client_id.app_error",
+    "translation": "Invalid client id"
   },
   {
     "id": "model.access.is_valid.redirect_uri.app_error",
@@ -2450,6 +2526,10 @@
   {
     "id": "model.access.is_valid.refresh_token.app_error",
     "translation": "Invalid refresh token"
+  },
+  {
+    "id": "model.access.is_valid.user_id.app_error",
+    "translation": "Invalid user id"
   },
   {
     "id": "model.authorize.is_valid.auth_code.app_error",
@@ -2901,7 +2981,7 @@
   },
   {
     "id": "model.oauth.is_valid.callback.app_error",
-    "translation": "Invalid callback urls"
+    "translation": "Callback URL must be a valid URL and start with http:// or https://."
   },
   {
     "id": "model.oauth.is_valid.client_secret.app_error",
@@ -2921,7 +3001,11 @@
   },
   {
     "id": "model.oauth.is_valid.homepage.app_error",
-    "translation": "Invalid homepage"
+    "translation": "Homepage must be a valid URL and start with http:// or https://."
+  },
+  {
+    "id": "model.oauth.is_valid.icon_url.app_error",
+    "translation": "Icon URL must be a valid URL and start with http:// or https://."
   },
   {
     "id": "model.oauth.is_valid.name.app_error",
@@ -3656,16 +3740,28 @@
     "translation": "We encountered an error saving the license"
   },
   {
+    "id": "store.sql_oauth.delete.commit_transaction.app_error",
+    "translation": "Unable to commit transaction"
+  },
+  {
+    "id": "store.sql_oauth.delete.open_transaction.app_error",
+    "translation": "Unable to open transaction to delete the OAuth2 app"
+  },
+  {
+    "id": "store.sql_oauth.delete.rollback_transaction.app_error",
+    "translation": "Unable to rollback transaction to delete the OAuth2 App"
+  },
+  {
+    "id": "store.sql_oauth.delete_app.app_error",
+    "translation": "An error occurred while deleting the OAuth2 App"
+  },
+  {
     "id": "store.sql_oauth.get_access_data.app_error",
     "translation": "We encountered an error finding the access token"
   },
   {
-    "id": "store.sql_oauth.get_access_data_by_code.app_error",
-    "translation": "We encountered an error finding the access token"
-  },
-  {
     "id": "store.sql_oauth.get_app.find.app_error",
-    "translation": "We couldn't find the existing app"
+    "translation": "We couldn't find the requested app"
   },
   {
     "id": "store.sql_oauth.get_app.finding.app_error",
@@ -3676,12 +3772,20 @@
     "translation": "We couldn't find any existing apps"
   },
   {
+    "id": "store.sql_oauth.get_apps.find.app_error",
+    "translation": "An error occurred while finding the OAuth2 Apps"
+  },
+  {
     "id": "store.sql_oauth.get_auth_data.find.app_error",
     "translation": "We couldn't find the existing authorization code"
   },
   {
     "id": "store.sql_oauth.get_auth_data.finding.app_error",
     "translation": "We encountered an error finding the authorization code"
+  },
+  {
+    "id": "store.sql_oauth.get_previous_access_data.app_error",
+    "translation": "We encountered an error finding the access token"
   },
   {
     "id": "store.sql_oauth.permanent_delete_auth_data_by_user.app_error",
@@ -3710,6 +3814,10 @@
   {
     "id": "store.sql_oauth.save_auth_data.app_error",
     "translation": "We couldn't save the authorization code."
+  },
+  {
+    "id": "store.sql_oauth.update_access_data.app_error",
+    "translation": "We encountered an error updating the access token"
   },
   {
     "id": "store.sql_oauth.update_app.find.app_error",
@@ -4408,14 +4516,6 @@
     "translation": "Admin Console"
   },
   {
-    "id": "web.authorize_oauth.disabled.app_error",
-    "translation": "The system admin has turned off OAuth service providing."
-  },
-  {
-    "id": "web.authorize_oauth.missing.app_error",
-    "translation": "Missing one or more of response_type, client_id, or redirect_uri"
-  },
-  {
     "id": "web.authorize_oauth.title",
     "translation": "Authorize Application"
   },
@@ -4458,62 +4558,6 @@
   {
     "id": "web.find_team.title",
     "translation": "Find Team"
-  },
-  {
-    "id": "web.get_access_token.bad_client_id.app_error",
-    "translation": "invalid_request: Bad client_id"
-  },
-  {
-    "id": "web.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Missing client_secret"
-  },
-  {
-    "id": "web.get_access_token.bad_grant.app_error",
-    "translation": "invalid_request: Bad grant_type"
-  },
-  {
-    "id": "web.get_access_token.credentials.app_error",
-    "translation": "invalid_client: Invalid client credentials"
-  },
-  {
-    "id": "web.get_access_token.disabled.app_error",
-    "translation": "The system admin has turned off OAuth service providing."
-  },
-  {
-    "id": "web.get_access_token.exchanged.app_error",
-    "translation": "invalid_grant: Authorization code already exchanged for an access token"
-  },
-  {
-    "id": "web.get_access_token.expired_code.app_error",
-    "translation": "invalid_grant: Invalid or expired authorization code"
-  },
-  {
-    "id": "web.get_access_token.internal.app_error",
-    "translation": "server_error: Encountered internal server error while accessing database"
-  },
-  {
-    "id": "web.get_access_token.internal_saving.app_error",
-    "translation": "server_error: Encountered internal server error while saving access token to database"
-  },
-  {
-    "id": "web.get_access_token.internal_session.app_error",
-    "translation": "server_error: Encountered internal server error while saving session to database"
-  },
-  {
-    "id": "web.get_access_token.internal_user.app_error",
-    "translation": "server_error: Encountered internal server error while pulling user from database"
-  },
-  {
-    "id": "web.get_access_token.missing_code.app_error",
-    "translation": "invalid_request: Missing code"
-  },
-  {
-    "id": "web.get_access_token.redirect_uri.app_error",
-    "translation": "invalid_request: Supplied redirect_uri does not match authorization code redirect_uri"
-  },
-  {
-    "id": "web.get_access_token.revoking.error",
-    "translation": "Encountered an error revoking an access token, err="
   },
   {
     "id": "web.header.back",
@@ -4626,18 +4670,6 @@
   {
     "id": "web.signup_user_complete.title",
     "translation": "Complete User Sign Up"
-  },
-  {
-    "id": "web.singup_with_oauth.disabled.app_error",
-    "translation": "User sign-up is disabled."
-  },
-  {
-    "id": "web.singup_with_oauth.expired_link.app_error",
-    "translation": "The signup link has expired"
-  },
-  {
-    "id": "web.singup_with_oauth.invalid_link.app_error",
-    "translation": "The signup link does not appear to be valid"
   },
   {
     "id": "web.singup_with_oauth.invalid_team.app_error",

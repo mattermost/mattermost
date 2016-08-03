@@ -521,11 +521,11 @@ export default class AdminSidebar extends React.Component {
                                 }
                             >
                                 <AdminSidebarSection
-                                    name='webhooks'
+                                    name='custom'
                                     title={
                                         <FormattedMessage
-                                            id='admin.sidebar.webhooks'
-                                            defaultMessage='Webhooks and Commands'
+                                            id='admin.sidebar.customIntegrations'
+                                            defaultMessage='Custom Integrations'
                                         />
                                     }
                                 />

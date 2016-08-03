@@ -15,10 +15,12 @@ const (
 )
 
 type AccessData struct {
-	AuthCode     string `json:"auth_code"`
+	ClientId     string `json:"client_id"`
+	UserId       string `json:"user_id"`
 	Token        string `json:"token"`
 	RefreshToken string `json:"refresh_token"`
 	RedirectUri  string `json:"redirect_uri"`
+	ExpiresAt    int64  `json:"expires_at"`
 }
 
 type AccessResponse struct {
@@ -33,8 +35,12 @@ type AccessResponse struct {
 // correctly.
 func (ad *AccessData) IsValid() *AppError {
 
-	if len(ad.AuthCode) == 0 || len(ad.AuthCode) > 128 {
-		return NewLocAppError("AccessData.IsValid", "model.access.is_valid.auth_code.app_error", nil, "")
+	if len(ad.ClientId) == 0 || len(ad.ClientId) > 26 {
+		return NewLocAppError("AccessData.IsValid", "model.access.is_valid.client_id.app_error", nil, "")
+	}
+
+	if len(ad.UserId) == 0 || len(ad.UserId) > 26 {
+		return NewLocAppError("AccessData.IsValid", "model.access.is_valid.user_id.app_error", nil, "")
 	}
 
 	if len(ad.Token) != 26 {
@@ -50,6 +56,19 @@ func (ad *AccessData) IsValid() *AppError {
 	}
 
 	return nil
+}
+
+func (me *AccessData) IsExpired() bool {
+
+	if me.ExpiresAt <= 0 {
+		return false
+	}
+
+	if GetMillis() > me.ExpiresAt {
+		return true
+	}
+
+	return false
 }
 
 func (ad *AccessData) ToJson() string {
