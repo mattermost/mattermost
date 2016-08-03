@@ -2708,7 +2708,7 @@
     "translation": "To must be greater than From"
   },
   {
-    "id": "model.access.is_valid.cluster_email_batching.app_error",
+    "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Unable to enable email batching (EmailSettings.EnableEmailBatching) when clustering (ClusterSettings.Enable) is enabled"
   },
   {

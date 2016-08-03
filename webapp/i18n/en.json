@@ -180,6 +180,8 @@
   "admin.email.easHelp": "Learn more about compiling and deploying your own mobile apps from an <a href=\"http://docs.mattermost.com/deployment/push.html#enterprise-app-store-eas\" target=\"_blank\">Enterprise App Store</a>.",
   "admin.email.emailFail": "Connection unsuccessful: {error}",
   "admin.email.emailSuccess": "No errors were reported while sending an email.  Please check your inbox to make sure.",
+  "admin.email.enableEmailBatchingTitle": "Enable Email Batching:",
+  "admin.email.enableEmailBatchingDesc": "When true, users can have email notifications for multiple direct messages and mentions combined into a single email, configurable in <b>Account Settings > Notifications</b>. This setting cannot be enabled when High Availability Mode is enabled.",
   "admin.email.fullPushNotification": "Send full message snippet",
   "admin.email.genericPushNotification": "Send generic description with user and channel names",
   "admin.email.inviteSaltDescription": "32-character salt added to signing of email invites. Randomly generated on install. Click \"Regenerate\" to create new salt.",
