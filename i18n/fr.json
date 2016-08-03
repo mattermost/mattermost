@@ -104,6 +104,10 @@
     "translation": "Un serveur SMTP est nécessaire"
   },
   {
+    "id": "api.admin.test_email.reenter_password",
+    "translation": "Les informations sur le serveur SMTP ont changé. Veuillez saisir à nouveau le mot de passe du serveur SMTP pour tester la connexion."
+  },
+  {
     "id": "api.admin.test_email.subject",
     "translation": "Mattermost - Test des réglages de messagerie"
   },
@@ -1013,11 +1017,11 @@
   },
   {
     "id": "api.post.notification.here.warn",
-    "translation": "Unable to send notification to online users with @here, err=%v"
+    "translation": "Impossible d'envoyer une notification aux utilisateurs connectés avec @here, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
-    "translation": "Failed to retrieve comment thread posts in notifications root_post_id=%v, err=%v"
+    "translation": "Impossible de récupérer les fils de commentaires dans les notifications root_post_id=%v, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.mention_body",
@@ -1573,7 +1577,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "For the best experience, download the apps for PC, Mac, iOS and Android from:"
+    "translation": "Pour votre confort, téléchargez les applications PC, Mac, iOS et Android depuis :"
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -1665,7 +1669,7 @@
   },
   {
     "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-    "translation": "{{.Service}} oauth non disponible sur ce serveur"
+    "translation": "{{.Service}} SSO avec OAuth 2.0 n'est pas disponible sur ce serveur"
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
@@ -1681,7 +1685,7 @@
   },
   {
     "id": "api.user.create_oauth_user.not_available.app_error",
-    "translation": "oauth {{.Service}} indisponible sur ce serveur"
+    "translation": "{{.Service}} SSO avec OAuth 2.0 n'est pas disponible sur ce serveur"
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
@@ -1793,7 +1797,7 @@
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
-    "translation": "Le service oauth {{.Service}} n'est pas disponible sur ce serveur"
+    "translation": "{{.Service}} SSO avec OAuth 2.0 n'est pas disponible sur ce serveur"
   },
   {
     "id": "api.user.login_by_oauth.parse.app_error",
@@ -1894,6 +1898,10 @@
   {
     "id": "api.user.send_welcome_email_and_forget.failed.error",
     "translation": "Impossible d'envoyer le courriel de bienvenue err=%v"
+  },
+  {
+    "id": "api.user.update_active.no_deactivate_ldap.app_error",
+    "translation": "Vous ne pouvez pas modifier le statut actif des comptes LDAP. Veuillez désactiver ce compte dans votre serveur LDAP."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -2173,7 +2181,7 @@
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
-    "translation": "Your LDAP account does not have permission to use this Mattermost server. Please ask your System Administrator to check the LDAP user filter."
+    "translation": "Votre compte LDAP ne dispose pas des permissions pour utiliser ce serveur Mattermost. Veuillez demander à votre administrateur système de vérifier le filtre des utilisateurs LDAP."
   },
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
@@ -2232,6 +2240,14 @@
     "translation": "Erreur tentative d'authentification MFA token"
   },
   {
+    "id": "ent.migration.migratetoldap.duplicate_field",
+    "translation": "Impossible de migrer les utilisateurs LDAP avec le champ en question. Doublon détecté. Veuillez supprimer tous les doublons et réessayer."
+  },
+  {
+    "id": "ent.migration.migratetoldap.user_not_found",
+    "translation": "Impossible de trouver l'utilisateur sur le serveur LDAP : "
+  },
+  {
     "id": "ent.saml.build_request.app_error",
     "translation": "Erreur lors de la requête au fournisseur d'identité. Veuillez contacter votre administrateur système."
   },
@@ -2269,11 +2285,11 @@
   },
   {
     "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "SAML login was unsuccessful because an error occurred while decrypting the response from the Identity Provider. Please contact your System Administrator."
+    "translation": "Connexion SAML échouée car une erreur s'est produite lors du décryptage de la réponse du serveur d'identité. Veuillez contacter votre administrateur système."
   },
   {
     "id": "ent.saml.do_login.empty_response.app_error",
-    "translation": "We received an empty response from the Identity Provider"
+    "translation": "Nous avons reçu une réponse vide du fournisseur d'identité."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
@@ -2297,7 +2313,7 @@
   },
   {
     "id": "ent.saml.update_saml_user.unable_error",
-    "translation": "Unable to update existing SAML user. Allowing login anyway. err=%v"
+    "translation": "Impossible de mettre à jour l'utilisateur SAML. Connexion autorisée malgré tout. err=%v"
   },
   {
     "id": "error.generic.link_message",
@@ -2669,31 +2685,31 @@
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
-    "translation": "LDAP field \"BaseDN\" is required."
+    "translation": "Le champ LDAP \"BaseDN\" est requis."
   },
   {
     "id": "model.config.is_valid.ldap_bind_password",
-    "translation": "LDAP field \"Bind Password\" is required."
+    "translation": "Le champ LDAP \"Bind Password\" est requis."
   },
   {
     "id": "model.config.is_valid.ldap_bind_username",
-    "translation": "LDAP field \"Bind Username\" is required."
+    "translation": "Le champ LDAP \"Bind Username\" est requis."
   },
   {
     "id": "model.config.is_valid.ldap_email",
-    "translation": "LDAP field \"Email Attribute\" is required."
+    "translation": "Le champ LDAP \"Email Attribute\" est requis."
   },
   {
     "id": "model.config.is_valid.ldap_firstname",
-    "translation": "LDAP field \"First Name Attribute\" is required."
+    "translation": "L'attribut LDAP \"Prénom\" est obligatoire."
   },
   {
     "id": "model.config.is_valid.ldap_id",
-    "translation": "LDAP field \"ID Attribute\" is required."
+    "translation": "L'attribut LDAP \"ID\" est obligatoire."
   },
   {
     "id": "model.config.is_valid.ldap_lastname",
-    "translation": "LDAP field \"Last Name Attribute\" is required."
+    "translation": "L'attribut LDAP \"nom\" est obligatoire."
   },
   {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",
@@ -2713,7 +2729,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_server",
-    "translation": "LDAP field \"LDAP Server\" is required."
+    "translation": "Le champ \"serveur LDAP\" est obligatoire."
   },
   {
     "id": "model.config.is_valid.ldap_sync_interval.app_error",
@@ -2721,7 +2737,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_username",
-    "translation": "LDAP field \"Username Attribute\" is required."
+    "translation": "L'attribut LDAP \"Nom d'utilisateur\" est obligatoire."
   },
   {
     "id": "model.config.is_valid.listen_address.app_error",
@@ -2741,11 +2757,11 @@
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
-    "translation": "Minimum password length must be a whole number greater than or equal to {{.MinLength}} and less than or equal to {{.MaxLength}}."
+    "translation": "La taille minimale du mot de passe doit être un nombre entier supérieur ou égal à {{.MinLength}} et inférieur ou égal à {{.MaxLength}}."
   },
   {
     "id": "model.config.is_valid.password_length_max_min.app_error",
-    "translation": "Maximum password length must be greater than or equal to minimum password length."
+    "translation": "La taille maximale du mot de passe doit être supérieur ou égale à la taille minimale."
   },
   {
     "id": "model.config.is_valid.rate_mem.app_error",
@@ -2773,7 +2789,7 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
-    "translation": "Identity Provider Public Certificate missing. Did you forget to upload it?"
+    "translation": "Certificat public du fournisseur d'identité introuvable. Auriez-vous oublié de le télécharger ?"
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
@@ -2789,19 +2805,23 @@
   },
   {
     "id": "model.config.is_valid.saml_private_key.app_error",
-    "translation": "Service Provider Private Key missing. Did you forget to upload it?"
+    "translation": "Clé privée du fournisseur d'identité introuvable. Auriez-vous oublié de la télécharger ?"
   },
   {
     "id": "model.config.is_valid.saml_public_cert.app_error",
-    "translation": "Service Provider Public Certificate missing. Did you forget to upload it?"
+    "translation": "Certificat public du fournisseur de service introuvable. Auriez-vous oublié de le télécharger ?"
   },
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
     "translation": "L'attribut \"Username\" est invalide. Il doit être renseigné."
   },
   {
+    "id": "model.config.is_valid.site_url.app_error",
+    "translation": "URL SSO SAML invalide. Il doit s'agir d'une URL valide et commencer par http:// ou https://."
+  },
+  {
     "id": "model.config.is_valid.sitename_length.app_error",
-    "translation": "Site name must be less than or equal to {{.MaxLength}} characters."
+    "translation": "Le nom du site doit contenir au maximum {{.MaxLength}} caractères."
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",
@@ -3901,19 +3921,19 @@
   },
   {
     "id": "store.sql_status.get.app_error",
-    "translation": "Nous avons rencontré une erreur durant l'enregistrement de la licence"
+    "translation": "Erreur lors de la récupération du status"
   },
   {
     "id": "store.sql_status.get.missing.app_error",
-    "translation": "No entry for that status exists"
+    "translation": "Aucune entrée pour ce statut."
   },
   {
     "id": "store.sql_status.get_online.app_error",
-    "translation": "Nous avons rencontré une erreur durant l'enregistrement de la licence"
+    "translation": "Erreur lors de la récupération de tous les status en-ligne"
   },
   {
     "id": "store.sql_status.get_online_away.app_error",
-    "translation": "Encountered an error retrieving all the online/away statuses"
+    "translation": "Nous avons rencontré une erreur durant l'enregistrement du statut enligne/absent"
   },
   {
     "id": "store.sql_status.get_total_active_users_count.app_error",
@@ -3921,15 +3941,15 @@
   },
   {
     "id": "store.sql_status.reset_all.app_error",
-    "translation": "Nous avons rencontré une erreur durant l'enregistrement de la licence"
+    "translation": "Nous avons rencontré une erreur durant la réinitialisation des statuts"
   },
   {
     "id": "store.sql_status.save.app_error",
-    "translation": "Nous avons rencontré une erreur durant l'enregistrement de la licence"
+    "translation": "Nous avons rencontré une erreur durant l'enregistrement des statuts"
   },
   {
     "id": "store.sql_status.update.app_error",
-    "translation": "Nous avons rencontré une erreur lors de la mise à jour de l'équipe"
+    "translation": "Nous avons rencontré une erreur lors de la mise à jour des statuts"
   },
   {
     "id": "store.sql_system.get.app_error",
@@ -4093,7 +4113,7 @@
   },
   {
     "id": "store.sql_user.migrate_theme.critical",
-    "translation": "Failed to migrate User.ThemeProps to Preferences table %v"
+    "translation": "Impossible de migrer User.ThemeProps vers la table de préférences %v"
   },
   {
     "id": "store.sql_user.missing_account.const",

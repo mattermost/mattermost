@@ -104,6 +104,10 @@
     "translation": "Servidor SMTP é obrigatório"
   },
   {
+    "id": "api.admin.test_email.reenter_password",
+    "translation": "O servidor SMTP, porta, ou usuário foi alterado. Por favor digite novamente a senha SMTP para testar conexão."
+  },
+  {
     "id": "api.admin.test_email.subject",
     "translation": "Mattermost - Teste de Configurações de Email"
   },
@@ -1013,7 +1017,7 @@
   },
   {
     "id": "api.post.notification.here.warn",
-    "translation": "Unable to send notification to online users with @here, err=%v"
+    "translation": "Não foi possível enviar a notificação para os usuários online com @here, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
@@ -1077,7 +1081,7 @@
   },
   {
     "id": "api.post.update_mention_count_and_forget.update_error",
-    "translation": "Falha ao atualizar o número de menções para user_id=%v on channel_id=%v err=%v"
+    "translation": "Falha ao atualizar o número de menções, post_id=%v channel_id=%v err=%v"
   },
   {
     "id": "api.post.update_post.find.app_error",
@@ -1249,7 +1253,7 @@
   },
   {
     "id": "api.status.init.debug",
-    "translation": "Inicializando post api routes"
+    "translation": "Inicializando status api routes"
   },
   {
     "id": "api.status.last_activity.error",
@@ -1573,7 +1577,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "For the best experience, download the apps for PC, Mac, iOS and Android from:"
+    "translation": "Para uma melhor experiência, faça download dos apps para PC, Mac, iOS e Android em:"
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -1665,7 +1669,7 @@
   },
   {
     "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-    "translation": "{{.Service}} oauth não disponível neste servidor"
+    "translation": "{{.Service}} SSO através OAuth 2.0 não está disponível neste servidor"
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
@@ -1681,7 +1685,7 @@
   },
   {
     "id": "api.user.create_oauth_user.not_available.app_error",
-    "translation": "{{.Service}} oauth não disponível neste servidor"
+    "translation": "{{.Service}} SSO através OAuth 2.0 não está disponível neste servidor"
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
@@ -1793,7 +1797,7 @@
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
-    "translation": "{{.Service}} oauth não disponível neste servidor"
+    "translation": "{{.Service}} SSO através OAuth 2.0 não está disponível neste servidor"
   },
   {
     "id": "api.user.login_by_oauth.parse.app_error",
@@ -1894,6 +1898,10 @@
   {
     "id": "api.user.send_welcome_email_and_forget.failed.error",
     "translation": "Falha ao enviar com sucesso boas vindas por email err=%v"
+  },
+  {
+    "id": "api.user.update_active.no_deactivate_ldap.app_error",
+    "translation": "Você não pode modificar o status de ativação de contas LDAP. Por favor modifique através do servidor LDAP."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -2230,6 +2238,14 @@
   {
     "id": "ent.mfa.validate_token.authenticate.app_error",
     "translation": "Erro ao tentar autenticar o token MFA"
+  },
+  {
+    "id": "ent.migration.migratetoldap.duplicate_field",
+    "translation": "Não é possível migrar usuários LDAP com o campo especificado. Entrada duplicada detectada. Por favor remova todas as duplicadas e tente novamente."
+  },
+  {
+    "id": "ent.migration.migratetoldap.user_not_found",
+    "translation": "Não foi possível localizar usuário no servidor LDAP: "
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -2798,6 +2814,10 @@
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
     "translation": "Atributo Usuário Inválido. Deve ser definido."
+  },
+  {
+    "id": "model.config.is_valid.site_url.app_error",
+    "translation": "URL SAML SSO deve ser uma URL válida e começar com http:// ou https://."
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
@@ -3909,7 +3929,7 @@
   },
   {
     "id": "store.sql_status.get_online.app_error",
-    "translation": "Encontrado um erro ao obter todos os status online/ausente"
+    "translation": "Encontrado um erro ao obter todos os status online"
   },
   {
     "id": "store.sql_status.get_online_away.app_error",

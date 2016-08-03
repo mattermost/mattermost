@@ -5,9 +5,11 @@ const de = require('!!file?name=i18n/[name].[hash].[ext]!./de.json');
 const es = require('!!file?name=i18n/[name].[hash].[ext]!./es.json');
 const fr = require('!!file?name=i18n/[name].[hash].[ext]!./fr.json');
 const ja = require('!!file?name=i18n/[name].[hash].[ext]!./ja.json');
+const ko = require('!!file?name=i18n/[name].[hash].[ext]!./ko.json');
 const nl = require('!!file?name=i18n/[name].[hash].[ext]!./nl.json');
 const pt_BR = require('!!file?name=i18n/[name].[hash].[ext]!./pt-BR.json'); //eslint-disable-line camelcase
 const zh_TW = require('!!file?name=i18n/[name].[hash].[ext]!./zh_TW.json'); //eslint-disable-line camelcase
+const zh_CN = require('!!file?name=i18n/[name].[hash].[ext]!./zh_CN.json'); //eslint-disable-line camelcase
 
 import {addLocaleData} from 'react-intl';
 import deLocaleData from 'react-intl/locale-data/de';
@@ -15,6 +17,7 @@ import enLocaleData from 'react-intl/locale-data/en';
 import esLocaleData from 'react-intl/locale-data/es';
 import frLocaleData from 'react-intl/locale-data/fr';
 import jaLocaleData from 'react-intl/locale-data/ja';
+import koLocaleData from 'react-intl/locale-data/ko';
 import nlLocaleData from 'react-intl/locale-data/nl';
 import ptLocaleData from 'react-intl/locale-data/pt';
 import zhLocaleData from 'react-intl/locale-data/zh';
@@ -33,7 +36,7 @@ const languages = {
     },
     es: {
         value: 'es',
-        name: 'Español (Beta)',
+        name: 'Español',
         url: es
     },
     fr: {
@@ -46,6 +49,11 @@ const languages = {
         name: '日本語 (Beta)',
         url: ja
     },
+    ko: {
+        value: 'ko',
+        name: '한국어 (Beta)',
+        url: ko
+    },
     nl: {
         value: 'nl',
         name: 'Nederlands (Beta)',
@@ -53,13 +61,18 @@ const languages = {
     },
     'pt-BR': {
         value: 'pt-BR',
-        name: 'Portugues (Beta)',
+        name: 'Português (Brasil)',
         url: pt_BR
     },
     'zh-TW': {
         value: 'zh-TW',
         name: '中文 (繁體) (Beta)',
         url: zh_TW
+    },
+    'zh-CN': {
+        value: 'zh-CN',
+        name: '中文 (简体) (Beta)',
+        url: zh_CN
     }
 };
 
@@ -112,6 +125,7 @@ export function safariFix(callback) {
         'intl/locale-data/jsonp/es.js',
         'intl/locale-data/jsonp/fr.js',
         'intl/locale-data/jsonp/ja.js',
+        'intl/locale-data/jsonp/ko.js',
         'intl/locale-data/jsonp/nl.js',
         'intl/locale-data/jsonp/pt.js',
         'intl/locale-data/jsonp/zh.js'
@@ -122,6 +136,7 @@ export function safariFix(callback) {
         require('intl/locale-data/jsonp/es.js');
         require('intl/locale-data/jsonp/fr.js');
         require('intl/locale-data/jsonp/ja.js');
+        require('intl/locale-data/jsonp/ko.js');
         require('intl/locale-data/jsonp/nl.js');
         require('intl/locale-data/jsonp/pt.js');
         require('intl/locale-data/jsonp/zh.js');
@@ -135,6 +150,7 @@ export function doAddLocaleData() {
     addLocaleData(esLocaleData);
     addLocaleData(frLocaleData);
     addLocaleData(jaLocaleData);
+    addLocaleData(koLocaleData);
     addLocaleData(nlLocaleData);
     addLocaleData(ptLocaleData);
     addLocaleData(zhLocaleData);

@@ -104,6 +104,10 @@
     "translation": "須填入 SMTP 伺服器"
   },
   {
+    "id": "api.admin.test_email.reenter_password",
+    "translation": "SMTP 伺服器連線參數有所變更，請重新輸入 SMTP 密碼以測試連線。"
+  },
+  {
     "id": "api.admin.test_email.subject",
     "translation": "Mattermost - 測試電子郵件設定"
   },
@@ -557,11 +561,11 @@
   },
   {
     "id": "api.command_shortcuts.list",
-    "translation": "### 鍵盤快捷鍵\n\n#### 瀏覽\n\nALT+UP：側邊欄裡面上一個頻道或直接訊息\nALT+DOWN：側邊欄裡面下一個頻道或直接訊息\nALT+SHIFT+UP：側邊欄裡面上一個有未讀訊息的頻道或直接訊息\nALT+SHIFT+DOWN：側邊欄裡面下一個有未讀訊息的頻道或直接訊息\nCTRL+K：開啟快速切換頻道對話框\nCTRL+SHIFT+A：開啟帳號設定\nCTRL+SHIFT+M：開啟最近提及您的訊息\n\n#### 檔案\n\nCTRL+U：上傳檔案\n\n#### 訊息\n\nCTRL+UP (在空的輸入欄)：顯示上一個您輸入的訊息或是斜線命令\nCTRL+DOWN (在空的輸入欄)：顯示下一個您輸入的訊息或是斜線命令\nUP (在空的輸入欄)：編輯當前頻道您的上一個訊息\n@[文字]+TAB：自動完成以[文字]起始的@使用者帳號\n:[文字]+TAB：自動完成以[文字]起始的顏文字\n\n#### 瀏覽器內建命令\n\nALT+LEFT：瀏覽紀錄的前一個頻道\nALT+RIGHT：瀏覽紀錄的下一個頻道\nCTRL+PLUS：增加字體尺寸(放大)\nCTRL+MINUS：減少字體尺寸(縮小)\nSHIFT+UP (在輸入欄)：標記現在到上一行同位置之間的文字\nSHIFT+DOWN (在輸入欄)：標記現在到下一行同位置之間的文字\nSHIFT+ENTER (在輸入欄)：新增一行\n"
+    "translation": "### 鍵盤快捷鍵\n\n#### 瀏覽\n\nALT+UP：側邊欄裡面上一個頻道或直接訊息\nALT+DOWN：側邊欄裡面下一個頻道或直接訊息\nALT+SHIFT+UP：側邊欄裡面上一個有未讀訊息的頻道或直接訊息\nALT+SHIFT+DOWN：側邊欄裡面下一個有未讀訊息的頻道或直接訊息\nCTRL+K：開啟快速切換頻道對話框\nCTRL+SHIFT+A：開啟帳號設定\nCTRL+SHIFT+M：開啟最近提及您的訊息\n\n#### 檔案\n\nCTRL+U：上傳檔案\n\n#### 訊息\n\nALT+[點選訊息]：將該訊息設為當前頻道最早的未讀訊息\nESC：將當前頻道所有訊息設為已讀\nCTRL+UP (在空的輸入欄)：顯示上一個您輸入的訊息或是斜線命令\nCTRL+DOWN (在空的輸入欄)：顯示下一個您輸入的訊息或是斜線命令\nUP (在空的輸入欄)：編輯當前頻道您的上一個訊息\n@[文字]+TAB：自動完成以[文字]起始的@使用者帳號\n:[文字]+TAB：自動完成以[文字]起始的顏文字\n\n#### 瀏覽器內建命令\n\nALT+LEFT：瀏覽紀錄的前一個頻道\nALT+RIGHT：瀏覽紀錄的下一個頻道\nCTRL+PLUS：增加字體尺寸(放大)\nCTRL+MINUS：減少字體尺寸(縮小)\nSHIFT+UP (在輸入欄)：標記現在到上一行同位置之間的文字\nSHIFT+DOWN (在輸入欄)：標記現在到下一行同位置之間的文字\nSHIFT+ENTER (在輸入欄)：新增一行\n"
   },
   {
     "id": "api.command_shortcuts.list_mac",
-    "translation": "### 鍵盤快捷鍵\n\n#### 瀏覽\n\nALT+UP：側邊欄裡面上一個頻道或直接訊息\nALT+DOWN：側邊欄裡面下一個頻道或直接訊息\nALT+SHIFT+UP：側邊欄裡面上一個有未讀訊息的頻道或直接訊息\nALT+SHIFT+DOWN：側邊欄裡面下一個有未讀訊息的頻道或直接訊息\nCMD+K：開啟快速切換頻道對話框\nCMD+SHIFT+A：開啟帳號設定\nCMD+SHIFT+M：開啟最近提及您的訊息\n\n#### 檔案\n\nCMD+U：上傳檔案\n\n#### 訊息\n\nCMD+UP (在空的輸入欄)：顯示上一個您輸入的訊息或是斜線命令\nCMD+DOWN (在空的輸入欄)：顯示下一個您輸入的訊息或是斜線命令\nUP (在空的輸入欄)：編輯當前頻道您的上一個訊息\n@[文字]+TAB：自動完成以[文字]起始的@使用者帳號\n:[文字]+TAB：自動完成以[文字]起始的顏文字\n\n#### 瀏覽器內建命令\n\nCMD+[：瀏覽紀錄的前一個頻道\nCMD+]：瀏覽紀錄的下一個頻道\nCMD+PLUS：增加字體尺寸(放大)\nCMD+MINUS：減少字體尺寸(縮小)\nSHIFT+UP (在輸入欄)：標記現在到上一行同位置之間的文字\nSHIFT+DOWN (在輸入欄)：標記現在到下一行同位置之間的文字\nSHIFT+ENTER (在輸入欄)：新增一行\n"
+    "translation": "### 鍵盤快捷鍵\n\n#### 瀏覽\n\nALT+UP：側邊欄裡面上一個頻道或直接訊息\nALT+DOWN：側邊欄裡面下一個頻道或直接訊息\nALT+SHIFT+UP：側邊欄裡面上一個有未讀訊息的頻道或直接訊息\nALT+SHIFT+DOWN：側邊欄裡面下一個有未讀訊息的頻道或直接訊息\nCMD+K：開啟快速切換頻道對話框\nCMD+SHIFT+A：開啟帳號設定\nCMD+SHIFT+M：開啟最近提及您的訊息\n\n#### 檔案\n\nCMD+U：上傳檔案\n\n#### 訊息\n\nALT+[點選訊息]：將該訊息設為當前頻道最早的未讀訊息\nESC：將當前頻道所有訊息設為已讀\nCMD+UP (在空的輸入欄)：顯示上一個您輸入的訊息或是斜線命令\nCMD+DOWN (在空的輸入欄)：顯示下一個您輸入的訊息或是斜線命令\nUP (在空的輸入欄)：編輯當前頻道您的上一個訊息\n@[文字]+TAB：自動完成以[文字]起始的@使用者帳號\n:[文字]+TAB：自動完成以[文字]起始的顏文字\n\n#### 瀏覽器內建命令\n\nCMD+[：瀏覽紀錄的前一個頻道\nCMD+]：瀏覽紀錄的下一個頻道\nCMD+PLUS：增加字體尺寸(放大)\nCMD+MINUS：減少字體尺寸(縮小)\nSHIFT+UP (在輸入欄)：標記現在到上一行同位置之間的文字\nSHIFT+DOWN (在輸入欄)：標記現在到下一行同位置之間的文字\nSHIFT+ENTER (在輸入欄)：新增一行\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -1573,7 +1577,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "For the best experience, download the apps for PC, Mac, iOS and Android from:"
+    "translation": "為了更好的體驗，請從以下連結下載 PC、Mac、iOS、Android 等平台的應用程式："
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -1665,7 +1669,7 @@
   },
   {
     "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-    "translation": "無法取得此伺服器上的 {{.Service}} OAuth"
+    "translation": "本伺服器不支援經由 OAuth 2.0 的 {{.Service}} SSO"
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
@@ -1681,7 +1685,7 @@
   },
   {
     "id": "api.user.create_oauth_user.not_available.app_error",
-    "translation": "無法取得此伺服器上的 {{.Service}} oauth"
+    "translation": "本伺服器不支援經由 OAuth 2.0 的 {{.Service}} SSO"
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
@@ -1793,7 +1797,7 @@
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
-    "translation": "無法使用此伺服器上的 {{.Service}} OAuth "
+    "translation": "本伺服器不支援經由 OAuth 2.0 的 {{.Service}} SSO"
   },
   {
     "id": "api.user.login_by_oauth.parse.app_error",
@@ -1894,6 +1898,10 @@
   {
     "id": "api.user.send_welcome_email_and_forget.failed.error",
     "translation": "歡迎電子郵件傳送失敗 err=%v"
+  },
+  {
+    "id": "api.user.update_active.no_deactivate_ldap.app_error",
+    "translation": "不能變更 LDAP 帳號的啟用狀態。請變更 LDAP 伺服器上對應的帳號狀態。"
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -2230,6 +2238,14 @@
   {
     "id": "ent.mfa.validate_token.authenticate.app_error",
     "translation": "嘗試認證多重要素驗證 Token 時遇到錯誤"
+  },
+  {
+    "id": "ent.migration.migratetoldap.duplicate_field",
+    "translation": "無法根據指定的欄位移轉至 LDAP 使用者。偵測到重複的項目。請移除所有重複項目然後再次嚐試。"
+  },
+  {
+    "id": "ent.migration.migratetoldap.user_not_found",
+    "translation": "找不到使用者，LDAP 伺服器："
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -2800,6 +2816,10 @@
     "translation": "無效的使用者名稱屬性。此屬性必須設定。"
   },
   {
+    "id": "model.config.is_valid.site_url.app_error",
+    "translation": "站台網址必須使用以 http:// 或 https:// 開頭的有效網址。"
+  },
+  {
     "id": "model.config.is_valid.sitename_length.app_error",
     "translation": "站台名稱至多{{.MaxLength}}個字"
   },
@@ -2877,7 +2897,7 @@
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
-    "translation": "無效的 app ID"
+    "translation": "無效的應用程式 ID"
   },
   {
     "id": "model.oauth.is_valid.callback.app_error",
@@ -3645,15 +3665,15 @@
   },
   {
     "id": "store.sql_oauth.get_app.find.app_error",
-    "translation": "找不到已存在的 app"
+    "translation": "找不到已存在的應用程式"
   },
   {
     "id": "store.sql_oauth.get_app.finding.app_error",
-    "translation": "尋找 app 時遇到錯誤"
+    "translation": "尋找應用程式時遇到錯誤"
   },
   {
     "id": "store.sql_oauth.get_app_by_user.find.app_error",
-    "translation": "找不到任何已存在的 apps"
+    "translation": "找不到任何已存在的應用程式"
   },
   {
     "id": "store.sql_oauth.get_auth_data.find.app_error",
@@ -3681,11 +3701,11 @@
   },
   {
     "id": "store.sql_oauth.save_app.existing.app_error",
-    "translation": "必須為已存在的 app 執行更新"
+    "translation": "必須為已存在的應用程式執行更新"
   },
   {
     "id": "store.sql_oauth.save_app.save.app_error",
-    "translation": "無法儲存 app。"
+    "translation": "無法儲存應用程式。"
   },
   {
     "id": "store.sql_oauth.save_auth_data.app_error",
@@ -3693,19 +3713,19 @@
   },
   {
     "id": "store.sql_oauth.update_app.find.app_error",
-    "translation": "找不到已存在的 app 以更新"
+    "translation": "找不到已存在的應用程式以更新"
   },
   {
     "id": "store.sql_oauth.update_app.finding.app_error",
-    "translation": "尋找 app 時遇到錯誤"
+    "translation": "尋找應用程式時遇到錯誤"
   },
   {
     "id": "store.sql_oauth.update_app.update.app_error",
-    "translation": "無法更新 app"
+    "translation": "無法更新應用程式"
   },
   {
     "id": "store.sql_oauth.update_app.updating.app_error",
-    "translation": "更新 app 時遇到錯誤"
+    "translation": "更新應用程式時遇到錯誤"
   },
   {
     "id": "store.sql_post.analytics_posts_count.app_error",
