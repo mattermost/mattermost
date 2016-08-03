@@ -332,6 +332,16 @@ export default class AdminSidebar extends React.Component {
                                     />
                                 }
                             />
+                            {audits}
+                            <AdminSidebarSection
+                                name='logs'
+                                title={
+                                    <FormattedMessage
+                                        id='admin.sidebar.logs'
+                                        defaultMessage='Logs'
+                                    />
+                                }
+                            />
                         </AdminSidebarCategory>
                         <AdminSidebarCategory
                             sectionClass='sections--settings'
@@ -660,16 +670,6 @@ export default class AdminSidebar extends React.Component {
                             }
                         >
                             {license}
-                            {audits}
-                            <AdminSidebarSection
-                                name='logs'
-                                title={
-                                    <FormattedMessage
-                                        id='admin.sidebar.logs'
-                                        defaultMessage='Logs'
-                                    />
-                                }
-                            />
                         </AdminSidebarCategory>
                     </ul>
                 </div>
