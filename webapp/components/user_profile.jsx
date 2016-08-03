@@ -100,6 +100,7 @@ export default class UserProfile extends React.Component {
                     >
                         <svg
                             id='webrtc-btn'
+                            className='webrtc__button'
                             xmlns='http://www.w3.org/2000/svg'
                         >
                             <circle

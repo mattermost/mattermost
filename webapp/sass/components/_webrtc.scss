@@ -1,80 +1,8 @@
 @charset 'UTF-8';
 
-$video-circle-btn: #2f81b7;
-$video-circle-hover: #56C303;
-$video-circle-offline: #666;
-$connecting: #ffffff;
-$webrtc-notification-bg: rgba(112, 128, 144, 0.76);
-
-@mixin webrtc-button {
-    #webrtc-btn {
-        transition: 120ms;
-        border-radius: 48px;
-        display: block;
-        margin: 0 0 3vh 0;
-        width: 32px;
-        height: 32px;
-
-        &.on,
-        &:hover {
-            background: $video-circle-hover;
-        }
-
-        &:hover {
-            box-shadow: 4px 4px 10px #666;
-        }
-
-        &:hover circle {
-            fill: $video-circle-hover;
-        }
-
-        circle {
-            fill: $video-circle-btn;
-            fill-opacity: .6;
-
-            &.offline {
-                fill: $video-circle-offline;
-            }
-        }
-
-        path.on {
-            display: none;
-        }
-
-        path.off {
-            display: block;
-        }
-
-        &.on path.on {
-            display: block;
-        }
-
-        &.on path.off {
-            display: none;
-        }
-
-        &.on circle {
-            fill-opacity: 0;
-        }
-    }
-
-    a[disabled] {
-        #webrtc-btn {
-            &:hover {
-                background: none;
-                box-shadow: none;
-            }
-
-            &:hover circle {
-                fill: $video-circle-offline;
-            }
-        }
-    }
-}
-
 .webrtc__user-profile {
-    text-align: center;
     @include webrtc-button;
+    text-align: center;
 
     #webrtc-btn {
         display: inherit;
@@ -82,44 +10,38 @@ $webrtc-notification-bg: rgba(112, 128, 144, 0.76);
 }
 
 .webrtc__header {
-    position: relative;
+    @include webrtc-button;
     float: left;
     margin-right: 10px;
-    top: 10px;
-
-    @include webrtc-button;
-
+    position: relative;
+    top: 13px;
 }
 
 .webrtc__error {
     .has-error {
-        text-align: center;
         padding: 0 20px;
+        text-align: center;
 
         .control-label {
-            -webkit-border-radius: 3px;
-            -moz-border-radius: 3px;
-            -ms-border-radius: 3px;
-            -o-border-radius: 3px;
-            border-radius: 3px;
+            @include border-radius(3px);
             background: #f2f2f2;
             color: #a94442;
             font-size: 14px;
             font-weight: normal;
-            margin: 1em 0 0;
+            margin: 1em 0 -1em;
             padding: .7em 1em;
             width: 100%;
+            font-size: .95em;
 
             &:before {
+                -moz-osx-font-smoothing: grayscale;
+                -webkit-font-smoothing: antialiased;
                 color: #a94442;
                 content: '\F071';
-                margin-right: 4px;
                 display: inline-block;
                 font: normal normal normal 14px/1 FontAwesome;
-                font-size: inherit;
+                margin-right: 4px;
                 text-rendering: auto;
-                -webkit-font-smoothing: antialiased;
-                -moz-osx-font-smoothing: grayscale;
                 transform: translate(0, 0);
             }
         }
@@ -128,238 +50,181 @@ $webrtc-notification-bg: rgba(112, 128, 144, 0.76);
 
 #videos {
     font-size: 0;
+    left: 0;
     pointer-events: none;
     position: relative;
+    text-align: center;
+    top: 5px;
     transition: all 1s;
     width: 100%;
-    left: 0;
-    top: 5px;
-    text-align: center;
 
     #main-video video {
-        height: 100%;
-        max-height: 100%;
-        max-width: 1280px;
-        object-fit: cover;
-        transition: opacity 1s;
         -moz-transform: scale(-1, 1);
         -ms-transform: scale(-1, 1);
         -o-transform: scale(-1, 1);
         -webkit-transform: scale(-1, 1);
-        transform: scale(-1, 1);
-        width: 98%;
         background-color: rgba(239, 239, 239, 0.4);
-        border: 1px solid rgba(0, 0, 0, 0.2);
+        border: 1px solid alpha-color($black, .2);
+        height: 100%;
+        max-height: 100%;
+        max-width: 1280px;
+        object-fit: cover;
+        transform: scale(-1, 1);
+        transition: opacity 1s;
+        width: 98%;
     }
 
     #local-video {
         border: 1px solid gray;
-        top: 10px;
-        right: 10px;
         max-width: 30%;
-        position: absolute;
-        transition: opacity 1s;
         opacity: 1;
+        position: absolute;
+        right: 12px;
+        top: 10px;
+        transition: opacity 1s;
         z-index: 2;
 
         video {
-            object-fit: cover;
-            transition: opacity 1s;
             -moz-transform: scale(-1, 1);
             -ms-transform: scale(-1, 1);
             -o-transform: scale(-1, 1);
             -webkit-transform: scale(-1, 1);
-            transform: scale(-1, 1);
             height: 100%;
-            width: 100%;
             max-height: 100%;
             max-width: 100%;
+            object-fit: cover;
+            transform: scale(-1, 1);
+            transition: opacity 1s;
+            width: 100%;
         }
     }
 
     .webrtc__local-image {
-        border: 1px solid gray;
-        top: 10px;
-        right: 10px;
-        position: absolute;
-        transition: opacity 1s;
+        background-color: $black;
+        border: 1px solid $gray;
         opacity: 1;
-        z-index: 2;
         overflow: hidden;
+        position: absolute;
+        right: 10px;
+        top: 10px;
+        transition: opacity 1s;
         width: 30%;
-        background-color: #000;
+        z-index: 2;
 
         img {
-            height: 64px;
-            width: 64px;
             border-radius: 50%;
+            height: 64px;
             max-width: 100%;
+            width: 64px;
         }
     }
 
     .webrtc__remote-image {
+        background-color: $black;
+        border: 1px solid alpha-color($black, .2);
         height: 100%;
         max-height: 100%;
         max-width: 98%;
         object-fit: cover;
-        width: 98%;
-        background-color: black;
-        border: 1px solid rgba(0, 0, 0, 0.2);
         overflow: hidden;
+        width: 98%;
 
         img {
+            border-radius: 50%;
             height: 100%;
-            width: 100%;
             max-height: 256px;
             max-width: 256px;
-            border-radius: 50%;
+            width: 100%;
         }
     }
 
     .webrtc__remote-mute {
-        position: absolute;
-        z-index: 9999;
         bottom: 0;
+        position: absolute;
         right: 10px;
+        z-index: 9999;
     }
 }
 
 .webrtc-buttons {
+    margin-top: 1.2em;
     text-align: center;
-    margin-top: 10px;
 
-    #call,
     .webrtc-icons__call {
         border-radius: 48px;
 
         circle {
-            fill: $video-circle-btn;
+            fill: $button--ready;
         }
 
         &:hover {
             cursor: pointer;
-            box-shadow: 4px 4px 10px #666;
 
             circle {
-                fill: $video-circle-hover;
+                fill: darken($button--ready, 5%);
             }
         }
 
         &[disabled] {
             circle {
                 fill: $video-circle-offline;
-                fill-opacity: .6;
             }
         }
     }
 
-    #cancel,
     .webrtc-icons__cancel {
         border-radius: 48px;
 
         circle {
-            fill: #ff9f00;
+            fill: $button--cancel;
         }
 
         &:hover {
             cursor: pointer;
-            box-shadow: 4px 4px 10px #666;
 
             circle {
-                fill: #dd2c00;
+                fill: darken($button--cancel, 5%);
             }
         }
     }
 }
 
 .webrtc-icons {
-
-    &.active svg {
-        transform: translateY(0)
+    &.active {
+        svg {
+            transform: translateY(0);
+        }
     }
 
     svg {
-        box-shadow: 2px 2px 24px #444;
         border-radius: 48px;
-        transform: translateY(calc(2vw - 96px));
-        transition: all .1s;
-        transition-timing-function: ease-in-out;
-        margin: 0 10px;
+        margin: 5px;
 
-        path.on {
-            display: block;
-        }
+        path {
+            &.on {
+                display: block;
+            }
 
-        path.off {
-            display: none;
-        }
-    }
-
-    #mute-audio {
-        transition: 40ms;
-
-        &:hover {
-            box-shadow: 4px 4px 10px #666;
-            cursor: pointer;
-
-            circle {
-                fill: #ab47bc;
+            &.off {
+                display: none;
             }
         }
-
-        &:hover,
-        .on {
-            background: #ab47bc;
-        }
-    }
-
-    #mute-video {
-        transition: 120ms;
-
-        &:hover {
-            box-shadow: 4px 4px 10px #666;
-            cursor: pointer;
-
-            circle {
-                fill: #ff9f00;
-            }
-        }
-
-        &:hover,
-        .on {
-            background: #ff9f00;
-        }
-    }
-
-    #hangup {
-        transition: 360ms;
-
-        &:hover {
-            box-shadow: 4px 4px 10px #666;
-            cursor: pointer;
-            background: #dd2c00;
-
-            circle {
-                fill: #dd2c00;
-            }
-        }
-
     }
 }
 
 .connecting {
     position: absolute;
-    width: 100%;
     top: 0;
+    width: 100%;
 
     .loading-screen {
-        top: 75px;
+        background-color: rgba(0,0,0, .3);
         color: $connecting;
-        position: relative;
-        padding:20px;
-        width: 97%;
         margin-left: 5px;
-        background-color: rgba(0,0,0, 0.3);
+        padding: 20px;
+        position: relative;
+        top: 75px;
+        width: 97%;
 
         .loading__content {
             .round {
@@ -370,16 +235,34 @@ $webrtc-notification-bg: rgba(112, 128, 144, 0.76);
 }
 
 .webrtc-notification {
-    position: absolute;
-    color: white;
-    height: 230px;
-    width: 400px;
-    top: calc(50% - 115px);
-    left: calc(50% - 200px);
     background-color: $webrtc-notification-bg;
-    padding: 10px 30px;
+    color: $white;
+    left: calc(50% - 200px);
+    padding: 20px 30px 10px;
+    position: absolute;
     text-align: center;
+    top: calc(50% - 115px);
+    width: 400px;
     z-index: 99999;
+
+    .webrtc-buttons {
+        margin-top: 1.2em;
+        text-align: center;
+
+        .webrtc-icons__pickup {
+            circle {
+                fill: $button--pickup;
+            }
+
+            &:hover {
+                cursor: pointer;
+
+                circle {
+                    fill: darken($button--pickup, 3%);
+                }
+            }
+        }
+    }
 }
 
 .sidebar--right--expanded {
@@ -389,8 +272,8 @@ $webrtc-notification-bg: rgba(112, 128, 144, 0.76);
         }
 
         #local-video {
-            right: calc(12%);
             max-width: 22%;
+            right: 18px;
         }
     }
 }
