@@ -211,6 +211,12 @@
                 top: 7px;
             }
 
+            .sidebar--right & .flag-icon__container {
+                left: auto;
+                position: relative;
+                top: 1px;
+            }
+
             &.same--root {
                 &.same--user {
                     padding-left: 70px;
