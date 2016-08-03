@@ -2,7 +2,8 @@
 
 @media screen and (max-width: 1800px) {
     .inner-wrap {
-        &.move--left {
+        &.move--left,
+        &.webrtc--show {
             .date-separator,
             .new-separator {
                 &.hovered--comment {
@@ -18,7 +19,8 @@
 
 @media screen and (max-width: 1440px) {
     .inner-wrap {
-        &.move--left {
+        &.move--left,
+        &.webrtc--show {
             .help__format-text {
                 display: none;
             }
@@ -53,7 +55,8 @@
     }
 
     .inner-wrap {
-        &.move--left {
+        &.move--left,
+        &.webrtc--show {
             .file-overlay {
                 font-size: em(18px);
 

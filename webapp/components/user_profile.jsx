@@ -4,6 +4,8 @@
 import * as Utils from 'utils/utils.jsx';
 import Client from 'client/web_client.jsx';
 import UserStore from 'stores/user_store.jsx';
+import WebrtcStore from 'stores/webrtc_store.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 import * as WebrtcActions from 'actions/webrtc_actions.jsx';
 import Constants from 'utils/constants.jsx';
 const UserStatuses = Constants.UserStatuses;
@@ -25,6 +27,7 @@ export default class UserProfile extends React.Component {
 
     initWebrtc() {
         if (UserStore.getStatus(this.props.user.id) !== UserStatuses.OFFLINE) {
+            GlobalActions.emitCloseRightHandSide();
             WebrtcActions.initWebrtc(this.props.user.id, true);
         }
     }
@@ -81,11 +84,25 @@ export default class UserProfile extends React.Component {
         if (global.window.mm_config.EnableWebrtc === 'true' && global.window.mm_license.WebRTC === 'true' &&
             userMedia && this.props.user.id !== this.state.currentUserId) {
             const isOnline = UserStore.getStatus(this.props.user.id) !== UserStatuses.OFFLINE;
+            let webrtcMessage;
             let circleClass = 'offline';
             let offlineClass = 'off';
             if (isOnline) {
                 circleClass = '';
                 offlineClass = 'on';
+                webrtcMessage = (
+                    <FormattedMessage
+                        id='user_profile.webrtc.call'
+                        defaultMessage='Start Video Call'
+                    />
+                );
+            } else if (WebrtcStore.isBusy()) {
+                webrtcMessage = (
+                    <FormattedMessage
+                        id='user_profile.webrtc.unavailable'
+                        defaultMessage='New call unavailable until your existing call ends'
+                    />
+                );
             }
 
             webrtc = (
@@ -110,10 +127,7 @@ export default class UserProfile extends React.Component {
                                 r='18'
                             >
                                 <title>
-                                    <FormattedMessage
-                                        id='user_profile.webrtc.call'
-                                        defaultMessage='Start Video Call'
-                                    />
+                                    {webrtcMessage}
                                 </title>
                             </circle>
                             <path

@@ -10,12 +10,13 @@ import AboutBuildModal from './about_build_modal.jsx';
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
+import WebrtcStore from 'stores/webrtc_store.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {getFlaggedPosts} from 'actions/post_actions.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
 import * as Utils from 'utils/utils.jsx';
-import Constants from 'utils/constants.jsx';
+import {Constants, WebrtcActionTypes} from 'utils/constants.jsx';
 
 const ActionTypes = Constants.ActionTypes;
 const Preferences = Constants.Preferences;
@@ -33,6 +34,7 @@ export default class SidebarRightMenu extends React.Component {
         super(props);
 
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
+        this.handleClick = this.handleClick.bind(this);
         this.handleAboutModal = this.handleAboutModal.bind(this);
         this.searchMentions = this.searchMentions.bind(this);
         this.aboutModalDismissed = this.aboutModalDismissed.bind(this);
@@ -45,6 +47,13 @@ export default class SidebarRightMenu extends React.Component {
         this.shouldComponentUpdate = PureRenderMixin.shouldComponentUpdate.bind(this);
 
         this.state = state;
+    }
+
+    handleClick(e) {
+        if (WebrtcStore.isBusy()) {
+            WebrtcStore.emitChanged({action: WebrtcActionTypes.IN_PROGRESS});
+            e.preventDefault();
+        }
     }
 
     handleAboutModal() {
@@ -254,6 +263,7 @@ export default class SidebarRightMenu extends React.Component {
                 <li>
                     <Link
                         to={'/admin_console'}
+                        onClick={this.handleClick}
                     >
                         <i className='icon fa fa-wrench'></i>
                         <FormattedMessage
