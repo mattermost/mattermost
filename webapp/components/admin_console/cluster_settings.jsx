@@ -83,9 +83,9 @@ export default class ClusterSettings extends AdminSettings {
                     className='alert alert-warning'
                 >
                     <i className='fa fa-warning'></i>
-                    <FormattedMessage
+                    <FormattedHTMLMessage
                         id='admin.cluster.loadedFrom'
-                        defaultMessage='This config file was loaded from Node ID "{clusterId}".  If you are accessing the System Console through a load balancer you may experience issues.'
+                        defaultMessage='This configuration file was loaded from Node ID {clusterId}. Please see the Troubleshooting Guide in our <a href="http://docs.mattermost.com/deployment/cluster.html" target="_blank">documentation</a> if you are accessing the System Console through a load balancer and experiencing issues.'
                         values={{
                             clusterId: AdminStore.getClusterId()
                         }}
@@ -104,7 +104,7 @@ export default class ClusterSettings extends AdminSettings {
                     <i className='fa fa-warning'></i>
                     <FormattedMessage
                         id='admin.cluster.should_not_change'
-                        defaultMessage='WARNING: these settings may not sync with the other servers in the cluster.  You must verify the config files are identical and restart the cluster.  We will attempt to save the settings across the servers.  Changing from disabled to enabled will not start the High Availability inter-node communication and you will need to modify the config.json on the other servers and restart Mattermost.  Please see the documentation on how to enable and join or remove a server to the cluster. If you are accessing the System Console through a load balancer you may experience issues.  Yoy may need to access the admin console for each server in the cluster by accessing the internal/private ip address of the server.'
+                        defaultMessage='WARNING: These settings may not sync with the other servers in the cluster. High Availability inter-node communication will not start until you modify the config.json to be identical on all servers and restart Mattermost. Please see the <a href="http://docs.mattermost.com/deployment/cluster.html" target="_blank">documentation</a> on how to add or remove a server from the cluster. If you are accessing the System Console through a load balancer and experiencing issues, please see the Troubleshooting Guide in our <a href="http://docs.mattermost.com/deployment/cluster.html" target="_blank">documentation</a>.'
                     />
                 </div>
             );
@@ -122,7 +122,7 @@ export default class ClusterSettings extends AdminSettings {
                 <p>
                     <FormattedMessage
                         id='admin.cluster.noteDescription'
-                        defaultMessage='Changing properties in this section may require a server restart before taking effect.'
+                        defaultMessage='Changing properties in this section will require a server restart before taking effect. When High Availability mode is enabled, the System Console is set to read-only and can only be changed from the configuration file.'
                     />
                 </p>
                 {warning}
@@ -131,7 +131,7 @@ export default class ClusterSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.cluster.enableTitle'
-                            defaultMessage='Enable Login With High Availability:'
+                            defaultMessage='Enable High Availability Mode:'
                         />
                     }
                     helpText={
@@ -175,7 +175,7 @@ export default class ClusterSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.cluster.interNodeUrlsDesc'
-                            defaultMessage='The internal/private URLs of all the Mattermost server seperated by commas.'
+                            defaultMessage='The internal/private URLs of all the Mattermost servers separated by commas.'
                         />
                     }
                     value={this.state.interNodeUrls}
