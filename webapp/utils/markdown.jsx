@@ -151,9 +151,9 @@ class MattermostMarkdownRenderer extends marked.Renderer {
 
         let output = '<a class="theme markdown__link" href="' + outHref + '" rel="noreferrer"';
 
-        // special case for links that are inside the app
-        if (outHref.startsWith(global.location.origin)) {
-            output += ' data-link="' + outHref.substring(global.location.origin.length) + '"';
+        // special case for channel links and permalinks that are inside the app
+        if (new RegExp('^' + TextFormatting.escapeRegex(global.mm_config.SiteURL) + '\\/[^\\/]+\\/(pl|channels)\\/').test(outHref)) {
+            output += ' data-link="' + outHref.substring(global.mm_config.SiteURL.length) + '"';
         } else {
             output += ' target="_blank"';
         }
