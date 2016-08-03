@@ -11,6 +11,7 @@ import * as GlobalActions from 'actions/global_actions.jsx';
 
 import {createChannelIntroMessage} from 'utils/channel_intro_messages.jsx';
 
+import * as UserAgent from 'utils/user_agent.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
 import DelayedAction from 'utils/delayed_action.jsx';
@@ -336,7 +337,7 @@ export default class PostList extends React.Component {
 
                 // Temporary fix to solve ie11 rendering issue
                 let newSeparatorId = '';
-                if (!Utils.isBrowserIE()) {
+                if (!UserAgent.isInternetExplorer()) {
                     newSeparatorId = 'new_message_' + post.id;
                 }
                 postCtls.push(

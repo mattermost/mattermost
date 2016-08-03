@@ -12,6 +12,7 @@ import TeamStore from 'stores/team_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
+import * as UserAgent from 'utils/user_agent.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
@@ -296,7 +297,7 @@ export default class SidebarRightMenu extends React.Component {
         }
 
         let nativeAppLink = null;
-        if (global.window.mm_config.AppDownloadLink && !Utils.isMobileApp()) {
+        if (global.window.mm_config.AppDownloadLink && !UserAgent.isMobileApp()) {
             nativeAppLink = (
                 <li>
                     <Link

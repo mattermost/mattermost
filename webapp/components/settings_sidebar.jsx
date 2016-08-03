@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
-import * as Utils from 'utils/utils.jsx';
+import * as UserAgent from 'utils/user_agent.jsx';
 
 import React from 'react';
 
@@ -18,7 +18,7 @@ export default class SettingsSidebar extends React.Component {
         $(e.target).closest('.settings-modal').addClass('display--content');
     }
     componentDidMount() {
-        if (Utils.isBrowserFirefox()) {
+        if (UserAgent.isFirefox()) {
             $('.settings-modal .settings-table .nav').addClass('position--top');
         }
     }

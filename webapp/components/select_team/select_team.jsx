@@ -3,6 +3,7 @@
 
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
+import * as UserAgent from 'utils/user_agent.jsx';
 import * as Utils from 'utils/utils.jsx';
 import ErrorBar from 'components/error_bar.jsx';
 import LoadingScreen from 'components/loading_screen.jsx';
@@ -176,7 +177,7 @@ export default class SelectTeam extends React.Component {
         }
 
         let teamSignUp;
-        if (isSystemAdmin || (global.window.mm_config.EnableTeamCreation === 'true' && !Utils.isMobileApp())) {
+        if (isSystemAdmin || (global.window.mm_config.EnableTeamCreation === 'true' && !UserAgent.isMobileApp())) {
             teamSignUp = (
                 <div className='margin--extra'>
                     <Link

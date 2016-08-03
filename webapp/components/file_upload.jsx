@@ -8,6 +8,7 @@ import Client from 'client/web_client.jsx';
 import Constants from 'utils/constants.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import DelayedAction from 'utils/delayed_action.jsx';
+import * as UserAgent from 'utils/user_agent.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import {intlShape, injectIntl, defineMessages} from 'react-intl';
@@ -311,13 +312,13 @@ class FileUpload extends React.Component {
 
     render() {
         let multiple = true;
-        if (Utils.isMobileApp()) {
+        if (UserAgent.isMobileApp()) {
             // iOS WebViews don't upload videos properly in multiple mode
             multiple = false;
         }
 
         let accept = '';
-        if (Utils.isIosChrome()) {
+        if (UserAgent.isIosChrome()) {
             // iOS Chrome can't upload videos at all
             accept = 'image/*';
         }

@@ -1,0 +1,96 @@
+.get-app {
+    hr {
+        border-top: 1px solid #ddd;
+    }
+
+    .get-app__header {
+        color: #666;
+        font-size: 20px;
+        font-weight: bold;
+        text-align: center
+    }
+
+    .get-app__screenshot {
+        border-bottom: 1px solid #ddd;
+        display: block;
+        margin: auto;
+    }
+
+    .get-app__continue-with-browser {
+        display: block;
+        margin-top: 40px;
+        text-align: center;
+    }
+}
+
+.get-android-app {
+    margin: 20px;
+
+    .get-app__header {
+        text-align: left;
+    }
+
+    .get-android-app__icon {
+        width: 60px;
+    }
+
+    .get-android-app__app-info {
+        display: inline-block;
+        margin-left: 8px;
+        vertical-align: middle;
+
+        .get-android-app__app-name {
+            color: #666;
+            display: block;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .get-android-app__app-creator {
+            color: #aaa;
+            display: block;
+            font-size: 10px
+        }
+    }
+
+    .get-app__screenshot {
+        width: 240px;
+    }
+
+    .get-android-app__continue {
+        display: block;
+        font-size: 16px;
+        margin-bottom: 40px;
+        margin-top: 15px;
+        padding: 12px;
+    }
+}
+
+.get-ios-app {
+    margin: 30px;
+
+    .get-app__screenshot {
+        width: 180px;
+    }
+
+    .get-ios-app__app-store-link {
+        display: block;
+        margin: auto;
+        margin-bottom: 30px;
+        width: 180px;
+    }
+
+    .get-ios-app__already-have-it {
+        font-size: 18px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .get-ios-app__open-mattermost {
+        display: block;
+        font-size: 20px;
+        margin: auto;
+        padding: 12px;
+        width: 220px;
+    }
+}
