@@ -737,11 +737,6 @@ func sendNotificationEmail(c *Context, post *model.Post, user *model.User, chann
 	}
 
 	month := userLocale(tm.Month().String())
-	monthRune := []rune(month)
-	monthShort := string(monthRune)
-	if len(monthRune) > 3 {
-		monthShort = string(monthRune[:3])
-	}
 	day := fmt.Sprintf("%d", tm.Day())
 	year := fmt.Sprintf("%d", tm.Year())
 	zone, _ := tm.Zone()
@@ -749,7 +744,7 @@ func sendNotificationEmail(c *Context, post *model.Post, user *model.User, chann
 	subjectPage := utils.NewHTMLTemplate("post_subject", user.Locale)
 	subjectPage.Props["Subject"] = userLocale("api.templates.post_subject",
 		map[string]interface{}{"SubjectText": subjectText, "TeamDisplayName": team.DisplayName,
-			"Month": monthShort, "Day": day, "Year": year})
+			"Month": month, "Day": day, "Year": year})
 	subjectPage.Props["SiteName"] = utils.Cfg.TeamSettings.SiteName
 
 	bodyPage := utils.NewHTMLTemplate("post_body", user.Locale)
