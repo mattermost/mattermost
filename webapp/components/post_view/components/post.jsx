@@ -10,7 +10,6 @@ const ActionTypes = Constants.ActionTypes;
 import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
-import * as PostActions from 'actions/post_actions.jsx';
 
 import React from 'react';
 
@@ -49,11 +48,13 @@ export default class Post extends React.Component {
         this.refs.info.forceUpdate();
         this.refs.header.forceUpdate();
     }
-    handlePostClick(e) {
+    handlePostClick() {
+        /* Disabled do to a bug: https://mattermost.atlassian.net/browse/PLT-3785
         if (e.altKey) {
             e.preventDefault();
             PostActions.setUnreadPost(this.props.post.channel_id, this.props.post.id);
         }
+        */
     }
     shouldComponentUpdate(nextProps, nextState) {
         if (!Utils.areObjectsEqual(nextProps.post, this.props.post)) {
