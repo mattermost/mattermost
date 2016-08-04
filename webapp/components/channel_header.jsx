@@ -111,7 +111,6 @@ export default class ChannelHeader extends React.Component {
         if (!Utils.areObjectsEqual(newState, this.state)) {
             this.setState(newState);
         }
-        $('.channel-header__info .description').popover({placement: 'bottom', trigger: 'hover', html: true, delay: {show: 500, hide: 500}});
     }
 
     handleLeave() {
@@ -561,6 +560,7 @@ export default class ChannelHeader extends React.Component {
                                         trigger={'click'}
                                         placement='bottom'
                                         overlay={popoverContent}
+                                        rootClose={true}
                                         ref='headerOverlay'
                                     >
                                         <div
