@@ -140,9 +140,9 @@ export default class ConfirmIntegration extends React.Component {
             helpText = [];
             helpText.push(
                 <div className='backstage-list__help'>
-                    <FormattedHTMLMessage
+                    <FormattedMessage
                         id='add_oauth_app.doneHelp'
-                        defaultMessage='Your Oauth 2.0 application has been set up. The following client secret and client ID will be sent in the <b>payload</b>.'
+                        defaultMessage='Your OAuth 2.0 application has been set up. Please use the following Client ID and Client Secret when requesting authorization for your application.'
                     />
                 </div>
             );
