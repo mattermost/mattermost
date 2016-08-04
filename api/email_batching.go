@@ -200,6 +200,7 @@ func sendBatchedEmailNotification(userId string, notifications []*batchedNotific
 	})
 
 	body := utils.NewHTMLTemplate("post_batched_body", user.Locale)
+	body.Props["SiteURL"] = *utils.Cfg.ServiceSettings.SiteURL
 	body.Props["Posts"] = template.HTML(contents)
 	body.Props["BodyText"] = translateFunc("api.email_batching.send_batched_email_notification.body_text", len(notifications))
 
