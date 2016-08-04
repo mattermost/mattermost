@@ -117,7 +117,7 @@ export default class WebhookSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.oauth.providerDescription'
-                            defaultMessage='When true, Mattermost can act as an OAuth 2.0 service provider allowing external applications to authorize API requests to Mattermost.'
+                            defaultMessage='When true, Mattermost can act as an OAuth 2.0 service provider allowing Mattermost to authorize API requests from external applications.'
                         />
                     }
                     value={this.state.enableOAuthServiceProvider}
