@@ -9,7 +9,6 @@ import {browserHistory, Link} from 'react-router/es6';
 import SpinnerButton from 'components/spinner_button.jsx';
 
 import Constants from 'utils/constants.jsx';
-import * as Utils from 'utils/utils.jsx';
 
 export default class ConfirmIntegration extends React.Component {
     static get propTypes() {
