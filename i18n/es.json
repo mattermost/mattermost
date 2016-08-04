@@ -104,6 +104,10 @@
     "translation": "El Servidor SMTP es necesario"
   },
   {
+    "id": "api.admin.test_email.reenter_password",
+    "translation": "El servidor SMTP, el puerto o el nombre de usuario ha cambiado. Por favor, vuelva a introducir la contraseña de SMTP para probar la conexión."
+  },
+  {
     "id": "api.admin.test_email.subject",
     "translation": "Mattermost - Configuración de pruebas de correo"
   },
@@ -557,11 +561,11 @@
   },
   {
     "id": "api.command_shortcuts.list",
-    "translation": "### Atajos de Teclado\n\n#### Navegación\n\nALT+ARRIBA: Canal o mensaje directo previo en la barra lateral izquierda\nALT+ABAJO: Canal o mensaje directo siguiente en la barra lateral izquierda\nALT+MAYUS+ARRIBA: Canal o mensaje directo previo en la barra lateral izquierda con mensajes no leídos\nALT+MAYUS+ABAJO: Canal o mensaje directo siguiente en la barra lateral izquierda con mensajes no leídos\nCTRL+K: Abre un cuadro de dialogo para cambiar rápidamente de canal\nCTRL+MAYUS+A: Abre la configuración de la cuenta\nCTRL+MAYUS+M: Abre las menciones recientes\n\n#### Archivos\n\nCTRL+U: Subir archivo(s)\n\n#### Mensajes\n\nCTRL+ARRIBA (con el cuadro de texto vacío): Reimprime el último mensaje o comando de barra que ingresaste\nCTRL+ABAJO (con el cuadro de texto vacío): Reimprime el siguiente mensaje o comando de barra que ingresaste\nARRIBA (con el cuadro de texto vacío): Edita tu último mensaje en el canal en el que te encuentras\n@[carácter]+TAB: Auto completa @nombre que comience por [carácter]\n:[carácter]+TAB: Auto completa el emoji que comience por [carácter]\n\n#### Comandos incluidos en el Navegador\n\nALT+IZQ+[: Canal anterior en tu historial\nALT+DER+]: Canal siguiente en tu historial\nCTRL+MAS: Incrementa el tamaño de las letras (hace zoom)\nCTRL+MENOS: Reduce el tamaño de las letras (quita zoom)\nSHIFT+ARRIBA (en el cuadro de texto): Selecciona el texto en las lineas de arriba\nSHIFT+ABAJO (en el cuadro de texto): Selecciona el texto en las lineas de abajo\nSHIFT+RETORNO (en el cuadro de texto): Crea una nueva línea\n"
+    "translation": "### Atajos de Teclado\n\n#### Navegación\n\nALT+ARRIBA: Canal o mensaje directo previo en la barra lateral izquierda\nALT+ABAJO: Canal o mensaje directo siguiente en la barra lateral izquierda\nALT+MAYUS+ARRIBA: Canal o mensaje directo previo en la barra lateral izquierda con mensajes no leídos\nALT+MAYUS+ABAJO: Canal o mensaje directo siguiente en la barra lateral izquierda con mensajes no leídos\nCTRL+K: Abre un cuadro de dialogo para cambiar rápidamente de canal\nCTRL+MAYUS+A: Abre la configuración de la cuenta\nCTRL+MAYUS+M: Abre las menciones recientes\n\n#### Archivos\n\nCTRL+U: Subir archivo(s)\n\n#### Mensajes\n\nALT+[pinchar un mensaje]: Marca el mensaje que el último mensaje leído en el canal actual\nESC: Marca todos los mensajes como leídos en el canal actual\nCTRL+ARRIBA (con el cuadro de texto vacío): Reimprime el último mensaje o comando de barra que ingresaste\nCTRL+ABAJO (con el cuadro de texto vacío): Reimprime el siguiente mensaje o comando de barra que ingresaste\nARRIBA (con el cuadro de texto vacío): Edita tu último mensaje en el canal en el que te encuentras\n@[carácter]+TAB: Auto completa @nombre que comience por [carácter]\n:[carácter]+TAB: Auto completa el emoji que comience por [carácter]\n\n#### Comandos incluidos en el Navegador\n\nALT+IZQ+[: Canal anterior en tu historial\nALT+DER+]: Canal siguiente en tu historial\nCTRL+MAS: Incrementa el tamaño de las letras (hace zoom)\nCTRL+MENOS: Reduce el tamaño de las letras (quita zoom)\nSHIFT+ARRIBA (en el cuadro de texto): Selecciona el texto en las lineas de arriba\nSHIFT+ABAJO (en el cuadro de texto): Selecciona el texto en las lineas de abajo\nSHIFT+RETORNO (en el cuadro de texto): Crea una nueva línea\n"
   },
   {
     "id": "api.command_shortcuts.list_mac",
-    "translation": "### Atajos de Teclado\n\n#### Navegación\n\nALT+ARRIBA: Canal o mensaje directo previo en la barra lateral izquierda\nALT+ABAJO: Canal o mensaje directo siguiente en la barra lateral izquierda\nALT+MAYUS+ARRIBA: Canal o mensaje directo previo en la barra lateral izquierda con mensajes no leídos\nALT+MAYUS+ABAJO: Canal o mensaje directo siguiente en la barra lateral izquierda con mensajes no leídos\nCMD+K: Abre un cuadro de dialogo para cambiar rápidamente de canal\nCMD+MAYUS+A: Abre la configuración de la cuenta\nCMD+MAYUS+M: Abre las menciones recientes\n\n#### Archivos\n\nCMD+U: Subir archivo(s)\n\n#### Mensajes\n\nCMD+ARRIBA (con el cuadro de texto vacío): Reimprime el último mensaje o comando de barra que ingresaste\nCMD+ABAJO (con el cuadro de texto vacío): Reimprime el siguiente mensaje o comando de barra que ingresaste\nARRIBA (con el cuadro de texto vacío): Edita tu último mensaje en el canal en el que te encuentras\n@[carácter]+TAB: Auto completa @nombre que comience por [carácter]\n:[carácter]+TAB: Auto completa el emoji que comience por [carácter]\n\n#### Comandos incluidos en el Navegador\n\nCMD+[: Canal anterior en tu historial\nCMD+]: Canal siguiente en tu historial\nCMD+MAS: Incrementa el tamaño de las letras (hace zoom)\nCMD+MENOS: Reduce el tamaño de las letras (quita zoom)\nSHIFT+ARRIBA (en el cuadro de texto): Selecciona el texto en las lineas de arriba\nSHIFT+ABAJO (en el cuadro de texto): Selecciona el texto en las lineas de abajo\nSHIFT+RETORNO (en el cuadro de texto): Crea una nueva línea\n"
+    "translation": "### Atajos de Teclado\n\n#### Navegación\n\nALT+ARRIBA: Canal o mensaje directo previo en la barra lateral izquierda\nALT+ABAJO: Canal o mensaje directo siguiente en la barra lateral izquierda\nALT+MAYUS+ARRIBA: Canal o mensaje directo previo en la barra lateral izquierda con mensajes no leídos\nALT+MAYUS+ABAJO: Canal o mensaje directo siguiente en la barra lateral izquierda con mensajes no leídos\nCMD+K: Abre un cuadro de dialogo para cambiar rápidamente de canal\nCMD+MAYUS+A: Abre la configuración de la cuenta\nCMD+MAYUS+M: Abre las menciones recientes\n\n#### Archivos\n\nCMD+U: Subir archivo(s)\n\n#### Mensajes\n\nALT+[pinchar un mensaje]: Marca el mensaje que el último mensaje leído en el canal actual\nESC: Marca todos los mensajes como leídos en el canal actual\nCMD+ARRIBA (con el cuadro de texto vacío): Reimprime el último mensaje o comando de barra que ingresaste\nCMD+ABAJO (con el cuadro de texto vacío): Reimprime el siguiente mensaje o comando de barra que ingresaste\nARRIBA (con el cuadro de texto vacío): Edita tu último mensaje en el canal en el que te encuentras\n@[carácter]+TAB: Auto completa @nombre que comience por [carácter]\n:[carácter]+TAB: Auto completa el emoji que comience por [carácter]\n\n#### Comandos incluidos en el Navegador\n\nCMD+[: Canal anterior en tu historial\nCMD+]: Canal siguiente en tu historial\nCMD+MAS: Incrementa el tamaño de las letras (hace zoom)\nCMD+MENOS: Reduce el tamaño de las letras (quita zoom)\nSHIFT+ARRIBA (en el cuadro de texto): Selecciona el texto en las lineas de arriba\nSHIFT+ABAJO (en el cuadro de texto): Selecciona el texto en las lineas de abajo\nSHIFT+RETORNO (en el cuadro de texto): Crea una nueva línea\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -1573,7 +1577,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "For the best experience, download the apps for PC, Mac, iOS and Android from:"
+    "translation": "Para la mejor experiencia, descarga las aplicaciones para PC, Mac, iOS y Android desde:"
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -1665,7 +1669,7 @@
   },
   {
     "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-    "translation": "OAuth para {{.Service}} no está disponible en este servidor"
+    "translation": "{{.Servicio}} SSO a través de OAuth 2.0 no está disponible en este servidor"
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
@@ -1681,7 +1685,7 @@
   },
   {
     "id": "api.user.create_oauth_user.not_available.app_error",
-    "translation": "OAuth para {{.Service}} no está disponible en este servidor"
+    "translation": "{{.Servicio}} SSO a través de OAuth 2.0 no está disponible en este servidor"
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
@@ -1793,7 +1797,7 @@
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
-    "translation": "OAuth para {{.Service}} no está disponible en este servidor"
+    "translation": "{{.Servicio}} SSO a través de OAuth 2.0 no está disponible en este servidor"
   },
   {
     "id": "api.user.login_by_oauth.parse.app_error",
@@ -1894,6 +1898,10 @@
   {
     "id": "api.user.send_welcome_email_and_forget.failed.error",
     "translation": "Falla al enviar el correo de bienvenida err=%v"
+  },
+  {
+    "id": "api.user.update_active.no_deactivate_ldap.app_error",
+    "translation": "No puedes modificar el estado de activación de cuentas LDAP. Por favor, haz la modificación a través del servidor LDAP."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -2230,6 +2238,14 @@
   {
     "id": "ent.mfa.validate_token.authenticate.app_error",
     "translation": "Error intentando autenticar el token AMF"
+  },
+  {
+    "id": "ent.migration.migratetoldap.duplicate_field",
+    "translation": "No se pueden migrar los usuarios de LDAP con el campo especificado. Se ha detectado un entrada. Por favor, retire todos los duplicados e inténtalo de nuevo."
+  },
+  {
+    "id": "ent.migration.migratetoldap.user_not_found",
+    "translation": "No se puede encontrar el usuario en el servidor LDAP: "
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -2798,6 +2814,10 @@
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
     "translation": "Atributo Usuario no válido. Se debe establecer."
+  },
+  {
+    "id": "model.config.is_valid.site_url.app_error",
+    "translation": "URL del Sitio debe ser una URL válida y empezar con http:// o https://."
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",

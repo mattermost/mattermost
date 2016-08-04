@@ -104,6 +104,10 @@
     "translation": "SMTP Server wird benötigt"
   },
   {
+    "id": "api.admin.test_email.reenter_password",
+    "translation": "Der SMTP Server, Port oder Benutzername wurde geändert. Bitte geben Die das SMTP Passwort erneut ein um die Verbindung zu testen."
+  },
+  {
     "id": "api.admin.test_email.subject",
     "translation": "Mattermost - E-Mail Einstellungen überprüfen"
   },
@@ -557,11 +561,11 @@
   },
   {
     "id": "api.command_shortcuts.list",
-    "translation": "### Tastaturkürzel\n\n#### Navigation\n\nALT+HOCH: Vorheriger Kanal oder Direktnachricht in linker Sidebar\nALT+RUNTER: Nächster Kanal oder Direktnachricht in linker Sidebar\nALT+SHIFT+HOCH: Vorheriger Kanal oder Direktnachricht in linker Sidebar mit ungelesenen Nachrichten\nALT+SHIFT+RUNTER: Nächster Kanal oder Direktnachricht in linker Sidebar mit ungelesenen Nachrichten\nSTRG+K: Kanalschnellwechselfenster öffnen\nSTRG+SHIFT+A: Benutzereinstellungen öffnen\nSTRG+SHIFT+M: Öffnet die letzten Erwähnungen\n\n#### Dateien\n\nSTRG+U: Datei(en) hochladen\n\n#### Nachrichten\n\nSTRG+HOCH (im leerem Eingabefeld): Letzte Nachricht oder Slash Befehl erneut ausgeben\nSTRG+RUNTER (im leerem Eingabefeld): Nächste Nachricht oder Slash Befehl erneut ausgeben\nHOCH (in leerem Eingabefeld): Letzte Nachricht im aktuellen Kanal bearbeiten\n@[Zeichen]+TAB: Autovervollständigen @Benutzername beginnend mit [Zeichen]\n:[Zeichen]+TAB: Autovervollständigen Emoji beginnend mit [Zeichen]\n\n#### Browser Kommandos\n\nALT+LEFT: Vorheriger Kanal in Ihrer Historie\nALT+RIGH: Nächster Kanal in Ihrer Historie\nSTRG+PLUS: Schrift vergrößern (Hineinzoomen)\nSTRG+MINUS: Schrift verkleinern (Herauszoomen)\nSHIFT+HOCH (in Eingabefeld): Text bis zur vorherigen Zeile markieren\nSHIFT+RUNTER (in Eingabefeld): Text bis zur nächsten Zeile markieren\nSHIFT+ENTER (in Eingabefeld): Neue Zeile erstellen\n"
+    "translation": "### Tastaturkürzel\n\n#### Navigation\n\nALT+HOCH: Vorheriger Kanal oder Direktnachricht in linker Sidebar\nALT+RUNTER: Nächster Kanal oder Direktnachricht in linker Sidebar\nALT+SHIFT+HOCH: Vorheriger Kanal oder Direktnachricht in linker Sidebar mit ungelesenen Nachrichten\nALT+SHIFT+RUNTER: Nächster Kanal oder Direktnachricht in linker Sidebar mit ungelesenen Nachrichten\nSTRG+K: Kanalschnellwechselfenster öffnen\nSTRG+SHIFT+A: Benutzereinstellungen öffnen\nSTRG+SHIFT+M: Öffnet die letzten Erwähnungen\n\n#### Dateien\n\nSTRG+U: Datei(en) hochladen\n\n#### Nachrichten\n\nALT+[Klick auf Nachricht]: Setze Nachricht als die älteste ungelesene Nachricht im aktuellen Kanal\nESC: Markiere alle Nachrichten im Kanal als gelesen\nSTRG+HOCH (im leerem Eingabefeld): Letzte Nachricht oder Slash Befehl erneut ausgeben\nSTRG+RUNTER (im leerem Eingabefeld): Nächste Nachricht oder Slash Befehl erneut ausgeben\nHOCH (in leerem Eingabefeld): Letzte Nachricht im aktuellen Kanal bearbeiten\n@[Zeichen]+TAB: Autovervollständigen @Benutzername beginnend mit [Zeichen]\n:[Zeichen]+TAB: Autovervollständigen Emoji beginnend mit [Zeichen]\n\n#### Browser Kommandos\n\nALT+LEFT: Vorheriger Kanal in Ihrer Historie\nALT+RIGH: Nächster Kanal in Ihrer Historie\nSTRG+PLUS: Schrift vergrößern (Hineinzoomen)\nSTRG+MINUS: Schrift verkleinern (Herauszoomen)\nSHIFT+HOCH (in Eingabefeld): Text bis zur vorherigen Zeile markieren\nSHIFT+RUNTER (in Eingabefeld): Text bis zur nächsten Zeile markieren\nSHIFT+ENTER (in Eingabefeld): Neue Zeile erstellen\n"
   },
   {
     "id": "api.command_shortcuts.list_mac",
-    "translation": "### Tastaturkürzel\n\n#### Navigation\n\nALT+HOCH: Vorheriger Kanal oder Direktnachricht in linker Sidebar\nALT+RUNTER: Nächster Kanal oder Direktnachricht in linker Sidebar\nALT+SHIFT+HOCH: Vorheriger Kanal oder Direktnachricht in linker Sidebar mit ungelesenen Nachrichten\nALT+SHIFT+RUNTER: Nächster Kanal oder Direktnachricht in linker Sidebar mit ungelesenen Nachrichten\nCMD+K: Kanalschnellwechselfenster öffnen\nCMD+SHIFT+A: Benutzereinstellungen öffnen\nCMD+SHIFT+M: Öffnet die letzten Erwähnungen\n\n#### Dateien\n\nCMD+U: Datei(en) hochladen\n\n#### Nachrichten\n\nCMD+HOCH (im leerem Eingabefeld): Letzte Nachricht oder Slash Befehl erneut ausgeben\nCMD+RUNTER (im leerem Eingabefeld): Nächste Nachricht oder Slash Befehl erneut ausgeben\nHOCH (in leerem Eingabefeld): Letzte Nachricht im aktuellen Kanal bearbeiten\n@[Zeichen]+TAB: Autovervollständigen @Benutzername beginnend mit [Zeichen]\n:[Zeichen]+TAB: Autovervollständigen Emoji beginnend mit [Zeichen]\n\n#### Browser Kommandos\n\nCMD+[: Vorheriger Kanal in Ihrer Historie\nCMD+]: Nächster Kanal in Ihrer Historie\nCMD+PLUS: Schrift vergrößern (Hineinzoomen)\nCMD+MINUS: Schrift verkleinern (Herauszoomen)\nSHIFT+HOCH (in Eingabefeld): Text bis zur vorherigen Zeile markieren\nSHIFT+RUNTER (in Eingabefeld): Text bis zur nächsten Zeile markieren\nSHIFT+ENTER (in Eingabefeld): Neue Zeile erstellen\n"
+    "translation": "### Tastaturkürzel\n\n#### Navigation\n\nALT+HOCH: Vorheriger Kanal oder Direktnachricht in linker Sidebar\nALT+RUNTER: Nächster Kanal oder Direktnachricht in linker Sidebar\nALT+SHIFT+HOCH: Vorheriger Kanal oder Direktnachricht in linker Sidebar mit ungelesenen Nachrichten\nALT+SHIFT+RUNTER: Nächster Kanal oder Direktnachricht in linker Sidebar mit ungelesenen Nachrichten\nCMD+K: Kanalschnellwechselfenster öffnen\nCMD+SHIFT+A: Benutzereinstellungen öffnen\nCMD+SHIFT+M: Öffnet die letzten Erwähnungen\n\n#### Dateien\n\nCMD+U: Datei(en) hochladen\n\n#### Nachrichten\n\nALT+[Klick auf Nachricht]: Setze Nachricht als die älteste ungelesene Nachricht im aktuellen Kanal\nESC: Markiere alle Nachrichten im Kanal als gelesen\nCMD+HOCH (im leerem Eingabefeld): Letzte Nachricht oder Slash Befehl erneut ausgeben\nCMD+RUNTER (im leerem Eingabefeld): Nächste Nachricht oder Slash Befehl erneut ausgeben\nHOCH (in leerem Eingabefeld): Letzte Nachricht im aktuellen Kanal bearbeiten\n@[Zeichen]+TAB: Autovervollständigen @Benutzername beginnend mit [Zeichen]\n:[Zeichen]+TAB: Autovervollständigen Emoji beginnend mit [Zeichen]\n\n#### Browser Kommandos\n\nCMD+[: Vorheriger Kanal in Ihrer Historie\nCMD+]: Nächster Kanal in Ihrer Historie\nCMD+PLUS: Schrift vergrößern (Hineinzoomen)\nCMD+MINUS: Schrift verkleinern (Herauszoomen)\nSHIFT+HOCH (in Eingabefeld): Text bis zur vorherigen Zeile markieren\nSHIFT+RUNTER (in Eingabefeld): Text bis zur nächsten Zeile markieren\nSHIFT+ENTER (in Eingabefeld): Neue Zeile erstellen\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -1013,7 +1017,7 @@
   },
   {
     "id": "api.post.notification.here.warn",
-    "translation": "Unable to send notification to online users with @here, err=%v"
+    "translation": "Konnte keine Benachrichtigung an Onlinebenutzer senden mit @here, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
@@ -1077,7 +1081,7 @@
   },
   {
     "id": "api.post.update_mention_count_and_forget.update_error",
-    "translation": "Fehler beim Aktualisieren der Nennungenanzahl für user_id=%v in channel_id=%v err=%v"
+    "translation": "Fehler beim Aktualisieren der Nennungenanzahl, post_id=%v channel_id=%v err=%v"
   },
   {
     "id": "api.post.update_post.find.app_error",
@@ -1257,7 +1261,7 @@
   },
   {
     "id": "api.status.save_status.error",
-    "translation": "Fehler beim Speichern von LastPingAt für user_id=%v, err=%v"
+    "translation": "Fehler beim Speichern des Status für user_id=%v, err=%v"
   },
   {
     "id": "api.team.create_team.email_disabled.app_error",
@@ -1517,7 +1521,7 @@
   },
   {
     "id": "api.templates.signup_team_body.info",
-    "translation": "{{ .SiteName }} ist der Platz für all Ihre Teamkommunikation, durchsuchbar und überall verfügbar.<br> Sie werden mehr aus {{ .SiteName }} herausholen wenn Ihr Team in konstantem Kontakt bleibt - laden Sie sie ins System ein."
+    "translation": "{{ .SiteName }} ist der Platz für all Ihre Teamkommunikation, durchsuchbar und überall verfügbar.<br> Sie werden mehr aus {{ .SiteName }} herausholen wenn Ihr Team in regem Kontakt bleibt - laden Sie Ihr Team ein."
   },
   {
     "id": "api.templates.signup_team_body.title",
@@ -1573,7 +1577,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "For the best experience, download the apps for PC, Mac, iOS and Android from:"
+    "translation": "Für das beste Erlebnis laden Sie die Anwendungen für PC, macOS, iOS und Android herunter:"
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -1665,7 +1669,7 @@
   },
   {
     "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-    "translation": "{{.Service}} OAuth nicht auf diesem Server verfügbar"
+    "translation": "{{.Service}} SSO mit OAuth 2.0 nicht auf diesem Server verfügbar"
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
@@ -1681,7 +1685,7 @@
   },
   {
     "id": "api.user.create_oauth_user.not_available.app_error",
-    "translation": "{{.Service}} OAuth nicht auf diesem Server verfügbar"
+    "translation": "{{.Service}} SSO mit OAuth 2.0 nicht auf diesem Server verfügbar"
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
@@ -1793,7 +1797,7 @@
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
-    "translation": "{{.Service}} OAuth nicht auf diesem Server verfügbar"
+    "translation": "{{.Service}} SSO mit OAuth 2.0 nicht auf diesem Server verfügbar"
   },
   {
     "id": "api.user.login_by_oauth.parse.app_error",
@@ -1894,6 +1898,10 @@
   {
     "id": "api.user.send_welcome_email_and_forget.failed.error",
     "translation": "Die E-mail konnte nicht gesendet werden. err=%v"
+  },
+  {
+    "id": "api.user.update_active.no_deactivate_ldap.app_error",
+    "translation": "Sie können den Aktivitätsstatus des LDAP Accounts nicht ändern. Bitte ändern Sie diesen über den LDAP Server."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -2232,6 +2240,14 @@
     "translation": "Fehler beim Authentifizieren des MFA Tokens"
   },
   {
+    "id": "ent.migration.migratetoldap.duplicate_field",
+    "translation": "Konnte LDAP Benutzer mit spezifiziertem Feld nicht migrieren. Doppelte Einträge entdeckt. Bitte entfernen Sie alle Duplikate und versuchen es erneut."
+  },
+  {
+    "id": "ent.migration.migratetoldap.user_not_found",
+    "translation": "Kann Benutzer nicht auf LDAP Server finden: "
+  },
+  {
     "id": "ent.saml.build_request.app_error",
     "translation": "Bei der Verbindung zum Identitäten Anbieter trat ein Fehler auf. Bitte kontaktieren Sie Ihren Systemadministrator."
   },
@@ -2325,7 +2341,7 @@
   },
   {
     "id": "leave_team_modal.desc",
-    "translation": "Sie werden von allen öffentlichen Kanälen und privaten Gruppen entferne.  Wenn das Team privat ist können Sie nicht erneut beitreten.  Sind Sie sich sicher?"
+    "translation": "Sie werden von allen öffentlichen Kanälen und privaten Gruppen entfernt.  Wenn das Team privat ist können Sie nicht erneut beitreten.  Sind Sie sich sicher?"
   },
   {
     "id": "leave_team_modal.no",
@@ -2677,7 +2693,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_bind_username",
-    "translation": "LDAP Feld \"Bind Benutername\" ist erforderlich."
+    "translation": "LDAP Feld \"Bind Benutzername\" ist erforderlich."
   },
   {
     "id": "model.config.is_valid.ldap_email",
@@ -2798,6 +2814,10 @@
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
     "translation": "Ungültiges Benuternamen Attribut. Muss gesetzt sein."
+  },
+  {
+    "id": "model.config.is_valid.site_url.app_error",
+    "translation": "Seiten-URL muss eine gültige URL sein und mit http:// oder https:// beginnen."
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
@@ -3909,7 +3929,7 @@
   },
   {
     "id": "store.sql_status.get_online.app_error",
-    "translation": "Es ist ein Fehler beim Abruf aller Online/Abwesend Status aufgetreten"
+    "translation": "Es ist ein Fehler beim Abruf aller Online Status aufgetreten"
   },
   {
     "id": "store.sql_status.get_online_away.app_error",

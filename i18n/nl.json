@@ -104,6 +104,10 @@
     "translation": "SMTP Server is verplicht"
   },
   {
+    "id": "api.admin.test_email.reenter_password",
+    "translation": "De SMTP server, poort of gebruikersnaam is verandert. Voer opnieuw het SMTP wachtwoord in om de verbinding te testen."
+  },
+  {
     "id": "api.admin.test_email.subject",
     "translation": "Mattermost - Test e-mail instellingen"
   },
@@ -1573,7 +1577,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "For the best experience, download the apps for PC, Mac, iOS and Android from:"
+    "translation": "Voor de beste ervaring, download de apps voor PC, Mac, iOS en Android van:"
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -1665,7 +1669,7 @@
   },
   {
     "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-    "translation": "{{.Service}} oauth is niet beschikbaar op deze server"
+    "translation": "{{.Service}} SSO via OAuth 2.0 is niet beschikbaar op deze server"
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
@@ -1681,7 +1685,7 @@
   },
   {
     "id": "api.user.create_oauth_user.not_available.app_error",
-    "translation": "{{.Service}} OAuth is niet beschikbaar op deze server"
+    "translation": "{{.Service}} SSO via OAuth 2.0 is niet beschikbaar op deze server"
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
@@ -1793,7 +1797,7 @@
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
-    "translation": "{{.Service}} oauth is niet beschikbaar op deze server"
+    "translation": "{{.Service}} SSO via OAuth 2.0 is niet beschikbaar op deze server"
   },
   {
     "id": "api.user.login_by_oauth.parse.app_error",
@@ -1894,6 +1898,10 @@
   {
     "id": "api.user.send_welcome_email_and_forget.failed.error",
     "translation": "Welkomst mail kon niet verstuurd worden, fout=%v"
+  },
+  {
+    "id": "api.user.update_active.no_deactivate_ldap.app_error",
+    "translation": "Je kan niet de activatie status veranderen van LDAP account. Wijzig dit via de LDAP server."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -2230,6 +2238,14 @@
   {
     "id": "ent.mfa.validate_token.authenticate.app_error",
     "translation": "Er is een probleem bij het authenticeren met een MFA token opgetreden"
+  },
+  {
+    "id": "ent.migration.migratetoldap.duplicate_field",
+    "translation": "Niet mogelijk om LDAP gebruikers te migreren met het opgegeven veld. Dubbele vermelding ontdekt. Verwijder alle dubbele vermeldingen en probeer opnieuw."
+  },
+  {
+    "id": "ent.migration.migratetoldap.user_not_found",
+    "translation": "Kon gebruiker niet vinden op de LDAP server: "
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -2577,7 +2593,7 @@
   },
   {
     "id": "model.command.is_valid.trigger.app_error",
-    "translation": "Ongeldig activeer-woord"
+    "translation": "Ongeldig trigger-woord"
   },
   {
     "id": "model.command.is_valid.update_at.app_error",
@@ -2800,6 +2816,10 @@
     "translation": "Ongeldig gebruikersnaam attribuut. Dit moet ingesteld worden."
   },
   {
+    "id": "model.config.is_valid.site_url.app_error",
+    "translation": "Ongeldige URL. Een geldige URl begint met http:// of https://."
+  },
+  {
     "id": "model.config.is_valid.sitename_length.app_error",
     "translation": "Site naam moet minder dan of gelijk aan {{.MaxLength}} karakters."
   },
@@ -2945,7 +2965,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.trigger_words.app_error",
-    "translation": "Ongeldige activeer-woorden"
+    "translation": "Ongeldige trigger-woorden"
   },
   {
     "id": "model.outgoing_hook.is_valid.update_at.app_error",
@@ -2961,7 +2981,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.words.app_error",
-    "translation": "Ongeldige activeer-woorden"
+    "translation": "Ongeldige trigger-woorden"
   },
   {
     "id": "model.post.is_valid.channel_id.app_error",
@@ -3909,7 +3929,7 @@
   },
   {
     "id": "store.sql_status.get_online.app_error",
-    "translation": "Fout bij het ophalen van de online/weg statuses"
+    "translation": "Fout bij het ophalen van de online statussen"
   },
   {
     "id": "store.sql_status.get_online_away.app_error",

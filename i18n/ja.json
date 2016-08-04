@@ -104,6 +104,10 @@
     "translation": "SMTPサーバーが必要です"
   },
   {
+    "id": "api.admin.test_email.reenter_password",
+    "translation": "The SMTP server, port, or username has changed. Please re-enter the SMTP password to test connection."
+  },
+  {
     "id": "api.admin.test_email.subject",
     "translation": "Mattermost - 電子メール設定のテスト"
   },
@@ -165,7 +169,7 @@
   },
   {
     "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
-    "translation": "Failed to add user to channel because they have been removed from the team."
+    "translation": "既にチームから削除されたユーザーのため、チャンネルに追加することはできません。"
   },
   {
     "id": "api.channel.add_user_to_channel.deleted.app_error",
@@ -1013,7 +1017,7 @@
   },
   {
     "id": "api.post.notification.here.warn",
-    "translation": "Unable to send notification to online users with @here, err=%v"
+    "translation": "@here を使って、オンラインのユーザーへ通知を送ることができませんでした。err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
@@ -1573,7 +1577,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "For the best experience, download the apps for PC, Mac, iOS and Android from:"
+    "translation": "PC / Mac / iOS / Android 用のアプリをダウンロードして最高の体験を:"
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -1585,7 +1589,7 @@
   },
   {
     "id": "api.templates.welcome_body.info2",
-    "translation": "You can sign in from:"
+    "translation": "ここからサインインできます:"
   },
   {
     "id": "api.templates.welcome_body.info3",
@@ -1665,7 +1669,7 @@
   },
   {
     "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-    "translation": "{{.Service}}のOAuthはこのサーバーでは利用できません"
+    "translation": "{{.Service}} SSO through OAuth 2.0 not available on this server"
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
@@ -1681,7 +1685,7 @@
   },
   {
     "id": "api.user.create_oauth_user.not_available.app_error",
-    "translation": "{{.Service}}のOAuthはこのサーバーでは利用できません"
+    "translation": "{{.Service}} SSO through OAuth 2.0 not available on this server"
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
@@ -1793,7 +1797,7 @@
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
-    "translation": "{{.Service}}のOAuthはこのサーバーでは利用できません"
+    "translation": "{{.Service}} SSO through OAuth 2.0 not available on this server"
   },
   {
     "id": "api.user.login_by_oauth.parse.app_error",
@@ -1894,6 +1898,10 @@
   {
     "id": "api.user.send_welcome_email_and_forget.failed.error",
     "translation": "歓迎の電子メールを送信できませんでした err=%v"
+  },
+  {
+    "id": "api.user.update_active.no_deactivate_ldap.app_error",
+    "translation": "LDAPアカウントのアクティベーション状態を変更することはできません。LDAPサーバーを通じて変更してください。"
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -2009,7 +2017,7 @@
   },
   {
     "id": "api.web_socket_handler.log.error",
-    "translation": "%v:%v seq=%v uid=%v %v [details: %v]"
+    "translation": "%v:%v seq=%v uid=%v %v [詳細: %v]"
   },
   {
     "id": "api.web_socket_router.log.error",
@@ -2230,6 +2238,14 @@
   {
     "id": "ent.mfa.validate_token.authenticate.app_error",
     "translation": "MFAトークンを認証できません"
+  },
+  {
+    "id": "ent.migration.migratetoldap.duplicate_field",
+    "translation": "Unable to migrate LDAP users with specified field. Duplicate entry detected. Please remove all duplcates and try again."
+  },
+  {
+    "id": "ent.migration.migratetoldap.user_not_found",
+    "translation": "Unable to find user on LDAP server: "
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -2798,6 +2814,10 @@
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
     "translation": "ユーザー名の属性値が不正です。設定してください。"
+  },
+  {
+    "id": "model.config.is_valid.site_url.app_error",
+    "translation": "SAML SSOのURLを正しく設定してください。URLはhttp://またはhttps://で始まります。"
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
@@ -3913,7 +3933,7 @@
   },
   {
     "id": "store.sql_status.get_online_away.app_error",
-    "translation": "Encountered an error retrieving all the online/away statuses"
+    "translation": "ライセンスを保存する際にエラーが発生しました"
   },
   {
     "id": "store.sql_status.get_total_active_users_count.app_error",
