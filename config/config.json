@@ -211,5 +211,10 @@
         "AppDownloadLink": "https://about.mattermost.com/downloads/",
         "AndroidAppDownloadLink": "https://about.mattermost.com/mattermost-android-app/",
         "IosAppDownloadLink": "https://about.mattermost.com/mattermost-ios-app/"
+    },
+    "ClusterSettings": {
+        "Enable": false,
+        "InterNodeListenAddress": ":8075",
+        "InterNodeUrls": []
     }
 }

@@ -4,6 +4,7 @@
 import request from 'superagent';
 
 const HEADER_X_VERSION_ID = 'x-version-id';
+const HEADER_X_CLUSTER_ID = 'x-cluster-id';
 const HEADER_TOKEN = 'token';
 const HEADER_BEARER = 'BEARER';
 const HEADER_AUTH = 'Authorization';
@@ -12,6 +13,7 @@ export default class Client {
     constructor() {
         this.teamId = '';
         this.serverVersion = '';
+        this.clusterId = '';
         this.logToConsole = false;
         this.useToken = false;
         this.token = '';
@@ -151,6 +153,11 @@ export default class Client {
             this.serverVersion = res.header[HEADER_X_VERSION_ID];
             if (res.header[HEADER_X_VERSION_ID]) {
                 this.serverVersion = res.header[HEADER_X_VERSION_ID];
+            }
+
+            this.clusterId = res.header[HEADER_X_CLUSTER_ID];
+            if (res.header[HEADER_X_CLUSTER_ID]) {
+                this.clusterId = res.header[HEADER_X_CLUSTER_ID];
             }
         }
 
@@ -293,6 +300,15 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getLogs', success, error));
+    }
+
+    getClusterStatus(success, error) {
+        return request.
+            get(`${this.getAdminRoute()}/cluster_status`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getClusterStatus', success, error));
     }
 
     getServerAudits(success, error) {

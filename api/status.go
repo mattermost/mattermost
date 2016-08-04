@@ -7,10 +7,22 @@ import (
 	"net/http"
 
 	l4g "github.com/alecthomas/log4go"
+
+	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 )
+
+var statusCache *utils.Cache = utils.NewLru(model.STATUS_CACHE_SIZE)
+
+func AddStatusCache(status *model.Status) {
+	statusCache.Add(status.UserId, status)
+
+	if einterfaces.GetClusterInterface() != nil {
+		einterfaces.GetClusterInterface().UpdateStatus(status)
+	}
+}
 
 func InitStatus() {
 	l4g.Debug(utils.T("api.status.init.debug"))
@@ -69,7 +81,7 @@ func SetStatusOnline(userId string, sessionId string) {
 		status.LastActivityAt = model.GetMillis()
 	}
 
-	statusCache.Add(status.UserId, status)
+	AddStatusCache(status)
 
 	achan := Srv.Store.Session().UpdateLastActivityAt(sessionId, model.GetMillis())
 
@@ -98,7 +110,7 @@ func SetStatusOnline(userId string, sessionId string) {
 func SetStatusOffline(userId string) {
 	status := &model.Status{userId, model.STATUS_OFFLINE, model.GetMillis()}
 
-	statusCache.Add(status.UserId, status)
+	AddStatusCache(status)
 
 	if result := <-Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
 		l4g.Error(utils.T("api.status.save_status.error"), userId, result.Err)
@@ -125,7 +137,7 @@ func SetStatusAwayIfNeeded(userId string) {
 
 	status.Status = model.STATUS_AWAY
 
-	statusCache.Add(status.UserId, status)
+	AddStatusCache(status)
 
 	if result := <-Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
 		l4g.Error(utils.T("api.status.save_status.error"), userId, result.Err)

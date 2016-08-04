@@ -453,7 +453,8 @@ export function getConfig(success, error) {
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_CONFIG,
-                config: data
+                config: data,
+                clusterId: Client.clusterId
             });
 
             if (success) {

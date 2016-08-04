@@ -46,6 +46,7 @@ func InitAdmin() {
 	BaseRoutes.Admin.Handle("/add_certificate", ApiAdminSystemRequired(addCertificate)).Methods("POST")
 	BaseRoutes.Admin.Handle("/remove_certificate", ApiAdminSystemRequired(removeCertificate)).Methods("POST")
 	BaseRoutes.Admin.Handle("/saml_cert_status", ApiAdminSystemRequired(samlCertificateStatus)).Methods("GET")
+	BaseRoutes.Admin.Handle("/cluster_status", ApiAdminSystemRequired(getClusterStatus)).Methods("GET")
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -54,13 +55,32 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	lines, err := GetLogs()
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if einterfaces.GetClusterInterface() != nil {
+		clines, err := einterfaces.GetClusterInterface().GetLogs()
+		if err != nil {
+			c.Err = err
+			return
+		}
+
+		lines = append(lines, clines...)
+	}
+
+	w.Write([]byte(model.ArrayToJson(lines)))
+}
+
+func GetLogs() ([]string, *model.AppError) {
 	var lines []string
 
 	if utils.Cfg.LogSettings.EnableFile {
-
 		file, err := os.Open(utils.GetLogFileLocation(utils.Cfg.LogSettings.FileLocation))
 		if err != nil {
-			c.Err = model.NewLocAppError("getLogs", "api.admin.file_read_error", nil, err.Error())
+			return nil, model.NewLocAppError("getLogs", "api.admin.file_read_error", nil, err.Error())
 		}
 
 		defer file.Close()
@@ -73,7 +93,21 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		lines = append(lines, "")
 	}
 
-	w.Write([]byte(model.ArrayToJson(lines)))
+	return lines, nil
+}
+
+func getClusterStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+
+	if !c.HasSystemAdminPermissions("getClusterStatus") {
+		return
+	}
+
+	infos := make([]*model.ClusterInfo, 0)
+	if einterfaces.GetClusterInterface() != nil {
+		infos = einterfaces.GetClusterInterface().GetClusterInfos()
+	}
+
+	w.Write([]byte(model.ClusterInfosToJson(infos)))
 }
 
 func getAllAudits(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -150,10 +184,25 @@ func saveConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if *utils.Cfg.ClusterSettings.Enable {
+		c.Err = model.NewLocAppError("saveConfig", "ent.cluster.save_config.error", nil, "")
+		return
+	}
+
 	c.LogAudit("")
 
+	//oldCfg := utils.Cfg
 	utils.SaveConfig(utils.CfgFileName, cfg)
 	utils.LoadConfig(utils.CfgFileName)
+
+	// Future feature is to sync the configuration files
+	// if einterfaces.GetClusterInterface() != nil {
+	// 	err := einterfaces.GetClusterInterface().ConfigChanged(cfg, oldCfg, true)
+	// 	if err != nil {
+	// 		c.Err = err
+	// 		return
+	// 	}
+	// }
 
 	rdata := map[string]string{}
 	rdata["status"] = "OK"

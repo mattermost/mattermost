@@ -14,13 +14,13 @@ import (
 	"github.com/gorilla/mux"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 
+	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 )
 
 var sessionCache *utils.Cache = utils.NewLru(model.SESSION_CACHE_SIZE)
-var statusCache *utils.Cache = utils.NewLru(model.STATUS_CACHE_SIZE)
 
 var allowedMethods []string = []string{
 	"POST",
@@ -148,7 +148,10 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)
-	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v", model.CurrentVersion, utils.CfgLastModified))
+	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v", model.CurrentVersion, utils.CfgHash))
+	if einterfaces.GetClusterInterface() != nil {
+		w.Header().Set(model.HEADER_CLUSTER_ID, einterfaces.GetClusterInterface().GetClusterId())
+	}
 
 	// Instruct the browser not to display us in an iframe unless is the same origin for anti-clickjacking
 	if !h.isApi {
@@ -553,6 +556,10 @@ func RemoveAllSessionsForUserId(userId string) {
 				sessionCache.Remove(key)
 			}
 		}
+	}
+
+	if einterfaces.GetClusterInterface() != nil {
+		einterfaces.GetClusterInterface().RemoveAllSessionsForUserId(userId)
 	}
 }
 
