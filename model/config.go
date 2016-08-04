@@ -891,12 +891,9 @@ func (o *Config) IsValid() *AppError {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.listen_address.app_error", nil, "")
 	}
 
-	/*
-		// TODO uncomment this when both email batching and custering are merged
-		if *o.ClusterSettings.Enable && *o.EmailSettings.EnableEmailBatching {
-			return NewLocAppError("Config.IsValid", "model.config.is_valid.cluster_email_batching.app_error", nil, "")
-		}
-	*/
+	if *o.ClusterSettings.Enable && *o.EmailSettings.EnableEmailBatching {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.cluster_email_batching.app_error", nil, "")
+	}
 
 	if o.TeamSettings.MaxUsersPerTeam <= 0 {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.max_users.app_error", nil, "")

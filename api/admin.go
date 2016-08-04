@@ -208,7 +208,6 @@ func saveConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	// 	}
 	// }
 
-
 	// start/restart email batching job if necessary
 	InitEmailBatching()
 
