@@ -52,7 +52,7 @@ export function registerOAuthApp(app, onSuccess, onError) {
             });
 
             if (onSuccess) {
-                onSuccess();
+                onSuccess(data);
             }
         },
         onError

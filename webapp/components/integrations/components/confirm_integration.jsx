@@ -31,12 +31,7 @@ export default class ConfirmIntegration extends React.Component {
 
     componentWillMount() {
         const type = Utils.getUrlParameter('type');
-        let token = Utils.getUrlParameter('token');
-
-        // Special case for incoming webhooks
-        if (type === Constants.Integrations.INCOMING_WEBHOOK) {
-            token = Utils.getWindowLocationOrigin() + '/hooks/' + token;
-        }
+        const token = Utils.getUrlParameter('token');
 
         this.setState({
             type,
@@ -52,44 +47,165 @@ export default class ConfirmIntegration extends React.Component {
     }
 
     render() {
-        let textId = '';
+        let headerText = null;
+        let helpText = null;
+        let tokenText = null;
         if (this.state.type === Constants.Integrations.COMMAND) {
-            textId = 'add_command';
-        } else if (this.state.type === Constants.Integrations.INCOMING_WEBHOOK) {
-            textId = 'add_incoming_webhook';
-        } else if (this.state.type === Constants.Integrations.OUTGOING_WEBHOOK) {
-            textId = 'add_outgoing_webhook';
-        }
-
-        return (
-            <div className='backstage-content row'>
-                <BackstageHeader>
-                    <Link to={'/' + this.props.team.name + '/integrations/' + this.state.type}>
-                        <FormattedMessage
-                            id={'installed_' + this.state.type + '.header'}
-                            defaultMessage='Slash Commands'
-                        />
-                    </Link>
-                    <FormattedMessage
-                        id='integrations.add'
-                        defaultMessage='Add'
-                    />
-                </BackstageHeader>
+            headerText = (
+                <FormattedMessage
+                    id={'installed_commands.header'}
+                    defaultMessage='Slash Commands'
+                />
+            );
+            helpText = (
                 <div className='backstage-list__help'>
                     <FormattedHTMLMessage
-                        id={textId + '.doneHelp'}
+                        id='add_command.doneHelp'
                         defaultMessage='Your slash command has been set up. The following token will be sent in the outgoing payload. Please use it to verify the request came from your Mattermost team (see <a href="https://docs.mattermost.com/developer/slash-commands.html">documentation</a> for further details).'
                     />
                 </div>
+            );
+            tokenText = (
                 <div className='backstage-list__help'>
                     <FormattedMessage
-                        id={textId + '.token'}
+                        id='add_command.token'
                         defaultMessage='Token: {token}'
                         values={{
                             token: this.state.token
                         }}
                     />
                 </div>
+            );
+        } else if (this.state.type === Constants.Integrations.INCOMING_WEBHOOK) {
+            headerText = (
+                <FormattedMessage
+                    id={'installed_incoming_webhooks.header'}
+                    defaultMessage='Incoming Webhooks'
+                />
+            );
+            helpText = (
+                <div className='backstage-list__help'>
+                    <FormattedHTMLMessage
+                        id='add_incoming_webhook.doneHelp'
+                        defaultMessage='Your incoming webhook has been set up. Please send data to the following URL (see <a href=\"https://docs.mattermost.com/developer/webhooks-incoming.html\">documentation</a> for further details).'
+                    />
+                </div>
+            );
+            tokenText = (
+                <div className='backstage-list__help'>
+                    <FormattedMessage
+                        id='add_incoming_webhook.url'
+                        defaultMessage='URL: {url}'
+                        values={{
+                            url: Utils.getWindowLocationOrigin() + '/hooks/' + this.state.token
+                        }}
+                    />
+                </div>
+            );
+        } else if (this.state.type === Constants.Integrations.OUTGOING_WEBHOOK) {
+            headerText = (
+                <FormattedMessage
+                    id={'installed_outgoing_webhooks.header'}
+                    defaultMessage='Outgoing Webhooks'
+                />
+            );
+            helpText = (
+                <div className='backstage-list__help'>
+                    <FormattedHTMLMessage
+                        id='add_outgoing_webhook.doneHelp'
+                        defaultMessage='Your outgoing webhook has been set up. The following token will be sent in the outgoing payload. Please use it to verify the request came from your Mattermost team (see <a href=\"https://docs.mattermost.com/developer/webhooks-outgoing.html\">documentation</a> for further details).'
+                    />
+                </div>
+            );
+            tokenText = (
+                <div className='backstage-list__help'>
+                    <FormattedMessage
+                        id='add_outgoing_webhook.token'
+                        defaultMessage='Token: {token}'
+                        values={{
+                            token: this.state.token
+                        }}
+                    />
+                </div>
+            );
+        } else if (this.state.type === Constants.Integrations.OAUTH_APP) {
+            headerText = (
+                <FormattedMessage
+                    id={'installed_oauth_apps.header'}
+                    defaultMessage='OAuth 2.0 Applications'
+                />
+            );
+
+            helpText = [];
+            helpText.push(
+                <div className='backstage-list__help'>
+                    <FormattedHTMLMessage
+                        id='add_oauth_app.doneHelp'
+                        defaultMessage='Your Oauth 2.0 application has been set up. The following client secret and client ID will be sent in the <b>payload</b>.'
+                    />
+                </div>
+            );
+            helpText.push(
+                <div className='backstage-list__help'>
+                    <FormattedMessage
+                        id='add_oauth_app.clientId'
+                        defaultMessage='Client ID: {id}'
+                        values={{
+                            id: this.state.token
+                        }}
+                    />
+                </div>
+            );
+
+            const clientSecret = Utils.getUrlParameter('secret');
+            helpText.push(
+                <div className='backstage-list__help'>
+                    <FormattedMessage
+                        id='add_oauth_app.clientSecret'
+                        defaultMessage='Client Secret: {secret}'
+                        values={{
+                            secret: clientSecret
+                        }}
+                    />
+                </div>
+            );
+
+            helpText.push(
+                <div className='backstage-list__help'>
+                    <FormattedHTMLMessage
+                        id='add_oauth_app.doneUrlHelp'
+                        defaultMessage='Please send data to the following URL (see <a href="https://docs.mattermost.com/developer/oauth2-applications.html">documentation</a> for further details.)'
+                    />
+                </div>
+            );
+
+            const urls = Utils.getUrlParameter('callback_urls');
+            tokenText = (
+                <div className='backstage-list__help'>
+                    <FormattedMessage
+                        id='add_oauth_app.url'
+                        defaultMessage='URL(s): {url}'
+                        values={{
+                            url: urls
+                        }}
+                    />
+                </div>
+            );
+        }
+
+        return (
+            <div className='backstage-content row'>
+                <BackstageHeader>
+                    <Link to={'/' + this.props.team.name + '/integrations/' + this.state.type}>
+                        {headerText}
+                    </Link>
+                    <FormattedMessage
+                        id='integrations.add'
+                        defaultMessage='Add'
+                    />
+                </BackstageHeader>
+                {helpText}
+                {tokenText}
                 <div className='backstage-list__help'>
                     <SpinnerButton
                         className='btn btn-primary'

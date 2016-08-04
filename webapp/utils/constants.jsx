@@ -759,7 +759,8 @@ export const Constants = {
     Integrations: {
         COMMAND: 'commands',
         INCOMING_WEBHOOK: 'incoming_webhooks',
-        OUTGOING_WEBHOOK: 'outgoing_webhooks'
+        OUTGOING_WEBHOOK: 'outgoing_webhooks',
+        OAUTH_APP: 'oauth_app'
     },
     FeatureTogglePrefix: 'feature_enabled_',
     PRE_RELEASE_FEATURES: {
