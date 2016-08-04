@@ -14,7 +14,8 @@ import * as Utils from 'utils/utils.jsx';
 export default class ConfirmIntegration extends React.Component {
     static get propTypes() {
         return {
-            team: React.propTypes.object.isRequired
+            team: React.propTypes.object.isRequired,
+            location: React.PropTypes.object
         };
     }
 
@@ -30,8 +31,8 @@ export default class ConfirmIntegration extends React.Component {
     }
 
     componentWillMount() {
-        const type = Utils.getUrlParameter('type');
-        const token = Utils.getUrlParameter('token');
+        const type = this.props.location.query.type;
+        const token = this.props.location.query.token;
 
         this.setState({
             type,
@@ -97,7 +98,7 @@ export default class ConfirmIntegration extends React.Component {
                         id='add_incoming_webhook.url'
                         defaultMessage='URL: {url}'
                         values={{
-                            url: Utils.getWindowLocationOrigin() + '/hooks/' + this.state.token
+                            url: window.location.origin + '/hooks/' + this.state.token
                         }}
                     />
                 </div>
@@ -157,7 +158,7 @@ export default class ConfirmIntegration extends React.Component {
                 </div>
             );
 
-            const clientSecret = Utils.getUrlParameter('secret');
+            const clientSecret = this.props.location.query.secret;
             helpText.push(
                 <div className='backstage-list__help'>
                     <FormattedMessage
@@ -179,7 +180,7 @@ export default class ConfirmIntegration extends React.Component {
                 </div>
             );
 
-            const urls = Utils.getUrlParameter('callback_urls');
+            const urls = this.props.location.query.callback_urls;
             tokenText = (
                 <div className='backstage-list__help'>
                     <FormattedMessage
