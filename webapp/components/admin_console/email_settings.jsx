@@ -99,7 +99,7 @@ export default class EmailSettings extends AdminSettings {
                             defaultMessage='When true, users can have email notifications for multiple direct messages and mentions combined into a single email, configurable in <b>Account Settings > Notifications</b>. This setting cannot be enabled when High Availability Mode is enabled.'
                         />
                     }
-                    value={this.state.enableEmailBatchingn && !(this.props.config.ClusterSettings && this.props.config.ClusterSettings.Enable)}
+                    value={this.state.enableEmailBatching && !(this.props.config.ClusterSettings && this.props.config.ClusterSettings.Enable)}
                     onChange={this.handleChange}
                     disabled={!this.state.sendEmailNotifications || (this.props.config.ClusterSettings && this.props.config.ClusterSettings.Enable)}
                 />
