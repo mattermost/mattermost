@@ -432,6 +432,42 @@
     "translation": "Inappropriate permissions to regenerate command token"
   },
   {
+    "id": "api.command_away.desc",
+    "translation": "Set your status away"
+  },
+  {
+    "id": "api.command_away.name",
+    "translation": "away"
+  },
+  {
+    "id": "api.command_away.success",
+    "translation": "You are now away"
+  },
+  {
+    "id": "api.command_online.desc",
+    "translation": "Set your status online"
+  },
+  {
+    "id": "api.command_online.name",
+    "translation": "online"
+  },
+  {
+    "id": "api.command_online.success",
+    "translation": "You are now online"
+  },
+  {
+    "id": "api.command_offline.desc",
+    "translation": "Set your status offline"
+  },
+  {
+    "id": "api.command_offline.name",
+    "translation": "offline"
+  },
+  {
+    "id": "api.command_offline.success",
+    "translation": "You are now offline"
+  },
+  {
     "id": "api.command_collapse.desc",
     "translation": "Turn on auto-collapsing of image previews"
   },

@@ -66,6 +66,7 @@ func GetAllStatuses() (map[string]interface{}, *model.AppError) {
 }
 
 func SetStatusOnline(userId string, sessionId string) {
+	l4g.Debug(userId, "online")
 	broadcast := false
 
 	var status *model.Status
@@ -108,6 +109,7 @@ func SetStatusOnline(userId string, sessionId string) {
 }
 
 func SetStatusOffline(userId string) {
+	l4g.Debug(userId, "offline")
 	status := &model.Status{userId, model.STATUS_OFFLINE, model.GetMillis()}
 
 	AddStatusCache(status)
@@ -122,6 +124,7 @@ func SetStatusOffline(userId string) {
 }
 
 func SetStatusAwayIfNeeded(userId string) {
+	l4g.Debug(userId, "away")
 	status, err := GetStatus(userId)
 	if err != nil {
 		status = &model.Status{userId, model.STATUS_OFFLINE, 0}
