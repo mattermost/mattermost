@@ -3,6 +3,7 @@
 
 import $ from 'jquery';
 import NavbarDropdown from './navbar_dropdown.jsx';
+import 'bootstrap';
 
 import PreferenceStore from 'stores/preference_store.jsx';
 
