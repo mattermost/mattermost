@@ -7,7 +7,6 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"html/template"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -112,10 +111,6 @@ func main() {
 	if model.BuildNumber == "dev" {
 		*utils.Cfg.ServiceSettings.EnableDeveloper = true
 	}
-
-	// Special case for upgrading the db to 3.0
-	// ADDED for 3.0 REMOVE for 3.4
-	cmdUpdateDb30()
 
 	api.NewServer()
 	api.InitApi()
@@ -418,345 +413,345 @@ func cmdRunClientTests() {
 	}
 }
 
-// ADDED for 3.0 REMOVE for 3.4
-func cmdUpdateDb30() {
-	if flagCmdUpdateDb30 {
-		api.Srv = &api.Server{}
-		api.Srv.Store = store.NewSqlStoreForUpgrade30()
-		store := api.Srv.Store.(*store.SqlStore)
-		utils.InitHTML()
+// // ADDED for 3.0 REMOVE for 3.4
+// func cmdUpdateDb30() {
+// 	if flagCmdUpdateDb30 {
+// 		api.Srv = &api.Server{}
+// 		api.Srv.Store = store.NewSqlStoreForUpgrade30()
+// 		store := api.Srv.Store.(*store.SqlStore)
+// 		utils.InitHTML()
 
-		l4g.Info("Attempting to run special upgrade of the database schema to version 3.0 for user model changes")
-		time.Sleep(time.Second)
+// 		l4g.Info("Attempting to run special upgrade of the database schema to version 3.0 for user model changes")
+// 		time.Sleep(time.Second)
 
-		if !store.DoesColumnExist("Users", "TeamId") {
-			fmt.Println("**WARNING** the database schema appears to be upgraded to 3.0")
-			flushLogAndExit(1)
-		}
+// 		if !store.DoesColumnExist("Users", "TeamId") {
+// 			fmt.Println("**WARNING** the database schema appears to be upgraded to 3.0")
+// 			flushLogAndExit(1)
+// 		}
 
-		if !(store.SchemaVersion == "2.2.0" ||
-			store.SchemaVersion == "2.1.0" ||
-			store.SchemaVersion == "2.0.0") {
-			fmt.Println("**WARNING** the database schema needs to be version 2.2.0, 2.1.0 or 2.0.0 to upgrade")
-			flushLogAndExit(1)
-		}
+// 		if !(store.SchemaVersion == "2.2.0" ||
+// 			store.SchemaVersion == "2.1.0" ||
+// 			store.SchemaVersion == "2.0.0") {
+// 			fmt.Println("**WARNING** the database schema needs to be version 2.2.0, 2.1.0 or 2.0.0 to upgrade")
+// 			flushLogAndExit(1)
+// 		}
 
-		fmt.Println("\nPlease see http://www.mattermost.org/upgrade-to-3-0/")
-		fmt.Println("**WARNING** This upgrade process will be irreversible.")
+// 		fmt.Println("\nPlease see http://www.mattermost.org/upgrade-to-3-0/")
+// 		fmt.Println("**WARNING** This upgrade process will be irreversible.")
 
-		if len(flagConfirmBackup) == 0 {
-			fmt.Print("Have you performed a database backup? (YES/NO): ")
-			fmt.Scanln(&flagConfirmBackup)
-		}
+// 		if len(flagConfirmBackup) == 0 {
+// 			fmt.Print("Have you performed a database backup? (YES/NO): ")
+// 			fmt.Scanln(&flagConfirmBackup)
+// 		}
 
-		if flagConfirmBackup != "YES" {
-			fmt.Fprintln(os.Stderr, "ABORTED: You did not answer YES exactly, in all capitals.")
-			flushLogAndExit(1)
-		}
+// 		if flagConfirmBackup != "YES" {
+// 			fmt.Fprintln(os.Stderr, "ABORTED: You did not answer YES exactly, in all capitals.")
+// 			flushLogAndExit(1)
+// 		}
 
-		var teams []*TeamForUpgrade
+// 		var teams []*TeamForUpgrade
 
-		if _, err := store.GetMaster().Select(&teams, "SELECT Id, Name FROM Teams"); err != nil {
-			l4g.Error("Failed to load all teams details=%v", err)
-			flushLogAndExit(1)
-		}
+// 		if _, err := store.GetMaster().Select(&teams, "SELECT Id, Name FROM Teams"); err != nil {
+// 			l4g.Error("Failed to load all teams details=%v", err)
+// 			flushLogAndExit(1)
+// 		}
 
-		if len(flagTeamName) == 0 {
-			fmt.Println(fmt.Sprintf("We found %v teams.", len(teams)))
+// 		if len(flagTeamName) == 0 {
+// 			fmt.Println(fmt.Sprintf("We found %v teams.", len(teams)))
 
-			for _, team := range teams {
-				fmt.Println(team.Name)
-			}
+// 			for _, team := range teams {
+// 				fmt.Println(team.Name)
+// 			}
 
-			fmt.Print("Please pick a primary team from the list above: ")
-			fmt.Scanln(&flagTeamName)
-		}
+// 			fmt.Print("Please pick a primary team from the list above: ")
+// 			fmt.Scanln(&flagTeamName)
+// 		}
 
-		var team *TeamForUpgrade
-		for _, t := range teams {
-			if t.Name == flagTeamName {
-				team = t
-				break
-			}
-		}
+// 		var team *TeamForUpgrade
+// 		for _, t := range teams {
+// 			if t.Name == flagTeamName {
+// 				team = t
+// 				break
+// 			}
+// 		}
 
-		if team == nil {
-			l4g.Error("Failed to find primary team details")
-			flushLogAndExit(1)
-		}
+// 		if team == nil {
+// 			l4g.Error("Failed to find primary team details")
+// 			flushLogAndExit(1)
+// 		}
 
-		l4g.Info("Starting special 3.0 database upgrade with performed_backup=YES team_name=%v", team.Name)
-		l4g.Info("Primary team %v will be left unchanged", team.Name)
-		l4g.Info("Upgrading primary team %v", team.Name)
+// 		l4g.Info("Starting special 3.0 database upgrade with performed_backup=YES team_name=%v", team.Name)
+// 		l4g.Info("Primary team %v will be left unchanged", team.Name)
+// 		l4g.Info("Upgrading primary team %v", team.Name)
 
-		uniqueEmails := make(map[string]bool)
-		uniqueUsernames := make(map[string]bool)
-		uniqueAuths := make(map[string]bool)
-		primaryUsers := convertTeamTo30(team.Name, team, uniqueEmails, uniqueUsernames, uniqueAuths)
+// 		uniqueEmails := make(map[string]bool)
+// 		uniqueUsernames := make(map[string]bool)
+// 		uniqueAuths := make(map[string]bool)
+// 		primaryUsers := convertTeamTo30(team.Name, team, uniqueEmails, uniqueUsernames, uniqueAuths)
 
-		l4g.Info("Upgraded %v users", len(primaryUsers))
+// 		l4g.Info("Upgraded %v users", len(primaryUsers))
 
-		for _, otherTeam := range teams {
-			if otherTeam.Id != team.Id {
-				l4g.Info("Upgrading team %v", otherTeam.Name)
-				users := convertTeamTo30(team.Name, otherTeam, uniqueEmails, uniqueUsernames, uniqueAuths)
-				l4g.Info("Upgraded %v users", len(users))
+// 		for _, otherTeam := range teams {
+// 			if otherTeam.Id != team.Id {
+// 				l4g.Info("Upgrading team %v", otherTeam.Name)
+// 				users := convertTeamTo30(team.Name, otherTeam, uniqueEmails, uniqueUsernames, uniqueAuths)
+// 				l4g.Info("Upgraded %v users", len(users))
 
-			}
-		}
+// 			}
+// 		}
 
-		l4g.Info("Altering other scheme changes needed 3.0 for user model changes")
+// 		l4g.Info("Altering other scheme changes needed 3.0 for user model changes")
 
-		if _, err := store.GetMaster().Exec(`
-				UPDATE Channels 
-				SET 
-				    TeamId = ''
-				WHERE
-				    Type = 'D'
-				`,
-		); err != nil {
-			l4g.Error("Failed to update direct channel types details=%v", err)
-			flushLogAndExit(1)
-		}
+// 		if _, err := store.GetMaster().Exec(`
+// 				UPDATE Channels
+// 				SET
+// 				    TeamId = ''
+// 				WHERE
+// 				    Type = 'D'
+// 				`,
+// 		); err != nil {
+// 			l4g.Error("Failed to update direct channel types details=%v", err)
+// 			flushLogAndExit(1)
+// 		}
 
-		if _, err := store.GetMaster().Exec(`
-				UPDATE Users 
-				SET 
-				    AuthData = NULL
-				WHERE
-				    AuthData = ''
-				`,
-		); err != nil {
-			l4g.Error("Failed to update AuthData types details=%v", err)
-			flushLogAndExit(1)
-		}
+// 		if _, err := store.GetMaster().Exec(`
+// 				UPDATE Users
+// 				SET
+// 				    AuthData = NULL
+// 				WHERE
+// 				    AuthData = ''
+// 				`,
+// 		); err != nil {
+// 			l4g.Error("Failed to update AuthData types details=%v", err)
+// 			flushLogAndExit(1)
+// 		}
 
-		extraLength := store.GetMaxLengthOfColumnIfExists("Audits", "ExtraInfo")
-		if len(extraLength) > 0 && extraLength != "1024" {
-			store.AlterColumnTypeIfExists("Audits", "ExtraInfo", "VARCHAR(1024)", "VARCHAR(1024)")
-		}
+// 		extraLength := store.GetMaxLengthOfColumnIfExists("Audits", "ExtraInfo")
+// 		if len(extraLength) > 0 && extraLength != "1024" {
+// 			store.AlterColumnTypeIfExists("Audits", "ExtraInfo", "VARCHAR(1024)", "VARCHAR(1024)")
+// 		}
 
-		actionLength := store.GetMaxLengthOfColumnIfExists("Audits", "Action")
-		if len(actionLength) > 0 && actionLength != "512" {
-			store.AlterColumnTypeIfExists("Audits", "Action", "VARCHAR(512)", "VARCHAR(512)")
-		}
+// 		actionLength := store.GetMaxLengthOfColumnIfExists("Audits", "Action")
+// 		if len(actionLength) > 0 && actionLength != "512" {
+// 			store.AlterColumnTypeIfExists("Audits", "Action", "VARCHAR(512)", "VARCHAR(512)")
+// 		}
 
-		if store.DoesColumnExist("Sessions", "TeamId") {
-			store.RemoveColumnIfExists("Sessions", "TeamId")
-			store.GetMaster().Exec(`TRUNCATE Sessions`)
-		}
+// 		if store.DoesColumnExist("Sessions", "TeamId") {
+// 			store.RemoveColumnIfExists("Sessions", "TeamId")
+// 			store.GetMaster().Exec(`TRUNCATE Sessions`)
+// 		}
 
-		// ADDED for 2.2 REMOVE for 2.6
-		store.CreateColumnIfNotExists("Users", "MfaActive", "tinyint(1)", "boolean", "0")
-		store.CreateColumnIfNotExists("Users", "MfaSecret", "varchar(128)", "character varying(128)", "")
+// 		// ADDED for 2.2 REMOVE for 2.6
+// 		store.CreateColumnIfNotExists("Users", "MfaActive", "tinyint(1)", "boolean", "0")
+// 		store.CreateColumnIfNotExists("Users", "MfaSecret", "varchar(128)", "character varying(128)", "")
 
-		// ADDED for 2.2 REMOVE for 2.6
-		if store.DoesColumnExist("Users", "TeamId") {
-			store.RemoveIndexIfExists("idx_users_team_id", "Users")
-			store.CreateUniqueIndexIfNotExists("idx_users_email_unique", "Users", "Email")
-			store.CreateUniqueIndexIfNotExists("idx_users_username_unique", "Users", "Username")
-			store.CreateUniqueIndexIfNotExists("idx_users_authdata_unique", "Users", "AuthData")
-			store.RemoveColumnIfExists("Teams", "AllowTeamListing")
-			store.RemoveColumnIfExists("Users", "TeamId")
-		}
+// 		// ADDED for 2.2 REMOVE for 2.6
+// 		if store.DoesColumnExist("Users", "TeamId") {
+// 			store.RemoveIndexIfExists("idx_users_team_id", "Users")
+// 			store.CreateUniqueIndexIfNotExists("idx_users_email_unique", "Users", "Email")
+// 			store.CreateUniqueIndexIfNotExists("idx_users_username_unique", "Users", "Username")
+// 			store.CreateUniqueIndexIfNotExists("idx_users_authdata_unique", "Users", "AuthData")
+// 			store.RemoveColumnIfExists("Teams", "AllowTeamListing")
+// 			store.RemoveColumnIfExists("Users", "TeamId")
+// 		}
 
-		l4g.Info("Finished running special upgrade of the database schema to version 3.0 for user model changes")
+// 		l4g.Info("Finished running special upgrade of the database schema to version 3.0 for user model changes")
 
-		if result := <-store.System().Update(&model.System{Name: "Version", Value: model.CurrentVersion}); result.Err != nil {
-			l4g.Error("Failed to update system schema version details=%v", result.Err)
-			flushLogAndExit(1)
-		}
+// 		if result := <-store.System().Update(&model.System{Name: "Version", Value: model.CurrentVersion}); result.Err != nil {
+// 			l4g.Error("Failed to update system schema version details=%v", result.Err)
+// 			flushLogAndExit(1)
+// 		}
 
-		l4g.Info(utils.T("store.sql.upgraded.warn"), model.CurrentVersion)
-		fmt.Println("**SUCCESS** with upgrade")
+// 		l4g.Info(utils.T("store.sql.upgraded.warn"), model.CurrentVersion)
+// 		fmt.Println("**SUCCESS** with upgrade")
 
-		flushLogAndExit(0)
-	}
-}
+// 		flushLogAndExit(0)
+// 	}
+// }
 
-type UserForUpgrade struct {
-	Id       string
-	Username string
-	Email    string
-	Roles    string
-	TeamId   string
-	AuthData *string
-}
+// type UserForUpgrade struct {
+// 	Id       string
+// 	Username string
+// 	Email    string
+// 	Roles    string
+// 	TeamId   string
+// 	AuthData *string
+// }
 
-func convertTeamTo30(primaryTeamName string, team *TeamForUpgrade, uniqueEmails map[string]bool, uniqueUsernames map[string]bool, uniqueAuths map[string]bool) []*UserForUpgrade {
-	store := api.Srv.Store.(*store.SqlStore)
-	var users []*UserForUpgrade
-	if _, err := store.GetMaster().Select(&users, "SELECT Users.Id, Users.Username, Users.Email, Users.Roles, Users.TeamId, Users.AuthData FROM Users WHERE Users.TeamId = :TeamId", map[string]interface{}{"TeamId": team.Id}); err != nil {
-		l4g.Error("Failed to load profiles for team details=%v", err)
-		flushLogAndExit(1)
-	}
+// func convertTeamTo30(primaryTeamName string, team *TeamForUpgrade, uniqueEmails map[string]bool, uniqueUsernames map[string]bool, uniqueAuths map[string]bool) []*UserForUpgrade {
+// 	store := api.Srv.Store.(*store.SqlStore)
+// 	var users []*UserForUpgrade
+// 	if _, err := store.GetMaster().Select(&users, "SELECT Users.Id, Users.Username, Users.Email, Users.Roles, Users.TeamId, Users.AuthData FROM Users WHERE Users.TeamId = :TeamId", map[string]interface{}{"TeamId": team.Id}); err != nil {
+// 		l4g.Error("Failed to load profiles for team details=%v", err)
+// 		flushLogAndExit(1)
+// 	}
 
-	var members []*model.TeamMember
-	if result := <-api.Srv.Store.Team().GetMembers(team.Id); result.Err != nil {
-		l4g.Error("Failed to load team membership details=%v", result.Err)
-		flushLogAndExit(1)
-	} else {
-		members = result.Data.([]*model.TeamMember)
-	}
+// 	var members []*model.TeamMember
+// 	if result := <-api.Srv.Store.Team().GetMembers(team.Id); result.Err != nil {
+// 		l4g.Error("Failed to load team membership details=%v", result.Err)
+// 		flushLogAndExit(1)
+// 	} else {
+// 		members = result.Data.([]*model.TeamMember)
+// 	}
 
-	for _, user := range users {
-		shouldUpdateUser := false
-		shouldUpdateRole := false
-		previousRole := user.Roles
-		previousEmail := user.Email
-		previousUsername := user.Username
+// 	for _, user := range users {
+// 		shouldUpdateUser := false
+// 		shouldUpdateRole := false
+// 		previousRole := user.Roles
+// 		previousEmail := user.Email
+// 		previousUsername := user.Username
 
-		member := &model.TeamMember{
-			TeamId: team.Id,
-			UserId: user.Id,
-		}
+// 		member := &model.TeamMember{
+// 			TeamId: team.Id,
+// 			UserId: user.Id,
+// 		}
 
-		if model.IsInRole(user.Roles, model.ROLE_TEAM_ADMIN) {
-			member.Roles = model.ROLE_TEAM_ADMIN
-			user.Roles = ""
-			shouldUpdateRole = true
-		}
+// 		if model.IsInRole(user.Roles, model.ROLE_TEAM_ADMIN) {
+// 			member.Roles = model.ROLE_TEAM_ADMIN
+// 			user.Roles = ""
+// 			shouldUpdateRole = true
+// 		}
 
-		exists := false
-		for _, member := range members {
-			if member.UserId == user.Id {
-				exists = true
-				break
-			}
-		}
+// 		exists := false
+// 		for _, member := range members {
+// 			if member.UserId == user.Id {
+// 				exists = true
+// 				break
+// 			}
+// 		}
 
-		if !exists {
-			if result := <-api.Srv.Store.Team().SaveMember(member); result.Err != nil {
-				l4g.Error("Failed to save membership for %v details=%v", user.Email, result.Err)
-				flushLogAndExit(1)
-			}
-		}
+// 		if !exists {
+// 			if result := <-api.Srv.Store.Team().SaveMember(member); result.Err != nil {
+// 				l4g.Error("Failed to save membership for %v details=%v", user.Email, result.Err)
+// 				flushLogAndExit(1)
+// 			}
+// 		}
 
-		err := api.MoveFile(
-			"teams/"+team.Id+"/users/"+user.Id+"/profile.png",
-			"users/"+user.Id+"/profile.png",
-		)
+// 		err := api.MoveFile(
+// 			"teams/"+team.Id+"/users/"+user.Id+"/profile.png",
+// 			"users/"+user.Id+"/profile.png",
+// 		)
 
-		if err != nil {
-			l4g.Warn("No profile image to move for %v", user.Email)
-		}
+// 		if err != nil {
+// 			l4g.Warn("No profile image to move for %v", user.Email)
+// 		}
 
-		if uniqueEmails[user.Email] {
-			shouldUpdateUser = true
-			emailParts := strings.Split(user.Email, "@")
-			if len(emailParts) == 2 {
-				user.Email = emailParts[0] + "+" + team.Name + "@" + emailParts[1]
-			} else {
-				user.Email = user.Email + "." + team.Name
-			}
+// 		if uniqueEmails[user.Email] {
+// 			shouldUpdateUser = true
+// 			emailParts := strings.Split(user.Email, "@")
+// 			if len(emailParts) == 2 {
+// 				user.Email = emailParts[0] + "+" + team.Name + "@" + emailParts[1]
+// 			} else {
+// 				user.Email = user.Email + "." + team.Name
+// 			}
 
-			if len(user.Email) > 127 {
-				user.Email = user.Email[:127]
-			}
-		}
+// 			if len(user.Email) > 127 {
+// 				user.Email = user.Email[:127]
+// 			}
+// 		}
 
-		if uniqueUsernames[user.Username] {
-			shouldUpdateUser = true
-			user.Username = team.Name + "." + user.Username
+// 		if uniqueUsernames[user.Username] {
+// 			shouldUpdateUser = true
+// 			user.Username = team.Name + "." + user.Username
 
-			if len(user.Username) > 63 {
-				user.Username = user.Username[:63]
-			}
-		}
+// 			if len(user.Username) > 63 {
+// 				user.Username = user.Username[:63]
+// 			}
+// 		}
 
-		if user.AuthData != nil && *user.AuthData != "" && uniqueAuths[*user.AuthData] {
-			shouldUpdateUser = true
-		}
+// 		if user.AuthData != nil && *user.AuthData != "" && uniqueAuths[*user.AuthData] {
+// 			shouldUpdateUser = true
+// 		}
 
-		if shouldUpdateUser {
-			if _, err := store.GetMaster().Exec(`
-				UPDATE Users 
-				SET 
-				    Email = :Email,
-				    Username = :Username,
-				    Roles = :Roles,
-				    AuthService = '',
-				    AuthData = NULL
-				WHERE
-				    Id = :Id
-				`,
-				map[string]interface{}{
-					"Email":    user.Email,
-					"Username": user.Username,
-					"Roles":    user.Roles,
-					"Id":       user.Id,
-				},
-			); err != nil {
-				l4g.Error("Failed to update user %v details=%v", user.Email, err)
-				flushLogAndExit(1)
-			}
+// 		if shouldUpdateUser {
+// 			if _, err := store.GetMaster().Exec(`
+// 				UPDATE Users
+// 				SET
+// 				    Email = :Email,
+// 				    Username = :Username,
+// 				    Roles = :Roles,
+// 				    AuthService = '',
+// 				    AuthData = NULL
+// 				WHERE
+// 				    Id = :Id
+// 				`,
+// 				map[string]interface{}{
+// 					"Email":    user.Email,
+// 					"Username": user.Username,
+// 					"Roles":    user.Roles,
+// 					"Id":       user.Id,
+// 				},
+// 			); err != nil {
+// 				l4g.Error("Failed to update user %v details=%v", user.Email, err)
+// 				flushLogAndExit(1)
+// 			}
 
-			l4g.Info("modified user_id=%v, changed email from=%v to=%v, changed username from=%v to %v changed roles from=%v to=%v", user.Id, previousEmail, user.Email, previousUsername, user.Username, previousRole, user.Roles)
+// 			l4g.Info("modified user_id=%v, changed email from=%v to=%v, changed username from=%v to %v changed roles from=%v to=%v", user.Id, previousEmail, user.Email, previousUsername, user.Username, previousRole, user.Roles)
 
-			emailChanged := previousEmail != user.Email
-			usernameChanged := previousUsername != user.Username
+// 			emailChanged := previousEmail != user.Email
+// 			usernameChanged := previousUsername != user.Username
 
-			if emailChanged || usernameChanged {
-				bodyPage := utils.NewHTMLTemplate("upgrade_30_body", "")
+// 			if emailChanged || usernameChanged {
+// 				bodyPage := utils.NewHTMLTemplate("upgrade_30_body", "")
 
-				EmailChanged := ""
-				UsernameChanged := ""
+// 				EmailChanged := ""
+// 				UsernameChanged := ""
 
-				if emailChanged {
-					EmailChanged = "true"
-				}
+// 				if emailChanged {
+// 					EmailChanged = "true"
+// 				}
 
-				if usernameChanged {
-					UsernameChanged = "true"
-				}
+// 				if usernameChanged {
+// 					UsernameChanged = "true"
+// 				}
 
-				bodyPage.Html["Info"] = template.HTML(utils.T("api.templates.upgrade_30_body.info",
-					map[string]interface{}{
-						"SiteName":        utils.ClientCfg["SiteName"],
-						"TeamName":        team.Name,
-						"Email":           user.Email,
-						"Username":        user.Username,
-						"EmailChanged":    EmailChanged,
-						"UsernameChanged": UsernameChanged,
-					}))
+// 				bodyPage.Html["Info"] = template.HTML(utils.T("api.templates.upgrade_30_body.info",
+// 					map[string]interface{}{
+// 						"SiteName":        utils.ClientCfg["SiteName"],
+// 						"TeamName":        team.Name,
+// 						"Email":           user.Email,
+// 						"Username":        user.Username,
+// 						"EmailChanged":    EmailChanged,
+// 						"UsernameChanged": UsernameChanged,
+// 					}))
 
-				utils.SendMail(
-					previousEmail,
-					utils.T("api.templates.upgrade_30_subject.info"),
-					bodyPage.Render(),
-				)
-			}
-		}
+// 				utils.SendMail(
+// 					previousEmail,
+// 					utils.T("api.templates.upgrade_30_subject.info"),
+// 					bodyPage.Render(),
+// 				)
+// 			}
+// 		}
 
-		if shouldUpdateRole {
-			if _, err := store.GetMaster().Exec(`
-				UPDATE Users 
-				SET 
-				    Roles = ''
-				WHERE
-				    Id = :Id
-				`,
-				map[string]interface{}{
-					"Id": user.Id,
-				},
-			); err != nil {
-				l4g.Error("Failed to update user role %v details=%v", user.Email, err)
-				flushLogAndExit(1)
-			}
+// 		if shouldUpdateRole {
+// 			if _, err := store.GetMaster().Exec(`
+// 				UPDATE Users
+// 				SET
+// 				    Roles = ''
+// 				WHERE
+// 				    Id = :Id
+// 				`,
+// 				map[string]interface{}{
+// 					"Id": user.Id,
+// 				},
+// 			); err != nil {
+// 				l4g.Error("Failed to update user role %v details=%v", user.Email, err)
+// 				flushLogAndExit(1)
+// 			}
 
-			l4g.Info("modified user_id=%v, changed roles from=%v to=%v", user.Id, previousRole, user.Roles)
-		}
+// 			l4g.Info("modified user_id=%v, changed roles from=%v to=%v", user.Id, previousRole, user.Roles)
+// 		}
 
-		uniqueEmails[user.Email] = true
-		uniqueUsernames[user.Username] = true
+// 		uniqueEmails[user.Email] = true
+// 		uniqueUsernames[user.Username] = true
 
-		if user.AuthData != nil && *user.AuthData != "" {
-			uniqueAuths[*user.AuthData] = true
-		}
-	}
+// 		if user.AuthData != nil && *user.AuthData != "" {
+// 			uniqueAuths[*user.AuthData] = true
+// 		}
+// 	}
 
-	return users
-}
+// 	return users
+// }
 
 func cmdCreateTeam() {
 	if flagCmdCreateTeam {

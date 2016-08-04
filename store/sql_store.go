@@ -190,25 +190,6 @@ func NewSqlStore() Store {
 	return sqlStore
 }
 
-// ADDED for 3.0 REMOVE for 3.4
-// This is a special case for upgrading the schema to the 3.0 user model
-func NewSqlStoreForUpgrade30() *SqlStore {
-	sqlStore := initConnection()
-
-	sqlStore.team = NewSqlTeamStore(sqlStore)
-	sqlStore.user = NewSqlUserStore(sqlStore)
-	sqlStore.system = NewSqlSystemStore(sqlStore)
-
-	err := sqlStore.master.CreateTablesIfNotExists()
-	if err != nil {
-		l4g.Critical(utils.T("store.sql.creating_tables.critical"), err)
-		time.Sleep(time.Second)
-		os.Exit(1)
-	}
-
-	return sqlStore
-}
-
 func setupConnection(con_type string, driver string, dataSource string, maxIdle int, maxOpen int, trace bool) *gorp.DbMap {
 
 	db, err := dbsql.Open(driver, dataSource)
