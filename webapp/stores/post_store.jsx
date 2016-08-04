@@ -441,8 +441,8 @@ class PostStoreClass extends EventEmitter {
         return threadPosts;
     }
 
-    emitSelectedPostChange(fromSearch) {
-        this.emit(SELECTED_POST_CHANGE_EVENT, fromSearch);
+    emitSelectedPostChange(fromSearch, fromFlaggedPosts) {
+        this.emit(SELECTED_POST_CHANGE_EVENT, fromSearch, fromFlaggedPosts);
     }
 
     addSelectedPostChangeListener(callback) {
@@ -599,7 +599,7 @@ PostStore.dispatchToken = AppDispatcher.register((payload) => {
         break;
     case ActionTypes.RECEIVED_POST_SELECTED:
         PostStore.storeSelectedPostId(action.postId);
-        PostStore.emitSelectedPostChange(action.from_search);
+        PostStore.emitSelectedPostChange(action.from_search, action.from_flagged_posts);
         break;
     default:
     }

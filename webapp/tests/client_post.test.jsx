@@ -197,5 +197,38 @@ describe('Client.Posts', function() {
             );
         });
     });
+
+    it('getFlaggedPosts', function(done) {
+        TestHelper.initBasic(() => {
+            var pref = {};
+            pref.user_id = TestHelper.basicUser().id;
+            pref.category = 'flagged_post';
+            pref.name = TestHelper.basicPost().id;
+            pref.value = 'true';
+
+            var prefs = [];
+            prefs.push(pref);
+
+            TestHelper.basicClient().savePreferences(
+                prefs,
+                function() {
+                    TestHelper.basicClient().getFlaggedPosts(
+                        0,
+                        2,
+                        function(data) {
+                            assert.equal(data.order[0], TestHelper.basicPost().id);
+                            done();
+                        },
+                        function(err) {
+                            done(new Error(err.message));
+                        }
+                    );
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
 });
 

@@ -1434,6 +1434,15 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getPostsAfter', success, error));
     }
 
+    getFlaggedPosts(offset, limit, success, error) {
+        request.
+            get(`${this.getTeamNeededRoute()}/posts/flagged/${offset}/${limit}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getFlaggedPosts', success, error));
+    }
+
     // Routes for Files
 
     getFileInfo(filename, success, error) {

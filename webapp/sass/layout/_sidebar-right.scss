@@ -161,7 +161,7 @@
 
     .sidebar--right__subheader {
         font-size: 1em;
-        padding: 1em 1em 0;
+        padding: 0.5em 1em 0;
 
         h4 {
             font-size: 1em;
@@ -175,6 +175,13 @@
         li {
             font-size: .95em;
             padding-bottom: 10px;
+        }
+
+        .usage__icon {
+            @include opacity(.6);
+            margin: 0 3px;
+            position: relative;
+            top: 1px;
         }
     }
 

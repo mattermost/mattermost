@@ -43,6 +43,7 @@
         }
 
         &:last-child {
+            padding-right: 8px;
             width: 8.9%;
         }
     }
@@ -375,13 +376,31 @@
         font-size: 22px;
         height: 30px;
         line-height: 26px;
-        margin-right: 9px;
-        width: 24px;
+        margin-right: 3px;
+        text-align: center;
+        width: 30px;
+
+        th {
+            &:last-child {
+                div {
+                    margin-right: 10px;
+                }
+            }
+        }
 
         .channel__wrap.move--left & {
             position: absolute;
             right: -400px;
             top: 14px;
+        }
+
+        .icon__flag {
+            svg {
+                height: 18px;
+                position: relative;
+                top: 2px;
+                width: 19px;
+            }
         }
 
         > a {

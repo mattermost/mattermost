@@ -62,6 +62,7 @@ export default class RhsThread extends React.Component {
         state.windowHeight = Utils.windowHeight();
         state.profiles = JSON.parse(JSON.stringify(UserStore.getProfiles()));
         state.compactDisplay = PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT;
+        state.flaggedPosts = PreferenceStore.getCategory(Constants.Preferences.CATEGORY_FLAGGED_POST);
 
         this.state = state;
     }
@@ -121,6 +122,10 @@ export default class RhsThread extends React.Component {
             return true;
         }
 
+        if (!Utils.areObjectsEqual(nextState.flaggedPosts, this.state.flaggedPosts)) {
+            return true;
+        }
+
         if (!Utils.areObjectsEqual(nextState.profiles, this.state.profiles)) {
             return true;
         }
@@ -151,7 +156,8 @@ export default class RhsThread extends React.Component {
 
     onPreferenceChange() {
         this.setState({
-            compactDisplay: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT
+            compactDisplay: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT,
+            flaggedPosts: PreferenceStore.getCategory(Constants.Preferences.CATEGORY_FLAGGED_POST)
         });
         this.forceUpdateInfo();
     }
@@ -240,12 +246,18 @@ export default class RhsThread extends React.Component {
             profile = profiles[selected.user_id];
         }
 
+        let isRootFlagged = false;
+        if (this.state.flaggedPosts) {
+            isRootFlagged = this.state.flaggedPosts.get(selected.id) === 'true';
+        }
+
         return (
             <div className='post-right__container'>
                 <FileUploadOverlay overlayType='right'/>
                 <div className='search-bar__container sidebar--right__search-header'>{searchForm}</div>
                 <div className='sidebar-right__body'>
                     <RhsHeaderPost
+                        fromFlaggedPosts={this.props.fromFlaggedPosts}
                         fromSearch={this.props.fromSearch}
                         isMentionSearch={this.props.isMentionSearch}
                         toggleSize={this.props.toggleSize}
@@ -268,6 +280,7 @@ export default class RhsThread extends React.Component {
                                 currentUser={this.props.currentUser}
                                 compactDisplay={this.state.compactDisplay}
                                 useMilitaryTime={this.props.useMilitaryTime}
+                                isFlagged={isRootFlagged}
                             />
                             <div className='post-right-comments-container'>
                                 {postsArray.map((comPost) => {
@@ -276,6 +289,11 @@ export default class RhsThread extends React.Component {
                                         p = UserStore.getCurrentUser();
                                     } else {
                                         p = profiles[comPost.user_id];
+                                    }
+
+                                    let isFlagged = false;
+                                    if (this.state.flaggedPosts) {
+                                        isFlagged = this.state.flaggedPosts.get(comPost.id) === 'true';
                                     }
                                     return (
                                         <Comment
@@ -286,6 +304,7 @@ export default class RhsThread extends React.Component {
                                             currentUser={this.props.currentUser}
                                             compactDisplay={this.state.compactDisplay}
                                             useMilitaryTime={this.props.useMilitaryTime}
+                                            isFlagged={isFlagged}
                                         />
                                     );
                                 })}
@@ -311,6 +330,7 @@ RhsThread.defaultProps = {
 
 RhsThread.propTypes = {
     fromSearch: React.PropTypes.string,
+    fromFlaggedPosts: React.PropTypes.bool,
     isMentionSearch: React.PropTypes.bool,
     currentUser: React.PropTypes.object.isRequired,
     useMilitaryTime: React.PropTypes.bool.isRequired,

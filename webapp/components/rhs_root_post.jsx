@@ -1,19 +1,23 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import ChannelStore from 'stores/channel_store.jsx';
 import UserProfile from './user_profile.jsx';
+import PostBodyAdditionalContent from 'components/post_view/components/post_body_additional_content.jsx';
+import FileAttachmentList from './file_attachment_list.jsx';
+
+import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
-import * as TextFormatting from 'utils/text_formatting.jsx';
-import FileAttachmentList from './file_attachment_list.jsx';
-import PostBodyAdditionalContent from 'components/post_view/components/post_body_additional_content.jsx';
+
 import * as GlobalActions from 'actions/global_actions.jsx';
+import {flagPost, unflagPost} from 'actions/post_actions.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
+import * as TextFormatting from 'utils/text_formatting.jsx';
 
 import Constants from 'utils/constants.jsx';
+import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 
 import {FormattedMessage, FormattedDate} from 'react-intl';
 
@@ -24,19 +28,27 @@ export default class RhsRootPost extends React.Component {
         super(props);
 
         this.handlePermalink = this.handlePermalink.bind(this);
+        this.flagPost = this.flagPost.bind(this);
+        this.unflagPost = this.unflagPost.bind(this);
 
         this.state = {};
     }
+
     handlePermalink(e) {
         e.preventDefault();
         GlobalActions.showGetPostLinkModal(this.props.post);
     }
+
     shouldComponentUpdate(nextProps) {
         if (nextProps.compactDisplay !== this.props.compactDisplay) {
             return true;
         }
 
         if (nextProps.useMilitaryTime !== this.props.useMilitaryTime) {
+            return true;
+        }
+
+        if (nextProps.isFlagged !== this.props.isFlagged) {
             return true;
         }
 
@@ -50,6 +62,17 @@ export default class RhsRootPost extends React.Component {
 
         return false;
     }
+
+    flagPost(e) {
+        e.preventDefault();
+        flagPost(this.props.post.id);
+    }
+
+    unflagPost(e) {
+        e.preventDefault();
+        unflagPost(this.props.post.id);
+    }
+
     render() {
         const post = this.props.post;
         const user = this.props.user;
@@ -59,6 +82,7 @@ export default class RhsRootPost extends React.Component {
         const isSystemMessage = post.type && post.type.startsWith(Constants.SYSTEM_MESSAGE_PREFIX);
         var timestamp = UserStore.getProfile(post.user_id).update_at;
         var channel = ChannelStore.get(post.channel_id);
+        const flagIcon = Constants.FLAG_ICON_SVG;
 
         var type = 'Post';
         if (post.root_id.length > 0) {
@@ -90,6 +114,44 @@ export default class RhsRootPost extends React.Component {
         }
 
         var dropdownContents = [];
+
+        if (Utils.isMobile()) {
+            if (this.props.isFlagged) {
+                dropdownContents.push(
+                    <li
+                        key='mobileFlag'
+                        role='presentation'
+                    >
+                        <a
+                            href='#'
+                            onClick={this.unflagPost}
+                        >
+                            <FormattedMessage
+                                id='rhs_root.mobile.unflag'
+                                defaultMessage='Unflag'
+                            />
+                        </a>
+                    </li>
+                );
+            } else {
+                dropdownContents.push(
+                    <li
+                        key='mobileFlag'
+                        role='presentation'
+                    >
+                        <a
+                            href='#'
+                            onClick={this.flagPost}
+                        >
+                            <FormattedMessage
+                                id='rhs_root.mobile.flag'
+                                defaultMessage='Flag'
+                            />
+                        </a>
+                    </li>
+                );
+            }
+        }
 
         dropdownContents.push(
             <li
@@ -246,6 +308,44 @@ export default class RhsRootPost extends React.Component {
             />
         );
 
+        let flag;
+        let flagFunc;
+        let flagVisible = '';
+        let flagTooltip = (
+            <Tooltip id='flagTooltip'>
+                <FormattedMessage
+                    id='flag_post.flag'
+                    defaultMessage='Flag for follow up'
+                />
+            </Tooltip>
+        );
+        if (this.props.isFlagged) {
+            flagVisible = 'visible';
+            flag = (
+                <span
+                    className='icon'
+                    dangerouslySetInnerHTML={{__html: flagIcon}}
+                />
+            );
+            flagFunc = this.unflagPost;
+            flagTooltip = (
+                <Tooltip id='flagTooltip'>
+                    <FormattedMessage
+                        id='flag_post.unflag'
+                        defaultMessage='Unflag'
+                    />
+                </Tooltip>
+            );
+        } else {
+            flag = (
+                <span
+                    className='icon'
+                    dangerouslySetInnerHTML={{__html: flagIcon}}
+                />
+            );
+            flagFunc = this.flagPost;
+        }
+
         return (
             <div className={'post post--root post--thread ' + userCss + ' ' + systemMessageClass + ' ' + compactClass}>
                 <div className='post-right-channel__name'>{channelName}</div>
@@ -267,11 +367,23 @@ export default class RhsRootPost extends React.Component {
                                         minute='2-digit'
                                     />
                                 </time>
+                                <OverlayTrigger
+                                    key={'rootpostflagtooltipkey' + flagVisible}
+                                    delayShow={Constants.OVERLAY_TIME_DELAY}
+                                    placement='top'
+                                    overlay={flagTooltip}
+                                >
+                                    <a
+                                        href='#'
+                                        className={'flag-icon__container ' + flagVisible}
+                                        onClick={flagFunc}
+                                    >
+                                        {flag}
+                                    </a>
+                                </OverlayTrigger>
                             </li>
                             <li className='col col__reply'>
-                                <div>
-                                    {rootOptions}
-                                </div>
+                                {rootOptions}
                             </li>
                         </ul>
                         <div className='post__body'>
@@ -297,5 +409,6 @@ RhsRootPost.propTypes = {
     currentUser: React.PropTypes.object.isRequired,
     commentCount: React.PropTypes.number,
     compactDisplay: React.PropTypes.bool,
-    useMilitaryTime: React.PropTypes.bool.isRequired
+    useMilitaryTime: React.PropTypes.bool.isRequired,
+    isFlagged: React.PropTypes.bool
 };
