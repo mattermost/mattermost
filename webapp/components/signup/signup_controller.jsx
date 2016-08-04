@@ -24,12 +24,6 @@ export default class SignupController extends React.Component {
         super(props);
 
         this.state = {
-            emailEnabled: global.window.mm_config.EnableSignUpWithEmail === 'true',
-            gitlabEnabled: global.window.mm_config.EnableSignUpWithGitLab === 'true',
-            googleEnabled: global.window.mm_config.EnableSignUpWithGoogle === 'true',
-            office365Enabled: global.window.mm_config.EnableSignUpWithOffice365 === 'true',
-            ldapEnabled: global.window.mm_license.IsLicensed === 'true' && global.window.mm_config.EnableLdap === 'true',
-            samlEnabled: global.window.mm_license.IsLicensed === 'true' && global.window.mm_config.EnableSaml === 'true',
             teamName: '',
             serverError: '',
             noOpenServerError: false,
@@ -138,7 +132,7 @@ export default class SignupController extends React.Component {
 
         let signupControls = [];
 
-        if (this.state.emailEnabled) {
+        if (global.window.mm_config.EnableSignUpWithEmail === 'true') {
             signupControls.push(
                 <Link
                     className='btn btn-custom-login btn--full email'
@@ -157,7 +151,7 @@ export default class SignupController extends React.Component {
             );
         }
 
-        if (this.state.gitlabEnabled) {
+        if (global.window.mm_config.EnableSignUpWithGitLab === 'true') {
             signupControls.push(
                 <a
                     className='btn btn-custom-login btn--full gitlab'
@@ -175,7 +169,7 @@ export default class SignupController extends React.Component {
             );
         }
 
-        if (this.state.googleEnabled) {
+        if (global.window.mm_config.EnableSignUpWithGoogle === 'true') {
             signupControls.push(
                 <a
                     className='btn btn-custom-login btn--full google'
@@ -193,7 +187,7 @@ export default class SignupController extends React.Component {
             );
         }
 
-        if (this.state.office365Enabled) {
+        if (global.window.mm_config.EnableSignUpWithOffice365 === 'true') {
             signupControls.push(
                 <a
                     className='btn btn-custom-login btn--full office365'
@@ -211,7 +205,7 @@ export default class SignupController extends React.Component {
            );
         }
 
-        if (this.state.ldapEnabled) {
+        if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_config.EnableLdap === 'true') {
             signupControls.push(
                 <Link
                     className='btn btn-custom-login btn--full ldap'
@@ -229,7 +223,7 @@ export default class SignupController extends React.Component {
             );
         }
 
-        if (this.state.samlEnabled) {
+        if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_config.EnableSaml === 'true') {
             let query = '';
             if (window.location.search) {
                 query = '&action=signup';
