@@ -290,8 +290,9 @@
         }
     }
 
-    .search-help-popover.visible {
-        visibility: hidden;
+    .search-help-popover {
+        left: 55px;
+        max-width: calc(100% - 10px);
     }
 
     .modal-direct-channels {
