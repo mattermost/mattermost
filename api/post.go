@@ -751,7 +751,7 @@ func sendNotificationEmail(c *Context, post *model.Post, user *model.User, chann
 	subjectPage := utils.NewHTMLTemplate("post_subject", user.Locale)
 	subjectPage.Props["Subject"] = userLocale("api.templates.post_subject",
 		map[string]interface{}{"SubjectText": subjectText, "TeamDisplayName": team.DisplayName,
-			"Month": month[:3], "Day": day, "Year": year})
+			"Month": month, "Day": day, "Year": year})
 	subjectPage.Props["SiteName"] = utils.Cfg.TeamSettings.SiteName
 
 	bodyPage := utils.NewHTMLTemplate("post_body", user.Locale)
