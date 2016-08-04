@@ -1457,7 +1457,6 @@
   "signup.office365": "Office 365",
   "signup.gitlab": "GitLab Single-Sign-On",
   "signup.email": "Email and Password",
-  "signup.saml": "SAML Credentials",
   "signup_team.choose": "Your teams: ",
   "signup_team.createTeam": "Or Create a Team",
   "signup_team.disabled": "Team creation has been disabled.  Please contact an administrator for access.",
