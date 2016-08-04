@@ -230,20 +230,24 @@ export default class SignupController extends React.Component {
         }
 
         if (this.state.samlEnabled) {
+            let query = '';
+            if (window.location.search) {
+                query = '&action=signup';
+            } else {
+                query = '?action=signup';
+            }
+
             signupControls.push(
-                <Link
+                <a
                     className='btn btn-custom-login btn--full saml'
                     key='saml'
-                    to={'/login/sso/saml'}
+                    href={'/login/sso/saml' + window.location.search + query}
                 >
                     <span className='icon fa fa-lock fa--margin-top'/>
                     <span>
-                        <FormattedMessage
-                            id='signup.saml'
-                            defaultMessage='SAML Credentials'
-                        />
+                        {global.window.mm_config.SamlLoginButtonText}
                     </span>
-                </Link>
+                </a>
             );
         }
 
