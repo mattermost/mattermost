@@ -32,7 +32,7 @@ type WebConn struct {
 }
 
 func NewWebConn(c *Context, ws *websocket.Conn) *WebConn {
-	go SetStatusOnline(c.Session.UserId, c.Session.Id)
+	go SetStatusOnline(c.Session.UserId, c.Session.Id, false)
 
 	return &WebConn{
 		Send:                    make(chan model.WebSocketMessage, 64),
@@ -55,7 +55,7 @@ func (c *WebConn) readPump() {
 	c.WebSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
 	c.WebSocket.SetPongHandler(func(string) error {
 		c.WebSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
-		go SetStatusAwayIfNeeded(c.UserId)
+		go SetStatusAwayIfNeeded(c.UserId, false)
 		return nil
 	})
 

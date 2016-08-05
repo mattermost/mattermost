@@ -38,7 +38,7 @@ func (me *OnlineProvider) DoCommand(c *Context, channelId string, message string
 	if len(message) > 0 {
 		rmsg = message + " " + rmsg
 	}
-	SetStatusOnline(c.Session.UserId, c.Session.Id)
+	SetStatusOnline(c.Session.UserId, c.Session.Id, true)
 
 	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL, Text: rmsg}
 }

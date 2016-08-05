@@ -38,7 +38,7 @@ func (me *AwayProvider) DoCommand(c *Context, channelId string, message string) 
 	if len(message) > 0 {
 		rmsg = message + " " + rmsg
 	}
-	SetStatusAwayIfNeeded(c.Session.UserId)
+	SetStatusAwayIfNeeded(c.Session.UserId, true)
 
 	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL, Text: rmsg}
 }

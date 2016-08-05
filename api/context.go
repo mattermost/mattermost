@@ -207,7 +207,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.Err == nil && h.isUserActivity && token != "" && len(c.Session.UserId) > 0 {
-		SetStatusOnline(c.Session.UserId, c.Session.Id)
+		SetStatusOnline(c.Session.UserId, c.Session.Id, false)
 	}
 
 	if c.Err == nil {

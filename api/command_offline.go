@@ -36,7 +36,7 @@ func (me *OfflineProvider) DoCommand(c *Context, channelId string, message strin
 	if len(message) > 0 {
 		rmsg = message + " " + rmsg
 	}
-	SetStatusOffline(c.Session.UserId)
+	SetStatusOffline(c.Session.UserId, true)
 
 	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL, Text: rmsg}
 }

@@ -679,7 +679,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 			var status *model.Status
 			var err *model.AppError
 			if status, err = GetStatus(id); err != nil {
-				status = &model.Status{id, model.STATUS_OFFLINE, 0}
+				status = &model.Status{id, model.STATUS_OFFLINE, false, 0}
 			}
 
 			if userAllowsEmails && status.Status != model.STATUS_ONLINE {
