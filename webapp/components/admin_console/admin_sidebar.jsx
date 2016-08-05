@@ -323,6 +323,25 @@ export default class AdminSidebar extends React.Component {
             );
         }
 
+        let otherCategory = null;
+        if (license || audits) {
+            otherCategory = (
+                <AdminSidebarCategory
+                    parentLink='/admin_console'
+                    icon='fa-wrench'
+                    title={
+                        <FormattedMessage
+                            id='admin.sidebar.other'
+                            defaultMessage='OTHER'
+                        />
+                    }
+                >
+                    {license}
+                    {audits}
+                </AdminSidebarCategory>
+            );
+        }
+
         return (
             <div className='admin-sidebar'>
                 <AdminSidebarHeader/>
@@ -347,7 +366,6 @@ export default class AdminSidebar extends React.Component {
                                     />
                                 }
                             />
-                            {audits}
                             <AdminSidebarSection
                                 name='logs'
                                 title={
@@ -675,18 +693,7 @@ export default class AdminSidebar extends React.Component {
                             </AdminSidebarSection>
                         </AdminSidebarCategory>
                         {this.renderTeams()}
-                        <AdminSidebarCategory
-                            parentLink='/admin_console'
-                            icon='fa-wrench'
-                            title={
-                                <FormattedMessage
-                                    id='admin.sidebar.other'
-                                    defaultMessage='OTHER'
-                                />
-                            }
-                        >
-                            {license}
-                        </AdminSidebarCategory>
+                        {otherCategory}
                     </ul>
                 </div>
                 <SelectTeamModal
