@@ -4,7 +4,6 @@
 package api
 
 import (
-	//l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
 )
 
@@ -33,7 +32,6 @@ func (me *AwayProvider) GetCommand(c *Context) *model.Command {
 }
 
 func (me *AwayProvider) DoCommand(c *Context, channelId string, message string) *model.CommandResponse {
-	// TODO: set user away
 	rmsg := c.T("api.command_away.success")
 	if len(message) > 0 {
 		rmsg = message + " " + rmsg
