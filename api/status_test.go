@@ -83,7 +83,7 @@ func TestStatuses(t *testing.T) {
 		}
 	}
 
-	SetStatusAwayIfNeeded(th.BasicUser2.Id)
+	SetStatusAwayIfNeeded(th.BasicUser2.Id, false)
 
 	awayTimeout := *utils.Cfg.TeamSettings.UserStatusAwayTimeout
 	defer func() {
@@ -93,8 +93,8 @@ func TestStatuses(t *testing.T) {
 
 	time.Sleep(1500 * time.Millisecond)
 
-	SetStatusAwayIfNeeded(th.BasicUser2.Id)
-	SetStatusAwayIfNeeded(th.BasicUser2.Id)
+	SetStatusAwayIfNeeded(th.BasicUser2.Id, false)
+	SetStatusAwayIfNeeded(th.BasicUser2.Id, false)
 
 	WebSocketClient2.Close()
 	time.Sleep(300 * time.Millisecond)
