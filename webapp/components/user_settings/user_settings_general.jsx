@@ -27,7 +27,7 @@ const holders = defineMessages({
     },
     validEmail: {
         id: 'user.settings.general.validEmail',
-        defaultMessage: 'Please enter a valid email address'
+        defaultMessage: 'Please enter a valid email address.'
     },
     emailMatch: {
         id: 'user.settings.general.emailMatch',
