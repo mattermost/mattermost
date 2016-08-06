@@ -1096,7 +1096,7 @@
   "edit_post.save": "Save",
   "email_signup.address": "Email Address",
   "email_signup.createTeam": "Create Team",
-  "email_signup.emailError": "Please enter a valid email address",
+  "email_signup.emailError": "Please enter a valid email address.",
   "email_signup.find": "Find my teams",
   "email_verify.almost": "{siteName}: You are almost done",
   "email_verify.failed": " Failed to send verification email.",
