@@ -61,6 +61,14 @@ export function isIosWeb() {
     return isIosSafari() || isIosChrome();
 }
 
+export function isIos() {
+    return userAgent.indexOf('iPhone') !== -1;
+}
+
+export function isAndroid() {
+    return userAgent.indexOf('Android') !== -1;
+}
+
 export function isAndroidChrome() {
     return userAgent.indexOf('Android') !== -1 && userAgent.indexOf('Chrome') !== -1 && userAgent.indexOf('Version') === -1;
 }
@@ -70,7 +78,7 @@ export function isAndroidWeb() {
 }
 
 export function isMobileApp() {
-    return userAgent.indexOf('iPhone') !== -1 && userAgent.indexOf('Safari') === -1 && userAgent.indexOf('CriOS') === -1;
+    return isAndroid() || isIos();
 }
 
 export function isFirefox() {

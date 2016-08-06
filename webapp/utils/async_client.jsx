@@ -10,6 +10,7 @@ import ChannelStore from 'stores/channel_store.jsx';
 import PostStore from 'stores/post_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import * as utils from './utils.jsx';
+import * as UserAgent from './user_agent.jsx';
 import ErrorStore from 'stores/error_store.jsx';
 
 import Constants from './constants.jsx';
@@ -871,17 +872,19 @@ export function getSuggestedCommands(command, suggestionId, component) {
         (data) => {
             var matches = [];
             data.forEach((cmd) => {
-                if (('/' + cmd.trigger).indexOf(command) === 0) {
-                    const s = '/' + cmd.trigger;
-                    let hint = '';
-                    if (cmd.auto_complete_hint && cmd.auto_complete_hint.length !== 0) {
-                        hint = cmd.auto_complete_hint;
+                if (cmd.trigger !== 'shortcuts' || !UserAgent.isMobileApp()) {
+                    if (('/' + cmd.trigger).indexOf(command) === 0) {
+                        const s = '/' + cmd.trigger;
+                        let hint = '';
+                        if (cmd.auto_complete_hint && cmd.auto_complete_hint.length !== 0) {
+                            hint = cmd.auto_complete_hint;
+                        }
+                        matches.push({
+                            suggestion: s,
+                            hint,
+                            description: cmd.auto_complete_desc
+                        });
                     }
-                    matches.push({
-                        suggestion: s,
-                        hint,
-                        description: cmd.auto_complete_desc
-                    });
                 }
             });
 
