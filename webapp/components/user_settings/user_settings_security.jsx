@@ -30,7 +30,7 @@ const holders = defineMessages({
     },
     passwordMatchError: {
         id: 'user.settings.security.passwordMatchError',
-        defaultMessage: 'The new passwords you entered do not match'
+        defaultMessage: 'The new passwords you entered do not match.'
     },
     method: {
         id: 'user.settings.security.method',
