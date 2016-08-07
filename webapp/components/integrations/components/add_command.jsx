@@ -552,8 +552,8 @@ export default class AddCommand extends React.Component {
                                 htmlFor='autocomplete'
                             >
                                 <FormattedMessage
-                                    id='add_command.iconUrl'
-                                    defaultMessage='Response Icon'
+                                    id='add_command.autocomplete'
+                                    defaultMessage='Autocomplete'
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8 checkbox'>
