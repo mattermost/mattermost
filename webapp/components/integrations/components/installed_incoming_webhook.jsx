@@ -102,7 +102,7 @@ export default class InstalledIncomingWebhook extends React.Component {
                             />
                         </span>
                     </div>
-                    <div className='tem-details__row'>
+                    <div className='item-details__row'>
                         <span className='item-details__creation'>
                             <FormattedMessage
                                 id='installed_integrations.creation'

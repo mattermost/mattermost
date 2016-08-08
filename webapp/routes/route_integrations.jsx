@@ -77,6 +77,12 @@ export default {
                     }
                 }
             ]
+        },
+        {
+            path: 'confirm',
+            getComponents: (location, callback) => {
+                System.import('components/integrations/components/confirm_integration.jsx').then(RouteUtils.importComponentSuccess(callback));
+            }
         }
     ]
 };

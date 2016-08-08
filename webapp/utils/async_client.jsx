@@ -1254,7 +1254,7 @@ export function addIncomingHook(hook, success, error) {
             });
 
             if (success) {
-                success();
+                success(data);
             }
         },
         (err) => {
@@ -1277,7 +1277,7 @@ export function addOutgoingHook(hook, success, error) {
             });
 
             if (success) {
-                success();
+                success(data);
             }
         },
         (err) => {
@@ -1371,7 +1371,7 @@ export function addCommand(command, success, error) {
             });
 
             if (success) {
-                success();
+                success(data);
             }
         },
         (err) => {
