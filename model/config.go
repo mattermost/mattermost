@@ -1001,7 +1001,7 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if *o.SamlSettings.Enable {
-		if len(*o.SamlSettings.IdpUrl) == 0 || !IsValidHttpUrl(*o.SamlSettings.IdpDescriptorUrl) {
+		if len(*o.SamlSettings.IdpUrl) == 0 || !IsValidHttpUrl(*o.SamlSettings.IdpUrl) {
 			return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_idp_url.app_error", nil, "")
 		}
 
