@@ -28,6 +28,7 @@ export default class ConfigurationSettings extends AdminSettings {
     }
 
     getConfigFromState(config) {
+        config.ServiceSettings.SiteURL = this.state.siteURL;
         config.ServiceSettings.ListenAddress = this.state.listenAddress;
         config.ServiceSettings.WebserverMode = this.state.webserverMode;
 
@@ -36,6 +37,7 @@ export default class ConfigurationSettings extends AdminSettings {
 
     getStateFromConfig(config) {
         return {
+            siteURL: config.ServiceSettings.SiteURL,
             listenAddress: config.ServiceSettings.ListenAddress,
             webserverMode: config.ServiceSettings.WebserverMode
         };
@@ -55,6 +57,24 @@ export default class ConfigurationSettings extends AdminSettings {
     renderSettings() {
         return (
             <SettingsGroup>
+                <TextSetting
+                    id='siteURL'
+                    label={
+                        <FormattedMessage
+                            id='admin.service.siteURL'
+                            defaultMessage='Site URL:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.service.siteURLExample', 'Ex "https://mattermost.example.com:1234"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.service.siteURLDescription'
+                            defaultMessage='The URL, including port number and protocol, from which users will access Mattermost. Leave blank to automatically configure based on incoming traffic.'
+                        />
+                    }
+                    value={this.state.siteURL}
+                    onChange={this.handleChange}
+                />
                 <TextSetting
                     id='listenAddress'
                     label={
