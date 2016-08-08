@@ -393,7 +393,7 @@ class NotificationsTab extends React.Component {
 
         return (
             <SettingItemMin
-                title={Utils.localizeMessage('user.settings.notification.push', 'Mobile push notifications')}
+                title={Utils.localizeMessage('user.settings.notifications.push', 'Mobile push notifications')}
                 describe={describe}
                 updateSection={handleUpdateDesktopSection}
             />
@@ -430,7 +430,7 @@ class NotificationsTab extends React.Component {
                                 onChange={this.handleNotifyRadio.bind(this, 'all')}
                             />
                             <FormattedMessage
-                                id='user.settings.notification.allActivity'
+                                id='user.settings.notifications.allActivity'
                                 defaultMessage='For all activity'
                             />
                         </label>
@@ -596,7 +596,7 @@ class NotificationsTab extends React.Component {
             if (!this.state.soundNeeded) {
                 describe = (
                     <FormattedMessage
-                        id='user.settings.notification.soundConfig'
+                        id='user.settings.notifications.soundConfig'
                         defaultMessage='Please configure notification sounds in your browser settings'
                     />
                 );

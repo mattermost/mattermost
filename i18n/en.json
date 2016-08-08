@@ -4708,12 +4708,12 @@
     "translation": "Cluster ping successful with hostname=%v on=%v with id=%v self=%v"
   },
   {
-    "id": "ent.cluster.incompatibile.warn",
-    "translation": "Potential incompatibile version detected for clustering with %v"
+    "id": "ent.cluster.incompatible.warn",
+    "translation": "Potential incompatible version detected for clustering with %v"
   },
   {
-    "id": "ent.cluster.incompatibile_config.warn",
-    "translation": "Potential incompatibile config detected for clustering with %v"
+    "id": "ent.cluster.incompatible_config.warn",
+    "translation": "Potential incompatible config detected for clustering with %v"
   },
   {
     "id": "ent.cluster.debug_fail.debug",
