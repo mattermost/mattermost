@@ -870,10 +870,6 @@ func (o *Config) IsValid() *AppError {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.listen_address.app_error", nil, "")
 	}
 
-	if len(o.ServiceSettings.ListenAddress) == 0 {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.listen_address.app_error", nil, "")
-	}
-
 	if o.TeamSettings.MaxUsersPerTeam <= 0 {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.max_users.app_error", nil, "")
 	}

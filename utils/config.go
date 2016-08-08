@@ -186,7 +186,7 @@ func LoadConfig(fileName string) {
 
 	Cfg = &config
 	CfgHash = fmt.Sprintf("%x", md5.Sum([]byte(Cfg.ToJson())))
-	RegenerateClientConfig()
+	ClientCfg = getClientConfig(Cfg)
 
 	// Actions that need to run every time the config is loaded
 	if ldapI := einterfaces.GetLdapInterface(); ldapI != nil {
@@ -197,10 +197,6 @@ func LoadConfig(fileName string) {
 	if samlI := einterfaces.GetSamlInterface(); samlI != nil {
 		samlI.ConfigureSP()
 	}
-}
-
-func RegenerateClientConfig() {
-	ClientCfg = getClientConfig(Cfg)
 }
 
 func getClientConfig(c *model.Config) map[string]string {

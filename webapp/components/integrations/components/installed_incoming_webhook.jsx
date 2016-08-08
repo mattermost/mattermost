@@ -97,7 +97,7 @@ export default class InstalledIncomingWebhook extends React.Component {
                                 id='installed_integrations.url'
                                 defaultMessage='URL: {url}'
                                 values={{
-                                    url: window.mm_config.SiteURL + '/hooks/' + incomingWebhook.id
+                                    url: Utils.getSiteURL() + '/hooks/' + incomingWebhook.id
                                 }}
                             />
                         </span>
