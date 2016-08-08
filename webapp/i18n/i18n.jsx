@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 const de = require('!!file?name=i18n/[name].[hash].[ext]!./de.json');
+const en = require('!!file?name=i18n/[name].[hash].[ext]!./en.json');
 const es = require('!!file?name=i18n/[name].[hash].[ext]!./es.json');
 const fr = require('!!file?name=i18n/[name].[hash].[ext]!./fr.json');
 const ja = require('!!file?name=i18n/[name].[hash].[ext]!./ja.json');
@@ -32,7 +33,7 @@ const languages = {
     en: {
         value: 'en',
         name: 'English',
-        url: ''
+        url: en
     },
     es: {
         value: 'es',
