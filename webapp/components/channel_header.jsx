@@ -224,7 +224,7 @@ export default class ChannelHeader extends React.Component {
     }
 
     render() {
-        const flagIcon = Constants.FLAG_ICON_OUTLINE_SVG;
+        const flagIcon = Constants.FLAG_ICON_SVG;
 
         if (!this.validState()) {
             return null;
