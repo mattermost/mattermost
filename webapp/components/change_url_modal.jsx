@@ -119,16 +119,20 @@ export default class ChangeUrlModal extends React.Component {
     }
     render() {
         let urlClass = 'input-group input-group--limit';
-        let urlError = null;
-        let serverError = null;
+        let error = null;
 
         if (this.state.urlError) {
             urlClass += ' has-error';
-            urlError = (<p className='input__help error'>{this.state.urlError}</p>);
         }
 
-        if (this.props.serverError) {
-            serverError = <div className='form-group has-error'><p className='input__help error'>{this.props.serverError}</p></div>;
+        if (this.props.serverError || this.state.urlError) {
+            error = (
+                <div className='form-group has-error'>
+                    <p className='input__help error'>
+                        {this.state.urlError || this.props.serverError}
+                    </p>
+                </div>
+            );
         }
 
         const fullTeamUrl = TeamStore.getCurrentTeamUrl();
@@ -173,8 +177,7 @@ export default class ChangeUrlModal extends React.Component {
                                         tabIndex='1'
                                     />
                                 </div>
-                                {urlError}
-                                {serverError}
+                                {error}
                             </div>
                         </div>
                     </Modal.Body>
@@ -211,7 +214,7 @@ ChangeUrlModal.defaultProps = {
     urlLabel: 'URL',
     submitButtonText: 'Save',
     currentURL: '',
-    serverError: ''
+    serverError: null
 };
 
 ChangeUrlModal.propTypes = {
@@ -221,7 +224,7 @@ ChangeUrlModal.propTypes = {
     urlLabel: React.PropTypes.string,
     submitButtonText: React.PropTypes.string,
     currentURL: React.PropTypes.string,
-    serverError: React.PropTypes.string,
+    serverError: React.PropTypes.node,
     onModalSubmit: React.PropTypes.func.isRequired,
     onModalDismissed: React.PropTypes.func.isRequired
 };

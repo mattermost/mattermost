@@ -372,14 +372,14 @@ class NewChannelModal extends React.Component {
 NewChannelModal.defaultProps = {
     show: false,
     channelType: 'O',
-    serverError: ''
+    serverError: null
 };
 NewChannelModal.propTypes = {
     intl: intlShape.isRequired,
     show: React.PropTypes.bool.isRequired,
     channelType: React.PropTypes.string.isRequired,
     channelData: React.PropTypes.object.isRequired,
-    serverError: React.PropTypes.string,
+    serverError: React.PropTypes.node,
     onSubmitChannel: React.PropTypes.func.isRequired,
     onModalDismissed: React.PropTypes.func.isRequired,
     onTypeSwitched: React.PropTypes.func.isRequired,
