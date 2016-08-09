@@ -1338,3 +1338,7 @@ export function isValidPassword(password) {
 
     return errorMsg;
 }
+
+export function getSiteURL() {
+    return global.mm_config.SiteURL || window.location.origin;
+}
