@@ -4,9 +4,10 @@
 package store
 
 import (
+	"time"
+
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
-	"time"
 )
 
 type StoreResult struct {
@@ -207,6 +208,7 @@ type SystemStore interface {
 	Update(system *model.System) StoreChannel
 	Get() StoreChannel
 	GetByName(name string) StoreChannel
+	GetVersion() StoreChannel
 }
 
 type WebhookStore interface {

@@ -4,8 +4,10 @@
 package store
 
 import (
-	"github.com/mattermost/platform/model"
+	"strings"
 	"testing"
+
+	"github.com/mattermost/platform/model"
 )
 
 func TestSqlSystemStore(t *testing.T) {
@@ -34,6 +36,12 @@ func TestSqlSystemStore(t *testing.T) {
 	result3 := <-store.System().GetByName(system.Name)
 	rsystem := result3.Data.(*model.System)
 	if rsystem.Value != system.Value {
+		t.Fatal()
+	}
+
+	result4 := <-store.System().GetVersion()
+	rversion := result4.Data.(string)
+	if !strings.Contains(rversion, ".") {
 		t.Fatal()
 	}
 }

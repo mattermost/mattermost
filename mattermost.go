@@ -282,6 +282,53 @@ func doSecurityAndDiagnostics() {
 			}
 		}
 	}
+
+	if *utils.Cfg.LogSettings.EnableDiagnostics {
+		utils.SendGeneralDiagnostics()
+		sendServerDiagnostics()
+	}
+}
+
+func sendServerDiagnostics() {
+	var userCount int64
+	var activeUserCount int64
+	var teamCount int64
+
+	if ucr := <-api.Srv.Store.User().GetTotalUsersCount(); ucr.Err == nil {
+		userCount = ucr.Data.(int64)
+	}
+
+	if ucr := <-api.Srv.Store.Status().GetTotalActiveUsersCount(); ucr.Err == nil {
+		activeUserCount = ucr.Data.(int64)
+	}
+
+	if tcr := <-api.Srv.Store.Team().AnalyticsTeamCount(); tcr.Err == nil {
+		teamCount = tcr.Data.(int64)
+	}
+
+	utils.SendDiagnostic(utils.TRACK_ACTIVITY, map[string]interface{}{
+		"users":        userCount,
+		"active_users": activeUserCount,
+		"teams":        teamCount,
+	})
+
+	edition := model.BuildEnterpriseReady
+	version := model.CurrentVersion
+	database := utils.Cfg.SqlSettings.DriverName
+	databaseVersion := ""
+	operatingSystem := runtime.GOOS
+
+	if dbr := <-api.Srv.Store.System().GetVersion(); dbr.Err == nil {
+		databaseVersion = dbr.Data.(string)
+	}
+
+	utils.SendDiagnostic(utils.TRACK_VERSION, map[string]interface{}{
+		"edition":          edition,
+		"version":          version,
+		"database":         database,
+		"database_version": databaseVersion,
+		"operating_system": operatingSystem,
+	})
 }
 
 func runSecurityAndDiagnosticsJob() {

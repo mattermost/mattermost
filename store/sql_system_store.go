@@ -135,3 +135,23 @@ func (s SqlSystemStore) GetByName(name string) StoreChannel {
 
 	return storeChannel
 }
+
+func (s SqlSystemStore) GetVersion() StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var version string
+		if _, err := s.GetMaster().Select(&result, "SELECT VERSION();"); err != nil {
+			result.Err = model.NewLocAppError("SqlSystemStore.GetVersion", "store.sql_system.get_version.app_error", nil, "")
+		}
+
+		result.Data = &version
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
