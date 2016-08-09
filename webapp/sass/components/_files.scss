@@ -134,6 +134,16 @@
     }
 }
 
+.pdf-preview-spacer {
+    height: 5px;
+}
+
+.pdf-max-pages {
+    height: 50px;
+    background: white;
+    margin-top: 5px;
+}
+
 .post-image__column {
     border: 1px solid alpha-color($black, .2);
     float: left;
