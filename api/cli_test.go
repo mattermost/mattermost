@@ -400,17 +400,19 @@ func TestCliCreateChannel(t *testing.T) {
 	id := model.NewId()
 	name := "name" + id
 
+	// should fail because channel does not have license
 	cmd := exec.Command("bash", "-c", `go run ../mattermost.go -create_channel -email="`+th.BasicUser.Email+`" -team_name="`+th.BasicTeam.Name+`" -channel_type="O" -channel_name="`+name+`"`)
 	output, err := cmd.CombinedOutput()
-	if err != nil {
+	if err == nil {
 		t.Log(string(output))
 		t.Fatal()
 	}
 
+	// should fail because channel does not have license
 	name = name + "-private"
 	cmd2 := exec.Command("bash", "-c", `go run ../mattermost.go -create_channel -email="`+th.BasicUser.Email+`" -team_name="`+th.BasicTeam.Name+`" -channel_type="P" -channel_name="`+name+`"`)
 	output2, err2 := cmd2.CombinedOutput()
-	if err2 != nil {
+	if err2 == nil {
 		t.Log(string(output2))
 		t.Fatal()
 	}

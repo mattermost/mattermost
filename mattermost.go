@@ -979,6 +979,12 @@ func cmdCreateChannel() {
 			os.Exit(1)
 		}
 
+		if !utils.IsLicensed {
+			fmt.Fprintln(os.Stderr, utils.T("cli.license.critical"))
+			flag.Usage()
+			os.Exit(1)
+		}
+
 		var team *model.Team
 		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
 			l4g.Error("%v %v", utils.T(result.Err.Message), result.Err.DetailedError)
