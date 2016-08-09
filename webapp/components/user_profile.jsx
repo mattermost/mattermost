@@ -79,6 +79,24 @@ export default class UserProfile extends React.Component {
             />
         );
 
+        let fullname = Utils.getFullName(this.props.user);
+        if (fullname) {
+            dataContent.push(
+                <div
+                    data-toggle='tooltip'
+                    title={fullname}
+                    key='user-popover-fullname'
+                >
+
+                    <p
+                        className='text-nowrap'
+                    >
+                        {fullname}
+                    </p>
+                </div>
+            );
+        }
+
         if (global.window.mm_config.ShowEmailAddress === 'true' || UserStore.isSystemAdminForCurrentUser() || this.props.user === UserStore.getCurrentUser()) {
             dataContent.push(
                 <div
@@ -103,7 +121,7 @@ export default class UserProfile extends React.Component {
                 rootClose={true}
                 overlay={
                     <Popover
-                        title={name}
+                        title={'@' + this.props.user.username}
                         id='user-profile-popover'
                     >
                         {dataContent}
