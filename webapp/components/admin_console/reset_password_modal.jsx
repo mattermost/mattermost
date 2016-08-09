@@ -3,17 +3,10 @@
 
 import ReactDOM from 'react-dom';
 import Client from 'client/web_client.jsx';
-import Constants from 'utils/constants.jsx';
+import * as Utils from 'utils/utils.jsx';
 import {Modal} from 'react-bootstrap';
 
-import {injectIntl, intlShape, defineMessages, FormattedMessage} from 'react-intl';
-
-var holders = defineMessages({
-    submit: {
-        id: 'admin.reset_password.submit',
-        defaultMessage: 'Please enter at least {chars} characters.'
-    }
-});
+import {injectIntl, intlShape, FormattedMessage} from 'react-intl';
 
 import React from 'react';
 
@@ -31,13 +24,13 @@ class ResetPasswordModal extends React.Component {
 
     doSubmit(e) {
         e.preventDefault();
-        var password = ReactDOM.findDOMNode(this.refs.password).value;
+        const password = this.refs.password.value;
 
-        if (!password || password.length < Constants.MIN_PASSWORD_LENGTH) {
-            this.setState({serverError: this.props.intl.formatMessage(holders.submit, {chars: Constants.MIN_PASSWORD_LENGTH})});
+        const passwordErr = Utils.isValidPassword(password);
+        if (passwordErr) {
+            this.setState({serverError: passwordErr});
             return;
         }
-
         this.setState({serverError: null});
 
         Client.adminResetPassword(
