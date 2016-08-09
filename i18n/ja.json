@@ -105,7 +105,7 @@
   },
   {
     "id": "api.admin.test_email.reenter_password",
-    "translation": "The SMTP server, port, or username has changed. Please re-enter the SMTP password to test connection."
+    "translation": "SMTPのサーバー名、ポート、ユーザー名のいずれかが変更されました。SMTPのパスワードを再度入力し、接続のテストをしてください。"
   },
   {
     "id": "api.admin.test_email.subject",
@@ -181,11 +181,11 @@
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
-    "translation": "プライベートグループの作成と管理は、システム管理者しかできません。"
+    "translation": "非公開グループの作成と管理は、システム管理者しかできません。"
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
-    "translation": "プライベートグループの作成と管理は、チーム管理者かシステム管理者しかできません。"
+    "translation": "非公開グループの作成と管理は、チーム管理者かシステム管理者しかできません。"
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
@@ -289,7 +289,7 @@
   },
   {
     "id": "api.channel.leave.last_member.app_error",
-    "translation": "あなたが最後のメンバーです。脱退する代わりにプライベートグループを削除しましょう。"
+    "translation": "あなたが最後のメンバーです。脱退する代わりに非公開グループを削除しましょう。"
   },
   {
     "id": "api.channel.leave.left",
@@ -561,11 +561,11 @@
   },
   {
     "id": "api.command_shortcuts.list",
-    "translation": "### キーボードショートカット\n\n#### 移動\n\nALT+UP: 左側のサイドバーの前のチャンネルまたはダイレクトメッセージ\nALT+DOWN: 左側のサイドバーの次のチャンネルまたはダイレクトメッセージ\nALT+SHIFT+UP: 未読のメッセージのある左側のサイドバーの前のチャンネルまたはダイレクトメッセージ\nALT+SHIFT+DOWN: 未読のメッセージのある左側のサイドバーの次のチャンネルまたはダイレクトメッセージ\nCTRL/CMD+SHIFT+K: 簡易チャンネル変更ダイアログボックスを開く\nCTRL/CMD+SHIFT+A: アカウント設定を開く\nCTRL/CMD+SHIFT+M: 最近のあなたについての投稿を開く\n\n#### ファイル\n\nCTRL/CMD+U: ファイルをアップロードする\n\n#### メッセージ\n\nCTRL/CMD+UP (空の入力欄で): 前のメッセージまたはスラッシュコマンドを表示する\nCTRL/CMD+DOWN (空の入力欄で): 次のメッセージまたはスラッシュコマンドを表示する\nUP (空の入力欄で): 現在のチャンネルの最新のメッセージを編集する\n@[文字]+TAB: [文字]で始まる@usernameを補完する\n:[文字]+TAB: [文字]で始まる絵文字を補完する\n\n#### ブラウザー内蔵のコマンド\n\nALT+LEFT/CMD+[: 履歴の前のチャンネル\nALT+RIGHT/CMD+]: 履歴の次のチャンネル\nCTRL/CMD+PLUS: フォントサイズを大きくする (ズームイン)\nCTRL/CMD+MINUS: フォントサイズを小さくする (ズームアウト)\nSHIFT+UP (入力欄で): 前の行を反転させる\nSHIFT+DOWN (入力欄で): 次の行を反転させる\nSHIFT+ENTER (入力欄で): 改行する\n"
+    "translation": "### キーボードショートカット\n\n#### 移動\n\nALT+UP: 左側のサイドバーの前のチャンネルまたはダイレクトメッセージ\nALT+DOWN: 左側のサイドバーの次のチャンネルまたはダイレクトメッセージ\nALT+SHIFT+UP: 未読のメッセージのある左側のサイドバーの前のチャンネルまたはダイレクトメッセージ\nALT+SHIFT+DOWN: 未読のメッセージのある左側のサイドバーの次のチャンネルまたはダイレクトメッセージ\nCTRL+K: 簡易チャンネル変更ダイアログボックスを開く\nCTRL+SHIFT+A: アカウント設定を開く\nCTRL+SHIFT+M: 最近のあなたについての投稿を開く\n\n#### ファイル\n\nCTRL+U: ファイルをアップロードする\n\n#### メッセージ\n\nESC: 現在のチャンネルのすべてのメッセージを既読にする\nCTRL+UP (空の入力欄で): あなたが入力した前のメッセージまたはスラッシュコマンドを表示する\nCTRL+DOWN (空の入力欄で): あなたが入力した次のメッセージまたはスラッシュコマンドを表示する\nUP (空の入力欄で): 現在のチャンネルの最新のメッセージを編集する\n@[文字]+TAB: [文字]で始まる@usernameを補完する\n:[文字]+TAB: [文字]で始まる絵文字を補完する\n\n#### ブラウザー内蔵のコマンド\n\nALT+LEFT: 履歴の前のチャンネル\nALT+RIGHT: 履歴の次のチャンネル\nCTRL+PLUS: フォントサイズを大きくする (ズームイン)\nCTRL+MINUS: フォントサイズを小さくする (ズームアウト)\nSHIFT+UP (入力欄で): 前の行を反転させる\nSHIFT+DOWN (入力欄で): 次の行を反転させる\nSHIFT+ENTER (入力欄で): 改行する\n"
   },
   {
     "id": "api.command_shortcuts.list_mac",
-    "translation": "### キーボードショートカット\n\n#### 移動\n\nALT+UP: 左側のサイドバーの前のチャンネルまたはダイレクトメッセージ\nALT+DOWN: 左側のサイドバーの次のチャンネルまたはダイレクトメッセージ\nALT+SHIFT+UP: 未読のメッセージのある左側のサイドバーの前のチャンネルまたはダイレクトメッセージ\nALT+SHIFT+DOWN: 未読のメッセージのある左側のサイドバーの次のチャンネルまたはダイレクトメッセージ\nCTRL/CMD+SHIFT+K: 簡易チャンネル変更ダイアログボックスを開く\nCTRL/CMD+SHIFT+A: アカウント設定を開く\nCTRL/CMD+SHIFT+M: 最近のあなたについての投稿を開く\n\n#### ファイル\n\nCTRL/CMD+U: ファイルをアップロードする\n\n#### メッセージ\n\nCTRL/CMD+UP (空の入力欄で): 前のメッセージまたはスラッシュコマンドを表示する\nCTRL/CMD+DOWN (空の入力欄で): 次のメッセージまたはスラッシュコマンドを表示する\nUP (空の入力欄で): 現在のチャンネルの最新のメッセージを編集する\n@[文字]+TAB: [文字]で始まる@usernameを補完する\n:[文字]+TAB: [文字]で始まる絵文字を補完する\n\n#### ブラウザー内蔵のコマンド\n\nALT+LEFT/CMD+[: 履歴の前のチャンネル\nALT+RIGHT/CMD+]: 履歴の次のチャンネル\nCTRL/CMD+PLUS: フォントサイズを大きくする (ズームイン)\nCTRL/CMD+MINUS: フォントサイズを小さくする (ズームアウト)\nSHIFT+UP (入力欄で): 前の行を反転させる\nSHIFT+DOWN (入力欄で): 次の行を反転させる\nSHIFT+ENTER (入力欄で): 改行する\n"
+    "translation": "### キーボードショートカット\n\n#### 移動\n\nALT+UP: 左側のサイドバーの前のチャンネルまたはダイレクトメッセージ\nALT+DOWN: 左側のサイドバーの次のチャンネルまたはダイレクトメッセージ\nALT+SHIFT+UP: 未読のメッセージのある左側のサイドバーの前のチャンネルまたはダイレクトメッセージ\nALT+SHIFT+DOWN: 未読のメッセージのある左側のサイドバーの次のチャンネルまたはダイレクトメッセージ\nCMD+K: 簡易チャンネル変更ダイアログボックスを開く\nCMD+SHIFT+A: アカウント設定を開く\nCMD+SHIFT+M: 最近のあなたについての投稿を開く\n\n#### ファイル\n\nCMD+U: ファイルをアップロードする\n\n#### メッセージ\n\nESC: 現在のチャンネルのすべてのメッセージを既読にする\nCMD+UP (空の入力欄で): あなたが入力した前のメッセージまたはスラッシュコマンドを表示する\nCMD+DOWN (空の入力欄で): あなたが入力した次のメッセージまたはスラッシュコマンドを表示する\nUP (空の入力欄で): 現在のチャンネルの最新のメッセージを編集する\n@[文字]+TAB: [文字]で始まる@usernameを補完する\n:[文字]+TAB: [文字]で始まる絵文字を補完する\n\n#### ブラウザー内蔵のコマンド\n\nCMD+[: 履歴の前のチャンネル\nCMD+]: 履歴の次のチャンネル\nCMD+PLUS: フォントサイズを大きくする (ズームイン)\nCMD+MINUS: フォントサイズを小さくする (ズームアウト)\nSHIFT+UP (入力欄で): 前の行を反転させる\nSHIFT+DOWN (入力欄で): 次の行を反転させる\nSHIFT+ENTER (入力欄で): 改行する\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -889,7 +889,75 @@
   },
   {
     "id": "api.oauth.allow_oauth.turn_off.app_error",
-    "translation": "システム管理者はOAuthサービスを無効にしています。"
+    "translation": "システム管理者はOAuth2サービスプロバイダーを無効にしています。"
+  },
+  {
+    "id": "api.oauth.authorize_oauth.disabled.app_error",
+    "translation": "システム管理者はOAuth2サービスプロバイダーを無効にしています。"
+  },
+  {
+    "id": "api.oauth.authorize_oauth.missing.app_error",
+    "translation": "response_type、client_id、redirect_uriのうち１つ以上が不足しています"
+  },
+  {
+    "id": "api.oauth.delete.permissions.app_error",
+    "translation": "OAuth2アプリケーションの削除に必要な権限が付与されていません"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_client_id.app_error",
+    "translation": "不正なリクエスト: client_idが不正です"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
+    "translation": "不正なリクエスト: client_secretが存在しません"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_grant.app_error",
+    "translation": "不正なリクエスト: grant_typeが不正です"
+  },
+  {
+    "id": "api.oauth.get_access_token.credentials.app_error",
+    "translation": "不正なクライアント: 不正なクライアント認証情報です"
+  },
+  {
+    "id": "api.oauth.get_access_token.disabled.app_error",
+    "translation": "システム管理者はOAuth2サービスプロバイダーを無効にしています。"
+  },
+  {
+    "id": "api.oauth.get_access_token.expired_code.app_error",
+    "translation": "不正な権限付与: 不正あるいは期限切れの認証コードです"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal.app_error",
+    "translation": "サーバーエラー: データベースへアクセス中にサーバー内部エラーが発生しました"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_saving.app_error",
+    "translation": "サーバーエラー: データベースへアクセストークンを保存中にサーバー内部エラーが発生しました"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_session.app_error",
+    "translation": "サーバーエラー: データベースへセッションを保存中にサーバー内部エラーが発生しました"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_user.app_error",
+    "translation": "サーバーエラー: データベースからユーザーを取得中にサーバー内部エラーが発生しました"
+  },
+  {
+    "id": "api.oauth.get_access_token.missing_code.app_error",
+    "translation": "不正なリクエスト: コードが存在しません"
+  },
+  {
+    "id": "api.oauth.get_access_token.missing_refresh_token.app_error",
+    "translation": "不正なリクエスト: refresh_tokenが存在しません"
+  },
+  {
+    "id": "api.oauth.get_access_token.redirect_uri.app_error",
+    "translation": "不正なリクエスト: 指定されたredirect_uriが認証コードのredirect_uriと一致しません"
+  },
+  {
+    "id": "api.oauth.get_access_token.refresh_token.app_error",
+    "translation": "不正な権限付与: 不正なリフレッシュトークンです"
   },
   {
     "id": "api.oauth.get_auth_data.find.error",
@@ -901,11 +969,7 @@
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
-    "translation": "システム管理者はOAuthサービスを無効にしています。"
-  },
-  {
-    "id": "api.oauth.revoke_access_token.del_code.app_error",
-    "translation": "データベースから認証コードを削除できませんでした"
+    "translation": "システム管理者はOAuth2サービスプロバイダーを無効にしています。"
   },
   {
     "id": "api.oauth.revoke_access_token.del_session.app_error",
@@ -918,6 +982,18 @@
   {
     "id": "api.oauth.revoke_access_token.get.app_error",
     "translation": "削除前にデータベースからアクセストークンを取得できませんでした"
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "translation": "ユーザーの利用登録は無効化されています。"
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "translation": "利用登録リンクは有効期限が切れています"
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "translation": "利用登録リンクが不正です"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
@@ -1021,7 +1097,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
-    "translation": "Failed to retrieve comment thread posts in notifications root_post_id=%v, err=%v"
+    "translation": "通知内のコメントスレッドの投稿を取得できませんでした root_post_id=%v、err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.mention_body",
@@ -1081,7 +1157,7 @@
   },
   {
     "id": "api.post.update_mention_count_and_forget.update_error",
-    "translation": "あなたについての投稿を数えるのに失敗しました user_id=%v on channel_id=%v err=%v"
+    "translation": "あなたについての投稿数を更新できませんでした post_id=%v on channel_id=%v err=%v"
   },
   {
     "id": "api.post.update_post.find.app_error",
@@ -1169,7 +1245,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\r\n チャネルが追加されました \r\n"
+    "translation": "\r\n チャンネルが追加されました \r\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.failed_to_add_user",
@@ -1253,7 +1329,7 @@
   },
   {
     "id": "api.status.init.debug",
-    "translation": "POST APIルートを初期化しています"
+    "translation": "状態APIルートを初期化しています"
   },
   {
     "id": "api.status.last_activity.error",
@@ -1261,7 +1337,7 @@
   },
   {
     "id": "api.status.save_status.error",
-    "translation": "user_id=%vのLastPingAtを更新できませんでした err=%v"
+    "translation": "状態を保存できませんでした user_id=%v、err=%v"
   },
   {
     "id": "api.team.create_team.email_disabled.app_error",
@@ -1669,7 +1745,7 @@
   },
   {
     "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-    "translation": "{{.Service}} SSO through OAuth 2.0 not available on this server"
+    "translation": "このサーバーではOAuth 2.0を利用した{{.Service}}のシングルサインオンは利用できません。"
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
@@ -1685,7 +1761,7 @@
   },
   {
     "id": "api.user.create_oauth_user.not_available.app_error",
-    "translation": "{{.Service}} SSO through OAuth 2.0 not available on this server"
+    "translation": "このサーバーではOAuth 2.0を利用した{{.Service}}のシングルサインオンは利用できません。"
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
@@ -1797,7 +1873,7 @@
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
-    "translation": "{{.Service}} SSO through OAuth 2.0 not available on this server"
+    "translation": "このサーバーではOAuth 2.0を利用した{{.Service}}のシングルサインオンは利用できません。"
   },
   {
     "id": "api.user.login_by_oauth.parse.app_error",
@@ -2021,7 +2097,7 @@
   },
   {
     "id": "api.web_socket_router.log.error",
-    "translation": "websocket routing error: seq=%v uid=%v %v [details: %v]"
+    "translation": "ウェブソケットルーティングエラー:  seq=%v uid=%v %v [詳細: %v]"
   },
   {
     "id": "api.web_team_hun.start.debug",
@@ -2101,7 +2177,7 @@
   },
   {
     "id": "cli.license.critical",
-    "translation": "機能にはエンタープライズライセンスが必要です。システム管理者にエンタープライズライセンスにアップグレードするように連絡してください。"
+    "translation": "機能にはエンタープライズライセンスが必要です。システム管理者にエンタープライズライセンスをアップグレードするように連絡してください。"
   },
   {
     "id": "ent.brand.save_brand_image.decode.app_error",
@@ -2126,6 +2202,50 @@
   {
     "id": "ent.brand.save_brand_image.too_large.app_error",
     "translation": "画像を開けません。画像が大き過ぎます。"
+  },
+  {
+    "id": "ent.cluster.config_changed.info",
+    "translation": "クラスター設定はid=%vへ変更されました。  クラスターサービスを再起動しようとしています。  コア部分の設定変更を検出したため、クラスターが正常に設定されていることを確実にするために、この再起動を信頼すべきではありません。"
+  },
+  {
+    "id": "ent.cluster.debug_fail.debug",
+    "translation": "クラスターが`%v`で失敗を送信しました detail=%v, extra=%v, retry number=%v"
+  },
+  {
+    "id": "ent.cluster.final_fail.error",
+    "translation": "クラスターが`%v`で最後の失敗を送信しました detail=%v, extra=%v, retry number=%v"
+  },
+  {
+    "id": "ent.cluster.incompatible.warn",
+    "translation": "潜在的な互換性のないバージョンが%vのクラスター化で検出されました"
+  },
+  {
+    "id": "ent.cluster.incompatible_config.warn",
+    "translation": "潜在的な互換性のない設定が%vのクラスター化で検出されました"
+  },
+  {
+    "id": "ent.cluster.licence_disable.app_error",
+    "translation": "クラスター化機能が現在のライセンスでは無効になっています。システム管理者にエンタープライズライセンスをアップグレードするように連絡してください。"
+  },
+  {
+    "id": "ent.cluster.ping_failed.info",
+    "translation": "id=%vのホスト名=%v on=%vのクラスターから応答がありません"
+  },
+  {
+    "id": "ent.cluster.ping_success.info",
+    "translation": "id=%v self=%vのホスト名=%v on=%vのクラスターから応答がありました"
+  },
+  {
+    "id": "ent.cluster.save_config.error",
+    "translation": "効果用モードを有効にした場合、システムコンソールは読み込み専用となります。"
+  },
+  {
+    "id": "ent.cluster.starting.info",
+    "translation": "クラスターノード間の通信はホスト名=%v、id=%vの%vで接続待ちです"
+  },
+  {
+    "id": "ent.cluster.stopping.info",
+    "translation": "クラスターノード間の通信をホスト名=%v、id=%vの%vで停止しています"
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -2181,7 +2301,7 @@
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
-    "translation": "Your LDAP account does not have permission to use this Mattermost server. Please ask your System Administrator to check the LDAP user filter."
+    "translation": "あなたのLDAPアカウントにはMattermostサーバを利用する権限がありません。システム管理者にLDAPのユーザーフィルターをチェックするよう依頼してください。"
   },
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
@@ -2241,11 +2361,11 @@
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
-    "translation": "Unable to migrate LDAP users with specified field. Duplicate entry detected. Please remove all duplcates and try again."
+    "translation": "重複したエントリが見つかったため、LDAPユーザーを移行できませんでした。全ての重複を削除した上で、再度実行してください。"
   },
   {
     "id": "ent.migration.migratetoldap.user_not_found",
-    "translation": "Unable to find user on LDAP server: "
+    "translation": "LDAPサーバー上でユーザを見つけることができませんでした: "
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -2341,7 +2461,7 @@
   },
   {
     "id": "leave_team_modal.desc",
-    "translation": "全ての公開チャンネルとプライベートグループから脱退します。チームがプライベートな場合、再度参加することはできません。実行してよろしいですか?"
+    "translation": "全ての公開チャンネルと非公開グループから脱退します。  チームが非公開な場合、再度参加することはできません。  実行してよろしいですか?"
   },
   {
     "id": "leave_team_modal.no",
@@ -2440,8 +2560,8 @@
     "translation": "不正なアクセストークンです"
   },
   {
-    "id": "model.access.is_valid.auth_code.app_error",
-    "translation": "不正な認証コードです"
+    "id": "model.access.is_valid.client_id.app_error",
+    "translation": "不正なクライアントIDです"
   },
   {
     "id": "model.access.is_valid.redirect_uri.app_error",
@@ -2450,6 +2570,10 @@
   {
     "id": "model.access.is_valid.refresh_token.app_error",
     "translation": "不正なリフレッシュトークンです"
+  },
+  {
+    "id": "model.access.is_valid.user_id.app_error",
+    "translation": "不正なユーザーIDです"
   },
   {
     "id": "model.authorize.is_valid.auth_code.app_error",
@@ -2685,31 +2809,31 @@
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
-    "translation": "LDAP field \"BaseDN\" is required."
+    "translation": "LDAP項目 \"BaseDN\" は必須です。"
   },
   {
     "id": "model.config.is_valid.ldap_bind_password",
-    "translation": "LDAP field \"Bind Password\" is required."
+    "translation": "LDAP項目 \"Bind Password\" は必須です。"
   },
   {
     "id": "model.config.is_valid.ldap_bind_username",
-    "translation": "LDAP field \"Bind Username\" is required."
+    "translation": "LDAP項目 \"Bind Username\" は必須です。"
   },
   {
     "id": "model.config.is_valid.ldap_email",
-    "translation": "LDAP field \"Email Attribute\" is required."
+    "translation": "LDAP項目 \"Email Attribute\" は必須です。"
   },
   {
     "id": "model.config.is_valid.ldap_firstname",
-    "translation": "LDAP field \"First Name Attribute\" is required."
+    "translation": "LDAP項目 \"FIrst Name Attribute\" は必須です。"
   },
   {
     "id": "model.config.is_valid.ldap_id",
-    "translation": "LDAP field \"ID Attribute\" is required."
+    "translation": "LDAP項目 \"ID Attribute\" は必須です。"
   },
   {
     "id": "model.config.is_valid.ldap_lastname",
-    "translation": "LDAP field \"Last Name Attribute\" is required."
+    "translation": "LDAP項目 \"Last Name Attribute\" は必須です。"
   },
   {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",
@@ -2729,7 +2853,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_server",
-    "translation": "LDAP field \"LDAP Server\" is required."
+    "translation": "LDAP項目 \"LDAP Server\" は必須です。"
   },
   {
     "id": "model.config.is_valid.ldap_sync_interval.app_error",
@@ -2737,7 +2861,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_username",
-    "translation": "LDAP field \"Username Attribute\" is required."
+    "translation": "LDAP項目 \"Username Attribute\" は必須です。"
   },
   {
     "id": "model.config.is_valid.listen_address.app_error",
@@ -2817,11 +2941,11 @@
   },
   {
     "id": "model.config.is_valid.site_url.app_error",
-    "translation": "SAML SSOのURLを正しく設定してください。URLはhttp://またはhttps://で始まります。"
+    "translation": "サイトURLを正しく設定してください。URLはhttp://またはhttps://で始まります。"
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
-    "translation": "Site name must be less than or equal to {{.MaxLength}} characters."
+    "translation": "サイト名は {{.MaxLength}} 文字以内にしてください。"
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",
@@ -2901,7 +3025,7 @@
   },
   {
     "id": "model.oauth.is_valid.callback.app_error",
-    "translation": "不正なコールバックURLです"
+    "translation": "コールバックURLを正しく設定してください。URLはhttp://またはhttps://で始まります。"
   },
   {
     "id": "model.oauth.is_valid.client_secret.app_error",
@@ -2921,7 +3045,11 @@
   },
   {
     "id": "model.oauth.is_valid.homepage.app_error",
-    "translation": "不正なホームページです"
+    "translation": "ホームページのURLを正しく設定してください。URLはhttp://またはhttps://で始まります。"
+  },
+  {
+    "id": "model.oauth.is_valid.icon_url.app_error",
+    "translation": "アイコンのURLを正しく設定してください。URLはhttp://またはhttps://で始まります。"
   },
   {
     "id": "model.oauth.is_valid.name.app_error",
@@ -3373,7 +3501,7 @@
   },
   {
     "id": "store.sql_audit.get.finding.app_error",
-    "translation": "監査データを探している際にエラーが発生しました"
+    "translation": "監査データを探す際にエラーが発生しました"
   },
   {
     "id": "store.sql_audit.get.limit.app_error",
@@ -3656,16 +3784,28 @@
     "translation": "ライセンスを保存する際にエラーが発生しました"
   },
   {
+    "id": "store.sql_oauth.delete.commit_transaction.app_error",
+    "translation": "トランザクションをコミットできません"
+  },
+  {
+    "id": "store.sql_oauth.delete.open_transaction.app_error",
+    "translation": "OAuth2アプリケーションを削除するトランザクションを開始できません"
+  },
+  {
+    "id": "store.sql_oauth.delete.rollback_transaction.app_error",
+    "translation": "OAuth2アプリケーションを削除するトランザクションをロールバックできません"
+  },
+  {
+    "id": "store.sql_oauth.delete_app.app_error",
+    "translation": "OAuth2アプリケーションを削除中にエラーが発生しました"
+  },
+  {
     "id": "store.sql_oauth.get_access_data.app_error",
     "translation": "アクセストークンを探す際にエラーが発生しました"
   },
   {
-    "id": "store.sql_oauth.get_access_data_by_code.app_error",
-    "translation": "アクセストークンを探す際にエラーが発生しました"
-  },
-  {
     "id": "store.sql_oauth.get_app.find.app_error",
-    "translation": "既に存在するアプリケーションが見付かりませんでした"
+    "translation": "リクエストされたアプリケーションが見付かりませんでした"
   },
   {
     "id": "store.sql_oauth.get_app.finding.app_error",
@@ -3676,12 +3816,20 @@
     "translation": "アプリケーションが一つも見付かりませんでした"
   },
   {
+    "id": "store.sql_oauth.get_apps.find.app_error",
+    "translation": "OAuth2アプリケーションを検索中にエラーが発生しました"
+  },
+  {
     "id": "store.sql_oauth.get_auth_data.find.app_error",
     "translation": "既存の認証コードが見付かりませんでした"
   },
   {
     "id": "store.sql_oauth.get_auth_data.finding.app_error",
     "translation": "認証コードを探す際にエラーが発生しました"
+  },
+  {
+    "id": "store.sql_oauth.get_previous_access_data.app_error",
+    "translation": "アクセストークンを探す際にエラーが発生しました"
   },
   {
     "id": "store.sql_oauth.permanent_delete_auth_data_by_user.app_error",
@@ -3710,6 +3858,10 @@
   {
     "id": "store.sql_oauth.save_auth_data.app_error",
     "translation": "認証コードを保存できませんでした"
+  },
+  {
+    "id": "store.sql_oauth.update_access_data.app_error",
+    "translation": "アクセストークンを更新する際にエラーが発生しました"
   },
   {
     "id": "store.sql_oauth.update_app.find.app_error",
@@ -3921,35 +4073,35 @@
   },
   {
     "id": "store.sql_status.get.app_error",
-    "translation": "ライセンスを保存する際にエラーが発生しました"
+    "translation": "状態を取得する際にエラーが発生しました"
   },
   {
     "id": "store.sql_status.get.missing.app_error",
-    "translation": "No entry for that status exists"
+    "translation": "その状態のエントリは存在しません"
   },
   {
     "id": "store.sql_status.get_online.app_error",
-    "translation": "ライセンスを保存する際にエラーが発生しました"
+    "translation": "全てのオンライン状態を取得する際にエラーが発生しました"
   },
   {
     "id": "store.sql_status.get_online_away.app_error",
-    "translation": "ライセンスを保存する際にエラーが発生しました"
+    "translation": "全てのオンライン/離席状態を取得する際にエラーが発生しました"
   },
   {
     "id": "store.sql_status.get_total_active_users_count.app_error",
-    "translation": "ユーザー数を取得できませんでした"
+    "translation": "アクティブユーザー数を取得できませんでした"
   },
   {
     "id": "store.sql_status.reset_all.app_error",
-    "translation": "ライセンスを保存する際にエラーが発生しました"
+    "translation": "全ての状態をリセットする際にエラーが発生しました"
   },
   {
     "id": "store.sql_status.save.app_error",
-    "translation": "ライセンスを保存する際にエラーが発生しました"
+    "translation": "状態を保存する際にエラーが発生しました"
   },
   {
     "id": "store.sql_status.update.app_error",
-    "translation": "チームを更新する際にエラーが発生しました"
+    "translation": "状態を更新する際にエラーが発生しました"
   },
   {
     "id": "store.sql_system.get.app_error",
@@ -4113,7 +4265,7 @@
   },
   {
     "id": "store.sql_user.migrate_theme.critical",
-    "translation": "Failed to migrate User.ThemeProps to Preferences table %v"
+    "translation": "User.ThemePropsをPreferenceテーブル %v に移行できませんでした"
   },
   {
     "id": "store.sql_user.missing_account.const",
@@ -4281,11 +4433,11 @@
   },
   {
     "id": "store.sql_webhooks.save_incoming.app_error",
-    "translation": "IncomingWebhookを保存できませんでした"
+    "translation": "内向きのWebhookを保存できませんでした"
   },
   {
     "id": "store.sql_webhooks.save_incoming.existing.app_error",
-    "translation": "既存のIncomingWebhookを上書きできませんでした"
+    "translation": "既存の内向きのWebhookを上書きできませんでした"
   },
   {
     "id": "store.sql_webhooks.save_outgoing.app_error",
@@ -4408,14 +4560,6 @@
     "translation": "管理コンソール"
   },
   {
-    "id": "web.authorize_oauth.disabled.app_error",
-    "translation": "システム管理者はOAuthサービスを無効にしています。"
-  },
-  {
-    "id": "web.authorize_oauth.missing.app_error",
-    "translation": "response_type、client_id、redirect_uriのいずれから不足しています"
-  },
-  {
     "id": "web.authorize_oauth.title",
     "translation": "アプリケーションを認証する"
   },
@@ -4460,62 +4604,6 @@
     "translation": "チームを探す"
   },
   {
-    "id": "web.get_access_token.bad_client_id.app_error",
-    "translation": "不正なリクエスト: 不正なclient_idです"
-  },
-  {
-    "id": "web.get_access_token.bad_client_secret.app_error",
-    "translation": "不正なリクエスト: client_secretがありません"
-  },
-  {
-    "id": "web.get_access_token.bad_grant.app_error",
-    "translation": "不正なリクエスト: 不正なgrant_typeです"
-  },
-  {
-    "id": "web.get_access_token.credentials.app_error",
-    "translation": "不正なクライアント: 不正なクライアント認証情報です"
-  },
-  {
-    "id": "web.get_access_token.disabled.app_error",
-    "translation": "システム管理者がOAuthサービスを提供しないように設定しています。"
-  },
-  {
-    "id": "web.get_access_token.exchanged.app_error",
-    "translation": "不正な権限付与: 認証コードは、既にアクセストークンに交換されています"
-  },
-  {
-    "id": "web.get_access_token.expired_code.app_error",
-    "translation": "不正な権限付与: 不正あるいは期限切れの認証コードです"
-  },
-  {
-    "id": "web.get_access_token.internal.app_error",
-    "translation": "サーバーエラー: データベースへアクセス中にサーバー内部エラーが発生しました"
-  },
-  {
-    "id": "web.get_access_token.internal_saving.app_error",
-    "translation": "サーバーエラー: データベースへアクセストークンを保存中にサーバー内部エラーが発生しました"
-  },
-  {
-    "id": "web.get_access_token.internal_session.app_error",
-    "translation": "サーバーエラー: データベースへセッションを保存中にサーバー内部エラーが発生しました"
-  },
-  {
-    "id": "web.get_access_token.internal_user.app_error",
-    "translation": "サーバーエラー: データベースからユーザーを取得中にサーバー内部エラーが発生しました"
-  },
-  {
-    "id": "web.get_access_token.missing_code.app_error",
-    "translation": "不正なリクエスト: コードが見付かりません"
-  },
-  {
-    "id": "web.get_access_token.redirect_uri.app_error",
-    "translation": "不正なリクエスト: 使われたredirect_uriは、正規のコードのredirect_uriに合致しません"
-  },
-  {
-    "id": "web.get_access_token.revoking.error",
-    "translation": "アクセストークンを破棄する際にエラーが発生しました err="
-  },
-  {
     "id": "web.header.back",
     "translation": "戻る"
   },
@@ -4525,7 +4613,7 @@
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
-    "translation": "外部からのウェブフックはシステム管理者によって無効化されています。"
+    "translation": "内向きのウェブフックはシステム管理者によって無効化されています。"
   },
   {
     "id": "web.incoming_webhook.invalid.app_error",
@@ -4626,18 +4714,6 @@
   {
     "id": "web.signup_user_complete.title",
     "translation": "ユーザーの利用登録を完了してください"
-  },
-  {
-    "id": "web.singup_with_oauth.disabled.app_error",
-    "translation": "ユーザーの利用登録は無効化されています。"
-  },
-  {
-    "id": "web.singup_with_oauth.expired_link.app_error",
-    "translation": "利用登録リンクの期限が切れています"
-  },
-  {
-    "id": "web.singup_with_oauth.invalid_link.app_error",
-    "translation": "利用登録リンクが不正です"
   },
   {
     "id": "web.singup_with_oauth.invalid_team.app_error",

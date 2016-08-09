@@ -561,11 +561,11 @@
   },
   {
     "id": "api.command_shortcuts.list",
-    "translation": "### 鍵盤快捷鍵\n\n#### 瀏覽\n\nALT+UP：側邊欄裡面上一個頻道或直接訊息\nALT+DOWN：側邊欄裡面下一個頻道或直接訊息\nALT+SHIFT+UP：側邊欄裡面上一個有未讀訊息的頻道或直接訊息\nALT+SHIFT+DOWN：側邊欄裡面下一個有未讀訊息的頻道或直接訊息\nCTRL+K：開啟快速切換頻道對話框\nCTRL+SHIFT+A：開啟帳號設定\nCTRL+SHIFT+M：開啟最近提及您的訊息\n\n#### 檔案\n\nCTRL+U：上傳檔案\n\n#### 訊息\n\nALT+[點選訊息]：將該訊息設為當前頻道最早的未讀訊息\nESC：將當前頻道所有訊息設為已讀\nCTRL+UP (在空的輸入欄)：顯示上一個您輸入的訊息或是斜線命令\nCTRL+DOWN (在空的輸入欄)：顯示下一個您輸入的訊息或是斜線命令\nUP (在空的輸入欄)：編輯當前頻道您的上一個訊息\n@[文字]+TAB：自動完成以[文字]起始的@使用者帳號\n:[文字]+TAB：自動完成以[文字]起始的顏文字\n\n#### 瀏覽器內建命令\n\nALT+LEFT：瀏覽紀錄的前一個頻道\nALT+RIGHT：瀏覽紀錄的下一個頻道\nCTRL+PLUS：增加字體尺寸(放大)\nCTRL+MINUS：減少字體尺寸(縮小)\nSHIFT+UP (在輸入欄)：標記現在到上一行同位置之間的文字\nSHIFT+DOWN (在輸入欄)：標記現在到下一行同位置之間的文字\nSHIFT+ENTER (在輸入欄)：新增一行\n"
+    "translation": "### 鍵盤快捷鍵\n\n#### 瀏覽\n\nALT+UP：側邊欄裡面上一個頻道或直接訊息\nALT+DOWN：側邊欄裡面下一個頻道或直接訊息\nALT+SHIFT+UP：側邊欄裡面上一個有未讀訊息的頻道或直接訊息\nALT+SHIFT+DOWN：側邊欄裡面下一個有未讀訊息的頻道或直接訊息\nCTRL+K：開啟快速切換頻道對話框\nCTRL+SHIFT+A：開啟帳號設定\nCTRL+SHIFT+M：開啟最近提及您的訊息\n\n#### 檔案\n\nCTRL+U：上傳檔案\n\n#### 訊息\n\nESC：將當前頻道所有訊息設為已讀\nCTRL+UP (在空的輸入欄)：顯示上一個您輸入的訊息或是斜線命令\nCTRL+DOWN (在空的輸入欄)：顯示下一個您輸入的訊息或是斜線命令\nUP (在空的輸入欄)：編輯當前頻道您的上一個訊息\n@[文字]+TAB：自動完成以[文字]起始的@使用者帳號\n:[文字]+TAB：自動完成以[文字]起始的顏文字\n\n#### 瀏覽器內建命令\n\nALT+LEFT：瀏覽紀錄的前一個頻道\nALT+RIGHT：瀏覽紀錄的下一個頻道\nCTRL+PLUS：增加字體尺寸(放大)\nCTRL+MINUS：減少字體尺寸(縮小)\nSHIFT+UP (在輸入欄)：標記現在到上一行同位置之間的文字\nSHIFT+DOWN (在輸入欄)：標記現在到下一行同位置之間的文字\nSHIFT+ENTER (在輸入欄)：新增一行\n"
   },
   {
     "id": "api.command_shortcuts.list_mac",
-    "translation": "### 鍵盤快捷鍵\n\n#### 瀏覽\n\nALT+UP：側邊欄裡面上一個頻道或直接訊息\nALT+DOWN：側邊欄裡面下一個頻道或直接訊息\nALT+SHIFT+UP：側邊欄裡面上一個有未讀訊息的頻道或直接訊息\nALT+SHIFT+DOWN：側邊欄裡面下一個有未讀訊息的頻道或直接訊息\nCMD+K：開啟快速切換頻道對話框\nCMD+SHIFT+A：開啟帳號設定\nCMD+SHIFT+M：開啟最近提及您的訊息\n\n#### 檔案\n\nCMD+U：上傳檔案\n\n#### 訊息\n\nALT+[點選訊息]：將該訊息設為當前頻道最早的未讀訊息\nESC：將當前頻道所有訊息設為已讀\nCMD+UP (在空的輸入欄)：顯示上一個您輸入的訊息或是斜線命令\nCMD+DOWN (在空的輸入欄)：顯示下一個您輸入的訊息或是斜線命令\nUP (在空的輸入欄)：編輯當前頻道您的上一個訊息\n@[文字]+TAB：自動完成以[文字]起始的@使用者帳號\n:[文字]+TAB：自動完成以[文字]起始的顏文字\n\n#### 瀏覽器內建命令\n\nCMD+[：瀏覽紀錄的前一個頻道\nCMD+]：瀏覽紀錄的下一個頻道\nCMD+PLUS：增加字體尺寸(放大)\nCMD+MINUS：減少字體尺寸(縮小)\nSHIFT+UP (在輸入欄)：標記現在到上一行同位置之間的文字\nSHIFT+DOWN (在輸入欄)：標記現在到下一行同位置之間的文字\nSHIFT+ENTER (在輸入欄)：新增一行\n"
+    "translation": "### 鍵盤快捷鍵\n\n#### 瀏覽\n\nALT+UP：側邊欄裡面上一個頻道或直接訊息\nALT+DOWN：側邊欄裡面下一個頻道或直接訊息\nALT+SHIFT+UP：側邊欄裡面上一個有未讀訊息的頻道或直接訊息\nALT+SHIFT+DOWN：側邊欄裡面下一個有未讀訊息的頻道或直接訊息\nCMD+K：開啟快速切換頻道對話框\nCMD+SHIFT+A：開啟帳號設定\nCMD+SHIFT+M：開啟最近提及您的訊息\n\n#### 檔案\n\nCMD+U：上傳檔案\n\n#### 訊息\n\nESC：將當前頻道所有訊息設為已讀\nCMD+UP (在空的輸入欄)：顯示上一個您輸入的訊息或是斜線命令\nCMD+DOWN (在空的輸入欄)：顯示下一個您輸入的訊息或是斜線命令\nUP (在空的輸入欄)：編輯當前頻道您的上一個訊息\n@[文字]+TAB：自動完成以[文字]起始的@使用者帳號\n:[文字]+TAB：自動完成以[文字]起始的顏文字\n\n#### 瀏覽器內建命令\n\nCMD+[：瀏覽紀錄的前一個頻道\nCMD+]：瀏覽紀錄的下一個頻道\nCMD+PLUS：增加字體尺寸(放大)\nCMD+MINUS：減少字體尺寸(縮小)\nSHIFT+UP (在輸入欄)：標記現在到上一行同位置之間的文字\nSHIFT+DOWN (在輸入欄)：標記現在到下一行同位置之間的文字\nSHIFT+ENTER (在輸入欄)：新增一行\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -889,7 +889,75 @@
   },
   {
     "id": "api.oauth.allow_oauth.turn_off.app_error",
-    "translation": "系統管理員已停止提供 OAuth 服務"
+    "translation": "系統管理員已關閉 OAuth2 服務提供者。"
+  },
+  {
+    "id": "api.oauth.authorize_oauth.disabled.app_error",
+    "translation": "系統管理員已關閉 OAuth2 服務提供者。"
+  },
+  {
+    "id": "api.oauth.authorize_oauth.missing.app_error",
+    "translation": "response_type、client_id 或 redirect_uri 中缺少一個以上"
+  },
+  {
+    "id": "api.oauth.delete.permissions.app_error",
+    "translation": "權限不足以刪除 OAuth2 應用程式"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_client_id.app_error",
+    "translation": "invalid_request：錯誤的 client_id"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
+    "translation": "invalid_request：缺少 client_secret"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_grant.app_error",
+    "translation": "invalid_request：錯誤的 grant_type"
+  },
+  {
+    "id": "api.oauth.get_access_token.credentials.app_error",
+    "translation": "invalid_client：無效的用戶端認證"
+  },
+  {
+    "id": "api.oauth.get_access_token.disabled.app_error",
+    "translation": "系統管理員已關閉 OAuth2 服務提供者。"
+  },
+  {
+    "id": "api.oauth.get_access_token.expired_code.app_error",
+    "translation": "invalid_grant：無效或是過期的授權碼"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal.app_error",
+    "translation": "server_error：存取資料庫時遇到伺服器內部錯誤"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_saving.app_error",
+    "translation": "server_error：儲存存取 Token 至資料庫時遇到伺服器內部錯誤"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_session.app_error",
+    "translation": "server_error：儲存工作階段至資料庫時遇到伺服器內部錯誤"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_user.app_error",
+    "translation": "server_error：從資料庫提取使用者資料時遇到伺服器內部錯誤"
+  },
+  {
+    "id": "api.oauth.get_access_token.missing_code.app_error",
+    "translation": "invalid_request：缺少代碼"
+  },
+  {
+    "id": "api.oauth.get_access_token.missing_refresh_token.app_error",
+    "translation": "invalid_request：缺少 refresh_token"
+  },
+  {
+    "id": "api.oauth.get_access_token.redirect_uri.app_error",
+    "translation": "invalid_request：提供的 redirect_uri 無法對應授權碼 redirect_uri"
+  },
+  {
+    "id": "api.oauth.get_access_token.refresh_token.app_error",
+    "translation": "invalid_grant：無效的 refresh_token"
   },
   {
     "id": "api.oauth.get_auth_data.find.error",
@@ -901,11 +969,7 @@
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
-    "translation": "系統管理員已停止提供 OAuth 服務。"
-  },
-  {
-    "id": "api.oauth.revoke_access_token.del_code.app_error",
-    "translation": "從資料庫刪除授權碼時遇到錯誤"
+    "translation": "系統管理員已關閉 OAuth2 服務提供者。"
   },
   {
     "id": "api.oauth.revoke_access_token.del_session.app_error",
@@ -918,6 +982,18 @@
   {
     "id": "api.oauth.revoke_access_token.get.app_error",
     "translation": "刪除前從資料庫取得存取 Token 時遇到錯誤"
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "translation": "使用者註冊已被停用。"
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "translation": "註冊連結已過期"
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "translation": "此註冊連結不是有效連結"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
@@ -2101,7 +2177,7 @@
   },
   {
     "id": "cli.license.critical",
-    "translation": "此功能需要企業授權，請聯繫您的系統管理員將系統升級為企業版本。"
+    "translation": "此功能需要企業版授權，請聯繫您的系統管理員將系統升級為企業版授權。"
   },
   {
     "id": "ent.brand.save_brand_image.decode.app_error",
@@ -2128,28 +2204,72 @@
     "translation": "圖片過大無法開啟。"
   },
   {
+    "id": "ent.cluster.config_changed.info",
+    "translation": "叢集設定已變更(id=%v)。 正在嘗試重新啟動叢集服務。 由於偵測到了核心設定的變更，為了保證叢集被正確的組態，您不應該依賴這次重新啟動。"
+  },
+  {
+    "id": "ent.cluster.debug_fail.debug",
+    "translation": "在 `%v` 叢集發送失敗：detail=%v extra=%v retry number=%v"
+  },
+  {
+    "id": "ent.cluster.final_fail.error",
+    "translation": "在 `%v` 叢集發送最終失敗：detail=%v extra=%v retry number=%v"
+  },
+  {
+    "id": "ent.cluster.incompatible.warn",
+    "translation": "偵測到叢集可能不相容的版本 %v"
+  },
+  {
+    "id": "ent.cluster.incompatible_config.warn",
+    "translation": "偵測到叢集可能不相容的設定 %v"
+  },
+  {
+    "id": "ent.cluster.licence_disable.app_error",
+    "translation": "目前授權不提供叢集功能，請聯繫您的系統管理員將系統升級為企業版授權。"
+  },
+  {
+    "id": "ent.cluster.ping_failed.info",
+    "translation": "叢集偵測失敗：hostname=%v on=%v id=%v"
+  },
+  {
+    "id": "ent.cluster.ping_success.info",
+    "translation": "叢集偵測成功：hostname=%v on=%v id=%v self=%v"
+  },
+  {
+    "id": "ent.cluster.save_config.error",
+    "translation": "啟用高可用性時系統控制台被設定為唯讀。"
+  },
+  {
+    "id": "ent.cluster.starting.info",
+    "translation": "在 %v 上開始監聽叢集節點間通訊：hostname=%v id=%v"
+  },
+  {
+    "id": "ent.cluster.stopping.info",
+    "translation": "在 %v 上的叢集節點間通訊正在停止：hostname=%v id=%v"
+  },
+  {
     "id": "ent.compliance.licence_disable.app_error",
-    "translation": "目前授權不提供合規功能，請聯繫您的系統管理員將系統升級為企業版本。"
+    "translation": "目前授權不提供規範功能，請聯繫您的系統管理員將系統升級為企業版授權。"
   },
   {
     "id": "ent.compliance.run_failed.error",
-    "translation": "合規匯出作業'{{.JobName}}'失敗。路徑為'{{.FilePath}}'"
+    "translation": "規範匯出作業'{{.JobName}}'失敗。路徑為'{{.FilePath}}'"
   },
   {
     "id": "ent.compliance.run_finished.info",
-    "translation": "合規匯出作業'{{.JobName}}'完成。{{.Count}}筆紀錄已匯出至'{{.FilePath}}'"
+    "translation": "規範匯出作業'{{.JobName}}'完成。{{.Count}}筆紀錄已匯出至'{{.FilePath}}'"
   },
   {
     "id": "ent.compliance.run_limit.warning",
-    "translation": "警告，合規匯出作業 '{{.JobName}}' 行數過多，將只會輸出到第3萬行至'{{.FilePath}}' "
+    "translation": "警告，規範匯出作業 '{{.JobName}}' 行數過多，將只會輸出到第3萬行至'{{.FilePath}}' "
   },
   {
     "id": "ent.compliance.run_started.info",
-    "translation": "合規匯出作業 '{{.JobName}}' 開始，匯出到 '{{.FilePath}}'"
+    "translation": "規範匯出作業 '{{.JobName}}' 開始，匯出到 '{{.FilePath}}'"
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
-    "translation": "目前授權不提供限制自訂顏文字，請聯繫您的系統管理員將系統升級為企業版本。"
+    "translation": "目前授權不提供限制自訂顏文字，請聯繫您的系統管理員將系統升級為企業版授權。"
   },
   {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
@@ -2440,8 +2560,8 @@
     "translation": "無效的存取 Token"
   },
   {
-    "id": "model.access.is_valid.auth_code.app_error",
-    "translation": "無效的驗證碼"
+    "id": "model.access.is_valid.client_id.app_error",
+    "translation": "無效的用戶 ID"
   },
   {
     "id": "model.access.is_valid.redirect_uri.app_error",
@@ -2450,6 +2570,10 @@
   {
     "id": "model.access.is_valid.refresh_token.app_error",
     "translation": "無效的重新整理 Token"
+  },
+  {
+    "id": "model.access.is_valid.user_id.app_error",
+    "translation": "無效的使用者 ID"
   },
   {
     "id": "model.authorize.is_valid.auth_code.app_error",
@@ -2901,7 +3025,7 @@
   },
   {
     "id": "model.oauth.is_valid.callback.app_error",
-    "translation": "無效的回呼網址"
+    "translation": "回呼網址必須使用以 http:// 或 https:// 開頭的有效網址。"
   },
   {
     "id": "model.oauth.is_valid.client_secret.app_error",
@@ -2921,7 +3045,11 @@
   },
   {
     "id": "model.oauth.is_valid.homepage.app_error",
-    "translation": "無效的首頁位址"
+    "translation": "首頁網址必須使用以 http:// 或 https:// 開頭的有效網址。"
+  },
+  {
+    "id": "model.oauth.is_valid.icon_url.app_error",
+    "translation": "圖示網址必須使用以 http:// 或 https:// 開頭的有效網址。"
   },
   {
     "id": "model.oauth.is_valid.name.app_error",
@@ -3613,11 +3741,11 @@
   },
   {
     "id": "store.sql_compliance.get.finding.app_error",
-    "translation": "取得合規報告時遇到錯誤"
+    "translation": "取得規範報告時遇到錯誤"
   },
   {
     "id": "store.sql_compliance.save.saving.app_error",
-    "translation": "儲存合規報告時遇到錯誤"
+    "translation": "儲存規範報告時遇到錯誤"
   },
   {
     "id": "store.sql_emoji.delete.app_error",
@@ -3656,16 +3784,28 @@
     "translation": "儲存授權時遇到錯誤"
   },
   {
+    "id": "store.sql_oauth.delete.commit_transaction.app_error",
+    "translation": "無法提交交易"
+  },
+  {
+    "id": "store.sql_oauth.delete.open_transaction.app_error",
+    "translation": "無法開啟交易以刪除 OAuth2 應用程式"
+  },
+  {
+    "id": "store.sql_oauth.delete.rollback_transaction.app_error",
+    "translation": "無法回復交易以刪除 OAuth2 應用程式"
+  },
+  {
+    "id": "store.sql_oauth.delete_app.app_error",
+    "translation": "刪除 OAuth2 應用程式時發生錯誤"
+  },
+  {
     "id": "store.sql_oauth.get_access_data.app_error",
     "translation": "尋找存取 Token 時遇到錯誤"
   },
   {
-    "id": "store.sql_oauth.get_access_data_by_code.app_error",
-    "translation": "尋找存取 Token 時遇到錯誤"
-  },
-  {
     "id": "store.sql_oauth.get_app.find.app_error",
-    "translation": "找不到已存在的應用程式"
+    "translation": "找不到要求的應用程式"
   },
   {
     "id": "store.sql_oauth.get_app.finding.app_error",
@@ -3676,12 +3816,20 @@
     "translation": "找不到任何已存在的應用程式"
   },
   {
+    "id": "store.sql_oauth.get_apps.find.app_error",
+    "translation": "尋找 OAuth2 應用程式時發生錯誤"
+  },
+  {
     "id": "store.sql_oauth.get_auth_data.find.app_error",
     "translation": "找不到授權碼"
   },
   {
     "id": "store.sql_oauth.get_auth_data.finding.app_error",
     "translation": "尋找授權碼時遇到錯誤"
+  },
+  {
+    "id": "store.sql_oauth.get_previous_access_data.app_error",
+    "translation": "尋找存取 Token 時遇到錯誤"
   },
   {
     "id": "store.sql_oauth.permanent_delete_auth_data_by_user.app_error",
@@ -3710,6 +3858,10 @@
   {
     "id": "store.sql_oauth.save_auth_data.app_error",
     "translation": "無法儲存授權碼。"
+  },
+  {
+    "id": "store.sql_oauth.update_access_data.app_error",
+    "translation": "更新存取 Token 時遇到錯誤"
   },
   {
     "id": "store.sql_oauth.update_app.find.app_error",
@@ -4408,14 +4560,6 @@
     "translation": "管理控制台"
   },
   {
-    "id": "web.authorize_oauth.disabled.app_error",
-    "translation": "系統管理員已停止提供 OAuth 服務"
-  },
-  {
-    "id": "web.authorize_oauth.missing.app_error",
-    "translation": "遺失一或多個 response_type, client_id, 或是 redirect_uri"
-  },
-  {
     "id": "web.authorize_oauth.title",
     "translation": "授權應用程式"
   },
@@ -4458,62 +4602,6 @@
   {
     "id": "web.find_team.title",
     "translation": "尋找團隊"
-  },
-  {
-    "id": "web.get_access_token.bad_client_id.app_error",
-    "translation": "invalid_request: 錯誤的 client_id"
-  },
-  {
-    "id": "web.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: 缺少 client_secret"
-  },
-  {
-    "id": "web.get_access_token.bad_grant.app_error",
-    "translation": "invalid_request: 錯誤的 grant_type"
-  },
-  {
-    "id": "web.get_access_token.credentials.app_error",
-    "translation": "invalid_client: 無效的用戶端認證"
-  },
-  {
-    "id": "web.get_access_token.disabled.app_error",
-    "translation": "系統管理員已停止提供 OAuth 服務"
-  },
-  {
-    "id": "web.get_access_token.exchanged.app_error",
-    "translation": "invalid_grant: 授權碼已經為了存取 Token 而交換"
-  },
-  {
-    "id": "web.get_access_token.expired_code.app_error",
-    "translation": "invalid_grant: 非法或是過期的授權碼"
-  },
-  {
-    "id": "web.get_access_token.internal.app_error",
-    "translation": "server_error: 存取資料庫時遇到內部伺服器錯誤"
-  },
-  {
-    "id": "web.get_access_token.internal_saving.app_error",
-    "translation": "server_error: 儲存存取 Token 至資料庫時遇到內部伺服器錯誤"
-  },
-  {
-    "id": "web.get_access_token.internal_session.app_error",
-    "translation": "server_error：儲存工作階段至資料庫時遇到內部伺服器錯誤"
-  },
-  {
-    "id": "web.get_access_token.internal_user.app_error",
-    "translation": "server_error: 從資料庫提取使用者資料時遇到內部伺服器錯誤"
-  },
-  {
-    "id": "web.get_access_token.missing_code.app_error",
-    "translation": "invalid_request: 遺漏代碼"
-  },
-  {
-    "id": "web.get_access_token.redirect_uri.app_error",
-    "translation": "invalid_request: 提供的 redirect_uri 無法對應授權碼 redirect_uri"
-  },
-  {
-    "id": "web.get_access_token.revoking.error",
-    "translation": "撤銷存取 Token 時遇到錯誤, err="
   },
   {
     "id": "web.header.back",
@@ -4626,18 +4714,6 @@
   {
     "id": "web.signup_user_complete.title",
     "translation": "完成使用者註冊"
-  },
-  {
-    "id": "web.singup_with_oauth.disabled.app_error",
-    "translation": "使用者註冊已停用。"
-  },
-  {
-    "id": "web.singup_with_oauth.expired_link.app_error",
-    "translation": "註冊連結已過期"
-  },
-  {
-    "id": "web.singup_with_oauth.invalid_link.app_error",
-    "translation": "此註冊連結不是有效連結"
   },
   {
     "id": "web.singup_with_oauth.invalid_team.app_error",
