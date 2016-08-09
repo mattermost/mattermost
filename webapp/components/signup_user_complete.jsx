@@ -591,7 +591,7 @@ export default class SignupUserComplete extends React.Component {
                 <a
                     className='btn btn-custom-login google'
                     key='google'
-                    href={Client.getOAuthRoute() + '/google/signup' + window.location.search + '&team=' + encodeURIComponent(this.state.teamName)}
+                    href={Client.getOAuthRoute() + '/google/signup' + window.location.search}
                 >
                     <span className='icon'/>
                     <span>
@@ -609,7 +609,7 @@ export default class SignupUserComplete extends React.Component {
                 <a
                     className='btn btn-custom-login office365'
                     key='office365'
-                    href={Client.getOAuthRoute() + '/office365/signup' + window.location.search + '&team=' + encodeURIComponent(this.state.teamName)}
+                    href={Client.getOAuthRoute() + '/office365/signup' + window.location.search}
                 >
                     <span className='icon'/>
                     <span>
