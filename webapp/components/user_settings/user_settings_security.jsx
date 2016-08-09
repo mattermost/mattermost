@@ -22,7 +22,7 @@ import {Link} from 'react-router/es6';
 const holders = defineMessages({
     currentPasswordError: {
         id: 'user.settings.security.currentPasswordError',
-        defaultMessage: 'Please enter your current password'
+        defaultMessage: 'Please enter your current password.'
     },
     passwordLengthError: {
         id: 'user.settings.security.passwordLengthError',
@@ -30,7 +30,7 @@ const holders = defineMessages({
     },
     passwordMatchError: {
         id: 'user.settings.security.passwordMatchError',
-        defaultMessage: 'The new passwords you entered do not match'
+        defaultMessage: 'The new passwords you entered do not match.'
     },
     method: {
         id: 'user.settings.security.method',
