@@ -389,3 +389,29 @@ func TestCliResetPassword(t *testing.T) {
 	th.BasicUser.Password = "password2"
 	th.LoginBasic()
 }
+
+func TestCliCreateChannel(t *testing.T) {
+	if disableCliTests {
+		return
+	}
+
+	th := Setup().InitBasic()
+
+	id := model.NewId()
+	name := "name" + id
+
+	cmd := exec.Command("bash", "-c", `go run ../mattermost.go -create_channel -email="`+th.BasicUser.Email+`" -team_name="`+th.BasicTeam.Name+`" -channel_type="O" -channel_name="`+name+`"`)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Log(string(output))
+		t.Fatal()
+	}
+
+	name = name + "-private"
+	cmd2 := exec.Command("bash", "-c", `go run ../mattermost.go -create_channel -email="`+th.BasicUser.Email+`" -team_name="`+th.BasicTeam.Name+`" -channel_type="P" -channel_name="`+name+`"`)
+	output2, err2 := cmd2.CombinedOutput()
+	if err2 != nil {
+		t.Log(string(output2))
+		t.Fatal()
+	}
+}
