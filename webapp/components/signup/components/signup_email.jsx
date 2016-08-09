@@ -1,7 +1,6 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import FormError from 'components/form_error.jsx';
 import LoadingScreen from 'components/loading_screen.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
@@ -21,7 +20,7 @@ import {browserHistory, Link} from 'react-router/es6';
 
 import logoImage from 'images/logo.png';
 
-export default class SignupUserComplete extends React.Component {
+export default class SignupEmail extends React.Component {
     static get propTypes() {
         return {
             location: React.PropTypes.object
@@ -32,25 +31,17 @@ export default class SignupUserComplete extends React.Component {
         super(props);
 
         this.handleSubmit = this.handleSubmit.bind(this);
-        this.handleLdapSignup = this.handleLdapSignup.bind(this);
-
-        this.handleLdapIdChange = this.handleLdapIdChange.bind(this);
-        this.handleLdapPasswordChange = this.handleLdapPasswordChange.bind(this);
 
         this.state = {
             data: '',
             hash: '',
-            usedBefore: false,
             email: '',
             teamDisplayName: '',
-            signupDisabledError: '',
             teamName: '',
             teamId: '',
-            openServer: false,
             loading: true,
             inviteId: '',
-            ldapId: '',
-            ldapPassword: ''
+            noOpenServerError: global.window.mm_config.EnableOpenServer !== 'true' && !UserStore.getNoAccounts()
         };
     }
 
@@ -58,41 +49,16 @@ export default class SignupUserComplete extends React.Component {
         let data = this.props.location.query.d;
         let hash = this.props.location.query.h;
         const inviteId = this.props.location.query.id;
-        let usedBefore = false;
         let email = '';
         let teamDisplayName = '';
         let teamName = '';
         let teamId = '';
-        let openServer = false;
         let loading = true;
 
         if ((inviteId && inviteId.length > 0) || (hash && hash.length > 0)) {
-            // if we are already logged in then attempt to just join the team
-            if (UserStore.getCurrentUser()) {
-                loading = true;
-                Client.addUserToTeamFromInvite(
-                    data,
-                    hash,
-                    inviteId,
-                    (team) => {
-                        GlobalActions.emitInitialLoad(
-                            () => {
-                                browserHistory.push('/' + team.name);
-                            }
-                        );
-                    },
-                    (err) => {
-                        this.setState({
-                            noOpenServerError: true,
-                            serverError: err.message,
-                            loading: false
-                        });
-                    }
-                );
-            } else if (hash) {
+            if (hash) {
                 // If we have a hash in the url then we are attempting to access a private team
                 const parsedData = JSON.parse(data);
-                usedBefore = BrowserStore.getGlobalItem(hash);
                 email = parsedData.email;
                 teamDisplayName = parsedData.display_name;
                 teamName = parsedData.name;
@@ -131,101 +97,20 @@ export default class SignupUserComplete extends React.Component {
                 data = '';
                 hash = '';
             }
-        } else if (global.window.mm_config.EnableOpenServer === 'true' || UserStore.getNoAccounts()) {
-            // If this is the first account then let them create an account anyway.
-            // The server will verify it's the first account before allowing creation.
-            // Of if the server is open then we don't care.
-            openServer = true;
-            loading = false;
         } else {
             loading = false;
-            this.setState({
-                noOpenServerError: true,
-                serverError:
-                    <FormattedMessage
-                        id='signup_user_completed.no_open_server'
-                        defaultMessage='This server does not allow open signups.  Please speak with your Administrator to receive an invitation.'
-                    />,
-                loading: false
-            });
         }
 
         this.setState({
             data,
             hash,
-            usedBefore,
             email,
             teamDisplayName,
             teamName,
             teamId,
-            openServer,
             inviteId,
             loading
         });
-
-        this.setState({
-            signupDisabledError: (
-                <FormattedMessage
-                    id='signup_user_completed.none'
-                    defaultMessage='No user creation method has been enabled. Please contact an administrator for access.'
-                />
-            )
-        });
-    }
-
-    handleLdapSignup(e) {
-        e.preventDefault();
-
-        this.setState({ldapError: ''});
-
-        Client.webLoginByLdap(
-            this.state.ldapId,
-            this.state.ldapPassword,
-            null,
-            () => {
-                if (this.props.location.query.id || this.props.location.query.h) {
-                    Client.addUserToTeamFromInvite(
-                        this.props.location.query.d,
-                        this.props.location.query.h,
-                        this.props.location.query.id,
-                        () => {
-                            this.finishSignup();
-                        },
-                        () => {
-                            // there's not really a good way to deal with this, so just let the user log in like normal
-                            this.finishSignup();
-                        }
-                    );
-
-                    return;
-                }
-
-                this.finishSignup();
-            },
-            (err) => {
-                if (err.id === 'ent.ldap.do_login.user_not_registered.app_error' || err.id === 'ent.ldap.do_login.user_filtered.app_error') {
-                    this.setState({
-                        ldapError: (
-                            <FormattedMessage
-                                id='login.userNotFound'
-                                defaultMessage="We couldn't find an account matching your login credentials."
-                            />
-                        )
-                    });
-                } else if (err.id === 'ent.ldap.do_login.invalid_password.app_error') {
-                    this.setState({
-                        ldapError: (
-                            <FormattedMessage
-                                id='login.invalidPassword'
-                                defaultMessage='Your password is incorrect.'
-                            />
-                        )
-                    });
-                } else {
-                    this.setState({ldapError: err.message});
-                }
-            }
-        );
     }
 
     finishSignup() {
@@ -372,97 +257,8 @@ export default class SignupUserComplete extends React.Component {
         );
     }
 
-    handleLdapIdChange(e) {
-        e.preventDefault();
-
-        this.setState({
-            ldapId: e.target.value
-        });
-    }
-
-    handleLdapPasswordChange(e) {
-        e.preventDefault();
-
-        this.setState({
-            ldapPassword: e.target.value
-        });
-    }
-
-    renderLdapLogin() {
-        let ldapIdPlaceholder;
-        if (global.window.mm_config.LdapLoginFieldName) {
-            ldapIdPlaceholder = global.window.mm_config.LdapLoginFieldName;
-        } else {
-            ldapIdPlaceholder = Utils.localizeMessage('login.ldap_username', 'LDAP Username');
-        }
-
-        let errorClass = '';
-        if (this.state.ldapError) {
-            errorClass += ' has-error';
-        }
-
-        return (
-            <form
-                onSubmit={this.handleLdapSignup}
-            >
-                <div className='signup__email-container'>
-                    <FormError
-                        error={this.state.ldapError}
-                        margin={true}
-                    />
-                    <div className={'form-group' + errorClass}>
-                        <input
-                            className='form-control'
-                            name='ldapId'
-                            value={this.state.ldapId}
-                            onChange={this.handleLdapIdChange}
-                            placeholder={ldapIdPlaceholder}
-                            spellCheck='false'
-                            autoCapitalize='off'
-                        />
-                    </div>
-                    <div className={'form-group' + errorClass}>
-                        <input
-                            type='password'
-                            className='form-control'
-                            name='password'
-                            value={this.state.ldapPassword}
-                            onChange={this.handleLdapPasswordChange}
-                            placeholder={Utils.localizeMessage('login.password', 'Password')}
-                            spellCheck='false'
-                        />
-                    </div>
-                    <div className='form-group'>
-                        <button
-                            type='submit'
-                            className='btn btn-primary'
-                            disabled={!this.state.ldapId || !this.state.ldapPassword}
-                        >
-                            <FormattedMessage
-                                id='login.signIn'
-                                defaultMessage='Sign in'
-                            />
-                        </button>
-                    </div>
-                </div>
-            </form>
-        );
-    }
-
     render() {
         track('signup', 'signup_user_01_welcome');
-
-        // If we have been used then just display a message
-        if (this.state.usedBefore) {
-            return (
-                <div>
-                    <FormattedMessage
-                        id='signup_user_completed.expired'
-                        defaultMessage="You've already completed the signup process for this invitation or this invitation has expired."
-                    />
-                </div>
-            );
-        }
 
         if (this.state.loading) {
             return (<LoadingScreen/>);
@@ -567,92 +363,6 @@ export default class SignupUserComplete extends React.Component {
             </div>
         );
 
-        let signupMessage = [];
-        if (global.window.mm_config.EnableSignUpWithGitLab === 'true') {
-            signupMessage.push(
-                <a
-                    className='btn btn-custom-login gitlab'
-                    key='gitlab'
-                    href={Client.getOAuthRoute() + '/gitlab/signup' + window.location.search}
-                >
-                    <span className='icon'/>
-                    <span>
-                        <FormattedMessage
-                            id='signup_user_completed.gitlab'
-                            defaultMessage='with GitLab'
-                        />
-                    </span>
-                </a>
-            );
-        }
-
-        if (global.window.mm_config.EnableSignUpWithGoogle === 'true') {
-            signupMessage.push(
-                <a
-                    className='btn btn-custom-login google'
-                    key='google'
-                    href={Client.getOAuthRoute() + '/google/signup' + window.location.search + '&team=' + encodeURIComponent(this.state.teamName)}
-                >
-                    <span className='icon'/>
-                    <span>
-                        <FormattedMessage
-                            id='signup_user_completed.google'
-                            defaultMessage='with Google'
-                        />
-                    </span>
-                </a>
-           );
-        }
-
-        if (global.window.mm_config.EnableSignUpWithOffice365 === 'true') {
-            signupMessage.push(
-                <a
-                    className='btn btn-custom-login office365'
-                    key='office365'
-                    href={Client.getOAuthRoute() + '/office365/signup' + window.location.search + '&team=' + encodeURIComponent(this.state.teamName)}
-                >
-                    <span className='icon'/>
-                    <span>
-                        <FormattedMessage
-                            id='signup_user_completed.office365'
-                            defaultMessage='with Office 365'
-                        />
-                    </span>
-                </a>
-           );
-        }
-
-        if (global.window.mm_config.EnableSaml === 'true' && global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.SAML === 'true') {
-            signupMessage.push(
-                <a
-                    className='btn btn-custom-login saml'
-                    key='saml'
-                    href={`/login/sso/saml${window.location.search}${window.location.search ? '&' : '?'}action=signup`}
-                >
-                    <span>
-                        {global.window.mm_config.SamlLoginButtonText}
-                    </span>
-                </a>
-            );
-        }
-
-        let ldapSignup;
-        if (global.window.mm_config.EnableLdap === 'true' && global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.LDAP) {
-            ldapSignup = (
-                <div className='inner__content'>
-                    <h5>
-                        <strong>
-                            <FormattedMessage
-                                id='signup_user_completed.withLdap'
-                                defaultMessage='With your LDAP credentials'
-                            />
-                        </strong>
-                    </h5>
-                    {this.renderLdapLogin()}
-                </div>
-            );
-        }
-
         let emailSignup;
         if (global.window.mm_config.EnableSignUpWithEmail === 'true') {
             emailSignup = (
@@ -715,38 +425,12 @@ export default class SignupUserComplete extends React.Component {
                     </div>
                 </form>
             );
-        }
-
-        if (signupMessage.length > 0 && (emailSignup || ldapSignup)) {
-            signupMessage = (
-                <div>
-                    {signupMessage}
-                    <div className='or__container'>
-                        <FormattedMessage
-                            id='signup_user_completed.or'
-                            defaultMessage='or'
-                        />
-                    </div>
-                </div>
-            );
-        }
-
-        if (ldapSignup && emailSignup) {
-            ldapSignup = (
-                <div>
-                    {ldapSignup}
-                    <div className='or__container'>
-                        <FormattedMessage
-                            id='signup_user_completed.or'
-                            defaultMessage='or'
-                        />
-                    </div>
-                </div>
-            );
+        } else {
+            return null;
         }
 
         let terms = null;
-        if (!this.state.noOpenServerError && (emailSignup || ldapSignup)) {
+        if (!this.state.noOpenServerError && emailSignup) {
             terms = (
                 <p>
                     <FormattedHTMLMessage
@@ -760,19 +444,8 @@ export default class SignupUserComplete extends React.Component {
             );
         }
 
-        if (signupMessage.length === 0 && !emailSignup && !ldapSignup) {
-            emailSignup = (
-                <FormError
-                    error={this.state.signupDisabledError}
-                    margin={true}
-                />
-            );
-        }
-
         if (this.state.noOpenServerError) {
-            signupMessage = null;
             emailSignup = null;
-            ldapSignup = null;
         }
 
         let description = null;
@@ -790,7 +463,7 @@ export default class SignupUserComplete extends React.Component {
         return (
             <div>
                 <div className='signup-header'>
-                    <Link to='/'>
+                    <Link to='/signup_user_complete'>
                         <span className='fa fa-chevron-left'/>
                         <FormattedMessage
                             id='web.header.back'
@@ -829,8 +502,6 @@ export default class SignupUserComplete extends React.Component {
                                 />
                             </Link>
                         </span>
-                        {signupMessage}
-                        {ldapSignup}
                         {emailSignup}
                         {serverError}
                         {terms}
