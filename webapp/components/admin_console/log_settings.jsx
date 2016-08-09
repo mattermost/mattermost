@@ -8,7 +8,7 @@ import * as Utils from 'utils/utils.jsx';
 import AdminSettings from './admin_settings.jsx';
 import BooleanSetting from './boolean_setting.jsx';
 import DropdownSetting from './dropdown_setting.jsx';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
 
@@ -29,6 +29,7 @@ export default class LogSettings extends AdminSettings {
         config.LogSettings.FileLocation = this.state.fileLocation;
         config.LogSettings.FileFormat = this.state.fileFormat;
         config.LogSettings.EnableWebhookDebugging = this.state.enableWebhookDebugging;
+        config.LogSettings.EnableDiagnostics = this.state.enableDiagnostics;
 
         return config;
     }
@@ -41,7 +42,8 @@ export default class LogSettings extends AdminSettings {
             fileLevel: config.LogSettings.FileLevel,
             fileLocation: config.LogSettings.FileLocation,
             fileFormat: config.LogSettings.FileFormat,
-            enableWebhookDebugging: config.LogSettings.EnableWebhookDebugging
+            enableWebhookDebugging: config.LogSettings.EnableWebhookDebugging,
+            enableDiagnostics: config.LogSettings.EnableDiagnostics
         };
     }
 
@@ -185,6 +187,23 @@ export default class LogSettings extends AdminSettings {
                         />
                     }
                     value={this.state.enableWebhookDebugging}
+                    onChange={this.handleChange}
+                />
+                <BooleanSetting
+                    id='enableDiagnostics'
+                    label={
+                        <FormattedMessage
+                            id='admin.log.enableDiagnostics'
+                            defaultMessage='Enable Diagnostics and Error Reporting:'
+                        />
+                    }
+                    helpText={
+                        <FormattedHTMLMessage
+                            id='admin.log.enableDiagnosticsDescription'
+                            defaultMessage='Enable this feature to improve the quality and performance of Mattermost by sending error reporting and diagnostic information to Mattermost, Inc. Read our <a href="https://about.mattermost.com/default-privacy-policy/" target="_blank">privacy policy</a> to learn more.'
+                        />
+                    }
+                    value={this.state.enableDiagnostics}
                     onChange={this.handleChange}
                 />
             </SettingsGroup>

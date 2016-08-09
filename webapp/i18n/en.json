@@ -463,6 +463,8 @@
   "admin.log.consoleTitle": "Output logs to console: ",
   "admin.log.enableWebhookDebugging": "Enable Webhook Debugging:",
   "admin.log.enableWebhookDebuggingDescription": "You can set this to false to disable the debug logging of all incoming webhook request bodies.",
+  "admin.log.enableDiagnostics": "Enable Diagnostics and Error Reporting:",
+  "admin.log.enableDiagnosticsDescription": "Enable this feature to improve the quality and performance of Mattermost by sending error reporting and diagnostic information to Mattermost, Inc. Read our <a href=\"https://about.mattermost.com/default-privacy-policy/\" target=\"_blank\">privacy policy</a> to learn more.",
   "admin.log.fileDescription": "Typically set to true in production.  When true, log files are written to the log file specified in file location field below.",
   "admin.log.fileLevelDescription": "This setting determines the level of detail at which log events are written to the log file. ERROR: Outputs only error messages. INFO: Outputs error messages and information around startup and initialization. DEBUG: Prints high detail for developers working on debugging issues.",
   "admin.log.fileLevelTitle": "File Log Level:",
