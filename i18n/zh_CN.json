@@ -301,19 +301,19 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.removed",
-    "translation": "%s 删除频道头 (was: %s)"
+    "translation": "%s 删除频道标语 (原为: %s)"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
-    "translation": "保存更新频道头消息时检索用户出错 %v"
+    "translation": "尝试获取用户同时保存更新频标语消息时失败 %v"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
-    "translation": "%s 更新频道头从: %s 到: %s"
+    "translation": "%s 更新频道标语从: %s 到: %s"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_to",
-    "translation": "%s 更新频道头为: %s"
+    "translation": "%s 更新频道标语为: %s"
   },
   {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
@@ -561,11 +561,11 @@
   },
   {
     "id": "api.command_shortcuts.list",
-    "translation": "### 键盘快捷键 \n\n#### 导航\n\nALT+UP：左边侧边栏上一个频道或私信\nALT+DOWN：左边侧边栏下一个频道或私信\nALT+SHIFT+UP：左边侧边栏上一个有未读消息的频道或私信\nALT+SHIFT+DOWN: 左边侧边栏下一个有未读消息的频道或私信\nCTRL+K：打开快速频道切换对话框\nCTRL+SHIFT+A：打开帐号设定\nCTRL+SHIFT+M：打开最近提及\n\n#### 文件\n\nCTRL+U：上传文件\n\n#### 消息\n\nALT+[点击一信息]：将此信息设为当前频道最早未读信息\nESC：将此频道所有信息标为已读\nCTRL+UP (在空输入框)：重印你上一个输入的消息或指令\nCTRL+DOWN (在空输入框)：重印你下一个输入的消息或指令\nUP (在空输入框)：修改此频道里你上条消息\n@[character]+TAB：自动完成 [character] 开头的 @username\n:[character]+TAB：自动完成 [character] 开头的表情符号\n\n#### 游览器自带指令\n\nALT+LEFT：你历史中上一个频道\nALT+RIGHT：你历史中下一个频道\nCTRL+PLUS：增加字体大小 (放大)\nCTRL+MINUS：减小字体大小 (缩小)\nSHIFT+UP (在输入框)：延伸高亮文字至上一行\nSHIFT+DOWN (在输入框)：延伸高亮文字至下一行\nSHIFT+ENTER (在输入框)：换行\n"
+    "translation": "### 键盘快捷键 \n\n#### 导航\n\nALT+UP：左边侧边栏上一个频道或私信\nALT+DOWN：左边侧边栏下一个频道或私信\nALT+SHIFT+UP：左边侧边栏上一个有未读消息的频道或私信\nALT+SHIFT+DOWN: 左边侧边栏下一个有未读消息的频道或私信\nCTRL+K：打开快速频道切换对话框\nCTRL+SHIFT+A：打开帐号设定\nCTRL+SHIFT+M：打开最近提及\n\n#### 文件\n\nCTRL+U：上传文件\n\n#### 消息\n\nESC：将此频道所有信息标为已读\nCTRL+UP (在空输入框)：重印你上一个输入的消息或指令\nCTRL+DOWN (在空输入框)：重印你下一个输入的消息或指令\nUP (在空输入框)：修改此频道里你上条消息\n@[character]+TAB：自动完成 [character] 开头的 @username\n:[character]+TAB：自动完成 [character] 开头的表情符号\n\n#### 游览器自带指令\n\nALT+LEFT：你历史中上一个频道\nALT+RIGHT：你历史中下一个频道\nCTRL+PLUS：增加字体大小 (放大)\nCTRL+MINUS：减小字体大小 (缩小)\nSHIFT+UP (在输入框)：延伸高亮文字至上一行\nSHIFT+DOWN (在输入框)：延伸高亮文字至下一行\nSHIFT+ENTER (在输入框)：换行\n"
   },
   {
     "id": "api.command_shortcuts.list_mac",
-    "translation": "### 键盘快捷键 \n\n#### 导航\n\nALT+UP：左边侧边栏上一个频道或私信\nALT+DOWN：左边侧边栏下一个频道或私信\nALT+SHIFT+UP：左边侧边栏上一个有未读消息的频道或私信\nALT+SHIFT+DOWN: 左边侧边栏下一个有未读消息的频道或私信\nCTRL+K：打开快速频道切换对话框\nCTRL+SHIFT+A：打开帐号设定\nCTRL+SHIFT+M：打开最近提及\n\n#### 文件\n\nCTRL+U：上传文件\n\n#### 消息\n\nALT+[点击一信息]：将此信息设为当前频道最早未读信息\nESC：将此频道所有信息标为已读\nCTRL+UP (在空输入框)：重印你上一个输入的消息或指令\nCTRL+DOWN (在空输入框)：重印你下一个输入的消息或指令\nUP (在空输入框)：修改此频道里你上条消息\n@[character]+TAB：自动完成 [character] 开头的 @username\n:[character]+TAB：自动完成 [character] 开头的表情符号\n\n#### 游览器自带指令\n\nALT+LEFT：你历史中上一个频道\nALT+RIGHT：你历史中下一个频道\nCTRL+PLUS：增加字体大小 (放大)\nCTRL+MINUS：减小字体大小 (缩小)\nSHIFT+UP (在输入框)：延伸高亮文字至上一行\nSHIFT+DOWN (在输入框)：延伸高亮文字至下一行\nSHIFT+ENTER (在输入框)：换行\n"
+    "translation": "### 键盘快捷键 \n\n#### 导航\n\nALT+UP：左边侧边栏上一个频道或私信\nALT+DOWN：左边侧边栏下一个频道或私信\nALT+SHIFT+UP：左边侧边栏上一个有未读消息的频道或私信\nALT+SHIFT+DOWN: 左边侧边栏下一个有未读消息的频道或私信\nCTRL+K：打开快速频道切换对话框\nCTRL+SHIFT+A：打开帐号设定\nCTRL+SHIFT+M：打开最近提及\n\n#### 文件\n\nCTRL+U：上传文件\n\n#### 消息\n\nESC：将此频道所有信息标为已读\nCTRL+UP (在空输入框)：重印你上一个输入的消息或指令\nCTRL+DOWN (在空输入框)：重印你下一个输入的消息或指令\nUP (在空输入框)：修改此频道里你上条消息\n@[character]+TAB：自动完成 [character] 开头的 @username\n:[character]+TAB：自动完成 [character] 开头的表情符号\n\n#### 游览器自带指令\n\nALT+LEFT：你历史中上一个频道\nALT+RIGHT：你历史中下一个频道\nCTRL+PLUS：增加字体大小 (放大)\nCTRL+MINUS：减小字体大小 (缩小)\nSHIFT+UP (在输入框)：延伸高亮文字至上一行\nSHIFT+DOWN (在输入框)：延伸高亮文字至下一行\nSHIFT+ENTER (在输入框)：换行\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -889,7 +889,75 @@
   },
   {
     "id": "api.oauth.allow_oauth.turn_off.app_error",
-    "translation": "系统管理员已经关闭的 OAuth 验证服务。"
+    "translation": "系统管理员已经关闭了 OAuth2 验证服务商。"
+  },
+  {
+    "id": "api.oauth.authorize_oauth.disabled.app_error",
+    "translation": "系统管理员已经关闭了 OAuth2 验证服务商。"
+  },
+  {
+    "id": "api.oauth.authorize_oauth.missing.app_error",
+    "translation": "response_type, client_id, 或 redirect_uri 至少却一项"
+  },
+  {
+    "id": "api.oauth.delete.permissions.app_error",
+    "translation": "没有权限删除 OAuth2 应用"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_client_id.app_error",
+    "translation": "invalid_request：错误的 client_id"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
+    "translation": "invalid_request：缺少 client_secret"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_grant.app_error",
+    "translation": "invalid_request：错误的 grant_type"
+  },
+  {
+    "id": "api.oauth.get_access_token.credentials.app_error",
+    "translation": "invalid_client：无效的用户凭证"
+  },
+  {
+    "id": "api.oauth.get_access_token.disabled.app_error",
+    "translation": "系统管理员已经关闭了 OAuth2 验证服务商。"
+  },
+  {
+    "id": "api.oauth.get_access_token.expired_code.app_error",
+    "translation": "invalid_grant：无效或过期授权码"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal.app_error",
+    "translation": "server_error：访问数据库时遇到了内部服务器错误"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_saving.app_error",
+    "translation": "server_error：在保存访问令牌到数据库时遇到了内部服务器错误"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_session.app_error",
+    "translation": "server_error：在保存会话到数据库时遇到了内部服务器错误"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_user.app_error",
+    "translation": "server_error：从数据库中读取用户时遇到了内部服务器错误"
+  },
+  {
+    "id": "api.oauth.get_access_token.missing_code.app_error",
+    "translation": "invalid_request：缺少编号"
+  },
+  {
+    "id": "api.oauth.get_access_token.missing_refresh_token.app_error",
+    "translation": "invalid_request：缺少 refresh_token"
+  },
+  {
+    "id": "api.oauth.get_access_token.redirect_uri.app_error",
+    "translation": "invalid_request：提供的 redirect_uri 不匹配授权码 redirect_uri"
+  },
+  {
+    "id": "api.oauth.get_access_token.refresh_token.app_error",
+    "translation": "invalid_grant：无效的续期令牌"
   },
   {
     "id": "api.oauth.get_auth_data.find.error",
@@ -901,11 +969,7 @@
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
-    "translation": "系统管理员已经关闭的 OAuth 验证服务。"
-  },
-  {
-    "id": "api.oauth.revoke_access_token.del_code.app_error",
-    "translation": "从数据库删除授权码出错"
+    "translation": "系统管理员已经关闭的 OAuth2 服务商。"
   },
   {
     "id": "api.oauth.revoke_access_token.del_session.app_error",
@@ -920,12 +984,24 @@
     "translation": "删除前从数据库获取访问令牌遇到错误"
   },
   {
+    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "translation": "用户注册已停用。"
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "translation": "注册链接已过期"
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "translation": "注册链接无效"
+  },
+  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
     "translation": "{{.Usernames}}和{{.LastUsername}}被提到了，但是他们不会收到通知，因为他们不在这个频道。"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "{{.Username}}被提到了，但是他不会收到通知，因为他不在这个频道。"
+    "translation": "{{.Username}}被提到了，但是他因不在此频道而不会收到通知。"
   },
   {
     "id": "api.post.create_post.bad_filename.error",
@@ -949,7 +1025,7 @@
   },
   {
     "id": "api.post.create_webhook_post.creating.app_error",
-    "translation": "创建发布时出错"
+    "translation": "创建信息时出错"
   },
   {
     "id": "api.post.delete_post.permissions.app_error",
@@ -1141,7 +1217,7 @@
   },
   {
     "id": "api.server.start_server.rate.info",
-    "translation": "RateLimiter启用"
+    "translation": "RateLimiter 已启用"
   },
   {
     "id": "api.server.start_server.rate.warn",
@@ -1161,7 +1237,7 @@
   },
   {
     "id": "api.server.stop_server.stopped.info",
-    "translation": "停止服务"
+    "translation": "停止已服务"
   },
   {
     "id": "api.server.stop_server.stopping.info",
@@ -1229,11 +1305,11 @@
   },
   {
     "id": "api.slackimport.slack_import.note1",
-    "translation": "- 有些邮件可能不会被导入，因为他们不支持这个导入者.\r\n"
+    "translation": "- 有些信息可能未被导入因为导入程序不支持他们。\r\n"
   },
   {
     "id": "api.slackimport.slack_import.note2",
-    "translation": "- Slack bot posts 现在不被支持.\r\n"
+    "translation": "- Slack 机器人信息现在不支持。\r\n"
   },
   {
     "id": "api.slackimport.slack_import.notes",
@@ -1297,7 +1373,7 @@
   },
   {
     "id": "api.team.import_team.array.app_error",
-    "translation": "请求中‘file’为空数组"
+    "translation": "请求中 'file' 为空数组"
   },
   {
     "id": "api.team.import_team.integer.app_error",
@@ -1641,7 +1717,7 @@
   },
   {
     "id": "api.user.authorize_oauth_user.unsupported.app_error",
-    "translation": "不支持的认证服务提供商"
+    "translation": "不支持的认证服务商"
   },
   {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
@@ -1749,7 +1825,7 @@
   },
   {
     "id": "api.user.get_authorization_code.unsupported.app_error",
-    "translation": "不支持OAuth服务提供商"
+    "translation": "不支持的 OAuth 服务商"
   },
   {
     "id": "api.user.get_me.getting.error",
@@ -1833,7 +1909,7 @@
   },
   {
     "id": "api.user.permanent_delete_user.system_admin.warn",
-    "translation": "你在删除 %v 是一个系统管理员.  您可能需要使用命令行工具设置另一个帐户作为系统管理员."
+    "translation": "你在删除系统管理员 %v。您可能需要使用命令行工具设置另一个帐户作为系统管理员。"
   },
   {
     "id": "api.user.reset_password.invalid_link.app_error",
@@ -2128,6 +2204,50 @@
     "translation": "无法打开图像文件。图像过大。"
   },
   {
+    "id": "ent.cluster.config_changed.info",
+    "translation": "id=%v 的机群设定已更改。尝试重启机群服务中。为了确保机群设置正确您不应该依赖此重启因为我们检测到一核心配置改动。"
+  },
+  {
+    "id": "ent.cluster.debug_fail.debug",
+    "translation": "机群发送失败在 `%v` detail=%v, extra=%v, retry number=%v"
+  },
+  {
+    "id": "ent.cluster.final_fail.error",
+    "translation": "机群发送最终失败在 `%v` detail=%v, extra=%v, retry number=%v"
+  },
+  {
+    "id": "ent.cluster.incompatible.warn",
+    "translation": "%v 的机群检测到可能不兼容的版本"
+  },
+  {
+    "id": "ent.cluster.incompatible_config.warn",
+    "translation": "%v 的机群检测到可能不兼容的设置"
+  },
+  {
+    "id": "ent.cluster.licence_disable.app_error",
+    "translation": "当前许可证禁用了机群功能。请联系您的系统管理员关于升级您的企业许可证。"
+  },
+  {
+    "id": "ent.cluster.ping_failed.info",
+    "translation": "机群ping失败 hostname=%v on=%v id=%v"
+  },
+  {
+    "id": "ent.cluster.ping_success.info",
+    "translation": "机群ping成功 hostname=%v on=%v id=%v self=%v"
+  },
+  {
+    "id": "ent.cluster.save_config.error",
+    "translation": "系统控制台在高可用性开启时设为只读。"
+  },
+  {
+    "id": "ent.cluster.starting.info",
+    "translation": "机群互连节点通讯以 hostname=%v id=%v 监听在 %v"
+  },
+  {
+    "id": "ent.cluster.stopping.info",
+    "translation": "机群互连节点通讯以 hostname=%v id=%v 在 %v 停止中"
+  },
+  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "当前许可证禁用了合规功能。请联系您的系统管理员关于升级您的企业许可证。"
   },
@@ -2269,7 +2389,7 @@
   },
   {
     "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "身份认证提供公共证书文件没有被发现。请与系统管理员联系。"
+    "translation": "身份认证提供商公共证书文件没有被发现。请与系统管理员联系。"
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -2293,11 +2413,11 @@
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
-    "translation": "尝试解析身份提供者回复时发生错误。请联系您的系统管理员。"
+    "translation": "尝试解析身份提供商回复时发生错误。请联系您的系统管理员。"
   },
   {
     "id": "ent.saml.do_login.validate.app_error",
-    "translation": "尝试验证身份提供者回复时发生错误。请联系您的系统管理员。"
+    "translation": "尝试验证身份提供商回复时发生错误。请联系您的系统管理员。"
   },
   {
     "id": "ent.saml.license_disable.app_error",
@@ -2440,8 +2560,8 @@
     "translation": "无效的访问令牌"
   },
   {
-    "id": "model.access.is_valid.auth_code.app_error",
-    "translation": "无效验证码"
+    "id": "model.access.is_valid.client_id.app_error",
+    "translation": "无效客户端id"
   },
   {
     "id": "model.access.is_valid.redirect_uri.app_error",
@@ -2450,6 +2570,10 @@
   {
     "id": "model.access.is_valid.refresh_token.app_error",
     "translation": "无效刷新令牌"
+  },
+  {
+    "id": "model.access.is_valid.user_id.app_error",
+    "translation": "无效用户id"
   },
   {
     "id": "model.authorize.is_valid.auth_code.app_error",
@@ -2637,11 +2761,11 @@
   },
   {
     "id": "model.config.is_valid.email_reset_salt.app_error",
-    "translation": "邮箱设置无效密码.  至少32位及以上字符."
+    "translation": "邮箱设定中无效的密码重置盐值。至少32位及以上字符。"
   },
   {
     "id": "model.config.is_valid.email_salt.app_error",
-    "translation": "邮箱设置无效邀请.  至少32位及以上字符."
+    "translation": "邮箱设定中无效的邀请盐值。至少32位及以上字符。"
   },
   {
     "id": "model.config.is_valid.email_security.app_error",
@@ -2649,7 +2773,7 @@
   },
   {
     "id": "model.config.is_valid.encrypt_sql.app_error",
-    "translation": "SQL设置加密秘钥无效.  至少32及位以上字符."
+    "translation": "无效的SQL加密秘钥设置。至少32位及以上字符。"
   },
   {
     "id": "model.config.is_valid.file_driver.app_error",
@@ -2657,19 +2781,19 @@
   },
   {
     "id": "model.config.is_valid.file_preview_height.app_error",
-    "translation": "文件设置中预览高度无效.  必须是0或者正整数."
+    "translation": "文件设置中文件预览高度无效。必须是0或者正整数。"
   },
   {
     "id": "model.config.is_valid.file_preview_width.app_error",
-    "translation": "文件设置中预览宽度无效.  M必须是正整数."
+    "translation": "文件设置中文件预览宽度无效。必须是正整数。"
   },
   {
     "id": "model.config.is_valid.file_profile_height.app_error",
-    "translation": "文件设置中文件高度无效.  必须是正整数."
+    "translation": "文件设置中个人档案高度无效。必须是正整数。"
   },
   {
     "id": "model.config.is_valid.file_profile_width.app_error",
-    "translation": "文件设置中文件宽度无效.  必须是正整数."
+    "translation": "文件设置中个人档案宽度无效。必须是正整数。"
   },
   {
     "id": "model.config.is_valid.file_salt.app_error",
@@ -2777,7 +2901,7 @@
   },
   {
     "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
-    "translation": "服务提供者登入网址必须为有效URL并且以 http:// 或 https:// 开头。"
+    "translation": "服务提供商登入网址必须为有效URL并且以 http:// 或 https:// 开头。"
   },
   {
     "id": "model.config.is_valid.saml_email_attribute.app_error",
@@ -2789,11 +2913,11 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
-    "translation": "找不到身份识别提供者公开凭证。您忘了上传？"
+    "translation": "找不到身份识别提供商公开凭证。您忘了上传？"
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "身份提供者签发网址必须为有效URL并且以 http:// 或 https:// 开头。"
+    "translation": "身份提供商签发网址必须为有效URL并且以 http:// 或 https:// 开头。"
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
@@ -2805,11 +2929,11 @@
   },
   {
     "id": "model.config.is_valid.saml_private_key.app_error",
-    "translation": "找不到服务提供者私钥。您忘了上传？"
+    "translation": "找不到服务提供商私钥。您忘了上传？"
   },
   {
     "id": "model.config.is_valid.saml_public_cert.app_error",
-    "translation": "找不到服务提供者公开凭证。您忘了上传？"
+    "translation": "找不到服务提供商公开凭证。您忘了上传？"
   },
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
@@ -2901,7 +3025,7 @@
   },
   {
     "id": "model.oauth.is_valid.callback.app_error",
-    "translation": "无效回调urls"
+    "translation": "回调网址必须为有效URL并且以 http:// 或 https:// 开头。"
   },
   {
     "id": "model.oauth.is_valid.client_secret.app_error",
@@ -2921,7 +3045,11 @@
   },
   {
     "id": "model.oauth.is_valid.homepage.app_error",
-    "translation": "无效主页"
+    "translation": "首页网址必须为有效URL并且以 http:// 或 https:// 开头。"
+  },
+  {
+    "id": "model.oauth.is_valid.icon_url.app_error",
+    "translation": "图标网址必须为有效URL并且以 http:// 或 https:// 开头。"
   },
   {
     "id": "model.oauth.is_valid.name.app_error",
@@ -3656,16 +3784,28 @@
     "translation": "我们保存许可证时出现一个错误"
   },
   {
+    "id": "store.sql_oauth.delete.commit_transaction.app_error",
+    "translation": "无法提交事务"
+  },
+  {
+    "id": "store.sql_oauth.delete.open_transaction.app_error",
+    "translation": "无法开启删除 OAuth2 应用事物"
+  },
+  {
+    "id": "store.sql_oauth.delete.rollback_transaction.app_error",
+    "translation": "无法回滚删除 OAuth2 应用事物"
+  },
+  {
+    "id": "store.sql_oauth.delete_app.app_error",
+    "translation": "删除 OAuth2 应用时遇到错误"
+  },
+  {
     "id": "store.sql_oauth.get_access_data.app_error",
     "translation": "我们查找访问令牌时遇到一个错误"
   },
   {
-    "id": "store.sql_oauth.get_access_data_by_code.app_error",
-    "translation": "我们查找访问令牌时遇到一个错误"
-  },
-  {
     "id": "store.sql_oauth.get_app.find.app_error",
-    "translation": "我们无法查找这个存在的APP"
+    "translation": "我们无法查找请求的应用"
   },
   {
     "id": "store.sql_oauth.get_app.finding.app_error",
@@ -3676,12 +3816,20 @@
     "translation": "我们无法查找一些存在的apps"
   },
   {
+    "id": "store.sql_oauth.get_apps.find.app_error",
+    "translation": "寻找 OAuth2 应用时遇到错误"
+  },
+  {
     "id": "store.sql_oauth.get_auth_data.find.app_error",
     "translation": "我们找不到现有的授权码"
   },
   {
     "id": "store.sql_oauth.get_auth_data.finding.app_error",
     "translation": "我们查找授权码遇到了一个错误"
+  },
+  {
+    "id": "store.sql_oauth.get_previous_access_data.app_error",
+    "translation": "我们查找访问令牌时遇到一个错误"
   },
   {
     "id": "store.sql_oauth.permanent_delete_auth_data_by_user.app_error",
@@ -3710,6 +3858,10 @@
   {
     "id": "store.sql_oauth.save_auth_data.app_error",
     "translation": "我们无法保存授权码。"
+  },
+  {
+    "id": "store.sql_oauth.update_access_data.app_error",
+    "translation": "我们更新访问令牌时遇到一个错误"
   },
   {
     "id": "store.sql_oauth.update_app.find.app_error",
@@ -4408,14 +4560,6 @@
     "translation": "管理控制台"
   },
   {
-    "id": "web.authorize_oauth.disabled.app_error",
-    "translation": "系统管理员已经关闭OAuth服务。"
-  },
-  {
-    "id": "web.authorize_oauth.missing.app_error",
-    "translation": "缺少一个或者多个响应类型、客户端ID、重定向uri"
-  },
-  {
     "id": "web.authorize_oauth.title",
     "translation": "授权申请"
   },
@@ -4458,62 +4602,6 @@
   {
     "id": "web.find_team.title",
     "translation": "查找团队"
-  },
-  {
-    "id": "web.get_access_token.bad_client_id.app_error",
-    "translation": "invalid_request：错误的的 client_id"
-  },
-  {
-    "id": "web.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request：缺少 client_secret"
-  },
-  {
-    "id": "web.get_access_token.bad_grant.app_error",
-    "translation": "invalid_request：错误的 grant_type"
-  },
-  {
-    "id": "web.get_access_token.credentials.app_error",
-    "translation": "invalid_client：无效的用户凭证"
-  },
-  {
-    "id": "web.get_access_token.disabled.app_error",
-    "translation": "系统管理员已经关闭OAuth服务。"
-  },
-  {
-    "id": "web.get_access_token.exchanged.app_error",
-    "translation": "invalid_grant：授权码已被交换成访问令牌"
-  },
-  {
-    "id": "web.get_access_token.expired_code.app_error",
-    "translation": "invalid_grant：无效或过期授权码"
-  },
-  {
-    "id": "web.get_access_token.internal.app_error",
-    "translation": "server_error：访问数据库时遇到的内部服务器错误"
-  },
-  {
-    "id": "web.get_access_token.internal_saving.app_error",
-    "translation": "server_error：在保存访问令牌到数据库时遇到了内部服务器错误"
-  },
-  {
-    "id": "web.get_access_token.internal_session.app_error",
-    "translation": "server_error：在保存会话到数据库时遇到了内部服务器错误"
-  },
-  {
-    "id": "web.get_access_token.internal_user.app_error",
-    "translation": "server_error：从数据库中读取用户时遇到了内部服务器错误"
-  },
-  {
-    "id": "web.get_access_token.missing_code.app_error",
-    "translation": "invalid_request：缺少编号"
-  },
-  {
-    "id": "web.get_access_token.redirect_uri.app_error",
-    "translation": "invalid_request：提供的 redirect_uri 不匹配授权码 redirect_uri"
-  },
-  {
-    "id": "web.get_access_token.revoking.error",
-    "translation": "撤销访问令牌时遇到一个错误，err="
   },
   {
     "id": "web.header.back",
@@ -4626,18 +4714,6 @@
   {
     "id": "web.signup_user_complete.title",
     "translation": "完成用户注册"
-  },
-  {
-    "id": "web.singup_with_oauth.disabled.app_error",
-    "translation": "用户注册已停用。"
-  },
-  {
-    "id": "web.singup_with_oauth.expired_link.app_error",
-    "translation": "注册链接已过期"
-  },
-  {
-    "id": "web.singup_with_oauth.invalid_link.app_error",
-    "translation": "注册链接无效"
   },
   {
     "id": "web.singup_with_oauth.invalid_team.app_error",

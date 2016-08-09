@@ -561,11 +561,11 @@
   },
   {
     "id": "api.command_shortcuts.list",
-    "translation": "### Atalhos do Teclado\n\n#### Navegação\n\nALT+CIMA: Canal anterior ou mensagem direta na barra lateral esquerda\nALT+BAIXO: Próximo canal ou mensagem direta na barra lateral esquerda\nALT+SHIFT+CIMA: Canal anterior ou mensagem direta na barra lateral esquerda com mensagens não lidas\nALT+SHIFT+BAIXO: Próximo canal ou mensagem direta na barra lateral esquerda com mensagens não lidas\nCTRL+K: Abre uma janela de troca rápida de canal\nCTRL+SHIFT+A: Abre as configurações de conta\nCTRL+SHIFT+M: Abre as menções recentes\n\n#### Arquivos\n\nCTRL+U: Enviar arquivo(s)\n\n#### Mensagens\n\nCTRL+CIMA (campo de mensagem vazio): Reimprimir a mensagem anterior ou comando slash digitado\nCTRL+BAIXO (campo de mensagem vazio): Reimprimir a próxima mensagem ou comando slash digitado\nCIMA (campo de mensagem vazio): Edita sua última mensagem no canal atual\n@[caracter]+TAB: Autocompleta o @usuário começando com [caracter]\n:[caracter]+TAB: Autocompleta o emoji começando com [caracter]\n\n#### Comandos do Navegador\n\nALT+ESQUERDA: Canal anterior no seu histórico\nALT+DIREITA: Próximo canal no seu histórico\nCTRL+MAIS: Aumentar o tamanho da fonte (zoom in)\nCTRL+MENOS: Reduzir o tamanho da fonte (zoom out)\nSHIFT+CIMA (no campo de mensagem): Selecionar texto da linha anterior\nSHIFT+BAIXO (no campo de mensagem): Selecionar texto da próxima linha\nSHIFT+ENTER (no campo de mensagem): Criar uma nova linha\n"
+    "translation": "### Atalhos do Teclado\n\n#### Navegação\n\nALT+CIMA: Canal anterior ou mensagem direta na barra lateral esquerda\nALT+BAIXO: Próximo canal ou mensagem direta na barra lateral esquerda\nALT+SHIFT+CIMA: Canal anterior ou mensagem direta na barra lateral esquerda com mensagens não lidas\nALT+SHIFT+BAIXO: Próximo canal ou mensagem direta na barra lateral esquerda com mensagens não lidas\nCTRL+K: Abre uma janela de troca rápida de canal\nCTRL+SHIFT+A: Abre as configurações de conta\nCTRL+SHIFT+M: Abre as menções recentes\n\n#### Arquivos\n\nCTRL+U: Enviar arquivo(s)\n\n#### Mensagens\n\nESC: Marca todas as mensagens no canal atual como lida\nCTRL+CIMA (campo de mensagem vazio): Reimprimir a mensagem anterior ou comando slash digitado\nCTRL+BAIXO (campo de mensagem vazio): Reimprimir a próxima mensagem ou comando slash digitado\nCIMA (campo de mensagem vazio): Edita sua última mensagem no canal atual\n@[caracter]+TAB: Autocompleta o @usuário começando com [caracter]\n:[caracter]+TAB: Autocompleta o emoji começando com [caracter]\n\n#### Comandos do Navegador\n\nALT+ESQUERDA: Canal anterior no seu histórico\nALT+DIREITA: Próximo canal no seu histórico\nCTRL+MAIS: Aumentar o tamanho da fonte (zoom in)\nCTRL+MENOS: Reduzir o tamanho da fonte (zoom out)\nSHIFT+CIMA (no campo de mensagem): Selecionar texto da linha anterior\nSHIFT+BAIXO (no campo de mensagem): Selecionar texto da próxima linha\nSHIFT+ENTER (no campo de mensagem): Criar uma nova linha\n"
   },
   {
     "id": "api.command_shortcuts.list_mac",
-    "translation": "### Atalhos do Teclado\n\n#### Navegação\n\nALT+CIMA: Canal anterior ou mensagem direta na barra lateral esquerda\nALT+BAIXO: Próximo canal ou mensagem direta na barra lateral esquerda\nALT+SHIFT+CIMA: Canal anterior ou mensagem direta na barra lateral esquerda com mensagens não lidas\nALT+SHIFT+BAIXO: Próximo canal ou mensagem direta na barra lateral esquerda com mensagens não lidas\nCMD+K: Abre uma janela de troca rápida de canal\nCMD+SHIFT+A: Abre as configurações de conta\nCMD+SHIFT+M: Abre as menções recentes\n\n#### Arquivos\n\nCMD+U: Enviar arquivo(s)\n\n#### Mensagens\n\nCMD+CIMA (campo de mensagem vazio): Reimprimir a mensagem anterior ou comando slash digitado\nCMD+BAIXO (campo de mensagem vazio): Reimprimir a próxima mensagem ou comando slash digitado\nCIMA (campo de mensagem vazio): Edita sua última mensagem no canal atual\n@[caracter]+TAB: Autocompleta o @usuário começando com [caracter]\n:[caracter]+TAB: Autocompleta o emoji começando com [caracter]\n\n#### Comandos do Navegador\n\nCMD+[: Canal anterior no seu histórico\nCMD+]: Próximo canal no seu histórico\nCMD+MAIS: Aumentar o tamanho da fonte (zoom in)\nCMD+MENOS: Reduzir o tamanho da fonte (zoom out)\nSHIFT+CIMA (no campo de mensagem): Selecionar texto da linha anterior\nSHIFT+BAIXO (no campo de mensagem): Selecionar texto da próxima linha\nSHIFT+ENTER (no campo de mensagem): Criar uma nova linha\n"
+    "translation": "### Atalhos do Teclado\n\n#### Navegação\n\nALT+CIMA: Canal anterior ou mensagem direta na barra lateral esquerda\nALT+BAIXO: Próximo canal ou mensagem direta na barra lateral esquerda\nALT+SHIFT+CIMA: Canal anterior ou mensagem direta na barra lateral esquerda com mensagens não lidas\nALT+SHIFT+BAIXO: Próximo canal ou mensagem direta na barra lateral esquerda com mensagens não lidas\nCMD+K: Abre uma janela de troca rápida de canal\nCMD+SHIFT+A: Abre as configurações de conta\nCMD+SHIFT+M: Abre as menções recentes\n\n#### Arquivos\n\nCMD+U: Enviar arquivo(s)\n\n#### Mensagens\n\nESC: Marca todas as mensagens no canal atual como lida\nCMD+CIMA (campo de mensagem vazio): Reimprimir a mensagem anterior ou comando slash digitado\nCMD+BAIXO (campo de mensagem vazio): Reimprimir a próxima mensagem ou comando slash digitado\nCIMA (campo de mensagem vazio): Edita sua última mensagem no canal atual\n@[caracter]+TAB: Autocompleta o @usuário começando com [caracter]\n:[caracter]+TAB: Autocompleta o emoji começando com [caracter]\n\n#### Comandos do Navegador\n\nCMD+[: Canal anterior no seu histórico\nCMD+]: Próximo canal no seu histórico\nCMD+MAIS: Aumentar o tamanho da fonte (zoom in)\nCMD+MENOS: Reduzir o tamanho da fonte (zoom out)\nSHIFT+CIMA (no campo de mensagem): Selecionar texto da linha anterior\nSHIFT+BAIXO (no campo de mensagem): Selecionar texto da próxima linha\nSHIFT+ENTER (no campo de mensagem): Criar uma nova linha\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -889,7 +889,75 @@
   },
   {
     "id": "api.oauth.allow_oauth.turn_off.app_error",
-    "translation": "O administrador do sistema desligou o provedor de serviço OAuth."
+    "translation": "O administrador do sistema desligou o Provedor de Serviço OAuth2."
+  },
+  {
+    "id": "api.oauth.authorize_oauth.disabled.app_error",
+    "translation": "O administrador do sistema desligou o Provedor de Serviço OAuth2."
+  },
+  {
+    "id": "api.oauth.authorize_oauth.missing.app_error",
+    "translation": "Faltando um ou mais response_type, client_id, ou redirect_uri"
+  },
+  {
+    "id": "api.oauth.delete.permissions.app_error",
+    "translation": "Permissão inapropriada para deletar o App OAuth2"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_client_id.app_error",
+    "translation": "invalid_request: Bad client_id"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
+    "translation": "invalid_request: Faltando client_secret"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_grant.app_error",
+    "translation": "invalid_request: Bad grant_type"
+  },
+  {
+    "id": "api.oauth.get_access_token.credentials.app_error",
+    "translation": "invalid_client: Credenciais do cliente inválida"
+  },
+  {
+    "id": "api.oauth.get_access_token.disabled.app_error",
+    "translation": "O administrador do sistema desligou o Provedor de Serviço OAuth2."
+  },
+  {
+    "id": "api.oauth.get_access_token.expired_code.app_error",
+    "translation": "invalid_grant: Código de autorização inválido ou expirado"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal.app_error",
+    "translation": "server_error: Encontrado um erro interno no servidor enquanto acessava o banco de dados"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_saving.app_error",
+    "translation": "server_error: Encontrado um erro interno no servidor enquanto salvava o token de acesso no banco de dados"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_session.app_error",
+    "translation": "server_error: Encontrado um erro interno no servidor enquanto salvava a sessão no banco de dados"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_user.app_error",
+    "translation": "server_error: Encontrado um erro interno no servidor enquanto obtia usuário do banco de dados"
+  },
+  {
+    "id": "api.oauth.get_access_token.missing_code.app_error",
+    "translation": "invalid_request: Faltando código"
+  },
+  {
+    "id": "api.oauth.get_access_token.missing_refresh_token.app_error",
+    "translation": "invalid_request: Faltando refresh_token"
+  },
+  {
+    "id": "api.oauth.get_access_token.redirect_uri.app_error",
+    "translation": "invalid_request: Fornecido redirect_uri que não corresponde ao código de autorização redirect_uri"
+  },
+  {
+    "id": "api.oauth.get_access_token.refresh_token.app_error",
+    "translation": "invalid_grant: Inválido refresh token"
   },
   {
     "id": "api.oauth.get_auth_data.find.error",
@@ -901,11 +969,7 @@
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
-    "translation": "O administrador do sistema desligou o provedor de serviço OAuth."
-  },
-  {
-    "id": "api.oauth.revoke_access_token.del_code.app_error",
-    "translation": "Erro ao deletar o código de autorização do BD"
+    "translation": "O administrador do sistema desligou o Provedor de Serviço OAuth2."
   },
   {
     "id": "api.oauth.revoke_access_token.del_session.app_error",
@@ -918,6 +982,18 @@
   {
     "id": "api.oauth.revoke_access_token.get.app_error",
     "translation": "Erro ao obter o token de acesso do BD antes da exclusão"
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "translation": "Inscrição de usuário desativada."
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "translation": "O link de inscrição expirou"
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "translation": "O link de inscrição não parece ser válido"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
@@ -2128,6 +2204,50 @@
     "translation": "Não foi possível abrir a imagem. Imagem é muito grande."
   },
   {
+    "id": "ent.cluster.config_changed.info",
+    "translation": "Configuração de Cluster foi alterado para id=%v.  Tentando reiniciar o serviço de cluster.  Para garantir que o cluster está configurado corretamente você não deve contar com este reinício porque detectamos uma alteração na configuração do núcleo."
+  },
+  {
+    "id": "ent.cluster.debug_fail.debug",
+    "translation": "Envio para o cluster falhou em `%v` detalhes=%v, extra=%v, número de tentativas=%v"
+  },
+  {
+    "id": "ent.cluster.final_fail.error",
+    "translation": "Envio para o cluster última falha em `%v` detalhes=%v, extra=%v, número de tentativas=%v"
+  },
+  {
+    "id": "ent.cluster.incompatible.warn",
+    "translation": "Potencial versão incompatível detectada para clustering com %v"
+  },
+  {
+    "id": "ent.cluster.incompatible_config.warn",
+    "translation": "Potencial configuração incompatível detectada para clustering com %v"
+  },
+  {
+    "id": "ent.cluster.licence_disable.app_error",
+    "translation": "Funcionalidade Clustering desabilitada pela licença atual. Entre em contato com o administrador do sistema sobre como atualizar sua licença enterprise."
+  },
+  {
+    "id": "ent.cluster.ping_failed.info",
+    "translation": "Ping no cluster com hostname=%v em=%v id=%v falhou"
+  },
+  {
+    "id": "ent.cluster.ping_success.info",
+    "translation": "Ping no cluster com hostname=%v em=%v id=%v self=%v bem sucedido"
+  },
+  {
+    "id": "ent.cluster.save_config.error",
+    "translation": "Console do Sistema é definido como somente leitura quando Alta Disponibilidade está ativo."
+  },
+  {
+    "id": "ent.cluster.starting.info",
+    "translation": "Comunicação cluster internode está escutando %v com hostname=%v id=%v"
+  },
+  {
+    "id": "ent.cluster.stopping.info",
+    "translation": "Comunicação cluster internode em %v com hostname=%v id=%v está parada"
+  },
+  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Funcionalidade Compliance desabilitada pela licença atual. Entre em contato com o administrador do sistema sobre como atualizar sua licença enterprise."
   },
@@ -2221,7 +2341,7 @@
   },
   {
     "id": "ent.mfa.deactivate.save_secret.app_error",
-    "translation": "Erro ao limpar o segredo MFA"
+    "translation": "Erro ao limpar a chave secreta MFA"
   },
   {
     "id": "ent.mfa.generate_qr_code.create_code.app_error",
@@ -2229,7 +2349,7 @@
   },
   {
     "id": "ent.mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Erro ao salvar o segredo MFA"
+    "translation": "Erro ao salvar a chave secreta MFA"
   },
   {
     "id": "ent.mfa.license_disable.app_error",
@@ -2440,8 +2560,8 @@
     "translation": "Token de acesso inválido"
   },
   {
-    "id": "model.access.is_valid.auth_code.app_error",
-    "translation": "Código de autenticação inválido"
+    "id": "model.access.is_valid.client_id.app_error",
+    "translation": "Id do cliente inválido"
   },
   {
     "id": "model.access.is_valid.redirect_uri.app_error",
@@ -2450,6 +2570,10 @@
   {
     "id": "model.access.is_valid.refresh_token.app_error",
     "translation": "Token de atualização inválido"
+  },
+  {
+    "id": "model.access.is_valid.user_id.app_error",
+    "translation": "Id do usuário inválido"
   },
   {
     "id": "model.authorize.is_valid.auth_code.app_error",
@@ -2817,7 +2941,7 @@
   },
   {
     "id": "model.config.is_valid.site_url.app_error",
-    "translation": "URL SAML SSO deve ser uma URL válida e começar com http:// ou https://."
+    "translation": "Site URL deve ser uma URL válida e começar com http:// ou https://"
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
@@ -2901,11 +3025,11 @@
   },
   {
     "id": "model.oauth.is_valid.callback.app_error",
-    "translation": "Urls de retorno de chamada inválidas"
+    "translation": "URL de Retorno deve ser uma URL válida e começar com http:// ou https://."
   },
   {
     "id": "model.oauth.is_valid.client_secret.app_error",
-    "translation": "Cliente segredo inválido"
+    "translation": "Chave secreta do cliente inválida"
   },
   {
     "id": "model.oauth.is_valid.create_at.app_error",
@@ -2921,7 +3045,11 @@
   },
   {
     "id": "model.oauth.is_valid.homepage.app_error",
-    "translation": "Pagina inicial inválida"
+    "translation": "Página Inicial deve ser uma URL válida e começar com http:// ou https://."
+  },
+  {
+    "id": "model.oauth.is_valid.icon_url.app_error",
+    "translation": "URL do ícone deve ser uma URL válida e começar com http:// ou https://."
   },
   {
     "id": "model.oauth.is_valid.name.app_error",
@@ -3656,16 +3784,28 @@
     "translation": "Encontramos um erro ao salvar a lincença"
   },
   {
+    "id": "store.sql_oauth.delete.commit_transaction.app_error",
+    "translation": "Não é possível confirmar a transação"
+  },
+  {
+    "id": "store.sql_oauth.delete.open_transaction.app_error",
+    "translation": "Não foi possível abrir a transação para deletar o app OAuth2"
+  },
+  {
+    "id": "store.sql_oauth.delete.rollback_transaction.app_error",
+    "translation": "Não foi possível anular a transação de deletar o App OAuth2"
+  },
+  {
+    "id": "store.sql_oauth.delete_app.app_error",
+    "translation": "Ocorreu um erro ao deletar o App OAuth2"
+  },
+  {
     "id": "store.sql_oauth.get_access_data.app_error",
     "translation": "Encontramos um erro ao procurar o token de acesso"
   },
   {
-    "id": "store.sql_oauth.get_access_data_by_code.app_error",
-    "translation": "Encontramos um erro ao procurar o token de acesso"
-  },
-  {
     "id": "store.sql_oauth.get_app.find.app_error",
-    "translation": "Não foi possível encontrar o app existente"
+    "translation": "Não foi possível encontrar o app solicitado"
   },
   {
     "id": "store.sql_oauth.get_app.finding.app_error",
@@ -3676,12 +3816,20 @@
     "translation": "Não foi possível encontrar nenhum app existente"
   },
   {
+    "id": "store.sql_oauth.get_apps.find.app_error",
+    "translation": "Ocorreu um erro ao encontrar os Apps OAuth2"
+  },
+  {
     "id": "store.sql_oauth.get_auth_data.find.app_error",
     "translation": "Não foi possível localizar o código de autorização"
   },
   {
     "id": "store.sql_oauth.get_auth_data.finding.app_error",
     "translation": "Encontramos um erro ao procurar o código de autorização"
+  },
+  {
+    "id": "store.sql_oauth.get_previous_access_data.app_error",
+    "translation": "Encontramos um erro ao procurar o token de acesso"
   },
   {
     "id": "store.sql_oauth.permanent_delete_auth_data_by_user.app_error",
@@ -3710,6 +3858,10 @@
   {
     "id": "store.sql_oauth.save_auth_data.app_error",
     "translation": "Não foi possível salvar o código de autorização."
+  },
+  {
+    "id": "store.sql_oauth.update_access_data.app_error",
+    "translation": "Encontramos um erro ao enviar o token de acesso"
   },
   {
     "id": "store.sql_oauth.update_app.find.app_error",
@@ -4221,7 +4373,7 @@
   },
   {
     "id": "store.sql_user.update_mfa_secret.app_error",
-    "translation": "Foi encontrado um erro ao atualizar o segredo MFA do usuário"
+    "translation": "Foi encontrado um erro ao atualizar a chave secreta MFA do usuário"
   },
   {
     "id": "store.sql_user.update_password.app_error",
@@ -4408,14 +4560,6 @@
     "translation": "Console Admin"
   },
   {
-    "id": "web.authorize_oauth.disabled.app_error",
-    "translation": "O administrador do sistema desativou o provedor de serviço OAuth."
-  },
-  {
-    "id": "web.authorize_oauth.missing.app_error",
-    "translation": "Faltando uma ou mais de response_type, client_id, or redirect_uri"
-  },
-  {
     "id": "web.authorize_oauth.title",
     "translation": "Autorizar Aplicação"
   },
@@ -4458,62 +4602,6 @@
   {
     "id": "web.find_team.title",
     "translation": "Encontrar Equipe"
-  },
-  {
-    "id": "web.get_access_token.bad_client_id.app_error",
-    "translation": "invalid_request: Bad client_id"
-  },
-  {
-    "id": "web.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Faltando client_secret"
-  },
-  {
-    "id": "web.get_access_token.bad_grant.app_error",
-    "translation": "invalid_request: Bad grant_type"
-  },
-  {
-    "id": "web.get_access_token.credentials.app_error",
-    "translation": "invalid_client: Inválida credenciais de cliente"
-  },
-  {
-    "id": "web.get_access_token.disabled.app_error",
-    "translation": "O administrador do sistema desativou o provedor de serviço OAuth."
-  },
-  {
-    "id": "web.get_access_token.exchanged.app_error",
-    "translation": "invalid_grant: Código de autorização já trocado por um token de acesso"
-  },
-  {
-    "id": "web.get_access_token.expired_code.app_error",
-    "translation": "invalid_grant: Código de autorização inválido ou expirado"
-  },
-  {
-    "id": "web.get_access_token.internal.app_error",
-    "translation": "server_error: Encontrado um erro interno no servidor enquanto acessava o banco de dados"
-  },
-  {
-    "id": "web.get_access_token.internal_saving.app_error",
-    "translation": "server_error: Encontrado um erro interno no servidor enquanto salvava o token de acesso no banco de dados"
-  },
-  {
-    "id": "web.get_access_token.internal_session.app_error",
-    "translation": "server_error: Encontrado um erro interno no servidor enquanto salvava a sessão no banco de dados"
-  },
-  {
-    "id": "web.get_access_token.internal_user.app_error",
-    "translation": "server_error: Encontrado um erro interno no servidor enquanto puxava o usuário do banco de dados"
-  },
-  {
-    "id": "web.get_access_token.missing_code.app_error",
-    "translation": "invalid_request: Faltando código"
-  },
-  {
-    "id": "web.get_access_token.redirect_uri.app_error",
-    "translation": "invalid_request: Fornecido redirect_uri que não corresponde ao código de autorização redirect_uri"
-  },
-  {
-    "id": "web.get_access_token.revoking.error",
-    "translation": "Encontrado um erro ao revogar um token de acesso, err="
   },
   {
     "id": "web.header.back",
@@ -4626,18 +4714,6 @@
   {
     "id": "web.signup_user_complete.title",
     "translation": "Inscrição de Usuário Completa"
-  },
-  {
-    "id": "web.singup_with_oauth.disabled.app_error",
-    "translation": "Inscrição de usuário desativada."
-  },
-  {
-    "id": "web.singup_with_oauth.expired_link.app_error",
-    "translation": "O link de inscrição expirou"
-  },
-  {
-    "id": "web.singup_with_oauth.invalid_link.app_error",
-    "translation": "O link de inscrição não parece ser válido"
   },
   {
     "id": "web.singup_with_oauth.invalid_team.app_error",

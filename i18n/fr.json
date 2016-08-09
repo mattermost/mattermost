@@ -892,6 +892,74 @@
     "translation": "L'administrateur système a désactivé l'authentification par OAuth."
   },
   {
+    "id": "api.oauth.authorize_oauth.disabled.app_error",
+    "translation": "L'administrateur système a désactivé l'authentification par OAuth2."
+  },
+  {
+    "id": "api.oauth.authorize_oauth.missing.app_error",
+    "translation": "Il manque une des valeurs parmi response_type, client_id ou redirect_uri"
+  },
+  {
+    "id": "api.oauth.delete.permissions.app_error",
+    "translation": "Permissions insuffisantes pour supprimer l'application OAuth 2"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_client_id.app_error",
+    "translation": "invalid_request: Bad client_id"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
+    "translation": "invalid_request : client_secret manquant"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_grant.app_error",
+    "translation": "invalid_request : Mauvais grant_type"
+  },
+  {
+    "id": "api.oauth.get_access_token.credentials.app_error",
+    "translation": "invalid_client : Identifiants client invalides"
+  },
+  {
+    "id": "api.oauth.get_access_token.disabled.app_error",
+    "translation": "L'administrateur système a désactivé l'authentification par OAuth2."
+  },
+  {
+    "id": "api.oauth.get_access_token.expired_code.app_error",
+    "translation": "invalid_grant : Code d'autorisation invalide ou expiré"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal.app_error",
+    "translation": "server_error : Une erreur interne serveur est survenue durant l'accès à la base de données"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_saving.app_error",
+    "translation": "server_error : Une erreur interne serveur est survenue durant l'enregistrement du jeton d'accès dans la base de données"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_session.app_error",
+    "translation": "server_error : Une erreur interne serveur est survenue durant l'enregistrement de la session en base de données"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_user.app_error",
+    "translation": "server_error : Une erreur interne serveur est survenue durant la récupération de l'utilisateur depuis la base de données"
+  },
+  {
+    "id": "api.oauth.get_access_token.missing_code.app_error",
+    "translation": "invalid_request : Code manquant"
+  },
+  {
+    "id": "api.oauth.get_access_token.missing_refresh_token.app_error",
+    "translation": "invalid_request : refresh_token manquant"
+  },
+  {
+    "id": "api.oauth.get_access_token.redirect_uri.app_error",
+    "translation": "invalid_request : La redirect_uri fournie ne correspond pas au code d'autorisation redirect_uri"
+  },
+  {
+    "id": "api.oauth.get_access_token.refresh_token.app_error",
+    "translation": "invalid_grant : jeton de rafraîchissement invalide"
+  },
+  {
     "id": "api.oauth.get_auth_data.find.error",
     "translation": "Impossible de trouver le code d'authentification pour code=%s"
   },
@@ -901,11 +969,7 @@
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
-    "translation": "L'administrateur système a désactivé l'authentification par OAuth."
-  },
-  {
-    "id": "api.oauth.revoke_access_token.del_code.app_error",
-    "translation": "Erreur lors de la suppression du code d'autorisation en base de données"
+    "translation": "L'administrateur système a désactivé l'authentification par OAuth2."
   },
   {
     "id": "api.oauth.revoke_access_token.del_session.app_error",
@@ -918,6 +982,18 @@
   {
     "id": "api.oauth.revoke_access_token.get.app_error",
     "translation": "Erreur lors de la récupération du jeton d'accès avant suppression"
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "translation": "L'inscription utilisateur est désactivée."
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "translation": "Le lien d'inscription a expiré."
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "translation": "Le lien d'inscription semble ne pas être valide."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
@@ -2128,6 +2204,50 @@
     "translation": "Impossible d'ouvrir l'image. L'image est trop grande."
   },
   {
+    "id": "ent.cluster.config_changed.info",
+    "translation": "Cluster configuration has changed for id=%v.  Attempting to restart cluster service.  To ensure the cluster is configured correctly you should not rely on this restart because we detected a core configuration change."
+  },
+  {
+    "id": "ent.cluster.debug_fail.debug",
+    "translation": "Cluster send failed at `%v` detail=%v, extra=%v, retry number=%v"
+  },
+  {
+    "id": "ent.cluster.final_fail.error",
+    "translation": "Cluster send final fail at `%v` detail=%v, extra=%v, retry number=%v"
+  },
+  {
+    "id": "ent.cluster.incompatible.warn",
+    "translation": "Potential incompatible version detected for clustering with %v"
+  },
+  {
+    "id": "ent.cluster.incompatible_config.warn",
+    "translation": "Potential incompatible config detected for clustering with %v"
+  },
+  {
+    "id": "ent.cluster.licence_disable.app_error",
+    "translation": "Fonctionnalité de conformité désactivée par la licence courante. Veuillez contacter votre administrateur système concernant la mise à niveau de votre licence entreprise."
+  },
+  {
+    "id": "ent.cluster.ping_failed.info",
+    "translation": "Cluster ping failed with hostname=%v on=%v with id=%v"
+  },
+  {
+    "id": "ent.cluster.ping_success.info",
+    "translation": "Cluster ping successful with hostname=%v on=%v with id=%v self=%v"
+  },
+  {
+    "id": "ent.cluster.save_config.error",
+    "translation": "System Console is set to read-only when High Availability is enabled."
+  },
+  {
+    "id": "ent.cluster.starting.info",
+    "translation": "Cluster internode communication is listening on %v with hostname=%v id=%v"
+  },
+  {
+    "id": "ent.cluster.stopping.info",
+    "translation": "Cluster internode communication is stopping on %v with hostname=%v id=%v"
+  },
+  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Fonctionnalité de conformité désactivée par la licence courante. Veuillez contacter votre administrateur système concernant la mise à niveau de votre licence entreprise."
   },
@@ -2440,8 +2560,8 @@
     "translation": "Jeton d'accès invalide"
   },
   {
-    "id": "model.access.is_valid.auth_code.app_error",
-    "translation": "Code d'authentification invalide"
+    "id": "model.access.is_valid.client_id.app_error",
+    "translation": "Id client invalide"
   },
   {
     "id": "model.access.is_valid.redirect_uri.app_error",
@@ -2450,6 +2570,10 @@
   {
     "id": "model.access.is_valid.refresh_token.app_error",
     "translation": "Jeton d'actualisation invalide"
+  },
+  {
+    "id": "model.access.is_valid.user_id.app_error",
+    "translation": "Id utilisateur invalide"
   },
   {
     "id": "model.authorize.is_valid.auth_code.app_error",
@@ -2817,7 +2941,7 @@
   },
   {
     "id": "model.config.is_valid.site_url.app_error",
-    "translation": "URL SSO SAML invalide. Il doit s'agir d'une URL valide et commencer par http:// ou https://."
+    "translation": "URL du site invalide. Il doit s'agir d'une URL valide et commencer par http:// ou https://."
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
@@ -2901,7 +3025,7 @@
   },
   {
     "id": "model.oauth.is_valid.callback.app_error",
-    "translation": "Urls de rappel invalides"
+    "translation": "L'URL de callback doit être une URL valide et commencer par http:// ou https://."
   },
   {
     "id": "model.oauth.is_valid.client_secret.app_error",
@@ -2921,7 +3045,11 @@
   },
   {
     "id": "model.oauth.is_valid.homepage.app_error",
-    "translation": "Page d'accueil invalide"
+    "translation": "URL du site invalide. Il doit s'agir d'une URL valide et commencer par http:// ou https://."
+  },
+  {
+    "id": "model.oauth.is_valid.icon_url.app_error",
+    "translation": "URL de l'icône invalide. Il doit s'agir d'une URL valide et commencer par http:// ou https://."
   },
   {
     "id": "model.oauth.is_valid.name.app_error",
@@ -3656,16 +3784,28 @@
     "translation": "Nous avons rencontré une erreur durant l'enregistrement de la licence"
   },
   {
+    "id": "store.sql_oauth.delete.commit_transaction.app_error",
+    "translation": "Impossible de valider la transaction"
+  },
+  {
+    "id": "store.sql_oauth.delete.open_transaction.app_error",
+    "translation": "Impossible d'ouvrir la transaction pour supprimer l'application OAuth 2"
+  },
+  {
+    "id": "store.sql_oauth.delete.rollback_transaction.app_error",
+    "translation": "Impossible de restaurer la transaction pour supprimer l'application OAuth 2"
+  },
+  {
+    "id": "store.sql_oauth.delete_app.app_error",
+    "translation": "Une erreur a eu lieu pendant la suppression de l'application OAuth 2"
+  },
+  {
     "id": "store.sql_oauth.get_access_data.app_error",
     "translation": "Nous avons rencontré une erreur lors de la recherche du jeton d'accès"
   },
   {
-    "id": "store.sql_oauth.get_access_data_by_code.app_error",
-    "translation": "Nous avons rencontré une erreur lors de la recherche du jeton d'accès"
-  },
-  {
     "id": "store.sql_oauth.get_app.find.app_error",
-    "translation": "Nous n'avons pas pu trouver d'application existante"
+    "translation": "Nous n'avons pas pu trouver l'application"
   },
   {
     "id": "store.sql_oauth.get_app.finding.app_error",
@@ -3676,12 +3816,20 @@
     "translation": "Nous n'avons pu trouver aucune application existante"
   },
   {
+    "id": "store.sql_oauth.get_apps.find.app_error",
+    "translation": "Une erreur a eu lieu pendant la recherche des applications OAuth 2"
+  },
+  {
     "id": "store.sql_oauth.get_auth_data.find.app_error",
     "translation": "Nous n'avons pas pu trouver le code d'autorisation existant"
   },
   {
     "id": "store.sql_oauth.get_auth_data.finding.app_error",
     "translation": "Nous avons rencontré une erreur durant la recherche du code d'autorisation"
+  },
+  {
+    "id": "store.sql_oauth.get_previous_access_data.app_error",
+    "translation": "Nous avons rencontré une erreur lors de la recherche du jeton d'accès"
   },
   {
     "id": "store.sql_oauth.permanent_delete_auth_data_by_user.app_error",
@@ -3710,6 +3858,10 @@
   {
     "id": "store.sql_oauth.save_auth_data.app_error",
     "translation": "Nous n'avons pas pu enregistrer le code d'autorisation."
+  },
+  {
+    "id": "store.sql_oauth.update_access_data.app_error",
+    "translation": "Nous avons rencontré une erreur lors de la mise à jour du jeton d'accès"
   },
   {
     "id": "store.sql_oauth.update_app.find.app_error",
@@ -4408,14 +4560,6 @@
     "translation": "Console Administration"
   },
   {
-    "id": "web.authorize_oauth.disabled.app_error",
-    "translation": "L'administrateur système a désactivé les fournisseurs de service OAuth."
-  },
-  {
-    "id": "web.authorize_oauth.missing.app_error",
-    "translation": "Il manque une des valeurs parmi response_type, client_id ou redirect_uri"
-  },
-  {
     "id": "web.authorize_oauth.title",
     "translation": "Autoriser une application"
   },
@@ -4458,62 +4602,6 @@
   {
     "id": "web.find_team.title",
     "translation": "Recherche d'équipe"
-  },
-  {
-    "id": "web.get_access_token.bad_client_id.app_error",
-    "translation": "invalid_request : Mauvais client_id"
-  },
-  {
-    "id": "web.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request : client_secret manquant"
-  },
-  {
-    "id": "web.get_access_token.bad_grant.app_error",
-    "translation": "invalid_request : Mauvais response_type"
-  },
-  {
-    "id": "web.get_access_token.credentials.app_error",
-    "translation": "invalid_client : Identifiants client invalides"
-  },
-  {
-    "id": "web.get_access_token.disabled.app_error",
-    "translation": "L'administrateur système a désactivé les fournisseurs de service OAuth."
-  },
-  {
-    "id": "web.get_access_token.exchanged.app_error",
-    "translation": "invalid_grant : Code d'autorisation déjà échangé contre un jeton d'accès"
-  },
-  {
-    "id": "web.get_access_token.expired_code.app_error",
-    "translation": "invalid_grant : Code d'autorisation invalide ou expiré"
-  },
-  {
-    "id": "web.get_access_token.internal.app_error",
-    "translation": "server_error : Une erreur interne serveur est survenue durant l'accès à la base de données"
-  },
-  {
-    "id": "web.get_access_token.internal_saving.app_error",
-    "translation": "server_error : Une erreur interne serveur est survenue durant l'enregistrement du jeton d'accès dans la base de données"
-  },
-  {
-    "id": "web.get_access_token.internal_session.app_error",
-    "translation": "server_error : Une erreur interne serveur est survenue durant l'enregistrement de la session en base de données"
-  },
-  {
-    "id": "web.get_access_token.internal_user.app_error",
-    "translation": "server_error : Une erreur interne serveur est survenue durant la récupération de l'utilisateur depuis la base de données"
-  },
-  {
-    "id": "web.get_access_token.missing_code.app_error",
-    "translation": "invalid_request : Code manquant"
-  },
-  {
-    "id": "web.get_access_token.redirect_uri.app_error",
-    "translation": "invalid_request : La redirect_uri fournie ne correspond pas au code d'autorisation redirect_uri"
-  },
-  {
-    "id": "web.get_access_token.revoking.error",
-    "translation": "Une erreur est survenue lors de la révocation d'un jeton d'accès, err="
   },
   {
     "id": "web.header.back",
@@ -4626,18 +4714,6 @@
   {
     "id": "web.signup_user_complete.title",
     "translation": "Terminer l'inscription utilisateur"
-  },
-  {
-    "id": "web.singup_with_oauth.disabled.app_error",
-    "translation": "L'inscription utilisateur est désactivée."
-  },
-  {
-    "id": "web.singup_with_oauth.expired_link.app_error",
-    "translation": "Le lien d'inscription a expiré"
-  },
-  {
-    "id": "web.singup_with_oauth.invalid_link.app_error",
-    "translation": "Le lien d'inscription ne semble pas être valide"
   },
   {
     "id": "web.singup_with_oauth.invalid_team.app_error",

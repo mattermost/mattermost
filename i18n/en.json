@@ -2204,8 +2204,48 @@
     "translation": "Unable to open image. Image is too large."
   },
   {
+    "id": "ent.cluster.config_changed.info",
+    "translation": "Cluster configuration has changed for id=%v.  Attempting to restart cluster service.  To ensure the cluster is configured correctly you should not rely on this restart because we detected a core configuration change."
+  },
+  {
+    "id": "ent.cluster.debug_fail.debug",
+    "translation": "Cluster send failed at `%v` detail=%v, extra=%v, retry number=%v"
+  },
+  {
+    "id": "ent.cluster.final_fail.error",
+    "translation": "Cluster send final fail at `%v` detail=%v, extra=%v, retry number=%v"
+  },
+  {
+    "id": "ent.cluster.incompatible.warn",
+    "translation": "Potential incompatible version detected for clustering with %v"
+  },
+  {
+    "id": "ent.cluster.incompatible_config.warn",
+    "translation": "Potential incompatible config detected for clustering with %v"
+  },
+  {
     "id": "ent.cluster.licence_disable.app_error",
     "translation": "Clustering functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license."
+  },
+  {
+    "id": "ent.cluster.ping_failed.info",
+    "translation": "Cluster ping failed with hostname=%v on=%v with id=%v"
+  },
+  {
+    "id": "ent.cluster.ping_success.info",
+    "translation": "Cluster ping successful with hostname=%v on=%v with id=%v self=%v"
+  },
+  {
+    "id": "ent.cluster.save_config.error",
+    "translation": "System Console is set to read-only when High Availability is enabled."
+  },
+  {
+    "id": "ent.cluster.starting.info",
+    "translation": "Cluster internode communication is listening on %v with hostname=%v id=%v"
+  },
+  {
+    "id": "ent.cluster.stopping.info",
+    "translation": "Cluster internode communication is stopping on %v with hostname=%v id=%v"
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -4682,45 +4722,5 @@
   {
     "id": "web.watcher_fail.error",
     "translation": "Failed to add directory to watcher %v"
-  },
-  {
-    "id": "ent.cluster.starting.info",
-    "translation": "Cluster internode communication is listening on %v with hostname=%v id=%v"
-  },
-  {
-    "id": "ent.cluster.save_config.error",
-    "translation": "System Console is set to read-only when High Availability is enabled."
-  },
-  {
-    "id": "ent.cluster.config_changed.info",
-    "translation": "Cluster configuration has changed for id=%v.  Attempting to restart cluster service.  To ensure the cluster is configured correctly you should not rely on this restart because we detected a core configuration change."
-  },
-  {
-    "id": "ent.cluster.stopping.info",
-    "translation": "Cluster internode communication is stopping on %v with hostname=%v id=%v"
-  },
-  {
-    "id": "ent.cluster.ping_failed.info",
-    "translation": "Cluster ping failed with hostname=%v on=%v with id=%v"
-  },
-  {
-    "id": "ent.cluster.ping_success.info",
-    "translation": "Cluster ping successful with hostname=%v on=%v with id=%v self=%v"
-  },
-  {
-    "id": "ent.cluster.incompatible.warn",
-    "translation": "Potential incompatible version detected for clustering with %v"
-  },
-  {
-    "id": "ent.cluster.incompatible_config.warn",
-    "translation": "Potential incompatible config detected for clustering with %v"
-  },
-  {
-    "id": "ent.cluster.debug_fail.debug",
-    "translation": "Cluster send failed at `%v` detail=%v, extra=%v, retry number=%v"
-  },
-  {
-    "id": "ent.cluster.final_fail.error",
-    "translation": "Cluster send final fail at `%v` detail=%v, extra=%v, retry number=%v"
   }
 ]

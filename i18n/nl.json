@@ -77,7 +77,7 @@
   },
   {
     "id": "api.admin.init.debug",
-    "translation": "Initialisatie van de admin api"
+    "translation": "Initialisatie van de admin api routes"
   },
   {
     "id": "api.admin.recycle_db_end.warn",
@@ -269,7 +269,7 @@
   },
   {
     "id": "api.channel.init.debug",
-    "translation": "Initialisatie van de admin api"
+    "translation": "Initialisatie van de kanaal api routes"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -301,7 +301,7 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.removed",
-    "translation": "%s heeft het kanaal titel verwijderd (was: %s)"
+    "translation": "%s heeft de kanaal titel verwijderd (was: %s)"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
@@ -389,7 +389,7 @@
   },
   {
     "id": "api.command.init.debug",
-    "translation": "Initialisatie van de opdracht admin api"
+    "translation": "Initialisatie van de opdracht api routes"
   },
   {
     "id": "api.command.invite_people.desc",
@@ -505,7 +505,7 @@
   },
   {
     "id": "api.command_logout.name",
-    "translation": "Uitloggen"
+    "translation": "uitloggen"
   },
   {
     "id": "api.command_logout.success_message",
@@ -549,7 +549,7 @@
   },
   {
     "id": "api.command_msg.name",
-    "translation": "[message]"
+    "translation": "bericht"
   },
   {
     "id": "api.command_msg.success",
@@ -561,11 +561,11 @@
   },
   {
     "id": "api.command_shortcuts.list",
-    "translation": "### Sneltoetsen\n\n#### Navigatie\n\nALT+pijl-OMHOOG: Vorige kanaal of rechtstreeks bericht in de zijbalk links\nALT+pijl-OMLAAG: Volgende kanaal of rechtstreeks bericht in de zijbalk links\nALT+SHIFT+pijl-OMHOOG: Vorige kanaal of rechtstreeks bericht in de linker zijbalk met ongelezen berichten\nALT+SHIFT+pijl-OMLAAG: Volgende kanaal of rechtstreeks bericht in de linker zijbalk met ongelezen berichten\nCTRL/CMD+K): Openen van een snelle kanaal wisselaar dialoog\nCTRL/CMD+SHIFT+A: Open account instellingen\nCTRL/CMD+SHIFT+M: Open recente vermeldingen\n\n#### Bestanden\n\nCTRL/CMD+U: Upload bestand(en)\n\n#### Berichten\n\nCTRL/CMD+pijl-OMHOOG: (in leeg invoerveld): Herhaal de vorige boodschap of slash opdracht die u hebt ingevoerd\nCTRL/CMD+pijl-OMLAAG: (in leeg invoerveld): Herhaal het volgende bericht slash of opdracht die u hebt ingevoerd\npijl-OMHOOG: (in het lege invoerveld): Bewerk uw laatste bericht in het huidige kanaal\n@[karakter]+TAB: automatisch @gebruikersnaam aanvullen dat begint met [karakter]\n:[karakter]+TAB: automatisch emoji aanvullen dat begint met [karakter]\n\n#### De ingebouwde Browser Opdrachten\n\nALT+pijl-LINKS/CMD+[: Vorige kanaal in uw geschiedenis\nALT+pijl-RECHTS/CMD+]: Volgend kanaal in uw geschiedenis\nCTRL/CMD+PLUS: Lettergrootte vergroten (inzoomen)\nCTRL/CMD+MIN: Lettergrootte verkleinen (uitzoomen)\nSHIFT+pijl-OMHOOG (in het invoerveld): Markeer de tekst naar de vorige regel\nSHIFT+pijl-OMLAAG (in het invoerveld): Markeer de tekst naar de volgende regel\nSHIFT+ENTER (in het invoerveld): Maak een nieuwe regel\n"
+    "translation": "### Sneltoetsen\n\n#### Navigatie\n\nALT+pijl-OMHOOG: Vorige kanaal of rechtstreeks bericht in de zijbalk links\nALT+pijl-OMLAAG: Volgende kanaal of rechtstreeks bericht in de zijbalk links\nALT+SHIFT+pijl-OMHOOG: Vorige kanaal of rechtstreeks bericht in de linker zijbalk met ongelezen berichten\nALT+SHIFT+pijl-OMLAAG: Volgende kanaal of rechtstreeks bericht in de linker zijbalk met ongelezen berichten\nCTRL/CMD+K): Openen van een snelle kanaal wisselaar dialoog\nCTRL/CMD+SHIFT+A: Open account instellingen\nCTRL/CMD+SHIFT+M: Open recente vermeldingen\n\n#### Bestanden\n\nCTRL/CMD+U: Upload bestand(en)\n\n#### Berichten\n\nESC: Markeer alle berichten in het huidige kanaal als gelezen\nCTRL/CMD+pijl-OMHOOG: (in leeg invoerveld): Herhaal de vorige boodschap of slash opdracht die u hebt ingevoerd\nCTRL/CMD+pijl-OMLAAG: (in leeg invoerveld): Herhaal het volgende bericht slash of opdracht die u hebt ingevoerd\npijl-OMHOOG: (in het lege invoerveld): Bewerk uw laatste bericht in het huidige kanaal\n@[karakter]+TAB: automatisch @gebruikersnaam aanvullen dat begint met [karakter]\n:[karakter]+TAB: automatisch emoji aanvullen dat begint met [karakter]\n\n#### De ingebouwde Browser Opdrachten\n\nALT+pijl-LINKS/CMD+[: Vorige kanaal in uw geschiedenis\nALT+pijl-RECHTS/CMD+]: Volgend kanaal in uw geschiedenis\nCTRL/CMD+PLUS: Lettergrootte vergroten (inzoomen)\nCTRL/CMD+MIN: Lettergrootte verkleinen (uitzoomen)\nSHIFT+pijl-OMHOOG (in het invoerveld): Markeer de tekst naar de vorige regel\nSHIFT+pijl-OMLAAG (in het invoerveld): Markeer de tekst naar de volgende regel\nSHIFT+ENTER (in het invoerveld): Maak een nieuwe regel\n"
   },
   {
     "id": "api.command_shortcuts.list_mac",
-    "translation": "### Sneltoetsen\n\n#### Navigatie\n\nALT+pijl-OMHOOG: Vorige kanaal of rechtstreeks bericht in de zijbalk links\nALT+pijl-OMLAAG: Volgende kanaal of rechtstreeks bericht in de zijbalk links\nALT+SHIFT+pijl-OMHOOG: Vorige kanaal of rechtstreeks bericht in de linker zijbalk met ongelezen berichten\nALT+SHIFT+pijl-OMLAAG: Volgende kanaal of rechtstreeks bericht in de linker zijbalk met ongelezen berichten\nCTRL/CMD+K): Openen van een snelle kanaal wisselaar dialoog\nCTRL/CMD+SHIFT+A: Open account instellingen\nCTRL/CMD+SHIFT+M: Open recente vermeldingen\n\n#### Bestanden\n\nCTRL/CMD+U: Upload bestand(en)\n\n#### Berichten\n\nCTRL/CMD+pijl-OMHOOG: (in leeg invoerveld): Herhaal de vorige boodschap of slash opdracht die u hebt ingevoerd\nCTRL/CMD+pijl-OMLAAG: (in leeg invoerveld): Herhaal het volgende bericht slash of opdracht die u hebt ingevoerd\npijl-OMHOOG: (in het lege invoerveld): Bewerk uw laatste bericht in het huidige kanaal\n@[karakter]+TAB: automatisch @gebruikersnaam aanvullen dat begint met [karakter]\n:[karakter]+TAB: automatisch emoji aanvullen dat begint met [karakter]\n\n#### De ingebouwde Browser Opdrachten\n\nALT+pijl-LINKS/CMD+[: Vorige kanaal in uw geschiedenis\nALT+pijl-RECHTS/CMD+]: Volgend kanaal in uw geschiedenis\nCTRL/CMD+PLUS: Lettergrootte vergroten (inzoomen)\nCTRL/CMD+MIN: Lettergrootte verkleinen (uitzoomen)\nSHIFT+pijl-OMHOOG (in het invoerveld): Markeer de tekst naar de vorige regel\nSHIFT+pijl-OMLAAG (in het invoerveld): Markeer de tekst naar de volgende regel\nSHIFT+ENTER (in het invoerveld): Maak een nieuwe regel\n"
+    "translation": "### Sneltoetsen\n\n#### Navigatie\n\nALT+pijl-OMHOOG: Vorige kanaal of rechtstreeks bericht in de zijbalk links\nALT+pijl-OMLAAG: Volgende kanaal of rechtstreeks bericht in de zijbalk links\nALT+SHIFT+pijl-OMHOOG: Vorige kanaal of rechtstreeks bericht in de linker zijbalk met ongelezen berichten\nALT+SHIFT+pijl-OMLAAG: Volgende kanaal of rechtstreeks bericht in de linker zijbalk met ongelezen berichten\nCTRL/CMD+K): Openen van een snelle kanaal wisselaar dialoog\nCTRL/CMD+SHIFT+A: Open account instellingen\nCTRL/CMD+SHIFT+M: Open recente vermeldingen\n\n#### Bestanden\n\nCTRL/CMD+U: Upload bestand(en)\n\n#### Berichten\n\nESC: Markeer alle berichten in het huidige kanaal als gelezen\nCTRL/CMD+pijl-OMHOOG: (in leeg invoerveld): Herhaal de vorige boodschap of slash opdracht die u hebt ingevoerd\nCTRL/CMD+pijl-OMLAAG: (in leeg invoerveld): Herhaal het volgende bericht slash of opdracht die u hebt ingevoerd\npijl-OMHOOG: (in het lege invoerveld): Bewerk uw laatste bericht in het huidige kanaal\n@[karakter]+TAB: automatisch @gebruikersnaam aanvullen dat begint met [karakter]\n:[karakter]+TAB: automatisch emoji aanvullen dat begint met [karakter]\n\n#### De ingebouwde Browser Opdrachten\n\nALT+pijl-LINKS/CMD+[: Vorige kanaal in uw geschiedenis\nALT+pijl-RECHTS/CMD+]: Volgend kanaal in uw geschiedenis\nCTRL/CMD+PLUS: Lettergrootte vergroten (inzoomen)\nCTRL/CMD+MIN: Lettergrootte verkleinen (uitzoomen)\nSHIFT+pijl-OMHOOG (in het invoerveld): Markeer de tekst naar de vorige regel\nSHIFT+pijl-OMLAAG (in het invoerveld): Markeer de tekst naar de volgende regel\nSHIFT+ENTER (in het invoerveld): Maak een nieuwe regel\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -573,7 +573,7 @@
   },
   {
     "id": "api.command_shrug.desc",
-    "translation": "Voegd ¯\\_(ツ)_/¯ toe aan het bericht"
+    "translation": "Voeg ¯\\_(ツ)_/¯ toe aan het bericht"
   },
   {
     "id": "api.command_shrug.hint",
@@ -581,7 +581,7 @@
   },
   {
     "id": "api.command_shrug.name",
-    "translation": "shrug"
+    "translation": "ophalen"
   },
   {
     "id": "api.context.404.app_error",
@@ -621,7 +621,7 @@
   },
   {
     "id": "api.context.token_provided.app_error",
-    "translation": "Sessie is niet OAuth, maar token we doorgegeven in de query string"
+    "translation": "Sessie is niet OAuth, maar token was doorgegeven in de query string"
   },
   {
     "id": "api.context.unknown.app_error",
@@ -633,7 +633,7 @@
   },
   {
     "id": "api.emoji.create.parse.app_error",
-    "translation": "Kan emoticon niet aanmaken. Fout tijdens het uitlezen van verzoek."
+    "translation": "Kan emoji niet aanmaken. Fout tijdens het uitlezen van verzoek."
   },
   {
     "id": "api.emoji.create.permissions.app_error",
@@ -641,7 +641,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Kon emoticon niet aanmaken. Afbeelding moet minstens 64 KB groot zijn."
+    "translation": "Kon emoji niet aanmaken. Afbeelding moet minstens 64 KB groot zijn."
   },
   {
     "id": "api.emoji.delete.permissions.app_error",
@@ -653,11 +653,11 @@
   },
   {
     "id": "api.emoji.get_image.decode.app_error",
-    "translation": "Kon plaatje niet omzetten voor emoticon."
+    "translation": "Kon plaatje niet omzetten voor emoji."
   },
   {
     "id": "api.emoji.get_image.read.app_error",
-    "translation": "Kon plaatje niet lezen voor emoticon"
+    "translation": "Kon plaatje niet lezen voor emoji"
   },
   {
     "id": "api.emoji.init.debug",
@@ -801,7 +801,7 @@
   },
   {
     "id": "api.general.init.debug",
-    "translation": "Initialisatie van de algemene api routes"
+    "translation": "Initialisatie van algemene api routes"
   },
   {
     "id": "api.import.import_post.saving.debug",
@@ -861,7 +861,7 @@
   },
   {
     "id": "api.license.init.debug",
-    "translation": "Initialisatie van de licentie api"
+    "translation": "Initialisatie van licentie api routes"
   },
   {
     "id": "api.license.remove_license.remove.app_error",
@@ -889,7 +889,75 @@
   },
   {
     "id": "api.oauth.allow_oauth.turn_off.app_error",
-    "translation": "De systeembeheerder de OAuth service uitgeschakeld."
+    "translation": "De systeembeheerder heeft de OAuth2 Service Provider uitgeschakeld."
+  },
+  {
+    "id": "api.oauth.authorize_oauth.disabled.app_error",
+    "translation": "De systeembeheerder heeft de OAuth2 Service Provider uitgeschakeld."
+  },
+  {
+    "id": "api.oauth.authorize_oauth.missing.app_error",
+    "translation": "Mist een of meerdere elementen uit: response_type, client_id of redirect_uri"
+  },
+  {
+    "id": "api.oauth.delete.permissions.app_error",
+    "translation": "Onvoldoende rechten voor het verwijderen van de OAuth2 applicatie"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_client_id.app_error",
+    "translation": "ongeldige aanvraag: Verkeerd client_id"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
+    "translation": "ongeldige aanvraag (invalid_request): Mist client_secret"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_grant.app_error",
+    "translation": "ongeldige aanvraag: Verkeerd grant_type"
+  },
+  {
+    "id": "api.oauth.get_access_token.credentials.app_error",
+    "translation": "Ongeldige client (invalid_client): Ongeldige client credentials"
+  },
+  {
+    "id": "api.oauth.get_access_token.disabled.app_error",
+    "translation": "De systeembeheerder heeft de OAuth2 Service Provider uitgeschakeld."
+  },
+  {
+    "id": "api.oauth.get_access_token.expired_code.app_error",
+    "translation": "(invalid_grant): Ongeldig of verlopen authorisatie code"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal.app_error",
+    "translation": "Server fout (server_error): Er een interne server fout opgetreden tijdens het benaderen van de database"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_saving.app_error",
+    "translation": "Server fout (server_error): Er is een interne server fout opgetreden tijdens het opslaan van het toegangs-token in de database"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_session.app_error",
+    "translation": "Server fout (server_error): Er is een interne server fout opgetreden tijdens het opslaan van de sessie in de database"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_user.app_error",
+    "translation": "Server fout (server_error): Er is een interne server fout opgetreden tijdens het ophalen van de gebruiker uit de database"
+  },
+  {
+    "id": "api.oauth.get_access_token.missing_code.app_error",
+    "translation": "Ongeldige aanvraag (invalid_request): Ontbrekende code"
+  },
+  {
+    "id": "api.oauth.get_access_token.missing_refresh_token.app_error",
+    "translation": "Ongeldige aanvraag (invalid_request): Ontbrekende refresh_token"
+  },
+  {
+    "id": "api.oauth.get_access_token.redirect_uri.app_error",
+    "translation": "Ongeldige aanvraag (invalid_request): De gegeven redirect_uri komt niet overeen met de autorisatie code redirect_uri"
+  },
+  {
+    "id": "api.oauth.get_access_token.refresh_token.app_error",
+    "translation": "invalid_grant: Verkeerd refresh token"
   },
   {
     "id": "api.oauth.get_auth_data.find.error",
@@ -901,11 +969,7 @@
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
-    "translation": "De systeembeheerder heeft de OAuth service uitgeschakeld."
-  },
-  {
-    "id": "api.oauth.revoke_access_token.del_code.app_error",
-    "translation": "Er is een fout opgetreden tijdens het verwijderen van de authorisatie code uit de database"
+    "translation": "De systeembeheerder heeft de OAuth2 Service Provider uitgeschakeld."
   },
   {
     "id": "api.oauth.revoke_access_token.del_session.app_error",
@@ -918,6 +982,18 @@
   {
     "id": "api.oauth.revoke_access_token.get.app_error",
     "translation": "Er is een fout opgetreden tijdens het ophalen van het access token uit de database, voor het verwijderen"
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "translation": "Gebruikers registratie is uitgeschakeld."
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "translation": "De aanmeld link is verlopen"
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "translation": "De aanmeld link is niet geldig"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
@@ -2128,6 +2204,50 @@
     "translation": "Kan de afbeelding niet openen. Afbeelding is te groot."
   },
   {
+    "id": "ent.cluster.config_changed.info",
+    "translation": "Cluster configuratie is verandert voor id=%v.  Poging tot herstarten van de cluster service.  Om zeker te zijn dat het cluster correct is geconfigureerd moet je niet vertrouwen op deze herstart omdat we een globale configuratie verandering ontdekte. "
+  },
+  {
+    "id": "ent.cluster.debug_fail.debug",
+    "translation": "Cluster verstuurde mislukte poging op `%v` detail=%v, extra=%v, retry number=%v"
+  },
+  {
+    "id": "ent.cluster.final_fail.error",
+    "translation": "Cluster verzond laatste mislukte poging op `%v` detail=%v, extra=%v, retry number=%v"
+  },
+  {
+    "id": "ent.cluster.incompatible.warn",
+    "translation": "Potentieel incompatibel versie gedetecteerd voor clustering met %v"
+  },
+  {
+    "id": "ent.cluster.incompatible_config.warn",
+    "translation": "Potentieel incompatibel configuratie gedetecteerd voor clusteren met %v "
+  },
+  {
+    "id": "ent.cluster.licence_disable.app_error",
+    "translation": "Clustering functionaliteit is uitgeschakeld met de huidige licentie. Neem contact op met de beheerder voor een upgrade van de licentie."
+  },
+  {
+    "id": "ent.cluster.ping_failed.info",
+    "translation": "Cluster ping gefaald bij hostname=%v op=%v met id=%v"
+  },
+  {
+    "id": "ent.cluster.ping_success.info",
+    "translation": "Cluster ping success met hostnaam=%v op=%v met id=%v self=%v"
+  },
+  {
+    "id": "ent.cluster.save_config.error",
+    "translation": "Systeem Console wordt op alleen-lezen gezet wanneer High Availability aan staat. "
+  },
+  {
+    "id": "ent.cluster.starting.info",
+    "translation": "Cluster internode communicatie luistert op %v met hostnaam=%v id=%v "
+  },
+  {
+    "id": "ent.cluster.stopping.info",
+    "translation": "Cluster internode communicatie is aan het stoppen op %v met hostnaam=%v id=%v"
+  },
+  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Compliance functionaliteit is uitgeschakeld met de huidige licentie. Neem contact op met de beheerder voor een upgrade van de licentie."
   },
@@ -2440,8 +2560,8 @@
     "translation": "Ongeldig toegangs token"
   },
   {
-    "id": "model.access.is_valid.auth_code.app_error",
-    "translation": "Ongeldige auth code"
+    "id": "model.access.is_valid.client_id.app_error",
+    "translation": "Ongeldig client id "
   },
   {
     "id": "model.access.is_valid.redirect_uri.app_error",
@@ -2450,6 +2570,10 @@
   {
     "id": "model.access.is_valid.refresh_token.app_error",
     "translation": "Ongeldig verversings token"
+  },
+  {
+    "id": "model.access.is_valid.user_id.app_error",
+    "translation": "Ongeldige gebruikers id"
   },
   {
     "id": "model.authorize.is_valid.auth_code.app_error",
@@ -2817,7 +2941,7 @@
   },
   {
     "id": "model.config.is_valid.site_url.app_error",
-    "translation": "Ongeldige URL. Een geldige URl begint met http:// of https://."
+    "translation": "Ongeldige URL. Een geldige URl begint met http:// of https://"
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
@@ -2901,7 +3025,7 @@
   },
   {
     "id": "model.oauth.is_valid.callback.app_error",
-    "translation": "Ongeldige 'callback' urls"
+    "translation": "Ongeldige URL. Een geldige URl begint met http:// of https://."
   },
   {
     "id": "model.oauth.is_valid.client_secret.app_error",
@@ -2921,7 +3045,11 @@
   },
   {
     "id": "model.oauth.is_valid.homepage.app_error",
-    "translation": "Ongeldige start pagina"
+    "translation": "Beginpagina moet een geldige URL zijn, een geldige URl begint met http:// of https://."
+  },
+  {
+    "id": "model.oauth.is_valid.icon_url.app_error",
+    "translation": "Ikoon URL moet een geldige URl zijn, die begint met http:// of https://"
   },
   {
     "id": "model.oauth.is_valid.name.app_error",
@@ -3656,16 +3784,28 @@
     "translation": "Er is een probleem opgetreden tijdens het opslaan van de licentie"
   },
   {
+    "id": "store.sql_oauth.delete.commit_transaction.app_error",
+    "translation": "De transactie kan niet worden vastgelegd"
+  },
+  {
+    "id": "store.sql_oauth.delete.open_transaction.app_error",
+    "translation": "Niet mogelijk om de OAuth2 app te verwijderen"
+  },
+  {
+    "id": "store.sql_oauth.delete.rollback_transaction.app_error",
+    "translation": "Niet mogelijk om de OAuth2 app verwijdering terug te draaien"
+  },
+  {
+    "id": "store.sql_oauth.delete_app.app_error",
+    "translation": "Er deed zich een fout voor tijdens het verwijderen van de OAuth2 App"
+  },
+  {
     "id": "store.sql_oauth.get_access_data.app_error",
     "translation": "Er is een probleem opgetreden bij het ophalen van het access token"
   },
   {
-    "id": "store.sql_oauth.get_access_data_by_code.app_error",
-    "translation": "Er is een probleem opgetrden tijdens het zoeken van het access token"
-  },
-  {
     "id": "store.sql_oauth.get_app.find.app_error",
-    "translation": "De bestaande app kan niet gevonden worden"
+    "translation": "De gezochte app kan niet gevonden worden"
   },
   {
     "id": "store.sql_oauth.get_app.finding.app_error",
@@ -3676,12 +3816,20 @@
     "translation": "Er kunnen geen bestaande app's gevonden worden"
   },
   {
+    "id": "store.sql_oauth.get_apps.find.app_error",
+    "translation": "Er is een fout opgetreden tijdens het vinden van OAuth2 applicaties."
+  },
+  {
     "id": "store.sql_oauth.get_auth_data.find.app_error",
     "translation": "We kunnen de authorisatie code niet vinden"
   },
   {
     "id": "store.sql_oauth.get_auth_data.finding.app_error",
     "translation": "Er is een probleem opgetreden bij het zoeken van de autorisatie code"
+  },
+  {
+    "id": "store.sql_oauth.get_previous_access_data.app_error",
+    "translation": "Er is een probleem opgetreden bij het ophalen van het access token"
   },
   {
     "id": "store.sql_oauth.permanent_delete_auth_data_by_user.app_error",
@@ -3710,6 +3858,10 @@
   {
     "id": "store.sql_oauth.save_auth_data.app_error",
     "translation": "De authorisatie code kan niet opgeslagen worden."
+  },
+  {
+    "id": "store.sql_oauth.update_access_data.app_error",
+    "translation": "Er is een probleem opgetreden bij het bijwerken van het access token"
   },
   {
     "id": "store.sql_oauth.update_app.find.app_error",
@@ -4408,14 +4560,6 @@
     "translation": "Beheerder Console"
   },
   {
-    "id": "web.authorize_oauth.disabled.app_error",
-    "translation": "De systeembeheerder heeft de OAuth service uitgeschakeld."
-  },
-  {
-    "id": "web.authorize_oauth.missing.app_error",
-    "translation": "Mist een of meerdere elementen uit; response_type, client_id of redirect_uri"
-  },
-  {
     "id": "web.authorize_oauth.title",
     "translation": "Authoriseer Applicaties"
   },
@@ -4458,62 +4602,6 @@
   {
     "id": "web.find_team.title",
     "translation": "Zoek een Team"
-  },
-  {
-    "id": "web.get_access_token.bad_client_id.app_error",
-    "translation": "ongeldige aanvraag: Verkeerd client_id"
-  },
-  {
-    "id": "web.get_access_token.bad_client_secret.app_error",
-    "translation": "ongeldige aanvraag (invalid_request); Mist client_secret"
-  },
-  {
-    "id": "web.get_access_token.bad_grant.app_error",
-    "translation": "ongeldige aanvraag: Verkeerd antwoord type"
-  },
-  {
-    "id": "web.get_access_token.credentials.app_error",
-    "translation": "Ongeldige client (invalid_client); ongeldige client credentials"
-  },
-  {
-    "id": "web.get_access_token.disabled.app_error",
-    "translation": "De systeembeheerder heeft de OAuth service uitgeschakeld."
-  },
-  {
-    "id": "web.get_access_token.exchanged.app_error",
-    "translation": "Ongeldige toegang (invalid_grant); Authorisatie code is al ingewisseld voor een toegangs token"
-  },
-  {
-    "id": "web.get_access_token.expired_code.app_error",
-    "translation": "Ongeldige toegang (invalid_grant); Ongeldig of verlopen authorisatie code"
-  },
-  {
-    "id": "web.get_access_token.internal.app_error",
-    "translation": "Server fout (server_error); Er een interne server fout opgetreden tijdens het benaderen van de database"
-  },
-  {
-    "id": "web.get_access_token.internal_saving.app_error",
-    "translation": "Server fout (server_error); Er is een interne server fout opgetreden tijdens het opslaan van het toegans token in de database"
-  },
-  {
-    "id": "web.get_access_token.internal_session.app_error",
-    "translation": "Server fout (server_error); Er is een interne server fout opgetreden tijdens het opslaan van de sessie in de database"
-  },
-  {
-    "id": "web.get_access_token.internal_user.app_error",
-    "translation": "Server fout (server_error); Er is een interne server fout opgetreden tijdens het ophalen van de gebruikers uit de database"
-  },
-  {
-    "id": "web.get_access_token.missing_code.app_error",
-    "translation": "Ongeldige aanvraag (invalid_request); code mist"
-  },
-  {
-    "id": "web.get_access_token.redirect_uri.app_error",
-    "translation": "Ongeldige aanvraag (invalid_request); De gegeven redirect_uri komt niet overeen met de authorisatie code redirect_uri"
-  },
-  {
-    "id": "web.get_access_token.revoking.error",
-    "translation": "Er is een probleem opgetreden tijdens het intrekken van de toegangs token, fout="
   },
   {
     "id": "web.header.back",
@@ -4626,18 +4714,6 @@
   {
     "id": "web.signup_user_complete.title",
     "translation": "Gebruikers aanmelden afronden"
-  },
-  {
-    "id": "web.singup_with_oauth.disabled.app_error",
-    "translation": "Gebruikers aanmelden is uitgeschakeld."
-  },
-  {
-    "id": "web.singup_with_oauth.expired_link.app_error",
-    "translation": "De aanmeld link is verlopen"
-  },
-  {
-    "id": "web.singup_with_oauth.invalid_link.app_error",
-    "translation": "De aanmeld link is niet geldig"
   },
   {
     "id": "web.singup_with_oauth.invalid_team.app_error",
