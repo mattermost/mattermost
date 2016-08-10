@@ -477,7 +477,7 @@
   "admin.oauth.gitlab": "GitLab",
   "admin.oauth.google": "Google Apps",
   "admin.oauth.off": "Do not allow sign-in via an OAuth 2.0 provider",
-  "admin.oauth.office365": "Office 365",
+  "admin.oauth.office365": "Office 365 (Beta)",
   "admin.oauth.providerDescription": "When true, Mattermost can act as an OAuth 2.0 service provider allowing Mattermost to authorize API requests from external applications.",
   "admin.oauth.providerTitle": "Enable OAuth 2.0 Service Provider: ",
   "admin.oauth.select": "Select OAuth 2.0 service provider:",

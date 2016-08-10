@@ -33,11 +33,9 @@ func InitOAuth() {
 	BaseRoutes.OAuth.Handle("/{service:[A-Za-z0-9]+}/complete", AppHandlerIndependent(completeOAuth)).Methods("GET")
 	BaseRoutes.OAuth.Handle("/{service:[A-Za-z0-9]+}/login", AppHandlerIndependent(loginWithOAuth)).Methods("GET")
 	BaseRoutes.OAuth.Handle("/{service:[A-Za-z0-9]+}/signup", AppHandlerIndependent(signupWithOAuth)).Methods("GET")
-	BaseRoutes.OAuth.Handle("/authorize", AppHandlerTrustRequester(authorizeOAuth)).Methods("GET")
-	BaseRoutes.OAuth.Handle("/access_token", ApiAppHandlerTrustRequester(getAccessToken)).Methods("POST")
 
-	BaseRoutes.Root.Handle("/authorize", AppHandlerTrustRequester(authorizeOAuth)).Methods("GET")
-	BaseRoutes.Root.Handle("/access_token", ApiAppHandlerTrustRequester(getAccessToken)).Methods("POST")
+	BaseRoutes.Root.Handle("/oauth/authorize", AppHandlerTrustRequester(authorizeOAuth)).Methods("GET")
+	BaseRoutes.Root.Handle("/oauth/access_token", ApiAppHandlerTrustRequester(getAccessToken)).Methods("POST")
 
 	// Handle all the old routes, to be later removed
 	BaseRoutes.Root.Handle("/{service:[A-Za-z0-9]+}/complete", AppHandlerIndependent(completeOAuth)).Methods("GET")
