@@ -34,28 +34,31 @@ export default class PasswordSettings extends AdminSettings {
         });
 
         // Update sample message from config settings
-        let sampleErrorMsgId = 'user.settings.security.passwordError';
-        if (props.config.PasswordSettings.Lowercase) {
-            sampleErrorMsgId = sampleErrorMsgId + 'Lowercase';
+        this.sampleErrorMsg = null;
+        if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.PasswordRequirements === 'true') {
+            let sampleErrorMsgId = 'user.settings.security.passwordError';
+            if (props.config.PasswordSettings.Lowercase) {
+                sampleErrorMsgId = sampleErrorMsgId + 'Lowercase';
+            }
+            if (props.config.PasswordSettings.Uppercase) {
+                sampleErrorMsgId = sampleErrorMsgId + 'Uppercase';
+            }
+            if (props.config.PasswordSettings.Number) {
+                sampleErrorMsgId = sampleErrorMsgId + 'Number';
+            }
+            if (props.config.PasswordSettings.Symbol) {
+                sampleErrorMsgId = sampleErrorMsgId + 'Symbol';
+            }
+            this.sampleErrorMsg = (
+                <FormattedMessage
+                    id={sampleErrorMsgId}
+                    default='Your password must be at least {min} characters.'
+                    values={{
+                        min: props.config.PasswordSettings.MinimumLength
+                    }}
+                />
+            );
         }
-        if (props.config.PasswordSettings.Uppercase) {
-            sampleErrorMsgId = sampleErrorMsgId + 'Uppercase';
-        }
-        if (props.config.PasswordSettings.Number) {
-            sampleErrorMsgId = sampleErrorMsgId + 'Number';
-        }
-        if (props.config.PasswordSettings.Symbol) {
-            sampleErrorMsgId = sampleErrorMsgId + 'Symbol';
-        }
-        this.sampleErrorMsg = (
-            <FormattedMessage
-                id={sampleErrorMsgId}
-                default='Your password must be at least {min} characters.'
-                values={{
-                    min: props.config.PasswordSettings.MinimumLength
-                }}
-            />
-        );
     }
 
     componentWillUpdate() {
@@ -94,37 +97,41 @@ export default class PasswordSettings extends AdminSettings {
     }
 
     getSampleErrorMsg() {
-        if (this.props.config.PasswordSettings.MinimumLength > Constants.MAX_PASSWORD_LENGTH || this.props.config.PasswordSettings.MinimumLength < Constants.MIN_PASSWORD_LENGTH) {
+        if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.PasswordRequirements === 'true') {
+            if (this.props.config.PasswordSettings.MinimumLength > Constants.MAX_PASSWORD_LENGTH || this.props.config.PasswordSettings.MinimumLength < Constants.MIN_PASSWORD_LENGTH) {
+                return (
+                    <FormattedMessage
+                        id='user.settings.security.passwordMinLength'
+                        default='Invalid minimum length, cannot show preview.'
+                    />
+                );
+            }
+
+            let sampleErrorMsgId = 'user.settings.security.passwordError';
+            if (this.refs.lowercase.checked) {
+                sampleErrorMsgId = sampleErrorMsgId + 'Lowercase';
+            }
+            if (this.refs.uppercase.checked) {
+                sampleErrorMsgId = sampleErrorMsgId + 'Uppercase';
+            }
+            if (this.refs.number.checked) {
+                sampleErrorMsgId = sampleErrorMsgId + 'Number';
+            }
+            if (this.refs.symbol.checked) {
+                sampleErrorMsgId = sampleErrorMsgId + 'Symbol';
+            }
             return (
                 <FormattedMessage
-                    id='user.settings.security.passwordMinLength'
-                    default='Invalid minimum length, cannot show preview.'
+                    id={sampleErrorMsgId}
+                    default='Your password must be at least {min} characters.'
+                    values={{
+                        min: this.props.config.PasswordSettings.MinimumLength
+                    }}
                 />
             );
         }
 
-        let sampleErrorMsgId = 'user.settings.security.passwordError';
-        if (this.refs.lowercase.checked) {
-            sampleErrorMsgId = sampleErrorMsgId + 'Lowercase';
-        }
-        if (this.refs.uppercase.checked) {
-            sampleErrorMsgId = sampleErrorMsgId + 'Uppercase';
-        }
-        if (this.refs.number.checked) {
-            sampleErrorMsgId = sampleErrorMsgId + 'Number';
-        }
-        if (this.refs.symbol.checked) {
-            sampleErrorMsgId = sampleErrorMsgId + 'Symbol';
-        }
-        return (
-            <FormattedMessage
-                id={sampleErrorMsgId}
-                default='Your password must be at least {min} characters.'
-                values={{
-                    min: this.props.config.PasswordSettings.MinimumLength
-                }}
-            />
-        );
+        return null;
     }
 
     renderTitle() {
