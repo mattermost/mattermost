@@ -34,6 +34,7 @@ func InitPost() {
 	l4g.Debug(utils.T("api.post.init.debug"))
 
 	BaseRoutes.NeedTeam.Handle("/posts/search", ApiUserRequired(searchPosts)).Methods("POST")
+	BaseRoutes.NeedTeam.Handle("/posts/flagged/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequiredActivity(getFlaggedPosts, false)).Methods("GET")
 	BaseRoutes.NeedTeam.Handle("/posts/{post_id}", ApiUserRequired(getPostById)).Methods("GET")
 	BaseRoutes.NeedTeam.Handle("/pltmp/{post_id}", ApiUserRequired(getPermalinkTmp)).Methods("GET")
 
@@ -457,6 +458,7 @@ func handleWebhookEvents(c *Context, post *model.Post, team *model.Team, channel
 							Err:          nil,
 							teamURLValid: c.teamURLValid,
 							teamURL:      c.teamURL,
+							siteURL:      c.siteURL,
 							T:            c.T,
 							Locale:       c.Locale,
 							TeamId:       hook.TeamId,
@@ -750,7 +752,7 @@ func sendNotificationEmail(c *Context, post *model.Post, user *model.User, chann
 	subjectPage := utils.NewHTMLTemplate("post_subject", user.Locale)
 	subjectPage.Props["Subject"] = userLocale("api.templates.post_subject",
 		map[string]interface{}{"SubjectText": subjectText, "TeamDisplayName": team.DisplayName,
-			"Month": month[:3], "Day": day, "Year": year})
+			"Month": month, "Day": day, "Year": year})
 	subjectPage.Props["SiteName"] = utils.Cfg.TeamSettings.SiteName
 
 	bodyPage := utils.NewHTMLTemplate("post_body", user.Locale)
@@ -1032,6 +1034,33 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		w.Write([]byte(rpost.ToJson()))
 	}
+}
+
+func getFlaggedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+
+	offset, err := strconv.Atoi(params["offset"])
+	if err != nil {
+		c.SetInvalidParam("getFlaggedPosts", "offset")
+		return
+	}
+
+	limit, err := strconv.Atoi(params["limit"])
+	if err != nil {
+		c.SetInvalidParam("getFlaggedPosts", "limit")
+		return
+	}
+
+	posts := &model.PostList{}
+
+	if result := <-Srv.Store.Post().GetFlaggedPosts(c.Session.UserId, offset, limit); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		posts = result.Data.(*model.PostList)
+	}
+
+	w.Write([]byte(posts.ToJson()))
 }
 
 func getPosts(c *Context, w http.ResponseWriter, r *http.Request) {

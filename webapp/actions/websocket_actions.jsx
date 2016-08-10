@@ -32,7 +32,7 @@ const MAX_WEBSOCKET_FAILS = 7;
 
 export function initialize() {
     if (window.WebSocket) {
-        let connUrl = window.mm_config.SiteURL;
+        let connUrl = Utils.getSiteURL();
 
         // replace the protocol with a websocket one
         if (connUrl.startsWith('https:')) {

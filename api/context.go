@@ -14,13 +14,13 @@ import (
 	"github.com/gorilla/mux"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 
+	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 )
 
 var sessionCache *utils.Cache = utils.NewLru(model.SESSION_CACHE_SIZE)
-var statusCache *utils.Cache = utils.NewLru(model.STATUS_CACHE_SIZE)
 
 var allowedMethods []string = []string{
 	"POST",
@@ -39,6 +39,7 @@ type Context struct {
 	Err          *model.AppError
 	teamURLValid bool
 	teamURL      string
+	siteURL      string
 	T            goi18n.TranslateFunc
 	Locale       string
 	TeamId       string
@@ -141,14 +142,18 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		isTokenFromQueryString = true
 	}
 
-	// if the site url in the config isn't specified, infer if from this request and write it back to the config
-	if *utils.Cfg.ServiceSettings.SiteURL == "" {
-		*utils.Cfg.ServiceSettings.SiteURL = GetProtocol(r) + "://" + r.Host
-		utils.RegenerateClientConfig()
+	if *utils.Cfg.ServiceSettings.SiteURL != "" {
+		c.SetSiteURL(*utils.Cfg.ServiceSettings.SiteURL)
+	} else {
+		protocol := GetProtocol(r)
+		c.SetSiteURL(protocol + "://" + r.Host)
 	}
 
 	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)
-	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v", model.CurrentVersion, utils.CfgLastModified))
+	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v", model.CurrentVersion, utils.CfgHash))
+	if einterfaces.GetClusterInterface() != nil {
+		w.Header().Set(model.HEADER_CLUSTER_ID, einterfaces.GetClusterInterface().GetClusterId())
+	}
 
 	// Instruct the browser not to display us in an iframe unless is the same origin for anti-clickjacking
 	if !h.isApi {
@@ -436,6 +441,10 @@ func (c *Context) SetTeamURLFromSession() {
 	}
 }
 
+func (c *Context) SetSiteURL(url string) {
+	c.siteURL = url
+}
+
 func (c *Context) GetTeamURLFromTeam(team *model.Team) string {
 	return c.GetSiteURL() + "/" + team.Name
 }
@@ -451,7 +460,7 @@ func (c *Context) GetTeamURL() string {
 }
 
 func (c *Context) GetSiteURL() string {
-	return *utils.Cfg.ServiceSettings.SiteURL
+	return c.siteURL
 }
 
 func IsApiCall(r *http.Request) bool {
@@ -553,6 +562,10 @@ func RemoveAllSessionsForUserId(userId string) {
 				sessionCache.Remove(key)
 			}
 		}
+	}
+
+	if einterfaces.GetClusterInterface() != nil {
+		einterfaces.GetClusterInterface().RemoveAllSessionsForUserId(userId)
 	}
 }
 

@@ -1,6 +1,5 @@
 const webpack = require('webpack');
 const path = require('path');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const nodeExternals = require('webpack-node-externals');
 
@@ -38,7 +37,11 @@ var config = {
                 loader: 'babel',
                 exclude: /(node_modules|non_npm_dependencies)/,
                 query: {
-                    presets: ['react', 'es2015-webpack', 'stage-0'],
+                    presets: [
+                        'react',
+                        ['es2015', {modules: false}],
+                        'stage-0'
+                    ],
                     plugins: ['transform-runtime'],
                     cacheDirectory: DEV
                 }

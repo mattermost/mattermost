@@ -8,7 +8,7 @@ import * as I18n from 'i18n/i18n.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import Constants from 'utils/constants.jsx';
 
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
 import React from 'react';
 
@@ -98,6 +98,13 @@ export default class ManageLanguage extends React.Component {
                         {options}
                     </select>
                     {serverError}
+                </div>
+                <div>
+                    <br/>
+                    <FormattedHTMLMessage
+                        id='user.settings.languages.promote'
+                        defaultMessage='Select which language Mattermost displays in the user interface.<br /><br />Would like to help with translations? Join the <a href="http://translate.mattermost.com/" target="_blank">Mattermost Translation Server</a> to contribute.'
+                    />
                 </div>
             </div>
         );

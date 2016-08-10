@@ -60,13 +60,7 @@ class TeamStoreClass extends EventEmitter {
     }
 
     getCurrentId() {
-        var team = this.get(this.currentTeamId);
-
-        if (team) {
-            return team.id;
-        }
-
-        return null;
+        return this.currentTeamId;
     }
 
     getCurrent() {
@@ -80,10 +74,7 @@ class TeamStoreClass extends EventEmitter {
     }
 
     getCurrentTeamUrl() {
-        if (this.getCurrent()) {
-            return window.mm_config.SiteURL + '/' + this.getCurrent().name;
-        }
-        return '';
+        return this.getTeamUrl(this.currentTeamId);
     }
 
     getCurrentTeamRelativeUrl() {
@@ -97,7 +88,10 @@ class TeamStoreClass extends EventEmitter {
         const current = this.getCurrent();
 
         if (current) {
-            return window.mm_config.SiteURL + '/signup_user_complete/?id=' + current.invite_id;
+            // can't call Utils.getSiteURL here because that introduces a circular dependency
+            const origin = window.mm_config.SiteURL || window.location.origin;
+
+            return origin + '/signup_user_complete/?id=' + current.invite_id;
         }
 
         return '';
@@ -105,11 +99,15 @@ class TeamStoreClass extends EventEmitter {
 
     getTeamUrl(id) {
         const team = this.get(id);
-        if (team) {
-            return window.mm_config.SiteURL + '/' + team.name;
+
+        if (!team) {
+            return '';
         }
 
-        return '';
+        // can't call Utils.getSiteURL here because that introduces a circular dependency
+        const origin = window.mm_config.SiteURL || window.location.origin;
+
+        return origin + '/' + team.name;
     }
 
     saveTeam(team) {

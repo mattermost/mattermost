@@ -6,7 +6,7 @@ import React from 'react';
 import * as I18n from 'i18n/i18n.jsx';
 
 import AdminSettings from './admin_settings.jsx';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 import DropdownSetting from './dropdown_setting.jsx';
 import MultiSelectSetting from './multiselect_settings.jsx';
@@ -112,9 +112,9 @@ export default class LocalizationSettings extends AdminSettings {
                     selected={this.state.availableLocales}
                     onChange={this.handleChange}
                     helpText={
-                        <FormattedMessage
+                        <FormattedHTMLMessage
                             id='admin.general.localization.availableLocalesDescription'
-                            defaultMessage='Determines which languages are available for users in Account Settings. (Leave it blank to have all supported languages available)'
+                            defaultMessage='Set which languages are available for users in Account Settings (leave this field blank to have all supported languages available).<br /><br />Would like to help with translations? Join the <a href="http://translate.mattermost.com/" target="_blank">Mattermost Translation Server</a> to contribute.'
                         />
                     }
                     noResultText={

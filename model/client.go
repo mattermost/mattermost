@@ -20,6 +20,7 @@ import (
 const (
 	HEADER_REQUEST_ID         = "X-Request-ID"
 	HEADER_VERSION_ID         = "X-Version-ID"
+	HEADER_CLUSTER_ID         = "X-Cluster-ID"
 	HEADER_ETAG_SERVER        = "ETag"
 	HEADER_ETAG_CLIENT        = "If-None-Match"
 	HEADER_FORWARDED          = "X-Forwarded-For"
@@ -808,6 +809,15 @@ func (c *Client) GetLogs() (*Result, *AppError) {
 	}
 }
 
+func (c *Client) GetClusterStatus() ([]*ClusterInfo, *AppError) {
+	if r, err := c.DoApiGet("/admin/cluster_status", "", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return ClusterInfosFromJson(r.Body), nil
+	}
+}
+
 func (c *Client) GetAllAudits() (*Result, *AppError) {
 	if r, err := c.DoApiGet("/admin/audits", "", ""); err != nil {
 		return nil, err
@@ -1228,6 +1238,18 @@ func (c *Client) SearchPosts(terms string, isOrSearch bool) (*Result, *AppError)
 	}
 }
 
+// GetFlaggedPosts will return a post list of posts that have been flagged by the user.
+// The page is set by the integer parameters offset and limit.
+func (c *Client) GetFlaggedPosts(offset int, limit int) (*Result, *AppError) {
+	if r, err := c.DoApiGet(c.GetTeamRoute()+fmt.Sprintf("/posts/flagged/%v/%v", offset, limit), "", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), PostListFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) UploadProfileFile(data []byte, contentType string) (*Result, *AppError) {
 	return c.uploadFile(c.ApiUrl+"/users/newimage", data, contentType)
 }
@@ -1511,7 +1533,7 @@ func (c *Client) DeleteOAuthApp(id string) (*Result, *AppError) {
 }
 
 func (c *Client) GetAccessToken(data url.Values) (*Result, *AppError) {
-	if r, err := c.DoPost(API_URL_SUFFIX+"/oauth/access_token", data.Encode(), "application/x-www-form-urlencoded"); err != nil {
+	if r, err := c.DoPost("/oauth/access_token", data.Encode(), "application/x-www-form-urlencoded"); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)

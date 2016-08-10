@@ -178,6 +178,7 @@ export default class AdminSidebar extends React.Component {
         let oauthSettings = null;
         let ldapSettings = null;
         let samlSettings = null;
+        let clusterSettings = null;
         let complianceSettings = null;
 
         let license = null;
@@ -207,6 +208,20 @@ export default class AdminSidebar extends React.Component {
                             <FormattedMessage
                                 id='admin.sidebar.ldap'
                                 defaultMessage='LDAP'
+                            />
+                        }
+                    />
+                );
+            }
+
+            if (global.window.mm_license.Cluster === 'true') {
+                clusterSettings = (
+                    <AdminSidebarSection
+                        name='cluster'
+                        title={
+                            <FormattedMessage
+                                id='admin.sidebar.cluster'
+                                defaultMessage='High Availability (Beta)'
                             />
                         }
                     />
@@ -308,6 +323,25 @@ export default class AdminSidebar extends React.Component {
             );
         }
 
+        let otherCategory = null;
+        if (license || audits) {
+            otherCategory = (
+                <AdminSidebarCategory
+                    parentLink='/admin_console'
+                    icon='fa-wrench'
+                    title={
+                        <FormattedMessage
+                            id='admin.sidebar.other'
+                            defaultMessage='OTHER'
+                        />
+                    }
+                >
+                    {license}
+                    {audits}
+                </AdminSidebarCategory>
+            );
+        }
+
         return (
             <div className='admin-sidebar'>
                 <AdminSidebarHeader/>
@@ -329,6 +363,15 @@ export default class AdminSidebar extends React.Component {
                                     <FormattedMessage
                                         id='admin.sidebar.view_statistics'
                                         defaultMessage='Site Statistics'
+                                    />
+                                }
+                            />
+                            <AdminSidebarSection
+                                name='logs'
+                                title={
+                                    <FormattedMessage
+                                        id='admin.sidebar.logs'
+                                        defaultMessage='Logs'
                                     />
                                 }
                             />
@@ -646,31 +689,11 @@ export default class AdminSidebar extends React.Component {
                                         />
                                     }
                                 />
+                                {clusterSettings}
                             </AdminSidebarSection>
                         </AdminSidebarCategory>
                         {this.renderTeams()}
-                        <AdminSidebarCategory
-                            parentLink='/admin_console'
-                            icon='fa-wrench'
-                            title={
-                                <FormattedMessage
-                                    id='admin.sidebar.other'
-                                    defaultMessage='OTHER'
-                                />
-                            }
-                        >
-                            {license}
-                            {audits}
-                            <AdminSidebarSection
-                                name='logs'
-                                title={
-                                    <FormattedMessage
-                                        id='admin.sidebar.logs'
-                                        defaultMessage='Logs'
-                                    />
-                                }
-                            />
-                        </AdminSidebarCategory>
+                        {otherCategory}
                     </ul>
                 </div>
                 <SelectTeamModal

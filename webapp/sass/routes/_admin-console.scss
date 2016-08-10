@@ -432,3 +432,16 @@
 .recycle-db {
     margin-top: 50px !important;
 }
+
+.cluster-status {
+    width: 24px;
+    height: 24px;
+}
+
+.config-hash {
+    width: 130px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+

@@ -38,6 +38,7 @@ type Features struct {
 	GoogleSSO            *bool `json:"google_sso"`
 	Office365SSO         *bool `json:"office365_sso"`
 	Compliance           *bool `json:"compliance"`
+	Cluster              *bool `json:"cluster"`
 	CustomBrand          *bool `json:"custom_brand"`
 	MHPNS                *bool `json:"mhpns"`
 	SAML                 *bool `json:"saml"`
@@ -79,6 +80,11 @@ func (f *Features) SetDefaults() {
 	if f.Compliance == nil {
 		f.Compliance = new(bool)
 		*f.Compliance = *f.FutureFeatures
+	}
+
+	if f.Cluster == nil {
+		f.Cluster = new(bool)
+		*f.Cluster = *f.FutureFeatures
 	}
 
 	if f.CustomBrand == nil {

@@ -146,7 +146,7 @@ export default class LdapSettings extends AdminSettings {
                     disabled={!this.state.enable}
                 />
                 <ConnectionSecurityDropdownSetting
-                    value={this.state.ldapConnectionSecurity}
+                    value={this.state.connectionSecurity}
                     onChange={this.handleChange}
                     disabled={!this.state.enable}
                 />

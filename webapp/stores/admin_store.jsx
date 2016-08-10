@@ -22,6 +22,7 @@ class AdminStoreClass extends EventEmitter {
         this.logs = null;
         this.audits = null;
         this.config = null;
+        this.clusterId = null;
         this.teams = {};
         this.complianceReports = null;
     }
@@ -84,6 +85,14 @@ class AdminStoreClass extends EventEmitter {
 
     removeAllTeamsChangeListener(callback) {
         this.removeListener(ALL_TEAMS_EVENT, callback);
+    }
+
+    getClusterId() {
+        return this.clusterId;
+    }
+
+    saveClusterId(clusterId) {
+        this.clusterId = clusterId;
     }
 
     getLogs() {
@@ -163,6 +172,7 @@ AdminStoreClass.dispatchToken = AppDispatcher.register((payload) => {
         break;
     case ActionTypes.RECEIVED_CONFIG:
         AdminStore.saveConfig(action.config);
+        AdminStore.saveClusterId(action.clusterId);
         AdminStore.emitConfigChange();
         break;
     case ActionTypes.RECEIVED_ALL_TEAMS:

@@ -5,12 +5,16 @@ import $ from 'jquery';
 
 import SearchResults from './search_results.jsx';
 import RhsThread from './rhs_thread.jsx';
+
 import SearchStore from 'stores/search_store.jsx';
 import PostStore from 'stores/post_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
-import Constants from 'utils/constants.jsx';
+
+import {getFlaggedPosts} from 'actions/post_actions.jsx';
+
 import * as Utils from 'utils/utils.jsx';
+import Constants from 'utils/constants.jsx';
 
 import React from 'react';
 
@@ -101,15 +105,20 @@ export default class SidebarRight extends React.Component {
     }
 
     onPreferenceChange() {
+        if (this.state.isFlaggedPosts) {
+            getFlaggedPosts();
+        }
+
         this.setState({
             useMilitaryTime: PreferenceStore.getBool(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, Constants.Preferences.USE_MILITARY_TIME, false)
         });
     }
 
-    onSelectedChange(fromSearch) {
+    onSelectedChange(fromSearch, fromFlaggedPosts) {
         this.setState({
             postRightVisible: !!PostStore.getSelectedPost(),
-            fromSearch
+            fromSearch,
+            fromFlaggedPosts
         });
     }
 
@@ -120,7 +129,8 @@ export default class SidebarRight extends React.Component {
     onSearchChange() {
         this.setState({
             searchVisible: SearchStore.getSearchResults() !== null,
-            isMentionSearch: SearchStore.getIsMentionSearch()
+            isMentionSearch: SearchStore.getIsMentionSearch(),
+            isFlaggedPosts: SearchStore.getIsFlaggedPosts()
         });
     }
 
@@ -154,6 +164,7 @@ export default class SidebarRight extends React.Component {
             content = (
                 <SearchResults
                     isMentionSearch={this.state.isMentionSearch}
+                    isFlaggedPosts={this.state.isFlaggedPosts}
                     useMilitaryTime={this.state.useMilitaryTime}
                     toggleSize={this.toggleSize}
                     shrink={this.onShrink}
@@ -162,6 +173,7 @@ export default class SidebarRight extends React.Component {
         } else if (this.state.postRightVisible) {
             content = (
                 <RhsThread
+                    fromFlaggedPosts={this.state.fromFlaggedPosts}
                     fromSearch={this.state.fromSearch}
                     isMentionSearch={this.state.isMentionSearch}
                     currentUser={this.state.currentUser}

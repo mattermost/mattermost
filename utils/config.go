@@ -4,6 +4,7 @@
 package utils
 
 import (
+	"crypto/md5"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -26,7 +27,7 @@ const (
 
 var Cfg *model.Config = &model.Config{}
 var CfgDiagnosticId = ""
-var CfgLastModified int64 = 0
+var CfgHash = ""
 var CfgFileName string = ""
 var ClientCfg map[string]string = map[string]string{}
 
@@ -157,11 +158,10 @@ func LoadConfig(fileName string) {
 			map[string]interface{}{"Filename": fileName, "Error": err.Error()}))
 	}
 
-	if info, err := file.Stat(); err != nil {
+	if _, err := file.Stat(); err != nil {
 		panic(T("utils.config.load_config.getting.panic",
 			map[string]interface{}{"Filename": fileName, "Error": err.Error()}))
 	} else {
-		CfgLastModified = info.ModTime().Unix()
 		CfgFileName = fileName
 	}
 
@@ -185,7 +185,8 @@ func LoadConfig(fileName string) {
 	}
 
 	Cfg = &config
-	RegenerateClientConfig()
+	CfgHash = fmt.Sprintf("%x", md5.Sum([]byte(Cfg.ToJson())))
+	ClientCfg = getClientConfig(Cfg)
 
 	// Actions that need to run every time the config is loaded
 	if ldapI := einterfaces.GetLdapInterface(); ldapI != nil {
@@ -196,10 +197,6 @@ func LoadConfig(fileName string) {
 	if samlI := einterfaces.GetSamlInterface(); samlI != nil {
 		samlI.ConfigureSP()
 	}
-}
-
-func RegenerateClientConfig() {
-	ClientCfg = getClientConfig(Cfg)
 }
 
 func getClientConfig(c *model.Config) map[string]string {
@@ -296,6 +293,10 @@ func getClientConfig(c *model.Config) map[string]string {
 		if *License.Features.SAML {
 			props["EnableSaml"] = strconv.FormatBool(*c.SamlSettings.Enable)
 			props["SamlLoginButtonText"] = *c.SamlSettings.LoginButtonText
+		}
+
+		if *License.Features.Cluster {
+			props["EnableCluster"] = strconv.FormatBool(*c.ClusterSettings.Enable)
 		}
 
 		if *License.Features.GoogleSSO {

@@ -9,11 +9,12 @@ import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
 import * as PostUtils from 'utils/post_utils.jsx';
-import Constants from 'utils/constants.jsx';
-const ActionTypes = Constants.ActionTypes;
-
 import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
+
+import Constants from 'utils/constants.jsx';
+const ActionTypes = Constants.ActionTypes;
+const Preferences = Constants.Preferences;
 
 export function handleNewPost(post, msg) {
     if (ChannelStore.getCurrentId() === post.channel_id) {
@@ -115,4 +116,39 @@ export function setUnreadPost(channelId, postId) {
     if (channelId === ChannelStore.getCurrentId()) {
         ChannelStore.emitLastViewed(lastViewed, ownNewMessage);
     }
+}
+
+export function flagPost(postId) {
+    AsyncClient.savePreference(Preferences.CATEGORY_FLAGGED_POST, postId, 'true');
+}
+
+export function unflagPost(postId, success) {
+    const pref = {
+        user_id: UserStore.getCurrentId(),
+        category: Preferences.CATEGORY_FLAGGED_POST,
+        name: postId
+    };
+    AsyncClient.deletePreferences([pref], success);
+}
+
+export function getFlaggedPosts() {
+    Client.getFlaggedPosts(0, Constants.POST_CHUNK_SIZE,
+        (data) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_SEARCH,
+                results: data,
+                is_flagged_posts: true
+            });
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_SEARCH_TERM,
+                term: null,
+                do_search: false,
+                is_mention_search: false
+            });
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'getFlaggedPosts');
+        }
+    );
 }

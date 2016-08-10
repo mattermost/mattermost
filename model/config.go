@@ -80,6 +80,12 @@ type ServiceSettings struct {
 	RestrictCustomEmojiCreation       *string
 }
 
+type ClusterSettings struct {
+	Enable                 *bool
+	InterNodeListenAddress *string
+	InterNodeUrls          []string
+}
+
 type SSOSettings struct {
 	Enable          bool
 	Secret          string
@@ -297,6 +303,7 @@ type Config struct {
 	LocalizationSettings LocalizationSettings
 	SamlSettings         SamlSettings
 	NativeAppSettings    NativeAppSettings
+	ClusterSettings      ClusterSettings
 }
 
 func (o *Config) ToJson() string {
@@ -707,6 +714,20 @@ func (o *Config) SetDefaults() {
 		*o.ServiceSettings.RestrictCustomEmojiCreation = RESTRICT_EMOJI_CREATION_ALL
 	}
 
+	if o.ClusterSettings.InterNodeListenAddress == nil {
+		o.ClusterSettings.InterNodeListenAddress = new(string)
+		*o.ClusterSettings.InterNodeListenAddress = ":8075"
+	}
+
+	if o.ClusterSettings.Enable == nil {
+		o.ClusterSettings.Enable = new(bool)
+		*o.ClusterSettings.Enable = false
+	}
+
+	if o.ClusterSettings.InterNodeUrls == nil {
+		o.ClusterSettings.InterNodeUrls = []string{}
+	}
+
 	if o.ComplianceSettings.Enable == nil {
 		o.ComplianceSettings.Enable = new(bool)
 		*o.ComplianceSettings.Enable = false
@@ -849,10 +870,6 @@ func (o *Config) IsValid() *AppError {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.listen_address.app_error", nil, "")
 	}
 
-	if len(o.ServiceSettings.ListenAddress) == 0 {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.listen_address.app_error", nil, "")
-	}
-
 	if o.TeamSettings.MaxUsersPerTeam <= 0 {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.max_users.app_error", nil, "")
 	}
@@ -980,7 +997,7 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if *o.SamlSettings.Enable {
-		if len(*o.SamlSettings.IdpUrl) == 0 || !IsValidHttpUrl(*o.SamlSettings.IdpDescriptorUrl) {
+		if len(*o.SamlSettings.IdpUrl) == 0 || !IsValidHttpUrl(*o.SamlSettings.IdpUrl) {
 			return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_idp_url.app_error", nil, "")
 		}
 

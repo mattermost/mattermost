@@ -4,7 +4,9 @@
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import Constants from 'utils/constants.jsx';
 import {Tooltip, OverlayTrigger} from 'react-bootstrap';
+
 import * as GlobalActions from 'actions/global_actions.jsx';
+import {getFlaggedPosts} from 'actions/post_actions.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
@@ -34,42 +36,58 @@ export default class RhsHeaderPost extends React.Component {
     handleBack(e) {
         e.preventDefault();
 
-        AppDispatcher.handleServerAction({
-            type: ActionTypes.RECEIVED_SEARCH_TERM,
-            term: this.props.fromSearch,
-            do_search: true,
-            is_mention_search: this.props.isMentionSearch
-        });
+        if (this.props.fromSearch) {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_SEARCH_TERM,
+                term: this.props.fromSearch,
+                do_search: true,
+                is_mention_search: this.props.isMentionSearch
+            });
 
-        AppDispatcher.handleServerAction({
-            type: ActionTypes.RECEIVED_POST_SELECTED,
-            postId: null
-        });
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_POST_SELECTED,
+                postId: null
+            });
+        } else if (this.props.fromFlaggedPosts) {
+            getFlaggedPosts();
+        }
     }
     render() {
         let back;
         const closeSidebarTooltip = (
             <Tooltip id='closeSidebarTooltip'>
                 <FormattedMessage
-                    id='rhs_header.closeTooltip'
+                    id='rhs_header.closeSidebarTooltip'
                     defaultMessage='Close Sidebar'
                 />
             </Tooltip>
         );
 
-        const backToResultsTooltip = (
-            <Tooltip id='backToResultsTooltip'>
-                <FormattedMessage
-                    id='rhs_header.backToResultsTooltip'
-                    defaultMessage='Back to Search Results'
-                />
-            </Tooltip>
-        );
+        let backToResultsTooltip;
+        if (this.props.fromSearch) {
+            backToResultsTooltip = (
+                <Tooltip id='backToResultsTooltip'>
+                    <FormattedMessage
+                        id='rhs_header.backToResultsTooltip'
+                        defaultMessage='Back to Search Results'
+                    />
+                </Tooltip>
+            );
+        } else if (this.props.fromFlaggedPosts) {
+            backToResultsTooltip = (
+                <Tooltip id='backToResultsTooltip'>
+                    <FormattedMessage
+                        id='rhs_header.backToFlaggedTooltip'
+                        defaultMessage='Back to Flagged Posts'
+                    />
+                </Tooltip>
+            );
+        }
 
         const expandSidebarTooltip = (
             <Tooltip id='expandSidebarTooltip'>
                 <FormattedMessage
-                    id='rhs_header.expandTooltip'
+                    id='rhs_header.expandSidebarTooltip'
                     defaultMessage='Expand Sidebar'
                 />
             </Tooltip>
@@ -78,13 +96,13 @@ export default class RhsHeaderPost extends React.Component {
         const shrinkSidebarTooltip = (
             <Tooltip id='shrinkSidebarTooltip'>
                 <FormattedMessage
-                    id='rhs_header.expandTooltip'
+                    id='rhs_header.shrinkSidebarTooltip'
                     defaultMessage='Shrink Sidebar'
                 />
             </Tooltip>
         );
 
-        if (this.props.fromSearch) {
+        if (this.props.fromSearch || this.props.fromFlaggedPosts) {
             back = (
                 <a
                     href='#'
@@ -161,6 +179,7 @@ RhsHeaderPost.defaultProps = {
 RhsHeaderPost.propTypes = {
     isMentionSearch: React.PropTypes.bool,
     fromSearch: React.PropTypes.string,
+    fromFlaggedPosts: React.PropTypes.bool,
     toggleSize: React.PropTypes.function,
     shrink: React.PropTypes.function
 };

@@ -284,6 +284,11 @@ export default class PostList extends React.Component {
                 }
             }
 
+            let isFlagged = false;
+            if (this.props.flaggedPosts) {
+                isFlagged = this.props.flaggedPosts.get(post.id) === 'true';
+            }
+
             const postCtl = (
                 <Post
                     key={keyPrefix + 'postKey'}
@@ -305,6 +310,7 @@ export default class PostList extends React.Component {
                     previewCollapsed={this.props.previewsCollapsed}
                     useMilitaryTime={this.props.useMilitaryTime}
                     emojis={this.props.emojis}
+                    isFlagged={isFlagged}
                 />
             );
 
@@ -572,5 +578,6 @@ PostList.propTypes = {
     previewsCollapsed: React.PropTypes.string,
     useMilitaryTime: React.PropTypes.bool.isRequired,
     isFocusPost: React.PropTypes.bool,
-    emojis: React.PropTypes.object.isRequired
+    emojis: React.PropTypes.object.isRequired,
+    flaggedPosts: React.PropTypes.object
 };

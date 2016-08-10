@@ -199,7 +199,7 @@ function autolinkAtMentions(text, tokens) {
     return output;
 }
 
-function escapeRegex(text) {
+export function escapeRegex(text) {
     return text.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 }
 

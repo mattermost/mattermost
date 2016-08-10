@@ -5,6 +5,8 @@ package api
 
 import (
 	l4g "github.com/alecthomas/log4go"
+
+	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -31,14 +33,30 @@ var hub = &Hub{
 
 func Publish(message *model.WebSocketEvent) {
 	hub.Broadcast(message)
+
+	if einterfaces.GetClusterInterface() != nil {
+		einterfaces.GetClusterInterface().Publish(message)
+	}
+}
+
+func PublishSkipClusterSend(message *model.WebSocketEvent) {
+	hub.Broadcast(message)
 }
 
 func InvalidateCacheForUser(userId string) {
 	hub.invalidateUser <- userId
+
+	if einterfaces.GetClusterInterface() != nil {
+		einterfaces.GetClusterInterface().InvalidateCacheForUser(userId)
+	}
 }
 
 func InvalidateCacheForChannel(channelId string) {
 	hub.invalidateChannel <- channelId
+
+	if einterfaces.GetClusterInterface() != nil {
+		einterfaces.GetClusterInterface().InvalidateCacheForChannel(channelId)
+	}
 }
 
 func (h *Hub) Register(webConn *WebConn) {

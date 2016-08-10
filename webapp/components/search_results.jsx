@@ -7,6 +7,7 @@ import SearchStore from 'stores/search_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import SearchBox from './search_bar.jsx';
 import * as Utils from 'utils/utils.jsx';
+import Constants from 'utils/constants.jsx';
 import SearchResultsHeader from './search_results_header.jsx';
 import SearchResultsItem from './search_results_item.jsx';
 
@@ -122,10 +123,44 @@ export default class SearchResults extends React.Component {
         var noResults = (!results || !results.order || !results.order.length);
         const searchTerm = this.state.searchTerm;
         const profiles = this.state.profiles || {};
+        const flagIcon = Constants.FLAG_ICON_SVG;
 
         var ctls = null;
 
-        if (!searchTerm && noResults) {
+        if (this.props.isFlaggedPosts && noResults) {
+            ctls = (
+                <div className='sidebar--right__subheader'>
+                    <ul>
+                        <li>
+                            <FormattedHTMLMessage
+                                id='search_results.usageFlag1'
+                                defaultMessage="You haven't flagged any messages yet."
+                            />
+                        </li>
+                        <li>
+                            <FormattedHTMLMessage
+                                id='search_results.usageFlag2'
+                                defaultMessage='You can add a flag to messages and comments by clicking the '
+                            />
+                            <span
+                                className='usage__icon'
+                                dangerouslySetInnerHTML={{__html: flagIcon}}
+                            />
+                            <FormattedHTMLMessage
+                                id='search_results.usageFlag3'
+                                defaultMessage=' icon next to the timestamp.'
+                            />
+                        </li>
+                        <li>
+                            <FormattedHTMLMessage
+                                id='search_results.usageFlag4'
+                                defaultMessage='Flags are a way to mark messages for follow up. Your flags are personal, and cannot be seen by other users.'
+                            />
+                        </li>
+                    </ul>
+                </div>
+            );
+        } else if (!searchTerm && noResults) {
             ctls = (
                 <div className='sidebar--right__subheader'>
                     <FormattedHTMLMessage
@@ -172,6 +207,7 @@ export default class SearchResults extends React.Component {
                         isMentionSearch={this.props.isMentionSearch}
                         useMilitaryTime={this.props.useMilitaryTime}
                         shrink={this.props.shrink}
+                        isFlagged={this.props.isFlaggedPosts}
                     />
                 );
             }, this);
@@ -185,6 +221,7 @@ export default class SearchResults extends React.Component {
                         isMentionSearch={this.props.isMentionSearch}
                         toggleSize={this.props.toggleSize}
                         shrink={this.props.shrink}
+                        isFlaggedPosts={this.props.isFlaggedPosts}
                     />
                     <div
                         id='search-items-container'
@@ -202,5 +239,6 @@ SearchResults.propTypes = {
     isMentionSearch: React.PropTypes.bool,
     useMilitaryTime: React.PropTypes.bool.isRequired,
     toggleSize: React.PropTypes.function,
-    shrink: React.PropTypes.function
+    shrink: React.PropTypes.function,
+    isFlaggedPosts: React.PropTypes.bool
 };

@@ -26,6 +26,7 @@
 
             .search-bar__container {
                 padding-right: 8px;
+                z-index: 5;
             }
         }
     }
@@ -116,7 +117,15 @@
             .channel__wrap & {
                 .post__time {
                     font-size: .85em;
-                    left: -70px;
+                    left: -79px;
+                    position: absolute;
+                    text-align: right;
+                    top: 6px;
+                    width: 60px;
+                }
+
+                .star-icon__container {
+                    left: -65px;
                     position: absolute;
                     text-align: right;
                     top: 6px;
@@ -125,7 +134,7 @@
             }
 
             &:not(.post--thread) {
-                padding: 5px .5em 0 70px;
+                padding: 5px .5em 0 72px;
 
                 .post__link {
                     margin: 4px 0 7px;
@@ -197,10 +206,28 @@
                 }
             }
 
+            .flag-icon__container {
+                left: -21px;
+                position: absolute;
+                top: 7px;
+            }
+
+            .sidebar--right & .flag-icon__container {
+                left: auto;
+                position: relative;
+                top: 1px;
+            }
+
             &.same--root {
                 &.same--user {
-                    padding-left: 70px;
+                    padding-left: 72px;
                     padding-top: 0;
+
+                    .flag-icon__container {
+                        left: -19px;
+                        position: absolute;
+                        top: 7px;
+                    }
 
                     .post__header {
                         .col__reply {
@@ -265,12 +292,16 @@
 
                 &:not(.post--compact) {
                     .post__time {
+                        display: inline-block;
                         font-size: 11px;
-                        left: -4px;
-                        line-height: 37px;
+                        left: -14px;
+                        line-height: 34px;
                         position: absolute;
+                        text-align: right;
                         text-rendering: auto;
                         top: -2px;
+                        width: 51px;
+
                     }
                 }
             }

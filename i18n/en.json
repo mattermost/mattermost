@@ -561,11 +561,11 @@
   },
   {
     "id": "api.command_shortcuts.list",
-    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in left hand sidebar\nALT+DOWN: Next channel or direct message in left hand sidebar\nALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\nCTRL+K: Open a quick channel switcher dialog\nCTRL+SHIFT+A: Open account settings\nCTRL+SHIFT+M: Open recent mentions\n\n#### Files\n\nCTRL+U: Upload file(s)\n\n#### Messages\n\nALT+[click on a message]: Set a message as your oldest unread message in the current channel\nESC: Mark all messages in the current channel as read\nCTRL+UP (in empty input field): Reprint the previous message or slash command you entered\nCTRL+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n#### Built-in Browser Commands\n\nALT+LEFT: Previous channel in your history\nALT+RIGHT: Next channel in your history\nCTRL+PLUS: Increase font size (zoom in)\nCTRL+MINUS: Decrease font size (zoom out)\nSHIFT+UP (in input field): Highlight text to the previous line\nSHIFT+DOWN (in input field): Highlight text to the next line\nSHIFT+ENTER (in input field): Create a new line\n"
+    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in left hand sidebar\nALT+DOWN: Next channel or direct message in left hand sidebar\nALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\nCTRL+K: Open a quick channel switcher dialog\nCTRL+SHIFT+A: Open account settings\nCTRL+SHIFT+M: Open recent mentions\n\n#### Files\n\nCTRL+U: Upload file(s)\n\n#### Messages\n\nESC: Mark all messages in the current channel as read\nCTRL+UP (in empty input field): Reprint the previous message or slash command you entered\nCTRL+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n#### Built-in Browser Commands\n\nALT+LEFT: Previous channel in your history\nALT+RIGHT: Next channel in your history\nCTRL+PLUS: Increase font size (zoom in)\nCTRL+MINUS: Decrease font size (zoom out)\nSHIFT+UP (in input field): Highlight text to the previous line\nSHIFT+DOWN (in input field): Highlight text to the next line\nSHIFT+ENTER (in input field): Create a new line\n"
   },
   {
     "id": "api.command_shortcuts.list_mac",
-    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in left hand sidebar\nALT+DOWN: Next channel or direct message in left hand sidebar\nALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\nCMD+K: Open a quick channel switcher dialog\nCMD+SHIFT+A: Open account settings\nCMD+SHIFT+M: Open recent mentions\n\n#### Files\n\nCMD+U: Upload file(s)\n\n#### Messages\n\nALT+[click on a message]: Set a message as your oldest unread message in the current channel\nESC: Mark all messages in the current channel as read\nCMD+UP (in empty input field): Reprint the previous message or slash command you entered\nCMD+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n#### Built-in Browser Commands\n\nCMD+[: Previous channel in your history\nCMD+]: Next channel in your history\nCMD+PLUS: Increase font size (zoom in)\nCMD+MINUS: Decrease font size (zoom out)\nSHIFT+UP (in input field): Highlight text to the previous line\nSHIFT+DOWN (in input field): Highlight text to the next line\nSHIFT+ENTER (in input field): Create a new line\n"
+    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in left hand sidebar\nALT+DOWN: Next channel or direct message in left hand sidebar\nALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\nCMD+K: Open a quick channel switcher dialog\nCMD+SHIFT+A: Open account settings\nCMD+SHIFT+M: Open recent mentions\n\n#### Files\n\nCMD+U: Upload file(s)\n\n#### Messages\n\nESC: Mark all messages in the current channel as read\nCMD+UP (in empty input field): Reprint the previous message or slash command you entered\nCMD+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n#### Built-in Browser Commands\n\nCMD+[: Previous channel in your history\nCMD+]: Next channel in your history\nCMD+PLUS: Increase font size (zoom in)\nCMD+MINUS: Decrease font size (zoom out)\nSHIFT+UP (in input field): Highlight text to the previous line\nSHIFT+DOWN (in input field): Highlight text to the next line\nSHIFT+ENTER (in input field): Create a new line\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -1976,12 +1976,12 @@
     "translation": "Failed to send welcome email successfully err=%v"
   },
   {
-    "id": "api.user.update_active.permissions.app_error",
-    "translation": "You do not have the appropriate permissions"
-  },
-  {
     "id": "api.user.update_active.no_deactivate_ldap.app_error",
     "translation": "You can not modify the activation status of LDAP accounts. Please modify through the LDAP server."
+  },
+  {
+    "id": "api.user.update_active.permissions.app_error",
+    "translation": "You do not have the appropriate permissions"
   },
   {
     "id": "api.user.update_mfa.not_available.app_error",
@@ -2180,14 +2180,6 @@
     "translation": "Feature requires an enterprise license. Please contact your system administrator about upgrading your enterprise license."
   },
   {
-    "id": "ent.migration.migratetoldap.duplicate_field",
-    "translation": "Unable to migrate LDAP users with specified field. Duplicate entry detected. Please remove all duplcates and try again."
-  },
-  {
-    "id": "ent.migration.migratetoldap.user_not_found",
-    "translation": "Unable to find user on LDAP server: "
-  },
-  {
     "id": "ent.brand.save_brand_image.decode.app_error",
     "translation": "Unable to decode image."
   },
@@ -2210,6 +2202,50 @@
   {
     "id": "ent.brand.save_brand_image.too_large.app_error",
     "translation": "Unable to open image. Image is too large."
+  },
+  {
+    "id": "ent.cluster.config_changed.info",
+    "translation": "Cluster configuration has changed for id=%v.  Attempting to restart cluster service.  To ensure the cluster is configured correctly you should not rely on this restart because we detected a core configuration change."
+  },
+  {
+    "id": "ent.cluster.debug_fail.debug",
+    "translation": "Cluster send failed at `%v` detail=%v, extra=%v, retry number=%v"
+  },
+  {
+    "id": "ent.cluster.final_fail.error",
+    "translation": "Cluster send final fail at `%v` detail=%v, extra=%v, retry number=%v"
+  },
+  {
+    "id": "ent.cluster.incompatible.warn",
+    "translation": "Potential incompatible version detected for clustering with %v"
+  },
+  {
+    "id": "ent.cluster.incompatible_config.warn",
+    "translation": "Potential incompatible config detected for clustering with %v"
+  },
+  {
+    "id": "ent.cluster.licence_disable.app_error",
+    "translation": "Clustering functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license."
+  },
+  {
+    "id": "ent.cluster.ping_failed.info",
+    "translation": "Cluster ping failed with hostname=%v on=%v with id=%v"
+  },
+  {
+    "id": "ent.cluster.ping_success.info",
+    "translation": "Cluster ping successful with hostname=%v on=%v with id=%v self=%v"
+  },
+  {
+    "id": "ent.cluster.save_config.error",
+    "translation": "System Console is set to read-only when High Availability is enabled."
+  },
+  {
+    "id": "ent.cluster.starting.info",
+    "translation": "Cluster internode communication is listening on %v with hostname=%v id=%v"
+  },
+  {
+    "id": "ent.cluster.stopping.info",
+    "translation": "Cluster internode communication is stopping on %v with hostname=%v id=%v"
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -2322,6 +2358,14 @@
   {
     "id": "ent.mfa.validate_token.authenticate.app_error",
     "translation": "Error trying to authenticate MFA token"
+  },
+  {
+    "id": "ent.migration.migratetoldap.duplicate_field",
+    "translation": "Unable to migrate LDAP users with specified field. Duplicate entry detected. Please remove all duplcates and try again."
+  },
+  {
+    "id": "ent.migration.migratetoldap.user_not_found",
+    "translation": "Unable to find user on LDAP server: "
   },
   {
     "id": "ent.saml.build_request.app_error",
