@@ -1533,7 +1533,7 @@ func (c *Client) DeleteOAuthApp(id string) (*Result, *AppError) {
 }
 
 func (c *Client) GetAccessToken(data url.Values) (*Result, *AppError) {
-	if r, err := c.DoPost(API_URL_SUFFIX+"/oauth/access_token", data.Encode(), "application/x-www-form-urlencoded"); err != nil {
+	if r, err := c.DoPost("/oauth/access_token", data.Encode(), "application/x-www-form-urlencoded"); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)
