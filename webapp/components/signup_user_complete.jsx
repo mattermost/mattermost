@@ -69,12 +69,12 @@ export default class SignupUserComplete extends React.Component {
         if ((inviteId && inviteId.length > 0) || (hash && hash.length > 0)) {
             // if we are already logged in then attempt to just join the team
             if (UserStore.getCurrentUser()) {
-                loading = true;
                 Client.addUserToTeamFromInvite(
                     data,
                     hash,
                     inviteId,
                     (team) => {
+                        loading = true;
                         GlobalActions.emitInitialLoad(
                             () => {
                                 browserHistory.push('/' + team.name);
@@ -111,14 +111,12 @@ export default class SignupUserComplete extends React.Component {
                             serverError: null,
                             teamDisplayName: inviteData.display_name,
                             teamName: inviteData.name,
-                            teamId: inviteData.id,
-                            loading: false
+                            teamId: inviteData.id
                         });
                     },
                     () => {
                         this.setState({
                             noOpenServerError: true,
-                            loading: false,
                             serverError:
                                 <FormattedMessage
                                     id='signup_user_completed.invalid_invite'
@@ -128,6 +126,7 @@ export default class SignupUserComplete extends React.Component {
                     }
                 );
 
+                loading = false;
                 data = '';
                 hash = '';
             }
@@ -145,8 +144,7 @@ export default class SignupUserComplete extends React.Component {
                     <FormattedMessage
                         id='signup_user_completed.no_open_server'
                         defaultMessage='This server does not allow open signups.  Please speak with your Administrator to receive an invitation.'
-                    />,
-                loading: false
+                    />
             });
         }
 
