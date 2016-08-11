@@ -9,7 +9,7 @@ import UserStore from 'stores/user_store.jsx';
 import NewChannelModal from './new_channel_modal.jsx';
 import ChangeURLModal from './change_url_modal.jsx';
 
-import {intlShape, injectIntl, defineMessages} from 'react-intl';
+import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
 
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
@@ -124,7 +124,16 @@ class NewChannelFlow extends React.Component {
             },
             (err) => {
                 if (err.id === 'model.channel.is_valid.2_or_more.app_error') {
-                    this.setState({flowState: SHOW_EDIT_URL_THEN_COMPLETE});
+                    this.setState({
+                        flowState: SHOW_EDIT_URL_THEN_COMPLETE,
+                        serverError: (
+                            <FormattedMessage
+                                id='channel_flow.handleTooShort'
+                                defaultMessage='Channel URL must be 2 or more lowercase alphanumeric characters'
+                            />
+                        )
+                    });
+                    return;
                 }
                 if (err.id === 'store.sql_channel.update.exists.app_error') {
                     this.setState({serverError: Utils.localizeMessage('channel_flow.alreadyExist', 'A channel with that URL already exists')});
@@ -148,7 +157,7 @@ class NewChannelFlow extends React.Component {
         if (this.state.flowState === SHOW_EDIT_URL_THEN_COMPLETE) {
             this.setState({channelName: newURL, nameModified: true}, this.doSubmit);
         } else {
-            this.setState({flowState: SHOW_NEW_CHANNEL, serverError: '', channelName: newURL, nameModified: true});
+            this.setState({flowState: SHOW_NEW_CHANNEL, serverError: null, channelName: newURL, nameModified: true});
         }
     }
     urlChangeDismissed() {

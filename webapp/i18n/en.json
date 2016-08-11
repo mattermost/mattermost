@@ -919,6 +919,7 @@
   "channel_flow.channel": "Channel",
   "channel_flow.create": "Create {term}",
   "channel_flow.group": "Group",
+  "channel_flow.handleTooShort": "Channel URL must be 2 or more lowercase alphanumeric characters",
   "channel_flow.invalidName": "Invalid Channel Name",
   "channel_flow.set_url_title": "Set {term} URL",
   "channel_header.channel": "Channel",
