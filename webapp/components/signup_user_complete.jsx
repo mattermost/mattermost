@@ -77,7 +77,7 @@ export default class SignupUserComplete extends React.Component {
                         loading = true;
                         GlobalActions.emitInitialLoad(
                             () => {
-                                browserHistory.push('/' + team.name);
+                                browserHistory.push('/' + team.name + '/channels/town-square');
                             }
                         );
                     },
