@@ -640,6 +640,10 @@
     "translation": "Unable to find status of recipient for batched email notification"
   },
   {
+    "id": "api.email_batching.check_pending_emails.finished_running",
+    "translation": "Email batching job ran. %v user(s) still have notifications pending."
+  },
+  {
     "id": "api.email_batching.render_batched_post.channel.app_error",
     "translation": "Unable to find channel of post for batched email notification"
   },
@@ -684,6 +688,10 @@
   {
     "id": "api.email_batching.send_batched_email_notification.user.app_error",
     "translation": "Unable to find recipient for batched email notification"
+  },
+  {
+    "id": "api.email_batching.start.starting",
+    "translation": "Email batching job starting. Checking for pending emails every %v seconds."
   },
   {
     "id": "api.emoji.create.duplicate.app_error",

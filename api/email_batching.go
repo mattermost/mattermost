@@ -71,6 +71,7 @@ func (job *EmailBatchingJob) Start() {
 		task.Cancel()
 	}
 
+	l4g.Debug(utils.T("api.email_batching.start.starting"), *utils.Cfg.EmailSettings.EmailBatchingInterval)
 	model.CreateRecurringTask(EMAIL_BATCHING_TASK_NAME, job.CheckPendingEmails, time.Duration(*utils.Cfg.EmailSettings.EmailBatchingInterval)*time.Second)
 }
 
@@ -96,6 +97,8 @@ func (job *EmailBatchingJob) CheckPendingEmails() {
 	// it's a bit weird to pass the send email function through here, but it makes it so that we can test
 	// without actually sending emails
 	job.checkPendingNotifications(time.Now(), sendBatchedEmailNotification)
+
+	l4g.Debug(utils.T("api.email_batching.check_pending_emails.finished_running"), len(job.pendingNotifications))
 }
 
 func (job *EmailBatchingJob) handleNewNotifications() {
