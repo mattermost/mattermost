@@ -19,9 +19,7 @@ func UpgradeDatabase(sqlStore *SqlStore) {
 	UpgradeDatabaseToVersion31(sqlStore)
 	UpgradeDatabaseToVersion32(sqlStore)
 	UpgradeDatabaseToVersion33(sqlStore)
-
-	//UpgradeDatabaseUnstable(sqlStore)
-	//UpgradeDatabaseToVersion34(sqlStore)
+	UpgradeDatabaseToVersion34(sqlStore)
 
 	// If the SchemaVersion is empty this this is the first time it has ran
 	// so lets set it to the current version.
@@ -166,10 +164,12 @@ func UpgradeDatabaseToVersion33(sqlStore *SqlStore) {
 }
 
 func UpgradeDatabaseToVersion34(sqlStore *SqlStore) {
-	if shouldPerformUpgrade(sqlStore, model.VERSION_3_3_0, model.VERSION_3_4_0) {
+	// TODO XXX FIXME should be removed before release
+	//if shouldPerformUpgrade(sqlStore, model.VERSION_3_3_0, model.VERSION_3_4_0) {
 
-		// do the actual upgrade
+	// do the actual upgrade
 
-		saveSchemaVersion(sqlStore, model.VERSION_3_4_0)
-	}
+	// TODO XXX FIXME should be removed before release
+	//saveSchemaVersion(sqlStore, model.VERSION_3_4_0)
+	//}
 }
