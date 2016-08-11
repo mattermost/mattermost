@@ -15,13 +15,13 @@ const WEBSERVER_MODE_HELP_TEXT = (
         >
             <tbody>
                 <tr>
-                    <td className='help-text'>
+                    <td>
                         <FormattedMessage
                             id='admin.webserverModeGzip'
                             defaultMessage='gzip'
                         />
                     </td>
-                    <td className='help-text'>
+                    <td>
                         <FormattedMessage
                             id='admin.webserverModeGzipDescription'
                             defaultMessage='The Mattermost server will serve static files compressed with gzip.'
@@ -29,13 +29,13 @@ const WEBSERVER_MODE_HELP_TEXT = (
                     </td>
                 </tr>
                 <tr>
-                    <td className='help-text'>
+                    <td>
                         <FormattedMessage
                             id='admin.webserverModeUncompressed'
                             defaultMessage='Uncompressed'
                         />
                     </td>
-                    <td className='help-text'>
+                    <td>
                         <FormattedMessage
                             id='admin.webserverModeUncompressedDescription'
                             defaultMessage='The Mattermost server will serve static files uncompressed.'
@@ -43,13 +43,13 @@ const WEBSERVER_MODE_HELP_TEXT = (
                     </td>
                 </tr>
                 <tr>
-                    <td className='help-text'>
+                    <td>
                         <FormattedMessage
                             id='admin.webserverModeDisabled'
                             defaultMessage='Disabled'
                         />
                     </td>
-                    <td className='help-text'>
+                    <td>
                         <FormattedMessage
                             id='admin.webserverModeDisabledDescription'
                             defaultMessage='The Mattermost server will not serve static files.'

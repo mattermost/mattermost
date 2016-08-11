@@ -66,6 +66,28 @@ export default class EmailSettings extends AdminSettings {
     }
 
     renderSettings() {
+        const enableEmailBatchingHelpText = [
+            <FormattedHTMLMessage
+                key='admin.email.enableEmailBatchingDesc'
+                id='admin.email.enableEmailBatchingDesc'
+                defaultMessage='When true, users can have email notifications for multiple direct messages and mentions combined into a single email, configurable in <b>Account Settings > Notifications</b>. This setting cannot be enabled when High Availability Mode is enabled.'
+            />
+        ];
+
+        if (!this.props.config.ServiceSettings.SiteURL) {
+            enableEmailBatchingHelpText.push(
+                <span
+                    key='admin.email.enableEmailBatching.siteURL'
+                    className='help-text'
+                >
+                    <FormattedHTMLMessage
+                        id='admin.email.enableEmailBatching.siteURL'
+                        defaultMessage='Email batching cannot be enabled unless the SiteURL is configured in <b>Configuration > SiteURL</b>.'
+                    />
+                </span>
+            );
+        }
+
         return (
             <SettingsGroup>
                 <BooleanSetting
@@ -93,15 +115,10 @@ export default class EmailSettings extends AdminSettings {
                             defaultMessage='Enable Email Batching: '
                         />
                     }
-                    helpText={
-                        <FormattedHTMLMessage
-                            id='admin.email.enableEmailBatchingDesc'
-                            defaultMessage='When true, users can have email notifications for multiple direct messages and mentions combined into a single email, configurable in <b>Account Settings > Notifications</b>. This setting cannot be enabled when High Availability Mode is enabled.'
-                        />
-                    }
-                    value={this.state.enableEmailBatching && !(this.props.config.ClusterSettings && this.props.config.ClusterSettings.Enable)}
+                    helpText={enableEmailBatchingHelpText}
+                    value={this.state.enableEmailBatching && !this.props.config.ClusterSettings.Enable && this.props.config.ServiceSettings.SiteURL}
                     onChange={this.handleChange}
-                    disabled={!this.state.sendEmailNotifications || (this.props.config.ClusterSettings && this.props.config.ClusterSettings.Enable)}
+                    disabled={!this.state.sendEmailNotifications || this.props.config.ClusterSettings.Enable || !this.props.config.ServiceSettings.SiteURL}
                 />
                 <TextSetting
                     id='feedbackName'
