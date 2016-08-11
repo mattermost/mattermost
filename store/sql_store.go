@@ -86,35 +86,6 @@ func NewSqlStore() Store {
 
 	sqlStore := initConnection()
 
-	// If the version is already set then we are potentially in an 'upgrade needed' state
-	if sqlStore.SchemaVersion != "" {
-		// Check to see if it's the most current database schema version
-		if !model.IsCurrentVersion(sqlStore.SchemaVersion) {
-			// If we are upgrading from the previous version then print a warning and continue
-			if model.IsPreviousVersionsSupported(sqlStore.SchemaVersion) {
-				l4g.Warn(utils.T("store.sql.schema_out_of_date.warn"), sqlStore.SchemaVersion)
-				l4g.Warn(utils.T("store.sql.schema_upgrade_attempt.warn"), model.CurrentVersion)
-			} else {
-				// If this is an 'upgrade needed' state but the user is attempting to skip a version then halt the world
-				l4g.Critical(utils.T("store.sql.schema_version.critical"), sqlStore.SchemaVersion)
-				time.Sleep(time.Second)
-				panic(fmt.Sprintf(utils.T("store.sql.schema_version.critical"), sqlStore.SchemaVersion))
-			}
-		}
-	}
-
-	// This is a special case for upgrading the schema to the 3.0 user model
-	// ADDED for 3.0 REMOVE for 3.4
-	if sqlStore.SchemaVersion == "2.2.0" ||
-		sqlStore.SchemaVersion == "2.1.0" ||
-		sqlStore.SchemaVersion == "2.0.0" {
-		l4g.Critical("The database version of %v cannot be automatically upgraded to 3.0 schema", sqlStore.SchemaVersion)
-		l4g.Critical("You will need to run the command line tool './platform -upgrade_db_30'")
-		l4g.Critical("Please see 'http://www.mattermost.org/upgrade-to-3-0/' for more information on how to upgrade.")
-		time.Sleep(time.Second)
-		os.Exit(1)
-	}
-
 	sqlStore.team = NewSqlTeamStore(sqlStore)
 	sqlStore.channel = NewSqlChannelStore(sqlStore)
 	sqlStore.post = NewSqlPostStore(sqlStore)
@@ -136,25 +107,10 @@ func NewSqlStore() Store {
 	if err != nil {
 		l4g.Critical(utils.T("store.sql.creating_tables.critical"), err)
 		time.Sleep(time.Second)
-		os.Exit(1)
+		os.Exit(100)
 	}
 
-	sqlStore.team.(*SqlTeamStore).UpgradeSchemaIfNeeded()
-	sqlStore.channel.(*SqlChannelStore).UpgradeSchemaIfNeeded()
-	sqlStore.post.(*SqlPostStore).UpgradeSchemaIfNeeded()
-	sqlStore.user.(*SqlUserStore).UpgradeSchemaIfNeeded()
-	sqlStore.audit.(*SqlAuditStore).UpgradeSchemaIfNeeded()
-	sqlStore.compliance.(*SqlComplianceStore).UpgradeSchemaIfNeeded()
-	sqlStore.session.(*SqlSessionStore).UpgradeSchemaIfNeeded()
-	sqlStore.oauth.(*SqlOAuthStore).UpgradeSchemaIfNeeded()
-	sqlStore.system.(*SqlSystemStore).UpgradeSchemaIfNeeded()
-	sqlStore.webhook.(*SqlWebhookStore).UpgradeSchemaIfNeeded()
-	sqlStore.command.(*SqlCommandStore).UpgradeSchemaIfNeeded()
-	sqlStore.preference.(*SqlPreferenceStore).UpgradeSchemaIfNeeded()
-	sqlStore.license.(*SqlLicenseStore).UpgradeSchemaIfNeeded()
-	sqlStore.recovery.(*SqlPasswordRecoveryStore).UpgradeSchemaIfNeeded()
-	sqlStore.emoji.(*SqlEmojiStore).UpgradeSchemaIfNeeded()
-	sqlStore.status.(*SqlStatusStore).UpgradeSchemaIfNeeded()
+	// TODO run upgrade here (I THINK)
 
 	sqlStore.team.(*SqlTeamStore).CreateIndexesIfNotExists()
 	sqlStore.channel.(*SqlChannelStore).CreateIndexesIfNotExists()
@@ -175,18 +131,6 @@ func NewSqlStore() Store {
 
 	sqlStore.preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
 
-	if model.IsPreviousVersionsSupported(sqlStore.SchemaVersion) && !model.IsCurrentVersion(sqlStore.SchemaVersion) {
-		sqlStore.system.Update(&model.System{Name: "Version", Value: model.CurrentVersion})
-		sqlStore.SchemaVersion = model.CurrentVersion
-		l4g.Warn(utils.T("store.sql.upgraded.warn"), model.CurrentVersion)
-	}
-
-	if sqlStore.SchemaVersion == "" {
-		sqlStore.system.Save(&model.System{Name: "Version", Value: model.CurrentVersion})
-		sqlStore.SchemaVersion = model.CurrentVersion
-		l4g.Info(utils.T("store.sql.schema_set.info"), model.CurrentVersion)
-	}
-
 	return sqlStore
 }
 
@@ -196,7 +140,7 @@ func setupConnection(con_type string, driver string, dataSource string, maxIdle 
 	if err != nil {
 		l4g.Critical(utils.T("store.sql.open_conn.critical"), err)
 		time.Sleep(time.Second)
-		panic(fmt.Sprintf(utils.T("store.sql.open_conn.critical"), err.Error()))
+		os.Exit(101)
 	}
 
 	l4g.Info(utils.T("store.sql.pinging.info"), con_type)
@@ -204,7 +148,7 @@ func setupConnection(con_type string, driver string, dataSource string, maxIdle 
 	if err != nil {
 		l4g.Critical(utils.T("store.sql.ping.critical"), err)
 		time.Sleep(time.Second)
-		panic(fmt.Sprintf(utils.T("store.sql.open_conn.panic"), err.Error()))
+		os.Exit(102)
 	}
 
 	db.SetMaxIdleConns(maxIdle)
@@ -221,7 +165,7 @@ func setupConnection(con_type string, driver string, dataSource string, maxIdle 
 	} else {
 		l4g.Critical(utils.T("store.sql.dialect_driver.critical"))
 		time.Sleep(time.Second)
-		panic(fmt.Sprintf(utils.T("store.sql.dialect_driver.panic"), err.Error()))
+		os.Exit(103)
 	}
 
 	if trace {
@@ -257,7 +201,7 @@ func (ss SqlStore) DoesTableExist(tableName string) bool {
 		if err != nil {
 			l4g.Critical(utils.T("store.sql.table_exists.critical"), err)
 			time.Sleep(time.Second)
-			panic(fmt.Sprintf(utils.T("store.sql.table_exists.critical"), err.Error()))
+			os.Exit(104)
 		}
 
 		return count > 0
@@ -279,7 +223,7 @@ func (ss SqlStore) DoesTableExist(tableName string) bool {
 		if err != nil {
 			l4g.Critical(utils.T("store.sql.table_exists.critical"), err)
 			time.Sleep(time.Second)
-			panic(fmt.Sprintf(utils.T("store.sql.table_exists.critical"), err.Error()))
+			os.Exit(105)
 		}
 
 		return count > 0
@@ -287,9 +231,9 @@ func (ss SqlStore) DoesTableExist(tableName string) bool {
 	} else {
 		l4g.Critical(utils.T("store.sql.column_exists_missing_driver.critical"))
 		time.Sleep(time.Second)
-		panic(utils.T("store.sql.column_exists_missing_driver.critical"))
+		os.Exit(106)
+		return false
 	}
-
 }
 
 func (ss SqlStore) DoesColumnExist(tableName string, columnName string) bool {
@@ -311,7 +255,7 @@ func (ss SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 
 			l4g.Critical(utils.T("store.sql.column_exists.critical"), err)
 			time.Sleep(time.Second)
-			panic(fmt.Sprintf(utils.T("store.sql.column_exists.critical"), err.Error()))
+			os.Exit(107)
 		}
 
 		return count > 0
@@ -334,7 +278,7 @@ func (ss SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 		if err != nil {
 			l4g.Critical(utils.T("store.sql.column_exists.critical"), err)
 			time.Sleep(time.Second)
-			panic(fmt.Sprintf(utils.T("store.sql.column_exists.critical"), err.Error()))
+			os.Exit(108)
 		}
 
 		return count > 0
@@ -342,9 +286,9 @@ func (ss SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 	} else {
 		l4g.Critical(utils.T("store.sql.column_exists_missing_driver.critical"))
 		time.Sleep(time.Second)
-		panic(utils.T("store.sql.column_exists_missing_driver.critical"))
+		os.Exit(109)
+		return false
 	}
-
 }
 
 func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, mySqlColType string, postgresColType string, defaultValue string) bool {
@@ -358,7 +302,7 @@ func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, 
 		if err != nil {
 			l4g.Critical(utils.T("store.sql.create_column.critical"), err)
 			time.Sleep(time.Second)
-			panic(fmt.Sprintf(utils.T("store.sql.create_column.critical"), err.Error()))
+			os.Exit(110)
 		}
 
 		return true
@@ -368,7 +312,7 @@ func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, 
 		if err != nil {
 			l4g.Critical(utils.T("store.sql.create_column.critical"), err)
 			time.Sleep(time.Second)
-			panic(fmt.Sprintf(utils.T("store.sql.create_column.critical"), err.Error()))
+			os.Exit(111)
 		}
 
 		return true
@@ -376,7 +320,8 @@ func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, 
 	} else {
 		l4g.Critical(utils.T("store.sql.create_column_missing_driver.critical"))
 		time.Sleep(time.Second)
-		panic(utils.T("store.sql.create_column_missing_driver.critical"))
+		os.Exit(112)
+		return false
 	}
 }
 
@@ -390,7 +335,7 @@ func (ss SqlStore) RemoveColumnIfExists(tableName string, columnName string) boo
 	if err != nil {
 		l4g.Critical(utils.T("store.sql.drop_column.critical"), err)
 		time.Sleep(time.Second)
-		panic(fmt.Sprintf(utils.T("store.sql.drop_column.critical"), err.Error()))
+		os.Exit(113)
 	}
 
 	return true
@@ -411,7 +356,7 @@ func (ss SqlStore) RenameColumnIfExists(tableName string, oldColumnName string, 
 	if err != nil {
 		l4g.Critical(utils.T("store.sql.rename_column.critical"), err)
 		time.Sleep(time.Second)
-		panic(fmt.Sprintf(utils.T("store.sql.rename_column.critical"), err.Error()))
+		os.Exit(114)
 	}
 
 	return true
@@ -433,7 +378,7 @@ func (ss SqlStore) GetMaxLengthOfColumnIfExists(tableName string, columnName str
 	if err != nil {
 		l4g.Critical(utils.T("store.sql.maxlength_column.critical"), err)
 		time.Sleep(time.Second)
-		panic(fmt.Sprintf(utils.T("store.sql.maxlength_column.critical"), err.Error()))
+		os.Exit(115)
 	}
 
 	return result
@@ -454,7 +399,7 @@ func (ss SqlStore) AlterColumnTypeIfExists(tableName string, columnName string, 
 	if err != nil {
 		l4g.Critical(utils.T("store.sql.alter_column_type.critical"), err)
 		time.Sleep(time.Second)
-		panic(fmt.Sprintf(utils.T("store.sql.alter_column_type.critical"), err.Error()))
+		os.Exit(116)
 	}
 
 	return true
@@ -497,7 +442,7 @@ func (ss SqlStore) createIndexIfNotExists(indexName string, tableName string, co
 		if err != nil {
 			l4g.Critical(utils.T("store.sql.create_index.critical"), err)
 			time.Sleep(time.Second)
-			panic(fmt.Sprintf(utils.T("store.sql.create_index.critical"), err.Error()))
+			os.Exit(117)
 		}
 	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
 
@@ -505,7 +450,7 @@ func (ss SqlStore) createIndexIfNotExists(indexName string, tableName string, co
 		if err != nil {
 			l4g.Critical(utils.T("store.sql.check_index.critical"), err)
 			time.Sleep(time.Second)
-			panic(fmt.Sprintf(utils.T("store.sql.check_index.critical"), err.Error()))
+			os.Exit(118)
 		}
 
 		if count > 0 {
@@ -521,12 +466,12 @@ func (ss SqlStore) createIndexIfNotExists(indexName string, tableName string, co
 		if err != nil {
 			l4g.Critical(utils.T("store.sql.create_index.critical"), err)
 			time.Sleep(time.Second)
-			panic(fmt.Sprintf(utils.T("store.sql.create_index.critical"), err.Error()))
+			os.Exit(119)
 		}
 	} else {
 		l4g.Critical(utils.T("store.sql.create_index_missing_driver.critical"))
 		time.Sleep(time.Second)
-		panic(utils.T("store.sql.create_index_missing_driver.critical"))
+		os.Exit(120)
 	}
 }
 
@@ -543,7 +488,7 @@ func (ss SqlStore) RemoveIndexIfExists(indexName string, tableName string) {
 		if err != nil {
 			l4g.Critical(utils.T("store.sql.remove_index.critical"), err)
 			time.Sleep(time.Second)
-			panic(fmt.Sprintf(utils.T("store.sql.remove_index.critical"), err.Error()))
+			os.Exit(121)
 		}
 	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
 
@@ -551,7 +496,7 @@ func (ss SqlStore) RemoveIndexIfExists(indexName string, tableName string) {
 		if err != nil {
 			l4g.Critical(utils.T("store.sql.check_index.critical"), err)
 			time.Sleep(time.Second)
-			panic(fmt.Sprintf(utils.T("store.sql.check_index.critical"), err.Error()))
+			os.Exit(122)
 		}
 
 		if count > 0 {
@@ -562,12 +507,12 @@ func (ss SqlStore) RemoveIndexIfExists(indexName string, tableName string) {
 		if err != nil {
 			l4g.Critical(utils.T("store.sql.remove_index.critical"), err)
 			time.Sleep(time.Second)
-			panic(fmt.Sprintf(utils.T("store.sql.remove_index.critical"), err.Error()))
+			os.Exit(123)
 		}
 	} else {
 		l4g.Critical(utils.T("store.sql.create_index_missing_driver.critical"))
 		time.Sleep(time.Second)
-		panic(utils.T("store.sql.create_index_missing_driver.critical"))
+		os.Exit(124)
 	}
 }
 
@@ -592,7 +537,7 @@ func IsUniqueConstraintError(err string, indexName []string) bool {
 // 	if err != nil {
 // 		l4g.Critical(utils.T("store.sql.table_column_type.critical"), columnName, tableName, err.Error())
 // 		time.Sleep(time.Second)
-// 		panic(fmt.Sprintf(utils.T("store.sql.table_column_type.critical"), columnName, tableName, err.Error()))
+// 		os.Exit(125)
 // 	}
 
 // 	return dataType

@@ -23,9 +23,6 @@ func NewSqlPasswordRecoveryStore(sqlStore *SqlStore) PasswordRecoveryStore {
 	return s
 }
 
-func (s SqlPasswordRecoveryStore) UpgradeSchemaIfNeeded() {
-}
-
 func (s SqlPasswordRecoveryStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_password_recovery_code", "PasswordRecovery", "Code")
 }

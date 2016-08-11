@@ -27,9 +27,6 @@ func NewSqlAuditStore(sqlStore *SqlStore) AuditStore {
 	return s
 }
 
-func (s SqlAuditStore) UpgradeSchemaIfNeeded() {
-}
-
 func (s SqlAuditStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_audits_user_id", "Audits", "UserId")
 }

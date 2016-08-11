@@ -28,9 +28,6 @@ func NewSqlStatusStore(sqlStore *SqlStore) StatusStore {
 	return s
 }
 
-func (s SqlStatusStore) UpgradeSchemaIfNeeded() {
-}
-
 func (s SqlStatusStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_status_user_id", "Status", "UserId")
 	s.CreateIndexIfNotExists("idx_status_status", "Status", "Status")

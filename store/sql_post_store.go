@@ -37,9 +37,6 @@ func NewSqlPostStore(sqlStore *SqlStore) PostStore {
 	return s
 }
 
-func (s SqlPostStore) UpgradeSchemaIfNeeded() {
-}
-
 func (s SqlPostStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_posts_update_at", "Posts", "UpdateAt")
 	s.CreateIndexIfNotExists("idx_posts_create_at", "Posts", "CreateAt")

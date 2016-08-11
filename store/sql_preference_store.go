@@ -32,9 +32,6 @@ func NewSqlPreferenceStore(sqlStore *SqlStore) PreferenceStore {
 	return s
 }
 
-func (s SqlPreferenceStore) UpgradeSchemaIfNeeded() {
-}
-
 func (s SqlPreferenceStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_preferences_user_id", "Preferences", "UserId")
 	s.CreateIndexIfNotExists("idx_preferences_category", "Preferences", "Category")

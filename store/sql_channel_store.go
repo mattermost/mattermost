@@ -45,9 +45,6 @@ func NewSqlChannelStore(sqlStore *SqlStore) ChannelStore {
 	return s
 }
 
-func (s SqlChannelStore) UpgradeSchemaIfNeeded() {
-}
-
 func (s SqlChannelStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_channels_team_id", "Channels", "TeamId")
 	s.CreateIndexIfNotExists("idx_channels_name", "Channels", "Name")

@@ -40,10 +40,6 @@ func NewSqlTeamStore(sqlStore *SqlStore) TeamStore {
 	return s
 }
 
-func (s SqlTeamStore) UpgradeSchemaIfNeeded() {
-	s.CreateColumnIfNotExists("TeamMembers", "DeleteAt", "bigint(20)", "bigint", "0")
-}
-
 func (s SqlTeamStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_teams_name", "Teams", "Name")
 	s.CreateIndexIfNotExists("idx_teams_invite_id", "Teams", "InviteId")
