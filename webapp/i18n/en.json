@@ -282,7 +282,7 @@
   "admin.files.storage": "Storage",
   "admin.general.configuration": "Configuration",
   "admin.general.localization": "Localization",
-  "admin.general.localization.availableLocalesDescription": "Set which languages are available for users in Account Settings (leave this field blank to have all supported languages available).<br /><br />Would like to help with translations? Join the <a href='http://translate.mattermost.com/' target='_blank'>Mattermost Translation Server</a> to contribute.",
+  "admin.general.localization.availableLocalesDescription": "Set which languages are available for users in Account Settings (leave this field blank to have all supported languages available). If you’re manually adding new languages, the <strong>Default Client Language</strong> must be added before saving this setting.<br /><br />Would like to help with translations? Join the <a href='http://translate.mattermost.com/' target='_blank'>Mattermost Translation Server</a> to contribute.",
   "admin.general.localization.availableLocalesTitle": "Available Languages:",
   "admin.general.localization.clientLocaleDescription": "Default language for newly created users and pages where the user hasn't logged in.",
   "admin.general.localization.clientLocaleTitle": "Default Client Language:",

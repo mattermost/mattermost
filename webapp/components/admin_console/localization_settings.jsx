@@ -114,7 +114,7 @@ export default class LocalizationSettings extends AdminSettings {
                     helpText={
                         <FormattedHTMLMessage
                             id='admin.general.localization.availableLocalesDescription'
-                            defaultMessage='Set which languages are available for users in Account Settings (leave this field blank to have all supported languages available).<br /><br />Would like to help with translations? Join the <a href="http://translate.mattermost.com/" target="_blank">Mattermost Translation Server</a> to contribute.'
+                            defaultMessage='Set which languages are available for users in Account Settings (leave this field blank to have all supported languages available). If you’re manually adding new languages, the <strong>Default Client Language</strong> must be added before saving this setting.<br /><br />Would like to help with translations? Join the <a href="http://translate.mattermost.com/" target="_blank">Mattermost Translation Server</a> to contribute.'
                         />
                     }
                     noResultText={
