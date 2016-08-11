@@ -302,8 +302,8 @@ export default class NotificationsTab extends React.Component {
                                     onChange={this.handlePushRadio.bind(this, 'none')}
                                 />
                                 <FormattedMessage
-                                    id='user.settings.push_notification.off'
-                                    defaultMessage='Off'
+                                    id='user.settings.notifications.never'
+                                    defaultMessage='Never'
                                 />
                             </label>
                         </div>
@@ -336,7 +336,7 @@ export default class NotificationsTab extends React.Component {
 
             return (
                 <SettingItemMax
-                    title={Utils.localizeMessage('user.settings.notifications.push', 'Mobile push notifications')}
+                    title={Utils.localizeMessage('user.settings.notifications.push', 'Send mobile push notifications')}
                     extraInfo={extraInfo}
                     inputs={inputs}
                     submit={submit}
@@ -357,8 +357,8 @@ export default class NotificationsTab extends React.Component {
         } else if (this.state.notifyPushLevel === 'none') {
             describe = (
                 <FormattedMessage
-                    id='user.settings.push_notification.off'
-                    defaultMessage='Off'
+                    id='user.settings.notifications.never'
+                    defaultMessage='Never'
                 />
             );
         } else if (global.window.mm_config.SendPushNotifications === 'false') {
@@ -383,7 +383,7 @@ export default class NotificationsTab extends React.Component {
 
         return (
             <SettingItemMin
-                title={Utils.localizeMessage('user.settings.notifications.push', 'Mobile push notifications')}
+                title={Utils.localizeMessage('user.settings.notifications.push', 'Send mobile push notifications')}
                 describe={describe}
                 updateSection={handleUpdateDesktopSection}
             />
