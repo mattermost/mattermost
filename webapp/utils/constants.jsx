@@ -797,7 +797,10 @@ export const Constants = {
     LICENSE_GRACE_PERIOD: 1000 * 60 * 60 * 24 * 15, // 15 days
     PERMISSIONS_ALL: 'all',
     PERMISSIONS_TEAM_ADMIN: 'team_admin',
-    PERMISSIONS_SYSTEM_ADMIN: 'system_admin'
+    PERMISSIONS_SYSTEM_ADMIN: 'system_admin',
+    MENTION_MEMBERS: 'mention.members',
+    MENTION_NONMEMBERS: 'mention.nonmembers',
+    MENTION_SPECIAL: 'mention.special'
 };
 
 export default Constants;

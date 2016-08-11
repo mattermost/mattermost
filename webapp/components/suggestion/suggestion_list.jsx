@@ -5,6 +5,7 @@ import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import SuggestionStore from 'stores/suggestion_store.jsx';
+import {FormattedMessage} from 'react-intl';
 
 import React from 'react';
 
@@ -92,18 +93,38 @@ export default class SuggestionList extends React.Component {
         }
     }
 
+    renderDivider(type) {
+        return (
+            <div
+                key={type + '-divider'}
+                className='suggestion-list__divider'
+            >
+                <span>
+                    <FormattedMessage id={'suggestion.' + type}/>
+                </span>
+            </div>
+        );
+    }
+
     render() {
         if (this.state.items.length === 0) {
             return null;
         }
 
         const items = [];
+        let lastType;
         for (let i = 0; i < this.state.items.length; i++) {
+            const item = this.state.items[i];
             const term = this.state.terms[i];
             const isSelection = term === this.state.selection;
 
             // ReactComponent names need to be upper case when used in JSX
             const Component = this.state.components[i];
+
+            if (item.type !== lastType) {
+                items.push(this.renderDivider(item.type));
+                lastType = item.type;
+            }
 
             items.push(
                 <Component
