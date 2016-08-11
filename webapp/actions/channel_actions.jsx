@@ -7,6 +7,7 @@ import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
+import * as UserAgent from 'utils/user_agent.jsx';
 import Client from 'client/web_client.jsx';
 
 export function goToChannel(channel) {
@@ -28,12 +29,16 @@ export function executeCommand(channelId, message, suggest, success, error) {
 
     msg = msg.substring(0, msg.indexOf(' ')).toLowerCase() + msg.substring(msg.indexOf(' '), msg.length);
 
-    if (message.indexOf('/shortcuts') !== -1 && Utils.isMac()) {
-        msg += ' mac';
-    }
-
-    if (!Utils.isMac() && message.indexOf('/shortcuts') !== -1 && message.indexOf('mac') !== -1) {
-        msg = '/shortcuts';
+    if (message.indexOf('/shortcuts') !== -1) {
+        if (UserAgent.isMobileApp()) {
+            const err = {message: Utils.localizeMessage('create_post.shortcutsNotSupported', 'Keyboard shortcuts are not supported on your device')};
+            error(err);
+            return;
+        } else if (Utils.isMac()) {
+            msg += ' mac';
+        } else if (message.indexOf('mac') !== -1) {
+            msg = '/shortcuts';
+        }
     }
 
     Client.executeCommand(channelId, msg, suggest, success, error);
