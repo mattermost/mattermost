@@ -120,13 +120,15 @@ export default class CreatePost extends React.Component {
         this.setState({submitting: true, serverError: null});
 
         if (post.message.indexOf('/') === 0) {
+            PostStore.storeDraft(this.state.channelId, null);
+            this.setState({messageText: '', postError: null, previews: []});
+
             ChannelActions.executeCommand(
                 this.state.channelId,
                 post.message,
                 false,
                 (data) => {
-                    PostStore.storeDraft(this.state.channelId, null);
-                    this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
+                    this.setState({submitting: false});
 
                     if (data.goto_location && data.goto_location.length > 0) {
                         browserHistory.push(data.goto_location);
