@@ -31,22 +31,15 @@ export default class ConfirmIntegration extends React.Component {
         const userId = UserStore.getCurrentId();
 
         this.state = {
-            type: '',
-            id: '',
+            type: this.props.location.query.type,
+            id: this.props.location.query.id,
             oauthApps: IntegrationStore.getOAuthApps(userId),
             loading: !IntegrationStore.hasReceivedOAuthApps(userId)
         };
     }
 
-    componentWillMount() {
+    componentDidMount() {
         IntegrationStore.addChangeListener(this.handleIntegrationChange);
-        const type = this.props.location.query.type;
-        const id = this.props.location.query.id;
-
-        this.setState({
-            type,
-            id
-        });
     }
 
     componentWillUnmount() {
