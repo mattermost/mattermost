@@ -90,9 +90,9 @@ export default class ConfirmIntegration extends React.Component {
             );
             tokenText = (
                 <div className='backstage-list__help'>
-                    <FormattedMessage
+                    <FormattedHTMLMessage
                         id='add_command.token'
-                        defaultMessage='Token: {token}'
+                        defaultMessage='<b>Token</b>: {token}'
                         values={{
                             token: this.state.id
                         }}
@@ -116,9 +116,9 @@ export default class ConfirmIntegration extends React.Component {
             );
             tokenText = (
                 <div className='backstage-list__help'>
-                    <FormattedMessage
+                    <FormattedHTMLMessage
                         id='add_incoming_webhook.url'
-                        defaultMessage='URL: {url}'
+                        defaultMessage='<b>URL</b>: {url}'
                         values={{
                             url: window.location.origin + '/hooks/' + this.state.id
                         }}
@@ -142,9 +142,9 @@ export default class ConfirmIntegration extends React.Component {
             );
             tokenText = (
                 <div className='backstage-list__help'>
-                    <FormattedMessage
+                    <FormattedHTMLMessage
                         id='add_outgoing_webhook.token'
-                        defaultMessage='Token: {token}'
+                        defaultMessage='<b>Token</b>: {token}'
                         values={{
                             token: this.state.id
                         }}
@@ -179,21 +179,16 @@ export default class ConfirmIntegration extends React.Component {
                 );
                 helpText.push(
                     <div className='backstage-list__help'>
-                        <FormattedMessage
+                        <FormattedHTMLMessage
                             id='add_oauth_app.clientId'
-                            defaultMessage='Client ID: {id}'
+                            defaultMessage='<b>Client ID:</b> {id}'
                             values={{
                                 id: this.state.id
                             }}
-                        />
-                    </div>
-                );
-
-                helpText.push(
-                    <div className='backstage-list__help'>
-                        <FormattedMessage
+                        /> <br/>
+                        <FormattedHTMLMessage
                             id='add_oauth_app.clientSecret'
-                            defaultMessage='Client Secret: {secret}'
+                            defaultMessage='<b>Client Secret:</b> {secret}'
                             values={{
                                 secret: oauthApp.client_secret
                             }}
@@ -212,9 +207,9 @@ export default class ConfirmIntegration extends React.Component {
 
                 tokenText = (
                     <div className='backstage-list__help'>
-                        <FormattedMessage
+                        <FormattedHTMLMessage
                             id='add_oauth_app.url'
-                            defaultMessage='URL(s): {url}'
+                            defaultMessage='<b>URL(s)</b>: {url}'
                             values={{
                                 url: oauthApp.callback_urls
                             }}
