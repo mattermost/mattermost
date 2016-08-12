@@ -64,20 +64,27 @@ export default class ManageLanguage extends React.Component {
         }
 
         const options = [];
-        const languages = I18n.getLanguages();
-        for (const key in languages) {
-            if (languages.hasOwnProperty(key)) {
-                const lang = languages[key];
-                options.push(
-                    <option
-                        key={lang.value}
-                        value={lang.value}
-                    >
-                        {lang.name}
-                    </option>
-                );
-            }
-        }
+        const locales = I18n.getLanguages();
+
+        const languages = Object.keys(locales).map((l) => {
+            return {
+                value: locales[l].value,
+                name: locales[l].name,
+                order: locales[l].order
+            };
+        }).
+        sort((a, b) => a.order - b.order);
+
+        languages.forEach((lang) => {
+            options.push(
+                <option
+                    key={lang.value}
+                    value={lang.value}
+                >
+                    {lang.name}
+                </option>
+            );
+        });
 
         const input = (
             <div key='changeLanguage'>

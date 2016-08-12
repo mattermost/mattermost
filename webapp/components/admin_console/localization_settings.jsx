@@ -25,8 +25,8 @@ export default class LocalizationSettings extends AdminSettings {
         this.state = Object.assign(this.state, {
             hasErrors: false,
             languages: Object.keys(locales).map((l) => {
-                return {value: locales[l].value, text: locales[l].name};
-            })
+                return {value: locales[l].value, text: locales[l].name, order: locales[l].order};
+            }).sort((a, b) => a.order - b.order)
         });
     }
 

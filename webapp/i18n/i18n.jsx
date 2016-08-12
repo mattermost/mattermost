@@ -27,51 +27,61 @@ const languages = {
     de: {
         value: 'de',
         name: 'Deutsch (Beta)',
+        order: 0,
         url: de
     },
     en: {
         value: 'en',
         name: 'English',
+        order: 1,
         url: ''
     },
     es: {
         value: 'es',
         name: 'Español',
+        order: 2,
         url: es
     },
     fr: {
         value: 'fr',
         name: 'Français (Beta)',
+        order: 3,
         url: fr
     },
     ja: {
         value: 'ja',
         name: '日本語 (Beta)',
+        order: 9,
         url: ja
     },
     ko: {
         value: 'ko',
         name: '한국어 (Beta)',
+        order: 6,
         url: ko
     },
     nl: {
         value: 'nl',
         name: 'Nederlands (Beta)',
+        order: 4,
         url: nl
     },
     'pt-BR': {
         value: 'pt-BR',
         name: 'Português (Brasil)',
+        order: 5,
         url: pt_BR
     },
     'zh-TW': {
         value: 'zh-TW',
         name: '中文 (繁體) (Beta)',
+        order: 8,
         url: zh_TW
     },
     'zh-CN': {
         value: 'zh-CN',
         name: '中文 (简体) (Beta)',
+        order: 7,
         url: zh_CN
     }
 };
