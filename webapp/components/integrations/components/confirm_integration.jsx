@@ -205,7 +205,7 @@ export default class ConfirmIntegration extends React.Component {
                     <div className='backstage-list__help'>
                         <FormattedHTMLMessage
                             id='add_oauth_app.doneUrlHelp'
-                            defaultMessage='Please send data to the following URL (see <a href="https://docs.mattermost.com/developer/oauth2-applications.html">documentation</a> for further details.)'
+                            defaultMessage='Please send data to the following URL.'
                         />
                     </div>
                 );

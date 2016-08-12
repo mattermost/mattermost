@@ -105,7 +105,7 @@
   "add_oauth_app.nameRequired": "Name for the OAuth 2.0 application is required.",
   "add_oauth_app.trusted.help": "When true, the OAuth 2.0 application is considered trusted by the Mattermost server and doesn't require the user to accept authorization. When false, an additional window will appear, asking the user to accept or deny the authorization.",
   "add_oauth_app.doneHelp": "Your OAuth 2.0 application has been set up. Please use the following Client ID and Client Secret when requesting authorization for your application.",
-  "add_oauth_app.doneUrlHelp": "Please send data to the following URL (see <a href=\"https://docs.mattermost.com/developer/oauth2-applications.html\">documentation</a> for further details.)",
+  "add_oauth_app.doneUrlHelp": "Please send data to the following URL.",
   "add_oauth_app.clientId": "Client ID: {id}",
   "add_oauth_app.clientSecret": "Client Secret: {secret}",
   "add_oauth_app.url": "URL(s): {url}",
