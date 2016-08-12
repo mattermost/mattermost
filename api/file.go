@@ -54,6 +54,9 @@ const (
 	RotatedCW          = 8
 
 	MaxImageSize = 6048 * 4032 // 24 megapixels, roughly 36MB as a raw image
+
+	MaxPreviewWidth  = 500
+	MaxPreviewHeight = 400
 )
 
 var fileInfoCache *utils.Cache = utils.NewLru(1000)
@@ -245,8 +248,21 @@ func handleImages(filenames []string, fileData [][]byte, teamId, channelId, user
 			// Create preview
 			go func() {
 				var preview image.Image
-				if width > int(utils.Cfg.FileSettings.PreviewWidth) {
-					preview = imaging.Resize(img, utils.Cfg.FileSettings.PreviewWidth, utils.Cfg.FileSettings.PreviewHeight, imaging.Lanczos)
+				ratio := float64(height) / float64(width)
+				optimalRatio := float64(MaxPreviewHeight) / float64(MaxPreviewWidth)
+				newWidth := width
+				newHeight := height
+
+				if width > MaxPreviewWidth || height > MaxPreviewHeight {
+					if ratio > optimalRatio {
+						newWidth = int(float64(width) * (float64(MaxPreviewHeight) / float64(height)))
+						newHeight = MaxPreviewHeight
+					} else {
+						newWidth = MaxPreviewWidth
+						newHeight = int(float64(height) * (float64(MaxPreviewWidth) / float64(width)))
+					}
+
+					preview = imaging.Resize(img, newWidth, newHeight, imaging.Lanczos)
 				} else {
 					preview = img
 				}
