@@ -23,6 +23,7 @@ export default class PostFocusView extends React.Component {
         this.onPostsChange = this.onPostsChange.bind(this);
         this.onUserChange = this.onUserChange.bind(this);
         this.onEmojiChange = this.onEmojiChange.bind(this);
+        this.onStatusChange = this.onStatusChange.bind(this);
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.onPostListScroll = this.onPostListScroll.bind(this);
 
@@ -36,10 +37,16 @@ export default class PostFocusView extends React.Component {
 
         const joinLeaveEnabled = PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'join_leave', true);
 
+        let statuses;
+        if (channel && channel.type !== Constants.DM_CHANNEL) {
+            statuses = Object.assign({}, UserStore.getStatuses());
+        }
+
         this.state = {
             postList: PostStore.filterPosts(focusedPostId, joinLeaveEnabled),
             currentUser: UserStore.getCurrentUser(),
             profiles,
+            statuses,
             scrollType: ScrollTypes.POST,
             currentChannel: ChannelStore.getCurrentId().slice(),
             scrollPostId: focusedPostId,
@@ -54,6 +61,7 @@ export default class PostFocusView extends React.Component {
         ChannelStore.addChangeListener(this.onChannelChange);
         PostStore.addChangeListener(this.onPostsChange);
         UserStore.addChangeListener(this.onUserChange);
+        UserStore.addStatusesChangeListener(this.onStatusChange);
         EmojiStore.addChangeListener(this.onEmojiChange);
         PreferenceStore.addChangeListener(this.onPreferenceChange);
     }
@@ -62,7 +70,9 @@ export default class PostFocusView extends React.Component {
         ChannelStore.removeChangeListener(this.onChannelChange);
         PostStore.removeChangeListener(this.onPostsChange);
         UserStore.removeChangeListener(this.onUserChange);
+        UserStore.removeStatusesChangeListener(this.onStatusChange);
         EmojiStore.removeChangeListener(this.onEmojiChange);
+        PreferenceStore.removeChangeListener(this.onPreferenceChange);
     }
 
     onChannelChange() {
@@ -98,6 +108,16 @@ export default class PostFocusView extends React.Component {
             profiles = Object.assign({}, profiles, UserStore.getDirectProfiles());
         }
         this.setState({currentUser: UserStore.getCurrentUser(), profiles: JSON.parse(JSON.stringify(profiles))});
+    }
+
+    onStatusChange() {
+        const channel = ChannelStore.getCurrent();
+        let statuses;
+        if (channel && channel.type !== Constants.DM_CHANNEL) {
+            statuses = Object.assign({}, UserStore.getStatuses());
+        }
+
+        this.setState({statuses});
     }
 
     onEmojiChange() {
@@ -151,6 +171,7 @@ export default class PostFocusView extends React.Component {
                     isFocusPost={true}
                     emojis={this.state.emojis}
                     flaggedPosts={this.state.flaggedPosts}
+                    statuses={this.state.statuses}
                 />
             );
         }
