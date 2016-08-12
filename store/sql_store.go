@@ -110,7 +110,7 @@ func NewSqlStore() Store {
 		os.Exit(100)
 	}
 
-	// TODO run upgrade here (I THINK)
+	UpgradeDatabase(sqlStore)
 
 	sqlStore.team.(*SqlTeamStore).CreateIndexesIfNotExists()
 	sqlStore.channel.(*SqlChannelStore).CreateIndexesIfNotExists()
