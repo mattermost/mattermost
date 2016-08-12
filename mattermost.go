@@ -45,6 +45,7 @@ var flagCmdCreateTeam bool
 var flagCmdCreateUser bool
 var flagCmdInviteUser bool
 var flagCmdAssignRole bool
+var flagCmdCreateChannel bool
 var flagCmdJoinChannel bool
 var flagCmdLeaveChannel bool
 var flagCmdListChannels bool
@@ -76,6 +77,9 @@ var flagRunCmds bool
 var flagFromAuth string
 var flagToAuth string
 var flagMatchField string
+var flagChannelType string
+var flagChannelHeader string
+var flagChannelPurpose string
 
 func doLoadConfig(filename string) (err string) {
 	defer func() {
@@ -302,12 +306,16 @@ func parseCmds() {
 	flag.StringVar(&flagToAuth, "to_auth", "", "")
 	flag.StringVar(&flagMatchField, "match_field", "email", "")
 	flag.StringVar(&flagRole, "role", "", "")
+	flag.StringVar(&flagChannelType, "channel_type", "O", "")
+	flag.StringVar(&flagChannelHeader, "channel_header", "", "")
+	flag.StringVar(&flagChannelPurpose, "channel_purpose", "", "")
 
 	flag.BoolVar(&flagCmdUpdateDb30, "upgrade_db_30", false, "")
 	flag.BoolVar(&flagCmdCreateTeam, "create_team", false, "")
 	flag.BoolVar(&flagCmdCreateUser, "create_user", false, "")
 	flag.BoolVar(&flagCmdInviteUser, "invite_user", false, "")
 	flag.BoolVar(&flagCmdAssignRole, "assign_role", false, "")
+	flag.BoolVar(&flagCmdCreateChannel, "create_channel", false, "")
 	flag.BoolVar(&flagCmdJoinChannel, "join_channel", false, "")
 	flag.BoolVar(&flagCmdLeaveChannel, "leave_channel", false, "")
 	flag.BoolVar(&flagCmdListChannels, "list_channels", false, "")
@@ -334,6 +342,7 @@ func parseCmds() {
 		flagCmdInviteUser ||
 		flagCmdLeaveTeam ||
 		flagCmdAssignRole ||
+		flagCmdCreateChannel ||
 		flagCmdJoinChannel ||
 		flagCmdLeaveChannel ||
 		flagCmdListChannels ||
@@ -361,6 +370,7 @@ func runCmds() {
 	cmdInviteUser()
 	cmdLeaveTeam()
 	cmdAssignRole()
+	cmdCreateChannel()
 	cmdJoinChannel()
 	cmdLeaveChannel()
 	cmdListChannels()
@@ -937,6 +947,75 @@ func cmdAssignRole() {
 
 		if !user.IsInRole(flagRole) {
 			api.UpdateUserRoles(c, user, flagRole)
+		}
+
+		os.Exit(0)
+	}
+}
+
+func cmdCreateChannel() {
+	if flagCmdCreateChannel {
+		if len(flagTeamName) == 0 {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		if len(flagChannelName) == 0 {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -channel_name")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		if len(flagEmail) == 0 {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -email")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		if flagChannelType != "O" && flagChannelType != "P" {
+			fmt.Fprintln(os.Stderr, "flag channel_type must have on of the following values: O or P")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		if !utils.IsLicensed {
+			fmt.Fprintln(os.Stderr, utils.T("cli.license.critical"))
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		var team *model.Team
+		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
+			l4g.Error("%v %v", utils.T(result.Err.Message), result.Err.DetailedError)
+			flushLogAndExit(1)
+		} else {
+			team = result.Data.(*model.Team)
+		}
+
+		var user *model.User
+		if result := <-api.Srv.Store.User().GetByEmail(flagEmail); result.Err != nil {
+			l4g.Error("%v %v", utils.T(result.Err.Message), result.Err.DetailedError)
+			flushLogAndExit(1)
+		} else {
+			user = result.Data.(*model.User)
+		}
+
+		c := getMockContext()
+		c.Session.UserId = user.Id
+
+		channel := &model.Channel{}
+		channel.DisplayName = flagChannelName
+		channel.CreatorId = user.Id
+		channel.Name = flagChannelName
+		channel.TeamId = team.Id
+		channel.Type = flagChannelType
+		channel.Header = flagChannelHeader
+		channel.Purpose = flagChannelPurpose
+
+		if _, err := api.CreateChannel(c, channel, true); err != nil {
+			l4g.Error("%v %v", utils.T(err.Message), err.DetailedError)
+			flushLogAndExit(1)
 		}
 
 		os.Exit(0)
@@ -1587,6 +1666,17 @@ FLAGS:
 
     -team_name="name"                 The team name used in other commands
 
+    -channel_name="name"	      The channel name used in other commands
+
+    -channel_header="string"	      The channel header used in other commands
+
+    -channel_purpose="string"	      The channel purpose used in other commands
+
+    -channel_type="type"	      The channel type used in other commands
+     				      valid values are
+     				        "O" - public channel
+     				        "P" - private group
+
     -role="system_admin"              The role used in other commands
                                       valid values are
                                         "" - The empty role is basic user
@@ -1601,23 +1691,23 @@ COMMANDS:
             platform -create_team -team_name="name" -email="user@example.com"
 
     -create_user                      Creates a user.  It requires the -email and -password flag
-                                       and -team_name and -username are optional to create a user.
+                                      and -team_name and -username are optional to create a user.
         Example:
             platform -create_user -team_name="name" -email="user@example.com" -password="mypassword" -username="user"
 
     -invite_user                      Invites a user to a team by email. It requires the -team_name
                                       and -email flags.
         Example:
-				platform -invite_user -team_name="name" -email="user@example.com"
+	    platform -invite_user -team_name="name" -email="user@example.com"
 
--leave_team                           Removes a user from a team.  It requires the -team_name
+    -leave_team                       Removes a user from a team.  It requires the -team_name
                                       and -email.
         Example:
-				platform -remove_user_from_team -team_name="name" -email="user@example.com"
+	    platform -remove_user_from_team -team_name="name" -email="user@example.com"
 
     -join_team                        Joins a user to the team.  It required the -email and
-                                       -team_name.  You may need to logout of your current session
-                                       for the new team to be applied.
+                                      -team_name.  You may need to logout of your current session
+                                      for the new team to be applied.
         Example:
             platform -join_team -email="user@example.com" -team_name="name"
 
@@ -1627,6 +1717,13 @@ COMMANDS:
                                       applied.
         Example:
             platform -assign_role -email="user@example.com" -role="system_admin"
+
+    -create_channel		       Create a new channel in the specified team. It requires the -email,
+    					-team_name, -channel_name, -channel_type flags. Optional you can set
+    					the -channel_header and -channel_purpose.
+
+	Example:
+            platform -create_channel -email="user@example.com" -team_name="name" -channel_name="channel_name" -channel_type="O"
 
     -join_channel                      Joins a user to the channel.  It requires the -email, channel_name and
                                        -team_name flags.  You may need to logout of your current session
