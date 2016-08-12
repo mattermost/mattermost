@@ -11,6 +11,7 @@ import PreferenceStore from 'stores/preference_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import twemoji from 'twemoji';
 import * as Utils from './utils.jsx';
+import XRegExp from 'xregexp';
 
 // pattern to detect the existance of a Chinese, Japanese, or Korean character in a string
 // http://stackoverflow.com/questions/15033196/using-javascript-to-check-whether-a-string-contains-japanese-characters-includi
@@ -140,13 +141,9 @@ function autolinkEmails(text, tokens) {
     return autolinker.link(text);
 }
 
-function autolinkAtMentions(text, tokens) {
-    // Return true if provided character is punctuation
-    function isPunctuation(character) {
-        const re = /[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,\-.\/:;<=>?@\[\]^_`{|}~]/g;
-        return re.test(character);
-    }
+const punctuation = XRegExp.cache('[^\\pL\\d]');
 
+function autolinkAtMentions(text, tokens) {
     // Test if provided text needs to be highlighted, special mention or current user
     function mentionExists(u) {
         return (Constants.SPECIAL_MENTIONS.indexOf(u) !== -1 || UserStore.getProfileByUsername(u));
@@ -176,7 +173,7 @@ function autolinkAtMentions(text, tokens) {
         const originalUsername = usernameLower;
 
         for (let c = usernameLower.length; c > 0; c--) {
-            if (isPunctuation(usernameLower[c - 1])) {
+            if (punctuation.test(usernameLower[c - 1])) {
                 usernameLower = usernameLower.substring(0, c - 1);
 
                 if (mentionExists(usernameLower)) {
@@ -299,8 +296,8 @@ function autolinkHashtags(text, tokens) {
     return output.replace(/(^|\W)(#[a-zA-ZäöüÄÖÜß][a-zA-Z0-9äöüÄÖÜß.\-_]*)\b/g, replaceHashtagWithToken);
 }
 
-const puncStart = /^[^a-zA-Z0-9#]+/;
-const puncEnd = /[^a-zA-Z0-9]+$/;
+const puncStart = XRegExp.cache('^[^\\pL\\d\\s#]+');
+const puncEnd = XRegExp.cache('[^\\pL\\d\\s]+$');
 
 function parseSearchTerms(searchTerm) {
     let terms = [];
