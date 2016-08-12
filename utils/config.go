@@ -334,8 +334,8 @@ func Desanitize(cfg *model.Config) {
 		*cfg.LdapSettings.BindPassword = *Cfg.LdapSettings.BindPassword
 	}
 
-	if cfg.FileSettings.PublicLinkSalt == model.FAKE_SETTING {
-		cfg.FileSettings.PublicLinkSalt = Cfg.FileSettings.PublicLinkSalt
+	if *cfg.FileSettings.PublicLinkSalt == model.FAKE_SETTING {
+		*cfg.FileSettings.PublicLinkSalt = *Cfg.FileSettings.PublicLinkSalt
 	}
 	if cfg.FileSettings.AmazonS3SecretAccessKey == model.FAKE_SETTING {
 		cfg.FileSettings.AmazonS3SecretAccessKey = Cfg.FileSettings.AmazonS3SecretAccessKey

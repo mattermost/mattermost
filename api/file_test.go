@@ -335,7 +335,7 @@ func TestGetPublicFile(t *testing.T) {
 	utils.Cfg.FileSettings.EnablePublicLink = true
 
 	// test a user that's logged in after the salt has changed
-	utils.Cfg.FileSettings.PublicLinkSalt = model.NewId()
+	*utils.Cfg.FileSettings.PublicLinkSalt = model.NewId()
 
 	th.LoginBasic()
 	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusBadRequest {

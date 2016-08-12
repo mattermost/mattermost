@@ -386,7 +386,7 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(hash) > 0 && len(data) > 0 {
-		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.FileSettings.PublicLinkSalt)) {
+		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, *utils.Cfg.FileSettings.PublicLinkSalt)) {
 			c.Err = model.NewLocAppError("getPublicFile", "api.file.get_file.public_invalid.app_error", nil, "")
 			c.Err.StatusCode = http.StatusBadRequest
 			return
@@ -516,7 +516,7 @@ func getPublicLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	newProps["filename"] = filename
 
 	data := model.MapToJson(newProps)
-	hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.FileSettings.PublicLinkSalt))
+	hash := model.HashPassword(fmt.Sprintf("%v:%v", data, *utils.Cfg.FileSettings.PublicLinkSalt))
 
 	url := fmt.Sprintf("%s/public/files/get/%s/%s/%s/%s?d=%s&h=%s", c.GetSiteURL()+model.API_URL_SUFFIX, c.TeamId, channelId, userId, filename, url.QueryEscape(data), url.QueryEscape(hash))
 

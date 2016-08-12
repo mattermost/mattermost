@@ -70,7 +70,7 @@ func TestGetConfig(t *testing.T) {
 		if *cfg.LdapSettings.BindPassword != model.FAKE_SETTING && len(*cfg.LdapSettings.BindPassword) != 0 {
 			t.Fatal("did not sanitize properly")
 		}
-		if cfg.FileSettings.PublicLinkSalt != model.FAKE_SETTING {
+		if *cfg.FileSettings.PublicLinkSalt != model.FAKE_SETTING {
 			t.Fatal("did not sanitize properly")
 		}
 		if cfg.FileSettings.AmazonS3SecretAccessKey != model.FAKE_SETTING && len(cfg.FileSettings.AmazonS3SecretAccessKey) != 0 {
