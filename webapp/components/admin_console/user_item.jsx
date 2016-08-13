@@ -11,7 +11,6 @@ import TeamStore from 'stores/team_store.jsx';
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
 import React from 'react';
-import {browserHistory} from 'react-router/es6';
 
 export default class UserItem extends React.Component {
     constructor(props) {
@@ -183,9 +182,10 @@ export default class UserItem extends React.Component {
 
                 const teamUrl = TeamStore.getCurrentTeamUrl();
                 if (teamUrl) {
-                    browserHistory.push(teamUrl);
+                    // the channel is added to the URL cause endless loading not being fully fixed
+                    window.location.href = teamUrl + '/channels/town-square';
                 } else {
-                    browserHistory.push('/');
+                    window.location.href = '/';
                 }
             },
             (err) => {
