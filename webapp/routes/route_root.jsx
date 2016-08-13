@@ -8,6 +8,7 @@ import Root from 'components/root.jsx';
 import claimAccountRoute from 'routes/route_claim.jsx';
 import createTeamRoute from 'routes/route_create_team.jsx';
 import teamRoute from 'routes/route_team.jsx';
+import helpRoute from 'routes/route_help.jsx';
 
 import BrowserStore from 'stores/browser_store.jsx';
 import ErrorStore from 'stores/error_store.jsx';
@@ -79,7 +80,8 @@ export default {
                             getComponents: (location, callback) => {
                                 System.import('components/do_verify_email.jsx').then(RouteUtils.importComponentSuccess(callback));
                             }
-                        }
+                        },
+                        helpRoute
                     ]
                 )
             },
