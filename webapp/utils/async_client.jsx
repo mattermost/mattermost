@@ -133,11 +133,11 @@ export function updateLastViewedAt(id) {
     Client.updateLastViewedAt(
         channelId,
         () => {
-            callTracker.updateLastViewed = 0;
+            callTracker[`updateLastViewed${channelId}`] = 0;
             ErrorStore.clearLastError();
         },
         (err) => {
-            callTracker.updateLastViewed = 0;
+            callTracker[`updateLastViewed${channelId}`] = 0;
             var count = ErrorStore.getConnectionErrorCount();
             ErrorStore.setConnectionErrorCount(count + 1);
             dispatchError(err, 'updateLastViewedAt');
@@ -170,11 +170,11 @@ export function setLastViewedAt(lastViewedAt, id) {
         channelId,
         lastViewedAt,
         () => {
-            callTracker.setLastViewedAt = 0;
+            callTracker[`setLastViewedAt${channelId}${lastViewedAt}`] = 0;
             ErrorStore.clearLastError();
         },
         (err) => {
-            callTracker.setLastViewedAt = 0;
+            callTracker[`setLastViewedAt${channelId}${lastViewedAt}`] = 0;
             var count = ErrorStore.getConnectionErrorCount();
             ErrorStore.setConnectionErrorCount(count + 1);
             dispatchError(err, 'setLastViewedAt');
@@ -1190,6 +1190,7 @@ export function getRecentAndNewUsersAnalytics(teamId) {
                 teamId,
                 stats
             });
+            callTracker[callName] = 0;
         },
         (err) => {
             callTracker[callName] = 0;
