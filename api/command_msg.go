@@ -4,8 +4,9 @@
 package api
 
 import (
-	"github.com/mattermost/platform/model"
 	"strings"
+
+	"github.com/mattermost/platform/model"
 )
 
 type msgProvider struct {
@@ -83,7 +84,8 @@ func (me *msgProvider) DoCommand(c *Context, channelId string, message string) *
 					post := &model.Post{}
 					post.Message = parsedMessage
 					post.ChannelId = targetChannelId
-					if _, err := CreatePost(c, post, true); err != nil {
+					post.UserId = c.Session.UserId
+					if _, err := CreatePost(c.TeamId, post, true); err != nil {
 						return &model.CommandResponse{Text: c.T("api.command_msg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 					}
 				}

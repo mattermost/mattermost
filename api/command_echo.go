@@ -77,10 +77,11 @@ func (me *EchoProvider) DoCommand(c *Context, channelId string, message string) 
 		post := &model.Post{}
 		post.ChannelId = channelId
 		post.Message = message
+		post.UserId = c.Session.UserId
 
 		time.Sleep(time.Duration(delay) * time.Second)
 
-		if _, err := CreatePost(c, post, true); err != nil {
+		if _, err := CreatePost(c.TeamId, post, true); err != nil {
 			l4g.Error(c.T("api.command_echo.create.app_error"), err)
 		}
 	}()
