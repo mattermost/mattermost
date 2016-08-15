@@ -17,6 +17,7 @@
     max-height: 292px;
     overflow-x: hidden;
     overflow-y: scroll;
+    padding-bottom: 5px;
     width: 100%;
 
     .command {
@@ -47,7 +48,7 @@
 
 .suggestion-list__divider {
     line-height: 21px;
-    margin: 5px 0px 0px 5px;
+    margin: 5px 0 5px 5px;
     position: relative;
 
     &:first-child {
@@ -55,10 +56,10 @@
     }
 
     > span {
-        color: rgba(51,51,51,0.7);
-        background: #f2f4f8;
+        @include opacity(.7);
         display: inline-block;
-        padding-right: 10px;
+        font-size: .9em;
+        padding: 0 10px 0 5px;
         position: relative;
         z-index: 5;
     }
@@ -70,7 +71,7 @@
         height: 1px;
         left: 0;
         position: absolute;
-        top: 10px;
+        top: 11px;
         width: 100%;
     }
 }

@@ -13,10 +13,9 @@
     @include clearfix;
     cursor: pointer;
     font-size: 13px;
-    height: 39px;
-    line-height: 35px;
+    line-height: 20px;
     margin: 0;
-    padding: 3px 8px;
+    padding: 6px 10px;
     position: relative;
     white-space: nowrap;
     width: 100%;
@@ -30,14 +29,14 @@
 }
 
 .mention__image {
-    @include border-radius(32px);
+    @include border-radius(20px);
     display: block;
-    font-size: 20px;
-    height: 32px;
-    line-height: 36px;
+    font-size: 15px;
+    height: 20px;
+    line-height: 20px;
     margin-right: 6px;
     text-align: center;
-    width: 32px;
+    width: 20px;
 
     .mention--align {
         display: inline-block;
