@@ -5,9 +5,11 @@ import $ from 'jquery';
 import ChannelStore from 'stores/channel_store.jsx';
 import SearchStore from 'stores/search_store.jsx';
 import UserStore from 'stores/user_store.jsx';
+import PreferenceStore from 'stores/preference_store.jsx';
 import SearchBox from './search_bar.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
+const Preferences = Constants.Preferences;
 import SearchResultsHeader from './search_results_header.jsx';
 import SearchResultsItem from './search_results_item.jsx';
 
@@ -47,12 +49,14 @@ export default class SearchResults extends React.Component {
         this.onChange = this.onChange.bind(this);
         this.onUserChange = this.onUserChange.bind(this);
         this.resize = this.resize.bind(this);
+        this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.handleResize = this.handleResize.bind(this);
 
         const state = getStateFromStores();
         state.windowWidth = Utils.windowWidth();
         state.windowHeight = Utils.windowHeight();
         state.profiles = JSON.parse(JSON.stringify(UserStore.getProfiles()));
+        state.compactDisplay = PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT;
         this.state = state;
     }
 
@@ -60,6 +64,7 @@ export default class SearchResults extends React.Component {
         this.mounted = true;
         SearchStore.addSearchChangeListener(this.onChange);
         ChannelStore.addChangeListener(this.onChange);
+        PreferenceStore.addChangeListener(this.onPreferenceChange);
         UserStore.addChangeListener(this.onUserChange);
         this.resize();
         window.addEventListener('resize', this.handleResize);
@@ -77,6 +82,10 @@ export default class SearchResults extends React.Component {
             return true;
         }
 
+        if (nextState.compactDisplay !== this.state.compactDisplay) {
+            return true;
+        }
+
         return false;
     }
 
@@ -87,6 +96,7 @@ export default class SearchResults extends React.Component {
     componentWillUnmount() {
         SearchStore.removeSearchChangeListener(this.onChange);
         ChannelStore.removeChangeListener(this.onChange);
+        PreferenceStore.removeChangeListener(this.onPreferenceChange);
         UserStore.removeChangeListener(this.onUserChange);
         this.mounted = false;
         window.removeEventListener('resize', this.handleResize);
@@ -96,6 +106,12 @@ export default class SearchResults extends React.Component {
         this.setState({
             windowWidth: Utils.windowWidth(),
             windowHeight: Utils.windowHeight()
+        });
+    }
+
+    onPreferenceChange() {
+        this.setState({
+            compactDisplay: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT
         });
     }
 
@@ -201,6 +217,7 @@ export default class SearchResults extends React.Component {
                     <SearchResultsItem
                         key={post.id}
                         channel={this.state.channels.get(post.channel_id)}
+                        compactDisplay={this.state.compactDisplay}
                         post={post}
                         user={profile}
                         term={searchTerm}
