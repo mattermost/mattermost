@@ -139,9 +139,23 @@
 }
 
 .pdf-max-pages {
-    height: 50px;
-    background: white;
-    margin-top: 5px;
+    bottom: 0;
+    background: $white;
+    left: 0;
+    position: relative;
+    width: 100%;
+
+    span {
+        @include border-radius(3px);
+        background: alpha-color($black, .8);
+        bottom: 15px;
+        color: $white;
+        display: inline-block;
+        height: 3em;
+        line-height: 3em;
+        padding: 0 1.5em;
+        position: relative;
+    }
 }
 
 .post-image__column {
