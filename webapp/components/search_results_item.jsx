@@ -94,6 +94,21 @@ export default class SearchResultsItem extends React.Component {
             botIndicator = <li className='bot-indicator'>{Constants.BOT_NAME}</li>;
         }
 
+        let profilePic = (
+            <img
+                src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
+                height='36'
+                width='36'
+            />
+        );
+
+        let compactClass = '';
+        let profilePicContainer = (<div className='post__img'>{profilePic}</div>);
+        if (this.props.compactDisplay) {
+            compactClass = 'post--compact';
+            profilePicContainer = '';
+        }
+
         let flag;
         let flagVisible = '';
         let flagTooltip = (
@@ -148,17 +163,11 @@ export default class SearchResultsItem extends React.Component {
                     </div>
                 </div>
                 <div
-                    className='post'
+                    className={'post post--thread ' + compactClass}
                 >
                     <div className='search-channel__name'>{channelName}</div>
                     <div className='post__content'>
-                        <div className='post__img'>
-                            <img
-                                src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
-                                height='36'
-                                width='36'
-                            />
-                        </div>
+                        {profilePicContainer}
                         <div>
                             <ul className='post__header'>
                                 <li className='col col__name'><strong>
@@ -245,6 +254,7 @@ SearchResultsItem.propTypes = {
     post: React.PropTypes.object,
     user: React.PropTypes.object,
     channel: React.PropTypes.object,
+    compactDisplay: React.PropTypes.bool,
     isMentionSearch: React.PropTypes.bool,
     term: React.PropTypes.string,
     useMilitaryTime: React.PropTypes.bool.isRequired,

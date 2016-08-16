@@ -204,6 +204,18 @@ export default class SidebarRightMenu extends React.Component {
             }
         }
 
+        manageLink = (
+            <li>
+                <ToggleModalButton dialogType={TeamMembersModal}>
+                    <i className='icon fa fa-users'></i>
+                    <FormattedMessage
+                        id='sidebar_right_menu.viewMembers'
+                        defaultMessage='View Members'
+                    />
+                </ToggleModalButton>
+            </li>
+        );
+
         if (isAdmin) {
             teamSettingsLink = (
                 <li>
@@ -222,7 +234,10 @@ export default class SidebarRightMenu extends React.Component {
             );
             manageLink = (
                 <li>
-                    <ToggleModalButton dialogType={TeamMembersModal}>
+                    <ToggleModalButton
+                        dialogType={TeamMembersModal}
+                        dialogProps={{isAdmin}}
+                    >
                         <i className='icon fa fa-users'></i>
                         <FormattedMessage
                             id='sidebar_right_menu.manageMembers'
