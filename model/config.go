@@ -129,7 +129,7 @@ type FileSettings struct {
 	DriverName                 string
 	Directory                  string
 	EnablePublicLink           bool
-	PublicLinkSalt             string
+	PublicLinkSalt             *string
 	ThumbnailWidth             int
 	ThumbnailHeight            int
 	PreviewWidth               int
@@ -350,8 +350,9 @@ func (o *Config) SetDefaults() {
 		*o.FileSettings.MaxFileSize = 52428800 // 50 MB
 	}
 
-	if len(o.FileSettings.PublicLinkSalt) == 0 {
-		o.FileSettings.PublicLinkSalt = NewRandomString(32)
+	if len(*o.FileSettings.PublicLinkSalt) == 0 {
+		o.FileSettings.PublicLinkSalt = new(string)
+		*o.FileSettings.PublicLinkSalt = NewRandomString(32)
 	}
 
 	if o.FileSettings.AmazonS3LocationConstraint == nil {
@@ -930,7 +931,7 @@ func (o *Config) IsValid() *AppError {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.file_thumb_width.app_error", nil, "")
 	}
 
-	if len(o.FileSettings.PublicLinkSalt) < 32 {
+	if len(*o.FileSettings.PublicLinkSalt) < 32 {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.file_salt.app_error", nil, "")
 	}
 
@@ -1070,7 +1071,7 @@ func (o *Config) Sanitize() {
 		*o.LdapSettings.BindPassword = FAKE_SETTING
 	}
 
-	o.FileSettings.PublicLinkSalt = FAKE_SETTING
+	*o.FileSettings.PublicLinkSalt = FAKE_SETTING
 	if len(o.FileSettings.AmazonS3SecretAccessKey) > 0 {
 		o.FileSettings.AmazonS3SecretAccessKey = FAKE_SETTING
 	}

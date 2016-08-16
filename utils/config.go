@@ -299,11 +299,11 @@ func getClientConfig(c *model.Config) map[string]string {
 			props["EnableCluster"] = strconv.FormatBool(*c.ClusterSettings.Enable)
 		}
 
-		if *License.Features.GoogleSSO {
+		if *License.Features.GoogleOAuth {
 			props["EnableSignUpWithGoogle"] = strconv.FormatBool(c.GoogleSettings.Enable)
 		}
 
-		if *License.Features.Office365SSO {
+		if *License.Features.Office365OAuth {
 			props["EnableSignUpWithOffice365"] = strconv.FormatBool(c.Office365Settings.Enable)
 		}
 
@@ -334,8 +334,8 @@ func Desanitize(cfg *model.Config) {
 		*cfg.LdapSettings.BindPassword = *Cfg.LdapSettings.BindPassword
 	}
 
-	if cfg.FileSettings.PublicLinkSalt == model.FAKE_SETTING {
-		cfg.FileSettings.PublicLinkSalt = Cfg.FileSettings.PublicLinkSalt
+	if *cfg.FileSettings.PublicLinkSalt == model.FAKE_SETTING {
+		*cfg.FileSettings.PublicLinkSalt = *Cfg.FileSettings.PublicLinkSalt
 	}
 	if cfg.FileSettings.AmazonS3SecretAccessKey == model.FAKE_SETTING {
 		cfg.FileSettings.AmazonS3SecretAccessKey = Cfg.FileSettings.AmazonS3SecretAccessKey

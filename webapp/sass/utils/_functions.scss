@@ -1,7 +1,7 @@
 @charset "UTF-8";
 
 @function em($pixels, $context: 14px) {
-	@return #{$pixels/$context}em
+	@return ($pixels / $context * 1em)
 }
 
 @function alpha-color($color, $amount) {

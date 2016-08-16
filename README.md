@@ -16,7 +16,8 @@ Get Started:
  
 Get Involved:
 
-- **Contribute Code** - View our [Code Contribution Guidelines](http://docs.mattermost.com/developer/contribution-guide.html) and find [open tickets accepting pull requests](https://mattermost.atlassian.net/issues/?filter=10101)
+- **Contribute Code** - View our [Code Contribution Guidelines](http://docs.mattermost.com/developer/contribution-guide.html) 
+- **Work on "Help Wanted" projects** - See a list of [tickets accepting pull requests](https://mattermost.atlassian.net/issues/?filter=10101)
 - **Discuss Contributions** - Join our [Developer Discussion](https://pre-release.mattermost.com) for contributors on the nightly builds server
 - **File Bugs** - Search for existing bugs and [file a GitHub issue if your bug is new](http://www.mattermost.org/filing-issues/) 
 - **Share Feature Ideas** - Add a [feature idea to be discussed or upvoted](http://www.mattermost.org/feature-requests/)

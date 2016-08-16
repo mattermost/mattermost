@@ -73,8 +73,8 @@ export default class AddIncomingWebhook extends React.Component {
 
         AsyncClient.addIncomingHook(
             hook,
-            () => {
-                browserHistory.push('/' + this.props.team.name + '/integrations/incoming_webhooks');
+            (data) => {
+                browserHistory.push('/' + this.props.team.name + '/integrations/confirm?type=incoming_webhooks&id=' + data.id);
             },
             (err) => {
                 this.setState({
@@ -114,7 +114,7 @@ export default class AddIncomingWebhook extends React.Component {
                         />
                     </Link>
                     <FormattedMessage
-                        id='add_incoming_webhook.header'
+                        id='integrations.add'
                         defaultMessage='Add'
                     />
                 </BackstageHeader>

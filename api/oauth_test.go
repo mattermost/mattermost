@@ -193,8 +193,8 @@ func TestGetOAuthAppsByUser(t *testing.T) {
 	} else {
 		apps := result.Data.([]*model.OAuthApp)
 
-		if len(apps) != 4 {
-			t.Fatal("incorrect number of apps should have been 4")
+		if len(apps) < 4 {
+			t.Fatal("incorrect number of apps should have been 4 or more")
 		}
 	}
 }

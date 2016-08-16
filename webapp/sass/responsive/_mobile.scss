@@ -1,6 +1,14 @@
 @charset 'UTF-8';
 
 @media screen and (max-width: 768px) {
+    .tutorial-steps__container {
+        .tutorial__content {
+            .tutorial__steps {
+                margin-bottom: 0;
+            }
+        }
+    }
+
     .prompt {
         .prompt__heading {
             display: block;

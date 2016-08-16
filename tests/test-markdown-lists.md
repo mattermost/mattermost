@@ -167,8 +167,8 @@ Verify that all list types render as expected.
 1. One
   • Two
 
-1. One
 2. Two
+3. Three
 ```
 
 **Actual:**
@@ -176,8 +176,8 @@ Verify that all list types render as expected.
 1. One
   - Two
 
-1. One
 2. Two
+3. Three
 
 ### New Line After a List
 

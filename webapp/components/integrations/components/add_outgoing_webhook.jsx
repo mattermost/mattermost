@@ -119,8 +119,8 @@ export default class AddOutgoingWebhook extends React.Component {
 
         AsyncClient.addOutgoingHook(
             hook,
-            () => {
-                browserHistory.push('/' + this.props.team.name + '/integrations/outgoing_webhooks');
+            (data) => {
+                browserHistory.push('/' + this.props.team.name + '/integrations/confirm?type=outgoing_webhooks&id=' + data.token);
             },
             (err) => {
                 this.setState({
@@ -176,6 +176,7 @@ export default class AddOutgoingWebhook extends React.Component {
     render() {
         const contentTypeOption1 = 'application/x-www-form-urlencoded';
         const contentTypeOption2 = 'application/json';
+
         return (
             <div className='backstage-content'>
                 <BackstageHeader>
@@ -186,7 +187,7 @@ export default class AddOutgoingWebhook extends React.Component {
                         />
                     </Link>
                     <FormattedMessage
-                        id='add_outgoing_webhook.header'
+                        id='integrations.add'
                         defaultMessage='Add'
                     />
                 </BackstageHeader>
