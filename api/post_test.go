@@ -11,7 +11,6 @@ import (
 	"reflect"
 	"strings"
 
-	"fmt"
 	"testing"
 	"time"
 
@@ -846,82 +845,271 @@ func TestMakeDirectChannelVisible(t *testing.T) {
 	}
 }
 
-func TestGetOutOfChannelMentions(t *testing.T) {
-	th := Setup().InitBasic()
-	Client := th.BasicClient
-	channel1 := th.BasicChannel
-	team1 := th.BasicTeam
-	user1 := th.BasicUser
-	user2 := th.BasicUser2
-	user3 := th.CreateUser(Client)
-	LinkUserToTeam(user3, team1)
-
-	var allProfiles map[string]*model.User
-	if result := <-Srv.Store.User().GetProfiles(team1.Id); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		allProfiles = result.Data.(map[string]*model.User)
+func TestGetMentionKeywords(t *testing.T) {
+	// user with username or custom mentions enabled
+	user1 := &model.User{
+		Id:        model.NewId(),
+		FirstName: "First",
+		Username:  "User",
+		NotifyProps: map[string]string{
+			"mention_keys": "User,@User,MENTION",
+		},
 	}
 
-	var members []model.ChannelMember
-	if result := <-Srv.Store.Channel().GetMembers(channel1.Id); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		members = result.Data.([]model.ChannelMember)
+	profiles := map[string]*model.User{user1.Id: user1}
+	members := map[string]string{user1.Id: user1.Id}
+	mentions := getMentionKeywords(profiles, members)
+	if len(mentions) != 3 {
+		t.Fatal("should've returned two mention keywords")
+	} else if ids, ok := mentions["user"]; !ok || ids[0] != user1.Id {
+		t.Fatal("should've returned mention key of user")
+	} else if ids, ok := mentions["@user"]; !ok || ids[0] != user1.Id {
+		t.Fatal("should've returned mention key of @user")
+	} else if ids, ok := mentions["mention"]; !ok || ids[0] != user1.Id {
+		t.Fatal("should've returned mention key of mention")
 	}
 
-	// test a post that doesn't @mention anybody
-	post1 := &model.Post{ChannelId: channel1.Id, Message: fmt.Sprintf("%v %v %v", user1.Username, user2.Username, user3.Username)}
-	if mentioned := getOutOfChannelMentions(post1, allProfiles, members); len(mentioned) != 0 {
-		t.Fatalf("getOutOfChannelMentions returned %v when no users were mentioned", mentioned)
+	// user with first name mention enabled
+	user2 := &model.User{
+		Id:        model.NewId(),
+		FirstName: "First",
+		Username:  "User",
+		NotifyProps: map[string]string{
+			"first_name": "true",
+		},
 	}
 
-	// test a post that @mentions someone in the channel
-	post2 := &model.Post{ChannelId: channel1.Id, Message: fmt.Sprintf("@%v is %v", user1.Username, user1.Username)}
-	if mentioned := getOutOfChannelMentions(post2, allProfiles, members); len(mentioned) != 0 {
-		t.Fatalf("getOutOfChannelMentions returned %v when only users in the channel were mentioned", mentioned)
+	profiles = map[string]*model.User{user2.Id: user2}
+	members = map[string]string{user2.Id: user2.Id}
+	mentions = getMentionKeywords(profiles, members)
+	if len(mentions) != 1 {
+		t.Fatal("should've returned one mention keyword")
+	} else if ids, ok := mentions["First"]; !ok || ids[0] != user2.Id {
+		t.Fatal("should've returned mention key of First")
 	}
 
-	// test a post that @mentions someone not in the channel
-	post3 := &model.Post{ChannelId: channel1.Id, Message: fmt.Sprintf("@%v and @%v aren't in the channel", user2.Username, user3.Username)}
-	if mentioned := getOutOfChannelMentions(post3, allProfiles, members); len(mentioned) != 2 || (mentioned[0].Id != user2.Id && mentioned[0].Id != user3.Id) || (mentioned[1].Id != user2.Id && mentioned[1].Id != user3.Id) {
-		t.Fatalf("getOutOfChannelMentions returned %v when two users outside the channel were mentioned", mentioned)
+	// user with @channel/@all mentions enabled
+	user3 := &model.User{
+		Id:        model.NewId(),
+		FirstName: "First",
+		Username:  "User",
+		NotifyProps: map[string]string{
+			"channel": "true",
+		},
 	}
 
-	// test a post that @mentions someone not in the channel as well as someone in the channel
-	post4 := &model.Post{ChannelId: channel1.Id, Message: fmt.Sprintf("@%v and @%v might be in the channel", user2.Username, user1.Username)}
-	if mentioned := getOutOfChannelMentions(post4, allProfiles, members); len(mentioned) != 1 || mentioned[0].Id != user2.Id {
-		t.Fatalf("getOutOfChannelMentions returned %v when someone in the channel and someone  outside the channel were mentioned", mentioned)
+	profiles = map[string]*model.User{user3.Id: user3}
+	members = map[string]string{user3.Id: user3.Id}
+	mentions = getMentionKeywords(profiles, members)
+	if len(mentions) != 2 {
+		t.Fatal("should've returned two mention keywords")
+	} else if ids, ok := mentions["@channel"]; !ok || ids[0] != user3.Id {
+		t.Fatal("should've returned mention key of @channel")
+	} else if ids, ok := mentions["@all"]; !ok || ids[0] != user3.Id {
+		t.Fatal("should've returned mention key of @all")
 	}
 
-	Client.Must(Client.Logout())
-
-	team2 := th.CreateTeam(Client)
-	user4 := th.CreateUser(Client)
-	LinkUserToTeam(user4, team2)
-
-	Client.Must(Client.Login(user4.Email, user4.Password))
-	Client.SetTeamId(team2.Id)
-
-	channel2 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team2.Id}
-	channel2 = Client.Must(Client.CreateChannel(channel2)).Data.(*model.Channel)
-
-	if result := <-Srv.Store.User().GetProfiles(team2.Id); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		allProfiles = result.Data.(map[string]*model.User)
+	// user with all types of mentions enabled
+	user4 := &model.User{
+		Id:        model.NewId(),
+		FirstName: "First",
+		Username:  "User",
+		NotifyProps: map[string]string{
+			"mention_keys": "User,@User,MENTION",
+			"first_name":   "true",
+			"channel":      "true",
+		},
 	}
 
-	if result := <-Srv.Store.Channel().GetMembers(channel2.Id); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		members = result.Data.([]model.ChannelMember)
+	profiles = map[string]*model.User{user4.Id: user4}
+	members = map[string]string{user4.Id: user4.Id}
+	mentions = getMentionKeywords(profiles, members)
+	if len(mentions) != 6 {
+		t.Fatal("should've returned six mention keywords")
+	} else if ids, ok := mentions["user"]; !ok || ids[0] != user4.Id {
+		t.Fatal("should've returned mention key of user")
+	} else if ids, ok := mentions["@user"]; !ok || ids[0] != user4.Id {
+		t.Fatal("should've returned mention key of @user")
+	} else if ids, ok := mentions["mention"]; !ok || ids[0] != user4.Id {
+		t.Fatal("should've returned mention key of mention")
+	} else if ids, ok := mentions["First"]; !ok || ids[0] != user4.Id {
+		t.Fatal("should've returned mention key of First")
+	} else if ids, ok := mentions["@channel"]; !ok || ids[0] != user4.Id {
+		t.Fatal("should've returned mention key of @channel")
+	} else if ids, ok := mentions["@all"]; !ok || ids[0] != user4.Id {
+		t.Fatal("should've returned mention key of @all")
 	}
 
-	// test a post that @mentions someone on a different team
-	post5 := &model.Post{ChannelId: channel2.Id, Message: fmt.Sprintf("@%v and @%v might be in the channel", user2.Username, user3.Username)}
-	if mentioned := getOutOfChannelMentions(post5, allProfiles, members); len(mentioned) != 0 {
-		t.Fatalf("getOutOfChannelMentions returned %v when two users on a different team were mentioned", mentioned)
+	// multiple users
+	profiles = map[string]*model.User{
+		user1.Id: user1,
+		user2.Id: user2,
+		user3.Id: user3,
+		user4.Id: user4,
+	}
+	members = map[string]string{
+		user1.Id: user1.Id,
+		user2.Id: user2.Id,
+		user3.Id: user3.Id,
+		user4.Id: user4.Id,
+	}
+	mentions = getMentionKeywords(profiles, members)
+	if len(mentions) != 6 {
+		t.Fatal("should've returned six mention keywords")
+	} else if ids, ok := mentions["user"]; !ok || len(ids) != 2 || (ids[0] != user1.Id && ids[1] != user1.Id) || (ids[0] != user4.Id && ids[1] != user4.Id) {
+		t.Fatal("should've mentioned user1 and user4 with user")
+	} else if ids, ok := mentions["@user"]; !ok || len(ids) != 2 || (ids[0] != user1.Id && ids[1] != user1.Id) || (ids[0] != user4.Id && ids[1] != user4.Id) {
+		t.Fatal("should've mentioned user1 and user4 with @user")
+	} else if ids, ok := mentions["mention"]; !ok || len(ids) != 2 || (ids[0] != user1.Id && ids[1] != user1.Id) || (ids[0] != user4.Id && ids[1] != user4.Id) {
+		t.Fatal("should've mentioned user1 and user4 with mention")
+	} else if ids, ok := mentions["First"]; !ok || len(ids) != 2 || (ids[0] != user2.Id && ids[1] != user2.Id) || (ids[0] != user4.Id && ids[1] != user4.Id) {
+		t.Fatal("should've mentioned user2 and user4 with mention")
+	} else if ids, ok := mentions["@channel"]; !ok || len(ids) != 2 || (ids[0] != user3.Id && ids[1] != user3.Id) || (ids[0] != user4.Id && ids[1] != user4.Id) {
+		t.Fatal("should've mentioned user3 and user4 with @channel")
+	} else if ids, ok := mentions["@all"]; !ok || len(ids) != 2 || (ids[0] != user3.Id && ids[1] != user3.Id) || (ids[0] != user4.Id && ids[1] != user4.Id) {
+		t.Fatal("should've mentioned user3 and user4 with @all")
+	}
+
+	// a user that's not in the channel
+	profiles = map[string]*model.User{user4.Id: user4}
+	members = map[string]string{}
+	mentions = getMentionKeywords(profiles, members)
+	if len(mentions) != 1 {
+		t.Fatal("should've returned one mention keyword")
+	} else if ids, ok := mentions["@user"]; !ok || len(ids) != 1 || ids[0] != user4.Id {
+		t.Fatal("should've returned mention key of @user")
+	}
+}
+
+func TestGetExplicitMentionsAtHere(t *testing.T) {
+	// test all the boundary cases that we know can break up terms (and those that we know won't)
+	cases := map[string]bool{
+		"":          false,
+		"here":      false,
+		"@here":     true,
+		" @here ":   true,
+		"\t@here\t": true,
+		"\n@here\n": true,
+		// "!@here!": true,
+		// "@@here@": true,
+		// "#@here#": true,
+		// "$@here$": true,
+		// "%@here%": true,
+		// "^@here^": true,
+		// "&@here&": true,
+		// "*@here*": true,
+		"(@here(": true,
+		")@here)": true,
+		// "-@here-": true,
+		// "_@here_": true,
+		// "=@here=": true,
+		"+@here+":   true,
+		"[@here[":   true,
+		"{@here{":   true,
+		"]@here]":   true,
+		"}@here}":   true,
+		"\\@here\\": true,
+		// "|@here|": true,
+		";@here;": true,
+		":@here:": true,
+		// "'@here'": true,
+		// "\"@here\"": true,
+		",@here,": true,
+		"<@here<": true,
+		".@here.": true,
+		">@here>": true,
+		"/@here/": true,
+		"?@here?": true,
+		// "`@here`": true,
+		// "~@here~": true,
+	}
+
+	for message, shouldMention := range cases {
+		if _, hereMentioned := getExplicitMentions(message, nil); hereMentioned && !shouldMention {
+			t.Fatalf("shouldn't have mentioned @here with \"%v\"", message)
+		} else if !hereMentioned && shouldMention {
+			t.Fatalf("should've have mentioned @here with \"%v\"", message)
+		}
+	}
+
+	// mentioning @here and someone
+	id := model.NewId()
+	if mentions, hereMentioned := getExplicitMentions("@here @user", map[string][]string{"@user": {id}}); !hereMentioned {
+		t.Fatal("should've mentioned @here with \"@here @user\"")
+	} else if len(mentions) != 1 || !mentions[id] {
+		t.Fatal("should've mentioned @user with \"@here @user\"")
+	}
+}
+
+func TestGetExplicitMentions(t *testing.T) {
+	id1 := model.NewId()
+	id2 := model.NewId()
+
+	// not mentioning anybody
+	message := "this is a message"
+	keywords := map[string][]string{}
+	if mentions, _ := getExplicitMentions(message, keywords); len(mentions) != 0 {
+		t.Fatal("shouldn't have mentioned anybody")
+	}
+
+	// mentioning a user that doesn't exist
+	message = "this is a message for @user"
+	if mentions, _ := getExplicitMentions(message, keywords); len(mentions) != 0 {
+		t.Fatal("shouldn't have mentioned user that doesn't exist")
+	}
+
+	// mentioning one person
+	keywords = map[string][]string{"@user": {id1}}
+	if mentions, _ := getExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] {
+		t.Fatal("should've mentioned @user")
+	}
+
+	// mentioning one person without an @mention
+	message = "this is a message for @user"
+	keywords = map[string][]string{"this": {id1}}
+	if mentions, _ := getExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] {
+		t.Fatal("should've mentioned this")
+	}
+
+	// mentioning multiple people with one word
+	message = "this is a message for @user"
+	keywords = map[string][]string{"@user": {id1, id2}}
+	if mentions, _ := getExplicitMentions(message, keywords); len(mentions) != 2 || !mentions[id1] || !mentions[id2] {
+		t.Fatal("should've mentioned two users with @user")
+	}
+
+	// mentioning only one of multiple people
+	keywords = map[string][]string{"@user": {id1}, "@mention": {id2}}
+	if mentions, _ := getExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] || mentions[id2] {
+		t.Fatal("should've mentioned @user and not @mention")
+	}
+
+	// mentioning multiple people with multiple words
+	message = "this is an @mention for @user"
+	keywords = map[string][]string{"@user": {id1}, "@mention": {id2}}
+	if mentions, _ := getExplicitMentions(message, keywords); len(mentions) != 2 || !mentions[id1] || !mentions[id2] {
+		t.Fatal("should've mentioned two users with @user and @mention")
+	}
+
+	// mentioning @channel (not a special case, but it's good to double check)
+	message = "this is an message for @channel"
+	keywords = map[string][]string{"@channel": {id1, id2}}
+	if mentions, _ := getExplicitMentions(message, keywords); len(mentions) != 2 || !mentions[id1] || !mentions[id2] {
+		t.Fatal("should've mentioned two users with @channel")
+	}
+
+	// mentioning @all (not a special case, but it's good to double check)
+	message = "this is an message for @all"
+	keywords = map[string][]string{"@all": {id1, id2}}
+	if mentions, _ := getExplicitMentions(message, keywords); len(mentions) != 2 || !mentions[id1] || !mentions[id2] {
+		t.Fatal("should've mentioned two users with @all")
+	}
+
+	// mentioning user.period without mentioning user (PLT-3222)
+	message = "user.period doesn't complicate things at all by including periods in their username"
+	keywords = map[string][]string{"user.period": {id1}, "user": {id2}}
+	if mentions, _ := getExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] || mentions[id2] {
+		t.Fatal("should've mentioned user.period and not user")
 	}
 }
 

@@ -1096,6 +1096,10 @@
     "translation": "Unable to send notification to online users with @here, err=%v"
   },
   {
+    "id": "api.post.notification.member_profile.warn",
+    "translation": "Unable to get profile for channel member, user_id=%v"
+  },
+  {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
     "translation": "Failed to retrieve comment thread posts in notifications root_post_id=%v, err=%v"
   },

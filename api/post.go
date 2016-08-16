@@ -239,9 +239,6 @@ func handlePostEvents(c *Context, post *model.Post, triggerWebhooks bool) {
 	tchan := Srv.Store.Team().Get(c.TeamId)
 	cchan := Srv.Store.Channel().Get(post.ChannelId)
 	uchan := Srv.Store.User().Get(post.UserId)
-	pchan := Srv.Store.User().GetProfiles(c.TeamId)
-	dpchan := Srv.Store.User().GetDirectProfiles(c.Session.UserId)
-	mchan := Srv.Store.Channel().GetMembers(post.ChannelId)
 
 	var team *model.Team
 	if result := <-tchan; result.Err != nil {
@@ -259,34 +256,7 @@ func handlePostEvents(c *Context, post *model.Post, triggerWebhooks bool) {
 		channel = result.Data.(*model.Channel)
 	}
 
-	var profiles map[string]*model.User
-	if result := <-pchan; result.Err != nil {
-		l4g.Error(utils.T("api.post.handle_post_events_and_forget.profiles.error"), c.TeamId, result.Err)
-		return
-	} else {
-		profiles = result.Data.(map[string]*model.User)
-	}
-
-	if result := <-dpchan; result.Err != nil {
-		l4g.Error(utils.T("api.post.handle_post_events_and_forget.profiles.error"), c.TeamId, result.Err)
-		return
-	} else {
-		dps := result.Data.(map[string]*model.User)
-		for k, v := range dps {
-			profiles[k] = v
-		}
-	}
-
-	var members []model.ChannelMember
-	if result := <-mchan; result.Err != nil {
-		l4g.Error(utils.T("api.post.handle_post_events_and_forget.members.error"), post.ChannelId, result.Err)
-		return
-	} else {
-		members = result.Data.([]model.ChannelMember)
-	}
-
-	go sendNotifications(c, post, team, channel, profiles, members)
-	go checkForOutOfChannelMentions(c, post, channel, profiles, members)
+	go sendNotifications(c, post, team, channel)
 
 	var user *model.User
 	if result := <-uchan; result.Err != nil {
@@ -477,19 +447,139 @@ func handleWebhookEvents(c *Context, post *model.Post, team *model.Team, channel
 	}
 }
 
-func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *model.Channel, profileMap map[string]*model.User, members []model.ChannelMember) {
+// Given a map of user IDs to profiles and a map of user IDs of channel members, returns a list of mention
+// keywords for all users on the team. Users that are members of the channel will have all their mention
+// keywords returned while users that aren't in the channel will only have their @mentions returned.
+func getMentionKeywords(profiles map[string]*model.User, members map[string]string) map[string][]string {
+	keywords := make(map[string][]string)
+
+	for id, profile := range profiles {
+		_, inChannel := members[id]
+
+		if inChannel {
+			if len(profile.NotifyProps["mention_keys"]) > 0 {
+				// Add all the user's mention keys
+				splitKeys := strings.Split(profile.NotifyProps["mention_keys"], ",")
+				for _, k := range splitKeys {
+					// note that these are made lower case so that we can do a case insensitive check for them
+					key := strings.ToLower(k)
+					keywords[key] = append(keywords[key], id)
+				}
+			}
+
+			// If turned on, add the user's case sensitive first name
+			if profile.NotifyProps["first_name"] == "true" {
+				keywords[profile.FirstName] = append(keywords[profile.FirstName], profile.Id)
+			}
+
+			// Add @channel and @all to keywords if user has them turned on
+			if profile.NotifyProps["channel"] == "true" {
+				keywords["@channel"] = append(keywords["@channel"], profile.Id)
+				keywords["@all"] = append(keywords["@all"], profile.Id)
+			}
+		} else {
+			// user isn't in channel, so just look for @mentions
+			key := "@" + strings.ToLower(profile.Username)
+			keywords[key] = append(keywords[key], id)
+		}
+	}
+
+	return keywords
+}
+
+// Given a message and a map mapping mention keywords to the users who use them, returns a map of mentioned
+// users and whether or not @here was mentioned.
+func getExplicitMentions(message string, keywords map[string][]string) (map[string]bool, bool) {
+	mentioned := make(map[string]bool)
+	hereMentioned := false
+
+	addMentionedUsers := func(ids []string) {
+		for _, id := range ids {
+			mentioned[id] = true
+		}
+	}
+
+	for _, word := range strings.Fields(message) {
+		isMention := false
+
+		if word == "@here" {
+			hereMentioned = true
+		}
+
+		// Non-case-sensitive check for regular keys
+		if ids, match := keywords[strings.ToLower(word)]; match {
+			addMentionedUsers(ids)
+			isMention = true
+		}
+
+		// Case-sensitive check for first name
+		if ids, match := keywords[word]; match {
+			addMentionedUsers(ids)
+			isMention = true
+		}
+
+		if !isMention {
+			// No matches were found with the string split just on whitespace so try further splitting
+			// the message on punctuation
+			splitWords := strings.FieldsFunc(word, func(c rune) bool {
+				return model.SplitRunes[c]
+			})
+
+			for _, splitWord := range splitWords {
+				if splitWord == "@here" {
+					hereMentioned = true
+				}
+
+				// Non-case-sensitive check for regular keys
+				if ids, match := keywords[strings.ToLower(splitWord)]; match {
+					addMentionedUsers(ids)
+				}
+
+				// Case-sensitive check for first name
+				if ids, match := keywords[splitWord]; match {
+					addMentionedUsers(ids)
+				}
+			}
+		}
+	}
+
+	return mentioned, hereMentioned
+}
+
+func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *model.Channel) {
+	// get profiles for all users we could be mentioning
+	pchan := Srv.Store.User().GetProfiles(c.TeamId)
+	dpchan := Srv.Store.User().GetDirectProfiles(c.Session.UserId)
+
+	var profileMap map[string]*model.User
+	if result := <-pchan; result.Err != nil {
+		l4g.Error(utils.T("api.post.handle_post_events_and_forget.profiles.error"), c.TeamId, result.Err)
+		return
+	} else {
+		profileMap = result.Data.(map[string]*model.User)
+	}
+
+	if result := <-dpchan; result.Err != nil {
+		l4g.Error(utils.T("api.post.handle_post_events_and_forget.profiles.error"), c.TeamId, result.Err)
+		return
+	} else {
+		dps := result.Data.(map[string]*model.User)
+		for k, v := range dps {
+			profileMap[k] = v
+		}
+	}
+
 	if _, ok := profileMap[post.UserId]; !ok {
 		l4g.Error(utils.T("api.post.send_notifications_and_forget.user_id.error"), post.UserId)
 		return
 	}
 
 	mentionedUserIds := make(map[string]bool)
-	alwaysNotifyUserIds := []string{}
+	alwaysNotifyUserIds := []string{} // ???
 	hereNotification := false
 	updateMentionChans := []store.StoreChannel{}
 
 	if channel.Type == model.CHANNEL_DIRECT {
-
 		var otherUserId string
 		if userIds := strings.Split(channel.Name, "__"); userIds[0] == post.UserId {
 			otherUserId = userIds[1]
@@ -498,89 +588,25 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 		}
 
 		mentionedUserIds[otherUserId] = true
-
 	} else {
-		// Find out who is a member of the channel, only keep those profiles
-		tempProfileMap := make(map[string]*model.User)
-		for _, member := range members {
-			if profile, ok := profileMap[member.UserId]; ok {
-				tempProfileMap[member.UserId] = profile
+		// using a map as a pseudo-set since we're checking for containment a lot
+		members := make(map[string]string)
+		if result := <-Srv.Store.Channel().GetMembers(post.ChannelId); result.Err != nil {
+			l4g.Error(utils.T("api.post.handle_post_events_and_forget.members.error"), post.ChannelId, result.Err)
+			return
+		} else {
+			for _, member := range result.Data.([]model.ChannelMember) {
+				members[member.UserId] = member.UserId
 			}
 		}
 
-		profileMap = tempProfileMap
+		keywords := getMentionKeywords(profileMap, members)
 
-		// Build map for keywords
-		keywordMap := make(map[string][]string)
-		for _, profile := range profileMap {
-			if len(profile.NotifyProps["mention_keys"]) > 0 {
+		// get users that are explicitly mentioned
+		var mentioned map[string]bool
+		mentioned, hereNotification = getExplicitMentions(post.Message, keywords)
 
-				// Add all the user's mention keys
-				splitKeys := strings.Split(profile.NotifyProps["mention_keys"], ",")
-				for _, k := range splitKeys {
-					keywordMap[k] = append(keywordMap[strings.ToLower(k)], profile.Id)
-				}
-			}
-
-			// If turned on, add the user's case sensitive first name
-			if profile.NotifyProps["first_name"] == "true" {
-				keywordMap[profile.FirstName] = append(keywordMap[profile.FirstName], profile.Id)
-			}
-
-			// Add @channel and @all to keywords if user has them turned on
-			if profile.NotifyProps["channel"] == "true" {
-				keywordMap["@channel"] = append(keywordMap["@channel"], profile.Id)
-				keywordMap["@all"] = append(keywordMap["@all"], profile.Id)
-			}
-
-			if profile.NotifyProps["push"] == model.USER_NOTIFY_ALL &&
-				(post.UserId != profile.Id || post.Props["from_webhook"] == "true") &&
-				!post.IsSystemMessage() {
-				alwaysNotifyUserIds = append(alwaysNotifyUserIds, profile.Id)
-			}
-		}
-
-		// Build a map as a list of unique user_ids that are mentioned in this post
-		splitF := func(c rune) bool {
-			return model.SplitRunes[c]
-		}
-		splitMessage := strings.Fields(post.Message)
-		var userIds []string
-		for _, word := range splitMessage {
-			if word == "@here" {
-				hereNotification = true
-				continue
-			}
-
-			// Non-case-sensitive check for regular keys
-			if ids, match := keywordMap[strings.ToLower(word)]; match {
-				userIds = append(userIds, ids...)
-			}
-
-			// Case-sensitive check for first name
-			if ids, match := keywordMap[word]; match {
-				userIds = append(userIds, ids...)
-			}
-
-			if len(userIds) == 0 {
-				// No matches were found with the string split just on whitespace so try further splitting
-				// the message on punctuation
-				splitWords := strings.FieldsFunc(word, splitF)
-
-				for _, splitWord := range splitWords {
-					// Non-case-sensitive check for regular keys
-					if ids, match := keywordMap[strings.ToLower(splitWord)]; match {
-						userIds = append(userIds, ids...)
-					}
-
-					// Case-sensitive check for first name
-					if ids, match := keywordMap[splitWord]; match {
-						userIds = append(userIds, ids...)
-					}
-				}
-			}
-		}
-
+		// get users that have comment thread mentions enabled
 		if len(post.RootId) > 0 {
 			if result := <-Srv.Store.Post().Get(post.RootId); result.Err != nil {
 				l4g.Error(utils.T("api.post.send_notifications_and_forget.comment_thread.error"), post.RootId, result.Err)
@@ -591,22 +617,41 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 				for _, threadPost := range list.Posts {
 					profile := profileMap[threadPost.UserId]
 					if profile.NotifyProps["comments"] == "any" || (profile.NotifyProps["comments"] == "root" && threadPost.Id == list.Order[0]) {
-						userIds = append(userIds, threadPost.UserId)
+						mentioned[threadPost.UserId] = true
 					}
 				}
 			}
 		}
 
-		for _, userId := range userIds {
-			if post.UserId == userId && post.Props["from_webhook"] != "true" {
+		// prevent the user from mentioning themselves
+		if post.Props["from_webhook"] != "true" {
+			delete(mentioned, post.UserId)
+		}
+
+		outOfChannelMentions := make(map[string]bool)
+		for id := range mentioned {
+			if _, inChannel := members[id]; inChannel {
+				mentionedUserIds[id] = true
+			} else {
+				outOfChannelMentions[id] = true
+			}
+		}
+
+		go sendOutOfChannelMentions(c, post, profileMap, outOfChannelMentions)
+
+		// find which users in the channel are set up to always receive mobile notifications
+		for id := range members {
+			profile := profileMap[id]
+			if profile == nil {
+				l4g.Warn(utils.T("api.post.notification.member_profile.warn"), id)
 				continue
 			}
 
-			mentionedUserIds[userId] = true
-		}
-
-		for id := range mentionedUserIds {
-			updateMentionChans = append(updateMentionChans, Srv.Store.Channel().IncrementMentionCount(post.ChannelId, id))
+			if profile.NotifyProps["push"] == model.USER_NOTIFY_ALL &&
+				(post.UserId != profile.Id || post.Props["from_webhook"] == "true") &&
+				!post.IsSystemMessage() {
+				alwaysNotifyUserIds = append(alwaysNotifyUserIds, profile.Id)
+			}
 		}
 	}
 
@@ -882,20 +927,14 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 	}
 }
 
-func checkForOutOfChannelMentions(c *Context, post *model.Post, channel *model.Channel, allProfiles map[string]*model.User, members []model.ChannelMember) {
-	// don't check for out of channel mentions in direct channels
-	if channel.Type == model.CHANNEL_DIRECT {
+func sendOutOfChannelMentions(c *Context, post *model.Post, profiles map[string]*model.User, outOfChannelMentions map[string]bool) {
+	if len(outOfChannelMentions) == 0 {
 		return
 	}
 
-	mentioned := getOutOfChannelMentions(post, allProfiles, members)
-	if len(mentioned) == 0 {
-		return
-	}
-
-	usernames := make([]string, len(mentioned))
-	for i, user := range mentioned {
-		usernames[i] = user.Username
+	var usernames []string
+	for id := range outOfChannelMentions {
+		usernames = append(usernames, profiles[id].Username)
 	}
 	sort.Strings(usernames)
 
@@ -920,32 +959,6 @@ func checkForOutOfChannelMentions(c *Context, post *model.Post, channel *model.C
 			CreateAt:  post.CreateAt + 1,
 		},
 	)
-}
-
-// Gets a list of users that were mentioned in a given post that aren't in the channel that the post was made in
-func getOutOfChannelMentions(post *model.Post, allProfiles map[string]*model.User, members []model.ChannelMember) []*model.User {
-	// copy the profiles map since we'll be removing items from it
-	profiles := make(map[string]*model.User)
-	for id, profile := range allProfiles {
-		profiles[id] = profile
-	}
-
-	// only keep profiles which aren't in the current channel
-	for _, member := range members {
-		delete(profiles, member.UserId)
-	}
-
-	var mentioned []*model.User
-
-	for _, profile := range profiles {
-		if pattern, err := regexp.Compile(`(\W|^)@` + regexp.QuoteMeta(profile.Username) + `(\W|$)`); err != nil {
-			l4g.Error(utils.T("api.post.get_out_of_channel_mentions.regex.error"), profile.Id, err)
-		} else if pattern.MatchString(post.Message) {
-			mentioned = append(mentioned, profile)
-		}
-	}
-
-	return mentioned
 }
 
 func SendEphemeralPost(teamId, userId string, post *model.Post) {
