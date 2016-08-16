@@ -81,7 +81,7 @@ export default class TutorialIntroScreens extends React.Component {
                     id='tutorial_intro.screenOne'
                     defaultMessage='<h3>Welcome to:</h3>
                     <h1>Mattermost</h1>
-                    <p>Your team communication all in one place, instantly searchable and available anywhere</p>
+                    <p>Your team communication all in one place, instantly searchable and available anywhere.</p>
                     <p>Keep your team connected to help them achieve what matters most.</p>'
                 />
                 {circles}
