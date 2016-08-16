@@ -1603,7 +1603,7 @@
   "tutorial_intro.mobileApps": "Install the apps for {link} for easy access and notifications on the go.",
   "tutorial_intro.mobileAppsLinkText": "PC, Mac, iOS and Android",
   "tutorial_intro.next": "Next",
-  "tutorial_intro.screenOne": "<h3>Welcome to:</h3><h1>Mattermost</h1><p>Your team communication all in one place, instantly searchable and available anywhere</p><p>Keep your team connected to help them achieve what matters most.</p>",
+  "tutorial_intro.screenOne": "<h3>Welcome to:</h3><h1>Mattermost</h1><p>Your team communication all in one place, instantly searchable and available anywhere.</p><p>Keep your team connected to help them achieve what matters most.</p>",
   "tutorial_intro.screenTwo": "<h3>How Mattermost works:</h3><p>Communication happens in public discussion channels, private groups and direct messages.</p><p>Everything is archived and searchable from any web-enabled desktop, laptop or phone.</p>",
   "tutorial_intro.skip": "Skip tutorial",
   "tutorial_intro.support": "Need anything, just email us at ",
