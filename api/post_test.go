@@ -1147,3 +1147,42 @@ func TestGetFlaggedPosts(t *testing.T) {
 		t.Fatal("should not have gotten a flagged post")
 	}
 }
+
+func TestGetMessageForNotification(t *testing.T) {
+	Setup()
+	translateFunc := utils.GetUserTranslations("en")
+
+	post := &model.Post{
+		Message:   "test",
+		Filenames: model.StringArray{},
+	}
+
+	if getMessageForNotification(post, translateFunc) != "test" {
+		t.Fatal("should've returned message text")
+	}
+
+	post.Filenames = model.StringArray{"test1.png"}
+	if getMessageForNotification(post, translateFunc) != "test" {
+		t.Fatal("should've returned message text, even with attachments")
+	}
+
+	post.Message = ""
+	if message := getMessageForNotification(post, translateFunc); message != "1 image sent: test1.png" {
+		t.Fatal("should've returned number of images:", message)
+	}
+
+	post.Filenames = model.StringArray{"test1.png", "test2.jpg"}
+	if message := getMessageForNotification(post, translateFunc); message != "2 images sent: test1.png, test2.jpg" {
+		t.Fatal("should've returned number of images:", message)
+	}
+
+	post.Filenames = model.StringArray{"test1.go"}
+	if message := getMessageForNotification(post, translateFunc); message != "1 file sent: test1.go" {
+		t.Fatal("should've returned number of files:", message)
+	}
+
+	post.Filenames = model.StringArray{"test1.go", "test2.jpg"}
+	if message := getMessageForNotification(post, translateFunc); message != "2 files sent: test1.go, test2.jpg" {
+		t.Fatal("should've returned number of mixed files:", message)
+	}
+}

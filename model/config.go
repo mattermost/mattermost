@@ -47,6 +47,9 @@ const (
 	RESTRICT_EMOJI_CREATION_ADMIN        = "admin"
 	RESTRICT_EMOJI_CREATION_SYSTEM_ADMIN = "system_admin"
 
+	EMAIL_BATCHING_BUFFER_SIZE = 256
+	EMAIL_BATCHING_INTERVAL    = 30
+
 	SITENAME_MAX_LENGTH = 30
 )
 
@@ -166,6 +169,9 @@ type EmailSettings struct {
 	SendPushNotifications    *bool
 	PushNotificationServer   *string
 	PushNotificationContents *string
+	EnableEmailBatching      *bool
+	EmailBatchingBufferSize  *int
+	EmailBatchingInterval    *int
 }
 
 type RateLimitSettings struct {
@@ -506,6 +512,21 @@ func (o *Config) SetDefaults() {
 	if o.EmailSettings.FeedbackOrganization == nil {
 		o.EmailSettings.FeedbackOrganization = new(string)
 		*o.EmailSettings.FeedbackOrganization = ""
+	}
+
+	if o.EmailSettings.EnableEmailBatching == nil {
+		o.EmailSettings.EnableEmailBatching = new(bool)
+		*o.EmailSettings.EnableEmailBatching = false
+	}
+
+	if o.EmailSettings.EmailBatchingBufferSize == nil {
+		o.EmailSettings.EmailBatchingBufferSize = new(int)
+		*o.EmailSettings.EmailBatchingBufferSize = EMAIL_BATCHING_BUFFER_SIZE
+	}
+
+	if o.EmailSettings.EmailBatchingInterval == nil {
+		o.EmailSettings.EmailBatchingInterval = new(int)
+		*o.EmailSettings.EmailBatchingInterval = EMAIL_BATCHING_INTERVAL
 	}
 
 	if !IsSafeLink(o.SupportSettings.TermsOfServiceLink) {
@@ -871,6 +892,14 @@ func (o *Config) IsValid() *AppError {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.listen_address.app_error", nil, "")
 	}
 
+	if *o.ClusterSettings.Enable && *o.EmailSettings.EnableEmailBatching {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.cluster_email_batching.app_error", nil, "")
+	}
+
+	if len(*o.ServiceSettings.SiteURL) == 0 && *o.EmailSettings.EnableEmailBatching {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.site_url_email_batching.app_error", nil, "")
+	}
+
 	if o.TeamSettings.MaxUsersPerTeam <= 0 {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.max_users.app_error", nil, "")
 	}
@@ -945,6 +974,14 @@ func (o *Config) IsValid() *AppError {
 
 	if len(o.EmailSettings.PasswordResetSalt) < 32 {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.email_reset_salt.app_error", nil, "")
+	}
+
+	if *o.EmailSettings.EmailBatchingBufferSize <= 0 {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.email_batching_buffer_size.app_error", nil, "")
+	}
+
+	if *o.EmailSettings.EmailBatchingInterval < 30 {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.email_batching_interval.app_error", nil, "")
 	}
 
 	if o.RateLimitSettings.MemoryStoreSize <= 0 {

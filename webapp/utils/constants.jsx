@@ -52,7 +52,9 @@ export const Preferences = {
     COLLAPSE_DISPLAY_DEFAULT: 'false',
     USE_MILITARY_TIME: 'use_military_time',
     CATEGORY_THEME: 'theme',
-    CATEGORY_FLAGGED_POST: 'flagged_post'
+    CATEGORY_FLAGGED_POST: 'flagged_post',
+    CATEGORY_NOTIFICATIONS: 'notifications',
+    EMAIL_INTERVAL: 'email_interval'
 };
 
 export const ActionTypes = keyMirror({

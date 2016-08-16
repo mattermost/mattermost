@@ -628,6 +628,72 @@
     "translation": "An unknown error has occurred. Please contact support."
   },
   {
+    "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
+    "translation": "Email batching job's receiving channel was full. Please increase the EmailBatchingBufferSize."
+  },
+  {
+    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
+    "translation": "Email batching has been disabled by the system administrator"
+  },
+  {
+    "id": "api.email_batching.check_pending_emails.status.app_error",
+    "translation": "Unable to find status of recipient for batched email notification"
+  },
+  {
+    "id": "api.email_batching.check_pending_emails.finished_running",
+    "translation": "Email batching job ran. %v user(s) still have notifications pending."
+  },
+  {
+    "id": "api.email_batching.render_batched_post.channel.app_error",
+    "translation": "Unable to find channel of post for batched email notification"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.date",
+    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.direct_message",
+    "translation": "Direct Message"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.go_to_post",
+    "translation": "Go to Post"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.sender.app_error",
+    "translation": "Unable to find sender of post for batched email notification"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.body_text",
+    "translation": {
+      "one": "You have a new message.",
+      "other": "You have {{.Count}} new messages."
+    }
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.preferences.app_error",
+    "translation": "Unable to find display preferences of recipient for batched email notification"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.send.app_error",
+    "translation": "Failed to send batched email notification to %v: %v"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subject",
+    "translation": {
+      "one": "[{{.SiteName}}] New Notification for {{.Month}} {{.Day}}, {{.Year}}",
+      "other": "[{{.SiteName}}] New Notifications for {{.Month}} {{.Day}}, {{.Year}}"
+    }
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.user.app_error",
+    "translation": "Unable to find recipient for batched email notification"
+  },
+  {
+    "id": "api.email_batching.start.starting",
+    "translation": "Email batching job starting. Checking for pending emails every %v seconds."
+  },
+  {
     "id": "api.emoji.create.duplicate.app_error",
     "translation": "Unable to create emoji. Another emoji with the same name already exists."
   },
@@ -1030,6 +1096,20 @@
   {
     "id": "api.post.delete_post.permissions.app_error",
     "translation": "You do not have the appropriate permissions"
+  },
+  {
+    "id": "api.post.get_message_for_notification.files_sent",
+    "translation": {
+      "one": "{{.Count}} file sent: {{.Filenames}}",
+      "other": "{{.Count}} files sent: {{.Filenames}}"
+    }
+  },
+  {
+    "id": "api.post.get_message_for_notification.images_sent",
+    "translation": {
+      "one": "{{.Count}} image sent: {{.Filenames}}",
+      "other": "{{.Count}} images sent: {{.Filenames}}"
+    }
   },
   {
     "id": "api.post.get_out_of_channel_mentions.regex.error",
@@ -2764,6 +2844,18 @@
     "translation": "To must be greater than From"
   },
   {
+    "id": "model.config.is_valid.cluster_email_batching.app_error",
+    "translation": "Unable to enable email batching (EmailSettings.EnableEmailBatching) when clustering (ClusterSettings.Enable) is enabled"
+  },
+  {
+    "id": "model.config.is_valid.email_batching_buffer_size.app_error",
+    "translation": "Invalid email batching buffer size for email settings.  Must be zero or a positive number."
+  },
+  {
+    "id": "model.config.is_valid.email_batching_interval.app_error",
+    "translation": "Invalid email batching interval for email settings.  Must be 30 seconds or more."
+  },
+  {
     "id": "model.config.is_valid.email_reset_salt.app_error",
     "translation": "Invalid password reset salt for email settings.  Must be 32 chars or more."
   },
@@ -2785,7 +2877,7 @@
   },
   {
     "id": "model.config.is_valid.file_preview_height.app_error",
-    "translation": "Invalid preview height for file settings.  Must be a zero or positive number."
+    "translation": "Invalid preview height for file settings.  Must be zero or a positive number."
   },
   {
     "id": "model.config.is_valid.file_preview_width.app_error",
@@ -2946,6 +3038,10 @@
   {
     "id": "model.config.is_valid.site_url.app_error",
     "translation": "Site URL must be a valid URL and start with http:// or https://"
+  },
+  {
+    "id": "model.config.is_valid.site_url_email_batching.app_error",
+    "translation": "Unable to enable email batching (EmailSettings.EnableEmailBatching) when SiteURL (ServiceSettings.SiteURL) isn't set."
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",

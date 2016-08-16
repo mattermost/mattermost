@@ -23,6 +23,7 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
+	"github.com/nicksnyder/go-i18n/i18n"
 )
 
 const (
@@ -770,6 +771,14 @@ func sendNotificationEmail(c *Context, post *model.Post, user *model.User, chann
 		return
 	}
 
+	if *utils.Cfg.EmailSettings.EnableEmailBatching {
+		if err := AddNotificationEmailToBatch(user, post, team); err == nil {
+			return
+		}
+
+		// fall back to sending a single email if we can't batch it for some reason
+	}
+
 	var channelName string
 	var bodyText string
 	var subjectText string
@@ -802,7 +811,7 @@ func sendNotificationEmail(c *Context, post *model.Post, user *model.User, chann
 
 	bodyPage := utils.NewHTMLTemplate("post_body", user.Locale)
 	bodyPage.Props["SiteURL"] = c.GetSiteURL()
-	bodyPage.Props["PostMessage"] = model.ClearMentionTags(post.Message)
+	bodyPage.Props["PostMessage"] = getMessageForNotification(post, userLocale)
 	bodyPage.Props["TeamLink"] = teamURL + "/pl/" + post.Id
 	bodyPage.Props["BodyText"] = bodyText
 	bodyPage.Props["Button"] = userLocale("api.templates.post_body.button")
@@ -811,39 +820,36 @@ func sendNotificationEmail(c *Context, post *model.Post, user *model.User, chann
 			"Hour": fmt.Sprintf("%02d", tm.Hour()), "Minute": fmt.Sprintf("%02d", tm.Minute()),
 			"TimeZone": zone, "Month": month, "Day": day}))
 
-	// attempt to fill in a message body if the post doesn't have any text
-	if len(strings.TrimSpace(bodyPage.Props["PostMessage"])) == 0 && len(post.Filenames) > 0 {
-		// extract the filenames from their paths and determine what type of files are attached
-		filenames := make([]string, len(post.Filenames))
-		onlyImages := true
-		for i, filename := range post.Filenames {
-			var err error
-			if filenames[i], err = url.QueryUnescape(filepath.Base(filename)); err != nil {
-				// this should never error since filepath was escaped using url.QueryEscape
-				filenames[i] = filepath.Base(filename)
-			}
-
-			ext := filepath.Ext(filename)
-			onlyImages = onlyImages && model.IsFileExtImage(ext)
-		}
-		filenamesString := strings.Join(filenames, ", ")
-
-		var attachmentPrefix string
-		if onlyImages {
-			attachmentPrefix = "Image"
-		} else {
-			attachmentPrefix = "File"
-		}
-		if len(post.Filenames) > 1 {
-			attachmentPrefix += "s"
-		}
-
-		bodyPage.Props["PostMessage"] = userLocale("api.post.send_notifications_and_forget.sent",
-			map[string]interface{}{"Prefix": attachmentPrefix, "Filenames": filenamesString})
-	}
-
 	if err := utils.SendMail(user.Email, subjectPage.Render(), bodyPage.Render()); err != nil {
 		l4g.Error(utils.T("api.post.send_notifications_and_forget.send.error"), user.Email, err)
+	}
+}
+
+func getMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
+	if len(strings.TrimSpace(post.Message)) != 0 || len(post.Filenames) == 0 {
+		return post.Message
+	}
+
+	// extract the filenames from their paths and determine what type of files are attached
+	filenames := make([]string, len(post.Filenames))
+	onlyImages := true
+	for i, filename := range post.Filenames {
+		var err error
+		if filenames[i], err = url.QueryUnescape(filepath.Base(filename)); err != nil {
+			// this should never error since filepath was escaped using url.QueryEscape
+			filenames[i] = filepath.Base(filename)
+		}
+
+		ext := filepath.Ext(filename)
+		onlyImages = onlyImages && model.IsFileExtImage(ext)
+	}
+
+	props := map[string]interface{}{"Filenames": strings.Join(filenames, ", ")}
+
+	if onlyImages {
+		return translateFunc("api.post.get_message_for_notification.images_sent", len(filenames), props)
+	} else {
+		return translateFunc("api.post.get_message_for_notification.files_sent", len(filenames), props)
 	}
 }
 
