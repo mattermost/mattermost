@@ -135,16 +135,16 @@ export function getFlaggedPosts() {
     Client.getFlaggedPosts(0, Constants.POST_CHUNK_SIZE,
         (data) => {
             AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_SEARCH,
-                results: data,
-                is_flagged_posts: true
-            });
-
-            AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_SEARCH_TERM,
                 term: null,
                 do_search: false,
                 is_mention_search: false
+            });
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_SEARCH,
+                results: data,
+                is_flagged_posts: true
             });
         },
         (err) => {
