@@ -36,14 +36,6 @@ export default class SearchResultsItem extends React.Component {
         $('.sidebar--right').removeClass('move--left');
     }
 
-    shouldComponentUpdate(nextProps) {
-        if (nextProps.compactDisplay !== this.props.compactDisplay) {
-            return true;
-        }
-
-        return false;
-    }
-
     shrinkSidebar() {
         setTimeout(() => {
             this.props.shrink();
