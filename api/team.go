@@ -331,6 +331,8 @@ func LeaveTeam(team *model.Team, user *model.User) *model.AppError {
 			if result := <-Srv.Store.Channel().RemoveMember(channel.Id, user.Id); result.Err != nil {
 				return result.Err
 			}
+
+			InvalidateCacheForChannel(channel.Id)
 		}
 	}
 

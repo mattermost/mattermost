@@ -194,6 +194,8 @@ function handleLeaveTeamEvent(msg) {
 
         // if the are on the team begin removed redirect them to the root
         if (TeamStore.getCurrentId() === msg.team_id) {
+            TeamStore.setCurrentId('');
+            Client.setTeamId('');
             browserHistory.push('/');
         }
     } else if (TeamStore.getCurrentId() === msg.team_id) {
