@@ -261,10 +261,6 @@ func JoinUserToTeam(team *model.Team, user *model.User) *model.AppError {
 	tm := &model.TeamMember{TeamId: team.Id, UserId: user.Id}
 
 	channelRole := ""
-	if team.Email == user.Email {
-		tm.Roles = model.ROLE_TEAM_ADMIN
-		channelRole = model.CHANNEL_ROLE_ADMIN
-	}
 
 	if etmr := <-Srv.Store.Team().GetMember(team.Id, user.Id); etmr.Err == nil {
 		// Membership alredy exists.  Check if deleted and and update, otherwise do nothing
@@ -279,6 +275,11 @@ func JoinUserToTeam(team *model.Team, user *model.User) *model.AppError {
 			return tmr.Err
 		}
 	} else {
+		if team.Email == user.Email {
+			tm.Roles = model.ROLE_TEAM_ADMIN
+			channelRole = model.CHANNEL_ROLE_ADMIN
+		}
+
 		// Membership appears to be missing.  Lets try to add.
 		if tmr := <-Srv.Store.Team().SaveMember(tm); tmr.Err != nil {
 			return tmr.Err
