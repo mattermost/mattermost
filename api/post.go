@@ -666,6 +666,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 
 	for id := range mentionedUserIds {
 		mentionedUsersList = append(mentionedUsersList, id)
+		updateMentionChans = append(updateMentionChans, Srv.Store.Channel().IncrementMentionCount(post.ChannelId, id))
 	}
 
 	if utils.Cfg.EmailSettings.SendEmailNotifications {
