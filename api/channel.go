@@ -530,7 +530,7 @@ func joinChannel(c *Context, channelChannel store.StoreChannel, userChannel stor
 			if _, err := AddUserToChannel(user, channel); err != nil {
 				return err, nil
 			}
-			go PostUserAddRemoveMessage(c, channel.Id, fmt.Sprintf(utils.T("api.channel.join_channel.post_and_forget"), user.Username))
+			go PostUserAddRemoveMessage(c, channel.Id, fmt.Sprintf(utils.T("api.channel.join_channel.post_and_forget"), user.Username), model.POST_JOIN_LEAVE)
 		} else {
 			return model.NewLocAppError("join", "api.channel.join_channel.permissions.app_error", nil, ""), nil
 		}
@@ -538,11 +538,11 @@ func joinChannel(c *Context, channelChannel store.StoreChannel, userChannel stor
 	}
 }
 
-func PostUserAddRemoveMessage(c *Context, channelId string, message string) {
+func PostUserAddRemoveMessage(c *Context, channelId string, message, postType string) {
 	post := &model.Post{
 		ChannelId: channelId,
 		Message:   message,
-		Type:      model.POST_JOIN_LEAVE,
+		Type:      postType,
 	}
 	if _, err := CreatePost(c, post, false); err != nil {
 		l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
@@ -677,7 +677,7 @@ func leave(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		RemoveUserFromChannel(c.Session.UserId, c.Session.UserId, channel)
 
-		go PostUserAddRemoveMessage(c, channel.Id, fmt.Sprintf(utils.T("api.channel.leave.left"), user.Username))
+		go PostUserAddRemoveMessage(c, channel.Id, fmt.Sprintf(utils.T("api.channel.leave.left"), user.Username), model.POST_JOIN_LEAVE)
 
 		result := make(map[string]string)
 		result["id"] = channel.Id
@@ -992,7 +992,7 @@ func addMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 			c.LogAudit("name=" + channel.Name + " user_id=" + userId)
 
-			go PostUserAddRemoveMessage(c, channel.Id, fmt.Sprintf(utils.T("api.channel.add_member.added"), nUser.Username, oUser.Username))
+			go PostUserAddRemoveMessage(c, channel.Id, fmt.Sprintf(utils.T("api.channel.add_member.added"), nUser.Username, oUser.Username), model.POST_ADD_REMOVE)
 
 			<-Srv.Store.Channel().UpdateLastViewedAt(id, oUser.Id)
 			w.Write([]byte(cm.ToJson()))
@@ -1014,38 +1014,48 @@ func removeMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	sc := Srv.Store.Channel().Get(channelId)
 	cmc := Srv.Store.Channel().GetMember(channelId, c.Session.UserId)
+	ouc := Srv.Store.User().Get(userIdToRemove)
 
-	if cresult := <-sc; cresult.Err != nil {
-		c.Err = cresult.Err
-		return
-	} else if cmcresult := <-cmc; cmcresult.Err != nil {
-		c.Err = cmcresult.Err
+	if oresult := <-ouc; oresult.Err != nil {
+		c.Err = model.NewLocAppError("removeMember", "api.channel.remove_member.user.app_error", nil, "")
 		return
 	} else {
-		channel := cresult.Data.(*model.Channel)
-		removerChannelMember := cmcresult.Data.(model.ChannelMember)
+		oUser := oresult.Data.(*model.User)
 
-		if !c.HasPermissionsToTeam(channel.TeamId, "removeMember") {
+		if cresult := <-sc; cresult.Err != nil {
+			c.Err = cresult.Err
 			return
-		}
-
-		if !strings.Contains(removerChannelMember.Roles, model.CHANNEL_ROLE_ADMIN) && !c.IsTeamAdmin() {
-			c.Err = model.NewLocAppError("updateChannel", "api.channel.remove_member.permissions.app_error", nil, "")
-			c.Err.StatusCode = http.StatusForbidden
+		} else if cmcresult := <-cmc; cmcresult.Err != nil {
+			c.Err = cmcresult.Err
 			return
+		} else {
+			channel := cresult.Data.(*model.Channel)
+			removerChannelMember := cmcresult.Data.(model.ChannelMember)
+
+			if !c.HasPermissionsToTeam(channel.TeamId, "removeMember") {
+				return
+			}
+
+			if !strings.Contains(removerChannelMember.Roles, model.CHANNEL_ROLE_ADMIN) && !c.IsTeamAdmin() {
+				c.Err = model.NewLocAppError("updateChannel", "api.channel.remove_member.permissions.app_error", nil, "")
+				c.Err.StatusCode = http.StatusForbidden
+				return
+			}
+
+			if err := RemoveUserFromChannel(userIdToRemove, c.Session.UserId, channel); err != nil {
+				c.Err = model.NewLocAppError("updateChannel", "api.channel.remove_member.unable.app_error", nil, err.Message)
+				return
+			}
+
+			c.LogAudit("name=" + channel.Name + " user_id=" + userIdToRemove)
+
+			go PostUserAddRemoveMessage(c, channel.Id, fmt.Sprintf(utils.T("api.channel.remove_member.removed"), oUser.Username), model.POST_ADD_REMOVE)
+
+			result := make(map[string]string)
+			result["channel_id"] = channel.Id
+			result["removed_user_id"] = userIdToRemove
+			w.Write([]byte(model.MapToJson(result)))
 		}
-
-		if err := RemoveUserFromChannel(userIdToRemove, c.Session.UserId, channel); err != nil {
-			c.Err = model.NewLocAppError("updateChannel", "api.channel.remove_member.unable.app_error", nil, err.Message)
-			return
-		}
-
-		c.LogAudit("name=" + channel.Name + " user_id=" + userIdToRemove)
-
-		result := make(map[string]string)
-		result["channel_id"] = channel.Id
-		result["removed_user_id"] = userIdToRemove
-		w.Write([]byte(model.MapToJson(result)))
 	}
 
 }

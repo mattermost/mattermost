@@ -29,7 +29,7 @@ class NotificationStoreClass extends EventEmitter {
     handleRecievedPost(post, msgProps) {
         // Send desktop notification
         if ((UserStore.getCurrentId() !== post.user_id || post.props.from_webhook === 'true')) {
-            if (PostUtils.isSystemMessage(post) && post.type !== Constants.POST_TYPE_JOIN_LEAVE) {
+            if (PostUtils.isSystemMessage(post)) {
                 return;
             } else if (!PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'join_leave', true) && post.type === Constants.POST_TYPE_JOIN_LEAVE) {
                 return;
