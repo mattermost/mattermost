@@ -527,6 +527,20 @@ export default class LoginController extends React.Component {
             );
         }
 
+        if (loginControls.length === 0) {
+            loginControls.push(
+                <FormError
+                    error={
+                        <FormattedMessage
+                            id='login.noMethods'
+                            defaultMessage='No sign in methods are enabled. Please contact your System Administrator.'
+                        />
+                    }
+                    margin={true}
+                />
+            );
+        }
+
         return (
             <div>
                 {extraBox}

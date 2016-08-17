@@ -1339,6 +1339,7 @@
   "login_mfa.submit": "Submit",
   "login_mfa.token": "MFA Token",
   "login_mfa.tokenReq": "Please enter an MFA token",
+  "login.noMethods": "No sign in methods are enabled. Please contact your System Administrator.",
   "member_item.makeAdmin": "Make Admin",
   "member_item.member": "Member",
   "member_list.noUsersAdd": "No users to add.",
