@@ -69,7 +69,7 @@ export default class ConfigurationSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.service.siteURLDescription'
-                            defaultMessage='The URL, including post number and protocol, that users will use to access Mattermost. Leave blank to automatically configure based on incoming traffic.'
+                            defaultMessage='The URL, including port number and protocol, that users will use to access Mattermost. Leave blank to automatically configure based on incoming traffic.'
                         />
                     }
                     value={this.state.siteURL}
