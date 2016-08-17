@@ -285,7 +285,9 @@ class UserSettingsGeneralTab extends React.Component {
     }
 
     updateSection(section) {
-        $('.settings-modal .modal-body').scrollTop(0).perfectScrollbar('update');
+        if ($('.section-max').length) {
+            $('.settings-modal .modal-body').scrollTop(0).perfectScrollbar('update');
+        }
         const emailChangeInProgress = this.state.emailChangeInProgress;
         this.setState(Object.assign({}, this.setupInitialState(this.props), {emailChangeInProgress, clientError: '', serverError: '', emailError: ''}));
         this.submitActive = false;
