@@ -169,6 +169,7 @@
                 right: 10px;
                 width: 30px;
                 z-index: 5;
+                text-shadow: none;
 
                 &:hover {
                     @include alpha-property(background, $black, .1);
