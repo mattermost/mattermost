@@ -51,8 +51,8 @@ export default function UserListRow({user, teamMember, actions, actionProps}) {
             <ProfilePicture
                 src={`${Client.getUsersRoute()}/${user.id}/image?time=${user.update_at}`}
                 status={status}
-                width='38'
-                height='38'
+                width='32'
+                height='32'
             />
             <div
                 className='more-modal__details'

@@ -703,6 +703,10 @@ body.ios {
             }
 
             .post__img {
+                .status-wrapper {
+                    display: none;
+                }
+
                 img {
                     display: none;
                 }

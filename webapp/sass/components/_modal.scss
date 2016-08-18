@@ -484,23 +484,25 @@
 
 
 .status-wrapper {
-    position: relative;
     display: inline-block;
-    margin-right: 8px;
+    margin-right: 3px;
+    position: relative;
 
     &:after {
-        content: "";
-        right: 0;
-        bottom: 0;
-        width: 25%;
-        height: 25%;
-        display: block;
-        position: absolute;
         border-radius: 100%;
+        bottom: 4px;
+        content: '';
+        display: block;
+        height: 8px;
+        position: absolute;
+        right: 0;
+        width: 8px;
     }
 
-    &.status-offline:after {
-        background: #D3D3D3;
+    &.status-offline {
+        &:after {
+            background: #D3D3D3;
+        }
     }
 }
 
@@ -525,7 +527,14 @@
         @include border-radius(60px);
         flex-grow: 0;
         flex-shrink: 0;
-	  	max-width: none;
+        margin-top: 2px;
+        max-width: none;
+
+        .status-wrapper {
+            &:after {
+                bottom: 3px;
+            }
+        }
     }
 
     .more-modal__details {
