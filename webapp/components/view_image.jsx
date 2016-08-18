@@ -1,22 +1,28 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
-import * as AsyncClient from 'utils/async_client.jsx';
-import * as GlobalActions from 'actions/global_actions.jsx';
-import * as Utils from 'utils/utils.jsx';
 import AudioVideoPreview from './audio_video_preview.jsx';
-import Constants from 'utils/constants.jsx';
 import CodePreview from './code_preview.jsx';
+import PDFPreview from './pdf_preview.jsx';
 import FileInfoPreview from './file_info_preview.jsx';
-import FileStore from 'stores/file_store.jsx';
 import ViewImagePopoverBar from './view_image_popover_bar.jsx';
-import loadingGif from 'images/load.gif';
 
-import {intlShape, injectIntl, defineMessages} from 'react-intl';
+import * as GlobalActions from 'actions/global_actions.jsx';
 
-import {Modal} from 'react-bootstrap';
+import FileStore from 'stores/file_store.jsx';
+
+import * as AsyncClient from 'utils/async_client.jsx';
+import * as Utils from 'utils/utils.jsx';
+
+import Constants from 'utils/constants.jsx';
 const KeyCodes = Constants.KeyCodes;
+
+import $ from 'jquery';
+import React from 'react';
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
+import {Modal} from 'react-bootstrap';
+
+import loadingGif from 'images/load.gif';
 
 const holders = defineMessages({
     loading: {
@@ -24,8 +30,6 @@ const holders = defineMessages({
         defaultMessage: 'Loading '
     }
 });
-
-import React from 'react';
 
 class ViewImageModal extends React.Component {
     constructor(props) {
@@ -238,6 +242,15 @@ class ViewImageModal extends React.Component {
                         fileUrl={fileUrl}
                         fileInfo={this.state.fileInfo}
                         maxHeight={this.state.imgHeight}
+                        formatMessage={this.props.intl.formatMessage}
+                    />
+                );
+            } else if (PDFPreview.support(filename)) {
+                content = (
+                    <PDFPreview
+                        filename={filename}
+                        fileUrl={fileUrl}
+                        fileInfo={fileInfo}
                         formatMessage={this.props.intl.formatMessage}
                     />
                 );

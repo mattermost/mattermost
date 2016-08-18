@@ -1477,6 +1477,7 @@
   "navbar_dropdown.teamSettings": "Team Settings",
   "navbar_dropdown.viewMembers": "View Members",
   "notification.dm": "Direct Message",
+  "pdf_preview.max_pages": "PDF previews only show the first five pages.",
   "password_form.change": "Change my password",
   "password_form.click": "Click <a href={url}>here</a> to log in.",
   "password_form.enter": "Enter a new password for your {siteName} account.",
