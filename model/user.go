@@ -373,6 +373,24 @@ func (u *User) IsLDAPUser() bool {
 	return false
 }
 
+func (u *User) StatusAllowsPushNotification(status *Status) bool {
+	props := u.NotifyProps
+
+	if props["push"] == "none" {
+		return false
+	}
+
+	if pushStatus, ok := props["push_status"]; pushStatus == STATUS_ONLINE || !ok {
+		return true
+	} else if pushStatus == STATUS_AWAY && (status.Status == STATUS_AWAY || status.Status == STATUS_OFFLINE) {
+		return true
+	} else if pushStatus == STATUS_OFFLINE && status.Status == STATUS_OFFLINE {
+		return true
+	}
+
+	return false
+}
+
 // UserFromJson will decode the input and return a User
 func UserFromJson(data io.Reader) *User {
 	decoder := json.NewDecoder(data)

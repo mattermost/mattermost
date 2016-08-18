@@ -11,40 +11,48 @@ import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
 import * as Utils from 'utils/utils.jsx';
+import Constants from 'utils/constants.jsx';
 
 import EmailNotificationSetting from './email_notification_setting.jsx';
 import {FormattedMessage} from 'react-intl';
 
 function getNotificationsStateFromStores() {
-    var user = UserStore.getCurrentUser();
-    var soundNeeded = !UserAgent.isFirefox();
+    const user = UserStore.getCurrentUser();
+    const soundNeeded = !UserAgent.isFirefox();
 
-    var sound = 'true';
-    if (user.notify_props && user.notify_props.desktop_sound) {
-        sound = user.notify_props.desktop_sound;
-    }
-    var desktop = 'default';
-    if (user.notify_props && user.notify_props.desktop) {
-        desktop = user.notify_props.desktop;
-    }
-    var comments = 'never';
-    if (user.notify_props && user.notify_props.comments) {
-        comments = user.notify_props.comments;
-    }
-    var enableEmail = 'true';
-    if (user.notify_props && user.notify_props.email) {
-        enableEmail = user.notify_props.email;
-    }
-    var push = 'mention';
-    if (user.notify_props && user.notify_props.push) {
-        push = user.notify_props.push;
+    let sound = 'true';
+    let desktop = 'default';
+    let comments = 'never';
+    let enableEmail = 'true';
+    let pushActivity = 'mention';
+    let pushStatus = Constants.UserStatuses.ONLINE;
+
+    if (user.notify_props) {
+        if (user.notify_props.desktop_sound) {
+            sound = user.notify_props.desktop_sound;
+        }
+        if (user.notify_props.desktop) {
+            desktop = user.notify_props.desktop;
+        }
+        if (user.notify_props.comments) {
+            comments = user.notify_props.comments;
+        }
+        if (user.notify_props.email) {
+            enableEmail = user.notify_props.email;
+        }
+        if (user.notify_props.push) {
+            pushActivity = user.notify_props.push;
+        }
+        if (user.notify_props.push_status) {
+            pushStatus = user.notify_props.push_status;
+        }
     }
 
-    var usernameKey = false;
-    var mentionKey = false;
-    var customKeys = '';
-    var firstNameKey = false;
-    var channelKey = false;
+    let usernameKey = false;
+    let mentionKey = false;
+    let customKeys = '';
+    let firstNameKey = false;
+    let channelKey = false;
 
     if (user.notify_props) {
         if (user.notify_props.mention_keys) {
@@ -78,8 +86,9 @@ function getNotificationsStateFromStores() {
 
     return {
         notifyLevel: desktop,
-        notifyPushLevel: push,
         enableEmail,
+        pushActivity,
+        pushStatus,
         soundNeeded,
         enableSound: sound,
         usernameKey,
@@ -123,7 +132,8 @@ export default class NotificationsTab extends React.Component {
         data.email = this.state.enableEmail;
         data.desktop_sound = this.state.enableSound;
         data.desktop = this.state.notifyLevel;
-        data.push = this.state.notifyPushLevel;
+        data.push = this.state.pushActivity;
+        data.push_status = this.state.pushStatus;
         data.comments = this.state.notifyCommentsLevel;
 
         var mentionKeys = [];
@@ -147,6 +157,7 @@ export default class NotificationsTab extends React.Component {
             () => {
                 this.props.updateSection('');
                 AsyncClient.getMe();
+                $('.settings-modal .modal-body').scrollTop(0).perfectScrollbar('update');
             },
             (err) => {
                 this.setState({serverError: err.message});
@@ -195,8 +206,13 @@ export default class NotificationsTab extends React.Component {
         this.refs.wrapper.focus();
     }
 
-    handlePushRadio(notifyPushLevel) {
-        this.setState({notifyPushLevel});
+    handlePushRadio(pushActivity) {
+        this.setState({pushActivity});
+        this.refs.wrapper.focus();
+    }
+
+    handlePushStatusRadio(pushStatus) {
+        this.setState({pushStatus});
         this.refs.wrapper.focus();
     }
 
@@ -245,22 +261,93 @@ export default class NotificationsTab extends React.Component {
     }
 
     createPushNotificationSection() {
-        var handleUpdateDesktopSection;
+        let handleUpdateDesktopSection;
         if (this.props.activeSection === 'push') {
-            var notifyActive = [false, false, false];
-            if (this.state.notifyPushLevel === 'all') {
-                notifyActive[0] = true;
-            } else if (this.state.notifyPushLevel === 'none') {
-                notifyActive[2] = true;
-            } else {
-                notifyActive[1] = true;
-            }
-
             let inputs = [];
             let extraInfo = null;
             let submit = null;
 
             if (global.window.mm_config.SendPushNotifications === 'true') {
+                const pushActivityRadio = [false, false, false];
+                if (this.state.pushActivity === 'all') {
+                    pushActivityRadio[0] = true;
+                } else if (this.state.pushActivity === 'none') {
+                    pushActivityRadio[2] = true;
+                } else {
+                    pushActivityRadio[1] = true;
+                }
+
+                const pushStatusRadio = [false, false, false];
+                if (this.state.pushStatus === Constants.UserStatuses.ONLINE) {
+                    pushStatusRadio[0] = true;
+                } else if (this.state.pushStatus === Constants.UserStatuses.AWAY) {
+                    pushStatusRadio[1] = true;
+                } else {
+                    pushStatusRadio[2] = true;
+                }
+
+                let pushStatusSettings;
+                if (this.state.pushActivity !== 'none') {
+                    pushStatusSettings = (
+                        <div>
+                            <hr/>
+                            <div className='radio'>
+                                <label>
+                                    <input
+                                        type='radio'
+                                        name='pushNotificationStatus'
+                                        checked={pushStatusRadio[0]}
+                                        onChange={this.handlePushStatusRadio.bind(this, Constants.UserStatuses.ONLINE)}
+                                    />
+                                    <FormattedMessage
+                                        id='user.settings.push_notification.online'
+                                        defaultMessage='Online, away or offline'
+                                    />
+                                </label>
+                                <br/>
+                            </div>
+                            <div className='radio'>
+                                <label>
+                                    <input
+                                        type='radio'
+                                        name='pushNotificationStatus'
+                                        checked={pushStatusRadio[1]}
+                                        onChange={this.handlePushStatusRadio.bind(this, Constants.UserStatuses.AWAY)}
+                                    />
+                                    <FormattedMessage
+                                        id='user.settings.push_notification.away'
+                                        defaultMessage='Away or offline'
+                                    />
+                                </label>
+                                <br/>
+                            </div>
+                            <div className='radio'>
+                                <label>
+                                    <input
+                                        type='radio'
+                                        name='pushNotificationStatus'
+                                        checked={pushStatusRadio[2]}
+                                        onChange={this.handlePushStatusRadio.bind(this, Constants.UserStatuses.OFFLINE)}
+                                    />
+                                    <FormattedMessage
+                                        id='user.settings.push_notification.offline'
+                                        defaultMessage='Offline'
+                                    />
+                                </label>
+                            </div>
+                        </div>
+                    );
+
+                    extraInfo = (
+                        <span>
+                            <FormattedMessage
+                                id='user.settings.push_notification.status_info'
+                                defaultMessage='Notification alerts are pushed to your mobile device depending on your online status.'
+                            />
+                        </span>
+                    );
+                }
+
                 inputs.push(
                     <div key='userNotificationLevelOption'>
                         <div className='radio'>
@@ -268,7 +355,7 @@ export default class NotificationsTab extends React.Component {
                                 <input
                                     type='radio'
                                     name='pushNotificationLevel'
-                                    checked={notifyActive[0]}
+                                    checked={pushActivityRadio[0]}
                                     onChange={this.handlePushRadio.bind(this, 'all')}
                                 />
                                 <FormattedMessage
@@ -283,7 +370,7 @@ export default class NotificationsTab extends React.Component {
                                 <input
                                     type='radio'
                                     name='pushNotificationLevel'
-                                    checked={notifyActive[1]}
+                                    checked={pushActivityRadio[1]}
                                     onChange={this.handlePushRadio.bind(this, 'mention')}
                                 />
                                 <FormattedMessage
@@ -298,7 +385,7 @@ export default class NotificationsTab extends React.Component {
                                 <input
                                     type='radio'
                                     name='pushNotificationLevel'
-                                    checked={notifyActive[2]}
+                                    checked={pushActivityRadio[2]}
                                     onChange={this.handlePushRadio.bind(this, 'none')}
                                 />
                                 <FormattedMessage
@@ -307,16 +394,15 @@ export default class NotificationsTab extends React.Component {
                                 />
                             </label>
                         </div>
+                        <br/>
+                        <span>
+                            <FormattedMessage
+                                id='user.settings.push_notification.info'
+                                defaultMessage='Notification alerts are pushed to your mobile device when there is activity in Mattermost.'
+                            />
+                        </span>
+                        {pushStatusSettings}
                     </div>
-                );
-
-                extraInfo = (
-                    <span>
-                        <FormattedMessage
-                            id='user.settings.push_notification.info'
-                            defaultMessage='Notification alerts are pushed to your mobile device when there is activity in Mattermost.'
-                        />
-                    </span>
                 );
 
                 submit = this.handleSubmit;
@@ -347,14 +433,30 @@ export default class NotificationsTab extends React.Component {
         }
 
         let describe = '';
-        if (this.state.notifyPushLevel === 'all') {
-            describe = (
-                <FormattedMessage
-                    id='user.settings.push_notification.allActivity'
-                    defaultMessage='For all activity'
-                />
-            );
-        } else if (this.state.notifyPushLevel === 'none') {
+        if (this.state.pushActivity === 'all') {
+            if (this.state.pushStatus === Constants.UserStatuses.AWAY) {
+                describe = (
+                    <FormattedMessage
+                        id='user.settings.push_notification.allActivityAway'
+                        defaultMessage='For all activity when away or offline'
+                    />
+                );
+            } else if (this.state.pushStatus === Constants.UserStatuses.OFFLINE) {
+                describe = (
+                    <FormattedMessage
+                        id='user.settings.push_notification.allActivityOffline'
+                        defaultMessage='For all activity when offline'
+                    />
+                );
+            } else {
+                describe = (
+                    <FormattedMessage
+                        id='user.settings.push_notification.allActivityOnline'
+                        defaultMessage='For all activity when online, away or offline'
+                    />
+                );
+            }
+        } else if (this.state.pushActivity === 'none') {
             describe = (
                 <FormattedMessage
                     id='user.settings.notifications.never'
@@ -369,12 +471,28 @@ export default class NotificationsTab extends React.Component {
                 />
             );
         } else {
-            describe = (
-                <FormattedMessage
-                    id='user.settings.push_notification.onlyMentions'
-                    defaultMessage='For mentions and direct messages'
-                />
-            );
+            if (this.state.pushStatus === Constants.UserStatuses.AWAY) { //eslint-disable-line no-lonely-if
+                describe = (
+                    <FormattedMessage
+                        id='user.settings.push_notification.onlyMentionsAway'
+                        defaultMessage='For mentions and direct messages when away or offline'
+                    />
+                );
+            } else if (this.state.pushStatus === Constants.UserStatuses.OFFLINE) {
+                describe = (
+                    <FormattedMessage
+                        id='user.settings.push_notification.onlyMentionsOffline'
+                        defaultMessage='For mentions and direct messages when offline'
+                    />
+                );
+            } else {
+                describe = (
+                    <FormattedMessage
+                        id='user.settings.push_notification.onlyMentionsOnline'
+                        defaultMessage='For mentions and direct messages when online, away or offline'
+                    />
+                );
+            }
         }
 
         handleUpdateDesktopSection = function updateDesktopSection() {
