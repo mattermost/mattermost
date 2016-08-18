@@ -34,8 +34,10 @@ export default class PostFocusView extends React.Component {
             profiles = Object.assign({}, profiles, UserStore.getDirectProfiles());
         }
 
+        const joinLeaveEnabled = PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'join_leave', true);
+
         this.state = {
-            postList: PostStore.getVisiblePosts(focusedPostId),
+            postList: PostStore.filterPosts(focusedPostId, joinLeaveEnabled),
             currentUser: UserStore.getCurrentUser(),
             profiles,
             scrollType: ScrollTypes.POST,
@@ -79,9 +81,11 @@ export default class PostFocusView extends React.Component {
             return;
         }
 
+        const joinLeaveEnabled = PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'join_leave', true);
+
         this.setState({
             scrollPostId: focusedPostId,
-            postList: PostStore.getVisiblePosts(focusedPostId),
+            postList: PostStore.filterPosts(focusedPostId, joinLeaveEnabled),
             atTop: PostStore.getVisibilityAtTop(focusedPostId),
             atBottom: PostStore.getVisibilityAtBottom(focusedPostId)
         });
@@ -103,7 +107,15 @@ export default class PostFocusView extends React.Component {
     }
 
     onPreferenceChange() {
+        const focusedPostId = PostStore.getFocusedPostId();
+        if (focusedPostId == null) {
+            return;
+        }
+
+        const joinLeaveEnabled = PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'join_leave', true);
+
         this.setState({
+            postList: PostStore.filterPosts(focusedPostId, joinLeaveEnabled),
             flaggedPosts: PreferenceStore.getCategory(Constants.Preferences.CATEGORY_FLAGGED_POST)
         });
     }

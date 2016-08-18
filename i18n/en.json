@@ -4822,5 +4822,13 @@
   {
     "id": "web.watcher_fail.error",
     "translation": "Failed to add directory to watcher %v"
+  },
+  {
+    "id": "api.channel.remove_member.removed",
+    "translation": "%v was removed from the channel."
+  },
+  {
+    "id": "api.channel.remove_member.user.app_error",
+    "translation": "Failed to find user to be removed"
   }
 ]

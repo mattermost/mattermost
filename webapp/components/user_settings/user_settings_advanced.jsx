@@ -27,6 +27,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
         this.saveEnabledFeatures = this.saveEnabledFeatures.bind(this);
 
         this.renderFormattingSection = this.renderFormattingSection.bind(this);
+        this.renderJoinLeaveSection = this.renderJoinLeaveSection.bind(this);
 
         this.state = this.getStateFromStores();
     }
@@ -43,6 +44,11 @@ export default class AdvancedSettingsDisplay extends React.Component {
             formatting: PreferenceStore.get(
                 Constants.Preferences.CATEGORY_ADVANCED_SETTINGS,
                 'formatting',
+                'true'
+            ),
+            join_leave: PreferenceStore.get(
+                Constants.Preferences.CATEGORY_ADVANCED_SETTINGS,
+                'join_leave',
                 'true'
             )
         };
@@ -232,6 +238,85 @@ export default class AdvancedSettingsDisplay extends React.Component {
         );
     }
 
+    renderJoinLeaveSection() {
+        if (window.mm_config.BuildEnterpriseReady === 'true' && window.mm_license && window.mm_license.IsLicensed === 'true') {
+            if (this.props.activeSection === 'join_leave') {
+                return (
+                    <SettingItemMax
+                        title={
+                            <FormattedMessage
+                                id='user.settings.advance.joinLeaveTitle'
+                                defaultMessage='Enable Join/Leave Messages'
+                            />
+                        }
+                        inputs={
+                            <div>
+                                <div className='radio'>
+                                    <label>
+                                        <input
+                                            type='radio'
+                                            name='join_leave'
+                                            checked={this.state.settings.join_leave !== 'false'}
+                                            onChange={this.updateSetting.bind(this, 'join_leave', 'true')}
+                                        />
+                                        <FormattedMessage
+                                            id='user.settings.advance.on'
+                                            defaultMessage='On'
+                                        />
+                                    </label>
+                                    <br/>
+                                </div>
+                                <div className='radio'>
+                                    <label>
+                                        <input
+                                            type='radio'
+                                            name='join_leave'
+                                            checked={this.state.settings.join_leave === 'false'}
+                                            onChange={this.updateSetting.bind(this, 'join_leave', 'false')}
+                                        />
+                                        <FormattedMessage
+                                            id='user.settings.advance.off'
+                                            defaultMessage='Off'
+                                        />
+                                    </label>
+                                    <br/>
+                                </div>
+                                <div>
+                                    <br/>
+                                    <FormattedMessage
+                                        id='user.settings.advance.joinLeaveDesc'
+                                        defaultMessage='When "On", System Messages saying a user has joined or left a channel will be visible. When "Off", the System Messages about joining or leaving a channel will be hidden. A message will still show up when you are added to a channel, so you can receive a notification.'
+                                    />
+                                </div>
+                            </div>
+                        }
+                        submit={() => this.handleSubmit('join_leave')}
+                        server_error={this.state.serverError}
+                        updateSection={(e) => {
+                            this.updateSection('');
+                            e.preventDefault();
+                        }}
+                    />
+                );
+            }
+
+            return (
+                <SettingItemMin
+                    title={
+                        <FormattedMessage
+                            id='user.settings.advance.joinLeaveTitle'
+                            defaultMessage='Enable Join/Leave Messages'
+                        />
+                    }
+                    describe={this.renderOnOffLabel(this.state.settings.join_leave)}
+                    updateSection={() => this.props.updateSection('join_leave')}
+                />
+            );
+        }
+
+        return null;
+    }
+
     renderFeatureLabel(feature) {
         switch (feature) {
         case 'MARKDOWN_PREVIEW':
@@ -340,6 +425,12 @@ export default class AdvancedSettingsDisplay extends React.Component {
         let formattingSectionDivider = null;
         if (formattingSection) {
             formattingSectionDivider = <div className='divider-light'/>;
+        }
+
+        const displayJoinLeaveSection = this.renderJoinLeaveSection();
+        let displayJoinLeaveSectionDivider = null;
+        if (displayJoinLeaveSection) {
+            displayJoinLeaveSectionDivider = <div className='divider-light'/>;
         }
 
         let previewFeaturesSection;
@@ -454,6 +545,8 @@ export default class AdvancedSettingsDisplay extends React.Component {
                     {ctrlSendSection}
                     {formattingSectionDivider}
                     {formattingSection}
+                    {displayJoinLeaveSectionDivider}
+                    {displayJoinLeaveSection}
                     {previewFeaturesSectionDivider}
                     {previewFeaturesSection}
                     <div className='divider-dark'/>

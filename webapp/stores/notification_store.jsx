@@ -6,6 +6,7 @@ import EventEmitter from 'events';
 import Constants from 'utils/constants.jsx';
 import UserStore from './user_store.jsx';
 import ChannelStore from './channel_store.jsx';
+import PreferenceStore from './preference_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
 const ActionTypes = Constants.ActionTypes;
@@ -28,7 +29,9 @@ class NotificationStoreClass extends EventEmitter {
     handleRecievedPost(post, msgProps) {
         // Send desktop notification
         if ((UserStore.getCurrentId() !== post.user_id || post.props.from_webhook === 'true')) {
-            if (PostUtils.isSystemMessage(post) && post.type !== 'system_join_leave') {
+            if (PostUtils.isSystemMessage(post)) {
+                return;
+            } else if (!PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'join_leave', true) && post.type === Constants.POST_TYPE_JOIN_LEAVE) {
                 return;
             }
 

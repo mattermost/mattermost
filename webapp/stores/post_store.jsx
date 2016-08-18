@@ -548,6 +548,24 @@ class PostStoreClass extends EventEmitter {
 
         return commentCount;
     }
+
+    filterPosts(channelId, joinLeave) {
+        const postsList = JSON.parse(JSON.stringify(this.getVisiblePosts(channelId)));
+
+        if (!joinLeave && postsList) {
+            postsList.order = postsList.order.filter((id) => {
+                if (postsList.posts[id].type === Constants.POST_TYPE_JOIN_LEAVE) {
+                    Reflect.deleteProperty(postsList.posts, id);
+
+                    return false;
+                }
+
+                return true;
+            });
+        }
+
+        return postsList;
+    }
 }
 
 var PostStore = new PostStoreClass();
