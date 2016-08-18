@@ -551,6 +551,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 	// get profiles for all users we could be mentioning
 	pchan := Srv.Store.User().GetProfiles(c.TeamId)
 	dpchan := Srv.Store.User().GetDirectProfiles(c.Session.UserId)
+	mchan := Srv.Store.Channel().GetMembers(post.ChannelId)
 
 	var profileMap map[string]*model.User
 	if result := <-pchan; result.Err != nil {
@@ -574,9 +575,19 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 		l4g.Error(utils.T("api.post.send_notifications_and_forget.user_id.error"), post.UserId)
 		return
 	}
+	// using a map as a pseudo-set since we're checking for containment a lot
+	members := make(map[string]string)
+	if result := <-mchan; result.Err != nil {
+		l4g.Error(utils.T("api.post.handle_post_events_and_forget.members.error"), post.ChannelId, result.Err)
+		return
+	} else {
+		for _, member := range result.Data.([]model.ChannelMember) {
+			members[member.UserId] = member.UserId
+		}
+	}
 
 	mentionedUserIds := make(map[string]bool)
-	alwaysNotifyUserIds := []string{} // ???
+	alwaysNotifyUserIds := []string{}
 	hereNotification := false
 	updateMentionChans := []store.StoreChannel{}
 
@@ -590,17 +601,6 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 
 		mentionedUserIds[otherUserId] = true
 	} else {
-		// using a map as a pseudo-set since we're checking for containment a lot
-		members := make(map[string]string)
-		if result := <-Srv.Store.Channel().GetMembers(post.ChannelId); result.Err != nil {
-			l4g.Error(utils.T("api.post.handle_post_events_and_forget.members.error"), post.ChannelId, result.Err)
-			return
-		} else {
-			for _, member := range result.Data.([]model.ChannelMember) {
-				members[member.UserId] = member.UserId
-			}
-		}
-
 		keywords := getMentionKeywords(profileMap, members)
 
 		// get users that are explicitly mentioned
@@ -667,6 +667,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 
 	for id := range mentionedUserIds {
 		mentionedUsersList = append(mentionedUsersList, id)
+		updateMentionChans = append(updateMentionChans, Srv.Store.Channel().IncrementMentionCount(post.ChannelId, id))
 	}
 
 	if utils.Cfg.EmailSettings.SendEmailNotifications {
@@ -697,9 +698,10 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 				}
 
 				_, profileFound := profileMap[status.UserId]
-				_, alreadyAdded := mentionedUserIds[status.UserId]
+				_, isChannelMember := members[status.UserId]
+				_, alreadyMentioned := mentionedUserIds[status.UserId]
 
-				if status.Status == model.STATUS_ONLINE && profileFound && !alreadyAdded {
+				if status.Status == model.STATUS_ONLINE && profileFound && isChannelMember && !alreadyMentioned {
 					mentionedUsersList = append(mentionedUsersList, status.UserId)
 					updateMentionChans = append(updateMentionChans, Srv.Store.Channel().IncrementMentionCount(post.ChannelId, status.UserId))
 				}
