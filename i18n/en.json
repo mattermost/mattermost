@@ -4725,7 +4725,7 @@
   },
   {
     "id": "api.channel.remove_member.removed",
-    "translation": "%v has left the channel."
+    "translation": "%v was removed from the channel."
   },
   {
     "id": "api.channel.remove_member.user.app_error",
