@@ -34,7 +34,7 @@ export default class GetPublicLinkModal extends React.Component {
 
     componentDidUpdate(prevProps, prevState) {
         if (this.state.show && !prevState.show) {
-            AsyncClient.getPublicLink(this.state.filename, this.handlePublicLink);
+            AsyncClient.getPublicLink(decodeURIComponent(this.state.filename), this.handlePublicLink);
         }
     }
 
