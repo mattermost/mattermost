@@ -355,8 +355,9 @@ func (me *LoadTestProvider) UrlCommand(c *Context, channelId string, message str
 		post := &model.Post{}
 		post.Message = string(bytes[:length])
 		post.ChannelId = channelId
+		post.UserId = c.Session.UserId
 
-		if _, err := CreatePost(c, post, false); err != nil {
+		if _, err := CreatePost(c.TeamId, post, false); err != nil {
 			return &model.CommandResponse{Text: "Unable to create post", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		}
 	}
@@ -390,11 +391,12 @@ func (me *LoadTestProvider) JsonCommand(c *Context, channelId string, message st
 
 	post := model.PostFromJson(contents)
 	post.ChannelId = channelId
+	post.UserId = c.Session.UserId
 	if post.Message == "" {
 		post.Message = message
 	}
 
-	if _, err := CreatePost(c, post, false); err != nil {
+	if _, err := CreatePost(c.TeamId, post, false); err != nil {
 		return &model.CommandResponse{Text: "Unable to create post", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 	return &model.CommandResponse{Text: "Loaded data", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}

@@ -352,8 +352,9 @@ func PostUpdateChannelHeaderMessage(c *Context, channelId string, oldChannelHead
 			ChannelId: channelId,
 			Message:   message,
 			Type:      model.POST_HEADER_CHANGE,
+			UserId:    c.Session.UserId,
 		}
-		if _, err := CreatePost(c, post, false); err != nil {
+		if _, err := CreatePost(c.TeamId, post, false); err != nil {
 			l4g.Error(utils.T("api.channel.post_update_channel_header_message_and_forget.join_leave.error"), err)
 		}
 	}
@@ -543,8 +544,9 @@ func PostUserAddRemoveMessage(c *Context, channelId string, message, postType st
 		ChannelId: channelId,
 		Message:   message,
 		Type:      postType,
+		UserId:    c.Session.UserId,
 	}
-	if _, err := CreatePost(c, post, false); err != nil {
+	if _, err := CreatePost(c.TeamId, post, false); err != nil {
 		l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
 	}
 }
@@ -608,6 +610,16 @@ func JoinDefaultChannels(teamId string, user *model.User, channelRole string) *m
 
 		if cmResult := <-Srv.Store.Channel().SaveMember(cm); cmResult.Err != nil {
 			err = cmResult.Err
+		}
+
+		post := &model.Post{
+			ChannelId: result.Data.(*model.Channel).Id,
+			Message:   fmt.Sprintf(utils.T("api.channel.join_channel.post_and_forget"), user.Username),
+			Type:      model.POST_JOIN_LEAVE,
+			UserId:    user.Id,
+		}
+		if _, err := CreatePost(teamId, post, false); err != nil {
+			l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
 		}
 	}
 
@@ -780,8 +792,9 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 				ChannelId: channel.Id,
 				Message:   fmt.Sprintf(c.T("api.channel.delete_channel.archived"), user.Username),
 				Type:      model.POST_CHANNEL_DELETED,
+				UserId:    c.Session.UserId,
 			}
-			if _, err := CreatePost(c, post, false); err != nil {
+			if _, err := CreatePost(c.TeamId, post, false); err != nil {
 				l4g.Error(utils.T("api.channel.delete_channel.failed_post.error"), err)
 			}
 		}()
