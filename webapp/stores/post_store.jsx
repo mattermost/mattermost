@@ -22,6 +22,7 @@ class PostStoreClass extends EventEmitter {
         super();
         this.selectedPostId = null;
         this.postsInfo = {};
+        this.latestPageTime = {};
         this.currentFocusedPostId = null;
     }
     emitChange() {
@@ -131,6 +132,14 @@ class PostStoreClass extends EventEmitter {
         return null;
     }
 
+    getLatestPostFromPageTime(id) {
+        if (this.latestPageTime.hasOwnProperty(id)) {
+            return this.latestPageTime[id];
+        }
+
+        return 0;
+    }
+
     getVisiblePosts(id) {
         if (this.postsInfo.hasOwnProperty(id) && this.postsInfo[id].hasOwnProperty('postList')) {
             const postList = JSON.parse(JSON.stringify(this.postsInfo[id].postList));
@@ -184,9 +193,17 @@ class PostStoreClass extends EventEmitter {
         return this.currentFocusedPostId;
     }
 
-    storePosts(id, newPosts) {
+    storePosts(id, newPosts, checkLatest) {
         if (isPostListNull(newPosts)) {
             return;
+        }
+
+        if (checkLatest && newPosts.order.length >= 1) {
+            const currentLatest = this.latestPageTime[id] || 0;
+            const newLatest = newPosts.posts[newPosts.order[0]].create_at || 0;
+            if (newLatest > currentLatest) {
+                this.latestPageTime[id] = newLatest;
+            }
         }
 
         const combinedPosts = makePostListNonNull(this.getAllPosts(id));
@@ -576,7 +593,7 @@ PostStore.dispatchToken = AppDispatcher.register((payload) => {
     switch (action.type) {
     case ActionTypes.RECEIVED_POSTS: {
         const id = PostStore.currentFocusedPostId !== null && action.isPost ? PostStore.currentFocusedPostId : action.id;
-        PostStore.storePosts(id, makePostListNonNull(action.post_list));
+        PostStore.storePosts(id, makePostListNonNull(action.post_list), action.checkLatest);
         PostStore.checkBounds(id, action.numRequested, makePostListNonNull(action.post_list), action.before);
         PostStore.emitChange();
         break;

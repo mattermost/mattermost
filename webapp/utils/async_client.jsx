@@ -581,6 +581,7 @@ export function getPostsPage(id, maxPosts) {
                     id: channelId,
                     before: true,
                     numRequested: numPosts,
+                    checkLatest: true,
                     post_list: data
                 });
 
@@ -616,12 +617,7 @@ export function getPosts(id) {
         return;
     }
 
-    const latestPost = PostStore.getLatestPost(channelId);
-    let latestPostTime = 0;
-
-    if (latestPost != null && latestPost.update_at != null) {
-        latestPostTime = latestPost.create_at;
-    }
+    const latestPostTime = PostStore.getLatestPostFromPageTime(id);
 
     callTracker['getPosts_' + channelId] = utils.getTimestamp();
 
