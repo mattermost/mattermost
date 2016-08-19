@@ -99,7 +99,7 @@
 
 .file-icon {
     @include border-radius($border-rad);
-    @include box-shadow(0 1px 6px $gray)
+    @include box-shadow(0 1px 6px $gray);
     border: 1px solid $light-gray;
     display: inline-block;
     height: 65px;
@@ -240,7 +240,7 @@
 .post-image__load {
     background-position: center;
     background-repeat: no-repeat;
-    background-size: 20px 20px;
+    background-size: 20px 100px;
     height: 100%;
     width: 100%;
 }
