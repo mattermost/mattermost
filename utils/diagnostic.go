@@ -163,12 +163,13 @@ func trackConfig() {
 func trackLicense() {
 	if License != nil {
 		SendDiagnostic(TRACK_LICENSE, map[string]interface{}{
-			"name":    License.Customer.Name,
-			"company": License.Customer.Company,
-			"users":   *License.Features.Users,
-			"issued":  License.IssuedAt,
-			"start":   License.StartsAt,
-			"expire":  License.ExpiresAt,
+			"name":     License.Customer.Name,
+			"company":  License.Customer.Company,
+			"issued":   License.IssuedAt,
+			"start":    License.StartsAt,
+			"expire":   License.ExpiresAt,
+			"users":    *License.Features.Users,
+			"features": License.Features.ToMap(),
 		})
 	}
 }
