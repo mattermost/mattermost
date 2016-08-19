@@ -153,6 +153,7 @@ type UserStore interface {
 	PermanentDelete(userId string) StoreChannel
 	AnalyticsUniqueUserCount(teamId string) StoreChannel
 	GetUnreadCount(userId string) StoreChannel
+	GetUnreadCountForChannel(userId string, channelId string) StoreChannel
 }
 
 type SessionStore interface {

@@ -660,6 +660,16 @@ func TestUserUnreadCount(t *testing.T) {
 	if badge != 3 {
 		t.Fatal("should have 3 unread messages")
 	}
+
+	badge = (<-store.User().GetUnreadCountForChannel(u2.Id, c1.Id)).Data.(int64)
+	if badge != 1 {
+		t.Fatal("should have 1 unread messages for that channel")
+	}
+
+	badge = (<-store.User().GetUnreadCountForChannel(u2.Id, c2.Id)).Data.(int64)
+	if badge != 2 {
+		t.Fatal("should have 2 unread messages for that channel")
+	}
 }
 
 func TestUserStoreUpdateMfaSecret(t *testing.T) {

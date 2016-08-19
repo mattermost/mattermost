@@ -846,7 +846,23 @@ func updateLastViewedAt(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["channel_id"]
 
+	doClearPush := false
+	if *utils.Cfg.EmailSettings.SendPushNotifications && !c.Session.IsMobileApp() {
+		if result := <-Srv.Store.User().GetUnreadCountForChannel(c.Session.UserId, id); result.Err != nil {
+			l4g.Error(utils.T("api.channel.update_last_viewed_at.get_unread_count_for_channel.error"), c.Session.UserId, id, result.Err.Error())
+		} else {
+			if result.Data.(int64) > 0 {
+				doClearPush = true
+			}
+		}
+	}
+
 	Srv.Store.Channel().UpdateLastViewedAt(id, c.Session.UserId)
+
+	// Must be after update so that unread count is correct
+	if doClearPush {
+		go clearPushNotification(c.Session.UserId, id)
+	}
 
 	preference := model.Preference{
 		UserId:   c.Session.UserId,

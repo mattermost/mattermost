@@ -6,11 +6,15 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"strings"
 )
 
 const (
 	PUSH_NOTIFY_APPLE   = "apple"
 	PUSH_NOTIFY_ANDROID = "android"
+
+	PUSH_TYPE_MESSAGE = "message"
+	PUSH_TYPE_CLEAR   = "clear"
 
 	CATEGORY_DM = "DIRECT_MESSAGE"
 
@@ -28,6 +32,7 @@ type PushNotification struct {
 	ContentAvailable int    `json:"cont_ava"`
 	ChannelId        string `json:"channel_id"`
 	ChannelName      string `json:"channel_name"`
+	Type             string `json:"type"`
 }
 
 func (me *PushNotification) ToJson() string {
@@ -36,6 +41,16 @@ func (me *PushNotification) ToJson() string {
 		return ""
 	} else {
 		return string(b)
+	}
+}
+
+func (me *PushNotification) SetDeviceIdAndPlatform(deviceId string) {
+	if strings.HasPrefix(deviceId, PUSH_NOTIFY_APPLE+":") {
+		me.Platform = PUSH_NOTIFY_APPLE
+		me.DeviceId = strings.TrimPrefix(deviceId, PUSH_NOTIFY_APPLE+":")
+	} else if strings.HasPrefix(deviceId, PUSH_NOTIFY_ANDROID+":") {
+		me.Platform = PUSH_NOTIFY_ANDROID
+		me.DeviceId = strings.TrimPrefix(deviceId, PUSH_NOTIFY_ANDROID+":")
 	}
 }
 
