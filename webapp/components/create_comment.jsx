@@ -15,6 +15,7 @@ import MsgTyping from './msg_typing.jsx';
 import FileUpload from './file_upload.jsx';
 import FilePreview from './file_preview.jsx';
 import * as Utils from 'utils/utils.jsx';
+import * as UserAgent from 'utils/user_agent.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
@@ -168,7 +169,7 @@ export default class CreateComment extends React.Component {
     }
 
     commentMsgKeyPress(e) {
-        if (!Utils.isMobile() && ((this.state.ctrlSend && e.ctrlKey) || !this.state.ctrlSend)) {
+        if (!UserAgent.isMobileApp() && ((this.state.ctrlSend && e.ctrlKey) || !this.state.ctrlSend)) {
             if (e.which === KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
                 e.preventDefault();
                 ReactDOM.findDOMNode(this.refs.textbox).blur();

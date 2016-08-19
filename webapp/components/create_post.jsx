@@ -13,6 +13,7 @@ import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import Client from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
+import * as UserAgent from 'utils/user_agent.jsx';
 import * as ChannelActions from 'actions/channel_actions.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
@@ -198,7 +199,7 @@ export default class CreatePost extends React.Component {
     }
 
     postMsgKeyPress(e) {
-        if (!Utils.isMobile() && ((this.state.ctrlSend && e.ctrlKey) || !this.state.ctrlSend)) {
+        if (!UserAgent.isMobileApp() && ((this.state.ctrlSend && e.ctrlKey) || !this.state.ctrlSend)) {
             if (e.which === KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
                 e.preventDefault();
                 ReactDOM.findDOMNode(this.refs.textbox).blur();
