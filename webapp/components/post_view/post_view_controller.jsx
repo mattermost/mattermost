@@ -26,6 +26,7 @@ export default class PostViewController extends React.Component {
         this.onUserChange = this.onUserChange.bind(this);
         this.onPostsChange = this.onPostsChange.bind(this);
         this.onEmojisChange = this.onEmojisChange.bind(this);
+        this.onStatusChange = this.onStatusChange.bind(this);
         this.onPostsViewJumpRequest = this.onPostsViewJumpRequest.bind(this);
         this.onSetNewMessageIndicator = this.onSetNewMessageIndicator.bind(this);
         this.onPostListScroll = this.onPostListScroll.bind(this);
@@ -46,11 +47,17 @@ export default class PostViewController extends React.Component {
 
         const joinLeaveEnabled = PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'join_leave', true);
 
+        let statuses;
+        if (channel && channel.type !== Constants.DM_CHANNEL) {
+            statuses = Object.assign({}, UserStore.getStatuses());
+        }
+
         this.state = {
             channel,
             postList: PostStore.filterPosts(channel.id, joinLeaveEnabled),
             currentUser: UserStore.getCurrentUser(),
             profiles,
+            statuses,
             atTop: PostStore.getVisibilityAtTop(channel.id),
             lastViewed,
             ownNewMessage: false,
@@ -122,9 +129,20 @@ export default class PostViewController extends React.Component {
         });
     }
 
+    onStatusChange() {
+        const channel = this.state.channel;
+        let statuses;
+        if (channel && channel.type !== Constants.DM_CHANNEL) {
+            statuses = Object.assign({}, UserStore.getStatuses());
+        }
+
+        this.setState({statuses});
+    }
+
     onActivate() {
         PreferenceStore.addChangeListener(this.onPreferenceChange);
         UserStore.addChangeListener(this.onUserChange);
+        UserStore.addStatusesChangeListener(this.onStatusChange);
         PostStore.addChangeListener(this.onPostsChange);
         PostStore.addPostsViewJumpListener(this.onPostsViewJumpRequest);
         EmojiStore.addChangeListener(this.onEmojisChange);
@@ -134,6 +152,7 @@ export default class PostViewController extends React.Component {
     onDeactivate() {
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
         UserStore.removeChangeListener(this.onUserChange);
+        UserStore.removeStatusesChangeListener(this.onStatusChange);
         PostStore.removeChangeListener(this.onPostsChange);
         PostStore.removePostsViewJumpListener(this.onPostsViewJumpRequest);
         EmojiStore.removeChangeListener(this.onEmojisChange);
@@ -267,6 +286,10 @@ export default class PostViewController extends React.Component {
             return true;
         }
 
+        if (!Utils.areObjectsEqual(nextState.statuses, this.state.statuses)) {
+            return true;
+        }
+
         if (!Utils.areObjectsEqual(nextState.postList, this.state.postList)) {
             return true;
         }
@@ -311,6 +334,7 @@ export default class PostViewController extends React.Component {
                     lastViewed={this.state.lastViewed}
                     emojis={this.state.emojis}
                     ownNewMessage={this.state.ownNewMessage}
+                    statuses={this.state.statuses}
                 />
             );
         }
