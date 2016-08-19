@@ -12,6 +12,7 @@ import (
 	"github.com/mattermost/platform/utils"
 	"io"
 	"mime/multipart"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -230,6 +231,29 @@ func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[str
 	return addedChannels
 }
 
+func SlackConvertUserMentions(users []SlackUser, posts map[string][]SlackPost) map[string][]SlackPost {
+	var regexes = make(map[string]*regexp.Regexp, len(users))
+	for _, user := range users {
+		r, err := regexp.Compile("<@" + user.Id + `(\|` + user.Username + ")?>")
+		if err != nil {
+			l4g.Warn(utils.T("api.slackimport.slack_convert_user_mentions.compile_regexp_failed.warn"), user.Id, user.Username)
+			continue
+		}
+		regexes["@"+user.Username] = r
+	}
+
+	for channelName, channelPosts := range posts {
+		for postIdx, post := range channelPosts {
+			for mention, r := range regexes {
+				post.Text = r.ReplaceAllString(post.Text, mention)
+				posts[channelName][postIdx] = post
+			}
+		}
+	}
+
+	return posts
+}
+
 func SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model.AppError, *bytes.Buffer) {
 	zipreader, err := zip.NewReader(fileData, fileSize)
 	if err != nil || zipreader.File == nil {
@@ -265,6 +289,8 @@ func SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model
 
 		}
 	}
+
+	posts = SlackConvertUserMentions(users, posts)
 
 	addedUsers := SlackAddUsers(teamID, users, log)
 	SlackAddChannels(teamID, channels, posts, addedUsers, log)
