@@ -511,12 +511,7 @@ func Handle404(w http.ResponseWriter, r *http.Request) {
 	err.Translate(utils.T)
 	err.StatusCode = http.StatusNotFound
 
-	// filter out old paths that are poluting the log file
-	if strings.Contains(r.URL.Path, "/api/v1/") {
-		l4g.Debug("%v: code=404 ip=%v", r.URL.Path, GetIpAddress(r))
-	} else {
-		l4g.Error("%v: code=404 ip=%v", r.URL.Path, GetIpAddress(r))
-	}
+	l4g.Debug("%v: code=404 ip=%v", r.URL.Path, GetIpAddress(r))
 
 	if IsApiCall(r) {
 		w.WriteHeader(err.StatusCode)
