@@ -474,6 +474,8 @@ export function applyTheme(theme) {
     }
 
     if (theme.sidebarText) {
+        changeCss('.app__body .ps-container > .ps-scrollbar-y-rail > .ps-scrollbar-y', 'background:' + theme.sidebarText, 1);
+        changeCss('.app__body .ps-container:hover .ps-scrollbar-y-rail:hover', 'background:' + changeOpacity(theme.sidebarText, 0.15), 1);
         changeCss('.app__body .sidebar--left .nav-pills__container li>a, .app__body .sidebar--right, .app__body .modal .settings-modal .nav-pills>li a, .app__body .sidebar--menu', 'color:' + changeOpacity(theme.sidebarText, 0.6), 1);
         changeCss('@media(max-width: 768px){.app__body .modal .settings-modal .settings-table .nav>li>a', 'color:' + theme.sidebarText, 1);
         changeCss('.app__body .sidebar--left .nav-pills__container li>h4, .app__body .sidebar--left .add-channel-btn', 'color:' + changeOpacity(theme.sidebarText, 0.6), 1);
