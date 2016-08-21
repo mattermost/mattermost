@@ -365,7 +365,7 @@ export default class NotificationsTab extends React.Component {
             describe = (
                 <FormattedMessage
                     id='user.settings.push_notification.disabled'
-                    defaultMessage='Disabled by system administrator'
+                    defaultMessage='Disabled by System Administrator'
                 />
             );
         } else {
