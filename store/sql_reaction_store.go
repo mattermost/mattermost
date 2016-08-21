@@ -5,8 +5,24 @@ package store
 
 import (
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 
+	l4g "github.com/alecthomas/log4go"
 	"github.com/go-gorp/gorp"
+)
+
+const (
+	// set HasReactions = true iff the post has reactions, update UpdateAt only if HasReactions changes
+	UPDATE_POST_HAS_REACTIONS_QUERY = `UPDATE
+			Posts
+		SET
+			UpdateAt = (CASE
+				WHEN HasReactions != (SELECT count(0) > 0 FROM Reactions WHERE PostId = :PostId) THEN :UpdateAt
+				ELSE UpdateAt
+			END),
+			HasReactions = (SELECT count(0) > 0 FROM Reactions WHERE PostId = :PostId)
+		WHERE
+			Id = :PostId`
 )
 
 type SqlReactionStore struct {
@@ -43,7 +59,7 @@ func (s SqlReactionStore) Save(reaction *model.Reaction) StoreChannel {
 		}
 
 		if transaction, err := s.GetMaster().Begin(); err != nil {
-			result.Err = model.NewLocAppError("SqlReactionStore.Save", "store.sql_reaction.save.begin.app_error", nil, "")
+			result.Err = model.NewLocAppError("SqlReactionStore.Save", "store.sql_reaction.save.begin.app_error", nil, err.Error())
 		} else {
 			err := saveReactionAndUpdatePost(transaction, reaction)
 
@@ -79,7 +95,7 @@ func (s SqlReactionStore) Delete(reaction *model.Reaction) StoreChannel {
 		}
 
 		if transaction, err := s.GetMaster().Begin(); err != nil {
-			result.Err = model.NewLocAppError("SqlReactionStore.Save", "store.sql_reaction.delete.begin.app_error", nil, "")
+			result.Err = model.NewLocAppError("SqlReactionStore.Save", "store.sql_reaction.delete.begin.app_error", nil, err.Error())
 		} else {
 			err := deleteReactionAndUpdatePost(transaction, reaction)
 
@@ -135,20 +151,7 @@ func deleteReactionAndUpdatePost(transaction *gorp.Transaction, reaction *model.
 }
 
 func updatePostForReactions(transaction *gorp.Transaction, postId string) error {
-	// set HasReactions = true iff the post has reactions, update UpdateAt only if HasReactions changes
-	_, err := transaction.Exec(
-		`UPDATE
-			Posts
-		SET
-			UpdateAt = (CASE
-				WHEN HasReactions != (SELECT count(0) > 0 FROM Reactions WHERE PostId = :PostId) THEN :UpdateAt
-				ELSE UpdateAt
-			END),
-			HasReactions = (SELECT count(0) > 0 FROM Reactions WHERE PostId = :PostId)
-		WHERE
-			Id = :PostId`,
-		map[string]interface{}{"PostId": postId, "UpdateAt": model.GetMillis()},
-	)
+	_, err := transaction.Exec(UPDATE_POST_HAS_REACTIONS_QUERY, map[string]interface{}{"PostId": postId, "UpdateAt": model.GetMillis()})
 
 	return err
 }
@@ -171,6 +174,57 @@ func (s SqlReactionStore) List(postId string) StoreChannel {
 			result.Err = model.NewLocAppError("SqlReactionStore.List", "store.sql_reaction.list.app_error", nil, "")
 		} else {
 			result.Data = reactions
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlReactionStore) DeleteAllWithEmojiName(emojiName string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		// doesn't use a transaction since it's better for this to half-finish than to not commit anything
+		var reactions []*model.Reaction
+
+		if _, err := s.GetReplica().Select(&reactions,
+			`SELECT
+				*
+			FROM
+				Reactions
+			WHERE
+				EmojiName = :EmojiName`, map[string]interface{}{"EmojiName": emojiName}); err != nil {
+			result.Err = model.NewLocAppError("SqlReactionStore.DeleteAllWithEmojiName",
+				"store.sql_reaction.delete_all_with_emoji_name.get_reactions.app_error", nil,
+				"emoji_name="+emojiName+", error="+err.Error())
+			storeChannel <- result
+			close(storeChannel)
+			return
+		}
+
+		if _, err := s.GetMaster().Exec(
+			`DELETE FROM
+				Reactions
+			WHERE
+				EmojiName = :EmojiName`, map[string]interface{}{"EmojiName": emojiName}); err != nil {
+			result.Err = model.NewLocAppError("SqlReactionStore.DeleteAllWithEmojiName",
+				"store.sql_reaction.delete_all_with_emoji_name.delete_reactions.app_error", nil,
+				"emoji_name="+emojiName+", error="+err.Error())
+			storeChannel <- result
+			close(storeChannel)
+			return
+		}
+
+		for _, reaction := range reactions {
+			if _, err := s.GetMaster().Exec(UPDATE_POST_HAS_REACTIONS_QUERY,
+				map[string]interface{}{"PostId": reaction.PostId, "UpdateAt": model.GetMillis()}); err != nil {
+				l4g.Warn(utils.T("store.sql_reaction.delete_all_with_emoji_name.update_post.warn"), reaction.PostId, err.Error())
+			}
 		}
 
 		storeChannel <- result

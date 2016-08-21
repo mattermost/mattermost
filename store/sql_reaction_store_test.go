@@ -179,3 +179,92 @@ func TestReactionList(t *testing.T) {
 		}
 	}
 }
+
+func TestReactionDeleteAllWithEmojiName(t *testing.T) {
+	Setup()
+
+	emojiToDelete := model.NewId()
+
+	post := Must(store.Post().Save(&model.Post{
+		ChannelId: model.NewId(),
+		UserId:    model.NewId(),
+	})).(*model.Post)
+	post2 := Must(store.Post().Save(&model.Post{
+		ChannelId: model.NewId(),
+		UserId:    model.NewId(),
+	})).(*model.Post)
+	post3 := Must(store.Post().Save(&model.Post{
+		ChannelId: model.NewId(),
+		UserId:    model.NewId(),
+	})).(*model.Post)
+
+	userId := model.NewId()
+
+	reactions := []*model.Reaction{
+		{
+			UserId:    userId,
+			PostId:    post.Id,
+			EmojiName: emojiToDelete,
+		},
+		{
+			UserId:    model.NewId(),
+			PostId:    post.Id,
+			EmojiName: emojiToDelete,
+		},
+		{
+			UserId:    userId,
+			PostId:    post.Id,
+			EmojiName: "sad",
+		},
+		{
+			UserId:    userId,
+			PostId:    post2.Id,
+			EmojiName: "angry",
+		},
+		{
+			UserId:    userId,
+			PostId:    post3.Id,
+			EmojiName: emojiToDelete,
+		},
+	}
+
+	for _, reaction := range reactions {
+		Must(store.Reaction().Save(reaction))
+	}
+
+	if result := <-store.Reaction().DeleteAllWithEmojiName(emojiToDelete); result.Err != nil {
+		t.Fatal(result.Err)
+	}
+
+	// check that the reactions were deleted
+	if returned := Must(store.Reaction().List(post.Id)).([]*model.Reaction); len(returned) != 1 {
+		t.Fatal("should've only removed reactions with emoji name")
+	} else {
+		for _, reaction := range returned {
+			if reaction.EmojiName == "smile" {
+				t.Fatal("should've removed reaction with emoji name")
+			}
+		}
+	}
+
+	if returned := Must(store.Reaction().List(post2.Id)).([]*model.Reaction); len(returned) != 1 {
+		t.Fatal("should've only removed reactions with emoji name")
+	}
+
+	if returned := Must(store.Reaction().List(post3.Id)).([]*model.Reaction); len(returned) != 0 {
+		t.Fatal("should've only removed reactions with emoji name")
+	}
+
+	// check that the posts are updated
+	if postList := Must(store.Post().Get(post.Id)).(*model.PostList); !postList.Posts[post.Id].HasReactions {
+		t.Fatal("post should still have reactions")
+	}
+
+	if postList := Must(store.Post().Get(post2.Id)).(*model.PostList); !postList.Posts[post2.Id].HasReactions {
+		t.Fatal("post should still have reactions")
+	}
+
+	if postList := Must(store.Post().Get(post3.Id)).(*model.PostList); postList.Posts[post3.Id].HasReactions {
+		t.Fatal("post shouldn't have reactions any more")
+	}
+}

@@ -742,6 +742,10 @@
     "translation": "Unable to create emoji. Image must be less than 64 KB in size."
   },
   {
+    "id": "api.emoji.delete.delete_reactions.app_error",
+    "translation": "Unable to delete reactions when deleting emoji with emoji name %v"
+  },
+  {
     "id": "api.emoji.delete.permissions.app_error",
     "translation": "Inappropriate permissions to delete emoji."
   },
@@ -4198,6 +4202,18 @@
   {
     "id": "store.sql_reaction.delete.save.app_error",
     "translation": "Unable to delete reaction"
+  },
+  {
+    "id": "store.sql_reaction.delete_all_with_emoj_name.delete_reactions.app_error",
+    "translation": "Unable to delete reactions with the given emoji name"
+  },
+  {
+    "id": "store.sql_reaction.delete_all_with_emoj_name.get_reactions.app_error",
+    "translation": "Unable to get reactions with the given emoji name"
+  },
+  {
+    "id": "store.sql_reaction.delete_all_with_emoji_name.update_post.warn",
+    "translation": "Unable to update Post.HasReactions while removing reactions post_id=%v, error=%v"
   },
   {
     "id": "store.sql_reaction.list.app_error",
