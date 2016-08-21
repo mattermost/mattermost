@@ -15,6 +15,7 @@ import (
 )
 
 const (
+	VERSION_3_6_0 = "3.6.0"
 	VERSION_3_5_0 = "3.5.0"
 	VERSION_3_4_0 = "3.4.0"
 	VERSION_3_3_0 = "3.3.0"
@@ -37,6 +38,7 @@ func UpgradeDatabase(sqlStore *SqlStore) {
 	UpgradeDatabaseToVersion33(sqlStore)
 	UpgradeDatabaseToVersion34(sqlStore)
 	UpgradeDatabaseToVersion35(sqlStore)
+	UpgradeDatabaseToVersion36(sqlStore)
 
 	// If the SchemaVersion is empty this this is the first time it has ran
 	// so lets set it to the current version.
@@ -209,4 +211,18 @@ func UpgradeDatabaseToVersion35(sqlStore *SqlStore) {
 
 		saveSchemaVersion(sqlStore, VERSION_3_5_0)
 	}
+}
+
+func UpgradeDatabaseToVersion36(sqlStore *SqlStore) {
+	//if shouldPerformUpgrade(sqlStore, VERSION_3_5_0, VERSION_3_6_0) {
+
+	sqlStore.CreateColumnIfNotExists("Posts", "HasReactions", "tinyint", "boolean", "0")
+
+	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// TODO FIXME UNCOMMENT WHEN WE DO RELEASE
+	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	//sqlStore.Session().RemoveAllSessions()
+
+	//saveSchemaVersion(sqlStore, VERSION_3_6_0)
+	//}
 }

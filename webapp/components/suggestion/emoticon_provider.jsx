@@ -46,8 +46,8 @@ export default class EmoticonProvider {
     handlePretextChanged(suggestionId, pretext) {
         let hasSuggestions = false;
 
-        // look for partial matches among the named emojis
-        const captured = (/(?:^|\s)(:([^:\s]*))$/g).exec(pretext);
+        // look for the potential emoticons at the start of the text, after whitespace, and at the start of emoji reaction commands
+        const captured = (/(?:^|\s|^\+|^\-)(:([^:\s]*))$/g).exec(pretext);
         if (captured) {
             const text = captured[1];
             const partialName = captured[2];

@@ -27,6 +27,8 @@ const (
 	WEBSOCKET_EVENT_HELLO              = "hello"
 	WEBSOCKET_EVENT_WEBRTC             = "webrtc"
 	WEBSOCKET_AUTHENTICATION_CHALLENGE = "authentication_challenge"
+	WEBSOCKET_EVENT_REACTION_ADDED     = "reaction_added"
+	WEBSOCKET_EVENT_REACTION_REMOVED   = "reaction_removed"
 )
 
 type WebSocketMessage interface {

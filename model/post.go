@@ -38,6 +38,7 @@ type Post struct {
 	Filenames     StringArray     `json:"filenames,omitempty"` // Deprecated, do not use this field any more
 	FileIds       StringArray     `json:"file_ids,omitempty"`
 	PendingPostId string          `json:"pending_post_id" db:"-"`
+	HasReactions  bool            `json:"has_reactions,omitempty"`
 }
 
 func (o *Post) ToJson() string {

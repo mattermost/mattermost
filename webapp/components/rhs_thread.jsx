@@ -339,6 +339,7 @@ export default class RhsThread extends React.Component {
                                 <CreateComment
                                     channelId={selected.channel_id}
                                     rootId={selected.id}
+                                    latestPostId={postsArray.length > 0 ? postsArray[postsArray.length - 1].id : selected.id}
                                 />
                             </div>
                         </div>
