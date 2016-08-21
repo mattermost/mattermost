@@ -32,6 +32,7 @@ func NewSqlPostStore(sqlStore *SqlStore) PostStore {
 		table.ColMap("Hashtags").SetMaxSize(1000)
 		table.ColMap("Props").SetMaxSize(8000)
 		table.ColMap("Filenames").SetMaxSize(4000)
+		table.ColMap("HasReactions").SetMaxSize(1)
 	}
 
 	return s

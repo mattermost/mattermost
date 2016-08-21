@@ -9,14 +9,16 @@ import FilePreview from './file_preview.jsx';
 import PostDeletedModal from './post_deleted_modal.jsx';
 import TutorialTip from './tutorial/tutorial_tip.jsx';
 
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import Client from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
 import * as ChannelActions from 'actions/channel_actions.jsx';
+import * as PostActions from 'actions/post_actions.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
+import EmojiStore from 'stores/emoji_store.jsx';
 import PostStore from 'stores/post_store.jsx';
 import MessageHistoryStore from 'stores/message_history_store.jsx';
 import UserStore from 'stores/user_store.jsx';
@@ -146,9 +148,30 @@ export default class CreatePost extends React.Component {
                     }
                 }
             );
-        } else {
-            this.sendMessage(post);
+
+            return;
         }
+
+        const isReaction = (/^(\+|\-):([a-zA-Z0-9_-]+):\s*$/).exec(post.message);
+        if (isReaction && EmojiStore.has(isReaction[2])) {
+            const action = isReaction[1];
+
+            const emojiName = isReaction[2];
+            const postId = PostStore.getLatestPost(this.state.channelId).id;
+
+            if (action === '+') {
+                PostActions.addReaction(this.state.channelId, postId, emojiName);
+            } else if (action === '-') {
+                PostActions.removeReaction(this.state.channelId, postId, emojiName);
+            }
+
+            PostStore.storeCurrentDraft(null);
+            this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
+
+            return;
+        }
+
+        this.sendMessage(post);
     }
 
     sendMessage(post) {

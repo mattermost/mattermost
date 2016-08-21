@@ -44,6 +44,7 @@ type Store interface {
 	PasswordRecovery() PasswordRecoveryStore
 	Emoji() EmojiStore
 	Status() StatusStore
+	Reaction() ReactionStore
 	MarkSystemRanUnitTests()
 	Close()
 	DropAllTables()
@@ -277,4 +278,10 @@ type StatusStore interface {
 	ResetAll() StoreChannel
 	GetTotalActiveUsersCount() StoreChannel
 	UpdateLastActivityAt(userId string, lastActivityAt int64) StoreChannel
+}
+
+type ReactionStore interface {
+	Save(reaction *model.Reaction) StoreChannel
+	Delete(reaction *model.Reaction) StoreChannel
+	List(postId string) StoreChannel
 }

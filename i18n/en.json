@@ -1324,6 +1324,22 @@
     "translation": "session.user_id={{.SessionUserId}}, preference.user_id={{.PreferenceUserId}}"
   },
   {
+    "id": "api.reaction.delete_reaction.mismatched_channel_id.app_error",
+    "translation": "Failed to save reaction when channel id in URL doesn't match post id in URL"
+  },
+  {
+    "id": "api.reaction.list_reactions.mismatched_channel_id.app_error",
+    "translation": "Failed to get reactions when channel id in URL doesn't match post id in URL"
+  },
+  {
+    "id": "api.reaction.save_reaction.mismatched_channel_id.app_error",
+    "translation": "Failed to save reaction when channel id in URL doesn't match post id in URL"
+  },
+  {
+    "id": "api.reaction.send_reaction_event.post.app_error",
+    "translation": "Failed to get post when sending websocket event for reaction"
+  },
+  {
     "id": "api.saml.save_certificate.app_error",
     "translation": "Certificate did not save properly."
   },
@@ -3328,6 +3344,18 @@
     "translation": "Value is too long"
   },
   {
+    "id": "model.reaction.is_valid.emoji_name.app_error",
+    "translation": "Invalid emoji name"
+  },
+  {
+    "id": "model.reaction.is_valid.post_id.app_error",
+    "translation": "Invalid post id"
+  },
+  {
+    "id": "model.reaction.is_valid.user_id.app_error",
+    "translation": "Invalid user id"
+  },
+  {
     "id": "model.team.is_valid.characters.app_error",
     "translation": "Name must be 4 or more lowercase alphanumeric characters"
   },
@@ -4158,6 +4186,34 @@
   {
     "id": "store.sql_preference.update.app_error",
     "translation": "We couldn't update the preference"
+  },
+  {
+    "id": "store.sql_reaction.delete.begin.app_error",
+    "translation": "Unable to open transaction while deleting reaction"
+  },
+  {
+    "id": "store.sql_reaction.delete.commit.app_error",
+    "translation": "Unable to commit transaction while deleting reaction"
+  },
+  {
+    "id": "store.sql_reaction.delete.save.app_error",
+    "translation": "Unable to delete reaction"
+  },
+  {
+    "id": "store.sql_reaction.list.app_error",
+    "translation": "Unable to list reactions"
+  },
+  {
+    "id": "store.sql_reaction.save.begin.app_error",
+    "translation": "Unable to open transaction while saving reaction"
+  },
+  {
+    "id": "store.sql_reaction.save.commit.app_error",
+    "translation": "Unable to commit transaction while saving reaction"
+  },
+  {
+    "id": "store.sql_reaction.save.save.app_error",
+    "translation": "Unable to save reaction"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",

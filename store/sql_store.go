@@ -81,6 +81,7 @@ type SqlStore struct {
 	recovery      PasswordRecoveryStore
 	emoji         EmojiStore
 	status        StatusStore
+	reaction      ReactionStore
 	SchemaVersion string
 }
 
@@ -129,6 +130,7 @@ func NewSqlStore() Store {
 	sqlStore.recovery = NewSqlPasswordRecoveryStore(sqlStore)
 	sqlStore.emoji = NewSqlEmojiStore(sqlStore)
 	sqlStore.status = NewSqlStatusStore(sqlStore)
+	sqlStore.reaction = NewSqlReactionStore(sqlStore)
 
 	err := sqlStore.master.CreateTablesIfNotExists()
 	if err != nil {
@@ -155,6 +157,7 @@ func NewSqlStore() Store {
 	sqlStore.recovery.(*SqlPasswordRecoveryStore).CreateIndexesIfNotExists()
 	sqlStore.emoji.(*SqlEmojiStore).CreateIndexesIfNotExists()
 	sqlStore.status.(*SqlStatusStore).CreateIndexesIfNotExists()
+	sqlStore.reaction.(*SqlReactionStore).CreateIndexesIfNotExists()
 
 	sqlStore.preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
 
@@ -641,6 +644,10 @@ func (ss SqlStore) Emoji() EmojiStore {
 
 func (ss SqlStore) Status() StatusStore {
 	return ss.status
+}
+
+func (ss SqlStore) Reaction() ReactionStore {
+	return ss.reaction
 }
 
 func (ss SqlStore) DropAllTables() {

@@ -183,6 +183,7 @@ func UpgradeDatabaseToVersion34(sqlStore *SqlStore) {
 	//if shouldPerformUpgrade(sqlStore, VERSION_3_3_0, VERSION_3_4_0) {
 
 	// do the actual upgrade
+	sqlStore.CreateColumnIfNotExists("Posts", "HasReactions", "tinyint", "boolean", "0")
 
 	// TODO XXX FIXME should be removed before release
 	//saveSchemaVersion(sqlStore, VERSION_3_4_0)
