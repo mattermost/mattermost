@@ -209,11 +209,14 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var emoji *model.Emoji
 	if result := <-Srv.Store.Emoji().Get(id); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
-		if c.Session.UserId != result.Data.(*model.Emoji).CreatorId && !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
+		emoji = result.Data.(*model.Emoji)
+
+		if c.Session.UserId != emoji.CreatorId && !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
 			c.Err = model.NewLocAppError("deleteEmoji", "api.emoji.delete.permissions.app_error", nil, "user_id="+c.Session.UserId)
 			c.Err.StatusCode = http.StatusUnauthorized
 			return
@@ -226,6 +229,7 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	go deleteEmojiImage(id)
+	go deleteReactionsForEmoji(emoji.Name)
 
 	ReturnStatusOK(w)
 }
@@ -233,6 +237,13 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 func deleteEmojiImage(id string) {
 	if err := MoveFile(getEmojiImagePath(id), "emoji/"+id+"/image_deleted"); err != nil {
 		l4g.Error("Failed to rename image when deleting emoji %v", id)
+	}
+}
+
+func deleteReactionsForEmoji(emojiName string) {
+	if result := <-Srv.Store.Reaction().DeleteAllWithEmojiName(emojiName); result.Err != nil {
+		l4g.Warn(utils.T("api.emoji.delete.delete_reactions.app_error"), emojiName)
+		l4g.Warn(result.Err)
 	}
 }
 
