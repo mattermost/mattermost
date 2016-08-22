@@ -254,6 +254,7 @@ func handleResponse(c *Context, w http.ResponseWriter, response *model.CommandRe
 	} else if response.ResponseType == model.COMMAND_RESPONSE_TYPE_EPHEMERAL && response.Text != "" {
 		post.Message = response.Text
 		post.CreateAt = model.GetMillis()
+		post.UserId = c.Session.UserId
 		SendEphemeralPost(
 			c.TeamId,
 			c.Session.UserId,
