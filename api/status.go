@@ -29,6 +29,7 @@ func InitStatus() {
 
 	BaseRoutes.Users.Handle("/status", ApiUserRequiredActivity(getStatusesHttp, false)).Methods("GET")
 	BaseRoutes.Users.Handle("/status/set_active_channel", ApiUserRequiredActivity(setActiveChannel, false)).Methods("POST")
+	BaseRoutes.Users.Handle("/team_statuses", ApiUserRequiredActivity(getTeamStatusesHttp, false)).Methods("POST")
 	BaseRoutes.WebSocket.Handle("get_statuses", ApiWebSocketHandler(getStatusesWebSocket))
 }
 
@@ -40,6 +41,56 @@ func getStatusesHttp(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(model.StringInterfaceToJson(statusMap)))
+}
+
+func getTeamStatusesHttp(c *Context, w http.ResponseWriter, r *http.Request) {
+	data := model.MapFromJson(r.Body)
+
+	teamId := data["team_id"]
+	if len(teamId) != 26 {
+		c.SetInvalidParam("getTeamStatusesHttp", "team_id")
+		return
+	}
+
+	statusMap := map[string]interface{}{}
+
+	if result := <-Srv.Store.Status().GetAllFromTeam(teamId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		statuses := result.Data.([]*model.Status)
+		for _, s := range statuses {
+			statusMap[s.UserId] = s.LastActivityAt
+		}
+	}
+
+	if result := <-Srv.Store.User().GetProfiles(teamId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		profiles := result.Data.(map[string]*model.User)
+
+		for k, p := range profiles {
+			options := utils.Cfg.GetSanitizeOptions()
+			options["passwordupdate"] = false
+
+			if c.IsSystemAdmin() {
+				options["fullname"] = true
+				options["email"] = true
+			} else {
+				p.ClearNonProfileFields()
+			}
+
+			p.Sanitize(options)
+			if lastActivityAt, ok := statusMap[p.Id].(int64); ok {
+				p.LastActivityAt = lastActivityAt
+			}
+			profiles[k] = p
+		}
+
+		w.Write([]byte(model.UserMapToJson(profiles)))
+	}
+
 }
 
 func getStatusesWebSocket(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {

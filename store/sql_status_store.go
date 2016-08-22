@@ -129,6 +129,28 @@ func (s SqlStatusStore) GetOnline() StoreChannel {
 	return storeChannel
 }
 
+func (s SqlStatusStore) GetAllFromTeam(teamId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var statuses []*model.Status
+		if _, err := s.GetReplica().Select(&statuses,
+			`SELECT s.* FROM Status AS s INNER JOIN
+			TeamMembers AS tm ON tm.TeamId=:TeamId AND s.UserId=tm.UserId`, map[string]interface{}{"TeamId": teamId}); err != nil {
+			result.Err = model.NewLocAppError("SqlStatusStore.GetAllFromTeam", "store.sql_status.get_team_statuses.app_error", nil, err.Error())
+		} else {
+			result.Data = statuses
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (s SqlStatusStore) ResetAll() StoreChannel {
 	storeChannel := make(StoreChannel)
 

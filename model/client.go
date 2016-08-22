@@ -1483,6 +1483,19 @@ func (c *Client) SetActiveChannel(channelId string) (*Result, *AppError) {
 	}
 }
 
+// GetTeamStatuses returns a map of users including lastActivityAt using user id as the key
+func (c *Client) GetTeamStatuses(teamId string) (*Result, *AppError) {
+	data := map[string]string{}
+	data["team_id"] = teamId
+	if r, err := c.DoApiPost("/users/team_statuses", MapToJson(data)); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), UserMapFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) GetMyTeam(etag string) (*Result, *AppError) {
 	if r, err := c.DoApiGet(c.GetTeamRoute()+"/me", "", etag); err != nil {
 		return nil, err
