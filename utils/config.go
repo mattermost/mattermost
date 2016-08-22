@@ -168,11 +168,11 @@ func LoadConfig(fileName string) {
 	config.SetDefaults()
 
 	if err := config.IsValid(); err != nil {
-		panic(err.Error())
+		panic(T(err.Id))
 	}
 
 	if err := ValidateLdapFilter(&config); err != nil {
-		panic(err.Error())
+		panic(T(err.Id))
 	}
 
 	configureLog(&config.LogSettings)
