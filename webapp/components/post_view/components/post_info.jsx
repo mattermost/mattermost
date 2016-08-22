@@ -336,6 +336,26 @@ export default class PostInfo extends React.Component {
             flagFunc = this.flagPost;
         }
 
+        let flagTrigger;
+        if (!Utils.isPostEphemeral(post)) {
+            flagTrigger = (
+                <OverlayTrigger
+                    key={'flagtooltipkey' + flagVisible}
+                    delayShow={Constants.OVERLAY_TIME_DELAY}
+                    placement='top'
+                    overlay={flagTooltip}
+                >
+                    <a
+                        href='#'
+                        className={'flag-icon__container ' + flagVisible}
+                        onClick={flagFunc}
+                    >
+                        {flag}
+                    </a>
+                </OverlayTrigger>
+            );
+        }
+
         return (
             <ul className='post__header--info'>
                 <li className='col'>
@@ -345,20 +365,7 @@ export default class PostInfo extends React.Component {
                         compactDisplay={this.props.compactDisplay}
                         useMilitaryTime={this.props.useMilitaryTime}
                     />
-                    <OverlayTrigger
-                        key={'flagtooltipkey' + flagVisible}
-                        delayShow={Constants.OVERLAY_TIME_DELAY}
-                        placement='top'
-                        overlay={flagTooltip}
-                    >
-                        <a
-                            href='#'
-                            className={'flag-icon__container ' + flagVisible}
-                            onClick={flagFunc}
-                        >
-                            {flag}
-                        </a>
-                    </OverlayTrigger>
+                    {flagTrigger}
                 </li>
                 {options}
             </ul>

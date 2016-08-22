@@ -1332,10 +1332,18 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		go Publish(message)
 		go DeletePostFiles(c.TeamId, post)
+		go DeleteFlaggedPost(c.Session.UserId, post)
 
 		result := make(map[string]string)
 		result["id"] = postId
 		w.Write([]byte(model.MapToJson(result)))
+	}
+}
+
+func DeleteFlaggedPost(userId string, post *model.Post) {
+	if result := <-Srv.Store.Preference().Delete(userId, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id); result.Err != nil {
+		l4g.Warn(utils.T("api.post.delete_flagged_post.app_error.warn"), result.Err)
+		return
 	}
 }
 
