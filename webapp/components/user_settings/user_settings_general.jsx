@@ -330,7 +330,7 @@ class UserSettingsGeneralTab extends React.Component {
                     <div className='setting-list__hint text-danger'>
                         <FormattedMessage
                             id='user.settings.general.emailHelp2'
-                            defaultMessage='Email has been disabled by your system administrator. No notification emails will be sent until it is enabled.'
+                            defaultMessage='Email has been disabled by your System Administrator. No notification emails will be sent until it is enabled.'
                         />
                     </div>
                 );
