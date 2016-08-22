@@ -281,11 +281,12 @@ export default class Sidebar extends React.Component {
 
     navigateChannelShortcut(e) {
         if (e.altKey && !e.shiftKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
+            e.preventDefault();
+
             if (this.isSwitchingChannel) {
                 return;
             }
 
-            e.preventDefault();
             this.isSwitchingChannel = true;
             const allChannels = this.getDisplayedChannels();
             const curChannelId = this.state.activeId;
@@ -311,11 +312,12 @@ export default class Sidebar extends React.Component {
 
     navigateUnreadChannelShortcut(e) {
         if (e.altKey && e.shiftKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
+            e.preventDefault();
+
             if (this.isSwitchingChannel) {
                 return;
             }
 
-            e.preventDefault();
             this.isSwitchingChannel = true;
             const allChannels = this.getDisplayedChannels();
             const curChannelId = this.state.activeId;
