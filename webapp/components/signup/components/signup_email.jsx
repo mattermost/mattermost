@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import LoadingScreen from 'components/loading_screen.jsx';
@@ -49,43 +49,41 @@ export default class SignupEmail extends React.Component {
         let serverError = '';
         let noOpenServerError = false;
 
-        if ((inviteId && inviteId.length > 0) || (hash && hash.length > 0)) {
-            if (hash) {
-                const parsedData = JSON.parse(data);
-                email = parsedData.email;
-                teamDisplayName = parsedData.display_name;
-                teamName = parsedData.name;
-                teamId = parsedData.id;
-                loading = false;
-            } else {
-                loading = true;
-                Client.getInviteInfo(
-                    inviteId,
-                    (inviteData) => {
-                        if (!inviteData) {
-                            return;
-                        }
-
-                        serverError = '';
-                        teamDisplayName = inviteData.display_name;
-                        teamName = inviteData.name;
-                        teamId = inviteData.id;
-                    },
-                    () => {
-                        noOpenServerError = true;
-                        serverError = (
-                            <FormattedMessage
-                                id='signup_user_completed.invalid_invite'
-                                defaultMessage='The invite link was invalid.  Please speak with your Administrator to receive an invitation.'
-                            />
-                        );
+        if (hash && hash.length > 0) {
+            const parsedData = JSON.parse(data);
+            email = parsedData.email;
+            teamDisplayName = parsedData.display_name;
+            teamName = parsedData.name;
+            teamId = parsedData.id;
+            loading = false;
+        } else if (inviteId && inviteId.length > 0) {
+            loading = true;
+            Client.getInviteInfo(
+                inviteId,
+                (inviteData) => {
+                    if (!inviteData) {
+                        return;
                     }
-                );
 
-                loading = false;
-                data = null;
-                hash = null;
-            }
+                    serverError = '';
+                    teamDisplayName = inviteData.display_name;
+                    teamName = inviteData.name;
+                    teamId = inviteData.id;
+                },
+                () => {
+                    noOpenServerError = true;
+                    serverError = (
+                        <FormattedMessage
+                            id='signup_user_completed.invalid_invite'
+                            defaultMessage='The invite link was invalid.  Please speak with your Administrator to receive an invitation.'
+                        />
+                    );
+                }
+            );
+
+            loading = false;
+            data = null;
+            hash = null;
         } else {
             loading = false;
         }
