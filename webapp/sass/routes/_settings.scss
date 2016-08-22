@@ -7,6 +7,25 @@
         max-height: 300px;
         max-width: 560px;
     }
+
+    .authorized-app {
+        display: inline-block;
+
+        &:not(:last-child) {
+            border-bottom: 1px solid #ccc;
+            margin-bottom: 10px;
+        }
+
+        .authorized-app__name {
+            font-weight: 600;
+        }
+
+        .authorized-app__description,
+        .authorized-app__homepage,
+        .authorized-app__deauthorize {
+            margin: 5px 0;
+        }
+    }
 }
 
 .modal {

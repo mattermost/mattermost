@@ -1947,5 +1947,9 @@
   "web.footer.terms": "Terms",
   "web.header.back": "Back",
   "web.root.signup_info": "All team communication in one place, searchable and accessible anywhere",
-  "youtube_video.notFound": "Video not found"
+  "youtube_video.notFound": "Video not found",
+  "user.settings.security.deauthorize": "Deauthorize",
+  "user.settings.scurity.noApps": "You haven't authorized an OAuth 2.0 Application yet.",
+  "user.settings.security.oauthApps": "OAuth 2.0 Applications",
+  "user.settings.security.oauthAppsDescription": "Click 'Edit' to manage your OAuth 2.0 Applications"
 }
