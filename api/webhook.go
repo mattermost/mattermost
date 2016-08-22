@@ -480,6 +480,7 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewLocAppError("incomingWebhook", "web.incoming_webhook.permissions.app_error", nil, "")
 		return
 	}
+	c.Err = nil
 
 	if _, err := CreateWebhookPost(hook.UserId, channel.Id, hook.TeamId, text, overrideUsername, overrideIconUrl, parsedRequest.Props, webhookType); err != nil {
 		c.Err = err
