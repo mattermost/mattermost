@@ -63,11 +63,11 @@ class MattermostMarkdownRenderer extends marked.Renderer {
         const content = SyntaxHighlighting.highlight(usedLanguage, code);
         let searchedContent = '';
 
-        if (this.formattingOptions.searchTerm) {
+        if (this.formattingOptions.searchPatterns) {
             const tokens = new Map();
 
             let searched = TextFormatting.sanitizeHtml(code);
-            searched = TextFormatting.highlightSearchTerms(searched, tokens, this.formattingOptions.searchTerm);
+            searched = TextFormatting.highlightSearchTerms(searched, tokens, this.formattingOptions.searchPatterns);
 
             if (tokens.size > 0) {
                 searched = TextFormatting.replaceTokens(searched, tokens);
@@ -94,9 +94,9 @@ class MattermostMarkdownRenderer extends marked.Renderer {
     codespan(text) {
         let output = text;
 
-        if (this.formattingOptions.searchTerm) {
+        if (this.formattingOptions.searchPatterns) {
             const tokens = new Map();
-            output = TextFormatting.highlightSearchTerms(output, tokens, this.formattingOptions.searchTerm);
+            output = TextFormatting.highlightSearchTerms(output, tokens, this.formattingOptions.searchPatterns);
             output = TextFormatting.replaceTokens(output, tokens);
         }
 
@@ -149,7 +149,18 @@ class MattermostMarkdownRenderer extends marked.Renderer {
             outHref = `http://${outHref}`;
         }
 
-        let output = '<a class="theme markdown__link" href="' + outHref + '" rel="noreferrer"';
+        let output = '<a class="theme markdown__link';
+
+        if (this.formattingOptions.searchPatterns) {
+            for (const pattern of this.formattingOptions.searchPatterns) {
+                if (pattern.test(href)) {
+                    output += ' search-highlight';
+                    break;
+                }
+            }
+        }
+
+        output += '" href="' + outHref + '" rel="noreferrer"';
 
         // special case for channel links and permalinks that are inside the app
         if (new RegExp('^' + TextFormatting.escapeRegex(global.mm_config.SiteURL) + '\\/[^\\/]+\\/(pl|channels)\\/').test(outHref)) {
@@ -201,7 +212,7 @@ class MattermostMarkdownRenderer extends marked.Renderer {
     }
 }
 
-export function format(text, options) {
+export function format(text, options = {}) {
     const markdownOptions = {
         renderer: new MattermostMarkdownRenderer(null, options),
         sanitize: true,

@@ -25,13 +25,16 @@ const cjkPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-
 // - singleline - Specifies whether or not to remove newlines. Defaults to false.
 // - emoticons - Enables emoticon parsing. Defaults to true.
 // - markdown - Enables markdown parsing. Defaults to true.
-export function formatText(text, options = {}) {
+export function formatText(text, inputOptions) {
     let output = text;
 
     // would probably make more sense if it was on the calling components, but this option is intended primarily for debugging
     if (window.mm_config.EnableDeveloper === 'true' && PreferenceStore.get(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', 'true') === 'false') {
         return output;
     }
+
+    const options = Object.assign({}, inputOptions);
+    options.searchPatterns = parseSearchTerms(options.searchTerm).map(convertSearchTermToRegex);
 
     if (!('markdown' in options) || options.markdown) {
         // the markdown renderer will call doFormatText as necessary
@@ -66,8 +69,8 @@ export function doFormatText(text, options) {
         output = Emoticons.handleEmoticons(output, tokens, options.emojis || EmojiStore.getEmojis());
     }
 
-    if (options.searchTerm) {
-        output = highlightSearchTerms(output, tokens, options.searchTerm);
+    if (options.searchPatterns) {
+        output = highlightSearchTerms(output, tokens, options.searchPatterns);
     }
 
     if (!('mentionHighlight' in options) || options.mentionHighlight) {
@@ -369,10 +372,8 @@ function convertSearchTermToRegex(term) {
     return new RegExp(pattern, 'gi');
 }
 
-export function highlightSearchTerms(text, tokens, searchTerm) {
-    const terms = parseSearchTerms(searchTerm);
-
-    if (terms.length === 0) {
+export function highlightSearchTerms(text, tokens, searchPatterns) {
+    if (!searchPatterns || searchPatterns.length === 0) {
         return text;
     }
 
@@ -390,13 +391,11 @@ export function highlightSearchTerms(text, tokens, searchTerm) {
         return prefix + alias;
     }
 
-    for (const term of terms) {
+    for (const pattern of searchPatterns) {
         // highlight existing tokens matching search terms
-        const trimmedTerm = term.replace(/\*$/, '').toLowerCase();
         var newTokens = new Map();
         for (const [alias, token] of tokens) {
-            if (token.originalText.toLowerCase() === trimmedTerm ||
-                (token.hashtag && token.hashtag.toLowerCase() === trimmedTerm)) {
+            if (pattern.test(token.originalText)) {
                 const index = tokens.size + newTokens.size;
                 const newAlias = `MM_SEARCHTERM${index}`;
 
@@ -414,7 +413,7 @@ export function highlightSearchTerms(text, tokens, searchTerm) {
             tokens.set(newToken[0], newToken[1]);
         }
 
-        output = output.replace(convertSearchTermToRegex(term), replaceSearchTermWithToken);
+        output = output.replace(pattern, replaceSearchTermWithToken);
     }
 
     return output;
