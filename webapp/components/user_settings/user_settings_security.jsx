@@ -55,13 +55,13 @@ export default class SecurityTab extends React.Component {
         };
     }
 
-    componentWillMount() {
+    componentDidMount() {
         Client.getAuthorizedApps(
             (authorizedApps) => {
-                this.setState({authorizedApps, serverError: null});
+                this.setState({authorizedApps, serverError: null}); //eslint-disable-line react/no-did-mount-set-state
             },
             (err) => {
-                this.setState({serverError: err.message});
+                this.setState({serverError: err.message}); //eslint-disable-line react/no-did-mount-set-state
             });
     }
 

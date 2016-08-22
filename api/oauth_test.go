@@ -263,7 +263,7 @@ func TestDeauthorizeApp(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := Client.OAuthDeAuthorizeApp(app.Id); err != nil {
+	if err := Client.OAuthDeauthorizeApp(app.Id); err != nil {
 		t.Fatal(err)
 	}
 

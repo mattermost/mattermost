@@ -1544,9 +1544,9 @@ func (c *Client) GetOAuthAuthorizedApps() (*Result, *AppError) {
 	}
 }
 
-// OAuthDeAuthorizeApp deauthorize a user an OAuth 2.0 app. On success
+// OAuthDeauthorizeApp deauthorize a user an OAuth 2.0 app. On success
 // it returns status OK or an AppError on fail.
-func (c *Client) OAuthDeAuthorizeApp(clientId string) *AppError {
+func (c *Client) OAuthDeauthorizeApp(clientId string) *AppError {
 	if r, err := c.DoApiPost("/oauth/"+clientId+"/deauthorize", ""); err != nil {
 		return err
 	} else {
