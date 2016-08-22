@@ -485,13 +485,11 @@
 
 
 .status-wrapper {
-    display: inline-block;
-    margin-right: 9%;
     position: relative;
 
     &:after {
         border-radius: 100%;
-        bottom: 7%;
+        bottom: 4px;
         content: '';
         display: block;
         height: 8px;
@@ -517,6 +515,12 @@
 
         .more-modal__row {
             padding: 5px 10px;
+
+            .status-wrapper {
+                &:after {
+                    bottom: 0;
+                }
+            }
         }
 
         .more-modal__name {
