@@ -35,7 +35,7 @@ class CommandSuggestion extends Suggestion {
 export default class CommandProvider {
     handlePretextChanged(suggestionId, pretext) {
         if (pretext.startsWith('/')) {
-            AsyncClient.getSuggestedCommands(pretext, suggestionId, CommandSuggestion, pretext);
+            AsyncClient.getSuggestedCommands(pretext.toLowerCase(), suggestionId, CommandSuggestion, pretext.toLowerCase());
         }
     }
 }
