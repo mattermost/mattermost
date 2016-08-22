@@ -37,3 +37,24 @@ body {
         margin: 0 !important;
     }
 }
+
+
+.ps-container {
+    &:hover {
+        .ps-scrollbar-x-rail,
+        .ps-scrollbar-y-rail {
+            @include opacity(.3);
+        }
+    }
+
+    > .ps-scrollbar-y-rail {
+        width: 10px;
+
+        &:hover {
+            .ps-scrollbar-y {
+                @include opacity(.6);
+                width: 6px;
+            }
+        }
+    }
+}
