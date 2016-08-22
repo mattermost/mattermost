@@ -4,8 +4,10 @@
 package api
 
 import (
-	"github.com/mattermost/platform/model"
+	"bytes"
 	"strings"
+
+	"github.com/mattermost/platform/model"
 )
 
 type ShortcutsProvider struct {
@@ -34,11 +36,23 @@ func (me *ShortcutsProvider) GetCommand(c *Context) *model.Command {
 }
 
 func (me *ShortcutsProvider) DoCommand(c *Context, channelId string, message string) *model.CommandResponse {
-	stringId := "api.command_shortcuts.list"
-
-	if strings.Contains(message, "mac") {
-		stringId = "api.command_shortcuts.list_mac"
+	shortcutIds := [4]string{
+		"api.command_shortcuts.nav",
+		"api.command_shortcuts.files",
+		"api.command_shortcuts.msgs",
+		"api.command_shortcuts.browser",
 	}
 
-	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: c.T(stringId)}
+	var buffer bytes.Buffer
+	if strings.Contains(message, "mac") {
+		for _, element := range shortcutIds {
+			buffer.WriteString(c.T(element + "_mac"))
+		}
+	} else {
+		for _, element := range shortcutIds {
+			buffer.WriteString(c.T(element))
+		}
+	}
+
+	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: buffer.String()}
 }

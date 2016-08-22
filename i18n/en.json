@@ -560,12 +560,36 @@
     "translation": "Displays a list of keyboard shortcuts"
   },
   {
-    "id": "api.command_shortcuts.list",
-    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in left hand sidebar\nALT+DOWN: Next channel or direct message in left hand sidebar\nALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\nCTRL+K: Open a quick channel switcher dialog\nCTRL+SHIFT+A: Open account settings\nCTRL+SHIFT+M: Open recent mentions\n\n#### Files\n\nCTRL+U: Upload file(s)\n\n#### Messages\n\nESC: Mark all messages in the current channel as read\nCTRL+UP (in empty input field): Reprint the previous message or slash command you entered\nCTRL+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n#### Built-in Browser Commands\n\nALT+LEFT: Previous channel in your history\nALT+RIGHT: Next channel in your history\nCTRL+PLUS: Increase font size (zoom in)\nCTRL+MINUS: Decrease font size (zoom out)\nSHIFT+UP (in input field): Highlight text to the previous line\nSHIFT+DOWN (in input field): Highlight text to the next line\nSHIFT+ENTER (in input field): Create a new line\n"
+    "id": "api.command_shortcuts.nav",
+    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in left hand sidebar\nALT+DOWN: Next channel or direct message in left hand sidebar\nALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\nCTRL+K: Open a quick channel switcher dialog\nCTRL+SHIFT+A: Open account settings\nCTRL+SHIFT+M: Open recent mentions\n\n"
   },
   {
-    "id": "api.command_shortcuts.list_mac",
-    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in left hand sidebar\nALT+DOWN: Next channel or direct message in left hand sidebar\nALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\nCMD+K: Open a quick channel switcher dialog\nCMD+SHIFT+A: Open account settings\nCMD+SHIFT+M: Open recent mentions\n\n#### Files\n\nCMD+U: Upload file(s)\n\n#### Messages\n\nESC: Mark all messages in the current channel as read\nCMD+UP (in empty input field): Reprint the previous message or slash command you entered\nCMD+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n#### Built-in Browser Commands\n\nCMD+[: Previous channel in your history\nCMD+]: Next channel in your history\nCMD+PLUS: Increase font size (zoom in)\nCMD+MINUS: Decrease font size (zoom out)\nSHIFT+UP (in input field): Highlight text to the previous line\nSHIFT+DOWN (in input field): Highlight text to the next line\nSHIFT+ENTER (in input field): Create a new line\n"
+    "id": "api.command_shortcuts.files",
+    "translation": "#### Files\n\nCTRL+U: Upload file(s)\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs",
+    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCTRL+UP (in empty input field): Reprint the previous message or slash command you entered\nCTRL+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser",
+    "translation": "#### Built-in Browser Commands\n\nALT+LEFT: Previous channel in your history\nALT+RIGHT: Next channel in your history\nCTRL+PLUS: Increase font size (zoom in)\nCTRL+MINUS: Decrease font size (zoom out)\nSHIFT+UP (in input field): Highlight text to the previous line\nSHIFT+DOWN (in input field): Highlight text to the next line\nSHIFT+ENTER (in input field): Create a new line\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav_mac",
+    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in left hand sidebar\nALT+DOWN: Next channel or direct message in left hand sidebar\nALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\nCMD+K: Open a quick channel switcher dialog\nCMD+SHIFT+A: Open account settings\nCMD+SHIFT+M: Open recent mentions\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.files_mac",
+    "translation": "#### Files\n\nCMD+U: Upload file(s)\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs_mac",
+    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCMD+UP (in empty input field): Reprint the previous message or slash command you entered\nCMD+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser_mac",
+    "translation": "#### Built-in Browser Commands\n\nCMD+[: Previous channel in your history\nCMD+]: Next channel in your history\nCMD+PLUS: Increase font size (zoom in)\nCMD+MINUS: Decrease font size (zoom out)\nSHIFT+UP (in input field): Highlight text to the previous line\nSHIFT+DOWN (in input field): Highlight text to the next line\nSHIFT+ENTER (in input field): Create a new line\n"
   },
   {
     "id": "api.command_shortcuts.name",
