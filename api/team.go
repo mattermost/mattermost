@@ -17,6 +17,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 )
 
@@ -410,8 +411,17 @@ func GetAllTeamListings(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Gets all teams which the current user can has access to. If the user is a System Admin, this will be all teams
+// on the server. Otherwise, it will only be the teams of which the user is a member.
 func getAll(c *Context, w http.ResponseWriter, r *http.Request) {
-	if result := <-Srv.Store.Team().GetAll(); result.Err != nil {
+	var tchan store.StoreChannel
+	if c.IsSystemAdmin() {
+		tchan = Srv.Store.Team().GetAll()
+	} else {
+		tchan = Srv.Store.Team().GetTeamsByUserId(c.Session.UserId)
+	}
+
+	if result := <-tchan; result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -419,9 +429,6 @@ func getAll(c *Context, w http.ResponseWriter, r *http.Request) {
 		m := make(map[string]*model.Team)
 		for _, v := range teams {
 			m[v.Id] = v
-			if !c.IsSystemAdmin() {
-				m[v.Id].SanitizeForNotLoggedIn()
-			}
 		}
 
 		w.Write([]byte(model.TeamMapToJson(m)))
