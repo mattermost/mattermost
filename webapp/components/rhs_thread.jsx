@@ -55,6 +55,7 @@ export default class RhsThread extends React.Component {
         this.onUserChange = this.onUserChange.bind(this);
         this.forceUpdateInfo = this.forceUpdateInfo.bind(this);
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
+        this.onStatusChange = this.onStatusChange.bind(this);
         this.handleResize = this.handleResize.bind(this);
 
         const state = this.getPosts();
@@ -63,6 +64,7 @@ export default class RhsThread extends React.Component {
         state.profiles = JSON.parse(JSON.stringify(UserStore.getProfiles()));
         state.compactDisplay = PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT;
         state.flaggedPosts = PreferenceStore.getCategory(Constants.Preferences.CATEGORY_FLAGGED_POST);
+        state.statuses = Object.assign({}, UserStore.getStatuses());
 
         this.state = state;
     }
@@ -72,6 +74,7 @@ export default class RhsThread extends React.Component {
         PostStore.addChangeListener(this.onPostChange);
         PreferenceStore.addChangeListener(this.onPreferenceChange);
         UserStore.addChangeListener(this.onUserChange);
+        UserStore.addStatusesChangeListener(this.onStatusChange);
 
         this.scrollToBottom();
         window.addEventListener('resize', this.handleResize);
@@ -84,6 +87,7 @@ export default class RhsThread extends React.Component {
         PostStore.removeChangeListener(this.onPostChange);
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
         UserStore.removeChangeListener(this.onUserChange);
+        UserStore.removeStatusesChangeListener(this.onStatusChange);
 
         window.removeEventListener('resize', this.handleResize);
 
@@ -106,6 +110,10 @@ export default class RhsThread extends React.Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
+        if (!Utils.areObjectsEqual(nextState.statuses, this.state.statuses)) {
+            return true;
+        }
+
         if (!Utils.areObjectsEqual(nextState.postsArray, this.state.postsArray)) {
             return true;
         }
@@ -166,6 +174,10 @@ export default class RhsThread extends React.Component {
         if (this.mounted) {
             this.setState(this.getPosts());
         }
+    }
+
+    onStatusChange() {
+        this.setState({statuses: Object.assign({}, UserStore.getStatuses())});
     }
 
     getPosts() {
@@ -251,6 +263,11 @@ export default class RhsThread extends React.Component {
             isRootFlagged = this.state.flaggedPosts.get(selected.id) === 'true';
         }
 
+        let rootStatus = 'offline';
+        if (this.state.statuses) {
+            rootStatus = this.state.statuses[profile.id] || 'offline';
+        }
+
         return (
             <div className='post-right__container'>
                 <FileUploadOverlay overlayType='right'/>
@@ -281,6 +298,7 @@ export default class RhsThread extends React.Component {
                                 compactDisplay={this.state.compactDisplay}
                                 useMilitaryTime={this.props.useMilitaryTime}
                                 isFlagged={isRootFlagged}
+                                status={rootStatus}
                             />
                             <div className='post-right-comments-container'>
                                 {postsArray.map((comPost) => {
@@ -295,6 +313,12 @@ export default class RhsThread extends React.Component {
                                     if (this.state.flaggedPosts) {
                                         isFlagged = this.state.flaggedPosts.get(comPost.id) === 'true';
                                     }
+
+                                    let status = 'offline';
+                                    if (this.state.statuses) {
+                                        status = this.state.statuses[p.id] || 'offline';
+                                    }
+
                                     return (
                                         <Comment
                                             ref={comPost.id}
@@ -305,6 +329,7 @@ export default class RhsThread extends React.Component {
                                             compactDisplay={this.state.compactDisplay}
                                             useMilitaryTime={this.props.useMilitaryTime}
                                             isFlagged={isFlagged}
+                                            status={status}
                                         />
                                     );
                                 })}

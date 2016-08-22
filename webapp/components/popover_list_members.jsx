@@ -16,7 +16,6 @@ import {Popover, Overlay} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
 
-
 export default class PopoverListMembers extends React.Component {
     constructor(props) {
         super(props);
