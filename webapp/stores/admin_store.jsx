@@ -140,7 +140,7 @@ class AdminStoreClass extends EventEmitter {
     }
 
     getSelectedTeams() {
-        const result = BrowserStore.getItem('seleted_teams');
+        const result = BrowserStore.getItem('selected_teams');
         if (!result) {
             return {};
         }
@@ -148,7 +148,7 @@ class AdminStoreClass extends EventEmitter {
     }
 
     saveSelectedTeams(teams) {
-        BrowserStore.setItem('seleted_teams', teams);
+        BrowserStore.setItem('selected_teams', teams);
     }
 }
 

@@ -145,6 +145,7 @@ class BrowserStoreClass {
         const logoutId = sessionStorage.getItem('__logout__');
         const serverVersion = this.getLastServerVersion();
         const landingPageSeen = this.hasSeenLandingPage();
+        const selectedTeams = this.getItem('selected_teams');
 
         sessionStorage.clear();
         localStorage.clear();
@@ -159,6 +160,10 @@ class BrowserStoreClass {
 
         if (landingPageSeen) {
             this.setLandingPageSeen(landingPageSeen);
+        }
+
+        if (selectedTeams) {
+            this.setItem('selected_teams', selectedTeams);
         }
     }
 
