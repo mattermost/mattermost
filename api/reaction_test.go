@@ -35,8 +35,8 @@ func TestSaveReaction(t *testing.T) {
 	}
 
 	// saving a duplicate reaction
-	if err := Client.SaveReaction(channel.Id, &reaction); err == nil {
-		t.Fatal("should've failed to save a duplicate reaction")
+	if err := Client.SaveReaction(channel.Id, &reaction); err != nil {
+		t.Fatal(err)
 	}
 
 	// saving a second reaction on a post
