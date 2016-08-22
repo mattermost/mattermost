@@ -33,8 +33,6 @@ export default class SignupController extends React.Component {
         if (window.location.query) {
             loading = true;
             const hash = window.location.query.h;
-            const data = window.location.query.d;
-            const inviteId = window.location.query.id;
 
             if (hash && hash.length > 0 && !UserStore.getCurrentUser()) {
                 usedBefore = BrowserStore.getGlobalItem(hash);
@@ -81,7 +79,7 @@ export default class SignupController extends React.Component {
                             );
                         },
                         (err) => {
-                            this.setState({
+                            this.setState({ // eslint-disable-line react/no-did-mount-set-state
                                 serverError: err.message
                             });
                         }
@@ -94,13 +92,13 @@ export default class SignupController extends React.Component {
                                 return;
                             }
 
-                            this.setState({
+                            this.setState({ // eslint-disable-line react/no-did-mount-set-state
                                 serverError: '',
                                 loading: false
                             });
                         },
                         () => {
-                            this.setState({
+                            this.setState({ // eslint-disable-line react/no-did-mount-set-state
                                 noOpenServerError: true,
                                 loading: false,
                                 serverError: (
