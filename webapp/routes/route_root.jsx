@@ -66,7 +66,19 @@ export default {
                         {
                             path: 'signup_user_complete',
                             getComponents: (location, callback) => {
-                                System.import('components/signup_user_complete.jsx').then(RouteUtils.importComponentSuccess(callback));
+                                System.import('components/signup/signup_controller.jsx').then(RouteUtils.importComponentSuccess(callback));
+                            }
+                        },
+                        {
+                            path: 'signup_email',
+                            getComponents: (location, callback) => {
+                                System.import('components/signup/components/signup_email.jsx').then(RouteUtils.importComponentSuccess(callback));
+                            }
+                        },
+                        {
+                            path: 'signup_ldap',
+                            getComponents: (location, callback) => {
+                                System.import('components/signup/components/signup_ldap.jsx').then(RouteUtils.importComponentSuccess(callback));
                             }
                         },
                         {
