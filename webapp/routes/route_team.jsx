@@ -78,6 +78,7 @@ function preNeedsTeam(nextState, replace, callback) {
 
     var d1 = $.Deferred(); //eslint-disable-line new-cap
     var d2 = $.Deferred(); //eslint-disable-line new-cap
+    var d3 = $.Deferred(); //eslint-disable-line new-cap
 
     Client.getChannels(
         (data) => {
@@ -110,7 +111,23 @@ function preNeedsTeam(nextState, replace, callback) {
         }
     );
 
-    $.when(d1, d2).done(() => {
+    Client.getTeamMembers(
+        TeamStore.getCurrentId(),
+        (data) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_MEMBERS_FOR_TEAM,
+                team_members: data
+            });
+
+            d3.resolve();
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'getTeamMembers');
+            d3.resolve();
+        }
+    );
+
+    $.when(d1, d2, d3).done(() => {
         callback();
     });
 }
