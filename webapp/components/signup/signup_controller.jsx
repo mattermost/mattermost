@@ -25,10 +25,42 @@ export default class SignupController extends React.Component {
 
         this.renderSignupControls = this.renderSignupControls.bind(this);
 
-        let loading = true;
+        let loading = false;
         let serverError = '';
         let noOpenServerError = false;
         let usedBefore = false;
+
+        if (window.location.query) {
+            loading = true;
+            const hash = window.location.query.h;
+            const data = window.location.query.d;
+            const inviteId = window.location.query.id;
+
+            if (hash && hash.length > 0 && !UserStore.getCurrentUser()) {
+                usedBefore = BrowserStore.getGlobalItem(hash);
+                loading = false;
+            } else if (global.window.mm_config.EnableOpenServer !== 'true' && !UserStore.getNoAccounts()) {
+                noOpenServerError = true;
+                loading = false;
+                serverError = (
+                    <FormattedMessage
+                        id='signup_user_completed.no_open_server'
+                        defaultMessage='This server does not allow open signups.  Please speak with your Administrator to receive an invitation.'
+                    />
+                );
+            }
+        }
+
+        this.state = {
+            loading,
+            serverError,
+            noOpenServerError,
+            usedBefore
+        };
+    }
+
+    componentDidMount() {
+        AsyncClient.checkVersion();
 
         if (window.location.query) {
             const hash = window.location.query.h;
@@ -49,13 +81,12 @@ export default class SignupController extends React.Component {
                             );
                         },
                         (err) => {
-                            serverError = err.message;
+                            this.setState({
+                                serverError: err.message
+                            });
                         }
                     );
-                } else if (hash) {
-                    usedBefore = BrowserStore.getGlobalItem(hash);
-                    loading = false;
-                } else {
+                } else if (!this.state.usedBefore) {
                     Client.getInviteInfo(
                         inviteId,
                         (inviteData) => {
@@ -63,47 +94,29 @@ export default class SignupController extends React.Component {
                                 return;
                             }
 
-                            serverError = '';
-                            loading = false;
+                            this.setState({
+                                serverError: '',
+                                loading: false
+                            });
                         },
                         () => {
-                            noOpenServerError = true;
-                            loading = false;
-                            serverError = (
-                                <FormattedMessage
-                                    id='signup_user_completed.invalid_invite'
-                                    defaultMessage='The invite link was invalid.  Please speak with your Administrator to receive an invitation.'
-                                />
-                            );
+                            this.setState({
+                                noOpenServerError: true,
+                                loading: false,
+                                serverError: (
+                                    <FormattedMessage
+                                        id='signup_user_completed.invalid_invite'
+                                        defaultMessage='The invite link was invalid.  Please speak with your Administrator to receive an invitation.'
+                                    />
+                                )
+                            });
                         }
                     );
                 }
             } else if (UserStore.getCurrentUser()) {
                 browserHistory.push('/select_team');
-            } else if (global.window.mm_config.EnableOpenServer !== 'true' && !UserStore.getNoAccounts()) {
-                noOpenServerError = true;
-                loading = false;
-                serverError = (
-                    <FormattedMessage
-                        id='signup_user_completed.no_open_server'
-                        defaultMessage='This server does not allow open signups.  Please speak with your Administrator to receive an invitation.'
-                    />
-                );
             }
-        } else {
-            loading = false;
         }
-
-        this.state = {
-            loading,
-            serverError,
-            noOpenServerError,
-            usedBefore
-        };
-    }
-
-    componentDidMount() {
-        AsyncClient.checkVersion();
     }
 
     renderSignupControls() {
