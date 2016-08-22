@@ -163,7 +163,7 @@ class BrowserStoreClass {
     }
 
     isLocalStorageSupported() {
-        if (this.checkedLocalStorageSupported !== '') {
+        if (this.checkedLocalStorageSupported !== undefined) { // eslint-disable-line no-undefined
             return this.checkedLocalStorageSupported;
         }
 
