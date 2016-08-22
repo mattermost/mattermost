@@ -30,9 +30,9 @@ export default class SignupController extends React.Component {
         let noOpenServerError = false;
         let usedBefore = false;
 
-        if (window.location.query) {
+        if (props.location.query) {
             loading = true;
-            const hash = window.location.query.h;
+            const hash = props.location.query.h;
 
             if (hash && hash.length > 0 && !UserStore.getCurrentUser()) {
                 usedBefore = BrowserStore.getGlobalItem(hash);
@@ -60,10 +60,10 @@ export default class SignupController extends React.Component {
     componentDidMount() {
         AsyncClient.checkVersion();
 
-        if (window.location.query) {
-            const hash = window.location.query.h;
-            const data = window.location.query.d;
-            const inviteId = window.location.query.id;
+        if (this.props.location.query) {
+            const hash = this.props.location.query.h;
+            const data = this.props.location.query.d;
+            const inviteId = this.props.location.query.id;
 
             if ((inviteId && inviteId.length > 0) || (hash && hash.length > 0)) {
                 if (UserStore.getCurrentUser()) {
@@ -113,6 +113,10 @@ export default class SignupController extends React.Component {
                 }
             } else if (UserStore.getCurrentUser()) {
                 browserHistory.push('/select_team');
+            } else {
+                this.setState({ // eslint-disable-line react/no-did-mount-set-state
+                    loading: false
+                });
             }
         }
     }
@@ -323,3 +327,7 @@ export default class SignupController extends React.Component {
         );
     }
 }
+
+SignupController.propTypes = {
+    location: React.PropTypes.object
+};
