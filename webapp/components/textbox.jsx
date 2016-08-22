@@ -212,7 +212,7 @@ export default class Textbox extends React.Component {
                     <a
                         target='_blank'
                         rel='noopener noreferrer'
-                        href='http://docs.mattermost.com/help/getting-started/messaging-basics.html'
+                        href='/help/messaging'
                         className='textbox-help-link'
                     >
                         <FormattedMessage

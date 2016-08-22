@@ -3,6 +3,7 @@
 
 import PostHeader from './post_header.jsx';
 import PostBody from './post_body.jsx';
+import ProfilePicture from 'components/profile_picture.jsx';
 
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
@@ -105,11 +106,11 @@ export default class Post extends React.Component {
             return true;
         }
 
-        if (!Utils.areObjectsEqual(nextProps.user, this.props.user)) {
+        if (nextProps.status !== this.props.status) {
             return true;
         }
 
-        if (nextProps.emojis !== this.props.emojis) {
+        if (!Utils.areObjectsEqual(nextProps.user, this.props.user)) {
             return true;
         }
 
@@ -192,10 +193,9 @@ export default class Post extends React.Component {
         }
 
         let profilePic = (
-            <img
+            <ProfilePicture
                 src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
-                height='36'
-                width='36'
+                status={this.props.status}
             />
         );
 
@@ -288,5 +288,6 @@ Post.propTypes = {
     isCommentMention: React.PropTypes.bool,
     useMilitaryTime: React.PropTypes.bool.isRequired,
     emojis: React.PropTypes.object.isRequired,
-    isFlagged: React.PropTypes.bool
+    isFlagged: React.PropTypes.bool,
+    status: React.PropTypes.string
 };

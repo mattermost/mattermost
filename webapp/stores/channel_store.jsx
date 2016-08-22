@@ -325,7 +325,7 @@ class ChannelStoreClass extends EventEmitter {
         const chMember = this.getMember(id);
 
         let chMentionCount = chMember.mention_count;
-        let chUnreadCount = ch.total_msg_count - chMember.msg_count - chMentionCount;
+        let chUnreadCount = ch.total_msg_count - chMember.msg_count;
 
         if (ch.type === 'D') {
             chMentionCount = chUnreadCount;

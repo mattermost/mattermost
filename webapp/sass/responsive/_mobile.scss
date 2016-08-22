@@ -393,7 +393,7 @@
                     padding: 5px;
                 }
 
-                .image-wrapper {
+                .modal-image__wrapper {
                     > div {
                         font-size: 12px;
                         min-width: 250px;
@@ -406,6 +406,7 @@
 
                 .modal-button-bar {
                     @include opacity(1);
+                    padding-right: 10px;
                 }
             }
 

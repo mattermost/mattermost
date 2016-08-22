@@ -156,6 +156,10 @@ func reloadConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.LoadConfig(utils.CfgFileName)
+
+	// start/restart email batching job if necessary
+	InitEmailBatching()
+
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	ReturnStatusOK(w)
 }
@@ -203,6 +207,9 @@ func saveConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	// 		return
 	// 	}
 	// }
+
+	// start/restart email batching job if necessary
+	InitEmailBatching()
 
 	rdata := map[string]string{}
 	rdata["status"] = "OK"

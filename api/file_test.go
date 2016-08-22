@@ -290,15 +290,7 @@ func TestGetPublicFile(t *testing.T) {
 	}
 
 	if resp, err := http.Get(link[:strings.LastIndex(link, "?")]); err == nil && resp.StatusCode != http.StatusBadRequest {
-		t.Fatal("should've failed to get image with public link while logged in without query params", resp.Status)
-	}
-
-	if resp, err := http.Get(link[:strings.LastIndex(link, "&")]); err == nil && resp.StatusCode != http.StatusBadRequest {
-		t.Fatal("should've failed to get image with public link while logged in without second query param")
-	}
-
-	if resp, err := http.Get(link[:strings.LastIndex(link, "?")] + "?" + link[strings.LastIndex(link, "&"):]); err == nil && resp.StatusCode != http.StatusBadRequest {
-		t.Fatal("should've failed to get image with public link while logged in without first query param")
+		t.Fatal("should've failed to get image with public link while logged in without hash", resp.Status)
 	}
 
 	utils.Cfg.FileSettings.EnablePublicLink = false
@@ -316,15 +308,7 @@ func TestGetPublicFile(t *testing.T) {
 	}
 
 	if resp, err := http.Get(link[:strings.LastIndex(link, "?")]); err == nil && resp.StatusCode != http.StatusBadRequest {
-		t.Fatal("should've failed to get image with public link while not logged in without query params")
-	}
-
-	if resp, err := http.Get(link[:strings.LastIndex(link, "&")]); err == nil && resp.StatusCode != http.StatusBadRequest {
-		t.Fatal("should've failed to get image with public link while not logged in without second query param")
-	}
-
-	if resp, err := http.Get(link[:strings.LastIndex(link, "?")] + "?" + link[strings.LastIndex(link, "&"):]); err == nil && resp.StatusCode != http.StatusBadRequest {
-		t.Fatal("should've failed to get image with public link while not logged in without first query param")
+		t.Fatal("should've failed to get image with public link while not logged in without hash")
 	}
 
 	utils.Cfg.FileSettings.EnablePublicLink = false
@@ -335,7 +319,7 @@ func TestGetPublicFile(t *testing.T) {
 	utils.Cfg.FileSettings.EnablePublicLink = true
 
 	// test a user that's logged in after the salt has changed
-	utils.Cfg.FileSettings.PublicLinkSalt = model.NewId()
+	*utils.Cfg.FileSettings.PublicLinkSalt = model.NewId()
 
 	th.LoginBasic()
 	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusBadRequest {
@@ -405,6 +389,29 @@ func TestGetPublicLink(t *testing.T) {
 
 	if err := cleanupTestFile(filenames[0], th.BasicTeam.Id, channel.Id, th.BasicUser.Id); err != nil {
 		t.Fatal("failed to cleanup test file", err)
+	}
+}
+
+func TestGeneratePublicLinkHash(t *testing.T) {
+	filename1 := model.NewId() + "/" + model.NewRandomString(16) + ".txt"
+	filename2 := model.NewId() + "/" + model.NewRandomString(16) + ".txt"
+	salt1 := model.NewRandomString(32)
+	salt2 := model.NewRandomString(32)
+
+	hash1 := generatePublicLinkHash(filename1, salt1)
+	hash2 := generatePublicLinkHash(filename2, salt1)
+	hash3 := generatePublicLinkHash(filename1, salt2)
+
+	if hash1 != generatePublicLinkHash(filename1, salt1) {
+		t.Fatal("hash should be equal for the same file name and salt")
+	}
+
+	if hash1 == hash2 {
+		t.Fatal("hashes for different files should not be equal")
+	}
+
+	if hash1 == hash3 {
+		t.Fatal("hashes for the same file with different salts should not be equal")
 	}
 }
 

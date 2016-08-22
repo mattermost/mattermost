@@ -1,0 +1,30 @@
+{{define "post_batched_post"}}
+
+<table style="border-top: 1px solid #ddd; padding: 20px 0; width: 100%">
+    <tr>
+        <td style="text-align: left">
+            <span style="font-size: 16px; font-weight: bold; color: #555;" >
+                {{.Props.ChannelName}}
+            </span>
+            <br/>
+            <span style="font-weight: bold">
+                @{{.Props.SenderName}}
+            </span>
+            <span style="color: #AAA; font-size: 12px; margin-left: 2px;">
+                {{.Props.Date}}
+            </span>
+        </td>
+        <td valign="top" style="width: 120px; padding-top: 3px;">
+            <a href="{{.Props.PostLink}}" style="background: #2389D7; display: inline-block; border-radius: 2px; color: #fff; padding: 4px 0; width: 120px; text-decoration: none;">
+                {{.Props.Button}}
+            </a>
+        </td>
+    </tr>
+    <tr>
+        <td colspan=2>
+            <pre style="text-align:left; font-family: 'Lato', sans-serif; margin: 0px; white-space: pre-wrap; white-space: -moz-pre-wrap; white-space: -pre-wrap; white-space: -o-pre-wrap; word-wrap: break-word; line-height: 20px;">{{.Props.PostMessage}}</pre>
+        </td>
+    </tr>
+</table>
+
+{{end}}

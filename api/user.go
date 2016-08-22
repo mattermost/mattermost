@@ -2321,9 +2321,9 @@ func resendVerification(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		if _, err := GetStatus(user.Id); err != nil {
-			go SendEmailChangeVerifyEmail(c, user.Id, user.Email, c.GetSiteURL())
-		} else {
 			go SendVerifyEmail(c, user.Id, user.Email, c.GetSiteURL())
+		} else {
+			go SendEmailChangeVerifyEmail(c, user.Id, user.Email, c.GetSiteURL())
 		}
 	}
 }

@@ -295,6 +295,24 @@ func (u *User) GetDisplayName() string {
 	}
 }
 
+func (u *User) GetDisplayNameForPreference(nameFormat string) string {
+	displayName := u.Username
+
+	if nameFormat == PREFERENCE_VALUE_DISPLAY_NAME_NICKNAME {
+		if u.Nickname != "" {
+			displayName = u.Nickname
+		} else if fullName := u.GetFullName(); fullName != "" {
+			displayName = fullName
+		}
+	} else if nameFormat == PREFERENCE_VALUE_DISPLAY_NAME_FULL {
+		if fullName := u.GetFullName(); fullName != "" {
+			displayName = fullName
+		}
+	}
+
+	return displayName
+}
+
 func IsValidUserRoles(userRoles string) bool {
 
 	roles := strings.Split(userRoles, " ")

@@ -144,8 +144,8 @@ export default class AddOAuthApp extends React.Component {
 
         OAuthActions.registerOAuthApp(
             app,
-            () => {
-                browserHistory.push('/' + this.props.team.name + '/integrations/oauth2-apps');
+            (data) => {
+                browserHistory.push('/' + this.props.team.name + '/integrations/confirm?type=oauth2-apps&id=' + data.id);
             },
             (err) => {
                 this.setState({

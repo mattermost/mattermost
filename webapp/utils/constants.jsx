@@ -52,7 +52,9 @@ export const Preferences = {
     COLLAPSE_DISPLAY_DEFAULT: 'false',
     USE_MILITARY_TIME: 'use_military_time',
     CATEGORY_THEME: 'theme',
-    CATEGORY_FLAGGED_POST: 'flagged_post'
+    CATEGORY_FLAGGED_POST: 'flagged_post',
+    CATEGORY_NOTIFICATIONS: 'notifications',
+    EMAIL_INTERVAL: 'email_interval'
 };
 
 export const ActionTypes = keyMirror({
@@ -758,6 +760,12 @@ export const Constants = {
     },
     NotificationPrefs: {
         MENTION: 'mention'
+    },
+    Integrations: {
+        COMMAND: 'commands',
+        INCOMING_WEBHOOK: 'incoming_webhooks',
+        OUTGOING_WEBHOOK: 'outgoing_webhooks',
+        OAUTH_APP: 'oauth2-apps'
     },
     FeatureTogglePrefix: 'feature_enabled_',
     PRE_RELEASE_FEATURES: {

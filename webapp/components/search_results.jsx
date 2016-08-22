@@ -1,16 +1,21 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
+import SearchResultsHeader from './search_results_header.jsx';
+import SearchResultsItem from './search_results_item.jsx';
+import SearchBox from './search_bar.jsx';
+
 import ChannelStore from 'stores/channel_store.jsx';
 import SearchStore from 'stores/search_store.jsx';
 import UserStore from 'stores/user_store.jsx';
-import SearchBox from './search_bar.jsx';
+import PreferenceStore from 'stores/preference_store.jsx';
+
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
-import SearchResultsHeader from './search_results_header.jsx';
-import SearchResultsItem from './search_results_item.jsx';
+const Preferences = Constants.Preferences;
 
+import $ from 'jquery';
+import React from 'react';
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
 function getStateFromStores() {
@@ -32,11 +37,10 @@ function getStateFromStores() {
     return {
         results,
         channels,
-        searchTerm: SearchStore.getSearchTerm()
+        searchTerm: SearchStore.getSearchTerm(),
+        flaggedPosts: PreferenceStore.getCategory(Constants.Preferences.CATEGORY_FLAGGED_POST)
     };
 }
-
-import React from 'react';
 
 export default class SearchResults extends React.Component {
     constructor(props) {
@@ -46,21 +50,28 @@ export default class SearchResults extends React.Component {
 
         this.onChange = this.onChange.bind(this);
         this.onUserChange = this.onUserChange.bind(this);
+        this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.resize = this.resize.bind(this);
+        this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.handleResize = this.handleResize.bind(this);
 
         const state = getStateFromStores();
         state.windowWidth = Utils.windowWidth();
         state.windowHeight = Utils.windowHeight();
         state.profiles = JSON.parse(JSON.stringify(UserStore.getProfiles()));
+        state.compactDisplay = PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT;
         this.state = state;
     }
 
     componentDidMount() {
         this.mounted = true;
+
         SearchStore.addSearchChangeListener(this.onChange);
         ChannelStore.addChangeListener(this.onChange);
+        PreferenceStore.addChangeListener(this.onPreferenceChange);
         UserStore.addChangeListener(this.onUserChange);
+        PreferenceStore.addChangeListener(this.onPreferenceChange);
+
         this.resize();
         window.addEventListener('resize', this.handleResize);
         if (!Utils.isMobile()) {
@@ -77,6 +88,10 @@ export default class SearchResults extends React.Component {
             return true;
         }
 
+        if (nextState.compactDisplay !== this.state.compactDisplay) {
+            return true;
+        }
+
         return false;
     }
 
@@ -85,10 +100,14 @@ export default class SearchResults extends React.Component {
     }
 
     componentWillUnmount() {
+        this.mounted = false;
+
         SearchStore.removeSearchChangeListener(this.onChange);
         ChannelStore.removeChangeListener(this.onChange);
+        PreferenceStore.removeChangeListener(this.onPreferenceChange);
         UserStore.removeChangeListener(this.onUserChange);
-        this.mounted = false;
+        PreferenceStore.removeChangeListener(this.onPreferenceChange);
+
         window.removeEventListener('resize', this.handleResize);
     }
 
@@ -96,6 +115,13 @@ export default class SearchResults extends React.Component {
         this.setState({
             windowWidth: Utils.windowWidth(),
             windowHeight: Utils.windowHeight()
+        });
+    }
+
+    onPreferenceChange() {
+        this.setState({
+            compactDisplay: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT,
+            flaggedPosts: PreferenceStore.getCategory(Constants.Preferences.CATEGORY_FLAGGED_POST)
         });
     }
 
@@ -197,17 +223,24 @@ export default class SearchResults extends React.Component {
                 } else {
                     profile = profiles[post.user_id];
                 }
+
+                let isFlagged = false;
+                if (this.state.flaggedPosts) {
+                    isFlagged = this.state.flaggedPosts.get(post.id) === 'true';
+                }
                 return (
                     <SearchResultsItem
                         key={post.id}
                         channel={this.state.channels.get(post.channel_id)}
+                        compactDisplay={this.state.compactDisplay}
                         post={post}
                         user={profile}
                         term={searchTerm}
                         isMentionSearch={this.props.isMentionSearch}
+                        isFlaggedSearch={this.props.isFlaggedPosts}
                         useMilitaryTime={this.props.useMilitaryTime}
                         shrink={this.props.shrink}
-                        isFlagged={this.props.isFlaggedPosts}
+                        isFlagged={isFlagged}
                     />
                 );
             }, this);

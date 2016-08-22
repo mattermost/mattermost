@@ -5,6 +5,8 @@ package api
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"image"
 	"image/color"
@@ -14,7 +16,6 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -377,7 +378,6 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	filename := params["filename"]
 
 	hash := r.URL.Query().Get("h")
-	data := r.URL.Query().Get("d")
 
 	if !utils.Cfg.FileSettings.EnablePublicLink {
 		c.Err = model.NewLocAppError("getPublicFile", "api.file.get_file.public_disabled.app_error", nil, "")
@@ -385,8 +385,10 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(hash) > 0 && len(data) > 0 {
-		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.FileSettings.PublicLinkSalt)) {
+	if len(hash) > 0 {
+		correctHash := generatePublicLinkHash(filename, *utils.Cfg.FileSettings.PublicLinkSalt)
+
+		if hash != correctHash {
 			c.Err = model.NewLocAppError("getPublicFile", "api.file.get_file.public_invalid.app_error", nil, "")
 			c.Err.StatusCode = http.StatusBadRequest
 			return
@@ -512,19 +514,26 @@ func getPublicLink(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	cchan := Srv.Store.Channel().CheckPermissionsTo(c.TeamId, channelId, c.Session.UserId)
 
-	newProps := make(map[string]string)
-	newProps["filename"] = filename
-
-	data := model.MapToJson(newProps)
-	hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.FileSettings.PublicLinkSalt))
-
-	url := fmt.Sprintf("%s/public/files/get/%s/%s/%s/%s?d=%s&h=%s", c.GetSiteURL()+model.API_URL_SUFFIX, c.TeamId, channelId, userId, filename, url.QueryEscape(data), url.QueryEscape(hash))
+	url := generatePublicLink(c.GetSiteURL(), c.TeamId, channelId, userId, filename)
 
 	if !c.HasPermissionsToChannel(cchan, "getPublicLink") {
 		return
 	}
 
 	w.Write([]byte(model.StringToJson(url)))
+}
+
+func generatePublicLink(siteURL, teamId, channelId, userId, filename string) string {
+	hash := generatePublicLinkHash(filename, *utils.Cfg.FileSettings.PublicLinkSalt)
+	return fmt.Sprintf("%s%s/public/files/get/%s/%s/%s/%s?h=%s", siteURL, model.API_URL_SUFFIX, teamId, channelId, userId, filename, hash)
+}
+
+func generatePublicLinkHash(filename, salt string) string {
+	hash := sha256.New()
+	hash.Write([]byte(salt))
+	hash.Write([]byte(filename))
+
+	return base64.RawURLEncoding.EncodeToString(hash.Sum(nil))
 }
 
 func WriteFile(f []byte, path string) *model.AppError {

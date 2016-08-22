@@ -4,11 +4,12 @@
 package api
 
 import (
+	"strings"
+	"testing"
+
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
-	"strings"
-	"testing"
 )
 
 func TestGetLogs(t *testing.T) {
@@ -70,7 +71,7 @@ func TestGetConfig(t *testing.T) {
 		if *cfg.LdapSettings.BindPassword != model.FAKE_SETTING && len(*cfg.LdapSettings.BindPassword) != 0 {
 			t.Fatal("did not sanitize properly")
 		}
-		if cfg.FileSettings.PublicLinkSalt != model.FAKE_SETTING {
+		if *cfg.FileSettings.PublicLinkSalt != model.FAKE_SETTING {
 			t.Fatal("did not sanitize properly")
 		}
 		if cfg.FileSettings.AmazonS3SecretAccessKey != model.FAKE_SETTING && len(cfg.FileSettings.AmazonS3SecretAccessKey) != 0 {
@@ -198,7 +199,7 @@ func TestGetTeamAnalyticsStandard(t *testing.T) {
 			t.Fatal()
 		}
 
-		if rows[2].Value != 1 {
+		if rows[2].Value != 3 {
 			t.Log(rows.ToJson())
 			t.Fatal()
 		}

@@ -238,6 +238,7 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["EnableSignInWithEmail"] = strconv.FormatBool(*c.EmailSettings.EnableSignInWithEmail)
 	props["EnableSignInWithUsername"] = strconv.FormatBool(*c.EmailSettings.EnableSignInWithUsername)
 	props["RequireEmailVerification"] = strconv.FormatBool(c.EmailSettings.RequireEmailVerification)
+	props["EnableEmailBatching"] = strconv.FormatBool(*c.EmailSettings.EnableEmailBatching)
 
 	props["EnableSignUpWithGitLab"] = strconv.FormatBool(c.GitLabSettings.Enable)
 
@@ -334,8 +335,8 @@ func Desanitize(cfg *model.Config) {
 		*cfg.LdapSettings.BindPassword = *Cfg.LdapSettings.BindPassword
 	}
 
-	if cfg.FileSettings.PublicLinkSalt == model.FAKE_SETTING {
-		cfg.FileSettings.PublicLinkSalt = Cfg.FileSettings.PublicLinkSalt
+	if *cfg.FileSettings.PublicLinkSalt == model.FAKE_SETTING {
+		*cfg.FileSettings.PublicLinkSalt = *Cfg.FileSettings.PublicLinkSalt
 	}
 	if cfg.FileSettings.AmazonS3SecretAccessKey == model.FAKE_SETTING {
 		cfg.FileSettings.AmazonS3SecretAccessKey = Cfg.FileSettings.AmazonS3SecretAccessKey

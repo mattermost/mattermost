@@ -63,6 +63,10 @@ class TeamStoreClass extends EventEmitter {
         return this.currentTeamId;
     }
 
+    setCurrentId(id) {
+        this.currentTeamId = id;
+    }
+
     getCurrent() {
         const team = this.teams[this.currentTeamId];
 

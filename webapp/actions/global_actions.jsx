@@ -457,6 +457,7 @@ export function emitUserLoggedOutEvent(redirectTo) {
             PreferenceStore.clear();
             UserStore.clear();
             TeamStore.clear();
+            newLocalizationSelected(global.window.mm_config.DefaultClientLocale);
             browserHistory.push(rURL);
         },
         () => {
