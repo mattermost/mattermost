@@ -330,6 +330,26 @@ export default class RhsComment extends React.Component {
             flagFunc = this.flagPost;
         }
 
+        let flagTrigger;
+        if (!Utils.isPostEphemeral(post)) {
+            flagTrigger = (
+                <OverlayTrigger
+                    key={'commentflagtooltipkey' + flagVisible}
+                    delayShow={Constants.OVERLAY_TIME_DELAY}
+                    placement='top'
+                    overlay={flagTooltip}
+                >
+                    <a
+                        href='#'
+                        className={'flag-icon__container ' + flagVisible}
+                        onClick={flagFunc}
+                    >
+                        {flag}
+                    </a>
+                </OverlayTrigger>
+            );
+        }
+
         return (
             <div className={'post post--thread ' + currentUserCss + ' ' + compactClass}>
                 <div className='post__content'>
@@ -352,20 +372,7 @@ export default class RhsComment extends React.Component {
                                         minute='2-digit'
                                     />
                                 </time>
-                                <OverlayTrigger
-                                    key={'commentflagtooltipkey' + flagVisible}
-                                    delayShow={Constants.OVERLAY_TIME_DELAY}
-                                    placement='top'
-                                    overlay={flagTooltip}
-                                >
-                                    <a
-                                        href='#'
-                                        className={'flag-icon__container ' + flagVisible}
-                                        onClick={flagFunc}
-                                    >
-                                        {flag}
-                                    </a>
-                                </OverlayTrigger>
+                                {flagTrigger}
                             </li>
                             <li className='col col__reply'>
                                 {dropdown}

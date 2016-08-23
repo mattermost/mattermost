@@ -1098,6 +1098,10 @@
     "translation": "Bad filename discarded, filename=%v"
   },
   {
+    "id": "api.post.delete_flagged_post.app_error.warn",
+    "translation": "Unable to delete flagged post preference when deleting post, err=%v"
+  },
+  {
     "id": "api.post.create_post.channel_root_id.app_error",
     "translation": "Invalid ChannelId for RootId parameter"
   },

@@ -923,6 +923,14 @@ func TestPostStoreGetFlaggedPosts(t *testing.T) {
 	o2 = (<-store.Post().Save(o2)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
 
+	o3 := &model.Post{}
+	o3.ChannelId = o1.ChannelId
+	o3.UserId = model.NewId()
+	o3.Message = "a" + model.NewId() + "b"
+	o3.DeleteAt = 1
+	o3 = (<-store.Post().Save(o3)).Data.(*model.Post)
+	time.Sleep(2 * time.Millisecond)
+
 	r1 := (<-store.Post().GetFlaggedPosts(o1.ChannelId, 0, 2)).Data.(*model.PostList)
 
 	if len(r1.Order) != 0 {
@@ -964,6 +972,21 @@ func TestPostStoreGetFlaggedPosts(t *testing.T) {
 	}
 
 	r4 := (<-store.Post().GetFlaggedPosts(o1.UserId, 0, 2)).Data.(*model.PostList)
+
+	if len(r4.Order) != 2 {
+		t.Fatal("should have 2 posts")
+	}
+
+	preferences = model.Preferences{
+		{
+			UserId:   o1.UserId,
+			Category: model.PREFERENCE_CATEGORY_FLAGGED_POST,
+			Name:     o3.Id,
+			Value:    "true",
+		},
+	}
+
+	Must(store.Preference().Save(&preferences))
 
 	if len(r4.Order) != 2 {
 		t.Fatal("should have 2 posts")
