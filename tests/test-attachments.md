@@ -48,7 +48,7 @@ Expected: Generic attachment thumbnail & preview window
 
 **PDF Files**  
 `Documents/PDF.pdf`  
-Expected: Generic PDF thumbnail & preview window.  
+Expected: Generic PDF thumbnail. File previewer shows first 5 pages of the PDF.   
 [Permalink](https://pre-release.mattermost.com/core/pl/o1dg6menetdszrhyxmtoqjfi8h)
 
 
