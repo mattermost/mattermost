@@ -25,6 +25,8 @@ const cjkPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-
 // - singleline - Specifies whether or not to remove newlines. Defaults to false.
 // - emoticons - Enables emoticon parsing. Defaults to true.
 // - markdown - Enables markdown parsing. Defaults to true.
+// - siteURL - The origin of this Mattermost instance. If provided, links to channels and posts will be replaced with internal links
+//     that can be handled by a special click handler.
 export function formatText(text, inputOptions) {
     let output = text;
 

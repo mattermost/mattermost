@@ -163,8 +163,8 @@ class MattermostMarkdownRenderer extends marked.Renderer {
         output += '" href="' + outHref + '" rel="noreferrer"';
 
         // special case for channel links and permalinks that are inside the app
-        if (new RegExp('^' + TextFormatting.escapeRegex(global.mm_config.SiteURL) + '\\/[^\\/]+\\/(pl|channels)\\/').test(outHref)) {
-            output += ' data-link="' + outHref.substring(global.mm_config.SiteURL.length) + '"';
+        if (this.formattingOptions.siteURL && new RegExp('^' + TextFormatting.escapeRegex(this.formattingOptions.siteURL) + '\\/[^\\/]+\\/(pl|channels)\\/').test(outHref)) {
+            output += ' data-link="' + outHref.substring(this.formattingOptions.siteURL) + '"';
         } else {
             output += ' target="_blank"';
         }
