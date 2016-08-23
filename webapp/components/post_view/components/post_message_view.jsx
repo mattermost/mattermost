@@ -8,6 +8,7 @@ import * as Utils from 'utils/utils.jsx';
 
 export default class PostMessageView extends React.Component {
     static propTypes = {
+        options: React.PropTypes.object.isRequired,
         message: React.PropTypes.string.isRequired,
         emojis: React.PropTypes.object.isRequired,
         enableFormatting: React.PropTypes.bool.isRequired,
@@ -15,6 +16,10 @@ export default class PostMessageView extends React.Component {
     };
 
     shouldComponentUpdate(nextProps) {
+        if (!Utils.areObjectsEqual(nextProps.options, this.props.options)) {
+            return true;
+        }
+
         if (nextProps.message !== this.props.message) {
             return true;
         }
@@ -40,11 +45,11 @@ export default class PostMessageView extends React.Component {
             return <span>{this.props.message}</span>;
         }
 
-        const options = {
+        const options = Object.assign({}, this.props.options, {
             emojis: this.props.emojis,
             siteURL: Utils.getSiteURL(),
             mentionKeys: this.props.mentionKeys
-        };
+        });
 
         return (
             <span

@@ -3,6 +3,7 @@
 
 import UserProfile from './user_profile.jsx';
 import PostBodyAdditionalContent from 'components/post_view/components/post_body_additional_content.jsx';
+import PostMessageContainer from 'components/post_view/components/post_message_container.jsx';
 import FileAttachmentList from './file_attachment_list.jsx';
 import ProfilePicture from 'components/profile_picture.jsx';
 
@@ -15,7 +16,6 @@ import {flagPost, unflagPost} from 'actions/post_actions.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
-import * as TextFormatting from 'utils/text_formatting.jsx';
 
 import Constants from 'utils/constants.jsx';
 import {Tooltip, OverlayTrigger} from 'react-bootstrap';
@@ -305,13 +305,7 @@ export default class RhsRootPost extends React.Component {
             profilePicContainer = '';
         }
 
-        const messageWrapper = (
-            <div
-                ref='message_holder'
-                onClick={TextFormatting.handleClick}
-                dangerouslySetInnerHTML={{__html: TextFormatting.formatText(post.message)}}
-            />
-        );
+        const messageWrapper = <PostMessageContainer post={post}/>;
 
         let flag;
         let flagFunc;

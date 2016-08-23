@@ -12,7 +12,12 @@ import PostMessageView from './post_message_view.jsx';
 
 export default class PostMessageContainer extends React.Component {
     static propTypes = {
-        post: React.PropTypes.object.isRequired
+        post: React.PropTypes.object.isRequired,
+        options: React.PropTypes.object
+    };
+
+    static defaultProps = {
+        options: {}
     };
 
     constructor(props) {
@@ -68,6 +73,7 @@ export default class PostMessageContainer extends React.Component {
     render() {
         return (
             <PostMessageView
+                options={this.props.options}
                 message={this.props.post.message}
                 emojis={this.state.emojis}
                 enableFormatting={this.state.enableFormatting}
