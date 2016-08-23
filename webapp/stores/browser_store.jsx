@@ -20,6 +20,11 @@ function getPrefix() {
 }
 
 class BrowserStoreClass {
+    constructor() {
+        this.hasCheckedLocalStorage = false;
+        this.localStorageSupported = false;
+    }
+
     setItem(name, value) {
         this.setGlobalItem(getPrefix() + name, value);
     }
@@ -145,6 +150,7 @@ class BrowserStoreClass {
         const logoutId = sessionStorage.getItem('__logout__');
         const serverVersion = this.getLastServerVersion();
         const landingPageSeen = this.hasSeenLandingPage();
+        const selectedTeams = this.getItem('selected_teams');
 
         sessionStorage.clear();
         localStorage.clear();
@@ -160,23 +166,27 @@ class BrowserStoreClass {
         if (landingPageSeen) {
             this.setLandingPageSeen(landingPageSeen);
         }
+
+        if (selectedTeams) {
+            this.setItem('selected_teams', selectedTeams);
+        }
     }
 
     isLocalStorageSupported() {
-        if (this.checkedLocalStorageSupported !== '') {
-            return this.checkedLocalStorageSupported;
+        if (this.hasCheckedLocalStorage) {
+            return this.localStorageSupported;
         }
+
+        this.localStorageSupported = false;
 
         try {
             localStorage.setItem('__testLocal__', '1');
-            if (localStorage.getItem('__testLocal__') !== '1') {
-                this.checkedLocalStorageSupported = false;
+            if (localStorage.getItem('__testLocal__') === '1') {
+                this.localStorageSupported = true;
             }
             localStorage.removeItem('__testLocal__', '1');
-
-            this.checkedLocalStorageSupported = true;
         } catch (e) {
-            this.checkedLocalStorageSupported = false;
+            this.localStorageSupported = false;
         }
 
         try {
@@ -187,7 +197,9 @@ class BrowserStoreClass {
             browserHistory.push(window.location.origin + '/error?title=' + notSupportedParams.title + '&message=' + notSupportedParams.message);
         }
 
-        return this.checkedLocalStorageSupported;
+        this.hasCheckedLocalStorage = true;
+
+        return this.localStorageSupported;
     }
 
     hasSeenLandingPage() {
