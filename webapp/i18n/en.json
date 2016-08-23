@@ -1246,7 +1246,7 @@
   "help.formatting.lines": "## Lines\n\nCreate a line by using three `*`, `_`, or `-`.",
   "help.formatting.linkEx": "[Check out Mattermost!](https://about.mattermost.com/)",
   "help.formatting.links": "## Links\n\nCreate labeled links by putting the desired text in square brackets and the associated link in normal brackets.",
-  "help.formatting.listExample": "* list item one\n* list item two\n    * item two sub-point') + '\n```",
+  "help.formatting.listExample": "* list item one\n* list item two\n    * item two sub-point')",
   "help.formatting.lists": "## Lists\n\nCreate a list by using `*` or `-` as bullets. Indent a bullet point by adding two spaces in front of it.",
   "help.formatting.monokaiTheme": "**Monokai Theme**",
   "help.formatting.ordered": "Make it an ordered list by using numbers instead:",
