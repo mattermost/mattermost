@@ -565,7 +565,7 @@ func sendNotifications(teamId string, post *model.Post, team *model.Team, channe
 	}
 
 	mentionedUserIds := make(map[string]bool)
-	alwaysNotifyUserIds := []string{}
+	allActivityPushUserIds := []string{}
 	hereNotification := false
 	updateMentionChans := []store.StoreChannel{}
 
@@ -629,7 +629,7 @@ func sendNotifications(teamId string, post *model.Post, team *model.Team, channe
 			if profile.NotifyProps["push"] == model.USER_NOTIFY_ALL &&
 				(post.UserId != profile.Id || post.Props["from_webhook"] == "true") &&
 				!post.IsSystemMessage() {
-				alwaysNotifyUserIds = append(alwaysNotifyUserIds, profile.Id)
+				allActivityPushUserIds = append(allActivityPushUserIds, profile.Id)
 			}
 		}
 	}
@@ -705,13 +705,28 @@ func sendNotifications(teamId string, post *model.Post, team *model.Team, channe
 
 	if sendPushNotifications {
 		for _, id := range mentionedUsersList {
-			if profileMap[id].NotifyProps["push"] != "none" {
+			var status *model.Status
+			var err *model.AppError
+			if status, err = GetStatus(id); err != nil {
+				status = &model.Status{id, model.STATUS_OFFLINE, 0}
+			}
+
+			if profileMap[id].StatusAllowsPushNotification(status) {
 				sendPushNotification(post, profileMap[id], channel, senderName, true)
 			}
 		}
-		for _, id := range alwaysNotifyUserIds {
+
+		for _, id := range allActivityPushUserIds {
 			if _, ok := mentionedUserIds[id]; !ok {
-				sendPushNotification(post, profileMap[id], channel, senderName, false)
+				var status *model.Status
+				var err *model.AppError
+				if status, err = GetStatus(id); err != nil {
+					status = &model.Status{id, model.STATUS_OFFLINE, 0}
+				}
+
+				if profileMap[id].StatusAllowsPushNotification(status) {
+					sendPushNotification(post, profileMap[id], channel, senderName, false)
+				}
 			}
 		}
 	}
