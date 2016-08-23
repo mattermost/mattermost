@@ -324,8 +324,16 @@
     "translation": "Você não tem a permissão apropriada "
   },
   {
+    "id": "api.channel.remove_member.removed",
+    "translation": "%v was removed from the channel."
+  },
+  {
     "id": "api.channel.remove_member.unable.app_error",
     "translation": "Não foi possível remover o usuário."
+  },
+  {
+    "id": "api.channel.remove_member.user.app_error",
+    "translation": "Não foi possível encontrar o usuário a ser adicionado"
   },
   {
     "id": "api.channel.remove_user_from_channel.deleted.app_error",
@@ -556,20 +564,44 @@
     "translation": "Mensagem enviada."
   },
   {
+    "id": "api.command_shortcuts.browser",
+    "translation": "#### Built-in Browser Commands\n\nALT+LEFT: Previous channel in your history\nALT+RIGHT: Next channel in your history\nCTRL+PLUS: Increase font size (zoom in)\nCTRL+MINUS: Decrease font size (zoom out)\nSHIFT+UP (in input field): Highlight text to the previous line\nSHIFT+DOWN (in input field): Highlight text to the next line\nSHIFT+ENTER (in input field): Create a new line\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser_mac",
+    "translation": "#### Built-in Browser Commands\n\nCMD+[: Previous channel in your history\nCMD+]: Next channel in your history\nCMD+PLUS: Increase font size (zoom in)\nCMD+MINUS: Decrease font size (zoom out)\nSHIFT+UP (in input field): Highlight text to the previous line\nSHIFT+DOWN (in input field): Highlight text to the next line\nSHIFT+ENTER (in input field): Create a new line\n"
+  },
+  {
     "id": "api.command_shortcuts.desc",
     "translation": "Mostrar a lista de atalhos"
   },
   {
-    "id": "api.command_shortcuts.list",
-    "translation": "### Atalhos do Teclado\n\n#### Navegação\n\nALT+CIMA: Canal anterior ou mensagem direta na barra lateral esquerda\nALT+BAIXO: Próximo canal ou mensagem direta na barra lateral esquerda\nALT+SHIFT+CIMA: Canal anterior ou mensagem direta na barra lateral esquerda com mensagens não lidas\nALT+SHIFT+BAIXO: Próximo canal ou mensagem direta na barra lateral esquerda com mensagens não lidas\nCTRL+K: Abre uma janela de troca rápida de canal\nCTRL+SHIFT+A: Abre as configurações de conta\nCTRL+SHIFT+M: Abre as menções recentes\n\n#### Arquivos\n\nCTRL+U: Enviar arquivo(s)\n\n#### Mensagens\n\nESC: Marca todas as mensagens no canal atual como lida\nCTRL+CIMA (campo de mensagem vazio): Reimprimir a mensagem anterior ou comando slash digitado\nCTRL+BAIXO (campo de mensagem vazio): Reimprimir a próxima mensagem ou comando slash digitado\nCIMA (campo de mensagem vazio): Edita sua última mensagem no canal atual\n@[caracter]+TAB: Autocompleta o @usuário começando com [caracter]\n:[caracter]+TAB: Autocompleta o emoji começando com [caracter]\n\n#### Comandos do Navegador\n\nALT+ESQUERDA: Canal anterior no seu histórico\nALT+DIREITA: Próximo canal no seu histórico\nCTRL+MAIS: Aumentar o tamanho da fonte (zoom in)\nCTRL+MENOS: Reduzir o tamanho da fonte (zoom out)\nSHIFT+CIMA (no campo de mensagem): Selecionar texto da linha anterior\nSHIFT+BAIXO (no campo de mensagem): Selecionar texto da próxima linha\nSHIFT+ENTER (no campo de mensagem): Criar uma nova linha\n"
+    "id": "api.command_shortcuts.files",
+    "translation": "#### Files\n\nCTRL+U: Upload file(s)\n\n"
   },
   {
-    "id": "api.command_shortcuts.list_mac",
-    "translation": "### Atalhos do Teclado\n\n#### Navegação\n\nALT+CIMA: Canal anterior ou mensagem direta na barra lateral esquerda\nALT+BAIXO: Próximo canal ou mensagem direta na barra lateral esquerda\nALT+SHIFT+CIMA: Canal anterior ou mensagem direta na barra lateral esquerda com mensagens não lidas\nALT+SHIFT+BAIXO: Próximo canal ou mensagem direta na barra lateral esquerda com mensagens não lidas\nCMD+K: Abre uma janela de troca rápida de canal\nCMD+SHIFT+A: Abre as configurações de conta\nCMD+SHIFT+M: Abre as menções recentes\n\n#### Arquivos\n\nCMD+U: Enviar arquivo(s)\n\n#### Mensagens\n\nESC: Marca todas as mensagens no canal atual como lida\nCMD+CIMA (campo de mensagem vazio): Reimprimir a mensagem anterior ou comando slash digitado\nCMD+BAIXO (campo de mensagem vazio): Reimprimir a próxima mensagem ou comando slash digitado\nCIMA (campo de mensagem vazio): Edita sua última mensagem no canal atual\n@[caracter]+TAB: Autocompleta o @usuário começando com [caracter]\n:[caracter]+TAB: Autocompleta o emoji começando com [caracter]\n\n#### Comandos do Navegador\n\nCMD+[: Canal anterior no seu histórico\nCMD+]: Próximo canal no seu histórico\nCMD+MAIS: Aumentar o tamanho da fonte (zoom in)\nCMD+MENOS: Reduzir o tamanho da fonte (zoom out)\nSHIFT+CIMA (no campo de mensagem): Selecionar texto da linha anterior\nSHIFT+BAIXO (no campo de mensagem): Selecionar texto da próxima linha\nSHIFT+ENTER (no campo de mensagem): Criar uma nova linha\n"
+    "id": "api.command_shortcuts.files_mac",
+    "translation": "#### Files\n\nCMD+U: Upload file(s)\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs",
+    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCTRL+UP (in empty input field): Reprint the previous message or slash command you entered\nCTRL+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs_mac",
+    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCMD+UP (in empty input field): Reprint the previous message or slash command you entered\nCMD+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
   },
   {
     "id": "api.command_shortcuts.name",
     "translation": "atalhos"
+  },
+  {
+    "id": "api.command_shortcuts.nav",
+    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in left hand sidebar\nALT+DOWN: Next channel or direct message in left hand sidebar\nALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\nCTRL+K: Open a quick channel switcher dialog\nCTRL+SHIFT+A: Open account settings\nCTRL+SHIFT+M: Open recent mentions\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav_mac",
+    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in left hand sidebar\nALT+DOWN: Next channel or direct message in left hand sidebar\nALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\nCMD+K: Open a quick channel switcher dialog\nCMD+SHIFT+A: Open account settings\nCMD+SHIFT+M: Open recent mentions\n\n"
   },
   {
     "id": "api.command_shrug.desc",
@@ -626,6 +658,72 @@
   {
     "id": "api.context.unknown.app_error",
     "translation": "Ocorreu um erro desconhecido. Por favor contato com o suporte."
+  },
+  {
+    "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
+    "translation": "A tarefa de email em lote do canal de entrada estava cheio. Por favor aumente o EmailBatchingBufferSize."
+  },
+  {
+    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
+    "translation": "Email em lote foi desabilitado pelo administrador do sistema"
+  },
+  {
+    "id": "api.email_batching.check_pending_emails.finished_running",
+    "translation": "Tarefa de email em note executada. %v usuário(s) ainda tem notificações pendentes."
+  },
+  {
+    "id": "api.email_batching.check_pending_emails.status.app_error",
+    "translation": "Não foi possível encontrar o status do destinatário para a notificação de e-mail em lote"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.channel.app_error",
+    "translation": "Não foi possível encontrar o canal de postagem para a notificação de email em lote"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.date",
+    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.direct_message",
+    "translation": "Mensagem Direta"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.go_to_post",
+    "translation": "Ir para o Post"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.sender.app_error",
+    "translation": "Não foi possível encontrar o remetente da postagem para a notificação de email em lote"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.body_text",
+    "translation": {
+      "one": "Você tem uma nova mensagem.",
+      "other": "Você tem {{.Count}} novas mensagens."
+    }
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.preferences.app_error",
+    "translation": "Não foi possível encontrar as preferências de exibição do destinatário para notificação de email em lote"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.send.app_error",
+    "translation": "Failed to send batched email notification to %v: %v"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subject",
+    "translation": {
+      "one": "[{{.SiteName}}] Nova Notificação de {{.Day}} {{.Month}}, {{.Year}}",
+      "other": "[{{.SiteName}}] Novas Notificações de {{.Day}} {{.Month}}, {{.Year}}"
+    }
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.user.app_error",
+    "translation": "Não foi possível encontrar o status do destinatário para a notificação de e-mail em lote"
+  },
+  {
+    "id": "api.email_batching.start.starting",
+    "translation": "Email batching job starting. Checking for pending emails every %v seconds."
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
@@ -1028,8 +1126,26 @@
     "translation": "Erro ao criar o post"
   },
   {
+    "id": "api.post.delete_flagged_post.app_error.warn",
+    "translation": "Unable to delete flagged post preference when deleting post, err=%v"
+  },
+  {
     "id": "api.post.delete_post.permissions.app_error",
     "translation": "Você não tem a permissão apropriada"
+  },
+  {
+    "id": "api.post.get_message_for_notification.files_sent",
+    "translation": {
+      "one": "{{.Count}} arquivo enviado: {{.Filenames}}",
+      "other": "{{.Count}} arquivos enviados: {{.Filenames}}"
+    }
+  },
+  {
+    "id": "api.post.get_message_for_notification.images_sent",
+    "translation": {
+      "one": "{{.Count}} imagem enviada: {{.Filenames}}",
+      "other": "{{.Count}} imagens enviadas: {{.Filenames}}"
+    }
   },
   {
     "id": "api.post.get_out_of_channel_mentions.regex.error",
@@ -1094,6 +1210,10 @@
   {
     "id": "api.post.notification.here.warn",
     "translation": "Não foi possível enviar a notificação para os usuários online com @here, err=%v"
+  },
+  {
+    "id": "api.post.notification.member_profile.warn",
+    "translation": "Unable to get profile for channel member, user_id=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
@@ -2760,6 +2880,18 @@
     "translation": "Para precisa ser maior que De"
   },
   {
+    "id": "model.config.is_valid.cluster_email_batching.app_error",
+    "translation": "Unable to enable email batching when clustering is enabled"
+  },
+  {
+    "id": "model.config.is_valid.email_batching_buffer_size.app_error",
+    "translation": "Invalid email batching buffer size for email settings.  Must be zero or a positive number."
+  },
+  {
+    "id": "model.config.is_valid.email_batching_interval.app_error",
+    "translation": "Invalid email batching interval for email settings.  Must be 30 seconds or more."
+  },
+  {
     "id": "model.config.is_valid.email_reset_salt.app_error",
     "translation": "Senha inválida redefinir salt nas configurações de email.  Deve ser de 32 caracteres ou mais."
   },
@@ -2942,6 +3074,10 @@
   {
     "id": "model.config.is_valid.site_url.app_error",
     "translation": "Site URL deve ser uma URL válida e começar com http:// ou https://"
+  },
+  {
+    "id": "model.config.is_valid.site_url_email_batching.app_error",
+    "translation": "Unable to enable email batching when SiteURL isn't set."
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
