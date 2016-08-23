@@ -765,23 +765,29 @@ export default class SecurityTab extends React.Component {
             let apps;
             if (this.state.authorizedApps && this.state.authorizedApps.length > 0) {
                 apps = this.state.authorizedApps.map((app) => {
+                    const homepage = (
+                        <a
+                            href={app.homepage}
+                            target='_blank'
+                            rel='noopener noreferrer'
+                        >
+                            {app.homepage}
+                        </a>
+                    );
+
                     return (
                         <div
                             key={app.id}
                             className='padding-bottom x2 authorized-app'
                         >
                             <div className='col-sm-10'>
-                                <div className='authorized-app__name'>{app.name}</div>
-                                <div className='authorized-app__description'>{app.description}</div>
-                                <div className='authorized-app__homepage'>
-                                    <a
-                                        href={app.homepage}
-                                        target='_blank'
-                                        rel='noopener noreferrer'
-                                    >
-                                        {app.homepage}
-                                    </a>
+                                <div className='authorized-app__name'>
+                                    {app.name}
+                                    <span className='authorized-app__url'>
+                                        {' -'} {homepage}
+                                    </span>
                                 </div>
+                                <div className='authorized-app__description'>{app.description}</div>
                                 <div className='authorized-app__deauthorize'>
                                     <a
                                         href='#'
@@ -809,10 +815,10 @@ export default class SecurityTab extends React.Component {
                 apps = (
                     <div className='padding-bottom x2 authorized-app'>
                         <div className='col-sm-12'>
-                            <div className='authorized-app__name'>
+                            <div className='setting-list__hint'>
                                 <FormattedMessage
-                                    id='user.settings.scurity.noApps'
-                                    defaultMessage="You haven't authorized an OAuth 2.0 Application yet."
+                                    id='user.settings.security.noApps'
+                                    defaultMessage='No OAuth 2.0 Applications are authorized.'
                                 />
                             </div>
                         </div>
@@ -821,8 +827,16 @@ export default class SecurityTab extends React.Component {
             }
 
             const inputs = [];
+            let wrapperClass;
+            if (Array.isArray(apps)) {
+                wrapperClass = 'authorized-apps__wrapper';
+            }
+
             inputs.push(
-                <div key='authorizedApps'>
+                <div
+                    className={wrapperClass}
+                    key='authorizedApps'
+                >
                     {apps}
                 </div>
             );
@@ -833,9 +847,24 @@ export default class SecurityTab extends React.Component {
                 e.preventDefault();
             }.bind(this);
 
+            const title = (
+                <div>
+                    <FormattedMessage
+                        id='user.settings.security.oauthApps'
+                        defaultMessage='OAuth 2.0 Applications'
+                    />
+                    <div className='authorized-apps__help'>
+                        <FormattedMessage
+                            id='user.settings.security.oauthAppsHelp'
+                            defaultMessage='Applications act on your behalf to access your data based on the permissions you grant them.'
+                        />
+                    </div>
+                </div>
+            );
+
             return (
                 <SettingItemMax
-                    title={Utils.localizeMessage('user.settings.security.oauthApps', 'OAuth 2.0 Applications')}
+                    title={title}
                     inputs={inputs}
                     server_error={this.state.serverError}
                     updateSection={updateSectionStatus}
