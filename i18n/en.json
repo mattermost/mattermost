@@ -2873,7 +2873,7 @@
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
-    "translation": "Unable to enable email batching (EmailSettings.EnableEmailBatching) when clustering (ClusterSettings.Enable) is enabled"
+    "translation": "Unable to enable email batching when clustering is enabled"
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -3069,7 +3069,7 @@
   },
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
-    "translation": "Unable to enable email batching (EmailSettings.EnableEmailBatching) when SiteURL (ServiceSettings.SiteURL) isn't set."
+    "translation": "Unable to enable email batching when SiteURL isn't set."
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
