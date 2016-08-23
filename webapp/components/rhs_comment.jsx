@@ -4,6 +4,7 @@
 import UserProfile from './user_profile.jsx';
 import FileAttachmentList from './file_attachment_list.jsx';
 import PendingPostOptions from 'components/post_view/components/pending_post_options.jsx';
+import ProfilePicture from 'components/profile_picture.jsx';
 
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
@@ -13,7 +14,7 @@ import {flagPost, unflagPost} from 'actions/post_actions.jsx';
 
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as Utils from 'utils/utils.jsx';
-import Client from 'client/web_client.jsx';
+import * as PostUtils from 'utils/post_utils.jsx';
 
 import Constants from 'utils/constants.jsx';
 import {Tooltip, OverlayTrigger} from 'react-bootstrap';
@@ -41,6 +42,10 @@ export default class RhsComment extends React.Component {
     }
 
     shouldComponentUpdate(nextProps) {
+        if (nextProps.status !== this.props.status) {
+            return true;
+        }
+
         if (nextProps.compactDisplay !== this.props.compactDisplay) {
             return true;
         }
@@ -75,7 +80,7 @@ export default class RhsComment extends React.Component {
     }
 
     createDropdown() {
-        var post = this.props.post;
+        const post = this.props.post;
 
         if (post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING || post.state === Constants.POST_DELETED) {
             return '';
@@ -212,7 +217,7 @@ export default class RhsComment extends React.Component {
     }
 
     render() {
-        var post = this.props.post;
+        const post = this.props.post;
         const flagIcon = Constants.FLAG_ICON_SVG;
 
         var currentUserCss = '';
@@ -258,10 +263,11 @@ export default class RhsComment extends React.Component {
         }
 
         let profilePic = (
-            <img
-                src={Client.getUsersRoute() + '/' + post.user_id + '/image?time=' + timestamp}
-                height='36'
+            <ProfilePicture
+                src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
+                status={this.props.status}
                 width='36'
+                height='36'
             />
         );
 
@@ -385,5 +391,6 @@ RhsComment.propTypes = {
     currentUser: React.PropTypes.object.isRequired,
     compactDisplay: React.PropTypes.bool,
     useMilitaryTime: React.PropTypes.bool.isRequired,
-    isFlagged: React.PropTypes.bool
+    isFlagged: React.PropTypes.bool,
+    status: React.PropTypes.string
 };

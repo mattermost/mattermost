@@ -1,19 +1,20 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
+import ProfilePicture from 'components/profile_picture.jsx';
 
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
-import {Popover, Overlay} from 'react-bootstrap';
+
+import Client from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
-import Client from 'client/web_client.jsx';
 
+import $ from 'jquery';
+import React from 'react';
+import {Popover, Overlay} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
-
-import React from 'react';
 
 export default class PopoverListMembers extends React.Component {
     constructor(props) {
@@ -89,24 +90,23 @@ export default class PopoverListMembers extends React.Component {
                 }
 
                 if (name) {
-                    if (!m.status) {
-                        var status = UserStore.getStatus(m.id);
-                        m.status = status ? 'status-' + status : '';
+                    let status;
+                    if (m.status) {
+                        status = m.status;
+                    } else {
+                        status = UserStore.getStatus(m.id);
                     }
                     popoverHtml.push(
                         <div
                             className='more-modal__row'
                             key={'popover-member-' + i}
                         >
-
-                            <span className={`more-modal__image-wrapper ${m.status}`}>
-                                <img
-                                    className='more-modal__image'
-                                    width='26px'
-                                    height='26px'
-                                    src={`${Client.getUsersRoute()}/${m.id}/image?time=${m.update_at}`}
-                                />
-                            </span>
+                            <ProfilePicture
+                                src={`${Client.getUsersRoute()}/${m.id}/image?time=${m.update_at}`}
+                                status={status}
+                                width='26'
+                                height='26'
+                            />
                             <div className='more-modal__details'>
                                 <div
                                     className='more-modal__name'

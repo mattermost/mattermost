@@ -4,6 +4,7 @@
 import UserProfile from './user_profile.jsx';
 import PostBodyAdditionalContent from 'components/post_view/components/post_body_additional_content.jsx';
 import FileAttachmentList from './file_attachment_list.jsx';
+import ProfilePicture from 'components/profile_picture.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
@@ -40,6 +41,10 @@ export default class RhsRootPost extends React.Component {
     }
 
     shouldComponentUpdate(nextProps) {
+        if (nextProps.status !== this.props.status) {
+            return true;
+        }
+
         if (nextProps.compactDisplay !== this.props.compactDisplay) {
             return true;
         }
@@ -276,11 +281,11 @@ export default class RhsRootPost extends React.Component {
         }
 
         let profilePic = (
-            <img
-                className='post-profile-img'
+            <ProfilePicture
                 src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
-                height='36'
+                status={this.props.status}
                 width='36'
+                height='36'
             />
         );
 
@@ -410,5 +415,6 @@ RhsRootPost.propTypes = {
     commentCount: React.PropTypes.number,
     compactDisplay: React.PropTypes.bool,
     useMilitaryTime: React.PropTypes.bool.isRequired,
-    isFlagged: React.PropTypes.bool
+    isFlagged: React.PropTypes.bool,
+    status: React.PropTypes.string
 };

@@ -485,8 +485,6 @@
 
 
 .status-wrapper {
-    display: inline-block;
-    margin-right: 3px;
     position: relative;
 
     &:after {
@@ -517,6 +515,12 @@
 
         .more-modal__row {
             padding: 5px 10px;
+
+            .status-wrapper {
+                &:after {
+                    bottom: 0;
+                }
+            }
         }
 
         .more-modal__name {
