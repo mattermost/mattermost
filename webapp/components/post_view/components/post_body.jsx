@@ -6,8 +6,8 @@ import UserStore from 'stores/user_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import Constants from 'utils/constants.jsx';
-import * as TextFormatting from 'utils/text_formatting.jsx';
 import PostBodyAdditionalContent from './post_body_additional_content.jsx';
+import PostMessageContainer from './post_message_container.jsx';
 import PendingPostOptions from './pending_post_options.jsx';
 
 import {FormattedMessage} from 'react-intl';
@@ -40,10 +40,6 @@ export default class PostBody extends React.Component {
         }
 
         if (nextProps.handleCommentClick.toString() !== this.props.handleCommentClick.toString()) {
-            return true;
-        }
-
-        if (nextProps.emojis !== this.props.emojis) {
             return true;
         }
 
@@ -165,10 +161,7 @@ export default class PostBody extends React.Component {
             );
         } else {
             message = (
-                <span
-                    onClick={TextFormatting.handleClick}
-                    dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.props.post.message, {emojis: this.props.emojis})}}
-                />
+                <PostMessageContainer post={this.props.post}/>
             );
         }
 
@@ -215,6 +208,5 @@ PostBody.propTypes = {
     retryPost: React.PropTypes.func.isRequired,
     handleCommentClick: React.PropTypes.func.isRequired,
     compactDisplay: React.PropTypes.bool,
-    previewCollapsed: React.PropTypes.string,
-    emojis: React.PropTypes.object.isRequired
+    previewCollapsed: React.PropTypes.string
 };

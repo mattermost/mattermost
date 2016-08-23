@@ -2,14 +2,12 @@
 // See License.txt for license information.
 
 import Autolinker from 'autolinker';
-import {browserHistory} from 'react-router/es6';
 import Constants from './constants.jsx';
 import EmojiStore from 'stores/emoji_store.jsx';
 import * as Emoticons from './emoticons.jsx';
 import * as Markdown from './markdown.jsx';
 import UserStore from 'stores/user_store.jsx';
 import twemoji from 'twemoji';
-import * as Utils from './utils.jsx';
 import XRegExp from 'xregexp';
 
 // pattern to detect the existance of a Chinese, Japanese, or Korean character in a string
@@ -238,7 +236,7 @@ function highlightCurrentMentions(text, tokens) {
         return prefix + alias;
     }
 
-    for (const mention of UserStore.getCurrentMentionKeys()) {
+    for (const mention of mentionKeys) {
         if (!mention) {
             continue;
         }
@@ -431,32 +429,6 @@ export function replaceTokens(text, tokens) {
 
 function replaceNewlines(text) {
     return text.replace(/\n/g, ' ');
-}
-
-// A click handler that can be used with the results of TextFormatting.formatText to add default functionality
-// to clicked hashtags and @mentions.
-export function handleClick(e) {
-    const mentionAttribute = e.target.getAttributeNode('data-mention');
-    const hashtagAttribute = e.target.getAttributeNode('data-hashtag');
-    const linkAttribute = e.target.getAttributeNode('data-link');
-
-    if (mentionAttribute) {
-        e.preventDefault();
-
-        Utils.searchForTerm(mentionAttribute.value);
-    } else if (hashtagAttribute) {
-        e.preventDefault();
-
-        Utils.searchForTerm(hashtagAttribute.value);
-    } else if (linkAttribute) {
-        const MIDDLE_MOUSE_BUTTON = 1;
-
-        if (!(e.button === MIDDLE_MOUSE_BUTTON || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey)) {
-            e.preventDefault();
-
-            browserHistory.push(linkAttribute.value);
-        }
-    }
 }
 
 //replace all "/" inside <a> tags to "/<wbr />"

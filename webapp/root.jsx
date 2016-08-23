@@ -16,6 +16,7 @@ import * as I18n from 'i18n/i18n.jsx';
 import 'bootstrap-colorpicker/dist/css/bootstrap-colorpicker.css';
 import 'google-fonts/google-fonts.css';
 import 'sass/styles.scss';
+import 'katex/dist/katex.min.css';
 
 // Import the root of our routing tree
 import rRoot from 'routes/route_root.jsx';

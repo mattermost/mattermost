@@ -6,12 +6,11 @@ import * as SyntaxHighlighting from './syntax_hightlighting.jsx';
 
 import marked from 'marked';
 import katex from 'katex';
-import 'katex/dist/katex.min.css';
 
 function markdownImageLoaded(image) {
     image.style.height = 'auto';
 }
-window.markdownImageLoaded = markdownImageLoaded;
+global.markdownImageLoaded = markdownImageLoaded;
 
 class MattermostMarkdownRenderer extends marked.Renderer {
     constructor(options, formattingOptions = {}) {
