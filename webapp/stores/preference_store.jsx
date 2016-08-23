@@ -8,7 +8,7 @@ import EventEmitter from 'events';
 
 const CHANGE_EVENT = 'change';
 
-class PreferenceStoreClass extends EventEmitter {
+class PreferenceStore extends EventEmitter {
     constructor() {
         super();
 
@@ -17,7 +17,7 @@ class PreferenceStoreClass extends EventEmitter {
 
         this.preferences = new Map();
 
-        this.setMaxListeners(20);
+        this.setMaxListeners(600);
     }
 
     getKey(category, name) {
@@ -144,7 +144,5 @@ class PreferenceStoreClass extends EventEmitter {
     }
 }
 
-const PreferenceStore = new PreferenceStoreClass();
-PreferenceStore.setMaxListeners(25);
-export default PreferenceStore;
-global.window.PreferenceStore = PreferenceStore;
+global.PreferenceStore = new PreferenceStore();
+export default global.PreferenceStore;
