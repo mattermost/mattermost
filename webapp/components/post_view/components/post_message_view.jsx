@@ -10,7 +10,8 @@ export default class PostMessageView extends React.Component {
     static propTypes = {
         message: React.PropTypes.string.isRequired,
         emojis: React.PropTypes.object.isRequired,
-        enableFormatting: React.PropTypes.bool.isRequired
+        enableFormatting: React.PropTypes.bool.isRequired,
+        mentionKeys: React.PropTypes.arrayOf(React.PropTypes.string).isRequired
     };
 
     shouldComponentUpdate(nextProps) {
@@ -27,6 +28,10 @@ export default class PostMessageView extends React.Component {
             return true;
         }
 
+        if (!Utils.areObjectsEqual(nextProps.mentionKeys, this.props.mentionKeys)) {
+            return true;
+        }
+
         return false;
     }
 
@@ -37,7 +42,8 @@ export default class PostMessageView extends React.Component {
 
         const options = {
             emojis: this.props.emojis,
-            siteURL: Utils.getSiteURL()
+            siteURL: Utils.getSiteURL(),
+            mentionKeys: this.props.mentionKeys
         };
 
         return (

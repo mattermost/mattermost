@@ -6,6 +6,7 @@ import React from 'react';
 import EmojiStore from 'stores/emoji_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import {Preferences} from 'utils/constants.jsx';
+import UserStore from 'stores/user_store.jsx';
 
 import PostMessageView from './post_message_view.jsx';
 
@@ -19,21 +20,28 @@ export default class PostMessageContainer extends React.Component {
 
         this.onEmojiChange = this.onEmojiChange.bind(this);
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
+        this.onUserChange = this.onUserChange.bind(this);
+
+        const mentionKeys = UserStore.getCurrentMentionKeys();
+        mentionKeys.push('@here');
 
         this.state = {
             emojis: EmojiStore.getEmojis(),
-            enableFormatting: PreferenceStore.getBool(Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', true)
+            enableFormatting: PreferenceStore.getBool(Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', true),
+            mentionKeys
         };
     }
 
     componentDidMount() {
         EmojiStore.addChangeListener(this.onEmojiChange);
         PreferenceStore.addChangeListener(this.onPreferenceChange);
+        UserStore.addChangeListener(this.onUserChange);
     }
 
     componentWillUnmount() {
         EmojiStore.removeChangeListener(this.onEmojiChange);
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
+        UserStore.removeChangeListener(this.onUserChange);
     }
 
     onEmojiChange() {
@@ -48,13 +56,22 @@ export default class PostMessageContainer extends React.Component {
         });
     }
 
+    onUserChange() {
+        const mentionKeys = UserStore.getCurrentMentionKeys();
+        mentionKeys.push('@here');
+
+        this.setState({
+            mentionKeys
+        });
+    }
+
     render() {
         return (
             <PostMessageView
                 message={this.props.post.message}
                 emojis={this.state.emojis}
                 enableFormatting={this.state.enableFormatting}
-                profiles={this.state.profiles}
+                mentionKeys={this.state.mentionKeys}
             />
         );
     }

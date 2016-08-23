@@ -18,7 +18,7 @@ const cjkPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-
 // @mentions to links by taking a user's message and returning a string of formatted html. Also takes a number of options
 // as part of the second parameter:
 // - searchTerm - If specified, this word is highlighted in the resulting html. Defaults to nothing.
-// - mentionHighlight - Specifies whether or not to highlight mentions of the current user. Defaults to true.
+// - mentionKeys - A list of mention keys for the current user to highlight.
 // - singleline - Specifies whether or not to remove newlines. Defaults to false.
 // - emoticons - Enables emoticon parsing. Defaults to true.
 // - markdown - Enables markdown parsing. Defaults to true.
@@ -67,9 +67,7 @@ export function doFormatText(text, options) {
         output = highlightSearchTerms(output, tokens, options.searchPatterns);
     }
 
-    if (!('mentionHighlight' in options) || options.mentionHighlight) {
-        output = highlightCurrentMentions(output, tokens);
-    }
+    output = highlightCurrentMentions(output, tokens, options.mentionKeys);
 
     if (!('emoticons' in options) || options.emoticon) {
         output = twemoji.parse(output, {
@@ -197,11 +195,8 @@ export function escapeRegex(text) {
     return text.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 }
 
-function highlightCurrentMentions(text, tokens) {
+function highlightCurrentMentions(text, tokens, mentionKeys = []) {
     let output = text;
-
-    const mentionKeys = UserStore.getCurrentMentionKeys();
-    mentionKeys.push('@here');
 
     // look for any existing tokens which are self mentions and should be highlighted
     var newTokens = new Map();
