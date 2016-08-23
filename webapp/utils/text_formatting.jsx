@@ -7,7 +7,6 @@ import Constants from './constants.jsx';
 import EmojiStore from 'stores/emoji_store.jsx';
 import * as Emoticons from './emoticons.jsx';
 import * as Markdown from './markdown.jsx';
-import PreferenceStore from 'stores/preference_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import twemoji from 'twemoji';
 import * as Utils from './utils.jsx';
@@ -29,11 +28,6 @@ const cjkPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-
 //     that can be handled by a special click handler.
 export function formatText(text, inputOptions) {
     let output = text;
-
-    // would probably make more sense if it was on the calling components, but this option is intended primarily for debugging
-    if (window.mm_config.EnableDeveloper === 'true' && PreferenceStore.get(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', 'true') === 'false') {
-        return output;
-    }
 
     const options = Object.assign({}, inputOptions);
     options.searchPatterns = parseSearchTerms(options.searchTerm).map(convertSearchTermToRegex);
