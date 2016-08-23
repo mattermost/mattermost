@@ -33,11 +33,12 @@ export default class SignupController extends React.Component {
         if (props.location.query) {
             loading = true;
             const hash = props.location.query.h;
+            const inviteId = props.location.query.id;
 
             if (hash && hash.length > 0 && !UserStore.getCurrentUser()) {
                 usedBefore = BrowserStore.getGlobalItem(hash);
                 loading = false;
-            } else if (global.window.mm_config.EnableOpenServer !== 'true' && !UserStore.getNoAccounts()) {
+            } else if (!inviteId && global.window.mm_config.EnableOpenServer !== 'true' && !UserStore.getNoAccounts()) {
                 noOpenServerError = true;
                 loading = false;
                 serverError = (
