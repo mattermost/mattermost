@@ -79,7 +79,10 @@ function handleReconnect() {
     if (Client.teamId) {
         AsyncClient.getChannels();
         AsyncClient.getPosts(ChannelStore.getCurrentId());
+        AsyncClient.getTeamMembers(TeamStore.getCurrentId());
+        AsyncClient.getProfiles();
     }
+
     getStatuses();
     ErrorStore.clearLastError();
     ErrorStore.emitChange();
@@ -183,6 +186,7 @@ function handlePostDeleteEvent(msg) {
 }
 
 function handleNewUserEvent() {
+    AsyncClient.getTeamMembers(TeamStore.getCurrentId());
     AsyncClient.getProfiles();
     AsyncClient.getDirectProfiles();
     AsyncClient.getChannelExtraInfo();

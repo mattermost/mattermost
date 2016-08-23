@@ -584,8 +584,6 @@ export function getPostsPage(id, maxPosts) {
                     checkLatest: true,
                     post_list: data
                 });
-
-                getProfiles();
             },
             (err) => {
                 dispatchError(err, 'getPostsPage');
@@ -632,8 +630,6 @@ export function getPosts(id) {
                 numRequested: 0,
                 post_list: data
             });
-
-            getProfiles();
         },
         (err) => {
             dispatchError(err, 'getPosts');
@@ -668,8 +664,6 @@ export function getPostsBefore(postId, offset, numPost, isPost) {
                 post_list: data,
                 isPost
             });
-
-            getProfiles();
         },
         (err) => {
             dispatchError(err, 'getPostsBefore');
@@ -704,8 +698,6 @@ export function getPostsAfter(postId, offset, numPost, isPost) {
                 post_list: data,
                 isPost
             });
-
-            getProfiles();
         },
         (err) => {
             dispatchError(err, 'getPostsAfter');
