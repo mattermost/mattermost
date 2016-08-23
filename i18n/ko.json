@@ -324,8 +324,16 @@
     "translation": "작업을 할 수 있는 권한이 없습니다."
   },
   {
+    "id": "api.channel.remove_member.removed",
+    "translation": "%v was removed from the channel."
+  },
+  {
     "id": "api.channel.remove_member.unable.app_error",
     "translation": "사용자를 제거할 수 없습니다."
+  },
+  {
+    "id": "api.channel.remove_member.user.app_error",
+    "translation": "추가할 사용자를 찾는 데 실패하였습니다"
   },
   {
     "id": "api.channel.remove_user_from_channel.deleted.app_error",
@@ -556,20 +564,44 @@
     "translation": "메세지를 보낸 유저."
   },
   {
+    "id": "api.command_shortcuts.browser",
+    "translation": "#### Built-in Browser Commands\n\nALT+LEFT: Previous channel in your history\nALT+RIGHT: Next channel in your history\nCTRL+PLUS: Increase font size (zoom in)\nCTRL+MINUS: Decrease font size (zoom out)\nSHIFT+UP (in input field): Highlight text to the previous line\nSHIFT+DOWN (in input field): Highlight text to the next line\nSHIFT+ENTER (in input field): Create a new line\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser_mac",
+    "translation": "#### Built-in Browser Commands\n\nCMD+[: Previous channel in your history\nCMD+]: Next channel in your history\nCMD+PLUS: Increase font size (zoom in)\nCMD+MINUS: Decrease font size (zoom out)\nSHIFT+UP (in input field): Highlight text to the previous line\nSHIFT+DOWN (in input field): Highlight text to the next line\nSHIFT+ENTER (in input field): Create a new line\n"
+  },
+  {
     "id": "api.command_shortcuts.desc",
     "translation": "단축키 목록을 표시합니다."
   },
   {
-    "id": "api.command_shortcuts.list",
-    "translation": "### 키보드 단축키\n\n#### 이동\n\nALT+UP: 왼쪽 사이드 바에서 이전 채널이 또는 개인 메시지\nALT+DOWN: 왼쪽 사이드 바에서 다음 채널 또는 개인 메시지\nALT+SHIFT+UP: 왼쪽 사이드 바에서 읽지 않은 이전 채널 또는 개인 메시지\nALT+SHIFT+DOWN: 왼쪽 사이드 바에서 읽지 않은 다음 채널 또는 개인 메시지\nCTRL+K: 빠른 채널 변경을 엽니다\nCTRL+SHIFT+A: 계정 설정을 엽니다\nCTRL+SHIFT+M: 최근 멘션을 엽니다\n\n#### 파일\n\nCTRL+U: 파일 업로드\n\n#### 메시지\n\nESC: 현재 채널의 모든 메시지를 읽음으로 표시합니다.\nCTRL+UP (빈 입력란에서): 입력했던 이전 메시지 또는 슬래시 명령을 다시 표시합니다\nCTRL+DOWN (빈 입력란에서): 입력했던 다음 메시지 또는 슬래시 명령을 다시 표시합니다\nUP (빈 입력란에서): 현재 채널에서 마지막으로 입력한 메시지를 편집합니다\n@[문자]+TAB: [문자]로 시작하는 @username 을 자동완성 합니다\n:[문자]+TAB: [문자]로 시작하는 이모티콘을 자동완성 합니다\n\n#### 브라우저 명령\n\nALT+LEFT: 히스토리의 이전 채널\nALT+RIGHT: 히스토리의 다음 채널\nCTRL+PLUS: 글꼴을 크게 합니다 (확대)\nCTRL+MINUS: 글꼴을 작게 합니다 (축소)\nSHIFT+UP (in input field): 이전 행을 강조합니다\nSHIFT+DOWN (in input field): 다음 행을 강조합니다\nSHIFT+ENTER (in input field): 줄바꿈을 합니다\n"
+    "id": "api.command_shortcuts.files",
+    "translation": "#### Files\n\nCTRL+U: Upload file(s)\n\n"
   },
   {
-    "id": "api.command_shortcuts.list_mac",
-    "translation": "### 키보드 단축키\n\n#### 이동\n\nALT+UP: 왼쪽 사이드 바에서 이전 채널이 또는 개인 메시지\nALT+DOWN: 왼쪽 사이드 바에서 다음 채널 또는 개인 메시지\nALT+SHIFT+UP: 왼쪽 사이드 바에서 읽지 않은 이전 채널 또는 개인 메시지\nALT+SHIFT+DOWN: 왼쪽 사이드 바에서 읽지 않은 다음 채널 또는 개인 메시지\nCMD+K: 빠른 채널 변경을 엽니다\nCMD+SHIFT+A: 계정 설정을 엽니다\nCMD+SHIFT+M: 최근 멘션을 엽니다\n\n#### 파일\n\nCMD+U: 파일 업로드\n\n#### 메시지\n\nESC: 현재 채널의 모든 메시지를 읽음으로 표시합니다.\nCMD+UP (빈 입력란에서): 입력했던 이전 메시지 또는 슬래시 명령을 다시 표시합니다\nCMD+DOWN (빈 입력란에서): 입력했던 다음 메시지 또는 슬래시 명령을 다시 표시합니다\nUP (빈 입력란에서): 현재 채널에서 마지막으로 입력한 메시지를 편집합니다\n@[문자]+TAB: [문자]로 시작하는 @username 을 자동완성 합니다\n:[문자]+TAB: [문자]로 시작하는 이모티콘을 자동완성 합니다\n\n#### 브라우저 명령\n\nCMD+[: 히스토리의 이전 채널\nCMD+]: 히스토리의 다음 채널\nCMD+PLUS: 글꼴을 크게 합니다 (확대)\nCMD+MINUS: 글꼴을 작게 합니다 (축소)\nSHIFT+UP (in input field): 이전 행을 강조합니다\nSHIFT+DOWN (in input field): 다음 행을 강조합니다\nSHIFT+ENTER (in input field): 줄바꿈을 합니다\n"
+    "id": "api.command_shortcuts.files_mac",
+    "translation": "#### Files\n\nCMD+U: Upload file(s)\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs",
+    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCTRL+UP (in empty input field): Reprint the previous message or slash command you entered\nCTRL+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs_mac",
+    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCMD+UP (in empty input field): Reprint the previous message or slash command you entered\nCMD+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
   },
   {
     "id": "api.command_shortcuts.name",
     "translation": "단축키"
+  },
+  {
+    "id": "api.command_shortcuts.nav",
+    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in left hand sidebar\nALT+DOWN: Next channel or direct message in left hand sidebar\nALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\nCTRL+K: Open a quick channel switcher dialog\nCTRL+SHIFT+A: Open account settings\nCTRL+SHIFT+M: Open recent mentions\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav_mac",
+    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in left hand sidebar\nALT+DOWN: Next channel or direct message in left hand sidebar\nALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\nCMD+K: Open a quick channel switcher dialog\nCMD+SHIFT+A: Open account settings\nCMD+SHIFT+M: Open recent mentions\n\n"
   },
   {
     "id": "api.command_shrug.desc",
@@ -626,6 +658,72 @@
   {
     "id": "api.context.unknown.app_error",
     "translation": "알 수 없는 오류가 발생했습니다. 지원 서비스에 연락하시기 바랍니다."
+  },
+  {
+    "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
+    "translation": "Email batching job's receiving channel was full. Please increase the EmailBatchingBufferSize."
+  },
+  {
+    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
+    "translation": "시스템 관리자가 개인 링크들 저장을 할 수 없도록 했습니다."
+  },
+  {
+    "id": "api.email_batching.check_pending_emails.finished_running",
+    "translation": "Email batching job ran. %v user(s) still have notifications pending."
+  },
+  {
+    "id": "api.email_batching.check_pending_emails.status.app_error",
+    "translation": "Unable to find status of recipient for batched email notification"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.channel.app_error",
+    "translation": "Unable to find channel of post for batched email notification"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.date",
+    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.direct_message",
+    "translation": "신규 메시지"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.go_to_post",
+    "translation": "글로 이동하기"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.sender.app_error",
+    "translation": "Unable to find sender of post for batched email notification"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.body_text",
+    "translation": {
+      "one": "한개의 신규 메시지가 있습니다.",
+      "other": ""
+    }
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.preferences.app_error",
+    "translation": "Unable to find display preferences of recipient for batched email notification"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.send.app_error",
+    "translation": "Failed to send batched email notification to %v: %v"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subject",
+    "translation": {
+      "one": "[{{.SiteName}}] New Notification for {{.Month}} {{.Day}}, {{.Year}}",
+      "other": "[{{.SiteName}}] New Notifications for {{.Month}} {{.Day}}, {{.Year}}"
+    }
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.user.app_error",
+    "translation": "Unable to find recipient for batched email notification"
+  },
+  {
+    "id": "api.email_batching.start.starting",
+    "translation": "Email batching job starting. Checking for pending emails every %v seconds."
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
@@ -909,7 +1007,7 @@
   },
   {
     "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Missing client_secret"
+    "translation": "invalid_request: client_secret 값이 누락되었습니다"
   },
   {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
@@ -917,7 +1015,7 @@
   },
   {
     "id": "api.oauth.get_access_token.credentials.app_error",
-    "translation": "invalid_client: Invalid client credentials"
+    "translation": "invalid_client: 잘못된 클라이언트 인증 정보입니다"
   },
   {
     "id": "api.oauth.get_access_token.disabled.app_error",
@@ -925,7 +1023,7 @@
   },
   {
     "id": "api.oauth.get_access_token.expired_code.app_error",
-    "translation": "invalid_grant: Invalid or expired authorization code"
+    "translation": "invalid_grant: 잘못되었거나 기한이 만료된 인증 코드"
   },
   {
     "id": "api.oauth.get_access_token.internal.app_error",
@@ -933,19 +1031,19 @@
   },
   {
     "id": "api.oauth.get_access_token.internal_saving.app_error",
-    "translation": "server_error: Encountered internal server error while saving access token to database"
+    "translation": "server_error: 접근 코드를 데이터베이스에 저장하던 도중 서버 내부 오류 발생"
   },
   {
     "id": "api.oauth.get_access_token.internal_session.app_error",
-    "translation": "server_error: Encountered internal server error while saving session to database"
+    "translation": "server_error: 데이터베이스에 세션 저장 중 서버 내부 오류 발생"
   },
   {
     "id": "api.oauth.get_access_token.internal_user.app_error",
-    "translation": "server_error: Encountered internal server error while pulling user from database"
+    "translation": "server_error: 사용자 정보를 데이터베이스에서 가져오던 도중 서버 내부 오류 발생"
   },
   {
     "id": "api.oauth.get_access_token.missing_code.app_error",
-    "translation": "invalid_request: Missing code"
+    "translation": "invalid_request: 코드가 누락"
   },
   {
     "id": "api.oauth.get_access_token.missing_refresh_token.app_error",
@@ -953,7 +1051,7 @@
   },
   {
     "id": "api.oauth.get_access_token.redirect_uri.app_error",
-    "translation": "invalid_request: Supplied redirect_uri does not match authorization code redirect_uri"
+    "translation": "invalid_request: 주어진 redirect_uri 값이 인증 코드의 redirect_uri 값과 맞지 않음"
   },
   {
     "id": "api.oauth.get_access_token.refresh_token.app_error",
@@ -1028,8 +1126,26 @@
     "translation": "포스트 만드는 중 오류"
   },
   {
+    "id": "api.post.delete_flagged_post.app_error.warn",
+    "translation": "Unable to delete flagged post preference when deleting post, err=%v"
+  },
+  {
     "id": "api.post.delete_post.permissions.app_error",
     "translation": "작업을 할 수 있는 권한이 없습니다"
+  },
+  {
+    "id": "api.post.get_message_for_notification.files_sent",
+    "translation": {
+      "one": "{{.Count}} file sent: {{.Filenames}}",
+      "other": "{{.Count}} files sent: {{.Filenames}}"
+    }
+  },
+  {
+    "id": "api.post.get_message_for_notification.images_sent",
+    "translation": {
+      "one": "{{.Count}} image sent: {{.Filenames}}",
+      "other": "{{.Count}} images sent: {{.Filenames}}"
+    }
   },
   {
     "id": "api.post.get_out_of_channel_mentions.regex.error",
@@ -1094,6 +1210,10 @@
   {
     "id": "api.post.notification.here.warn",
     "translation": "Unable to send notification to online users with @here, err=%v"
+  },
+  {
+    "id": "api.post.notification.member_profile.warn",
+    "translation": "Unable to get profile for channel member, user_id=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
@@ -1185,7 +1305,7 @@
   },
   {
     "id": "api.preference.delete_preferences.user_id.app_error",
-    "translation": "다른 사용자의 기본 설정을 저장할 수 없습니다."
+    "translation": "다른 사용자의 기본 설정을 삭제할 수 없습니다."
   },
   {
     "id": "api.preference.init.debug",
@@ -1933,7 +2053,7 @@
   },
   {
     "id": "api.user.saml.not_available.app_error",
-    "translation": "MFA를 설정하지 않았거나 서버에서 지원하지 않습니다"
+    "translation": "SAML이 설정되지 않았거나 서버에서 지원하지 않습니다"
   },
   {
     "id": "api.user.send_email_change_email_and_forget.error",
@@ -2217,7 +2337,7 @@
   },
   {
     "id": "ent.cluster.incompatible.warn",
-    "translation": "Potential incompatibile version detected for clustering with %v"
+    "translation": "클러스터링에서 잠재적으로 호환되지 않는 버전 %v가 탐지되었습니다."
   },
   {
     "id": "ent.cluster.incompatible_config.warn",
@@ -2760,6 +2880,18 @@
     "translation": "To must be greater than From"
   },
   {
+    "id": "model.config.is_valid.cluster_email_batching.app_error",
+    "translation": "Unable to enable email batching when clustering is enabled"
+  },
+  {
+    "id": "model.config.is_valid.email_batching_buffer_size.app_error",
+    "translation": "Invalid email batching buffer size for email settings.  Must be zero or a positive number."
+  },
+  {
+    "id": "model.config.is_valid.email_batching_interval.app_error",
+    "translation": "Invalid email batching interval for email settings.  Must be 30 seconds or more."
+  },
+  {
     "id": "model.config.is_valid.email_reset_salt.app_error",
     "translation": "Invalid password reset salt for email settings.  Must be 32 chars or more."
   },
@@ -2941,7 +3073,11 @@
   },
   {
     "id": "model.config.is_valid.site_url.app_error",
-    "translation": "SAML SSO URL must be a valid URL and start with http:// or https://."
+    "translation": "사이트 URL은 반드시 올바른 URL이어야 하며, http:// 또는 https://로 시작해야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.site_url_email_batching.app_error",
+    "translation": "Unable to enable email batching when SiteURL isn't set."
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
@@ -3025,7 +3161,7 @@
   },
   {
     "id": "model.oauth.is_valid.callback.app_error",
-    "translation": "SAML SSO URL must be a valid URL and start with http:// or https://."
+    "translation": "콜백 URL은 반드시 올바른 URL이어야 하며, http:// 또는 https://로 시작해야 합니다."
   },
   {
     "id": "model.oauth.is_valid.client_secret.app_error",
@@ -3045,11 +3181,11 @@
   },
   {
     "id": "model.oauth.is_valid.homepage.app_error",
-    "translation": "SAML SSO URL must be a valid URL and start with http:// or https://."
+    "translation": "홈페이지는 반드시 올바른 URL이어야 하며, http:// 또는 https://로 시작해야 합니다."
   },
   {
     "id": "model.oauth.is_valid.icon_url.app_error",
-    "translation": "SAML SSO URL must be a valid URL and start with http:// or https://."
+    "translation": "아이콘 URL은 반드시 올바른 URL이어야 하며, http:// 또는 https://로 시작해야 합니다."
   },
   {
     "id": "model.oauth.is_valid.name.app_error",
@@ -3165,7 +3301,7 @@
   },
   {
     "id": "model.post.is_valid.user_id.app_error",
-    "translation": "올바르지 않은 형식"
+    "translation": "올바르지 않은 사용자 id"
   },
   {
     "id": "model.preference.is_valid.category.app_error",
@@ -3173,15 +3309,15 @@
   },
   {
     "id": "model.preference.is_valid.id.app_error",
-    "translation": "올바르지 않은 형식"
+    "translation": "올바르지 않은 사용자 id"
   },
   {
     "id": "model.preference.is_valid.name.app_error",
-    "translation": "올바르지 않은 형식"
+    "translation": "잘못된 이름"
   },
   {
     "id": "model.preference.is_valid.theme.app_error",
-    "translation": "올바르지 않은 형식"
+    "translation": "잘못된 테마"
   },
   {
     "id": "model.preference.is_valid.value.app_error",
@@ -3189,11 +3325,11 @@
   },
   {
     "id": "model.team.is_valid.characters.app_error",
-    "translation": "이름은 반드시 1글자 이상 64글자 이하 영문 또는 숫자여야 합니다."
+    "translation": "이름은 반드시 4글자 이상 영소문자 또는 숫자여야 합니다."
   },
   {
     "id": "model.team.is_valid.company.app_error",
-    "translation": "잘못된 표시명"
+    "translation": "잘못된 회사명"
   },
   {
     "id": "model.team.is_valid.create_at.app_error",
@@ -3857,11 +3993,11 @@
   },
   {
     "id": "store.sql_oauth.save_auth_data.app_error",
-    "translation": "We couldn't save the authorization code."
+    "translation": "인증 코드를 저장할 수 없습니다"
   },
   {
     "id": "store.sql_oauth.update_access_data.app_error",
-    "translation": "We encountered an error finding the access token"
+    "translation": "접근 토큰을 업데이트하다 에러가 발생했습니다"
   },
   {
     "id": "store.sql_oauth.update_app.find.app_error",
