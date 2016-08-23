@@ -828,8 +828,18 @@ export default class SecurityTab extends React.Component {
 
             const inputs = [];
             let wrapperClass;
+            let helpText;
             if (Array.isArray(apps)) {
                 wrapperClass = 'authorized-apps__wrapper';
+
+                helpText = (
+                    <div className='authorized-apps__help'>
+                        <FormattedMessage
+                            id='user.settings.security.oauthAppsHelp'
+                            defaultMessage='Applications act on your behalf to access your data based on the permissions you grant them.'
+                        />
+                    </div>
+                );
             }
 
             inputs.push(
@@ -853,12 +863,7 @@ export default class SecurityTab extends React.Component {
                         id='user.settings.security.oauthApps'
                         defaultMessage='OAuth 2.0 Applications'
                     />
-                    <div className='authorized-apps__help'>
-                        <FormattedMessage
-                            id='user.settings.security.oauthAppsHelp'
-                            defaultMessage='Applications act on your behalf to access your data based on the permissions you grant them.'
-                        />
-                    </div>
+                    {helpText}
                 </div>
             );
 
