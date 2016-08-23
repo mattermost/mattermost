@@ -54,12 +54,14 @@ export default class SelectTeam extends React.Component {
         let teamContents = [];
         const isAlreadyMember = new Map();
         const isSystemAdmin = Utils.isSystemAdmin(UserStore.getCurrentUser().roles);
+        let teamMembersCount = 0;
 
         for (var index in this.state.teamMembers) {
             if (this.state.teamMembers.hasOwnProperty(index)) {
                 var teamMember = this.state.teamMembers[index];
                 var team = this.state.teams[teamMember.team_id];
                 isAlreadyMember[teamMember.team_id] = true;
+                teamMembersCount++;
                 teamContents.push(
                     <div
                         key={'team_' + team.name}
@@ -103,7 +105,7 @@ export default class SelectTeam extends React.Component {
             }
         }
 
-        if (this.state.teamMembers.length === 0 && teamContents.length === 0 && openTeamContents.length === 0 && (global.window.mm_config.EnableTeamCreation === 'true' || isSystemAdmin)) {
+        if (teamMembersCount === 0 && teamContents.length === 0 && openTeamContents.length === 0 && (global.window.mm_config.EnableTeamCreation === 'true' || isSystemAdmin)) {
             teamContents = (
                 <div className='signup-team-dir-err'>
                     <div>
@@ -114,7 +116,7 @@ export default class SelectTeam extends React.Component {
                     </div>
                 </div>
             );
-        } else if (this.state.teamMembers.length === 0 && teamContents.length === 0 && openTeamContents.length === 0) {
+        } else if (teamMembersCount === 0 && teamContents.length === 0 && openTeamContents.length === 0) {
             teamContents = (
                 <div className='signup-team-dir-err'>
                     <div>
