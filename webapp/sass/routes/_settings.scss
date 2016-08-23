@@ -7,6 +7,42 @@
         max-height: 300px;
         max-width: 560px;
     }
+
+    .authorized-apps__help {
+        font-size: 13px;
+        font-weight: 400;
+        margin-top: 7px;
+    }
+
+    .authorized-apps__wrapper {
+        background-color: #fff;
+        padding: 10px 0;
+    }
+
+    .authorized-app {
+        display: inline-block;
+        width: 100%;
+
+        &:not(:last-child) {
+            border-bottom: 1px solid #ccc;
+            margin-bottom: 10px;
+        }
+
+        .authorized-app__name {
+            font-weight: 600;
+        }
+
+        .authorized-app__url {
+            font-size: 13px;
+            font-weight: 400;
+        }
+
+        .authorized-app__description,
+        .authorized-app__deauthorize {
+            font-size: 13px;
+            margin: 5px 0;
+        }
+    }
 }
 
 .modal {

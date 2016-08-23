@@ -29,7 +29,9 @@ func InitOAuth() {
 	BaseRoutes.OAuth.Handle("/list", ApiUserRequired(getOAuthApps)).Methods("GET")
 	BaseRoutes.OAuth.Handle("/app/{client_id}", ApiUserRequired(getOAuthAppInfo)).Methods("GET")
 	BaseRoutes.OAuth.Handle("/allow", ApiUserRequired(allowOAuth)).Methods("GET")
+	BaseRoutes.OAuth.Handle("/authorized", ApiUserRequired(getAuthorizedApps)).Methods("GET")
 	BaseRoutes.OAuth.Handle("/delete", ApiUserRequired(deleteOAuthApp)).Methods("POST")
+	BaseRoutes.OAuth.Handle("/{id:[A-Za-z0-9]+}/deauthorize", AppHandlerIndependent(deauthorizeOAuthApp)).Methods("POST")
 	BaseRoutes.OAuth.Handle("/{service:[A-Za-z0-9]+}/complete", AppHandlerIndependent(completeOAuth)).Methods("GET")
 	BaseRoutes.OAuth.Handle("/{service:[A-Za-z0-9]+}/login", AppHandlerIndependent(loginWithOAuth)).Methods("GET")
 	BaseRoutes.OAuth.Handle("/{service:[A-Za-z0-9]+}/signup", AppHandlerIndependent(signupWithOAuth)).Methods("GET")
@@ -225,6 +227,28 @@ func allowOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	responseData["redirect"] = redirectUri + "?code=" + url.QueryEscape(authData.Code) + "&state=" + url.QueryEscape(authData.State)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(model.MapToJson(responseData)))
+}
+
+func getAuthorizedApps(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !utils.Cfg.ServiceSettings.EnableOAuthServiceProvider {
+		c.Err = model.NewLocAppError("getAuthorizedApps", "api.oauth.allow_oauth.turn_off.app_error", nil, "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
+
+	ochan := Srv.Store.OAuth().GetAuthorizedApps(c.Session.UserId)
+	if result := <-ochan; result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		apps := result.Data.([]*model.OAuthApp)
+		for k, a := range apps {
+			a.Sanitize()
+			apps[k] = a
+		}
+
+		w.Write([]byte(model.OAuthAppListToJson(apps)))
+	}
 }
 
 func RevokeAccessToken(token string) *model.AppError {
@@ -871,6 +895,51 @@ func deleteOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := (<-Srv.Store.OAuth().DeleteApp(id)).Err; err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("success")
+	ReturnStatusOK(w)
+}
+
+func deauthorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !utils.Cfg.ServiceSettings.EnableOAuthServiceProvider {
+		c.Err = model.NewLocAppError("deleteOAuthApp", "api.oauth.allow_oauth.turn_off.app_error", nil, "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
+
+	params := mux.Vars(r)
+	id := params["id"]
+
+	if len(id) == 0 {
+		c.SetInvalidParam("deauthorizeOAuthApp", "id")
+		return
+	}
+
+	// revoke app sessions
+	if result := <-Srv.Store.OAuth().GetAccessDataByUserForApp(c.Session.UserId, id); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		accessData := result.Data.([]*model.AccessData)
+
+		for _, a := range accessData {
+			if err := RevokeAccessToken(a.Token); err != nil {
+				c.Err = err
+				return
+			}
+
+			if rad := <-Srv.Store.OAuth().RemoveAccessData(a.Token); rad.Err != nil {
+				c.Err = rad.Err
+				return
+			}
+		}
+	}
+
+	// Deauthorize the app
+	if err := (<-Srv.Store.Preference().Delete(c.Session.UserId, model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP, id)).Err; err != nil {
 		c.Err = err
 		return
 	}

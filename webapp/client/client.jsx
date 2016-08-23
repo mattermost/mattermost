@@ -1553,6 +1553,26 @@ export default class Client {
         end(this.handleResponse.bind(this, 'getOAuthAppInfo', success, error));
     }
 
+    getAuthorizedApps(success, error) {
+        request.
+        get(`${this.getOAuthRoute()}/authorized`).
+        set(this.defaultHeaders).
+        type('application/json').
+        accept('application/json').
+        send().
+        end(this.handleResponse.bind(this, 'getAuthorizedApps', success, error));
+    }
+
+    deauthorizeOAuthApp(id, success, error) {
+        request.
+        post(`${this.getOAuthRoute()}/${id}/deauthorize`).
+        set(this.defaultHeaders).
+        type('application/json').
+        accept('application/json').
+        send().
+        end(this.handleResponse.bind(this, 'deauthorizeOAuthApp', success, error));
+    }
+
     // Routes for Hooks
 
     addIncomingHook(hook, success, error) {

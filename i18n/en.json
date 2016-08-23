@@ -3932,6 +3932,10 @@
     "translation": "We encountered an error finding the access token"
   },
   {
+    "id": "store.sql_oauth.get_access_data_by_user_for_app.app_error",
+    "translation": "We encountered an error finding all the access tokens"
+  },
+  {
     "id": "store.sql_oauth.get_app.find.app_error",
     "translation": "We couldn't find the requested app"
   },

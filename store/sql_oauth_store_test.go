@@ -202,6 +202,82 @@ func TestOAuthStoreRemoveAuthDataByUser(t *testing.T) {
 	}
 }
 
+func TestOAuthGetAuthorizedApps(t *testing.T) {
+	Setup()
+
+	a1 := model.OAuthApp{}
+	a1.CreatorId = model.NewId()
+	a1.Name = "TestApp" + model.NewId()
+	a1.CallbackUrls = []string{"https://nowhere.com"}
+	a1.Homepage = "https://nowhere.com"
+	Must(store.OAuth().SaveApp(&a1))
+
+	// allow the app
+	p := model.Preference{}
+	p.UserId = a1.CreatorId
+	p.Category = model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP
+	p.Name = a1.Id
+	p.Value = "true"
+	Must(store.Preference().Save(&model.Preferences{p}))
+
+	if result := <-store.OAuth().GetAuthorizedApps(a1.CreatorId); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		apps := result.Data.([]*model.OAuthApp)
+		if len(apps) == 0 {
+			t.Fatal("It should have return apps")
+		}
+	}
+}
+
+func TestOAuthGetAccessDataByUserForApp(t *testing.T) {
+	Setup()
+
+	a1 := model.OAuthApp{}
+	a1.CreatorId = model.NewId()
+	a1.Name = "TestApp" + model.NewId()
+	a1.CallbackUrls = []string{"https://nowhere.com"}
+	a1.Homepage = "https://nowhere.com"
+	Must(store.OAuth().SaveApp(&a1))
+
+	// allow the app
+	p := model.Preference{}
+	p.UserId = a1.CreatorId
+	p.Category = model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP
+	p.Name = a1.Id
+	p.Value = "true"
+	Must(store.Preference().Save(&model.Preferences{p}))
+
+	if result := <-store.OAuth().GetAuthorizedApps(a1.CreatorId); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		apps := result.Data.([]*model.OAuthApp)
+		if len(apps) == 0 {
+			t.Fatal("It should have return apps")
+		}
+	}
+
+	// save the token
+	ad1 := model.AccessData{}
+	ad1.ClientId = a1.Id
+	ad1.UserId = a1.CreatorId
+	ad1.Token = model.NewId()
+	ad1.RefreshToken = model.NewId()
+
+	if err := (<-store.OAuth().SaveAccessData(&ad1)).Err; err != nil {
+		t.Fatal(err)
+	}
+
+	if result := <-store.OAuth().GetAccessDataByUserForApp(a1.CreatorId, a1.Id); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		accessData := result.Data.([]*model.AccessData)
+		if len(accessData) == 0 {
+			t.Fatal("It should have return access data")
+		}
+	}
+}
+
 func TestOAuthStoreDeleteApp(t *testing.T) {
 	a1 := model.OAuthApp{}
 	a1.CreatorId = model.NewId()

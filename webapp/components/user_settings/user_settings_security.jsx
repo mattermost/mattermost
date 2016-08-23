@@ -16,33 +16,12 @@ import Constants from 'utils/constants.jsx';
 
 import $ from 'jquery';
 import React from 'react';
-import {intlShape, injectIntl, defineMessages, FormattedMessage, FormattedHTMLMessage, FormattedTime, FormattedDate} from 'react-intl';
+import {FormattedMessage, FormattedHTMLMessage, FormattedTime, FormattedDate} from 'react-intl';
 import {Link} from 'react-router/es6';
 
-const holders = defineMessages({
-    currentPasswordError: {
-        id: 'user.settings.security.currentPasswordError',
-        defaultMessage: 'Please enter your current password.'
-    },
-    passwordLengthError: {
-        id: 'user.settings.security.passwordLengthError',
-        defaultMessage: 'New passwords must be at least {min} characters and at most {max} characters.'
-    },
-    passwordMatchError: {
-        id: 'user.settings.security.passwordMatchError',
-        defaultMessage: 'The new passwords you entered do not match.'
-    },
-    method: {
-        id: 'user.settings.security.method',
-        defaultMessage: 'Sign-in Method'
-    },
-    close: {
-        id: 'user.settings.security.close',
-        defaultMessage: 'Close'
-    }
-});
+import icon50 from 'images/icon50x50.png';
 
-class SecurityTab extends React.Component {
+export default class SecurityTab extends React.Component {
     constructor(props) {
         super(props);
 
@@ -56,7 +35,9 @@ class SecurityTab extends React.Component {
         this.getDefaultState = this.getDefaultState.bind(this);
         this.createPasswordSection = this.createPasswordSection.bind(this);
         this.createSignInSection = this.createSignInSection.bind(this);
+        this.createOAuthAppsSection = this.createOAuthAppsSection.bind(this);
         this.showQrCode = this.showQrCode.bind(this);
+        this.deauthorizeApp = this.deauthorizeApp.bind(this);
 
         this.state = this.getDefaultState();
     }
@@ -74,6 +55,16 @@ class SecurityTab extends React.Component {
         };
     }
 
+    componentDidMount() {
+        Client.getAuthorizedApps(
+            (authorizedApps) => {
+                this.setState({authorizedApps, serverError: null}); //eslint-disable-line react/no-did-mount-set-state
+            },
+            (err) => {
+                this.setState({serverError: err.message}); //eslint-disable-line react/no-did-mount-set-state
+            });
+    }
+
     submitPassword(e) {
         e.preventDefault();
 
@@ -82,9 +73,8 @@ class SecurityTab extends React.Component {
         var newPassword = this.state.newPassword;
         var confirmPassword = this.state.confirmPassword;
 
-        const {formatMessage} = this.props.intl;
         if (currentPassword === '') {
-            this.setState({passwordError: formatMessage(holders.currentPasswordError), serverError: ''});
+            this.setState({passwordError: Utils.localizeMessage('user.settings.security.currentPasswordError', 'Please enter your current password.'), serverError: ''});
             return;
         }
 
@@ -98,7 +88,7 @@ class SecurityTab extends React.Component {
         }
 
         if (newPassword !== confirmPassword) {
-            var defaultState = Object.assign(this.getDefaultState(), {passwordError: formatMessage(holders.passwordMatchError), serverError: ''});
+            var defaultState = Object.assign(this.getDefaultState(), {passwordError: Utils.localizeMessage('user.settings.security.passwordMatchError', 'The new passwords you entered do not match.'), serverError: ''});
             this.setState(defaultState);
             return;
         }
@@ -188,6 +178,23 @@ class SecurityTab extends React.Component {
     showQrCode(e) {
         e.preventDefault();
         this.setState({mfaShowQr: true});
+    }
+
+    deauthorizeApp(e) {
+        e.preventDefault();
+        const appId = e.currentTarget.getAttribute('data-app');
+        Client.deauthorizeOAuthApp(
+            appId,
+            () => {
+                const authorizedApps = this.state.authorizedApps.filter((app) => {
+                    return app.id !== appId;
+                });
+
+                this.setState({authorizedApps, serverError: null});
+            },
+            (err) => {
+                this.setState({serverError: err.message});
+            });
     }
 
     createMfaSection() {
@@ -686,7 +693,7 @@ class SecurityTab extends React.Component {
 
             return (
                 <SettingItemMax
-                    title={this.props.intl.formatMessage(holders.method)}
+                    title={Utils.localizeMessage('user.settings.security.method', 'Sign-in Method')}
                     extraInfo={extraInfo}
                     inputs={inputs}
                     server_error={this.state.serverError}
@@ -744,8 +751,146 @@ class SecurityTab extends React.Component {
 
         return (
             <SettingItemMin
-                title={this.props.intl.formatMessage(holders.method)}
+                title={Utils.localizeMessage('user.settings.security.method', 'Sign-in Method')}
                 describe={describe}
+                updateSection={updateSectionStatus}
+            />
+        );
+    }
+
+    createOAuthAppsSection() {
+        let updateSectionStatus;
+
+        if (this.props.activeSection === 'apps') {
+            let apps;
+            if (this.state.authorizedApps && this.state.authorizedApps.length > 0) {
+                apps = this.state.authorizedApps.map((app) => {
+                    const homepage = (
+                        <a
+                            href={app.homepage}
+                            target='_blank'
+                            rel='noopener noreferrer'
+                        >
+                            {app.homepage}
+                        </a>
+                    );
+
+                    return (
+                        <div
+                            key={app.id}
+                            className='padding-bottom x2 authorized-app'
+                        >
+                            <div className='col-sm-10'>
+                                <div className='authorized-app__name'>
+                                    {app.name}
+                                    <span className='authorized-app__url'>
+                                        {' -'} {homepage}
+                                    </span>
+                                </div>
+                                <div className='authorized-app__description'>{app.description}</div>
+                                <div className='authorized-app__deauthorize'>
+                                    <a
+                                        href='#'
+                                        data-app={app.id}
+                                        onClick={this.deauthorizeApp}
+                                    >
+                                        <FormattedMessage
+                                            id='user.settings.security.deauthorize'
+                                            defaultMessage='Deauthorize'
+                                        />
+                                    </a>
+                                </div>
+                            </div>
+                            <div className='col-sm-2 pull-right'>
+                                <img
+                                    alt={app.name}
+                                    src={app.icon_url || icon50}
+                                />
+                            </div>
+                            <br/>
+                        </div>
+                    );
+                });
+            } else {
+                apps = (
+                    <div className='padding-bottom x2 authorized-app'>
+                        <div className='col-sm-12'>
+                            <div className='setting-list__hint'>
+                                <FormattedMessage
+                                    id='user.settings.security.noApps'
+                                    defaultMessage='No OAuth 2.0 Applications are authorized.'
+                                />
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            const inputs = [];
+            let wrapperClass;
+            let helpText;
+            if (Array.isArray(apps)) {
+                wrapperClass = 'authorized-apps__wrapper';
+
+                helpText = (
+                    <div className='authorized-apps__help'>
+                        <FormattedMessage
+                            id='user.settings.security.oauthAppsHelp'
+                            defaultMessage='Applications act on your behalf to access your data based on the permissions you grant them.'
+                        />
+                    </div>
+                );
+            }
+
+            inputs.push(
+                <div
+                    className={wrapperClass}
+                    key='authorizedApps'
+                >
+                    {apps}
+                </div>
+            );
+
+            updateSectionStatus = function updateSection(e) {
+                this.props.updateSection('');
+                this.setState({serverError: null});
+                e.preventDefault();
+            }.bind(this);
+
+            const title = (
+                <div>
+                    <FormattedMessage
+                        id='user.settings.security.oauthApps'
+                        defaultMessage='OAuth 2.0 Applications'
+                    />
+                    {helpText}
+                </div>
+            );
+
+            return (
+                <SettingItemMax
+                    title={title}
+                    inputs={inputs}
+                    server_error={this.state.serverError}
+                    updateSection={updateSectionStatus}
+                    width='full'
+                />
+            );
+        }
+
+        updateSectionStatus = function updateSection() {
+            this.props.updateSection('apps');
+        }.bind(this);
+
+        return (
+            <SettingItemMin
+                title={Utils.localizeMessage('user.settings.security.oauthApps', 'OAuth 2.0 Applications')}
+                describe={
+                    <FormattedMessage
+                        id='user.settings.security.oauthAppsDescription'
+                        defaultMessage="Click 'Edit' to manage your OAuth 2.0 Applications"
+                    />
+                }
                 updateSection={updateSectionStatus}
             />
         );
@@ -753,25 +898,31 @@ class SecurityTab extends React.Component {
 
     render() {
         const user = this.props.user;
+        const config = window.mm_config;
 
         const passwordSection = this.createPasswordSection();
 
         let numMethods = 0;
-        numMethods = global.window.mm_config.EnableSignUpWithGitLab === 'true' ? numMethods + 1 : numMethods;
-        numMethods = global.window.mm_config.EnableSignUpWithGoogle === 'true' ? numMethods + 1 : numMethods;
-        numMethods = global.window.mm_config.EnableLdap === 'true' ? numMethods + 1 : numMethods;
-        numMethods = global.window.mm_config.EnableSaml === 'true' ? numMethods + 1 : numMethods;
+        numMethods = config.EnableSignUpWithGitLab === 'true' ? numMethods + 1 : numMethods;
+        numMethods = config.EnableSignUpWithGoogle === 'true' ? numMethods + 1 : numMethods;
+        numMethods = config.EnableLdap === 'true' ? numMethods + 1 : numMethods;
+        numMethods = config.EnableSaml === 'true' ? numMethods + 1 : numMethods;
 
         let signInSection;
-        if (global.window.mm_config.EnableSignUpWithEmail === 'true' && numMethods > 0) {
+        if (config.EnableSignUpWithEmail === 'true' && numMethods > 0) {
             signInSection = this.createSignInSection();
         }
 
         let mfaSection;
-        if (global.window.mm_config.EnableMultifactorAuthentication === 'true' &&
+        if (config.EnableMultifactorAuthentication === 'true' &&
                 global.window.mm_license.IsLicensed === 'true' &&
                 (user.auth_service === '' || user.auth_service === Constants.LDAP_SERVICE)) {
             mfaSection = this.createMfaSection();
+        }
+
+        let oauthSection;
+        if (config.EnableOAuthServiceProvider === 'true') {
+            oauthSection = this.createOAuthAppsSection();
         }
 
         return (
@@ -781,7 +932,7 @@ class SecurityTab extends React.Component {
                         type='button'
                         className='close'
                         data-dismiss='modal'
-                        aria-label={this.props.intl.formatMessage(holders.close)}
+                        aria-label={Utils.localizeMessage('user.settings.security.close', 'Close')}
                         onClick={this.props.closeModal}
                     >
                         <span aria-hidden='true'>{'×'}</span>
@@ -813,6 +964,8 @@ class SecurityTab extends React.Component {
                     {passwordSection}
                     <div className='divider-light'/>
                     {mfaSection}
+                    <div className='divider-light'/>
+                    {oauthSection}
                     <div className='divider-light'/>
                     {signInSection}
                     <div className='divider-dark'/>
@@ -849,7 +1002,6 @@ SecurityTab.defaultProps = {
     activeSection: ''
 };
 SecurityTab.propTypes = {
-    intl: intlShape.isRequired,
     user: React.PropTypes.object,
     activeSection: React.PropTypes.string,
     updateSection: React.PropTypes.func,
@@ -858,5 +1010,3 @@ SecurityTab.propTypes = {
     collapseModal: React.PropTypes.func.isRequired,
     setEnforceFocus: React.PropTypes.func.isRequired
 };
-
-export default injectIntl(SecurityTab);
