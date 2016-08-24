@@ -22,6 +22,13 @@ const (
 	VERSION_3_0_0 = "3.0.0"
 )
 
+const (
+	EXIT_VERSION_SAVE_MISSING = 1001
+	EXIT_TOO_OLD              = 1002
+	EXIT_VERSION_SAVE         = 1003
+	EXIT_THEME_MIGRATION      = 1004
+)
+
 func UpgradeDatabase(sqlStore *SqlStore) {
 
 	UpgradeDatabaseToVersion31(sqlStore)
@@ -35,7 +42,7 @@ func UpgradeDatabase(sqlStore *SqlStore) {
 		if result := <-sqlStore.system.Save(&model.System{Name: "Version", Value: model.CurrentVersion}); result.Err != nil {
 			l4g.Critical(result.Err.Error())
 			time.Sleep(time.Second)
-			os.Exit(1001)
+			os.Exit(EXIT_VERSION_SAVE_MISSING)
 		}
 
 		sqlStore.SchemaVersion = model.CurrentVersion
@@ -46,7 +53,7 @@ func UpgradeDatabase(sqlStore *SqlStore) {
 	if sqlStore.SchemaVersion != model.CurrentVersion {
 		l4g.Critical(utils.T("store.sql.schema_version.critical"), sqlStore.SchemaVersion)
 		time.Sleep(time.Second)
-		os.Exit(1002)
+		os.Exit(EXIT_TOO_OLD)
 	}
 }
 
@@ -54,7 +61,7 @@ func saveSchemaVersion(sqlStore *SqlStore, version string) {
 	if result := <-sqlStore.system.Update(&model.System{Name: "Version", Value: model.CurrentVersion}); result.Err != nil {
 		l4g.Critical(result.Err.Error())
 		time.Sleep(time.Second)
-		os.Exit(1003)
+		os.Exit(EXIT_VERSION_SAVE)
 	}
 
 	sqlStore.SchemaVersion = version
@@ -145,7 +152,7 @@ func UpgradeDatabaseToVersion32(sqlStore *SqlStore) {
 func themeMigrationFailed(err error) {
 	l4g.Critical(utils.T("store.sql_user.migrate_theme.critical"), err)
 	time.Sleep(time.Second)
-	os.Exit(1004)
+	os.Exit(EXIT_THEME_MIGRATION)
 }
 
 func UpgradeDatabaseToVersion33(sqlStore *SqlStore) {

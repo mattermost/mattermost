@@ -35,6 +35,33 @@ const (
 	INDEX_TYPE_DEFAULT   = "default"
 )
 
+const (
+	EXIT_CREATE_TABLE                = 100
+	EXIT_DB_OPEN                     = 101
+	EXIT_PING                        = 102
+	EXIT_NO_DRIVER                   = 103
+	EXIT_TABLE_EXISTS                = 104
+	EXIT_TABLE_EXISTS_MYSQL          = 105
+	EXIT_COLUMN_EXISTS               = 106
+	EXIT_DOES_COLUMN_EXISTS_POSTGRES = 107
+	EXIT_DOES_COLUMN_EXISTS_MYSQL    = 108
+	EXIT_DOES_COLUMN_EXISTS_MISSING  = 109
+	EXIT_CREATE_COLUMN_POSTGRES      = 110
+	EXIT_CREATE_COLUMN_MYSQL         = 111
+	EXIT_CREATE_COLUMN_MISSING       = 112
+	EXIT_REMOVE_COLUMN               = 113
+	EXIT_RENAME_COLUMN               = 114
+	EXIT_MAX_COLUMN                  = 115
+	EXIT_ALTER_COLUMN                = 116
+	EXIT_CREATE_INDEX_POSTGRES       = 117
+	EXIT_CREATE_INDEX_MYSQL          = 118
+	EXIT_CREATE_INDEX_FULL_MYSQL     = 119
+	EXIT_CREATE_INDEX_MISSING        = 120
+	EXIT_REMOVE_INDEX_POSTGRES       = 121
+	EXIT_REMOVE_INDEX_MYSQL          = 122
+	EXIT_REMOVE_INDEX_MISSING        = 123
+)
+
 type SqlStore struct {
 	master        *gorp.DbMap
 	replicas      []*gorp.DbMap
@@ -107,7 +134,7 @@ func NewSqlStore() Store {
 	if err != nil {
 		l4g.Critical(utils.T("store.sql.creating_tables.critical"), err)
 		time.Sleep(time.Second)
-		os.Exit(100)
+		os.Exit(EXIT_CREATE_TABLE)
 	}
 
 	UpgradeDatabase(sqlStore)
@@ -140,7 +167,7 @@ func setupConnection(con_type string, driver string, dataSource string, maxIdle 
 	if err != nil {
 		l4g.Critical(utils.T("store.sql.open_conn.critical"), err)
 		time.Sleep(time.Second)
-		os.Exit(101)
+		os.Exit(EXIT_DB_OPEN)
 	}
 
 	l4g.Info(utils.T("store.sql.pinging.info"), con_type)
@@ -148,7 +175,7 @@ func setupConnection(con_type string, driver string, dataSource string, maxIdle 
 	if err != nil {
 		l4g.Critical(utils.T("store.sql.ping.critical"), err)
 		time.Sleep(time.Second)
-		os.Exit(102)
+		os.Exit(EXIT_PING)
 	}
 
 	db.SetMaxIdleConns(maxIdle)
@@ -165,7 +192,7 @@ func setupConnection(con_type string, driver string, dataSource string, maxIdle 
 	} else {
 		l4g.Critical(utils.T("store.sql.dialect_driver.critical"))
 		time.Sleep(time.Second)
-		os.Exit(103)
+		os.Exit(EXIT_NO_DRIVER)
 	}
 
 	if trace {
@@ -201,7 +228,7 @@ func (ss SqlStore) DoesTableExist(tableName string) bool {
 		if err != nil {
 			l4g.Critical(utils.T("store.sql.table_exists.critical"), err)
 			time.Sleep(time.Second)
-			os.Exit(104)
+			os.Exit(EXIT_TABLE_EXISTS)
 		}
 
 		return count > 0
@@ -223,7 +250,7 @@ func (ss SqlStore) DoesTableExist(tableName string) bool {
 		if err != nil {
 			l4g.Critical(utils.T("store.sql.table_exists.critical"), err)
 			time.Sleep(time.Second)
-			os.Exit(105)
+			os.Exit(EXIT_TABLE_EXISTS_MYSQL)
 		}
 
 		return count > 0
@@ -231,7 +258,7 @@ func (ss SqlStore) DoesTableExist(tableName string) bool {
 	} else {
 		l4g.Critical(utils.T("store.sql.column_exists_missing_driver.critical"))
 		time.Sleep(time.Second)
-		os.Exit(106)
+		os.Exit(EXIT_COLUMN_EXISTS)
 		return false
 	}
 }
@@ -255,7 +282,7 @@ func (ss SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 
 			l4g.Critical(utils.T("store.sql.column_exists.critical"), err)
 			time.Sleep(time.Second)
-			os.Exit(107)
+			os.Exit(EXIT_DOES_COLUMN_EXISTS_POSTGRES)
 		}
 
 		return count > 0
@@ -278,7 +305,7 @@ func (ss SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 		if err != nil {
 			l4g.Critical(utils.T("store.sql.column_exists.critical"), err)
 			time.Sleep(time.Second)
-			os.Exit(108)
+			os.Exit(EXIT_DOES_COLUMN_EXISTS_MYSQL)
 		}
 
 		return count > 0
@@ -286,7 +313,7 @@ func (ss SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 	} else {
 		l4g.Critical(utils.T("store.sql.column_exists_missing_driver.critical"))
 		time.Sleep(time.Second)
-		os.Exit(109)
+		os.Exit(EXIT_DOES_COLUMN_EXISTS_MISSING)
 		return false
 	}
 }
@@ -302,7 +329,7 @@ func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, 
 		if err != nil {
 			l4g.Critical(utils.T("store.sql.create_column.critical"), err)
 			time.Sleep(time.Second)
-			os.Exit(110)
+			os.Exit(EXIT_CREATE_COLUMN_POSTGRES)
 		}
 
 		return true
@@ -312,7 +339,7 @@ func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, 
 		if err != nil {
 			l4g.Critical(utils.T("store.sql.create_column.critical"), err)
 			time.Sleep(time.Second)
-			os.Exit(111)
+			os.Exit(EXIT_CREATE_COLUMN_MYSQL)
 		}
 
 		return true
@@ -320,7 +347,7 @@ func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, 
 	} else {
 		l4g.Critical(utils.T("store.sql.create_column_missing_driver.critical"))
 		time.Sleep(time.Second)
-		os.Exit(112)
+		os.Exit(EXIT_CREATE_COLUMN_MISSING)
 		return false
 	}
 }
@@ -335,7 +362,7 @@ func (ss SqlStore) RemoveColumnIfExists(tableName string, columnName string) boo
 	if err != nil {
 		l4g.Critical(utils.T("store.sql.drop_column.critical"), err)
 		time.Sleep(time.Second)
-		os.Exit(113)
+		os.Exit(EXIT_REMOVE_COLUMN)
 	}
 
 	return true
@@ -356,7 +383,7 @@ func (ss SqlStore) RenameColumnIfExists(tableName string, oldColumnName string, 
 	if err != nil {
 		l4g.Critical(utils.T("store.sql.rename_column.critical"), err)
 		time.Sleep(time.Second)
-		os.Exit(114)
+		os.Exit(EXIT_RENAME_COLUMN)
 	}
 
 	return true
@@ -378,7 +405,7 @@ func (ss SqlStore) GetMaxLengthOfColumnIfExists(tableName string, columnName str
 	if err != nil {
 		l4g.Critical(utils.T("store.sql.maxlength_column.critical"), err)
 		time.Sleep(time.Second)
-		os.Exit(115)
+		os.Exit(EXIT_MAX_COLUMN)
 	}
 
 	return result
@@ -399,7 +426,7 @@ func (ss SqlStore) AlterColumnTypeIfExists(tableName string, columnName string, 
 	if err != nil {
 		l4g.Critical(utils.T("store.sql.alter_column_type.critical"), err)
 		time.Sleep(time.Second)
-		os.Exit(116)
+		os.Exit(EXIT_ALTER_COLUMN)
 	}
 
 	return true
@@ -442,7 +469,7 @@ func (ss SqlStore) createIndexIfNotExists(indexName string, tableName string, co
 		if err != nil {
 			l4g.Critical(utils.T("store.sql.create_index.critical"), err)
 			time.Sleep(time.Second)
-			os.Exit(117)
+			os.Exit(EXIT_CREATE_INDEX_POSTGRES)
 		}
 	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
 
@@ -450,7 +477,7 @@ func (ss SqlStore) createIndexIfNotExists(indexName string, tableName string, co
 		if err != nil {
 			l4g.Critical(utils.T("store.sql.check_index.critical"), err)
 			time.Sleep(time.Second)
-			os.Exit(118)
+			os.Exit(EXIT_CREATE_INDEX_MYSQL)
 		}
 
 		if count > 0 {
@@ -466,12 +493,12 @@ func (ss SqlStore) createIndexIfNotExists(indexName string, tableName string, co
 		if err != nil {
 			l4g.Critical(utils.T("store.sql.create_index.critical"), err)
 			time.Sleep(time.Second)
-			os.Exit(119)
+			os.Exit(EXIT_CREATE_INDEX_FULL_MYSQL)
 		}
 	} else {
 		l4g.Critical(utils.T("store.sql.create_index_missing_driver.critical"))
 		time.Sleep(time.Second)
-		os.Exit(120)
+		os.Exit(EXIT_CREATE_INDEX_MISSING)
 	}
 }
 
@@ -488,7 +515,7 @@ func (ss SqlStore) RemoveIndexIfExists(indexName string, tableName string) {
 		if err != nil {
 			l4g.Critical(utils.T("store.sql.remove_index.critical"), err)
 			time.Sleep(time.Second)
-			os.Exit(121)
+			os.Exit(EXIT_REMOVE_INDEX_POSTGRES)
 		}
 	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
 
@@ -496,7 +523,7 @@ func (ss SqlStore) RemoveIndexIfExists(indexName string, tableName string) {
 		if err != nil {
 			l4g.Critical(utils.T("store.sql.check_index.critical"), err)
 			time.Sleep(time.Second)
-			os.Exit(122)
+			os.Exit(EXIT_REMOVE_INDEX_MYSQL)
 		}
 
 		if count > 0 {
@@ -507,12 +534,12 @@ func (ss SqlStore) RemoveIndexIfExists(indexName string, tableName string) {
 		if err != nil {
 			l4g.Critical(utils.T("store.sql.remove_index.critical"), err)
 			time.Sleep(time.Second)
-			os.Exit(123)
+			os.Exit(EXIT_REMOVE_INDEX_MYSQL)
 		}
 	} else {
 		l4g.Critical(utils.T("store.sql.create_index_missing_driver.critical"))
 		time.Sleep(time.Second)
-		os.Exit(124)
+		os.Exit(EXIT_REMOVE_INDEX_MISSING)
 	}
 }
 
