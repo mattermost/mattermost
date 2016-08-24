@@ -13,6 +13,7 @@ func TestReactionIsValid(t *testing.T) {
 		UserId:    NewId(),
 		PostId:    NewId(),
 		EmojiName: "emoji",
+		CreateAt:  GetMillis(),
 	}
 
 	if err := reaction.IsValid(); err != nil {
@@ -54,5 +55,10 @@ func TestReactionIsValid(t *testing.T) {
 	reaction.EmojiName = strings.Repeat("a", 64)
 	if err := reaction.IsValid(); err != nil {
 		t.Fatal(err)
+	}
+
+	reaction.CreateAt = 0
+	if err := reaction.IsValid(); err == nil {
+		t.Fatal("create at should be invalid")
 	}
 }

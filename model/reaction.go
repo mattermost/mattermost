@@ -12,6 +12,7 @@ type Reaction struct {
 	UserId    string `json:"user_id"`
 	PostId    string `json:"post_id"`
 	EmojiName string `json:"emoji_name"`
+	CreateAt  int64  `json:"create_at"`
 }
 
 func (o *Reaction) ToJson() string {
@@ -63,5 +64,15 @@ func (o *Reaction) IsValid() *AppError {
 		return NewLocAppError("Reaction.IsValid", "model.reaction.is_valid.emoji_name.app_error", nil, "emoji_name="+o.EmojiName)
 	}
 
+	if o.CreateAt == 0 {
+		return NewLocAppError("Reaction.IsValid", "model.reaction.is_valid.create_at.app_error", nil, "")
+	}
+
 	return nil
+}
+
+func (o *Reaction) PreSave() {
+	if o.CreateAt == 0 {
+		o.CreateAt = GetMillis()
+	}
 }

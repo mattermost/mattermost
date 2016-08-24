@@ -38,7 +38,7 @@ class ReactionStore extends EventEmitter {
     }
 
     addReaction(postId, reaction) {
-        const reactions = [reaction];
+        const reactions = [];
 
         for (const existing of this.getReactions(postId)) {
             // make sure not to add duplicates
@@ -47,6 +47,8 @@ class ReactionStore extends EventEmitter {
                 reactions.push(existing);
             }
         }
+
+        reactions.push(reaction);
 
         this.setReactions(postId, reactions);
     }
