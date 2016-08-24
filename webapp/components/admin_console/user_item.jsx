@@ -97,12 +97,12 @@ export default class UserItem extends React.Component {
         e.preventDefault();
         const me = UserStore.getCurrentUser();
         if (this.props.user.id === me.id) {
-            this.handleDemote(this.props.user, 'admin');
+            this.handleDemote(this.props.user, 'team_user team_admin');
         } else {
             Client.updateRoles(
                 this.props.team.id,
                 this.props.user.id,
-                'admin',
+                'team_user team_admin',
                 () => {
                     this.props.refreshProfiles();
                 },
@@ -119,7 +119,7 @@ export default class UserItem extends React.Component {
         Client.updateRoles(
             this.props.team.id,
             this.props.user.id,
-            'system_admin',
+            'system_user system_admin',
             () => {
                 this.props.refreshProfiles();
             },
@@ -238,11 +238,11 @@ export default class UserItem extends React.Component {
 
         const me = UserStore.getCurrentUser();
         const email = user.email;
-        let showMakeMember = teamMember.roles === 'admin' || user.roles === 'system_admin';
-        let showMakeAdmin = teamMember.roles === '' && user.roles !== 'system_admin';
-        let showMakeSystemAdmin = user.roles === '' || user.roles === 'admin';
+        let showMakeMember = Utils.isAdmin(teamMember.roles) || Utils.isSystemAdmin(user.roles);
+        let showMakeAdmin = !Utils.isAdmin(teamMember.roles) && !Utils.isSystemAdmin(user.roles);
+        let showMakeSystemAdmin = !Utils.isSystemAdmin(user.roles);
         let showMakeActive = false;
-        let showMakeNotActive = user.roles !== 'system_admin';
+        let showMakeNotActive = !Utils.isSystemAdmin(user.roles);
         const mfaEnabled = global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.MFA === 'true' && global.window.mm_config.EnableMultifactorAuthentication === 'true';
         const showMfaReset = mfaEnabled && user.mfa_active;
 

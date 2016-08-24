@@ -83,8 +83,10 @@ func TestGetAccessToken(t *testing.T) {
 	ApiClient.Must(ApiClient.LoginById(ruser.Id, "passwd1"))
 	ApiClient.SetTeamId(rteam.Data.(*model.Team).Id)
 	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+	utils.SetDefaultRolesBasedOnConfig()
 	app = ApiClient.Must(ApiClient.RegisterApp(app)).Data.(*model.OAuthApp)
 	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = true
+	utils.SetDefaultRolesBasedOnConfig()
 
 	redirect := ApiClient.Must(ApiClient.AllowOAuth(model.AUTHCODE_RESPONSE_TYPE, app.Id, app.CallbackUrls[0], "all", "123")).Data.(map[string]string)["redirect"]
 	rurl, _ := url.Parse(redirect)
@@ -207,7 +209,7 @@ func TestIncomingWebhook(t *testing.T) {
 	c := &api.Context{}
 	c.RequestId = model.NewId()
 	c.IpAddress = "cmd_line"
-	api.UpdateUserRoles(c, user, model.ROLE_SYSTEM_ADMIN)
+	api.UpdateUserRoles(c, user, model.ROLE_SYSTEM_ADMIN.Id)
 	ApiClient.Login(user.Email, "passwd1")
 	ApiClient.SetTeamId(team.Id)
 

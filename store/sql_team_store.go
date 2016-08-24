@@ -395,6 +395,8 @@ func (s SqlTeamStore) UpdateMember(member *model.TeamMember) StoreChannel {
 	go func() {
 		result := StoreResult{}
 
+		member.PreUpdate()
+
 		if result.Err = member.IsValid(); result.Err != nil {
 			storeChannel <- result
 			close(storeChannel)

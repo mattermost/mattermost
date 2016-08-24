@@ -259,9 +259,18 @@ func JoinUserToTeamById(teamId string, user *model.User) *model.AppError {
 
 func JoinUserToTeam(team *model.Team, user *model.User) *model.AppError {
 
-	tm := &model.TeamMember{TeamId: team.Id, UserId: user.Id}
+	tm := &model.TeamMember{
+		TeamId: team.Id,
+		UserId: user.Id,
+		Roles:  model.ROLE_TEAM_USER.Id,
+	}
 
-	channelRole := ""
+	channelRole := model.ROLE_CHANNEL_USER.Id
+
+	if team.Email == user.Email {
+		tm.Roles = model.ROLE_TEAM_USER.Id + " " + model.ROLE_TEAM_ADMIN.Id
+		channelRole = model.ROLE_CHANNEL_USER.Id + " " + model.ROLE_CHANNEL_ADMIN.Id
+	}
 
 	if etmr := <-Srv.Store.Team().GetMember(team.Id, user.Id); etmr.Err == nil {
 		// Membership alredy exists.  Check if deleted and and update, otherwise do nothing
@@ -276,11 +285,6 @@ func JoinUserToTeam(team *model.Team, user *model.User) *model.AppError {
 			return tmr.Err
 		}
 	} else {
-		if team.Email == user.Email {
-			tm.Roles = model.ROLE_TEAM_ADMIN
-			channelRole = model.CHANNEL_ROLE_ADMIN
-		}
-
 		// Membership appears to be missing.  Lets try to add.
 		if tmr := <-Srv.Store.Team().SaveMember(tm); tmr.Err != nil {
 			return tmr.Err
@@ -361,7 +365,7 @@ func isTeamCreationAllowed(c *Context, email string) bool {
 
 	email = strings.ToLower(email)
 
-	if !c.IsSystemAdmin() && !utils.Cfg.TeamSettings.EnableTeamCreation {
+	if !utils.Cfg.TeamSettings.EnableTeamCreation && !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
 		c.Err = model.NewLocAppError("isTeamCreationAllowed", "api.team.is_team_creation_allowed.disabled.app_error", nil, "")
 		return false
 	}
@@ -402,9 +406,10 @@ func GetAllTeamListings(c *Context, w http.ResponseWriter, r *http.Request) {
 		m := make(map[string]*model.Team)
 		for _, v := range teams {
 			m[v.Id] = v
-			if !c.IsSystemAdmin() {
+			if !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
 				m[v.Id].Sanitize()
 			}
+			c.Err = nil
 		}
 
 		w.Write([]byte(model.TeamMapToJson(m)))
@@ -415,9 +420,10 @@ func GetAllTeamListings(c *Context, w http.ResponseWriter, r *http.Request) {
 // on the server. Otherwise, it will only be the teams of which the user is a member.
 func getAll(c *Context, w http.ResponseWriter, r *http.Request) {
 	var tchan store.StoreChannel
-	if c.IsSystemAdmin() {
+	if HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
 		tchan = Srv.Store.Team().GetAll()
 	} else {
+		c.Err = nil
 		tchan = Srv.Store.Team().GetTeamsByUserId(c.Session.UserId)
 	}
 
@@ -472,13 +478,14 @@ func inviteMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if utils.IsLicensed {
-		if *utils.Cfg.TeamSettings.RestrictTeamInvite == model.PERMISSIONS_SYSTEM_ADMIN && !c.IsSystemAdmin() {
-			c.Err = model.NewLocAppError("inviteMembers", "api.team.invite_members.restricted_system_admin.app_error", nil, "")
-			return
-		}
-
-		if *utils.Cfg.TeamSettings.RestrictTeamInvite == model.PERMISSIONS_TEAM_ADMIN && !c.IsTeamAdmin() {
-			c.Err = model.NewLocAppError("inviteMembers", "api.team.invite_members.restricted_team_admin.app_error", nil, "")
+		if !HasPermissionToCurrentTeamContext(c, model.PERMISSION_INVITE_USER) {
+			if *utils.Cfg.TeamSettings.RestrictTeamInvite == model.PERMISSIONS_SYSTEM_ADMIN {
+				c.Err = model.NewLocAppError("inviteMembers", "api.team.invite_members.restricted_system_admin.app_error", nil, "")
+			}
+			if *utils.Cfg.TeamSettings.RestrictTeamInvite == model.PERMISSIONS_TEAM_ADMIN {
+				c.Err = model.NewLocAppError("inviteMembers", "api.team.invite_members.restricted_team_admin.app_error", nil, "")
+			}
+			c.Err.StatusCode = http.StatusForbidden
 			return
 		}
 	}
@@ -540,9 +547,7 @@ func addUserToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		user = result.Data.(*model.User)
 	}
 
-	if !c.IsTeamAdmin() {
-		c.Err = model.NewLocAppError("addUserToTeam", "api.team.update_team.permissions.app_error", nil, "userId="+c.Session.UserId)
-		c.Err.StatusCode = http.StatusForbidden
+	if !HasPermissionToTeamContext(c, team.Id, model.PERMISSION_ADD_USER_TO_TEAM) {
 		return
 	}
 
@@ -584,9 +589,7 @@ func removeUserFromTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.Session.UserId != user.Id {
-		if !c.IsTeamAdmin() {
-			c.Err = model.NewLocAppError("removeUserFromTeam", "api.team.update_team.permissions.app_error", nil, "userId="+c.Session.UserId)
-			c.Err.StatusCode = http.StatusForbidden
+		if !HasPermissionToTeamContext(c, team.Id, model.PERMISSION_REMOVE_USER_FROM_TEAM) {
 			return
 		}
 	}
@@ -703,12 +706,7 @@ func InviteMembers(c *Context, team *model.Team, user *model.User, invites []str
 
 			sender := user.GetDisplayName()
 
-			senderRole := ""
-			if c.IsTeamAdmin() {
-				senderRole = c.T("api.team.invite_members.admin")
-			} else {
-				senderRole = c.T("api.team.invite_members.member")
-			}
+			senderRole := c.T("api.team.invite_members.member")
 
 			subjectPage := utils.NewHTMLTemplate("invite_subject", c.Locale)
 			subjectPage.Props["Subject"] = c.T("api.templates.invite_subject",
@@ -755,7 +753,7 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	team.Id = c.TeamId
 
-	if !c.IsTeamAdmin() {
+	if !HasPermissionToTeamContext(c, team.Id, model.PERMISSION_MANAGE_TEAM) {
 		c.Err = model.NewLocAppError("updateTeam", "api.team.update_team.permissions.app_error", nil, "userId="+c.Session.UserId)
 		c.Err.StatusCode = http.StatusForbidden
 		return
@@ -833,7 +831,7 @@ func getMyTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.HasPermissionsToTeam(c.TeamId, "import") || !c.IsTeamAdmin() {
+	if !HasPermissionToCurrentTeamContext(c, model.PERMISSION_IMPORT_TEAM) {
 		c.Err = model.NewLocAppError("importTeam", "api.team.import_team.admin.app_error", nil, "userId="+c.Session.UserId)
 		c.Err.StatusCode = http.StatusForbidden
 		return
@@ -926,7 +924,7 @@ func getMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	id := params["id"]
 
 	if c.Session.GetTeamByTeamId(id) == nil {
-		if !c.HasSystemAdminPermissions("getMembers") {
+		if !HasPermissionToTeamContext(c, id, model.PERMISSION_MANAGE_SYSTEM) {
 			return
 		}
 	}

@@ -420,7 +420,7 @@ func TestGetUser(t *testing.T) {
 	c := &Context{}
 	c.RequestId = model.NewId()
 	c.IpAddress = "cmd_line"
-	UpdateUserRoles(c, ruser.Data.(*model.User), model.ROLE_SYSTEM_ADMIN)
+	UpdateUserRoles(c, ruser.Data.(*model.User), model.ROLE_SYSTEM_ADMIN.Id)
 
 	Client.Login(user.Email, "passwd1")
 
@@ -748,7 +748,7 @@ func TestUserUpdate(t *testing.T) {
 	Client.SetTeamId(team.Id)
 
 	user.Nickname = "Jim Jimmy"
-	user.Roles = model.ROLE_TEAM_ADMIN
+	user.Roles = model.ROLE_SYSTEM_ADMIN.Id
 	user.LastPasswordUpdate = 123
 
 	if result, err := Client.UpdateUser(user); err != nil {
@@ -757,7 +757,7 @@ func TestUserUpdate(t *testing.T) {
 		if result.Data.(*model.User).Nickname != "Jim Jimmy" {
 			t.Fatal("Nickname did not update properly")
 		}
-		if result.Data.(*model.User).Roles != "" {
+		if result.Data.(*model.User).Roles != model.ROLE_SYSTEM_USER.Id {
 			t.Fatal("Roles should not have updated")
 		}
 		if result.Data.(*model.User).LastPasswordUpdate == 123 {
@@ -957,7 +957,7 @@ func TestUserUpdateRolesMoreCases(t *testing.T) {
 
 	// user 1 is trying to promote user 2
 	data["user_id"] = th.BasicUser2.Id
-	data["new_roles"] = model.ROLE_TEAM_ADMIN
+	data["new_roles"] = model.ROLE_TEAM_ADMIN.Id
 	data["team_id"] = th.BasicTeam.Id
 	if _, err := th.BasicClient.UpdateUserRoles(data); err == nil {
 		t.Fatal("Should have errored, you can only demote yourself")
@@ -965,7 +965,7 @@ func TestUserUpdateRolesMoreCases(t *testing.T) {
 
 	// user 1 is trying to promote user 2
 	data["user_id"] = th.BasicUser2.Id
-	data["new_roles"] = model.ROLE_SYSTEM_ADMIN
+	data["new_roles"] = model.ROLE_SYSTEM_ADMIN.Id
 	data["team_id"] = th.BasicTeam.Id
 	if _, err := th.BasicClient.UpdateUserRoles(data); err == nil {
 		t.Fatal("Should have errored, you can only demote yourself")
@@ -973,7 +973,7 @@ func TestUserUpdateRolesMoreCases(t *testing.T) {
 
 	// user 1 is trying to promote himself
 	data["user_id"] = th.BasicUser.Id
-	data["new_roles"] = model.ROLE_TEAM_ADMIN
+	data["new_roles"] = model.ROLE_TEAM_ADMIN.Id
 	data["team_id"] = th.BasicTeam.Id
 	if _, err := th.BasicClient.UpdateUserRoles(data); err == nil {
 		t.Fatal("Should have errored, you cannot elevate your permissions")
@@ -981,7 +981,7 @@ func TestUserUpdateRolesMoreCases(t *testing.T) {
 
 	// user 1 is trying to promote himself
 	data["user_id"] = th.BasicUser.Id
-	data["new_roles"] = model.ROLE_SYSTEM_ADMIN
+	data["new_roles"] = model.ROLE_SYSTEM_ADMIN.Id
 	data["team_id"] = th.BasicTeam.Id
 	if _, err := th.BasicClient.UpdateUserRoles(data); err == nil {
 		t.Fatal("Should have errored, you cannot elevate your permissions")
@@ -991,7 +991,7 @@ func TestUserUpdateRolesMoreCases(t *testing.T) {
 
 	// promote user to team admin
 	data["user_id"] = th.BasicUser.Id
-	data["new_roles"] = model.ROLE_TEAM_ADMIN
+	data["new_roles"] = model.ROLE_TEAM_ADMIN.Id
 	data["team_id"] = th.BasicTeam.Id
 	if _, err := th.SystemAdminClient.UpdateUserRoles(data); err != nil {
 		t.Fatal("Should have succeeded since they are system admin")
@@ -1007,7 +1007,7 @@ func TestUserUpdateRolesMoreCases(t *testing.T) {
 
 	// re-promote user to team admin
 	data["user_id"] = th.BasicUser.Id
-	data["new_roles"] = model.ROLE_TEAM_ADMIN
+	data["new_roles"] = model.ROLE_TEAM_ADMIN.Id
 	data["team_id"] = th.BasicTeam.Id
 	if _, err := th.SystemAdminClient.UpdateUserRoles(data); err != nil {
 		t.Fatal("Should have succeeded since they are system admin")
@@ -1015,7 +1015,7 @@ func TestUserUpdateRolesMoreCases(t *testing.T) {
 
 	// user 1 is promoting user 2 to team admin
 	data["user_id"] = th.BasicUser2.Id
-	data["new_roles"] = model.ROLE_TEAM_ADMIN
+	data["new_roles"] = model.ROLE_TEAM_ADMIN.Id
 	data["team_id"] = th.BasicTeam.Id
 	if _, err := th.BasicClient.UpdateUserRoles(data); err != nil {
 		t.Fatal("Should have succeeded since they are team admin")
@@ -1023,7 +1023,7 @@ func TestUserUpdateRolesMoreCases(t *testing.T) {
 
 	// user 1 is trying to promote user 2 from team admin to system admin
 	data["user_id"] = th.BasicUser2.Id
-	data["new_roles"] = model.ROLE_SYSTEM_ADMIN
+	data["new_roles"] = model.ROLE_SYSTEM_ADMIN.Id
 	data["team_id"] = th.BasicTeam.Id
 	if _, err := th.BasicClient.UpdateUserRoles(data); err == nil {
 		t.Fatal("Should have errored, can only be system admin")

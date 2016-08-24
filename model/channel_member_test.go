@@ -30,14 +30,15 @@ func TestChannelMemberIsValid(t *testing.T) {
 		t.Fatal("should be invalid")
 	}
 
-	o.Roles = "missing"
+	o.NotifyProps = GetDefaultChannelNotifyProps()
+	o.UserId = NewId()
+	/*o.Roles = "missing"
 	o.NotifyProps = GetDefaultChannelNotifyProps()
 	o.UserId = NewId()
 	if err := o.IsValid(); err == nil {
 		t.Fatal("should be invalid")
-	}
+	}*/
 
-	o.Roles = CHANNEL_ROLE_ADMIN
 	o.NotifyProps["desktop"] = "junk"
 	if err := o.IsValid(); err == nil {
 		t.Fatal("should be invalid")

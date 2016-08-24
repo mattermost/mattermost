@@ -15,7 +15,6 @@ import (
 )
 
 const (
-	ROLE_SYSTEM_ADMIN          = "system_admin"
 	USER_NOTIFY_ALL            = "all"
 	USER_NOTIFY_MENTION        = "mention"
 	USER_NOTIFY_NONE           = "none"
@@ -319,9 +318,17 @@ func (u *User) GetDisplayNameForPreference(nameFormat string) string {
 	return displayName
 }
 
+func (u *User) GetRoles() []string {
+	return strings.Fields(u.Roles)
+}
+
+func (u *User) GetRawRoles() string {
+	return u.Roles
+}
+
 func IsValidUserRoles(userRoles string) bool {
 
-	roles := strings.Split(userRoles, " ")
+	roles := strings.Fields(userRoles)
 
 	for _, r := range roles {
 		if !isValidRole(r) {
@@ -332,16 +339,9 @@ func IsValidUserRoles(userRoles string) bool {
 	return true
 }
 
-func isValidRole(role string) bool {
-	if role == "" {
-		return true
-	}
-
-	if role == ROLE_SYSTEM_ADMIN {
-		return true
-	}
-
-	return false
+func isValidRole(roleId string) bool {
+	_, ok := BuiltInRoles[roleId]
+	return ok
 }
 
 // Make sure you acually want to use this function. In context.go there are functions to check permissions

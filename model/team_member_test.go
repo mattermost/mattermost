@@ -30,7 +30,7 @@ func TestTeamMemberIsValid(t *testing.T) {
 		t.Fatal("should be invalid")
 	}
 
-	o.UserId = NewId()
+	/*o.UserId = NewId()
 	o.Roles = "blahblah"
 	if err := o.IsValid(); err == nil {
 		t.Fatal("should be invalid")
@@ -39,5 +39,5 @@ func TestTeamMemberIsValid(t *testing.T) {
 	o.Roles = ""
 	if err := o.IsValid(); err != nil {
 		t.Fatal(err)
-	}
+	}*/
 }

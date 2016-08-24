@@ -15,6 +15,7 @@ import (
 )
 
 const (
+	VERSION_3_5_0 = "3.5.0"
 	VERSION_3_4_0 = "3.4.0"
 	VERSION_3_3_0 = "3.3.0"
 	VERSION_3_2_0 = "3.2.0"
@@ -35,6 +36,7 @@ func UpgradeDatabase(sqlStore *SqlStore) {
 	UpgradeDatabaseToVersion32(sqlStore)
 	UpgradeDatabaseToVersion33(sqlStore)
 	UpgradeDatabaseToVersion34(sqlStore)
+	UpgradeDatabaseToVersion35(sqlStore)
 
 	// If the SchemaVersion is empty this this is the first time it has ran
 	// so lets set it to the current version.
@@ -186,4 +188,18 @@ func UpgradeDatabaseToVersion34(sqlStore *SqlStore) {
 
 		saveSchemaVersion(sqlStore, VERSION_3_4_0)
 	}
+}
+
+func UpgradeDatabaseToVersion35(sqlStore *SqlStore) {
+	//if shouldPerformUpgrade(sqlStore, VERSION_3_4_0, VERSION_3_5_0) {
+
+	sqlStore.GetMaster().Exec("UPDATE Users SET Roles = 'system_user' WHERE Roles = ''")
+	sqlStore.GetMaster().Exec("UPDATE Users SET Roles = 'system_user system_admin' WHERE Roles = 'system_admin'")
+	sqlStore.GetMaster().Exec("UPDATE TeamMembers SET Roles = 'team_user' WHERE Roles = ''")
+	sqlStore.GetMaster().Exec("UPDATE TeamMembers SET Roles = 'team_user team_admin' WHERE Roles = 'admin'")
+	sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET Roles = 'channel_user' WHERE Roles = ''")
+	sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET Roles = 'channel_user channel_admin' WHERE Roles = 'admin'")
+
+	//saveSchemaVersion(sqlStore, VERSION_3_5_0)
+	//}
 }
