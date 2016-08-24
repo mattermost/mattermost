@@ -898,17 +898,7 @@ func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 			profiles := dp.Data.(map[string]*model.User)
 
 			for k, p := range profiles {
-				options := utils.Cfg.GetSanitizeOptions()
-				options["passwordupdate"] = false
-
-				if c.IsSystemAdmin() {
-					options["fullname"] = true
-					options["email"] = true
-				} else {
-					p.ClearNonProfileFields()
-				}
-
-				p.Sanitize(options)
+				p.SanitizeProfile(c.IsSystemAdmin(), false, true, true)
 				profiles[k] = p
 			}
 
@@ -984,17 +974,7 @@ func getProfilesForDirectMessageList(c *Context, w http.ResponseWriter, r *http.
 		profiles := result.Data.(map[string]*model.User)
 
 		for k, p := range profiles {
-			options := utils.Cfg.GetSanitizeOptions()
-			options["passwordupdate"] = false
-
-			if c.IsSystemAdmin() {
-				options["fullname"] = true
-				options["email"] = true
-			} else {
-				p.ClearNonProfileFields()
-			}
-
-			p.Sanitize(options)
+			p.SanitizeProfile(c.IsSystemAdmin(), false, false, false)
 			profiles[k] = p
 		}
 
@@ -1024,17 +1004,7 @@ func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 		profiles := result.Data.(map[string]*model.User)
 
 		for k, p := range profiles {
-			options := utils.Cfg.GetSanitizeOptions()
-			options["passwordupdate"] = false
-
-			if c.IsSystemAdmin() {
-				options["fullname"] = true
-				options["email"] = true
-			} else {
-				p.ClearNonProfileFields()
-			}
-
-			p.Sanitize(options)
+			p.SanitizeProfile(c.IsSystemAdmin(), false, true, true)
 			profiles[k] = p
 		}
 
@@ -1056,17 +1026,7 @@ func getDirectProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 		profiles := result.Data.(map[string]*model.User)
 
 		for k, p := range profiles {
-			options := utils.Cfg.GetSanitizeOptions()
-			options["passwordupdate"] = false
-
-			if c.IsSystemAdmin() {
-				options["fullname"] = true
-				options["email"] = true
-			} else {
-				p.ClearNonProfileFields()
-			}
-
-			p.Sanitize(options)
+			p.SanitizeProfile(c.IsSystemAdmin(), false, true, true)
 			profiles[k] = p
 		}
 
@@ -1316,7 +1276,7 @@ func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		l4g.Error(utils.T("api.user.get_me.getting.error"), c.Session.UserId)
 	} else {
 		user := result.Data.(*model.User)
-		user.Sanitize(map[string]bool{})
+		user.SanitizeProfile(c.IsSystemAdmin(), false, true, true)
 		message := model.NewWebSocketEvent("", "", c.Session.UserId, model.WEBSOCKET_EVENT_USER_UPDATED)
 		message.Add("user", user)
 		go Publish(message)
@@ -1366,7 +1326,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		updatedUser := rusers[0]
-		updatedUser.Sanitize(map[string]bool{})
+		updatedUser.SanitizeProfile(c.IsSystemAdmin(), false, true, true)
 
 		message := model.NewWebSocketEvent("", "", user.Id, model.WEBSOCKET_EVENT_USER_UPDATED)
 		message.Add("user", updatedUser)

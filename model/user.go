@@ -251,6 +251,22 @@ func (u *User) ClearNonProfileFields() {
 	u.FailedAttempts = 0
 }
 
+func (u *User) SanitizeProfile(isSystemAdmin, pwdupdate, fullname, email bool) {
+	options := map[string]bool{}
+	options["passwordupdate"] = pwdupdate
+
+	if isSystemAdmin {
+		options["fullname"] = true
+		options["email"] = true
+	} else {
+		options["fullname"] = fullname
+		options["email"] = email
+		u.ClearNonProfileFields()
+	}
+
+	u.Sanitize(options)
+}
+
 func (u *User) MakeNonNil() {
 	if u.Props == nil {
 		u.Props = make(map[string]string)
