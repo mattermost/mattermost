@@ -642,10 +642,13 @@ func sendNotifications(teamId string, post *model.Post, team *model.Team, channe
 	}
 
 	senderName := ""
+
+	var sender *model.User
 	if post.IsSystemMessage() {
 		senderName = T("system.message.name")
 	} else if profile, ok := profileMap[post.UserId]; ok {
 		senderName = profile.Username
+		sender = profile
 	}
 
 	for id := range mentionedUserIds {
@@ -664,7 +667,7 @@ func sendNotifications(teamId string, post *model.Post, team *model.Team, channe
 			}
 
 			if userAllowsEmails && status.Status != model.STATUS_ONLINE {
-				sendNotificationEmail(post, profileMap[id], channel, team, senderName)
+				sendNotificationEmail(post, profileMap[id], channel, team, senderName, sender)
 			}
 		}
 	}
@@ -765,7 +768,7 @@ func sendNotifications(teamId string, post *model.Post, team *model.Team, channe
 	go Publish(message)
 }
 
-func sendNotificationEmail(post *model.Post, user *model.User, channel *model.Channel, team *model.Team, senderName string) {
+func sendNotificationEmail(post *model.Post, user *model.User, channel *model.Channel, team *model.Team, senderName string, sender *model.User) {
 	// skip if inactive
 	if user.DeleteAt > 0 {
 		return
@@ -782,31 +785,46 @@ func sendNotificationEmail(post *model.Post, user *model.User, channel *model.Ch
 	var channelName string
 	var bodyText string
 	var subjectText string
+	var mailTemplate string
+	var mailParameters map[string]interface{}
 
 	teamURL := *utils.Cfg.ServiceSettings.SiteURL + "/" + team.Name
 	tm := time.Unix(post.CreateAt/1000, 0)
 
 	userLocale := utils.GetUserTranslations(user.Locale)
-
-	if channel.Type == model.CHANNEL_DIRECT {
-		bodyText = userLocale("api.post.send_notifications_and_forget.message_body")
-		subjectText = userLocale("api.post.send_notifications_and_forget.message_subject")
-		channelName = senderName
-	} else {
-		bodyText = userLocale("api.post.send_notifications_and_forget.mention_body")
-		subjectText = userLocale("api.post.send_notifications_and_forget.mention_subject")
-		channelName = channel.DisplayName
-	}
-
 	month := userLocale(tm.Month().String())
 	day := fmt.Sprintf("%d", tm.Day())
 	year := fmt.Sprintf("%d", tm.Year())
 	zone, _ := tm.Zone()
 
+	if channel.Type == model.CHANNEL_DIRECT {
+		bodyText = userLocale("api.post.send_notifications_and_forget.message_body")
+		subjectText = userLocale("api.post.send_notifications_and_forget.message_subject")
+
+		senderDisplayName := senderName
+		if sender != nil {
+			if result := <-Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "name_format"); result.Err != nil {
+				// Show default sender's name if user doesn't set display settings.
+				senderDisplayName = senderName
+			} else {
+				senderDisplayName = sender.GetDisplayNameForPreference(result.Data.(model.Preference).Value)
+			}
+		}
+
+		mailTemplate = "api.templates.post_subject_in_direct_message"
+		mailParameters = map[string]interface{}{"SubjectText": subjectText, "TeamDisplayName": team.DisplayName,
+			"SenderDisplayName": senderDisplayName, "Month": month, "Day": day, "Year": year}
+	} else {
+		bodyText = userLocale("api.post.send_notifications_and_forget.mention_body")
+		subjectText = userLocale("api.post.send_notifications_and_forget.mention_subject")
+		channelName = channel.DisplayName
+		mailTemplate = "api.templates.post_subject_in_channel"
+		mailParameters = map[string]interface{}{"SubjectText": subjectText, "TeamDisplayName": team.DisplayName,
+			"ChannelName": channelName, "Month": month, "Day": day, "Year": year}
+	}
+
 	subjectPage := utils.NewHTMLTemplate("post_subject", user.Locale)
-	subjectPage.Props["Subject"] = userLocale("api.templates.post_subject",
-		map[string]interface{}{"SubjectText": subjectText, "TeamDisplayName": team.DisplayName,
-			"Month": month, "Day": day, "Year": year})
+	subjectPage.Props["Subject"] = userLocale(mailTemplate, mailParameters)
 	subjectPage.Props["SiteName"] = utils.Cfg.TeamSettings.SiteName
 
 	bodyPage := utils.NewHTMLTemplate("post_body", user.Locale)
