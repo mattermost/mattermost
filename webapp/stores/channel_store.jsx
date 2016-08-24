@@ -329,7 +329,6 @@ class ChannelStoreClass extends EventEmitter {
 
         if (ch.type === 'D') {
             chMentionCount = chUnreadCount;
-            chUnreadCount = 0;
         } else if (chMember.notify_props && chMember.notify_props.mark_unread === NotificationPrefs.MENTION) {
             chUnreadCount = 0;
         }
