@@ -17,8 +17,7 @@ class ReactionStore extends EventEmitter {
 
         this.reactions = new Map();
 
-        // TODO ???
-        this.setMaxListeners(0);
+        this.setMaxListeners(600);
     }
 
     addChangeListener(postId, callback) {
