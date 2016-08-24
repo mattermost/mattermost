@@ -248,6 +248,9 @@ function handleUserRemovedEvent(msg) {
 function handleUserUpdatedEvent(msg) {
     if (UserStore.getCurrentId() !== msg.user_id) {
         UserStore.saveProfile(msg.data.user);
+        if (UserStore.hasDirectProfile(msg.user_id)) {
+            UserStore.saveDirectProfile(msg.data.user);
+        }
         UserStore.emitChange(msg.user_id);
     }
 }

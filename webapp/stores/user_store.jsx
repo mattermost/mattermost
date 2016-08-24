@@ -166,6 +166,10 @@ class UserStoreClass extends EventEmitter {
         return this.direct_profiles;
     }
 
+    saveDirectProfile(profile) {
+        this.direct_profiles[profile.id] = profile;
+    }
+
     saveDirectProfiles(profiles) {
         this.direct_profiles = profiles;
     }
