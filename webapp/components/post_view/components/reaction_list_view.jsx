@@ -5,7 +5,7 @@ import React from 'react';
 
 import Reaction from './reaction.jsx';
 
-export default class ReactionList extends React.Component {
+export default class ReactionListView extends React.Component {
     static propTypes = {
         post: React.PropTypes.object.isRequired,
         currentUserId: React.PropTypes.string.isRequired,

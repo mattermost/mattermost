@@ -6,7 +6,7 @@ import React from 'react';
 import * as AsyncClient from 'utils/async_client.jsx';
 import ReactionStore from 'stores/reaction_store.jsx';
 
-import ReactionList from './reaction_list.jsx';
+import ReactionListView from './reaction_list_view.jsx';
 
 export default class ReactionListContainer extends React.Component {
     static propTypes = {
@@ -61,7 +61,7 @@ export default class ReactionListContainer extends React.Component {
         }
 
         return (
-            <ReactionList
+            <ReactionListView
                 post={this.props.post}
                 currentUserId={this.props.currentUserId}
                 reactions={this.state.reactions}
