@@ -27,7 +27,7 @@ export default class ReactionListView extends React.Component {
             }
         }
 
-        const children = emojiNames.sort().map((emojiName) => {
+        const children = emojiNames.map((emojiName) => {
             return (
                 <Reaction
                     key={emojiName}

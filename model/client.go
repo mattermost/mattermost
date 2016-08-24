@@ -1844,14 +1844,14 @@ func (c *Client) SamlCertificateStatus(filename string) (map[string]interface{},
 	}
 }
 
-// Saves an emoji reaction for a post in the given channel. Returns nil if successful, otherwise returns an AppError.
-func (c *Client) SaveReaction(channelId string, reaction *Reaction) *AppError {
+// Saves an emoji reaction for a post in the given channel. Returns the saved reaction if successful, otherwise returns an AppError.
+func (c *Client) SaveReaction(channelId string, reaction *Reaction) (*Reaction, *AppError) {
 	if r, err := c.DoApiPost(c.GetChannelRoute(channelId)+fmt.Sprintf("/posts/%v/save_reaction", reaction.PostId), reaction.ToJson()); err != nil {
-		return err
+		return nil, err
 	} else {
 		defer closeBody(r)
 		c.fillInExtraProperties(r)
-		return nil
+		return ReactionFromJson(r.Body), nil
 	}
 }
 

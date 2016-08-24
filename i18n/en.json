@@ -3348,6 +3348,10 @@
     "translation": "Value is too long"
   },
   {
+    "id": "model.reaction.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time"
+  },
+  {
     "id": "model.reaction.is_valid.emoji_name.app_error",
     "translation": "Invalid emoji name"
   },

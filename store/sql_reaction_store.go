@@ -52,6 +52,7 @@ func (s SqlReactionStore) Save(reaction *model.Reaction) StoreChannel {
 	go func() {
 		result := StoreResult{}
 
+		reaction.PreSave()
 		if result.Err = reaction.IsValid(); result.Err != nil {
 			storeChannel <- result
 			close(storeChannel)
@@ -87,12 +88,6 @@ func (s SqlReactionStore) Delete(reaction *model.Reaction) StoreChannel {
 
 	go func() {
 		result := StoreResult{}
-
-		if result.Err = reaction.IsValid(); result.Err != nil {
-			storeChannel <- result
-			close(storeChannel)
-			return
-		}
 
 		if transaction, err := s.GetMaster().Begin(); err != nil {
 			result.Err = model.NewLocAppError("SqlReactionStore.Save", "store.sql_reaction.delete.begin.app_error", nil, err.Error())
@@ -143,7 +138,14 @@ func saveReactionAndUpdatePost(transaction *gorp.Transaction, reaction *model.Re
 }
 
 func deleteReactionAndUpdatePost(transaction *gorp.Transaction, reaction *model.Reaction) error {
-	if _, err := transaction.Delete(reaction); err != nil {
+	if _, err := transaction.Exec(
+		`DELETE FROM
+			Reactions
+		WHERE
+			PostId = :PostId AND
+			UserId = :UserId AND
+			EmojiName = :EmojiName`,
+		map[string]interface{}{"PostId": reaction.PostId, "UserId": reaction.UserId, "EmojiName": reaction.EmojiName}); err != nil {
 		return err
 	}
 
@@ -170,7 +172,9 @@ func (s SqlReactionStore) List(postId string) StoreChannel {
 			FROM
 				Reactions
 			WHERE
-				PostId = :PostId`, map[string]interface{}{"PostId": postId}); err != nil {
+				PostId = :PostId
+			ORDER BY
+				CreateAt`, map[string]interface{}{"PostId": postId}); err != nil {
 			result.Err = model.NewLocAppError("SqlReactionStore.List", "store.sql_reaction.list.app_error", nil, "")
 		} else {
 			result.Data = reactions

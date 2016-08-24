@@ -68,7 +68,9 @@ func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		go sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_ADDED, c.TeamId, channelId, reaction, postHadReactions)
 
-		ReturnStatusOK(w)
+		reaction := result.Data.(*model.Reaction)
+
+		w.Write([]byte(reaction.ToJson()))
 	}
 }
 
