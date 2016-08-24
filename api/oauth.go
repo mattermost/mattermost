@@ -4,6 +4,7 @@
 package api
 
 import (
+	"bytes"
 	"crypto/tls"
 	b64 "encoding/base64"
 	"fmt"
@@ -769,10 +770,16 @@ func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser
 	req.Header.Set("Accept", "application/json")
 
 	var ar *model.AccessResponse
+	var respBody []byte
 	if resp, err := client.Do(req); err != nil {
 		return nil, "", nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_failed.app_error", nil, err.Error())
 	} else {
-		ar = model.AccessResponseFromJson(resp.Body)
+		// temporarily read the raw body for debugging purposes
+		respBody, _ = ioutil.ReadAll(resp.Body)
+
+		reader := bytes.NewReader(respBody)
+
+		ar = model.AccessResponseFromJson(reader)
 		defer func() {
 			ioutil.ReadAll(resp.Body)
 			resp.Body.Close()
@@ -783,7 +790,7 @@ func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser
 	}
 
 	if strings.ToLower(ar.TokenType) != model.ACCESS_TOKEN_TYPE {
-		return nil, "", nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_token.app_error", nil, "token_type="+ar.TokenType)
+		return nil, "", nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_token.app_error", nil, "token_type="+ar.TokenType+", response_body="+string(respBody))
 	}
 
 	if len(ar.AccessToken) == 0 {
