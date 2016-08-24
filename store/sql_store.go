@@ -556,20 +556,6 @@ func IsUniqueConstraintError(err string, indexName []string) bool {
 	return unique && field
 }
 
-// func (ss SqlStore) GetColumnDataType(tableName, columnName string) string {
-// 	dataType, err := ss.GetMaster().SelectStr("SELECT data_type FROM INFORMATION_SCHEMA.COLUMNS where table_name = :Tablename AND column_name = :Columnname", map[string]interface{}{
-// 		"Tablename":  tableName,
-// 		"Columnname": columnName,
-// 	})
-// 	if err != nil {
-// 		l4g.Critical(utils.T("store.sql.table_column_type.critical"), columnName, tableName, err.Error())
-// 		time.Sleep(time.Second)
-// 		os.Exit(125)
-// 	}
-
-// 	return dataType
-// }
-
 func (ss SqlStore) GetMaster() *gorp.DbMap {
 	return ss.master
 }
