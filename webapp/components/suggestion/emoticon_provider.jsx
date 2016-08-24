@@ -47,19 +47,22 @@ export default class EmoticonProvider {
         let hasSuggestions = false;
 
         // look for the potential emoticons at the start of the text, after whitespace, and at the start of emoji reaction commands
-        const captured = (/(?:^|\s|^\+|^\-)(:([^:\s]*))$/g).exec(pretext);
+        const captured = (/(^|\s|^\+|^\-)(:([^:\s]*))$/g).exec(pretext);
         if (captured) {
-            const text = captured[1];
-            const partialName = captured[2];
+            const prefix = captured[1];
+            const text = captured[2];
+            const partialName = captured[3];
 
             const matched = [];
 
-            // check for text emoticons
-            for (const emoticon of Object.keys(Emoticons.emoticonPatterns)) {
-                if (Emoticons.emoticonPatterns[emoticon].test(text)) {
-                    SuggestionStore.addSuggestion(suggestionId, text, EmojiStore.get(emoticon), EmoticonSuggestion, text);
+            // check for text emoticons if this isn't for an emoji reaction
+            if (prefix !== '-' && prefix !== '+') {
+                for (const emoticon of Object.keys(Emoticons.emoticonPatterns)) {
+                    if (Emoticons.emoticonPatterns[emoticon].test(text)) {
+                        SuggestionStore.addSuggestion(suggestionId, text, EmojiStore.get(emoticon), EmoticonSuggestion, text);
 
-                    hasSuggestions = true;
+                        hasSuggestions = true;
+                    }
                 }
             }
 
