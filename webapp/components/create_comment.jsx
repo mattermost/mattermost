@@ -102,7 +102,7 @@ export default class CreateComment extends React.Component {
             return;
         }
 
-        const isReaction = (/^(\+|\-):([a-zA-Z0-9_-]+):\s*$/).exec(post.message);
+        const isReaction = (/^(\+|\-):([^:\s]+):\s*$/).exec(post.message);
         if (isReaction && EmojiStore.has(isReaction[2])) {
             const action = isReaction[1];
 
