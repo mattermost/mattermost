@@ -39,6 +39,7 @@ import (
 
 //ENTERPRISE_IMPORTS
 
+var flagCmdUpdateDb30 bool
 var flagCmdCreateTeam bool
 var flagCmdCreateUser bool
 var flagCmdInviteUser bool
@@ -114,6 +115,8 @@ func main() {
 	if model.BuildNumber == "dev" {
 		*utils.Cfg.ServiceSettings.EnableDeveloper = true
 	}
+
+	cmdUpdateDb30()
 
 	api.NewServer()
 	api.InitApi()
@@ -304,6 +307,7 @@ func parseCmds() {
 	flag.StringVar(&flagChannelHeader, "channel_header", "", "")
 	flag.StringVar(&flagChannelPurpose, "channel_purpose", "", "")
 
+	flag.BoolVar(&flagCmdUpdateDb30, "upgrade_db_30", false, "")
 	flag.BoolVar(&flagCmdCreateTeam, "create_team", false, "")
 	flag.BoolVar(&flagCmdCreateUser, "create_user", false, "")
 	flag.BoolVar(&flagCmdInviteUser, "invite_user", false, "")
@@ -426,6 +430,13 @@ func cmdRunClientTests() {
 		api.StartServer()
 		runWebClientTests()
 		api.StopServer()
+	}
+}
+
+func cmdUpdateDb30() {
+	if flagCmdUpdateDb30 {
+		// This command is a no-op for backwards compatibility
+		flushLogAndExit(0)
 	}
 }
 
