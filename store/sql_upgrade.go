@@ -14,6 +14,14 @@ import (
 	"github.com/mattermost/platform/utils"
 )
 
+const (
+	VERSION_3_4_0 = "3.4.0"
+	VERSION_3_3_0 = "3.3.0"
+	VERSION_3_2_0 = "3.2.0"
+	VERSION_3_1_0 = "3.1.0"
+	VERSION_3_0_0 = "3.0.0"
+)
+
 func UpgradeDatabase(sqlStore *SqlStore) {
 
 	UpgradeDatabaseToVersion31(sqlStore)
@@ -65,14 +73,14 @@ func shouldPerformUpgrade(sqlStore *SqlStore, currentSchemaVersion string, expec
 }
 
 func UpgradeDatabaseToVersion31(sqlStore *SqlStore) {
-	if shouldPerformUpgrade(sqlStore, model.VERSION_3_0_0, model.VERSION_3_1_0) {
+	if shouldPerformUpgrade(sqlStore, VERSION_3_0_0, VERSION_3_1_0) {
 		sqlStore.CreateColumnIfNotExists("OutgoingWebhooks", "ContentType", "varchar(128)", "varchar(128)", "")
-		saveSchemaVersion(sqlStore, model.VERSION_3_1_0)
+		saveSchemaVersion(sqlStore, VERSION_3_1_0)
 	}
 }
 
 func UpgradeDatabaseToVersion32(sqlStore *SqlStore) {
-	if shouldPerformUpgrade(sqlStore, model.VERSION_3_1_0, model.VERSION_3_2_0) {
+	if shouldPerformUpgrade(sqlStore, VERSION_3_1_0, VERSION_3_2_0) {
 		sqlStore.CreateColumnIfNotExists("TeamMembers", "DeleteAt", "bigint(20)", "bigint", "0")
 
 		if sqlStore.DoesColumnExist("Users", "ThemeProps") {
@@ -130,7 +138,7 @@ func UpgradeDatabaseToVersion32(sqlStore *SqlStore) {
 			}
 		}
 
-		saveSchemaVersion(sqlStore, model.VERSION_3_2_0)
+		saveSchemaVersion(sqlStore, VERSION_3_2_0)
 	}
 }
 
@@ -141,7 +149,7 @@ func themeMigrationFailed(err error) {
 }
 
 func UpgradeDatabaseToVersion33(sqlStore *SqlStore) {
-	if shouldPerformUpgrade(sqlStore, model.VERSION_3_2_0, model.VERSION_3_3_0) {
+	if shouldPerformUpgrade(sqlStore, VERSION_3_2_0, VERSION_3_3_0) {
 
 		sqlStore.CreateColumnIfNotExists("OAuthApps", "IsTrusted", "tinyint(1)", "boolean", "0")
 		sqlStore.CreateColumnIfNotExists("OAuthApps", "IconURL", "varchar(512)", "varchar(512)", "")
@@ -159,17 +167,17 @@ func UpgradeDatabaseToVersion33(sqlStore *SqlStore) {
 
 		sqlStore.CreateColumnIfNotExists("OutgoingWebhooks", "TriggerWhen", "tinyint", "integer", "0")
 
-		saveSchemaVersion(sqlStore, model.VERSION_3_3_0)
+		saveSchemaVersion(sqlStore, VERSION_3_3_0)
 	}
 }
 
 func UpgradeDatabaseToVersion34(sqlStore *SqlStore) {
 	// TODO XXX FIXME should be removed before release
-	//if shouldPerformUpgrade(sqlStore, model.VERSION_3_3_0, model.VERSION_3_4_0) {
+	//if shouldPerformUpgrade(sqlStore, VERSION_3_3_0, VERSION_3_4_0) {
 
 	// do the actual upgrade
 
 	// TODO XXX FIXME should be removed before release
-	//saveSchemaVersion(sqlStore, model.VERSION_3_4_0)
+	//saveSchemaVersion(sqlStore, VERSION_3_4_0)
 	//}
 }

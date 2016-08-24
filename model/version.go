@@ -9,22 +9,14 @@ import (
 	"strings"
 )
 
-const (
-	VERSION_3_4_0 = "3.4.0"
-	VERSION_3_3_0 = "3.3.0"
-	VERSION_3_2_0 = "3.2.0"
-	VERSION_3_1_0 = "3.1.0"
-	VERSION_3_0_0 = "3.0.0"
-)
-
 // This is a list of all the current viersions including any patches.
 // It should be maitained in chronological order with most current
 // release at the front of the list.
 var versions = []string{
-	VERSION_3_3_0,
-	VERSION_3_2_0,
-	VERSION_3_1_0,
-	VERSION_3_0_0,
+	"3.3.0",
+	"3.2.0",
+	"3.1.0",
+	"3.0.0",
 	"2.2.0",
 	"2.1.0",
 	"2.0.0",
