@@ -128,6 +128,10 @@ function handleEvent(msg) {
         handleUserRemovedEvent(msg);
         break;
 
+    case SocketEvents.USER_UPDATED:
+        handleUserUpdatedEvent(msg);
+        break;
+
     case SocketEvents.CHANNEL_VIEWED:
         handleChannelViewedEvent(msg);
         break;
@@ -238,6 +242,12 @@ function handleUserRemovedEvent(msg) {
         }
     } else if (ChannelStore.getCurrentId() === msg.channel_id) {
         AsyncClient.getChannelExtraInfo();
+    }
+}
+
+function handleUserUpdatedEvent(msg) {
+    if (UserStore.getCurrentId() !== msg.user_id) {
+        AsyncClient.getProfiles();
     }
 }
 

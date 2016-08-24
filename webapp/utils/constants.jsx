@@ -194,6 +194,7 @@ export const Constants = {
         LEAVE_TEAM: 'leave_team',
         USER_ADDED: 'user_added',
         USER_REMOVED: 'user_removed',
+        USER_UPDATED: 'user_updated',
         TYPING: 'typing',
         PREFERENCE_CHANGED: 'preference_changed',
         EPHEMERAL_MESSAGE: 'ephemeral_message',

@@ -1312,6 +1312,9 @@ func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	Srv.Store.User().UpdateLastPictureUpdate(c.Session.UserId)
 
+	message := model.NewWebSocketEvent("", "", c.Session.UserId, model.WEBSOCKET_EVENT_USER_UPDATED)
+	go Publish(message)
+
 	c.LogAudit("")
 
 	// write something as the response since jQuery expects a json response
@@ -1354,6 +1357,9 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		if rusers[0].Username != rusers[1].Username {
 			go sendEmailChangeUsername(c, rusers[1].Username, rusers[0].Username, rusers[0].Email, c.GetSiteURL())
 		}
+
+		message := model.NewWebSocketEvent("", "", user.Id, model.WEBSOCKET_EVENT_USER_UPDATED)
+		go Publish(message)
 
 		rusers[0].Password = ""
 		rusers[0].AuthData = new(string)
