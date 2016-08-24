@@ -247,7 +247,8 @@ function handleUserRemovedEvent(msg) {
 
 function handleUserUpdatedEvent(msg) {
     if (UserStore.getCurrentId() !== msg.user_id) {
-        AsyncClient.getProfiles();
+        UserStore.saveProfile(msg.data.user);
+        UserStore.emitChange(msg.user_id);
     }
 }
 

@@ -1312,8 +1312,15 @@ func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	Srv.Store.User().UpdateLastPictureUpdate(c.Session.UserId)
 
-	message := model.NewWebSocketEvent("", "", c.Session.UserId, model.WEBSOCKET_EVENT_USER_UPDATED)
-	go Publish(message)
+	if result := <-Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
+		l4g.Error(utils.T("api.user.get_me.getting.error"), c.Session.UserId)
+	} else {
+		user := result.Data.(*model.User)
+		user.Sanitize(map[string]bool{})
+		message := model.NewWebSocketEvent("", "", c.Session.UserId, model.WEBSOCKET_EVENT_USER_UPDATED)
+		message.Add("user", user)
+		go Publish(message)
+	}
 
 	c.LogAudit("")
 
@@ -1358,7 +1365,11 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 			go sendEmailChangeUsername(c, rusers[1].Username, rusers[0].Username, rusers[0].Email, c.GetSiteURL())
 		}
 
+		updatedUser := rusers[0]
+		updatedUser.Sanitize(map[string]bool{})
+
 		message := model.NewWebSocketEvent("", "", user.Id, model.WEBSOCKET_EVENT_USER_UPDATED)
+		message.Add("user", updatedUser)
 		go Publish(message)
 
 		rusers[0].Password = ""
