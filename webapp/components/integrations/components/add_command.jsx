@@ -69,10 +69,15 @@ export default class AddCommand extends React.Component {
             clientError: ''
         });
 
+        let triggerWord = this.state.trigger.trim().toLowerCase();
+        if (triggerWord.indexOf('/') === 0) {
+            triggerWord = triggerWord.substr(1);
+        }
+
         const command = {
             display_name: this.state.displayName,
             description: this.state.description,
-            trigger: this.state.trigger.trim().toLowerCase(),
+            trigger: triggerWord,
             url: this.state.url.trim(),
             method: this.state.method,
             username: this.state.username,

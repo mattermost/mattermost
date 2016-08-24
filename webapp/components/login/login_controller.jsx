@@ -520,10 +520,25 @@ export default class LoginController extends React.Component {
                     key='saml'
                     href={'/login/sso/saml' + this.props.location.search}
                 >
+                    <span className='icon fa fa-lock fa--margin-top'/>
                     <span>
                         {window.mm_config.SamlLoginButtonText}
                     </span>
                 </a>
+            );
+        }
+
+        if (loginControls.length === 0) {
+            loginControls.push(
+                <FormError
+                    error={
+                        <FormattedMessage
+                            id='login.noMethods'
+                            defaultMessage='No sign in methods are enabled. Please contact your System Administrator.'
+                        />
+                    }
+                    margin={true}
+                />
             );
         }
 

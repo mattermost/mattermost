@@ -1532,6 +1532,29 @@ func (c *Client) DeleteOAuthApp(id string) (*Result, *AppError) {
 	}
 }
 
+// GetOAuthAuthorizedApps returns the OAuth2 Apps authorized by the user. On success
+// it returns a list of sanitized OAuth2 Authorized Apps by the user.
+func (c *Client) GetOAuthAuthorizedApps() (*Result, *AppError) {
+	if r, err := c.DoApiGet("/oauth/authorized", "", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), OAuthAppListFromJson(r.Body)}, nil
+	}
+}
+
+// OAuthDeauthorizeApp deauthorize a user an OAuth 2.0 app. On success
+// it returns status OK or an AppError on fail.
+func (c *Client) OAuthDeauthorizeApp(clientId string) *AppError {
+	if r, err := c.DoApiPost("/oauth/"+clientId+"/deauthorize", ""); err != nil {
+		return err
+	} else {
+		defer closeBody(r)
+		return nil
+	}
+}
+
 func (c *Client) GetAccessToken(data url.Values) (*Result, *AppError) {
 	if r, err := c.DoPost("/oauth/access_token", data.Encode(), "application/x-www-form-urlencoded"); err != nil {
 		return nil, err

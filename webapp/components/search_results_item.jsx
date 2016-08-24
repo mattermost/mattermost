@@ -9,7 +9,7 @@ import UserStore from 'stores/user_store.jsx';
 
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
-import {unflagPost, getFlaggedPosts} from 'actions/post_actions.jsx';
+import {flagPost, unflagPost} from 'actions/post_actions.jsx';
 
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -30,6 +30,7 @@ export default class SearchResultsItem extends React.Component {
         this.handleFocusRHSClick = this.handleFocusRHSClick.bind(this);
         this.shrinkSidebar = this.shrinkSidebar.bind(this);
         this.unflagPost = this.unflagPost.bind(this);
+        this.flagPost = this.flagPost.bind(this);
     }
 
     hideSidebar() {
@@ -47,11 +48,14 @@ export default class SearchResultsItem extends React.Component {
         GlobalActions.emitPostFocusRightHandSideFromSearch(this.props.post, this.props.isMentionSearch);
     }
 
+    flagPost(e) {
+        e.preventDefault();
+        flagPost(this.props.post.id);
+    }
+
     unflagPost(e) {
         e.preventDefault();
-        unflagPost(this.props.post.id,
-            () => getFlaggedPosts()
-        );
+        unflagPost(this.props.post.id);
     }
 
     render() {
@@ -94,7 +98,23 @@ export default class SearchResultsItem extends React.Component {
             botIndicator = <li className='bot-indicator'>{Constants.BOT_NAME}</li>;
         }
 
+        let profilePic = (
+            <img
+                src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
+                height='36'
+                width='36'
+            />
+        );
+
+        let compactClass = '';
+        let profilePicContainer = (<div className='post__img'>{profilePic}</div>);
+        if (this.props.compactDisplay) {
+            compactClass = 'post--compact';
+            profilePicContainer = '';
+        }
+
         let flag;
+        let flagFunc;
         let flagVisible = '';
         let flagTooltip = (
             <Tooltip id='flagTooltip'>
@@ -114,24 +134,21 @@ export default class SearchResultsItem extends React.Component {
                     />
                 </Tooltip>
             );
+            flagFunc = this.unflagPost;
             flag = (
-                <OverlayTrigger
-                    delayShow={Constants.OVERLAY_TIME_DELAY}
-                    placement='top'
-                    overlay={flagTooltip}
-                >
-                    <a
-                        href='#'
-                        className={'flag-icon__container ' + flagVisible}
-                        onClick={this.unflagPost}
-                    >
-                        <span
-                            className='icon'
-                            dangerouslySetInnerHTML={{__html: flagIcon}}
-                        />
-                    </a>
-                </OverlayTrigger>
+                <span
+                    className='icon'
+                    dangerouslySetInnerHTML={{__html: flagIcon}}
+                />
             );
+        } else {
+            flag = (
+                <span
+                    className='icon'
+                    dangerouslySetInnerHTML={{__html: flagIcon}}
+                />
+            );
+            flagFunc = this.flagPost;
         }
 
         return (
@@ -148,17 +165,11 @@ export default class SearchResultsItem extends React.Component {
                     </div>
                 </div>
                 <div
-                    className='post'
+                    className={'post post--thread ' + compactClass}
                 >
                     <div className='search-channel__name'>{channelName}</div>
                     <div className='post__content'>
-                        <div className='post__img'>
-                            <img
-                                src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
-                                height='36'
-                                width='36'
-                            />
-                        </div>
+                        {profilePicContainer}
                         <div>
                             <ul className='post__header'>
                                 <li className='col col__name'><strong>
@@ -178,7 +189,19 @@ export default class SearchResultsItem extends React.Component {
                                             minute='2-digit'
                                         />
                                     </time>
-                                    {flag}
+                                    <OverlayTrigger
+                                        delayShow={Constants.OVERLAY_TIME_DELAY}
+                                        placement='top'
+                                        overlay={flagTooltip}
+                                    >
+                                        <a
+                                            href='#'
+                                            className={'flag-icon__container ' + flagVisible}
+                                            onClick={flagFunc}
+                                        >
+                                            {flag}
+                                        </a>
+                                    </OverlayTrigger>
                                 </li>
                                 <li className='col__controls'>
                                     <a
@@ -245,7 +268,9 @@ SearchResultsItem.propTypes = {
     post: React.PropTypes.object,
     user: React.PropTypes.object,
     channel: React.PropTypes.object,
+    compactDisplay: React.PropTypes.bool,
     isMentionSearch: React.PropTypes.bool,
+    isFlaggedSearch: React.PropTypes.bool,
     term: React.PropTypes.string,
     useMilitaryTime: React.PropTypes.bool.isRequired,
     shrink: React.PropTypes.function,

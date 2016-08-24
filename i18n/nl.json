@@ -121,7 +121,7 @@
   },
   {
     "id": "api.admin.upload_brand_image.not_available.app_error",
-    "translation": "Personaliseren is niet ondersteund, of niet geconfigureerd op deze server"
+    "translation": "Personaliseren is niet geconfigureerd, of niet ondersteund op deze server"
   },
   {
     "id": "api.admin.upload_brand_image.parse.app_error",
@@ -161,7 +161,7 @@
   },
   {
     "id": "api.channel.add_member.user_adding.app_error",
-    "translation": "Kan de gebruiker die het toevoegen heeft gedaan niet vinden"
+    "translation": "Kan de gebruiker, die het toevoegen heeft gedaan, niet vinden"
   },
   {
     "id": "api.channel.add_user.to.channel.failed.app_error",
@@ -209,7 +209,7 @@
   },
   {
     "id": "api.channel.create_default_channels.town_square",
-    "translation": "Dorps plein"
+    "translation": "Dorps Plein"
   },
   {
     "id": "api.channel.create_direct_channel.invalid_user.app_error",
@@ -289,7 +289,7 @@
   },
   {
     "id": "api.channel.leave.last_member.app_error",
-    "translation": "U bent het laatste lid, probeer de privé groep te verwijderen i.p.v. verlaten."
+    "translation": "U bent het laatste lid, probeer de privé groep te verwijderen i.p.v. te verlaten."
   },
   {
     "id": "api.channel.leave.left",
@@ -317,23 +317,31 @@
   },
   {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
-    "translation": "Het plaatsen van een komen / gaan bericht %v is mislukt"
+    "translation": "Het plaatsen van een komen/gaan bericht %v is mislukt"
   },
   {
     "id": "api.channel.remove_member.permissions.app_error",
     "translation": "U beschikt niet over juiste de rechten "
   },
   {
+    "id": "api.channel.remove_member.removed",
+    "translation": "%v was removed from the channel."
+  },
+  {
     "id": "api.channel.remove_member.unable.app_error",
     "translation": "Kan de gebruiker niet verwijderen."
   },
   {
+    "id": "api.channel.remove_member.user.app_error",
+    "translation": "Gebruiker om toe te voegen kon niet gevonden worden"
+  },
+  {
     "id": "api.channel.remove_user_from_channel.deleted.app_error",
-    "translation": "Dit kanaal is gearchiveerd of verwijderd"
+    "translation": "Het kanaal is gearchiveerd of verwijderd"
   },
   {
     "id": "api.channel.update_channel.deleted.app_error",
-    "translation": "Dit kanaal is gearchiveerd of verwijderd"
+    "translation": "Het kanaal is gearchiveerd of verwijderd"
   },
   {
     "id": "api.channel.update_channel.permission.app_error",
@@ -556,20 +564,44 @@
     "translation": "Bericht verzonden."
   },
   {
+    "id": "api.command_shortcuts.browser",
+    "translation": "#### Built-in Browser Commands\n\nALT+LEFT: Previous channel in your history\nALT+RIGHT: Next channel in your history\nCTRL+PLUS: Increase font size (zoom in)\nCTRL+MINUS: Decrease font size (zoom out)\nSHIFT+UP (in input field): Highlight text to the previous line\nSHIFT+DOWN (in input field): Highlight text to the next line\nSHIFT+ENTER (in input field): Create a new line\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser_mac",
+    "translation": "#### Built-in Browser Commands\n\nCMD+[: Previous channel in your history\nCMD+]: Next channel in your history\nCMD+PLUS: Increase font size (zoom in)\nCMD+MINUS: Decrease font size (zoom out)\nSHIFT+UP (in input field): Highlight text to the previous line\nSHIFT+DOWN (in input field): Highlight text to the next line\nSHIFT+ENTER (in input field): Create a new line\n"
+  },
+  {
     "id": "api.command_shortcuts.desc",
     "translation": "Toon een lijst met snelkoppelingen"
   },
   {
-    "id": "api.command_shortcuts.list",
-    "translation": "### Sneltoetsen\n\n#### Navigatie\n\nALT+pijl-OMHOOG: Vorige kanaal of rechtstreeks bericht in de zijbalk links\nALT+pijl-OMLAAG: Volgende kanaal of rechtstreeks bericht in de zijbalk links\nALT+SHIFT+pijl-OMHOOG: Vorige kanaal of rechtstreeks bericht in de linker zijbalk met ongelezen berichten\nALT+SHIFT+pijl-OMLAAG: Volgende kanaal of rechtstreeks bericht in de linker zijbalk met ongelezen berichten\nCTRL/CMD+K): Openen van een snelle kanaal wisselaar dialoog\nCTRL/CMD+SHIFT+A: Open account instellingen\nCTRL/CMD+SHIFT+M: Open recente vermeldingen\n\n#### Bestanden\n\nCTRL/CMD+U: Upload bestand(en)\n\n#### Berichten\n\nESC: Markeer alle berichten in het huidige kanaal als gelezen\nCTRL/CMD+pijl-OMHOOG: (in leeg invoerveld): Herhaal de vorige boodschap of slash opdracht die u hebt ingevoerd\nCTRL/CMD+pijl-OMLAAG: (in leeg invoerveld): Herhaal het volgende bericht slash of opdracht die u hebt ingevoerd\npijl-OMHOOG: (in het lege invoerveld): Bewerk uw laatste bericht in het huidige kanaal\n@[karakter]+TAB: automatisch @gebruikersnaam aanvullen dat begint met [karakter]\n:[karakter]+TAB: automatisch emoji aanvullen dat begint met [karakter]\n\n#### De ingebouwde Browser Opdrachten\n\nALT+pijl-LINKS/CMD+[: Vorige kanaal in uw geschiedenis\nALT+pijl-RECHTS/CMD+]: Volgend kanaal in uw geschiedenis\nCTRL/CMD+PLUS: Lettergrootte vergroten (inzoomen)\nCTRL/CMD+MIN: Lettergrootte verkleinen (uitzoomen)\nSHIFT+pijl-OMHOOG (in het invoerveld): Markeer de tekst naar de vorige regel\nSHIFT+pijl-OMLAAG (in het invoerveld): Markeer de tekst naar de volgende regel\nSHIFT+ENTER (in het invoerveld): Maak een nieuwe regel\n"
+    "id": "api.command_shortcuts.files",
+    "translation": "#### Files\n\nCTRL+U: Upload file(s)\n\n"
   },
   {
-    "id": "api.command_shortcuts.list_mac",
-    "translation": "### Sneltoetsen\n\n#### Navigatie\n\nALT+pijl-OMHOOG: Vorige kanaal of rechtstreeks bericht in de zijbalk links\nALT+pijl-OMLAAG: Volgende kanaal of rechtstreeks bericht in de zijbalk links\nALT+SHIFT+pijl-OMHOOG: Vorige kanaal of rechtstreeks bericht in de linker zijbalk met ongelezen berichten\nALT+SHIFT+pijl-OMLAAG: Volgende kanaal of rechtstreeks bericht in de linker zijbalk met ongelezen berichten\nCTRL/CMD+K): Openen van een snelle kanaal wisselaar dialoog\nCTRL/CMD+SHIFT+A: Open account instellingen\nCTRL/CMD+SHIFT+M: Open recente vermeldingen\n\n#### Bestanden\n\nCTRL/CMD+U: Upload bestand(en)\n\n#### Berichten\n\nESC: Markeer alle berichten in het huidige kanaal als gelezen\nCTRL/CMD+pijl-OMHOOG: (in leeg invoerveld): Herhaal de vorige boodschap of slash opdracht die u hebt ingevoerd\nCTRL/CMD+pijl-OMLAAG: (in leeg invoerveld): Herhaal het volgende bericht slash of opdracht die u hebt ingevoerd\npijl-OMHOOG: (in het lege invoerveld): Bewerk uw laatste bericht in het huidige kanaal\n@[karakter]+TAB: automatisch @gebruikersnaam aanvullen dat begint met [karakter]\n:[karakter]+TAB: automatisch emoji aanvullen dat begint met [karakter]\n\n#### De ingebouwde Browser Opdrachten\n\nALT+pijl-LINKS/CMD+[: Vorige kanaal in uw geschiedenis\nALT+pijl-RECHTS/CMD+]: Volgend kanaal in uw geschiedenis\nCTRL/CMD+PLUS: Lettergrootte vergroten (inzoomen)\nCTRL/CMD+MIN: Lettergrootte verkleinen (uitzoomen)\nSHIFT+pijl-OMHOOG (in het invoerveld): Markeer de tekst naar de vorige regel\nSHIFT+pijl-OMLAAG (in het invoerveld): Markeer de tekst naar de volgende regel\nSHIFT+ENTER (in het invoerveld): Maak een nieuwe regel\n"
+    "id": "api.command_shortcuts.files_mac",
+    "translation": "#### Files\n\nCMD+U: Upload file(s)\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs",
+    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCTRL+UP (in empty input field): Reprint the previous message or slash command you entered\nCTRL+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs_mac",
+    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCMD+UP (in empty input field): Reprint the previous message or slash command you entered\nCMD+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
   },
   {
     "id": "api.command_shortcuts.name",
     "translation": "Snelkoppelingen"
+  },
+  {
+    "id": "api.command_shortcuts.nav",
+    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in left hand sidebar\nALT+DOWN: Next channel or direct message in left hand sidebar\nALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\nCTRL+K: Open a quick channel switcher dialog\nCTRL+SHIFT+A: Open account settings\nCTRL+SHIFT+M: Open recent mentions\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav_mac",
+    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in left hand sidebar\nALT+DOWN: Next channel or direct message in left hand sidebar\nALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\nCMD+K: Open a quick channel switcher dialog\nCMD+SHIFT+A: Open account settings\nCMD+SHIFT+M: Open recent mentions\n\n"
   },
   {
     "id": "api.command_shrug.desc",
@@ -626,6 +658,72 @@
   {
     "id": "api.context.unknown.app_error",
     "translation": "Een onbekende fout is opgetreden. Neem contact op met support."
+  },
+  {
+    "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
+    "translation": "Email batching job's receiving channel was full. Please increase the EmailBatchingBufferSize."
+  },
+  {
+    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
+    "translation": "Publieke links zijn uitgeschakeld door de systeembeheerder"
+  },
+  {
+    "id": "api.email_batching.check_pending_emails.finished_running",
+    "translation": "Email batching job ran. %v user(s) still have notifications pending."
+  },
+  {
+    "id": "api.email_batching.check_pending_emails.status.app_error",
+    "translation": "Unable to find status of recipient for batched email notification"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.channel.app_error",
+    "translation": "Unable to find channel of post for batched email notification"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.date",
+    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.direct_message",
+    "translation": "Direct Bericht"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.go_to_post",
+    "translation": "Ga naar Bericht"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.sender.app_error",
+    "translation": "Unable to find sender of post for batched email notification"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.body_text",
+    "translation": {
+      "one": "U heeft een nieuw bericht.",
+      "other": "U heeft {{.Count}} nieuwe berichten."
+    }
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.preferences.app_error",
+    "translation": "Unable to find display preferences of recipient for batched email notification"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.send.app_error",
+    "translation": "Failed to send batched email notification to %v: %v"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subject",
+    "translation": {
+      "one": "[{{.SiteName}}] New Notification for {{.Month}} {{.Day}}, {{.Year}}",
+      "other": "[{{.SiteName}}] New Notifications for {{.Month}} {{.Day}}, {{.Year}}"
+    }
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.user.app_error",
+    "translation": "Unable to find recipient for batched email notification"
+  },
+  {
+    "id": "api.email_batching.start.starting",
+    "translation": "Email batching job starting. Checking for pending emails every %v seconds."
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
@@ -1028,8 +1126,26 @@
     "translation": "Fout bij het aanmaken van bericht"
   },
   {
+    "id": "api.post.delete_flagged_post.app_error.warn",
+    "translation": "Unable to delete flagged post preference when deleting post, err=%v"
+  },
+  {
     "id": "api.post.delete_post.permissions.app_error",
     "translation": "U beschikt niet over juiste de rechten"
+  },
+  {
+    "id": "api.post.get_message_for_notification.files_sent",
+    "translation": {
+      "one": "{{.Count}} file sent: {{.Filenames}}",
+      "other": "{{.Count}} files sent: {{.Filenames}}"
+    }
+  },
+  {
+    "id": "api.post.get_message_for_notification.images_sent",
+    "translation": {
+      "one": "{{.Count}} image sent: {{.Filenames}}",
+      "other": "{{.Count}} images sent: {{.Filenames}}"
+    }
   },
   {
     "id": "api.post.get_out_of_channel_mentions.regex.error",
@@ -1094,6 +1210,10 @@
   {
     "id": "api.post.notification.here.warn",
     "translation": "Kon geen bericht sturen naar online leden met @here, err=%v"
+  },
+  {
+    "id": "api.post.notification.member_profile.warn",
+    "translation": "Unable to get profile for channel member, user_id=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
@@ -2760,6 +2880,18 @@
     "translation": "Tot en met, moet later zijn dan Vanaf"
   },
   {
+    "id": "model.config.is_valid.cluster_email_batching.app_error",
+    "translation": "Unable to enable email batching when clustering is enabled"
+  },
+  {
+    "id": "model.config.is_valid.email_batching_buffer_size.app_error",
+    "translation": "Invalid email batching buffer size for email settings.  Must be zero or a positive number."
+  },
+  {
+    "id": "model.config.is_valid.email_batching_interval.app_error",
+    "translation": "Invalid email batching interval for email settings.  Must be 30 seconds or more."
+  },
+  {
     "id": "model.config.is_valid.email_reset_salt.app_error",
     "translation": "Ongeldige 'salt' voor wachtwoord reset e-mail instellingen. De salt moet 32 of meer karakters hebben."
   },
@@ -2942,6 +3074,10 @@
   {
     "id": "model.config.is_valid.site_url.app_error",
     "translation": "Ongeldige URL. Een geldige URl begint met http:// of https://"
+  },
+  {
+    "id": "model.config.is_valid.site_url_email_batching.app_error",
+    "translation": "Unable to enable email batching when SiteURL isn't set."
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",

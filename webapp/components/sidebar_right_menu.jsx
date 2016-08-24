@@ -90,13 +90,14 @@ export default class SidebarRightMenu extends React.Component {
         if (user.notify_props && user.notify_props.mention_keys) {
             const termKeys = UserStore.getMentionKeys(user.id);
 
-            if (user.notify_props.all === 'true' && termKeys.indexOf('@all') !== -1) {
-                termKeys.splice(termKeys.indexOf('@all'), 1);
+            if (termKeys.indexOf('@channel') !== -1) {
+                termKeys[termKeys.indexOf('@channel')] = '';
             }
 
-            if (user.notify_props.channel === 'true' && termKeys.indexOf('@channel') !== -1) {
-                termKeys.splice(termKeys.indexOf('@channel'), 1);
+            if (termKeys.indexOf('@all') !== -1) {
+                termKeys[termKeys.indexOf('@all')] = '';
             }
+
             terms = termKeys.join(' ');
         }
 
@@ -204,6 +205,18 @@ export default class SidebarRightMenu extends React.Component {
             }
         }
 
+        manageLink = (
+            <li>
+                <ToggleModalButton dialogType={TeamMembersModal}>
+                    <i className='icon fa fa-users'></i>
+                    <FormattedMessage
+                        id='sidebar_right_menu.viewMembers'
+                        defaultMessage='View Members'
+                    />
+                </ToggleModalButton>
+            </li>
+        );
+
         if (isAdmin) {
             teamSettingsLink = (
                 <li>
@@ -222,7 +235,10 @@ export default class SidebarRightMenu extends React.Component {
             );
             manageLink = (
                 <li>
-                    <ToggleModalButton dialogType={TeamMembersModal}>
+                    <ToggleModalButton
+                        dialogType={TeamMembersModal}
+                        dialogProps={{isAdmin}}
+                    >
                         <i className='icon fa fa-users'></i>
                         <FormattedMessage
                             id='sidebar_right_menu.manageMembers'

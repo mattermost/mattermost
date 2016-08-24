@@ -4,11 +4,12 @@
 package api
 
 import (
+	"strings"
+	"testing"
+
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
-	"strings"
-	"testing"
 )
 
 func TestGetLogs(t *testing.T) {
@@ -198,7 +199,7 @@ func TestGetTeamAnalyticsStandard(t *testing.T) {
 			t.Fatal()
 		}
 
-		if rows[2].Value != 1 {
+		if rows[2].Value != 3 {
 			t.Log(rows.ToJson())
 			t.Fatal()
 		}

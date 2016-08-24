@@ -133,11 +133,11 @@ export function updateLastViewedAt(id) {
     Client.updateLastViewedAt(
         channelId,
         () => {
-            callTracker.updateLastViewed = 0;
+            callTracker[`updateLastViewed${channelId}`] = 0;
             ErrorStore.clearLastError();
         },
         (err) => {
-            callTracker.updateLastViewed = 0;
+            callTracker[`updateLastViewed${channelId}`] = 0;
             var count = ErrorStore.getConnectionErrorCount();
             ErrorStore.setConnectionErrorCount(count + 1);
             dispatchError(err, 'updateLastViewedAt');
@@ -170,11 +170,11 @@ export function setLastViewedAt(lastViewedAt, id) {
         channelId,
         lastViewedAt,
         () => {
-            callTracker.setLastViewedAt = 0;
+            callTracker[`setLastViewedAt${channelId}${lastViewedAt}`] = 0;
             ErrorStore.clearLastError();
         },
         (err) => {
-            callTracker.setLastViewedAt = 0;
+            callTracker[`setLastViewedAt${channelId}${lastViewedAt}`] = 0;
             var count = ErrorStore.getConnectionErrorCount();
             ErrorStore.setConnectionErrorCount(count + 1);
             dispatchError(err, 'setLastViewedAt');
@@ -581,10 +581,9 @@ export function getPostsPage(id, maxPosts) {
                     id: channelId,
                     before: true,
                     numRequested: numPosts,
+                    checkLatest: true,
                     post_list: data
                 });
-
-                getProfiles();
             },
             (err) => {
                 dispatchError(err, 'getPostsPage');
@@ -616,12 +615,7 @@ export function getPosts(id) {
         return;
     }
 
-    const latestPost = PostStore.getLatestPost(channelId);
-    let latestPostTime = 0;
-
-    if (latestPost != null && latestPost.update_at != null) {
-        latestPostTime = latestPost.create_at;
-    }
+    const latestPostTime = PostStore.getLatestPostFromPageTime(id);
 
     callTracker['getPosts_' + channelId] = utils.getTimestamp();
 
@@ -636,8 +630,6 @@ export function getPosts(id) {
                 numRequested: 0,
                 post_list: data
             });
-
-            getProfiles();
         },
         (err) => {
             dispatchError(err, 'getPosts');
@@ -672,8 +664,6 @@ export function getPostsBefore(postId, offset, numPost, isPost) {
                 post_list: data,
                 isPost
             });
-
-            getProfiles();
         },
         (err) => {
             dispatchError(err, 'getPostsBefore');
@@ -708,8 +698,6 @@ export function getPostsAfter(postId, offset, numPost, isPost) {
                 post_list: data,
                 isPost
             });
-
-            getProfiles();
         },
         (err) => {
             dispatchError(err, 'getPostsAfter');
@@ -1190,6 +1178,7 @@ export function getRecentAndNewUsersAnalytics(teamId) {
                 teamId,
                 stats
             });
+            callTracker[callName] = 0;
         },
         (err) => {
             callTracker[callName] = 0;

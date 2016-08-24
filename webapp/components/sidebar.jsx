@@ -65,6 +65,7 @@ export default class Sidebar extends React.Component {
         this.updateScrollbarOnChannelChange = this.updateScrollbarOnChannelChange.bind(this);
 
         this.isLeaving = new Map();
+        this.isSwitchingChannel = false;
 
         const state = this.getStateFromStores();
         state.newChannelModalType = '';
@@ -132,7 +133,7 @@ export default class Sidebar extends React.Component {
             directChannel.teammate_id = teammateId;
             directChannel.status = UserStore.getStatus(teammateId) || 'offline';
 
-            if (UserStore.hasTeamProfile(teammateId)) {
+            if (UserStore.hasTeamProfile(teammateId) && TeamStore.hasActiveMemberForTeam(teammateId)) {
                 directChannels.push(directChannel);
             } else {
                 directNonTeamChannels.push(directChannel);
@@ -281,6 +282,12 @@ export default class Sidebar extends React.Component {
     navigateChannelShortcut(e) {
         if (e.altKey && !e.shiftKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
             e.preventDefault();
+
+            if (this.isSwitchingChannel) {
+                return;
+            }
+
+            this.isSwitchingChannel = true;
             const allChannels = this.getDisplayedChannels();
             const curChannelId = this.state.activeId;
             let curIndex = -1;
@@ -299,12 +306,19 @@ export default class Sidebar extends React.Component {
             nextChannel = allChannels[Utils.mod(nextIndex, allChannels.length)];
             ChannelActions.goToChannel(nextChannel);
             this.updateScrollbarOnChannelChange(nextChannel);
+            this.isSwitchingChannel = false;
         }
     }
 
     navigateUnreadChannelShortcut(e) {
         if (e.altKey && e.shiftKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
             e.preventDefault();
+
+            if (this.isSwitchingChannel) {
+                return;
+            }
+
+            this.isSwitchingChannel = true;
             const allChannels = this.getDisplayedChannels();
             const curChannelId = this.state.activeId;
             let curIndex = -1;
@@ -333,6 +347,7 @@ export default class Sidebar extends React.Component {
                 nextChannel = allChannels[nextIndex];
                 ChannelActions.goToChannel(nextChannel);
                 this.updateScrollbarOnChannelChange(nextChannel);
+                this.isSwitchingChannel = false;
             }
         }
     }

@@ -647,12 +647,14 @@ func TestUserUnreadCount(t *testing.T) {
 	p2.UserId = u1.Id
 	p2.Message = "first message"
 	Must(store.Post().Save(&p2))
+	Must(store.Channel().IncrementMentionCount(c2.Id, u2.Id))
 
 	p3 := model.Post{}
 	p3.ChannelId = c2.Id
 	p3.UserId = u1.Id
 	p3.Message = "second message"
 	Must(store.Post().Save(&p3))
+	Must(store.Channel().IncrementMentionCount(c2.Id, u2.Id))
 
 	badge := (<-store.User().GetUnreadCount(u2.Id)).Data.(int64)
 	if badge != 3 {

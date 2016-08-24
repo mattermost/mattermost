@@ -188,6 +188,7 @@ type OAuthStore interface {
 	GetApp(id string) StoreChannel
 	GetAppByUser(userId string) StoreChannel
 	GetApps() StoreChannel
+	GetAuthorizedApps(userId string) StoreChannel
 	DeleteApp(id string) StoreChannel
 	SaveAuthData(authData *model.AuthData) StoreChannel
 	GetAuthData(code string) StoreChannel
@@ -196,6 +197,7 @@ type OAuthStore interface {
 	SaveAccessData(accessData *model.AccessData) StoreChannel
 	UpdateAccessData(accessData *model.AccessData) StoreChannel
 	GetAccessData(token string) StoreChannel
+	GetAccessDataByUserForApp(userId, clientId string) StoreChannel
 	GetAccessDataByRefreshToken(token string) StoreChannel
 	GetPreviousAccessData(userId, clientId string) StoreChannel
 	RemoveAccessData(token string) StoreChannel

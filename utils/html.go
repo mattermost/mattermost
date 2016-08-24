@@ -18,7 +18,7 @@ var htmlTemplates *template.Template
 
 type HTMLTemplate struct {
 	TemplateName string
-	Props        map[string]string
+	Props        map[string]interface{}
 	Html         map[string]template.HTML
 	Locale       string
 }
@@ -71,7 +71,7 @@ func InitHTMLWithDir(dir string) {
 func NewHTMLTemplate(templateName string, locale string) *HTMLTemplate {
 	return &HTMLTemplate{
 		TemplateName: templateName,
-		Props:        make(map[string]string),
+		Props:        make(map[string]interface{}),
 		Html:         make(map[string]template.HTML),
 		Locale:       locale,
 	}

@@ -14,13 +14,13 @@ const CONNECTION_SECURITY_HELP_TEXT = (
     >
         <tbody>
             <tr>
-                <td className='help-text'>
+                <td>
                     <FormattedMessage
                         id='admin.connectionSecurityNone'
                         defaultMessage='None'
                     />
                 </td>
-                <td className='help-text'>
+                <td>
                     <FormattedMessage
                         id='admin.connectionSecurityNoneDescription'
                         defaultMessage='Mattermost will connect over an unsecure connection.'
@@ -28,13 +28,13 @@ const CONNECTION_SECURITY_HELP_TEXT = (
                 </td>
             </tr>
             <tr>
-                <td className='help-text'>
+                <td>
                     <FormattedMessage
                         id='admin.connectionSecurityTls'
                         defaultMessage='TLS'
                     />
                 </td>
-                <td className='help-text'>
+                <td>
                     <FormattedMessage
                         id='admin.connectionSecurityTlsDescription'
                         defaultMessage='Encrypts the communication between Mattermost and your server.'
@@ -42,13 +42,13 @@ const CONNECTION_SECURITY_HELP_TEXT = (
                 </td>
             </tr>
             <tr>
-                <td className='help-text'>
+                <td>
                     <FormattedMessage
                         id='admin.connectionSecurityStart'
                         defaultMessage='STARTTLS'
                     />
                 </td>
-                <td className='help-text'>
+                <td>
                     <FormattedMessage
                         id='admin.connectionSecurityStartDescription'
                         defaultMessage='Takes an existing insecure connection and attempts to upgrade it to a secure connection using TLS.'

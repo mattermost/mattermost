@@ -237,11 +237,11 @@
   },
   {
     "id": "api.channel.delete_channel.incoming_webhook.error",
-    "translation": "删除接入webhook出错, id=%v"
+    "translation": "删除传入的webhook出错, id=%v"
   },
   {
     "id": "api.channel.delete_channel.outgoing_webhook.error",
-    "translation": "删除对外webhook出错, id=%v"
+    "translation": "删除传出的webhook出错, id=%v"
   },
   {
     "id": "api.channel.delete_channel.permissions.app_error",
@@ -324,8 +324,16 @@
     "translation": "您没有对应的权限"
   },
   {
+    "id": "api.channel.remove_member.removed",
+    "translation": "%v 已从频道移出。"
+  },
+  {
     "id": "api.channel.remove_member.unable.app_error",
     "translation": "无法移除用户。"
+  },
+  {
+    "id": "api.channel.remove_member.user.app_error",
+    "translation": "未找到要删除的用户"
   },
   {
     "id": "api.channel.remove_user_from_channel.deleted.app_error",
@@ -556,20 +564,44 @@
     "translation": "消息已发送给用户。"
   },
   {
+    "id": "api.command_shortcuts.browser",
+    "translation": "#### Built-in Browser Commands\n\nALT+LEFT: Previous channel in your history\nALT+RIGHT: Next channel in your history\nCTRL+PLUS: Increase font size (zoom in)\nCTRL+MINUS: Decrease font size (zoom out)\nSHIFT+UP (in input field): Highlight text to the previous line\nSHIFT+DOWN (in input field): Highlight text to the next line\nSHIFT+ENTER (in input field): Create a new line\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser_mac",
+    "translation": "#### Built-in Browser Commands\n\nCMD+[: Previous channel in your history\nCMD+]: Next channel in your history\nCMD+PLUS: Increase font size (zoom in)\nCMD+MINUS: Decrease font size (zoom out)\nSHIFT+UP (in input field): Highlight text to the previous line\nSHIFT+DOWN (in input field): Highlight text to the next line\nSHIFT+ENTER (in input field): Create a new line\n"
+  },
+  {
     "id": "api.command_shortcuts.desc",
     "translation": "显示快捷键列表"
   },
   {
-    "id": "api.command_shortcuts.list",
-    "translation": "### 键盘快捷键 \n\n#### 导航\n\nALT+UP：左边侧边栏上一个频道或私信\nALT+DOWN：左边侧边栏下一个频道或私信\nALT+SHIFT+UP：左边侧边栏上一个有未读消息的频道或私信\nALT+SHIFT+DOWN: 左边侧边栏下一个有未读消息的频道或私信\nCTRL+K：打开快速频道切换对话框\nCTRL+SHIFT+A：打开帐号设定\nCTRL+SHIFT+M：打开最近提及\n\n#### 文件\n\nCTRL+U：上传文件\n\n#### 消息\n\nESC：将此频道所有信息标为已读\nCTRL+UP (在空输入框)：重印你上一个输入的消息或指令\nCTRL+DOWN (在空输入框)：重印你下一个输入的消息或指令\nUP (在空输入框)：修改此频道里你上条消息\n@[character]+TAB：自动完成 [character] 开头的 @username\n:[character]+TAB：自动完成 [character] 开头的表情符号\n\n#### 游览器自带指令\n\nALT+LEFT：你历史中上一个频道\nALT+RIGHT：你历史中下一个频道\nCTRL+PLUS：增加字体大小 (放大)\nCTRL+MINUS：减小字体大小 (缩小)\nSHIFT+UP (在输入框)：延伸高亮文字至上一行\nSHIFT+DOWN (在输入框)：延伸高亮文字至下一行\nSHIFT+ENTER (在输入框)：换行\n"
+    "id": "api.command_shortcuts.files",
+    "translation": "#### Files\n\nCTRL+U: Upload file(s)\n\n"
   },
   {
-    "id": "api.command_shortcuts.list_mac",
-    "translation": "### 键盘快捷键 \n\n#### 导航\n\nALT+UP：左边侧边栏上一个频道或私信\nALT+DOWN：左边侧边栏下一个频道或私信\nALT+SHIFT+UP：左边侧边栏上一个有未读消息的频道或私信\nALT+SHIFT+DOWN: 左边侧边栏下一个有未读消息的频道或私信\nCTRL+K：打开快速频道切换对话框\nCTRL+SHIFT+A：打开帐号设定\nCTRL+SHIFT+M：打开最近提及\n\n#### 文件\n\nCTRL+U：上传文件\n\n#### 消息\n\nESC：将此频道所有信息标为已读\nCTRL+UP (在空输入框)：重印你上一个输入的消息或指令\nCTRL+DOWN (在空输入框)：重印你下一个输入的消息或指令\nUP (在空输入框)：修改此频道里你上条消息\n@[character]+TAB：自动完成 [character] 开头的 @username\n:[character]+TAB：自动完成 [character] 开头的表情符号\n\n#### 游览器自带指令\n\nALT+LEFT：你历史中上一个频道\nALT+RIGHT：你历史中下一个频道\nCTRL+PLUS：增加字体大小 (放大)\nCTRL+MINUS：减小字体大小 (缩小)\nSHIFT+UP (在输入框)：延伸高亮文字至上一行\nSHIFT+DOWN (在输入框)：延伸高亮文字至下一行\nSHIFT+ENTER (在输入框)：换行\n"
+    "id": "api.command_shortcuts.files_mac",
+    "translation": "#### Files\n\nCMD+U: Upload file(s)\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs",
+    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCTRL+UP (in empty input field): Reprint the previous message or slash command you entered\nCTRL+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs_mac",
+    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCMD+UP (in empty input field): Reprint the previous message or slash command you entered\nCMD+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
   },
   {
     "id": "api.command_shortcuts.name",
     "translation": "快捷键"
+  },
+  {
+    "id": "api.command_shortcuts.nav",
+    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in left hand sidebar\nALT+DOWN: Next channel or direct message in left hand sidebar\nALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\nCTRL+K: Open a quick channel switcher dialog\nCTRL+SHIFT+A: Open account settings\nCTRL+SHIFT+M: Open recent mentions\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav_mac",
+    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in left hand sidebar\nALT+DOWN: Next channel or direct message in left hand sidebar\nALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\nCMD+K: Open a quick channel switcher dialog\nCMD+SHIFT+A: Open account settings\nCMD+SHIFT+M: Open recent mentions\n\n"
   },
   {
     "id": "api.command_shrug.desc",
@@ -626,6 +658,72 @@
   {
     "id": "api.context.unknown.app_error",
     "translation": "发生未知错误。请联系我们。"
+  },
+  {
+    "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
+    "translation": "批量电子邮件任务接收频道已满。请提高EmailBatchingBufferSize。"
+  },
+  {
+    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
+    "translation": "系统管理员禁用了批量电子邮件"
+  },
+  {
+    "id": "api.email_batching.check_pending_emails.finished_running",
+    "translation": "批量电子邮件已运行。%v 位用户仍有通知未定。"
+  },
+  {
+    "id": "api.email_batching.check_pending_emails.status.app_error",
+    "translation": "无法找到批量电子邮件通知收件人状态"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.channel.app_error",
+    "translation": "无法找到批量电子邮件通知的贴文频道"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.date",
+    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.direct_message",
+    "translation": "私信"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.go_to_post",
+    "translation": "转至发文"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.sender.app_error",
+    "translation": "无法找到批量电子邮件通知发送人"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.body_text",
+    "translation": {
+      "one": "你有一条新消息。您有{{.Count}}条新消息。",
+      "other": ""
+    }
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.preferences.app_error",
+    "translation": "无法找到批量电子邮件通知收件人显示偏好"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.send.app_error",
+    "translation": "发送批量电子邮件通知到 %v 失败: %v"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subject",
+    "translation": {
+      "one": "[{{.SiteName}}] {{.Month}} {{.Day}}, {{.Year}} 的新通知[{{.SiteName}}] {{.Month}} {{.Day}}, {{.Year}} 的新通知",
+      "other": ""
+    }
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.user.app_error",
+    "translation": "无法找到批量电子邮件通知收件人"
+  },
+  {
+    "id": "api.email_batching.start.starting",
+    "translation": "批量电子邮件任务已开始。每 %v 秒检查待发电子邮件中。"
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
@@ -1028,8 +1126,26 @@
     "translation": "创建信息时出错"
   },
   {
+    "id": "api.post.delete_flagged_post.app_error.warn",
+    "translation": "Unable to delete flagged post preference when deleting post, err=%v"
+  },
+  {
     "id": "api.post.delete_post.permissions.app_error",
     "translation": "您没有对应的权限"
+  },
+  {
+    "id": "api.post.get_message_for_notification.files_sent",
+    "translation": {
+      "one": "{{.Count}} 文件已发送：{{.Filenames}}{{.Count}} 文件已发送：{{.Filenames}}",
+      "other": ""
+    }
+  },
+  {
+    "id": "api.post.get_message_for_notification.images_sent",
+    "translation": {
+      "one": "{{.Count}} 图片已发送：{{.Filenames}}{{.Count}} 图片已发送：{{.Filenames}}",
+      "other": ""
+    }
   },
   {
     "id": "api.post.get_out_of_channel_mentions.regex.error",
@@ -1094,6 +1210,10 @@
   {
     "id": "api.post.notification.here.warn",
     "translation": "无法发送通知到的用户在线@here, err=%v"
+  },
+  {
+    "id": "api.post.notification.member_profile.warn",
+    "translation": "无法获取频道成员个人资料，user_id=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
@@ -1237,7 +1357,7 @@
   },
   {
     "id": "api.server.stop_server.stopped.info",
-    "translation": "停止已服务"
+    "translation": "服务器已停止"
   },
   {
     "id": "api.server.stop_server.stopping.info",
@@ -2105,19 +2225,19 @@
   },
   {
     "id": "api.webhook.create_incoming.disabled.app_errror",
-    "translation": "引入的webhooks已被系统管理员禁用。"
+    "translation": "传入的webhooks已被系统管理员禁用。"
   },
   {
     "id": "api.webhook.create_outgoing.disabled.app_error",
-    "translation": "对外webhooks已被系统管理员禁用。"
+    "translation": "传出的webhooks已被系统管理员禁用。"
   },
   {
     "id": "api.webhook.create_outgoing.intersect.app_error",
-    "translation": "同样的频道的对外的webhooks不能具有同样的触发词/回调URLs。"
+    "translation": "同样的频道的传出的webhooks不能具有同样的触发词/回调URLs。"
   },
   {
     "id": "api.webhook.create_outgoing.not_open.app_error",
-    "translation": "对外的webhooks只能创建公共频道。"
+    "translation": "传出的webhooks只能创建公共频道。"
   },
   {
     "id": "api.webhook.create_outgoing.permissions.app_error",
@@ -2129,15 +2249,15 @@
   },
   {
     "id": "api.webhook.delete_incoming.disabled.app_errror",
-    "translation": "引入的webhooks已被系统管理员禁用。"
+    "translation": "传入的webhooks已被系统管理员禁用。"
   },
   {
     "id": "api.webhook.delete_incoming.permissions.app_errror",
-    "translation": "没有权限删除引入webhook"
+    "translation": "没有权限删除传入的webhook"
   },
   {
     "id": "api.webhook.delete_outgoing.disabled.app_error",
-    "translation": "对外的webhooks已被系统管理员禁用。"
+    "translation": "传出的webhooks已被系统管理员禁用。"
   },
   {
     "id": "api.webhook.delete_outgoing.permissions.app_error",
@@ -2145,11 +2265,11 @@
   },
   {
     "id": "api.webhook.get_incoming.disabled.app_error",
-    "translation": "引入的webhooks已被系统管理员禁用。"
+    "translation": "传入的webhooks已被系统管理员禁用。"
   },
   {
     "id": "api.webhook.get_outgoing.disabled.app_error",
-    "translation": "对外的webhooks已被系统管理员禁用。"
+    "translation": "传出的webhooks已被系统管理员禁用。"
   },
   {
     "id": "api.webhook.incoming.debug",
@@ -2157,7 +2277,7 @@
   },
   {
     "id": "api.webhook.incoming.debug.error",
-    "translation": "不能读取存入webhook的负载。"
+    "translation": "不能读取传入的webhook的负载。"
   },
   {
     "id": "api.webhook.init.debug",
@@ -2165,7 +2285,7 @@
   },
   {
     "id": "api.webhook.regen_outgoing_token.disabled.app_error",
-    "translation": "对外的webhooks已被系统管理员禁用。"
+    "translation": "传出的webhooks已被系统管理员禁用。"
   },
   {
     "id": "api.webhook.regen_outgoing_token.permissions.app_error",
@@ -2253,7 +2373,7 @@
   },
   {
     "id": "ent.compliance.run_failed.error",
-    "translation": "'{{.FilePath}}'的'{{.JobName}}'任务导出审核失败。"
+    "translation": "导出合规的'{{.JobName}}'在'{{.FilePath}}'的任务失败"
   },
   {
     "id": "ent.compliance.run_finished.info",
@@ -2549,7 +2669,7 @@
   },
   {
     "id": "mattermost.system_admins.error",
-    "translation": "未能从mattermost安全更新信息获取系统管理员."
+    "translation": "未能从Mattermost安全更新信息获取系统管理员。"
   },
   {
     "id": "mattermost.working_dir",
@@ -2760,6 +2880,18 @@
     "translation": "必须比From参数大"
   },
   {
+    "id": "model.config.is_valid.cluster_email_batching.app_error",
+    "translation": "Unable to enable email batching when clustering is enabled"
+  },
+  {
+    "id": "model.config.is_valid.email_batching_buffer_size.app_error",
+    "translation": "无效的批量电子邮件缓存大小设定。必须为零或者正整数。"
+  },
+  {
+    "id": "model.config.is_valid.email_batching_interval.app_error",
+    "translation": "无效的批量电子邮件间隔设定。必须至少30秒。"
+  },
+  {
     "id": "model.config.is_valid.email_reset_salt.app_error",
     "translation": "邮箱设定中无效的密码重置盐值。至少32位及以上字符。"
   },
@@ -2869,7 +3001,7 @@
   },
   {
     "id": "model.config.is_valid.login_attempts.app_error",
-    "translation": "服务设置的最大尝试登录数无效.必须是正整数."
+    "translation": "无效的最大尝试登录数服务设置。必须是正整数。"
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
@@ -2942,6 +3074,10 @@
   {
     "id": "model.config.is_valid.site_url.app_error",
     "translation": "站点网址必须为有效URL并且以 http:// 或 https:// 开头"
+  },
+  {
+    "id": "model.config.is_valid.site_url_email_batching.app_error",
+    "translation": "Unable to enable email batching when SiteURL isn't set."
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
@@ -3581,7 +3717,7 @@
   },
   {
     "id": "store.sql_channel.get_member.missing.app_error",
-    "translation": "无法找到与此用户id和频道id相关联的频道。"
+    "translation": "无法找到与此用户id和频道id相关联的频道成员"
   },
   {
     "id": "store.sql_channel.get_member_count.app_error",

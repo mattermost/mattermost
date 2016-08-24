@@ -17,6 +17,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 )
 
@@ -261,10 +262,6 @@ func JoinUserToTeam(team *model.Team, user *model.User) *model.AppError {
 	tm := &model.TeamMember{TeamId: team.Id, UserId: user.Id}
 
 	channelRole := ""
-	if team.Email == user.Email {
-		tm.Roles = model.ROLE_TEAM_ADMIN
-		channelRole = model.CHANNEL_ROLE_ADMIN
-	}
 
 	if etmr := <-Srv.Store.Team().GetMember(team.Id, user.Id); etmr.Err == nil {
 		// Membership alredy exists.  Check if deleted and and update, otherwise do nothing
@@ -279,6 +276,11 @@ func JoinUserToTeam(team *model.Team, user *model.User) *model.AppError {
 			return tmr.Err
 		}
 	} else {
+		if team.Email == user.Email {
+			tm.Roles = model.ROLE_TEAM_ADMIN
+			channelRole = model.CHANNEL_ROLE_ADMIN
+		}
+
 		// Membership appears to be missing.  Lets try to add.
 		if tmr := <-Srv.Store.Team().SaveMember(tm); tmr.Err != nil {
 			return tmr.Err
@@ -331,6 +333,8 @@ func LeaveTeam(team *model.Team, user *model.User) *model.AppError {
 			if result := <-Srv.Store.Channel().RemoveMember(channel.Id, user.Id); result.Err != nil {
 				return result.Err
 			}
+
+			InvalidateCacheForChannel(channel.Id)
 		}
 	}
 
@@ -407,8 +411,17 @@ func GetAllTeamListings(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Gets all teams which the current user can has access to. If the user is a System Admin, this will be all teams
+// on the server. Otherwise, it will only be the teams of which the user is a member.
 func getAll(c *Context, w http.ResponseWriter, r *http.Request) {
-	if result := <-Srv.Store.Team().GetAll(); result.Err != nil {
+	var tchan store.StoreChannel
+	if c.IsSystemAdmin() {
+		tchan = Srv.Store.Team().GetAll()
+	} else {
+		tchan = Srv.Store.Team().GetTeamsByUserId(c.Session.UserId)
+	}
+
+	if result := <-tchan; result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -416,9 +429,6 @@ func getAll(c *Context, w http.ResponseWriter, r *http.Request) {
 		m := make(map[string]*model.Team)
 		for _, v := range teams {
 			m[v.Id] = v
-			if !c.IsSystemAdmin() {
-				m[v.Id].SanitizeForNotLoggedIn()
-			}
 		}
 
 		w.Write([]byte(model.TeamMapToJson(m)))

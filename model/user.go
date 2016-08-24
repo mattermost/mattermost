@@ -295,6 +295,24 @@ func (u *User) GetDisplayName() string {
 	}
 }
 
+func (u *User) GetDisplayNameForPreference(nameFormat string) string {
+	displayName := u.Username
+
+	if nameFormat == PREFERENCE_VALUE_DISPLAY_NAME_NICKNAME {
+		if u.Nickname != "" {
+			displayName = u.Nickname
+		} else if fullName := u.GetFullName(); fullName != "" {
+			displayName = fullName
+		}
+	} else if nameFormat == PREFERENCE_VALUE_DISPLAY_NAME_FULL {
+		if fullName := u.GetFullName(); fullName != "" {
+			displayName = fullName
+		}
+	}
+
+	return displayName
+}
+
 func IsValidUserRoles(userRoles string) bool {
 
 	roles := strings.Split(userRoles, " ")
@@ -352,6 +370,24 @@ func (u *User) IsLDAPUser() bool {
 	if u.AuthService == USER_AUTH_SERVICE_LDAP {
 		return true
 	}
+	return false
+}
+
+func (u *User) StatusAllowsPushNotification(status *Status) bool {
+	props := u.NotifyProps
+
+	if props["push"] == "none" {
+		return false
+	}
+
+	if pushStatus, ok := props["push_status"]; pushStatus == STATUS_ONLINE || !ok {
+		return true
+	} else if pushStatus == STATUS_AWAY && (status.Status == STATUS_AWAY || status.Status == STATUS_OFFLINE) {
+		return true
+	} else if pushStatus == STATUS_OFFLINE && status.Status == STATUS_OFFLINE {
+		return true
+	}
+
 	return false
 }
 

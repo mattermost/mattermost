@@ -222,6 +222,62 @@ func TestGetOAuthAppInfo(t *testing.T) {
 	}
 }
 
+func TestGetAuthorizedApps(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	Client := th.BasicClient
+	AdminClient := th.SystemAdminClient
+
+	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = true
+
+	app := &model.OAuthApp{Name: "TestApp5" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
+
+	app = AdminClient.Must(AdminClient.RegisterApp(app)).Data.(*model.OAuthApp)
+
+	if _, err := Client.AllowOAuth(model.AUTHCODE_RESPONSE_TYPE, app.Id, "https://nowhere.com", "user", ""); err != nil {
+		t.Fatal(err)
+	}
+
+	if result, err := Client.GetOAuthAuthorizedApps(); err != nil {
+		t.Fatal(err)
+	} else {
+		apps := result.Data.([]*model.OAuthApp)
+
+		if len(apps) != 1 {
+			t.Fatal("incorrect number of apps should have been 1")
+		}
+	}
+}
+
+func TestDeauthorizeApp(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	Client := th.BasicClient
+	AdminClient := th.SystemAdminClient
+
+	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = true
+
+	app := &model.OAuthApp{Name: "TestApp5" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
+
+	app = AdminClient.Must(AdminClient.RegisterApp(app)).Data.(*model.OAuthApp)
+
+	if _, err := Client.AllowOAuth(model.AUTHCODE_RESPONSE_TYPE, app.Id, "https://nowhere.com", "user", ""); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := Client.OAuthDeauthorizeApp(app.Id); err != nil {
+		t.Fatal(err)
+	}
+
+	if result, err := Client.GetOAuthAuthorizedApps(); err != nil {
+		t.Fatal(err)
+	} else {
+		apps := result.Data.([]*model.OAuthApp)
+
+		if len(apps) != 0 {
+			t.Fatal("incorrect number of apps should have been 0")
+		}
+	}
+}
+
 func TestOAuthDeleteApp(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	Client := th.BasicClient

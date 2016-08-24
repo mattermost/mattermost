@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/base64"
 	"io/ioutil"
+	"strings"
 	"testing"
 )
 
@@ -20,7 +21,7 @@ func TestGetInfoForBytes(t *testing.T) {
 		t.Fatalf("Got incorrect size: %v", info.Size)
 	} else if info.Extension != "txt" {
 		t.Fatalf("Got incorrect file extension: %v", info.Extension)
-	} else if info.MimeType != "text/plain; charset=utf-8" {
+	} else if !strings.HasPrefix(info.MimeType, "text/plain") {
 		t.Fatalf("Got incorrect mime type: %v", info.MimeType)
 	} else if info.HasPreviewImage {
 		t.Fatalf("Got HasPreviewImage = true for non-image file")

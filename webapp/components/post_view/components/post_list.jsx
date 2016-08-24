@@ -289,6 +289,11 @@ export default class PostList extends React.Component {
                 isFlagged = this.props.flaggedPosts.get(post.id) === 'true';
             }
 
+            let status = '';
+            if (this.props.statuses) {
+                status = this.props.statuses[profile.id] || 'offline';
+            }
+
             const postCtl = (
                 <Post
                     key={keyPrefix + 'postKey'}
@@ -311,6 +316,7 @@ export default class PostList extends React.Component {
                     useMilitaryTime={this.props.useMilitaryTime}
                     emojis={this.props.emojis}
                     isFlagged={isFlagged}
+                    status={status}
                 />
             );
 
@@ -579,5 +585,6 @@ PostList.propTypes = {
     useMilitaryTime: React.PropTypes.bool.isRequired,
     isFocusPost: React.PropTypes.bool,
     emojis: React.PropTypes.object.isRequired,
-    flaggedPosts: React.PropTypes.object
+    flaggedPosts: React.PropTypes.object,
+    statuses: React.PropTypes.object
 };

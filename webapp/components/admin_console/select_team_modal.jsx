@@ -29,20 +29,18 @@ export default class SelectTeamModal extends React.Component {
         }
 
         var options = [];
-
-        for (var key in this.props.teams) {
-            if (this.props.teams.hasOwnProperty(key)) {
-                var team = this.props.teams[key];
-                options.push(
-                    <option
-                        key={'opt_' + team.id}
-                        value={team.id}
-                    >
-                        {team.name}
-                    </option>
-                );
-            }
-        }
+        var teams = this.props.teams;
+        Reflect.ownKeys(teams).forEach((key) => {
+            var team = teams[key];
+            options.push(
+                <option
+                    key={'opt_' + team.id}
+                    value={team.id}
+                >
+                    {team.display_name}
+                </option>
+            );
+        });
 
         return (
             <Modal

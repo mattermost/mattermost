@@ -63,6 +63,10 @@ class TeamStoreClass extends EventEmitter {
         return this.currentTeamId;
     }
 
+    setCurrentId(id) {
+        this.currentTeamId = id;
+    }
+
     getCurrent() {
         const team = this.teams[this.currentTeamId];
 
@@ -151,6 +155,19 @@ class TeamStoreClass extends EventEmitter {
 
     getMembersForTeam() {
         return this.members_for_team;
+    }
+
+    hasActiveMemberForTeam(userId) {
+        for (var index in this.members_for_team) {
+            if (this.members_for_team.hasOwnProperty(index)) {
+                if (this.members_for_team[index].user_id === userId &&
+                    this.members_for_team[index].team_id === this.currentTeamId) {
+                    return this.members_for_team[index].delete_at === 0;
+                }
+            }
+        }
+
+        return false;
     }
 
     saveTeamListings(teams) {

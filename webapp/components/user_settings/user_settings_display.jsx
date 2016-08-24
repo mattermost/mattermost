@@ -126,7 +126,9 @@ export default class UserSettingsDisplay extends React.Component {
     }
 
     updateSection(section) {
-        $('.settings-modal .modal-body').scrollTop(0).perfectScrollbar('update');
+        if ($('.section-max').length) {
+            $('.settings-modal .modal-body').scrollTop(0).perfectScrollbar('update');
+        }
         this.updateState();
         this.props.updateSection(section);
     }

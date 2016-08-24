@@ -56,7 +56,7 @@ export default class PrivacySettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.privacy.showEmailDescription'
-                            defaultMessage='When false, hides email address of users from other users in the user interface, including team owners and team administrators. Used when system is set up for managing teams where some users choose to keep their contact information private.'
+                            defaultMessage='When false, hides email address of users from other users in the user interface, including team owners and Team Administrators. Used when system is set up for managing teams where some users choose to keep their contact information private.'
                         />
                     }
                     value={this.state.showEmailAddress}
@@ -73,7 +73,7 @@ export default class PrivacySettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.privacy.showFullNameDescription'
-                            defaultMessage='When false, hides full name of users from other users, including team owners and team administrators. Username is shown in place of full name.'
+                            defaultMessage='When false, hides full name of users from other users, including team owners and Team Administrators. Username is shown in place of full name.'
                         />
                     }
                     value={this.state.showFullName}

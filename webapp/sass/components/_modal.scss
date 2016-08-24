@@ -169,6 +169,7 @@
                 right: 10px;
                 width: 30px;
                 z-index: 5;
+                text-shadow: none;
 
                 &:hover {
                     @include alpha-property(background, $black, .1);
@@ -482,6 +483,28 @@
 
 }
 
+
+.status-wrapper {
+    position: relative;
+
+    &:after {
+        border-radius: 100%;
+        bottom: 4px;
+        content: '';
+        display: block;
+        height: 8px;
+        position: absolute;
+        right: 0;
+        width: 8px;
+    }
+
+    &.status-offline {
+        &:after {
+            background: #D3D3D3;
+        }
+    }
+}
+
 .more-modal__list {
     display: flex;
     flex-direction: column;
@@ -492,6 +515,12 @@
 
         .more-modal__row {
             padding: 5px 10px;
+
+            .status-wrapper {
+                &:after {
+                    bottom: 0;
+                }
+            }
         }
 
         .more-modal__name {
@@ -503,26 +532,12 @@
         @include border-radius(60px);
         flex-grow: 0;
         flex-shrink: 0;
-	  	max-width: none;
+        margin-top: 2px;
+        max-width: none;
 
-        &-wrapper {
-            position: relative;
-            display: inline-block;
-            margin-right: 8px;
-
+        .status-wrapper {
             &:after {
-                content: "";
-                right: 0;
-                bottom: 0;
-                width: 25%;
-                height: 25%;
-                display: block;
-                position: absolute;
-                border-radius: 100%;
-            }
-
-            &.status-offline:after {
-                background: #D3D3D3;
+                bottom: 3px;
             }
         }
     }

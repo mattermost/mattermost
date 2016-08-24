@@ -204,7 +204,8 @@ export default class LogSettings extends AdminSettings {
                 >
                     <tbody>
                         <tr>
-                            <td className='help-text'>{'%T'}</td><td className='help-text'>
+                            <td>{'%T'}</td>
+                            <td>
                                 <FormattedMessage
                                     id='admin.log.formatTime'
                                     defaultMessage='Time (15:04:05 MST)'
@@ -212,7 +213,8 @@ export default class LogSettings extends AdminSettings {
                             </td>
                         </tr>
                         <tr>
-                            <td className='help-text'>{'%D'}</td><td className='help-text'>
+                            <td>{'%D'}</td>
+                            <td>
                                 <FormattedMessage
                                     id='admin.log.formatDateLong'
                                     defaultMessage='Date (2006/01/02)'
@@ -220,7 +222,8 @@ export default class LogSettings extends AdminSettings {
                             </td>
                         </tr>
                         <tr>
-                            <td className='help-text'>{'%d'}</td><td className='help-text'>
+                            <td>{'%d'}</td>
+                            <td>
                                 <FormattedMessage
                                     id='admin.log.formatDateShort'
                                     defaultMessage='Date (01/02/06)'
@@ -228,7 +231,8 @@ export default class LogSettings extends AdminSettings {
                             </td>
                         </tr>
                         <tr>
-                            <td className='help-text'>{'%L'}</td><td className='help-text'>
+                            <td>{'%L'}</td>
+                            <td>
                                 <FormattedMessage
                                     id='admin.log.formatLevel'
                                     defaultMessage='Level (DEBG, INFO, EROR)'
@@ -236,7 +240,8 @@ export default class LogSettings extends AdminSettings {
                             </td>
                         </tr>
                         <tr>
-                            <td className='help-text'>{'%S'}</td><td className='help-text'>
+                            <td>{'%S'}</td>
+                            <td>
                                 <FormattedMessage
                                     id='admin.log.formatSource'
                                     defaultMessage='Source'
@@ -244,7 +249,8 @@ export default class LogSettings extends AdminSettings {
                             </td>
                         </tr>
                         <tr>
-                            <td className='help-text'>{'%M'}</td><td className='help-text'>
+                            <td>{'%M'}</td>
+                            <td>
                                 <FormattedMessage
                                     id='admin.log.formatMessage'
                                     defaultMessage='Message'

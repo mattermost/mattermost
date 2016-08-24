@@ -169,7 +169,7 @@
   },
   {
     "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
-    "translation": "無法將使用者新增到頻道。使用者已被從團隊中移除。"
+    "translation": "無法將使用者新增到頻道。使用者已從團隊中移除。"
   },
   {
     "id": "api.channel.add_user_to_channel.deleted.app_error",
@@ -324,8 +324,16 @@
     "translation": "您沒有適當的權限 "
   },
   {
+    "id": "api.channel.remove_member.removed",
+    "translation": "%v 已從頻道中移除。"
+  },
+  {
     "id": "api.channel.remove_member.unable.app_error",
     "translation": "無法刪除使用者。"
+  },
+  {
+    "id": "api.channel.remove_member.user.app_error",
+    "translation": "找不到要移除的使用者"
   },
   {
     "id": "api.channel.remove_user_from_channel.deleted.app_error",
@@ -465,7 +473,7 @@
   },
   {
     "id": "api.command_expand_collapse.fail.app_error",
-    "translation": "打開預覽時發生錯誤"
+    "translation": "展開預覽時發生錯誤"
   },
   {
     "id": "api.command_join.desc",
@@ -556,20 +564,44 @@
     "translation": "已傳訊給使用者。"
   },
   {
+    "id": "api.command_shortcuts.browser",
+    "translation": "#### Built-in Browser Commands\n\nALT+LEFT: Previous channel in your history\nALT+RIGHT: Next channel in your history\nCTRL+PLUS: Increase font size (zoom in)\nCTRL+MINUS: Decrease font size (zoom out)\nSHIFT+UP (in input field): Highlight text to the previous line\nSHIFT+DOWN (in input field): Highlight text to the next line\nSHIFT+ENTER (in input field): Create a new line\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser_mac",
+    "translation": "#### Built-in Browser Commands\n\nCMD+[: Previous channel in your history\nCMD+]: Next channel in your history\nCMD+PLUS: Increase font size (zoom in)\nCMD+MINUS: Decrease font size (zoom out)\nSHIFT+UP (in input field): Highlight text to the previous line\nSHIFT+DOWN (in input field): Highlight text to the next line\nSHIFT+ENTER (in input field): Create a new line\n"
+  },
+  {
     "id": "api.command_shortcuts.desc",
     "translation": "顯示鍵盤快捷鍵列表"
   },
   {
-    "id": "api.command_shortcuts.list",
-    "translation": "### 鍵盤快捷鍵\n\n#### 瀏覽\n\nALT+UP：側邊欄裡面上一個頻道或直接訊息\nALT+DOWN：側邊欄裡面下一個頻道或直接訊息\nALT+SHIFT+UP：側邊欄裡面上一個有未讀訊息的頻道或直接訊息\nALT+SHIFT+DOWN：側邊欄裡面下一個有未讀訊息的頻道或直接訊息\nCTRL+K：開啟快速切換頻道對話框\nCTRL+SHIFT+A：開啟帳號設定\nCTRL+SHIFT+M：開啟最近提及您的訊息\n\n#### 檔案\n\nCTRL+U：上傳檔案\n\n#### 訊息\n\nESC：將當前頻道所有訊息設為已讀\nCTRL+UP (在空的輸入欄)：顯示上一個您輸入的訊息或是斜線命令\nCTRL+DOWN (在空的輸入欄)：顯示下一個您輸入的訊息或是斜線命令\nUP (在空的輸入欄)：編輯當前頻道您的上一個訊息\n@[文字]+TAB：自動完成以[文字]起始的@使用者帳號\n:[文字]+TAB：自動完成以[文字]起始的顏文字\n\n#### 瀏覽器內建命令\n\nALT+LEFT：瀏覽紀錄的前一個頻道\nALT+RIGHT：瀏覽紀錄的下一個頻道\nCTRL+PLUS：增加字體尺寸(放大)\nCTRL+MINUS：減少字體尺寸(縮小)\nSHIFT+UP (在輸入欄)：標記現在到上一行同位置之間的文字\nSHIFT+DOWN (在輸入欄)：標記現在到下一行同位置之間的文字\nSHIFT+ENTER (在輸入欄)：新增一行\n"
+    "id": "api.command_shortcuts.files",
+    "translation": "#### Files\n\nCTRL+U: Upload file(s)\n\n"
   },
   {
-    "id": "api.command_shortcuts.list_mac",
-    "translation": "### 鍵盤快捷鍵\n\n#### 瀏覽\n\nALT+UP：側邊欄裡面上一個頻道或直接訊息\nALT+DOWN：側邊欄裡面下一個頻道或直接訊息\nALT+SHIFT+UP：側邊欄裡面上一個有未讀訊息的頻道或直接訊息\nALT+SHIFT+DOWN：側邊欄裡面下一個有未讀訊息的頻道或直接訊息\nCMD+K：開啟快速切換頻道對話框\nCMD+SHIFT+A：開啟帳號設定\nCMD+SHIFT+M：開啟最近提及您的訊息\n\n#### 檔案\n\nCMD+U：上傳檔案\n\n#### 訊息\n\nESC：將當前頻道所有訊息設為已讀\nCMD+UP (在空的輸入欄)：顯示上一個您輸入的訊息或是斜線命令\nCMD+DOWN (在空的輸入欄)：顯示下一個您輸入的訊息或是斜線命令\nUP (在空的輸入欄)：編輯當前頻道您的上一個訊息\n@[文字]+TAB：自動完成以[文字]起始的@使用者帳號\n:[文字]+TAB：自動完成以[文字]起始的顏文字\n\n#### 瀏覽器內建命令\n\nCMD+[：瀏覽紀錄的前一個頻道\nCMD+]：瀏覽紀錄的下一個頻道\nCMD+PLUS：增加字體尺寸(放大)\nCMD+MINUS：減少字體尺寸(縮小)\nSHIFT+UP (在輸入欄)：標記現在到上一行同位置之間的文字\nSHIFT+DOWN (在輸入欄)：標記現在到下一行同位置之間的文字\nSHIFT+ENTER (在輸入欄)：新增一行\n"
+    "id": "api.command_shortcuts.files_mac",
+    "translation": "#### Files\n\nCMD+U: Upload file(s)\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs",
+    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCTRL+UP (in empty input field): Reprint the previous message or slash command you entered\nCTRL+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs_mac",
+    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCMD+UP (in empty input field): Reprint the previous message or slash command you entered\nCMD+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
   },
   {
     "id": "api.command_shortcuts.name",
     "translation": "快捷鍵"
+  },
+  {
+    "id": "api.command_shortcuts.nav",
+    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in left hand sidebar\nALT+DOWN: Next channel or direct message in left hand sidebar\nALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\nCTRL+K: Open a quick channel switcher dialog\nCTRL+SHIFT+A: Open account settings\nCTRL+SHIFT+M: Open recent mentions\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav_mac",
+    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in left hand sidebar\nALT+DOWN: Next channel or direct message in left hand sidebar\nALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\nCMD+K: Open a quick channel switcher dialog\nCMD+SHIFT+A: Open account settings\nCMD+SHIFT+M: Open recent mentions\n\n"
   },
   {
     "id": "api.command_shrug.desc",
@@ -628,40 +660,106 @@
     "translation": "發生未知的錯誤。請聯繫支援單位。"
   },
   {
+    "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
+    "translation": "批次郵件的接收頻道已滿。請增加 EmailBatchingBufferSize。"
+  },
+  {
+    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
+    "translation": "批次郵件已被系統管理員停用"
+  },
+  {
+    "id": "api.email_batching.check_pending_emails.finished_running",
+    "translation": "完成批次郵件處理。尚有 %v 使用者的通知等待處理。"
+  },
+  {
+    "id": "api.email_batching.check_pending_emails.status.app_error",
+    "translation": "找不到批次郵件通知收件人的狀態"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.channel.app_error",
+    "translation": "找不到批次郵件通知文章的頻道"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.date",
+    "translation": "{{.Month}} {{.Day}}，{{.Hour}}:{{.Minute}} {{.Timezone}}"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.direct_message",
+    "translation": "直接訊息"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.go_to_post",
+    "translation": "前往發文"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.sender.app_error",
+    "translation": "找不到批次郵件通知文章的發文者"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.body_text",
+    "translation": {
+      "one": "您有 1 筆新的訊息。您有 {{.Count}} 筆新的訊息。",
+      "other": ""
+    }
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.preferences.app_error",
+    "translation": "找不到批次郵件通知收件人的顯示偏好"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.send.app_error",
+    "translation": "無法寄送批次通知郵件給 %v: %v"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subject",
+    "translation": {
+      "one": "[{{.SiteName}}] {{.Year}} {{.Month}} {{.Day}} 的新通知[{{.SiteName}}] {{.Year}} {{.Month}} {{.Day}} 的新通知",
+      "other": ""
+    }
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.user.app_error",
+    "translation": "找不到批次郵件通知的收件人"
+  },
+  {
+    "id": "api.email_batching.start.starting",
+    "translation": "開始批次郵件處理。每 %v 秒檢查未處理郵件。"
+  },
+  {
     "id": "api.emoji.create.duplicate.app_error",
-    "translation": "無法建立顏文字，已存在相同名稱的顏文字。"
+    "translation": "無法建立繪文字，已存在相同名稱的繪文字。"
   },
   {
     "id": "api.emoji.create.parse.app_error",
-    "translation": "無法新增顏文字。無法理解要求。"
+    "translation": "無法新增繪文字。無法理解要求。"
   },
   {
     "id": "api.emoji.create.permissions.app_error",
-    "translation": "沒有適當的權限建立顏文字"
+    "translation": "沒有適當的權限建立繪文字。"
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "無法建立顏文字。圖片必須小於64KB。"
+    "translation": "無法建立繪文字。圖片必須小於64KB。"
   },
   {
     "id": "api.emoji.delete.permissions.app_error",
-    "translation": "沒有適當的權限刪除顏文字"
+    "translation": "沒有適當的權限刪除繪文字。"
   },
   {
     "id": "api.emoji.disabled.app_error",
-    "translation": "自訂顏文字已被系統管理員停用。"
+    "translation": "自訂繪文字已被系統管理員停用。"
   },
   {
     "id": "api.emoji.get_image.decode.app_error",
-    "translation": "無法解碼顏文字圖像檔案。"
+    "translation": "無法解碼繪文字圖像檔案。"
   },
   {
     "id": "api.emoji.get_image.read.app_error",
-    "translation": "無法讀取顏文字圖像檔案。"
+    "translation": "無法讀取繪文字圖像檔案。"
   },
   {
     "id": "api.emoji.init.debug",
-    "translation": "正在初始化顏文字 API 路徑"
+    "translation": "正在初始化繪文字 API 路徑"
   },
   {
     "id": "api.emoji.storage.app_error",
@@ -669,11 +767,11 @@
   },
   {
     "id": "api.emoji.upload.image.app_error",
-    "translation": "無法新增顏文字。檔案必須是PNG、JPEG或GIF。"
+    "translation": "無法新增繪文字。檔案必須是PNG、JPEG或GIF。"
   },
   {
     "id": "api.emoji.upload.large_image.app_error",
-    "translation": "無法建立顏文字。圖片長寬皆須小於等於128像素。"
+    "translation": "無法建立繪文字。圖片長寬皆須小於等於128像素。"
   },
   {
     "id": "api.file.file_upload.exceeds",
@@ -857,7 +955,7 @@
   },
   {
     "id": "api.license.add_license.unique_users.app_error",
-    "translation": "此授權只支援 {{.Users}} 位使用者，而您的系統有 {{.Count}} 位使用者。使用者人數是根據電子郵件位址計算. 您可從 站台報告 -> 顯示統計 看到使用者總數量。"
+    "translation": "此授權只支援 {{.Users}} 位使用者，而您的系統有 {{.Count}} 位使用者。使用者人數是根據電子郵件位址計算。使用者總數量在 站台報告 -> 顯示統計。"
   },
   {
     "id": "api.license.init.debug",
@@ -1028,8 +1126,26 @@
     "translation": "建立訊息時遇到錯誤"
   },
   {
+    "id": "api.post.delete_flagged_post.app_error.warn",
+    "translation": "Unable to delete flagged post preference when deleting post, err=%v"
+  },
+  {
     "id": "api.post.delete_post.permissions.app_error",
     "translation": "您沒有適當的權限"
+  },
+  {
+    "id": "api.post.get_message_for_notification.files_sent",
+    "translation": {
+      "one": "已送出 {{.Count}} 個檔案：{{.Filenames}}已送出 {{.Count}} 個檔案：{{.Filenames}}",
+      "other": ""
+    }
+  },
+  {
+    "id": "api.post.get_message_for_notification.images_sent",
+    "translation": {
+      "one": "已送出 {{.Count}} 個圖片：{{.Filenames}}已送出 {{.Count}} 個圖片：{{.Filenames}}",
+      "other": ""
+    }
   },
   {
     "id": "api.post.get_out_of_channel_mentions.regex.error",
@@ -1094,6 +1210,10 @@
   {
     "id": "api.post.notification.here.warn",
     "translation": "無法寄送 @here 通知給在線使用者 err=%v"
+  },
+  {
+    "id": "api.post.notification.member_profile.warn",
+    "translation": "無法取得頻道成員資訊 user_id=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
@@ -1465,7 +1585,7 @@
   },
   {
     "id": "api.templates.email_change_body.title",
-    "translation": "您已經變更您的電子郵件地址"
+    "translation": "已經變更電子郵件地址"
   },
   {
     "id": "api.templates.email_change_subject",
@@ -1481,7 +1601,7 @@
   },
   {
     "id": "api.templates.email_change_verify_body.title",
-    "translation": "已經變更您的電子郵件地址"
+    "translation": "已經變更電子郵件地址"
   },
   {
     "id": "api.templates.email_change_verify_subject",
@@ -1489,7 +1609,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "要更改您的通知偏好設定，請登入您的團隊網站並且至 帳號設定 > 通知。"
+    "translation": "要更改通知偏好設定，請登入團隊網站並且至 帳號設定 > 通知。"
   },
   {
     "id": "api.templates.email_info",
@@ -1529,7 +1649,7 @@
   },
   {
     "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost 能讓您透過個人電腦與手機分享訊息與檔案，包括快速搜尋以及封存功能。當您加入 <strong>{{.TeamDisplayName}}</strong> 後，您能夠透過下列網址隨時登入到您的新團隊來使用這些功能：<br/><br/><a href='{{.TeamURL}}'>{{.TeamURL}}</a>"
+    "translation": "Mattermost 能讓您透過個人電腦與手機分享訊息與檔案，包括快速搜尋以及封存功能。當加入 <strong>{{.TeamDisplayName}}</strong> 後，您能夠透過下列網址隨時登入到新團隊來使用這些功能：<br/><br/><a href='{{.TeamURL}}'>{{.TeamURL}}</a>"
   },
   {
     "id": "api.templates.invite_body.info",
@@ -1549,7 +1669,7 @@
   },
   {
     "id": "api.templates.password_change_body.title",
-    "translation": "您的密碼已更新"
+    "translation": "密碼已更新"
   },
   {
     "id": "api.templates.password_change_subject",
@@ -1573,15 +1693,15 @@
   },
   {
     "id": "api.templates.reset_body.info",
-    "translation": "按下方的 \"重設密碼\"來更改您的密碼。<br>如果您不是要重設密碼，請不要理會這封郵件，您的密碼依然維持不變。密碼重設的連結將在 24 小時之後過期。"
+    "translation": "按下方的 \"重設密碼\"來更改您的密碼。<br>如果您並沒有想要重設密碼，請不要理會這封郵件，密碼依然維持不變。密碼重設的連結將在 24 小時之後過期。"
   },
   {
     "id": "api.templates.reset_body.title",
-    "translation": "您已提出了一個密碼重設的要求"
+    "translation": "已提出重設密碼"
   },
   {
     "id": "api.templates.reset_subject",
-    "translation": "重新設定您的密碼"
+    "translation": "重新設定密碼"
   },
   {
     "id": "api.templates.signin_change_email.body.method_email",
@@ -1589,15 +1709,15 @@
   },
   {
     "id": "api.templates.signin_change_email.body.title",
-    "translation": "您已經變更了您的登入方式"
+    "translation": "已變更登入方式"
   },
   {
     "id": "api.templates.signup_team_body.button",
-    "translation": "設定您的團隊"
+    "translation": "設定團隊"
   },
   {
     "id": "api.templates.signup_team_body.info",
-    "translation": "{{ .SiteName }} 是一個讓您所有團隊隨時隨地都能溝通、搜尋與取用的地方。<br>當您的團隊持續不斷的溝通時, 善用 {{ .SiteName }} 能讓您獲益良多--讓我們呼朋引伴吧。"
+    "translation": "{{ .SiteName }} 是一個讓所有團隊隨時隨地都能溝通、搜尋與取用的地方。<br>當團隊持續不斷的溝通時, 善用 {{ .SiteName }} 能讓您獲益良多--讓我們呼朋引伴吧。"
   },
   {
     "id": "api.templates.signup_team_body.title",
@@ -1617,11 +1737,11 @@
   },
   {
     "id": "api.templates.upgrade_30_body.info",
-    "translation": "<h3 style='font-weight: normal; margin-top: 10px;'>您的多重帳號已更新</h3>您的 Mattermost 伺服器已升級到版本3.0，從此您可以在多個團隊中使用同一帳號。<br/><br/>升級程式發現伺服器上有您的帳號所以寄信給您。<br/><br/>更新如下：<br/><br/>{{if .EmailChanged }}- `/{{.TeamName}}`帳號中重覆的電子郵件已變更為`{{.Email}}`。您必須使用電子郵件與密碼登入，而您可用此新的電子郵件進行登入。<br/><br/>{{end}}{{if .UsernameChanged }}- `/{{.TeamName}}`站台重覆的使用者名稱變更為`{{.Username}}`以避免與其它的帳號混淆。<br/><br/>{{end}} 建議動作：<br/><br/>建議您用重覆的帳號登入並把主要帳號加到您要繼續使用的團隊、公開頻道與私有群組。<br/><br/>這樣您方可使用主要帳號存取所有公開頻道與私有群組的歷史。您可以用其它重覆的帳號登入存取之前的直接傳送訊息。<br/><br/>更多資訊：<br/><br/>更多關於升到到Mattermost 3.0 的相關資訊，請見: <a href='http://www.mattermost.org/upgrading-to-mattermost-3-0/'>http://www.mattermost.org/upgrading-to-mattermost-3-0/</a><br/><br/>"
+    "translation": "<h3 style='font-weight: normal; margin-top: 10px;'>您的多重帳號已更新</h3> Mattermost 伺服器已升級到版本3.0，從此可以在多個團隊中使用同一帳號。<br/><br/>升級程式發現伺服器上有您的帳號所以寄信給您。<br/><br/>更新如下：<br/><br/>{{if .EmailChanged }}- `/{{.TeamName}}`帳號中重覆的電子郵件已變更為`{{.Email}}`。您必須使用電子郵件與密碼登入，可用此新的電子郵件進行登入。<br/><br/>{{end}}{{if .UsernameChanged }}- `/{{.TeamName}}`站台重覆的使用者名稱變更為`{{.Username}}`以避免與其它的帳號混淆。<br/><br/>{{end}} 建議動作：<br/><br/>建議您用重覆的帳號登入並把主要帳號加到要繼續使用的團隊、公開頻道與私有群組。<br/><br/>這樣方可使用主要帳號存取所有公開頻道與私有群組的歷史。可以用其它重覆的帳號登入存取之前的直接傳送訊息。<br/><br/>詳細訊息：<br/><br/>如需關於升到到 Mattermost 3.0 的詳細資訊，請參閱：<a href='http://www.mattermost.org/upgrading-to-mattermost-3-0/'>http://www.mattermost.org/upgrading-to-mattermost-3-0/</a><br/><br/>"
   },
   {
     "id": "api.templates.upgrade_30_subject.info",
-    "translation": "[MATTERMOST] 變更您的帳號以升級至 Mattermost 3.0"
+    "translation": "[MATTERMOST] 升級至 Mattermost 3.0 後帳號的變更"
   },
   {
     "id": "api.templates.username_change_body.info",
@@ -1629,11 +1749,11 @@
   },
   {
     "id": "api.templates.username_change_body.title",
-    "translation": "您的使用者名稱已變更"
+    "translation": "使用者名稱已變更"
   },
   {
     "id": "api.templates.username_change_subject",
-    "translation": "您的使用者名稱已變更為{{.TeamDisplayName}}"
+    "translation": "使用者名稱已變更為{{.TeamDisplayName}}"
   },
   {
     "id": "api.templates.verify_body.button",
@@ -1641,11 +1761,11 @@
   },
   {
     "id": "api.templates.verify_body.info",
-    "translation": "請按下方連結來驗證您的電子郵件地址。"
+    "translation": "請按下方連結來驗證電子郵件地址。"
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "您已加入{{ .ServerURL }}"
+    "translation": "已加入{{ .ServerURL }}"
   },
   {
     "id": "api.templates.verify_subject",
@@ -1661,7 +1781,7 @@
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "請按下方連結來驗證您的電子郵件地址。"
+    "translation": "請按下方連結來驗證電子郵件地址。"
   },
   {
     "id": "api.templates.welcome_body.info2",
@@ -1673,11 +1793,11 @@
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "您已加入{{ .ServerURL }}"
+    "translation": "已加入{{ .ServerURL }}"
   },
   {
     "id": "api.templates.welcome_subject",
-    "translation": "您已加入{{ .ServerURL }}"
+    "translation": "已加入{{ .ServerURL }}"
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
@@ -1721,7 +1841,7 @@
   },
   {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
-    "translation": "您的帳號已經因為嘗試太多次的錯誤密碼而被鎖定。請重設您的密碼。"
+    "translation": "您的帳號已經因為嘗試太多次的錯誤密碼而被鎖定。請重設密碼。"
   },
   {
     "id": "api.user.check_user_mfa.bad_code.app_error",
@@ -1785,7 +1905,7 @@
   },
   {
     "id": "api.user.create_user.no_open_server",
-    "translation": "本機不開放自由註冊，請從您的管理員處取得邀請。"
+    "translation": "本機不開放自由註冊，請從管理員處取得邀請。"
   },
   {
     "id": "api.user.create_user.save.error",
@@ -1909,7 +2029,7 @@
   },
   {
     "id": "api.user.permanent_delete_user.system_admin.warn",
-    "translation": "您正在刪除系統管理員 %v。您或許需要用命令列工具將另一個帳號設定為系統管理員。"
+    "translation": "正在刪除系統管理員 %v。刪除後您可能需要用命令列工具將另一個帳號設定為系統管理員。"
   },
   {
     "id": "api.user.reset_password.invalid_link.app_error",
@@ -1997,7 +2117,7 @@
   },
   {
     "id": "api.user.update_password.incorrect.app_error",
-    "translation": "您所輸入的 \"目前密碼\" 不正確。請檢查 Caps Lock 是關的並再試一次。"
+    "translation": "輸入的 \"目前密碼\" 不正確。請檢查 Caps Lock 是關的並再試一次。"
   },
   {
     "id": "api.user.update_password.menu",
@@ -2177,7 +2297,7 @@
   },
   {
     "id": "cli.license.critical",
-    "translation": "此功能需要企業版授權，請聯繫您的系統管理員將系統升級為企業版授權。"
+    "translation": "此功能需要企業版授權，請聯繫系統管理員將系統升級為企業版授權。"
   },
   {
     "id": "ent.brand.save_brand_image.decode.app_error",
@@ -2225,7 +2345,7 @@
   },
   {
     "id": "ent.cluster.licence_disable.app_error",
-    "translation": "目前授權不提供叢集功能，請聯繫您的系統管理員將系統升級為企業版授權。"
+    "translation": "目前授權不提供叢集功能，請聯繫系統管理員將系統升級為企業版授權。"
   },
   {
     "id": "ent.cluster.ping_failed.info",
@@ -2249,7 +2369,7 @@
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
-    "translation": "目前授權不提供規範功能，請聯繫您的系統管理員將系統升級為企業版授權。"
+    "translation": "目前授權不提供規範功能，請聯繫系統管理員將系統升級為企業版授權。"
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -2269,7 +2389,7 @@
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
-    "translation": "目前授權不提供限制自訂顏文字，請聯繫您的系統管理員將系統升級為企業版授權。"
+    "translation": "目前授權不提供限制自訂繪文字，請聯繫系統管理員將系統升級為企業版授權。"
   },
   {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
@@ -2301,7 +2421,7 @@
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
-    "translation": "您的 LDAP 帳號沒有使用此 Mattermost 伺服器的權限。請向您的系統管理員詢問確認 LDAP 使用者過濾條件。"
+    "translation": "您的 LDAP 帳號沒有使用此 Mattermost 伺服器的權限。請向系統管理員詢問確認 LDAP 使用者過濾條件。"
   },
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
@@ -2353,7 +2473,7 @@
   },
   {
     "id": "ent.mfa.license_disable.app_error",
-    "translation": "您的授權不支援多重因子認證"
+    "translation": "您的授權不支援多重要素驗證"
   },
   {
     "id": "ent.mfa.validate_token.authenticate.app_error",
@@ -2369,15 +2489,15 @@
   },
   {
     "id": "ent.saml.build_request.app_error",
-    "translation": "建立與身分識別提供者連接的要求時發生錯誤。請聯繫您的系統管理員。"
+    "translation": "建立與身分識別提供者連接的要求時發生錯誤。請聯繫系統管理員。"
   },
   {
     "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "對與身分識別提供者連接的要求編碼時發生錯誤。請聯繫您的系統管理員。"
+    "translation": "對與身分識別提供者連接的要求編碼時發生錯誤。請聯繫系統管理員。"
   },
   {
     "id": "ent.saml.build_request.encoding_signed.app_error",
-    "translation": "對與身分識別提供者連接的已簽章要求編碼時發生錯誤。請聯繫您的系統管理員。"
+    "translation": "對與身分識別提供者連接的已簽章要求編碼時發生錯誤。請聯繫系統管理員。"
   },
   {
     "id": "ent.saml.configure.app_error",
@@ -2385,27 +2505,27 @@
   },
   {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
-    "translation": "由於沒有啟用加密，SAML 登入失敗。請聯繫您的系統管理員。"
+    "translation": "由於沒有啟用加密，SAML 登入失敗。請聯繫系統管理員。"
   },
   {
     "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "無法找到身份識別提供者公開憑證檔案。請聯繫您的系統管理員。"
+    "translation": "找不到身份識別提供者公開憑證檔案。請聯繫系統管理員。"
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
-    "translation": "由於找不到服務提供者私鑰，SAML 登入失敗。請聯繫您的系統管理員。"
+    "translation": "由於找不到服務提供者私鑰，SAML 登入失敗。請聯繫系統管理員。"
   },
   {
     "id": "ent.saml.configure.load_public_cert.app_error",
-    "translation": "無法找到服務提供者公開憑證檔案。請聯繫您的系統管理員。"
+    "translation": "找不到服務提供者公開憑證檔案。請聯繫系統管理員。"
   },
   {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
-    "translation": "由於身份識別提供者的回應未加密，SAML 登入失敗。請聯繫您的系統管理員。"
+    "translation": "由於身份識別提供者的回應未加密，SAML 登入失敗。請聯繫系統管理員。"
   },
   {
     "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "由於解碼身份識別提供者的回應時發生錯誤，SAML 登入失敗。請聯繫您的系統管理員。"
+    "translation": "由於解碼身份識別提供者的回應時發生錯誤，SAML 登入失敗。請聯繫系統管理員。"
   },
   {
     "id": "ent.saml.do_login.empty_response.app_error",
@@ -2413,11 +2533,11 @@
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
-    "translation": "解析身份識別提供者的回應時發生錯誤。請聯繫您的系統管理員。"
+    "translation": "解析身份識別提供者的回應時發生錯誤。請聯繫系統管理員。"
   },
   {
     "id": "ent.saml.do_login.validate.app_error",
-    "translation": "驗證身份識別提供者的回應時發生錯誤。請聯繫您的系統管理員。"
+    "translation": "驗證身份識別提供者的回應時發生錯誤。請聯繫系統管理員。"
   },
   {
     "id": "ent.saml.license_disable.app_error",
@@ -2461,7 +2581,7 @@
   },
   {
     "id": "leave_team_modal.desc",
-    "translation": "您將退出所有的公開頻道跟私人群組。如果此團隊是私人的，您將無法重新加入。您確定嘛？"
+    "translation": "將離開所有的公開頻道與私人群組。如果團隊是私人團隊，將無法重新加入。您確定嘛？"
   },
   {
     "id": "leave_team_modal.no",
@@ -2673,7 +2793,7 @@
   },
   {
     "id": "model.client.create_emoji.emoji.app_error",
-    "translation": "無法附加顏文字資料於要求"
+    "translation": "無法附加繪文字資料於要求"
   },
   {
     "id": "model.client.create_emoji.image.app_error",
@@ -2760,6 +2880,18 @@
     "translation": "\"到\"必須大於\"起始\""
   },
   {
+    "id": "model.config.is_valid.cluster_email_batching.app_error",
+    "translation": "Unable to enable email batching when clustering is enabled"
+  },
+  {
+    "id": "model.config.is_valid.email_batching_buffer_size.app_error",
+    "translation": "電子郵件設定的批次郵件緩衝大小值無效。必須大於等於零。"
+  },
+  {
+    "id": "model.config.is_valid.email_batching_interval.app_error",
+    "translation": "電子郵件設定的批次郵件間隔值無效。必須大於等於30秒。"
+  },
+  {
     "id": "model.config.is_valid.email_reset_salt.app_error",
     "translation": "電子郵件設定中的密碼重設 Salt 無效。必須在32個字元以上。"
   },
@@ -2781,7 +2913,7 @@
   },
   {
     "id": "model.config.is_valid.file_preview_height.app_error",
-    "translation": "檔案設定中的預覽高度無效.。必須為0或者正數。"
+    "translation": "檔案設定中的預覽高度無效。必須為0或者正數。"
   },
   {
     "id": "model.config.is_valid.file_preview_width.app_error",
@@ -2913,7 +3045,7 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
-    "translation": "找不到身份識別提供者公開憑證。您是否忘記上傳？"
+    "translation": "找不到身份識別提供者公開憑證。是否忘記上傳？"
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
@@ -2929,11 +3061,11 @@
   },
   {
     "id": "model.config.is_valid.saml_private_key.app_error",
-    "translation": "找不到身份識別提供者私鑰。您是否忘記上傳？"
+    "translation": "找不到身份識別提供者私鑰。是否忘記上傳？"
   },
   {
     "id": "model.config.is_valid.saml_public_cert.app_error",
-    "translation": "找不到服務提供者公開憑證。您是否忘記上傳？"
+    "translation": "找不到服務提供者公開憑證。是否忘記上傳？"
   },
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
@@ -2942,6 +3074,10 @@
   {
     "id": "model.config.is_valid.site_url.app_error",
     "translation": "站台網址必須使用以 http:// 或 https:// 開頭的有效網址。"
+  },
+  {
+    "id": "model.config.is_valid.site_url_email_batching.app_error",
+    "translation": "Unable to enable email batching when SiteURL isn't set."
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
@@ -2973,7 +3109,7 @@
   },
   {
     "id": "model.emoji.id.app_error",
-    "translation": "無效的顏文字 ID"
+    "translation": "無效的繪文字 ID"
   },
   {
     "id": "model.emoji.name.app_error",
@@ -3281,67 +3417,67 @@
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
-    "translation": "您的密碼最短必須有{{.Min}}個字元。"
+    "translation": "密碼最短必須有{{.Min}}個字元。"
   },
   {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
-    "translation": "您的密碼最短必須有{{.Min}}個字元且至少有一個小寫英文字母。"
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個小寫英文字母。"
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_number.app_error",
-    "translation": "您的密碼最短必須有{{.Min}}個字元且至少有一個小寫英文字母和一個數字。"
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個小寫英文字母和一個數字。"
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
-    "translation": "您的密碼最短必須有{{.Min}}個字元且至少有一個小寫英文字母、一個數字和一個符號(\"~!@#$%^&*()\")。"
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個小寫英文字母、一個數字和一個符號(\"~!@#$%^&*()\")。"
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
-    "translation": "您的密碼最短必須有{{.Min}}個字元且至少有一個小寫英文字母和一個符號(\"~!@#$%^&*()\")。"
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個小寫英文字母和一個符號(\"~!@#$%^&*()\")。"
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
-    "translation": "您的密碼最短必須有{{.Min}}個字元且至少有一個小寫英文字母和一個大寫英文字母。"
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個小寫英文字母和一個大寫英文字母。"
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
-    "translation": "您的密碼最短必須有{{.Min}}個字元且至少有一個小寫英文字母、一個大寫英文字母和一個數字。"
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個小寫英文字母、一個大寫英文字母和一個數字。"
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
-    "translation": "您的密碼最短必須有{{.Min}}個字元且至少有一個小寫英文字母、一個大寫英文字母、一個數字和一個符號(\"~!@#$%^&*()\")。"
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個小寫英文字母、一個大寫英文字母、一個數字和一個符號(\"~!@#$%^&*()\")。"
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
-    "translation": "您的密碼最短必須有{{.Min}}個字元且至少有一個小寫英文字母、一個大寫英文字母和一個符號(\"~!@#$%^&*()\")。"
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個小寫英文字母、一個大寫英文字母和一個符號(\"~!@#$%^&*()\")。"
   },
   {
     "id": "model.user.is_valid.pwd_number.app_error",
-    "translation": "您的密碼最短必須有{{.Min}}個字元且至少有一個數字。"
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個數字。"
   },
   {
     "id": "model.user.is_valid.pwd_number_symbol.app_error",
-    "translation": "您的密碼最短必須有{{.Min}}個字元且至少有一個數字和一個符號(\"~!@#$%^&*()\")。"
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個數字和一個符號(\"~!@#$%^&*()\")。"
   },
   {
     "id": "model.user.is_valid.pwd_symbol.app_error",
-    "translation": "您的密碼最短必須有{{.Min}}個字元且至少有一個符號(\"~!@#$%^&*()\")。"
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個符號(\"~!@#$%^&*()\")。"
   },
   {
     "id": "model.user.is_valid.pwd_uppercase.app_error",
-    "translation": "您的密碼最短必須有{{.Min}}個字元且至少有一個大寫英文字母。"
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個大寫英文字母。"
   },
   {
     "id": "model.user.is_valid.pwd_uppercase_number.app_error",
-    "translation": "您的密碼最短必須有{{.Min}}個字元且至少有一個大寫英文字母和一個數字。"
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個大寫英文字母和一個數字。"
   },
   {
     "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
-    "translation": "您的密碼最短必須有{{.Min}}個字元且至少有一個大寫英文字母、一個數字和一個符號(\"~!@#$%^&*()\")。"
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個大寫英文字母、一個數字和一個符號(\"~!@#$%^&*()\")。"
   },
   {
     "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
-    "translation": "您的密碼最短必須有{{.Min}}個字元且至少有一個大寫英文字母和一個符號(\"~!@#$%^&*()\")。"
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個大寫英文字母和一個符號(\"~!@#$%^&*()\")。"
   },
   {
     "id": "model.user.is_valid.team_id.app_error",
@@ -3477,7 +3613,7 @@
   },
   {
     "id": "store.sql.schema_version.critical",
-    "translation": "%v 的資料庫結構描述版本無法升級。您不能略過版本."
+    "translation": "%v 的資料庫結構描述版本無法升級。請不要跳過中間版本。"
   },
   {
     "id": "store.sql.short_ciphertext",
@@ -3637,7 +3773,7 @@
   },
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
-    "translation": "您已達允許加入的頻道總數量限制。"
+    "translation": "已達允許加入的頻道總數量限制。"
   },
   {
     "id": "store.sql_channel.save_channel.previously.app_error",
@@ -3749,27 +3885,27 @@
   },
   {
     "id": "store.sql_emoji.delete.app_error",
-    "translation": "無法刪除顏文字"
+    "translation": "無法刪除繪文字"
   },
   {
     "id": "store.sql_emoji.delete.no_results",
-    "translation": "找不到要刪除的顏文字"
+    "translation": "找不到要刪除的繪文字"
   },
   {
     "id": "store.sql_emoji.get.app_error",
-    "translation": "無法取得顏文字"
+    "translation": "無法取得繪文字"
   },
   {
     "id": "store.sql_emoji.get_all.app_error",
-    "translation": "無法取得顏文字"
+    "translation": "無法取得繪文字"
   },
   {
     "id": "store.sql_emoji.get_by_name.app_error",
-    "translation": "無法取得顏文字"
+    "translation": "無法取得繪文字"
   },
   {
     "id": "store.sql_emoji.save.app_error",
-    "translation": "無法儲存顏文字"
+    "translation": "無法儲存繪文字"
   },
   {
     "id": "store.sql_license.get.app_error",
@@ -4229,23 +4365,23 @@
   },
   {
     "id": "store.sql_user.get_by_auth.missing_account.app_error",
-    "translation": "在此團隊中找不到符合您採用的認證型態的帳號，此團隊或許需要從團隊擁有者取得邀請才可加入。"
+    "translation": "在此團隊中找不到符合您認證型態的帳號，此團隊需要從團隊擁有者取得邀請才可加入。"
   },
   {
     "id": "store.sql_user.get_by_auth.other.app_error",
-    "translation": "尋找您採用的認證型態的帳號時遇到錯誤。"
+    "translation": "根據認證型態尋找帳號時遇到錯誤。"
   },
   {
     "id": "store.sql_user.get_by_username.app_error",
-    "translation": "在此團隊中找不到符合您的使用者名稱的帳號，此團隊或許需要從團隊擁有者取得邀請才可加入。"
+    "translation": "在此團隊中找不到符合您的使用者名稱之帳號，此團隊需要從團隊擁有者取得邀請才可加入。"
   },
   {
     "id": "store.sql_user.get_for_login.app_error",
-    "translation": "找不到符合您的認證的帳號，此團隊或許需要從團隊擁有者取得邀請才可加入。"
+    "translation": "找不到符合您的認證之帳號，此團隊需要從團隊擁有者取得邀請才可加入。"
   },
   {
     "id": "store.sql_user.get_for_login.multiple_users",
-    "translation": "找到數個相符於您採用的認證的帳號，所以無法讓您登入，請聯繫系統管理員。"
+    "translation": "找到數個相符於您的認證之帳號，所以無法讓您登入，請聯繫系統管理員。"
   },
   {
     "id": "store.sql_user.get_profiles.app_error",
@@ -4269,7 +4405,7 @@
   },
   {
     "id": "store.sql_user.missing_account.const",
-    "translation": "在此團隊中找不到符合您的電子郵件的帳號，此團隊或許需要從團隊擁有者取得邀請才可加入。"
+    "translation": "在此團隊中找不到符合您的電子郵件之帳號，此團隊需要從團隊擁有者取得邀請才可加入。"
   },
   {
     "id": "store.sql_user.permanent_delete.app_error",
@@ -4297,7 +4433,7 @@
   },
   {
     "id": "store.sql_user.save.max_accounts.app_error",
-    "translation": "此團隊已達最大使用者數量上限。請聯絡您的系統管理員調大數量限制。"
+    "translation": "此團隊已達最大使用者數量上限。請聯絡系統管理員調大數量限制。"
   },
   {
     "id": "store.sql_user.save.member_count.app_error",
@@ -4565,7 +4701,7 @@
   },
   {
     "id": "web.check_browser_compatibility.app_error",
-    "translation": "無法支援您目前的瀏覽器，請升級到下列任一瀏覽器: Google Chrome 21 以上版本、Internet Explorer 11 以上版本、FireFox 14 以上版本、Safari 9 以上版本"
+    "translation": "無法支援目前的瀏覽器，請升級到下列任一瀏覽器: Google Chrome 21 以上版本、Internet Explorer 11 以上版本、FireFox 14 以上版本、Safari 9 以上版本"
   },
   {
     "id": "web.claim_account.team.error",

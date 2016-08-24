@@ -32,6 +32,7 @@ export default class EmailSettings extends AdminSettings {
         config.EmailSettings.SMTPServer = this.state.smtpServer;
         config.EmailSettings.SMTPPort = this.state.smtpPort;
         config.EmailSettings.ConnectionSecurity = this.state.connectionSecurity;
+        config.EmailSettings.EnableEmailBatching = this.state.enableEmailBatching;
         config.ServiceSettings.EnableSecurityFixAlert = this.state.enableSecurityFixAlert;
 
         return config;
@@ -48,6 +49,7 @@ export default class EmailSettings extends AdminSettings {
             smtpServer: config.EmailSettings.SMTPServer,
             smtpPort: config.EmailSettings.SMTPPort,
             connectionSecurity: config.EmailSettings.ConnectionSecurity,
+            enableEmailBatching: config.EmailSettings.EnableEmailBatching,
             enableSecurityFixAlert: config.ServiceSettings.EnableSecurityFixAlert
         };
     }
@@ -64,6 +66,34 @@ export default class EmailSettings extends AdminSettings {
     }
 
     renderSettings() {
+        let enableEmailBatchingDisabledText = null;
+
+        if (this.props.config.ClusterSettings.Enable) {
+            enableEmailBatchingDisabledText = (
+                <span
+                    key='admin.email.enableEmailBatching.clusterEnabled'
+                    className='help-text'
+                >
+                    <FormattedHTMLMessage
+                        id='admin.email.enableEmailBatching.clusterEnabled'
+                        defaultMessage='Email batching cannot be enabled unless the SiteURL is configured in <b>Configuration > SiteURL</b>.'
+                    />
+                </span>
+            );
+        } else if (!this.props.config.ServiceSettings.SiteURL) {
+            enableEmailBatchingDisabledText = (
+                <span
+                    key='admin.email.enableEmailBatching.siteURL'
+                    className='help-text'
+                >
+                    <FormattedHTMLMessage
+                        id='admin.email.enableEmailBatching.siteURL'
+                        defaultMessage='Email batching cannot be enabled unless the SiteURL is configured in <b>Configuration > SiteURL</b>.'
+                    />
+                </span>
+            );
+        }
+
         return (
             <SettingsGroup>
                 <BooleanSetting
@@ -82,6 +112,26 @@ export default class EmailSettings extends AdminSettings {
                     }
                     value={this.state.sendEmailNotifications}
                     onChange={this.handleChange}
+                />
+                <BooleanSetting
+                    id='enableEmailBatching'
+                    label={
+                        <FormattedMessage
+                            id='admin.email.enableEmailBatchingTitle'
+                            defaultMessage='Enable Email Batching: '
+                        />
+                    }
+                    helpText={[
+                        <FormattedHTMLMessage
+                            key='admin.email.enableEmailBatchingDesc'
+                            id='admin.email.enableEmailBatchingDesc'
+                            defaultMessage='When true, users can have email notifications for multiple direct messages and mentions combined into a single email, configurable in <b>Account Settings > Notifications</b>.'
+                        />,
+                        enableEmailBatchingDisabledText
+                    ]}
+                    value={this.state.enableEmailBatching && !this.props.config.ClusterSettings.Enable && this.props.config.ServiceSettings.SiteURL}
+                    onChange={this.handleChange}
+                    disabled={!this.state.sendEmailNotifications || this.props.config.ClusterSettings.Enable || !this.props.config.ServiceSettings.SiteURL}
                 />
                 <TextSetting
                     id='feedbackName'

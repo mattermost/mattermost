@@ -255,7 +255,7 @@ func TestAddUserToTeamFromInvite(t *testing.T) {
 }
 
 func TestGetAllTeams(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup().InitBasic().InitSystemAdmin()
 	th.BasicClient.Logout()
 	Client := th.BasicClient
 
@@ -272,34 +272,18 @@ func TestGetAllTeams(t *testing.T) {
 
 	if r1, err := Client.GetAllTeams(); err != nil {
 		t.Fatal(err)
-	} else {
-		teams := r1.Data.(map[string]*model.Team)
-		if teams[team.Id].Name != team.Name {
-			t.Fatal()
-		}
-		if teams[team.Id].Email != "" {
-			t.Fatal("Non admin users shoudn't get full listings")
-		}
+	} else if teams := r1.Data.(map[string]*model.Team); len(teams) != 1 {
+		t.Fatal("non admin users only get the teams that they're a member of")
+	} else if receivedTeam, ok := teams[team.Id]; !ok || receivedTeam.Id != team.Id {
+		t.Fatal("should've received team that the user is a member of")
 	}
 
-	c := &Context{}
-	c.RequestId = model.NewId()
-	c.IpAddress = "cmd_line"
-	UpdateUserRoles(c, user, model.ROLE_SYSTEM_ADMIN)
-
-	Client.Login(user.Email, "passwd1")
-	Client.SetTeamId(team.Id)
-
-	if r1, err := Client.GetAllTeams(); err != nil {
+	if r1, err := th.SystemAdminClient.GetAllTeams(); err != nil {
 		t.Fatal(err)
-	} else {
-		teams := r1.Data.(map[string]*model.Team)
-		if teams[team.Id].Name != team.Name {
-			t.Fatal()
-		}
-		if teams[team.Id].Email != team.Email {
-			t.Fatal()
-		}
+	} else if teams := r1.Data.(map[string]*model.Team); len(teams) == 1 {
+		t.Fatal("admin users should receive all teams")
+	} else if receivedTeam, ok := teams[team.Id]; !ok || receivedTeam.Id != team.Id {
+		t.Fatal("admin should've received team that they aren't a member of")
 	}
 }
 

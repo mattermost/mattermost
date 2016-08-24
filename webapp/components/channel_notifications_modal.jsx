@@ -34,7 +34,9 @@ export default class ChannelNotificationsModal extends React.Component {
         };
     }
     updateSection(section) {
-        $('.settings-modal .modal-body').scrollTop(0).perfectScrollbar('update');
+        if ($('.section-max').length) {
+            $('.settings-modal .modal-body').scrollTop(0).perfectScrollbar('update');
+        }
         this.setState({activeSection: section});
     }
     componentWillReceiveProps(nextProps) {

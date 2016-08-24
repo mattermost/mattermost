@@ -324,8 +324,16 @@
     "translation": "No tienes los permisos apropiados "
   },
   {
+    "id": "api.channel.remove_member.removed",
+    "translation": "%v fue removido del canal."
+  },
+  {
     "id": "api.channel.remove_member.unable.app_error",
     "translation": "No se puede remover el usuario."
+  },
+  {
+    "id": "api.channel.remove_member.user.app_error",
+    "translation": "Falla al encontrar el usuario a ser removido"
   },
   {
     "id": "api.channel.remove_user_from_channel.deleted.app_error",
@@ -357,7 +365,7 @@
   },
   {
     "id": "api.command.duplicate_trigger.app_error",
-    "translation": "Esta palabra gatilladora ya está siendo utilizada. Por favor escoge otra palabra."
+    "translation": "Esta palabra que desencadena la acción ya está siendo utilizada. Por favor escoge otra palabra."
   },
   {
     "id": "api.command.execute_command.debug",
@@ -365,19 +373,19 @@
   },
   {
     "id": "api.command.execute_command.failed.app_error",
-    "translation": "El Comando con el gatillador '{{.Trigger}}' falló"
+    "translation": "El Comando con la palabra '{{.Trigger}}' que desencadena la acción falló"
   },
   {
     "id": "api.command.execute_command.failed_empty.app_error",
-    "translation": "El Comando con el gatillador '{{.Trigger}}' retorno una respuesta vacía"
+    "translation": "El Comando con la palabra '{{.Trigger}}' que desencadena la acción retorno una respuesta vacía"
   },
   {
     "id": "api.command.execute_command.failed_resp.app_error",
-    "translation": "El Comando con el gatillador '{{.Trigger}}' retorno la respuesta {{.Status}}"
+    "translation": "El Comando con la palabra '{{.Trigger}}' que desencadena la acción retorno la respuesta {{.Status}}"
   },
   {
     "id": "api.command.execute_command.not_found.app_error",
-    "translation": "No se encontró el Comando con el gatillador '{{.Trigger}}'"
+    "translation": "No se encontró el Comando con la palabra '{{.Trigger}}' que desencadena la acción"
   },
   {
     "id": "api.command.execute_command.save.app_error",
@@ -385,7 +393,7 @@
   },
   {
     "id": "api.command.execute_command.start.app_error",
-    "translation": "No se encontró un gatillador para el comando"
+    "translation": "No se encontró una palabra que desencadene la acción para el comando"
   },
   {
     "id": "api.command.init.debug",
@@ -556,20 +564,44 @@
     "translation": "Mensaje enviado al usuario."
   },
   {
+    "id": "api.command_shortcuts.browser",
+    "translation": "#### Comandos incluidos en el Navegador\n\nALT+IZQ: Canal anterior en tu historial\nALT+DER: Canal siguiente en tu historial\nCTRL+MAS: Incrementa el tamaño de las letras (hace zoom)\nCTRL+MENOS: Reduce el tamaño de las letras (quita zoom)\nSHIFT+ARRIBA (en el cuadro de texto): Selecciona el texto en las lineas de arriba\nSHIFT+ABAJO (en el cuadro de texto): Selecciona el texto en las lineas de abajo\nSHIFT+RETORNO (en el cuadro de texto): Crea una nueva línea\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser_mac",
+    "translation": "#### Comandos incluidos en el Navegador\n\nCMD+[: Canal anterior en tu historial\nCMD+]: Canal siguiente en tu historial\nCMD+MAS: Incrementa el tamaño de las letras (hace zoom)\nCMD+MENOS: Reduce el tamaño de las letras (quita zoom)\nSHIFT+ARRIBA (en el cuadro de texto): Selecciona el texto en las lineas de arriba\nSHIFT+ABAJO (en el cuadro de texto): Selecciona el texto en las lineas de abajo\nSHIFT+RETORNO (en el cuadro de texto): Crea una nueva línea\n"
+  },
+  {
     "id": "api.command_shortcuts.desc",
     "translation": "Muestra una lista de los accesos rápidos de teclado"
   },
   {
-    "id": "api.command_shortcuts.list",
-    "translation": "### Atajos de Teclado\n\n#### Navegación\n\nALT+ARRIBA: Canal o mensaje directo previo en la barra lateral izquierda\nALT+ABAJO: Canal o mensaje directo siguiente en la barra lateral izquierda\nALT+MAYUS+ARRIBA: Canal o mensaje directo previo en la barra lateral izquierda con mensajes no leídos\nALT+MAYUS+ABAJO: Canal o mensaje directo siguiente en la barra lateral izquierda con mensajes no leídos\nCTRL+K: Abre un cuadro de dialogo para cambiar rápidamente de canal\nCTRL+MAYUS+A: Abre la configuración de la cuenta\nCTRL+MAYUS+M: Abre las menciones recientes\n\n#### Archivos\n\nCTRL+U: Subir archivo(s)\n\n#### Mensajes\n\nESC: Marca todos los mensajes como leídos en el canal actual\nCTRL+ARRIBA (con el cuadro de texto vacío): Reimprime el último mensaje o comando de barra que ingresaste\nCTRL+ABAJO (con el cuadro de texto vacío): Reimprime el siguiente mensaje o comando de barra que ingresaste\nARRIBA (con el cuadro de texto vacío): Edita tu último mensaje en el canal en el que te encuentras\n@[carácter]+TAB: Auto completa @nombre que comience por [carácter]\n:[carácter]+TAB: Auto completa el emoji que comience por [carácter]\n\n#### Comandos incluidos en el Navegador\n\nALT+IZQ+[: Canal anterior en tu historial\nALT+DER+]: Canal siguiente en tu historial\nCTRL+MAS: Incrementa el tamaño de las letras (hace zoom)\nCTRL+MENOS: Reduce el tamaño de las letras (quita zoom)\nSHIFT+ARRIBA (en el cuadro de texto): Selecciona el texto en las lineas de arriba\nSHIFT+ABAJO (en el cuadro de texto): Selecciona el texto en las lineas de abajo\nSHIFT+RETORNO (en el cuadro de texto): Crea una nueva línea\n"
+    "id": "api.command_shortcuts.files",
+    "translation": "#### Archivos\n\nCTRL+U: Subir archivo(s)\n\n"
   },
   {
-    "id": "api.command_shortcuts.list_mac",
-    "translation": "### Atajos de Teclado\n\n#### Navegación\n\nALT+ARRIBA: Canal o mensaje directo previo en la barra lateral izquierda\nALT+ABAJO: Canal o mensaje directo siguiente en la barra lateral izquierda\nALT+MAYUS+ARRIBA: Canal o mensaje directo previo en la barra lateral izquierda con mensajes no leídos\nALT+MAYUS+ABAJO: Canal o mensaje directo siguiente en la barra lateral izquierda con mensajes no leídos\nCMD+K: Abre un cuadro de dialogo para cambiar rápidamente de canal\nCMD+MAYUS+A: Abre la configuración de la cuenta\nCMD+MAYUS+M: Abre las menciones recientes\n\n#### Archivos\n\nCMD+U: Subir archivo(s)\n\n#### Mensajes\n\nESC: Marca todos los mensajes como leídos en el canal actual\nCMD+ARRIBA (con el cuadro de texto vacío): Reimprime el último mensaje o comando de barra que ingresaste\nCMD+ABAJO (con el cuadro de texto vacío): Reimprime el siguiente mensaje o comando de barra que ingresaste\nARRIBA (con el cuadro de texto vacío): Edita tu último mensaje en el canal en el que te encuentras\n@[carácter]+TAB: Auto completa @nombre que comience por [carácter]\n:[carácter]+TAB: Auto completa el emoji que comience por [carácter]\n\n#### Comandos incluidos en el Navegador\n\nCMD+[: Canal anterior en tu historial\nCMD+]: Canal siguiente en tu historial\nCMD+MAS: Incrementa el tamaño de las letras (hace zoom)\nCMD+MENOS: Reduce el tamaño de las letras (quita zoom)\nSHIFT+ARRIBA (en el cuadro de texto): Selecciona el texto en las lineas de arriba\nSHIFT+ABAJO (en el cuadro de texto): Selecciona el texto en las lineas de abajo\nSHIFT+RETORNO (en el cuadro de texto): Crea una nueva línea\n"
+    "id": "api.command_shortcuts.files_mac",
+    "translation": "#### Archivos\n\nCMD+U: Subir archivo(s)\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs",
+    "translation": "#### Mensajes\n\nESC: Marca todos los mensajes como leídos en el canal actual\nCTRL+ARRIBA (con el cuadro de texto vacío): Reimprime el último mensaje o comando de barra que ingresaste\nCTRL+ABAJO (con el cuadro de texto vacío): Reimprime el siguiente mensaje o comando de barra que ingresaste\nARRIBA (con el cuadro de texto vacío): Edita tu último mensaje en el canal en el que te encuentras\n@[carácter]+TAB: Auto completa @nombre que comience por [carácter]\n:[carácter]+TAB: Auto completa el emoji que comience por [carácter]\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs_mac",
+    "translation": "#### Mensajes\n\nESC: Marca todos los mensajes como leídos en el canal actual\nCMD+ARRIBA (con el cuadro de texto vacío): Reimprime el último mensaje o comando de barra que ingresaste\nCMD+ABAJO (con el cuadro de texto vacío): Reimprime el siguiente mensaje o comando de barra que ingresaste\nARRIBA (con el cuadro de texto vacío): Edita tu último mensaje en el canal en el que te encuentras\n@[carácter]+TAB: Auto completa @nombre que comience por [carácter]\n:[carácter]+TAB: Auto completa el emoji que comience por [carácter]\n\n"
   },
   {
     "id": "api.command_shortcuts.name",
     "translation": "accesos rápidos de teclado"
+  },
+  {
+    "id": "api.command_shortcuts.nav",
+    "translation": "### Atajos de Teclado\n\n#### Navegación\n\nALT+ARRIBA: Canal o mensaje directo previo en la barra lateral izquierda\nALT+ABAJO: Canal o mensaje directo siguiente en la barra lateral izquierda\nALT+MAYUS+ARRIBA: Canal o mensaje directo previo en la barra lateral izquierda con mensajes no leídos\nALT+MAYUS+ABAJO: Canal o mensaje directo siguiente en la barra lateral izquierda con mensajes no leídos\nCTRL+K: Abre un cuadro de dialogo para cambiar rápidamente de canal\nCTRL+MAYUS+A: Abre la configuración de la cuenta\nCTRL+MAYUS+M: Abre las menciones recientes\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav_mac",
+    "translation": "### Atajos de Teclado\n\n#### Navegación\n\nALT+ARRIBA: Canal o mensaje directo previo en la barra lateral izquierda\nALT+ABAJO: Canal o mensaje directo siguiente en la barra lateral izquierda\nALT+MAYUS+ARRIBA: Canal o mensaje directo previo en la barra lateral izquierda con mensajes no leídos\nALT+MAYUS+ABAJO: Canal o mensaje directo siguiente en la barra lateral izquierda con mensajes no leídos\nCMD+K: Abre un cuadro de dialogo para cambiar rápidamente de canal\nCMD+MAYUS+A: Abre la configuración de la cuenta\nCMD+MAYUS+M: Abre las menciones recientes\n\n"
   },
   {
     "id": "api.command_shrug.desc",
@@ -628,40 +660,106 @@
     "translation": "Ocurrió un error inesperado. Por favor contacta a soporte."
   },
   {
+    "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
+    "translation": "El trabajo de correos electrónicos por lotes del canal de recepción estaba lleno. Por favor, aumenta el EmailBatchingBufferSize."
+  },
+  {
+    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
+    "translation": "Los correos electrónicos por lotes han sido deshabilitados por el administrador de sistema"
+  },
+  {
+    "id": "api.email_batching.check_pending_emails.finished_running",
+    "translation": "El trabajo de correos electrónicos por lotes se ejecutó. %v / los usuario(s) todavía tienen notificaciones pendientes."
+  },
+  {
+    "id": "api.email_batching.check_pending_emails.status.app_error",
+    "translation": "No se puede encontrar el estado del recipiente para la notificación de correos electrónicos por lotes"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.channel.app_error",
+    "translation": "No se puede encontrar el canal del mensaje para la notificación de correos electrónicos por lote"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.date",
+    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.direct_message",
+    "translation": "Mensaje Directo"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.go_to_post",
+    "translation": "Ir al mensaje"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.sender.app_error",
+    "translation": "No se puede encontrar el remitente del mensaje para la notificación de correos electrónicos por lote"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.body_text",
+    "translation": {
+      "one": "Tienes un mensaje nuevo.",
+      "other": "Tienes {{.Count}} mensajes nuevos."
+    }
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.preferences.app_error",
+    "translation": "No se puede encontrar las preferencias de los destinatarios para la notificación por correos electrónicos por lote"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.send.app_error",
+    "translation": "Error al enviar la notificación por correos electrónicos por lote a %v: %v"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subject",
+    "translation": {
+      "one": "[{{.SiteName}}] Nueva Notificación {{.Day}} {{.Month}}, {{.Year}}",
+      "other": "[{{.SiteName}}] Nuevas Notificaciones {{.Day}} {{.Month}}, {{.Year}}"
+    }
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.user.app_error",
+    "translation": "No se puede encontrar el destinatario para la notificación por correos electrónicos por lote"
+  },
+  {
+    "id": "api.email_batching.start.starting",
+    "translation": "Iniciando el trabajo de correos electrónicos por lote. Revisando por correos electrónicos pendientes cada %v segundos."
+  },
+  {
     "id": "api.emoji.create.duplicate.app_error",
-    "translation": "No se puede crear el emoji. Ya existe otro emoji con el mismo nombre."
+    "translation": "No se puede crear el emoticon. Ya existe otro emoticon con el mismo nombre."
   },
   {
     "id": "api.emoji.create.parse.app_error",
-    "translation": "No se puede crear el emoji. No se comprendió la solicitud."
+    "translation": "No se puede crear el emoticon. No se comprendió la solicitud."
   },
   {
     "id": "api.emoji.create.permissions.app_error",
-    "translation": "Permisos inapropiados para crear el emoji."
+    "translation": "Permisos inapropiados para crear el emoticon."
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "No se pudo crear el emoji. La imagen debe tener un tamaño inferior a 64 KB."
+    "translation": "No se pudo crear el emoticon. La imagen debe tener un tamaño inferior a 64 KB."
   },
   {
     "id": "api.emoji.delete.permissions.app_error",
-    "translation": "Permisos inapropiados para eliminar el emoji."
+    "translation": "Permisos inapropiados para eliminar el emoticon."
   },
   {
     "id": "api.emoji.disabled.app_error",
-    "translation": "Los emojis personalizados han sido deshabilitados por el administrador del sistema."
+    "translation": "Los emoticones personalizados han sido deshabilitados por el administrador del sistema."
   },
   {
     "id": "api.emoji.get_image.decode.app_error",
-    "translation": "Incapaz de decodificar archivo de imagen para emoji."
+    "translation": "Incapaz de decodificar archivo de imagen para emoticon."
   },
   {
     "id": "api.emoji.get_image.read.app_error",
-    "translation": "No se puede leer el archivo de imagen para emoji."
+    "translation": "No se puede leer el archivo de imagen para emoticon."
   },
   {
     "id": "api.emoji.init.debug",
-    "translation": "Inicializando rutas del API para los emoji"
+    "translation": "Inicializando rutas del API para los emoticon"
   },
   {
     "id": "api.emoji.storage.app_error",
@@ -669,11 +767,11 @@
   },
   {
     "id": "api.emoji.upload.image.app_error",
-    "translation": "No se puede crear el emoji. El archivo debe ser un archivo PNG, JPEG o GIF."
+    "translation": "No se puede crear el emoticon. El archivo debe ser un archivo PNG, JPEG o GIF."
   },
   {
     "id": "api.emoji.upload.large_image.app_error",
-    "translation": "No se pudo crear el emoji. La imagen debe tener un máximo de 128 x 128 pixels."
+    "translation": "No se pudo crear el emoticon. La imagen debe tener un máximo de 128 x 128 pixels."
   },
   {
     "id": "api.file.file_upload.exceeds",
@@ -1028,8 +1126,26 @@
     "translation": "Error creando el mensaje"
   },
   {
+    "id": "api.post.delete_flagged_post.app_error.warn",
+    "translation": "No se puede eliminar la preferencia del mensaje marcado al eliminar el mensaje, err=%v"
+  },
+  {
     "id": "api.post.delete_post.permissions.app_error",
     "translation": "No tienes los permisos apropiados"
+  },
+  {
+    "id": "api.post.get_message_for_notification.files_sent",
+    "translation": {
+      "one": "{{.Count}} archivo enviado: {{.Filenames}}",
+      "other": "{{.Count}} archivos enviados: {{.Filenames}}"
+    }
+  },
+  {
+    "id": "api.post.get_message_for_notification.images_sent",
+    "translation": {
+      "one": "{{.Count}} imagen enviada: {{.Filenames}}",
+      "other": "{{.Count}} imágenes enviadas: {{.Filenames}}"
+    }
   },
   {
     "id": "api.post.get_out_of_channel_mentions.regex.error",
@@ -1094,6 +1210,10 @@
   {
     "id": "api.post.notification.here.warn",
     "translation": "No se pudo enviar notificaciones a los usuarios en línea con @here, err=%v"
+  },
+  {
+    "id": "api.post.notification.member_profile.warn",
+    "translation": "No se puede obtener el perfil del miembro del canal, user_id=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
@@ -2113,7 +2233,7 @@
   },
   {
     "id": "api.webhook.create_outgoing.intersect.app_error",
-    "translation": "Webhoks de salida para el mismo canal no pueden tener las mismas palabras gatilladoras o los mismos URLs de retorno."
+    "translation": "Webhooks de salida para el mismo canal no pueden tener las mismas palabras que desencadenen acción o los mismos URLs de retorno."
   },
   {
     "id": "api.webhook.create_outgoing.not_open.app_error",
@@ -2125,7 +2245,7 @@
   },
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",
-    "translation": "Debe establecerse palabras gatilladoras o un channel_id"
+    "translation": "Debe establecerse palabras que desencadenen una acción o un channel_id"
   },
   {
     "id": "api.webhook.delete_incoming.disabled.app_errror",
@@ -2269,7 +2389,7 @@
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
-    "translation": "Las restricciones de los Emoji Personalizados están desactivadas por la licencia actual. Por favor contacta a un Administrador del Sistema sobre como actualizar a una licencia enterprise."
+    "translation": "Las restricciones de los Emoticones Personalizados están desactivadas por la licencia actual. Por favor contacta a un Administrador del Sistema sobre como actualizar a una licencia enterprise."
   },
   {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
@@ -2673,7 +2793,7 @@
   },
   {
     "id": "model.client.create_emoji.emoji.app_error",
-    "translation": "No se puede asociar datos del emoji a la solicitud"
+    "translation": "No se puede asociar datos del emoticon a la solicitud"
   },
   {
     "id": "model.client.create_emoji.image.app_error",
@@ -2717,7 +2837,7 @@
   },
   {
     "id": "model.command.is_valid.trigger.app_error",
-    "translation": "gatillador inválido"
+    "translation": "palabra que desencadena acción no válida"
   },
   {
     "id": "model.command.is_valid.update_at.app_error",
@@ -2760,6 +2880,18 @@
     "translation": "Desde debe ser mayor que Hasta"
   },
   {
+    "id": "model.config.is_valid.cluster_email_batching.app_error",
+    "translation": "No puede habilitar el correo electrónico por lotes cuando la agrupación de servidores está habilitada"
+  },
+  {
+    "id": "model.config.is_valid.email_batching_buffer_size.app_error",
+    "translation": "Tamaño del búfer inválido para los correos electrónicos por lotes en la configuración de correo electrónico. Debe ser cero o un número positivo."
+  },
+  {
+    "id": "model.config.is_valid.email_batching_interval.app_error",
+    "translation": "Intervalo inválido para los correos electrónicos por lotes en la configuración de correo electrónico.  Debe ser de 30 segundos o más."
+  },
+  {
     "id": "model.config.is_valid.email_reset_salt.app_error",
     "translation": "Salt para restablecer contraseñas en la configuración de correos es inválido.  Debe ser de 32 caracteres o más."
   },
@@ -2781,11 +2913,11 @@
   },
   {
     "id": "model.config.is_valid.file_preview_height.app_error",
-    "translation": "La altura para la previsualización es inválido en la configuración de archivos.  Debe ser cero o un número positivo."
+    "translation": "La altura para la vista previa es inválido en la configuración de archivos.  Debe ser cero o un número positivo."
   },
   {
     "id": "model.config.is_valid.file_preview_width.app_error",
-    "translation": "El ancho para la previsualización es inválido en la configuración de archivos.  Debe ser un número positivo."
+    "translation": "El ancho para la vista previa es inválido en la configuración de archivos.  Debe ser un número positivo."
   },
   {
     "id": "model.config.is_valid.file_profile_height.app_error",
@@ -2944,6 +3076,10 @@
     "translation": "URL del Sitio debe ser una URL válida y empezar con http:// o https://."
   },
   {
+    "id": "model.config.is_valid.site_url_email_batching.app_error",
+    "translation": "No puede habilitar el correo electrónico por lotes cuando SiteURL no está configurado."
+  },
+  {
     "id": "model.config.is_valid.sitename_length.app_error",
     "translation": "Nombre del sitio debe ser menor o igual a {{.MaxLength}} caracteres."
   },
@@ -2973,7 +3109,7 @@
   },
   {
     "id": "model.emoji.id.app_error",
-    "translation": "Id del emoji no es válido"
+    "translation": "Id del emoticon no es válido"
   },
   {
     "id": "model.emoji.name.app_error",
@@ -3093,7 +3229,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.trigger_words.app_error",
-    "translation": "Palabras gatilladoras inválidas"
+    "translation": "Palabras que desencadenan acciones no válidas"
   },
   {
     "id": "model.outgoing_hook.is_valid.update_at.app_error",
@@ -3109,7 +3245,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.words.app_error",
-    "translation": "Palabras gatilladoras inválidas"
+    "translation": "Palabras que desencadenan acciones no válidas"
   },
   {
     "id": "model.post.is_valid.channel_id.app_error",
@@ -3749,27 +3885,27 @@
   },
   {
     "id": "store.sql_emoji.delete.app_error",
-    "translation": "No pudimos eliminar el emoji"
+    "translation": "No pudimos eliminar el emoticon"
   },
   {
     "id": "store.sql_emoji.delete.no_results",
-    "translation": "No pudimos encontrar el emoji a eliminar"
+    "translation": "No pudimos encontrar el emoticon a eliminar"
   },
   {
     "id": "store.sql_emoji.get.app_error",
-    "translation": "No pudimos obtener el emoji"
+    "translation": "No pudimos obtener el emoticon"
   },
   {
     "id": "store.sql_emoji.get_all.app_error",
-    "translation": "No pudimos obtener el emoji"
+    "translation": "No pudimos obtener el emoticon"
   },
   {
     "id": "store.sql_emoji.get_by_name.app_error",
-    "translation": "No pudimos obtener el emoji"
+    "translation": "No pudimos obtener el emoticon"
   },
   {
     "id": "store.sql_emoji.save.app_error",
-    "translation": "No pudimos guardar el emoji"
+    "translation": "No pudimos guardar el emoticon"
   },
   {
     "id": "store.sql_license.get.app_error",

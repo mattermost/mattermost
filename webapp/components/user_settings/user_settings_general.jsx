@@ -285,7 +285,9 @@ class UserSettingsGeneralTab extends React.Component {
     }
 
     updateSection(section) {
-        $('.settings-modal .modal-body').scrollTop(0).perfectScrollbar('update');
+        if ($('.section-max').length) {
+            $('.settings-modal .modal-body').scrollTop(0).perfectScrollbar('update');
+        }
         const emailChangeInProgress = this.state.emailChangeInProgress;
         this.setState(Object.assign({}, this.setupInitialState(this.props), {emailChangeInProgress, clientError: '', serverError: '', emailError: ''}));
         this.submitActive = false;
@@ -328,7 +330,7 @@ class UserSettingsGeneralTab extends React.Component {
                     <div className='setting-list__hint text-danger'>
                         <FormattedMessage
                             id='user.settings.general.emailHelp2'
-                            defaultMessage='Email has been disabled by your system administrator. No notification emails will be sent until it is enabled.'
+                            defaultMessage='Email has been disabled by your System Administrator. No notification emails will be sent until it is enabled.'
                         />
                     </div>
                 );

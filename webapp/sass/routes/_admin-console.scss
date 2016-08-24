@@ -110,6 +110,7 @@
 
         .help-text {
             color: alpha-color($black, .5);
+            display: block;
             margin: 10px 0 0;
 
             &.no-margin {

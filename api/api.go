@@ -100,6 +100,8 @@ func InitApi() {
 	Srv.Router.Handle("/api/{anything:.*}", http.HandlerFunc(Handle404))
 
 	utils.InitHTML()
+
+	InitEmailBatching()
 }
 
 func HandleEtag(etag string, w http.ResponseWriter, r *http.Request) bool {
