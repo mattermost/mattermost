@@ -11,7 +11,7 @@ import (
 	"net/http"
 )
 
-func InitWebRtc() {
+func InitWebrtc() {
 	l4g.Debug(utils.T("api.webrtc.init.debug"))
 
 	BaseRoutes.Webrtc.Handle("/token", ApiUserRequired(webrtcToken)).Methods("POST")
@@ -20,7 +20,7 @@ func InitWebRtc() {
 }
 
 func webrtcToken(c *Context, w http.ResponseWriter, r *http.Request) {
-	webrtcInterface := einterfaces.GetWebRTCInterface()
+	webrtcInterface := einterfaces.GetWebrtcInterface()
 
 	if webrtcInterface == nil {
 		c.Err = model.NewLocAppError("webrtcToken", "api.webrtc.not_available.app_error", nil, "")
