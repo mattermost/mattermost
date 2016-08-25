@@ -7,17 +7,17 @@ import (
 	"github.com/mattermost/platform/model"
 )
 
-type WebRTCInterface interface {
+type WebrtcInterface interface {
 	Token(sessionId string) (map[string]string, *model.AppError)
 	RevokeToken(sessionId string)
 }
 
-var theWebRTCInterface WebRTCInterface
+var theWebrtcInterface WebrtcInterface
 
-func RegisterWebRTCInterface(newInterface WebRTCInterface) {
-	theWebRTCInterface = newInterface
+func RegisterWebrtcInterface(newInterface WebrtcInterface) {
+	theWebrtcInterface = newInterface
 }
 
-func GetWebRTCInterface() WebRTCInterface {
-	return theWebRTCInterface
+func GetWebrtcInterface() WebrtcInterface {
+	return theWebrtcInterface
 }
