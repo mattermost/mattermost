@@ -280,16 +280,17 @@ export default class ChannelHeader extends React.Component {
                 channelTitle = Utils.displayUsername(contact.id);
             }
 
-            if (global.window.mm_config.EnableWebrtc === 'true' && global.window.mm_license.WebRTC === 'true' && userMedia) {
+            const webrtcEnabled = global.mm_config.EnableWebrtc === 'true' && global.mm_license.Webrtc === 'true' &&
+                global.mm_config.EnableDeveloper === 'true' && userMedia && Utils.isFeatureEnabled(PreReleaseFeatures.WEBRTC_PREVIEW);
+
+            if (webrtcEnabled) {
                 const isOffline = UserStore.getStatus(contact.id) === UserStatuses.OFFLINE;
                 const busy = this.state.isBusy;
                 let circleClass = '';
-                let offlineClass = 'on';
                 let webrtcMessage;
 
                 if (isOffline || busy) {
                     circleClass = 'offline';
-                    offlineClass = 'off';
                     if (busy) {
                         webrtcMessage = (
                             <FormattedMessage
@@ -329,12 +330,6 @@ export default class ChannelHeader extends React.Component {
                                         {webrtcMessage}
                                     </title>
                                 </circle>
-                                <path
-                                    className={offlineClass}
-                                    transform='scale(0.4), translate(17,16)'
-                                    d='M40 8H15.64l8 8H28v4.36l1.13 1.13L36 16v12.36l7.97 7.97L44 36V12c0-2.21-1.79-4-4-4zM4.55 2L2 4.55l4.01 4.01C4.81 9.24 4 10.52 4 12v24c0 2.21 1.79 4 4 4h29.45l4 4L44 41.46 4.55 2zM12 16h1.45L28 30.55V32H12V16z'
-                                    fill='white'
-                                />
                                 <path
                                     className='off'
                                     transform='scale(0.4), translate(17,16)'
