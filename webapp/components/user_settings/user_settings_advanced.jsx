@@ -329,6 +329,13 @@ export default class AdvancedSettingsDisplay extends React.Component {
                     defaultMessage='Show experimental previews of link content, when available'
                 />
             );
+        case 'WEBRTC_PREVIEW':
+            return (
+                <FormattedMessage
+                    id='user.settings.advance.webrtc_preview'
+                    defaultMessage='Enable the ability to make an receive one-on-one WebRTC calls'
+                />
+            );
         default:
             return null;
         }
