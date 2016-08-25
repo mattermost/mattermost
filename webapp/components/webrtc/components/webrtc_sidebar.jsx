@@ -60,12 +60,6 @@ export default class SidebarRight extends React.Component {
                 <div></div>
             );
         }
-
-        /*setTimeout(() => {
-         $('.sidebar__overlay').fadeOut('200', () => {
-         $('.sidebar__overlay').remove();
-         });
-         }, 500);*/
         return null;
     }
 
@@ -85,10 +79,15 @@ export default class SidebarRight extends React.Component {
     }
 
     onInitializeVideoCall(userId, isCaller) {
+        let expanded = this.state.expanded;
+        if (userId === null) {
+            expanded = false;
+        }
         this.setState({
             videoCallVisible: (userId !== null),
             isCaller,
-            videoCallWithUserId: userId
+            videoCallWithUserId: userId,
+            expanded
         });
     }
 
