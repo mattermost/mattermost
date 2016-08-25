@@ -3209,11 +3209,19 @@
   },
   {
     "id": "model.config.is_valid.webrtc_gateway_ws_url.app_error",
-    "translation": "WebRTC Gateway Websocket Url must be a valir URL and start with ws:// or wss://."
+    "translation": "WebRTC Gateway Websocket Url must be a valid URL and start with ws:// or wss://."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_stun_uri.app_error",
+    "translation": "WebRTC STUN URI must be a valid URI and start with stun:"
   },
   {
     "id": "model.config.is_valid.webrtc_turn_shared_key.app_error",
     "translation": "WebRTC TURN Shared Key cannot be empty if the TURN URI has been set."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_turn_uri.app_error",
+    "translation": "WebRTC TURN URI must be a valid URI and start with turn:"
   },
   {
     "id": "model.config.is_valid.webrtc_turn_username.app_error",

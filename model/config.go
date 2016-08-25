@@ -1190,7 +1190,12 @@ func (o *Config) isValidWebrtcSettings() *AppError {
 			return NewLocAppError("Config.IsValid", "model.config.is_valid.webrtc_gateway_admin_url.app_error", nil, "")
 		} else if len(*o.WebrtcSettings.GatewayAdminSecret) == 0 {
 			return NewLocAppError("Config.IsValid", "model.config.is_valid.webrtc_gateway_admin_secret.app_error", nil, "")
+		} else if len(*o.WebrtcSettings.StunURI) != 0 && !IsValidTurnOrStunServer(*o.WebrtcSettings.StunURI) {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.webrtc_stun_uri.app_error", nil, "")
 		} else if len(*o.WebrtcSettings.TurnURI) != 0 {
+			if !IsValidTurnOrStunServer(*o.WebrtcSettings.TurnURI) {
+				return NewLocAppError("Config.IsValid", "model.config.is_valid.webrtc_turn_uri.app_error", nil, "")
+			}
 			if len(*o.WebrtcSettings.TurnUsername) == 0 {
 				return NewLocAppError("Config.IsValid", "model.config.is_valid.webrtc_turn_username.app_error", nil, "")
 			} else if len(*o.WebrtcSettings.TurnSharedKey) == 0 {
