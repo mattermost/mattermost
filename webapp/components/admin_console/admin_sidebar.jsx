@@ -257,7 +257,7 @@ export default class AdminSidebar extends React.Component {
                 );
             }
 
-            if (global.window.mm_license.WebRTC === 'true') {
+            if (global.window.mm_license.Webrtc === 'true') {
                 webrtcSettings = (
                     <AdminSidebarSection
                         name='webrtc'
