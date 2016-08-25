@@ -86,9 +86,14 @@ export function getCookie(name) {
 
 var requestedNotificationPermission = false;
 
-export function notifyMe(title, body, channel, teamId) {
+export function notifyMe(title, body, channel, teamId, duration) {
     if (!('Notification' in window)) {
         return;
+    }
+
+    let notificationDuration = Constants.DEFAULT_NOTIFICATION_DURATION;
+    if (duration != null) {
+        notificationDuration = duration;
     }
 
     if (Notification.permission === 'granted' || (Notification.permission === 'default' && !requestedNotificationPermission)) {
@@ -97,7 +102,7 @@ export function notifyMe(title, body, channel, teamId) {
         Notification.requestPermission((permission) => {
             if (permission === 'granted') {
                 try {
-                    var notification = new Notification(title, {body, tag: body, icon: icon50});
+                    var notification = new Notification(title, {body, tag: body, icon: icon50, requireInteraction: notificationDuration === 0});
                     notification.onclick = () => {
                         window.focus();
                         if (channel) {
@@ -108,9 +113,12 @@ export function notifyMe(title, body, channel, teamId) {
                             browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/town-square');
                         }
                     };
-                    setTimeout(() => {
-                        notification.close();
-                    }, 5000);
+
+                    if (notificationDuration > 0) {
+                        setTimeout(() => {
+                            notification.close();
+                        }, notificationDuration);
+                    }
                 } catch (e) {
                     console.error(e); //eslint-disable-line no-console
                 }

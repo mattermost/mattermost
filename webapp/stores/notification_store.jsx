@@ -79,17 +79,26 @@ class NotificationStoreClass extends EventEmitter {
                 notifyText = notifyText.substring(0, 49) + '...';
             }
 
+            let body = '';
             if (notifyText.length === 0) {
                 if (msgProps.image) {
-                    Utils.notifyMe(title, username + Utils.localizeMessage('channel_loader.uploadedImage', ' uploaded an image'), channel, teamId);
+                    body = username + Utils.localizeMessage('channel_loader.uploadedImage', ' uploaded an image');
                 } else if (msgProps.otherFile) {
-                    Utils.notifyMe(title, username + Utils.localizeMessage('channel_loader.uploadedFile', ' uploaded a file'), channel, teamId);
+                    body = Utils.localizeMessage('channel_loader.uploadedFile', ' uploaded a file');
                 } else {
-                    Utils.notifyMe(title, username + Utils.localizeMessage('channel_loader.something', ' did something new'), channel, teamId);
+                    body = username + Utils.localizeMessage('channel_loader.something', ' did something new');
                 }
             } else {
-                Utils.notifyMe(title, username + Utils.localizeMessage('channel_loader.wrote', ' wrote: ') + notifyText, channel, teamId);
+                body = username + Utils.localizeMessage('channel_loader.wrote', ' wrote: ') + notifyText;
             }
+
+            let duration = Constants.DEFAULT_NOTIFICATION_DURATION;
+            if (user.notify_props && user.notify_props.desktop_duration) {
+                duration = parseInt(user.notify_props.desktop_duration, 10) * 1000;
+            }
+
+            Utils.notifyMe(title, body, channel, teamId, duration);
+
             if (!user.notify_props || user.notify_props.desktop_sound === 'true') {
                 Utils.ding();
             }
