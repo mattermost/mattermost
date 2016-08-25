@@ -1015,11 +1015,10 @@ export default class Client {
 
     getTeamStatuses(id, success, error) {
         request.
-        post(`${this.getUsersRoute()}/team_statuses`).
+        get(`${this.getTeamsRoute()}/${id}/team_statuses`).
         set(this.defaultHeaders).
         type('application/json').
         accept('application/json').
-        send({team_id: id}).
         end(this.handleResponse.bind(this, 'getTeamStatuses', success, error));
     }
 

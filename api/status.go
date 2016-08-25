@@ -29,7 +29,7 @@ func InitStatus() {
 
 	BaseRoutes.Users.Handle("/status", ApiUserRequiredActivity(getStatusesHttp, false)).Methods("GET")
 	BaseRoutes.Users.Handle("/status/set_active_channel", ApiUserRequiredActivity(setActiveChannel, false)).Methods("POST")
-	BaseRoutes.Users.Handle("/team_statuses", ApiUserRequiredActivity(getTeamStatusesHttp, false)).Methods("POST")
+	BaseRoutes.NeedTeam.Handle("/team_statuses", ApiUserRequiredActivity(getTeamStatusesHttp, false)).Methods("GET")
 	BaseRoutes.WebSocket.Handle("get_statuses", ApiWebSocketHandler(getStatusesWebSocket))
 }
 
@@ -44,17 +44,9 @@ func getStatusesHttp(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getTeamStatusesHttp(c *Context, w http.ResponseWriter, r *http.Request) {
-	data := model.MapFromJson(r.Body)
-
-	teamId := data["team_id"]
-	if len(teamId) != 26 {
-		c.SetInvalidParam("getTeamStatusesHttp", "team_id")
-		return
-	}
-
 	statusMap := map[string]interface{}{}
 
-	if result := <-Srv.Store.Status().GetAllFromTeam(teamId); result.Err != nil {
+	if result := <-Srv.Store.Status().GetAllFromTeam(c.TeamId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -64,7 +56,7 @@ func getTeamStatusesHttp(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if result := <-Srv.Store.User().GetProfiles(teamId); result.Err != nil {
+	if result := <-Srv.Store.User().GetProfiles(c.TeamId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
