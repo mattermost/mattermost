@@ -173,12 +173,18 @@ func RemoveLicense() *model.AppError {
 }
 
 func getClientLicenceConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	etag := utils.GetClientLicenseEtag()
+	etag := utils.GetClientLicenseEtag(!c.IsSystemAdmin())
 	if HandleEtag(etag, w, r) {
 		return
 	}
 
-	clientLicense := utils.ClientLicense
+	var clientLicense map[string]string
+
+	if c.IsSystemAdmin() {
+		clientLicense = utils.ClientLicense
+	} else {
+		clientLicense = utils.GetSanitizedClientLicense()
+	}
 
 	w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 	w.Write([]byte(model.MapToJson(clientLicense)))
