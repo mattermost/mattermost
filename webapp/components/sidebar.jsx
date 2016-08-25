@@ -81,11 +81,10 @@ export default class Sidebar extends React.Component {
 
         Object.keys(unreadCounts).forEach((chId) => {
             const channel = ChannelStore.get(chId);
-            if (channel) {
-                if (channel.team_id === this.state.currentTeam.id) {
-                    msgs += unreadCounts[chId].msgs;
-                    mentions += unreadCounts[chId].mentions;
-                }
+
+            if (channel && (!channel.team_id || channel.team_id === this.state.currentTeam.id)) {
+                msgs += unreadCounts[chId].msgs;
+                mentions += unreadCounts[chId].mentions;
             }
         });
 
