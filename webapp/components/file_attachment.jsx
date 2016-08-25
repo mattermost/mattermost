@@ -198,23 +198,19 @@ class FileAttachment extends React.Component {
             );
         }
 
-        let postImageClass = 'post-image__column';
-        let postThumbnailClass = 'post-image__thumbnail';
-        let postImageDetailsClass = 'post-image__details';
-
         return (
             <div
-                className={postImageClass}
+                className='post-image__column'
                 key={filename}
             >
                 <a
-                    className={postThumbnailClass}
+                    className='post-image__thumbnail'
                     href='#'
                     onClick={this.onAttachmentClick}
                 >
                     {thumbnail}
                 </a>
-                <div className={postImageDetailsClass}>
+                <div className='post-image__details'>
                     {filenameOverlay}
                 </div>
             </div>
