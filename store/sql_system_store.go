@@ -23,9 +23,6 @@ func NewSqlSystemStore(sqlStore *SqlStore) SystemStore {
 	return s
 }
 
-func (s SqlSystemStore) UpgradeSchemaIfNeeded() {
-}
-
 func (s SqlSystemStore) CreateIndexesIfNotExists() {
 }
 

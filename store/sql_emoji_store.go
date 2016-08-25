@@ -26,9 +26,6 @@ func NewSqlEmojiStore(sqlStore *SqlStore) EmojiStore {
 	return s
 }
 
-func (es SqlEmojiStore) UpgradeSchemaIfNeeded() {
-}
-
 func (es SqlEmojiStore) CreateIndexesIfNotExists() {
 }
 

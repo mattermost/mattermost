@@ -23,9 +23,6 @@ func NewSqlLicenseStore(sqlStore *SqlStore) LicenseStore {
 	return ls
 }
 
-func (ls SqlLicenseStore) UpgradeSchemaIfNeeded() {
-}
-
 func (ls SqlLicenseStore) CreateIndexesIfNotExists() {
 }
 

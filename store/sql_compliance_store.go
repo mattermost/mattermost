@@ -30,9 +30,6 @@ func NewSqlComplianceStore(sqlStore *SqlStore) ComplianceStore {
 	return s
 }
 
-func (s SqlComplianceStore) UpgradeSchemaIfNeeded() {
-}
-
 func (s SqlComplianceStore) CreateIndexesIfNotExists() {
 }
 

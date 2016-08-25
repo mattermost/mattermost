@@ -34,34 +34,6 @@ func TestSqlStore1(t *testing.T) {
 	utils.LoadConfig("config.json")
 }
 
-func TestSqlStore2(t *testing.T) {
-	defer func() {
-		if r := recover(); r == nil {
-			t.Fatal("should have been fatal")
-		}
-	}()
-
-	utils.LoadConfig("config.json")
-	utils.Cfg.SqlSettings.DriverName = "missing"
-	store = NewSqlStore()
-
-	utils.LoadConfig("config.json")
-}
-
-func TestSqlStore3(t *testing.T) {
-	defer func() {
-		if r := recover(); r == nil {
-			t.Fatal("should have been fatal")
-		}
-	}()
-
-	utils.LoadConfig("config.json")
-	utils.Cfg.SqlSettings.DataSource = "missing"
-	store = NewSqlStore()
-
-	utils.LoadConfig("config.json")
-}
-
 func TestEncrypt(t *testing.T) {
 	m := make(map[string]string)
 

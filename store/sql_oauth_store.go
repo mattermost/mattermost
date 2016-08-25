@@ -47,20 +47,6 @@ func NewSqlOAuthStore(sqlStore *SqlStore) OAuthStore {
 	return as
 }
 
-func (as SqlOAuthStore) UpgradeSchemaIfNeeded() {
-	as.CreateColumnIfNotExists("OAuthApps", "IsTrusted", "tinyint(1)", "boolean", "0")
-	as.CreateColumnIfNotExists("OAuthApps", "IconURL", "varchar(512)", "varchar(512)", "")
-	as.CreateColumnIfNotExists("OAuthAccessData", "ClientId", "varchar(26)", "varchar(26)", "")
-	as.CreateColumnIfNotExists("OAuthAccessData", "UserId", "varchar(26)", "varchar(26)", "")
-	as.CreateColumnIfNotExists("OAuthAccessData", "ExpiresAt", "bigint", "bigint", "0")
-
-	// ADDED for 3.3 REMOVE for 3.7
-	if as.DoesColumnExist("OAuthAccessData", "AuthCode") {
-		as.RemoveIndexIfExists("idx_oauthaccessdata_auth_code", "OAuthAccessData")
-		as.RemoveColumnIfExists("OAuthAccessData", "AuthCode")
-	}
-}
-
 func (as SqlOAuthStore) CreateIndexesIfNotExists() {
 	as.CreateIndexIfNotExists("idx_oauthapps_creator_id", "OAuthApps", "CreatorId")
 	as.CreateIndexIfNotExists("idx_oauthaccessdata_client_id", "OAuthAccessData", "ClientId")

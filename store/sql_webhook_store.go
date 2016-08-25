@@ -40,16 +40,6 @@ func NewSqlWebhookStore(sqlStore *SqlStore) WebhookStore {
 	return s
 }
 
-func (s SqlWebhookStore) UpgradeSchemaIfNeeded() {
-	s.CreateColumnIfNotExists("IncomingWebhooks", "DisplayName", "varchar(64)", "varchar(64)", "")
-	s.CreateColumnIfNotExists("IncomingWebhooks", "Description", "varchar(128)", "varchar(128)", "")
-
-	s.CreateColumnIfNotExists("OutgoingWebhooks", "DisplayName", "varchar(64)", "varchar(64)", "")
-	s.CreateColumnIfNotExists("OutgoingWebhooks", "Description", "varchar(128)", "varchar(128)", "")
-	s.CreateColumnIfNotExists("OutgoingWebhooks", "ContentType", "varchar(128)", "varchar(128)", "")
-	s.CreateColumnIfNotExists("OutgoingWebhooks", "TriggerWhen", "tinyint", "integer", "0")
-}
-
 func (s SqlWebhookStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_incoming_webhook_user_id", "IncomingWebhooks", "UserId")
 	s.CreateIndexIfNotExists("idx_incoming_webhook_team_id", "IncomingWebhooks", "TeamId")

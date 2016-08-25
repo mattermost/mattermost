@@ -34,10 +34,6 @@ func NewSqlCommandStore(sqlStore *SqlStore) CommandStore {
 	return s
 }
 
-func (s SqlCommandStore) UpgradeSchemaIfNeeded() {
-	s.CreateColumnIfNotExists("Commands", "Description", "varchar(128)", "varchar(128)", "")
-}
-
 func (s SqlCommandStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_command_team_id", "Commands", "TeamId")
 }
