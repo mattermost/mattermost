@@ -290,7 +290,7 @@ export default class PostList extends React.Component {
             }
 
             let status = '';
-            if (this.props.statuses) {
+            if (this.props.statuses && profile) {
                 status = this.props.statuses[profile.id] || 'offline';
             }
 
