@@ -247,6 +247,7 @@ export default class Post extends React.Component {
                                 displayNameType={this.props.displayNameType}
                                 useMilitaryTime={this.props.useMilitaryTime}
                                 isFlagged={this.props.isFlagged}
+                                status={this.props.status}
                             />
                             <PostBody
                                 post={post}

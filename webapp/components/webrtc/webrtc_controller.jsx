@@ -55,6 +55,7 @@ export default class WebrtcController extends React.Component {
         this.onUnupported = this.onUnupported.bind(this);
         this.onNoAnswer = this.onNoAnswer.bind(this);
         this.onBusy = this.onBusy.bind(this);
+        this.onDisabled = this.onDisabled.bind(this);
         this.onFailed = this.onFailed.bind(this);
         this.onCancelled = this.onCancelled.bind(this);
         this.onConnectCall = this.onConnectCall.bind(this);
@@ -74,6 +75,8 @@ export default class WebrtcController extends React.Component {
         this.toggleIcons = this.toggleIcons.bind(this);
 
         const currentUser = UserStore.getCurrentUser();
+        const remoteUser = UserStore.getProfile(props.userId);
+        const remoteUserImage = Client.getUsersRoute() + '/' + remoteUser.id + '/image?time=' + remoteUser.update_at;
 
         this.state = {
             windowWidth: Utils.windowWidth(),
@@ -81,7 +84,7 @@ export default class WebrtcController extends React.Component {
             channelId: ChannelStore.getCurrentId(),
             currentUser,
             currentUserImage: Client.getUsersRoute() + '/' + currentUser.id + '/image?time=' + currentUser.update_at,
-            remoteUserImage: null,
+            remoteUserImage,
             localMediaLoaded: false,
             isPaused: false,
             isMuted: false,
@@ -101,14 +104,33 @@ export default class WebrtcController extends React.Component {
 
         this.mounted = true;
         this.previewVideo();
+
+        if (this.props.isCaller) {
+            this.handleMakeOffer();
+        }
     }
 
     componentWillUnmount() {
         window.removeEventListener('resize', this.handleResize);
         WebrtcStore.removeChangedListener(this.handleWebrtcEvent);
         UserStore.removeStatusesChangeListener(this.onStatusChange);
-        this.close();
         this.mounted = false;
+        if (!this.isClosing) {
+            this.close();
+        }
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if ((nextProps.currentUser !== this.props.currentUser) ||
+            (nextProps.userId !== this.props.userId) ||
+            (nextProps.isCaller !== this.props.isCaller)) {
+            const remoteUser = UserStore.getProfile(nextProps.userId);
+            const remoteUserImage = Client.getUsersRoute() + '/' + remoteUser.id + '/image?time=' + remoteUser.update_at;
+            this.setState({
+                error: null,
+                remoteUserImage
+            });
+        }
     }
 
     handleResize() {
@@ -126,14 +148,10 @@ export default class WebrtcController extends React.Component {
 
     previewVideo() {
         if (this.mounted) {
-            const remoteUser = UserStore.getProfile(this.props.userId);
-            const remoteUserImage = Client.getUsersRoute() + '/' + remoteUser.id + '/image?time=' + remoteUser.update_at;
-
             if (this.localMedia) {
                 this.setState({
                     localMediaLoaded: true,
-                    error: null,
-                    remoteUserImage
+                    error: null
                 });
                 this.localMedia.enabled = true;
             } else {
@@ -160,8 +178,7 @@ export default class WebrtcController extends React.Component {
                         }
                         this.localMedia = stream;
                         this.setState({
-                            localMediaLoaded: true,
-                            remoteUserImage
+                            localMediaLoaded: true
                         });
                     });
             }
@@ -169,7 +186,9 @@ export default class WebrtcController extends React.Component {
     }
 
     handleMakeOffer() {
-        if (UserStore.getStatus(this.props.userId) !== UserStatuses.OFFLINE) {
+        if (UserStore.getStatus(this.props.userId) === UserStatuses.OFFLINE) {
+            this.onStatusChange();
+        } else {
             this.setState({
                 isCalling: true,
                 isAnswering: false,
@@ -247,6 +266,10 @@ export default class WebrtcController extends React.Component {
                     />
                 )
             });
+            this.clearError();
+            break;
+        case WebrtcActionTypes.DISABLED:
+            this.onDisabled();
             this.clearError();
             break;
         }
@@ -471,6 +494,41 @@ export default class WebrtcController extends React.Component {
                     }}
                 />
             );
+
+            if (this.refs.ring) {
+                this.refs.ring.pause();
+                this.refs.ring.currentTime = 0;
+            }
+        }
+
+        this.setState({
+            isCalling: false,
+            isAnswering: false,
+            callInProgress: false,
+            error
+        });
+
+        this.doCleanup();
+    }
+
+    onDisabled() {
+        let error = null;
+
+        if (this.state.isCalling) {
+            error = (
+                <FormattedMessage
+                    id='webrtc.disabled'
+                    defaultMessage='{username} has WebRTC disabled, and cannot receive calls. To enable the feature, they must go to Account Settings > Advanced > Preview pre-release features and turn on WebRTC.'
+                    values={{
+                        username: Utils.displayUsername(this.props.userId)
+                    }}
+                />
+            );
+
+            if (this.refs.ring) {
+                this.refs.ring.pause();
+                this.refs.ring.currentTime = 0;
+            }
         }
 
         this.setState({
@@ -488,6 +546,10 @@ export default class WebrtcController extends React.Component {
             isCalling: false,
             isAnswering: false,
             callInProgress: false,
+            isPaused: false,
+            isMuted: false,
+            isRemotePaused: false,
+            isRemoteMuted: false,
             error: (
                 <FormattedMessage
                     id='webrtc.failed'
@@ -544,7 +606,7 @@ export default class WebrtcController extends React.Component {
                     }
 
                     this.session = new WebrtcSession({
-                        debug: global.window.mm_config.EnableDeveloper === 'true',
+                        debug: global.mm_config.EnableDeveloper === 'true',
                         server: info.gateway_url,
                         iceServers,
                         token: info.token,
@@ -621,15 +683,28 @@ export default class WebrtcController extends React.Component {
             this.videocall.send({message: {request: 'hangup'}});
             this.videocall.hangup();
             this.toggleIcons();
+
+            this.localMedia.getVideoTracks()[0].enabled = true;
+            this.localMedia.getAudioTracks()[0].enabled = true;
         }
 
         if (error) {
             this.onSessionError();
+            this.doCleanup();
         } else {
-            this.setState({isCalling: false, isAnswering: false, callInProgress: false, error: null});
+            this.setState({
+                isCalling: false,
+                isAnswering: false,
+                callInProgress: false,
+                isPaused: false,
+                isMuted: false,
+                isRemotePaused: false,
+                isRemoteMuted: false,
+                error: null
+            });
+            this.isClosing = true;
+            this.close();
         }
-
-        this.doCleanup();
     }
 
     doCleanup() {
@@ -693,14 +768,8 @@ export default class WebrtcController extends React.Component {
 
     onToggleRemoteMute(message) {
         if (message.type === 'video') {
-            const remoteUser = UserStore.getProfile(this.props.userId);
-            let remoteUserImage = null;
-            if (message.mute) {
-                remoteUserImage = Client.getUsersRoute() + '/' + remoteUser.id + '/image?time=' + remoteUser.update_at;
-            }
             this.setState({
-                isRemotePaused: message.mute,
-                remoteUserImage
+                isRemotePaused: message.mute
             });
         } else {
             this.setState({isRemoteMuted: message.mute, error: null});
@@ -1075,6 +1144,7 @@ export default class WebrtcController extends React.Component {
 }
 
 WebrtcController.propTypes = {
+    currentUser: React.PropTypes.object,
     userId: React.PropTypes.string.isRequired,
     isCaller: React.PropTypes.bool.isRequired,
     toggleSize: React.PropTypes.function
