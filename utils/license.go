@@ -141,17 +141,23 @@ func getClientLicense(l *model.License) map[string]string {
 	return props
 }
 
-func GetClientLicenseEtag() string {
+func GetClientLicenseEtag(useSanitized bool) string {
 	value := ""
 
-	for k, v := range ClientLicense {
+	lic := ClientLicense
+
+	if useSanitized {
+		lic = GetSanitizedClientLicense()
+	}
+
+	for k, v := range lic {
 		value += fmt.Sprintf("%s:%s;", k, v)
 	}
 
 	return model.Etag(fmt.Sprintf("%x", md5.Sum([]byte(value))))
 }
 
-func GetSantizedClientLicense() map[string]string {
+func GetSanitizedClientLicense() map[string]string {
 	sanitizedLicense := make(map[string]string)
 
 	for k, v := range ClientLicense {
