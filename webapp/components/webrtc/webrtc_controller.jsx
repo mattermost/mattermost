@@ -45,6 +45,7 @@ export default class WebrtcController extends React.Component {
         this.clearError = this.clearError.bind(this);
 
         this.previewVideo = this.previewVideo.bind(this);
+        this.stopRinging = this.stopRinging.bind(this);
 
         this.handleMakeOffer = this.handleMakeOffer.bind(this);
         this.handleCancelOffer = this.handleCancelOffer.bind(this);
@@ -54,7 +55,7 @@ export default class WebrtcController extends React.Component {
 
         this.onStatusChange = this.onStatusChange.bind(this);
         this.onCallDeclined = this.onCallDeclined.bind(this);
-        this.onUnupported = this.onUnupported.bind(this);
+        this.onUnsupported = this.onUnsupported.bind(this);
         this.onNoAnswer = this.onNoAnswer.bind(this);
         this.onBusy = this.onBusy.bind(this);
         this.onDisabled = this.onDisabled.bind(this);
@@ -132,6 +133,17 @@ export default class WebrtcController extends React.Component {
                 error: null,
                 remoteUserImage
             });
+
+            if (nextProps.isCaller && nextProps.userId !== this.props.userId) {
+                this.startCall = true;
+            }
+        }
+    }
+
+    componentDidUpdate() {
+        if (this.props.isCaller && this.startCall) {
+            this.startCall = false;
+            this.handleMakeOffer();
         }
     }
 
@@ -191,6 +203,13 @@ export default class WebrtcController extends React.Component {
         }
     }
 
+    stopRinging() {
+        if (this.refs.ring) {
+            this.refs.ring.pause();
+            this.refs.ring.currentTime = 0;
+        }
+    }
+
     handleMakeOffer() {
         if (UserStore.getStatus(this.props.userId) === UserStatuses.OFFLINE) {
             this.onStatusChange();
@@ -238,7 +257,7 @@ export default class WebrtcController extends React.Component {
             this.clearError();
             break;
         case WebrtcActionTypes.UNSUPPORTED:
-            this.onUnupported();
+            this.onUnsupported();
             this.clearError();
             break;
         case WebrtcActionTypes.BUSY:
@@ -296,9 +315,7 @@ export default class WebrtcController extends React.Component {
                 this.doAnswer(jsep);
                 break;
             case 'accepted':
-                if (this.refs.ring) {
-                    this.refs.ring.pause();
-                }
+                this.stopRinging();
 
                 if (jsep) {
                     this.videocall.handleRemoteJsep({jsep});
@@ -431,6 +448,8 @@ export default class WebrtcController extends React.Component {
             );
         }
 
+        this.stopRinging();
+
         this.setState({
             isCalling: false,
             isAnswering: false,
@@ -441,8 +460,10 @@ export default class WebrtcController extends React.Component {
         this.doCleanup();
     }
 
-    onUnupported() {
+    onUnsupported() {
         if (this.mounted) {
+            this.stopRinging();
+
             this.setState({
                 error: (
                     <FormattedMessage
@@ -476,6 +497,7 @@ export default class WebrtcController extends React.Component {
                 />
             );
         }
+        this.stopRinging();
 
         this.setState({
             isCalling: false,
@@ -500,12 +522,8 @@ export default class WebrtcController extends React.Component {
                     }}
                 />
             );
-
-            if (this.refs.ring) {
-                this.refs.ring.pause();
-                this.refs.ring.currentTime = 0;
-            }
         }
+        this.stopRinging();
 
         this.setState({
             isCalling: false,
@@ -530,12 +548,9 @@ export default class WebrtcController extends React.Component {
                     }}
                 />
             );
-
-            if (this.refs.ring) {
-                this.refs.ring.pause();
-                this.refs.ring.currentTime = 0;
-            }
         }
+
+        this.stopRinging();
 
         this.setState({
             isCalling: false,
@@ -564,11 +579,14 @@ export default class WebrtcController extends React.Component {
             )
         });
 
+        this.stopRinging();
+
         this.doCleanup();
     }
 
     onCancelled() {
         if (this.mounted && this.state.isAnswering) {
+            this.stopRinging();
             this.setState({
                 isCalling: false,
                 isAnswering: false,
@@ -715,10 +733,6 @@ export default class WebrtcController extends React.Component {
 
     doCleanup() {
         WebrtcStore.setVideoCallWith(null);
-
-        if (this.refs.ring && !this.refs.ring.paused) {
-            this.refs.ring.pause();
-        }
 
         if (this.videocall) {
             this.videocall.detach();
