@@ -23,8 +23,10 @@ import {FormattedMessage} from 'react-intl';
 
 import ring from 'images/ring.mp3';
 
-const IDEAL_VIDEO_WIDTH = 1280;
-const IDEAL_VIDEO_HEIGHT = 720;
+const VIDEO_WIDTH = 640;
+const VIDEO_HEIGHT = 360;
+const MIN_ASPECT = 1.777;
+const MAX_ASPECT = 1.778;
 const ALREADY_REGISTERED_ERROR = 477;
 const USERNAME_TAKEN = 476;
 
@@ -159,8 +161,12 @@ export default class WebrtcController extends React.Component {
                     {
                         audio: true,
                         video: {
-                            width: {ideal: IDEAL_VIDEO_WIDTH},
-                            height: {ideal: IDEAL_VIDEO_HEIGHT}
+                            mandatory: {
+                                minAspectRatio: MIN_ASPECT,
+                                maxAspectRatio: MAX_ASPECT
+                            },
+                            width: VIDEO_WIDTH,
+                            height: VIDEO_HEIGHT
                         }
                     },
                     this.refs['local-video'],
