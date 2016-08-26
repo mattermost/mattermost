@@ -6,8 +6,10 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import IntegrationOption from './integration_option.jsx';
 
-import WebhookIcon from 'images/webhook_icon.jpg';
-import AppIcon from 'images/oauth_icon.png';
+import IncomingWebhookIcon from 'images/incoming_webhook.jpg';
+import OutgoingWebhookIcon from 'images/outgoing_webhook.jpg';
+import SlashCommandIcon from 'images/slash_command_icon.jpg';
+import OAuthIcon from 'images/oauth_icon.png';
 
 export default class Integrations extends React.Component {
     static get propTypes() {
@@ -24,7 +26,7 @@ export default class Integrations extends React.Component {
             options.push(
                 <IntegrationOption
                     key='incomingWebhook'
-                    image={WebhookIcon}
+                    image={IncomingWebhookIcon}
                     title={
                         <FormattedMessage
                             id='integrations.incomingWebhook.title'
@@ -46,7 +48,7 @@ export default class Integrations extends React.Component {
             options.push(
                 <IntegrationOption
                     key='outgoingWebhook'
-                    image={WebhookIcon}
+                    image={OutgoingWebhookIcon}
                     title={
                         <FormattedMessage
                             id='integrations.outgoingWebhook.title'
@@ -68,7 +70,7 @@ export default class Integrations extends React.Component {
             options.push(
                 <IntegrationOption
                     key='command'
-                    image={WebhookIcon}
+                    image={SlashCommandIcon}
                     title={
                         <FormattedMessage
                             id='integrations.command.title'
@@ -90,7 +92,7 @@ export default class Integrations extends React.Component {
             options.push(
                 <IntegrationOption
                     key='oauth2Apps'
-                    image={AppIcon}
+                    image={OAuthIcon}
                     title={
                         <FormattedMessage
                             id='integrations.oauthApps.title'
