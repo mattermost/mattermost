@@ -33,7 +33,8 @@ export default class PostMessageContainer extends React.Component {
         this.state = {
             emojis: EmojiStore.getEmojis(),
             enableFormatting: PreferenceStore.getBool(Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', true),
-            mentionKeys
+            mentionKeys,
+            usernameMap: UserStore.getProfilesUsernameMap()
         };
     }
 
@@ -66,7 +67,8 @@ export default class PostMessageContainer extends React.Component {
         mentionKeys.push('@here');
 
         this.setState({
-            mentionKeys
+            mentionKeys,
+            usernameMap: UserStore.getProfilesUsernameMap()
         });
     }
 
@@ -78,6 +80,7 @@ export default class PostMessageContainer extends React.Component {
                 emojis={this.state.emojis}
                 enableFormatting={this.state.enableFormatting}
                 mentionKeys={this.state.mentionKeys}
+                usernameMap={this.state.usernameMap}
             />
         );
     }

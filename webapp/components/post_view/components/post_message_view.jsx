@@ -12,7 +12,8 @@ export default class PostMessageView extends React.Component {
         message: React.PropTypes.string.isRequired,
         emojis: React.PropTypes.object.isRequired,
         enableFormatting: React.PropTypes.bool.isRequired,
-        mentionKeys: React.PropTypes.arrayOf(React.PropTypes.string).isRequired
+        mentionKeys: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
+        usernameMap: React.PropTypes.object.isRequired
     };
 
     shouldComponentUpdate(nextProps) {
@@ -37,6 +38,9 @@ export default class PostMessageView extends React.Component {
             return true;
         }
 
+        // Don't check if props.usernameMap changes since it is very large and inefficient to do so.
+        // This mimics previous behaviour, but could be changed if we decide it's worth it.
+
         return false;
     }
 
@@ -48,7 +52,8 @@ export default class PostMessageView extends React.Component {
         const options = Object.assign({}, this.props.options, {
             emojis: this.props.emojis,
             siteURL: Utils.getSiteURL(),
-            mentionKeys: this.props.mentionKeys
+            mentionKeys: this.props.mentionKeys,
+            usernameMap: this.props.usernameMap
         });
 
         return (

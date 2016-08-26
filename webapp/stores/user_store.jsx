@@ -4,6 +4,7 @@
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import EventEmitter from 'events';
 
+import * as GlobalActions from 'actions/global_actions.jsx';
 import LocalizationStore from './localization_store.jsx';
 
 import Constants from 'utils/constants.jsx';
@@ -17,7 +18,6 @@ const CHANGE_EVENT_AUDITS = 'change_audits';
 const CHANGE_EVENT_STATUSES = 'change_statuses';
 
 var Utils;
-var GlobalActions;
 
 class UserStoreClass extends EventEmitter {
     constructor() {
@@ -105,10 +105,6 @@ class UserStoreClass extends EventEmitter {
         this.currentUserId = user.id;
         global.window.mm_current_user_id = this.currentUserId;
         if (LocalizationStore.getLocale() !== user.locale) {
-            if (!GlobalActions) {
-                GlobalActions = require('actions/global_actions.jsx'); //eslint-disable-line global-require
-            }
-
             setTimeout(() => GlobalActions.newLocalizationSelected(user.locale), 0);
         }
     }

@@ -6,7 +6,6 @@ import Constants from './constants.jsx';
 import EmojiStore from 'stores/emoji_store.jsx';
 import * as Emoticons from './emoticons.jsx';
 import * as Markdown from './markdown.jsx';
-import UserStore from 'stores/user_store.jsx';
 import twemoji from 'twemoji';
 import XRegExp from 'xregexp';
 
@@ -23,8 +22,10 @@ const cjkPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-
 // - singleline - Specifies whether or not to remove newlines. Defaults to false.
 // - emoticons - Enables emoticon parsing. Defaults to true.
 // - markdown - Enables markdown parsing. Defaults to true.
-// - siteURL - The origin of this Mattermost instance. If provided, links to channels and posts will be replaced with internal links
-//     that can be handled by a special click handler.
+// - siteURL - The origin of this Mattermost instance. If provided, links to channels and posts will be replaced with internal
+//     links that can be handled by a special click handler.
+// - usernameMap - An object mapping usernames to users. If provided, at mentions will be replaced with internal links that can
+//      be handled by a special click handler (Utils.handleFormattedTextClick)
 export function formatText(text, inputOptions) {
     let output = text;
 
@@ -56,7 +57,10 @@ export function doFormatText(text, options) {
     const tokens = new Map();
 
     // replace important words and phrases with tokens
-    output = autolinkAtMentions(output, tokens);
+    if (options.usernameMap) {
+        output = autolinkAtMentions(output, tokens, options.usernameMap);
+    }
+
     output = autolinkEmails(output, tokens);
     output = autolinkHashtags(output, tokens);
 
@@ -141,10 +145,10 @@ function autolinkEmails(text, tokens) {
 
 const punctuation = XRegExp.cache('[^\\pL\\d]');
 
-function autolinkAtMentions(text, tokens) {
+function autolinkAtMentions(text, tokens, usernameMap) {
     // Test if provided text needs to be highlighted, special mention or current user
     function mentionExists(u) {
-        return (Constants.SPECIAL_MENTIONS.indexOf(u) !== -1 || UserStore.getProfileByUsername(u));
+        return (Constants.SPECIAL_MENTIONS.indexOf(u) !== -1 || !!usernameMap[u]);
     }
 
     function addToken(username, mention) {
