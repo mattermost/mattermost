@@ -14,7 +14,7 @@ var (
 )
 
 type FileUploadResponse struct {
-	Filenames []string `json:"filenames"`
+	FileIds   []string `json:"file_ids"`
 	ClientIds []string `json:"client_ids"`
 }
 

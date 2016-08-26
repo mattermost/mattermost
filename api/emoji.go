@@ -232,7 +232,7 @@ func getEmojiImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		var img []byte
 
-		if data, err := ReadFile(getEmojiImagePath(id)); err != nil {
+		if data, err := readFile(getEmojiImagePath(id)); err != nil {
 			c.Err = model.NewLocAppError("getEmojiImage", "api.emoji.get_image.read.app_error", nil, err.Error())
 			return
 		} else {

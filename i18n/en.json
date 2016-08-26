@@ -851,23 +851,23 @@
   },
   {
     "id": "api.file.handle_images_forget.decode.error",
-    "translation": "Unable to decode image channelId=%v userId=%v filename=%v err=%v"
+    "translation": "Unable to decode image path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.encode_jpeg.error",
-    "translation": "Unable to encode image as jpeg channelId=%v userId=%v filename=%v err=%v"
+    "translation": "Unable to encode image as jpeg path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.encode_preview.error",
-    "translation": "Unable to encode image as preview jpg channelId=%v userId=%v filename=%v err=%v"
+    "translation": "Unable to encode image as preview jpg path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.upload_preview.error",
-    "translation": "Unable to upload preview channelId=%v userId=%v filename=%v err=%v"
+    "translation": "Unable to upload preview path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.upload_thumb.error",
-    "translation": "Unable to upload thumbnail channelId=%v userId=%v filename=%v err=%v"
+    "translation": "Unable to upload thumbnail path=%v err=%v"
   },
   {
     "id": "api.file.init.debug",
@@ -916,10 +916,6 @@
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "Encountered an error reading from local server storage"
-  },
-  {
-    "id": "api.file.upload_file.image.app_error",
-    "translation": "Unable to upload image file."
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -3876,6 +3872,10 @@
     "translation": "We couldn't get the extra info for channel members"
   },
   {
+    "id": "store.sql_channel.get_for_post.app_error",
+    "translation": "We couldn't get the channel for the given post"
+  },
+  {
     "id": "store.sql_channel.get_member.app_error",
     "translation": "We couldn't get the channel member"
   },
@@ -3886,6 +3886,10 @@
   {
     "id": "store.sql_channel.get_member_count.app_error",
     "translation": "We couldn't get the channel member count"
+  },
+  {
+    "id": "store.sql_channel.get_member_for_post.app_error",
+    "translation": "We couldn't get the channel member for the given post"
   },
   {
     "id": "store.sql_channel.get_members.app_error",

@@ -1176,7 +1176,7 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			path := "/users/" + id + "/profile.png"
 
-			if data, err := ReadFile(path); err != nil {
+			if data, err := readFile(path); err != nil {
 
 				if img, err = createProfileImage(result.Data.(*model.User).Username, id); err != nil {
 					c.Err = err

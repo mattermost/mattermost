@@ -36,6 +36,7 @@ type Post struct {
 	Props         StringInterface `json:"props"`
 	Hashtags      string          `json:"hashtags"`
 	Filenames     StringArray     `json:"filenames"`
+	FileIds       []string        `json:"file_ids" db:"-"`
 	PendingPostId string          `json:"pending_post_id" db:"-"`
 }
 

@@ -181,12 +181,105 @@ func UpgradeDatabaseToVersion33(sqlStore *SqlStore) {
 
 func UpgradeDatabaseToVersion34(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, VERSION_3_3_0, VERSION_3_4_0) {
-
 		sqlStore.CreateColumnIfNotExists("Status", "Manual", "BOOLEAN", "BOOLEAN", "0")
 		sqlStore.CreateColumnIfNotExists("Status", "ActiveChannel", "varchar(26)", "varchar(26)", "")
 
 		saveSchemaVersion(sqlStore, VERSION_3_4_0)
 	}
+
+	// do the actual upgrade
+	// if sqlStore.DoesColumnExist("Posts", "Filenames") {
+	// 	// copy any non-direct channel attachments into the Files table
+	// 	for {
+	// 		var postFiles []*struct{
+	// 			Id        string
+	// 			UserId    string
+	// 			ChannelId string // TODO remove me?
+	// 			TeamId    string
+	// 			CreateAt  string
+	// 			UpdateAt  string
+	// 			Filenames []string
+	// 		}
+
+	// 		if _, err := sqlStore.GetMaster().Select(&postFiles,
+	// 			`SELECT
+	// 				Posts.Id,
+	// 				Posts.UserId,
+	// 				Channels.TeamId,
+	// 				Posts.ChannelId
+	// 				Posts.CreateAt,
+	// 				Posts.UpdateAt,
+	// 				Posts.Filenames
+	// 			FROM
+	// 				Posts
+	// 				Channels
+	// 			WHERE
+	// 				Posts.ChannelId = Channels.Id,
+	// 				AND Posts.Filenames != ''
+	// 				AND Channels.TeamId != ''
+	// 			LIMIT
+	// 				1000
+	// 			ORDER BY
+	// 				Posts.Id`); err != nil {
+	// 			// TODO
+	// 			panic(err)
+	// 		}
+
+	// 		if len(postFiles) == 0 {
+	// 			break
+	// 		}
+
+	// 		files := make([]*FileInfo, 0, len(postFiles) * 5)
+
+	// 		for postFile := range postFiles {
+	// 			for filename := range postFile.Filenames {
+	// 				// filename is of the form /{channelId}/{userId}/{uid}/{nameWithExtension}
+	// 				split := strings.SplitN(filename, "/", 5)
+	// 				channelId := split[1]
+	// 				userId := split[2]
+	// 				uid := split[3]
+	// 				name := split[4]
+
+	// 				// TODO remove me before merging
+	// 				if split[0] != "" || split[1] != postFile.ChannelId || split[2] != postFile.UserId || strings.Contains(split[4], "/") {
+	// 					panic("unexpected filename `" + filename + "` for post " + postFile.Id)
+	// 				}
+
+	// 				files = append(files, &model.File{
+	// 					Id: id,
+	// 					UserId: postFile.UserId,
+	// 					PostId: postFile.Id,
+	// 					CreateAt: postFile.CreateAt,
+	// 					UpdateAt: postFile.UpdateAt,
+	// 					Path: "teams/" + postFile.TeamId + "/channels/" + channelId + "/users/" + userId + "/" + uid + "/" + name,
+	// 					Name: name
+	// 					// other fields will be initialized lazily
+	// 				})
+	// 			}
+	// 		}
+
+	// 		if err := sqlStore.GetMaster().Insert(&files) {
+	// 			panic(err)
+	// 		}
+
+	// 		if _, err := sqlStore.GetMaster().Exec(
+	// 			`UPDATE
+	// 				Posts
+	// 			SET
+	// 				Filenames = ''
+	// 			WHERE
+	// 				Filenames != ''
+	// 				AND (SELECT TeamId FROM Channels WHERE Posts.ChannelId = Channels.Id) != ''
+	// 			LIMIT
+	// 				1000
+	// 			ORDER BY
+	// 				Id`); err != nil {
+	// 			// TODO
+	// 			panic(err)
+	// 		}
+	// 	}
+
+	// }
 }
 
 func UpgradeDatabaseToVersion35(sqlStore *SqlStore) {
