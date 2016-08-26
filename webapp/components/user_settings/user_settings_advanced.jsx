@@ -333,7 +333,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
             return (
                 <FormattedMessage
                     id='user.settings.advance.webrtc_preview'
-                    defaultMessage='Enable the ability to make an receive one-on-one WebRTC calls'
+                    defaultMessage='Enable the ability to make and receive one-on-one WebRTC calls'
                 />
             );
         default:
