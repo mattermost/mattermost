@@ -59,17 +59,17 @@
     width: 100%;
 
     #main-video video {
-        -moz-transform: scale(-1, 1);
-        -ms-transform: scale(-1, 1);
-        -o-transform: scale(-1, 1);
-        -webkit-transform: scale(-1, 1);
+        -moz-transform: scale(1, 1);
+        -ms-transform: scale(1, 1);
+        -o-transform: scale(1, 1);
+        -webkit-transform: scale(1, 1);
         background-color: rgba(239, 239, 239, 0.4);
         border: 1px solid alpha-color($black, .2);
         height: 100%;
         max-height: 100%;
         max-width: 1280px;
         object-fit: cover;
-        transform: scale(-1, 1);
+        transform: scale(1, 1);
         transition: opacity 1s;
         width: 98%;
     }
