@@ -46,27 +46,21 @@ class FileAttachment extends React.Component {
         if (filename) {
             var fileInfo = this.getFileInfoFromName(filename);
             var type = utils.getFileType(fileInfo.ext);
-
             if (type === 'image') {
                 var self = this; // Need this reference since we use the given "this"
-                $('<img/>').attr('src', fileInfo.path + '_thumb.jpg').on('load', (function loadWrapper(path, name) {
+                $('<img/>').attr({src: fileInfo.path + '_thumb.jpg', height: '400px'}).on('load', (function loadWrapper(path, name) {
                     return function loader() {
                         $(this).remove();
                         if (name in self.refs) {
                             var imgDiv = ReactDOM.findDOMNode(self.refs[name]);
 
-                            $(imgDiv).removeClass('post-image__load');
-                            $(imgDiv).addClass('post-image');
-
-                            var width = this.width || $(this).width();
-                            var height = this.height || $(this).height();
-
-                            if (width < Constants.THUMBNAIL_WIDTH &&
-                                height < Constants.THUMBNAIL_HEIGHT) {
-                                $(imgDiv).addClass('small');
+                            if (self.props.isSingle) {
+                                $(imgDiv).removeClass('post-image-single__load');
                             } else {
-                                $(imgDiv).addClass('normal');
+                                $(imgDiv).removeClass('post-image__load');
                             }
+
+                            $(imgDiv).addClass('post-image');
 
                             self.addBackgroundImage(name, path);
                         }
@@ -120,7 +114,7 @@ class FileAttachment extends React.Component {
             var re3 = new RegExp('\\)', 'g');
             var url = fileUrl.replace(re1, '%20').replace(re2, '%28').replace(re3, '%29');
 
-            $(imgDiv).css('background-image', 'url(' + url + '_thumb.jpg)');
+            $(imgDiv).html("<img src='" + url + "_preview.jpg'/>");
         }
     }
     removeBackgroundImage(name) {
@@ -141,43 +135,30 @@ class FileAttachment extends React.Component {
 
         var thumbnail;
         if (type === 'image') {
+            let thumbnailClass = 'post-image__load';
+            if (this.props.isSingle) {
+                thumbnailClass = 'post-image-single__load';
+            }
             thumbnail = (
                 <div
                     ref={filename}
-                    className='post-image__load'
+                    className={thumbnailClass}
                 />
             );
         } else {
             thumbnail = <div className={'file-icon ' + utils.getIconClassName(type)}/>;
         }
 
-        var fileSizeString = '';
-        if (this.state.fileSize < 0) {
-            Client.getFileInfo(
-                filename,
-                (data) => {
-                    if (this.canSetState) {
-                        this.setState({fileSize: parseInt(data.size, 10)});
-                    }
-                },
-                () => {
-                    // Do nothing
-                }
-            );
-        } else {
-            fileSizeString = utils.fileSizeToString(this.state.fileSize);
-        }
-
         var filenameString = decodeURIComponent(utils.getFileName(filename));
         var trimmedFilename;
-        if (filenameString.length > 35) {
-            trimmedFilename = filenameString.substring(0, Math.min(35, filenameString.length)) + '...';
+        if (filenameString.length > 30) {
+            trimmedFilename = filenameString.substring(0, Math.min(30, filenameString.length)) + '...';
         } else {
             trimmedFilename = filenameString;
         }
         var filenameOverlay = (
             <OverlayTrigger
-                delayShow={1000}
+                delayShow={500}
                 placement='top'
                 overlay={<Tooltip id='file-name__tooltip'>{this.props.intl.formatMessage(holders.download) + ' "' + filenameString + '"'}</Tooltip>}
             >
@@ -188,7 +169,8 @@ class FileAttachment extends React.Component {
                     target='_blank'
                     rel='noopener noreferrer'
                 >
-                    {trimmedFilename}
+                    <span className='fa fa-download'/>
+                    {' ' + trimmedFilename}
                 </a>
             </OverlayTrigger>
         );
@@ -196,7 +178,7 @@ class FileAttachment extends React.Component {
         if (this.props.compactDisplay) {
             filenameOverlay = (
                 <OverlayTrigger
-                    delayShow={1000}
+                    delayShow={500}
                     placement='top'
                     overlay={<Tooltip id='file-name__tooltip'>{filenameString}</Tooltip>}
                 >
@@ -230,21 +212,6 @@ class FileAttachment extends React.Component {
                 </a>
                 <div className='post-image__details'>
                     {filenameOverlay}
-                    <div>
-                        <a
-                            href={fileUrl}
-                            download={filenameString}
-                            className='post-image__download'
-                            target='_blank'
-                            rel='noopener noreferrer'
-                        >
-                            <span
-                                className='fa fa-download'
-                            />
-                        </a>
-                        <span className='post-image__type'>{fileInfo.ext.toUpperCase()}</span>
-                        <span className='post-image__size'>{fileSizeString}</span>
-                    </div>
                 </div>
             </div>
         );
@@ -263,7 +230,9 @@ FileAttachment.propTypes = {
     // handler for when the thumbnail is clicked passed the index above
     handleImageClick: React.PropTypes.func,
 
-    compactDisplay: React.PropTypes.bool
+    compactDisplay: React.PropTypes.bool,
+
+    isSingle: React.PropTypes.bool
 };
 
 export default injectIntl(FileAttachment);
