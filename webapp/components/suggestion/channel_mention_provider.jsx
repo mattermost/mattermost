@@ -16,7 +16,7 @@ class ChannelMentionSuggestion extends Suggestion {
         const isSelection = this.props.isSelection;
         const item = this.props.item;
 
-        let channelName = item.channel.display_name;
+        const channelName = item.channel.display_name;
         let purpose = item.channel.purpose;
 
         let className = 'mentions__name';
@@ -96,8 +96,8 @@ export default class ChannelMentionProvider {
             // Wrap channels in an outer object to avoid overwriting the 'type' property.
             const wrappedChannels = filteredChannels.map((item) => {
                 return {
-                    'type': Constants.MENTION_CHANNEL,
-                    'channel': item
+                    type: Constants.MENTION_CHANNEL,
+                    channel: item
                 };
             });
 
