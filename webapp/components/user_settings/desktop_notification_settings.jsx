@@ -105,7 +105,7 @@ export default class DesktopNotificationSettings extends React.Component {
                         <span>
                             <FormattedMessage
                                 id='user.settings.notifications.sounds_info'
-                                defaultMessage='Desktop notifications sounds are available on Firefox, Safari, Chrome, Internet Explorer, and Edge.'
+                                defaultMessage='Notification sounds are available on IE11, Edge, Safari and Chrome.'
                             />
                         </span>
                     </div>
@@ -270,7 +270,7 @@ export default class DesktopNotificationSettings extends React.Component {
                 <span>
                     <FormattedMessage
                         id='user.settings.notifications.info'
-                        defaultMessage='Desktop notifications are available on Firefox, Safari, Chrome, Internet Explorer, and Edge.'
+                        defaultMessage='Desktop notifications are available on Firefox, Safari, and Chrome.'
                     />
                 </span>
                 {soundSection}
