@@ -145,7 +145,7 @@ check-server-style:
 	$(eval GOFMT_OUTPUT := $(shell gofmt -d -s api/ model/ store/ utils/ manualtesting/ einterfaces/ mattermost.go 2>&1))
 	@echo "$(GOFMT_OUTPUT)"
 	@if [ ! "$(GOFMT_OUTPUT)" ]; then \
-		echo "gofmt sucess"; \
+		echo "gofmt success"; \
 	else \
 		echo "gofmt failure"; \
 		exit 1; \
