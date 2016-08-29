@@ -122,6 +122,10 @@ export default class Post extends React.Component {
             return true;
         }
 
+        if (nextProps.isBusy !== this.props.isBusy) {
+            return true;
+        }
+
         return false;
     }
     render() {
@@ -252,6 +256,7 @@ export default class Post extends React.Component {
                                 useMilitaryTime={this.props.useMilitaryTime}
                                 isFlagged={this.props.isFlagged}
                                 status={this.props.status}
+                                isBusy={this.props.isBusy}
                             />
                             <PostBody
                                 post={post}
@@ -290,5 +295,6 @@ Post.propTypes = {
     useMilitaryTime: React.PropTypes.bool.isRequired,
     emojis: React.PropTypes.object.isRequired,
     isFlagged: React.PropTypes.bool,
-    status: React.PropTypes.string
+    status: React.PropTypes.string,
+    isBusy: React.PropTypes.bool
 };

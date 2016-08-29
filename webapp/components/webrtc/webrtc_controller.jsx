@@ -118,9 +118,7 @@ export default class WebrtcController extends React.Component {
         WebrtcStore.removeChangedListener(this.handleWebrtcEvent);
         UserStore.removeStatusesChangeListener(this.onStatusChange);
         this.mounted = false;
-        if (!this.isClosing) {
-            this.close();
-        }
+        this.close();
     }
 
     componentWillReceiveProps(nextProps) {
@@ -133,10 +131,10 @@ export default class WebrtcController extends React.Component {
                 error: null,
                 remoteUserImage
             });
+        }
 
-            if (nextProps.isCaller && nextProps.userId !== this.props.userId) {
-                this.startCall = true;
-            }
+        if (nextProps.isCaller) {
+            this.startCall = true;
         }
     }
 
@@ -724,10 +722,18 @@ export default class WebrtcController extends React.Component {
                 isMuted: false,
                 isRemotePaused: false,
                 isRemoteMuted: false,
-                error: null
+                error: (
+                    <FormattedMessage
+                        id='webrtc.callEnded'
+                        defaultMessage='Call with {username} ended'
+                        values={{
+                            username: Utils.displayUsername(this.props.userId)
+                        }}
+                    />
+                )
             });
-            this.isClosing = true;
-            this.close();
+            WebrtcStore.setVideoCallWith(null);
+            this.clearError();
         }
     }
 

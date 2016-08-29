@@ -317,6 +317,7 @@ export default class PostList extends React.Component {
                     emojis={this.props.emojis}
                     isFlagged={isFlagged}
                     status={status}
+                    isBusy={this.props.isBusy}
                 />
             );
 
@@ -586,5 +587,6 @@ PostList.propTypes = {
     isFocusPost: React.PropTypes.bool,
     emojis: React.PropTypes.object.isRequired,
     flaggedPosts: React.PropTypes.object,
-    statuses: React.PropTypes.object
+    statuses: React.PropTypes.object,
+    isBusy: React.PropTypes.bool
 };
