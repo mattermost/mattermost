@@ -1308,6 +1308,7 @@
   "installed_integrations.creation": "Created by {creator} on {createAt, date, full}",
   "installed_integrations.delete": "Delete",
   "installed_integrations.hideSecret": "Hide Secret",
+  "installed_integrations.regenSecret": "Regenerate Secret",
   "installed_integrations.regenToken": "Regenerate Token",
   "installed_integrations.showSecret": "Show Secret",
   "installed_integrations.token": "Token: {token}",

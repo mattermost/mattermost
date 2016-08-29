@@ -69,9 +69,6 @@ func TestOAuthStoreUpdateApp(t *testing.T) {
 		if ua1.CreateAt == 1 {
 			t.Fatal("create at should not have updated")
 		}
-		if ua1.ClientSecret == "pwd" {
-			t.Fatal("client secret should not have updated")
-		}
 		if ua1.CreatorId == "12345678901234567890123456" {
 			t.Fatal("creator id should not have updated")
 		}

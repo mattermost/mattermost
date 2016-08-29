@@ -3,6 +3,9 @@
 
 import React from 'react';
 
+import FormError from 'components/form_error.jsx';
+
+import Client from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
@@ -23,6 +26,7 @@ export default class InstalledOAuthApp extends React.Component {
 
         this.handleShowClientSecret = this.handleShowClientSecret.bind(this);
         this.handleHideClientScret = this.handleHideClientScret.bind(this);
+        this.handleRegenerate = this.handleRegenerate.bind(this);
         this.handleDelete = this.handleDelete.bind(this);
 
         this.matchesFilter = this.matchesFilter.bind(this);
@@ -42,6 +46,21 @@ export default class InstalledOAuthApp extends React.Component {
         this.setState({clientSecret: FAKE_SECRET});
     }
 
+    handleRegenerate(e) {
+        e.preventDefault();
+
+        Client.regenerateOAuthAppSecret(
+            this.props.oauthApp.id,
+            (data) => {
+                this.props.oauthApp.client_secret = data.client_secret;
+                this.handleShowClientSecret(e);
+            },
+            (err) => {
+                this.setState({error: err.message});
+            }
+        );
+    }
+
     handleDelete(e) {
         e.preventDefault();
 
@@ -58,6 +77,15 @@ export default class InstalledOAuthApp extends React.Component {
 
     render() {
         const oauthApp = this.props.oauthApp;
+        let error;
+
+        if (this.state.error) {
+            error = (
+                <FormError
+                    error={this.state.error}
+                />
+            );
+        }
 
         if (!this.matchesFilter(oauthApp, this.props.filter)) {
             return null;
@@ -107,9 +135,9 @@ export default class InstalledOAuthApp extends React.Component {
             isTrusted = Utils.localizeMessage('installed_oauth_apps.trusted.no', 'No');
         }
 
-        let action;
+        let showHide;
         if (this.state.clientSecret === FAKE_SECRET) {
-            action = (
+            showHide = (
                 <a
                     href='#'
                     onClick={this.handleShowClientSecret}
@@ -121,7 +149,7 @@ export default class InstalledOAuthApp extends React.Component {
                 </a>
             );
         } else {
-            action = (
+            showHide = (
                 <a
                     href='#'
                     onClick={this.handleHideClientScret}
@@ -133,6 +161,18 @@ export default class InstalledOAuthApp extends React.Component {
                 </a>
             );
         }
+
+        const regen = (
+            <a
+                href='#'
+                onClick={this.handleRegenerate}
+            >
+                <FormattedMessage
+                    id='installed_integrations.regenSecret'
+                    defaultMessage='Regenerate Secret'
+                />
+            </a>
+        );
 
         let icon;
         if (oauthApp.icon_url) {
@@ -152,6 +192,7 @@ export default class InstalledOAuthApp extends React.Component {
                             {name}
                         </span>
                     </div>
+                    {error}
                     {description}
                     <div className='item-details__row'>
                         <span className='item-details__url'>
@@ -201,7 +242,9 @@ export default class InstalledOAuthApp extends React.Component {
                     </div>
                 </div>
                 <div className='item-actions'>
-                    {action}
+                    {showHide}
+                    {' - '}
+                    {regen}
                     {' - '}
                     <a
                         href='#'

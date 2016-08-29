@@ -1066,6 +1066,10 @@
     "translation": "Initializing oauth api routes"
   },
   {
+    "id": "api.oauth.regenerate_secret.app_error",
+    "translation": "Inappropriate permissions to regenerate the OAuth2 App Secret"
+  },
+  {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
     "translation": "The system admin has turned off OAuth2 Service Provider."
   },
