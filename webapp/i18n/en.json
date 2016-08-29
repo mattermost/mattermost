@@ -1885,7 +1885,7 @@
   "user.settings.notifications.desktop.sound": "Notification sound",
   "user.settings.notifications.desktopSounds": "Desktop notification sounds",
   "user.settings.notifications.emailBatchingInfo": "Notifications are combined into a single email and sent at the maximum frequency selected here.",
-  "user.settings.notifications.emailInfo": "Email notifications that are sent for mentions and direct messages when you are offline or away from {siteName} for more than 5 minutes.",
+  "user.settings.notifications.emailInfo": "Email notifications are sent for mentions and direct messages when you are offline or away from {siteName} for more than 5 minutes.",
   "user.settings.notifications.emailNotifications": "Email notifications",
   "user.settings.notifications.everyHour": "Every hour",
   "user.settings.notifications.everyXMinutes": "Every {count, plural, one {minute} other {{count, number} minutes}}",
