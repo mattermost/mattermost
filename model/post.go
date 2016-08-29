@@ -37,6 +37,7 @@ type Post struct {
 	Hashtags      string          `json:"hashtags"`
 	Filenames     StringArray     `json:"filenames"`
 	PendingPostId string          `json:"pending_post_id" db:"-"`
+	HasReactions  bool            `json:"has_reactions,omitempty"`
 }
 
 func (o *Post) ToJson() string {

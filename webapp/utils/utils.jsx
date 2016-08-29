@@ -631,6 +631,8 @@ export function applyTheme(theme) {
         changeCss('.app__body .post.post--comment.current--user .post__body', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
         changeCss('.app__body .channel-header__info .status .offline--icon', 'fill:' + theme.centerChannelColor, 1);
         changeCss('.app__body .navbar .status .offline--icon', 'fill:' + theme.centerChannelColor, 1);
+        changeCss('.app__body .post-reaction', 'border-color:' + theme.centerChannelColor, 1);
+        changeCss('.app__body .post-reaction', 'color:' + theme.centerChannelColor, 2);
     }
 
     if (theme.newMessageSeparator) {

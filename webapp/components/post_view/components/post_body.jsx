@@ -9,6 +9,7 @@ import Constants from 'utils/constants.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import PostBodyAdditionalContent from './post_body_additional_content.jsx';
 import PendingPostOptions from './pending_post_options.jsx';
+import ReactionListContainer from './reaction_list_container.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
@@ -22,6 +23,7 @@ export default class PostBody extends React.Component {
 
         this.removePost = this.removePost.bind(this);
     }
+
     shouldComponentUpdate(nextProps) {
         if (!Utils.areObjectsEqual(nextProps.post, this.props.post)) {
             return true;
@@ -203,6 +205,10 @@ export default class PostBody extends React.Component {
                 <div className='post__body'>
                     {messageWithAdditionalContent}
                     {fileAttachmentHolder}
+                    <ReactionListContainer
+                        post={post}
+                        currentUserId={this.props.currentUser.id}
+                    />
                 </div>
             </div>
         );
@@ -216,5 +222,6 @@ PostBody.propTypes = {
     handleCommentClick: React.PropTypes.func.isRequired,
     compactDisplay: React.PropTypes.bool,
     previewCollapsed: React.PropTypes.string,
-    emojis: React.PropTypes.object.isRequired
+    emojis: React.PropTypes.object.isRequired,
+    currentUser: React.PropTypes.object.isRequired
 };
