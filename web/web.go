@@ -16,17 +16,13 @@ import (
 	"github.com/mssola/user_agent"
 )
 
-const (
-	CLIENT_DIR = "webapp/dist"
-)
-
 func InitWeb() {
 	l4g.Debug(utils.T("web.init.debug"))
 
 	mainrouter := api.Srv.Router
 
 	if *utils.Cfg.ServiceSettings.WebserverMode != "disabled" {
-		staticDir := utils.FindDir(CLIENT_DIR)
+		staticDir := utils.FindDir(model.CLIENT_DIR)
 		l4g.Debug("Using client directory at %v", staticDir)
 		if *utils.Cfg.ServiceSettings.WebserverMode == "gzip" {
 			mainrouter.PathPrefix("/static/").Handler(gziphandler.GzipHandler(staticHandler(http.StripPrefix("/static/", http.FileServer(http.Dir(staticDir))))))
@@ -76,5 +72,5 @@ func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Cache-Control", "no-cache, max-age=31556926, public")
-	http.ServeFile(w, r, utils.FindDir(CLIENT_DIR)+"root.html")
+	http.ServeFile(w, r, utils.FindDir(model.CLIENT_DIR)+"root.html")
 }
