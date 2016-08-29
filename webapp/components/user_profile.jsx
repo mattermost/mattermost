@@ -27,7 +27,7 @@ export default class UserProfile extends React.Component {
     }
 
     initWebrtc() {
-        if (this.props.status !== UserStatuses.OFFLINE) {
+        if (this.props.status !== UserStatuses.OFFLINE && !WebrtcStore.isBusy()) {
             GlobalActions.emitCloseRightHandSide();
             WebrtcActions.initWebrtc(this.props.user.id, true);
         }
@@ -55,6 +55,10 @@ export default class UserProfile extends React.Component {
         }
 
         if (nextProps.status !== this.props.status) {
+            return true;
+        }
+
+        if (nextProps.isBusy !== this.props.isBusy) {
             return true;
         }
 
@@ -89,11 +93,11 @@ export default class UserProfile extends React.Component {
         const webrtcEnabled = global.mm_config.EnableWebrtc === 'true' && global.mm_license.Webrtc === 'true' &&
             global.mm_config.EnableDeveloper === 'true' && userMedia && Utils.isFeatureEnabled(PreReleaseFeatures.WEBRTC_PREVIEW);
 
-        if (webrtcEnabled) {
+        if (webrtcEnabled && this.props.user.id !== this.state.currentUserId) {
             const isOnline = this.props.status !== UserStatuses.OFFLINE;
             let webrtcMessage;
             let circleClass = 'offline';
-            if (isOnline) {
+            if (isOnline && !this.props.isBusy) {
                 circleClass = '';
                 webrtcMessage = (
                     <FormattedMessage
@@ -101,7 +105,7 @@ export default class UserProfile extends React.Component {
                         defaultMessage='Start Video Call'
                     />
                 );
-            } else if (WebrtcStore.isBusy()) {
+            } else if (this.props.isBusy) {
                 webrtcMessage = (
                     <FormattedMessage
                         id='user_profile.webrtc.unavailable'
@@ -232,5 +236,6 @@ UserProfile.propTypes = {
     overwriteImage: React.PropTypes.string,
     disablePopover: React.PropTypes.bool,
     displayNameType: React.PropTypes.string,
-    status: React.PropTypes.string
+    status: React.PropTypes.string,
+    isBusy: React.PropTypes.bool
 };

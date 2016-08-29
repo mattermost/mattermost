@@ -316,6 +316,7 @@ export default class PostList extends React.Component {
                     useMilitaryTime={this.props.useMilitaryTime}
                     isFlagged={isFlagged}
                     status={status}
+                    isBusy={this.props.isBusy}
                 />
             );
 
@@ -585,5 +586,6 @@ PostList.propTypes = {
     useMilitaryTime: React.PropTypes.bool.isRequired,
     isFocusPost: React.PropTypes.bool,
     flaggedPosts: React.PropTypes.object,
-    statuses: React.PropTypes.object
+    statuses: React.PropTypes.object,
+    isBusy: React.PropTypes.bool
 };

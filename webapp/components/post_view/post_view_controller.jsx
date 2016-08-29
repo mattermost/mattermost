@@ -8,6 +8,7 @@ import PreferenceStore from 'stores/preference_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import PostStore from 'stores/post_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
+import WebrtcStore from 'stores/webrtc_store.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 
@@ -30,6 +31,7 @@ export default class PostViewController extends React.Component {
         this.onPostListScroll = this.onPostListScroll.bind(this);
         this.onActivate = this.onActivate.bind(this);
         this.onDeactivate = this.onDeactivate.bind(this);
+        this.onBusy = this.onBusy.bind(this);
 
         const channel = props.channel;
         let profiles = UserStore.getProfiles();
@@ -54,6 +56,7 @@ export default class PostViewController extends React.Component {
             channel,
             postList: PostStore.filterPosts(channel.id, joinLeaveEnabled),
             currentUser: UserStore.getCurrentUser(),
+            isBusy: WebrtcStore.isBusy(),
             profiles,
             statuses,
             atTop: PostStore.getVisibilityAtTop(channel.id),
@@ -140,6 +143,7 @@ export default class PostViewController extends React.Component {
         PostStore.addChangeListener(this.onPostsChange);
         PostStore.addPostsViewJumpListener(this.onPostsViewJumpRequest);
         ChannelStore.addLastViewedListener(this.onSetNewMessageIndicator);
+        WebrtcStore.addBusyListener(this.onBusy);
     }
 
     onDeactivate() {
@@ -149,6 +153,7 @@ export default class PostViewController extends React.Component {
         PostStore.removeChangeListener(this.onPostsChange);
         PostStore.removePostsViewJumpListener(this.onPostsViewJumpRequest);
         ChannelStore.removeLastViewedListener(this.onSetNewMessageIndicator);
+        WebrtcStore.removeBusyListener(this.onBusy);
     }
 
     componentWillReceiveProps(nextProps) {
@@ -215,6 +220,10 @@ export default class PostViewController extends React.Component {
         } else {
             this.setState({scrollType: ScrollTypes.FREE});
         }
+    }
+
+    onBusy(isBusy) {
+        this.setState({isBusy});
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -294,6 +303,10 @@ export default class PostViewController extends React.Component {
             return true;
         }
 
+        if (nextState.isBusy !== this.state.isBusy) {
+            return true;
+        }
+
         return false;
     }
 
@@ -326,6 +339,7 @@ export default class PostViewController extends React.Component {
                     lastViewed={this.state.lastViewed}
                     ownNewMessage={this.state.ownNewMessage}
                     statuses={this.state.statuses}
+                    isBusy={this.state.isBusy}
                 />
             );
         }

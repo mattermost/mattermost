@@ -15,6 +15,7 @@ class WebrtcStoreClass extends EventEmitter {
 
     setVideoCallWith(userId) {
         this.video_call_with = userId;
+        this.emitBusy(userId !== null);
     }
 
     getVideoCallWith() {
@@ -35,6 +36,18 @@ class WebrtcStoreClass extends EventEmitter {
 
     removeInitListener(callback) {
         this.removeListener(WebrtcActionTypes.INITIALIZE, callback);
+    }
+
+    emitBusy(isBusy) {
+        this.emit(WebrtcActionTypes.BUSY, isBusy);
+    }
+
+    addBusyListener(callback) {
+        this.on(WebrtcActionTypes.BUSY, callback);
+    }
+
+    removeBusyListener(callback) {
+        this.removeListener(WebrtcActionTypes.BUSY, callback);
     }
 
     emitNotify(message) {
