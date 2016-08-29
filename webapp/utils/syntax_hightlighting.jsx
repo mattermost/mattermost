@@ -1,7 +1,6 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import * as Utils from './utils.jsx';
 import * as TextFormatting from './text_formatting.jsx';
 import Constants from './constants.jsx';
 
@@ -138,18 +137,17 @@ export function highlight(lang, code) {
 }
 
 export function getLanguageFromFilename(filename) {
-    const fileInfo = Utils.splitFileLocation(filename);
-    var ext = fileInfo.ext;
-    if (!ext) {
-        return null;
-    }
+    const fileSplit = filename.split('.');
 
+    let ext = fileSplit.length > 1 ? fileSplit[fileSplit.length - 1] : '';
     ext = ext.toLowerCase();
+
     for (var key in HighlightedLanguages) {
         if (HighlightedLanguages[key].extensions.find((x) => x === ext)) {
             return key;
         }
     }
+
     return null;
 }
 

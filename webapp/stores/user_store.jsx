@@ -334,7 +334,7 @@ class UserStoreClass extends EventEmitter {
 }
 
 var UserStore = new UserStoreClass();
-UserStore.setMaxListeners(16);
+UserStore.setMaxListeners(600);
 
 UserStore.dispatchToken = AppDispatcher.register((payload) => {
     var action = payload.action;

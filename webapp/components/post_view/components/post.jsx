@@ -114,10 +114,6 @@ export default class Post extends React.Component {
             return true;
         }
 
-        if (nextProps.emojis !== this.props.emojis) {
-            return true;
-        }
-
         if (nextState.dropdownOpened !== this.state.dropdownOpened) {
             return true;
         }
@@ -259,7 +255,6 @@ export default class Post extends React.Component {
                                 handleCommentClick={this.handleCommentClick}
                                 compactDisplay={this.props.compactDisplay}
                                 previewCollapsed={this.props.previewCollapsed}
-                                emojis={this.props.emojis}
                             />
                         </div>
                     </div>
@@ -279,7 +274,6 @@ Post.propTypes = {
     isLastComment: React.PropTypes.bool,
     shouldHighlight: React.PropTypes.bool,
     displayNameType: React.PropTypes.string,
-    hasProfiles: React.PropTypes.bool,
     currentUser: React.PropTypes.object.isRequired,
     center: React.PropTypes.bool,
     compactDisplay: React.PropTypes.bool,
@@ -287,7 +281,6 @@ Post.propTypes = {
     commentCount: React.PropTypes.number,
     isCommentMention: React.PropTypes.bool,
     useMilitaryTime: React.PropTypes.bool.isRequired,
-    emojis: React.PropTypes.object.isRequired,
     isFlagged: React.PropTypes.bool,
     status: React.PropTypes.string
 };

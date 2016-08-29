@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
+import PostMessageContainer from 'components/post_view/components/post_message_container.jsx';
 import UserProfile from './user_profile.jsx';
 
 import TeamStore from 'stores/team_store.jsx';
@@ -11,7 +12,6 @@ import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {flagPost, unflagPost} from 'actions/post_actions.jsx';
 
-import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
 
@@ -77,11 +77,6 @@ export default class SearchResultsItem extends React.Component {
                 );
             }
         }
-
-        const formattingOptions = {
-            searchTerm: this.props.term,
-            mentionHighlight: this.props.isMentionSearch
-        };
 
         let overrideUsername;
         let disableProfilePopover = false;
@@ -251,9 +246,12 @@ export default class SearchResultsItem extends React.Component {
                                 </li>
                             </ul>
                             <div className='search-item-snippet'>
-                                <span
-                                    onClick={TextFormatting.handleClick}
-                                    dangerouslySetInnerHTML={{__html: TextFormatting.formatText(post.message, formattingOptions)}}
+                                <PostMessageContainer
+                                    post={post}
+                                    options={{
+                                        searchTerm: this.props.term,
+                                        mentionHighlight: this.props.isMentionSearch
+                                    }}
                                 />
                             </div>
                         </div>

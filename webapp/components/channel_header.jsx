@@ -581,9 +581,9 @@ export default class ChannelHeader extends React.Component {
                                         ref='headerOverlay'
                                     >
                                         <div
-                                            onClick={TextFormatting.handleClick}
+                                            onClick={Utils.handleFormattedTextClick}
                                             className='description'
-                                            dangerouslySetInnerHTML={{__html: TextFormatting.formatText(channel.header, {singleline: true, mentionHighlight: false})}}
+                                            dangerouslySetInnerHTML={{__html: TextFormatting.formatText(channel.header, {singleline: true, mentionHighlight: false, siteURL: Utils.getSiteURL()})}}
                                         />
                                     </OverlayTrigger>
                                 </div>

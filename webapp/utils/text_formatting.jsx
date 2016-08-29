@@ -2,15 +2,11 @@
 // See License.txt for license information.
 
 import Autolinker from 'autolinker';
-import {browserHistory} from 'react-router/es6';
 import Constants from './constants.jsx';
 import EmojiStore from 'stores/emoji_store.jsx';
 import * as Emoticons from './emoticons.jsx';
 import * as Markdown from './markdown.jsx';
-import PreferenceStore from 'stores/preference_store.jsx';
-import UserStore from 'stores/user_store.jsx';
 import twemoji from 'twemoji';
-import * as Utils from './utils.jsx';
 import XRegExp from 'xregexp';
 
 // pattern to detect the existance of a Chinese, Japanese, or Korean character in a string
@@ -22,16 +18,19 @@ const cjkPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-
 // as part of the second parameter:
 // - searchTerm - If specified, this word is highlighted in the resulting html. Defaults to nothing.
 // - mentionHighlight - Specifies whether or not to highlight mentions of the current user. Defaults to true.
+// - mentionKeys - A list of mention keys for the current user to highlight.
 // - singleline - Specifies whether or not to remove newlines. Defaults to false.
 // - emoticons - Enables emoticon parsing. Defaults to true.
 // - markdown - Enables markdown parsing. Defaults to true.
-export function formatText(text, options = {}) {
+// - siteURL - The origin of this Mattermost instance. If provided, links to channels and posts will be replaced with internal
+//     links that can be handled by a special click handler.
+// - usernameMap - An object mapping usernames to users. If provided, at mentions will be replaced with internal links that can
+//      be handled by a special click handler (Utils.handleFormattedTextClick)
+export function formatText(text, inputOptions) {
     let output = text;
 
-    // would probably make more sense if it was on the calling components, but this option is intended primarily for debugging
-    if (window.mm_config.EnableDeveloper === 'true' && PreferenceStore.get(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', 'true') === 'false') {
-        return output;
-    }
+    const options = Object.assign({}, inputOptions);
+    options.searchPatterns = parseSearchTerms(options.searchTerm).map(convertSearchTermToRegex);
 
     if (!('markdown' in options) || options.markdown) {
         // the markdown renderer will call doFormatText as necessary
@@ -58,7 +57,10 @@ export function doFormatText(text, options) {
     const tokens = new Map();
 
     // replace important words and phrases with tokens
-    output = autolinkAtMentions(output, tokens);
+    if (options.usernameMap) {
+        output = autolinkAtMentions(output, tokens, options.usernameMap);
+    }
+
     output = autolinkEmails(output, tokens);
     output = autolinkHashtags(output, tokens);
 
@@ -66,12 +68,12 @@ export function doFormatText(text, options) {
         output = Emoticons.handleEmoticons(output, tokens, options.emojis || EmojiStore.getEmojis());
     }
 
-    if (options.searchTerm) {
-        output = highlightSearchTerms(output, tokens, options.searchTerm);
+    if (options.searchPatterns) {
+        output = highlightSearchTerms(output, tokens, options.searchPatterns);
     }
 
     if (!('mentionHighlight' in options) || options.mentionHighlight) {
-        output = highlightCurrentMentions(output, tokens);
+        output = highlightCurrentMentions(output, tokens, options.mentionKeys);
     }
 
     if (!('emoticons' in options) || options.emoticon) {
@@ -143,10 +145,10 @@ function autolinkEmails(text, tokens) {
 
 const punctuation = XRegExp.cache('[^\\pL\\d]');
 
-function autolinkAtMentions(text, tokens) {
+function autolinkAtMentions(text, tokens, usernameMap) {
     // Test if provided text needs to be highlighted, special mention or current user
     function mentionExists(u) {
-        return (Constants.SPECIAL_MENTIONS.indexOf(u) !== -1 || UserStore.getProfileByUsername(u));
+        return (Constants.SPECIAL_MENTIONS.indexOf(u) !== -1 || !!usernameMap[u]);
     }
 
     function addToken(username, mention) {
@@ -200,11 +202,8 @@ export function escapeRegex(text) {
     return text.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 }
 
-function highlightCurrentMentions(text, tokens) {
+function highlightCurrentMentions(text, tokens, mentionKeys = []) {
     let output = text;
-
-    const mentionKeys = UserStore.getCurrentMentionKeys();
-    mentionKeys.push('@here');
 
     // look for any existing tokens which are self mentions and should be highlighted
     var newTokens = new Map();
@@ -239,7 +238,7 @@ function highlightCurrentMentions(text, tokens) {
         return prefix + alias;
     }
 
-    for (const mention of UserStore.getCurrentMentionKeys()) {
+    for (const mention of mentionKeys) {
         if (!mention) {
             continue;
         }
@@ -369,10 +368,8 @@ function convertSearchTermToRegex(term) {
     return new RegExp(pattern, 'gi');
 }
 
-export function highlightSearchTerms(text, tokens, searchTerm) {
-    const terms = parseSearchTerms(searchTerm);
-
-    if (terms.length === 0) {
+export function highlightSearchTerms(text, tokens, searchPatterns) {
+    if (!searchPatterns || searchPatterns.length === 0) {
         return text;
     }
 
@@ -390,13 +387,11 @@ export function highlightSearchTerms(text, tokens, searchTerm) {
         return prefix + alias;
     }
 
-    for (const term of terms) {
+    for (const pattern of searchPatterns) {
         // highlight existing tokens matching search terms
-        const trimmedTerm = term.replace(/\*$/, '').toLowerCase();
         var newTokens = new Map();
         for (const [alias, token] of tokens) {
-            if (token.originalText.toLowerCase() === trimmedTerm ||
-                (token.hashtag && token.hashtag.toLowerCase() === trimmedTerm)) {
+            if (pattern.test(token.originalText)) {
                 const index = tokens.size + newTokens.size;
                 const newAlias = `MM_SEARCHTERM${index}`;
 
@@ -414,7 +409,7 @@ export function highlightSearchTerms(text, tokens, searchTerm) {
             tokens.set(newToken[0], newToken[1]);
         }
 
-        output = output.replace(convertSearchTermToRegex(term), replaceSearchTermWithToken);
+        output = output.replace(pattern, replaceSearchTermWithToken);
     }
 
     return output;
@@ -436,32 +431,6 @@ export function replaceTokens(text, tokens) {
 
 function replaceNewlines(text) {
     return text.replace(/\n/g, ' ');
-}
-
-// A click handler that can be used with the results of TextFormatting.formatText to add default functionality
-// to clicked hashtags and @mentions.
-export function handleClick(e) {
-    const mentionAttribute = e.target.getAttributeNode('data-mention');
-    const hashtagAttribute = e.target.getAttributeNode('data-hashtag');
-    const linkAttribute = e.target.getAttributeNode('data-link');
-
-    if (mentionAttribute) {
-        e.preventDefault();
-
-        Utils.searchForTerm(mentionAttribute.value);
-    } else if (hashtagAttribute) {
-        e.preventDefault();
-
-        Utils.searchForTerm(hashtagAttribute.value);
-    } else if (linkAttribute) {
-        const MIDDLE_MOUSE_BUTTON = 1;
-
-        if (!(e.button === MIDDLE_MOUSE_BUTTON || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey)) {
-            e.preventDefault();
-
-            browserHistory.push(linkAttribute.value);
-        }
-    }
 }
 
 //replace all "/" inside <a> tags to "/<wbr />"

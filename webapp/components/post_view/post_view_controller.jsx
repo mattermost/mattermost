@@ -4,7 +4,6 @@
 import PostList from './components/post_list.jsx';
 import LoadingScreen from 'components/loading_screen.jsx';
 
-import EmojiStore from 'stores/emoji_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import PostStore from 'stores/post_store.jsx';
@@ -25,7 +24,6 @@ export default class PostViewController extends React.Component {
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.onUserChange = this.onUserChange.bind(this);
         this.onPostsChange = this.onPostsChange.bind(this);
-        this.onEmojisChange = this.onEmojisChange.bind(this);
         this.onStatusChange = this.onStatusChange.bind(this);
         this.onPostsViewJumpRequest = this.onPostsViewJumpRequest.bind(this);
         this.onSetNewMessageIndicator = this.onSetNewMessageIndicator.bind(this);
@@ -67,7 +65,6 @@ export default class PostViewController extends React.Component {
             compactDisplay: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT,
             previewsCollapsed: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLLAPSE_DISPLAY, 'false'),
             useMilitaryTime: PreferenceStore.getBool(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, false),
-            emojis: EmojiStore.getEmojis(),
             flaggedPosts: PreferenceStore.getCategory(Constants.Preferences.CATEGORY_FLAGGED_POST)
         };
     }
@@ -123,12 +120,6 @@ export default class PostViewController extends React.Component {
         });
     }
 
-    onEmojisChange() {
-        this.setState({
-            emojis: EmojiStore.getEmojis()
-        });
-    }
-
     onStatusChange() {
         const channel = this.state.channel;
         let statuses;
@@ -145,7 +136,6 @@ export default class PostViewController extends React.Component {
         UserStore.addStatusesChangeListener(this.onStatusChange);
         PostStore.addChangeListener(this.onPostsChange);
         PostStore.addPostsViewJumpListener(this.onPostsViewJumpRequest);
-        EmojiStore.addChangeListener(this.onEmojisChange);
         ChannelStore.addLastViewedListener(this.onSetNewMessageIndicator);
     }
 
@@ -155,7 +145,6 @@ export default class PostViewController extends React.Component {
         UserStore.removeStatusesChangeListener(this.onStatusChange);
         PostStore.removeChangeListener(this.onPostsChange);
         PostStore.removePostsViewJumpListener(this.onPostsViewJumpRequest);
-        EmojiStore.removeChangeListener(this.onEmojisChange);
         ChannelStore.removeLastViewedListener(this.onSetNewMessageIndicator);
     }
 
@@ -298,10 +287,6 @@ export default class PostViewController extends React.Component {
             return true;
         }
 
-        if (nextState.emojis !== this.state.emojis) {
-            return true;
-        }
-
         return false;
     }
 
@@ -332,7 +317,6 @@ export default class PostViewController extends React.Component {
                     useMilitaryTime={this.state.useMilitaryTime}
                     flaggedPosts={this.state.flaggedPosts}
                     lastViewed={this.state.lastViewed}
-                    emojis={this.state.emojis}
                     ownNewMessage={this.state.ownNewMessage}
                     statuses={this.state.statuses}
                 />

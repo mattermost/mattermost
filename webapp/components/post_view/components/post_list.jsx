@@ -314,7 +314,6 @@ export default class PostList extends React.Component {
                     compactDisplay={this.props.compactDisplay}
                     previewCollapsed={this.props.previewsCollapsed}
                     useMilitaryTime={this.props.useMilitaryTime}
-                    emojis={this.props.emojis}
                     isFlagged={isFlagged}
                     status={status}
                 />
@@ -584,7 +583,6 @@ PostList.propTypes = {
     previewsCollapsed: React.PropTypes.string,
     useMilitaryTime: React.PropTypes.bool.isRequired,
     isFocusPost: React.PropTypes.bool,
-    emojis: React.PropTypes.object.isRequired,
     flaggedPosts: React.PropTypes.object,
     statuses: React.PropTypes.object
 };

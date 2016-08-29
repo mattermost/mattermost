@@ -1344,3 +1344,27 @@ export function isValidPassword(password) {
 export function getSiteURL() {
     return global.mm_config.SiteURL || window.location.origin;
 }
+
+export function handleFormattedTextClick(e) {
+    const mentionAttribute = e.target.getAttributeNode('data-mention');
+    const hashtagAttribute = e.target.getAttributeNode('data-hashtag');
+    const linkAttribute = e.target.getAttributeNode('data-link');
+
+    if (mentionAttribute) {
+        e.preventDefault();
+
+        searchForTerm(mentionAttribute.value);
+    } else if (hashtagAttribute) {
+        e.preventDefault();
+
+        searchForTerm(hashtagAttribute.value);
+    } else if (linkAttribute) {
+        const MIDDLE_MOUSE_BUTTON = 1;
+
+        if (!(e.button === MIDDLE_MOUSE_BUTTON || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey)) {
+            e.preventDefault();
+
+            browserHistory.push(linkAttribute.value);
+        }
+    }
+}
