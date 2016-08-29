@@ -4,12 +4,12 @@
 import $ from 'jquery';
 import SettingItemMin from 'components/setting_item_min.jsx';
 import SettingItemMax from 'components/setting_item_max.jsx';
+import DesktopNotificationSettings from './desktop_notification_settings.jsx';
 
 import UserStore from 'stores/user_store.jsx';
 
 import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
-import * as UserAgent from 'utils/user_agent.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
@@ -18,21 +18,24 @@ import {FormattedMessage} from 'react-intl';
 
 function getNotificationsStateFromStores() {
     const user = UserStore.getCurrentUser();
-    const soundNeeded = !UserAgent.isFirefox();
 
-    let sound = 'true';
     let desktop = 'default';
+    let sound = 'true';
+    let desktopDuration = '5';
     let comments = 'never';
     let enableEmail = 'true';
     let pushActivity = 'mention';
     let pushStatus = Constants.UserStatuses.ONLINE;
 
     if (user.notify_props) {
+        if (user.notify_props.desktop) {
+            desktop = user.notify_props.desktop;
+        }
         if (user.notify_props.desktop_sound) {
             sound = user.notify_props.desktop_sound;
         }
-        if (user.notify_props.desktop) {
-            desktop = user.notify_props.desktop;
+        if (user.notify_props.desktop_duration) {
+            desktopDuration = user.notify_props.desktop_duration;
         }
         if (user.notify_props.comments) {
             comments = user.notify_props.comments;
@@ -85,12 +88,12 @@ function getNotificationsStateFromStores() {
     }
 
     return {
-        notifyLevel: desktop,
+        desktopActivity: desktop,
+        desktopDuration,
         enableEmail,
         pushActivity,
         pushStatus,
-        soundNeeded,
-        enableSound: sound,
+        desktopSound: sound,
         usernameKey,
         mentionKey,
         customKeys,
@@ -110,16 +113,15 @@ export default class NotificationsTab extends React.Component {
         this.handleSubmit = this.handleSubmit.bind(this);
         this.handleCancel = this.handleCancel.bind(this);
         this.updateSection = this.updateSection.bind(this);
-        this.updateState = this.updateState.bind(this);
+        this.setStateValue = this.setStateValue.bind(this);
         this.onListenerChange = this.onListenerChange.bind(this);
-        this.handleNotifyRadio = this.handleNotifyRadio.bind(this);
         this.handleEmailRadio = this.handleEmailRadio.bind(this);
-        this.handleSoundRadio = this.handleSoundRadio.bind(this);
         this.updateUsernameKey = this.updateUsernameKey.bind(this);
         this.updateMentionKey = this.updateMentionKey.bind(this);
         this.updateFirstNameKey = this.updateFirstNameKey.bind(this);
         this.updateChannelKey = this.updateChannelKey.bind(this);
         this.updateCustomMentionKeys = this.updateCustomMentionKeys.bind(this);
+        this.updateState = this.updateState.bind(this);
         this.onCustomChange = this.onCustomChange.bind(this);
         this.createPushNotificationSection = this.createPushNotificationSection.bind(this);
 
@@ -130,8 +132,9 @@ export default class NotificationsTab extends React.Component {
         var data = {};
         data.user_id = this.props.user.id;
         data.email = this.state.enableEmail;
-        data.desktop_sound = this.state.enableSound;
-        data.desktop = this.state.notifyLevel;
+        data.desktop_sound = this.state.desktopSound;
+        data.desktop = this.state.desktopActivity;
+        data.desktop_duration = this.state.desktopDuration;
         data.push = this.state.pushActivity;
         data.push_status = this.state.pushStatus;
         data.comments = this.state.notifyCommentsLevel;
@@ -166,10 +169,16 @@ export default class NotificationsTab extends React.Component {
     }
 
     handleCancel(e) {
+        e.preventDefault();
         this.updateState();
         this.props.updateSection('');
-        e.preventDefault();
         $('.settings-modal .modal-body').scrollTop(0).perfectScrollbar('update');
+    }
+
+    setStateValue(key, value) {
+        const data = {};
+        data[key] = value;
+        this.setState(data);
     }
 
     updateSection(section) {
@@ -196,11 +205,6 @@ export default class NotificationsTab extends React.Component {
         this.updateState();
     }
 
-    handleNotifyRadio(notifyLevel) {
-        this.setState({notifyLevel});
-        this.refs.wrapper.focus();
-    }
-
     handleNotifyCommentsRadio(notifyCommentsLevel) {
         this.setState({notifyCommentsLevel});
         this.refs.wrapper.focus();
@@ -218,11 +222,6 @@ export default class NotificationsTab extends React.Component {
 
     handleEmailRadio(enableEmail) {
         this.setState({enableEmail});
-        this.refs.wrapper.focus();
-    }
-
-    handleSoundRadio(enableSound) {
-        this.setState({enableSound});
         this.refs.wrapper.focus();
     }
 
@@ -261,7 +260,7 @@ export default class NotificationsTab extends React.Component {
     }
 
     createPushNotificationSection() {
-        let handleUpdateDesktopSection;
+        let handleUpdatePushSection;
         if (this.props.activeSection === 'push') {
             let inputs = [];
             let extraInfo = null;
@@ -495,7 +494,7 @@ export default class NotificationsTab extends React.Component {
             }
         }
 
-        handleUpdateDesktopSection = function updateDesktopSection() {
+        handleUpdatePushSection = function updateDesktopSection() {
             this.props.updateSection('push');
         }.bind(this);
 
@@ -503,240 +502,14 @@ export default class NotificationsTab extends React.Component {
             <SettingItemMin
                 title={Utils.localizeMessage('user.settings.notifications.push', 'Send mobile push notifications')}
                 describe={describe}
-                updateSection={handleUpdateDesktopSection}
+                updateSection={handleUpdatePushSection}
             />
         );
     }
 
     render() {
         const serverError = this.state.serverError;
-
-        var user = this.props.user;
-
-        var desktopSection;
-        var handleUpdateDesktopSection;
-        if (this.props.activeSection === 'desktop') {
-            var notifyActive = [false, false, false];
-            if (this.state.notifyLevel === 'mention') {
-                notifyActive[1] = true;
-            } else if (this.state.notifyLevel === 'none') {
-                notifyActive[2] = true;
-            } else {
-                notifyActive[0] = true;
-            }
-
-            let inputs = [];
-
-            inputs.push(
-                <div key='userNotificationLevelOption'>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                type='radio'
-                                name='desktopNotificationLevel'
-                                checked={notifyActive[0]}
-                                onChange={this.handleNotifyRadio.bind(this, 'all')}
-                            />
-                            <FormattedMessage
-                                id='user.settings.notifications.allActivity'
-                                defaultMessage='For all activity'
-                            />
-                        </label>
-                        <br/>
-                    </div>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                type='radio'
-                                name='desktopNotificationLevel'
-                                checked={notifyActive[1]}
-                                onChange={this.handleNotifyRadio.bind(this, 'mention')}
-                            />
-                            <FormattedMessage
-                                id='user.settings.notifications.onlyMentions'
-                                defaultMessage='Only for mentions and direct messages'
-                            />
-                        </label>
-                        <br/>
-                    </div>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                type='radio'
-                                name='desktopNotificationLevel'
-                                checked={notifyActive[2]}
-                                onChange={this.handleNotifyRadio.bind(this, 'none')}
-                            />
-                            <FormattedMessage
-                                id='user.settings.notifications.never'
-                                defaultMessage='Never'
-                            />
-                        </label>
-                    </div>
-                </div>
-            );
-
-            const extraInfo = (
-                <span>
-                    <FormattedMessage
-                        id='user.settings.notifications.info'
-                        defaultMessage='Desktop notifications are available on Firefox, Safari, Chrome, Internet Explorer, and Edge.'
-                    />
-                </span>
-            );
-
-            desktopSection = (
-                <SettingItemMax
-                    title={Utils.localizeMessage('user.settings.notifications.desktop', 'Send desktop notifications')}
-                    extraInfo={extraInfo}
-                    inputs={inputs}
-                    submit={this.handleSubmit}
-                    server_error={serverError}
-                    updateSection={this.handleCancel}
-                />
-            );
-        } else {
-            let describe = '';
-            if (this.state.notifyLevel === 'mention') {
-                describe = (
-                    <FormattedMessage
-                        id='user.settings.notifications.onlyMentions'
-                        defaultMessage='Only for mentions and direct messages'
-                    />
-                );
-            } else if (this.state.notifyLevel === 'none') {
-                describe = (
-                    <FormattedMessage
-                        id='user.settings.notifications.never'
-                        defaultMessage='Never'
-                    />
-                );
-            } else {
-                describe = (
-                    <FormattedMessage
-                        id='user.settings.notification.allActivity'
-                        defaultMessage='For all activity'
-                    />
-                );
-            }
-
-            handleUpdateDesktopSection = function updateDesktopSection() {
-                this.props.updateSection('desktop');
-            }.bind(this);
-
-            desktopSection = (
-                <SettingItemMin
-                    title={Utils.localizeMessage('user.settings.notifications.desktop', 'Send desktop notifications')}
-                    describe={describe}
-                    updateSection={handleUpdateDesktopSection}
-                />
-            );
-        }
-
-        var soundSection;
-        var handleUpdateSoundSection;
-        if (this.props.activeSection === 'sound' && this.state.soundNeeded) {
-            var soundActive = [false, false];
-            if (this.state.enableSound === 'false') {
-                soundActive[1] = true;
-            } else {
-                soundActive[0] = true;
-            }
-
-            let inputs = [];
-
-            inputs.push(
-                <div key='userNotificationSoundOptions'>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                type='radio'
-                                name='notificationSounds'
-                                checked={soundActive[0]}
-                                onChange={this.handleSoundRadio.bind(this, 'true')}
-                            />
-                            <FormattedMessage
-                                id='user.settings.notifications.on'
-                                defaultMessage='On'
-                            />
-                        </label>
-                        <br/>
-                    </div>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                type='radio'
-                                name='notificationSounds'
-                                checked={soundActive[1]}
-                                onChange={this.handleSoundRadio.bind(this, 'false')}
-                            />
-                            <FormattedMessage
-                                id='user.settings.notifications.off'
-                                defaultMessage='Off'
-                            />
-                        </label>
-                        <br/>
-                    </div>
-                </div>
-            );
-
-            const extraInfo = (
-                <span>
-                    <FormattedMessage
-                        id='user.settings.notifications.sounds_info'
-                        defaultMessage='Desktop notifications sounds are available on Firefox, Safari, Chrome, Internet Explorer, and Edge.'
-                    />
-                </span>
-            );
-
-            soundSection = (
-                <SettingItemMax
-                    title={Utils.localizeMessage('user.settings.notifications.desktopSounds', 'Desktop notification sounds')}
-                    extraInfo={extraInfo}
-                    inputs={inputs}
-                    submit={this.handleSubmit}
-                    server_error={serverError}
-                    updateSection={this.handleCancel}
-                />
-            );
-        } else {
-            let describe = '';
-            if (!this.state.soundNeeded) {
-                describe = (
-                    <FormattedMessage
-                        id='user.settings.notifications.soundConfig'
-                        defaultMessage='Please configure notification sounds in your browser settings'
-                    />
-                );
-            } else if (this.state.enableSound === 'false') {
-                describe = (
-                    <FormattedMessage
-                        id='user.settings.notifications.off'
-                        defaultMessage='Off'
-                    />
-                );
-            } else {
-                describe = (
-                    <FormattedMessage
-                        id='user.settings.notifications.on'
-                        defaultMessage='On'
-                    />
-                );
-            }
-
-            handleUpdateSoundSection = function updateSoundSection() {
-                this.props.updateSection('sound');
-            }.bind(this);
-
-            soundSection = (
-                <SettingItemMin
-                    title={Utils.localizeMessage('user.settings.notifications.desktopSounds', 'Desktop notification sounds')}
-                    describe={describe}
-                    updateSection={handleUpdateSoundSection}
-                    disableOpen={!this.state.soundNeeded}
-                />
-            );
-        }
+        const user = this.props.user;
 
         var keysSection;
         var handleUpdateKeysSection;
@@ -1089,9 +862,17 @@ export default class NotificationsTab extends React.Component {
                         />
                     </h3>
                     <div className='divider-dark first'/>
-                    {desktopSection}
-                    <div className='divider-light'/>
-                    {soundSection}
+                    <DesktopNotificationSettings
+                        activity={this.state.desktopActivity}
+                        sound={this.state.desktopSound}
+                        duration={this.state.desktopDuration}
+                        updateSection={this.updateSection}
+                        setParentState={this.setStateValue}
+                        submit={this.handleSubmit}
+                        cancel={this.handleCancel}
+                        error={this.state.serverError}
+                        active={this.props.activeSection === 'desktop'}
+                    />
                     <div className='divider-light'/>
                     <EmailNotificationSetting
                         activeSection={this.props.activeSection}

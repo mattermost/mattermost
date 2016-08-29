@@ -809,7 +809,8 @@ export const Constants = {
     PERMISSIONS_SYSTEM_ADMIN: 'system_admin',
     MENTION_MEMBERS: 'mention.members',
     MENTION_NONMEMBERS: 'mention.nonmembers',
-    MENTION_SPECIAL: 'mention.special'
+    MENTION_SPECIAL: 'mention.special',
+    DEFAULT_NOTIFICATION_DURATION: 5000
 };
 
 export default Constants;
