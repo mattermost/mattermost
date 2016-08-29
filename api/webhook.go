@@ -482,7 +482,7 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	c.Err = nil
 
-	if _, err := CreateWebhookPost(hook.UserId, channel.Id, hook.TeamId, text, overrideUsername, overrideIconUrl, parsedRequest.Props, webhookType); err != nil {
+	if _, err := CreateWebhookPost(c, channel.Id, text, overrideUsername, overrideIconUrl, parsedRequest.Props, webhookType); err != nil {
 		c.Err = err
 		return
 	}
