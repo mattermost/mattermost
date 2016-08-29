@@ -40,8 +40,12 @@
         .post__header {
             .col__name {
                 .user-popover {
-                    max-width: 130px;
+                    max-width: 120px;
                 }
+            }
+
+            .flag-icon__container {
+                z-index: 5;
             }
         }
     }
