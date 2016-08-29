@@ -102,7 +102,7 @@ export default class EmailNotificationSetting extends React.Component {
 
             return (
                 <SettingItemMin
-                    title={localizeMessage('user.settings.notifications.emailNotifications', 'Send Email notifications')}
+                    title={localizeMessage('user.settings.notifications.emailNotifications', 'Email notifications')}
                     describe={description}
                     updateSection={this.expand}
                 />
@@ -156,7 +156,7 @@ export default class EmailNotificationSetting extends React.Component {
 
         return (
             <SettingItemMax
-                title={localizeMessage('user.settings.notifications.emailNotifications', 'Send email notifications')}
+                title={localizeMessage('user.settings.notifications.emailNotifications', 'Email notifications')}
                 inputs={[
                     <div key='userNotificationEmailOptions'>
                         <div className='radio'>
@@ -192,7 +192,7 @@ export default class EmailNotificationSetting extends React.Component {
                         <div>
                             <FormattedMessage
                                 id='user.settings.notifications.emailInfo'
-                                defaultMessage='Email notifications that are sent for mentions and direct messages when you are offline or away from {siteName} for more than 5 minutes.'
+                                defaultMessage='Email notifications are sent for mentions and direct messages when you are offline or away from {siteName} for more than 5 minutes.'
                                 values={{
                                     siteName: global.window.mm_config.SiteName
                                 }}
