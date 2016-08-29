@@ -55,7 +55,10 @@ export function createDMIntroMessage(channel, centeredIntro) {
                 </div>
                 <div className='channel-intro-profile'>
                     <strong>
-                        <UserProfile user={teammate}/>
+                        <UserProfile
+                            user={teammate}
+                            disablePopover={true}
+                        />
                     </strong>
                 </div>
                 <p className='channel-intro-text'>

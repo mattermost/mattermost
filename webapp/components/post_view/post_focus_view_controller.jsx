@@ -9,6 +9,7 @@ import PostStore from 'stores/post_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
+import WebrtcStore from 'stores/webrtc_store.jsx';
 
 import Constants from 'utils/constants.jsx';
 const ScrollTypes = Constants.ScrollTypes;
@@ -26,6 +27,7 @@ export default class PostFocusView extends React.Component {
         this.onStatusChange = this.onStatusChange.bind(this);
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.onPostListScroll = this.onPostListScroll.bind(this);
+        this.onBusy = this.onBusy.bind(this);
 
         const focusedPostId = PostStore.getFocusedPostId();
 
@@ -38,13 +40,14 @@ export default class PostFocusView extends React.Component {
         const joinLeaveEnabled = PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'join_leave', true);
 
         let statuses;
-        if (channel && channel.type !== Constants.DM_CHANNEL) {
+        if (channel) {
             statuses = Object.assign({}, UserStore.getStatuses());
         }
 
         this.state = {
             postList: PostStore.filterPosts(focusedPostId, joinLeaveEnabled),
             currentUser: UserStore.getCurrentUser(),
+            isBusy: WebrtcStore.isBusy(),
             profiles,
             statuses,
             scrollType: ScrollTypes.POST,
@@ -64,6 +67,7 @@ export default class PostFocusView extends React.Component {
         UserStore.addStatusesChangeListener(this.onStatusChange);
         EmojiStore.addChangeListener(this.onEmojiChange);
         PreferenceStore.addChangeListener(this.onPreferenceChange);
+        WebrtcStore.addBusyListener(this.onBusy);
     }
 
     componentWillUnmount() {
@@ -73,6 +77,7 @@ export default class PostFocusView extends React.Component {
         UserStore.removeStatusesChangeListener(this.onStatusChange);
         EmojiStore.removeChangeListener(this.onEmojiChange);
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
+        WebrtcStore.removeBusyListener(this.onBusy);
     }
 
     onChannelChange() {
@@ -113,7 +118,7 @@ export default class PostFocusView extends React.Component {
     onStatusChange() {
         const channel = ChannelStore.getCurrent();
         let statuses;
-        if (channel && channel.type !== Constants.DM_CHANNEL) {
+        if (channel) {
             statuses = Object.assign({}, UserStore.getStatuses());
         }
 
@@ -144,6 +149,10 @@ export default class PostFocusView extends React.Component {
         this.setState({scrollType: ScrollTypes.FREE});
     }
 
+    onBusy(isBusy) {
+        this.setState({isBusy});
+    }
+
     render() {
         const postsToHighlight = {};
         postsToHighlight[this.state.scrollPostId] = true;
@@ -172,6 +181,7 @@ export default class PostFocusView extends React.Component {
                     emojis={this.state.emojis}
                     flaggedPosts={this.state.flaggedPosts}
                     statuses={this.state.statuses}
+                    isBusy={this.state.isBusy}
                 />
             );
         }

@@ -3,7 +3,7 @@
 
 import $ from 'jquery';
 
-import WebrtcContainer from '../webrtc_controller.jsx';
+import WebrtcController from '../webrtc_controller.jsx';
 import UserStore from 'stores/user_store.jsx';
 import WebrtcStore from 'stores/webrtc_store.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -89,6 +89,10 @@ export default class SidebarRight extends React.Component {
             videoCallWithUserId: userId,
             expanded
         });
+
+        if (userId !== null) {
+            this.forceUpdate();
+        }
     }
 
     render() {
@@ -101,7 +105,7 @@ export default class SidebarRight extends React.Component {
 
         if (this.state.videoCallVisible) {
             content = (
-                <WebrtcContainer
+                <WebrtcController
                     currentUser={this.state.currentUser}
                     userId={this.state.videoCallWithUserId}
                     isCaller={this.state.isCaller}

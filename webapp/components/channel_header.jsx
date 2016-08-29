@@ -55,6 +55,7 @@ export default class ChannelHeader extends React.Component {
         this.openRecentMentions = this.openRecentMentions.bind(this);
         this.getFlagged = this.getFlagged.bind(this);
         this.initWebrtc = this.initWebrtc.bind(this);
+        this.onBusy = this.onBusy.bind(this);
 
         const state = this.getStateFromStores();
         state.showEditChannelPurposeModal = false;
@@ -95,6 +96,7 @@ export default class ChannelHeader extends React.Component {
         UserStore.addChangeListener(this.onListenerChange);
         UserStore.addStatusesChangeListener(this.onListenerChange);
         WebrtcStore.addChangedListener(this.onListenerChange);
+        WebrtcStore.addBusyListener(this.onBusy);
         $('.sidebar--left .dropdown-menu').perfectScrollbar();
         document.addEventListener('keydown', this.openRecentMentions);
     }
@@ -107,6 +109,7 @@ export default class ChannelHeader extends React.Component {
         UserStore.removeChangeListener(this.onListenerChange);
         UserStore.removeStatusesChangeListener(this.onListenerChange);
         WebrtcStore.removeChangedListener(this.onListenerChange);
+        WebrtcStore.removeBusyListener(this.onBusy);
         document.removeEventListener('keydown', this.openRecentMentions);
     }
 
@@ -232,10 +235,14 @@ export default class ChannelHeader extends React.Component {
     }
 
     initWebrtc(contactId, isOnline) {
-        if (isOnline) {
+        if (isOnline && !this.state.isBusy) {
             GlobalActions.emitCloseRightHandSide();
             WebrtcActions.initWebrtc(contactId, true);
         }
+    }
+
+    onBusy(isBusy) {
+        this.setState({isBusy});
     }
 
     render() {
