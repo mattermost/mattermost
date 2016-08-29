@@ -1420,6 +1420,10 @@
     "translation": "Bad timestamp detected"
   },
   {
+    "id": "api.slackimport.slack_convert_user_mentions.compile_regexp_failed.warn",
+    "translation": "Failed to compile the @mention matching regular expression for Slack user {{.UserID}} {{.Username}}"
+  },
+  {
     "id": "api.slackimport.slack_import.log",
     "translation": "Mattermost Slack Import Log\r\n"
   },
