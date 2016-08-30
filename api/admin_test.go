@@ -161,6 +161,18 @@ func TestEmailTest(t *testing.T) {
 	}
 }
 
+func TestLdapTest(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+
+	if _, err := th.BasicClient.TestLdap(utils.Cfg); err == nil {
+		t.Fatal("Shouldn't have permissions")
+	}
+
+	if _, err := th.SystemAdminClient.TestLdap(utils.Cfg); err == nil {
+		t.Fatal("should have errored")
+	}
+}
+
 func TestGetTeamAnalyticsStandard(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	th.CreatePrivateChannel(th.BasicClient, th.BasicTeam)

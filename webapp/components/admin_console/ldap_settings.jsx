@@ -8,6 +8,7 @@ import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
 
 import SyncNowButton from './sync_now_button.jsx';
+import LdapTestButton from './ldap_test_button.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 
@@ -76,7 +77,7 @@ export default class LdapSettings extends AdminSettings {
             <h3>
                 <FormattedMessage
                     id='admin.authentication.ldap'
-                    defaultMessage='LDAP'
+                    defaultMessage='AD/LDAP'
                 />
             </h3>
         );
@@ -149,6 +150,23 @@ export default class LdapSettings extends AdminSettings {
                     value={this.state.connectionSecurity}
                     onChange={this.handleChange}
                     disabled={!this.state.enable}
+                />
+                <BooleanSetting
+                    id='skipCertificateVerification'
+                    label={
+                        <FormattedMessage
+                            id='admin.ldap.skipCertificateVerification'
+                            defaultMessage='Skip Certificate Verification:'
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.ldap.skipCertificateVerificationDesc'
+                            defaultMessage='Skips the certificate verification step for TLS or STARTTLS connections. Not recommended for production environments where TLS is required. For testing only.'
+                        />
+                    }
+                    value={this.state.skipCertificateVerification}
+                    onChange={this.handleChange}
                 />
                 <TextSetting
                     id='baseDN'
@@ -339,11 +357,30 @@ export default class LdapSettings extends AdminSettings {
                     disabled={!this.state.enable}
                 />
                 <TextSetting
+                    id='loginFieldName'
+                    label={
+                        <FormattedMessage
+                            id='admin.ldap.loginNameTitle'
+                            defaultMessage='Sign-in Field Default Text:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.ldap.loginNameEx', 'Ex "LDAP Username"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.ldap.loginNameDesc'
+                            defaultMessage='The placeholder text that appears in the login field on the login page. Defaults to "LDAP Username".'
+                        />
+                    }
+                    value={this.state.loginFieldName}
+                    onChange={this.handleChange}
+                    disabled={!this.state.enable}
+                />
+                <TextSetting
                     id='syncIntervalMinutes'
                     label={
                         <FormattedMessage
                             id='admin.ldap.syncIntervalTitle'
-                            defaultMessage='Synchronization Interval (minutes)'
+                            defaultMessage='Synchronization Interval (minutes):'
                         />
                     }
                     helpText={
@@ -356,22 +393,24 @@ export default class LdapSettings extends AdminSettings {
                     onChange={this.handleChange}
                     disabled={!this.state.enable}
                 />
-                <BooleanSetting
-                    id='skipCertificateVerification'
+                <TextSetting
+                    id='maxPageSize'
                     label={
                         <FormattedMessage
-                            id='admin.ldap.skipCertificateVerification'
-                            defaultMessage='Skip Certificate Verification'
+                            id='admin.ldap.maxPageSizeTitle'
+                            defaultMessage='Maximum Page Size:'
                         />
                     }
+                    placeholder={Utils.localizeMessage('admin.ldap.maxPageSizeEx', 'Ex "2000"')}
                     helpText={
                         <FormattedMessage
-                            id='admin.ldap.skipCertificateVerificationDesc'
-                            defaultMessage='Skips the certificate verification step for TLS or STARTTLS connections. Not recommended for production environments where TLS is required. For testing only.'
+                            id='admin.ldap.maxPageSizeHelpText'
+                            defaultMessage='The maximum number of users the Mattermost server will request from the LDAP server at one time. 0 is unlimited.'
                         />
                     }
-                    value={this.state.skipCertificateVerification}
+                    value={this.state.maxPageSize}
                     onChange={this.handleChange}
+                    disabled={!this.state.enable}
                 />
                 <TextSetting
                     id='queryTimeout'
@@ -392,46 +431,13 @@ export default class LdapSettings extends AdminSettings {
                     onChange={this.handleChange}
                     disabled={!this.state.enable}
                 />
-                <TextSetting
-                    id='maxPageSize'
-                    label={
-                        <FormattedMessage
-                            id='admin.ldap.maxPageSizeTitle'
-                            defaultMessage='Maximum Page Size'
-                        />
-                    }
-                    placeholder={Utils.localizeMessage('admin.ldap.maxPageSizeEx', 'Ex "2000"')}
-                    helpText={
-                        <FormattedMessage
-                            id='admin.ldap.maxPageSizeHelpText'
-                            defaultMessage='The maximum number of users the Mattermost server will request from the LDAP server at one time. 0 is unlimited.'
-                        />
-                    }
-                    value={this.state.maxPageSize}
-                    onChange={this.handleChange}
-                    disabled={!this.state.enable}
-                />
-                <TextSetting
-                    id='loginFieldName'
-                    label={
-                        <FormattedMessage
-                            id='admin.ldap.loginNameTitle'
-                            defaultMessage='Sign-in Field Default Text:'
-                        />
-                    }
-                    placeholder={Utils.localizeMessage('admin.ldap.loginNameEx', 'Ex "LDAP Username"')}
-                    helpText={
-                        <FormattedMessage
-                            id='admin.ldap.loginNameDesc'
-                            defaultMessage='The placeholder text that appears in the login field on the login page. Defaults to "LDAP Username".'
-                        />
-                    }
-                    value={this.state.loginFieldName}
-                    onChange={this.handleChange}
-                    disabled={!this.state.enable}
-                />
                 <SyncNowButton
                     disabled={!this.state.enable}
+                />
+                <LdapTestButton
+                    disabled={!this.state.enable}
+                    submitFunction={this.doSubmit}
+                    saveNeeded={this.state.saveNeeded}
                 />
             </SettingsGroup>
         );
