@@ -18,19 +18,22 @@
 }
 
 .webrtc__error {
-    .has-error {
-        padding: 0 20px;
-        text-align: center;
+    padding: 0 20px;
+    text-align: center;
 
+    .control-label {
+        @include border-radius(3px);
+        background: #f2f2f2;
+        font-size: 14px;
+        font-weight: normal;
+        margin: 1em 0 -1em;
+        padding: .7em 1em;
+        width: 100%;
+    }
+
+    .has-error {
         .control-label {
-            @include border-radius(3px);
-            background: #f2f2f2;
             color: #a94442;
-            font-size: 14px;
-            font-weight: normal;
-            margin: 1em 0 -1em;
-            padding: .7em 1em;
-            width: 100%;
             font-size: .95em;
 
             &:before {
@@ -266,5 +269,9 @@
         #local-video {
             max-width: 200px;
         }
+    }
+
+    #videos.small {
+        position: relative;
     }
 }

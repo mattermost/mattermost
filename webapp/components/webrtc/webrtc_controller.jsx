@@ -133,7 +133,7 @@ export default class WebrtcController extends React.Component {
             });
         }
 
-        if (nextProps.isCaller) {
+        if (nextProps.isCaller && nextProps.expanded === this.props.expanded) {
             this.startCall = true;
         }
     }
@@ -154,7 +154,7 @@ export default class WebrtcController extends React.Component {
 
     clearError() {
         setTimeout(() => {
-            this.setState({error: null});
+            this.setState({error: null, ended: null});
         }, Constants.WEBRTC_CLEAR_ERROR_DALAY);
     }
 
@@ -722,10 +722,11 @@ export default class WebrtcController extends React.Component {
                 isMuted: false,
                 isRemotePaused: false,
                 isRemoteMuted: false,
-                error: (
+                error: null,
+                ended: (
                     <FormattedMessage
                         id='webrtc.callEnded'
-                        defaultMessage='Call with {username} ended'
+                        defaultMessage='Call with {username} ended.'
                         values={{
                             username: Utils.displayUsername(this.props.userId)
                         }}
@@ -1026,7 +1027,7 @@ export default class WebrtcController extends React.Component {
         let remoteVideoHidden = 'hidden';
         let error;
         let remoteMute;
-
+        let videoClass = '';
         let localImageHidden = 'webrtc__local-image hidden';
         let remoteImageHidden = 'webrtc__remote-image';
 
@@ -1035,6 +1036,14 @@ export default class WebrtcController extends React.Component {
                 <div className='webrtc__error'>
                     <div className='form-group has-error'>
                         <label className='control-label'>{this.state.error}</label>
+                    </div>
+                </div>
+            );
+        } else if (this.state.ended) {
+            error = (
+                <div className='webrtc__error'>
+                    <div className='form-group'>
+                        <label className='control-label'>{this.state.ended}</label>
                     </div>
                 </div>
             );
@@ -1116,6 +1125,8 @@ export default class WebrtcController extends React.Component {
                 remoteVideoHidden = '';
                 remoteImageHidden = 'webrtc__remote-image hidden';
             }
+        } else {
+            videoClass = 'small';
         }
 
         return (
@@ -1128,7 +1139,10 @@ export default class WebrtcController extends React.Component {
                         toggleSize={this.props.toggleSize}
                     />
                     <div className='post-right__scroll'>
-                        <div id='videos'>
+                        <div
+                            id='videos'
+                            className={videoClass}
+                        >
                             {remoteMute}
                             <div
                                 id='main-video'
@@ -1173,5 +1187,6 @@ WebrtcController.propTypes = {
     currentUser: React.PropTypes.object,
     userId: React.PropTypes.string.isRequired,
     isCaller: React.PropTypes.bool.isRequired,
+    expanded: React.PropTypes.bool.isRequired,
     toggleSize: React.PropTypes.function
 };
