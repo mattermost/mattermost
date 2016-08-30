@@ -57,7 +57,8 @@ export default class WebrtcSettings extends AdminSettings {
             stunURI: settings.StunURI,
             turnURI: settings.TurnURI,
             turnUsername: settings.TurnUsername,
-            turnSharedKey: settings.TurnSharedKey
+            turnSharedKey: settings.TurnSharedKey,
+            agree: settings.Enable
         };
     }
 

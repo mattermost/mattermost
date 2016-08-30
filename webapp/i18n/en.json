@@ -2034,7 +2034,7 @@
   "web.root.signup_info": "All team communication in one place, searchable and accessible anywhere",
   "webrtc.busy": "{username} is busy.",
   "webrtc.call": "Call",
-  "webrtc.callEnded": "Call with {username} ended",
+  "webrtc.callEnded": "Call with {username} ended.",
   "webrtc.cancel": "Cancel call",
   "webrtc.cancelled": "{username} cancelled the call.",
   "webrtc.declined": "Your call has been declined by {username}.",

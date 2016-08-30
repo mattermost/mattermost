@@ -33,7 +33,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
     }
 
     getStateFromStores() {
-        const preReleaseFeaturesKeys = Object.keys(PreReleaseFeatures);
+        let preReleaseFeaturesKeys = Object.keys(PreReleaseFeatures);
         const advancedSettings = PreferenceStore.getCategory(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS);
         const settings = {
             send_on_ctrl_enter: PreferenceStore.get(
@@ -55,6 +55,13 @@ export default class AdvancedSettingsDisplay extends React.Component {
 
         let enabledFeatures = 0;
         for (const [name, value] of advancedSettings) {
+            const webrtcEnabled = global.mm_config.EnableWebrtc === 'true' && global.mm_license.Webrtc === 'true' &&
+                global.mm_config.EnableDeveloper === 'true';
+
+            if (!webrtcEnabled) {
+                preReleaseFeaturesKeys = preReleaseFeaturesKeys.filter((f) => f !== 'WEBRTC_PREVIEW');
+            }
+
             for (const key of preReleaseFeaturesKeys) {
                 const feature = PreReleaseFeatures[key];
 
