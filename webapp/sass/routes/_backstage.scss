@@ -279,6 +279,10 @@
     padding: 40px 30px 30px;
     position: relative;
 
+    &.backstage-form__confirmation {
+        padding: 30px 30px 20px;
+    }
+
     label {
         font-weight: normal;
     }
