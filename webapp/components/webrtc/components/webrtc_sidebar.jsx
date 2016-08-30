@@ -109,6 +109,7 @@ export default class SidebarRight extends React.Component {
                     currentUser={this.state.currentUser}
                     userId={this.state.videoCallWithUserId}
                     isCaller={this.state.isCaller}
+                    expanded={this.state.expanded}
                     toggleSize={this.toggleSize}
                 />
             );
