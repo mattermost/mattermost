@@ -216,6 +216,11 @@ class PostStoreClass extends EventEmitter {
                     if (combinedPosts.order.indexOf(pid) === -1 && newPosts.order.indexOf(pid) !== -1) {
                         combinedPosts.order.push(pid);
                     }
+                } else if (combinedPosts.posts.hasOwnProperty(pid)) {
+                    combinedPosts.posts[pid] = Object.assign({}, np, {
+                        state: Constants.POST_DELETED,
+                        filenames: []
+                    });
                 }
             }
         }

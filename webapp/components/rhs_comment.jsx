@@ -200,7 +200,10 @@ export default class RhsComment extends React.Component {
                     <a
                         href='#'
                         role='menuitem'
-                        onClick={() => GlobalActions.showDeletePostModal(post, 0)}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            GlobalActions.showDeletePostModal(post, 0);
+                        }}
                     >
                         <FormattedMessage
                             id='rhs_comment.del'
