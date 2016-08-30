@@ -35,6 +35,8 @@ const (
 	STATUS_OK                 = "OK"
 	STATUS_FAIL               = "FAIL"
 
+	CLIENT_DIR = "webapp/dist"
+
 	API_URL_SUFFIX_V1 = "/api/v1"
 	API_URL_SUFFIX_V3 = "/api/v3"
 	API_URL_SUFFIX    = API_URL_SUFFIX_V3
