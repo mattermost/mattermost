@@ -147,7 +147,10 @@ export default class PostInfo extends React.Component {
                     <a
                         href='#'
                         role='menuitem'
-                        onClick={() => GlobalActions.showDeletePostModal(post, dataComments)}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            GlobalActions.showDeletePostModal(post, dataComments);
+                        }}
                     >
                         <FormattedMessage
                             id='post_info.del'
