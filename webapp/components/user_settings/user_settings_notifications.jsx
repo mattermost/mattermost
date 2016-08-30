@@ -769,7 +769,7 @@ export default class NotificationsTab extends React.Component {
                 <span>
                     <FormattedMessage
                         id='user.settings.notifications.commentsInfo'
-                        defaultMessage='In addition to notifications for when you're mentioned, select if you would like to receive notifications on reply threads.'
+                        defaultMessage='In addition to notifications for when you’re mentioned, select if you would like to receive notifications on reply threads.'
                     />
                 </span>
             );
