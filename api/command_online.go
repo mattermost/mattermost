@@ -38,5 +38,5 @@ func (me *OnlineProvider) DoCommand(c *Context, channelId string, message string
 	}
 	SetStatusOnline(c.Session.UserId, c.Session.Id, true)
 
-	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL, Text: rmsg}
+	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: rmsg}
 }

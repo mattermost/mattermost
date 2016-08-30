@@ -38,5 +38,5 @@ func (me *OfflineProvider) DoCommand(c *Context, channelId string, message strin
 	}
 	SetStatusOffline(c.Session.UserId, true)
 
-	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL, Text: rmsg}
+	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: rmsg}
 }
