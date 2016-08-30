@@ -49,6 +49,7 @@ export default class PostList extends React.Component {
         this.jumpToPostNode = null;
         this.wasAtBottom = true;
         this.scrollHeight = 0;
+        this.animationFrameId = 0;
 
         this.scrollStopAction = new DelayedAction(this.handleScrollStop);
 
@@ -431,7 +432,7 @@ export default class PostList extends React.Component {
     }
 
     scrollToBottom() {
-        window.requestAnimationFrame(() => {
+        this.animationFrameId = window.requestAnimationFrame(() => {
             this.refs.postlist.scrollTop = this.refs.postlist.scrollHeight;
         });
     }
@@ -464,13 +465,14 @@ export default class PostList extends React.Component {
     }
 
     componentWillUnmount() {
+        window.cancelAnimationFrame(this.animationFrameId);
         window.removeEventListener('resize', this.handleResize);
         window.removeEventListener('keydown', this.handleKeyDown);
         this.scrollStopAction.cancel();
     }
 
     componentDidUpdate() {
-        if (this.props.postList != null) {
+        if (this.props.postList != null && this.refs.postlist) {
             this.updateScrolling();
         }
     }
