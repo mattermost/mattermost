@@ -392,7 +392,7 @@ export default class RhsComment extends React.Component {
                                     <FormattedDate
                                         value={post.create_at}
                                         day='numeric'
-                                        month='long'
+                                        month='short'
                                         year='numeric'
                                         hour12={!this.props.useMilitaryTime}
                                         hour='2-digit'
