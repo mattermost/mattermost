@@ -30,6 +30,7 @@ export default class RhsComment extends React.Component {
         super(props);
 
         this.handlePermalink = this.handlePermalink.bind(this);
+        this.removePost = this.removePost.bind(this);
         this.flagPost = this.flagPost.bind(this);
         this.unflagPost = this.unflagPost.bind(this);
 
@@ -39,6 +40,23 @@ export default class RhsComment extends React.Component {
     handlePermalink(e) {
         e.preventDefault();
         GlobalActions.showGetPostLinkModal(this.props.post);
+    }
+
+    removePost() {
+        GlobalActions.emitRemovePost(this.props.post);
+    }
+
+    createRemovePostButton() {
+        return (
+            <a
+                href='#'
+                className='post__remove theme'
+                type='button'
+                onClick={this.removePost}
+            >
+                {'×'}
+            </a>
+        );
     }
 
     shouldComponentUpdate(nextProps) {
@@ -344,6 +362,21 @@ export default class RhsComment extends React.Component {
             );
         }
 
+        let options;
+        if (Utils.isPostEphemeral(post)) {
+            options = (
+                <li className='col col__remove'>
+                    {this.createRemovePostButton()}
+                </li>
+            );
+        } else {
+            options = (
+                <li className='col col__reply'>
+                    {dropdown}
+                </li>
+            );
+        }
+
         return (
             <div className={'post post--thread ' + currentUserCss + ' ' + compactClass}>
                 <div className='post__content'>
@@ -368,9 +401,7 @@ export default class RhsComment extends React.Component {
                                 </time>
                                 {flagTrigger}
                             </li>
-                            <li className='col col__reply'>
-                                {dropdown}
-                            </li>
+                            {options}
                         </ul>
                         <div className='post__body'>
                             <div className={postClass}>
