@@ -152,7 +152,6 @@ func allowOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("attempt")
 
-	w.Header().Set("Content-Type", "application/json")
 	responseData := map[string]string{}
 
 	responseType := r.URL.Query().Get("response_type")
