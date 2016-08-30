@@ -162,7 +162,7 @@ export default class SignupController extends React.Component {
             );
         }
 
-        if (global.window.mm_config.EnableSignUpWithGoogle === 'true') {
+        if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_config.EnableSignUpWithGoogle === 'true') {
             signupControls.push(
                 <a
                     className='btn btn-custom-login btn--full google'
@@ -180,7 +180,7 @@ export default class SignupController extends React.Component {
             );
         }
 
-        if (global.window.mm_config.EnableSignUpWithOffice365 === 'true') {
+        if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_config.EnableSignUpWithOffice365 === 'true') {
             signupControls.push(
                 <a
                     className='btn btn-custom-login btn--full office365'
@@ -251,6 +251,12 @@ export default class SignupController extends React.Component {
                     margin={true}
                 />
             );
+        } else if (signupControls.length === 1) {
+            if (global.window.mm_config.EnableSignUpWithEmail === 'true') {
+                return browserHistory.push('/signup_email' + window.location.search);
+            } else if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_config.EnableLdap === 'true') {
+                return browserHistory.push('/signup_ldap');
+            }
         }
 
         return signupControls;
