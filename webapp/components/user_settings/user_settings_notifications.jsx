@@ -421,7 +421,7 @@ export default class NotificationsTab extends React.Component {
 
             return (
                 <SettingItemMax
-                    title={Utils.localizeMessage('user.settings.notifications.push', 'Send mobile push notifications')}
+                    title={Utils.localizeMessage('user.settings.notifications.push', 'Mobile push notifications')}
                     extraInfo={extraInfo}
                     inputs={inputs}
                     submit={submit}
@@ -500,7 +500,7 @@ export default class NotificationsTab extends React.Component {
 
         return (
             <SettingItemMin
-                title={Utils.localizeMessage('user.settings.notifications.push', 'Send mobile push notifications')}
+                title={Utils.localizeMessage('user.settings.notifications.push', 'Mobile push notifications')}
                 describe={describe}
                 updateSection={handleUpdatePushSection}
             />
@@ -769,14 +769,14 @@ export default class NotificationsTab extends React.Component {
                 <span>
                     <FormattedMessage
                         id='user.settings.notifications.commentsInfo'
-                        defaultMessage='Mode of triggering notifications on posts in comment threads you participated in.'
+                        defaultMessage="In addition to notifications for when you're mentioned, select if you would like to receive notifications on reply threads."
                     />
                 </span>
             );
 
             commentsSection = (
                 <SettingItemMax
-                    title={Utils.localizeMessage('user.settings.notifications.comments', 'Comment threads notifications')}
+                    title={Utils.localizeMessage('user.settings.notifications.comments', 'Reply notifications')}
                     extraInfo={extraInfo}
                     inputs={inputs}
                     submit={this.handleSubmit}
@@ -790,21 +790,21 @@ export default class NotificationsTab extends React.Component {
                 describe = (
                     <FormattedMessage
                         id='user.settings.notifications.commentsNever'
-                        defaultMessage='No mentions for comments'
+                        defaultMessage="Only trigger notifications when I'm mentioned"
                     />
                 );
             } else if (this.state.notifyCommentsLevel === 'root') {
                 describe = (
                     <FormattedMessage
                         id='user.settings.notifications.commentsRoot'
-                        defaultMessage='Mention any comments on your post'
+                        defaultMessage='Trigger notifications on messages in threads that I start'
                     />
                 );
             } else {
                 describe = (
                     <FormattedMessage
                         id='user.settings.notifications.commentsAny'
-                        defaultMessage='Mention any comments in a thread you participated in (This will include both mentions to your root post and any comments after you commented on a post)'
+                        defaultMessage='Trigger notifications on messages in reply threads that I start or participate in'
                     />
                 );
             }
@@ -815,7 +815,7 @@ export default class NotificationsTab extends React.Component {
 
             commentsSection = (
                 <SettingItemMin
-                    title={Utils.localizeMessage('user.settings.notifications.comments', 'Comment threads notifications')}
+                    title={Utils.localizeMessage('user.settings.notifications.comments', 'Reply notifications')}
                     describe={describe}
                     updateSection={handleUpdateCommentsSection}
                 />
