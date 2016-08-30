@@ -534,7 +534,7 @@ export default class LoginController extends React.Component {
                     error={
                         <FormattedMessage
                             id='login.noMethods'
-                            defaultMessage='No sign in methods are enabled. Please contact your System Administrator.'
+                            defaultMessage='No sign-in methods are enabled. Please contact your System Administrator.'
                         />
                     }
                     margin={true}
