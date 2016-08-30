@@ -152,24 +152,26 @@ func allowOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("attempt")
 
-	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
 	responseData := map[string]string{}
 
 	responseType := r.URL.Query().Get("response_type")
 	if len(responseType) == 0 {
 		c.Err = model.NewLocAppError("allowOAuth", "api.oauth.allow_oauth.bad_response.app_error", nil, "")
+		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
 
 	clientId := r.URL.Query().Get("client_id")
 	if len(clientId) != 26 {
 		c.Err = model.NewLocAppError("allowOAuth", "api.oauth.allow_oauth.bad_client.app_error", nil, "")
+		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
 
 	redirectUri := r.URL.Query().Get("redirect_uri")
 	if len(redirectUri) == 0 {
 		c.Err = model.NewLocAppError("allowOAuth", "api.oauth.allow_oauth.bad_redirect.app_error", nil, "")
+		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
 
@@ -191,6 +193,7 @@ func allowOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !app.IsValidRedirectURL(redirectUri) {
 		c.LogAudit("fail - redirect_uri did not match registered callback")
 		c.Err = model.NewLocAppError("allowOAuth", "api.oauth.allow_oauth.redirect_callback.app_error", nil, "")
+		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
 
@@ -226,7 +229,6 @@ func allowOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("success")
 
 	responseData["redirect"] = redirectUri + "?code=" + url.QueryEscape(authData.Code) + "&state=" + url.QueryEscape(authData.State)
-	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(model.MapToJson(responseData)))
 }
 
