@@ -1408,7 +1408,7 @@
   "login.noEmailUsername": "Please enter your email or username",
   "login.noEmailUsernameLdapUsername": "Please enter your email, username or {ldapUsername}",
   "login.noLdapUsername": "Please enter your {ldapUsername}",
-  "login.noMethods": "No sign in methods are enabled. Please contact your System Administrator.",
+  "login.noMethods": "No sign-in methods are enabled. Please contact your System Administrator.",
   "login.noPassword": "Please enter your password",
   "login.noUsername": "Please enter your username",
   "login.noUsernameLdapUsername": "Please enter your username or {ldapUsername}",
