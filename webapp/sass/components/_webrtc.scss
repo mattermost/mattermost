@@ -49,29 +49,17 @@
 }
 
 #videos {
+    background: $black;
     font-size: 0;
     left: 0;
     pointer-events: none;
     position: relative;
     text-align: center;
-    top: 5px;
     transition: all 1s;
     width: 100%;
 
     #main-video video {
-        -moz-transform: scale(1, 1);
-        -ms-transform: scale(1, 1);
-        -o-transform: scale(1, 1);
-        -webkit-transform: scale(1, 1);
-        background-color: rgba(239, 239, 239, 0.4);
-        border: 1px solid alpha-color($black, .2);
-        height: 100%;
-        max-height: 100%;
-        max-width: 1280px;
-        object-fit: cover;
-        transform: scale(1, 1);
-        transition: opacity 1s;
-        width: 98%;
+        width: 100%;
     }
 
     #local-video {
@@ -79,7 +67,7 @@
         max-width: 30%;
         opacity: 1;
         position: absolute;
-        right: 12px;
+        right: 10px;
         top: 10px;
         transition: opacity 1s;
         z-index: 2;
@@ -100,15 +88,9 @@
     }
 
     .webrtc__local-image {
-        background-color: $black;
-        border: 1px solid $gray;
-        opacity: 1;
-        overflow: hidden;
         position: absolute;
         right: 10px;
         top: 10px;
-        transition: opacity 1s;
-        width: 30%;
         z-index: 2;
 
         img {
@@ -122,18 +104,12 @@
     .webrtc__remote-image {
         background-color: $black;
         border: 1px solid alpha-color($black, .2);
-        height: 100%;
-        max-height: 100%;
-        max-width: 98%;
-        object-fit: cover;
-        overflow: hidden;
-        width: 98%;
+        padding: 40px 0;
 
         img {
             border-radius: 50%;
-            height: 100%;
-            max-height: 256px;
-            max-width: 256px;
+            max-height: 128px;
+            max-width: 128px;
             width: 100%;
         }
     }
@@ -267,13 +243,28 @@
 
 .sidebar--right--expanded {
     #videos {
-        .webrtc__remote-mute {
-            right: calc(12%);
-        }
+        height: 100%;
+        position: absolute;
 
+        #main-video {
+            height: 100%;
+
+            video {
+                height: 100%;
+                width: auto;
+            }
+        }
+    }
+
+    .webrtc-buttons {
+        bottom: 5px;
+        position: absolute;
+        width: 100%;
+    }
+
+    #videos {
         #local-video {
-            max-width: 22%;
-            right: 18px;
+            max-width: 200px;
         }
     }
 }
