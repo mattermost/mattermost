@@ -293,7 +293,7 @@ export default class NotificationsTab extends React.Component {
                             <label>
                                 <FormattedMessage
                                     id='user.settings.notifications.push_notification.status'
-                                    defaultMessage='Trigger push notifications when:'
+                                    defaultMessage='Trigger push notifications when'
                                 />
                             </label>
                             <br/>
