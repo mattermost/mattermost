@@ -39,14 +39,14 @@ export default class EmailToLDAP extends React.Component {
 
         const ldapId = ReactDOM.findDOMNode(this.refs.ldapid).value.trim();
         if (!ldapId) {
-            state.ldapError = Utils.localizeMessage('claim.email_to_ldap.ldapIdError', 'Please enter your LDAP ID.');
+            state.ldapError = Utils.localizeMessage('claim.email_to_ldap.ldapIdError', 'Please enter your AD/LDAP ID.');
             this.setState(state);
             return;
         }
 
         const ldapPassword = ReactDOM.findDOMNode(this.refs.ldappassword).value;
         if (!ldapPassword) {
-            state.ldapPasswordError = Utils.localizeMessage('claim.email_to_ldap.ldapPasswordError', 'Please enter your LDAP password.');
+            state.ldapPasswordError = Utils.localizeMessage('claim.email_to_ldap.ldapPasswordError', 'Please enter your AD/LDAP password.');
             this.setState(state);
             return;
         }
@@ -101,14 +101,14 @@ export default class EmailToLDAP extends React.Component {
         if (global.window.mm_config.LdapLoginFieldName) {
             loginPlaceholder = global.window.mm_config.LdapLoginFieldName;
         } else {
-            loginPlaceholder = Utils.localizeMessage('claim.email_to_ldap.ldapId', 'LDAP ID');
+            loginPlaceholder = Utils.localizeMessage('claim.email_to_ldap.ldapId', 'AD/LDAP ID');
         }
 
         let passwordPlaceholder;
         if (global.window.mm_config.LdapPasswordFieldName) {
             passwordPlaceholder = global.window.mm_config.LdapPasswordFieldName;
         } else {
-            passwordPlaceholder = Utils.localizeMessage('claim.email_to_ldap.ldapPwd', 'LDAP Password');
+            passwordPlaceholder = Utils.localizeMessage('claim.email_to_ldap.ldapPwd', 'AD/LDAP Password');
         }
 
         return (
@@ -116,7 +116,7 @@ export default class EmailToLDAP extends React.Component {
                 <h3>
                     <FormattedMessage
                         id='claim.email_to_ldap.title'
-                        defaultMessage='Switch Email/Password Account to LDAP'
+                        defaultMessage='Switch Email/Password Account to AD/LDAP'
                     />
                 </h3>
                 <form
@@ -126,13 +126,13 @@ export default class EmailToLDAP extends React.Component {
                     <p>
                         <FormattedMessage
                             id='claim.email_to_ldap.ssoType'
-                            defaultMessage='Upon claiming your account, you will only be able to login with LDAP'
+                            defaultMessage='Upon claiming your account, you will only be able to login with AD/LDAP'
                         />
                     </p>
                     <p>
                         <FormattedMessage
                             id='claim.email_to_ldap.ssoNote'
-                            defaultMessage='You must already have a valid LDAP account'
+                            defaultMessage='You must already have a valid AD/LDAP account'
                         />
                     </p>
                     <p>
@@ -164,7 +164,7 @@ export default class EmailToLDAP extends React.Component {
                     <p>
                         <FormattedMessage
                             id='claim.email_to_ldap.enterLdapPwd'
-                            defaultMessage='Enter the ID and password for your LDAP account'
+                            defaultMessage='Enter the ID and password for your AD/LDAP account'
                         />
                     </p>
                     <div className={ldapClass}>
@@ -197,7 +197,7 @@ export default class EmailToLDAP extends React.Component {
                     >
                         <FormattedMessage
                             id='claim.email_to_ldap.switchTo'
-                            defaultMessage='Switch account to LDAP'
+                            defaultMessage='Switch account to AD/LDAP'
                         />
                     </button>
                     {serverError}
