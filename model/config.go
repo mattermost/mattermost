@@ -1013,14 +1013,6 @@ func (o *Config) IsValid() *AppError {
 			return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_basedn", nil, "")
 		}
 
-		if *o.LdapSettings.FirstNameAttribute == "" {
-			return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_firstname", nil, "")
-		}
-
-		if *o.LdapSettings.LastNameAttribute == "" {
-			return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_lastname", nil, "")
-		}
-
 		if *o.LdapSettings.EmailAttribute == "" {
 			return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_email", nil, "")
 		}

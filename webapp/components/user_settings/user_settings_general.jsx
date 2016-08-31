@@ -629,7 +629,9 @@ class UserSettingsGeneralTab extends React.Component {
         if (this.props.activeSection === 'name') {
             let extraInfo;
             let submit = null;
-            if (this.props.user.auth_service === '') {
+            if (this.props.user.auth_service === '' ||
+                 (this.props.user.auth_service === 'ldap' &&
+                  (global.window.mm_config.FirstNameAttributeSet === 'false' || global.window.mm_config.LastNameAttributeSet === 'false'))) {
                 inputs.push(
                     <div
                         key='firstNameSetting'
