@@ -32,6 +32,7 @@ export default class WebrtcNotification extends React.Component {
         this.handleClose = this.handleClose.bind(this);
         this.handleAnswer = this.handleAnswer.bind(this);
         this.handleTimeout = this.handleTimeout.bind(this);
+        this.stopRinging = this.stopRinging.bind(this);
 
         this.state = {
             userCalling: null
@@ -65,6 +66,14 @@ export default class WebrtcNotification extends React.Component {
         });
     }
 
+    stopRinging() {
+        if (this.refs.ring) {
+            this.refs.ring.pause();
+            this.refs.ring.currentTime = 0;
+        }
+        this.setState({userCalling: null});
+    }
+
     onIncomingCall(incoming) {
         if (this.mounted) {
             const userId = incoming.from_user_id;
@@ -78,6 +87,7 @@ export default class WebrtcNotification extends React.Component {
                         from_user_id: UserStore.getCurrentId(),
                         to_user_id: userId
                     });
+                    this.stopRinging();
                 } else if (userMedia) {
                     WebrtcStore.setVideoCallWith(userId);
                     this.setState({
@@ -89,6 +99,7 @@ export default class WebrtcNotification extends React.Component {
                         from_user_id: UserStore.getCurrentId(),
                         to_user_id: userId
                     });
+                    this.stopRinging();
                 }
             } else {
                 WebSocketClient.sendMessage('webrtc', {
@@ -96,6 +107,7 @@ export default class WebrtcNotification extends React.Component {
                     from_user_id: UserStore.getCurrentId(),
                     to_user_id: userId
                 });
+                this.stopRinging();
             }
         }
     }
