@@ -40,6 +40,7 @@ export default class BackstageSidebar extends React.Component {
 
     renderIntegrations() {
         const config = window.mm_config;
+        const isSystemAdmin = Utils.isSystemAdmin(this.props.user.roles);
         if (config.EnableIncomingWebhooks !== 'true' &&
             config.EnableOutgoingWebhooks !== 'true' &&
             config.EnableCommands !== 'true' &&
@@ -48,7 +49,7 @@ export default class BackstageSidebar extends React.Component {
         }
 
         if (config.EnableOnlyAdminIntegrations !== 'false' &&
-            !Utils.isSystemAdmin(this.props.user.roles) &&
+            !isSystemAdmin &&
             !TeamStore.isTeamAdmin(this.props.user.id, this.props.team.id)) {
             return null;
         }
@@ -99,7 +100,7 @@ export default class BackstageSidebar extends React.Component {
         }
 
         let oauthApps = null;
-        if (config.EnableOAuthServiceProvider === 'true') {
+        if (config.EnableOAuthServiceProvider === 'true' && (isSystemAdmin || config.EnableOnlyAdminIntegrations !== 'true')) {
             oauthApps = (
                 <BackstageSection
                     name='oauth2-apps'
