@@ -3855,7 +3855,6 @@ apply, that proxy's public statement of acceptance of any version is
 permanent authorization for you to choose that version for the
 Library.
 
-
 ---
 
 This product contains a modified portion of 'pdfjs-dist', is a Portable Document Format (PDF) library that is built with HTML5 built by mozilla. 
