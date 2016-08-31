@@ -101,7 +101,7 @@ func TestUserStoreUpdate(t *testing.T) {
 
 	u2.Email = model.NewId()
 	if err := (<-store.User().Update(u2, false)).Err; err == nil {
-		t.Fatal("Update should have failed because you can't modify LDAP fields")
+		t.Fatal("Update should have failed because you can't modify AD/LDAP fields")
 	}
 }
 
@@ -460,14 +460,14 @@ func TestUserStoreGetForLogin(t *testing.T) {
 	}
 
 	if result := <-store.User().GetForLogin(*u2.AuthData, true, true, true); result.Err != nil {
-		t.Fatal("Should have gotten user by LDAP AuthData", result.Err)
+		t.Fatal("Should have gotten user by AD/LDAP AuthData", result.Err)
 	} else if result.Data.(*model.User).Id != u2.Id {
-		t.Fatal("Should have gotten user2 by LDAP AuthData")
+		t.Fatal("Should have gotten user2 by AD/LDAP AuthData")
 	}
 
 	// prevent getting user by AuthData when they're not an LDAP user
 	if result := <-store.User().GetForLogin(*u1.AuthData, true, true, true); result.Err == nil {
-		t.Fatal("Should not have gotten user by non-LDAP AuthData")
+		t.Fatal("Should not have gotten user by non-AD/LDAP AuthData")
 	}
 
 	// prevent getting user when different login methods are disabled
@@ -480,7 +480,7 @@ func TestUserStoreGetForLogin(t *testing.T) {
 	}
 
 	if result := <-store.User().GetForLogin(*u2.AuthData, true, true, false); result.Err == nil {
-		t.Fatal("Should have failed to get user3 by LDAP AuthData")
+		t.Fatal("Should have failed to get user3 by AD/LDAP AuthData")
 	}
 
 	auth3 := model.NewId()
