@@ -1006,6 +1006,10 @@
     "translation": "invalid_request: Bad client_id"
   },
   {
+    "id": "api.oauth.receive_redirect.debug",
+    "translation": "OAuth2 redirect: {{.URL}}"
+  },
+  {
     "id": "api.oauth.allow_oauth.bad_redirect.app_error",
     "translation": "invalid_request: Missing or bad redirect_uri"
   },

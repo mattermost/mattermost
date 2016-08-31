@@ -290,6 +290,8 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	service := params["service"]
 
+	l4g.Debug(utils.T("api.oauth.receive_redirect.debug", map[string]interface{}{"URL": r.URL.String()}))
+
 	code := r.URL.Query().Get("code")
 	state := r.URL.Query().Get("state")
 
