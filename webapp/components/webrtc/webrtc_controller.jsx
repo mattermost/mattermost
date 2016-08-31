@@ -96,7 +96,8 @@ export default class WebrtcController extends React.Component {
             isCalling: false,
             isAnswering: false,
             callInProgress: false,
-            error: null
+            error: null,
+            ended: null
         };
     }
 
@@ -155,7 +156,7 @@ export default class WebrtcController extends React.Component {
     clearError() {
         setTimeout(() => {
             this.setState({error: null, ended: null});
-        }, Constants.WEBRTC_CLEAR_ERROR_DALAY);
+        }, Constants.WEBRTC_CLEAR_ERROR_DELAY);
     }
 
     previewVideo() {
@@ -212,11 +213,20 @@ export default class WebrtcController extends React.Component {
         if (UserStore.getStatus(this.props.userId) === UserStatuses.OFFLINE) {
             this.onStatusChange();
         } else {
+            const connectingMsg = (
+                <FormattedMessage
+                    id='calling_screen'
+                    defaultMessage='Calling'
+                />
+            );
+
             this.setState({
                 isCalling: true,
                 isAnswering: false,
                 callInProgress: false,
-                error: null
+                error: null,
+                ended: null,
+                connectingMsg
             });
 
             WebrtcStore.setVideoCallWith(this.props.userId);
@@ -235,7 +245,8 @@ export default class WebrtcController extends React.Component {
             isCalling: false,
             isAnswering: false,
             callInProgress: false,
-            error: null
+            error: null,
+            ended: null
         });
 
         const user = this.state.currentUser;
@@ -356,6 +367,7 @@ export default class WebrtcController extends React.Component {
             isMuted: false,
             isPaused: false,
             error: null,
+            ended: null,
             isRemotePaused,
             isRemoteMuted
         });
@@ -426,7 +438,8 @@ export default class WebrtcController extends React.Component {
             }
         } else if (status !== UserStatuses.OFFLINE && this.state.error) {
             this.setState({
-                error: null
+                error: null,
+                ended: null
             });
         }
     }
@@ -607,7 +620,14 @@ export default class WebrtcController extends React.Component {
     onConnectCall() {
         Client.webrtcToken(
             (info) => {
-                this.setState({isAnswering: !this.state.isCalling});
+                const connectingMsg = (
+                    <FormattedMessage
+                        id='connecting_screen'
+                        defaultMessage='Connecting'
+                    />
+                );
+
+                this.setState({isAnswering: !this.state.isCalling, connectingMsg});
                 if (this.session) {
                     this.onSessionCreated();
                 } else {
@@ -700,7 +720,7 @@ export default class WebrtcController extends React.Component {
         });
     }
 
-    doHangup(error) {
+    doHangup(error, manual) {
         if (this.videocall && this.state.callInProgress) {
             this.videocall.send({message: {request: 'hangup'}});
             this.videocall.hangup();
@@ -712,30 +732,35 @@ export default class WebrtcController extends React.Component {
 
         if (error) {
             this.onSessionError();
-            this.doCleanup();
-        } else {
-            this.setState({
-                isCalling: false,
-                isAnswering: false,
-                callInProgress: false,
-                isPaused: false,
-                isMuted: false,
-                isRemotePaused: false,
-                isRemoteMuted: false,
-                error: null,
-                ended: (
-                    <FormattedMessage
-                        id='webrtc.callEnded'
-                        defaultMessage='Call with {username} ended.'
-                        values={{
-                            username: Utils.displayUsername(this.props.userId)
-                        }}
-                    />
-                )
-            });
-            WebrtcStore.setVideoCallWith(null);
-            this.clearError();
+            return this.doCleanup();
         }
+        WebrtcStore.setVideoCallWith(null);
+
+        if (manual) {
+            return this.close();
+        }
+
+        this.setState({
+            isCalling: false,
+            isAnswering: false,
+            callInProgress: false,
+            isPaused: false,
+            isMuted: false,
+            isRemotePaused: false,
+            isRemoteMuted: false,
+            error: null,
+            ended: (
+                <FormattedMessage
+                    id='webrtc.callEnded'
+                    defaultMessage='Call with {username} ended.'
+                    values={{
+                        username: Utils.displayUsername(this.props.userId)
+                    }}
+                />
+            )
+        });
+        this.clearError();
+        return this.doCleanup();
     }
 
     doCleanup() {
@@ -766,7 +791,8 @@ export default class WebrtcController extends React.Component {
 
         this.setState({
             isPaused: shouldPause,
-            error: null
+            error: null,
+            ended: null
         });
     }
 
@@ -789,7 +815,8 @@ export default class WebrtcController extends React.Component {
 
         this.setState({
             isMuted: shouldMute,
-            error: null
+            error: null,
+            ended: null
         });
     }
 
@@ -799,7 +826,7 @@ export default class WebrtcController extends React.Component {
                 isRemotePaused: message.mute
             });
         } else {
-            this.setState({isRemoteMuted: message.mute, error: null});
+            this.setState({isRemoteMuted: message.mute, error: null, ended: null});
         }
     }
 
@@ -991,7 +1018,7 @@ export default class WebrtcController extends React.Component {
                         width='48'
                         height='48'
                         viewBox='-10 -10 68 68'
-                        onClick={() => this.doHangup(false)}
+                        onClick={() => this.doHangup(false, true)}
                     >
                         <circle
                             cx='24'
@@ -1094,17 +1121,12 @@ export default class WebrtcController extends React.Component {
                     />
                 );
             }
-            const connectingMsg = (
-                <FormattedMessage
-                    id='calling_screen'
-                    defaultMessage='Calling'
-                />
-            );
+
             connecting = (
                 <div className='connecting'>
                     <ConnectingScreen
                         position='absolute'
-                        message={connectingMsg}
+                        message={this.state.connectingMsg}
                     />
                     {audio}
                 </div>
