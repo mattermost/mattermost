@@ -5,6 +5,7 @@ package store
 
 import (
 	"database/sql"
+
 	"github.com/mattermost/platform/model"
 )
 
@@ -22,10 +23,15 @@ func NewSqlStatusStore(sqlStore *SqlStore) StatusStore {
 	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.Status{}, "Status").SetKeys(false, "UserId")
 		table.ColMap("UserId").SetMaxSize(26)
+		table.ColMap("Manual")
 		table.ColMap("Status").SetMaxSize(32)
 	}
 
 	return s
+}
+
+func (s SqlStatusStore) UpgradeSchemaIfNeeded() {
+	s.CreateColumnIfNotExists("Status", "Manual", "BOOLEAN", "BOOLEAN", "0")
 }
 
 func (s SqlStatusStore) CreateIndexesIfNotExists() {

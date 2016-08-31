@@ -100,7 +100,7 @@ func (h *Hub) Start() {
 				}
 
 				if !found {
-					go SetStatusOffline(userId)
+					go SetStatusOffline(userId, false)
 				}
 			case userId := <-h.invalidateUser:
 				for webCon := range h.connections {

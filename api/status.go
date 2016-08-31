@@ -65,19 +65,24 @@ func GetAllStatuses() (map[string]interface{}, *model.AppError) {
 	}
 }
 
-func SetStatusOnline(userId string, sessionId string) {
+func SetStatusOnline(userId string, sessionId string, manual bool) {
+	l4g.Debug(userId, "online")
 	broadcast := false
 
 	var status *model.Status
 	var err *model.AppError
 	if status, err = GetStatus(userId); err != nil {
-		status = &model.Status{userId, model.STATUS_ONLINE, model.GetMillis()}
+		status = &model.Status{userId, model.STATUS_ONLINE, false, model.GetMillis()}
 		broadcast = true
 	} else {
+		if status.Manual && !manual {
+			return // manually set status always overrides non-manual one
+		}
 		if status.Status != model.STATUS_ONLINE {
 			broadcast = true
 		}
 		status.Status = model.STATUS_ONLINE
+		status.Manual = false // for "online" there's no manually or auto set
 		status.LastActivityAt = model.GetMillis()
 	}
 
@@ -107,8 +112,14 @@ func SetStatusOnline(userId string, sessionId string) {
 	}
 }
 
-func SetStatusOffline(userId string) {
-	status := &model.Status{userId, model.STATUS_OFFLINE, model.GetMillis()}
+func SetStatusOffline(userId string, manual bool) {
+	l4g.Debug(userId, "offline")
+	status, err := GetStatus(userId)
+	if err == nil && status.Manual && !manual {
+		return // manually set status always overrides non-manual one
+	}
+
+	status = &model.Status{userId, model.STATUS_OFFLINE, manual, model.GetMillis()}
 
 	AddStatusCache(status)
 
@@ -121,21 +132,30 @@ func SetStatusOffline(userId string) {
 	go Publish(event)
 }
 
-func SetStatusAwayIfNeeded(userId string) {
+func SetStatusAwayIfNeeded(userId string, manual bool) {
+	l4g.Debug(userId, "away")
 	status, err := GetStatus(userId)
+
 	if err != nil {
-		status = &model.Status{userId, model.STATUS_OFFLINE, 0}
+		status = &model.Status{userId, model.STATUS_OFFLINE, manual, 0}
 	}
 
-	if status.Status == model.STATUS_AWAY {
-		return
+	if !manual && status.Manual {
+		return // manually set status always overrides non-manual one
 	}
 
-	if !IsUserAway(status.LastActivityAt) {
-		return
+	if !manual {
+		if status.Status == model.STATUS_AWAY {
+			return
+		}
+
+		if !IsUserAway(status.LastActivityAt) {
+			return
+		}
 	}
 
 	status.Status = model.STATUS_AWAY
+	status.Manual = manual
 
 	AddStatusCache(status)
 
