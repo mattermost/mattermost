@@ -1557,6 +1557,19 @@ func (c *Client) OAuthDeauthorizeApp(clientId string) *AppError {
 	}
 }
 
+// RegenerateOAuthAppSecret generates a new OAuth App Client Secret. On success
+// it returns an OAuth2 App. Must be authenticated as a user and the same user who
+// registered the app or a System Admin.
+func (c *Client) RegenerateOAuthAppSecret(clientId string) (*Result, *AppError) {
+	if r, err := c.DoApiPost("/oauth/"+clientId+"/regen_secret", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), OAuthAppFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) GetAccessToken(data url.Values) (*Result, *AppError) {
 	if r, err := c.DoPost("/oauth/access_token", data.Encode(), "application/x-www-form-urlencoded"); err != nil {
 		return nil, err

@@ -1573,6 +1573,16 @@ export default class Client {
         end(this.handleResponse.bind(this, 'deauthorizeOAuthApp', success, error));
     }
 
+    regenerateOAuthAppSecret(id, success, error) {
+        request.
+        post(`${this.getOAuthRoute()}/${id}/regen_secret`).
+        set(this.defaultHeaders).
+        type('application/json').
+        accept('application/json').
+        send().
+        end(this.handleResponse.bind(this, 'regenerateOAuthAppSecret', success, error));
+    }
+
     // Routes for Hooks
 
     addIncomingHook(hook, success, error) {

@@ -111,7 +111,6 @@ func (as SqlOAuthStore) UpdateApp(app *model.OAuthApp) StoreChannel {
 		} else {
 			oldApp := oldAppResult.(*model.OAuthApp)
 			app.CreateAt = oldApp.CreateAt
-			app.ClientSecret = oldApp.ClientSecret
 			app.CreatorId = oldApp.CreatorId
 
 			if count, err := as.GetMaster().Update(app); err != nil {

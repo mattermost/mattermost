@@ -32,7 +32,8 @@ func InitOAuth() {
 	BaseRoutes.OAuth.Handle("/allow", ApiUserRequired(allowOAuth)).Methods("GET")
 	BaseRoutes.OAuth.Handle("/authorized", ApiUserRequired(getAuthorizedApps)).Methods("GET")
 	BaseRoutes.OAuth.Handle("/delete", ApiUserRequired(deleteOAuthApp)).Methods("POST")
-	BaseRoutes.OAuth.Handle("/{id:[A-Za-z0-9]+}/deauthorize", AppHandlerIndependent(deauthorizeOAuthApp)).Methods("POST")
+	BaseRoutes.OAuth.Handle("/{id:[A-Za-z0-9]+}/deauthorize", ApiUserRequired(deauthorizeOAuthApp)).Methods("POST")
+	BaseRoutes.OAuth.Handle("/{id:[A-Za-z0-9]+}/regen_secret", ApiUserRequired(regenerateOAuthSecret)).Methods("POST")
 	BaseRoutes.OAuth.Handle("/{service:[A-Za-z0-9]+}/complete", AppHandlerIndependent(completeOAuth)).Methods("GET")
 	BaseRoutes.OAuth.Handle("/{service:[A-Za-z0-9]+}/login", AppHandlerIndependent(loginWithOAuth)).Methods("GET")
 	BaseRoutes.OAuth.Handle("/{service:[A-Za-z0-9]+}/signup", AppHandlerIndependent(signupWithOAuth)).Methods("GET")
@@ -955,6 +956,55 @@ func deauthorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("success")
 	ReturnStatusOK(w)
+}
+
+func regenerateOAuthSecret(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !utils.Cfg.ServiceSettings.EnableOAuthServiceProvider {
+		c.Err = model.NewLocAppError("registerOAuthApp", "api.oauth.register_oauth_app.turn_off.app_error", nil, "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
+
+	isSystemAdmin := c.IsSystemAdmin()
+
+	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
+		if !isSystemAdmin {
+			c.Err = model.NewLocAppError("registerOAuthApp", "api.command.admin_only.app_error", nil, "")
+			c.Err.StatusCode = http.StatusForbidden
+			return
+		}
+	}
+
+	params := mux.Vars(r)
+	id := params["id"]
+
+	if len(id) == 0 {
+		c.SetInvalidParam("regenerateOAuthSecret", "id")
+		return
+	}
+
+	var app *model.OAuthApp
+	if result := <-Srv.Store.OAuth().GetApp(id); result.Err != nil {
+		c.Err = model.NewLocAppError("regenerateOAuthSecret", "api.oauth.allow_oauth.database.app_error", nil, "")
+		return
+	} else {
+		app = result.Data.(*model.OAuthApp)
+
+		//validate that is a System Admin or the same user that registered the app
+		if !isSystemAdmin && app.CreatorId != c.Session.UserId {
+			c.Err = model.NewLocAppError("regenerateOAuthSecret", "api.oauth.regenerate_secret.app_error", nil, "")
+			return
+		}
+
+		app.ClientSecret = model.NewId()
+		if update := <-Srv.Store.OAuth().UpdateApp(app); update.Err != nil {
+			c.Err = update.Err
+			return
+		}
+
+		w.Write([]byte(app.ToJson()))
+		return
+	}
 }
 
 func newSession(appName string, user *model.User) (*model.Session, *model.AppError) {

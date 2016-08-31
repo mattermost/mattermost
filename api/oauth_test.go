@@ -278,6 +278,30 @@ func TestDeauthorizeApp(t *testing.T) {
 	}
 }
 
+func TestRegenerateOAuthAppSecret(t *testing.T) {
+	th := Setup().InitSystemAdmin()
+	AdminClient := th.SystemAdminClient
+
+	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = true
+
+	app := &model.OAuthApp{Name: "TestApp6" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
+
+	app = AdminClient.Must(AdminClient.RegisterApp(app)).Data.(*model.OAuthApp)
+
+	if regenApp, err := AdminClient.RegenerateOAuthAppSecret(app.Id); err != nil {
+		t.Fatal(err)
+	} else {
+		app2 := regenApp.Data.(*model.OAuthApp)
+		if app2.Id != app.Id {
+			t.Fatal("Should have been the same app Id")
+		}
+
+		if app2.ClientSecret == app.ClientSecret {
+			t.Fatal("Should have been diferent client Secrets")
+		}
+	}
+}
+
 func TestOAuthDeleteApp(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	Client := th.BasicClient
