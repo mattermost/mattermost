@@ -79,7 +79,7 @@ func TestUserStoreUpdate(t *testing.T) {
 
 	u2 := &model.User{}
 	u2.Email = model.NewId()
-	u2.AuthService = "ad/ldap"
+	u2.AuthService = "ldap"
 	Must(store.User().Save(u2))
 	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}))
 
