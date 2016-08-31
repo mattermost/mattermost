@@ -82,7 +82,6 @@ export default class LoggedIn extends React.Component {
         if (global.window.mm_config.SegmentDeveloperKey != null && global.window.mm_config.SegmentDeveloperKey !== '') {
             global.window.analytics.identify(user.id, {
                 name: user.nickname,
-                email: user.email,
                 createdAt: user.create_at,
                 username: user.username,
                 id: user.id
