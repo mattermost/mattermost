@@ -362,7 +362,7 @@ export default class NotificationsTab extends React.Component {
                                 defaultMessage='Send mobile push notifications'
                             />
                         </label>
-                        <br/>                    
+                        <br/>
                         <div className='radio'>
                             <label>
                                 <input
