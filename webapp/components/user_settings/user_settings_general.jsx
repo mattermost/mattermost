@@ -466,7 +466,7 @@ class UserSettingsGeneralTab extends React.Component {
                         <div className='setting-list__hint'>
                             <FormattedMessage
                                 id='user.settings.general.emailLdapCantUpdate'
-                                defaultMessage='Login occurs through LDAP. Email cannot be updated. Email address used for notifications is {email}.'
+                                defaultMessage='Login occurs through AD/LDAP. Email cannot be updated. Email address used for notifications is {email}.'
                                 values={{
                                     email: this.state.email
                                 }}
@@ -573,7 +573,7 @@ class UserSettingsGeneralTab extends React.Component {
                 describe = (
                     <FormattedMessage
                         id='user.settings.general.loginLdap'
-                        defaultMessage='Login done through LDAP ({email})'
+                        defaultMessage='Login done through AD/LDAP ({email})'
                         values={{
                             email: this.state.email
                         }}
