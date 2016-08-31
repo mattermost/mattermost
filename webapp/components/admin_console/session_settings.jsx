@@ -56,7 +56,7 @@ export default class SessionSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.service.webSessionDays'
-                            defaultMessage='Session length LDAP and email (days):'
+                            defaultMessage='Session length AD/LDAP and email (days):'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.service.sessionDaysEx', 'Ex "30"')}
