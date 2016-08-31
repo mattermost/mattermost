@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"strings"
 )
 
 const (
@@ -107,6 +108,11 @@ func (me *Session) GetTeamByTeamId(teamId string) *TeamMember {
 	}
 
 	return nil
+}
+
+func (me *Session) IsMobileApp() bool {
+	return len(me.DeviceId) > 0 &&
+		(strings.HasPrefix(me.DeviceId, PUSH_NOTIFY_APPLE+":") || strings.HasPrefix(me.DeviceId, PUSH_NOTIFY_ANDROID+":"))
 }
 
 func SessionsToJson(o []*Session) string {

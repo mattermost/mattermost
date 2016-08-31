@@ -152,6 +152,10 @@
     "translation": "%v added to the channel by %v"
   },
   {
+    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
+    "translation": "Unable to get the unread count for user_id=%v and channel_id=%v, err=%v"
+  },
+  {
     "id": "api.channel.add_member.find_channel.app_error",
     "translation": "Failed to find channel"
   },
@@ -1297,11 +1301,15 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.debug",
-    "translation": "Sending push notification to %v wi msg of '%v'"
+    "translation": "Sending push notification to %v with msg of '%v'"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
+    "translation": "Clearing push notification to %v with channel_id %v"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
-    "translation": "Failed to send push notificationid=%v, err=%v"
+    "translation": "Failed to send push device_id=%v, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.send.error",
@@ -4454,6 +4462,10 @@
   {
     "id": "store.sql_user.get_unread_count.app_error",
     "translation": "We could not get the unread message count for the user"
+  },
+  {
+    "id": "store.sql_user.get_unread_count_for_channel.app_error",
+    "translation": "We could not get the unread message count for the user and channel"
   },
   {
     "id": "store.sql_user.migrate_theme.critical",

@@ -711,6 +711,15 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 		}
 	}
 
+	// Make sure all mention updates are complete to prevent race
+	// Probably better to batch these DB updates in the future
+	// MUST be completed before push notifications send
+	for _, uchan := range updateMentionChans {
+		if result := <-uchan; result.Err != nil {
+			l4g.Warn(utils.T("api.post.update_mention_count_and_forget.update_error"), post.Id, post.ChannelId, result.Err)
+		}
+	}
+
 	sendPushNotifications := false
 	if *utils.Cfg.EmailSettings.SendPushNotifications {
 		pushServer := *utils.Cfg.EmailSettings.PushNotificationServer
@@ -771,14 +780,6 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 
 	if len(mentionedUsersList) != 0 {
 		message.Add("mentions", model.ArrayToJson(mentionedUsersList))
-	}
-
-	// Make sure all mention updates are complete to prevent race
-	// Probably better to batch these DB updates in the future
-	for _, uchan := range updateMentionChans {
-		if result := <-uchan; result.Err != nil {
-			l4g.Warn(utils.T("api.post.update_mention_count_and_forget.update_error"), post.Id, post.ChannelId, result.Err)
-		}
 	}
 
 	go Publish(message)
@@ -888,12 +889,10 @@ func getMessageForNotification(post *model.Post, translateFunc i18n.TranslateFun
 }
 
 func sendPushNotification(post *model.Post, user *model.User, channel *model.Channel, senderName string, wasMentioned bool) {
-	var sessions []*model.Session
-	if result := <-Srv.Store.Session().GetSessions(user.Id); result.Err != nil {
-		l4g.Error(utils.T("api.post.send_notifications_and_forget.sessions.error"), user.Id, result.Err)
+	session := getMobileAppSession(user.Id)
+
+	if session == nil {
 		return
-	} else {
-		sessions = result.Data.([]*model.Session)
 	}
 
 	var channelName string
@@ -906,65 +905,98 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 
 	userLocale := utils.GetUserTranslations(user.Locale)
 
-	for _, session := range sessions {
-		if len(session.DeviceId) > 0 &&
-			(strings.HasPrefix(session.DeviceId, model.PUSH_NOTIFY_APPLE+":") || strings.HasPrefix(session.DeviceId, model.PUSH_NOTIFY_ANDROID+":")) {
+	msg := model.PushNotification{}
+	if badge := <-Srv.Store.User().GetUnreadCount(user.Id); badge.Err != nil {
+		msg.Badge = 1
+		l4g.Error(utils.T("store.sql_user.get_unread_count.app_error"), user.Id, badge.Err)
+	} else {
+		msg.Badge = int(badge.Data.(int64))
+	}
+	msg.Type = model.PUSH_TYPE_MESSAGE
+	msg.ChannelId = channel.Id
+	msg.ChannelName = channel.Name
 
-			msg := model.PushNotification{}
-			if badge := <-Srv.Store.User().GetUnreadCount(user.Id); badge.Err != nil {
-				msg.Badge = 1
-				l4g.Error(utils.T("store.sql_user.get_unread_count.app_error"), user.Id, badge.Err)
-			} else {
-				msg.Badge = int(badge.Data.(int64))
-			}
-			msg.ServerId = utils.CfgDiagnosticId
-			msg.ChannelId = channel.Id
-			msg.ChannelName = channel.Name
+	msg.SetDeviceIdAndPlatform(session.DeviceId)
 
-			if strings.HasPrefix(session.DeviceId, model.PUSH_NOTIFY_APPLE+":") {
-				msg.Platform = model.PUSH_NOTIFY_APPLE
-				msg.DeviceId = strings.TrimPrefix(session.DeviceId, model.PUSH_NOTIFY_APPLE+":")
-			} else if strings.HasPrefix(session.DeviceId, model.PUSH_NOTIFY_ANDROID+":") {
-				msg.Platform = model.PUSH_NOTIFY_ANDROID
-				msg.DeviceId = strings.TrimPrefix(session.DeviceId, model.PUSH_NOTIFY_ANDROID+":")
-			}
-
-			if *utils.Cfg.EmailSettings.PushNotificationContents == model.FULL_NOTIFICATION {
-				if channel.Type == model.CHANNEL_DIRECT {
-					msg.Category = model.CATEGORY_DM
-					msg.Message = "@" + senderName + ": " + model.ClearMentionTags(post.Message)
-				} else {
-					msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_in") + channelName + ": " + model.ClearMentionTags(post.Message)
-				}
-			} else {
-				if channel.Type == model.CHANNEL_DIRECT {
-					msg.Category = model.CATEGORY_DM
-					msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_message")
-				} else if wasMentioned {
-					msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_mention") + channelName
-				} else {
-					msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_non_mention") + channelName
-				}
-			}
-
-			tr := &http.Transport{
-				TLSClientConfig: &tls.Config{InsecureSkipVerify: *utils.Cfg.ServiceSettings.EnableInsecureOutgoingConnections},
-			}
-			httpClient := &http.Client{Transport: tr}
-			request, _ := http.NewRequest("POST", *utils.Cfg.EmailSettings.PushNotificationServer+model.API_URL_SUFFIX_V1+"/send_push", strings.NewReader(msg.ToJson()))
-
-			l4g.Debug(utils.T("api.post.send_notifications_and_forget.push_notification.debug"), msg.DeviceId, msg.Message)
-			if resp, err := httpClient.Do(request); err != nil {
-				l4g.Error(utils.T("api.post.send_notifications_and_forget.push_notification.error"), user.Id, err)
-			} else {
-				ioutil.ReadAll(resp.Body)
-				resp.Body.Close()
-			}
-
-			// notification sent, don't need to check other sessions
-			break
+	if *utils.Cfg.EmailSettings.PushNotificationContents == model.FULL_NOTIFICATION {
+		if channel.Type == model.CHANNEL_DIRECT {
+			msg.Category = model.CATEGORY_DM
+			msg.Message = "@" + senderName + ": " + model.ClearMentionTags(post.Message)
+		} else {
+			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_in") + channelName + ": " + model.ClearMentionTags(post.Message)
+		}
+	} else {
+		if channel.Type == model.CHANNEL_DIRECT {
+			msg.Category = model.CATEGORY_DM
+			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_message")
+		} else if wasMentioned {
+			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_mention") + channelName
+		} else {
+			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_non_mention") + channelName
 		}
 	}
+
+	l4g.Debug(utils.T("api.post.send_notifications_and_forget.push_notification.debug"), msg.DeviceId, msg.Message)
+	sendToPushProxy(msg)
+}
+
+func clearPushNotification(userId string, channelId string) {
+	session := getMobileAppSession(userId)
+
+	if session == nil {
+		return
+	}
+
+	msg := model.PushNotification{}
+	msg.Type = model.PUSH_TYPE_CLEAR
+	msg.ChannelId = channelId
+	msg.ContentAvailable = 0
+	if badge := <-Srv.Store.User().GetUnreadCount(userId); badge.Err != nil {
+		msg.Badge = 0
+		l4g.Error(utils.T("store.sql_user.get_unread_count.app_error"), userId, badge.Err)
+	} else {
+		msg.Badge = int(badge.Data.(int64))
+	}
+
+	msg.SetDeviceIdAndPlatform(session.DeviceId)
+
+	l4g.Debug(utils.T("api.post.send_notifications_and_forget.clear_push_notification.debug"), msg.DeviceId, msg.ChannelId)
+	sendToPushProxy(msg)
+}
+
+func sendToPushProxy(msg model.PushNotification) {
+	msg.ServerId = utils.CfgDiagnosticId
+
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: *utils.Cfg.ServiceSettings.EnableInsecureOutgoingConnections},
+	}
+	httpClient := &http.Client{Transport: tr}
+	request, _ := http.NewRequest("POST", *utils.Cfg.EmailSettings.PushNotificationServer+model.API_URL_SUFFIX_V1+"/send_push", strings.NewReader(msg.ToJson()))
+
+	if resp, err := httpClient.Do(request); err != nil {
+		l4g.Error(utils.T("api.post.send_notifications_and_forget.push_notification.error"), msg.DeviceId, err)
+	} else {
+		ioutil.ReadAll(resp.Body)
+		resp.Body.Close()
+	}
+}
+
+func getMobileAppSession(userId string) *model.Session {
+	var sessions []*model.Session
+	if result := <-Srv.Store.Session().GetSessions(userId); result.Err != nil {
+		l4g.Error(utils.T("api.post.send_notifications_and_forget.sessions.error"), userId, result.Err)
+		return nil
+	} else {
+		sessions = result.Data.([]*model.Session)
+	}
+
+	for _, session := range sessions {
+		if session.IsMobileApp() {
+			return session
+		}
+	}
+
+	return nil
 }
 
 func sendOutOfChannelMentions(c *Context, post *model.Post, profiles map[string]*model.User, outOfChannelMentions map[string]bool) {
