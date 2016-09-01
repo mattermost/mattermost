@@ -2504,6 +2504,10 @@
     "translation": "Invalid LDAP Filter"
   },
   {
+    "id": "ent.ldap.disabled.app_error",
+    "translation": "LDAP disabled or licence does not support LDAP."
+  },
+  {
     "id": "ent.mfa.activate.authenticate.app_error",
     "translation": "Error attempting to authenticate MFA token"
   },
