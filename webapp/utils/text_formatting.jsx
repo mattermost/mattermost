@@ -224,7 +224,7 @@ function autolinkChannelMentions(text, tokens, channelNamesMap) {
 
         if (channelMentionExists(channelNameLower)) {
             // Exact match
-            const alias = addToken(channelNameLower, mention, "!" + channelNamesMap[channelNameLower].display_name);
+            const alias = addToken(channelNameLower, mention, '!' + channelNamesMap[channelNameLower].display_name);
             return alias;
         }
 
@@ -235,9 +235,9 @@ function autolinkChannelMentions(text, tokens, channelNamesMap) {
             if (punctuation.test(channelNameLower[c - 1])) {
                 channelNameLower = channelNameLower.substring(0, c - 1);
 
-                if (channelchannelMentionExists(channelNameLower)) {
+                if (channelMentionExists(channelNameLower)) {
                     const suffix = originalChannelName.substr(c - 1);
-                    const alias = addToken(channelNameLower, '!' + channelNameLower, "!" + channelNamesMap[channelNameLower].display_name);
+                    const alias = addToken(channelNameLower, '!' + channelNameLower, '!' + channelNamesMap[channelNameLower].display_name);
                     return alias + suffix;
                 }
             } else {
