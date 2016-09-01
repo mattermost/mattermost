@@ -179,12 +179,10 @@ func UpgradeDatabaseToVersion33(sqlStore *SqlStore) {
 }
 
 func UpgradeDatabaseToVersion34(sqlStore *SqlStore) {
-	// TODO XXX FIXME should be removed before release
-	//if shouldPerformUpgrade(sqlStore, VERSION_3_3_0, VERSION_3_4_0) {
+	if shouldPerformUpgrade(sqlStore, VERSION_3_3_0, VERSION_3_4_0) {
+		sqlStore.CreateColumnIfNotExists("Status", "Manual", "BOOLEAN", "BOOLEAN", "0")
 
-	// do the actual upgrade
-
-	// TODO XXX FIXME should be removed before release
-	//saveSchemaVersion(sqlStore, VERSION_3_4_0)
-	//}
+		// TODO XXX FIXME should be removed before release
+		//saveSchemaVersion(sqlStore, VERSION_3_4_0)
+	}
 }
