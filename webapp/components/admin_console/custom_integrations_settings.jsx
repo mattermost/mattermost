@@ -149,7 +149,7 @@ export default class WebhookSettings extends AdminSettings {
                         />
                     }
                     helpText={
-                        <FormattedMessage
+                        <FormattedHTMLMessage
                             id='admin.service.overrideDescription'
                             defaultMessage='When true, webhooks, slash commands and other integrations, such as <a href="https://docs.mattermost.com/integrations/zapier.html" target="_blank">Zapier</a>, will be allowed to change the username they are posting as. Note: Combined with allowing integrations to override profile picture icons, users may be able to perform phishing attacks by attempting to impersonate other users.'
                         />
@@ -166,7 +166,7 @@ export default class WebhookSettings extends AdminSettings {
                         />
                     }
                     helpText={
-                        <FormattedMessage
+                        <FormattedHTMLMessage
                             id='admin.service.iconDescription'
                             defaultMessage='When true, webhooks, slash commands and other integrations, such as <a href="https://docs.mattermost.com/integrations/zapier.html" target="_blank">Zapier</a>, will be allowed to change the profile picture they post with. Note: Combined with allowing integrations to override usernames, users may be able to perform phishing attacks by attempting to impersonate other users.'
                         />
