@@ -7,6 +7,7 @@ import React from 'react';
 import {Link} from 'react-router/es6';
 
 import * as Utils from 'utils/utils.jsx';
+import * as TextFormatting from 'utils/text_formatting.jsx';
 
 export default class ErrorPage extends React.Component {
     componentDidMount() {
@@ -43,7 +44,7 @@ export default class ErrorPage extends React.Component {
                         <i className='fa fa-exclamation-triangle'/>
                     </div>
                     <h2>{title}</h2>
-                    <p>{message}</p>
+                    <div dangerouslySetInnerHTML={{__html: TextFormatting.formatText(message)}}/>
                     <Link to={link}>{linkMessage}</Link>
                 </div>
             </div>
