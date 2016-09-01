@@ -198,7 +198,8 @@ export const Constants = {
         TYPING: 'typing',
         PREFERENCE_CHANGED: 'preference_changed',
         EPHEMERAL_MESSAGE: 'ephemeral_message',
-        STATUS_CHANGED: 'status_change'
+        STATUS_CHANGED: 'status_change',
+        HELLO: 'hello'
     },
 
     UserUpdateEvents: {

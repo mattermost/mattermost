@@ -156,6 +156,10 @@ function handleEvent(msg) {
         handleStatusChangedEvent(msg);
         break;
 
+    case SocketEvents.HELLO:
+        handleHelloEvent(msg);
+        break;
+
     default:
     }
 }
@@ -283,4 +287,9 @@ function handleUserTypingEvent(msg) {
 
 function handleStatusChangedEvent(msg) {
     UserStore.setStatus(msg.user_id, msg.data.status);
+}
+
+function handleHelloEvent(msg) {
+    Client.serverVersion = msg.data.server_version;
+    AsyncClient.checkVersion();
 }
