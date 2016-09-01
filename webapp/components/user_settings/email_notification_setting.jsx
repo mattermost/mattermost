@@ -149,7 +149,7 @@ export default class EmailNotificationSetting extends React.Component {
             batchingInfo = (
                 <FormattedMessage
                     id='user.settings.notifications.emailBatchingInfo'
-                    defaultMessage='Notifications are combined into a single email and sent at the maximum frequency selected here.'
+                    defaultMessage='Notifications received over the time period selected are combined and sent in a single email.'
                 />
             );
         }
