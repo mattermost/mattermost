@@ -358,6 +358,20 @@ class ChannelStoreClass extends EventEmitter {
             this.channels.splice(element, 1);
         }
     }
+
+    getChannelNamesMap() {
+        var channelNamesMap = {};
+
+        var channels = this.getChannels();
+        for (var key in channels) {
+            if (channels.hasOwnProperty(key)) {
+                var channel = channels[key];
+                channelNamesMap[channel.name] = channel;
+            }
+        }
+
+        return channelNamesMap;
+    }
 }
 
 var ChannelStore = new ChannelStoreClass();
