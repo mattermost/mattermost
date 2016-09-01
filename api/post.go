@@ -679,7 +679,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 			var status *model.Status
 			var err *model.AppError
 			if status, err = GetStatus(id); err != nil {
-				status = &model.Status{id, model.STATUS_OFFLINE, false, 0}
+				status = &model.Status{id, model.STATUS_OFFLINE, false, 0, ""}
 			}
 
 			if userAllowsEmails && status.Status != model.STATUS_ONLINE {
@@ -736,10 +736,10 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 			var status *model.Status
 			var err *model.AppError
 			if status, err = GetStatus(id); err != nil {
-				status = &model.Status{id, model.STATUS_OFFLINE, false, 0}
+				status = &model.Status{id, model.STATUS_OFFLINE, false, 0, ""}
 			}
 
-			if profileMap[id].StatusAllowsPushNotification(status) {
+			if DoesStatusAllowPushNotification(profileMap[id], status, post.ChannelId) {
 				sendPushNotification(post, profileMap[id], channel, senderName, true)
 			}
 		}
@@ -749,10 +749,10 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 				var status *model.Status
 				var err *model.AppError
 				if status, err = GetStatus(id); err != nil {
-					status = &model.Status{id, model.STATUS_OFFLINE, false, 0}
+					status = &model.Status{id, model.STATUS_OFFLINE, false, 0, ""}
 				}
 
-				if profileMap[id].StatusAllowsPushNotification(status) {
+				if DoesStatusAllowPushNotification(profileMap[id], status, post.ChannelId) {
 					sendPushNotification(post, profileMap[id], channel, senderName, false)
 				}
 			}
@@ -942,7 +942,6 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 
 func clearPushNotification(userId string, channelId string) {
 	session := getMobileAppSession(userId)
-
 	if session == nil {
 		return
 	}

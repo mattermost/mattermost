@@ -12,7 +12,7 @@ import (
 func TestSqlStatusStore(t *testing.T) {
 	Setup()
 
-	status := &model.Status{model.NewId(), model.STATUS_ONLINE, false, 0}
+	status := &model.Status{model.NewId(), model.STATUS_ONLINE, false, 0, ""}
 
 	if err := (<-store.Status().SaveOrUpdate(status)).Err; err != nil {
 		t.Fatal(err)
@@ -28,12 +28,12 @@ func TestSqlStatusStore(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	status2 := &model.Status{model.NewId(), model.STATUS_AWAY, false, 0}
+	status2 := &model.Status{model.NewId(), model.STATUS_AWAY, false, 0, ""}
 	if err := (<-store.Status().SaveOrUpdate(status2)).Err; err != nil {
 		t.Fatal(err)
 	}
 
-	status3 := &model.Status{model.NewId(), model.STATUS_OFFLINE, false, 0}
+	status3 := &model.Status{model.NewId(), model.STATUS_OFFLINE, false, 0, ""}
 	if err := (<-store.Status().SaveOrUpdate(status3)).Err; err != nil {
 		t.Fatal(err)
 	}
@@ -81,7 +81,7 @@ func TestSqlStatusStore(t *testing.T) {
 func TestActiveUserCount(t *testing.T) {
 	Setup()
 
-	status := &model.Status{model.NewId(), model.STATUS_ONLINE, false, model.GetMillis()}
+	status := &model.Status{model.NewId(), model.STATUS_ONLINE, false, model.GetMillis(), ""}
 	Must(store.Status().SaveOrUpdate(status))
 
 	if result := <-store.Status().GetTotalActiveUsersCount(); result.Err != nil {

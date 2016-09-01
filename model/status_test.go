@@ -9,7 +9,7 @@ import (
 )
 
 func TestStatus(t *testing.T) {
-	status := Status{NewId(), STATUS_ONLINE, true, 0}
+	status := Status{NewId(), STATUS_ONLINE, true, 0, ""}
 	json := status.ToJson()
 	status2 := StatusFromJson(strings.NewReader(json))
 
