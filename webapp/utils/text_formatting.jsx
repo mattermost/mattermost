@@ -208,12 +208,12 @@ function autolinkChannelMentions(text, tokens, channelNamesMap) {
     function channelMentionExists(c) {
         return !!channelNamesMap[c];
     }
-    function addToken(channelName, mention) {
+    function addToken(channelName, mention, displayName) {
         const index = tokens.size;
         const alias = `MM_CHANNELMENTION${index}`;
 
         tokens.set(alias, {
-            value: `<a class='mention-link' href='#' data-mention='${channelName}'>${mention}</a>`,
+            value: `<a class='mention-link' href='#' data-mention='${channelName}'>${displayName}</a>`,
             originalText: mention
         });
         return alias;
@@ -224,7 +224,7 @@ function autolinkChannelMentions(text, tokens, channelNamesMap) {
 
         if (channelMentionExists(channelNameLower)) {
             // Exact match
-            const alias = addToken(channelNameLower, mention);
+            const alias = addToken(channelNameLower, mention, "!" + channelNamesMap[channelNameLower].display_name);
             return alias;
         }
 
@@ -237,7 +237,7 @@ function autolinkChannelMentions(text, tokens, channelNamesMap) {
 
                 if (channelchannelMentionExists(channelNameLower)) {
                     const suffix = originalChannelName.substr(c - 1);
-                    const alias = addToken(channelNameLower, '!' + channelNameLower);
+                    const alias = addToken(channelNameLower, '!' + channelNameLower, "!" + channelNamesMap[channelNameLower].display_name);
                     return alias + suffix;
                 }
             } else {
