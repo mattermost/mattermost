@@ -102,7 +102,7 @@
   "add_oauth_app.description.help": "Description for your OAuth 2.0 application.",
   "add_oauth_app.descriptionRequired": "Description for the OAuth 2.0 application is required.",
   "add_oauth_app.doneHelp": "Your OAuth 2.0 application has been set up. Please use the following Client ID and Client Secret when requesting authorization for your application.",
-  "add_oauth_app.doneUrlHelp": "Please send data to the following URL.",
+  "add_oauth_app.doneUrlHelp": "The following are your authorized redirect URL(s).",
   "add_oauth_app.header": "Add",
   "add_oauth_app.homepage.help": "The URL for the homepage of the OAuth 2.0 application. Make sure you use HTTP or HTTPS in your URL depending on your server configuration.",
   "add_oauth_app.homepageRequired": "Homepage for the OAuth 2.0 application is required.",
