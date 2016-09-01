@@ -54,7 +54,7 @@ function filterChannelsByPrefix(channels, prefix, limit) {
             continue;
         }
 
-        if (channel.display_name.toLowerCase().startsWith(prefix)) {
+        if (channel.display_name.toLowerCase().startsWith(prefix) || channel.name.startsWith(prefix)) {
             filtered.push(channel);
         }
     }
@@ -101,7 +101,7 @@ export default class ChannelMentionProvider {
                 };
             });
 
-            const mentions = wrappedChannels.map((item) => '!' + item.channel.display_name);
+            const mentions = wrappedChannels.map((item) => '!' + item.channel.name);
 
             SuggestionStore.addSuggestions(suggestionId, mentions, wrappedChannels, ChannelMentionSuggestion, captured[0]);
         }
