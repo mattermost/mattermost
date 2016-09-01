@@ -236,7 +236,7 @@ export default class LdapSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.ldap.firstnameAttrDesc'
-                            defaultMessage='The attribute in the LDAP server that will be used to populate the first name of users in Mattermost.'
+                            defaultMessage='(Optional) The attribute in the LDAP server that will be used to populate the first name of users in Mattermost.'
                         />
                     }
                     value={this.state.firstNameAttribute}
@@ -255,7 +255,7 @@ export default class LdapSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.ldap.lastnameAttrDesc'
-                            defaultMessage='The attribute in the LDAP server that will be used to populate the last name of users in Mattermost.'
+                            defaultMessage='(Optional) The attribute in the LDAP server that will be used to populate the last name of users in Mattermost.'
                         />
                     }
                     value={this.state.lastNameAttribute}
