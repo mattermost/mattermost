@@ -42,6 +42,7 @@ export function emitChannelClickEvent(channel) {
     }
     function switchToChannel(chan) {
         AsyncClient.getChannels(true);
+        AsyncClient.getMoreChannels(true);
         AsyncClient.getChannelExtraInfo(chan.id);
         AsyncClient.updateLastViewedAt(chan.id);
         AsyncClient.getPosts(chan.id);
@@ -141,6 +142,7 @@ export function doFocusPost(channelId, postId, data) {
         post_list: data
     });
     AsyncClient.getChannels(true);
+    AsyncClient.getMoreChannels(true);
     AsyncClient.getChannelExtraInfo(channelId);
     AsyncClient.getPostsBefore(postId, 0, Constants.POST_FOCUS_CONTEXT_RADIUS, true);
     AsyncClient.getPostsAfter(postId, 0, Constants.POST_FOCUS_CONTEXT_RADIUS, true);
@@ -435,6 +437,7 @@ export function loadDefaultLocale() {
 
 export function viewLoggedIn() {
     AsyncClient.getChannels();
+    AsyncClient.getMoreChannels();
     AsyncClient.getChannelExtraInfo();
 
     // Clear pending posts (shouldn't have pending posts if we are loading)
