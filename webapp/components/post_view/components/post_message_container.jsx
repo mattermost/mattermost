@@ -27,6 +27,7 @@ export default class PostMessageContainer extends React.Component {
         this.onEmojiChange = this.onEmojiChange.bind(this);
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.onUserChange = this.onUserChange.bind(this);
+        this.onChannelChange = this.onChannelChange.bind(this);
 
         const mentionKeys = UserStore.getCurrentMentionKeys();
         mentionKeys.push('@here');
@@ -44,12 +45,16 @@ export default class PostMessageContainer extends React.Component {
         EmojiStore.addChangeListener(this.onEmojiChange);
         PreferenceStore.addChangeListener(this.onPreferenceChange);
         UserStore.addChangeListener(this.onUserChange);
+        ChannelStore.addChangeListener(this.onChannelChange);
+        ChannelStore.addMoreChangeListener(this.onChannelChange);
     }
 
     componentWillUnmount() {
         EmojiStore.removeChangeListener(this.onEmojiChange);
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
         UserStore.removeChangeListener(this.onUserChange);
+        ChannelStore.removeChangeListener(this.onChannelChange);
+        ChannelStore.removeMoreChangeListener(this.onChannelChange);
     }
 
     onEmojiChange() {
@@ -71,6 +76,12 @@ export default class PostMessageContainer extends React.Component {
         this.setState({
             mentionKeys,
             usernameMap: UserStore.getProfilesUsernameMap()
+        });
+    }
+
+    onChannelChange() {
+        this.setState({
+            channelNamesMap: ChannelStore.getChannelNamesMap()
         });
     }
 
