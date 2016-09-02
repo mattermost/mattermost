@@ -1011,7 +1011,7 @@
   },
   {
     "id": "api.oauth.complete_oauth.missing_code.app_error",
-    "translation": "The service provider {{.service}} did not provide an authorization code in the redirect URL. For [Google Apps](https://docs.mattermost.com/deployment/sso-google.html) make sure your administrator enabled the Google+ API.\nFor [Office 365](https://docs.mattermost.com/deployment/sso-office.html) make sure the administrator of your Microsoft organization has enabled the Mattermost app. For [GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html) please make sure you followed the setup instructions."
+    "translation": "The service provider {{.service}} did not provide an authorization code in the redirect URL.\n\nFor [Google Apps](https://docs.mattermost.com/deployment/sso-google.html) make sure your administrator enabled the Google+ API.\nFor [Office 365](https://docs.mattermost.com/deployment/sso-office.html) make sure the administrator of your Microsoft organization has enabled the Mattermost app.\nFor [GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html) please make sure you followed the setup instructions."
   },
   {
     "id": "api.oauth.allow_oauth.bad_redirect.app_error",
