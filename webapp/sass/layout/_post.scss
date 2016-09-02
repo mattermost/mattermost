@@ -681,6 +681,11 @@ body.ios {
         .post__body {
             border-left: 4px solid $gray;
             padding-left: 7px;
+
+            &.mention-comment {
+                border-left: 4px solid $yellow;
+                border-color: $yellow;
+            }
         }
     }
 

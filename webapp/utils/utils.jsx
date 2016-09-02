@@ -663,9 +663,7 @@ export function applyTheme(theme) {
 
     if (theme.mentionHighlightBg) {
         changeCss('.app__body .mention--highlight, .app__body .search-highlight', 'background:' + theme.mentionHighlightBg, 1);
-    }
-
-    if (theme.mentionHighlightBg) {
+        changeCss('.mention-comment', 'border-color:' + theme.mentionHighlightBg + ' !important', 1);
         changeCss('.app__body .post.post--highlight', 'background:' + changeOpacity(theme.mentionHighlightBg, 0.5), 1);
     }
 
