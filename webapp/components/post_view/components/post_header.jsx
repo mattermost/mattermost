@@ -63,7 +63,6 @@ export default class PostHeader extends React.Component {
                     <PostInfo
                         post={post}
                         commentCount={this.props.commentCount}
-                        isCommentMention={this.props.isCommentMention}
                         handleCommentClick={this.props.handleCommentClick}
                         handleDropdownOpened={this.props.handleDropdownOpened}
                         allowReply='true'
@@ -91,7 +90,6 @@ PostHeader.propTypes = {
     user: React.PropTypes.object,
     currentUser: React.PropTypes.object.isRequired,
     commentCount: React.PropTypes.number.isRequired,
-    isCommentMention: React.PropTypes.bool.isRequired,
     isLastComment: React.PropTypes.bool.isRequired,
     handleCommentClick: React.PropTypes.func.isRequired,
     handleDropdownOpened: React.PropTypes.func.isRequired,

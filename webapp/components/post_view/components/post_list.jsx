@@ -253,35 +253,34 @@ export default class PostList extends React.Component {
             }
 
             let commentCount = 0;
-            let nonOwnCommentsExists = false;
             let isCommentMention = false;
+            let lastCommentOnThreadTime = Number.MAX_SAFE_INTEGER;
             let commentRootId;
             if (parentPost) {
                 commentRootId = post.root_id;
             } else {
                 commentRootId = post.id;
             }
-            if (commentRootId) {
-                const commentsNotifyLevel = this.props.currentUser.notify_props.comments || 'never';
-                for (const postId in posts) {
-                    if (posts[postId].root_id === commentRootId) {
-                        commentCount += 1;
-                        if (posts[postId].user_id !== this.props.currentUser.id) {
-                            nonOwnCommentsExists = true;
-                        }
-                        if (posts[postId].user_id === this.props.currentUser.id && commentsNotifyLevel === 'any' && !isCommentMention) {
-                            for (const nextPostId in posts) {
-                                if (posts[nextPostId].root_id === commentRootId && posts[nextPostId].user_id !== this.props.currentUser.id &&
-                                        posts[postId].create_at < posts[nextPostId].create_at) {
-                                    isCommentMention = true;
-                                    break;
-                                }
-                            }
-                        }
+
+            for (const postId in posts) {
+                if (posts[postId].root_id === commentRootId) {
+                    commentCount += 1;
+                    if (posts[postId].user_id === userId && (lastCommentOnThreadTime === Number.MAX_SAFE_INTEGER || lastCommentOnThreadTime < posts[postId].create_at)) {
+                        lastCommentOnThreadTime = posts[postId].create_at;
                     }
                 }
-                if (nonOwnCommentsExists && posts[commentRootId].user_id === this.props.currentUser.id && commentsNotifyLevel !== 'never') {
-                    isCommentMention = true;
+            }
+
+            if (parentPost && commentRootId) {
+                const commentsNotifyLevel = this.props.currentUser.notify_props.comments || 'never';
+                const notCurrentUser = post.user_id !== userId || (post.props && post.props.from_webhook);
+                const notViewed = this.props.lastViewed !== 0 && post.create_at > this.props.lastViewed;
+                if (notCurrentUser && notViewed) {
+                    if (commentsNotifyLevel === 'any' && (posts[commentRootId].user_id === userId || post.create_at > lastCommentOnThreadTime)) {
+                        isCommentMention = true;
+                    } else if (commentsNotifyLevel === 'root' && posts[commentRootId].user_id === userId) {
+                        isCommentMention = true;
+                    }
                 }
             }
 

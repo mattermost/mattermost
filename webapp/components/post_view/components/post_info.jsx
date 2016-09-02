@@ -250,7 +250,6 @@ export default class PostInfo extends React.Component {
         var post = this.props.post;
         var comments = '';
         var showCommentClass = '';
-        var highlightMentionClass = '';
         var commentCountText = this.props.commentCount;
         const flagIcon = Constants.FLAG_ICON_SVG;
 
@@ -260,15 +259,11 @@ export default class PostInfo extends React.Component {
             commentCountText = '';
         }
 
-        if (this.props.isCommentMention) {
-            highlightMentionClass = ' mention--highlight';
-        }
-
         if (post.state !== Constants.POST_FAILED && post.state !== Constants.POST_LOADING && !Utils.isPostEphemeral(post)) {
             comments = (
                 <a
                     href='#'
-                    className={'comment-icon__container' + showCommentClass + highlightMentionClass}
+                    className={'comment-icon__container' + showCommentClass}
                     onClick={this.props.handleCommentClick}
                 >
                     <span
@@ -386,7 +381,6 @@ PostInfo.defaultProps = {
 PostInfo.propTypes = {
     post: React.PropTypes.object.isRequired,
     commentCount: React.PropTypes.number.isRequired,
-    isCommentMention: React.PropTypes.bool.isRequired,
     isLastComment: React.PropTypes.bool.isRequired,
     allowReply: React.PropTypes.string.isRequired,
     handleCommentClick: React.PropTypes.func.isRequired,
