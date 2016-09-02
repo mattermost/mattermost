@@ -28,6 +28,7 @@ func InitStatus() {
 	l4g.Debug(utils.T("api.status.init.debug"))
 
 	BaseRoutes.Users.Handle("/status", ApiUserRequiredActivity(getStatusesHttp, false)).Methods("GET")
+	BaseRoutes.Users.Handle("/status/set_active_channel", ApiUserRequiredActivity(setActiveChannel, false)).Methods("POST")
 	BaseRoutes.WebSocket.Handle("get_statuses", ApiWebSocketHandler(getStatusesWebSocket))
 }
 
@@ -66,13 +67,12 @@ func GetAllStatuses() (map[string]interface{}, *model.AppError) {
 }
 
 func SetStatusOnline(userId string, sessionId string, manual bool) {
-	l4g.Debug(userId, "online")
 	broadcast := false
 
 	var status *model.Status
 	var err *model.AppError
 	if status, err = GetStatus(userId); err != nil {
-		status = &model.Status{userId, model.STATUS_ONLINE, false, model.GetMillis()}
+		status = &model.Status{userId, model.STATUS_ONLINE, false, model.GetMillis(), ""}
 		broadcast = true
 	} else {
 		if status.Manual && !manual {
@@ -113,13 +113,12 @@ func SetStatusOnline(userId string, sessionId string, manual bool) {
 }
 
 func SetStatusOffline(userId string, manual bool) {
-	l4g.Debug(userId, "offline")
 	status, err := GetStatus(userId)
 	if err == nil && status.Manual && !manual {
 		return // manually set status always overrides non-manual one
 	}
 
-	status = &model.Status{userId, model.STATUS_OFFLINE, manual, model.GetMillis()}
+	status = &model.Status{userId, model.STATUS_OFFLINE, manual, model.GetMillis(), ""}
 
 	AddStatusCache(status)
 
@@ -133,11 +132,10 @@ func SetStatusOffline(userId string, manual bool) {
 }
 
 func SetStatusAwayIfNeeded(userId string, manual bool) {
-	l4g.Debug(userId, "away")
 	status, err := GetStatus(userId)
 
 	if err != nil {
-		status = &model.Status{userId, model.STATUS_OFFLINE, manual, 0}
+		status = &model.Status{userId, model.STATUS_OFFLINE, manual, 0, ""}
 	}
 
 	if !manual && status.Manual {
@@ -156,6 +154,7 @@ func SetStatusAwayIfNeeded(userId string, manual bool) {
 
 	status.Status = model.STATUS_AWAY
 	status.Manual = manual
+	status.ActiveChannel = ""
 
 	AddStatusCache(status)
 
@@ -182,4 +181,57 @@ func GetStatus(userId string) (*model.Status, *model.AppError) {
 
 func IsUserAway(lastActivityAt int64) bool {
 	return model.GetMillis()-lastActivityAt >= *utils.Cfg.TeamSettings.UserStatusAwayTimeout*1000
+}
+
+func DoesStatusAllowPushNotification(user *model.User, status *model.Status, channelId string) bool {
+	props := user.NotifyProps
+
+	if props["push"] == "none" {
+		return false
+	}
+
+	if pushStatus, ok := props["push_status"]; (pushStatus == model.STATUS_ONLINE || !ok) && (status.ActiveChannel != channelId || model.GetMillis()-status.LastActivityAt > model.STATUS_CHANNEL_TIMEOUT) {
+		return true
+	} else if pushStatus == model.STATUS_AWAY && (status.Status == model.STATUS_AWAY || status.Status == model.STATUS_OFFLINE) {
+		return true
+	} else if pushStatus == model.STATUS_OFFLINE && status.Status == model.STATUS_OFFLINE {
+		return true
+	}
+
+	return false
+}
+
+func setActiveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	data := model.MapFromJson(r.Body)
+
+	var channelId string
+	var ok bool
+	if channelId, ok = data["channel_id"]; !ok || len(channelId) > 26 {
+		c.SetInvalidParam("setActiveChannel", "channel_id")
+		return
+	}
+
+	if err := SetActiveChannel(c.Session.UserId, channelId); err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
+}
+
+func SetActiveChannel(userId string, channelId string) *model.AppError {
+	status, err := GetStatus(userId)
+	if err != nil {
+		status = &model.Status{userId, model.STATUS_ONLINE, false, model.GetMillis(), channelId}
+	} else {
+		status.ActiveChannel = channelId
+	}
+
+	AddStatusCache(status)
+
+	if result := <-Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
+		return result.Err
+	}
+
+	return nil
 }

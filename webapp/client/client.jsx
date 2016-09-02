@@ -1003,6 +1003,16 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getStatuses', success, error));
     }
 
+    setActiveChannel(id, success, error) {
+        request.
+            post(`${this.getUsersRoute()}/status/set_active_channel`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send({channel_id: id}).
+            end(this.handleResponse.bind(this, 'setActiveChannel', success, error));
+    }
+
     verifyEmail(uid, hid, success, error) {
         request.
             post(`${this.getUsersRoute()}/verify_email`).
@@ -1172,12 +1182,13 @@ export default class Client {
         this.track('api', 'api_channels_delete');
     }
 
-    updateLastViewedAt(channelId, success, error) {
+    updateLastViewedAt(channelId, active, success, error) {
         request.
             post(`${this.getChannelNeededRoute(channelId)}/update_last_viewed_at`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
+            send({active}).
             end(this.handleResponse.bind(this, 'updateLastViewedAt', success, error));
     }
 

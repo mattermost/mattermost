@@ -1140,8 +1140,13 @@ func (c *Client) RemoveChannelMember(id, user_id string) (*Result, *AppError) {
 	}
 }
 
-func (c *Client) UpdateLastViewedAt(channelId string) (*Result, *AppError) {
-	if r, err := c.DoApiPost(c.GetChannelRoute(channelId)+"/update_last_viewed_at", ""); err != nil {
+// UpdateLastViewedAt will mark a channel as read.
+// The channelId indicates the channel to mark as read. If active is true, push notifications
+// will be cleared if there are unread messages. The default for active is true.
+func (c *Client) UpdateLastViewedAt(channelId string, active bool) (*Result, *AppError) {
+	data := make(map[string]interface{})
+	data["active"] = active
+	if r, err := c.DoApiPost(c.GetChannelRoute(channelId)+"/update_last_viewed_at", StringInterfaceToJson(data)); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)
@@ -1455,6 +1460,21 @@ func (c *Client) AdminResetPassword(userId, newPassword string) (*Result, *AppEr
 // GetStatuses returns a map of string statuses using user id as the key
 func (c *Client) GetStatuses() (*Result, *AppError) {
 	if r, err := c.DoApiGet("/users/status", "", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
+	}
+}
+
+// SetActiveChannel sets the the channel id the user is currently viewing.
+// The channelId key is required but the value can be blank. Returns standard
+// response.
+func (c *Client) SetActiveChannel(channelId string) (*Result, *AppError) {
+	data := map[string]string{}
+	data["channel_id"] = channelId
+	if r, err := c.DoApiPost("/users/status/set_active_channel", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)

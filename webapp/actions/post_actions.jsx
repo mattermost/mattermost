@@ -19,7 +19,7 @@ const Preferences = Constants.Preferences;
 export function handleNewPost(post, msg) {
     if (ChannelStore.getCurrentId() === post.channel_id) {
         if (window.isActive) {
-            AsyncClient.updateLastViewedAt();
+            AsyncClient.updateLastViewedAt(null, false);
         } else {
             AsyncClient.getChannel(post.channel_id);
         }

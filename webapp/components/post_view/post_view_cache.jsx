@@ -4,6 +4,7 @@
 import PostViewController from './post_view_controller.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
+import * as AsyncClient from 'utils/async_client.jsx';
 
 import React from 'react';
 
@@ -28,6 +29,7 @@ export default class PostViewCache extends React.Component {
     }
 
     componentWillUnmount() {
+        AsyncClient.setActiveChannel('');
         ChannelStore.removeChangeListener(this.onChannelChange);
     }
 

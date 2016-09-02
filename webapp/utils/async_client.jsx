@@ -113,7 +113,7 @@ export function getChannel(id) {
     );
 }
 
-export function updateLastViewedAt(id) {
+export function updateLastViewedAt(id, active) {
     let channelId;
     if (id) {
         channelId = id;
@@ -129,9 +129,17 @@ export function updateLastViewedAt(id) {
         return;
     }
 
+    let isActive;
+    if (active == null) {
+        isActive = true;
+    } else {
+        isActive = active;
+    }
+
     callTracker[`updateLastViewed${channelId}`] = utils.getTimestamp();
     Client.updateLastViewedAt(
         channelId,
+        isActive,
         () => {
             callTracker[`updateLastViewed${channelId}`] = 0;
             ErrorStore.clearLastError();
@@ -749,6 +757,24 @@ export function getStatuses() {
         (err) => {
             callTracker.getStatuses = 0;
             dispatchError(err, 'getStatuses');
+        }
+    );
+}
+
+export function setActiveChannel(channelId) {
+    if (isCallInProgress(`setActiveChannel${channelId}`)) {
+        return;
+    }
+
+    callTracker[`setActiveChannel${channelId}`] = utils.getTimestamp();
+    Client.setActiveChannel(
+        channelId,
+        () => {
+            callTracker[`setActiveChannel${channelId}`] = 0;
+        },
+        (err) => {
+            callTracker[`setActiveChannel${channelId}`] = 0;
+            dispatchError(err, 'setActiveChannel');
         }
     );
 }
