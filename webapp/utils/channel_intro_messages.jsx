@@ -231,8 +231,8 @@ export function createStandardIntroMessage(channel, centeredIntro) {
                 {memberMessage}
                 <br/>
             </p>
-            {createSetHeaderButton(channel)}
             {createInviteChannelMemberButton(channel, uiType)}
+            {createSetHeaderButton(channel)}
         </div>
     );
 }
