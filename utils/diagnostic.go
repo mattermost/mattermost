@@ -7,7 +7,7 @@ import "github.com/segmentio/analytics-go"
 
 const (
 	DIAGNOSTIC_URL = "https://d7zmvsa9e04kk.cloudfront.net"
-	SEGMENT_KEY    = "DUMMY KEY HERE"
+	SEGMENT_KEY    = "ua1qQtmgOZWIM23YjD842tQAsN7Ydi5X"
 
 	PROP_DIAGNOSTIC_ID                = "id"
 	PROP_DIAGNOSTIC_CATEGORY          = "c"
