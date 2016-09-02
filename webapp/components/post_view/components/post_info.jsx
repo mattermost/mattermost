@@ -63,7 +63,7 @@ export default class PostInfo extends React.Component {
             dataComments = this.props.commentCount;
         }
 
-        if (this.props.allowReply === 'true') {
+        if (this.props.allowReply) {
             dropdownContents.push(
                 <li
                     key='replyLink'
@@ -388,7 +388,7 @@ PostInfo.propTypes = {
     commentCount: React.PropTypes.number.isRequired,
     isCommentMention: React.PropTypes.bool.isRequired,
     isLastComment: React.PropTypes.bool.isRequired,
-    allowReply: React.PropTypes.string.isRequired,
+    allowReply: React.PropTypes.bool.isRequired,
     handleCommentClick: React.PropTypes.func.isRequired,
     handleDropdownOpened: React.PropTypes.func.isRequired,
     sameUser: React.PropTypes.bool.isRequired,

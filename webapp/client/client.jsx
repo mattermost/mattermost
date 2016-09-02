@@ -471,6 +471,15 @@ export default class Client {
             end(this.handleResponse.bind(this, 'ldapSyncNow', success, error));
     }
 
+    ldapTest(success, error) {
+        request.
+            post(`${this.getAdminRoute()}/ldap_test`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'ldap_test', success, error));
+    }
+
     // Team Routes Section
 
     createTeamFromSignup(teamSignup, success, error) {

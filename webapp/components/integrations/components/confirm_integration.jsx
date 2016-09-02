@@ -193,7 +193,7 @@ export default class ConfirmIntegration extends React.Component {
                     <p>
                         <FormattedHTMLMessage
                             id='add_oauth_app.doneUrlHelp'
-                            defaultMessage='Please send data to the following URL.'
+                            defaultMessage='The following are your authorized redirect URL(s).'
                         />
                     </p>
                 );

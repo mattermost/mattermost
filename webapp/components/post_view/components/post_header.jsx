@@ -18,6 +18,7 @@ export default class PostHeader extends React.Component {
 
     render() {
         const post = this.props.post;
+        const isSystemMessage = PostUtils.isSystemMessage(post);
 
         let userProfile = (
             <UserProfile
@@ -40,7 +41,7 @@ export default class PostHeader extends React.Component {
             }
 
             botIndicator = <li className='bot-indicator'>{Constants.BOT_NAME}</li>;
-        } else if (PostUtils.isSystemMessage(post)) {
+        } else if (isSystemMessage) {
             userProfile = (
                 <UserProfile
                     user={{}}
@@ -66,7 +67,7 @@ export default class PostHeader extends React.Component {
                         isCommentMention={this.props.isCommentMention}
                         handleCommentClick={this.props.handleCommentClick}
                         handleDropdownOpened={this.props.handleDropdownOpened}
-                        allowReply='true'
+                        allowReply={!isSystemMessage}
                         isLastComment={this.props.isLastComment}
                         sameUser={this.props.sameUser}
                         currentUser={this.props.currentUser}

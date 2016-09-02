@@ -434,6 +434,13 @@ func TestGetDirectProfiles(t *testing.T) {
 
 	th.BasicClient.Must(th.BasicClient.CreateDirectChannel(th.BasicUser2.Id))
 
+	prevShowEmail := utils.Cfg.PrivacySettings.ShowEmailAddress
+	defer func() {
+		utils.Cfg.PrivacySettings.ShowEmailAddress = prevShowEmail
+	}()
+
+	utils.Cfg.PrivacySettings.ShowEmailAddress = true
+
 	if result, err := th.BasicClient.GetDirectProfiles(""); err != nil {
 		t.Fatal(err)
 	} else {
@@ -446,6 +453,34 @@ func TestGetDirectProfiles(t *testing.T) {
 		if users[th.BasicUser2.Id] == nil {
 			t.Fatal("missing expected user")
 		}
+
+		for _, user := range users {
+			if user.Email == "" {
+				t.Fatal("problem with show email")
+			}
+		}
+	}
+
+	utils.Cfg.PrivacySettings.ShowEmailAddress = false
+
+	if result, err := th.BasicClient.GetDirectProfiles(""); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.(map[string]*model.User)
+
+		if len(users) != 1 {
+			t.Fatal("map was wrong length")
+		}
+
+		if users[th.BasicUser2.Id] == nil {
+			t.Fatal("missing expected user")
+		}
+
+		for _, user := range users {
+			if user.Email != "" {
+				t.Fatal("problem with show email")
+			}
+		}
 	}
 }
 
@@ -454,6 +489,13 @@ func TestGetProfilesForDirectMessageList(t *testing.T) {
 
 	th.BasicClient.Must(th.BasicClient.CreateDirectChannel(th.BasicUser2.Id))
 
+	prevShowEmail := utils.Cfg.PrivacySettings.ShowEmailAddress
+	defer func() {
+		utils.Cfg.PrivacySettings.ShowEmailAddress = prevShowEmail
+	}()
+
+	utils.Cfg.PrivacySettings.ShowEmailAddress = true
+
 	if result, err := th.BasicClient.GetProfilesForDirectMessageList(th.BasicTeam.Id); err != nil {
 		t.Fatal(err)
 	} else {
@@ -461,6 +503,30 @@ func TestGetProfilesForDirectMessageList(t *testing.T) {
 
 		if len(users) < 1 {
 			t.Fatal("map was wrong length")
+		}
+
+		for _, user := range users {
+			if user.Email == "" {
+				t.Fatal("problem with show email")
+			}
+		}
+	}
+
+	utils.Cfg.PrivacySettings.ShowEmailAddress = false
+
+	if result, err := th.BasicClient.GetProfilesForDirectMessageList(th.BasicTeam.Id); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.(map[string]*model.User)
+
+		if len(users) < 1 {
+			t.Fatal("map was wrong length")
+		}
+
+		for _, user := range users {
+			if user.Email != "" {
+				t.Fatal("problem with show email")
+			}
 		}
 	}
 }

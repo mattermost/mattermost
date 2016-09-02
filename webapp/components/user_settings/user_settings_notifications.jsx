@@ -290,6 +290,13 @@ export default class NotificationsTab extends React.Component {
                     pushStatusSettings = (
                         <div>
                             <hr/>
+                            <label>
+                                <FormattedMessage
+                                    id='user.settings.notifications.push_notification.status'
+                                    defaultMessage='Trigger push notifications when'
+                                />
+                            </label>
+                            <br/>
                             <div className='radio'>
                                 <label>
                                     <input
@@ -341,7 +348,7 @@ export default class NotificationsTab extends React.Component {
                         <span>
                             <FormattedMessage
                                 id='user.settings.push_notification.status_info'
-                                defaultMessage='Notification alerts are pushed to your mobile device depending on your online status.'
+                                defaultMessage='Notification alerts are only pushed to your mobile device when your online status matches the selection above.'
                             />
                         </span>
                     );
@@ -349,6 +356,13 @@ export default class NotificationsTab extends React.Component {
 
                 inputs.push(
                     <div key='userNotificationLevelOption'>
+                        <label>
+                            <FormattedMessage
+                                id='user.settings.push_notification.send'
+                                defaultMessage='Send mobile push notifications'
+                            />
+                        </label>
+                        <br/>
                         <div className='radio'>
                             <label>
                                 <input

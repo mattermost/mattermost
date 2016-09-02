@@ -887,6 +887,19 @@ func (c *Client) TestEmail(config *Config) (*Result, *AppError) {
 	}
 }
 
+// TestLdap will run a connection test on the current LDAP settings.
+// It will return the standard OK response if settings work. Otherwise
+// it will return an appropriate error.
+func (c *Client) TestLdap(config *Config) (*Result, *AppError) {
+	if r, err := c.DoApiPost("/admin/ldap_test", config.ToJson()); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) GetComplianceReports() (*Result, *AppError) {
 	if r, err := c.DoApiGet("/admin/compliance_reports", "", ""); err != nil {
 		return nil, err
