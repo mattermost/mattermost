@@ -69,6 +69,7 @@ export default class ChannelMentionProvider {
             const prefix = captured[1];
 
             const channels = ChannelStore.getAll();
+            const moreChannels = ChannelStore.getMoreAll();
 
             // Remove private channels from the list.
             const publicChannels = channels.filter((channel) => {
@@ -78,32 +79,44 @@ export default class ChannelMentionProvider {
             // Filter channels by prefix.
             const filteredChannels = filterChannelsByPrefix(
                     publicChannels, prefix, MaxChannelSuggestions);
+            const filteredMoreChannels = filterChannelsByPrefix(
+                    moreChannels, prefix, MaxChannelSuggestions - filteredChannels.length);
 
             // Sort channels by display name.
-            filteredChannels.sort((a, b) => {
-                const aPrefix = a.display_name.startsWith(prefix);
-                const bPrefix = b.display_name.startsWith(prefix);
+            [filteredChannels, filteredMoreChannels].forEach((items) => {
+                items.sort((a, b) => {
+                    const aPrefix = a.display_name.startsWith(prefix);
+                    const bPrefix = b.display_name.startsWith(prefix);
 
-                if (aPrefix === bPrefix) {
-                    return a.display_name.localeCompare(b.display_name);
-                } else if (aPrefix) {
-                    return -1;
-                }
+                    if (aPrefix === bPrefix) {
+                        return a.display_name.localeCompare(b.display_name);
+                    } else if (aPrefix) {
+                        return -1;
+                    }
 
-                return 1;
+                    return 1;
+                });
             });
 
             // Wrap channels in an outer object to avoid overwriting the 'type' property.
             const wrappedChannels = filteredChannels.map((item) => {
                 return {
-                    type: Constants.MENTION_CHANNEL,
+                    type: Constants.MENTION_CHANNELS,
+                    channel: item
+                };
+            });
+            const wrappedMoreChannels = filteredMoreChannels.map((item) => {
+                return {
+                    type: Constants.MENTION_MORE_CHANNELS,
                     channel: item
                 };
             });
 
-            const mentions = wrappedChannels.map((item) => '!' + item.channel.name);
+            const wrapped = wrappedChannels.concat(wrappedMoreChannels);
 
-            SuggestionStore.addSuggestions(suggestionId, mentions, wrappedChannels, ChannelMentionSuggestion, captured[0]);
+            const mentions = wrapped.map((item) => '!' + item.channel.name);
+
+            SuggestionStore.addSuggestions(suggestionId, mentions, wrapped, ChannelMentionSuggestion, captured[0]);
         }
     }
 }
