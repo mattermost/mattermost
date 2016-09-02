@@ -76,8 +76,11 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		return
 	} else {
-		if result := <-Srv.Store.Channel().UpdateLastViewedAt(post.ChannelId, c.Session.UserId); result.Err != nil {
-			l4g.Error(utils.T("api.post.create_post.last_viewed.error"), post.ChannelId, c.Session.UserId, result.Err)
+		// Update the LastViewAt only if the post does not have from_webhook prop set (eg. Zapier app)
+		if _, ok := post.Props["from_webhook"]; !ok {
+			if result := <-Srv.Store.Channel().UpdateLastViewedAt(post.ChannelId, c.Session.UserId); result.Err != nil {
+				l4g.Error(utils.T("api.post.create_post.last_viewed.error"), post.ChannelId, c.Session.UserId, result.Err)
+			}
 		}
 
 		w.Write([]byte(rp.ToJson()))
