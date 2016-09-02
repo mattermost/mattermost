@@ -199,6 +199,8 @@
   "admin.compliance_table.userId": "Requested By",
   "admin.connectionSecurityNone": "None",
   "admin.connectionSecurityNoneDescription": "Mattermost will connect over an unsecure connection.",
+  "admin.connectionSecurityPlain": "PLAIN",
+  "admin.connectionSecurityPlainDescription": "Mattermost will connect and authenticate over an unsecure connection.",
   "admin.connectionSecurityStart": "STARTTLS",
   "admin.connectionSecurityStartDescription": "Takes an existing insecure connection and attempts to upgrade it to a secure connection using TLS.",
   "admin.connectionSecurityTest": "Test Connection",
