@@ -50,6 +50,9 @@ export default class PostViewController extends React.Component {
             statuses = Object.assign({}, UserStore.getStatuses());
         }
 
+        // If we haven't received a page time then we aren't done loading the posts yet
+        const loading = PostStore.getLatestPostFromPageTime(channel.id) === 0;
+
         this.state = {
             channel,
             postList: PostStore.filterPosts(channel.id, joinLeaveEnabled),
@@ -59,6 +62,7 @@ export default class PostViewController extends React.Component {
             atTop: PostStore.getVisibilityAtTop(channel.id),
             lastViewed,
             ownNewMessage: false,
+            loading,
             scrollType: ScrollTypes.NEW_MESSAGE,
             displayNameType: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'false'),
             displayPostsInCenter: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED,
@@ -113,11 +117,19 @@ export default class PostViewController extends React.Component {
 
     onPostsChange() {
         const joinLeaveEnabled = PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'join_leave', true);
+        const loading = PostStore.getLatestPostFromPageTime(this.state.channel.id) === 0;
 
-        this.setState({
+        const newState = {
             postList: PostStore.filterPosts(this.state.channel.id, joinLeaveEnabled),
-            atTop: PostStore.getVisibilityAtTop(this.state.channel.id)
-        });
+            atTop: PostStore.getVisibilityAtTop(this.state.channel.id),
+            loading
+        };
+
+        if (this.state.loading && !loading) {
+            newState.scrollType = ScrollTypes.NEW_MESSAGE;
+        }
+
+        this.setState(newState);
     }
 
     onStatusChange() {
@@ -219,6 +231,10 @@ export default class PostViewController extends React.Component {
             return true;
         }
 
+        if (nextState.loading !== this.state.loading) {
+            return true;
+        }
+
         if (nextState.atTop !== this.state.atTop) {
             return true;
         }
@@ -292,7 +308,7 @@ export default class PostViewController extends React.Component {
 
     render() {
         let content;
-        if (this.state.postList == null) {
+        if (this.state.postList == null || this.state.loading) {
             content = (
                 <LoadingScreen
                     position='absolute'

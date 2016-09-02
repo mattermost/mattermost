@@ -609,13 +609,12 @@ export function getPosts(id) {
     }
 
     const postList = PostStore.getAllPosts(channelId);
+    const latestPostTime = PostStore.getLatestPostFromPageTime(id);
 
-    if ($.isEmptyObject(postList) || postList.order.length < Constants.POST_CHUNK_SIZE) {
+    if ($.isEmptyObject(postList) || postList.order.length < Constants.POST_CHUNK_SIZE || latestPostTime === 0) {
         getPostsPage(channelId, Constants.POST_CHUNK_SIZE);
         return;
     }
-
-    const latestPostTime = PostStore.getLatestPostFromPageTime(id);
 
     callTracker['getPosts_' + channelId] = utils.getTimestamp();
 

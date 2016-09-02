@@ -198,11 +198,16 @@ class PostStoreClass extends EventEmitter {
             return;
         }
 
-        if (checkLatest && newPosts.order.length >= 1) {
+        if (checkLatest) {
             const currentLatest = this.latestPageTime[id] || 0;
-            const newLatest = newPosts.posts[newPosts.order[0]].create_at || 0;
-            if (newLatest > currentLatest) {
-                this.latestPageTime[id] = newLatest;
+            if (newPosts.order.length >= 1) {
+                const newLatest = newPosts.posts[newPosts.order[0]].create_at || 0;
+                if (newLatest > currentLatest) {
+                    this.latestPageTime[id] = newLatest;
+                }
+            } else if (currentLatest === 0) {
+                // Mark that an empty page was received
+                this.latestPageTime[id] = 1;
             }
         }
 
