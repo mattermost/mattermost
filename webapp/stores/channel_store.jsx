@@ -370,7 +370,6 @@ class ChannelStoreClass extends EventEmitter {
             }
         }
         var channels = this.getMoreChannels();
-        console.log(channels);
         for (var key in channels) {
             if (channels.hasOwnProperty(key)) {
                 var channel = channels[key];
