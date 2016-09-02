@@ -20,15 +20,12 @@ export default class ExternalServiceSettings extends AdminSettings {
     }
 
     getConfigFromState(config) {
-        config.ServiceSettings.SegmentDeveloperKey = this.state.segmentDeveloperKey;
         config.ServiceSettings.GoogleDeveloperKey = this.state.googleDeveloperKey;
-
         return config;
     }
 
     getStateFromConfig(config) {
         return {
-            segmentDeveloperKey: config.ServiceSettings.SegmentDeveloperKey,
             googleDeveloperKey: config.ServiceSettings.GoogleDeveloperKey
         };
     }
@@ -47,24 +44,6 @@ export default class ExternalServiceSettings extends AdminSettings {
     renderSettings() {
         return (
             <SettingsGroup>
-                <TextSetting
-                    id='segmentDeveloperKey'
-                    label={
-                        <FormattedMessage
-                            id='admin.service.segmentTitle'
-                            defaultMessage='Segment Write Key:'
-                        />
-                    }
-                    placeholder={Utils.localizeMessage('admin.service.segmentExample', 'Ex "g3fgGOXJAQ43QV7rAh6iwQCkV4cA1Gs"')}
-                    helpText={
-                        <FormattedMessage
-                            id='admin.service.segmentDescription'
-                            defaultMessage='Segment.com is an online service that can be optionally used to track detailed system statistics. You can obtain a key by signing-up for a free account at Segment.com.'
-                        />
-                    }
-                    value={this.state.segmentDeveloperKey}
-                    onChange={this.handleChange}
-                />
                 <TextSetting
                     id='googleDeveloperKey'
                     label={
