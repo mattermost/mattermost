@@ -6,6 +6,7 @@ import Constants from './constants.jsx';
 import EmojiStore from 'stores/emoji_store.jsx';
 import * as Emoticons from './emoticons.jsx';
 import * as Markdown from './markdown.jsx';
+import TeamStore from 'stores/team_store.jsx';
 import twemoji from 'twemoji';
 import XRegExp from 'xregexp';
 
@@ -208,12 +209,13 @@ function autolinkChannelMentions(text, tokens, channelNamesMap) {
     function channelMentionExists(c) {
         return !!channelNamesMap[c];
     }
-    function addToken(channelName, mention, displayName) {
+    function addToken(channelName, mention, displayName, teamName) {
         const index = tokens.size;
         const alias = `MM_CHANNELMENTION${index}`;
+        const route = '/' + teamName + '/channels/' + channelName;
 
         tokens.set(alias, {
-            value: `<a class='mention-link' href='#' data-mention='${channelName}'>${displayName}</a>`,
+            value: `<a class='mention-link' href='#' data-channel-mention="${route}">${displayName}</a>`,
             originalText: mention
         });
         return alias;
@@ -224,7 +226,7 @@ function autolinkChannelMentions(text, tokens, channelNamesMap) {
 
         if (channelMentionExists(channelNameLower)) {
             // Exact match
-            const alias = addToken(channelNameLower, mention, '!' + channelNamesMap[channelNameLower].display_name);
+            const alias = addToken(channelNameLower, mention, '!' + channelNamesMap[channelNameLower].display_name, TeamStore.getCurrent().name);
             return alias;
         }
 
@@ -237,7 +239,7 @@ function autolinkChannelMentions(text, tokens, channelNamesMap) {
 
                 if (channelMentionExists(channelNameLower)) {
                     const suffix = originalChannelName.substr(c - 1);
-                    const alias = addToken(channelNameLower, '!' + channelNameLower, '!' + channelNamesMap[channelNameLower].display_name);
+                    const alias = addToken(channelNameLower, '!' + channelNameLower, '!' + channelNamesMap[channelNameLower].display_name, TeamStore.getCurrent().name);
                     return alias + suffix;
                 }
             } else {
