@@ -94,8 +94,8 @@ export function createOffTopicIntroMessage(channel, centeredIntro) {
                     display_name: channel.display_name
                 }}
             />
-            {createSetHeaderButton(channel)}
             {createInviteChannelMemberButton(channel, 'channel')}
+            {createSetHeaderButton(channel)}
         </div>
     );
 }
