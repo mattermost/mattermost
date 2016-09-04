@@ -4,7 +4,6 @@
 import ViewImageModal from './view_image.jsx';
 import FileAttachment from './file_attachment.jsx';
 import Constants from 'utils/constants.jsx';
-import * as Utils from 'utils/utils.jsx';
 
 import React from 'react';
 
