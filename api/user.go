@@ -72,6 +72,8 @@ func InitUser() {
 	BaseRoutes.NeedUser.Handle("/audits", ApiUserRequired(getAudits)).Methods("GET")
 	BaseRoutes.NeedUser.Handle("/image", ApiUserRequiredTrustRequester(getProfileImage)).Methods("GET")
 
+	BaseRoutes.NeedTeam.Handle("/users/recently_active", ApiUserRequiredActivity(getRecentlyActiveUsers, false)).Methods("GET")
+
 	BaseRoutes.Root.Handle("/login/sso/saml", AppHandlerIndependent(loginWithSaml)).Methods("GET")
 	BaseRoutes.Root.Handle("/login/sso/saml", AppHandlerIndependent(completeSaml)).Methods("POST")
 
@@ -2543,6 +2545,40 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		http.Redirect(w, r, GetProtocol(r)+"://"+r.Host, http.StatusFound)
 	}
+}
+
+func getRecentlyActiveUsers(c *Context, w http.ResponseWriter, r *http.Request) {
+	statusMap := map[string]interface{}{}
+
+	if result := <-Srv.Store.Status().GetAllFromTeam(c.TeamId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		statuses := result.Data.([]*model.Status)
+		for _, s := range statuses {
+			statusMap[s.UserId] = s.LastActivityAt
+		}
+	}
+
+	if result := <-Srv.Store.User().GetProfiles(c.TeamId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		profiles := result.Data.(map[string]*model.User)
+
+		for k, p := range profiles {
+			p = sanitizeProfile(c, p)
+
+			if lastActivityAt, ok := statusMap[p.Id].(int64); ok {
+				p.LastActivityAt = lastActivityAt
+			}
+
+			profiles[k] = p
+		}
+
+		w.Write([]byte(model.UserMapToJson(profiles)))
+	}
+
 }
 
 func userTyping(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {

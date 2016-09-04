@@ -1138,7 +1138,7 @@ export function getRecentAndNewUsersAnalytics(teamId) {
 
     callTracker[callName] = utils.getTimestamp();
 
-    Client.getTeamStatuses(
+    Client.getRecentlyActiveUsers(
         teamId,
         (users) => {
             const stats = {};

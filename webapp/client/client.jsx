@@ -958,6 +958,15 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getAudits', success, error));
     }
 
+    getRecentlyActiveUsers(id, success, error) {
+        request.
+        get(`${this.getTeamsRoute()}/${id}/users/recently_active`).
+        set(this.defaultHeaders).
+        type('application/json').
+        accept('application/json').
+        end(this.handleResponse.bind(this, 'getRecentlyActiveUsers', success, error));
+    }
+
     getDirectProfiles(success, error) {
         request.
             get(`${this.getUsersRoute()}/direct_profiles`).
@@ -1011,15 +1020,6 @@ export default class Client {
             accept('application/json').
             send({channel_id: id}).
             end(this.handleResponse.bind(this, 'setActiveChannel', success, error));
-    }
-
-    getTeamStatuses(id, success, error) {
-        request.
-        get(`${this.getTeamsRoute()}/${id}/team_statuses`).
-        set(this.defaultHeaders).
-        type('application/json').
-        accept('application/json').
-        end(this.handleResponse.bind(this, 'getTeamStatuses', success, error));
     }
 
     verifyEmail(uid, hid, success, error) {

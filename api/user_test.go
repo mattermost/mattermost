@@ -1877,3 +1877,18 @@ func TestUserTyping(t *testing.T) {
 		t.Fatal("did not receive typing event")
 	}
 }
+
+func TestGetRecentlyActiveUsers(t *testing.T) {
+	th := Setup().InitBasic()
+
+	user1Id := th.BasicUser.Id
+	user2Id := th.BasicUser2.Id
+
+	if userMap, err := th.BasicClient.GetRecentlyActiveUsers(); err != nil {
+		t.Fatal(err)
+	} else if len(userMap.Data.(map[string]*model.User)) != 2 {
+		t.Fatal("should have been 2")
+	} else if userMap.Data.(map[string]*model.User)[user1Id].Id != user1Id || userMap.Data.(map[string]*model.User)[user2Id].Id != user2Id {
+		t.Fatal("should have been valid")
+	}
+}

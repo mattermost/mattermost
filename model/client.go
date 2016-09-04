@@ -801,6 +801,17 @@ func (c *Client) GetAudits(id string, etag string) (*Result, *AppError) {
 	}
 }
 
+// GetRecentlyActiveUsers returns a map of users including lastActivityAt using user id as the key
+func (c *Client) GetRecentlyActiveUsers() (*Result, *AppError) {
+	if r, err := c.DoApiGet(c.GetTeamRoute()+"/users/recently_active", "", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), UserMapFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) GetLogs() (*Result, *AppError) {
 	if r, err := c.DoApiGet("/admin/logs", "", ""); err != nil {
 		return nil, err
@@ -1480,17 +1491,6 @@ func (c *Client) SetActiveChannel(channelId string) (*Result, *AppError) {
 		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
-	}
-}
-
-// GetTeamStatuses returns a map of users including lastActivityAt using user id as the key
-func (c *Client) GetTeamStatuses() (*Result, *AppError) {
-	if r, err := c.DoApiGet(c.GetTeamRoute()+"/team_statuses", "", ""); err != nil {
-		return nil, err
-	} else {
-		defer closeBody(r)
-		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), UserMapFromJson(r.Body)}, nil
 	}
 }
 
