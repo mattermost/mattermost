@@ -242,6 +242,11 @@ func SlackConvertUserMentions(users []SlackUser, posts map[string][]SlackPost) m
 		regexes["@"+user.Username] = r
 	}
 
+	// Special cases.
+	regexes["@here"], _ = regexp.Compile(`<!here\|@here>`)
+	regexes["@channel"], _ = regexp.Compile("<!channel>")
+	regexes["@all"], _ = regexp.Compile("<!everyone>")
+
 	for channelName, channelPosts := range posts {
 		for postIdx, post := range channelPosts {
 			for mention, r := range regexes {
