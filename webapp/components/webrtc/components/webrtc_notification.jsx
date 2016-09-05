@@ -29,25 +29,30 @@ export default class WebrtcNotification extends React.Component {
         this.closeNotification = this.closeNotification.bind(this);
         this.onIncomingCall = this.onIncomingCall.bind(this);
         this.onCancelCall = this.onCancelCall.bind(this);
+        this.onRhs = this.onRhs.bind(this);
         this.handleClose = this.handleClose.bind(this);
         this.handleAnswer = this.handleAnswer.bind(this);
         this.handleTimeout = this.handleTimeout.bind(this);
         this.stopRinging = this.stopRinging.bind(this);
+        this.closeRightHandSide = this.closeRightHandSide.bind(this);
 
         this.state = {
-            userCalling: null
+            userCalling: null,
+            rhsOpened: false
         };
     }
 
     componentDidMount() {
         WebrtcStore.addNotifyListener(this.onIncomingCall);
         WebrtcStore.addChangedListener(this.onCancelCall);
+        WebrtcStore.addRhsChangedListener(this.onRhs);
         this.mounted = true;
     }
 
     componentWillUnmount() {
         WebrtcStore.removeNotifyListener(this.onIncomingCall);
         WebrtcStore.removeChangedListener(this.onCancelCall);
+        WebrtcStore.removeRhsChangedListener(this.onRhs);
         if (this.refs.ring) {
             this.refs.ring.removeListener('ended', this.handleTimeout);
         }
@@ -72,6 +77,11 @@ export default class WebrtcNotification extends React.Component {
             this.refs.ring.currentTime = 0;
         }
         this.setState({userCalling: null});
+    }
+
+    closeRightHandSide(e) {
+        e.preventDefault();
+        GlobalActions.emitCloseRightHandSide();
     }
 
     onIncomingCall(incoming) {
@@ -121,6 +131,10 @@ export default class WebrtcNotification extends React.Component {
 
         WebrtcStore.setVideoCallWith(null);
         this.closeNotification();
+    }
+
+    onRhs(rhsOpened) {
+        this.setState({rhsOpened});
     }
 
     handleTimeout() {
@@ -281,6 +295,21 @@ export default class WebrtcNotification extends React.Component {
                         {profileImg}
                     </div>
                     {msg}
+                </div>
+            );
+        } else if (this.state.rhsOpened && WebrtcStore.isBusy()) {
+            return (
+                <div
+                    className='webrtc-notification__rhs'
+                    onClick={this.closeRightHandSide}
+                >
+                    <FormattedMessage
+                        id='webrtc.notification.returnToCall'
+                        defaultMessage='Return to ongoing call with {username}'
+                        values={{
+                            username: Utils.displayUsername(WebrtcStore.getVideoCallWith())
+                        }}
+                    />
                 </div>
             );
         }

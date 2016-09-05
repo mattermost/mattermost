@@ -73,6 +73,18 @@ class WebrtcStoreClass extends EventEmitter {
     removeChangedListener(callback) {
         this.removeListener(WebrtcActionTypes.CHANGED, callback);
     }
+
+    emitRhsChanged(isOpen) {
+        this.emit(WebrtcActionTypes.RHS, isOpen);
+    }
+
+    addRhsChangedListener(callback) {
+        this.on(WebrtcActionTypes.RHS, callback);
+    }
+
+    removeRhsChangedListener(callback) {
+        this.removeListener(WebrtcActionTypes.RHS, callback);
+    }
 }
 
 var WebrtcStore = new WebrtcStoreClass();

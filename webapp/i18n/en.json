@@ -2049,6 +2049,7 @@
   "webrtc.notification.answer": "Answer",
   "webrtc.notification.decline": "Decline",
   "webrtc.notification.incoming_call": "{username} is calling you.",
+  "webrtc.notification.returnToCall": "Return to ongoing call with {username}",
   "webrtc.offline": "{username} is offline.",
   "webrtc.pause_video": "Turn off camera",
   "webrtc.unmute_audio": "Unmute microphone",
