@@ -101,6 +101,8 @@ export default class SidebarRight extends React.Component {
     }
 
     componentDidUpdate() {
+        const isOpen = this.state.searchVisible || this.state.postRightVisible;
+        WebrtcStore.emitRhsChanged(isOpen);
         this.doStrangeThings();
     }
 

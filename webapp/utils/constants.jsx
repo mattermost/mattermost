@@ -167,7 +167,8 @@ export const WebrtcActionTypes = keyMirror({
     UNSUPPORTED: null,
     MUTED: null,
     IN_PROGRESS: null,
-    DISABLED: null
+    DISABLED: null,
+    RHS: null
 });
 
 export const UserStatuses = {
