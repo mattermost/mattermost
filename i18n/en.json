@@ -3104,10 +3104,6 @@
     "translation": "Invalid Email attribute. Must be set."
   },
   {
-    "id": "model.config.is_valid.saml_first_name_attribute.app_error",
-    "translation": "Invalid First Name attribute. Must be set."
-  },
-  {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
     "translation": "Identity Provider Public Certificate missing. Did you forget to upload it?"
   },
@@ -3118,10 +3114,6 @@
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
     "translation": "SAML SSO URL must be a valid URL and start with http:// or https://."
-  },
-  {
-    "id": "model.config.is_valid.saml_last_name_attribute.app_error",
-    "translation": "Invalid Last Name attribute. Must be set."
   },
   {
     "id": "model.config.is_valid.saml_private_key.app_error",
