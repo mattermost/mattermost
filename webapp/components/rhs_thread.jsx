@@ -8,6 +8,7 @@ import RootPost from './rhs_root_post.jsx';
 import Comment from './rhs_comment.jsx';
 import FileUploadOverlay from './file_upload_overlay.jsx';
 
+import ChannelStore from 'stores/channel_store.jsx';
 import PostStore from 'stores/post_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
@@ -237,7 +238,12 @@ export default class RhsThread extends React.Component {
     render() {
         const postsArray = this.state.postsArray;
         const selected = this.state.selected;
-        const profiles = this.state.profiles || {};
+        const channel = ChannelStore.get(this.state.selected.channel_id);
+
+        let profiles = this.state.profiles || {};
+        if (channel && channel.type === Constants.DM_CHANNEL) {
+            profiles = Object.assign({}, profiles, UserStore.getDirectProfiles());
+        }
 
         if (postsArray == null || selected == null) {
             return (
@@ -265,7 +271,7 @@ export default class RhsThread extends React.Component {
 
         let rootStatus = 'offline';
         if (this.state.statuses) {
-            rootStatus = this.state.statuses[profile.id] || 'offline';
+            rootStatus = this.state.statuses[selected.user_id] || 'offline';
         }
 
         return (
