@@ -138,6 +138,10 @@
             display: none;
             visibility: visible;
 
+            .sidebar--right & {
+                display: inline-block;
+            }
+
             &.icon--show {
                 display: inline-block;
             }
