@@ -66,28 +66,32 @@ export default class LdapTestButton extends React.Component {
         let message = null;
         if (this.state.fail) {
             message = (
-                <div className='alert alert-warning'>
-                    <i className='fa fa-warning'/>
-                    <FormattedMessage
-                        id='admin.ldap.testFailure'
-                        defaultMessage='LDAP Test Failure: {error}'
-                        values={{
-                            error: this.state.fail
-                        }}
-                    />
+                <div>
+                    <div className='alert alert-warning'>
+                        <i className='fa fa-warning'/>
+                        <FormattedMessage
+                            id='admin.ldap.testFailure'
+                            defaultMessage='LDAP Test Failure: {error}'
+                            values={{
+                                error: this.state.fail
+                            }}
+                        />
+                    </div>
                 </div>
             );
         } else if (this.state.success) {
             message = (
-                <div className='alert alert-success'>
-                    <i className='fa fa-success'/>
-                    <FormattedMessage
-                        id='admin.ldap.testSuccess'
-                        defaultMessage='LDAP Test Successful'
-                        values={{
-                            error: this.state.fail
-                        }}
-                    />
+                <div>
+                    <div className='alert alert-success'>
+                        <i className='fa fa-success'/>
+                        <FormattedMessage
+                            id='admin.ldap.testSuccess'
+                            defaultMessage='LDAP Test Successful'
+                            values={{
+                                error: this.state.fail
+                            }}
+                        />
+                    </div>
                 </div>
             );
         }
