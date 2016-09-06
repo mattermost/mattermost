@@ -164,12 +164,15 @@ export default class PDFPreview extends React.Component {
 
         if (this.state.pdf.numPages > MAX_PDF_PAGES) {
             pdfCanvases.push(
-                <div className='pdf-max-pages'>
+                <a
+                    href={this.props.fileUrl}
+                    className='pdf-max-pages'
+                >
                     <FormattedMessage
                         id='pdf_preview.max_pages'
-                        defaultMessage='PDF previews only show the first five pages.'
+                        defaultMessage='Download to read more pages'
                     />
-                </div>
+                </a>
             );
         }
 
