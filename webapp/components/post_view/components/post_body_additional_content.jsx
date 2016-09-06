@@ -96,10 +96,6 @@ export default class PostBodyAdditionalContent extends React.Component {
             return false;
         }
 
-        if (!link) {
-            return false;
-        }
-
         if (YoutubeVideo.isYoutubeLink(link)) {
             return true;
         }
