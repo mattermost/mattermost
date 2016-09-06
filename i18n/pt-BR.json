@@ -325,7 +325,7 @@
   },
   {
     "id": "api.channel.remove_member.removed",
-    "translation": "%v was removed from the channel."
+    "translation": "%v foi removido do canal"
   },
   {
     "id": "api.channel.remove_member.unable.app_error",
@@ -333,7 +333,7 @@
   },
   {
     "id": "api.channel.remove_member.user.app_error",
-    "translation": "Não foi possível encontrar o usuário a ser adicionado"
+    "translation": "Não foi possível encontrar o usuário a ser removido"
   },
   {
     "id": "api.channel.remove_user_from_channel.deleted.app_error",
@@ -350,6 +350,10 @@
   {
     "id": "api.channel.update_channel.tried.app_error",
     "translation": "Tentou executar uma atualização inválida para o canal padrão {{.Channel}}"
+  },
+  {
+    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
+    "translation": "Não foi possível obter o número de não lidos para o user_id=%v e channel_id=%v, err=%v"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -430,6 +434,18 @@
   {
     "id": "api.command.regen.app_error",
     "translation": "Permissões inadequadas para re-gerar o token de comando"
+  },
+  {
+    "id": "api.command_away.desc",
+    "translation": "Defina seu status como ausente"
+  },
+  {
+    "id": "api.command_away.name",
+    "translation": "ausente"
+  },
+  {
+    "id": "api.command_away.success",
+    "translation": "Você está agora ausente"
   },
   {
     "id": "api.command_collapse.desc",
@@ -564,12 +580,36 @@
     "translation": "Mensagem enviada."
   },
   {
+    "id": "api.command_offline.desc",
+    "translation": "Defina seu status como desconectado"
+  },
+  {
+    "id": "api.command_offline.name",
+    "translation": "desconectado"
+  },
+  {
+    "id": "api.command_offline.success",
+    "translation": "Agora você está desconectado"
+  },
+  {
+    "id": "api.command_online.desc",
+    "translation": "Defina seu status como conectado"
+  },
+  {
+    "id": "api.command_online.name",
+    "translation": "conectado"
+  },
+  {
+    "id": "api.command_online.success",
+    "translation": "Você está agora conectado"
+  },
+  {
     "id": "api.command_shortcuts.browser",
-    "translation": "#### Built-in Browser Commands\n\nALT+LEFT: Previous channel in your history\nALT+RIGHT: Next channel in your history\nCTRL+PLUS: Increase font size (zoom in)\nCTRL+MINUS: Decrease font size (zoom out)\nSHIFT+UP (in input field): Highlight text to the previous line\nSHIFT+DOWN (in input field): Highlight text to the next line\nSHIFT+ENTER (in input field): Create a new line\n"
+    "translation": "#### Comandos Nativos do Navegador\n\nALT+LEFT: Canal anterior no seu histórico\nALT+RIGHT: Próximo canal no seu histórico\nCTRL+PLUS: Aumenta o tamanho da fonte (zoom in)\nCTRL+MINUS: Diminui o tamanho da fonte (zoom out)\nSHIFT+UP (no campo de entrada): Seleciona o texto até a linha anterior\nSHIFT+DOWN (no campo de entrada): Seleciona o texto até a próxima linha\nSHIFT+ENTER (no campo de entrada): Cria nova linha\n"
   },
   {
     "id": "api.command_shortcuts.browser_mac",
-    "translation": "#### Built-in Browser Commands\n\nCMD+[: Previous channel in your history\nCMD+]: Next channel in your history\nCMD+PLUS: Increase font size (zoom in)\nCMD+MINUS: Decrease font size (zoom out)\nSHIFT+UP (in input field): Highlight text to the previous line\nSHIFT+DOWN (in input field): Highlight text to the next line\nSHIFT+ENTER (in input field): Create a new line\n"
+    "translation": "#### Comandos Nativos do Navegador\n\nCMD+[: Canal anterior no seu histórico\nCMD+]: Próximo canal no seu histórico\nCMD+PLUS: Aumenta o tamanho da fonte (zoom in)\nCMD+MINUS: Diminui o tamanho da fonte (zoom out)\nSHIFT+UP (no campo de entrada): Seleciona o texto até a linha anterior\nSHIFT+DOWN (no campo de entrada): Seleciona o texto até a próxima linha\nSHIFT+ENTER (no campo de entrada): Cria nova linha\n"
   },
   {
     "id": "api.command_shortcuts.desc",
@@ -577,19 +617,19 @@
   },
   {
     "id": "api.command_shortcuts.files",
-    "translation": "#### Files\n\nCTRL+U: Upload file(s)\n\n"
+    "translation": "#### Arquivos\n\nCTRL+U: Enviar arquivo(s)\n\n"
   },
   {
     "id": "api.command_shortcuts.files_mac",
-    "translation": "#### Files\n\nCMD+U: Upload file(s)\n\n"
+    "translation": "#### Arquivos\n\nCMD+U: Enviar arquivo(s)\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs",
-    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCTRL+UP (in empty input field): Reprint the previous message or slash command you entered\nCTRL+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
+    "translation": "#### Mensagens\n\nESC: Marca todas as mensagens do canal atual como lida\nCTRL+UP (campo de entrada vazio): Reimprimi a mensagem anterior ou comando slash digitado\nCTRL+DOWN (campo de entrada vazio): Reimprimi a próxima mensagem ou comando slash digitado\nUP (campo de entrada vazio): Editar sua última mensagem no canal atual\n@[caracter]+TAB: Autocompleta @usuário começando com [caracter]\n:[caracter]+TAB: Autocompleta o emoji começando com [caracter]\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs_mac",
-    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCMD+UP (in empty input field): Reprint the previous message or slash command you entered\nCMD+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
+    "translation": "#### Mensagens\n\nESC: Marca todas as mensagens do canal atual como lida\nCMD+UP (campo de entrada vazio): Reimprimi a mensagem anterior ou comando slash digitado\nCMD+DOWN (campo de entrada vazio): Reimprimi a próxima mensagem ou comando slash digitado\nUP (campo de entrada vazio): Editar sua última mensagem no canal atual\n@[caracter]+TAB: Autocompleta @usuário começando com [caracter]\n:[caracter]+TAB: Autocompleta o emoji começando com [caracter]\n\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -597,11 +637,11 @@
   },
   {
     "id": "api.command_shortcuts.nav",
-    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in left hand sidebar\nALT+DOWN: Next channel or direct message in left hand sidebar\nALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\nCTRL+K: Open a quick channel switcher dialog\nCTRL+SHIFT+A: Open account settings\nCTRL+SHIFT+M: Open recent mentions\n\n"
+    "translation": "### Atalhos do Teclado\n\n#### Navegação\n\nALT+UP: Canal ou mensagem direta anterior na barra lateral esquerda\nALT+DOWN: Próximo canal ou mensagem direta na barra lateral esquerda\nALT+SHIFT+UP: Canal anterior ou mensagem direta na barra lateral esquerda com mensagens não lidas\nALT+SHIFT+DOWN: Próximo canal ou mensagem direta na barra lateral esquerda com mensagens não lidas\nCTRL+K: Abra uma janela de troca rápida de canal\nCTRL+SHIFT+A: Abre as configurações de conta\nCTRL+SHIFT+M: Abre as menções recentes\n\n"
   },
   {
     "id": "api.command_shortcuts.nav_mac",
-    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in left hand sidebar\nALT+DOWN: Next channel or direct message in left hand sidebar\nALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\nCMD+K: Open a quick channel switcher dialog\nCMD+SHIFT+A: Open account settings\nCMD+SHIFT+M: Open recent mentions\n\n"
+    "translation": "### Atalhos do Teclado\n\n#### Navegação\n\nALT+UP: Canal ou mensagem direta anterior na barra lateral esquerda\nALT+DOWN: Próximo canal ou mensagem direta na barra lateral esquerda\nALT+SHIFT+UP: Canal anterior ou mensagem direta na barra lateral esquerda com mensagens não lidas\nALT+SHIFT+DOWN: Próximo canal ou mensagem direta na barra lateral esquerda com mensagens não lidas\nCMD+K: Abra uma janela de troca rápida de canal\nCMD+SHIFT+A: Abre as configurações de conta\nCMD+SHIFT+M: Abre as menções recentes\n\n"
   },
   {
     "id": "api.command_shrug.desc",
@@ -708,7 +748,7 @@
   },
   {
     "id": "api.email_batching.send_batched_email_notification.send.app_error",
-    "translation": "Failed to send batched email notification to %v: %v"
+    "translation": "Falha ou enviar notificações por email em lote para %v: %v"
   },
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
@@ -719,11 +759,11 @@
   },
   {
     "id": "api.email_batching.send_batched_email_notification.user.app_error",
-    "translation": "Não foi possível encontrar o status do destinatário para a notificação de e-mail em lote"
+    "translation": "Não foi possível encontrar o o destinatário para a notificação de e mail em lote"
   },
   {
     "id": "api.email_batching.start.starting",
-    "translation": "Email batching job starting. Checking for pending emails every %v seconds."
+    "translation": "Iniciando tarefa de email em lote. Verificando por emails pendentes a cada %v segundos."
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
@@ -998,6 +1038,10 @@
     "translation": "Faltando um ou mais response_type, client_id, ou redirect_uri"
   },
   {
+    "id": "api.oauth.complete_oauth.missing_code.app_error",
+    "translation": "The service provider {{.service}} did not provide an authorization code in the redirect URL.\n\nFor [Google Apps](https://docs.mattermost.com/deployment/sso-google.html) make sure your administrator enabled the Google+ API.\n\nFor [Office 365](https://docs.mattermost.com/deployment/sso-office.html) make sure the administrator of your Microsoft organization has enabled the Mattermost app.\n\nFor [GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html) please make sure you followed the setup instructions.\n\nIf you reviewed the above and are still having trouble with configuration, you may post in our [Troubleshooting forum](https://forum.mattermost.org/c/general/trouble-shoot) where we'll be happy to help with issues during setup."
+  },
+  {
     "id": "api.oauth.delete.permissions.app_error",
     "translation": "Permissão inapropriada para deletar o App OAuth2"
   },
@@ -1066,6 +1110,10 @@
     "translation": "Inicializando oauth api routes"
   },
   {
+    "id": "api.oauth.regenerate_secret.app_error",
+    "translation": "Permissão inapropriada para gerar novo OAuth2 App Secret"
+  },
+  {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
     "translation": "O administrador do sistema desligou o Provedor de Serviço OAuth2."
   },
@@ -1127,7 +1175,7 @@
   },
   {
     "id": "api.post.delete_flagged_post.app_error.warn",
-    "translation": "Unable to delete flagged post preference when deleting post, err=%v"
+    "translation": "Não é possível deletar a preferencia da postagem marcada ao deletar a postagem, err=%v"
   },
   {
     "id": "api.post.delete_post.permissions.app_error",
@@ -1209,11 +1257,15 @@
   },
   {
     "id": "api.post.notification.here.warn",
-    "translation": "Não foi possível enviar a notificação para os usuários online com @here, err=%v"
+    "translation": "Não foi possível enviar a notificação para os usuários conectados usando @here, err=%v"
   },
   {
     "id": "api.post.notification.member_profile.warn",
-    "translation": "Unable to get profile for channel member, user_id=%v"
+    "translation": "Não foi possível obter o perfil do membro do canal, user_id=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
+    "translation": "Limpando notificação push para %v com channel_id %v"
   },
   {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
@@ -1257,7 +1309,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
-    "translation": "Falha ao enviar notificação push id=%v, err=%v"
+    "translation": "Falha ao enviar notificação push device_id=%v, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.send.error",
@@ -1418,6 +1470,10 @@
   {
     "id": "api.slackimport.slack_convert_timestamp.bad.warn",
     "translation": "Data e hora ruim detectada"
+  },
+  {
+    "id": "api.slackimport.slack_convert_user_mentions.compile_regexp_failed.warn",
+    "translation": "Falha ao compilar a @menção correspondendo a expressão regular para o usuário Slack {{.UserID}} {{.Username}}"
   },
   {
     "id": "api.slackimport.slack_import.log",
@@ -1684,8 +1740,12 @@
     "translation": "CANAL: {{.ChannelName}}<br>{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
-    "id": "api.templates.post_subject",
-    "translation": "{{.SubjectText}} no {{.TeamDisplayName}} em {{.Month}} {{.Day}}, {{.Year}}"
+    "id": "api.templates.post_subject_in_channel",
+    "translation": "{{.SubjectText}} de {{.TeamDisplayName}} ({{.ChannelName}}) em {{.Day}} {{.Month}}, {{.Year}}"
+  },
+  {
+    "id": "api.templates.post_subject_in_direct_message",
+    "translation": "{{.SubjectText}} de {{.TeamDisplayName}} para {{.SenderDisplayName}} em {{.Day}} {{.Month}}, {{.Year}}"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -2392,6 +2452,10 @@
     "translation": "Emoji personalizado desabilitado pela licença atual. Entre em contato com o administrador do sistema sobre como atualizar sua licença enterprise."
   },
   {
+    "id": "ent.ldap.disabled.app_error",
+    "translation": "LDAP desabilitado ou licença não suporta LDAP."
+  },
+  {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
     "translation": "Não foi possível ligar ao servidor LDAP. Verifique BindUsername e BindPassword."
   },
@@ -2881,15 +2945,15 @@
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
-    "translation": "Unable to enable email batching when clustering is enabled"
+    "translation": "Não é possível ativar email em lote quando clustering está ativo"
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
-    "translation": "Invalid email batching buffer size for email settings.  Must be zero or a positive number."
+    "translation": "Tamanho do buffer de email em lote inválido nas configurações de e-mail.  Deve ser zero ou um número positivo."
   },
   {
     "id": "model.config.is_valid.email_batching_interval.app_error",
-    "translation": "Invalid email batching interval for email settings.  Must be 30 seconds or more."
+    "translation": "Intervalo de email em lote inválido nas configurações de e-mail. Deve ser 30 segundos ou mais."
   },
   {
     "id": "model.config.is_valid.email_reset_salt.app_error",
@@ -3040,10 +3104,6 @@
     "translation": "Atributo Email Inválido. Deve ser definido."
   },
   {
-    "id": "model.config.is_valid.saml_first_name_attribute.app_error",
-    "translation": "Atributo Primeiro Nome Inválido. Deve ser definido."
-  },
-  {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
     "translation": "Faltando Certificado Público do Provedor de Identidade. Esqueceu-se de carregá-lo?"
   },
@@ -3054,10 +3114,6 @@
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
     "translation": "URL SAML SSO deve ser uma URL válida e começar com http:// ou https://."
-  },
-  {
-    "id": "model.config.is_valid.saml_last_name_attribute.app_error",
-    "translation": "Atributo Último Nome Inválido. Deve ser definido."
   },
   {
     "id": "model.config.is_valid.saml_private_key.app_error",
@@ -3077,7 +3133,7 @@
   },
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
-    "translation": "Unable to enable email batching when SiteURL isn't set."
+    "translation": "Não é possível ativar o email em lote quando SiteURL não está definido."
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
@@ -3940,6 +3996,10 @@
     "translation": "Encontramos um erro ao procurar o token de acesso"
   },
   {
+    "id": "store.sql_oauth.get_access_data_by_user_for_app.app_error",
+    "translation": "Encontramos um erro ao procurar todos os token de acesso"
+  },
+  {
     "id": "store.sql_oauth.get_app.find.app_error",
     "translation": "Não foi possível encontrar o app solicitado"
   },
@@ -4217,11 +4277,11 @@
   },
   {
     "id": "store.sql_status.get_online.app_error",
-    "translation": "Encontrado um erro ao obter todos os status online"
+    "translation": "Encontrado um erro ao obter todos os status conectados"
   },
   {
     "id": "store.sql_status.get_online_away.app_error",
-    "translation": "Encontrado um erro ao obter todos os status online/ausente"
+    "translation": "Encontrado um erro ao obter todos os status conectado/ausente"
   },
   {
     "id": "store.sql_status.get_total_active_users_count.app_error",
@@ -4398,6 +4458,10 @@
   {
     "id": "store.sql_user.get_unread_count.app_error",
     "translation": "Não foi possível obter o número de mensagens não lidas para o usuário"
+  },
+  {
+    "id": "store.sql_user.get_unread_count_for_channel.app_error",
+    "translation": "Não foi possível obter o número de mensagens não lidas para o usuário e canal"
   },
   {
     "id": "store.sql_user.migrate_theme.critical",

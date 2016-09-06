@@ -152,10 +152,6 @@
     "translation": "%v added to the channel by %v"
   },
   {
-    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
-    "translation": "Unable to get the unread count for user_id=%v and channel_id=%v, err=%v"
-  },
-  {
     "id": "api.channel.add_member.find_channel.app_error",
     "translation": "Failed to find channel"
   },
@@ -356,6 +352,10 @@
     "translation": "Tried to perform an invalid update of the default channel {{.Channel}}"
   },
   {
+    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
+    "translation": "Unable to get the unread count for user_id=%v and channel_id=%v, err=%v"
+  },
+  {
     "id": "api.command.admin_only.app_error",
     "translation": "Integrations have been limited to admins only."
   },
@@ -446,30 +446,6 @@
   {
     "id": "api.command_away.success",
     "translation": "You are now away"
-  },
-  {
-    "id": "api.command_online.desc",
-    "translation": "Set your status online"
-  },
-  {
-    "id": "api.command_online.name",
-    "translation": "online"
-  },
-  {
-    "id": "api.command_online.success",
-    "translation": "You are now online"
-  },
-  {
-    "id": "api.command_offline.desc",
-    "translation": "Set your status offline"
-  },
-  {
-    "id": "api.command_offline.name",
-    "translation": "offline"
-  },
-  {
-    "id": "api.command_offline.success",
-    "translation": "You are now offline"
   },
   {
     "id": "api.command_collapse.desc",
@@ -602,6 +578,30 @@
   {
     "id": "api.command_msg.success",
     "translation": "Messaged user."
+  },
+  {
+    "id": "api.command_offline.desc",
+    "translation": "Set your status offline"
+  },
+  {
+    "id": "api.command_offline.name",
+    "translation": "offline"
+  },
+  {
+    "id": "api.command_offline.success",
+    "translation": "You are now offline"
+  },
+  {
+    "id": "api.command_online.desc",
+    "translation": "Set your status online"
+  },
+  {
+    "id": "api.command_online.name",
+    "translation": "online"
+  },
+  {
+    "id": "api.command_online.success",
+    "translation": "You are now online"
   },
   {
     "id": "api.command_shortcuts.browser",
@@ -1010,10 +1010,6 @@
     "translation": "invalid_request: Bad client_id"
   },
   {
-    "id": "api.oauth.complete_oauth.missing_code.app_error",
-    "translation": "The service provider {{.service}} did not provide an authorization code in the redirect URL.\n\nFor [Google Apps](https://docs.mattermost.com/deployment/sso-google.html) make sure your administrator enabled the Google+ API.\n\nFor [Office 365](https://docs.mattermost.com/deployment/sso-office.html) make sure the administrator of your Microsoft organization has enabled the Mattermost app.\n\nFor [GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html) please make sure you followed the setup instructions.\n\nIf you reviewed the above and are still having trouble with configuration, you may post in our [Troubleshooting forum](https://forum.mattermost.org/c/general/trouble-shoot) where we'll be happy to help with issues during setup."
-  },
-  {
     "id": "api.oauth.allow_oauth.bad_redirect.app_error",
     "translation": "invalid_request: Missing or bad redirect_uri"
   },
@@ -1040,6 +1036,10 @@
   {
     "id": "api.oauth.authorize_oauth.missing.app_error",
     "translation": "Missing one or more of response_type, client_id, or redirect_uri"
+  },
+  {
+    "id": "api.oauth.complete_oauth.missing_code.app_error",
+    "translation": "The service provider {{.service}} did not provide an authorization code in the redirect URL.\n\nFor [Google Apps](https://docs.mattermost.com/deployment/sso-google.html) make sure your administrator enabled the Google+ API.\n\nFor [Office 365](https://docs.mattermost.com/deployment/sso-office.html) make sure the administrator of your Microsoft organization has enabled the Mattermost app.\n\nFor [GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html) please make sure you followed the setup instructions.\n\nIf you reviewed the above and are still having trouble with configuration, you may post in our [Troubleshooting forum](https://forum.mattermost.org/c/general/trouble-shoot) where we'll be happy to help with issues during setup."
   },
   {
     "id": "api.oauth.delete.permissions.app_error",
@@ -1264,6 +1264,10 @@
     "translation": "Unable to get profile for channel member, user_id=%v"
   },
   {
+    "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
+    "translation": "Clearing push notification to %v with channel_id %v"
+  },
+  {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
     "translation": "Failed to retrieve comment thread posts in notifications root_post_id=%v, err=%v"
   },
@@ -1302,10 +1306,6 @@
   {
     "id": "api.post.send_notifications_and_forget.push_notification.debug",
     "translation": "Sending push notification to %v with msg of '%v'"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
-    "translation": "Clearing push notification to %v with channel_id %v"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
@@ -2452,6 +2452,10 @@
     "translation": "Custom emoji restrictions disabled by current license. Please contact your system administrator about upgrading your enterprise license."
   },
   {
+    "id": "ent.ldap.disabled.app_error",
+    "translation": "LDAP disabled or licence does not support LDAP."
+  },
+  {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
     "translation": "Unable to bind to LDAP server. Check BindUsername and BindPassword."
   },
@@ -2502,10 +2506,6 @@
   {
     "id": "ent.ldap.validate_filter.app_error",
     "translation": "Invalid LDAP Filter"
-  },
-  {
-    "id": "ent.ldap.disabled.app_error",
-    "translation": "LDAP disabled or licence does not support LDAP."
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",

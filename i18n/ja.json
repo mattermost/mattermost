@@ -325,7 +325,7 @@
   },
   {
     "id": "api.channel.remove_member.removed",
-    "translation": "%v was removed from the channel."
+    "translation": "%vはチャンネルから削除されました。"
   },
   {
     "id": "api.channel.remove_member.unable.app_error",
@@ -333,7 +333,7 @@
   },
   {
     "id": "api.channel.remove_member.user.app_error",
-    "translation": "追加しようとしているユーザーが見付かりませんでした"
+    "translation": "削除しようとしているユーザーが見付かりませんでした"
   },
   {
     "id": "api.channel.remove_user_from_channel.deleted.app_error",
@@ -350,6 +350,10 @@
   {
     "id": "api.channel.update_channel.tried.app_error",
     "translation": "デフォルトのチャンネル{{.Channel}}に不正な更新をしようとしました"
+  },
+  {
+    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
+    "translation": "未読数を取得できませんでした user_id=%v and channel_id=%v, err=%v"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -430,6 +434,18 @@
   {
     "id": "api.command.regen.app_error",
     "translation": "コマンドトークンを再生成するために必要な権限が付与されていません"
+  },
+  {
+    "id": "api.command_away.desc",
+    "translation": "離席状態に設定します"
+  },
+  {
+    "id": "api.command_away.name",
+    "translation": "離席"
+  },
+  {
+    "id": "api.command_away.success",
+    "translation": "あなたは離席中です"
   },
   {
     "id": "api.command_collapse.desc",
@@ -564,12 +580,36 @@
     "translation": "ユーザーにメッセージを送信しました。"
   },
   {
+    "id": "api.command_offline.desc",
+    "translation": "オフライン状態に設定します"
+  },
+  {
+    "id": "api.command_offline.name",
+    "translation": "オフライン"
+  },
+  {
+    "id": "api.command_offline.success",
+    "translation": "あなたはオフライン状態です"
+  },
+  {
+    "id": "api.command_online.desc",
+    "translation": "オンライン状態に設定します"
+  },
+  {
+    "id": "api.command_online.name",
+    "translation": "オンライン"
+  },
+  {
+    "id": "api.command_online.success",
+    "translation": "あなたはオンライン状態です"
+  },
+  {
     "id": "api.command_shortcuts.browser",
-    "translation": "#### Built-in Browser Commands\n\nALT+LEFT: Previous channel in your history\nALT+RIGHT: Next channel in your history\nCTRL+PLUS: Increase font size (zoom in)\nCTRL+MINUS: Decrease font size (zoom out)\nSHIFT+UP (in input field): Highlight text to the previous line\nSHIFT+DOWN (in input field): Highlight text to the next line\nSHIFT+ENTER (in input field): Create a new line\n"
+    "translation": "#### 内蔵ブラウザーコマンド\n\nALT+左: 履歴の前のチャンネル\nALT+右: 履歴の次のチャンネル\nCTRL+プラス: フォントを大きくする(ズームイン)\nCTRL+マイナス: フォントを小さくする(ズームアウト)\nSHIFT+UP (入力欄で): 一つ上の行のテキストをハイライトする\nSHIFT+DOWN (入力欄で): 一つ下の行のテキストをハイライトする\nSHIFT+ENTER (入力欄で): 改行する\n"
   },
   {
     "id": "api.command_shortcuts.browser_mac",
-    "translation": "#### Built-in Browser Commands\n\nCMD+[: Previous channel in your history\nCMD+]: Next channel in your history\nCMD+PLUS: Increase font size (zoom in)\nCMD+MINUS: Decrease font size (zoom out)\nSHIFT+UP (in input field): Highlight text to the previous line\nSHIFT+DOWN (in input field): Highlight text to the next line\nSHIFT+ENTER (in input field): Create a new line\n"
+    "translation": "#### 内蔵ブラウザーコマンド\n\nCMD+[: 履歴の前のチャンネル\nCMD+]: 履歴の次のチャンネル\nCMD+プラス: フォントを大きくする(ズームイン)\nCMD+マイナス: フォントを小さくする(ズームアウト)\nSHIFT+UP (入力欄で): 一つ上の行のテキストをハイライトする\nSHIFT+DOWN (入力欄で): 一つ下の行のテキストをハイライトする\nSHIFT+ENTER (入力欄で): 改行する\n"
   },
   {
     "id": "api.command_shortcuts.desc",
@@ -577,19 +617,19 @@
   },
   {
     "id": "api.command_shortcuts.files",
-    "translation": "#### Files\n\nCTRL+U: Upload file(s)\n\n"
+    "translation": "#### ファイル\n\nCTRL+U: ファイルをアップロードする\n\n"
   },
   {
     "id": "api.command_shortcuts.files_mac",
-    "translation": "#### Files\n\nCMD+U: Upload file(s)\n\n"
+    "translation": "#### ファイル\n\nCMD+U: ファイルをアップロードする\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs",
-    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCTRL+UP (in empty input field): Reprint the previous message or slash command you entered\nCTRL+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
+    "translation": "#### メッセージ\n\nESC: 現在のチャンネルの全てのメッセージを既読にする\nCTRL+UP (空白の入力欄で): 一つ前に入力したメッセージやスラッシュコマンドを呼び出す\nCTRL+DOWN (空白の入力欄で): 一つ次に入力したメッセージやスラッシュコマンドを呼び出す\nUP (空白の入力欄で): 現在のチャンネルの最新のメッセージを修正する\n@[文字]+TAB: [文字]で始まる@usernameを自動補完する\n:[文字]+TAB: [文字]で始まる絵文字を自動補完する\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs_mac",
-    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCMD+UP (in empty input field): Reprint the previous message or slash command you entered\nCMD+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
+    "translation": "#### メッセージ\n\nESC: 現在のチャンネルの全てのメッセージを既読にする\nCMD+UP (空白の入力欄で): 一つ前に入力したメッセージやスラッシュコマンドを呼び出す\nCMD+DOWN (空白の入力欄で): 一つ次に入力したメッセージやスラッシュコマンドを呼び出す\nUP (空白の入力欄で): 現在のチャンネルの最新のメッセージを修正する\n@[文字]+TAB: [文字]で始まる@usernameを自動補完する\n:[文字]+TAB: [文字]で始まる絵文字を自動補完する\n\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -597,11 +637,11 @@
   },
   {
     "id": "api.command_shortcuts.nav",
-    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in left hand sidebar\nALT+DOWN: Next channel or direct message in left hand sidebar\nALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\nCTRL+K: Open a quick channel switcher dialog\nCTRL+SHIFT+A: Open account settings\nCTRL+SHIFT+M: Open recent mentions\n\n"
+    "translation": "### キーボードショートカット\n\n#### 移動\n\nALT+UP: 左側のサイドバーの前のチャンネルまたはダイレクトメッセージに移動する\nALT+DOWN: 左側のサイドバーの次のチャンネルまたはダイレクトメッセージに移動する\nALT+SHIFT+UP: 左側のサイドバーの未読のメッセージのある前のチャンネルまたはダイレクトメッセージに移動する\nALT+SHIFT+DOWN: 左側のサイドバーの未読のメッセージのある次のチャンネルまたはダイレクトメッセージに移動する\nCTRL+K: 高速チャンネル切り替えダイアログボックスを開く\nCTRL+SHIFT+A: アカウント設定を開く\nCTRL+SHIFT+M: 最近の自分についての投稿を開く\n\n"
   },
   {
     "id": "api.command_shortcuts.nav_mac",
-    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in left hand sidebar\nALT+DOWN: Next channel or direct message in left hand sidebar\nALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\nCMD+K: Open a quick channel switcher dialog\nCMD+SHIFT+A: Open account settings\nCMD+SHIFT+M: Open recent mentions\n\n"
+    "translation": "### キーボードショートカット\n\n#### 移動\n\nALT+UP: 左側のサイドバーの前のチャンネルまたはダイレクトメッセージに移動する\nALT+DOWN: 左側のサイドバーの次のチャンネルまたはダイレクトメッセージに移動する\nALT+SHIFT+UP: 左側のサイドバーの未読のメッセージのある前のチャンネルまたはダイレクトメッセージに移動する\nALT+SHIFT+DOWN: 左側のサイドバーの未読のメッセージのある次のチャンネルまたはダイレクトメッセージに移動する\nCMD+K: 高速チャンネル切り替えダイアログボックスを開く\nCMD+SHIFT+A: アカウント設定を開く\nCMD+SHIFT+M: 最近の自分についての投稿を開く\n\n"
   },
   {
     "id": "api.command_shrug.desc",
@@ -669,7 +709,7 @@
   },
   {
     "id": "api.email_batching.check_pending_emails.finished_running",
-    "translation": "Email batching job ran. %v user(s) still have notifications pending."
+    "translation": "電子メールのバッチジョブが稼働中です。%vユーザーはまだ通知を保留されています。"
   },
   {
     "id": "api.email_batching.check_pending_emails.status.app_error",
@@ -723,7 +763,7 @@
   },
   {
     "id": "api.email_batching.start.starting",
-    "translation": "Email batching job starting. Checking for pending emails every %v seconds."
+    "translation": "電子メールのバッチジョブが開始されました。%v秒ごとに保留されている電子メールを確認します。"
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
@@ -998,6 +1038,10 @@
     "translation": "response_type、client_id、redirect_uriのうち１つ以上が不足しています"
   },
   {
+    "id": "api.oauth.complete_oauth.missing_code.app_error",
+    "translation": "The service provider {{.service}} did not provide an authorization code in the redirect URL.\n\nFor [Google Apps](https://docs.mattermost.com/deployment/sso-google.html) make sure your administrator enabled the Google+ API.\n\nFor [Office 365](https://docs.mattermost.com/deployment/sso-office.html) make sure the administrator of your Microsoft organization has enabled the Mattermost app.\n\nFor [GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html) please make sure you followed the setup instructions.\n\nIf you reviewed the above and are still having trouble with configuration, you may post in our [Troubleshooting forum](https://forum.mattermost.org/c/general/trouble-shoot) where we'll be happy to help with issues during setup."
+  },
+  {
     "id": "api.oauth.delete.permissions.app_error",
     "translation": "OAuth2アプリケーションの削除に必要な権限が付与されていません"
   },
@@ -1066,6 +1110,10 @@
     "translation": "OAuth APIルートを初期化しています"
   },
   {
+    "id": "api.oauth.regenerate_secret.app_error",
+    "translation": "OAuth2アプリケーションの秘密情報の再生成に必要な権限が付与されていません"
+  },
+  {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
     "translation": "システム管理者はOAuth2サービスプロバイダーを無効にしています。"
   },
@@ -1127,7 +1175,7 @@
   },
   {
     "id": "api.post.delete_flagged_post.app_error.warn",
-    "translation": "Unable to delete flagged post preference when deleting post, err=%v"
+    "translation": "投稿を削除する際に、フラッグの付いた投稿の設定を削除できません。err=%v"
   },
   {
     "id": "api.post.delete_post.permissions.app_error",
@@ -1143,7 +1191,7 @@
   {
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
-      "one": "{{.Count}} ファイル送信: {{.Filenames}}{{.Count}} ファイル送信: {{.Filenames}}",
+      "one": "{{.Count}} 画像送信: {{.Filenames}}{{.Count}} 画像送信: {{.Filenames}}",
       "other": ""
     }
   },
@@ -1216,6 +1264,10 @@
     "translation": "チャンネルメンバーのプロフィールを取得できませんでした user_id=%v"
   },
   {
+    "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
+    "translation": "%vへのプッシュ通知をクリアーしています(channel_id %v)"
+  },
+  {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
     "translation": "通知内のコメントスレッドの投稿を取得できませんでした root_post_id=%v、err=%v"
   },
@@ -1253,11 +1305,11 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.debug",
-    "translation": "%vに'%v'のプッシュ通知を送っています。"
+    "translation": "%vにメッセージ'%v'のプッシュ通知を送っています。"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
-    "translation": "プッシュ通知を送れませんでした notificationid=%v, err=%v"
+    "translation": "プッシュ通知を送れませんでした device_id=%v, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.send.error",
@@ -1418,6 +1470,10 @@
   {
     "id": "api.slackimport.slack_convert_timestamp.bad.warn",
     "translation": "不正なタイムスタンプが検出されました"
+  },
+  {
+    "id": "api.slackimport.slack_convert_user_mentions.compile_regexp_failed.warn",
+    "translation": "Slackユーザー{{.UserID}} {{.Username}}の@mensionに一致する正規表現のコンパイルに失敗しました。"
   },
   {
     "id": "api.slackimport.slack_import.log",
@@ -1684,8 +1740,12 @@
     "translation": "チャンネル: {{.ChannelName}}<br>{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
-    "id": "api.templates.post_subject",
-    "translation": "{{.TeamDisplayName}}の{{.SubjectText}} 日付: {{.Month}} {{.Day}}, {{.Year}}"
+    "id": "api.templates.post_subject_in_channel",
+    "translation": "{{.TeamDisplayName}} (チャンネル: {{.ChannelName}})の{{.SubjectText}} 日付: {{.Month}} {{.Day}}, {{.Year}}"
+  },
+  {
+    "id": "api.templates.post_subject_in_direct_message",
+    "translation": "{{.SenderDisplayName}}の投稿した{{.TeamDisplayName}}の{{.SubjectText}} 日付: {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -1729,7 +1789,7 @@
   },
   {
     "id": "api.templates.singin_change_email.body.info",
-    "translation": "{{ .SiteURL }}のサインイン方法は{{.Method}}に更新されました。<br>あなたが変更したのでなければ、システム管理者へ問い合わせてください。"
+    "translation": "{{ .SiteName }}のサインイン方法は{{.Method}}に更新されました。<br>あなたが変更したのでなければ、システム管理者へ問い合わせてください。"
   },
   {
     "id": "api.templates.singin_change_email.subject",
@@ -2392,6 +2452,10 @@
     "translation": "カスタム絵文字の制限機能が現在のライセンスでは無効になっています。システム管理者にエンタープライズライセンスをアップグレードするように連絡してください。"
   },
   {
+    "id": "ent.ldap.disabled.app_error",
+    "translation": "LDAPが無効化されている、またはライセンスがLDAPをサポートしていません。"
+  },
+  {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
     "translation": "LDAPサーバーに接続できません。BindUsernameとBindPasswordを確認してください。"
   },
@@ -2881,7 +2945,7 @@
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
-    "translation": "Unable to enable email batching when clustering is enabled"
+    "translation": "クラスタリングが有効化されている場合、電子メールのバッチ処理は有効化できません"
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -2957,7 +3021,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_firstname",
-    "translation": "LDAP項目 \"FIrst Name Attribute\" は必須です。"
+    "translation": "LDAP項目 \"First Name Attribute\" は必須です。"
   },
   {
     "id": "model.config.is_valid.ldap_id",
@@ -3040,10 +3104,6 @@
     "translation": "電子メールの属性値が不正です。設定してください。"
   },
   {
-    "id": "model.config.is_valid.saml_first_name_attribute.app_error",
-    "translation": "ファーストネームの属性値が不正です。設定してください。"
-  },
-  {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
     "translation": "認証プロバイダーの公開証明書が見付かりません。アップロードを忘れていませんか?"
   },
@@ -3054,10 +3114,6 @@
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
     "translation": "SAML SSOのURLを正しく設定してください。URLはhttp://またはhttps://で始まります。"
-  },
-  {
-    "id": "model.config.is_valid.saml_last_name_attribute.app_error",
-    "translation": "ラストネームの属性値が不正です。設定してください。"
   },
   {
     "id": "model.config.is_valid.saml_private_key.app_error",
@@ -3077,7 +3133,7 @@
   },
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
-    "translation": "Unable to enable email batching when SiteURL isn't set."
+    "translation": "SiteURLが設定されていないため電子メールのバッチ処理は有効化できません。"
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
@@ -3940,6 +3996,10 @@
     "translation": "アクセストークンを探す際にエラーが発生しました"
   },
   {
+    "id": "store.sql_oauth.get_access_data_by_user_for_app.app_error",
+    "translation": "全てのアクセストークンを探す際にエラーが発生しました"
+  },
+  {
     "id": "store.sql_oauth.get_app.find.app_error",
     "translation": "リクエストされたアプリケーションが見付かりませんでした"
   },
@@ -4398,6 +4458,10 @@
   {
     "id": "store.sql_user.get_unread_count.app_error",
     "translation": "ユーザーの未読のメッセージ数を取得できませんでした"
+  },
+  {
+    "id": "store.sql_user.get_unread_count_for_channel.app_error",
+    "translation": "ユーザーとチャンネルの未読のメッセージ数を取得できませんでした"
   },
   {
     "id": "store.sql_user.migrate_theme.critical",

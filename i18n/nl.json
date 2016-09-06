@@ -333,7 +333,7 @@
   },
   {
     "id": "api.channel.remove_member.user.app_error",
-    "translation": "Gebruiker om toe te voegen kon niet gevonden worden"
+    "translation": "Gebruiker om te verwijderen kon niet gevonden worden"
   },
   {
     "id": "api.channel.remove_user_from_channel.deleted.app_error",
@@ -350,6 +350,10 @@
   {
     "id": "api.channel.update_channel.tried.app_error",
     "translation": "Een ongeldige bijwerkings-poging van het standaard kanaal {{.Channel}} is geprobeerd"
+  },
+  {
+    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
+    "translation": "Unable to get the unread count for user_id=%v and channel_id=%v, err=%v"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -430,6 +434,18 @@
   {
     "id": "api.command.regen.app_error",
     "translation": "Ongeldige rechten om commando tokens opnieuw te genereren"
+  },
+  {
+    "id": "api.command_away.desc",
+    "translation": "Stel uw status in naar afwezig"
+  },
+  {
+    "id": "api.command_away.name",
+    "translation": "afwezig "
+  },
+  {
+    "id": "api.command_away.success",
+    "translation": "Je bent nu afwezig"
   },
   {
     "id": "api.command_collapse.desc",
@@ -562,6 +578,30 @@
   {
     "id": "api.command_msg.success",
     "translation": "Bericht verzonden."
+  },
+  {
+    "id": "api.command_offline.desc",
+    "translation": "Stel uw status in naar offline"
+  },
+  {
+    "id": "api.command_offline.name",
+    "translation": "offline"
+  },
+  {
+    "id": "api.command_offline.success",
+    "translation": "U bent nu offline"
+  },
+  {
+    "id": "api.command_online.desc",
+    "translation": "Stel uw status in naar Online."
+  },
+  {
+    "id": "api.command_online.name",
+    "translation": "online"
+  },
+  {
+    "id": "api.command_online.success",
+    "translation": "Je bent nu online"
   },
   {
     "id": "api.command_shortcuts.browser",
@@ -998,6 +1038,10 @@
     "translation": "Mist een of meerdere elementen uit: response_type, client_id of redirect_uri"
   },
   {
+    "id": "api.oauth.complete_oauth.missing_code.app_error",
+    "translation": "The service provider {{.service}} did not provide an authorization code in the redirect URL.\n\nFor [Google Apps](https://docs.mattermost.com/deployment/sso-google.html) make sure your administrator enabled the Google+ API.\n\nFor [Office 365](https://docs.mattermost.com/deployment/sso-office.html) make sure the administrator of your Microsoft organization has enabled the Mattermost app.\n\nFor [GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html) please make sure you followed the setup instructions.\n\nIf you reviewed the above and are still having trouble with configuration, you may post in our [Troubleshooting forum](https://forum.mattermost.org/c/general/trouble-shoot) where we'll be happy to help with issues during setup."
+  },
+  {
     "id": "api.oauth.delete.permissions.app_error",
     "translation": "Onvoldoende rechten voor het verwijderen van de OAuth2 applicatie"
   },
@@ -1064,6 +1108,10 @@
   {
     "id": "api.oauth.init.debug",
     "translation": "Initialisatie van de oauth api"
+  },
+  {
+    "id": "api.oauth.regenerate_secret.app_error",
+    "translation": "Onvoldoende rechten voor het verwijderen van de OAuth2 applicatie"
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
@@ -1214,6 +1262,10 @@
   {
     "id": "api.post.notification.member_profile.warn",
     "translation": "Unable to get profile for channel member, user_id=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
+    "translation": "Clearing push notification to %v with channel_id %v"
   },
   {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
@@ -1418,6 +1470,10 @@
   {
     "id": "api.slackimport.slack_convert_timestamp.bad.warn",
     "translation": "Ongeldige 'timestamp' gevonden"
+  },
+  {
+    "id": "api.slackimport.slack_convert_user_mentions.compile_regexp_failed.warn",
+    "translation": "Failed to compile the @mention matching regular expression for Slack user {{.UserID}} {{.Username}}"
   },
   {
     "id": "api.slackimport.slack_import.log",
@@ -1684,7 +1740,11 @@
     "translation": "KANAAL: {{.ChannelName}}<br>{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
-    "id": "api.templates.post_subject",
+    "id": "api.templates.post_subject_in_channel",
+    "translation": "{{.SubjectText}} op {{.TeamDisplayName}} om {{.Month}} {{.Day}} {{.Year}}"
+  },
+  {
+    "id": "api.templates.post_subject_in_direct_message",
     "translation": "{{.SubjectText}} op {{.TeamDisplayName}} om {{.Month}} {{.Day}} {{.Year}}"
   },
   {
@@ -2392,6 +2452,10 @@
     "translation": "Aangepaste emoji restricties is uitgeschakeld vanwege de huidige licentie. Neem contact op met de beheerder voor een upgrade van de licentie."
   },
   {
+    "id": "ent.ldap.disabled.app_error",
+    "translation": "LDAP disabled or licence does not support LDAP."
+  },
+  {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
     "translation": "Kan verbinding maken met de LDAP server. Controleer de opgegeven gebruikersnaam en wachtwoord."
   },
@@ -3040,10 +3104,6 @@
     "translation": "Ongeldig Email attribuut. Dit moet ingesteld worden."
   },
   {
-    "id": "model.config.is_valid.saml_first_name_attribute.app_error",
-    "translation": "Ongeldig voornaam attribuut. Dit moet ingesteld worden."
-  },
-  {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
     "translation": "Publiek certificaat van Identity Provider is niet gevonden. Vergeten te uploaden?"
   },
@@ -3054,10 +3114,6 @@
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
     "translation": "Ongeldige URL. Een geldige URl begint met http:// of https://."
-  },
-  {
-    "id": "model.config.is_valid.saml_last_name_attribute.app_error",
-    "translation": "Ongeldig Achternaam attribuut. Dit moet ingesteld worden."
   },
   {
     "id": "model.config.is_valid.saml_private_key.app_error",
@@ -3940,6 +3996,10 @@
     "translation": "Er is een probleem opgetreden bij het ophalen van het access token"
   },
   {
+    "id": "store.sql_oauth.get_access_data_by_user_for_app.app_error",
+    "translation": "Er is een probleem opgetreden bij het ophalen van het access token"
+  },
+  {
     "id": "store.sql_oauth.get_app.find.app_error",
     "translation": "De gezochte app kan niet gevonden worden"
   },
@@ -4397,6 +4457,10 @@
   },
   {
     "id": "store.sql_user.get_unread_count.app_error",
+    "translation": "Het aantal ongelezen berichten voor de gebruiker kan niet geteld worden"
+  },
+  {
+    "id": "store.sql_user.get_unread_count_for_channel.app_error",
     "translation": "Het aantal ongelezen berichten voor de gebruiker kan niet geteld worden"
   },
   {

@@ -352,6 +352,10 @@
     "translation": "Intento de realizar una actualización inválida al canal predeterminado {{.Channel}}"
   },
   {
+    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
+    "translation": "No se puede obtener el número de mensajes no leídos para user_id=%v y channel_id=%v, err=%v"
+  },
+  {
     "id": "api.command.admin_only.app_error",
     "translation": "Las integraciones han sido limitadas a los adminitradores."
   },
@@ -430,6 +434,18 @@
   {
     "id": "api.command.regen.app_error",
     "translation": "Permisos inapropiados para utilizar le comando de regenerar token"
+  },
+  {
+    "id": "api.command_away.desc",
+    "translation": "Establece tu estado como ausente"
+  },
+  {
+    "id": "api.command_away.name",
+    "translation": "ausente"
+  },
+  {
+    "id": "api.command_away.success",
+    "translation": "Ahora estás ausente"
   },
   {
     "id": "api.command_collapse.desc",
@@ -562,6 +578,30 @@
   {
     "id": "api.command_msg.success",
     "translation": "Mensaje enviado al usuario."
+  },
+  {
+    "id": "api.command_offline.desc",
+    "translation": "Estable tu estado como desconectado"
+  },
+  {
+    "id": "api.command_offline.name",
+    "translation": "desconectado"
+  },
+  {
+    "id": "api.command_offline.success",
+    "translation": "Ahora estás desconectado"
+  },
+  {
+    "id": "api.command_online.desc",
+    "translation": "Establece tu estado como disponible"
+  },
+  {
+    "id": "api.command_online.name",
+    "translation": "disponible"
+  },
+  {
+    "id": "api.command_online.success",
+    "translation": "Ahora estás disponible"
   },
   {
     "id": "api.command_shortcuts.browser",
@@ -998,6 +1038,10 @@
     "translation": "Falta uno o más parametros: response_type, client_id, o redirect_uri"
   },
   {
+    "id": "api.oauth.complete_oauth.missing_code.app_error",
+    "translation": "El proveedor de servicios {{.servicio}} no proporcionó un código de autorización en la URL de redirección.\n\nPara [Google Apps](https://docs.mattermost.com/deployment/sso-google.html) asegúrate de que el administrador ha habilitado Google+ API.\n\nPara [Office 365](https://docs.mattermost.com/deployment/sso-office.html) asegúrate de que el administrador de tu organización en Microsoft ha habilitado la aplicación de Mattermost.\n\nPara [GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html) por favor, asegúrate de haber seguido las instrucciones de instalación.\n\nSi has revisado lo anterior, y sigue teniendo problemas con la configuración, puedes publicar en nuestro foro de [Solución de problemas](https://forum.mattermost.org/c/general/trouble-shoot), donde estaremos encantados de ayudar con problemas que ocurran durante la instalación."
+  },
+  {
     "id": "api.oauth.delete.permissions.app_error",
     "translation": "Permisos inapropiados para eliminar la App de OAuth2"
   },
@@ -1064,6 +1108,10 @@
   {
     "id": "api.oauth.init.debug",
     "translation": "Inicializando rutas del API para el OAuth"
+  },
+  {
+    "id": "api.oauth.regenerate_secret.app_error",
+    "translation": "Permisos inapropiados para regenerar el secreto la App de OAuth2"
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
@@ -1216,6 +1264,10 @@
     "translation": "No se puede obtener el perfil del miembro del canal, user_id=%v"
   },
   {
+    "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
+    "translation": "Limpiando notificaciones push a %v con el channel_id '%v'"
+  },
+  {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
     "translation": "No se pudo recuperar el hilo de comentarios en las notificaciones root_post_id=%v, err=%v"
   },
@@ -1257,7 +1309,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
-    "translation": "Falló el envio de la notificación push notificationid=%v, err=%v"
+    "translation": "Falló el envio de la notificación push al device_id=%v, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.send.error",
@@ -1418,6 +1470,10 @@
   {
     "id": "api.slackimport.slack_convert_timestamp.bad.warn",
     "translation": "Se ha detectado la marca del tiempo errada"
+  },
+  {
+    "id": "api.slackimport.slack_convert_user_mentions.compile_regexp_failed.warn",
+    "translation": "No se pudo compilar la coincidencia de la @mención con expresión regular para el usuario de Slack {{.UserID}} {{.Username}}"
   },
   {
     "id": "api.slackimport.slack_import.log",
@@ -1684,8 +1740,12 @@
     "translation": "Canal: {{.ChannelName}}<br>{{.SenderName}} - {{.Day}} {{.Month}}, {{.Hour}}:{{.Minute}} {{.TimeZone}}"
   },
   {
-    "id": "api.templates.post_subject",
-    "translation": "{{.SubjectText}} en {{.TeamDisplayName}} el {{.Day}} {{.Month}}, {{.Year}}"
+    "id": "api.templates.post_subject_in_channel",
+    "translation": "{{.SubjectText}} en {{.TeamDisplayName}} ({{.ChannelName}}) el {{.Day}} {{.Month}}, {{.Year}}"
+  },
+  {
+    "id": "api.templates.post_subject_in_direct_message",
+    "translation": "{{.SubjectText}} en {{.TeamDisplayName}} de {{.SenderDisplayName}} on {{.Day}} {{.Month}}, {{.Year}}"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -1729,7 +1789,7 @@
   },
   {
     "id": "api.templates.singin_change_email.body.info",
-    "translation": "Haz actualizado tu método de inicio de sesión en {{ .SiteName }} a {{.Method}}.<br>Sí este cambio no fue realizado por ti, por favor contacta a un adminsitrador del sistema."
+    "translation": "Haz actualizado tu método de inicio de sesión en {{ .SiteName }} a {{.Method}}.<br>Sí este cambio no fue realizado por ti, por favor contacta a tu administrador de sistema."
   },
   {
     "id": "api.templates.singin_change_email.subject",
@@ -2392,6 +2452,10 @@
     "translation": "Las restricciones de los Emoticones Personalizados están desactivadas por la licencia actual. Por favor contacta a un Administrador del Sistema sobre como actualizar a una licencia enterprise."
   },
   {
+    "id": "ent.ldap.disabled.app_error",
+    "translation": "LDAP deshabilitado o la licencia no es compatible con LDAP."
+  },
+  {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
     "translation": "No se pudo enlazar con el servidor LDAP. Revisa las opciones de BindUsername y BindPassword."
   },
@@ -3040,10 +3104,6 @@
     "translation": "Atributo de Correo Electrónico no válido. Se debe establecer."
   },
   {
-    "id": "model.config.is_valid.saml_first_name_attribute.app_error",
-    "translation": "Atributo del Nombre no válido. Se debe establecer."
-  },
-  {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
     "translation": "Falta el Certificado Público del Proveedor de Identidad. ¿Te olvideste de subirlo?"
   },
@@ -3054,10 +3114,6 @@
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
     "translation": "SAML SSO URL debe ser una URL válida y empezar con http:// o https://."
-  },
-  {
-    "id": "model.config.is_valid.saml_last_name_attribute.app_error",
-    "translation": "Atributo del Apellido no válido. Se debe establecer."
   },
   {
     "id": "model.config.is_valid.saml_private_key.app_error",
@@ -3940,6 +3996,10 @@
     "translation": "Encontramos un error buscando el token de acceso"
   },
   {
+    "id": "store.sql_oauth.get_access_data_by_user_for_app.app_error",
+    "translation": "Encontramos un error buscando todos los token de acceso"
+  },
+  {
     "id": "store.sql_oauth.get_app.find.app_error",
     "translation": "No pudimos encontrar la app solicitada"
   },
@@ -4398,6 +4458,10 @@
   {
     "id": "store.sql_user.get_unread_count.app_error",
     "translation": "No pudimos obtener la cantidad de mensajes sin leer del usuario"
+  },
+  {
+    "id": "store.sql_user.get_unread_count_for_channel.app_error",
+    "translation": "No pudimos obtener la cantidad de mensajes sin leer del usuario y canal"
   },
   {
     "id": "store.sql_user.migrate_theme.critical",
