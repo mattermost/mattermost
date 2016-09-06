@@ -1496,7 +1496,7 @@
   "password_send.link": "<p>A password reset link has been sent to <b>{email}</b></p>",
   "password_send.reset": "Reset my password",
   "password_send.title": "Password Reset",
-  "pdf_preview.max_pages": "PDF previews only show the first five pages.",
+  "pdf_preview.max_pages": "Download to read more pages",
   "pending_post_actions.cancel": "Cancel",
   "pending_post_actions.retry": "Retry",
   "permalink.error.access": "Permalink belongs to a deleted message or to a channel to which you do not have access.",

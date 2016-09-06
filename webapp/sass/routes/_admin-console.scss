@@ -52,6 +52,12 @@
         }
     }
 
+    .btn {
+        &.btn-spacing--right {
+            margin-right: 10px;
+        }
+    }
+
     .log__panel {
         background-color: white;
         border: 1px solid #ddd;

@@ -138,6 +138,10 @@
             display: none;
             visibility: visible;
 
+            .sidebar--right & {
+                display: inline-block;
+            }
+
             &.icon--show {
                 display: inline-block;
             }
@@ -1159,6 +1163,14 @@
 }
 
 @media screen and (max-width: 320px) {
+    .tutorial-steps__container {
+        .tutorial__content {
+            .tutorial__steps {
+                padding: 0 20px;
+                width: 100%;
+            }
+        }
+    }
     .tip-overlay {
         &.tip-overlay--sidebar {
             min-height: 440px;

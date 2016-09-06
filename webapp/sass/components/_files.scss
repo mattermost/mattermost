@@ -139,8 +139,9 @@
 }
 
 .pdf-max-pages {
-    bottom: 0;
     background: $white;
+    bottom: 0;
+    display: block;
     left: 0;
     position: relative;
     width: 100%;
