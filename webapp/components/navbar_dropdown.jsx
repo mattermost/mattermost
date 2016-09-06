@@ -347,7 +347,7 @@ export default class NavbarDropdown extends React.Component {
                     >
                         <FormattedMessage
                             id='navbar_dropdown.nativeApps'
-                            defaultMessage='Download Native Apps'
+                            defaultMessage='Download Apps'
                         />
                     </Link>
                 </li>
