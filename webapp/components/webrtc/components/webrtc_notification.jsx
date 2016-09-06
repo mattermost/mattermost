@@ -300,9 +300,10 @@ export default class WebrtcNotification extends React.Component {
         } else if (this.state.rhsOpened && WebrtcStore.isBusy()) {
             return (
                 <div
-                    className='webrtc-notification__rhs'
+                    className='webrtc__notification--rhs'
                     onClick={this.closeRightHandSide}
                 >
+                    <i className='fa fa-phone'/>
                     <FormattedMessage
                         id='webrtc.notification.returnToCall'
                         defaultMessage='Return to ongoing call with {username}'
