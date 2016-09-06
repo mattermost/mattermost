@@ -660,7 +660,7 @@
   "admin.service.sessionCacheDesc": "The number of minutes to cache a session in memory.",
   "admin.service.sessionDaysEx": "Ex \"30\"",
   "admin.service.siteURL": "Site URL:",
-  "admin.service.siteURLDescription": "The URL, including port number and protocol, that users will use to access Mattermost. Leave blank to automatically configure based on incoming traffic.",
+  "admin.service.siteURLDescription": "The URL, including port number and protocol, that users will use to access Mattermost. This field can be left blank unless you are configuring email batching in <b>Notifications > Email</b>. When blank, the URL is automatically configured based on incoming traffic.",
   "admin.service.siteURLExample": "Ex \"https://mattermost.example.com:1234\"",
   "admin.service.ssoSessionDays": "Session length SSO (days):",
   "admin.service.ssoSessionDaysDesc": "The number of days from the last time a user entered their credentials to the expiry of the user's session. If the authentication method is SAML or GitLab, the user may automatically be logged back in to Mattermost if they are already logged in to SAML or GitLab. After changing this setting, the setting will take effect after the next time the user enters their credentials.",

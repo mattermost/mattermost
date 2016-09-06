@@ -6,7 +6,7 @@ import React from 'react';
 import * as Utils from 'utils/utils.jsx';
 
 import AdminSettings from './admin_settings.jsx';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
 import ReloadConfigButton from './reload_config.jsx';
@@ -67,9 +67,9 @@ export default class ConfigurationSettings extends AdminSettings {
                     }
                     placeholder={Utils.localizeMessage('admin.service.siteURLExample', 'Ex "https://mattermost.example.com:1234"')}
                     helpText={
-                        <FormattedMessage
+                        <FormattedHTMLMessage
                             id='admin.service.siteURLDescription'
-                            defaultMessage='The URL, including port number and protocol, that users will use to access Mattermost. Leave blank to automatically configure based on incoming traffic.'
+                            defaultMessage='The URL, including port number and protocol, that users will use to access Mattermost. This field can be left blank unless you are configuring email batching in <b>Notifications > Email</b>. When blank, the URL is automatically configured based on incoming traffic.'
                         />
                     }
                     value={this.state.siteURL}
