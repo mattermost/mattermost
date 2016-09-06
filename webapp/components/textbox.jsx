@@ -26,7 +26,6 @@ export default class Textbox extends React.Component {
         this.focus = this.focus.bind(this);
         this.getStateFromStores = this.getStateFromStores.bind(this);
         this.onRecievedError = this.onRecievedError.bind(this);
-        this.handleKeyPress = this.handleKeyPress.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleHeightChange = this.handleHeightChange.bind(this);
         this.showPreview = this.showPreview.bind(this);
@@ -69,14 +68,8 @@ export default class Textbox extends React.Component {
         }
     }
 
-    handleKeyPress(e) {
-        this.props.onKeyPress(e);
-    }
-
     handleKeyDown(e) {
-        if (this.props.onKeyDown) {
-            this.props.onKeyDown(e);
-        }
+        this.props.onKeyDown(e);
     }
 
     handleHeightChange(height) {
@@ -190,7 +183,6 @@ export default class Textbox extends React.Component {
                     maxLength={Constants.MAX_POST_LEN}
                     placeholder={this.props.createMessage}
                     onInput={this.props.onInput}
-                    onKeyPress={this.handleKeyPress}
                     onKeyDown={this.handleKeyDown}
                     onHeightChange={this.handleHeightChange}
                     style={{visibility: this.state.preview ? 'hidden' : 'visible'}}
@@ -235,8 +227,7 @@ Textbox.propTypes = {
     channelId: React.PropTypes.string,
     messageText: React.PropTypes.string.isRequired,
     onInput: React.PropTypes.func.isRequired,
-    onKeyPress: React.PropTypes.func.isRequired,
     createMessage: React.PropTypes.string.isRequired,
-    onKeyDown: React.PropTypes.func,
+    onKeyDown: React.PropTypes.func.isRequired,
     supportsCommands: React.PropTypes.bool.isRequired
 };
