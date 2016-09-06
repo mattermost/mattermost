@@ -1214,11 +1214,11 @@ func cmdRunLdapSync() {
 	if flagCmdRunLdapSync {
 		if ldapI := einterfaces.GetLdapInterface(); ldapI != nil {
 			if err := ldapI.Syncronize(); err != nil {
-				fmt.Println("ERROR: AD/Ldap Syncronization Failed")
+				fmt.Println("ERROR: AD/LDAP Syncronization Failed")
 				l4g.Error("%v", err.Error())
 				flushLogAndExit(1)
 			} else {
-				fmt.Println("SUCCESS: AD/Ldap Syncronization Complete")
+				fmt.Println("SUCCESS: AD/LDAP Syncronization Complete")
 				flushLogAndExit(0)
 			}
 		}

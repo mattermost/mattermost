@@ -61,7 +61,7 @@ func NewAddRequest(dn string) *AddRequest {
 
 func (l *Conn) Add(addRequest *AddRequest) error {
 	messageID := l.nextMessageID()
-	packet := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "AD/LDAP Request")
+	packet := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "LDAP Request")
 	packet.AppendChild(ber.NewInteger(ber.ClassUniversal, ber.TypePrimitive, ber.TagInteger, messageID, "MessageID"))
 	packet.AppendChild(addRequest.encode())
 
@@ -72,14 +72,14 @@ func (l *Conn) Add(addRequest *AddRequest) error {
 		return err
 	}
 	if channel == nil {
-		return NewError(ErrorNetwork, errors.New("ad/ldap: could not send message"))
+		return NewError(ErrorNetwork, errors.New("ldap: could not send message"))
 	}
 	defer l.finishMessage(messageID)
 
 	l.Debug.Printf("%d: waiting for response", messageID)
 	packetResponse, ok := <-channel
 	if !ok {
-		return NewError(ErrorNetwork, errors.New("ad/ldap: channel closed"))
+		return NewError(ErrorNetwork, errors.New("ldap: channel closed"))
 	}
 	packet, err = packetResponse.ReadPacket()
 	l.Debug.Printf("%d: got response %p", messageID, packet)
