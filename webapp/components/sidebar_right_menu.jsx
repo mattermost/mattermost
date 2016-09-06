@@ -331,7 +331,7 @@ export default class SidebarRightMenu extends React.Component {
                         <i className='icon fa fa-mobile'></i>
                         <FormattedMessage
                             id='sidebar_right_menu.nativeApps'
-                            defaultMessage='Download Native Apps'
+                            defaultMessage='Download Apps'
                         />
                     </Link>
                 </li>
