@@ -11,6 +11,7 @@ import (
 
 const (
 	CONN_SECURITY_NONE     = ""
+	CONN_SECURITY_PLAIN    = "PLAIN"
 	CONN_SECURITY_TLS      = "TLS"
 	CONN_SECURITY_STARTTLS = "STARTTLS"
 
@@ -964,7 +965,7 @@ func (o *Config) IsValid() *AppError {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.file_salt.app_error", nil, "")
 	}
 
-	if !(o.EmailSettings.ConnectionSecurity == CONN_SECURITY_NONE || o.EmailSettings.ConnectionSecurity == CONN_SECURITY_TLS || o.EmailSettings.ConnectionSecurity == CONN_SECURITY_STARTTLS) {
+	if !(o.EmailSettings.ConnectionSecurity == CONN_SECURITY_NONE || o.EmailSettings.ConnectionSecurity == CONN_SECURITY_TLS || o.EmailSettings.ConnectionSecurity == CONN_SECURITY_STARTTLS || o.EmailSettings.ConnectionSecurity == CONN_SECURITY_PLAIN) {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.email_security.app_error", nil, "")
 	}
 

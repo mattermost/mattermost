@@ -647,7 +647,7 @@ func TestGetChannel(t *testing.T) {
 		t.Fatal("cache should be empty")
 	}
 
-	if _, err := Client.UpdateLastViewedAt(channel2.Id); err != nil {
+	if _, err := Client.UpdateLastViewedAt(channel2.Id, true); err != nil {
 		t.Fatal(err)
 	}
 

@@ -30,6 +30,20 @@ const CONNECTION_SECURITY_HELP_TEXT = (
             <tr>
                 <td>
                     <FormattedMessage
+                        id='admin.connectionSecurityPlain'
+                        defaultMessage='PLAIN'
+                    />
+                </td>
+                <td>
+                    <FormattedMessage
+                        id='admin.connectionSecurityPlainDescription'
+                        defaultMessage='Mattermost will connect and authenticate over an unsecure connection.'
+                    />
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <FormattedMessage
                         id='admin.connectionSecurityTls'
                         defaultMessage='TLS'
                     />
@@ -66,6 +80,7 @@ export default class ConnectionSecurityDropdownSetting extends React.Component {
                 id='connectionSecurity'
                 values={[
                     {value: '', text: Utils.localizeMessage('admin.connectionSecurityNone', 'None')},
+                    {value: 'PLAIN', text: Utils.localizeMessage('admin.connectionSecurityPlain')},
                     {value: 'TLS', text: Utils.localizeMessage('admin.connectionSecurityTls', 'TLS (Recommended)')},
                     {value: 'STARTTLS', text: Utils.localizeMessage('admin.connectionSecurityStart')}
                 ]}

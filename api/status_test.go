@@ -151,3 +151,39 @@ func TestStatuses(t *testing.T) {
 		t.Fatal("didn't get offline event")
 	}
 }
+
+func TestSetActiveChannel(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+
+	if _, err := Client.SetActiveChannel(th.BasicChannel.Id); err != nil {
+		t.Fatal(err)
+	}
+
+	status, _ := GetStatus(th.BasicUser.Id)
+	if status.ActiveChannel != th.BasicChannel.Id {
+		t.Fatal("active channel should be set")
+	}
+
+	if _, err := Client.SetActiveChannel(""); err != nil {
+		t.Fatal(err)
+	}
+
+	status, _ = GetStatus(th.BasicUser.Id)
+	if status.ActiveChannel != "" {
+		t.Fatal("active channel should be blank")
+	}
+
+	if _, err := Client.SetActiveChannel("123456789012345678901234567890"); err == nil {
+		t.Fatal("should have failed, id too long")
+	}
+
+	if _, err := Client.UpdateLastViewedAt(th.BasicChannel.Id, true); err != nil {
+		t.Fatal(err)
+	}
+
+	status, _ = GetStatus(th.BasicUser.Id)
+	if status.ActiveChannel != th.BasicChannel.Id {
+		t.Fatal("active channel should be set")
+	}
+}

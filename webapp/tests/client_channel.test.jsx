@@ -216,6 +216,7 @@ describe('Client.Channels', function() {
             var channel = TestHelper.basicChannel();
             TestHelper.basicClient().updateLastViewedAt(
                 channel.id,
+                true,
                 function(data) {
                     assert.equal(data.id, channel.id);
                     done();

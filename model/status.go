@@ -9,10 +9,11 @@ import (
 )
 
 const (
-	STATUS_OFFLINE    = "offline"
-	STATUS_AWAY       = "away"
-	STATUS_ONLINE     = "online"
-	STATUS_CACHE_SIZE = 10000
+	STATUS_OFFLINE         = "offline"
+	STATUS_AWAY            = "away"
+	STATUS_ONLINE          = "online"
+	STATUS_CACHE_SIZE      = 10000
+	STATUS_CHANNEL_TIMEOUT = 20000 // 20 seconds
 )
 
 type Status struct {
@@ -20,6 +21,7 @@ type Status struct {
 	Status         string `json:"status"`
 	Manual         bool   `json:"manual"`
 	LastActivityAt int64  `json:"last_activity_at"`
+	ActiveChannel  string `json:"active_channel"`
 }
 
 func (o *Status) ToJson() string {
