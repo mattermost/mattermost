@@ -794,6 +794,29 @@ func sendNotificationEmail(c *Context, post *model.Post, user *model.User, chann
 		return
 	}
 
+	if channel.Type == model.CHANNEL_DIRECT && channel.TeamId != team.Id {
+		// this message is a cross-team DM so it we need to find a team that the recipient is on to use in the link
+		if result := <-Srv.Store.Team().GetTeamsByUserId(user.Id); result.Err != nil {
+			l4g.Error(utils.T("api.post.send_notifications_and_forget.get_teams.error"), user.Id, result.Err)
+			return
+		} else {
+			// if the recipient isn't in the current user's team, just pick one
+			teams := result.Data.([]*model.Team)
+			found := false
+
+			for i := range teams {
+				if teams[i].Id == team.Id {
+					found = true
+					break
+				}
+			}
+
+			if !found {
+				team = teams[0]
+			}
+		}
+	}
+
 	if *utils.Cfg.EmailSettings.EnableEmailBatching {
 		if err := AddNotificationEmailToBatch(user, post, team); err == nil {
 			return
