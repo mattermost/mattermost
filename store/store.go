@@ -275,6 +275,7 @@ type StatusStore interface {
 	Get(userId string) StoreChannel
 	GetOnlineAway() StoreChannel
 	GetOnline() StoreChannel
+	GetAllFromTeam(teamId string) StoreChannel
 	ResetAll() StoreChannel
 	GetTotalActiveUsersCount() StoreChannel
 	UpdateLastActivityAt(userId string, lastActivityAt int64) StoreChannel

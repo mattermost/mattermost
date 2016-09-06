@@ -48,6 +48,7 @@ type User struct {
 	Locale             string    `json:"locale"`
 	MfaActive          bool      `json:"mfa_active,omitempty"`
 	MfaSecret          string    `json:"mfa_secret,omitempty"`
+	LastActivityAt     int64     `db:"-" json:"last_activity_at,omitempty"`
 }
 
 // IsValid validates the user and returns an error if it isn't configured

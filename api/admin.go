@@ -48,6 +48,7 @@ func InitAdmin() {
 	BaseRoutes.Admin.Handle("/remove_certificate", ApiAdminSystemRequired(removeCertificate)).Methods("POST")
 	BaseRoutes.Admin.Handle("/saml_cert_status", ApiAdminSystemRequired(samlCertificateStatus)).Methods("GET")
 	BaseRoutes.Admin.Handle("/cluster_status", ApiAdminSystemRequired(getClusterStatus)).Methods("GET")
+	BaseRoutes.Admin.Handle("/recently_active_users/{team_id:[A-Za-z0-9]+}", ApiUserRequiredActivity(getRecentlyActiveUsers, false)).Methods("GET")
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -753,4 +754,38 @@ func samlCertificateStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	status["PublicCertificateFile"] = utils.FileExistsInConfigFolder(*utils.Cfg.SamlSettings.PublicCertificateFile)
 
 	w.Write([]byte(model.StringInterfaceToJson(status)))
+}
+
+func getRecentlyActiveUsers(c *Context, w http.ResponseWriter, r *http.Request) {
+	statusMap := map[string]interface{}{}
+
+	if result := <-Srv.Store.Status().GetAllFromTeam(c.TeamId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		statuses := result.Data.([]*model.Status)
+		for _, s := range statuses {
+			statusMap[s.UserId] = s.LastActivityAt
+		}
+	}
+
+	if result := <-Srv.Store.User().GetProfiles(c.TeamId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		profiles := result.Data.(map[string]*model.User)
+
+		for k, p := range profiles {
+			p = sanitizeProfile(c, p)
+
+			if lastActivityAt, ok := statusMap[p.Id].(int64); ok {
+				p.LastActivityAt = lastActivityAt
+			}
+
+			profiles[k] = p
+		}
+
+		w.Write([]byte(model.UserMapToJson(profiles)))
+	}
+
 }

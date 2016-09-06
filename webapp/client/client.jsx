@@ -958,6 +958,15 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getAudits', success, error));
     }
 
+    getRecentlyActiveUsers(id, success, error) {
+        request.
+        get(`${this.getAdminRoute()}/recently_active_users/${id}`).
+        set(this.defaultHeaders).
+        type('application/json').
+        accept('application/json').
+        end(this.handleResponse.bind(this, 'getRecentlyActiveUsers', success, error));
+    }
+
     getDirectProfiles(success, error) {
         request.
             get(`${this.getUsersRoute()}/direct_profiles`).

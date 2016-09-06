@@ -4284,6 +4284,10 @@
     "translation": "Encountered an error retrieving all the online/away statuses"
   },
   {
+    "id": "store.sql_status.get_team_statuses.app_error",
+    "translation": "Encountered an error retrieving all statuses from the team members"
+  },
+  {
     "id": "store.sql_status.get_total_active_users_count.app_error",
     "translation": "We could not count the active users"
   },
