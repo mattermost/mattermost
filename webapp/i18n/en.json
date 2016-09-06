@@ -1868,7 +1868,7 @@
  "user.settings.notifications.comments": "Reply notifications",
   "user.settings.notifications.commentsAny": "Trigger notifications on messages in reply threads that I start or participate in",
   "user.settings.notifications.commentsInfo": "In addition to notifications for when you're mentioned, select if you would like to receive notifications on reply threads.",
-  "user.settings.notifications.commentsNever": "Only trigger notifications when I'm mentioned",
+  "user.settings.notifications.commentsNever": "Do not trigger notifications on messages in reply threads unless I'm mentioned",
   "user.settings.notifications.commentsRoot": "Trigger notifications on messages in threads that I start",
   "user.settings.notifications.desktop": "Send desktop notifications",
   "user.settings.notifications.desktop.mentionsFirefoxForever": "For mentions and direct messages, shown indefinitely",
