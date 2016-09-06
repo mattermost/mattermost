@@ -138,7 +138,7 @@ export default class EmailNotificationSetting extends React.Component {
                                 onChange={this.handleChange.bind(this, 'true', INTERVAL_HOUR)}
                             />
                             <FormattedMessage
-                                id='user.settings.notifications.everyHour'
+                                id='user.settings.notifications.email.everyHour'
                                 defaultMessage='Every hour'
                             />
                         </label>
@@ -183,7 +183,7 @@ export default class EmailNotificationSetting extends React.Component {
                                     onChange={this.handleChange.bind(this, 'false', INTERVAL_IMMEDIATE)}
                                 />
                                 <FormattedMessage
-                                    id='user.settings.notifications.never'
+                                    id='user.settings.notifications.email.never'
                                     defaultMessage='Never'
                                 />
                             </label>
