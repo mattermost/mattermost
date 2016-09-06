@@ -160,10 +160,6 @@ export default class AdvancedSettingsDisplay extends React.Component {
     }
 
     renderFormattingSection() {
-        if (window.mm_config.EnableDeveloper === 'false') {
-            return null;
-        }
-
         if (this.props.activeSection === 'formatting') {
             return (
                 <SettingItemMax
