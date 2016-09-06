@@ -960,7 +960,7 @@ export default class Client {
 
     getRecentlyActiveUsers(id, success, error) {
         request.
-        get(`${this.getTeamsRoute()}/${id}/users/recently_active`).
+        get(`${this.getAdminRoute()}/recently_active_users/${id}`).
         set(this.defaultHeaders).
         type('application/json').
         accept('application/json').
