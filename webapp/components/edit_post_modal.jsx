@@ -222,7 +222,7 @@ export default class EditPostModal extends React.Component {
                         <div className='edit-modal-body modal-body'>
                             <Textbox
                                 onInput={this.handleInput}
-                                onKeyPress={this.handleEditKeyPress}
+                                onKeyDown={this.handleEditKeyPress}
                                 messageText={this.state.editText}
                                 createMessage={Utils.localizeMessage('edit_post.editPost', 'Edit the post...')}
                                 supportsCommands={false}
