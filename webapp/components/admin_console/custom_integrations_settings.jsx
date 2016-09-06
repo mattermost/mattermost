@@ -128,13 +128,13 @@ export default class WebhookSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.service.integrationAdmin'
-                            defaultMessage='Restrict creating integrations to Team and System Admins: '
+                            defaultMessage='Restrict managing integrations to Admins:'
                         />
                     }
                     helpText={
                         <FormattedMessage
                             id='admin.service.integrationAdminDesc'
-                            defaultMessage='When true, user created integrations can only be created by admins.'
+                            defaultMessage='When true, webhooks and slash commands can only be created, edited and viewed by Team and System Admins, and OAuth 2.0 applications by System Admins. Integrations are available to all users after they have been created by the Admin.'
                         />
                     }
                     value={this.state.enableOnlyAdminIntegrations}
