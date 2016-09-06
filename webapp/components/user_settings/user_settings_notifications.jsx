@@ -804,7 +804,7 @@ export default class NotificationsTab extends React.Component {
                 describe = (
                     <FormattedMessage
                         id='user.settings.notifications.commentsNever'
-                        defaultMessage="Only trigger notifications when I'm mentioned"
+                        defaultMessage="Do not trigger notifications on messages in reply threads unless I'm mentioned"
                     />
                 );
             } else if (this.state.notifyCommentsLevel === 'root') {

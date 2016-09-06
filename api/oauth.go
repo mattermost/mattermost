@@ -4,7 +4,6 @@
 package api
 
 import (
-	"bytes"
 	"crypto/tls"
 	b64 "encoding/base64"
 	"fmt"
@@ -290,9 +289,12 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	service := params["service"]
 
-	l4g.Debug(utils.T("api.oauth.receive_redirect.debug", map[string]interface{}{"URL": r.URL.String()}))
-
 	code := r.URL.Query().Get("code")
+	if len(code) == 0 {
+		c.Err = model.NewLocAppError("completeOAuth", "api.oauth.complete_oauth.missing_code.app_error", map[string]interface{}{"service": strings.Title(service)}, "URL: "+r.URL.String())
+		return
+	}
+
 	state := r.URL.Query().Get("state")
 
 	uri := c.GetSiteURL() + "/signup/" + service + "/complete"
@@ -779,12 +781,7 @@ func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser
 	if resp, err := client.Do(req); err != nil {
 		return nil, "", nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_failed.app_error", nil, err.Error())
 	} else {
-		// temporarily read the raw body for debugging purposes
-		respBody, _ = ioutil.ReadAll(resp.Body)
-
-		reader := bytes.NewReader(respBody)
-
-		ar = model.AccessResponseFromJson(reader)
+		ar = model.AccessResponseFromJson(resp.Body)
 		defer func() {
 			ioutil.ReadAll(resp.Body)
 			resp.Body.Close()

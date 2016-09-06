@@ -16,7 +16,7 @@ import * as Utils from 'utils/utils.jsx';
 import * as ChannelActions from 'actions/channel_actions.jsx';
 
 import React from 'react';
-
+import $ from 'jquery';
 export default class SwitchChannelModal extends React.Component {
     constructor() {
         super();
@@ -24,6 +24,7 @@ export default class SwitchChannelModal extends React.Component {
         this.onInput = this.onInput.bind(this);
         this.onShow = this.onShow.bind(this);
         this.onHide = this.onHide.bind(this);
+        this.onExited = this.onExited.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.suggestionProviders = [new SwitchChannelProvider()];
@@ -55,6 +56,12 @@ export default class SwitchChannelModal extends React.Component {
             error: ''
         });
         this.props.onHide();
+    }
+
+    onExited() {
+        setTimeout(() => {
+            $('#post_textbox').get(0).focus();
+        });
     }
 
     onInput(e) {
@@ -99,6 +106,7 @@ export default class SwitchChannelModal extends React.Component {
                 ref='modal'
                 show={this.props.show}
                 onHide={this.onHide}
+                onExited={this.onExited}
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title>

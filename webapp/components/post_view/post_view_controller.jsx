@@ -45,10 +45,7 @@ export default class PostViewController extends React.Component {
 
         const joinLeaveEnabled = PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'join_leave', true);
 
-        let statuses;
-        if (channel && channel.type !== Constants.DM_CHANNEL) {
-            statuses = Object.assign({}, UserStore.getStatuses());
-        }
+        const statuses = Object.assign({}, UserStore.getStatuses());
 
         // If we haven't received a page time then we aren't done loading the posts yet
         const loading = PostStore.getLatestPostFromPageTime(channel.id) === 0;
@@ -133,13 +130,7 @@ export default class PostViewController extends React.Component {
     }
 
     onStatusChange() {
-        const channel = this.state.channel;
-        let statuses;
-        if (channel && channel.type !== Constants.DM_CHANNEL) {
-            statuses = Object.assign({}, UserStore.getStatuses());
-        }
-
-        this.setState({statuses});
+        this.setState({statuses: Object.assign({}, UserStore.getStatuses())});
     }
 
     onActivate() {

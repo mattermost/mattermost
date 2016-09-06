@@ -24,6 +24,7 @@ const (
 	WEBSOCKET_EVENT_PREFERENCE_CHANGED = "preference_changed"
 	WEBSOCKET_EVENT_EPHEMERAL_MESSAGE  = "ephemeral_message"
 	WEBSOCKET_EVENT_STATUS_CHANGE      = "status_change"
+	WEBSOCKET_EVENT_HELLO              = "hello"
 )
 
 type WebSocketMessage interface {

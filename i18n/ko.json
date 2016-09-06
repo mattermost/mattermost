@@ -352,6 +352,10 @@
     "translation": "기본 채널 {{.Channel}}에 적절하지 않은 갱신을 시도했습니다"
   },
   {
+    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
+    "translation": "Unable to get the unread count for user_id=%v and channel_id=%v, err=%v"
+  },
+  {
     "id": "api.command.admin_only.app_error",
     "translation": "연동은 관리자만 사용할 수 있습니다."
   },
@@ -430,6 +434,18 @@
   {
     "id": "api.command.regen.app_error",
     "translation": "명령어 토큰을 재생성할 권한 없음"
+  },
+  {
+    "id": "api.command_away.desc",
+    "translation": "Set your status away"
+  },
+  {
+    "id": "api.command_away.name",
+    "translation": "away"
+  },
+  {
+    "id": "api.command_away.success",
+    "translation": "You are now away"
   },
   {
     "id": "api.command_collapse.desc",
@@ -562,6 +578,30 @@
   {
     "id": "api.command_msg.success",
     "translation": "메세지를 보낸 유저."
+  },
+  {
+    "id": "api.command_offline.desc",
+    "translation": "Set your status offline"
+  },
+  {
+    "id": "api.command_offline.name",
+    "translation": "offline"
+  },
+  {
+    "id": "api.command_offline.success",
+    "translation": "You are now offline"
+  },
+  {
+    "id": "api.command_online.desc",
+    "translation": "Set your status online"
+  },
+  {
+    "id": "api.command_online.name",
+    "translation": "online"
+  },
+  {
+    "id": "api.command_online.success",
+    "translation": "You are now online"
   },
   {
     "id": "api.command_shortcuts.browser",
@@ -998,6 +1038,10 @@
     "translation": "response_type, client_id, redirect_uri 중 하나 이상이 누락되었습니다."
   },
   {
+    "id": "api.oauth.complete_oauth.missing_code.app_error",
+    "translation": "The service provider {{.service}} did not provide an authorization code in the redirect URL.\n\nFor [Google Apps](https://docs.mattermost.com/deployment/sso-google.html) make sure your administrator enabled the Google+ API.\n\nFor [Office 365](https://docs.mattermost.com/deployment/sso-office.html) make sure the administrator of your Microsoft organization has enabled the Mattermost app.\n\nFor [GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html) please make sure you followed the setup instructions.\n\nIf you reviewed the above and are still having trouble with configuration, you may post in our [Troubleshooting forum](https://forum.mattermost.org/c/general/trouble-shoot) where we'll be happy to help with issues during setup."
+  },
+  {
     "id": "api.oauth.delete.permissions.app_error",
     "translation": "Inappropriate permissions to delete the OAuth2 App"
   },
@@ -1064,6 +1108,10 @@
   {
     "id": "api.oauth.init.debug",
     "translation": "oauth API 경로 초기화 중"
+  },
+  {
+    "id": "api.oauth.regenerate_secret.app_error",
+    "translation": "Inappropriate permissions to delete the OAuth2 App"
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
@@ -1214,6 +1262,10 @@
   {
     "id": "api.post.notification.member_profile.warn",
     "translation": "Unable to get profile for channel member, user_id=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
+    "translation": "Clearing push notification to %v with channel_id %v"
   },
   {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
@@ -1418,6 +1470,10 @@
   {
     "id": "api.slackimport.slack_convert_timestamp.bad.warn",
     "translation": "잘못된 시간 서식이 있습니다."
+  },
+  {
+    "id": "api.slackimport.slack_convert_user_mentions.compile_regexp_failed.warn",
+    "translation": "Failed to compile the @mention matching regular expression for Slack user {{.UserID}} {{.Username}}"
   },
   {
     "id": "api.slackimport.slack_import.log",
@@ -1684,7 +1740,11 @@
     "translation": "채널: {{.ChannelName}}<br>{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
-    "id": "api.templates.post_subject",
+    "id": "api.templates.post_subject_in_channel",
+    "translation": "{{.SubjectText}} on {{.TeamDisplayName}} at {{.Month}} {{.Day}}, {{.Year}}"
+  },
+  {
+    "id": "api.templates.post_subject_in_direct_message",
     "translation": "{{.SubjectText}} on {{.TeamDisplayName}} at {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
@@ -2392,6 +2452,10 @@
     "translation": "Compliance 기능을 활성화 하려면 엔터프라이즈 라이센스가 필요합니다. 시스템 관리자에게 업그레이드를 문의해보세요."
   },
   {
+    "id": "ent.ldap.disabled.app_error",
+    "translation": "LDAP disabled or licence does not support LDAP."
+  },
+  {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
     "translation": "LDAP 서버에 연결할 수 없습니다. 계정을 확인하세요."
   },
@@ -3040,10 +3104,6 @@
     "translation": "Invalid Email attribute. Must be set."
   },
   {
-    "id": "model.config.is_valid.saml_first_name_attribute.app_error",
-    "translation": "Invalid First Name attribute. Must be set."
-  },
-  {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
     "translation": "Identity Provider Public Certificate missing. Did you forget to upload it?"
   },
@@ -3054,10 +3114,6 @@
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
     "translation": "SAML SSO URL must be a valid URL and start with http:// or https://."
-  },
-  {
-    "id": "model.config.is_valid.saml_last_name_attribute.app_error",
-    "translation": "Invalid Last Name attribute. Must be set."
   },
   {
     "id": "model.config.is_valid.saml_private_key.app_error",
@@ -3940,6 +3996,10 @@
     "translation": "We encountered an error finding the access token"
   },
   {
+    "id": "store.sql_oauth.get_access_data_by_user_for_app.app_error",
+    "translation": "We encountered an error finding the access token"
+  },
+  {
     "id": "store.sql_oauth.get_app.find.app_error",
     "translation": "채널을 찾을 수 없습니다"
   },
@@ -4397,6 +4457,10 @@
   },
   {
     "id": "store.sql_user.get_unread_count.app_error",
+    "translation": "We could not get the unread message count for the user"
+  },
+  {
+    "id": "store.sql_user.get_unread_count_for_channel.app_error",
     "translation": "We could not get the unread message count for the user"
   },
   {

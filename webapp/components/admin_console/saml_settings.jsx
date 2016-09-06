@@ -455,7 +455,7 @@ export default class SamlSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.saml.firstnameAttrDesc'
-                            defaultMessage='The attribute in the SAML Assertion that will be used to populate the first name of users in Mattermost.'
+                            defaultMessage='(Optional) The attribute in the SAML Assertion that will be used to populate the first name of users in Mattermost.'
                         />
                     }
                     value={this.state.firstNameAttribute}
@@ -474,7 +474,7 @@ export default class SamlSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.saml.lastnameAttrDesc'
-                            defaultMessage='The attribute in the SAML Assertion that will be used to populate the last name of users in Mattermost.'
+                            defaultMessage='(Optional) The attribute in the SAML Assertion that will be used to populate the last name of users in Mattermost.'
                         />
                     }
                     value={this.state.lastNameAttribute}

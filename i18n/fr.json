@@ -325,7 +325,7 @@
   },
   {
     "id": "api.channel.remove_member.removed",
-    "translation": "%v was removed from the channel."
+    "translation": "%v a été retiré du canal."
   },
   {
     "id": "api.channel.remove_member.unable.app_error",
@@ -350,6 +350,10 @@
   {
     "id": "api.channel.update_channel.tried.app_error",
     "translation": "Échec de la tentative de mise à jour du canal par défaut {{.Channel}}"
+  },
+  {
+    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
+    "translation": "Unable to get the unread count for user_id=%v and channel_id=%v, err=%v"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -430,6 +434,18 @@
   {
     "id": "api.command.regen.app_error",
     "translation": "Droits insuffisants pour regénérer la clé de commande"
+  },
+  {
+    "id": "api.command_away.desc",
+    "translation": "Set your status away"
+  },
+  {
+    "id": "api.command_away.name",
+    "translation": "away"
+  },
+  {
+    "id": "api.command_away.success",
+    "translation": "You are now away"
   },
   {
     "id": "api.command_collapse.desc",
@@ -562,6 +578,30 @@
   {
     "id": "api.command_msg.success",
     "translation": "Message envoyé."
+  },
+  {
+    "id": "api.command_offline.desc",
+    "translation": "Set your status offline"
+  },
+  {
+    "id": "api.command_offline.name",
+    "translation": "offline"
+  },
+  {
+    "id": "api.command_offline.success",
+    "translation": "You are now offline"
+  },
+  {
+    "id": "api.command_online.desc",
+    "translation": "Set your status online"
+  },
+  {
+    "id": "api.command_online.name",
+    "translation": "online"
+  },
+  {
+    "id": "api.command_online.success",
+    "translation": "You are now online"
   },
   {
     "id": "api.command_shortcuts.browser",
@@ -698,7 +738,7 @@
   {
     "id": "api.email_batching.send_batched_email_notification.body_text",
     "translation": {
-      "one": "Vous avez un nouveau message.",
+      "one": "Vous avez un nouveau message.Vous avez {{.Count}} nouveaux messages.",
       "other": ""
     }
   },
@@ -708,7 +748,7 @@
   },
   {
     "id": "api.email_batching.send_batched_email_notification.send.app_error",
-    "translation": "Failed to send batched email notification to %v: %v"
+    "translation": "Echec de l'envoi du courriel groupé à %v: %v"
   },
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
@@ -998,6 +1038,10 @@
     "translation": "Il manque une des valeurs parmi response_type, client_id ou redirect_uri"
   },
   {
+    "id": "api.oauth.complete_oauth.missing_code.app_error",
+    "translation": "The service provider {{.service}} did not provide an authorization code in the redirect URL.\n\nFor [Google Apps](https://docs.mattermost.com/deployment/sso-google.html) make sure your administrator enabled the Google+ API.\n\nFor [Office 365](https://docs.mattermost.com/deployment/sso-office.html) make sure the administrator of your Microsoft organization has enabled the Mattermost app.\n\nFor [GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html) please make sure you followed the setup instructions.\n\nIf you reviewed the above and are still having trouble with configuration, you may post in our [Troubleshooting forum](https://forum.mattermost.org/c/general/trouble-shoot) where we'll be happy to help with issues during setup."
+  },
+  {
     "id": "api.oauth.delete.permissions.app_error",
     "translation": "Permissions insuffisantes pour supprimer l'application OAuth 2"
   },
@@ -1064,6 +1108,10 @@
   {
     "id": "api.oauth.init.debug",
     "translation": "Initialisation des routes de l'api oauth"
+  },
+  {
+    "id": "api.oauth.regenerate_secret.app_error",
+    "translation": "Permissions insuffisantes pour supprimer l'application OAuth 2"
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
@@ -1136,15 +1184,15 @@
   {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
-      "one": "{{.Count}} file sent: {{.Filenames}}",
-      "other": "{{.Count}} files sent: {{.Filenames}}"
+      "one": "{{.Count}} fichier envoyé: {{.Filenames}}",
+      "other": "{{.Count}} fichiers envoyés: {{.Filenames}}"
     }
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
-      "one": "{{.Count}} image sent: {{.Filenames}}",
-      "other": "{{.Count}} images sent: {{.Filenames}}"
+      "one": "{{.Count}} image envoyée: {{.Filenames}}",
+      "other": "{{.Count}} images envoyées: {{.Filenames}}"
     }
   },
   {
@@ -1214,6 +1262,10 @@
   {
     "id": "api.post.notification.member_profile.warn",
     "translation": "Unable to get profile for channel member, user_id=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
+    "translation": "Clearing push notification to %v with channel_id %v"
   },
   {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
@@ -1418,6 +1470,10 @@
   {
     "id": "api.slackimport.slack_convert_timestamp.bad.warn",
     "translation": "Mauvais timestamp détecté"
+  },
+  {
+    "id": "api.slackimport.slack_convert_user_mentions.compile_regexp_failed.warn",
+    "translation": "Failed to compile the @mention matching regular expression for Slack user {{.UserID}} {{.Username}}"
   },
   {
     "id": "api.slackimport.slack_import.log",
@@ -1684,7 +1740,11 @@
     "translation": "CANAL: {{.ChannelName}}<br>{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
-    "id": "api.templates.post_subject",
+    "id": "api.templates.post_subject_in_channel",
+    "translation": "{{.SubjectText}} sur {{.TeamDisplayName}} le {{.Day}} {{.Month}} {{.Year}}"
+  },
+  {
+    "id": "api.templates.post_subject_in_direct_message",
     "translation": "{{.SubjectText}} sur {{.TeamDisplayName}} le {{.Day}} {{.Month}} {{.Year}}"
   },
   {
@@ -2392,6 +2452,10 @@
     "translation": "Emoji personnalisés désactivés par la licence courante. Veuillez contacter votre administrateur système concernant la mise à niveau de votre licence entreprise."
   },
   {
+    "id": "ent.ldap.disabled.app_error",
+    "translation": "LDAP disabled or licence does not support LDAP."
+  },
+  {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
     "translation": "Impossible de se connecter au serveur LDAP. Vérifiez l'utilisateur et le mot de passe du compte utilisé pour se connecter au serveur LDAP."
   },
@@ -3040,10 +3104,6 @@
     "translation": "L'attribut \"Email\" est invalide. Il doit être renseigné."
   },
   {
-    "id": "model.config.is_valid.saml_first_name_attribute.app_error",
-    "translation": "L'attribut \"Prénom\" est invalide. Il doit être renseigné."
-  },
-  {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
     "translation": "Certificat public du fournisseur d'identité introuvable. Auriez-vous oublié de le télécharger ?"
   },
@@ -3054,10 +3114,6 @@
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
     "translation": "URL SSO SAML invalide. Il doit s'agir d'une URL valide et commencer par http:// ou https://."
-  },
-  {
-    "id": "model.config.is_valid.saml_last_name_attribute.app_error",
-    "translation": "L'attribut \"Nom de famille\" est invalide. Il doit être renseigné."
   },
   {
     "id": "model.config.is_valid.saml_private_key.app_error",
@@ -3940,6 +3996,10 @@
     "translation": "Nous avons rencontré une erreur lors de la recherche du jeton d'accès"
   },
   {
+    "id": "store.sql_oauth.get_access_data_by_user_for_app.app_error",
+    "translation": "Nous avons rencontré une erreur lors de la recherche du jeton d'accès"
+  },
+  {
     "id": "store.sql_oauth.get_app.find.app_error",
     "translation": "Nous n'avons pas pu trouver l'application"
   },
@@ -4397,6 +4457,10 @@
   },
   {
     "id": "store.sql_user.get_unread_count.app_error",
+    "translation": "Nous n'avons pas pu compter le nombre de messages non lus pour l'utilisateur"
+  },
+  {
+    "id": "store.sql_user.get_unread_count_for_channel.app_error",
     "translation": "Nous n'avons pas pu compter le nombre de messages non lus pour l'utilisateur"
   },
   {

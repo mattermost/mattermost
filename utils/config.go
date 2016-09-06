@@ -165,10 +165,19 @@ func LoadConfig(fileName string) {
 		CfgFileName = fileName
 	}
 
+	needSave := len(config.SqlSettings.AtRestEncryptKey) == 0 || len(*config.FileSettings.PublicLinkSalt) == 0 ||
+		len(config.EmailSettings.InviteSalt) == 0 || len(config.EmailSettings.PasswordResetSalt) == 0
+
 	config.SetDefaults()
 
 	if err := config.IsValid(); err != nil {
 		panic(T(err.Id))
+	}
+
+	if needSave {
+		if err := SaveConfig(fileName, &config); err != nil {
+			l4g.Warn(T(err.Id))
+		}
 	}
 
 	if err := ValidateLdapFilter(&config); err != nil {
@@ -296,6 +305,9 @@ func getClientConfig(c *model.Config) map[string]string {
 		if *License.Features.SAML {
 			props["EnableSaml"] = strconv.FormatBool(*c.SamlSettings.Enable)
 			props["SamlLoginButtonText"] = *c.SamlSettings.LoginButtonText
+			props["FirstNameAttributeSet"] = strconv.FormatBool(*c.SamlSettings.FirstNameAttribute != "")
+			props["LastNameAttributeSet"] = strconv.FormatBool(*c.SamlSettings.LastNameAttribute != "")
+			props["NicknameAttributeSet"] = strconv.FormatBool(*c.SamlSettings.NicknameAttribute != "")
 		}
 
 		if *License.Features.Cluster {

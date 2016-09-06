@@ -646,7 +646,7 @@ export default class AdminSidebar extends React.Component {
                                     title={
                                         <FormattedMessage
                                             id='admin.sidebar.nativeAppLinks'
-                                            defaultMessage='Native App Links'
+                                            defaultMessage='Mattermost App Links'
                                         />
 
                                     }
