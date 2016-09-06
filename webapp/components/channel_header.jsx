@@ -29,8 +29,7 @@ import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import {getFlaggedPosts} from 'actions/post_actions.jsx';
 
-import Constants from 'utils/constants.jsx';
-const ActionTypes = Constants.ActionTypes;
+import {ActionTypes, Constants, Preferences} from 'utils/constants.jsx';
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
@@ -64,7 +63,8 @@ export default class ChannelHeader extends React.Component {
             memberChannel: ChannelStore.getMember(this.props.channelId),
             users: extraInfo.members,
             userCount: extraInfo.member_count,
-            currentUser: UserStore.getCurrentUser()
+            currentUser: UserStore.getCurrentUser(),
+            enableFormatting: PreferenceStore.getBool(Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', true)
         };
     }
 
@@ -524,6 +524,13 @@ export default class ChannelHeader extends React.Component {
             }
         }
 
+        let headerText;
+        if (this.state.enableFormatting) {
+            headerText = TextFormatting.formatText(channel.header, {singleline: true, mentionHighlight: false, siteURL: Utils.getSiteURL()});
+        } else {
+            headerText = channel.header;
+        }
+
         return (
             <div
                 id='channel-header'
@@ -564,7 +571,7 @@ export default class ChannelHeader extends React.Component {
                                         <div
                                             onClick={Utils.handleFormattedTextClick}
                                             className='description'
-                                            dangerouslySetInnerHTML={{__html: TextFormatting.formatText(channel.header, {singleline: true, mentionHighlight: false, siteURL: Utils.getSiteURL()})}}
+                                            dangerouslySetInnerHTML={{__html: headerText}}
                                         />
                                     </OverlayTrigger>
                                 </div>
