@@ -61,7 +61,8 @@
         "FileLevel": "INFO",
         "FileFormat": "",
         "FileLocation": "",
-        "EnableWebhookDebugging": true
+        "EnableWebhookDebugging": true,
+        "EnableDiagnostics": true
     },
     "PasswordSettings": {
         "MinimumLength": 5,

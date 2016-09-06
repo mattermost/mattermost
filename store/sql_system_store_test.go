@@ -4,8 +4,9 @@
 package store
 
 import (
-	"github.com/mattermost/platform/model"
 	"testing"
+
+	"github.com/mattermost/platform/model"
 )
 
 func TestSqlSystemStore(t *testing.T) {

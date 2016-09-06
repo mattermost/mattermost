@@ -88,6 +88,10 @@
     "translation": "Attempting to recycle the database connection"
   },
   {
+    "id": "utils.diagnostic.analytics_not_found.app_error",
+    "translation": "Analytics not initialized"
+  },
+  {
     "id": "api.admin.remove_certificate.delete.app_error",
     "translation": "An error occurred while deleting the certificate. Make sure the file config/{{.Filename}} exists."
   },
@@ -4218,6 +4222,10 @@
   {
     "id": "store.sql_session.analytics_session_count.app_error",
     "translation": "We couldn't count the sessions"
+  },
+  {
+    "id": "store.sql_system.get_version.app_error",
+    "translation": "We couldn't get the database version"
   },
   {
     "id": "store.sql_session.cleanup_expired_sessions.app_error",

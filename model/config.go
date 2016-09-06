@@ -118,6 +118,7 @@ type LogSettings struct {
 	FileFormat             string
 	FileLocation           string
 	EnableWebhookDebugging bool
+	EnableDiagnostics      *bool
 }
 
 type PasswordSettings struct {
@@ -779,6 +780,11 @@ func (o *Config) SetDefaults() {
 	if o.LocalizationSettings.AvailableLocales == nil {
 		o.LocalizationSettings.AvailableLocales = new(string)
 		*o.LocalizationSettings.AvailableLocales = ""
+	}
+
+	if o.LogSettings.EnableDiagnostics == nil {
+		o.LogSettings.EnableDiagnostics = new(bool)
+		*o.LogSettings.EnableDiagnostics = true
 	}
 
 	if o.SamlSettings.Enable == nil {

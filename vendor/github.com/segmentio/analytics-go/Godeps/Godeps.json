@@ -1,0 +1,17 @@
+{
+	"ImportPath": "github.com/segmentio/analytics-go",
+	"GoVersion": "go1.4.2",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/jehiah/go-strftime",
+			"Rev": "834e15c05a45371503440cc195bbd05c9a0968d9"
+		},
+		{
+			"ImportPath": "github.com/xtgo/uuid",
+			"Rev": "a0b114877d4caeffbd7f87e3757c17fce570fea7"
+		}
+	]
+}

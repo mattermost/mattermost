@@ -1,5 +1,5 @@
-hash: aa2fadc7f997a93e78d46d009d5695fb079697453d83e6a6dd7481d46ce73b7e
-updated: 2016-05-12T19:14:13.836695608-04:00
+hash: 5edc1c9990dbfc36e041dcdabeab2dd8fdd0c8b8b0540b54d515a0044f63952c
+updated: 2016-09-06T15:41:59.168710473-04:00
 imports:
 - name: github.com/alecthomas/log4go
   version: e5dc62318d9bd58682f1dceb53a4b24e8253682f
@@ -42,6 +42,8 @@ imports:
   version: 9c19ed558d5df4da88e2ade9c8940d742aef0e7e
 - name: github.com/gorilla/websocket
   version: 1f512fc3f05332ba7117626cdfb4e07474e58e60
+- name: github.com/jehiah/go-strftime
+  version: 834e15c05a45371503440cc195bbd05c9a0968d9
 - name: github.com/lib/pq
   version: ee1442bda7bd1b6a84e913bdb421cb1874ec629d
   subpackages:
@@ -70,6 +72,10 @@ imports:
   subpackages:
   - exif
   - tiff
+- name: github.com/segmentio/analytics-go
+  version: bdb0aeca8a993b292b85c9ec17b5ce0ff81848c8
+- name: github.com/segmentio/backo-go
+  version: 204274ad699c0983a70203a566887f17a717fef4
 - name: github.com/vaughan0/go-ini
   version: a98ad7ee00ec53921f08832bc06ecf7fd600e6a1
 - name: golang.org/x/crypto
@@ -77,6 +83,8 @@ imports:
   subpackages:
   - bcrypt
   - blowfish
+- name: github.com/xtgo/uuid
+  version: a0b114877d4caeffbd7f87e3757c17fce570fea7
 - name: golang.org/x/image
   version: f551d3a6b7fc11df315ad9e18b404280680f8bec
   subpackages:
