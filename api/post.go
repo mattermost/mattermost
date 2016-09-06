@@ -794,9 +794,44 @@ func sendNotificationEmail(c *Context, post *model.Post, user *model.User, chann
 		return
 	}
 
-	if *utils.Cfg.EmailSettings.EnableEmailBatching {
-		if err := AddNotificationEmailToBatch(user, post, team); err == nil {
+	if channel.Type == model.CHANNEL_DIRECT && channel.TeamId != team.Id {
+		// this message is a cross-team DM so it we need to find a team that the recipient is on to use in the link
+		if result := <-Srv.Store.Team().GetTeamsByUserId(user.Id); result.Err != nil {
+			l4g.Error(utils.T("api.post.send_notifications_and_forget.get_teams.error"), user.Id, result.Err)
 			return
+		} else {
+			// if the recipient isn't in the current user's team, just pick one
+			teams := result.Data.([]*model.Team)
+			found := false
+
+			for i := range teams {
+				if teams[i].Id == team.Id {
+					found = true
+					break
+				}
+			}
+
+			if !found {
+				team = teams[0]
+			}
+		}
+	}
+
+	if *utils.Cfg.EmailSettings.EnableEmailBatching {
+		var sendBatched bool
+
+		if result := <-Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL); result.Err != nil {
+			// if the call fails, assume it hasn't been set and use the default
+			sendBatched = false
+		} else {
+			// default to not using batching if the setting is set to immediate
+			sendBatched = result.Data.(model.Preference).Value != model.PREFERENCE_DEFAULT_EMAIL_INTERVAL
+		}
+
+		if sendBatched {
+			if err := AddNotificationEmailToBatch(user, post, team); err == nil {
+				return
+			}
 		}
 
 		// fall back to sending a single email if we can't batch it for some reason
