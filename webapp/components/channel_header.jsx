@@ -39,6 +39,8 @@ import {FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
 import {Tooltip, OverlayTrigger, Popover} from 'react-bootstrap';
 
+const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
+
 export default class ChannelHeader extends React.Component {
     constructor(props) {
         super(props);
@@ -654,7 +656,6 @@ export default class ChannelHeader extends React.Component {
                                         placement='bottom'
                                         rootClose={true}
                                         overlay={popoverContent}
-                                        rootClose={true}
                                         ref='headerOverlay'
                                     >
                                         <div
