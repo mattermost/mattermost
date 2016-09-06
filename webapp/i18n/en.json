@@ -1345,6 +1345,7 @@
   "installed_outgoing_webhooks.search": "Search Outgoing Webhooks",
   "installed_outgoing_webhooks.unknown_channel": "A Private Webhook",
   "integrations.add": "Add",
+  "integrations.successful": "Setup Successful",
   "integrations.command.description": "Slash commands send events to external integrations",
   "integrations.command.title": "Slash Command",
   "integrations.done": "Done",
