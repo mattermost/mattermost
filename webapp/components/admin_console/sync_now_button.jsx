@@ -68,7 +68,7 @@ export default class SyncNowButton extends React.Component {
         let helpText = (
             <FormattedHTMLMessage
                 id='admin.ldap.syncNowHelpText'
-                defaultMessage='Initiates an LDAP synchronization immediately.'
+                defaultMessage='Initiates an AD/LDAP synchronization immediately.'
             />
         );
 
@@ -84,7 +84,7 @@ export default class SyncNowButton extends React.Component {
             contents = (
                 <FormattedMessage
                     id='admin.ldap.sync_button'
-                    defaultMessage='LDAP Synchronize Now'
+                    defaultMessage='AD/LDAP Synchronize Now'
                 />
             );
         }

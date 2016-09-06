@@ -212,7 +212,7 @@ export default class SignupController extends React.Component {
                     <span>
                         <FormattedMessage
                             id='signup.ldap'
-                            defaultMessage='LDAP Credentials'
+                            defaultMessage='AD/LDAP Credentials'
                         />
                     </span>
                 </Link>

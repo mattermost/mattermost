@@ -1997,7 +1997,7 @@
   },
   {
     "id": "api.user.email_to_ldap.not_available.app_error",
-    "translation": "LDAP not available on this server"
+    "translation": "AD/LDAP not available on this server"
   },
   {
     "id": "api.user.generate_mfa_qr.not_available.app_error",
@@ -2017,11 +2017,11 @@
   },
   {
     "id": "api.user.ldap_to_email.not_available.app_error",
-    "translation": "LDAP not available on this server"
+    "translation": "AD/LDAP not available on this server"
   },
   {
     "id": "api.user.ldap_to_email.not_ldap_account.app_error",
-    "translation": "This user account does not use LDAP"
+    "translation": "This user account does not use AD/LDAP"
   },
   {
     "id": "api.user.login.blank_pwd.app_error",
@@ -2065,7 +2065,7 @@
   },
   {
     "id": "api.user.login_ldap.disabled.app_error",
-    "translation": "LDAP not enabled on this server"
+    "translation": "AD/LDAP not enabled on this server"
   },
   {
     "id": "api.user.login_ldap.need_id.app_error",
@@ -2073,7 +2073,7 @@
   },
   {
     "id": "api.user.login_ldap.not_available.app_error",
-    "translation": "LDAP not available on this server"
+    "translation": "AD/LDAP not available on this server"
   },
   {
     "id": "api.user.oauth_to_email.context.app_error",
@@ -2157,7 +2157,7 @@
   },
   {
     "id": "api.user.update_active.no_deactivate_ldap.app_error",
-    "translation": "You can not modify the activation status of LDAP accounts. Please modify through the LDAP server."
+    "translation": "You can not modify the activation status of AD/LDAP accounts. Please modify through the AD/LDAP server."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -2457,7 +2457,7 @@
   },
   {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
-    "translation": "Unable to bind to LDAP server. Check BindUsername and BindPassword."
+    "translation": "Unable to bind to AD/LDAP server. Check BindUsername and BindPassword."
   },
   {
     "id": "ent.ldap.do_login.invalid_password.app_error",
@@ -2465,7 +2465,7 @@
   },
   {
     "id": "ent.ldap.do_login.licence_disable.app_error",
-    "translation": "LDAP functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license."
+    "translation": "AD/LDAP functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license."
   },
   {
     "id": "ent.ldap.do_login.matched_to_many_users.app_error",
@@ -2473,11 +2473,11 @@
   },
   {
     "id": "ent.ldap.do_login.search_ldap_server.app_error",
-    "translation": "Failed to search LDAP server"
+    "translation": "Failed to search AD/LDAP server"
   },
   {
     "id": "ent.ldap.do_login.unable_to_connect.app_error",
-    "translation": "Unable to connect to LDAP server"
+    "translation": "Unable to connect to AD/LDAP server"
   },
   {
     "id": "ent.ldap.do_login.unable_to_create_user.app_error",
@@ -2485,27 +2485,27 @@
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
-    "translation": "Your LDAP account does not have permission to use this Mattermost server. Please ask your System Administrator to check the LDAP user filter."
+    "translation": "Your AD/LDAP account does not have permission to use this Mattermost server. Please ask your System Administrator to check the AD/LDAP user filter."
   },
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
-    "translation": "User not registered on LDAP server"
+    "translation": "User not registered on AD/LDAP server"
   },
   {
     "id": "ent.ldap.mattermost_user_update",
-    "translation": "Mattermost user was updated by LDAP server."
+    "translation": "Mattermost user was updated by AD/LDAP server."
   },
   {
     "id": "ent.ldap.syncdone.info",
-    "translation": "LDAP Synchronization completed"
+    "translation": "AD/LDAP Synchronization completed"
   },
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
-    "translation": "Unable to get all users using LDAP"
+    "translation": "Unable to get all users using AD/LDAP"
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
-    "translation": "Invalid LDAP Filter"
+    "translation": "Invalid AD/LDAP Filter"
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",
@@ -2545,11 +2545,11 @@
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
-    "translation": "Unable to migrate LDAP users with specified field. Duplicate entry detected. Please remove all duplcates and try again."
+    "translation": "Unable to migrate AD/LDAP users with specified field. Duplicate entry detected. Please remove all duplcates and try again."
   },
   {
     "id": "ent.migration.migratetoldap.user_not_found",
-    "translation": "Unable to find user on LDAP server: "
+    "translation": "Unable to find user on AD/LDAP server: "
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -3005,31 +3005,31 @@
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
-    "translation": "LDAP field \"BaseDN\" is required."
+    "translation": "AD/LDAP field \"BaseDN\" is required."
   },
   {
     "id": "model.config.is_valid.ldap_bind_password",
-    "translation": "LDAP field \"Bind Password\" is required."
+    "translation": "AD/LDAP field \"Bind Password\" is required."
   },
   {
     "id": "model.config.is_valid.ldap_bind_username",
-    "translation": "LDAP field \"Bind Username\" is required."
+    "translation": "AD/LDAP field \"Bind Username\" is required."
   },
   {
     "id": "model.config.is_valid.ldap_email",
-    "translation": "LDAP field \"Email Attribute\" is required."
+    "translation": "AD/LDAP field \"Email Attribute\" is required."
   },
   {
     "id": "model.config.is_valid.ldap_firstname",
-    "translation": "LDAP field \"First Name Attribute\" is required."
+    "translation": "AD/LDAP field \"First Name Attribute\" is required."
   },
   {
     "id": "model.config.is_valid.ldap_id",
-    "translation": "LDAP field \"ID Attribute\" is required."
+    "translation": "AD/LDAP field \"ID Attribute\" is required."
   },
   {
     "id": "model.config.is_valid.ldap_lastname",
-    "translation": "LDAP field \"Last Name Attribute\" is required."
+    "translation": "AD/LDAP field \"Last Name Attribute\" is required."
   },
   {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",
@@ -3037,19 +3037,19 @@
   },
   {
     "id": "model.config.is_valid.ldap_required.app_error",
-    "translation": "Required LDAP field missing."
+    "translation": "Required AD/LDAP field missing."
   },
   {
     "id": "model.config.is_valid.ldap_required.app_error",
-    "translation": "Required LDAP field missing."
+    "translation": "Required AD/LDAP field missing."
   },
   {
     "id": "model.config.is_valid.ldap_security.app_error",
-    "translation": "Invalid connection security for LDAP settings.  Must be '', 'TLS', or 'STARTTLS'"
+    "translation": "Invalid connection security for AD/LDAP settings.  Must be '', 'TLS', or 'STARTTLS'"
   },
   {
     "id": "model.config.is_valid.ldap_server",
-    "translation": "LDAP field \"LDAP Server\" is required."
+    "translation": "AD/LDAP field \"AD/LDAP Server\" is required."
   },
   {
     "id": "model.config.is_valid.ldap_sync_interval.app_error",
@@ -3057,7 +3057,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_username",
-    "translation": "LDAP field \"Username Attribute\" is required."
+    "translation": "AD/LDAP field \"Username Attribute\" is required."
   },
   {
     "id": "model.config.is_valid.listen_address.app_error",
@@ -4489,7 +4489,7 @@
   },
   {
     "id": "store.sql_user.save.email_exists.ldap_app_error",
-    "translation": "This account does not use LDAP authentication. Please sign in using email and password."
+    "translation": "This account does not use AD/LDAP authentication. Please sign in using email and password."
   },
   {
     "id": "store.sql_user.save.email_exists.saml_app_error",
@@ -4525,7 +4525,7 @@
   },
   {
     "id": "store.sql_user.update.can_not_change_ldap.app_error",
-    "translation": "Can not change fields set by LDAP"
+    "translation": "Can not change fields set by AD/LDAP"
   },
   {
     "id": "store.sql_user.update.email_taken.app_error",

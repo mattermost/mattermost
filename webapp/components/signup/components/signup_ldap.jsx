@@ -107,7 +107,7 @@ export default class SignupLdap extends React.Component {
         if (global.window.mm_config.LdapLoginFieldName) {
             ldapIdPlaceholder = global.window.mm_config.LdapLoginFieldName;
         } else {
-            ldapIdPlaceholder = Utils.localizeMessage('login.ldap_username', 'LDAP Username');
+            ldapIdPlaceholder = Utils.localizeMessage('login.ldap_username', 'AD/LDAP Username');
         }
 
         let errorClass = '';
@@ -123,7 +123,7 @@ export default class SignupLdap extends React.Component {
                         <strong>
                             <FormattedMessage
                                 id='signup.ldap'
-                                defaultMessage='LDAP Credentials'
+                                defaultMessage='AD/LDAP Credentials'
                             />
                         </strong>
                     </h5>

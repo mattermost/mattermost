@@ -201,7 +201,7 @@ func TestLogin(t *testing.T) {
 	store.Must(Srv.Store.User().VerifyEmail(user3.Id))
 
 	if _, err := Client.Login(user3.Id, user3.Password); err == nil {
-		t.Fatal("LDAP user should not be able to log in with LDAP disabled")
+		t.Fatal("AD/LDAP user should not be able to log in with AD/LDAP disabled")
 	}
 }
 
@@ -218,7 +218,7 @@ func TestLoginByLdap(t *testing.T) {
 	store.Must(Srv.Store.User().VerifyEmail(ruser.Data.(*model.User).Id))
 
 	if _, err := Client.LoginByLdap(ruser.Data.(*model.User).Id, user.Password); err == nil {
-		t.Fatal("should've failed to log in with non-ldap user")
+		t.Fatal("should have failed to log in with non AD/LDAP user")
 	}
 }
 
@@ -1558,7 +1558,7 @@ func TestLDAPToEmail(t *testing.T) {
 
 	m["email"] = user.Email
 	if _, err := Client.LDAPToEmail(m); err == nil {
-		t.Fatal("should have failed - user is not an LDAP user")
+		t.Fatal("should have failed - user is not an AD/LDAP user")
 	}
 }
 

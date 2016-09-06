@@ -98,7 +98,7 @@ export default class LoginController extends React.Component {
                     <FormattedMessage
                         id={msgId}
                         values={{
-                            ldapUsername: global.window.mm_config.LdapLoginFieldName || Utils.localizeMessage('login.ldapUsernameLower', 'LDAP username')
+                            ldapUsername: global.window.mm_config.LdapLoginFieldName || Utils.localizeMessage('login.ldapUsernameLower', 'AD/LDAP username')
                         }}
                     />
                 )
@@ -261,7 +261,7 @@ export default class LoginController extends React.Component {
             if (global.window.mm_config.LdapLoginFieldName) {
                 loginPlaceholders.push(global.window.mm_config.LdapLoginFieldName);
             } else {
-                loginPlaceholders.push(Utils.localizeMessage('login.ldapUsername', 'LDAP Username'));
+                loginPlaceholders.push(Utils.localizeMessage('login.ldapUsername', 'AD/LDAP Username'));
             }
         }
 

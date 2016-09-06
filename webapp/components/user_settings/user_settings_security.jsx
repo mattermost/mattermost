@@ -450,7 +450,7 @@ export default class SecurityTab extends React.Component {
                         <div className='setting-list__hint'>
                             <FormattedMessage
                                 id='user.settings.security.passwordLdapCantUpdate'
-                                defaultMessage='Login occurs through LDAP. Password cannot be updated.'
+                                defaultMessage='Login occurs through AD/LDAP. Password cannot be updated.'
                             />
                         </div>
                     </div>
@@ -522,7 +522,7 @@ export default class SecurityTab extends React.Component {
             describe = (
                 <FormattedMessage
                     id='user.settings.security.loginLdap'
-                    defaultMessage='Login done through LDAP'
+                    defaultMessage='Login done through AD/LDAP'
                 />
             );
         }
@@ -618,7 +618,7 @@ export default class SecurityTab extends React.Component {
                             >
                                 <FormattedMessage
                                     id='user.settings.security.switchLdap'
-                                    defaultMessage='Switch to using LDAP'
+                                    defaultMessage='Switch to using AD/LDAP'
                                 />
                             </Link>
                             <br/>
@@ -739,7 +739,7 @@ export default class SecurityTab extends React.Component {
             describe = (
                 <FormattedMessage
                     id='user.settings.security.ldap'
-                    defaultMessage='LDAP'
+                    defaultMessage='AD/LDAP'
                 />
             );
         } else if (this.props.user.auth_service === Constants.SAML_SERVICE) {
