@@ -264,7 +264,7 @@ export default class PostInfo extends React.Component {
             highlightMentionClass = ' mention--highlight';
         }
 
-        if (post.state !== Constants.POST_FAILED && post.state !== Constants.POST_LOADING && !Utils.isPostEphemeral(post)) {
+        if (post.state !== Constants.POST_FAILED && post.state !== Constants.POST_LOADING && !Utils.isPostEphemeral(post) && this.props.allowReply) {
             comments = (
                 <a
                     href='#'
