@@ -35,7 +35,7 @@ class SearchUserSuggestion extends Suggestion {
 
 export default class SearchUserProvider {
     handlePretextChanged(suggestionId, pretext) {
-        const captured = (/\bfrom:\s*(\S*)$/i).exec(pretext);
+        const captured = (/\bfrom:\s*(\S*)$/i).exec(pretext.toLowerCase());
         if (captured) {
             const usernamePrefix = captured[1];
 
