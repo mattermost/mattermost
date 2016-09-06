@@ -363,7 +363,7 @@ export const Constants = {
             linkColor: '#2f81b7',
             buttonBg: '#1dacfc',
             buttonColor: '#FFFFFF',
-            mentionHighlightBg: '#fff2bb',
+            mentionHighlightBg: '#f1e2a3',
             mentionHighlightLink: '#2f81b7',
             codeTheme: 'github',
             image: defaultThemeImage
@@ -388,7 +388,7 @@ export const Constants = {
             linkColor: '#2389d7',
             buttonBg: '#23A2FF',
             buttonColor: '#FFFFFF',
-            mentionHighlightBg: '#fff2bb',
+            mentionHighlightBg: '#f1e2a3',
             mentionHighlightLink: '#2f81b7',
             codeTheme: 'github',
             image: mattermostThemeImage
