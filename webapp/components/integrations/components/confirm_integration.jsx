@@ -82,7 +82,7 @@ export default class ConfirmIntegration extends React.Component {
                 </p>
             );
             tokenText = (
-                <p>
+                <p className='word-break--all'>
                     <FormattedHTMLMessage
                         id='add_command.token'
                         defaultMessage='<b>Token</b>: {token}'
@@ -108,7 +108,7 @@ export default class ConfirmIntegration extends React.Component {
                 </p>
             );
             tokenText = (
-                <p>
+                <p className='word-break--all'>
                     <FormattedHTMLMessage
                         id='add_incoming_webhook.url'
                         defaultMessage='<b>URL</b>: {url}'
@@ -134,7 +134,7 @@ export default class ConfirmIntegration extends React.Component {
                 </p>
             );
             tokenText = (
-                <p>
+                <p className='word-break--all'>
                     <FormattedHTMLMessage
                         id='add_outgoing_webhook.token'
                         defaultMessage='<b>Token</b>: {token}'
@@ -199,7 +199,7 @@ export default class ConfirmIntegration extends React.Component {
                 );
 
                 tokenText = (
-                    <p>
+                    <p className='word-break--all'>
                         <FormattedHTMLMessage
                             id='add_oauth_app.url'
                             defaultMessage='<b>URL(s)</b>: {url}'
@@ -224,6 +224,12 @@ export default class ConfirmIntegration extends React.Component {
                     />
                 </BackstageHeader>
                 <div className='backstage-form backstage-form__confirmation'>
+                    <h4 className='backstage-form__title'>
+                        <FormattedMessage
+                            id='integrations.successful'
+                            defaultMessage='Setup Successful'
+                        />
+                    </h4>
                     {helpText}
                     {tokenText}
                     <div className='backstage-form__footer'>
