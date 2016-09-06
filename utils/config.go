@@ -296,6 +296,9 @@ func getClientConfig(c *model.Config) map[string]string {
 		if *License.Features.SAML {
 			props["EnableSaml"] = strconv.FormatBool(*c.SamlSettings.Enable)
 			props["SamlLoginButtonText"] = *c.SamlSettings.LoginButtonText
+			props["FirstNameAttributeSet"] = strconv.FormatBool(*c.SamlSettings.FirstNameAttribute != "")
+			props["LastNameAttributeSet"] = strconv.FormatBool(*c.SamlSettings.LastNameAttribute != "")
+			props["NicknameAttributeSet"] = strconv.FormatBool(*c.SamlSettings.NicknameAttribute != "")
 		}
 
 		if *License.Features.Cluster {

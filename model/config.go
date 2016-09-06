@@ -1048,14 +1048,6 @@ func (o *Config) IsValid() *AppError {
 			return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_username_attribute.app_error", nil, "")
 		}
 
-		if len(*o.SamlSettings.FirstNameAttribute) == 0 {
-			return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_first_name_attribute.app_error", nil, "")
-		}
-
-		if len(*o.SamlSettings.LastNameAttribute) == 0 {
-			return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_last_name_attribute.app_error", nil, "")
-		}
-
 		if *o.SamlSettings.Verify {
 			if len(*o.SamlSettings.AssertionConsumerServiceURL) == 0 || !IsValidHttpUrl(*o.SamlSettings.AssertionConsumerServiceURL) {
 				return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_assertion_consumer_service_url.app_error", nil, "")
