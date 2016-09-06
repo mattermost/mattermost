@@ -159,6 +159,12 @@ export default class EmailNotificationSetting extends React.Component {
                 title={localizeMessage('user.settings.notifications.emailNotifications', 'Email notifications')}
                 inputs={[
                     <div key='userNotificationEmailOptions'>
+                        <label>
+                            <FormattedMessage
+                                id='user.settings.notifications.email.send'
+                                defaultMessage='Send email notifications'
+                            />
+                        </label>
                         <div className='radio'>
                             <label>
                                 <input

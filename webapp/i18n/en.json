@@ -1899,6 +1899,7 @@
   "user.settings.notifications.email.everyXMinutes": "Every {count, plural, one {minute} other {{count, number} minutes}}",
   "user.settings.notifications.email.immediately": "Immediately",
   "user.settings.notifications.email.never": "Never",
+  "user.settings.notifications.email.send": "Send email notifications",
   "user.settings.notifications.emailBatchingInfo": "Notifications received over the time period selected are combined and sent in a single email.",
   "user.settings.notifications.emailInfo": "Email notifications are sent for mentions and direct messages when you are offline or away from {siteName} for more than 5 minutes.",
   "user.settings.notifications.emailNotifications": "Email notifications",
