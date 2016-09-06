@@ -42,7 +42,7 @@ func (bindRequest *SimpleBindRequest) encode() *ber.Packet {
 func (l *Conn) SimpleBind(simpleBindRequest *SimpleBindRequest) (*SimpleBindResult, error) {
 	messageID := l.nextMessageID()
 
-	packet := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "AD/LDAP Request")
+	packet := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "LDAP Request")
 	packet.AppendChild(ber.NewInteger(ber.ClassUniversal, ber.TypePrimitive, ber.TagInteger, messageID, "MessageID"))
 	encodedBindRequest := simpleBindRequest.encode()
 	packet.AppendChild(encodedBindRequest)
@@ -56,13 +56,13 @@ func (l *Conn) SimpleBind(simpleBindRequest *SimpleBindRequest) (*SimpleBindResu
 		return nil, err
 	}
 	if channel == nil {
-		return nil, NewError(ErrorNetwork, errors.New("ad/ldap: could not send message"))
+		return nil, NewError(ErrorNetwork, errors.New("ldap: could not send message"))
 	}
 	defer l.finishMessage(messageID)
 
 	packetResponse, ok := <-channel
 	if !ok {
-		return nil, NewError(ErrorNetwork, errors.New("ad/ldap: channel closed"))
+		return nil, NewError(ErrorNetwork, errors.New("ldap: channel closed"))
 	}
 	packet, err = packetResponse.ReadPacket()
 	l.Debug.Printf("%d: got response %p", messageID, packet)
@@ -98,7 +98,7 @@ func (l *Conn) SimpleBind(simpleBindRequest *SimpleBindRequest) (*SimpleBindResu
 func (l *Conn) Bind(username, password string) error {
 	messageID := l.nextMessageID()
 
-	packet := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "AD/LDAP Request")
+	packet := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "LDAP Request")
 	packet.AppendChild(ber.NewInteger(ber.ClassUniversal, ber.TypePrimitive, ber.TagInteger, messageID, "MessageID"))
 	bindRequest := ber.Encode(ber.ClassApplication, ber.TypeConstructed, ApplicationBindRequest, nil, "Bind Request")
 	bindRequest.AppendChild(ber.NewInteger(ber.ClassUniversal, ber.TypePrimitive, ber.TagInteger, 3, "Version"))
@@ -115,13 +115,13 @@ func (l *Conn) Bind(username, password string) error {
 		return err
 	}
 	if channel == nil {
-		return NewError(ErrorNetwork, errors.New("ad/ldap: could not send message"))
+		return NewError(ErrorNetwork, errors.New("ldap: could not send message"))
 	}
 	defer l.finishMessage(messageID)
 
 	packetResponse, ok := <-channel
 	if !ok {
-		return NewError(ErrorNetwork, errors.New("ad/ldap: channel closed"))
+		return NewError(ErrorNetwork, errors.New("ldap: channel closed"))
 	}
 	packet, err = packetResponse.ReadPacket()
 	l.Debug.Printf("%d: got response %p", messageID, packet)
