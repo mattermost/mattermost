@@ -1,37 +1,48 @@
 # Mattermost
 
-Mattermost Team Edition is an open source, self-hosted Slack-alternative. 
+Mattermost is an open source, self-hosted Slack-alternative from [https://mattermost.org](https://mattermost.org).
 
-It's written in Golang and React and runs as a single Linux binary with either MySQL or Postgres. Every month on the 16th a new compiled version is released under an MIT license. 
+It's written in Golang and React and runs as a single Linux binary with MySQL or Postgres. Every month on the 16th [a new compiled version is released under an MIT license](https://www.mattermost.org/download/).
 
-- See [product documentation](http://docs.mattermost.com/) for full details. 
-- Learn more about the project at [https://mattermost.org](https://mattermost.org). 
-- Download now from [https://mattermost.org/download](https://mattermost.org/download).
+- [Review product documentation](http://docs.mattermost.com/).
+- [Download compiled version](https://mattermost.org/download).
 
-Get Started: 
+Try out Mattermost: 
 
-- **Preview Mattermost** - If you use Docker, try [a single-line install](http://docs.mattermost.com/install/docker-local-machine.html#one-line-docker-install).
-- **Developer Machine Set Up** - See [http://docs.mattermost.com/developer/developer-setup.html](http://docs.mattermost.com/developer/developer-setup.html)
-- **View All Install Guides** - See [http://www.mattermost.org/installation/](http://www.mattermost.org/installation/)
- 
+- [Join the Mattermost Contributor's server](https://pre-release.mattermost.com/) (latest nightly builds, unstable)
+- [Join the Mattermost Demo server](https://demo.mattermost.com) (latest stable version)
+
+Deploy on Heroku 
+
+[![Deploy a Preview](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/mattermost/mattermost-heroku)
+
+_Note: Heroku preview does not include email or persistent storage_
+
+Install on your own machine: 
+
+- [One-line Docker Preview](http://docs.mattermost.com/install/docker-local-machine.html#one-line-docker-install) 
+- [Developer Machine Setup](http://docs.mattermost.com/developer/developer-setup.html)
+- [Production Install Guides using Linux Binary](http://www.mattermost.org/installation/)
+- [Production Docker Install](https://docs.mattermost.com/install/prod-docker.html) 
+
 Get Involved:
 
-- **Contribute Code** - View our [Code Contribution Guidelines](http://docs.mattermost.com/developer/contribution-guide.html) 
-- **Work on "Help Wanted" projects** - See a list of [tickets accepting pull requests](https://mattermost.atlassian.net/issues/?filter=10101)
-- **Discuss Contributions** - Join our [Developer Discussion](https://pre-release.mattermost.com) for contributors on the nightly builds server
-- **File Bugs** - Search for existing bugs and [file a GitHub issue if your bug is new](http://www.mattermost.org/filing-issues/) 
-- **Share Feature Ideas** - Add a [feature idea to be discussed or upvoted](http://www.mattermost.org/feature-requests/)
-- **Get Troubleshooting Help** - Search articles and [add a topic if the issue is new](https://forum.mattermost.org/t/how-to-use-the-troubleshooting-forum/150)  
+- [Contribute Code](http://docs.mattermost.com/developer/contribution-guide.html)
+- [Find "Help Wanted" projects](https://mattermost.atlassian.net/issues/?filter=10101)
+- [Join Developer Discussion on a Mattermost Server for contributors](https://pre-release.mattermost.com/signup_user_complete/?id=b8230f359369ed80c46ecb8696901b3e)
+- [File Bugs](http://www.mattermost.org/filing-issues/)
+- [Share Feature Ideas](http://www.mattermost.org/feature-requests/)
+- [Get Troubleshooting Help](https://forum.mattermost.org/t/how-to-use-the-troubleshooting-forum/150)
 
-Learn More: 
+Learn More:
 
-- **API Options** - Understand API options via [webhooks, slash commands, drivers and RESTful Web Service](http://docs.mattermost.com/developer/api.html).
-- **Localization Guide** - Learn [how Mattermost supports different languages](http://docs.mattermost.com/developer/localization.html#translation-process). 
+- [API Options - webhooks, slash commands, drivers and web service](http://docs.mattermost.com/developer/api.html)
+- [Localization Guide](http://docs.mattermost.com/developer/localization.html#translation-process)
 
-Get the Latest News: 
+Get the Latest News:
 
-- **Twitter** - Follow [MattermostHQ](https://twitter.com/mattermosthq) on Twitter for the latest updates.   
-- **Email** - Subscribe to our [newsletter for announcements](http://mattermost.us11.list-manage.com/subscribe?u=6cdba22349ae374e188e7ab8e&id=2add1c8034) (1 or 2 per month).  
-- **IRC** - Connect with us on IRC Freenode at #matterbridge (thanks to the [matterircd](https://github.com/42wim/matterircd) project).
+- **Twitter** - Follow [MattermostHQ](https://twitter.com/mattermosthq)
+- **Email** - Subscribe to our [newsletter](http://mattermost.us11.list-manage.com/subscribe?u=6cdba22349ae374e188e7ab8e&id=2add1c8034) (1 or 2 per month)
+- **IRC** - Join us on #matterbridge (thanks to [matterircd](https://github.com/42wim/matterircd))
 
 Any other questions, mail us at info@mattermost.com. We’d love to meet you!
