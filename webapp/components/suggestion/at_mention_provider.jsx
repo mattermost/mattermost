@@ -99,7 +99,7 @@ class AtMentionSuggestion extends Suggestion {
     }
 }
 
-function filterUsersByPrefix(users, prefix, limit) {
+function filterUsersByPrefix(users, prefix, limit, type) {
     const filtered = [];
 
     for (const id of Object.keys(users)) {
@@ -117,7 +117,8 @@ function filterUsersByPrefix(users, prefix, limit) {
             (user.first_name && user.first_name.toLowerCase().startsWith(prefix)) ||
             (user.last_name && user.last_name.toLowerCase().startsWith(prefix)) ||
             (user.nickname && user.nickname.toLowerCase().startsWith(prefix))) {
-            filtered.push(user);
+            // create a new object here since we're mutating it by adding the type field
+            filtered.push(Object.assign({}, user, {type}));
         }
     }
 
@@ -145,15 +146,15 @@ export default class AtMentionProvider {
 
             // Filter users by prefix.
             const filteredMembers = filterUsersByPrefix(
-                    channelMembers, prefix, MaxUserSuggestions);
+                    channelMembers, prefix, MaxUserSuggestions, Constants.MENTION_MEMBERS);
             const filteredNonmembers = filterUsersByPrefix(
-                    channelNonmembers, prefix, MaxUserSuggestions - filteredMembers.length);
+                    channelNonmembers, prefix, MaxUserSuggestions - filteredMembers.length, Constants.MENTION_NONMEMBERS);
             let filteredSpecialMentions = [];
             if (!pretext.startsWith('/msg')) {
                 filteredSpecialMentions = ['here', 'channel', 'all'].filter((item) => {
                     return item.startsWith(prefix);
                 }).map((name) => {
-                    return {username: name};
+                    return {username: name, type: Constants.MENTION_SPECIAL};
                 });
             }
 
@@ -171,16 +172,6 @@ export default class AtMentionProvider {
 
                     return 1;
                 });
-            });
-
-            filteredMembers.forEach((item) => {
-                item.type = Constants.MENTION_MEMBERS;
-            });
-            filteredNonmembers.forEach((item) => {
-                item.type = Constants.MENTION_NONMEMBERS;
-            });
-            filteredSpecialMentions.forEach((item) => {
-                item.type = Constants.MENTION_SPECIAL;
             });
 
             const filtered = filteredMembers.concat(filteredSpecialMentions).concat(filteredNonmembers);
