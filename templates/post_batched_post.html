@@ -14,9 +14,6 @@
             <span style="font-size: 16px; font-weight: bold; color: #555; margin: 0 0 5px; display: inline-block;" >
                 {{.Props.ChannelName}}
             </span>
-            <a class="post_btn" href="{{.Props.PostLink}}" style="font-size: 13px; background: #2389D7; display: inline-block; border-radius: 2px; color: #fff; padding: 6px 0; width: 120px; text-decoration: none; float:right; text-align: center; margin: 0 0 5px;">
-                {{.Props.Button}}
-            </a>
             <br/>
             <div style="margin: 5px 0 0;">
                 <span style="font-weight: bold; white-space: nowrap;">
@@ -31,6 +28,9 @@
     <tr>
         <td colspan=2>
             <pre style="text-align:left; font-family: 'Lato', sans-serif; margin: 0px; white-space: pre-wrap; white-space: -moz-pre-wrap; white-space: -pre-wrap; white-space: -o-pre-wrap; word-wrap: break-word; line-height: 20px;">{{.Props.PostMessage}}</pre>
+            <a class="post_btn" href="{{.Props.PostLink}}" style="font-size: 13px; background: #2389D7; display: inline-block; border-radius: 2px; color: #fff; padding: 6px 0; width: 120px; text-decoration: none; float:left; text-align: center; margin: 15px 0 5px;">
+                {{.Props.Button}}
+            </a>
         </td>
     </tr>
 </table>

@@ -329,6 +329,7 @@ export default class LoginController extends React.Component {
             }
         }
 
+        var signinHeader = [];
         const loginControls = [];
 
         const ldapEnabled = this.state.ldapEnabled;
@@ -338,6 +339,15 @@ export default class LoginController extends React.Component {
         const samlSigninEnabled = this.state.samlEnabled;
         const usernameSigninEnabled = this.state.usernameSigninEnabled;
         const emailSigninEnabled = this.state.emailSigninEnabled;
+
+        signinHeader.push(
+            <h5 key='oauthHeader'>
+                <FormattedMessage
+                    id='login.signInWith'
+                    defaultMessage='Sign in with:'
+                />
+            </h5>
+        );
 
         if (emailSigninEnabled || usernameSigninEnabled || ldapEnabled) {
             let errorClass = '';
@@ -448,15 +458,6 @@ export default class LoginController extends React.Component {
                     />
                 </div>
             );
-
-            loginControls.push(
-                <h5 key='oauthHeader'>
-                    <FormattedMessage
-                        id='login.signInWith'
-                        defaultMessage='Sign in with:'
-                    />
-                </h5>
-            );
         }
 
         if (gitlabSigninEnabled) {
@@ -542,9 +543,14 @@ export default class LoginController extends React.Component {
             );
         }
 
+        if (!gitlabSigninEnabled && !samlSigninEnabled && !office365SigninEnabled && !googleSigninEnabled && !gitlabSigninEnabled) {
+            signinHeader = [];
+        }
+
         return (
             <div>
                 {extraBox}
+                {signinHeader}
                 {loginControls}
             </div>
         );
