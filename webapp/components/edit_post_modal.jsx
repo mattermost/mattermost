@@ -28,6 +28,7 @@ export default class EditPostModal extends React.Component {
         this.handleEdit = this.handleEdit.bind(this);
         this.handleEditKeyPress = this.handleEditKeyPress.bind(this);
         this.handleEditPostEvent = this.handleEditPostEvent.bind(this);
+        this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleInput = this.handleInput.bind(this);
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.onModalHidden = this.onModalHidden.bind(this);
@@ -116,6 +117,12 @@ export default class EditPostModal extends React.Component {
         });
 
         $(ReactDOM.findDOMNode(this.refs.modal)).modal('show');
+    }
+
+    handleKeyDown(e) {
+        if (this.state.ctrlSend && e.keyCode === KeyCodes.ENTER && e.ctrlKey === true) {
+            this.handleEdit();
+        }
     }
 
     onPreferenceChange() {
@@ -222,7 +229,8 @@ export default class EditPostModal extends React.Component {
                         <div className='edit-modal-body modal-body'>
                             <Textbox
                                 onInput={this.handleInput}
-                                onKeyDown={this.handleEditKeyPress}
+                                onKeyPress={this.handleEditKeyPress}
+                                onKeyDown={this.handleKeyDown}
                                 messageText={this.state.editText}
                                 createMessage={Utils.localizeMessage('edit_post.editPost', 'Edit the post...')}
                                 supportsCommands={false}
