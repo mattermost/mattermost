@@ -2461,7 +2461,7 @@
   },
   {
     "id": "ent.ldap.disabled.app_error",
-    "translation": "LDAP disabled or licence does not support LDAP."
+    "translation": "AD/LDAP disabled or licence does not support AD/LDAP."
   },
   {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
