@@ -71,7 +71,7 @@ export default class LdapTestButton extends React.Component {
                         <i className='fa fa-warning'/>
                         <FormattedMessage
                             id='admin.ldap.testFailure'
-                            defaultMessage='LDAP Test Failure: {error}'
+                            defaultMessage='AD/LDAP Test Failure: {error}'
                             values={{
                                 error: this.state.fail
                             }}
@@ -86,7 +86,7 @@ export default class LdapTestButton extends React.Component {
                         <i className='fa fa-success'/>
                         <FormattedMessage
                             id='admin.ldap.testSuccess'
-                            defaultMessage='LDAP Test Successful'
+                            defaultMessage='AD/LDAP Test Successful'
                             values={{
                                 error: this.state.fail
                             }}
@@ -99,7 +99,7 @@ export default class LdapTestButton extends React.Component {
         let helpText = (
             <FormattedHTMLMessage
                 id='admin.ldap.testHelpText'
-                defaultMessage='Tests if the Mattermost server can connect to the LDAP server specified. See log file for more detailed error messages.'
+                defaultMessage='Tests if the Mattermost server can connect to the AD/LDAP server specified. See log file for more detailed error messages.'
             />
         );
 
@@ -115,7 +115,7 @@ export default class LdapTestButton extends React.Component {
             contents = (
                 <FormattedMessage
                     id='admin.ldap.ldap_test_button'
-                    defaultMessage='LDAP Test'
+                    defaultMessage='AD/LDAP Test'
                 />
             );
         }
