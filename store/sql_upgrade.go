@@ -184,7 +184,6 @@ func UpgradeDatabaseToVersion34(sqlStore *SqlStore) {
 		sqlStore.CreateColumnIfNotExists("Status", "Manual", "BOOLEAN", "BOOLEAN", "0")
 		sqlStore.CreateColumnIfNotExists("Status", "ActiveChannel", "varchar(26)", "varchar(26)", "")
 
-		// TODO XXX FIXME should be removed before release
-		//saveSchemaVersion(sqlStore, VERSION_3_4_0)
+		saveSchemaVersion(sqlStore, VERSION_3_4_0)
 	}
 }
