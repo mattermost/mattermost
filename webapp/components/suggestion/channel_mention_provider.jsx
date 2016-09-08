@@ -72,9 +72,9 @@ function filterChannelsByPrefix(channels, prefix, limit) {
 
 export default class ChannelMentionProvider {
     handlePretextChanged(suggestionId, pretext) {
-        const captured = (/!([^!]*)$/g).exec(pretext.toLowerCase());
+        const captured = (/(^|\s)(!([^!]*))$/i).exec(pretext.toLowerCase());
         if (captured) {
-            const prefix = captured[1];
+            const prefix = captured[3];
 
             const channels = ChannelStore.getAll();
             const moreChannels = ChannelStore.getMoreAll();
@@ -124,7 +124,7 @@ export default class ChannelMentionProvider {
 
             const mentions = wrapped.map((item) => '!' + item.channel.name);
 
-            SuggestionStore.addSuggestions(suggestionId, mentions, wrapped, ChannelMentionSuggestion, captured[0]);
+            SuggestionStore.addSuggestions(suggestionId, mentions, wrapped, ChannelMentionSuggestion, captured[2]);
         }
     }
 }
