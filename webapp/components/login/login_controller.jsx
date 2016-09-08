@@ -460,7 +460,7 @@ export default class LoginController extends React.Component {
         }
 
         if (gitlabSigninEnabled || samlSigninEnabled || office365SigninEnabled || googleSigninEnabled || gitlabSigninEnabled) {
-           loginControls.push(
+            loginControls.push(
                 <h5 key='oauthHeader'>
                     <FormattedMessage
                         id='login.signInWith'
