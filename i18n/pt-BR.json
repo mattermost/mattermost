@@ -1039,7 +1039,7 @@
   },
   {
     "id": "api.oauth.complete_oauth.missing_code.app_error",
-    "translation": "The service provider {{.service}} did not provide an authorization code in the redirect URL.\n\nFor [Google Apps](https://docs.mattermost.com/deployment/sso-google.html) make sure your administrator enabled the Google+ API.\n\nFor [Office 365](https://docs.mattermost.com/deployment/sso-office.html) make sure the administrator of your Microsoft organization has enabled the Mattermost app.\n\nFor [GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html) please make sure you followed the setup instructions.\n\nIf you reviewed the above and are still having trouble with configuration, you may post in our [Troubleshooting forum](https://forum.mattermost.org/c/general/trouble-shoot) where we'll be happy to help with issues during setup."
+    "translation": "O provedor do serviço {{.service}} não forneceu um código de autorização na URL redirecionada.\n\nPara [Google Apps](https://docs.mattermost.com/deployment/sso-google.html) tenha certeza que o administrador ativou a API Google+.\n\nPara [Office 365](https://docs.mattermost.com/deployment/sso-office.html) tenha certeza que o administrador da organização Microsoft ativou o app Mattermost.\n\nPara [GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html) por favor certifique de ter seguido as instruções de instalação.\n\nSe você analisou o problema acima e ainda está tendo dificuldades com a configuração, você pode postar no nosso [Fórum de solução de problema](https://forum.mattermost.org/c/general/trouble-shoot) onde ficaremos felizes de ajudar com os problemas durante a instalação."
   },
   {
     "id": "api.oauth.delete.permissions.app_error",
@@ -1270,6 +1270,10 @@
   {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
     "translation": "Falha ao obter os comentários da mensagem em notificações root_post_id=%v, err=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.get_teams.error",
+    "translation": "Falha ao obter equipes quando enviado mensagem direta entre equipes user_id=%v, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.mention_body",
@@ -1997,7 +2001,7 @@
   },
   {
     "id": "api.user.email_to_ldap.not_available.app_error",
-    "translation": "LDAP não está disponível neste servidor"
+    "translation": "AD/LDAP não está disponível neste servidor"
   },
   {
     "id": "api.user.generate_mfa_qr.not_available.app_error",
@@ -2017,11 +2021,11 @@
   },
   {
     "id": "api.user.ldap_to_email.not_available.app_error",
-    "translation": "LDAP não está disponível neste servidor"
+    "translation": "AD/LDAP não está disponível neste servidor"
   },
   {
     "id": "api.user.ldap_to_email.not_ldap_account.app_error",
-    "translation": "Está conta de usuário não utiliza LDAP"
+    "translation": "Está conta de usuário não utiliza AD/LDAP"
   },
   {
     "id": "api.user.login.blank_pwd.app_error",
@@ -2065,7 +2069,7 @@
   },
   {
     "id": "api.user.login_ldap.disabled.app_error",
-    "translation": "LDAP não habilitado neste servidor"
+    "translation": "AD/LDAP não habilitado neste servidor"
   },
   {
     "id": "api.user.login_ldap.need_id.app_error",
@@ -2073,7 +2077,7 @@
   },
   {
     "id": "api.user.login_ldap.not_available.app_error",
-    "translation": "LDAP não está disponível neste servidor"
+    "translation": "AD/LDAP não está disponível neste servidor"
   },
   {
     "id": "api.user.oauth_to_email.context.app_error",
@@ -2157,7 +2161,7 @@
   },
   {
     "id": "api.user.update_active.no_deactivate_ldap.app_error",
-    "translation": "Você não pode modificar o status de ativação de contas LDAP. Por favor modifique através do servidor LDAP."
+    "translation": "Você não pode modificar o status de ativação de contas AD/LDAP. Por favor modifique através do servidor AD/LDAP."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -2457,7 +2461,7 @@
   },
   {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
-    "translation": "Não foi possível ligar ao servidor LDAP. Verifique BindUsername e BindPassword."
+    "translation": "Não foi possível ligar ao servidor AD/LDAP. Verifique BindUsername e BindPassword."
   },
   {
     "id": "ent.ldap.do_login.invalid_password.app_error",
@@ -2465,7 +2469,7 @@
   },
   {
     "id": "ent.ldap.do_login.licence_disable.app_error",
-    "translation": "Funcionalidade LDAP desabilitada pela licença atual. Entre em contato com o administrador do sistema sobre como atualizar sua licença enterprise."
+    "translation": "Funcionalidade AD/LDAP desabilitada pela licença atual. Entre em contato com o administrador do sistema sobre como atualizar sua licença enterprise."
   },
   {
     "id": "ent.ldap.do_login.matched_to_many_users.app_error",
@@ -2473,11 +2477,11 @@
   },
   {
     "id": "ent.ldap.do_login.search_ldap_server.app_error",
-    "translation": "Falha ao pesquisar o servidor LDAP"
+    "translation": "Falha ao pesquisar o servidor AD/LDAP"
   },
   {
     "id": "ent.ldap.do_login.unable_to_connect.app_error",
-    "translation": "Não foi possível conectar no servidor LDAP"
+    "translation": "Não foi possível conectar no servidor AD/LDAP"
   },
   {
     "id": "ent.ldap.do_login.unable_to_create_user.app_error",
@@ -2485,27 +2489,27 @@
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
-    "translation": "Sua conta LDAP não tem permissão para usar este servidor Mattermost. Por favor peça ao Administrador do Sistema para verificar o filtro de usuário LDAP."
+    "translation": "Sua conta AD/LDAP não tem permissão para usar este servidor Mattermost. Por favor peça ao Administrador do Sistema para verificar o filtro de usuário AD/LDAP."
   },
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
-    "translation": "Usuário não registrado no servidor LDAP"
+    "translation": "Usuário não registrado no servidor AD/LDAP"
   },
   {
     "id": "ent.ldap.mattermost_user_update",
-    "translation": "Usuário Mattermost foi atualizado pelo servidor LDAP."
+    "translation": "Usuário Mattermost foi atualizado pelo servidor AD/LDAP."
   },
   {
     "id": "ent.ldap.syncdone.info",
-    "translation": "Sincronização LDAP completada"
+    "translation": "Sincronização AD/LDAP completada"
   },
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
-    "translation": "Não foi possível obter todos os usuários usando LDAP"
+    "translation": "Não foi possível obter todos os usuários usando AD/LDAP"
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
-    "translation": "Filtro LDAP Inválido"
+    "translation": "Filtro AD/LDAP Inválido"
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",
@@ -2545,11 +2549,11 @@
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
-    "translation": "Não é possível migrar usuários LDAP com o campo especificado. Entrada duplicada detectada. Por favor remova todas as duplicadas e tente novamente."
+    "translation": "Não é possível migrar usuários AD/LDAP com o campo especificado. Entrada duplicada detectada. Por favor remova todas as duplicadas e tente novamente."
   },
   {
     "id": "ent.migration.migratetoldap.user_not_found",
-    "translation": "Não foi possível localizar usuário no servidor LDAP: "
+    "translation": "Não foi possível localizar usuário no servidor AD/LDAP: "
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -3005,31 +3009,31 @@
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
-    "translation": "O campo \"BaseDN\" no LDAP é requerido."
+    "translation": "O campo \"BaseDN\" no AD/LDAP é requerido."
   },
   {
     "id": "model.config.is_valid.ldap_bind_password",
-    "translation": "O campo \"Bind Password\" do LDAP é requerido."
+    "translation": "O campo \"Bind Password\" do AD/LDAP é requerido."
   },
   {
     "id": "model.config.is_valid.ldap_bind_username",
-    "translation": "O campo \"Bind Username\" do LDAP é requerido."
+    "translation": "O campo \"Bind Username\" do AD/LDAP é requerido."
   },
   {
     "id": "model.config.is_valid.ldap_email",
-    "translation": "O campo \"Email Attribute\" do LDAP é requerido."
+    "translation": "O campo \"Email Attribute\" do AD/LDAP é requerido."
   },
   {
     "id": "model.config.is_valid.ldap_firstname",
-    "translation": "O campo \"First Name Attribute\" do LDAP é requerido."
+    "translation": "O campo \"First Name Attribute\" do AD/LDAP é requerido."
   },
   {
     "id": "model.config.is_valid.ldap_id",
-    "translation": "O campo \"ID Attribute\" do LDAP é requerido."
+    "translation": "O campo \"ID Attribute\" do AD/LDAP é requerido."
   },
   {
     "id": "model.config.is_valid.ldap_lastname",
-    "translation": "O campo \"Last Name Attribute\" do LDAP é requerido."
+    "translation": "O campo \"Last Name Attribute\" do AD/LDAP é requerido."
   },
   {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",
@@ -3037,19 +3041,19 @@
   },
   {
     "id": "model.config.is_valid.ldap_required.app_error",
-    "translation": "Campo LDAP requerido não foi preenchido."
+    "translation": "Campo AD/LDAP requerido não foi preenchido."
   },
   {
     "id": "model.config.is_valid.ldap_required.app_error",
-    "translation": "Campo LDAP requerido não foi preenchido."
+    "translation": "Campo AD/LDAP requerido não foi preenchido."
   },
   {
     "id": "model.config.is_valid.ldap_security.app_error",
-    "translation": "Inválida segurança de conexão em configurações de LDAP.  Deve ser '', 'TLS', or 'STARTTLS'"
+    "translation": "Inválida segurança de conexão em configurações de AD/LDAP.  Deve ser '', 'TLS', or 'STARTTLS'"
   },
   {
     "id": "model.config.is_valid.ldap_server",
-    "translation": "Campo \"LDAP Server\" do LDAP é requerido."
+    "translation": "Campo \"AD/LDAP Server\" do AD/LDAP é requerido."
   },
   {
     "id": "model.config.is_valid.ldap_sync_interval.app_error",
@@ -3057,7 +3061,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_username",
-    "translation": "O campo \"Username Attribute\" do LDAP é requerido."
+    "translation": "O campo \"Username Attribute\" do AD/LDAP é requerido."
   },
   {
     "id": "model.config.is_valid.listen_address.app_error",
@@ -4284,6 +4288,10 @@
     "translation": "Encontrado um erro ao obter todos os status conectado/ausente"
   },
   {
+    "id": "store.sql_status.get_team_statuses.app_error",
+    "translation": "Foi encontrado um erro ao recuperar todos os status dos membros da equipe"
+  },
+  {
     "id": "store.sql_status.get_total_active_users_count.app_error",
     "translation": "Não foi possível contar os usuários ativos"
   },
@@ -4306,6 +4314,10 @@
   {
     "id": "store.sql_system.get_by_name.app_error",
     "translation": "Não foi possível encontrar a variável do sistema."
+  },
+  {
+    "id": "store.sql_system.get_version.app_error",
+    "translation": "Não foi possível obter a versão do banco de dados"
   },
   {
     "id": "store.sql_system.save.app_error",
@@ -4485,7 +4497,7 @@
   },
   {
     "id": "store.sql_user.save.email_exists.ldap_app_error",
-    "translation": "Está conta não usa autenticação LDAP. Por favor faça login usando email e senha."
+    "translation": "Está conta não usa autenticação AD/LDAP. Por favor faça login usando email e senha."
   },
   {
     "id": "store.sql_user.save.email_exists.saml_app_error",
@@ -4521,7 +4533,7 @@
   },
   {
     "id": "store.sql_user.update.can_not_change_ldap.app_error",
-    "translation": "Não é possível alterar os campos definidos pelo LDAP"
+    "translation": "Não é possível alterar os campos definidos pelo AD/LDAP"
   },
   {
     "id": "store.sql_user.update.email_taken.app_error",
@@ -4674,6 +4686,10 @@
   {
     "id": "utils.config.save_config.saving.app_error",
     "translation": "Um erro ocorreu durante o salvamento do arquivo {{.Filename}}"
+  },
+  {
+    "id": "utils.diagnostic.analytics_not_found.app_error",
+    "translation": "Análise não inicializada"
   },
   {
     "id": "utils.i18n.loaded",

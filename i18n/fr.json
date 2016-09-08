@@ -437,15 +437,15 @@
   },
   {
     "id": "api.command_away.desc",
-    "translation": "Set your status away"
+    "translation": "Changer votre état en « Absent »."
   },
   {
     "id": "api.command_away.name",
-    "translation": "away"
+    "translation": "absent(e)"
   },
   {
     "id": "api.command_away.success",
-    "translation": "You are now away"
+    "translation": "Vous êtes maintenant absent(e)"
   },
   {
     "id": "api.command_collapse.desc",
@@ -581,27 +581,27 @@
   },
   {
     "id": "api.command_offline.desc",
-    "translation": "Set your status offline"
+    "translation": "Changer votre état en « Déconnecté »."
   },
   {
     "id": "api.command_offline.name",
-    "translation": "offline"
+    "translation": "Hors ligne"
   },
   {
     "id": "api.command_offline.success",
-    "translation": "You are now offline"
+    "translation": "Vous êtes maintenant hors ligne"
   },
   {
     "id": "api.command_online.desc",
-    "translation": "Set your status online"
+    "translation": "Changer votre état en « Connecté »"
   },
   {
     "id": "api.command_online.name",
-    "translation": "online"
+    "translation": "En ligne"
   },
   {
     "id": "api.command_online.success",
-    "translation": "You are now online"
+    "translation": "Vous êtes maintenant en ligne"
   },
   {
     "id": "api.command_shortcuts.browser",
@@ -617,11 +617,11 @@
   },
   {
     "id": "api.command_shortcuts.files",
-    "translation": "#### Files\n\nCTRL+U: Upload file(s)\n\n"
+    "translation": "#### Fichiers\n\nCTRL+U: Télécharger des fichiers\n\n"
   },
   {
     "id": "api.command_shortcuts.files_mac",
-    "translation": "#### Files\n\nCMD+U: Upload file(s)\n\n"
+    "translation": "#### Fichiers\n\nCMD+U: Télécharger des fichiers\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs",
@@ -1039,7 +1039,7 @@
   },
   {
     "id": "api.oauth.complete_oauth.missing_code.app_error",
-    "translation": "The service provider {{.service}} did not provide an authorization code in the redirect URL.\n\nFor [Google Apps](https://docs.mattermost.com/deployment/sso-google.html) make sure your administrator enabled the Google+ API.\n\nFor [Office 365](https://docs.mattermost.com/deployment/sso-office.html) make sure the administrator of your Microsoft organization has enabled the Mattermost app.\n\nFor [GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html) please make sure you followed the setup instructions.\n\nIf you reviewed the above and are still having trouble with configuration, you may post in our [Troubleshooting forum](https://forum.mattermost.org/c/general/trouble-shoot) where we'll be happy to help with issues during setup."
+    "translation": "Le fournisseur de services {{.service}} n'a pas envoyé un code d'autorisation dans l'URL de redirection.\n\nPour [Google Apps](https://docs.mattermost.com/deployment/sso-google.html) vérifiez que votre administrateur a activé l'API Google+.\n\nPour [Office 365](https://docs.mattermost.com/deployment/sso-office.html) vérifiez que l'administrateur de votre organisation Microsoft a activé l'application Mattermost.\n\nPour [GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html) verifiez que vous avez suivi les instructions d'installation.\n\nSi malgré cela vous avez toujours des problèmes avec votre configuration, postez un message sur le [forum de dépannage](https://forum.mattermost.org/c/general/trouble-shoot) où nous aidons à résoudre les problèmes d'installation."
   },
   {
     "id": "api.oauth.delete.permissions.app_error",
@@ -1270,6 +1270,10 @@
   {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
     "translation": "Impossible de récupérer les fils de commentaires dans les notifications root_post_id=%v, err=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.get_teams.error",
+    "translation": "Failed to get teams when sending cross-team DM user_id=%v, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.mention_body",
@@ -2073,7 +2077,7 @@
   },
   {
     "id": "api.user.login_ldap.not_available.app_error",
-    "translation": "LDAP n'est pas activé sur ce serveur"
+    "translation": "LDAP n'est pas disponible sur ce serveur"
   },
   {
     "id": "api.user.oauth_to_email.context.app_error",
@@ -2453,7 +2457,7 @@
   },
   {
     "id": "ent.ldap.disabled.app_error",
-    "translation": "LDAP disabled or licence does not support LDAP."
+    "translation": "AD/LDAP disabled or licence does not support AD/LDAP."
   },
   {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
@@ -4284,6 +4288,10 @@
     "translation": "Nous avons rencontré une erreur durant l'enregistrement du statut enligne/absent"
   },
   {
+    "id": "store.sql_status.get_team_statuses.app_error",
+    "translation": "Encountered an error retrieving all statuses from the team members"
+  },
+  {
     "id": "store.sql_status.get_total_active_users_count.app_error",
     "translation": "Nous n'avons pas pu compter les utilisateurs"
   },
@@ -4306,6 +4314,10 @@
   {
     "id": "store.sql_system.get_by_name.app_error",
     "translation": "Nous ne trouvons pas la variable système."
+  },
+  {
+    "id": "store.sql_system.get_version.app_error",
+    "translation": "Impossible de déterminer la version de la base de donnée"
   },
   {
     "id": "store.sql_system.save.app_error",
@@ -4674,6 +4686,10 @@
   {
     "id": "utils.config.save_config.saving.app_error",
     "translation": "Une erreur s'est produite lors de l'enregistrement du fichier {{.Filename}}"
+  },
+  {
+    "id": "utils.diagnostic.analytics_not_found.app_error",
+    "translation": "Analytics not initialized"
   },
   {
     "id": "utils.i18n.loaded",
