@@ -64,7 +64,7 @@ func (h *Hub) Register(webConn *WebConn) {
 	h.register <- webConn
 
 	msg := model.NewWebSocketEvent("", "", webConn.UserId, model.WEBSOCKET_EVENT_HELLO)
-	msg.Add("server_version", fmt.Sprintf("%v.%v", model.CurrentVersion, utils.CfgHash))
+	msg.Add("server_version", fmt.Sprintf("%v.%v.%v", model.CurrentVersion, model.BuildNumber, utils.CfgHash))
 	go Publish(msg)
 }
 

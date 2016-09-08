@@ -198,6 +198,7 @@ export default class Textbox extends React.Component {
                     providers={this.suggestionProviders}
                     channelId={this.props.channelId}
                     value={this.props.messageText}
+                    renderDividers={true}
                 />
                 <div
                     ref='preview'

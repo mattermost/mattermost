@@ -120,7 +120,7 @@ export default class AddOutgoingWebhook extends React.Component {
         AsyncClient.addOutgoingHook(
             hook,
             (data) => {
-                browserHistory.push('/' + this.props.team.name + '/integrations/confirm?type=outgoing_webhooks&id=' + data.token);
+                browserHistory.push('/' + this.props.team.name + '/integrations/confirm?type=outgoing_webhooks&id=' + data.id);
             },
             (err) => {
                 this.setState({

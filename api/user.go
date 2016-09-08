@@ -2156,7 +2156,7 @@ func emailToLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go sendSignInChangeEmail(c, user.Email, c.GetSiteURL(), "LDAP")
+	go sendSignInChangeEmail(c, user.Email, c.GetSiteURL(), "AD/LDAP")
 
 	m := map[string]string{}
 	m["follow_link"] = "/login?extra=signin_change"

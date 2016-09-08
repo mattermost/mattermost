@@ -22,6 +22,8 @@ export default class PasswordSettings extends AdminSettings {
 
         this.getSampleErrorMsg = this.getSampleErrorMsg.bind(this);
 
+        this.handlePasswordLengthChange = this.handlePasswordLengthChange.bind(this);
+
         this.state = Object.assign(this.state, {
             passwordMinimumLength: props.config.PasswordSettings.MinimumLength,
             passwordLowercase: props.config.PasswordSettings.Lowercase,
@@ -54,15 +56,11 @@ export default class PasswordSettings extends AdminSettings {
                     id={sampleErrorMsgId}
                     default='Your password must be at least {min} characters.'
                     values={{
-                        min: props.config.PasswordSettings.MinimumLength
+                        min: (this.state.passwordMinimumLength || Constants.MIN_PASSWORD_LENGTH)
                     }}
                 />
             );
         }
-    }
-
-    componentWillUpdate() {
-        this.sampleErrorMsg = this.getSampleErrorMsg();
     }
 
     getConfigFromState(config) {
@@ -96,7 +94,7 @@ export default class PasswordSettings extends AdminSettings {
         };
     }
 
-    getSampleErrorMsg() {
+    getSampleErrorMsg(minLength) {
         if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.PasswordRequirements === 'true') {
             if (this.props.config.PasswordSettings.MinimumLength > Constants.MAX_PASSWORD_LENGTH || this.props.config.PasswordSettings.MinimumLength < Constants.MIN_PASSWORD_LENGTH) {
                 return (
@@ -106,7 +104,6 @@ export default class PasswordSettings extends AdminSettings {
                     />
                 );
             }
-
             let sampleErrorMsgId = 'user.settings.security.passwordError';
             if (this.refs.lowercase.checked) {
                 sampleErrorMsgId = sampleErrorMsgId + 'Lowercase';
@@ -125,13 +122,18 @@ export default class PasswordSettings extends AdminSettings {
                     id={sampleErrorMsgId}
                     default='Your password must be at least {min} characters.'
                     values={{
-                        min: this.props.config.PasswordSettings.MinimumLength
+                        min: (minLength || Constants.MIN_PASSWORD_LENGTH)
                     }}
                 />
             );
         }
 
         return null;
+    }
+
+    handlePasswordLengthChange(id, value) {
+        this.sampleErrorMsg = this.getSampleErrorMsg(value);
+        this.handleChange(id, value);
     }
 
     renderTitle() {
@@ -193,7 +195,7 @@ export default class PasswordSettings extends AdminSettings {
                             />
                         }
                         value={this.state.passwordMinimumLength}
-                        onChange={this.handleChange}
+                        onChange={this.handlePasswordLengthChange}
                     />
                     <Setting
                         label={
