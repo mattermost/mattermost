@@ -24,13 +24,21 @@ class ChannelMentionSuggestion extends Suggestion {
             className += ' suggestion--selected';
         }
 
+        const description = '(!' + item.channel.name + ')';
+
         return (
             <div
                 className={className}
                 onClick={this.handleClick}
             >
                 <div className='mention__align'>
-                    {'!' + channelName}
+                    <span>
+                        {channelName}
+                    </span>
+                    <span className='mention__channelname'>
+                        {' '}
+                        {description}
+                    </span>
                 </div>
                 <div className='mention__purpose'>
                     {purpose}

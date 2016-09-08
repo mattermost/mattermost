@@ -60,3 +60,7 @@
     line-height: normal;
     margin-left: 5px;
 }
+
+.mention__channelname {
+    @include opacity(.5);
+}
