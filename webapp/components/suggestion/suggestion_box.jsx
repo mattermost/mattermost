@@ -189,6 +189,7 @@ export default class SuggestionBox extends React.Component {
                 <SuggestionListComponent
                     suggestionId={this.suggestionId}
                     location={this.props.listStyle}
+                    renderDividers={this.props.renderDividers}
                 />
             </div>
         );
@@ -220,6 +221,7 @@ SuggestionBox.propTypes = {
     value: React.PropTypes.string.isRequired,
     providers: React.PropTypes.arrayOf(React.PropTypes.object),
     listStyle: React.PropTypes.string,
+    renderDividers: React.PropTypes.bool,
 
     // explicitly name any input event handlers we override and need to manually call
     onInput: React.PropTypes.func,
