@@ -5,8 +5,7 @@ import React from 'react';
 
 import BackstageHeader from 'components/backstage/components/backstage_header.jsx';
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
-import {browserHistory, Link} from 'react-router/es6';
-import SpinnerButton from 'components/spinner_button.jsx';
+import {Link} from 'react-router/es6';
 
 import UserStore from 'stores/user_store.jsx';
 import IntegrationStore from 'stores/integration_store.jsx';
@@ -23,8 +22,6 @@ export default class ConfirmIntegration extends React.Component {
 
     constructor(props) {
         super(props);
-
-        this.handleDone = this.handleDone.bind(this);
 
         this.handleIntegrationChange = this.handleIntegrationChange.bind(this);
 
@@ -55,13 +52,6 @@ export default class ConfirmIntegration extends React.Component {
         });
     }
 
-    handleDone() {
-        browserHistory.push('/' + this.props.team.name + '/integrations/' + this.state.type);
-        this.setState({
-            id: ''
-        });
-    }
-
     render() {
         let headerText = null;
         let helpText = null;
@@ -87,7 +77,7 @@ export default class ConfirmIntegration extends React.Component {
                         id='add_command.token'
                         defaultMessage='<b>Token</b>: {token}'
                         values={{
-                            token: this.state.id
+                            token: IntegrationStore.getCommand(this.props.team.id, this.state.id).token
                         }}
                     />
                 </p>
@@ -139,7 +129,7 @@ export default class ConfirmIntegration extends React.Component {
                         id='add_outgoing_webhook.token'
                         defaultMessage='<b>Token</b>: {token}'
                         values={{
-                            token: this.state.id
+                            token: IntegrationStore.getOutgoingWebhook(this.props.team.id, this.state.id).token
                         }}
                     />
                 </p>
@@ -233,16 +223,16 @@ export default class ConfirmIntegration extends React.Component {
                     {helpText}
                     {tokenText}
                     <div className='backstage-form__footer'>
-                        <SpinnerButton
+                        <Link
                             className='btn btn-primary'
                             type='submit'
-                            onClick={this.handleDone}
+                            to={'/' + this.props.team.name + '/integrations/' + this.state.type}
                         >
                             <FormattedMessage
                                 id='integrations.done'
                                 defaultMessage='Done'
                             />
-                        </SpinnerButton>
+                        </Link>
                     </div>
                 </div>
             </div>
