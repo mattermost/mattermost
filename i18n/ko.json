@@ -89,11 +89,11 @@
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "An error occurred while deleting the certificate. Make sure the file config/{{.Filename}} exists."
+    "translation": "증명서 폐기 중 오류가 발생했습니다. config/{{.Filename}} 파일이 있는지 확인하세요."
   },
   {
     "id": "api.admin.saml.metadata.app_error",
-    "translation": "An error occurred while building Service Provider Metadata"
+    "translation": "서비스 제공자 메타데이터를 빌드하는 중 오류가 발생했습니다."
   },
   {
     "id": "api.admin.test_email.body",
@@ -105,7 +105,7 @@
   },
   {
     "id": "api.admin.test_email.reenter_password",
-    "translation": "The SMTP server, port, or username has changed. Please re-enter the SMTP password to test connection."
+    "translation": "SMTP 서버, 포트, 사용자 정보가 변경되었습니다. SMTP 비밀번호를 다시 입력해주세요."
   },
   {
     "id": "api.admin.test_email.subject",
@@ -169,7 +169,7 @@
   },
   {
     "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
-    "translation": "Failed to add user to channel because they have been removed from the team."
+    "translation": "사용자가 팀에서 제거되어 채널에 추가할 수 없습니다."
   },
   {
     "id": "api.channel.add_user_to_channel.deleted.app_error",
@@ -325,7 +325,7 @@
   },
   {
     "id": "api.channel.remove_member.removed",
-    "translation": "%v was removed from the channel."
+    "translation": "%v 가 채널에서 제거되었습니다."
   },
   {
     "id": "api.channel.remove_member.unable.app_error",
@@ -353,7 +353,7 @@
   },
   {
     "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
-    "translation": "Unable to get the unread count for user_id=%v and channel_id=%v, err=%v"
+    "translation": "읽지 않은 메시지 갯수를 가져오지 못했습니다. user_id=%v and channel_id=%v, err=%v"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -437,15 +437,15 @@
   },
   {
     "id": "api.command_away.desc",
-    "translation": "Set your status away"
+    "translation": "현재 상태를 자리비움으로 설정합니다."
   },
   {
     "id": "api.command_away.name",
-    "translation": "away"
+    "translation": "자리 비움"
   },
   {
     "id": "api.command_away.success",
-    "translation": "You are now away"
+    "translation": "이제 자리비움 상태입니다."
   },
   {
     "id": "api.command_collapse.desc",
@@ -581,35 +581,35 @@
   },
   {
     "id": "api.command_offline.desc",
-    "translation": "Set your status offline"
+    "translation": "현재 상태를 오프라인으로 설정합니다."
   },
   {
     "id": "api.command_offline.name",
-    "translation": "offline"
+    "translation": "오프라인"
   },
   {
     "id": "api.command_offline.success",
-    "translation": "You are now offline"
+    "translation": "이제 오프라인 상태입니다."
   },
   {
     "id": "api.command_online.desc",
-    "translation": "Set your status online"
+    "translation": "현재 상태를 온라인으로 설정합니다."
   },
   {
     "id": "api.command_online.name",
-    "translation": "online"
+    "translation": "온라인"
   },
   {
     "id": "api.command_online.success",
-    "translation": "You are now online"
+    "translation": "이제 온라인 상태입니다."
   },
   {
     "id": "api.command_shortcuts.browser",
-    "translation": "#### Built-in Browser Commands\n\nALT+LEFT: Previous channel in your history\nALT+RIGHT: Next channel in your history\nCTRL+PLUS: Increase font size (zoom in)\nCTRL+MINUS: Decrease font size (zoom out)\nSHIFT+UP (in input field): Highlight text to the previous line\nSHIFT+DOWN (in input field): Highlight text to the next line\nSHIFT+ENTER (in input field): Create a new line\n"
+    "translation": "#### 브라우저 내장 단축키\n\nALT+LEFT: 이전 채널\nALT+RIGHT: 다음 채널\nCTRL+PLUS: 폰트 사이즈 키우기 (zoom in)\nCTRL+MINUS: 폰트 사이즈 줄이기 (zoom out)\n(입력 필드에서)SHIFT+UP: 이전 줄까지 선택\n(입력 필드에서)SHIFT+DOWN: 다음 줄 까지 선택\n(입력 필드에서)SHIFT+ENTER: 줄 바꿈\n"
   },
   {
     "id": "api.command_shortcuts.browser_mac",
-    "translation": "#### Built-in Browser Commands\n\nCMD+[: Previous channel in your history\nCMD+]: Next channel in your history\nCMD+PLUS: Increase font size (zoom in)\nCMD+MINUS: Decrease font size (zoom out)\nSHIFT+UP (in input field): Highlight text to the previous line\nSHIFT+DOWN (in input field): Highlight text to the next line\nSHIFT+ENTER (in input field): Create a new line\n"
+    "translation": "#### 브라우저 내장 단축키\n\nCMD+[: 이전 채널\nCMD+]: 다음 채널\nCMD+PLUS: 폰트 사이즈 키우기 (zoom in)\nCMD+MINUS: 폰트 사이즈 줄이기 (zoom out)\n(입력 필드에서)SHIFT+UP: 이전 줄까지 선택\n(입력 필드에서)SHIFT+DOWN: 다음 줄 까지 선택\n(입력 필드에서)SHIFT+ENTER: 줄 바꿈\n"
   },
   {
     "id": "api.command_shortcuts.desc",
@@ -617,11 +617,11 @@
   },
   {
     "id": "api.command_shortcuts.files",
-    "translation": "#### Files\n\nCTRL+U: Upload file(s)\n\n"
+    "translation": "#### 파일\n\nCTRL+U: 파일 업로드\n\n"
   },
   {
     "id": "api.command_shortcuts.files_mac",
-    "translation": "#### Files\n\nCMD+U: Upload file(s)\n\n"
+    "translation": "#### 파일\n\nCMD+U: 파일 업로드\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs",
@@ -1270,6 +1270,10 @@
   {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
     "translation": "Failed to retrieve comment thread posts in notifications root_post_id=%v, err=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.get_teams.error",
+    "translation": "Failed to get teams when sending cross-team DM user_id=%v, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.mention_body",
@@ -4284,6 +4288,10 @@
     "translation": "Encountered an error retrieving all the online/away statuses"
   },
   {
+    "id": "store.sql_status.get_team_statuses.app_error",
+    "translation": "Encountered an error retrieving all statuses from the team members"
+  },
+  {
     "id": "store.sql_status.get_total_active_users_count.app_error",
     "translation": "채널을 찾을 수 없습니다"
   },
@@ -4306,6 +4314,10 @@
   {
     "id": "store.sql_system.get_by_name.app_error",
     "translation": "We couldn't find the system variable."
+  },
+  {
+    "id": "store.sql_system.get_version.app_error",
+    "translation": "We couldn't get the database version"
   },
   {
     "id": "store.sql_system.save.app_error",
@@ -4674,6 +4686,10 @@
   {
     "id": "utils.config.save_config.saving.app_error",
     "translation": "An error occurred while saving the file to {{.Filename}}"
+  },
+  {
+    "id": "utils.diagnostic.analytics_not_found.app_error",
+    "translation": "분석기가 초기화되지 않았습니다"
   },
   {
     "id": "utils.i18n.loaded",

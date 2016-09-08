@@ -1272,6 +1272,10 @@
     "translation": "No se pudo recuperar el hilo de comentarios en las notificaciones root_post_id=%v, err=%v"
   },
   {
+    "id": "api.post.send_notifications_and_forget.get_teams.error",
+    "translation": "No se pudo obtener los equipos durante el envío de mensaje directo entre equipos user_id=%v, err=%v"
+  },
+  {
     "id": "api.post.send_notifications_and_forget.mention_body",
     "translation": "Tienes una mención nueva."
   },
@@ -1653,7 +1657,7 @@
   },
   {
     "id": "api.templates.email_change_verify_body.info",
-    "translation": "Para terminar de actualizar tu dirección de correo para {{.TeamDisplayName}}, por favor pincha en botón de abajo para confirmar que está es la dirección correcta."
+    "translation": "Para terminar de actualizar tu dirección de correo para {{.TeamDisplayName}}, por favor haz clic en botón de abajo para confirmar que está es la dirección correcta."
   },
   {
     "id": "api.templates.email_change_verify_body.title",
@@ -1753,7 +1757,7 @@
   },
   {
     "id": "api.templates.reset_body.info",
-    "translation": "Para cambiar tu contraseña, pincha el botón \"Restablecer Contraseña\" que se encuentra abajo.<br>Si no fue tu intención restablecer tu contraseña, por favor ignora este correo y tu contraseña seguirá siendo la misma."
+    "translation": "Para cambiar tu contraseña, haz clic el botón \"Restablecer Contraseña\" que se encuentra abajo.<br>Si no fue tu intención restablecer tu contraseña, por favor ignora este correo y tu contraseña seguirá siendo la misma."
   },
   {
     "id": "api.templates.reset_body.title",
@@ -1821,7 +1825,7 @@
   },
   {
     "id": "api.templates.verify_body.info",
-    "translation": "Por favor verifica tu correo electrónico al pinchar el botón de abajo."
+    "translation": "Por favor verifica tu correo electrónico haciendo clic en el botón de abajo."
   },
   {
     "id": "api.templates.verify_body.title",
@@ -1841,7 +1845,7 @@
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "Por favor verifica tu correo electrónico al pinchar el botón de abajo."
+    "translation": "Por favor verifica tu correo electrónico haciendo clic en el botón de abajo."
   },
   {
     "id": "api.templates.welcome_body.info2",
@@ -1997,7 +2001,7 @@
   },
   {
     "id": "api.user.email_to_ldap.not_available.app_error",
-    "translation": "LDAP no está disponible en este servidor"
+    "translation": "AD/LDAP no está disponible en este servidor"
   },
   {
     "id": "api.user.generate_mfa_qr.not_available.app_error",
@@ -2017,11 +2021,11 @@
   },
   {
     "id": "api.user.ldap_to_email.not_available.app_error",
-    "translation": "LDAP no está disponible en este servidor"
+    "translation": "AD/LDAP no está disponible en este servidor"
   },
   {
     "id": "api.user.ldap_to_email.not_ldap_account.app_error",
-    "translation": "Esta cuenta de usuario no utiliza LDAP"
+    "translation": "Esta cuenta de usuario no utiliza AD/LDAP"
   },
   {
     "id": "api.user.login.blank_pwd.app_error",
@@ -2065,7 +2069,7 @@
   },
   {
     "id": "api.user.login_ldap.disabled.app_error",
-    "translation": "LDAP no está habilitado en este servidor"
+    "translation": "AD/LDAP no está habilitado en este servidor"
   },
   {
     "id": "api.user.login_ldap.need_id.app_error",
@@ -2073,7 +2077,7 @@
   },
   {
     "id": "api.user.login_ldap.not_available.app_error",
-    "translation": "LDAP no está disponible en este servidor"
+    "translation": "AD/LDAP no está disponible en este servidor"
   },
   {
     "id": "api.user.oauth_to_email.context.app_error",
@@ -2157,7 +2161,7 @@
   },
   {
     "id": "api.user.update_active.no_deactivate_ldap.app_error",
-    "translation": "No puedes modificar el estado de activación de cuentas LDAP. Por favor, haz la modificación a través del servidor LDAP."
+    "translation": "No puedes modificar el estado de activación de cuentas AD/LDAP. Por favor, haz la modificación a través del servidor AD/LDAP."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -2457,7 +2461,7 @@
   },
   {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
-    "translation": "No se pudo enlazar con el servidor LDAP. Revisa las opciones de BindUsername y BindPassword."
+    "translation": "No se pudo enlazar con el servidor AD/LDAP. Revisa las opciones de BindUsername y BindPassword."
   },
   {
     "id": "ent.ldap.do_login.invalid_password.app_error",
@@ -2465,7 +2469,7 @@
   },
   {
     "id": "ent.ldap.do_login.licence_disable.app_error",
-    "translation": "Las funcionalidades de LDAP están deshabilitadas con la licencia actual. Por favor contacta a un administrador del sistema acerca de mejorar la licencia enterprise."
+    "translation": "Las funcionalidades de AD/LDAP están deshabilitadas con la licencia actual. Por favor contacta a un administrador del sistema acerca de mejorar la licencia enterprise."
   },
   {
     "id": "ent.ldap.do_login.matched_to_many_users.app_error",
@@ -2473,11 +2477,11 @@
   },
   {
     "id": "ent.ldap.do_login.search_ldap_server.app_error",
-    "translation": "Falla al buscar en el servidor LDAP"
+    "translation": "Falla al buscar en el servidor AD/LDAP"
   },
   {
     "id": "ent.ldap.do_login.unable_to_connect.app_error",
-    "translation": "No se pudo conectar con el servidor LDAP"
+    "translation": "No se pudo conectar con el servidor AD/LDAP"
   },
   {
     "id": "ent.ldap.do_login.unable_to_create_user.app_error",
@@ -2485,27 +2489,27 @@
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
-    "translation": "Tu cuenta LDAP no tiene permiso para utilizar este servidor de Mattermost. Por favor, solicita a tu Administrador de Sistema que revise el filtro de usuarios LDAP."
+    "translation": "Tu cuenta AD/LDAP no tiene permiso para utilizar este servidor de Mattermost. Por favor, solicita a tu Administrador de Sistema que revise el filtro de usuarios AD/LDAP."
   },
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
-    "translation": "Usuario no registrado en el servidor LDAP"
+    "translation": "Usuario no registrado en el servidor AD/LDAP"
   },
   {
     "id": "ent.ldap.mattermost_user_update",
-    "translation": "El usuario de Mattermost fue actualizado por el servidor LDAP."
+    "translation": "El usuario de Mattermost fue actualizado por el servidor AD/LDAP."
   },
   {
     "id": "ent.ldap.syncdone.info",
-    "translation": "Sincronización de LDAP completada"
+    "translation": "Sincronización de AD/LDAP completada"
   },
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
-    "translation": "No se pudo obtener a todos los usuarios utilizando LDAP"
+    "translation": "No se pudo obtener a todos los usuarios utilizando AD/LDAP"
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
-    "translation": "Filtro de LDAP inválido"
+    "translation": "Filtro de AD/LDAP inválido"
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",
@@ -2545,11 +2549,11 @@
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
-    "translation": "No se pueden migrar los usuarios de LDAP con el campo especificado. Se ha detectado un entrada. Por favor, retire todos los duplicados e inténtalo de nuevo."
+    "translation": "No se pueden migrar los usuarios de AD/LDAP con el campo especificado. Se ha detectado un entrada. Por favor, retire todos los duplicados e inténtalo de nuevo."
   },
   {
     "id": "ent.migration.migratetoldap.user_not_found",
-    "translation": "No se puede encontrar el usuario en el servidor LDAP: "
+    "translation": "No se puede encontrar el usuario en el servidor AD/LDAP: "
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -3005,31 +3009,31 @@
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
-    "translation": "El campo LDAP \"BaseDN\" es obligatorio."
+    "translation": "El campo AD/LDAP \"BaseDN\" es obligatorio."
   },
   {
     "id": "model.config.is_valid.ldap_bind_password",
-    "translation": "El campo LDAP \"Enlazar Contraseña\" es obligatorio."
+    "translation": "El campo AD/LDAP \"Enlazar Contraseña\" es obligatorio."
   },
   {
     "id": "model.config.is_valid.ldap_bind_username",
-    "translation": "El campo LDAP \"Enlazar nombre de Usuario\" es obligatorio."
+    "translation": "El campo AD/LDAP \"Enlazar nombre de Usuario\" es obligatorio."
   },
   {
     "id": "model.config.is_valid.ldap_email",
-    "translation": "El campo LDAP \"Atributo Correo electrónico\" es obligatorio."
+    "translation": "El campo AD/LDAP \"Atributo Correo electrónico\" es obligatorio."
   },
   {
     "id": "model.config.is_valid.ldap_firstname",
-    "translation": "El campo LDAP \"Atributo del Nombre\" es obligatorio."
+    "translation": "El campo AD/LDAP \"Atributo del Nombre\" es obligatorio."
   },
   {
     "id": "model.config.is_valid.ldap_id",
-    "translation": "El campo LDAP \"Atributo ID\" es obligatorio."
+    "translation": "El campo AD/LDAP \"Atributo ID\" es obligatorio."
   },
   {
     "id": "model.config.is_valid.ldap_lastname",
-    "translation": "El campo LDAP \"Atributo Apellido\" es obligatorio."
+    "translation": "El campo AD/LDAP \"Atributo Apellido\" es obligatorio."
   },
   {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",
@@ -3037,19 +3041,19 @@
   },
   {
     "id": "model.config.is_valid.ldap_required.app_error",
-    "translation": "Falta un campo requerido por LDAP."
+    "translation": "Falta un campo requerido por AD/LDAP."
   },
   {
     "id": "model.config.is_valid.ldap_required.app_error",
-    "translation": "Falta un campo requerido por LDAP."
+    "translation": "Falta un campo requerido por AD/LDAP."
   },
   {
     "id": "model.config.is_valid.ldap_security.app_error",
-    "translation": "Conexión segura inválida en la configuración de LDAP.  Debe ser '', 'TLS', o 'STARTTLS'"
+    "translation": "Conexión segura inválida en la configuración de AD/LDAP.  Debe ser '', 'TLS', o 'STARTTLS'"
   },
   {
     "id": "model.config.is_valid.ldap_server",
-    "translation": "El campo LDAP \"Servidor LDAP\" es obligatorio."
+    "translation": "El campo AD/LDAP \"Servidor AD/LDAP\" es obligatorio."
   },
   {
     "id": "model.config.is_valid.ldap_sync_interval.app_error",
@@ -3057,7 +3061,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_username",
-    "translation": "El campo LDAP \"Atributo Nombre de Usuario\" es obligatorio."
+    "translation": "El campo AD/LDAP \"Atributo Nombre de Usuario\" es obligatorio."
   },
   {
     "id": "model.config.is_valid.listen_address.app_error",
@@ -4284,6 +4288,10 @@
     "translation": "Detectado un error al recuperar todos los estados de en línea/ausente"
   },
   {
+    "id": "store.sql_status.get_team_statuses.app_error",
+    "translation": "Detectado un error al recuperar todos los estados de los miembros del equipo"
+  },
+  {
     "id": "store.sql_status.get_total_active_users_count.app_error",
     "translation": "No pudimos contar los usuarios activos"
   },
@@ -4306,6 +4314,10 @@
   {
     "id": "store.sql_system.get_by_name.app_error",
     "translation": "No pudimos encontrar las variables del sistema."
+  },
+  {
+    "id": "store.sql_system.get_version.app_error",
+    "translation": "No podemos obtener la versión de base de datos"
   },
   {
     "id": "store.sql_system.save.app_error",
@@ -4485,7 +4497,7 @@
   },
   {
     "id": "store.sql_user.save.email_exists.ldap_app_error",
-    "translation": "Esta cuenta no tiene autenticación por LDAP. Por favor inicia sesión utilizando el correo electrónico y contraseña."
+    "translation": "Esta cuenta no tiene autenticación por AD/LDAP. Por favor inicia sesión utilizando el correo electrónico y contraseña."
   },
   {
     "id": "store.sql_user.save.email_exists.saml_app_error",
@@ -4521,7 +4533,7 @@
   },
   {
     "id": "store.sql_user.update.can_not_change_ldap.app_error",
-    "translation": "No se puede cambiar el campo asignado por LDAP"
+    "translation": "No se puede cambiar el campo asignado por AD/LDAP"
   },
   {
     "id": "store.sql_user.update.email_taken.app_error",
@@ -4674,6 +4686,10 @@
   {
     "id": "utils.config.save_config.saving.app_error",
     "translation": "Ocurrió un error mientras se guardaba el archivo en {{.Filename}}"
+  },
+  {
+    "id": "utils.diagnostic.analytics_not_found.app_error",
+    "translation": "Analytics no se ha inicializado"
   },
   {
     "id": "utils.i18n.loaded",

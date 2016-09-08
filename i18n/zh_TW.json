@@ -1039,7 +1039,7 @@
   },
   {
     "id": "api.oauth.complete_oauth.missing_code.app_error",
-    "translation": "The service provider {{.service}} did not provide an authorization code in the redirect URL.\n\nFor [Google Apps](https://docs.mattermost.com/deployment/sso-google.html) make sure your administrator enabled the Google+ API.\n\nFor [Office 365](https://docs.mattermost.com/deployment/sso-office.html) make sure the administrator of your Microsoft organization has enabled the Mattermost app.\n\nFor [GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html) please make sure you followed the setup instructions.\n\nIf you reviewed the above and are still having trouble with configuration, you may post in our [Troubleshooting forum](https://forum.mattermost.org/c/general/trouble-shoot) where we'll be happy to help with issues during setup."
+    "translation": "服務提供者 {{.service}} 在重導向網址中沒有提供授權碼。\n\n若使用 [Google Apps](https://docs.mattermost.com/deployment/sso-google.html)，請確定管理員有啟用 Google+ API。\n\n若使用 [Office 365](https://docs.mattermost.com/deployment/sso-office.html)，請確定微軟雲端服務的組織管理員有啟用 Mattermost 應用程式。\n\n若使用 [GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html)，請確定有根據設定指示完成設定。\n\n如果重新確認過上面的文件且還是有設定上的問題，請至[障礙排除論壇](https://forum.mattermost.org/c/general/trouble-shoot)發文，我們很樂意在那邊為您排除設定上的問題。"
   },
   {
     "id": "api.oauth.delete.permissions.app_error",
@@ -1270,6 +1270,10 @@
   {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
     "translation": "在發送通知時取得註解文章失敗 root_post_id=%v err=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.get_teams.error",
+    "translation": "發送跨團隊直接訊移時無法取得團隊：user_id=%v, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.mention_body",
@@ -1997,7 +2001,7 @@
   },
   {
     "id": "api.user.email_to_ldap.not_available.app_error",
-    "translation": "本機不支援 LDAP"
+    "translation": "此伺服器不支援 AD/LDAP"
   },
   {
     "id": "api.user.generate_mfa_qr.not_available.app_error",
@@ -2017,11 +2021,11 @@
   },
   {
     "id": "api.user.ldap_to_email.not_available.app_error",
-    "translation": "本機不支援 LDAP"
+    "translation": "此伺服器不支援 AD/LDAP"
   },
   {
     "id": "api.user.ldap_to_email.not_ldap_account.app_error",
-    "translation": "此使用者帳號並沒有使用 LDAP"
+    "translation": "此使用者帳號並沒有使用 AD/LDAP"
   },
   {
     "id": "api.user.login.blank_pwd.app_error",
@@ -2065,7 +2069,7 @@
   },
   {
     "id": "api.user.login_ldap.disabled.app_error",
-    "translation": "本機未啟用 LDAP"
+    "translation": "此伺服器未啟用 AD/LDAP"
   },
   {
     "id": "api.user.login_ldap.need_id.app_error",
@@ -2073,7 +2077,7 @@
   },
   {
     "id": "api.user.login_ldap.not_available.app_error",
-    "translation": "本機未安裝 LDAP"
+    "translation": "此伺服器不支援 AD/LDAP"
   },
   {
     "id": "api.user.oauth_to_email.context.app_error",
@@ -2157,7 +2161,7 @@
   },
   {
     "id": "api.user.update_active.no_deactivate_ldap.app_error",
-    "translation": "不能變更 LDAP 帳號的啟用狀態。請變更 LDAP 伺服器上對應的帳號狀態。"
+    "translation": "不能變更 AD/LDAP 帳號的啟用狀態。請變更 AD/LDAP 伺服器上對應的帳號狀態。"
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -2457,7 +2461,7 @@
   },
   {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
-    "translation": "無法綁定 LDAP 伺服器，請檢查綁定使用者帳號與綁定密碼。"
+    "translation": "無法綁定 AD/LDAP 伺服器，請檢查綁定使用者帳號與綁定密碼。"
   },
   {
     "id": "ent.ldap.do_login.invalid_password.app_error",
@@ -2465,7 +2469,7 @@
   },
   {
     "id": "ent.ldap.do_login.licence_disable.app_error",
-    "translation": "目前的授權無法使用 LDAP 功能。請聯繫系統管理員升級為企業授權"
+    "translation": "目前的授權無法使用 AD/LDAP 功能。請聯繫系統管理員升級為企業授權。"
   },
   {
     "id": "ent.ldap.do_login.matched_to_many_users.app_error",
@@ -2473,11 +2477,11 @@
   },
   {
     "id": "ent.ldap.do_login.search_ldap_server.app_error",
-    "translation": "搜尋 LDAP 伺服器失敗"
+    "translation": "搜尋 AD/LDAP 伺服器失敗"
   },
   {
     "id": "ent.ldap.do_login.unable_to_connect.app_error",
-    "translation": "無法連線到 LDAP 伺服器"
+    "translation": "無法連線到 AD/LDAP 伺服器"
   },
   {
     "id": "ent.ldap.do_login.unable_to_create_user.app_error",
@@ -2485,27 +2489,27 @@
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
-    "translation": "您的 LDAP 帳號沒有使用此 Mattermost 伺服器的權限。請向系統管理員詢問確認 LDAP 使用者過濾條件。"
+    "translation": "您的 AD/LDAP 帳號沒有使用此 Mattermost 伺服器的權限。請向系統管理員詢問確認 AD/LDAP 使用者過濾條件。"
   },
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
-    "translation": "使用者尚未於 LDAP 伺服器註冊"
+    "translation": "使用者尚未於 AD/LDAP 伺服器註冊"
   },
   {
     "id": "ent.ldap.mattermost_user_update",
-    "translation": "Mattermost 使用者已根據 LDAP 伺服器更新。"
+    "translation": "Mattermost 使用者已根據 AD/LDAP 伺服器更新。"
   },
   {
     "id": "ent.ldap.syncdone.info",
-    "translation": "LDAP 同步完成"
+    "translation": "AD/LDAP 同步完成"
   },
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
-    "translation": "無法用 LDAP 取得所有使用者"
+    "translation": "無法用 AD/LDAP 取得所有使用者"
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
-    "translation": "無效的 LDAP Filter"
+    "translation": "無效的 AD/LDAP Filter"
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",
@@ -2545,11 +2549,11 @@
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
-    "translation": "無法根據指定的欄位移轉至 LDAP 使用者。偵測到重複的項目。請移除所有重複項目然後再次嚐試。"
+    "translation": "無法根據指定的欄位移轉至 AD/LDAP 使用者。偵測到重複的項目。請移除所有重複項目然後再次嚐試。"
   },
   {
     "id": "ent.migration.migratetoldap.user_not_found",
-    "translation": "找不到使用者，LDAP 伺服器："
+    "translation": "找不到使用者，AD/LDAP 伺服器："
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -3005,31 +3009,31 @@
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
-    "translation": "LDAP 欄位 \"BaseDN\" 為必須欄位。"
+    "translation": "AD/LDAP 欄位 \"BaseDN\" 為必須欄位。"
   },
   {
     "id": "model.config.is_valid.ldap_bind_password",
-    "translation": "LDAP 欄位 \"綁定使用者密碼\" 為必須欄位。"
+    "translation": "AD/LDAP 欄位 \"綁定使用者密碼\" 為必須欄位。"
   },
   {
     "id": "model.config.is_valid.ldap_bind_username",
-    "translation": "LDAP 欄位 \"綁定使用者帳號\" 為必須欄位。"
+    "translation": "AD/LDAP 欄位 \"綁定使用者帳號\" 為必須欄位。"
   },
   {
     "id": "model.config.is_valid.ldap_email",
-    "translation": "LDAP 欄位 \"電子郵件位址屬性\" 為必須欄位。"
+    "translation": "AD/LDAP 欄位 \"電子郵件位址屬性\" 為必須欄位。"
   },
   {
     "id": "model.config.is_valid.ldap_firstname",
-    "translation": "LDAP 欄位 \"名字屬性\" 為必須欄位。"
+    "translation": "AD/LDAP 欄位 \"名字屬性\" 為必須欄位。"
   },
   {
     "id": "model.config.is_valid.ldap_id",
-    "translation": "LDAP 欄位 \"ID 的屬性\" 為必須欄位。"
+    "translation": "AD/LDAP 欄位 \"ID 的屬性\" 為必須欄位。"
   },
   {
     "id": "model.config.is_valid.ldap_lastname",
-    "translation": "LDAP 欄位 \"姓氏屬性\" 為必須欄位。"
+    "translation": "AD/LDAP 欄位 \"姓氏屬性\" 為必須欄位。"
   },
   {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",
@@ -3037,19 +3041,19 @@
   },
   {
     "id": "model.config.is_valid.ldap_required.app_error",
-    "translation": "遺漏 LDAP 必填欄位"
+    "translation": "遺漏 AD/LDAP 必填欄位"
   },
   {
     "id": "model.config.is_valid.ldap_required.app_error",
-    "translation": "遺漏 LDAP 必填欄位"
+    "translation": "遺漏 AD/LDAP 必填欄位"
   },
   {
     "id": "model.config.is_valid.ldap_security.app_error",
-    "translation": "LDAP 設定中的連線安全性設定無效. 必須為 '', 'TLS', 或 'STARTTLS'"
+    "translation": "AD/LDAP 設定中的連線安全性設定無效. 必須為 '', 'TLS', 或 'STARTTLS'"
   },
   {
     "id": "model.config.is_valid.ldap_server",
-    "translation": "LDAP 欄位 \"LDAP 伺服器\" 為必須欄位。"
+    "translation": "AD/LDAP 欄位 \"LDAP 伺服器\" 為必須欄位。"
   },
   {
     "id": "model.config.is_valid.ldap_sync_interval.app_error",
@@ -3057,7 +3061,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_username",
-    "translation": "LDAP 欄位 \"使用者名稱的屬性\" 為必須欄位。"
+    "translation": "AD/LDAP 欄位 \"使用者名稱的屬性\" 為必須欄位。"
   },
   {
     "id": "model.config.is_valid.listen_address.app_error",
@@ -4284,6 +4288,10 @@
     "translation": "嘗試取得所有使用者的在線/離開狀態時遇到錯誤"
   },
   {
+    "id": "store.sql_status.get_team_statuses.app_error",
+    "translation": "嘗試取得團隊成員狀態時遇到錯誤"
+  },
+  {
     "id": "store.sql_status.get_total_active_users_count.app_error",
     "translation": "無法計算活躍使用者的數量"
   },
@@ -4306,6 +4314,10 @@
   {
     "id": "store.sql_system.get_by_name.app_error",
     "translation": "找不到該系統參數。"
+  },
+  {
+    "id": "store.sql_system.get_version.app_error",
+    "translation": "無法取得資料庫版本"
   },
   {
     "id": "store.sql_system.save.app_error",
@@ -4485,7 +4497,7 @@
   },
   {
     "id": "store.sql_user.save.email_exists.ldap_app_error",
-    "translation": "該帳號未使用 LDAP 認證。請用電子郵件地址與密碼登入。"
+    "translation": "該帳號未使用 AD/LDAP 認證。請用電子郵件地址與密碼登入。"
   },
   {
     "id": "store.sql_user.save.email_exists.saml_app_error",
@@ -4521,7 +4533,7 @@
   },
   {
     "id": "store.sql_user.update.can_not_change_ldap.app_error",
-    "translation": "不能變更經由 LDAP 設定的欄位資料"
+    "translation": "不能變更經由 AD/LDAP 設定的欄位資料"
   },
   {
     "id": "store.sql_user.update.email_taken.app_error",
@@ -4674,6 +4686,10 @@
   {
     "id": "utils.config.save_config.saving.app_error",
     "translation": "儲存檔案到 {{.Filename}} 時發生錯誤"
+  },
+  {
+    "id": "utils.diagnostic.analytics_not_found.app_error",
+    "translation": "分析尚未初始化"
   },
   {
     "id": "utils.i18n.loaded",

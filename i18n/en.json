@@ -88,10 +88,6 @@
     "translation": "Attempting to recycle the database connection"
   },
   {
-    "id": "utils.diagnostic.analytics_not_found.app_error",
-    "translation": "Analytics not initialized"
-  },
-  {
     "id": "api.admin.remove_certificate.delete.app_error",
     "translation": "An error occurred while deleting the certificate. Make sure the file config/{{.Filename}} exists."
   },
@@ -4224,10 +4220,6 @@
     "translation": "We couldn't count the sessions"
   },
   {
-    "id": "store.sql_system.get_version.app_error",
-    "translation": "We couldn't get the database version"
-  },
-  {
     "id": "store.sql_session.cleanup_expired_sessions.app_error",
     "translation": "We encountered an error while deleting expired user sessions"
   },
@@ -4322,6 +4314,10 @@
   {
     "id": "store.sql_system.get_by_name.app_error",
     "translation": "We couldn't find the system variable."
+  },
+  {
+    "id": "store.sql_system.get_version.app_error",
+    "translation": "We couldn't get the database version"
   },
   {
     "id": "store.sql_system.save.app_error",
@@ -4690,6 +4686,10 @@
   {
     "id": "utils.config.save_config.saving.app_error",
     "translation": "An error occurred while saving the file to {{.Filename}}"
+  },
+  {
+    "id": "utils.diagnostic.analytics_not_found.app_error",
+    "translation": "Analytics not initialized"
   },
   {
     "id": "utils.i18n.loaded",

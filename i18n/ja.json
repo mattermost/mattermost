@@ -1039,7 +1039,7 @@
   },
   {
     "id": "api.oauth.complete_oauth.missing_code.app_error",
-    "translation": "The service provider {{.service}} did not provide an authorization code in the redirect URL.\n\nFor [Google Apps](https://docs.mattermost.com/deployment/sso-google.html) make sure your administrator enabled the Google+ API.\n\nFor [Office 365](https://docs.mattermost.com/deployment/sso-office.html) make sure the administrator of your Microsoft organization has enabled the Mattermost app.\n\nFor [GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html) please make sure you followed the setup instructions.\n\nIf you reviewed the above and are still having trouble with configuration, you may post in our [Troubleshooting forum](https://forum.mattermost.org/c/general/trouble-shoot) where we'll be happy to help with issues during setup."
+    "translation": "サービスプロバイダー {{.service}} はリダイレクトURLで認証コードを提供していません。\n\n[Google Apps](https://docs.mattermost.com/deployment/sso-google.html)で、あなたの管理者がGoogle+ APIを有効にしているか確認してください。\n\n[Office 365](https://docs.mattermost.com/deployment/sso-office.html)で、あなたのMicrosoft組織の管理者がMattermostアプリを有効にしている確認してください。\n\n[GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html)で、セットアップ手順に従っているか確認してください。\n\n以上を確認しても設定が上手くいかない場合は、[Troubleshooting forum](https://forum.mattermost.org/c/general/trouble-shoot)へ投稿してください。私たちはセットアップ中の問題について喜んでお手伝いします。"
   },
   {
     "id": "api.oauth.delete.permissions.app_error",
@@ -1270,6 +1270,10 @@
   {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
     "translation": "通知内のコメントスレッドの投稿を取得できませんでした root_post_id=%v、err=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.get_teams.error",
+    "translation": "チームを横断したダイレクトメッセージを送信する際に、チームを取得できませんでした user_id=%v, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.mention_body",
@@ -1997,7 +2001,7 @@
   },
   {
     "id": "api.user.email_to_ldap.not_available.app_error",
-    "translation": "このサーバーではLDAPは利用できません"
+    "translation": "このサーバーではAD/LDAPは利用できません"
   },
   {
     "id": "api.user.generate_mfa_qr.not_available.app_error",
@@ -2017,11 +2021,11 @@
   },
   {
     "id": "api.user.ldap_to_email.not_available.app_error",
-    "translation": "LDAPはこのサーバーでは利用できません"
+    "translation": "このサーバーではAD/LDAPは利用できません"
   },
   {
     "id": "api.user.ldap_to_email.not_ldap_account.app_error",
-    "translation": "このユーザーアカウントはLDAPを使っていません"
+    "translation": "このユーザーアカウントはAD/LDAPを使っていません"
   },
   {
     "id": "api.user.login.blank_pwd.app_error",
@@ -2065,7 +2069,7 @@
   },
   {
     "id": "api.user.login_ldap.disabled.app_error",
-    "translation": "LDAPはこのサーバーでは有効ではありません"
+    "translation": "AD/LDAPはこのサーバーでは有効ではありません"
   },
   {
     "id": "api.user.login_ldap.need_id.app_error",
@@ -2073,7 +2077,7 @@
   },
   {
     "id": "api.user.login_ldap.not_available.app_error",
-    "translation": "LDAPはこのサーバーでは利用できません"
+    "translation": "このサーバーではAD/LDAPは利用できません"
   },
   {
     "id": "api.user.oauth_to_email.context.app_error",
@@ -2157,7 +2161,7 @@
   },
   {
     "id": "api.user.update_active.no_deactivate_ldap.app_error",
-    "translation": "LDAPアカウントのアクティベーション状態を変更することはできません。LDAPサーバーを通じて変更してください。"
+    "translation": "AD/LDAPアカウントのアクティベーション状態を変更することはできません。AD/LDAPサーバーを通じて変更してください。"
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -2457,7 +2461,7 @@
   },
   {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
-    "translation": "LDAPサーバーに接続できません。BindUsernameとBindPasswordを確認してください。"
+    "translation": "AD/LDAPサーバーに接続できません。BindUsernameとBindPasswordを確認してください。"
   },
   {
     "id": "ent.ldap.do_login.invalid_password.app_error",
@@ -2465,7 +2469,7 @@
   },
   {
     "id": "ent.ldap.do_login.licence_disable.app_error",
-    "translation": "現在のライセンスではLDAP機能が無効です。エンタープライズライセンスをアップグレードするようにシステム管理者に連絡してください。"
+    "translation": "現在のライセンスではAD/LDAP機能が無効です。エンタープライズライセンスをアップグレードするようにシステム管理者に連絡してください。"
   },
   {
     "id": "ent.ldap.do_login.matched_to_many_users.app_error",
@@ -2473,11 +2477,11 @@
   },
   {
     "id": "ent.ldap.do_login.search_ldap_server.app_error",
-    "translation": "LDAPサーバーの検索で失敗しました"
+    "translation": "AD/LDAPサーバーの検索で失敗しました"
   },
   {
     "id": "ent.ldap.do_login.unable_to_connect.app_error",
-    "translation": "LDAPサーバーに接続できません"
+    "translation": "AD/LDAPサーバーに接続できません"
   },
   {
     "id": "ent.ldap.do_login.unable_to_create_user.app_error",
@@ -2485,27 +2489,27 @@
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
-    "translation": "あなたのLDAPアカウントにはMattermostサーバを利用する権限がありません。システム管理者にLDAPのユーザーフィルターをチェックするよう依頼してください。"
+    "translation": "あなたのAD/LDAPアカウントにはMattermostサーバを利用する権限がありません。システム管理者にAD/LDAPのユーザーフィルターをチェックするよう依頼してください。"
   },
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
-    "translation": "ユーザーがLDAPサーバーに登録されていません"
+    "translation": "ユーザーがAD/LDAPサーバーに登録されていません"
   },
   {
     "id": "ent.ldap.mattermost_user_update",
-    "translation": "MattermostユーザーはLDAPサーバーによってアップデートされました。"
+    "translation": "MattermostユーザーはAD/LDAPサーバーによってアップデートされました。"
   },
   {
     "id": "ent.ldap.syncdone.info",
-    "translation": "LDAPの同期が完了しました"
+    "translation": "AD/LDAPの同期が完了しました"
   },
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
-    "translation": "LDAPを使っている全てのユーザーを取得できません"
+    "translation": "AD/LDAPを使っている全てのユーザーを取得できません"
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
-    "translation": "不正なLDAPフィルターです"
+    "translation": "不正なAD/LDAPフィルターです"
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",
@@ -2545,11 +2549,11 @@
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
-    "translation": "重複したエントリが見つかったため、LDAPユーザーを移行できませんでした。全ての重複を削除した上で、再度実行してください。"
+    "translation": "重複したエントリが見つかったため、AD/LDAPユーザーを移行できませんでした。全ての重複を削除した上で、再度実行してください。"
   },
   {
     "id": "ent.migration.migratetoldap.user_not_found",
-    "translation": "LDAPサーバー上でユーザを見つけることができませんでした: "
+    "translation": "AD/LDAPサーバー上でユーザを見つけることができませんでした: "
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -3005,31 +3009,31 @@
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
-    "translation": "LDAP項目 \"BaseDN\" は必須です。"
+    "translation": "AD/LDAP項目 \"ベースDN\" は必須です。"
   },
   {
     "id": "model.config.is_valid.ldap_bind_password",
-    "translation": "LDAP項目 \"Bind Password\" は必須です。"
+    "translation": "AD/LDAP項目 \"バインドパスワード\" は必須です。"
   },
   {
     "id": "model.config.is_valid.ldap_bind_username",
-    "translation": "LDAP項目 \"Bind Username\" は必須です。"
+    "translation": "AD/LDAP項目 \"バインドユーザー名\" は必須です。"
   },
   {
     "id": "model.config.is_valid.ldap_email",
-    "translation": "LDAP項目 \"Email Attribute\" は必須です。"
+    "translation": "AD/LDAP項目 \"電子メール属性値\" は必須です。"
   },
   {
     "id": "model.config.is_valid.ldap_firstname",
-    "translation": "LDAP項目 \"First Name Attribute\" は必須です。"
+    "translation": "AD/LDAP項目 \"名前(ファーストネーム)の属性値\" は必須です。"
   },
   {
     "id": "model.config.is_valid.ldap_id",
-    "translation": "LDAP項目 \"ID Attribute\" は必須です。"
+    "translation": "AD/LDAP項目 \"ID属性値\" は必須です。"
   },
   {
     "id": "model.config.is_valid.ldap_lastname",
-    "translation": "LDAP項目 \"Last Name Attribute\" は必須です。"
+    "translation": "AD/LDAP項目 \"苗字(ラストネーム)の属性値\" は必須です。"
   },
   {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",
@@ -3037,19 +3041,19 @@
   },
   {
     "id": "model.config.is_valid.ldap_required.app_error",
-    "translation": "必要なLDAPフィールドがありません。"
+    "translation": "必要なAD/LDAP項目がありません。"
   },
   {
     "id": "model.config.is_valid.ldap_required.app_error",
-    "translation": "必要なLDAPフィールドがありません。"
+    "translation": "必要なAD/LDAP項目がありません。"
   },
   {
     "id": "model.config.is_valid.ldap_security.app_error",
-    "translation": "LDAP設定の接続セキュリティーが不正です。'TLS'か'STARTTLS'にしてください"
+    "translation": "AD/LDAP設定の接続セキュリティーが不正です。  'TLS'か'STARTTLS'にしてください"
   },
   {
     "id": "model.config.is_valid.ldap_server",
-    "translation": "LDAP項目 \"LDAP Server\" は必須です。"
+    "translation": "AD/LDAP項目 \"AD/LDAPサーバー\" は必須です。"
   },
   {
     "id": "model.config.is_valid.ldap_sync_interval.app_error",
@@ -3057,7 +3061,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_username",
-    "translation": "LDAP項目 \"Username Attribute\" は必須です。"
+    "translation": "AD/LDAP項目 \"ユーザー名の属性値\" は必須です。"
   },
   {
     "id": "model.config.is_valid.listen_address.app_error",
@@ -4284,6 +4288,10 @@
     "translation": "全てのオンライン/離席状態を取得する際にエラーが発生しました"
   },
   {
+    "id": "store.sql_status.get_team_statuses.app_error",
+    "translation": "チームメンバーの全ての状態を取得する際にエラーが発生しました"
+  },
+  {
     "id": "store.sql_status.get_total_active_users_count.app_error",
     "translation": "アクティブユーザー数を取得できませんでした"
   },
@@ -4306,6 +4314,10 @@
   {
     "id": "store.sql_system.get_by_name.app_error",
     "translation": "システム変数が見付かりません。"
+  },
+  {
+    "id": "store.sql_system.get_version.app_error",
+    "translation": "データベースのバージョンを取得できませんでした"
   },
   {
     "id": "store.sql_system.save.app_error",
@@ -4485,7 +4497,7 @@
   },
   {
     "id": "store.sql_user.save.email_exists.ldap_app_error",
-    "translation": "このアカウントはLDAP認証を使用していません。電子メールアドレスとパスワードを使ってサインインしてください。"
+    "translation": "このアカウントはAD/LDAP認証を使用していません。電子メールアドレスとパスワードを使ってサインインしてください。"
   },
   {
     "id": "store.sql_user.save.email_exists.saml_app_error",
@@ -4521,7 +4533,7 @@
   },
   {
     "id": "store.sql_user.update.can_not_change_ldap.app_error",
-    "translation": "LDAPによって設定される項目は変更できません"
+    "translation": "AD/LDAPによって設定される項目は変更できません"
   },
   {
     "id": "store.sql_user.update.email_taken.app_error",
@@ -4674,6 +4686,10 @@
   {
     "id": "utils.config.save_config.saving.app_error",
     "translation": "ファイルを{{.Filename}}に保存中にエラーが発生しました"
+  },
+  {
+    "id": "utils.diagnostic.analytics_not_found.app_error",
+    "translation": "解析は初期化されていません"
   },
   {
     "id": "utils.i18n.loaded",
