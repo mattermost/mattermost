@@ -2457,7 +2457,7 @@
   },
   {
     "id": "ent.ldap.disabled.app_error",
-    "translation": "已停用 LDAP 或授權不支援 LDAP。"
+    "translation": "已停用 AD/LDAP 或授權不支援 AD/LDAP。"
   },
   {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
@@ -2554,6 +2554,10 @@
   {
     "id": "ent.migration.migratetoldap.user_not_found",
     "translation": "找不到使用者，AD/LDAP 伺服器："
+  },
+  {
+    "id": "ent.saml.attribute.app_error",
+    "translation": "SAML login was unsuccessful because one of the attributes is incorrect. Please contact your System Administrator."
   },
   {
     "id": "ent.saml.build_request.app_error",

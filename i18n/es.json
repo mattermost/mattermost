@@ -2457,7 +2457,7 @@
   },
   {
     "id": "ent.ldap.disabled.app_error",
-    "translation": "LDAP deshabilitado o la licencia no es compatible con LDAP."
+    "translation": "AD/LDAP deshabilitado o la licencia no es compatible con AD/LDAP."
   },
   {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
@@ -2554,6 +2554,10 @@
   {
     "id": "ent.migration.migratetoldap.user_not_found",
     "translation": "No se puede encontrar el usuario en el servidor AD/LDAP: "
+  },
+  {
+    "id": "ent.saml.attribute.app_error",
+    "translation": "SAML login was unsuccessful because one of the attributes is incorrect. Please contact your System Administrator."
   },
   {
     "id": "ent.saml.build_request.app_error",
