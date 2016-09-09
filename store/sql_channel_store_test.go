@@ -39,21 +39,6 @@ func TestChannelStoreSave(t *testing.T) {
 	if err := (<-store.Channel().Save(&o1)).Err; err == nil {
 		t.Fatal("Should not be able to save direct channel")
 	}
-
-	o1.Type = model.CHANNEL_OPEN
-	for i := 0; i < 1000; i++ {
-		o1.Id = ""
-		o1.Name = "a" + model.NewId() + "b"
-		if err := (<-store.Channel().Save(&o1)).Err; err != nil {
-			t.Fatal("couldn't save item", err)
-		}
-	}
-
-	o1.Id = ""
-	o1.Name = "a" + model.NewId() + "b"
-	if err := (<-store.Channel().Save(&o1)).Err; err == nil {
-		t.Fatal("should be the limit")
-	}
 }
 
 func TestChannelStoreSaveDirectChannel(t *testing.T) {
