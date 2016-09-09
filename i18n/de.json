@@ -637,11 +637,11 @@
   },
   {
     "id": "api.command_shortcuts.nav",
-    "translation": "#### Tastenkürzel\n\n#### Navigation\n\nAlt+Hoch: Vorheriger Kanal oder Direktnachricht in der linken Seitenleiste\nAlt+Runter: Nächster Kanal oder Direktnachricht in der linken Seitenleiste\nAlt+Shift+Hoch: Vorheriger Kanal oder Direktnachricht in der linken Seitenleiste mit ungelesenen Nachrichteb\nAlt+Shift+Runter: Nächster Kanal oder Direktnachricht in der linken Seitenleiste mit ungelesenen Nachrichteb\nStrg+K: Einen Kanal Schnellwechseldialog anzeigen\nStrg+Shift+A: Benutzereinstellungen öffnen\nStrg+Shift+M: Die letzten Nennungen öffnen\n\n"
+    "translation": "#### Tastenkürzel\n\n#### Navigation\n\nAlt+Hoch: Vorheriger Kanal oder Direktnachricht in der linken Seitenleiste\nAlt+Runter: Nächster Kanal oder Direktnachricht in der linken Seitenleiste\nAlt+Shift+Hoch: Vorheriger Kanal oder Direktnachricht in der linken Seitenleiste mit ungelesenen Nachrichten\nAlt+Shift+Runter: Nächster Kanal oder Direktnachricht in der linken Seitenleiste mit ungelesenen Nachrichten\nStrg+K: Einen Kanal Schnellwechseldialog anzeigen\nStrg+Shift+A: Benutzereinstellungen öffnen\nStrg+Shift+M: Die letzten Erwähnungen öffnen\n\n"
   },
   {
     "id": "api.command_shortcuts.nav_mac",
-    "translation": "#### Tastenkürzel\n\n#### Navigation\n\nAlt+Hoch: Vorheriger Kanal oder Direktnachricht in der linken Seitenleiste\nAlt+Runter: Nächster Kanal oder Direktnachricht in der linken Seitenleiste\nAlt+Shift+Hoch: Vorheriger Kanal oder Direktnachricht in der linken Seitenleiste mit ungelesenen Nachrichteb\nAlt+Shift+Runter: Nächster Kanal oder Direktnachricht in der linken Seitenleiste mit ungelesenen Nachrichteb\nCmd+K: Einen Kanal Schnellwechseldialog anzeigen\nCmd+Shift+A: Benutzereinstellungen öffnen\nCmd+Shift+M: Die letzten Nennungen öffnen\n\n"
+    "translation": "#### Tastenkürzel\n\n#### Navigation\n\nAlt+Hoch: Vorheriger Kanal oder Direktnachricht in der linken Seitenleiste\nAlt+Runter: Nächster Kanal oder Direktnachricht in der linken Seitenleiste\nAlt+Shift+Hoch: Vorheriger Kanal oder Direktnachricht in der linken Seitenleiste mit ungelesenen Nachrichten\nAlt+Shift+Runter: Nächster Kanal oder Direktnachricht in der linken Seitenleiste mit ungelesenen Nachrichten\nCmd+K: Einen Kanal Schnellwechseldialog anzeigen\nCmd+Shift+A: Benutzereinstellungen öffnen\nCmd+Shift+M: Die letzten Erwähnungen öffnen\n\n"
   },
   {
     "id": "api.command_shrug.desc",
@@ -1333,7 +1333,7 @@
   },
   {
     "id": "api.post.update_mention_count_and_forget.update_error",
-    "translation": "Fehler beim Aktualisieren der Nennungenanzahl, post_id=%v channel_id=%v err=%v"
+    "translation": "Fehler beim Aktualisieren der Erwähnungsanzahl, post_id=%v channel_id=%v err=%v"
   },
   {
     "id": "api.post.update_post.find.app_error",
@@ -1477,7 +1477,7 @@
   },
   {
     "id": "api.slackimport.slack_convert_user_mentions.compile_regexp_failed.warn",
-    "translation": "Konnte Regex Match für @Nennung für Slack Benutzer {{.UserID}} {{.Username}} nicht erstellen"
+    "translation": "Konnte Regex Match für @Erwähnung für Slack Benutzer {{.UserID}} {{.Username}} nicht erstellen"
   },
   {
     "id": "api.slackimport.slack_import.log",
@@ -2457,7 +2457,7 @@
   },
   {
     "id": "ent.ldap.disabled.app_error",
-    "translation": "LDAP deaktiviert oder Lizenz unterstützt kein LDAP."
+    "translation": "AD/LDAP deaktiviert oder Lizenz unterstützt kein AD/LDAP."
   },
   {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
@@ -2554,6 +2554,10 @@
   {
     "id": "ent.migration.migratetoldap.user_not_found",
     "translation": "Kann Benutzer nicht auf AD/LDAP Server finden: "
+  },
+  {
+    "id": "ent.saml.attribute.app_error",
+    "translation": "SAML login was unsuccessful because one of the attributes is incorrect. Please contact your System Administrator."
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -3793,7 +3797,7 @@
   },
   {
     "id": "store.sql_channel.increment_mention_count.app_error",
-    "translation": "Konnte Nennungsanzahl nicht erhöhen"
+    "translation": "Konnte Erwähnungenanzahl nicht erhöhen"
   },
   {
     "id": "store.sql_channel.permanent_delete_by_team.app_error",
