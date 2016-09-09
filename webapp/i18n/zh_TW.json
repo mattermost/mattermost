@@ -418,7 +418,7 @@
   "admin.ldap.loginNameEx": "例如：\"AD/LDAP 使用者名稱\"",
   "admin.ldap.loginNameTitle": "登入欄位名：",
   "admin.ldap.maxPageSizeEx": "例如：\"2000\"",
-  "admin.ldap.maxPageSizeHelpText": "Mattermost 向 LDAP 伺服器請求使用者資料時單次最多的數量。0表示無上限。",
+  "admin.ldap.maxPageSizeHelpText": "Mattermost 向 AD/LDAP 伺服器請求使用者資料時單次最多的數量。0表示無上限。",
   "admin.ldap.maxPageSizeTitle": "最大分頁大小：",
   "admin.ldap.nicknameAttrDesc": "(非必須) 用於設定 Mattermost 使用者暱稱的 AD/LDAP 伺服器屬性。",
   "admin.ldap.nicknameAttrEx": "例如：\"匿稱\"",

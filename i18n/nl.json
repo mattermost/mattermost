@@ -625,11 +625,11 @@
   },
   {
     "id": "api.command_shortcuts.msgs",
-    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCTRL+UP (in empty input field): Reprint the previous message or slash command you entered\nCTRL+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
+    "translation": "#### Berichten\n\nESC: Markeer alle berichten in het huidige kanaal als gelezen\nCTRL+UP (in een leeg invoer veld): Herhaal het vorige bericht of slash commando U heeft gegeven\nCTRL+DOWN (in een leeg invoer veld): Herhaal het volgende bericht of slash commando U heeft gegeven\nUP (in een leeg invoer veld): Bewerk jouw laatste bericht in het huidige kanaal\n@[karakter]+TAB: Autocomplete @gebruikersnaam begint met [karakter]\n:[karakter]+TAB: Autocomplete emoji begint met [karakter]\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs_mac",
-    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCMD+UP (in empty input field): Reprint the previous message or slash command you entered\nCMD+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
+    "translation": "#### Berichten\n\nESC: Markeer alle berichten in het huidige kanaal als gelezen\nCTRL+UP (in een leeg invoer veld): Herhaal het vorige bericht of slash commando U heeft gegeven\nCTRL+DOWN (in een leeg invoer veld): Herhaal het volgende bericht of slash commando U heeft gegeven\nUP (in een leeg invoer veld): Bewerk jouw laatste bericht in het huidige kanaal\n@[karakter]+TAB: Autocomplete @gebruikersnaam begint met [karakter]\n:[karakter]+TAB: Autocomplete emoji begint met [karakter]\n\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -637,11 +637,11 @@
   },
   {
     "id": "api.command_shortcuts.nav",
-    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in left hand sidebar\nALT+DOWN: Next channel or direct message in left hand sidebar\nALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\nCTRL+K: Open a quick channel switcher dialog\nCTRL+SHIFT+A: Open account settings\nCTRL+SHIFT+M: Open recent mentions\n\n"
+    "translation": "### Keyboard Sneltoetsen\n\n#### Navigatie\n\nALT+UP: Vorig kanaal of direct bericht in linker zijbalk\nALT+DOWN: Volgend kanaal of direct bericht in linker zijbalk\nALT+SHIFT+UP: Vorig kanaal of direct bericht in linker zijbalk met ongelezen berichten\nALT+SHIFT+DOWN: Volgend kanaal of direct bericht in linker zijbalk met ongelezen berichten\nCTRL+K: Open een snelle kanaal wisselaar\nCTRL+SHIFT+A: Open account instellingen\nCTRL+SHIFT+M: Open recente vermeldingen\n\n"
   },
   {
     "id": "api.command_shortcuts.nav_mac",
-    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in left hand sidebar\nALT+DOWN: Next channel or direct message in left hand sidebar\nALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\nCMD+K: Open a quick channel switcher dialog\nCMD+SHIFT+A: Open account settings\nCMD+SHIFT+M: Open recent mentions\n\n"
+    "translation": "### Keyboard Sneltoetsen\n\n#### Navigatie\n\nALT+UP: Vorig kanaal of direct bericht in linker zijbalk\nALT+DOWN: Volgend kanaal of direct bericht in linker zijbalk\nALT+SHIFT+UP: Vorig kanaal of direct bericht in linker zijbalk met ongelezen berichten\nALT+SHIFT+DOWN: Volgend kanaal of direct bericht in linker zijbalk met ongelezen berichten\nCTRL+K: Open een snelle kanaal wisselaar\nCTRL+SHIFT+A: Open account instellingen\nCTRL+SHIFT+M: Open recente vermeldingen\n\n"
   },
   {
     "id": "api.command_shrug.desc",
@@ -705,15 +705,15 @@
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
-    "translation": "Publieke links zijn uitgeschakeld door de systeembeheerder"
+    "translation": "Bulk emails zijn uitgeschakeld door de systeembeheerder"
   },
   {
     "id": "api.email_batching.check_pending_emails.finished_running",
-    "translation": "Email batching job ran. %v user(s) still have notifications pending."
+    "translation": "Bulk emails job heeft gelopen. %v gebruiker(s) hebben notificaties in afwachting."
   },
   {
     "id": "api.email_batching.check_pending_emails.status.app_error",
-    "translation": "Kon de verzender van bericht voor batch email notificatie niet vinden."
+    "translation": "Kon de status of ontvanger voor batch email notificatie niet vinden."
   },
   {
     "id": "api.email_batching.render_batched_post.channel.app_error",
@@ -753,17 +753,17 @@
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
-      "one": "[{{.SiteName}}] New Notification for {{.Month}} {{.Day}}, {{.Year}}",
-      "other": "[{{.SiteName}}] New Notifications for {{.Month}} {{.Day}}, {{.Year}}"
+      "one": "[{{.SiteName}}] Nieuwe Notificatie voor {{.Month}} {{.Day}}, {{.Year}}",
+      "other": "[{{.SiteName}}] Nieuwe Notificaties voor {{.Month}} {{.Day}}, {{.Year}}"
     }
   },
   {
     "id": "api.email_batching.send_batched_email_notification.user.app_error",
-    "translation": "Kon de verzender van bericht voor batch email notificatie niet vinden."
+    "translation": "Kon de ontvanger voor batch email notificatie niet vinden."
   },
   {
     "id": "api.email_batching.start.starting",
-    "translation": "Email batching job starting. Checking for pending emails every %v seconds."
+    "translation": "Bulk email job is gestart. Controleren van wachtende e-mails iedere %v secondes."
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
@@ -1039,7 +1039,7 @@
   },
   {
     "id": "api.oauth.complete_oauth.missing_code.app_error",
-    "translation": "The service provider {{.service}} did not provide an authorization code in the redirect URL.\n\nFor [Google Apps](https://docs.mattermost.com/deployment/sso-google.html) make sure your administrator enabled the Google+ API.\n\nFor [Office 365](https://docs.mattermost.com/deployment/sso-office.html) make sure the administrator of your Microsoft organization has enabled the Mattermost app.\n\nFor [GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html) please make sure you followed the setup instructions.\n\nIf you reviewed the above and are still having trouble with configuration, you may post in our [Troubleshooting forum](https://forum.mattermost.org/c/general/trouble-shoot) where we'll be happy to help with issues during setup."
+    "translation": "De service provider {{.service}} heeft geen autorisatie code gegeven in de doorrstuur URL.\n\nVoor [Google Apps](https://docs.mattermost.com/deployment/sso-google.html) wees zeker dat Uw beheerder de Google+ API heeft aangezet.\n\nVoor [Office 365](https://docs.mattermost.com/deployment/sso-office.html) wees zeker dat Uw beheerder van Uw Microsoft domein de Mattermost app heeft aangezet.\n\nVor [GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html) wees zeker dat U onderstaande instructies heeft gevolgd.\n\nIf you reviewed the above and are still having trouble with configuration, you may post in our [Troubleshooting forum](https://forum.mattermost.org/c/general/trouble-shoot) where we'll be happy to help with issues during setup."
   },
   {
     "id": "api.oauth.delete.permissions.app_error",
@@ -1111,7 +1111,7 @@
   },
   {
     "id": "api.oauth.regenerate_secret.app_error",
-    "translation": "Onvoldoende rechten voor het verwijderen van de OAuth2 applicatie"
+    "translation": "Onvoldoende rechten voor het hergenereren van de OAuth2 Applicatie Secret"
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
@@ -1175,7 +1175,7 @@
   },
   {
     "id": "api.post.delete_flagged_post.app_error.warn",
-    "translation": "Unable to delete flagged post preference when deleting post, err=%v"
+    "translation": "Niet mogelijk om gemarkeerde berichten te verwijderen bij verwijderen van bericht, err=%v"
   },
   {
     "id": "api.post.delete_post.permissions.app_error",
@@ -1191,8 +1191,8 @@
   {
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
-      "one": "{{.Count}} bestand verzonden: {{.Filenames}}",
-      "other": "{{.Count}} bestanden verzonden: {{.Filenames}}"
+      "one": "{{.Count}} afbeelding verzonden: {{.Filenames}}",
+      "other": "{{.Count}} afbeeldingen verzonden: {{.Filenames}}"
     }
   },
   {
@@ -1261,11 +1261,11 @@
   },
   {
     "id": "api.post.notification.member_profile.warn",
-    "translation": "Unable to get profile for channel member, user_id=%v"
+    "translation": "Niet mogelijk om profiel voor kanaal lid op te halen, user_id=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
-    "translation": "Clearing push notification to %v with channel_id %v"
+    "translation": "Verwijderen van push notificatie aan %v met kanaal_id %v"
   },
   {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
@@ -1273,7 +1273,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.get_teams.error",
-    "translation": "Failed to get teams when sending cross-team DM user_id=%v, err=%v"
+    "translation": "Mislukt om teams op te halen bij versturen van cross-team DM user_id=%v, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.mention_body",
@@ -1309,11 +1309,11 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.debug",
-    "translation": "Verzenden van notificatie naar %v wi bericht van '%v'"
+    "translation": "Verzenden van push notificatie naar %v met bericht van '%v'"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
-    "translation": "Het versturen van een push bericht is mislukt. notificationid=%v, fout=%v"
+    "translation": "Het versturen van een push bericht is mislukt, device_id=%v, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.send.error",
@@ -1477,7 +1477,7 @@
   },
   {
     "id": "api.slackimport.slack_convert_user_mentions.compile_regexp_failed.warn",
-    "translation": "Failed to compile the @mention matching regular expression for Slack user {{.UserID}} {{.Username}}"
+    "translation": "Mislukt om de @vermelding te maken met reguliere expressie voor Slack gebruiker {{.UserID}} {{.Username}}"
   },
   {
     "id": "api.slackimport.slack_import.log",
@@ -1745,11 +1745,11 @@
   },
   {
     "id": "api.templates.post_subject_in_channel",
-    "translation": "{{.SubjectText}} op {{.TeamDisplayName}} om {{.Month}} {{.Day}} {{.Year}}"
+    "translation": "{{.SubjectText}} in {{.TeamDisplayName}} {{.ChannelName}}) op {{.Month}} {{.Day}} {{.Year}}"
   },
   {
     "id": "api.templates.post_subject_in_direct_message",
-    "translation": "{{.SubjectText}} op {{.TeamDisplayName}} om {{.Month}} {{.Day}} {{.Year}}"
+    "translation": "{{.SubjectText}} in {{.TeamDisplayName}} van {{.SenderDisplayName}} op {{.Month}} {{.Day}} {{.Year}}"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -2001,7 +2001,7 @@
   },
   {
     "id": "api.user.email_to_ldap.not_available.app_error",
-    "translation": "LDAP is niet beschikbaar op deze server"
+    "translation": "AD/LDAP is niet beschikbaar op deze server"
   },
   {
     "id": "api.user.generate_mfa_qr.not_available.app_error",
@@ -2021,11 +2021,11 @@
   },
   {
     "id": "api.user.ldap_to_email.not_available.app_error",
-    "translation": "LDAP is niet beschikbaar op deze server"
+    "translation": "AS/LDAP is niet beschikbaar op deze server"
   },
   {
     "id": "api.user.ldap_to_email.not_ldap_account.app_error",
-    "translation": "Dit gebruikers account gebruikt geen LDAP"
+    "translation": "Dit gebruikers account gebruikt geen AD/LDAP"
   },
   {
     "id": "api.user.login.blank_pwd.app_error",
@@ -2069,7 +2069,7 @@
   },
   {
     "id": "api.user.login_ldap.disabled.app_error",
-    "translation": "LDAP is niet beschikbaar op deze server"
+    "translation": "AD/LDAP is niet beschikbaar op deze server"
   },
   {
     "id": "api.user.login_ldap.need_id.app_error",
@@ -2077,7 +2077,7 @@
   },
   {
     "id": "api.user.login_ldap.not_available.app_error",
-    "translation": "LDAP is niet beschikbaar op deze server"
+    "translation": "AD/LDAP is niet beschikbaar op deze server"
   },
   {
     "id": "api.user.oauth_to_email.context.app_error",
@@ -2161,7 +2161,7 @@
   },
   {
     "id": "api.user.update_active.no_deactivate_ldap.app_error",
-    "translation": "Je kan niet de activatie status veranderen van LDAP account. Wijzig dit via de LDAP server."
+    "translation": "Je kan niet de activatie status veranderen van AD/LDAP account. Wijzig dit via de AD/LDAP server."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -2457,11 +2457,11 @@
   },
   {
     "id": "ent.ldap.disabled.app_error",
-    "translation": "AD/LDAP disabled or licence does not support AD/LDAP."
+    "translation": "AD/LDAP uitgeschakeld of licentie ondersteund geen AD/LDAP."
   },
   {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
-    "translation": "Kan verbinding maken met de LDAP server. Controleer de opgegeven gebruikersnaam en wachtwoord."
+    "translation": "Kan geen verbinding maken met de AD/LDAP server. Controleer de opgegeven Bindgebruikersnaam en Bindwachtwoord."
   },
   {
     "id": "ent.ldap.do_login.invalid_password.app_error",
@@ -2469,7 +2469,7 @@
   },
   {
     "id": "ent.ldap.do_login.licence_disable.app_error",
-    "translation": "LDAP functionaliteit is uitgeschakeld met de huidige licentie. Neem contact op met de beheerder voor een upgrade van de licentie."
+    "translation": "AD/LDAP functionaliteit is uitgeschakeld met de huidige licentie. Neem contact op met de beheerder voor een upgrade van de licentie."
   },
   {
     "id": "ent.ldap.do_login.matched_to_many_users.app_error",
@@ -2477,11 +2477,11 @@
   },
   {
     "id": "ent.ldap.do_login.search_ldap_server.app_error",
-    "translation": "Kan niet zoeken op de LDAP server"
+    "translation": "Kan niet zoeken op de AD/LDAP server"
   },
   {
     "id": "ent.ldap.do_login.unable_to_connect.app_error",
-    "translation": "Kan niet verbinden met de LDAP server"
+    "translation": "Kan niet verbinden met de AD/LDAP server"
   },
   {
     "id": "ent.ldap.do_login.unable_to_create_user.app_error",
@@ -2489,27 +2489,27 @@
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
-    "translation": "Je LDAP account heeft niet de juiste permissies om van deze Mattermost server gebruik te maken. Vraag je Systeembeheerder om het LDAP gebruikersfilter te controleren."
+    "translation": "Je AD/LDAP account heeft niet de juiste permissies om van deze Mattermost server gebruik te maken. Vraag je Systeembeheerder om het AD/LDAP gebruikersfilter te controleren."
   },
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
-    "translation": "Gebruiker is niet bekend op de LDAP server"
+    "translation": "Gebruiker is niet bekend op de AD/LDAP server"
   },
   {
     "id": "ent.ldap.mattermost_user_update",
-    "translation": "Mattermost gebruiker is bijgewerkt door de LDAP server."
+    "translation": "Mattermost gebruiker is bijgewerkt door de AD/LDAP server."
   },
   {
     "id": "ent.ldap.syncdone.info",
-    "translation": "LDAP Synchronisatie voltooid"
+    "translation": "AD/LDAP Synchronisatie voltooid"
   },
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
-    "translation": "Niet mogelijk alle gebruikers te krijgen via LDAP"
+    "translation": "Niet mogelijk alle gebruikers te krijgen via AD/LDAP"
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
-    "translation": "Ongeldig LDAP filter"
+    "translation": "Ongeldig AD/LDAP filter"
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",
@@ -2549,11 +2549,15 @@
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
-    "translation": "Niet mogelijk om LDAP gebruikers te migreren met het opgegeven veld. Dubbele vermelding ontdekt. Verwijder alle dubbele vermeldingen en probeer opnieuw."
+    "translation": "Niet mogelijk om AD/LDAP gebruikers te migreren met het opgegeven veld. Dubbele vermelding ontdekt. Verwijder alle dubbele vermeldingen en probeer opnieuw."
   },
   {
     "id": "ent.migration.migratetoldap.user_not_found",
-    "translation": "Kon gebruiker niet vinden op de LDAP server: "
+    "translation": "Kon gebruiker niet vinden op de AD/LDAP server: "
+  },
+  {
+    "id": "ent.saml.attribute.app_error",
+    "translation": "SAML login was unsuccessful because one of the attributes is incorrect. Please contact your System Administrator."
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -2949,15 +2953,15 @@
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
-    "translation": "Unable to enable email batching when clustering is enabled"
+    "translation": "Niet mogelijk om bulk email aan te zetten als clustering aan staat."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
-    "translation": "Invalid email batching buffer size for email settings.  Must be zero or a positive number."
+    "translation": "Verkeerde buffer grootte bij bulk email instellingen. Moet 0 zijn of een positief nummer."
   },
   {
     "id": "model.config.is_valid.email_batching_interval.app_error",
-    "translation": "Invalid email batching interval for email settings.  Must be 30 seconds or more."
+    "translation": "Verkeerde interval bij bulk email instellingen. Moet 30 secondes of meer zijn."
   },
   {
     "id": "model.config.is_valid.email_reset_salt.app_error",
@@ -2981,7 +2985,7 @@
   },
   {
     "id": "model.config.is_valid.file_preview_height.app_error",
-    "translation": "Ongeldige voorvertonings hoogte voor bestand instellingen. Moet 0 of groter zijn."
+    "translation": "Ongeldige voorvertonings-hoogte voor bestand instellingen.  Moet 0 of groter zijn."
   },
   {
     "id": "model.config.is_valid.file_preview_width.app_error",
@@ -3009,31 +3013,31 @@
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
-    "translation": "LDAP veld \"BaseDN\" is verplicht."
+    "translation": "AD/LDAP veld \"BaseDN\" is verplicht."
   },
   {
     "id": "model.config.is_valid.ldap_bind_password",
-    "translation": "LDAP veld \"Bind Password\" is verplicht"
+    "translation": "AD/LDAP veld \"Bind Password\" is verplicht"
   },
   {
     "id": "model.config.is_valid.ldap_bind_username",
-    "translation": "LDAP veld \"Bind Username\" is verplicht."
+    "translation": "AD/LDAP veld \"Bind Username\" is verplicht."
   },
   {
     "id": "model.config.is_valid.ldap_email",
-    "translation": "LDAP veld \"Email Attribute\" is verplicht."
+    "translation": "AD/LDAP veld \"Email Attribute\" is verplicht."
   },
   {
     "id": "model.config.is_valid.ldap_firstname",
-    "translation": "LDAP veld \"First Name Attribute\" is verplicht."
+    "translation": "AD/LDAP veld \"First Name Attribute\" is verplicht."
   },
   {
     "id": "model.config.is_valid.ldap_id",
-    "translation": "LDAP veld \"ID Attribute\" is verplicht."
+    "translation": "AD/LDAP veld \"ID Attribute\" is verplicht."
   },
   {
     "id": "model.config.is_valid.ldap_lastname",
-    "translation": "LDAP veld \"Last Name Attribute\" is verplicht."
+    "translation": "AD/LDAP veld \"Last Name Attribute\" is verplicht."
   },
   {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",
@@ -3041,19 +3045,19 @@
   },
   {
     "id": "model.config.is_valid.ldap_required.app_error",
-    "translation": "Verplicht LDAP veld is niet ingevuld."
+    "translation": "Verplicht AD/LDAP veld is niet ingevuld."
   },
   {
     "id": "model.config.is_valid.ldap_required.app_error",
-    "translation": "Verplicht LDAP veld is niet ingevuld."
+    "translation": "Verplicht AD/LDAP veld is niet ingevuld."
   },
   {
     "id": "model.config.is_valid.ldap_security.app_error",
-    "translation": "Ongeldige verbindings instelling bij LDAP instellingen. Keuze uit; '', 'TLS' of 'STARTTLS'"
+    "translation": "Ongeldige verbindings instelling bij AD/LDAP instellingen. Keuze uit; '', 'TLS' of 'STARTTLS'"
   },
   {
     "id": "model.config.is_valid.ldap_server",
-    "translation": "LDAP veld \"LDAP Server\" is verplicht."
+    "translation": "AD/LDAP veld \"AD/LDAP Server\" is verplicht."
   },
   {
     "id": "model.config.is_valid.ldap_sync_interval.app_error",
@@ -3061,7 +3065,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_username",
-    "translation": "LDAP veld \"Username Attribute\" is verplicht."
+    "translation": "AD/LDAP veld \"Username Attribute\" is verplicht."
   },
   {
     "id": "model.config.is_valid.listen_address.app_error",
@@ -3137,7 +3141,7 @@
   },
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
-    "translation": "Unable to enable email batching when SiteURL isn't set."
+    "translation": "Niet mogelijk om bulk email aan te zetten als de SiteURL niet is ingevuld."
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
@@ -4001,7 +4005,7 @@
   },
   {
     "id": "store.sql_oauth.get_access_data_by_user_for_app.app_error",
-    "translation": "Er is een probleem opgetreden bij het ophalen van het access token"
+    "translation": "Er is een probleem opgetreden bij het ophalen van alle access tokens"
   },
   {
     "id": "store.sql_oauth.get_app.find.app_error",
@@ -4289,7 +4293,7 @@
   },
   {
     "id": "store.sql_status.get_team_statuses.app_error",
-    "translation": "Encountered an error retrieving all statuses from the team members"
+    "translation": "Fout bij het ophalen van de statussen van alle team leden"
   },
   {
     "id": "store.sql_status.get_total_active_users_count.app_error",
@@ -4317,7 +4321,7 @@
   },
   {
     "id": "store.sql_system.get_version.app_error",
-    "translation": "We couldn't get the database version"
+    "translation": "We konden de database versie niet ophalen"
   },
   {
     "id": "store.sql_system.save.app_error",
@@ -4473,7 +4477,7 @@
   },
   {
     "id": "store.sql_user.get_unread_count_for_channel.app_error",
-    "translation": "Het aantal ongelezen berichten voor de gebruiker kan niet geteld worden"
+    "translation": "Het aantal ongelezen berichten voor de gebruiker en kanaal kan niet geteld worden"
   },
   {
     "id": "store.sql_user.migrate_theme.critical",
@@ -4497,7 +4501,7 @@
   },
   {
     "id": "store.sql_user.save.email_exists.ldap_app_error",
-    "translation": "Dit account gebruikt geen LDAP authenticatie. Log in met e-mail en wachtwoord."
+    "translation": "Dit account gebruikt geen AD/LDAP authenticatie. Log in met e-mail en wachtwoord."
   },
   {
     "id": "store.sql_user.save.email_exists.saml_app_error",
@@ -4533,7 +4537,7 @@
   },
   {
     "id": "store.sql_user.update.can_not_change_ldap.app_error",
-    "translation": "Velden die gezet zijn door LDAP kunnen niet gewijzigd worden"
+    "translation": "Velden die gezet zijn door AD/LDAP kunnen niet gewijzigd worden"
   },
   {
     "id": "store.sql_user.update.email_taken.app_error",

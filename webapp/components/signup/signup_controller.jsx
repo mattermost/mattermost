@@ -79,9 +79,16 @@ export default class SignupController extends React.Component {
                             }
                         );
                     },
-                    (err) => {
+                    () => {
                         this.setState({ // eslint-disable-line react/no-did-mount-set-state
-                            serverError: err.message
+                            noOpenServerError: true,
+                            loading: false,
+                            serverError: (
+                                <FormattedMessage
+                                    id='signup_user_completed.invalid_invite'
+                                    defaultMessage='The invite link was invalid.  Please speak with your Administrator to receive an invitation.'
+                                />
+                            )
                         });
                     }
                 );
@@ -281,8 +288,6 @@ export default class SignupController extends React.Component {
             );
         }
 
-        let signupControls = this.renderSignupControls();
-
         let serverError = null;
         if (this.state.serverError) {
             serverError = (
@@ -292,8 +297,11 @@ export default class SignupController extends React.Component {
             );
         }
 
+        let signupControls;
         if (this.state.noOpenServerError || this.state.usedBefore) {
             signupControls = null;
+        } else {
+            signupControls = this.renderSignupControls();
         }
 
         return (
