@@ -39,16 +39,12 @@ export default class SignupLdap extends React.Component {
     }
 
     handleLdapIdChange(e) {
-        e.preventDefault();
-
         this.setState({
             ldapId: e.target.value
         });
     }
 
     handleLdapPasswordChange(e) {
-        e.preventDefault();
-
         this.setState({
             ldapPassword: e.target.value
         });
