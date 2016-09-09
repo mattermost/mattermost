@@ -213,7 +213,7 @@ export default class SignupController extends React.Component {
                 <Link
                     className='btn btn-custom-login btn--full ldap'
                     key='ldap'
-                    to={'/signup_ldap'}
+                    to={'/signup_ldap' + window.location.search}
                 >
                     <span className='icon fa fa-folder-open fa--margin-top'/>
                     <span>
