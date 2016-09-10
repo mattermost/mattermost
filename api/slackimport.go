@@ -66,7 +66,8 @@ func SlackParseChannels(data io.Reader) []SlackChannel {
 
 	var channels []SlackChannel
 	if err := decoder.Decode(&channels); err != nil {
-		return make([]SlackChannel, 0)
+		l4g.Warn(utils.T("api.slackimport.slack_parse_channels.error"))
+		return channels
 	}
 	return channels
 }
@@ -89,7 +90,8 @@ func SlackParsePosts(data io.Reader) []SlackPost {
 
 	var posts []SlackPost
 	if err := decoder.Decode(&posts); err != nil {
-		return make([]SlackPost, 0)
+		l4g.Warn(utils.T("api.slackimport.slack_parse_posts.error"))
+		return posts
 	}
 	return posts
 }
@@ -120,13 +122,23 @@ func SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Buffer) map
 			lastName = name
 		}
 
+		email := sUser.Profile["email"]
+
 		password := model.NewId()
+
+		// Check for email conflict and use existing user if found
+		if result := <-Srv.Store.User().GetByEmail(email); result.Err == nil {
+			existingUser := result.Data.(*model.User)
+			addedUsers[sUser.Id] = existingUser
+			log.WriteString(utils.T("api.slackimport.slack_add_users.merge_existing", map[string]interface{}{"Email": existingUser.Email, "Username": existingUser.Username}))
+			continue
+		}
 
 		newUser := model.User{
 			Username:  sUser.Username,
 			FirstName: firstName,
 			LastName:  lastName,
-			Email:     sUser.Profile["email"],
+			Email:     email,
 			Password:  password,
 		}
 
@@ -175,9 +187,23 @@ func SlackAddPosts(channel *model.Channel, posts []SlackPost, users map[string]*
 			}
 			ImportPost(&newPost)
 		case sPost.Type == "message" && sPost.SubType == "bot_message":
-			// In the future this will use the "Action Post" spec to post
-			// a message without using a username. For now we just warn that we don't handle this case
-			l4g.Warn(utils.T("api.slackimport.slack_add_posts.bot.warn"))
+			continue
+		case sPost.Type == "message" && (sPost.SubType == "channel_join" || sPost.SubType == "channel_leave"):
+			if sPost.User == "" {
+				l4g.Debug(utils.T("api.slackimport.slack_add_posts.msg_no_usr.debug"))
+				continue
+			} else if users[sPost.User] == nil {
+				l4g.Debug(utils.T("api.slackimport.slack_add_posts.user_no_exists.debug"), sPost.User)
+				continue
+			}
+			newPost := model.Post{
+				UserId:    users[sPost.User].Id,
+				ChannelId: channel.Id,
+				Message:   sPost.Text,
+				CreateAt:  SlackConvertTimeStamp(sPost.TimeStamp),
+				Type:      model.POST_JOIN_LEAVE,
+			}
+			ImportPost(&newPost)
 		default:
 			l4g.Warn(utils.T("api.slackimport.slack_add_posts.unsupported.warn"), sPost.Type, sPost.SubType)
 		}
@@ -260,13 +286,14 @@ func SlackConvertUserMentions(users []SlackUser, posts map[string][]SlackPost) m
 }
 
 func SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model.AppError, *bytes.Buffer) {
-	zipreader, err := zip.NewReader(fileData, fileSize)
-	if err != nil || zipreader.File == nil {
-		return model.NewLocAppError("SlackImport", "api.slackimport.slack_import.zip.app_error", nil, err.Error()), nil
-	}
-
 	// Create log file
 	log := bytes.NewBufferString(utils.T("api.slackimport.slack_import.log"))
+
+	zipreader, err := zip.NewReader(fileData, fileSize)
+	if err != nil || zipreader.File == nil {
+		log.WriteString(utils.T("api.slackimport.slack_import.zip.app_error"))
+		return model.NewLocAppError("SlackImport", "api.slackimport.slack_import.zip.app_error", nil, err.Error()), log
+	}
 
 	var channels []SlackChannel
 	var users []SlackUser
@@ -274,6 +301,7 @@ func SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model
 	for _, file := range zipreader.File {
 		reader, err := file.Open()
 		if err != nil {
+			log.WriteString(utils.T("api.slackimport.slack_import.open.app_error", map[string]interface{}{"Filename": file.Name}))
 			return model.NewLocAppError("SlackImport", "api.slackimport.slack_import.open.app_error", map[string]interface{}{"Filename": file.Name}, err.Error()), log
 		}
 		if file.Name == "channels.json" {
@@ -305,6 +333,7 @@ func SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model
 
 	log.WriteString(utils.T("api.slackimport.slack_import.note1"))
 	log.WriteString(utils.T("api.slackimport.slack_import.note2"))
+	log.WriteString(utils.T("api.slackimport.slack_import.note3"))
 
 	return nil, log
 }
