@@ -25,10 +25,13 @@ export default class SelectTeamModal extends React.Component {
         this.props.onModalDismissed();
     }
     compare(a, b) {
-        if (a.display_name < b.display_name) {
+        const teamA = a.display_name.toLowerCase();
+        const teamB = b.display_name.toLowerCase();
+
+        if (teamA < teamB) {
             return -1;
         }
-        if (a.display_name > b.display_name) {
+        if (teamA > teamB) {
             return 1;
         }
         return 0;
