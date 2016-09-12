@@ -706,6 +706,7 @@ export default class Sidebar extends React.Component {
         );
 
         const isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
+        const isGuest = TeamStore.isGuestForCurrentTeam();
         const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
 
         let createPublicChannelIcon = (
@@ -752,6 +753,29 @@ export default class Sidebar extends React.Component {
             } else if (global.window.mm_config.RestrictPrivateChannelManagement === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
                 createPrivateChannelIcon = null;
             }
+        }
+
+        if (isGuest) {
+            createPublicChannelIcon = null;
+            createPrivateChannelIcon = null;
+        }
+
+        let moreChannelsButton = null;
+        if (!isGuest) {
+            moreChannelsButton = (
+                <li>
+                    <a
+                        href='#'
+                        className='nav-more'
+                        onClick={this.showMoreChannelsModal}
+                    >
+                        <FormattedMessage
+                            id='sidebar.moreElips'
+                            defaultMessage='More...'
+                        />
+                    </a>
+                </li>
+            );
         }
 
         return (
@@ -804,18 +828,7 @@ export default class Sidebar extends React.Component {
                             </h4>
                         </li>
                         {publicChannelItems}
-                        <li>
-                            <a
-                                href='#'
-                                className='nav-more'
-                                onClick={this.showMoreChannelsModal}
-                            >
-                                <FormattedMessage
-                                    id='sidebar.moreElips'
-                                    defaultMessage='More...'
-                                />
-                            </a>
-                        </li>
+                        {moreChannelsButton}
                     </ul>
 
                     <ul className='nav nav-pills nav-stacked'>

@@ -132,13 +132,18 @@ export default class MoreDirectChannels extends React.Component {
             maxHeight = Utils.windowHeight() - 300;
         }
 
-        var body = null;
+        let body = null;
         if (!this.state.usersLoaded || !this.state.teamMembersLoaded) {
             body = (<LoadingScreen/>);
         } else {
-            var showTeamToggle = false;
+            let showTeamToggle = false;
             if (global.window.mm_config.RestrictDirectMessage === 'any') {
                 showTeamToggle = true;
+            }
+
+            let actions = [this.createJoinDirectChannelButton];
+            if (TeamStore.isGuestForCurrentTeam()) {
+                actions = [];
             }
 
             body = (
@@ -146,7 +151,7 @@ export default class MoreDirectChannels extends React.Component {
                     style={{maxHeight}}
                     users={this.state.users}
                     teamMembers={this.state.teamMembers}
-                    actions={[this.createJoinDirectChannelButton]}
+                    actions={actions}
                     showTeamToggle={showTeamToggle}
                 />
             );

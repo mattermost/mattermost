@@ -860,7 +860,7 @@ func TestJoinChannelByNameDisabledUser(t *testing.T) {
 
 	Client.Must(th.BasicClient.RemoveUserFromTeam(th.BasicTeam.Id, th.BasicUser.Id))
 
-	if _, err := AddUserToChannel(th.BasicUser, channel1); err == nil {
+	if _, err := AddUserToChannel(th.BasicUser, channel1, model.ROLE_CHANNEL_USER.Id); err == nil {
 		t.Fatal("shoudn't be able to join channel")
 	} else {
 		if err.Id != "api.channel.add_user.to.channel.failed.deleted.app_error" {

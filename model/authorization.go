@@ -17,6 +17,7 @@ type Role struct {
 }
 
 var PERMISSION_INVITE_USER *Permission
+var PERMISSION_INVITE_GUEST *Permission
 var PERMISSION_ADD_USER_TO_TEAM *Permission
 var PERMISSION_USE_SLASH_COMMANDS *Permission
 var PERMISSION_MANAGE_SLASH_COMMANDS *Permission
@@ -57,9 +58,11 @@ var PERMISSION_MANAGE_SYSTEM *Permission
 
 var ROLE_SYSTEM_USER *Role
 var ROLE_SYSTEM_ADMIN *Role
+var ROLE_SYSTEM_GUEST *Role
 
 var ROLE_TEAM_USER *Role
 var ROLE_TEAM_ADMIN *Role
+var ROLE_TEAM_GUEST *Role
 
 var ROLE_CHANNEL_USER *Role
 var ROLE_CHANNEL_ADMIN *Role
@@ -72,6 +75,11 @@ func InitalizePermissions() {
 		"invite_user",
 		"authentication.permissions.team_invite_user.name",
 		"authentication.permissions.team_invite_user.description",
+	}
+	PERMISSION_INVITE_GUEST = &Permission{
+		"invite_guest",
+		"authentication.permissions.team_invite_guest.name",
+		"authentication.permissions.team_invite_guest.description",
 	}
 	PERMISSION_ADD_USER_TO_TEAM = &Permission{
 		"add_user_to_team",
@@ -268,10 +276,14 @@ func InitalizeRoles() {
 	}
 	BuiltInRoles[ROLE_CHANNEL_ADMIN.Id] = ROLE_CHANNEL_ADMIN
 	ROLE_CHANNEL_GUEST = &Role{
-		"guest",
-		"authentication.roles.global_guest.name",
-		"authentication.roles.global_guest.description",
-		[]string{},
+		"channel_guest",
+		"authentication.roles.channel_guest.name",
+		"authentication.roles.channel_guest.description",
+		[]string{
+			PERMISSION_READ_CHANNEL.Id,
+			PERMISSION_CREATE_POST.Id,
+			PERMISSION_EDIT_POST.Id,
+		},
 	}
 	BuiltInRoles[ROLE_CHANNEL_GUEST.Id] = ROLE_CHANNEL_GUEST
 
@@ -303,6 +315,13 @@ func InitalizeRoles() {
 		},
 	}
 	BuiltInRoles[ROLE_TEAM_ADMIN.Id] = ROLE_TEAM_ADMIN
+	ROLE_TEAM_GUEST = &Role{
+		"team_guest",
+		"authentication.roles.team_guest.name",
+		"authentication.roles.team_guest.description",
+		[]string{},
+	}
+	BuiltInRoles[ROLE_TEAM_GUEST.Id] = ROLE_TEAM_GUEST
 
 	ROLE_SYSTEM_USER = &Role{
 		"system_user",
@@ -340,6 +359,7 @@ func InitalizeRoles() {
 							PERMISSION_EDIT_OTHER_USERS.Id,
 							PERMISSION_MANAGE_OAUTH.Id,
 							PERMISSION_INVITE_USER.Id,
+							PERMISSION_INVITE_GUEST.Id,
 						},
 						ROLE_TEAM_USER.Permissions...,
 					),
@@ -351,6 +371,13 @@ func InitalizeRoles() {
 		),
 	}
 	BuiltInRoles[ROLE_SYSTEM_ADMIN.Id] = ROLE_SYSTEM_ADMIN
+	ROLE_SYSTEM_GUEST = &Role{
+		"system_guest",
+		"authentication.roles.system_guest.name",
+		"authentication.roles.system_guest.description",
+		[]string{},
+	}
+	BuiltInRoles[ROLE_SYSTEM_GUEST.Id] = ROLE_SYSTEM_GUEST
 
 }
 

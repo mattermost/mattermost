@@ -53,3 +53,7 @@ export function setChannelAsRead(channelIdParam) {
         ChannelStore.emitLastViewed(Number.MAX_VALUE, false);
     }
 }
+
+export function setLastChannel(team, channel) {
+    ChannelStore.setLastViewedChannel(team, channel);
+}

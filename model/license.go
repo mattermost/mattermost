@@ -45,22 +45,24 @@ type Features struct {
 	PasswordRequirements *bool `json:"password_requirements"`
 	// after we enabled more features for webrtc we'll need to control them with this
 	Webrtc         *bool `json:"webrtc"`
+	GuestAccounts  *bool `json:"guest_accounts"`
 	FutureFeatures *bool `json:"future_features"`
 }
 
 func (f *Features) ToMap() map[string]interface{} {
 	return map[string]interface{}{
-		"ldap":         *f.LDAP,
-		"mfa":          *f.MFA,
-		"google":       *f.GoogleOAuth,
-		"office365":    *f.Office365OAuth,
-		"compliance":   *f.Compliance,
-		"cluster":      *f.Cluster,
-		"custom_brand": *f.CustomBrand,
-		"mhpns":        *f.MHPNS,
-		"saml":         *f.SAML,
-		"password":     *f.PasswordRequirements,
-		"future":       *f.FutureFeatures,
+		"ldap":           *f.LDAP,
+		"mfa":            *f.MFA,
+		"google":         *f.GoogleOAuth,
+		"office365":      *f.Office365OAuth,
+		"compliance":     *f.Compliance,
+		"cluster":        *f.Cluster,
+		"custom_brand":   *f.CustomBrand,
+		"mhpns":          *f.MHPNS,
+		"saml":           *f.SAML,
+		"password":       *f.PasswordRequirements,
+		"guest_accounts": *f.GuestAccounts,
+		"future":         *f.FutureFeatures,
 	}
 }
 
@@ -128,6 +130,11 @@ func (f *Features) SetDefaults() {
 	if f.Webrtc == nil {
 		f.Webrtc = new(bool)
 		*f.Webrtc = *f.FutureFeatures
+	}
+
+	if f.GuestAccounts == nil {
+		f.GuestAccounts = new(bool)
+		*f.GuestAccounts = *f.FutureFeatures
 	}
 }
 

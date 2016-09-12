@@ -7,6 +7,7 @@ import {browserHistory} from 'react-router/es6';
 
 import TeamStore from 'stores/team_store.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
+import * as ChannelActions from 'actions/channel_actions.jsx';
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
@@ -16,6 +17,7 @@ import ChannelStore from 'stores/channel_store.jsx';
 
 import emojiRoute from 'routes/route_emoji.jsx';
 import integrationsRoute from 'routes/route_integrations.jsx';
+import inviteMembersRoute from 'routes/route_invite_members.jsx';
 
 function onChannelEnter(nextState, replace, callback) {
     doChannelChange(nextState, replace, callback);
@@ -39,7 +41,20 @@ function doChannelChange(state, replace, callback) {
                 },
                 () => {
                     if (state.params.team) {
-                        replace('/' + state.params.team + '/channels/town-square');
+                        if (state.params.channel === 'town-square') {
+                            const channels = ChannelStore.getChannels();
+                            if (channels.length > 0) {
+                                replace('/' + state.params.team + '/channels/' + channels[0].name);
+                                ChannelActions.setLastChannel(state.params.team, channels[0].name);
+                            } else {
+                                // You have no channels and are unable to join town-square.
+                                // This shouldn't happen
+                                replace('/');
+                            }
+                        } else {
+                            replace('/' + state.params.team + '/channels/town-square');
+                            ChannelActions.setLastChannel(state.params.team, 'town-square');
+                        }
                     } else {
                         replace('/');
                     }
@@ -49,6 +64,7 @@ function doChannelChange(state, replace, callback) {
             return;
         }
     }
+    ChannelActions.setLastChannel(state.params.team, channel.name);
     GlobalActions.emitChannelClickEvent(channel);
     callback();
 }
@@ -186,7 +202,8 @@ export default {
                         (comarr) => callback(null, {sidebar: comarr[0].default, center: comarr[1].default})
                         );
                     }
-                }
+                },
+                inviteMembersRoute
             ]
         }
     ]
