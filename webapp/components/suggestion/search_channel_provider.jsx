@@ -31,7 +31,7 @@ class SearchChannelSuggestion extends Suggestion {
 
 export default class SearchChannelProvider {
     handlePretextChanged(suggestionId, pretext) {
-        const captured = (/\b(?:in|channel):\s*(\S*)$/i).exec(pretext);
+        const captured = (/\b(?:in|channel):\s*(\S*)$/i).exec(pretext.toLowerCase());
         if (captured) {
             const channelPrefix = captured[1];
 
