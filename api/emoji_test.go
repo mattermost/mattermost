@@ -316,7 +316,7 @@ func createTestPng(t *testing.T, width int, height int) []byte {
 func createTestEmoji(t *testing.T, emoji *model.Emoji, imageData []byte) *model.Emoji {
 	emoji = store.Must(Srv.Store.Emoji().Save(emoji)).(*model.Emoji)
 
-	if err := WriteFile(imageData, "emoji/"+emoji.Id+"/image"); err != nil {
+	if err := utils.WriteFile(imageData, "emoji/"+emoji.Id+"/image"); err != nil {
 		store.Must(Srv.Store.Emoji().Delete(emoji.Id, time.Now().Unix()))
 		t.Fatalf("failed to write image: %v", err.Error())
 	}

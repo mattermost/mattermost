@@ -150,7 +150,7 @@ func uploadEmojiImage(id string, imageData *multipart.FileHeader) *model.AppErro
 		return model.NewLocAppError("uploadEmojiImage", "api.emoji.upload.large_image.app_error", nil, "")
 	}
 
-	if err := WriteFile(buf.Bytes(), getEmojiImagePath(id)); err != nil {
+	if err := utils.WriteFile(buf.Bytes(), getEmojiImagePath(id)); err != nil {
 		return err
 	}
 
@@ -200,7 +200,7 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteEmojiImage(id string) {
-	if err := MoveFile(getEmojiImagePath(id), "emoji/"+id+"/image_deleted"); err != nil {
+	if err := utils.MoveFile(getEmojiImagePath(id), "emoji/"+id+"/image_deleted"); err != nil {
 		l4g.Error("Failed to rename image when deleting emoji %v", id)
 	}
 }
@@ -232,7 +232,7 @@ func getEmojiImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		var img []byte
 
-		if data, err := readFile(getEmojiImagePath(id)); err != nil {
+		if data, err := utils.ReadFile(getEmojiImagePath(id)); err != nil {
 			c.Err = model.NewLocAppError("getEmojiImage", "api.emoji.get_image.read.app_error", nil, err.Error())
 			return
 		} else {
