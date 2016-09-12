@@ -1238,7 +1238,7 @@
   "help.formatting.checklist": "Make a task list by including square brackets:",
   "help.formatting.checklistExample": "- [ ] Item one\n- [ ] Item two\n- [x] Completed item",
   "help.formatting.code": "## Code Block\n\nCreate a code block by indenting each line by four spaces, or by placing ``` on the line above and below your code.",
-  "help.formatting.codeBlock": "code block",
+  "help.formatting.codeBlock": "Code block",
   "help.formatting.emojiExample": ":smile: :+1: :sheep:",
   "help.formatting.emojis": "## Emojis\n\nOpen the emoji autocomplete by typing `:`. A full list of emojis can be found [here](http://www.emoji-cheat-sheet.com/). It is also possible to create your own [Custom Emoji](http://docs.mattermost.com/help/settings/custom-emoji.html) if the emoji you want to use doesn't exist.",
   "help.formatting.example": "Example:",
