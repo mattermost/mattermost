@@ -214,6 +214,7 @@ type TeamSettings struct {
 	RestrictPublicChannelManagement  *string
 	RestrictPrivateChannelManagement *string
 	UserStatusAwayTimeout            *int64
+	EnableGuestAccounts              *bool
 }
 
 type LdapSettings struct {
@@ -491,6 +492,11 @@ func (o *Config) SetDefaults() {
 	if o.TeamSettings.UserStatusAwayTimeout == nil {
 		o.TeamSettings.UserStatusAwayTimeout = new(int64)
 		*o.TeamSettings.UserStatusAwayTimeout = 300
+	}
+
+	if o.TeamSettings.EnableGuestAccounts == nil {
+		o.TeamSettings.EnableGuestAccounts = new(bool)
+		*o.TeamSettings.EnableGuestAccounts = false
 	}
 
 	if o.EmailSettings.EnableSignInWithEmail == nil {

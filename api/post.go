@@ -1372,7 +1372,7 @@ func getPermalinkTmp(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		if !HasPermissionToChannelContext(c, post.ChannelId, model.PERMISSION_READ_CHANNEL) {
 			// If we don't have permissions attempt to join the channel to fix the problem
-			if err, _ := JoinChannelById(c, c.Session.UserId, post.ChannelId); err != nil {
+			if err, _ := JoinChannelById(c, c.Session.UserId, post.ChannelId, model.ROLE_CHANNEL_USER.Id); err != nil {
 				// On error just return with permissions error
 				c.Err = err
 				return

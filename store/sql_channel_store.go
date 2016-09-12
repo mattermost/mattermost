@@ -1035,12 +1035,43 @@ func (s SqlChannelStore) ExtraUpdateByUser(userId string, time int64) StoreChann
 		result := StoreResult{}
 
 		_, err := s.GetMaster().Exec(
-			`UPDATE Channels SET ExtraUpdateAt = :Time
+			`
+			UPDATE 
+				Channels 
+				SET ExtraUpdateAt = :Time
 			WHERE Id IN (SELECT ChannelId FROM ChannelMembers WHERE UserId = :UserId);`,
 			map[string]interface{}{"UserId": userId, "Time": time})
 
 		if err != nil {
 			result.Err = model.NewLocAppError("SqlChannelStore.extraUpdated", "store.sql_channel.extra_updated.app_error", nil, "user_id="+userId+", "+err.Error())
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlChannelStore) PromoteGuest(userId string, teamId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		_, err := s.GetMaster().Exec(
+			`UPDATE
+				ChannelMembers, Channels
+			SET
+				ChannelMembers.Roles = 'channel_user'
+			WHERE
+				Channels.Id = ChannelMembers.ChannelId
+				AND ChannelMembers.UserId = :UserId
+				AND Channels.TeamId = :TeamId`,
+			map[string]interface{}{"UserId": userId, "TeamId": teamId})
+
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlChannelStore.extraUpdated", "store.sql_channel.promote_guest.app_error", nil, "user_id="+userId+", "+err.Error())
 		}
 
 		storeChannel <- result

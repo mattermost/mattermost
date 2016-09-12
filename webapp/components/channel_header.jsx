@@ -194,7 +194,11 @@ export default class ChannelHeader extends React.Component {
         });
     }
 
-    showManagementOptions(channel, isAdmin, isSystemAdmin) {
+    showManagementOptions(channel, isAdmin, isSystemAdmin, isGuest) {
+        if (isGuest) {
+            return false;
+        }
+
         if (global.window.mm_license.IsLicensed !== 'true') {
             return true;
         }
@@ -273,6 +277,7 @@ export default class ChannelHeader extends React.Component {
         let channelTitle = channel.display_name;
         const currentId = this.state.currentUser.id;
         const isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
+        const isGuest = TeamStore.isGuestForCurrentTeam();
         const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
         const isDirect = (this.state.channel.type === 'D');
         let webrtc;
@@ -417,23 +422,25 @@ export default class ChannelHeader extends React.Component {
             );
 
             if (!ChannelStore.isDefault(channel)) {
-                dropdownContents.push(
-                    <li
-                        key='add_members'
-                        role='presentation'
-                    >
-                        <ToggleModalButton
-                            role='menuitem'
-                            dialogType={ChannelInviteModal}
-                            dialogProps={{channel, currentUser: this.state.currentUser}}
+                if (!isGuest) {
+                    dropdownContents.push(
+                        <li
+                            key='add_members'
+                            role='presentation'
                         >
-                            <FormattedMessage
-                                id='chanel_header.addMembers'
-                                defaultMessage='Add Members'
-                            />
-                        </ToggleModalButton>
-                    </li>
-                );
+                            <ToggleModalButton
+                                role='menuitem'
+                                dialogType={ChannelInviteModal}
+                                dialogProps={{channel, currentUser: this.state.currentUser}}
+                            >
+                                <FormattedMessage
+                                    id='chanel_header.addMembers'
+                                    defaultMessage='Add Members'
+                                />
+                            </ToggleModalButton>
+                        </li>
+                    );
+                }
 
                 if (isAdmin) {
                     dropdownContents.push(
@@ -517,7 +524,7 @@ export default class ChannelHeader extends React.Component {
                 </li>
             );
 
-            if (this.showManagementOptions(channel, isAdmin, isSystemAdmin)) {
+            if (this.showManagementOptions(channel, isAdmin, isSystemAdmin, isGuest)) {
                 dropdownContents.push(
                     <li
                         key='set_channel_header'
@@ -581,14 +588,14 @@ export default class ChannelHeader extends React.Component {
                     </li>
                 );
 
-                if (!ChannelStore.isDefault(channel)) {
+                if (!ChannelStore.isDefault(channel) && !isGuest) {
                     dropdownContents.push(deleteOption);
                 }
             } else if (this.state.userCount === 1) {
                 dropdownContents.push(deleteOption);
             }
 
-            const canLeave = channel.type === Constants.PRIVATE_CHANNEL ? this.state.userCount > 1 : true;
+            const canLeave = (channel.type === Constants.PRIVATE_CHANNEL ? this.state.userCount > 1 : true) && !isGuest;
             if (!ChannelStore.isDefault(channel) && canLeave) {
                 dropdownContents.push(
                     <li
@@ -720,6 +727,7 @@ export default class ChannelHeader extends React.Component {
                     onModalDismissed={() => this.setState({showMembersModal: false})}
                     channel={channel}
                     isAdmin={isAdmin}
+                    isGuest={isGuest}
                 />
                 <RenameChannelModal
                     show={this.state.showRenameChannelModal}

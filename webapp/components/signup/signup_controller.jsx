@@ -129,6 +129,11 @@ export default class SignupController extends React.Component {
             if (userLoggedIn) {
                 browserHistory.push('/select_team');
             }
+
+            const parsedData = JSON.parse(data);
+            if (parsedData.channels) {
+                browserHistory.push('/signup_email' + window.location.search);
+            }
         }
     }
 

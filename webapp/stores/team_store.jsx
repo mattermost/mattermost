@@ -182,6 +182,10 @@ class TeamStoreClass extends EventEmitter {
         return this.isTeamAdmin(UserStore.getCurrentId(), this.getCurrentId());
     }
 
+    isGuestForCurrentTeam() {
+        return this.isTeamGuest(UserStore.getCurrentId(), this.getCurrentId());
+    }
+
     isTeamAdmin(userId, teamId) {
         if (!Utils) {
             Utils = require('utils/utils.jsx'); //eslint-disable-line global-require
@@ -192,6 +196,21 @@ class TeamStoreClass extends EventEmitter {
 
         if (teamMember) {
             return Utils.isAdmin(teamMember.roles);
+        }
+
+        return false;
+    }
+
+    isTeamGuest(userId, teamId) {
+        if (!Utils) {
+            Utils = require('utils/utils.jsx'); //eslint-disable-line global-require
+        }
+
+        var teamMembers = this.getTeamMembers();
+        const teamMember = teamMembers.find((m) => m.user_id === userId && m.team_id === teamId);
+
+        if (teamMember) {
+            return Utils.isGuest(teamMember.roles);
         }
 
         return false;

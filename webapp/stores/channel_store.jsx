@@ -57,6 +57,8 @@ class ChannelStoreClass extends EventEmitter {
         this.moreChannels.loading = true;
         this.extraInfos = {};
         this.unreadCounts = {};
+        this.lastViewedChannel = 'town-square';
+        this.lastViewedTeam = '';
     }
 
     get POST_MODE_CHANNEL() {
@@ -380,6 +382,15 @@ class ChannelStoreClass extends EventEmitter {
         }
 
         return channelNamesMap;
+    }
+
+    setLastViewedChannel(team, channel) {
+        this.lastViewedTeam = team;
+        this.lastViewedChannel = channel;
+    }
+
+    getLastViewedChannelURL() {
+        return '/' + this.lastViewedTeam + '/channels/' + this.lastViewedChannel;
     }
 }
 

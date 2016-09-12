@@ -67,6 +67,18 @@ export function isAdmin(roles) {
     return false;
 }
 
+export function isGuest(roles) {
+    if (isInRole(roles, 'team_guest')) {
+        return true;
+    }
+
+    if (isInRole(roles, 'system_guest')) {
+        return true;
+    }
+
+    return false;
+}
+
 export function isSystemAdmin(roles) {
     if (isInRole(roles, 'system_admin')) {
         return true;

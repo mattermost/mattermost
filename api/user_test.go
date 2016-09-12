@@ -1106,6 +1106,42 @@ func TestUserUpdateRolesMoreCases(t *testing.T) {
 	}
 }
 
+func TestPromoteGuest(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+
+	if utils.License.Features.GuestAccounts == nil {
+		utils.License.Features.GuestAccounts = new(bool)
+	}
+	if utils.License.Features.PasswordRequirements == nil {
+		utils.License.Features.PasswordRequirements = new(bool)
+	}
+
+	enableGuestAccounts := *utils.Cfg.TeamSettings.EnableGuestAccounts
+	defer func() {
+		utils.IsLicensed = false
+		*utils.License.Features.GuestAccounts = false
+		*utils.Cfg.TeamSettings.EnableGuestAccounts = enableGuestAccounts
+	}()
+	utils.IsLicensed = true
+	*utils.License.Features.GuestAccounts = true
+	*utils.Cfg.TeamSettings.EnableGuestAccounts = true
+
+	guestUser := th.CreateSingleChannelGuest(th.SystemAdminClient, th.BasicTeam, th.BasicChannel.Id)
+
+	if _, err := th.SystemAdminClient.PromoteGuest(th.BasicTeam.Id, guestUser.Id); err != nil {
+		t.Fatal("Failed to promote guest: " + err.Error())
+	}
+
+	if result, err := th.SystemAdminClient.GetUser(guestUser.Id, ""); err != nil {
+		t.Fatal("Failed to get user")
+	} else {
+		user := result.Data.(*model.User)
+		if user.Roles != model.ROLE_SYSTEM_USER.Id {
+			t.Fatal("Guest did not promote")
+		}
+	}
+}
+
 func TestUserUpdateDeviceId(t *testing.T) {
 	th := Setup()
 	Client := th.CreateClient()

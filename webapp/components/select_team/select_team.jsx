@@ -54,6 +54,7 @@ export default class SelectTeam extends React.Component {
         let teamContents = [];
         const isAlreadyMember = new Map();
         const isSystemAdmin = Utils.isSystemAdmin(UserStore.getCurrentUser().roles);
+        const isGuest = Utils.isGuest(UserStore.getCurrentUser().roles);
         let teamMembersCount = 0;
 
         for (var index in this.state.teamMembers) {
@@ -83,25 +84,27 @@ export default class SelectTeam extends React.Component {
 
         var openTeamContents = [];
 
-        for (var id in this.state.teamListings) {
-            if (this.state.teamListings.hasOwnProperty(id) && !isAlreadyMember[id]) {
-                var openTeam = this.state.teamListings[id];
-                openTeamContents.push(
-                    <div
-                        key={'team_' + openTeam.name}
-                        className='signup-team-dir'
-                    >
-                        <Link
-                            to={`/signup_user_complete/?id=${openTeam.invite_id}`}
+        if (!isGuest) {
+            for (var id in this.state.teamListings) {
+                if (this.state.teamListings.hasOwnProperty(id) && !isAlreadyMember[id]) {
+                    var openTeam = this.state.teamListings[id];
+                    openTeamContents.push(
+                        <div
+                            key={'team_' + openTeam.name}
+                            className='signup-team-dir'
                         >
-                            <span className='signup-team-dir__name'>{openTeam.display_name}</span>
-                            <span
-                                className='fa fa-angle-right right signup-team-dir__arrow'
-                                aria-hidden='true'
-                            />
-                        </Link>
-                    </div>
-                );
+                            <Link
+                                to={`/signup_user_complete/?id=${openTeam.invite_id}`}
+                            >
+                                <span className='signup-team-dir__name'>{openTeam.display_name}</span>
+                                <span
+                                    className='fa fa-angle-right right signup-team-dir__arrow'
+                                    aria-hidden='true'
+                                />
+                            </Link>
+                        </div>
+                    );
+                }
             }
         }
 

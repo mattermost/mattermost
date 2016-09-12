@@ -40,8 +40,8 @@ import LeaveTeamModal from 'components/leave_team_modal.jsx';
 import SelectTeamModal from 'components/admin_console/select_team_modal.jsx';
 
 export default class NeedsTeam extends React.Component {
-    constructor(params) {
-        super(params);
+    constructor(props) {
+        super(props);
 
         this.onTeamChanged = this.onTeamChanged.bind(this);
         this.onPreferencesChanged = this.onPreferencesChanged.bind(this);
@@ -50,7 +50,11 @@ export default class NeedsTeam extends React.Component {
 
         this.state = {
             team,
-            theme: PreferenceStore.getTheme(team.id)
+            theme: PreferenceStore.getTheme(team.id),
+            children: props.children,
+            navbar: props.navbar,
+            sidebar: props.sidebar,
+            center: props.center
         };
     }
 
@@ -79,6 +83,15 @@ export default class NeedsTeam extends React.Component {
         }
     }
 
+    componentWillReceiveProps(nextProps) {
+        this.setState({
+            children: nextProps.children,
+            navbar: nextProps.navbar,
+            sidebar: nextProps.sidebar,
+            center: nextProps.center
+        });
+    }
+
     componentDidMount() {
         TeamStore.addChangeListener(this.onTeamChanged);
         PreferenceStore.addChangeListener(this.onPreferencesChanged);
@@ -101,6 +114,8 @@ export default class NeedsTeam extends React.Component {
         });
 
         Utils.applyTheme(this.state.theme);
+
+        $('body').addClass('app__body');
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -114,18 +129,19 @@ export default class NeedsTeam extends React.Component {
         PreferenceStore.removeChangeListener(this.onPreferencesChanged);
         $(window).off('focus');
         $(window).off('blur');
+        $('body').removeClass('app__body');
     }
 
     render() {
         let content = [];
-        if (this.props.children) {
-            content = this.props.children;
-        } else {
+        if (this.state.children) {
+            content = this.state.children;
+        } else if (this.state.center) {
             content.push(
-                this.props.navbar
+                this.state.navbar
             );
             content.push(
-                this.props.sidebar
+                this.state.sidebar
             );
             content.push(
                 <div
@@ -138,13 +154,15 @@ export default class NeedsTeam extends React.Component {
                         </div>
                     </div>
                     <div className='row main'>
-                        {React.cloneElement(this.props.center, {
+                        {React.cloneElement(this.state.center, {
                             user: this.props.user,
                             team: this.state.team
                         })}
                     </div>
                 </div>
             );
+        } else {
+            content = null;
         }
         return (
             <div className='channel-view'>

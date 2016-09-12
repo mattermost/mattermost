@@ -341,6 +341,10 @@ func getClientConfig(c *model.Config) map[string]string {
 		if *License.Features.Webrtc {
 			props["EnableWebrtc"] = strconv.FormatBool(*c.WebrtcSettings.Enable)
 		}
+
+		if *License.Features.GuestAccounts {
+			props["EnableGuestAccounts"] = strconv.FormatBool(*c.TeamSettings.EnableGuestAccounts)
+		}
 	}
 
 	return props

@@ -40,6 +40,7 @@ func InitUser() {
 	BaseRoutes.Users.Handle("/create", ApiAppHandler(createUser)).Methods("POST")
 	BaseRoutes.Users.Handle("/update", ApiUserRequired(updateUser)).Methods("POST")
 	BaseRoutes.Users.Handle("/update_roles", ApiUserRequired(updateRoles)).Methods("POST")
+	BaseRoutes.Users.Handle("/promote_guest", ApiUserRequired(promoteGuest)).Methods("POST")
 	BaseRoutes.Users.Handle("/update_active", ApiUserRequired(updateActive)).Methods("POST")
 	BaseRoutes.Users.Handle("/update_notify", ApiUserRequired(updateUserNotify)).Methods("POST")
 	BaseRoutes.Users.Handle("/newpassword", ApiUserRequired(updatePassword)).Methods("POST")
@@ -97,6 +98,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	var team *model.Team
 	shouldSendWelcomeEmail := true
 	user.EmailVerified = false
+	var guestChannels []string
 
 	if len(hash) > 0 {
 		data := r.URL.Query().Get("d")
@@ -126,6 +128,10 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		user.Email = props["email"]
 		user.EmailVerified = true
 		shouldSendWelcomeEmail = false
+
+		if channelsString, ok := props["channels"]; ok && utils.IsLicensed {
+			guestChannels = model.ArrayFromJson(strings.NewReader(channelsString))
+		}
 	}
 
 	inviteId := r.URL.Query().Get("iid")
@@ -162,20 +168,49 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ruser, err := CreateUser(user)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	if len(teamId) > 0 {
-		err := JoinUserToTeam(team, ruser)
+	var ruser *model.User
+	if len(guestChannels) > 0 {
+		var err *model.AppError
+		ruser, err = CreateGuestUser(user)
 		if err != nil {
 			c.Err = err
 			return
 		}
 
-		go addDirectChannels(team.Id, ruser)
+		if len(teamId) > 0 {
+			err := JoinUserToTeamAsGuest(team, ruser)
+			if err != nil {
+				c.Err = err
+				return
+			}
+		}
+
+		for _, channelId := range guestChannels {
+			if cresult := <-Srv.Store.Channel().Get(channelId); cresult.Err != nil {
+				c.Err = cresult.Err
+				return
+			} else {
+				channel := cresult.Data.(*model.Channel)
+				AddUserToChannel(ruser, channel, model.ROLE_CHANNEL_GUEST.Id)
+			}
+		}
+	} else {
+		var err *model.AppError
+		ruser, err = CreateUser(user)
+		if err != nil {
+			c.Err = err
+			return
+		}
+
+		if len(teamId) > 0 {
+			err := JoinUserToTeam(team, ruser)
+			if err != nil {
+				c.Err = err
+				return
+			}
+
+			go addDirectChannels(team.Id, ruser)
+		}
 	}
 
 	if shouldSendWelcomeEmail {
@@ -228,21 +263,7 @@ func IsVerifyHashRequired(user *model.User, team *model.Team, hash string) bool 
 	return shouldVerifyHash
 }
 
-func CreateUser(user *model.User) (*model.User, *model.AppError) {
-
-	user.Roles = model.ROLE_SYSTEM_USER.Id
-
-	// Below is a special case where the first user in the entire
-	// system is granted the system_admin role
-	if result := <-Srv.Store.User().GetTotalUsersCount(); result.Err != nil {
-		return nil, result.Err
-	} else {
-		count := result.Data.(int64)
-		if count <= 0 {
-			user.Roles = model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id
-		}
-	}
-
+func doCreateUser(user *model.User) (*model.User, *model.AppError) {
 	user.MakeNonNil()
 	user.Locale = *utils.Cfg.LocalizationSettings.DefaultClientLocale
 
@@ -274,6 +295,31 @@ func CreateUser(user *model.User) (*model.User, *model.AppError) {
 
 		return ruser, nil
 	}
+}
+
+func CreateUser(user *model.User) (*model.User, *model.AppError) {
+
+	user.Roles = model.ROLE_SYSTEM_USER.Id
+
+	// Below is a special case where the first user in the entire
+	// system is granted the system_admin role
+	if result := <-Srv.Store.User().GetTotalUsersCount(); result.Err != nil {
+		return nil, result.Err
+	} else {
+		count := result.Data.(int64)
+		if count <= 0 {
+			user.Roles = model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id
+		}
+	}
+
+	return doCreateUser(user)
+}
+
+func CreateGuestUser(user *model.User) (*model.User, *model.AppError) {
+
+	user.Roles = model.ROLE_SYSTEM_GUEST.Id
+
+	return doCreateUser(user)
 }
 
 func CreateOAuthUser(c *Context, w http.ResponseWriter, r *http.Request, service string, userData io.Reader, teamId string) *model.User {
@@ -1543,6 +1589,84 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	data := make(map[string]string)
 	data["user_id"] = user_id
 	w.Write([]byte(model.MapToJson(data)))
+}
+
+func promoteGuest(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := model.MapFromJson(r.Body)
+	userId := params["user_id"]
+
+	if len(userId) != 26 {
+		c.SetInvalidParam("promoteGuest", "user_id")
+		return
+	}
+
+	teamId := params["team_id"]
+	if len(teamId) != 26 {
+		c.SetInvalidParam("promoteGuest", "team_id")
+		return
+	}
+
+	// Set context TeamId as the team_id in the request cause at this point c.TeamId is empty
+	if len(c.TeamId) == 0 {
+		c.TeamId = teamId
+	}
+
+	tchan := Srv.Store.Team().Get(teamId)
+	uchan := Srv.Store.User().Get(userId)
+
+	var team *model.Team
+	if result := <-tchan; result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		team = result.Data.(*model.Team)
+	}
+
+	var user *model.User
+	if result := <-uchan; result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		user = result.Data.(*model.User)
+	}
+
+	if !HasPermissionToTeamContext(c, team.Id, model.PERMISSION_MANAGE_ROLES) {
+		return
+	}
+
+	// Update user role to system user
+	UpdateUserRoles(c, user, "system_user")
+	if c.Err != nil {
+		return
+	}
+
+	var teamMember model.TeamMember
+	if result := <-Srv.Store.Team().GetMember(team.Id, userId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		teamMember = result.Data.(model.TeamMember)
+		// Since the guest user was probably not added to these, try to join them
+		if err := JoinDefaultChannels(teamMember.TeamId, user, model.ROLE_CHANNEL_USER.Id); err != nil {
+			l4g.Error(utils.T("api.user.create_user.joining.error"), user.Id, team.Id, err)
+		}
+	}
+
+	teamMember.Roles = "team_user"
+
+	if result := <-Srv.Store.Team().UpdateMember(&teamMember); result.Err != nil {
+		c.Err = result.Err
+		return
+	}
+
+	if result := <-Srv.Store.Channel().PromoteGuest(user.Id, team.Id); result.Err != nil {
+		c.Err = result.Err
+		return
+	}
+
+	RemoveAllSessionsForUserId(user.Id)
+
+	w.Write([]byte(model.MapToJson(params)))
 }
 
 func UpdateUserRoles(c *Context, user *model.User, roles string) *model.User {

@@ -1,7 +1,6 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
 import React from 'react';
 
 import ChannelHeader from 'components/channel_header.jsx';
@@ -38,13 +37,9 @@ export default class ChannelView extends React.Component {
     }
     componentDidMount() {
         ChannelStore.addChangeListener(this.updateState);
-
-        $('body').addClass('app__body');
     }
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.updateState);
-
-        $('body').removeClass('app__body');
     }
     componentWillReceiveProps(nextProps) {
         this.setState(this.getStateFromStores(nextProps));
@@ -64,6 +59,7 @@ export default class ChannelView extends React.Component {
         return (
             <div
                 id='app-content'
+                key='channel-view'
                 className='app__content'
             >
                 <FileUploadOverlay overlayType='center'/>
