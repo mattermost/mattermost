@@ -14,9 +14,9 @@ import (
 	"github.com/mattermost/platform/utils"
 	"io"
 	"io/ioutil"
-	// "net/http"
+	"net/http"
 	"os"
-	// "strings"
+	"strings"
 	"testing"
 	"time"
 )
@@ -80,7 +80,7 @@ func TestUploadFile(t *testing.T) {
 	}
 
 	// Wait a bit for files to ready
-	time.Sleep(5 * time.Second)
+	time.Sleep(2 * time.Second)
 
 	if err := cleanupTestFile(info); err != nil {
 		t.Fatal(err)
@@ -125,7 +125,7 @@ func TestGetFileInfo(t *testing.T) {
 	}
 
 	// Wait a bit for files to ready
-	time.Sleep(5 * time.Second)
+	time.Sleep(2 * time.Second)
 
 	// Other user shouldn't be able to get file info for this file before it's attached to a post
 	th.LoginBasic2()
@@ -177,7 +177,7 @@ func TestGetFile(t *testing.T) {
 	info := Client.MustGeneric(Client.GetFileInfo(fileId)).(*model.FileInfo)
 
 	// Wait a bit for files to ready
-	time.Sleep(5 * time.Second)
+	time.Sleep(2 * time.Second)
 
 	if body, err := Client.GetFile(fileId); err != nil {
 		t.Fatal(err)
@@ -261,7 +261,7 @@ func TestGetFileThumbnail(t *testing.T) {
 	info := Client.MustGeneric(Client.GetFileInfo(fileId)).(*model.FileInfo)
 
 	// Wait a bit for files to ready
-	time.Sleep(5 * time.Second)
+	time.Sleep(2 * time.Second)
 
 	if body, err := Client.GetFileThumbnail(fileId); err != nil {
 		t.Fatal(err)
@@ -319,7 +319,7 @@ func TestGetFilePreview(t *testing.T) {
 	info := Client.MustGeneric(Client.GetFileInfo(fileId)).(*model.FileInfo)
 
 	// Wait a bit for files to ready
-	time.Sleep(5 * time.Second)
+	time.Sleep(2 * time.Second)
 
 	if body, err := Client.GetFilePreview(fileId); err != nil {
 		t.Fatal(err)
@@ -356,7 +356,7 @@ func TestGetFilePreview(t *testing.T) {
 	}
 }
 
-func TestGetPublicLink(t *testing.T) {
+func TestGetPublicFile(t *testing.T) {
 	th := Setup().InitBasic()
 
 	if utils.Cfg.FileSettings.DriverName == "" {
@@ -364,10 +364,13 @@ func TestGetPublicLink(t *testing.T) {
 	}
 
 	enablePublicLink := utils.Cfg.FileSettings.EnablePublicLink
+	publicLinkSalt := *utils.Cfg.FileSettings.PublicLinkSalt
 	defer func() {
 		utils.Cfg.FileSettings.EnablePublicLink = enablePublicLink
+		*utils.Cfg.FileSettings.PublicLinkSalt = publicLinkSalt
 	}()
-	utils.Cfg.FileSettings.EnablePublicLink = false
+	utils.Cfg.FileSettings.EnablePublicLink = true
+	*utils.Cfg.FileSettings.PublicLinkSalt = model.NewId()
 
 	Client := th.BasicClient
 	channel := th.BasicChannel
@@ -382,8 +385,149 @@ func TestGetPublicLink(t *testing.T) {
 
 	info := Client.MustGeneric(Client.GetFileInfo(fileId)).(*model.FileInfo)
 
+	// Hacky way to assign file to a post (usually would be done by CreatePost call)
+	store.Must(Srv.Store.FileInfo().AttachToPost(info, th.BasicPost.Id))
+
+	link := Client.MustGeneric(Client.GetPublicLink(fileId)).(string)
+
 	// Wait a bit for files to ready
-	time.Sleep(5 * time.Second)
+	time.Sleep(2 * time.Second)
+
+	if resp, err := http.Get(link); err != nil || resp.StatusCode != http.StatusOK {
+		t.Fatal("failed to get image with public link", err)
+	}
+
+	if resp, err := http.Get(link[:strings.LastIndex(link, "?")]); err == nil && resp.StatusCode != http.StatusBadRequest {
+		t.Fatal("should've failed to get image with public link without hash", resp.Status)
+	}
+
+	utils.Cfg.FileSettings.EnablePublicLink = false
+	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusNotImplemented {
+		t.Fatal("should've failed to get image with disabled public link")
+	}
+
+	utils.Cfg.FileSettings.EnablePublicLink = true
+
+	// test after the salt has changed
+	*utils.Cfg.FileSettings.PublicLinkSalt = model.NewId()
+
+	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusBadRequest {
+		t.Fatal("should've failed to get image with public link after salt changed")
+	}
+
+	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusBadRequest {
+		t.Fatal("should've failed to get image with public link after salt changed")
+	}
+
+	if err := cleanupTestFile(store.Must(Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo)); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestGetPublicFileOld(t *testing.T) {
+	th := Setup().InitBasic()
+
+	if utils.Cfg.FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	enablePublicLink := utils.Cfg.FileSettings.EnablePublicLink
+	publicLinkSalt := *utils.Cfg.FileSettings.PublicLinkSalt
+	defer func() {
+		utils.Cfg.FileSettings.EnablePublicLink = enablePublicLink
+		*utils.Cfg.FileSettings.PublicLinkSalt = publicLinkSalt
+	}()
+	utils.Cfg.FileSettings.EnablePublicLink = true
+	*utils.Cfg.FileSettings.PublicLinkSalt = model.NewId()
+
+	Client := th.BasicClient
+	channel := th.BasicChannel
+
+	var fileId string
+	data, err := readTestFile("test.png")
+	if err != nil {
+		t.Fatal(err)
+	} else {
+		fileId = Client.MustGeneric(Client.UploadPostAttachment(data, channel.Id, "test.png")).(*model.FileUploadResponse).FileIds[0]
+	}
+
+	info := Client.MustGeneric(Client.GetFileInfo(fileId)).(*model.FileInfo)
+
+	// Hacky way to assign file to a post (usually would be done by CreatePost call)
+	store.Must(Srv.Store.FileInfo().AttachToPost(info, th.BasicPost.Id))
+
+	// reconstruct old style of link
+	link := fmt.Sprintf("http://localhost%v/api/v3/public/files/get/%v/%v/%v/%v/test.png",
+		utils.Cfg.ServiceSettings.ListenAddress, th.BasicTeam.Id, channel.Id, th.BasicUser.Id, info.Id)
+
+	// Wait a bit for files to ready
+	time.Sleep(2 * time.Second)
+
+	if resp, err := http.Get(link); err != nil || resp.StatusCode != http.StatusOK {
+		t.Fatal("failed to get image with public link", err)
+	}
+
+	if resp, err := http.Get(link[:strings.LastIndex(link, "?")]); err == nil && resp.StatusCode != http.StatusBadRequest {
+		t.Fatal("should've failed to get image with public link without hash", resp.Status)
+	}
+
+	utils.Cfg.FileSettings.EnablePublicLink = false
+	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusNotImplemented {
+		t.Fatal("should've failed to get image with disabled public link")
+	}
+
+	utils.Cfg.FileSettings.EnablePublicLink = true
+
+	// test after the salt has changed
+	*utils.Cfg.FileSettings.PublicLinkSalt = model.NewId()
+
+	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusBadRequest {
+		t.Fatal("should've failed to get image with public link after salt changed")
+	}
+
+	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusBadRequest {
+		t.Fatal("should've failed to get image with public link after salt changed")
+	}
+
+	if err := cleanupTestFile(store.Must(Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo)); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestGetPublicLink(t *testing.T) {
+	th := Setup().InitBasic()
+
+	if utils.Cfg.FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	enablePublicLink := utils.Cfg.FileSettings.EnablePublicLink
+	defer func() {
+		utils.Cfg.FileSettings.EnablePublicLink = enablePublicLink
+	}()
+	utils.Cfg.FileSettings.EnablePublicLink = true
+
+	Client := th.BasicClient
+	channel := th.BasicChannel
+
+	var fileId string
+	data, err := readTestFile("test.png")
+	if err != nil {
+		t.Fatal(err)
+	} else {
+		fileId = Client.MustGeneric(Client.UploadPostAttachment(data, channel.Id, "test.png")).(*model.FileUploadResponse).FileIds[0]
+	}
+
+	info := Client.MustGeneric(Client.GetFileInfo(fileId)).(*model.FileInfo)
+
+	if _, err := Client.GetPublicLink(fileId); err == nil {
+		t.Fatal("should've failed to get public link before file is attached to a post")
+	}
+
+	// Hacky way to assign file to a post (usually would be done by CreatePost call)
+	store.Must(Srv.Store.FileInfo().AttachToPost(info, th.BasicPost.Id))
+
+	utils.Cfg.FileSettings.EnablePublicLink = false
 
 	if _, err := Client.GetPublicLink(fileId); err == nil {
 		t.Fatal("should've failed to get public link when disabled")
@@ -397,17 +541,9 @@ func TestGetPublicLink(t *testing.T) {
 		t.Fatal("should've received public link")
 	}
 
-	// Other user shouldn't be able to get public link for this file before it's attached to a post
+	// Other user shouldn't be able to get public link for this file if they're not in the channel for it
 	th.LoginBasic2()
 
-	if _, err := Client.GetPublicLink(fileId); err == nil {
-		t.Fatal("other user shouldn't be able to get file before it's attached to a post")
-	}
-
-	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	store.Must(Srv.Store.FileInfo().AttachToPost(info, th.BasicPost.Id))
-
-	// Other user shouldn't be able to get public link for this file if they're not in the channel for it
 	if _, err := Client.GetPublicLink(fileId); err == nil {
 		t.Fatal("other user shouldn't be able to get file when not in channel")
 	}
@@ -420,6 +556,9 @@ func TestGetPublicLink(t *testing.T) {
 	} else if link == "" {
 		t.Fatal("should've received public link")
 	}
+
+	// Wait a bit for files to ready
+	time.Sleep(2 * time.Second)
 
 	if err := cleanupTestFile(store.Must(Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo)); err != nil {
 		t.Fatal(err)
@@ -509,174 +648,3 @@ func cleanupTestFile(info *model.FileInfo) error {
 
 	return nil
 }
-
-/*
-
-func TestGetPublicFile(t *testing.T) {
-	th := Setup().InitBasic()
-	Client := th.BasicClient
-	channel := th.BasicChannel
-
-	enablePublicLink := utils.Cfg.FileSettings.EnablePublicLink
-	driverName := utils.Cfg.FileSettings.DriverName
-	defer func() {
-		utils.Cfg.FileSettings.EnablePublicLink = enablePublicLink
-		utils.Cfg.FileSettings.DriverName = driverName
-	}()
-	utils.Cfg.FileSettings.EnablePublicLink = true
-	if driverName == "" {
-		driverName = model.IMAGE_DRIVER_LOCAL
-	}
-
-	filenames, err := uploadTestFile(Client, channel.Id)
-	if err != nil {
-		t.Fatal("failed to upload test file", err)
-	}
-
-	post1 := &model.Post{ChannelId: channel.Id, Message: "a" + model.NewId() + "a", Filenames: filenames}
-
-	if rpost1, postErr := Client.CreatePost(post1); postErr != nil {
-		t.Fatal(postErr)
-	} else {
-		post1 = rpost1.Data.(*model.Post)
-	}
-
-	var link string
-	if result, err := Client.GetPublicLink(filenames[0]); err != nil {
-		t.Fatal("failed to get public link")
-	} else {
-		link = result.Data.(string)
-	}
-
-	// test a user that's logged in
-	if resp, err := http.Get(link); err != nil && resp.StatusCode != http.StatusOK {
-		t.Fatal("failed to get image with public link while logged in", err)
-	}
-
-	if resp, err := http.Get(link[:strings.LastIndex(link, "?")]); err == nil && resp.StatusCode != http.StatusBadRequest {
-		t.Fatal("should've failed to get image with public link while logged in without hash", resp.Status)
-	}
-
-	utils.Cfg.FileSettings.EnablePublicLink = false
-	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusNotImplemented {
-		t.Fatal("should've failed to get image with disabled public link while logged in")
-	}
-
-	utils.Cfg.FileSettings.EnablePublicLink = true
-
-	// test a user that's logged out
-	Client.Must(Client.Logout())
-
-	if resp, err := http.Get(link); err != nil && resp.StatusCode != http.StatusOK {
-		t.Fatal("failed to get image with public link while not logged in", err)
-	}
-
-	if resp, err := http.Get(link[:strings.LastIndex(link, "?")]); err == nil && resp.StatusCode != http.StatusBadRequest {
-		t.Fatal("should've failed to get image with public link while not logged in without hash")
-	}
-
-	utils.Cfg.FileSettings.EnablePublicLink = false
-	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusNotImplemented {
-		t.Fatal("should've failed to get image with disabled public link while not logged in")
-	}
-
-	utils.Cfg.FileSettings.EnablePublicLink = true
-
-	// test a user that's logged in after the salt has changed
-	*utils.Cfg.FileSettings.PublicLinkSalt = model.NewId()
-
-	th.LoginBasic()
-	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusBadRequest {
-		t.Fatal("should've failed to get image with public link while logged in after salt changed")
-	}
-
-	Client.Must(Client.Logout())
-	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusBadRequest {
-		t.Fatal("should've failed to get image with public link while not logged in after salt changed")
-	}
-
-	if err := cleanupTestFile(filenames[0], th.BasicTeam.Id, channel.Id, th.BasicUser.Id); err != nil {
-		t.Fatal("failed to cleanup test file", err)
-	}
-}
-
-func uploadTestFile(Client *model.Client, channelId string) ([]string, error) {
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-	part, err := writer.CreateFormFile("files", "test.png")
-	if err != nil {
-		return nil, err
-	}
-
-	// base 64 encoded version of handtinywhite.gif from http://probablyprogramming.com/2009/03/15/the-tiniest-gif-ever
-	file, _ := base64.StdEncoding.DecodeString("R0lGODlhAQABAIABAP///wAAACwAAAAAAQABAAACAkQBADs=")
-
-	if _, err := io.Copy(part, bytes.NewReader(file)); err != nil {
-		return nil, err
-	}
-
-	field, err := writer.CreateFormField("channel_id")
-	if err != nil {
-		return nil, err
-	}
-
-	if _, err := field.Write([]byte(channelId)); err != nil {
-		return nil, err
-	}
-
-	if err := writer.Close(); err != nil {
-		return nil, err
-	}
-
-	if resp, err := Client.UploadPostAttachment(body.Bytes(), writer.FormDataContentType()); err != nil {
-		return nil, err
-	} else {
-		return resp.Data.(*model.FileUploadResponse).Filenames, nil
-	}
-}
-
-func cleanupTestFile(fullFilename, teamId, channelId, userId string) error {
-	filenames := strings.Split(fullFilename, "/")
-	filename := filenames[len(filenames)-2] + "/" + filenames[len(filenames)-1]
-	fileId := strings.Split(filename, ".")[0]
-
-	if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
-		// perform clean-up on s3
-		var auth aws.Auth
-		auth.AccessKey = utils.Cfg.FileSettings.AmazonS3AccessKeyId
-		auth.SecretKey = utils.Cfg.FileSettings.AmazonS3SecretAccessKey
-
-		s := s3.New(auth, aws.Regions[utils.Cfg.FileSettings.AmazonS3Region])
-		bucket := s.Bucket(utils.Cfg.FileSettings.AmazonS3Bucket)
-
-		if err := bucket.Del("teams/" + teamId + "/channels/" + channelId + "/users/" + userId + "/" + filename); err != nil {
-			return err
-		}
-
-		if err := bucket.Del("teams/" + teamId + "/channels/" + channelId + "/users/" + userId + "/" + fileId + "_thumb.jpg"); err != nil {
-			return err
-		}
-
-		if err := bucket.Del("teams/" + teamId + "/channels/" + channelId + "/users/" + userId + "/" + fileId + "_preview.jpg"); err != nil {
-			return err
-		}
-	} else {
-		path := utils.Cfg.FileSettings.Directory + "teams/" + teamId + "/channels/" + channelId + "/users/" + userId + "/" + filename
-		if err := os.Remove(path); err != nil {
-			return fmt.Errorf("Couldn't remove file at " + path)
-		}
-
-		path = utils.Cfg.FileSettings.Directory + "teams/" + teamId + "/channels/" + channelId + "/users/" + userId + "/" + fileId + "_thumb.jpg"
-		if err := os.Remove(path); err != nil {
-			return fmt.Errorf("Couldn't remove file at " + path)
-		}
-
-		path = utils.Cfg.FileSettings.Directory + "teams/" + teamId + "/channels/" + channelId + "/users/" + userId + "/" + fileId + "_preview.jpg"
-		if err := os.Remove(path); err != nil {
-			return fmt.Errorf("Couldn't remove file at " + path)
-		}
-	}
-
-	return nil
-}
-*/

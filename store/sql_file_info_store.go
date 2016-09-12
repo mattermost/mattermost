@@ -85,6 +85,34 @@ func (fs SqlFileInfoStore) Get(id string) StoreChannel {
 	return storeChannel
 }
 
+func (fs SqlFileInfoStore) GetByPath(path string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		info := &model.FileInfo{}
+
+		if err := fs.GetReplica().SelectOne(info,
+			`SELECT
+				*
+			FROM
+				FileInfo
+			WHERE
+				Path = :Path
+				AND DeleteAt = 0`, map[string]interface{}{"Path": path}); err != nil {
+			result.Err = model.NewLocAppError("SqlFileInfoStore.GetByPath", "store.sql_file_info.get_by_path.app_error", nil, "path="+path+", "+err.Error())
+		} else {
+			result.Data = info
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (fs SqlFileInfoStore) GetForPost(postId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 

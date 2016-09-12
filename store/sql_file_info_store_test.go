@@ -4,6 +4,7 @@
 package store
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/mattermost/platform/model"
@@ -40,6 +41,41 @@ func TestFileInfoSaveGet(t *testing.T) {
 	})).(*model.FileInfo)
 
 	if result := <-store.FileInfo().Get(info2.Id); result.Err == nil {
+		t.Fatal("shouldn't have gotten deleted file")
+	}
+}
+
+func TestFileInfoSaveGetByPath(t *testing.T) {
+	Setup()
+
+	info := &model.FileInfo{
+		UserId: model.NewId(),
+		Path:   fmt.Sprintf("%v/file.txt", model.NewId()),
+	}
+
+	if result := <-store.FileInfo().Save(info); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if returned := result.Data.(*model.FileInfo); len(returned.Id) == 0 {
+		t.Fatal("should've assigned an id to FileInfo")
+	} else {
+		info = returned
+	}
+
+	if result := <-store.FileInfo().GetByPath(info.Path); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if returned := result.Data.(*model.FileInfo); returned.Id != info.Id {
+		t.Log(info)
+		t.Log(returned)
+		t.Fatal("should've returned correct FileInfo")
+	}
+
+	info2 := Must(store.FileInfo().Save(&model.FileInfo{
+		UserId:   model.NewId(),
+		Path:     "file.txt",
+		DeleteAt: 123,
+	})).(*model.FileInfo)
+
+	if result := <-store.FileInfo().GetByPath(info2.Id); result.Err == nil {
 		t.Fatal("shouldn't have gotten deleted file")
 	}
 }
