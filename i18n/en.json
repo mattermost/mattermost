@@ -1424,6 +1424,14 @@
     "translation": "\r\n Channels Added \r\n"
   },
   {
+    "id": "api.slackimport.slack_parse_channels.error",
+    "translation": "Error parsing slack channels. Import may work anyway."
+  },
+  {
+    "id": "api.slackimport.slack_parse_posts.error",
+    "translation": "Error parsing some slack posts. Import may work anyway."
+  },
+  {
     "id": "api.slackimport.slack_add_channels.failed_to_add_user",
     "translation": "Failed to add user to channel: {{.Username}}\r\n"
   },
@@ -1468,6 +1476,10 @@
     "translation": "Email, Password: {{.Email}}, {{.Password}}\r\n"
   },
   {
+    "id": "api.slackimport.slack_add_users.merge_existing",
+    "translation": "Merged user with existing account: {{.Email}}, {{.Username}}\r\n"
+  },
+  {
     "id": "api.slackimport.slack_add_users.unable_import",
     "translation": "Unable to import user: {{.Username}}\r\n"
   },
@@ -1490,6 +1502,10 @@
   {
     "id": "api.slackimport.slack_import.note2",
     "translation": "- Slack bot posts are currently not supported.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.note3",
+    "translation": "- Additional errors may be found in the server logs.\r\n"
   },
   {
     "id": "api.slackimport.slack_import.notes",

@@ -29,8 +29,8 @@ class TeamImportTab extends React.Component {
         };
     }
 
-    onImportFailure() {
-        this.setState({status: 'fail', link: ''});
+    onImportFailure(e, err, res) {
+        this.setState({status: 'fail', link: 'data:application/octet-stream;charset=utf-8,' + encodeURIComponent(res.text)});
     }
 
     onImportSuccess(data, res) {

@@ -7,11 +7,11 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"io"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
-	"time"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
@@ -896,7 +896,11 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Disposition", "attachment; filename=MattermostImportLog.txt")
 	w.Header().Set("Content-Type", "application/octet-stream")
-	http.ServeContent(w, r, "MattermostImportLog.txt", time.Now(), bytes.NewReader(log.Bytes()))
+	if c.Err != nil {
+		w.WriteHeader(c.Err.StatusCode)
+	}
+	io.Copy(w, bytes.NewReader(log.Bytes()))
+	//http.ServeContent(w, r, "MattermostImportLog.txt", time.Now(), bytes.NewReader(log.Bytes()))
 }
 
 func getInviteInfo(c *Context, w http.ResponseWriter, r *http.Request) {
