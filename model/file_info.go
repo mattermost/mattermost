@@ -27,11 +27,6 @@ type FileInfo struct {
 	MimeType      string `json:"mime_type"`
 	Width         int    `json:"width,omitempty"`
 	Height        int    `json:"height,omitempty"`
-	// Filename        string `json:"filename"`
-	// Size            int    `json:"size"`
-	// Extension       string `json:"extension"`
-	// MimeType        string `json:"mime_type"`
-	// HasPreviewImage bool   `json:"has_preview_image"`
 }
 
 func (info *FileInfo) ToJson() string {
@@ -66,27 +61,29 @@ func (o *FileInfo) PreSave() {
 }
 
 func (o *FileInfo) IsValid() *AppError {
-	/*	if len(o.Id) != 26 {
-			return NewLocAppError("FileInfo.IsValid", "model.file_info.is_valid.id.app_error", nil, "")
-		}
+	if len(o.Id) != 26 {
+		return NewLocAppError("FileInfo.IsValid", "model.file_info.is_valid.id.app_error", nil, "")
+	}
 
-		if len(o.UserId) != 26 {
-			return NewLocAppError("FileInfo.IsValid", "model.file_info.is_valid.user_id.app_error", nil, "")
-		}
+	if len(o.UserId) != 26 {
+		return NewLocAppError("FileInfo.IsValid", "model.file_info.is_valid.user_id.app_error", nil, "id="+o.Id)
+	}
 
-		if len(o.PostId) != 0 && len(o.PostId) != 26 {
-			return NewLocAppError("FileInfo.IsValid", "model.file_info.is_valid.post_id.app_error", nil, "")
-		}
+	if len(o.PostId) != 0 && len(o.PostId) != 26 {
+		return NewLocAppError("FileInfo.IsValid", "model.file_info.is_valid.post_id.app_error", nil, "id="+o.Id)
+	}
 
-		if o.CreateAt == 0 {
-			return NewLocAppError("FileInfo.IsValid", "model.file_info.is_valid.create_at.app_error", nil, "id="+o.Id)
-		}
+	if o.CreateAt == 0 {
+		return NewLocAppError("FileInfo.IsValid", "model.file_info.is_valid.create_at.app_error", nil, "id="+o.Id)
+	}
 
-		if o.UpdateAt == 0 {
-			return NewLocAppError("FileInfo.IsValid", "model.file_info.is_valid.update_at.app_error", nil, "id="+o.Id)
-		}*/
+	if o.UpdateAt == 0 {
+		return NewLocAppError("FileInfo.IsValid", "model.file_info.is_valid.update_at.app_error", nil, "id="+o.Id)
+	}
 
-	// TODO
+	if o.Path == "" {
+		return NewLocAppError("FileInfo.IsValid", "model.file_info.is_valid.path.app_error", nil, "id="+o.Id)
+	}
 
 	return nil
 }

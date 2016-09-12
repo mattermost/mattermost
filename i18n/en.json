@@ -834,10 +834,6 @@
     "translation": "File exceeds max image size."
   },
   {
-    "id": "api.file.get_file.not_found.app_error",
-    "translation": "Could not find file."
-  },
-  {
     "id": "api.file.get_file.public_disabled.app_error",
     "translation": "Public links have been disabled by the system administrator"
   },
@@ -850,8 +846,36 @@
     "translation": "Public links have been disabled"
   },
   {
+    "id": "api.file.get_public_link.no_post.app_error",
+    "translation": "Unable to get public link for file. File must be attached to a post that can be read by the current user."
+  },
+  {
+    "id": "api.file.get_file_preview.no_thumbnail.app_error",
+    "translation": "File doesn't have a preview image"
+  },
+  {
+    "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
+    "translation": "File doesn't have a thumbnail image"
+  },
+  {
+    "id": "api.file.get_public_file_old.storage.app_error",
+    "translation": "Unable to get file. Image storage is not configured."
+  },
+  {
+    "id": "api.file.get_public_file_old.storage.app_error",
+    "translation": "Unable to get file. Image storage is not configured."
+  },
+  {
+    "id": "api.file.get_info_for_request.no_post.app_error",
+    "translation": "Unable to get info for file. File must be attached to a post that can be read by the current user."
+  },
+  {
+    "id": "api.file.get_info_for_request.storage.app_error",
+    "translation": "Unable to get info for file. Image storage is not configured."
+  },
+  {
     "id": "api.file.handle_images_forget.decode.error",
-    "translation": "Unable to decode image path=%v err=%v"
+    "translation": "Unable to decode image err=%v"
   },
   {
     "id": "api.file.handle_images_forget.encode_jpeg.error",
@@ -4076,6 +4100,30 @@
     "translation": "We couldn't save the emoji"
   },
   {
+    "id": "store.sql_file_info.attach_to_post.app_error",
+    "translation": "We couldn't attach the file info to the post"
+  },
+  {
+    "id": "store.sql_file_info.delete_for_post.app_error",
+    "translation": "We couldn't delete the file info to the post"
+  },
+  {
+    "id": "store.sql_file_info.get.app_error",
+    "translation": "We couldn't get the file info"
+  },
+  {
+    "id": "store.sql_file_info.get_by_path.app_error",
+    "translation": "We couldn't get the file info by path"
+  },
+  {
+    "id": "store.sql_file_info.get_for_post.app_error",
+    "translation": "We couldn't get the file info for the post"
+  },
+  {
+    "id": "store.sql_file_info.save.app_error",
+    "translation": "We couldn't save the file info"
+  },
+  {
     "id": "store.sql_license.get.app_error",
     "translation": "We encountered an error getting the license"
   },
@@ -4198,6 +4246,10 @@
   {
     "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
     "translation": "We couldn't get user counts with posts"
+  },
+  {
+    "id": "store.sql_post.check_permissions.app_error",
+    "translation": "We couldn't check the permissions"
   },
   {
     "id": "store.sql_post.delete.app_error",

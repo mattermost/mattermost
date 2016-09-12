@@ -5,7 +5,6 @@ package api
 
 import (
 	"bytes"
-	// "encoding/base64"
 	"fmt"
 	"github.com/goamz/goamz/aws"
 	"github.com/goamz/goamz/s3"
@@ -457,14 +456,17 @@ func TestGetPublicFileOld(t *testing.T) {
 	store.Must(Srv.Store.FileInfo().AttachToPost(info, th.BasicPost.Id))
 
 	// reconstruct old style of link
-	link := fmt.Sprintf("http://localhost%v/api/v3/public/files/get/%v/%v/%v/%v/test.png",
-		utils.Cfg.ServiceSettings.ListenAddress, th.BasicTeam.Id, channel.Id, th.BasicUser.Id, info.Id)
+	siteURL := *utils.Cfg.ServiceSettings.SiteURL
+	if siteURL == "" {
+		siteURL = "http://localhost:8065"
+	}
+	link := generatePublicLinkOld(siteURL, th.BasicTeam.Id, channel.Id, th.BasicUser.Id, info.Id+"/test.png")
 
 	// Wait a bit for files to ready
 	time.Sleep(2 * time.Second)
 
 	if resp, err := http.Get(link); err != nil || resp.StatusCode != http.StatusOK {
-		t.Fatal("failed to get image with public link", err)
+		t.Fatal("failed to get image with public link", resp)
 	}
 
 	if resp, err := http.Get(link[:strings.LastIndex(link, "?")]); err == nil && resp.StatusCode != http.StatusBadRequest {
@@ -492,6 +494,11 @@ func TestGetPublicFileOld(t *testing.T) {
 	if err := cleanupTestFile(store.Must(Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo)); err != nil {
 		t.Fatal(err)
 	}
+}
+
+func generatePublicLinkOld(siteURL, teamId, channelId, userId, filename string) string {
+	hash := generatePublicLinkHash(filename, *utils.Cfg.FileSettings.PublicLinkSalt)
+	return fmt.Sprintf("%s%s/public/files/get/%s/%s/%s/%s?h=%s", siteURL, model.API_URL_SUFFIX, teamId, channelId, userId, filename, hash)
 }
 
 func TestGetPublicLink(t *testing.T) {

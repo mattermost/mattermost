@@ -500,43 +500,6 @@ func getPublicFileOld(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getFileData(teamId string, channelId string, userId string, filename string) (*model.AppError, []byte) {
-	if len(utils.Cfg.FileSettings.DriverName) == 0 {
-		err := model.NewLocAppError("getFileData", "api.file.upload_file.storage.app_error", nil, "")
-		err.StatusCode = http.StatusNotImplemented
-		return err, nil
-	}
-
-	if len(teamId) != 26 {
-		return NewInvalidParamError("getFileData", "team_id"), nil
-	}
-
-	if len(channelId) != 26 {
-		return NewInvalidParamError("getFileData", "channel_id"), nil
-	}
-
-	if len(userId) != 26 {
-		return NewInvalidParamError("getFileData", "user_id"), nil
-	}
-
-	if len(filename) == 0 {
-		return NewInvalidParamError("getFileData", "filename"), nil
-	}
-
-	path := "teams/" + teamId + "/channels/" + channelId + "/users/" + userId + "/" + filename
-
-	fileChan := make(chan []byte)
-	//go readFile(path, fileChan)
-
-	if bytes := <-fileChan; bytes == nil {
-		err := model.NewLocAppError("writeFileResponse", "api.file.get_file.not_found.app_error", nil, "path="+path)
-		err.StatusCode = http.StatusNotFound
-		return err, nil
-	} else {
-		return nil, bytes
-	}
-}
-
 func writeFileResponse(filename string, bytes []byte, w http.ResponseWriter, r *http.Request) *model.AppError {
 	w.Header().Set("Cache-Control", "max-age=2592000, public")
 	w.Header().Set("Content-Length", strconv.Itoa(len(bytes)))
