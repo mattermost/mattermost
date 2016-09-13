@@ -1,7 +1,6 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
 import NavbarDropdown from './navbar_dropdown.jsx';
 import 'bootstrap';
 
@@ -49,7 +48,13 @@ export default class SidebarHeader extends React.Component {
             this.refs.dropdown.blockToggle = false;
             return;
         }
-        $('.team__header').find('.dropdown-toggle').dropdown('toggle');
+        const menu = document.querySelector('.team__header .dropdown-toggle');
+        const isOpen = menu.parentElement.classList.toggle('open');
+        menu.setAttribute('aria-expanded', isOpen);
+
+        if (!isOpen) {
+            document.querySelector('.sidebar--left .dropdown-menu').scrollTop = 0;
+        }
     }
     render() {
         var me = this.props.currentUser;
@@ -100,6 +105,7 @@ export default class SidebarHeader extends React.Component {
                     teamDisplayName={this.props.teamDisplayName}
                     teamName={this.props.teamName}
                     currentUser={this.props.currentUser}
+                    toggleDropdown={this.toggleDropdown}
                 />
             </div>
         );

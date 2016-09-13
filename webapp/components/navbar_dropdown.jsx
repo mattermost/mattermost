@@ -1,8 +1,6 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
-import ReactDOM from 'react-dom';
 import * as Utils from 'utils/utils.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 
@@ -49,14 +47,6 @@ export default class NavbarDropdown extends React.Component {
     }
 
     componentDidMount() {
-        $(ReactDOM.findDOMNode(this.refs.dropdown)).on('hide.bs.dropdown', () => {
-            $('.sidebar--left .dropdown-menu').scrollTop(0);
-            this.blockToggle = true;
-            setTimeout(() => {
-                this.blockToggle = false;
-            }, 100);
-        });
-
         TeamStore.addChangeListener(this.onTeamChange);
         document.addEventListener('keydown', this.openAccountSettings);
     }
@@ -69,7 +59,6 @@ export default class NavbarDropdown extends React.Component {
     }
 
     componentWillUnmount() {
-        $(ReactDOM.findDOMNode(this.refs.dropdown)).off('hide.bs.dropdown');
         TeamStore.removeChangeListener(this.onTeamChange);
         document.removeEventListener('keydown', this.openAccountSettings);
     }
@@ -363,9 +352,8 @@ export default class NavbarDropdown extends React.Component {
                     <a
                         href='#'
                         className='dropdown-toggle'
-                        data-toggle='dropdown'
                         role='button'
-                        aria-expanded='false'
+                        onClick={this.props.toggleDropdown}
                     >
                         <span
                             className='dropdown__icon'
@@ -449,5 +437,6 @@ NavbarDropdown.propTypes = {
     teamType: React.PropTypes.string,
     teamDisplayName: React.PropTypes.string,
     teamName: React.PropTypes.string,
-    currentUser: React.PropTypes.object
+    currentUser: React.PropTypes.object,
+    toggleDropdown: React.PropTypes.function
 };
