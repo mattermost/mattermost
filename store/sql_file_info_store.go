@@ -128,7 +128,9 @@ func (fs SqlFileInfoStore) GetForPost(postId string) StoreChannel {
 				FileInfo
 			WHERE
 				PostId = :PostId
-				AND DeleteAt = 0`, map[string]interface{}{"PostId": postId}); err != nil {
+				AND DeleteAt = 0
+			ORDER BY
+				CreateAt`, map[string]interface{}{"PostId": postId}); err != nil {
 			result.Err = model.NewLocAppError("SqlFileInfoStore.GetForPost",
 				"store.sql_file_info.get_for_post.app_error", nil, "post_id="+postId+", "+err.Error())
 		} else {

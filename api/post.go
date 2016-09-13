@@ -49,6 +49,7 @@ func InitPost() {
 	BaseRoutes.NeedPost.Handle("/delete", ApiUserRequired(deletePost)).Methods("POST")
 	BaseRoutes.NeedPost.Handle("/before/{offset:[0-9]+}/{num_posts:[0-9]+}", ApiUserRequired(getPostsBefore)).Methods("GET")
 	BaseRoutes.NeedPost.Handle("/after/{offset:[0-9]+}/{num_posts:[0-9]+}", ApiUserRequired(getPostsAfter)).Methods("GET")
+	BaseRoutes.NeedPost.Handle("/get_files", ApiUserRequired(getPostFiles)).Methods("GET")
 }
 
 func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -897,7 +898,7 @@ func sendNotificationEmail(c *Context, post *model.Post, user *model.User, chann
 }
 
 func getMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
-	if len(strings.TrimSpace(post.Message)) != 0 || len(post.FileIds) == 0 {
+	if len(strings.TrimSpace(post.Message)) != 0 || !post.HasFiles {
 		return post.Message
 	}
 
@@ -1564,4 +1565,42 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.Write([]byte(posts.ToJson()))
+}
+
+func getPostFiles(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+
+	channelId := params["channel_id"]
+	if len(channelId) != 26 {
+		c.SetInvalidParam("getPostFiles", "channelId")
+		return
+	}
+
+	postId := params["post_id"]
+	if len(postId) != 26 {
+		c.SetInvalidParam("getPostFiles", "postId")
+		return
+	}
+
+	cchan := Srv.Store.Channel().CheckPermissionsToNoTeam(channelId, c.Session.UserId)
+	fchan := Srv.Store.FileInfo().GetForPost(postId)
+
+	if !c.HasPermissionsToChannel(cchan, "getPostFiles") {
+		return
+	}
+
+	if result := <-fchan; result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		infos := result.Data.([]*model.FileInfo)
+		etag := model.GetEtagForFileInfos(infos)
+
+		if HandleEtag(etag, w, r) {
+			return
+		} else {
+			w.Header().Set(model.HEADER_ETAG_SERVER, etag)
+			w.Write([]byte(model.FileInfosToJson(infos)))
+		}
+	}
 }

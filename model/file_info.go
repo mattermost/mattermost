@@ -50,6 +50,26 @@ func FileInfoFromJson(data io.Reader) *FileInfo {
 	}
 }
 
+func FileInfosToJson(infos []*FileInfo) string {
+	b, err := json.Marshal(infos)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
+func FileInfosFromJson(data io.Reader) []*FileInfo {
+	decoder := json.NewDecoder(data)
+
+	var infos []*FileInfo
+	if err := decoder.Decode(&infos); err != nil {
+		return nil
+	} else {
+		return infos
+	}
+}
+
 func (o *FileInfo) PreSave() {
 	if o.Id == "" {
 		o.Id = NewId()
@@ -111,4 +131,16 @@ func GetInfoForBytes(name string, data []byte) (*FileInfo, *image.Config) {
 	} else {
 		return info, nil
 	}
+}
+
+func GetEtagForFileInfos(infos []*FileInfo) string {
+	var maxUpdateAt int64
+
+	for _, info := range infos {
+		if info.UpdateAt > maxUpdateAt {
+			maxUpdateAt = info.UpdateAt
+		}
+	}
+
+	return Etag(infos[0].PostId, maxUpdateAt)
 }
