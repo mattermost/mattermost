@@ -34,7 +34,7 @@ type CompliancePost struct {
 	PostType       string
 	PostProps      string
 	PostHashtags   string
-	PostFilenames  string
+	PostHasFiles   string
 }
 
 func CompliancePostHeader() []string {
@@ -60,7 +60,7 @@ func CompliancePostHeader() []string {
 		"PostType",
 		"PostProps",
 		"PostHashtags",
-		"PostFilenames",
+		"PostHasFiles",
 	}
 }
 
@@ -99,6 +99,6 @@ func (me *CompliancePost) Row() []string {
 		me.PostType,
 		me.PostProps,
 		me.PostHashtags,
-		me.PostFilenames,
+		me.PostHasFiles,
 	}
 }

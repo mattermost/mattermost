@@ -136,8 +136,10 @@ func TestFileInfoAttachToPost(t *testing.T) {
 		t.Fatal("file shouldn't have a PostId")
 	}
 
-	if result := <-store.FileInfo().AttachToPost(info1, postId); result.Err != nil {
+	if result := <-store.FileInfo().AttachToPost(info1.Id, postId); result.Err != nil {
 		t.Fatal(result.Err)
+	} else {
+		info1 = Must(store.FileInfo().Get(info1.Id)).(*model.FileInfo)
 	}
 
 	if len(info1.PostId) == 0 {
@@ -149,8 +151,10 @@ func TestFileInfoAttachToPost(t *testing.T) {
 		Path:   "file.txt",
 	})).(*model.FileInfo)
 
-	if result := <-store.FileInfo().AttachToPost(info2, postId); result.Err != nil {
+	if result := <-store.FileInfo().AttachToPost(info2.Id, postId); result.Err != nil {
 		t.Fatal(result.Err)
+	} else {
+		info2 = Must(store.FileInfo().Get(info2.Id)).(*model.FileInfo)
 	}
 
 	if result := <-store.FileInfo().GetForPost(postId); result.Err != nil {

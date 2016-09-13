@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 )
 
@@ -23,15 +24,12 @@ func TestCreatePost(t *testing.T) {
 	Client := th.BasicClient
 	team := th.BasicTeam
 	team2 := th.CreateTeam(th.BasicClient)
-	user1 := th.BasicUser
 	user3 := th.CreateUser(th.BasicClient)
 	LinkUserToTeam(user3, team2)
 	channel1 := th.BasicChannel
 	channel2 := th.CreateChannel(Client, team)
 
-	filenames := []string{"/12345678901234567890123456/12345678901234567890123456/12345678901234567890123456/test.png", "/" + channel1.Id + "/" + user1.Id + "/test.png", "www.mattermost.com/fake/url", "junk"}
-
-	post1 := &model.Post{ChannelId: channel1.Id, Message: "#hashtag a" + model.NewId() + "a", Filenames: filenames}
+	post1 := &model.Post{ChannelId: channel1.Id, Message: "#hashtag a" + model.NewId() + "a"}
 	rpost1, err := Client.CreatePost(post1)
 	if err != nil {
 		t.Fatal(err)
@@ -45,8 +43,8 @@ func TestCreatePost(t *testing.T) {
 		t.Fatal("hashtag didn't match")
 	}
 
-	if len(rpost1.Data.(*model.Post).Filenames) != 2 {
-		t.Fatal("filenames didn't parse correctly")
+	if rpost1.Data.(*model.Post).HasFiles {
+		t.Fatal("shouldn't have files")
 	}
 
 	post2 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a", RootId: rpost1.Data.(*model.Post).Id}
@@ -108,6 +106,32 @@ func TestCreatePost(t *testing.T) {
 
 	if _, err = Client.DoApiPost("/channels/"+channel3.Id+"/create", "garbage"); err == nil {
 		t.Fatal("should have been an error")
+	}
+
+	fileIds := make([]string, 3, 3)
+	if data, err := readTestFile("test.png"); err != nil {
+		t.Fatal(err)
+	} else {
+		for i := 0; i < 3; i++ {
+			fileIds[i] = Client.MustGeneric(Client.UploadPostAttachment(data, channel1.Id, "test.png")).(*model.FileUploadResponse).FileIds[0]
+		}
+	}
+
+	post9 := &model.Post{
+		ChannelId: channel1.Id,
+		Message:   "test",
+		FileIds:   fileIds,
+	}
+	if resp, err := Client.CreatePost(post9); err != nil {
+		t.Fatal(err)
+	} else if rpost9 := resp.Data.(*model.Post); !rpost9.HasFiles {
+		t.Fatal("should've set HasFiles to true")
+	} else {
+		infos := store.Must(Srv.Store.FileInfo().GetForPost(rpost9.Id)).([]*model.FileInfo)
+
+		if len(infos) != 3 {
+			t.Fatal("should've attached all 3 files to post")
+		}
 	}
 }
 

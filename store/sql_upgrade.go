@@ -4,6 +4,9 @@
 package store
 
 import (
+	"encoding/json"
+	"fmt"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -186,100 +189,172 @@ func UpgradeDatabaseToVersion34(sqlStore *SqlStore) {
 
 		saveSchemaVersion(sqlStore, VERSION_3_4_0)
 	}
+}
 
-	// do the actual upgrade
-	// if sqlStore.DoesColumnExist("Posts", "Filenames") {
-	// 	// copy any non-direct channel attachments into the Files table
-	// 	for {
-	// 		var postFiles []*struct{
-	// 			Id        string
-	// 			UserId    string
-	// 			ChannelId string // TODO remove me?
-	// 			TeamId    string
-	// 			CreateAt  string
-	// 			UpdateAt  string
-	// 			Filenames []string
-	// 		}
+func UpgradeDatabaseToVersion35(sqlStore *SqlStore) {
+	// if shouldPerformUpgrade(sqlStore, VERSION_3_4_0, VERSION_3_5_0) {
+	sqlStore.CreateColumnIfNotExists("Posts", "HasFiles", "tinyint", "boolean", "0")
 
-	// 		if _, err := sqlStore.GetMaster().Select(&postFiles,
-	// 			`SELECT
-	// 				Posts.Id,
-	// 				Posts.UserId,
-	// 				Channels.TeamId,
-	// 				Posts.ChannelId
-	// 				Posts.CreateAt,
-	// 				Posts.UpdateAt,
-	// 				Posts.Filenames
-	// 			FROM
-	// 				Posts
-	// 				Channels
-	// 			WHERE
-	// 				Posts.ChannelId = Channels.Id,
-	// 				AND Posts.Filenames != ''
-	// 				AND Channels.TeamId != ''
-	// 			LIMIT
-	// 				1000
-	// 			ORDER BY
-	// 				Posts.Id`); err != nil {
-	// 			// TODO
-	// 			panic(err)
-	// 		}
+	if sqlStore.DoesColumnExist("Posts", "Filenames") {
+		l4g.Warn(utils.T("store.sql.upgrade.files35.start.warn"))
+		for {
+			// Declare a new struct since model.Post no longer has the Filenames field
+			var posts []*struct {
+				Id           string
+				UserId       string
+				ChannelId    string
+				TeamId       string
+				CreateAt     int64
+				UpdateAt     int64
+				DeleteAt     int64
+				Filenames    []string
+				RawFilenames []byte // Gorp has a difficult time parsing string arrays sometimes, so do it manually
+			}
 
-	// 		if len(postFiles) == 0 {
-	// 			break
-	// 		}
+			// Handle this 1000 posts at a time
+			if _, err := sqlStore.GetMaster().Select(&posts,
+				`SELECT
+					Posts.Id as Id,
+					Posts.UserId as UserId,
+					Posts.ChannelId as ChannelId,
+					Channels.TeamId as TeamId,
+					Posts.CreateAt as CreateAt,
+					Posts.UpdateAt as UpdateAt,
+					Posts.DeleteAt as DeleteAt,
+					Posts.Filenames as RawFilenames
+				FROM
+					Posts,
+					Channels
+				WHERE
+					Posts.ChannelId = Channels.Id
+					AND Posts.HasFiles = false
+					AND Posts.Filenames != ''
+				ORDER BY
+					Posts.Id
+				LIMIT
+					1000`); err != nil {
+				panic(err)
+			}
 
-	// 		files := make([]*FileInfo, 0, len(postFiles) * 5)
+			if len(posts) == 0 {
+				// Nothing else to do
+				l4g.Warn(utils.T("store.sql.upgrade.files35.posts_complete.warn"))
+				break
+			}
 
-	// 		for postFile := range postFiles {
-	// 			for filename := range postFile.Filenames {
-	// 				// filename is of the form /{channelId}/{userId}/{uid}/{nameWithExtension}
-	// 				split := strings.SplitN(filename, "/", 5)
-	// 				channelId := split[1]
-	// 				userId := split[2]
-	// 				uid := split[3]
-	// 				name := split[4]
+			for _, post := range posts {
+				filesMigrated := false
 
-	// 				// TODO remove me before merging
-	// 				if split[0] != "" || split[1] != postFile.ChannelId || split[2] != postFile.UserId || strings.Contains(split[4], "/") {
-	// 					panic("unexpected filename `" + filename + "` for post " + postFile.Id)
-	// 				}
+				json.Unmarshal(post.RawFilenames, &post.Filenames)
 
-	// 				files = append(files, &model.File{
-	// 					Id: id,
-	// 					UserId: postFile.UserId,
-	// 					PostId: postFile.Id,
-	// 					CreateAt: postFile.CreateAt,
-	// 					UpdateAt: postFile.UpdateAt,
-	// 					Path: "teams/" + postFile.TeamId + "/channels/" + channelId + "/users/" + userId + "/" + uid + "/" + name,
-	// 					Name: name
-	// 					// other fields will be initialized lazily
-	// 				})
-	// 			}
-	// 		}
+				// Only bother creating entries for non-deleted posts since the files for previously deleted posts have already been renamed
+				if post.DeleteAt == 0 {
+					// Find the team that was used to make this post
+					teamId := post.TeamId
+					if teamId == "" {
+						// Just assume all files on this post are on the same team, even though it's remotely possible they're not
+						// if someone really wanted to mess with us
+						split := strings.SplitN(post.Filenames[0], "/", 5)
+						id := split[3]
+						name, _ := url.QueryUnescape(split[4])
 
-	// 		if err := sqlStore.GetMaster().Insert(&files) {
-	// 			panic(err)
-	// 		}
+						// This post is in a direct channel so we need to figure out where the files are located
+						if result := <-sqlStore.Team().GetTeamsByUserId(post.UserId); result.Err != nil {
+							l4g.Error(utils.T("store.sql.upgrade.files35.teams.error"), post.UserId, result.Err)
+						} else {
+							teams := result.Data.([]*model.Team)
 
-	// 		if _, err := sqlStore.GetMaster().Exec(
-	// 			`UPDATE
-	// 				Posts
-	// 			SET
-	// 				Filenames = ''
-	// 			WHERE
-	// 				Filenames != ''
-	// 				AND (SELECT TeamId FROM Channels WHERE Posts.ChannelId = Channels.Id) != ''
-	// 			LIMIT
-	// 				1000
-	// 			ORDER BY
-	// 				Id`); err != nil {
-	// 			// TODO
-	// 			panic(err)
-	// 		}
-	// 	}
+							for _, team := range teams {
+								l4g.Debug("id is %v", id)
+								l4g.Debug("name is %v", name)
+								l4g.Debug(fmt.Sprintf("teams/%s/channels/%s/users/%s/%s/%s", team.Id, post.ChannelId, post.UserId, id, name))
+								if _, err := utils.ReadFile(fmt.Sprintf("teams/%s/channels/%s/users/%s/%s/%s", team.Id, post.ChannelId, post.UserId, id, name)); err == nil {
+									// Found the team that this file was posted from
+									teamId = team.Id
+									l4g.Debug("got team for DM channel %v", post.ChannelId)
+									break
+								}
+							}
 
-	// }
+							if teamId == "" {
+								l4g.Error(utils.T("store.sql.upgrade.files35.post_team.error"), post.Id, post.ChannelId)
+							}
+						}
+					}
+
+					if teamId != "" {
+						// Insert FileInfo objects for this post
+						for _, filename := range post.Filenames {
+							// Filename is of the form /{channelId}/{userId}/{uid}/{nameWithExtension}
+							split := strings.SplitN(filename, "/", 5)
+							channelId := split[1]
+							userId := split[2]
+							id := split[3]
+							name, _ := url.QueryUnescape(split[4])
+
+							// TODO remove me before merging
+							if split[0] != "" || split[1] != post.ChannelId || split[2] != post.UserId || strings.Contains(split[4], "/") {
+								l4g.Debug("found post with unusual filename %v")
+							}
+
+							pathPrefix := fmt.Sprintf("teams/%s/channels/%s/users/%s/%s/", teamId, channelId, userId, id)
+							path := pathPrefix + name
+
+							if data, err := utils.ReadFile(path); err != nil {
+								l4g.Error(utils.T("store.sql.upgrade.files35.file.error"), path, err)
+							} else {
+								info, _ := model.GetInfoForBytes(name, data)
+
+								info.Id = id
+								info.UserId = post.UserId
+								info.PostId = post.Id
+								info.CreateAt = post.CreateAt
+								info.UpdateAt = post.UpdateAt
+
+								info.Path = path
+								if info.IsImage() {
+									nameWithoutExtension := name[:strings.LastIndex(name, ".")]
+									info.PreviewPath = pathPrefix + nameWithoutExtension + "_preview.jpg"
+									info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb.jpg"
+								}
+
+								if result := <-sqlStore.FileInfo().Save(info); result.Err != nil {
+									l4g.Error(utils.T("store.sql.upgrade.files35.save_file_info.error"), post.Id, filename, err)
+								} else {
+									l4g.Debug("row created")
+									filesMigrated = true
+								}
+							}
+						}
+					} else {
+						l4g.Warn(utils.T("Unable to link files to updated post, post_id=%v", post.Id))
+					}
+				} else {
+					l4g.Warn("Not creating file entries for deleted post, post_id=%v", post.Id)
+				}
+
+				// Update Posts to clear Filenames and set HasFiles
+				if _, err := sqlStore.GetMaster().Exec(
+					`UPDATE
+						Posts
+					SET
+						HasFiles = :HasFiles,
+						Filenames = ''
+					WHERE
+						Id = :PostId`, map[string]interface{}{"HasFiles": filesMigrated, "PostId": post.Id}); err != nil {
+					l4g.Error("Failed to update post to remove references to old files, post_id=%v, err=%v", post.Id, err)
+
+					// Panic here since failing to update a post means that this will run forever on the same one
+					panic(true)
+				}
+			}
+
+			l4g.Warn(utils.T("store.sql.upgrade.files35.batch_complete.warn"))
+		}
+
+		sqlStore.RemoveColumnIfExists("Posts", "Filenames")
+		l4g.Debug("column deleted")
+	}
 }
 
 func UpgradeDatabaseToVersion35(sqlStore *SqlStore) {

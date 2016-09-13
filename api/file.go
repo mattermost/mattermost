@@ -14,13 +14,10 @@ import (
 	_ "image/gif"
 	"image/jpeg"
 	"io"
-	"io/ioutil"
 	"net/http"
-	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
-	"time"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/disintegration/imaging"

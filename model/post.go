@@ -35,7 +35,7 @@ type Post struct {
 	Type          string          `json:"type"`
 	Props         StringInterface `json:"props"`
 	Hashtags      string          `json:"hashtags"`
-	Filenames     StringArray     `json:"filenames"`
+	HasFiles      bool            `json:"has_files"`
 	FileIds       []string        `json:"file_ids" db:"-"`
 	PendingPostId string          `json:"pending_post_id" db:"-"`
 }
@@ -115,10 +115,6 @@ func (o *Post) IsValid() *AppError {
 		return NewLocAppError("Post.IsValid", "model.post.is_valid.type.app_error", nil, "id="+o.Type)
 	}
 
-	if utf8.RuneCountInString(ArrayToJson(o.Filenames)) > 4000 {
-		return NewLocAppError("Post.IsValid", "model.post.is_valid.filenames.app_error", nil, "id="+o.Id)
-	}
-
 	if utf8.RuneCountInString(StringInterfaceToJson(o.Props)) > 8000 {
 		return NewLocAppError("Post.IsValid", "model.post.is_valid.props.app_error", nil, "id="+o.Id)
 	}
@@ -143,17 +139,14 @@ func (o *Post) PreSave() {
 		o.Props = make(map[string]interface{})
 	}
 
-	if o.Filenames == nil {
-		o.Filenames = []string{}
+	if len(o.FileIds) != 0 {
+		o.HasFiles = true
 	}
 }
 
 func (o *Post) MakeNonNil() {
 	if o.Props == nil {
 		o.Props = make(map[string]interface{})
-	}
-	if o.Filenames == nil {
-		o.Filenames = []string{}
 	}
 }
 

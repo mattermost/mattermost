@@ -10,6 +10,7 @@ import (
 	"io"
 	"mime"
 	"path/filepath"
+	"strings"
 )
 
 type FileInfo struct {
@@ -86,6 +87,10 @@ func (o *FileInfo) IsValid() *AppError {
 	}
 
 	return nil
+}
+
+func (o *FileInfo) IsImage() bool {
+	return strings.HasPrefix(o.MimeType, "image")
 }
 
 func GetInfoForBytes(name string, data []byte) (*FileInfo, *image.Config) {

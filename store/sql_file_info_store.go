@@ -32,7 +32,7 @@ func (fs SqlFileInfoStore) CreateIndexesIfNotExists() {
 }
 
 func (fs SqlFileInfoStore) Save(info *model.FileInfo) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -58,7 +58,7 @@ func (fs SqlFileInfoStore) Save(info *model.FileInfo) StoreChannel {
 }
 
 func (fs SqlFileInfoStore) Get(id string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -86,7 +86,7 @@ func (fs SqlFileInfoStore) Get(id string) StoreChannel {
 }
 
 func (fs SqlFileInfoStore) GetByPath(path string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -114,7 +114,7 @@ func (fs SqlFileInfoStore) GetByPath(path string) StoreChannel {
 }
 
 func (fs SqlFileInfoStore) GetForPost(postId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -142,13 +142,11 @@ func (fs SqlFileInfoStore) GetForPost(postId string) StoreChannel {
 	return storeChannel
 }
 
-func (fs SqlFileInfoStore) AttachToPost(info *model.FileInfo, postId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+func (fs SqlFileInfoStore) AttachToPost(fileId, postId string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
-
-		info.PostId = postId
 
 		if _, err := fs.GetMaster().Exec(
 			`UPDATE
@@ -156,11 +154,10 @@ func (fs SqlFileInfoStore) AttachToPost(info *model.FileInfo, postId string) Sto
 				SET
 					PostId = :PostId
 				WHERE
-					Id = :Id`, map[string]interface{}{"PostId": postId, "Id": info.Id}); err != nil {
+					Id = :Id
+					AND PostId = ''`, map[string]interface{}{"PostId": postId, "Id": fileId}); err != nil {
 			result.Err = model.NewLocAppError("SqlFileInfoStore.AttachToPost",
-				"store.sql_file_info.attach_to_post.app_error", nil, "post_id="+postId+", file_id="+info.Id+", err="+err.Error())
-		} else {
-			result.Data = info
+				"store.sql_file_info.attach_to_post.app_error", nil, "post_id="+postId+", file_id="+fileId+", err="+err.Error())
 		}
 
 		storeChannel <- result
@@ -171,7 +168,7 @@ func (fs SqlFileInfoStore) AttachToPost(info *model.FileInfo, postId string) Sto
 }
 
 func (fs SqlFileInfoStore) DeleteForPost(postId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}

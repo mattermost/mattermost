@@ -135,38 +135,7 @@ func CreatePost(c *Context, post *model.Post, triggerWebhooks bool) (*model.Post
 
 	post.Hashtags, _ = model.ParseHashtags(post.Message)
 
-	if len(post.Filenames) > 0 {
-		doRemove := false
-		for i := len(post.Filenames) - 1; i >= 0; i-- {
-			path := post.Filenames[i]
-
-			doRemove = false
-			if model.UrlRegex.MatchString(path) {
-				continue
-			} else if model.PartialUrlRegex.MatchString(path) {
-				matches := model.PartialUrlRegex.FindAllStringSubmatch(path, -1)
-				if len(matches) == 0 || len(matches[0]) < 4 {
-					doRemove = true
-				}
-
-				channelId := matches[0][1]
-				if channelId != post.ChannelId {
-					doRemove = true
-				}
-
-				userId := matches[0][2]
-				if userId != post.UserId {
-					doRemove = true
-				}
-			} else {
-				doRemove = true
-			}
-			if doRemove {
-				l4g.Error(utils.T("api.post.create_post.bad_filename.error"), path)
-				post.Filenames = append(post.Filenames[:i], post.Filenames[i+1:]...)
-			}
-		}
-	}
+	post.HasFiles = len(post.FileIds) > 0
 
 	var rpost *model.Post
 	if result := <-Srv.Store.Post().Save(post); result.Err != nil {
@@ -175,6 +144,14 @@ func CreatePost(c *Context, post *model.Post, triggerWebhooks bool) (*model.Post
 		rpost = result.Data.(*model.Post)
 
 		go handlePostEvents(c, rpost, triggerWebhooks)
+	}
+
+	if len(post.FileIds) > 0 {
+		for _, fileId := range post.FileIds {
+			if result := <-Srv.Store.FileInfo().AttachToPost(fileId, post.Id); result.Err != nil {
+				l4g.Error(utils.T("api.post.create_post.attach_files.error"), post.Id, post.FileIds, c.Session.UserId, result.Err)
+			}
+		}
 	}
 
 	return rpost, nil
@@ -566,6 +543,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 	pchan := Srv.Store.User().GetProfiles(c.TeamId)
 	dpchan := Srv.Store.User().GetDirectProfiles(c.Session.UserId)
 	mchan := Srv.Store.Channel().GetMembers(post.ChannelId)
+	fchan := Srv.Store.FileInfo().GetForPost(post.Id)
 
 	var profileMap map[string]*model.User
 	if result := <-pchan; result.Err != nil {
@@ -785,12 +763,16 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 	message.Add("sender_name", senderName)
 	message.Add("team_id", team.Id)
 
-	if len(post.Filenames) != 0 {
+	if len(post.FileIds) != 0 {
 		message.Add("otherFile", "true")
 
-		for _, filename := range post.Filenames {
-			ext := filepath.Ext(filename)
-			if model.IsFileExtImage(ext) {
+		var infos []*model.FileInfo
+		if result := <-fchan; result.Err != nil {
+			l4g.Warn(utils.T("api.post.send_notifications.files.error"), post.Id, result.Err)
+		}
+
+		for _, info := range infos {
+			if info.IsImage() {
 				message.Add("image", "true")
 				break
 			}
@@ -915,22 +897,29 @@ func sendNotificationEmail(c *Context, post *model.Post, user *model.User, chann
 }
 
 func getMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
-	if len(strings.TrimSpace(post.Message)) != 0 || len(post.Filenames) == 0 {
+	if len(strings.TrimSpace(post.Message)) != 0 || len(post.FileIds) == 0 {
 		return post.Message
 	}
 
 	// extract the filenames from their paths and determine what type of files are attached
-	filenames := make([]string, len(post.Filenames))
+	var infos []*model.FileInfo
+	if result := <-Srv.Store.FileInfo().GetForPost(post.Id); result.Err != nil {
+		l4g.Warn(utils.T("api.post.get_message_for_notification.get_files.error"), post.Id, result.Err)
+	} else {
+		infos = result.Data.([]*model.FileInfo)
+	}
+
+	filenames := make([]string, len(infos))
 	onlyImages := true
-	for i, filename := range post.Filenames {
-		var err error
-		if filenames[i], err = url.QueryUnescape(filepath.Base(filename)); err != nil {
+	for i, info := range infos {
+		if escaped, err := url.QueryUnescape(filepath.Base(info.Name)); err != nil {
 			// this should never error since filepath was escaped using url.QueryEscape
-			filenames[i] = filepath.Base(filename)
+			filenames[i] = escaped
+		} else {
+			filenames[i] = info.Name
 		}
 
-		ext := filepath.Ext(filename)
-		onlyImages = onlyImages && model.IsFileExtImage(ext)
+		onlyImages = onlyImages && info.IsImage()
 	}
 
 	props := map[string]interface{}{"Filenames": strings.Join(filenames, ", ")}
@@ -1098,9 +1087,6 @@ func SendEphemeralPost(teamId, userId string, post *model.Post) {
 	}
 	if post.Props == nil {
 		post.Props = model.StringInterface{}
-	}
-	if post.Filenames == nil {
-		post.Filenames = []string{}
 	}
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE, "", post.ChannelId, userId, nil)
@@ -1449,7 +1435,7 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		message.Add("post", post.ToJson())
 
 		go Publish(message)
-		go DeletePostFiles(c.TeamId, post)
+		go DeletePostFiles(post)
 		go DeleteFlaggedPost(c.Session.UserId, post)
 
 		result := make(map[string]string)
@@ -1465,17 +1451,13 @@ func DeleteFlaggedPost(userId string, post *model.Post) {
 	}
 }
 
-func DeletePostFiles(teamId string, post *model.Post) {
-	if len(post.Filenames) == 0 {
+func DeletePostFiles(post *model.Post) {
+	if !post.HasFiles {
 		return
 	}
 
-	prefix := "teams/" + teamId + "/channels/" + post.ChannelId + "/users/" + post.UserId + "/"
-	for _, filename := range post.Filenames {
-		splitUrl := strings.Split(filename, "/")
-		oldPath := prefix + splitUrl[len(splitUrl)-2] + "/" + splitUrl[len(splitUrl)-1]
-		newPath := prefix + splitUrl[len(splitUrl)-2] + "/deleted_" + splitUrl[len(splitUrl)-1]
-		MoveFile(oldPath, newPath)
+	if result := <-Srv.Store.FileInfo().DeleteForPost(post.Id); result.Err != nil {
+		l4g.Warn(utils.T("api.post.delete_post_files.app_error.warn"), post.Id, result.Err)
 	}
 }
 

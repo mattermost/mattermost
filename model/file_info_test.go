@@ -28,19 +28,19 @@ func TestFileInfoIsValid(t *testing.T) {
 
 	info.Id = ""
 	if err := info.IsValid(); err == nil {
-		t.Fatal()
+		t.Fatal("empty Id isn't valid")
 	}
 
 	info.Id = NewId()
 	info.CreateAt = 0
 	if err := info.IsValid(); err == nil {
-		t.Fatal()
+		t.Fatal("empty CreateAt isn't valid")
 	}
 
 	info.CreateAt = 1234
 	info.UpdateAt = 0
 	if err := info.IsValid(); err == nil {
-		t.Fatal()
+		t.Fatal("empty UpdateAt isn't valid")
 	}
 
 	info.UpdateAt = 1234
@@ -51,12 +51,27 @@ func TestFileInfoIsValid(t *testing.T) {
 
 	info.Path = ""
 	if err := info.IsValid(); err == nil {
-		t.Fatal()
+		t.Fatal("empty Path isn't valid")
 	}
 
 	info.Path = "fake/path.png"
 	if err := info.IsValid(); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestFileInfoIsImage(t *testing.T) {
+	info := &FileInfo{
+		MimeType: "image/png",
+	}
+
+	if !info.IsImage() {
+		t.Fatal("file is an image")
+	}
+
+	info.MimeType = "text/plain"
+	if info.IsImage() {
+		t.Fatal("file is not an image")
 	}
 }
 

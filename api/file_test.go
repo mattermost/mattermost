@@ -134,7 +134,7 @@ func TestGetFileInfo(t *testing.T) {
 	}
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	store.Must(Srv.Store.FileInfo().AttachToPost(info, th.BasicPost.Id))
+	store.Must(Srv.Store.FileInfo().AttachToPost(info.Id, th.BasicPost.Id))
 
 	// Other user shouldn't be able to get file info for this file if they're not in the channel for it
 	if _, err := Client.GetFileInfo(fileId); err == nil {
@@ -205,7 +205,7 @@ func TestGetFile(t *testing.T) {
 	}
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	store.Must(Srv.Store.FileInfo().AttachToPost(info, th.BasicPost.Id))
+	store.Must(Srv.Store.FileInfo().AttachToPost(info.Id, th.BasicPost.Id))
 
 	// Other user shouldn't be able to get file for this file if they're not in the channel for it
 	if _, err := Client.GetFile(fileId); err == nil {
@@ -276,7 +276,7 @@ func TestGetFileThumbnail(t *testing.T) {
 	}
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	store.Must(Srv.Store.FileInfo().AttachToPost(info, th.BasicPost.Id))
+	store.Must(Srv.Store.FileInfo().AttachToPost(info.Id, th.BasicPost.Id))
 
 	// Other user shouldn't be able to get thumbnail for this file if they're not in the channel for it
 	if _, err := Client.GetFileThumbnail(fileId); err == nil {
@@ -334,7 +334,7 @@ func TestGetFilePreview(t *testing.T) {
 	}
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	store.Must(Srv.Store.FileInfo().AttachToPost(info, th.BasicPost.Id))
+	store.Must(Srv.Store.FileInfo().AttachToPost(info.Id, th.BasicPost.Id))
 
 	// Other user shouldn't be able to get preview for this file if they're not in the channel for it
 	if _, err := Client.GetFilePreview(fileId); err == nil {
@@ -385,7 +385,7 @@ func TestGetPublicFile(t *testing.T) {
 	info := Client.MustGeneric(Client.GetFileInfo(fileId)).(*model.FileInfo)
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	store.Must(Srv.Store.FileInfo().AttachToPost(info, th.BasicPost.Id))
+	store.Must(Srv.Store.FileInfo().AttachToPost(info.Id, th.BasicPost.Id))
 
 	link := Client.MustGeneric(Client.GetPublicLink(fileId)).(string)
 
@@ -453,7 +453,7 @@ func TestGetPublicFileOld(t *testing.T) {
 	info := Client.MustGeneric(Client.GetFileInfo(fileId)).(*model.FileInfo)
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	store.Must(Srv.Store.FileInfo().AttachToPost(info, th.BasicPost.Id))
+	store.Must(Srv.Store.FileInfo().AttachToPost(info.Id, th.BasicPost.Id))
 
 	// reconstruct old style of link
 	siteURL := *utils.Cfg.ServiceSettings.SiteURL
@@ -532,7 +532,7 @@ func TestGetPublicLink(t *testing.T) {
 	}
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	store.Must(Srv.Store.FileInfo().AttachToPost(info, th.BasicPost.Id))
+	store.Must(Srv.Store.FileInfo().AttachToPost(info.Id, th.BasicPost.Id))
 
 	utils.Cfg.FileSettings.EnablePublicLink = false
 

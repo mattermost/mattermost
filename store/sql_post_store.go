@@ -31,7 +31,6 @@ func NewSqlPostStore(sqlStore *SqlStore) PostStore {
 		table.ColMap("Type").SetMaxSize(26)
 		table.ColMap("Hashtags").SetMaxSize(1000)
 		table.ColMap("Props").SetMaxSize(8000)
-		table.ColMap("Filenames").SetMaxSize(4000)
 	}
 
 	return s
@@ -972,7 +971,7 @@ func (s SqlPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, mustH
 		}
 
 		if mustHaveFile {
-			query += " AND Posts.Filenames != '[]'"
+			query += " AND Posts.HasFiles = true"
 		}
 
 		if mustHaveHashtag {
