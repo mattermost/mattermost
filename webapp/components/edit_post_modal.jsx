@@ -4,6 +4,7 @@
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import Client from 'client/web_client.jsx';
+import * as UserAgent from 'utils/user_agent.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import Textbox from './textbox.jsx';
@@ -94,7 +95,7 @@ export default class EditPostModal extends React.Component {
     }
 
     handleEditKeyPress(e) {
-        if (!this.state.ctrlSend && e.which === KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
+        if (!UserAgent.isMobileApp() && !this.state.ctrlSend && e.which === KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
             e.preventDefault();
             ReactDOM.findDOMNode(this.refs.editbox).blur();
             this.handleEdit();
