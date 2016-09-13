@@ -195,14 +195,12 @@ func CreateWebhookPost(c *Context, channelId, text, overrideUsername, overrideIc
 					// parse attachment links into Markdown format
 					for i, aInt := range list {
 						attachment := aInt.(map[string]interface{})
-						if _, ok := attachment["text"]; ok {
-							aText := attachment["text"].(string)
+						if aText, ok := attachment["text"].(string); ok {
 							aText = linkWithTextRegex.ReplaceAllString(aText, "[${2}](${1})")
 							attachment["text"] = aText
 							list[i] = attachment
 						}
-						if _, ok := attachment["pretext"]; ok {
-							aText := attachment["pretext"].(string)
+						if aText, ok := attachment["pretext"].(string); ok {
 							aText = linkWithTextRegex.ReplaceAllString(aText, "[${2}](${1})")
 							attachment["pretext"] = aText
 							list[i] = attachment
@@ -212,8 +210,7 @@ func CreateWebhookPost(c *Context, channelId, text, overrideUsername, overrideIc
 								// parse attachment field links into Markdown format
 								for j, fInt := range fields {
 									field := fInt.(map[string]interface{})
-									if _, ok := field["value"]; ok {
-										fValue := field["value"].(string)
+									if fValue, ok := field["value"].(string); ok {
 										fValue = linkWithTextRegex.ReplaceAllString(fValue, "[${2}](${1})")
 										field["value"] = fValue
 										fields[j] = field
