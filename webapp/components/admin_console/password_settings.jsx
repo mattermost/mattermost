@@ -23,6 +23,7 @@ export default class PasswordSettings extends AdminSettings {
         this.getSampleErrorMsg = this.getSampleErrorMsg.bind(this);
 
         this.handlePasswordLengthChange = this.handlePasswordLengthChange.bind(this);
+        this.handleCheckboxChange = this.handleCheckboxChange.bind(this);
 
         this.state = Object.assign(this.state, {
             passwordMinimumLength: props.config.PasswordSettings.MinimumLength,
@@ -136,6 +137,11 @@ export default class PasswordSettings extends AdminSettings {
         this.handleChange(id, value);
     }
 
+    handleCheckboxChange(id, value) {
+        this.sampleErrorMsg = this.getSampleErrorMsg(this.state.passwordMinimumLength);
+        this.handleChange(id, value);
+    }
+
     renderTitle() {
         return (
             <h3>
@@ -212,7 +218,7 @@ export default class PasswordSettings extends AdminSettings {
                                     ref='lowercase'
                                     defaultChecked={this.state.passwordLowercase}
                                     name='admin.password.lowercase'
-                                    onChange={this.handleChange}
+                                    onChange={this.handleCheckboxChange}
                                 />
                                 <FormattedMessage
                                     id='admin.password.lowercase'
@@ -227,7 +233,7 @@ export default class PasswordSettings extends AdminSettings {
                                     ref='uppercase'
                                     defaultChecked={this.state.passwordUppercase}
                                     name='admin.password.uppercase'
-                                    onChange={this.handleChange}
+                                    onChange={this.handleCheckboxChange}
                                 />
                                 <FormattedMessage
                                     id='admin.password.uppercase'
@@ -242,7 +248,7 @@ export default class PasswordSettings extends AdminSettings {
                                     ref='number'
                                     defaultChecked={this.state.passwordNumber}
                                     name='admin.password.number'
-                                    onChange={this.handleChange}
+                                    onChange={this.handleCheckboxChange}
                                 />
                                 <FormattedMessage
                                     id='admin.password.number'
@@ -257,7 +263,7 @@ export default class PasswordSettings extends AdminSettings {
                                     ref='symbol'
                                     defaultChecked={this.state.passwordSymbol}
                                     name='admin.password.symbol'
-                                    onChange={this.handleChange}
+                                    onChange={this.handleCheckboxChange}
                                 />
                                 <FormattedMessage
                                     id='admin.password.symbol'
