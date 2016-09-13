@@ -146,7 +146,7 @@ export function doFocusPost(channelId, postId, data) {
     AsyncClient.getPostsAfter(postId, 0, Constants.POST_FOCUS_CONTEXT_RADIUS, true);
 }
 
-export function emitPostFocusEvent(postId) {
+export function emitPostFocusEvent(postId, onSuccess) {
     AsyncClient.getChannels(true);
     Client.getPermalinkTmp(
         postId,
@@ -156,9 +156,21 @@ export function emitPostFocusEvent(postId) {
             }
             const channelId = data.posts[data.order[0]].channel_id;
             doFocusPost(channelId, postId, data);
+
+            if (onSuccess) {
+                onSuccess();
+            }
         },
         () => {
-            browserHistory.push('/error?message=' + encodeURIComponent(Utils.localizeMessage('permalink.error.access', 'Permalink belongs to a deleted message or to a channel to which you do not have access.')));
+            let link = `${TeamStore.getCurrentTeamRelativeUrl()}/channels/`;
+            const channel = ChannelStore.getCurrent();
+            if (channel) {
+                link += channel.name;
+            } else {
+                link += 'town-square';
+            }
+
+            browserHistory.push('/error?message=' + encodeURIComponent(Utils.localizeMessage('permalink.error.access', 'Permalink belongs to a deleted message or to a channel to which you do not have access.')) + '&link=' + encodeURIComponent(link));
         }
     );
 }
