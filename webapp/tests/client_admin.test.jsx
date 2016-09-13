@@ -15,7 +15,7 @@ describe('Client.Admin', function() {
                     done(new Error('should need system admin permissions'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.context.system_permissions.app_error');
+                    assert.equal(err.id, 'api.context.permissions.app_error');
                     done();
                 }
             );
@@ -30,7 +30,7 @@ describe('Client.Admin', function() {
                     done(new Error('should need system admin permissions'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.context.system_permissions.app_error');
+                    assert.equal(err.id, 'api.context.permissions.app_error');
                     done();
                 }
             );
@@ -45,7 +45,7 @@ describe('Client.Admin', function() {
                     done(new Error('should need system admin permissions'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.context.system_permissions.app_error');
+                    assert.equal(err.id, 'api.context.permissions.app_error');
                     done();
                 }
             );
@@ -69,7 +69,7 @@ describe('Client.Admin', function() {
                     done(new Error('should need system admin permissions'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.context.system_permissions.app_error');
+                    assert.equal(err.id, 'api.context.permissions.app_error');
                     done();
                 }
             );
@@ -84,7 +84,7 @@ describe('Client.Admin', function() {
                     done(new Error('should need system admin permissions'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.context.system_permissions.app_error');
+                    assert.equal(err.id, 'api.context.permissions.app_error');
                     done();
                 }
             );
@@ -99,7 +99,7 @@ describe('Client.Admin', function() {
                     done(new Error('should need system admin permissions'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.context.system_permissions.app_error');
+                    assert.equal(err.id, 'api.context.permissions.app_error');
                     done();
                 }
             );
@@ -114,7 +114,7 @@ describe('Client.Admin', function() {
                     done(new Error('should need system admin permissions'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.context.system_permissions.app_error');
+                    assert.equal(err.id, 'api.context.permissions.app_error');
                     done();
                 }
             );
@@ -131,7 +131,7 @@ describe('Client.Admin', function() {
                     done(new Error('should need system admin permissions'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.context.system_permissions.app_error');
+                    assert.equal(err.id, 'api.context.permissions.app_error');
                     done();
                 }
             );
@@ -148,7 +148,7 @@ describe('Client.Admin', function() {
                     done(new Error('should need system admin permissions'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.context.system_permissions.app_error');
+                    assert.equal(err.id, 'api.context.permissions.app_error');
                     done();
                 }
             );
@@ -167,7 +167,7 @@ describe('Client.Admin', function() {
                     done(new Error('should need system admin permissions'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.context.system_permissions.app_error');
+                    assert.equal(err.id, 'api.context.permissions.app_error');
                     done();
                 }
             );
@@ -186,7 +186,7 @@ describe('Client.Admin', function() {
                     done(new Error('should need system admin permissions'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.context.system_permissions.app_error');
+                    assert.equal(err.id, 'api.context.permissions.app_error');
                     done();
                 }
             );

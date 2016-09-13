@@ -8,26 +8,6 @@ import (
 	"testing"
 )
 
-func TestContext(t *testing.T) {
-	context := Context{}
-
-	context.IpAddress = "127.0.0.1"
-	context.Session.UserId = "5"
-
-	if !context.HasPermissionsToUser("5", "") {
-		t.Fatal("should have permissions")
-	}
-
-	if context.HasPermissionsToUser("6", "") {
-		t.Fatal("shouldn't have permissions")
-	}
-
-	context.Session.Roles = model.ROLE_SYSTEM_ADMIN
-	if !context.HasPermissionsToUser("6", "") {
-		t.Fatal("should have permissions")
-	}
-}
-
 func TestCache(t *testing.T) {
 	session := &model.Session{
 		Id:     model.NewId(),

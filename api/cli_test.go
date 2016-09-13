@@ -118,7 +118,7 @@ func TestCliAssignRole(t *testing.T) {
 
 	th := Setup().InitBasic()
 
-	cmd := exec.Command("bash", "-c", `go run ../mattermost.go -assign_role -email="`+th.BasicUser.Email+`" -role="system_admin"`)
+	cmd := exec.Command("bash", "-c", `go run ../mattermost.go -assign_role -email="`+th.BasicUser.Email+`" -role="system_user system_admin"`)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Log(string(output))
@@ -129,7 +129,7 @@ func TestCliAssignRole(t *testing.T) {
 		t.Fatal()
 	} else {
 		user := result.Data.(*model.User)
-		if user.Roles != "system_admin" {
+		if user.Roles != "system_user system_admin" {
 			t.Fatal()
 		}
 	}

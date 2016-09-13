@@ -26,9 +26,11 @@ func TestCreateIncomingHook(t *testing.T) {
 	defer func() {
 		utils.Cfg.ServiceSettings.EnableIncomingWebhooks = enableIncomingHooks
 		utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = enableAdminOnlyHooks
+		utils.SetDefaultRolesBasedOnConfig()
 	}()
 	utils.Cfg.ServiceSettings.EnableIncomingWebhooks = true
 	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = true
+	utils.SetDefaultRolesBasedOnConfig()
 
 	hook := &model.IncomingWebhook{ChannelId: channel1.Id}
 
@@ -85,7 +87,17 @@ func TestCreateIncomingHook(t *testing.T) {
 		t.Fatal("should have failed - not system/team admin")
 	}
 
+	Client.Logout()
+	UpdateUserToTeamAdmin(user2, team)
+	Client.Must(Client.LoginById(user2.Id, user2.Password))
+	Client.SetTeamId(team.Id)
+
+	if _, err := Client.CreateIncomingWebhook(hook); err != nil {
+		t.Fatal(err)
+	}
+
 	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+	utils.SetDefaultRolesBasedOnConfig()
 
 	if _, err := Client.CreateIncomingWebhook(hook); err != nil {
 		t.Fatal(err)
@@ -117,9 +129,11 @@ func TestListIncomingHooks(t *testing.T) {
 	defer func() {
 		utils.Cfg.ServiceSettings.EnableIncomingWebhooks = enableIncomingHooks
 		utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = enableAdminOnlyHooks
+		utils.SetDefaultRolesBasedOnConfig()
 	}()
 	utils.Cfg.ServiceSettings.EnableIncomingWebhooks = true
 	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = true
+	utils.SetDefaultRolesBasedOnConfig()
 
 	hook1 := &model.IncomingWebhook{ChannelId: channel1.Id}
 	hook1 = Client.Must(Client.CreateIncomingWebhook(hook1)).Data.(*model.IncomingWebhook)
@@ -146,6 +160,7 @@ func TestListIncomingHooks(t *testing.T) {
 	}
 
 	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+	utils.SetDefaultRolesBasedOnConfig()
 
 	if _, err := Client.ListIncomingWebhooks(); err != nil {
 		t.Fatal(err)
@@ -171,9 +186,11 @@ func TestDeleteIncomingHook(t *testing.T) {
 	defer func() {
 		utils.Cfg.ServiceSettings.EnableIncomingWebhooks = enableIncomingHooks
 		utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = enableAdminOnlyHooks
+		utils.SetDefaultRolesBasedOnConfig()
 	}()
 	utils.Cfg.ServiceSettings.EnableIncomingWebhooks = true
 	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = true
+	utils.SetDefaultRolesBasedOnConfig()
 
 	hook := &model.IncomingWebhook{ChannelId: channel1.Id}
 	hook = Client.Must(Client.CreateIncomingWebhook(hook)).Data.(*model.IncomingWebhook)
@@ -207,6 +224,7 @@ func TestDeleteIncomingHook(t *testing.T) {
 	}
 
 	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+	utils.SetDefaultRolesBasedOnConfig()
 
 	if _, err := Client.DeleteIncomingWebhook(hook.Id); err == nil {
 		t.Fatal("should have failed - not creator or team admin")
@@ -244,9 +262,11 @@ func TestCreateOutgoingHook(t *testing.T) {
 	defer func() {
 		utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingHooks
 		utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = enableAdminOnlyHooks
+		utils.SetDefaultRolesBasedOnConfig()
 	}()
 	utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = true
 	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = true
+	utils.SetDefaultRolesBasedOnConfig()
 
 	hook := &model.OutgoingWebhook{ChannelId: channel1.Id, CallbackURLs: []string{"http://nowhere.com"}}
 
@@ -317,6 +337,7 @@ func TestCreateOutgoingHook(t *testing.T) {
 	}
 
 	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+	utils.SetDefaultRolesBasedOnConfig()
 
 	if _, err := Client.CreateOutgoingWebhook(hook); err != nil {
 		t.Fatal(err)
@@ -350,9 +371,11 @@ func TestListOutgoingHooks(t *testing.T) {
 	defer func() {
 		utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingHooks
 		utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = enableAdminOnlyHooks
+		utils.SetDefaultRolesBasedOnConfig()
 	}()
 	utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = true
 	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = true
+	utils.SetDefaultRolesBasedOnConfig()
 
 	hook1 := &model.OutgoingWebhook{ChannelId: channel1.Id, CallbackURLs: []string{"http://nowhere.com"}}
 	hook1 = Client.Must(Client.CreateOutgoingWebhook(hook1)).Data.(*model.OutgoingWebhook)
@@ -379,6 +402,7 @@ func TestListOutgoingHooks(t *testing.T) {
 	}
 
 	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+	utils.SetDefaultRolesBasedOnConfig()
 
 	if _, err := Client.ListOutgoingWebhooks(); err != nil {
 		t.Fatal(err)
@@ -404,9 +428,11 @@ func TestDeleteOutgoingHook(t *testing.T) {
 	defer func() {
 		utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingHooks
 		utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = enableAdminOnlyHooks
+		utils.SetDefaultRolesBasedOnConfig()
 	}()
 	utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = true
 	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = true
+	utils.SetDefaultRolesBasedOnConfig()
 
 	hook := &model.OutgoingWebhook{ChannelId: channel1.Id, CallbackURLs: []string{"http://nowhere.com"}}
 	hook = Client.Must(Client.CreateOutgoingWebhook(hook)).Data.(*model.OutgoingWebhook)
@@ -440,6 +466,7 @@ func TestDeleteOutgoingHook(t *testing.T) {
 	}
 
 	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+	utils.SetDefaultRolesBasedOnConfig()
 
 	if _, err := Client.DeleteOutgoingWebhook(hook.Id); err == nil {
 		t.Fatal("should have failed - not creator or team admin")
@@ -475,9 +502,11 @@ func TestRegenOutgoingHookToken(t *testing.T) {
 	defer func() {
 		utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingHooks
 		utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = enableAdminOnlyHooks
+		utils.SetDefaultRolesBasedOnConfig()
 	}()
 	utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = true
 	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = true
+	utils.SetDefaultRolesBasedOnConfig()
 
 	hook := &model.OutgoingWebhook{ChannelId: channel1.Id, CallbackURLs: []string{"http://nowhere.com"}}
 	hook = Client.Must(Client.CreateOutgoingWebhook(hook)).Data.(*model.OutgoingWebhook)
@@ -507,6 +536,7 @@ func TestRegenOutgoingHookToken(t *testing.T) {
 	}
 
 	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+	utils.SetDefaultRolesBasedOnConfig()
 
 	hook = &model.OutgoingWebhook{ChannelId: channel1.Id, CallbackURLs: []string{"http://nowhere.com"}}
 	hook = Client.Must(Client.CreateOutgoingWebhook(hook)).Data.(*model.OutgoingWebhook)

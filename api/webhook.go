@@ -41,12 +41,8 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
-		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
-			c.Err = model.NewLocAppError("createIncomingHook", "api.command.admin_only.app_error", nil, "")
-			c.Err.StatusCode = http.StatusForbidden
-			return
-		}
+	if !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_WEBHOOKS) {
+		return
 	}
 
 	c.LogAudit("attempt")
@@ -59,7 +55,6 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	cchan := Srv.Store.Channel().Get(hook.ChannelId)
-	pchan := Srv.Store.Channel().CheckPermissionsTo(c.TeamId, hook.ChannelId, c.Session.UserId)
 
 	hook.UserId = c.Session.UserId
 	hook.TeamId = c.TeamId
@@ -72,12 +67,9 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		channel = result.Data.(*model.Channel)
 	}
 
-	if !c.HasPermissionsToChannel(pchan, "createIncomingHook") {
-		if channel.Type != model.CHANNEL_OPEN || channel.TeamId != c.TeamId {
-			c.LogAudit("fail - bad channel permissions")
-			return
-		}
-		c.Err = nil
+	if channel.Type != model.CHANNEL_OPEN && !HasPermissionToChannelContext(c, channel.Id, model.PERMISSION_READ_CHANNEL) {
+		c.LogAudit("fail - bad channel permissions")
+		return
 	}
 
 	if result := <-Srv.Store.Webhook().SaveIncoming(hook); result.Err != nil {
@@ -97,12 +89,10 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
-		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
-			c.Err = model.NewLocAppError("deleteIncomingHook", "api.command.admin_only.app_error", nil, "")
-			c.Err.StatusCode = http.StatusForbidden
-			return
-		}
+	if !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_WEBHOOKS) {
+		c.Err = model.NewLocAppError("deleteIncomingHook", "api.command.admin_only.app_error", nil, "")
+		c.Err.StatusCode = http.StatusForbidden
+		return
 	}
 
 	c.LogAudit("attempt")
@@ -119,7 +109,7 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = result.Err
 		return
 	} else {
-		if c.Session.UserId != result.Data.(*model.IncomingWebhook).UserId && !c.IsTeamAdmin() {
+		if c.Session.UserId != result.Data.(*model.IncomingWebhook).UserId && !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_OTHERS_WEBHOOKS) {
 			c.LogAudit("fail - inappropriate permissions")
 			c.Err = model.NewLocAppError("deleteIncomingHook", "api.webhook.delete_incoming.permissions.app_errror", nil, "user_id="+c.Session.UserId)
 			return
@@ -142,12 +132,10 @@ func getIncomingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
-		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
-			c.Err = model.NewLocAppError("getIncomingHooks", "api.command.admin_only.app_error", nil, "")
-			c.Err.StatusCode = http.StatusForbidden
-			return
-		}
+	if !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_WEBHOOKS) {
+		c.Err = model.NewLocAppError("getIncomingHooks", "api.command.admin_only.app_error", nil, "")
+		c.Err.StatusCode = http.StatusForbidden
+		return
 	}
 
 	if result := <-Srv.Store.Webhook().GetIncomingByTeam(c.TeamId); result.Err != nil {
@@ -166,12 +154,10 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
-		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
-			c.Err = model.NewLocAppError("createOutgoingHook", "api.command.admin_only.app_error", nil, "")
-			c.Err.StatusCode = http.StatusForbidden
-			return
-		}
+	if !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_WEBHOOKS) {
+		c.Err = model.NewLocAppError("createOutgoingHook", "api.command.admin_only.app_error", nil, "")
+		c.Err.StatusCode = http.StatusForbidden
+		return
 	}
 
 	c.LogAudit("attempt")
@@ -188,7 +174,6 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if len(hook.ChannelId) != 0 {
 		cchan := Srv.Store.Channel().Get(hook.ChannelId)
-		pchan := Srv.Store.Channel().CheckPermissionsTo(c.TeamId, hook.ChannelId, c.Session.UserId)
 
 		var channel *model.Channel
 		if result := <-cchan; result.Err != nil {
@@ -204,14 +189,10 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if !c.HasPermissionsToChannel(pchan, "createOutgoingHook") {
-			if channel.Type != model.CHANNEL_OPEN || channel.TeamId != c.TeamId {
-				c.LogAudit("fail - bad channel permissions")
-				c.Err = model.NewLocAppError("createOutgoingHook", "api.webhook.create_outgoing.permissions.app_error", nil, "")
-				return
-			} else {
-				c.Err = nil
-			}
+		if channel.Type != model.CHANNEL_OPEN || channel.TeamId != c.TeamId {
+			c.LogAudit("fail - bad channel permissions")
+			c.Err = model.NewLocAppError("createOutgoingHook", "api.webhook.create_outgoing.permissions.app_error", nil, "")
+			return
 		}
 	} else if len(hook.TriggerWords) == 0 {
 		c.Err = model.NewLocAppError("createOutgoingHook", "api.webhook.create_outgoing.triggers.app_error", nil, "")
@@ -252,12 +233,10 @@ func getOutgoingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
-		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
-			c.Err = model.NewLocAppError("getOutgoingHooks", "api.command.admin_only.app_error", nil, "")
-			c.Err.StatusCode = http.StatusForbidden
-			return
-		}
+	if !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_WEBHOOKS) {
+		c.Err = model.NewLocAppError("getOutgoingHooks", "api.command.admin_only.app_error", nil, "")
+		c.Err.StatusCode = http.StatusForbidden
+		return
 	}
 
 	if result := <-Srv.Store.Webhook().GetOutgoingByTeam(c.TeamId); result.Err != nil {
@@ -276,12 +255,10 @@ func deleteOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
-		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
-			c.Err = model.NewLocAppError("deleteOutgoingHook", "api.command.admin_only.app_error", nil, "")
-			c.Err.StatusCode = http.StatusForbidden
-			return
-		}
+	if !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_WEBHOOKS) {
+		c.Err = model.NewLocAppError("deleteOutgoingHook", "api.command.admin_only.app_error", nil, "")
+		c.Err.StatusCode = http.StatusForbidden
+		return
 	}
 
 	c.LogAudit("attempt")
@@ -298,7 +275,7 @@ func deleteOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = result.Err
 		return
 	} else {
-		if c.Session.UserId != result.Data.(*model.OutgoingWebhook).CreatorId && !c.IsTeamAdmin() {
+		if c.Session.UserId != result.Data.(*model.OutgoingWebhook).CreatorId && !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_OTHERS_WEBHOOKS) {
 			c.LogAudit("fail - inappropriate permissions")
 			c.Err = model.NewLocAppError("deleteOutgoingHook", "api.webhook.delete_outgoing.permissions.app_error", nil, "user_id="+c.Session.UserId)
 			return
@@ -321,12 +298,10 @@ func regenOutgoingHookToken(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
-		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
-			c.Err = model.NewLocAppError("regenOutgoingHookToken", "api.command.admin_only.app_error", nil, "")
-			c.Err.StatusCode = http.StatusForbidden
-			return
-		}
+	if !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_WEBHOOKS) {
+		c.Err = model.NewLocAppError("regenOutgoingHookToken", "api.command.admin_only.app_error", nil, "")
+		c.Err.StatusCode = http.StatusForbidden
+		return
 	}
 
 	c.LogAudit("attempt")
@@ -346,7 +321,7 @@ func regenOutgoingHookToken(c *Context, w http.ResponseWriter, r *http.Request) 
 	} else {
 		hook = result.Data.(*model.OutgoingWebhook)
 
-		if c.TeamId != hook.TeamId && c.Session.UserId != hook.CreatorId && !c.IsTeamAdmin() {
+		if c.TeamId != hook.TeamId && c.Session.UserId != hook.CreatorId && !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_OTHERS_WEBHOOKS) {
 			c.LogAudit("fail - inappropriate permissions")
 			c.Err = model.NewLocAppError("regenOutgoingHookToken", "api.webhook.regen_outgoing_token.permissions.app_error", nil, "user_id="+c.Session.UserId)
 			return
@@ -465,18 +440,20 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 		channel = result.Data.(*model.Channel)
 	}
 
-	pchan := Srv.Store.Channel().CheckPermissionsTo(hook.TeamId, channel.Id, hook.UserId)
-
 	// create a mock session
 	c.Session = model.Session{
-		UserId:      hook.UserId,
-		TeamMembers: []*model.TeamMember{{TeamId: hook.TeamId, UserId: hook.UserId}},
-		IsOAuth:     false,
+		UserId: hook.UserId,
+		TeamMembers: []*model.TeamMember{{
+			TeamId: hook.TeamId,
+			UserId: hook.UserId,
+			Roles:  model.ROLE_CHANNEL_USER.Id,
+		}},
+		IsOAuth: false,
 	}
 
 	c.TeamId = hook.TeamId
 
-	if !c.HasPermissionsToChannel(pchan, "createIncomingHook") && channel.Type != model.CHANNEL_OPEN {
+	if channel.Type != model.CHANNEL_OPEN && !HasPermissionToChannelContext(c, channel.Id, model.PERMISSION_READ_CHANNEL) {
 		c.Err = model.NewLocAppError("incomingWebhook", "web.incoming_webhook.permissions.app_error", nil, "")
 		return
 	}

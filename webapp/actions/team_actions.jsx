@@ -24,7 +24,7 @@ export function createTeam(team, onSuccess, onError) {
             AppDispatcher.handleServerAction({
                 type: ActionTypes.CREATED_TEAM,
                 team: rteam,
-                member: {team_id: rteam.id, user_id: UserStore.getCurrentId(), roles: 'admin'}
+                member: {team_id: rteam.id, user_id: UserStore.getCurrentId(), roles: 'team_admin team_user'}
             });
 
             browserHistory.push('/' + rteam.name + '/channels/town-square');

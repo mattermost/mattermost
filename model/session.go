@@ -115,6 +115,10 @@ func (me *Session) IsMobileApp() bool {
 		(strings.HasPrefix(me.DeviceId, PUSH_NOTIFY_APPLE+":") || strings.HasPrefix(me.DeviceId, PUSH_NOTIFY_ANDROID+":"))
 }
 
+func (me *Session) GetUserRoles() []string {
+	return strings.Fields(me.Roles)
+}
+
 func SessionsToJson(o []*Session) string {
 	if b, err := json.Marshal(o); err != nil {
 		return "[]"

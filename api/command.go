@@ -97,9 +97,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(channelId) > 0 {
-		cchan := Srv.Store.Channel().CheckPermissionsTo(c.TeamId, channelId, c.Session.UserId)
-
-		if !c.HasPermissionsToChannel(cchan, "checkCommand") {
+		if !HasPermissionToChannelContext(c, channelId, model.PERMISSION_USE_SLASH_COMMANDS) {
 			return
 		}
 	}
@@ -272,12 +270,10 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
-		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
-			c.Err = model.NewLocAppError("createCommand", "api.command.admin_only.app_error", nil, "")
-			c.Err.StatusCode = http.StatusForbidden
-			return
-		}
+	if !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+		c.Err = model.NewLocAppError("createCommand", "api.command.admin_only.app_error", nil, "")
+		c.Err.StatusCode = http.StatusForbidden
+		return
 	}
 
 	c.LogAudit("attempt")
@@ -330,12 +326,10 @@ func listTeamCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
-		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
-			c.Err = model.NewLocAppError("listTeamCommands", "api.command.admin_only.app_error", nil, "")
-			c.Err.StatusCode = http.StatusForbidden
-			return
-		}
+	if !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+		c.Err = model.NewLocAppError("listTeamCommands", "api.command.admin_only.app_error", nil, "")
+		c.Err.StatusCode = http.StatusForbidden
+		return
 	}
 
 	if result := <-Srv.Store.Command().GetByTeam(c.TeamId); result.Err != nil {
@@ -354,12 +348,10 @@ func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
-		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
-			c.Err = model.NewLocAppError("regenCommandToken", "api.command.admin_only.app_error", nil, "")
-			c.Err.StatusCode = http.StatusForbidden
-			return
-		}
+	if !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+		c.Err = model.NewLocAppError("regenCommandToken", "api.command.admin_only.app_error", nil, "")
+		c.Err.StatusCode = http.StatusForbidden
+		return
 	}
 
 	c.LogAudit("attempt")
@@ -379,7 +371,7 @@ func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		cmd = result.Data.(*model.Command)
 
-		if c.TeamId != cmd.TeamId || (c.Session.UserId != cmd.CreatorId && !c.IsTeamAdmin()) {
+		if c.TeamId != cmd.TeamId || (c.Session.UserId != cmd.CreatorId && !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS)) {
 			c.LogAudit("fail - inappropriate permissions")
 			c.Err = model.NewLocAppError("regenToken", "api.command.regen.app_error", nil, "user_id="+c.Session.UserId)
 			return
@@ -403,12 +395,10 @@ func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
-		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
-			c.Err = model.NewLocAppError("deleteCommand", "api.command.admin_only.app_error", nil, "")
-			c.Err.StatusCode = http.StatusForbidden
-			return
-		}
+	if !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+		c.Err = model.NewLocAppError("deleteCommand", "api.command.admin_only.app_error", nil, "")
+		c.Err.StatusCode = http.StatusForbidden
+		return
 	}
 
 	c.LogAudit("attempt")
@@ -425,7 +415,7 @@ func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = result.Err
 		return
 	} else {
-		if c.TeamId != result.Data.(*model.Command).TeamId || (c.Session.UserId != result.Data.(*model.Command).CreatorId && !c.IsTeamAdmin()) {
+		if c.TeamId != result.Data.(*model.Command).TeamId || (c.Session.UserId != result.Data.(*model.Command).CreatorId && HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS)) {
 			c.LogAudit("fail - inappropriate permissions")
 			c.Err = model.NewLocAppError("deleteCommand", "api.command.delete.app_error", nil, "user_id="+c.Session.UserId)
 			return

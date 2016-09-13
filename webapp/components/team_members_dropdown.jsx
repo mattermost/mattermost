@@ -37,12 +37,12 @@ export default class TeamMembersDropdown extends React.Component {
     handleMakeMember() {
         const me = UserStore.getCurrentUser();
         if (this.props.user.id === me.id) {
-            this.handleDemote(this.props.user, '');
+            this.handleDemote(this.props.user, 'team_user');
         } else {
             Client.updateRoles(
                 this.props.teamMember.team_id,
                 this.props.user.id,
-                '',
+                'team_user',
                 () => {
                     AsyncClient.getTeamMembers(TeamStore.getCurrentId());
                     AsyncClient.getProfiles();
@@ -93,12 +93,12 @@ export default class TeamMembersDropdown extends React.Component {
     handleMakeAdmin() {
         const me = UserStore.getCurrentUser();
         if (this.props.user.id === me.id) {
-            this.handleDemote(this.props.user, 'admin');
+            this.handleDemote(this.props.user, 'team_user team_admin');
         } else {
             Client.updateRoles(
                 this.props.teamMember.team_id,
                 this.props.user.id,
-                'admin',
+                'team_user team_admin',
                 () => {
                     AsyncClient.getTeamMembers(TeamStore.getCurrentId());
                     AsyncClient.getProfiles();
@@ -186,10 +186,10 @@ export default class TeamMembersDropdown extends React.Component {
         }
 
         const me = UserStore.getCurrentUser();
-        let showMakeMember = teamMember.roles === 'admin' && user.roles !== 'system_admin';
-        let showMakeAdmin = teamMember.roles === '' && user.roles !== 'system_admin';
+        let showMakeMember = Utils.isAdmin(teamMember.roles) && !Utils.isSystemAdmin(user.roles);
+        let showMakeAdmin = !Utils.isAdmin(teamMember.roles) && !Utils.isSystemAdmin(user.roles);
         let showMakeActive = false;
-        let showMakeNotActive = user.roles !== 'system_admin';
+        let showMakeNotActive = Utils.isSystemAdmin(user.roles);
 
         if (user.delete_at > 0) {
             currentRoles = (

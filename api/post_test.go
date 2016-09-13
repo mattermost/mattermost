@@ -778,6 +778,7 @@ func TestDeletePosts(t *testing.T) {
 	post4 = Client.Must(Client.CreatePost(post4)).Data.(*model.Post)
 
 	th.LoginBasic2()
+	Client.Must(Client.JoinChannel(channel1.Id))
 
 	Client.Must(Client.DeletePost(channel1.Id, post4.Id))
 }

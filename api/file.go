@@ -103,8 +103,6 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cchan := Srv.Store.Channel().CheckPermissionsTo(c.TeamId, channelId, c.Session.UserId)
-
 	files := m.File["files"]
 
 	resStruct := &model.FileUploadResponse{
@@ -115,7 +113,7 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	imageNameList := []string{}
 	imageDataList := [][]byte{}
 
-	if !c.HasPermissionsToChannel(cchan, "uploadFile") {
+	if !HasPermissionToChannelContext(c, channelId, model.PERMISSION_UPLOAD_FILE) {
 		return
 	}
 
@@ -318,7 +316,9 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cchan := Srv.Store.Channel().CheckPermissionsTo(c.TeamId, channelId, c.Session.UserId)
+	if !HasPermissionToChannelContext(c, channelId, model.PERMISSION_READ_CHANNEL) {
+		return
+	}
 
 	path := "teams/" + c.TeamId + "/channels/" + channelId + "/users/" + userId + "/" + filename
 	var info *model.FileInfo
@@ -339,10 +339,6 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if !c.HasPermissionsToChannel(cchan, "getFileInfo") {
-		return
-	}
-
 	w.Header().Set("Cache-Control", "max-age=2592000, public")
 
 	w.Write([]byte(info.ToJson()))
@@ -356,7 +352,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	userId := params["user_id"]
 	filename := params["filename"]
 
-	if !c.HasPermissionsToChannel(Srv.Store.Channel().CheckPermissionsTo(teamId, channelId, c.Session.UserId), "getFile") {
+	if !HasPermissionToChannelContext(c, channelId, model.PERMISSION_READ_CHANNEL) {
 		return
 	}
 
@@ -512,13 +508,11 @@ func getPublicLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	userId := matches[0][2]
 	filename = matches[0][3]
 
-	cchan := Srv.Store.Channel().CheckPermissionsTo(c.TeamId, channelId, c.Session.UserId)
-
-	url := generatePublicLink(c.GetSiteURL(), c.TeamId, channelId, userId, filename)
-
-	if !c.HasPermissionsToChannel(cchan, "getPublicLink") {
+	if !HasPermissionToChannelContext(c, channelId, model.PERMISSION_GET_PUBLIC_LINK) {
 		return
 	}
+
+	url := generatePublicLink(c.GetSiteURL(), c.TeamId, channelId, userId, filename)
 
 	w.Write([]byte(model.StringToJson(url)))
 }

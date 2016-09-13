@@ -175,14 +175,14 @@ func TestRemoveUserFromTeam(t *testing.T) {
 		t.Fatal("should fail not enough permissions")
 	} else {
 		if err.Id != "api.context.permissions.app_error" {
-			t.Fatal("wrong error")
+			t.Fatal("wrong error. Got: " + err.Id)
 		}
 	}
 
 	if _, err := th.BasicClient.RemoveUserFromTeam("", th.SystemAdminUser.Id); err == nil {
 		t.Fatal("should fail not enough permissions")
 	} else {
-		if err.Id != "api.team.update_team.permissions.app_error" {
+		if err.Id != "api.context.permissions.app_error" {
 			t.Fatal("wrong error")
 		}
 	}
@@ -318,7 +318,7 @@ func TestGetAllTeamListings(t *testing.T) {
 	c := &Context{}
 	c.RequestId = model.NewId()
 	c.IpAddress = "cmd_line"
-	UpdateUserRoles(c, user, model.ROLE_SYSTEM_ADMIN)
+	UpdateUserRoles(c, user, model.ROLE_SYSTEM_ADMIN.Id)
 
 	Client.Login(user.Email, "passwd1")
 	Client.SetTeamId(team.Id)
@@ -415,8 +415,10 @@ func TestInviteMembers(t *testing.T) {
 	restrictTeamInvite := *utils.Cfg.TeamSettings.RestrictTeamInvite
 	defer func() {
 		*utils.Cfg.TeamSettings.RestrictTeamInvite = restrictTeamInvite
+		utils.SetDefaultRolesBasedOnConfig()
 	}()
 	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN
+	utils.SetDefaultRolesBasedOnConfig()
 
 	th.LoginBasic2()
 	LinkUserToTeam(th.BasicUser2, team)
@@ -445,6 +447,7 @@ func TestInviteMembers(t *testing.T) {
 	}
 
 	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_SYSTEM_ADMIN
+	utils.SetDefaultRolesBasedOnConfig()
 
 	if _, err := Client.InviteMembers(invites); err == nil {
 		t.Fatal("should have errored not system admin and licensed")

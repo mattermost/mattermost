@@ -25,18 +25,18 @@ import (
 func InitAdmin() {
 	l4g.Debug(utils.T("api.admin.init.debug"))
 
-	BaseRoutes.Admin.Handle("/logs", ApiUserRequired(getLogs)).Methods("GET")
-	BaseRoutes.Admin.Handle("/audits", ApiUserRequired(getAllAudits)).Methods("GET")
-	BaseRoutes.Admin.Handle("/config", ApiUserRequired(getConfig)).Methods("GET")
-	BaseRoutes.Admin.Handle("/save_config", ApiUserRequired(saveConfig)).Methods("POST")
-	BaseRoutes.Admin.Handle("/reload_config", ApiUserRequired(reloadConfig)).Methods("GET")
-	BaseRoutes.Admin.Handle("/test_email", ApiUserRequired(testEmail)).Methods("POST")
-	BaseRoutes.Admin.Handle("/recycle_db_conn", ApiUserRequired(recycleDatabaseConnection)).Methods("GET")
-	BaseRoutes.Admin.Handle("/analytics/{id:[A-Za-z0-9]+}/{name:[A-Za-z0-9_]+}", ApiUserRequired(getAnalytics)).Methods("GET")
-	BaseRoutes.Admin.Handle("/analytics/{name:[A-Za-z0-9_]+}", ApiUserRequired(getAnalytics)).Methods("GET")
-	BaseRoutes.Admin.Handle("/save_compliance_report", ApiUserRequired(saveComplianceReport)).Methods("POST")
-	BaseRoutes.Admin.Handle("/compliance_reports", ApiUserRequired(getComplianceReports)).Methods("GET")
-	BaseRoutes.Admin.Handle("/download_compliance_report/{id:[A-Za-z0-9]+}", ApiUserRequiredTrustRequester(downloadComplianceReport)).Methods("GET")
+	BaseRoutes.Admin.Handle("/logs", ApiAdminSystemRequired(getLogs)).Methods("GET")
+	BaseRoutes.Admin.Handle("/audits", ApiAdminSystemRequired(getAllAudits)).Methods("GET")
+	BaseRoutes.Admin.Handle("/config", ApiAdminSystemRequired(getConfig)).Methods("GET")
+	BaseRoutes.Admin.Handle("/save_config", ApiAdminSystemRequired(saveConfig)).Methods("POST")
+	BaseRoutes.Admin.Handle("/reload_config", ApiAdminSystemRequired(reloadConfig)).Methods("GET")
+	BaseRoutes.Admin.Handle("/test_email", ApiAdminSystemRequired(testEmail)).Methods("POST")
+	BaseRoutes.Admin.Handle("/recycle_db_conn", ApiAdminSystemRequired(recycleDatabaseConnection)).Methods("GET")
+	BaseRoutes.Admin.Handle("/analytics/{id:[A-Za-z0-9]+}/{name:[A-Za-z0-9_]+}", ApiAdminSystemRequired(getAnalytics)).Methods("GET")
+	BaseRoutes.Admin.Handle("/analytics/{name:[A-Za-z0-9_]+}", ApiAdminSystemRequired(getAnalytics)).Methods("GET")
+	BaseRoutes.Admin.Handle("/save_compliance_report", ApiAdminSystemRequired(saveComplianceReport)).Methods("POST")
+	BaseRoutes.Admin.Handle("/compliance_reports", ApiAdminSystemRequired(getComplianceReports)).Methods("GET")
+	BaseRoutes.Admin.Handle("/download_compliance_report/{id:[A-Za-z0-9]+}", ApiAdminSystemRequiredTrustRequester(downloadComplianceReport)).Methods("GET")
 	BaseRoutes.Admin.Handle("/upload_brand_image", ApiAdminSystemRequired(uploadBrandImage)).Methods("POST")
 	BaseRoutes.Admin.Handle("/get_brand_image", ApiAppHandlerTrustRequester(getBrandImage)).Methods("GET")
 	BaseRoutes.Admin.Handle("/reset_mfa", ApiAdminSystemRequired(adminResetMfa)).Methods("POST")
@@ -52,11 +52,6 @@ func InitAdmin() {
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
-
-	if !c.HasSystemAdminPermissions("getLogs") {
-		return
-	}
-
 	lines, err := GetLogs()
 	if err != nil {
 		c.Err = err
@@ -99,11 +94,6 @@ func GetLogs() ([]string, *model.AppError) {
 }
 
 func getClusterStatus(c *Context, w http.ResponseWriter, r *http.Request) {
-
-	if !c.HasSystemAdminPermissions("getClusterStatus") {
-		return
-	}
-
 	infos := make([]*model.ClusterInfo, 0)
 	if einterfaces.GetClusterInterface() != nil {
 		infos = einterfaces.GetClusterInterface().GetClusterInfos()
@@ -113,11 +103,6 @@ func getClusterStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getAllAudits(c *Context, w http.ResponseWriter, r *http.Request) {
-
-	if !c.HasSystemAdminPermissions("getAllAudits") {
-		return
-	}
-
 	if result := <-Srv.Store.Audit().Get("", 200); result.Err != nil {
 		c.Err = result.Err
 		return
@@ -139,10 +124,6 @@ func getAllAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.HasSystemAdminPermissions("getConfig") {
-		return
-	}
-
 	json := utils.Cfg.ToJson()
 	cfg := model.ConfigFromJson(strings.NewReader(json))
 
@@ -153,10 +134,6 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func reloadConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.HasSystemAdminPermissions("reloadConfig") {
-		return
-	}
-
 	utils.LoadConfig(utils.CfgFileName)
 
 	// start/restart email batching job if necessary
@@ -167,10 +144,6 @@ func reloadConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func saveConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.HasSystemAdminPermissions("getConfig") {
-		return
-	}
-
 	cfg := model.ConfigFromJson(r.Body)
 	if cfg == nil {
 		c.SetInvalidParam("saveConfig", "config")
@@ -219,10 +192,6 @@ func saveConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func recycleDatabaseConnection(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.HasSystemAdminPermissions("recycleDatabaseConnection") {
-		return
-	}
-
 	oldStore := Srv.Store
 
 	l4g.Warn(utils.T("api.admin.recycle_db_start.warn"))
@@ -238,10 +207,6 @@ func recycleDatabaseConnection(c *Context, w http.ResponseWriter, r *http.Reques
 }
 
 func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.HasSystemAdminPermissions("testEmail") {
-		return
-	}
-
 	cfg := model.ConfigFromJson(r.Body)
 	if cfg == nil {
 		c.SetInvalidParam("testEmail", "config")
@@ -282,10 +247,6 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getComplianceReports(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.HasSystemAdminPermissions("getComplianceReports") {
-		return
-	}
-
 	if !*utils.Cfg.ComplianceSettings.Enable || !utils.IsLicensed || !*utils.License.Features.Compliance {
 		c.Err = model.NewLocAppError("getComplianceReports", "ent.compliance.licence_disable.app_error", nil, "")
 		return
@@ -301,10 +262,6 @@ func getComplianceReports(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func saveComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.HasSystemAdminPermissions("getComplianceReports") {
-		return
-	}
-
 	if !*utils.Cfg.ComplianceSettings.Enable || !utils.IsLicensed || !*utils.License.Features.Compliance || einterfaces.GetComplianceInterface() == nil {
 		c.Err = model.NewLocAppError("saveComplianceReport", "ent.compliance.licence_disable.app_error", nil, "")
 		return
@@ -331,10 +288,6 @@ func saveComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func downloadComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.HasSystemAdminPermissions("downloadComplianceReport") {
-		return
-	}
-
 	if !*utils.Cfg.ComplianceSettings.Enable || !utils.IsLicensed || !*utils.License.Features.Compliance || einterfaces.GetComplianceInterface() == nil {
 		c.Err = model.NewLocAppError("downloadComplianceReport", "ent.compliance.licence_disable.app_error", nil, "")
 		return
@@ -380,10 +333,6 @@ func downloadComplianceReport(c *Context, w http.ResponseWriter, r *http.Request
 }
 
 func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.HasSystemAdminPermissions("getAnalytics") {
-		return
-	}
-
 	params := mux.Vars(r)
 	teamId := params["id"]
 	name := params["name"]

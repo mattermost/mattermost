@@ -60,15 +60,6 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		channel.TeamId = c.TeamId
 	}
 
-	if err := CanManageChannel(c, channel); err != nil {
-		c.Err = err
-		return
-	}
-
-	if !c.HasPermissionsToTeam(channel.TeamId, "createChannel") {
-		return
-	}
-
 	if channel.Type == model.CHANNEL_DIRECT {
 		c.Err = model.NewLocAppError("createDirectChannel", "api.channel.create_channel.direct_channel.app_error", nil, "")
 		return
@@ -76,6 +67,14 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if strings.Index(channel.Name, "__") > 0 {
 		c.Err = model.NewLocAppError("createDirectChannel", "api.channel.create_channel.invalid_character.app_error", nil, "")
+		return
+	}
+
+	if channel.Type == model.CHANNEL_OPEN && !HasPermissionToTeamContext(c, channel.TeamId, model.PERMISSION_CREATE_PUBLIC_CHANNEL) {
+		return
+	}
+
+	if channel.Type == model.CHANNEL_PRIVATE && !HasPermissionToTeamContext(c, channel.TeamId, model.PERMISSION_CREATE_PRIVATE_CHANNEL) {
 		return
 	}
 
@@ -96,8 +95,12 @@ func CreateChannel(c *Context, channel *model.Channel, addMember bool) (*model.C
 		sc := result.Data.(*model.Channel)
 
 		if addMember {
-			cm := &model.ChannelMember{ChannelId: sc.Id, UserId: c.Session.UserId,
-				Roles: model.CHANNEL_ROLE_ADMIN, NotifyProps: model.GetDefaultChannelNotifyProps()}
+			cm := &model.ChannelMember{
+				ChannelId:   sc.Id,
+				UserId:      c.Session.UserId,
+				Roles:       model.ROLE_CHANNEL_USER.Id + " " + model.ROLE_CHANNEL_ADMIN.Id,
+				NotifyProps: model.GetDefaultChannelNotifyProps(),
+			}
 
 			if cmresult := <-Srv.Store.Channel().SaveMember(cm); cmresult.Err != nil {
 				return nil, cmresult.Err
@@ -111,6 +114,9 @@ func CreateChannel(c *Context, channel *model.Channel, addMember bool) (*model.C
 }
 
 func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !HasPermissionToContext(c, model.PERMISSION_CREATE_DIRECT_CHANNEL) {
+		return
+	}
 
 	data := model.MapFromJson(r.Body)
 
@@ -146,10 +152,12 @@ func CreateDirectChannel(userId string, otherUserId string) (*model.Channel, *mo
 	cm1 := &model.ChannelMember{
 		UserId:      userId,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		Roles:       model.ROLE_CHANNEL_USER.Id,
 	}
 	cm2 := &model.ChannelMember{
 		UserId:      otherUserId,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		Roles:       model.ROLE_CHANNEL_USER.Id,
 	}
 
 	if result := <-Srv.Store.Channel().SaveDirectChannel(channel, cm1, cm2); result.Err != nil {
@@ -184,30 +192,16 @@ func CreateDefaultChannels(c *Context, teamId string) ([]*model.Channel, *model.
 	return channels, nil
 }
 
-func CanManageChannel(c *Context, channel *model.Channel) *model.AppError {
-	if utils.IsLicensed {
-		if channel.Type == model.CHANNEL_OPEN {
-			if *utils.Cfg.TeamSettings.RestrictPublicChannelManagement == model.PERMISSIONS_SYSTEM_ADMIN && !c.IsSystemAdmin() {
-				return model.NewLocAppError("CanManageChannel", "api.channel.can_manage_channel.public_restricted_system_admin.app_error", nil, "")
-			}
-
-			if *utils.Cfg.TeamSettings.RestrictPublicChannelManagement == model.PERMISSIONS_TEAM_ADMIN && !c.IsTeamAdmin() {
-				return model.NewLocAppError("CanManageChannel", "api.channel.can_manage_channel.public_restricted_team_admin.app_error", nil, "")
-			}
-		}
-
-		if channel.Type == model.CHANNEL_PRIVATE {
-			if *utils.Cfg.TeamSettings.RestrictPrivateChannelManagement == model.PERMISSIONS_SYSTEM_ADMIN && !c.IsSystemAdmin() {
-				return model.NewLocAppError("CanManageChannel", "api.channel.can_manage_channel.private_restricted_system_admin.app_error", nil, "")
-			}
-
-			if *utils.Cfg.TeamSettings.RestrictPrivateChannelManagement == model.PERMISSIONS_TEAM_ADMIN && !c.IsTeamAdmin() {
-				return model.NewLocAppError("CanManageChannel", "api.channel.can_manage_channel.private_restricted_team_admin.app_error", nil, "")
-			}
-		}
+func CanManageChannel(c *Context, channel *model.Channel) bool {
+	if channel.Type == model.CHANNEL_OPEN && !HasPermissionToChannelContext(c, channel.Id, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES) {
+		return false
 	}
 
-	return nil
+	if channel.Type == model.CHANNEL_PRIVATE && !HasPermissionToChannelContext(c, channel.Id, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES) {
+		return false
+	}
+
+	return true
 }
 
 func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -232,12 +226,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		oldChannel := cresult.Data.(*model.Channel)
 		// Don't need to do anything with channel member, just wanted to confirm it exists
 
-		if err := CanManageChannel(c, oldChannel); err != nil {
-			c.Err = err
-			return
-		}
-
-		if !c.HasPermissionsToTeam(oldChannel.TeamId, "updateChannel") {
+		if !CanManageChannel(c, channel) {
 			return
 		}
 
@@ -308,14 +297,10 @@ func updateChannelHeader(c *Context, w http.ResponseWriter, r *http.Request) {
 		channel := cresult.Data.(*model.Channel)
 		// Don't need to do anything with channel member, just wanted to confirm it exists
 
-		if err := CanManageChannel(c, channel); err != nil {
-			c.Err = err
+		if !CanManageChannel(c, channel) {
 			return
 		}
 
-		if channel.TeamId != "" && !c.HasPermissionsToTeam(channel.TeamId, "updateChannelHeader") {
-			return
-		}
 		oldChannelHeader := channel.Header
 		channel.Header = channelHeader
 
@@ -387,12 +372,7 @@ func updateChannelPurpose(c *Context, w http.ResponseWriter, r *http.Request) {
 		channel := cresult.Data.(*model.Channel)
 		// Don't need to do anything with channel member, just wanted to confirm it exists
 
-		if err := CanManageChannel(c, channel); err != nil {
-			c.Err = err
-			return
-		}
-
-		if !c.HasPermissionsToTeam(channel.TeamId, "updateChannelPurpose") {
+		if !CanManageChannel(c, channel) {
 			return
 		}
 
@@ -411,6 +391,7 @@ func updateChannelPurpose(c *Context, w http.ResponseWriter, r *http.Request) {
 func getChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// user is already in the team
+	// Get's all channels the user is a member of
 
 	if result := <-Srv.Store.Channel().GetChannels(c.TeamId, c.Session.UserId); result.Err != nil {
 		if result.Err.Id == "store.sql_channel.get_channels.not_found.app_error" {
@@ -436,6 +417,9 @@ func getChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 func getMoreChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// user is already in the team
+	if !HasPermissionToTeamContext(c, c.TeamId, model.PERMISSION_LIST_TEAM_CHANNELS) {
+		return
+	}
 
 	if result := <-Srv.Store.Channel().GetMoreChannels(c.TeamId, c.Session.UserId); result.Err != nil {
 		c.Err = result.Err
@@ -523,7 +507,7 @@ func joinChannel(c *Context, channelChannel store.StoreChannel, userChannel stor
 			return nil, channel
 		}
 
-		if !c.HasPermissionsToTeam(channel.TeamId, "join") {
+		if !HasPermissionToTeamContext(c, channel.TeamId, model.PERMISSION_JOIN_PUBLIC_CHANNELS) {
 			return c.Err, nil
 		}
 
@@ -581,7 +565,12 @@ func AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelM
 		return &channelMember, nil
 	}
 
-	newMember := &model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, NotifyProps: model.GetDefaultChannelNotifyProps()}
+	newMember := &model.ChannelMember{
+		ChannelId:   channel.Id,
+		UserId:      user.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		Roles:       model.ROLE_CHANNEL_USER.Id,
+	}
 	if result := <-Srv.Store.Channel().SaveMember(newMember); result.Err != nil {
 		l4g.Error("Failed to add member user_id=%v channel_id=%v err=%v", user.Id, channel.Id, result.Err)
 		return nil, model.NewLocAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil, "")
@@ -669,10 +658,6 @@ func leave(c *Context, w http.ResponseWriter, r *http.Request) {
 		user := uresult.Data.(*model.User)
 		membersCount := ccmresult.Data.(int64)
 
-		if !c.HasPermissionsToTeam(channel.TeamId, "leave") {
-			return
-		}
-
 		if channel.Type == model.CHANNEL_DIRECT {
 			c.Err = model.NewLocAppError("leave", "api.channel.leave.direct.app_error", nil, "")
 			c.Err.StatusCode = http.StatusBadRequest
@@ -746,14 +731,13 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		// Allow delete if user is the only member left in channel
 		if memberCount > 1 {
-			if err := CanManageChannel(c, channel); err != nil {
-				c.Err = err
+			if channel.Type == model.CHANNEL_OPEN && !HasPermissionToTeamContext(c, channel.TeamId, model.PERMISSION_DELETE_PUBLIC_CHANNEL) {
 				return
 			}
-		}
 
-		if !c.HasPermissionsToTeam(channel.TeamId, "deleteChannel") {
-			return
+			if channel.Type == model.CHANNEL_PRIVATE && !HasPermissionToTeamContext(c, channel.TeamId, model.PERMISSION_DELETE_PRIVATE_CHANNEL) {
+				return
+			}
 		}
 
 		if channel.DeleteAt > 0 {
@@ -901,7 +885,6 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["channel_id"]
 
-	//pchan := Srv.Store.Channel().CheckPermissionsTo(c.TeamId, id, c.Session.UserId)
 	cchan := Srv.Store.Channel().Get(id)
 	cmchan := Srv.Store.Channel().GetMember(id, c.Session.UserId)
 
@@ -974,21 +957,17 @@ func getChannelExtraInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = ccmresult.Err
 		return
 	} else {
-		member := cmresult.Data.(model.ChannelMember)
+		//member := cmresult.Data.(model.ChannelMember)
 		extraMembers := ecmresult.Data.([]model.ExtraMember)
 		memberCount := ccmresult.Data.(int64)
-
-		if len(channel.TeamId) > 0 && !c.HasPermissionsToTeam(channel.TeamId, "getChannelExtraInfo") {
-			return
-		}
-
-		if !c.HasPermissionsToUser(member.UserId, "getChannelExtraInfo") {
-			return
-		}
 
 		if channel.DeleteAt > 0 {
 			c.Err = model.NewLocAppError("getChannelExtraInfo", "api.channel.get_channel_extra_info.deleted.app_error", nil, "")
 			c.Err.StatusCode = http.StatusBadRequest
+			return
+		}
+
+		if !HasPermissionToChannelContext(c, channel.Id, model.PERMISSION_READ_CHANNEL) {
 			return
 		}
 
@@ -1010,16 +989,9 @@ func addMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cchan := Srv.Store.Channel().CheckPermissionsTo(c.TeamId, id, c.Session.UserId)
 	sc := Srv.Store.Channel().Get(id)
 	ouc := Srv.Store.User().Get(c.Session.UserId)
 	nuc := Srv.Store.User().Get(userId)
-
-	// Only need to be a member of the channel to add a new member
-	if !c.HasPermissionsToChannel(cchan, "addMember") {
-		return
-	}
-
 	if nresult := <-nuc; nresult.Err != nil {
 		c.Err = model.NewLocAppError("addMember", "api.channel.add_member.find_user.app_error", nil, "")
 		return
@@ -1029,6 +1001,14 @@ func addMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		channel := cresult.Data.(*model.Channel)
 		nUser := nresult.Data.(*model.User)
+
+		if channel.Type == model.CHANNEL_OPEN && !HasPermissionToChannelContext(c, channel.Id, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS) {
+			return
+		}
+
+		if channel.Type == model.CHANNEL_PRIVATE && !HasPermissionToChannelContext(c, channel.Id, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS) {
+			return
+		}
 
 		if oresult := <-ouc; oresult.Err != nil {
 			c.Err = model.NewLocAppError("addMember", "api.channel.add_member.user_adding.app_error", nil, "")
@@ -1082,15 +1062,12 @@ func removeMember(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		} else {
 			channel := cresult.Data.(*model.Channel)
-			removerChannelMember := cmcresult.Data.(model.ChannelMember)
 
-			if !c.HasPermissionsToTeam(channel.TeamId, "removeMember") {
+			if channel.Type == model.CHANNEL_OPEN && !HasPermissionToChannelContext(c, channel.Id, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS) {
 				return
 			}
 
-			if !strings.Contains(removerChannelMember.Roles, model.CHANNEL_ROLE_ADMIN) && !c.IsTeamAdmin() {
-				c.Err = model.NewLocAppError("updateChannel", "api.channel.remove_member.permissions.app_error", nil, "")
-				c.Err.StatusCode = http.StatusForbidden
+			if channel.Type == model.CHANNEL_PRIVATE && !HasPermissionToChannelContext(c, channel.Id, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS) {
 				return
 			}
 
@@ -1145,13 +1122,7 @@ func updateNotifyProps(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cchan := Srv.Store.Channel().CheckPermissionsTo(c.TeamId, channelId, c.Session.UserId)
-
-	if !c.HasPermissionsToUser(userId, "updateNotifyLevel") {
-		return
-	}
-
-	if !c.HasPermissionsToChannel(cchan, "updateNotifyLevel") {
+	if !HasPermissionToUser(c, userId) {
 		return
 	}
 

@@ -48,8 +48,24 @@
     "translation": "September"
   },
   {
-    "id": "api.admin.add_certificate.array.app_error",
-    "translation": "Empty array under 'certificate' in request"
+    "id": "authentication.permissions.team_invite_user.name",
+    "translation": "Invite User"
+  },
+  {
+    "id": "authentication.permissions.team_invite_user.description",
+    "translation": "Ability to invite users to a team"
+  },
+  {
+    "id": "authentication.permissions.team_use_slash_commands.name",
+    "translation": "User Slash Commands"
+  },
+  {
+    "id": "authentication.permissions.team_use_slash_commands.description",
+    "translation": "Ability to user slash commands"
+  },
+  {
+    "id": "api.auth.unable_to_get_user.app_error",
+    "translation": "Unable to get user to check permissions."
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
@@ -1152,6 +1168,10 @@
   {
     "id": "api.post.create_post.bad_filename.error",
     "translation": "Bad filename discarded, filename=%v"
+  },
+  {
+    "id": "api.post.create_post.can_not_post_to_deleted.error",
+    "translation": "Can not post to deleted channel."
   },
   {
     "id": "api.post.create_post.channel_root_id.app_error",

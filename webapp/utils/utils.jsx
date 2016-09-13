@@ -56,7 +56,7 @@ export function isInRole(roles, inRole) {
 }
 
 export function isAdmin(roles) {
-    if (isInRole(roles, 'admin')) {
+    if (isInRole(roles, 'team_admin')) {
         return true;
     }
 

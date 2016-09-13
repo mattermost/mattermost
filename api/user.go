@@ -230,16 +230,16 @@ func IsVerifyHashRequired(user *model.User, team *model.Team, hash string) bool 
 
 func CreateUser(user *model.User) (*model.User, *model.AppError) {
 
-	user.Roles = ""
+	user.Roles = model.ROLE_SYSTEM_USER.Id
 
 	// Below is a special case where the first user in the entire
-	// system is granted the system_admin role instead of admin
+	// system is granted the system_admin role
 	if result := <-Srv.Store.User().GetTotalUsersCount(); result.Err != nil {
 		return nil, result.Err
 	} else {
 		count := result.Data.(int64)
 		if count <= 0 {
-			user.Roles = model.ROLE_SYSTEM_ADMIN
+			user.Roles = model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id
 		}
 	}
 
@@ -561,7 +561,7 @@ func LoginByOAuth(c *Context, w http.ResponseWriter, r *http.Request, service st
 // User MUST be authenticated completely before calling Login
 func doLogin(c *Context, w http.ResponseWriter, r *http.Request, user *model.User, deviceId string) {
 
-	session := &model.Session{UserId: user.Id, Roles: user.Roles, DeviceId: deviceId, IsOAuth: false}
+	session := &model.Session{UserId: user.Id, Roles: user.GetRawRoles(), DeviceId: deviceId, IsOAuth: false}
 
 	maxAge := *utils.Cfg.ServiceSettings.SessionLengthWebInDays * 60 * 60 * 24
 
@@ -788,7 +788,7 @@ func getSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["user_id"]
 
-	if !c.HasPermissionsToUser(id, "getSessions") {
+	if !HasPermissionToUser(c, id) {
 		return
 	}
 
@@ -918,11 +918,12 @@ func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	il.ClientCfg = utils.ClientCfg
-	if c.IsSystemAdmin() {
+	if HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
 		il.LicenseCfg = utils.ClientLicense
 	} else {
 		il.LicenseCfg = utils.GetSanitizedClientLicense()
 	}
+	c.Err = nil
 
 	w.Write([]byte(il.ToJson()))
 }
@@ -931,7 +932,7 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["user_id"]
 
-	if !c.HasPermissionsToUser(id, "getUser") {
+	if !HasPermissionToUser(c, id) {
 		return
 	}
 
@@ -956,7 +957,7 @@ func getProfilesForDirectMessageList(c *Context, w http.ResponseWriter, r *http.
 
 	if *utils.Cfg.TeamSettings.RestrictDirectMessage == model.DIRECT_MESSAGE_TEAM {
 		if c.Session.GetTeamByTeamId(id) == nil {
-			if !c.HasSystemAdminPermissions("getProfiles") {
+			if !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
 				return
 			}
 		}
@@ -985,7 +986,7 @@ func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 	id := params["id"]
 
 	if c.Session.GetTeamByTeamId(id) == nil {
-		if !c.HasSystemAdminPermissions("getProfiles") {
+		if !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
 			return
 		}
 	}
@@ -1035,7 +1036,7 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["user_id"]
 
-	if !c.HasPermissionsToUser(id, "getAudits") {
+	if !HasPermissionToUser(c, id) {
 		return
 	}
 
@@ -1292,7 +1293,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.HasPermissionsToUser(user.Id, "updateUser") {
+	if !HasPermissionToUser(c, user.Id) {
 		return
 	}
 
@@ -1432,22 +1433,21 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	new_roles := props["new_roles"]
-	if !(model.IsValidUserRoles(new_roles) || model.IsValidTeamRoles(new_roles)) {
+	if !(model.IsValidUserRoles(new_roles)) {
 		c.SetInvalidParam("updateRoles", "new_roles")
 		return
 	}
 
 	// If you are not the team admin then you can only demote yourself
-	if !c.IsTeamAdmin() && user_id != c.Session.UserId {
+	if user_id != c.Session.UserId && !HasPermissionToTeamContext(c, team_id, model.PERMISSION_MANAGE_ROLES) {
 		c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.team_admin_needed.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
 
-	// Only another system admin can add the system admin role
-	if model.IsInRole(new_roles, model.ROLE_SYSTEM_ADMIN) && !c.IsSystemAdmin() {
+	// If your trying to assign the system admin role, you must have that permission
+	if model.IsInRole(new_roles, model.ROLE_SYSTEM_ADMIN.Id) && !HasPermissionToContext(c, model.PERMISSION_ASSIGN_SYSTEM_ADMIN_ROLE) {
 		c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.system_admin_set.app_error", nil, "")
-		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
 
@@ -1459,15 +1459,15 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		user = result.Data.(*model.User)
 	}
 
-	// only another system admin can remove another system admin
-	if model.IsInRole(user.Roles, model.ROLE_SYSTEM_ADMIN) && !c.IsSystemAdmin() {
+	// only another system admin can modify another system admin
+	if model.IsInRole(user.GetRawRoles(), model.ROLE_SYSTEM_ADMIN.Id) && !HasPermissionToContext(c, model.PERMISSION_ASSIGN_SYSTEM_ADMIN_ROLE) {
 		c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.system_admin_needed.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
 
 	// if the team role has changed then lets update team members
-	if model.IsValidTeamRoles(new_roles) && len(team_id) > 0 {
+	if len(team_id) > 0 {
 
 		var members []*model.TeamMember
 		if result := <-Srv.Store.Team().GetTeamsForUser(user_id); result.Err != nil {
@@ -1489,7 +1489,7 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if !c.IsSystemAdmin() {
+		if !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
 			currentUserTeamMember := c.Session.GetTeamByTeamId(team_id)
 
 			// Only the system admin can modify other team
@@ -1500,12 +1500,13 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 
 			// Only another team admin can make a team admin
-			if !currentUserTeamMember.IsTeamAdmin() && model.IsInRole(new_roles, model.ROLE_TEAM_ADMIN) {
+			if model.IsInRole(new_roles, model.ROLE_TEAM_ADMIN.Id) && !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_ROLES) {
 				c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.team_admin_needed.app_error", nil, "")
 				c.Err.StatusCode = http.StatusForbidden
 				return
 			}
 		}
+		c.Err = nil
 
 		member.Roles = new_roles
 
@@ -1513,10 +1514,8 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = result.Err
 			return
 		}
-	}
-
-	// If the users role has changed then lets update the user
-	if model.IsValidUserRoles(new_roles) {
+	} else {
+		// If the users role has changed then lets update the user
 		UpdateUserRoles(c, user, new_roles)
 		if c.Err != nil {
 			return
@@ -1575,7 +1574,7 @@ func updateActive(c *Context, w http.ResponseWriter, r *http.Request) {
 	// true when you're trying to de-activate yourself
 	isSelfDeactive := !active && user_id == c.Session.UserId
 
-	if !isSelfDeactive && !c.IsSystemAdmin() {
+	if !isSelfDeactive && !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
 		c.Err = model.NewLocAppError("updateActive", "api.user.update_active.permissions.app_error", nil, "userId="+user_id)
 		c.Err.StatusCode = http.StatusForbidden
 		return
@@ -1626,7 +1625,7 @@ func PermanentDeleteUser(c *Context, user *model.User) *model.AppError {
 	c.Path = "/users/permanent_delete"
 	c.LogAuditWithUserId(user.Id, fmt.Sprintf("attempt userId=%v", user.Id))
 	c.LogAuditWithUserId("", fmt.Sprintf("attempt userId=%v", user.Id))
-	if user.IsInRole(model.ROLE_SYSTEM_ADMIN) {
+	if user.IsInRole(model.ROLE_SYSTEM_ADMIN.Id) {
 		l4g.Warn(utils.T("api.user.permanent_delete_user.system_admin.warn"), user.Email)
 	}
 
@@ -1814,7 +1813,7 @@ func ResetPassword(c *Context, userId, newPassword string) *model.AppError {
 		user = result.Data.(*model.User)
 	}
 
-	if user.AuthData != nil && len(*user.AuthData) != 0 && !c.IsSystemAdmin() {
+	if user.AuthData != nil && len(*user.AuthData) != 0 && !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
 		return model.NewLocAppError("ResetPassword", "api.user.reset_password.sso.app_error", nil, "userId="+user.Id)
 
 	}
@@ -1911,7 +1910,7 @@ func updateUserNotify(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	uchan := Srv.Store.User().Get(user_id)
 
-	if !c.HasPermissionsToUser(user_id, "updateUserNotify") {
+	if !HasPermissionToUser(c, user_id) {
 		return
 	}
 
@@ -2567,10 +2566,11 @@ func userTyping(req *model.WebSocketRequest) (map[string]interface{}, *model.App
 func sanitizeProfile(c *Context, user *model.User) *model.User {
 	options := utils.Cfg.GetSanitizeOptions()
 
-	if c.IsSystemAdmin() {
+	if HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
 		options["email"] = true
 		options["fullname"] = true
 	}
+	c.Err = nil
 
 	user.SanitizeProfile(options)
 
