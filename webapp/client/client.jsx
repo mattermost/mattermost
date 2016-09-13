@@ -856,6 +856,15 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getMe', success, error));
     }
 
+    getUser(userId, success, error) {
+        request.
+            get(`${this.getUserNeededRoute(userId)}/get`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getUser', success, error));
+    }
+
     login(loginId, password, mfaToken, success, error) {
         this.doLogin({login_id: loginId, password, token: mfaToken}, success, error);
 

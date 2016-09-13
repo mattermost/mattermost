@@ -21,6 +21,21 @@ describe('Client.User', function() {
         });
     });
 
+    it('getUser', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().getUser(
+                TestHelper.basicUser().id,
+                function(data) {
+                    assert.equal(data.id, TestHelper.basicUser().id);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
     it('getInitialLoad', function(done) {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().getInitialLoad(
