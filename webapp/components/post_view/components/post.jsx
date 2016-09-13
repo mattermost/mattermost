@@ -236,7 +236,6 @@ export default class Post extends React.Component {
                                 post={post}
                                 sameRoot={this.props.sameRoot}
                                 commentCount={commentCount}
-                                isCommentMention={this.props.isCommentMention}
                                 handleCommentClick={this.handleCommentClick}
                                 handleDropdownOpened={this.handleDropdownOpened}
                                 isLastComment={this.props.isLastComment}
@@ -255,6 +254,7 @@ export default class Post extends React.Component {
                                 handleCommentClick={this.handleCommentClick}
                                 compactDisplay={this.props.compactDisplay}
                                 previewCollapsed={this.props.previewCollapsed}
+                                isCommentMention={this.props.isCommentMention}
                             />
                         </div>
                     </div>

@@ -23,6 +23,10 @@ export default class PostBody extends React.Component {
         this.removePost = this.removePost.bind(this);
     }
     shouldComponentUpdate(nextProps) {
+        if (nextProps.isCommentMention !== this.props.isCommentMention) {
+            return true;
+        }
+
         if (!Utils.areObjectsEqual(nextProps.post, this.props.post)) {
             return true;
         }
@@ -190,10 +194,15 @@ export default class PostBody extends React.Component {
             );
         }
 
+        let mentionHighlightClass = '';
+        if (this.props.isCommentMention) {
+            mentionHighlightClass = 'mention-comment';
+        }
+
         return (
             <div>
                 {comment}
-                <div className='post__body'>
+                <div className={'post__body ' + mentionHighlightClass}>
                     {messageWithAdditionalContent}
                     {fileAttachmentHolder}
                 </div>
@@ -208,5 +217,6 @@ PostBody.propTypes = {
     retryPost: React.PropTypes.func.isRequired,
     handleCommentClick: React.PropTypes.func.isRequired,
     compactDisplay: React.PropTypes.bool,
-    previewCollapsed: React.PropTypes.string
+    previewCollapsed: React.PropTypes.string,
+    isCommentMention: React.PropTypes.bool
 };
