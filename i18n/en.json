@@ -57,11 +57,11 @@
   },
   {
     "id": "authentication.permissions.team_use_slash_commands.name",
-    "translation": "User Slash Commands"
+    "translation": "Use Slash Commands"
   },
   {
     "id": "authentication.permissions.team_use_slash_commands.description",
-    "translation": "Ability to user slash commands"
+    "translation": "Ability to use slash commands"
   },
   {
     "id": "api.auth.unable_to_get_user.app_error",
