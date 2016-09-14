@@ -132,9 +132,12 @@ function preNeedsTeam(nextState, replace, callback) {
     });
 }
 
-function onPermalinkEnter(nextState) {
+function onPermalinkEnter(nextState, replace, callback) {
     const postId = nextState.params.postid;
-    GlobalActions.emitPostFocusEvent(postId);
+    GlobalActions.emitPostFocusEvent(
+        postId,
+        () => callback()
+    );
 }
 
 export default {
