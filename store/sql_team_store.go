@@ -49,7 +49,7 @@ func (s SqlTeamStore) CreateIndexesIfNotExists() {
 }
 
 func (s SqlTeamStore) Save(team *model.Team) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -89,7 +89,7 @@ func (s SqlTeamStore) Save(team *model.Team) StoreChannel {
 
 func (s SqlTeamStore) Update(team *model.Team) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -130,7 +130,7 @@ func (s SqlTeamStore) Update(team *model.Team) StoreChannel {
 
 func (s SqlTeamStore) UpdateDisplayName(name string, teamId string) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -149,7 +149,7 @@ func (s SqlTeamStore) UpdateDisplayName(name string, teamId string) StoreChannel
 }
 
 func (s SqlTeamStore) Get(id string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -175,7 +175,7 @@ func (s SqlTeamStore) Get(id string) StoreChannel {
 }
 
 func (s SqlTeamStore) GetByInviteId(inviteId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -204,7 +204,7 @@ func (s SqlTeamStore) GetByInviteId(inviteId string) StoreChannel {
 }
 
 func (s SqlTeamStore) GetByName(name string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -229,7 +229,7 @@ func (s SqlTeamStore) GetByName(name string) StoreChannel {
 }
 
 func (s SqlTeamStore) GetAll() StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -255,7 +255,7 @@ func (s SqlTeamStore) GetAll() StoreChannel {
 }
 
 func (s SqlTeamStore) GetTeamsByUserId(userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -281,7 +281,7 @@ func (s SqlTeamStore) GetTeamsByUserId(userId string) StoreChannel {
 }
 
 func (s SqlTeamStore) GetAllTeamListing() StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -313,7 +313,7 @@ func (s SqlTeamStore) GetAllTeamListing() StoreChannel {
 }
 
 func (s SqlTeamStore) PermanentDelete(teamId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -330,7 +330,7 @@ func (s SqlTeamStore) PermanentDelete(teamId string) StoreChannel {
 }
 
 func (s SqlTeamStore) AnalyticsTeamCount() StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -349,7 +349,7 @@ func (s SqlTeamStore) AnalyticsTeamCount() StoreChannel {
 }
 
 func (s SqlTeamStore) SaveMember(member *model.TeamMember) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -390,7 +390,7 @@ func (s SqlTeamStore) SaveMember(member *model.TeamMember) StoreChannel {
 }
 
 func (s SqlTeamStore) UpdateMember(member *model.TeamMember) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -415,7 +415,7 @@ func (s SqlTeamStore) UpdateMember(member *model.TeamMember) StoreChannel {
 }
 
 func (s SqlTeamStore) GetMember(teamId string, userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -440,7 +440,7 @@ func (s SqlTeamStore) GetMember(teamId string, userId string) StoreChannel {
 }
 
 func (s SqlTeamStore) GetMembers(teamId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -461,7 +461,7 @@ func (s SqlTeamStore) GetMembers(teamId string) StoreChannel {
 }
 
 func (s SqlTeamStore) GetTeamsForUser(userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -482,7 +482,7 @@ func (s SqlTeamStore) GetTeamsForUser(userId string) StoreChannel {
 }
 
 func (s SqlTeamStore) RemoveMember(teamId string, userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -500,7 +500,7 @@ func (s SqlTeamStore) RemoveMember(teamId string, userId string) StoreChannel {
 }
 
 func (s SqlTeamStore) RemoveAllMembersByTeam(teamId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -518,7 +518,7 @@ func (s SqlTeamStore) RemoveAllMembersByTeam(teamId string) StoreChannel {
 }
 
 func (s SqlTeamStore) RemoveAllMembersByUser(userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}

@@ -56,7 +56,7 @@ func (s SqlPreferenceStore) DeleteUnusedFeatures() {
 }
 
 func (s SqlPreferenceStore) Save(preferences *model.Preferences) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -178,7 +178,7 @@ func (s SqlPreferenceStore) update(transaction *gorp.Transaction, preference *mo
 }
 
 func (s SqlPreferenceStore) Get(userId string, category string, name string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -207,7 +207,7 @@ func (s SqlPreferenceStore) Get(userId string, category string, name string) Sto
 }
 
 func (s SqlPreferenceStore) GetCategory(userId string, category string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -235,7 +235,7 @@ func (s SqlPreferenceStore) GetCategory(userId string, category string) StoreCha
 }
 
 func (s SqlPreferenceStore) GetAll(userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -262,7 +262,7 @@ func (s SqlPreferenceStore) GetAll(userId string) StoreChannel {
 }
 
 func (s SqlPreferenceStore) PermanentDeleteByUser(userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -280,7 +280,7 @@ func (s SqlPreferenceStore) PermanentDeleteByUser(userId string) StoreChannel {
 }
 
 func (s SqlPreferenceStore) IsFeatureEnabled(feature, userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -305,7 +305,7 @@ func (s SqlPreferenceStore) IsFeatureEnabled(feature, userId string) StoreChanne
 }
 
 func (s SqlPreferenceStore) Delete(userId, category, name string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}

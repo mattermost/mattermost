@@ -5,6 +5,7 @@ package store
 
 import (
 	"database/sql"
+
 	"github.com/go-gorp/gorp"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -54,7 +55,7 @@ func (s SqlChannelStore) CreateIndexesIfNotExists() {
 }
 
 func (s SqlChannelStore) Save(channel *model.Channel) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		var result StoreResult
@@ -83,7 +84,7 @@ func (s SqlChannelStore) Save(channel *model.Channel) StoreChannel {
 }
 
 func (s SqlChannelStore) SaveDirectChannel(directchannel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		var result StoreResult
@@ -183,7 +184,7 @@ func (s SqlChannelStore) saveChannelT(transaction *gorp.Transaction, channel *mo
 
 func (s SqlChannelStore) Update(channel *model.Channel) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -222,7 +223,7 @@ func (s SqlChannelStore) Update(channel *model.Channel) StoreChannel {
 }
 
 func (s SqlChannelStore) extraUpdated(channel *model.Channel) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -258,7 +259,7 @@ func (s SqlChannelStore) GetFromMaster(id string) StoreChannel {
 }
 
 func (s SqlChannelStore) get(id string, master bool) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -290,7 +291,7 @@ func (s SqlChannelStore) Delete(channelId string, time int64) StoreChannel {
 }
 
 func (s SqlChannelStore) SetDeleteAt(channelId string, deleteAt int64, updateAt int64) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -308,7 +309,7 @@ func (s SqlChannelStore) SetDeleteAt(channelId string, deleteAt int64, updateAt 
 }
 
 func (s SqlChannelStore) PermanentDeleteByTeam(teamId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -330,7 +331,7 @@ type channelWithMember struct {
 }
 
 func (s SqlChannelStore) GetChannels(teamId string, userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -363,7 +364,7 @@ func (s SqlChannelStore) GetChannels(teamId string, userId string) StoreChannel 
 }
 
 func (s SqlChannelStore) GetMoreChannels(teamId string, userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -411,7 +412,7 @@ type channelIdWithCountAndUpdateAt struct {
 }
 
 func (s SqlChannelStore) GetChannelCounts(teamId string, userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -440,7 +441,7 @@ func (s SqlChannelStore) GetChannelCounts(teamId string, userId string) StoreCha
 }
 
 func (s SqlChannelStore) GetByName(teamId string, name string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -465,7 +466,7 @@ func (s SqlChannelStore) GetByName(teamId string, name string) StoreChannel {
 }
 
 func (s SqlChannelStore) SaveMember(member *model.ChannelMember) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		var result StoreResult
@@ -522,7 +523,7 @@ func (s SqlChannelStore) saveMemberT(transaction *gorp.Transaction, member *mode
 }
 
 func (s SqlChannelStore) UpdateMember(member *model.ChannelMember) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -550,7 +551,7 @@ func (s SqlChannelStore) UpdateMember(member *model.ChannelMember) StoreChannel 
 }
 
 func (s SqlChannelStore) GetMembers(channelId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -571,7 +572,7 @@ func (s SqlChannelStore) GetMembers(channelId string) StoreChannel {
 }
 
 func (s SqlChannelStore) GetMember(channelId string, userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -596,7 +597,7 @@ func (s SqlChannelStore) GetMember(channelId string, userId string) StoreChannel
 }
 
 func (s SqlChannelStore) GetMemberCount(channelId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -625,7 +626,7 @@ func (s SqlChannelStore) GetMemberCount(channelId string) StoreChannel {
 }
 
 func (s SqlChannelStore) GetExtraMembers(channelId string, limit int) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -683,7 +684,7 @@ func (s SqlChannelStore) GetExtraMembers(channelId string, limit int) StoreChann
 }
 
 func (s SqlChannelStore) RemoveMember(channelId string, userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -713,7 +714,7 @@ func (s SqlChannelStore) RemoveMember(channelId string, userId string) StoreChan
 }
 
 func (s SqlChannelStore) PermanentDeleteMembersByUser(userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -730,7 +731,7 @@ func (s SqlChannelStore) PermanentDeleteMembersByUser(userId string) StoreChanne
 }
 
 func (s SqlChannelStore) CheckPermissionsToNoTeam(channelId string, userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -761,7 +762,7 @@ func (s SqlChannelStore) CheckPermissionsToNoTeam(channelId string, userId strin
 }
 
 func (s SqlChannelStore) CheckPermissionsTo(teamId string, channelId string, userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -793,7 +794,7 @@ func (s SqlChannelStore) CheckPermissionsTo(teamId string, channelId string, use
 }
 
 func (s SqlChannelStore) CheckPermissionsToByName(teamId string, channelName string, userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -825,7 +826,7 @@ func (s SqlChannelStore) CheckPermissionsToByName(teamId string, channelName str
 }
 
 func (s SqlChannelStore) CheckOpenChannelPermissions(teamId string, channelId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -854,7 +855,7 @@ func (s SqlChannelStore) CheckOpenChannelPermissions(teamId string, channelId st
 }
 
 func (s SqlChannelStore) SetLastViewedAt(channelId string, userId string, newLastViewedAt int64) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -906,7 +907,7 @@ func (s SqlChannelStore) SetLastViewedAt(channelId string, userId string, newLas
 }
 
 func (s SqlChannelStore) UpdateLastViewedAt(channelId string, userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -954,7 +955,7 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelId string, userId string) Sto
 }
 
 func (s SqlChannelStore) IncrementMentionCount(channelId string, userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -980,7 +981,7 @@ func (s SqlChannelStore) IncrementMentionCount(channelId string, userId string) 
 }
 
 func (s SqlChannelStore) GetAll(teamId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -1002,7 +1003,7 @@ func (s SqlChannelStore) GetAll(teamId string) StoreChannel {
 }
 
 func (s SqlChannelStore) AnalyticsTypeCount(teamId string, channelType string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -1028,7 +1029,7 @@ func (s SqlChannelStore) AnalyticsTypeCount(teamId string, channelType string) S
 }
 
 func (s SqlChannelStore) ExtraUpdateByUser(userId string, time int64) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}

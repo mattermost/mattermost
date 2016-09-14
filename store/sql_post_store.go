@@ -48,7 +48,7 @@ func (s SqlPostStore) CreateIndexesIfNotExists() {
 }
 
 func (s SqlPostStore) Save(post *model.Post) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -95,7 +95,7 @@ func (s SqlPostStore) Save(post *model.Post) StoreChannel {
 }
 
 func (s SqlPostStore) Update(oldPost *model.Post, newMessage string, newHashtags string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -140,7 +140,7 @@ func (s SqlPostStore) Update(oldPost *model.Post, newMessage string, newHashtags
 }
 
 func (s SqlPostStore) GetFlaggedPosts(userId string, offset int, limit int) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 	go func() {
 		result := StoreResult{}
 		pl := &model.PostList{}
@@ -165,7 +165,7 @@ func (s SqlPostStore) GetFlaggedPosts(userId string, offset int, limit int) Stor
 }
 
 func (s SqlPostStore) Get(id string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -211,7 +211,7 @@ type etagPosts struct {
 }
 
 func (s SqlPostStore) GetEtag(channelId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -232,7 +232,7 @@ func (s SqlPostStore) GetEtag(channelId string) StoreChannel {
 }
 
 func (s SqlPostStore) Delete(postId string, time int64) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -250,7 +250,7 @@ func (s SqlPostStore) Delete(postId string, time int64) StoreChannel {
 }
 
 func (s SqlPostStore) permanentDelete(postId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -268,7 +268,7 @@ func (s SqlPostStore) permanentDelete(postId string) StoreChannel {
 }
 
 func (s SqlPostStore) permanentDeleteAllCommentByUser(userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -286,7 +286,7 @@ func (s SqlPostStore) permanentDeleteAllCommentByUser(userId string) StoreChanne
 }
 
 func (s SqlPostStore) PermanentDeleteByUser(userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -343,7 +343,7 @@ func (s SqlPostStore) PermanentDeleteByUser(userId string) StoreChannel {
 }
 
 func (s SqlPostStore) GetPosts(channelId string, offset int, limit int) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -390,7 +390,7 @@ func (s SqlPostStore) GetPosts(channelId string, offset int, limit int) StoreCha
 }
 
 func (s SqlPostStore) GetPostsSince(channelId string, time int64) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -456,7 +456,7 @@ func (s SqlPostStore) GetPostsAfter(channelId string, postId string, numPosts in
 }
 
 func (s SqlPostStore) getPostsAround(channelId string, postId string, numPosts int, offset int, before bool) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -546,7 +546,7 @@ func (s SqlPostStore) getPostsAround(channelId string, postId string, numPosts i
 }
 
 func (s SqlPostStore) getRootPosts(channelId string, offset int, limit int) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -567,7 +567,7 @@ func (s SqlPostStore) getRootPosts(channelId string, offset int, limit int) Stor
 }
 
 func (s SqlPostStore) getParentsPosts(channelId string, offset int, limit int) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -624,7 +624,7 @@ var specialSearchChar = []string{
 }
 
 func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchParams) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -807,7 +807,7 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 }
 
 func (s SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -880,7 +880,7 @@ func (s SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) StoreChan
 }
 
 func (s SqlPostStore) AnalyticsPostCountsByDay(teamId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -953,7 +953,7 @@ func (s SqlPostStore) AnalyticsPostCountsByDay(teamId string) StoreChannel {
 }
 
 func (s SqlPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, mustHaveHashtag bool) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
