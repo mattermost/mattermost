@@ -345,7 +345,7 @@ func TestGetUser(t *testing.T) {
 	LinkUserToTeam(ruser.Data.(*model.User), rteam.Data.(*model.Team))
 	store.Must(Srv.Store.User().VerifyEmail(ruser.Data.(*model.User).Id))
 
-	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
+	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", FirstName: "Corey", LastName: "Hulen"}
 	ruser2, _ := Client.CreateUser(&user2, "")
 	LinkUserToTeam(ruser2.Data.(*model.User), rteam.Data.(*model.Team))
 	store.Must(Srv.Store.User().VerifyEmail(ruser2.Data.(*model.User).Id))
@@ -387,8 +387,52 @@ func TestGetUser(t *testing.T) {
 		t.Fatal("shouldn't exist")
 	}
 
-	if _, err := Client.GetUser(ruser2.Data.(*model.User).Id, ""); err == nil {
-		t.Fatal("shouldn't have accss")
+	emailPrivacy := utils.Cfg.PrivacySettings.ShowEmailAddress
+	namePrivacy := utils.Cfg.PrivacySettings.ShowFullName
+	defer func() {
+		utils.Cfg.PrivacySettings.ShowEmailAddress = emailPrivacy
+		utils.Cfg.PrivacySettings.ShowFullName = namePrivacy
+	}()
+	utils.Cfg.PrivacySettings.ShowEmailAddress = false
+	utils.Cfg.PrivacySettings.ShowFullName = false
+
+	if result, err := Client.GetUser(ruser2.Data.(*model.User).Id, ""); err != nil {
+		t.Fatal(err)
+	} else {
+		u := result.Data.(*model.User)
+		if u.Password != "" {
+			t.Fatal("password must be empty")
+		}
+		if *u.AuthData != "" {
+			t.Fatal("auth data must be empty")
+		}
+		if u.Email != "" {
+			t.Fatal("email should be sanitized")
+		}
+		if u.FirstName != "" {
+			t.Fatal("full name should be sanitized")
+		}
+		if u.LastName != "" {
+			t.Fatal("full name should be sanitized")
+		}
+	}
+
+	utils.Cfg.PrivacySettings.ShowEmailAddress = true
+	utils.Cfg.PrivacySettings.ShowFullName = true
+
+	if result, err := Client.GetUser(ruser2.Data.(*model.User).Id, ""); err != nil {
+		t.Fatal(err)
+	} else {
+		u := result.Data.(*model.User)
+		if u.Email == "" {
+			t.Fatal("email should not be sanitized")
+		}
+		if u.FirstName == "" {
+			t.Fatal("full name should not be sanitized")
+		}
+		if u.LastName == "" {
+			t.Fatal("full name should not be sanitized")
+		}
 	}
 
 	if userMap, err := Client.GetProfiles(rteam.Data.(*model.Team).Id, ""); err != nil {
