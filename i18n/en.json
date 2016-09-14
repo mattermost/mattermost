@@ -4232,10 +4232,6 @@
     "translation": "We couldn't get user counts with posts"
   },
   {
-    "id": "store.sql_post.check_permissions.app_error",
-    "translation": "We couldn't check the permissions"
-  },
-  {
     "id": "store.sql_post.delete.app_error",
     "translation": "We couldn't delete the post"
   },
