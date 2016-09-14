@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"image"
+	"image/gif"
 	"io"
 	"mime"
 	"path/filepath"
@@ -14,20 +15,22 @@ import (
 )
 
 type FileInfo struct {
-	Id            string `json:"id"`
-	UserId        string `json:"user_id"`
-	PostId        string `json:"post_id,omitempty"`
-	CreateAt      int64  `json:"create_at"`
-	UpdateAt      int64  `json:"update_at"`
-	DeleteAt      int64  `json:"delete_at"`
-	Path          string `json:"-"` // not sent back to the client
-	ThumbnailPath string `json:"-"` // not sent back to the client
-	PreviewPath   string `json:"-"` // not sent back to the client
-	Name          string `json:"name"`
-	Size          int64  `json:"size"`
-	MimeType      string `json:"mime_type"`
-	Width         int    `json:"width,omitempty"`
-	Height        int    `json:"height,omitempty"`
+	Id              string `json:"id"`
+	UserId          string `json:"user_id"`
+	PostId          string `json:"post_id,omitempty"`
+	CreateAt        int64  `json:"create_at"`
+	UpdateAt        int64  `json:"update_at"`
+	DeleteAt        int64  `json:"delete_at"`
+	Path            string `json:"-"` // not sent back to the client
+	ThumbnailPath   string `json:"-"` // not sent back to the client
+	PreviewPath     string `json:"-"` // not sent back to the client
+	Name            string `json:"name"`
+	Extension       string `json:"extension"`
+	Size            int64  `json:"size"`
+	MimeType        string `json:"mime_type"`
+	Width           int    `json:"width,omitempty"`
+	Height          int    `json:"height,omitempty"`
+	HasPreviewImage bool   `json:"has_preview_image,omitempty"`
 }
 
 func (info *FileInfo) ToJson() string {
@@ -113,7 +116,7 @@ func (o *FileInfo) IsImage() bool {
 	return strings.HasPrefix(o.MimeType, "image")
 }
 
-func GetInfoForBytes(name string, data []byte) (*FileInfo, *image.Config) {
+func GetInfoForBytes(name string, data []byte) (*FileInfo, *AppError) {
 	info := &FileInfo{
 		Name: name,
 		Size: int64(len(data)),
@@ -122,15 +125,35 @@ func GetInfoForBytes(name string, data []byte) (*FileInfo, *image.Config) {
 	extension := filepath.Ext(name)
 	info.MimeType = mime.TypeByExtension(extension)
 
-	// only set the width and height if it's actually an image
-	if config, _, err := image.DecodeConfig(bytes.NewReader(data)); err == nil {
-		info.Width = config.Width
-		info.Height = config.Height
-
-		return info, &config
+	if extension != "" && extension[0] == '.' {
+		// The client expects a file extension without the leading period
+		info.Extension = extension[1:]
 	} else {
-		return info, nil
+		info.Extension = extension
 	}
+
+	if info.IsImage() {
+		// Only set the width and height if it's actually an image
+		if config, _, err := image.DecodeConfig(bytes.NewReader(data)); err != nil {
+			return nil, NewLocAppError("GetInfoForBytes", "model.file_info.get.image_config.app_error", nil, "name="+name)
+		} else {
+			info.Width = config.Width
+			info.Height = config.Height
+		}
+
+		if info.MimeType == "image/gif" {
+			// Just show the gif itself instead of a preview image for animated gifs
+			if gifConfig, err := gif.DecodeAll(bytes.NewReader(data)); err != nil {
+				return nil, NewLocAppError("GetInfoForBytes", "model.file_info.get.gif.app_error", nil, "name="+name)
+			} else {
+				info.HasPreviewImage = len(gifConfig.Image) == 1
+			}
+		} else {
+			info.HasPreviewImage = true
+		}
+	}
+
+	return info, nil
 }
 
 func GetEtagForFileInfos(infos []*FileInfo) string {

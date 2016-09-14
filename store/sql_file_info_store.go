@@ -22,6 +22,7 @@ func NewSqlFileInfoStore(sqlStore *SqlStore) FileInfoStore {
 		table.ColMap("ThumbnailPath").SetMaxSize(512)
 		table.ColMap("PreviewPath").SetMaxSize(512)
 		table.ColMap("Name").SetMaxSize(256)
+		table.ColMap("Extension").SetMaxSize(64)
 		table.ColMap("MimeType").SetMaxSize(256)
 	}
 

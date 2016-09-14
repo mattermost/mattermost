@@ -115,17 +115,23 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	imageDataList := [][]byte{}
 
 	for i, fileHeader := range m.File["files"] {
-		file, err := fileHeader.Open()
+		file, fileErr := fileHeader.Open()
 		defer file.Close()
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+		if fileErr != nil {
+			http.Error(w, fileErr.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		buf := bytes.NewBuffer(nil)
 		io.Copy(buf, file)
 
-		info, config := model.GetInfoForBytes(fileHeader.Filename, buf.Bytes())
+		info, err := model.GetInfoForBytes(fileHeader.Filename, buf.Bytes())
+		if err != nil {
+			c.Err = err
+			c.Err.StatusCode = http.StatusBadRequest
+			return
+		}
+
 		info.Id = model.NewId()
 		info.UserId = c.Session.UserId
 
@@ -134,10 +140,11 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		info.Path = pathPrefix + filename
 
-		if config != nil {
-			// Decode image config first to check dimensions before loading the whole thing into memory later on
-			if config.Width*config.Height > MaxImageSize {
+		if info.IsImage() {
+			// Check dimensions before loading the whole thing into memory later on
+			if info.Width*info.Height > MaxImageSize {
 				c.Err = model.NewLocAppError("uploadFile", "api.file.upload_file.large_image.app_error", nil, c.T("api.file.file_upload.exceeds"))
+				c.Err.StatusCode = http.StatusBadRequest
 				return
 			}
 

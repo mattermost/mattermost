@@ -78,8 +78,12 @@ func TestFileInfoIsImage(t *testing.T) {
 func TestGetInfoForFile(t *testing.T) {
 	fakeFile := make([]byte, 1000)
 
-	if info, cfg := GetInfoForBytes("file.txt", fakeFile); info.Name != "file.txt" {
+	if info, err := GetInfoForBytes("file.txt", fakeFile); err != nil {
+		t.Fatal(err)
+	} else if info.Name != "file.txt" {
 		t.Fatalf("Got incorrect filename: %v", info.Name)
+	} else if info.Extension != "txt" {
+		t.Fatalf("Got incorrect extension: %v", info.Extension)
 	} else if info.Size != 1000 {
 		t.Fatalf("Got incorrect size: %v", info.Size)
 	} else if !strings.HasPrefix(info.MimeType, "text/plain") {
@@ -88,16 +92,20 @@ func TestGetInfoForFile(t *testing.T) {
 		t.Fatalf("Got incorrect width: %v", info.Width)
 	} else if info.Height != 0 {
 		t.Fatalf("Got incorrect height: %v", info.Height)
-	} else if cfg != nil {
-		t.Fatalf("Got incorrect image config: %v", cfg)
+	} else if info.HasPreviewImage {
+		t.Fatalf("Got incorrect has preview image: %v", info.HasPreviewImage)
 	}
 
 	pngFile, err := ioutil.ReadFile("../tests/test.png")
 	if err != nil {
 		t.Fatalf("Failed to load test.png: %v", err.Error())
 	}
-	if info, cfg := GetInfoForBytes("test.png", pngFile); info.Name != "test.png" {
+	if info, err := GetInfoForBytes("test.png", pngFile); err != nil {
+		t.Fatal(err)
+	} else if info.Name != "test.png" {
 		t.Fatalf("Got incorrect filename: %v", info.Name)
+	} else if info.Extension != "png" {
+		t.Fatalf("Got incorrect extension: %v", info.Extension)
 	} else if info.Size != 279591 {
 		t.Fatalf("Got incorrect size: %v", info.Size)
 	} else if info.MimeType != "image/png" {
@@ -106,14 +114,18 @@ func TestGetInfoForFile(t *testing.T) {
 		t.Fatalf("Got incorrect width: %v", info.Width)
 	} else if info.Height != 336 {
 		t.Fatalf("Got incorrect height: %v", info.Height)
-	} else if cfg == nil {
-		t.Fatalf("Got incorrect image config: %v", cfg)
+	} else if !info.HasPreviewImage {
+		t.Fatalf("Got incorrect has preview image: %v", info.HasPreviewImage)
 	}
 
 	// base 64 encoded version of handtinywhite.gif from http://probablyprogramming.com/2009/03/15/the-tiniest-gif-ever
 	gifFile, _ := base64.StdEncoding.DecodeString("R0lGODlhAQABAIABAP///wAAACwAAAAAAQABAAACAkQBADs=")
-	if info, cfg := GetInfoForBytes("handtinywhite.gif", gifFile); info.Name != "handtinywhite.gif" {
+	if info, err := GetInfoForBytes("handtinywhite.gif", gifFile); err != nil {
+		t.Fatal(err)
+	} else if info.Name != "handtinywhite.gif" {
 		t.Fatalf("Got incorrect filename: %v", info.Name)
+	} else if info.Extension != "gif" {
+		t.Fatalf("Got incorrect extension: %v", info.Extension)
 	} else if info.Size != 35 {
 		t.Fatalf("Got incorrect size: %v", info.Size)
 	} else if info.MimeType != "image/gif" {
@@ -122,16 +134,20 @@ func TestGetInfoForFile(t *testing.T) {
 		t.Fatalf("Got incorrect width: %v", info.Width)
 	} else if info.Height != 1 {
 		t.Fatalf("Got incorrect height: %v", info.Height)
-	} else if cfg == nil {
-		t.Fatalf("Got incorrect image config: %v", cfg)
+	} else if !info.HasPreviewImage {
+		t.Fatalf("Got incorrect has preview image: %v", info.HasPreviewImage)
 	}
 
 	animatedGifFile, err := ioutil.ReadFile("../tests/testgif.gif")
 	if err != nil {
 		t.Fatalf("Failed to load testgif.gif: %v", err.Error())
 	}
-	if info, cfg := GetInfoForBytes("testgif.gif", animatedGifFile); info.Name != "testgif.gif" {
+	if info, err := GetInfoForBytes("testgif.gif", animatedGifFile); err != nil {
+		t.Fatal(err)
+	} else if info.Name != "testgif.gif" {
 		t.Fatalf("Got incorrect filename: %v", info.Name)
+	} else if info.Extension != "gif" {
+		t.Fatalf("Got incorrect extension: %v", info.Extension)
 	} else if info.Size != 38689 {
 		t.Fatalf("Got incorrect size: %v", info.Size)
 	} else if info.MimeType != "image/gif" {
@@ -140,12 +156,16 @@ func TestGetInfoForFile(t *testing.T) {
 		t.Fatalf("Got incorrect width: %v", info.Width)
 	} else if info.Height != 118 {
 		t.Fatalf("Got incorrect height: %v", info.Height)
-	} else if cfg == nil {
-		t.Fatalf("Got incorrect image config: %v", cfg)
+	} else if info.HasPreviewImage {
+		t.Fatalf("Got incorrect has preview image: %v", info.HasPreviewImage)
 	}
 
-	if info, cfg := GetInfoForBytes("filewithoutextension", fakeFile); info.Name != "filewithoutextension" {
+	if info, err := GetInfoForBytes("filewithoutextension", fakeFile); err != nil {
+		t.Fatal(err)
+	} else if info.Name != "filewithoutextension" {
 		t.Fatalf("Got incorrect filename: %v", info.Name)
+	} else if info.Extension != "" {
+		t.Fatalf("Got incorrect extension: %v", info.Extension)
 	} else if info.Size != 1000 {
 		t.Fatalf("Got incorrect size: %v", info.Size)
 	} else if info.MimeType != "" {
@@ -154,7 +174,7 @@ func TestGetInfoForFile(t *testing.T) {
 		t.Fatalf("Got incorrect width: %v", info.Width)
 	} else if info.Height != 0 {
 		t.Fatalf("Got incorrect height: %v", info.Height)
-	} else if cfg != nil {
-		t.Fatalf("Got incorrect image config: %v", cfg)
+	} else if info.HasPreviewImage {
+		t.Fatalf("Got incorrect has preview image: %v", info.HasPreviewImage)
 	}
 }
