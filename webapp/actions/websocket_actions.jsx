@@ -179,7 +179,7 @@ function handlePostEditEvent(msg) {
     PostStore.emitChange();
 
     // Update channel state
-    if (ChannelStore.getCurrentId() === msg.channel_id) {
+    if (ChannelStore.getCurrentId() === msg.broadcast.channel_id) {
         if (window.isActive) {
             AsyncClient.updateLastViewedAt(null, false);
         }
@@ -204,41 +204,41 @@ function handleNewUserEvent() {
 }
 
 function handleLeaveTeamEvent(msg) {
-    if (UserStore.getCurrentId() === msg.user_id) {
-        TeamStore.removeTeamMember(msg.team_id);
+    if (UserStore.getCurrentId() === msg.data.user_id) {
+        TeamStore.removeTeamMember(msg.broadcast.team_id);
 
         // if the are on the team begin removed redirect them to the root
-        if (TeamStore.getCurrentId() === msg.team_id) {
+        if (TeamStore.getCurrentId() === msg.broadcast.team_id) {
             TeamStore.setCurrentId('');
             Client.setTeamId('');
             browserHistory.push('/');
         }
-    } else if (TeamStore.getCurrentId() === msg.team_id) {
+    } else if (TeamStore.getCurrentId() === msg.broadcast.team_id) {
         UserActions.getMoreDmList();
     }
 }
 
 function handleDirectAddedEvent(msg) {
-    AsyncClient.getChannel(msg.channel_id);
+    AsyncClient.getChannel(msg.broadcast.channel_id);
     AsyncClient.getDirectProfiles();
 }
 
 function handleUserAddedEvent(msg) {
-    if (ChannelStore.getCurrentId() === msg.channel_id) {
+    if (ChannelStore.getCurrentId() === msg.broadcast.channel_id) {
         AsyncClient.getChannelExtraInfo();
     }
 
-    if (TeamStore.getCurrentId() === msg.team_id && UserStore.getCurrentId() === msg.user_id) {
-        AsyncClient.getChannel(msg.channel_id);
+    if (TeamStore.getCurrentId() === msg.data.team_id && UserStore.getCurrentId() === msg.data.user_id) {
+        AsyncClient.getChannel(msg.broadcast.channel_id);
     }
 }
 
 function handleUserRemovedEvent(msg) {
-    if (UserStore.getCurrentId() === msg.user_id) {
+    if (UserStore.getCurrentId() === msg.broadcast.user_id) {
         AsyncClient.getChannels();
 
-        if (msg.data.remover_id !== msg.user_id &&
-                msg.channel_id === ChannelStore.getCurrentId() &&
+        if (msg.data.remover_id !== msg.broadcast.user_id &&
+                msg.data.channel_id === ChannelStore.getCurrentId() &&
                 $('#removed_from_channel').length > 0) {
             var sentState = {};
             sentState.channelName = ChannelStore.getCurrent().display_name;
@@ -247,32 +247,33 @@ function handleUserRemovedEvent(msg) {
             BrowserStore.setItem('channel-removed-state', sentState);
             $('#removed_from_channel').modal('show');
         }
-    } else if (ChannelStore.getCurrentId() === msg.channel_id) {
+    } else if (ChannelStore.getCurrentId() === msg.broadcast.channel_id) {
         AsyncClient.getChannelExtraInfo();
     }
 }
 
 function handleUserUpdatedEvent(msg) {
-    if (UserStore.getCurrentId() !== msg.user_id) {
-        UserStore.saveProfile(msg.data.user);
-        if (UserStore.hasDirectProfile(msg.user_id)) {
-            UserStore.saveDirectProfile(msg.data.user);
+    const user = msg.data.user;
+    if (UserStore.getCurrentId() !== user.id) {
+        UserStore.saveProfile(user);
+        if (UserStore.hasDirectProfile(user.id)) {
+            UserStore.saveDirectProfile(user);
         }
-        UserStore.emitChange(msg.user_id);
+        UserStore.emitChange(user.id);
     }
 }
 
 function handleChannelViewedEvent(msg) {
     // Useful for when multiple devices have the app open to different channels
-    if (TeamStore.getCurrentId() === msg.team_id &&
-            ChannelStore.getCurrentId() !== msg.channel_id &&
-            UserStore.getCurrentId() === msg.user_id) {
-        AsyncClient.getChannel(msg.channel_id);
+    if (TeamStore.getCurrentId() === msg.broadcast.team_id &&
+            ChannelStore.getCurrentId() !== msg.data.channel_id &&
+            UserStore.getCurrentId() === msg.broadcast.user_id) {
+        AsyncClient.getChannel(msg.data.channel_id);
     }
 }
 
 function handleChannelDeletedEvent(msg) {
-    if (ChannelStore.getCurrentId() === msg.channel_id) {
+    if (ChannelStore.getCurrentId() === msg.data.channel_id) {
         const teamUrl = TeamStore.getCurrentTeamRelativeUrl();
         browserHistory.push(teamUrl + '/channels/' + Constants.DEFAULT_CHANNEL);
     }
@@ -285,11 +286,11 @@ function handlePreferenceChangedEvent(msg) {
 }
 
 function handleUserTypingEvent(msg) {
-    GlobalActions.emitRemoteUserTypingEvent(msg.channel_id, msg.user_id, msg.data.parent_id);
+    GlobalActions.emitRemoteUserTypingEvent(msg.broadcast.channel_id, msg.data.user_id, msg.data.parent_id);
 }
 
 function handleStatusChangedEvent(msg) {
-    UserStore.setStatus(msg.user_id, msg.data.status);
+    UserStore.setStatus(msg.data.user_id, msg.data.status);
 }
 
 function handleHelloEvent(msg) {
