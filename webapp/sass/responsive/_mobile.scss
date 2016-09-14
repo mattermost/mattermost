@@ -307,7 +307,8 @@
         max-width: calc(100% - 10px);
     }
 
-    .modal-direct-channels {
+    .modal-direct-channels,
+    .more-channel__modal {
         .member-count {
             display: block;
             float: none;
