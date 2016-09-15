@@ -135,9 +135,9 @@ type UserStore interface {
 	UpdateMfaActive(userId string, active bool) StoreChannel
 	Get(id string) StoreChannel
 	GetAll() StoreChannel
-	GetAllProfiles() StoreChannel
 	GetProfilesInChannel(channelId string) StoreChannel
 	GetProfilesByUsernames(usernames []string, teamId string) StoreChannel
+	GetAllProfiles(offset int, limit int) StoreChannel
 	GetProfiles(teamId string, offset int, limit int) StoreChannel
 	GetDirectProfiles(userId string) StoreChannel
 	GetProfileByIds(userId []string) StoreChannel
@@ -147,7 +147,7 @@ type UserStore interface {
 	GetByUsername(username string) StoreChannel
 	GetForLogin(loginId string, allowSignInWithUsername, allowSignInWithEmail, ldapEnabled bool) StoreChannel
 	VerifyEmail(userId string) StoreChannel
-	GetEtagForAllProfiles() StoreChannel
+	GetEtagForAllProfiles(offset int, limit int) StoreChannel
 	GetEtagForProfiles(teamId string, offset int, limit int) StoreChannel
 	GetEtagForDirectProfiles(userId string) StoreChannel
 	UpdateFailedPasswordAttempts(userId string, attempts int) StoreChannel

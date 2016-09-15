@@ -6,6 +6,7 @@ import EventEmitter from 'events';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
 import LocalizationStore from './localization_store.jsx';
+import TeamStore from './team_store.jsx';
 
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
@@ -28,6 +29,10 @@ class UserStoreClass extends EventEmitter {
     clear() {
         this.profiles_for_dm_list = {};
         this.profiles = {};
+        this.paging_offset = 0;
+        this.paging_count = 0;
+        this.dm_paging_offset = 0;
+        this.dm_paging_count = 0;
         this.direct_profiles = {};
         this.statuses = {};
         this.sessions = {};
@@ -162,6 +167,28 @@ class UserStoreClass extends EventEmitter {
         return profileUsernameMap;
     }
 
+    getProfilesForTeam() {
+        const members = TeamStore.getMembersForTeam();
+        const profilesForTeam = [];
+        for (let i = 0; i < members.length; i++) {
+            if (this.profiles[members[i].user_id]) {
+                profilesForTeam.push(this.profiles[members[i].user_id]);
+            }
+        }
+
+        profilesForTeam.sort((a, b) => {
+            if (a.username < b.username) {
+                return -1;
+            }
+            if (a.username > b.username) {
+                return 1;
+            }
+            return 0;
+        });
+
+        return profilesForTeam;
+    }
+
     getDirectProfiles() {
         return this.direct_profiles;
     }
@@ -186,6 +213,20 @@ class UserStoreClass extends EventEmitter {
         for (var key in profiles) {
             if (!(profiles[key].id === currentId && skipCurrent) && profiles[key].delete_at === 0) {
                 active[key] = profiles[key];
+            }
+        }
+
+        return active;
+    }
+
+    getActiveOnlyProfilesForTeam(skipCurrent) {
+        const active = {};
+        const profiles = this.getProfilesForTeam();
+        const currentId = this.getCurrentId();
+
+        for (let i = 0; i < profiles.length; i++) {
+            if (!(profiles[i].id === currentId && skipCurrent) && profiles[i].delete_at === 0) {
+                active[profiles[i].id] = profiles[i];
             }
         }
 
@@ -239,13 +280,21 @@ class UserStoreClass extends EventEmitter {
             }
         }
 
-        profiles.sort((a, b) => a.username.localeCompare(b.username));
+        profiles.sort((a, b) => {
+            if (a.username < b.username) {
+                return -1;
+            }
+            if (a.username > b.username) {
+                return 1;
+            }
+            return 0;
+        });
 
         return profiles;
     }
 
     saveProfilesForDmList(profiles) {
-        this.profiles_for_dm_list = profiles;
+        this.profiles_for_dm_list = Object.assign({}, this.profiles_for_dm_list, profiles);
     }
 
     setSessions(sessions) {
@@ -331,6 +380,32 @@ class UserStoreClass extends EventEmitter {
 
         return false;
     }
+
+    setPage(offset, count) {
+        this.paging_offset = offset + count;
+        this.paging_count = this.paging_count + count;
+    }
+
+    getPagingOffset() {
+        return this.paging_offset;
+    }
+
+    getPagingCount() {
+        return this.paging_count;
+    }
+
+    setDMPage(offset, count) {
+        this.dm_paging_offset = offset + count;
+        this.dm_paging_count = this.dm_paging_count + count;
+    }
+
+    getDMPagingOffset() {
+        return this.dm_paging_offset;
+    }
+
+    getDMPagingCount() {
+        return this.dm_paging_count;
+    }
 }
 
 var UserStore = new UserStoreClass();
@@ -342,10 +417,16 @@ UserStore.dispatchToken = AppDispatcher.register((payload) => {
     switch (action.type) {
     case ActionTypes.RECEIVED_PROFILES_FOR_DM_LIST:
         UserStore.saveProfilesForDmList(action.profiles);
+        if (action.offset != null && action.count != null) {
+            UserStore.setDMPage(action.offset, action.count);
+        }
         UserStore.emitDmListChange();
         break;
     case ActionTypes.RECEIVED_PROFILES:
         UserStore.saveProfiles(action.profiles);
+        if (action.offset != null && action.count != null) {
+            UserStore.setPage(action.offset, action.count);
+        }
         UserStore.emitChange();
         break;
     case ActionTypes.RECEIVED_PROFILE:

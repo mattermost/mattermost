@@ -12,7 +12,7 @@ import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
 import React from 'react';
 
-export default class UserItem extends React.Component {
+export default class AdminTeamMembersDropdown extends React.Component {
     constructor(props) {
         super(props);
 
@@ -43,7 +43,7 @@ export default class UserItem extends React.Component {
             this.handleDemote(this.props.user, '');
         } else {
             Client.updateRoles(
-                this.props.team.id,
+                this.props.teamMember.team_id,
                 this.props.user.id,
                 '',
                 () => {
@@ -58,7 +58,7 @@ export default class UserItem extends React.Component {
 
     handleRemoveFromTeam() {
         Client.removeUserFromTeam(
-                this.props.team.id,
+                this.props.teamMember.team_id,
                 this.props.user.id,
                 () => {
                     this.props.refreshProfiles();
@@ -100,7 +100,7 @@ export default class UserItem extends React.Component {
             this.handleDemote(this.props.user, 'team_user team_admin');
         } else {
             Client.updateRoles(
-                this.props.team.id,
+                this.props.teamMember.team_id,
                 this.props.user.id,
                 'team_user team_admin',
                 () => {
@@ -117,7 +117,7 @@ export default class UserItem extends React.Component {
         e.preventDefault();
 
         Client.updateRoles(
-            this.props.team.id,
+            this.props.teamMember.team_id,
             this.props.user.id,
             'system_user system_admin',
             () => {
@@ -167,7 +167,7 @@ export default class UserItem extends React.Component {
 
     handleDemoteSubmit() {
         Client.updateRoles(
-            this.props.team.id,
+            this.props.teamMember.team_id,
             this.props.user.id,
             this.state.role,
             () => {
@@ -527,54 +527,30 @@ export default class UserItem extends React.Component {
         }
 
         return (
-            <div className='more-modal__row'>
-                <img
-                    className='more-modal__image pull-left'
-                    src={`${Client.getUsersRoute()}/${user.id}/image?time=${user.update_at}`}
-                    height='36'
-                    width='36'
-                />
-                <div className='more-modal__details'>
-                    <div className='more-modal__name'>{displayedName}</div>
-                    <div className='more-modal__description'>
-                        <FormattedHTMLMessage
-                            id='admin.user_item.emailTitle'
-                            defaultMessage='<strong>Email:</strong> {email}'
-                            values={{
-                                email
-                            }}
-                        />
-                        {authServiceText}
-                        {mfaActiveText}
-                    </div>
-                </div>
-                <div className='more-modal__actions'>
-                    <div className='dropdown member-drop'>
-                        <a
-                            href='#'
-                            className='dropdown-toggle theme'
-                            type='button'
-                            data-toggle='dropdown'
-                            aria-expanded='true'
-                        >
-                            <span>{currentRoles} </span>
-                            <span className='caret'></span>
-                        </a>
-                        <ul
-                            className='dropdown-menu member-menu'
-                            role='menu'
-                        >
-                            {removeFromTeam}
-                            {makeAdmin}
-                            {makeMember}
-                            {makeActive}
-                            {makeNotActive}
-                            {makeSystemAdmin}
-                            {mfaReset}
-                            {passwordReset}
-                        </ul>
-                    </div>
-                </div>
+            <div className='dropdown member-drop'>
+                <a
+                    href='#'
+                    className='dropdown-toggle theme'
+                    type='button'
+                    data-toggle='dropdown'
+                    aria-expanded='true'
+                >
+                    <span>{currentRoles} </span>
+                    <span className='caret'></span>
+                </a>
+                <ul
+                    className='dropdown-menu member-menu'
+                    role='menu'
+                >
+                    {removeFromTeam}
+                    {makeAdmin}
+                    {makeMember}
+                    {makeActive}
+                    {makeNotActive}
+                    {makeSystemAdmin}
+                    {mfaReset}
+                    {passwordReset}
+                </ul>
                 {makeDemoteModal}
                 {serverError}
             </div>
@@ -582,8 +558,7 @@ export default class UserItem extends React.Component {
     }
 }
 
-UserItem.propTypes = {
-    team: React.PropTypes.object.isRequired,
+AdminTeamMembersDropdown.propTypes = {
     user: React.PropTypes.object.isRequired,
     teamMember: React.PropTypes.object.isRequired,
     refreshProfiles: React.PropTypes.func.isRequired,

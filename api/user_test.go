@@ -558,7 +558,7 @@ func TestGetProfilesForDirectMessageList(t *testing.T) {
 
 	utils.Cfg.PrivacySettings.ShowEmailAddress = true
 
-	if result, err := th.BasicClient.GetProfilesForDirectMessageList(th.BasicTeam.Id); err != nil {
+	if result, err := th.BasicClient.GetProfilesForDirectMessageList(th.BasicTeam.Id, 0, 100); err != nil {
 		t.Fatal(err)
 	} else {
 		users := result.Data.(map[string]*model.User)
@@ -576,7 +576,7 @@ func TestGetProfilesForDirectMessageList(t *testing.T) {
 
 	utils.Cfg.PrivacySettings.ShowEmailAddress = false
 
-	if result, err := th.BasicClient.GetProfilesForDirectMessageList(th.BasicTeam.Id); err != nil {
+	if result, err := th.BasicClient.GetProfilesForDirectMessageList(th.BasicTeam.Id, 0, 100); err != nil {
 		t.Fatal(err)
 	} else {
 		users := result.Data.(map[string]*model.User)
