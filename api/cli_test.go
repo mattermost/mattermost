@@ -417,3 +417,27 @@ func TestCliCreateChannel(t *testing.T) {
 		t.Fatal()
 	}
 }
+
+func TestCliMakeUserActiveAndInactive(t *testing.T) {
+	if disableCliTests {
+		return
+	}
+
+	th := Setup().InitBasic()
+
+	// first inactivate the user
+	cmd := exec.Command("bash", "-c", `go run ../mattermost.go -activate_user -inactive -email="`+th.BasicUser.Email+`"`)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Log(string(output))
+		t.Fatal()
+	}
+
+	// activate the inactive user
+	cmd2 := exec.Command("bash", "-c", `go run ../mattermost.go -activate_user -email="`+th.BasicUser.Email+`"`)
+	output2, err2 := cmd2.CombinedOutput()
+	if err2 != nil {
+		t.Log(string(output2))
+		t.Fatal()
+	}
+}
