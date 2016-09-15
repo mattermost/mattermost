@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import FilteredUserList from './filtered_user_list.jsx';
+import SearchableUserList from './searchable_user_list.jsx';
 import LoadingScreen from './loading_screen.jsx';
 import ChannelInviteModal from './channel_invite_modal.jsx';
 
@@ -18,6 +18,8 @@ import {Modal} from 'react-bootstrap';
 
 import React from 'react';
 
+const USERS_PER_PAGE = 50;
+
 export default class ChannelMembersModal extends React.Component {
     constructor(props) {
         super(props);
@@ -33,6 +35,7 @@ export default class ChannelMembersModal extends React.Component {
             showInviteModal: false
         };
     }
+
     shouldComponentUpdate(nextProps, nextState) {
         if (!Utils.areObjectsEqual(this.props, nextProps)) {
             return true;
@@ -44,9 +47,10 @@ export default class ChannelMembersModal extends React.Component {
 
         return false;
     }
+
     getStateFromStores() {
         const extraInfo = ChannelStore.getCurrentExtraInfo();
-        const profiles = UserStore.getActiveOnlyProfiles();
+        const profiles = UserStore.getActiveOnlyProfilesForTeam();
 
         if (extraInfo.member_count !== extraInfo.members.length) {
             AsyncClient.getChannelExtraInfo(this.props.channel.id, -1);
@@ -56,9 +60,21 @@ export default class ChannelMembersModal extends React.Component {
             };
         }
 
-        const memberList = extraInfo.members.map((member) => {
-            return profiles[member.id];
-        });
+        const members = extraInfo.members;
+        const memberList = [];
+        for (let i = 0; i < members.length; i++) {
+            const profile = profiles[members[i].id];
+            if (profile) {
+                memberList.push(profile);
+            }
+        }
+
+        if (memberList.length < (this.page + 1) * USERS_PER_PAGE && memberList.length < extraInfo.member_count) {
+            AsyncClient.getProfiles();
+            return {
+                loading: true
+            };
+        }
 
         function compareByUsername(a, b) {
             if (a.username < b.username) {
@@ -77,6 +93,7 @@ export default class ChannelMembersModal extends React.Component {
             loading: false
         };
     }
+
     componentWillReceiveProps(nextProps) {
         if (!this.props.show && nextProps.show) {
             ChannelStore.addExtraInfoChangeListener(this.onChange);
@@ -88,12 +105,14 @@ export default class ChannelMembersModal extends React.Component {
             ChannelStore.removeChangeListener(this.onChange);
         }
     }
+
     onChange() {
         const newState = this.getStateFromStores();
         if (!Utils.areObjectsEqual(this.state, newState)) {
             this.setState(newState);
         }
     }
+
     handleRemove(user) {
         const userId = user.id;
 
@@ -117,6 +136,7 @@ export default class ChannelMembersModal extends React.Component {
             }
          );
     }
+
     createRemoveMemberButton({user}) {
         if (user.id === UserStore.getCurrentId()) {
             return null;
@@ -135,6 +155,11 @@ export default class ChannelMembersModal extends React.Component {
             </button>
         );
     }
+
+    nextPage(page) {
+        AsyncClient.getProfiles((page + 1) * USERS_PER_PAGE, USERS_PER_PAGE);
+    }
+
     render() {
         let content;
         if (this.state.loading) {
@@ -151,9 +176,11 @@ export default class ChannelMembersModal extends React.Component {
             }
 
             content = (
-                <FilteredUserList
+                <SearchableUserList
                     style={{maxHeight}}
                     users={this.state.memberList}
+                    usersPerPage={USERS_PER_PAGE}
+                    nextPage={this.nextPage}
                     actions={removeButton}
                 />
             );

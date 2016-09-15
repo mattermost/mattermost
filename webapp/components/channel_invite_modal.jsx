@@ -1,33 +1,37 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
 import ChannelInviteButton from './channel_invite_button.jsx';
-import FilteredUserList from './filtered_user_list.jsx';
+import SearchableUserList from './searchable_user_list.jsx';
 import LoadingScreen from './loading_screen.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 
+import $ from 'jquery';
+import React from 'react';
+import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import {Modal} from 'react-bootstrap';
-
-import React from 'react';
+const USERS_PER_PAGE = 50;
 
 export default class ChannelInviteModal extends React.Component {
     constructor(props) {
         super(props);
 
-        this.onListenerChange = this.onListenerChange.bind(this);
+        this.onChange = this.onChange.bind(this);
         this.getStateFromStores = this.getStateFromStores.bind(this);
         this.handleInviteError = this.handleInviteError.bind(this);
 
+        this.page = 0;
+
         this.state = this.getStateFromStores();
     }
+
     shouldComponentUpdate(nextProps, nextState) {
         if (!this.props.show && !nextProps.show) {
             return false;
@@ -43,8 +47,9 @@ export default class ChannelInviteModal extends React.Component {
 
         return false;
     }
+
     getStateFromStores() {
-        const users = UserStore.getActiveOnlyProfiles();
+        const users = UserStore.getActiveOnlyProfilesForTeam(true);
 
         if ($.isEmptyObject(users)) {
             return {
@@ -85,6 +90,15 @@ export default class ChannelInviteModal extends React.Component {
             }
         }
 
+        // if we don't have enough members to display and there are other non channel members we don't have,
+        // then fetch more
+        if (nonmembers.length < (this.page + 1) * USERS_PER_PAGE && (nonmembers.length + 1) < TeamStore.getMembersForTeam().length - extraInfo.member_count) {
+            AsyncClient.getProfiles();
+            return {
+                loading: true
+            };
+        }
+
         nonmembers.sort((a, b) => {
             return a.username.localeCompare(b.username);
         });
@@ -96,29 +110,33 @@ export default class ChannelInviteModal extends React.Component {
             currentMember
         };
     }
+
     componentWillReceiveProps(nextProps) {
         if (!this.props.show && nextProps.show) {
-            ChannelStore.addExtraInfoChangeListener(this.onListenerChange);
-            ChannelStore.addChangeListener(this.onListenerChange);
-            UserStore.addChangeListener(this.onListenerChange);
-            this.onListenerChange();
+            ChannelStore.addExtraInfoChangeListener(this.onChange);
+            ChannelStore.addChangeListener(this.onChange);
+            UserStore.addChangeListener(this.onChange);
+            this.onChange();
         } else if (this.props.show && !nextProps.show) {
-            ChannelStore.removeExtraInfoChangeListener(this.onListenerChange);
-            ChannelStore.removeChangeListener(this.onListenerChange);
-            UserStore.removeChangeListener(this.onListenerChange);
+            ChannelStore.removeExtraInfoChangeListener(this.onChange);
+            ChannelStore.removeChangeListener(this.onChange);
+            UserStore.removeChangeListener(this.onChange);
         }
     }
+
     componentWillUnmount() {
-        ChannelStore.removeExtraInfoChangeListener(this.onListenerChange);
-        ChannelStore.removeChangeListener(this.onListenerChange);
-        UserStore.removeChangeListener(this.onListenerChange);
+        ChannelStore.removeExtraInfoChangeListener(this.onChange);
+        ChannelStore.removeChangeListener(this.onChange);
+        UserStore.removeChangeListener(this.onChange);
     }
-    onListenerChange() {
+
+    onChange() {
         var newState = this.getStateFromStores();
         if (!Utils.areObjectsEqual(this.state, newState)) {
             this.setState(newState);
         }
     }
+
     handleInviteError(err) {
         if (err) {
             this.setState({
@@ -130,6 +148,12 @@ export default class ChannelInviteModal extends React.Component {
             });
         }
     }
+
+    nextPage(page) {
+        AsyncClient.getProfiles((page + 1) * USERS_PER_PAGE, USERS_PER_PAGE);
+        this.page = page;
+    }
+
     render() {
         var inviteError = null;
         if (this.state.inviteError) {
@@ -145,9 +169,11 @@ export default class ChannelInviteModal extends React.Component {
                 maxHeight = Utils.windowHeight() - 300;
             }
             content = (
-                <FilteredUserList
+                <SearchableUserList
                     style={{maxHeight}}
                     users={this.state.nonmembers}
+                    usersPerPage={USERS_PER_PAGE}
+                    nextPage={this.nextPage}
                     actions={[ChannelInviteButton]}
                     actionProps={{
                         channel: this.props.channel,
