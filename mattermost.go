@@ -62,6 +62,7 @@ var flagCmdPermanentDeleteAllUsers bool
 var flagCmdResetDatabase bool
 var flagCmdRunLdapSync bool
 var flagCmdMigrateAccounts bool
+var flagCmdActivateUser bool
 var flagUsername string
 var flagCmdUploadLicense bool
 var flagConfigFile string
@@ -79,6 +80,7 @@ var flagMatchField string
 var flagChannelType string
 var flagChannelHeader string
 var flagChannelPurpose string
+var flagUserSetInactive bool
 
 func doLoadConfig(filename string) (err string) {
 	defer func() {
@@ -372,6 +374,8 @@ func parseCmds() {
 	flag.BoolVar(&flagCmdRunLdapSync, "ldap_sync", false, "")
 	flag.BoolVar(&flagCmdMigrateAccounts, "migrate_accounts", false, "")
 	flag.BoolVar(&flagCmdUploadLicense, "upload_license", false, "")
+	flag.BoolVar(&flagCmdActivateUser, "activate_user", false, "")
+	flag.BoolVar(&flagUserSetInactive, "inactive", false, "")
 
 	flag.Parse()
 
@@ -397,7 +401,8 @@ func parseCmds() {
 		flagCmdResetDatabase ||
 		flagCmdRunLdapSync ||
 		flagCmdMigrateAccounts ||
-		flagCmdUploadLicense)
+		flagCmdUploadLicense ||
+		flagCmdActivateUser)
 }
 
 func runCmds() {
@@ -423,6 +428,7 @@ func runCmds() {
 	cmdUploadLicense()
 	cmdRunLdapSync()
 	cmdRunMigrateAccounts()
+	cmdActivateUser()
 }
 
 type TeamForUpgrade struct {
@@ -1336,6 +1342,34 @@ func cmdUploadLicense() {
 	}
 }
 
+func cmdActivateUser() {
+	if flagCmdActivateUser {
+		if len(flagEmail) == 0 {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -email")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		var user *model.User
+		if result := <-api.Srv.Store.User().GetByEmail(flagEmail); result.Err != nil {
+			l4g.Error("%v", result.Err)
+			flushLogAndExit(1)
+		} else {
+			user = result.Data.(*model.User)
+		}
+
+		if user.IsLDAPUser() {
+			l4g.Error("%v", utils.T("api.user.update_active.no_deactivate_ldap.app_error"))
+		}
+
+		if _, err := api.UpdateActive(user, !flagUserSetInactive); err != nil {
+			l4g.Error("%v", err)
+		}
+
+		os.Exit(0)
+	}
+}
+
 func flushLogAndExit(code int) {
 	l4g.Close()
 	time.Sleep(time.Second)
@@ -1391,6 +1425,13 @@ FLAGS:
                                            admin who has access to all teams
                                            and configuration settings.
 COMMANDS:
+    -activate_user		      Set a user as active or inactive. It requies
+    				      the -email flag.
+
+        Examples:
+            platform -activate_user -email="user@example.com"
+            platform -activate_user -inactive -email="user@example.com"
+
     -create_team                      Creates a team.  It requires the -team_name
                                       and -email flag to create a team.
         Example:
