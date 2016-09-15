@@ -33,30 +33,49 @@ func TestUploadFile(t *testing.T) {
 	user := th.BasicUser
 	channel := th.BasicChannel
 
-	var fileId string
+	var uploadInfo *model.FileInfo
 	if data, err := readTestFile("test.png"); err != nil {
 		t.Fatal(err)
 	} else if resp, err := Client.UploadPostAttachment(data, channel.Id, "test.png"); err != nil {
 		t.Fatal(err)
-	} else if len(resp.FileIds) != 1 {
-		t.Fatal("should've returned a single file id")
+	} else if len(resp.FileInfos) != 1 {
+		t.Fatal("should've returned a single file infos")
 	} else {
-		fileId = resp.FileIds[0]
+		uploadInfo = resp.FileInfos[0]
+	}
+
+	// The returned file info from the upload call will be missing some fields that will be stored in the database
+	if uploadInfo.UserId != user.Id {
+		t.Fatal("file should be assigned to user")
+	} else if uploadInfo.PostId != "" {
+		t.Fatal("file shouldn't have a post")
+	} else if uploadInfo.Path != "" {
+		t.Fatal("file path should not be set on returned info")
+	} else if uploadInfo.ThumbnailPath != "" {
+		t.Fatal("file thumbnail path should not be set on returned info")
+	} else if uploadInfo.PreviewPath != "" {
+		t.Fatal("file preview path should not be set on returned info")
 	}
 
 	var info *model.FileInfo
-	if result := <-Srv.Store.FileInfo().Get(fileId); result.Err != nil {
+	if result := <-Srv.Store.FileInfo().Get(uploadInfo.Id); result.Err != nil {
 		t.Fatal(result.Err)
 	} else {
 		info = result.Data.(*model.FileInfo)
 	}
 
-	if info.UserId != user.Id {
+	if info.Id != uploadInfo.Id {
+		t.Fatal("file id from response should match one stored in database")
+	} else if info.UserId != user.Id {
 		t.Fatal("file should be assigned to user")
 	} else if info.PostId != "" {
 		t.Fatal("file shouldn't have a post")
 	} else if info.Path == "" {
-		t.Fatal("file path should be set")
+		t.Fatal("file path should be set in database")
+	} else if info.ThumbnailPath == "" {
+		t.Fatal("file thumbnail path should be set in database")
+	} else if info.PreviewPath == "" {
+		t.Fatal("file preview path should be set in database")
 	}
 
 	// This also makes sure that the relative path provided above is sanitized out
@@ -101,7 +120,7 @@ func TestGetFileInfo(t *testing.T) {
 	if data, err := readTestFile("test.png"); err != nil {
 		t.Fatal(err)
 	} else {
-		fileId = Client.MustGeneric(Client.UploadPostAttachment(data, channel.Id, "test.png")).(*model.FileUploadResponse).FileIds[0]
+		fileId = Client.MustGeneric(Client.UploadPostAttachment(data, channel.Id, "test.png")).(*model.FileUploadResponse).FileInfos[0].Id
 	}
 
 	info, err := Client.GetFileInfo(fileId)
@@ -134,7 +153,7 @@ func TestGetFileInfo(t *testing.T) {
 	}
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	store.Must(Srv.Store.FileInfo().AttachToPost(info.Id, th.BasicPost.Id))
+	store.Must(Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id))
 
 	// Other user shouldn't be able to get file info for this file if they're not in the channel for it
 	if _, err := Client.GetFileInfo(fileId); err == nil {
@@ -170,10 +189,8 @@ func TestGetFile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	} else {
-		fileId = Client.MustGeneric(Client.UploadPostAttachment(data, channel.Id, "test.png")).(*model.FileUploadResponse).FileIds[0]
+		fileId = Client.MustGeneric(Client.UploadPostAttachment(data, channel.Id, "test.png")).(*model.FileUploadResponse).FileInfos[0].Id
 	}
-
-	info := Client.MustGeneric(Client.GetFileInfo(fileId)).(*model.FileInfo)
 
 	// Wait a bit for files to ready
 	time.Sleep(2 * time.Second)
@@ -205,7 +222,7 @@ func TestGetFile(t *testing.T) {
 	}
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	store.Must(Srv.Store.FileInfo().AttachToPost(info.Id, th.BasicPost.Id))
+	store.Must(Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id))
 
 	// Other user shouldn't be able to get file for this file if they're not in the channel for it
 	if _, err := Client.GetFile(fileId); err == nil {
@@ -254,10 +271,8 @@ func TestGetFileThumbnail(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	} else {
-		fileId = Client.MustGeneric(Client.UploadPostAttachment(data, channel.Id, "test.png")).(*model.FileUploadResponse).FileIds[0]
+		fileId = Client.MustGeneric(Client.UploadPostAttachment(data, channel.Id, "test.png")).(*model.FileUploadResponse).FileInfos[0].Id
 	}
-
-	info := Client.MustGeneric(Client.GetFileInfo(fileId)).(*model.FileInfo)
 
 	// Wait a bit for files to ready
 	time.Sleep(2 * time.Second)
@@ -276,7 +291,7 @@ func TestGetFileThumbnail(t *testing.T) {
 	}
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	store.Must(Srv.Store.FileInfo().AttachToPost(info.Id, th.BasicPost.Id))
+	store.Must(Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id))
 
 	// Other user shouldn't be able to get thumbnail for this file if they're not in the channel for it
 	if _, err := Client.GetFileThumbnail(fileId); err == nil {
@@ -312,10 +327,8 @@ func TestGetFilePreview(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	} else {
-		fileId = Client.MustGeneric(Client.UploadPostAttachment(data, channel.Id, "test.png")).(*model.FileUploadResponse).FileIds[0]
+		fileId = Client.MustGeneric(Client.UploadPostAttachment(data, channel.Id, "test.png")).(*model.FileUploadResponse).FileInfos[0].Id
 	}
-
-	info := Client.MustGeneric(Client.GetFileInfo(fileId)).(*model.FileInfo)
 
 	// Wait a bit for files to ready
 	time.Sleep(2 * time.Second)
@@ -334,7 +347,7 @@ func TestGetFilePreview(t *testing.T) {
 	}
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	store.Must(Srv.Store.FileInfo().AttachToPost(info.Id, th.BasicPost.Id))
+	store.Must(Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id))
 
 	// Other user shouldn't be able to get preview for this file if they're not in the channel for it
 	if _, err := Client.GetFilePreview(fileId); err == nil {
@@ -379,13 +392,11 @@ func TestGetPublicFile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	} else {
-		fileId = Client.MustGeneric(Client.UploadPostAttachment(data, channel.Id, "test.png")).(*model.FileUploadResponse).FileIds[0]
+		fileId = Client.MustGeneric(Client.UploadPostAttachment(data, channel.Id, "test.png")).(*model.FileUploadResponse).FileInfos[0].Id
 	}
 
-	info := Client.MustGeneric(Client.GetFileInfo(fileId)).(*model.FileInfo)
-
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	store.Must(Srv.Store.FileInfo().AttachToPost(info.Id, th.BasicPost.Id))
+	store.Must(Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id))
 
 	link := Client.MustGeneric(Client.GetPublicLink(fileId)).(string)
 
@@ -447,20 +458,18 @@ func TestGetPublicFileOld(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	} else {
-		fileId = Client.MustGeneric(Client.UploadPostAttachment(data, channel.Id, "test.png")).(*model.FileUploadResponse).FileIds[0]
+		fileId = Client.MustGeneric(Client.UploadPostAttachment(data, channel.Id, "test.png")).(*model.FileUploadResponse).FileInfos[0].Id
 	}
 
-	info := Client.MustGeneric(Client.GetFileInfo(fileId)).(*model.FileInfo)
-
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	store.Must(Srv.Store.FileInfo().AttachToPost(info.Id, th.BasicPost.Id))
+	store.Must(Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id))
 
 	// reconstruct old style of link
 	siteURL := *utils.Cfg.ServiceSettings.SiteURL
 	if siteURL == "" {
 		siteURL = "http://localhost:8065"
 	}
-	link := generatePublicLinkOld(siteURL, th.BasicTeam.Id, channel.Id, th.BasicUser.Id, info.Id+"/test.png")
+	link := generatePublicLinkOld(siteURL, th.BasicTeam.Id, channel.Id, th.BasicUser.Id, fileId+"/test.png")
 
 	// Wait a bit for files to ready
 	time.Sleep(2 * time.Second)
@@ -522,17 +531,15 @@ func TestGetPublicLink(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	} else {
-		fileId = Client.MustGeneric(Client.UploadPostAttachment(data, channel.Id, "test.png")).(*model.FileUploadResponse).FileIds[0]
+		fileId = Client.MustGeneric(Client.UploadPostAttachment(data, channel.Id, "test.png")).(*model.FileUploadResponse).FileInfos[0].Id
 	}
-
-	info := Client.MustGeneric(Client.GetFileInfo(fileId)).(*model.FileInfo)
 
 	if _, err := Client.GetPublicLink(fileId); err == nil {
 		t.Fatal("should've failed to get public link before file is attached to a post")
 	}
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	store.Must(Srv.Store.FileInfo().AttachToPost(info.Id, th.BasicPost.Id))
+	store.Must(Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id))
 
 	utils.Cfg.FileSettings.EnablePublicLink = false
 

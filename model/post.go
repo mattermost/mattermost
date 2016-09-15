@@ -36,7 +36,7 @@ type Post struct {
 	Props         StringInterface `json:"props"`
 	Hashtags      string          `json:"hashtags"`
 	HasFiles      bool            `json:"has_files"`
-	FileIds       []string        `json:"file_ids" db:"-"`
+	FileIds       []string        `json:"file_ids" db:"-"` // only used by createPost api call
 	PendingPostId string          `json:"pending_post_id" db:"-"`
 }
 

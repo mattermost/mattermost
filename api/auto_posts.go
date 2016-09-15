@@ -56,7 +56,7 @@ func (cfg *AutoPostCreator) UploadTestFile() ([]string, bool) {
 		return nil, false
 	}
 
-	return resp.FileIds, true
+	return []string{resp.FileInfos[0].Id}, true
 }
 
 func (cfg *AutoPostCreator) CreateRandomPost() (*model.Post, bool) {

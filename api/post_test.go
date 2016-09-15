@@ -113,7 +113,7 @@ func TestCreatePost(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		for i := 0; i < 3; i++ {
-			fileIds[i] = Client.MustGeneric(Client.UploadPostAttachment(data, channel1.Id, "test.png")).(*model.FileUploadResponse).FileIds[0]
+			fileIds[i] = Client.MustGeneric(Client.UploadPostAttachment(data, channel1.Id, "test.png")).(*model.FileUploadResponse).FileInfos[0].Id
 		}
 	}
 
@@ -1252,7 +1252,7 @@ func TestGetPostFiles(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		for i := 0; i < 3; i++ {
-			fileIds[i] = Client.MustGeneric(Client.UploadPostAttachment(data, channel1.Id, "test.png")).(*model.FileUploadResponse).FileIds[0]
+			fileIds[i] = Client.MustGeneric(Client.UploadPostAttachment(data, channel1.Id, "test.png")).(*model.FileUploadResponse).FileInfos[0].Id
 		}
 	}
 

@@ -106,7 +106,7 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	resStruct := &model.FileUploadResponse{
-		FileIds:   []string{},
+		FileInfos: []*model.FileInfo{},
 		ClientIds: []string{},
 	}
 
@@ -166,7 +166,7 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		resStruct.FileIds = append(resStruct.FileIds, info.Id)
+		resStruct.FileInfos = append(resStruct.FileInfos, info)
 
 		if len(m.Value["client_ids"]) > 0 {
 			resStruct.ClientIds = append(resStruct.ClientIds, m.Value["client_ids"][i])
