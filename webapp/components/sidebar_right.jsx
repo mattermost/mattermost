@@ -5,11 +5,11 @@ import $ from 'jquery';
 
 import SearchResults from './search_results.jsx';
 import RhsThread from './rhs_thread.jsx';
-
 import SearchStore from 'stores/search_store.jsx';
 import PostStore from 'stores/post_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
+import WebrtcStore from 'stores/webrtc_store.jsx';
 
 import {getFlaggedPosts} from 'actions/post_actions.jsx';
 
@@ -101,6 +101,8 @@ export default class SidebarRight extends React.Component {
     }
 
     componentDidUpdate() {
+        const isOpen = this.state.searchVisible || this.state.postRightVisible;
+        WebrtcStore.emitRhsChanged(isOpen);
         this.doStrangeThings();
     }
 
@@ -175,6 +177,7 @@ export default class SidebarRight extends React.Component {
                 <RhsThread
                     fromFlaggedPosts={this.state.fromFlaggedPosts}
                     fromSearch={this.state.fromSearch}
+                    isWebrtc={WebrtcStore.isBusy()}
                     isMentionSearch={this.state.isMentionSearch}
                     currentUser={this.state.currentUser}
                     useMilitaryTime={this.state.useMilitaryTime}

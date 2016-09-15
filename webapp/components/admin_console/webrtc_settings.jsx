@@ -15,8 +15,21 @@ export default class WebrtcSettings extends AdminSettings {
     constructor(props) {
         super(props);
 
+        this.canSave = this.canSave.bind(this);
+        this.handleAgreeChange = this.handleAgreeChange.bind(this);
+
         this.getConfigFromState = this.getConfigFromState.bind(this);
         this.renderSettings = this.renderSettings.bind(this);
+    }
+
+    canSave() {
+        return !this.state.enableWebrtc || this.state.agree;
+    }
+
+    handleAgreeChange(e) {
+        this.setState({
+            agree: e.target.checked
+        });
     }
 
     getConfigFromState(config) {
@@ -44,7 +57,8 @@ export default class WebrtcSettings extends AdminSettings {
             stunURI: settings.StunURI,
             turnURI: settings.TurnURI,
             turnUsername: settings.TurnUsername,
-            turnSharedKey: settings.TurnSharedKey
+            turnSharedKey: settings.TurnSharedKey,
+            agree: settings.Enable
         };
     }
 
@@ -53,13 +67,32 @@ export default class WebrtcSettings extends AdminSettings {
             <h3>
                 <FormattedMessage
                     id='admin.integrations.webrtc'
-                    defaultMessage='Mattermost WebRTC'
+                    defaultMessage='Mattermost WebRTC (Beta)'
                 />
             </h3>
         );
     }
 
     renderSettings() {
+        const tosCheckbox = (
+            <div className='form-group'>
+                <div className='col-sm-4'/>
+                <div className='col-sm-8'>
+                    <input
+                        type='checkbox'
+                        ref='agree'
+                        checked={this.state.agree}
+                        onChange={this.handleAgreeChange}
+                        disabled={!this.state.enableWebrtc}
+                    />
+                    <FormattedHTMLMessage
+                        id='admin.webrtc.agree'
+                        defaultMessage=' I understand and accept the Mattermost Hosted WebRTC Service <a href="https://about.mattermost.com/webrtc-terms/" target="_blank">Terms of Service</a> and <a href="https://about.mattermost.com/webrtc-privacy/" target="_blank">Privacy Policy</a>.'
+                    />
+                </div>
+            </div>
+        );
+
         return (
             <SettingsGroup>
                 <BooleanSetting
@@ -79,6 +112,7 @@ export default class WebrtcSettings extends AdminSettings {
                     value={this.state.enableWebrtc}
                     onChange={this.handleChange}
                 />
+                {tosCheckbox}
                 <TextSetting
                     id='gatewayWebsocketUrl'
                     label={
@@ -111,7 +145,7 @@ export default class WebrtcSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.webrtc.gatewayAdminUrlDescription'
-                            defaultMessage='Enter https://<mattermost-webrtc-gateway-url>:<port>. Make sure you use HTTP or HTTPS in your URL depending on your server configuration.
+                            defaultMessage='Enter https://<mattermost-webrtc-gateway-url>:<port>/admin. Make sure you use HTTP or HTTPS in your URL depending on your server configuration.
                             Mattermost WebRTC uses this URL to obtain valid tokens for each peer to establish the connection.'
                         />
                     }
@@ -167,7 +201,7 @@ export default class WebrtcSettings extends AdminSettings {
                     }
                     placeholder={Utils.localizeMessage('admin.webrtc.turnUriExample', 'Ex "turn:webrtc.mattermost.com:5349"')}
                     helpText={
-                        <FormattedHTMLMessage
+                        <FormattedMessage
                             id='admin.webrtc.turnUriDescription'
                             defaultMessage='Enter your TURN URI as turn:<your-turn-url>:<port>. TURN is a standardized network protocol to allow an end host to assist devices to establish a connection by using a relay public IP address if it is located behind a symmetric NAT.'
                         />
@@ -186,7 +220,7 @@ export default class WebrtcSettings extends AdminSettings {
                     }
                     placeholder={Utils.localizeMessage('admin.webrtc.turnUsernameExample', 'Ex "myusername"')}
                     helpText={
-                        <FormattedHTMLMessage
+                        <FormattedMessage
                             id='admin.webrtc.turnUsernameDescription'
                             defaultMessage='Enter your TURN Server Username.'
                         />
@@ -205,7 +239,7 @@ export default class WebrtcSettings extends AdminSettings {
                     }
                     placeholder={Utils.localizeMessage('admin.webrtc.turnSharedKeyExample', 'Ex "bXdkOWQxc3d0Ynk3emY5ZmsxZ3NtazRjaWg="')}
                     helpText={
-                        <FormattedHTMLMessage
+                        <FormattedMessage
                             id='admin.webrtc.turnSharedKeyDescription'
                             defaultMessage='Enter your TURN Server Shared Key. This is used to created dynamic passwords to establish the connection. Each password is valid for a short period of time.'
                         />

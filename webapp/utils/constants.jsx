@@ -154,9 +154,55 @@ export const ActionTypes = keyMirror({
     SUGGESTION_SELECT_PREVIOUS: null
 });
 
+export const WebrtcActionTypes = keyMirror({
+    INITIALIZE: null,
+    NOTIFY: null,
+    CHANGED: null,
+    ANSWER: null,
+    DECLINE: null,
+    CANCEL: null,
+    NO_ANSWER: null,
+    BUSY: null,
+    FAILED: null,
+    UNSUPPORTED: null,
+    MUTED: null,
+    IN_PROGRESS: null,
+    DISABLED: null,
+    RHS: null
+});
+
+export const UserStatuses = {
+    OFFLINE: 'offline',
+    AWAY: 'away',
+    ONLINE: 'online'
+};
+
+export const SocketEvents = {
+    POSTED: 'posted',
+    POST_EDITED: 'post_edited',
+    POST_DELETED: 'post_deleted',
+    CHANNEL_DELETED: 'channel_deleted',
+    CHANNEL_VIEWED: 'channel_viewed',
+    DIRECT_ADDED: 'direct_added',
+    NEW_USER: 'new_user',
+    LEAVE_TEAM: 'leave_team',
+    USER_ADDED: 'user_added',
+    USER_REMOVED: 'user_removed',
+    USER_UPDATED: 'user_updated',
+    TYPING: 'typing',
+    PREFERENCE_CHANGED: 'preference_changed',
+    EPHEMERAL_MESSAGE: 'ephemeral_message',
+    STATUS_CHANGED: 'status_change',
+    HELLO: 'hello',
+    WEBRTC: 'webrtc'
+};
+
 export const Constants = {
     Preferences,
+    SocketEvents,
     ActionTypes,
+    WebrtcActionTypes,
+    UserStatuses,
 
     PayloadSources: keyMirror({
         SERVER_ACTION: null,
@@ -183,25 +229,6 @@ export const Constants = {
     STAT_MAX_ACTIVE_USERS: 20,
     STAT_MAX_NEW_USERS: 20,
 
-    SocketEvents: {
-        POSTED: 'posted',
-        POST_EDITED: 'post_edited',
-        POST_DELETED: 'post_deleted',
-        CHANNEL_DELETED: 'channel_deleted',
-        CHANNEL_VIEWED: 'channel_viewed',
-        DIRECT_ADDED: 'direct_added',
-        NEW_USER: 'new_user',
-        LEAVE_TEAM: 'leave_team',
-        USER_ADDED: 'user_added',
-        USER_REMOVED: 'user_removed',
-        USER_UPDATED: 'user_updated',
-        TYPING: 'typing',
-        PREFERENCE_CHANGED: 'preference_changed',
-        EPHEMERAL_MESSAGE: 'ephemeral_message',
-        STATUS_CHANGED: 'status_change',
-        HELLO: 'hello'
-    },
-
     UserUpdateEvents: {
         USERNAME: 'username',
         FULLNAME: 'fullname',
@@ -216,12 +243,6 @@ export const Constants = {
         SIDEBBAR_OPEN: 3,
         NEW_MESSAGE: 4,
         POST: 5
-    },
-
-    UserStatuses: {
-        OFFLINE: 'offline',
-        AWAY: 'away',
-        ONLINE: 'online'
     },
 
     SPECIAL_MENTIONS: ['all', 'channel', 'here'],
@@ -778,9 +799,15 @@ export const Constants = {
         EMBED_PREVIEW: {
             label: 'embed_preview',
             description: 'Show preview snippet of links below message'
+        },
+        WEBRTC_PREVIEW: {
+            label: 'webrtc_preview',
+            description: 'Enable WebRTC one on one calls'
         }
     },
     OVERLAY_TIME_DELAY: 400,
+    WEBRTC_TIME_DELAY: 750,
+    WEBRTC_CLEAR_ERROR_DELAY: 15000,
     DEFAULT_MAX_USERS_PER_TEAM: 50,
     MIN_TEAMNAME_LENGTH: 4,
     MAX_TEAMNAME_LENGTH: 15,

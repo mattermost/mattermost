@@ -24,6 +24,8 @@ export default class PostHeader extends React.Component {
             <UserProfile
                 user={this.props.user}
                 displayNameType={this.props.displayNameType}
+                status={this.props.status}
+                isBusy={this.props.isBusy}
             />
         );
         let botIndicator;
@@ -100,5 +102,7 @@ PostHeader.propTypes = {
     compactDisplay: React.PropTypes.bool,
     displayNameType: React.PropTypes.string,
     useMilitaryTime: React.PropTypes.bool.isRequired,
-    isFlagged: React.PropTypes.bool.isRequired
+    isFlagged: React.PropTypes.bool.isRequired,
+    status: React.PropTypes.string,
+    isBusy: React.PropTypes.bool
 };

@@ -27,3 +27,73 @@
     cursor: -webkit-$value;
     cursor: zoom-$value;
 }
+
+// Webrtc button
+@mixin webrtc-button {
+    .webrtc__button {
+        @include border-radius(50px);
+        display: block;
+        height: 32px;
+        width: 32px;
+
+        &.on,
+        &:hover {
+            background: darken($button--ready, 5%);
+        }
+
+        &:hover circle {
+            fill: darken($button--ready, 5%);
+        }
+
+        circle {
+            fill: $button--ready;
+
+            &.offline {
+                fill: $video-circle-offline;
+            }
+        }
+
+        path {
+            .on {
+                display: none;
+            }
+
+            .off {
+                display: block;
+            }
+        }
+
+        &.on {
+            path {
+                .on {
+                    display: block;
+                }
+
+                .off {
+                    display: none;
+                }
+            }
+
+            circle {
+                fill-opacity: 0;
+            }
+        }
+    }
+
+    a {
+        &[disabled] {
+            .webrtc__button {
+                &:hover {
+                    background: none;
+                    box-shadow: none;
+                }
+
+                &:hover {
+                    circle {
+                        fill: $video-circle-offline;
+                    }
+                }
+            }
+        }
+    }
+}
