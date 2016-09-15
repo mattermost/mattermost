@@ -413,6 +413,18 @@ func IsValidHttpsUrl(rawUrl string) bool {
 	return true
 }
 
+func IsValidTurnOrStunServer(rawUri string) bool {
+	if strings.Index(rawUri, "turn:") != 0 && strings.Index(rawUri, "stun:") != 0 {
+		return false
+	}
+
+	if _, err := url.ParseRequestURI(rawUri); err != nil {
+		return false
+	}
+
+	return true
+}
+
 func IsSafeLink(link *string) bool {
 	if link != nil {
 		if IsValidHttpUrl(*link) {
@@ -422,6 +434,18 @@ func IsSafeLink(link *string) bool {
 		} else {
 			return false
 		}
+	}
+
+	return true
+}
+
+func IsValidWebsocketUrl(rawUrl string) bool {
+	if strings.Index(rawUrl, "ws://") != 0 && strings.Index(rawUrl, "wss://") != 0 {
+		return false
+	}
+
+	if _, err := url.ParseRequestURI(rawUrl); err != nil {
+		return false
 	}
 
 	return true

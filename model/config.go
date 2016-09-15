@@ -292,6 +292,17 @@ type NativeAppSettings struct {
 	IosAppDownloadLink     *string
 }
 
+type WebrtcSettings struct {
+	Enable              *bool
+	GatewayWebsocketUrl *string
+	GatewayAdminUrl     *string
+	GatewayAdminSecret  *string
+	StunURI             *string
+	TurnURI             *string
+	TurnUsername        *string
+	TurnSharedKey       *string
+}
+
 type Config struct {
 	ServiceSettings      ServiceSettings
 	TeamSettings         TeamSettings
@@ -312,6 +323,7 @@ type Config struct {
 	SamlSettings         SamlSettings
 	NativeAppSettings    NativeAppSettings
 	ClusterSettings      ClusterSettings
+	WebrtcSettings       WebrtcSettings
 }
 
 func (o *Config) ToJson() string {
@@ -881,6 +893,8 @@ func (o *Config) SetDefaults() {
 		o.NativeAppSettings.IosAppDownloadLink = new(string)
 		*o.NativeAppSettings.IosAppDownloadLink = "https://about.mattermost.com/mattermost-ios-app/"
 	}
+
+	o.defaultWebrtcSettings()
 }
 
 func (o *Config) IsValid() *AppError {
@@ -1083,6 +1097,10 @@ func (o *Config) IsValid() *AppError {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.sitename_length.app_error", map[string]interface{}{"MaxLength": SITENAME_MAX_LENGTH}, "")
 	}
 
+	if err := o.isValidWebrtcSettings(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -1120,4 +1138,72 @@ func (o *Config) Sanitize() {
 	for i := range o.SqlSettings.DataSourceReplicas {
 		o.SqlSettings.DataSourceReplicas[i] = FAKE_SETTING
 	}
+}
+
+func (o *Config) defaultWebrtcSettings() {
+	if o.WebrtcSettings.Enable == nil {
+		o.WebrtcSettings.Enable = new(bool)
+		*o.WebrtcSettings.Enable = false
+	}
+
+	if o.WebrtcSettings.GatewayWebsocketUrl == nil {
+		o.WebrtcSettings.GatewayWebsocketUrl = new(string)
+		*o.WebrtcSettings.GatewayWebsocketUrl = ""
+	}
+
+	if o.WebrtcSettings.GatewayAdminUrl == nil {
+		o.WebrtcSettings.GatewayAdminUrl = new(string)
+		*o.WebrtcSettings.GatewayAdminUrl = ""
+	}
+
+	if o.WebrtcSettings.GatewayAdminSecret == nil {
+		o.WebrtcSettings.GatewayAdminSecret = new(string)
+		*o.WebrtcSettings.GatewayAdminSecret = ""
+	}
+
+	if o.WebrtcSettings.StunURI == nil {
+		o.WebrtcSettings.StunURI = new(string)
+		*o.WebrtcSettings.StunURI = ""
+	}
+
+	if o.WebrtcSettings.TurnURI == nil {
+		o.WebrtcSettings.TurnURI = new(string)
+		*o.WebrtcSettings.TurnURI = ""
+	}
+
+	if o.WebrtcSettings.TurnUsername == nil {
+		o.WebrtcSettings.TurnUsername = new(string)
+		*o.WebrtcSettings.TurnUsername = ""
+	}
+
+	if o.WebrtcSettings.TurnSharedKey == nil {
+		o.WebrtcSettings.TurnSharedKey = new(string)
+		*o.WebrtcSettings.TurnSharedKey = ""
+	}
+}
+
+func (o *Config) isValidWebrtcSettings() *AppError {
+	if *o.WebrtcSettings.Enable {
+		if len(*o.WebrtcSettings.GatewayWebsocketUrl) == 0 || !IsValidWebsocketUrl(*o.WebrtcSettings.GatewayWebsocketUrl) {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.webrtc_gateway_ws_url.app_error", nil, "")
+		} else if len(*o.WebrtcSettings.GatewayAdminUrl) == 0 || !IsValidHttpUrl(*o.WebrtcSettings.GatewayAdminUrl) {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.webrtc_gateway_admin_url.app_error", nil, "")
+		} else if len(*o.WebrtcSettings.GatewayAdminSecret) == 0 {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.webrtc_gateway_admin_secret.app_error", nil, "")
+		} else if len(*o.WebrtcSettings.StunURI) != 0 && !IsValidTurnOrStunServer(*o.WebrtcSettings.StunURI) {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.webrtc_stun_uri.app_error", nil, "")
+		} else if len(*o.WebrtcSettings.TurnURI) != 0 {
+			if !IsValidTurnOrStunServer(*o.WebrtcSettings.TurnURI) {
+				return NewLocAppError("Config.IsValid", "model.config.is_valid.webrtc_turn_uri.app_error", nil, "")
+			}
+			if len(*o.WebrtcSettings.TurnUsername) == 0 {
+				return NewLocAppError("Config.IsValid", "model.config.is_valid.webrtc_turn_username.app_error", nil, "")
+			} else if len(*o.WebrtcSettings.TurnSharedKey) == 0 {
+				return NewLocAppError("Config.IsValid", "model.config.is_valid.webrtc_turn_shared_key.app_error", nil, "")
+			}
+
+		}
+	}
+
+	return nil
 }

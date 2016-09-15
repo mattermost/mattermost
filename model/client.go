@@ -1898,3 +1898,14 @@ func (c *Client) SamlCertificateStatus(filename string) (map[string]interface{},
 		return StringInterfaceFromJson(r.Body), nil
 	}
 }
+
+// GetWebrtcToken if Successful returns a map with a valid token, stun server and turn server with credentials to use with
+// the Mattermost WebRTC service, otherwise returns an AppError. Must be authenticated user.
+func (c *Client) GetWebrtcToken() (map[string]string, *AppError) {
+	if r, err := c.DoApiPost("/webrtc/token", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return MapFromJson(r.Body), nil
+	}
+}

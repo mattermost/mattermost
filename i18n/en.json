@@ -2392,6 +2392,14 @@
     "translation": "Inappropriate permissions to regenerate outcoming webhook token"
   },
   {
+    "id": "api.webrtc.init.debug",
+    "translation": "Initializing WebRTC api routes"
+  },
+  {
+    "id": "api.webrtc.not_available.app_error",
+    "translation": "WebRTC is not available on this server."
+  },
+  {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "Invalid {{.Name}} parameter"
   },
@@ -2662,6 +2670,18 @@
   {
     "id": "ent.saml.update_saml_user.unable_error",
     "translation": "Unable to update existing SAML user. Allowing login anyway. err=%v"
+  },
+  {
+    "id": "ent.webrtc.disabled.app_error",
+    "translation": "WebRTC is not enabled in this server."
+  },
+  {
+    "id": "ent.webrtc.license_disable.app_error",
+    "translation": "Your license does not support using Mattermost WebRTC"
+  },
+  {
+    "id": "ent.webrtc.register_token.app_error",
+    "translation": "We encountered an error trying to register the WebRTC Token"
   },
   {
     "id": "error.generic.link_message",
@@ -3198,6 +3218,34 @@
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
     "translation": "Invalid maximum open connection for SQL settings.  Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_gateway_admin_secret.app_error",
+    "translation": "WebRTC Gateway Admin Secret must be set."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_gateway_admin_url.app_error",
+    "translation": "WebRTC Gateway Admin Url must be set a valid URL and start with http:// or https://."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_gateway_ws_url.app_error",
+    "translation": "WebRTC Gateway Websocket Url must be a valid URL and start with ws:// or wss://."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_stun_uri.app_error",
+    "translation": "WebRTC STUN URI must be a valid URI and start with stun:"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_turn_shared_key.app_error",
+    "translation": "WebRTC TURN Shared Key cannot be empty if the TURN URI has been set."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_turn_uri.app_error",
+    "translation": "WebRTC TURN URI must be a valid URI and start with turn:"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_turn_username.app_error",
+    "translation": "WebRTC TURN Username cannot be empty if the TURN URI has been set."
   },
   {
     "id": "model.emoji.create_at.app_error",
