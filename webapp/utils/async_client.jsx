@@ -272,6 +272,29 @@ export function getTeamMembers(teamId) {
     );
 }
 
+export function getUser(userId) {
+    if (isCallInProgress(`getUser${userId}`)) {
+        return;
+    }
+
+    callTracker[`getUser${userId}`] = utils.getTimestamp();
+    Client.getUser(
+        userId,
+        (data) => {
+            callTracker[`getUser${userId}`] = 0;
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_PROFILE,
+                profile: data
+            });
+        },
+        (err) => {
+            callTracker[`getUser${userId}`] = 0;
+            dispatchError(err, 'getUser');
+        }
+    );
+}
+
 export function getProfilesForDirectMessageList() {
     if (isCallInProgress('getProfilesForDirectMessageList')) {
         return;
@@ -294,13 +317,25 @@ export function getProfilesForDirectMessageList() {
     );
 }
 
-export function getProfiles() {
+export function getProfiles(offset, limit) {
     if (isCallInProgress('getProfiles')) {
         return;
     }
 
+    let realOffset = offset;
+    if (realOffset == null) {
+        realOffset = 0;
+    }
+
+    let realLimit = limit;
+    if (realLimit == null) {
+        realLimit = Constants.POST_CHUNK_SIZE;
+    }
+
     callTracker.getProfiles = utils.getTimestamp();
     Client.getProfiles(
+        realOffset,
+        realLimit,
         (data) => {
             callTracker.getProfiles = 0;
 

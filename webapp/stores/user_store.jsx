@@ -218,10 +218,10 @@ class UserStoreClass extends EventEmitter {
                 Reflect.deleteProperty(this.profiles, currentId);
             }
 
-            this.profiles = profiles;
+            this.profiles = Object.assign({}, this.profiles, profiles);
             this.profiles[currentId] = currentUser;
         } else {
-            this.profiles = profiles;
+            this.profiles = Object.assign({}, this.profiles, profiles);
         }
     }
 
@@ -346,6 +346,10 @@ UserStore.dispatchToken = AppDispatcher.register((payload) => {
         break;
     case ActionTypes.RECEIVED_PROFILES:
         UserStore.saveProfiles(action.profiles);
+        UserStore.emitChange();
+        break;
+    case ActionTypes.RECEIVED_PROFILE:
+        UserStore.saveProfile(action.profile);
         UserStore.emitChange();
         break;
     case ActionTypes.RECEIVED_DIRECT_PROFILES:

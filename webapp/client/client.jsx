@@ -989,18 +989,18 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getDirectProfiles', success, error));
     }
 
-    getProfiles(success, error) {
+    getProfiles(offset, limit, success, error) {
         request.
-            get(`${this.getUsersRoute()}/profiles/${this.getTeamId()}`).
+            get(`${this.getUsersRoute()}/profiles/${this.getTeamId()}/${offset}/${limit}`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getProfiles', success, error));
     }
 
-    getProfilesForTeam(teamId, success, error) {
+    getProfilesForTeam(teamId, offset, limit, success, error) {
         request.
-            get(`${this.getUsersRoute()}/profiles/${teamId}`).
+            get(`${this.getUsersRoute()}/profiles/${teamId}/${offset}/${limit}`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
