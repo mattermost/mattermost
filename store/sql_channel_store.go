@@ -612,7 +612,8 @@ func (s SqlChannelStore) GetMemberForPost(postId string, userId string) StoreCha
 				Posts
 			WHERE
 				ChannelMembers.ChannelId = Posts.ChannelId
-				AND Posts.Id = :PostId`, map[string]interface{}{"PostId": postId}); err != nil {
+				AND ChannelMembers.UserId = :UserId
+				AND Posts.Id = :PostId`, map[string]interface{}{"UserId": userId, "PostId": postId}); err != nil {
 			result.Err = model.NewLocAppError("SqlChannelStore.GetMemberForPost", "store.sql_channel.get_member_for_post.app_error", nil, "postId="+postId+", err="+err.Error())
 		} else {
 			result.Data = member

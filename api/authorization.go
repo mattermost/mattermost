@@ -119,7 +119,7 @@ func HasPermissionToPostContext(c *Context, postId string, permission *model.Per
 
 	var channelRoles []string
 	if cmcresult := <-cmc; cmcresult.Err == nil {
-		channelMember := cmcresult.Data.(model.ChannelMember)
+		channelMember := cmcresult.Data.(*model.ChannelMember)
 		channelRoles = channelMember.GetRoles()
 
 		if CheckIfRolesGrantPermission(channelRoles, permission.Id) {

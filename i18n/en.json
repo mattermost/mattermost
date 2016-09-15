@@ -3260,6 +3260,10 @@
     "translation": "Update at must be a valid time"
   },
   {
+    "id": "model.file_info.get.image_config.app_error",
+    "translation": "Could not decode image config."
+  },
+  {
     "id": "model.file_info.get.gif.app_error",
     "translation": "Could not decode gif."
   },

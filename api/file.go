@@ -295,7 +295,7 @@ func getImageOrientation(imageData []byte) (int, error) {
 }
 
 func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
-	info, err := getFileInfoForRequest(r, c.Session.UserId, true)
+	info, err := getFileInfoForRequest(c, r, true)
 	if err != nil {
 		c.Err = err
 		return
@@ -311,7 +311,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
-	info, err := getFileInfoForRequest(r, c.Session.UserId, true)
+	info, err := getFileInfoForRequest(c, r, true)
 	if err != nil {
 		c.Err = err
 		return
@@ -333,7 +333,7 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
-	info, err := getFileInfoForRequest(r, c.Session.UserId, true)
+	info, err := getFileInfoForRequest(c, r, true)
 	if err != nil {
 		c.Err = err
 		return
@@ -355,7 +355,7 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
-	info, err := getFileInfoForRequest(r, c.Session.UserId, true)
+	info, err := getFileInfoForRequest(c, r, true)
 	if err != nil {
 		c.Err = err
 		return
@@ -373,7 +373,7 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	info, err := getFileInfoForRequest(r, c.Session.UserId, false)
+	info, err := getFileInfoForRequest(c, r, false)
 	if err != nil {
 		c.Err = err
 		return
@@ -404,7 +404,7 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getFileInfoForRequest(r *http.Request, userId string, requireFileVisible bool) (*model.FileInfo, *model.AppError) {
+func getFileInfoForRequest(c *Context, r *http.Request, requireFileVisible bool) (*model.FileInfo, *model.AppError) {
 	if len(utils.Cfg.FileSettings.DriverName) == 0 {
 		err := model.NewLocAppError("getFileInfoForRequest", "api.file.get_file_info_for_request.storage.app_error", nil, "")
 		err.StatusCode = http.StatusNotImplemented
@@ -426,7 +426,7 @@ func getFileInfoForRequest(r *http.Request, userId string, requireFileVisible bo
 	}
 
 	// only let users access files visible in a channel, unless they're the one who uploaded the file
-	if info.UserId != userId {
+	if info.UserId != c.Session.UserId {
 		if len(info.PostId) == 0 {
 			err := model.NewLocAppError("getFileInfoForRequest", "api.file.get_file_info_for_request.no_post.app_error", nil, "file_id="+fileId)
 			err.StatusCode = http.StatusBadRequest
@@ -435,7 +435,7 @@ func getFileInfoForRequest(r *http.Request, userId string, requireFileVisible bo
 
 		if requireFileVisible {
 			if !HasPermissionToPostContext(c, info.PostId, model.PERMISSION_READ_CHANNEL) {
-				return
+				return nil, c.Err
 			}
 		}
 	}
@@ -533,7 +533,7 @@ func getPublicLink(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	info, err := getFileInfoForRequest(r, c.Session.UserId, true)
+	info, err := getFileInfoForRequest(c, r, true)
 	if err != nil {
 		c.Err = err
 		return

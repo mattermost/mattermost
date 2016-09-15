@@ -792,10 +792,12 @@ func TestChannelStoreGetMemberForPost(t *testing.T) {
 
 	if r1 := <-store.Channel().GetMemberForPost(p1.Id, m1.UserId); r1.Err != nil {
 		t.Fatal(r1.Err)
-	} else {
-		if r1.Data.(*model.ChannelMember).ToJson() != m1.ToJson() {
-			t.Fatal("invalid returned channel member")
-		}
+	} else if r1.Data.(*model.ChannelMember).ToJson() != m1.ToJson() {
+		t.Fatal("invalid returned channel member")
+	}
+
+	if r2 := <-store.Channel().GetMemberForPost(p1.Id, model.NewId()); r2.Err == nil {
+		t.Fatal("shouldn't have returned a member")
 	}
 }
 

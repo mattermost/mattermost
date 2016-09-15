@@ -192,6 +192,15 @@ func UpgradeDatabaseToVersion34(sqlStore *SqlStore) {
 }
 
 func UpgradeDatabaseToVersion35(sqlStore *SqlStore) {
+	//if shouldPerformUpgrade(sqlStore, VERSION_3_4_0, VERSION_3_5_0) {
+
+	sqlStore.GetMaster().Exec("UPDATE Users SET Roles = 'system_user' WHERE Roles = ''")
+	sqlStore.GetMaster().Exec("UPDATE Users SET Roles = 'system_user system_admin' WHERE Roles = 'system_admin'")
+	sqlStore.GetMaster().Exec("UPDATE TeamMembers SET Roles = 'team_user' WHERE Roles = ''")
+	sqlStore.GetMaster().Exec("UPDATE TeamMembers SET Roles = 'team_user team_admin' WHERE Roles = 'admin'")
+	sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET Roles = 'channel_user' WHERE Roles = ''")
+	sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET Roles = 'channel_user channel_admin' WHERE Roles = 'admin'")
+
 	// if shouldPerformUpgrade(sqlStore, VERSION_3_4_0, VERSION_3_5_0) {
 	sqlStore.CreateColumnIfNotExists("Posts", "HasFiles", "tinyint", "boolean", "0")
 
@@ -355,17 +364,6 @@ func UpgradeDatabaseToVersion35(sqlStore *SqlStore) {
 		sqlStore.RemoveColumnIfExists("Posts", "Filenames")
 		l4g.Debug("column deleted")
 	}
-}
-
-func UpgradeDatabaseToVersion35(sqlStore *SqlStore) {
-	//if shouldPerformUpgrade(sqlStore, VERSION_3_4_0, VERSION_3_5_0) {
-
-	sqlStore.GetMaster().Exec("UPDATE Users SET Roles = 'system_user' WHERE Roles = ''")
-	sqlStore.GetMaster().Exec("UPDATE Users SET Roles = 'system_user system_admin' WHERE Roles = 'system_admin'")
-	sqlStore.GetMaster().Exec("UPDATE TeamMembers SET Roles = 'team_user' WHERE Roles = ''")
-	sqlStore.GetMaster().Exec("UPDATE TeamMembers SET Roles = 'team_user team_admin' WHERE Roles = 'admin'")
-	sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET Roles = 'channel_user' WHERE Roles = ''")
-	sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET Roles = 'channel_user channel_admin' WHERE Roles = 'admin'")
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// UNCOMMENT WHEN WE DO RELEASE

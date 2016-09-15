@@ -1263,7 +1263,7 @@ func TestGetPostFiles(t *testing.T) {
 	})).Data.(*model.Post)
 
 	var etag string
-	if infos, err := Client.GetFilesForPost(channel1.Id, post1.Id, ""); err != nil {
+	if infos, err := Client.GetPostFiles(channel1.Id, post1.Id, ""); err != nil {
 		t.Fatal(err)
 	} else if len(infos) != 3 {
 		t.Fatal("should've received 3 files")
@@ -1273,7 +1273,7 @@ func TestGetPostFiles(t *testing.T) {
 		etag = Client.Etag
 	}
 
-	if infos, err := Client.GetFilesForPost(channel1.Id, post1.Id, etag); err != nil {
+	if infos, err := Client.GetPostFiles(channel1.Id, post1.Id, etag); err != nil {
 		t.Fatal(err)
 	} else if len(infos) != 0 {
 		t.Fatal("should've returned nothing because of etag")

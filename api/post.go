@@ -1582,10 +1582,9 @@ func getPostFiles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cchan := Srv.Store.Channel().CheckPermissionsToNoTeam(channelId, c.Session.UserId)
 	fchan := Srv.Store.FileInfo().GetForPost(postId)
 
-	if !c.HasPermissionsToChannel(cchan, "getPostFiles") {
+	if !HasPermissionToChannelContext(c, channelId, model.PERMISSION_READ_CHANNEL) {
 		return
 	}
 
