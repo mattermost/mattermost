@@ -58,7 +58,7 @@ export default class SearchResultsHeader extends React.Component {
         const closeSidebarTooltip = (
             <Tooltip id='closeSidebarTooltip'>
                 <FormattedMessage
-                    id='rhs_header.closeTooltip'
+                    id='rhs_header.closeSidebarTooltip'
                     defaultMessage='Close Sidebar'
                 />
             </Tooltip>
@@ -67,7 +67,7 @@ export default class SearchResultsHeader extends React.Component {
         const expandSidebarTooltip = (
             <Tooltip id='expandSidebarTooltip'>
                 <FormattedMessage
-                    id='rhs_header.expandTooltip'
+                    id='rhs_header.expandSidebarTooltip'
                     defaultMessage='Expand Sidebar'
                 />
             </Tooltip>
@@ -76,7 +76,7 @@ export default class SearchResultsHeader extends React.Component {
         const shrinkSidebarTooltip = (
             <Tooltip id='shrinkSidebarTooltip'>
                 <FormattedMessage
-                    id='rhs_header.expandTooltip'
+                    id='rhs_header.shrinkSidebarTooltip'
                     defaultMessage='Shrink Sidebar'
                 />
             </Tooltip>
