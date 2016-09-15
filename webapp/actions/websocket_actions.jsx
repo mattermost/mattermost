@@ -112,7 +112,7 @@ function handleEvent(msg) {
         break;
 
     case SocketEvents.NEW_USER:
-        handleNewUserEvent();
+        handleNewUserEvent(msg);
         break;
 
     case SocketEvents.LEAVE_TEAM:
@@ -196,9 +196,9 @@ function handlePostDeleteEvent(msg) {
     }
 }
 
-function handleNewUserEvent() {
+function handleNewUserEvent(msg) {
     AsyncClient.getTeamMembers(TeamStore.getCurrentId());
-    AsyncClient.getProfiles();
+    AsyncClient.getUser(msg.user_id);
     AsyncClient.getDirectProfiles();
     AsyncClient.getChannelExtraInfo();
 }

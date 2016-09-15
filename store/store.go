@@ -136,7 +136,7 @@ type UserStore interface {
 	Get(id string) StoreChannel
 	GetAll() StoreChannel
 	GetAllProfiles() StoreChannel
-	GetProfiles(teamId string) StoreChannel
+	GetProfiles(teamId string, offset int, limit int) StoreChannel
 	GetDirectProfiles(userId string) StoreChannel
 	GetProfileByIds(userId []string) StoreChannel
 	GetByEmail(email string) StoreChannel
@@ -146,7 +146,7 @@ type UserStore interface {
 	GetForLogin(loginId string, allowSignInWithUsername, allowSignInWithEmail, ldapEnabled bool) StoreChannel
 	VerifyEmail(userId string) StoreChannel
 	GetEtagForAllProfiles() StoreChannel
-	GetEtagForProfiles(teamId string) StoreChannel
+	GetEtagForProfiles(teamId string, offset int, limit int) StoreChannel
 	GetEtagForDirectProfiles(userId string) StoreChannel
 	UpdateFailedPasswordAttempts(userId string, attempts int) StoreChannel
 	GetTotalUsersCount() StoreChannel
@@ -155,6 +155,7 @@ type UserStore interface {
 	AnalyticsUniqueUserCount(teamId string) StoreChannel
 	GetUnreadCount(userId string) StoreChannel
 	GetUnreadCountForChannel(userId string, channelId string) StoreChannel
+	GetRecentlyActiveUsersForTeam(teamId string) StoreChannel
 }
 
 type SessionStore interface {

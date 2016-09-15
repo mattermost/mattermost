@@ -435,7 +435,7 @@ func TestGetUser(t *testing.T) {
 		}
 	}
 
-	if userMap, err := Client.GetProfiles(rteam.Data.(*model.Team).Id, ""); err != nil {
+	if userMap, err := Client.GetProfiles(rteam.Data.(*model.Team).Id, 0, 100, ""); err != nil {
 		t.Fatal(err)
 	} else if len(userMap.Data.(map[string]*model.User)) != 2 {
 		t.Fatal("should have been 2")
@@ -444,7 +444,7 @@ func TestGetUser(t *testing.T) {
 	} else {
 
 		// test etag caching
-		if cache_result, err := Client.GetProfiles(rteam.Data.(*model.Team).Id, userMap.Etag); err != nil {
+		if cache_result, err := Client.GetProfiles(rteam.Data.(*model.Team).Id, 0, 100, userMap.Etag); err != nil {
 			t.Fatal(err)
 		} else if cache_result.Data.(map[string]*model.User) != nil {
 			t.Log(cache_result.Data)
@@ -452,7 +452,25 @@ func TestGetUser(t *testing.T) {
 		}
 	}
 
-	if _, err := Client.GetProfiles(rteam2.Data.(*model.Team).Id, ""); err == nil {
+	if userMap, err := Client.GetProfiles(rteam.Data.(*model.Team).Id, 0, 1, ""); err != nil {
+		t.Fatal(err)
+	} else if len(userMap.Data.(map[string]*model.User)) != 1 {
+		t.Fatal("should have been 1")
+	}
+
+	if userMap, err := Client.GetProfiles(rteam.Data.(*model.Team).Id, 1, 1, ""); err != nil {
+		t.Fatal(err)
+	} else if len(userMap.Data.(map[string]*model.User)) != 1 {
+		t.Fatal("should have been 1")
+	}
+
+	if userMap, err := Client.GetProfiles(rteam.Data.(*model.Team).Id, 10, 10, ""); err != nil {
+		t.Fatal(err)
+	} else if len(userMap.Data.(map[string]*model.User)) != 0 {
+		t.Fatal("should have been 0")
+	}
+
+	if _, err := Client.GetProfiles(rteam2.Data.(*model.Team).Id, 0, 100, ""); err == nil {
 		t.Fatal("shouldn't have access")
 	}
 
@@ -468,7 +486,7 @@ func TestGetUser(t *testing.T) {
 
 	Client.Login(user.Email, "passwd1")
 
-	if _, err := Client.GetProfiles(rteam2.Data.(*model.Team).Id, ""); err != nil {
+	if _, err := Client.GetProfiles(rteam2.Data.(*model.Team).Id, 0, 100, ""); err != nil {
 		t.Fatal(err)
 	}
 }

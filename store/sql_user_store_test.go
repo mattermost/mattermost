@@ -230,7 +230,7 @@ func TestUserStoreGetProfiles(t *testing.T) {
 	Must(store.User().Save(u2))
 	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}))
 
-	if r1 := <-store.User().GetProfiles(teamId); r1.Err != nil {
+	if r1 := <-store.User().GetProfiles(teamId, 0, 100); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		users := r1.Data.(map[string]*model.User)
@@ -243,7 +243,7 @@ func TestUserStoreGetProfiles(t *testing.T) {
 		}
 	}
 
-	if r2 := <-store.User().GetProfiles("123"); r2.Err != nil {
+	if r2 := <-store.User().GetProfiles("123", 0, 100); r2.Err != nil {
 		t.Fatal(r2.Err)
 	} else {
 		if len(r2.Data.(map[string]*model.User)) != 0 {
@@ -326,7 +326,7 @@ func TestUserStoreGetProfilesByIds(t *testing.T) {
 		}
 	}
 
-	if r2 := <-store.User().GetProfiles("123"); r2.Err != nil {
+	if r2 := <-store.User().GetProfiles("123", 0, 100); r2.Err != nil {
 		t.Fatal(r2.Err)
 	} else {
 		if len(r2.Data.(map[string]*model.User)) != 0 {
@@ -711,5 +711,20 @@ func TestUserStoreUpdateMfaActive(t *testing.T) {
 	// should pass, no update will occur though
 	if err := (<-store.User().UpdateMfaActive("junk", true)).Err; err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestUserStoreGetRecentlyActiveUsersForTeam(t *testing.T) {
+	Setup()
+
+	u1 := &model.User{}
+	u1.Email = model.NewId()
+	Must(store.User().Save(u1))
+	Must(store.Status().SaveOrUpdate(&model.Status{u1.Id, model.STATUS_ONLINE, false, model.GetMillis(), ""}))
+	tid := model.NewId()
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u1.Id}))
+
+	if r1 := <-store.User().GetRecentlyActiveUsersForTeam(tid); r1.Err != nil {
+		t.Fatal(r1.Err)
 	}
 }

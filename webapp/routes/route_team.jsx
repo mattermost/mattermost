@@ -97,6 +97,8 @@ function preNeedsTeam(nextState, replace, callback) {
     );
 
     Client.getProfiles(
+        0,
+        Constants.PROFILE_CHUNK_SIZE,
         (data) => {
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_PROFILES,

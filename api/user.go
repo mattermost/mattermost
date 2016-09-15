@@ -55,7 +55,7 @@ func InitUser() {
 	BaseRoutes.Users.Handle("/me", ApiAppHandler(getMe)).Methods("GET")
 	BaseRoutes.Users.Handle("/initial_load", ApiAppHandler(getInitialLoad)).Methods("GET")
 	BaseRoutes.Users.Handle("/direct_profiles", ApiUserRequired(getDirectProfiles)).Methods("GET")
-	BaseRoutes.Users.Handle("/profiles/{id:[A-Za-z0-9]+}", ApiUserRequired(getProfiles)).Methods("GET")
+	BaseRoutes.Users.Handle("/profiles/{id:[A-Za-z0-9]+}/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getProfiles)).Methods("GET")
 	BaseRoutes.Users.Handle("/profiles_for_dm_list/{id:[A-Za-z0-9]+}", ApiUserRequired(getProfilesForDirectMessageList)).Methods("GET")
 
 	BaseRoutes.Users.Handle("/mfa", ApiAppHandler(checkMfa)).Methods("POST")
@@ -379,7 +379,7 @@ func sendWelcomeEmail(c *Context, userId string, email string, siteURL string, v
 
 func addDirectChannels(teamId string, user *model.User) {
 	var profiles map[string]*model.User
-	if result := <-Srv.Store.User().GetProfiles(teamId); result.Err != nil {
+	if result := <-Srv.Store.User().GetProfiles(teamId, 0, 100); result.Err != nil {
 		l4g.Error(utils.T("api.user.add_direct_channels_and_forget.failed.error"), user.Id, teamId, result.Err.Error())
 		return
 	} else {
@@ -971,7 +971,7 @@ func getProfilesForDirectMessageList(c *Context, w http.ResponseWriter, r *http.
 			}
 		}
 
-		pchan = Srv.Store.User().GetProfiles(id)
+		pchan = Srv.Store.User().GetProfiles(id, 0, 100)
 	} else {
 		pchan = Srv.Store.User().GetAllProfiles()
 	}
@@ -1000,12 +1000,24 @@ func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	etag := (<-Srv.Store.User().GetEtagForProfiles(id)).Data.(string)
+	offset, err := strconv.Atoi(params["offset"])
+	if err != nil {
+		c.SetInvalidParam("getProfiles", "offset")
+		return
+	}
+
+	limit, err := strconv.Atoi(params["limit"])
+	if err != nil {
+		c.SetInvalidParam("getProfiles", "limit")
+		return
+	}
+
+	etag := (<-Srv.Store.User().GetEtagForProfiles(id, offset, limit)).Data.(string)
 	if HandleEtag(etag, w, r) {
 		return
 	}
 
-	if result := <-Srv.Store.User().GetProfiles(id); result.Err != nil {
+	if result := <-Srv.Store.User().GetProfiles(id, offset, limit); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {

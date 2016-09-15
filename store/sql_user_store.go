@@ -489,13 +489,13 @@ func (us SqlUserStore) GetAllProfiles() StoreChannel {
 	return storeChannel
 }
 
-func (s SqlUserStore) GetEtagForProfiles(teamId string) StoreChannel {
+func (s SqlUserStore) GetEtagForProfiles(teamId string, offset int, limit int) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
 
-		updateAt, err := s.GetReplica().SelectInt("SELECT UpdateAt FROM Users, TeamMembers WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId ORDER BY UpdateAt DESC LIMIT 1", map[string]interface{}{"TeamId": teamId})
+		updateAt, err := s.GetReplica().SelectInt("SELECT MAX(UpdateAt) FROM Users, TeamMembers WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId LIMIT :Limit OFFSET :Offset", map[string]interface{}{"TeamId": teamId, "Offset": offset, "Limit": limit})
 		if err != nil {
 			result.Data = fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.GetMillis(), utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
 		} else {
@@ -509,7 +509,7 @@ func (s SqlUserStore) GetEtagForProfiles(teamId string) StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) GetProfiles(teamId string) StoreChannel {
+func (us SqlUserStore) GetProfiles(teamId string, offset int, limit int) StoreChannel {
 
 	storeChannel := make(StoreChannel, 1)
 
@@ -518,7 +518,7 @@ func (us SqlUserStore) GetProfiles(teamId string) StoreChannel {
 
 		var users []*model.User
 
-		if _, err := us.GetReplica().Select(&users, "SELECT Users.* FROM Users, TeamMembers WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId", map[string]interface{}{"TeamId": teamId}); err != nil {
+		if _, err := us.GetReplica().Select(&users, "SELECT Users.* FROM Users, TeamMembers WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId LIMIT :Limit OFFSET :Offset", map[string]interface{}{"TeamId": teamId, "Offset": offset, "Limit": limit}); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.GetProfiles", "store.sql_user.get_profiles.app_error", nil, err.Error())
 		} else {
 
@@ -529,6 +529,55 @@ func (us SqlUserStore) GetProfiles(teamId string) StoreChannel {
 				u.AuthData = new(string)
 				*u.AuthData = ""
 				userMap[u.Id] = u
+			}
+
+			result.Data = userMap
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+type UserWithLastActivityAt struct {
+	model.User
+	LastActivityAt int64
+}
+
+func (us SqlUserStore) GetRecentlyActiveUsersForTeam(teamId string) StoreChannel {
+
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var users []*UserWithLastActivityAt
+
+		if _, err := us.GetReplica().Select(&users, `
+            SELECT
+                u.*,
+                s.LastActivityAt
+            FROM Users AS u
+                INNER JOIN TeamMembers AS t ON u.Id = t.UserId
+                INNER JOIN Status AS s ON s.UserId = t.UserId
+            WHERE t.TeamId = :TeamId
+            ORDER BY s.LastActivityAt DESC
+            LIMIT 100
+            `, map[string]interface{}{"TeamId": teamId}); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.GetRecentlyActiveUsers", "store.sql_user.get_recently_active_users.app_error", nil, err.Error())
+		} else {
+
+			userMap := make(map[string]*model.User)
+
+			for _, userWithLastActivityAt := range users {
+				u := userWithLastActivityAt.User
+				u.Password = ""
+				u.AuthData = new(string)
+				*u.AuthData = ""
+				u.LastActivityAt = userWithLastActivityAt.LastActivityAt
+				userMap[u.Id] = &u
 			}
 
 			result.Data = userMap

@@ -706,34 +706,11 @@ func samlCertificateStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getRecentlyActiveUsers(c *Context, w http.ResponseWriter, r *http.Request) {
-	statusMap := map[string]interface{}{}
-
-	if result := <-Srv.Store.Status().GetAllFromTeam(c.TeamId); result.Err != nil {
-		c.Err = result.Err
-		return
-	} else {
-		statuses := result.Data.([]*model.Status)
-		for _, s := range statuses {
-			statusMap[s.UserId] = s.LastActivityAt
-		}
-	}
-
-	if result := <-Srv.Store.User().GetProfiles(c.TeamId); result.Err != nil {
+	if result := <-Srv.Store.User().GetRecentlyActiveUsersForTeam(c.TeamId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
 		profiles := result.Data.(map[string]*model.User)
-
-		for k, p := range profiles {
-			p = sanitizeProfile(c, p)
-
-			if lastActivityAt, ok := statusMap[p.Id].(int64); ok {
-				p.LastActivityAt = lastActivityAt
-			}
-
-			profiles[k] = p
-		}
-
 		w.Write([]byte(model.UserMapToJson(profiles)))
 	}
 

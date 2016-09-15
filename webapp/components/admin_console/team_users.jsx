@@ -1,16 +1,19 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import AdminStore from 'stores/admin_store.jsx';
-import Client from 'client/web_client.jsx';
-import FormError from 'components/form_error.jsx';
-import LoadingScreen from '../loading_screen.jsx';
 import UserItem from './user_item.jsx';
+import LoadingScreen from '../loading_screen.jsx';
 import ResetPasswordModal from './reset_password_modal.jsx';
+import FormError from 'components/form_error.jsx';
 
-import {FormattedMessage} from 'react-intl';
+import AdminStore from 'stores/admin_store.jsx';
+
+import Client from 'client/web_client.jsx';
+
+import Constants from 'utils/constants.jsx';
 
 import React from 'react';
+import {FormattedMessage} from 'react-intl';
 
 export default class UserList extends React.Component {
     static get propTypes() {
@@ -89,6 +92,8 @@ export default class UserList extends React.Component {
 
         Client.getProfilesForTeam(
             teamId,
+            0,
+            Constants.PROFILE_CHUNK_SIZE,
             (users) => {
                 var memberList = [];
                 for (var id in users) {
