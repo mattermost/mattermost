@@ -177,4 +177,13 @@ func TestGetInfoForFile(t *testing.T) {
 	} else if info.HasPreviewImage {
 		t.Fatalf("Got incorrect has preview image: %v", info.HasPreviewImage)
 	}
+
+	// Always make the extension lower case to make it easier to use in other places
+	if info, err := GetInfoForBytes("file.TXT", fakeFile); err != nil {
+		t.Fatal(err)
+	} else if info.Name != "file.TXT" {
+		t.Fatalf("Got incorrect filename: %v", info.Name)
+	} else if info.Extension != "txt" {
+		t.Fatalf("Got incorrect extension: %v", info.Extension)
+	}
 }

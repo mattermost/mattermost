@@ -122,7 +122,7 @@ func GetInfoForBytes(name string, data []byte) (*FileInfo, *AppError) {
 		Size: int64(len(data)),
 	}
 
-	extension := filepath.Ext(name)
+	extension := strings.ToLower(filepath.Ext(name))
 	info.MimeType = mime.TypeByExtension(extension)
 
 	if extension != "" && extension[0] == '.' {
