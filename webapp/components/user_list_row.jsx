@@ -12,7 +12,7 @@ import Client from 'client/web_client.jsx';
 
 import React from 'react';
 
-export default function UserListRow({user, teamMember, actions, actionProps}) {
+export default function UserListRow({user, actions, actionProps, actionUserProps}) {
     const nameFormat = PreferenceStore.get(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', '');
 
     let name = user.username;
@@ -29,8 +29,8 @@ export default function UserListRow({user, teamMember, actions, actionProps}) {
                 <Action
                     key={index.toString()}
                     user={user}
-                    teamMember={teamMember}
                     {...actionProps}
+                    {...actionUserProps}
                 />
             );
         });
@@ -74,17 +74,14 @@ export default function UserListRow({user, teamMember, actions, actionProps}) {
 }
 
 UserListRow.defaultProps = {
-    teamMember: {
-        team_id: '',
-        roles: ''
-    },
     actions: [],
-    actionProps: {}
+    actionProps: {},
+    actionUserProps: {}
 };
 
 UserListRow.propTypes = {
     user: React.PropTypes.object.isRequired,
-    teamMember: React.PropTypes.object.isRequired,
     actions: React.PropTypes.arrayOf(React.PropTypes.func),
-    actionProps: React.PropTypes.object
+    actionProps: React.PropTypes.object,
+    actionUserProps: React.PropTypes.object
 };

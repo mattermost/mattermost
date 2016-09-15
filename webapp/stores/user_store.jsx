@@ -6,6 +6,7 @@ import EventEmitter from 'events';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
 import LocalizationStore from './localization_store.jsx';
+import TeamStore from './team_store.jsx';
 
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
@@ -160,6 +161,18 @@ class UserStoreClass extends EventEmitter {
         }
 
         return profileUsernameMap;
+    }
+
+    getProfilesForTeam() {
+        const members = TeamStore.getMembersForTeam();
+        const profilesForTeam = [];
+        for (let i = 0; i < members.length; i++) {
+            if (this.profiles[members[i].user_id]) {
+                profilesForTeam.push(this.profiles[members[i].user_id]);
+            }
+        }
+
+        return profilesForTeam;
     }
 
     getDirectProfiles() {
