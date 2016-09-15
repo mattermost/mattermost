@@ -1374,6 +1374,6 @@ export function handleFormattedTextClick(e) {
             browserHistory.push(linkAttribute.value);
         }
     } else if (channelMentionAttribute) {
-        browserHistory.push(channelMentionAttribute.value);
+        browserHistory.push('/' + TeamStore.getCurrent().name + '/channels/' + channelMentionAttribute.value);
     }
 }
