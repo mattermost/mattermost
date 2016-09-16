@@ -84,7 +84,7 @@ class NotificationStoreClass extends EventEmitter {
                 if (msgProps.image) {
                     body = username + Utils.localizeMessage('channel_loader.uploadedImage', ' uploaded an image');
                 } else if (msgProps.otherFile) {
-                    body = Utils.localizeMessage('channel_loader.uploadedFile', ' uploaded a file');
+                    body = username + Utils.localizeMessage('channel_loader.uploadedFile', ' uploaded a file');
                 } else {
                     body = username + Utils.localizeMessage('channel_loader.something', ' did something new');
                 }

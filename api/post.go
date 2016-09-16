@@ -143,8 +143,6 @@ func CreatePost(c *Context, post *model.Post, triggerWebhooks bool) (*model.Post
 		return nil, result.Err
 	} else {
 		rpost = result.Data.(*model.Post)
-
-		go handlePostEvents(c, rpost, triggerWebhooks)
 	}
 
 	if len(post.FileIds) > 0 {
@@ -154,6 +152,8 @@ func CreatePost(c *Context, post *model.Post, triggerWebhooks bool) (*model.Post
 			}
 		}
 	}
+
+	go handlePostEvents(c, rpost, triggerWebhooks)
 
 	return rpost, nil
 }
@@ -764,12 +764,14 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 	message.Add("sender_name", senderName)
 	message.Add("team_id", team.Id)
 
-	if len(post.FileIds) != 0 {
+	if post.HasFiles {
 		message.Add("otherFile", "true")
 
 		var infos []*model.FileInfo
 		if result := <-fchan; result.Err != nil {
 			l4g.Warn(utils.T("api.post.send_notifications.files.error"), post.Id, result.Err)
+		} else {
+			infos = result.Data.([]*model.FileInfo)
 		}
 
 		for _, info := range infos {
