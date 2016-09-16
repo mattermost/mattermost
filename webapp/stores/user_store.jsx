@@ -172,6 +172,16 @@ class UserStoreClass extends EventEmitter {
             }
         }
 
+        profilesForTeam.sort((a, b) => {
+            if (a.username < b.username) {
+                return -1;
+            }
+            if (a.username > b.username) {
+                return 1;
+            }
+            return 0;
+        });
+
         return profilesForTeam;
     }
 

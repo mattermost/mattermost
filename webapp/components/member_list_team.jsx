@@ -11,6 +11,8 @@ import * as AsyncClient from 'utils/async_client.jsx';
 
 import React from 'react';
 
+const USERS_PER_PAGE = 50;
+
 export default class MemberListTeam extends React.Component {
     constructor(props) {
         super(props);
@@ -41,6 +43,10 @@ export default class MemberListTeam extends React.Component {
         });
     }
 
+    nextPage(page) {
+        AsyncClient.getProfiles((page + 1) * USERS_PER_PAGE, USERS_PER_PAGE);
+    }
+
     render() {
         let teamMembersDropdown = null;
         if (this.props.isAdmin) {
@@ -60,6 +66,8 @@ export default class MemberListTeam extends React.Component {
             <SearchableUserList
                 style={this.props.style}
                 users={this.state.users}
+                usersPerPage={USERS_PER_PAGE}
+                nextPage={this.nextPage}
                 actions={teamMembersDropdown}
                 actionUserProps={actionUserProps}
             />

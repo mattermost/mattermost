@@ -329,7 +329,7 @@ export function getProfiles(offset, limit) {
 
     let realLimit = limit;
     if (realLimit == null) {
-        realLimit = Constants.POST_CHUNK_SIZE;
+        realLimit = Constants.PROFILE_CHUNK_SIZE;
     }
 
     callTracker.getProfiles = utils.getTimestamp();
