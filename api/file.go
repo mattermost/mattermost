@@ -59,9 +59,9 @@ func InitFile() {
 
 	BaseRoutes.TeamFiles.Handle("/upload", ApiUserRequired(uploadFile)).Methods("POST")
 
-	BaseRoutes.NeedFile.Handle("/get", ApiUserRequired(getFile)).Methods("GET")
-	BaseRoutes.NeedFile.Handle("/get_thumbnail", ApiUserRequired(getFileThumbnail)).Methods("GET")
-	BaseRoutes.NeedFile.Handle("/get_preview", ApiUserRequired(getFilePreview)).Methods("GET")
+	BaseRoutes.NeedFile.Handle("/get", ApiUserRequiredTrustRequester(getFile)).Methods("GET")
+	BaseRoutes.NeedFile.Handle("/get_thumbnail", ApiUserRequiredTrustRequester(getFileThumbnail)).Methods("GET")
+	BaseRoutes.NeedFile.Handle("/get_preview", ApiUserRequiredTrustRequester(getFilePreview)).Methods("GET")
 	BaseRoutes.NeedFile.Handle("/get_info", ApiUserRequired(getFileInfo)).Methods("GET")
 	BaseRoutes.NeedFile.Handle("/get_public_link", ApiUserRequired(getPublicLink)).Methods("GET")
 
