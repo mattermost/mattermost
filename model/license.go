@@ -43,7 +43,7 @@ type Features struct {
 	MHPNS                *bool `json:"mhpns"`
 	SAML                 *bool `json:"saml"`
 	PasswordRequirements *bool `json:"password_requirements"`
-	// after we enabled more features for web rtc we'll need to control them with this
+	// after we enabled more features for webrtc we'll need to control them with this
 	Webrtc         *bool `json:"webrtc"`
 	FutureFeatures *bool `json:"future_features"`
 }

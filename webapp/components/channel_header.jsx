@@ -21,20 +21,25 @@ import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import SearchStore from 'stores/search_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
+import WebrtcStore from 'stores/webrtc_store.jsx';
 
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
+import * as WebrtcActions from 'actions/webrtc_actions.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import {getFlaggedPosts} from 'actions/post_actions.jsx';
 
-import {ActionTypes, Constants, Preferences} from 'utils/constants.jsx';
+import {ActionTypes, Constants, Preferences, UserStatuses} from 'utils/constants.jsx';
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
 import {Tooltip, OverlayTrigger, Popover} from 'react-bootstrap';
+
+const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 
 export default class ChannelHeader extends React.Component {
     constructor(props) {
@@ -47,6 +52,8 @@ export default class ChannelHeader extends React.Component {
         this.hideRenameChannelModal = this.hideRenameChannelModal.bind(this);
         this.openRecentMentions = this.openRecentMentions.bind(this);
         this.getFlagged = this.getFlagged.bind(this);
+        this.initWebrtc = this.initWebrtc.bind(this);
+        this.onBusy = this.onBusy.bind(this);
 
         const state = this.getStateFromStores();
         state.showEditChannelPurposeModal = false;
@@ -64,7 +71,8 @@ export default class ChannelHeader extends React.Component {
             users: extraInfo.members,
             userCount: extraInfo.member_count,
             currentUser: UserStore.getCurrentUser(),
-            enableFormatting: PreferenceStore.getBool(Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', true)
+            enableFormatting: PreferenceStore.getBool(Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', true),
+            isBusy: WebrtcStore.isBusy()
         };
     }
 
@@ -85,6 +93,9 @@ export default class ChannelHeader extends React.Component {
         SearchStore.addSearchChangeListener(this.onListenerChange);
         PreferenceStore.addChangeListener(this.onListenerChange);
         UserStore.addChangeListener(this.onListenerChange);
+        UserStore.addStatusesChangeListener(this.onListenerChange);
+        WebrtcStore.addChangedListener(this.onListenerChange);
+        WebrtcStore.addBusyListener(this.onBusy);
         $('.sidebar--left .dropdown-menu').perfectScrollbar();
         document.addEventListener('keydown', this.openRecentMentions);
     }
@@ -95,6 +106,9 @@ export default class ChannelHeader extends React.Component {
         SearchStore.removeSearchChangeListener(this.onListenerChange);
         PreferenceStore.removeChangeListener(this.onListenerChange);
         UserStore.removeChangeListener(this.onListenerChange);
+        UserStore.removeStatusesChangeListener(this.onListenerChange);
+        WebrtcStore.removeChangedListener(this.onListenerChange);
+        WebrtcStore.removeBusyListener(this.onBusy);
         document.removeEventListener('keydown', this.openRecentMentions);
     }
 
@@ -204,6 +218,17 @@ export default class ChannelHeader extends React.Component {
         return true;
     }
 
+    initWebrtc(contactId, isOnline) {
+        if (isOnline && !this.state.isBusy) {
+            GlobalActions.emitCloseRightHandSide();
+            WebrtcActions.initWebrtc(contactId, true);
+        }
+    }
+
+    onBusy(isBusy) {
+        this.setState({isBusy});
+    }
+
     render() {
         const flagIcon = Constants.FLAG_ICON_SVG;
 
@@ -250,16 +275,80 @@ export default class ChannelHeader extends React.Component {
         const isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
         const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
         const isDirect = (this.state.channel.type === 'D');
+        let webrtc;
 
         if (isDirect) {
+            const userMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+            let contact;
             if (this.state.users.length > 1) {
-                let contact;
                 if (this.state.users[0].id === currentId) {
                     contact = this.state.users[1];
                 } else {
                     contact = this.state.users[0];
                 }
                 channelTitle = Utils.displayUsername(contact.id);
+            }
+
+            const webrtcEnabled = global.mm_config.EnableWebrtc === 'true' && global.mm_license.Webrtc === 'true' &&
+                global.mm_config.EnableDeveloper === 'true' && userMedia && Utils.isFeatureEnabled(PreReleaseFeatures.WEBRTC_PREVIEW);
+
+            if (webrtcEnabled) {
+                const isOffline = UserStore.getStatus(contact.id) === UserStatuses.OFFLINE;
+                const busy = this.state.isBusy;
+                let circleClass = '';
+                let webrtcMessage;
+
+                if (isOffline || busy) {
+                    circleClass = 'offline';
+                    if (busy) {
+                        webrtcMessage = (
+                            <FormattedMessage
+                                id='channel_header.webrtc.unavailable'
+                                defaultMessage='New call unavailable until your existing call ends'
+                            />
+                        );
+                    }
+                } else {
+                    webrtcMessage = (
+                        <FormattedMessage
+                            id='channel_header.webrtc.call'
+                            defaultMessage='Start Video Call'
+                        />
+                    );
+                }
+
+                webrtc = (
+                    <div className='webrtc__header'>
+                        <a
+                            href='#'
+                            onClick={() => this.initWebrtc(contact.id, !isOffline)}
+                            disabled={isOffline}
+                        >
+                            <svg
+                                id='webrtc-btn'
+                                className='webrtc__button'
+                                xmlns='http://www.w3.org/2000/svg'
+                            >
+                                <circle
+                                    className={circleClass}
+                                    cx='16'
+                                    cy='16'
+                                    r='18'
+                                >
+                                    <title>
+                                        {webrtcMessage}
+                                    </title>
+                                </circle>
+                                <path
+                                    className='off'
+                                    transform='scale(0.4), translate(17,16)'
+                                    d='M40 8H8c-2.21 0-4 1.79-4 4v24c0 2.21 1.79 4 4 4h32c2.21 0 4-1.79 4-4V12c0-2.21-1.79-4-4-4zm-4 24l-8-6.4V32H12V16h16v6.4l8-6.4v16z'
+                                    fill='white'
+                                />
+                            </svg>
+                        </a>
+                    </div>
+                );
             }
         }
 
@@ -541,6 +630,7 @@ export default class ChannelHeader extends React.Component {
                         <tr>
                             <th>
                                 <div className='channel-header__info'>
+                                    {webrtc}
                                     <div className='dropdown'>
                                         <a
                                             href='#'
@@ -564,8 +654,8 @@ export default class ChannelHeader extends React.Component {
                                     <OverlayTrigger
                                         trigger={'click'}
                                         placement='bottom'
-                                        overlay={popoverContent}
                                         rootClose={true}
+                                        overlay={popoverContent}
                                         ref='headerOverlay'
                                     >
                                         <div

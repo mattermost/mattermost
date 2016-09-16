@@ -6,12 +6,13 @@ import * as GlobalActions from 'actions/global_actions.jsx';
 
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
+import WebrtcStore from 'stores/webrtc_store.jsx';
 import AboutBuildModal from './about_build_modal.jsx';
 import TeamMembersModal from './team_members_modal.jsx';
 import ToggleModalButton from './toggle_modal_button.jsx';
 import UserSettingsModal from './user_settings/user_settings_modal.jsx';
 
-import Constants from 'utils/constants.jsx';
+import {Constants, WebrtcActionTypes} from 'utils/constants.jsx';
 
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router/es6';
@@ -30,12 +31,21 @@ export default class NavbarDropdown extends React.Component {
 
         this.renderCustomEmojiLink = this.renderCustomEmojiLink.bind(this);
 
+        this.handleClick = this.handleClick.bind(this);
+
         this.state = {
             showUserSettingsModal: false,
             showAboutModal: false,
             teams: TeamStore.getAll(),
             teamMembers: TeamStore.getTeamMembers()
         };
+    }
+
+    handleClick(e) {
+        if (WebrtcStore.isBusy()) {
+            WebrtcStore.emitChanged({action: WebrtcActionTypes.IN_PROGRESS});
+            e.preventDefault();
+        }
     }
 
     handleAboutModal() {
@@ -77,7 +87,10 @@ export default class NavbarDropdown extends React.Component {
 
         return (
             <li>
-                <Link to={'/' + this.props.teamName + '/emoji'}>
+                <Link
+                    onClick={this.handleClick}
+                    to={'/' + this.props.teamName + '/emoji'}
+                >
                     <FormattedMessage
                         id='navbar_dropdown.emoji'
                         defaultMessage='Custom Emoji'
@@ -198,7 +211,10 @@ export default class NavbarDropdown extends React.Component {
         if (integrationsEnabled && (isAdmin || config.EnableOnlyAdminIntegrations !== 'true')) {
             integrationsLink = (
                 <li>
-                    <Link to={'/' + this.props.teamName + '/integrations'}>
+                    <Link
+                        to={'/' + this.props.teamName + '/integrations'}
+                        onClick={this.handleClick}
+                    >
                         <FormattedMessage
                             id='navbar_dropdown.integrations'
                             defaultMessage='Integrations'
@@ -213,6 +229,7 @@ export default class NavbarDropdown extends React.Component {
                 <li>
                     <Link
                         to={'/admin_console'}
+                        onClick={this.handleClick}
                     >
                         <FormattedMessage
                             id='navbar_dropdown.console'
@@ -231,6 +248,7 @@ export default class NavbarDropdown extends React.Component {
                     <Link
                         key='newTeam_a'
                         to='/create_team'
+                        onClick={this.handleClick}
                     >
                         <FormattedMessage
                             id='navbar_dropdown.create'
