@@ -1467,25 +1467,3 @@ func TestFuzzyChannel(t *testing.T) {
 		}
 	}
 }
-
-func TestChannelGetChannelMember(t *testing.T) {
-	th := Setup().InitBasic()
-	channel := th.BasicChannel
-	user := th.BasicUser
-
-	if _, err := GetChannelMember(channel.Id, user.Id); err != nil {
-		t.Fatal("Should not fail, user in channel")
-	}
-
-	if _, err := GetChannelMember("abc", user.Id); err == nil {
-		t.Fatal("Should have failed, channel id invalid")
-	}
-
-	if _, err := GetChannelMember(channel.Id, "abc"); err == nil {
-		t.Fatal("Should have failed, user id invalid")
-	}
-
-	if member, err := GetChannelMember(channel.Id, user.Id); err == nil && member.ChannelId != channel.Id {
-		t.Fatal("Wrong channel member")
-	}
-}
