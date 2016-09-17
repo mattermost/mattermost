@@ -224,7 +224,7 @@ class PostStoreClass extends EventEmitter {
                 } else if (combinedPosts.posts.hasOwnProperty(pid)) {
                     combinedPosts.posts[pid] = Object.assign({}, np, {
                         state: Constants.POST_DELETED,
-                        filenames: []
+                        fileIds: []
                     });
                 }
             }
@@ -318,7 +318,7 @@ class PostStoreClass extends EventEmitter {
             // make sure to copy the post so that component state changes work properly
             postList.posts[post.id] = Object.assign({}, post, {
                 state: Constants.POST_DELETED,
-                filenames: []
+                fileIds: []
             });
         }
     }
@@ -514,7 +514,7 @@ class PostStoreClass extends EventEmitter {
     }
 
     getEmptyDraft() {
-        return {message: '', uploadsInProgress: [], previews: []};
+        return {message: '', uploadsInProgress: [], fileInfos: []};
     }
 
     storeCurrentDraft(draft) {

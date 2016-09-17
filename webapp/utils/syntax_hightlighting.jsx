@@ -136,14 +136,9 @@ export function highlight(lang, code) {
     return TextFormatting.sanitizeHtml(code);
 }
 
-export function getLanguageFromFilename(filename) {
-    const fileSplit = filename.split('.');
-
-    let ext = fileSplit.length > 1 ? fileSplit[fileSplit.length - 1] : '';
-    ext = ext.toLowerCase();
-
+export function getLanguageFromFileExtension(extension) {
     for (var key in HighlightedLanguages) {
-        if (HighlightedLanguages[key].extensions.find((x) => x === ext)) {
+        if (HighlightedLanguages[key].extensions.find((x) => x === extension)) {
             return key;
         }
     }

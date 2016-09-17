@@ -4,7 +4,7 @@
 import UserProfile from './user_profile.jsx';
 import PostBodyAdditionalContent from 'components/post_view/components/post_body_additional_content.jsx';
 import PostMessageContainer from 'components/post_view/components/post_message_container.jsx';
-import FileAttachmentList from './file_attachment_list.jsx';
+import FileAttachmentListContainer from './file_attachment_list_container.jsx';
 import ProfilePicture from 'components/profile_picture.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
@@ -242,13 +242,12 @@ export default class RhsRootPost extends React.Component {
             );
         }
 
-        var fileAttachment;
-        if (post.filenames && post.filenames.length > 0) {
+        let fileAttachment = null;
+        if (post.has_files) {
             fileAttachment = (
-                <FileAttachmentList
-                    filenames={post.filenames}
+                <FileAttachmentListContainer
                     channelId={post.channel_id}
-                    userId={post.user_id}
+                    postId={post.id}
                     compactDisplay={this.props.compactDisplay}
                 />
             );

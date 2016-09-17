@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import FileStore from 'stores/file_store.jsx';
 import ReactDOM from 'react-dom';
 import * as Utils from 'utils/utils.jsx';
 
@@ -21,63 +22,43 @@ export default class FilePreview extends React.Component {
         }
     }
 
-    handleRemove(e) {
-        var previewDiv = e.target.parentNode.parentNode;
-
-        if (previewDiv.hasAttribute('data-filename')) {
-            this.props.onRemove(previewDiv.getAttribute('data-filename'));
-        } else if (previewDiv.hasAttribute('data-client-id')) {
-            this.props.onRemove(previewDiv.getAttribute('data-client-id'));
-        }
+    handleRemove(id) {
+        this.props.onRemove(id);
     }
 
     render() {
         var previews = [];
-        this.props.files.forEach((fullFilename) => {
-            var filename = fullFilename;
-            var originalFilename = filename;
-            var filenameSplit = filename.split('.');
-            var ext = filenameSplit[filenameSplit.length - 1];
-            var type = Utils.getFileType(ext);
+        this.props.fileInfos.forEach((info) => {
+            const type = Utils.getFileType(info.extension);
 
-            filename = Utils.getFileUrl(filename);
-
+            let className = 'file-preview';
+            let previewImage;
             if (type === 'image') {
-                previews.push(
-                    <div
-                        key={filename}
-                        className='file-preview'
-                        data-filename={originalFilename}
-                    >
-                        <img
-                            className='file-preview__image'
-                            src={filename}
-                        />
-                        <a
-                            className='file-preview__remove'
-                            onClick={this.handleRemove}
-                        >
-                            <i className='fa fa-remove'/>
-                        </a>
-                    </div>
+                previewImage = (
+                    <img
+                        className='file-preview__image'
+                        src={FileStore.getFileUrl(info.id)}
+                    />
                 );
             } else {
-                previews.push(
-                    <div
-                        key={filename}
-                        className='file-preview custom-file'
-                        data-filename={originalFilename}
-                    >
-                        <div className={'file-icon ' + Utils.getIconClassName(type)}/>
-                        <a
-                            className='file-preview__remove'
-                            onClick={this.handleRemove}
-                        >
-                            <i className='fa fa-remove'/>
-                        </a>
-                    </div>
-                );
+                className += ' custom-file';
+                previewImage = <div className={'file-icon ' + Utils.getIconClassName(type)}/>;
             }
+
+            previews.push(
+                <div
+                    key={info.id}
+                    className={className}
+                >
+                    {previewImage}
+                    <a
+                        className='file-preview__remove'
+                        onClick={this.handleRemove.bind(this, info.id)}
+                    >
+                        <i className='fa fa-remove'/>
+                    </a>
+                </div>
+            );
         });
 
         this.props.uploadsInProgress.forEach((clientId) => {
@@ -94,7 +75,7 @@ export default class FilePreview extends React.Component {
                     />
                     <a
                         className='file-preview__remove'
-                        onClick={this.handleRemove}
+                        onClick={this.handleRemove.bind(this, clientId)}
                     >
                         <i className='fa fa-remove'/>
                     </a>
@@ -111,11 +92,11 @@ export default class FilePreview extends React.Component {
 }
 
 FilePreview.defaultProps = {
-    files: [],
+    fileInfos: [],
     uploadsInProgress: []
 };
 FilePreview.propTypes = {
     onRemove: React.PropTypes.func.isRequired,
-    files: React.PropTypes.array,
+    fileInfos: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
     uploadsInProgress: React.PropTypes.array
 };

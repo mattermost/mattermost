@@ -413,8 +413,8 @@ export function getFileType(extin) {
     return 'other';
 }
 
-export function getPreviewImagePathForFileType(fileTypeIn) {
-    var fileType = fileTypeIn.toLowerCase();
+export function getFileIconPath(fileInfo) {
+    const fileType = getFileType(fileInfo.extension);
 
     var icon;
     if (fileType in Constants.ICON_FROM_TYPE) {
@@ -449,19 +449,6 @@ export function splitFileLocation(fileLocation) {
     var filename = filePath.split('/')[filePath.split('/').length - 1];
 
     return {ext, name: filename, path: filePath};
-}
-
-export function getPreviewImagePath(filename) {
-    // Returns the path to a preview image that can be used to represent a file.
-    const fileInfo = splitFileLocation(filename);
-    const fileType = getFileType(fileInfo.ext);
-
-    if (fileType === 'image') {
-        return getFileUrl(fileInfo.path + '_preview.jpg');
-    }
-
-    // only images have proper previews, so just use a placeholder icon for non-images
-    return getPreviewImagePathForFileType(fileType);
 }
 
 export function toTitleCase(str) {

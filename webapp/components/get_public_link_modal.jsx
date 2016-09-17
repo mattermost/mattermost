@@ -23,7 +23,7 @@ export default class GetPublicLinkModal extends React.Component {
 
         this.state = {
             show: false,
-            filename: '',
+            fileId: '',
             link: ''
         };
     }
@@ -34,7 +34,7 @@ export default class GetPublicLinkModal extends React.Component {
 
     componentDidUpdate(prevProps, prevState) {
         if (this.state.show && !prevState.show) {
-            AsyncClient.getPublicLink(decodeURIComponent(this.state.filename), this.handlePublicLink);
+            AsyncClient.getPublicLink(this.state.fileId, this.handlePublicLink);
         }
     }
 
@@ -51,7 +51,7 @@ export default class GetPublicLinkModal extends React.Component {
     handleToggle(value, args) {
         this.setState({
             show: value,
-            filename: args.filename,
+            fileId: args.fileId,
             link: ''
         });
     }

@@ -13,25 +13,29 @@ export default class FileAttachmentList extends React.Component {
 
         this.handleImageClick = this.handleImageClick.bind(this);
 
-        this.state = {showPreviewModal: false, startImgId: 0};
+        this.state = {showPreviewModal: false, startImgIndex: 0};
     }
-    handleImageClick(indexClicked) {
-        this.setState({showPreviewModal: true, startImgId: indexClicked});
-    }
-    render() {
-        var filenames = this.props.filenames;
 
-        var postFiles = [];
-        for (var i = 0; i < filenames.length && i < Constants.MAX_DISPLAY_FILES; i++) {
-            postFiles.push(
-                <FileAttachment
-                    key={'file_attachment_' + i}
-                    filename={filenames[i]}
-                    index={i}
-                    handleImageClick={this.handleImageClick}
-                    compactDisplay={this.props.compactDisplay}
-                />
-            );
+    handleImageClick(indexClicked) {
+        this.setState({showPreviewModal: true, startImgIndex: indexClicked});
+    }
+
+    render() {
+        const postFiles = [];
+        if (this.props.fileInfos) {
+            for (let i = 0; i < this.props.fileInfos.length && i < Constants.MAX_DISPLAY_FILES; i++) {
+                const fileInfo = this.props.fileInfos[i];
+
+                postFiles.push(
+                    <FileAttachment
+                        key={fileInfo.id}
+                        fileInfo={this.props.fileInfos[i]}
+                        index={i}
+                        handleImageClick={this.handleImageClick}
+                        compactDisplay={this.props.compactDisplay}
+                    />
+                );
+            }
         }
 
         return (
@@ -42,10 +46,8 @@ export default class FileAttachmentList extends React.Component {
                 <ViewImageModal
                     show={this.state.showPreviewModal}
                     onModalDismissed={() => this.setState({showPreviewModal: false})}
-                    channelId={this.props.channelId}
-                    userId={this.props.userId}
-                    startId={this.state.startImgId}
-                    filenames={filenames}
+                    startId={this.state.startImgIndex}
+                    fileInfos={this.props.fileInfos}
                 />
             </div>
         );
@@ -53,15 +55,6 @@ export default class FileAttachmentList extends React.Component {
 }
 
 FileAttachmentList.propTypes = {
-
-    // a list of file pathes displayed by this
-    filenames: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
-
-    // the channel that this is part of
-    channelId: React.PropTypes.string,
-
-    // the user that owns the post that this is attached to
-    userId: React.PropTypes.string,
-
+    fileInfos: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
     compactDisplay: React.PropTypes.bool
 };
