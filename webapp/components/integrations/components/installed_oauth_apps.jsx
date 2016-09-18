@@ -91,7 +91,7 @@ export default class InstalledOAuthApps extends React.Component {
                                     href='https://docs.mattermost.com/developer/oauth-2-0-applications.html'
                                 >
                                     <FormattedMessage
-                                        id='installed_incoming_webhooks.helpLink'
+                                        id='installed_oauth_apps.helpLink'
                                         defaultMessage='documentation'
                                     />
                                 </a>
