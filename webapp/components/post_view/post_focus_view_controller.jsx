@@ -11,7 +11,10 @@ import ChannelStore from 'stores/channel_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import WebrtcStore from 'stores/webrtc_store.jsx';
 
+import * as Utils from 'utils/utils.jsx';
+
 import Constants from 'utils/constants.jsx';
+const Preferences = Constants.Preferences;
 const ScrollTypes = Constants.ScrollTypes;
 
 import React from 'react';
@@ -56,6 +59,11 @@ export default class PostFocusView extends React.Component {
             atTop: PostStore.getVisibilityAtTop(focusedPostId),
             atBottom: PostStore.getVisibilityAtBottom(focusedPostId),
             emojis: EmojiStore.getEmojis(),
+            displayNameType: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'false'),
+            displayPostsInCenter: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED,
+            compactDisplay: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT,
+            previewsCollapsed: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLLAPSE_DISPLAY, 'false'),
+            useMilitaryTime: PreferenceStore.getBool(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, false),
             flaggedPosts: PreferenceStore.getCategory(Constants.Preferences.CATEGORY_FLAGGED_POST)
         };
     }
@@ -131,7 +139,14 @@ export default class PostFocusView extends React.Component {
         });
     }
 
-    onPreferenceChange() {
+    onPreferenceChange(category) {
+        // Bit of a hack to force render when this setting is updated
+        // regardless of change
+        let previewSuffix = '';
+        if (category === Preferences.CATEGORY_DISPLAY_SETTINGS) {
+            previewSuffix = '_' + Utils.generateId();
+        }
+
         const focusedPostId = PostStore.getFocusedPostId();
         if (focusedPostId == null) {
             return;
@@ -141,6 +156,11 @@ export default class PostFocusView extends React.Component {
 
         this.setState({
             postList: PostStore.filterPosts(focusedPostId, joinLeaveEnabled),
+            displayNameType: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'false'),
+            displayPostsInCenter: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED,
+            compactDisplay: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT,
+            previewsCollapsed: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLLAPSE_DISPLAY, 'false') + previewSuffix,
+            useMilitaryTime: PreferenceStore.getBool(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, false),
             flaggedPosts: PreferenceStore.getCategory(Constants.Preferences.CATEGORY_FLAGGED_POST)
         });
     }
@@ -174,6 +194,11 @@ export default class PostFocusView extends React.Component {
                     scrollType={this.state.scrollType}
                     scrollPostId={this.state.scrollPostId}
                     postListScrolled={this.onPostListScroll}
+                    displayNameType={this.state.displayNameType}
+                    displayPostsInCenter={this.state.displayPostsInCenter}
+                    compactDisplay={this.state.compactDisplay}
+                    previewsCollapsed={this.state.previewsCollapsed}
+                    useMilitaryTime={this.state.useMilitaryTime}
                     showMoreMessagesTop={!this.state.atTop}
                     showMoreMessagesBottom={!this.state.atBottom}
                     postsToHighlight={postsToHighlight}

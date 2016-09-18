@@ -532,14 +532,14 @@ export function applyTheme(theme) {
     }
 
     if (theme.onlineIndicator) {
-        changeCss('.app__body .sidebar--left .status .online--icon', 'fill:' + theme.onlineIndicator, 1);
+        changeCss('.app__body .status .online--icon', 'fill:' + theme.onlineIndicator, 1);
         changeCss('.app__body .channel-header__info .status .online--icon', 'fill:' + theme.onlineIndicator, 1);
         changeCss('.app__body .navbar .status .online--icon', 'fill:' + theme.onlineIndicator, 1);
         changeCss('.status-wrapper.status-online:after', 'background:' + theme.onlineIndicator, 1);
     }
 
     if (theme.awayIndicator) {
-        changeCss('.app__body .sidebar--left .status .away--icon', 'fill:' + theme.awayIndicator, 1);
+        changeCss('.app__body .status .away--icon', 'fill:' + theme.awayIndicator, 1);
         changeCss('.app__body .channel-header__info .status .away--icon', 'fill:' + theme.awayIndicator, 1);
         changeCss('.app__body .navbar .status .away--icon', 'fill:' + theme.awayIndicator, 1);
         changeCss('.status-wrapper.status-away:after', 'background:' + theme.awayIndicator, 1);
