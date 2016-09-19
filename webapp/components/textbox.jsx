@@ -36,7 +36,11 @@ export default class Textbox extends React.Component {
             connection: ''
         };
 
-        this.suggestionProviders = [new AtMentionProvider(), new ChannelMentionProvider(), new EmoticonProvider()];
+        this.suggestionProviders = [
+            new AtMentionProvider(this.props.channelId),
+            new ChannelMentionProvider(),
+            new EmoticonProvider()
+        ];
         if (props.supportsCommands) {
             this.suggestionProviders.push(new CommandProvider());
         }
@@ -102,6 +106,18 @@ export default class Textbox extends React.Component {
         e.preventDefault();
         e.target.blur();
         this.setState({preview: !this.state.preview});
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.channelId !== this.channelId) {
+            // Update channel id for AtMentionProvider.
+            const providers = this.suggestionProviders;
+            for (let i = 0; i < providers.length; i++) {
+                if (providers[i] instanceof AtMentionProvider) {
+                    providers[i] = new AtMentionProvider(nextProps.channelId);
+                }
+            }
+        }
     }
 
     render() {
