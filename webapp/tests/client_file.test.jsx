@@ -31,7 +31,7 @@ describe('Client.File', function() {
                 TestHelper.basicChannel().id,
                 clientId,
                 function(resp) {
-                    assert.equal(resp.file_ids.length, 1);
+                    assert.equal(resp.file_infos.length, 1);
                     assert.equal(resp.client_ids.length, 1);
                     assert.equal(resp.client_ids[0], clientId);
 
@@ -53,7 +53,7 @@ describe('Client.File', function() {
                 '',
                 function(resp) {
                     TestHelper.basicClient().getFile(
-                        resp.file_ids[0],
+                        resp.file_infos[0].id,
                         function() {
                             done();
                         },
@@ -78,7 +78,7 @@ describe('Client.File', function() {
                 '',
                 function(resp) {
                     TestHelper.basicClient().getFileThumbnail(
-                        resp.file_ids[0],
+                        resp.file_infos[0].id,
                         function() {
                             done();
                         },
@@ -103,7 +103,7 @@ describe('Client.File', function() {
                 '',
                 function(resp) {
                     TestHelper.basicClient().getFilePreview(
-                        resp.file_ids[0],
+                        resp.file_infos[0].id,
                         function() {
                             done();
                         },
@@ -127,7 +127,7 @@ describe('Client.File', function() {
                 TestHelper.basicChannel().id,
                 '',
                 function(resp) {
-                    const fileId = resp.file_ids[0];
+                    const fileId = resp.file_infos[0].id;
 
                     TestHelper.basicClient().getFileInfo(
                         fileId,
@@ -159,15 +159,15 @@ describe('Client.File', function() {
                 function(resp) {
                     const post = TestHelper.fakePost();
                     post.channel_id = TestHelper.basicChannel().id;
-                    post.file_ids = resp.file_ids;
+                    post.file_ids = resp.file_infos.map((info) => info.id);
 
                     TestHelper.basicClient().createPost(
                         post,
                         function(data) {
-                            assert.equal(data.has_files, true);
+                            assert.deepEqual(data.file_ids, post.file_ids);
 
                             TestHelper.basicClient().getPublicLink(
-                                resp.file_ids[0],
+                                post.file_ids[0],
                                 function() {
                                     done(new Error('public links should be disabled by default'));
 
@@ -213,19 +213,19 @@ describe('Client.File', function() {
                 function(resp) {
                     const post = TestHelper.fakePost();
                     post.channel_id = TestHelper.basicChannel().id;
-                    post.file_ids = resp.file_ids;
+                    post.file_ids = resp.file_infos.map((info) => info.id);
 
                     TestHelper.basicClient().createPost(
                         post,
                         function(data) {
-                            assert.equal(data.has_files, true);
+                            assert.deepEqual(data.file_ids, post.file_ids);
 
                             TestHelper.basicClient().getPostFiles(
                                 post.channel_id,
                                 data.id,
                                 function(files) {
                                     assert.equal(files.length, 1);
-                                    assert.equal(files[0].id, resp.file_ids[0]);
+                                    assert.equal(files[0].id, resp.file_infos[0].id);
 
                                     done();
                                 },

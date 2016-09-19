@@ -10,8 +10,7 @@ import FileAttachmentList from './file_attachment_list.jsx';
 
 export default class FileAttachmentListContainer extends React.Component {
     static propTypes = {
-        channelId: React.PropTypes.string.isRequred,
-        postId: React.PropTypes.string.isRequired,
+        post: React.PropTypes.object.isRequired,
         compactDisplay: React.PropTypes.bool.isRequired
     }
 
@@ -21,36 +20,32 @@ export default class FileAttachmentListContainer extends React.Component {
         this.handleFileChange = this.handleFileChange.bind(this);
 
         this.state = {
-            fileInfos: FileStore.getInfosForPost(props.postId)
+            fileInfos: FileStore.getInfosForPost(props.post.id)
         };
     }
 
     componentDidMount() {
         FileStore.addChangeListener(this.handleFileChange);
 
-        if (!FileStore.hasInfosForPost(this.props.postId)) {
-            AsyncClient.getPostFiles(this.props.channelId, this.props.postId);
+        if (this.props.post.id && !FileStore.hasInfosForPost(this.props.post.id)) {
+            AsyncClient.getPostFiles(this.props.post.channel_id, this.props.post.id);
         }
     }
 
     componentWillReceiveProps(nextProps) {
-        if (nextProps.postId !== this.props.postId) {
+        if (nextProps.post.id !== this.props.post.id) {
             this.setState({
-                fileInfos: FileStore.getInfosForPost(this.props.postId)
+                fileInfos: FileStore.getInfosForPost(this.props.post.id)
             });
 
-            if (!FileStore.hasInfosForPost(nextProps.postId)) {
-                AsyncClient.getPostFiles(this.props.channelId, this.props.postId);
+            if (nextProps.post.id && !FileStore.hasInfosForPost(nextProps.post.id)) {
+                AsyncClient.getPostFiles(nextProps.post.channel_id, nextProps.post.id);
             }
         }
     }
 
     shouldComponentUpdate(nextProps, nextState) {
-        if (this.props.channelId !== nextProps.channelId) {
-            return true;
-        }
-
-        if (this.props.postId !== nextProps.postId) {
+        if (this.props.post.id !== nextProps.post.id) {
             return true;
         }
 
@@ -68,7 +63,7 @@ export default class FileAttachmentListContainer extends React.Component {
 
     handleFileChange() {
         this.setState({
-            fileInfos: FileStore.getInfosForPost(this.props.postId)
+            fileInfos: FileStore.getInfosForPost(this.props.post.id)
         });
     }
 
@@ -79,6 +74,7 @@ export default class FileAttachmentListContainer extends React.Component {
     render() {
         return (
             <FileAttachmentList
+                fileIds={this.props.post.file_ids}
                 fileInfos={this.state.fileInfos}
                 compactDisplay={this.props.compactDisplay}
             />

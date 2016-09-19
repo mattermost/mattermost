@@ -43,7 +43,7 @@ func TestCreatePost(t *testing.T) {
 		t.Fatal("hashtag didn't match")
 	}
 
-	if rpost1.Data.(*model.Post).HasFiles {
+	if len(rpost1.Data.(*model.Post).FileIds) != 0 {
 		t.Fatal("shouldn't have files")
 	}
 
@@ -113,19 +113,19 @@ func TestCreatePost(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		for i := 0; i < 3; i++ {
-			fileIds[i] = Client.MustGeneric(Client.UploadPostAttachment(data, channel1.Id, "test.png")).(*model.FileUploadResponse).FileInfos[0].Id
+			fileIds[i] = Client.MustGeneric(Client.UploadPostAttachment(data, channel3.Id, "test.png")).(*model.FileUploadResponse).FileInfos[0].Id
 		}
 	}
 
 	post9 := &model.Post{
-		ChannelId: channel1.Id,
+		ChannelId: channel3.Id,
 		Message:   "test",
 		FileIds:   fileIds,
 	}
 	if resp, err := Client.CreatePost(post9); err != nil {
 		t.Fatal(err)
-	} else if rpost9 := resp.Data.(*model.Post); !rpost9.HasFiles {
-		t.Fatal("should've set HasFiles to true")
+	} else if rpost9 := resp.Data.(*model.Post); len(rpost9.FileIds) != 3 {
+		t.Fatal("post should have 3 files")
 	} else {
 		infos := store.Must(Srv.Store.FileInfo().GetForPost(rpost9.Id)).([]*model.FileInfo)
 
@@ -1213,8 +1213,7 @@ func TestGetMessageForNotification(t *testing.T) {
 		t.Fatal("should've returned message text")
 	}
 
-	post.HasFiles = true
-
+	post.FileIds = model.StringArray{testPng.Id}
 	store.Must(Srv.Store.FileInfo().AttachToPost(testPng.Id, post.Id))
 	if getMessageForNotification(post, translateFunc) != "test" {
 		t.Fatal("should've returned message text, even with attachments")
@@ -1225,18 +1224,21 @@ func TestGetMessageForNotification(t *testing.T) {
 		t.Fatal("should've returned number of images:", message)
 	}
 
+	post.FileIds = model.StringArray{testPng.Id, testJpg1.Id}
 	store.Must(Srv.Store.FileInfo().AttachToPost(testJpg1.Id, post.Id))
 	if message := getMessageForNotification(post, translateFunc); message != "2 images sent: test1.png, test2.jpg" {
 		t.Fatal("should've returned number of images:", message)
 	}
 
 	post.Id = model.NewId()
+	post.FileIds = model.StringArray{testFile.Id}
 	store.Must(Srv.Store.FileInfo().AttachToPost(testFile.Id, post.Id))
 	if message := getMessageForNotification(post, translateFunc); message != "1 file sent: test1.go" {
 		t.Fatal("should've returned number of files:", message)
 	}
 
 	store.Must(Srv.Store.FileInfo().AttachToPost(testJpg2.Id, post.Id))
+	post.FileIds = model.StringArray{testFile.Id, testJpg2.Id}
 	if message := getMessageForNotification(post, translateFunc); message != "2 files sent: test1.go, test3.jpg" {
 		t.Fatal("should've returned number of mixed files:", message)
 	}

@@ -166,6 +166,10 @@
     margin: 5px 10px 5px 0;
     position: relative;
     width: 240px;
+
+    &--placeholder {
+        visibility: hidden;
+    }
 }
 
 .post-image__load {

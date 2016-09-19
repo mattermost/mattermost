@@ -136,8 +136,6 @@ func CreatePost(c *Context, post *model.Post, triggerWebhooks bool) (*model.Post
 
 	post.Hashtags, _ = model.ParseHashtags(post.Message)
 
-	post.HasFiles = len(post.FileIds) > 0
-
 	var rpost *model.Post
 	if result := <-Srv.Store.Post().Save(post); result.Err != nil {
 		return nil, result.Err
@@ -764,7 +762,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 	message.Add("sender_name", senderName)
 	message.Add("team_id", team.Id)
 
-	if post.HasFiles {
+	if len(post.FileIds) != 0 {
 		message.Add("otherFile", "true")
 
 		var infos []*model.FileInfo
@@ -900,7 +898,7 @@ func sendNotificationEmail(c *Context, post *model.Post, user *model.User, chann
 }
 
 func getMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
-	if len(strings.TrimSpace(post.Message)) != 0 || !post.HasFiles {
+	if len(strings.TrimSpace(post.Message)) != 0 || len(post.FileIds) == 0 {
 		return post.Message
 	}
 
@@ -1455,7 +1453,7 @@ func DeleteFlaggedPost(userId string, post *model.Post) {
 }
 
 func DeletePostFiles(post *model.Post) {
-	if !post.HasFiles {
+	if len(post.FileIds) != 0 {
 		return
 	}
 

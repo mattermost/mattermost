@@ -202,7 +202,7 @@ func UpgradeDatabaseToVersion35(sqlStore *SqlStore) {
 	sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET Roles = 'channel_user channel_admin' WHERE Roles = 'admin'")
 
 	// if shouldPerformUpgrade(sqlStore, VERSION_3_4_0, VERSION_3_5_0) {
-	sqlStore.CreateColumnIfNotExists("Posts", "HasFiles", "tinyint", "boolean", "0")
+	sqlStore.CreateColumnIfNotExists("Posts", "FileIds", "text", "varchar(4000)", "[]")
 
 	if sqlStore.DoesColumnExist("Posts", "Filenames") {
 		l4g.Warn(utils.T("store.sql.upgrade.files35.start.warn"))
@@ -236,7 +236,6 @@ func UpgradeDatabaseToVersion35(sqlStore *SqlStore) {
 					Channels
 				WHERE
 					Posts.ChannelId = Channels.Id
-					AND Posts.HasFiles = false
 					AND Posts.Filenames != ''
 				ORDER BY
 					Posts.Id
@@ -252,9 +251,9 @@ func UpgradeDatabaseToVersion35(sqlStore *SqlStore) {
 			}
 
 			for _, post := range posts {
-				filesMigrated := false
-
 				json.Unmarshal(post.RawFilenames, &post.Filenames)
+
+				fileIds := make([]string, 0, len(post.Filenames))
 
 				// Only bother creating entries for non-deleted posts since the files for previously deleted posts have already been renamed
 				if post.DeleteAt == 0 {
@@ -331,7 +330,7 @@ func UpgradeDatabaseToVersion35(sqlStore *SqlStore) {
 									l4g.Error(utils.T("store.sql.upgrade.files35.save_file_info.error"), post.Id, filename, err)
 								} else {
 									l4g.Debug("row created")
-									filesMigrated = true
+									fileIds = append(fileIds, info.Id)
 								}
 							}
 						}
@@ -342,15 +341,15 @@ func UpgradeDatabaseToVersion35(sqlStore *SqlStore) {
 					l4g.Warn("Not creating file entries for deleted post, post_id=%v", post.Id)
 				}
 
-				// Update Posts to clear Filenames and set HasFiles
+				// Update Posts to clear Filenames and set FileIds
 				if _, err := sqlStore.GetMaster().Exec(
 					`UPDATE
 						Posts
 					SET
-						HasFiles = :HasFiles,
+						FileIds = :FileIds,
 						Filenames = ''
 					WHERE
-						Id = :PostId`, map[string]interface{}{"HasFiles": filesMigrated, "PostId": post.Id}); err != nil {
+						Id = :PostId`, map[string]interface{}{"FileIds": fileIds, "PostId": post.Id}); err != nil {
 					l4g.Error("Failed to update post to remove references to old files, post_id=%v, err=%v", post.Id, err)
 
 					// Panic here since failing to update a post means that this will run forever on the same one

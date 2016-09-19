@@ -35,8 +35,7 @@ type Post struct {
 	Type          string          `json:"type"`
 	Props         StringInterface `json:"props"`
 	Hashtags      string          `json:"hashtags"`
-	HasFiles      bool            `json:"has_files"`
-	FileIds       []string        `json:"file_ids,omitempty" db:"-"` // only used by createPost api call
+	FileIds       StringArray     `json:"file_ids,omitempty"`
 	PendingPostId string          `json:"pending_post_id" db:"-"`
 }
 
@@ -139,8 +138,8 @@ func (o *Post) PreSave() {
 		o.Props = make(map[string]interface{})
 	}
 
-	if len(o.FileIds) != 0 {
-		o.HasFiles = true
+	if o.FileIds == nil {
+		o.FileIds = []string{}
 	}
 }
 

@@ -296,11 +296,10 @@ export default class RhsComment extends React.Component {
         var dropdown = this.createDropdown();
 
         let fileAttachment = null;
-        if (post.has_files) {
+        if (post.file_ids && post.file_ids.length > 0) {
             fileAttachment = (
                 <FileAttachmentListContainer
-                    channelId={post.channel_id}
-                    postId={post.id}
+                    post={post}
                     compactDisplay={this.props.compactDisplay}
                 />
             );

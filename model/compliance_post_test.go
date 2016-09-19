@@ -14,14 +14,14 @@ func TestCompliancePostHeader(t *testing.T) {
 }
 
 func TestCompliancePost(t *testing.T) {
-	o := CompliancePost{TeamName: "test", PostHasFiles: "true", PostCreateAt: GetMillis()}
+	o := CompliancePost{TeamName: "test", PostFileIds: "files", PostCreateAt: GetMillis()}
 	r := o.Row()
 
 	if r[0] != "test" {
 		t.Fatal()
 	}
 
-	if r[len(r)-1] != "true" {
+	if r[len(r)-1] != "files" {
 		t.Fatal()
 	}
 }

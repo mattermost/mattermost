@@ -95,7 +95,7 @@ export default class PostBody extends React.Component {
             let message = '';
             if (parentPost.message) {
                 message = Utils.replaceHtmlEntities(parentPost.message);
-            } else if (parentPost.has_files) {
+            } else if (parentPost.file_ids && parentPost.file_ids.length > 0) {
                 message = (
                     <CommentedOnFilesMessageContainer
                         parentPostChannelId={parentPost.channel_id}
@@ -141,11 +141,10 @@ export default class PostBody extends React.Component {
         }
 
         let fileAttachmentHolder = null;
-        if (post.has_files) {
+        if (post.file_ids && post.file_ids.length > 0) {
             fileAttachmentHolder = (
                 <FileAttachmentListContainer
-                    channelId={post.channel_id}
-                    postId={post.id}
+                    post={post}
                     compactDisplay={this.props.compactDisplay}
                 />
             );
