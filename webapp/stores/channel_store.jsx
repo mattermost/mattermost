@@ -47,6 +47,7 @@ class ChannelStoreClass extends EventEmitter {
         this.setUnreadCounts = this.setUnreadCounts.bind(this);
         this.getUnreadCount = this.getUnreadCount.bind(this);
         this.getUnreadCounts = this.getUnreadCounts.bind(this);
+        this.getChannelNamesMap = this.getChannelNamesMap.bind(this);
 
         this.currentId = null;
         this.postMode = this.POST_MODE_CHANNEL;
@@ -357,6 +358,28 @@ class ChannelStoreClass extends EventEmitter {
         if (element > -1) {
             this.channels.splice(element, 1);
         }
+    }
+
+    getChannelNamesMap() {
+        var channelNamesMap = {};
+
+        var channels = this.getChannels();
+        for (var key in channels) {
+            if (channels.hasOwnProperty(key)) {
+                var channel = channels[key];
+                channelNamesMap[channel.name] = channel;
+            }
+        }
+
+        var moreChannels = this.getMoreChannels();
+        for (var moreKey in moreChannels) {
+            if (moreChannels.hasOwnProperty(moreKey)) {
+                var moreChannel = moreChannels[moreKey];
+                channelNamesMap[moreChannel.name] = moreChannel;
+            }
+        }
+
+        return channelNamesMap;
     }
 }
 

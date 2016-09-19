@@ -13,9 +13,9 @@ import XRegExp from 'xregexp';
 // http://stackoverflow.com/questions/15033196/using-javascript-to-check-whether-a-string-contains-japanese-characters-includi
 const cjkPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf]/;
 
-// Performs formatting of user posts including highlighting mentions and search terms and converting urls, hashtags, and
-// @mentions to links by taking a user's message and returning a string of formatted html. Also takes a number of options
-// as part of the second parameter:
+// Performs formatting of user posts including highlighting mentions and search terms and converting urls, hashtags,
+// @mentions and !channels to links by taking a user's message and returning a string of formatted html. Also takes
+// a number of options as part of the second parameter:
 // - searchTerm - If specified, this word is highlighted in the resulting html. Defaults to nothing.
 // - mentionHighlight - Specifies whether or not to highlight mentions of the current user. Defaults to true.
 // - mentionKeys - A list of mention keys for the current user to highlight.
@@ -26,6 +26,8 @@ const cjkPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-
 //     links that can be handled by a special click handler.
 // - usernameMap - An object mapping usernames to users. If provided, at mentions will be replaced with internal links that can
 //      be handled by a special click handler (Utils.handleFormattedTextClick)
+// - channelNamesMap - An object mapping channel display names to channels. If provided, !channel mentions will be replaced with
+//      links to the relevant channel.
 export function formatText(text, inputOptions) {
     let output = text;
 
@@ -59,6 +61,10 @@ export function doFormatText(text, options) {
     // replace important words and phrases with tokens
     if (options.usernameMap) {
         output = autolinkAtMentions(output, tokens, options.usernameMap);
+    }
+
+    if (options.channelNamesMap) {
+        output = autolinkChannelMentions(output, tokens, options.channelNamesMap);
     }
 
     output = autolinkEmails(output, tokens);
@@ -194,6 +200,57 @@ function autolinkAtMentions(text, tokens, usernameMap) {
 
     let output = text;
     output = output.replace(/(@([a-z0-9.\-_]*))/gi, replaceAtMentionWithToken);
+
+    return output;
+}
+
+function autolinkChannelMentions(text, tokens, channelNamesMap) {
+    function channelMentionExists(c) {
+        return !!channelNamesMap[c];
+    }
+    function addToken(channelName, mention, displayName) {
+        const index = tokens.size;
+        const alias = `MM_CHANNELMENTION${index}`;
+
+        tokens.set(alias, {
+            value: `<a class='mention-link' href='#' data-channel-mention="${channelName}">${displayName}</a>`,
+            originalText: mention
+        });
+        return alias;
+    }
+
+    function replaceChannelMentionWithToken(fullMatch, spacer, mention, channelName) {
+        let channelNameLower = channelName.toLowerCase();
+
+        if (channelMentionExists(channelNameLower)) {
+            // Exact match
+            const alias = addToken(channelNameLower, mention, '!' + channelNamesMap[channelNameLower].display_name);
+            return spacer + alias;
+        }
+
+        // Not an exact match, attempt to truncate any punctuation to see if we can find a channel
+        const originalChannelName = channelNameLower;
+
+        for (let c = channelNameLower.length; c > 0; c--) {
+            if (punctuation.test(channelNameLower[c - 1])) {
+                channelNameLower = channelNameLower.substring(0, c - 1);
+
+                if (channelMentionExists(channelNameLower)) {
+                    const suffix = originalChannelName.substr(c - 1);
+                    const alias = addToken(channelNameLower, '!' + channelNameLower, '!' + channelNamesMap[channelNameLower].display_name);
+                    return spacer + alias + suffix;
+                }
+            } else {
+                // If the last character is not punctuation, no point in going any further
+                break;
+            }
+        }
+
+        return fullMatch;
+    }
+
+    let output = text;
+    output = output.replace(/(^|\s)(!([a-z0-9.\-_]*))/gi, replaceChannelMentionWithToken);
 
     return output;
 }

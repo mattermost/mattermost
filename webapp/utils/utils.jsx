@@ -1355,6 +1355,7 @@ export function handleFormattedTextClick(e) {
     const mentionAttribute = e.target.getAttributeNode('data-mention');
     const hashtagAttribute = e.target.getAttributeNode('data-hashtag');
     const linkAttribute = e.target.getAttributeNode('data-link');
+    const channelMentionAttribute = e.target.getAttributeNode('data-channel-mention');
 
     if (mentionAttribute) {
         e.preventDefault();
@@ -1372,5 +1373,7 @@ export function handleFormattedTextClick(e) {
 
             browserHistory.push(linkAttribute.value);
         }
+    } else if (channelMentionAttribute) {
+        browserHistory.push('/' + TeamStore.getCurrent().name + '/channels/' + channelMentionAttribute.value);
     }
 }
