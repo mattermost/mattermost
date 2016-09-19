@@ -172,10 +172,8 @@ export default class WebrtcController extends React.Component {
                     {
                         audio: true,
                         video: {
-                            mandatory: {
-                                minAspectRatio: MIN_ASPECT,
-                                maxAspectRatio: MAX_ASPECT
-                            },
+                            minAspectRatio: MIN_ASPECT,
+                            maxAspectRatio: MAX_ASPECT,
                             width: VIDEO_WIDTH,
                             height: VIDEO_HEIGHT
                         }
@@ -726,8 +724,10 @@ export default class WebrtcController extends React.Component {
             this.videocall.hangup();
             this.toggleIcons();
 
-            this.localMedia.getVideoTracks()[0].enabled = true;
-            this.localMedia.getAudioTracks()[0].enabled = true;
+            if (this.localMedia) {
+                this.localMedia.getVideoTracks()[0].enabled = true;
+                this.localMedia.getAudioTracks()[0].enabled = true;
+            }
         }
 
         if (error) {

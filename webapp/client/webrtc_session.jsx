@@ -21,7 +21,7 @@ export default class WebrtcSession {
         navigator.mediaDevices.getUserMedia(media).
         then((stream) => {
             if (element) {
-                adapter.browserShim.attachMediaStream(element, stream);
+                element.srcObject = stream;
             }
 
             if (callback && typeof callback === 'function') {
