@@ -126,6 +126,10 @@ function filterUsersByPrefix(users, prefix, limit, type) {
 }
 
 export default class AtMentionProvider {
+    constructor(channelId) {
+        this.channelId = channelId;
+    }
+
     handlePretextChanged(suggestionId, pretext) {
         const captured = (/@([a-z0-9\-\._]*)$/i).exec(pretext.toLowerCase());
         if (captured) {
@@ -134,15 +138,17 @@ export default class AtMentionProvider {
             // Group users into members and nonmembers of the channel.
             const users = UserStore.getActiveOnlyProfiles(true);
             const channelMembers = {};
-            const extra = ChannelStore.getCurrentExtraInfo();
-            for (let i = 0; i < extra.members.length; i++) {
-                const id = extra.members[i].id;
-                if (users[id]) {
-                    channelMembers[id] = users[id];
-                    Reflect.deleteProperty(users, id);
+            const channelNonmembers = users;
+            if (this.channelId != null) {
+                const extraInfo = ChannelStore.getExtraInfo(this.channelId);
+                for (let i = 0; i < extraInfo.members.length; i++) {
+                    const id = extraInfo.members[i].id;
+                    if (users[id]) {
+                        channelMembers[id] = users[id];
+                        Reflect.deleteProperty(channelNonmembers, id);
+                    }
                 }
             }
-            const channelNonmembers = users;
 
             // Filter users by prefix.
             const filteredMembers = filterUsersByPrefix(

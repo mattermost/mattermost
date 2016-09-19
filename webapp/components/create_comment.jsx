@@ -400,6 +400,7 @@ export default class CreateComment extends React.Component {
                                 createMessage={Utils.localizeMessage('create_comment.addComment', 'Add a comment...')}
                                 initialText=''
                                 supportsCommands={false}
+                                channelId={this.props.channelId}
                                 id='reply_textbox'
                                 ref='textbox'
                             />
