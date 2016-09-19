@@ -437,13 +437,13 @@ func (s SqlUserStore) GetEtagForDirectProfiles(userId string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlUserStore) GetEtagForAllProfiles() StoreChannel {
+func (s SqlUserStore) GetEtagForAllProfiles(limit int, offset int) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
 
-		updateAt, err := s.GetReplica().SelectInt("SELECT UpdateAt FROM Users ORDER BY UpdateAt DESC LIMIT 1")
+		updateAt, err := s.GetReplica().SelectInt("SELECT MAX(UpdateAt) FROM Users ORDER BY Username ASC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Limit": limit, "Offset": offset})
 		if err != nil {
 			result.Data = fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.GetMillis(), utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
 		} else {
@@ -457,7 +457,7 @@ func (s SqlUserStore) GetEtagForAllProfiles() StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) GetAllProfiles() StoreChannel {
+func (us SqlUserStore) GetAllProfiles(offset int, limit int) StoreChannel {
 
 	storeChannel := make(StoreChannel, 1)
 
@@ -466,7 +466,7 @@ func (us SqlUserStore) GetAllProfiles() StoreChannel {
 
 		var users []*model.User
 
-		if _, err := us.GetReplica().Select(&users, "SELECT * FROM Users"); err != nil {
+		if _, err := us.GetReplica().Select(&users, "SELECT * FROM Users ORDER BY Username ASC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.GetProfiles", "store.sql_user.get_profiles.app_error", nil, err.Error())
 		} else {
 
@@ -495,7 +495,7 @@ func (s SqlUserStore) GetEtagForProfiles(teamId string, offset int, limit int) S
 	go func() {
 		result := StoreResult{}
 
-		updateAt, err := s.GetReplica().SelectInt("SELECT MAX(UpdateAt) FROM Users, TeamMembers WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId LIMIT :Limit OFFSET :Offset", map[string]interface{}{"TeamId": teamId, "Offset": offset, "Limit": limit})
+		updateAt, err := s.GetReplica().SelectInt("SELECT UpdateAt FROM Users, TeamMembers WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId ORDER BY Users.Username ASC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"TeamId": teamId, "Offset": offset, "Limit": limit})
 		if err != nil {
 			result.Data = fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.GetMillis(), utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
 		} else {

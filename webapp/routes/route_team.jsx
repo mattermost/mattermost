@@ -102,7 +102,9 @@ function preNeedsTeam(nextState, replace, callback) {
         (data) => {
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_PROFILES,
-                profiles: data
+                profiles: data,
+                offset: 0,
+                count: Object.keys(data).length
             });
 
             d2.resolve();

@@ -502,8 +502,8 @@ func (c *Client) GetMe(etag string) (*Result, *AppError) {
 
 // GetProfilesForDirectMessageList returns a map of users for a team that can be direct
 // messaged, using user id as the key. Must be authenticated.
-func (c *Client) GetProfilesForDirectMessageList(teamId string) (*Result, *AppError) {
-	if r, err := c.DoApiGet("/users/profiles_for_dm_list/"+teamId, "", ""); err != nil {
+func (c *Client) GetProfilesForDirectMessageList(teamId string, offset int, limit int) (*Result, *AppError) {
+	if r, err := c.DoApiGet(fmt.Sprintf("/users/profiles_for_dm_list/%v/%v/%v", teamId, offset, limit), "", ""); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)

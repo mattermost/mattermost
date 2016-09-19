@@ -1007,9 +1007,9 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getProfilesForTeam', success, error));
     }
 
-    getProfilesForDirectMessageList(success, error) {
+    getProfilesForDirectMessageList(offset, limit, success, error) {
         request.
-            get(`${this.getUsersRoute()}/profiles_for_dm_list/${this.getTeamId()}`).
+            get(`${this.getUsersRoute()}/profiles_for_dm_list/${this.getTeamId()}/${offset}/${limit}`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').

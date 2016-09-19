@@ -3,14 +3,9 @@
 
 import UserList from './user_list.jsx';
 
-import * as UserAgent from 'utils/user_agent.jsx';
-import * as Utils from 'utils/utils.jsx';
-
 import $ from 'jquery';
 import React from 'react';
 import ReactDOM from 'react-dom';
-
-//import {FormattedMessage} from 'react-intl';
 
 export default class SearchableUserList extends React.Component {
     constructor(props) {
@@ -22,13 +17,6 @@ export default class SearchableUserList extends React.Component {
         this.state = {
             page: 0
         };
-    }
-
-    componentDidMount() {
-        // only focus the search box on desktop so that we don't cause the keyboard to open on mobile
-        if (!UserAgent.isMobileApp()) {
-            ReactDOM.findDOMNode(this.refs.filter).focus();
-        }
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -51,11 +39,10 @@ export default class SearchableUserList extends React.Component {
     render() {
         const pageStart = this.state.page * this.props.usersPerPage;
         const pageEnd = pageStart + this.props.usersPerPage;
-        const users = this.props.users.slice(pageStart, pageEnd);
-        console.log(this.props.users.length);
+        const usersToDisplay = this.props.users.slice(pageStart, pageEnd);
 
         let nextButton;
-        if (users.length >= this.props.usersPerPage) {
+        if (usersToDisplay.length >= this.props.usersPerPage) {
             nextButton = (
                 <a
                     className='pull-right'
@@ -84,22 +71,12 @@ export default class SearchableUserList extends React.Component {
                 className='filtered-user-list'
                 style={this.props.style}
             >
-                <div className='filter-row'>
-                    <div className='col-sm-6'>
-                        <input
-                            ref='filter'
-                            className='form-control filter-textbox'
-                            placeholder={Utils.localizeMessage('filtered_user_list.search', 'Search members')}
-                            onInput={this.handleFilterChange}
-                        />
-                    </div>
-                </div>
                 <div
                     ref='userList'
                     className='more-modal__list'
                 >
                     <UserList
-                        users={users}
+                        users={usersToDisplay}
                         actions={this.props.actions}
                         actionProps={this.props.actionProps}
                         actionUserProps={this.props.actionUserProps}

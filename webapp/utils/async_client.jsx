@@ -295,13 +295,15 @@ export function getUser(userId) {
     );
 }
 
-export function getProfilesForDirectMessageList() {
+export function getProfilesForDirectMessageList(offset = UserStore.getDMPagingOffset(), limit = Constants.PROFILE_CHUNK_SIZE) {
     if (isCallInProgress('getProfilesForDirectMessageList')) {
         return;
     }
 
     callTracker.getProfilesForDirectMessageList = utils.getTimestamp();
     Client.getProfilesForDirectMessageList(
+        offset,
+        limit,
         (data) => {
             callTracker.getProfilesForDirectMessageList = 0;
 
@@ -317,35 +319,27 @@ export function getProfilesForDirectMessageList() {
     );
 }
 
-export function getProfiles(offset, limit) {
-    if (isCallInProgress('getProfiles')) {
+export function getProfiles(offset = UserStore.getPagingOffset(), limit = Constants.PROFILE_CHUNK_SIZE) {
+    if (isCallInProgress(`getProfiles${offset}${limit}`)) {
         return;
     }
 
-    let realOffset = offset;
-    if (realOffset == null) {
-        realOffset = 0;
-    }
-
-    let realLimit = limit;
-    if (realLimit == null) {
-        realLimit = Constants.PROFILE_CHUNK_SIZE;
-    }
-
-    callTracker.getProfiles = utils.getTimestamp();
+    callTracker[`getProfiles${offset}${limit}`] = utils.getTimestamp();
     Client.getProfiles(
-        realOffset,
-        realLimit,
+        offset,
+        limit,
         (data) => {
-            callTracker.getProfiles = 0;
+            callTracker[`getProfiles${offset}${limit}`] = 0;
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_PROFILES,
-                profiles: data
+                profiles: data,
+                offset,
+                count: Object.keys(data).length
             });
         },
         (err) => {
-            callTracker.getProfiles = 0;
+            callTracker[`getProfiles${offset}${limit}`] = 0;
             dispatchError(err, 'getProfiles');
         }
     );

@@ -56,7 +56,7 @@ func InitUser() {
 	BaseRoutes.Users.Handle("/initial_load", ApiAppHandler(getInitialLoad)).Methods("GET")
 	BaseRoutes.Users.Handle("/direct_profiles", ApiUserRequired(getDirectProfiles)).Methods("GET")
 	BaseRoutes.Users.Handle("/profiles/{id:[A-Za-z0-9]+}/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getProfiles)).Methods("GET")
-	BaseRoutes.Users.Handle("/profiles_for_dm_list/{id:[A-Za-z0-9]+}", ApiUserRequired(getProfilesForDirectMessageList)).Methods("GET")
+	BaseRoutes.Users.Handle("/profiles_for_dm_list/{id:[A-Za-z0-9]+}/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getProfilesForDirectMessageList)).Methods("GET")
 
 	BaseRoutes.Users.Handle("/mfa", ApiAppHandler(checkMfa)).Methods("POST")
 	BaseRoutes.Users.Handle("/generate_mfa_qr", ApiUserRequiredTrustRequester(generateMfaQrCode)).Methods("GET")
@@ -962,6 +962,18 @@ func getProfilesForDirectMessageList(c *Context, w http.ResponseWriter, r *http.
 	params := mux.Vars(r)
 	id := params["id"]
 
+	offset, err := strconv.Atoi(params["offset"])
+	if err != nil {
+		c.SetInvalidParam("getProfiles", "offset")
+		return
+	}
+
+	limit, err := strconv.Atoi(params["limit"])
+	if err != nil {
+		c.SetInvalidParam("getProfiles", "limit")
+		return
+	}
+
 	var pchan store.StoreChannel
 
 	if *utils.Cfg.TeamSettings.RestrictDirectMessage == model.DIRECT_MESSAGE_TEAM {
@@ -971,9 +983,9 @@ func getProfilesForDirectMessageList(c *Context, w http.ResponseWriter, r *http.
 			}
 		}
 
-		pchan = Srv.Store.User().GetProfiles(id, 0, 100)
+		pchan = Srv.Store.User().GetProfiles(id, offset, limit)
 	} else {
-		pchan = Srv.Store.User().GetAllProfiles()
+		pchan = Srv.Store.User().GetAllProfiles(offset, limit)
 	}
 
 	if result := <-pchan; result.Err != nil {
