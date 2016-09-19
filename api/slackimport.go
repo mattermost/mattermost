@@ -285,6 +285,24 @@ func SlackConvertUserMentions(users []SlackUser, posts map[string][]SlackPost) m
 	return posts
 }
 
+func SlackConvertChannelMentions(channels []SlackChannel, posts map[string][]SlackPost) map[string][]SlackPost {
+	var channelPatterns = make(map[string]string, len(channels))
+	for _, channel := range channels {
+		channelPatterns["!"+channel.Name] = "<#" + channel.Id + ">"
+	}
+
+	for channelName, channelPosts := range posts {
+		for postIdx, post := range channelPosts {
+			for channelReplace, channelMatch := range channelPatterns {
+				post.Text = strings.Replace(post.Text, channelMatch, channelReplace, -1)
+				posts[channelName][postIdx] = post
+			}
+		}
+	}
+
+	return posts
+}
+
 func SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model.AppError, *bytes.Buffer) {
 	// Create log file
 	log := bytes.NewBufferString(utils.T("api.slackimport.slack_import.log"))
@@ -324,6 +342,7 @@ func SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model
 	}
 
 	posts = SlackConvertUserMentions(users, posts)
+	posts = SlackConvertChannelMentions(channels, posts)
 
 	addedUsers := SlackAddUsers(teamID, users, log)
 	SlackAddChannels(teamID, channels, posts, addedUsers, log)
