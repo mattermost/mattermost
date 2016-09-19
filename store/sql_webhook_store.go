@@ -47,7 +47,7 @@ func (s SqlWebhookStore) CreateIndexesIfNotExists() {
 }
 
 func (s SqlWebhookStore) SaveIncoming(webhook *model.IncomingWebhook) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -81,7 +81,7 @@ func (s SqlWebhookStore) SaveIncoming(webhook *model.IncomingWebhook) StoreChann
 }
 
 func (s SqlWebhookStore) GetIncoming(id string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -102,7 +102,7 @@ func (s SqlWebhookStore) GetIncoming(id string) StoreChannel {
 }
 
 func (s SqlWebhookStore) DeleteIncoming(webhookId string, time int64) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -120,7 +120,7 @@ func (s SqlWebhookStore) DeleteIncoming(webhookId string, time int64) StoreChann
 }
 
 func (s SqlWebhookStore) PermanentDeleteIncomingByUser(userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -138,7 +138,7 @@ func (s SqlWebhookStore) PermanentDeleteIncomingByUser(userId string) StoreChann
 }
 
 func (s SqlWebhookStore) GetIncomingByTeam(teamId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -159,7 +159,7 @@ func (s SqlWebhookStore) GetIncomingByTeam(teamId string) StoreChannel {
 }
 
 func (s SqlWebhookStore) GetIncomingByChannel(channelId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -180,7 +180,7 @@ func (s SqlWebhookStore) GetIncomingByChannel(channelId string) StoreChannel {
 }
 
 func (s SqlWebhookStore) SaveOutgoing(webhook *model.OutgoingWebhook) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -214,7 +214,7 @@ func (s SqlWebhookStore) SaveOutgoing(webhook *model.OutgoingWebhook) StoreChann
 }
 
 func (s SqlWebhookStore) GetOutgoing(id string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -235,7 +235,7 @@ func (s SqlWebhookStore) GetOutgoing(id string) StoreChannel {
 }
 
 func (s SqlWebhookStore) GetOutgoingByChannel(channelId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -256,7 +256,7 @@ func (s SqlWebhookStore) GetOutgoingByChannel(channelId string) StoreChannel {
 }
 
 func (s SqlWebhookStore) GetOutgoingByTeam(teamId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -277,7 +277,7 @@ func (s SqlWebhookStore) GetOutgoingByTeam(teamId string) StoreChannel {
 }
 
 func (s SqlWebhookStore) DeleteOutgoing(webhookId string, time int64) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -295,7 +295,7 @@ func (s SqlWebhookStore) DeleteOutgoing(webhookId string, time int64) StoreChann
 }
 
 func (s SqlWebhookStore) PermanentDeleteOutgoingByUser(userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -313,7 +313,7 @@ func (s SqlWebhookStore) PermanentDeleteOutgoingByUser(userId string) StoreChann
 }
 
 func (s SqlWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -334,7 +334,7 @@ func (s SqlWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) StoreChanne
 }
 
 func (s SqlWebhookStore) AnalyticsIncomingCount(teamId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -365,7 +365,7 @@ func (s SqlWebhookStore) AnalyticsIncomingCount(teamId string) StoreChannel {
 }
 
 func (s SqlWebhookStore) AnalyticsOutgoingCount(teamId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}

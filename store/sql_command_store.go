@@ -39,7 +39,7 @@ func (s SqlCommandStore) CreateIndexesIfNotExists() {
 }
 
 func (s SqlCommandStore) Save(command *model.Command) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -72,7 +72,7 @@ func (s SqlCommandStore) Save(command *model.Command) StoreChannel {
 }
 
 func (s SqlCommandStore) Get(id string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -93,7 +93,7 @@ func (s SqlCommandStore) Get(id string) StoreChannel {
 }
 
 func (s SqlCommandStore) GetByTeam(teamId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -114,7 +114,7 @@ func (s SqlCommandStore) GetByTeam(teamId string) StoreChannel {
 }
 
 func (s SqlCommandStore) Delete(commandId string, time int64) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -132,7 +132,7 @@ func (s SqlCommandStore) Delete(commandId string, time int64) StoreChannel {
 }
 
 func (s SqlCommandStore) PermanentDeleteByUser(userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -150,7 +150,7 @@ func (s SqlCommandStore) PermanentDeleteByUser(userId string) StoreChannel {
 }
 
 func (s SqlCommandStore) Update(cmd *model.Command) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -171,7 +171,7 @@ func (s SqlCommandStore) Update(cmd *model.Command) StoreChannel {
 }
 
 func (s SqlCommandStore) AnalyticsCommandCount(teamId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}

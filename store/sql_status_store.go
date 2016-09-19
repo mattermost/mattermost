@@ -36,7 +36,7 @@ func (s SqlStatusStore) CreateIndexesIfNotExists() {
 }
 
 func (s SqlStatusStore) SaveOrUpdate(status *model.Status) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -59,7 +59,7 @@ func (s SqlStatusStore) SaveOrUpdate(status *model.Status) StoreChannel {
 }
 
 func (s SqlStatusStore) Get(userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -90,7 +90,7 @@ func (s SqlStatusStore) Get(userId string) StoreChannel {
 }
 
 func (s SqlStatusStore) GetOnlineAway() StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -110,7 +110,7 @@ func (s SqlStatusStore) GetOnlineAway() StoreChannel {
 }
 
 func (s SqlStatusStore) GetOnline() StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -130,7 +130,7 @@ func (s SqlStatusStore) GetOnline() StoreChannel {
 }
 
 func (s SqlStatusStore) GetAllFromTeam(teamId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -152,7 +152,7 @@ func (s SqlStatusStore) GetAllFromTeam(teamId string) StoreChannel {
 }
 
 func (s SqlStatusStore) ResetAll() StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -169,7 +169,7 @@ func (s SqlStatusStore) ResetAll() StoreChannel {
 }
 
 func (s SqlStatusStore) GetTotalActiveUsersCount() StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -190,7 +190,7 @@ func (s SqlStatusStore) GetTotalActiveUsersCount() StoreChannel {
 }
 
 func (s SqlStatusStore) UpdateLastActivityAt(userId string, lastActivityAt int64) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}

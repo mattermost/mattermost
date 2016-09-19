@@ -53,7 +53,7 @@ func (us SqlUserStore) CreateIndexesIfNotExists() {
 
 func (us SqlUserStore) Save(user *model.User) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -93,7 +93,7 @@ func (us SqlUserStore) Save(user *model.User) StoreChannel {
 
 func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -169,7 +169,7 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) StoreCha
 }
 
 func (us SqlUserStore) UpdateLastPictureUpdate(userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -190,7 +190,7 @@ func (us SqlUserStore) UpdateLastPictureUpdate(userId string) StoreChannel {
 }
 
 func (us SqlUserStore) UpdateUpdateAt(userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -212,7 +212,7 @@ func (us SqlUserStore) UpdateUpdateAt(userId string) StoreChannel {
 
 func (us SqlUserStore) UpdatePassword(userId, hashedPassword string) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -233,7 +233,7 @@ func (us SqlUserStore) UpdatePassword(userId, hashedPassword string) StoreChanne
 }
 
 func (us SqlUserStore) UpdateFailedPasswordAttempts(userId string, attempts int) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -253,7 +253,7 @@ func (us SqlUserStore) UpdateFailedPasswordAttempts(userId string, attempts int)
 
 func (us SqlUserStore) UpdateAuthData(userId string, service string, authData *string, email string) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -298,7 +298,7 @@ func (us SqlUserStore) UpdateAuthData(userId string, service string, authData *s
 
 func (us SqlUserStore) UpdateMfaSecret(userId, secret string) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -320,7 +320,7 @@ func (us SqlUserStore) UpdateMfaSecret(userId, secret string) StoreChannel {
 
 func (us SqlUserStore) UpdateMfaActive(userId string, active bool) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -342,7 +342,7 @@ func (us SqlUserStore) UpdateMfaActive(userId string, active bool) StoreChannel 
 
 func (us SqlUserStore) Get(id string) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -365,7 +365,7 @@ func (us SqlUserStore) Get(id string) StoreChannel {
 
 func (us SqlUserStore) GetAll() StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -386,7 +386,7 @@ func (us SqlUserStore) GetAll() StoreChannel {
 }
 
 func (s SqlUserStore) GetEtagForDirectProfiles(userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -438,7 +438,7 @@ func (s SqlUserStore) GetEtagForDirectProfiles(userId string) StoreChannel {
 }
 
 func (s SqlUserStore) GetEtagForAllProfiles() StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -459,7 +459,7 @@ func (s SqlUserStore) GetEtagForAllProfiles() StoreChannel {
 
 func (us SqlUserStore) GetAllProfiles() StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -490,7 +490,7 @@ func (us SqlUserStore) GetAllProfiles() StoreChannel {
 }
 
 func (s SqlUserStore) GetEtagForProfiles(teamId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -511,7 +511,7 @@ func (s SqlUserStore) GetEtagForProfiles(teamId string) StoreChannel {
 
 func (us SqlUserStore) GetProfiles(teamId string) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -543,7 +543,7 @@ func (us SqlUserStore) GetProfiles(teamId string) StoreChannel {
 
 func (us SqlUserStore) GetDirectProfiles(userId string) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -603,7 +603,7 @@ func (us SqlUserStore) GetDirectProfiles(userId string) StoreChannel {
 
 func (us SqlUserStore) GetProfileByIds(userIds []string) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -646,7 +646,7 @@ func (us SqlUserStore) GetProfileByIds(userIds []string) StoreChannel {
 
 func (us SqlUserStore) GetSystemAdminProfiles() StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -678,7 +678,7 @@ func (us SqlUserStore) GetSystemAdminProfiles() StoreChannel {
 
 func (us SqlUserStore) GetByEmail(email string) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -702,7 +702,7 @@ func (us SqlUserStore) GetByEmail(email string) StoreChannel {
 
 func (us SqlUserStore) GetByAuth(authData *string, authService string) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -735,7 +735,7 @@ func (us SqlUserStore) GetByAuth(authData *string, authService string) StoreChan
 
 func (us SqlUserStore) GetAllUsingAuthService(authService string) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -756,7 +756,7 @@ func (us SqlUserStore) GetAllUsingAuthService(authService string) StoreChannel {
 
 func (us SqlUserStore) GetByUsername(username string) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -778,7 +778,7 @@ func (us SqlUserStore) GetByUsername(username string) StoreChannel {
 }
 
 func (us SqlUserStore) GetForLogin(loginId string, allowSignInWithUsername, allowSignInWithEmail, ldapEnabled bool) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -819,7 +819,7 @@ func (us SqlUserStore) GetForLogin(loginId string, allowSignInWithUsername, allo
 }
 
 func (us SqlUserStore) VerifyEmail(userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -838,7 +838,7 @@ func (us SqlUserStore) VerifyEmail(userId string) StoreChannel {
 }
 
 func (us SqlUserStore) GetTotalUsersCount() StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -858,7 +858,7 @@ func (us SqlUserStore) GetTotalUsersCount() StoreChannel {
 
 func (us SqlUserStore) PermanentDelete(userId string) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -876,7 +876,7 @@ func (us SqlUserStore) PermanentDelete(userId string) StoreChannel {
 
 func (us SqlUserStore) AnalyticsUniqueUserCount(teamId string) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -902,7 +902,7 @@ func (us SqlUserStore) AnalyticsUniqueUserCount(teamId string) StoreChannel {
 }
 
 func (us SqlUserStore) GetUnreadCount(userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -921,7 +921,7 @@ func (us SqlUserStore) GetUnreadCount(userId string) StoreChannel {
 }
 
 func (us SqlUserStore) GetUnreadCountForChannel(userId string, channelId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}

@@ -28,7 +28,7 @@ func (ls SqlLicenseStore) CreateIndexesIfNotExists() {
 
 func (ls SqlLicenseStore) Save(license *model.LicenseRecord) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -58,7 +58,7 @@ func (ls SqlLicenseStore) Save(license *model.LicenseRecord) StoreChannel {
 
 func (ls SqlLicenseStore) Get(id string) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}

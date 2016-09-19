@@ -29,7 +29,7 @@ func (s SqlPasswordRecoveryStore) CreateIndexesIfNotExists() {
 
 func (s SqlPasswordRecoveryStore) SaveOrUpdate(recovery *model.PasswordRecovery) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -60,7 +60,7 @@ func (s SqlPasswordRecoveryStore) SaveOrUpdate(recovery *model.PasswordRecovery)
 
 func (s SqlPasswordRecoveryStore) Delete(userId string) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -78,7 +78,7 @@ func (s SqlPasswordRecoveryStore) Delete(userId string) StoreChannel {
 
 func (s SqlPasswordRecoveryStore) Get(userId string) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -100,7 +100,7 @@ func (s SqlPasswordRecoveryStore) Get(userId string) StoreChannel {
 
 func (s SqlPasswordRecoveryStore) GetByCode(code string) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}

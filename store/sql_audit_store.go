@@ -33,7 +33,7 @@ func (s SqlAuditStore) CreateIndexesIfNotExists() {
 
 func (s SqlAuditStore) Save(audit *model.Audit) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -56,7 +56,7 @@ func (s SqlAuditStore) Save(audit *model.Audit) StoreChannel {
 
 func (s SqlAuditStore) Get(user_id string, limit int) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -93,7 +93,7 @@ func (s SqlAuditStore) Get(user_id string, limit int) StoreChannel {
 
 func (s SqlAuditStore) PermanentDeleteByUser(userId string) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
