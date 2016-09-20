@@ -524,7 +524,7 @@ func getExplicitMentions(message string, keywords map[string][]string) (map[stri
 			addMentionedUsers(ids)
 			isMention = true
 		} else if strings.HasPrefix(word, "@") {
-			potenliatOthersMentioned = append(potenliatOthersMentioned, word[1:len(word)])
+			potenliatOthersMentioned = append(potenliatOthersMentioned, word[1:])
 		}
 
 		if !isMention {
