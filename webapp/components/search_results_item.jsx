@@ -72,7 +72,10 @@ export default class SearchResultsItem extends React.Component {
                 channelName = (
                     <FormattedMessage
                         id='search_item.direct'
-                        defaultMessage='Direct Message'
+                        defaultMessage='Direct Message (with {username})'
+                        values={{
+                            username: Utils.displayUsernameForUser(Utils.getDirectTeammate(channel.id))
+                        }}
                     />
                 );
             }
