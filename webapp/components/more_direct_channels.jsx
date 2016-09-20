@@ -33,7 +33,7 @@ export default class MoreDirectChannels extends React.Component {
         this.search = this.search.bind(this);
 
         this.state = {
-            users: UserStore.getProfilesForTeam(),
+            users: UserStore.getProfilesForTeam(true),
             loadingDMChannel: -1,
             listType: 'team',
             usersLoaded: false,
@@ -114,7 +114,7 @@ export default class MoreDirectChannels extends React.Component {
         if (this.state.listType === 'any') {
             users = UserStore.getProfilesForDmList();
         } else {
-            users = UserStore.getProfilesForTeam();
+            users = UserStore.getProfilesForTeam(true);
         }
 
         this.setState({
@@ -129,7 +129,7 @@ export default class MoreDirectChannels extends React.Component {
         if (listType === 'any') {
             users = UserStore.getProfilesForDmList();
         } else {
-            users = UserStore.getProfilesForTeam();
+            users = UserStore.getProfilesForTeam(true);
         }
 
         this.setState({
@@ -179,6 +179,12 @@ export default class MoreDirectChannels extends React.Component {
             teamId,
             term,
             (users) => {
+                for (let i = 0; i < users.length; i++) {
+                    if (users[i].id === UserStore.getCurrentId()) {
+                        users.splice(i, 1);
+                        break;
+                    }
+                }
                 this.setState({search: true, users});
             }
         );

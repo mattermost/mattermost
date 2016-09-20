@@ -167,10 +167,13 @@ class UserStoreClass extends EventEmitter {
         return profileUsernameMap;
     }
 
-    getProfilesForTeam() {
+    getProfilesForTeam(skipCurrent) {
         const members = TeamStore.getMembersForTeam();
         const profilesForTeam = [];
         for (let i = 0; i < members.length; i++) {
+            if (skipCurrent && members[i].user_id === this.getCurrentId()) {
+                continue;
+            }
             if (this.profiles[members[i].user_id]) {
                 profilesForTeam.push(this.profiles[members[i].user_id]);
             }
