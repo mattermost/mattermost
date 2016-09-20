@@ -12,8 +12,8 @@
         "EnableOnlyAdminIntegrations": true,
         "EnablePostUsernameOverride": false,
         "EnablePostIconOverride": false,
-        "EnableTesting": true,
-        "EnableDeveloper": true,
+        "EnableTesting": false,
+        "EnableDeveloper": false,
         "EnableSecurityFixAlert": true,
         "EnableInsecureOutgoingConnections": false,
         "EnableMultifactorAuthentication": false,
@@ -30,7 +30,7 @@
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
-        "MaxUsersPerTeam": 10000,
+        "MaxUsersPerTeam": 50,
         "EnableTeamCreation": true,
         "EnableUserCreation": true,
         "EnableOpenServer": false,
@@ -52,7 +52,7 @@
         "MaxIdleConns": 10,
         "MaxOpenConns": 10,
         "Trace": false,
-        "AtRestEncryptKey": "3z6d3dsffboegxggnh3xze4ex3ds5jjp"
+        "AtRestEncryptKey": ""
     },
     "LogSettings": {
         "EnableConsole": true,
@@ -76,7 +76,7 @@
         "DriverName": "local",
         "Directory": "./data/",
         "EnablePublicLink": false,
-        "PublicLinkSalt": "1shz7ixoqqo4ghdaa9g3diagi3oewouo",
+        "PublicLinkSalt": "",
         "ThumbnailWidth": 120,
         "ThumbnailHeight": 100,
         "PreviewWidth": 1024,
@@ -107,8 +107,8 @@
         "SMTPServer": "",
         "SMTPPort": "",
         "ConnectionSecurity": "",
-        "InviteSalt": "k1oy33upnarz3nmx9q5n68dkbqd1z5za",
-        "PasswordResetSalt": "wyagkfisimoyxps8chiezmhm8x9qryqh",
+        "InviteSalt": "",
+        "PasswordResetSalt": "",
         "SendPushNotifications": false,
         "PushNotificationServer": "",
         "PushNotificationContents": "generic",
