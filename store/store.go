@@ -133,6 +133,8 @@ type UserStore interface {
 	GetAll() StoreChannel
 	GetAllProfiles() StoreChannel
 	GetProfiles(teamId string) StoreChannel
+	GetProfilesInChannel(channelId string) StoreChannel
+	GetProfilesByUsernames(usernames []string) StoreChannel
 	GetDirectProfiles(userId string) StoreChannel
 	GetProfileByIds(userId []string) StoreChannel
 	GetByEmail(email string) StoreChannel
