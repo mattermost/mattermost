@@ -488,7 +488,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	doLogin(c, w, r, user, deviceId)
 	if c.Err != nil {
-		return nil
+		return
 	}
 
 	user.Sanitize(map[string]bool{})
@@ -2551,7 +2551,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		doLogin(c, w, r, user, "")
 		if c.Err != nil {
-			return nil
+			return
 		}
 
 		if val, ok := relayProps["redirect_to"]; ok {
