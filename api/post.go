@@ -630,7 +630,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 		}
 
 		if len(potentialOtherMentions) > 0 {
-			if result := <-Srv.Store.User().GetProfilesByUsernames(potentialOtherMentions); result.Err == nil {
+			if result := <-Srv.Store.User().GetProfilesByUsernames(potentialOtherMentions, team.Id); result.Err == nil {
 				outOfChannelMentions := result.Data.(map[string]*model.User)
 				go sendOutOfChannelMentions(c, post, outOfChannelMentions)
 			}
