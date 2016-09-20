@@ -1,10 +1,10 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import {FormattedMessage} from 'react-intl';
 import UserListRow from './user_list_row.jsx';
 
 import React from 'react';
+import {FormattedMessage} from 'react-intl';
 
 export default class UserList extends React.Component {
     render() {
@@ -13,20 +13,14 @@ export default class UserList extends React.Component {
         let content;
         if (users.length > 0) {
             content = users.map((user) => {
-                var teamMember;
-                for (var index in this.props.teamMembers) {
-                    if (this.props.teamMembers[index].user_id === user.id) {
-                        teamMember = this.props.teamMembers[index];
-                    }
-                }
-
                 return (
                     <UserListRow
                         key={user.id}
                         user={user}
-                        teamMember={teamMember}
+                        extraInfo={this.props.extraInfo[user.id]}
                         actions={this.props.actions}
                         actionProps={this.props.actionProps}
+                        actionUserProps={this.props.actionUserProps[user.id]}
                     />
                 );
             });
@@ -56,14 +50,15 @@ export default class UserList extends React.Component {
 
 UserList.defaultProps = {
     users: [],
-    teamMembers: [],
+    extraInfo: {},
     actions: [],
     actionProps: {}
 };
 
 UserList.propTypes = {
     users: React.PropTypes.arrayOf(React.PropTypes.object),
-    teamMembers: React.PropTypes.arrayOf(React.PropTypes.object),
+    extraInfo: React.PropTypes.object,
     actions: React.PropTypes.arrayOf(React.PropTypes.func),
-    actionProps: React.PropTypes.object
+    actionProps: React.PropTypes.object,
+    actionUserProps: React.PropTypes.object
 };

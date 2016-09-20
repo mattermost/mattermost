@@ -502,8 +502,8 @@ func (c *Client) GetMe(etag string) (*Result, *AppError) {
 
 // GetProfilesForDirectMessageList returns a map of users for a team that can be direct
 // messaged, using user id as the key. Must be authenticated.
-func (c *Client) GetProfilesForDirectMessageList(teamId string) (*Result, *AppError) {
-	if r, err := c.DoApiGet("/users/profiles_for_dm_list/"+teamId, "", ""); err != nil {
+func (c *Client) GetProfilesForDirectMessageList(teamId string, offset int, limit int) (*Result, *AppError) {
+	if r, err := c.DoApiGet(fmt.Sprintf("/users/profiles_for_dm_list/%v/%v/%v", teamId, offset, limit), "", ""); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)
@@ -514,8 +514,8 @@ func (c *Client) GetProfilesForDirectMessageList(teamId string) (*Result, *AppEr
 
 // GetProfiles returns a map of users for a team using user id as the key. Must
 // be authenticated.
-func (c *Client) GetProfiles(teamId string, etag string) (*Result, *AppError) {
-	if r, err := c.DoApiGet("/users/profiles/"+teamId, "", etag); err != nil {
+func (c *Client) GetProfiles(teamId string, offset int, limit int, etag string) (*Result, *AppError) {
+	if r, err := c.DoApiGet(fmt.Sprintf("/users/profiles/%v/%v/%v", teamId, offset, limit), "", etag); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)
@@ -528,6 +528,18 @@ func (c *Client) GetProfiles(teamId string, etag string) (*Result, *AppError) {
 // using user id as the key. Must be authenticated.
 func (c *Client) GetDirectProfiles(etag string) (*Result, *AppError) {
 	if r, err := c.DoApiGet("/users/direct_profiles", "", etag); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), UserMapFromJson(r.Body)}, nil
+	}
+}
+
+// GetProfilesFromList returns a map of users based on the user ids provided. Must
+// be authenticated.
+func (c *Client) GetProfilesFromList(userIds []string) (*Result, *AppError) {
+	if r, err := c.DoApiPost("/users/profiles_from_list", ArrayToJson(userIds)); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)

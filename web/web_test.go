@@ -161,7 +161,7 @@ func TestGetAccessToken(t *testing.T) {
 		}
 	}
 
-	if result, err := ApiClient.DoApiGet("/users/profiles/"+teamId+"?access_token="+token, "", ""); err != nil {
+	if result, err := ApiClient.DoApiGet("/users/profiles/"+teamId+"/0/100?access_token="+token, "", ""); err != nil {
 		t.Fatal(err)
 	} else {
 		userMap := model.UserMapFromJson(result.Body)
@@ -179,7 +179,7 @@ func TestGetAccessToken(t *testing.T) {
 	}
 
 	ApiClient.SetOAuthToken(token)
-	if result, err := ApiClient.DoApiGet("/users/profiles/"+teamId, "", ""); err != nil {
+	if result, err := ApiClient.DoApiGet("/users/profiles/"+teamId+"/0/100", "", ""); err != nil {
 		t.Fatal(err)
 	} else {
 		userMap := model.UserMapFromJson(result.Body)
