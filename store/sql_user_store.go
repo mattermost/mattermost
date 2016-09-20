@@ -550,7 +550,7 @@ func (us SqlUserStore) GetProfilesInChannel(channelId string) StoreChannel {
 
 		var users []*model.User
 
-		if _, err := us.GetReplica().Select(&users, "SELECT Users.* FROM Users, ChannelMembers WHERE ChannelMembers.ChannelId = :ChannelId AND Users.Id = ChannelMembers.UserId", map[string]interface{}{"ChannelId": channelId}); err != nil {
+		if _, err := us.GetReplica().Select(&users, "SELECT Users.* FROM Users, ChannelMembers WHERE ChannelMembers.ChannelId = :ChannelId AND Users.Id = ChannelMembers.UserId AND Users.DeleteAt = 0", map[string]interface{}{"ChannelId": channelId}); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.GetProfilesInChannel", "store.sql_user.get_profiles.app_error", nil, err.Error())
 		} else {
 
@@ -573,7 +573,7 @@ func (us SqlUserStore) GetProfilesInChannel(channelId string) StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) GetProfilesByUsernames(usernames []string) StoreChannel {
+func (us SqlUserStore) GetProfilesByUsernames(usernames []string, teamId string) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -593,7 +593,10 @@ func (us SqlUserStore) GetProfilesByUsernames(usernames []string) StoreChannel {
 			idQuery += ":username" + strconv.Itoa(index)
 		}
 
-		if _, err := us.GetReplica().Select(&users, "SELECT * FROM Users WHERE Users.Username IN ("+idQuery+")", props); err != nil {
+		props["TeamId"] = teamId
+
+		if _, err := us.GetReplica().Select(&users, `SELECT Users.* FROM Users INNER JOIN TeamMembers ON
+			Users.Id = TeamMembers.UserId AND Users.Username IN (`+idQuery+`) AND TeamMembers.TeamId = :TeamId `, props); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.GetProfilesByUsernames", "store.sql_user.get_profiles.app_error", nil, err.Error())
 		} else {
 
