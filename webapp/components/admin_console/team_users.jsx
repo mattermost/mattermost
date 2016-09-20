@@ -12,9 +12,12 @@ import AdminStore from 'stores/admin_store.jsx';
 import Client from 'client/web_client.jsx';
 
 import Constants from 'utils/constants.jsx';
+import * as Utils from 'utils/utils.jsx';
 
+import $ from 'jquery';
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import ReactDOM from 'react-dom';
+import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
 const USERS_PER_PAGE = 50;
 
@@ -35,6 +38,7 @@ export default class UserList extends React.Component {
         this.doPasswordReset = this.doPasswordReset.bind(this);
         this.doPasswordResetDismiss = this.doPasswordResetDismiss.bind(this);
         this.doPasswordResetSubmit = this.doPasswordResetSubmit.bind(this);
+        this.nextPage = this.nextPage.bind(this);
 
         this.state = {
             team: AdminStore.getTeam(this.props.params.team),
@@ -129,6 +133,45 @@ export default class UserList extends React.Component {
         );
     }
 
+    nextPage(page) {
+        Client.getProfilesForTeam(
+            this.props.params.team,
+            (page + 1) * USERS_PER_PAGE,
+            Constants.PROFILE_CHUNK_SIZE,
+            (users) => {
+                var memberList = [];
+                for (var id in users) {
+                    if (users.hasOwnProperty(id)) {
+                        memberList.push(users[id]);
+                    }
+                }
+
+                memberList.sort((a, b) => {
+                    if (a.username < b.username) {
+                        return -1;
+                    }
+
+                    if (a.username > b.username) {
+                        return 1;
+                    }
+
+                    return 0;
+                });
+
+                const newUsers = this.state.users.concat(memberList);
+
+                this.setState({
+                    users: newUsers
+                });
+            },
+            (err) => {
+                this.setState({
+                    serverError: err.message
+                });
+            }
+        );
+    }
+
     doPasswordReset(user) {
         this.setState({
             showPasswordModal: true,
@@ -182,6 +225,55 @@ export default class UserList extends React.Component {
             };
         }
 
+        const mfaEnabled = global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.MFA === 'true' && global.window.mm_config.EnableMultifactorAuthentication === 'true';
+
+        const users = this.state.users;
+        const extraInfo = {};
+        for (let i = 0; i < users.length; i++) {
+            const user = users[i];
+            const info = [];
+
+            if (user.auth_service) {
+                const service = (user.auth_service === Constants.LDAP_SERVICE || user.auth_service === Constants.SAML_SERVICE) ? user.auth_service.toUpperCase() : Utils.toTitleCase(user.auth_service);
+                info.push(
+                    <FormattedHTMLMessage
+                        id='admin.user_item.authServiceNotEmail'
+                        defaultMessage='<strong>Sign-in Method:</strong> {service}'
+                        values={{
+                            service
+                        }}
+                    />
+                );
+            } else {
+                info.push(
+                    <FormattedHTMLMessage
+                        id='admin.user_item.authServiceEmail'
+                        defaultMessage='<strong>Sign-in Method:</strong> Email'
+                    />
+                );
+            }
+
+            if (mfaEnabled) {
+                if (user.mfa_active) {
+                    info.push(
+                        <FormattedHTMLMessage
+                            id='admin.user_item.mfaYes'
+                            defaultMessage='<strong>MFA</strong>: Yes'
+                        />
+                    );
+                } else {
+                    info.push(
+                        <FormattedHTMLMessage
+                            id='admin.user_item.mfaNo'
+                            defaultMessage='<strong>MFA</strong>: No'
+                        />
+                    );
+                }
+            }
+
+            extraInfo[user.id] = info;
+        }
+
         return (
             <div className='wrapper--fixed'>
                 <h3>
@@ -190,7 +282,7 @@ export default class UserList extends React.Component {
                         defaultMessage='Users for {team} ({count})'
                         values={{
                             team: this.state.team.name,
-                            count: this.state.users.length
+                            count: this.state.teamMembers.length
                         }}
                     />
                 </h3>
@@ -203,6 +295,7 @@ export default class UserList extends React.Component {
                         <SearchableUserList
                             users={this.state.users}
                             usersPerPage={USERS_PER_PAGE}
+                            extraInfo={extraInfo}
                             nextPage={this.nextPage}
                             actions={[AdminTeamMembersDropdown]}
                             actionProps={{
