@@ -11,7 +11,7 @@ import:
 - package: github.com/disintegration/imaging
   version: 5b7e22645c93e3f3911b36b7d66bf8799f3eddfd
 - package: github.com/go-gorp/gorp
-  version: 0c9bc0918534d133cedb439a24adc7cbe66e4a9d # Keep this locked
+  version: 0c9bc0918534d133cedb439a24adc7cbe66e4a9d
 - package: github.com/go-ldap/ldap
   version: v2.4.1
 - package: github.com/go-sql-driver/mysql
@@ -62,3 +62,4 @@ import:
   - store
 - package: github.com/segmentio/analytics-go
   version: 2.1.1
+- package: github.com/rsc/letsencrypt

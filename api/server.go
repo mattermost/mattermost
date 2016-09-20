@@ -4,28 +4,35 @@
 package api
 
 import (
+	"crypto/tls"
+	"net"
 	"net/http"
 	"strings"
 	"time"
 
 	l4g "github.com/alecthomas/log4go"
-	"github.com/braintree/manners"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
+	"github.com/rsc/letsencrypt"
+	"github.com/tylerb/graceful"
 	"gopkg.in/throttled/throttled.v2"
 	"gopkg.in/throttled/throttled.v2/store/memstore"
 )
 
 type Server struct {
-	Store  store.Store
-	Router *mux.Router
+	Store          store.Store
+	Router         *mux.Router
+	GracefulServer *graceful.Server
 }
 
 type CorsWrapper struct {
 	router *mux.Router
 }
+
+const TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN = time.Second
 
 var Srv *Server
 
@@ -65,9 +72,19 @@ func initalizeThrottledVaryBy() *throttled.VaryBy {
 	return &vary
 }
 
+func redirectHTTPToHTTPS(w http.ResponseWriter, r *http.Request) {
+	if r.Host == "" {
+		http.Error(w, "Not Found", http.StatusNotFound)
+	}
+
+	url := r.URL
+	url.Host = r.Host
+	url.Scheme = "https"
+	http.Redirect(w, r, url.String(), http.StatusFound)
+}
+
 func StartServer() {
 	l4g.Info(utils.T("api.server.start_server.starting.info"))
-	l4g.Info(utils.T("api.server.start_server.listening.info"), utils.Cfg.ServiceSettings.ListenAddress)
 
 	var handler http.Handler = &CorsWrapper{Srv.Router}
 
@@ -103,8 +120,50 @@ func StartServer() {
 		handler = httpRateLimiter.RateLimit(handler)
 	}
 
+	Srv.GracefulServer = &graceful.Server{
+		Timeout: TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN,
+		Server: &http.Server{
+			Addr:         utils.Cfg.ServiceSettings.ListenAddress,
+			Handler:      handlers.RecoveryHandler(handlers.PrintRecoveryStack(true))(handler),
+			ReadTimeout:  time.Duration(*utils.Cfg.ServiceSettings.ReadTimeout) * time.Second,
+			WriteTimeout: time.Duration(*utils.Cfg.ServiceSettings.WriteTimeout) * time.Second,
+		},
+	}
+	l4g.Info(utils.T("api.server.start_server.listening.info"), utils.Cfg.ServiceSettings.ListenAddress)
+
+	if *utils.Cfg.ServiceSettings.Forward80To443 {
+		go func() {
+			listener, err := net.Listen("tcp", ":80")
+			if err != nil {
+				l4g.Error("Unable to setup forwarding")
+				return
+			}
+			defer listener.Close()
+
+			http.Serve(listener, http.HandlerFunc(redirectHTTPToHTTPS))
+		}()
+	}
+
 	go func() {
-		err := manners.ListenAndServe(utils.Cfg.ServiceSettings.ListenAddress, handlers.RecoveryHandler(handlers.PrintRecoveryStack(true))(handler))
+		var err error
+		if *utils.Cfg.ServiceSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
+			if *utils.Cfg.ServiceSettings.UseLetsEncrypt {
+				var m letsencrypt.Manager
+				m.CacheFile(*utils.Cfg.ServiceSettings.LetsEncryptCertificateCacheFile)
+
+				tlsConfig := &tls.Config{
+					GetCertificate: m.GetCertificate,
+				}
+
+				tlsConfig.NextProtos = append(tlsConfig.NextProtos, "h2")
+
+				err = Srv.GracefulServer.ListenAndServeTLSConfig(tlsConfig)
+			} else {
+				err = Srv.GracefulServer.ListenAndServeTLS(*utils.Cfg.ServiceSettings.TLSCertFile, *utils.Cfg.ServiceSettings.TLSKeyFile)
+			}
+		} else {
+			err = Srv.GracefulServer.ListenAndServe()
+		}
 		if err != nil {
 			l4g.Critical(utils.T("api.server.start_server.starting.critical"), err)
 			time.Sleep(time.Second)
@@ -116,7 +175,7 @@ func StopServer() {
 
 	l4g.Info(utils.T("api.server.stop_server.stopping.info"))
 
-	manners.Close()
+	Srv.GracefulServer.Stop(TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN)
 	Srv.Store.Close()
 	hub.Stop()
 

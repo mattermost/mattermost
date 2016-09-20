@@ -57,6 +57,14 @@ const (
 type ServiceSettings struct {
 	SiteURL                           *string
 	ListenAddress                     string
+	ConnectionSecurity                *string
+	TLSCertFile                       *string
+	TLSKeyFile                        *string
+	UseLetsEncrypt                    *bool
+	LetsEncryptCertificateCacheFile   *string
+	Forward80To443                    *bool
+	ReadTimeout                       *int
+	WriteTimeout                      *int
 	MaximumLoginAttempts              int
 	SegmentDeveloperKey               string
 	GoogleDeveloperKey                string
@@ -905,6 +913,46 @@ func (o *Config) SetDefaults() {
 		*o.RateLimitSettings.MaxBurst = 100
 	}
 
+	if o.ServiceSettings.ConnectionSecurity == nil {
+		o.ServiceSettings.ConnectionSecurity = new(string)
+		*o.ServiceSettings.ConnectionSecurity = ""
+	}
+
+	if o.ServiceSettings.TLSKeyFile == nil {
+		o.ServiceSettings.TLSKeyFile = new(string)
+		*o.ServiceSettings.TLSKeyFile = ""
+	}
+
+	if o.ServiceSettings.TLSCertFile == nil {
+		o.ServiceSettings.TLSCertFile = new(string)
+		*o.ServiceSettings.TLSCertFile = ""
+	}
+
+	if o.ServiceSettings.UseLetsEncrypt == nil {
+		o.ServiceSettings.UseLetsEncrypt = new(bool)
+		*o.ServiceSettings.UseLetsEncrypt = false
+	}
+
+	if o.ServiceSettings.LetsEncryptCertificateCacheFile == nil {
+		o.ServiceSettings.LetsEncryptCertificateCacheFile = new(string)
+		*o.ServiceSettings.LetsEncryptCertificateCacheFile = "./config/letsencrypt.cache"
+	}
+
+	if o.ServiceSettings.ReadTimeout == nil {
+		o.ServiceSettings.ReadTimeout = new(int)
+		*o.ServiceSettings.ReadTimeout = 30
+	}
+
+	if o.ServiceSettings.WriteTimeout == nil {
+		o.ServiceSettings.WriteTimeout = new(int)
+		*o.ServiceSettings.WriteTimeout = 60
+	}
+
+	if o.ServiceSettings.Forward80To443 == nil {
+		o.ServiceSettings.Forward80To443 = new(bool)
+		*o.ServiceSettings.Forward80To443 = false
+	}
+
 	o.defaultWebrtcSettings()
 }
 
@@ -1114,6 +1162,18 @@ func (o *Config) IsValid() *AppError {
 
 	if err := o.isValidWebrtcSettings(); err != nil {
 		return err
+	}
+
+	if !(*o.ServiceSettings.ConnectionSecurity == CONN_SECURITY_NONE || *o.ServiceSettings.ConnectionSecurity == CONN_SECURITY_TLS) {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.webserver_security.app_error", nil, "")
+	}
+
+	if *o.ServiceSettings.ReadTimeout <= 0 {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.read_timeout.app_error", nil, "")
+	}
+
+	if *o.ServiceSettings.WriteTimeout <= 0 {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.write_timeout.app_error", nil, "")
 	}
 
 	return nil
