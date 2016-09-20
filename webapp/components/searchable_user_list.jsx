@@ -77,6 +77,7 @@ export default class SearchableUserList extends React.Component {
                 >
                     <UserList
                         users={usersToDisplay}
+                        extraInfo={this.props.extraInfo}
                         actions={this.props.actions}
                         actionProps={this.props.actionProps}
                         actionUserProps={this.props.actionUserProps}
@@ -94,6 +95,7 @@ export default class SearchableUserList extends React.Component {
 SearchableUserList.defaultProps = {
     users: [],
     usersPerPage: 50, //eslint-disable-line no-magic-numbers
+    extraInfo: {},
     actions: [],
     actionProps: {},
     actionUserProps: {},
@@ -103,6 +105,7 @@ SearchableUserList.defaultProps = {
 SearchableUserList.propTypes = {
     users: React.PropTypes.arrayOf(React.PropTypes.object),
     usersPerPage: React.PropTypes.number,
+    extraInfo: React.PropTypes.object,
     nextPage: React.PropTypes.func.isRequired,
     actions: React.PropTypes.arrayOf(React.PropTypes.func),
     actionProps: React.PropTypes.object,
