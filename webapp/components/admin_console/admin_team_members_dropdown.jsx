@@ -8,7 +8,7 @@ import UserStore from 'stores/user_store.jsx';
 import ConfirmModal from '../confirm_modal.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
-import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 import React from 'react';
 
@@ -237,7 +237,6 @@ export default class AdminTeamMembersDropdown extends React.Component {
         }
 
         const me = UserStore.getCurrentUser();
-        const email = user.email;
         let showMakeMember = Utils.isAdmin(teamMember.roles) || Utils.isSystemAdmin(user.roles);
         let showMakeAdmin = !Utils.isAdmin(teamMember.roles) && !Utils.isSystemAdmin(user.roles);
         let showMakeSystemAdmin = !Utils.isSystemAdmin(user.roles);
@@ -402,39 +401,8 @@ export default class AdminTeamMembersDropdown extends React.Component {
             );
         }
 
-        let mfaActiveText;
-        if (mfaEnabled) {
-            if (user.mfa_active) {
-                mfaActiveText = (
-                    <FormattedHTMLMessage
-                        id='admin.user_item.mfaYes'
-                        defaultMessage=', <strong>MFA</strong>: Yes'
-                    />
-                );
-            } else {
-                mfaActiveText = (
-                    <FormattedHTMLMessage
-                        id='admin.user_item.mfaNo'
-                        defaultMessage=', <strong>MFA</strong>: No'
-                    />
-                );
-            }
-        }
-
-        let authServiceText;
         let passwordReset;
         if (user.auth_service) {
-            const service = (user.auth_service === Constants.LDAP_SERVICE || user.auth_service === Constants.SAML_SERVICE) ? user.auth_service.toUpperCase() : Utils.toTitleCase(user.auth_service);
-            authServiceText = (
-                <FormattedHTMLMessage
-                    id='admin.user_item.authServiceNotEmail'
-                    defaultMessage=', <strong>Sign-in Method:</strong> {service}'
-                    values={{
-                        service
-                    }}
-                />
-            );
-
             passwordReset = (
                 <li role='presentation'>
                     <a
@@ -450,13 +418,6 @@ export default class AdminTeamMembersDropdown extends React.Component {
                 </li>
             );
         } else {
-            authServiceText = (
-                <FormattedHTMLMessage
-                    id='admin.user_item.authServiceEmail'
-                    defaultMessage=', <strong>Sign-in Method:</strong> Email'
-                />
-            );
-
             passwordReset = (
                 <li role='presentation'>
                     <a
