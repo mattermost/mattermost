@@ -411,6 +411,15 @@ func UserMapFromJson(data io.Reader) map[string]*User {
 	}
 }
 
+func UserListToJson(u []*User) string {
+	b, err := json.Marshal(u)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
 // HashPassword generates a hash using the bcrypt.GenerateFromPassword
 func HashPassword(password string) string {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), 10)

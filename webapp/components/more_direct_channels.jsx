@@ -5,7 +5,7 @@ import SearchableUserList from 'components/searchable_user_list.jsx';
 import SpinnerButton from 'components/spinner_button.jsx';
 import LoadingScreen from 'components/loading_screen.jsx';
 
-import {getMoreDmList} from 'actions/user_actions.jsx';
+import {getMoreDmList, searchUsers} from 'actions/user_actions.jsx';
 
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
@@ -30,12 +30,14 @@ export default class MoreDirectChannels extends React.Component {
         this.createJoinDirectChannelButton = this.createJoinDirectChannelButton.bind(this);
         this.toggleList = this.toggleList.bind(this);
         this.nextPage = this.nextPage.bind(this);
+        this.search = this.search.bind(this);
 
         this.state = {
             users: UserStore.getProfilesForTeam(),
             loadingDMChannel: -1,
             listType: 'team',
-            usersLoaded: false
+            usersLoaded: false,
+            search: false
         };
     }
 
@@ -103,7 +105,11 @@ export default class MoreDirectChannels extends React.Component {
         );
     }
 
-    onChange() {
+    onChange(force) {
+        if (this.state.search && !force) {
+            return;
+        }
+
         let users;
         if (this.state.listType === 'any') {
             users = UserStore.getProfilesForDmList();
@@ -153,6 +159,29 @@ export default class MoreDirectChannels extends React.Component {
         } else {
             AsyncClient.getProfiles((page + 1) * USERS_PER_PAGE, USERS_PER_PAGE);
         }
+    }
+
+    search(term) {
+        if (term === '') {
+            this.onChange(true);
+            this.setState({search: false});
+            return;
+        }
+
+        let teamId;
+        if (this.state.listType === 'any') {
+            teamId = '';
+        } else {
+            teamId = TeamStore.getCurrentId();
+        }
+
+        searchUsers(
+            teamId,
+            term,
+            (users) => {
+                this.setState({search: true, users});
+            }
+        );
     }
 
     render() {
@@ -206,6 +235,7 @@ export default class MoreDirectChannels extends React.Component {
                     users={this.state.users}
                     usersPerPage={USERS_PER_PAGE}
                     nextPage={this.nextPage}
+                    search={this.search}
                     actions={[this.createJoinDirectChannelButton]}
                 />
             );
@@ -230,7 +260,6 @@ export default class MoreDirectChannels extends React.Component {
                 </Modal.Header>
                 <Modal.Body>
                     {teamToggle}
-                    <br/>
                     <br/>
                     {body}
                 </Modal.Body>

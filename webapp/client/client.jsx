@@ -1016,6 +1016,16 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getProfilesForDirectMessageList', success, error));
     }
 
+    searchUsers(teamId, term, success, error) {
+        request.
+            post(`${this.getUsersRoute()}/search`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send({team_id: teamId, term}).
+            end(this.handleResponse.bind(this, 'searchUsers', success, error));
+    }
+
     getStatuses(success, error) {
         request.
             get(`${this.getUsersRoute()}/status`).

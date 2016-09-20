@@ -45,8 +45,8 @@ export default class ChannelInviteButton extends React.Component {
                     addingUser: false
                 });
 
-                this.props.onInviteError(null);
                 AsyncClient.getChannelExtraInfo();
+                this.props.onInviteError(null);
             },
             (err) => {
                 this.setState({

@@ -49,6 +49,11 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 
 func (us SqlUserStore) CreateIndexesIfNotExists() {
 	us.CreateIndexIfNotExists("idx_users_email", "Users", "Email")
+
+	//us.CreateFullTextIndexIfNotExists("idx_users_username_txt", "Users", "Username")
+	us.CreateFullTextIndexIfNotExists("idx_users_username_and_email_txt", "Users", "Username, Email")
+	//us.CreateFullTextIndexIfNotExists("idx_users_last_name_txt", "Users", "LastName")
+	//us.CreateFullTextIndexIfNotExists("idx_users_email_txt", "Users", "Email")
 }
 
 func (us SqlUserStore) Save(user *model.User) StoreChannel {
@@ -1059,6 +1064,73 @@ func (us SqlUserStore) GetUnreadCountForChannel(userId string, channelId string)
 
 		storeChannel <- result
 		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (us SqlUserStore) Search(teamId string, term string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		searchQuery := ""
+		if teamId == "" {
+			searchQuery = `
+			SELECT
+				*
+			FROM
+				Users
+			WHERE
+				DeleteAt = 0
+				SEARCH_CLAUSE
+				ORDER BY Username ASC
+			LIMIT 50`
+		} else {
+			searchQuery = `
+			SELECT
+				Users.*
+			FROM
+				Users, TeamMembers
+			WHERE
+				TeamMembers.TeamId = :TeamId
+				AND Users.Id = TeamMembers.UserId
+				AND Users.DeleteAt = 0
+				SEARCH_CLAUSE
+				ORDER BY Users.Username ASC
+			LIMIT 50`
+		}
+
+		if term == "" {
+			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
+		} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+			term = term + ":*"
+			searchClause := "AND (Username, Email) @@  to_tsquery(:Term)"
+			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
+		} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
+			term = term + "*"
+			searchClause := "AND MATCH (Username, Email) AGAINST (:Term IN BOOLEAN MODE)"
+			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
+		}
+
+		var users []*model.User
+
+		if _, err := us.GetReplica().Select(&users, searchQuery, map[string]interface{}{"TeamId": teamId, "Term": term}); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.Search", "store.sql_user.search.app_error", nil, "term="+term+", "+err.Error())
+		} else {
+			for _, u := range users {
+				u.Password = ""
+				u.AuthData = new(string)
+				*u.AuthData = ""
+			}
+
+			result.Data = users
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+
 	}()
 
 	return storeChannel

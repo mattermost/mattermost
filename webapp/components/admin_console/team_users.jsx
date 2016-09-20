@@ -9,14 +9,14 @@ import FormError from 'components/form_error.jsx';
 
 import AdminStore from 'stores/admin_store.jsx';
 
+import {searchUsers} from 'actions/user_actions.jsx';
+
 import Client from 'client/web_client.jsx';
 
 import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 
-import $ from 'jquery';
 import React from 'react';
-import ReactDOM from 'react-dom';
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
 const USERS_PER_PAGE = 50;
@@ -39,6 +39,7 @@ export default class UserList extends React.Component {
         this.doPasswordResetDismiss = this.doPasswordResetDismiss.bind(this);
         this.doPasswordResetSubmit = this.doPasswordResetSubmit.bind(this);
         this.nextPage = this.nextPage.bind(this);
+        this.search = this.search.bind(this);
 
         this.state = {
             team: AdminStore.getTeam(this.props.params.team),
@@ -194,6 +195,22 @@ export default class UserList extends React.Component {
         });
     }
 
+    search(term) {
+        if (term === '') {
+            this.getCurrentTeamProfiles();
+            this.setState({search: false});
+            return;
+        }
+
+        searchUsers(
+            this.props.params.team,
+            term,
+            (users) => {
+                this.setState({search: true, users});
+            }
+        );
+    }
+
     render() {
         if (!this.state.team) {
             return null;
@@ -297,6 +314,7 @@ export default class UserList extends React.Component {
                             usersPerPage={USERS_PER_PAGE}
                             extraInfo={extraInfo}
                             nextPage={this.nextPage}
+                            search={this.search}
                             actions={[AdminTeamMembersDropdown]}
                             actionProps={{
                                 refreshProfiles: this.getCurrentTeamProfiles,
