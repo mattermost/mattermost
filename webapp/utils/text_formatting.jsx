@@ -415,8 +415,8 @@ function convertSearchTermToRegex(term) {
         pattern = '()(' + escapeRegex(term.replace(/\*/g, '')) + ')';
     } else if (term.endsWith('*')) {
         pattern = '\\b()(' + escapeRegex(term.substring(0, term.length - 1)) + ')';
-    } else if (term.startsWith('@')) {
-        // needs special handling of the first boundary because a word boundary doesn't work before an @ sign
+    } else if (term.startsWith('@') || term.startsWith('#')) {
+        // needs special handling of the first boundary because a word boundary doesn't work before a symbol
         pattern = '(\\W|^)(' + escapeRegex(term) + ')\\b';
     } else {
         pattern = '\\b()(' + escapeRegex(term) + ')\\b';
