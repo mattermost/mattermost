@@ -14,6 +14,7 @@ import UserStore from 'stores/user_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 
 import * as Utils from 'utils/utils.jsx';
+import * as AsyncClient from 'utils/async_client.jsx';
 
 import Constants from 'utils/constants.jsx';
 const Preferences = Constants.Preferences;
@@ -58,6 +59,9 @@ export default class RhsThread extends React.Component {
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.onStatusChange = this.onStatusChange.bind(this);
         this.handleResize = this.handleResize.bind(this);
+        this.lazyLoadProfiles = this.lazyLoadProfiles.bind(this);
+
+        this.profilesToLoad = {};
 
         const state = this.getPosts();
         state.windowWidth = Utils.windowWidth();
@@ -70,6 +74,11 @@ export default class RhsThread extends React.Component {
         this.state = state;
     }
 
+    lazyLoadProfiles() {
+        AsyncClient.getProfilesFromList(Object.keys(this.profilesToLoad));
+        this.profilesToLoad = {};
+    }
+
     componentDidMount() {
         PostStore.addSelectedPostChangeListener(this.onPostChange);
         PostStore.addChangeListener(this.onPostChange);
@@ -79,6 +88,8 @@ export default class RhsThread extends React.Component {
 
         this.scrollToBottom();
         window.addEventListener('resize', this.handleResize);
+
+        this.lazyLoadProfiles();
 
         this.mounted = true;
     }
@@ -108,6 +119,8 @@ export default class RhsThread extends React.Component {
         if (curLastPost.user_id === UserStore.getCurrentId()) {
             this.scrollToBottom();
         }
+
+        this.lazyLoadProfiles();
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -264,6 +277,11 @@ export default class RhsThread extends React.Component {
             profile = profiles[selected.user_id];
         }
 
+        if (profile == null) {
+            this.profilesToLoad[selected.user_id] = true;
+            profile = {id: selected.user_id, username: '...', first_name: '...', last_name: '', delete_at: 0, update_at: 0};
+        }
+
         let isRootFlagged = false;
         if (this.state.flaggedPosts) {
             isRootFlagged = this.state.flaggedPosts.get(selected.id) === 'true';
@@ -314,6 +332,11 @@ export default class RhsThread extends React.Component {
                                         p = UserStore.getCurrentUser();
                                     } else {
                                         p = profiles[comPost.user_id];
+                                    }
+
+                                    if (p == null) {
+                                        this.profilesToLoad[comPost.user_id] = true;
+                                        p = {id: comPost.user_id, username: '...', first_name: '...', last_name: '', delete_at: 0, update_at: 0};
                                     }
 
                                     let isFlagged = false;

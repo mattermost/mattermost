@@ -97,10 +97,14 @@ function preNeedsTeam(nextState, replace, callback) {
     );
 
     Client.getProfiles(
+        0,
+        Constants.PROFILE_CHUNK_SIZE,
         (data) => {
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_PROFILES,
-                profiles: data
+                profiles: data,
+                offset: 0,
+                count: Object.keys(data).length
             });
 
             d2.resolve();
