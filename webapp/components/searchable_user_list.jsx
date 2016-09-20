@@ -3,6 +3,10 @@
 
 import UserList from './user_list.jsx';
 
+import * as Utils from 'utils/utils.jsx';
+import Constants from 'utils/constants.jsx';
+const KeyCodes = Constants.KeyCodes;
+
 import $ from 'jquery';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -13,6 +17,7 @@ export default class SearchableUserList extends React.Component {
 
         this.nextPage = this.nextPage.bind(this);
         this.previousPage = this.previousPage.bind(this);
+        this.doSearch = this.doSearch.bind(this);
 
         this.state = {
             page: 0
@@ -36,13 +41,31 @@ export default class SearchableUserList extends React.Component {
         this.setState({page: this.state.page - 1});
     }
 
+    doSearch(e) {
+        if (e.charCode === KeyCodes.ENTER) {
+            e.preventDefault();
+            this.props.search(e.target.value);
+            if (e.target.value === '') {
+                this.setState({page: 0});
+            } else {
+                // Probably a better a way to handle search but this is quickest for now
+                this.setState({page: -1});
+            }
+        }
+    }
+
     render() {
-        const pageStart = this.state.page * this.props.usersPerPage;
-        const pageEnd = pageStart + this.props.usersPerPage;
-        const usersToDisplay = this.props.users.slice(pageStart, pageEnd);
+        let usersToDisplay;
+        if (this.state.page >= 0) {
+            const pageStart = this.state.page * this.props.usersPerPage;
+            const pageEnd = pageStart + this.props.usersPerPage;
+            usersToDisplay = this.props.users.slice(pageStart, pageEnd);
+        } else {
+            usersToDisplay = this.props.users;
+        }
 
         let nextButton;
-        if (usersToDisplay.length >= this.props.usersPerPage) {
+        if (usersToDisplay.length >= this.props.usersPerPage && this.state.page >= 0) {
             nextButton = (
                 <a
                     className='pull-right'
@@ -71,6 +94,16 @@ export default class SearchableUserList extends React.Component {
                 className='filtered-user-list'
                 style={this.props.style}
             >
+                <div className='filter-row'>
+                    <div className='col-sm-6'>
+                        <input
+                            ref='filter'
+                            className='form-control filter-textbox'
+                            placeholder={Utils.localizeMessage('filtered_user_list.search', 'Search members')}
+                            onKeyPress={this.doSearch}
+                        />
+                    </div>
+                </div>
                 <div
                     ref='userList'
                     className='more-modal__list'
@@ -107,6 +140,7 @@ SearchableUserList.propTypes = {
     usersPerPage: React.PropTypes.number,
     extraInfo: React.PropTypes.object,
     nextPage: React.PropTypes.func.isRequired,
+    search: React.PropTypes.func.isRequired,
     actions: React.PropTypes.arrayOf(React.PropTypes.func),
     actionProps: React.PropTypes.object,
     actionUserProps: React.PropTypes.object,

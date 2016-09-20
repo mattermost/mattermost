@@ -7,6 +7,8 @@ import TeamMembersDropdown from './team_members_dropdown.jsx';
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
+import {searchUsers} from 'actions/user_actions.jsx';
+
 import * as AsyncClient from 'utils/async_client.jsx';
 
 import React from 'react';
@@ -18,10 +20,12 @@ export default class MemberListTeam extends React.Component {
         super(props);
 
         this.onChange = this.onChange.bind(this);
+        this.search = this.search.bind(this);
 
         this.state = {
             users: UserStore.getProfilesForTeam(),
-            teamMembers: Object.assign([], TeamStore.getMembersForTeam())
+            teamMembers: Object.assign([], TeamStore.getMembersForTeam()),
+            search: false
         };
     }
 
@@ -37,14 +41,31 @@ export default class MemberListTeam extends React.Component {
     }
 
     onChange() {
-        this.setState({
-            users: UserStore.getProfilesForTeam(),
-            teamMembers: Object.assign([], TeamStore.getMembersForTeam())
-        });
+        if (!this.state.search) {
+            this.setState({
+                users: UserStore.getProfilesForTeam(),
+                teamMembers: Object.assign([], TeamStore.getMembersForTeam())
+            });
+        }
     }
 
     nextPage(page) {
         AsyncClient.getProfiles((page + 1) * USERS_PER_PAGE, USERS_PER_PAGE);
+    }
+
+    search(term) {
+        if (term === '') {
+            this.setState({search: false, users: UserStore.getProfilesForTeam()});
+            return;
+        }
+
+        searchUsers(
+            TeamStore.getCurrentId(),
+            term,
+            (users) => {
+                this.setState({search: true, users});
+            }
+        );
     }
 
     render() {
@@ -68,6 +89,7 @@ export default class MemberListTeam extends React.Component {
                 users={this.state.users}
                 usersPerPage={USERS_PER_PAGE}
                 nextPage={this.nextPage}
+                search={this.search}
                 actions={teamMembersDropdown}
                 actionUserProps={actionUserProps}
             />

@@ -9,6 +9,8 @@ import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
+import {searchUsers} from 'actions/user_actions.jsx';
+
 import * as Utils from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 
@@ -26,10 +28,14 @@ export default class ChannelInviteModal extends React.Component {
         this.onChange = this.onChange.bind(this);
         this.getStateFromStores = this.getStateFromStores.bind(this);
         this.handleInviteError = this.handleInviteError.bind(this);
+        this.search = this.search.bind(this);
 
         this.page = 0;
+        this.term = '';
 
-        this.state = this.getStateFromStores();
+        const state = this.getStateFromStores();
+        state.search = false;
+        this.state = state;
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -131,6 +137,11 @@ export default class ChannelInviteModal extends React.Component {
     }
 
     onChange() {
+        if (this.state.search) {
+            this.search(this.term);
+            return;
+        }
+
         var newState = this.getStateFromStores();
         if (!Utils.areObjectsEqual(this.state, newState)) {
             this.setState(newState);
@@ -154,6 +165,34 @@ export default class ChannelInviteModal extends React.Component {
         this.page = page;
     }
 
+    search(term) {
+        this.term = term;
+
+        if (term === '') {
+            this.setState(this.getStateFromStores());
+            this.setState({search: false});
+            return;
+        }
+
+        searchUsers(
+            TeamStore.getCurrentId(),
+            term,
+            (users) => {
+                const extraInfo = ChannelStore.getCurrentExtraInfo();
+                const memberIds = extraInfo.members.map((user) => user.id);
+
+                var nonmembers = [];
+                for (let i = 0; i < users.length; i++) {
+                    if (memberIds.indexOf(users[i].id) === -1) {
+                        nonmembers.push(users[i]);
+                    }
+                }
+
+                this.setState({search: true, nonmembers});
+            }
+        );
+    }
+
     render() {
         var inviteError = null;
         if (this.state.inviteError) {
@@ -174,6 +213,7 @@ export default class ChannelInviteModal extends React.Component {
                     users={this.state.nonmembers}
                     usersPerPage={USERS_PER_PAGE}
                     nextPage={this.nextPage}
+                    search={this.search}
                     actions={[ChannelInviteButton]}
                     actionProps={{
                         channel: this.props.channel,
