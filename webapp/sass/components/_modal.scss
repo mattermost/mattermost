@@ -454,7 +454,7 @@
 
         .filter-row {
             @include clearfix;
-            margin: 0 0 10px;
+            margin: 5px 0 10px;
         }
 
         .member-count {
@@ -597,7 +597,7 @@
 .member-select__container {
     position: absolute;
     right: 15px;
-    top: 10px;
+    top: 15px;
 }
 
 .filtered-user-list {
