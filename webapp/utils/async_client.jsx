@@ -345,6 +345,33 @@ export function getProfiles(offset = UserStore.getPagingOffset(), limit = Consta
     );
 }
 
+export function getProfilesFromList(userIds) {
+    if (isCallInProgress('getProfilesFromList')) {
+        return;
+    }
+
+    if (!userIds || userIds.length === 0) {
+        return;
+    }
+
+    callTracker.getProfilesFromList = utils.getTimestamp();
+    Client.getProfilesFromList(
+        userIds,
+        (data) => {
+            callTracker.getProfilesFromList = 0;
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_PROFILES,
+                profiles: data
+            });
+        },
+        (err) => {
+            callTracker.getProfilesFromList = 0;
+            dispatchError(err, 'getProfilesFromList');
+        }
+    );
+}
+
 export function getDirectProfiles() {
     if (isCallInProgress('getDirectProfiles')) {
         return;

@@ -58,6 +58,7 @@ func InitUser() {
 	BaseRoutes.Users.Handle("/profiles/{id:[A-Za-z0-9]+}/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getProfiles)).Methods("GET")
 	BaseRoutes.Users.Handle("/profiles_for_dm_list/{id:[A-Za-z0-9]+}/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getProfilesForDirectMessageList)).Methods("GET")
 	BaseRoutes.Users.Handle("/search", ApiUserRequired(searchUsers)).Methods("POST")
+	BaseRoutes.Users.Handle("/profiles_from_list", ApiUserRequired(getProfilesFromList)).Methods("POST")
 
 	BaseRoutes.Users.Handle("/mfa", ApiAppHandler(checkMfa)).Methods("POST")
 	BaseRoutes.Users.Handle("/generate_mfa_qr", ApiUserRequiredTrustRequester(generateMfaQrCode)).Methods("GET")
@@ -2633,5 +2634,29 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.Write([]byte(model.UserListToJson(profiles)))
+	}
+}
+
+func getProfilesFromList(c *Context, w http.ResponseWriter, r *http.Request) {
+	userIds := model.ArrayFromJson(r.Body)
+
+	/*var userIds []string
+	var ok bool
+	if userIds, ok = props["user_ids"]; !ok {
+		c.SetInvalidParam("getProfilesFromList", "user_ids")
+		return
+	}*/
+
+	if result := <-Srv.Store.User().GetProfileByIds(userIds); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		profiles := result.Data.(map[string]*model.User)
+
+		for _, p := range profiles {
+			sanitizeProfile(c, p)
+		}
+
+		w.Write([]byte(model.UserMapToJson(profiles)))
 	}
 }
