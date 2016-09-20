@@ -461,6 +461,8 @@ describe('Client.User', function() {
     it('getProfiles', function(done) {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().getProfiles(
+                0,
+                100,
                 function(data) {
                     assert.equal(data[TestHelper.basicUser().id].id, TestHelper.basicUser().id);
                     done();
@@ -476,6 +478,8 @@ describe('Client.User', function() {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().getProfilesForTeam(
                 TestHelper.basicTeam().id,
+                0,
+                100,
                 function(data) {
                     assert.equal(data[TestHelper.basicUser().id].id, TestHelper.basicUser().id);
                     done();
@@ -490,6 +494,8 @@ describe('Client.User', function() {
     it('getProfilesForDirectMessageList', function(done) {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().getProfilesForDirectMessageList(
+                0,
+                100,
                 function(data) {
                     assert.equal(Object.keys(data).length > 0, true);
                     done();

@@ -135,10 +135,10 @@ type UserStore interface {
 	UpdateMfaActive(userId string, active bool) StoreChannel
 	Get(id string) StoreChannel
 	GetAll() StoreChannel
-	GetAllProfiles() StoreChannel
-	GetProfiles(teamId string) StoreChannel
 	GetProfilesInChannel(channelId string) StoreChannel
 	GetProfilesByUsernames(usernames []string, teamId string) StoreChannel
+	GetAllProfiles(offset int, limit int) StoreChannel
+	GetProfiles(teamId string, offset int, limit int) StoreChannel
 	GetDirectProfiles(userId string) StoreChannel
 	GetProfileByIds(userId []string) StoreChannel
 	GetByEmail(email string) StoreChannel
@@ -157,6 +157,8 @@ type UserStore interface {
 	AnalyticsUniqueUserCount(teamId string) StoreChannel
 	GetUnreadCount(userId string) StoreChannel
 	GetUnreadCountForChannel(userId string, channelId string) StoreChannel
+	GetRecentlyActiveUsersForTeam(teamId string) StoreChannel
+	Search(teamId string, term string) StoreChannel
 }
 
 type SessionStore interface {
