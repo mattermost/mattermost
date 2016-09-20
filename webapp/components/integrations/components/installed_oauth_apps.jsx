@@ -71,6 +71,17 @@ export default class InstalledOAuthApps extends React.Component {
             );
         });
 
+        const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
+        const config = global.mm_config;
+        const integrationsEnabled = (config.EnableOAuthServiceProvider === 'true' && (isSystemAdmin || config.EnableOnlyAdminIntegrations !== 'true'));
+        let props;
+        if (integrationsEnabled) {
+            props = {
+                addLink: '/' + this.props.team.name + '/integrations/oauth2-apps/add',
+                addText: localizeMessage('installed_oauth_apps.add', 'Add OAuth 2.0 Application')
+            };
+        }
+
         return (
             <BackstageList
                 header={
@@ -85,13 +96,6 @@ export default class InstalledOAuthApps extends React.Component {
                         defaultMessage='OAuth 2.0 Applications are available to everyone on your server.'
                     />
                 }
-                addText={
-                    <FormattedMessage
-                        id='installed_oauth_apps.add'
-                        defaultMessage='Add OAuth 2.0 Application'
-                    />
-                }
-                addLink={'/' + this.props.team.name + '/integrations/oauth2-apps/add'}
                 emptyText={
                     <FormattedMessage
                         id='installed_oauth_apps.empty'
@@ -100,6 +104,7 @@ export default class InstalledOAuthApps extends React.Component {
                 }
                 searchPlaceholder={localizeMessage('installed_oauth_apps.search', 'Search OAuth 2.0 Applications')}
                 loading={this.state.loading}
+                {...props}
             >
                 {oauthApps}
             </BackstageList>
