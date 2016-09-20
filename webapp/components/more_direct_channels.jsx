@@ -260,7 +260,6 @@ export default class MoreDirectChannels extends React.Component {
                 </Modal.Header>
                 <Modal.Body>
                     {teamToggle}
-                    <br/>
                     {body}
                 </Modal.Body>
                 <Modal.Footer>

@@ -68,7 +68,7 @@ export default class SearchableUserList extends React.Component {
         if (usersToDisplay.length >= this.props.usersPerPage && this.state.page >= 0) {
             nextButton = (
                 <a
-                    className='pull-right'
+                    className='filter-control filter-control__next'
                     href='#'
                     onClick={this.nextPage}
                 >
@@ -81,6 +81,7 @@ export default class SearchableUserList extends React.Component {
         if (this.state.page > 0) {
             previousButton = (
                 <a
+                    className='filter-control filter-control__prev'
                     href='#'
                     onClick={this.previousPage}
                 >
@@ -116,7 +117,7 @@ export default class SearchableUserList extends React.Component {
                         actionUserProps={this.props.actionUserProps}
                     />
                 </div>
-                <div className='col-sm-12'>
+                <div className='filter-controls'>
                     {previousButton}
                     {nextButton}
                 </div>
