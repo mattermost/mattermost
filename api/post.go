@@ -560,7 +560,6 @@ func getExplicitMentions(message string, keywords map[string][]string) (map[stri
 
 func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *model.Channel) {
 	pchan := Srv.Store.User().GetProfilesInChannel(channel.Id)
-	dpchan := Srv.Store.User().GetDirectProfiles(c.Session.UserId)
 
 	var profileMap map[string]*model.User
 	if result := <-pchan; result.Err != nil {
@@ -568,16 +567,6 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 		return
 	} else {
 		profileMap = result.Data.(map[string]*model.User)
-	}
-
-	if result := <-dpchan; result.Err != nil {
-		l4g.Error(utils.T("api.post.handle_post_events_and_forget.profiles.error"), c.TeamId, result.Err)
-		return
-	} else {
-		dps := result.Data.(map[string]*model.User)
-		for k, v := range dps {
-			profileMap[k] = v
-		}
 	}
 
 	// If the user who made the post is mention don't send a notification
