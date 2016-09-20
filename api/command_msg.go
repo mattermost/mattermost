@@ -53,7 +53,7 @@ func (me *msgProvider) DoCommand(c *Context, channelId string, message string) *
 		c.Err = profileList.Err
 		return &model.CommandResponse{Text: c.T("api.command_msg.list.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	} else {
-		profileUsers := profileList.Data.(map[string]*model.User)
+		profileUsers := profileList.Data.([]*model.User)
 		for _, userProfile := range profileUsers {
 			// Don't let users open DMs with themselves. It probably won't work out well.
 			if userProfile.Id == c.Session.UserId {

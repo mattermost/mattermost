@@ -711,6 +711,11 @@ func getRecentlyActiveUsers(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	} else {
 		profiles := result.Data.(map[string]*model.User)
+
+		for _, p := range profiles {
+			sanitizeProfile(c, p)
+		}
+
 		w.Write([]byte(model.UserMapToJson(profiles)))
 	}
 
