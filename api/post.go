@@ -678,7 +678,11 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 	if post.IsSystemMessage() {
 		senderName = c.T("system.message.name")
 	} else if profile, ok := profileMap[post.UserId]; ok {
-		senderName = profile.Username
+		if value, ok := post.Props["override_username"]; ok && post.Props["from_webhook"] == "true" {
+			senderName = value.(string)
+		} else {
+			senderName = profile.Username
+		}
 		sender = profile
 	}
 
