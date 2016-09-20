@@ -100,7 +100,7 @@ export default class SearchableUserList extends React.Component {
                         <input
                             ref='filter'
                             className='form-control filter-textbox'
-                            placeholder={Utils.localizeMessage('filtered_user_list.search', 'Search members')}
+                            placeholder={Utils.localizeMessage('filtered_user_list.search', 'Press enter to search')}
                             onKeyPress={this.doSearch}
                         />
                     </div>
