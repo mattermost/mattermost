@@ -439,13 +439,13 @@ func (s SqlUserStore) GetEtagForDirectProfiles(userId string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlUserStore) GetEtagForAllProfiles(limit int, offset int) StoreChannel {
+func (s SqlUserStore) GetEtagForAllProfiles() StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
 
-		updateAt, err := s.GetReplica().SelectInt("SELECT MAX(UpdateAt) FROM Users ORDER BY Username ASC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Limit": limit, "Offset": offset})
+		updateAt, err := s.GetReplica().SelectInt("SELECT UpdateAt FROM Users ORDER BY UpdateAt DESC LIMIT 1")
 		if err != nil {
 			result.Data = fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.GetMillis(), utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
 		} else {
@@ -491,13 +491,13 @@ func (us SqlUserStore) GetAllProfiles(offset int, limit int) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlUserStore) GetEtagForProfiles(teamId string, offset int, limit int) StoreChannel {
+func (s SqlUserStore) GetEtagForProfiles(teamId string) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
 
-		updateAt, err := s.GetReplica().SelectInt("SELECT UpdateAt FROM Users, TeamMembers WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId ORDER BY Users.Username ASC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"TeamId": teamId, "Offset": offset, "Limit": limit})
+		updateAt, err := s.GetReplica().SelectInt("SELECT UpdateAt FROM Users, TeamMembers WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId ORDER BY UpdateAt DESC LIMIT 1", map[string]interface{}{"TeamId": teamId})
 		if err != nil {
 			result.Data = fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.GetMillis(), utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
 		} else {

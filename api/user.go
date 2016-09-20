@@ -1026,7 +1026,7 @@ func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	etag := (<-Srv.Store.User().GetEtagForProfiles(id, offset, limit)).Data.(string)
+	etag := (<-Srv.Store.User().GetEtagForProfiles(id)).Data.(string)
 	if HandleEtag(etag, w, r) {
 		return
 	}
