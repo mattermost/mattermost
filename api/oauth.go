@@ -102,6 +102,7 @@ func getOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) {
 	if HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH) {
 		ochan = Srv.Store.OAuth().GetApps()
 	} else {
+		c.Err = nil
 		ochan = Srv.Store.OAuth().GetAppByUser(c.Session.UserId)
 	}
 
