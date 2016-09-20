@@ -541,6 +541,81 @@ func (us SqlUserStore) GetProfiles(teamId string) StoreChannel {
 	return storeChannel
 }
 
+func (us SqlUserStore) GetProfilesInChannel(channelId string) StoreChannel {
+
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var users []*model.User
+
+		if _, err := us.GetReplica().Select(&users, "SELECT Users.* FROM Users, ChannelMembers WHERE ChannelMembers.ChannelId = :ChannelId AND Users.Id = ChannelMembers.UserId", map[string]interface{}{"ChannelId": channelId}); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.GetProfilesInChannel", "store.sql_user.get_profiles.app_error", nil, err.Error())
+		} else {
+
+			userMap := make(map[string]*model.User)
+
+			for _, u := range users {
+				u.Password = ""
+				u.AuthData = new(string)
+				*u.AuthData = ""
+				userMap[u.Id] = u
+			}
+
+			result.Data = userMap
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (us SqlUserStore) GetProfilesByUsernames(usernames []string) StoreChannel {
+
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var users []*model.User
+		props := make(map[string]interface{})
+		idQuery := ""
+
+		for index, usernames := range usernames {
+			if len(idQuery) > 0 {
+				idQuery += ", "
+			}
+
+			props["username"+strconv.Itoa(index)] = usernames
+			idQuery += ":username" + strconv.Itoa(index)
+		}
+
+		if _, err := us.GetReplica().Select(&users, "SELECT * FROM Users WHERE Users.Username IN ("+idQuery+")", props); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.GetProfilesByUsernames", "store.sql_user.get_profiles.app_error", nil, err.Error())
+		} else {
+
+			userMap := make(map[string]*model.User)
+
+			for _, u := range users {
+				u.Password = ""
+				u.AuthData = new(string)
+				*u.AuthData = ""
+				userMap[u.Id] = u
+			}
+
+			result.Data = userMap
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (us SqlUserStore) GetDirectProfiles(userId string) StoreChannel {
 
 	storeChannel := make(StoreChannel, 1)
