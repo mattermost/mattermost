@@ -240,6 +240,12 @@
     }
 
     .more-modal__list {
+        .filtered-user-list {
+             .filter-controls {
+                padding-bottom: 1em;
+             }
+        }
+
         .filter-row {
             margin: 10px 0;
             overflow: hidden;
