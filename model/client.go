@@ -536,6 +536,18 @@ func (c *Client) GetDirectProfiles(etag string) (*Result, *AppError) {
 	}
 }
 
+// GetProfilesFromList returns a map of users based on the user ids provided. Must
+// be authenticated.
+func (c *Client) GetProfilesFromList(userIds []string) (*Result, *AppError) {
+	if r, err := c.DoApiPost("/users/profiles_from_list", ArrayToJson(userIds)); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), UserMapFromJson(r.Body)}, nil
+	}
+}
+
 // LoginById authenticates a user by user id and password.
 func (c *Client) LoginById(id string, password string) (*Result, *AppError) {
 	m := make(map[string]string)
