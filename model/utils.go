@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/mail"
 	"net/url"
 	"regexp"
@@ -74,15 +75,21 @@ func (er *AppError) ToJson() string {
 
 // AppErrorFromJson will decode the input and return an AppError
 func AppErrorFromJson(data io.Reader) *AppError {
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(data)
-	decoder := json.NewDecoder(buf)
+	str := ""
+	bytes, rerr := ioutil.ReadAll(data)
+	if rerr != nil {
+		str = rerr.Error()
+	} else {
+		str = string(bytes)
+	}
+
+	decoder := json.NewDecoder(strings.NewReader(str))
 	var er AppError
 	err := decoder.Decode(&er)
 	if err == nil {
 		return &er
 	} else {
-		return NewLocAppError("AppErrorFromJson", "model.utils.decode_json.app_error", nil, buf.String())
+		return NewLocAppError("AppErrorFromJson", "model.utils.decode_json.app_error", nil, "body: "+str)
 	}
 }
 
