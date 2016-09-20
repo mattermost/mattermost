@@ -50,10 +50,7 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 func (us SqlUserStore) CreateIndexesIfNotExists() {
 	us.CreateIndexIfNotExists("idx_users_email", "Users", "Email")
 
-	//us.CreateFullTextIndexIfNotExists("idx_users_username_txt", "Users", "Username")
 	us.CreateFullTextIndexIfNotExists("idx_users_username_and_email_txt", "Users", "Username, Email")
-	//us.CreateFullTextIndexIfNotExists("idx_users_last_name_txt", "Users", "LastName")
-	//us.CreateFullTextIndexIfNotExists("idx_users_email_txt", "Users", "Email")
 }
 
 func (us SqlUserStore) Save(user *model.User) StoreChannel {

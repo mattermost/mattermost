@@ -2640,13 +2640,6 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 func getProfilesFromList(c *Context, w http.ResponseWriter, r *http.Request) {
 	userIds := model.ArrayFromJson(r.Body)
 
-	/*var userIds []string
-	var ok bool
-	if userIds, ok = props["user_ids"]; !ok {
-		c.SetInvalidParam("getProfilesFromList", "user_ids")
-		return
-	}*/
-
 	if result := <-Srv.Store.User().GetProfileByIds(userIds); result.Err != nil {
 		c.Err = result.Err
 		return
