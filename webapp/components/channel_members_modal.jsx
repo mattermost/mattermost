@@ -7,6 +7,9 @@ import ChannelInviteModal from './channel_invite_modal.jsx';
 
 import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
+
+import {searchUsers} from 'actions/user_actions.jsx';
 
 import * as AsyncClient from 'utils/async_client.jsx';
 import Client from 'client/web_client.jsx';
@@ -27,12 +30,15 @@ export default class ChannelMembersModal extends React.Component {
         this.getStateFromStores = this.getStateFromStores.bind(this);
         this.onChange = this.onChange.bind(this);
         this.handleRemove = this.handleRemove.bind(this);
-
         this.createRemoveMemberButton = this.createRemoveMemberButton.bind(this);
+        this.search = this.search.bind(this);
+
+        this.term = '';
 
         // the rest of the state gets populated when the modal is shown
         this.state = {
-            showInviteModal: false
+            showInviteModal: false,
+            search: false
         };
     }
 
@@ -107,6 +113,11 @@ export default class ChannelMembersModal extends React.Component {
     }
 
     onChange() {
+        if (this.state.search) {
+            this.search(this.term);
+            return;
+        }
+
         const newState = this.getStateFromStores();
         if (!Utils.areObjectsEqual(this.state, newState)) {
             this.setState(newState);
@@ -160,6 +171,39 @@ export default class ChannelMembersModal extends React.Component {
         AsyncClient.getProfiles((page + 1) * USERS_PER_PAGE, USERS_PER_PAGE);
     }
 
+    search(term) {
+        this.term = term;
+
+        if (term === '') {
+            this.setState(this.getStateFromStores);
+            this.setState({search: false});
+            return;
+        }
+
+        searchUsers(
+            TeamStore.getCurrentId(),
+            term,
+            (users) => {
+                const extraInfo = ChannelStore.getCurrentExtraInfo();
+                const members = extraInfo.members;
+
+                const memberMap = [];
+                for (let i = 0; i < members.length; i++) {
+                    memberMap[members[i].id] = members[i];
+                }
+
+                const memberList = [];
+                for (let i = 0; i < users.length; i++) {
+                    if (memberMap[users[i].id]) {
+                        memberList.push(users[i]);
+                    }
+                }
+
+                this.setState({search: true, memberList});
+            }
+        );
+    }
+
     render() {
         let content;
         if (this.state.loading) {
@@ -181,6 +225,7 @@ export default class ChannelMembersModal extends React.Component {
                     users={this.state.memberList}
                     usersPerPage={USERS_PER_PAGE}
                     nextPage={this.nextPage}
+                    search={this.search}
                     actions={removeButton}
                 />
             );
