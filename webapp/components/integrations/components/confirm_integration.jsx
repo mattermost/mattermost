@@ -154,9 +154,9 @@ export default class ConfirmIntegration extends React.Component {
                 helpText = [];
                 helpText.push(
                     <p>
-                        <FormattedMessage
+                        <FormattedHTMLMessage
                             id='add_oauth_app.doneHelp'
-                            defaultMessage='Your OAuth 2.0 application has been set up. Please use the following Client ID and Client Secret when requesting authorization for your application.'
+                            defaultMessage='Your OAuth 2.0 application has been set up. Please use the following Client ID and Client Secret when requesting authorization for your application (see <a href="https://docs.mattermost.com/developer/oauth-2-0-applications.html">documentation</a> for further details).'
                         />
                     </p>
                 );
