@@ -74,13 +74,15 @@ func (er *AppError) ToJson() string {
 
 // AppErrorFromJson will decode the input and return an AppError
 func AppErrorFromJson(data io.Reader) *AppError {
-	decoder := json.NewDecoder(data)
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(data)
+	decoder := json.NewDecoder(buf)
 	var er AppError
 	err := decoder.Decode(&er)
 	if err == nil {
 		return &er
 	} else {
-		return NewLocAppError("AppErrorFromJson", "model.utils.decode_json.app_error", nil, err.Error())
+		return NewLocAppError("AppErrorFromJson", "model.utils.decode_json.app_error", nil, buf.String())
 	}
 }
 
