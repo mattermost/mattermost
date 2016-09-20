@@ -1596,7 +1596,7 @@
   "search_header.results": "Search Results",
   "search_header.title2": "Recent Mentions",
   "search_header.title3": "Flagged Posts",
-  "search_item.direct": "Direct Message",
+  "search_item.direct": "Direct Message (with {username})",
   "search_item.jump": "Jump",
   "search_results.because": "<ul><li>If you're searching a partial phrase (ex. searching \"rea\", looking for \"reach\" or \"reaction\"), append a * to your search term.</li><li>Two letter searches and common words like \"this\", \"a\" and \"is\" won't appear in search results due to excessive results returned.</li></ul>",
   "search_results.noResults": "No results found. Try again?",
