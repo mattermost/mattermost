@@ -279,7 +279,7 @@ export default class RhsThread extends React.Component {
 
         if (profile == null) {
             this.profilesToLoad[selected.user_id] = true;
-            profile = {id: selected.user_id, username: '...', first_name: '...', last_name: '', delete_at: 0, update_at: 0}
+            profile = {id: selected.user_id, username: '...', first_name: '...', last_name: '', delete_at: 0, update_at: 0};
         }
 
         let isRootFlagged = false;
