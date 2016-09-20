@@ -86,6 +86,7 @@ export const ActionTypes = keyMirror({
 
     RECEIVED_PROFILES_FOR_DM_LIST: null,
     RECEIVED_PROFILES: null,
+    RECEIVED_PROFILE: null,
     RECEIVED_DIRECT_PROFILES: null,
     RECEIVED_ME: null,
     RECEIVED_SESSIONS: null,
@@ -305,6 +306,7 @@ export const Constants = {
     SIGNIN_VERIFIED: 'verified',
     SESSION_EXPIRED: 'expired',
     POST_CHUNK_SIZE: 60,
+    PROFILE_CHUNK_SIZE: 100,
     MAX_POST_CHUNKS: 3,
     POST_FOCUS_CONTEXT_RADIUS: 10,
     POST_LOADING: 'loading',

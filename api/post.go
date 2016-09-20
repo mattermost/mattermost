@@ -563,7 +563,7 @@ func getExplicitMentions(message string, keywords map[string][]string) (map[stri
 
 func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *model.Channel) {
 	// get profiles for all users we could be mentioning
-	pchan := Srv.Store.User().GetProfiles(c.TeamId)
+	pchan := Srv.Store.User().GetProfiles(c.TeamId, 0, 100000)
 	dpchan := Srv.Store.User().GetDirectProfiles(c.Session.UserId)
 	mchan := Srv.Store.Channel().GetMembers(post.ChannelId)
 

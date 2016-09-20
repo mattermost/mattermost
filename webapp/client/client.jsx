@@ -989,31 +989,51 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getDirectProfiles', success, error));
     }
 
-    getProfiles(success, error) {
+    getProfiles(offset, limit, success, error) {
         request.
-            get(`${this.getUsersRoute()}/profiles/${this.getTeamId()}`).
+            get(`${this.getUsersRoute()}/profiles/${this.getTeamId()}/${offset}/${limit}`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getProfiles', success, error));
     }
 
-    getProfilesForTeam(teamId, success, error) {
+    getProfilesForTeam(teamId, offset, limit, success, error) {
         request.
-            get(`${this.getUsersRoute()}/profiles/${teamId}`).
+            get(`${this.getUsersRoute()}/profiles/${teamId}/${offset}/${limit}`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getProfilesForTeam', success, error));
     }
 
-    getProfilesForDirectMessageList(success, error) {
+    getProfilesForDirectMessageList(offset, limit, success, error) {
         request.
-            get(`${this.getUsersRoute()}/profiles_for_dm_list/${this.getTeamId()}`).
+            get(`${this.getUsersRoute()}/profiles_for_dm_list/${this.getTeamId()}/${offset}/${limit}`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getProfilesForDirectMessageList', success, error));
+    }
+
+    getProfilesFromList(userIds, success, error) {
+        request.
+            post(`${this.getUsersRoute()}/profiles_from_list`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(userIds).
+            end(this.handleResponse.bind(this, 'getProfilesFromList', success, error));
+    }
+
+    searchUsers(teamId, term, success, error) {
+        request.
+            post(`${this.getUsersRoute()}/search`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send({team_id: teamId, term}).
+            end(this.handleResponse.bind(this, 'searchUsers', success, error));
     }
 
     getStatuses(success, error) {

@@ -1,16 +1,25 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import AdminStore from 'stores/admin_store.jsx';
-import Client from 'client/web_client.jsx';
-import FormError from 'components/form_error.jsx';
-import LoadingScreen from '../loading_screen.jsx';
-import UserItem from './user_item.jsx';
+import SearchableUserList from 'components/searchable_user_list.jsx';
+import AdminTeamMembersDropdown from './admin_team_members_dropdown.jsx';
+import LoadingScreen from 'components/loading_screen.jsx';
 import ResetPasswordModal from './reset_password_modal.jsx';
+import FormError from 'components/form_error.jsx';
 
-import {FormattedMessage} from 'react-intl';
+import AdminStore from 'stores/admin_store.jsx';
+
+import {searchUsers} from 'actions/user_actions.jsx';
+
+import Client from 'client/web_client.jsx';
+
+import Constants from 'utils/constants.jsx';
+import * as Utils from 'utils/utils.jsx';
 
 import React from 'react';
+import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
+
+const USERS_PER_PAGE = 50;
 
 export default class UserList extends React.Component {
     static get propTypes() {
@@ -29,7 +38,8 @@ export default class UserList extends React.Component {
         this.doPasswordReset = this.doPasswordReset.bind(this);
         this.doPasswordResetDismiss = this.doPasswordResetDismiss.bind(this);
         this.doPasswordResetSubmit = this.doPasswordResetSubmit.bind(this);
-        this.getTeamMemberForUser = this.getTeamMemberForUser.bind(this);
+        this.nextPage = this.nextPage.bind(this);
+        this.search = this.search.bind(this);
 
         this.state = {
             team: AdminStore.getTeam(this.props.params.team),
@@ -89,6 +99,8 @@ export default class UserList extends React.Component {
 
         Client.getProfilesForTeam(
             teamId,
+            0,
+            Constants.PROFILE_CHUNK_SIZE,
             (users) => {
                 var memberList = [];
                 for (var id in users) {
@@ -122,6 +134,45 @@ export default class UserList extends React.Component {
         );
     }
 
+    nextPage(page) {
+        Client.getProfilesForTeam(
+            this.props.params.team,
+            (page + 1) * USERS_PER_PAGE,
+            Constants.PROFILE_CHUNK_SIZE,
+            (users) => {
+                var memberList = [];
+                for (var id in users) {
+                    if (users.hasOwnProperty(id)) {
+                        memberList.push(users[id]);
+                    }
+                }
+
+                memberList.sort((a, b) => {
+                    if (a.username < b.username) {
+                        return -1;
+                    }
+
+                    if (a.username > b.username) {
+                        return 1;
+                    }
+
+                    return 0;
+                });
+
+                const newUsers = this.state.users.concat(memberList);
+
+                this.setState({
+                    users: newUsers
+                });
+            },
+            (err) => {
+                this.setState({
+                    serverError: err.message
+                });
+            }
+        );
+    }
+
     doPasswordReset(user) {
         this.setState({
             showPasswordModal: true,
@@ -144,20 +195,20 @@ export default class UserList extends React.Component {
         });
     }
 
-    getTeamMemberForUser(userId) {
-        if (this.state.teamMembers) {
-            for (const index in this.state.teamMembers) {
-                if (this.state.teamMembers.hasOwnProperty(index)) {
-                    var teamMember = this.state.teamMembers[index];
-
-                    if (teamMember.user_id === userId) {
-                        return teamMember;
-                    }
-                }
-            }
+    search(term) {
+        if (term === '') {
+            this.getCurrentTeamProfiles();
+            this.setState({search: false});
+            return;
         }
 
-        return null;
+        searchUsers(
+            this.props.params.team,
+            term,
+            (users) => {
+                this.setState({search: true, users});
+            }
+        );
     }
 
     render() {
@@ -183,23 +234,62 @@ export default class UserList extends React.Component {
             );
         }
 
-        var memberList = this.state.users.map((user) => {
-            var teamMember = this.getTeamMemberForUser(user.id);
+        const teamMembers = this.state.teamMembers;
+        const actionUserProps = {};
+        for (let i = 0; i < teamMembers.length; i++) {
+            actionUserProps[teamMembers[i].user_id] = {
+                teamMember: teamMembers[i]
+            };
+        }
 
-            if (!teamMember || teamMember.delete_at > 0) {
-                return null;
+        const mfaEnabled = global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.MFA === 'true' && global.window.mm_config.EnableMultifactorAuthentication === 'true';
+
+        const users = this.state.users;
+        const extraInfo = {};
+        for (let i = 0; i < users.length; i++) {
+            const user = users[i];
+            const info = [];
+
+            if (user.auth_service) {
+                const service = (user.auth_service === Constants.LDAP_SERVICE || user.auth_service === Constants.SAML_SERVICE) ? user.auth_service.toUpperCase() : Utils.toTitleCase(user.auth_service);
+                info.push(
+                    <FormattedHTMLMessage
+                        id='admin.user_item.authServiceNotEmail'
+                        defaultMessage='<strong>Sign-in Method:</strong> {service}'
+                        values={{
+                            service
+                        }}
+                    />
+                );
+            } else {
+                info.push(
+                    <FormattedHTMLMessage
+                        id='admin.user_item.authServiceEmail'
+                        defaultMessage='<strong>Sign-in Method:</strong> Email'
+                    />
+                );
             }
 
-            return (
-                <UserItem
-                    team={this.state.team}
-                    key={'user_' + user.id}
-                    user={user}
-                    teamMember={teamMember}
-                    refreshProfiles={this.getCurrentTeamProfiles}
-                    doPasswordReset={this.doPasswordReset}
-                />);
-        });
+            if (mfaEnabled) {
+                if (user.mfa_active) {
+                    info.push(
+                        <FormattedHTMLMessage
+                            id='admin.user_item.mfaYes'
+                            defaultMessage='<strong>MFA</strong>: Yes'
+                        />
+                    );
+                } else {
+                    info.push(
+                        <FormattedHTMLMessage
+                            id='admin.user_item.mfaNo'
+                            defaultMessage='<strong>MFA</strong>: No'
+                        />
+                    );
+                }
+            }
+
+            extraInfo[user.id] = info;
+        }
 
         return (
             <div className='wrapper--fixed'>
@@ -209,7 +299,7 @@ export default class UserList extends React.Component {
                         defaultMessage='Users for {team} ({count})'
                         values={{
                             team: this.state.team.name,
-                            count: this.state.users.length
+                            count: this.state.teamMembers.length
                         }}
                     />
                 </h3>
@@ -219,7 +309,19 @@ export default class UserList extends React.Component {
                     role='form'
                 >
                     <div className='more-modal__list member-list-holder'>
-                        {memberList}
+                        <SearchableUserList
+                            users={this.state.users}
+                            usersPerPage={USERS_PER_PAGE}
+                            extraInfo={extraInfo}
+                            nextPage={this.nextPage}
+                            search={this.search}
+                            actions={[AdminTeamMembersDropdown]}
+                            actionProps={{
+                                refreshProfiles: this.getCurrentTeamProfiles,
+                                doPasswordReset: this.doPasswordReset
+                            }}
+                            actionUserProps={actionUserProps}
+                        />
                     </div>
                 </form>
                 <ResetPasswordModal
