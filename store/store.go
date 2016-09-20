@@ -147,8 +147,8 @@ type UserStore interface {
 	GetByUsername(username string) StoreChannel
 	GetForLogin(loginId string, allowSignInWithUsername, allowSignInWithEmail, ldapEnabled bool) StoreChannel
 	VerifyEmail(userId string) StoreChannel
-	GetEtagForAllProfiles(offset int, limit int) StoreChannel
-	GetEtagForProfiles(teamId string, offset int, limit int) StoreChannel
+	GetEtagForAllProfiles() StoreChannel
+	GetEtagForProfiles(teamId string) StoreChannel
 	GetEtagForDirectProfiles(userId string) StoreChannel
 	UpdateFailedPasswordAttempts(userId string, attempts int) StoreChannel
 	GetTotalUsersCount() StoreChannel
