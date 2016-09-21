@@ -487,6 +487,9 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAuditWithUserId(user.Id, "success")
 
 	doLogin(c, w, r, user, deviceId)
+	if c.Err != nil {
+		return
+	}
 
 	user.Sanitize(map[string]bool{})
 
@@ -554,6 +557,9 @@ func LoginByOAuth(c *Context, w http.ResponseWriter, r *http.Request, service st
 	} else {
 		user = result.Data.(*model.User)
 		doLogin(c, w, r, user, "")
+		if c.Err != nil {
+			return nil
+		}
 		return user
 	}
 }
@@ -2544,6 +2550,9 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			break
 		}
 		doLogin(c, w, r, user, "")
+		if c.Err != nil {
+			return
+		}
 
 		if val, ok := relayProps["redirect_to"]; ok {
 			http.Redirect(w, r, c.GetSiteURL()+val, http.StatusFound)
