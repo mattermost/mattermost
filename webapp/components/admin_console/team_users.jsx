@@ -312,6 +312,7 @@ export default class UserList extends React.Component {
                         <SearchableUserList
                             users={this.state.users}
                             usersPerPage={USERS_PER_PAGE}
+                            total={this.state.teamMembers.length}
                             extraInfo={extraInfo}
                             nextPage={this.nextPage}
                             search={this.search}

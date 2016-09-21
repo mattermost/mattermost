@@ -87,6 +87,7 @@ export default class MemberListTeam extends React.Component {
                 style={this.props.style}
                 users={this.state.users}
                 usersPerPage={USERS_PER_PAGE}
+                total={teamMembers.length}
                 nextPage={this.nextPage}
                 search={this.search}
                 actions={teamMembersDropdown}
