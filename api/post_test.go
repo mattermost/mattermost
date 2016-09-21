@@ -860,7 +860,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	profiles := map[string]*model.User{user1.Id: user1}
 	mentions := getMentionKeywordsInChannel(profiles)
 	if len(mentions) != 3 {
-		t.Fatal("should've returned two mention keywords")
+		t.Fatal("should've returned three mention keywords")
 	} else if ids, ok := mentions["user"]; !ok || ids[0] != user1.Id {
 		t.Fatal("should've returned mention key of user")
 	} else if ids, ok := mentions["@user"]; !ok || ids[0] != user1.Id {
@@ -960,15 +960,6 @@ func TestGetMentionKeywords(t *testing.T) {
 	} else if ids, ok := mentions["@all"]; !ok || len(ids) != 2 || (ids[0] != user3.Id && ids[1] != user3.Id) || (ids[0] != user4.Id && ids[1] != user4.Id) {
 		t.Fatal("should've mentioned user3 and user4 with @all")
 	}
-
-	// a user that's not in the channel
-	//profiles = map[string]*model.User{user4.Id: user4}
-	//mentions = getMentionKeywordsInChannel(profiles)
-	//if len(mentions) != 1 {
-	//	t.Fatal("should've returned one mention keyword")
-	//} else if ids, ok := mentions["@user"]; !ok || len(ids) != 1 || ids[0] != user4.Id {
-	//	t.Fatal("should've returned mention key of @user")
-	//}
 }
 
 func TestGetExplicitMentionsAtHere(t *testing.T) {
@@ -1024,10 +1015,12 @@ func TestGetExplicitMentionsAtHere(t *testing.T) {
 
 	// mentioning @here and someone
 	id := model.NewId()
-	if mentions, _, hereMentioned := getExplicitMentions("@here @user", map[string][]string{"@user": {id}}); !hereMentioned {
+	if mentions, potential, hereMentioned := getExplicitMentions("@here @user @potential", map[string][]string{"@user": {id}}); !hereMentioned {
 		t.Fatal("should've mentioned @here with \"@here @user\"")
 	} else if len(mentions) != 1 || !mentions[id] {
 		t.Fatal("should've mentioned @user with \"@here @user\"")
+	} else if len(potential) > 1 {
+		t.Fatal("should've potential mentions for @potential")
 	}
 }
 
@@ -1038,8 +1031,8 @@ func TestGetExplicitMentions(t *testing.T) {
 	// not mentioning anybody
 	message := "this is a message"
 	keywords := map[string][]string{}
-	if mentions, _, _ := getExplicitMentions(message, keywords); len(mentions) != 0 {
-		t.Fatal("shouldn't have mentioned anybody")
+	if mentions, potential, _ := getExplicitMentions(message, keywords); len(mentions) != 0 || len(potential) != 0 {
+		t.Fatal("shouldn't have mentioned anybody or have any potencial mentions")
 	}
 
 	// mentioning a user that doesn't exist
@@ -1100,6 +1093,13 @@ func TestGetExplicitMentions(t *testing.T) {
 	keywords = map[string][]string{"user.period": {id1}, "user": {id2}}
 	if mentions, _, _ := getExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] || mentions[id2] {
 		t.Fatal("should've mentioned user.period and not user")
+	}
+
+	// mentioning a potential out of channel user
+	message = "this is an message for @potential and @user"
+	keywords = map[string][]string{"@user": {id1}}
+	if mentions, potential, _ := getExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] || len(potential) != 1 {
+		t.Fatal("should've mentioned user and have a potential not in channel")
 	}
 }
 
