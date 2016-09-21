@@ -199,6 +199,11 @@ func UpgradeDatabaseToVersion35(sqlStore *SqlStore) {
 	sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET Roles = 'channel_user' WHERE Roles = ''")
 	sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET Roles = 'channel_user channel_admin' WHERE Roles = 'admin'")
 
+	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// UNCOMMENT WHEN WE DO RELEASE
+	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	//sqlStore.Session().RemoveAllSessions()
+
 	//saveSchemaVersion(sqlStore, VERSION_3_5_0)
 	//}
 }
