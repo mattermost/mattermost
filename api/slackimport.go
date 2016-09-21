@@ -286,15 +286,20 @@ func SlackConvertUserMentions(users []SlackUser, posts map[string][]SlackPost) m
 }
 
 func SlackConvertChannelMentions(channels []SlackChannel, posts map[string][]SlackPost) map[string][]SlackPost {
-	var channelPatterns = make(map[string]string, len(channels))
+	var regexes = make(map[string]*regexp.Regexp, len(channels))
 	for _, channel := range channels {
-		channelPatterns["!"+channel.Name] = "<#" + channel.Id + ">"
+		r, err := regexp.Compile("<#" + channel.Id + `(\|` + channel.Name + ")?>")
+		if err != nil {
+			l4g.Warn(utils.T("api.slackimport.slack_convert_channel_mentions.compile_regexp_failed.warn"), channel.Id, channel.Name)
+			continue
+		}
+		regexes["!"+channel.Name] = r
 	}
 
 	for channelName, channelPosts := range posts {
 		for postIdx, post := range channelPosts {
-			for channelReplace, channelMatch := range channelPatterns {
-				post.Text = strings.Replace(post.Text, channelMatch, channelReplace, -1)
+			for channelReplace, r := range regexes {
+				post.Text = r.ReplaceAllString(post.Text, channelReplace)
 				posts[channelName][postIdx] = post
 			}
 		}
