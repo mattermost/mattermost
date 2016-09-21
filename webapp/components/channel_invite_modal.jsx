@@ -33,9 +33,7 @@ export default class ChannelInviteModal extends React.Component {
         this.page = 0;
         this.term = '';
 
-        const state = this.getStateFromStores();
-        state.search = false;
-        this.state = state;
+        this.state = {search: false};
     }
 
     shouldComponentUpdate(nextProps, nextState) {
