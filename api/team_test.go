@@ -567,3 +567,66 @@ func TestGetTeamMembers(t *testing.T) {
 		t.Log(members)
 	}
 }
+
+func TestUpdateTeamMemberRoles(t *testing.T) {
+	th := Setup().InitSystemAdmin().InitBasic()
+	th.SystemAdminClient.SetTeamId(th.BasicTeam.Id)
+	LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
+
+	const BASIC_MEMBER = "team_user"
+	const TEAM_ADMIN = "team_user team_admin"
+
+	// user 1 trying to promote user 2
+	if _, err := th.BasicClient.UpdateTeamRoles(th.BasicUser2.Id, TEAM_ADMIN); err == nil {
+		t.Fatal("Should have errored, not team admin")
+	}
+
+	// user 1 trying to promote themselves
+	if _, err := th.BasicClient.UpdateTeamRoles(th.BasicUser.Id, TEAM_ADMIN); err == nil {
+		t.Fatal("Should have errored, not team admin")
+	}
+
+	// user 1 trying to demote someone
+	if _, err := th.BasicClient.UpdateTeamRoles(th.SystemAdminUser.Id, BASIC_MEMBER); err == nil {
+		t.Fatal("Should have errored, not team admin")
+	}
+
+	// system admin promoting user1
+	if _, err := th.SystemAdminClient.UpdateTeamRoles(th.BasicUser.Id, TEAM_ADMIN); err != nil {
+		t.Fatal("Should have worked: " + err.Error())
+	}
+
+	// user 1 trying to promote user 2
+	if _, err := th.BasicClient.UpdateTeamRoles(th.BasicUser2.Id, TEAM_ADMIN); err != nil {
+		t.Fatal("Should have worked, user is team admin: " + th.BasicUser.Id)
+	}
+
+	// user 1 trying to demote user 2
+	if _, err := th.BasicClient.UpdateTeamRoles(th.BasicUser2.Id, BASIC_MEMBER); err != nil {
+		t.Fatal("Should have worked, user is team admin")
+	}
+
+	// user 1 trying to demote a system admin
+	if _, err := th.BasicClient.UpdateTeamRoles(th.SystemAdminUser.Id, BASIC_MEMBER); err != nil {
+		t.Fatal("Should have worked, user is team admin and has the ability to manage permissions on this team.")
+		// Note to anyone who thinks this test is wrong:
+		// This operation will not effect the system admin's permissions because they have global access to all teams.
+		// Their team level permissions are irrelavent. A team admin should be able to manage team level permissions.
+	}
+
+	// System admins should be able to manipulate permission no matter what their team level permissions are.
+	// systemAdmin trying to promote user 2
+	if _, err := th.SystemAdminClient.UpdateTeamRoles(th.BasicUser2.Id, TEAM_ADMIN); err != nil {
+		t.Fatal("Should have worked, user is system admin")
+	}
+
+	// system admin trying to demote user 2
+	if _, err := th.SystemAdminClient.UpdateTeamRoles(th.BasicUser2.Id, BASIC_MEMBER); err != nil {
+		t.Fatal("Should have worked, user is system admin")
+	}
+
+	// user 1 trying to demote himself
+	if _, err := th.BasicClient.UpdateTeamRoles(th.BasicUser.Id, BASIC_MEMBER); err != nil {
+		t.Fatal("Should have worked, user is team admin")
+	}
+}

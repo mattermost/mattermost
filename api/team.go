@@ -35,6 +35,7 @@ func InitTeam() {
 
 	BaseRoutes.NeedTeam.Handle("/me", ApiUserRequired(getMyTeam)).Methods("GET")
 	BaseRoutes.NeedTeam.Handle("/update", ApiUserRequired(updateTeam)).Methods("POST")
+	BaseRoutes.NeedTeam.Handle("/update_member_roles", ApiUserRequired(updateMemberRoles)).Methods("POST")
 
 	BaseRoutes.NeedTeam.Handle("/invite_members", ApiUserRequired(inviteMembers)).Methods("POST")
 
@@ -782,6 +783,62 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	oldTeam.Sanitize()
 
 	w.Write([]byte(oldTeam.ToJson()))
+}
+
+func updateMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJson(r.Body)
+
+	userId := props["user_id"]
+	if len(userId) != 26 {
+		c.SetInvalidParam("updateMemberRoles", "user_id")
+		return
+	}
+
+	mchan := Srv.Store.Team().GetTeamsForUser(userId)
+
+	teamId := c.TeamId
+
+	newRoles := props["new_roles"]
+	if !(model.IsValidUserRoles(newRoles)) {
+		c.SetInvalidParam("updateMemberRoles", "new_roles")
+		return
+	}
+
+	if !HasPermissionToTeamContext(c, teamId, model.PERMISSION_MANAGE_ROLES) {
+		return
+	}
+
+	var member *model.TeamMember
+	if result := <-mchan; result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		members := result.Data.([]*model.TeamMember)
+		for _, m := range members {
+			if m.TeamId == teamId {
+				member = m
+			}
+		}
+	}
+
+	if member == nil {
+		c.Err = model.NewLocAppError("updateMemberRoles", "api.team.update_member_roles.not_a_member", nil, "userId="+userId+" teamId="+teamId)
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	member.Roles = newRoles
+
+	if result := <-Srv.Store.Team().UpdateMember(member); result.Err != nil {
+		c.Err = result.Err
+		return
+	}
+
+	RemoveAllSessionsForUserId(userId)
+
+	rdata := map[string]string{}
+	rdata["status"] = "ok"
+	w.Write([]byte(model.MapToJson(rdata)))
 }
 
 func PermanentDeleteTeam(c *Context, team *model.Team) *model.AppError {

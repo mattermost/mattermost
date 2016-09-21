@@ -77,6 +77,10 @@ export default class Client {
         return `${this.url}${this.urlVersion}/teams/${this.getTeamId()}`;
     }
 
+    getTeamNeededManualRoute(teamId) {
+        return `${this.url}${this.urlVersion}/teams/${teamId}`;
+    }
+
     getChannelsRoute() {
         return `${this.url}${this.urlVersion}/teams/${this.getTeamId()}/channels`;
     }
@@ -709,22 +713,37 @@ export default class Client {
         this.track('api', 'api_users_update_notification_settings');
     }
 
-    updateRoles(teamId, userId, newRoles, success, error) {
+    updateUserRoles(userId, newRoles, success, error) {
         var data = {
-            team_id: teamId,
+            new_roles: newRoles
+        };
+
+        request.
+            post(`${this.getUserNeededRoute(userId)}/update_roles`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(data).
+            end(this.handleResponse.bind(this, 'updateUserRoles', success, error));
+
+        this.track('api', 'api_users_update_user_roles');
+    }
+
+    updateTeamMemberRoles(teamId, userId, newRoles, success, error) {
+        var data = {
             user_id: userId,
             new_roles: newRoles
         };
 
         request.
-            post(`${this.getUsersRoute()}/update_roles`).
+            post(`${this.getTeamNeededManualRoute(teamId)}/update_member_roles`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
             send(data).
-            end(this.handleResponse.bind(this, 'updateRoles', success, error));
+            end(this.handleResponse.bind(this, 'updateTeamMemberRoles', success, error));
 
-        this.track('api', 'api_users_update_roles');
+        this.track('api', 'api_teams_update_member_roles');
     }
 
     updateActive(userId, active, success, error) {
@@ -740,7 +759,7 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'updateActive', success, error));
 
-        this.track('api', 'api_users_update_roles');
+        this.track('api', 'api_users_update_active');
     }
 
     sendPasswordReset(email, success, error) {

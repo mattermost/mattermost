@@ -211,21 +211,18 @@ describe('Client.User', function() {
         });
     });
 
-    it('updateRoles', function(done) {
+    it('updateUserRoles', function(done) {
         TestHelper.initBasic(() => {
             var user = TestHelper.basicUser();
-            var team = TestHelper.basicTeam();
 
-            TestHelper.basicClient().updateRoles(
-                team.id,
+            TestHelper.basicClient().updateUserRoles(
                 user.id,
                 '',
-                function(data) {
-                    assert.equal(data.user_id, user.id);
-                    done();
+                function() {
+                    done(new Error('Not supposed to work'));
                 },
-                function(err) {
-                    done(new Error(err.message));
+                function() {
+                    done();
                 }
             );
         });

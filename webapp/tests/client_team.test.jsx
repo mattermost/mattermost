@@ -240,5 +240,24 @@ describe('Client.Team', function() {
             );
         });
     });
+
+    it('updateTeamMemberRoles', function(done) {
+        TestHelper.initBasic(() => {
+            var user = TestHelper.basicUser();
+            var team = TestHelper.basicTeam();
+
+            TestHelper.basicClient().updateTeamMemberRoles(
+                team.id,
+                user.id,
+                '',
+                function() {
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
 });
 
