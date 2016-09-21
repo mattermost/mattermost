@@ -29,7 +29,7 @@ export default class WebSocketClient {
         this.conn = new WebSocket(connectionUrl);
 
         this.conn.onopen = () => {
-            if (this.reconnectCallback) {
+            if (this.reconnectCallback && this.connectFailCount > 0) {
                 this.reconnectCallback();
             }
 
