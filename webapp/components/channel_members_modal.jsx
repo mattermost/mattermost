@@ -34,6 +34,7 @@ export default class ChannelMembersModal extends React.Component {
         this.search = this.search.bind(this);
 
         this.term = '';
+        this.page = 0;
 
         // the rest of the state gets populated when the modal is shown
         this.state = {
@@ -75,7 +76,7 @@ export default class ChannelMembersModal extends React.Component {
             }
         }
 
-        if (memberList.length < (this.page + 1) * USERS_PER_PAGE && memberList.length < extraInfo.member_count) {
+        if (memberList.length < (this.page + 2) * USERS_PER_PAGE && memberList.length < extraInfo.member_count) {
             AsyncClient.getProfiles();
             return {
                 loading: true
@@ -96,6 +97,7 @@ export default class ChannelMembersModal extends React.Component {
 
         return {
             memberList,
+            total: extraInfo.member_count,
             loading: false
         };
     }
@@ -104,11 +106,13 @@ export default class ChannelMembersModal extends React.Component {
         if (!this.props.show && nextProps.show) {
             ChannelStore.addExtraInfoChangeListener(this.onChange);
             ChannelStore.addChangeListener(this.onChange);
+            UserStore.addChangeListener(this.onChange);
 
             this.onChange();
         } else if (this.props.show && !nextProps.show) {
             ChannelStore.removeExtraInfoChangeListener(this.onChange);
             ChannelStore.removeChangeListener(this.onChange);
+            UserStore.removeChangeListener(this.onChange);
         }
     }
 
@@ -169,6 +173,7 @@ export default class ChannelMembersModal extends React.Component {
 
     nextPage(page) {
         AsyncClient.getProfiles((page + 1) * USERS_PER_PAGE, USERS_PER_PAGE);
+        this.page = page;
     }
 
     search(term) {
@@ -177,6 +182,7 @@ export default class ChannelMembersModal extends React.Component {
         if (term === '') {
             this.setState(this.getStateFromStores);
             this.setState({search: false});
+            this.page = 0;
             return;
         }
 
@@ -224,6 +230,7 @@ export default class ChannelMembersModal extends React.Component {
                     style={{maxHeight}}
                     users={this.state.memberList}
                     usersPerPage={USERS_PER_PAGE}
+                    total={this.state.total}
                     nextPage={this.nextPage}
                     search={this.search}
                     actions={removeButton}

@@ -30,8 +30,8 @@ export default class ChannelInviteModal extends React.Component {
         this.handleInviteError = this.handleInviteError.bind(this);
         this.search = this.search.bind(this);
 
-        this.page = 0;
         this.term = '';
+        this.page = 0;
 
         this.state = {search: false};
     }
@@ -94,9 +94,11 @@ export default class ChannelInviteModal extends React.Component {
             }
         }
 
+        const teamMembers = TeamStore.getMembersForTeam();
+
         // if we don't have enough members to display and there are other non channel members we don't have,
         // then fetch more
-        if (nonmembers.length < (this.page + 1) * USERS_PER_PAGE && (nonmembers.length + 1) < TeamStore.getMembersForTeam().length - extraInfo.member_count) {
+        if (nonmembers.length < (this.page + 2) * USERS_PER_PAGE && (nonmembers.length + 1) < teamMembers.length - extraInfo.member_count) {
             AsyncClient.getProfiles();
             return {
                 loading: true
@@ -109,6 +111,7 @@ export default class ChannelInviteModal extends React.Component {
 
         return {
             nonmembers,
+            total: teamMembers.length - extraInfo.member_count,
             loading: false,
             currentUser,
             currentMember
@@ -169,6 +172,7 @@ export default class ChannelInviteModal extends React.Component {
         if (term === '') {
             this.setState(this.getStateFromStores());
             this.setState({search: false});
+            this.page = 0;
             return;
         }
 
@@ -210,6 +214,7 @@ export default class ChannelInviteModal extends React.Component {
                     style={{maxHeight}}
                     users={this.state.nonmembers}
                     usersPerPage={USERS_PER_PAGE}
+                    total={this.state.total}
                     nextPage={this.nextPage}
                     search={this.search}
                     actions={[ChannelInviteButton]}
