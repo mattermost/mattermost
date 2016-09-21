@@ -21,7 +21,7 @@ import * as AsyncClient from 'utils/async_client.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
 import * as UserActions from 'actions/user_actions.jsx';
-import {handleNewPost} from 'actions/post_actions.jsx';
+import {handleNewPost, loadPosts} from 'actions/post_actions.jsx';
 
 import {Constants, SocketEvents, ActionTypes} from 'utils/constants.jsx';
 
@@ -53,6 +53,7 @@ export function initialize() {
         connUrl += Client.getUsersRoute() + '/websocket';
 
         WebSocketClient.setEventCallback(handleEvent);
+        WebSocketClient.setFirstConnectCallback(handleFirstConnect);
         WebSocketClient.setReconnectCallback(handleReconnect);
         WebSocketClient.setCloseCallback(handleClose);
         WebSocketClient.initialize(connUrl);
@@ -74,10 +75,16 @@ export function getStatuses() {
     );
 }
 
+function handleFirstConnect() {
+    getStatuses();
+    ErrorStore.clearLastError();
+    ErrorStore.emitChange();
+}
+
 function handleReconnect() {
     if (Client.teamId) {
         AsyncClient.getChannels();
-        AsyncClient.getPosts(ChannelStore.getCurrentId());
+        loadPosts(ChannelStore.getCurrentId());
         AsyncClient.getTeamMembers(TeamStore.getCurrentId());
         AsyncClient.getProfiles();
     }
