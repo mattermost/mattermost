@@ -152,6 +152,7 @@ func TestStatuses(t *testing.T) {
 	}
 }
 
+/*
 func TestSetActiveChannel(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.BasicClient
@@ -188,3 +189,4 @@ func TestSetActiveChannel(t *testing.T) {
 		t.Fatal("active channel should be set")
 	}
 }
+*/
