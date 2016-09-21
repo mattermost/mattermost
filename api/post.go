@@ -497,7 +497,8 @@ func getMentionKeywordsInChannel(profiles map[string]*model.User) map[string][]s
 // users and a slice of potencial mention users not in the channel and whether or not @here was mentioned.
 func getExplicitMentions(message string, keywords map[string][]string) (map[string]bool, []string, bool) {
 	mentioned := make(map[string]bool)
-	potenliatOthersMentioned := make([]string, 0)
+	potentialOthersMentioned := make([]string, 0)
+	systemMentions := map[string]bool{"@here": true, "@channel": true, "@all": true}
 	hereMentioned := false
 
 	addMentionedUsers := func(ids []string) {
@@ -523,8 +524,9 @@ func getExplicitMentions(message string, keywords map[string][]string) (map[stri
 		if ids, match := keywords[word]; match {
 			addMentionedUsers(ids)
 			isMention = true
-		} else if strings.HasPrefix(word, "@") {
-			potenliatOthersMentioned = append(potenliatOthersMentioned, word[1:])
+		} else if _, ok := systemMentions[word]; !ok && strings.HasPrefix(word, "@") {
+			potentialOthersMentioned = append(potentialOthersMentioned, word[1:])
+			continue
 		}
 
 		if !isMention {
@@ -547,15 +549,15 @@ func getExplicitMentions(message string, keywords map[string][]string) (map[stri
 				// Case-sensitive check for first name
 				if ids, match := keywords[splitWord]; match {
 					addMentionedUsers(ids)
-				} else if strings.HasPrefix(splitWord, "@") {
+				} else if _, ok := systemMentions[word]; !ok && strings.HasPrefix(word, "@") {
 					username := word[1:len(splitWord)]
-					potenliatOthersMentioned = append(potenliatOthersMentioned, username)
+					potentialOthersMentioned = append(potentialOthersMentioned, username)
 				}
 			}
 		}
 	}
 
-	return mentioned, potenliatOthersMentioned, hereMentioned
+	return mentioned, potentialOthersMentioned, hereMentioned
 }
 
 func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *model.Channel) {
