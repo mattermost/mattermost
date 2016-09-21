@@ -67,13 +67,13 @@ func saveSchemaVersion(sqlStore *SqlStore, version string) {
 	}
 
 	sqlStore.SchemaVersion = version
-	l4g.Info(utils.T("store.sql.upgraded.warn"), version)
+	l4g.Warn(utils.T("store.sql.upgraded.warn"), version)
 }
 
 func shouldPerformUpgrade(sqlStore *SqlStore, currentSchemaVersion string, expectedSchemaVersion string) bool {
 	if sqlStore.SchemaVersion == currentSchemaVersion {
-		l4g.Info(utils.T("store.sql.schema_out_of_date.warn"), currentSchemaVersion)
-		l4g.Info(utils.T("store.sql.schema_upgrade_attempt.warn"), expectedSchemaVersion)
+		l4g.Warn(utils.T("store.sql.schema_out_of_date.warn"), currentSchemaVersion)
+		l4g.Warn(utils.T("store.sql.schema_upgrade_attempt.warn"), expectedSchemaVersion)
 
 		return true
 	}
@@ -92,6 +92,18 @@ func UpgradeDatabaseToVersion32(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, VERSION_3_1_0, VERSION_3_2_0) {
 		sqlStore.CreateColumnIfNotExists("TeamMembers", "DeleteAt", "bigint(20)", "bigint", "0")
 
+		saveSchemaVersion(sqlStore, VERSION_3_2_0)
+	}
+}
+
+func themeMigrationFailed(err error) {
+	l4g.Critical(utils.T("store.sql_user.migrate_theme.critical"), err)
+	time.Sleep(time.Second)
+	os.Exit(EXIT_THEME_MIGRATION)
+}
+
+func UpgradeDatabaseToVersion33(sqlStore *SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_3_2_0, VERSION_3_3_0) {
 		if sqlStore.DoesColumnExist("Users", "ThemeProps") {
 			params := map[string]interface{}{
 				"Category": model.PREFERENCE_CATEGORY_THEME,
@@ -146,19 +158,6 @@ func UpgradeDatabaseToVersion32(sqlStore *SqlStore) {
 				sqlStore.Preference().Save(&data)
 			}
 		}
-
-		saveSchemaVersion(sqlStore, VERSION_3_2_0)
-	}
-}
-
-func themeMigrationFailed(err error) {
-	l4g.Critical(utils.T("store.sql_user.migrate_theme.critical"), err)
-	time.Sleep(time.Second)
-	os.Exit(EXIT_THEME_MIGRATION)
-}
-
-func UpgradeDatabaseToVersion33(sqlStore *SqlStore) {
-	if shouldPerformUpgrade(sqlStore, VERSION_3_2_0, VERSION_3_3_0) {
 
 		sqlStore.CreateColumnIfNotExists("OAuthApps", "IsTrusted", "tinyint(1)", "boolean", "0")
 		sqlStore.CreateColumnIfNotExists("OAuthApps", "IconURL", "varchar(512)", "varchar(512)", "")
