@@ -16,8 +16,12 @@ import (
 
 var statusCache *utils.Cache = utils.NewLru(model.STATUS_CACHE_SIZE)
 
-func AddStatusCache(status *model.Status) {
+func AddStatusCacheSkipClusterSend(status *model.Status) {
 	statusCache.Add(status.UserId, status)
+}
+
+func AddStatusCache(status *model.Status) {
+	AddStatusCacheSkipClusterSend(status)
 
 	if einterfaces.GetClusterInterface() != nil {
 		einterfaces.GetClusterInterface().UpdateStatus(status)
