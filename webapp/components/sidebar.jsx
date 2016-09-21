@@ -346,8 +346,8 @@ export default class Sidebar extends React.Component {
                 nextChannel = allChannels[nextIndex];
                 ChannelActions.goToChannel(nextChannel);
                 this.updateScrollbarOnChannelChange(nextChannel);
-                this.isSwitchingChannel = false;
             }
+            this.isSwitchingChannel = false;
         }
     }
 
