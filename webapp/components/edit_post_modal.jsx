@@ -1,26 +1,27 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
-import ReactDOM from 'react-dom';
-import Client from 'client/web_client.jsx';
-import * as UserAgent from 'utils/user_agent.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
-import * as GlobalActions from 'actions/global_actions.jsx';
 import Textbox from './textbox.jsx';
+
 import BrowserStore from 'stores/browser_store.jsx';
 import PostStore from 'stores/post_store.jsx';
 import MessageHistoryStore from 'stores/message_history_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
+
+import * as GlobalActions from 'actions/global_actions.jsx';
+import {loadPosts} from 'actions/post_actions.jsx';
+
+import Client from 'client/web_client.jsx';
+import * as UserAgent from 'utils/user_agent.jsx';
+import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
-
 import Constants from 'utils/constants.jsx';
+const KeyCodes = Constants.KeyCodes;
 
-import {FormattedMessage} from 'react-intl';
-
-var KeyCodes = Constants.KeyCodes;
-
+import $ from 'jquery';
 import React from 'react';
+import ReactDOM from 'react-dom';
+import {FormattedMessage} from 'react-intl';
 
 export default class EditPostModal extends React.Component {
     constructor(props) {
@@ -77,7 +78,7 @@ export default class EditPostModal extends React.Component {
         Client.updatePost(
             updatedPost,
             () => {
-                AsyncClient.getPosts(updatedPost.channel_id);
+                loadPosts(updatedPost.channel_id);
                 window.scrollTo(0, 0);
             },
             (err) => {

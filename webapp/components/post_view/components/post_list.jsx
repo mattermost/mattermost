@@ -13,7 +13,6 @@ import {createChannelIntroMessage} from 'utils/channel_intro_messages.jsx';
 
 import * as UserAgent from 'utils/user_agent.jsx';
 import * as Utils from 'utils/utils.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
 import DelayedAction from 'utils/delayed_action.jsx';
 
@@ -46,13 +45,11 @@ export default class PostList extends React.Component {
         this.scrollToBottom = this.scrollToBottom.bind(this);
         this.scrollToBottomAnimated = this.scrollToBottomAnimated.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
-        this.lazyLoadProfiles = this.lazyLoadProfiles.bind(this);
 
         this.jumpToPostNode = null;
         this.wasAtBottom = true;
         this.scrollHeight = 0;
         this.animationFrameId = 0;
-        this.profilesToLoad = {};
 
         this.scrollStopAction = new DelayedAction(this.handleScrollStop);
 
@@ -67,11 +64,6 @@ export default class PostList extends React.Component {
         } else {
             this.introText = this.getArchivesIntroMessage();
         }
-    }
-
-    lazyLoadProfiles() {
-        AsyncClient.getProfilesFromList(Object.keys(this.profilesToLoad));
-        this.profilesToLoad = {};
     }
 
     handleKeyDown(e) {
@@ -258,11 +250,6 @@ export default class PostList extends React.Component {
                 profile = this.props.currentUser;
             } else {
                 profile = profiles[post.user_id];
-            }
-
-            if (profile == null) {
-                this.profilesToLoad[post.user_id] = true;
-                profile = {id: post.user_id, username: '...', first_name: '...', last_name: '', delete_at: 0};
             }
 
             let commentCount = 0;
@@ -475,8 +462,6 @@ export default class PostList extends React.Component {
 
         window.addEventListener('resize', this.handleResize);
         window.addEventListener('keydown', this.handleKeyDown);
-
-        this.lazyLoadProfiles();
     }
 
     componentWillUnmount() {
@@ -490,8 +475,6 @@ export default class PostList extends React.Component {
         if (this.props.postList != null && this.refs.postlist) {
             this.updateScrolling();
         }
-
-        this.lazyLoadProfiles();
     }
 
     render() {
