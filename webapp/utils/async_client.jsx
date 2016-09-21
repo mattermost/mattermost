@@ -1,13 +1,11 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
 import Client from 'client/web_client.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
-import PostStore from 'stores/post_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import * as utils from './utils.jsx';
 import * as UserAgent from './user_agent.jsx';
@@ -600,173 +598,6 @@ export function search(terms, isOrSearch) {
         (err) => {
             callTracker['search_' + String(terms)] = 0;
             dispatchError(err, 'search');
-        }
-    );
-}
-
-export function getPostsPage(id, maxPosts) {
-    let channelId = id;
-    if (channelId == null) {
-        channelId = ChannelStore.getCurrentId();
-        if (channelId == null) {
-            return;
-        }
-    }
-
-    if (isCallInProgress('getPostsPage_' + channelId)) {
-        return;
-    }
-
-    var postList = PostStore.getAllPosts(id);
-
-    var max = maxPosts;
-    if (max == null) {
-        max = Constants.POST_CHUNK_SIZE * Constants.MAX_POST_CHUNKS;
-    }
-
-    // if we already have more than POST_CHUNK_SIZE posts,
-    //   let's get the amount we have but rounded up to next multiple of POST_CHUNK_SIZE,
-    //   with a max at maxPosts
-    var numPosts = Math.min(max, Constants.POST_CHUNK_SIZE);
-    if (postList && postList.order.length > 0) {
-        numPosts = Math.min(max, Constants.POST_CHUNK_SIZE * Math.ceil(postList.order.length / Constants.POST_CHUNK_SIZE));
-    }
-
-    if (channelId != null) {
-        callTracker['getPostsPage_' + channelId] = utils.getTimestamp();
-
-        Client.getPostsPage(
-            channelId,
-            0,
-            numPosts,
-            (data) => {
-                AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECEIVED_POSTS,
-                    id: channelId,
-                    before: true,
-                    numRequested: numPosts,
-                    checkLatest: true,
-                    post_list: data
-                });
-            },
-            (err) => {
-                dispatchError(err, 'getPostsPage');
-            },
-            () => {
-                callTracker['getPostsPage_' + channelId] = 0;
-            }
-        );
-    }
-}
-
-export function getPosts(id) {
-    let channelId = id;
-    if (channelId == null) {
-        channelId = ChannelStore.getCurrentId();
-        if (channelId == null) {
-            return;
-        }
-    }
-
-    if (isCallInProgress('getPosts_' + channelId)) {
-        return;
-    }
-
-    const postList = PostStore.getAllPosts(channelId);
-    const latestPostTime = PostStore.getLatestPostFromPageTime(id);
-
-    if ($.isEmptyObject(postList) || postList.order.length < Constants.POST_CHUNK_SIZE || latestPostTime === 0) {
-        getPostsPage(channelId, Constants.POST_CHUNK_SIZE);
-        return;
-    }
-
-    callTracker['getPosts_' + channelId] = utils.getTimestamp();
-
-    Client.getPosts(
-        channelId,
-        latestPostTime,
-        (data) => {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_POSTS,
-                id: channelId,
-                before: true,
-                numRequested: 0,
-                post_list: data
-            });
-        },
-        (err) => {
-            dispatchError(err, 'getPosts');
-        },
-        () => {
-            callTracker['getPosts_' + channelId] = 0;
-        }
-    );
-}
-
-export function getPostsBefore(postId, offset, numPost, isPost) {
-    const channelId = ChannelStore.getCurrentId();
-    if (channelId == null) {
-        return;
-    }
-
-    if (isCallInProgress('getPostsBefore_' + channelId)) {
-        return;
-    }
-
-    Client.getPostsBefore(
-        channelId,
-        postId,
-        offset,
-        numPost,
-        (data) => {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_POSTS,
-                id: channelId,
-                before: true,
-                numRequested: numPost,
-                post_list: data,
-                isPost
-            });
-        },
-        (err) => {
-            dispatchError(err, 'getPostsBefore');
-        },
-        () => {
-            callTracker['getPostsBefore_' + channelId] = 0;
-        }
-    );
-}
-
-export function getPostsAfter(postId, offset, numPost, isPost) {
-    const channelId = ChannelStore.getCurrentId();
-    if (channelId == null) {
-        return;
-    }
-
-    if (isCallInProgress('getPostsAfter_' + channelId)) {
-        return;
-    }
-
-    Client.getPostsAfter(
-        channelId,
-        postId,
-        offset,
-        numPost,
-        (data) => {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_POSTS,
-                id: channelId,
-                before: false,
-                numRequested: numPost,
-                post_list: data,
-                isPost
-            });
-        },
-        (err) => {
-            dispatchError(err, 'getPostsAfter');
-        },
-        () => {
-            callTracker['getPostsAfter_' + channelId] = 0;
         }
     );
 }

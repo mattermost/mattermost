@@ -4,11 +4,10 @@
 import PostStore from 'stores/post_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 
+import {loadPosts} from 'actions/post_actions.jsx';
+
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
-
 import Client from 'client/web_client.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
-
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 
@@ -29,7 +28,7 @@ export default class PendingPostOptions extends React.Component {
         var post = this.props.post;
         Client.createPost(post,
             (data) => {
-                AsyncClient.getPosts(post.channel_id);
+                loadPosts(post.channel_id);
 
                 var channel = ChannelStore.get(post.channel_id);
                 var member = ChannelStore.getMember(post.channel_id);
