@@ -32,7 +32,6 @@ export default class MemberListTeam extends React.Component {
     componentDidMount() {
         UserStore.addChangeListener(this.onChange);
         TeamStore.addChangeListener(this.onChange);
-        AsyncClient.getTeamMembers(TeamStore.getCurrentId());
     }
 
     componentWillUnmount() {
