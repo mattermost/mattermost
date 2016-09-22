@@ -1586,24 +1586,43 @@ func getPostFiles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	pchan := Srv.Store.Post().Get(postId)
 	fchan := Srv.Store.FileInfo().GetForPost(postId)
 
 	if !HasPermissionToChannelContext(c, channelId, model.PERMISSION_READ_CHANNEL) {
 		return
 	}
 
+	var infos []*model.FileInfo
 	if result := <-fchan; result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
-		infos := result.Data.([]*model.FileInfo)
-		etag := model.GetEtagForFileInfos(infos)
+		infos = result.Data.([]*model.FileInfo)
+	}
 
-		if HandleEtag(etag, w, r) {
+	if len(infos) == 0 {
+		// No FileInfos were returned so check if they need to be created for this post
+		var post *model.Post
+		if result := <-pchan; result.Err != nil {
+			c.Err = result.Err
 			return
 		} else {
-			w.Header().Set(model.HEADER_ETAG_SERVER, etag)
-			w.Write([]byte(model.FileInfosToJson(infos)))
+			post = result.Data.(*model.PostList).Posts[postId]
 		}
+
+		if len(post.Filenames) > 0 {
+			// The post has Filenames that need to be replaced with FileInfos
+			infos = migrateFilenamesToFileInfos(post)
+		}
+	}
+
+	etag := model.GetEtagForFileInfos(infos)
+
+	if HandleEtag(etag, w, r) {
+		return
+	} else {
+		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
+		w.Write([]byte(model.FileInfosToJson(infos)))
 	}
 }

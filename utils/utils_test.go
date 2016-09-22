@@ -28,3 +28,19 @@ func TestStringArrayIntersection(t *testing.T) {
 		t.Fatal("should be 1")
 	}
 }
+
+func TestRemoveDuplicatesFromStringArray(t *testing.T) {
+	a := []string{
+		"a",
+		"b",
+		"a",
+		"a",
+		"b",
+		"c",
+		"a",
+	}
+
+	if len(RemoveDuplicatesFromStringArray(a)) != 3 {
+		t.Fatal("should be 3")
+	}
+}

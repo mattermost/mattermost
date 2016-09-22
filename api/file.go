@@ -15,6 +15,7 @@ import (
 	"image/jpeg"
 	"io"
 	"net/http"
+	"net/url"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -559,4 +560,145 @@ func generatePublicLinkHash(fileId, salt string) string {
 	hash.Write([]byte(fileId))
 
 	return base64.RawURLEncoding.EncodeToString(hash.Sum(nil))
+}
+
+// Creates and stores FileInfos for a post created before the FileInfos table existed.
+func migrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
+	if len(post.Filenames) == 0 {
+		l4g.Warn(utils.T("api.file.migrate_filenames_to_file_infos.no_filenames.warn"), post.Id)
+		return []*model.FileInfo{}
+	}
+
+	cchan := Srv.Store.Channel().Get(post.ChannelId)
+
+	// There's a weird bug that rarely happens where a post ends up with duplicate Filenames so remove those
+	filenames := utils.RemoveDuplicatesFromStringArray(post.Filenames)
+
+	var channel *model.Channel
+	if result := <-cchan; result.Err != nil {
+		l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.channel.app_error"), post.Id, post.ChannelId, result.Err)
+		return []*model.FileInfo{}
+	} else {
+		channel = result.Data.(*model.Channel)
+	}
+
+	// Find the team that was used to make this post since its part of the file path that isn't saved in the Filename
+	var teamId string
+	if channel.TeamId == "" {
+		// This post was made in a cross-team DM channel so we need to find where its files were saved
+		teamId = findTeamIdForFilename(post, filenames[0])
+	} else {
+		teamId = channel.TeamId
+	}
+
+	// Create FileInfo objects for this post
+	infos := make([]*model.FileInfo, 0, len(filenames))
+	fileIds := make([]string, 0, len(filenames))
+	if teamId == "" {
+		l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.team_id.error"), post.Id, filenames)
+	} else {
+		for _, filename := range filenames {
+			info := getInfoForFilename(post, teamId, filename)
+			if info == nil {
+				continue
+			}
+
+			if result := <-Srv.Store.FileInfo().Save(info); result.Err != nil {
+				l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.save_file_info.app_error"), post.Id, info.Id, filename, result.Err)
+				continue
+			}
+
+			fileIds = append(fileIds, info.Id)
+			infos = append(infos, info)
+		}
+	}
+
+	// Copy and save the updated post
+	newPost := &model.Post{}
+	*newPost = *post
+
+	newPost.Filenames = []string{}
+	newPost.FileIds = fileIds
+
+	// Update Posts to clear Filenames and set FileIds
+	if result := <-Srv.Store.Post().Update(newPost, post); result.Err != nil {
+		l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.save_post.app_error"), post.Id, newPost.FileIds, post.Filenames, result.Err)
+		return []*model.FileInfo{}
+	} else {
+		return infos
+	}
+}
+
+func findTeamIdForFilename(post *model.Post, filename string) string {
+	split := strings.SplitN(filename, "/", 5)
+	id := split[3]
+	name, _ := url.QueryUnescape(split[4])
+
+	// This post is in a direct channel so we need to figure out what team the files are stored under.
+	if result := <-Srv.Store.Team().GetTeamsByUserId(post.UserId); result.Err != nil {
+		l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.teams.app_error"), post.Id, result.Err)
+	} else if teams := result.Data.([]*model.Team); len(teams) == 1 {
+		// The user has only one team so the post must've been sent from it
+		return teams[0].Id
+	} else {
+		for _, team := range teams {
+			path := fmt.Sprintf("teams/%s/channels/%s/users/%s/%s/%s", team.Id, post.ChannelId, post.UserId, id, name)
+			if _, err := utils.ReadFile(path); err == nil {
+				// Found the team that this file was posted from
+				return team.Id
+			}
+		}
+	}
+
+	return ""
+}
+
+func getInfoForFilename(post *model.Post, teamId string, filename string) *model.FileInfo {
+	// Find the path from the Filename of the form /{channelId}/{userId}/{uid}/{nameWithExtension}
+	split := strings.SplitN(filename, "/", 5)
+	if len(split) < 5 {
+		l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.unexpected_filename.error"), post.Id, filename)
+		return nil
+	}
+
+	channelId := split[1]
+	userId := split[2]
+	oldId := split[3]
+	name, _ := url.QueryUnescape(split[4])
+
+	if split[0] != "" || split[1] != post.ChannelId || split[2] != post.UserId || strings.Contains(split[4], "/") {
+		l4g.Warn(utils.T("api.file.migrate_filenames_to_file_infos.mismatched_filename.warn"), post.Id, post.ChannelId, post.UserId, filename)
+	}
+
+	pathPrefix := fmt.Sprintf("teams/%s/channels/%s/users/%s/%s/", teamId, channelId, userId, oldId)
+	path := pathPrefix + name
+
+	// Open the file and populate the fields of the FileInfo
+	var info *model.FileInfo
+	if data, err := utils.ReadFile(path); err != nil {
+		l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.file_not_found.error"), post.Id, filename, path, err)
+		return nil
+	} else {
+		var err *model.AppError
+		info, err = model.GetInfoForBytes(name, data)
+		if err != nil {
+			l4g.Warn(utils.T("api.file.migrate_filenames_to_file_infos.info.app_error"), post.Id, filename, err)
+		}
+	}
+
+	// Generate a new ID because with the old system, you could very rarely get multiple posts referencing the same file
+	info.Id = model.NewId()
+	info.UserId = post.UserId
+	info.PostId = post.Id
+	info.CreateAt = post.CreateAt
+	info.UpdateAt = post.UpdateAt
+	info.Path = path
+
+	if info.IsImage() {
+		nameWithoutExtension := name[:strings.LastIndex(name, ".")]
+		info.PreviewPath = pathPrefix + nameWithoutExtension + "_preview.jpg"
+		info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb.jpg"
+	}
+
+	return info
 }

@@ -121,6 +121,7 @@ func GetInfoForBytes(name string, data []byte) (*FileInfo, *AppError) {
 		Name: name,
 		Size: int64(len(data)),
 	}
+	var err *AppError
 
 	extension := strings.ToLower(filepath.Ext(name))
 	info.MimeType = mime.TypeByExtension(extension)
@@ -133,30 +134,34 @@ func GetInfoForBytes(name string, data []byte) (*FileInfo, *AppError) {
 	}
 
 	if info.IsImage() {
-		// Only set the width and height if it's actually an image
-		if config, _, err := image.DecodeConfig(bytes.NewReader(data)); err != nil {
-			return nil, NewLocAppError("GetInfoForBytes", "model.file_info.get.image_config.app_error", nil, "name="+name)
-		} else {
+		// Only set the width and height if it's actually an image that we can understand
+		if config, _, err := image.DecodeConfig(bytes.NewReader(data)); err == nil {
 			info.Width = config.Width
 			info.Height = config.Height
-		}
 
-		if info.MimeType == "image/gif" {
-			// Just show the gif itself instead of a preview image for animated gifs
-			if gifConfig, err := gif.DecodeAll(bytes.NewReader(data)); err != nil {
-				return nil, NewLocAppError("GetInfoForBytes", "model.file_info.get.gif.app_error", nil, "name="+name)
+			if info.MimeType == "image/gif" {
+				// Just show the gif itself instead of a preview image for animated gifs
+				if gifConfig, err := gif.DecodeAll(bytes.NewReader(data)); err != nil {
+					// Still return the rest of the info even though it doesn't appear to be an actual gif
+					info.HasPreviewImage = true
+					err = NewLocAppError("GetInfoForBytes", "model.file_info.get.gif.app_error", nil, "name="+name)
+				} else {
+					info.HasPreviewImage = len(gifConfig.Image) == 1
+				}
 			} else {
-				info.HasPreviewImage = len(gifConfig.Image) == 1
+				info.HasPreviewImage = true
 			}
-		} else {
-			info.HasPreviewImage = true
 		}
 	}
 
-	return info, nil
+	return info, err
 }
 
 func GetEtagForFileInfos(infos []*FileInfo) string {
+	if len(infos) == 0 {
+		return Etag()
+	}
+
 	var maxUpdateAt int64
 
 	for _, info := range infos {

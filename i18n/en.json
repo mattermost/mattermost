@@ -898,6 +898,46 @@
     "translation": "Initializing file api routes"
   },
   {
+    "id": "api.file.migrate_filenames_to_file_infos.channel.app_error",
+    "translation": "Unable to get channel when migrating post to use FileInfos, post_id=%v, channel_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.file_not_found.warn",
+    "translation": "Unable to find file when migrating post to use FileInfos, post_id=%v, filename=%v, path=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.info.app_error",
+    "translation": "Unable to fully decode file info when migrating post to use FileInfos, post_id=%v, filename=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.mismatched_filename.warn",
+    "translation": "Found an unusual filename when migrating post to use FileInfos, post_id=%v, channel_id=%v, user_id=%v, filename=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.no_filenames.warn",
+    "translation": "Unable to migrate post to use FileInfos with an empty Filenames field, post_id=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.save_file_info.warn",
+    "translation": "Unable to save post when migrating post to use FileInfos, post_id=%v, new_file_ids=%v, old_filenames=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.save_post.warn",
+    "translation": "Unable to save file info when migrating post to use FileInfos, post_id=%v, file_id=%v, filename=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.team_id.app_error",
+    "translation": "Unable to find team for FileInfos, post_id=%v, filenames=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.teams.app_error",
+    "translation": "Unable to get teams when migrating post to use FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.unexpected_filename.error",
+    "translation": "Unable to decipher filename when migrating post to use FileInfos, post_id=%v, filename=%v"
+  },
+  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "Unable to upload image file. File is too large."
   },
@@ -3260,10 +3300,6 @@
     "translation": "Update at must be a valid time"
   },
   {
-    "id": "model.file_info.get.image_config.app_error",
-    "translation": "Could not decode image config."
-  },
-  {
     "id": "model.file_info.get.gif.app_error",
     "translation": "Could not decode gif."
   },
@@ -3402,6 +3438,10 @@
   {
     "id": "model.post.is_valid.filenames.app_error",
     "translation": "Invalid filenames"
+  },
+  {
+    "id": "model.post.is_valid.file_ids.app_error",
+    "translation": "Invalid file ids"
   },
   {
     "id": "model.post.is_valid.hashtags.app_error",
@@ -3774,34 +3814,6 @@
   {
     "id": "store.sql.too_short_ciphertext",
     "translation": "ciphertext too short"
-  },
-  {
-    "id": "store.sql.upgrade.files35.batch_complete.warn",
-    "translation": "Finished upgrading 1000 posts"
-  },
-  {
-    "id": "store.sql.upgrade.files35.file.error",
-    "translation": "Unable to open %v to get file info, err=%v"
-  },
-  {
-    "id": "store.sql.upgrade.files35.post_team.error",
-    "translation": "Unable to find team for post, post_id=%v, channel_id=%v"
-  },
-  {
-    "id": "store.sql.upgrade.files35.posts_complete.warn",
-    "translation": "Finished upgrading all posts"
-  },
-  {
-    "id": "store.sql.upgrade.files35.save_file_info.error",
-    "translation": "Failed to save file info to database, post_id=%v, filename=%v, err=%v"
-  },
-  {
-    "id": "store.sql.upgrade.files35.teams.error",
-    "translation": "Unable to find teams for user, user_id=%v, err=%v"
-  },
-  {
-    "id": "store.sql.upgrade.files35.start.warn",
-    "translation": "Beginning to migrate files for version 3.5.0"
   },
   {
     "id": "store.sql.upgraded.warn",

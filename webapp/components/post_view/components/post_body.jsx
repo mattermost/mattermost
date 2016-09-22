@@ -141,7 +141,7 @@ export default class PostBody extends React.Component {
         }
 
         let fileAttachmentHolder = null;
-        if (post.file_ids && post.file_ids.length > 0) {
+        if ((post.file_ids && post.file_ids.length > 0) || (post.filenames && post.filenames.length > 0)) {
             fileAttachmentHolder = (
                 <FileAttachmentListContainer
                     post={post}

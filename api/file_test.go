@@ -602,6 +602,215 @@ func TestGeneratePublicLinkHash(t *testing.T) {
 	}
 }
 
+func TestMigrateFilenamesToFileInfos(t *testing.T) {
+	th := Setup().InitBasic()
+
+	if utils.Cfg.FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	Client := th.BasicClient
+
+	user1 := th.BasicUser
+
+	channel1 := Client.Must(Client.CreateChannel(&model.Channel{
+		Name: model.NewId(),
+		Type: model.CHANNEL_OPEN,
+		// No TeamId set to simulate a direct channel
+	})).Data.(*model.Channel)
+
+	var fileId1 string
+	var fileId2 string
+	data, err := readTestFile("test.png")
+	if err != nil {
+		t.Fatal(err)
+	} else {
+		fileId1 = Client.MustGeneric(Client.UploadPostAttachment(data, channel1.Id, "test.png")).(*model.FileUploadResponse).FileInfos[0].Id
+		fileId2 = Client.MustGeneric(Client.UploadPostAttachment(data, channel1.Id, "test.png")).(*model.FileUploadResponse).FileInfos[0].Id
+	}
+
+	// Bypass the Client whenever possible since we're trying to simulate a pre-3.5 post
+	post1 := store.Must(Srv.Store.Post().Save(&model.Post{
+		UserId:    user1.Id,
+		ChannelId: channel1.Id,
+		Message:   "test",
+		Filenames: []string{
+			fmt.Sprintf("/%s/%s/%s/%s", channel1.Id, user1.Id, fileId1, "test.png"),
+			fmt.Sprintf("/%s/%s/%s/%s", channel1.Id, user1.Id, fileId2, "test.png"),
+			fmt.Sprintf("/%s/%s/%s/%s", channel1.Id, user1.Id, fileId2, "test.png"), // duplicate a filename to recreate a rare bug
+		},
+	})).(*model.Post)
+
+	if post1.FileIds != nil && len(post1.FileIds) > 0 {
+		t.Fatal("post shouldn't have file ids")
+	} else if post1.Filenames == nil || len(post1.Filenames) != 3 {
+		t.Fatal("post should have filenames")
+	}
+
+	// Indirectly call migrateFilenamesToFileInfos by calling Client.GetPostFiles
+	var infos []*model.FileInfo
+	if infosResult, err := Client.GetPostFiles(post1.ChannelId, post1.Id, ""); err != nil {
+		t.Fatal(err)
+	} else {
+		infos = infosResult
+	}
+
+	if len(infos) != 2 {
+		t.Fatal("should've had 2 infos after migration")
+	} else if infos[0].Path != "" || infos[0].ThumbnailPath != "" || infos[0].PreviewPath != "" {
+		t.Fatal("shouldn't return paths to client")
+	}
+
+	// Should be able to get files after migration
+	if body, err := Client.GetFile(infos[0].Id); err != nil {
+		t.Fatal(err)
+	} else {
+		body.Close()
+	}
+
+	if body, err := Client.GetFile(infos[1].Id); err != nil {
+		t.Fatal(err)
+	} else {
+		body.Close()
+	}
+
+	// Make sure we aren't generating a new set of FileInfos on a second call to GetPostFiles
+	if infos2 := Client.MustGeneric(Client.GetPostFiles(post1.ChannelId, post1.Id, "")).([]*model.FileInfo); len(infos2) != len(infos) {
+		t.Fatal("should've received the same 2 infos after second call")
+	} else if (infos[0].Id != infos2[0].Id && infos[0].Id != infos2[1].Id) || (infos[1].Id != infos2[0].Id && infos[1].Id != infos2[1].Id) {
+		t.Fatal("should've returned the exact same 2 infos after second call")
+	}
+
+	if result, err := Client.GetPost(post1.ChannelId, post1.Id, ""); err != nil {
+		t.Fatal(err)
+	} else if post := result.Data.(*model.PostList).Posts[post1.Id]; len(post.Filenames) != 0 {
+		t.Fatal("post shouldn't have filenames")
+	} else if len(post.FileIds) != 2 {
+		t.Fatal("post should have 2 file ids")
+	} else if (infos[0].Id != post.FileIds[0] && infos[0].Id != post.FileIds[1]) || (infos[1].Id != post.FileIds[0] && infos[1].Id != post.FileIds[1]) {
+		t.Fatal("post file ids should match GetPostFiles results")
+	}
+}
+
+func TestFindTeamIdForFilename(t *testing.T) {
+	th := Setup().InitBasic()
+
+	if utils.Cfg.FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	Client := th.BasicClient
+
+	user1 := th.BasicUser
+
+	team1 := th.BasicTeam
+	team2 := th.CreateTeam(th.BasicClient)
+
+	channel1 := th.BasicChannel
+
+	Client.SetTeamId(team2.Id)
+	channel2 := Client.Must(Client.CreateChannel(&model.Channel{
+		Name: model.NewId(),
+		Type: model.CHANNEL_OPEN,
+		// No TeamId set to simulate a direct channel
+	})).Data.(*model.Channel)
+	Client.SetTeamId(team1.Id)
+
+	var fileId1 string
+	var fileId2 string
+	data, err := readTestFile("test.png")
+	if err != nil {
+		t.Fatal(err)
+	} else {
+		fileId1 = Client.MustGeneric(Client.UploadPostAttachment(data, channel1.Id, "test.png")).(*model.FileUploadResponse).FileInfos[0].Id
+
+		Client.SetTeamId(team2.Id)
+		fileId2 = Client.MustGeneric(Client.UploadPostAttachment(data, channel2.Id, "test.png")).(*model.FileUploadResponse).FileInfos[0].Id
+		Client.SetTeamId(team1.Id)
+	}
+
+	// Bypass the Client whenever possible since we're trying to simulate a pre-3.5 post
+	post1 := store.Must(Srv.Store.Post().Save(&model.Post{
+		UserId:    user1.Id,
+		ChannelId: channel1.Id,
+		Message:   "test",
+		Filenames: []string{fmt.Sprintf("/%s/%s/%s/%s", channel1.Id, user1.Id, fileId1, "test.png")},
+	})).(*model.Post)
+
+	if teamId := findTeamIdForFilename(post1, post1.Filenames[0]); teamId != team1.Id {
+		t.Fatal("file should've been found under team1")
+	}
+
+	Client.SetTeamId(team2.Id)
+	post2 := store.Must(Srv.Store.Post().Save(&model.Post{
+		UserId:    user1.Id,
+		ChannelId: channel2.Id,
+		Message:   "test",
+		Filenames: []string{fmt.Sprintf("/%s/%s/%s/%s", channel2.Id, user1.Id, fileId2, "test.png")},
+	})).(*model.Post)
+	Client.SetTeamId(team1.Id)
+
+	if teamId := findTeamIdForFilename(post2, post2.Filenames[0]); teamId != team2.Id {
+		t.Fatal("file should've been found under team2")
+	}
+}
+
+func TestGetInfoForFilename(t *testing.T) {
+	th := Setup().InitBasic()
+
+	if utils.Cfg.FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	Client := th.BasicClient
+
+	user1 := th.BasicUser
+
+	team1 := th.BasicTeam
+
+	channel1 := th.BasicChannel
+
+	var fileId1 string
+	var path string
+	var thumbnailPath string
+	var previewPath string
+	data, err := readTestFile("test.png")
+	if err != nil {
+		t.Fatal(err)
+	} else {
+		fileId1 = Client.MustGeneric(Client.UploadPostAttachment(data, channel1.Id, "test.png")).(*model.FileUploadResponse).FileInfos[0].Id
+		path = store.Must(Srv.Store.FileInfo().Get(fileId1)).(*model.FileInfo).Path
+		thumbnailPath = store.Must(Srv.Store.FileInfo().Get(fileId1)).(*model.FileInfo).ThumbnailPath
+		previewPath = store.Must(Srv.Store.FileInfo().Get(fileId1)).(*model.FileInfo).PreviewPath
+	}
+
+	// Bypass the Client whenever possible since we're trying to simulate a pre-3.5 post
+	post1 := store.Must(Srv.Store.Post().Save(&model.Post{
+		UserId:    user1.Id,
+		ChannelId: channel1.Id,
+		Message:   "test",
+		Filenames: []string{fmt.Sprintf("/%s/%s/%s/%s", channel1.Id, user1.Id, fileId1, "test.png")},
+	})).(*model.Post)
+
+	if info := getInfoForFilename(post1, team1.Id, post1.Filenames[0]); info == nil {
+		t.Fatal("info shouldn't be nil")
+	} else if info.Id == "" {
+		t.Fatal("info.Id shouldn't be empty")
+	} else if info.UserId != user1.Id {
+		t.Fatal("incorrect user id")
+	} else if info.PostId != post1.Id {
+		t.Fatal("incorrect user id")
+	} else if info.Path != path {
+		t.Fatal("incorrect path")
+	} else if info.ThumbnailPath != thumbnailPath {
+		t.Fatal("incorrect thumbnail path")
+	} else if info.PreviewPath != previewPath {
+		t.Fatal("incorrect preview path")
+	} else if info.Name != "test.png" {
+		t.Fatal("incorrect name")
+	}
+}
+
 func readTestFile(name string) ([]byte, error) {
 	path := utils.FindDir("tests")
 	file, err := os.Open(path + "/" + name)

@@ -186,4 +186,15 @@ func TestGetInfoForFile(t *testing.T) {
 	} else if info.Extension != "txt" {
 		t.Fatalf("Got incorrect extension: %v", info.Extension)
 	}
+
+	// Don't error out for image formats we don't support
+	if info, err := GetInfoForBytes("file.tif", fakeFile); err != nil {
+		t.Fatal(err)
+	} else if info.Name != "file.tif" {
+		t.Fatalf("Got incorrect filename: %v", info.Name)
+	} else if info.Extension != "tif" {
+		t.Fatalf("Got incorrect extension: %v", info.Extension)
+	} else if info.MimeType != "image/tiff" && info.MimeType != "image/x-tiff" {
+		t.Fatalf("Got incorrect mime type: %v", info.MimeType)
+	}
 }

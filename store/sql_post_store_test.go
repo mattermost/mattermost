@@ -131,6 +131,29 @@ func TestPostStoreUpdate(t *testing.T) {
 	if ro3a.Message != o3a.Message && ro3a.Hashtags != o3a.Hashtags {
 		t.Fatal("Failed to update/get")
 	}
+
+	o4 := Must(store.Post().Save(&model.Post{
+		ChannelId: model.NewId(),
+		UserId:    model.NewId(),
+		Message:   model.NewId(),
+		Filenames: []string{"test"},
+	})).(*model.Post)
+
+	ro4 := (<-store.Post().Get(o4.Id)).Data.(*model.PostList).Posts[o4.Id]
+
+	o4a := &model.Post{}
+	*o4a = *ro4
+	o4a.Filenames = []string{}
+	o4a.FileIds = []string{model.NewId()}
+	if result := <-store.Post().Update(o4a, ro4); result.Err != nil {
+		t.Fatal(result.Err)
+	}
+
+	if ro4a := Must(store.Post().Get(o4.Id)).(*model.PostList).Posts[o4.Id]; len(ro4a.Filenames) != 0 {
+		t.Fatal("Failed to clear Filenames")
+	} else if len(ro4a.FileIds) != 1 {
+		t.Fatal("Failed to set FileIds")
+	}
 }
 
 func TestPostStoreDelete(t *testing.T) {

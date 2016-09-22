@@ -72,9 +72,16 @@ export default class FileAttachmentListContainer extends React.Component {
     }
 
     render() {
+        let fileCount = 0;
+        if (this.props.post.file_ids) {
+            fileCount = this.props.post.file_ids.length;
+        } else if (this.props.post.filenames) {
+            fileCount = this.props.post.filenames.length;
+        }
+
         return (
             <FileAttachmentList
-                fileIds={this.props.post.file_ids}
+                fileCount={fileCount}
                 fileInfos={this.state.fileInfos}
                 compactDisplay={this.props.compactDisplay}
             />

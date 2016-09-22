@@ -23,7 +23,7 @@ export default class FileAttachmentList extends React.Component {
     render() {
         const postFiles = [];
         if (this.props.fileInfos && this.props.fileInfos.length > 0) {
-            for (let i = 0; i < this.props.fileInfos.length && i < Constants.MAX_DISPLAY_FILES; i++) {
+            for (let i = 0; i < Math.min(this.props.fileInfos.length, Constants.MAX_DISPLAY_FILES); i++) {
                 const fileInfo = this.props.fileInfos[i];
 
                 postFiles.push(
@@ -36,8 +36,8 @@ export default class FileAttachmentList extends React.Component {
                     />
                 );
             }
-        } else if (this.props.fileIds && this.props.fileIds.length > 0) {
-            for (let i = 0; i < this.props.fileIds.length && i < Constants.MAX_DISPLAY_FILES; i++) {
+        } else if (this.props.fileCount > 0) {
+            for (let i = 0; i < Math.min(this.props.fileCount, Constants.MAX_DISPLAY_FILES); i++) {
                 // Add a placeholder to avoid pop-in once we get the file infos for this post
                 postFiles.push(<div className='post-image__column post-image__column--placeholder'/>);
             }
@@ -60,7 +60,7 @@ export default class FileAttachmentList extends React.Component {
 }
 
 FileAttachmentList.propTypes = {
-    fileIds: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
+    fileCount: React.PropTypes.number.isRequired,
     fileInfos: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
     compactDisplay: React.PropTypes.bool
 };
