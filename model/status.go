@@ -12,7 +12,7 @@ const (
 	STATUS_OFFLINE         = "offline"
 	STATUS_AWAY            = "away"
 	STATUS_ONLINE          = "online"
-	STATUS_CACHE_SIZE      = 10000
+	STATUS_CACHE_SIZE      = 25000
 	STATUS_CHANNEL_TIMEOUT = 20000 // 20 seconds
 )
 
