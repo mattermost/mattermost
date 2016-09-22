@@ -1176,14 +1176,14 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			path := "/users/" + id + "/profile.png"
 
-			if data, err := utils.ReadFile(path); err != nil {
+			if data, err := ReadFile(path); err != nil {
 
 				if img, err = createProfileImage(result.Data.(*model.User).Username, id); err != nil {
 					c.Err = err
 					return
 				}
 
-				if err := utils.WriteFile(img, path); err != nil {
+				if err := WriteFile(img, path); err != nil {
 					c.Err = err
 					return
 				}
@@ -1277,7 +1277,7 @@ func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	path := "users/" + c.Session.UserId + "/profile.png"
 
-	if err := utils.WriteFile(buf.Bytes(), path); err != nil {
+	if err := WriteFile(buf.Bytes(), path); err != nil {
 		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.upload_profile.app_error", nil, "")
 		return
 	}

@@ -938,6 +938,66 @@
     "translation": "Unable to decipher filename when migrating post to use FileInfos, post_id=%v, filename=%v"
   },
   {
+    "id": "api.file.move_file.configured.app_error",
+    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
+  },
+  {
+    "id": "api.file.move_file.delete_from_s3.app_error",
+    "translation": "Unable to delete file from S3."
+  },
+  {
+    "id": "api.file.move_file.get_from_s3.app_error",
+    "translation": "Unable to get file from S3."
+  },
+  {
+    "id": "api.file.move_file.rename.app_error",
+    "translation": "Unable to move file locally."
+  },
+  {
+    "id": "api.file.open_file_write_stream.configured.app_error",
+    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
+  },
+  {
+    "id": "api.file.open_file_write_stream.creating_dir.app_error",
+    "translation": "Encountered an error creating the directory for the new file"
+  },
+  {
+    "id": "api.file.open_file_write_stream.local_server.app_error",
+    "translation": "Encountered an error writing to local server storage"
+  },
+  {
+    "id": "api.file.open_file_write_stream.s3.app_error",
+    "translation": "S3 is not supported."
+  },
+  {
+    "id": "api.file.read_file.configured.app_error",
+    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
+  },
+  {
+    "id": "api.file.read_file.get.app_error",
+    "translation": "Unable to get file from S3"
+  },
+  {
+    "id": "api.file.read_file.reading_local.app_error",
+    "translation": "Encountered an error reading from local server storage"
+  },
+  {
+    "id": "api.file.write_file.configured.app_error",
+    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
+  },
+  {
+    "id": "api.file.write_file.s3.app_error",
+    "translation": "Encountered an error writing to S3"
+  },
+  {
+    "id": "api.file.write_file_locally.create_dir.app_error",
+    "translation": "Encountered an error creating the directory for the new file"
+  },
+  {
+    "id": "api.file.write_file_locally.writing.app_error",
+    "translation": "Encountered an error writing to local server storage"
+  },
+  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "Unable to upload image file. File is too large."
   },
@@ -4846,66 +4906,6 @@
   {
     "id": "utils.diagnostic.analytics_not_found.app_error",
     "translation": "Analytics not initialized"
-  },
-  {
-    "id": "utils.file.move_file.configured.app_error",
-    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
-  },
-  {
-    "id": "utils.file.move_file.delete_from_s3.app_error",
-    "translation": "Unable to delete file from S3."
-  },
-  {
-    "id": "utils.file.move_file.get_from_s3.app_error",
-    "translation": "Unable to get file from S3."
-  },
-  {
-    "id": "utils.file.move_file.rename.app_error",
-    "translation": "Unable to move file locally."
-  },
-  {
-    "id": "utils.file.open_file_write_stream.configured.app_error",
-    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
-  },
-  {
-    "id": "utils.file.open_file_write_stream.creating_dir.app_error",
-    "translation": "Encountered an error creating the directory for the new file"
-  },
-  {
-    "id": "utils.file.open_file_write_stream.local_server.app_error",
-    "translation": "Encountered an error writing to local server storage"
-  },
-  {
-    "id": "utils.file.open_file_write_stream.s3.app_error",
-    "translation": "S3 is not supported."
-  },
-  {
-    "id": "utils.file.read_file.configured.app_error",
-    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
-  },
-  {
-    "id": "utils.file.read_file.get.app_error",
-    "translation": "Unable to get file from S3"
-  },
-  {
-    "id": "utils.file.read_file.reading_local.app_error",
-    "translation": "Encountered an error reading from local server storage"
-  },
-  {
-    "id": "utils.file.write_file.configured.app_error",
-    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
-  },
-  {
-    "id": "utils.file.write_file.s3.app_error",
-    "translation": "Encountered an error writing to S3"
-  },
-  {
-    "id": "utils.file.write_file_locally.create_dir.app_error",
-    "translation": "Encountered an error creating the directory for the new file"
-  },
-  {
-    "id": "utils.file.write_file_locally.writing.app_error",
-    "translation": "Encountered an error writing to local server storage"
   },
   {
     "id": "utils.i18n.loaded",
