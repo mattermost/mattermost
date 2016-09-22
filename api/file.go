@@ -438,7 +438,7 @@ func getFileInfoForRequest(c *Context, r *http.Request, requireFileVisible bool)
 		}
 
 		if requireFileVisible {
-			if !HasPermissionToPostContext(c, info.PostId, model.PERMISSION_READ_CHANNEL) {
+			if !HasPermissionToChannelByPostContext(c, info.PostId, model.PERMISSION_READ_CHANNEL) {
 				return nil, c.Err
 			}
 		}
