@@ -61,6 +61,125 @@
         color: alpha-color($black, .9);
         width: 100%;
 
+        &.modal--fullscreen {
+            display: block;
+
+            .modal-header {
+                background: transparent;
+                text-align: center;
+
+                .close {
+                    font-size: 30px;
+                    font-weight: 600;
+                    height: 40px;
+                    width: 40px;
+                }
+
+                .modal-title {
+                    font-size: 1.3em;
+                    line-height: 2.1;
+                }
+
+                h4 {
+                    float: none;
+                }
+            }
+
+            .modal-body--invite {
+                margin: 3em auto 0;
+                text-align: center;
+                width: 600px;
+
+                h1 {
+                    font-size: em(22px);
+                }
+
+                .invite-header__info {
+                    margin: 1.5em 0 3em;
+
+                    p {
+                        margin-bottom: 1.5em;
+                    }
+                }
+
+                .form-group {
+                    text-align: left;
+
+                    .control-label {
+                        font-weight: normal;
+                        margin: .7em 0 0;
+                    }
+                }
+
+                hr {
+                    margin-bottom: 1em;
+                }
+
+                .btn {
+                    &.btn-add {
+                        margin-bottom: 1em;
+                        padding: 0;
+                    }
+
+                    &.btn-primary {
+                        font-size: 1.2em;
+                        padding: .7em;
+                    }
+
+                    .fa {
+                        margin-right: 5px;
+                    }
+                }
+
+                .invite__fields {
+                    position: relative;
+                }
+
+                .remove__member {
+                    font-size: 16px;
+                    position: absolute;
+                    right: 0;
+                    top: 1px;
+                }
+
+                .invite-type {
+                    @include clearfix;
+                    border-top: 1px solid;
+                    padding: 1em;
+                    position: relative;
+
+                    &:first-child {
+                        border-top: none;
+                    }
+
+                    a {
+                        color: inherit;
+                    }
+                }
+
+                .invite-type--left {
+                    float: left;
+                    text-align: left;
+                }
+
+                .invite-type__info {
+                    @include opacity(.8);
+                    margin-bottom: 2em;
+                }
+
+                .invite-type__icon {
+                    font-size: 3em;
+                    height: 50px;
+                    line-height: 50px;
+                    margin-top: -25px;
+                    position: absolute;
+                    right: 0;
+                    top: 50%;
+                    width: 50px;
+                }
+            }
+        }
+
         &.modal-image {
             .modal-backdrop {
                 &.in {
@@ -610,9 +729,9 @@
 }
 
 .settings-modal-body {
-    padding: 100px
+    padding: 100px;
 }
 
 .invite-members-send-button {
-    width: 100%
+    width: 100%;
 }

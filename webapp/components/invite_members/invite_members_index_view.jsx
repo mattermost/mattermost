@@ -30,39 +30,55 @@ export default class InviteMembersIndexView extends React.Component {
                 }
                 closeLink={this.props.closeLink}
             >
-                <div className='signup-team-all'>
+                <div>
                     <div
-                        className='signup-team-dir'
+                        className='invite-type'
                     >
                         <Link
                             to={'/' + this.props.teamName + '/invite_members/full_members'}
                         >
-                            <span className='signup-team-dir__name'>
-                                <FormattedMessage
-                                    id='invite_users.invite_full_members.title'
-                                    defaultMessage='Full Members'
-                                />
-                            </span>
-                            <span
-                                className='fa fa-angle-right right signup-team-dir__arrow'
+                            <div className='invite-type--left'>
+                                <h3 className='invite-type__title'>
+                                    <FormattedMessage
+                                        id='invite_users.invite_full_members.title'
+                                        defaultMessage='Full Members'
+                                    />
+                                </h3>
+                                <h5 className='invite-type__info'>
+                                    <FormattedMessage
+                                        id='invite_users.invite_full_members.info'
+                                        defaultMessage='Full members can access messages and files in any public channel.'
+                                    />
+                                </h5>
+                            </div>
+                            <div
+                                className='invite-type__icon fa fa-angle-right'
                                 aria-hidden='true'
                             />
                         </Link>
                     </div>
                     <div
-                        className='signup-team-dir'
+                        className='invite-type'
                     >
                         <Link
                             to={'/' + this.props.teamName + '/invite_members/single_channel_guest'}
                         >
-                            <span className='signup-team-dir__name'>
-                                <FormattedMessage
-                                    id='invite_users.signle_channel_guest.title'
-                                    defaultMessage='Single Channel Guest'
-                                />
-                            </span>
-                            <span
-                                className='fa fa-angle-right right signup-team-dir__arrow'
+                            <div className='invite-type--left'>
+                                <h3 className='signup-team-dir__name'>
+                                    <FormattedMessage
+                                        id='invite_users.invite_full_members.title'
+                                        defaultMessage='Single Channel Guest'
+                                    />
+                                </h3>
+                                <h5 className='invite-type__info'>
+                                    <FormattedMessage
+                                        id='invite_users.signle_channel_guest.info'
+                                        defaultMessage='Full members can access messages and files in any public channel.'
+                                    />
+                                </h5>
+                            </div>
+                            <div
+                                className='invite-type__icon fa fa-angle-right'
                                 aria-hidden='true'
                             />
                         </Link>

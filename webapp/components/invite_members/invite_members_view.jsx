@@ -111,7 +111,10 @@ export default class InviteMembersView extends React.Component {
             }
 
             inviteSections[i] = (
-                <div key={'key' + i}>
+                <div
+                    className='invite__fields'
+                    key={'key' + i}
+                >
                     {removeButton}
                     <div className={emailDivStyle}>
                         <input
@@ -233,11 +236,13 @@ export default class InviteMembersView extends React.Component {
                 <br/>
                 <form role='form'>
                     {inviteSections}
+                    <hr/>
                     <button
                         type='button'
-                        className='btn btn-default'
+                        className='btn btn-default btn-add pull-left'
                         onClick={this.addInviteField}
                     >
+                        <i className='fa fa-plus'/>
                         <FormattedMessage
                             id='invite_member.addAnother'
                             defaultMessage='Add another'
