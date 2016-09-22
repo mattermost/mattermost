@@ -647,9 +647,9 @@ func TestMigrateFilenamesToFileInfos(t *testing.T) {
 		t.Fatal("post should have filenames")
 	}
 
-	// Indirectly call migrateFilenamesToFileInfos by calling Client.GetPostFiles
+	// Indirectly call migrateFilenamesToFileInfos by calling Client.GetFileInfosForPost
 	var infos []*model.FileInfo
-	if infosResult, err := Client.GetPostFiles(post1.ChannelId, post1.Id, ""); err != nil {
+	if infosResult, err := Client.GetFileInfosForPost(post1.ChannelId, post1.Id, ""); err != nil {
 		t.Fatal(err)
 	} else {
 		infos = infosResult
@@ -674,8 +674,8 @@ func TestMigrateFilenamesToFileInfos(t *testing.T) {
 		body.Close()
 	}
 
-	// Make sure we aren't generating a new set of FileInfos on a second call to GetPostFiles
-	if infos2 := Client.MustGeneric(Client.GetPostFiles(post1.ChannelId, post1.Id, "")).([]*model.FileInfo); len(infos2) != len(infos) {
+	// Make sure we aren't generating a new set of FileInfos on a second call to GetFileInfosForPost
+	if infos2 := Client.MustGeneric(Client.GetFileInfosForPost(post1.ChannelId, post1.Id, "")).([]*model.FileInfo); len(infos2) != len(infos) {
 		t.Fatal("should've received the same 2 infos after second call")
 	} else if (infos[0].Id != infos2[0].Id && infos[0].Id != infos2[1].Id) || (infos[1].Id != infos2[0].Id && infos[1].Id != infos2[1].Id) {
 		t.Fatal("should've returned the exact same 2 infos after second call")
@@ -688,7 +688,7 @@ func TestMigrateFilenamesToFileInfos(t *testing.T) {
 	} else if len(post.FileIds) != 2 {
 		t.Fatal("post should have 2 file ids")
 	} else if (infos[0].Id != post.FileIds[0] && infos[0].Id != post.FileIds[1]) || (infos[1].Id != post.FileIds[0] && infos[1].Id != post.FileIds[1]) {
-		t.Fatal("post file ids should match GetPostFiles results")
+		t.Fatal("post file ids should match GetFileInfosForPost results")
 	}
 }
 

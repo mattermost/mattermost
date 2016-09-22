@@ -49,7 +49,7 @@ func InitPost() {
 	BaseRoutes.NeedPost.Handle("/delete", ApiUserRequired(deletePost)).Methods("POST")
 	BaseRoutes.NeedPost.Handle("/before/{offset:[0-9]+}/{num_posts:[0-9]+}", ApiUserRequired(getPostsBefore)).Methods("GET")
 	BaseRoutes.NeedPost.Handle("/after/{offset:[0-9]+}/{num_posts:[0-9]+}", ApiUserRequired(getPostsAfter)).Methods("GET")
-	BaseRoutes.NeedPost.Handle("/get_files", ApiUserRequired(getPostFiles)).Methods("GET")
+	BaseRoutes.NeedPost.Handle("/get_file_infos", ApiUserRequired(getFileInfosForPost)).Methods("GET")
 }
 
 func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1571,18 +1571,18 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(posts.ToJson()))
 }
 
-func getPostFiles(c *Context, w http.ResponseWriter, r *http.Request) {
+func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 
 	channelId := params["channel_id"]
 	if len(channelId) != 26 {
-		c.SetInvalidParam("getPostFiles", "channelId")
+		c.SetInvalidParam("getFileInfosForPost", "channelId")
 		return
 	}
 
 	postId := params["post_id"]
 	if len(postId) != 26 {
-		c.SetInvalidParam("getPostFiles", "postId")
+		c.SetInvalidParam("getFileInfosForPost", "postId")
 		return
 	}
 

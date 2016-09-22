@@ -27,7 +27,7 @@ export default class CommentedOnFilesMessageContainer extends React.Component {
         FileStore.addChangeListener(this.handleFileChange);
 
         if (!FileStore.hasInfosForPost(this.props.parentPostId)) {
-            AsyncClient.getPostFiles(this.props.parentPostChannelId, this.props.parentPostId);
+            AsyncClient.getFileInfosForPost(this.props.parentPostChannelId, this.props.parentPostId);
         }
     }
 
@@ -38,7 +38,7 @@ export default class CommentedOnFilesMessageContainer extends React.Component {
             });
 
             if (!FileStore.hasInfosForPost(this.props.parentPostId)) {
-                AsyncClient.getPostFiles(this.props.parentPostChannelId, this.props.parentPostId);
+                AsyncClient.getFileInfosForPost(this.props.parentPostChannelId, this.props.parentPostId);
             }
         }
     }

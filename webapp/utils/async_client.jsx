@@ -715,14 +715,14 @@ export function getPostsAfter(postId, offset, numPost, isPost) {
     );
 }
 
-export function getPostFiles(channelId, postId) {
-    const callName = 'getPostFiles' + postId;
+export function getFileInfosForPost(channelId, postId) {
+    const callName = 'getFileInfosForPost' + postId;
 
     if (isCallInProgress(callName)) {
         return;
     }
 
-    Client.getPostFiles(
+    Client.getFileInfosForPost(
         channelId,
         postId,
         (data) => {

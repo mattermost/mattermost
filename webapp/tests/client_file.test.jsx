@@ -203,7 +203,7 @@ describe('Client.File', function() {
         });
     });
 
-    it('getPostFiles', function(done) {
+    it('getFileInfosForPost', function(done) {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().uploadFile(
                 fs.createReadStream('test.gif'),
@@ -220,7 +220,7 @@ describe('Client.File', function() {
                         function(data) {
                             assert.deepEqual(data.file_ids, post.file_ids);
 
-                            TestHelper.basicClient().getPostFiles(
+                            TestHelper.basicClient().getFileInfosForPost(
                                 post.channel_id,
                                 data.id,
                                 function(files) {

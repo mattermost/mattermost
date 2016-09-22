@@ -28,7 +28,7 @@ export default class FileAttachmentListContainer extends React.Component {
         FileStore.addChangeListener(this.handleFileChange);
 
         if (this.props.post.id && !FileStore.hasInfosForPost(this.props.post.id)) {
-            AsyncClient.getPostFiles(this.props.post.channel_id, this.props.post.id);
+            AsyncClient.getFileInfosForPost(this.props.post.channel_id, this.props.post.id);
         }
     }
 
@@ -39,7 +39,7 @@ export default class FileAttachmentListContainer extends React.Component {
             });
 
             if (nextProps.post.id && !FileStore.hasInfosForPost(nextProps.post.id)) {
-                AsyncClient.getPostFiles(nextProps.post.channel_id, nextProps.post.id);
+                AsyncClient.getFileInfosForPost(nextProps.post.channel_id, nextProps.post.id);
             }
         }
     }

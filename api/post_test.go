@@ -1244,7 +1244,7 @@ func TestGetMessageForNotification(t *testing.T) {
 	}
 }
 
-func TestGetPostFiles(t *testing.T) {
+func TestGetFileInfosForPost(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.BasicClient
 	channel1 := th.BasicChannel
@@ -1265,7 +1265,7 @@ func TestGetPostFiles(t *testing.T) {
 	})).Data.(*model.Post)
 
 	var etag string
-	if infos, err := Client.GetPostFiles(channel1.Id, post1.Id, ""); err != nil {
+	if infos, err := Client.GetFileInfosForPost(channel1.Id, post1.Id, ""); err != nil {
 		t.Fatal(err)
 	} else if len(infos) != 3 {
 		t.Fatal("should've received 3 files")
@@ -1275,7 +1275,7 @@ func TestGetPostFiles(t *testing.T) {
 		etag = Client.Etag
 	}
 
-	if infos, err := Client.GetPostFiles(channel1.Id, post1.Id, etag); err != nil {
+	if infos, err := Client.GetFileInfosForPost(channel1.Id, post1.Id, etag); err != nil {
 		t.Fatal(err)
 	} else if len(infos) != 0 {
 		t.Fatal("should've returned nothing because of etag")

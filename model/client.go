@@ -1956,12 +1956,12 @@ func (c *Client) GetWebrtcToken() (map[string]string, *AppError) {
 	}
 }
 
-// GetPostFiles returns a list of FileInfo objects for a given post id, if successful.
+// GetFileInfosForPost returns a list of FileInfo objects for a given post id, if successful.
 // Otherwise, it returns an error.
-func (c *Client) GetPostFiles(channelId string, postId string, etag string) ([]*FileInfo, *AppError) {
+func (c *Client) GetFileInfosForPost(channelId string, postId string, etag string) ([]*FileInfo, *AppError) {
 	c.clearExtraProperties()
 
-	if r, err := c.DoApiGet(c.GetChannelRoute(channelId)+fmt.Sprintf("/posts/%v/get_files", postId), "", etag); err != nil {
+	if r, err := c.DoApiGet(c.GetChannelRoute(channelId)+fmt.Sprintf("/posts/%v/get_file_infos", postId), "", etag); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)

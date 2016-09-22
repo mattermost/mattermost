@@ -1524,13 +1524,13 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getFlaggedPosts', success, error));
     }
 
-    getPostFiles(channelId, postId, success, error) {
+    getFileInfosForPost(channelId, postId, success, error) {
         request.
-            get(`${this.getChannelNeededRoute(channelId)}/posts/${postId}/get_files`).
+            get(`${this.getChannelNeededRoute(channelId)}/posts/${postId}/get_file_infos`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
-            end(this.handleResponse.bind(this, 'getPostFiles', success, error));
+            end(this.handleResponse.bind(this, 'getFileInfosForPost', success, error));
     }
 
     // Routes for Files

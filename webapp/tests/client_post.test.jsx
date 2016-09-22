@@ -231,6 +231,6 @@ describe('Client.Posts', function() {
         });
     });
 
-    // getPostFiles is tested in client_files.test.jsx
+    // getFileInfosForPost is tested in client_files.test.jsx
 });
 

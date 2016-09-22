@@ -198,7 +198,7 @@ func UpgradeDatabaseToVersion35(sqlStore *SqlStore) {
 	sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET Roles = 'channel_user' WHERE Roles = ''")
 	sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET Roles = 'channel_user channel_admin' WHERE Roles = 'admin'")
 
-	// The rest of the migration from Filenames -> FileIds is done lazily in api.GetPostFiles
+	// The rest of the migration from Filenames -> FileIds is done lazily in api.GetFileInfosForPost
 	sqlStore.CreateColumnIfNotExists("Posts", "FileIds", "varchar(150)", "varchar(150)", "[]")
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
