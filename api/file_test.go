@@ -467,7 +467,7 @@ func TestGetPublicFileOld(t *testing.T) {
 	// reconstruct old style of link
 	siteURL := *utils.Cfg.ServiceSettings.SiteURL
 	if siteURL == "" {
-		siteURL = "http://localhost:8065"
+		siteURL = "http://localhost" + utils.Cfg.ServiceSettings.ListenAddress
 	}
 	link := generatePublicLinkOld(siteURL, th.BasicTeam.Id, channel.Id, th.BasicUser.Id, fileId+"/test.png")
 
@@ -475,7 +475,7 @@ func TestGetPublicFileOld(t *testing.T) {
 	time.Sleep(2 * time.Second)
 
 	if resp, err := http.Get(link); err != nil || resp.StatusCode != http.StatusOK {
-		t.Fatal("failed to get image with public link", resp)
+		t.Fatalf("failed to get image with public link err=%v resp=%v", err, resp)
 	}
 
 	if resp, err := http.Get(link[:strings.LastIndex(link, "?")]); err == nil && resp.StatusCode != http.StatusBadRequest {
