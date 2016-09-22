@@ -591,6 +591,14 @@ func JoinDefaultChannels(teamId string, user *model.User, channelRole string) *m
 
 	var err *model.AppError = nil
 
+	fakeContext := &Context{
+		Session: model.Session{
+			UserId: user.Id,
+		},
+		TeamId: teamId,
+		T:      utils.TfuncWithFallback(user.Locale),
+	}
+
 	if result := <-Srv.Store.Channel().GetByName(teamId, "town-square"); result.Err != nil {
 		err = result.Err
 	} else {
@@ -608,14 +616,6 @@ func JoinDefaultChannels(teamId string, user *model.User, channelRole string) *m
 			UserId:    user.Id,
 		}
 
-		fakeContext := &Context{
-			Session: model.Session{
-				UserId: user.Id,
-			},
-			TeamId: teamId,
-			T:      utils.TfuncWithFallback(user.Locale),
-		}
-
 		if _, err := CreatePost(fakeContext, post, false); err != nil {
 			l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
 		}
@@ -629,6 +629,17 @@ func JoinDefaultChannels(teamId string, user *model.User, channelRole string) *m
 
 		if cmResult := <-Srv.Store.Channel().SaveMember(cm); cmResult.Err != nil {
 			err = cmResult.Err
+		}
+
+		post := &model.Post{
+			ChannelId: result.Data.(*model.Channel).Id,
+			Message:   fmt.Sprintf(utils.T("api.channel.join_channel.post_and_forget"), user.Username),
+			Type:      model.POST_JOIN_LEAVE,
+			UserId:    user.Id,
+		}
+
+		if _, err := CreatePost(fakeContext, post, false); err != nil {
+			l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
 		}
 	}
 
