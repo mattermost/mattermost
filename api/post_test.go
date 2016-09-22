@@ -1175,31 +1175,31 @@ func TestGetMessageForNotification(t *testing.T) {
 	Setup().InitBasic()
 
 	testPng := store.Must(Srv.Store.FileInfo().Save(&model.FileInfo{
-		UserId:   model.NewId(),
-		Path:     "test1.png",
-		Name:     "test1.png",
-		MimeType: "image/png",
+		CreatorId: model.NewId(),
+		Path:      "test1.png",
+		Name:      "test1.png",
+		MimeType:  "image/png",
 	})).(*model.FileInfo)
 
 	testJpg1 := store.Must(Srv.Store.FileInfo().Save(&model.FileInfo{
-		UserId:   model.NewId(),
-		Path:     "test2.jpg",
-		Name:     "test2.jpg",
-		MimeType: "image/jpeg",
+		CreatorId: model.NewId(),
+		Path:      "test2.jpg",
+		Name:      "test2.jpg",
+		MimeType:  "image/jpeg",
 	})).(*model.FileInfo)
 
 	testFile := store.Must(Srv.Store.FileInfo().Save(&model.FileInfo{
-		UserId:   model.NewId(),
-		Path:     "test1.go",
-		Name:     "test1.go",
-		MimeType: "text/plain",
+		CreatorId: model.NewId(),
+		Path:      "test1.go",
+		Name:      "test1.go",
+		MimeType:  "text/plain",
 	})).(*model.FileInfo)
 
 	testJpg2 := store.Must(Srv.Store.FileInfo().Save(&model.FileInfo{
-		UserId:   model.NewId(),
-		Path:     "test3.jpg",
-		Name:     "test3.jpg",
-		MimeType: "image/jpeg",
+		CreatorId: model.NewId(),
+		Path:      "test3.jpg",
+		Name:      "test3.jpg",
+		MimeType:  "image/jpeg",
 	})).(*model.FileInfo)
 
 	translateFunc := utils.GetUserTranslations("en")

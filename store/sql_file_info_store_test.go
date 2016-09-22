@@ -14,8 +14,8 @@ func TestFileInfoSaveGet(t *testing.T) {
 	Setup()
 
 	info := &model.FileInfo{
-		UserId: model.NewId(),
-		Path:   "file.txt",
+		CreatorId: model.NewId(),
+		Path:      "file.txt",
 	}
 
 	if result := <-store.FileInfo().Save(info); result.Err != nil {
@@ -35,9 +35,9 @@ func TestFileInfoSaveGet(t *testing.T) {
 	}
 
 	info2 := Must(store.FileInfo().Save(&model.FileInfo{
-		UserId:   model.NewId(),
-		Path:     "file.txt",
-		DeleteAt: 123,
+		CreatorId: model.NewId(),
+		Path:      "file.txt",
+		DeleteAt:  123,
 	})).(*model.FileInfo)
 
 	if result := <-store.FileInfo().Get(info2.Id); result.Err == nil {
@@ -49,8 +49,8 @@ func TestFileInfoSaveGetByPath(t *testing.T) {
 	Setup()
 
 	info := &model.FileInfo{
-		UserId: model.NewId(),
-		Path:   fmt.Sprintf("%v/file.txt", model.NewId()),
+		CreatorId: model.NewId(),
+		Path:      fmt.Sprintf("%v/file.txt", model.NewId()),
 	}
 
 	if result := <-store.FileInfo().Save(info); result.Err != nil {
@@ -70,9 +70,9 @@ func TestFileInfoSaveGetByPath(t *testing.T) {
 	}
 
 	info2 := Must(store.FileInfo().Save(&model.FileInfo{
-		UserId:   model.NewId(),
-		Path:     "file.txt",
-		DeleteAt: 123,
+		CreatorId: model.NewId(),
+		Path:      "file.txt",
+		DeleteAt:  123,
 	})).(*model.FileInfo)
 
 	if result := <-store.FileInfo().GetByPath(info2.Id); result.Err == nil {
@@ -88,25 +88,25 @@ func TestFileInfoGetForPost(t *testing.T) {
 
 	infos := []*model.FileInfo{
 		{
-			PostId: postId,
-			UserId: userId,
-			Path:   "file.txt",
+			PostId:    postId,
+			CreatorId: userId,
+			Path:      "file.txt",
 		},
 		{
-			PostId: postId,
-			UserId: userId,
-			Path:   "file.txt",
+			PostId:    postId,
+			CreatorId: userId,
+			Path:      "file.txt",
 		},
 		{
-			PostId:   postId,
-			UserId:   userId,
-			Path:     "file.txt",
-			DeleteAt: 123,
+			PostId:    postId,
+			CreatorId: userId,
+			Path:      "file.txt",
+			DeleteAt:  123,
 		},
 		{
-			PostId: model.NewId(),
-			UserId: userId,
-			Path:   "file.txt",
+			PostId:    model.NewId(),
+			CreatorId: userId,
+			Path:      "file.txt",
 		},
 	}
 
@@ -128,8 +128,8 @@ func TestFileInfoAttachToPost(t *testing.T) {
 	postId := model.NewId()
 
 	info1 := Must(store.FileInfo().Save(&model.FileInfo{
-		UserId: userId,
-		Path:   "file.txt",
+		CreatorId: userId,
+		Path:      "file.txt",
 	})).(*model.FileInfo)
 
 	if len(info1.PostId) != 0 {
@@ -147,8 +147,8 @@ func TestFileInfoAttachToPost(t *testing.T) {
 	}
 
 	info2 := Must(store.FileInfo().Save(&model.FileInfo{
-		UserId: userId,
-		Path:   "file.txt",
+		CreatorId: userId,
+		Path:      "file.txt",
 	})).(*model.FileInfo)
 
 	if result := <-store.FileInfo().AttachToPost(info2.Id, postId); result.Err != nil {
@@ -172,25 +172,25 @@ func TestFileInfoDeleteForPost(t *testing.T) {
 
 	infos := []*model.FileInfo{
 		{
-			PostId: postId,
-			UserId: userId,
-			Path:   "file.txt",
+			PostId:    postId,
+			CreatorId: userId,
+			Path:      "file.txt",
 		},
 		{
-			PostId: postId,
-			UserId: userId,
-			Path:   "file.txt",
+			PostId:    postId,
+			CreatorId: userId,
+			Path:      "file.txt",
 		},
 		{
-			PostId:   postId,
-			UserId:   userId,
-			Path:     "file.txt",
-			DeleteAt: 123,
+			PostId:    postId,
+			CreatorId: userId,
+			Path:      "file.txt",
+			DeleteAt:  123,
 		},
 		{
-			PostId: model.NewId(),
-			UserId: userId,
-			Path:   "file.txt",
+			PostId:    model.NewId(),
+			CreatorId: userId,
+			Path:      "file.txt",
 		},
 	}
 

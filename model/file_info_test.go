@@ -14,12 +14,12 @@ import (
 
 func TestFileInfoIsValid(t *testing.T) {
 	info := &FileInfo{
-		Id:       NewId(),
-		UserId:   NewId(),
-		CreateAt: 1234,
-		UpdateAt: 1234,
-		PostId:   "",
-		Path:     "fake/path.png",
+		Id:        NewId(),
+		CreatorId: NewId(),
+		CreateAt:  1234,
+		UpdateAt:  1234,
+		PostId:    "",
+		Path:      "fake/path.png",
 	}
 
 	if err := info.IsValid(); err != nil {

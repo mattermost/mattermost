@@ -45,7 +45,7 @@ func TestUploadFile(t *testing.T) {
 	}
 
 	// The returned file info from the upload call will be missing some fields that will be stored in the database
-	if uploadInfo.UserId != user.Id {
+	if uploadInfo.CreatorId != user.Id {
 		t.Fatal("file should be assigned to user")
 	} else if uploadInfo.PostId != "" {
 		t.Fatal("file shouldn't have a post")
@@ -66,7 +66,7 @@ func TestUploadFile(t *testing.T) {
 
 	if info.Id != uploadInfo.Id {
 		t.Fatal("file id from response should match one stored in database")
-	} else if info.UserId != user.Id {
+	} else if info.CreatorId != user.Id {
 		t.Fatal("file should be assigned to user")
 	} else if info.PostId != "" {
 		t.Fatal("file shouldn't have a post")
@@ -128,7 +128,7 @@ func TestGetFileInfo(t *testing.T) {
 		t.Fatal(err)
 	} else if info.Id != fileId {
 		t.Fatal("got incorrect file")
-	} else if info.UserId != user.Id {
+	} else if info.CreatorId != user.Id {
 		t.Fatal("file should be assigned to user")
 	} else if info.PostId != "" {
 		t.Fatal("file shouldn't have a post")
@@ -797,7 +797,7 @@ func TestGetInfoForFilename(t *testing.T) {
 		t.Fatal("info shouldn't be nil")
 	} else if info.Id == "" {
 		t.Fatal("info.Id shouldn't be empty")
-	} else if info.UserId != user1.Id {
+	} else if info.CreatorId != user1.Id {
 		t.Fatal("incorrect user id")
 	} else if info.PostId != post1.Id {
 		t.Fatal("incorrect user id")

@@ -137,7 +137,7 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		info.Id = model.NewId()
-		info.UserId = c.Session.UserId
+		info.CreatorId = c.Session.UserId
 
 		filename := filepath.Base(fileHeader.Filename)
 		pathPrefix := "teams/" + c.TeamId + "/channels/" + channelId + "/users/" + c.Session.UserId + "/" + info.Id + "/"
@@ -426,7 +426,7 @@ func getFileInfoForRequest(c *Context, r *http.Request, requireFileVisible bool)
 	}
 
 	// only let users access files visible in a channel, unless they're the one who uploaded the file
-	if info.UserId != c.Session.UserId {
+	if info.CreatorId != c.Session.UserId {
 		if len(info.PostId) == 0 {
 			err := model.NewLocAppError("getFileInfoForRequest", "api.file.get_file_info_for_request.no_post.app_error", nil, "file_id="+fileId)
 			err.StatusCode = http.StatusBadRequest
@@ -687,7 +687,7 @@ func getInfoForFilename(post *model.Post, teamId string, filename string) *model
 
 	// Generate a new ID because with the old system, you could very rarely get multiple posts referencing the same file
 	info.Id = model.NewId()
-	info.UserId = post.UserId
+	info.CreatorId = post.UserId
 	info.PostId = post.Id
 	info.CreateAt = post.CreateAt
 	info.UpdateAt = post.UpdateAt

@@ -16,7 +16,7 @@ import (
 
 type FileInfo struct {
 	Id              string `json:"id"`
-	UserId          string `json:"user_id"`
+	CreatorId       string `json:"user_id"`
 	PostId          string `json:"post_id,omitempty"`
 	CreateAt        int64  `json:"create_at"`
 	UpdateAt        int64  `json:"update_at"`
@@ -89,7 +89,7 @@ func (o *FileInfo) IsValid() *AppError {
 		return NewLocAppError("FileInfo.IsValid", "model.file_info.is_valid.id.app_error", nil, "")
 	}
 
-	if len(o.UserId) != 26 {
+	if len(o.CreatorId) != 26 {
 		return NewLocAppError("FileInfo.IsValid", "model.file_info.is_valid.user_id.app_error", nil, "id="+o.Id)
 	}
 

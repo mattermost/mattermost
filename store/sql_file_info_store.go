@@ -16,7 +16,7 @@ func NewSqlFileInfoStore(sqlStore *SqlStore) FileInfoStore {
 	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.FileInfo{}, "FileInfo").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("UserId").SetMaxSize(26)
+		table.ColMap("CreatorId").SetMaxSize(26)
 		table.ColMap("PostId").SetMaxSize(26)
 		table.ColMap("Path").SetMaxSize(512)
 		table.ColMap("ThumbnailPath").SetMaxSize(512)
