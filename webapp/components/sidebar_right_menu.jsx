@@ -389,6 +389,7 @@ export default class SidebarRightMenu extends React.Component {
                                 />
                             </a>
                         </li>
+                        <li className='divider'/>
                         <li>
                             <a
                                 href='#'
@@ -401,9 +402,10 @@ export default class SidebarRightMenu extends React.Component {
                                 />
                             </a>
                         </li>
-                        {teamSettingsLink}
                         {inviteLink}
                         {teamLink}
+                        <li className='divider'/>
+                        {teamSettingsLink}
                         {manageLink}
                         {consoleLink}
                         <li>
@@ -414,19 +416,6 @@ export default class SidebarRightMenu extends React.Component {
                                     defaultMessage='Team Selection'
                                 />
                             </Link>
-                        </li>
-                        <li className='divider'/>
-                        <li>
-                            <a
-                                href='#'
-                                onClick={GlobalActions.emitUserLoggedOutEvent}
-                            >
-                                <i className='icon fa fa-sign-out'/>
-                                <FormattedMessage
-                                    id='sidebar_right_menu.logout'
-                                    defaultMessage='Logout'
-                                />
-                            </a>
                         </li>
                         <li className='divider'/>
                         {helpLink}
@@ -443,7 +432,21 @@ export default class SidebarRightMenu extends React.Component {
                                 />
                             </a>
                         </li>
+                        <li className='divider'/>
                         {nativeAppLink}
+                        <li className='divider'/>
+                        <li>
+                            <a
+                                href='#'
+                                onClick={GlobalActions.emitUserLoggedOutEvent}
+                            >
+                                <i className='icon fa fa-sign-out'/>
+                                <FormattedMessage
+                                    id='sidebar_right_menu.logout'
+                                    defaultMessage='Logout'
+                                />
+                            </a>
+                        </li>
                     </ul>
                 </div>
                 <UserSettingsModal
