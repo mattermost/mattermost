@@ -136,5 +136,3 @@ export default class ErrorBar extends React.Component {
         );
     }
 }
-
-export default ErrorBar;
