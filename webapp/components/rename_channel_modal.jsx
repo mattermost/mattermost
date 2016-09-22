@@ -44,7 +44,7 @@ const holders = defineMessages({
 
 import React from 'react';
 
-export default class RenameChannelModal extends React.Component {
+export class RenameChannelModal extends React.Component {
     constructor(props) {
         super(props);
 
