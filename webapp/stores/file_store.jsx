@@ -16,6 +16,8 @@ class FileStore extends EventEmitter {
         this.handleEventPayload = this.handleEventPayload.bind(this);
         this.dispatchToken = AppDispatcher.register(this.handleEventPayload);
 
+        this.setMaxListeners(600);
+
         this.fileInfosByPost = new Map();
     }
 
