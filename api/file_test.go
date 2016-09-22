@@ -656,6 +656,7 @@ func TestMigrateFilenamesToFileInfos(t *testing.T) {
 	}
 
 	if len(infos) != 2 {
+		t.Log(infos)
 		t.Fatal("should've had 2 infos after migration")
 	} else if infos[0].Path != "" || infos[0].ThumbnailPath != "" || infos[0].PreviewPath != "" {
 		t.Fatal("shouldn't return paths to client")
