@@ -90,7 +90,7 @@ export default class InviteFullMembersContainer extends React.Component {
                     </h1>
                 )}
                 extraFields={(
-                    <div>
+                    <div className='invite-header__info'>
                         <span>
                             <FormattedHTMLMessage
                                 id='invite_members.autoJoin'

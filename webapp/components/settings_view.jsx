@@ -64,7 +64,7 @@ export default class SettingsView extends React.Component {
                 key='settings-view'
                 className='app__content'
             >
-                <div className='settings-view'>
+                <div className='modal modal--fullscreen settings-view'>
                     <div className='modal-header'>
                         {closeButton}
                         <h4
@@ -74,7 +74,7 @@ export default class SettingsView extends React.Component {
                             {this.props.title}
                         </h4>
                     </div>
-                    <div className='settings-modal-body'>
+                    <div className='modal-body modal-body--invite'>
                         {this.props.children}
                     </div>
                 </div>

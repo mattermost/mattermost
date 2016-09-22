@@ -90,8 +90,8 @@ export default class InviteSingleChannelGuestsContainer extends React.Component 
                     </h1>
                 )}
                 extraFields={(
-                    <div>
-                        <span>
+                    <div className='invite-header__info'>
+                        <p>
                             <FormattedHTMLMessage
                                 id='invite_members.message'
                                 defaultMessage='New single-channel guests will only have access to this channel:'
@@ -99,7 +99,7 @@ export default class InviteSingleChannelGuestsContainer extends React.Component 
                                     channel: defaultChannelName
                                 }}
                             />
-                        </span>
+                        </p>
                         <ChannelSelect
                             id='channelId'
                             value={this.state.channelId}
@@ -111,6 +111,7 @@ export default class InviteSingleChannelGuestsContainer extends React.Component 
                             selectOpen={true}
                             selectPrivate={true}
                         />
+                        <hr/>
                     </div>
                 )}
             />
