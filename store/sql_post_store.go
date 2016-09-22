@@ -970,7 +970,7 @@ func (s SqlPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, mustH
 		}
 
 		if mustHaveFile {
-			query += " AND Posts.FileIds != '[]'"
+			query += " AND (Posts.FileIds != '[]' OR Posts.Filenames != '[]')"
 		}
 
 		if mustHaveHashtag {
