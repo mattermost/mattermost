@@ -108,6 +108,10 @@ func (c *Client) GetChannelRoute(channelId string) string {
 	return fmt.Sprintf("/teams/%v/channels/%v", c.GetTeamId(), channelId)
 }
 
+func (c *Client) GetUserRequiredRoute(userId string) string {
+	return fmt.Sprintf("/users/%v", userId)
+}
+
 func (c *Client) GetChannelNameRoute(channelName string) string {
 	return fmt.Sprintf("/teams/%v/channels/name/%v", c.GetTeamId(), channelName)
 }
@@ -1370,8 +1374,25 @@ func (c *Client) UpdateUser(user *User) (*Result, *AppError) {
 	}
 }
 
-func (c *Client) UpdateUserRoles(data map[string]string) (*Result, *AppError) {
-	if r, err := c.DoApiPost("/users/update_roles", MapToJson(data)); err != nil {
+func (c *Client) UpdateUserRoles(userId string, roles string) (*Result, *AppError) {
+	data := make(map[string]string)
+	data["new_roles"] = roles
+
+	if r, err := c.DoApiPost(c.GetUserRequiredRoute(userId)+"/update_roles", MapToJson(data)); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) UpdateTeamRoles(userId string, roles string) (*Result, *AppError) {
+	data := make(map[string]string)
+	data["new_roles"] = roles
+	data["user_id"] = userId
+
+	if r, err := c.DoApiPost(c.GetTeamRoute()+"/update_member_roles", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)

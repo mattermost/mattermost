@@ -1560,6 +1560,10 @@
     "translation": "Failed to save status for user_id=%v, err=%v"
   },
   {
+    "id": "api.team.update_member_roles.not_a_member",
+    "translation": "Specified user is not a member of specified team."
+  },
+  {
     "id": "api.team.create_team.email_disabled.app_error",
     "translation": "Team sign-up with email is disabled."
   },

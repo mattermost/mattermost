@@ -20,13 +20,15 @@ export default class UserItem extends React.Component {
         this.handleRemoveFromTeam = this.handleRemoveFromTeam.bind(this);
         this.handleMakeActive = this.handleMakeActive.bind(this);
         this.handleMakeNotActive = this.handleMakeNotActive.bind(this);
-        this.handleMakeAdmin = this.handleMakeAdmin.bind(this);
+        this.handleMakeTeamAdmin = this.handleMakeTeamAdmin.bind(this);
         this.handleMakeSystemAdmin = this.handleMakeSystemAdmin.bind(this);
         this.handleResetPassword = this.handleResetPassword.bind(this);
         this.handleResetMfa = this.handleResetMfa.bind(this);
-        this.handleDemote = this.handleDemote.bind(this);
+        this.handleDemoteSystemAdmin = this.handleDemoteSystemAdmin.bind(this);
         this.handleDemoteSubmit = this.handleDemoteSubmit.bind(this);
         this.handleDemoteCancel = this.handleDemoteCancel.bind(this);
+        this.doMakeMember = this.doMakeMember.bind(this);
+        this.doMakeTeamAdmin = this.doMakeTeamAdmin.bind(this);
 
         this.state = {
             serverError: null,
@@ -36,23 +38,37 @@ export default class UserItem extends React.Component {
         };
     }
 
+    doMakeMember() {
+        Client.updateUserRoles(
+            this.props.user.id,
+            'system_user',
+            () => {
+                this.props.refreshProfiles();
+            },
+            (err) => {
+                this.setState({serverError: err.message});
+            }
+        );
+        Client.updateTeamMemberRoles(
+            this.props.team.id,
+            this.props.user.id,
+            'team_user',
+            () => {
+                this.props.refreshProfiles();
+            },
+            (err) => {
+                this.setState({serverError: err.message});
+            }
+        );
+    }
+
     handleMakeMember(e) {
         e.preventDefault();
         const me = UserStore.getCurrentUser();
         if (this.props.user.id === me.id) {
-            this.handleDemote(this.props.user, '');
+            this.handleDemoteSystemAdmin(this.props.user, 'member');
         } else {
-            Client.updateRoles(
-                this.props.team.id,
-                this.props.user.id,
-                '',
-                () => {
-                    this.props.refreshProfiles();
-                },
-                (err) => {
-                    this.setState({serverError: err.message});
-                }
-            );
+            this.doMakeMember();
         }
     }
 
@@ -93,31 +109,34 @@ export default class UserItem extends React.Component {
         );
     }
 
-    handleMakeAdmin(e) {
+    doMakeTeamAdmin() {
+        Client.updateTeamMemberRoles(
+            this.props.team.id,
+            this.props.user.id,
+            'team_user team_admin',
+            () => {
+                this.props.refreshProfiles();
+            },
+            (err) => {
+                this.setState({serverError: err.message});
+            }
+        );
+    }
+
+    handleMakeTeamAdmin(e) {
         e.preventDefault();
         const me = UserStore.getCurrentUser();
         if (this.props.user.id === me.id) {
-            this.handleDemote(this.props.user, 'team_user team_admin');
+            this.handleDemoteSystemAdmin(this.props.user, 'teamadmin');
         } else {
-            Client.updateRoles(
-                this.props.team.id,
-                this.props.user.id,
-                'team_user team_admin',
-                () => {
-                    this.props.refreshProfiles();
-                },
-                (err) => {
-                    this.setState({serverError: err.message});
-                }
-            );
+            this.doMakeTeamAdmin();
         }
     }
 
     handleMakeSystemAdmin(e) {
         e.preventDefault();
 
-        Client.updateRoles(
-            this.props.team.id,
+        Client.updateUserRoles(
             this.props.user.id,
             'system_user system_admin',
             () => {
@@ -147,7 +166,7 @@ export default class UserItem extends React.Component {
         );
     }
 
-    handleDemote(user, role) {
+    handleDemoteSystemAdmin(user, role) {
         this.setState({
             serverError: this.state.serverError,
             showDemoteModal: true,
@@ -166,34 +185,19 @@ export default class UserItem extends React.Component {
     }
 
     handleDemoteSubmit() {
-        Client.updateRoles(
-            this.props.team.id,
-            this.props.user.id,
-            this.state.role,
-            () => {
-                this.props.refreshProfiles();
+        if (this.state.role === 'member') {
+            this.doMakeMember();
+        } else {
+            this.doMakeTeamAdmin();
+        }
 
-                this.setState({
-                    serverError: null,
-                    showDemoteModal: false,
-                    user: null,
-                    role: null
-                });
-
-                const teamUrl = TeamStore.getCurrentTeamUrl();
-                if (teamUrl) {
-                    // the channel is added to the URL cause endless loading not being fully fixed
-                    window.location.href = teamUrl + '/channels/town-square';
-                } else {
-                    window.location.href = '/';
-                }
-            },
-            (err) => {
-                this.setState({
-                    serverError: err.message
-                });
-            }
-        );
+        const teamUrl = TeamStore.getCurrentTeamUrl();
+        if (teamUrl) {
+            // the channel is added to the URL cause endless loading not being fully fixed
+            window.location.href = teamUrl + '/channels/town-square';
+        } else {
+            window.location.href = '/';
+        }
     }
 
     render() {
@@ -290,7 +294,7 @@ export default class UserItem extends React.Component {
                     <a
                         role='menuitem'
                         href='#'
-                        onClick={this.handleMakeAdmin}
+                        onClick={this.handleMakeTeamAdmin}
                     >
                         <FormattedMessage
                             id='admin.user_item.makeTeamAdmin'

@@ -39,7 +39,7 @@ export default class TeamMembersDropdown extends React.Component {
         if (this.props.user.id === me.id) {
             this.handleDemote(this.props.user, 'team_user');
         } else {
-            Client.updateRoles(
+            Client.updateTeamMemberRoles(
                 this.props.teamMember.team_id,
                 this.props.user.id,
                 'team_user',
@@ -95,7 +95,7 @@ export default class TeamMembersDropdown extends React.Component {
         if (this.props.user.id === me.id) {
             this.handleDemote(this.props.user, 'team_user team_admin');
         } else {
-            Client.updateRoles(
+            Client.updateTeamMemberRoles(
                 this.props.teamMember.team_id,
                 this.props.user.id,
                 'team_user team_admin',
@@ -128,7 +128,7 @@ export default class TeamMembersDropdown extends React.Component {
         });
     }
     handleDemoteSubmit() {
-        Client.updateRoles(
+        Client.updateTeamMemberRoles(
             this.props.teamMember.team_id,
             this.props.user.id,
             this.state.newRole,
