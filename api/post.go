@@ -1143,9 +1143,13 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	hashtags, _ := model.ParseHashtags(post.Message)
+	newPost := &model.Post{}
+	*newPost = *oldPost
 
-	if result := <-Srv.Store.Post().Update(oldPost, post.Message, hashtags); result.Err != nil {
+	newPost.Message = post.Message
+	newPost.Hashtags, _ = model.ParseHashtags(post.Message)
+
+	if result := <-Srv.Store.Post().Update(newPost, oldPost); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
