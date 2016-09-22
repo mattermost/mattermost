@@ -183,7 +183,8 @@ func TestSetActiveChannel(t *testing.T) {
 	}
 
 	status, _ = GetStatus(th.BasicUser.Id)
-	if status.ActiveChannel != th.BasicChannel.Id {
+	// need to check if offline to catch race
+	if status.Status != model.STATUS_OFFLINE && status.ActiveChannel != th.BasicChannel.Id {
 		t.Fatal("active channel should be set")
 	}
 }
