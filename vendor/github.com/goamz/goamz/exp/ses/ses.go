@@ -113,6 +113,10 @@ func (ses *SES) doPost(action string, data url.Values) error {
 
 	req.URL = URL
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	token := ses.auth.Token()
+	if token != "" {
+		req.Header.Set("X-Amz-Security-Token", token)
+	}
 	sign(ses.auth, "POST", req.Header)
 
 	data.Add("AWSAccessKeyId", ses.auth.AccessKey)
@@ -139,7 +143,7 @@ func (ses *SES) doPost(action string, data url.Values) error {
 }
 
 func buildError(r *http.Response) *SESError {
-	err := SESError{}
-	xml.NewDecoder(r.Body).Decode(&err)
-	return &err
+	rootElem := errorResponse{}
+	xml.NewDecoder(r.Body).Decode(&rootElem)
+	return &rootElem.Error
 }

@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2016 Miquel Sabaté Solà <mikisabate@gmail.com>
+// Copyright (C) 2012-2014 Miquel Sabaté Solà <mikisabate@gmail.com>
 // This file is licensed under the MIT license.
 // See the LICENSE file.
 
@@ -7,12 +7,12 @@ package user_agent
 import "strings"
 
 // Normalize the name of the operating system. By now, this just
-// affects to Windows NT.
+// affects to Windows.
 //
 // Returns a string containing the normalized name for the Operating System.
 func normalizeOS(name string) string {
 	sp := strings.SplitN(name, " ", 3)
-	if len(sp) != 3 || sp[1] != "NT" {
+	if len(sp) != 3 {
 		return name
 	}
 
@@ -33,7 +33,7 @@ func normalizeOS(name string) string {
 		return "Windows 8"
 	case "6.3":
 		return "Windows 8.1"
-	case "10.0":
+	case "6.4":
 		return "Windows 10"
 	}
 	return name
@@ -193,23 +193,6 @@ func opera(p *UserAgent, comment []string) {
 	}
 }
 
-// Guess the OS. Android browsers send Dalvik as the user agent in the
-// request header.
-//
-// The first argument p is a reference to the current UserAgent and the second
-// argument is a slice of strings containing the comment.
-func dalvik(p *UserAgent, comment []string) {
-	slen := len(comment)
-
-	if strings.HasPrefix(comment[0], "Linux") {
-		p.platform = comment[0]
-		if slen > 2 {
-			p.os = comment[2]
-		}
-		p.mobile = true
-	}
-}
-
 // Given the comment of the first section of the UserAgent string,
 // get the platform.
 func getPlatform(comment []string) string {
@@ -254,10 +237,6 @@ func (p *UserAgent) detectOS(s section) {
 	} else if s.name == "Opera" {
 		if len(s.comment) > 0 {
 			opera(p, s.comment)
-		}
-	} else if s.name == "Dalvik" {
-		if len(s.comment) > 0 {
-			dalvik(p, s.comment)
 		}
 	} else {
 		// Check whether this is a bot or just a weird browser.

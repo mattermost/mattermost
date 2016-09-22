@@ -231,7 +231,7 @@ func Encrypt(ciphertext io.Writer, to []*Entity, signed *Entity, hints *FileHint
 	}
 
 	cipher := packet.CipherFunction(candidateCiphers[0])
-	// If the cipher specifed by config is a candidate, we'll use that.
+	// If the cipher specified by config is a candidate, we'll use that.
 	configuredCipher := config.Cipher()
 	for _, c := range candidateCiphers {
 		cipherFunc := packet.CipherFunction(c)

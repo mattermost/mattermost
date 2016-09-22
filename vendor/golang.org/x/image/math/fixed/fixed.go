@@ -56,6 +56,11 @@ func (x Int26_6) Round() int { return int((x + 0x20) >> 6) }
 // Its return type is int, not Int26_6.
 func (x Int26_6) Ceil() int { return int((x + 0x3f) >> 6) }
 
+// Mul returns x*y in 26.6 fixed-point arithmetic.
+func (x Int26_6) Mul(y Int26_6) Int26_6 {
+	return Int26_6((int64(x)*int64(y) + 1<<5) >> 6)
+}
+
 // Int52_12 is a signed 52.12 fixed-point number.
 //
 // The integer part ranges from -2251799813685248 to 2251799813685247,
@@ -94,6 +99,39 @@ func (x Int52_12) Round() int { return int((x + 0x800) >> 12) }
 //
 // Its return type is int, not Int52_12.
 func (x Int52_12) Ceil() int { return int((x + 0xfff) >> 12) }
+
+// Mul returns x*y in 52.12 fixed-point arithmetic.
+func (x Int52_12) Mul(y Int52_12) Int52_12 {
+	const M, N = 52, 12
+	lo, hi := muli64(int64(x), int64(y))
+	ret := Int52_12(hi<<M | lo>>N)
+	ret += Int52_12((lo >> (N - 1)) & 1) // Round to nearest, instead of rounding down.
+	return ret
+}
+
+// muli64 multiplies two int64 values, returning the 128-bit signed integer
+// result as two uint64 values.
+//
+// This implementation is similar to $GOROOT/src/runtime/softfloat64.go's mullu
+// function, which is in turn adapted from Hacker's Delight.
+func muli64(u, v int64) (lo, hi uint64) {
+	const (
+		s    = 32
+		mask = 1<<s - 1
+	)
+
+	u1 := uint64(u >> s)
+	u0 := uint64(u & mask)
+	v1 := uint64(v >> s)
+	v0 := uint64(v & mask)
+
+	w0 := u0 * v0
+	t := u1*v0 + w0>>s
+	w1 := t & mask
+	w2 := uint64(int64(t) >> s)
+	w1 += u0 * v1
+	return uint64(u) * uint64(v), u1*v1 + w2 + uint64(int64(w1)>>s)
+}
 
 // P returns the integer values x and y as a Point26_6.
 //

@@ -341,7 +341,14 @@ func (h *hinter) run(program []byte, pCurrent, pUnhinted, pInFontUnits []Point, 
 
 		case opSLOOP:
 			top--
-			if h.stack[top] <= 0 {
+			// https://developer.apple.com/fonts/TrueType-Reference-Manual/RM05/Chap5.html#SLOOP
+			// says that "Setting the loop variable to zero is an error". In
+			// theory, the inequality on the next line should be "<=" instead
+			// of "<". In practice, some font files' bytecode, such as the '2'
+			// glyph in the DejaVuSansMono.ttf that comes with Ubuntu 14.04,
+			// issue SLOOP with a zero on top of the stack. Just like the C
+			// Freetype code, we allow the zero.
+			if h.stack[top] < 0 {
 				return errors.New("truetype: hinting: invalid data")
 			}
 			h.gs.loop = h.stack[top]
