@@ -231,23 +231,6 @@ describe('Client.Posts', function() {
         });
     });
 
-    it('getPost', function(done) {
-        TestHelper.initBasic(() => {
-            var post = TestHelper.fakePost();
-            post.channel_id = TestHelper.basicChannel().id;
-
-            TestHelper.basicClient().getPost(
-                TestHelper.basicChannel().id,
-                TestHelper.basicPost().id,
-                function(data) {
-                    assert.equal(data.order[0], TestHelper.basicPost().id);
-                    done();
-                },
-                function(err) {
-                    done(new Error(err.message));
-                }
-            );
-        });
-    });
+    // getPostFiles is tested in client_files.test.jsx
 });
 
