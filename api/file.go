@@ -53,8 +53,6 @@ const (
 	MaxImageSize = 6048 * 4032 // 24 megapixels, roughly 36MB as a raw image
 )
 
-var fileInfoCache *utils.Cache = utils.NewLru(1000)
-
 func InitFile() {
 	l4g.Debug(utils.T("api.file.init.debug"))
 
