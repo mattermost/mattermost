@@ -6,16 +6,10 @@ import ReactDOM from 'react-dom';
 import * as AsyncClient from 'utils/async_client.jsx';
 import Client from 'client/web_client.jsx';
 import Constants from 'utils/constants.jsx';
-import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 import PreferenceStore from 'stores/preference_store.jsx';
 import {Modal} from 'react-bootstrap';
-
-const holders = defineMessages({
-    error: {
-        id: 'edit_channel_purpose_modal.error',
-        defaultMessage: 'This channel purpose is too long, please enter a shorter one'
-    }
-});
+import * as Utils from 'utils/utils.jsx';
 
 import React from 'react';
 
@@ -89,7 +83,7 @@ export default class EditChannelPurposeModal extends React.Component {
             },
             (err) => {
                 if (err.id === 'api.context.invalid_param.app_error') {
-                    this.setState({serverError: this.props.intl.formatMessage(holders.error)});
+                    this.setState({serverError: Utils.localizeMessage('edit_channel_puropse_modal.error', 'This channel purpose is too long, please enter a shorter one')});
                 } else {
                     this.setState({serverError: err.message});
                 }
@@ -208,10 +202,7 @@ export default class EditChannelPurposeModal extends React.Component {
 }
 
 EditChannelPurposeModal.propTypes = {
-    intl: intlShape.isRequired,
     show: React.PropTypes.bool.isRequired,
     channel: React.PropTypes.object,
     onModalDismissed: React.PropTypes.func.isRequired
 };
-
-export default injectIntl(EditChannelPurposeModal);
