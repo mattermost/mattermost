@@ -1394,7 +1394,6 @@ func cmdSlackImport() {
 		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
-			_ = team
 		} else {
 			team = result.Data.(*model.Team)
 		}
