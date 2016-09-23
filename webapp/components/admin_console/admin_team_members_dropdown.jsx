@@ -50,7 +50,7 @@ export default class AdminTeamMembersDropdown extends React.Component {
             }
         );
         Client.updateTeamMemberRoles(
-            this.props.team.id,
+            this.props.teamMember.team_id,
             this.props.user.id,
             'team_user',
             () => {
@@ -111,7 +111,7 @@ export default class AdminTeamMembersDropdown extends React.Component {
 
     doMakeTeamAdmin() {
         Client.updateTeamMemberRoles(
-            this.props.team.id,
+            this.props.teamMember.team_id,
             this.props.user.id,
             'team_user team_admin',
             () => {
