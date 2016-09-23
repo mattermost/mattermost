@@ -971,23 +971,23 @@ export default class SecurityTab extends React.Component {
                     <div className='divider-light'/>
                     {signInSection}
                     <div className='divider-dark'/>
-                    <br></br>
+                    <br/>
                     <ToggleModalButton
                         className='security-links theme'
                         dialogType={AccessHistoryModal}
                     >
-                        <i className='fa fa-clock-o'></i>
+                        <i className='fa fa-clock-o'/>
                         <FormattedMessage
                             id='user.settings.security.viewHistory'
                             defaultMessage='View Access History'
                         />
                     </ToggleModalButton>
-                    <b> </b>
+                    <b/>
                     <ToggleModalButton
                         className='security-links theme'
                         dialogType={ActivityLogModal}
                     >
-                        <i className='fa fa-clock-o'></i>
+                        <i className='fa fa-clock-o'/>
                         <FormattedMessage
                             id='user.settings.security.logoutActiveSessions'
                             defaultMessage='View and Logout of Active Sessions'

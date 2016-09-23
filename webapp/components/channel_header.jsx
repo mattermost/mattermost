@@ -113,7 +113,7 @@ export default class ChannelHeader extends React.Component {
     }
 
     shouldComponentUpdate(nextProps) {
-        return !!nextProps.channelId;
+        return Boolean(nextProps.channelId);
     }
 
     onListenerChange() {

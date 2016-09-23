@@ -209,7 +209,7 @@ export default class ThemeSetting extends React.Component {
 
         let themeUI;
         if (this.props.selected) {
-            let inputs = [];
+            const inputs = [];
 
             inputs.push(
                 <div

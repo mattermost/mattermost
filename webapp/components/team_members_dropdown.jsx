@@ -258,7 +258,7 @@ export default class TeamMembersDropdown extends React.Component {
             );
         }
 
-        let makeActive = null;
+        const makeActive = null;
         if (showMakeActive) {
             // makeActive = (
             //     <li role='presentation'>
@@ -276,7 +276,7 @@ export default class TeamMembersDropdown extends React.Component {
             // );
         }
 
-        let makeNotActive = null;
+        const makeNotActive = null;
         if (showMakeNotActive) {
             // makeNotActive = (
             //     <li role='presentation'>
@@ -352,7 +352,7 @@ export default class TeamMembersDropdown extends React.Component {
                     aria-expanded='true'
                 >
                     <span>{currentRoles} </span>
-                    <span className='fa fa-chevron-down'></span>
+                    <span className='fa fa-chevron-down'/>
                 </a>
                 <ul
                     className='dropdown-menu member-menu'

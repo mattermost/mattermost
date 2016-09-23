@@ -103,7 +103,7 @@ export default class FilteredChannelList extends React.Component {
 
         return channels.filter((chan) => {
             const filter = this.state.filter.toLowerCase();
-            return !!((chan.name.toLowerCase().indexOf(filter) !== -1 || chan.display_name.toLowerCase().indexOf(filter) !== -1) && chan.delete_at === 0);
+            return Boolean((chan.name.toLowerCase().indexOf(filter) !== -1 || chan.display_name.toLowerCase().indexOf(filter) !== -1) && chan.delete_at === 0);
         });
     }
 

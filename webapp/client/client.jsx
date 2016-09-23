@@ -749,7 +749,7 @@ export default class Client {
     updateActive(userId, active, success, error) {
         var data = {};
         data.user_id = userId;
-        data.active = '' + active;
+        data.active = String(active);
 
         request.
             post(`${this.getUsersRoute()}/update_active`).
@@ -1336,7 +1336,7 @@ export default class Client {
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
-            send({channelId, command, suggest: '' + suggest}).
+            send({channelId, command, suggest: String(suggest)}).
             end(this.handleResponse.bind(this, 'executeCommand', success, error));
 
         this.track('api', 'api_integrations_used');

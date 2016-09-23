@@ -110,7 +110,7 @@ export function createDefaultIntroMessage(channel, centeredIntro) {
             href='#'
             onClick={GlobalActions.showGetTeamInviteLinkModal}
         >
-            <i className='fa fa-user-plus'></i>
+            <i className='fa fa-user-plus'/>
             <FormattedMessage
                 id='intro_messages.inviteOthers'
                 defaultMessage='Invite others to this team'
@@ -247,7 +247,7 @@ function createInviteChannelMemberButton(channel, uiType) {
             dialogType={ChannelInviteModal}
             dialogProps={{channel}}
         >
-            <i className='fa fa-user-plus'></i>
+            <i className='fa fa-user-plus'/>
             <FormattedMessage
                 id='intro_messages.invite'
                 defaultMessage='Invite others to this {type}'
@@ -266,7 +266,7 @@ function createSetHeaderButton(channel) {
             dialogType={EditChannelHeaderModal}
             dialogProps={{channel}}
         >
-            <i className='fa fa-pencil'></i>
+            <i className='fa fa-pencil'/>
             <FormattedMessage
                 id='intro_messages.setHeader'
                 defaultMessage='Set a Header'

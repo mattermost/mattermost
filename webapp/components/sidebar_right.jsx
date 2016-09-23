@@ -37,7 +37,7 @@ export default class SidebarRight extends React.Component {
         this.state = {
             searchVisible: SearchStore.getSearchResults() !== null,
             isMentionSearch: SearchStore.getIsMentionSearch(),
-            postRightVisible: !!PostStore.getSelectedPost(),
+            postRightVisible: Boolean(PostStore.getSelectedPost()),
             expanded: false,
             fromSearch: false,
             currentUser: UserStore.getCurrentUser(),
@@ -88,7 +88,7 @@ export default class SidebarRight extends React.Component {
             $('.app__body .inner-wrap').removeClass('move--left').removeClass('move--right');
             $('.app__body .sidebar--right').removeClass('move--left');
             return (
-                <div></div>
+                <div/>
             );
         }
 
@@ -118,7 +118,7 @@ export default class SidebarRight extends React.Component {
 
     onSelectedChange(fromSearch, fromFlaggedPosts) {
         this.setState({
-            postRightVisible: !!PostStore.getSelectedPost(),
+            postRightVisible: Boolean(PostStore.getSelectedPost()),
             fromSearch,
             fromFlaggedPosts
         });

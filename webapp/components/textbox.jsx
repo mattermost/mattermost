@@ -222,8 +222,7 @@ export default class Textbox extends React.Component {
                     className='form-control custom-textarea textbox-preview-area'
                     style={{display: this.state.preview ? 'block' : 'none'}}
                     dangerouslySetInnerHTML={{__html: this.state.preview ? TextFormatting.formatText(this.props.messageText) : ''}}
-                >
-                </div>
+                />
                 <div className='help__text'>
                     {helpText}
                     {previewLink}

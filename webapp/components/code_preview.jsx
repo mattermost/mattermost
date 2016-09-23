@@ -65,7 +65,7 @@ export default class CodePreview extends React.Component {
     }
 
     static support(filename) {
-        return !!SyntaxHighlighting.getLanguageFromFilename(filename);
+        return Boolean(SyntaxHighlighting.getLanguageFromFilename(filename));
     }
 
     render() {

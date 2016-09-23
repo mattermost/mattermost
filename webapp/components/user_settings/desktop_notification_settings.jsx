@@ -21,7 +21,7 @@ export default class DesktopNotificationSettings extends React.Component {
     }
 
     buildMaximizedSetting() {
-        let inputs = [];
+        const inputs = [];
         let extraInfo = null;
 
         const activityRadio = [false, false, false];

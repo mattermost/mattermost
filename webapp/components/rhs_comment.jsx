@@ -277,7 +277,7 @@ export default class RhsComment extends React.Component {
             );
         }
 
-        let profilePic = (
+        const profilePic = (
             <ProfilePicture
                 src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
                 status={this.props.status}

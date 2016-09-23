@@ -96,7 +96,7 @@ export default class LdapTestButton extends React.Component {
             );
         }
 
-        let helpText = (
+        const helpText = (
             <FormattedHTMLMessage
                 id='admin.ldap.testHelpText'
                 defaultMessage='Tests if the Mattermost server can connect to the AD/LDAP server specified. See log file for more detailed error messages.'

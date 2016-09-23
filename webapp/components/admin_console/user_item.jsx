@@ -562,7 +562,7 @@ export default class UserItem extends React.Component {
                             aria-expanded='true'
                         >
                             <span>{currentRoles} </span>
-                            <span className='caret'></span>
+                            <span className='caret'/>
                         </a>
                         <ul
                             className='dropdown-menu member-menu'

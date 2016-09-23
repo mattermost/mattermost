@@ -132,7 +132,7 @@ export default class TutorialTip extends React.Component {
                     target={() => this.refs.target}
                 >
                     <div className={'tip-overlay ' + this.props.overlayClass}>
-                        <div className='arrow'></div>
+                        <div className='arrow'/>
                         {this.props.screens[this.state.currentScreen]}
                         <div className='tutorial__footer'>
                             <div className='tutorial__circles'>{dots}</div>

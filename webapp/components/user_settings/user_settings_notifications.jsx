@@ -260,9 +260,8 @@ export default class NotificationsTab extends React.Component {
     }
 
     createPushNotificationSection() {
-        let handleUpdatePushSection;
         if (this.props.activeSection === 'push') {
-            let inputs = [];
+            const inputs = [];
             let extraInfo = null;
             let submit = null;
 
@@ -508,9 +507,9 @@ export default class NotificationsTab extends React.Component {
             }
         }
 
-        handleUpdatePushSection = function updateDesktopSection() {
+        const handleUpdatePushSection = () => {
             this.props.updateSection('push');
-        }.bind(this);
+        };
 
         return (
             <SettingItemMin
@@ -528,17 +527,12 @@ export default class NotificationsTab extends React.Component {
         var keysSection;
         var handleUpdateKeysSection;
         if (this.props.activeSection === 'keys') {
-            let inputs = [];
-
-            let handleUpdateFirstNameKey;
-            let handleUpdateUsernameKey;
-            let handleUpdateMentionKey;
-            let handleUpdateChannelKey;
+            const inputs = [];
 
             if (user.first_name) {
-                handleUpdateFirstNameKey = function handleFirstNameKeyChange(e) {
+                const handleUpdateFirstNameKey = (e) => {
                     this.updateFirstNameKey(e.target.checked);
-                }.bind(this);
+                };
                 inputs.push(
                     <div key='userNotificationFirstNameOption'>
                         <div className='checkbox'>
@@ -561,9 +555,9 @@ export default class NotificationsTab extends React.Component {
                 );
             }
 
-            handleUpdateUsernameKey = function handleUsernameKeyChange(e) {
+            const handleUpdateUsernameKey = (e) => {
                 this.updateUsernameKey(e.target.checked);
-            }.bind(this);
+            };
             inputs.push(
                 <div key='userNotificationUsernameOption'>
                     <div className='checkbox'>
@@ -585,9 +579,9 @@ export default class NotificationsTab extends React.Component {
                 </div>
             );
 
-            handleUpdateMentionKey = function handleMentionKeyChange(e) {
+            const handleUpdateMentionKey = (e) => {
                 this.updateMentionKey(e.target.checked);
-            }.bind(this);
+            };
             inputs.push(
                 <div key='userNotificationMentionOption'>
                     <div className='checkbox'>
@@ -609,9 +603,9 @@ export default class NotificationsTab extends React.Component {
                 </div>
             );
 
-            handleUpdateChannelKey = function handleChannelKeyChange(e) {
+            const handleUpdateChannelKey = (e) => {
                 this.updateChannelKey(e.target.checked);
-            }.bind(this);
+            };
             inputs.push(
                 <div key='userNotificationChannelOption'>
                     <div className='checkbox'>
@@ -728,7 +722,7 @@ export default class NotificationsTab extends React.Component {
                 commentsActive[0] = true;
             }
 
-            let inputs = [];
+            const inputs = [];
 
             inputs.push(
                 <div key='userNotificationLevelOption'>

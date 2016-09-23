@@ -148,7 +148,7 @@ export default class SearchBar extends React.Component {
     render() {
         var isSearching = null;
         if (this.state.isSearching) {
-            isSearching = <span className={'fa fa-refresh fa-refresh-animate icon--refresh icon--rotate'}></span>;
+            isSearching = <span className={'fa fa-refresh fa-refresh-animate icon--refresh icon--rotate'}/>;
         }
 
         let helpClass = 'search-help-popover';
@@ -162,7 +162,7 @@ export default class SearchBar extends React.Component {
                     className='sidebar__collapse'
                     onClick={this.handleClose}
                 >
-                    <span className='fa fa-angle-left'></span>
+                    <span className='fa fa-angle-left'/>
                 </div>
                 <span
                     className='search__clear'

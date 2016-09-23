@@ -77,7 +77,7 @@ export default class AdminNavbarDropdown extends React.Component {
                 <li
                     key='teamDiv'
                     className='divider'
-                ></li>
+                />
             );
         }
 
@@ -118,7 +118,7 @@ export default class AdminNavbarDropdown extends React.Component {
                         <li
                             key='teamDiv'
                             className='divider'
-                        ></li>
+                        />
                         <li>
                             <a
                                 href='#'

@@ -69,7 +69,7 @@ export default class EmojiList extends React.Component {
         const filter = this.state.filter.toLowerCase();
         const isSystemAdmin = Utils.isSystemAdmin(this.props.user.roles);
 
-        let emojis = [];
+        const emojis = [];
         if (this.state.loading) {
             emojis.push(
                 <LoadingScreen key='loading'/>
@@ -129,7 +129,7 @@ export default class EmojiList extends React.Component {
                 </div>
                 <div className='backstage-filters'>
                     <div className='backstage-filter__search'>
-                        <i className='fa fa-search'></i>
+                        <i className='fa fa-search'/>
                         <input
                             type='search'
                             className='form-control'

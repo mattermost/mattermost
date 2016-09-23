@@ -99,7 +99,7 @@ export default class SwitchChannelModal extends React.Component {
     }
 
     render() {
-        let message = this.state.error;
+        const message = this.state.error;
         return (
             <Modal
                 className='modal-browse-channel'

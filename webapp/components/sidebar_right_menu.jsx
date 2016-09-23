@@ -177,7 +177,7 @@ export default class SidebarRightMenu extends React.Component {
                         href='#'
                         onClick={GlobalActions.showInviteMemberModal}
                     >
-                        <i className='icon fa fa-user-plus'></i>
+                        <i className='icon fa fa-user-plus'/>
                         <FormattedMessage
                             id='sidebar_right_menu.inviteNew'
                             defaultMessage='Invite New Member'
@@ -193,7 +193,7 @@ export default class SidebarRightMenu extends React.Component {
                             href='#'
                             onClick={GlobalActions.showGetTeamInviteLinkModal}
                         >
-                            <i className='icon fa fa-link'></i>
+                            <i className='icon fa fa-link'/>
                             <FormattedMessage
                                 id='sidebar_right_menu.teamLink'
                                 defaultMessage='Get Team Invite Link'
@@ -217,7 +217,7 @@ export default class SidebarRightMenu extends React.Component {
         manageLink = (
             <li>
                 <ToggleModalButton dialogType={TeamMembersModal}>
-                    <i className='icon fa fa-users'></i>
+                    <i className='icon fa fa-users'/>
                     <FormattedMessage
                         id='sidebar_right_menu.viewMembers'
                         defaultMessage='View Members'
@@ -234,7 +234,7 @@ export default class SidebarRightMenu extends React.Component {
                         data-toggle='modal'
                         data-target='#team_settings'
                     >
-                        <i className='icon fa fa-globe'></i>
+                        <i className='icon fa fa-globe'/>
                         <FormattedMessage
                             id='sidebar_right_menu.teamSettings'
                             defaultMessage='Team Settings'
@@ -248,7 +248,7 @@ export default class SidebarRightMenu extends React.Component {
                         dialogType={TeamMembersModal}
                         dialogProps={{isAdmin}}
                     >
-                        <i className='icon fa fa-users'></i>
+                        <i className='icon fa fa-users'/>
                         <FormattedMessage
                             id='sidebar_right_menu.manageMembers'
                             defaultMessage='Manage Members'
@@ -265,7 +265,7 @@ export default class SidebarRightMenu extends React.Component {
                         to={'/admin_console'}
                         onClick={this.handleClick}
                     >
-                        <i className='icon fa fa-wrench'></i>
+                        <i className='icon fa fa-wrench'/>
                         <FormattedMessage
                             id='sidebar_right_menu.console'
                             defaultMessage='System Console'
@@ -293,7 +293,7 @@ export default class SidebarRightMenu extends React.Component {
                         rel='noopener noreferrer'
                         to={global.window.mm_config.HelpLink}
                     >
-                        <i className='icon fa fa-question'></i>
+                        <i className='icon fa fa-question'/>
                         <FormattedMessage
                             id='sidebar_right_menu.help'
                             defaultMessage='Help'
@@ -312,7 +312,7 @@ export default class SidebarRightMenu extends React.Component {
                         rel='noopener noreferrer'
                         to={global.window.mm_config.ReportAProblemLink}
                     >
-                        <i className='icon fa fa-phone'></i>
+                        <i className='icon fa fa-phone'/>
                         <FormattedMessage
                             id='sidebar_right_menu.report'
                             defaultMessage='Report a Problem'
@@ -338,7 +338,7 @@ export default class SidebarRightMenu extends React.Component {
                         rel='noopener noreferrer'
                         to={global.window.mm_config.AppDownloadLink}
                     >
-                        <i className='icon fa fa-mobile'></i>
+                        <i className='icon fa fa-mobile'/>
                         <FormattedMessage
                             id='sidebar_right_menu.nativeApps'
                             defaultMessage='Download Apps'
@@ -382,7 +382,7 @@ export default class SidebarRightMenu extends React.Component {
                                 href='#'
                                 onClick={this.getFlagged}
                             >
-                                <i className='icon fa fa-flag'></i>
+                                <i className='icon fa fa-flag'/>
                                 <FormattedMessage
                                     id='sidebar_right_menu.flagged'
                                     defaultMessage='Flagged Posts'
@@ -394,7 +394,7 @@ export default class SidebarRightMenu extends React.Component {
                                 href='#'
                                 onClick={() => this.setState({showUserSettingsModal: true})}
                             >
-                                <i className='icon fa fa-cog'></i>
+                                <i className='icon fa fa-cog'/>
                                 <FormattedMessage
                                     id='sidebar_right_menu.accountSettings'
                                     defaultMessage='Account Settings'
@@ -408,27 +408,27 @@ export default class SidebarRightMenu extends React.Component {
                         {consoleLink}
                         <li>
                             <Link to='/select_team'>
-                                <i className='icon fa fa-exchange'></i>
+                                <i className='icon fa fa-exchange'/>
                                 <FormattedMessage
                                     id='sidebar_right_menu.switch_team'
                                     defaultMessage='Team Selection'
                                 />
                             </Link>
                         </li>
-                        <li className='divider'></li>
+                        <li className='divider'/>
                         <li>
                             <a
                                 href='#'
                                 onClick={GlobalActions.emitUserLoggedOutEvent}
                             >
-                                <i className='icon fa fa-sign-out'></i>
+                                <i className='icon fa fa-sign-out'/>
                                 <FormattedMessage
                                     id='sidebar_right_menu.logout'
                                     defaultMessage='Logout'
                                 />
                             </a>
                         </li>
-                        <li className='divider'></li>
+                        <li className='divider'/>
                         {helpLink}
                         {reportLink}
                         <li>
@@ -436,7 +436,7 @@ export default class SidebarRightMenu extends React.Component {
                                 href='#'
                                 onClick={this.handleAboutModal}
                             >
-                                <i className='icon fa fa-info'></i>
+                                <i className='icon fa fa-info'/>
                                 <FormattedMessage
                                     id='navbar_dropdown.about'
                                     defaultMessage='About Mattermost'

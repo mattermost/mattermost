@@ -237,7 +237,7 @@ class AuditTable extends React.Component {
                 sContent = <td className='word-break--all'>{auditInfo.sessionId}</td>;
             }
 
-            let descStyle = {};
+            const descStyle = {};
             if (auditInfo.desc.toLowerCase().indexOf('fail') !== -1) {
                 descStyle.color = 'red';
             }

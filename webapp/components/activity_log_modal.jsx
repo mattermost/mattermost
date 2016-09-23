@@ -90,7 +90,7 @@ export default class ActivityLogModal extends React.Component {
         this.setState({moreInfo: newMoreInfo});
     }
     render() {
-        let activityList = [];
+        const activityList = [];
 
         for (let i = 0; i < this.state.sessions.length; i++) {
             const currentSession = this.state.sessions[i];

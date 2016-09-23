@@ -16,7 +16,7 @@ export default class NotLoggedIn extends React.Component {
         $('#root').removeClass('container-fluid');
     }
     render() {
-        let content = [];
+        const content = [];
 
         if (global.window.mm_config.HelpLink) {
             content.push(
@@ -78,7 +78,7 @@ export default class NotLoggedIn extends React.Component {
             <div className='inner-wrap'>
                 <div className='row content'>
                     {this.props.children}
-                    <div className='footer-push'></div>
+                    <div className='footer-push'/>
                 </div>
                 <div className='row footer'>
                     <div className='footer-pane col-xs-12'>

@@ -152,7 +152,7 @@ export function getLanguageFromFilename(filename) {
 }
 
 export function canHighlight(language) {
-    return !!HighlightedLanguages[language.toLowerCase()];
+    return Boolean(HighlightedLanguages[language.toLowerCase()]);
 }
 
 export function getLanguageName(language) {

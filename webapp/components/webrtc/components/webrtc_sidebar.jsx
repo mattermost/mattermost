@@ -57,7 +57,7 @@ export default class SidebarRight extends React.Component {
             $('.app__body .inner-wrap').removeClass('webrtc--show').removeClass('move--right');
             $('.app__body .webrtc').removeClass('webrtc--show');
             return (
-                <div></div>
+                <div/>
             );
         }
         return null;

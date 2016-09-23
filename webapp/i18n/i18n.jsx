@@ -124,7 +124,7 @@ export function getLanguageInfo(locale) {
 }
 
 export function isLanguageAvailable(locale) {
-    return !!availableLanguages[locale];
+    return Boolean(availableLanguages[locale]);
 }
 
 export function safariFix(callback) {

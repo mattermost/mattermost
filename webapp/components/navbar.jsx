@@ -446,7 +446,7 @@ export default class Navbar extends React.Component {
                             aria-expanded='true'
                         >
                             <span className='heading'><StatusIcon status={this.getTeammateStatus()}/>{channelTitle} </span>
-                            <span className='fa fa-chevron-down header-dropdown__icon'></span>
+                            <span className='fa fa-chevron-down header-dropdown__icon'/>
                         </a>
                         <ul
                             className='dropdown-menu'
@@ -496,9 +496,9 @@ export default class Navbar extends React.Component {
                             defaultMessage='Toggle sidebar'
                         />
                     </span>
-                    <span className='icon-bar'></span>
-                    <span className='icon-bar'></span>
-                    <span className='icon-bar'></span>
+                    <span className='icon-bar'/>
+                    <span className='icon-bar'/>
+                    <span className='icon-bar'/>
                 </button>
             );
         } else {
@@ -517,9 +517,9 @@ export default class Navbar extends React.Component {
                             defaultMessage='Toggle sidebar'
                         />
                     </span>
-                    <span className='icon-bar'></span>
-                    <span className='icon-bar'></span>
-                    <span className='icon-bar'></span>
+                    <span className='icon-bar'/>
+                    <span className='icon-bar'/>
+                    <span className='icon-bar'/>
                     <NotifyCounts/>
                 </button>
             );

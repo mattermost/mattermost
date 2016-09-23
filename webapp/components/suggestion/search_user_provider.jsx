@@ -27,7 +27,7 @@ class SearchUserSuggestion extends Suggestion {
                     className='profile-img rounded'
                     src={Client.getUsersRoute() + '/' + item.id + '/image?time=' + item.update_at}
                 />
-                <i className='fa fa fa-plus-square'></i>{item.username}
+                <i className='fa fa fa-plus-square'/>{item.username}
             </div>
         );
     }

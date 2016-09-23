@@ -265,7 +265,7 @@ class InviteMemberModal extends React.Component {
                                 className='btn btn-link remove__member'
                                 onClick={this.removeInviteFields.bind(this, index)}
                             >
-                                <span className='fa fa-trash'></span>
+                                <span className='fa fa-trash'/>
                             </button>
                         </div>
                     );
