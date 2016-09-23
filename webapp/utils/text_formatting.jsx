@@ -117,7 +117,7 @@ export function sanitizeHtml(text) {
 
 // Convert emails into tokens
 function autolinkEmails(text, tokens) {
-    function replaceEmailWithToken(autolinker, match) {
+    function replaceEmailWithToken(match) {
         const linkText = match.getMatchedText();
         let url = linkText;
 
@@ -141,7 +141,7 @@ function autolinkEmails(text, tokens) {
         urls: false,
         email: true,
         phone: false,
-        twitter: false,
+        mention: false,
         hashtag: false,
         replaceFn: replaceEmailWithToken
     });
