@@ -32,6 +32,14 @@
         margin-left: 0;
     }
 
+    .file-icon {
+        border: none;
+        box-shadow: none;
+        height: 100%;
+        outline: none;
+        width: 100%;
+    }
+
     .spinner {
         height: 32px;
         left: 50%;
@@ -90,8 +98,14 @@
 
 
 .file-icon {
-    height: 100%;
-    width: 100%;
+    @include border-radius($border-rad);
+    @include box-shadow(0 1px 6px $gray);
+    border: 1px solid $light-gray;
+    display: inline-block;
+    height: 65px;
+    margin-top: 5px;
+    outline: 2px solid $white;
+    width: 55px;
 
     &.audio {
         @include file-icon('../images/icons/audio.png');
@@ -159,103 +173,84 @@
     }
 }
 
-.post-image__column {
-    border: 1px solid alpha-color($black, .2);
-    float: left;
-    height: 100px;
-    margin: 5px 10px 5px 0;
-    position: relative;
-    width: 240px;
+.post {
+    .post-image__single {
+        .post-image__column {
+            width: auto;
+
+            .post-image__details {
+                font-size: .9em;
+            }
+
+            .post-image {
+                height: auto;
+                line-height: inherit;
+
+                img {
+                    @include box-shadow(none);
+                    border: none;
+                    max-height: 400px;
+                    max-width: 500px;
+                    outline-width: 1px;
+                }
+            }
+        }
+    }
+
+    .post-image__column {
+        float: left;
+        margin: 5px 1em 5px 0;
+        text-align: center;
+        width: 110px;
+
+        .post-image__thumbnail {
+            outline: none;
+        }
+
+        .post-image {
+            height: 80px;
+            line-height: 80px;
+
+            img {
+                @include box-shadow(0 1px 6px $gray);
+                border: 1px solid $light-gray;
+                margin-bottom: 5px;
+                max-height: 65px;
+                max-width: 100px;
+                outline: 2px solid $white;
+            }
+        }
+
+        .post-image__details {
+            font-size: .85em;
+
+            a {
+                color: inherit;
+                text-decoration: none;
+
+                &:active,
+                &:hover {
+                    color: inherit;
+                }
+            }
+        }
+    }
 }
 
 .post-image__load {
     background-position: center;
     background-repeat: no-repeat;
-    background-size: 20px 20px;
-    height: 100%;
+    background-size: 20px 150px;
+    height: 150px;
     width: 100%;
 }
 
-.post-image {
-    background-color: $white;
+.post-image-single__load {
+    background-position: center;
     background-repeat: no-repeat;
-    height: 100%;
-    overflow: hidden;
-    position: relative;
-    text-align: center;
+    background-size: 20px 400px;
+    height: 400px;
     width: 100%;
-
-    &.small {
-        background-position: center;
-    }
-
-    &.normal {
-        background-position: top left;
-    }
-
-    .spinner {
-        .file__loading {
-            left: 50%;
-            margin-left: -16px;
-            margin-top: -16px;
-            position: absolute;
-            top: 50%;
-        }
-    }
-
-    .file__loaded {
-        max-width: initial;
-
-        &.landscape,
-        &.quadrat {
-            height: 100px;
-        }
-
-        &.portrait {
-            width: 120px;
-        }
-    }
-}
-
-.post-image__thumbnail {
-    @include cursor(zoom-in);
-    float: left;
-    height: 100%;
-    width: 50%;
-}
-
-.post-image__details {
-    @include clearfix;
-    background: $white;
-    border-left: 1px solid $light-gray;
-    color: alpha-color($black, .8);
-    float: left;
-    font-size: 13px;
-    height: 100%;
-    padding: 7px;
-    width: 50%;
-    word-break: break-word;
-
-    .post-image__name {
-        display: block;
-        margin-bottom: 3px;
-    }
-
-    .post-image__download {
-        @include opacity(.7);
-        cursor: pointer;
-        display: inline-block;
-        padding-right: 7px;
-    }
-
-    .post-image__type {
-        @include opacity(.6);
-    }
-
-    .post-image__size {
-        @include opacity(.6);
-        margin-left: 4px;
-    }
 }
 
 .file-details__container {
@@ -295,6 +290,7 @@
         }
     }
 }
+
 
 .file-playback__controls {
     @include single-transition(opacity, .6s);

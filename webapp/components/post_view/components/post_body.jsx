@@ -144,11 +144,11 @@ export default class PostBody extends React.Component {
         if (filenames && filenames.length > 0) {
             fileAttachmentHolder = (
                 <FileAttachmentList
-
                     filenames={filenames}
                     channelId={post.channel_id}
                     userId={post.user_id}
                     compactDisplay={this.props.compactDisplay}
+                    height={'400px'}
                 />
             );
         }

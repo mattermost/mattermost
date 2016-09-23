@@ -561,7 +561,7 @@ export function applyTheme(theme) {
         changeCss('#post-list .post-list-holder-by-time', 'background:' + theme.centerChannelBg, 1);
         changeCss('#post-create', 'background:' + theme.centerChannelBg, 1);
         changeCss('.app__body .date-separator .separator__text, .app__body .new-separator .separator__text', 'background:' + theme.centerChannelBg, 1);
-        changeCss('.app__body .post-image__details, .app__body .search-help-popover .search-autocomplete__divider span', 'background:' + theme.centerChannelBg, 1);
+        changeCss('.app__body .search-help-popover .search-autocomplete__divider span', 'background:' + theme.centerChannelBg, 1);
         changeCss('.app__body .sidebar--right, .app__body .dropdown-menu, .app__body .popover, .app__body .tip-overlay', 'background:' + theme.centerChannelBg, 1);
         changeCss('.app__body .popover.bottom>.arrow:after', 'border-bottom-color:' + theme.centerChannelBg, 1);
         changeCss('.app__body .popover.right>.arrow:after, .app__body .tip-overlay.tip-overlay--sidebar .arrow, .app__body .tip-overlay.tip-overlay--header .arrow', 'border-right-color:' + theme.centerChannelBg, 1);
@@ -578,8 +578,10 @@ export function applyTheme(theme) {
     if (theme.centerChannelColor) {
         changeCss('.app__body .post-list__arrows, .app__body .post .flag-icon__container', 'fill:' + changeOpacity(theme.centerChannelColor, 0.3), 1);
         changeCss('.app__body .channel-header__links .icon, .app__body .sidebar--right .sidebar--right__subheader .usage__icon', 'fill:' + theme.centerChannelColor, 1);
+        changeCss('.app__body .post .post-image__single .post-image__column .post-image img', 'outline-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
+        changeCss('.app__body .post-list__arrows', 'fill:' + changeOpacity(theme.centerChannelColor, 0.3), 1);
         changeCss('@media(min-width: 768px){.app__body .post:hover .post__header .col__reply, .app__body .post.post--hovered .post__header .col__reply', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 2);
-        changeCss('.app__body .sidebar--left, .app__body .sidebar--right .sidebar--right__header, .app__body .suggestion-list__content .command', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
+        changeCss('.app__body .post.post--compact .post-image__column, .app__body .sidebar--left, .app__body .sidebar--right .sidebar--right__header, .app__body .suggestion-list__content .command', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
         changeCss('.app__body .post.post--system .post__body', 'color:' + changeOpacity(theme.centerChannelColor, 0.6), 1);
         changeCss('.app__body .input-group-addon, .app__body .app__content, .app__body .post-create__container .post-create-body .btn-file, .app__body .post-create__container .post-create-footer .msg-typing, .app__body .suggestion-list__content .command, .app__body .modal .modal-content, .app__body .dropdown-menu, .app__body .popover, .app__body .mentions__name, .app__body .tip-overlay, .app__body .form-control[disabled], .app__body .form-control[readonly], .app__body fieldset[disabled] .form-control', 'color:' + theme.centerChannelColor, 1);
         changeCss('.app__body .post .post__link', 'color:' + changeOpacity(theme.centerChannelColor, 0.65), 1);
@@ -596,7 +598,7 @@ export function applyTheme(theme) {
         changeCss('.app__body .markdown__table tbody tr:nth-child(2n)', 'background:' + changeOpacity(theme.centerChannelColor, 0.07), 1);
         changeCss('.app__body .channel-header__info>div.dropdown .header-dropdown__icon', 'color:' + changeOpacity(theme.centerChannelColor, 0.8), 1);
         changeCss('.app__body .channel-header #member_popover', 'color:' + changeOpacity(theme.centerChannelColor, 0.8), 1);
-        changeCss('.app__body .custom-textarea, .app__body .custom-textarea:focus, .app__body .file-preview, .app__body .post-image__details, .app__body .sidebar--right .sidebar-right__body, .app__body .markdown__table th, .app__body .markdown__table td, .app__body .suggestion-list__content, .app__body .modal .modal-content, .app__body .modal .settings-modal .settings-table .settings-content .divider-light, .app__body .webhooks__container, .app__body .dropdown-menu, .app__body .modal .modal-header, .app__body .popover', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
+        changeCss('.app__body .custom-textarea, .app__body .custom-textarea:focus, .app__body .file-preview, .app__body .sidebar--right .sidebar-right__body, .app__body .markdown__table th, .app__body .markdown__table td, .app__body .suggestion-list__content, .app__body .modal .modal-content, .app__body .modal .settings-modal .settings-table .settings-content .divider-light, .app__body .webhooks__container, .app__body .dropdown-menu, .app__body .modal .modal-header, .app__body .popover', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
         changeCss('.app__body .popover.bottom>.arrow', 'border-bottom-color:' + changeOpacity(theme.centerChannelColor, 0.25), 1);
         changeCss('.app__body .search-help-popover .search-autocomplete__divider span', 'color:' + changeOpacity(theme.centerChannelColor, 0.7), 1);
         changeCss('.app__body .popover.right>.arrow', 'border-right-color:' + changeOpacity(theme.centerChannelColor, 0.25), 1);
@@ -605,9 +607,6 @@ export function applyTheme(theme) {
         changeCss('.app__body .suggestion-list__content .command, .app__body .popover .popover-title', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
         changeCss('.app__body .suggestion-list__divider:before, .app__body .dropdown-menu .divider, .app__body .search-help-popover .search-autocomplete__divider:before', 'background:' + theme.centerChannelColor, 1);
         changeCss('.app__body .custom-textarea', 'color:' + theme.centerChannelColor, 1);
-        changeCss('.app__body .post-image__column', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 2);
-        changeCss('.app__body .post-image__details', 'color:' + theme.centerChannelColor, 2);
-        changeCss('.app__body .post-image__column a, .app__body .post-image__column a:hover, .app__body .post-image__column a:focus', 'color:' + theme.centerChannelColor, 1);
         changeCss('@media(min-width: 768px){.app__body .search-bar__container .search__form .search-bar, .app__body .form-control', 'color:' + theme.centerChannelColor, 2);
         changeCss('.app__body .input-group-addon, .app__body .search-bar__container .search__form, .app__body .form-control', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
         changeCss('.app__body .form-control:focus', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.3), 1);
@@ -631,7 +630,7 @@ export function applyTheme(theme) {
         changeCss('.app__body .search-help-popover .search-autocomplete__item.selected', 'background:' + changeOpacity(theme.centerChannelColor, 0.15), 1);
         changeCss('::-webkit-scrollbar-thumb', 'background:' + changeOpacity(theme.centerChannelColor, 0.4), 1);
         changeCss('body', 'scrollbar-arrow-color:' + theme.centerChannelColor, 4);
-        changeCss('.app__body .post-create__container .post-create-body .btn-file svg, .app__body .post.post--compact .post-image__column .post-image__details svg, .app__body .modal .about-modal .about-modal__logo svg, .app__body .post .post__img svg', 'fill:' + theme.centerChannelColor, 1);
+        changeCss('.app__body .post.post--compact .post-image__column .post-image__details svg, .app__body .post-create__container .post-create-body .btn-file svg, .app__body .modal .about-modal .about-modal__logo svg, .app__body .post .post__img svg', 'fill:' + theme.centerChannelColor, 1);
         changeCss('.app__body .scrollbar--horizontal, .app__body .scrollbar--vertical', 'background:' + changeOpacity(theme.centerChannelColor, 0.5), 2);
         changeCss('.app__body .post-list__new-messages-below', 'background:' + changeColor(theme.centerChannelColor, 0.5), 2);
         changeCss('.app__body .post.post--comment .post__body', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
