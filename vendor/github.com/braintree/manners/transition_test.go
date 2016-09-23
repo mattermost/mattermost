@@ -1,7 +1,6 @@
 package manners
 
 import (
-	helpers "github.com/braintree/manners/test_helpers"
 	"net/http"
 	"strings"
 	"testing"
@@ -31,18 +30,18 @@ type transitionTest struct {
 }
 
 func testStateTransition(t *testing.T, test transitionTest) {
-	server := NewServer()
-	wg := helpers.NewWaitGroup()
+	server := newServer()
+	wg := newTestWg()
 	server.wg = wg
 	startServer(t, server, nil)
 
-	conn := &helpers.Conn{}
+	conn := &fakeConn{}
 	for _, newState := range test.states {
 		server.ConnState(conn, newState)
 	}
 
 	server.Close()
-	waiting := <-wg.WaitCalled
+	waiting := <-wg.waitCalled
 	if waiting != test.expectedWgCount {
 		names := make([]string, len(test.states))
 		for i, s := range test.states {

@@ -150,7 +150,25 @@ func TestKeyTypes(t *testing.T) {
 		if err := addKeyToAgent(v); err != nil {
 			t.Errorf("error adding key type %s, %v", k, err)
 		}
+		if err := addCertToAgentSock(v, nil); err != nil {
+			t.Errorf("error adding key type %s, %v", k, err)
+		}
 	}
+}
+
+func addCertToAgentSock(key crypto.PrivateKey, cert *ssh.Certificate) error {
+	a, b, err := netPipe()
+	if err != nil {
+		return err
+	}
+	agentServer := NewKeyring()
+	go ServeAgent(agentServer, a)
+
+	agentClient := NewClient(b)
+	if err := agentClient.Add(AddedKey{PrivateKey: key, Certificate: cert}); err != nil {
+		return fmt.Errorf("add: %v", err)
+	}
+	return verifyKey(agentClient)
 }
 
 func addCertToAgent(key crypto.PrivateKey, cert *ssh.Certificate) error {
@@ -180,6 +198,9 @@ func TestCertTypes(t *testing.T) {
 			t.Fatalf("signcert: %v", err)
 		}
 		if err := addCertToAgent(testPrivateKeys[keyType], cert); err != nil {
+			t.Fatalf("%v", err)
+		}
+		if err := addCertToAgentSock(testPrivateKeys[keyType], cert); err != nil {
 			t.Fatalf("%v", err)
 		}
 	}

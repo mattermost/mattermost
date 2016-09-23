@@ -30,11 +30,11 @@ var idPKIXOCSPBasic = asn1.ObjectIdentifier([]int{1, 3, 6, 1, 5, 5, 7, 48, 1, 1}
 type ResponseStatus int
 
 const (
-	Success           ResponseStatus = 0
-	Malformed         ResponseStatus = 1
-	InternalError     ResponseStatus = 2
-	TryLater          ResponseStatus = 3
-	// Status code four is ununsed in OCSP. See
+	Success       ResponseStatus = 0
+	Malformed     ResponseStatus = 1
+	InternalError ResponseStatus = 2
+	TryLater      ResponseStatus = 3
+	// Status code four is unused in OCSP. See
 	// https://tools.ietf.org/html/rfc6960#section-4.2.1
 	SignatureRequired ResponseStatus = 5
 	Unauthorized      ResponseStatus = 6
@@ -114,7 +114,7 @@ type basicResponse struct {
 
 type responseData struct {
 	Raw              asn1.RawContent
-	Version          int           `asn1:"optional,default:1,explicit,tag:0"`
+	Version          int           `asn1:"optional,default:0,explicit,tag:0"`
 	RawResponderName asn1.RawValue `asn1:"optional,explicit,tag:1"`
 	KeyHash          []byte        `asn1:"optional,explicit,tag:2"`
 	ProducedAt       time.Time     `asn1:"generalized"`

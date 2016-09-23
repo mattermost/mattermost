@@ -23,6 +23,7 @@ import (
 var (
 	errMissingPaddingByte     = errors.New("riff: missing padding byte")
 	errMissingRIFFChunkHeader = errors.New("riff: missing RIFF chunk header")
+	errListSubchunkTooLong    = errors.New("riff: list subchunk too long")
 	errShortChunkData         = errors.New("riff: short chunk data")
 	errShortChunkHeader       = errors.New("riff: short chunk header")
 	errStaleReader            = errors.New("riff: stale reader")
@@ -100,13 +101,23 @@ func (z *Reader) Next() (chunkID FourCC, chunkLen uint32, chunkData io.Reader, e
 
 	// Drain the rest of the previous chunk.
 	if z.chunkLen != 0 {
-		_, z.err = io.Copy(ioutil.Discard, z.chunkReader)
+		want := z.chunkLen
+		var got int64
+		got, z.err = io.Copy(ioutil.Discard, z.chunkReader)
+		if z.err == nil && uint32(got) != want {
+			z.err = errShortChunkData
+		}
 		if z.err != nil {
 			return FourCC{}, 0, nil, z.err
 		}
 	}
 	z.chunkReader = nil
 	if z.padded {
+		if z.totalLen == 0 {
+			z.err = errListSubchunkTooLong
+			return FourCC{}, 0, nil, z.err
+		}
+		z.totalLen--
 		_, z.err = io.ReadFull(z.r, z.buf[:1])
 		if z.err != nil {
 			if z.err == io.EOF {
@@ -114,7 +125,6 @@ func (z *Reader) Next() (chunkID FourCC, chunkLen uint32, chunkData io.Reader, e
 			}
 			return FourCC{}, 0, nil, z.err
 		}
-		z.totalLen--
 	}
 
 	// We are done if we have no more data.
@@ -129,7 +139,7 @@ func (z *Reader) Next() (chunkID FourCC, chunkLen uint32, chunkData io.Reader, e
 		return FourCC{}, 0, nil, z.err
 	}
 	z.totalLen -= chunkHeaderSize
-	if _, err = io.ReadFull(z.r, z.buf[:chunkHeaderSize]); err != nil {
+	if _, z.err = io.ReadFull(z.r, z.buf[:chunkHeaderSize]); z.err != nil {
 		if z.err == io.EOF || z.err == io.ErrUnexpectedEOF {
 			z.err = errShortChunkHeader
 		}
@@ -137,6 +147,10 @@ func (z *Reader) Next() (chunkID FourCC, chunkLen uint32, chunkData io.Reader, e
 	}
 	chunkID = FourCC{z.buf[0], z.buf[1], z.buf[2], z.buf[3]}
 	z.chunkLen = u32(z.buf[4:])
+	if z.chunkLen > z.totalLen {
+		z.err = errListSubchunkTooLong
+		return FourCC{}, 0, nil, z.err
+	}
 	z.padded = z.chunkLen&1 == 1
 	z.chunkReader = &chunkReader{z}
 	return chunkID, z.chunkLen, z.chunkReader, nil

@@ -19,8 +19,8 @@ import (
 // exclusive on the high end.
 //
 // If Low <= r && r < High, then the rune r is mapped to the sub-image of
-// Face.Mask whose bounds are image.Rect(0, y, Face.Width, y+Face.Height),
-// where y equals (int(r-Low) + Offset) * Face.Height.
+// Face.Mask whose bounds are image.Rect(0, y*h, Face.Width, (y+1)*h),
+// where y = (int(r-Low) + Offset) and h = (Face.Ascent + Face.Descent).
 type Range struct {
 	Low, High rune
 	Offset    int
@@ -38,6 +38,7 @@ var Face7x13 = &Face{
 	Width:   6,
 	Height:  13,
 	Ascent:  11,
+	Descent: 2,
 	Mask:    mask7x13,
 	Ranges: []Range{
 		{'\u0020', '\u007f', 0},
@@ -53,12 +54,15 @@ type Face struct {
 	Advance int
 	// Width is the glyph width, in pixels.
 	Width int
-	// Height is the glyph height, in pixels.
+	// Height is the inter-line height, in pixels.
 	Height int
 	// Ascent is the glyph ascent, in pixels.
 	Ascent int
-
-	// TODO: do we also need Top and Left fields?
+	// Descent is the glyph descent, in pixels.
+	Descent int
+	// Left is the left side bearing, in pixels. A positive value means that
+	// all of a glyph is to the right of the dot.
+	Left int
 
 	// Mask contains all of the glyph masks. Its width is typically the Face's
 	// Width, and its height a multiple of the Face's Height.
@@ -75,7 +79,7 @@ func (f *Face) Metrics() font.Metrics {
 	return font.Metrics{
 		Height:  fixed.I(f.Height),
 		Ascent:  fixed.I(f.Ascent),
-		Descent: fixed.I(f.Height - f.Ascent),
+		Descent: fixed.I(f.Descent),
 	}
 }
 
@@ -88,7 +92,7 @@ loop:
 			if rr < rng.Low || rng.High <= rr {
 				continue
 			}
-			maskp.Y = (int(rr-rng.Low) + rng.Offset) * f.Height
+			maskp.Y = (int(rr-rng.Low) + rng.Offset) * (f.Ascent + f.Descent)
 			ok = true
 			break loop
 		}
@@ -97,16 +101,16 @@ loop:
 		return image.Rectangle{}, nil, image.Point{}, 0, false
 	}
 
-	minX := int(dot.X+32) >> 6
-	minY := int(dot.Y+32)>>6 - f.Ascent
+	x := int(dot.X+32)>>6 + f.Left
+	y := int(dot.Y+32) >> 6
 	dr = image.Rectangle{
 		Min: image.Point{
-			X: minX,
-			Y: minY,
+			X: x,
+			Y: y - f.Ascent,
 		},
 		Max: image.Point{
-			X: minX + f.Width,
-			Y: minY + f.Height,
+			X: x + f.Width,
+			Y: y + f.Descent,
 		},
 	}
 
@@ -114,7 +118,7 @@ loop:
 }
 
 func (f *Face) GlyphBounds(r rune) (bounds fixed.Rectangle26_6, advance fixed.Int26_6, ok bool) {
-	return fixed.R(0, -f.Ascent, f.Width, -f.Ascent+f.Height), fixed.I(f.Advance), true
+	return fixed.R(0, -f.Ascent, f.Width, +f.Descent), fixed.I(f.Advance), true
 }
 
 func (f *Face) GlyphAdvance(r rune) (advance fixed.Int26_6, ok bool) {

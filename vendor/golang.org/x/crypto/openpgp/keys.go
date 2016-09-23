@@ -504,6 +504,12 @@ func NewEntity(name, comment, email string, config *packet.Config) (*Entity, err
 		},
 	}
 
+	// If the user passes in a DefaultHash via packet.Config,
+	// set the PreferredHash for the SelfSignature.
+	if config != nil && config.DefaultHash != 0 {
+		e.Identities[uid.Id].SelfSignature.PreferredHash = []uint8{hashToHashId(config.DefaultHash)}
+	}
+
 	e.Subkeys = make([]Subkey, 1)
 	e.Subkeys[0] = Subkey{
 		PublicKey:  packet.NewRSAPublicKey(currentTime, &encryptingPriv.PublicKey),

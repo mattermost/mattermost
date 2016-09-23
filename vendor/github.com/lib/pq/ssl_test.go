@@ -100,6 +100,49 @@ func TestSSLVerifyFull(t *testing.T) {
 	}
 }
 
+// Test sslmode=require sslrootcert=rootCertPath
+func TestSSLRequireWithRootCert(t *testing.T) {
+	maybeSkipSSLTests(t)
+	// Environment sanity check: should fail without SSL
+	checkSSLSetup(t, "sslmode=disable user=pqgossltest")
+
+	bogusRootCertPath := filepath.Join(os.Getenv("PQSSLCERTTEST_PATH"), "bogus_root.crt")
+	bogusRootCert := "sslrootcert=" + bogusRootCertPath + " "
+
+	// Not OK according to the bogus CA
+	_, err := openSSLConn(t, bogusRootCert+"host=postgres sslmode=require user=pqgossltest")
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	_, ok := err.(x509.UnknownAuthorityError)
+	if !ok {
+		t.Fatalf("expected x509.UnknownAuthorityError, got %s, %#+v", err, err)
+	}
+
+	nonExistentCertPath := filepath.Join(os.Getenv("PQSSLCERTTEST_PATH"), "non_existent.crt")
+	nonExistentCert := "sslrootcert=" + nonExistentCertPath + " "
+
+	// No match on Common Name, but that's OK because we're not validating anything.
+	_, err = openSSLConn(t, nonExistentCert+"host=127.0.0.1 sslmode=require user=pqgossltest")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rootCertPath := filepath.Join(os.Getenv("PQSSLCERTTEST_PATH"), "root.crt")
+	rootCert := "sslrootcert=" + rootCertPath + " "
+
+	// No match on Common Name, but that's OK because we're not validating the CN.
+	_, err = openSSLConn(t, rootCert+"host=127.0.0.1 sslmode=require user=pqgossltest")
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Everything OK
+	_, err = openSSLConn(t, rootCert+"host=postgres sslmode=require user=pqgossltest")
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 // Test sslmode=verify-ca
 func TestSSLVerifyCA(t *testing.T) {
 	maybeSkipSSLTests(t)

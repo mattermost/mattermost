@@ -45,6 +45,10 @@ type SESError struct {
 	RequestId string
 }
 
+type errorResponse struct {
+	Error SESError
+}
+
 func (err *SESError) Error() string {
 	return err.Message
 }

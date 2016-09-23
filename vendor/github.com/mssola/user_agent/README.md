@@ -48,4 +48,4 @@ func main() {
 }
 ~~~
 
-Copyright &copy; 2012-2016 Miquel Sabaté Solà, released under the MIT License.
+Copyright &copy; 2012-2014 Miquel Sabaté Solà, released under the MIT License.

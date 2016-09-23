@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2016 Miquel Sabaté Solà <mikisabate@gmail.com>
+// Copyright (C) 2012-2014 Miquel Sabaté Solà <mikisabate@gmail.com>
 // This file is licensed under the MIT license.
 // See the LICENSE file.
 
@@ -8,8 +8,6 @@ import (
 	"regexp"
 	"strings"
 )
-
-var ie11Regexp = regexp.MustCompile("^rv:(.+)$")
 
 // A struct containing all the information that we might be
 // interested from the browser.
@@ -36,16 +34,13 @@ func (p *UserAgent) detectBrowser(sections []section) {
 	slen := len(sections)
 
 	if sections[0].name == "Opera" {
+		p.mozilla = ""
 		p.browser.Name = "Opera"
 		p.browser.Version = sections[0].version
 		p.browser.Engine = "Presto"
 		if slen > 1 {
 			p.browser.EngineVersion = sections[1].version
 		}
-	} else if sections[0].name == "Dalvik" {
-		// When Dalvik VM is in use, there is no browser info attached to ua.
-		// Although browser is still a Mozilla/5.0 compatible.
-		p.mozilla = "5.0"
 	} else if slen > 1 {
 		engine := sections[1]
 		p.browser.Engine = engine.name
@@ -53,21 +48,13 @@ func (p *UserAgent) detectBrowser(sections []section) {
 		if slen > 2 {
 			p.browser.Version = sections[2].version
 			if engine.name == "AppleWebKit" {
-				switch sections[slen-1].name {
-				case "Edge":
-					p.browser.Name = "Edge"
-					p.browser.Version = sections[slen-1].version
-					p.browser.Engine = "EdgeHTML"
-					p.browser.EngineVersion = ""
-				case "OPR":
+				if sections[slen-1].name == "OPR" {
 					p.browser.Name = "Opera"
 					p.browser.Version = sections[slen-1].version
-				default:
-					if sections[2].name == "Chrome" {
-						p.browser.Name = "Chrome"
-					} else {
-						p.browser.Name = "Safari"
-					}
+				} else if sections[2].name == "Chrome" {
+					p.browser.Name = "Chrome"
+				} else {
+					p.browser.Name = "Safari"
 				}
 			} else if engine.name == "Gecko" {
 				name := sections[2].name
@@ -80,8 +67,9 @@ func (p *UserAgent) detectBrowser(sections []section) {
 				// This is the new user agent from Internet Explorer 11.
 				p.browser.Engine = "Trident"
 				p.browser.Name = "Internet Explorer"
+				reg, _ := regexp.Compile("^rv:(.+)$")
 				for _, c := range sections[0].comment {
-					version := ie11Regexp.FindStringSubmatch(c)
+					version := reg.FindStringSubmatch(c)
 					if len(version) > 0 {
 						p.browser.Version = version[1]
 						return

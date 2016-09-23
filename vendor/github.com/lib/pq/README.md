@@ -85,7 +85,7 @@ code still exists in here.
 * Keith Rarick (kr)
 * Kir Shatrov (kirs)
 * Lann Martin (lann)
-* Maciek Sakrejda (deafbybeheading)
+* Maciek Sakrejda (uhoh-itsmaciek)
 * Marc Brinkmann (mbr)
 * Marko Tiikkaja (johto)
 * Matt Newberry (MattNewberry)

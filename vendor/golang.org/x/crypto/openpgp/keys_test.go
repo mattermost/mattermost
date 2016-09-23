@@ -2,6 +2,7 @@ package openpgp
 
 import (
 	"bytes"
+	"crypto"
 	"strings"
 	"testing"
 	"time"
@@ -268,6 +269,39 @@ func TestIdVerification(t *testing.T) {
 
 	if !checked {
 		t.Fatal("didn't find identity signature in Entity")
+	}
+}
+
+func TestNewEntityWithPreferredHash(t *testing.T) {
+	c := &packet.Config{
+		DefaultHash: crypto.SHA256,
+	}
+	entity, err := NewEntity("Golang Gopher", "Test Key", "no-reply@golang.com", c)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, identity := range entity.Identities {
+		if len(identity.SelfSignature.PreferredHash) == 0 {
+			t.Fatal("didn't find a preferred hash in self signature")
+		}
+		ph := hashToHashId(c.DefaultHash)
+		if identity.SelfSignature.PreferredHash[0] != ph {
+			t.Fatalf("Expected preferred hash to be %d, got %d", ph, identity.SelfSignature.PreferredHash[0])
+		}
+	}
+}
+
+func TestNewEntityWithoutPreferredHash(t *testing.T) {
+	entity, err := NewEntity("Golang Gopher", "Test Key", "no-reply@golang.com", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, identity := range entity.Identities {
+		if len(identity.SelfSignature.PreferredHash) != 0 {
+			t.Fatal("Expected preferred hash to be empty but got length %d", len(identity.SelfSignature.PreferredHash))
+		}
 	}
 }
 

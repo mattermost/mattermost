@@ -125,7 +125,7 @@ func ParseKnownHosts(in []byte) (marker string, hosts []string, pubKey PublicKey
 			continue
 		}
 
-		// Strip out the begining of the known_host key.
+		// Strip out the beginning of the known_host key.
 		// This is either an optional marker or a (set of) hostname(s).
 		keyFields := bytes.Fields(in)
 		if len(keyFields) < 3 || len(keyFields) > 5 {

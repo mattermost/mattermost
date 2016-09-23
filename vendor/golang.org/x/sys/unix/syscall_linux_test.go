@@ -15,6 +15,82 @@ import (
 	"golang.org/x/sys/unix"
 )
 
+func TestPoll(t *testing.T) {
+	f, cleanup := mktmpfifo(t)
+	defer cleanup()
+
+	const timeout = 100
+
+	ok := make(chan bool, 1)
+	go func() {
+		select {
+		case <-time.After(10 * timeout * time.Millisecond):
+			t.Errorf("Poll: failed to timeout after %d milliseconds", 10*timeout)
+		case <-ok:
+		}
+	}()
+
+	fds := []unix.PollFd{{Fd: int32(f.Fd()), Events: unix.POLLIN}}
+	n, err := unix.Poll(fds, timeout)
+	ok <- true
+	if err != nil {
+		t.Errorf("Poll: unexpected error: %v", err)
+		return
+	}
+	if n != 0 {
+		t.Errorf("Poll: wrong number of events: got %v, expected %v", n, 0)
+		return
+	}
+}
+
+func TestPpoll(t *testing.T) {
+	f, cleanup := mktmpfifo(t)
+	defer cleanup()
+
+	const timeout = 100 * time.Millisecond
+
+	ok := make(chan bool, 1)
+	go func() {
+		select {
+		case <-time.After(10 * timeout):
+			t.Errorf("Ppoll: failed to timeout after %d", 10*timeout)
+		case <-ok:
+		}
+	}()
+
+	fds := []unix.PollFd{{Fd: int32(f.Fd()), Events: unix.POLLIN}}
+	timeoutTs := unix.NsecToTimespec(int64(timeout))
+	n, err := unix.Ppoll(fds, &timeoutTs, nil)
+	ok <- true
+	if err != nil {
+		t.Errorf("Ppoll: unexpected error: %v", err)
+		return
+	}
+	if n != 0 {
+		t.Errorf("Ppoll: wrong number of events: got %v, expected %v", n, 0)
+		return
+	}
+}
+
+// mktmpfifo creates a temporary FIFO and provides a cleanup function.
+func mktmpfifo(t *testing.T) (*os.File, func()) {
+	err := unix.Mkfifo("fifo", 0666)
+	if err != nil {
+		t.Fatalf("mktmpfifo: failed to create FIFO: %v", err)
+	}
+
+	f, err := os.OpenFile("fifo", os.O_RDWR, 0666)
+	if err != nil {
+		os.Remove("fifo")
+		t.Fatalf("mktmpfifo: failed to open FIFO: %v", err)
+	}
+
+	return f, func() {
+		f.Close()
+		os.Remove("fifo")
+	}
+}
+
 func TestTime(t *testing.T) {
 	var ut unix.Time_t
 	ut2, err := unix.Time(&ut)

@@ -143,8 +143,9 @@ func writeColorNames(w io.Writer, m map[string]color.RGBA) {
 	fmt.Fprintln(w, "// Map contains named colors defined in the SVG 1.1 spec.")
 	fmt.Fprintln(w, "var Map = map[string]color.RGBA{")
 	for _, k := range keys {
+		c := m[k]
 		fmt.Fprintf(w, "%q:color.RGBA{%#02x, %#02x, %#02x, %#02x}, // rgb(%d, %d, %d)\n",
-			k, m[k].R, m[k].G, m[k].B, m[k].A, m[k].R, m[k].G, m[k].B)
+			k, c.R, c.G, c.B, c.A, c.R, c.G, c.B)
 	}
 	fmt.Fprintln(w, "}\n")
 	fmt.Fprintln(w, "// Names contains the color names defined in the SVG 1.1 spec.")
@@ -152,7 +153,16 @@ func writeColorNames(w io.Writer, m map[string]color.RGBA) {
 	for _, k := range keys {
 		fmt.Fprintf(w, "%q,\n", k)
 	}
-	fmt.Fprintln(w, "}")
+	fmt.Fprintln(w, "}\n")
+	fmt.Fprintln(w, "var (")
+	for _, k := range keys {
+		c := m[k]
+		// Make the upper case version of k: "Darkred" instead of "darkred".
+		k = string(k[0]-0x20) + k[1:]
+		fmt.Fprintf(w, "%s=color.RGBA{%#02x, %#02x, %#02x, %#02x} // rgb(%d, %d, %d)\n",
+			k, c.R, c.G, c.B, c.A, c.R, c.G, c.B)
+	}
+	fmt.Fprintln(w, ")")
 }
 
 const url = "http://www.w3.org/TR/SVG/types.html"

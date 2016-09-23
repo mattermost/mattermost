@@ -1,6 +1,6 @@
 This is a Go implementation of the Google Authenticator library.
 
-[![Build Status](https://travis-ci.org/dgryski/dgoogauth.png)](https://travis-ci.org/dgryski/dgoogauth)
+[![GoDoc](https://godoc.org/github.com/dgryski/dgoogauth?status.svg)](https://godoc.org/github.com/dgryski/dgoogauth) [![Build Status](https://travis-ci.org/dgryski/dgoogauth.png)](https://travis-ci.org/dgryski/dgoogauth)
 
 Copyright (c) 2012 Damian Gryski <damian@gryski.com>
 This code is licensed under the Apache License, version 2.0

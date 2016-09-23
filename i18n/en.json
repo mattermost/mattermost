@@ -1412,6 +1412,14 @@
     "translation": "Server is listening on %v"
   },
   {
+    "id": "api.server.start_server.rate_limiting_memory_store",
+    "translation": "Unable to initalize rate limiting memory store. Check MemoryStoreSize config setting."
+  },
+  {
+    "id": "api.server.start_server.rate_limiting_memory_store",
+    "translation": "Unable to initalize rate limiting."
+  },
+  {
     "id": "api.server.start_server.rate.info",
     "translation": "RateLimiter is enabled"
   },

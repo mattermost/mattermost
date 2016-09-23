@@ -23,10 +23,6 @@ Manners ensures that all requests are served by incrementing a WaitGroup when a 
 
 If your request handler spawns Goroutines that are not guaranteed to finish with the request, you can ensure they are also completed with the `StartRoutine` and `FinishRoutine` functions on the server.
 
-### Known Issues
-
-Manners does not correctly shut down long-lived keepalive connections when issued a shutdown command. Clients on an idle keepalive connection may see a connection reset error rather than a close. See https://github.com/braintree/manners/issues/13 for details.
-
 ### Compatability
 
 Manners 0.3.0 and above uses standard library functionality introduced in Go 1.3.

@@ -34,7 +34,8 @@ const debug = false
 type SQS struct {
 	aws.Auth
 	aws.Region
-	private byte // Reserve the right of using private data.
+	private   byte // Reserve the right of using private data.
+	transport *http.Transport
 }
 
 // NewFrom Create A new SQS Client given an access and secret Key
@@ -59,6 +60,8 @@ func NewFrom(accessKey, secretKey, region string) (*SQS, error) {
 		aws_region = aws.APSoutheast2
 	case "ap.northeast", "ap.northeast.1":
 		aws_region = aws.APNortheast
+	case "ap.northeast.2":
+		aws_region = aws.APNortheast2
 	case "sa.east", "sa.east.1":
 		aws_region = aws.SAEast
 	case "cn.north", "cn.north.1":
@@ -73,7 +76,12 @@ func NewFrom(accessKey, secretKey, region string) (*SQS, error) {
 
 // NewFrom Create A new SQS Client from an exisisting aws.Auth
 func New(auth aws.Auth, region aws.Region) *SQS {
-	return &SQS{auth, region, 0}
+	return &SQS{auth, region, 0, nil}
+}
+
+// NewFromTransport Create A new SQS Client that uses a given &http.Transport
+func NewFromTransport(auth aws.Auth, region aws.Region, transport *http.Transport) *SQS {
+	return &SQS{auth, region, 0, transport}
 }
 
 // Queue Reference to a Queue
@@ -511,11 +519,16 @@ func (s *SQS) query(queueUrl string, params map[string]string, resp interface{})
 	}
 	signer := aws.NewV4Signer(s.Auth, "sqs", s.Region)
 	signer.Sign(req)
-	client := http.Client{}
+	var client http.Client
+	if s.transport == nil {
+		client = http.Client{}
+	} else {
+		client = http.Client{Transport: s.transport}
+	}
 	r, err = client.Do(req)
 
 	if debug {
-		log.Printf("GET ", url_.String())
+		log.Printf("GET %s\n", url_.String())
 	}
 
 	if err != nil {
@@ -526,7 +539,7 @@ func (s *SQS) query(queueUrl string, params map[string]string, resp interface{})
 
 	if debug {
 		dump, _ := httputil.DumpResponse(r, true)
-		log.Printf("DUMP:\n", string(dump))
+		log.Printf("DUMP:%s\n", string(dump))
 	}
 
 	if r.StatusCode != 200 {

@@ -13,6 +13,7 @@ import (
 	"image"
 	"image/draw"
 	"io"
+	"unicode/utf8"
 
 	"golang.org/x/image/math/fixed"
 )
@@ -87,9 +88,6 @@ type Metrics struct {
 	Descent fixed.Int26_6
 }
 
-// TODO: Drawer.Layout or Drawer.Measure methods to measure text without
-// drawing?
-
 // Drawer draws text on a destination image.
 //
 // A Drawer is not safe for concurrent use by multiple goroutines, since its
@@ -115,19 +113,25 @@ type Drawer struct {
 // TODO: should DrawString return the last rune drawn, so the next DrawString
 // call can kern beforehand? Or should that be the responsibility of the caller
 // if they really want to do that, since they have to explicitly shift d.Dot
-// anyway?
+// anyway? What if ligatures span more than two runes? What if grapheme
+// clusters span multiple runes?
 //
-// In general, we'd have a DrawBytes([]byte) and DrawRuneReader(io.RuneReader)
-// and the last case can't assume that you can rewind the stream.
+// TODO: do we assume that the input is in any particular Unicode Normalization
+// Form?
+//
+// TODO: have DrawRunes(s []rune)? DrawRuneReader(io.RuneReader)?? If we take
+// io.RuneReader, we can't assume that we can rewind the stream.
 //
 // TODO: how does this work with line breaking: drawing text up until a
 // vertical line? Should DrawString return the number of runes drawn?
 
-// DrawString draws s at the dot and advances the dot's location.
-func (d *Drawer) DrawString(s string) {
-	var prevC rune
-	for i, c := range s {
-		if i != 0 {
+// DrawBytes draws s at the dot and advances the dot's location.
+func (d *Drawer) DrawBytes(s []byte) {
+	prevC := rune(-1)
+	for len(s) > 0 {
+		c, size := utf8.DecodeRune(s)
+		s = s[size:]
+		if prevC >= 0 {
 			d.Dot.X += d.Face.Kern(prevC, c)
 		}
 		dr, mask, maskp, advance, ok := d.Face.Glyph(d.Dot, c)
@@ -143,16 +147,63 @@ func (d *Drawer) DrawString(s string) {
 	}
 }
 
+// DrawString draws s at the dot and advances the dot's location.
+func (d *Drawer) DrawString(s string) {
+	prevC := rune(-1)
+	for _, c := range s {
+		if prevC >= 0 {
+			d.Dot.X += d.Face.Kern(prevC, c)
+		}
+		dr, mask, maskp, advance, ok := d.Face.Glyph(d.Dot, c)
+		if !ok {
+			// TODO: is falling back on the U+FFFD glyph the responsibility of
+			// the Drawer or the Face?
+			// TODO: set prevC = '\ufffd'?
+			continue
+		}
+		draw.DrawMask(d.Dst, dr, d.Src, image.Point{}, mask, maskp, draw.Over)
+		d.Dot.X += advance
+		prevC = c
+	}
+}
+
+// MeasureBytes returns how far dot would advance by drawing s.
+func (d *Drawer) MeasureBytes(s []byte) (advance fixed.Int26_6) {
+	return MeasureBytes(d.Face, s)
+}
+
 // MeasureString returns how far dot would advance by drawing s.
 func (d *Drawer) MeasureString(s string) (advance fixed.Int26_6) {
 	return MeasureString(d.Face, s)
 }
 
+// MeasureBytes returns how far dot would advance by drawing s with f.
+func MeasureBytes(f Face, s []byte) (advance fixed.Int26_6) {
+	prevC := rune(-1)
+	for len(s) > 0 {
+		c, size := utf8.DecodeRune(s)
+		s = s[size:]
+		if prevC >= 0 {
+			advance += f.Kern(prevC, c)
+		}
+		a, ok := f.GlyphAdvance(c)
+		if !ok {
+			// TODO: is falling back on the U+FFFD glyph the responsibility of
+			// the Drawer or the Face?
+			// TODO: set prevC = '\ufffd'?
+			continue
+		}
+		advance += a
+		prevC = c
+	}
+	return advance
+}
+
 // MeasureString returns how far dot would advance by drawing s with f.
 func MeasureString(f Face, s string) (advance fixed.Int26_6) {
-	var prevC rune
-	for i, c := range s {
-		if i != 0 {
+	prevC := rune(-1)
+	for _, c := range s {
+		if prevC >= 0 {
 			advance += f.Kern(prevC, c)
 		}
 		a, ok := f.GlyphAdvance(c)
