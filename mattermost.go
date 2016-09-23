@@ -63,6 +63,7 @@ var flagCmdResetDatabase bool
 var flagCmdRunLdapSync bool
 var flagCmdMigrateAccounts bool
 var flagCmdActivateUser bool
+var flagCmdSlackImport bool
 var flagUsername string
 var flagCmdUploadLicense bool
 var flagConfigFile string
@@ -81,6 +82,7 @@ var flagChannelType string
 var flagChannelHeader string
 var flagChannelPurpose string
 var flagUserSetInactive bool
+var flagImportArchive string
 
 func doLoadConfig(filename string) (err string) {
 	defer func() {
@@ -349,6 +351,7 @@ func parseCmds() {
 	flag.StringVar(&flagChannelType, "channel_type", "O", "")
 	flag.StringVar(&flagChannelHeader, "channel_header", "", "")
 	flag.StringVar(&flagChannelPurpose, "channel_purpose", "", "")
+	flag.StringVar(&flagImportArchive, "import_archive", "", "")
 
 	flag.BoolVar(&flagCmdUpdateDb30, "upgrade_db_30", false, "")
 	flag.BoolVar(&flagCmdCreateTeam, "create_team", false, "")
@@ -375,6 +378,7 @@ func parseCmds() {
 	flag.BoolVar(&flagCmdMigrateAccounts, "migrate_accounts", false, "")
 	flag.BoolVar(&flagCmdUploadLicense, "upload_license", false, "")
 	flag.BoolVar(&flagCmdActivateUser, "activate_user", false, "")
+	flag.BoolVar(&flagCmdSlackImport, "slack_import", false, "")
 	flag.BoolVar(&flagUserSetInactive, "inactive", false, "")
 
 	flag.Parse()
@@ -402,7 +406,8 @@ func parseCmds() {
 		flagCmdRunLdapSync ||
 		flagCmdMigrateAccounts ||
 		flagCmdUploadLicense ||
-		flagCmdActivateUser)
+		flagCmdActivateUser ||
+		flagCmdSlackImport)
 }
 
 func runCmds() {
@@ -429,6 +434,7 @@ func runCmds() {
 	cmdRunLdapSync()
 	cmdRunMigrateAccounts()
 	cmdActivateUser()
+	cmdSlackImport()
 }
 
 type TeamForUpgrade struct {
@@ -1370,6 +1376,47 @@ func cmdActivateUser() {
 	}
 }
 
+func cmdSlackImport() {
+	if flagCmdSlackImport {
+		if len(flagTeamName) == 0 {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		if len(flagImportArchive) == 0 {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -import_archive")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		var team *model.Team
+		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
+			l4g.Error("%v", result.Err)
+			flushLogAndExit(1)
+		} else {
+			team = result.Data.(*model.Team)
+		}
+
+		fileReader, err := os.Open(flagImportArchive)
+		if err != nil {
+			l4g.Error("%v", err)
+			flushLogAndExit(1)
+		}
+		defer fileReader.Close()
+
+		fileInfo, err := fileReader.Stat()
+		if err != nil {
+			l4g.Error("%v", err)
+			flushLogAndExit(1)
+		}
+
+		fmt.Fprintln(os.Stdout, "Running Slack Import. This may take a long time for large teams or teams with many messages.")
+
+		api.SlackImport(fileReader, fileInfo.Size(), team.Id)
+	}
+}
+
 func flushLogAndExit(code int) {
 	l4g.Close()
 	time.Sleep(time.Second)
@@ -1424,6 +1471,9 @@ FLAGS:
                                         "system_admin" - Represents a system
                                            admin who has access to all teams
                                            and configuration settings.
+
+    -import_archive="export.zip"      The path to the archive to import used in other commands
+
 COMMANDS:
     -activate_user		      Set a user as active or inactive. It requies
     				      the -email flag.
@@ -1538,11 +1588,17 @@ COMMANDS:
 
         Example:
             platform -upload_license -license="/path/to/license/example.mattermost-license"
-			
+
 	-migrate_accounts				  Migrates accounts from one authentication provider to anouther. Requires -from_auth -to_auth and -match_field flags. Supported options for -from_auth: email, gitlab, saml. Supported options for -to_auth ldap. Supported options for -match_field email, username. Will display any accounts that are not migrated succesfully.
 
         Example:
             platform -migrate_accounts -from_auth email -to_auth ldap -match_field username
+
+    -slack_import                    Imports a Slack team export zip file. It requires the -team_name
+                                     and -import_archive flags.
+
+        Example:
+            platform -slack_import -team_name="name" -import_archive="/path/to/slack_export.zip"
 
     -upgrade_db_30                   Upgrades the database from a version 2.x schema to version 3 see
                                       http://www.mattermost.org/upgrading-to-mattermost-3-0/
