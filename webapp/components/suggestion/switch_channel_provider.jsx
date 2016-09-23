@@ -29,9 +29,9 @@ class SwitchChannelSuggestion extends Suggestion {
 
         let icon = null;
         if (item.type === Constants.OPEN_CHANNEL) {
-            icon = <div className='status'><i className='fa fa-globe'></i></div>;
+            icon = <div className='status'><i className='fa fa-globe'/></div>;
         } else if (item.type === Constants.PRIVATE_CHANNEL) {
-            icon = <div className='status'><i className='fa fa-lock'></i></div>;
+            icon = <div className='status'><i className='fa fa-lock'/></div>;
         } else {
             icon = <StatusIcon status={item.status}/>;
         }
@@ -41,8 +41,8 @@ class SwitchChannelSuggestion extends Suggestion {
                 onClick={this.handleClick}
                 className={className}
             >
-            {icon}
-            {displayName}
+                {icon}
+                {displayName}
             </div>
         );
     }

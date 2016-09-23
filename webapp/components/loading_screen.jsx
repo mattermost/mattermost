@@ -31,9 +31,9 @@ export default class LoadingScreen extends React.Component {
                     <h3>
                         {message}
                     </h3>
-                    <div className='round round-1'></div>
-                    <div className='round round-2'></div>
-                    <div className='round round-3'></div>
+                    <div className='round round-1'/>
+                    <div className='round round-2'/>
+                    <div className='round round-3'/>
                 </div>
             </div>
         );

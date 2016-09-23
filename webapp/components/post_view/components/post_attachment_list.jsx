@@ -7,7 +7,7 @@ import React from 'react';
 
 export default class PostAttachmentList extends React.Component {
     render() {
-        let content = [];
+        const content = [];
         this.props.attachments.forEach((attachment, i) => {
             content.push(
                 <PostAttachment

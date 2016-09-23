@@ -169,7 +169,7 @@ export default class PostBody extends React.Component {
             );
         }
 
-        let messageWrapper = (
+        const messageWrapper = (
             <div
                 key={`${post.id}_message`}
                 id={`${post.id}_message`}

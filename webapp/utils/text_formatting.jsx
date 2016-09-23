@@ -154,7 +154,7 @@ const punctuation = XRegExp.cache('[^\\pL\\d]');
 function autolinkAtMentions(text, tokens, usernameMap) {
     // Test if provided text needs to be highlighted, special mention or current user
     function mentionExists(u) {
-        return (Constants.SPECIAL_MENTIONS.indexOf(u) !== -1 || !!usernameMap[u]);
+        return (Constants.SPECIAL_MENTIONS.indexOf(u) !== -1 || Boolean(usernameMap[u]));
     }
 
     function addToken(username, mention) {
@@ -206,7 +206,7 @@ function autolinkAtMentions(text, tokens, usernameMap) {
 
 function autolinkChannelMentions(text, tokens, channelNamesMap) {
     function channelMentionExists(c) {
-        return !!channelNamesMap[c];
+        return Boolean(channelNamesMap[c]);
     }
     function addToken(channelName, mention, displayName) {
         const index = tokens.size;
@@ -393,7 +393,7 @@ function parseSearchTerms(searchTerm) {
             termString = termString.substring(captured[0].length);
 
             // break the text up into words based on how the server splits them in SqlPostStore.SearchPosts and then discard empty terms
-            terms.push(...captured[0].split(/[ <>+\(\)~@]/).filter((term) => !!term));
+            terms.push(...captured[0].split(/[ <>+\(\)~@]/).filter((term) => Boolean(term)));
             continue;
         }
 

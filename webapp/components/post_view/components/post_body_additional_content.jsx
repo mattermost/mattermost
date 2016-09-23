@@ -174,7 +174,7 @@ export default class PostBodyAdditionalContent extends React.Component {
         }
 
         if (this.isLinkToggleable()) {
-            let messageWithToggle = [];
+            const messageWithToggle = [];
 
             // if message has only one line and starts with a link place toggle in this only line
             // else - place it in new line between message and embed

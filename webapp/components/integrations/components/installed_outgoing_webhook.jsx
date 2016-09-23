@@ -115,7 +115,7 @@ export default class InstalledOutgoingWebhook extends React.Component {
             );
         }
 
-        let urls = (
+        const urls = (
             <div className='item-details__row'>
                 <span className='item-details__url'>
                     <FormattedMessage

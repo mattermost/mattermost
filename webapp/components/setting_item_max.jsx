@@ -53,8 +53,7 @@ export default class SettingItemMax extends React.Component {
                     href='#'
                     onClick={this.props.submit}
                     value={Utils.localizeMessage('setting_item_max.save', 'Save')}
-                >
-                </input>
+                />
             );
         }
 

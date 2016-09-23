@@ -17,7 +17,7 @@ class ChannelMentionSuggestion extends Suggestion {
         const item = this.props.item;
 
         const channelName = item.channel.display_name;
-        let purpose = item.channel.purpose;
+        const purpose = item.channel.purpose;
 
         let className = 'mentions__name';
         if (isSelection) {

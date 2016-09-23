@@ -23,7 +23,7 @@ class SearchChannelSuggestion extends Suggestion {
                 onClick={this.handleClick}
                 className={className}
             >
-                <i className='fa fa fa-plus-square'></i>{item.name}
+                <i className='fa fa fa-plus-square'/>{item.name}
             </div>
         );
     }

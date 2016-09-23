@@ -286,7 +286,7 @@ class CustomThemeChooser extends React.Component {
                                 type='text'
                                 defaultValue={theme[element.id]}
                             />
-                            <span className='input-group-addon'><i></i></span>
+                            <span className='input-group-addon'><i/></span>
                         </div>
                     </div>
                 );
@@ -308,7 +308,7 @@ class CustomThemeChooser extends React.Component {
                                 type='text'
                                 defaultValue={theme[element.id]}
                             />
-                            <span className='input-group-addon'><i></i></span>
+                            <span className='input-group-addon'><i/></span>
                         </div>
                     </div>
                 );
@@ -330,7 +330,7 @@ class CustomThemeChooser extends React.Component {
                                 type='text'
                                 defaultValue={theme[element.id]}
                             />
-                            <span className='input-group-addon'><i></i></span>
+                            <span className='input-group-addon'><i/></span>
                         </div>
                     </div>
                 );
@@ -370,8 +370,8 @@ class CustomThemeChooser extends React.Component {
                             defaultMessage='Sidebar Styles'
                         />
                         <div className='header__icon'>
-                            <i className='fa fa-plus'></i>
-                            <i className='fa fa-minus'></i>
+                            <i className='fa fa-plus'/>
+                            <i className='fa fa-minus'/>
                         </div>
                     </div>
                     <div className='theme-elements__body'>
@@ -388,8 +388,8 @@ class CustomThemeChooser extends React.Component {
                             defaultMessage='Center Channel Styles'
                         />
                         <div className='header__icon'>
-                            <i className='fa fa-plus'></i>
-                            <i className='fa fa-minus'></i>
+                            <i className='fa fa-plus'/>
+                            <i className='fa fa-minus'/>
                         </div>
                     </div>
                     <div className='theme-elements__body'>
@@ -406,8 +406,8 @@ class CustomThemeChooser extends React.Component {
                             defaultMessage='Link and Button Styles'
                         />
                         <div className='header__icon'>
-                            <i className='fa fa-plus'></i>
-                            <i className='fa fa-minus'></i>
+                            <i className='fa fa-plus'/>
+                            <i className='fa fa-minus'/>
                         </div>
                     </div>
                     <div className='theme-elements__body'>

@@ -48,14 +48,14 @@ export default class ReloadConfigButton extends React.Component {
 
     render() {
         if (global.window.mm_license.IsLicensed !== 'true') {
-            return <div></div>;
+            return <div/>;
         }
 
         let testMessage = null;
         if (this.state.fail) {
             testMessage = (
                 <div className='alert alert-warning'>
-                    <i className='fa fa-warning'></i>
+                    <i className='fa fa-warning'/>
                     <FormattedMessage
                         id='admin.reload.reloadFail'
                         defaultMessage='Reload unsuccessful: {error}'
@@ -67,7 +67,7 @@ export default class ReloadConfigButton extends React.Component {
             );
         }
 
-        let helpText = (
+        const helpText = (
             <FormattedHTMLMessage
                 id='admin.reload.reloadDescription'
                 defaultMessage='Deployments using multiple databases can switch from one master database to another without restarting the Mattermost server by updating "config.json" to the new desired configuration and using the <b>Reload Configuration from Disk</b> feature to load the new settings while the server is running. The administrator should then use the <a href="../advanced/database"><b>Database > Recycle Database Connections</b></a> feature to recycle the database connections based on the new settings.'

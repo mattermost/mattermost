@@ -247,7 +247,7 @@ export default class RhsThread extends React.Component {
 
         if (postsArray == null || selected == null) {
             return (
-                <div></div>
+                <div/>
             );
         }
 

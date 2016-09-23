@@ -89,7 +89,7 @@ export default class BackstageList extends React.Component {
                 </div>
                 <div className='backstage-filters'>
                     <div className='backstage-filter__search'>
-                        <i className='fa fa-search'></i>
+                        <i className='fa fa-search'/>
                         <input
                             type='search'
                             className='form-control'

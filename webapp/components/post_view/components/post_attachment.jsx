@@ -87,7 +87,7 @@ class PostAttachment extends React.Component {
             return '';
         }
 
-        let fieldTables = [];
+        const fieldTables = [];
 
         let headerCols = [];
         let bodyCols = [];
@@ -104,7 +104,7 @@ class PostAttachment extends React.Component {
                     >
                         <thead>
                             <tr>
-                            {headerCols}
+                                {headerCols}
                             </tr>
                         </thead>
                         <tbody>
@@ -134,8 +134,7 @@ class PostAttachment extends React.Component {
                     className='attachment-field'
                     key={'attachment__field-' + i + '__' + nrTables}
                     dangerouslySetInnerHTML={{__html: TextFormatting.formatText(field.value || '')}}
-                >
-                </td>
+                />
             );
             rowPos += 1;
             lastWasLong = !(field.short === true);
@@ -175,8 +174,7 @@ class PostAttachment extends React.Component {
                 <div
                     className='attachment__thumb-pretext'
                     dangerouslySetInnerHTML={{__html: TextFormatting.formatText(data.pretext)}}
-                >
-                </div>
+                />
             );
         }
 
@@ -250,8 +248,7 @@ class PostAttachment extends React.Component {
                 <div
                     className='attachment__text'
                     dangerouslySetInnerHTML={{__html: this.state.text}}
-                >
-                </div>
+                />
             );
         }
 
@@ -307,7 +304,7 @@ class PostAttachment extends React.Component {
                                 {fields}
                             </div>
                             {thumb}
-                            <div style={{clear: 'both'}}></div>
+                            <div style={{clear: 'both'}}/>
                         </div>
                     </div>
                 </div>

@@ -67,7 +67,7 @@ export default class PostViewCache extends React.Component {
         const channels = this.state.channels;
         const currentChannelId = this.state.currentChannelId;
 
-        let postViews = [];
+        const postViews = [];
         for (let i = 0; i < channels.length; i++) {
             postViews.push(
                 <PostViewController

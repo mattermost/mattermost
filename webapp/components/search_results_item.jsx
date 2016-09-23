@@ -96,7 +96,7 @@ export default class SearchResultsItem extends React.Component {
             botIndicator = <li className='bot-indicator'>{Constants.BOT_NAME}</li>;
         }
 
-        let profilePic = (
+        const profilePic = (
             <img
                 src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
                 height='36'

@@ -110,7 +110,7 @@ export default class EmojiListItem extends React.Component {
                     {creatorName}
                 </td>
                 <td className='emoji-list-item_actions'>
-                {deleteButton}
+                    {deleteButton}
                 </td>
             </tr>
         );

@@ -278,7 +278,7 @@ export default class NavbarDropdown extends React.Component {
                 <li
                     key='teamDiv'
                     className='divider'
-                ></li>
+                />
             );
 
             for (var index in this.state.teamMembers) {
@@ -409,15 +409,15 @@ export default class NavbarDropdown extends React.Component {
                                 />
                             </a>
                         </li>
-                        <li className='divider'></li>
+                        <li className='divider'/>
                         {integrationsLink}
                         {this.renderCustomEmojiLink()}
-                        <li className='divider'></li>
+                        <li className='divider'/>
                         {teamSettings}
                         {manageLink}
                         {sysAdminLink}
                         {teams}
-                        <li className='divider'></li>
+                        <li className='divider'/>
                         {helpLink}
                         {reportLink}
                         <li>

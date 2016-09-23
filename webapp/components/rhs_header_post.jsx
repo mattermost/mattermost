@@ -123,7 +123,7 @@ export default class RhsHeaderPost extends React.Component {
                         placement='top'
                         overlay={backToResultsTooltip}
                     >
-                        <i className='fa fa-angle-left'></i>
+                        <i className='fa fa-angle-left'/>
                     </OverlayTrigger>
                 </a>
             );

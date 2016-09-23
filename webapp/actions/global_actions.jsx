@@ -253,7 +253,7 @@ export function loadMorePostsTop(id, isFocusPost) {
 export function emitLoadMorePostsFocusedBottomEvent() {
     const id = PostStore.getFocusedPostId();
     const latestPostId = PostStore.getLatestPost(id).id;
-    AsyncClient.getPostsAfter(latestPostId, 0, Constants.POST_CHUNK_SIZE, !!id);
+    AsyncClient.getPostsAfter(latestPostId, 0, Constants.POST_CHUNK_SIZE, Boolean(id));
 }
 
 export function emitUserPostedEvent(post) {

@@ -26,7 +26,7 @@ export default class FileUploadOverlay extends React.Component {
                             src={fileOverlayImage}
                             alt='Files'
                         />
-                        <span><i className='fa fa-upload'></i>
+                        <span><i className='fa fa-upload'/>
                             <FormattedMessage
                                 id='upload_overlay.info'
                                 defaultMessage='Drop a file to upload it.'

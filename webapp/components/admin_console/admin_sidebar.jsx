@@ -124,7 +124,7 @@ export default class AdminSidebar extends React.Component {
                     >
                         <i
                             className='fa fa-plus'
-                        ></i>
+                        />
                     </a>
                 </OverlayTrigger>
             </span>

@@ -70,7 +70,7 @@ class TeamImportTab extends React.Component {
             break;
         case 'in-progress':
             messageSection = (
-                <p className='confirm-import alert alert-warning'><i className='fa fa-spinner fa-pulse'></i>
+                <p className='confirm-import alert alert-warning'><i className='fa fa-spinner fa-pulse'/>
                     <FormattedMessage
                         id='team_import_tab.importing'
                         defaultMessage=' Importing...'
@@ -136,7 +136,7 @@ class TeamImportTab extends React.Component {
                         ref='title'
                     >
                         <div className='modal-back'>
-                            <i className='fa fa-angle-left'></i>
+                            <i className='fa fa-angle-left'/>
                         </div>
                         <FormattedMessage
                             id='team_import_tab.import'
