@@ -4,6 +4,10 @@
 package api
 
 import (
+	"bytes"
+	"io"
+	"path/filepath"
+
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -51,4 +55,32 @@ func ImportChannel(channel *model.Channel) *model.Channel {
 
 		return sc
 	}
+}
+
+func ImportFile(file io.Reader, teamId string, channelId string, userId string, fileName string) (string, error) {
+	buf := bytes.NewBuffer(nil)
+	io.Copy(buf, file)
+
+	uid := model.NewId()
+
+	imageNameList := []string{}
+	imageDataList := [][]byte{}
+
+	if model.IsFileExtImage(filepath.Ext(fileName)) {
+		imageNameList = append(imageNameList, uid+"/"+fileName)
+		imageDataList = append(imageDataList, buf.Bytes())
+	}
+
+	path := "teams/" + teamId + "/channels/" + channelId + "/users/" + userId + "/" + uid + "/" + fileName
+
+	if err := WriteFile(buf.Bytes(), path); err != nil {
+		return "", err
+	}
+
+	encName := utils.UrlEncode(fileName)
+	fileUrl := "/" + channelId + "/" + userId + "/" + uid + "/" + encName
+
+	go handleImages(imageNameList, imageDataList, teamId, channelId, userId)
+
+	return fileUrl, nil
 }
