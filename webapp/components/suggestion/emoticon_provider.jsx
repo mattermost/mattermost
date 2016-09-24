@@ -76,11 +76,14 @@ export default class EmoticonProvider {
 
             // sort the emoticons so that emoticons starting with the entered text come first
             matched.sort((a, b) => {
-                const aPrefix = a.name.startsWith(partialName);
-                const bPrefix = b.name.startsWith(partialName);
+                const aName = a.name || a.aliases[0];
+                const bName = b.name || b.aliases[0];
+
+                const aPrefix = aName.startsWith(partialName);
+                const bPrefix = bName.startsWith(partialName);
 
                 if (aPrefix === bPrefix) {
-                    return a.name.localeCompare(b.name);
+                    return aName.localeCompare(bName);
                 } else if (aPrefix) {
                     return -1;
                 }
@@ -88,7 +91,7 @@ export default class EmoticonProvider {
                 return 1;
             });
 
-            const terms = matched.map((emoticon) => ':' + emoticon.name + ':');
+            const terms = matched.map((emoticon) => ':' + (emoticon.name || emoticon.aliases[0]) + ':');
 
             SuggestionStore.clearSuggestions(suggestionId);
             if (terms.length > 0) {

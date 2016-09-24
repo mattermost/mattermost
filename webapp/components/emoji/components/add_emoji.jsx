@@ -85,7 +85,7 @@ export default class AddEmoji extends React.Component {
             });
 
             return;
-        } else if (EmojiStore.getSystemEmojis().has(emoji.name)) {
+        } else if (EmojiStore.hasSystemEmoji(emoji.name)) {
             this.setState({
                 saving: false,
                 error: (
