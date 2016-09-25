@@ -26,9 +26,19 @@ func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if reaction.UserId != c.Session.UserId {
+		c.Err = model.NewLocAppError("saveReaction", "api.reaction.save_reaction.user_id.app_error", nil, "")
+		c.Err.StatusCode = http.StatusUnauthorized
+		return
+	}
+
 	channelId := mux.Vars(r)["channel_id"]
 	if len(channelId) != 26 {
 		c.SetInvalidParam("saveReaction", "postId")
+		return
+	}
+
+	if !HasPermissionToChannelContext(c, channelId, model.PERMISSION_READ_CHANNEL) {
 		return
 	}
 
@@ -38,16 +48,7 @@ func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cchan := Srv.Store.Channel().CheckPermissionsToNoTeam(channelId, c.Session.UserId)
 	pchan := Srv.Store.Post().Get(reaction.PostId)
-
-	if !c.HasPermissionsToUser(reaction.UserId, "saveReaction") {
-		return
-	}
-
-	if !c.HasPermissionsToChannel(cchan, "saveReaction") {
-		return
-	}
 
 	var postHadReactions bool
 	if result := <-pchan; result.Err != nil {
@@ -81,9 +82,19 @@ func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if reaction.UserId != c.Session.UserId {
+		c.Err = model.NewLocAppError("deleteReaction", "api.reaction.delete_reaction.user_id.app_error", nil, "")
+		c.Err.StatusCode = http.StatusUnauthorized
+		return
+	}
+
 	channelId := mux.Vars(r)["channel_id"]
 	if len(channelId) != 26 {
-		c.SetInvalidParam("saveReaction", "postId")
+		c.SetInvalidParam("deleteReaction", "postId")
+		return
+	}
+
+	if !HasPermissionToChannelContext(c, channelId, model.PERMISSION_READ_CHANNEL) {
 		return
 	}
 
@@ -93,16 +104,7 @@ func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cchan := Srv.Store.Channel().CheckPermissionsToNoTeam(channelId, c.Session.UserId)
 	pchan := Srv.Store.Post().Get(reaction.PostId)
-
-	if !c.HasPermissionsToUser(reaction.UserId, "deleteReaction") {
-		return
-	}
-
-	if !c.HasPermissionsToChannel(cchan, "deleteReaction") {
-		return
-	}
 
 	var postHadReactions bool
 	if result := <-pchan; result.Err != nil {
@@ -170,10 +172,9 @@ func listReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cchan := Srv.Store.Channel().CheckPermissionsToNoTeam(channelId, c.Session.UserId)
 	pchan := Srv.Store.Post().Get(postId)
 
-	if !c.HasPermissionsToChannel(cchan, "listReactions") {
+	if !HasPermissionToChannelContext(c, channelId, model.PERMISSION_READ_CHANNEL) {
 		return
 	}
 
