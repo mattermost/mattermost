@@ -176,7 +176,9 @@ export const ActionTypes = keyMirror({
     SUGGESTION_SELECT_NEXT: null,
     SUGGESTION_SELECT_PREVIOUS: null,
 
-    BROWSER_CHANGE_FOCUS: null
+    BROWSER_CHANGE_FOCUS: null,
+
+    EMOJI_POSTED: null
 });
 
 export const WebrtcActionTypes = keyMirror({

@@ -8,6 +8,7 @@ import FileUpload from './file_upload.jsx';
 import FilePreview from './file_preview.jsx';
 import PostDeletedModal from './post_deleted_modal.jsx';
 import TutorialTip from './tutorial/tutorial_tip.jsx';
+import EmojiPicker from './emoji_picker/emoji_picker.jsx';
 
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
@@ -36,6 +37,7 @@ const KeyCodes = Constants.KeyCodes;
 import React from 'react';
 
 export const REACTION_PATTERN = /^(\+|-):([^:\s]+):\s*$/;
+export const EMOJI_PATTERN = /\:[A-Za-z-_0-9]*\:/g;
 
 export default class CreatePost extends React.Component {
     constructor(props) {
@@ -61,6 +63,8 @@ export default class CreatePost extends React.Component {
         this.showPostDeletedModal = this.showPostDeletedModal.bind(this);
         this.hidePostDeletedModal = this.hidePostDeletedModal.bind(this);
         this.showShortcuts = this.showShortcuts.bind(this);
+        this.handleEmojiClick = this.handleEmojiClick.bind(this);
+        this.handleEmojiPickerClick = this.handleEmojiPickerClick.bind(this);
         this.handlePostError = this.handlePostError.bind(this);
 
         PostStore.clearDraftUploads();
@@ -77,7 +81,9 @@ export default class CreatePost extends React.Component {
             fullWidthTextBox: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN,
             showTutorialTip: false,
             showPostDeletedModal: false,
-            enableSendButton: false
+            enableSendButton: false,
+            lastBlurAt: 0,
+            showEmojiPicker: false
         };
 
         this.lastBlurAt = 0;
@@ -86,6 +92,8 @@ export default class CreatePost extends React.Component {
     handlePostError(postError) {
         this.setState({postError});
     }
+
+
 
     handleSubmit(e) {
         e.preventDefault();
@@ -150,10 +158,11 @@ export default class CreatePost extends React.Component {
                         this.setState({state});
                     }
                 }
-            );
+            ).bind(this);
         } else if (isReaction && EmojiStore.has(isReaction[2])) {
             this.sendReaction(isReaction);
         } else {
+
             this.sendMessage(post);
         }
 
@@ -184,6 +193,12 @@ export default class CreatePost extends React.Component {
         post.parent_id = this.state.parentId;
 
         GlobalActions.emitUserPostedEvent(post);
+
+        // parse message and emit emoji event
+        post.message.match(EMOJI_PATTERN).forEach((emoji) => {
+
+            PostActions.emitEmojiPosted(emoji);
+        })
 
         PostActions.queuePost(post, false, null,
             (err) => {
@@ -484,6 +499,31 @@ export default class CreatePost extends React.Component {
         });
     }
 
+    handleEmojiClick(emoji) {
+        const emojiAlias = (emoji.aliases.length > 0) ? emoji.aliases[0] : false;
+
+        if (!emojiAlias) {
+            //Oops.. There went something wrong
+            return;
+        }
+
+        if (this.state.message === '') {
+            this.setState({message: ':' + emojiAlias + ': ', showEmojiPicker: false});
+        } else {
+            //check whether there is already a blank at the end of the current message
+            const newMessage = (/\s+$/.test(this.state.message)) ?
+                this.state.message + ':' + emojiAlias + ': ' : this.state.message + ' :' + emojiAlias + ': ';
+
+            this.setState({message: newMessage, showEmojiPicker: false});
+        }
+
+        this.focusTextbox();
+    }
+
+    handleEmojiPickerClick() {
+        this.setState({showEmojiPicker: !this.state.showEmojiPicker});
+    }
+
     createTutorialTip() {
         const screens = [];
 
@@ -556,6 +596,18 @@ export default class CreatePost extends React.Component {
         if (!this.state.enableSendButton) {
             sendButtonClass += ' disabled';
         }
+        let emojiPicker = null;
+        if (this.state.showEmojiPicker) {
+            //TODO: get custom emojis
+            const customEmojis = [];
+
+            emojiPicker = (
+                <EmojiPicker
+                    customEmojis={customEmojis}
+                    onEmojiClick={this.handleEmojiClick}
+                />
+            );
+        }
 
         return (
             <form
@@ -580,17 +632,22 @@ export default class CreatePost extends React.Component {
                                 id='post_textbox'
                                 ref='textbox'
                             />
+                            <FileUpload
+                                ref='fileUpload'
+                                getFileCount={this.getFileCount}
+                                onFileUploadChange={this.handleFileUploadChange}
+                                onUploadStart={this.handleUploadStart}
+                                onFileUpload={this.handleFileUploadComplete}
+                                onUploadError={this.handleUploadError}
+                                postType='post'
+                                channelId=''
+                            />
+                            <span
+                                className='fa fa-smile-o icon__emoji_picker'
+                                onClick={this.handleEmojiPickerClick}
+                            />
+                            {emojiPicker}
                         </div>
-                        <FileUpload
-                            ref='fileUpload'
-                            getFileCount={this.getFileCount}
-                            onFileUploadChange={this.handleFileUploadChange}
-                            onUploadStart={this.handleUploadStart}
-                            onFileUpload={this.handleFileUploadComplete}
-                            onUploadError={this.handleUploadError}
-                            postType='post'
-                            channelId=''
-                        />
                         <a
                             className={sendButtonClass}
                             onClick={this.handleSubmit}

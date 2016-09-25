@@ -5,12 +5,15 @@ import Client from '../client/web_client.jsx';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import Constants from 'utils/constants.jsx';
 import EventEmitter from 'events';
+import BrowserStore from 'stores/browser_store.jsx';
 
 import * as Emoji from 'utils/emoji.jsx';
 
 const ActionTypes = Constants.ActionTypes;
 
 const CHANGE_EVENT = 'changed';
+const RECENT_EMOJI_KEY = 'recentEmojis';
+const MAXIMUM_RECENT_EMOJI = 20;
 
 // Wrap the contents of the store so that we don't need to construct an ES6 map where most of the content
 // (the system emojis) will never change. It provides the get/has functions of a map and an iterator so
@@ -139,6 +142,38 @@ class EmojiStore extends EventEmitter {
         return this.map.get(name);
     }
 
+
+
+    addRecentEmoji(rawAlias){
+        let recentEmojis = this.getRecentEmojis();
+
+        let alias = rawAlias.split(':').join('');
+        let emojiIndex =  Emoji.EmojiIndicesByAlias.get(alias)
+        let emoji = Emoji.Emojis[emojiIndex];
+        recentEmojis.push(emoji);
+
+        // odd workaround to the lack of array.findLastIndex - reverse before and after
+        recentEmojis.reverse();
+        recentEmojis = recentEmojis.filter(
+            (val, i, a ) => i === a.findIndex(
+                val2 => val.filename === val2.filename
+            )
+        );
+        recentEmojis.reverse();
+
+        // cut off the _top_ if it's over length (since new are added to end)
+        if (recentEmojis.length > MAXIMUM_RECENT_EMOJI){
+            recentEmojis.splice(0,recentEmojis.length -MAXIMUM_RECENT_EMOJI);
+        }
+
+        BrowserStore.setGlobalItem(RECENT_EMOJI_KEY,recentEmojis);
+
+    }
+
+    getRecentEmojis(){
+        return BrowserStore.getGlobalItem(RECENT_EMOJI_KEY,[]);
+    }
+
     hasUnicode(codepoint) {
         return Emoji.EmojiIndicesByUnicode.has(codepoint);
     }
@@ -172,6 +207,11 @@ class EmojiStore extends EventEmitter {
             break;
         case ActionTypes.REMOVED_CUSTOM_EMOJI:
             this.removeCustomEmoji(action.id);
+            this.emitChange();
+            break;
+        case ActionTypes.EMOJI_POSTED:
+            console.log(action);
+            this.addRecentEmoji(action.alias);
             this.emitChange();
             break;
         }
