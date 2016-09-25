@@ -448,6 +448,23 @@
             }
         }
 
+        .icon__emoji_picker
+        {
+            @include opacity(.5);
+            @include single-transition(all, .15s);
+            position: absolute;
+            top: 1px;
+            right: 37px;
+            font-size: 19px;
+            padding: 9px 11px 8px;
+
+            &:hover,
+            &:active {
+                @include opacity(.9);
+                box-shadow: none;
+            }
+        }
+
         textarea {
             box-shadow: none;
         }
