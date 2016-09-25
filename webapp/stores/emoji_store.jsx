@@ -16,12 +16,14 @@ const CHANGE_EVENT = 'changed';
 // that it can be used in for..of loops
 class EmojiMap {
     constructor(customEmojis) {
-        // Convert customEmojis to an array so we can iterate it
-        this.customEmojis = [...customEmojis];
+        this.customEmojis = customEmojis;
+
+        // Store customEmojis to an array so we can iterate it more easily
+        this.customEmojisArray = [...customEmojis];
     }
 
     has(name) {
-        return Emoji.EmojiIndicesByAlias.has(name) || this.customEmoji.has(name);
+        return Emoji.EmojiIndicesByAlias.has(name) || this.customEmojis.has(name);
     }
 
     get(name) {
@@ -33,7 +35,7 @@ class EmojiMap {
     }
 
     [Symbol.iterator]() {
-        const customEmojis = this.customEmojis;
+        const customEmojisArray = this.customEmojisArray;
 
         return {
             systemIndex: 0,
@@ -47,8 +49,8 @@ class EmojiMap {
                     return {value: [emoji.aliases[0], emoji]};
                 }
 
-                if (this.customIndex < customEmojis.length) {
-                    const emoji = customEmojis[this.customIndex][1];
+                if (this.customIndex < customEmojisArray.length) {
+                    const emoji = customEmojisArray[this.customIndex][1];
 
                     this.customIndex += 1;
 
