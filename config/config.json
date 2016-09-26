@@ -55,7 +55,7 @@
         "AtRestEncryptKey": ""
     },
     "LogSettings": {
-        "EnableConsole": true,
+        "EnableConsole": false,
         "ConsoleLevel": "DEBUG",
         "EnableFile": true,
         "FileLevel": "INFO",
