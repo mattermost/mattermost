@@ -177,11 +177,14 @@ export default class PostViewController extends React.Component {
 
             const joinLeaveEnabled = PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'join_leave', true);
 
+            const statuses = Object.assign({}, UserStore.getStatuses());
+
             this.setState({
                 channel,
                 lastViewed,
                 ownNewMessage: false,
                 profiles: JSON.parse(JSON.stringify(profiles)),
+                statuses,
                 postList: PostStore.filterPosts(channel.id, joinLeaveEnabled),
                 displayNameType: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'false'),
                 displayPostsInCenter: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED,
