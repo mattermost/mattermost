@@ -308,9 +308,9 @@ func sendServerDiagnostics() {
 	}
 
 	utils.SendDiagnostic(utils.TRACK_ACTIVITY, map[string]interface{}{
-		"users":        userCount,
-		"active_users": activeUserCount,
-		"teams":        teamCount,
+		"registered_users": userCount,
+		"active_users":     activeUserCount,
+		"teams":            teamCount,
 	})
 
 	edition := model.BuildEnterpriseReady
