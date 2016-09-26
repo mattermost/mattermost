@@ -4,9 +4,10 @@
 package store
 
 import (
-	"github.com/mattermost/platform/model"
 	"testing"
 	"time"
+
+	"github.com/mattermost/platform/model"
 )
 
 func TestChannelStoreSave(t *testing.T) {
@@ -439,94 +440,6 @@ func TestChannelDeleteMemberStore(t *testing.T) {
 	count = (<-store.Channel().GetMemberCount(o1.ChannelId)).Data.(int64)
 	if count != 1 {
 		t.Fatal("should have removed 1 member")
-	}
-}
-
-func TestChannelStorePermissionsTo(t *testing.T) {
-	Setup()
-
-	o1 := model.Channel{}
-	o1.TeamId = model.NewId()
-	o1.DisplayName = "Channel1"
-	o1.Name = "a" + model.NewId() + "b"
-	o1.Type = model.CHANNEL_OPEN
-	Must(store.Channel().Save(&o1))
-
-	m1 := model.ChannelMember{}
-	m1.ChannelId = o1.Id
-	m1.UserId = model.NewId()
-	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
-	Must(store.Channel().SaveMember(&m1))
-
-	count := (<-store.Channel().CheckPermissionsTo(o1.TeamId, o1.Id, m1.UserId)).Data.(int64)
-	if count != 1 {
-		t.Fatal("should have permissions")
-	}
-
-	count = (<-store.Channel().CheckPermissionsToNoTeam(o1.Id, m1.UserId)).Data.(int64)
-	if count != 1 {
-		t.Fatal("should have permissions")
-	}
-
-	count = (<-store.Channel().CheckPermissionsTo("junk", o1.Id, m1.UserId)).Data.(int64)
-	if count != 0 {
-		t.Fatal("shouldn't have permissions")
-	}
-
-	count = (<-store.Channel().CheckPermissionsTo(o1.TeamId, "junk", m1.UserId)).Data.(int64)
-	if count != 0 {
-		t.Fatal("shouldn't have permissions")
-	}
-
-	count = (<-store.Channel().CheckPermissionsToNoTeam("junk", m1.UserId)).Data.(int64)
-	if count != 0 {
-		t.Fatal("shouldn't have permissions")
-	}
-
-	count = (<-store.Channel().CheckPermissionsTo(o1.TeamId, o1.Id, "junk")).Data.(int64)
-	if count != 0 {
-		t.Fatal("shouldn't have permissions")
-	}
-
-	count = (<-store.Channel().CheckPermissionsToNoTeam(o1.Id, "junk")).Data.(int64)
-	if count != 0 {
-		t.Fatal("shouldn't have permissions")
-	}
-
-	channelId := (<-store.Channel().CheckPermissionsToByName(o1.TeamId, o1.Name, m1.UserId)).Data.(string)
-	if channelId != o1.Id {
-		t.Fatal("should have permissions")
-	}
-
-	channelId = (<-store.Channel().CheckPermissionsToByName(o1.TeamId, "missing", m1.UserId)).Data.(string)
-	if channelId != "" {
-		t.Fatal("should not have permissions")
-	}
-}
-
-func TestChannelStoreOpenChannelPermissionsTo(t *testing.T) {
-	Setup()
-
-	o1 := model.Channel{}
-	o1.TeamId = model.NewId()
-	o1.DisplayName = "Channel1"
-	o1.Name = "a" + model.NewId() + "b"
-	o1.Type = model.CHANNEL_OPEN
-	Must(store.Channel().Save(&o1))
-
-	count := (<-store.Channel().CheckOpenChannelPermissions(o1.TeamId, o1.Id)).Data.(int64)
-	if count != 1 {
-		t.Fatal("should have permissions")
-	}
-
-	count = (<-store.Channel().CheckOpenChannelPermissions("junk", o1.Id)).Data.(int64)
-	if count != 0 {
-		t.Fatal("shouldn't have permissions")
-	}
-
-	count = (<-store.Channel().CheckOpenChannelPermissions(o1.TeamId, "junk")).Data.(int64)
-	if count != 0 {
-		t.Fatal("shouldn't have permissions")
 	}
 }
 
