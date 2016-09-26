@@ -55,21 +55,17 @@ func TeamMembersFromJson(data io.Reader) []*TeamMember {
 	}
 }
 
-func IsInTeamRole(teamRoles string, inRole string) bool {
-	roles := strings.Split(teamRoles, " ")
-
-	for _, r := range roles {
-		if r == inRole {
+func (o *TeamMember) IsInTeamRole(aRole string) bool {
+	for _, role := range o.GetRoles() {
+		if role == aRole {
 			return true
 		}
-
 	}
-
 	return false
 }
 
 func (o *TeamMember) IsTeamAdmin() bool {
-	return true
+	return o.IsInTeamRole("team_admin") // NB: In previous version, it was "admin" so adapt to your targetted version.
 }
 
 func (o *TeamMember) IsValid() *AppError {
