@@ -65,7 +65,7 @@ func (o *TeamMember) IsInTeamRole(aRole string) bool {
 }
 
 func (o *TeamMember) IsTeamAdmin() bool {
-	return o.IsInTeamRole("admin")
+	return o.IsInTeamRole("team_admin") // NB: In previous version, it was "admin" so adapt to your targetted version.
 }
 
 func (o *TeamMember) IsValid() *AppError {
