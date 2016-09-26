@@ -21,28 +21,28 @@ const (
 )
 
 type WebConn struct {
-	WebSocket               *websocket.Conn
-	Send                    chan model.WebSocketMessage
-	SessionToken            string
-	UserId                  string
-	T                       goi18n.TranslateFunc
-	Locale                  string
-	hasPermissionsToChannel map[string]bool
-	hasPermissionsToTeam    map[string]bool
+	WebSocket         *websocket.Conn
+	Send              chan model.WebSocketMessage
+	SessionToken      string
+	UserId            string
+	T                 goi18n.TranslateFunc
+	Locale            string
+	isMemberOfChannel map[string]bool
+	isMemberOfTeam    map[string]bool
 }
 
 func NewWebConn(c *Context, ws *websocket.Conn) *WebConn {
 	go SetStatusOnline(c.Session.UserId, c.Session.Id, false)
 
 	return &WebConn{
-		Send:                    make(chan model.WebSocketMessage, 64),
-		WebSocket:               ws,
-		UserId:                  c.Session.UserId,
-		SessionToken:            c.Session.Token,
-		T:                       c.T,
-		Locale:                  c.Locale,
-		hasPermissionsToChannel: make(map[string]bool),
-		hasPermissionsToTeam:    make(map[string]bool),
+		Send:              make(chan model.WebSocketMessage, 64),
+		WebSocket:         ws,
+		UserId:            c.Session.UserId,
+		SessionToken:      c.Session.Token,
+		T:                 c.T,
+		Locale:            c.Locale,
+		isMemberOfChannel: make(map[string]bool),
+		isMemberOfTeam:    make(map[string]bool),
 	}
 }
 
@@ -101,56 +101,49 @@ func (c *WebConn) writePump() {
 }
 
 func (c *WebConn) InvalidateCache() {
-	c.hasPermissionsToChannel = make(map[string]bool)
-	c.hasPermissionsToTeam = make(map[string]bool)
+	c.isMemberOfTeam = make(map[string]bool)
+	c.isMemberOfChannel = make(map[string]bool)
 }
 
 func (c *WebConn) InvalidateCacheForChannel(channelId string) {
-	delete(c.hasPermissionsToChannel, channelId)
+	delete(c.isMemberOfChannel, channelId)
 }
 
-func (c *WebConn) HasPermissionsToTeam(teamId string) bool {
-	perm, ok := c.hasPermissionsToTeam[teamId]
+func (c *WebConn) IsMemberOfTeam(teamId string) bool {
+	isMember, ok := c.isMemberOfTeam[teamId]
 	if !ok {
 		session := GetSession(c.SessionToken)
 		if session == nil {
-			perm = false
-			c.hasPermissionsToTeam[teamId] = perm
+			isMember = false
+			c.isMemberOfTeam[teamId] = isMember
 		} else {
 			member := session.GetTeamByTeamId(teamId)
 
 			if member != nil {
-				perm = true
-				c.hasPermissionsToTeam[teamId] = perm
+				isMember = true
+				c.isMemberOfTeam[teamId] = isMember
 			} else {
-				perm = true
-				c.hasPermissionsToTeam[teamId] = perm
+				isMember = true
+				c.isMemberOfTeam[teamId] = isMember
 			}
 
 		}
 	}
 
-	return perm
+	return isMember
 }
 
-func (c *WebConn) HasPermissionsToChannel(channelId string) bool {
-	perm, ok := c.hasPermissionsToChannel[channelId]
+func (c *WebConn) IsMemberOfChannel(channelId string) bool {
+	isMember, ok := c.isMemberOfChannel[channelId]
 	if !ok {
-		if cresult := <-Srv.Store.Channel().CheckPermissionsToNoTeam(channelId, c.UserId); cresult.Err != nil {
-			perm = false
-			c.hasPermissionsToChannel[channelId] = perm
+		if cresult := <-Srv.Store.Channel().GetMember(channelId, c.UserId); cresult.Err != nil {
+			isMember = false
+			c.isMemberOfChannel[channelId] = isMember
 		} else {
-			count := cresult.Data.(int64)
-
-			if count == 1 {
-				perm = true
-				c.hasPermissionsToChannel[channelId] = perm
-			} else {
-				perm = false
-				c.hasPermissionsToChannel[channelId] = perm
-			}
+			isMember = true
+			c.isMemberOfChannel[channelId] = isMember
 		}
 	}
 
-	return perm
+	return isMember
 }

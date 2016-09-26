@@ -5,6 +5,7 @@ package api
 
 import (
 	"fmt"
+
 	l4g "github.com/alecthomas/log4go"
 
 	"github.com/mattermost/platform/einterfaces"
@@ -154,7 +155,7 @@ func shouldSendEvent(webCon *WebConn, msg *model.WebSocketEvent) bool {
 		// We have to make sure the user is in the channel. Otherwise system messages that
 		// post about users in channels they are not in trigger warnings.
 		if len(msg.ChannelId) > 0 {
-			allowed := webCon.HasPermissionsToChannel(msg.ChannelId)
+			allowed := webCon.IsMemberOfChannel(msg.ChannelId)
 
 			if !allowed {
 				return false
@@ -176,7 +177,7 @@ func shouldSendEvent(webCon *WebConn, msg *model.WebSocketEvent) bool {
 
 		// Only report events to users who are in the team for the event
 		if len(msg.TeamId) > 0 {
-			allowed := webCon.HasPermissionsToTeam(msg.TeamId)
+			allowed := webCon.IsMemberOfTeam(msg.TeamId)
 
 			if !allowed {
 				return false
@@ -185,7 +186,7 @@ func shouldSendEvent(webCon *WebConn, msg *model.WebSocketEvent) bool {
 
 		// Only report events to users who are in the channel for the event execept deleted events
 		if len(msg.ChannelId) > 0 && msg.Event != model.WEBSOCKET_EVENT_CHANNEL_DELETED {
-			allowed := webCon.HasPermissionsToChannel(msg.ChannelId)
+			allowed := webCon.IsMemberOfChannel(msg.ChannelId)
 
 			if !allowed {
 				return false
