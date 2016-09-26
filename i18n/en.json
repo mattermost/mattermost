@@ -834,10 +834,6 @@
     "translation": "File exceeds max image size."
   },
   {
-    "id": "api.file.file_upload.exceeds",
-    "translation": "File exceeds max image size."
-  },
-  {
     "id": "api.file.get_file.not_found.app_error",
     "translation": "Could not find file."
   },
