@@ -3044,6 +3044,10 @@
     "translation": "Invalid connection security for email settings.  Must be '', 'TLS', or 'STARTTLS'"
   },
   {
+    "id": "model.config.is_valid.max_burst.app_error",
+    "translation": "Max burst must be greater than zero."
+  },
+  {
     "id": "model.config.is_valid.encrypt_sql.app_error",
     "translation": "Invalid at rest encrypt key for SQL settings.  Must be 32 chars or more."
   },
