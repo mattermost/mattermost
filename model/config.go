@@ -177,11 +177,12 @@ type EmailSettings struct {
 }
 
 type RateLimitSettings struct {
-	EnableRateLimiter bool
-	PerSec            int
-	MemoryStoreSize   int
-	VaryByRemoteAddr  bool
-	VaryByHeader      string
+	Enable           *bool
+	PerSec           int
+	MaxBurst         *int
+	MemoryStoreSize  int
+	VaryByRemoteAddr bool
+	VaryByHeader     string
 }
 
 type PrivacySettings struct {
@@ -894,6 +895,16 @@ func (o *Config) SetDefaults() {
 		*o.NativeAppSettings.IosAppDownloadLink = "https://about.mattermost.com/mattermost-ios-app/"
 	}
 
+	if o.RateLimitSettings.Enable == nil {
+		o.RateLimitSettings.Enable = new(bool)
+		*o.RateLimitSettings.Enable = false
+	}
+
+	if o.RateLimitSettings.MaxBurst == nil {
+		o.RateLimitSettings.MaxBurst = new(int)
+		*o.RateLimitSettings.MaxBurst = 100
+	}
+
 	o.defaultWebrtcSettings()
 }
 
@@ -1095,6 +1106,10 @@ func (o *Config) IsValid() *AppError {
 
 	if len(o.TeamSettings.SiteName) > SITENAME_MAX_LENGTH {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.sitename_length.app_error", map[string]interface{}{"MaxLength": SITENAME_MAX_LENGTH}, "")
+	}
+
+	if *o.RateLimitSettings.MaxBurst <= 0 {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.max_burst.app_error", nil, "")
 	}
 
 	if err := o.isValidWebrtcSettings(); err != nil {

@@ -112,7 +112,7 @@ func trackConfig() {
 	})
 
 	SendDiagnostic(TRACK_CONFIG_RATE, map[string]interface{}{
-		"enable_rate_limiter":    Cfg.RateLimitSettings.EnableRateLimiter,
+		"enable_rate_limiter":    *Cfg.RateLimitSettings.Enable,
 		"vary_by_remote_address": Cfg.RateLimitSettings.VaryByRemoteAddr,
 	})
 

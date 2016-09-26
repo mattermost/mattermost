@@ -4,6 +4,10 @@
 package api
 
 import (
+	"net/http"
+	"strings"
+	"time"
+
 	l4g "github.com/alecthomas/log4go"
 	"github.com/braintree/manners"
 	"github.com/gorilla/handlers"
@@ -12,9 +16,6 @@ import (
 	"github.com/mattermost/platform/utils"
 	"gopkg.in/throttled/throttled.v2"
 	"gopkg.in/throttled/throttled.v2/store/memstore"
-	"net/http"
-	"strings"
-	"time"
 )
 
 type Server struct {
@@ -70,7 +71,7 @@ func StartServer() {
 
 	var handler http.Handler = &CorsWrapper{Srv.Router}
 
-	if utils.Cfg.RateLimitSettings.EnableRateLimiter {
+	if *utils.Cfg.RateLimitSettings.Enable {
 		l4g.Info(utils.T("api.server.start_server.rate.info"))
 
 		store, err := memstore.New(utils.Cfg.RateLimitSettings.MemoryStoreSize)
@@ -81,7 +82,7 @@ func StartServer() {
 
 		quota := throttled.RateQuota{
 			MaxRate:  throttled.PerSec(utils.Cfg.RateLimitSettings.PerSec),
-			MaxBurst: 100,
+			MaxBurst: *utils.Cfg.RateLimitSettings.MaxBurst,
 		}
 
 		rateLimiter, err := throttled.NewGCRARateLimiter(store, quota)
