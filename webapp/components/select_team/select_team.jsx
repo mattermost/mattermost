@@ -72,7 +72,7 @@ export default class SelectTeam extends React.Component {
                         >
                             <span className='signup-team-dir__name'>{team.display_name}</span>
                             <span
-                                className='fa fa-angle-right right signup-team-dir__arrow'
+                                className='fa fa-angle-right right signup-team__icon'
                                 aria-hidden='true'
                             />
                         </Link>
@@ -96,7 +96,7 @@ export default class SelectTeam extends React.Component {
                         >
                             <span className='signup-team-dir__name'>{openTeam.display_name}</span>
                             <span
-                                className='fa fa-angle-right right signup-team-dir__arrow'
+                                className='fa fa-angle-right right signup-team__icon'
                                 aria-hidden='true'
                             />
                         </Link>

@@ -87,7 +87,7 @@
         }
 
         .post-right-comments-upload-in-progress {
-            color: #a8adb7;
+            @include opacity(.7);
             margin-right: 10px;
             padding: 6px 0;
         }
