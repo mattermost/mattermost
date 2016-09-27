@@ -112,7 +112,7 @@ export default class RateSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.rate.maxBurstDescription'
-                            defaultMessage='Maxumum number of requests allowed beyond the per second query limit.'
+                            defaultMessage='Maximum number of requests allowed beyond the per second query limit.'
                         />
                     }
                     value={this.state.maxBurst}
