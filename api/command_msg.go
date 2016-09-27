@@ -79,7 +79,7 @@ func (me *msgProvider) DoCommand(c *Context, channelId string, message string) *
 					targetChannelId = channel.Data.(*model.Channel).Id
 				}
 
-				makeDirectChannelVisible(c.TeamId, targetChannelId)
+				makeDirectChannelVisible(targetChannelId)
 				if len(parsedMessage) > 0 {
 					post := &model.Post{}
 					post.Message = parsedMessage

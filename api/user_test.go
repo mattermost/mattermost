@@ -1793,7 +1793,7 @@ func TestUserTyping(t *testing.T) {
 		for {
 			select {
 			case resp := <-WebSocketClient2.EventChannel:
-				if resp.Event == model.WEBSOCKET_EVENT_TYPING && resp.UserId == th.BasicUser.Id {
+				if resp.Event == model.WEBSOCKET_EVENT_TYPING && resp.Data["user_id"].(string) == th.BasicUser.Id {
 					eventHit = true
 				}
 			case <-stop:
