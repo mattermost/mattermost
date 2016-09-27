@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	SOCKET_MAX_MESSAGE_SIZE_KB = 2 * 1024 * 1024 // 2KB
+	SOCKET_MAX_MESSAGE_SIZE_KB = 8 * 1024 // 8KB
 )
 
 func InitWebSocket() {
