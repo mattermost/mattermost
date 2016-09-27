@@ -23,7 +23,7 @@ const (
 
 type WebConn struct {
 	send              chan model.WebSocketMessage
-	broadcast         chan *model.WebSocketEvent // I wonder if this should be by Value vs Ref.  Then you can remove the nil check in <- boradcast if by Ref.  But its needed because of funky units tests.
+	broadcast         chan *model.WebSocketEvent
 	invalidateCache   chan bool
 	webSocket         *websocket.Conn
 	SessionToken      string
@@ -94,9 +94,7 @@ func (c *WebConn) writePump() {
 
 		case msg, ok := <-c.broadcast:
 			if ok {
-				if msg == nil {
-					l4g.Error("Broadcast message was nil, this shouldn't happen.")
-				} else if c.shouldSendEvent(msg) {
+				if c.shouldSendEvent(msg) {
 					c.webSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
 					if err := c.webSocket.WriteJSON(msg); err != nil {
 						return
