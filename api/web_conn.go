@@ -129,23 +129,12 @@ func (c *WebConn) InvalidateCache() {
 	c.invalidateCache <- true
 }
 
-func (c *WebConn) Send(message model.WebSocketMessage) bool {
-	select {
-	case c.send <- message:
-		return false
-	default:
-		return true
-	}
+func (c *WebConn) Send(message model.WebSocketMessage) {
+	c.send <- message
 }
 
-func (c *WebConn) Broadcast(message *model.WebSocketEvent) bool {
-
-	select {
-	case c.broadcast <- message:
-		return false
-	default:
-		return true
-	}
+func (c *WebConn) Broadcast(message *model.WebSocketEvent) {
+	c.broadcast <- message
 }
 
 func (c *WebConn) Close() {

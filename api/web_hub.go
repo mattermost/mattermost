@@ -112,10 +112,7 @@ func (h *Hub) Start() {
 
 			case msg := <-h.broadcast:
 				for webCon := range h.connections {
-					if webCon.Broadcast(msg) {
-						delete(h.connections, webCon)
-						webCon.Close()
-					}
+					webCon.Broadcast(msg)
 				}
 
 			case s := <-h.stop:
