@@ -880,15 +880,13 @@ func TestPostCountsByDay(t *testing.T) {
 	o2a = Must(store.Post().Save(o2a)).(*model.Post)
 
 	time.Sleep(1 * time.Second)
-	t.Log(t1.Id)
 
 	if r1 := <-store.Post().AnalyticsPostCountsByDay(t1.Id); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		row1 := r1.Data.(model.AnalyticsRows)[0]
 		if row1.Value != 2 {
-			t.Log(row1)
-			t.Fatal("wrong value")
+			t.Fatal(row1)
 		}
 
 		row2 := r1.Data.(model.AnalyticsRows)[1]

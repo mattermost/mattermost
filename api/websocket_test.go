@@ -78,20 +78,22 @@ func TestWebSocketEvent(t *testing.T) {
 
 	WebSocketClient.Listen()
 
+	omitUser := make(map[string]bool, 1)
+	omitUser["somerandomid"] = true
+	evt1 := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_TYPING, "", th.BasicChannel.Id, "", omitUser)
+	evt1.Add("user_id", "somerandomid")
+	go Publish(evt1)
+	time.Sleep(300 * time.Millisecond)
+
 	stop := make(chan bool)
-	firstEventHit := false
-	secondEventHit := false
+	eventHit := false
 
 	go func() {
 		for {
 			select {
 			case resp := <-WebSocketClient.EventChannel:
-				if resp.Event == model.WEBSOCKET_EVENT_TYPING && resp.UserId == "somerandomid" {
-					firstEventHit = true
-				}
-
-				if resp.Event == model.WEBSOCKET_EVENT_TYPING && resp.UserId == "somerandomid2" {
-					secondEventHit = true
+				if resp.Event == model.WEBSOCKET_EVENT_TYPING && resp.Data["user_id"].(string) == "somerandomid" {
+					eventHit = true
 				}
 			case <-stop:
 				return
@@ -101,21 +103,36 @@ func TestWebSocketEvent(t *testing.T) {
 
 	time.Sleep(300 * time.Millisecond)
 
-	evt1 := model.NewWebSocketEvent(th.BasicTeam.Id, th.BasicChannel.Id, "somerandomid", model.WEBSOCKET_EVENT_TYPING)
-	Publish(evt1)
+	stop <- true
 
-	evt2 := model.NewWebSocketEvent(th.BasicTeam.Id, "somerandomid", "somerandomid2", model.WEBSOCKET_EVENT_TYPING)
-	Publish(evt2)
+	if !eventHit {
+		t.Fatal("did not receive typing event")
+	}
+
+	evt2 := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_TYPING, "", "somerandomid", "", nil)
+	go Publish(evt2)
+	time.Sleep(300 * time.Millisecond)
+
+	eventHit = false
+
+	go func() {
+		for {
+			select {
+			case resp := <-WebSocketClient.EventChannel:
+				if resp.Event == model.WEBSOCKET_EVENT_TYPING {
+					eventHit = true
+				}
+			case <-stop:
+				return
+			}
+		}
+	}()
 
 	time.Sleep(300 * time.Millisecond)
 
 	stop <- true
 
-	if !firstEventHit {
-		t.Fatal("did not receive typing event")
-	}
-
-	if secondEventHit {
+	if eventHit {
 		t.Fatal("got typing event for bad channel id")
 	}
 }

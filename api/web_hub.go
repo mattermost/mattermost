@@ -59,7 +59,7 @@ func InvalidateCacheForChannel(channelId string) {
 func (h *Hub) Register(webConn *WebConn) {
 	h.register <- webConn
 
-	msg := model.NewWebSocketEvent("", "", webConn.UserId, model.WEBSOCKET_EVENT_HELLO)
+	msg := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_HELLO, "", "", webConn.UserId, nil)
 	msg.Add("server_version", fmt.Sprintf("%v.%v.%v", model.CurrentVersion, model.BuildNumber, utils.CfgHash))
 	go Publish(msg)
 }
@@ -112,7 +112,9 @@ func (h *Hub) Start() {
 
 			case msg := <-h.broadcast:
 				for webCon := range h.connections {
-					webCon.Broadcast(msg)
+					if shouldSendEvent(webCon, msg) {
+						webCon.Broadcast(msg)
+					}
 				}
 
 			case s := <-h.stop:
@@ -126,4 +128,18 @@ func (h *Hub) Start() {
 			}
 		}
 	}()
+}
+
+func shouldSendEvent(webCon *WebConn, msg *model.WebSocketEvent) bool {
+	// If the event is destined to a specific user
+	if len(msg.Broadcast.UserId) > 0 && webCon.UserId != msg.Broadcast.UserId {
+		return false
+	}
+
+	// if the user is omitted don't send the message
+	if _, ok := msg.Broadcast.OmitUsers[webCon.UserId]; ok {
+		return false
+	}
+
+	return true
 }

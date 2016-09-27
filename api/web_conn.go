@@ -183,52 +183,15 @@ func (c *WebConn) IsMemberOfChannel(channelId string) bool {
 }
 
 func (c *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
-	if c.UserId == msg.UserId {
-		// Don't need to tell the user they are typing
-		if msg.Event == model.WEBSOCKET_EVENT_TYPING {
-			return false
-		}
+	// Only report events to users who are in the channel for the event
+	if len(msg.Broadcast.ChannelId) > 0 {
+		return c.IsMemberOfChannel(msg.Broadcast.ChannelId)
+	}
 
-		// We have to make sure the user is in the channel. Otherwise system messages that
-		// post about users in channels they are not in trigger warnings.
-		if len(msg.ChannelId) > 0 {
-			allowed := c.IsMemberOfChannel(msg.ChannelId)
+	// Only report events to users who are in the team for the event
+	if len(msg.Broadcast.TeamId) > 0 {
+		return c.IsMemberOfTeam(msg.Broadcast.TeamId)
 
-			if !allowed {
-				return false
-			}
-		}
-	} else {
-		// Don't share a user's view or preference events with other users
-		if msg.Event == model.WEBSOCKET_EVENT_CHANNEL_VIEWED {
-			return false
-		} else if msg.Event == model.WEBSOCKET_EVENT_PREFERENCE_CHANGED {
-			return false
-		} else if msg.Event == model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE {
-			// For now, ephemeral messages are sent directly to individual users
-			return false
-		} else if msg.Event == model.WEBSOCKET_EVENT_WEBRTC {
-			// No need to tell anyone that a webrtc event is going on
-			return false
-		}
-
-		// Only report events to users who are in the team for the event
-		if len(msg.TeamId) > 0 {
-			allowed := c.IsMemberOfTeam(msg.TeamId)
-
-			if !allowed {
-				return false
-			}
-		}
-
-		// Only report events to users who are in the channel for the event execept deleted events
-		if len(msg.ChannelId) > 0 && msg.Event != model.WEBSOCKET_EVENT_CHANNEL_DELETED {
-			allowed := c.IsMemberOfChannel(msg.ChannelId)
-
-			if !allowed {
-				return false
-			}
-		}
 	}
 
 	return true
