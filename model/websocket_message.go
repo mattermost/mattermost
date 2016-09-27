@@ -60,7 +60,7 @@ func (o *WebSocketEvent) IsValid() bool {
 	return o.Event != ""
 }
 
-func (o *WebSocketEvent) PreComputeJson() string {
+func (o *WebSocketEvent) PreComputeJson() {
 	o.preComputeJson = o.ToJson()
 }
 
