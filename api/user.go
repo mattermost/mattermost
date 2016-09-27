@@ -1007,8 +1007,11 @@ func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	etag := (<-Srv.Store.User().GetEtagForProfiles(id)).Data.(string)
-	if HandleEtag(etag, w, r) {
-		return
+	if !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
+		c.Err = nil
+		if HandleEtag(etag, w, r) {
+			return
+		}
 	}
 
 	if result := <-Srv.Store.User().GetProfiles(id); result.Err != nil {
@@ -2518,6 +2521,7 @@ func sanitizeProfile(c *Context, user *model.User) *model.User {
 	if HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
 		options["email"] = true
 		options["fullname"] = true
+		options["authservice"] = true
 	}
 	c.Err = nil
 
