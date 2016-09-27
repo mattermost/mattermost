@@ -106,7 +106,7 @@ export default class WebrtcSettings extends AdminSettings {
                     helpText={
                         <FormattedHTMLMessage
                             id='admin.webrtc.enableDescription'
-                            defaultMessage='When true, Mattermost allows making <strong>one on one</strong> video calls.'
+                            defaultMessage='When true, Mattermost allows making <strong>one-on-one</strong> video calls. WebRTC calls are available on Chrome, Firefox and Mattermost Desktop Apps.'
                         />
                     }
                     value={this.state.enableWebrtc}
