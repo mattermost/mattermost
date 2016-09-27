@@ -17,7 +17,6 @@ const (
 	WRITE_WAIT  = 10 * time.Second
 	PONG_WAIT   = 60 * time.Second
 	PING_PERIOD = (PONG_WAIT * 9) / 10
-	MAX_SIZE    = 512
 	REDIS_WAIT  = 60 * time.Second
 )
 
@@ -57,7 +56,7 @@ func (c *WebConn) readPump() {
 		c.webSocket.Close()
 	}()
 
-	c.webSocket.SetReadLimit(MAX_SIZE)
+	c.webSocket.SetReadLimit(SOCKET_MAX_MESSAGE_SIZE_KB)
 	c.webSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
 	c.webSocket.SetPongHandler(func(string) error {
 		c.webSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))

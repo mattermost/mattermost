@@ -111,6 +111,7 @@ func (h *Hub) Start() {
 				}
 
 			case msg := <-h.broadcast:
+				msg.PreComputeJson()
 				for webCon := range h.connections {
 					if shouldSendEvent(webCon, msg) {
 						webCon.Broadcast(msg)

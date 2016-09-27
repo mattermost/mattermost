@@ -41,9 +41,10 @@ type WebsocketBroadcast struct {
 }
 
 type WebSocketEvent struct {
-	Event     string                 `json:"event"`
-	Data      map[string]interface{} `json:"data"`
-	Broadcast *WebsocketBroadcast    `json:"broadcast"`
+	Event          string                 `json:"event"`
+	Data           map[string]interface{} `json:"data"`
+	Broadcast      *WebsocketBroadcast    `json:"broadcast"`
+	preComputeJson string                 `json:"-"`
 }
 
 func (m *WebSocketEvent) Add(key string, value interface{}) {
@@ -59,7 +60,16 @@ func (o *WebSocketEvent) IsValid() bool {
 	return o.Event != ""
 }
 
+func (o *WebSocketEvent) PreComputeJson() string {
+	o.preComputeJson = o.ToJson()
+}
+
 func (o *WebSocketEvent) ToJson() string {
+
+	if len(o.preComputeJson) > 0 {
+		return o.preComputeJson
+	}
+
 	b, err := json.Marshal(o)
 	if err != nil {
 		return ""
