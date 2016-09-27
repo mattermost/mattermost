@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	WRITE_WAIT  = 10 * time.Second
+	WRITE_WAIT  = 20 * time.Second
 	PONG_WAIT   = 60 * time.Second
 	PING_PERIOD = (PONG_WAIT * 9) / 10
 	REDIS_WAIT  = 60 * time.Second
@@ -96,6 +96,7 @@ func (c *WebConn) writePump() {
 				if c.shouldSendEvent(msg) {
 					c.webSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
 					if err := c.webSocket.WriteMessage(websocket.TextMessage, msg.PreComputeJson); err != nil {
+						l4g.Error("websocket.broadcast: " + err.Error())
 						return
 					}
 
@@ -111,12 +112,14 @@ func (c *WebConn) writePump() {
 
 			c.webSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
 			if err := c.webSocket.WriteJSON(msg); err != nil {
+				l4g.Error("websocket.send: " + err.Error())
 				return
 			}
 
 		case <-ticker.C:
 			c.webSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
 			if err := c.webSocket.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
+				l4g.Error("websocket.ticker: " + err.Error())
 				return
 			}
 		}
@@ -173,7 +176,7 @@ func (c *WebConn) IsMemberOfChannel(channelId string) bool {
 
 	if len(c.isMemberOfChannel) == 0 {
 		if cresult := <-Srv.Store.Channel().GetAllChannelIdsForAllTeams(c.UserId); cresult.Err != nil {
-			l4g.Error(cresult.Err.Error())
+			l4g.Error("IsMemberOfChannel: " + cresult.Err.Error())
 		} else {
 			c.isMemberOfChannel = cresult.Data.(map[string]bool)
 		}
