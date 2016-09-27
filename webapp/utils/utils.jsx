@@ -522,7 +522,7 @@ export function applyTheme(theme) {
 
     if (theme.sidebarHeaderTextColor) {
         changeCss('.app__body .sidebar--left .team__header .header__info, .app__body .sidebar--menu .team__header .header__info, .app__body .post-list__timestamp > div', 'color:' + theme.sidebarHeaderTextColor, 1);
-        changeCss('.app__body .sidebar--left .team__header .navbar-right .dropdown__icon, .app__body .sidebar--menu .team__header .navbar-right .dropdown__icon', 'fill:' + theme.sidebarHeaderTextColor, 1);
+        changeCss('.app__body .sidebar-header-dropdown__icon', 'fill:' + theme.sidebarHeaderTextColor, 1);
         changeCss('.app__body .sidebar--left .team__header .user__name, .app__body .sidebar--menu .team__header .user__name', 'color:' + changeOpacity(theme.sidebarHeaderTextColor, 0.8), 1);
         changeCss('.app__body .sidebar--left .team__header:hover .user__name, .app__body .sidebar--menu .team__header:hover .user__name', 'color:' + theme.sidebarHeaderTextColor, 1);
         changeCss('.app__body .modal .modal-header .modal-title, .app__body .modal .modal-header .modal-title .name, .app__body .modal .modal-header button.close', 'color:' + theme.sidebarHeaderTextColor, 1);

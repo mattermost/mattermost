@@ -1,6 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import $ from 'jquery';
+import ReactDOM from 'react-dom';
 import * as Utils from 'utils/utils.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 
@@ -14,18 +16,35 @@ import UserSettingsModal from './user_settings/user_settings_modal.jsx';
 
 import {Constants, WebrtcActionTypes} from 'utils/constants.jsx';
 
+import {Dropdown} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router/es6';
 
 import React from 'react';
 
-export default class NavbarDropdown extends React.Component {
+export default class SidebarHeaderDropdown extends React.Component {
+    static propTypes = {
+        teamType: React.PropTypes.string,
+        teamDisplayName: React.PropTypes.string,
+        teamName: React.PropTypes.string,
+        currentUser: React.PropTypes.object
+    };
+
+    static defaultProps = {
+        teamType: ''
+    };
+
     constructor(props) {
         super(props);
-        this.blockToggle = false;
+
+        this.toggleDropdown = this.toggleDropdown.bind(this);
 
         this.handleAboutModal = this.handleAboutModal.bind(this);
         this.aboutModalDismissed = this.aboutModalDismissed.bind(this);
+        this.toggleAccountSettingsModal = this.toggleAccountSettingsModal.bind(this);
+        this.showInviteMemberModal = this.showInviteMemberModal.bind(this);
+        this.showGetTeamInviteLinkModal = this.showGetTeamInviteLinkModal.bind(this);
+
         this.onTeamChange = this.onTeamChange.bind(this);
         this.openAccountSettings = this.openAccountSettings.bind(this);
 
@@ -34,10 +53,9 @@ export default class NavbarDropdown extends React.Component {
         this.handleClick = this.handleClick.bind(this);
 
         this.state = {
-            showUserSettingsModal: false,
-            showAboutModal: false,
             teams: TeamStore.getAll(),
-            teamMembers: TeamStore.getTeamMembers()
+            teamMembers: TeamStore.getTeamMembers(),
+            showDropdown: false
         };
     }
 
@@ -48,12 +66,48 @@ export default class NavbarDropdown extends React.Component {
         }
     }
 
+    toggleDropdown(e) {
+        if (e) {
+            e.preventDefault();
+        }
+
+        this.setState({showDropdown: !this.state.showDropdown});
+    }
+
     handleAboutModal() {
-        this.setState({showAboutModal: true});
+        this.setState({
+            showAboutModal: true,
+            showDropdown: false
+        });
     }
 
     aboutModalDismissed() {
         this.setState({showAboutModal: false});
+    }
+
+    toggleAccountSettingsModal(e) {
+        e.preventDefault();
+
+        this.setState({
+            showUserSettingsModal: !this.state.showUserSettingsModal,
+            showDropdown: false
+        });
+    }
+
+    showInviteMemberModal(e) {
+        e.preventDefault();
+
+        this.setState({showDropdown: false});
+
+        GlobalActions.showInviteMemberModal();
+    }
+
+    showGetTeamInviteLinkModal(e) {
+        e.preventDefault();
+
+        this.setState({showDropdown: false});
+
+        GlobalActions.showGetTeamInviteLinkModal();
     }
 
     componentDidMount() {
@@ -69,14 +123,14 @@ export default class NavbarDropdown extends React.Component {
     }
 
     componentWillUnmount() {
+        $(ReactDOM.findDOMNode(this.refs.dropdown)).off('hide.bs.dropdown');
         TeamStore.removeChangeListener(this.onTeamChange);
         document.removeEventListener('keydown', this.openAccountSettings);
     }
 
     openAccountSettings(e) {
         if (Utils.cmdOrCtrlPressed(e) && e.shiftKey && e.keyCode === Constants.KeyCodes.A) {
-            e.preventDefault();
-            this.setState({showUserSettingsModal: !this.state.showUserSettingsModal});
+            this.toggleAccountSettingsModal(e);
         }
     }
 
@@ -101,7 +155,7 @@ export default class NavbarDropdown extends React.Component {
     }
 
     render() {
-        const config = global.window.mm_config;
+        const config = global.mm_config;
         var teamLink = '';
         var inviteLink = '';
         var manageLink = '';
@@ -124,7 +178,7 @@ export default class NavbarDropdown extends React.Component {
                 <li>
                     <a
                         href='#'
-                        onClick={GlobalActions.showInviteMemberModal}
+                        onClick={this.showInviteMemberModal}
                     >
                         <FormattedMessage
                             id='navbar_dropdown.inviteMember'
@@ -139,7 +193,7 @@ export default class NavbarDropdown extends React.Component {
                     <li>
                         <a
                             href='#'
-                            onClick={GlobalActions.showGetTeamInviteLinkModal}
+                            onClick={this.showGetTeamInviteLinkModal}
                         >
                             <FormattedMessage
                                 id='navbar_dropdown.teamLink'
@@ -197,6 +251,7 @@ export default class NavbarDropdown extends React.Component {
                 <ToggleModalButton
                     dialogType={TeamMembersModal}
                     dialogProps={{isAdmin}}
+                    onClick={this.toggleDropdown}
                 >
                     {membersName}
                 </ToggleModalButton>
@@ -362,99 +417,82 @@ export default class NavbarDropdown extends React.Component {
         }
 
         return (
-            <ul className='nav navbar-nav navbar-right'>
-                <li
-                    ref='dropdown'
-                    className='dropdown'
+            <Dropdown
+                open={this.state.showDropdown}
+                onClose={this.toggleDropdown}
+                className='sidebar-header-dropdown'
+                pullRight={true}
+            >
+                <a
+                    href='#'
+                    className='sidebar-header-dropdown__toggle'
+                    bsRole='toggle'
+                    onClick={this.toggleDropdown}
                 >
-                    <a
-                        href='#'
-                        className='dropdown-toggle'
-                        role='button'
-                        onClick={this.props.toggleDropdown}
-                    >
-                        <span
-                            className='dropdown__icon'
-                            dangerouslySetInnerHTML={{__html: Constants.MENU_ICON}}
-                        />
-                    </a>
-                    <ul
-                        className='dropdown-menu'
-                        role='menu'
-                    >
-                        <li>
-                            <a
-                                href='#'
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    this.setState({showUserSettingsModal: true});
-                                }}
-                            >
-                                <FormattedMessage
-                                    id='navbar_dropdown.accountSettings'
-                                    defaultMessage='Account Settings'
-                                />
-                            </a>
-                        </li>
-                        {inviteLink}
-                        {teamLink}
-                        <li>
-                            <a
-                                href='#'
-                                onClick={GlobalActions.emitUserLoggedOutEvent}
-                            >
-                                <FormattedMessage
-                                    id='navbar_dropdown.logout'
-                                    defaultMessage='Logout'
-                                />
-                            </a>
-                        </li>
-                        <li className='divider'/>
-                        {integrationsLink}
-                        {this.renderCustomEmojiLink()}
-                        <li className='divider'/>
-                        {teamSettings}
-                        {manageLink}
-                        {sysAdminLink}
-                        {teams}
-                        <li className='divider'/>
-                        {helpLink}
-                        {reportLink}
-                        <li>
-                            <a
-                                href='#'
-                                onClick={this.handleAboutModal}
-                            >
-                                <FormattedMessage
-                                    id='navbar_dropdown.about'
-                                    defaultMessage='About Mattermost'
-                                />
-                            </a>
-                        </li>
-                        {nativeAppDivider}
-                        {nativeAppLink}
-                        <UserSettingsModal
-                            show={this.state.showUserSettingsModal}
-                            onModalDismissed={() => this.setState({showUserSettingsModal: false})}
-                        />
-                        <AboutBuildModal
-                            show={this.state.showAboutModal}
-                            onModalDismissed={this.aboutModalDismissed}
-                        />
-                    </ul>
-                </li>
-            </ul>
+                    <span
+                        className='sidebar-header-dropdown__icon'
+                        dangerouslySetInnerHTML={{__html: Constants.MENU_ICON}}
+                    />
+                </a>
+                <Dropdown.Menu>
+                    <li>
+                        <a
+                            href='#'
+                            onClick={this.toggleAccountSettingsModal}
+                        >
+                            <FormattedMessage
+                                id='navbar_dropdown.accountSettings'
+                                defaultMessage='Account Settings'
+                            />
+                        </a>
+                    </li>
+                    {inviteLink}
+                    {teamLink}
+                    <li>
+                        <a
+                            href='#'
+                            onClick={GlobalActions.emitUserLoggedOutEvent}
+                        >
+                            <FormattedMessage
+                                id='navbar_dropdown.logout'
+                                defaultMessage='Logout'
+                            />
+                        </a>
+                    </li>
+                    <li className='divider'/>
+                    {integrationsLink}
+                    {this.renderCustomEmojiLink()}
+                    <li className='divider'/>
+                    {teamSettings}
+                    {manageLink}
+                    {sysAdminLink}
+                    {teams}
+                    <li className='divider'/>
+                    {helpLink}
+                    {reportLink}
+                    <li>
+                        <a
+                            href='#'
+                            onClick={this.handleAboutModal}
+                        >
+                            <FormattedMessage
+                                id='navbar_dropdown.about'
+                                defaultMessage='About Mattermost'
+                            />
+                        </a>
+                    </li>
+                    {nativeAppDivider}
+                    {nativeAppLink}
+                    <UserSettingsModal
+                        show={this.state.showUserSettingsModal}
+                        onModalDismissed={() => this.setState({showUserSettingsModal: false})}
+                    />
+                    <AboutBuildModal
+                        show={this.state.showAboutModal}
+                        onModalDismissed={this.aboutModalDismissed}
+                    />
+                </Dropdown.Menu>
+            </Dropdown>
         );
     }
 }
-
-NavbarDropdown.defaultProps = {
-    teamType: ''
-};
-NavbarDropdown.propTypes = {
-    teamType: React.PropTypes.string,
-    teamDisplayName: React.PropTypes.string,
-    teamName: React.PropTypes.string,
-    currentUser: React.PropTypes.object,
-    toggleDropdown: React.PropTypes.function
-};
