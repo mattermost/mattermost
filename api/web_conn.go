@@ -95,9 +95,10 @@ func (c *WebConn) writePump() {
 			if ok {
 				if c.shouldSendEvent(msg) {
 					c.webSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
-					if err := c.webSocket.WriteJSON(msg); err != nil {
+					if err := c.webSocket.WriteMessage(websocket.TextMessage, msg.PreComputeJson); err != nil {
 						return
 					}
+
 				}
 			}
 
