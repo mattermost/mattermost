@@ -55,5 +55,5 @@ func (wr *WebSocketRouter) ReturnWebSocketError(conn *WebConn, r *model.WebSocke
 	err.DetailedError = ""
 	errorResp := model.NewWebSocketError(r.Seq, err)
 
-	conn.Send <- errorResp
+	conn.Send(errorResp)
 }

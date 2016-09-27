@@ -83,6 +83,7 @@ type ChannelStore interface {
 	PermanentDeleteByTeam(teamId string) StoreChannel
 	GetByName(team_id string, domain string) StoreChannel
 	GetChannels(teamId string, userId string) StoreChannel
+	GetAllChannelIdsForAllTeams(userId string) StoreChannel
 	GetMoreChannels(teamId string, userId string) StoreChannel
 	GetChannelCounts(teamId string, userId string) StoreChannel
 	GetAll(teamId string) StoreChannel
@@ -131,7 +132,8 @@ type UserStore interface {
 	UpdateMfaActive(userId string, active bool) StoreChannel
 	Get(id string) StoreChannel
 	GetAll() StoreChannel
-	GetProfilesInChannel(channelId string) StoreChannel
+	GetProfilesInChannel(channelId string, allowFromCache bool) StoreChannel
+	InvalidateProfilesInChannelCache(channelId string)
 	GetProfilesByUsernames(usernames []string, teamId string) StoreChannel
 	GetAllProfiles(offset int, limit int) StoreChannel
 	GetProfiles(teamId string, offset int, limit int) StoreChannel

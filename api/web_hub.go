@@ -14,23 +14,21 @@ import (
 )
 
 type Hub struct {
-	connections       map[*WebConn]bool
-	register          chan *WebConn
-	unregister        chan *WebConn
-	broadcast         chan *model.WebSocketEvent
-	stop              chan string
-	invalidateUser    chan string
-	invalidateChannel chan string
+	connections    map[*WebConn]bool
+	register       chan *WebConn
+	unregister     chan *WebConn
+	broadcast      chan *model.WebSocketEvent
+	stop           chan string
+	invalidateUser chan string
 }
 
 var hub = &Hub{
-	register:          make(chan *WebConn),
-	unregister:        make(chan *WebConn),
-	connections:       make(map[*WebConn]bool),
-	broadcast:         make(chan *model.WebSocketEvent),
-	stop:              make(chan string),
-	invalidateUser:    make(chan string),
-	invalidateChannel: make(chan string),
+	register:       make(chan *WebConn),
+	unregister:     make(chan *WebConn),
+	connections:    make(map[*WebConn]bool, model.SESSION_CACHE_SIZE),
+	broadcast:      make(chan *model.WebSocketEvent, 64),
+	stop:           make(chan string),
+	invalidateUser: make(chan string),
 }
 
 func Publish(message *model.WebSocketEvent) {
@@ -54,11 +52,8 @@ func InvalidateCacheForUser(userId string) {
 }
 
 func InvalidateCacheForChannel(channelId string) {
-	hub.invalidateChannel <- channelId
-
-	if einterfaces.GetClusterInterface() != nil {
-		einterfaces.GetClusterInterface().InvalidateCacheForChannel(channelId)
-	}
+	// TODO XXX FIXME
+	// remove me no longer needed
 }
 
 func (h *Hub) Register(webConn *WebConn) {
@@ -94,7 +89,7 @@ func (h *Hub) Start() {
 				userId := webCon.UserId
 				if _, ok := h.connections[webCon]; ok {
 					delete(h.connections, webCon)
-					close(webCon.Send)
+					webCon.Close()
 				}
 
 				found := false
@@ -115,20 +110,11 @@ func (h *Hub) Start() {
 					}
 				}
 
-			case channelId := <-h.invalidateChannel:
-				for webCon := range h.connections {
-					webCon.InvalidateCacheForChannel(channelId)
-				}
-
 			case msg := <-h.broadcast:
 				for webCon := range h.connections {
-					if shouldSendEvent(webCon, msg) {
-						select {
-						case webCon.Send <- msg:
-						default:
-							close(webCon.Send)
-							delete(h.connections, webCon)
-						}
+					if webCon.Broadcast(msg) {
+						delete(h.connections, webCon)
+						webCon.Close()
 					}
 				}
 
@@ -136,63 +122,11 @@ func (h *Hub) Start() {
 				l4g.Debug(utils.T("api.web_hub.start.stopping.debug"), s)
 
 				for webCon := range h.connections {
-					webCon.WebSocket.Close()
+					webCon.CloseSocket()
 				}
 
 				return
 			}
 		}
 	}()
-}
-
-func shouldSendEvent(webCon *WebConn, msg *model.WebSocketEvent) bool {
-	if webCon.UserId == msg.UserId {
-		// Don't need to tell the user they are typing
-		if msg.Event == model.WEBSOCKET_EVENT_TYPING {
-			return false
-		}
-
-		// We have to make sure the user is in the channel. Otherwise system messages that
-		// post about users in channels they are not in trigger warnings.
-		if len(msg.ChannelId) > 0 {
-			allowed := webCon.IsMemberOfChannel(msg.ChannelId)
-
-			if !allowed {
-				return false
-			}
-		}
-	} else {
-		// Don't share a user's view or preference events with other users
-		if msg.Event == model.WEBSOCKET_EVENT_CHANNEL_VIEWED {
-			return false
-		} else if msg.Event == model.WEBSOCKET_EVENT_PREFERENCE_CHANGED {
-			return false
-		} else if msg.Event == model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE {
-			// For now, ephemeral messages are sent directly to individual users
-			return false
-		} else if msg.Event == model.WEBSOCKET_EVENT_WEBRTC {
-			// No need to tell anyone that a webrtc event is going on
-			return false
-		}
-
-		// Only report events to users who are in the team for the event
-		if len(msg.TeamId) > 0 {
-			allowed := webCon.IsMemberOfTeam(msg.TeamId)
-
-			if !allowed {
-				return false
-			}
-		}
-
-		// Only report events to users who are in the channel for the event execept deleted events
-		if len(msg.ChannelId) > 0 && msg.Event != model.WEBSOCKET_EVENT_CHANNEL_DELETED {
-			allowed := webCon.IsMemberOfChannel(msg.ChannelId)
-
-			if !allowed {
-				return false
-			}
-		}
-	}
-
-	return true
 }

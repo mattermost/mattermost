@@ -8,6 +8,7 @@ import (
 
 	"github.com/mattermost/platform/model"
 
+	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/websocket"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
@@ -21,8 +22,10 @@ const (
 )
 
 type WebConn struct {
-	WebSocket         *websocket.Conn
-	Send              chan model.WebSocketMessage
+	send              chan model.WebSocketMessage
+	broadcast         chan *model.WebSocketEvent // I wonder if this should be by Value vs Ref.  Then you can remove the nil check in <- boradcast if by Ref.  But its needed because of funky units tests.
+	invalidateCache   chan bool
+	webSocket         *websocket.Conn
 	SessionToken      string
 	UserId            string
 	T                 goi18n.TranslateFunc
@@ -35,8 +38,10 @@ func NewWebConn(c *Context, ws *websocket.Conn) *WebConn {
 	go SetStatusOnline(c.Session.UserId, c.Session.Id, false)
 
 	return &WebConn{
-		Send:              make(chan model.WebSocketMessage, 64),
-		WebSocket:         ws,
+		send:              make(chan model.WebSocketMessage, 64),
+		broadcast:         make(chan *model.WebSocketEvent, 64),
+		invalidateCache:   make(chan bool),
+		webSocket:         ws,
 		UserId:            c.Session.UserId,
 		SessionToken:      c.Session.Token,
 		T:                 c.T,
@@ -49,19 +54,20 @@ func NewWebConn(c *Context, ws *websocket.Conn) *WebConn {
 func (c *WebConn) readPump() {
 	defer func() {
 		hub.Unregister(c)
-		c.WebSocket.Close()
+		c.webSocket.Close()
 	}()
-	c.WebSocket.SetReadLimit(MAX_SIZE)
-	c.WebSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
-	c.WebSocket.SetPongHandler(func(string) error {
-		c.WebSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
+
+	c.webSocket.SetReadLimit(MAX_SIZE)
+	c.webSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
+	c.webSocket.SetPongHandler(func(string) error {
+		c.webSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
 		go SetStatusAwayIfNeeded(c.UserId, false)
 		return nil
 	})
 
 	for {
 		var req model.WebSocketRequest
-		if err := c.WebSocket.ReadJSON(&req); err != nil {
+		if err := c.webSocket.ReadJSON(&req); err != nil {
 			return
 		} else {
 			BaseRoutes.WebSocket.ServeWebSocket(c, &req)
@@ -74,26 +80,45 @@ func (c *WebConn) writePump() {
 
 	defer func() {
 		ticker.Stop()
-		c.WebSocket.Close()
+		c.webSocket.Close()
 	}()
 
 	for {
 		select {
-		case msg, ok := <-c.Send:
+
+		case s, ok := <-c.invalidateCache:
+			if ok && s {
+				c.isMemberOfTeam = make(map[string]bool)
+				c.isMemberOfChannel = make(map[string]bool)
+			}
+
+		case msg, ok := <-c.broadcast:
+			if ok {
+				if msg == nil {
+					l4g.Error("Broadcast message was nil, this shouldn't happen.")
+				} else if c.shouldSendEvent(msg) {
+					c.webSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
+					if err := c.webSocket.WriteJSON(msg); err != nil {
+						return
+					}
+				}
+			}
+
+		case msg, ok := <-c.send:
 			if !ok {
-				c.WebSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
-				c.WebSocket.WriteMessage(websocket.CloseMessage, []byte{})
+				c.webSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
+				c.webSocket.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
 
-			c.WebSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
-			if err := c.WebSocket.WriteJSON(msg); err != nil {
+			c.webSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
+			if err := c.webSocket.WriteJSON(msg); err != nil {
 				return
 			}
 
 		case <-ticker.C:
-			c.WebSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
-			if err := c.WebSocket.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
+			c.webSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
+			if err := c.webSocket.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
 				return
 			}
 		}
@@ -101,12 +126,36 @@ func (c *WebConn) writePump() {
 }
 
 func (c *WebConn) InvalidateCache() {
-	c.isMemberOfTeam = make(map[string]bool)
-	c.isMemberOfChannel = make(map[string]bool)
+	c.invalidateCache <- true
 }
 
-func (c *WebConn) InvalidateCacheForChannel(channelId string) {
-	delete(c.isMemberOfChannel, channelId)
+func (c *WebConn) Send(message model.WebSocketMessage) bool {
+	select {
+	case c.send <- message:
+		return false
+	default:
+		return true
+	}
+}
+
+func (c *WebConn) Broadcast(message *model.WebSocketEvent) bool {
+
+	select {
+	case c.broadcast <- message:
+		return false
+	default:
+		return true
+	}
+}
+
+func (c *WebConn) Close() {
+	close(c.send)
+	close(c.broadcast)
+	close(c.invalidateCache)
+}
+
+func (c *WebConn) CloseSocket() {
+	c.webSocket.Close()
 }
 
 func (c *WebConn) IsMemberOfTeam(teamId string) bool {
@@ -134,16 +183,66 @@ func (c *WebConn) IsMemberOfTeam(teamId string) bool {
 }
 
 func (c *WebConn) IsMemberOfChannel(channelId string) bool {
-	isMember, ok := c.isMemberOfChannel[channelId]
-	if !ok {
-		if cresult := <-Srv.Store.Channel().GetMember(channelId, c.UserId); cresult.Err != nil {
-			isMember = false
-			c.isMemberOfChannel[channelId] = isMember
+
+	if len(c.isMemberOfChannel) == 0 {
+		if cresult := <-Srv.Store.Channel().GetAllChannelIdsForAllTeams(c.UserId); cresult.Err != nil {
+			l4g.Error(cresult.Err.Error())
 		} else {
-			isMember = true
-			c.isMemberOfChannel[channelId] = isMember
+			c.isMemberOfChannel = cresult.Data.(map[string]bool)
 		}
 	}
 
-	return isMember
+	return c.isMemberOfChannel[channelId]
+}
+
+func (c *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
+	if c.UserId == msg.UserId {
+		// Don't need to tell the user they are typing
+		if msg.Event == model.WEBSOCKET_EVENT_TYPING {
+			return false
+		}
+
+		// We have to make sure the user is in the channel. Otherwise system messages that
+		// post about users in channels they are not in trigger warnings.
+		if len(msg.ChannelId) > 0 {
+			allowed := c.IsMemberOfChannel(msg.ChannelId)
+
+			if !allowed {
+				return false
+			}
+		}
+	} else {
+		// Don't share a user's view or preference events with other users
+		if msg.Event == model.WEBSOCKET_EVENT_CHANNEL_VIEWED {
+			return false
+		} else if msg.Event == model.WEBSOCKET_EVENT_PREFERENCE_CHANGED {
+			return false
+		} else if msg.Event == model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE {
+			// For now, ephemeral messages are sent directly to individual users
+			return false
+		} else if msg.Event == model.WEBSOCKET_EVENT_WEBRTC {
+			// No need to tell anyone that a webrtc event is going on
+			return false
+		}
+
+		// Only report events to users who are in the team for the event
+		if len(msg.TeamId) > 0 {
+			allowed := c.IsMemberOfTeam(msg.TeamId)
+
+			if !allowed {
+				return false
+			}
+		}
+
+		// Only report events to users who are in the channel for the event execept deleted events
+		if len(msg.ChannelId) > 0 && msg.Event != model.WEBSOCKET_EVENT_CHANNEL_DELETED {
+			allowed := c.IsMemberOfChannel(msg.ChannelId)
+
+			if !allowed {
+				return false
+			}
+		}
+	}
+
+	return true
 }

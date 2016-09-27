@@ -484,6 +484,12 @@ func TestChannelStoreGetChannels(t *testing.T) {
 	if list.Channels[0].Id != o1.Id {
 		t.Fatal("missing channel")
 	}
+
+	acresult := <-store.Channel().GetAllChannelIdsForAllTeams(m1.UserId)
+	ids := acresult.Data.(map[string]bool)
+	if !ids[o1.Id] {
+		t.Fatal("missing channel")
+	}
 }
 
 func TestChannelStoreGetMoreChannels(t *testing.T) {

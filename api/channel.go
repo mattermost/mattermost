@@ -578,6 +578,7 @@ func AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelM
 
 	go func() {
 		InvalidateCacheForUser(user.Id)
+		Srv.Store.User().InvalidateProfilesInChannelCache(channel.Id)
 
 		message := model.NewWebSocketEvent(channel.TeamId, channel.Id, user.Id, model.WEBSOCKET_EVENT_USER_ADDED)
 		go Publish(message)
@@ -619,6 +620,8 @@ func JoinDefaultChannels(teamId string, user *model.User, channelRole string) *m
 		if _, err := CreatePost(fakeContext, post, false); err != nil {
 			l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
 		}
+
+		Srv.Store.User().InvalidateProfilesInChannelCache(result.Data.(*model.Channel).Id)
 	}
 
 	if result := <-Srv.Store.Channel().GetByName(teamId, "off-topic"); result.Err != nil {
@@ -641,6 +644,8 @@ func JoinDefaultChannels(teamId string, user *model.User, channelRole string) *m
 		if _, err := CreatePost(fakeContext, post, false); err != nil {
 			l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
 		}
+
+		Srv.Store.User().InvalidateProfilesInChannelCache(result.Data.(*model.Channel).Id)
 	}
 
 	return err
@@ -788,7 +793,6 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.LogAudit("name=" + channel.Name)
 
 		go func() {
-			InvalidateCacheForChannel(channel.Id)
 			message := model.NewWebSocketEvent(c.TeamId, channel.Id, c.Session.UserId, model.WEBSOCKET_EVENT_CHANNEL_DELETED)
 			go Publish(message)
 
@@ -1110,6 +1114,7 @@ func RemoveUserFromChannel(userIdToRemove string, removerUserId string, channel 
 	}
 
 	InvalidateCacheForUser(userIdToRemove)
+	Srv.Store.User().InvalidateProfilesInChannelCache(channel.Id)
 
 	message := model.NewWebSocketEvent(channel.TeamId, channel.Id, userIdToRemove, model.WEBSOCKET_EVENT_USER_REMOVED)
 	message.Add("remover_id", removerUserId)

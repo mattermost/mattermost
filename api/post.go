@@ -561,7 +561,7 @@ func getExplicitMentions(message string, keywords map[string][]string) (map[stri
 }
 
 func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *model.Channel) {
-	pchan := Srv.Store.User().GetProfilesInChannel(channel.Id)
+	pchan := Srv.Store.User().GetProfilesInChannel(channel.Id, true)
 
 	var profileMap map[string]*model.User
 	if result := <-pchan; result.Err != nil {

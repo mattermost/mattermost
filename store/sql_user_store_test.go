@@ -310,7 +310,7 @@ func TestUserStoreGetProfilesInChannel(t *testing.T) {
 	Must(store.Channel().SaveMember(&m2))
 	Must(store.Channel().SaveMember(&m3))
 
-	if r1 := <-store.User().GetProfilesInChannel(c1.Id); r1.Err != nil {
+	if r1 := <-store.User().GetProfilesInChannel(c1.Id, true); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		users := r1.Data.(map[string]*model.User)
@@ -323,7 +323,49 @@ func TestUserStoreGetProfilesInChannel(t *testing.T) {
 		}
 	}
 
-	if r2 := <-store.User().GetProfilesInChannel(c2.Id); r2.Err != nil {
+	if r1 := <-store.User().GetProfilesInChannel(c1.Id, true); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		users := r1.Data.(map[string]*model.User)
+		if len(users) != 2 {
+			t.Fatal("invalid returned users")
+		}
+
+		if users[u1.Id].Id != u1.Id {
+			t.Fatal("invalid returned user")
+		}
+	}
+
+	if r1 := <-store.User().GetProfilesInChannel(c1.Id, false); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		users := r1.Data.(map[string]*model.User)
+		if len(users) != 2 {
+			t.Fatal("invalid returned users")
+		}
+
+		if users[u1.Id].Id != u1.Id {
+			t.Fatal("invalid returned user")
+		}
+	}
+
+	if r2 := <-store.User().GetProfilesInChannel(c2.Id, true); r2.Err != nil {
+		t.Fatal(r2.Err)
+	} else {
+		if len(r2.Data.(map[string]*model.User)) != 1 {
+			t.Fatal("should have returned empty map")
+		}
+	}
+
+	if r2 := <-store.User().GetProfilesInChannel(c2.Id, true); r2.Err != nil {
+		t.Fatal(r2.Err)
+	} else {
+		if len(r2.Data.(map[string]*model.User)) != 1 {
+			t.Fatal("should have returned empty map")
+		}
+	}
+
+	if r2 := <-store.User().GetProfilesInChannel(c2.Id, false); r2.Err != nil {
 		t.Fatal(r2.Err)
 	} else {
 		if len(r2.Data.(map[string]*model.User)) != 1 {
@@ -422,13 +464,13 @@ func TestUserStoreGetProfilesByUsernames(t *testing.T) {
 
 	u1 := &model.User{}
 	u1.Email = model.NewId()
-	u1.Username = "username1"
+	u1.Username = "username1" + model.NewId()
 	Must(store.User().Save(u1))
 	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}))
 
 	u2 := &model.User{}
 	u2.Email = model.NewId()
-	u2.Username = "username2"
+	u2.Username = "username2" + model.NewId()
 	Must(store.User().Save(u2))
 	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}))
 

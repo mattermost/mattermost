@@ -363,6 +363,34 @@ func (s SqlChannelStore) GetChannels(teamId string, userId string) StoreChannel 
 	return storeChannel
 }
 
+func (s SqlChannelStore) GetAllChannelIdsForAllTeams(userId string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		var data []string
+		_, err := s.GetReplica().Select(&data, "SELECT Channels.Id FROM Channels, ChannelMembers WHERE Id = ChannelId AND UserId = :UserId AND DeleteAt = 0", map[string]interface{}{"UserId": userId})
+
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlChannelStore.GetAllChannelIdsForAllTeams", "store.sql_channel.get_channels.get.app_error", nil, "userId="+userId+", err="+err.Error())
+		} else {
+
+			ids := make(map[string]bool)
+			for i := range data {
+				ids[data[i]] = true
+			}
+
+			result.Data = ids
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (s SqlChannelStore) GetMoreChannels(teamId string, userId string) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 

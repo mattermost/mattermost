@@ -31,11 +31,11 @@ func (wh *webSocketHandler) ServeWebSocket(conn *WebConn, r *model.WebSocketRequ
 	if data, err = wh.handlerFunc(r); err != nil {
 		l4g.Error(utils.T("api.web_socket_handler.log.error"), "/api/v3/users/websocket", r.Action, r.Seq, r.Session.UserId, err.SystemMessage(utils.T), err.DetailedError)
 		err.DetailedError = ""
-		conn.Send <- model.NewWebSocketError(r.Seq, err)
+		conn.Send(model.NewWebSocketError(r.Seq, err))
 		return
 	}
 
-	conn.Send <- model.NewWebSocketResponse(model.STATUS_OK, r.Seq, data)
+	conn.Send(model.NewWebSocketResponse(model.STATUS_OK, r.Seq, data))
 }
 
 func NewInvalidWebSocketParamError(action string, name string) *model.AppError {
