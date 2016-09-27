@@ -1007,11 +1007,8 @@ func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	etag := (<-Srv.Store.User().GetEtagForProfiles(id)).Data.(string)
-	if !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
-		c.Err = nil
-		if HandleEtag(etag, w, r) {
-			return
-		}
+	if HandleEtag(etag, w, r) {
+		return
 	}
 
 	if result := <-Srv.Store.User().GetProfiles(id); result.Err != nil {
