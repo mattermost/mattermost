@@ -43,7 +43,7 @@ func webrtcMessage(req *model.WebSocketRequest) (map[string]interface{}, *model.
 		return nil, NewInvalidWebSocketParamError(req.Action, "to_user_id")
 	}
 
-	event := model.NewWebSocketEvent("", "", toUserId, model.WEBSOCKET_EVENT_WEBRTC)
+	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_WEBRTC, "", "", toUserId, nil)
 	event.Data = req.Data
 	go Publish(event)
 

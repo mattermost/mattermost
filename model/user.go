@@ -232,13 +232,15 @@ func (u *User) Sanitize(options map[string]bool) {
 	if len(options) != 0 && !options["passwordupdate"] {
 		u.LastPasswordUpdate = 0
 	}
+	if len(options) != 0 && !options["authservice"] {
+		u.AuthService = ""
+	}
 }
 
 func (u *User) ClearNonProfileFields() {
 	u.Password = ""
 	u.AuthData = new(string)
 	*u.AuthData = ""
-	u.AuthService = ""
 	u.MfaActive = false
 	u.MfaSecret = ""
 	u.EmailVerified = false

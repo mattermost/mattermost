@@ -304,8 +304,8 @@ func JoinUserToTeam(team *model.Team, user *model.User) *model.AppError {
 	RemoveAllSessionsForUserId(user.Id)
 	InvalidateCacheForUser(user.Id)
 
-	// This message goes to every channel, so the channelId is irrelevant
-	go Publish(model.NewWebSocketEvent("", "", user.Id, model.WEBSOCKET_EVENT_NEW_USER))
+	// This message goes to everyone, so the teamId, channelId and userId are irrelevant
+	go Publish(model.NewWebSocketEvent(model.WEBSOCKET_EVENT_NEW_USER, "", "", "", nil))
 
 	return nil
 }
@@ -357,7 +357,9 @@ func LeaveTeam(team *model.Team, user *model.User) *model.AppError {
 	RemoveAllSessionsForUserId(user.Id)
 	InvalidateCacheForUser(user.Id)
 
-	go Publish(model.NewWebSocketEvent(team.Id, "", user.Id, model.WEBSOCKET_EVENT_LEAVE_TEAM))
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_LEAVE_TEAM, team.Id, "", "", nil)
+	message.Add("user_id", user.Id)
+	go Publish(message)
 
 	return nil
 }

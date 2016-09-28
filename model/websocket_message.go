@@ -33,20 +33,26 @@ type WebSocketMessage interface {
 	IsValid() bool
 }
 
+type WebsocketBroadcast struct {
+	OmitUsers map[string]bool `json:"-"`          // broadcast is omitted for users listed here
+	UserId    string          `json:"user_id"`    // broadcast only occurs for this user
+	ChannelId string          `json:"channel_id"` // broadcast only occurs for users in this channel
+	TeamId    string          `json:"team_id"`    // broadcast only occurs for users in this team
+}
+
 type WebSocketEvent struct {
-	TeamId    string                 `json:"team_id"`
-	ChannelId string                 `json:"channel_id"`
-	UserId    string                 `json:"user_id"`
 	Event     string                 `json:"event"`
 	Data      map[string]interface{} `json:"data"`
+	Broadcast *WebsocketBroadcast    `json:"broadcast"`
 }
 
 func (m *WebSocketEvent) Add(key string, value interface{}) {
 	m.Data[key] = value
 }
 
-func NewWebSocketEvent(teamId string, channelId string, userId string, event string) *WebSocketEvent {
-	return &WebSocketEvent{TeamId: teamId, ChannelId: channelId, UserId: userId, Event: event, Data: make(map[string]interface{})}
+func NewWebSocketEvent(event, teamId, channelId, userId string, omitUsers map[string]bool) *WebSocketEvent {
+	return &WebSocketEvent{Event: event, Data: make(map[string]interface{}),
+		Broadcast: &WebsocketBroadcast{TeamId: teamId, ChannelId: channelId, UserId: userId, OmitUsers: omitUsers}}
 }
 
 func (o *WebSocketEvent) IsValid() bool {

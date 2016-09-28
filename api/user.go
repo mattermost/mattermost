@@ -271,8 +271,8 @@ func CreateUser(user *model.User) (*model.User, *model.AppError) {
 
 		ruser.Sanitize(map[string]bool{})
 
-		// This message goes to every channel, so the channelId is irrelevant
-		go Publish(model.NewWebSocketEvent("", "", ruser.Id, model.WEBSOCKET_EVENT_NEW_USER))
+		// This message goes to everyone, so the teamId, channelId and userId are irrelevant
+		go Publish(model.NewWebSocketEvent(model.WEBSOCKET_EVENT_NEW_USER, "", "", "", nil))
 
 		return ruser, nil
 	}
@@ -1315,8 +1315,11 @@ func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		user := result.Data.(*model.User)
 		user = sanitizeProfile(c, user)
-		message := model.NewWebSocketEvent("", "", c.Session.UserId, model.WEBSOCKET_EVENT_USER_UPDATED)
+		omitUsers := make(map[string]bool, 1)
+		omitUsers[user.Id] = true
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", omitUsers)
 		message.Add("user", user)
+
 		go Publish(message)
 	}
 
@@ -1366,7 +1369,9 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		updatedUser := rusers[0]
 		updatedUser = sanitizeProfile(c, updatedUser)
 
-		message := model.NewWebSocketEvent("", "", user.Id, model.WEBSOCKET_EVENT_USER_UPDATED)
+		omitUsers := make(map[string]bool, 1)
+		omitUsers[user.Id] = true
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", omitUsers)
 		message.Add("user", updatedUser)
 		go Publish(message)
 
@@ -2522,8 +2527,12 @@ func userTyping(req *model.WebSocketRequest) (map[string]interface{}, *model.App
 		parentId = ""
 	}
 
-	event := model.NewWebSocketEvent("", channelId, req.Session.UserId, model.WEBSOCKET_EVENT_TYPING)
+	omitUsers := make(map[string]bool, 1)
+	omitUsers[req.Session.UserId] = true
+
+	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_TYPING, "", channelId, "", omitUsers)
 	event.Add("parent_id", parentId)
+	event.Add("user_id", req.Session.UserId)
 	go Publish(event)
 
 	return nil, nil
@@ -2535,6 +2544,7 @@ func sanitizeProfile(c *Context, user *model.User) *model.User {
 	if HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
 		options["email"] = true
 		options["fullname"] = true
+		options["authservice"] = true
 	}
 	c.Err = nil
 

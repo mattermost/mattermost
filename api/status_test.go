@@ -121,7 +121,7 @@ func TestStatuses(t *testing.T) {
 		for {
 			select {
 			case resp := <-WebSocketClient.EventChannel:
-				if resp.Event == model.WEBSOCKET_EVENT_STATUS_CHANGE && resp.UserId == th.BasicUser2.Id {
+				if resp.Event == model.WEBSOCKET_EVENT_STATUS_CHANGE && resp.Data["user_id"].(string) == th.BasicUser2.Id {
 					status := resp.Data["status"].(string)
 					if status == model.STATUS_ONLINE {
 						onlineHit = true

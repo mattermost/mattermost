@@ -110,8 +110,9 @@ func SetStatusOnline(userId string, sessionId string, manual bool) {
 	}
 
 	if broadcast {
-		event := model.NewWebSocketEvent("", "", status.UserId, model.WEBSOCKET_EVENT_STATUS_CHANGE)
+		event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_STATUS_CHANGE, "", "", "", nil)
 		event.Add("status", model.STATUS_ONLINE)
+		event.Add("user_id", status.UserId)
 		go Publish(event)
 	}
 }
@@ -130,8 +131,9 @@ func SetStatusOffline(userId string, manual bool) {
 		l4g.Error(utils.T("api.status.save_status.error"), userId, result.Err)
 	}
 
-	event := model.NewWebSocketEvent("", "", status.UserId, model.WEBSOCKET_EVENT_STATUS_CHANGE)
+	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_STATUS_CHANGE, "", "", "", nil)
 	event.Add("status", model.STATUS_OFFLINE)
+	event.Add("user_id", status.UserId)
 	go Publish(event)
 }
 
@@ -166,8 +168,9 @@ func SetStatusAwayIfNeeded(userId string, manual bool) {
 		l4g.Error(utils.T("api.status.save_status.error"), userId, result.Err)
 	}
 
-	event := model.NewWebSocketEvent("", "", status.UserId, model.WEBSOCKET_EVENT_STATUS_CHANGE)
+	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_STATUS_CHANGE, "", "", "", nil)
 	event.Add("status", model.STATUS_AWAY)
+	event.Add("user_id", status.UserId)
 	go Publish(event)
 }
 

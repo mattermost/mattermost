@@ -31,6 +31,7 @@ var CfgDiagnosticId = ""
 var CfgHash = ""
 var CfgFileName string = ""
 var ClientCfg map[string]string = map[string]string{}
+var originalDisableDebugLvl l4g.Level = l4g.DEBUG
 
 func FindConfigFile(fileName string) string {
 	if _, err := os.Stat("./config/" + fileName); err == nil {
@@ -56,11 +57,16 @@ func FindDir(dir string) string {
 }
 
 func DisableDebugLogForTest() {
-	l4g.Global["stdout"].Level = l4g.WARNING
+	if l4g.Global["stdout"] != nil {
+		originalDisableDebugLvl = l4g.Global["stdout"].Level
+		l4g.Global["stdout"].Level = l4g.WARNING
+	}
 }
 
 func EnableDebugLogForTest() {
-	l4g.Global["stdout"].Level = l4g.DEBUG
+	if l4g.Global["stdout"] != nil {
+		l4g.Global["stdout"].Level = originalDisableDebugLvl
+	}
 }
 
 func ConfigureCmdLineLog() {

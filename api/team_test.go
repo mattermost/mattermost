@@ -564,7 +564,9 @@ func TestGetTeamMembers(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		members := result.Data.([]*model.TeamMember)
-		t.Log(members)
+		if members == nil {
+			t.Fatal("should be valid")
+		}
 	}
 }
 

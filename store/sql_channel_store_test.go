@@ -766,8 +766,6 @@ func TestGetMemberCount(t *testing.T) {
 	}
 	Must(store.Channel().Save(&c2))
 
-	t.Logf("c1.Id = %v", c1.Id)
-
 	u1 := &model.User{
 		Email:    model.NewId(),
 		DeleteAt: 0,
@@ -871,8 +869,6 @@ func TestUpdateExtrasByUser(t *testing.T) {
 		Type:        model.CHANNEL_OPEN,
 	}
 	Must(store.Channel().Save(&c2))
-
-	t.Logf("c1.Id = %v", c1.Id)
 
 	u1 := &model.User{
 		Email:    model.NewId(),
