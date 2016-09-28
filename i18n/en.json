@@ -830,10 +830,6 @@
     "translation": "Unable to create emoji. Image must be at most 128 by 128 pixels."
   },
   {
-    "id": "api.file.file_upload.exceeds",
-    "translation": "File exceeds max image size."
-  },
-  {
     "id": "api.file.get_file.public_disabled.app_error",
     "translation": "Public links have been disabled by the system administrator"
   },

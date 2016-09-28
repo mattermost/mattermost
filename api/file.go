@@ -86,8 +86,7 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := r.ParseMultipartForm(*utils.Cfg.FileSettings.MaxFileSize)
-	if err != nil {
+	if err := r.ParseMultipartForm(*utils.Cfg.FileSettings.MaxFileSize); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -128,46 +127,18 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		buf := bytes.NewBuffer(nil)
 		io.Copy(buf, file)
+		data := buf.Bytes()
 
-		info, err := model.GetInfoForBytes(fileHeader.Filename, buf.Bytes())
+		info, err := doUploadFile(c.TeamId, channelId, c.Session.UserId, fileHeader.Filename, data)
 		if err != nil {
 			c.Err = err
-			c.Err.StatusCode = http.StatusBadRequest
 			return
 		}
 
-		info.Id = model.NewId()
-		info.CreatorId = c.Session.UserId
-
-		filename := filepath.Base(fileHeader.Filename)
-		pathPrefix := "teams/" + c.TeamId + "/channels/" + channelId + "/users/" + c.Session.UserId + "/" + info.Id + "/"
-
-		info.Path = pathPrefix + filename
-
-		if info.IsImage() {
-			// Check dimensions before loading the whole thing into memory later on
-			if info.Width*info.Height > MaxImageSize {
-				c.Err = model.NewLocAppError("uploadFile", "api.file.upload_file.large_image.app_error", nil, c.T("api.file.file_upload.exceeds"))
-				c.Err.StatusCode = http.StatusBadRequest
-				return
-			}
-
-			nameWithoutExtension := filename[:strings.LastIndex(filename, ".")]
-			info.PreviewPath = pathPrefix + nameWithoutExtension + "_preview.jpg"
-			info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb.jpg"
+		if info.PreviewPath != "" || info.ThumbnailPath != "" {
 			previewPathList = append(previewPathList, info.PreviewPath)
 			thumbnailPathList = append(thumbnailPathList, info.ThumbnailPath)
-			imageDataList = append(imageDataList, buf.Bytes())
-		}
-
-		if err := WriteFile(buf.Bytes(), info.Path); err != nil {
-			c.Err = err
-			return
-		}
-
-		if result := <-Srv.Store.FileInfo().Save(info); result.Err != nil {
-			c.Err = result.Err
-			return
+			imageDataList = append(imageDataList, data)
 		}
 
 		resStruct.FileInfos = append(resStruct.FileInfos, info)
@@ -180,6 +151,45 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	handleImages(previewPathList, thumbnailPathList, imageDataList)
 
 	w.Write([]byte(resStruct.ToJson()))
+}
+
+func doUploadFile(teamId string, channelId string, userId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError) {
+	filename := filepath.Base(rawFilename)
+
+	info, err := model.GetInfoForBytes(filename, data)
+	if err != nil {
+		err.StatusCode = http.StatusBadRequest
+		return nil, err
+	}
+
+	info.Id = model.NewId()
+	info.CreatorId = userId
+
+	pathPrefix := "teams/" + teamId + "/channels/" + channelId + "/users/" + userId + "/" + info.Id + "/"
+	info.Path = pathPrefix + filename
+
+	if info.IsImage() {
+		// Check dimensions before loading the whole thing into memory later on
+		if info.Width*info.Height > MaxImageSize {
+			err := model.NewLocAppError("uploadFile", "api.file.upload_file.large_image.app_error", nil, "")
+			err.StatusCode = http.StatusBadRequest
+			return nil, err
+		}
+
+		nameWithoutExtension := filename[:strings.LastIndex(filename, ".")]
+		info.PreviewPath = pathPrefix + nameWithoutExtension + "_preview.jpg"
+		info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb.jpg"
+	}
+
+	if err := WriteFile(data, info.Path); err != nil {
+		return nil, err
+	}
+
+	if result := <-Srv.Store.FileInfo().Save(info); result.Err != nil {
+		return nil, result.Err
+	}
+
+	return info, nil
 }
 
 func handleImages(previewPathList []string, thumbnailPathList []string, fileData [][]byte) {
