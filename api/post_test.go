@@ -108,7 +108,7 @@ func TestCreatePost(t *testing.T) {
 		t.Fatal("should have been an error")
 	}
 
-	fileIds := make([]string, 3, 3)
+	fileIds := make([]string, 4)
 	if data, err := readTestFile("test.png"); err != nil {
 		t.Fatal(err)
 	} else {
@@ -116,6 +116,9 @@ func TestCreatePost(t *testing.T) {
 			fileIds[i] = Client.MustGeneric(Client.UploadPostAttachment(data, channel3.Id, "test.png")).(*model.FileUploadResponse).FileInfos[0].Id
 		}
 	}
+
+	// Make sure duplicated file ids are removed
+	fileIds[3] = fileIds[0]
 
 	post9 := &model.Post{
 		ChannelId: channel3.Id,

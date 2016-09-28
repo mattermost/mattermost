@@ -144,6 +144,9 @@ func CreatePost(c *Context, post *model.Post, triggerWebhooks bool) (*model.Post
 	}
 
 	if len(post.FileIds) > 0 {
+		// There's a rare bug where the client sends up duplicate FileIds so protect against that
+		post.FileIds = utils.RemoveDuplicatesFromStringArray(post.FileIds)
+
 		for _, fileId := range post.FileIds {
 			if result := <-Srv.Store.FileInfo().AttachToPost(fileId, post.Id); result.Err != nil {
 				l4g.Error(utils.T("api.post.create_post.attach_files.error"), post.Id, post.FileIds, c.Session.UserId, result.Err)
