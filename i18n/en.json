@@ -2048,6 +2048,10 @@
     "translation": "The signup link does not appear to be valid"
   },
   {
+    "id": "api.user.create_user.signup_link_guest_only_one.app_error",
+    "translation": "Guest accounts may only be added to one team."
+  },
+  {
     "id": "api.user.create_user.team_name.app_error",
     "translation": "Invalid team name"
   },

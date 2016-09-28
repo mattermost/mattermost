@@ -11,6 +11,7 @@ import * as Utils from 'utils/utils.jsx';
 import Client from 'client/web_client.jsx';
 
 import React from 'react';
+import {FormattedMessage} from 'react-intl';
 
 export default function UserListRow({user, teamMember, actions, actionProps}) {
     const nameFormat = PreferenceStore.get(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', '');
@@ -20,6 +21,16 @@ export default function UserListRow({user, teamMember, actions, actionProps}) {
         name = `${user.nickname} (@${user.username})`;
     } else if ((user.first_name || user.last_name) && (nameFormat === Constants.Preferences.DISPLAY_PREFER_NICKNAME || nameFormat === Constants.Preferences.DISPLAY_PREFER_FULL_NAME)) {
         name = `${Utils.getFullName(user)} (@${user.username})`;
+    }
+
+    let guestIdentifier = null;
+    if (Utils.isGuest(teamMember.roles)) {
+        guestIdentifier = (
+            <FormattedMessage
+                id={'user_list.guest_identifier'}
+                defaultMessage={' - Guest'}
+            />
+        );
     }
 
     let buttons = null;
@@ -59,6 +70,7 @@ export default function UserListRow({user, teamMember, actions, actionProps}) {
             >
                 <div className='more-modal__name'>
                     {name}
+                    {guestIdentifier}
                 </div>
                 <div className='more-modal__description'>
                     {user.email}

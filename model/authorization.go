@@ -50,6 +50,7 @@ var PERMISSION_EDIT_OTHERS_POSTS *Permission
 var PERMISSION_REMOVE_USER_FROM_TEAM *Permission
 var PERMISSION_MANAGE_TEAM *Permission
 var PERMISSION_IMPORT_TEAM *Permission
+var PERMISSION_BE_INVITED_TO_TEAM *Permission
 
 // General permission that encompases all system admin functions
 // in the future this could be broken up to allow access to some
@@ -246,6 +247,11 @@ func InitalizePermissions() {
 		"authentication.permissions.import_team.name",
 		"authentication.permissions.import_team.description",
 	}
+	PERMISSION_BE_INVITED_TO_TEAM = &Permission{
+		"be_invited_to_team",
+		"authentication.permissions.be_invited_to_team.name",
+		"authentication.permissions.be_invited_to_team.description",
+	}
 }
 
 func InitalizeRoles() {
@@ -283,6 +289,7 @@ func InitalizeRoles() {
 			PERMISSION_READ_CHANNEL.Id,
 			PERMISSION_CREATE_POST.Id,
 			PERMISSION_EDIT_POST.Id,
+			PERMISSION_UPLOAD_FILE.Id,
 		},
 	}
 	BuiltInRoles[ROLE_CHANNEL_GUEST.Id] = ROLE_CHANNEL_GUEST
@@ -331,6 +338,7 @@ func InitalizeRoles() {
 			PERMISSION_CREATE_DIRECT_CHANNEL.Id,
 			PERMISSION_PERMANENT_DELETE_USER.Id,
 			PERMISSION_MANAGE_OAUTH.Id,
+			PERMISSION_BE_INVITED_TO_TEAM.Id,
 		},
 	}
 	BuiltInRoles[ROLE_SYSTEM_USER.Id] = ROLE_SYSTEM_USER

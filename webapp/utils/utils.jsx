@@ -1389,3 +1389,12 @@ export function handleFormattedTextClick(e) {
         browserHistory.push('/' + TeamStore.getCurrent().name + '/channels/' + channelMentionAttribute.value);
     }
 }
+
+export function getNameOfTownSquare() {
+    const townSquareChannel = ChannelStore.getByName('town-square');
+    if (townSquareChannel == null) {
+        return 'Town Square';
+    }
+
+    return townSquareChannel.display_name;
+}

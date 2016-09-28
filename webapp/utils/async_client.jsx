@@ -9,6 +9,7 @@ import BrowserStore from 'stores/browser_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import PostStore from 'stores/post_store.jsx';
 import UserStore from 'stores/user_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
 import * as utils from './utils.jsx';
 import * as UserAgent from './user_agent.jsx';
 import ErrorStore from 'stores/error_store.jsx';
@@ -192,6 +193,10 @@ export function setLastViewedAt(lastViewedAt, id) {
 
 export function getMoreChannels(force) {
     if (isCallInProgress('getMoreChannels')) {
+        return;
+    }
+
+    if (TeamStore.isGuestForCurrentTeam()) {
         return;
     }
 

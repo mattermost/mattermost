@@ -126,6 +126,7 @@ export default class InviteMembersView extends React.Component {
                             spellCheck='false'
                             autoCapitalize='off'
                             value={this.state.emails[i].email}
+                            autoFocus={true}
                             onChange={(e) => {
                                 this.handleEmailChange(e.target.value.trim(), i);
                             }}
@@ -175,7 +176,7 @@ export default class InviteMembersView extends React.Component {
                     to={this.props.closeLink}
                 >
                     <button
-                        type='button'
+                        type='submit'
                         className='btn btn-primary invite-members-send-button'
                     >
                         {sendButtonLabel}
@@ -189,7 +190,7 @@ export default class InviteMembersView extends React.Component {
                         e.preventDefault();
                         this.handleSubmit();
                     }}
-                    type='button'
+                    type='submit'
                     className='btn btn-primary invite-members-send-button'
                 >
                     {sendButtonLabel}
@@ -248,10 +249,10 @@ export default class InviteMembersView extends React.Component {
                             defaultMessage='Add another'
                         />
                     </button>
+                    {serverError}
+                    {doneMessage}
+                    {sendButton}
                 </form>
-                {serverError}
-                {doneMessage}
-                {sendButton}
             </SettingsView>
         );
     }

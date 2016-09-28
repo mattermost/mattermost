@@ -11,6 +11,8 @@ import Constants from 'utils/constants.jsx';
 import Client from 'client/web_client.jsx';
 import ChannelSelect from 'components/channel_select.jsx';
 
+import * as Utils from 'utils/utils.jsx';
+
 export default class InviteSingleChannelGuestsContainer extends React.Component {
     constructor(props) {
         super(props);
@@ -46,6 +48,13 @@ export default class InviteSingleChannelGuestsContainer extends React.Component 
             channels,
             emails
         };
+
+        for (let i = 0; i < channels.length; i++) {
+            if (channels[i] === null) {
+                this.setState({sendInvitesState: 'ready', serverError: Utils.localizeMessage('invite_members.bad_channel', 'Please select a channel.')});
+                return;
+            }
+        }
 
         Client.inviteGuests(
             data,

@@ -390,6 +390,9 @@ class ChannelStoreClass extends EventEmitter {
     }
 
     getLastViewedChannelURL() {
+        if (this.lastViewedTeam === '' || this.lastViewedChannel === '') {
+            return '/';
+        }
         return '/' + this.lastViewedTeam + '/channels/' + this.lastViewedChannel;
     }
 }

@@ -709,7 +709,7 @@ func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request)
 		teamId = props["id"]
 
 		if _, ok := props["channels"]; ok {
-			c.Err = model.NewLocAppError("addUserToTeamFromInvite", "api.user.create_user.signup_link_invalid.app_error", nil, "")
+			c.Err = model.NewLocAppError("addUserToTeamFromInvite", "api.user.create_user.signup_link_guest_only_one.app_error", nil, "")
 			return
 		}
 
@@ -745,6 +745,11 @@ func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	} else {
 		user = result.Data.(*model.User)
+	}
+
+	if !HasPermissionTo(user, model.PERMISSION_BE_INVITED_TO_TEAM) {
+		c.Err = model.NewLocAppError("addUserToTeamFromInvite", "api.user.create_user.signup_link_guest_only_one.app_error", nil, "")
+		return
 	}
 
 	tm := c.Session.GetTeamByTeamId(teamId)

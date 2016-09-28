@@ -4,6 +4,7 @@
 import React from 'react';
 
 import {browserHistory, Link} from 'react-router';
+import PureRenderMixin from 'react-addons-pure-render-mixin';
 
 export default class SettingsView extends React.Component {
     static get propTypes() {
@@ -18,6 +19,7 @@ export default class SettingsView extends React.Component {
         super(props);
 
         this.handleCloseClicked = this.handleCloseClicked.bind(this);
+        this.shouldComponentUpdate = PureRenderMixin.shouldComponentUpdate.bind(this);
     }
     handleCloseClicked(e) {
         e.preventDefault();

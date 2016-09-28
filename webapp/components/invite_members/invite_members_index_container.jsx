@@ -18,8 +18,11 @@ export default class InviteMembersIndexContainer extends React.Component {
 
         this.onTeamChange = this.onTeamChange.bind(this);
 
+        const currentTeam = TeamStore.getCurrent();
+
         this.state = {
-            teamName: TeamStore.getCurrent().display_name
+            teamDisplayName: currentTeam.display_name,
+            teamName: currentTeam.name
         };
     }
 

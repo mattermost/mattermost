@@ -2073,5 +2073,6 @@
   "youtube_video.notFound": "Video not found",
   "channel_header.webrtc.unavailable": "New call unavailable until your existing call ends",
   "user_profile.webrtc.unavailable": "New call unavailable until your existing call ends",
-  "admin.sidebar.webrtc": "WebRTC (Beta)"
+  "admin.sidebar.webrtc": "WebRTC (Beta)",
+  "user_list.guest_identifier": " - Guest"
 }
