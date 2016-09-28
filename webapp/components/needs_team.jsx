@@ -97,7 +97,9 @@ export default class NeedsTeam extends React.Component {
 
         $(window).on('blur', () => {
             window.isActive = false;
-            AsyncClient.setActiveChannel('');
+            if (UserStore.getCurrentUser()) {
+                AsyncClient.setActiveChannel('');
+            }
         });
 
         Utils.applyTheme(this.state.theme);
