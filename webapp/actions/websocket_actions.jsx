@@ -205,7 +205,7 @@ function handlePostDeleteEvent(msg) {
 
 function handleNewUserEvent(msg) {
     AsyncClient.getTeamMembers(TeamStore.getCurrentId());
-    AsyncClient.getUser(msg.user_id);
+    AsyncClient.getUser(msg.data.user_id);
     AsyncClient.getDirectProfiles();
     AsyncClient.getChannelExtraInfo();
 }
