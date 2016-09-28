@@ -288,8 +288,8 @@ func JoinUserToTeamAsGuest(team *model.Team, user *model.User) *model.AppError {
 		return uua.Err
 	}
 
-	// This message goes to every channel, so the channelId is irrelevant
-	go Publish(model.NewWebSocketEvent("", "", user.Id, model.WEBSOCKET_EVENT_NEW_USER))
+	// This message goes to everyone, so the teamId, channelId and userId are irrelevant
+	go Publish(model.NewWebSocketEvent(model.WEBSOCKET_EVENT_NEW_USER, "", "", "", nil))
 
 	return nil
 }
@@ -707,6 +707,11 @@ func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request)
 		}
 
 		teamId = props["id"]
+
+		if _, ok := props["channels"]; ok {
+			c.Err = model.NewLocAppError("addUserToTeamFromInvite", "api.user.create_user.signup_link_invalid.app_error", nil, "")
+			return
+		}
 
 		// try to load the team to make sure it exists
 		if result := <-Srv.Store.Team().Get(teamId); result.Err != nil {

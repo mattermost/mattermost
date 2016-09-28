@@ -80,14 +80,14 @@ export default class PolicySettings extends AdminSettings {
                     id='enableGuestAccounts'
                     label={
                         <FormattedMessage
-                            id='admin.policy.enable_guest_accounts.title'
+                            id='admin.general.policy.enable_guest_accounts.title'
                             defaultMessage='Enable Guest Accounts:'
                         />
                     }
                     helpText={
                         <FormattedMessage
-                            id='admin.policy.enable_guest_accounts.description'
-                            defaultMessage='When true, it is possible to create guest accounts that only have access to one channel on a team. Single-channel guest accounts do not count as a user for billing purposes.'
+                            id='admin.general.policy.enable_guest_accounts.description'
+                            defaultMessage='When true, any user who is able to send team invites will have the option to invite guest accounts that only have access to one channel on a team. Single-channel guest accounts do not count as a user for billing purposes.'
                         />
                     }
                     value={this.state.enableGuestAccounts}

@@ -314,6 +314,8 @@
   "admin.general.policy.restrictPublicChannelManagementTitle": "Enable public channel management permissions for:",
   "admin.general.policy.teamInviteDescription": "Set policy on who can invite others to a team using <b>Invite New Member</b> to invite new users by email, or the <b>Get Team Invite Link</b> options from the Main Menu. If <b>Get Team Invite Link</b> is used to share a link, you can expire the invite code from <b>Team Settings</b> > <b>Invite Code</b> after the desired users join the team.",
   "admin.general.policy.teamInviteTitle": "Enable sending team invites from:",
+  "admin.general.policy.enable_guest_accounts.description": "When true, any user who is able to send team invites will have the option to invite guest accounts that only have access to one channel on a team. Single-channel guest accounts do not count as a user for billing purposes.",
+  "admin.general.policy.enable_guest_accounts.title": "Enable Guest Accounts:",
   "admin.general.privacy": "Privacy",
   "admin.general.usersAndTeams": "Users and Teams",
   "admin.gitab.clientSecretDescription": "Obtain this value via the instructions above for logging into GitLab.",

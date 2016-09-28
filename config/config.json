@@ -44,7 +44,7 @@
         "RestrictPublicChannelManagement": "all",
         "RestrictPrivateChannelManagement": "all",
         "UserStatusAwayTimeout": 300,
-        "EnableGuestAccounts": true
+        "EnableGuestAccounts": false
     },
     "SqlSettings": {
         "DriverName": "mysql",

@@ -901,6 +901,34 @@ func (us SqlUserStore) AnalyticsUniqueUserCount(teamId string) StoreChannel {
 	return storeChannel
 }
 
+func (us SqlUserStore) AnalyticsSingleChannelGuestUserCount(teamId string) StoreChannel {
+
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		var query string
+		if len(teamId) > 0 {
+			query = "SELECT COUNT(DISTINCT Email) FROM Users, TeamMembers WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId AND Users.Roles LIKE 'system_guest'"
+		} else {
+			query = "SELECT COUNT(DISTINCT Email) FROM Users WHERE Users.Roles LIKE 'system_guest'"
+		}
+
+		v, err := us.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId})
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.AnalyticsSigleChannelGuestUserCount", "store.sql_user.analytics_signle_channel_guest_count.app_error", nil, err.Error())
+		} else {
+			result.Data = v
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (us SqlUserStore) GetUnreadCount(userId string) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 

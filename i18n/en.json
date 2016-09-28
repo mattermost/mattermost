@@ -4548,6 +4548,10 @@
     "translation": "We couldn't get the unique user count"
   },
   {
+    "id": "store.sql_user.analytics_single_channel_guest_count.app_error",
+    "translation": "We couldn't get the signle channelguest count"
+  },
+  {
     "id": "store.sql_user.get.app_error",
     "translation": "We encountered an error finding the account"
   },

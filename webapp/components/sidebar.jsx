@@ -603,6 +603,10 @@ export default class Sidebar extends React.Component {
             return (<div/>);
         }
 
+        const isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
+        const isGuest = TeamStore.isGuestForCurrentTeam();
+        const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
+
         this.lastBadgesActive = this.badgesActive;
         this.badgesActive = false;
 
@@ -668,6 +672,9 @@ export default class Sidebar extends React.Component {
                 </a>
             </li>
         );
+        if (isGuest) {
+            directMessageMore = null;
+        }
 
         let showChannelModal = false;
         if (this.state.newChannelModalType !== '') {
@@ -704,10 +711,6 @@ export default class Sidebar extends React.Component {
                 defaultMessage='Unread post(s) below'
             />
         );
-
-        const isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
-        const isGuest = TeamStore.isGuestForCurrentTeam();
-        const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
 
         let createPublicChannelIcon = (
             <OverlayTrigger

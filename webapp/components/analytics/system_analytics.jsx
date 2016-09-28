@@ -127,6 +127,16 @@ class SystemAnalytics extends React.Component {
                         icon='fa-arrow-up'
                         count={stats[StatTypes.TOTAL_OHOOKS]}
                     />
+                    <StatisticCount
+                        title={
+                            <FormattedMessage
+                                id='analytics.system.singleChannelGuestAccounts'
+                                defaultMessage='Single Channel Guest Accounts'
+                            />
+                        }
+                        icon='fa-user'
+                        count={stats[StatTypes.TOTAL_SINGLE_CHANNEL_GUEST_COUNT]}
+                    />
                 </div>
             );
 

@@ -412,6 +412,11 @@ func TestGetTeamAnalyticsExtra(t *testing.T) {
 			t.Log(rows.ToJson())
 			t.Fatal()
 		}
+
+		if rows[6].Name != "single_channel_guest_count" {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
 	}
 
 	if result, err := th.SystemAdminClient.GetSystemAnalytics("extra_counts"); err != nil {
@@ -445,6 +450,11 @@ func TestGetTeamAnalyticsExtra(t *testing.T) {
 		}
 
 		if rows[5].Name != "session_count" {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+
+		if rows[6].Name != "single_channel_guest_count" {
 			t.Log(rows.ToJson())
 			t.Fatal()
 		}

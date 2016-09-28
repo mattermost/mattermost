@@ -1045,6 +1045,10 @@ export function getAdvancedAnalytics(teamId) {
                 if (data[index].name === 'session_count') {
                     stats[StatTypes.TOTAL_SESSIONS] = data[index].value;
                 }
+
+                if (data[index].name === 'single_channel_guest_count') {
+                    stats[StatTypes.TOTAL_SINGLE_CHANNEL_GUEST_COUNT] = data[index].value;
+                }
             }
 
             AppDispatcher.handleServerAction({
