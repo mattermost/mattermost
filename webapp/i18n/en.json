@@ -828,7 +828,7 @@
   "admin.user_item.switchToEmail": "Switch to Email/Password",
   "admin.user_item.sysAdmin": "System Admin",
   "admin.user_item.teamAdmin": "Team Admin",
-  "admin.webrtc.enableDescription": "When true, Mattermost allows making <strong>one on one</strong> video calls.",
+  "admin.webrtc.enableDescription": "When true, Mattermost allows making <strong>one-on-one</strong> video calls. WebRTC calls are available on Chrome, Firefox and Mattermost Desktop Apps.",
   "admin.webrtc.enableTitle": "Enable Mattermost WebRTC: ",
   "admin.webrtc.gatewayAdminSecretDescription": "Enter your admin secret password to access the Gateway Admin URL.",
   "admin.webrtc.gatewayAdminSecretExample": "Ex \"PVRzWNN1Tg6szn7IQWvhpAvLByScWxdy\"",
