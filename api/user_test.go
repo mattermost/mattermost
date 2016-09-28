@@ -546,7 +546,7 @@ func TestGetDirectProfiles(t *testing.T) {
 	}
 }
 
-func TestGetProfilesForDirectMessageList(t *testing.T) {
+func TestGetAllProfiles(t *testing.T) {
 	th := Setup().InitBasic()
 
 	th.BasicClient.Must(th.BasicClient.CreateDirectChannel(th.BasicUser2.Id))
@@ -558,7 +558,7 @@ func TestGetProfilesForDirectMessageList(t *testing.T) {
 
 	utils.Cfg.PrivacySettings.ShowEmailAddress = true
 
-	if result, err := th.BasicClient.GetProfilesForDirectMessageList(th.BasicTeam.Id, 0, 100); err != nil {
+	if result, err := th.BasicClient.GetAllProfiles(0, 100, ""); err != nil {
 		t.Fatal(err)
 	} else {
 		users := result.Data.(map[string]*model.User)
@@ -572,11 +572,20 @@ func TestGetProfilesForDirectMessageList(t *testing.T) {
 				t.Fatal("problem with show email")
 			}
 		}
+
+		// test etag caching
+		if cache_result, err := th.BasicClient.GetAllProfiles(0, 100, result.Etag); err != nil {
+			t.Fatal(err)
+		} else if cache_result.Data.(map[string]*model.User) != nil {
+			t.Log(cache_result.Etag)
+			t.Log(result.Etag)
+			t.Fatal("cache should be empty")
+		}
 	}
 
 	utils.Cfg.PrivacySettings.ShowEmailAddress = false
 
-	if result, err := th.BasicClient.GetProfilesForDirectMessageList(th.BasicTeam.Id, 0, 100); err != nil {
+	if result, err := th.BasicClient.GetAllProfiles(0, 100, ""); err != nil {
 		t.Fatal(err)
 	} else {
 		users := result.Data.(map[string]*model.User)

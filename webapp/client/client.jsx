@@ -73,11 +73,7 @@ export default class Client {
         return `${this.url}${this.urlVersion}/teams`;
     }
 
-    getTeamNeededRoute() {
-        return `${this.url}${this.urlVersion}/teams/${this.getTeamId()}`;
-    }
-
-    getTeamNeededManualRoute(teamId) {
+    getTeamNeededRoute(teamId = this.getTeamId()) {
         return `${this.url}${this.urlVersion}/teams/${teamId}`;
     }
 
@@ -736,7 +732,7 @@ export default class Client {
         };
 
         request.
-            post(`${this.getTeamNeededManualRoute(teamId)}/update_member_roles`).
+            post(`${this.getTeamNeededRoute(teamId)}/update_member_roles`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
@@ -1010,7 +1006,7 @@ export default class Client {
 
     getProfiles(offset, limit, success, error) {
         request.
-            get(`${this.getUsersRoute()}/profiles/${this.getTeamId()}/${offset}/${limit}`).
+            get(`${this.getTeamNeededRoute()}/users/${offset}/${limit}`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
@@ -1019,7 +1015,7 @@ export default class Client {
 
     getProfilesForTeam(teamId, offset, limit, success, error) {
         request.
-            get(`${this.getUsersRoute()}/profiles/${teamId}/${offset}/${limit}`).
+            get(`${this.getTeamNeededRoute(teamId)}/users/${offset}/${limit}`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
@@ -1044,13 +1040,13 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getProfilesNotInChannel', success, error));
     }
 
-    getProfilesForDirectMessageList(offset, limit, success, error) {
+    getAllProfiles(offset, limit, success, error) {
         request.
-            get(`${this.getUsersRoute()}/profiles_for_dm_list/${this.getTeamId()}/${offset}/${limit}`).
+            get(`${this.getUsersRoute()}/${offset}/${limit}`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
-            end(this.handleResponse.bind(this, 'getProfilesForDirectMessageList', success, error));
+            end(this.handleResponse.bind(this, 'getAllProfiles', success, error));
     }
 
     getProfilesByIds(userIds, success, error) {

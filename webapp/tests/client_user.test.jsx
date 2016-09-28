@@ -491,9 +491,9 @@ describe('Client.User', function() {
         });
     });
 
-    it('getProfilesForDirectMessageList', function(done) {
+    it('getAllProfiles', function(done) {
         TestHelper.initBasic(() => {
-            TestHelper.basicClient().getProfilesForDirectMessageList(
+            TestHelper.basicClient().getAllProfiles(
                 0,
                 100,
                 function(data) {

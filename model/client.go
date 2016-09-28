@@ -504,10 +504,9 @@ func (c *Client) GetMe(etag string) (*Result, *AppError) {
 	}
 }
 
-// GetProfilesForDirectMessageList returns a map of users for a team that can be direct
-// messaged, using user id as the key. Must be authenticated.
-func (c *Client) GetProfilesForDirectMessageList(teamId string, offset int, limit int) (*Result, *AppError) {
-	if r, err := c.DoApiGet(fmt.Sprintf("/users/profiles_for_dm_list/%v/%v/%v", teamId, offset, limit), "", ""); err != nil {
+// GetAllProfiles returns a map of users using user id as the key. Must be authenticated.
+func (c *Client) GetAllProfiles(offset int, limit int, etag string) (*Result, *AppError) {
+	if r, err := c.DoApiGet(fmt.Sprintf("/users/%v/%v", offset, limit), "", etag); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)
@@ -519,7 +518,7 @@ func (c *Client) GetProfilesForDirectMessageList(teamId string, offset int, limi
 // GetProfiles returns a map of users for a team using user id as the key. Must
 // be authenticated.
 func (c *Client) GetProfiles(teamId string, offset int, limit int, etag string) (*Result, *AppError) {
-	if r, err := c.DoApiGet(fmt.Sprintf("/users/profiles/%v/%v/%v", teamId, offset, limit), "", etag); err != nil {
+	if r, err := c.DoApiGet(fmt.Sprintf("/teams/%v/users/%v/%v", teamId, offset, limit), "", etag); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)

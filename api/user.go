@@ -54,8 +54,8 @@ func InitUser() {
 	BaseRoutes.Users.Handle("/me", ApiUserRequired(getMe)).Methods("GET")
 	BaseRoutes.Users.Handle("/initial_load", ApiAppHandler(getInitialLoad)).Methods("GET")
 	BaseRoutes.Users.Handle("/direct_profiles", ApiUserRequired(getDirectProfiles)).Methods("GET")
-	BaseRoutes.Users.Handle("/profiles/{id:[A-Za-z0-9]+}/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getProfiles)).Methods("GET")
-	BaseRoutes.Users.Handle("/profiles_for_dm_list/{id:[A-Za-z0-9]+}/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getProfilesForDirectMessageList)).Methods("GET")
+	BaseRoutes.Users.Handle("/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getProfiles)).Methods("GET")
+	BaseRoutes.NeedTeam.Handle("/users/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getProfilesInTeam)).Methods("GET")
 	BaseRoutes.NeedChannel.Handle("/users/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getProfilesInChannel)).Methods("GET")
 	BaseRoutes.NeedChannel.Handle("/users/not_in_channel/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getProfilesNotInChannel)).Methods("GET")
 	BaseRoutes.Users.Handle("/search", ApiUserRequired(searchUsers)).Methods("POST")
@@ -952,9 +952,8 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getProfilesForDirectMessageList(c *Context, w http.ResponseWriter, r *http.Request) {
+func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	id := params["id"]
 
 	offset, err := strconv.Atoi(params["offset"])
 	if err != nil {
@@ -968,21 +967,12 @@ func getProfilesForDirectMessageList(c *Context, w http.ResponseWriter, r *http.
 		return
 	}
 
-	var pchan store.StoreChannel
-
-	if *utils.Cfg.TeamSettings.RestrictDirectMessage == model.DIRECT_MESSAGE_TEAM {
-		if c.Session.GetTeamByTeamId(id) == nil {
-			if !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
-				return
-			}
-		}
-
-		pchan = Srv.Store.User().GetProfiles(id, offset, limit)
-	} else {
-		pchan = Srv.Store.User().GetAllProfiles(offset, limit)
+	etag := (<-Srv.Store.User().GetEtagForAllProfiles()).Data.(string)
+	if HandleEtag(etag, w, r) {
+		return
 	}
 
-	if result := <-pchan; result.Err != nil {
+	if result := <-Srv.Store.User().GetAllProfiles(offset, limit); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -992,15 +982,16 @@ func getProfilesForDirectMessageList(c *Context, w http.ResponseWriter, r *http.
 			profiles[k] = sanitizeProfile(c, p)
 		}
 
+		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 		w.Write([]byte(model.UserMapToJson(profiles)))
 	}
 }
 
-func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
+func getProfilesInTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	id := params["id"]
+	teamId := params["team_id"]
 
-	if c.Session.GetTeamByTeamId(id) == nil {
+	if c.Session.GetTeamByTeamId(teamId) == nil {
 		if !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
 			return
 		}
@@ -1008,22 +999,22 @@ func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	offset, err := strconv.Atoi(params["offset"])
 	if err != nil {
-		c.SetInvalidParam("getProfiles", "offset")
+		c.SetInvalidParam("getProfilesInTeam", "offset")
 		return
 	}
 
 	limit, err := strconv.Atoi(params["limit"])
 	if err != nil {
-		c.SetInvalidParam("getProfiles", "limit")
+		c.SetInvalidParam("getProfilesInTeam", "limit")
 		return
 	}
 
-	etag := (<-Srv.Store.User().GetEtagForProfiles(id)).Data.(string)
+	etag := (<-Srv.Store.User().GetEtagForProfiles(teamId)).Data.(string)
 	if HandleEtag(etag, w, r) {
 		return
 	}
 
-	if result := <-Srv.Store.User().GetProfiles(id, offset, limit); result.Err != nil {
+	if result := <-Srv.Store.User().GetProfiles(teamId, offset, limit); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {

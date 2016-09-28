@@ -13,9 +13,9 @@ import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 const UserStatuses = Constants.UserStatuses;
 
-const CHANGE_EVENT_DM_LIST = 'change_dm_list';
 const CHANGE_EVENT_NOT_IN_CHANNEL = 'change_not_in_channel';
 const CHANGE_EVENT_IN_CHANNEL = 'change_in_channel';
+const CHANGE_EVENT_ALL = 'change_all';
 const CHANGE_EVENT = 'change';
 const CHANGE_EVENT_SESSIONS = 'change_sessions';
 const CHANGE_EVENT_AUDITS = 'change_audits';
@@ -34,9 +34,9 @@ class UserStoreClass extends EventEmitter {
         this.paging_offset = 0;
         this.paging_count = 0;
 
-        this.profiles_for_dm_list = {};
-        this.dm_paging_offset = 0;
-        this.dm_paging_count = 0;
+        this.all_profiles = {};
+        this.all_paging_offset = 0;
+        this.all_paging_count = 0;
 
         this.profiles_in_channel = {};
         this.in_channel_offset = {};
@@ -66,16 +66,16 @@ class UserStoreClass extends EventEmitter {
         this.removeListener(CHANGE_EVENT, callback);
     }
 
-    emitDmListChange() {
-        this.emit(CHANGE_EVENT_DM_LIST);
+    emitAllChange() {
+        this.emit(CHANGE_EVENT_ALL);
     }
 
-    addDmListChangeListener(callback) {
-        this.on(CHANGE_EVENT_DM_LIST, callback);
+    addAllChangeListener(callback) {
+        this.on(CHANGE_EVENT_ALL, callback);
     }
 
-    removeDmListChangeListener(callback) {
-        this.removeListener(CHANGE_EVENT_DM_LIST, callback);
+    removeAllChangeListener(callback) {
+        this.removeListener(CHANGE_EVENT_ALL, callback);
     }
 
     emitInChannelChange() {
@@ -413,13 +413,13 @@ class UserStoreClass extends EventEmitter {
         return profiles;
     }
 
-    getProfilesForDmList() {
+    getAllProfiles() {
         const currentId = this.getCurrentId();
         const profiles = [];
 
-        for (const id in this.profiles_for_dm_list) {
-            if (this.profiles_for_dm_list.hasOwnProperty(id) && id !== currentId) {
-                var profile = this.profiles_for_dm_list[id];
+        for (const id in this.all_profiles) {
+            if (this.all_profiles.hasOwnProperty(id) && id !== currentId) {
+                var profile = this.all_profiles[id];
 
                 if (profile.delete_at === 0) {
                     profiles.push(profile);
@@ -440,8 +440,8 @@ class UserStoreClass extends EventEmitter {
         return profiles;
     }
 
-    saveProfilesForDmList(profiles) {
-        this.profiles_for_dm_list = Object.assign({}, this.profiles_for_dm_list, profiles);
+    saveAllProfiles(profiles) {
+        this.all_profiles = Object.assign({}, this.all_profiles, profiles);
     }
 
     setSessions(sessions) {
@@ -541,17 +541,17 @@ class UserStoreClass extends EventEmitter {
         return this.paging_count;
     }
 
-    setDMPage(offset, count) {
-        this.dm_paging_offset = offset + count;
-        this.dm_paging_count = this.dm_paging_count + count;
+    setAllPage(offset, count) {
+        this.all_paging_offset = offset + count;
+        this.all_paging_count = this.all_paging_count + count;
     }
 
-    getDMPagingOffset() {
-        return this.dm_paging_offset;
+    getAllPagingOffset() {
+        return this.all_paging_offset;
     }
 
-    getDMPagingCount() {
-        return this.dm_paging_count;
+    getAllPagingCount() {
+        return this.all_paging_count;
     }
 
     setInChannelPage(channelId, offset, count) {
@@ -588,12 +588,12 @@ UserStore.dispatchToken = AppDispatcher.register((payload) => {
     var action = payload.action;
 
     switch (action.type) {
-    case ActionTypes.RECEIVED_PROFILES_FOR_DM_LIST:
-        UserStore.saveProfilesForDmList(action.profiles);
+    case ActionTypes.RECEIVED_ALL_PROFILES:
+        UserStore.saveAllProfiles(action.profiles);
         if (action.offset != null && action.count != null) {
-            UserStore.setDMPage(action.offset, action.count);
+            UserStore.setALLPage(action.offset, action.count);
         }
-        UserStore.emitDmListChange();
+        UserStore.emitAllChange();
         break;
     case ActionTypes.RECEIVED_PROFILES:
         UserStore.saveProfiles(action.profiles);

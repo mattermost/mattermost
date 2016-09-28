@@ -31,7 +31,7 @@ export function switchFromLdapToEmail(email, password, ldapPassword, onSuccess, 
 
 export function getMoreDmList() {
     AsyncClient.getTeamMembers(TeamStore.getCurrentId());
-    AsyncClient.getProfilesForDirectMessageList();
+    AsyncClient.getAllProfiles();
 }
 
 export function saveTheme(teamId, theme, onSuccess, onError) {

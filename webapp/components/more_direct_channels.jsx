@@ -42,15 +42,15 @@ export default class MoreDirectChannels extends React.Component {
     }
 
     componentDidMount() {
-        AsyncClient.getProfilesForDirectMessageList();
+        AsyncClient.getAllProfiles();
         UserStore.addChangeListener(this.onChange);
-        UserStore.addDmListChangeListener(this.onChange);
+        UserStore.addAllChangeListener(this.onChange);
         TeamStore.addChangeListener(this.onChange);
     }
 
     componentWillUnmount() {
         UserStore.removeChangeListener(this.onChange);
-        UserStore.removeDmListChangeListener(this.onChange);
+        UserStore.removeAllChangeListener(this.onChange);
         TeamStore.removeChangeListener(this.onChange);
     }
 
@@ -112,7 +112,7 @@ export default class MoreDirectChannels extends React.Component {
 
         let users;
         if (this.state.listType === 'any') {
-            users = UserStore.getProfilesForDmList();
+            users = UserStore.getAllProfiles();
         } else {
             users = UserStore.getProfilesForTeam(true);
         }
@@ -127,7 +127,7 @@ export default class MoreDirectChannels extends React.Component {
         const listType = e.target.value;
         let users;
         if (listType === 'any') {
-            users = UserStore.getProfilesForDmList();
+            users = UserStore.getAllProfiles();
         } else {
             users = UserStore.getProfilesForTeam(true);
         }
@@ -155,7 +155,7 @@ export default class MoreDirectChannels extends React.Component {
 
     nextPage(page) {
         if (this.state.listType === 'any') {
-            AsyncClient.getProfilesForDirectMessageList((page + 1) * USERS_PER_PAGE, USERS_PER_PAGE);
+            AsyncClient.getAllProfiles((page + 1) * USERS_PER_PAGE, USERS_PER_PAGE);
         } else {
             AsyncClient.getProfiles((page + 1) * USERS_PER_PAGE, USERS_PER_PAGE);
         }

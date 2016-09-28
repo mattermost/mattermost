@@ -308,26 +308,26 @@ export function getUser(userId) {
     );
 }
 
-export function getProfilesForDirectMessageList(offset = UserStore.getDMPagingOffset(), limit = Constants.PROFILE_CHUNK_SIZE) {
-    if (isCallInProgress('getProfilesForDirectMessageList')) {
+export function getAllProfiles(offset = UserStore.getAllPagingOffset(), limit = Constants.PROFILE_CHUNK_SIZE) {
+    if (isCallInProgress('getAllProfiles')) {
         return;
     }
 
-    callTracker.getProfilesForDirectMessageList = utils.getTimestamp();
-    Client.getProfilesForDirectMessageList(
+    callTracker.getAllProfiles = utils.getTimestamp();
+    Client.getAllProfiles(
         offset,
         limit,
         (data) => {
-            callTracker.getProfilesForDirectMessageList = 0;
+            callTracker.getAllProfiles = 0;
 
             AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_PROFILES_FOR_DM_LIST,
+                type: ActionTypes.RECEIVED_ALL_PROFILES,
                 profiles: data
             });
         },
         (err) => {
-            callTracker.getProfilesForDirectMessageList = 0;
-            dispatchError(err, 'getProfilesForDirectMessageList');
+            callTracker.getAllProfiles = 0;
+            dispatchError(err, 'getAllProfiles');
         }
     );
 }
