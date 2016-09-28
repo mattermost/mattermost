@@ -35,7 +35,7 @@ export default class FileAttachmentListContainer extends React.Component {
     componentWillReceiveProps(nextProps) {
         if (nextProps.post.id !== this.props.post.id) {
             this.setState({
-                fileInfos: FileStore.getInfosForPost(this.props.post.id)
+                fileInfos: FileStore.getInfosForPost(nextProps.post.id)
             });
 
             if (nextProps.post.id && !FileStore.hasInfosForPost(nextProps.post.id)) {
