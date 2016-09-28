@@ -2518,6 +2518,7 @@ func sanitizeProfile(c *Context, user *model.User) *model.User {
 	if HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
 		options["email"] = true
 		options["fullname"] = true
+		options["authservice"] = true
 	}
 	c.Err = nil
 
