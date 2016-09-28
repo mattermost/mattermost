@@ -113,6 +113,8 @@ export default class SuggestionBox extends React.Component {
             this.props.onInput(e);
         }
 
+        textbox.focus();
+
         // set the caret position after the next rendering
         window.requestAnimationFrame(() => {
             Utils.setCaretPosition(textbox, prefix.length + term.length + 1);
