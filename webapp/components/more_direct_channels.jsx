@@ -176,8 +176,9 @@ export default class MoreDirectChannels extends React.Component {
         }
 
         searchUsers(
-            teamId,
             term,
+            teamId,
+            {},
             (users) => {
                 for (let i = 0; i < users.length; i++) {
                     if (users[i].id === UserStore.getCurrentId()) {

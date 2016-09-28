@@ -625,64 +625,6 @@ func (s SqlChannelStore) GetMemberCount(channelId string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlChannelStore) GetExtraMembers(channelId string, limit int) StoreChannel {
-	storeChannel := make(StoreChannel, 1)
-
-	go func() {
-		result := StoreResult{}
-
-		var members []model.ExtraMember
-		var err error
-
-		if limit != -1 {
-			_, err = s.GetReplica().Select(&members, `
-			SELECT
-				Id,
-				Nickname,
-				Email,
-				ChannelMembers.Roles,
-				Username
-			FROM
-				ChannelMembers,
-				Users
-			WHERE
-				ChannelMembers.UserId = Users.Id
-				AND Users.DeleteAt = 0
-				AND ChannelId = :ChannelId
-			LIMIT :Limit`, map[string]interface{}{"ChannelId": channelId, "Limit": limit})
-		} else {
-			_, err = s.GetReplica().Select(&members, `
-			SELECT
-				Id,
-				Nickname,
-				Email,
-				ChannelMembers.Roles,
-				Username
-			FROM
-				ChannelMembers,
-				Users
-			WHERE
-				ChannelMembers.UserId = Users.Id
-				AND Users.DeleteAt = 0
-				AND ChannelId = :ChannelId`, map[string]interface{}{"ChannelId": channelId})
-		}
-
-		if err != nil {
-			result.Err = model.NewLocAppError("SqlChannelStore.GetExtraMembers", "store.sql_channel.get_extra_members.app_error", nil, "channel_id="+channelId+", "+err.Error())
-		} else {
-			for i := range members {
-				members[i].Sanitize(utils.Cfg.GetSanitizeOptions())
-			}
-			result.Data = members
-		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
-}
-
 func (s SqlChannelStore) RemoveMember(channelId string, userId string) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 

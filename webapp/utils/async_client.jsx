@@ -213,38 +213,53 @@ export function getMoreChannels(force) {
     }
 }
 
-export function getChannelExtraInfo(id, memberLimit) {
-    let channelId;
-    if (id) {
-        channelId = id;
-    } else {
-        channelId = ChannelStore.getCurrentId();
+export function getChannelStats(channelId = ChannelStore.getCurrentId()) {
+    if (isCallInProgress('getChannelStats' + channelId)) {
+        return;
     }
 
-    if (channelId != null) {
-        if (isCallInProgress('getChannelExtraInfo_' + channelId)) {
-            return;
+    callTracker['getChannelStats' + channelId] = utils.getTimestamp();
+
+    Client.getChannelStats(
+        channelId,
+        (data) => {
+            callTracker['getChannelStats' + channelId] = 0;
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_CHANNEL_STATS,
+                stats: data
+            });
+        },
+        (err) => {
+            callTracker['getChannelStats' + channelId] = 0;
+            dispatchError(err, 'getChannelStats');
         }
+    );
+}
 
-        callTracker['getChannelExtraInfo_' + channelId] = utils.getTimestamp();
-
-        Client.getChannelExtraInfo(
-            channelId,
-            memberLimit,
-            (data) => {
-                callTracker['getChannelExtraInfo_' + channelId] = 0;
-
-                AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECEIVED_CHANNEL_EXTRA_INFO,
-                    extra_info: data
-                });
-            },
-            (err) => {
-                callTracker['getChannelExtraInfo_' + channelId] = 0;
-                dispatchError(err, 'getChannelExtraInfo');
-            }
-        );
+export function getChannelMember(channelId, userId) {
+    if (isCallInProgress(`getChannelMember${channelId}${userId}`)) {
+        return;
     }
+
+    callTracker[`getChannelMember${channelId}${userId}`] = utils.getTimestamp();
+
+    Client.getChannelMember(
+        channelId,
+        userId,
+        (data) => {
+            callTracker[`getChannelMember${channelId}${userId}`] = 0;
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_CHANNEL_MEMBER,
+                member: data
+            });
+        },
+        (err) => {
+            callTracker[`getChannelMember${channelId}${userId}`] = 0;
+            dispatchError(err, 'getChannelMember');
+        }
+    );
 }
 
 export function getTeamMembers(teamId) {
@@ -343,8 +358,64 @@ export function getProfiles(offset = UserStore.getPagingOffset(), limit = Consta
     );
 }
 
-export function getProfilesFromList(userIds) {
-    if (isCallInProgress('getProfilesFromList')) {
+export function getProfilesInChannel(channelId = ChannelStore.getCurrentId(), offset = UserStore.getInChannelPagingOffset(), limit = Constants.PROFILE_CHUNK_SIZE) {
+    if (isCallInProgress(`getProfilesInChannel${offset}${limit}`)) {
+        return;
+    }
+
+    callTracker[`getProfilesInChannel${offset}${limit}`] = utils.getTimestamp();
+    Client.getProfilesInChannel(
+        channelId,
+        offset,
+        limit,
+        (data) => {
+            callTracker[`getProfilesInChannel${offset}${limit}`] = 0;
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_PROFILES_IN_CHANNEL,
+                channel_id: channelId,
+                profiles: data,
+                offset,
+                count: Object.keys(data).length
+            });
+        },
+        (err) => {
+            callTracker[`getProfilesInChannel${offset}${limit}`] = 0;
+            dispatchError(err, 'getProfilesInChannel');
+        }
+    );
+}
+
+export function getProfilesNotInChannel(channelId = ChannelStore.getCurrentId(), offset = UserStore.getNotInChannelPagingOffset(), limit = Constants.PROFILE_CHUNK_SIZE) {
+    if (isCallInProgress(`getProfilesNotInChannel${offset}${limit}`)) {
+        return;
+    }
+
+    callTracker[`getProfilesNotInChannel${offset}${limit}`] = utils.getTimestamp();
+    Client.getProfilesNotInChannel(
+        channelId,
+        offset,
+        limit,
+        (data) => {
+            callTracker[`getProfilesNotInChannel${offset}${limit}`] = 0;
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_PROFILES_NOT_IN_CHANNEL,
+                channel_id: channelId,
+                profiles: data,
+                offset,
+                count: Object.keys(data).length
+            });
+        },
+        (err) => {
+            callTracker[`getProfilesNotInChannel${offset}${limit}`] = 0;
+            dispatchError(err, 'getProfilesNotInChannel');
+        }
+    );
+}
+
+export function getProfilesByIds(userIds) {
+    if (isCallInProgress('getProfilesByIds')) {
         return;
     }
 
@@ -352,11 +423,11 @@ export function getProfilesFromList(userIds) {
         return;
     }
 
-    callTracker.getProfilesFromList = utils.getTimestamp();
-    Client.getProfilesFromList(
+    callTracker.getProfilesByIds = utils.getTimestamp();
+    Client.getProfilesByIds(
         userIds,
         (data) => {
-            callTracker.getProfilesFromList = 0;
+            callTracker.getProfilesByIds = 0;
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_PROFILES,
@@ -364,8 +435,8 @@ export function getProfilesFromList(userIds) {
             });
         },
         (err) => {
-            callTracker.getProfilesFromList = 0;
-            dispatchError(err, 'getProfilesFromList');
+            callTracker.getProfilesByIds = 0;
+            dispatchError(err, 'getProfilesByIds');
         }
     );
 }

@@ -59,8 +59,9 @@ export default class MemberListTeam extends React.Component {
         }
 
         searchUsers(
-            TeamStore.getCurrentId(),
             term,
+            TeamStore.getCurrentId(),
+            {},
             (users) => {
                 this.setState({search: true, users});
             }

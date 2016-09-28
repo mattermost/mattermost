@@ -53,3 +53,57 @@ export function setChannelAsRead(channelIdParam) {
         ChannelStore.emitLastViewed(Number.MAX_VALUE, false);
     }
 }
+
+export function addUserToChannel(channelId, userId, success, error) {
+    Client.addChannelMember(
+        channelId,
+        userId,
+        (data) => {
+            const profile = UserStore.removeProfileNotInChannel(channelId, userId);
+            if (profile) {
+                UserStore.saveProfileInChannel(channelId, profile);
+                UserStore.emitInChannelChange();
+            }
+            UserStore.emitNotInChannelChange();
+
+            if (success) {
+                success(data);
+            }
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'addChannelMember');
+
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
+export function removeUserFromChannel(channelId, userId, success, error) {
+    Client.removeChannelMember(
+        channelId,
+        userId,
+        (data) => {
+            const profile = UserStore.removeProfileInChannel(channelId, userId);
+            if (profile) {
+                UserStore.saveProfileNotInChannel(channelId, profile);
+                UserStore.emitNotInChannelChange();
+            }
+            UserStore.emitInChannelChange();
+
+            //AsyncClient.getChannelStats();
+
+            if (success) {
+                success(data);
+            }
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'removeChannelMember');
+
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}

@@ -540,15 +540,53 @@ func (c *Client) GetDirectProfiles(etag string) (*Result, *AppError) {
 	}
 }
 
-// GetProfilesFromList returns a map of users based on the user ids provided. Must
+// GetProfilesInChannel returns a map of users for a channel using user id as the key. Must
 // be authenticated.
-func (c *Client) GetProfilesFromList(userIds []string) (*Result, *AppError) {
-	if r, err := c.DoApiPost("/users/profiles_from_list", ArrayToJson(userIds)); err != nil {
+func (c *Client) GetProfilesInChannel(channelId string, offset int, limit int, etag string) (*Result, *AppError) {
+	if r, err := c.DoApiGet(fmt.Sprintf(c.GetChannelRoute(channelId)+"/users/%v/%v", offset, limit), "", etag); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), UserMapFromJson(r.Body)}, nil
+	}
+}
+
+// GetProfilesNotInChannel returns a map of users not in a channel but on the team using user id as the key. Must
+// be authenticated.
+func (c *Client) GetProfilesNotInChannel(channelId string, offset int, limit int, etag string) (*Result, *AppError) {
+	if r, err := c.DoApiGet(fmt.Sprintf(c.GetChannelRoute(channelId)+"/users/not_in_channel/%v/%v", offset, limit), "", etag); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), UserMapFromJson(r.Body)}, nil
+	}
+}
+
+// GetProfilesByIds returns a map of users based on the user ids provided. Must
+// be authenticated.
+func (c *Client) GetProfilesByIds(userIds []string) (*Result, *AppError) {
+	if r, err := c.DoApiPost("/users/profiles_by_ids", ArrayToJson(userIds)); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), UserMapFromJson(r.Body)}, nil
+	}
+}
+
+// SearchUsers returns a list of users that have a username matching or similar to the search term. Must
+// be authenticated.
+func (c *Client) SearchUsers(term string, teamId string, options map[string]string) (*Result, *AppError) {
+	options["term"] = term
+	options["team_id"] = teamId
+	if r, err := c.DoApiPost("/users/search", MapToJson(options)); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), UserListFromJson(r.Body)}, nil
 	}
 }
 
@@ -1182,13 +1220,23 @@ func (c *Client) UpdateLastViewedAt(channelId string, active bool) (*Result, *Ap
 	}
 }
 
-func (c *Client) GetChannelExtraInfo(id string, memberLimit int, etag string) (*Result, *AppError) {
-	if r, err := c.DoApiGet(c.GetChannelRoute(id)+"/extra_info/"+strconv.FormatInt(int64(memberLimit), 10), "", etag); err != nil {
+func (c *Client) GetChannelStats(id string, etag string) (*Result, *AppError) {
+	if r, err := c.DoApiGet(c.GetChannelRoute(id)+"/stats", "", etag); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), ChannelExtraFromJson(r.Body)}, nil
+			r.Header.Get(HEADER_ETAG_SERVER), ChannelStatsFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) GetChannelMember(channelId string, userId string) (*Result, *AppError) {
+	if r, err := c.DoApiGet(c.GetChannelRoute(channelId)+"/member/"+userId, "", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), ChannelMemberFromJson(r.Body)}, nil
 	}
 }
 

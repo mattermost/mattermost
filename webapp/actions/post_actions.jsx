@@ -295,5 +295,5 @@ function loadProfilesForPosts(posts) {
         return;
     }
 
-    AsyncClient.getProfilesFromList(list);
+    AsyncClient.getProfilesByIds(list);
 }
