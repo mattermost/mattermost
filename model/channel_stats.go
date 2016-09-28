@@ -9,7 +9,7 @@ import (
 )
 
 type ChannelStats struct {
-	Id          string `json:"id"`
+	ChannelId   string `json:"channel_id"`
 	MemberCount int64  `json:"member_count"`
 }
 

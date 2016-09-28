@@ -397,7 +397,7 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
 
     case ActionTypes.RECEIVED_CHANNEL_STATS:
         var stats = Object.assign({}, ChannelStore.getStats());
-        stats[action.stats.id] = action.stats;
+        stats[action.stats.channel_id] = action.stats;
         ChannelStore.storeStats(stats);
         ChannelStore.emitStatsChange();
         break;

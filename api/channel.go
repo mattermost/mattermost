@@ -15,10 +15,6 @@ import (
 	"github.com/mattermost/platform/utils"
 )
 
-const (
-	defaultStatsMemberLimit = 100
-)
-
 func InitChannel() {
 	l4g.Debug(utils.T("api.channel.init.debug"))
 
@@ -957,7 +953,7 @@ func getChannelStats(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		data := model.ChannelStats{Id: channel.Id, MemberCount: memberCount}
+		data := model.ChannelStats{ChannelId: channel.Id, MemberCount: memberCount}
 		w.Write([]byte(data.ToJson()))
 	}
 }

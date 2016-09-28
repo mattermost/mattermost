@@ -1106,7 +1106,7 @@ func TestGetChannelStats(t *testing.T) {
 
 	rget := Client.Must(Client.GetChannelStats(channel1.Id, ""))
 	data := rget.Data.(*model.ChannelStats)
-	if data.Id != channel1.Id {
+	if data.ChannelId != channel1.Id {
 		t.Fatal("couldnt't get extra info")
 	} else if data.MemberCount != 1 {
 		t.Fatal("got incorrect member count")
