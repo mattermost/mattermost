@@ -119,7 +119,7 @@ func (c *WebConn) writePump() {
 		case <-ticker.C:
 			c.webSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
 			if err := c.webSocket.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
-				l4g.Error("websocket.ticker: " + err.Error())
+				l4g.Debug("websocket.ticker: " + err.Error())
 				return
 			}
 		}
@@ -142,10 +142,6 @@ func (c *WebConn) Close() {
 	close(c.send)
 	close(c.broadcast)
 	close(c.invalidateCache)
-}
-
-func (c *WebConn) CloseSocket() {
-	c.webSocket.Close()
 }
 
 func (c *WebConn) IsMemberOfTeam(teamId string) bool {

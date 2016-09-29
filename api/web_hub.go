@@ -5,6 +5,7 @@ package api
 
 import (
 	"fmt"
+	"sync/atomic"
 
 	l4g "github.com/alecthomas/log4go"
 
@@ -20,6 +21,7 @@ type Hub struct {
 	broadcast      chan *model.WebSocketEvent
 	stop           chan string
 	invalidateUser chan string
+	shuttingDown   int32
 }
 
 var hub = &Hub{
@@ -56,6 +58,14 @@ func InvalidateCacheForChannel(channelId string) {
 	// remove me no longer needed
 }
 
+func (h *Hub) IsShuttingDown() bool {
+	if atomic.LoadInt32(&(h.shuttingDown)) != 0 {
+		return true
+	}
+
+	return false
+}
+
 func (h *Hub) Register(webConn *WebConn) {
 	h.register <- webConn
 
@@ -65,7 +75,9 @@ func (h *Hub) Register(webConn *WebConn) {
 }
 
 func (h *Hub) Unregister(webConn *WebConn) {
-	h.unregister <- webConn
+	if !h.IsShuttingDown() {
+		h.unregister <- webConn
+	}
 }
 
 func (h *Hub) Broadcast(message *model.WebSocketEvent) {
@@ -79,6 +91,9 @@ func (h *Hub) Stop() {
 }
 
 func (h *Hub) Start() {
+
+	atomic.StoreInt32(&(h.shuttingDown), 0)
+
 	go func() {
 		for {
 			select {
@@ -119,11 +134,14 @@ func (h *Hub) Start() {
 				}
 
 			case s := <-h.stop:
-				l4g.Debug(utils.T("api.web_hub.start.stopping.debug"), s)
+				l4g.Info(utils.T("api.web_hub.start.stopping.debug"), s)
+				atomic.StoreInt32(&(h.shuttingDown), 1)
 
 				for webCon := range h.connections {
-					webCon.CloseSocket()
+					webCon.Close()
 				}
+
+				h.connections = make(map[*WebConn]bool)
 
 				return
 			}
