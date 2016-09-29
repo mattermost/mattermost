@@ -1055,7 +1055,7 @@ export default class Client {
 
     getProfilesByIds(userIds, success, error) {
         request.
-            post(`${this.getUsersRoute()}/profiles_by_ids`).
+            post(`${this.getUsersRoute()}/ids`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
@@ -1330,7 +1330,7 @@ export default class Client {
 
     getChannelMember(channelId, userId, success, error) {
         request.
-            get(`${this.getChannelNeededRoute(channelId)}/member/${userId}`).
+            get(`${this.getChannelNeededRoute(channelId)}/members/${userId}`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').

@@ -567,7 +567,7 @@ func (c *Client) GetProfilesNotInChannel(channelId string, offset int, limit int
 // GetProfilesByIds returns a map of users based on the user ids provided. Must
 // be authenticated.
 func (c *Client) GetProfilesByIds(userIds []string) (*Result, *AppError) {
-	if r, err := c.DoApiPost("/users/profiles_by_ids", ArrayToJson(userIds)); err != nil {
+	if r, err := c.DoApiPost("/users/ids", ArrayToJson(userIds)); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)
@@ -1231,7 +1231,7 @@ func (c *Client) GetChannelStats(id string, etag string) (*Result, *AppError) {
 }
 
 func (c *Client) GetChannelMember(channelId string, userId string) (*Result, *AppError) {
-	if r, err := c.DoApiGet(c.GetChannelRoute(channelId)+"/member/"+userId, "", ""); err != nil {
+	if r, err := c.DoApiGet(c.GetChannelRoute(channelId)+"/members/"+userId, "", ""); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)

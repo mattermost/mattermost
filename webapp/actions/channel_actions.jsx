@@ -92,8 +92,6 @@ export function removeUserFromChannel(channelId, userId, success, error) {
             }
             UserStore.emitInChannelChange();
 
-            //AsyncClient.getChannelStats();
-
             if (success) {
                 success(data);
             }
