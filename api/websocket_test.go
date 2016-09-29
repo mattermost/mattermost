@@ -101,7 +101,7 @@ func TestWebSocketEvent(t *testing.T) {
 		}
 	}()
 
-	time.Sleep(300 * time.Millisecond)
+	time.Sleep(400 * time.Millisecond)
 
 	stop <- true
 
@@ -128,7 +128,7 @@ func TestWebSocketEvent(t *testing.T) {
 		}
 	}()
 
-	time.Sleep(300 * time.Millisecond)
+	time.Sleep(400 * time.Millisecond)
 
 	stop <- true
 
