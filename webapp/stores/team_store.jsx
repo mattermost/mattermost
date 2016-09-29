@@ -139,7 +139,7 @@ class TeamStoreClass extends EventEmitter {
         for (var index in this.team_members) {
             if (this.team_members.hasOwnProperty(index)) {
                 if (this.team_members[index].team_id === teamId) {
-                    Reflect.deleteProperty(this.team_members, index);
+                    this.team_members.splice(index, 1);
                 }
             }
         }
