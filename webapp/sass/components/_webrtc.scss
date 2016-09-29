@@ -20,7 +20,7 @@
 .webrtc__notification--rhs {
     background: $button--ready;
     border-radius: 3px 0 0 3px;
-    bottom: 10px;
+    bottom: -5px;
     color: $white;
     cursor: pointer;
     padding: 10px 15px;
@@ -40,6 +40,13 @@
 .webrtc__error {
     padding: 0 20px;
     text-align: center;
+
+    .form-group {
+        padding: 0 20px;
+        position: relative;
+        text-align: center;
+        z-index: 9999;
+    }
 
     .control-label {
         @include border-radius(3px);

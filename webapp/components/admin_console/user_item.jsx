@@ -551,6 +551,7 @@ export default class UserItem extends React.Component {
                         {authServiceText}
                         {mfaActiveText}
                     </div>
+                    {serverError}
                 </div>
                 <div className='more-modal__actions'>
                     <div className='dropdown member-drop'>
@@ -580,7 +581,6 @@ export default class UserItem extends React.Component {
                     </div>
                 </div>
                 {makeDemoteModal}
-                {serverError}
             </div>
         );
     }

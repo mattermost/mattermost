@@ -1,6 +1,15 @@
 @charset 'UTF-8';
 
 @media screen and (max-width: 768px) {
+    .app__body {
+        .edit-modal-body {
+
+            .custom-textarea {
+                max-height: 30vh;
+            }
+        }
+    }
+
     .tutorial-steps__container {
         .tutorial__content {
             .tutorial__steps {
