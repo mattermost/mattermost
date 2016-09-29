@@ -48,16 +48,12 @@
     "translation": "9월"
   },
   {
-    "id": "api.admin.add_certificate.array.app_error",
-    "translation": "요청의 'certificate' 항목에 비어있는 배열이 있습니다"
-  },
-  {
     "id": "api.admin.add_certificate.no_file.app_error",
     "translation": "요청의 'certificate' 항목에 파일이 없습니다."
   },
   {
     "id": "api.admin.add_certificate.open.app_error",
-    "translation": "인증서를 열 수 없습니다"
+    "translation": "인증서를 열 수 없습니다."
   },
   {
     "id": "api.admin.add_certificate.saving.app_error",
@@ -146,6 +142,10 @@
   {
     "id": "api.api.render.error",
     "translation": "템플릿 %v 를 렌더링하는 도중 다음 오류가 발생하였습니다: %v"
+  },
+  {
+    "id": "api.auth.unable_to_get_user.app_error",
+    "translation": "권한을 확인하기 위한 유저 정보를 가져올 수 없습니다."
   },
   {
     "id": "api.channel.add_member.added",
@@ -705,7 +705,7 @@
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
-    "translation": "시스템 관리자가 개인 링크들 저장을 할 수 없도록 했습니다."
+    "translation": "시스템 관리자가 이메일 배치 기능을 비활성화 했습니다."
   },
   {
     "id": "api.email_batching.check_pending_emails.finished_running",
@@ -812,10 +812,6 @@
   {
     "id": "api.emoji.upload.large_image.app_error",
     "translation": "이모티콘을 생성할 수 없습니다. 이미지 최대크기는 128px * 128px 입니다."
-  },
-  {
-    "id": "api.file.file_upload.exceeds",
-    "translation": "파일이 최대 이미지 용량보다 큽니다."
   },
   {
     "id": "api.file.file_upload.exceeds",
@@ -1154,6 +1150,10 @@
     "translation": "잘못된 파일 이름은 사용할 수 없습니다, filename=%v"
   },
   {
+    "id": "api.post.create_post.can_not_post_to_deleted.error",
+    "translation": "삭제된 채널에 등록할 수 없습니다."
+  },
+  {
     "id": "api.post.create_post.channel_root_id.app_error",
     "translation": "루트 아이디 매개변수의 잘못된 채널 아이디입니다."
   },
@@ -1400,6 +1400,14 @@
     "translation": "RateLimitSettings not configured properly using VaryByHeader and disabling VaryByRemoteAddr"
   },
   {
+    "id": "api.server.start_server.rate_limiting_memory_store",
+    "translation": "Unable to initalize rate limiting."
+  },
+  {
+    "id": "api.server.start_server.rate_limiting_memory_store",
+    "translation": "Unable to initalize rate limiting."
+  },
+  {
     "id": "api.server.start_server.starting.critical",
     "translation": "서버 시작중 오류, err:%v"
   },
@@ -1468,8 +1476,16 @@
     "translation": "이메일, 비밀번호: {{.Email}}, {{.Password}}\r\n"
   },
   {
+    "id": "api.slackimport.slack_add_users.merge_existing",
+    "translation": "기존 사용자 정보와 병합됩니다: {{.Email}}, {{.Username}}\r\n"
+  },
+  {
     "id": "api.slackimport.slack_add_users.unable_import",
     "translation": "불러올 수 없는 사용자: {{.Username}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_convert_channel_mentions.compile_regexp_failed.warn",
+    "translation": "Failed to compile the @mention matching regular expression for Slack user {{.UserID}} {{.Username}}"
   },
   {
     "id": "api.slackimport.slack_convert_timestamp.bad.warn",
@@ -1492,6 +1508,10 @@
     "translation": "- Slack bot posts are currently not supported.\r\n"
   },
   {
+    "id": "api.slackimport.slack_import.note3",
+    "translation": "- Additional errors may be found in the server logs.\r\n"
+  },
+  {
     "id": "api.slackimport.slack_import.notes",
     "translation": "\r\n Notes \r\n"
   },
@@ -1506,6 +1526,14 @@
   {
     "id": "api.slackimport.slack_import.zip.app_error",
     "translation": "Zip 파일을 열 수 없습니다."
+  },
+  {
+    "id": "api.slackimport.slack_parse_channels.error",
+    "translation": "슬랙 채널 파싱 중 오류가 발생했습니다. 가져오기는 계속 진행됩니다."
+  },
+  {
+    "id": "api.slackimport.slack_parse_posts.error",
+    "translation": "슬랙 글 파싱 중 오류가 발생했습니다. 가져오기는 계속 진행됩니다."
   },
   {
     "id": "api.status.init.debug",
@@ -1634,6 +1662,10 @@
   {
     "id": "api.team.signup_team.email_disabled.app_error",
     "translation": "이메일을 통한 팀 가입이 비활성화 되어있습니다."
+  },
+  {
+    "id": "api.team.update_member_roles.not_a_member",
+    "translation": "Specified user is not a member of specified team."
   },
   {
     "id": "api.team.update_team.permissions.app_error",
@@ -2356,8 +2388,32 @@
     "translation": "Outgoing webhook 토큰을 재생성할 권한이 없습니다"
   },
   {
+    "id": "api.webrtc.init.debug",
+    "translation": "WebRTC API 경로 초기화 중"
+  },
+  {
+    "id": "api.webrtc.not_available.app_error",
+    "translation": "이 서버에서 WebRTC는 사용할 수 없습니다."
+  },
+  {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "적절하지 않은 {{.Name}} 파라미터"
+  },
+  {
+    "id": "authentication.permissions.team_invite_user.description",
+    "translation": "팀 사용자 초대 권한"
+  },
+  {
+    "id": "authentication.permissions.team_invite_user.name",
+    "translation": "사용자 초대"
+  },
+  {
+    "id": "authentication.permissions.team_use_slash_commands.description",
+    "translation": "슬래시 명령어 사용 권한"
+  },
+  {
+    "id": "authentication.permissions.team_use_slash_commands.name",
+    "translation": "슬래시 명령어 사용"
   },
   {
     "id": "cli.license.critical",
@@ -2405,11 +2461,11 @@
   },
   {
     "id": "ent.cluster.incompatible_config.warn",
-    "translation": "Potential incompatibile config detected for clustering with %v"
+    "translation": "클러스터 구성환경에서 함께 쓸수 없을 수도 있는 설정이 발견되었습니다. %v"
   },
   {
     "id": "ent.cluster.licence_disable.app_error",
-    "translation": "Compliance 기능을 활성화 하려면 엔터프라이즈 라이센스가 필요합니다. 시스템 관리자에게 업그레이드를 문의해보세요."
+    "translation": "클러스터링 기능을 활성화 하려면 엔터프라이즈 라이센스가 필요합니다. 시스템 관리자에게 업그레이드를 문의해보세요."
   },
   {
     "id": "ent.cluster.ping_failed.info",
@@ -2453,11 +2509,11 @@
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
-    "translation": "Compliance 기능을 활성화 하려면 엔터프라이즈 라이센스가 필요합니다. 시스템 관리자에게 업그레이드를 문의해보세요."
+    "translation": "사용자 정의 이모티콘 제한을 활성화 하려면 엔터프라이즈 라이센스가 필요합니다. 시스템 관리자에게 업그레이드를 문의해보세요."
   },
   {
     "id": "ent.ldap.disabled.app_error",
-    "translation": "LDAP disabled or licence does not support LDAP."
+    "translation": "AD/LDAP 비활성화 되었거나 현재 라이센스에서 지원되지 않습니다."
   },
   {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
@@ -2557,7 +2613,7 @@
   },
   {
     "id": "ent.saml.attribute.app_error",
-    "translation": "SAML login was unsuccessful because one of the attributes is incorrect. Please contact your System Administrator."
+    "translation": "속성 중 하나가 올바르지 않아 SAML 로그인에 실패했습니다. 시스템 관리자에게 문의하십시오."
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -2626,6 +2682,18 @@
   {
     "id": "ent.saml.update_saml_user.unable_error",
     "translation": "Unable to update existing SAML user. Allowing login anyway. err=%v"
+  },
+  {
+    "id": "ent.webrtc.disabled.app_error",
+    "translation": "이 서버에서 WebRTC를 사용할 수 없습니다."
+  },
+  {
+    "id": "ent.webrtc.license_disable.app_error",
+    "translation": "당신의 라이센스는 Mattermost의 WebRTC 사용을 지원하지 않습니다."
+  },
+  {
+    "id": "ent.webrtc.register_token.app_error",
+    "translation": "WebRTC 토큰 등록 중에 에러가 발생하였습니다."
   },
   {
     "id": "error.generic.link_message",
@@ -3076,6 +3144,10 @@
     "translation": "Invalid maximum login attempts for service settings.  Must be a positive number."
   },
   {
+    "id": "model.config.is_valid.max_burst.app_error",
+    "translation": "Max burst must be greater than zero."
+  },
+  {
     "id": "model.config.is_valid.max_file_size.app_error",
     "translation": "잘못된 파일 최대 용량 설정입니다. 0보다 큰 값이여야 합니다."
   },
@@ -3162,6 +3234,34 @@
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
     "translation": "Invalid maximum open connection for SQL settings.  Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_gateway_admin_secret.app_error",
+    "translation": "WebRTC Gateway Admin Secret must be set."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_gateway_admin_url.app_error",
+    "translation": "WebRTC Gateway Admin Url must be set a valid URL and start with http:// or https://."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_gateway_ws_url.app_error",
+    "translation": "WebRTC Gateway Websocket Url must be a valid URL and start with ws:// or wss://."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_stun_uri.app_error",
+    "translation": "WebRTC STUN URI must be a valid URI and start with stun:"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_turn_shared_key.app_error",
+    "translation": "WebRTC TURN Shared Key cannot be empty if the TURN URI has been set."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_turn_uri.app_error",
+    "translation": "WebRTC TURN URI must be a valid URI and start with turn:"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_turn_username.app_error",
+    "translation": "WebRTC TURN Username cannot be empty if the TURN URI has been set."
   },
   {
     "id": "model.emoji.create_at.app_error",

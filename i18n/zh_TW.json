@@ -48,10 +48,6 @@
     "translation": "九月"
   },
   {
-    "id": "api.admin.add_certificate.array.app_error",
-    "translation": "要求中的 'certificate' 欄位為空陣列"
-  },
-  {
     "id": "api.admin.add_certificate.no_file.app_error",
     "translation": "要求中的 'certificate' 欄位沒有檔案"
   },
@@ -146,6 +142,10 @@
   {
     "id": "api.api.render.error",
     "translation": "樣板 %v 產生時遇到錯誤 err=%v"
+  },
+  {
+    "id": "api.auth.unable_to_get_user.app_error",
+    "translation": "無法取得使用者以檢查權限。"
   },
   {
     "id": "api.channel.add_member.added",
@@ -818,10 +818,6 @@
     "translation": "檔案大小超出最大影像限制。"
   },
   {
-    "id": "api.file.file_upload.exceeds",
-    "translation": "檔案大小超出最大影像限制。"
-  },
-  {
     "id": "api.file.get_file.not_found.app_error",
     "translation": "找不到檔案。"
   },
@@ -1154,6 +1150,10 @@
     "translation": "無效的檔名，filename=%v"
   },
   {
+    "id": "api.post.create_post.can_not_post_to_deleted.error",
+    "translation": "無法發文至已刪除的頻道。"
+  },
+  {
     "id": "api.post.create_post.channel_root_id.app_error",
     "translation": "RootId 參數的 ChannelId 無效"
   },
@@ -1400,6 +1400,14 @@
     "translation": "張貼速率限制沒有正確的設定，請使用 VaryByHeader 並停用 VaryByRemoteAddr"
   },
   {
+    "id": "api.server.start_server.rate_limiting_memory_store",
+    "translation": "無法初始化張貼速率限制。"
+  },
+  {
+    "id": "api.server.start_server.rate_limiting_memory_store",
+    "translation": "無法初始化張貼速率限制。"
+  },
+  {
     "id": "api.server.start_server.starting.critical",
     "translation": "啟動伺服器時遇到錯誤 err:%v"
   },
@@ -1468,8 +1476,16 @@
     "translation": "電子郵件，密碼： {{.Email}}，{{.Password}}\r\n"
   },
   {
+    "id": "api.slackimport.slack_add_users.merge_existing",
+    "translation": "將使用者與現有帳號合併：{{.Email}}，{{.Username}}\r\n"
+  },
+  {
     "id": "api.slackimport.slack_add_users.unable_import",
     "translation": "無法匯入使用者： {{.Username}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_convert_channel_mentions.compile_regexp_failed.warn",
+    "translation": "無法為 Slack 頻道 {{.ChannelD}} {{.ChannelName}} 編譯匹配!頻道的正規表示式"
   },
   {
     "id": "api.slackimport.slack_convert_timestamp.bad.warn",
@@ -1492,6 +1508,10 @@
     "translation": "- 目前尚未支援 Slack bot 張貼訊息。\r\n"
   },
   {
+    "id": "api.slackimport.slack_import.note3",
+    "translation": "- 伺服器紀錄也許有紀錄到額外的錯誤。\r\n"
+  },
+  {
     "id": "api.slackimport.slack_import.notes",
     "translation": "\r\n 附註 \r\n"
   },
@@ -1506,6 +1526,14 @@
   {
     "id": "api.slackimport.slack_import.zip.app_error",
     "translation": "無法開啟 zip 檔案"
+  },
+  {
+    "id": "api.slackimport.slack_parse_channels.error",
+    "translation": "解析 Slack 頻道時發生錯誤。匯入功能有可能照樣運作。"
+  },
+  {
+    "id": "api.slackimport.slack_parse_posts.error",
+    "translation": "解析 Slack 訊息時發生錯誤。匯入功能有可能照樣運作。"
   },
   {
     "id": "api.status.init.debug",
@@ -1634,6 +1662,10 @@
   {
     "id": "api.team.signup_team.email_disabled.app_error",
     "translation": "使用電子郵件註冊團隊已被停用。"
+  },
+  {
+    "id": "api.team.update_member_roles.not_a_member",
+    "translation": "指定的使用者不是指定團隊的成員。"
   },
   {
     "id": "api.team.update_team.permissions.app_error",
@@ -2356,8 +2388,32 @@
     "translation": "沒有適當的權限重新產生傳出的 Webhook Token"
   },
   {
+    "id": "api.webrtc.init.debug",
+    "translation": "正在初始化 WebRTC API 路徑"
+  },
+  {
+    "id": "api.webrtc.not_available.app_error",
+    "translation": "此伺服器不支援 WebRTC。"
+  },
+  {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "無效的參數 {{.Name}}"
+  },
+  {
+    "id": "authentication.permissions.team_invite_user.description",
+    "translation": "允許邀請使用者至團隊"
+  },
+  {
+    "id": "authentication.permissions.team_invite_user.name",
+    "translation": "邀請使用者"
+  },
+  {
+    "id": "authentication.permissions.team_use_slash_commands.description",
+    "translation": "允許使用斜線命令"
+  },
+  {
+    "id": "authentication.permissions.team_use_slash_commands.name",
+    "translation": "使用斜線命令"
   },
   {
     "id": "cli.license.critical",
@@ -2557,7 +2613,7 @@
   },
   {
     "id": "ent.saml.attribute.app_error",
-    "translation": "SAML login was unsuccessful because one of the attributes is incorrect. Please contact your System Administrator."
+    "translation": "由於不正確的屬性，SAML 登入失敗。請聯繫系統管理員。"
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -2626,6 +2682,18 @@
   {
     "id": "ent.saml.update_saml_user.unable_error",
     "translation": "無法更新現有的 SAML 使用者。總之先允許登入。err=%v"
+  },
+  {
+    "id": "ent.webrtc.disabled.app_error",
+    "translation": "此伺服器未啟用 WebRTC。"
+  },
+  {
+    "id": "ent.webrtc.license_disable.app_error",
+    "translation": "授權不支援 Mattermost WebRTC"
+  },
+  {
+    "id": "ent.webrtc.register_token.app_error",
+    "translation": "嘗試註冊 WebRTC Token時發生錯誤"
   },
   {
     "id": "error.generic.link_message",
@@ -3076,6 +3144,10 @@
     "translation": "服務設定中的最多登入嘗試次數無效。必須為正數."
   },
   {
+    "id": "model.config.is_valid.max_burst.app_error",
+    "translation": "Max burst must be greater than zero."
+  },
+  {
     "id": "model.config.is_valid.max_file_size.app_error",
     "translation": "檔案設定中的最大大小無效。必須為0或者正數。"
   },
@@ -3162,6 +3234,34 @@
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
     "translation": "SQL 設定中的最高開啟連線數無效。必須為正數。"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_gateway_admin_secret.app_error",
+    "translation": "必須設定 WebRTC 閘道管理員密碼。"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_gateway_admin_url.app_error",
+    "translation": "WebRTC 閘道管理員網址必須是以 http:// 或 https:// 起始的有效網址。"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_gateway_ws_url.app_error",
+    "translation": "WebRTC 閘道 Websocket 網址必須是以 ws:// 或 wss:// 起始的有效網址。"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_stun_uri.app_error",
+    "translation": "WebRTC STUN URI 必須是以 stun: 的有效 URI。"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_turn_shared_key.app_error",
+    "translation": "如果已設定 TURN URI，WebRTC TURN 共享金鑰不能為空。"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_turn_uri.app_error",
+    "translation": "WebRTC TURN URI 必須是以 turn: 的有效 URI。"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_turn_username.app_error",
+    "translation": "如果已設定 TURN URI，WebRTC TURN 使用者名稱不能為空。"
   },
   {
     "id": "model.emoji.create_at.app_error",

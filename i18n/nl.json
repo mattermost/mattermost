@@ -48,10 +48,6 @@
     "translation": "September"
   },
   {
-    "id": "api.admin.add_certificate.array.app_error",
-    "translation": "'certificate' veld in de aanvraag is een lege array"
-  },
-  {
     "id": "api.admin.add_certificate.no_file.app_error",
     "translation": "Geen bestand in 'certificate' veld in aanvraag"
   },
@@ -146,6 +142,10 @@
   {
     "id": "api.api.render.error",
     "translation": "Template kan niet gerenderd worden %v, fout=%v"
+  },
+  {
+    "id": "api.auth.unable_to_get_user.app_error",
+    "translation": "Niet mogelijk om de rechten te controleren."
   },
   {
     "id": "api.channel.add_member.added",
@@ -818,10 +818,6 @@
     "translation": "Bestand is groter dan maximale afbeeldings grootte."
   },
   {
-    "id": "api.file.file_upload.exceeds",
-    "translation": "Bestand is groter dan maximale afbeeldings grootte."
-  },
-  {
     "id": "api.file.get_file.not_found.app_error",
     "translation": "Kan het bestand niet vinden."
   },
@@ -1154,6 +1150,10 @@
     "translation": "Ongeldige bestandsnaam, bestandsnaam=%v"
   },
   {
+    "id": "api.post.create_post.can_not_post_to_deleted.error",
+    "translation": "Kan niet plaatsen in verwijdert kanaal."
+  },
+  {
     "id": "api.post.create_post.channel_root_id.app_error",
     "translation": "Ongeldig ChannelId voor RootId parameter"
   },
@@ -1400,6 +1400,14 @@
     "translation": "RateLimitSettings niet goed geconfigureerd met behulp van inschakelen VaryByHeader en uitschakelen VaryByRemoteAddr"
   },
   {
+    "id": "api.server.start_server.rate_limiting_memory_store",
+    "translation": "Unable to initalize rate limiting."
+  },
+  {
+    "id": "api.server.start_server.rate_limiting_memory_store",
+    "translation": "Unable to initalize rate limiting."
+  },
+  {
     "id": "api.server.start_server.starting.critical",
     "translation": "Fout bij het starten van de server, fout:%v"
   },
@@ -1468,8 +1476,16 @@
     "translation": "E-mail, Wachtwoord: {{.Email}}, {{.Password}}\r\n"
   },
   {
+    "id": "api.slackimport.slack_add_users.merge_existing",
+    "translation": "Merged user with existing account: {{.Email}}, {{.Username}}\r\n"
+  },
+  {
     "id": "api.slackimport.slack_add_users.unable_import",
     "translation": "Kan gebruiker niet importeren: {{.Username}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_convert_channel_mentions.compile_regexp_failed.warn",
+    "translation": "Mislukt om de @vermelding te maken met reguliere expressie voor Slack gebruiker {{.UserID}} {{.Username}}"
   },
   {
     "id": "api.slackimport.slack_convert_timestamp.bad.warn",
@@ -1492,6 +1508,10 @@
     "translation": "- Slack bot berichten worden op dit moment niet ondersteund.\r\n"
   },
   {
+    "id": "api.slackimport.slack_import.note3",
+    "translation": "- Additional errors may be found in the server logs.\r\n"
+  },
+  {
     "id": "api.slackimport.slack_import.notes",
     "translation": "\r\n Notities \r\n"
   },
@@ -1506,6 +1526,14 @@
   {
     "id": "api.slackimport.slack_import.zip.app_error",
     "translation": "Zip bestand kan niet worden geopend"
+  },
+  {
+    "id": "api.slackimport.slack_parse_channels.error",
+    "translation": "Error parsing slack channels. Import may work anyway."
+  },
+  {
+    "id": "api.slackimport.slack_parse_posts.error",
+    "translation": "Error parsing some slack posts. Import may work anyway."
   },
   {
     "id": "api.status.init.debug",
@@ -1617,7 +1645,7 @@
   },
   {
     "id": "api.team.is_team_creation_allowed.domain.app_error",
-    "translation": "Email moet uit bepaalde domeinen komen (b.v. @voorbeeld.nl). Neem contact op met de systeem beheerder voor meer details."
+    "translation": "Email moet uit bepaalde domeinen komen (bijv. @voorbeeld.nl). Neem contact op met de systeem beheerder voor meer details."
   },
   {
     "id": "api.team.permanent_delete_team.attempting.warn",
@@ -1634,6 +1662,10 @@
   {
     "id": "api.team.signup_team.email_disabled.app_error",
     "translation": "Team aanmelding via e-mail is uitgeschakeld."
+  },
+  {
+    "id": "api.team.update_member_roles.not_a_member",
+    "translation": "Specified user is not a member of specified team."
   },
   {
     "id": "api.team.update_team.permissions.app_error",
@@ -2356,8 +2388,32 @@
     "translation": "Ongeldige rechten om tokens voor uitgaande webhooks opnieuw te genereren"
   },
   {
+    "id": "api.webrtc.init.debug",
+    "translation": "Initialisatie van de WebRTC api routes"
+  },
+  {
+    "id": "api.webrtc.not_available.app_error",
+    "translation": "WebRTC is niet beschikbaar op deze server."
+  },
+  {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "Ongeldige {{.Name}} parameter"
+  },
+  {
+    "id": "authentication.permissions.team_invite_user.description",
+    "translation": "Mogelijkheid om gebruikers uit te nodigen in een team"
+  },
+  {
+    "id": "authentication.permissions.team_invite_user.name",
+    "translation": "Nodig Gebruiker uit"
+  },
+  {
+    "id": "authentication.permissions.team_use_slash_commands.description",
+    "translation": "Mogelijkheid om slash commando's te gebruiken"
+  },
+  {
+    "id": "authentication.permissions.team_use_slash_commands.name",
+    "translation": "Gebruik Slash Commando's"
   },
   {
     "id": "cli.license.critical",
@@ -2557,7 +2613,7 @@
   },
   {
     "id": "ent.saml.attribute.app_error",
-    "translation": "SAML login was unsuccessful because one of the attributes is incorrect. Please contact your System Administrator."
+    "translation": "SAML aanmelding is mislukt vanwege het ontbreken van encryptie. Neem contact op met de beheerder."
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -2626,6 +2682,18 @@
   {
     "id": "ent.saml.update_saml_user.unable_error",
     "translation": "Kon bestaande SAML gebruiker niet bijwerken. Inloggen toch toestaan. err=%v"
+  },
+  {
+    "id": "ent.webrtc.disabled.app_error",
+    "translation": "WebRTC is niet ingeschakeld op deze server."
+  },
+  {
+    "id": "ent.webrtc.license_disable.app_error",
+    "translation": "Your license does not support using Mattermost WebRTC"
+  },
+  {
+    "id": "ent.webrtc.register_token.app_error",
+    "translation": "We encountered an error trying to register the WebRTC Token"
   },
   {
     "id": "error.generic.link_message",
@@ -3076,6 +3144,10 @@
     "translation": "Maximaal aantal inlog poging bij service instellingen. Moet een getal grote dan 0 zijn."
   },
   {
+    "id": "model.config.is_valid.max_burst.app_error",
+    "translation": "Max burst must be greater than zero."
+  },
+  {
     "id": "model.config.is_valid.max_file_size.app_error",
     "translation": "Ongeldige maximale bestandsgrootte voor bestands-instellingen. Moet nul of groter zijn."
   },
@@ -3162,6 +3234,34 @@
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
     "translation": "Ongeldig maximaal aantal open verbindingen bij SQL instellingen. Moet een getal groter dan 0 zijn."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_gateway_admin_secret.app_error",
+    "translation": "WebRTC Gateway Admin Secret must be set."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_gateway_admin_url.app_error",
+    "translation": "WebRTC Gateway Admin Url must be set a valid URL and start with http:// or https://."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_gateway_ws_url.app_error",
+    "translation": "WebRTC Gateway Websocket Url must be a valid URL and start with ws:// or wss://."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_stun_uri.app_error",
+    "translation": "WebRTC STUN URI must be a valid URI and start with stun:"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_turn_shared_key.app_error",
+    "translation": "WebRTC TURN Shared Key cannot be empty if the TURN URI has been set."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_turn_uri.app_error",
+    "translation": "WebRTC TURN URI must be a valid URI and start with turn:"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_turn_username.app_error",
+    "translation": "WebRTC TURN Username cannot be empty if the TURN URI has been set."
   },
   {
     "id": "model.emoji.create_at.app_error",
