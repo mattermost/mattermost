@@ -4,6 +4,7 @@
 package api
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/mattermost/platform/model"
@@ -57,6 +58,7 @@ func Setup() *TestHelper {
 		utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
 		*utils.Cfg.RateLimitSettings.Enable = false
 		utils.DisableDebugLogForTest()
+		utils.License.Features.SetDefaults()
 		NewServer()
 		StartServer()
 		InitApi()
@@ -139,6 +141,37 @@ func (me *TestHelper) CreateUser(client *model.Client) *model.User {
 	ruser.Password = "Password1"
 	store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
 	utils.EnableDebugLogForTest()
+	return ruser
+}
+
+func (me *TestHelper) CreateSingleChannelGuest(client *model.Client, team *model.Team, channelId string) *model.User {
+	id := model.NewId()
+
+	user := &model.User{
+		Email:    "success+" + id + "@simulator.amazonses.com",
+		Username: "un_" + id,
+		Nickname: "nn_" + id,
+		Password: "Password1",
+	}
+
+	utils.DisableDebugLogForTest()
+
+	props := make(map[string]string)
+	props["email"] = user.Email
+	props["id"] = team.Id
+	props["display_name"] = team.DisplayName
+	props["name"] = team.Name
+	props["time"] = fmt.Sprintf("%v", model.GetMillis())
+	props["channels"] = model.ArrayToJson([]string{channelId})
+	data := model.MapToJson(props)
+	hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
+
+	ruser := client.Must(client.CreateUserWithInvite(user, hash, data, team.InviteId)).Data.(*model.User)
+	ruser.Password = "Password1"
+	store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
+
+	utils.EnableDebugLogForTest()
+
 	return ruser
 }
 

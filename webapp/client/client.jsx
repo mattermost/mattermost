@@ -582,6 +582,18 @@ export default class Client {
         this.track('api', 'api_teams_invite_members');
     }
 
+    inviteGuests(data, success, error) {
+        request.
+            post(`${this.getTeamNeededRoute()}/invite_guests`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(data).
+            end(this.handleResponse.bind(this, 'inviteGuests', success, error));
+
+        this.track('api', 'api_teams_invite_guests');
+    }
+
     addUserToTeam(teamId, userId, success, error) {
         let nonEmptyTeamId = teamId;
         if (nonEmptyTeamId === '') {
@@ -744,6 +756,23 @@ export default class Client {
             end(this.handleResponse.bind(this, 'updateTeamMemberRoles', success, error));
 
         this.track('api', 'api_teams_update_member_roles');
+    }
+
+    promoteGuest(teamId, userId, success, error) {
+        const data = {
+            user_id: userId,
+            team_id: teamId
+        };
+
+        request.
+            post(`${this.getUsersRoute()}/promote_guest`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(data).
+            end(this.handleResponse.bind(this, 'promoteGuest', success, error));
+
+        this.track('api', 'api_users_promote_guest');
     }
 
     updateActive(userId, active, success, error) {

@@ -109,6 +109,7 @@ export default class NavbarDropdown extends React.Component {
         var currentUser = this.props.currentUser;
         var isAdmin = false;
         var isSystemAdmin = false;
+        var isGuest = false;
         var teamSettings = null;
         let integrationsLink = null;
 
@@ -119,22 +120,24 @@ export default class NavbarDropdown extends React.Component {
         if (currentUser != null) {
             isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
             isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
+            isGuest = TeamStore.isGuestForCurrentTeam();
 
-            inviteLink = (
-                <li>
-                    <a
-                        href='#'
-                        onClick={GlobalActions.showInviteMemberModal}
-                    >
-                        <FormattedMessage
-                            id='navbar_dropdown.inviteMember'
-                            defaultMessage='Invite New Member'
-                        />
-                    </a>
-                </li>
-            );
+            if (!isGuest) {
+                inviteLink = (
+                    <li>
+                        <Link
+                            to={'/' + this.props.teamName + '/invite_members'}
+                        >
+                            <FormattedMessage
+                                id='navbar_dropdown.inviteMember'
+                                defaultMessage='Invite New Member'
+                            />
+                        </Link>
+                    </li>
+                );
+            }
 
-            if (this.props.teamType === Constants.OPEN_TEAM && config.EnableUserCreation === 'true') {
+            if (this.props.teamType === Constants.OPEN_TEAM && config.EnableUserCreation === 'true' && !isGuest) {
                 teamLink = (
                     <li>
                         <a
@@ -242,7 +245,7 @@ export default class NavbarDropdown extends React.Component {
 
         var teams = [];
 
-        if (config.EnableTeamCreation === 'true') {
+        if (config.EnableTeamCreation === 'true' && !isGuest) {
             teams.push(
                 <li key='newTeam_li'>
                     <Link
@@ -259,19 +262,21 @@ export default class NavbarDropdown extends React.Component {
             );
         }
 
-        teams.push(
-            <li key='leaveTeam_li'>
-                <a
-                    href='#'
-                    onClick={GlobalActions.showLeaveTeamModal}
-                >
-                    <FormattedMessage
-                        id='navbar_dropdown.leave'
-                        defaultMessage='Leave Team'
-                    />
-                </a>
-            </li>
-        );
+        if (!isGuest) {
+            teams.push(
+                <li key='leaveTeam_li'>
+                    <a
+                        href='#'
+                        onClick={GlobalActions.showLeaveTeamModal}
+                    >
+                        <FormattedMessage
+                            id='navbar_dropdown.leave'
+                            defaultMessage='Leave Team'
+                        />
+                    </a>
+                </li>
+            );
+        }
 
         if (this.state.teamMembers && this.state.teamMembers.length > 1) {
             teams.push(

@@ -36,6 +36,22 @@ type Invites struct {
 	Invites []map[string]string `json:"invites"`
 }
 
+type GuestInvites struct {
+	Emails   []string `json:"emails"`
+	Channels []string `json:"channels"`
+}
+
+func GuestInvitesFromJson(data io.Reader) *GuestInvites {
+	decoder := json.NewDecoder(data)
+	var o GuestInvites
+	err := decoder.Decode(&o)
+	if err == nil {
+		return &o
+	} else {
+		return nil
+	}
+}
+
 func InvitesFromJson(data io.Reader) *Invites {
 	decoder := json.NewDecoder(data)
 	var o Invites

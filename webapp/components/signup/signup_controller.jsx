@@ -79,16 +79,11 @@ export default class SignupController extends React.Component {
                             }
                         );
                     },
-                    () => {
+                    (err) => {
                         this.setState({ // eslint-disable-line react/no-did-mount-set-state
                             noOpenServerError: true,
                             loading: false,
-                            serverError: (
-                                <FormattedMessage
-                                    id='signup_user_completed.invalid_invite'
-                                    defaultMessage='The invite link was invalid.  Please speak with your Administrator to receive an invitation.'
-                                />
-                            )
+                            serverError: err.message
                         });
                     }
                 );
@@ -109,16 +104,11 @@ export default class SignupController extends React.Component {
                             loading: false
                         });
                     },
-                    () => {
+                    (err) => {
                         this.setState({ // eslint-disable-line react/no-did-mount-set-state
                             noOpenServerError: true,
                             loading: false,
-                            serverError: (
-                                <FormattedMessage
-                                    id='signup_user_completed.invalid_invite'
-                                    defaultMessage='The invite link was invalid.  Please speak with your Administrator to receive an invitation.'
-                                />
-                            )
+                            serverError: err.message
                         });
                     }
                 );
@@ -128,6 +118,11 @@ export default class SignupController extends React.Component {
 
             if (userLoggedIn) {
                 browserHistory.push('/select_team');
+            }
+
+            const parsedData = JSON.parse(data);
+            if (parsedData.channels) {
+                browserHistory.push('/signup_email' + window.location.search);
             }
         }
     }

@@ -219,6 +219,7 @@ export const Constants = {
         TOTAL_HASHTAG_POSTS: null,
         TOTAL_IHOOKS: null,
         TOTAL_OHOOKS: null,
+        TOTAL_SINGLE_CHANNEL_GUEST_COUNT: null,
         TOTAL_COMMANDS: null,
         TOTAL_SESSIONS: null,
         POST_PER_DAY: null,

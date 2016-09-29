@@ -457,7 +457,7 @@ func join(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var outChannel *model.Channel = nil
 	if channelId != "" {
-		if err, channel := JoinChannelById(c, c.Session.UserId, channelId); err != nil {
+		if err, channel := JoinChannelById(c, c.Session.UserId, channelId, model.ROLE_CHANNEL_USER.Id); err != nil {
 			c.Err = err
 			c.Err.StatusCode = http.StatusForbidden
 			return
@@ -465,7 +465,7 @@ func join(c *Context, w http.ResponseWriter, r *http.Request) {
 			outChannel = channel
 		}
 	} else if channelName != "" {
-		if err, channel := JoinChannelByName(c, c.Session.UserId, c.TeamId, channelName); err != nil {
+		if err, channel := JoinChannelByName(c, c.Session.UserId, c.TeamId, channelName, model.ROLE_CHANNEL_USER.Id); err != nil {
 			c.Err = err
 			c.Err.StatusCode = http.StatusForbidden
 			return
@@ -479,21 +479,21 @@ func join(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(outChannel.ToJson()))
 }
 
-func JoinChannelByName(c *Context, userId string, teamId string, channelName string) (*model.AppError, *model.Channel) {
+func JoinChannelByName(c *Context, userId string, teamId string, channelName string, roles string) (*model.AppError, *model.Channel) {
 	channelChannel := Srv.Store.Channel().GetByName(teamId, channelName)
 	userChannel := Srv.Store.User().Get(userId)
 
-	return joinChannel(c, channelChannel, userChannel)
+	return joinChannel(c, channelChannel, userChannel, roles)
 }
 
-func JoinChannelById(c *Context, userId string, channelId string) (*model.AppError, *model.Channel) {
+func JoinChannelById(c *Context, userId string, channelId string, roles string) (*model.AppError, *model.Channel) {
 	channelChannel := Srv.Store.Channel().Get(channelId)
 	userChannel := Srv.Store.User().Get(userId)
 
-	return joinChannel(c, channelChannel, userChannel)
+	return joinChannel(c, channelChannel, userChannel, roles)
 }
 
-func joinChannel(c *Context, channelChannel store.StoreChannel, userChannel store.StoreChannel) (*model.AppError, *model.Channel) {
+func joinChannel(c *Context, channelChannel store.StoreChannel, userChannel store.StoreChannel, roles string) (*model.AppError, *model.Channel) {
 	if cresult := <-channelChannel; cresult.Err != nil {
 		return cresult.Err, nil
 	} else if uresult := <-userChannel; uresult.Err != nil {
@@ -512,7 +512,7 @@ func joinChannel(c *Context, channelChannel store.StoreChannel, userChannel stor
 		}
 
 		if channel.Type == model.CHANNEL_OPEN {
-			if _, err := AddUserToChannel(user, channel); err != nil {
+			if _, err := AddUserToChannel(user, channel, roles); err != nil {
 				return err, nil
 			}
 			go PostUserAddRemoveMessage(c, channel.Id, fmt.Sprintf(utils.T("api.channel.join_channel.post_and_forget"), user.Username), model.POST_JOIN_LEAVE)
@@ -535,7 +535,7 @@ func PostUserAddRemoveMessage(c *Context, channelId string, message, postType st
 	}
 }
 
-func AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
+func AddUserToChannel(user *model.User, channel *model.Channel, roles string) (*model.ChannelMember, *model.AppError) {
 	if channel.DeleteAt > 0 {
 		return nil, model.NewLocAppError("AddUserToChannel", "api.channel.add_user_to_channel.deleted.app_error", nil, "")
 	}
@@ -569,7 +569,7 @@ func AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelM
 		ChannelId:   channel.Id,
 		UserId:      user.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
-		Roles:       model.ROLE_CHANNEL_USER.Id,
+		Roles:       roles,
 	}
 	if result := <-Srv.Store.Channel().SaveMember(newMember); result.Err != nil {
 		l4g.Error("Failed to add member user_id=%v channel_id=%v err=%v", user.Id, channel.Id, result.Err)
@@ -1030,7 +1030,7 @@ func addMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			oUser := oresult.Data.(*model.User)
 
-			cm, err := AddUserToChannel(nUser, channel)
+			cm, err := AddUserToChannel(nUser, channel, model.ROLE_CHANNEL_USER.Id)
 			if err != nil {
 				c.Err = err
 				return

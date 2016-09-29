@@ -1,4 +1,3 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package api
@@ -38,6 +37,7 @@ func InitTeam() {
 	BaseRoutes.NeedTeam.Handle("/update_member_roles", ApiUserRequired(updateMemberRoles)).Methods("POST")
 
 	BaseRoutes.NeedTeam.Handle("/invite_members", ApiUserRequired(inviteMembers)).Methods("POST")
+	BaseRoutes.NeedTeam.Handle("/invite_guests", ApiUserRequired(inviteGuests)).Methods("POST")
 
 	BaseRoutes.NeedTeam.Handle("/add_user_to_team", ApiUserRequired(addUserToTeam)).Methods("POST")
 	BaseRoutes.NeedTeam.Handle("/remove_user_from_team", ApiUserRequired(removeUserFromTeam)).Methods("POST")
@@ -256,6 +256,42 @@ func JoinUserToTeamById(teamId string, user *model.User) *model.AppError {
 	} else {
 		return JoinUserToTeam(result.Data.(*model.Team), user)
 	}
+}
+
+func JoinUserToTeamAsGuest(team *model.Team, user *model.User) *model.AppError {
+	tm := &model.TeamMember{
+		TeamId: team.Id,
+		UserId: user.Id,
+		Roles:  model.ROLE_TEAM_GUEST.Id,
+	}
+
+	if etmr := <-Srv.Store.Team().GetMember(team.Id, user.Id); etmr.Err == nil {
+		// Membership alredy exists.  Check if deleted and and update, otherwise do nothing
+		rtm := etmr.Data.(model.TeamMember)
+
+		// Do nothing if already added
+		if rtm.DeleteAt == 0 {
+			return nil
+		}
+
+		if tmr := <-Srv.Store.Team().UpdateMember(tm); tmr.Err != nil {
+			return tmr.Err
+		}
+	} else {
+		// Membership appears to be missing.  Lets try to add.
+		if tmr := <-Srv.Store.Team().SaveMember(tm); tmr.Err != nil {
+			return tmr.Err
+		}
+	}
+
+	if uua := <-Srv.Store.User().UpdateUpdateAt(user.Id); uua.Err != nil {
+		return uua.Err
+	}
+
+	// This message goes to everyone, so the teamId, channelId and userId are irrelevant
+	go Publish(model.NewWebSocketEvent(model.WEBSOCKET_EVENT_NEW_USER, "", "", "", nil))
+
+	return nil
 }
 
 func JoinUserToTeam(team *model.Team, user *model.User) *model.AppError {
@@ -522,6 +558,46 @@ func inviteMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(invites.ToJson()))
 }
 
+func inviteGuests(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !*utils.Cfg.TeamSettings.EnableGuestAccounts || !*utils.License.Features.GuestAccounts {
+		c.Err = model.NewLocAppError("inviteGuests", "api.team.invite_guests.disabled", nil, "")
+		return
+	}
+
+	invites := model.GuestInvitesFromJson(r.Body)
+	if invites == nil || len(invites.Emails) == 0 || len(invites.Channels) == 0 {
+		c.SetInvalidParam("inviteGuests", "invites")
+		return
+	}
+
+	if !HasPermissionToCurrentTeamContext(c, model.PERMISSION_INVITE_GUEST) {
+		return
+	}
+
+	tchan := Srv.Store.Team().Get(c.TeamId)
+	uchan := Srv.Store.User().Get(c.Session.UserId)
+
+	var team *model.Team
+	if result := <-tchan; result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		team = result.Data.(*model.Team)
+	}
+
+	var user *model.User
+	if result := <-uchan; result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		user = result.Data.(*model.User)
+	}
+
+	InviteGuests(c, team, user, invites)
+
+	return
+}
+
 func addUserToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := model.MapFromJson(r.Body)
 	userId := params["user_id"]
@@ -632,6 +708,11 @@ func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request)
 
 		teamId = props["id"]
 
+		if _, ok := props["channels"]; ok {
+			c.Err = model.NewLocAppError("addUserToTeamFromInvite", "api.user.create_user.signup_link_guest_only_one.app_error", nil, "")
+			return
+		}
+
 		// try to load the team to make sure it exists
 		if result := <-Srv.Store.Team().Get(teamId); result.Err != nil {
 			c.Err = result.Err
@@ -664,6 +745,11 @@ func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	} else {
 		user = result.Data.(*model.User)
+	}
+
+	if !HasPermissionTo(user, model.PERMISSION_BE_INVITED_TO_TEAM) {
+		c.Err = model.NewLocAppError("addUserToTeamFromInvite", "api.user.create_user.signup_link_guest_only_one.app_error", nil, "")
+		return
 	}
 
 	tm := c.Session.GetTeamByTeamId(teamId)
@@ -741,6 +827,47 @@ func InviteMembers(c *Context, team *model.Team, user *model.User, invites []str
 			if err := utils.SendMail(invite, subjectPage.Render(), bodyPage.Render()); err != nil {
 				l4g.Error(utils.T("api.team.invite_members.send.error"), err)
 			}
+		}
+	}
+}
+
+func InviteGuests(c *Context, team *model.Team, user *model.User, invites *model.GuestInvites) {
+	sender := user.GetDisplayName()
+
+	senderRole := c.T("api.team.invite_members.member")
+
+	subjectPage := utils.NewHTMLTemplate("invite_subject", c.Locale)
+	subjectPage.Props["Subject"] = c.T("api.templates.invite_subject_guest",
+		map[string]interface{}{"SenderName": sender, "TeamDisplayName": team.DisplayName, "SiteName": utils.ClientCfg["SiteName"]})
+
+	bodyPage := utils.NewHTMLTemplate("invite_body", c.Locale)
+	bodyPage.Props["SiteURL"] = c.GetSiteURL()
+	bodyPage.Props["Title"] = c.T("api.templates.invite_body.title")
+	bodyPage.Html["Info"] = template.HTML(c.T("api.templates.invite_guest_body.info",
+		map[string]interface{}{"SenderStatus": senderRole, "SenderName": sender, "TeamDisplayName": team.DisplayName}))
+	bodyPage.Props["Button"] = c.T("api.templates.invite_body.button")
+	bodyPage.Html["ExtraInfo"] = template.HTML(c.T("api.templates.invite_body.extra_info",
+		map[string]interface{}{"TeamDisplayName": team.DisplayName, "TeamURL": c.GetTeamURL()}))
+
+	props := make(map[string]string)
+	props["id"] = team.Id
+	props["display_name"] = team.DisplayName
+	props["name"] = team.Name
+	props["time"] = fmt.Sprintf("%v", model.GetMillis())
+	props["channels"] = model.ArrayToJson(invites.Channels)
+
+	for _, email := range invites.Emails {
+		props["email"] = email
+		data := model.MapToJson(props)
+		hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
+		bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&h=%s", c.GetSiteURL(), url.QueryEscape(data), url.QueryEscape(hash))
+
+		if !utils.Cfg.EmailSettings.SendEmailNotifications {
+			l4g.Info(utils.T("api.team.invite_members.sending.info"), email, bodyPage.Props["Link"])
+		}
+
+		if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render()); err != nil {
+			l4g.Error(utils.T("api.team.invite_members.send.error"), err)
 		}
 	}
 }

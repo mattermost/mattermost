@@ -19,6 +19,7 @@ export default class TeamMembersDropdown extends React.Component {
         super(props);
 
         this.handleMakeMember = this.handleMakeMember.bind(this);
+        this.handleMakeFullMember = this.handleMakeFullMember.bind(this);
         this.handleRemoveFromTeam = this.handleRemoveFromTeam.bind(this);
         this.handleMakeActive = this.handleMakeActive.bind(this);
         this.handleMakeNotActive = this.handleMakeNotActive.bind(this);
@@ -84,6 +85,19 @@ export default class TeamMembersDropdown extends React.Component {
                 AsyncClient.getTeamMembers(TeamStore.getCurrentId());
                 AsyncClient.getProfiles();
                 AsyncClient.getChannelExtraInfo(ChannelStore.getCurrentId());
+            },
+            (err) => {
+                this.setState({serverError: err.message});
+            }
+        );
+    }
+    handleMakeFullMember() {
+        Client.promoteGuest(
+            this.props.teamMember.team_id,
+            this.props.user.id,
+            () => {
+                AsyncClient.getTeamMembers(TeamStore.getCurrentId());
+                AsyncClient.getProfiles();
             },
             (err) => {
                 this.setState({serverError: err.message});
@@ -185,11 +199,21 @@ export default class TeamMembersDropdown extends React.Component {
             );
         }
 
+        if (user.roles.length > 0 && Utils.isGuest(user.roles)) {
+            currentRoles = (
+                <FormattedMessage
+                    id='team_members_dropdown.guest'
+                    defaultMessage='Guest'
+                />
+            );
+        }
+
         const me = UserStore.getCurrentUser();
         let showMakeMember = Utils.isAdmin(teamMember.roles) && !Utils.isSystemAdmin(user.roles);
         let showMakeAdmin = !Utils.isAdmin(teamMember.roles) && !Utils.isSystemAdmin(user.roles);
         let showMakeActive = false;
         let showMakeNotActive = Utils.isSystemAdmin(user.roles);
+        let showMakeFullMember = Utils.isGuest(teamMember.roles);
 
         if (user.delete_at > 0) {
             currentRoles = (
@@ -202,6 +226,25 @@ export default class TeamMembersDropdown extends React.Component {
             showMakeAdmin = false;
             showMakeActive = true;
             showMakeNotActive = false;
+            showMakeFullMember = false;
+        }
+
+        let makeFullMember = null;
+        if (showMakeFullMember) {
+            makeFullMember = (
+                <li role='presentation'>
+                    <a
+                        role='menuitem'
+                        href='#'
+                        onClick={this.handleMakeFullMember}
+                    >
+                        <FormattedMessage
+                            id='team_members_dropdown.makeFullMember'
+                            defaultMessage='Make Full Member'
+                        />
+                    </a>
+                </li>
+            );
         }
 
         let makeAdmin = null;
@@ -361,6 +404,7 @@ export default class TeamMembersDropdown extends React.Component {
                     {removeFromTeam}
                     {makeAdmin}
                     {makeMember}
+                    {makeFullMember}
                     {makeActive}
                     {makeNotActive}
                 </ul>

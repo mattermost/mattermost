@@ -314,6 +314,8 @@
   "admin.general.policy.restrictPublicChannelManagementTitle": "Enable public channel management permissions for:",
   "admin.general.policy.teamInviteDescription": "Set policy on who can invite others to a team using <b>Invite New Member</b> to invite new users by email, or the <b>Get Team Invite Link</b> options from the Main Menu. If <b>Get Team Invite Link</b> is used to share a link, you can expire the invite code from <b>Team Settings</b> > <b>Invite Code</b> after the desired users join the team.",
   "admin.general.policy.teamInviteTitle": "Enable sending team invites from:",
+  "admin.general.policy.enable_guest_accounts.description": "When true, any user who is able to send team invites will have the option to invite guest accounts that only have access to one channel on a team. Single-channel guest accounts do not count as a user for billing purposes.",
+  "admin.general.policy.enable_guest_accounts.title": "Enable Guest Accounts:",
   "admin.general.privacy": "Privacy",
   "admin.general.usersAndTeams": "Users and Teams",
   "admin.gitab.clientSecretDescription": "Obtain this value via the instructions above for logging into GitLab.",
@@ -1426,6 +1428,7 @@
   "invite_member.send": "Send Invitation",
   "invite_member.send2": "Send Invitations",
   "invite_member.sending": " Sending",
+  "invite_member.success": "Members sucessfully invited.",
   "invite_member.teamInviteLink": "You can also invite people using the {link}.",
   "ldap_signup.find": "Find my teams",
   "ldap_signup.ldap": "Create team with AD/LDAP Account",
@@ -1737,6 +1740,7 @@
   "team_members_dropdown.member": "Member",
   "team_members_dropdown.systemAdmin": "System Admin",
   "team_members_dropdown.teamAdmin": "Team Admin",
+  "team_members_dropdown.guest": "Guest",
   "team_settings_modal.exportTab": "Export",
   "team_settings_modal.generalTab": "General",
   "team_settings_modal.importTab": "Import",
@@ -2069,5 +2073,6 @@
   "youtube_video.notFound": "Video not found",
   "channel_header.webrtc.unavailable": "New call unavailable until your existing call ends",
   "user_profile.webrtc.unavailable": "New call unavailable until your existing call ends",
-  "admin.sidebar.webrtc": "WebRTC (Beta)"
+  "admin.sidebar.webrtc": "WebRTC (Beta)",
+  "user_list.guest_identifier": " - Guest"
 }

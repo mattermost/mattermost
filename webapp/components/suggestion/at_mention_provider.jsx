@@ -30,7 +30,7 @@ class AtMentionSuggestion extends Suggestion {
                     id='suggestion.mention.all'
                     defaultMessage='Notifies everyone in the channel, use in {townsquare} to notify the whole team'
                     values={{
-                        townsquare: ChannelStore.getByName('town-square').display_name
+                        townsquare: Utils.getNameOfTownSquare()
                     }}
                 />
             );

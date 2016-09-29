@@ -159,6 +159,26 @@ export default class ChannelMembersModal extends React.Component {
             );
         }
 
+        let buttonAddMembers = (
+            <a
+                className='btn btn-md btn-primary'
+                href='#'
+                onClick={() => {
+                    this.setState({showInviteModal: true});
+                    this.props.onModalDismissed();
+                }}
+            >
+                <FormattedMessage
+                    id='channel_members_modal.addNew'
+                    defaultMessage=' Add New Members'
+                />
+            </a>
+        );
+
+        if (this.props.isGuest) {
+            buttonAddMembers = null;
+        }
+
         return (
             <div>
                 <Modal
@@ -174,19 +194,7 @@ export default class ChannelMembersModal extends React.Component {
                                 defaultMessage=' Members'
                             />
                         </Modal.Title>
-                        <a
-                            className='btn btn-md btn-primary'
-                            href='#'
-                            onClick={() => {
-                                this.setState({showInviteModal: true});
-                                this.props.onModalDismissed();
-                            }}
-                        >
-                            <FormattedMessage
-                                id='channel_members_modal.addNew'
-                                defaultMessage=' Add New Members'
-                            />
-                        </a>
+                        {buttonAddMembers}
                     </Modal.Header>
                     <Modal.Body
                         ref='modalBody'
@@ -224,5 +232,6 @@ ChannelMembersModal.propTypes = {
     show: React.PropTypes.bool.isRequired,
     onModalDismissed: React.PropTypes.func.isRequired,
     channel: React.PropTypes.object.isRequired,
-    isAdmin: React.PropTypes.bool.isRequired
+    isAdmin: React.PropTypes.bool.isRequired,
+    isGuest: React.PropTypes.bool.isRequired
 };

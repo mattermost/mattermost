@@ -402,13 +402,14 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(r.Data.(model.AnalyticsRows).ToJson()))
 		}
 	} else if name == "extra_counts" {
-		var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 6)
+		var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 7)
 		rows[0] = &model.AnalyticsRow{"file_post_count", 0}
 		rows[1] = &model.AnalyticsRow{"hashtag_post_count", 0}
 		rows[2] = &model.AnalyticsRow{"incoming_webhook_count", 0}
 		rows[3] = &model.AnalyticsRow{"outgoing_webhook_count", 0}
 		rows[4] = &model.AnalyticsRow{"command_count", 0}
 		rows[5] = &model.AnalyticsRow{"session_count", 0}
+		rows[6] = &model.AnalyticsRow{"single_channel_guest_count", 0}
 
 		fileChan := Srv.Store.Post().AnalyticsPostCount(teamId, true, false)
 		hashtagChan := Srv.Store.Post().AnalyticsPostCount(teamId, false, true)
@@ -416,6 +417,7 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 		oHookChan := Srv.Store.Webhook().AnalyticsOutgoingCount(teamId)
 		commandChan := Srv.Store.Command().AnalyticsCommandCount(teamId)
 		sessionChan := Srv.Store.Session().AnalyticsSessionCount()
+		singleChannelGuestChan := Srv.Store.User().AnalyticsSingleChannelGuestUserCount(teamId)
 
 		if r := <-fileChan; r.Err != nil {
 			c.Err = r.Err
@@ -457,6 +459,13 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		} else {
 			rows[5].Value = float64(r.Data.(int64))
+		}
+
+		if r := <-singleChannelGuestChan; r.Err != nil {
+			c.Err = r.Err
+			return
+		} else {
+			rows[6].Value = float64(r.Data.(int64))
 		}
 
 		w.Write([]byte(rows.ToJson()))

@@ -381,6 +381,73 @@ func TestTeamPermDelete(t *testing.T) {
 
 func TestInviteMembers(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	Client := th.BasicClient
+	SystemAdminClient := th.SystemAdminClient
+
+	isLicensed := utils.IsLicensed
+	enableGuestAccounts := *utils.Cfg.TeamSettings.EnableGuestAccounts
+	defer func() {
+		utils.IsLicensed = isLicensed
+		*utils.License.Features.GuestAccounts = false
+		*utils.Cfg.TeamSettings.EnableGuestAccounts = enableGuestAccounts
+	}()
+	utils.IsLicensed = true
+	*utils.License.Features.GuestAccounts = true
+	*utils.Cfg.TeamSettings.EnableGuestAccounts = true
+
+	Client.SetTeamId(th.BasicTeam.Id)
+
+	var emails []string
+	emails = append(emails, "success+"+model.NewId()+"@simulator.amazonses.com")
+	var channels []string
+	channels = append(channels, th.BasicChannel.Name)
+
+	if _, err := Client.InviteGuests(emails, channels); err != nil {
+		t.Fatal(err)
+	}
+
+	var emails2 []string
+	if _, err := Client.InviteGuests(emails2, channels); err == nil {
+		t.Fatal("Should have errored out on no invites to send")
+	}
+
+	restrictTeamInvite := *utils.Cfg.TeamSettings.RestrictTeamInvite
+	defer func() {
+		*utils.Cfg.TeamSettings.RestrictTeamInvite = restrictTeamInvite
+		utils.SetDefaultRolesBasedOnConfig()
+	}()
+	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN
+	utils.SetDefaultRolesBasedOnConfig()
+
+	if _, err := Client.InviteGuests(emails, channels); err == nil {
+		t.Fatal("should have errored not team admin and licensed")
+	}
+
+	UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
+	Client.Logout()
+	th.LoginBasic()
+	Client.SetTeamId(th.BasicTeam.Id)
+
+	if _, err := Client.InviteGuests(emails, channels); err != nil {
+		t.Fatal(err)
+	}
+
+	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_SYSTEM_ADMIN
+	utils.SetDefaultRolesBasedOnConfig()
+
+	if _, err := Client.InviteGuests(emails, channels); err == nil {
+		t.Fatal("should have errored not system admin and licensed")
+	}
+
+	LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
+
+	if _, err := SystemAdminClient.InviteGuests(emails, channels); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestInviteGuests(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
 	th.BasicClient.Logout()
 	Client := th.BasicClient
 	SystemAdminClient := th.SystemAdminClient

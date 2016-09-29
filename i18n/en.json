@@ -1664,6 +1664,10 @@
     "translation": "Team creation has been disabled. Please ask your systems administrator for details."
   },
   {
+    "id": "api.team.invite_guests.disabled",
+    "translation": "Guest accounts are not enabled on this server. Please ask your systems administrator for details."
+  },
+  {
     "id": "api.team.is_team_creation_allowed.domain.app_error",
     "translation": "Email must be from a specific domain (e.g. @example.com). Please ask your systems administrator for details."
   },
@@ -1764,12 +1768,20 @@
     "translation": "The team {{.SenderStatus}} <strong>{{.SenderName}}</strong>, has invited you to join <strong>{{.TeamDisplayName}}</strong>."
   },
   {
+    "id": "api.templates.invite_guest_body.info",
+    "translation": "The team {{.SenderStatus}} <strong>{{.SenderName}}</strong>, has invited you to join <strong>{{.TeamDisplayName}}</strong> as a guest."
+  },
+  {
     "id": "api.templates.invite_body.title",
     "translation": "You've been invited"
   },
   {
     "id": "api.templates.invite_subject",
     "translation": "{{ .SenderName }} invited you to join {{ .TeamDisplayName }} Team on {{.SiteName}}"
+  },
+  {
+    "id": "api.templates.invite_subject_guest",
+    "translation": "{{ .SenderName }} invited you to join {{ .TeamDisplayName }} Team on {{.SiteName}} as a guest"
   },
   {
     "id": "api.templates.password_change_body.info",
@@ -2034,6 +2046,10 @@
   {
     "id": "api.user.create_user.signup_link_invalid.app_error",
     "translation": "The signup link does not appear to be valid"
+  },
+  {
+    "id": "api.user.create_user.signup_link_guest_only_one.app_error",
+    "translation": "Guest accounts may only be added to one team."
   },
   {
     "id": "api.user.create_user.team_name.app_error",
@@ -2926,6 +2942,10 @@
   {
     "id": "model.channel_member.is_valid.user_id.app_error",
     "translation": "Invalid user id"
+  },
+  {
+    "id": "model.client.invite_guests.app_error",
+    "translation": "Failed to invite guests due to inability to convert to json"
   },
   {
     "id": "model.client.connecting.app_error",
@@ -4530,6 +4550,10 @@
   {
     "id": "store.sql_user.analytics_unique_user_count.app_error",
     "translation": "We couldn't get the unique user count"
+  },
+  {
+    "id": "store.sql_user.analytics_single_channel_guest_count.app_error",
+    "translation": "We couldn't get the signle channelguest count"
   },
   {
     "id": "store.sql_user.get.app_error",

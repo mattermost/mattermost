@@ -70,12 +70,14 @@ func SetDefaultRolesBasedOnConfig() {
 		model.ROLE_TEAM_ADMIN.Permissions = append(
 			model.ROLE_TEAM_ADMIN.Permissions,
 			model.PERMISSION_INVITE_USER.Id,
+			model.PERMISSION_INVITE_GUEST.Id,
 		)
 		// If it's not restricted to system admin or team admin, then give all users permission
 	} else if *Cfg.TeamSettings.RestrictTeamInvite != model.PERMISSIONS_SYSTEM_ADMIN {
 		model.ROLE_SYSTEM_USER.Permissions = append(
 			model.ROLE_SYSTEM_USER.Permissions,
 			model.PERMISSION_INVITE_USER.Id,
+			model.PERMISSION_INVITE_GUEST.Id,
 		)
 	}
 }

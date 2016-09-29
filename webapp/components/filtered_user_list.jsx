@@ -157,10 +157,7 @@ class FilteredUserList extends React.Component {
 
         let teamToggle;
 
-        let teamMembers = this.props.teamMembers;
         if (this.props.showTeamToggle) {
-            teamMembers = [];
-
             teamToggle = (
                 <div className='member-select__container'>
                     <select
@@ -212,7 +209,7 @@ class FilteredUserList extends React.Component {
                 >
                     <UserList
                         users={users}
-                        teamMembers={teamMembers}
+                        teamMembers={this.props.teamMembers}
                         actions={this.props.actions}
                         actionProps={this.props.actionProps}
                     />

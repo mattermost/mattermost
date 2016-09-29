@@ -6,6 +6,7 @@ import React from 'react';
 import AdminSettings from './admin_settings.jsx';
 import SettingsGroup from './settings_group.jsx';
 import DropdownSetting from './dropdown_setting.jsx';
+import BooleanSetting from './boolean_setting.jsx';
 
 import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -25,6 +26,7 @@ export default class PolicySettings extends AdminSettings {
         config.TeamSettings.RestrictTeamInvite = this.state.restrictTeamInvite;
         config.TeamSettings.RestrictPublicChannelManagement = this.state.restrictPublicChannelManagement;
         config.TeamSettings.RestrictPrivateChannelManagement = this.state.restrictPrivateChannelManagement;
+        config.TeamSettings.EnableGuestAccounts = this.state.enableGuestAccounts;
 
         return config;
     }
@@ -33,7 +35,8 @@ export default class PolicySettings extends AdminSettings {
         return {
             restrictTeamInvite: config.TeamSettings.RestrictTeamInvite,
             restrictPublicChannelManagement: config.TeamSettings.RestrictPublicChannelManagement,
-            restrictPrivateChannelManagement: config.TeamSettings.RestrictPrivateChannelManagement
+            restrictPrivateChannelManagement: config.TeamSettings.RestrictPrivateChannelManagement,
+            enableGuestAccounts: config.TeamSettings.EnableGuestAccounts
         };
     }
 
@@ -72,6 +75,23 @@ export default class PolicySettings extends AdminSettings {
                             defaultMessage='Set policy on who can invite others to a team using <b>Invite New Member</b> to invite new users by email, or the <b>Get Team Invite Link</b> options from the Main Menu. If <b>Get Team Invite Link</b> is used to share a link, you can expire the invite code from <b>Team Settings</b> > <b>Invite Code</b> after the desired users join the team.'
                         />
                     }
+                />
+                <BooleanSetting
+                    id='enableGuestAccounts'
+                    label={
+                        <FormattedMessage
+                            id='admin.general.policy.enable_guest_accounts.title'
+                            defaultMessage='Enable Guest Accounts:'
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.general.policy.enable_guest_accounts.description'
+                            defaultMessage='When true, any user who is able to send team invites will have the option to invite guest accounts that only have access to one channel on a team. Single-channel guest accounts do not count as a user for billing purposes.'
+                        />
+                    }
+                    value={this.state.enableGuestAccounts}
+                    onChange={this.handleChange}
                 />
                 <DropdownSetting
                     id='restrictPublicChannelManagement'

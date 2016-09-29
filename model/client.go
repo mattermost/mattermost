@@ -5,8 +5,8 @@ package model
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
-	l4g "github.com/alecthomas/log4go"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -15,6 +15,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	l4g "github.com/alecthomas/log4go"
 )
 
 const (
@@ -423,6 +425,28 @@ func (c *Client) RemoveUserFromTeam(teamId string, userId string) (*Result, *App
 
 func (c *Client) InviteMembers(invites *Invites) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/invite_members", invites.ToJson()); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), InvitesFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) InviteGuests(emails []string, channels []string) (*Result, *AppError) {
+	guestInviteData := struct {
+		Emails   []string `json:"emails"`
+		Channels []string `json:"channels"`
+	}{
+		emails,
+		channels,
+	}
+	data, err := json.Marshal(guestInviteData)
+	if err != nil {
+		return nil, NewLocAppError("InviteGuests", "model.client.invite_guests.app_error", nil, err.Error())
+	}
+
+	if r, err := c.DoApiPost(c.GetTeamRoute()+"/invite_guests", string(data)); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)
@@ -1393,6 +1417,27 @@ func (c *Client) UpdateTeamRoles(userId string, roles string) (*Result, *AppErro
 	data["user_id"] = userId
 
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/update_member_roles", MapToJson(data)); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
+	}
+}
+
+//  Promotes a team guest to a full member
+//  The teamId and userId are required.  You must be a valid member of the team and/or
+//  have the correct role to promote a guest.  Returns a map of user_id=userId
+//  if successful, otherwise returns an AppError.
+func (c *Client) PromoteGuest(teamId string, userId string) (*Result, *AppError) {
+	if len(teamId) == 0 {
+		teamId = c.GetTeamId()
+	}
+
+	data := make(map[string]string)
+	data["user_id"] = userId
+	data["team_id"] = teamId
+	if r, err := c.DoApiPost("/users/promote_guest", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)
