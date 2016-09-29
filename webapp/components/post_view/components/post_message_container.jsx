@@ -7,6 +7,7 @@ import ChannelStore from 'stores/channel_store.jsx';
 import EmojiStore from 'stores/emoji_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import {Preferences} from 'utils/constants.jsx';
+import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
 import PostMessageView from './post_message_view.jsx';
@@ -37,7 +38,8 @@ export default class PostMessageContainer extends React.Component {
             enableFormatting: PreferenceStore.getBool(Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', true),
             mentionKeys,
             usernameMap: UserStore.getProfilesUsernameMap(),
-            channelNamesMap: ChannelStore.getChannelNamesMap()
+            channelNamesMap: ChannelStore.getChannelNamesMap(),
+            team: TeamStore.getCurrent()
         };
     }
 
@@ -95,6 +97,7 @@ export default class PostMessageContainer extends React.Component {
                 mentionKeys={this.state.mentionKeys}
                 usernameMap={this.state.usernameMap}
                 channelNamesMap={this.state.channelNamesMap}
+                team={this.state.team}
             />
         );
     }
