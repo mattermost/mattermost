@@ -47,7 +47,7 @@ export default class SwitchChannelModal extends React.Component {
 
     handleDmUserChange() {
         this.setState({
-            dmUsers: UserStore.getDirectProfiles(),
+            dmUsers: UserStore.getDirectProfiles()
         });
     }
 
