@@ -197,12 +197,20 @@ export const SocketEvents = {
     WEBRTC: 'webrtc'
 };
 
+export const TutorialSteps = {
+    INTRO_SCREENS: 0,
+    POST_POPOVER: 1,
+    CHANNEL_POPOVER: 2,
+    MENU_POPOVER: 3
+};
+
 export const Constants = {
     Preferences,
     SocketEvents,
     ActionTypes,
     WebrtcActionTypes,
     UserStatuses,
+    TutorialSteps,
 
     PayloadSources: keyMirror({
         SERVER_ACTION: null,
@@ -614,12 +622,6 @@ export const Constants = {
         Ubuntu: 'font--ubuntu'
     },
     DEFAULT_FONT: 'Open Sans',
-    TutorialSteps: {
-        INTRO_SCREENS: 0,
-        POST_POPOVER: 1,
-        CHANNEL_POPOVER: 2,
-        MENU_POPOVER: 3
-    },
     KeyCodes: {
         BACKSPACE: 8,
         TAB: 9,

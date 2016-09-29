@@ -82,20 +82,20 @@ export default class AdminNavbarDropdown extends React.Component {
         }
 
         return (
-            <ul className='nav navbar-nav navbar-right'>
+            <ul className='nav navbar-nav navbar-right admin-navbar-dropdown'>
                 <li
                     ref='dropdown'
                     className='dropdown'
                 >
                     <a
                         href='#'
-                        className='dropdown-toggle'
+                        className='dropdown-toggle admin-navbar-dropdown__toggle'
                         data-toggle='dropdown'
                         role='button'
                         aria-expanded='false'
                     >
                         <span
-                            className='dropdown__icon'
+                            className='dropdown__icon admin-navbar-dropdown__icon'
                             dangerouslySetInnerHTML={{__html: Constants.MENU_ICON}}
                         />
                     </a>

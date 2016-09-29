@@ -244,12 +244,14 @@
                 @include alpha-property(background, $black, .1);
             }
 
-            a {
-                text-decoration: none;
-            }
-
             .user__name {
                 color: $white;
+            }
+
+            .sidebar-header-dropdown {
+                .sidebar-header-dropdown__toggle {
+                    @include opacity(1);
+                }
             }
 
             .navbar-right {
@@ -259,16 +261,28 @@
             }
         }
 
-        .navbar-right {
+        a {
+            text-decoration: none;
+        }
+
+        .sidebar-header-dropdown,
+        .admin-navbar-dropdown {
             font-size: .85em;
             position: absolute;
+            margin-right: -15px;
             right: 22px;
             top: 10px;
             z-index: 5;
 
-            .dropdown-toggle {
+            .sidebar-header-dropdown__toggle,
+            .admin-navbar-dropdown__toggle {
                 @include opacity(.8);
                 @include single-transition(all, .1s, linear);
+                background: none;
+                color: $white;
+                float: right;
+                font-size: 1em;
+                line-height: 1.8;
                 padding: 10px;
             }
 
@@ -284,8 +298,13 @@
                 }
             }
 
-            .dropdown__icon {
+            .sidebar-header-dropdown__icon,
+            .admin-navbar-dropdown__icon {
                 fill: $white;
+            }
+
+            .divider + .divider {
+                display: none;
             }
         }
 
@@ -329,22 +348,6 @@
             font-size: 14px;
             font-weight: 400;
             line-height: 18px;
-        }
-
-        > .nav {
-            > li {
-                > a {
-                    background: none;
-                    float: right;
-                    padding: 2px;
-                }
-
-                .dropdown-toggle {
-                    color: $white;
-                    font-size: 1em;
-                    line-height: 1.8;
-                }
-            }
         }
     }
 
