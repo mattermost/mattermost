@@ -212,7 +212,7 @@ function autolinkChannelMentions(text, tokens, channelNamesMap, team) {
     function addToken(channelName, mention, displayName) {
         const index = tokens.size;
         const alias = `MM_CHANNELMENTION${index}`;
-        let href = "#";
+        let href = '#';
         if (team) {
             href = '/' + team.name + '/channels/' + channelName;
         }
