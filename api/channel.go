@@ -167,6 +167,10 @@ func CreateDirectChannel(userId string, otherUserId string) (*model.Channel, *mo
 			return nil, result.Err
 		}
 	} else {
+
+		InvalidateCacheForUser(userId)
+		InvalidateCacheForUser(otherUserId)
+
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_DIRECT_ADDED, "", channel.Id, "", nil)
 		message.Add("teammate_id", otherUserId)
 		go Publish(message)
