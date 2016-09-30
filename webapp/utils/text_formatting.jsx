@@ -28,6 +28,7 @@ const cjkPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-
 //      be handled by a special click handler (Utils.handleFormattedTextClick)
 // - channelNamesMap - An object mapping channel display names to channels. If provided, !channel mentions will be replaced with
 //      links to the relevant channel.
+// - team - The current team.
 export function formatText(text, inputOptions) {
     let output = text;
 
@@ -64,7 +65,7 @@ export function doFormatText(text, options) {
     }
 
     if (options.channelNamesMap) {
-        output = autolinkChannelMentions(output, tokens, options.channelNamesMap);
+        output = autolinkChannelMentions(output, tokens, options.channelNamesMap, options.team);
     }
 
     output = autolinkEmails(output, tokens);
@@ -204,16 +205,20 @@ function autolinkAtMentions(text, tokens, usernameMap) {
     return output;
 }
 
-function autolinkChannelMentions(text, tokens, channelNamesMap) {
+function autolinkChannelMentions(text, tokens, channelNamesMap, team) {
     function channelMentionExists(c) {
         return Boolean(channelNamesMap[c]);
     }
     function addToken(channelName, mention, displayName) {
         const index = tokens.size;
         const alias = `MM_CHANNELMENTION${index}`;
+        let href = '#';
+        if (team) {
+            href = '/' + team.name + '/channels/' + channelName;
+        }
 
         tokens.set(alias, {
-            value: `<a class='mention-link' href='#' data-channel-mention="${channelName}">${displayName}</a>`,
+            value: `<a class='mention-link' href="${href}" data-channel-mention="${channelName}">${displayName}</a>`,
             originalText: mention
         });
         return alias;
