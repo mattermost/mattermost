@@ -113,8 +113,12 @@ export default class Client {
         return `${this.url}${this.urlVersion}/users`;
     }
 
-    getFilesRoute() {
+    getTeamFilesRoute() {
         return `${this.url}${this.urlVersion}/teams/${this.getTeamId()}/files`;
+    }
+
+    getFileRoute(fileId) {
+        return `${this.url}${this.urlVersion}/files/${fileId}`;
     }
 
     getOAuthRoute() {
@@ -1520,40 +1524,71 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getFlaggedPosts', success, error));
     }
 
+    getFileInfosForPost(channelId, postId, success, error) {
+        request.
+            get(`${this.getChannelNeededRoute(channelId)}/posts/${postId}/get_file_infos`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getFileInfosForPost', success, error));
+    }
+
     // Routes for Files
-
-    getFileInfo(filename, success, error) {
-        request.
-            get(`${this.getFilesRoute()}/get_info${filename}`).
-            set(this.defaultHeaders).
-            type('application/json').
-            accept('application/json').
-            end(this.handleResponse.bind(this, 'getFileInfo', success, error));
-    }
-
-    getPublicLink(filename, success, error) {
-        const data = {
-            filename
-        };
-
-        request.
-            post(`${this.getFilesRoute()}/get_public_link`).
-            set(this.defaultHeaders).
-            type('application/json').
-            accept('application/json').
-            send(data).
-            end(this.handleResponse.bind(this, 'getPublicLink', success, error));
-    }
 
     uploadFile(file, filename, channelId, clientId, success, error) {
         return request.
-            post(`${this.getFilesRoute()}/upload`).
+            post(`${this.getTeamFilesRoute()}/upload`).
             set(this.defaultHeaders).
             attach('files', file, filename).
             field('channel_id', channelId).
             field('client_ids', clientId).
             accept('application/json').
             end(this.handleResponse.bind(this, 'uploadFile', success, error));
+    }
+
+    getFile(fileId, success, error) {
+        request.
+            get(`${this.getFileRoute(fileId)}/get`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getFile', success, error));
+    }
+
+    getFileThumbnail(fileId, success, error) {
+        request.
+            get(`${this.getFileRoute(fileId)}/get_thumbnail`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getFileThumbnail', success, error));
+    }
+
+    getFilePreview(fileId, success, error) {
+        request.
+            get(`${this.getFileRoute(fileId)}/get`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getFilePreview', success, error));
+    }
+
+    getFileInfo(fileId, success, error) {
+        request.
+            get(`${this.getFileRoute(fileId)}/get_info`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getFileInfo', success, error));
+    }
+
+    getPublicLink(fileId, success, error) {
+        request.
+            get(`${this.getFileRoute(fileId)}/get_public_link`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getPublicLink', success, error));
     }
 
     // Routes for OAuth

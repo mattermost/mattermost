@@ -199,7 +199,7 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) StoreChannel
 			    Posts.Type AS PostType,
 			    Posts.Props AS PostProps,
 			    Posts.Hashtags AS PostHashtags,
-			    Posts.Filenames AS PostFilenames
+			    Posts.FileIds AS PostFileIds
 			FROM
 			    Teams,
 			    Channels,

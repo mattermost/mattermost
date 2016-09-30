@@ -45,6 +45,7 @@ type Store interface {
 	PasswordRecovery() PasswordRecoveryStore
 	Emoji() EmojiStore
 	Status() StatusStore
+	FileInfo() FileInfoStore
 	MarkSystemRanUnitTests()
 	Close()
 	DropAllTables()
@@ -86,11 +87,13 @@ type ChannelStore interface {
 	GetMoreChannels(teamId string, userId string) StoreChannel
 	GetChannelCounts(teamId string, userId string) StoreChannel
 	GetAll(teamId string) StoreChannel
+	GetForPost(postId string) StoreChannel
 
 	SaveMember(member *model.ChannelMember) StoreChannel
 	UpdateMember(member *model.ChannelMember) StoreChannel
 	GetMembers(channelId string) StoreChannel
 	GetMember(channelId string, userId string) StoreChannel
+	GetMemberForPost(postId string, userId string) StoreChannel
 	GetMemberCount(channelId string) StoreChannel
 	RemoveMember(channelId string, userId string) StoreChannel
 	PermanentDeleteMembersByUser(userId string) StoreChannel
@@ -104,7 +107,7 @@ type ChannelStore interface {
 
 type PostStore interface {
 	Save(post *model.Post) StoreChannel
-	Update(post *model.Post, newMessage string, newHashtags string) StoreChannel
+	Update(newPost *model.Post, oldPost *model.Post) StoreChannel
 	Get(id string) StoreChannel
 	Delete(postId string, time int64) StoreChannel
 	PermanentDeleteByUser(userId string) StoreChannel
@@ -276,4 +279,13 @@ type StatusStore interface {
 	ResetAll() StoreChannel
 	GetTotalActiveUsersCount() StoreChannel
 	UpdateLastActivityAt(userId string, lastActivityAt int64) StoreChannel
+}
+
+type FileInfoStore interface {
+	Save(info *model.FileInfo) StoreChannel
+	Get(id string) StoreChannel
+	GetByPath(path string) StoreChannel
+	GetForPost(postId string) StoreChannel
+	AttachToPost(fileId string, postId string) StoreChannel
+	DeleteForPost(postId string) StoreChannel
 }

@@ -830,14 +830,6 @@
     "translation": "Unable to create emoji. Image must be at most 128 by 128 pixels."
   },
   {
-    "id": "api.file.file_upload.exceeds",
-    "translation": "File exceeds max image size."
-  },
-  {
-    "id": "api.file.get_file.not_found.app_error",
-    "translation": "Could not find file."
-  },
-  {
     "id": "api.file.get_file.public_disabled.app_error",
     "translation": "Public links have been disabled by the system administrator"
   },
@@ -850,28 +842,96 @@
     "translation": "Public links have been disabled"
   },
   {
+    "id": "api.file.get_public_link.no_post.app_error",
+    "translation": "Unable to get public link for file. File must be attached to a post that can be read by the current user."
+  },
+  {
+    "id": "api.file.get_file_preview.no_thumbnail.app_error",
+    "translation": "File doesn't have a preview image"
+  },
+  {
+    "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
+    "translation": "File doesn't have a thumbnail image"
+  },
+  {
+    "id": "api.file.get_public_file_old.storage.app_error",
+    "translation": "Unable to get file. Image storage is not configured."
+  },
+  {
+    "id": "api.file.get_public_file_old.storage.app_error",
+    "translation": "Unable to get file. Image storage is not configured."
+  },
+  {
+    "id": "api.file.get_info_for_request.no_post.app_error",
+    "translation": "Unable to get info for file. File must be attached to a post that can be read by the current user."
+  },
+  {
+    "id": "api.file.get_info_for_request.storage.app_error",
+    "translation": "Unable to get info for file. Image storage is not configured."
+  },
+  {
     "id": "api.file.handle_images_forget.decode.error",
-    "translation": "Unable to decode image channelId=%v userId=%v filename=%v err=%v"
+    "translation": "Unable to decode image err=%v"
   },
   {
     "id": "api.file.handle_images_forget.encode_jpeg.error",
-    "translation": "Unable to encode image as jpeg channelId=%v userId=%v filename=%v err=%v"
+    "translation": "Unable to encode image as jpeg path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.encode_preview.error",
-    "translation": "Unable to encode image as preview jpg channelId=%v userId=%v filename=%v err=%v"
+    "translation": "Unable to encode image as preview jpg path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.upload_preview.error",
-    "translation": "Unable to upload preview channelId=%v userId=%v filename=%v err=%v"
+    "translation": "Unable to upload preview path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.upload_thumb.error",
-    "translation": "Unable to upload thumbnail channelId=%v userId=%v filename=%v err=%v"
+    "translation": "Unable to upload thumbnail path=%v err=%v"
   },
   {
     "id": "api.file.init.debug",
     "translation": "Initializing file api routes"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.channel.app_error",
+    "translation": "Unable to get channel when migrating post to use FileInfos, post_id=%v, channel_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.file_not_found.warn",
+    "translation": "Unable to find file when migrating post to use FileInfos, post_id=%v, filename=%v, path=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.info.app_error",
+    "translation": "Unable to fully decode file info when migrating post to use FileInfos, post_id=%v, filename=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.mismatched_filename.warn",
+    "translation": "Found an unusual filename when migrating post to use FileInfos, post_id=%v, channel_id=%v, user_id=%v, filename=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.no_filenames.warn",
+    "translation": "Unable to migrate post to use FileInfos with an empty Filenames field, post_id=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.save_file_info.warn",
+    "translation": "Unable to save post when migrating post to use FileInfos, post_id=%v, new_file_ids=%v, old_filenames=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.save_post.warn",
+    "translation": "Unable to save file info when migrating post to use FileInfos, post_id=%v, file_id=%v, filename=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.team_id.app_error",
+    "translation": "Unable to find team for FileInfos, post_id=%v, filenames=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.teams.app_error",
+    "translation": "Unable to get teams when migrating post to use FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.unexpected_filename.error",
+    "translation": "Unable to decipher filename when migrating post to use FileInfos, post_id=%v, filename=%v"
   },
   {
     "id": "api.file.move_file.configured.app_error",
@@ -918,22 +978,6 @@
     "translation": "Encountered an error reading from local server storage"
   },
   {
-    "id": "api.file.upload_file.image.app_error",
-    "translation": "Unable to upload image file."
-  },
-  {
-    "id": "api.file.upload_file.large_image.app_error",
-    "translation": "Unable to upload image file. File is too large."
-  },
-  {
-    "id": "api.file.upload_file.storage.app_error",
-    "translation": "Unable to upload file. Image storage is not configured."
-  },
-  {
-    "id": "api.file.upload_file.too_large.app_error",
-    "translation": "Unable to upload file. File is too large."
-  },
-  {
     "id": "api.file.write_file.configured.app_error",
     "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
   },
@@ -948,6 +992,18 @@
   {
     "id": "api.file.write_file_locally.writing.app_error",
     "translation": "Encountered an error writing to local server storage"
+  },
+  {
+    "id": "api.file.upload_file.large_image.app_error",
+    "translation": "Unable to upload image file. File is too large."
+  },
+  {
+    "id": "api.file.upload_file.storage.app_error",
+    "translation": "Unable to upload file. Image storage is not configured."
+  },
+  {
+    "id": "api.file.upload_file.too_large.app_error",
+    "translation": "Unable to upload file. File is too large."
   },
   {
     "id": "api.general.init.debug",
@@ -1162,6 +1218,10 @@
     "translation": "{{.Username}} was mentioned, but they did not receive a notification because they do not belong to this channel."
   },
   {
+    "id": "api.post.create_post.attach_files.error",
+    "translation": "Encountered error attaching files to post, post_id=%s, user_id=%s, file_ids=%v, err=%v"
+  },
+  {
     "id": "api.post.create_post.bad_filename.error",
     "translation": "Bad filename discarded, filename=%v"
   },
@@ -1196,6 +1256,14 @@
   {
     "id": "api.post.delete_post.permissions.app_error",
     "translation": "You do not have the appropriate permissions"
+  },
+  {
+    "id": "api.post.delete_post_files.app_error.warn",
+    "translation": "Encountered error when deleting files for post, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.post.get_message_for_notification.get_files.error",
+    "translation": "Encountered error when getting files for notification message, post_id=%v, err=%v"
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
@@ -1286,6 +1354,10 @@
   {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
     "translation": "Failed to retrieve comment thread posts in notifications root_post_id=%v, err=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.files.error",
+    "translation": "Failed to get files for post notification post_id=%v, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.get_teams.error",
@@ -3424,6 +3496,10 @@
     "translation": "Invalid filenames"
   },
   {
+    "id": "model.post.is_valid.file_ids.app_error",
+    "translation": "Invalid file ids"
+  },
+  {
     "id": "model.post.is_valid.hashtags.app_error",
     "translation": "Invalid hashtags"
   },
@@ -3876,6 +3952,10 @@
     "translation": "We couldn't get the extra info for channel members"
   },
   {
+    "id": "store.sql_channel.get_for_post.app_error",
+    "translation": "We couldn't get the channel for the given post"
+  },
+  {
     "id": "store.sql_channel.get_member.app_error",
     "translation": "We couldn't get the channel member"
   },
@@ -3886,6 +3966,10 @@
   {
     "id": "store.sql_channel.get_member_count.app_error",
     "translation": "We couldn't get the channel member count"
+  },
+  {
+    "id": "store.sql_channel.get_member_for_post.app_error",
+    "translation": "We couldn't get the channel member for the given post"
   },
   {
     "id": "store.sql_channel.get_members.app_error",
@@ -4070,6 +4154,30 @@
   {
     "id": "store.sql_emoji.save.app_error",
     "translation": "We couldn't save the emoji"
+  },
+  {
+    "id": "store.sql_file_info.attach_to_post.app_error",
+    "translation": "We couldn't attach the file info to the post"
+  },
+  {
+    "id": "store.sql_file_info.delete_for_post.app_error",
+    "translation": "We couldn't delete the file info to the post"
+  },
+  {
+    "id": "store.sql_file_info.get.app_error",
+    "translation": "We couldn't get the file info"
+  },
+  {
+    "id": "store.sql_file_info.get_by_path.app_error",
+    "translation": "We couldn't get the file info by path"
+  },
+  {
+    "id": "store.sql_file_info.get_for_post.app_error",
+    "translation": "We couldn't get the file info for the post"
+  },
+  {
+    "id": "store.sql_file_info.save.app_error",
+    "translation": "We couldn't save the file info"
   },
   {
     "id": "store.sql_license.get.app_error",

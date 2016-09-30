@@ -1,59 +1,59 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import React from 'react';
+
 import * as Utils from 'utils/utils.jsx';
 
-import {defineMessages} from 'react-intl';
-import React from 'react';
-import {Link} from 'react-router/es6';
+export default class FileInfoPreview extends React.Component {
+    shouldComponentUpdate(nextProps) {
+        if (nextProps.fileUrl !== this.props.fileUrl) {
+            return true;
+        }
 
-const holders = defineMessages({
-    type: {
-        id: 'file_info_preview.type',
-        defaultMessage: 'File type '
-    },
-    size: {
-        id: 'file_info_preview.size',
-        defaultMessage: 'Size '
-    }
-});
+        if (!Utils.areObjectsEqual(nextProps.fileInfo, this.props.fileInfo)) {
+            return true;
+        }
 
-export default function FileInfoPreview({filename, fileUrl, fileInfo, formatMessage}) {
-    // non-image files include a section providing details about the file
-    const infoParts = [];
-
-    if (fileInfo.extension !== '') {
-        infoParts.push(formatMessage(holders.type) + fileInfo.extension.toUpperCase());
+        return false;
     }
 
-    infoParts.push(formatMessage(holders.size) + Utils.fileSizeToString(fileInfo.size));
+    render() {
+        const fileInfo = this.props.fileInfo;
+        const fileUrl = this.props.fileUrl;
 
-    const infoString = infoParts.join(', ');
+        // non-image files include a section providing details about the file
+        const infoParts = [];
 
-    const name = decodeURIComponent(Utils.getFileName(filename));
+        if (fileInfo.extension !== '') {
+            infoParts.push(Utils.localizeMessage('file_info_preview.type', 'File type ') + fileInfo.extension.toUpperCase());
+        }
 
-    return (
-        <div className='file-details__container'>
-            <Link
-                className={'file-details__preview'}
-                to={fileUrl}
-                target='_blank'
-                rel='noopener noreferrer'
-            >
-                <span className='file-details__preview-helper'/>
-                <img src={Utils.getPreviewImagePath(filename)}/>
-            </Link>
-            <div className='file-details'>
-                <div className='file-details__name'>{name}</div>
-                <div className='file-details__info'>{infoString}</div>
+        infoParts.push(Utils.localizeMessage('file_info_preview.size', 'Size ') + Utils.fileSizeToString(fileInfo.size));
+
+        const infoString = infoParts.join(', ');
+
+        return (
+            <div className='file-details__container'>
+                <a
+                    className={'file-details__preview'}
+                    to={fileUrl}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                >
+                    <span className='file-details__preview-helper'/>
+                    <img src={Utils.getFileIconPath(fileInfo)}/>
+                </a>
+                <div className='file-details'>
+                    <div className='file-details__name'>{fileInfo.name}</div>
+                    <div className='file-details__info'>{infoString}</div>
+                </div>
             </div>
-        </div>
-    );
+        );
+    }
 }
 
 FileInfoPreview.propTypes = {
-    filename: React.PropTypes.string.isRequired,
-    fileUrl: React.PropTypes.string.isRequired,
     fileInfo: React.PropTypes.object.isRequired,
-    formatMessage: React.PropTypes.func.isRequired
+    fileUrl: React.PropTypes.string.isRequired
 };

@@ -124,6 +124,10 @@ func (c *Client) GetGeneralRoute() string {
 	return "/general"
 }
 
+func (c *Client) GetFileRoute(fileId string) string {
+	return fmt.Sprintf("/files/%v", fileId)
+}
+
 func (c *Client) DoPost(url, data, contentType string) (*http.Response, *AppError) {
 	rq, _ := http.NewRequest("POST", c.Url+url, strings.NewReader(data))
 	rq.Header.Set("Content-Type", contentType)
@@ -1289,8 +1293,33 @@ func (c *Client) UploadProfileFile(data []byte, contentType string) (*Result, *A
 	return c.uploadFile(c.ApiUrl+"/users/newimage", data, contentType)
 }
 
-func (c *Client) UploadPostAttachment(data []byte, contentType string) (*Result, *AppError) {
-	return c.uploadFile(c.ApiUrl+c.GetTeamRoute()+"/files/upload", data, contentType)
+func (c *Client) UploadPostAttachment(data []byte, channelId string, filename string) (*FileUploadResponse, *AppError) {
+	c.clearExtraProperties()
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	if part, err := writer.CreateFormFile("files", filename); err != nil {
+		return nil, NewLocAppError("UploadPostAttachment", "model.client.upload_post_attachment.file.app_error", nil, err.Error())
+	} else if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
+		return nil, NewLocAppError("UploadPostAttachment", "model.client.upload_post_attachment.file.app_error", nil, err.Error())
+	}
+
+	if part, err := writer.CreateFormField("channel_id"); err != nil {
+		return nil, NewLocAppError("UploadPostAttachment", "model.client.upload_post_attachment.channel_id.app_error", nil, err.Error())
+	} else if _, err = io.Copy(part, strings.NewReader(channelId)); err != nil {
+		return nil, NewLocAppError("UploadPostAttachment", "model.client.upload_post_attachment.channel_id.app_error", nil, err.Error())
+	}
+
+	if err := writer.Close(); err != nil {
+		return nil, NewLocAppError("UploadPostAttachment", "model.client.upload_post_attachment.writer.app_error", nil, err.Error())
+	}
+
+	if result, err := c.uploadFile(c.ApiUrl+c.GetTeamRoute()+"/files/upload", body.Bytes(), writer.FormDataContentType()); err != nil {
+		return nil, err
+	} else {
+		return result.Data.(*FileUploadResponse), nil
+	}
 }
 
 func (c *Client) uploadFile(url string, data []byte, contentType string) (*Result, *AppError) {
@@ -1312,55 +1341,51 @@ func (c *Client) uploadFile(url string, data []byte, contentType string) (*Resul
 	}
 }
 
-func (c *Client) GetFile(url string, isFullUrl bool) (*Result, *AppError) {
-	var rq *http.Request
-	if isFullUrl {
-		rq, _ = http.NewRequest("GET", url, nil)
+func (c *Client) GetFile(fileId string) (io.ReadCloser, *AppError) {
+	if r, err := c.DoApiGet(c.GetFileRoute(fileId)+"/get", "", ""); err != nil {
+		return nil, err
 	} else {
-		rq, _ = http.NewRequest("GET", c.ApiUrl+c.GetTeamRoute()+"/files/get"+url, nil)
-	}
-
-	if len(c.AuthToken) > 0 {
-		rq.Header.Set(HEADER_AUTH, "BEARER "+c.AuthToken)
-	}
-
-	if rp, err := c.HttpClient.Do(rq); err != nil {
-		return nil, NewLocAppError(url, "model.client.connecting.app_error", nil, err.Error())
-	} else if rp.StatusCode >= 300 {
-		return nil, AppErrorFromJson(rp.Body)
-	} else {
-		defer closeBody(rp)
-		return &Result{rp.Header.Get(HEADER_REQUEST_ID),
-			rp.Header.Get(HEADER_ETAG_SERVER), rp.Body}, nil
+		c.fillInExtraProperties(r)
+		return r.Body, nil
 	}
 }
 
-func (c *Client) GetFileInfo(url string) (*Result, *AppError) {
-	var rq *http.Request
-	rq, _ = http.NewRequest("GET", c.ApiUrl+c.GetTeamRoute()+"/files/get_info"+url, nil)
-
-	if len(c.AuthToken) > 0 {
-		rq.Header.Set(HEADER_AUTH, "BEARER "+c.AuthToken)
-	}
-
-	if rp, err := c.HttpClient.Do(rq); err != nil {
-		return nil, NewLocAppError(url, "model.client.connecting.app_error", nil, err.Error())
-	} else if rp.StatusCode >= 300 {
-		return nil, AppErrorFromJson(rp.Body)
+func (c *Client) GetFileThumbnail(fileId string) (io.ReadCloser, *AppError) {
+	if r, err := c.DoApiGet(c.GetFileRoute(fileId)+"/get_thumbnail", "", ""); err != nil {
+		return nil, err
 	} else {
-		defer closeBody(rp)
-		return &Result{rp.Header.Get(HEADER_REQUEST_ID),
-			rp.Header.Get(HEADER_ETAG_SERVER), FileInfoFromJson(rp.Body)}, nil
+		c.fillInExtraProperties(r)
+		return r.Body, nil
 	}
 }
 
-func (c *Client) GetPublicLink(filename string) (*Result, *AppError) {
-	if r, err := c.DoApiPost(c.GetTeamRoute()+"/files/get_public_link", MapToJson(map[string]string{"filename": filename})); err != nil {
+func (c *Client) GetFilePreview(fileId string) (io.ReadCloser, *AppError) {
+	if r, err := c.DoApiGet(c.GetFileRoute(fileId)+"/get_preview", "", ""); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)
-		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), StringFromJson(r.Body)}, nil
+		c.fillInExtraProperties(r)
+		return r.Body, nil
+	}
+}
+
+func (c *Client) GetFileInfo(fileId string) (*FileInfo, *AppError) {
+	if r, err := c.DoApiGet(c.GetFileRoute(fileId)+"/get_info", "", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		c.fillInExtraProperties(r)
+		return FileInfoFromJson(r.Body), nil
+	}
+}
+
+func (c *Client) GetPublicLink(fileId string) (string, *AppError) {
+	if r, err := c.DoApiGet(c.GetFileRoute(fileId)+"/get_public_link", "", ""); err != nil {
+		return "", err
+	} else {
+		defer closeBody(r)
+		c.fillInExtraProperties(r)
+		return StringFromJson(r.Body), nil
 	}
 }
 
@@ -1928,5 +1953,19 @@ func (c *Client) GetWebrtcToken() (map[string]string, *AppError) {
 	} else {
 		defer closeBody(r)
 		return MapFromJson(r.Body), nil
+	}
+}
+
+// GetFileInfosForPost returns a list of FileInfo objects for a given post id, if successful.
+// Otherwise, it returns an error.
+func (c *Client) GetFileInfosForPost(channelId string, postId string, etag string) ([]*FileInfo, *AppError) {
+	c.clearExtraProperties()
+
+	if r, err := c.DoApiGet(c.GetChannelRoute(channelId)+fmt.Sprintf("/posts/%v/get_file_infos", postId), "", etag); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		c.fillInExtraProperties(r)
+		return FileInfosFromJson(r.Body), nil
 	}
 }

@@ -596,6 +596,36 @@ func (s SqlChannelStore) GetMember(channelId string, userId string) StoreChannel
 	return storeChannel
 }
 
+func (s SqlChannelStore) GetMemberForPost(postId string, userId string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		member := &model.ChannelMember{}
+		if err := s.GetReplica().SelectOne(
+			member,
+			`SELECT
+				ChannelMembers.*
+			FROM
+				ChannelMembers,
+				Posts
+			WHERE
+				ChannelMembers.ChannelId = Posts.ChannelId
+				AND ChannelMembers.UserId = :UserId
+				AND Posts.Id = :PostId`, map[string]interface{}{"UserId": userId, "PostId": postId}); err != nil {
+			result.Err = model.NewLocAppError("SqlChannelStore.GetMemberForPost", "store.sql_channel.get_member_for_post.app_error", nil, "postId="+postId+", err="+err.Error())
+		} else {
+			result.Data = member
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (s SqlChannelStore) GetMemberCount(channelId string) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
@@ -869,6 +899,35 @@ func (s SqlChannelStore) GetAll(teamId string) StoreChannel {
 			result.Err = model.NewLocAppError("SqlChannelStore.GetAll", "store.sql_channel.get_all.app_error", nil, "teamId="+teamId+", err="+err.Error())
 		} else {
 			result.Data = data
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlChannelStore) GetForPost(postId string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		channel := &model.Channel{}
+		if err := s.GetReplica().SelectOne(
+			channel,
+			`SELECT
+				Channels.*
+			FROM
+				Channels,
+				Posts
+			WHERE
+				Channels.Id = Posts.ChannelId
+				AND Posts.Id = :PostId`, map[string]interface{}{"PostId": postId}); err != nil {
+			result.Err = model.NewLocAppError("SqlChannelStore.GetForPost", "store.sql_channel.get_for_post.app_error", nil, "postId="+postId+", err="+err.Error())
+		} else {
+			result.Data = channel
 		}
 
 		storeChannel <- result

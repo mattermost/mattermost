@@ -197,6 +197,29 @@ func TestChannelStoreGet(t *testing.T) {
 	}
 }
 
+func TestChannelStoreGetForPost(t *testing.T) {
+	Setup()
+
+	o1 := Must(store.Channel().Save(&model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Name",
+		Name:        "a" + model.NewId() + "b",
+		Type:        model.CHANNEL_OPEN,
+	})).(*model.Channel)
+
+	p1 := Must(store.Post().Save(&model.Post{
+		UserId:    model.NewId(),
+		ChannelId: o1.Id,
+		Message:   "test",
+	})).(*model.Post)
+
+	if r1 := <-store.Channel().GetForPost(p1.Id); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else if r1.Data.(*model.Channel).Id != o1.Id {
+		t.Fatal("incorrect channel returned")
+	}
+}
+
 func TestChannelStoreDelete(t *testing.T) {
 	Setup()
 
@@ -742,6 +765,39 @@ func TestGetMember(t *testing.T) {
 		t.Fatal("should've gotten member of channel 2")
 	} else if member.UserId != userId {
 		t.Fatal("should've gotten member for user")
+	}
+}
+
+func TestChannelStoreGetMemberForPost(t *testing.T) {
+	Setup()
+
+	o1 := Must(store.Channel().Save(&model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Name",
+		Name:        "a" + model.NewId() + "b",
+		Type:        model.CHANNEL_OPEN,
+	})).(*model.Channel)
+
+	m1 := Must(store.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   o1.Id,
+		UserId:      model.NewId(),
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})).(*model.ChannelMember)
+
+	p1 := Must(store.Post().Save(&model.Post{
+		UserId:    model.NewId(),
+		ChannelId: o1.Id,
+		Message:   "test",
+	})).(*model.Post)
+
+	if r1 := <-store.Channel().GetMemberForPost(p1.Id, m1.UserId); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else if r1.Data.(*model.ChannelMember).ToJson() != m1.ToJson() {
+		t.Fatal("invalid returned channel member")
+	}
+
+	if r2 := <-store.Channel().GetMemberForPost(p1.Id, model.NewId()); r2.Err == nil {
+		t.Fatal("shouldn't have returned a member")
 	}
 }
 

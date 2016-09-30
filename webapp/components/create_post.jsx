@@ -67,7 +67,7 @@ export default class CreatePost extends React.Component {
             channelId: ChannelStore.getCurrentId(),
             messageText: draft.messageText,
             uploadsInProgress: draft.uploadsInProgress,
-            previews: draft.previews,
+            fileInfos: draft.fileInfos,
             submitting: false,
             initialText: draft.messageText,
             ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
@@ -79,14 +79,14 @@ export default class CreatePost extends React.Component {
 
     getCurrentDraft() {
         const draft = PostStore.getCurrentDraft();
-        const safeDraft = {previews: [], messageText: '', uploadsInProgress: []};
+        const safeDraft = {fileInfos: [], messageText: '', uploadsInProgress: []};
 
         if (draft) {
             if (draft.message) {
                 safeDraft.messageText = draft.message;
             }
-            if (draft.previews) {
-                safeDraft.previews = draft.previews;
+            if (draft.fileInfos) {
+                safeDraft.fileInfos = draft.fileInfos;
             }
             if (draft.uploadsInProgress) {
                 safeDraft.uploadsInProgress = draft.uploadsInProgress;
@@ -104,10 +104,10 @@ export default class CreatePost extends React.Component {
         }
 
         const post = {};
-        post.filenames = [];
+        post.file_ids = [];
         post.message = this.state.messageText;
 
-        if (post.message.trim().length === 0 && this.state.previews.length === 0) {
+        if (post.message.trim().length === 0 && this.state.fileInfos.length === 0) {
             return;
         }
 
@@ -122,7 +122,7 @@ export default class CreatePost extends React.Component {
 
         if (post.message.indexOf('/') === 0) {
             PostStore.storeDraft(this.state.channelId, null);
-            this.setState({messageText: '', postError: null, previews: []});
+            this.setState({messageText: '', postError: null, fileInfos: []});
 
             ChannelActions.executeCommand(
                 this.state.channelId,
@@ -153,7 +153,7 @@ export default class CreatePost extends React.Component {
 
     sendMessage(post) {
         post.channel_id = this.state.channelId;
-        post.filenames = this.state.previews;
+        post.file_ids = this.state.fileInfos.map((info) => info.id);
 
         const time = Utils.getTimestamp();
         const userId = UserStore.getCurrentId();
@@ -163,7 +163,7 @@ export default class CreatePost extends React.Component {
         post.parent_id = this.state.parentId;
 
         GlobalActions.emitUserPostedEvent(post);
-        this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
+        this.setState({messageText: '', submitting: false, postError: null, fileInfos: [], serverError: null});
 
         Client.createPost(post,
             (data) => {
@@ -236,7 +236,7 @@ export default class CreatePost extends React.Component {
         this.focusTextbox();
     }
 
-    handleFileUploadComplete(filenames, clientIds, channelId) {
+    handleFileUploadComplete(fileInfos, clientIds, channelId) {
         const draft = PostStore.getDraft(channelId);
 
         // remove each finished file from uploads
@@ -248,11 +248,11 @@ export default class CreatePost extends React.Component {
             }
         }
 
-        draft.previews = draft.previews.concat(filenames);
+        draft.fileInfos = draft.fileInfos.concat(fileInfos);
         PostStore.storeDraft(channelId, draft);
 
         if (channelId === this.state.channelId) {
-            this.setState({uploadsInProgress: draft.uploadsInProgress, previews: draft.previews});
+            this.setState({uploadsInProgress: draft.uploadsInProgress, fileInfos: draft.fileInfos});
         }
     }
 
@@ -282,11 +282,11 @@ export default class CreatePost extends React.Component {
     }
 
     removePreview(id) {
-        const previews = Object.assign([], this.state.previews);
+        const fileInfos = Object.assign([], this.state.fileInfos);
         const uploadsInProgress = this.state.uploadsInProgress;
 
-        // id can either be the path of an uploaded file or the client id of an in progress upload
-        let index = previews.indexOf(id);
+        // id can either be the id of an uploaded file or the client id of an in progress upload
+        let index = fileInfos.findIndex((info) => info.id === id);
         if (index === -1) {
             index = uploadsInProgress.indexOf(id);
 
@@ -295,15 +295,15 @@ export default class CreatePost extends React.Component {
                 this.refs.fileUpload.getWrappedInstance().cancelUpload(id);
             }
         } else {
-            previews.splice(index, 1);
+            fileInfos.splice(index, 1);
         }
 
         const draft = PostStore.getCurrentDraft();
-        draft.previews = previews;
+        draft.fileInfos = fileInfos;
         draft.uploadsInProgress = uploadsInProgress;
         PostStore.storeCurrentDraft(draft);
 
-        this.setState({previews, uploadsInProgress});
+        this.setState({fileInfos, uploadsInProgress});
     }
 
     componentWillMount() {
@@ -336,6 +336,7 @@ export default class CreatePost extends React.Component {
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
         document.removeEventListener('keydown', this.showShortcuts);
     }
+
     showShortcuts(e) {
         if ((e.ctrlKey || e.metaKey) && e.keyCode === Constants.KeyCodes.FORWARD_SLASH) {
             e.preventDefault();
@@ -359,7 +360,7 @@ export default class CreatePost extends React.Component {
         if (this.state.channelId !== channelId) {
             const draft = this.getCurrentDraft();
 
-            this.setState({channelId, messageText: draft.messageText, initialText: draft.messageText, submitting: false, serverError: null, postError: null, previews: draft.previews, uploadsInProgress: draft.uploadsInProgress});
+            this.setState({channelId, messageText: draft.messageText, initialText: draft.messageText, submitting: false, serverError: null, postError: null, fileInfos: draft.fileInfos, uploadsInProgress: draft.uploadsInProgress});
         }
     }
 
@@ -374,11 +375,11 @@ export default class CreatePost extends React.Component {
 
     getFileCount(channelId) {
         if (channelId === this.state.channelId) {
-            return this.state.previews.length + this.state.uploadsInProgress.length;
+            return this.state.fileInfos.length + this.state.uploadsInProgress.length;
         }
 
         const draft = PostStore.getDraft(channelId);
-        return draft.previews.length + draft.uploadsInProgress.length;
+        return draft.fileInfos.length + draft.uploadsInProgress.length;
     }
 
     handleKeyDown(e) {
@@ -474,10 +475,10 @@ export default class CreatePost extends React.Component {
         }
 
         let preview = null;
-        if (this.state.previews.length > 0 || this.state.uploadsInProgress.length > 0) {
+        if (this.state.fileInfos.length > 0 || this.state.uploadsInProgress.length > 0) {
             preview = (
                 <FilePreview
-                    files={this.state.previews}
+                    fileInfos={this.state.fileInfos}
                     onRemove={this.removePreview}
                     uploadsInProgress={this.state.uploadsInProgress}
                 />

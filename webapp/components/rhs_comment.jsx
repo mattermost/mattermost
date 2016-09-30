@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import UserProfile from './user_profile.jsx';
-import FileAttachmentList from './file_attachment_list.jsx';
+import FileAttachmentListContainer from './file_attachment_list_container.jsx';
 import PendingPostOptions from 'components/post_view/components/pending_post_options.jsx';
 import PostMessageContainer from 'components/post_view/components/post_message_container.jsx';
 import ProfilePicture from 'components/profile_picture.jsx';
@@ -295,13 +295,11 @@ export default class RhsComment extends React.Component {
 
         var dropdown = this.createDropdown();
 
-        var fileAttachment;
-        if (post.filenames && post.filenames.length > 0) {
+        let fileAttachment = null;
+        if (post.file_ids && post.file_ids.length > 0) {
             fileAttachment = (
-                <FileAttachmentList
-                    filenames={post.filenames}
-                    channelId={post.channel_id}
-                    userId={post.user_id}
+                <FileAttachmentListContainer
+                    post={post}
                     compactDisplay={this.props.compactDisplay}
                 />
             );

@@ -16,38 +16,55 @@ class FileStore extends EventEmitter {
         this.handleEventPayload = this.handleEventPayload.bind(this);
         this.dispatchToken = AppDispatcher.register(this.handleEventPayload);
 
-        this.fileInfo = new Map();
+        this.setMaxListeners(600);
+
+        this.fileInfosByPost = new Map();
     }
 
     addChangeListener(callback) {
         this.on(CHANGE_EVENT, callback);
     }
+
     removeChangeListener(callback) {
         this.removeListener(CHANGE_EVENT, callback);
     }
-    emitChange(filename) {
-        this.emit(CHANGE_EVENT, filename);
+
+    emitChange() {
+        this.emit(CHANGE_EVENT);
     }
 
-    hasInfo(filename) {
-        return this.fileInfo.has(filename);
+    hasInfosForPost(postId) {
+        return this.fileInfosByPost.has(postId);
     }
 
-    getInfo(filename) {
-        return this.fileInfo.get(filename);
+    getInfosForPost(postId) {
+        return this.fileInfosByPost.get(postId);
     }
 
-    setInfo(filename, info) {
-        this.fileInfo.set(filename, info);
+    saveInfos(postId, infos) {
+        this.fileInfosByPost.set(postId, infos);
+    }
+
+    getFileUrl(fileId) {
+        return `/api/v3/files/${fileId}/get`;
+    }
+
+    getFileThumbnailUrl(fileId) {
+        return `/api/v3/files/${fileId}/get_thumbnail`;
+    }
+
+    getFilePreviewUrl(fileId) {
+        return `/api/v3/files/${fileId}/get_preview`;
     }
 
     handleEventPayload(payload) {
         const action = payload.action;
 
         switch (action.type) {
-        case ActionTypes.RECEIVED_FILE_INFO:
-            this.setInfo(action.filename, action.info);
-            this.emitChange(action.filename);
+        case ActionTypes.RECEIVED_FILE_INFOS:
+            // This assumes that all received file infos are for a single post
+            this.saveInfos(action.postId, action.infos);
+            this.emitChange(action.postId);
             break;
         }
     }

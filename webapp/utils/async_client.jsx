@@ -715,6 +715,32 @@ export function getPostsAfter(postId, offset, numPost, isPost) {
     );
 }
 
+export function getFileInfosForPost(channelId, postId) {
+    const callName = 'getFileInfosForPost' + postId;
+
+    if (isCallInProgress(callName)) {
+        return;
+    }
+
+    Client.getFileInfosForPost(
+        channelId,
+        postId,
+        (data) => {
+            callTracker[callName] = 0;
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_FILE_INFOS,
+                postId,
+                infos: data
+            });
+        },
+        (err) => {
+            callTracker[callName] = 0;
+            dispatchError(err, 'getPostFile');
+        }
+    );
+}
+
 export function getMe() {
     if (isCallInProgress('getMe')) {
         return null;
@@ -919,34 +945,6 @@ export function getSuggestedCommands(command, suggestionId, component) {
         },
         (err) => {
             dispatchError(err, 'getCommandSuggestions');
-        }
-    );
-}
-
-export function getFileInfo(filename) {
-    const callName = 'getFileInfo' + filename;
-
-    if (isCallInProgress(callName)) {
-        return;
-    }
-
-    callTracker[callName] = utils.getTimestamp();
-
-    Client.getFileInfo(
-        filename,
-        (data) => {
-            callTracker[callName] = 0;
-
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_FILE_INFO,
-                filename,
-                info: data
-            });
-        },
-        (err) => {
-            callTracker[callName] = 0;
-
-            dispatchError(err, 'getFileInfo');
         }
     );
 }
@@ -1432,8 +1430,8 @@ export function regenCommandToken(id) {
     );
 }
 
-export function getPublicLink(filename, success, error) {
-    const callName = 'getPublicLink' + filename;
+export function getPublicLink(fileId, success, error) {
+    const callName = 'getPublicLink' + fileId;
 
     if (isCallInProgress(callName)) {
         return;
@@ -1442,7 +1440,7 @@ export function getPublicLink(filename, success, error) {
     callTracker[callName] = utils.getTimestamp();
 
     Client.getPublicLink(
-        filename,
+        fileId,
         (link) => {
             callTracker[callName] = 0;
 

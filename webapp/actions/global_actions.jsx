@@ -294,11 +294,11 @@ export function showGetPostLinkModal(post) {
     });
 }
 
-export function showGetPublicLinkModal(filename) {
+export function showGetPublicLinkModal(fileId) {
     AppDispatcher.handleViewAction({
         type: ActionTypes.TOGGLE_GET_PUBLIC_LINK_MODAL,
         value: true,
-        filename
+        fileId
     });
 }
 
@@ -388,7 +388,6 @@ export function sendEphemeralPost(message, channelId) {
         type: Constants.POST_TYPE_EPHEMERAL,
         create_at: timestamp,
         update_at: timestamp,
-        filenames: [],
         props: {}
     };
 

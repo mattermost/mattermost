@@ -14,8 +14,8 @@ var (
 )
 
 type FileUploadResponse struct {
-	Filenames []string `json:"filenames"`
-	ClientIds []string `json:"client_ids"`
+	FileInfos []*FileInfo `json:"file_infos"`
+	ClientIds []string    `json:"client_ids"`
 }
 
 func FileUploadResponseFromJson(data io.Reader) *FileUploadResponse {

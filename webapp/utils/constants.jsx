@@ -95,7 +95,7 @@ export const ActionTypes = keyMirror({
     RECEIVED_PREFERENCE: null,
     RECEIVED_PREFERENCES: null,
     DELETED_PREFERENCES: null,
-    RECEIVED_FILE_INFO: null,
+    RECEIVED_FILE_INFOS: null,
     RECEIVED_ANALYTICS: null,
 
     RECEIVED_INCOMING_WEBHOOKS: null,

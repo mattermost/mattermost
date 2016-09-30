@@ -76,10 +76,8 @@ export default class AudioVideoPreview extends React.Component {
         if (!this.state.canPlay) {
             return (
                 <FileInfoPreview
-                    filename={this.props.filename}
-                    fileUrl={this.props.fileUrl}
                     fileInfo={this.props.fileInfo}
-                    formatMessage={this.props.formatMessage}
+                    fileUrl={this.props.fileUrl}
                 />
             );
         }
@@ -94,7 +92,7 @@ export default class AudioVideoPreview extends React.Component {
         // add a key to the video to prevent React from using an old video source while a new one is loading
         return (
             <video
-                key={this.props.filename}
+                key={this.props.fileInfo.id}
                 ref='video'
                 style={{maxHeight: this.props.maxHeight}}
                 data-setup='{}'
@@ -112,9 +110,7 @@ export default class AudioVideoPreview extends React.Component {
 }
 
 AudioVideoPreview.propTypes = {
-    filename: React.PropTypes.string.isRequired,
-    fileUrl: React.PropTypes.string.isRequired,
     fileInfo: React.PropTypes.object.isRequired,
-    maxHeight: React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.number]).isRequired,
-    formatMessage: React.PropTypes.func.isRequired
+    fileUrl: React.PropTypes.string.isRequired,
+    maxHeight: React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.number]).isRequired
 };

@@ -32,6 +32,7 @@ func NewSqlPostStore(sqlStore *SqlStore) PostStore {
 		table.ColMap("Hashtags").SetMaxSize(1000)
 		table.ColMap("Props").SetMaxSize(8000)
 		table.ColMap("Filenames").SetMaxSize(4000)
+		table.ColMap("FileIds").SetMaxSize(150)
 	}
 
 	return s
@@ -94,42 +95,39 @@ func (s SqlPostStore) Save(post *model.Post) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlPostStore) Update(oldPost *model.Post, newMessage string, newHashtags string) StoreChannel {
+func (s SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
 
-		editPost := *oldPost
-		editPost.Message = newMessage
-		editPost.UpdateAt = model.GetMillis()
-		editPost.Hashtags = newHashtags
+		newPost.UpdateAt = model.GetMillis()
 
-		oldPost.DeleteAt = editPost.UpdateAt
-		oldPost.UpdateAt = editPost.UpdateAt
+		oldPost.DeleteAt = newPost.UpdateAt
+		oldPost.UpdateAt = newPost.UpdateAt
 		oldPost.OriginalId = oldPost.Id
 		oldPost.Id = model.NewId()
 
-		if result.Err = editPost.IsValid(); result.Err != nil {
+		if result.Err = newPost.IsValid(); result.Err != nil {
 			storeChannel <- result
 			close(storeChannel)
 			return
 		}
 
-		if _, err := s.GetMaster().Update(&editPost); err != nil {
-			result.Err = model.NewLocAppError("SqlPostStore.Update", "store.sql_post.update.app_error", nil, "id="+editPost.Id+", "+err.Error())
+		if _, err := s.GetMaster().Update(newPost); err != nil {
+			result.Err = model.NewLocAppError("SqlPostStore.Update", "store.sql_post.update.app_error", nil, "id="+newPost.Id+", "+err.Error())
 		} else {
 			time := model.GetMillis()
-			s.GetMaster().Exec("UPDATE Channels SET LastPostAt = :LastPostAt  WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": time, "ChannelId": editPost.ChannelId})
+			s.GetMaster().Exec("UPDATE Channels SET LastPostAt = :LastPostAt  WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": time, "ChannelId": newPost.ChannelId})
 
-			if len(editPost.RootId) > 0 {
-				s.GetMaster().Exec("UPDATE Posts SET UpdateAt = :UpdateAt WHERE Id = :RootId", map[string]interface{}{"UpdateAt": time, "RootId": editPost.RootId})
+			if len(newPost.RootId) > 0 {
+				s.GetMaster().Exec("UPDATE Posts SET UpdateAt = :UpdateAt WHERE Id = :RootId", map[string]interface{}{"UpdateAt": time, "RootId": newPost.RootId})
 			}
 
 			// mark the old post as deleted
 			s.GetMaster().Insert(oldPost)
 
-			result.Data = &editPost
+			result.Data = newPost
 		}
 
 		storeChannel <- result
@@ -972,7 +970,7 @@ func (s SqlPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, mustH
 		}
 
 		if mustHaveFile {
-			query += " AND Posts.Filenames != '[]'"
+			query += " AND (Posts.FileIds != '[]' OR Posts.Filenames != '[]')"
 		}
 
 		if mustHaveHashtag {

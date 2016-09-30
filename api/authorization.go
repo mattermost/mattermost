@@ -114,6 +114,42 @@ func HasPermissionToChannel(user *model.User, teamMember *model.TeamMember, chan
 	return HasPermissionToTeam(user, teamMember, permission)
 }
 
+func HasPermissionToChannelByPostContext(c *Context, postId string, permission *model.Permission) bool {
+	cmc := Srv.Store.Channel().GetMemberForPost(postId, c.Session.UserId)
+
+	var channelRoles []string
+	if cmcresult := <-cmc; cmcresult.Err == nil {
+		channelMember := cmcresult.Data.(*model.ChannelMember)
+		channelRoles = channelMember.GetRoles()
+
+		if CheckIfRolesGrantPermission(channelRoles, permission.Id) {
+			return true
+		}
+	}
+
+	cc := Srv.Store.Channel().GetForPost(postId)
+	if ccresult := <-cc; ccresult.Err == nil {
+		channel := ccresult.Data.(*model.Channel)
+
+		if teamMember := c.Session.GetTeamByTeamId(channel.TeamId); teamMember != nil {
+			roles := teamMember.GetRoles()
+
+			if CheckIfRolesGrantPermission(roles, permission.Id) {
+				return true
+			}
+		}
+
+	}
+
+	if HasPermissionToContext(c, permission) {
+		return true
+	}
+
+	c.Err = model.NewLocAppError("HasPermissionToChannelByPostContext", "api.context.permissions.app_error", nil, "userId="+c.Session.UserId+", "+"permission="+permission.Id+" channelRoles="+model.RoleIdsToString(channelRoles))
+	c.Err.StatusCode = http.StatusForbidden
+	return false
+}
+
 func HasPermissionToUser(c *Context, userId string) bool {
 	// You are the user (users autmaticly have permissions to themselves)
 	if c.Session.UserId == userId {

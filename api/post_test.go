@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 )
 
@@ -23,15 +24,12 @@ func TestCreatePost(t *testing.T) {
 	Client := th.BasicClient
 	team := th.BasicTeam
 	team2 := th.CreateTeam(th.BasicClient)
-	user1 := th.BasicUser
 	user3 := th.CreateUser(th.BasicClient)
 	LinkUserToTeam(user3, team2)
 	channel1 := th.BasicChannel
 	channel2 := th.CreateChannel(Client, team)
 
-	filenames := []string{"/12345678901234567890123456/12345678901234567890123456/12345678901234567890123456/test.png", "/" + channel1.Id + "/" + user1.Id + "/test.png", "www.mattermost.com/fake/url", "junk"}
-
-	post1 := &model.Post{ChannelId: channel1.Id, Message: "#hashtag a" + model.NewId() + "a", Filenames: filenames}
+	post1 := &model.Post{ChannelId: channel1.Id, Message: "#hashtag a" + model.NewId() + "a"}
 	rpost1, err := Client.CreatePost(post1)
 	if err != nil {
 		t.Fatal(err)
@@ -45,8 +43,8 @@ func TestCreatePost(t *testing.T) {
 		t.Fatal("hashtag didn't match")
 	}
 
-	if len(rpost1.Data.(*model.Post).Filenames) != 2 {
-		t.Fatal("filenames didn't parse correctly")
+	if len(rpost1.Data.(*model.Post).FileIds) != 0 {
+		t.Fatal("shouldn't have files")
 	}
 
 	post2 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a", RootId: rpost1.Data.(*model.Post).Id}
@@ -108,6 +106,35 @@ func TestCreatePost(t *testing.T) {
 
 	if _, err = Client.DoApiPost("/channels/"+channel3.Id+"/create", "garbage"); err == nil {
 		t.Fatal("should have been an error")
+	}
+
+	fileIds := make([]string, 4)
+	if data, err := readTestFile("test.png"); err != nil {
+		t.Fatal(err)
+	} else {
+		for i := 0; i < 3; i++ {
+			fileIds[i] = Client.MustGeneric(Client.UploadPostAttachment(data, channel3.Id, "test.png")).(*model.FileUploadResponse).FileInfos[0].Id
+		}
+	}
+
+	// Make sure duplicated file ids are removed
+	fileIds[3] = fileIds[0]
+
+	post9 := &model.Post{
+		ChannelId: channel3.Id,
+		Message:   "test",
+		FileIds:   fileIds,
+	}
+	if resp, err := Client.CreatePost(post9); err != nil {
+		t.Fatal(err)
+	} else if rpost9 := resp.Data.(*model.Post); len(rpost9.FileIds) != 3 {
+		t.Fatal("post should have 3 files")
+	} else {
+		infos := store.Must(Srv.Store.FileInfo().GetForPost(rpost9.Id)).([]*model.FileInfo)
+
+		if len(infos) != 3 {
+			t.Fatal("should've attached all 3 files to post")
+		}
 	}
 }
 
@@ -800,10 +827,8 @@ func TestFuzzyPosts(t *testing.T) {
 	Client := th.BasicClient
 	channel1 := th.BasicChannel
 
-	filenames := []string{"junk"}
-
 	for i := 0; i < len(utils.FUZZY_STRINGS_POSTS); i++ {
-		post := &model.Post{ChannelId: channel1.Id, Message: utils.FUZZY_STRINGS_POSTS[i], Filenames: filenames}
+		post := &model.Post{ChannelId: channel1.Id, Message: utils.FUZZY_STRINGS_POSTS[i]}
 
 		_, err := Client.CreatePost(post)
 		if err != nil {
@@ -1150,19 +1175,49 @@ func TestGetFlaggedPosts(t *testing.T) {
 }
 
 func TestGetMessageForNotification(t *testing.T) {
-	Setup()
+	Setup().InitBasic()
+
+	testPng := store.Must(Srv.Store.FileInfo().Save(&model.FileInfo{
+		CreatorId: model.NewId(),
+		Path:      "test1.png",
+		Name:      "test1.png",
+		MimeType:  "image/png",
+	})).(*model.FileInfo)
+
+	testJpg1 := store.Must(Srv.Store.FileInfo().Save(&model.FileInfo{
+		CreatorId: model.NewId(),
+		Path:      "test2.jpg",
+		Name:      "test2.jpg",
+		MimeType:  "image/jpeg",
+	})).(*model.FileInfo)
+
+	testFile := store.Must(Srv.Store.FileInfo().Save(&model.FileInfo{
+		CreatorId: model.NewId(),
+		Path:      "test1.go",
+		Name:      "test1.go",
+		MimeType:  "text/plain",
+	})).(*model.FileInfo)
+
+	testJpg2 := store.Must(Srv.Store.FileInfo().Save(&model.FileInfo{
+		CreatorId: model.NewId(),
+		Path:      "test3.jpg",
+		Name:      "test3.jpg",
+		MimeType:  "image/jpeg",
+	})).(*model.FileInfo)
+
 	translateFunc := utils.GetUserTranslations("en")
 
 	post := &model.Post{
-		Message:   "test",
-		Filenames: model.StringArray{},
+		Id:      model.NewId(),
+		Message: "test",
 	}
 
 	if getMessageForNotification(post, translateFunc) != "test" {
 		t.Fatal("should've returned message text")
 	}
 
-	post.Filenames = model.StringArray{"test1.png"}
+	post.FileIds = model.StringArray{testPng.Id}
+	store.Must(Srv.Store.FileInfo().AttachToPost(testPng.Id, post.Id))
 	if getMessageForNotification(post, translateFunc) != "test" {
 		t.Fatal("should've returned message text, even with attachments")
 	}
@@ -1172,18 +1227,60 @@ func TestGetMessageForNotification(t *testing.T) {
 		t.Fatal("should've returned number of images:", message)
 	}
 
-	post.Filenames = model.StringArray{"test1.png", "test2.jpg"}
+	post.FileIds = model.StringArray{testPng.Id, testJpg1.Id}
+	store.Must(Srv.Store.FileInfo().AttachToPost(testJpg1.Id, post.Id))
 	if message := getMessageForNotification(post, translateFunc); message != "2 images sent: test1.png, test2.jpg" {
 		t.Fatal("should've returned number of images:", message)
 	}
 
-	post.Filenames = model.StringArray{"test1.go"}
+	post.Id = model.NewId()
+	post.FileIds = model.StringArray{testFile.Id}
+	store.Must(Srv.Store.FileInfo().AttachToPost(testFile.Id, post.Id))
 	if message := getMessageForNotification(post, translateFunc); message != "1 file sent: test1.go" {
 		t.Fatal("should've returned number of files:", message)
 	}
 
-	post.Filenames = model.StringArray{"test1.go", "test2.jpg"}
-	if message := getMessageForNotification(post, translateFunc); message != "2 files sent: test1.go, test2.jpg" {
+	store.Must(Srv.Store.FileInfo().AttachToPost(testJpg2.Id, post.Id))
+	post.FileIds = model.StringArray{testFile.Id, testJpg2.Id}
+	if message := getMessageForNotification(post, translateFunc); message != "2 files sent: test1.go, test3.jpg" {
 		t.Fatal("should've returned number of mixed files:", message)
+	}
+}
+
+func TestGetFileInfosForPost(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+	channel1 := th.BasicChannel
+
+	fileIds := make([]string, 3, 3)
+	if data, err := readTestFile("test.png"); err != nil {
+		t.Fatal(err)
+	} else {
+		for i := 0; i < 3; i++ {
+			fileIds[i] = Client.MustGeneric(Client.UploadPostAttachment(data, channel1.Id, "test.png")).(*model.FileUploadResponse).FileInfos[0].Id
+		}
+	}
+
+	post1 := Client.Must(Client.CreatePost(&model.Post{
+		ChannelId: channel1.Id,
+		Message:   "test",
+		FileIds:   fileIds,
+	})).Data.(*model.Post)
+
+	var etag string
+	if infos, err := Client.GetFileInfosForPost(channel1.Id, post1.Id, ""); err != nil {
+		t.Fatal(err)
+	} else if len(infos) != 3 {
+		t.Fatal("should've received 3 files")
+	} else if Client.Etag == "" {
+		t.Fatal("should've received etag")
+	} else {
+		etag = Client.Etag
+	}
+
+	if infos, err := Client.GetFileInfosForPost(channel1.Id, post1.Id, etag); err != nil {
+		t.Fatal(err)
+	} else if len(infos) != 0 {
+		t.Fatal("should've returned nothing because of etag")
 	}
 }
