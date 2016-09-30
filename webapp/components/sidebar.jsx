@@ -386,10 +386,10 @@ export default class Sidebar extends React.Component {
         const locale = LocalizationStore.getLocale();
 
         if (a.display_name === b.display_name) {
-            return a.name.localeCompare(b.name, locale, {numeric: true, caseFirst: 'upper'});
+            return a.name.localeCompare(b.name, locale, {numeric: true});
         }
 
-        return a.display_name.localeCompare(b.display_name, locale, {numeric: true, caseFirst: 'upper'});
+        return a.display_name.localeCompare(b.display_name, locale, {numeric: true});
     }
 
     showMoreChannelsModal() {
