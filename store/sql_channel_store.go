@@ -6,6 +6,7 @@ package store
 import (
 	"database/sql"
 
+	l4g "github.com/alecthomas/log4go"
 	"github.com/go-gorp/gorp"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -610,6 +611,7 @@ func (us SqlChannelStore) IsUserInChannelUseCache(userId string, channelId strin
 
 func (us SqlChannelStore) GetRoleForUserInChannelUseCache(userId string, channelId string) *string {
 	if result := <-us.GetAllChannelMembersForUser(userId, true); result.Err != nil {
+		l4g.Error("SqlChannelStore.GetRoleForUserInChannelUseCache: " + result.Err.Error())
 		return nil
 	} else {
 		ids := result.Data.(map[string]string)
