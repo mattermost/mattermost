@@ -31,14 +31,19 @@ type SlackUser struct {
 }
 
 type SlackPost struct {
-	User        string            `json:"user"`
-	BotId       string            `json:"bot_id"`
-	BotUsername string            `json:"username"`
-	Text        string            `json:"text"`
-	TimeStamp   string            `json:"ts"`
-	Type        string            `json:"type"`
-	SubType     string            `json:"subtype"`
-	Comment     map[string]string `json:"comment"`
+	User        string        `json:"user"`
+	BotId       string        `json:"bot_id"`
+	BotUsername string        `json:"username"`
+	Text        string        `json:"text"`
+	TimeStamp   string        `json:"ts"`
+	Type        string        `json:"type"`
+	SubType     string        `json:"subtype"`
+	Comment     *SlackComment `json:"comment"`
+}
+
+type SlackComment struct {
+	User    string `json:"user"`
+	Comment string `json:"comment"`
 }
 
 func SlackConvertTimeStamp(ts string) int64 {
@@ -172,17 +177,20 @@ func SlackAddPosts(channel *model.Channel, posts []SlackPost, users map[string]*
 			}
 			ImportPost(&newPost)
 		case sPost.Type == "message" && sPost.SubType == "file_comment":
-			if sPost.Comment["user"] == "" {
+			if sPost.Comment == nil {
+				l4g.Debug(utils.T("api.slackimport.slack_add_posts.msg_no_comment.debug"))
+				continue
+			} else if sPost.Comment.User == "" {
 				l4g.Debug(utils.T("api.slackimport.slack_add_posts.msg_no_usr.debug"))
 				continue
-			} else if users[sPost.Comment["user"]] == nil {
+			} else if users[sPost.Comment.User] == nil {
 				l4g.Debug(utils.T("api.slackimport.slack_add_posts.user_no_exists.debug"), sPost.User)
 				continue
 			}
 			newPost := model.Post{
-				UserId:    users[sPost.Comment["user"]].Id,
+				UserId:    users[sPost.Comment.User].Id,
 				ChannelId: channel.Id,
-				Message:   sPost.Comment["comment"],
+				Message:   sPost.Comment.Comment,
 				CreateAt:  SlackConvertTimeStamp(sPost.TimeStamp),
 			}
 			ImportPost(&newPost)
