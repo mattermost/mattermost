@@ -5,7 +5,6 @@ package api
 
 import (
 	"fmt"
-	"sync/atomic"
 
 	l4g "github.com/alecthomas/log4go"
 
@@ -15,22 +14,19 @@ import (
 )
 
 type Hub struct {
-	connections    map[*WebConn]bool
-	register       chan *WebConn
-	unregister     chan *WebConn
-	broadcast      chan *model.WebSocketEvent
-	stop           chan string
-	invalidateUser chan string
-	shuttingDown   int32
+	connections map[*WebConn]bool
+	register    chan *WebConn
+	unregister  chan *WebConn
+	broadcast   chan *model.WebSocketEvent
+	stop        chan string
 }
 
 var hub = &Hub{
-	register:       make(chan *WebConn),
-	unregister:     make(chan *WebConn),
-	connections:    make(map[*WebConn]bool, model.SESSION_CACHE_SIZE),
-	broadcast:      make(chan *model.WebSocketEvent, 64),
-	stop:           make(chan string),
-	invalidateUser: make(chan string),
+	register:    make(chan *WebConn),
+	unregister:  make(chan *WebConn),
+	connections: make(map[*WebConn]bool, model.SESSION_CACHE_SIZE),
+	broadcast:   make(chan *model.WebSocketEvent),
+	stop:        make(chan string),
 }
 
 func Publish(message *model.WebSocketEvent) {
@@ -46,7 +42,8 @@ func PublishSkipClusterSend(message *model.WebSocketEvent) {
 }
 
 func InvalidateCacheForUser(userId string) {
-	hub.invalidateUser <- userId
+
+	Srv.Store.Channel().InvaldateIsUserInChannel(userId)
 
 	if einterfaces.GetClusterInterface() != nil {
 		einterfaces.GetClusterInterface().InvalidateCacheForUser(userId)
@@ -54,16 +51,14 @@ func InvalidateCacheForUser(userId string) {
 }
 
 func InvalidateCacheForChannel(channelId string) {
-	// TODO XXX FIXME
-	// remove me no longer needed
-}
 
-func (h *Hub) IsShuttingDown() bool {
-	if atomic.LoadInt32(&(h.shuttingDown)) != 0 {
-		return true
-	}
+	// XXX TODO FIX ME
 
-	return false
+	// hub.invalidateChannel <- channelId
+
+	// if einterfaces.GetClusterInterface() != nil {
+	// 	einterfaces.GetClusterInterface().InvalidateCacheForChannel(channelId)
+	// }
 }
 
 func (h *Hub) Register(webConn *WebConn) {
@@ -75,9 +70,7 @@ func (h *Hub) Register(webConn *WebConn) {
 }
 
 func (h *Hub) Unregister(webConn *WebConn) {
-	if !h.IsShuttingDown() {
-		h.unregister <- webConn
-	}
+	h.unregister <- webConn
 }
 
 func (h *Hub) Broadcast(message *model.WebSocketEvent) {
@@ -91,9 +84,6 @@ func (h *Hub) Stop() {
 }
 
 func (h *Hub) Start() {
-
-	atomic.StoreInt32(&(h.shuttingDown), 0)
-
 	go func() {
 		for {
 			select {
@@ -104,7 +94,7 @@ func (h *Hub) Start() {
 				userId := webCon.UserId
 				if _, ok := h.connections[webCon]; ok {
 					delete(h.connections, webCon)
-					webCon.Close()
+					close(webCon.Send)
 				}
 
 				found := false
@@ -118,30 +108,25 @@ func (h *Hub) Start() {
 				if !found {
 					go SetStatusOffline(userId, false)
 				}
-			case userId := <-h.invalidateUser:
-				for webCon := range h.connections {
-					if webCon.UserId == userId {
-						webCon.InvalidateCache()
-					}
-				}
 
 			case msg := <-h.broadcast:
-				msg.DoPreComputeJson()
 				for webCon := range h.connections {
 					if shouldSendEvent(webCon, msg) {
-						webCon.Broadcast(msg)
+						select {
+						case webCon.Send <- msg:
+						default:
+							close(webCon.Send)
+							delete(h.connections, webCon)
+						}
 					}
 				}
 
 			case s := <-h.stop:
 				l4g.Info(utils.T("api.web_hub.start.stopping.debug"), s)
-				atomic.StoreInt32(&(h.shuttingDown), 1)
 
 				for webCon := range h.connections {
-					webCon.Close()
+					webCon.WebSocket.Close()
 				}
-
-				h.connections = make(map[*WebConn]bool)
 
 				return
 			}
@@ -160,5 +145,31 @@ func shouldSendEvent(webCon *WebConn, msg *model.WebSocketEvent) bool {
 		return false
 	}
 
+	// Only report events to users who are in the channel for the event
+	if len(msg.Broadcast.ChannelId) > 0 {
+		return Srv.Store.Channel().IsUserInChannel(webCon.UserId, msg.Broadcast.ChannelId)
+	}
+
+	// Only report events to users who are in the team for the event
+	if len(msg.Broadcast.TeamId) > 0 {
+		return isMemberOfTeam(webCon, msg.Broadcast.TeamId)
+
+	}
+
 	return true
+}
+
+func isMemberOfTeam(webCon *WebConn, teamId string) bool {
+	session := GetSession(webCon.SessionToken)
+	if session == nil {
+		return false
+	} else {
+		member := session.GetTeamByTeamId(teamId)
+
+		if member != nil {
+			return true
+		} else {
+			return false
+		}
+	}
 }
