@@ -372,6 +372,8 @@ func TestUserStoreGetProfilesInChannel(t *testing.T) {
 			t.Fatal("should have returned empty map")
 		}
 	}
+
+	store.User().InvalidateProfilesInChannelCache(c2.Id)
 }
 
 func TestUserStoreGetDirectProfiles(t *testing.T) {

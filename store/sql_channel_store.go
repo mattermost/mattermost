@@ -12,14 +12,18 @@ import (
 )
 
 const (
-	MISSING_CHANNEL_ERROR        = "store.sql_channel.get_by_name.missing.app_error"
-	MISSING_CHANNEL_MEMBER_ERROR = "store.sql_channel.get_member.missing.app_error"
-	CHANNEL_EXISTS_ERROR         = "store.sql_channel.save_channel.exists.app_error"
+	MISSING_CHANNEL_ERROR                   = "store.sql_channel.get_by_name.missing.app_error"
+	MISSING_CHANNEL_MEMBER_ERROR            = "store.sql_channel.get_member.missing.app_error"
+	CHANNEL_EXISTS_ERROR                    = "store.sql_channel.save_channel.exists.app_error"
+	ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SIZE = model.SESSION_CACHE_SIZE
+	ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SEC  = 900 // 15 mins
 )
 
 type SqlChannelStore struct {
 	*SqlStore
 }
+
+var allChannelMembersForUserCache *utils.Cache = utils.NewLru(ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SIZE)
 
 func NewSqlChannelStore(sqlStore *SqlStore) ChannelStore {
 	s := &SqlChannelStore{sqlStore}
@@ -363,34 +367,6 @@ func (s SqlChannelStore) GetChannels(teamId string, userId string) StoreChannel 
 	return storeChannel
 }
 
-func (s SqlChannelStore) GetAllChannelIdsForAllTeams(userId string) StoreChannel {
-	storeChannel := make(StoreChannel, 1)
-
-	go func() {
-		result := StoreResult{}
-
-		var data []string
-		_, err := s.GetReplica().Select(&data, "SELECT Channels.Id FROM Channels, ChannelMembers WHERE Id = ChannelId AND UserId = :UserId AND DeleteAt = 0", map[string]interface{}{"UserId": userId})
-
-		if err != nil {
-			result.Err = model.NewLocAppError("SqlChannelStore.GetAllChannelIdsForAllTeams", "store.sql_channel.get_channels.get.app_error", nil, "userId="+userId+", err="+err.Error())
-		} else {
-
-			ids := make(map[string]bool)
-			for i := range data {
-				ids[data[i]] = true
-			}
-
-			result.Data = ids
-		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
-}
-
 func (s SqlChannelStore) GetMoreChannels(teamId string, userId string) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
@@ -615,6 +591,73 @@ func (s SqlChannelStore) GetMember(channelId string, userId string) StoreChannel
 			}
 		} else {
 			result.Data = member
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (us SqlChannelStore) InvalidateAllChannelMembersForUser(userId string) {
+	allChannelMembersForUserCache.Remove(userId)
+}
+
+func (us SqlChannelStore) IsUserInChannelUseCache(userId string, channelId string) bool {
+	return us.GetRoleForUserInChannelUseCache(userId, channelId) != nil
+}
+
+func (us SqlChannelStore) GetRoleForUserInChannelUseCache(userId string, channelId string) *string {
+	if result := <-us.GetAllChannelMembersForUser(userId, true); result.Err != nil {
+		return nil
+	} else {
+		ids := result.Data.(map[string]string)
+		if s, ok := ids[channelId]; ok {
+			return &s
+		} else {
+			return nil
+		}
+	}
+}
+
+type allChannelMember struct {
+	ChannelId string
+	Roles     string
+}
+
+func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCache bool) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		if allowFromCache {
+			if cacheItem, ok := allChannelMembersForUserCache.Get(userId); ok {
+				result.Data = cacheItem.(map[string]string)
+				storeChannel <- result
+				close(storeChannel)
+				return
+			}
+		}
+
+		var data []allChannelMember
+		_, err := s.GetReplica().Select(&data, "SELECT ChannelId, Roles FROM Channels, ChannelMembers WHERE Channels.Id = ChannelMembers.ChannelId AND ChannelMembers.UserId = :UserId AND Channels.DeleteAt = 0", map[string]interface{}{"UserId": userId})
+
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlChannelStore.GetAllChannelMembersForUser", "store.sql_channel.get_channels.get.app_error", nil, "userId="+userId+", err="+err.Error())
+		} else {
+
+			ids := make(map[string]string)
+			for i := range data {
+				ids[data[i].ChannelId] = data[i].Roles
+			}
+
+			result.Data = ids
+
+			if allowFromCache {
+				allChannelMembersForUserCache.AddWithExpiresInSecs(userId, ids, ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SEC)
+			}
 		}
 
 		storeChannel <- result

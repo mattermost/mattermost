@@ -147,7 +147,7 @@ func shouldSendEvent(webCon *WebConn, msg *model.WebSocketEvent) bool {
 
 	// Only report events to users who are in the channel for the event
 	if len(msg.Broadcast.ChannelId) > 0 {
-		return Srv.Store.Channel().IsUserInChannel(webCon.UserId, msg.Broadcast.ChannelId)
+		return Srv.Store.Channel().IsUserInChannelUseCache(webCon.UserId, msg.Broadcast.ChannelId)
 	}
 
 	// Only report events to users who are in the team for the event

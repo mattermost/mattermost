@@ -83,7 +83,6 @@ type ChannelStore interface {
 	PermanentDeleteByTeam(teamId string) StoreChannel
 	GetByName(team_id string, domain string) StoreChannel
 	GetChannels(teamId string, userId string) StoreChannel
-	GetAllChannelIdsForAllTeams(userId string) StoreChannel
 	GetMoreChannels(teamId string, userId string) StoreChannel
 	GetChannelCounts(teamId string, userId string) StoreChannel
 	GetAll(teamId string) StoreChannel
@@ -92,6 +91,10 @@ type ChannelStore interface {
 	UpdateMember(member *model.ChannelMember) StoreChannel
 	GetMembers(channelId string) StoreChannel
 	GetMember(channelId string, userId string) StoreChannel
+	InvalidateAllChannelMembersForUser(userId string)
+	IsUserInChannelUseCache(userId string, channelId string) bool
+	GetRoleForUserInChannelUseCache(userId string, channelId string) *string
+	GetAllChannelMembersForUser(userId string, allowFromCache bool) StoreChannel
 	GetMemberCount(channelId string) StoreChannel
 	RemoveMember(channelId string, userId string) StoreChannel
 	PermanentDeleteMembersByUser(userId string) StoreChannel

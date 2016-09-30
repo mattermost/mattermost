@@ -485,11 +485,49 @@ func TestChannelStoreGetChannels(t *testing.T) {
 		t.Fatal("missing channel")
 	}
 
-	acresult := <-store.Channel().GetAllChannelIdsForAllTeams(m1.UserId)
-	ids := acresult.Data.(map[string]bool)
-	if !ids[o1.Id] {
+	acresult := <-store.Channel().GetAllChannelMembersForUser(m1.UserId, false)
+	ids := acresult.Data.(map[string]string)
+	if _, ok := ids[o1.Id]; !ok {
 		t.Fatal("missing channel")
 	}
+
+	acresult2 := <-store.Channel().GetAllChannelMembersForUser(m1.UserId, true)
+	ids2 := acresult2.Data.(map[string]string)
+	if _, ok := ids2[o1.Id]; !ok {
+		t.Fatal("missing channel")
+	}
+
+	acresult3 := <-store.Channel().GetAllChannelMembersForUser(m1.UserId, true)
+	ids3 := acresult3.Data.(map[string]string)
+	if _, ok := ids3[o1.Id]; !ok {
+		t.Fatal("missing channel")
+	}
+
+	if store.Channel().GetRoleForUserInChannelUseCache(m1.UserId, o1.Id) == nil {
+		t.Fatal("missing channel")
+	}
+
+	if !store.Channel().IsUserInChannelUseCache(m1.UserId, o1.Id) {
+		t.Fatal("missing channel")
+	}
+
+	if store.Channel().GetRoleForUserInChannelUseCache(m1.UserId, o2.Id) != nil {
+		t.Fatal("missing channel")
+	}
+
+	if store.Channel().IsUserInChannelUseCache(m1.UserId, o2.Id) {
+		t.Fatal("missing channel")
+	}
+
+	if store.Channel().GetRoleForUserInChannelUseCache(m1.UserId, "blahblah") != nil {
+		t.Fatal("missing channel")
+	}
+
+	if store.Channel().GetRoleForUserInChannelUseCache("blahblah", "blahblah") != nil {
+		t.Fatal("missing channel")
+	}
+
+	store.Channel().InvalidateAllChannelMembersForUser(m1.UserId)
 }
 
 func TestChannelStoreGetMoreChannels(t *testing.T) {
