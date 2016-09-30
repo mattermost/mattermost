@@ -42,7 +42,7 @@ export default class YoutubeVideo extends React.Component {
         const link = props.link;
 
         const match = link.trim().match(ytRegex);
-        if (!match || match[2].length !== 11) {
+        if (!match || match[1].length !== 11) {
             return;
         }
 
@@ -51,7 +51,7 @@ export default class YoutubeVideo extends React.Component {
         }
 
         this.setState({
-            videoId: match[2],
+            videoId: match[1],
             time: this.handleYoutubeTime(link)
         });
     }
