@@ -251,7 +251,6 @@ export default class SidebarHeaderDropdown extends React.Component {
                 <ToggleModalButton
                     dialogType={TeamMembersModal}
                     dialogProps={{isAdmin}}
-                    onClick={this.toggleDropdown}
                 >
                     {membersName}
                 </ToggleModalButton>
