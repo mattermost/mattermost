@@ -93,7 +93,6 @@ type ChannelStore interface {
 	GetMember(channelId string, userId string) StoreChannel
 	InvalidateAllChannelMembersForUser(userId string)
 	IsUserInChannelUseCache(userId string, channelId string) bool
-	GetRoleForUserInChannelUseCache(userId string, channelId string) *string
 	GetAllChannelMembersForUser(userId string, allowFromCache bool) StoreChannel
 	GetMemberCount(channelId string) StoreChannel
 	RemoveMember(channelId string, userId string) StoreChannel

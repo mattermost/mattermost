@@ -503,15 +503,7 @@ func TestChannelStoreGetChannels(t *testing.T) {
 		t.Fatal("missing channel")
 	}
 
-	if store.Channel().GetRoleForUserInChannelUseCache(m1.UserId, o1.Id) == nil {
-		t.Fatal("missing channel")
-	}
-
 	if !store.Channel().IsUserInChannelUseCache(m1.UserId, o1.Id) {
-		t.Fatal("missing channel")
-	}
-
-	if store.Channel().GetRoleForUserInChannelUseCache(m1.UserId, o2.Id) != nil {
 		t.Fatal("missing channel")
 	}
 
@@ -519,11 +511,11 @@ func TestChannelStoreGetChannels(t *testing.T) {
 		t.Fatal("missing channel")
 	}
 
-	if store.Channel().GetRoleForUserInChannelUseCache(m1.UserId, "blahblah") != nil {
+	if store.Channel().IsUserInChannelUseCache(m1.UserId, "blahblah") {
 		t.Fatal("missing channel")
 	}
 
-	if store.Channel().GetRoleForUserInChannelUseCache("blahblah", "blahblah") != nil {
+	if store.Channel().IsUserInChannelUseCache("blahblah", "blahblah") {
 		t.Fatal("missing channel")
 	}
 

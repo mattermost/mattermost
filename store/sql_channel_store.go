@@ -606,19 +606,15 @@ func (us SqlChannelStore) InvalidateAllChannelMembersForUser(userId string) {
 }
 
 func (us SqlChannelStore) IsUserInChannelUseCache(userId string, channelId string) bool {
-	return us.GetRoleForUserInChannelUseCache(userId, channelId) != nil
-}
-
-func (us SqlChannelStore) GetRoleForUserInChannelUseCache(userId string, channelId string) *string {
 	if result := <-us.GetAllChannelMembersForUser(userId, true); result.Err != nil {
-		l4g.Error("SqlChannelStore.GetRoleForUserInChannelUseCache: " + result.Err.Error())
-		return nil
+		l4g.Error("SqlChannelStore.IsUserInChannelUseCache: " + result.Err.Error())
+		return false
 	} else {
 		ids := result.Data.(map[string]string)
-		if s, ok := ids[channelId]; ok {
-			return &s
+		if _, ok := ids[channelId]; ok {
+			return true
 		} else {
-			return nil
+			return false
 		}
 	}
 }
