@@ -543,7 +543,7 @@
   "admin.rate.remoteDescription": "When true, rate limit API access by IP address.",
   "admin.rate.remoteTitle": "Vary rate limit by remote address: ",
   "admin.rate.title": "Rate Limit Settings",
-  "admin.rate.maxBurst": "Max Burst:",
+  "admin.rate.maxBurst": "Maximum Burst Size:",
   "admin.rate.maxBurstExample": "Ex \"100\"",
   "admin.rate.maxBurstDescription": "Maximum number of requests allowed beyond the per second query limit.",
   "admin.recycle.button": "Recycle Database Connections",
