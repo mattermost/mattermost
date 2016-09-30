@@ -722,6 +722,7 @@ export function getFileInfosForPost(channelId, postId) {
         return;
     }
 
+    callTracker[callName] = utils.getTimestamp();
     Client.getFileInfosForPost(
         channelId,
         postId,
