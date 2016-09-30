@@ -6,7 +6,6 @@ package api
 import (
 	"bytes"
 	"io"
-	"path/filepath"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
@@ -57,30 +56,27 @@ func ImportChannel(channel *model.Channel) *model.Channel {
 	}
 }
 
-func ImportFile(file io.Reader, teamId string, channelId string, userId string, fileName string) (string, error) {
+func ImportFile(file io.Reader, teamId string, channelId string, userId string, fileName string) (*model.FileInfo, error) {
 	buf := bytes.NewBuffer(nil)
 	io.Copy(buf, file)
+	data := buf.Bytes()
 
-	uid := model.NewId()
-
-	imageNameList := []string{}
+	previewPathList := []string{}
+	thumbnailPathList := []string{}
 	imageDataList := [][]byte{}
 
-	if model.IsFileExtImage(filepath.Ext(fileName)) {
-		imageNameList = append(imageNameList, uid+"/"+fileName)
-		imageDataList = append(imageDataList, buf.Bytes())
+	fileInfo, err := doUploadFile(teamId, channelId, userId, fileName, data)
+	if err != nil {
+		return nil, err
 	}
 
-	path := "teams/" + teamId + "/channels/" + channelId + "/users/" + userId + "/" + uid + "/" + fileName
-
-	if err := WriteFile(buf.Bytes(), path); err != nil {
-		return "", err
+	if fileInfo.PreviewPath != "" || fileInfo.ThumbnailPath != "" {
+		previewPathList = append(previewPathList, fileInfo.PreviewPath)
+		thumbnailPathList = append(thumbnailPathList, fileInfo.ThumbnailPath)
+		imageDataList = append(imageDataList, data)
 	}
 
-	encName := utils.UrlEncode(fileName)
-	fileUrl := "/" + channelId + "/" + userId + "/" + uid + "/" + encName
+	go handleImages(previewPathList, thumbnailPathList, imageDataList)
 
-	go handleImages(imageNameList, imageDataList, teamId, channelId, userId)
-
-	return fileUrl, nil
+	return fileInfo, nil
 }

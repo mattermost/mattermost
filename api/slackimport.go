@@ -185,12 +185,18 @@ func SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, use
 				CreateAt:  SlackConvertTimeStamp(sPost.TimeStamp),
 			}
 			if sPost.Upload {
-				if filename, ok := SlackUploadFile(sPost, uploads, teamId, newPost.ChannelId, newPost.UserId); ok == true {
-					newPost.Filenames = append(newPost.Filenames, filename)
+				if fileInfo, ok := SlackUploadFile(sPost, uploads, teamId, newPost.ChannelId, newPost.UserId); ok == true {
+					newPost.FileIds = append(newPost.FileIds, fileInfo.Id)
 					newPost.Message = sPost.File.Title
 				}
 			}
 			ImportPost(&newPost)
+			for _, fileId := range newPost.FileIds {
+				if result := <-Srv.Store.FileInfo().AttachToPost(fileId, newPost.Id); result.Err != nil {
+					l4g.Error(utils.T("api.slackimport.slack_add_posts.attach_files.error"), newPost.Id, newPost.FileIds, result.Err)
+				}
+			}
+
 		case sPost.Type == "message" && sPost.SubType == "file_comment":
 			if sPost.Comment == nil {
 				l4g.Debug(utils.T("api.slackimport.slack_add_posts.msg_no_comment.debug"))
@@ -233,30 +239,30 @@ func SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, use
 	}
 }
 
-func SlackUploadFile(sPost SlackPost, uploads map[string]*zip.File, teamId string, channelId string, userId string) (string, bool) {
+func SlackUploadFile(sPost SlackPost, uploads map[string]*zip.File, teamId string, channelId string, userId string) (*model.FileInfo, bool) {
 	if sPost.File != nil {
 		if file, ok := uploads[sPost.File.Id]; ok == true {
 			openFile, err := file.Open()
 			if err != nil {
 				l4g.Warn(utils.T("api.slackimport.slack_add_posts.upload_file_open_failed.warn", map[string]interface{}{"FileId": sPost.File.Id, "Error": err.Error()}))
-				return "", false
+				return nil, false
 			}
 			defer openFile.Close()
 
 			uploadedFile, err := ImportFile(openFile, teamId, channelId, userId, filepath.Base(file.Name))
 			if err != nil {
 				l4g.Warn(utils.T("api.slackimport.slack_add_posts.upload_file_upload_failed.warn", map[string]interface{}{"FileId": sPost.File.Id, "Error": err.Error()}))
-				return "", false
+				return nil, false
 			}
 
 			return uploadedFile, true
 		} else {
 			l4g.Warn(utils.T("api.slackimport.slack_add_posts.upload_file_not_found.warn", map[string]interface{}{"FileId": sPost.File.Id}))
-			return "", false
+			return nil, false
 		}
 	} else {
 		l4g.Warn(utils.T("api.slackimport.slack_add_posts.upload_file_not_in_json.warn"))
-		return "", false
+		return nil, false
 	}
 }
 
