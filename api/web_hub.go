@@ -43,7 +43,7 @@ func PublishSkipClusterSend(message *model.WebSocketEvent) {
 
 func InvalidateCacheForUser(userId string) {
 
-	Srv.Store.Channel().InvaldateIsUserInChannel(userId)
+	Srv.Store.Channel().InvalidateAllChannelMembersForUser(userId)
 
 	if einterfaces.GetClusterInterface() != nil {
 		einterfaces.GetClusterInterface().InvalidateCacheForUser(userId)
