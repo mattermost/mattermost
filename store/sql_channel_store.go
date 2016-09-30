@@ -499,6 +499,8 @@ func (s SqlChannelStore) SaveMember(member *model.ChannelMember) StoreChannel {
 			}
 		}
 
+		s.InvalidateAllChannelMembersForUser(member.UserId)
+
 		storeChannel <- result
 		close(storeChannel)
 	}()
