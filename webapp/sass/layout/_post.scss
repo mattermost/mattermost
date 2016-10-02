@@ -646,6 +646,10 @@ body.ios {
         }
     }
 
+    .post__img:hover {
+        cursor: pointer !important;
+    }
+
     .post--fail {
         position: relative;
     }
