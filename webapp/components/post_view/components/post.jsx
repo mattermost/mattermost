@@ -196,6 +196,7 @@ export default class Post extends React.Component {
             <ProfilePicture
                 src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
                 status={this.props.status}
+                user={this.props.user}
             />
         );
 
