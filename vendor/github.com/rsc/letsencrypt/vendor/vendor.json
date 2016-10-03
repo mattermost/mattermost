@@ -1,0 +1,31 @@
+{
+	"comment": "",
+	"ignore": "",
+	"package": [
+		{
+			"checksumSHA1": "CHmdoMriAboKW2nHYSXo0yBizaE=",
+			"path": "github.com/xenolf/lego/acme",
+			"revision": "ca19a90028e242e878585941c2a27c8f3b3efc25",
+			"revisionTime": "2016-03-28T16:28:34Z"
+		},
+		{
+			"checksumSHA1": "jrheBzltbBE1frmNXQiu911T7dE=",
+			"path": "gopkg.in/square/go-jose.v1",
+			"revision": "40d457b439244b546f023d056628e5184136899b",
+			"revisionTime": "2016-03-29T20:33:11Z"
+		},
+		{
+			"checksumSHA1": "fX4KSC9E1oX9yRx20Zjb3rVJHn4=",
+			"path": "gopkg.in/square/go-jose.v1/cipher",
+			"revision": "40d457b439244b546f023d056628e5184136899b",
+			"revisionTime": "2016-03-29T20:33:11Z"
+		},
+		{
+			"checksumSHA1": "NxdXsIcLGuuX654ygsaOhoLsg6s=",
+			"path": "gopkg.in/square/go-jose.v1/json",
+			"revision": "40d457b439244b546f023d056628e5184136899b",
+			"revisionTime": "2016-03-29T20:33:11Z"
+		}
+	],
+	"rootPath": "rsc.io/letsencrypt"
+}
