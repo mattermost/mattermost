@@ -98,6 +98,20 @@ type ClusterSettings struct {
 	InterNodeUrls          []string
 }
 
+type CommandSetting struct {
+	Token            string
+	Trigger          string
+	Method           string
+	Username         string
+	IconURL          string
+	AutoComplete     bool
+	AutoCompleteDesc string
+	AutoCompleteHint string
+	DisplayName      string
+	Description      string
+	URL              string
+}
+
 type SSOSettings struct {
 	Enable          bool
 	Secret          string
@@ -326,6 +340,7 @@ type Config struct {
 	GitLabSettings       SSOSettings
 	GoogleSettings       SSOSettings
 	Office365Settings    SSOSettings
+	CommandSettings      []CommandSetting
 	LdapSettings         LdapSettings
 	ComplianceSettings   ComplianceSettings
 	LocalizationSettings LocalizationSettings
