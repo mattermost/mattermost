@@ -3117,7 +3117,7 @@
   },
   {
     "id": "model.config.is_valid.max_burst.app_error",
-    "translation": "Max burst must be greater than zero."
+    "translation": "Maximum burst size must be greater than zero."
   },
   {
     "id": "model.config.is_valid.encrypt_sql.app_error",
