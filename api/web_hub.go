@@ -115,6 +115,7 @@ func (h *Hub) Start() {
 						select {
 						case webCon.Send <- msg:
 						default:
+							l4g.Error(fmt.Sprintf("webhub.broadcast: cannot send, closing websocket for userId=%v", webCon.UserId))
 							close(webCon.Send)
 							delete(h.connections, webCon)
 						}

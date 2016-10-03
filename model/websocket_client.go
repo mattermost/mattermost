@@ -17,6 +17,7 @@ type WebSocketClient struct {
 	Sequence        int64           // The ever-incrementing sequence attached to each WebSocket action
 	EventChannel    chan *WebSocketEvent
 	ResponseChannel chan *WebSocketResponse
+	ListenError     *AppError
 }
 
 // NewWebSocketClient constructs a new WebSocket client with convienence
@@ -37,6 +38,7 @@ func NewWebSocketClient(url, authToken string) (*WebSocketClient, *AppError) {
 		1,
 		make(chan *WebSocketEvent, 100),
 		make(chan *WebSocketResponse, 100),
+		nil,
 	}, nil
 }
 
@@ -59,10 +61,20 @@ func (wsc *WebSocketClient) Close() {
 
 func (wsc *WebSocketClient) Listen() {
 	go func() {
+		defer func() {
+			wsc.Conn.Close()
+			close(wsc.EventChannel)
+			close(wsc.ResponseChannel)
+		}()
+
 		for {
 			var rawMsg json.RawMessage
 			var err error
 			if _, rawMsg, err = wsc.Conn.ReadMessage(); err != nil {
+				if !websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
+					wsc.ListenError = NewLocAppError("NewWebSocketClient", "model.websocket_client.connect_fail.app_error", nil, err.Error())
+				}
+
 				return
 			}
 

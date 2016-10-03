@@ -4,10 +4,12 @@
 package api
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/mattermost/platform/model"
 
+	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/websocket"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
@@ -16,8 +18,6 @@ const (
 	WRITE_WAIT  = 20 * time.Second
 	PONG_WAIT   = 60 * time.Second
 	PING_PERIOD = (PONG_WAIT * 9) / 10
-	MAX_SIZE    = 512
-	REDIS_WAIT  = 60 * time.Second
 )
 
 type WebConn struct {
@@ -58,6 +58,13 @@ func (c *WebConn) readPump() {
 	for {
 		var req model.WebSocketRequest
 		if err := c.WebSocket.ReadJSON(&req); err != nil {
+			// browsers will appear as CloseNoStatusReceived
+			if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
+				l4g.Debug(fmt.Sprintf("websocket.read: client side closed socket userId=%v", c.UserId))
+			} else {
+				l4g.Debug(fmt.Sprintf("websocket.read: cannot read, closing websocket for userId=%v error=%v", c.UserId, err.Error()))
+			}
+
 			return
 		} else {
 			BaseRoutes.WebSocket.ServeWebSocket(c, &req)
@@ -84,12 +91,26 @@ func (c *WebConn) writePump() {
 
 			c.WebSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
 			if err := c.WebSocket.WriteJSON(msg); err != nil {
+				// browsers will appear as CloseNoStatusReceived
+				if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
+					l4g.Debug(fmt.Sprintf("websocket.send: client side closed socket userId=%v", c.UserId))
+				} else {
+					l4g.Debug(fmt.Sprintf("websocket.send: cannot send, closing websocket for userId=%v, error=%v", c.UserId, err.Error()))
+				}
+
 				return
 			}
 
 		case <-ticker.C:
 			c.WebSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
 			if err := c.WebSocket.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
+				// browsers will appear as CloseNoStatusReceived
+				if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
+					l4g.Debug(fmt.Sprintf("websocket.ticker: client side closed socket userId=%v", c.UserId))
+				} else {
+					l4g.Debug(fmt.Sprintf("websocket.ticker: cannot read, closing websocket for userId=%v error=%v", c.UserId, err.Error()))
+				}
+
 				return
 			}
 		}
