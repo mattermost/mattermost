@@ -221,6 +221,10 @@
     .divider {
         border-top: 1px solid transparent;
         margin: 0.5em 0;
+
+        & + .divider {
+            display: none;
+        }
     }
 
     .team__header {
@@ -301,10 +305,6 @@
             .sidebar-header-dropdown__icon,
             .admin-navbar-dropdown__icon {
                 fill: $white;
-            }
-
-            .divider + .divider {
-                display: none;
             }
         }
 
