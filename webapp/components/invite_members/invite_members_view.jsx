@@ -160,7 +160,6 @@ export default class InviteMembersView extends React.Component {
         } else if (this.props.sendInvitesState === 'done') {
             sendButtonLabel = (
                 <span>
-                    <i className='fa fa-check'/>
                     <FormattedMessage
                         id='invite_member.done'
                         defaultMessage=' Close'
@@ -208,13 +207,17 @@ export default class InviteMembersView extends React.Component {
         let doneMessage = null;
         if (this.props.sendInvitesState === 'done') {
             doneMessage = (
-                <div className='form-group has-success'>
-                    <label className='control-label'>
-                        <FormattedMessage
-                            id='invite_member.success'
-                            defaultMessage='Members sucessfully invited.'
-                        />
-                    </label>
+                <div>
+                    <div className='clearfix'/>
+                    <div className='form-group has-success'>
+                        <label className='control-label'>
+                            <i className='fa fa-check'/>
+                            <FormattedMessage
+                                id='invite_member.success'
+                                defaultMessage='Members sucessfully invited.'
+                            />
+                        </label>
+                    </div>
                 </div>
             );
         }
