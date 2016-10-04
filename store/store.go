@@ -86,7 +86,6 @@ type ChannelStore interface {
 	GetMoreChannels(teamId string, userId string) StoreChannel
 	GetChannelCounts(teamId string, userId string) StoreChannel
 	GetAll(teamId string) StoreChannel
-
 	SaveMember(member *model.ChannelMember) StoreChannel
 	UpdateMember(member *model.ChannelMember) StoreChannel
 	GetMembers(channelId string) StoreChannel
@@ -97,7 +96,6 @@ type ChannelStore interface {
 	GetMemberCount(channelId string) StoreChannel
 	RemoveMember(channelId string, userId string) StoreChannel
 	PermanentDeleteMembersByUser(userId string) StoreChannel
-	GetExtraMembers(channelId string, limit int) StoreChannel
 	UpdateLastViewedAt(channelId string, userId string) StoreChannel
 	SetLastViewedAt(channelId string, userId string, newLastViewedAt int64) StoreChannel
 	IncrementMentionCount(channelId string, userId string) StoreChannel
@@ -134,8 +132,10 @@ type UserStore interface {
 	UpdateMfaActive(userId string, active bool) StoreChannel
 	Get(id string) StoreChannel
 	GetAll() StoreChannel
-	GetProfilesInChannel(channelId string, allowFromCache bool) StoreChannel
-	InvalidateProfilesInChannelCache(channelId string)
+	// GetProfilesInChannel(channelId string, allowFromCache bool) StoreChannel
+	// InvalidateProfilesInChannelCache(channelId string)
+	GetProfilesInChannel(channelId string, offset int, limit int) StoreChannel
+	GetProfilesNotInChannel(teamId string, channelId string, offset int, limit int) StoreChannel
 	GetProfilesByUsernames(usernames []string, teamId string) StoreChannel
 	GetAllProfiles(offset int, limit int) StoreChannel
 	GetProfiles(teamId string, offset int, limit int) StoreChannel
@@ -159,6 +159,8 @@ type UserStore interface {
 	GetUnreadCountForChannel(userId string, channelId string) StoreChannel
 	GetRecentlyActiveUsersForTeam(teamId string) StoreChannel
 	Search(teamId string, term string) StoreChannel
+	SearchInChannel(channelId string, term string) StoreChannel
+	SearchNotInChannel(teamId string, channelId string, term string) StoreChannel
 }
 
 type SessionStore interface {

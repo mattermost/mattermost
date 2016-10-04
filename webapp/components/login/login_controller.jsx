@@ -39,8 +39,6 @@ export default class LoginController extends React.Component {
         this.handleLoginIdChange = this.handleLoginIdChange.bind(this);
         this.handlePasswordChange = this.handlePasswordChange.bind(this);
 
-        this.checkSignUpEnabled = this.checkSignUpEnabled.bind(this);
-
         this.state = {
             ldapEnabled: global.window.mm_license.IsLicensed === 'true' && global.window.mm_config.EnableLdap === 'true',
             usernameSigninEnabled: global.window.mm_config.EnableSignInWithUsername === 'true',
@@ -279,7 +277,10 @@ export default class LoginController extends React.Component {
     checkSignUpEnabled() {
         return global.window.mm_config.EnableSignUpWithEmail === 'true' ||
             global.window.mm_config.EnableSignUpWithGitLab === 'true' ||
-            global.window.mm_config.EnableSignUpWithGoogle === 'true';
+            global.window.mm_config.EnableSignUpWithOffice365 === 'true' ||
+            global.window.mm_config.EnableSignUpWithGoogle === 'true' ||
+            global.window.mm_config.EnableLdap === 'true' ||
+            global.window.mm_config.EnableSaml === 'true';
     }
 
     createLoginOptions() {

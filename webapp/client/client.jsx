@@ -1026,6 +1026,24 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getProfilesForTeam', success, error));
     }
 
+    getProfilesInChannel(channelId, offset, limit, success, error) {
+        request.
+            get(`${this.getChannelNeededRoute(channelId)}/users/${offset}/${limit}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getProfilesInChannel', success, error));
+    }
+
+    getProfilesNotInChannel(channelId, offset, limit, success, error) {
+        request.
+            get(`${this.getChannelNeededRoute(channelId)}/users/not_in_channel/${offset}/${limit}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getProfilesNotInChannel', success, error));
+    }
+
     getProfilesForDirectMessageList(offset, limit, success, error) {
         request.
             get(`${this.getUsersRoute()}/profiles_for_dm_list/${this.getTeamId()}/${offset}/${limit}`).
@@ -1035,23 +1053,23 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getProfilesForDirectMessageList', success, error));
     }
 
-    getProfilesFromList(userIds, success, error) {
+    getProfilesByIds(userIds, success, error) {
         request.
-            post(`${this.getUsersRoute()}/profiles_from_list`).
+            post(`${this.getUsersRoute()}/ids`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
             send(userIds).
-            end(this.handleResponse.bind(this, 'getProfilesFromList', success, error));
+            end(this.handleResponse.bind(this, 'getProfilesByIds', success, error));
     }
 
-    searchUsers(teamId, term, success, error) {
+    searchUsers(term, teamId, options, success, error) {
         request.
             post(`${this.getUsersRoute()}/search`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
-            send({team_id: teamId, term}).
+            send({term, team_id: teamId, ...options}).
             end(this.handleResponse.bind(this, 'searchUsers', success, error));
     }
 
@@ -1301,18 +1319,22 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getChannelCounts', success, error));
     }
 
-    getChannelExtraInfo(channelId, memberLimit, success, error) {
-        var url = `${this.getChannelNeededRoute(channelId)}/extra_info`;
-        if (memberLimit) {
-            url += '/' + memberLimit;
-        }
-
+    getChannelStats(channelId, success, error) {
         request.
-            get(url).
+            get(`${this.getChannelNeededRoute(channelId)}/stats`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
-            end(this.handleResponse.bind(this, 'getChannelExtraInfo', success, error));
+            end(this.handleResponse.bind(this, 'getChannelStats', success, error));
+    }
+
+    getChannelMember(channelId, userId, success, error) {
+        request.
+            get(`${this.getChannelNeededRoute(channelId)}/members/${userId}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getChannelMember', success, error));
     }
 
     addChannelMember(channelId, userId, success, error) {

@@ -63,13 +63,13 @@ export default class ChannelHeader extends React.Component {
     }
 
     getStateFromStores() {
-        const extraInfo = ChannelStore.getExtraInfo(this.props.channelId);
+        const stats = ChannelStore.getStats(this.props.channelId);
 
         return {
             channel: ChannelStore.get(this.props.channelId),
-            memberChannel: ChannelStore.getMember(this.props.channelId),
-            users: extraInfo.members,
-            userCount: extraInfo.member_count,
+            memberChannel: ChannelStore.getMyMember(this.props.channelId),
+            users: [],
+            userCount: stats.member_count,
             currentUser: UserStore.getCurrentUser(),
             enableFormatting: PreferenceStore.getBool(Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', true),
             isBusy: WebrtcStore.isBusy()
@@ -89,7 +89,7 @@ export default class ChannelHeader extends React.Component {
 
     componentDidMount() {
         ChannelStore.addChangeListener(this.onListenerChange);
-        ChannelStore.addExtraInfoChangeListener(this.onListenerChange);
+        ChannelStore.addStatsChangeListener(this.onListenerChange);
         SearchStore.addSearchChangeListener(this.onListenerChange);
         PreferenceStore.addChangeListener(this.onListenerChange);
         UserStore.addChangeListener(this.onListenerChange);
@@ -102,7 +102,7 @@ export default class ChannelHeader extends React.Component {
 
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onListenerChange);
-        ChannelStore.removeExtraInfoChangeListener(this.onListenerChange);
+        ChannelStore.removeStatsChangeListener(this.onListenerChange);
         SearchStore.removeSearchChangeListener(this.onListenerChange);
         PreferenceStore.removeChangeListener(this.onListenerChange);
         UserStore.removeChangeListener(this.onListenerChange);

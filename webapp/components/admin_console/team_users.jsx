@@ -203,8 +203,9 @@ export default class UserList extends React.Component {
         }
 
         searchUsers(
-            this.props.params.team,
             term,
+            this.props.params.team,
+            {},
             (users) => {
                 this.setState({search: true, users});
             }

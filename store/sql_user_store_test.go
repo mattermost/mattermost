@@ -310,7 +310,7 @@ func TestUserStoreGetProfilesInChannel(t *testing.T) {
 	Must(store.Channel().SaveMember(&m2))
 	Must(store.Channel().SaveMember(&m3))
 
-	if r1 := <-store.User().GetProfilesInChannel(c1.Id, true); r1.Err != nil {
+	if r1 := <-store.User().GetProfilesInChannel(c1.Id, -1, -1); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		users := r1.Data.(map[string]*model.User)
@@ -323,33 +323,7 @@ func TestUserStoreGetProfilesInChannel(t *testing.T) {
 		}
 	}
 
-	if r1 := <-store.User().GetProfilesInChannel(c1.Id, true); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		users := r1.Data.(map[string]*model.User)
-		if len(users) != 2 {
-			t.Fatal("invalid returned users")
-		}
-
-		if users[u1.Id].Id != u1.Id {
-			t.Fatal("invalid returned user")
-		}
-	}
-
-	if r1 := <-store.User().GetProfilesInChannel(c1.Id, false); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		users := r1.Data.(map[string]*model.User)
-		if len(users) != 2 {
-			t.Fatal("invalid returned users")
-		}
-
-		if users[u1.Id].Id != u1.Id {
-			t.Fatal("invalid returned user")
-		}
-	}
-
-	if r2 := <-store.User().GetProfilesInChannel(c2.Id, true); r2.Err != nil {
+	if r2 := <-store.User().GetProfilesInChannel(c2.Id, -1, -1); r2.Err != nil {
 		t.Fatal(r2.Err)
 	} else {
 		if len(r2.Data.(map[string]*model.User)) != 1 {
@@ -374,6 +348,94 @@ func TestUserStoreGetProfilesInChannel(t *testing.T) {
 	}
 
 	store.User().InvalidateProfilesInChannelCache(c2.Id)
+}
+
+func TestUserStoreGetProfilesNotInChannel(t *testing.T) {
+	Setup()
+
+	teamId := model.NewId()
+
+	u1 := &model.User{}
+	u1.Email = model.NewId()
+	Must(store.User().Save(u1))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}))
+
+	u2 := &model.User{}
+	u2.Email = model.NewId()
+	Must(store.User().Save(u2))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}))
+
+	c1 := model.Channel{}
+	c1.TeamId = teamId
+	c1.DisplayName = "Profiles in channel"
+	c1.Name = "profiles-" + model.NewId()
+	c1.Type = model.CHANNEL_OPEN
+
+	c2 := model.Channel{}
+	c2.TeamId = teamId
+	c2.DisplayName = "Profiles in private"
+	c2.Name = "profiles-" + model.NewId()
+	c2.Type = model.CHANNEL_PRIVATE
+
+	Must(store.Channel().Save(&c1))
+	Must(store.Channel().Save(&c2))
+
+	if r1 := <-store.User().GetProfilesNotInChannel(teamId, c1.Id, 0, 100); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		users := r1.Data.(map[string]*model.User)
+		if len(users) != 2 {
+			t.Fatal("invalid returned users")
+		}
+
+		if users[u1.Id].Id != u1.Id {
+			t.Fatal("invalid returned user")
+		}
+	}
+
+	if r2 := <-store.User().GetProfilesNotInChannel(teamId, c2.Id, 0, 100); r2.Err != nil {
+		t.Fatal(r2.Err)
+	} else {
+		if len(r2.Data.(map[string]*model.User)) != 2 {
+			t.Fatal("invalid returned users")
+		}
+	}
+
+	m1 := model.ChannelMember{}
+	m1.ChannelId = c1.Id
+	m1.UserId = u1.Id
+	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
+
+	m2 := model.ChannelMember{}
+	m2.ChannelId = c1.Id
+	m2.UserId = u2.Id
+	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
+
+	m3 := model.ChannelMember{}
+	m3.ChannelId = c2.Id
+	m3.UserId = u1.Id
+	m3.NotifyProps = model.GetDefaultChannelNotifyProps()
+
+	Must(store.Channel().SaveMember(&m1))
+	Must(store.Channel().SaveMember(&m2))
+	Must(store.Channel().SaveMember(&m3))
+
+	if r1 := <-store.User().GetProfilesNotInChannel(teamId, c1.Id, 0, 100); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		users := r1.Data.(map[string]*model.User)
+		if len(users) != 0 {
+			t.Fatal("invalid returned users")
+		}
+	}
+
+	if r2 := <-store.User().GetProfilesNotInChannel(teamId, c2.Id, 0, 100); r2.Err != nil {
+		t.Fatal(r2.Err)
+	} else {
+		if len(r2.Data.(map[string]*model.User)) != 1 {
+			t.Fatal("should have had 1 user not in channel")
+		}
+	}
 }
 
 func TestUserStoreGetDirectProfiles(t *testing.T) {
@@ -894,5 +956,149 @@ func TestUserStoreGetRecentlyActiveUsersForTeam(t *testing.T) {
 
 	if r1 := <-store.User().GetRecentlyActiveUsersForTeam(tid); r1.Err != nil {
 		t.Fatal(r1.Err)
+	}
+}
+
+func TestUserStoreSearch(t *testing.T) {
+	Setup()
+
+	u1 := &model.User{}
+	u1.Username = "jimbo" + model.NewId()
+	u1.Email = model.NewId()
+	Must(store.User().Save(u1))
+
+	tid := model.NewId()
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u1.Id}))
+
+	if r1 := <-store.User().Search(tid, "jimb"); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		profiles := r1.Data.([]*model.User)
+		found := false
+		for _, profile := range profiles {
+			if profile.Id == u1.Id {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			t.Fatal("should have found user")
+		}
+	}
+
+	if r1 := <-store.User().Search("", "jimb"); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		profiles := r1.Data.([]*model.User)
+		found := false
+		for _, profile := range profiles {
+			if profile.Id == u1.Id {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			t.Fatal("should have found user")
+		}
+	}
+
+	if r1 := <-store.User().Search(tid, ""); r1.Err != nil {
+		t.Fatal(r1.Err)
+	}
+
+	c1 := model.Channel{}
+	c1.TeamId = tid
+	c1.DisplayName = "NameName"
+	c1.Name = "a" + model.NewId() + "b"
+	c1.Type = model.CHANNEL_OPEN
+	c1 = *Must(store.Channel().Save(&c1)).(*model.Channel)
+
+	if r1 := <-store.User().SearchNotInChannel(tid, c1.Id, "jimb"); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		profiles := r1.Data.([]*model.User)
+		found := false
+		for _, profile := range profiles {
+			if profile.Id == u1.Id {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			t.Fatal("should have found user")
+		}
+	}
+
+	if r1 := <-store.User().SearchNotInChannel("", c1.Id, "jimb"); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		profiles := r1.Data.([]*model.User)
+		found := false
+		for _, profile := range profiles {
+			if profile.Id == u1.Id {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			t.Fatal("should have found user")
+		}
+	}
+
+	if r1 := <-store.User().SearchNotInChannel("junk", c1.Id, "jimb"); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		profiles := r1.Data.([]*model.User)
+		found := false
+		for _, profile := range profiles {
+			if profile.Id == u1.Id {
+				found = true
+				break
+			}
+		}
+
+		if found {
+			t.Fatal("should not have found user")
+		}
+	}
+
+	if r1 := <-store.User().SearchInChannel(c1.Id, "jimb"); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		profiles := r1.Data.([]*model.User)
+		found := false
+		for _, profile := range profiles {
+			if profile.Id == u1.Id {
+				found = true
+				break
+			}
+		}
+
+		if found {
+			t.Fatal("should not have found user")
+		}
+	}
+
+	Must(store.Channel().SaveMember(&model.ChannelMember{ChannelId: c1.Id, UserId: u1.Id, NotifyProps: model.GetDefaultChannelNotifyProps()}))
+
+	if r1 := <-store.User().SearchInChannel(c1.Id, "jimb"); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		profiles := r1.Data.([]*model.User)
+		found := false
+		for _, profile := range profiles {
+			if profile.Id == u1.Id {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			t.Fatal("should have found user")
+		}
 	}
 }

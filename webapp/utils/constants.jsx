@@ -71,7 +71,7 @@ export const ActionTypes = keyMirror({
     RECEIVED_CHANNELS: null,
     RECEIVED_CHANNEL: null,
     RECEIVED_MORE_CHANNELS: null,
-    RECEIVED_CHANNEL_EXTRA_INFO: null,
+    RECEIVED_CHANNEL_STATS: null,
 
     FOCUS_POST: null,
     RECEIVED_POSTS: null,
@@ -87,6 +87,8 @@ export const ActionTypes = keyMirror({
     RECEIVED_PROFILES_FOR_DM_LIST: null,
     RECEIVED_PROFILES: null,
     RECEIVED_PROFILE: null,
+    RECEIVED_PROFILES_IN_CHANNEL: null,
+    RECEIVED_PROFILE_NOT_IN_CHANNEL: null,
     RECEIVED_DIRECT_PROFILES: null,
     RECEIVED_ME: null,
     RECEIVED_SESSIONS: null,

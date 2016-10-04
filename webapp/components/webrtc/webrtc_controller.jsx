@@ -734,7 +734,9 @@ export default class WebrtcController extends React.Component {
             this.onSessionError();
             return this.doCleanup();
         }
+
         WebrtcStore.setVideoCallWith(null);
+        WebrtcStore.emitRhsChanged(false);
 
         if (manual) {
             return this.close();

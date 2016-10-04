@@ -14,7 +14,6 @@ import {searchUsers} from 'actions/user_actions.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 
-import $ from 'jquery';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
@@ -26,115 +25,41 @@ export default class ChannelInviteModal extends React.Component {
         super(props);
 
         this.onChange = this.onChange.bind(this);
-        this.getStateFromStores = this.getStateFromStores.bind(this);
         this.handleInviteError = this.handleInviteError.bind(this);
+        this.nextPage = this.nextPage.bind(this);
         this.search = this.search.bind(this);
 
         this.term = '';
-        this.page = 0;
 
-        this.state = {search: false};
-    }
+        const stats = ChannelStore.getStats(props.channel.id);
 
-    shouldComponentUpdate(nextProps, nextState) {
-        if (!this.props.show && !nextProps.show) {
-            return false;
-        }
+        // TEMPORARY until team members are paged
+        const teamSize = TeamStore.getMembersForTeam().length;
 
-        if (!Utils.areObjectsEqual(this.props, nextProps)) {
-            return true;
-        }
-
-        if (!Utils.areObjectsEqual(this.state, nextState)) {
-            return true;
-        }
-
-        return false;
-    }
-
-    getStateFromStores() {
-        const users = UserStore.getActiveOnlyProfilesForTeam(true);
-
-        if ($.isEmptyObject(users)) {
-            return {
-                loading: true
-            };
-        }
-
-        // make sure we have all members of this channel before rendering
-        const extraInfo = ChannelStore.getCurrentExtraInfo();
-        if (extraInfo.member_count !== extraInfo.members.length) {
-            AsyncClient.getChannelExtraInfo(this.props.channel.id, -1);
-
-            return {
-                loading: true
-            };
-        }
-
-        const currentUser = UserStore.getCurrentUser();
-        if (!currentUser) {
-            return {
-                loading: true
-            };
-        }
-
-        const currentMember = ChannelStore.getCurrentMember();
-        if (!currentMember) {
-            return {
-                loading: true
-            };
-        }
-
-        const memberIds = extraInfo.members.map((user) => user.id);
-
-        var nonmembers = [];
-        for (var id in users) {
-            if (memberIds.indexOf(id) === -1) {
-                nonmembers.push(users[id]);
-            }
-        }
-
-        const teamMembers = TeamStore.getMembersForTeam();
-
-        // if we don't have enough members to display and there are other non channel members we don't have,
-        // then fetch more
-        if (nonmembers.length < (this.page + 2) * USERS_PER_PAGE && (nonmembers.length + 1) < teamMembers.length - extraInfo.member_count) {
-            AsyncClient.getProfiles();
-            return {
-                loading: true
-            };
-        }
-
-        nonmembers.sort((a, b) => {
-            return a.username.localeCompare(b.username);
-        });
-
-        return {
-            nonmembers,
-            total: teamMembers.length - extraInfo.member_count,
-            loading: false,
-            currentUser,
-            currentMember
+        this.state = {
+            users: [],
+            total: teamSize - stats.member_count,
+            search: false
         };
     }
 
     componentWillReceiveProps(nextProps) {
         if (!this.props.show && nextProps.show) {
-            ChannelStore.addExtraInfoChangeListener(this.onChange);
-            ChannelStore.addChangeListener(this.onChange);
-            UserStore.addChangeListener(this.onChange);
+            ChannelStore.addStatsChangeListener(this.onChange);
+            UserStore.addNotInChannelChangeListener(this.onChange);
+
             this.onChange();
+            AsyncClient.getProfilesNotInChannel(this.props.channel.id, 0);
         } else if (this.props.show && !nextProps.show) {
-            ChannelStore.removeExtraInfoChangeListener(this.onChange);
-            ChannelStore.removeChangeListener(this.onChange);
-            UserStore.removeChangeListener(this.onChange);
+            ChannelStore.removeStatsChangeListener(this.onChange);
+            UserStore.removeNotInChannelChangeListener(this.onChange);
         }
     }
 
     componentWillUnmount() {
-        ChannelStore.removeExtraInfoChangeListener(this.onChange);
+        ChannelStore.removeStatsChangeListener(this.onChange);
         ChannelStore.removeChangeListener(this.onChange);
-        UserStore.removeChangeListener(this.onChange);
+        UserStore.removeNotInChannelChangeListener(this.onChange);
     }
 
     onChange() {
@@ -143,10 +68,15 @@ export default class ChannelInviteModal extends React.Component {
             return;
         }
 
-        var newState = this.getStateFromStores();
-        if (!Utils.areObjectsEqual(this.state, newState)) {
-            this.setState(newState);
-        }
+        const stats = ChannelStore.getStats(this.props.channel.id);
+
+        // TEMPORARY until team members are paged
+        const teamSize = TeamStore.getMembersForTeam().length;
+
+        this.setState({
+            users: UserStore.getProfilesNotInChannel(this.props.channel.id),
+            total: teamSize - stats.member_count
+        });
     }
 
     handleInviteError(err) {
@@ -162,35 +92,23 @@ export default class ChannelInviteModal extends React.Component {
     }
 
     nextPage(page) {
-        AsyncClient.getProfiles((page + 1) * USERS_PER_PAGE, USERS_PER_PAGE);
-        this.page = page;
+        AsyncClient.getProfilesNotInChannel(this.props.channel.id, (page + 1) * USERS_PER_PAGE, USERS_PER_PAGE);
     }
 
     search(term) {
         this.term = term;
 
         if (term === '') {
-            this.setState(this.getStateFromStores());
-            this.setState({search: false});
-            this.page = 0;
+            this.setState({users: UserStore.getProfilesNotInChannel(), search: false});
             return;
         }
 
         searchUsers(
-            TeamStore.getCurrentId(),
             term,
+            TeamStore.getCurrentId(),
+            {not_in_channel: this.props.channel.id},
             (users) => {
-                const extraInfo = ChannelStore.getCurrentExtraInfo();
-                const memberIds = extraInfo.members.map((user) => user.id);
-
-                var nonmembers = [];
-                for (let i = 0; i < users.length; i++) {
-                    if (memberIds.indexOf(users[i].id) === -1) {
-                        nonmembers.push(users[i]);
-                    }
-                }
-
-                this.setState({search: true, nonmembers});
+                this.setState({search: true, users});
             }
         );
     }
@@ -212,7 +130,7 @@ export default class ChannelInviteModal extends React.Component {
             content = (
                 <SearchableUserList
                     style={{maxHeight}}
-                    users={this.state.nonmembers}
+                    users={this.state.users}
                     usersPerPage={USERS_PER_PAGE}
                     total={this.state.total}
                     nextPage={this.nextPage}
