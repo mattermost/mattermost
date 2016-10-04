@@ -48,10 +48,6 @@
     "translation": "Septiembre"
   },
   {
-    "id": "api.admin.add_certificate.array.app_error",
-    "translation": "Solicitud con matriz vacia en 'certificate'"
-  },
-  {
     "id": "api.admin.add_certificate.no_file.app_error",
     "translation": "No hay un archivo bajo la solicitud de 'certificate'"
   },
@@ -146,6 +142,10 @@
   {
     "id": "api.api.render.error",
     "translation": "Error renderinzando la plantilla %v err=%v"
+  },
+  {
+    "id": "api.auth.unable_to_get_user.app_error",
+    "translation": "No se puede obtener el usuario para comprobar los permisos."
   },
   {
     "id": "api.channel.add_member.added",
@@ -818,10 +818,6 @@
     "translation": "El archivo excede el tamaño máximo para una imagen."
   },
   {
-    "id": "api.file.file_upload.exceeds",
-    "translation": "El archivo excede el tamaño máximo para una imagen."
-  },
-  {
     "id": "api.file.get_file.not_found.app_error",
     "translation": "No se encontró el archivo."
   },
@@ -1154,6 +1150,10 @@
     "translation": "Nombre errado de archivo descartado, archivo=%v"
   },
   {
+    "id": "api.post.create_post.can_not_post_to_deleted.error",
+    "translation": "No se puede publicar en un canal eliminado."
+  },
+  {
     "id": "api.post.create_post.channel_root_id.app_error",
     "translation": "Canal inválido para el parámetro RootId"
   },
@@ -1400,6 +1400,14 @@
     "translation": "La configuración del límite de velocidad no ha sido configurado apropiadamente utilizando VaryByHeader y deshabilitado VaryByRemoteAddr"
   },
   {
+    "id": "api.server.start_server.rate_limiting_memory_store",
+    "translation": "No se puede iniciar la limitación de velocidad."
+  },
+  {
+    "id": "api.server.start_server.rate_limiting_memory_store",
+    "translation": "No se puede iniciar la limitación de velocidad."
+  },
+  {
     "id": "api.server.start_server.starting.critical",
     "translation": "Error arrancando el servidor, err:%v"
   },
@@ -1468,8 +1476,16 @@
     "translation": "Correo electrónico, Contraseña: {{.Email}}, {{.Password}}\r\n"
   },
   {
+    "id": "api.slackimport.slack_add_users.merge_existing",
+    "translation": "Combinado el usuario con una cuenta existente: {{.Email}}, {{.Username}}\r\n"
+  },
+  {
     "id": "api.slackimport.slack_add_users.unable_import",
     "translation": "No se pudo importar el usuario: {{.Username}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_convert_channel_mentions.compile_regexp_failed.warn",
+    "translation": "No se pudo compilar la coincidencia del !canal con expresión regular para el canal de Slack {{.ChannelID}} {{.ChannelName}}"
   },
   {
     "id": "api.slackimport.slack_convert_timestamp.bad.warn",
@@ -1492,6 +1508,10 @@
     "translation": "- mensajes realizadados por el bot de Slack actualmente no son soportados.\r\n"
   },
   {
+    "id": "api.slackimport.slack_import.note3",
+    "translation": "- Errores adicionales pueden ser encontrados en los registros del servidor.\r\n"
+  },
+  {
     "id": "api.slackimport.slack_import.notes",
     "translation": "\r\n Notas \r\n"
   },
@@ -1506,6 +1526,14 @@
   {
     "id": "api.slackimport.slack_import.zip.app_error",
     "translation": "No se puede abrir el archivo comprimido"
+  },
+  {
+    "id": "api.slackimport.slack_parse_channels.error",
+    "translation": "Error de análisis de los canales de slack. Importación puede que funcione de todos modos."
+  },
+  {
+    "id": "api.slackimport.slack_parse_posts.error",
+    "translation": "Error en el análisis de los mensajes de slack. Importación puede que funcione de todos modos."
   },
   {
     "id": "api.status.init.debug",
@@ -1634,6 +1662,10 @@
   {
     "id": "api.team.signup_team.email_disabled.app_error",
     "translation": "El registro a equipos por correo electrónico está deshabilitado."
+  },
+  {
+    "id": "api.team.update_member_roles.not_a_member",
+    "translation": "Usuario especificado no es un miembro de equipo especificado."
   },
   {
     "id": "api.team.update_team.permissions.app_error",
@@ -2356,8 +2388,32 @@
     "translation": "Permisos inapropiados para regenerar un token para el Webhook saliente"
   },
   {
+    "id": "api.webrtc.init.debug",
+    "translation": "Inicializando rutas del API para WebRTC"
+  },
+  {
+    "id": "api.webrtc.not_available.app_error",
+    "translation": "WebRTC no está disponible en este servidor."
+  },
+  {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "Parámetro {{.Name}} inválido"
+  },
+  {
+    "id": "authentication.permissions.team_invite_user.description",
+    "translation": "Capacidad para invitar usuarios a un equipo"
+  },
+  {
+    "id": "authentication.permissions.team_invite_user.name",
+    "translation": "Invitar Usuario"
+  },
+  {
+    "id": "authentication.permissions.team_use_slash_commands.description",
+    "translation": "Capacidad para usar comandos de barra"
+  },
+  {
+    "id": "authentication.permissions.team_use_slash_commands.name",
+    "translation": "Usar Comandos de Barra"
   },
   {
     "id": "cli.license.critical",
@@ -2557,7 +2613,7 @@
   },
   {
     "id": "ent.saml.attribute.app_error",
-    "translation": "SAML login was unsuccessful because one of the attributes is incorrect. Please contact your System Administrator."
+    "translation": "El inicio de sesión con SAML no tuvo éxito porque uno de sus atributos es incorrecto. Por favor, póngase en contacto con su Administrador del Sistema."
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -2626,6 +2682,18 @@
   {
     "id": "ent.saml.update_saml_user.unable_error",
     "translation": "No se puede actualizar el usuario SAML existente. Se Permite el inicio de sesión de todos modos. err=%v"
+  },
+  {
+    "id": "ent.webrtc.disabled.app_error",
+    "translation": "WebRTC no está habilitado en este servidor."
+  },
+  {
+    "id": "ent.webrtc.license_disable.app_error",
+    "translation": "Tu licencia no admite el uso de Mattermost WebRTC"
+  },
+  {
+    "id": "ent.webrtc.register_token.app_error",
+    "translation": "Hemos encontrado un error al intentar registrar el Token de WebRTC"
   },
   {
     "id": "error.generic.link_message",
@@ -3076,6 +3144,10 @@
     "translation": "Número inválido de máximos intentos de inició de sesión en la configuración del servicio.  Debe ser un número positivo."
   },
   {
+    "id": "model.config.is_valid.max_burst.app_error",
+    "translation": "Máximo de Ráfagas debe ser mayor que cero."
+  },
+  {
     "id": "model.config.is_valid.max_file_size.app_error",
     "translation": "El tamaño máximo de archivo para la configuración de archivos es inválido. Debe ser un cero o un número positivo."
   },
@@ -3162,6 +3234,34 @@
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
     "translation": "Inválida cantidad de conexiones abiertas para la configuración de SQL.  Debe ser un número positivo."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_gateway_admin_secret.app_error",
+    "translation": "La clave secreta de Administración de la Puerta de enlace para WebRTC debe ser asignada."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_gateway_admin_url.app_error",
+    "translation": "La dirección url de Administración de la Puerta de enlace para WebRTC debe ser una dirección válida y comenzar con http:// o https://."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_gateway_ws_url.app_error",
+    "translation": "La dirección url de la Puerta de enlace del Websocket para WebRTC debe ser una dirección válida y comenzar con ws:// o wss://."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_stun_uri.app_error",
+    "translation": "El STUN URI de WebRTC debe ser un URI válido y comenzar con stun:"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_turn_shared_key.app_error",
+    "translation": "La Clave Compartida del TURN de WebRTC no puede estar vacía si el TURN URI se ha establecido."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_turn_uri.app_error",
+    "translation": "El TURN URI de WebRTC debe ser un URI válido y comenzar con turn:"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_turn_username.app_error",
+    "translation": "El Nombre de usuario del TURN de WebRTC no puede estar vacío si el TURN URI se ha establecido."
   },
   {
     "id": "model.emoji.create_at.app_error",

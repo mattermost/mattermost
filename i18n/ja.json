@@ -48,10 +48,6 @@
     "translation": "9月"
   },
   {
-    "id": "api.admin.add_certificate.array.app_error",
-    "translation": "リクエストの'certificate'以下の配列が空です"
-  },
-  {
     "id": "api.admin.add_certificate.no_file.app_error",
     "translation": "リクエストの'certificate'以下にファイルがありません"
   },
@@ -146,6 +142,10 @@
   {
     "id": "api.api.render.error",
     "translation": "テンプレート%vの表示中にエラーが発生しました err=%v"
+  },
+  {
+    "id": "api.auth.unable_to_get_user.app_error",
+    "translation": "権限を確認するユーザーを取得できません。"
   },
   {
     "id": "api.channel.add_member.added",
@@ -481,7 +481,7 @@
   },
   {
     "id": "api.command_expand.desc",
-    "translation": "画像プレビューの自動折りたたみをオフにします。"
+    "translation": "画像プレビューの自動折りたたみをオフにします"
   },
   {
     "id": "api.command_expand.name",
@@ -812,10 +812,6 @@
   {
     "id": "api.emoji.upload.large_image.app_error",
     "translation": "絵文字を作成できません。画像は128x128ピクセル以内である必要があります。"
-  },
-  {
-    "id": "api.file.file_upload.exceeds",
-    "translation": "ファイルが最大の画像サイズを超過しました。"
   },
   {
     "id": "api.file.file_upload.exceeds",
@@ -1154,6 +1150,10 @@
     "translation": "不正なファイル名は使えません filename=%v"
   },
   {
+    "id": "api.post.create_post.can_not_post_to_deleted.error",
+    "translation": "削除済みのチャンネルには投稿できません。"
+  },
+  {
     "id": "api.post.create_post.channel_root_id.app_error",
     "translation": "RootIdパラメーターのChannelIdが不正です"
   },
@@ -1400,6 +1400,14 @@
     "translation": "投稿頻度制限が正しく設定されていません。VaryByHeaderを使いVaryByRemoteAddrを無効にしてください"
   },
   {
+    "id": "api.server.start_server.rate_limiting_memory_store",
+    "translation": "投稿頻度制限を初期化できません。"
+  },
+  {
+    "id": "api.server.start_server.rate_limiting_memory_store",
+    "translation": "投稿頻度制限を初期化できません。"
+  },
+  {
     "id": "api.server.start_server.starting.critical",
     "translation": "サーバー開始時にエラーになりました err:%v"
   },
@@ -1468,8 +1476,16 @@
     "translation": "電子メールアドレス、パスワード: {{.Email}}, {{.Password}}\r\n"
   },
   {
+    "id": "api.slackimport.slack_add_users.merge_existing",
+    "translation": "既に存在するユーザーとマージしました: {{.Email}}, {{.Username}}\r\n"
+  },
+  {
     "id": "api.slackimport.slack_add_users.unable_import",
     "translation": "ユーザーをインポートできません: {{.Username}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_convert_channel_mentions.compile_regexp_failed.warn",
+    "translation": "Slackチャンネル{{.ChannelID}} {{.ChannelName}}の!channelに一致する正規表現のコンパイルに失敗しました。"
   },
   {
     "id": "api.slackimport.slack_convert_timestamp.bad.warn",
@@ -1492,6 +1508,10 @@
     "translation": "- Slack botの投稿は現在サポートされていません。\r\n"
   },
   {
+    "id": "api.slackimport.slack_import.note3",
+    "translation": "- 詳細なエラーはサーバーログを確認してください。\r\n"
+  },
+  {
     "id": "api.slackimport.slack_import.notes",
     "translation": "\r\n 注意事項 \r\n"
   },
@@ -1506,6 +1526,14 @@
   {
     "id": "api.slackimport.slack_import.zip.app_error",
     "translation": "ZIPファイルを開くことができません"
+  },
+  {
+    "id": "api.slackimport.slack_parse_channels.error",
+    "translation": "Slackのチャンネルを読み込み中にエラーが発生しました。しかしインポートは継続できます。"
+  },
+  {
+    "id": "api.slackimport.slack_parse_posts.error",
+    "translation": "Slackの投稿を読み込み中にエラーが発生しました。しかしインポートは継続できます。"
   },
   {
     "id": "api.status.init.debug",
@@ -1636,6 +1664,10 @@
     "translation": "電子メールによるチームへの利用登録は無効です。"
   },
   {
+    "id": "api.team.update_member_roles.not_a_member",
+    "translation": "指定されたユーザーは指定されたチームに所属していません。"
+  },
+  {
     "id": "api.team.update_team.permissions.app_error",
     "translation": "あなたには必要な権限が付与されていません"
   },
@@ -1709,7 +1741,7 @@
   },
   {
     "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermostにより、メッセージやファイルをPCやスマートフォンか共有することができます。検索やアーカイブもできます。<strong>{{.TeamDisplayName}}</strong>に参加すると、新しいチームにサインインし、以下のアドレスからいつでもこの機能にアクセスできます。: <br/><br/><a href='{{.TeamURL}}'>{{.TeamURL}}</a>"
+    "translation": "Mattermostにより、メッセージやファイルをPCやスマートフォンから共有することができます。検索やアーカイブもできます。<strong>{{.TeamDisplayName}}</strong>に参加すると、新しいチームにサインインし、以下のアドレスからいつでもこの機能にアクセスできます。: <br/><br/><a href='{{.TeamURL}}'>{{.TeamURL}}</a>"
   },
   {
     "id": "api.templates.invite_body.info",
@@ -1721,7 +1753,7 @@
   },
   {
     "id": "api.templates.invite_subject",
-    "translation": "{{ .SenderName }}が{.SiteName}}の{{ .TeamDisplayName }}に参加するように招待しています。"
+    "translation": "{{ .SenderName }}が{{.SiteName}}の{{ .TeamDisplayName }}に参加するように招待しています。"
   },
   {
     "id": "api.templates.password_change_body.info",
@@ -2356,8 +2388,32 @@
     "translation": "外向きのウェブフックトークンを再生成するのに十分な権限が付与されていません"
   },
   {
+    "id": "api.webrtc.init.debug",
+    "translation": "WebRTC APIルートを初期化しています"
+  },
+  {
+    "id": "api.webrtc.not_available.app_error",
+    "translation": "WebRTCはこのサーバーでは利用できません。"
+  },
+  {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "不正な{{.Name}}パラメーターです"
+  },
+  {
+    "id": "authentication.permissions.team_invite_user.description",
+    "translation": "チームにユーザーを招待できるようにする"
+  },
+  {
+    "id": "authentication.permissions.team_invite_user.name",
+    "translation": "ユーザーを招待する"
+  },
+  {
+    "id": "authentication.permissions.team_use_slash_commands.description",
+    "translation": "スラッシュコマンドを使用できるようにする"
+  },
+  {
+    "id": "authentication.permissions.team_use_slash_commands.name",
+    "translation": "スラッシュコマンドを使用する"
   },
   {
     "id": "cli.license.critical",
@@ -2557,7 +2613,7 @@
   },
   {
     "id": "ent.saml.attribute.app_error",
-    "translation": "SAML login was unsuccessful because one of the attributes is incorrect. Please contact your System Administrator."
+    "translation": "SAMLログインは、属性の一つが不正のため、失敗しました。システム管理者に連絡してください。"
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -2626,6 +2682,18 @@
   {
     "id": "ent.saml.update_saml_user.unable_error",
     "translation": "既存のSAMLユーザーをアップデートすることはできません。ログインは有効です。err=%v"
+  },
+  {
+    "id": "ent.webrtc.disabled.app_error",
+    "translation": "WebRTCはこのサーバーでは有効化されていません。"
+  },
+  {
+    "id": "ent.webrtc.license_disable.app_error",
+    "translation": "あなたのライセンスではMattermost WebRTCを使うことはできません"
+  },
+  {
+    "id": "ent.webrtc.register_token.app_error",
+    "translation": "WebRTCトークンを登録する際にエラーが発生しました"
   },
   {
     "id": "error.generic.link_message",
@@ -3076,6 +3144,10 @@
     "translation": "サービス設定の最大ログイン試行回数が不正です。正の数を指定してください。"
   },
   {
+    "id": "model.config.is_valid.max_burst.app_error",
+    "translation": "最大バーストには0より大きな値を指定してください。"
+  },
+  {
     "id": "model.config.is_valid.max_file_size.app_error",
     "translation": "ファイル設定の最大ファイルサイズが不正です。ゼロ以上の数を指定してください。"
   },
@@ -3162,6 +3234,34 @@
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
     "translation": "SQL設定の最大稼働接続数が不正です。正の数を指定してください。"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_gateway_admin_secret.app_error",
+    "translation": "WebRTCゲートウェイ管理者秘密情報を設定してください。"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_gateway_admin_url.app_error",
+    "translation": "WebRTCゲートウェイ管理者URLは、http://またはhttps://で始まる有効なURLにしてください。"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_gateway_ws_url.app_error",
+    "translation": "WebRTCゲートウェイウェブソケットURLは、ws://またはwss://で始まる有効なURLにしてください。"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_stun_uri.app_error",
+    "translation": "WebRTC STUN URIは、stun:から始まる有効なURIにしてください"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_turn_shared_key.app_error",
+    "translation": "WebRTC TURN共通鍵は、TURN URIが設定されている場合には空欄にすることはできません。"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_turn_uri.app_error",
+    "translation": "WebRTC TURN URIは、turn:で始まる有効なURIにしてください"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_turn_username.app_error",
+    "translation": "WebRTC TURNユーザー名は、TURN URIが設定されている場合には空欄にすることはできません。"
   },
   {
     "id": "model.emoji.create_at.app_error",
