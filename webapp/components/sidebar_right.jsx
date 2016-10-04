@@ -37,6 +37,7 @@ export default class SidebarRight extends React.Component {
         this.state = {
             searchVisible: SearchStore.getSearchResults() !== null,
             isMentionSearch: SearchStore.getIsMentionSearch(),
+            isFlaggedPosts: SearchStore.getIsFlaggedPosts(),
             postRightVisible: Boolean(PostStore.getSelectedPost()),
             expanded: false,
             fromSearch: false,
@@ -125,7 +126,9 @@ export default class SidebarRight extends React.Component {
     }
 
     onShrink() {
-        this.setState({expanded: false});
+        this.setState({
+            expanded: false
+        });
     }
 
     onSearchChange() {

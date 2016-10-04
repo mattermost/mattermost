@@ -487,3 +487,49 @@ export function emitJoinChannelEvent(channel, success, failure) {
         failure
     );
 }
+
+export function emitSearchMentionsEvent(user) {
+    let terms = '';
+    if (user.notify_props && user.notify_props.mention_keys) {
+        const termKeys = UserStore.getMentionKeys(user.id);
+
+        if (termKeys.indexOf('@channel') !== -1) {
+            termKeys[termKeys.indexOf('@channel')] = '';
+        }
+
+        if (termKeys.indexOf('@all') !== -1) {
+            termKeys[termKeys.indexOf('@all')] = '';
+        }
+
+        terms = termKeys.join(' ');
+    }
+
+    AppDispatcher.handleServerAction({
+        type: ActionTypes.RECEIVED_SEARCH_TERM,
+        term: terms,
+        do_search: true,
+        is_mention_search: true
+    });
+}
+
+export function toggleSideBarAction(visible) {
+    if (!visible) {
+        //Array of actions resolving in the closing of the sidebar
+        AppDispatcher.handleServerAction({
+            type: ActionTypes.RECEIVED_SEARCH,
+            results: null
+        });
+
+        AppDispatcher.handleServerAction({
+            type: ActionTypes.RECEIVED_SEARCH_TERM,
+            term: null,
+            do_search: false,
+            is_mention_search: false
+        });
+
+        AppDispatcher.handleServerAction({
+            type: ActionTypes.RECEIVED_POST_SELECTED,
+            postId: null
+        });
+    }
+}

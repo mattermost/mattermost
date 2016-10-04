@@ -50,7 +50,7 @@ export default class ChannelHeader extends React.Component {
         this.searchMentions = this.searchMentions.bind(this);
         this.showRenameChannelModal = this.showRenameChannelModal.bind(this);
         this.hideRenameChannelModal = this.hideRenameChannelModal.bind(this);
-        this.openRecentMentions = this.openRecentMentions.bind(this);
+        this.handleShortcut = this.handleShortcut.bind(this);
         this.getFlagged = this.getFlagged.bind(this);
         this.initWebrtc = this.initWebrtc.bind(this);
         this.onBusy = this.onBusy.bind(this);
@@ -97,7 +97,7 @@ export default class ChannelHeader extends React.Component {
         WebrtcStore.addChangedListener(this.onListenerChange);
         WebrtcStore.addBusyListener(this.onBusy);
         $('.sidebar--left .dropdown-menu').perfectScrollbar();
-        document.addEventListener('keydown', this.openRecentMentions);
+        document.addEventListener('keydown', this.handleShortcut);
     }
 
     componentWillUnmount() {
@@ -109,7 +109,7 @@ export default class ChannelHeader extends React.Component {
         UserStore.removeStatusesChangeListener(this.onListenerChange);
         WebrtcStore.removeChangedListener(this.onListenerChange);
         WebrtcStore.removeBusyListener(this.onBusy);
-        document.removeEventListener('keydown', this.openRecentMentions);
+        document.removeEventListener('keydown', this.handleShortcut);
     }
 
     shouldComponentUpdate(nextProps) {
@@ -142,41 +142,35 @@ export default class ChannelHeader extends React.Component {
 
     searchMentions(e) {
         e.preventDefault();
-
         const user = this.state.currentUser;
-
-        let terms = '';
-        if (user.notify_props && user.notify_props.mention_keys) {
-            const termKeys = UserStore.getMentionKeys(user.id);
-
-            if (termKeys.indexOf('@channel') !== -1) {
-                termKeys[termKeys.indexOf('@channel')] = '';
-            }
-
-            if (termKeys.indexOf('@all') !== -1) {
-                termKeys[termKeys.indexOf('@all')] = '';
-            }
-
-            terms = termKeys.join(' ');
+        if (SearchStore.isMentionSearch) {
+            // Close
+            GlobalActions.toggleSideBarAction(false);
+        } else {
+            GlobalActions.emitSearchMentionsEvent(user);
         }
-
-        AppDispatcher.handleServerAction({
-            type: ActionTypes.RECEIVED_SEARCH_TERM,
-            term: terms,
-            do_search: true,
-            is_mention_search: true
-        });
     }
 
     getFlagged(e) {
         e.preventDefault();
-        getFlaggedPosts();
+        if (SearchStore.isFlaggedPosts) {
+            GlobalActions.toggleSideBarAction(false);
+        } else {
+            getFlaggedPosts();
+        }
     }
 
-    openRecentMentions(e) {
-        if (Utils.cmdOrCtrlPressed(e) && e.shiftKey && e.keyCode === Constants.KeyCodes.M) {
+    handleShortcut(e) {
+        if (Utils.cmdOrCtrlPressed(e) && e.shiftKey) {
             e.preventDefault();
-            this.searchMentions(e);
+            if (e.keyCode === Constants.KeyCodes.M) {
+                this.searchMentions(e);
+            }
+
+          //@TODO create shortcut for toggling flagged posts
+          // else if (e.keyCode == Constants.KeyCodes.<keycode>) {
+          //   this.toggleFlagged();
+          // }
         }
     }
 
