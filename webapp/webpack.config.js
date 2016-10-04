@@ -56,7 +56,7 @@ var config = {
                 loader: 'file?name=files/[hash].[ext]'
             },
             {
-                test: /(node_modules|non_npm_dependencies)\/.+\.(js|jsx)$/,
+                test: /(node_modules|non_npm_dependencies)(\\|\/).+\.(js|jsx)$/,
                 loader: 'imports',
                 query: {
                     $: 'jquery',
