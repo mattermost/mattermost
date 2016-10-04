@@ -117,11 +117,7 @@ export default class ProfilePicture extends React.Component {
             );
         }
 
-        return (
-            <div>
-                {toRender}
-            </div>
-        );
+        return toRender;
     }
 }
 
