@@ -27,12 +27,28 @@ export default class SwitchChannelModal extends React.Component {
         this.onExited = this.onExited.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.handleDmUserChange = this.handleDmUserChange.bind(this);
         this.suggestionProviders = [new SwitchChannelProvider()];
 
         this.state = {
+            dmUsers: UserStore.getDirectProfiles(),
             text: '',
             error: ''
         };
+    }
+
+    componentDidMount() {
+        UserStore.addDmListChangeListener(this.handleDmUserChange);
+    }
+
+    componentWillUnmount() {
+        UserStore.removeDmListChangeListener(this.handleDmUserChange);
+    }
+
+    handleDmUserChange() {
+        this.setState({
+            dmUsers: UserStore.getDirectProfiles()
+        });
     }
 
     componentDidUpdate(prevProps) {
@@ -83,7 +99,25 @@ export default class SwitchChannelModal extends React.Component {
 
         if (name.indexOf(Utils.localizeMessage('channel_switch_modal.dm', '(Direct Message)')) > 0) {
             const dmUsername = name.substr(0, name.indexOf(Utils.localizeMessage('channel_switch_modal.dm', '(Direct Message)')) - 1);
-            channel = ChannelStore.getByName(Utils.getDirectChannelNameByUsername(dmUsername, UserStore.getCurrentUser().username).trim());
+            let user = null;
+            for (const id in this.state.dmUsers) {
+                if (this.state.dmUsers[id].username === dmUsername) {
+                    user = this.state.dmUsers[id];
+                    break;
+                }
+            }
+
+            if (user) {
+                Utils.openDirectChannelToUser(
+                    user,
+                    (ch) => {
+                        channel = ch;
+                    },
+                    () => {
+                        channel = null;
+                    }
+                );
+            }
         } else {
             channel = ChannelStore.getByName(this.state.text.trim());
         }
