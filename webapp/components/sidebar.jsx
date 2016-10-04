@@ -14,6 +14,7 @@ import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
+import LocalizationStore from 'stores/localization_store.jsx';
 
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -382,11 +383,13 @@ export default class Sidebar extends React.Component {
     }
 
     sortChannelsByDisplayName(a, b) {
+        const locale = LocalizationStore.getLocale();
+
         if (a.display_name === b.display_name) {
-            return a.name.localeCompare(b.name);
+            return a.name.localeCompare(b.name, locale, {numeric: true});
         }
 
-        return a.display_name.localeCompare(b.display_name);
+        return a.display_name.localeCompare(b.display_name, locale, {numeric: true});
     }
 
     showMoreChannelsModal() {
