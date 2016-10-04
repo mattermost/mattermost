@@ -551,21 +551,21 @@ func (us SqlUserStore) InvalidateProfilesInChannelCache(channelId string) {
 	profilesInChannelCache.Remove(channelId)
 }
 
-func (us SqlUserStore) GetProfilesInChannel(channelId string, offset int, limit int) StoreChannel {
+func (us SqlUserStore) GetProfilesInChannel(channelId string, offset int, limit int, allowFromCache bool) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
 	go func() {
 		result := StoreResult{}
 
-		// if allowFromCache {
-		// 	if cacheItem, ok := profilesInChannelCache.Get(channelId); ok {
-		// 		result.Data = cacheItem.(map[string]*model.User)
-		// 		storeChannel <- result
-		// 		close(storeChannel)
-		// 		return
-		// 	}
-		// }
+		if allowFromCache && offset == -1 && limit == -1 {
+			if cacheItem, ok := profilesInChannelCache.Get(channelId); ok {
+				result.Data = cacheItem.(map[string]*model.User)
+				storeChannel <- result
+				close(storeChannel)
+				return
+			}
+		}
 
 		var users []*model.User
 
@@ -590,9 +590,9 @@ func (us SqlUserStore) GetProfilesInChannel(channelId string, offset int, limit 
 
 			result.Data = userMap
 
-			// if allowFromCache {
-			// 	profilesInChannelCache.AddWithExpiresInSecs(channelId, userMap, PROFILES_IN_CHANNEL_CACHE_SEC)
-			// }
+			if allowFromCache && offset == -1 && limit == -1 {
+				profilesInChannelCache.AddWithExpiresInSecs(channelId, userMap, PROFILES_IN_CHANNEL_CACHE_SEC)
+			}
 		}
 
 		storeChannel <- result
