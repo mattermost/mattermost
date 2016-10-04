@@ -911,7 +911,7 @@ export function getSuggestedCommands(command, suggestionId, component) {
         (data) => {
             var matches = [];
             data.forEach((cmd) => {
-                if (cmd.trigger !== 'shortcuts' || !UserAgent.isMobileApp()) {
+                if (cmd.trigger !== 'shortcuts' || !UserAgent.isMobile()) {
                     if (('/' + cmd.trigger).indexOf(command) === 0) {
                         const s = '/' + cmd.trigger;
                         let hint = '';

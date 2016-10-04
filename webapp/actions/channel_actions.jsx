@@ -30,7 +30,7 @@ export function executeCommand(channelId, message, suggest, success, error) {
     msg = msg.substring(0, msg.indexOf(' ')).toLowerCase() + msg.substring(msg.indexOf(' '), msg.length);
 
     if (message.indexOf('/shortcuts') !== -1) {
-        if (UserAgent.isMobileApp()) {
+        if (UserAgent.isMobile()) {
             const err = {message: Utils.localizeMessage('create_post.shortcutsNotSupported', 'Keyboard shortcuts are not supported on your device')};
             error(err);
             return;

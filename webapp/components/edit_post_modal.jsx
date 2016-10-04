@@ -95,7 +95,7 @@ export default class EditPostModal extends React.Component {
     }
 
     handleEditKeyPress(e) {
-        if (!UserAgent.isMobileApp() && !this.state.ctrlSend && e.which === KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
+        if (!UserAgent.isMobile() && !this.state.ctrlSend && e.which === KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
             e.preventDefault();
             ReactDOM.findDOMNode(this.refs.editbox).blur();
             this.handleEdit();
