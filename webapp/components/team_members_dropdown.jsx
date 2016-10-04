@@ -71,7 +71,7 @@ export default class TeamMembersDropdown extends React.Component {
             () => {
                 AsyncClient.getTeamMembers(TeamStore.getCurrentId());
                 AsyncClient.getUser(this.props.user.id);
-                AsyncClient.getChannelExtraInfo(ChannelStore.getCurrentId());
+                AsyncClient.getChannelStats(ChannelStore.getCurrentId());
             },
             (err) => {
                 this.setState({serverError: err.message});
@@ -83,7 +83,7 @@ export default class TeamMembersDropdown extends React.Component {
             () => {
                 AsyncClient.getTeamMembers(TeamStore.getCurrentId());
                 AsyncClient.getUser(this.props.user.id);
-                AsyncClient.getChannelExtraInfo(ChannelStore.getCurrentId());
+                AsyncClient.getChannelStats(ChannelStore.getCurrentId());
             },
             (err) => {
                 this.setState({serverError: err.message});

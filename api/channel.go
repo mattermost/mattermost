@@ -6,7 +6,6 @@ package api
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
@@ -14,10 +13,6 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
-)
-
-const (
-	defaultExtraMemberLimit = 100
 )
 
 func InitChannel() {
@@ -36,8 +31,8 @@ func InitChannel() {
 	BaseRoutes.NeedChannelName.Handle("/join", ApiUserRequired(join)).Methods("POST")
 
 	BaseRoutes.NeedChannel.Handle("/", ApiUserRequiredActivity(getChannel, false)).Methods("GET")
-	BaseRoutes.NeedChannel.Handle("/extra_info", ApiUserRequired(getChannelExtraInfo)).Methods("GET")
-	BaseRoutes.NeedChannel.Handle("/extra_info/{member_limit:-?[0-9]+}", ApiUserRequired(getChannelExtraInfo)).Methods("GET")
+	BaseRoutes.NeedChannel.Handle("/stats", ApiUserRequired(getChannelStats)).Methods("GET")
+	BaseRoutes.NeedChannel.Handle("/members/{user_id:[A-Za-z0-9]+}", ApiUserRequired(getChannelMember)).Methods("GET")
 	BaseRoutes.NeedChannel.Handle("/join", ApiUserRequired(join)).Methods("POST")
 	BaseRoutes.NeedChannel.Handle("/leave", ApiUserRequired(leave)).Methods("POST")
 	BaseRoutes.NeedChannel.Handle("/delete", ApiUserRequired(deleteChannel)).Methods("POST")
@@ -929,54 +924,27 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 }
 
-func getChannelExtraInfo(c *Context, w http.ResponseWriter, r *http.Request) {
+func getChannelStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["channel_id"]
 
-	var memberLimit int
-	if memberLimitString, ok := params["member_limit"]; !ok {
-		memberLimit = defaultExtraMemberLimit
-	} else if memberLimitInt64, err := strconv.ParseInt(memberLimitString, 10, 0); err != nil {
-		c.Err = model.NewLocAppError("getChannelExtraInfo", "api.channel.get_channel_extra_info.member_limit.app_error", nil, err.Error())
-		return
-	} else {
-		memberLimit = int(memberLimitInt64)
-	}
-
 	sc := Srv.Store.Channel().Get(id)
 	var channel *model.Channel
-	if cresult := <-sc; cresult.Err != nil {
-		c.Err = cresult.Err
+	if result := <-sc; result.Err != nil {
+		c.Err = result.Err
 		return
 	} else {
-		channel = cresult.Data.(*model.Channel)
+		channel = result.Data.(*model.Channel)
 	}
 
-	extraEtag := channel.ExtraEtag(memberLimit)
-	if HandleEtag(extraEtag, w, r) {
-		return
-	}
-
-	scm := Srv.Store.Channel().GetMember(id, c.Session.UserId)
-	ecm := Srv.Store.Channel().GetExtraMembers(id, memberLimit)
-	ccm := Srv.Store.Channel().GetMemberCount(id)
-
-	if cmresult := <-scm; cmresult.Err != nil {
-		c.Err = cmresult.Err
-		return
-	} else if ecmresult := <-ecm; ecmresult.Err != nil {
-		c.Err = ecmresult.Err
-		return
-	} else if ccmresult := <-ccm; ccmresult.Err != nil {
-		c.Err = ccmresult.Err
+	if result := <-Srv.Store.Channel().GetMemberCount(id); result.Err != nil {
+		c.Err = result.Err
 		return
 	} else {
-		//member := cmresult.Data.(model.ChannelMember)
-		extraMembers := ecmresult.Data.([]model.ExtraMember)
-		memberCount := ccmresult.Data.(int64)
+		memberCount := result.Data.(int64)
 
 		if channel.DeleteAt > 0 {
-			c.Err = model.NewLocAppError("getChannelExtraInfo", "api.channel.get_channel_extra_info.deleted.app_error", nil, "")
+			c.Err = model.NewLocAppError("getChannelStats", "api.channel.get_channel_extra_info.deleted.app_error", nil, "")
 			c.Err.StatusCode = http.StatusBadRequest
 			return
 		}
@@ -985,9 +953,26 @@ func getChannelExtraInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		data := model.ChannelExtra{Id: channel.Id, Members: extraMembers, MemberCount: memberCount}
-		w.Header().Set(model.HEADER_ETAG_SERVER, extraEtag)
+		data := model.ChannelStats{ChannelId: channel.Id, MemberCount: memberCount}
 		w.Write([]byte(data.ToJson()))
+	}
+}
+
+func getChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	channelId := params["channel_id"]
+	userId := params["user_id"]
+
+	if !HasPermissionToChannelContext(c, channelId, model.PERMISSION_READ_CHANNEL) {
+		return
+	}
+
+	if result := <-Srv.Store.Channel().GetMember(channelId, userId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		member := result.Data.(model.ChannelMember)
+		w.Write([]byte(member.ToJson()))
 	}
 }
 

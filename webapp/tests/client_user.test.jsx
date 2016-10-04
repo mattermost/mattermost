@@ -507,6 +507,72 @@ describe('Client.User', function() {
         });
     });
 
+    it('getProfilesByIds', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().getProfilesByIds(
+                [TestHelper.basicUser().id],
+                function(data) {
+                    assert.equal(data[TestHelper.basicUser().id].id, TestHelper.basicUser().id);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
+    it('getProfilesInChannel', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().getProfilesInChannel(
+                TestHelper.basicChannel().id,
+                0,
+                100,
+                function(data) {
+                    assert.equal(Object.keys(data).length > 0, true);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
+    it('getProfilesNotInChannel', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().getProfilesNotInChannel(
+                TestHelper.basicChannel().id,
+                0,
+                100,
+                function(data) {
+                    assert.equal(Object.keys(data).length > 0, false);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
+    it('searchUsers', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().searchUsers(
+                'uid',
+                TestHelper.basicTeam().id,
+                {},
+                function(data) {
+                    assert.equal(data.length > 0, true);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
     /* TODO: FIX THIS TEST
     it('getStatuses', function(done) {
         TestHelper.initBasic(() => {

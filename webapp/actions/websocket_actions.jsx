@@ -207,7 +207,7 @@ function handleNewUserEvent(msg) {
     AsyncClient.getTeamMembers(TeamStore.getCurrentId());
     AsyncClient.getUser(msg.user_id);
     AsyncClient.getDirectProfiles();
-    AsyncClient.getChannelExtraInfo();
+    AsyncClient.getChannelStats();
 }
 
 function handleLeaveTeamEvent(msg) {
@@ -232,7 +232,7 @@ function handleDirectAddedEvent(msg) {
 
 function handleUserAddedEvent(msg) {
     if (ChannelStore.getCurrentId() === msg.broadcast.channel_id) {
-        AsyncClient.getChannelExtraInfo();
+        AsyncClient.getChannelStats();
     }
 
     if (TeamStore.getCurrentId() === msg.data.team_id && UserStore.getCurrentId() === msg.data.user_id) {
@@ -255,7 +255,7 @@ function handleUserRemovedEvent(msg) {
             $('#removed_from_channel').modal('show');
         }
     } else if (ChannelStore.getCurrentId() === msg.broadcast.channel_id) {
-        AsyncClient.getChannelExtraInfo();
+        AsyncClient.getChannelStats();
     }
 }
 

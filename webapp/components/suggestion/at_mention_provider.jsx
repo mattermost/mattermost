@@ -139,16 +139,6 @@ export default class AtMentionProvider {
             const users = UserStore.getActiveOnlyProfiles(true);
             const channelMembers = {};
             const channelNonmembers = users;
-            if (this.channelId != null) {
-                const extraInfo = ChannelStore.getExtraInfo(this.channelId);
-                for (let i = 0; i < extraInfo.members.length; i++) {
-                    const id = extraInfo.members[i].id;
-                    if (users[id]) {
-                        channelMembers[id] = users[id];
-                        Reflect.deleteProperty(channelNonmembers, id);
-                    }
-                }
-            }
 
             // Filter users by prefix.
             const filteredMembers = filterUsersByPrefix(

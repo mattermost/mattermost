@@ -83,10 +83,11 @@ function onThemeSaved(teamId, theme, onSuccess) {
     onSuccess();
 }
 
-export function searchUsers(teamId = TeamStore.getCurrentId(), term, success, error) {
+export function searchUsers(term, teamId = TeamStore.getCurrentId(), options = {}, success, error) {
     Client.searchUsers(
-        teamId,
         term,
+        teamId,
+        options,
         (data) => {
             if (success) {
                 success(data);

@@ -50,7 +50,7 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 func (us SqlUserStore) CreateIndexesIfNotExists() {
 	us.CreateIndexIfNotExists("idx_users_email", "Users", "Email")
 
-	us.CreateFullTextIndexIfNotExists("idx_users_username_and_email_txt", "Users", "Username, Email")
+	us.CreateFullTextIndexIfNotExists("idx_users_username_txt", "Users", "Username")
 }
 
 func (us SqlUserStore) Save(user *model.User) StoreChannel {
@@ -543,7 +543,7 @@ func (us SqlUserStore) GetProfiles(teamId string, offset int, limit int) StoreCh
 	return storeChannel
 }
 
-func (us SqlUserStore) GetProfilesInChannel(channelId string) StoreChannel {
+func (us SqlUserStore) GetProfilesInChannel(channelId string, offset int, limit int) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -552,8 +552,59 @@ func (us SqlUserStore) GetProfilesInChannel(channelId string) StoreChannel {
 
 		var users []*model.User
 
-		if _, err := us.GetReplica().Select(&users, "SELECT Users.* FROM Users, ChannelMembers WHERE ChannelMembers.ChannelId = :ChannelId AND Users.Id = ChannelMembers.UserId AND Users.DeleteAt = 0", map[string]interface{}{"ChannelId": channelId}); err != nil {
+		query := "SELECT Users.* FROM Users, ChannelMembers WHERE ChannelMembers.ChannelId = :ChannelId AND Users.Id = ChannelMembers.UserId AND Users.DeleteAt = 0"
+
+		if limit >= 0 && offset >= 0 {
+			query += " ORDER BY Users.Username ASC LIMIT :Limit OFFSET :Offset"
+		}
+
+		if _, err := us.GetReplica().Select(&users, query, map[string]interface{}{"ChannelId": channelId, "Offset": offset, "Limit": limit}); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.GetProfilesInChannel", "store.sql_user.get_profiles.app_error", nil, err.Error())
+		} else {
+
+			userMap := make(map[string]*model.User)
+
+			for _, u := range users {
+				u.Password = ""
+				u.AuthData = new(string)
+				*u.AuthData = ""
+				userMap[u.Id] = u
+			}
+
+			result.Data = userMap
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (us SqlUserStore) GetProfilesNotInChannel(teamId string, channelId string, offset int, limit int) StoreChannel {
+
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var users []*model.User
+
+		if _, err := us.GetReplica().Select(&users, `
+            SELECT
+                u.*
+            FROM Users u
+            INNER JOIN TeamMembers tm
+                ON tm.UserId = u.Id
+                AND tm.TeamId = :TeamId
+            LEFT JOIN ChannelMembers cm
+                ON cm.UserId = u.Id
+                AND cm.ChannelId = :ChannelId
+            WHERE cm.UserId IS NULL
+            ORDER BY u.Username ASC
+            LIMIT :Limit OFFSET :Offset
+            `, map[string]interface{}{"TeamId": teamId, "ChannelId": channelId, "Offset": offset, "Limit": limit}); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.GetProfilesNotInChannel", "store.sql_user.get_profiles.app_error", nil, err.Error())
 		} else {
 
 			userMap := make(map[string]*model.User)
@@ -1070,8 +1121,6 @@ func (us SqlUserStore) Search(teamId string, term string) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
-		result := StoreResult{}
-
 		searchQuery := ""
 		if teamId == "" {
 			searchQuery = `
@@ -1096,39 +1145,114 @@ func (us SqlUserStore) Search(teamId string, term string) StoreChannel {
 				AND Users.DeleteAt = 0
 				SEARCH_CLAUSE
 				ORDER BY Users.Username ASC
-			LIMIT 50`
+			LIMIT 100`
 		}
 
-		if term == "" {
-			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
-		} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
-			term = term + ":*"
-			searchClause := "AND (Username, Email) @@  to_tsquery(:Term)"
-			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
-		} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
-			term = term + "*"
-			searchClause := "AND MATCH (Username, Email) AGAINST (:Term IN BOOLEAN MODE)"
-			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
-		}
-
-		var users []*model.User
-
-		if _, err := us.GetReplica().Select(&users, searchQuery, map[string]interface{}{"TeamId": teamId, "Term": term}); err != nil {
-			result.Err = model.NewLocAppError("SqlUserStore.Search", "store.sql_user.search.app_error", nil, "term="+term+", "+err.Error())
-		} else {
-			for _, u := range users {
-				u.Password = ""
-				u.AuthData = new(string)
-				*u.AuthData = ""
-			}
-
-			result.Data = users
-		}
-
-		storeChannel <- result
+		storeChannel <- us.performSearch(searchQuery, term, map[string]interface{}{"TeamId": teamId})
 		close(storeChannel)
 
 	}()
 
 	return storeChannel
+}
+
+func (us SqlUserStore) SearchNotInChannel(teamId string, channelId string, term string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		searchQuery := ""
+		if teamId == "" {
+			searchQuery = `
+			SELECT
+				u.*
+			FROM Users u
+			LEFT JOIN ChannelMembers cm
+				ON cm.UserId = u.Id
+				AND cm.ChannelId = :ChannelId
+			WHERE cm.UserId IS NULL
+			SEARCH_CLAUSE
+			ORDER BY u.Username ASC
+			LIMIT 100`
+		} else {
+			searchQuery = `
+			SELECT
+				u.*
+			FROM Users u
+			INNER JOIN TeamMembers tm
+				ON tm.UserId = u.Id
+				AND tm.TeamId = :TeamId
+			LEFT JOIN ChannelMembers cm
+				ON cm.UserId = u.Id
+				AND cm.ChannelId = :ChannelId
+			WHERE cm.UserId IS NULL
+			SEARCH_CLAUSE
+			ORDER BY u.Username ASC
+			LIMIT 100`
+		}
+
+		storeChannel <- us.performSearch(searchQuery, term, map[string]interface{}{"TeamId": teamId, "ChannelId": channelId})
+		close(storeChannel)
+
+	}()
+
+	return storeChannel
+}
+
+func (us SqlUserStore) SearchInChannel(channelId string, term string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		searchQuery := `
+        SELECT
+            Users.*
+        FROM
+            Users, ChannelMembers
+        WHERE
+            ChannelMembers.ChannelId = :ChannelId
+            AND ChannelMembers.UserId = Users.Id
+            AND Users.DeleteAt = 0
+            SEARCH_CLAUSE
+            ORDER BY Users.Username ASC
+        LIMIT 100`
+
+		storeChannel <- us.performSearch(searchQuery, term, map[string]interface{}{"ChannelId": channelId})
+		close(storeChannel)
+
+	}()
+
+	return storeChannel
+}
+
+func (us SqlUserStore) performSearch(searchQuery string, term string, parameters map[string]interface{}) StoreResult {
+	result := StoreResult{}
+
+	if term == "" {
+		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
+	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+		term = term + ":*"
+		searchClause := "AND Username @@  to_tsquery(:Term)"
+		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
+	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
+		term = term + "*"
+		searchClause := "AND MATCH Username AGAINST (:Term IN BOOLEAN MODE)"
+		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
+	}
+
+	var users []*model.User
+
+	parameters["Term"] = term
+
+	if _, err := us.GetReplica().Select(&users, searchQuery, parameters); err != nil {
+		result.Err = model.NewLocAppError("SqlUserStore.Search", "store.sql_user.search.app_error", nil, "term="+term+", "+err.Error())
+	} else {
+		for _, u := range users {
+			u.Password = ""
+			u.AuthData = new(string)
+			*u.AuthData = ""
+		}
+
+		result.Data = users
+	}
+
+	return result
 }

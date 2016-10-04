@@ -6,13 +6,16 @@ import EventEmitter from 'events';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
 import LocalizationStore from './localization_store.jsx';
-import TeamStore from './team_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
+import ChannelStore from 'stores/channel_store.jsx';
 
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 const UserStatuses = Constants.UserStatuses;
 
 const CHANGE_EVENT_DM_LIST = 'change_dm_list';
+const CHANGE_EVENT_NOT_IN_CHANNEL = 'change_not_in_channel';
+const CHANGE_EVENT_IN_CHANNEL = 'change_in_channel';
 const CHANGE_EVENT = 'change';
 const CHANGE_EVENT_SESSIONS = 'change_sessions';
 const CHANGE_EVENT_AUDITS = 'change_audits';
@@ -27,12 +30,22 @@ class UserStoreClass extends EventEmitter {
     }
 
     clear() {
-        this.profiles_for_dm_list = {};
         this.profiles = {};
         this.paging_offset = 0;
         this.paging_count = 0;
+
+        this.profiles_for_dm_list = {};
         this.dm_paging_offset = 0;
         this.dm_paging_count = 0;
+
+        this.profiles_in_channel = {};
+        this.in_channel_offset = {};
+        this.in_channel_count = {};
+
+        this.profiles_not_in_channel = {};
+        this.not_in_channel_offset = {};
+        this.not_in_channel_count = {};
+
         this.direct_profiles = {};
         this.statuses = {};
         this.sessions = {};
@@ -63,6 +76,30 @@ class UserStoreClass extends EventEmitter {
 
     removeDmListChangeListener(callback) {
         this.removeListener(CHANGE_EVENT_DM_LIST, callback);
+    }
+
+    emitInChannelChange() {
+        this.emit(CHANGE_EVENT_IN_CHANNEL);
+    }
+
+    addInChannelChangeListener(callback) {
+        this.on(CHANGE_EVENT_IN_CHANNEL, callback);
+    }
+
+    removeInChannelChangeListener(callback) {
+        this.removeListener(CHANGE_EVENT_IN_CHANNEL, callback);
+    }
+
+    emitNotInChannelChange() {
+        this.emit(CHANGE_EVENT_NOT_IN_CHANNEL);
+    }
+
+    addNotInChannelChangeListener(callback) {
+        this.on(CHANGE_EVENT_NOT_IN_CHANNEL, callback);
+    }
+
+    removeNotInChannelChangeListener(callback) {
+        this.removeListener(CHANGE_EVENT_NOT_IN_CHANNEL, callback);
     }
 
     emitSessionsChange() {
@@ -269,6 +306,113 @@ class UserStoreClass extends EventEmitter {
         }
     }
 
+    removeProfileInChannel(channelId, userId) {
+        let profile;
+        if (channelId in this.profiles_in_channel) {
+            profile = this.profiles_in_channel[channelId][userId];
+            Reflect.deleteProperty(this.profiles_in_channel[channelId], userId);
+        }
+
+        return profile;
+    }
+
+    saveProfilesInChannel(channelId = ChannelStore.getCurrentId(), profiles) {
+        const oldProfiles = this.profiles_in_channel[channelId] || {};
+        this.profiles_in_channel[channelId] = Object.assign({}, oldProfiles, profiles);
+    }
+
+    saveProfileInChannel(channelId = ChannelStore.getCurrentId(), profile) {
+        if (!this.profiles_in_channel[channelId]) {
+            this.profiles_in_channel[channelId] = {};
+        }
+        this.profiles_in_channel[channelId][profile.id] = profile;
+    }
+
+    getProfilesInChannel(channelId = ChannelStore.getCurrentId()) {
+        const profileMap = this.profiles_in_channel[channelId];
+
+        if (!profileMap) {
+            return [];
+        }
+
+        const profiles = [];
+        for (const id in profileMap) {
+            if (profileMap.hasOwnProperty(id)) {
+                const profile = profileMap[id];
+
+                if (profile.delete_at === 0) {
+                    profiles.push(profile);
+                }
+            }
+        }
+
+        profiles.sort((a, b) => {
+            if (a.username < b.username) {
+                return -1;
+            }
+            if (a.username > b.username) {
+                return 1;
+            }
+            return 0;
+        });
+
+        return profiles;
+    }
+
+    removeProfileNotInChannel(channelId, userId) {
+        let profile;
+        if (channelId in this.profiles_not_in_channel) {
+            profile = this.profiles_not_in_channel[channelId][userId];
+            Reflect.deleteProperty(this.profiles_not_in_channel[channelId], userId);
+        }
+
+        return profile;
+    }
+
+    saveProfilesNotInChannel(channelId = ChannelStore.getCurrentId(), profiles) {
+        const oldProfiles = this.profiles_not_in_channel[channelId] || {};
+        this.profiles_not_in_channel[channelId] = Object.assign({}, oldProfiles, profiles);
+    }
+
+    saveProfileNotInChannel(channelId = ChannelStore.getCurrentId(), profile) {
+        if (!this.profiles_not_in_channel[channelId]) {
+            this.profiles_not_in_channel[channelId] = {};
+        }
+        this.profiles_not_in_channel[channelId][profile.id] = profile;
+    }
+
+    getProfilesNotInChannel(channelId = ChannelStore.getCurrentId()) {
+        const currentId = this.getCurrentId();
+        const profileMap = this.profiles_not_in_channel[channelId];
+
+        if (!profileMap) {
+            return [];
+        }
+
+        const profiles = [];
+        for (const id in profileMap) {
+            if (profileMap.hasOwnProperty(id) && id !== currentId) {
+                const profile = profileMap[id];
+
+                if (profile.delete_at === 0) {
+                    profiles.push(profile);
+                }
+            }
+        }
+
+        profiles.sort((a, b) => {
+            if (a.username < b.username) {
+                return -1;
+            }
+            if (a.username > b.username) {
+                return 1;
+            }
+            return 0;
+        });
+
+        return profiles;
+    }
+
     getProfilesForDmList() {
         const currentId = this.getCurrentId();
         const profiles = [];
@@ -409,6 +553,32 @@ class UserStoreClass extends EventEmitter {
     getDMPagingCount() {
         return this.dm_paging_count;
     }
+
+    setInChannelPage(channelId, offset, count) {
+        this.in_channel_offset[channelId] = offset + count;
+        this.in_channel_count[channelId] = this.dm_paging_count + count;
+    }
+
+    getInChannelPagingOffset(channelId) {
+        return this.in_channel_offset[channelId] | 0;
+    }
+
+    getInChannelPagingCount(channelId) {
+        return this.in_channel_count[channelId] | 0;
+    }
+
+    setNotInChannelPage(channelId, offset, count) {
+        this.not_in_channel_offset[channelId] = offset + count;
+        this.not_in_channel_count[channelId] = this.dm_paging_count + count;
+    }
+
+    getNotInChannelPagingOffset(channelId) {
+        return this.not_in_channel_offset[channelId] | 0;
+    }
+
+    getNotInChannelPagingCount(channelId) {
+        return this.not_in_channel_count[channelId] | 0;
+    }
 }
 
 var UserStore = new UserStoreClass();
@@ -431,6 +601,20 @@ UserStore.dispatchToken = AppDispatcher.register((payload) => {
             UserStore.setPage(action.offset, action.count);
         }
         UserStore.emitChange();
+        break;
+    case ActionTypes.RECEIVED_PROFILES_IN_CHANNEL:
+        UserStore.saveProfilesInChannel(action.channel_id, action.profiles);
+        if (action.offset != null && action.count != null) {
+            UserStore.setInChannelPage(action.offset, action.count);
+        }
+        UserStore.emitInChannelChange();
+        break;
+    case ActionTypes.RECEIVED_PROFILES_NOT_IN_CHANNEL:
+        UserStore.saveProfilesNotInChannel(action.channel_id, action.profiles);
+        if (action.offset != null && action.count != null) {
+            UserStore.setNotInChannelPage(action.offset, action.count);
+        }
+        UserStore.emitNotInChannelChange();
         break;
     case ActionTypes.RECEIVED_PROFILE:
         UserStore.saveProfile(action.profile);
