@@ -60,7 +60,7 @@
         "MaxIdleConns": 10,
         "MaxOpenConns": 10,
         "Trace": false,
-        "AtRestEncryptKey": ""
+        "AtRestEncryptKey": "dxoikm5qq71p8yanagmkuh6msist943h"
     },
     "LogSettings": {
         "EnableConsole": false,
@@ -84,7 +84,7 @@
         "DriverName": "local",
         "Directory": "./data/",
         "EnablePublicLink": false,
-        "PublicLinkSalt": "",
+        "PublicLinkSalt": "4srttwpss11h4ggwbj4piinnw3us4bz4",
         "ThumbnailWidth": 120,
         "ThumbnailHeight": 100,
         "PreviewWidth": 1024,
@@ -115,8 +115,8 @@
         "SMTPServer": "",
         "SMTPPort": "",
         "ConnectionSecurity": "",
-        "InviteSalt": "",
-        "PasswordResetSalt": "",
+        "InviteSalt": "5x613pkg7ub1yqmqf3j781mkf9yj4i4a",
+        "PasswordResetSalt": "fbcu7rowbh8qpxhymzbr1nwzapjx84yq",
         "SendPushNotifications": false,
         "PushNotificationServer": "",
         "PushNotificationContents": "generic",
@@ -125,8 +125,9 @@
         "EmailBatchingInterval": 30
     },
     "RateLimitSettings": {
-        "EnableRateLimiter": true,
+        "Enable": false,
         "PerSec": 10,
+        "MaxBurst": 100,
         "MemoryStoreSize": 10000,
         "VaryByRemoteAddr": true,
         "VaryByHeader": ""
