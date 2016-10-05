@@ -51,7 +51,7 @@ func InitUser() {
 	BaseRoutes.Users.Handle("/verify_email", ApiAppHandler(verifyEmail)).Methods("POST")
 	BaseRoutes.Users.Handle("/resend_verification", ApiAppHandler(resendVerification)).Methods("POST")
 	BaseRoutes.Users.Handle("/newimage", ApiUserRequired(uploadProfileImage)).Methods("POST")
-	BaseRoutes.Users.Handle("/me", ApiAppHandler(getMe)).Methods("GET")
+	BaseRoutes.Users.Handle("/me", ApiUserRequired(getMe)).Methods("GET")
 	BaseRoutes.Users.Handle("/initial_load", ApiAppHandler(getInitialLoad)).Methods("GET")
 	BaseRoutes.Users.Handle("/direct_profiles", ApiUserRequired(getDirectProfiles)).Methods("GET")
 	BaseRoutes.Users.Handle("/profiles/{id:[A-Za-z0-9]+}/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getProfiles)).Methods("GET")
@@ -274,7 +274,9 @@ func CreateUser(user *model.User) (*model.User, *model.AppError) {
 		ruser.Sanitize(map[string]bool{})
 
 		// This message goes to everyone, so the teamId, channelId and userId are irrelevant
-		go Publish(model.NewWebSocketEvent(model.WEBSOCKET_EVENT_NEW_USER, "", "", "", nil))
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_NEW_USER, "", "", "", nil)
+		message.Add("user_id", ruser.Id)
+		go Publish(message)
 
 		return ruser, nil
 	}
@@ -847,10 +849,6 @@ func Logout(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getMe(c *Context, w http.ResponseWriter, r *http.Request) {
 
-	if len(c.Session.UserId) == 0 {
-		return
-	}
-
 	if result := <-Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
 		c.Err = result.Err
 		c.RemoveSessionCookie(w, r)
@@ -883,7 +881,6 @@ func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 		uchan := Srv.Store.User().Get(c.Session.UserId)
 		pchan := Srv.Store.Preference().GetAll(c.Session.UserId)
 		tchan := Srv.Store.Team().GetTeamsByUserId(c.Session.UserId)
-		dpchan := Srv.Store.User().GetDirectProfiles(c.Session.UserId)
 
 		il.TeamMembers = c.Session.TeamMembers
 
@@ -911,19 +908,6 @@ func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 			for _, team := range il.Teams {
 				team.Sanitize()
 			}
-		}
-
-		if dp := <-dpchan; dp.Err != nil {
-			c.Err = dp.Err
-			return
-		} else {
-			profiles := dp.Data.(map[string]*model.User)
-
-			for k, p := range profiles {
-				profiles[k] = sanitizeProfile(c, p)
-			}
-
-			il.DirectProfiles = profiles
 		}
 	}
 
@@ -1101,7 +1085,7 @@ func getProfilesInChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.User().GetProfilesInChannel(channelId, offset, limit); result.Err != nil {
+	if result := <-Srv.Store.User().GetProfilesInChannel(channelId, offset, limit, false); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {

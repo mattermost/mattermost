@@ -90,6 +90,9 @@ type ChannelStore interface {
 	UpdateMember(member *model.ChannelMember) StoreChannel
 	GetMembers(channelId string) StoreChannel
 	GetMember(channelId string, userId string) StoreChannel
+	InvalidateAllChannelMembersForUser(userId string)
+	IsUserInChannelUseCache(userId string, channelId string) bool
+	GetAllChannelMembersForUser(userId string, allowFromCache bool) StoreChannel
 	GetMemberCount(channelId string) StoreChannel
 	RemoveMember(channelId string, userId string) StoreChannel
 	PermanentDeleteMembersByUser(userId string) StoreChannel
@@ -129,7 +132,8 @@ type UserStore interface {
 	UpdateMfaActive(userId string, active bool) StoreChannel
 	Get(id string) StoreChannel
 	GetAll() StoreChannel
-	GetProfilesInChannel(channelId string, offset int, limit int) StoreChannel
+	InvalidateProfilesInChannelCache(channelId string)
+	GetProfilesInChannel(channelId string, offset int, limit int, allowFromCache bool) StoreChannel
 	GetProfilesNotInChannel(teamId string, channelId string, offset int, limit int) StoreChannel
 	GetProfilesByUsernames(usernames []string, teamId string) StoreChannel
 	GetAllProfiles(offset int, limit int) StoreChannel

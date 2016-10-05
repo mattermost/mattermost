@@ -162,6 +162,10 @@ func CreateDirectChannel(userId string, otherUserId string) (*model.Channel, *mo
 			return nil, result.Err
 		}
 	} else {
+
+		InvalidateCacheForUser(userId)
+		InvalidateCacheForUser(otherUserId)
+
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_DIRECT_ADDED, "", channel.Id, "", nil)
 		message.Add("teammate_id", otherUserId)
 		go Publish(message)
@@ -573,6 +577,7 @@ func AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelM
 
 	go func() {
 		InvalidateCacheForUser(user.Id)
+		Srv.Store.User().InvalidateProfilesInChannelCache(channel.Id)
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_ADDED, "", channel.Id, "", nil)
 		message.Add("user_id", user.Id)
@@ -616,6 +621,8 @@ func JoinDefaultChannels(teamId string, user *model.User, channelRole string) *m
 		if _, err := CreatePost(fakeContext, post, false); err != nil {
 			l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
 		}
+
+		Srv.Store.User().InvalidateProfilesInChannelCache(result.Data.(*model.Channel).Id)
 	}
 
 	if result := <-Srv.Store.Channel().GetByName(teamId, "off-topic"); result.Err != nil {
@@ -638,6 +645,8 @@ func JoinDefaultChannels(teamId string, user *model.User, channelRole string) *m
 		if _, err := CreatePost(fakeContext, post, false); err != nil {
 			l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
 		}
+
+		Srv.Store.User().InvalidateProfilesInChannelCache(result.Data.(*model.Channel).Id)
 	}
 
 	return err
@@ -785,9 +794,9 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.LogAudit("name=" + channel.Name)
 
 		go func() {
-			InvalidateCacheForChannel(channel.Id)
 			message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_DELETED, c.TeamId, "", "", nil)
 			message.Add("channel_id", channel.Id)
+
 			go Publish(message)
 
 			post := &model.Post{
@@ -1098,6 +1107,7 @@ func RemoveUserFromChannel(userIdToRemove string, removerUserId string, channel 
 	}
 
 	InvalidateCacheForUser(userIdToRemove)
+	Srv.Store.User().InvalidateProfilesInChannelCache(channel.Id)
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_REMOVED, "", channel.Id, "", nil)
 	message.Add("user_id", userIdToRemove)

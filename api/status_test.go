@@ -150,6 +150,8 @@ func TestStatuses(t *testing.T) {
 	if !offlineHit {
 		t.Fatal("didn't get offline event")
 	}
+
+	time.Sleep(500 * time.Millisecond)
 }
 
 /*

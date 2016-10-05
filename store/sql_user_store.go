@@ -15,13 +15,17 @@ import (
 )
 
 const (
-	MISSING_ACCOUNT_ERROR      = "store.sql_user.missing_account.const"
-	MISSING_AUTH_ACCOUNT_ERROR = "store.sql_user.get_by_auth.missing_account.app_error"
+	MISSING_ACCOUNT_ERROR          = "store.sql_user.missing_account.const"
+	MISSING_AUTH_ACCOUNT_ERROR     = "store.sql_user.get_by_auth.missing_account.app_error"
+	PROFILES_IN_CHANNEL_CACHE_SIZE = 5000
+	PROFILES_IN_CHANNEL_CACHE_SEC  = 900 // 15 mins
 )
 
 type SqlUserStore struct {
 	*SqlStore
 }
+
+var profilesInChannelCache *utils.Cache = utils.NewLru(PROFILES_IN_CHANNEL_CACHE_SIZE)
 
 func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 	us := &SqlUserStore{sqlStore}
@@ -543,12 +547,25 @@ func (us SqlUserStore) GetProfiles(teamId string, offset int, limit int) StoreCh
 	return storeChannel
 }
 
-func (us SqlUserStore) GetProfilesInChannel(channelId string, offset int, limit int) StoreChannel {
+func (us SqlUserStore) InvalidateProfilesInChannelCache(channelId string) {
+	profilesInChannelCache.Remove(channelId)
+}
+
+func (us SqlUserStore) GetProfilesInChannel(channelId string, offset int, limit int, allowFromCache bool) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
 	go func() {
 		result := StoreResult{}
+
+		if allowFromCache && offset == -1 && limit == -1 {
+			if cacheItem, ok := profilesInChannelCache.Get(channelId); ok {
+				result.Data = cacheItem.(map[string]*model.User)
+				storeChannel <- result
+				close(storeChannel)
+				return
+			}
+		}
 
 		var users []*model.User
 
@@ -572,6 +589,10 @@ func (us SqlUserStore) GetProfilesInChannel(channelId string, offset int, limit 
 			}
 
 			result.Data = userMap
+
+			if allowFromCache && offset == -1 && limit == -1 {
+				profilesInChannelCache.AddWithExpiresInSecs(channelId, userMap, PROFILES_IN_CHANNEL_CACHE_SEC)
+			}
 		}
 
 		storeChannel <- result

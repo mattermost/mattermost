@@ -14,23 +14,19 @@ import (
 )
 
 type Hub struct {
-	connections       map[*WebConn]bool
-	register          chan *WebConn
-	unregister        chan *WebConn
-	broadcast         chan *model.WebSocketEvent
-	stop              chan string
-	invalidateUser    chan string
-	invalidateChannel chan string
+	connections map[*WebConn]bool
+	register    chan *WebConn
+	unregister  chan *WebConn
+	broadcast   chan *model.WebSocketEvent
+	stop        chan string
 }
 
 var hub = &Hub{
-	register:          make(chan *WebConn),
-	unregister:        make(chan *WebConn),
-	connections:       make(map[*WebConn]bool),
-	broadcast:         make(chan *model.WebSocketEvent),
-	stop:              make(chan string),
-	invalidateUser:    make(chan string),
-	invalidateChannel: make(chan string),
+	register:    make(chan *WebConn),
+	unregister:  make(chan *WebConn),
+	connections: make(map[*WebConn]bool, model.SESSION_CACHE_SIZE),
+	broadcast:   make(chan *model.WebSocketEvent),
+	stop:        make(chan string),
 }
 
 func Publish(message *model.WebSocketEvent) {
@@ -46,7 +42,8 @@ func PublishSkipClusterSend(message *model.WebSocketEvent) {
 }
 
 func InvalidateCacheForUser(userId string) {
-	hub.invalidateUser <- userId
+
+	Srv.Store.Channel().InvalidateAllChannelMembersForUser(userId)
 
 	if einterfaces.GetClusterInterface() != nil {
 		einterfaces.GetClusterInterface().InvalidateCacheForUser(userId)
@@ -54,11 +51,14 @@ func InvalidateCacheForUser(userId string) {
 }
 
 func InvalidateCacheForChannel(channelId string) {
-	hub.invalidateChannel <- channelId
 
-	if einterfaces.GetClusterInterface() != nil {
-		einterfaces.GetClusterInterface().InvalidateCacheForChannel(channelId)
-	}
+	// XXX TODO FIX ME
+
+	// hub.invalidateChannel <- channelId
+
+	// if einterfaces.GetClusterInterface() != nil {
+	// 	einterfaces.GetClusterInterface().InvalidateCacheForChannel(channelId)
+	// }
 }
 
 func (h *Hub) Register(webConn *WebConn) {
@@ -108,17 +108,6 @@ func (h *Hub) Start() {
 				if !found {
 					go SetStatusOffline(userId, false)
 				}
-			case userId := <-h.invalidateUser:
-				for webCon := range h.connections {
-					if webCon.UserId == userId {
-						webCon.InvalidateCache()
-					}
-				}
-
-			case channelId := <-h.invalidateChannel:
-				for webCon := range h.connections {
-					webCon.InvalidateCacheForChannel(channelId)
-				}
 
 			case msg := <-h.broadcast:
 				for webCon := range h.connections {
@@ -126,6 +115,7 @@ func (h *Hub) Start() {
 						select {
 						case webCon.Send <- msg:
 						default:
+							l4g.Error(fmt.Sprintf("webhub.broadcast: cannot send, closing websocket for userId=%v", webCon.UserId))
 							close(webCon.Send)
 							delete(h.connections, webCon)
 						}
@@ -133,7 +123,7 @@ func (h *Hub) Start() {
 				}
 
 			case s := <-h.stop:
-				l4g.Debug(utils.T("api.web_hub.start.stopping.debug"), s)
+				l4g.Info(utils.T("api.web_hub.start.stopping.debug"), s)
 
 				for webCon := range h.connections {
 					webCon.WebSocket.Close()
@@ -158,14 +148,29 @@ func shouldSendEvent(webCon *WebConn, msg *model.WebSocketEvent) bool {
 
 	// Only report events to users who are in the channel for the event
 	if len(msg.Broadcast.ChannelId) > 0 {
-		return webCon.IsMemberOfChannel(msg.Broadcast.ChannelId)
+		return Srv.Store.Channel().IsUserInChannelUseCache(webCon.UserId, msg.Broadcast.ChannelId)
 	}
 
 	// Only report events to users who are in the team for the event
 	if len(msg.Broadcast.TeamId) > 0 {
-		return webCon.IsMemberOfTeam(msg.Broadcast.TeamId)
+		return isMemberOfTeam(webCon, msg.Broadcast.TeamId)
 
 	}
 
 	return true
+}
+
+func isMemberOfTeam(webCon *WebConn, teamId string) bool {
+	session := GetSession(webCon.SessionToken)
+	if session == nil {
+		return false
+	} else {
+		member := session.GetTeamByTeamId(teamId)
+
+		if member != nil {
+			return true
+		} else {
+			return false
+		}
+	}
 }

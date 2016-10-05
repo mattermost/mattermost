@@ -310,7 +310,7 @@ func TestUserStoreGetProfilesInChannel(t *testing.T) {
 	Must(store.Channel().SaveMember(&m2))
 	Must(store.Channel().SaveMember(&m3))
 
-	if r1 := <-store.User().GetProfilesInChannel(c1.Id, -1, -1); r1.Err != nil {
+	if r1 := <-store.User().GetProfilesInChannel(c1.Id, -1, -1, false); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		users := r1.Data.(map[string]*model.User)
@@ -323,13 +323,31 @@ func TestUserStoreGetProfilesInChannel(t *testing.T) {
 		}
 	}
 
-	if r2 := <-store.User().GetProfilesInChannel(c2.Id, -1, -1); r2.Err != nil {
+	if r2 := <-store.User().GetProfilesInChannel(c2.Id, -1, -1, false); r2.Err != nil {
 		t.Fatal(r2.Err)
 	} else {
 		if len(r2.Data.(map[string]*model.User)) != 1 {
 			t.Fatal("should have returned empty map")
 		}
 	}
+
+	if r2 := <-store.User().GetProfilesInChannel(c2.Id, -1, -1, true); r2.Err != nil {
+		t.Fatal(r2.Err)
+	} else {
+		if len(r2.Data.(map[string]*model.User)) != 1 {
+			t.Fatal("should have returned empty map")
+		}
+	}
+
+	if r2 := <-store.User().GetProfilesInChannel(c2.Id, -1, -1, true); r2.Err != nil {
+		t.Fatal(r2.Err)
+	} else {
+		if len(r2.Data.(map[string]*model.User)) != 1 {
+			t.Fatal("should have returned empty map")
+		}
+	}
+
+	store.User().InvalidateProfilesInChannelCache(c2.Id)
 }
 
 func TestUserStoreGetProfilesNotInChannel(t *testing.T) {
