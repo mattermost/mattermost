@@ -3084,6 +3084,10 @@
     "translation": "Nombre maximum d'utilisateurs par équipe invalide dans les paramètres d'équipes. Doit être un entier positif."
   },
   {
+    "id": "model.config.is_valid.max_channels.app_error",
+    "translation": "Invalid maximum channels per team for team settings.  Must be a positive number."
+  },
+  {
     "id": "model.config.is_valid.password_length.app_error",
     "translation": "La taille minimale du mot de passe doit être un nombre entier supérieur ou égal à {{.MinLength}} et inférieur ou égal à {{.MaxLength}}."
   },

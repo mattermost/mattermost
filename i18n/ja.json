@@ -3084,6 +3084,10 @@
     "translation": "チーム設定のチーム毎の最大ユーザー数が不正です。正の数を指定してください。"
   },
   {
+    "id": "model.config.is_valid.max_channels.app_error",
+    "translation": "Invalid maximum channels per team for team settings.  Must be a positive number."
+  },
+  {
     "id": "model.config.is_valid.password_length.app_error",
     "translation": "最小パスワード長さは、{{.MinLength}}以上、{{.MaxLength}}以下に設定してください。"
   },

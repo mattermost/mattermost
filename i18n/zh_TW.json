@@ -3084,6 +3084,10 @@
     "translation": "團隊設定中的單一團隊最高使用者數無效。必須為正數。"
   },
   {
+    "id": "model.config.is_valid.max_channels.app_error",
+    "translation": "Invalid maximum channels per team for team settings.  Must be a positive number."
+  },
+  {
     "id": "model.config.is_valid.password_length.app_error",
     "translation": "密碼最小長度必須是一個整數且大於或等於{{.MinLength}}同時小於或等於{{.MaxLength}}。"
   },

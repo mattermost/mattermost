@@ -21,7 +21,7 @@
         "EnablePostUsernameOverride": false,
         "EnablePostIconOverride": false,
         "EnableTesting": false,
-        "EnableDeveloper": false,
+        "EnableDeveloper": true,
         "EnableSecurityFixAlert": true,
         "EnableInsecureOutgoingConnections": false,
         "EnableMultifactorAuthentication": false,
@@ -41,7 +41,7 @@
         "MaxUsersPerTeam": 50,
         "EnableTeamCreation": true,
         "EnableUserCreation": true,
-        "EnableOpenServer": false,
+        "EnableOpenServer": true,
         "RestrictCreationToDomains": "",
         "RestrictTeamNames": true,
         "EnableCustomBrand": false,
@@ -51,7 +51,8 @@
         "RestrictTeamInvite": "all",
         "RestrictPublicChannelManagement": "all",
         "RestrictPrivateChannelManagement": "all",
-        "UserStatusAwayTimeout": 300
+        "UserStatusAwayTimeout": 300,
+        "MaxChannelsPerTeam": 2111
     },
     "SqlSettings": {
         "DriverName": "mysql",

@@ -223,6 +223,7 @@ type TeamSettings struct {
 	RestrictPublicChannelManagement  *string
 	RestrictPrivateChannelManagement *string
 	UserStatusAwayTimeout            *int64
+	MaxChannelsPerTeam               int
 }
 
 type LdapSettings struct {
@@ -982,6 +983,10 @@ func (o *Config) IsValid() *AppError {
 
 	if o.TeamSettings.MaxUsersPerTeam <= 0 {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.max_users.app_error", nil, "")
+	}
+
+	if o.TeamSettings.MaxChannelsPerTeam <= 0 {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.max_channels.app_error", nil, "")
 	}
 
 	if !(*o.TeamSettings.RestrictDirectMessage == DIRECT_MESSAGE_ANY || *o.TeamSettings.RestrictDirectMessage == DIRECT_MESSAGE_TEAM) {
