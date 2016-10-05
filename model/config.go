@@ -990,7 +990,7 @@ func (o *Config) IsValid() *AppError {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.max_users.app_error", nil, "")
 	}
 
-	if o.TeamSettings.MaxChannelsPerTeam <= 0 {
+	if *o.TeamSettings.MaxChannelsPerTeam <= 0 {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.max_channels.app_error", nil, "")
 	}
 
