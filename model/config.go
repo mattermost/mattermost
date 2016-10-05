@@ -107,8 +107,6 @@ type CommandSetting struct {
 	AutoComplete     bool
 	AutoCompleteDesc string
 	AutoCompleteHint string
-	DisplayName      string
-	Description      string
 	URL              string
 }
 
