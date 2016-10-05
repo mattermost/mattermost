@@ -1525,7 +1525,7 @@
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_comment.debug",
-    "translation": "File comment message without comment"
+    "translation": "File comment undefined"
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_usr.debug",
