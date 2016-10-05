@@ -4468,12 +4468,20 @@
     "translation": "We couldn't get the team member"
   },
   {
+    "id": "store.sql_team.get_members_by_ids.app_error",
+    "translation": "We couldn't get the team members"
+  },
+  {
     "id": "store.sql_team.get_member.missing.app_error",
     "translation": "No team member found for that user id and team id"
   },
   {
     "id": "store.sql_team.get_members.app_error",
     "translation": "We couldn't get the team members"
+  },
+  {
+    "id": "store.sql_team.get_member_count.app_error",
+    "translation": "We couldn't count the team members"
   },
   {
     "id": "store.sql_team.get_teams_for_email.app_error",

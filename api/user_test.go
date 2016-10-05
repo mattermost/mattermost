@@ -435,7 +435,7 @@ func TestGetUser(t *testing.T) {
 		}
 	}
 
-	if userMap, err := Client.GetProfiles(rteam.Data.(*model.Team).Id, 0, 100, ""); err != nil {
+	if userMap, err := Client.GetProfilesInTeam(rteam.Data.(*model.Team).Id, 0, 100, ""); err != nil {
 		t.Fatal(err)
 	} else if len(userMap.Data.(map[string]*model.User)) != 2 {
 		t.Fatal("should have been 2")
@@ -444,7 +444,7 @@ func TestGetUser(t *testing.T) {
 	} else {
 
 		// test etag caching
-		if cache_result, err := Client.GetProfiles(rteam.Data.(*model.Team).Id, 0, 100, userMap.Etag); err != nil {
+		if cache_result, err := Client.GetProfilesInTeam(rteam.Data.(*model.Team).Id, 0, 100, userMap.Etag); err != nil {
 			t.Fatal(err)
 		} else if cache_result.Data.(map[string]*model.User) != nil {
 			t.Log(cache_result.Data)
@@ -452,25 +452,25 @@ func TestGetUser(t *testing.T) {
 		}
 	}
 
-	if userMap, err := Client.GetProfiles(rteam.Data.(*model.Team).Id, 0, 1, ""); err != nil {
+	if userMap, err := Client.GetProfilesInTeam(rteam.Data.(*model.Team).Id, 0, 1, ""); err != nil {
 		t.Fatal(err)
 	} else if len(userMap.Data.(map[string]*model.User)) != 1 {
 		t.Fatal("should have been 1")
 	}
 
-	if userMap, err := Client.GetProfiles(rteam.Data.(*model.Team).Id, 1, 1, ""); err != nil {
+	if userMap, err := Client.GetProfilesInTeam(rteam.Data.(*model.Team).Id, 1, 1, ""); err != nil {
 		t.Fatal(err)
 	} else if len(userMap.Data.(map[string]*model.User)) != 1 {
 		t.Fatal("should have been 1")
 	}
 
-	if userMap, err := Client.GetProfiles(rteam.Data.(*model.Team).Id, 10, 10, ""); err != nil {
+	if userMap, err := Client.GetProfilesInTeam(rteam.Data.(*model.Team).Id, 10, 10, ""); err != nil {
 		t.Fatal(err)
 	} else if len(userMap.Data.(map[string]*model.User)) != 0 {
 		t.Fatal("should have been 0")
 	}
 
-	if _, err := Client.GetProfiles(rteam2.Data.(*model.Team).Id, 0, 100, ""); err == nil {
+	if _, err := Client.GetProfilesInTeam(rteam2.Data.(*model.Team).Id, 0, 100, ""); err == nil {
 		t.Fatal("shouldn't have access")
 	}
 
@@ -486,12 +486,12 @@ func TestGetUser(t *testing.T) {
 
 	Client.Login(user.Email, "passwd1")
 
-	if _, err := Client.GetProfiles(rteam2.Data.(*model.Team).Id, 0, 100, ""); err != nil {
+	if _, err := Client.GetProfilesInTeam(rteam2.Data.(*model.Team).Id, 0, 100, ""); err != nil {
 		t.Fatal(err)
 	}
 }
 
-func TestGetDirectProfiles(t *testing.T) {
+func TestGetProfiles(t *testing.T) {
 	th := Setup().InitBasic()
 
 	th.BasicClient.Must(th.BasicClient.CreateDirectChannel(th.BasicUser2.Id))
@@ -503,62 +503,7 @@ func TestGetDirectProfiles(t *testing.T) {
 
 	utils.Cfg.PrivacySettings.ShowEmailAddress = true
 
-	if result, err := th.BasicClient.GetDirectProfiles(""); err != nil {
-		t.Fatal(err)
-	} else {
-		users := result.Data.(map[string]*model.User)
-
-		if len(users) != 1 {
-			t.Fatal("map was wrong length")
-		}
-
-		if users[th.BasicUser2.Id] == nil {
-			t.Fatal("missing expected user")
-		}
-
-		for _, user := range users {
-			if user.Email == "" {
-				t.Fatal("problem with show email")
-			}
-		}
-	}
-
-	utils.Cfg.PrivacySettings.ShowEmailAddress = false
-
-	if result, err := th.BasicClient.GetDirectProfiles(""); err != nil {
-		t.Fatal(err)
-	} else {
-		users := result.Data.(map[string]*model.User)
-
-		if len(users) != 1 {
-			t.Fatal("map was wrong length")
-		}
-
-		if users[th.BasicUser2.Id] == nil {
-			t.Fatal("missing expected user")
-		}
-
-		for _, user := range users {
-			if user.Email != "" {
-				t.Fatal("problem with show email")
-			}
-		}
-	}
-}
-
-func TestGetProfilesForDirectMessageList(t *testing.T) {
-	th := Setup().InitBasic()
-
-	th.BasicClient.Must(th.BasicClient.CreateDirectChannel(th.BasicUser2.Id))
-
-	prevShowEmail := utils.Cfg.PrivacySettings.ShowEmailAddress
-	defer func() {
-		utils.Cfg.PrivacySettings.ShowEmailAddress = prevShowEmail
-	}()
-
-	utils.Cfg.PrivacySettings.ShowEmailAddress = true
-
-	if result, err := th.BasicClient.GetProfilesForDirectMessageList(th.BasicTeam.Id, 0, 100); err != nil {
+	if result, err := th.BasicClient.GetProfiles(0, 100, ""); err != nil {
 		t.Fatal(err)
 	} else {
 		users := result.Data.(map[string]*model.User)
@@ -572,11 +517,20 @@ func TestGetProfilesForDirectMessageList(t *testing.T) {
 				t.Fatal("problem with show email")
 			}
 		}
+
+		// test etag caching
+		if cache_result, err := th.BasicClient.GetProfiles(0, 100, result.Etag); err != nil {
+			t.Fatal(err)
+		} else if cache_result.Data.(map[string]*model.User) != nil {
+			t.Log(cache_result.Etag)
+			t.Log(result.Etag)
+			t.Fatal("cache should be empty")
+		}
 	}
 
 	utils.Cfg.PrivacySettings.ShowEmailAddress = false
 
-	if result, err := th.BasicClient.GetProfilesForDirectMessageList(th.BasicTeam.Id, 0, 100); err != nil {
+	if result, err := th.BasicClient.GetProfiles(0, 100, ""); err != nil {
 		t.Fatal(err)
 	} else {
 		users := result.Data.(map[string]*model.User)

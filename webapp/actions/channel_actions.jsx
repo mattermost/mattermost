@@ -59,7 +59,8 @@ export function addUserToChannel(channelId, userId, success, error) {
         channelId,
         userId,
         (data) => {
-            const profile = UserStore.removeProfileNotInChannel(channelId, userId);
+            UserStore.removeProfileNotInChannel(channelId, userId);
+            const profile = UserStore.getProfile(userId);
             if (profile) {
                 UserStore.saveProfileInChannel(channelId, profile);
                 UserStore.emitInChannelChange();
@@ -85,7 +86,8 @@ export function removeUserFromChannel(channelId, userId, success, error) {
         channelId,
         userId,
         (data) => {
-            const profile = UserStore.removeProfileInChannel(channelId, userId);
+            UserStore.removeProfileInChannel(channelId, userId);
+            const profile = UserStore.getProfile(userId);
             if (profile) {
                 UserStore.saveProfileNotInChannel(channelId, profile);
                 UserStore.emitNotInChannelChange();

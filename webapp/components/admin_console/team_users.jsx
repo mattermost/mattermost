@@ -3,15 +3,15 @@
 
 import SearchableUserList from 'components/searchable_user_list.jsx';
 import AdminTeamMembersDropdown from './admin_team_members_dropdown.jsx';
-import LoadingScreen from 'components/loading_screen.jsx';
 import ResetPasswordModal from './reset_password_modal.jsx';
 import FormError from 'components/form_error.jsx';
 
 import AdminStore from 'stores/admin_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
+import UserStore from 'stores/user_store.jsx';
 
-import {searchUsers} from 'actions/user_actions.jsx';
-
-import Client from 'client/web_client.jsx';
+import {searchUsers, loadProfilesAndTeamMembers, loadTeamMembersForProfilesList} from 'actions/user_actions.jsx';
+import {getTeamStats} from 'utils/async_client.jsx';
 
 import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -32,35 +32,49 @@ export default class UserList extends React.Component {
         super(props);
 
         this.onAllTeamsChange = this.onAllTeamsChange.bind(this);
+        this.onStatsChange = this.onStatsChange.bind(this);
+        this.onUsersChange = this.onUsersChange.bind(this);
+        this.onTeamChange = this.onTeamChange.bind(this);
 
-        this.getTeamProfiles = this.getTeamProfiles.bind(this);
-        this.getCurrentTeamProfiles = this.getCurrentTeamProfiles.bind(this);
         this.doPasswordReset = this.doPasswordReset.bind(this);
         this.doPasswordResetDismiss = this.doPasswordResetDismiss.bind(this);
         this.doPasswordResetSubmit = this.doPasswordResetSubmit.bind(this);
         this.nextPage = this.nextPage.bind(this);
         this.search = this.search.bind(this);
+        this.loadComplete = this.loadComplete.bind(this);
+
+        const stats = TeamStore.getStats(this.props.params.team);
 
         this.state = {
             team: AdminStore.getTeam(this.props.params.team),
-            users: null,
-            teamMembers: null,
+            users: [],
+            teamMembers: TeamStore.getMembersInTeam(this.props.params.team),
+            total: stats.member_count,
             serverError: null,
             showPasswordModal: false,
+            loading: true,
             user: null
         };
     }
 
     componentDidMount() {
-        this.getCurrentTeamProfiles();
-
         AdminStore.addAllTeamsChangeListener(this.onAllTeamsChange);
+        UserStore.addInTeamChangeListener(this.onUsersChange);
+        TeamStore.addChangeListener(this.onTeamChange);
+        TeamStore.addStatsChangeListener(this.onStatsChange);
+
+        loadProfilesAndTeamMembers(0, Constants.PROFILE_CHUNK_SIZE, this.props.params.team, this.loadComplete);
+        getTeamStats(this.props.params.team);
     }
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.params.team !== this.props.params.team) {
+            const stats = TeamStore.getStats(nextProps.params.team);
             this.setState({
-                team: AdminStore.getTeam(nextProps.params.team)
+                team: AdminStore.getTeam(nextProps.params.team),
+                users: [],
+                teamMembers: TeamStore.getMembersInTeam(nextProps.params.team),
+                total: stats.member_count
             });
 
             this.getTeamProfiles(nextProps.params.team);
@@ -69,6 +83,13 @@ export default class UserList extends React.Component {
 
     componentWillUnmount() {
         AdminStore.removeAllTeamsChangeListener(this.onAllTeamsChange);
+        UserStore.removeInTeamChangeListener(this.onUsersChange);
+        TeamStore.removeChangeListener(this.onTeamChange);
+        TeamStore.removeStatsChangeListener(this.onStatsChange);
+    }
+
+    loadComplete() {
+        this.setState({loading: false});
     }
 
     onAllTeamsChange() {
@@ -77,100 +98,21 @@ export default class UserList extends React.Component {
         });
     }
 
-    getCurrentTeamProfiles() {
-        this.getTeamProfiles(this.props.params.team);
+    onStatsChange() {
+        const stats = TeamStore.getStats(this.props.params.team);
+        this.setState({total: stats.member_count});
     }
 
-    getTeamProfiles(teamId) {
-        Client.getTeamMembers(
-            teamId,
-            (data) => {
-                this.setState({
-                    teamMembers: data
-                });
-            },
-            (err) => {
-                this.setState({
-                    teamMembers: null,
-                    serverError: err.message
-                });
-            }
-        );
+    onUsersChange() {
+        this.setState({users: UserStore.getProfileListInTeam(this.props.params.team)});
+    }
 
-        Client.getProfilesForTeam(
-            teamId,
-            0,
-            Constants.PROFILE_CHUNK_SIZE,
-            (users) => {
-                var memberList = [];
-                for (var id in users) {
-                    if (users.hasOwnProperty(id)) {
-                        memberList.push(users[id]);
-                    }
-                }
-
-                memberList.sort((a, b) => {
-                    if (a.username < b.username) {
-                        return -1;
-                    }
-
-                    if (a.username > b.username) {
-                        return 1;
-                    }
-
-                    return 0;
-                });
-
-                this.setState({
-                    users: memberList
-                });
-            },
-            (err) => {
-                this.setState({
-                    users: null,
-                    serverError: err.message
-                });
-            }
-        );
+    onTeamChange() {
+        this.setState({teamMembers: TeamStore.getMembersInTeam(this.props.params.team)});
     }
 
     nextPage(page) {
-        Client.getProfilesForTeam(
-            this.props.params.team,
-            (page + 1) * USERS_PER_PAGE,
-            Constants.PROFILE_CHUNK_SIZE,
-            (users) => {
-                var memberList = [];
-                for (var id in users) {
-                    if (users.hasOwnProperty(id)) {
-                        memberList.push(users[id]);
-                    }
-                }
-
-                memberList.sort((a, b) => {
-                    if (a.username < b.username) {
-                        return -1;
-                    }
-
-                    if (a.username > b.username) {
-                        return 1;
-                    }
-
-                    return 0;
-                });
-
-                const newUsers = this.state.users.concat(memberList);
-
-                this.setState({
-                    users: newUsers
-                });
-            },
-            (err) => {
-                this.setState({
-                    serverError: err.message
-                });
-            }
-        );
+        loadProfilesAndTeamMembers((page + 1) * USERS_PER_PAGE, USERS_PER_PAGE, this.props.params.team);
     }
 
     doPasswordReset(user) {
@@ -197,8 +139,7 @@ export default class UserList extends React.Component {
 
     search(term) {
         if (term === '') {
-            this.getCurrentTeamProfiles();
-            this.setState({search: false});
+            this.setState({search: false, users: UserStore.getProfileListInTeam(this.props.params.team)});
             return;
         }
 
@@ -207,7 +148,8 @@ export default class UserList extends React.Component {
             this.props.params.team,
             {},
             (users) => {
-                this.setState({search: true, users});
+                this.setState({loading: true, search: true, users});
+                loadTeamMembersForProfilesList(users, this.props.params.team, this.loadComplete);
             }
         );
     }
@@ -217,79 +159,70 @@ export default class UserList extends React.Component {
             return null;
         }
 
-        if (this.state.users == null || this.state.teamMembers == null) {
-            return (
-                <div className='wrapper--fixed'>
-                    <h3>
-                        <FormattedMessage
-                            id='admin.userList.title'
-                            defaultMessage='Users for {team}'
-                            values={{
-                                team: this.state.team.name
-                            }}
-                        />
-                    </h3>
-                    <FormError error={this.state.serverError}/>
-                    <LoadingScreen/>
-                </div>
-            );
-        }
-
         const teamMembers = this.state.teamMembers;
+        const users = this.state.users;
         const actionUserProps = {};
-        for (let i = 0; i < teamMembers.length; i++) {
-            actionUserProps[teamMembers[i].user_id] = {
-                teamMember: teamMembers[i]
-            };
-        }
-
+        const extraInfo = {};
         const mfaEnabled = global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.MFA === 'true' && global.window.mm_config.EnableMultifactorAuthentication === 'true';
 
-        const users = this.state.users;
-        const extraInfo = {};
-        for (let i = 0; i < users.length; i++) {
-            const user = users[i];
-            const info = [];
+        let usersToDisplay;
+        if (this.state.loading) {
+            usersToDisplay = null;
+        } else {
+            usersToDisplay = [];
 
-            if (user.auth_service) {
-                const service = (user.auth_service === Constants.LDAP_SERVICE || user.auth_service === Constants.SAML_SERVICE) ? user.auth_service.toUpperCase() : Utils.toTitleCase(user.auth_service);
-                info.push(
-                    <FormattedHTMLMessage
-                        id='admin.user_item.authServiceNotEmail'
-                        defaultMessage='<strong>Sign-in Method:</strong> {service}'
-                        values={{
-                            service
-                        }}
-                    />
-                );
-            } else {
-                info.push(
-                    <FormattedHTMLMessage
-                        id='admin.user_item.authServiceEmail'
-                        defaultMessage='<strong>Sign-in Method:</strong> Email'
-                    />
-                );
-            }
+            for (let i = 0; i < users.length; i++) {
+                const user = users[i];
 
-            if (mfaEnabled) {
-                if (user.mfa_active) {
-                    info.push(
-                        <FormattedHTMLMessage
-                            id='admin.user_item.mfaYes'
-                            defaultMessage='<strong>MFA</strong>: Yes'
-                        />
-                    );
-                } else {
-                    info.push(
-                        <FormattedHTMLMessage
-                            id='admin.user_item.mfaNo'
-                            defaultMessage='<strong>MFA</strong>: No'
-                        />
-                    );
+                if (teamMembers[user.id]) {
+                    usersToDisplay.push(user);
+                    actionUserProps[user.id] = {
+                        teamMember: teamMembers[user.id]
+                    };
+
+                    const info = [];
+
+                    if (user.auth_service) {
+                        const service = (user.auth_service === Constants.LDAP_SERVICE || user.auth_service === Constants.SAML_SERVICE) ? user.auth_service.toUpperCase() : Utils.toTitleCase(user.auth_service);
+                        info.push(
+                            <FormattedHTMLMessage
+                                id='admin.user_item.authServiceNotEmail'
+                                defaultMessage='<strong>Sign-in Method:</strong> {service}'
+                                values={{
+                                    service
+                                }}
+                            />
+                        );
+                    } else {
+                        info.push(
+                            <FormattedHTMLMessage
+                                id='admin.user_item.authServiceEmail'
+                                defaultMessage='<strong>Sign-in Method:</strong> Email'
+                            />
+                        );
+                    }
+
+                    if (mfaEnabled) {
+                        if (user.mfa_active) {
+                            info.push(
+                                <FormattedHTMLMessage
+                                    id='admin.user_item.mfaYes'
+                                    defaultMessage='<strong>MFA</strong>: Yes'
+                                />
+                            );
+                        } else {
+                            info.push(
+                                <FormattedHTMLMessage
+                                    id='admin.user_item.mfaNo'
+                                    defaultMessage='<strong>MFA</strong>: No'
+                                />
+                            );
+                        }
+                    }
+
+                    extraInfo[user.id] = info;
                 }
             }
-
-            extraInfo[user.id] = info;
         }
 
         return (
@@ -300,7 +233,7 @@ export default class UserList extends React.Component {
                         defaultMessage='Users for {team} ({count})'
                         values={{
                             team: this.state.team.name,
-                            count: this.state.teamMembers.length
+                            count: this.state.total
                         }}
                     />
                 </h3>
@@ -311,9 +244,9 @@ export default class UserList extends React.Component {
                 >
                     <div className='more-modal__list member-list-holder'>
                         <SearchableUserList
-                            users={this.state.users}
+                            users={usersToDisplay}
                             usersPerPage={USERS_PER_PAGE}
-                            total={this.state.teamMembers.length}
+                            total={this.state.total}
                             extraInfo={extraInfo}
                             nextPage={this.nextPage}
                             search={this.search}

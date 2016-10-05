@@ -444,27 +444,13 @@ describe('Client.User', function() {
         });
     });
 
-    it('getDirectProfiles', function(done) {
-        TestHelper.initBasic(() => {
-            TestHelper.basicClient().getDirectProfiles(
-                function(data) {
-                    assert.equal(Object.keys(data).length === 0, true);
-                    done();
-                },
-                function(err) {
-                    done(new Error(err.getDirectProfiles));
-                }
-            );
-        });
-    });
-
     it('getProfiles', function(done) {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().getProfiles(
                 0,
                 100,
                 function(data) {
-                    assert.equal(data[TestHelper.basicUser().id].id, TestHelper.basicUser().id);
+                    assert.equal(Object.keys(data).length > 0, true);
                     done();
                 },
                 function(err) {
@@ -474,30 +460,14 @@ describe('Client.User', function() {
         });
     });
 
-    it('getProfilesForTeam', function(done) {
+    it('getProfilesInTeam', function(done) {
         TestHelper.initBasic(() => {
-            TestHelper.basicClient().getProfilesForTeam(
+            TestHelper.basicClient().getProfilesInTeam(
                 TestHelper.basicTeam().id,
                 0,
                 100,
                 function(data) {
                     assert.equal(data[TestHelper.basicUser().id].id, TestHelper.basicUser().id);
-                    done();
-                },
-                function(err) {
-                    done(new Error(err.message));
-                }
-            );
-        });
-    });
-
-    it('getProfilesForDirectMessageList', function(done) {
-        TestHelper.initBasic(() => {
-            TestHelper.basicClient().getProfilesForDirectMessageList(
-                0,
-                100,
-                function(data) {
-                    assert.equal(Object.keys(data).length > 0, true);
                     done();
                 },
                 function(err) {

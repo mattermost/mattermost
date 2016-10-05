@@ -37,7 +37,7 @@ export default class NavbarDropdown extends React.Component {
             showUserSettingsModal: false,
             showAboutModal: false,
             teams: TeamStore.getAll(),
-            teamMembers: TeamStore.getTeamMembers()
+            teamMembers: TeamStore.getMyTeamMembers()
         };
     }
 
@@ -64,7 +64,7 @@ export default class NavbarDropdown extends React.Component {
     onTeamChange() {
         this.setState({
             teams: TeamStore.getAll(),
-            teamMembers: TeamStore.getTeamMembers()
+            teamMembers: TeamStore.getMyTeamMembers()
         });
     }
 

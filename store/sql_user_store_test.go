@@ -438,39 +438,6 @@ func TestUserStoreGetProfilesNotInChannel(t *testing.T) {
 	}
 }
 
-func TestUserStoreGetDirectProfiles(t *testing.T) {
-	Setup()
-
-	teamId := model.NewId()
-
-	u1 := &model.User{}
-	u1.Email = model.NewId()
-	Must(store.User().Save(u1))
-	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}))
-
-	u2 := &model.User{}
-	u2.Email = model.NewId()
-	Must(store.User().Save(u2))
-	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}))
-
-	if r1 := <-store.User().GetDirectProfiles(u1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		users := r1.Data.(map[string]*model.User)
-		if len(users) != 0 {
-			t.Fatal("invalid returned users")
-		}
-	}
-
-	if r2 := <-store.User().GetDirectProfiles("123"); r2.Err != nil {
-		t.Fatal(r2.Err)
-	} else {
-		if len(r2.Data.(map[string]*model.User)) != 0 {
-			t.Fatal("should have returned empty map")
-		}
-	}
-}
-
 func TestUserStoreGetProfilesByIds(t *testing.T) {
 	Setup()
 
