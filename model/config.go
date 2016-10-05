@@ -107,6 +107,7 @@ type CommandSetting struct {
 	AutoComplete     bool
 	AutoCompleteDesc string
 	AutoCompleteHint string
+	DisplayName      string
 	URL              string
 }
 
@@ -338,7 +339,7 @@ type Config struct {
 	GitLabSettings       SSOSettings
 	GoogleSettings       SSOSettings
 	Office365Settings    SSOSettings
-	CommandSettings      []CommandSetting
+	CommandsSettings     []CommandSetting
 	LdapSettings         LdapSettings
 	ComplianceSettings   ComplianceSettings
 	LocalizationSettings LocalizationSettings

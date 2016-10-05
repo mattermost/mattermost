@@ -22,7 +22,7 @@ type ConfigCommandProvider struct {
 }
 
 func InitCommandFromConfig() {
-	for _, command := range utils.Cfg.CommandSettings {
+	for _, command := range utils.Cfg.CommandsSettings {
 		RegisterCommandProvider(&ConfigCommandProvider{command})
 	}
 }
