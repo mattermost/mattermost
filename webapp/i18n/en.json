@@ -648,7 +648,7 @@
   "admin.service.integrationAdmin": "Restrict managing integrations to Admins:",
   "admin.service.integrationAdminDesc": "When true, webhooks and slash commands can only be created, edited and viewed by Team and System Admins, and OAuth 2.0 applications by System Admins. Integrations are available to all users after they have been created by the Admin.",
   "admin.service.listenAddress": "Listen Address:",
-  "admin.service.listenDescription": "The address to which to bind and listen. Entering \":8065\" will bind to all interfaces or you can choose one like \"127.0.0.1:8065\". If you choose a low number port, you must have permissions to bind to that port. On Linux you can use: \"sudo setcap cap_net_bind_service=+ep ./bin/platform\" to allow Mattermost to bind to low ports.",
+  "admin.service.listenDescription": "The address and port to which to bind and listen. Specifying \":8065\" will bind to all network interfaces. Specifying \"127.0.0.1:8065\" will only bind to the network interface having that IP address. If you choose a port of a lower level (called \"system ports\" or \"well-known ports\", in the range of 0-1023), you must have permissions to bind to that port. On Linux you can use: \"sudo setcap cap_net_bind_service=+ep ./bin/platform\" to allow Mattermost to bind to well-known ports.",
   "admin.service.listenExample": "E.g.: \":8065\"",
   "admin.service.mfaDesc": "When true, users will be given the option to add multi-factor authentication to their account. They will need a smartphone and an authenticator app such as Google Authenticator.",
   "admin.service.mfaTitle": "Enable Multi-factor Authentication:",
