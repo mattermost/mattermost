@@ -22,6 +22,7 @@ type SlackChannel struct {
 	Name    string            `json:"name"`
 	Members []string          `json:"members"`
 	Topic   map[string]string `json:"topic"`
+	Purpose map[string]string `json:"purpose"`
 }
 
 type SlackUser struct {
@@ -242,7 +243,8 @@ func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[str
 			Type:        model.CHANNEL_OPEN,
 			DisplayName: sChannel.Name,
 			Name:        SlackConvertChannelName(sChannel.Name),
-			Purpose:     sChannel.Topic["value"],
+			Purpose:     sChannel.Purpose["value"],
+			Header:      sChannel.Topic["value"],
 		}
 		mChannel := ImportChannel(&newChannel)
 		if mChannel == nil {
