@@ -298,7 +298,7 @@ func TestTeamMembers(t *testing.T) {
 	Must(store.Team().SaveMember(m2))
 	Must(store.Team().SaveMember(m3))
 
-	if r1 := <-store.Team().GetMembers(teamId1); r1.Err != nil {
+	if r1 := <-store.Team().GetMembers(teamId1, 0, 100); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		ms := r1.Data.([]*model.TeamMember)
@@ -308,7 +308,7 @@ func TestTeamMembers(t *testing.T) {
 		}
 	}
 
-	if r1 := <-store.Team().GetMembers(teamId2); r1.Err != nil {
+	if r1 := <-store.Team().GetMembers(teamId2, 0, 100); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		ms := r1.Data.([]*model.TeamMember)
@@ -342,7 +342,7 @@ func TestTeamMembers(t *testing.T) {
 		t.Fatal(r1.Err)
 	}
 
-	if r1 := <-store.Team().GetMembers(teamId1); r1.Err != nil {
+	if r1 := <-store.Team().GetMembers(teamId1, 0, 100); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		ms := r1.Data.([]*model.TeamMember)
@@ -363,7 +363,7 @@ func TestTeamMembers(t *testing.T) {
 		t.Fatal(r1.Err)
 	}
 
-	if r1 := <-store.Team().GetMembers(teamId1); r1.Err != nil {
+	if r1 := <-store.Team().GetMembers(teamId1, 0, 100); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		ms := r1.Data.([]*model.TeamMember)
@@ -432,5 +432,76 @@ func TestGetTeamMember(t *testing.T) {
 
 	if r := <-store.Team().GetMember("", m1.UserId); r.Err == nil {
 		t.Fatal("empty team id - should have failed")
+	}
+}
+
+func TestGetTeamMembersByIds(t *testing.T) {
+	Setup()
+
+	teamId1 := model.NewId()
+
+	m1 := &model.TeamMember{TeamId: teamId1, UserId: model.NewId()}
+	Must(store.Team().SaveMember(m1))
+
+	if r := <-store.Team().GetMembersByIds(m1.TeamId, []string{m1.UserId}); r.Err != nil {
+		t.Fatal(r.Err)
+	} else {
+		rm1 := r.Data.([]*model.TeamMember)[0]
+
+		if rm1.TeamId != m1.TeamId {
+			t.Fatal("bad team id")
+		}
+
+		if rm1.UserId != m1.UserId {
+			t.Fatal("bad user id")
+		}
+	}
+
+	m2 := &model.TeamMember{TeamId: teamId1, UserId: model.NewId()}
+	Must(store.Team().SaveMember(m2))
+
+	if r := <-store.Team().GetMembersByIds(m1.TeamId, []string{m1.UserId, m2.UserId, model.NewId()}); r.Err != nil {
+		t.Fatal(r.Err)
+	} else {
+		rm := r.Data.([]*model.TeamMember)
+
+		if len(rm) != 2 {
+			t.Fatal("return wrong number of results")
+		}
+	}
+
+	if r := <-store.Team().GetMembersByIds(m1.TeamId, []string{}); r.Err == nil {
+		t.Fatal("empty user ids - should have failed")
+	}
+}
+
+func TestTeamStoreMemberCount(t *testing.T) {
+	Setup()
+
+	u1 := &model.User{}
+	u1.Email = model.NewId()
+	Must(store.User().Save(u1))
+
+	teamId1 := model.NewId()
+	m1 := &model.TeamMember{TeamId: teamId1, UserId: u1.Id}
+	Must(store.Team().SaveMember(m1))
+
+	if result := <-store.Team().GetMemberCount(teamId1); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		if result.Data.(int64) != 1 {
+			t.Fatal("wrong count")
+		}
+	}
+
+	m2 := &model.TeamMember{TeamId: teamId1, UserId: model.NewId()}
+	Must(store.Team().SaveMember(m2))
+
+	if result := <-store.Team().GetMemberCount(teamId1); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		if result.Data.(int64) != 1 {
+			t.Fatal("wrong count")
+		}
 	}
 }

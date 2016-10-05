@@ -473,7 +473,7 @@ func (us SqlUserStore) GetAllProfiles(offset int, limit int) StoreChannel {
 		var users []*model.User
 
 		if _, err := us.GetReplica().Select(&users, "SELECT * FROM Users ORDER BY Username ASC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
-			result.Err = model.NewLocAppError("SqlUserStore.GetProfiles", "store.sql_user.get_profiles.app_error", nil, err.Error())
+			result.Err = model.NewLocAppError("SqlUserStore.GetAllProfiles", "store.sql_user.get_profiles.app_error", nil, err.Error())
 		} else {
 
 			userMap := make(map[string]*model.User)
@@ -524,7 +524,7 @@ func (us SqlUserStore) GetProfiles(teamId string, offset int, limit int) StoreCh
 
 		var users []*model.User
 
-		if _, err := us.GetReplica().Select(&users, "SELECT Users.* FROM Users, TeamMembers WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId ORDER BY Users.Username ASC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"TeamId": teamId, "Offset": offset, "Limit": limit}); err != nil {
+		if _, err := us.GetReplica().Select(&users, "SELECT Users.* FROM Users, TeamMembers WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId AND TeamMembers.DeleteAt = 0 ORDER BY Users.Username ASC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"TeamId": teamId, "Offset": offset, "Limit": limit}); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.GetProfiles", "store.sql_user.get_profiles.app_error", nil, err.Error())
 		} else {
 
@@ -728,66 +728,6 @@ func (us SqlUserStore) GetRecentlyActiveUsersForTeam(teamId string) StoreChannel
 				*u.AuthData = ""
 				u.LastActivityAt = userWithLastActivityAt.LastActivityAt
 				userMap[u.Id] = &u
-			}
-
-			result.Data = userMap
-		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
-}
-
-func (us SqlUserStore) GetDirectProfiles(userId string) StoreChannel {
-
-	storeChannel := make(StoreChannel, 1)
-
-	go func() {
-		result := StoreResult{}
-
-		var users []*model.User
-
-		if _, err := us.GetReplica().Select(&users, `
-			SELECT 
-			    Users.*
-			FROM
-			    Users
-			WHERE
-			    Id IN (SELECT DISTINCT
-			            UserId
-			        FROM
-			            ChannelMembers
-			        WHERE
-			            ChannelMembers.UserId != :UserId
-			                AND ChannelMembers.ChannelId IN (SELECT 
-			                    Channels.Id
-			                FROM
-			                    Channels,
-			                    ChannelMembers
-			                WHERE
-			                    Channels.Type = 'D'
-			                        AND Channels.Id = ChannelMembers.ChannelId
-			                        AND ChannelMembers.UserId = :UserId))
-			        OR Id IN (SELECT 
-			            Name
-			        FROM
-			            Preferences
-			        WHERE
-			            UserId = :UserId
-			                AND Category = 'direct_channel_show')
-            `, map[string]interface{}{"UserId": userId}); err != nil {
-			result.Err = model.NewLocAppError("SqlUserStore.GetDirectProfiles", "store.sql_user.get_profiles.app_error", nil, err.Error())
-		} else {
-
-			userMap := make(map[string]*model.User)
-
-			for _, u := range users {
-				u.Password = ""
-				u.AuthData = new(string)
-				*u.AuthData = ""
-				userMap[u.Id] = u
 			}
 
 			result.Data = userMap
@@ -1164,6 +1104,7 @@ func (us SqlUserStore) Search(teamId string, term string) StoreChannel {
 				TeamMembers.TeamId = :TeamId
 				AND Users.Id = TeamMembers.UserId
 				AND Users.DeleteAt = 0
+				AND TeamMembers.DeleteAt = 0
 				SEARCH_CLAUSE
 				ORDER BY Users.Username ASC
 			LIMIT 100`

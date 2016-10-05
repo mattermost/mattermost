@@ -20,8 +20,8 @@ import * as Utils from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
-import * as UserActions from 'actions/user_actions.jsx';
 import {handleNewPost, loadPosts} from 'actions/post_actions.jsx';
+import {loadProfilesAndTeamMembersForDMSidebar} from 'actions/user_actions.jsx';
 
 import {Constants, SocketEvents, ActionTypes} from 'utils/constants.jsx';
 
@@ -85,8 +85,6 @@ function handleReconnect() {
     if (Client.teamId) {
         AsyncClient.getChannels();
         loadPosts(ChannelStore.getCurrentId());
-        AsyncClient.getTeamMembers(TeamStore.getCurrentId());
-        AsyncClient.getProfiles();
     }
 
     getStatuses();
@@ -204,30 +202,27 @@ function handlePostDeleteEvent(msg) {
 }
 
 function handleNewUserEvent(msg) {
-    AsyncClient.getTeamMembers(TeamStore.getCurrentId());
-    AsyncClient.getUser(msg.data.user_id);
-    AsyncClient.getDirectProfiles();
+    AsyncClient.getUser(msg.user_id);
     AsyncClient.getChannelStats();
+    loadProfilesAndTeamMembersForDMSidebar();
 }
 
 function handleLeaveTeamEvent(msg) {
     if (UserStore.getCurrentId() === msg.data.user_id) {
-        TeamStore.removeTeamMember(msg.broadcast.team_id);
+        TeamStore.removeMyTeamMember(msg.broadcast.team_id);
 
-        // if the are on the team begin removed redirect them to the root
+        // if they are on the team being removed redirect them to the root
         if (TeamStore.getCurrentId() === msg.broadcast.team_id) {
             TeamStore.setCurrentId('');
             Client.setTeamId('');
             browserHistory.push('/');
         }
-    } else if (TeamStore.getCurrentId() === msg.broadcast.team_id) {
-        UserActions.getMoreDmList();
     }
 }
 
 function handleDirectAddedEvent(msg) {
     AsyncClient.getChannel(msg.broadcast.channel_id);
-    AsyncClient.getDirectProfiles();
+    loadProfilesAndTeamMembersForDMSidebar();
 }
 
 function handleUserAddedEvent(msg) {

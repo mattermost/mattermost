@@ -31,14 +31,12 @@ export default class ChannelInviteModal extends React.Component {
 
         this.term = '';
 
-        const stats = ChannelStore.getStats(props.channel.id);
-
-        // TEMPORARY until team members are paged
-        const teamSize = TeamStore.getMembersForTeam().length;
+        const channelStats = ChannelStore.getStats(props.channel.id);
+        const teamStats = TeamStore.getStats();
 
         this.state = {
             users: [],
-            total: teamSize - stats.member_count,
+            total: teamStats.member_count - channelStats.member_count,
             search: false
         };
     }
@@ -68,14 +66,12 @@ export default class ChannelInviteModal extends React.Component {
             return;
         }
 
-        const stats = ChannelStore.getStats(this.props.channel.id);
-
-        // TEMPORARY until team members are paged
-        const teamSize = TeamStore.getMembersForTeam().length;
+        const channelStats = ChannelStore.getStats(this.props.channel.id);
+        const teamStats = TeamStore.getStats();
 
         this.setState({
-            users: UserStore.getProfilesNotInChannel(this.props.channel.id),
-            total: teamSize - stats.member_count
+            users: UserStore.getProfileListNotInChannel(this.props.channel.id),
+            total: teamStats.member_count - channelStats.member_count
         });
     }
 
@@ -99,7 +95,7 @@ export default class ChannelInviteModal extends React.Component {
         this.term = term;
 
         if (term === '') {
-            this.setState({users: UserStore.getProfilesNotInChannel(), search: false});
+            this.setState({users: UserStore.getProfileListNotInChannel(), search: false});
             return;
         }
 

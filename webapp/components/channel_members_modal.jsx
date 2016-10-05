@@ -29,6 +29,7 @@ export default class ChannelMembersModal extends React.Component {
         this.handleRemove = this.handleRemove.bind(this);
         this.createRemoveMemberButton = this.createRemoveMemberButton.bind(this);
         this.search = this.search.bind(this);
+        this.nextPage = this.nextPage.bind(this);
 
         this.term = '';
 
@@ -63,7 +64,7 @@ export default class ChannelMembersModal extends React.Component {
 
         const stats = ChannelStore.getStats(this.props.channel.id);
         this.setState({
-            users: UserStore.getProfilesInChannel(this.props.channel.id),
+            users: UserStore.getProfileListInChannel(this.props.channel.id),
             total: stats.member_count
         });
     }
@@ -72,7 +73,7 @@ export default class ChannelMembersModal extends React.Component {
         const userId = user.id;
 
         removeUserFromChannel(
-            ChannelStore.getCurrentId(),
+            this.props.channel.id,
             userId,
             null,
             (err) => {
@@ -101,14 +102,14 @@ export default class ChannelMembersModal extends React.Component {
     }
 
     nextPage(page) {
-        AsyncClient.getProfilesInChannel((page + 1) * USERS_PER_PAGE, USERS_PER_PAGE);
+        AsyncClient.getProfilesInChannel(this.props.channel.id, (page + 1) * USERS_PER_PAGE, USERS_PER_PAGE);
     }
 
     search(term) {
         this.term = term;
 
         if (term === '') {
-            this.setState({users: UserStore.getProfilesInChannel(this.props.channel.id), search: false});
+            this.setState({users: UserStore.getProfileListInChannel(this.props.channel.id), search: false});
             return;
         }
 

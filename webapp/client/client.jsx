@@ -557,13 +557,41 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getMyTeam', success, error));
     }
 
-    getTeamMembers(teamId, success, error) {
+    getTeamMembers(teamId, offset, limit, success, error) {
         request.
-            get(`${this.getTeamsRoute()}/members/${teamId}`).
+            get(`${this.getTeamNeededRoute(teamId)}/members/${offset}/${limit}`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getTeamMembers', success, error));
+    }
+
+    getTeamMember(teamId, userId, success, error) {
+        request.
+            get(`${this.getTeamNeededRoute(teamId)}/members/${userId}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getTeamMember', success, error));
+    }
+
+    getTeamMembersByIds(teamId, userIds, success, error) {
+        request.
+            post(`${this.getTeamNeededRoute(teamId)}/members/ids`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(userIds).
+            end(this.handleResponse.bind(this, 'getTeamMembersByIds', success, error));
+    }
+
+    getTeamStats(teamId, success, error) {
+        request.
+            get(`${this.getTeamNeededRoute(teamId)}/stats`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getTeamStats', success, error));
     }
 
     inviteMembers(data, success, error) {
@@ -995,31 +1023,22 @@ export default class Client {
         end(this.handleResponse.bind(this, 'getRecentlyActiveUsers', success, error));
     }
 
-    getDirectProfiles(success, error) {
-        request.
-            get(`${this.getUsersRoute()}/direct_profiles`).
-            set(this.defaultHeaders).
-            type('application/json').
-            accept('application/json').
-            end(this.handleResponse.bind(this, 'getDirectProfiles', success, error));
-    }
-
     getProfiles(offset, limit, success, error) {
         request.
-            get(`${this.getTeamNeededRoute()}/users/${offset}/${limit}`).
+            get(`${this.getUsersRoute()}/${offset}/${limit}`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getProfiles', success, error));
     }
 
-    getProfilesForTeam(teamId, offset, limit, success, error) {
+    getProfilesInTeam(teamId, offset, limit, success, error) {
         request.
             get(`${this.getTeamNeededRoute(teamId)}/users/${offset}/${limit}`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
-            end(this.handleResponse.bind(this, 'getProfilesForTeam', success, error));
+            end(this.handleResponse.bind(this, 'getProfilesInTeam', success, error));
     }
 
     getProfilesInChannel(channelId, offset, limit, success, error) {
@@ -1038,15 +1057,6 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getProfilesNotInChannel', success, error));
-    }
-
-    getAllProfiles(offset, limit, success, error) {
-        request.
-            get(`${this.getUsersRoute()}/${offset}/${limit}`).
-            set(this.defaultHeaders).
-            type('application/json').
-            accept('application/json').
-            end(this.handleResponse.bind(this, 'getAllProfiles', success, error));
     }
 
     getProfilesByIds(userIds, success, error) {

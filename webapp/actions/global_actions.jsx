@@ -13,6 +13,7 @@ import PreferenceStore from 'stores/preference_store.jsx';
 import SearchStore from 'stores/search_store.jsx';
 
 import {handleNewPost, loadPosts, loadPostsBefore, loadPostsAfter} from 'actions/post_actions.jsx';
+import {loadProfilesAndTeamMembersForDMSidebar} from 'actions/user_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
@@ -108,7 +109,7 @@ export function emitInitialLoad(callback) {
 
                 if (data.team_members) {
                     AppDispatcher.handleServerAction({
-                        type: ActionTypes.RECEIVED_TEAM_MEMBERS,
+                        type: ActionTypes.RECEIVED_MY_TEAM_MEMBERS,
                         team_members: data.team_members
                     });
                 }
@@ -362,7 +363,7 @@ export function emitClearSuggestions(suggestionId) {
 
 export function emitPreferenceChangedEvent(preference) {
     if (preference.category === Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW) {
-        AsyncClient.getDirectProfiles();
+        loadProfilesAndTeamMembersForDMSidebar();
     }
 
     AppDispatcher.handleServerAction({

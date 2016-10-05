@@ -65,7 +65,9 @@ type TeamStore interface {
 	SaveMember(member *model.TeamMember) StoreChannel
 	UpdateMember(member *model.TeamMember) StoreChannel
 	GetMember(teamId string, userId string) StoreChannel
-	GetMembers(teamId string) StoreChannel
+	GetMembers(teamId string, offset int, limit int) StoreChannel
+	GetMembersByIds(teamId string, userIds []string) StoreChannel
+	GetMemberCount(teamId string) StoreChannel
 	GetTeamsForUser(userId string) StoreChannel
 	RemoveMember(teamId string, userId string) StoreChannel
 	RemoveAllMembersByTeam(teamId string) StoreChannel
@@ -138,7 +140,6 @@ type UserStore interface {
 	GetProfilesByUsernames(usernames []string, teamId string) StoreChannel
 	GetAllProfiles(offset int, limit int) StoreChannel
 	GetProfiles(teamId string, offset int, limit int) StoreChannel
-	GetDirectProfiles(userId string) StoreChannel
 	GetProfileByIds(userId []string) StoreChannel
 	GetByEmail(email string) StoreChannel
 	GetByAuth(authData *string, authService string) StoreChannel
@@ -148,7 +149,6 @@ type UserStore interface {
 	VerifyEmail(userId string) StoreChannel
 	GetEtagForAllProfiles() StoreChannel
 	GetEtagForProfiles(teamId string) StoreChannel
-	GetEtagForDirectProfiles(userId string) StoreChannel
 	UpdateFailedPasswordAttempts(userId string, attempts int) StoreChannel
 	GetTotalUsersCount() StoreChannel
 	GetSystemAdminProfiles() StoreChannel

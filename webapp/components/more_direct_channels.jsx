@@ -3,15 +3,15 @@
 
 import SearchableUserList from 'components/searchable_user_list.jsx';
 import SpinnerButton from 'components/spinner_button.jsx';
-import LoadingScreen from 'components/loading_screen.jsx';
 
-import {getMoreDmList, searchUsers} from 'actions/user_actions.jsx';
+import {searchUsers} from 'actions/user_actions.jsx';
 
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
+import Constants from 'utils/constants.jsx';
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
@@ -31,51 +31,34 @@ export default class MoreDirectChannels extends React.Component {
         this.toggleList = this.toggleList.bind(this);
         this.nextPage = this.nextPage.bind(this);
         this.search = this.search.bind(this);
+        this.loadComplete = this.loadComplete.bind(this);
 
         this.state = {
-            users: UserStore.getProfilesForTeam(true),
+            users: UserStore.getProfileListInTeam(TeamStore.getCurrentId(), true),
             loadingDMChannel: -1,
             listType: 'team',
-            usersLoaded: false,
+            loading: false,
             search: false
         };
     }
 
     componentDidMount() {
-        AsyncClient.getAllProfiles();
         UserStore.addChangeListener(this.onChange);
-        UserStore.addAllChangeListener(this.onChange);
+        UserStore.addInTeamChangeListener(this.onChange);
         TeamStore.addChangeListener(this.onChange);
+
+        AsyncClient.getProfiles(0, Constants.PROFILE_CHUNK_SIZE);
+        AsyncClient.getProfilesInTeam(TeamStore.getCurrentId(), 0, Constants.PROFILE_CHUNK_SIZE);
     }
 
     componentWillUnmount() {
         UserStore.removeChangeListener(this.onChange);
-        UserStore.removeAllChangeListener(this.onChange);
+        UserStore.removeInTeamChangeListener(this.onChange);
         TeamStore.removeChangeListener(this.onChange);
     }
 
-    shouldComponentUpdate(nextProps, nextState) {
-        if (nextProps.show !== this.props.show) {
-            return true;
-        }
-
-        if (nextState.listType !== this.state.listType) {
-            return true;
-        }
-
-        if (nextProps.onModalDismissed.toString() !== this.props.onModalDismissed.toString()) {
-            return true;
-        }
-
-        if (nextState.loadingDMChannel !== this.state.loadingDMChannel) {
-            return true;
-        }
-
-        if (!Utils.areObjectsEqual(nextState.users, this.state.users)) {
-            return true;
-        }
-
-        return false;
+    loadComplete() {
+        this.setState({loading: false});
     }
 
     handleHide() {
@@ -112,14 +95,13 @@ export default class MoreDirectChannels extends React.Component {
 
         let users;
         if (this.state.listType === 'any') {
-            users = UserStore.getAllProfiles();
+            users = UserStore.getProfileList();
         } else {
-            users = UserStore.getProfilesForTeam(true);
+            users = UserStore.getProfileListInTeam(TeamStore.getCurrentId(), true);
         }
 
         this.setState({
-            users,
-            usersLoaded: true
+            users
         });
     }
 
@@ -127,9 +109,9 @@ export default class MoreDirectChannels extends React.Component {
         const listType = e.target.value;
         let users;
         if (listType === 'any') {
-            users = UserStore.getAllProfiles();
+            users = UserStore.getProfileList();
         } else {
-            users = UserStore.getProfilesForTeam(true);
+            users = UserStore.getProfileListInTeam(TeamStore.getCurrentId(), true);
         }
 
         this.setState({
@@ -155,9 +137,9 @@ export default class MoreDirectChannels extends React.Component {
 
     nextPage(page) {
         if (this.state.listType === 'any') {
-            AsyncClient.getAllProfiles((page + 1) * USERS_PER_PAGE, USERS_PER_PAGE);
-        } else {
             AsyncClient.getProfiles((page + 1) * USERS_PER_PAGE, USERS_PER_PAGE);
+        } else {
+            AsyncClient.getProfilesInTeam(TeamStore.getCurrentId(), (page + 1) * USERS_PER_PAGE, USERS_PER_PAGE);
         }
     }
 
@@ -233,21 +215,9 @@ export default class MoreDirectChannels extends React.Component {
             );
         }
 
-        let body;
-        if (this.state.usersLoaded) {
-            body = (
-                <SearchableUserList
-                    key={'moreDirectChannelsList_' + this.state.listType}
-                    style={{maxHeight}}
-                    users={this.state.users}
-                    usersPerPage={USERS_PER_PAGE}
-                    nextPage={this.nextPage}
-                    search={this.search}
-                    actions={[this.createJoinDirectChannelButton]}
-                />
-            );
-        } else {
-            body = <LoadingScreen/>;
+        let users = this.state.users;
+        if (this.state.loading) {
+            users = null;
         }
 
         return (
@@ -255,7 +225,6 @@ export default class MoreDirectChannels extends React.Component {
                 dialogClassName='more-modal more-direct-channels'
                 show={this.props.show}
                 onHide={this.handleHide}
-                onEntered={getMoreDmList}
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title>
@@ -267,7 +236,15 @@ export default class MoreDirectChannels extends React.Component {
                 </Modal.Header>
                 <Modal.Body>
                     {teamToggle}
-                    {body}
+                    <SearchableUserList
+                        key={'moreDirectChannelsList_' + this.state.listType}
+                        style={{maxHeight}}
+                        users={users}
+                        usersPerPage={USERS_PER_PAGE}
+                        nextPage={this.nextPage}
+                        search={this.search}
+                        actions={[this.createJoinDirectChannelButton]}
+                    />
                 </Modal.Body>
                 <Modal.Footer>
                     <button

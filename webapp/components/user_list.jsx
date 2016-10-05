@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import UserListRow from './user_list_row.jsx';
+import LoadingScreen from 'components/loading_screen.jsx';
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
@@ -11,7 +12,9 @@ export default class UserList extends React.Component {
         const users = this.props.users;
 
         let content;
-        if (users.length > 0) {
+        if (users == null) {
+            return <LoadingScreen/>;
+        } else if (users.length > 0) {
             content = users.map((user) => {
                 return (
                     <UserListRow

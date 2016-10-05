@@ -83,9 +83,25 @@ export default class SearchableUserList extends React.Component {
         let nextButton;
         let previousButton;
         let usersToDisplay;
+        let count;
 
-        if (this.state.search) {
+        if (this.props.users == null) {
             usersToDisplay = this.props.users;
+        } else if (this.state.search || this.props.users == null) {
+            usersToDisplay = this.props.users;
+
+            if (this.props.total) {
+                count = (
+                    <FormattedMessage
+                        id='filtered_user_list.countTotal'
+                        defaultMessage='{count} {count, plural, =0 {0 members} one {member} other {members}} of {total} total'
+                        values={{
+                            count: usersToDisplay.length || 0,
+                            total: this.props.total
+                        }}
+                    />
+                );
+            }
         } else {
             const pageStart = this.state.page * this.props.usersPerPage;
             const pageEnd = pageStart + this.props.usersPerPage;
@@ -113,22 +129,8 @@ export default class SearchableUserList extends React.Component {
                     </button>
                 );
             }
-        }
 
-        let count;
-        if (this.props.total) {
-            if (this.state.search) {
-                count = (
-                    <FormattedMessage
-                        id='filtered_user_list.countTotal'
-                        defaultMessage='{count} {count, plural, =0 {0 members} one {member} other {members}} of {total} total'
-                        values={{
-                            count: usersToDisplay.length,
-                            total: this.props.total
-                        }}
-                    />
-                );
-            } else {
+            if (this.props.total) {
                 const startCount = this.state.page * this.props.usersPerPage;
                 const endCount = startCount + usersToDisplay.length;
 
@@ -167,6 +169,7 @@ export default class SearchableUserList extends React.Component {
                             type='button'
                             className='btn btn-primary'
                             onClick={this.doSearch}
+                            disabled={this.props.users == null}
                         >
                             <FormattedMessage
                                 id='filtered_user_list.searchButton'

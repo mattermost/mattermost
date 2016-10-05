@@ -53,7 +53,6 @@ func InitUser() {
 	BaseRoutes.Users.Handle("/newimage", ApiUserRequired(uploadProfileImage)).Methods("POST")
 	BaseRoutes.Users.Handle("/me", ApiUserRequired(getMe)).Methods("GET")
 	BaseRoutes.Users.Handle("/initial_load", ApiAppHandler(getInitialLoad)).Methods("GET")
-	BaseRoutes.Users.Handle("/direct_profiles", ApiUserRequired(getDirectProfiles)).Methods("GET")
 	BaseRoutes.Users.Handle("/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getProfiles)).Methods("GET")
 	BaseRoutes.NeedTeam.Handle("/users/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getProfilesInTeam)).Methods("GET")
 	BaseRoutes.NeedChannel.Handle("/users/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getProfilesInChannel)).Methods("GET")
@@ -1015,27 +1014,6 @@ func getProfilesInTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if result := <-Srv.Store.User().GetProfiles(teamId, offset, limit); result.Err != nil {
-		c.Err = result.Err
-		return
-	} else {
-		profiles := result.Data.(map[string]*model.User)
-
-		for k, p := range profiles {
-			profiles[k] = sanitizeProfile(c, p)
-		}
-
-		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
-		w.Write([]byte(model.UserMapToJson(profiles)))
-	}
-}
-
-func getDirectProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
-	etag := (<-Srv.Store.User().GetEtagForDirectProfiles(c.Session.UserId)).Data.(string)
-	if HandleEtag(etag, w, r) {
-		return
-	}
-
-	if result := <-Srv.Store.User().GetDirectProfiles(c.Session.UserId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {

@@ -504,8 +504,8 @@ func (c *Client) GetMe(etag string) (*Result, *AppError) {
 	}
 }
 
-// GetAllProfiles returns a map of users using user id as the key. Must be authenticated.
-func (c *Client) GetAllProfiles(offset int, limit int, etag string) (*Result, *AppError) {
+// GetProfiles returns a map of users using user id as the key. Must be authenticated.
+func (c *Client) GetProfiles(offset int, limit int, etag string) (*Result, *AppError) {
 	if r, err := c.DoApiGet(fmt.Sprintf("/users/%v/%v", offset, limit), "", etag); err != nil {
 		return nil, err
 	} else {
@@ -515,22 +515,10 @@ func (c *Client) GetAllProfiles(offset int, limit int, etag string) (*Result, *A
 	}
 }
 
-// GetProfiles returns a map of users for a team using user id as the key. Must
+// GetProfilesInTeam returns a map of users for a team using user id as the key. Must
 // be authenticated.
-func (c *Client) GetProfiles(teamId string, offset int, limit int, etag string) (*Result, *AppError) {
+func (c *Client) GetProfilesInTeam(teamId string, offset int, limit int, etag string) (*Result, *AppError) {
 	if r, err := c.DoApiGet(fmt.Sprintf("/teams/%v/users/%v/%v", teamId, offset, limit), "", etag); err != nil {
-		return nil, err
-	} else {
-		defer closeBody(r)
-		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), UserMapFromJson(r.Body)}, nil
-	}
-}
-
-// GetDirectProfiles gets a map of users that are currently shown in the sidebar,
-// using user id as the key. Must be authenticated.
-func (c *Client) GetDirectProfiles(etag string) (*Result, *AppError) {
-	if r, err := c.DoApiGet("/users/direct_profiles", "", etag); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)
@@ -1584,8 +1572,46 @@ func (c *Client) GetMyTeam(etag string) (*Result, *AppError) {
 	}
 }
 
-func (c *Client) GetTeamMembers(teamId string) (*Result, *AppError) {
-	if r, err := c.DoApiGet("/teams/members/"+teamId, "", ""); err != nil {
+// GetTeamMembers will return a page of team member objects as an array paged based on the
+// team id, offset and limit provided. Must be authenticated.
+func (c *Client) GetTeamMembers(teamId string, offset int, limit int) (*Result, *AppError) {
+	if r, err := c.DoApiGet(fmt.Sprintf("/teams/%v/members/%v/%v", teamId, offset, limit), "", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), TeamMembersFromJson(r.Body)}, nil
+	}
+}
+
+// GetTeamMember will return a team member object based on the team id and user id provided.
+// Must be authenticated.
+func (c *Client) GetTeamMember(teamId string, userId string) (*Result, *AppError) {
+	if r, err := c.DoApiGet(fmt.Sprintf("/teams/%v/members/%v", teamId, userId), "", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), TeamMemberFromJson(r.Body)}, nil
+	}
+}
+
+// GetTeamStats will return a team stats object containing the number of users on the team
+// based on the team id provided. Must be authenticated.
+func (c *Client) GetTeamStats(teamId string) (*Result, *AppError) {
+	if r, err := c.DoApiGet(fmt.Sprintf("/teams/%v/stats", teamId), "", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), TeamStatsFromJson(r.Body)}, nil
+	}
+}
+
+// GetTeamMembersByIds will return team member objects as an array based on the
+// team id and a list of user ids provided. Must be authenticated.
+func (c *Client) GetTeamMembersByIds(teamId string, userIds []string) (*Result, *AppError) {
+	if r, err := c.DoApiPost(fmt.Sprintf("/teams/%v/members/ids", teamId), ArrayToJson(userIds)); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)
