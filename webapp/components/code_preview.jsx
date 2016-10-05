@@ -4,7 +4,7 @@
 import $ from 'jquery';
 import React from 'react';
 
-import * as SyntaxHighlighting from 'utils/syntax_hightlighting.jsx';
+import * as SyntaxHighlighting from 'utils/syntax_highlighting.jsx';
 import Constants from 'utils/constants.jsx';
 
 import FileInfoPreview from './file_info_preview.jsx';
