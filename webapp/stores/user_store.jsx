@@ -169,6 +169,10 @@ class UserStoreClass extends EventEmitter {
     // System-Wide Profiles
 
     saveProfiles(profiles) {
+        const currentId = this.getCurrentId();
+        if (profiles[currentId]) {
+            Reflect.deleteProperty(profiles, currentId);
+        }
         this.profiles = Object.assign({}, this.profiles, profiles);
     }
 
