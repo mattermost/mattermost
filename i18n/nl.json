@@ -3084,10 +3084,6 @@
     "translation": "Ongeldig maximaal aantal gebruikers per team bij team instellingen. Moet een getal groter dan 0 zijn."
   },
   {
-    "id": "model.config.is_valid.max_channels.app_error",
-    "translation": "Invalid maximum channels per team for team settings.  Must be a positive number."
-  },
-  {
     "id": "model.config.is_valid.password_length.app_error",
     "translation": "Wachtwoord moet een lengte hebben van minimaal {{.MinLength}} en/of maximaal {{.MaxLength}}"
   },

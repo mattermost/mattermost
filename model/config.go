@@ -223,7 +223,7 @@ type TeamSettings struct {
 	RestrictPublicChannelManagement  *string
 	RestrictPrivateChannelManagement *string
 	UserStatusAwayTimeout            *int64
-	MaxChannelsPerTeam               int
+	MaxChannelsPerTeam               *int64
 }
 
 type LdapSettings struct {
@@ -501,6 +501,11 @@ func (o *Config) SetDefaults() {
 	if o.TeamSettings.UserStatusAwayTimeout == nil {
 		o.TeamSettings.UserStatusAwayTimeout = new(int64)
 		*o.TeamSettings.UserStatusAwayTimeout = 300
+	}
+
+	if o.TeamSettings.MaxChannelsPerTeam == nil {
+		o.TeamSettings.MaxChannelsPerTeam = new(int64)
+		*o.TeamSettings.MaxChannelsPerTeam = 2000
 	}
 
 	if o.EmailSettings.EnableSignInWithEmail == nil {

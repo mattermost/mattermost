@@ -41,7 +41,7 @@
         "MaxUsersPerTeam": 50,
         "EnableTeamCreation": true,
         "EnableUserCreation": true,
-        "EnableOpenServer": true,
+        "EnableOpenServer": false,
         "RestrictCreationToDomains": "",
         "RestrictTeamNames": true,
         "EnableCustomBrand": false,
@@ -52,7 +52,7 @@
         "RestrictPublicChannelManagement": "all",
         "RestrictPrivateChannelManagement": "all",
         "UserStatusAwayTimeout": 300,
-        "MaxChannelsPerTeam": 2111
+        "MaxChannelsPerTeam": 2000
     },
     "SqlSettings": {
         "DriverName": "mysql",
