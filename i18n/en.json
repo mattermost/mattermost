@@ -1473,11 +1473,11 @@
   },
   {
     "id": "api.server.start_server.rate_limiting_memory_store",
-    "translation": "Unable to initalize rate limiting memory store. Check MemoryStoreSize config setting."
+    "translation": "Unable to initialize rate limiting memory store. Check MemoryStoreSize config setting."
   },
   {
-    "id": "api.server.start_server.rate_limiting_memory_store",
-    "translation": "Unable to initalize rate limiting."
+    "id": "api.server.start_server.rate_limiting_rate_limiter",
+    "translation": "Unable to initialize rate limiting."
   },
   {
     "id": "api.server.start_server.starting.critical",
