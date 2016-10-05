@@ -42,7 +42,7 @@ export default class TeamUrl extends React.Component {
         }
 
         const cleanedName = Utils.cleanUpUrlable(name);
-        console.log(cleanedName);
+        
         const urlRegex = /^[a-z]+([a-z\-0-9]+|(__)?)[a-z0-9]+$/g;
         if (cleanedName !== name || !urlRegex.test(name)) {
             this.setState({nameError: Utils.localizeMessage('create_team.team_url.regex', "Use only lower case letters, numbers and dashes. Must start with a letter and can't end in a dash.")});
