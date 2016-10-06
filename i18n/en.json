@@ -886,8 +886,20 @@
     "translation": "Unable to find file when migrating post to use FileInfos, post_id=%v, filename=%v, path=%v, err=%v"
   },
   {
+    "id": "api.file.migrate_filenames_to_file_infos.get_file_infos_again.warn",
+    "translation": "Unable to get FileInfos for post after migratio, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.get_post_again.warn",
+    "translation": "Unable to get post when migrating to use FileInfos, post_id=%v, err=%v"
+  },
+  {
     "id": "api.file.migrate_filenames_to_file_infos.info.app_error",
     "translation": "Unable to fully decode file info when migrating post to use FileInfos, post_id=%v, filename=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.migrating_post.debug",
+    "translation": "Migrating post to use FileInfos, post_id=%v, err=%v"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.mismatched_filename.warn",
@@ -898,8 +910,12 @@
     "translation": "Unable to migrate post to use FileInfos with an empty Filenames field, post_id=%v"
   },
   {
+    "id": "api.file.migrate_filenames_to_file_infos.not_migrating_post.debug",
+    "translation": "Post already migrated to use FileInfos, post_id=%v, err=%v"
+  },
+  {
     "id": "api.file.migrate_filenames_to_file_infos.save_file_info.warn",
-    "translation": "Unable to save post when migrating post to use FileInfos, post_id=%v, new_file_ids=%v, old_filenames=%v, err=%v"
+    "translation": "Unable to save post when migrating post to use FileInfos, post_id=%v, file_id=%v, path=%v, err=%v"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.save_post.warn",

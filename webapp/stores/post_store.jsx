@@ -318,7 +318,7 @@ class PostStoreClass extends EventEmitter {
             // make sure to copy the post so that component state changes work properly
             postList.posts[post.id] = Object.assign({}, post, {
                 state: Constants.POST_DELETED,
-                fileIds: []
+                file_ids: []
             });
         }
     }

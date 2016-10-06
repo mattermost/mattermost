@@ -21,6 +21,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	l4g "github.com/alecthomas/log4go"
@@ -571,6 +572,8 @@ func generatePublicLinkHash(fileId, salt string) string {
 	return base64.RawURLEncoding.EncodeToString(hash.Sum(nil))
 }
 
+var fileMigrationLock sync.Mutex
+
 // Creates and stores FileInfos for a post created before the FileInfos table existed.
 func migrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	if len(post.Filenames) == 0 {
@@ -602,7 +605,6 @@ func migrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 
 	// Create FileInfo objects for this post
 	infos := make([]*model.FileInfo, 0, len(filenames))
-	fileIds := make([]string, 0, len(filenames))
 	if teamId == "" {
 		l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.team_id.error"), post.Id, filenames)
 	} else {
@@ -612,14 +614,40 @@ func migrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 				continue
 			}
 
-			if result := <-Srv.Store.FileInfo().Save(info); result.Err != nil {
-				l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.save_file_info.app_error"), post.Id, info.Id, filename, result.Err)
-				continue
-			}
-
-			fileIds = append(fileIds, info.Id)
 			infos = append(infos, info)
 		}
+	}
+
+	// Lock to prevent only one migration thread from trying to update the post at once, preventing duplicate FileInfos from being created
+	fileMigrationLock.Lock()
+	defer fileMigrationLock.Unlock()
+
+	if result := <-Srv.Store.Post().Get(post.Id); result.Err != nil {
+		l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.get_post_again.app_error"), post.Id, result.Err)
+		return []*model.FileInfo{}
+	} else if newPost := result.Data.(*model.PostList).Posts[post.Id]; len(newPost.Filenames) != len(post.Filenames) {
+		// Another thread has already created FileInfos for this post, so just return those
+		if result := <-Srv.Store.FileInfo().GetForPost(post.Id); result.Err != nil {
+			l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.get_post_file_infos_again.app_error"), post.Id, result.Err)
+			return []*model.FileInfo{}
+		} else {
+			l4g.Debug(utils.T("api.file.migrate_filenames_to_file_infos.not_migrating_post.debug"), post.Id)
+			return result.Data.([]*model.FileInfo)
+		}
+	}
+
+	l4g.Debug(utils.T("api.file.migrate_filenames_to_file_infos.migrating_post.debug"), post.Id)
+
+	savedInfos := make([]*model.FileInfo, 0, len(infos))
+	fileIds := make([]string, 0, len(filenames))
+	for _, info := range infos {
+		if result := <-Srv.Store.FileInfo().Save(info); result.Err != nil {
+			l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.save_file_info.app_error"), post.Id, info.Id, info.Path, result.Err)
+			continue
+		}
+
+		savedInfos = append(savedInfos, info)
+		fileIds = append(fileIds, info.Id)
 	}
 
 	// Copy and save the updated post
@@ -634,7 +662,7 @@ func migrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 		l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.save_post.app_error"), post.Id, newPost.FileIds, post.Filenames, result.Err)
 		return []*model.FileInfo{}
 	} else {
-		return infos
+		return savedInfos
 	}
 }
 
