@@ -18,9 +18,9 @@ import (
 func InitChannel() {
 	l4g.Debug(utils.T("api.channel.init.debug"))
 
-	BaseRoutes.Channels.Handle("/", ApiUserRequiredActivity(getChannels, false)).Methods("GET")
+	BaseRoutes.Channels.Handle("/", ApiUserRequired(getChannels)).Methods("GET")
 	BaseRoutes.Channels.Handle("/more", ApiUserRequired(getMoreChannels)).Methods("GET")
-	BaseRoutes.Channels.Handle("/counts", ApiUserRequiredActivity(getChannelCounts, false)).Methods("GET")
+	BaseRoutes.Channels.Handle("/counts", ApiUserRequired(getChannelCounts)).Methods("GET")
 	BaseRoutes.Channels.Handle("/create", ApiUserRequired(createChannel)).Methods("POST")
 	BaseRoutes.Channels.Handle("/create_direct", ApiUserRequired(createDirectChannel)).Methods("POST")
 	BaseRoutes.Channels.Handle("/update", ApiUserRequired(updateChannel)).Methods("POST")
@@ -30,7 +30,7 @@ func InitChannel() {
 
 	BaseRoutes.NeedChannelName.Handle("/join", ApiUserRequired(join)).Methods("POST")
 
-	BaseRoutes.NeedChannel.Handle("/", ApiUserRequiredActivity(getChannel, false)).Methods("GET")
+	BaseRoutes.NeedChannel.Handle("/", ApiUserRequired(getChannel)).Methods("GET")
 	BaseRoutes.NeedChannel.Handle("/stats", ApiUserRequired(getChannelStats)).Methods("GET")
 	BaseRoutes.NeedChannel.Handle("/members/{user_id:[A-Za-z0-9]+}", ApiUserRequired(getChannelMember)).Methods("GET")
 	BaseRoutes.NeedChannel.Handle("/join", ApiUserRequired(join)).Methods("POST")
