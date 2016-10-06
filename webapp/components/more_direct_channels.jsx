@@ -5,6 +5,7 @@ import SearchableUserList from 'components/searchable_user_list.jsx';
 import SpinnerButton from 'components/spinner_button.jsx';
 
 import {searchUsers} from 'actions/user_actions.jsx';
+import {openDirectChannelToUser} from 'actions/channel_actions.jsx';
 
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
@@ -75,7 +76,7 @@ export default class MoreDirectChannels extends React.Component {
         }
 
         this.setState({loadingDMChannel: teammate.id});
-        Utils.openDirectChannelToUser(
+        openDirectChannelToUser(
             teammate,
             (channel) => {
                 browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/' + channel.name);

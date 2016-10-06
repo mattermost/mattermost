@@ -6,7 +6,9 @@ import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
+import ChannelStore from 'stores/channel_store.jsx';
 
+import {getDirectChannelName} from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import Client from 'client/web_client.jsx';
 
@@ -126,6 +128,18 @@ function loadTeamMembersForProfiles(userIds, teamId, success, error) {
     );
 }
 
+function populateDMChannelsWithProfiles(userIds) {
+    const currentUserId = UserStore.getCurrentId();
+
+    for (let i = 0; i < userIds.length; i++) {
+        const channelName = getDirectChannelName(currentUserId, userIds[i]);
+        const channel = ChannelStore.getByName(channelName);
+        if (channel) {
+            UserStore.saveUserIdInChannel(channel.id, userIds[i]);
+        }
+    }
+}
+
 export function loadProfilesAndTeamMembersForDMSidebar() {
     const dmPrefs = PreferenceStore.getCategory(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW);
     const teamId = TeamStore.getCurrentId();
@@ -149,11 +163,16 @@ export function loadProfilesAndTeamMembersForDMSidebar() {
                     type: ActionTypes.RECEIVED_PROFILES,
                     profiles: data
                 });
+
+                // Use membersToLoad so we get all the DM profiles even if they were already loaded
+                populateDMChannelsWithProfiles(membersToLoad);
             },
             (err) => {
                 AsyncClient.dispatchError(err, 'getProfilesByIds');
             }
         );
+    } else {
+        populateDMChannelsWithProfiles(membersToLoad);
     }
 
     if (membersToLoad.length > 0) {

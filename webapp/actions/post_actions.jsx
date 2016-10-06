@@ -110,7 +110,7 @@ export function setUnreadPost(channelId, postId) {
         member.last_viewed_at = lastViewed;
         member.msg_count = channel.total_msg_count - unreadPosts;
         member.mention_count = 0;
-        ChannelStore.setChannelMember(member);
+        ChannelStore.storeMyChannelMember(member);
         ChannelStore.setUnreadCount(channelId);
         AsyncClient.setLastViewedAt(lastViewed, channelId);
     }

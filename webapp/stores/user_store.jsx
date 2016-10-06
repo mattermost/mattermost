@@ -366,6 +366,19 @@ class UserStoreClass extends EventEmitter {
         this.saveProfilesInChannel(channelId, profileMap);
     }
 
+    saveUserIdInChannel(channelId = ChannelStore.getCurrentId(), userId) {
+        const profile = this.getProfile(userId);
+
+        // Must have profile or we can't sort the list
+        if (!profile) {
+            return false;
+        }
+
+        this.saveProfileInChannel(channelId, profile);
+
+        return true;
+    }
+
     removeProfileInChannel(channelId, userId) {
         const userIds = this.profiles_in_channel[channelId];
         if (!userIds) {

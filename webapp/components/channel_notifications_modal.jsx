@@ -67,7 +67,7 @@ export default class ChannelNotificationsModal extends React.Component {
                 // YUCK
                 var member = ChannelStore.getMyMember(channelId);
                 member.notify_props.desktop = notifyLevel;
-                ChannelStore.setChannelMember(member);
+                ChannelStore.storeMyChannelMember(member);
                 this.updateSection('');
             },
             (err) => {
@@ -262,7 +262,7 @@ export default class ChannelNotificationsModal extends React.Component {
                 // Yuck...
                 var member = ChannelStore.getMyMember(channelId);
                 member.notify_props.mark_unread = markUnreadLevel;
-                ChannelStore.setChannelMember(member);
+                ChannelStore.storeMyChannelMember(member);
                 this.updateSection('');
             },
             (err) => {
