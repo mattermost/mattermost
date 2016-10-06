@@ -48,6 +48,8 @@ type Store interface {
 	MarkSystemRanUnitTests()
 	Close()
 	DropAllTables()
+	TotalMasterDbConnections() int
+	TotalReadDbConnections() int
 }
 
 type TeamStore interface {

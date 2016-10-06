@@ -200,6 +200,26 @@ func setupConnection(con_type string, driver string, dataSource string, maxIdle 
 	return dbmap
 }
 
+func (ss SqlStore) TotalMasterDbConnections() int {
+	return ss.GetMaster().Db.Stats().OpenConnections
+}
+
+func (ss SqlStore) TotalReadDbConnections() int {
+
+	if len(utils.Cfg.SqlSettings.DataSourceReplicas) == 0 {
+		return 0
+	} else {
+		count := 0
+		for _, db := range ss.replicas {
+			count = count + db.Db.Stats().OpenConnections
+		}
+
+		return count
+	}
+
+	return 0
+}
+
 func (ss SqlStore) GetCurrentSchemaVersion() string {
 	version, _ := ss.GetMaster().SelectStr("SELECT Value FROM Systems WHERE Name='Version'")
 	return version
