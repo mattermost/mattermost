@@ -1,6 +1,10 @@
 @charset 'UTF-8';
 
 @media screen and (max-width: 768px) {
+    .filtered-user-list {
+        max-height: 65vh !important;
+    }
+
     .app__body {
         .edit-modal-body {
 
