@@ -1,18 +1,23 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import {browserHistory} from 'react-router/es6';
-import * as Utils from 'utils/utils.jsx';
+import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
+
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
+
+import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
-import Client from 'client/web_client.jsx';
+import * as Utils from 'utils/utils.jsx';
+import {Preferences, ActionTypes} from 'utils/constants.jsx';
+
+import {browserHistory} from 'react-router/es6';
 
 export function goToChannel(channel) {
     if (channel.fake) {
-        Utils.openDirectChannelToUser(
+        openDirectChannelToUser(
             UserStore.getProfileByUsername(channel.display_name),
             () => {
                 browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + channel.name);
@@ -103,6 +108,61 @@ export function removeUserFromChannel(channelId, userId, success, error) {
 
             if (error) {
                 error(err);
+            }
+        }
+    );
+}
+
+export function openDirectChannelToUser(user, success, error) {
+    const channelName = this.getDirectChannelName(UserStore.getCurrentId(), user.id);
+    let channel = ChannelStore.getByName(channelName);
+
+    if (channel) {
+        if ($.isFunction(success)) {
+            success(channel, true);
+        }
+
+        return;
+    }
+
+    channel = {
+        name: channelName,
+        last_post_at: 0,
+        total_msg_count: 0,
+        type: 'D',
+        display_name: user.username,
+        teammate_id: user.id,
+        status: UserStore.getStatus(user.id)
+    };
+
+    Client.createDirectChannel(
+        user.id,
+        (data) => {
+            Client.getChannel(
+                data.id,
+                (data2) => {
+                    AppDispatcher.handleServerAction({
+                        type: ActionTypes.RECEIVED_CHANNEL,
+                        channel: data2.channel,
+                        member: data2.member
+                    });
+
+                    if ($.isFunction(success)) {
+                        success(data2.channel, false);
+                    }
+
+                    AsyncClient.savePreference(
+                        Preferences.CATEGORY_DIRECT_CHANNEL_SHOW,
+                        user.id,
+                        'true'
+                    );
+                }
+            );
+        },
+        () => {
+            browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/' + channelName);
+            if ($.isFunction(error)) {
+                error();
             }
         }
     );

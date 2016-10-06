@@ -34,7 +34,7 @@ export default class PendingPostOptions extends React.Component {
                 var member = ChannelStore.getMyMember(post.channel_id);
                 member.msg_count = channel.total_msg_count;
                 member.last_viewed_at = (new Date()).getTime();
-                ChannelStore.setChannelMember(member);
+                ChannelStore.storeMyChannelMember(member);
 
                 AppDispatcher.handleServerAction({
                     type: ActionTypes.RECEIVED_POST,
