@@ -1,7 +1,6 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 import * as Utils from 'utils/utils.jsx';
-import Client from 'client/web_client.jsx';
 import UserStore from 'stores/user_store.jsx';
 import React from 'react';
 import {Popover, OverlayTrigger} from 'react-bootstrap';
@@ -29,20 +28,17 @@ export default class ProfilePicture extends React.Component {
 
     render() {
         let email = '';
-        let profileImg = '';
-        let toRender;
         let statusClass = '';
         if (this.props.status) {
             statusClass = 'status-' + this.props.status;
         }
         if (this.props.user) {
             email = this.props.user.email;
-            profileImg = Client.getUsersRoute() + '/' + this.props.user.id + '/image?time=' + this.props.user.update_at;
             var dataContent = [];
             dataContent.push(
                 <img
                     className='user-popover__image'
-                    src={profileImg}
+                    src={this.props.src}
                     height='128'
                     width='128'
                     key='user-popover-image'
@@ -64,7 +60,7 @@ export default class ProfilePicture extends React.Component {
                     </div>
                         );
             }
-            if (global.window.mm_config.ShowEmailAddress === 'true' || UserStore.isSystemAdminForCurrentUser() || this.props.user === UserStore.getCurrentUser()) {
+            if (global.window.mm_config.ShowEmailAddress === 'true' || UserStore.isSystemAdminForCurrentUser() || this.props.user.id === UserStore.getCurrentId()) {
                 dataContent.push(
                     <div
                         data-toggle='tooltip'
@@ -80,7 +76,7 @@ export default class ProfilePicture extends React.Component {
                     </div>
                 );
             }
-            toRender = (
+            return (
                 <OverlayTrigger
                     trigger='click'
                     placement='right'
@@ -104,20 +100,17 @@ export default class ProfilePicture extends React.Component {
                     </span>
                 </OverlayTrigger>
             );
-        } else {
-            toRender = (
-                <span className={`status-wrapper ${statusClass}`}>
-                    <img
-                        className='more-modal__image'
-                        width={this.props.width}
-                        height={this.props.width}
-                        src={this.props.src}
-                    />
-                </span>
-            );
         }
-
-        return toRender;
+        return (
+            <span className={`status-wrapper ${statusClass}`}>
+                <img
+                    className='more-modal__image'
+                    width={this.props.width}
+                    height={this.props.width}
+                    src={this.props.src}
+                />
+            </span>
+        );
     }
 }
 
