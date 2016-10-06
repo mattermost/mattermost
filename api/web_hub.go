@@ -29,6 +29,11 @@ var hub = &Hub{
 	stop:        make(chan string),
 }
 
+func TotalWebsocketConnections() int {
+	// XXX TODO FIXME, this is racy and needs to be fixed
+	return len(hub.connections)
+}
+
 func Publish(message *model.WebSocketEvent) {
 	hub.Broadcast(message)
 

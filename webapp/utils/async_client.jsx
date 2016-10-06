@@ -958,6 +958,18 @@ export function getStandardAnalytics(teamId) {
                 if (data[index].name === 'team_count' && teamId == null) {
                     stats[StatTypes.TOTAL_TEAMS] = data[index].value;
                 }
+
+                if (data[index].name === 'total_websocket_connections') {
+                    stats[StatTypes.TOTAL_WEBSOCKET_CONNECTIONS] = data[index].value;
+                }
+
+                if (data[index].name === 'total_master_db_connections') {
+                    stats[StatTypes.TOTAL_MASTER_DB_CONNECTIONS] = data[index].value;
+                }
+
+                if (data[index].name === 'total_read_db_connections') {
+                    stats[StatTypes.TOTAL_READ_DB_CONNECTIONS] = data[index].value;
+                }
             }
 
             AppDispatcher.handleServerAction({

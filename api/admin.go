@@ -338,12 +338,15 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 	name := params["name"]
 
 	if name == "standard" {
-		var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 5)
+		var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 8)
 		rows[0] = &model.AnalyticsRow{"channel_open_count", 0}
 		rows[1] = &model.AnalyticsRow{"channel_private_count", 0}
 		rows[2] = &model.AnalyticsRow{"post_count", 0}
 		rows[3] = &model.AnalyticsRow{"unique_user_count", 0}
 		rows[4] = &model.AnalyticsRow{"team_count", 0}
+		rows[5] = &model.AnalyticsRow{"total_websocket_connections", 0}
+		rows[6] = &model.AnalyticsRow{"total_master_db_connections", 0}
+		rows[7] = &model.AnalyticsRow{"total_read_db_connections", 0}
 
 		openChan := Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN)
 		privateChan := Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_PRIVATE)
@@ -385,6 +388,10 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			rows[4].Value = float64(r.Data.(int64))
 		}
+
+		rows[5].Value = float64(TotalWebsocketConnections())
+		rows[6].Value = float64(Srv.Store.TotalMasterDbConnections())
+		rows[7].Value = float64(Srv.Store.TotalReadDbConnections())
 
 		w.Write([]byte(rows.ToJson()))
 	} else if name == "post_counts_day" {
