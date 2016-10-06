@@ -283,6 +283,7 @@ export default class RhsComment extends React.Component {
                 status={this.props.status}
                 width='36'
                 height='36'
+                user={this.props.user}
             />
         );
 
