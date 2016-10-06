@@ -43,11 +43,11 @@ func (s SqlStatusStore) SaveOrUpdate(status *model.Status) StoreChannel {
 
 		if err := s.GetReplica().SelectOne(&model.Status{}, "SELECT * FROM Status WHERE UserId = :UserId", map[string]interface{}{"UserId": status.UserId}); err == nil {
 			if _, err := s.GetMaster().Update(status); err != nil {
-				result.Err = model.NewLocAppError("SqlStatusStore.SaveOrUpdate", "store.sql_status.update.app_error", nil, "")
+				result.Err = model.NewLocAppError("SqlStatusStore.SaveOrUpdate", "store.sql_status.update.app_error", nil, err.Error())
 			}
 		} else {
 			if err := s.GetMaster().Insert(status); err != nil {
-				result.Err = model.NewLocAppError("SqlStatusStore.SaveOrUpdate", "store.sql_status.save.app_error", nil, "")
+				result.Err = model.NewLocAppError("SqlStatusStore.SaveOrUpdate", "store.sql_status.save.app_error", nil, err.Error())
 			}
 		}
 
