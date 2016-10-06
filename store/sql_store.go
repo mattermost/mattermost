@@ -93,9 +93,7 @@ func initConnection() *SqlStore {
 
 	if len(utils.Cfg.SqlSettings.DataSourceReplicas) == 0 {
 		sqlStore.replicas = make([]*gorp.DbMap, 1)
-		sqlStore.replicas[0] = setupConnection(fmt.Sprintf("replica-%v", 0), utils.Cfg.SqlSettings.DriverName, utils.Cfg.SqlSettings.DataSource,
-			utils.Cfg.SqlSettings.MaxIdleConns, utils.Cfg.SqlSettings.MaxOpenConns,
-			utils.Cfg.SqlSettings.Trace)
+		sqlStore.replicas[0] = sqlStore.master
 	} else {
 		sqlStore.replicas = make([]*gorp.DbMap, len(utils.Cfg.SqlSettings.DataSourceReplicas))
 		for i, replica := range utils.Cfg.SqlSettings.DataSourceReplicas {
