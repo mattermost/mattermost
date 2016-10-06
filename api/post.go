@@ -35,18 +35,18 @@ const (
 func InitPost() {
 	l4g.Debug(utils.T("api.post.init.debug"))
 
-	BaseRoutes.NeedTeam.Handle("/posts/search", ApiUserRequired(searchPosts)).Methods("POST")
-	BaseRoutes.NeedTeam.Handle("/posts/flagged/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequiredActivity(getFlaggedPosts, false)).Methods("GET")
+	BaseRoutes.NeedTeam.Handle("/posts/search", ApiUserRequiredActivity(searchPosts, true)).Methods("POST")
+	BaseRoutes.NeedTeam.Handle("/posts/flagged/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getFlaggedPosts)).Methods("GET")
 	BaseRoutes.NeedTeam.Handle("/posts/{post_id}", ApiUserRequired(getPostById)).Methods("GET")
 	BaseRoutes.NeedTeam.Handle("/pltmp/{post_id}", ApiUserRequired(getPermalinkTmp)).Methods("GET")
 
-	BaseRoutes.Posts.Handle("/create", ApiUserRequired(createPost)).Methods("POST")
-	BaseRoutes.Posts.Handle("/update", ApiUserRequired(updatePost)).Methods("POST")
-	BaseRoutes.Posts.Handle("/page/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequiredActivity(getPosts, false)).Methods("GET")
-	BaseRoutes.Posts.Handle("/since/{time:[0-9]+}", ApiUserRequiredActivity(getPostsSince, false)).Methods("GET")
+	BaseRoutes.Posts.Handle("/create", ApiUserRequiredActivity(createPost, true)).Methods("POST")
+	BaseRoutes.Posts.Handle("/update", ApiUserRequiredActivity(updatePost, true)).Methods("POST")
+	BaseRoutes.Posts.Handle("/page/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getPosts)).Methods("GET")
+	BaseRoutes.Posts.Handle("/since/{time:[0-9]+}", ApiUserRequired(getPostsSince)).Methods("GET")
 
 	BaseRoutes.NeedPost.Handle("/get", ApiUserRequired(getPost)).Methods("GET")
-	BaseRoutes.NeedPost.Handle("/delete", ApiUserRequired(deletePost)).Methods("POST")
+	BaseRoutes.NeedPost.Handle("/delete", ApiUserRequiredActivity(deletePost, true)).Methods("POST")
 	BaseRoutes.NeedPost.Handle("/before/{offset:[0-9]+}/{num_posts:[0-9]+}", ApiUserRequired(getPostsBefore)).Methods("GET")
 	BaseRoutes.NeedPost.Handle("/after/{offset:[0-9]+}/{num_posts:[0-9]+}", ApiUserRequired(getPostsAfter)).Methods("GET")
 }

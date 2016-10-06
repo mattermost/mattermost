@@ -31,8 +31,8 @@ func AddStatusCache(status *model.Status) {
 func InitStatus() {
 	l4g.Debug(utils.T("api.status.init.debug"))
 
-	BaseRoutes.Users.Handle("/status", ApiUserRequiredActivity(getStatusesHttp, false)).Methods("GET")
-	BaseRoutes.Users.Handle("/status/set_active_channel", ApiUserRequiredActivity(setActiveChannel, false)).Methods("POST")
+	BaseRoutes.Users.Handle("/status", ApiUserRequired(getStatusesHttp)).Methods("GET")
+	BaseRoutes.Users.Handle("/status/set_active_channel", ApiUserRequired(setActiveChannel)).Methods("POST")
 	BaseRoutes.WebSocket.Handle("get_statuses", ApiWebSocketHandler(getStatusesWebSocket))
 }
 
@@ -73,8 +73,12 @@ func GetAllStatuses() (map[string]interface{}, *model.AppError) {
 func SetStatusOnline(userId string, sessionId string, manual bool) {
 	broadcast := false
 
+	var oldStatus string = model.STATUS_OFFLINE
+	var oldTime int64 = 0
+	var oldManual bool = false
 	var status *model.Status
 	var err *model.AppError
+
 	if status, err = GetStatus(userId); err != nil {
 		status = &model.Status{userId, model.STATUS_ONLINE, false, model.GetMillis(), ""}
 		broadcast = true
@@ -85,6 +89,11 @@ func SetStatusOnline(userId string, sessionId string, manual bool) {
 		if status.Status != model.STATUS_ONLINE {
 			broadcast = true
 		}
+
+		oldStatus = status.Status
+		oldTime = status.LastActivityAt
+		oldManual = status.Manual
+
 		status.Status = model.STATUS_ONLINE
 		status.Manual = false // for "online" there's no manually or auto set
 		status.LastActivityAt = model.GetMillis()
@@ -92,21 +101,25 @@ func SetStatusOnline(userId string, sessionId string, manual bool) {
 
 	AddStatusCache(status)
 
-	achan := Srv.Store.Session().UpdateLastActivityAt(sessionId, model.GetMillis())
+	// Only update the database if the status has changed, the status has been manually set,
+	// or enough time has passed since the previous action
+	if status.Status != oldStatus || status.Manual != oldManual || status.LastActivityAt-oldTime > model.STATUS_MIN_UPDATE_TIME {
+		achan := Srv.Store.Session().UpdateLastActivityAt(sessionId, status.LastActivityAt)
 
-	var schan store.StoreChannel
-	if broadcast {
-		schan = Srv.Store.Status().SaveOrUpdate(status)
-	} else {
-		schan = Srv.Store.Status().UpdateLastActivityAt(status.UserId, status.LastActivityAt)
-	}
+		var schan store.StoreChannel
+		if broadcast {
+			schan = Srv.Store.Status().SaveOrUpdate(status)
+		} else {
+			schan = Srv.Store.Status().UpdateLastActivityAt(status.UserId, status.LastActivityAt)
+		}
 
-	if result := <-achan; result.Err != nil {
-		l4g.Error(utils.T("api.status.last_activity.error"), userId, sessionId, result.Err)
-	}
+		if result := <-achan; result.Err != nil {
+			l4g.Error(utils.T("api.status.last_activity.error"), userId, sessionId, result.Err)
+		}
 
-	if result := <-schan; result.Err != nil {
-		l4g.Error(utils.T("api.status.save_status.error"), userId, result.Err)
+		if result := <-schan; result.Err != nil {
+			l4g.Error(utils.T("api.status.save_status.error"), userId, result.Err)
+		}
 	}
 
 	if broadcast {
@@ -175,8 +188,11 @@ func SetStatusAwayIfNeeded(userId string, manual bool) {
 }
 
 func GetStatus(userId string) (*model.Status, *model.AppError) {
-	if status, ok := statusCache.Get(userId); ok {
-		return status.(*model.Status), nil
+	if result, ok := statusCache.Get(userId); ok {
+		status := result.(*model.Status)
+		statusCopy := &model.Status{}
+		*statusCopy = *status
+		return statusCopy, nil
 	}
 
 	if result := <-Srv.Store.Status().Get(userId); result.Err != nil {
@@ -232,6 +248,8 @@ func SetActiveChannel(userId string, channelId string) *model.AppError {
 		status = &model.Status{userId, model.STATUS_ONLINE, false, model.GetMillis(), channelId}
 	} else {
 		status.ActiveChannel = channelId
+		status.Status = model.STATUS_ONLINE
+		status.LastActivityAt = model.GetMillis()
 	}
 
 	AddStatusCache(status)

@@ -57,7 +57,7 @@ func AppHandlerIndependent(h func(*Context, http.ResponseWriter, *http.Request))
 }
 
 func ApiUserRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, true, false, true, true, false, false}
+	return &handler{h, true, false, true, false, false, false}
 }
 
 func ApiUserRequiredActivity(h func(*Context, http.ResponseWriter, *http.Request), isUserActivity bool) http.Handler {
@@ -85,7 +85,7 @@ func ApiAppHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Req
 }
 
 func ApiUserRequiredTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, true, false, true, true, false, true}
+	return &handler{h, true, false, true, false, false, true}
 }
 
 func ApiAppHandlerTrustRequesterIndependent(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {

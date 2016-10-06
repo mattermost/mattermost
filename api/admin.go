@@ -48,7 +48,7 @@ func InitAdmin() {
 	BaseRoutes.Admin.Handle("/remove_certificate", ApiAdminSystemRequired(removeCertificate)).Methods("POST")
 	BaseRoutes.Admin.Handle("/saml_cert_status", ApiAdminSystemRequired(samlCertificateStatus)).Methods("GET")
 	BaseRoutes.Admin.Handle("/cluster_status", ApiAdminSystemRequired(getClusterStatus)).Methods("GET")
-	BaseRoutes.Admin.Handle("/recently_active_users/{team_id:[A-Za-z0-9]+}", ApiUserRequiredActivity(getRecentlyActiveUsers, false)).Methods("GET")
+	BaseRoutes.Admin.Handle("/recently_active_users/{team_id:[A-Za-z0-9]+}", ApiUserRequired(getRecentlyActiveUsers)).Methods("GET")
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
