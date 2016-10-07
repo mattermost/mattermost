@@ -38,6 +38,8 @@ func (me *ConfigCommandProvider) GetCommand(c *Context) *model.Command {
 		AutoCompleteDesc: me.AutoCompleteDesc,
 		AutoCompleteHint: me.AutoCompleteHint,
 		DisplayName:      me.DisplayName,
+		Username:         me.Username,
+		IconURL:          me.IconURL,
 	}
 }
 
