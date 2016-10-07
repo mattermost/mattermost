@@ -6,6 +6,9 @@ import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
+import PreferenceStore from 'stores/preference_store.jsx';
+
+import {loadProfilesAndTeamMembersForDMSidebar} from 'actions/user_actions.jsx';
 
 import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
@@ -114,11 +117,20 @@ export function removeUserFromChannel(channelId, userId, success, error) {
 }
 
 export function openDirectChannelToUser(user, success, error) {
-    const channelName = this.getDirectChannelName(UserStore.getCurrentId(), user.id);
+    const channelName = Utils.getDirectChannelName(UserStore.getCurrentId(), user.id);
     let channel = ChannelStore.getByName(channelName);
 
     if (channel) {
-        if ($.isFunction(success)) {
+        PreferenceStore.setPreference(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, user.id, 'true');
+        loadProfilesAndTeamMembersForDMSidebar();
+
+        AsyncClient.savePreference(
+            Preferences.CATEGORY_DIRECT_CHANNEL_SHOW,
+            user.id,
+            'true'
+        );
+
+        if (success) {
             success(channel, true);
         }
 
@@ -147,21 +159,24 @@ export function openDirectChannelToUser(user, success, error) {
                         member: data2.member
                     });
 
-                    if ($.isFunction(success)) {
-                        success(data2.channel, false);
-                    }
+                    PreferenceStore.setPreference(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, user.id, 'true');
+                    loadProfilesAndTeamMembersForDMSidebar();
 
                     AsyncClient.savePreference(
                         Preferences.CATEGORY_DIRECT_CHANNEL_SHOW,
                         user.id,
                         'true'
                     );
+
+                    if (success) {
+                        success(data2.channel, false);
+                    }
                 }
             );
         },
         () => {
             browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/' + channelName);
-            if ($.isFunction(error)) {
+            if (error) {
                 error();
             }
         }
