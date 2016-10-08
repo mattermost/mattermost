@@ -15,9 +15,9 @@ import (
 )
 
 const (
-	WRITE_WAIT  = 20 * time.Second
-	PONG_WAIT   = 90 * time.Second
-	PING_PERIOD = (PONG_WAIT * 7) / 10
+	WRITE_WAIT  = 30 * time.Second
+	PONG_WAIT   = 100 * time.Second
+	PING_PERIOD = (PONG_WAIT * 6) / 10
 )
 
 type WebConn struct {
@@ -51,7 +51,7 @@ func (c *WebConn) readPump() {
 	c.WebSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
 	c.WebSocket.SetPongHandler(func(string) error {
 		c.WebSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
-		//go SetStatusAwayIfNeeded(c.UserId, false)
+		go SetStatusAwayIfNeeded(c.UserId, false)
 		return nil
 	})
 
