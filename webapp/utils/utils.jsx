@@ -86,7 +86,7 @@ export function getCookie(name) {
 
 var requestedNotificationPermission = false;
 
-export function notifyMe(title, body, channel, teamId, duration) {
+export function notifyMe(title, body, channel, teamId, duration, silent) {
     if (!('Notification' in window)) {
         return;
     }
@@ -102,7 +102,7 @@ export function notifyMe(title, body, channel, teamId, duration) {
         Notification.requestPermission((permission) => {
             if (permission === 'granted') {
                 try {
-                    var notification = new Notification(title, {body, tag: body, icon: icon50, requireInteraction: notificationDuration === 0});
+                    var notification = new Notification(title, {body, tag: body, icon: icon50, requireInteraction: notificationDuration === 0, silent});
                     notification.onclick = () => {
                         window.focus();
                         if (channel) {
