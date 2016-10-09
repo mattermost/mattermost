@@ -4,13 +4,12 @@
 package api
 
 import (
-// "strings"
-// "testing"
-// "time"
-
-// "github.com/mattermost/platform/model"
-// "github.com/mattermost/platform/store"
-// "github.com/mattermost/platform/utils"
+	// "strings"
+	"testing"
+	// "time"
+	// "github.com/mattermost/platform/model"
+	// "github.com/mattermost/platform/store"
+	// "github.com/mattermost/platform/utils"
 )
 
 func TestStatuses(t *testing.T) {
