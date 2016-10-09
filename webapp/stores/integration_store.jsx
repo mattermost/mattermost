@@ -137,6 +137,15 @@ class IntegrationStore extends EventEmitter {
         this.setCommands(teamId, commands);
     }
 
+    editCommand(command) {
+        const teamId = command.team_id;
+        const commands = this.getCommands(teamId);
+
+        commands.push(command);
+
+        this.setCommands(teamId, commands);
+    }
+
     updateCommand(command) {
         const teamId = command.team_id;
         const commands = this.getCommands(teamId);

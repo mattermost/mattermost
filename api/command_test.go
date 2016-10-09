@@ -120,6 +120,45 @@ func TestListTeamCommands(t *testing.T) {
 	}
 }
 
+func TestUpdateCommand(t *testing.T) {
+	th := Setup().InitSystemAdmin()
+	Client := th.SystemAdminClient
+	user := th.SystemAdminUser
+	team := th.SystemAdminTeam
+
+	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableCommands = &enableCommands
+	}()
+	*utils.Cfg.ServiceSettings.EnableCommands = true
+
+	cmd1 := &model.Command{
+		CreatorId: user.Id,
+		TeamId:    team.Id,
+		URL:       "http://nowhere.com",
+		Method:    model.COMMAND_METHOD_POST,
+		Trigger:   "trigger"}
+
+	cmd1 = Client.Must(Client.CreateCommand(cmd1)).Data.(*model.Command)
+
+	cmd2 := &model.Command{
+		CreatorId: user.Id,
+		TeamId:    team.Id,
+		URL:       "http://nowhere.com",
+		Method:    model.COMMAND_METHOD_POST,
+		Trigger:   "trigger2",
+		Token:     cmd1.Token,
+		Id:        cmd1.Id}
+
+	if result, err := Client.UpdateCommand(cmd2); err != nil {
+		t.Fatal(err)
+	} else {
+		if result.Data.(*model.Command).Trigger == cmd1.Trigger {
+			t.Fatal("update didn't work properly")
+		}
+	}
+}
+
 func TestRegenToken(t *testing.T) {
 	th := Setup().InitSystemAdmin()
 	Client := th.SystemAdminClient
