@@ -90,7 +90,7 @@ func (c *WebConn) writePump() {
 			}
 
 			c.WebSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
-			if err := c.WebSocket.WriteJSON(msg); err != nil {
+			if err := c.WebSocket.WriteMessage(websocket.TextMessage, msg.GetPreComputeJson()); err != nil {
 				// browsers will appear as CloseNoStatusReceived
 				if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
 					l4g.Debug(fmt.Sprintf("websocket.send: client side closed socket userId=%v", c.UserId))

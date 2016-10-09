@@ -35,6 +35,7 @@ func TotalWebsocketConnections() int {
 }
 
 func Publish(message *model.WebSocketEvent) {
+	message.DoPreComputeJson()
 	hub.Broadcast(message)
 
 	if einterfaces.GetClusterInterface() != nil {
