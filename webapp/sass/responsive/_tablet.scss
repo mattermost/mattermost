@@ -127,6 +127,15 @@
                 top: auto;
             }
         }
+
+        &.move--left,
+        &.webrtc--show,
+        &.move--right {
+            .header-list__right {
+                // hide it behind the RHS
+                z-index: -1;
+            }
+        }
     }
     .post {
         .attachment {
@@ -182,6 +191,14 @@
                 }
             }
         }
+
+        .sidebar--right__title {
+            display: inline-block;
+            max-width: 300px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
     }
 
     .inner-wrap {
@@ -211,6 +228,11 @@
                     top: 6px;
                     width: 60px;
                 }
+            }
+
+            .post__pinned-badge {
+                margin-left: 0;
+                margin-right: 5px;
             }
 
             &:not(.post--thread) {
@@ -359,8 +381,15 @@
                 }
 
                 .post__header {
+                    float: left;
+                    padding-top: 3px;
+
                     .col__reply {
                         top: -21px;
+                    }
+
+                    .post__pinned-badge {
+                        margin-right: 5px;
                     }
                 }
 
@@ -379,6 +408,12 @@
                             text-decoration: underline;
                         }
                     }
+                }
+            }
+
+            &.post--comment:not(.post--compact) {
+                .post__pinned-badge {
+                    margin-left: 10px;
                 }
             }
         }

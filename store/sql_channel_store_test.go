@@ -1493,3 +1493,46 @@ func TestChannelStoreAnalyticsDeletedTypeCount(t *testing.T) {
 		}
 	}
 }
+
+func TestChannelStoreGetPinnedPosts(t *testing.T) {
+	Setup()
+
+	o1 := Must(store.Channel().Save(&model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Name",
+		Name:        "a" + model.NewId() + "b",
+		Type:        model.CHANNEL_OPEN,
+	})).(*model.Channel)
+
+	p1 := Must(store.Post().Save(&model.Post{
+		UserId:    model.NewId(),
+		ChannelId: o1.Id,
+		Message:   "test",
+		IsPinned:  true,
+	})).(*model.Post)
+
+	if r1 := <-store.Channel().GetPinnedPosts(o1.Id); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else if r1.Data.(*model.PostList).Posts[p1.Id] == nil {
+		t.Fatal("didn't return relevant pinned posts")
+	}
+
+	o2 := Must(store.Channel().Save(&model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Name",
+		Name:        "a" + model.NewId() + "b",
+		Type:        model.CHANNEL_OPEN,
+	})).(*model.Channel)
+
+	Must(store.Post().Save(&model.Post{
+		UserId:    model.NewId(),
+		ChannelId: o2.Id,
+		Message:   "test",
+	}))
+
+	if r2 := <-store.Channel().GetPinnedPosts(o2.Id); r2.Err != nil {
+		t.Fatal(r2.Err)
+	} else if len(r2.Data.(*model.PostList).Posts) != 0 {
+		t.Fatal("wasn't supposed to return posts")
+	}
+}

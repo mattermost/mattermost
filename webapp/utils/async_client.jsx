@@ -1607,6 +1607,40 @@ export function deleteEmoji(id) {
     );
 }
 
+export function pinPost(channelId, reaction) {
+    Client.pinPost(
+        channelId,
+        reaction,
+        () => {
+            // the "post_edited" websocket event take cares of updating the posts
+            // the action below is mostly dispatched for the RHS to update
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_POST_PINNED
+            });
+        },
+        (err) => {
+            dispatchError(err, 'pinPost');
+        }
+    );
+}
+
+export function unpinPost(channelId, reaction) {
+    Client.unpinPost(
+        channelId,
+        reaction,
+        () => {
+            // the "post_edited" websocket event take cares of updating the posts
+            // the action below is mostly dispatched for the RHS to update
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_POST_UNPINNED
+            });
+        },
+        (err) => {
+            dispatchError(err, 'unpinPost');
+        }
+    );
+}
+
 export function saveReaction(channelId, reaction) {
     Client.saveReaction(
         channelId,

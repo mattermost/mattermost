@@ -1533,6 +1533,16 @@ func (c *Client) GetFlaggedPosts(offset int, limit int) (*Result, *AppError) {
 	}
 }
 
+func (c *Client) GetPinnedPosts(channelId string) (*Result, *AppError) {
+	if r, err := c.DoApiGet(c.GetChannelRoute(channelId)+"/pinned", "", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), PostListFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) UploadProfileFile(data []byte, contentType string) (*Result, *AppError) {
 	return c.uploadFile(c.ApiUrl+"/users/newimage", data, contentType)
 }
@@ -2387,5 +2397,25 @@ func (c *Client) UpdateChannelRoles(channelId string, userId string, roles strin
 				RequestId:  r.Header.Get(HEADER_REQUEST_ID),
 				Etag:       r.Header.Get(HEADER_ETAG_SERVER),
 			}
+	}
+}
+
+func (c *Client) PinPost(channelId string, postId string) (*Result, *AppError) {
+	if r, err := c.DoApiPost(c.GetChannelRoute(channelId)+"/posts/"+postId+"/pin", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), PostFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) UnpinPost(channelId string, postId string) (*Result, *AppError) {
+	if r, err := c.DoApiPost(c.GetChannelRoute(channelId)+"/posts/"+postId+"/unpin", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), PostFromJson(r.Body)}, nil
 	}
 }
