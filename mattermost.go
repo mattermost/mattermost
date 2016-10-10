@@ -87,6 +87,7 @@ var flagImportArchive string
 var flagCpuProfile bool
 var flagMemProfile bool
 var flagBlockProfile bool
+var flagHttpProfiler bool
 
 func doLoadConfig(filename string) (err string) {
 	defer func() {
@@ -145,7 +146,7 @@ func main() {
 		l4g.Info("Memory Profiler is logging to " + utils.GetLogFileLocation(utils.Cfg.LogSettings.FileLocation) + ".mem.prof")
 	}
 
-	api.NewServer()
+	api.NewServer(flagHttpProfiler)
 	api.InitApi()
 	web.InitWeb()
 
@@ -437,6 +438,7 @@ func parseCmds() {
 	flag.BoolVar(&flagCpuProfile, "cpuprofile", false, "")
 	flag.BoolVar(&flagMemProfile, "memprofile", false, "")
 	flag.BoolVar(&flagBlockProfile, "blkprofile", false, "")
+	flag.BoolVar(&flagHttpProfiler, "httpprofiler", false, "")
 
 	flag.Parse()
 

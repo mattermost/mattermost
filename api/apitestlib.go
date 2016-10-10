@@ -36,7 +36,7 @@ func SetupEnterprise() *TestHelper {
 		*utils.Cfg.RateLimitSettings.Enable = false
 		utils.DisableDebugLogForTest()
 		utils.License.Features.SetDefaults()
-		NewServer()
+		NewServer(false)
 		StartServer()
 		utils.InitHTML()
 		InitApi()
@@ -57,7 +57,7 @@ func Setup() *TestHelper {
 		utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
 		*utils.Cfg.RateLimitSettings.Enable = false
 		utils.DisableDebugLogForTest()
-		NewServer()
+		NewServer(false)
 		StartServer()
 		InitApi()
 		utils.EnableDebugLogForTest()

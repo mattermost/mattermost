@@ -23,7 +23,7 @@ func Setup() {
 		utils.TranslationsPreInit()
 		utils.LoadConfig("config.json")
 		utils.InitTranslations(utils.Cfg.LocalizationSettings)
-		api.NewServer()
+		api.NewServer(false)
 		api.StartServer()
 		api.InitApi()
 		InitWeb()

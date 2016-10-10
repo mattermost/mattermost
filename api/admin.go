@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 	"github.com/mssola/user_agent"
+	"runtime/debug"
 )
 
 func InitAdmin() {
@@ -134,6 +135,7 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func reloadConfig(c *Context, w http.ResponseWriter, r *http.Request) {
+	debug.FreeOSMemory()
 	utils.LoadConfig(utils.CfgFileName)
 
 	// start/restart email batching job if necessary
