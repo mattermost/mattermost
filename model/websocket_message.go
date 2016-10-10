@@ -31,6 +31,8 @@ const (
 type WebSocketMessage interface {
 	ToJson() string
 	IsValid() bool
+	DoPreComputeJson()
+	GetPreComputeJson() []byte
 }
 
 type WebsocketBroadcast struct {
@@ -69,6 +71,10 @@ func (o *WebSocketEvent) DoPreComputeJson() {
 	}
 }
 
+func (o *WebSocketEvent) GetPreComputeJson() []byte {
+	return o.PreComputeJson
+}
+
 func (o *WebSocketEvent) ToJson() string {
 	b, err := json.Marshal(o)
 	if err != nil {
@@ -90,10 +96,11 @@ func WebSocketEventFromJson(data io.Reader) *WebSocketEvent {
 }
 
 type WebSocketResponse struct {
-	Status   string                 `json:"status"`
-	SeqReply int64                  `json:"seq_reply,omitempty"`
-	Data     map[string]interface{} `json:"data,omitempty"`
-	Error    *AppError              `json:"error,omitempty"`
+	Status         string                 `json:"status"`
+	SeqReply       int64                  `json:"seq_reply,omitempty"`
+	Data           map[string]interface{} `json:"data,omitempty"`
+	Error          *AppError              `json:"error,omitempty"`
+	PreComputeJson []byte                 `json:"-"`
 }
 
 func (m *WebSocketResponse) Add(key string, value interface{}) {
@@ -119,6 +126,19 @@ func (o *WebSocketResponse) ToJson() string {
 	} else {
 		return string(b)
 	}
+}
+
+func (o *WebSocketResponse) DoPreComputeJson() {
+	b, err := json.Marshal(o)
+	if err != nil {
+		o.PreComputeJson = []byte("")
+	} else {
+		o.PreComputeJson = b
+	}
+}
+
+func (o *WebSocketResponse) GetPreComputeJson() []byte {
+	return o.PreComputeJson
 }
 
 func WebSocketResponseFromJson(data io.Reader) *WebSocketResponse {

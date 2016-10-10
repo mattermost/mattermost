@@ -15,9 +15,9 @@ import (
 )
 
 const (
-	WRITE_WAIT  = 20 * time.Second
-	PONG_WAIT   = 60 * time.Second
-	PING_PERIOD = (PONG_WAIT * 9) / 10
+	WRITE_WAIT  = 30 * time.Second
+	PONG_WAIT   = 100 * time.Second
+	PING_PERIOD = (PONG_WAIT * 6) / 10
 )
 
 type WebConn struct {
@@ -30,7 +30,7 @@ type WebConn struct {
 }
 
 func NewWebConn(c *Context, ws *websocket.Conn) *WebConn {
-	go SetStatusOnline(c.Session.UserId, c.Session.Id, false)
+	//go SetStatusOnline(c.Session.UserId, c.Session.Id, false)
 
 	return &WebConn{
 		Send:         make(chan model.WebSocketMessage, 64),
@@ -51,7 +51,7 @@ func (c *WebConn) readPump() {
 	c.WebSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
 	c.WebSocket.SetPongHandler(func(string) error {
 		c.WebSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
-		go SetStatusAwayIfNeeded(c.UserId, false)
+		//go SetStatusAwayIfNeeded(c.UserId, false)
 		return nil
 	})
 
@@ -90,7 +90,7 @@ func (c *WebConn) writePump() {
 			}
 
 			c.WebSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
-			if err := c.WebSocket.WriteJSON(msg); err != nil {
+			if err := c.WebSocket.WriteMessage(websocket.TextMessage, msg.GetPreComputeJson()); err != nil {
 				// browsers will appear as CloseNoStatusReceived
 				if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
 					l4g.Debug(fmt.Sprintf("websocket.send: client side closed socket userId=%v", c.UserId))

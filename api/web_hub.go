@@ -35,6 +35,7 @@ func TotalWebsocketConnections() int {
 }
 
 func Publish(message *model.WebSocketEvent) {
+	message.DoPreComputeJson()
 	hub.Broadcast(message)
 
 	if einterfaces.GetClusterInterface() != nil {
@@ -141,6 +142,12 @@ func (h *Hub) Start() {
 }
 
 func shouldSendEvent(webCon *WebConn, msg *model.WebSocketEvent) bool {
+
+	// TODO XXX FIXE ME - remove once status is refactored
+	if msg.Event == model.WEBSOCKET_EVENT_STATUS_CHANGE {
+		return false
+	}
+
 	// If the event is destined to a specific user
 	if len(msg.Broadcast.UserId) > 0 && webCon.UserId != msg.Broadcast.UserId {
 		return false
