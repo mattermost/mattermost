@@ -43,7 +43,7 @@ func AttachProfiler(router *mux.Router) {
 	router.Handle("/debug/pprof/block", pprof.Handler("block"))
 }
 
-func NewServer() {
+func NewServer(enableProfiler bool) {
 
 	l4g.Info(utils.T("api.server.new_server.init.info"))
 
@@ -51,7 +51,9 @@ func NewServer() {
 	Srv.Store = store.NewSqlStore()
 
 	Srv.Router = mux.NewRouter()
-	AttachProfiler(Srv.Router)
+	if enableProfiler {
+		AttachProfiler(Srv.Router)
+	}
 	Srv.Router.NotFoundHandler = http.HandlerFunc(Handle404)
 }
 
