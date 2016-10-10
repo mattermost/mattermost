@@ -33,6 +33,7 @@ import (
 const (
 	INDEX_TYPE_FULL_TEXT = "full_text"
 	INDEX_TYPE_DEFAULT   = "default"
+	MAX_DB_CONN_LIFETIME = 15
 )
 
 const (
@@ -178,6 +179,7 @@ func setupConnection(con_type string, driver string, dataSource string, maxIdle 
 
 	db.SetMaxIdleConns(maxIdle)
 	db.SetMaxOpenConns(maxOpen)
+	db.SetConnMaxLifetime(time.Duration(MAX_DB_CONN_LIFETIME) * time.Minute)
 
 	var dbmap *gorp.DbMap
 

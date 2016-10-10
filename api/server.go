@@ -5,6 +5,7 @@ package api
 
 import (
 	"net/http"
+	"net/http/pprof"
 	"strings"
 	"time"
 
@@ -29,6 +30,19 @@ type CorsWrapper struct {
 
 var Srv *Server
 
+func AttachProfiler(router *mux.Router) {
+	router.HandleFunc("/debug/pprof/", pprof.Index)
+	router.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+	router.HandleFunc("/debug/pprof/profile", pprof.Profile)
+	router.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+
+	// Manually add support for paths linked to by index page at /debug/pprof/
+	router.Handle("/debug/pprof/goroutine", pprof.Handler("goroutine"))
+	router.Handle("/debug/pprof/heap", pprof.Handler("heap"))
+	router.Handle("/debug/pprof/threadcreate", pprof.Handler("threadcreate"))
+	router.Handle("/debug/pprof/block", pprof.Handler("block"))
+}
+
 func NewServer() {
 
 	l4g.Info(utils.T("api.server.new_server.init.info"))
@@ -37,6 +51,7 @@ func NewServer() {
 	Srv.Store = store.NewSqlStore()
 
 	Srv.Router = mux.NewRouter()
+	AttachProfiler(Srv.Router)
 	Srv.Router.NotFoundHandler = http.HandlerFunc(Handle404)
 }
 
