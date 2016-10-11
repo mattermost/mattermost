@@ -20,12 +20,18 @@
 .webrtc__notification--rhs {
     background: $button--ready;
     border-radius: 3px 0 0 3px;
-    bottom: -5px;
     color: $white;
     cursor: pointer;
+    left: 50%;
+    margin-left: -150px;
+    overflow: hidden;
     padding: 10px 15px;
     position: absolute;
-    right: 0;
+    text-align: center;
+    text-overflow: ellipsis;
+    top: 0;
+    white-space: nowrap;
+    width: 300px;
     z-index: 9999;
 
     &:empty {
@@ -41,6 +47,14 @@
     padding: 0 20px;
     text-align: center;
 
+    .sidebar--right--expanded & {
+        bottom: 80px;
+        padding: 0 20px;
+        position: absolute;
+        text-align: center;
+        width: 100%;
+    }
+
     .form-group {
         padding: 0 20px;
         position: relative;
@@ -55,13 +69,20 @@
         font-weight: normal;
         margin: 1em 0 -1em;
         padding: .7em 1em;
-        width: 100%;
     }
 
     .has-error {
         .control-label {
             color: #a94442;
             font-size: .95em;
+
+            &.warning {
+                color: #444;
+
+                &:before {
+                    display: none;
+                }
+            }
 
             &:before {
                 -moz-osx-font-smoothing: grayscale;
@@ -81,6 +102,7 @@
 #videos {
     background: $black;
     font-size: 0;
+    height: 300px;
     left: 0;
     pointer-events: none;
     position: relative;
@@ -89,6 +111,10 @@
     width: 100%;
 
     #main-video video {
+        height: 100%;
+        left: 0;
+        position: absolute;
+        top: 0;
         width: 100%;
     }
 
@@ -101,6 +127,16 @@
         top: 10px;
         transition: opacity 1s;
         z-index: 2;
+
+        &.full {
+            background: $black;
+            border: none;
+            height: 80%;
+            max-width: 100% !important;
+            right: 0;
+            top: 0;
+            width: 100%;
+        }
 
         video {
             -moz-transform: scale(-1, 1);
