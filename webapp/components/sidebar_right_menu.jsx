@@ -9,6 +9,7 @@ import AboutBuildModal from './about_build_modal.jsx';
 
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
+import SearchStore from 'stores/search_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import WebrtcStore from 'stores/webrtc_store.jsx';
 
@@ -92,32 +93,13 @@ export default class SidebarRightMenu extends React.Component {
 
     searchMentions(e) {
         e.preventDefault();
-
         const user = this.state.currentUser;
-
-        let terms = '';
-        if (user.notify_props && user.notify_props.mention_keys) {
-            const termKeys = UserStore.getMentionKeys(user.id);
-
-            if (termKeys.indexOf('@channel') !== -1) {
-                termKeys[termKeys.indexOf('@channel')] = '';
-            }
-
-            if (termKeys.indexOf('@all') !== -1) {
-                termKeys[termKeys.indexOf('@all')] = '';
-            }
-
-            terms = termKeys.join(' ');
+        if (SearchStore.isMentionSearch) {
+            GlobalActions.toggleSideBarAction(false);
+        } else {
+            GlobalActions.emitSearchMentionsEvent(user);
+            this.hideSidebars();
         }
-
-        this.hideSidebars();
-
-        AppDispatcher.handleServerAction({
-            type: ActionTypes.RECEIVED_SEARCH_TERM,
-            term: terms,
-            do_search: true,
-            is_mention_search: true
-        });
     }
 
     closeLeftSidebar() {

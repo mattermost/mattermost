@@ -19,6 +19,7 @@ class SearchStoreClass extends EventEmitter {
         this.searchResults = null;
         this.isMentionSearch = false;
         this.isFlaggedPosts = false;
+        this.isVisible = false;
         this.searchTerm = '';
     }
 
