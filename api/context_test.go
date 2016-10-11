@@ -29,3 +29,24 @@ func TestCache(t *testing.T) {
 		t.Fatal("should have one less")
 	}
 }
+
+func TestSiteURL(t *testing.T) {
+	c := &Context{}
+
+	testCases := []struct {
+		url  string
+		want string
+	}{
+		{"http://mattermost.com/", "http://mattermost.com"},
+		{"http://mattermost.com", "http://mattermost.com"},
+	}
+
+	for _, tc := range testCases {
+		c.SetSiteURL(tc.url)
+
+		if c.siteURL != tc.want {
+			t.Fatalf("expected %s, got %s", tc.want, c.siteURL)
+		}
+	}
+
+}
