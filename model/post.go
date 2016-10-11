@@ -17,6 +17,7 @@ const (
 	POST_JOIN_LEAVE            = "system_join_leave"
 	POST_ADD_REMOVE            = "system_add_remove"
 	POST_HEADER_CHANGE         = "system_header_change"
+	POST_PURPOSE_CHANGE        = "system_purpose_change"
 	POST_CHANNEL_DELETED       = "system_channel_deleted"
 	POST_EPHEMERAL             = "system_ephemeral"
 )
@@ -111,7 +112,7 @@ func (o *Post) IsValid() *AppError {
 	}
 
 	// should be removed once more message types are supported
-	if !(o.Type == POST_DEFAULT || o.Type == POST_JOIN_LEAVE || o.Type == POST_ADD_REMOVE || o.Type == POST_SLACK_ATTACHMENT || o.Type == POST_HEADER_CHANGE) {
+	if !(o.Type == POST_DEFAULT || o.Type == POST_JOIN_LEAVE || o.Type == POST_ADD_REMOVE || o.Type == POST_SLACK_ATTACHMENT || o.Type == POST_HEADER_CHANGE || o.Type == POST_PURPOSE_CHANGE) {
 		return NewLocAppError("Post.IsValid", "model.post.is_valid.type.app_error", nil, "id="+o.Type)
 	}
 
