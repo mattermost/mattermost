@@ -567,6 +567,7 @@
   "admin.saml.assertionConsumerServiceURLDesc": "Enter https://<your-mattermost-url>/login/sso/saml. Make sure you use HTTP or HTTPS in your URL depending on your server configuration. This field is also known as the Assertion Consumer Service URL.",
   "admin.saml.assertionConsumerServiceURLEx": "E.g.: \"https://<your-mattermost-url>/login/sso/saml\"",
   "admin.saml.assertionConsumerServiceURLTitle": "Service Provider Login URL:",
+  "admin.saml.bannerDesc": "If a user attribute changes on the SAML server it will be updated the next time the user enters their credentials to log in to Mattermost. This includes if a user is made inactive or removed from a SAML Identity Provider. Remote logout with SAML servers is considered in a future release.",
   "admin.saml.emailAttrDesc": "The attribute in the SAML Assertion that will be used to populate the email addresses of users in Mattermost.",
   "admin.saml.emailAttrEx": "E.g.: \"Email\" or \"PrimaryEmail\"",
   "admin.saml.emailAttrTitle": "Email Attribute:",
