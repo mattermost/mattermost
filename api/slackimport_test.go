@@ -4,6 +4,7 @@
 package api
 
 import (
+	"os"
 	"testing"
 )
 
@@ -14,7 +15,7 @@ func TestSlackConvertTimeStamp(t *testing.T) {
 	result := SlackConvertTimeStamp(testTimeStamp)
 
 	if result != 1469785419000 {
-		t.Fatalf("Unexpected timestamp value %d returned.", result)
+		t.Fatalf("Unexpected timestamp value %v returned.", result)
 	}
 }
 
@@ -32,7 +33,7 @@ func TestSlackConvertChannelName(t *testing.T) {
 
 	for _, td := range testData {
 		if td.output != SlackConvertChannelName(td.input) {
-			t.Fatalf("Did not convert channel name correctly: %s", td.input)
+			t.Fatalf("Did not convert channel name correctly: %v", td.input)
 		}
 	}
 }
@@ -82,7 +83,7 @@ func TestSlackConvertUserMentions(t *testing.T) {
 	for channelName, channelPosts := range convertedPosts {
 		for postIdx, post := range channelPosts {
 			if post.Text != expectedPosts[channelName][postIdx].Text {
-				t.Fatalf("Converted post text not as expected: %s", post.Text)
+				t.Fatalf("Converted post text not as expected: %v", post.Text)
 			}
 		}
 	}
@@ -122,9 +123,57 @@ func TestSlackConvertChannelMentions(t *testing.T) {
 	for channelName, channelPosts := range convertedPosts {
 		for postIdx, post := range channelPosts {
 			if post.Text != expectedPosts[channelName][postIdx].Text {
-				t.Fatalf("Converted post text not as expected: %s", post.Text)
+				t.Fatalf("Converted post text not as expected: %v", post.Text)
 			}
 		}
 	}
 
+}
+
+func TestSlackParseChannels(t *testing.T) {
+	file, err := os.Open("../tests/slack-import-test-channels.json")
+	if err != nil {
+		t.Fatalf("Failed to open data file: %v", err)
+	}
+
+	channels, err := SlackParseChannels(file)
+	if err != nil {
+		t.Fatalf("Error occurred parsing channels: %v", err)
+	}
+
+	if len(channels) != 6 {
+		t.Fatalf("Unexpected number of channels: %v", len(channels))
+	}
+}
+
+func TestSlackParseUsers(t *testing.T) {
+	file, err := os.Open("../tests/slack-import-test-users.json")
+	if err != nil {
+		t.Fatalf("Failed to open data file: %v", err)
+	}
+
+	users, err := SlackParseUsers(file)
+	if err != nil {
+		t.Fatalf("Error occurred parsing users: %v", err)
+	}
+
+	if len(users) != 11 {
+		t.Fatalf("Unexpected number of users: %v", len(users))
+	}
+}
+
+func TestSlackParsePosts(t *testing.T) {
+	file, err := os.Open("../tests/slack-import-test-posts.json")
+	if err != nil {
+		t.Fatalf("Failed to open data file: %v", err)
+	}
+
+	posts, err := SlackParsePosts(file)
+	if err != nil {
+		t.Fatalf("Error occurred parsing posts: %v", err)
+	}
+
+	if len(posts) != 8 {
+		t.Fatalf("Unexpected number of posts: %v", len(posts))
+	}
 }
