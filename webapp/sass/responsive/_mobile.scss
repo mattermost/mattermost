@@ -1,6 +1,13 @@
 @charset 'UTF-8';
 
 @media screen and (max-width: 768px) {
+    .webrtc__notification--rhs {
+        left: auto;
+        right: 0;
+        top: 47px;
+        width: 205px;
+    }
+
     .filtered-user-list {
         max-height: 65vh !important;
     }
