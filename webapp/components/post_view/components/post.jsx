@@ -4,6 +4,7 @@
 import PostHeader from './post_header.jsx';
 import PostBody from './post_body.jsx';
 import ProfilePicture from 'components/profile_picture.jsx';
+import * as PostActions from 'actions/post_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
@@ -49,13 +50,11 @@ export default class Post extends React.Component {
         this.refs.info.forceUpdate();
         this.refs.header.forceUpdate();
     }
-    handlePostClick() {
-        /* Disabled do to a bug: https://mattermost.atlassian.net/browse/PLT-3785
+    handlePostClick(e) {
         if (e.altKey) {
             e.preventDefault();
             PostActions.setUnreadPost(this.props.post.channel_id, this.props.post.id);
         }
-        */
     }
     shouldComponentUpdate(nextProps, nextState) {
         if (!Utils.areObjectsEqual(nextProps.post, this.props.post)) {

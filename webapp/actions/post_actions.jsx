@@ -73,6 +73,7 @@ export function setUnreadPost(channelId, postId) {
     let ownNewMessage = false;
     const post = PostStore.getPost(channelId, postId);
     const posts = PostStore.getVisiblePosts(channelId).posts;
+    const currentChannel = ChannelStore.getCurrent();
     var currentUsedId = UserStore.getCurrentId();
     if (currentUsedId === post.user_id || PostUtils.isSystemMessage(post)) {
         for (const otherPostId in posts) {
@@ -103,6 +104,12 @@ export function setUnreadPost(channelId, postId) {
                 unreadPosts += 1;
             }
         }
+
+        // Temporary workaround for DM channels having wrong unread values
+        if (currentChannel.type === Constants.DM_CHANNEL) {
+            unreadPosts = 0;
+        }
+
         const member = ChannelStore.getMember(channelId);
         const channel = ChannelStore.get(channelId);
         member.last_viewed_at = lastViewed;
