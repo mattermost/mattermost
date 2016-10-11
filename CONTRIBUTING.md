@@ -26,6 +26,6 @@ Two developers will review the pull request and either give feedback or `+1` the
 
 Any comments will need to be addressed before the pull request moves on to the last stage.
 
-#### `Stage 3: Review Complete Ready to Merge`
+#### `Stage 3: Ready to Merge`
 
 The review process is complete, and the pull request will be merged. 
