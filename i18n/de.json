@@ -49,7 +49,7 @@
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
-    "translation": "keine Datei unter 'certificate' in der Anfrage"
+    "translation": "Keine Datei unter 'certificate' in der Anfrage"
   },
   {
     "id": "api.admin.add_certificate.open.app_error",
@@ -65,11 +65,11 @@
   },
   {
     "id": "api.admin.get_brand_image.not_available.app_error",
-    "translation": "Individuelles Branding ist auf diesem Server nicht konfiguriert oder unterstützt"
+    "translation": "Individuelles Branding ist auf diesem Server nicht konfiguriert oder wird nicht unterstützt"
   },
   {
     "id": "api.admin.get_brand_image.storage.app_error",
-    "translation": "Foto Speicher ist nicht eingerichtet."
+    "translation": "Fotospeicher ist nicht eingerichtet."
   },
   {
     "id": "api.admin.init.debug",
@@ -89,7 +89,7 @@
   },
   {
     "id": "api.admin.saml.metadata.app_error",
-    "translation": "Beim Erstellen der Service Provider Metadaten ist ein Fehler aufgetreten"
+    "translation": "Beim Erstellen der Service-Provider-Metadaten ist ein Fehler aufgetreten"
   },
   {
     "id": "api.admin.test_email.body",
@@ -101,7 +101,7 @@
   },
   {
     "id": "api.admin.test_email.reenter_password",
-    "translation": "Der SMTP Server, Port oder Benutzername wurde geändert. Bitte geben Die das SMTP Passwort erneut ein um die Verbindung zu testen."
+    "translation": "Der SMTP Server, Port oder Benutzername wurde geändert. Bitte geben Sie das SMTP Passwort erneut ein um die Verbindung zu testen."
   },
   {
     "id": "api.admin.test_email.subject",
@@ -113,7 +113,7 @@
   },
   {
     "id": "api.admin.upload_brand_image.no_file.app_error",
-    "translation": "keine Datei unter 'image' in der Anfrage"
+    "translation": "Keine Datei unter 'image' in der Anfrage"
   },
   {
     "id": "api.admin.upload_brand_image.not_available.app_error",
@@ -149,11 +149,11 @@
   },
   {
     "id": "api.channel.add_member.added",
-    "translation": "%v wurde von %v zum Channel hinzugefügt"
+    "translation": "%v wurde von %v zum Kanal hinzugefügt"
   },
   {
     "id": "api.channel.add_member.find_channel.app_error",
-    "translation": "Channel nicht gefunden"
+    "translation": "Kanal nicht gefunden"
   },
   {
     "id": "api.channel.add_member.find_user.app_error",
@@ -165,7 +165,7 @@
   },
   {
     "id": "api.channel.add_user.to.channel.failed.app_error",
-    "translation": "Benutzer konnte dem Channel nicht hinzugefügt werden"
+    "translation": "Benutzer konnte dem Kanal nicht hinzugefügt werden"
   },
   {
     "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
@@ -173,35 +173,35 @@
   },
   {
     "id": "api.channel.add_user_to_channel.deleted.app_error",
-    "translation": "Der Channel wurde archiviert oder gelöscht"
+    "translation": "Der Kanal wurde archiviert oder gelöscht"
   },
   {
     "id": "api.channel.add_user_to_channel.type.app_error",
-    "translation": "Der Benutzer konnte dem Channel-Typ nicht hinzugefügt werden"
+    "translation": "Der Benutzer konnte diesem Kanaltyp nicht hinzugefügt werden"
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
-    "translation": "Management und Erstellung von privaten Gruppen ist auf Systemadministratoren begrenzt."
+    "translation": "Verwaltung und Erstellung von privaten Gruppen ist auf Systemadministratoren begrenzt."
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
-    "translation": "Management und Erstellung von privaten Gruppen ist auf Team- und Systemadministratoren begrenzt."
+    "translation": "Verwaltung und Erstellung von privaten Gruppen ist auf Team- und Systemadministratoren begrenzt."
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
-    "translation": "Management und Erstellung von öffentlichen Kanälen ist auf Systemadministratoren begrenzt."
+    "translation": "Verwaltung und Erstellung von öffentlichen Kanälen ist auf Systemadministratoren begrenzt."
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_team_admin.app_error",
-    "translation": "Management und Erstellung von öffentlichen Kanälen ist auf Team- und Systemadministratoren begrenzt."
+    "translation": "Verwaltung und Erstellung von öffentlichen Kanälen ist auf Team- und Systemadministratoren begrenzt."
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
-    "translation": "Für die Erstellung eines Direct-Messenging Channel muss der createDirectChannel API Service verwendet werden"
+    "translation": "Für die Erstellung eines Direktnachrichten-Kanals muss der createDirectChannel API Service verwendet werden"
   },
   {
     "id": "api.channel.create_channel.invalid_character.app_error",
-    "translation": "Im Channel-Namen für Nicht-Dirtect-Channels wurde ein unerlaubtes Zeichen '__' verwendet"
+    "translation": "Im Kanalnamen für Nicht-Direktnachrichten-Kanal wurde ein unerlaubtes Zeichen '__' verwendet"
   },
   {
     "id": "api.channel.create_default_channels.off_topic",
@@ -213,19 +213,19 @@
   },
   {
     "id": "api.channel.create_direct_channel.invalid_user.app_error",
-    "translation": "Ungültige andere Nutzer ID "
+    "translation": "Ungültige other user id "
   },
   {
     "id": "api.channel.delete_channel.archived",
-    "translation": "Der Channel wurde von %v archiviert."
+    "translation": "Der Kanal wurde von %v archiviert."
   },
   {
     "id": "api.channel.delete_channel.cannot.app_error",
-    "translation": "Der Standard-Channel {{.Channel}} kann nicht gelöscht werden"
+    "translation": "Der Standard-Kanal {{.Channel}} kann nicht gelöscht werden"
   },
   {
     "id": "api.channel.delete_channel.deleted.app_error",
-    "translation": "Der Channel wurde archiviert oder gelöscht"
+    "translation": "Der Kanal wurde archiviert oder gelöscht"
   },
   {
     "id": "api.channel.delete_channel.failed_post.error",
@@ -237,11 +237,11 @@
   },
   {
     "id": "api.channel.delete_channel.incoming_webhook.error",
-    "translation": "Beim Löschen eines Eingehenden Webhooks id=%v ist ein Fehler aufgetreten"
+    "translation": "Beim Löschen eines eingehenden Webhooks id=%v ist ein Fehler aufgetreten"
   },
   {
     "id": "api.channel.delete_channel.outgoing_webhook.error",
-    "translation": "Beim Löschen eines Eingehenden Webhooks id=%v ist ein Fehler aufgetreten"
+    "translation": "Beim Löschen eines eingehenden Webhooks id=%v ist ein Fehler aufgetreten"
   },
   {
     "id": "api.channel.delete_channel.permissions.app_error",
@@ -249,15 +249,15 @@
   },
   {
     "id": "api.channel.get_channel.wrong_team.app_error",
-    "translation": "Es gibt keinen Channel mit der channel_id={{.ChannelId}} im Team mit der team_id={{.TeamId}}"
+    "translation": "Es gibt keinen Kanal mit der channel_id={{.ChannelId}} im Team mit der team_id={{.TeamId}}"
   },
   {
     "id": "api.channel.get_channel_counts.app_error",
-    "translation": "Die Anzahl der Channels konnte aus der Datenbank nicht ermittelt werden"
+    "translation": "Die Anzahl der Kanäle konnte aus der Datenbank nicht ermittelt werden"
   },
   {
     "id": "api.channel.get_channel_extra_info.deleted.app_error",
-    "translation": "Der Channel wurde archiviert oder gelöscht"
+    "translation": "Der Kanal wurde archiviert oder gelöscht"
   },
   {
     "id": "api.channel.get_channel_extra_info.member_limit.app_error",
@@ -277,11 +277,11 @@
   },
   {
     "id": "api.channel.join_channel.post_and_forget",
-    "translation": "Der Channel wurde von %v betreten."
+    "translation": "Der Kanal wurde von %v betreten."
   },
   {
     "id": "api.channel.leave.default.app_error",
-    "translation": "Der Standard-Channel {{.Channel}} kann nicht verlassen werden"
+    "translation": "Der Standard-Kanal{{.Channel}} kann nicht verlassen werden"
   },
   {
     "id": "api.channel.leave.direct.app_error",
@@ -293,7 +293,7 @@
   },
   {
     "id": "api.channel.leave.left",
-    "translation": "%v hat den Channel verlassen."
+    "translation": "%v hat den Kanal verlassen."
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.join_leave.error",
@@ -301,7 +301,7 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.removed",
-    "translation": "Der Channel-Titel %s wurde entfernt (vorher: %s)"
+    "translation": "Der Kanaltitel %s wurde entfernt (vorher: %s)"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
@@ -313,7 +313,7 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_to",
-    "translation": "%s der Channel-Titel wurde aktualisiert in %s"
+    "translation": "%s der Kanaltitel wurde aktualisiert in %s"
   },
   {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
@@ -325,7 +325,7 @@
   },
   {
     "id": "api.channel.remove_member.removed",
-    "translation": "%v wurde vom Kanal entfernt."
+    "translation": "%v wurde aus dem Kanal entfernt."
   },
   {
     "id": "api.channel.remove_member.unable.app_error",
@@ -337,11 +337,11 @@
   },
   {
     "id": "api.channel.remove_user_from_channel.deleted.app_error",
-    "translation": "Der Channel wurde archiviert oder gelöscht"
+    "translation": "Der Kanal wurde archiviert oder gelöscht"
   },
   {
     "id": "api.channel.update_channel.deleted.app_error",
-    "translation": "Der Channel wurde archiviert oder gelöscht"
+    "translation": "Der Kanal wurde archiviert oder gelöscht"
   },
   {
     "id": "api.channel.update_channel.permission.app_error",
@@ -349,7 +349,7 @@
   },
   {
     "id": "api.channel.update_channel.tried.app_error",
-    "translation": "Versuch einer ungültigen Änderung am Standartkanal {{.Channel}} durchzuführen"
+    "translation": "Versuch einer ungültigen Änderung am Standardkanal {{.Channel}} durchzuführen"
   },
   {
     "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
@@ -405,7 +405,7 @@
   },
   {
     "id": "api.command.invite_people.desc",
-    "translation": "Eine E-Mail Einladung an Ihr Mattermost Team senden"
+    "translation": "Eine E-Mail-Einladung an Ihr Mattermost-Team senden"
   },
   {
     "id": "api.command.invite_people.email_off",
@@ -493,7 +493,7 @@
   },
   {
     "id": "api.command_join.desc",
-    "translation": "Öffentlichen Channel beitreten"
+    "translation": "Öffentlichen Kanal beitreten"
   },
   {
     "id": "api.command_join.fail.app_error",
@@ -501,7 +501,7 @@
   },
   {
     "id": "api.command_join.hint",
-    "translation": "[Channel-Name]"
+    "translation": "[Kanalname]"
   },
   {
     "id": "api.command_join.list.app_error",
@@ -509,7 +509,7 @@
   },
   {
     "id": "api.command_join.missing.app_error",
-    "translation": "Der Channel konnte nicht gefunden werden"
+    "translation": "Der Kanal konnte nicht gefunden werden"
   },
   {
     "id": "api.command_join.name",
@@ -561,7 +561,7 @@
   },
   {
     "id": "api.command_msg.hint",
-    "translation": "@[Benutzername] 'message'"
+    "translation": "@[Benutzername] 'Nachricht'"
   },
   {
     "id": "api.command_msg.list.app_error",
@@ -605,7 +605,7 @@
   },
   {
     "id": "api.command_shortcuts.browser",
-    "translation": "#### Eingebaute Browser Befehle\n\nAlt+Links: Vorheriger Kanal in Ihrem Verlauf\nAlt+Rechts: Nächster Kanal in Ihrem Verlauf\nStrg+Plus: Schriftgröße erhöhen (hineinzoomen)\nStrg+Minus: Schriftgröße verkleinern (herauszoomen)\nShift+Hoch (im Eingabefeld): Text bis zur vorherigen Zeile markieren\nShift+Runter (im Eingabefeld): Text bis zur nächsten Zeile markieren\nShift+Enter (im Eingabefeld): Eine neue Zeile erstellen\n"
+    "translation": "#### Eingebaute Browser Befehle\n\nAlt+Links: Vorheriger Kanal in Ihrem Verlauf\nAlt+Rechts: Nächster Kanal in Ihrem Verlauf\nStrg+Plus: Schriftgröße vergrößern (hineinzoomen)\nStrg+Minus: Schriftgröße verkleinern (herauszoomen)\nShift+Hoch (im Eingabefeld): Text bis zur vorherigen Zeile markieren\nShift+Runter (im Eingabefeld): Text bis zur nächsten Zeile markieren\nShift+Enter (im Eingabefeld): Eine neue Zeile erstellen\n"
   },
   {
     "id": "api.command_shortcuts.browser_mac",
@@ -637,11 +637,11 @@
   },
   {
     "id": "api.command_shortcuts.nav",
-    "translation": "#### Tastenkürzel\n\n#### Navigation\n\nAlt+Hoch: Vorheriger Kanal oder Direktnachricht in der linken Seitenleiste\nAlt+Runter: Nächster Kanal oder Direktnachricht in der linken Seitenleiste\nAlt+Shift+Hoch: Vorheriger Kanal oder Direktnachricht in der linken Seitenleiste mit ungelesenen Nachrichten\nAlt+Shift+Runter: Nächster Kanal oder Direktnachricht in der linken Seitenleiste mit ungelesenen Nachrichten\nStrg+K: Einen Kanal Schnellwechseldialog anzeigen\nStrg+Shift+A: Benutzereinstellungen öffnen\nStrg+Shift+M: Die letzten Erwähnungen öffnen\n\n"
+    "translation": "#### Tastenkürzel\n\n#### Navigation\n\nAlt+Hoch: Vorheriger Kanal oder Direktnachricht in der linken Seitenleiste\nAlt+Runter: Nächster Kanal oder Direktnachricht in der linken Seitenleiste\nAlt+Shift+Hoch: Vorheriger Kanal oder Direktnachricht in der linken Seitenleiste mit ungelesenen Nachrichten\nAlt+Shift+Runter: Nächster Kanal oder Direktnachricht in der linken Seitenleiste mit ungelesenen Nachrichten\nStrg+K: Einen Kanal-Schnellwechseldialog anzeigen\nStrg+Shift+A: Benutzereinstellungen öffnen\nStrg+Shift+M: Die letzten Erwähnungen öffnen\n\n"
   },
   {
     "id": "api.command_shortcuts.nav_mac",
-    "translation": "#### Tastenkürzel\n\n#### Navigation\n\nAlt+Hoch: Vorheriger Kanal oder Direktnachricht in der linken Seitenleiste\nAlt+Runter: Nächster Kanal oder Direktnachricht in der linken Seitenleiste\nAlt+Shift+Hoch: Vorheriger Kanal oder Direktnachricht in der linken Seitenleiste mit ungelesenen Nachrichten\nAlt+Shift+Runter: Nächster Kanal oder Direktnachricht in der linken Seitenleiste mit ungelesenen Nachrichten\nCmd+K: Einen Kanal Schnellwechseldialog anzeigen\nCmd+Shift+A: Benutzereinstellungen öffnen\nCmd+Shift+M: Die letzten Erwähnungen öffnen\n\n"
+    "translation": "#### Tastenkürzel\n\n#### Navigation\n\nAlt+Hoch: Vorheriger Kanal oder Direktnachricht in der linken Seitenleiste\nAlt+Runter: Nächster Kanal oder Direktnachricht in der linken Seitenleiste\nAlt+Shift+Hoch: Vorheriger Kanal oder Direktnachricht in der linken Seitenleiste mit ungelesenen Nachrichten\nAlt+Shift+Runter: Nächster Kanal oder Direktnachricht in der linken Seitenleiste mit ungelesenen Nachrichten\nCmd+K: Einen Kanal-Schnellwechseldialog anzeigen\nCmd+Shift+A: Benutzereinstellungen öffnen\nCmd+Shift+M: Die letzten Erwähnungen öffnen\n\n"
   },
   {
     "id": "api.command_shrug.desc",
@@ -657,7 +657,7 @@
   },
   {
     "id": "api.context.404.app_error",
-    "translation": "Entschuldige, wir können die Seite nicht finden."
+    "translation": "Entschuldigung, wir können die Seite nicht finden."
   },
   {
     "id": "api.context.invalid_param.app_error",
@@ -665,11 +665,11 @@
   },
   {
     "id": "api.context.invalid_team_url.debug",
-    "translation": "Es wurde an einer Stelle auf die Team URL zugegriffen, an der dies nicht erlaubt ist. Die Team URL sollte nicht in API- oder in sonstigen Funktionen genutzt werden, die teamunabhängig sind"
+    "translation": "Es wurde an einer Stelle auf die Team-URL zugegriffen, an der dies nicht erlaubt ist. Die Team-URL sollte nicht in API- oder in sonstigen Funktionen genutzt werden, die teamunabhängig sind"
   },
   {
     "id": "api.context.invalid_token.error",
-    "translation": "Ungültige Session token=%v, err=%v"
+    "translation": "Ungültiger Session token=%v, err=%v"
   },
   {
     "id": "api.context.last_activity_at.error",
@@ -701,15 +701,15 @@
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
-    "translation": "E-Mail Stapelungsjob Kanal war voll. Bitte erhöhen Sie EmailBatchingBufferSize."
+    "translation": "Eingehender Kanal für E-Mail-Stapelverarbeitungs-Job war voll. Bitte erhöhen Sie EmailBatchingBufferSize."
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
-    "translation": "E-Mail Stapelung wurde vom Systemadministrator deaktiviert"
+    "translation": "E-Mail-Stapelverarbeitung wurde vom Systemadministrator deaktiviert"
   },
   {
     "id": "api.email_batching.check_pending_emails.finished_running",
-    "translation": "E-Mail Stapelungsjob lief. %v Benutzer haben noch ausstehende Benachrichtigungen."
+    "translation": "E-Mail-Stapelverarbeitungs-Job lief. %v Benutzer haben noch ausstehende Benachrichtigungen."
   },
   {
     "id": "api.email_batching.check_pending_emails.status.app_error",
@@ -763,7 +763,7 @@
   },
   {
     "id": "api.email_batching.start.starting",
-    "translation": "E-Mail Stapelung Job started. Überprüfe auf ausstehende E-Mails alle %v Sekunden."
+    "translation": "E-Mail-Stapelverarbeitungs-Job started. Überprüfe auf ausstehende E-Mails alle %v Sekunden."
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
@@ -814,14 +814,6 @@
     "translation": "Das Emoji konnte nicht erstellt werden. Das Bild darf maximal 128 x 128 pixel groß sein."
   },
   {
-    "id": "api.file.file_upload.exceeds",
-    "translation": "Datei überschreitet die maximale Bildgröße."
-  },
-  {
-    "id": "api.file.get_file.not_found.app_error",
-    "translation": "Datei konnte nicht gefunden werden."
-  },
-  {
     "id": "api.file.get_file.public_disabled.app_error",
     "translation": "Öffentliche Verlinkungen wurden vom Systemadministrator deaktiviert"
   },
@@ -830,32 +822,116 @@
     "translation": "Der öffentliche Link scheint nicht gültig zu sein"
   },
   {
+    "id": "api.file.get_file_preview.no_thumbnail.app_error",
+    "translation": "Datei hat kein Vorschaubild."
+  },
+  {
+    "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
+    "translation": "Datei hat kein Miniaturbild."
+  },
+  {
+    "id": "api.file.get_info_for_request.no_post.app_error",
+    "translation": "Informationen für Datei konnten nicht erhalten werden. Datei muss an einen Beitrag angehängt sein, der vom aktuellen Nutzer gelesen werden kann."
+  },
+  {
+    "id": "api.file.get_info_for_request.storage.app_error",
+    "translation": "Die Datei kann nicht hochgeladen werden. Ein Fotospeicherort ist nicht eingerichtet."
+  },
+  {
+    "id": "api.file.get_public_file_old.storage.app_error",
+    "translation": "Die Datei kann nicht hochgeladen werden. Ein Fotospeicherort ist nicht eingerichtet."
+  },
+  {
+    "id": "api.file.get_public_file_old.storage.app_error",
+    "translation": "Die Datei kann nicht hochgeladen werden. Ein Fotospeicherort ist nicht eingerichtet."
+  },
+  {
     "id": "api.file.get_public_link.disabled.app_error",
     "translation": "Öffentliche Links wurden deaktiviert"
   },
   {
+    "id": "api.file.get_public_link.no_post.app_error",
+    "translation": "Öffentlicher Link für Datei konnte nicht erhalten werden. Datei muss an einen Beitrag angehängt sein, der vom aktuellen Nutzer gelesen werden kann."
+  },
+  {
     "id": "api.file.handle_images_forget.decode.error",
-    "translation": "Bild kann nicht dekodiert werden channelId=%v userId=%v filename=%v err=%v"
+    "translation": "Konnte Bildeinstellungen nicht dekodieren err=%v"
   },
   {
     "id": "api.file.handle_images_forget.encode_jpeg.error",
-    "translation": "Bild kann nicht als jpeg verarbeitet werden channelId=%v userId=%v filename=%v err=%v"
+    "translation": "Bild kann nicht als jpeg umgewandelt werden path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.encode_preview.error",
-    "translation": "Bild kann nicht als Vorschau jpg verarbeitet werden channelId=%v userId=%v filename=%v err=%v"
+    "translation": "Bild kann nicht in jpg-Vorschau umgewandelt werden path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.upload_preview.error",
-    "translation": "Bild kann nicht hochgeladen werden channelId=%v userId=%v filename=%v err=%v"
+    "translation": "Vorschau kann nicht hochgeladen werden path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.upload_thumb.error",
-    "translation": "Bild kann nicht hochgeladen werden channelId=%v userId=%v filename=%v err=%v"
+    "translation": "Miniaturansicht kann nicht hochgeladen werden path=%v err=%v"
   },
   {
     "id": "api.file.init.debug",
     "translation": "Initialisieren Datei-Api-Routen"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.channel.app_error",
+    "translation": "Unable to get channel when migrating post to use FileInfos, post_id=%v, channel_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.file_not_found.warn",
+    "translation": "Unable to find file when migrating post to use FileInfos, post_id=%v, filename=%v, path=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.get_file_infos_again.warn",
+    "translation": "Unable to get FileInfos for post after migratio, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.get_post_again.warn",
+    "translation": "Unable to get post when migrating to use FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.info.app_error",
+    "translation": "Unable to fully decode file info when migrating post to use FileInfos, post_id=%v, filename=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.migrating_post.debug",
+    "translation": "Migrating post to use FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.mismatched_filename.warn",
+    "translation": "Found an unusual filename when migrating post to use FileInfos, post_id=%v, channel_id=%v, user_id=%v, filename=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.no_filenames.warn",
+    "translation": "Unable to migrate post to use FileInfos with an empty Filenames field, post_id=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.not_migrating_post.debug",
+    "translation": "Post already migrated to use FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.save_file_info.warn",
+    "translation": "Unable to save post when migrating post to use FileInfos, post_id=%v, file_id=%v, path=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.save_post.warn",
+    "translation": "Unable to save file info when migrating post to use FileInfos, post_id=%v, file_id=%v, filename=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.team_id.app_error",
+    "translation": "Unable to find team for FileInfos, post_id=%v, filenames=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.teams.app_error",
+    "translation": "Unable to get teams when migrating post to use FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.unexpected_filename.error",
+    "translation": "Unable to decipher filename when migrating post to use FileInfos, post_id=%v, filename=%v"
   },
   {
     "id": "api.file.move_file.configured.app_error",
@@ -900,10 +976,6 @@
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "Ein Fehler während des Lesens vom lokalen Server ist aufgetreten"
-  },
-  {
-    "id": "api.file.upload_file.image.app_error",
-    "translation": "Bildupload nicht möglich."
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -1146,6 +1218,10 @@
     "translation": "{{.Username}} wurde benachrichtig, aber er hat keine Benachrichtigung erhalten weil er nicht im Channel ist."
   },
   {
+    "id": "api.post.create_post.attach_files.error",
+    "translation": "Encountered error attaching files to post, post_id=%s, user_id=%s, file_ids=%v, err=%v"
+  },
+  {
     "id": "api.post.create_post.bad_filename.error",
     "translation": "Schlechter Dateiname zurückgewiesen, Dateiname=%v"
   },
@@ -1182,11 +1258,19 @@
     "translation": "Sie haben nicht die erforderlichen Zugriffsrechte"
   },
   {
+    "id": "api.post.delete_post_files.app_error.warn",
+    "translation": "Encountered error when deleting files for post, post_id=%v, err=%v"
+  },
+  {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
       "one": "{{.Count}} Datei versendet: {{.Filenames}}",
       "other": "{{.Count}} Dateien versendet: {{.Filenames}}"
     }
+  },
+  {
+    "id": "api.post.get_message_for_notification.get_files.error",
+    "translation": "Encountered error when getting files for notification message, post_id=%v, err=%v"
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
@@ -1270,6 +1354,10 @@
   {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
     "translation": "Fehler beim Abrufen der Kommentarthread Nachrichten in Benachrichtigung root_post_id=%v, err=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.files.error",
+    "translation": "Failed to get files for post notification post_id=%v, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.get_teams.error",
@@ -1401,10 +1489,10 @@
   },
   {
     "id": "api.server.start_server.rate_limiting_memory_store",
-    "translation": "Konnte Anfragenbegrenzer nicht initialisieren."
+    "translation": "Unable to initialize rate limiting memory store. Check MemoryStoreSize config setting."
   },
   {
-    "id": "api.server.start_server.rate_limiting_memory_store",
+    "id": "api.server.start_server.rate_limiting_rate_limiter",
     "translation": "Konnte Anfragenbegrenzer nicht initialisieren."
   },
   {
@@ -1452,6 +1540,10 @@
     "translation": "Slack Bot Beiträge wurden noch nicht importiert"
   },
   {
+    "id": "api.slackimport.slack_add_posts.msg_no_comment.debug",
+    "translation": "Dateikommentar undefiniert"
+  },
+  {
     "id": "api.slackimport.slack_add_posts.msg_no_usr.debug",
     "translation": "Nachricht ohne Benutzer"
   },
@@ -1485,7 +1577,7 @@
   },
   {
     "id": "api.slackimport.slack_convert_channel_mentions.compile_regexp_failed.warn",
-    "translation": "Konnte Regex Match für @Erwähnung für Slack Benutzer {{.UserID}} {{.Username}} nicht erstellen"
+    "translation": "Konnte Regex Match für !channel für Slack Channel {{.ChannelID}} {{.ChannelName}} nicht erstellen"
   },
   {
     "id": "api.slackimport.slack_convert_timestamp.bad.warn",
@@ -1649,11 +1741,11 @@
   },
   {
     "id": "api.team.permanent_delete_team.attempting.warn",
-    "translation": "Team für immer Löschen? %v id=%v"
+    "translation": "Team permanent Löschen? %v id=%v"
   },
   {
     "id": "api.team.permanent_delete_team.deleted.warn",
-    "translation": "Team gelöscht. %v id=%v"
+    "translation": "Team permanent gelöscht. %v id=%v"
   },
   {
     "id": "api.team.remove_user_from_team.missing.app_error",
@@ -2117,7 +2209,7 @@
   },
   {
     "id": "api.user.permanent_delete_user.attempting.warn",
-    "translation": "Account für immer Löschen? %v id=%v"
+    "translation": "Account permanent Löschen? %v id=%v"
   },
   {
     "id": "api.user.permanent_delete_user.deleted.warn",
@@ -2401,7 +2493,7 @@
   },
   {
     "id": "authentication.permissions.team_invite_user.description",
-    "translation": "Die Möglichkeit Benutzer in ein Team einzuladen"
+    "translation": "Die Möglichkeit, Benutzer in ein Team einzuladen"
   },
   {
     "id": "authentication.permissions.team_invite_user.name",
@@ -2409,7 +2501,7 @@
   },
   {
     "id": "authentication.permissions.team_use_slash_commands.description",
-    "translation": "Die Möglichkeit Slash Befehle zu verwenden"
+    "translation": "Die Möglichkeit, Slash-Befehle zu verwenden"
   },
   {
     "id": "authentication.permissions.team_use_slash_commands.name",
@@ -3021,15 +3113,15 @@
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
-    "translation": "E-Mail Stapelung lässt sich bei aktiviertem Clustering nicht aktivieren"
+    "translation": "E-Mail-Stapelverarbeitung lässt sich bei aktiviertem Clustering nicht aktivieren"
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
-    "translation": "Ungültige Buffer Größe für E-Mail Stapelung.  Muss 0 oder eine positive Ziffer sein."
+    "translation": "Ungültige Buffer-Größe für E-Mail-Stapelverarbeitung.  Muss 0 oder eine positive Ziffer sein."
   },
   {
     "id": "model.config.is_valid.email_batching_interval.app_error",
-    "translation": "Ungültiges Intervall für E-Mail Stapelung.  Muss 30 Sekunden oder mehr sein."
+    "translation": "Ungültiges Intervall für E-Mail-Stapelverarbeitung.  Muss 30 Sekunden oder mehr sein."
   },
   {
     "id": "model.config.is_valid.email_reset_salt.app_error",
@@ -3145,7 +3237,7 @@
   },
   {
     "id": "model.config.is_valid.max_burst.app_error",
-    "translation": "Max burst must be greater than zero."
+    "translation": "Maximum Burst muss größer als Null sein."
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
@@ -3170,6 +3262,10 @@
   {
     "id": "model.config.is_valid.rate_sec.app_error",
     "translation": "Ungültige pro Sekunde Angabe für Anfragenbegrenzer Einstellungen.  Muss eine positive Zahl sein"
+  },
+  {
+    "id": "model.config.is_valid.read_timeout.app_error",
+    "translation": "Ungültiger Wert für read timeout."
   },
   {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
@@ -3213,7 +3309,7 @@
   },
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
-    "translation": "E-Mail Stapelung lässt sich nicht aktivieren wenn Site URL nicht gesetzt ist."
+    "translation": "E-Mail-Stapelverarbeitung lässt sich nicht aktivieren, wenn SiteURL nicht gesetzt ist."
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
@@ -3262,6 +3358,14 @@
   {
     "id": "model.config.is_valid.webrtc_turn_username.app_error",
     "translation": "WebRTC TURN Benutzername darf nicht leer sein wenn eine TURN URL gesetzt wurde."
+  },
+  {
+    "id": "model.config.is_valid.webserver_security.app_error",
+    "translation": "Ungültiger Wert für Webserver-Verbindungssicherheit."
+  },
+  {
+    "id": "model.config.is_valid.write_timeout.app_error",
+    "translation": "Ungültiger Wert für write timeout."
   },
   {
     "id": "model.emoji.create_at.app_error",
@@ -3418,6 +3522,10 @@
   {
     "id": "model.post.is_valid.create_at.app_error",
     "translation": "Erstellt am muss eine gültige Zeit sein"
+  },
+  {
+    "id": "model.post.is_valid.file_ids.app_error",
+    "translation": "Ungültige Datei-IDs"
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -3876,6 +3984,10 @@
     "translation": "Konnte Extrainformationen für Kanalmitglieder nicht abrufen"
   },
   {
+    "id": "store.sql_channel.get_for_post.app_error",
+    "translation": "Der Kanal für den angegebenen Beitrag konnte nicht abgerufen werden"
+  },
+  {
     "id": "store.sql_channel.get_member.app_error",
     "translation": "Das Kanal-Mitglied konnte nicht gefunden werden"
   },
@@ -3886,6 +3998,10 @@
   {
     "id": "store.sql_channel.get_member_count.app_error",
     "translation": "Die Anzahl der Kanal Mitglieder konnte nicht ermittelt werden"
+  },
+  {
+    "id": "store.sql_channel.get_member_for_post.app_error",
+    "translation": "Das Kanalmitglied konnte für den angegeben Beitrag nicht abgerufen werden"
   },
   {
     "id": "store.sql_channel.get_members.app_error",
@@ -4070,6 +4186,30 @@
   {
     "id": "store.sql_emoji.save.app_error",
     "translation": "Wir konnten das Emoji nicht speichern"
+  },
+  {
+    "id": "store.sql_file_info.attach_to_post.app_error",
+    "translation": "Die Datei konnte nicht an den Beitrag angehängt werden"
+  },
+  {
+    "id": "store.sql_file_info.delete_for_post.app_error",
+    "translation": "Die Datei konnte nicht an den Beitrag angehängt werden"
+  },
+  {
+    "id": "store.sql_file_info.get.app_error",
+    "translation": "Die Dateiinformationen konnten nicht abgerufen werden"
+  },
+  {
+    "id": "store.sql_file_info.get_by_path.app_error",
+    "translation": "Die Dateiinformationen konnten nicht über den Pfad abgerufen werden"
+  },
+  {
+    "id": "store.sql_file_info.get_for_post.app_error",
+    "translation": "Die Dateiinformationen konnten nicht für den Beitrag abgerufen werden"
+  },
+  {
+    "id": "store.sql_file_info.save.app_error",
+    "translation": "Die Dateiinformationen konnten nicht gespeichert werden"
   },
   {
     "id": "store.sql_license.get.app_error",

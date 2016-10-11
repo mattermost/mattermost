@@ -61,7 +61,7 @@
   },
   {
     "id": "api.admin.file_read_error",
-    "translation": "Fout bij het lezen log bestand"
+    "translation": "Fout bij lezen van logbestand"
   },
   {
     "id": "api.admin.get_brand_image.not_available.app_error",
@@ -69,27 +69,27 @@
   },
   {
     "id": "api.admin.get_brand_image.storage.app_error",
-    "translation": "Afbeeldingen opslag is niet geconfigureerd."
+    "translation": "Afbeeldingenopslag is niet geconfigureerd."
   },
   {
     "id": "api.admin.init.debug",
-    "translation": "Initialisatie van de admin api routes"
+    "translation": "Initialisatie van de admin-api-routes"
   },
   {
     "id": "api.admin.recycle_db_end.warn",
-    "translation": "Klaar met herstarten van de database verbinding"
+    "translation": "Klaar met herstarten van de databaseverbinding"
   },
   {
     "id": "api.admin.recycle_db_start.warn",
-    "translation": "Proberen om de database verbinding te herstarten"
+    "translation": "Proberen om de databaseverbinding te herstarten"
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "Er is een fout opgetreden bij het verwijderen van het certificaat. Controleer het bestaan van het bestand config/{{.Filename}} ."
+    "translation": "Er is een fout opgetreden bij het verwijderen van het certificaat. Controleer dat het bestand config/{{.Filename}} bestaat."
   },
   {
     "id": "api.admin.saml.metadata.app_error",
-    "translation": "Er is een fout opgetreden tijdens het opbouwen van service provider metadata"
+    "translation": "Er is een fout opgetreden bij het opbouwen van serviceprovider-metadata"
   },
   {
     "id": "api.admin.test_email.body",
@@ -97,19 +97,19 @@
   },
   {
     "id": "api.admin.test_email.missing_server",
-    "translation": "SMTP Server is verplicht"
+    "translation": "SMTP-server is verplicht"
   },
   {
     "id": "api.admin.test_email.reenter_password",
-    "translation": "De SMTP server, poort of gebruikersnaam is verandert. Voer opnieuw het SMTP wachtwoord in om de verbinding te testen."
+    "translation": "De SMTP-server, -poort of -gebruikersnaam is veranderd. Voer het SMTP-wachtwoord opnieuw in om de verbinding te testen."
   },
   {
     "id": "api.admin.test_email.subject",
-    "translation": "Mattermost - Test e-mail instellingen"
+    "translation": "Mattermost - E-mail-instellingen testen"
   },
   {
     "id": "api.admin.upload_brand_image.array.app_error",
-    "translation": "Een lege array bij 'image' in aanvraag"
+    "translation": "Lege array bij 'image' in aanvraag"
   },
   {
     "id": "api.admin.upload_brand_image.no_file.app_error",
@@ -121,11 +121,11 @@
   },
   {
     "id": "api.admin.upload_brand_image.parse.app_error",
-    "translation": "Kan het 'multipart' formulier niet verwerken"
+    "translation": "Kan het 'multipart'-formulier niet verwerken"
   },
   {
     "id": "api.admin.upload_brand_image.storage.app_error",
-    "translation": "Kan afbeelding niet uploaden. Afbeeldings opslag is niet geconfigureerd."
+    "translation": "Kan afbeelding niet uploaden. Afbeeldingsopslag is niet geconfigureerd."
   },
   {
     "id": "api.admin.upload_brand_image.too_large.app_error",
@@ -133,11 +133,11 @@
   },
   {
     "id": "api.api.init.parsing_templates.debug",
-    "translation": "Server template aan het verwerken voor %v"
+    "translation": "Server-templates aan het verwerken voor %v"
   },
   {
     "id": "api.api.init.parsing_templates.error",
-    "translation": "Server template %v is niet te verwerken"
+    "translation": "Verwerken van server-template %v is mislukt"
   },
   {
     "id": "api.api.render.error",
@@ -149,7 +149,7 @@
   },
   {
     "id": "api.channel.add_member.added",
-    "translation": "%v is toegevoegd aan het kanaal door %v"
+    "translation": "%v is door %v aan het kanaal toegevoegd"
   },
   {
     "id": "api.channel.add_member.find_channel.app_error",
@@ -177,31 +177,31 @@
   },
   {
     "id": "api.channel.add_user_to_channel.type.app_error",
-    "translation": "Kan geen gebruikers toevoegen aan dit kanaal type"
+    "translation": "Kan geen gebruikers toevoegen aan dit soort kanaal"
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
-    "translation": "Prive Groep beheer en aanmaak is voorbehouden aan Systeem beheerders."
+    "translation": "Privégroep-beheer en -aanmaak is voorbehouden aan systeembeheerders."
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
-    "translation": "Prive Groep beheer en aanmaak is voorbehouden aan Team en Systeem beheerders."
+    "translation": "Privégroep-beheer en -aanmaak is voorbehouden aan team- en systeembeheerders."
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
-    "translation": "Beheer en aanmaken van publieke kanalen is alleen toegestaan voor beheerders."
+    "translation": "Alleen systeembeheerders mogen publieke kanalen beheren en aanmaken."
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_team_admin.app_error",
-    "translation": "Het beheren en aanmaken van publieke kanalen is alleen toegestaan voor teams en beheerders."
+    "translation": "Alleen team- en systeembeheerders mogen publieke kanalen beheren en aanmaken."
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
-    "translation": "De api service createDirectChallel moet gebruikt worden voor het creeren van een direct kanaal"
+    "translation": "U moet de api-service createDirectChallel gebruiken voor het creëren van een direct kanaal"
   },
   {
     "id": "api.channel.create_channel.invalid_character.app_error",
-    "translation": "Ongeldig karakter '_' in kanaal naam"
+    "translation": "Ongeldig karakter '__' in naam van niet-direct kanaal"
   },
   {
     "id": "api.channel.create_default_channels.off_topic",
@@ -209,7 +209,7 @@
   },
   {
     "id": "api.channel.create_default_channels.town_square",
-    "translation": "Dorps Plein"
+    "translation": "Dorpsplein"
   },
   {
     "id": "api.channel.create_direct_channel.invalid_user.app_error",
@@ -221,7 +221,7 @@
   },
   {
     "id": "api.channel.delete_channel.cannot.app_error",
-    "translation": "Het standaard kanaal {{.Channel}} kan niet verwijderd worden"
+    "translation": "Het standaardkanaal {{.Channel}} kan niet verwijderd worden"
   },
   {
     "id": "api.channel.delete_channel.deleted.app_error",
@@ -229,11 +229,11 @@
   },
   {
     "id": "api.channel.delete_channel.failed_post.error",
-    "translation": "Het plaatsen van het archiveer bericht %v is mislukt"
+    "translation": "Het plaatsen van het archiveerbericht %v is mislukt"
   },
   {
     "id": "api.channel.delete_channel.failed_send.app_error",
-    "translation": "Het archiveer bericht kan niet verstuurd worden"
+    "translation": "Het archiveerbericht kan niet verstuurd worden"
   },
   {
     "id": "api.channel.delete_channel.incoming_webhook.error",
@@ -249,11 +249,11 @@
   },
   {
     "id": "api.channel.get_channel.wrong_team.app_error",
-    "translation": "Er is geen kanaal met channel_id={{.ChannelId}} en team_id={{.TeamId}}"
+    "translation": "Er is geen kanaal met channel_id={{.ChannelId}} in het team met team_id={{.TeamId}}"
   },
   {
     "id": "api.channel.get_channel_counts.app_error",
-    "translation": "Kan kanaal statistieken niet uit de database halen"
+    "translation": "Kan kanaalstatistieken niet uit de database halen"
   },
   {
     "id": "api.channel.get_channel_extra_info.deleted.app_error",
@@ -265,23 +265,23 @@
   },
   {
     "id": "api.channel.get_channels.error",
-    "translation": "Probleem bij het ophalen van het gebruikersprofiel voor id=%v, uitlog actie geforceerd"
+    "translation": "Probleem bij het ophalen van het gebruikersprofiel voor id=%v, uitloggen geforceerd"
   },
   {
     "id": "api.channel.init.debug",
-    "translation": "Initialisatie van de kanaal api routes"
+    "translation": "Initialisatie van de kanaal-api-routes"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
-    "translation": "U berchikt niet over de juiste rechten"
+    "translation": "U beschikt niet over de juiste rechten"
   },
   {
     "id": "api.channel.join_channel.post_and_forget",
-    "translation": "%v neemt deel aan dit kanaal."
+    "translation": "%v is het kanaal binnengekomen."
   },
   {
     "id": "api.channel.leave.default.app_error",
-    "translation": "Kan het standaard kanaal niet verlaten {{.Channel}}"
+    "translation": "Kan het standaardkanaal {{.Channel}} niet verlaten"
   },
   {
     "id": "api.channel.leave.direct.app_error",
@@ -289,7 +289,7 @@
   },
   {
     "id": "api.channel.leave.last_member.app_error",
-    "translation": "U bent het laatste lid, probeer de privé groep te verwijderen i.p.v. te verlaten."
+    "translation": "U bent het laatste lid, probeer de privégroep te verwijderen in plaats van die te verlaten."
   },
   {
     "id": "api.channel.leave.left",
@@ -297,23 +297,23 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.join_leave.error",
-    "translation": "Bericht plaatsen voor komen / verlaten bericht %v is mislukt"
+    "translation": "Plaatsen van bericht over binnenkomen/verlaten %v is mislukt"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.removed",
-    "translation": "%s heeft de kanaal titel verwijderd (was: %s)"
+    "translation": "%s heeft de kanaalkoptekst verwijderd (was: %s)"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
-    "translation": "Kon de gebruiker niet ophalen tijdens het bewaren van de nieuwe kanaal titel %v"
+    "translation": "Kon de gebruiker niet ophalen tijdens het bewaren van de nieuwe kanaalkoptekst %v"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
-    "translation": "%s heeft de kanaal titel bijgewerkt van; %s naar; %s"
+    "translation": "%s heeft de kanaalkoptekst veranderd van \"%s\" naar \"%s\""
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_to",
-    "translation": "%s heeft de kanaal titel bijgewerkt naar: %s"
+    "translation": "%s heeft de kanaalkoptekst bijgewerkt naar: %s"
   },
   {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
@@ -814,14 +814,6 @@
     "translation": "Kon emoticon niet aanmaken. Afbeelding moet minstens 128 bij 128 pixels groot zijn."
   },
   {
-    "id": "api.file.file_upload.exceeds",
-    "translation": "Bestand is groter dan maximale afbeeldings grootte."
-  },
-  {
-    "id": "api.file.get_file.not_found.app_error",
-    "translation": "Kan het bestand niet vinden."
-  },
-  {
     "id": "api.file.get_file.public_disabled.app_error",
     "translation": "Publieke links zijn uitgeschakeld door de systeembeheerder"
   },
@@ -830,32 +822,116 @@
     "translation": "De publieke link lijkt niet geldig"
   },
   {
+    "id": "api.file.get_file_preview.no_thumbnail.app_error",
+    "translation": "Bestand heeft geen voorvertoning afbeelding"
+  },
+  {
+    "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
+    "translation": "Bestand heeft geen miniatuur afbeelding"
+  },
+  {
+    "id": "api.file.get_info_for_request.no_post.app_error",
+    "translation": "Unable to get info for file. File must be attached to a post that can be read by the current user."
+  },
+  {
+    "id": "api.file.get_info_for_request.storage.app_error",
+    "translation": "Kan bestand info niet ophalen. Afbeeldings opslag is niet geconfigureerd."
+  },
+  {
+    "id": "api.file.get_public_file_old.storage.app_error",
+    "translation": "Kan bestand niet ophalen. Afbeeldings opslag is niet geconfigureerd."
+  },
+  {
+    "id": "api.file.get_public_file_old.storage.app_error",
+    "translation": "Kan bestand niet ophalen. Afbeeldings opslag is niet geconfigureerd."
+  },
+  {
     "id": "api.file.get_public_link.disabled.app_error",
     "translation": "Publieke links zijn uitgeschakeld"
   },
   {
+    "id": "api.file.get_public_link.no_post.app_error",
+    "translation": "Unable to get public link for file. File must be attached to a post that can be read by the current user."
+  },
+  {
     "id": "api.file.handle_images_forget.decode.error",
-    "translation": "Kan figuur niet decoderen kanaal=%v userId=%v bestandsnaam=%v fout=%v"
+    "translation": "De afbeelding kon niet gedecodeerd worden err=%v"
   },
   {
     "id": "api.file.handle_images_forget.encode_jpeg.error",
-    "translation": "Kan figuur niet coderen als jpeg channelId=%v userId=%v bestandsnaam=%v fout=%v"
+    "translation": "Unable to encode image as jpeg path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.encode_preview.error",
-    "translation": "Kan figuur niet coderen als voorbeeld jpg channelId=%v userId=%v bestandsnaam=%v fout=%v"
+    "translation": "Unable to encode image as preview jpg path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.upload_preview.error",
-    "translation": "Kan voorvertoning niet uploaden channelId=%v userId=%v bestandsnaam=%v fout=%v"
+    "translation": "Unable to upload preview path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.upload_thumb.error",
-    "translation": "Kan miniatuur niet uploaden channelId=%v userId=%v bestandsnaam=%v err=%v"
+    "translation": "Unable to upload thumbnail path=%v err=%v"
   },
   {
     "id": "api.file.init.debug",
     "translation": "Initialisatie bestand api routes"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.channel.app_error",
+    "translation": "Unable to get channel when migrating post to use FileInfos, post_id=%v, channel_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.file_not_found.warn",
+    "translation": "Unable to find file when migrating post to use FileInfos, post_id=%v, filename=%v, path=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.get_file_infos_again.warn",
+    "translation": "Unable to get FileInfos for post after migratio, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.get_post_again.warn",
+    "translation": "Unable to get post when migrating to use FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.info.app_error",
+    "translation": "Unable to fully decode file info when migrating post to use FileInfos, post_id=%v, filename=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.migrating_post.debug",
+    "translation": "Migrating post to use FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.mismatched_filename.warn",
+    "translation": "Found an unusual filename when migrating post to use FileInfos, post_id=%v, channel_id=%v, user_id=%v, filename=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.no_filenames.warn",
+    "translation": "Unable to migrate post to use FileInfos with an empty Filenames field, post_id=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.not_migrating_post.debug",
+    "translation": "Post already migrated to use FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.save_file_info.warn",
+    "translation": "Unable to save post when migrating post to use FileInfos, post_id=%v, file_id=%v, path=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.save_post.warn",
+    "translation": "Unable to save file info when migrating post to use FileInfos, post_id=%v, file_id=%v, filename=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.team_id.app_error",
+    "translation": "Unable to find team for FileInfos, post_id=%v, filenames=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.teams.app_error",
+    "translation": "Unable to get teams when migrating post to use FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.unexpected_filename.error",
+    "translation": "Unable to decipher filename when migrating post to use FileInfos, post_id=%v, filename=%v"
   },
   {
     "id": "api.file.move_file.configured.app_error",
@@ -900,10 +976,6 @@
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "Er is een fout opgetreden bij het lezen van een bestand uit lokale opslag"
-  },
-  {
-    "id": "api.file.upload_file.image.app_error",
-    "translation": "Kan afbeelding niet uploaden."
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -1146,6 +1218,10 @@
     "translation": "{{.Username}} zijn genoemd, maar ze hebben geen notificatie gekregen, omdat ze niet deelnemen aan dit kanaal."
   },
   {
+    "id": "api.post.create_post.attach_files.error",
+    "translation": "Encountered error attaching files to post, post_id=%s, user_id=%s, file_ids=%v, err=%v"
+  },
+  {
     "id": "api.post.create_post.bad_filename.error",
     "translation": "Ongeldige bestandsnaam, bestandsnaam=%v"
   },
@@ -1182,11 +1258,19 @@
     "translation": "U beschikt niet over juiste de rechten"
   },
   {
+    "id": "api.post.delete_post_files.app_error.warn",
+    "translation": "Encountered error when deleting files for post, post_id=%v, err=%v"
+  },
+  {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
       "one": "{{.Count}} bestand verzonden: {{.Filenames}}",
       "other": "{{.Count}} bestanden verzonden: {{.Filenames}}"
     }
+  },
+  {
+    "id": "api.post.get_message_for_notification.get_files.error",
+    "translation": "Encountered error when getting files for notification message, post_id=%v, err=%v"
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
@@ -1270,6 +1354,10 @@
   {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
     "translation": "Niet gelukt om commentaar thread berichten op te halen uit notificaties root_post_id=%v, err=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.files.error",
+    "translation": "Failed to get files for post notification post_id=%v, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.get_teams.error",
@@ -1401,11 +1489,11 @@
   },
   {
     "id": "api.server.start_server.rate_limiting_memory_store",
-    "translation": "Unable to initalize rate limiting."
+    "translation": "Unable to initialize rate limiting memory store. Check MemoryStoreSize config setting."
   },
   {
-    "id": "api.server.start_server.rate_limiting_memory_store",
-    "translation": "Unable to initalize rate limiting."
+    "id": "api.server.start_server.rate_limiting_rate_limiter",
+    "translation": "Unable to initialize rate limiting."
   },
   {
     "id": "api.server.start_server.starting.critical",
@@ -1452,6 +1540,10 @@
     "translation": "Slack bot posts zijn nog niet geimporteerd"
   },
   {
+    "id": "api.slackimport.slack_add_posts.msg_no_comment.debug",
+    "translation": "File comment undefined"
+  },
+  {
     "id": "api.slackimport.slack_add_posts.msg_no_usr.debug",
     "translation": "Bericht zonder gebruiker"
   },
@@ -1477,7 +1569,7 @@
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "Merged user with existing account: {{.Email}}, {{.Username}}\r\n"
+    "translation": "Samengevoegd met bestaand account: {{.Email}}, {{.Username}}\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
@@ -2613,7 +2705,7 @@
   },
   {
     "id": "ent.saml.attribute.app_error",
-    "translation": "SAML aanmelding is mislukt vanwege het ontbreken van encryptie. Neem contact op met de beheerder."
+    "translation": "SAML aanmelding is mislukt vanwege verkeerde attributen. Neem contact op met de beheerder."
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -2689,7 +2781,7 @@
   },
   {
     "id": "ent.webrtc.license_disable.app_error",
-    "translation": "Your license does not support using Mattermost WebRTC"
+    "translation": "Jouw licentie ondersteund geen gebruik van Mattermost WebRTC"
   },
   {
     "id": "ent.webrtc.register_token.app_error",
@@ -3145,7 +3237,7 @@
   },
   {
     "id": "model.config.is_valid.max_burst.app_error",
-    "translation": "Max burst must be greater than zero."
+    "translation": "Maximum burst size must be greater than zero."
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
@@ -3170,6 +3262,10 @@
   {
     "id": "model.config.is_valid.rate_sec.app_error",
     "translation": "Ongeldige frequentie beperings instelling. Moet een getal groter dan 0 zijn"
+  },
+  {
+    "id": "model.config.is_valid.read_timeout.app_error",
+    "translation": "Invalid value for read timeout."
   },
   {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
@@ -3237,15 +3333,15 @@
   },
   {
     "id": "model.config.is_valid.webrtc_gateway_admin_secret.app_error",
-    "translation": "WebRTC Gateway Admin Secret must be set."
+    "translation": "WebRTC Gateway Admin Secret moet worden ingesteld."
   },
   {
     "id": "model.config.is_valid.webrtc_gateway_admin_url.app_error",
-    "translation": "WebRTC Gateway Admin Url must be set a valid URL and start with http:// or https://."
+    "translation": "WebRTC Gateway Admin Url moet een geldige URL zijn en starten met http:// of https://."
   },
   {
     "id": "model.config.is_valid.webrtc_gateway_ws_url.app_error",
-    "translation": "WebRTC Gateway Websocket Url must be a valid URL and start with ws:// or wss://."
+    "translation": "WebRTC Gateway Admin Url moet een geldige URL zijn en starten met http:// of https://."
   },
   {
     "id": "model.config.is_valid.webrtc_stun_uri.app_error",
@@ -3253,7 +3349,7 @@
   },
   {
     "id": "model.config.is_valid.webrtc_turn_shared_key.app_error",
-    "translation": "WebRTC TURN Shared Key cannot be empty if the TURN URI has been set."
+    "translation": "WebRTC TURN Gebruikersnaam kan niet leeg zijn als de TURN URI is ingesteld."
   },
   {
     "id": "model.config.is_valid.webrtc_turn_uri.app_error",
@@ -3261,7 +3357,15 @@
   },
   {
     "id": "model.config.is_valid.webrtc_turn_username.app_error",
-    "translation": "WebRTC TURN Username cannot be empty if the TURN URI has been set."
+    "translation": "WebRTC TURN Gebruikersnaam kan niet leeg zijn als de TURN URI is ingesteld."
+  },
+  {
+    "id": "model.config.is_valid.webserver_security.app_error",
+    "translation": "Invalid value for webserver connection security."
+  },
+  {
+    "id": "model.config.is_valid.write_timeout.app_error",
+    "translation": "Invalid value for write timeout."
   },
   {
     "id": "model.emoji.create_at.app_error",
@@ -3418,6 +3522,10 @@
   {
     "id": "model.post.is_valid.create_at.app_error",
     "translation": "Aangemaakt op moet een geldige tijd bevatten"
+  },
+  {
+    "id": "model.post.is_valid.file_ids.app_error",
+    "translation": "Ongeldige bestands-ids"
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -3876,6 +3984,10 @@
     "translation": "We kunnen de extra info niet ophalen voor de kanaal leden"
   },
   {
+    "id": "store.sql_channel.get_for_post.app_error",
+    "translation": "We couldn't get the channel for the given post"
+  },
+  {
     "id": "store.sql_channel.get_member.app_error",
     "translation": "We kunnen de kanaal leden niet ophalen"
   },
@@ -3886,6 +3998,10 @@
   {
     "id": "store.sql_channel.get_member_count.app_error",
     "translation": "We kunnen het aantal leden van het kanaal niet tellen"
+  },
+  {
+    "id": "store.sql_channel.get_member_for_post.app_error",
+    "translation": "We couldn't get the channel member for the given post"
   },
   {
     "id": "store.sql_channel.get_members.app_error",
@@ -4070,6 +4186,30 @@
   {
     "id": "store.sql_emoji.save.app_error",
     "translation": "De emoji kon niet opgeslagen worden"
+  },
+  {
+    "id": "store.sql_file_info.attach_to_post.app_error",
+    "translation": "We konden de bestandsinfo niet ophalen"
+  },
+  {
+    "id": "store.sql_file_info.delete_for_post.app_error",
+    "translation": "We konden de bestandsinfo niet ophalen"
+  },
+  {
+    "id": "store.sql_file_info.get.app_error",
+    "translation": "We konden de bestandsinfo niet ophalen"
+  },
+  {
+    "id": "store.sql_file_info.get_by_path.app_error",
+    "translation": "We konden de bestandsinfo niet ophalen"
+  },
+  {
+    "id": "store.sql_file_info.get_for_post.app_error",
+    "translation": "We konden de bestandsinfo niet ophalen"
+  },
+  {
+    "id": "store.sql_file_info.save.app_error",
+    "translation": "We konden de bestandsinfo niet opslaan"
   },
   {
     "id": "store.sql_license.get.app_error",

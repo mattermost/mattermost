@@ -814,14 +814,6 @@
     "translation": "No se pudo crear el emoticon. La imagen debe tener un máximo de 128 x 128 pixels."
   },
   {
-    "id": "api.file.file_upload.exceeds",
-    "translation": "El archivo excede el tamaño máximo para una imagen."
-  },
-  {
-    "id": "api.file.get_file.not_found.app_error",
-    "translation": "No se encontró el archivo."
-  },
-  {
     "id": "api.file.get_file.public_disabled.app_error",
     "translation": "Los enlaces públicos han sido deshabilitados por un administrador del sistema"
   },
@@ -830,32 +822,116 @@
     "translation": "El enlace público parece ser inválido"
   },
   {
+    "id": "api.file.get_file_preview.no_thumbnail.app_error",
+    "translation": "Archivo no tiene una imagen de vista previa"
+  },
+  {
+    "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
+    "translation": "Archivo no tiene una imagen en miniatura"
+  },
+  {
+    "id": "api.file.get_info_for_request.no_post.app_error",
+    "translation": "No se puede obtener información de archivo. El archivo debe estar conectado a un post que puede ser leído por el usuario actual."
+  },
+  {
+    "id": "api.file.get_info_for_request.storage.app_error",
+    "translation": "No se puede obtener información de archivo. El almacenamiento de imágenes no está configurado."
+  },
+  {
+    "id": "api.file.get_public_file_old.storage.app_error",
+    "translation": "No se puede obtener el archivo. El almacenamiento de imágenes no está configurado."
+  },
+  {
+    "id": "api.file.get_public_file_old.storage.app_error",
+    "translation": "No se puede obtener el archivo. El almacenamiento de imágenes no está configurado."
+  },
+  {
     "id": "api.file.get_public_link.disabled.app_error",
     "translation": "Los enlaces públicos han sido deshabilitados"
   },
   {
+    "id": "api.file.get_public_link.no_post.app_error",
+    "translation": "No se puede obtener el enlace público para el archivo. El archivo debe estar conectado a un post que puede ser leído por el usuario actual."
+  },
+  {
     "id": "api.file.handle_images_forget.decode.error",
-    "translation": "No se puede decodificar la imagen channelId=%v userId=%v filename=%v err=%v"
+    "translation": "No se puede decodificar la imagen err=%v"
   },
   {
     "id": "api.file.handle_images_forget.encode_jpeg.error",
-    "translation": "No se puede codificar la imagen como jpeg channelId=%v userId=%v filename=%v err=%v"
+    "translation": "Incapaz de codificar la imagen como jpeg ruta=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.encode_preview.error",
-    "translation": "No se puede codificar la imagen de muestra como jpg channelId=%v userId=%v filename=%v err=%v"
+    "translation": "Incapaz de codificar la imagen como vista previa de jpg ruta=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.upload_preview.error",
-    "translation": "No se puede subir la vista previa channelId=%v userId=%v filename=%v err=%v"
+    "translation": "Error al subir la vista previa ruta=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.upload_thumb.error",
-    "translation": "No se puede subir la miniatura channelId=%v userId=%v filename=%v err=%v"
+    "translation": "Error al subir la miniatura ruta=%v err=%v"
   },
   {
     "id": "api.file.init.debug",
     "translation": "Inicializando rutas del API para los archivos"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.channel.app_error",
+    "translation": "No se puede obtener el canal al momento de migrar el mensaje para que utilice FileInfos, post_id=%v, channel_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.file_not_found.warn",
+    "translation": "No se puede encontrar archivo al momento de migrar el mensaje para que utilice FileInfos, post_id=%v, archivo=%v, ruta=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.get_file_infos_again.warn",
+    "translation": "No se puede obtener FileInfos para el mensaje después de la migración, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.get_post_again.warn",
+    "translation": "No se puede obtener los mensajes al momento de migrar para que utilice FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.info.app_error",
+    "translation": "Incapaz de decodificar la información del archivo al momento de migrar el mensaje para que utilice FileInfos, post_id=%v, archivo=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.migrating_post.debug",
+    "translation": "Migrando mensajes para que utilicen FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.mismatched_filename.warn",
+    "translation": "Se encontró un nombre de archivo inusual al momento de migrar el mensaje para que utilice FileInfos, post_id=%v, channel_id=%v, user_id=%v, archivo=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.no_filenames.warn",
+    "translation": "No se pueden migrar el mensaje para que utilicen FileInfos con el campo de Nombres vacío, post_id=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.not_migrating_post.debug",
+    "translation": "Mensaje ya migrado para que utilice FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.save_file_info.warn",
+    "translation": "No se puede guardar el mensaje al momento de migrar para que utilice FileInfos, post_id=%v, file_id=%v, ruta=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.save_post.warn",
+    "translation": "No se puede guardar la información de archivo al momento de migrar el mensaje para que utilice FileInfos, post_id=%v, file_id=%v, archivo=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.team_id.app_error",
+    "translation": "Incapaz de encontrar equipo para FileInfos, post_id=%v, archivos=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.teams.app_error",
+    "translation": "No se puede obtener los equipos al momento de migrar el mensaje para que utilice FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.unexpected_filename.error",
+    "translation": "Incapaz de descifrar el nombre de archivo al momento de migrar el mensaje para que utilice FileInfos, post_id=%v, archivo=%v"
   },
   {
     "id": "api.file.move_file.configured.app_error",
@@ -900,10 +976,6 @@
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "Se encontró un error al leer desde el almacenamiento del servidor local"
-  },
-  {
-    "id": "api.file.upload_file.image.app_error",
-    "translation": "No se puede subir el archivo de la imagen."
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -1146,6 +1218,10 @@
     "translation": "{{.Username}} fue mencionado, pero no recibió una notificación porque no pertenece a este canal."
   },
   {
+    "id": "api.post.create_post.attach_files.error",
+    "translation": "Se encontró un error al adjuntar archivos al mensaje, post_id=%s, user_id=%s, file_ids=%v, err=%v"
+  },
+  {
     "id": "api.post.create_post.bad_filename.error",
     "translation": "Nombre errado de archivo descartado, archivo=%v"
   },
@@ -1182,11 +1258,19 @@
     "translation": "No tienes los permisos apropiados"
   },
   {
+    "id": "api.post.delete_post_files.app_error.warn",
+    "translation": "Se encontró un error al eliminar los archivos del mensaje, post_id=%v, err=%v"
+  },
+  {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
       "one": "{{.Count}} archivo enviado: {{.Filenames}}",
       "other": "{{.Count}} archivos enviados: {{.Filenames}}"
     }
+  },
+  {
+    "id": "api.post.get_message_for_notification.get_files.error",
+    "translation": "Error al obtener los archivos para el mensaje de notificación, post_id=%v, err=%v"
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
@@ -1270,6 +1354,10 @@
   {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
     "translation": "No se pudo recuperar el hilo de comentarios en las notificaciones root_post_id=%v, err=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.files.error",
+    "translation": "No se pudo obtener los archivos para la notificación del mensaje post_id=%v, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.get_teams.error",
@@ -1401,10 +1489,10 @@
   },
   {
     "id": "api.server.start_server.rate_limiting_memory_store",
-    "translation": "No se puede iniciar la limitación de velocidad."
+    "translation": "No se puede inicializar el almacén de memoria para la limitación de velocidad. Compruebe el ajuste de MemoryStoreSize en la configuración."
   },
   {
-    "id": "api.server.start_server.rate_limiting_memory_store",
+    "id": "api.server.start_server.rate_limiting_rate_limiter",
     "translation": "No se puede iniciar la limitación de velocidad."
   },
   {
@@ -1450,6 +1538,10 @@
   {
     "id": "api.slackimport.slack_add_posts.bot.warn",
     "translation": "Mensajes del Bot de Slack no han sido importados todavía"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.msg_no_comment.debug",
+    "translation": "Comentario de archivo indefinido"
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_usr.debug",
@@ -3145,7 +3237,7 @@
   },
   {
     "id": "model.config.is_valid.max_burst.app_error",
-    "translation": "Máximo de Ráfagas debe ser mayor que cero."
+    "translation": "Máximo de ráfagas debe ser mayor que cero."
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
@@ -3170,6 +3262,10 @@
   {
     "id": "model.config.is_valid.rate_sec.app_error",
     "translation": "Por segundo es inválido en la configuración de límites de velocidad.  Debe ser un número positivo."
+  },
+  {
+    "id": "model.config.is_valid.read_timeout.app_error",
+    "translation": "Valor no válido para el tiempo de espera de lectura."
   },
   {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
@@ -3262,6 +3358,14 @@
   {
     "id": "model.config.is_valid.webrtc_turn_username.app_error",
     "translation": "El Nombre de usuario del TURN de WebRTC no puede estar vacío si el TURN URI se ha establecido."
+  },
+  {
+    "id": "model.config.is_valid.webserver_security.app_error",
+    "translation": "Valor no válido para la seguridad de conexión del servidor."
+  },
+  {
+    "id": "model.config.is_valid.write_timeout.app_error",
+    "translation": "Valor no válido para el tiempo de espera de escritura."
   },
   {
     "id": "model.emoji.create_at.app_error",
@@ -3418,6 +3522,10 @@
   {
     "id": "model.post.is_valid.create_at.app_error",
     "translation": "Create debe ser un tiempo válido"
+  },
+  {
+    "id": "model.post.is_valid.file_ids.app_error",
+    "translation": "Identificadores de archivo no válido"
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -3876,6 +3984,10 @@
     "translation": "No pudimos obtener información extra de los miembros del canal"
   },
   {
+    "id": "store.sql_channel.get_for_post.app_error",
+    "translation": "No pudimos obtener el canal del mensaje"
+  },
+  {
     "id": "store.sql_channel.get_member.app_error",
     "translation": "No pudimos obtener el miembro del canal"
   },
@@ -3886,6 +3998,10 @@
   {
     "id": "store.sql_channel.get_member_count.app_error",
     "translation": "No pudimos obtener la cantidad de miembros del canal"
+  },
+  {
+    "id": "store.sql_channel.get_member_for_post.app_error",
+    "translation": "No pudimos obtener los miembros del canal del mensaje"
   },
   {
     "id": "store.sql_channel.get_members.app_error",
@@ -4070,6 +4186,30 @@
   {
     "id": "store.sql_emoji.save.app_error",
     "translation": "No pudimos guardar el emoticon"
+  },
+  {
+    "id": "store.sql_file_info.attach_to_post.app_error",
+    "translation": "No pudimos adjuntar la información del archivo al mensaje"
+  },
+  {
+    "id": "store.sql_file_info.delete_for_post.app_error",
+    "translation": "No pudimos eliminar la información del archivo del mensaje"
+  },
+  {
+    "id": "store.sql_file_info.get.app_error",
+    "translation": "No pudimos obtener la información del archivo"
+  },
+  {
+    "id": "store.sql_file_info.get_by_path.app_error",
+    "translation": "No pudimos obtener la información del archivo por ruta"
+  },
+  {
+    "id": "store.sql_file_info.get_for_post.app_error",
+    "translation": "No pudimos obtener la información del archivo para el mensaje"
+  },
+  {
+    "id": "store.sql_file_info.save.app_error",
+    "translation": "No pudimos guardar la información del archivo"
   },
   {
     "id": "store.sql_license.get.app_error",
