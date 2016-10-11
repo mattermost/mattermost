@@ -41,6 +41,7 @@ func Publish(message *model.WebSocketEvent) {
 	if einterfaces.GetClusterInterface() != nil {
 		einterfaces.GetClusterInterface().Publish(message)
 	}
+	return
 }
 
 func PublishSkipClusterSend(message *model.WebSocketEvent) {
@@ -127,6 +128,7 @@ func (h *Hub) Start() {
 						}
 					}
 				}
+				msg = nil
 
 			case s := <-h.stop:
 				l4g.Info(utils.T("api.web_hub.start.stopping.debug"), s)

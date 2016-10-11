@@ -271,7 +271,7 @@ func handlePostEvents(c *Context, post *model.Post, triggerWebhooks bool) {
 		channel = result.Data.(*model.Channel)
 	}
 
-	go sendNotifications(c, post, team, channel)
+	sendNotifications(c, post, team, channel)
 
 	var user *model.User
 	if result := <-uchan; result.Err != nil {
@@ -767,7 +767,8 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 		message.Add("mentions", model.ArrayToJson(mentionedUsersList))
 	}
 
-	go Publish(message)
+	Publish(message)
+	return
 }
 
 func sendNotificationEmail(c *Context, post *model.Post, user *model.User, channel *model.Channel, team *model.Team, senderName string, sender *model.User) {

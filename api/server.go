@@ -53,6 +53,7 @@ func NewServer(enableProfiler bool) {
 	Srv.Router = mux.NewRouter()
 	if enableProfiler {
 		AttachProfiler(Srv.Router)
+		l4g.Info("Enabled HTTP Profiler")
 	}
 	Srv.Router.NotFoundHandler = http.HandlerFunc(Handle404)
 }
