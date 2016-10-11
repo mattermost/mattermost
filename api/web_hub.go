@@ -41,6 +41,7 @@ func Publish(message *model.WebSocketEvent) {
 	if einterfaces.GetClusterInterface() != nil {
 		einterfaces.GetClusterInterface().Publish(message)
 	}
+	return
 }
 
 func PublishSkipClusterSend(message *model.WebSocketEvent) {
