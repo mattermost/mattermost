@@ -1342,6 +1342,7 @@ func TestUpdateNotifyProps(t *testing.T) {
 	data["channel_id"] = channel1.Id
 	data["user_id"] = user.Id
 	data["desktop"] = model.CHANNEL_NOTIFY_MENTION
+	data["push"] = model.CHANNEL_NOTIFY_MENTION
 
 	timeBeforeUpdate := model.GetMillis()
 	time.Sleep(100 * time.Millisecond)

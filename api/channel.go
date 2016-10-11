@@ -1156,12 +1156,16 @@ func updateNotifyProps(c *Context, w http.ResponseWriter, r *http.Request) {
 	member := result.Data.(model.ChannelMember)
 
 	// update whichever notify properties have been provided, but don't change the others
-	if markUnread, exists := data["mark_unread"]; exists {
+	if markUnread, ok := data["mark_unread"]; ok {
 		member.NotifyProps["mark_unread"] = markUnread
 	}
 
-	if desktop, exists := data["desktop"]; exists {
+	if desktop, ok := data["desktop"]; ok {
 		member.NotifyProps["desktop"] = desktop
+	}
+
+	if push, ok := data["push"]; ok {
+		member.NotifyProps["push"] = push
 	}
 
 	if result := <-Srv.Store.Channel().UpdateMember(&member); result.Err != nil {

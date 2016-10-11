@@ -570,13 +570,15 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 		return
 	}
 	// using a map as a pseudo-set since we're checking for containment a lot
-	members := make(map[string]string)
+	memberStringMap := make(map[string]string)
+	members := make(map[string]model.ChannelMember)
 	if result := <-mchan; result.Err != nil {
 		l4g.Error(utils.T("api.post.handle_post_events_and_forget.members.error"), post.ChannelId, result.Err)
 		return
 	} else {
 		for _, member := range result.Data.([]model.ChannelMember) {
-			members[member.UserId] = member.UserId
+			memberStringMap[member.UserId] = member.UserId
+			members[member.UserId] = member
 		}
 	}
 
@@ -595,7 +597,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 
 		mentionedUserIds[otherUserId] = true
 	} else {
-		keywords := getMentionKeywords(profileMap, members)
+		keywords := getMentionKeywords(profileMap, memberStringMap)
 
 		// get users that are explicitly mentioned
 		var mentioned map[string]bool
@@ -643,6 +645,11 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 			}
 
 			if profile.NotifyProps["push"] == model.USER_NOTIFY_ALL &&
+				(post.UserId != profile.Id || post.Props["from_webhook"] == "true") &&
+				!post.IsSystemMessage() {
+				allActivityPushUserIds = append(allActivityPushUserIds, profile.Id)
+			} else if _, inChannel := members[profile.Id]; inChannel &&
+				members[profile.Id].NotifyProps["push"] == model.CHANNEL_NOTIFY_ALL &&
 				(post.UserId != profile.Id || post.Props["from_webhook"] == "true") &&
 				!post.IsSystemMessage() {
 				allActivityPushUserIds = append(allActivityPushUserIds, profile.Id)
@@ -739,7 +746,24 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 			}
 
 			if DoesStatusAllowPushNotification(profileMap[id], status, post.ChannelId) {
-				sendPushNotification(post, profileMap[id], channel, senderName, true)
+				if channel.Type == model.CHANNEL_DIRECT && profileMap[id].NotifyProps["push"] != model.CHANNEL_NOTIFY_NONE {
+					sendPushNotification(post, profileMap[id], channel, senderName, true)
+				} else if _, inChannel := members[id]; inChannel {
+					notifyLevel := members[id].NotifyProps["push"]
+
+					// Check against channel member NotifyProps for mentioned users
+					if notifyLevel == model.CHANNEL_NOTIFY_DEFAULT && profileMap[id].NotifyProps["push"] != model.CHANNEL_NOTIFY_NONE {
+						sendPushNotification(post, profileMap[id], channel, senderName, true)
+					} else if notifyLevel == model.CHANNEL_NOTIFY_ALL {
+						sendPushNotification(post, profileMap[id], channel, senderName, true)
+					} else if notifyLevel == model.CHANNEL_NOTIFY_MENTION {
+						sendPushNotification(post, profileMap[id], channel, senderName, true)
+					} else if notifyLevel == "" && profileMap[id].NotifyProps["push"] != model.CHANNEL_NOTIFY_NONE {
+						sendPushNotification(post, profileMap[id], channel, senderName, true)
+					}
+				} else {
+					l4g.Warn(utils.T("api.send_notifications.get_channel_member.warn"), channel.Id, id)
+				}
 			}
 		}
 
@@ -753,6 +777,21 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 
 				if DoesStatusAllowPushNotification(profileMap[id], status, post.ChannelId) {
 					sendPushNotification(post, profileMap[id], channel, senderName, false)
+
+					if _, inChannel := members[id]; inChannel {
+						notifyLevel := members[id].NotifyProps["push"]
+
+						// Check against channel member NotifyProps for always notify users
+						if notifyLevel == model.CHANNEL_NOTIFY_DEFAULT && profileMap[id].NotifyProps["push"] == model.CHANNEL_NOTIFY_ALL {
+							sendPushNotification(post, profileMap[id], channel, senderName, false)
+						} else if notifyLevel == model.CHANNEL_NOTIFY_ALL {
+							sendPushNotification(post, profileMap[id], channel, senderName, false)
+						} else if notifyLevel == "" {
+							sendPushNotification(post, profileMap[id], channel, senderName, false)
+						}
+					} else {
+						l4g.Warn(utils.T("api.send_notifications.get_channel_member.warn"), channel.Id, id)
+					}
 				}
 			}
 		}

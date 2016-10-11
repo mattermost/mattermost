@@ -193,10 +193,6 @@ func IsUserAway(lastActivityAt int64) bool {
 func DoesStatusAllowPushNotification(user *model.User, status *model.Status, channelId string) bool {
 	props := user.NotifyProps
 
-	if props["push"] == "none" {
-		return false
-	}
-
 	if pushStatus, ok := props["push_status"]; (pushStatus == model.STATUS_ONLINE || !ok) && (status.ActiveChannel != channelId || model.GetMillis()-status.LastActivityAt > model.STATUS_CHANNEL_TIMEOUT) {
 		return true
 	} else if pushStatus == model.STATUS_AWAY && (status.Status == model.STATUS_AWAY || status.Status == model.STATUS_OFFLINE) {
