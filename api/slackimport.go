@@ -233,6 +233,21 @@ func SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, use
 				Type:      model.POST_JOIN_LEAVE,
 			}
 			ImportPost(&newPost)
+		case sPost.Type == "message" && sPost.SubType == "me_message":
+			if sPost.User == "" {
+				l4g.Debug(utils.T("api.slackimport.slack_add_posts.without_user.debug"))
+				continue
+			} else if users[sPost.User] == nil {
+				l4g.Debug(utils.T("api.slackimport.slack_add_posts.user_no_exists.debug"), sPost.User)
+				continue
+			}
+			newPost := model.Post{
+				UserId:    users[sPost.User].Id,
+				ChannelId: channel.Id,
+				Message:   "*" + sPost.Text + "*",
+				CreateAt:  SlackConvertTimeStamp(sPost.TimeStamp),
+			}
+			ImportPost(&newPost)
 		default:
 			l4g.Warn(utils.T("api.slackimport.slack_add_posts.unsupported.warn"), sPost.Type, sPost.SubType)
 		}
