@@ -119,3 +119,12 @@ func (wsc *WebSocketClient) UserTyping(channelId, parentId string) {
 func (wsc *WebSocketClient) GetStatuses() {
 	wsc.SendMessage("get_statuses", nil)
 }
+
+// GetStatusesByIds will fetch certain user statuses based on ids and return
+// a map of string statuses using user id as the key
+func (wsc *WebSocketClient) GetStatusesByIds(userIds []string) {
+	data := map[string]interface{}{
+		"user_ids": userIds,
+	}
+	wsc.SendMessage("get_statuses_by_ids", data)
+}

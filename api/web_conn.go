@@ -30,7 +30,7 @@ type WebConn struct {
 }
 
 func NewWebConn(c *Context, ws *websocket.Conn) *WebConn {
-	//go SetStatusOnline(c.Session.UserId, c.Session.Id, false)
+	go SetStatusOnline(c.Session.UserId, c.Session.Id, false)
 
 	return &WebConn{
 		Send:         make(chan model.WebSocketMessage, 64),

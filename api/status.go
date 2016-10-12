@@ -34,6 +34,7 @@ func InitStatus() {
 	BaseRoutes.Users.Handle("/status", ApiUserRequired(getStatusesHttp)).Methods("GET")
 	BaseRoutes.Users.Handle("/status/set_active_channel", ApiUserRequired(setActiveChannel)).Methods("POST")
 	BaseRoutes.WebSocket.Handle("get_statuses", ApiWebSocketHandler(getStatusesWebSocket))
+	BaseRoutes.WebSocket.Handle("get_statuses_by_ids", ApiWebSocketHandler(getStatusesByIdsWebSocket))
 }
 
 func getStatusesHttp(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -55,6 +56,7 @@ func getStatusesWebSocket(req *model.WebSocketRequest) (map[string]interface{}, 
 	return statusMap, nil
 }
 
+// Only returns 300 statuses max
 func GetAllStatuses() (map[string]interface{}, *model.AppError) {
 	if result := <-Srv.Store.Status().GetOnlineAway(); result.Err != nil {
 		return nil, result.Err
@@ -68,6 +70,48 @@ func GetAllStatuses() (map[string]interface{}, *model.AppError) {
 
 		return statusMap, nil
 	}
+}
+
+func getStatusesByIdsWebSocket(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+	var userIds []string
+	if userIds = model.ArrayFromInterface(req.Data["user_ids"]); len(userIds) == 0 {
+		return nil, NewInvalidWebSocketParamError(req.Action, "user_ids")
+	}
+
+	statusMap, err := GetStatusesByIds(userIds)
+	if err != nil {
+		return nil, err
+	}
+
+	return statusMap, nil
+}
+
+func GetStatusesByIds(userIds []string) (map[string]interface{}, *model.AppError) {
+	statusMap := map[string]interface{}{}
+
+	nonCachedUserIds := []string{}
+	for _, userId := range userIds {
+		if result, ok := statusCache.Get(userId); ok {
+			statusMap[userId] = result.(*model.Status).Status
+		} else {
+			nonCachedUserIds = append(nonCachedUserIds, userId)
+		}
+	}
+
+	if len(nonCachedUserIds) > 0 {
+		if result := <-Srv.Store.Status().GetByIds(nonCachedUserIds); result.Err != nil {
+			return nil, result.Err
+		} else {
+			statuses := result.Data.([]*model.Status)
+
+			for _, s := range statuses {
+				AddStatusCache(s)
+				statusMap[s.UserId] = s.Status
+			}
+		}
+	}
+
+	return statusMap, nil
 }
 
 func SetStatusOnline(userId string, sessionId string, manual bool) {
@@ -86,6 +130,7 @@ func SetStatusOnline(userId string, sessionId string, manual bool) {
 		if status.Manual && !manual {
 			return // manually set status always overrides non-manual one
 		}
+
 		if status.Status != model.STATUS_ONLINE {
 			broadcast = true
 		}
@@ -95,7 +140,7 @@ func SetStatusOnline(userId string, sessionId string, manual bool) {
 		oldManual = status.Manual
 
 		status.Status = model.STATUS_ONLINE
-		status.Manual = false // for "online" there's no manually or auto set
+		status.Manual = false // for "online" there's no manual setting
 		status.LastActivityAt = model.GetMillis()
 	}
 
@@ -123,7 +168,7 @@ func SetStatusOnline(userId string, sessionId string, manual bool) {
 	}
 
 	if broadcast {
-		event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_STATUS_CHANGE, "", "", "", nil)
+		event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_STATUS_CHANGE, "", "", status.UserId, nil)
 		event.Add("status", model.STATUS_ONLINE)
 		event.Add("user_id", status.UserId)
 		go Publish(event)
@@ -143,11 +188,6 @@ func SetStatusOffline(userId string, manual bool) {
 	if result := <-Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
 		l4g.Error(utils.T("api.status.save_status.error"), userId, result.Err)
 	}
-
-	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_STATUS_CHANGE, "", "", "", nil)
-	event.Add("status", model.STATUS_OFFLINE)
-	event.Add("user_id", status.UserId)
-	go Publish(event)
 }
 
 func SetStatusAwayIfNeeded(userId string, manual bool) {
@@ -181,7 +221,7 @@ func SetStatusAwayIfNeeded(userId string, manual bool) {
 		l4g.Error(utils.T("api.status.save_status.error"), userId, result.Err)
 	}
 
-	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_STATUS_CHANGE, "", "", "", nil)
+	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_STATUS_CHANGE, "", "", status.UserId, nil)
 	event.Add("status", model.STATUS_AWAY)
 	event.Add("user_id", status.UserId)
 	go Publish(event)
