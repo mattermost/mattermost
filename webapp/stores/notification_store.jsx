@@ -7,6 +7,7 @@ import Constants from 'utils/constants.jsx';
 import UserStore from './user_store.jsx';
 import ChannelStore from './channel_store.jsx';
 import PreferenceStore from './preference_store.jsx';
+import * as UserAgent from 'utils/user_agent.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
 const ActionTypes = Constants.ActionTypes;
@@ -97,9 +98,10 @@ class NotificationStoreClass extends EventEmitter {
                 duration = parseInt(user.notify_props.desktop_duration, 10) * 1000;
             }
 
-            Utils.notifyMe(title, body, channel, teamId, duration);
+            const sound = !user.notify_props || user.notify_props.desktop_sound === 'true';
+            Utils.notifyMe(title, body, channel, teamId, duration, !sound);
 
-            if (!user.notify_props || user.notify_props.desktop_sound === 'true') {
+            if (sound && !UserAgent.isWindowsApp() && !UserAgent.isMacApp()) {
                 Utils.ding();
             }
         }
