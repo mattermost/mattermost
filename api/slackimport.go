@@ -75,18 +75,18 @@ func SlackConvertChannelName(channelName string) string {
 	return newName
 }
 
-func SlackParseChannels(data io.Reader) []SlackChannel {
+func SlackParseChannels(data io.Reader) ([]SlackChannel, error) {
 	decoder := json.NewDecoder(data)
 
 	var channels []SlackChannel
 	if err := decoder.Decode(&channels); err != nil {
 		l4g.Warn(utils.T("api.slackimport.slack_parse_channels.error"))
-		return channels
+		return channels, err
 	}
-	return channels
+	return channels, nil
 }
 
-func SlackParseUsers(data io.Reader) []SlackUser {
+func SlackParseUsers(data io.Reader) ([]SlackUser, error) {
 	decoder := json.NewDecoder(data)
 
 	var users []SlackUser
@@ -94,20 +94,20 @@ func SlackParseUsers(data io.Reader) []SlackUser {
 		// This actually returns errors that are ignored.
 		// In this case it is erroring because of a null that Slack
 		// introduced. So we just return the users here.
-		return users
+		return users, err
 	}
-	return users
+	return users, nil
 }
 
-func SlackParsePosts(data io.Reader) []SlackPost {
+func SlackParsePosts(data io.Reader) ([]SlackPost, error) {
 	decoder := json.NewDecoder(data)
 
 	var posts []SlackPost
 	if err := decoder.Decode(&posts); err != nil {
 		l4g.Warn(utils.T("api.slackimport.slack_parse_posts.error"))
-		return posts
+		return posts, err
 	}
-	return posts
+	return posts, nil
 }
 
 func SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Buffer) map[string]*model.User {
@@ -401,13 +401,13 @@ func SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model
 			return model.NewLocAppError("SlackImport", "api.slackimport.slack_import.open.app_error", map[string]interface{}{"Filename": file.Name}, err.Error()), log
 		}
 		if file.Name == "channels.json" {
-			channels = SlackParseChannels(reader)
+			channels, _ = SlackParseChannels(reader)
 		} else if file.Name == "users.json" {
-			users = SlackParseUsers(reader)
+			users, _ = SlackParseUsers(reader)
 		} else {
 			spl := strings.Split(file.Name, "/")
 			if len(spl) == 2 && strings.HasSuffix(spl[1], ".json") {
-				newposts := SlackParsePosts(reader)
+				newposts, _ := SlackParsePosts(reader)
 				channel := spl[0]
 				if _, ok := posts[channel]; ok == false {
 					posts[channel] = newposts
