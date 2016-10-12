@@ -174,7 +174,7 @@ func CreatePost(c *Context, post *model.Post, triggerWebhooks bool) (*model.Post
 	} else {
 		rpost = result.Data.(*model.Post)
 
-		go handlePostEvents(c, rpost, triggerWebhooks)
+		handlePostEvents(c, rpost, triggerWebhooks)
 	}
 
 	return rpost, nil

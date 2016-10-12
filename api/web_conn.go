@@ -100,6 +100,7 @@ func (c *WebConn) writePump() {
 
 				return
 			}
+			msg = nil
 
 		case <-ticker.C:
 			c.WebSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
