@@ -12,6 +12,7 @@ import (
 	"github.com/mattermost/platform/utils"
 	"io"
 	"mime/multipart"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -31,6 +32,11 @@ type SlackUser struct {
 	Profile  map[string]string `json:"profile"`
 }
 
+type SlackFile struct {
+	Id    string `json:"id"`
+	Title string `json:"title"`
+}
+
 type SlackPost struct {
 	User        string        `json:"user"`
 	BotId       string        `json:"bot_id"`
@@ -40,6 +46,8 @@ type SlackPost struct {
 	Type        string        `json:"type"`
 	SubType     string        `json:"subtype"`
 	Comment     *SlackComment `json:"comment"`
+	Upload      bool          `json:"upload"`
+	File        *SlackFile    `json:"file"`
 }
 
 type SlackComment struct {
@@ -159,7 +167,7 @@ func SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Buffer) map
 	return addedUsers
 }
 
-func SlackAddPosts(channel *model.Channel, posts []SlackPost, users map[string]*model.User) {
+func SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, users map[string]*model.User, uploads map[string]*zip.File) {
 	for _, sPost := range posts {
 		switch {
 		case sPost.Type == "message" && (sPost.SubType == "" || sPost.SubType == "file_share"):
@@ -176,7 +184,19 @@ func SlackAddPosts(channel *model.Channel, posts []SlackPost, users map[string]*
 				Message:   sPost.Text,
 				CreateAt:  SlackConvertTimeStamp(sPost.TimeStamp),
 			}
+			if sPost.Upload {
+				if fileInfo, ok := SlackUploadFile(sPost, uploads, teamId, newPost.ChannelId, newPost.UserId); ok == true {
+					newPost.FileIds = append(newPost.FileIds, fileInfo.Id)
+					newPost.Message = sPost.File.Title
+				}
+			}
 			ImportPost(&newPost)
+			for _, fileId := range newPost.FileIds {
+				if result := <-Srv.Store.FileInfo().AttachToPost(fileId, newPost.Id); result.Err != nil {
+					l4g.Error(utils.T("api.slackimport.slack_add_posts.attach_files.error"), newPost.Id, newPost.FileIds, result.Err)
+				}
+			}
+
 		case sPost.Type == "message" && sPost.SubType == "file_comment":
 			if sPost.Comment == nil {
 				l4g.Debug(utils.T("api.slackimport.slack_add_posts.msg_no_comment.debug"))
@@ -219,6 +239,33 @@ func SlackAddPosts(channel *model.Channel, posts []SlackPost, users map[string]*
 	}
 }
 
+func SlackUploadFile(sPost SlackPost, uploads map[string]*zip.File, teamId string, channelId string, userId string) (*model.FileInfo, bool) {
+	if sPost.File != nil {
+		if file, ok := uploads[sPost.File.Id]; ok == true {
+			openFile, err := file.Open()
+			if err != nil {
+				l4g.Warn(utils.T("api.slackimport.slack_add_posts.upload_file_open_failed.warn", map[string]interface{}{"FileId": sPost.File.Id, "Error": err.Error()}))
+				return nil, false
+			}
+			defer openFile.Close()
+
+			uploadedFile, err := ImportFile(openFile, teamId, channelId, userId, filepath.Base(file.Name))
+			if err != nil {
+				l4g.Warn(utils.T("api.slackimport.slack_add_posts.upload_file_upload_failed.warn", map[string]interface{}{"FileId": sPost.File.Id, "Error": err.Error()}))
+				return nil, false
+			}
+
+			return uploadedFile, true
+		} else {
+			l4g.Warn(utils.T("api.slackimport.slack_add_posts.upload_file_not_found.warn", map[string]interface{}{"FileId": sPost.File.Id}))
+			return nil, false
+		}
+	} else {
+		l4g.Warn(utils.T("api.slackimport.slack_add_posts.upload_file_not_in_json.warn"))
+		return nil, false
+	}
+}
+
 func addSlackUsersToChannel(members []string, users map[string]*model.User, channel *model.Channel, log *bytes.Buffer) {
 	for _, member := range members {
 		if user, ok := users[member]; !ok {
@@ -231,7 +278,7 @@ func addSlackUsersToChannel(members []string, users map[string]*model.User, chan
 	}
 }
 
-func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[string][]SlackPost, users map[string]*model.User, log *bytes.Buffer) map[string]*model.Channel {
+func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[string][]SlackPost, users map[string]*model.User, uploads map[string]*zip.File, log *bytes.Buffer) map[string]*model.Channel {
 	// Write Header
 	log.WriteString(utils.T("api.slackimport.slack_add_channels.added"))
 	log.WriteString("=================\r\n\r\n")
@@ -261,7 +308,7 @@ func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[str
 		addSlackUsersToChannel(sChannel.Members, users, mChannel, log)
 		log.WriteString(newChannel.DisplayName + "\r\n")
 		addedChannels[sChannel.Id] = mChannel
-		SlackAddPosts(mChannel, posts[sChannel.Name], users)
+		SlackAddPosts(teamId, mChannel, posts[sChannel.Name], users, uploads)
 	}
 
 	return addedChannels
@@ -331,6 +378,7 @@ func SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model
 	var channels []SlackChannel
 	var users []SlackUser
 	posts := make(map[string][]SlackPost)
+	uploads := make(map[string]*zip.File)
 	for _, file := range zipreader.File {
 		reader, err := file.Open()
 		if err != nil {
@@ -351,8 +399,9 @@ func SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model
 				} else {
 					posts[channel] = append(posts[channel], newposts...)
 				}
+			} else if len(spl) == 3 && spl[0] == "__uploads" {
+				uploads[spl[1]] = file
 			}
-
 		}
 	}
 
@@ -360,7 +409,7 @@ func SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model
 	posts = SlackConvertChannelMentions(channels, posts)
 
 	addedUsers := SlackAddUsers(teamID, users, log)
-	SlackAddChannels(teamID, channels, posts, addedUsers, log)
+	SlackAddChannels(teamID, channels, posts, addedUsers, uploads, log)
 
 	log.WriteString(utils.T("api.slackimport.slack_import.notes"))
 	log.WriteString("=======\r\n\r\n")
