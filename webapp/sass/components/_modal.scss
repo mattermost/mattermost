@@ -24,6 +24,10 @@
             min-height: 8em;
         }
 
+        .suggestion-list {
+            bottom: -149px;
+        }
+
         .suggestion-list__content {
             max-height: 150px;
         }
@@ -120,10 +124,14 @@
             margin-left: auto;
             margin-right: auto;
             max-width: 95%;
+
+            &.modal-xl {
+                width: 800px;
+            }
         }
 
         .modal-push-down {
-            margin-top: 5%;
+            margin-top: 60px;
         }
 
         .modal-next-bar {

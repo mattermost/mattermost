@@ -33,7 +33,9 @@ type Routes struct {
 	Commands *mux.Router // 'api/v3/teams/{team_id:[A-Za-z0-9]+}/commands'
 	Hooks    *mux.Router // 'api/v3/teams/{team_id:[A-Za-z0-9]+}/hooks'
 
-	Files *mux.Router // 'api/v3/teams/{team_id:[A-Za-z0-9]+}/files'
+	TeamFiles *mux.Router // 'api/v3/teams/{team_id:[A-Za-z0-9]+}/files'
+	Files     *mux.Router // 'api/v3/files'
+	NeedFile  *mux.Router // 'api/v3/files/{file_id:[A-Za-z0-9]+}'
 
 	OAuth *mux.Router // 'api/v3/oauth'
 
@@ -70,7 +72,9 @@ func InitApi() {
 	BaseRoutes.Posts = BaseRoutes.NeedChannel.PathPrefix("/posts").Subrouter()
 	BaseRoutes.NeedPost = BaseRoutes.Posts.PathPrefix("/{post_id:[A-Za-z0-9]+}").Subrouter()
 	BaseRoutes.Commands = BaseRoutes.NeedTeam.PathPrefix("/commands").Subrouter()
-	BaseRoutes.Files = BaseRoutes.NeedTeam.PathPrefix("/files").Subrouter()
+	BaseRoutes.TeamFiles = BaseRoutes.NeedTeam.PathPrefix("/files").Subrouter()
+	BaseRoutes.Files = BaseRoutes.ApiRoot.PathPrefix("/files").Subrouter()
+	BaseRoutes.NeedFile = BaseRoutes.Files.PathPrefix("/{file_id:[A-Za-z0-9]+}").Subrouter()
 	BaseRoutes.Hooks = BaseRoutes.NeedTeam.PathPrefix("/hooks").Subrouter()
 	BaseRoutes.OAuth = BaseRoutes.ApiRoot.PathPrefix("/oauth").Subrouter()
 	BaseRoutes.Admin = BaseRoutes.ApiRoot.PathPrefix("/admin").Subrouter()

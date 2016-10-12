@@ -181,7 +181,6 @@ func UpgradeDatabaseToVersion33(sqlStore *SqlStore) {
 
 func UpgradeDatabaseToVersion34(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, VERSION_3_3_0, VERSION_3_4_0) {
-
 		sqlStore.CreateColumnIfNotExists("Status", "Manual", "BOOLEAN", "BOOLEAN", "0")
 		sqlStore.CreateColumnIfNotExists("Status", "ActiveChannel", "varchar(26)", "varchar(26)", "")
 
@@ -198,6 +197,9 @@ func UpgradeDatabaseToVersion35(sqlStore *SqlStore) {
 	sqlStore.GetMaster().Exec("UPDATE TeamMembers SET Roles = 'team_user team_admin' WHERE Roles = 'admin'")
 	sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET Roles = 'channel_user' WHERE Roles = ''")
 	sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET Roles = 'channel_user channel_admin' WHERE Roles = 'admin'")
+
+	// The rest of the migration from Filenames -> FileIds is done lazily in api.GetFileInfosForPost
+	sqlStore.CreateColumnIfNotExists("Posts", "FileIds", "varchar(150)", "varchar(150)", "[]")
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// UNCOMMENT WHEN WE DO RELEASE

@@ -85,7 +85,7 @@ export function getCookie(name) {
 
 var requestedNotificationPermission = false;
 
-export function notifyMe(title, body, channel, teamId, duration) {
+export function notifyMe(title, body, channel, teamId, duration, silent) {
     if (!('Notification' in window)) {
         return;
     }
@@ -101,7 +101,7 @@ export function notifyMe(title, body, channel, teamId, duration) {
         Notification.requestPermission((permission) => {
             if (permission === 'granted') {
                 try {
-                    var notification = new Notification(title, {body, tag: body, icon: icon50, requireInteraction: notificationDuration === 0});
+                    var notification = new Notification(title, {body, tag: body, icon: icon50, requireInteraction: notificationDuration === 0, silent});
                     notification.onclick = () => {
                         window.focus();
                         if (channel) {
@@ -412,8 +412,8 @@ export function getFileType(extin) {
     return 'other';
 }
 
-export function getPreviewImagePathForFileType(fileTypeIn) {
-    var fileType = fileTypeIn.toLowerCase();
+export function getFileIconPath(fileInfo) {
+    const fileType = getFileType(fileInfo.extension);
 
     var icon;
     if (fileType in Constants.ICON_FROM_TYPE) {
@@ -448,19 +448,6 @@ export function splitFileLocation(fileLocation) {
     var filename = filePath.split('/')[filePath.split('/').length - 1];
 
     return {ext, name: filename, path: filePath};
-}
-
-export function getPreviewImagePath(filename) {
-    // Returns the path to a preview image that can be used to represent a file.
-    const fileInfo = splitFileLocation(filename);
-    const fileType = getFileType(fileInfo.ext);
-
-    if (fileType === 'image') {
-        return getFileUrl(fileInfo.path + '_preview.jpg');
-    }
-
-    // only images have proper previews, so just use a placeholder icon for non-images
-    return getPreviewImagePathForFileType(fileType);
 }
 
 export function toTitleCase(str) {
@@ -521,7 +508,7 @@ export function applyTheme(theme) {
 
     if (theme.sidebarHeaderTextColor) {
         changeCss('.app__body .sidebar--left .team__header .header__info, .app__body .sidebar--menu .team__header .header__info, .app__body .post-list__timestamp > div', 'color:' + theme.sidebarHeaderTextColor, 1);
-        changeCss('.app__body .sidebar--left .team__header .navbar-right .dropdown__icon, .app__body .sidebar--menu .team__header .navbar-right .dropdown__icon', 'fill:' + theme.sidebarHeaderTextColor, 1);
+        changeCss('.app__body .sidebar-header-dropdown__icon', 'fill:' + theme.sidebarHeaderTextColor, 1);
         changeCss('.app__body .sidebar--left .team__header .user__name, .app__body .sidebar--menu .team__header .user__name', 'color:' + changeOpacity(theme.sidebarHeaderTextColor, 0.8), 1);
         changeCss('.app__body .sidebar--left .team__header:hover .user__name, .app__body .sidebar--menu .team__header:hover .user__name', 'color:' + theme.sidebarHeaderTextColor, 1);
         changeCss('.app__body .modal .modal-header .modal-title, .app__body .modal .modal-header .modal-title .name, .app__body .modal .modal-header button.close', 'color:' + theme.sidebarHeaderTextColor, 1);
@@ -597,7 +584,7 @@ export function applyTheme(theme) {
         changeCss('.app__body .channel-header #member_popover', 'color:' + changeOpacity(theme.centerChannelColor, 0.8), 1);
         changeCss('.app__body .custom-textarea, .app__body .custom-textarea:focus, .app__body .file-preview, .app__body .post-image__details, .app__body .sidebar--right .sidebar-right__body, .app__body .markdown__table th, .app__body .markdown__table td, .app__body .suggestion-list__content, .app__body .modal .modal-content, .app__body .modal .settings-modal .settings-table .settings-content .divider-light, .app__body .webhooks__container, .app__body .dropdown-menu, .app__body .modal .modal-header, .app__body .popover', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
         changeCss('.app__body .popover.bottom>.arrow', 'border-bottom-color:' + changeOpacity(theme.centerChannelColor, 0.25), 1);
-        changeCss('.app__body .search-help-popover .search-autocomplete__divider span', 'color:' + changeOpacity(theme.centerChannelColor, 0.7), 1);
+        changeCss('.app__body .search-help-popover .search-autocomplete__divider span, .app__body .suggestion-list__divider > span', 'color:' + changeOpacity(theme.centerChannelColor, 0.7), 1);
         changeCss('.app__body .popover.right>.arrow', 'border-right-color:' + changeOpacity(theme.centerChannelColor, 0.25), 1);
         changeCss('.app__body .popover.left>.arrow', 'border-left-color:' + changeOpacity(theme.centerChannelColor, 0.25), 1);
         changeCss('.app__body .popover.top>.arrow', 'border-top-color:' + changeOpacity(theme.centerChannelColor, 0.25), 1);
@@ -1044,13 +1031,6 @@ export function getDirectChannelName(id, otherId) {
     return handle;
 }
 
-export function getDirectChannelNameByUsername(username, otherUsername) {
-    const id = UserStore.getProfileByUsername(username).id;
-    const otherId = UserStore.getProfileByUsername(otherUsername).id;
-
-    return getDirectChannelName(id, otherId);
-}
-
 // Used to get the id of the other user from a DM channel
 export function getUserIdFromChannelName(channel) {
     var ids = channel.name.split('__');
@@ -1313,6 +1293,7 @@ export function handleFormattedTextClick(e) {
             browserHistory.push(linkAttribute.value);
         }
     } else if (channelMentionAttribute) {
+        e.preventDefault();
         browserHistory.push('/' + TeamStore.getCurrent().name + '/channels/' + channelMentionAttribute.value);
     }
 }

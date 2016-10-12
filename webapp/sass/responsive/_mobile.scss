@@ -1,6 +1,26 @@
 @charset 'UTF-8';
 
 @media screen and (max-width: 768px) {
+    .webrtc__notification--rhs {
+        left: auto;
+        right: 0;
+        top: 47px;
+        width: 205px;
+    }
+
+    .filtered-user-list {
+        max-height: 65vh !important;
+    }
+
+    .app__body {
+        .edit-modal-body {
+
+            .custom-textarea {
+                max-height: 30vh;
+            }
+        }
+    }
+
     .tutorial-steps__container {
         .tutorial__content {
             .tutorial__steps {
@@ -835,7 +855,7 @@
                 margin: 10px 0;
             }
 
-            .navbar-right {
+            .sidebar-header-dropdown {
                 display: none;
             }
         }

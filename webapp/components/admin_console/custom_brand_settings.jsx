@@ -25,9 +25,9 @@ export default class CustomBrandSettings extends AdminSettings {
     getConfigFromState(config) {
         config.TeamSettings.SiteName = this.state.siteName;
         if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.CustomBrand === 'true') {
+            config.TeamSettings.customDescriptionText = this.state.customDescriptionText;
             config.TeamSettings.EnableCustomBrand = this.state.enableCustomBrand;
             config.TeamSettings.CustomBrandText = this.state.customBrandText;
-            config.TeamSettings.customDescriptionText = this.state.customDescriptionText;
         }
 
         return config;
@@ -56,6 +56,28 @@ export default class CustomBrandSettings extends AdminSettings {
     renderSettings() {
         const enterpriseSettings = [];
         if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.CustomBrand === 'true') {
+            enterpriseSettings.push(
+                <TextSetting
+                    key='customDescriptionText'
+                    id='customDescriptionText'
+                    label={
+                        <FormattedMessage
+                            id='admin.team.brandDescriptionTitle'
+                            defaultMessage='Site Description: '
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.team.brandDescriptionHelp'
+                            defaultMessage='Description of service shown in login screens and UI. When not specified, "All team communication in one place, searchable and accessible anywhere" is displayed.'
+                        />
+                    }
+                    value={this.state.customDescriptionText}
+                    placeholder={Utils.localizeMessage('web.root.signup_info', 'All team communication in one place, searchable and accessible anywhere')}
+                    onChange={this.handleChange}
+                />
+            );
+
             enterpriseSettings.push(
                 <BooleanSetting
                     key='enableCustomBrand'
@@ -98,34 +120,10 @@ export default class CustomBrandSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.team.brandTextDescription'
-                            defaultMessage='The custom branding Markdown-formatted text you would like to appear below your custom brand image on your login sreen.'
+                            defaultMessage='Text that will appear below your custom brand image on your login screen. Supports Markdown-formatted text. Maximum 500 characters allowed.'
                         />
                     }
                     value={this.state.customBrandText}
-                    onChange={this.handleChange}
-                    disabled={!this.state.enableCustomBrand}
-                />
-            );
-
-            enterpriseSettings.push(
-                <TextSetting
-                    key='customDescriptionText'
-                    id='customDescriptionText'
-                    type='textarea'
-                    label={
-                        <FormattedMessage
-                            id='admin.team.brandDescriptionTitle'
-                            defaultMessage='Site Description'
-                        />
-                    }
-                    helpText={
-                        <FormattedMessage
-                            id='admin.team.brandDescriptionHelp'
-                            defaultMessage='Description of service shown in login screens and UI.'
-                        />
-                    }
-                    value={this.state.customDescriptionText}
-                    placeholder={Utils.localizeMessage('web.root.signup_info', 'All team communication in one place, searchable and accessible anywhere')}
                     onChange={this.handleChange}
                     disabled={!this.state.enableCustomBrand}
                 />

@@ -97,7 +97,7 @@ export const ActionTypes = keyMirror({
     RECEIVED_PREFERENCE: null,
     RECEIVED_PREFERENCES: null,
     DELETED_PREFERENCES: null,
-    RECEIVED_FILE_INFO: null,
+    RECEIVED_FILE_INFOS: null,
     RECEIVED_ANALYTICS: null,
 
     RECEIVED_INCOMING_WEBHOOKS: null,
@@ -200,12 +200,20 @@ export const SocketEvents = {
     WEBRTC: 'webrtc'
 };
 
+export const TutorialSteps = {
+    INTRO_SCREENS: 0,
+    POST_POPOVER: 1,
+    CHANNEL_POPOVER: 2,
+    MENU_POPOVER: 3
+};
+
 export const Constants = {
     Preferences,
     SocketEvents,
     ActionTypes,
     WebrtcActionTypes,
     UserStatuses,
+    TutorialSteps,
 
     PayloadSources: keyMirror({
         SERVER_ACTION: null,
@@ -259,7 +267,7 @@ export const Constants = {
     PRESENTATION_TYPES: ['ppt', 'pptx'],
     SPREADSHEET_TYPES: ['xlsx', 'csv'],
     WORD_TYPES: ['doc', 'docx'],
-    CODE_TYPES: ['as', 'applescript', 'osascript', 'scpt', 'bash', 'sh', 'zsh', 'clj', 'boot', 'cl2', 'cljc', 'cljs', 'cljs.hl', 'cljscm', 'cljx', 'hic', 'coffee', '_coffee', 'cake', 'cjsx', 'cson', 'iced', 'cpp', 'c', 'cc', 'h', 'c++', 'h++', 'hpp', 'cs', 'csharp', 'css', 'd', 'di', 'dart', 'delphi', 'dpr', 'dfm', 'pas', 'pascal', 'freepascal', 'lazarus', 'lpr', 'lfm', 'diff', 'django', 'jinja', 'dockerfile', 'docker', 'erl', 'f90', 'f95', 'fsharp', 'fs', 'gcode', 'nc', 'go', 'groovy', 'handlebars', 'hbs', 'html.hbs', 'html.handlebars', 'hs', 'hx', 'java', 'jsp', 'js', 'jsx', 'json', 'jl', 'kt', 'ktm', 'kts', 'less', 'lisp', 'lua', 'mk', 'mak', 'md', 'mkdown', 'mkd', 'matlab', 'm', 'mm', 'objc', 'obj-c', 'ml', 'perl', 'pl', 'php', 'php3', 'php4', 'php5', 'php6', 'ps', 'ps1', 'pp', 'py', 'gyp', 'r', 'ruby', 'rb', 'gemspec', 'podspec', 'thor', 'irb', 'rs', 'scala', 'scm', 'sld', 'scss', 'st', 'sql', 'swift', 'tex', 'vbnet', 'vb', 'bas', 'vbs', 'v', 'veo', 'xml', 'html', 'xhtml', 'rss', 'atom', 'xsl', 'plist', 'yaml'],
+    CODE_TYPES: ['as', 'applescript', 'osascript', 'scpt', 'bash', 'sh', 'zsh', 'clj', 'boot', 'cl2', 'cljc', 'cljs', 'cljs.hl', 'cljscm', 'cljx', 'hic', 'coffee', '_coffee', 'cake', 'cjsx', 'cson', 'iced', 'cpp', 'c', 'cc', 'h', 'c++', 'h++', 'hpp', 'cs', 'csharp', 'css', 'd', 'di', 'dart', 'delphi', 'dpr', 'dfm', 'pas', 'pascal', 'freepascal', 'lazarus', 'lpr', 'lfm', 'diff', 'django', 'jinja', 'dockerfile', 'docker', 'erl', 'f90', 'f95', 'fsharp', 'fs', 'gcode', 'nc', 'go', 'groovy', 'handlebars', 'hbs', 'html.hbs', 'html.handlebars', 'hs', 'hx', 'java', 'jsp', 'js', 'jsx', 'json', 'jl', 'kt', 'ktm', 'kts', 'less', 'lisp', 'lua', 'mk', 'mak', 'md', 'mkdown', 'mkd', 'matlab', 'm', 'mm', 'objc', 'obj-c', 'ml', 'perl', 'pl', 'php', 'php3', 'php4', 'php5', 'php6', 'ps', 'ps1', 'pp', 'py', 'gyp', 'r', 'ruby', 'rb', 'gemspec', 'podspec', 'thor', 'irb', 'rs', 'scala', 'scm', 'sld', 'scss', 'st', 'sql', 'swift', 'tex', 'txt', 'vbnet', 'vb', 'bas', 'vbs', 'v', 'veo', 'xml', 'html', 'xhtml', 'rss', 'atom', 'xsl', 'plist', 'yaml'],
     PDF_TYPES: ['pdf'],
     PATCH_TYPES: ['patch'],
     ICON_FROM_TYPE: {
@@ -620,12 +628,6 @@ export const Constants = {
         Ubuntu: 'font--ubuntu'
     },
     DEFAULT_FONT: 'Open Sans',
-    TutorialSteps: {
-        INTRO_SCREENS: 0,
-        POST_POPOVER: 1,
-        CHANNEL_POPOVER: 2,
-        MENU_POPOVER: 3
-    },
     KeyCodes: {
         BACKSPACE: 8,
         TAB: 9,
@@ -776,6 +778,7 @@ export const Constants = {
         sql: {name: 'SQL', extensions: ['sql']},
         swift: {name: 'Swift', extensions: ['swift']},
         tex: {name: 'TeX', extensions: ['tex']},
+        text: {name: 'Text', extensions: ['txt']},
         vbnet: {name: 'VB.Net', extensions: ['vbnet', 'vb', 'bas']},
         vbscript: {name: 'VBScript', extensions: ['vbs']},
         verilog: {name: 'Verilog', extensions: ['v', 'veo']},

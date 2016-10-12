@@ -37,7 +37,7 @@ export default class FilteredChannelList extends React.Component {
 
     componentDidMount() {
         // only focus the search box on desktop so that we don't cause the keyboard to open on mobile
-        if (!UserAgent.isMobileApp()) {
+        if (!UserAgent.isMobile()) {
             ReactDOM.findDOMNode(this.refs.filter).focus();
         }
     }

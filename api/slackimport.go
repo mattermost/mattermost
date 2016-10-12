@@ -12,6 +12,7 @@ import (
 	"github.com/mattermost/platform/utils"
 	"io"
 	"mime/multipart"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -22,6 +23,7 @@ type SlackChannel struct {
 	Name    string            `json:"name"`
 	Members []string          `json:"members"`
 	Topic   map[string]string `json:"topic"`
+	Purpose map[string]string `json:"purpose"`
 }
 
 type SlackUser struct {
@@ -30,15 +32,27 @@ type SlackUser struct {
 	Profile  map[string]string `json:"profile"`
 }
 
+type SlackFile struct {
+	Id    string `json:"id"`
+	Title string `json:"title"`
+}
+
 type SlackPost struct {
-	User        string            `json:"user"`
-	BotId       string            `json:"bot_id"`
-	BotUsername string            `json:"username"`
-	Text        string            `json:"text"`
-	TimeStamp   string            `json:"ts"`
-	Type        string            `json:"type"`
-	SubType     string            `json:"subtype"`
-	Comment     map[string]string `json:"comment"`
+	User        string        `json:"user"`
+	BotId       string        `json:"bot_id"`
+	BotUsername string        `json:"username"`
+	Text        string        `json:"text"`
+	TimeStamp   string        `json:"ts"`
+	Type        string        `json:"type"`
+	SubType     string        `json:"subtype"`
+	Comment     *SlackComment `json:"comment"`
+	Upload      bool          `json:"upload"`
+	File        *SlackFile    `json:"file"`
+}
+
+type SlackComment struct {
+	User    string `json:"user"`
+	Comment string `json:"comment"`
 }
 
 func SlackConvertTimeStamp(ts string) int64 {
@@ -61,18 +75,18 @@ func SlackConvertChannelName(channelName string) string {
 	return newName
 }
 
-func SlackParseChannels(data io.Reader) []SlackChannel {
+func SlackParseChannels(data io.Reader) ([]SlackChannel, error) {
 	decoder := json.NewDecoder(data)
 
 	var channels []SlackChannel
 	if err := decoder.Decode(&channels); err != nil {
 		l4g.Warn(utils.T("api.slackimport.slack_parse_channels.error"))
-		return channels
+		return channels, err
 	}
-	return channels
+	return channels, nil
 }
 
-func SlackParseUsers(data io.Reader) []SlackUser {
+func SlackParseUsers(data io.Reader) ([]SlackUser, error) {
 	decoder := json.NewDecoder(data)
 
 	var users []SlackUser
@@ -80,20 +94,20 @@ func SlackParseUsers(data io.Reader) []SlackUser {
 		// This actually returns errors that are ignored.
 		// In this case it is erroring because of a null that Slack
 		// introduced. So we just return the users here.
-		return users
+		return users, err
 	}
-	return users
+	return users, nil
 }
 
-func SlackParsePosts(data io.Reader) []SlackPost {
+func SlackParsePosts(data io.Reader) ([]SlackPost, error) {
 	decoder := json.NewDecoder(data)
 
 	var posts []SlackPost
 	if err := decoder.Decode(&posts); err != nil {
 		l4g.Warn(utils.T("api.slackimport.slack_parse_posts.error"))
-		return posts
+		return posts, err
 	}
-	return posts
+	return posts, nil
 }
 
 func SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Buffer) map[string]*model.User {
@@ -153,7 +167,7 @@ func SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Buffer) map
 	return addedUsers
 }
 
-func SlackAddPosts(channel *model.Channel, posts []SlackPost, users map[string]*model.User) {
+func SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, users map[string]*model.User, uploads map[string]*zip.File) {
 	for _, sPost := range posts {
 		switch {
 		case sPost.Type == "message" && (sPost.SubType == "" || sPost.SubType == "file_share"):
@@ -170,19 +184,34 @@ func SlackAddPosts(channel *model.Channel, posts []SlackPost, users map[string]*
 				Message:   sPost.Text,
 				CreateAt:  SlackConvertTimeStamp(sPost.TimeStamp),
 			}
+			if sPost.Upload {
+				if fileInfo, ok := SlackUploadFile(sPost, uploads, teamId, newPost.ChannelId, newPost.UserId); ok == true {
+					newPost.FileIds = append(newPost.FileIds, fileInfo.Id)
+					newPost.Message = sPost.File.Title
+				}
+			}
 			ImportPost(&newPost)
+			for _, fileId := range newPost.FileIds {
+				if result := <-Srv.Store.FileInfo().AttachToPost(fileId, newPost.Id); result.Err != nil {
+					l4g.Error(utils.T("api.slackimport.slack_add_posts.attach_files.error"), newPost.Id, newPost.FileIds, result.Err)
+				}
+			}
+
 		case sPost.Type == "message" && sPost.SubType == "file_comment":
-			if sPost.Comment["user"] == "" {
+			if sPost.Comment == nil {
+				l4g.Debug(utils.T("api.slackimport.slack_add_posts.msg_no_comment.debug"))
+				continue
+			} else if sPost.Comment.User == "" {
 				l4g.Debug(utils.T("api.slackimport.slack_add_posts.msg_no_usr.debug"))
 				continue
-			} else if users[sPost.Comment["user"]] == nil {
+			} else if users[sPost.Comment.User] == nil {
 				l4g.Debug(utils.T("api.slackimport.slack_add_posts.user_no_exists.debug"), sPost.User)
 				continue
 			}
 			newPost := model.Post{
-				UserId:    users[sPost.Comment["user"]].Id,
+				UserId:    users[sPost.Comment.User].Id,
 				ChannelId: channel.Id,
-				Message:   sPost.Comment["comment"],
+				Message:   sPost.Comment.Comment,
 				CreateAt:  SlackConvertTimeStamp(sPost.TimeStamp),
 			}
 			ImportPost(&newPost)
@@ -204,9 +233,51 @@ func SlackAddPosts(channel *model.Channel, posts []SlackPost, users map[string]*
 				Type:      model.POST_JOIN_LEAVE,
 			}
 			ImportPost(&newPost)
+		case sPost.Type == "message" && sPost.SubType == "me_message":
+			if sPost.User == "" {
+				l4g.Debug(utils.T("api.slackimport.slack_add_posts.without_user.debug"))
+				continue
+			} else if users[sPost.User] == nil {
+				l4g.Debug(utils.T("api.slackimport.slack_add_posts.user_no_exists.debug"), sPost.User)
+				continue
+			}
+			newPost := model.Post{
+				UserId:    users[sPost.User].Id,
+				ChannelId: channel.Id,
+				Message:   "*" + sPost.Text + "*",
+				CreateAt:  SlackConvertTimeStamp(sPost.TimeStamp),
+			}
+			ImportPost(&newPost)
 		default:
 			l4g.Warn(utils.T("api.slackimport.slack_add_posts.unsupported.warn"), sPost.Type, sPost.SubType)
 		}
+	}
+}
+
+func SlackUploadFile(sPost SlackPost, uploads map[string]*zip.File, teamId string, channelId string, userId string) (*model.FileInfo, bool) {
+	if sPost.File != nil {
+		if file, ok := uploads[sPost.File.Id]; ok == true {
+			openFile, err := file.Open()
+			if err != nil {
+				l4g.Warn(utils.T("api.slackimport.slack_add_posts.upload_file_open_failed.warn", map[string]interface{}{"FileId": sPost.File.Id, "Error": err.Error()}))
+				return nil, false
+			}
+			defer openFile.Close()
+
+			uploadedFile, err := ImportFile(openFile, teamId, channelId, userId, filepath.Base(file.Name))
+			if err != nil {
+				l4g.Warn(utils.T("api.slackimport.slack_add_posts.upload_file_upload_failed.warn", map[string]interface{}{"FileId": sPost.File.Id, "Error": err.Error()}))
+				return nil, false
+			}
+
+			return uploadedFile, true
+		} else {
+			l4g.Warn(utils.T("api.slackimport.slack_add_posts.upload_file_not_found.warn", map[string]interface{}{"FileId": sPost.File.Id}))
+			return nil, false
+		}
+	} else {
+		l4g.Warn(utils.T("api.slackimport.slack_add_posts.upload_file_not_in_json.warn"))
+		return nil, false
 	}
 }
 
@@ -222,7 +293,7 @@ func addSlackUsersToChannel(members []string, users map[string]*model.User, chan
 	}
 }
 
-func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[string][]SlackPost, users map[string]*model.User, log *bytes.Buffer) map[string]*model.Channel {
+func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[string][]SlackPost, users map[string]*model.User, uploads map[string]*zip.File, log *bytes.Buffer) map[string]*model.Channel {
 	// Write Header
 	log.WriteString(utils.T("api.slackimport.slack_add_channels.added"))
 	log.WriteString("=================\r\n\r\n")
@@ -234,7 +305,8 @@ func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[str
 			Type:        model.CHANNEL_OPEN,
 			DisplayName: sChannel.Name,
 			Name:        SlackConvertChannelName(sChannel.Name),
-			Purpose:     sChannel.Topic["value"],
+			Purpose:     sChannel.Purpose["value"],
+			Header:      sChannel.Topic["value"],
 		}
 		mChannel := ImportChannel(&newChannel)
 		if mChannel == nil {
@@ -251,7 +323,7 @@ func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[str
 		addSlackUsersToChannel(sChannel.Members, users, mChannel, log)
 		log.WriteString(newChannel.DisplayName + "\r\n")
 		addedChannels[sChannel.Id] = mChannel
-		SlackAddPosts(mChannel, posts[sChannel.Name], users)
+		SlackAddPosts(teamId, mChannel, posts[sChannel.Name], users, uploads)
 	}
 
 	return addedChannels
@@ -321,6 +393,7 @@ func SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model
 	var channels []SlackChannel
 	var users []SlackUser
 	posts := make(map[string][]SlackPost)
+	uploads := make(map[string]*zip.File)
 	for _, file := range zipreader.File {
 		reader, err := file.Open()
 		if err != nil {
@@ -328,21 +401,22 @@ func SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model
 			return model.NewLocAppError("SlackImport", "api.slackimport.slack_import.open.app_error", map[string]interface{}{"Filename": file.Name}, err.Error()), log
 		}
 		if file.Name == "channels.json" {
-			channels = SlackParseChannels(reader)
+			channels, _ = SlackParseChannels(reader)
 		} else if file.Name == "users.json" {
-			users = SlackParseUsers(reader)
+			users, _ = SlackParseUsers(reader)
 		} else {
 			spl := strings.Split(file.Name, "/")
 			if len(spl) == 2 && strings.HasSuffix(spl[1], ".json") {
-				newposts := SlackParsePosts(reader)
+				newposts, _ := SlackParsePosts(reader)
 				channel := spl[0]
 				if _, ok := posts[channel]; ok == false {
 					posts[channel] = newposts
 				} else {
 					posts[channel] = append(posts[channel], newposts...)
 				}
+			} else if len(spl) == 3 && spl[0] == "__uploads" {
+				uploads[spl[1]] = file
 			}
-
 		}
 	}
 
@@ -350,7 +424,7 @@ func SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model
 	posts = SlackConvertChannelMentions(channels, posts)
 
 	addedUsers := SlackAddUsers(teamID, users, log)
-	SlackAddChannels(teamID, channels, posts, addedUsers, log)
+	SlackAddChannels(teamID, channels, posts, addedUsers, uploads, log)
 
 	log.WriteString(utils.T("api.slackimport.slack_import.notes"))
 	log.WriteString("=======\r\n\r\n")

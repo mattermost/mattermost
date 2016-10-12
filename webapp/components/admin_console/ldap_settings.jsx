@@ -3,7 +3,7 @@
 
 import AdminSettings from './admin_settings.jsx';
 import BooleanSetting from './boolean_setting.jsx';
-import ConnectionSecurityDropdownSetting from './connection_security_dropdown_setting.jsx';
+import {ConnectionSecurityDropdownSettingLdap} from './connection_security_dropdown_setting.jsx';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
 
@@ -146,7 +146,7 @@ export default class LdapSettings extends AdminSettings {
                     onChange={this.handleChange}
                     disabled={!this.state.enable}
                 />
-                <ConnectionSecurityDropdownSetting
+                <ConnectionSecurityDropdownSettingLdap
                     value={this.state.connectionSecurity}
                     onChange={this.handleChange}
                     disabled={!this.state.enable}
@@ -254,7 +254,7 @@ export default class LdapSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.ldap.firstnameAttrDesc'
-                            defaultMessage='(Optional) The attribute in the AD/LDAP server that will be used to populate the first name of users in Mattermost.'
+                            defaultMessage='(Optional) The attribute in the AD/LDAP server that will be used to populate the first name of users in Mattermost.  When set, users will not be able to edit their first name, since it is synchronized with the LDAP server. When left blank, users can set their own first name in Account Settings.'
                         />
                     }
                     value={this.state.firstNameAttribute}
@@ -273,7 +273,7 @@ export default class LdapSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.ldap.lastnameAttrDesc'
-                            defaultMessage='(Optional) The attribute in the AD/LDAP server that will be used to populate the last name of users in Mattermost.'
+                            defaultMessage='(Optional) The attribute in the AD/LDAP server that will be used to populate the last name of users in Mattermost. When set, users will not be able to edit their last name, since it is synchronized with the LDAP server. When left blank, users can set their own last name in Account Settings.'
                         />
                     }
                     value={this.state.lastNameAttribute}
@@ -292,7 +292,7 @@ export default class LdapSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.ldap.nicknameAttrDesc'
-                            defaultMessage='(Optional) The attribute in the AD/LDAP server that will be used to populate the nickname of users in Mattermost.'
+                            defaultMessage='(Optional) The attribute in the AD/LDAP server that will be used to populate the nickname of users in Mattermost. When set, users will not be able to edit their nickname, since it is synchronized with the LDAP server. When left blank, users can set their own nickname in Account Settings.'
                         />
                     }
                     value={this.state.nicknameAttribute}

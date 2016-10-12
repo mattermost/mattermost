@@ -6,54 +6,31 @@ package model
 import (
 	"bytes"
 	"encoding/json"
+	"image"
 	"image/gif"
 	"io"
 	"mime"
 	"path/filepath"
+	"strings"
 )
 
 type FileInfo struct {
-	Filename        string `json:"filename"`
-	Size            int    `json:"size"`
+	Id              string `json:"id"`
+	CreatorId       string `json:"user_id"`
+	PostId          string `json:"post_id,omitempty"`
+	CreateAt        int64  `json:"create_at"`
+	UpdateAt        int64  `json:"update_at"`
+	DeleteAt        int64  `json:"delete_at"`
+	Path            string `json:"-"` // not sent back to the client
+	ThumbnailPath   string `json:"-"` // not sent back to the client
+	PreviewPath     string `json:"-"` // not sent back to the client
+	Name            string `json:"name"`
 	Extension       string `json:"extension"`
+	Size            int64  `json:"size"`
 	MimeType        string `json:"mime_type"`
-	HasPreviewImage bool   `json:"has_preview_image"`
-}
-
-func GetInfoForBytes(filename string, data []byte) (*FileInfo, *AppError) {
-	size := len(data)
-
-	var mimeType string
-	extension := filepath.Ext(filename)
-	isImage := IsFileExtImage(extension)
-	if isImage {
-		mimeType = GetImageMimeType(extension)
-	} else {
-		mimeType = mime.TypeByExtension(extension)
-	}
-
-	if extension != "" && extension[0] == '.' {
-		// the client expects a file extension without the leading period
-		extension = extension[1:]
-	}
-
-	hasPreviewImage := isImage
-	if mimeType == "image/gif" {
-		// just show the gif itself instead of a preview image for animated gifs
-		if gifImage, err := gif.DecodeAll(bytes.NewReader(data)); err != nil {
-			return nil, NewLocAppError("GetInfoForBytes", "model.file_info.get.gif.app_error", nil, "filename="+filename)
-		} else {
-			hasPreviewImage = len(gifImage.Image) == 1
-		}
-	}
-
-	return &FileInfo{
-		Filename:        filename,
-		Size:            size,
-		Extension:       extension,
-		MimeType:        mimeType,
-		HasPreviewImage: hasPreviewImage,
-	}, nil
+	Width           int    `json:"width,omitempty"`
+	Height          int    `json:"height,omitempty"`
+	HasPreviewImage bool   `json:"has_preview_image,omitempty"`
 }
 
 func (info *FileInfo) ToJson() string {
@@ -74,4 +51,124 @@ func FileInfoFromJson(data io.Reader) *FileInfo {
 	} else {
 		return &info
 	}
+}
+
+func FileInfosToJson(infos []*FileInfo) string {
+	b, err := json.Marshal(infos)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
+func FileInfosFromJson(data io.Reader) []*FileInfo {
+	decoder := json.NewDecoder(data)
+
+	var infos []*FileInfo
+	if err := decoder.Decode(&infos); err != nil {
+		return nil
+	} else {
+		return infos
+	}
+}
+
+func (o *FileInfo) PreSave() {
+	if o.Id == "" {
+		o.Id = NewId()
+	}
+
+	if o.CreateAt == 0 {
+		o.CreateAt = GetMillis()
+		o.UpdateAt = o.CreateAt
+	}
+}
+
+func (o *FileInfo) IsValid() *AppError {
+	if len(o.Id) != 26 {
+		return NewLocAppError("FileInfo.IsValid", "model.file_info.is_valid.id.app_error", nil, "")
+	}
+
+	if len(o.CreatorId) != 26 {
+		return NewLocAppError("FileInfo.IsValid", "model.file_info.is_valid.user_id.app_error", nil, "id="+o.Id)
+	}
+
+	if len(o.PostId) != 0 && len(o.PostId) != 26 {
+		return NewLocAppError("FileInfo.IsValid", "model.file_info.is_valid.post_id.app_error", nil, "id="+o.Id)
+	}
+
+	if o.CreateAt == 0 {
+		return NewLocAppError("FileInfo.IsValid", "model.file_info.is_valid.create_at.app_error", nil, "id="+o.Id)
+	}
+
+	if o.UpdateAt == 0 {
+		return NewLocAppError("FileInfo.IsValid", "model.file_info.is_valid.update_at.app_error", nil, "id="+o.Id)
+	}
+
+	if o.Path == "" {
+		return NewLocAppError("FileInfo.IsValid", "model.file_info.is_valid.path.app_error", nil, "id="+o.Id)
+	}
+
+	return nil
+}
+
+func (o *FileInfo) IsImage() bool {
+	return strings.HasPrefix(o.MimeType, "image")
+}
+
+func GetInfoForBytes(name string, data []byte) (*FileInfo, *AppError) {
+	info := &FileInfo{
+		Name: name,
+		Size: int64(len(data)),
+	}
+	var err *AppError
+
+	extension := strings.ToLower(filepath.Ext(name))
+	info.MimeType = mime.TypeByExtension(extension)
+
+	if extension != "" && extension[0] == '.' {
+		// The client expects a file extension without the leading period
+		info.Extension = extension[1:]
+	} else {
+		info.Extension = extension
+	}
+
+	if info.IsImage() {
+		// Only set the width and height if it's actually an image that we can understand
+		if config, _, err := image.DecodeConfig(bytes.NewReader(data)); err == nil {
+			info.Width = config.Width
+			info.Height = config.Height
+
+			if info.MimeType == "image/gif" {
+				// Just show the gif itself instead of a preview image for animated gifs
+				if gifConfig, err := gif.DecodeAll(bytes.NewReader(data)); err != nil {
+					// Still return the rest of the info even though it doesn't appear to be an actual gif
+					info.HasPreviewImage = true
+					err = NewLocAppError("GetInfoForBytes", "model.file_info.get.gif.app_error", nil, "name="+name)
+				} else {
+					info.HasPreviewImage = len(gifConfig.Image) == 1
+				}
+			} else {
+				info.HasPreviewImage = true
+			}
+		}
+	}
+
+	return info, err
+}
+
+func GetEtagForFileInfos(infos []*FileInfo) string {
+	if len(infos) == 0 {
+		return Etag()
+	}
+
+	var maxUpdateAt int64
+
+	for _, info := range infos {
+		if info.UpdateAt > maxUpdateAt {
+			maxUpdateAt = info.UpdateAt
+		}
+	}
+
+	return Etag(infos[0].PostId, maxUpdateAt)
 }

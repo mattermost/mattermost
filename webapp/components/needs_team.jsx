@@ -39,6 +39,9 @@ import InviteMemberModal from 'components/invite_member_modal.jsx';
 import LeaveTeamModal from 'components/leave_team_modal.jsx';
 import SelectTeamModal from 'components/admin_console/select_team_modal.jsx';
 
+import iNoBounce from 'inobounce';
+import * as UserAgent from 'utils/user_agent.jsx';
+
 export default class NeedsTeam extends React.Component {
     constructor(params) {
         super(params);
@@ -103,6 +106,11 @@ export default class NeedsTeam extends React.Component {
         });
 
         Utils.applyTheme(this.state.theme);
+
+        if (UserAgent.isIosSafari()) {
+            // Use iNoBounce to prevent scrolling past the boundaries of the page
+            iNoBounce.enable();
+        }
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -116,6 +124,10 @@ export default class NeedsTeam extends React.Component {
         PreferenceStore.removeChangeListener(this.onPreferencesChanged);
         $(window).off('focus');
         $(window).off('blur');
+
+        if (UserAgent.isIosSafari()) {
+            iNoBounce.disable();
+        }
     }
 
     render() {

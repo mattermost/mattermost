@@ -364,7 +364,7 @@ func (c *Context) SetTeamURLFromSession() {
 }
 
 func (c *Context) SetSiteURL(url string) {
-	c.siteURL = url
+	c.siteURL = strings.TrimRight(url, "/")
 }
 
 func (c *Context) GetTeamURLFromTeam(team *model.Team) string {

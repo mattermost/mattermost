@@ -7,7 +7,7 @@ import * as Utils from 'utils/utils.jsx';
 
 import AdminSettings from './admin_settings.jsx';
 import BooleanSetting from './boolean_setting.jsx';
-import ConnectionSecurityDropdownSetting from './connection_security_dropdown_setting.jsx';
+import {ConnectionSecurityDropdownSettingEmail} from './connection_security_dropdown_setting.jsx';
 import EmailConnectionTest from './email_connection_test.jsx';
 import {FormattedHTMLMessage, FormattedMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
@@ -266,7 +266,7 @@ export default class EmailSettings extends AdminSettings {
                     onChange={this.handleChange}
                     disabled={!this.state.sendEmailNotifications}
                 />
-                <ConnectionSecurityDropdownSetting
+                <ConnectionSecurityDropdownSettingEmail
                     value={this.state.connectionSecurity}
                     onChange={this.handleChange}
                     disabled={!this.state.sendEmailNotifications}

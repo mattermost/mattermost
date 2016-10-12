@@ -14,7 +14,8 @@ export default class PostMessageView extends React.Component {
         enableFormatting: React.PropTypes.bool.isRequired,
         mentionKeys: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
         usernameMap: React.PropTypes.object.isRequired,
-        channelNamesMap: React.PropTypes.object.isRequired
+        channelNamesMap: React.PropTypes.object.isRequired,
+        team: React.PropTypes.object.isRequired
     };
 
     shouldComponentUpdate(nextProps) {
@@ -56,7 +57,8 @@ export default class PostMessageView extends React.Component {
             siteURL: Utils.getSiteURL(),
             mentionKeys: this.props.mentionKeys,
             usernameMap: this.props.usernameMap,
-            channelNamesMap: this.props.channelNamesMap
+            channelNamesMap: this.props.channelNamesMap,
+            team: this.props.team
         });
 
         return (

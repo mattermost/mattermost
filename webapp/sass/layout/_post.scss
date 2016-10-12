@@ -646,6 +646,10 @@ body.ios {
         }
     }
 
+    .post__img:hover {
+        cursor: pointer;
+    }
+
     .post--fail {
         position: relative;
     }
@@ -964,6 +968,7 @@ body.ios {
 
         ul,
         ol {
+            font-size: .97em;
             margin-bottom: .4em;
             padding-left: 20px;
 

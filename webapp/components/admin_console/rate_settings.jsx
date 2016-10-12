@@ -105,7 +105,7 @@ export default class RateSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.rate.maxBurst'
-                            defaultMessage='Max Burst:'
+                            defaultMessage='Maximum Burst Size:'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.rate.maxBurstExample', 'Ex "100"')}

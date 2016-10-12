@@ -11,7 +11,6 @@ import * as GlobalActions from 'actions/global_actions.jsx';
 
 import FileStore from 'stores/file_store.jsx';
 
-import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import Constants from 'utils/constants.jsx';
@@ -19,19 +18,11 @@ const KeyCodes = Constants.KeyCodes;
 
 import $ from 'jquery';
 import React from 'react';
-import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import {Modal} from 'react-bootstrap';
 
 import loadingGif from 'images/load.gif';
 
-const holders = defineMessages({
-    loading: {
-        id: 'view_image.loading',
-        defaultMessage: 'Loading '
-    }
-});
-
-class ViewImageModal extends React.Component {
+export default class ViewImageModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -45,18 +36,15 @@ class ViewImageModal extends React.Component {
         this.onModalShown = this.onModalShown.bind(this);
         this.onModalHidden = this.onModalHidden.bind(this);
 
-        this.onFileStoreChange = this.onFileStoreChange.bind(this);
-
         this.handleGetPublicLink = this.handleGetPublicLink.bind(this);
         this.onMouseEnterImage = this.onMouseEnterImage.bind(this);
         this.onMouseLeaveImage = this.onMouseLeaveImage.bind(this);
 
         this.state = {
             imgId: this.props.startId,
-            fileInfo: null,
             imgHeight: '100%',
-            loaded: Utils.fillArray(false, this.props.filenames.length),
-            progress: Utils.fillArray(0, this.props.filenames.length),
+            loaded: Utils.fillArray(false, this.props.fileInfos.length),
+            progress: Utils.fillArray(0, this.props.fileInfos.length),
             showFooter: false
         };
     }
@@ -66,7 +54,7 @@ class ViewImageModal extends React.Component {
             e.stopPropagation();
         }
         let id = this.state.imgId + 1;
-        if (id > this.props.filenames.length - 1) {
+        if (id > this.props.fileInfos.length - 1) {
             id = 0;
         }
         this.showImage(id);
@@ -78,7 +66,7 @@ class ViewImageModal extends React.Component {
         }
         let id = this.state.imgId - 1;
         if (id < 0) {
-            id = this.props.filenames.length - 1;
+            id = this.props.fileInfos.length - 1;
         }
         this.showImage(id);
     }
@@ -95,8 +83,6 @@ class ViewImageModal extends React.Component {
         $(window).on('keyup', this.handleKeyPress);
 
         this.showImage(nextProps.startId);
-
-        FileStore.addChangeListener(this.onFileStoreChange);
     }
 
     onModalHidden() {
@@ -105,8 +91,6 @@ class ViewImageModal extends React.Component {
         if (this.refs.video) {
             this.refs.video.stop();
         }
-
-        FileStore.removeChangeListener(this.onFileStoreChange);
     }
 
     componentWillReceiveProps(nextProps) {
@@ -116,27 +100,11 @@ class ViewImageModal extends React.Component {
             this.onModalHidden();
         }
 
-        if (!Utils.areObjectsEqual(this.props.filenames, nextProps.filenames)) {
+        if (this.props.fileInfos !== nextProps.fileInfos) {
             this.setState({
-                loaded: Utils.fillArray(false, nextProps.filenames.length),
-                progress: Utils.fillArray(0, nextProps.filenames.length)
+                loaded: Utils.fillArray(false, nextProps.fileInfos.length),
+                progress: Utils.fillArray(0, nextProps.fileInfos.length)
             });
-        }
-    }
-
-    onFileStoreChange(filename) {
-        const id = this.props.filenames.indexOf(filename);
-
-        if (id !== -1) {
-            if (id === this.state.imgId) {
-                this.setState({
-                    fileInfo: FileStore.getInfo(filename)
-                });
-            }
-
-            if (!this.state.loaded[id]) {
-                this.loadImage(id, filename);
-            }
         }
     }
 
@@ -146,34 +114,22 @@ class ViewImageModal extends React.Component {
         const imgHeight = $(window).height() - 100;
         this.setState({imgHeight});
 
-        const filename = this.props.filenames[id];
-
-        if (!FileStore.hasInfo(filename)) {
-            // the image will actually be loaded once we know what we need to load
-            AsyncClient.getFileInfo(filename);
-            return;
-        }
-
-        this.setState({
-            fileInfo: FileStore.getInfo(filename)
-        });
-
         if (!this.state.loaded[id]) {
-            this.loadImage(id, filename);
+            this.loadImage(id);
         }
     }
 
-    loadImage(id, filename) {
-        const fileInfo = FileStore.getInfo(filename);
+    loadImage(index) {
+        const fileInfo = this.props.fileInfos[index];
         const fileType = Utils.getFileType(fileInfo.extension);
 
         if (fileType === 'image') {
             let previewUrl;
             if (fileInfo.has_image_preview) {
-                previewUrl = Utils.getPreviewImagePath(filename);
+                previewUrl = FileStore.getFilePreviewUrl(fileInfo.id);
             } else {
                 // some images (eg animated gifs) just show the file itself and not a preview
-                previewUrl = Utils.getFileUrl(filename);
+                previewUrl = FileStore.getFileUrl(fileInfo.id);
             }
 
             const img = new Image();
@@ -181,19 +137,19 @@ class ViewImageModal extends React.Component {
                 previewUrl,
                 () => {
                     const progress = this.state.progress;
-                    progress[id] = img.completedPercentage;
+                    progress[index] = img.completedPercentage;
                     this.setState({progress});
                 }
             );
             img.onload = () => {
                 const loaded = this.state.loaded;
-                loaded[id] = true;
+                loaded[index] = true;
                 this.setState({loaded});
             };
         } else {
             // there's nothing to load for non-image files
             var loaded = this.state.loaded;
-            loaded[id] = true;
+            loaded[index] = true;
             this.setState({loaded});
         }
     }
@@ -201,7 +157,7 @@ class ViewImageModal extends React.Component {
     handleGetPublicLink() {
         this.props.onModalDismissed();
 
-        GlobalActions.showGetPublicLinkModal(this.props.filenames[this.state.imgId]);
+        GlobalActions.showGetPublicLinkModal(this.props.fileInfos[this.state.imgId].id);
     }
 
     onMouseEnterImage() {
@@ -213,63 +169,52 @@ class ViewImageModal extends React.Component {
     }
 
     render() {
-        if (this.props.filenames.length < 1 || this.props.filenames.length - 1 < this.state.imgId) {
-            return <div/>;
+        if (this.props.fileInfos.length < 1 || this.props.fileInfos.length - 1 < this.state.imgId) {
+            return null;
         }
 
-        const filename = this.props.filenames[this.state.imgId];
-        const fileUrl = Utils.getFileUrl(filename);
+        const fileInfo = this.props.fileInfos[this.state.imgId];
+        const fileUrl = FileStore.getFileUrl(fileInfo.id);
 
-        var content;
+        let content;
         if (this.state.loaded[this.state.imgId]) {
-            // this.state.fileInfo is for the current image and we shoudl have it before we load the image
-            const fileInfo = this.state.fileInfo;
             const fileType = Utils.getFileType(fileInfo.extension);
 
             if (fileType === 'image') {
                 content = (
                     <ImagePreview
-                        filename={filename}
-                        fileUrl={fileUrl}
                         fileInfo={fileInfo}
+                        fileUrl={fileUrl}
                         maxHeight={this.state.imgHeight}
                     />
                 );
             } else if (fileType === 'video' || fileType === 'audio') {
                 content = (
                     <AudioVideoPreview
-                        filename={filename}
+                        fileInfo={fileInfo}
                         fileUrl={fileUrl}
-                        fileInfo={this.state.fileInfo}
                         maxHeight={this.state.imgHeight}
-                        formatMessage={this.props.intl.formatMessage}
                     />
                 );
-            } else if (PDFPreview.support(filename)) {
+            } else if (PDFPreview.supports(fileInfo)) {
                 content = (
                     <PDFPreview
-                        filename={filename}
-                        fileUrl={fileUrl}
                         fileInfo={fileInfo}
-                        formatMessage={this.props.intl.formatMessage}
+                        fileUrl={fileUrl}
                     />
                 );
-            } else if (CodePreview.support(filename)) {
+            } else if (CodePreview.supports(fileInfo)) {
                 content = (
                     <CodePreview
-                        filename={filename}
-                        fileUrl={fileUrl}
                         fileInfo={fileInfo}
-                        formatMessage={this.props.intl.formatMessage}
+                        fileUrl={fileUrl}
                     />
                 );
             } else {
                 content = (
                     <FileInfoPreview
-                        filename={filename}
-                        fileUrl={fileUrl}
                         fileInfo={fileInfo}
-                        formatMessage={this.props.intl.formatMessage}
+                        fileUrl={fileUrl}
                     />
                 );
             }
@@ -280,14 +225,14 @@ class ViewImageModal extends React.Component {
             content = (
                 <LoadingImagePreview
                     progress={progress}
-                    loading={this.props.intl.formatMessage(holders.loading)}
+                    loading={Utils.localizeMessage('view_image.loading', 'Loading ')}
                 />
             );
         }
 
         let leftArrow = null;
         let rightArrow = null;
-        if (this.props.filenames.length > 1) {
+        if (this.props.fileInfos.length > 1) {
             leftArrow = (
                 <a
                     ref='previewArrowLeft'
@@ -346,8 +291,8 @@ class ViewImageModal extends React.Component {
                             <ViewImagePopoverBar
                                 show={this.state.showFooter}
                                 fileId={this.state.imgId}
-                                totalFiles={this.props.filenames.length}
-                                filename={name}
+                                totalFiles={this.props.fileInfos.length}
+                                filename={fileInfo.name}
                                 fileURL={fileUrl}
                                 onGetPublicLink={this.handleGetPublicLink}
                             />
@@ -363,19 +308,13 @@ class ViewImageModal extends React.Component {
 
 ViewImageModal.defaultProps = {
     show: false,
-    filenames: [],
-    channelId: '',
-    userId: '',
+    fileInfos: [],
     startId: 0
 };
 ViewImageModal.propTypes = {
-    intl: intlShape.isRequired,
     show: React.PropTypes.bool.isRequired,
     onModalDismissed: React.PropTypes.func.isRequired,
-    filenames: React.PropTypes.array,
-    modalId: React.PropTypes.string,
-    channelId: React.PropTypes.string,
-    userId: React.PropTypes.string,
+    fileInfos: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
     startId: React.PropTypes.number
 };
 
@@ -405,10 +344,10 @@ LoadingImagePreview.propTypes = {
     loading: React.PropTypes.string
 };
 
-function ImagePreview({filename, fileUrl, fileInfo, maxHeight}) {
+function ImagePreview({fileInfo, fileUrl, maxHeight}) {
     let previewUrl;
     if (fileInfo.has_preview_image) {
-        previewUrl = Utils.getPreviewImagePath(filename);
+        previewUrl = FileStore.getFilePreviewUrl(fileInfo.id);
     } else {
         previewUrl = fileUrl;
     }
@@ -429,10 +368,7 @@ function ImagePreview({filename, fileUrl, fileInfo, maxHeight}) {
 }
 
 ImagePreview.propTypes = {
-    filename: React.PropTypes.string.isRequired,
-    fileUrl: React.PropTypes.string.isRequired,
     fileInfo: React.PropTypes.object.isRequired,
+    fileUrl: React.PropTypes.string.isRequired,
     maxHeight: React.PropTypes.number.isRequired
 };
-
-export default injectIntl(ViewImageModal);

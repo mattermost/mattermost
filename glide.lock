@@ -1,5 +1,5 @@
-hash: 2ae3f557ee3ae097ee45f383aa53330f8f5457ae7c0adabdac123061061eebb4
-updated: 2016-09-22T16:28:20.153961185-04:00
+hash: afa53c89914e2b6e9cf9782c799239e036916356cd65c920dccc68eb1f5ff8d8
+updated: 2016-09-28T16:46:11.923812036-04:00
 imports:
 - name: github.com/alecthomas/log4go
   version: e5dc62318d9bd58682f1dceb53a4b24e8253682f
@@ -49,6 +49,8 @@ imports:
   - gf256
   - qr
   - qr/coding
+- name: github.com/miekg/dns
+  version: db96a2b759cdef4f11a34506a42eb8d1290c598e
 - name: github.com/mssola/user_agent
   version: 85b2f5798558a46fc23443c596e781712f4b7792
 - name: github.com/nicksnyder/go-i18n
@@ -62,6 +64,8 @@ imports:
   version: f6438dbf4a82c56684964b03956aa727b0d7816b
 - name: github.com/pborman/uuid
   version: a97ce2ca70fa5a848076093f05e639a89ca34d06
+- name: github.com/rsc/letsencrypt
+  version: 35c6e61d12298c67f1e90548d34a34585ac289da
 - name: github.com/rwcarlsen/goexif
   version: 709fab3d192d7c62f86043caff1e7e3fb0f42bd8
   subpackages:
@@ -71,8 +75,14 @@ imports:
   version: 2d840d861c322bdf5346ba7917af1c2285e653d3
 - name: github.com/segmentio/backo-go
   version: 204274ad699c0983a70203a566887f17a717fef4
+- name: github.com/tylerb/graceful
+  version: 50a48b6e73fcc75b45e22c05b79629a67c79e938
 - name: github.com/vaughan0/go-ini
   version: a98ad7ee00ec53921f08832bc06ecf7fd600e6a1
+- name: github.com/xenolf/lego
+  version: ca0bd606b23a8b50f92915772917bd187ae1491b
+  subpackages:
+  - acme
 - name: github.com/xtgo/uuid
   version: a0b114877d4caeffbd7f87e3757c17fce570fea7
 - name: golang.org/x/crypto
@@ -80,6 +90,7 @@ imports:
   subpackages:
   - bcrypt
   - blowfish
+  - ocsp
 - name: golang.org/x/image
   version: bb355ba4424d077d404aafbb59b05776b2e88fa7
   subpackages:
@@ -88,19 +99,33 @@ imports:
   - math/fixed
   - tiff
   - tiff/lzw
+- name: golang.org/x/net
+  version: f09c4662a0bd6bd8943ac7b4931e185df9471da4
+  subpackages:
+  - context
+  - publicsuffix
 - name: golang.org/x/sys
   version: 8f0908ab3b2457e2e15403d3697c9ef5cb4b57a9
   subpackages:
   - unix
+- name: golang.org/x/time
+  version: 711ca1cb87636abec28122ef3bc6a77269d433f3
+  subpackages:
+  - rate
 - name: gopkg.in/asn1-ber.v1
   version: 4e86f4367175e39f69d9358a5f17b4dda270378d
 - name: gopkg.in/fsnotify.v1
   version: a8a77c9133d2d6fd8334f3260d06f60e8d80a5fb
+- name: gopkg.in/square/go-jose.v1
+  version: aa2e30fdd1fe9dd3394119af66451ae790d50e0d
+  subpackages:
+  - cipher
+  - json
 - name: gopkg.in/throttled/throttled.v2
   version: b5675e93f9d999b22f92d859a5bf2138d3641af4
   subpackages:
   - store
   - store/memstore
 - name: gopkg.in/yaml.v2
-  version: 31c299268d302dd0aa9a0dcf765a3d58971ac83f
+  version: a5b47d31c556af34a302ce5d659e6fea44d90de0
 testImports: []

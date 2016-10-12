@@ -90,7 +90,7 @@ class LicenseSettings extends React.Component {
     render() {
         var serverError = '';
         if (this.state.serverError) {
-            serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
+            serverError = <div className='col-sm-12'><div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div></div>;
         }
 
         var btnClass = 'btn';
