@@ -597,8 +597,6 @@ func TestIncomingWebhooks(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	Client.Must(Client.CreateDirectChannel(user2.Id))
-
 	if _, err := Client.DoPost(url, fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"@%s\"}", user2.Username), "application/json"); err != nil {
 		t.Fatal(err)
 	}

@@ -75,6 +75,7 @@ type TeamStore interface {
 
 type ChannelStore interface {
 	Save(channel *model.Channel) StoreChannel
+	CreateDirectChannel(userId string, otherUserId string) StoreChannel
 	SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) StoreChannel
 	Update(channel *model.Channel) StoreChannel
 	Get(id string) StoreChannel
