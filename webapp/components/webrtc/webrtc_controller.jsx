@@ -97,6 +97,7 @@ export default class WebrtcController extends React.Component {
             isAnswering: false,
             callInProgress: false,
             error: null,
+            errorType: '',
             ended: null
         };
     }
@@ -155,7 +156,7 @@ export default class WebrtcController extends React.Component {
 
     clearError() {
         setTimeout(() => {
-            this.setState({error: null, ended: null});
+            this.setState({error: null, ended: null, errorType: ''});
         }, Constants.WEBRTC_CLEAR_ERROR_DELAY);
     }
 
@@ -296,7 +297,8 @@ export default class WebrtcController extends React.Component {
                         id='webrtc.inProgress'
                         defaultMessage='You have a call in progress. Please hangup first.'
                     />
-                )
+                ),
+                errorType: ' warning'
             });
             this.clearError();
             break;
@@ -381,7 +383,8 @@ export default class WebrtcController extends React.Component {
                         id='webrtc.inProgress'
                         defaultMessage='You have a call in progress. Please hangup first.'
                     />
-                )
+                ),
+                errorType: ' warning'
             });
         } else if (this.state.isCalling) {
             this.handleCancelOffer();
@@ -1054,6 +1057,7 @@ export default class WebrtcController extends React.Component {
         let localImage;
         let localVideoHidden;
         let remoteVideoHidden = 'hidden';
+        let remoteVideoHiddenLocal = 'full';
         let error;
         let remoteMute;
         let videoClass = '';
@@ -1064,7 +1068,7 @@ export default class WebrtcController extends React.Component {
             error = (
                 <div className='webrtc__error'>
                     <div className='form-group has-error'>
-                        <label className='control-label'>{this.state.error}</label>
+                        <label className={'control-label' + this.state.errorType}>{this.state.error}</label>
                     </div>
                 </div>
             );
@@ -1144,9 +1148,11 @@ export default class WebrtcController extends React.Component {
 
             if (this.state.isRemotePaused) {
                 remoteVideoHidden = 'hidden';
+                remoteVideoHiddenLocal = 'full';
                 remoteImageHidden = 'webrtc__remote-image';
             } else {
                 remoteVideoHidden = '';
+                remoteVideoHiddenLocal = '';
                 remoteImageHidden = 'webrtc__remote-image hidden';
             }
         } else {
@@ -1180,7 +1186,7 @@ export default class WebrtcController extends React.Component {
                             </div>
                             <div
                                 id='local-video'
-                                className={localVideoHidden}
+                                className={localVideoHidden + ' ' + remoteVideoHiddenLocal}
                             >
                                 <video
                                     ref='local-video'

@@ -206,7 +206,7 @@ export default class EditPostModal extends React.Component {
                 tabIndex='-1'
                 aria-hidden='true'
             >
-                <div className='modal-dialog modal-push-down'>
+                <div className='modal-dialog modal-push-down modal-xl'>
                     <div className='modal-content'>
                         <div className='modal-header'>
                             <button
