@@ -814,14 +814,6 @@
     "translation": "이모티콘을 생성할 수 없습니다. 이미지 최대크기는 128px * 128px 입니다."
   },
   {
-    "id": "api.file.file_upload.exceeds",
-    "translation": "파일이 최대 이미지 용량보다 큽니다."
-  },
-  {
-    "id": "api.file.get_file.not_found.app_error",
-    "translation": "파일을 찾을 수 없습니다."
-  },
-  {
     "id": "api.file.get_file.public_disabled.app_error",
     "translation": "시스템 관리자가 개인 링크들 저장을 할 수 없도록 했습니다."
   },
@@ -830,32 +822,116 @@
     "translation": "유효하지 않은 링크입니다."
   },
   {
+    "id": "api.file.get_file_preview.no_thumbnail.app_error",
+    "translation": "File doesn't have a preview image"
+  },
+  {
+    "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
+    "translation": "File doesn't have a thumbnail image"
+  },
+  {
+    "id": "api.file.get_info_for_request.no_post.app_error",
+    "translation": "Unable to get info for file. File must be attached to a post that can be read by the current user."
+  },
+  {
+    "id": "api.file.get_info_for_request.storage.app_error",
+    "translation": "파일을 업로드할 수 없습니다. 이미지 저장소가 설정되지 않았습니다."
+  },
+  {
+    "id": "api.file.get_public_file_old.storage.app_error",
+    "translation": "파일을 업로드할 수 없습니다. 이미지 저장소가 설정되지 않았습니다."
+  },
+  {
+    "id": "api.file.get_public_file_old.storage.app_error",
+    "translation": "파일을 업로드할 수 없습니다. 이미지 저장소가 설정되지 않았습니다."
+  },
+  {
     "id": "api.file.get_public_link.disabled.app_error",
     "translation": "개인 링크들을 사용할 수 없어졌습니다."
   },
   {
+    "id": "api.file.get_public_link.no_post.app_error",
+    "translation": "Unable to get public link for file. File must be attached to a post that can be read by the current user."
+  },
+  {
     "id": "api.file.handle_images_forget.decode.error",
-    "translation": "이미지를 복호화 할 수 없습니다. channelId=%v userId=%v filename=%v err=%v"
+    "translation": "이미지를 디코딩 할 수 없습니다 err=%v"
   },
   {
     "id": "api.file.handle_images_forget.encode_jpeg.error",
-    "translation": "이미지를 jpeg로 변환 할 수 없습니다. channelId=%v userId=%v filename=%v err=%v"
+    "translation": "Unable to encode image as jpeg path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.encode_preview.error",
-    "translation": "미리보기 jpg로 변환할 수 없습니다. channelId=%v userId=%v filename=%v err=%v"
+    "translation": "Unable to encode image as preview jpg path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.upload_preview.error",
-    "translation": "미리보기를 업로드 할 수 없습니다. channelId=%v userId=%v filename=%v err=%v"
+    "translation": "Unable to upload preview path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.upload_thumb.error",
-    "translation": "썸네일을 업로드 할 수 없습니다. channelId=%v userId=%v filename=%v err=%v"
+    "translation": "Unable to upload thumbnail path=%v err=%v"
   },
   {
     "id": "api.file.init.debug",
     "translation": "파일 API 경로 초기화 중"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.channel.app_error",
+    "translation": "Unable to get channel when migrating post to use FileInfos, post_id=%v, channel_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.file_not_found.warn",
+    "translation": "Unable to find file when migrating post to use FileInfos, post_id=%v, filename=%v, path=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.get_file_infos_again.warn",
+    "translation": "Unable to get FileInfos for post after migratio, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.get_post_again.warn",
+    "translation": "Unable to get post when migrating to use FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.info.app_error",
+    "translation": "Unable to fully decode file info when migrating post to use FileInfos, post_id=%v, filename=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.migrating_post.debug",
+    "translation": "Migrating post to use FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.mismatched_filename.warn",
+    "translation": "Found an unusual filename when migrating post to use FileInfos, post_id=%v, channel_id=%v, user_id=%v, filename=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.no_filenames.warn",
+    "translation": "Unable to migrate post to use FileInfos with an empty Filenames field, post_id=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.not_migrating_post.debug",
+    "translation": "Post already migrated to use FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.save_file_info.warn",
+    "translation": "Unable to save post when migrating post to use FileInfos, post_id=%v, file_id=%v, path=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.save_post.warn",
+    "translation": "Unable to save file info when migrating post to use FileInfos, post_id=%v, file_id=%v, filename=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.team_id.app_error",
+    "translation": "Unable to find team for FileInfos, post_id=%v, filenames=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.teams.app_error",
+    "translation": "Unable to get teams when migrating post to use FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.unexpected_filename.error",
+    "translation": "Unable to decipher filename when migrating post to use FileInfos, post_id=%v, filename=%v"
   },
   {
     "id": "api.file.move_file.configured.app_error",
@@ -900,10 +976,6 @@
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "로컬 서버 저장소를 읽는 도중 에러가 발생했습니다."
-  },
-  {
-    "id": "api.file.upload_file.image.app_error",
-    "translation": "이미지 파일을 업로드 할 수 없습니다."
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -1146,6 +1218,10 @@
     "translation": "{{.Username}}이 멘션되었으나, 그는 이 채널에 속하지 않기 때문에 알림을 받지 못했습니다."
   },
   {
+    "id": "api.post.create_post.attach_files.error",
+    "translation": "Encountered error attaching files to post, post_id=%s, user_id=%s, file_ids=%v, err=%v"
+  },
+  {
     "id": "api.post.create_post.bad_filename.error",
     "translation": "잘못된 파일 이름은 사용할 수 없습니다, filename=%v"
   },
@@ -1182,11 +1258,19 @@
     "translation": "작업을 할 수 있는 권한이 없습니다"
   },
   {
+    "id": "api.post.delete_post_files.app_error.warn",
+    "translation": "Encountered error when deleting files for post, post_id=%v, err=%v"
+  },
+  {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
       "one": "{{.Count}} file sent: {{.Filenames}}",
       "other": "{{.Count}} files sent: {{.Filenames}}"
     }
+  },
+  {
+    "id": "api.post.get_message_for_notification.get_files.error",
+    "translation": "Encountered error when getting files for notification message, post_id=%v, err=%v"
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
@@ -1270,6 +1354,10 @@
   {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
     "translation": "Failed to retrieve comment thread posts in notifications root_post_id=%v, err=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.files.error",
+    "translation": "Failed to get files for post notification post_id=%v, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.get_teams.error",
@@ -1401,11 +1489,11 @@
   },
   {
     "id": "api.server.start_server.rate_limiting_memory_store",
-    "translation": "Unable to initalize rate limiting."
+    "translation": "Unable to initialize rate limiting memory store. Check MemoryStoreSize config setting."
   },
   {
-    "id": "api.server.start_server.rate_limiting_memory_store",
-    "translation": "Unable to initalize rate limiting."
+    "id": "api.server.start_server.rate_limiting_rate_limiter",
+    "translation": "Unable to initialize rate limiting."
   },
   {
     "id": "api.server.start_server.starting.critical",
@@ -1450,6 +1538,10 @@
   {
     "id": "api.slackimport.slack_add_posts.bot.warn",
     "translation": "Slack bot posts are not imported yet"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.msg_no_comment.debug",
+    "translation": "File comment undefined"
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_usr.debug",
@@ -3145,7 +3237,7 @@
   },
   {
     "id": "model.config.is_valid.max_burst.app_error",
-    "translation": "Max burst must be greater than zero."
+    "translation": "Maximum burst size must be greater than zero."
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
@@ -3170,6 +3262,10 @@
   {
     "id": "model.config.is_valid.rate_sec.app_error",
     "translation": "Invalid per sec for rate limit settings.  Must be a positive number"
+  },
+  {
+    "id": "model.config.is_valid.read_timeout.app_error",
+    "translation": "Invalid value for read timeout."
   },
   {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
@@ -3262,6 +3358,14 @@
   {
     "id": "model.config.is_valid.webrtc_turn_username.app_error",
     "translation": "WebRTC TURN Username cannot be empty if the TURN URI has been set."
+  },
+  {
+    "id": "model.config.is_valid.webserver_security.app_error",
+    "translation": "Invalid value for webserver connection security."
+  },
+  {
+    "id": "model.config.is_valid.write_timeout.app_error",
+    "translation": "Invalid value for write timeout."
   },
   {
     "id": "model.emoji.create_at.app_error",
@@ -3418,6 +3522,10 @@
   {
     "id": "model.post.is_valid.create_at.app_error",
     "translation": "Create at must be a valid time"
+  },
+  {
+    "id": "model.post.is_valid.file_ids.app_error",
+    "translation": "잘못된 파일명"
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -3876,6 +3984,10 @@
     "translation": "We couldn't get the extra info for channel members"
   },
   {
+    "id": "store.sql_channel.get_for_post.app_error",
+    "translation": "We couldn't get the channel for the given post"
+  },
+  {
     "id": "store.sql_channel.get_member.app_error",
     "translation": "채널을 찾을 수 없습니다"
   },
@@ -3886,6 +3998,10 @@
   {
     "id": "store.sql_channel.get_member_count.app_error",
     "translation": "채널을 찾을 수 없습니다"
+  },
+  {
+    "id": "store.sql_channel.get_member_for_post.app_error",
+    "translation": "We couldn't get the channel member for the given post"
   },
   {
     "id": "store.sql_channel.get_members.app_error",
@@ -4070,6 +4186,30 @@
   {
     "id": "store.sql_emoji.save.app_error",
     "translation": "채널을 찾을 수 없습니다"
+  },
+  {
+    "id": "store.sql_file_info.attach_to_post.app_error",
+    "translation": "We couldn't attach the file info to the post"
+  },
+  {
+    "id": "store.sql_file_info.delete_for_post.app_error",
+    "translation": "We couldn't delete the file info to the post"
+  },
+  {
+    "id": "store.sql_file_info.get.app_error",
+    "translation": "We couldn't get the file info"
+  },
+  {
+    "id": "store.sql_file_info.get_by_path.app_error",
+    "translation": "We couldn't get the file info by path"
+  },
+  {
+    "id": "store.sql_file_info.get_for_post.app_error",
+    "translation": "We couldn't get the file info for the post"
+  },
+  {
+    "id": "store.sql_file_info.save.app_error",
+    "translation": "We couldn't save the file info"
   },
   {
     "id": "store.sql_license.get.app_error",

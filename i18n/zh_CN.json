@@ -814,14 +814,6 @@
     "translation": "无法创建表情符。图片长宽不能超过128像素。"
   },
   {
-    "id": "api.file.file_upload.exceeds",
-    "translation": "文件超过最大图像大小。"
-  },
-  {
-    "id": "api.file.get_file.not_found.app_error",
-    "translation": "不能找到文件。"
-  },
-  {
     "id": "api.file.get_file.public_disabled.app_error",
     "translation": "系统管理员禁用了公开的链接"
   },
@@ -830,32 +822,116 @@
     "translation": "公共链接不显示是有效的"
   },
   {
+    "id": "api.file.get_file_preview.no_thumbnail.app_error",
+    "translation": "文件没有预览图"
+  },
+  {
+    "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
+    "translation": "文件没用缩略图"
+  },
+  {
+    "id": "api.file.get_info_for_request.no_post.app_error",
+    "translation": "无法获取文件公开链接。文件必须附在当前用户可读的信息上。"
+  },
+  {
+    "id": "api.file.get_info_for_request.storage.app_error",
+    "translation": "无法获得文件信息。图片存储没有配置。"
+  },
+  {
+    "id": "api.file.get_public_file_old.storage.app_error",
+    "translation": "无法上传文件。图片存储没有配置。"
+  },
+  {
+    "id": "api.file.get_public_file_old.storage.app_error",
+    "translation": "无法上传文件。图片存储没有配置。"
+  },
+  {
     "id": "api.file.get_public_link.disabled.app_error",
     "translation": "公共链接已经被禁用"
   },
   {
+    "id": "api.file.get_public_link.no_post.app_error",
+    "translation": "无法获取文件公开链接。文件必须附在当前用户可读的信息上。"
+  },
+  {
     "id": "api.file.handle_images_forget.decode.error",
-    "translation": "不能解码图片 channelId=%v userId=%v filename=%v err=%v"
+    "translation": "无法解码图片 err=%v"
   },
   {
     "id": "api.file.handle_images_forget.encode_jpeg.error",
-    "translation": "不能编码图片为 jpeg channelId=%v userId=%v filename=%v err=%v"
+    "translation": "无法编码图片成 jpeg path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.encode_preview.error",
-    "translation": "不能编码图片为预览jpg channelId=%v userId=%v filename=%v err=%v"
+    "translation": "无法编码图片成预览 jpeg path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.upload_preview.error",
-    "translation": "不能上传预览 channelId=%v userId=%v filename=%v err=%v"
+    "translation": "无法上传预览 path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.upload_thumb.error",
-    "translation": "不能上传缩略图 channelId=%v userId=%v filename=%v err=%v"
+    "translation": "无法上传缩略图 path=%v err=%v"
   },
   {
     "id": "api.file.init.debug",
     "translation": "初始化文件API路由"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.channel.app_error",
+    "translation": "无法转换信息到 FileInfos 时获取频道, post_id=%v, channel_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.file_not_found.warn",
+    "translation": "转换信息到 FileInfos 时未找到文件, post_id=%v, filename=%v, path=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.get_file_infos_again.warn",
+    "translation": "转移数据后未能获取 FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.get_post_again.warn",
+    "translation": "无法在转换信息到 FileInfos 时找到信息, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.info.app_error",
+    "translation": "无法转换信息到 FileInfos 时解码文件信息, post_id=%v, filename=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.migrating_post.debug",
+    "translation": "转换信息到使用 FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.mismatched_filename.warn",
+    "translation": "将信息转换到 FileInfos 时遇到不寻常文件名, post_id=%v, channel_id=%v, user_id=%v, filename=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.no_filenames.warn",
+    "translation": "无法转换拥有空 Filenames 栏的信息到 FileInfos, post_id=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.not_migrating_post.debug",
+    "translation": "信息已经转换到使用 FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.save_file_info.warn",
+    "translation": "转换信息到 FileInfos 时无法保存信息, post_id=%v, filename=%v, path=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.save_post.warn",
+    "translation": "无法转换信息到 FileInfos 时保存文件信息, post_id=%v, file_id=%v, filename=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.team_id.app_error",
+    "translation": "无法为 FileInfos 找到团队, post_id=%v, filenames=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.teams.app_error",
+    "translation": "无法在转换信息到 FileInfos 时找到团队, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.unexpected_filename.error",
+    "translation": "无法在转换信息到 FileInfos 时解码文件名, post_id=%v, filename=%v"
   },
   {
     "id": "api.file.move_file.configured.app_error",
@@ -900,10 +976,6 @@
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "读取本地存储时遇到错误"
-  },
-  {
-    "id": "api.file.upload_file.image.app_error",
-    "translation": "不能上传图片文件。"
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -1146,6 +1218,10 @@
     "translation": "{{.Username}}被提到了，但是他因不在此频道而不会收到通知。"
   },
   {
+    "id": "api.post.create_post.attach_files.error",
+    "translation": "附加文件到信息时遇到错误, post_id=%s, user_id=%s, file_ids=%v, err=%v"
+  },
+  {
     "id": "api.post.create_post.bad_filename.error",
     "translation": "坏文件名已去除，filename=%v"
   },
@@ -1182,11 +1258,19 @@
     "translation": "您没有对应的权限"
   },
   {
+    "id": "api.post.delete_post_files.app_error.warn",
+    "translation": "删除信息的文件时遇到错误, post_id=%v, err=%v"
+  },
+  {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
       "one": "{{.Count}} 文件已发送：{{.Filenames}}{{.Count}} 文件已发送：{{.Filenames}}",
       "other": ""
     }
+  },
+  {
+    "id": "api.post.get_message_for_notification.get_files.error",
+    "translation": "为通知信息获取文件时遇到错误, post_id=%v, err=%v"
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
@@ -1270,6 +1354,10 @@
   {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
     "translation": "在发送通知时获取注解内容时失败 root_post_id=%v, err=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.files.error",
+    "translation": "无法为信息通知获取文件 post_id=%v, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.get_teams.error",
@@ -1401,10 +1489,10 @@
   },
   {
     "id": "api.server.start_server.rate_limiting_memory_store",
-    "translation": "无法初始化频率限制。"
+    "translation": "无法初始化频率限制内存储存。检查 MemoryStoreSize 设置。"
   },
   {
-    "id": "api.server.start_server.rate_limiting_memory_store",
+    "id": "api.server.start_server.rate_limiting_rate_limiter",
     "translation": "无法初始化频率限制。"
   },
   {
@@ -1450,6 +1538,10 @@
   {
     "id": "api.slackimport.slack_add_posts.bot.warn",
     "translation": "Slack 机器人的信息未被导入"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.msg_no_comment.debug",
+    "translation": "文件评论未定义"
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_usr.debug",
@@ -3172,6 +3264,10 @@
     "translation": "速率限制设置无效。必须是正整数"
   },
   {
+    "id": "model.config.is_valid.read_timeout.app_error",
+    "translation": "错误的读取超时值。"
+  },
+  {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
     "translation": "无效的私信限制。必须为 'any' 或 'team'"
   },
@@ -3262,6 +3358,14 @@
   {
     "id": "model.config.is_valid.webrtc_turn_username.app_error",
     "translation": "如果已设 TURN 网址则 WebRTC TURN 用户名不能留空。"
+  },
+  {
+    "id": "model.config.is_valid.webserver_security.app_error",
+    "translation": "错误的网页服务器连接安全值。"
+  },
+  {
+    "id": "model.config.is_valid.write_timeout.app_error",
+    "translation": "错误的写入超时值。"
   },
   {
     "id": "model.emoji.create_at.app_error",
@@ -3418,6 +3522,10 @@
   {
     "id": "model.post.is_valid.create_at.app_error",
     "translation": "创建时必须是有效时间"
+  },
+  {
+    "id": "model.post.is_valid.file_ids.app_error",
+    "translation": "无效文件 id"
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -3876,6 +3984,10 @@
     "translation": "我们无法获得额外的信息频道成员"
   },
   {
+    "id": "store.sql_channel.get_for_post.app_error",
+    "translation": "我们无法从提供的信息获得频道"
+  },
+  {
     "id": "store.sql_channel.get_member.app_error",
     "translation": "我们无法获得该频道成员"
   },
@@ -3886,6 +3998,10 @@
   {
     "id": "store.sql_channel.get_member_count.app_error",
     "translation": "我们无法获得该频道成员数"
+  },
+  {
+    "id": "store.sql_channel.get_member_for_post.app_error",
+    "translation": "我们无法从提供的信息获得频道成员"
   },
   {
     "id": "store.sql_channel.get_members.app_error",
@@ -4070,6 +4186,30 @@
   {
     "id": "store.sql_emoji.save.app_error",
     "translation": "我们无法保存此表情符"
+  },
+  {
+    "id": "store.sql_file_info.attach_to_post.app_error",
+    "translation": "我们没法附文件信息到信息"
+  },
+  {
+    "id": "store.sql_file_info.delete_for_post.app_error",
+    "translation": "我们没法从信息删除文件信息"
+  },
+  {
+    "id": "store.sql_file_info.get.app_error",
+    "translation": "我们无法获取文件信息"
+  },
+  {
+    "id": "store.sql_file_info.get_by_path.app_error",
+    "translation": "我们无法从路径获取文件信息"
+  },
+  {
+    "id": "store.sql_file_info.get_for_post.app_error",
+    "translation": "我们没法从信息获取文件信息"
+  },
+  {
+    "id": "store.sql_file_info.save.app_error",
+    "translation": "我们无法保存文件信息"
   },
   {
     "id": "store.sql_license.get.app_error",

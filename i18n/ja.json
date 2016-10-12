@@ -814,14 +814,6 @@
     "translation": "絵文字を作成できません。画像は128x128ピクセル以内である必要があります。"
   },
   {
-    "id": "api.file.file_upload.exceeds",
-    "translation": "ファイルが最大の画像サイズを超過しました。"
-  },
-  {
-    "id": "api.file.get_file.not_found.app_error",
-    "translation": "ファイルが見付かりません。"
-  },
-  {
     "id": "api.file.get_file.public_disabled.app_error",
     "translation": "公開リンクはシステム管理者によって無効にされています"
   },
@@ -830,32 +822,116 @@
     "translation": "公開リンクが不正です"
   },
   {
+    "id": "api.file.get_file_preview.no_thumbnail.app_error",
+    "translation": "このファイルにはプレビュー画像がありません"
+  },
+  {
+    "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
+    "translation": "このファイルにはサムネイル画像がありません"
+  },
+  {
+    "id": "api.file.get_info_for_request.no_post.app_error",
+    "translation": "ファイルの情報を取得できません。ファイルは現在のユーザーが読むことができる投稿に添付されている必要があります。"
+  },
+  {
+    "id": "api.file.get_info_for_request.storage.app_error",
+    "translation": "ファイルの情報を取得できません。画像ストレージが設定されていません。"
+  },
+  {
+    "id": "api.file.get_public_file_old.storage.app_error",
+    "translation": "ファイルを取得できません。画像ストレージが設定されていません。"
+  },
+  {
+    "id": "api.file.get_public_file_old.storage.app_error",
+    "translation": "ファイルを取得できません。画像ストレージが設定されていません。"
+  },
+  {
     "id": "api.file.get_public_link.disabled.app_error",
     "translation": "公開リンクが無効化されています"
   },
   {
+    "id": "api.file.get_public_link.no_post.app_error",
+    "translation": "ファイルの公開リンクを取得できません。ファイルは現在のユーザーが読むことができる投稿に添付されている必要があります。"
+  },
+  {
     "id": "api.file.handle_images_forget.decode.error",
-    "translation": "画像をデコードできません channelId=%v userId=%v filename=%v err=%v"
+    "translation": "画像をデコードできません  err=%v"
   },
   {
     "id": "api.file.handle_images_forget.encode_jpeg.error",
-    "translation": "画像をJPEG形式にできません channelId=%v userId=%v filename=%v err=%v"
+    "translation": "画像をjpegとしてエンコードできません path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.encode_preview.error",
-    "translation": "画像をプレビュー用のJPEG形式にできません channelId=%v userId=%v filename=%v err=%v"
+    "translation": "画像をプレビューjpgとしてエンコードできません path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.upload_preview.error",
-    "translation": "プレビューをアップロードできません channelId=%v userId=%v filename=%v err=%v"
+    "translation": "プレビューをアップロードできません path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.upload_thumb.error",
-    "translation": "サムネイルをアップロードできません channelId=%v userId=%v filename=%v err=%v"
+    "translation": "サムネイルをアップロードできません path=%v err=%v"
   },
   {
     "id": "api.file.init.debug",
     "translation": "ファイルAPIルートを初期化しています"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.channel.app_error",
+    "translation": "FileInfosを利用した投稿へ移行する際にチャンネルを取得できませんでした post_id=%v, channel_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.file_not_found.warn",
+    "translation": "FileInfosを利用した投稿に移行する際にファイルが見付かりませんでした post_id=%v, filename=%v, path=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.get_file_infos_again.warn",
+    "translation": "Unable to get FileInfos for post after migratio, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.get_post_again.warn",
+    "translation": "FileInfosを利用した投稿に移行する際にチームを取得できませんでした post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.info.app_error",
+    "translation": "FileInfosを利用した投稿に移行する際にファイル情報を完全にデコードできませんでした post_id=%v, filename=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.migrating_post.debug",
+    "translation": "Migrating post to use FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.mismatched_filename.warn",
+    "translation": "FileInfosを利用した投稿に移行する際に一般的でないファイル名が見付かりました post_id=%v, channel_id=%v, user_id=%v, filename=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.no_filenames.warn",
+    "translation": "ファイル名欄が空のため、FileInfosを利用した投稿へ移行できませんでした post_id=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.not_migrating_post.debug",
+    "translation": "Post already migrated to use FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.save_file_info.warn",
+    "translation": "FileInfosを利用した投稿に移行する際に投稿を保存できませんでした post_id=%v, file_id=%v, path=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.save_post.warn",
+    "translation": "FileInfosを利用した投稿に移行する際にファイル情報を保存できませんでした post_id=%v, file_id=%v, filename=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.team_id.app_error",
+    "translation": "FileInfosのチームが見付かりませんでした post_id=%v, filenames=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.teams.app_error",
+    "translation": "FileInfosを利用した投稿に移行する際にチームを取得できませんでした post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.unexpected_filename.error",
+    "translation": "FileInfosを利用した投稿に移行する際にファイル名を解読できませんでした post_id=%v, filename=%v"
   },
   {
     "id": "api.file.move_file.configured.app_error",
@@ -900,10 +976,6 @@
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "ローカルサーバーストレージからの読み込みに失敗しました"
-  },
-  {
-    "id": "api.file.upload_file.image.app_error",
-    "translation": "画像ファイルをアップロードできません。"
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -1146,6 +1218,10 @@
     "translation": "{{.Usernames}}が投稿に現れましたが、このチャンネルには属していません。"
   },
   {
+    "id": "api.post.create_post.attach_files.error",
+    "translation": "投稿へファイルを添付する際にエラーが発生しました post_id=%s, user_id=%s, file_ids=%v, err=%v"
+  },
+  {
     "id": "api.post.create_post.bad_filename.error",
     "translation": "不正なファイル名は使えません filename=%v"
   },
@@ -1182,11 +1258,19 @@
     "translation": "あなたには必要な権限が付与されていません"
   },
   {
+    "id": "api.post.delete_post_files.app_error.warn",
+    "translation": "投稿のファイルを削除する際にエラーが発生しました post_id=%v, err=%v"
+  },
+  {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
       "one": "{{.Count}} ファイル送信: {{.Filenames}}{{.Count}} ファイル送信: {{.Filenames}}",
       "other": ""
     }
+  },
+  {
+    "id": "api.post.get_message_for_notification.get_files.error",
+    "translation": "通知メッセージのファイルを取得する際にエラーが発生しました post_id=%v, err=%v"
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
@@ -1270,6 +1354,10 @@
   {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
     "translation": "通知内のコメントスレッドの投稿を取得できませんでした root_post_id=%v、err=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.files.error",
+    "translation": "投稿通知のファイルの取得に失敗しました post_id=%v, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.get_teams.error",
@@ -1401,10 +1489,10 @@
   },
   {
     "id": "api.server.start_server.rate_limiting_memory_store",
-    "translation": "投稿頻度制限を初期化できません。"
+    "translation": "Unable to initialize rate limiting memory store. Check MemoryStoreSize config setting."
   },
   {
-    "id": "api.server.start_server.rate_limiting_memory_store",
+    "id": "api.server.start_server.rate_limiting_rate_limiter",
     "translation": "投稿頻度制限を初期化できません。"
   },
   {
@@ -1450,6 +1538,10 @@
   {
     "id": "api.slackimport.slack_add_posts.bot.warn",
     "translation": "Slack botの投稿はまだインポートされていません"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.msg_no_comment.debug",
+    "translation": "File comment undefined"
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_usr.debug",
@@ -2517,7 +2609,7 @@
   },
   {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
-    "translation": "AD/LDAPサーバーに接続できません。BindUsernameとBindPasswordを確認してください。"
+    "translation": "AD/LDAPサーバーに接続できません。バインドユーザー名とバインドパスワードを確認してください。"
   },
   {
     "id": "ent.ldap.do_login.invalid_password.app_error",
@@ -3172,6 +3264,10 @@
     "translation": "投稿頻度設定の1秒当たりの投稿数が不正です。正の数を指定してください。"
   },
   {
+    "id": "model.config.is_valid.read_timeout.app_error",
+    "translation": "Invalid value for read timeout."
+  },
+  {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
     "translation": "ダイレクトメッセージの制限が無効です。'any'か'team'にしてください"
   },
@@ -3262,6 +3358,14 @@
   {
     "id": "model.config.is_valid.webrtc_turn_username.app_error",
     "translation": "WebRTC TURNユーザー名は、TURN URIが設定されている場合には空欄にすることはできません。"
+  },
+  {
+    "id": "model.config.is_valid.webserver_security.app_error",
+    "translation": "Invalid value for webserver connection security."
+  },
+  {
+    "id": "model.config.is_valid.write_timeout.app_error",
+    "translation": "Invalid value for write timeout."
   },
   {
     "id": "model.emoji.create_at.app_error",
@@ -3418,6 +3522,10 @@
   {
     "id": "model.post.is_valid.create_at.app_error",
     "translation": "作成日時は有効な時刻にしてください"
+  },
+  {
+    "id": "model.post.is_valid.file_ids.app_error",
+    "translation": "不正なファイルIDです"
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -3876,6 +3984,10 @@
     "translation": "チャンネルメンバーに関する追加の情報を取得できませんでした"
   },
   {
+    "id": "store.sql_channel.get_for_post.app_error",
+    "translation": "その投稿のチャンネルが取得できませんでした"
+  },
+  {
     "id": "store.sql_channel.get_member.app_error",
     "translation": "チャンネルのメンバーが取得できませんでした"
   },
@@ -3886,6 +3998,10 @@
   {
     "id": "store.sql_channel.get_member_count.app_error",
     "translation": "チャンネルメンバー数を取得できませんでした"
+  },
+  {
+    "id": "store.sql_channel.get_member_for_post.app_error",
+    "translation": "その投稿のチャンネルメンバーが取得できませんでした"
   },
   {
     "id": "store.sql_channel.get_members.app_error",
@@ -4070,6 +4186,30 @@
   {
     "id": "store.sql_emoji.save.app_error",
     "translation": "絵文字を保存できませんでした"
+  },
+  {
+    "id": "store.sql_file_info.attach_to_post.app_error",
+    "translation": "投稿にファイル情報を添付できませんでした"
+  },
+  {
+    "id": "store.sql_file_info.delete_for_post.app_error",
+    "translation": "投稿のファイル情報を削除できませんでした"
+  },
+  {
+    "id": "store.sql_file_info.get.app_error",
+    "translation": "ファイル情報を取得できませんでした"
+  },
+  {
+    "id": "store.sql_file_info.get_by_path.app_error",
+    "translation": "パスからファイル情報を取得できませんでした"
+  },
+  {
+    "id": "store.sql_file_info.get_for_post.app_error",
+    "translation": "投稿のファイル情報を取得できませんでした"
+  },
+  {
+    "id": "store.sql_file_info.save.app_error",
+    "translation": "ファイル情報を保存できませんでした"
   },
   {
     "id": "store.sql_license.get.app_error",

@@ -822,14 +822,6 @@
     "translation": "The public link does not appear to be valid"
   },
   {
-    "id": "api.file.get_public_link.disabled.app_error",
-    "translation": "Public links have been disabled"
-  },
-  {
-    "id": "api.file.get_public_link.no_post.app_error",
-    "translation": "Unable to get public link for file. File must be attached to a post that can be read by the current user."
-  },
-  {
     "id": "api.file.get_file_preview.no_thumbnail.app_error",
     "translation": "File doesn't have a preview image"
   },
@@ -838,20 +830,28 @@
     "translation": "File doesn't have a thumbnail image"
   },
   {
-    "id": "api.file.get_public_file_old.storage.app_error",
-    "translation": "Unable to get file. Image storage is not configured."
-  },
-  {
-    "id": "api.file.get_public_file_old.storage.app_error",
-    "translation": "Unable to get file. Image storage is not configured."
-  },
-  {
     "id": "api.file.get_info_for_request.no_post.app_error",
     "translation": "Unable to get info for file. File must be attached to a post that can be read by the current user."
   },
   {
     "id": "api.file.get_info_for_request.storage.app_error",
     "translation": "Unable to get info for file. Image storage is not configured."
+  },
+  {
+    "id": "api.file.get_public_file_old.storage.app_error",
+    "translation": "Unable to get file. Image storage is not configured."
+  },
+  {
+    "id": "api.file.get_public_file_old.storage.app_error",
+    "translation": "Unable to get file. Image storage is not configured."
+  },
+  {
+    "id": "api.file.get_public_link.disabled.app_error",
+    "translation": "Public links have been disabled"
+  },
+  {
+    "id": "api.file.get_public_link.no_post.app_error",
+    "translation": "Unable to get public link for file. File must be attached to a post that can be read by the current user."
   },
   {
     "id": "api.file.handle_images_forget.decode.error",
@@ -978,6 +978,18 @@
     "translation": "Encountered an error reading from local server storage"
   },
   {
+    "id": "api.file.upload_file.large_image.app_error",
+    "translation": "Unable to upload image file. File is too large."
+  },
+  {
+    "id": "api.file.upload_file.storage.app_error",
+    "translation": "Unable to upload file. Image storage is not configured."
+  },
+  {
+    "id": "api.file.upload_file.too_large.app_error",
+    "translation": "Unable to upload file. File is too large."
+  },
+  {
     "id": "api.file.write_file.configured.app_error",
     "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
   },
@@ -992,18 +1004,6 @@
   {
     "id": "api.file.write_file_locally.writing.app_error",
     "translation": "Encountered an error writing to local server storage"
-  },
-  {
-    "id": "api.file.upload_file.large_image.app_error",
-    "translation": "Unable to upload image file. File is too large."
-  },
-  {
-    "id": "api.file.upload_file.storage.app_error",
-    "translation": "Unable to upload file. Image storage is not configured."
-  },
-  {
-    "id": "api.file.upload_file.too_large.app_error",
-    "translation": "Unable to upload file. File is too large."
   },
   {
     "id": "api.general.init.debug",
@@ -1262,15 +1262,15 @@
     "translation": "Encountered error when deleting files for post, post_id=%v, err=%v"
   },
   {
-    "id": "api.post.get_message_for_notification.get_files.error",
-    "translation": "Encountered error when getting files for notification message, post_id=%v, err=%v"
-  },
-  {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
       "one": "{{.Count}} file sent: {{.Filenames}}",
       "other": "{{.Count}} files sent: {{.Filenames}}"
     }
+  },
+  {
+    "id": "api.post.get_message_for_notification.get_files.error",
+    "translation": "Encountered error when getting files for notification message, post_id=%v, err=%v"
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
@@ -3132,18 +3132,6 @@
     "translation": "To must be greater than From"
   },
   {
-    "id": "model.config.is_valid.read_timeout.app_error",
-    "translation": "Invalid value for read timeout."
-  },
-  {
-    "id": "model.config.is_valid.write_timeout.app_error",
-    "translation": "Invalid value for write timeout."
-  },
-  {
-    "id": "model.config.is_valid.webserver_security.app_error",
-    "translation": "Invalid value for webserver connection security."
-  },
-  {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Unable to enable email batching when clustering is enabled"
   },
@@ -3296,6 +3284,10 @@
     "translation": "Invalid per sec for rate limit settings.  Must be a positive number"
   },
   {
+    "id": "model.config.is_valid.read_timeout.app_error",
+    "translation": "Invalid value for read timeout."
+  },
+  {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
     "translation": "Invalid direct message restriction.  Must be 'any', or 'team'"
   },
@@ -3386,6 +3378,14 @@
   {
     "id": "model.config.is_valid.webrtc_turn_username.app_error",
     "translation": "WebRTC TURN Username cannot be empty if the TURN URI has been set."
+  },
+  {
+    "id": "model.config.is_valid.webserver_security.app_error",
+    "translation": "Invalid value for webserver connection security."
+  },
+  {
+    "id": "model.config.is_valid.write_timeout.app_error",
+    "translation": "Invalid value for write timeout."
   },
   {
     "id": "model.emoji.create_at.app_error",
@@ -3544,12 +3544,12 @@
     "translation": "Create at must be a valid time"
   },
   {
-    "id": "model.post.is_valid.filenames.app_error",
-    "translation": "Invalid filenames"
-  },
-  {
     "id": "model.post.is_valid.file_ids.app_error",
     "translation": "Invalid file ids"
+  },
+  {
+    "id": "model.post.is_valid.filenames.app_error",
+    "translation": "Invalid filenames"
   },
   {
     "id": "model.post.is_valid.hashtags.app_error",
