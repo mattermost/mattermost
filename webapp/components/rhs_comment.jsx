@@ -100,13 +100,12 @@ export default class RhsComment extends React.Component {
     createDropdown() {
         const post = this.props.post;
 
-        if (post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING || post.state === Constants.POST_DELETED) {
+        if (post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING) {
             return '';
         }
 
         const isOwner = this.props.currentUser.id === post.user_id;
         var isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
-        const isSystemMessage = post.type && post.type.startsWith(Constants.SYSTEM_MESSAGE_PREFIX);
 
         var dropdownContents = [];
 
@@ -165,7 +164,7 @@ export default class RhsComment extends React.Component {
             </li>
         );
 
-        if (isOwner && !isSystemMessage) {
+        if (isOwner) {
             dropdownContents.push(
                 <li
                     role='presentation'
@@ -294,8 +293,6 @@ export default class RhsComment extends React.Component {
             profilePicContainer = '';
         }
 
-        var dropdown = this.createDropdown();
-
         let fileAttachment = null;
         if (post.file_ids && post.file_ids.length > 0) {
             fileAttachment = (
@@ -371,10 +368,10 @@ export default class RhsComment extends React.Component {
                     {this.createRemovePostButton()}
                 </li>
             );
-        } else {
+        } else if (!PostUtils.isSystemMessage(post)) {
             options = (
                 <li className='col col__reply'>
-                    {dropdown}
+                    {this.createDropdown()}
                 </li>
             );
         }
