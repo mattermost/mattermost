@@ -1431,16 +1431,6 @@ func (c *Client) GetFileInfo(fileId string) (*FileInfo, *AppError) {
 	}
 }
 
-func (c *Client) GetFileInfo(fileId string) (*FileInfo, *AppError) {
-	if r, err := c.DoApiGet(c.GetFileRoute(fileId)+"/get_info", "", ""); err != nil {
-		return nil, err
-	} else {
-		defer closeBody(r)
-		c.fillInExtraProperties(r)
-		return FileInfoFromJson(r.Body), nil
-	}
-}
-
 func (c *Client) GetPublicLink(fileId string) (string, *AppError) {
 	if r, err := c.DoApiGet(c.GetFileRoute(fileId)+"/get_public_link", "", ""); err != nil {
 		return "", err

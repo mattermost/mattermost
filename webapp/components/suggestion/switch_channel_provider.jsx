@@ -58,7 +58,10 @@ export default class SwitchChannelProvider {
                 const channel = allChannels[id];
                 if (channel.display_name.toLowerCase().startsWith(channelPrefix.toLowerCase())) {
                     channels.push(channel);
-                } else if (channel.type === Constants.DM_CHANNEL && Utils.getDirectTeammate(channel.id).username.startsWith(channelPrefix.toLowerCase())) {
+                }
+
+                // TODO: Fix with  auto-complete refactor
+                /*else if (channel.type === Constants.DM_CHANNEL && Utils.getDirectTeammate(channel.id).username.startsWith(channelPrefix.toLowerCase())) {
                     // New channel to not modify existing channel
                     const otherUser = Utils.getDirectTeammate(channel.id);
                     const newChannel = {
@@ -68,7 +71,7 @@ export default class SwitchChannelProvider {
                         status: UserStore.getStatus(otherUser.id) || 'offline'
                     };
                     channels.push(newChannel);
-                }
+                }*/
             }
 
             channels.sort((a, b) => {
