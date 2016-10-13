@@ -77,6 +77,7 @@ start-docker:
 		docker start mattermost-postgres > /dev/null; \
 	fi
 
+ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Ldap test user test.one
 	@if [ $(shell docker ps -a | grep -ci mattermost-openldap) -eq 0 ]; then \
 		echo starting mattermost-openldap; \
@@ -106,6 +107,7 @@ start-docker:
     		echo restarting mattermost-webrtc; \
     		docker start mattermost-webrtc > /dev/null; \
     	fi
+endif
 
 stop-docker:
 	@echo Stopping docker containers
