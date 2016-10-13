@@ -338,7 +338,12 @@ func PostUpdateChannelHeaderMessage(c *Context, channelId string, oldChannelHead
 			Message:   message,
 			Type:      model.POST_HEADER_CHANGE,
 			UserId:    c.Session.UserId,
+			Props: model.StringInterface{
+				"old_header": oldChannelHeader,
+				"new_header": newChannelHeader,
+			},
 		}
+
 		if _, err := CreatePost(c, post, false); err != nil {
 			l4g.Error(utils.T("api.channel.post_update_channel_header_message_and_forget.join_leave.error"), err)
 		}
