@@ -379,6 +379,15 @@ func TestUpdateChannelHeader(t *testing.T) {
 		upChannel1 = result.Data.(*model.Channel)
 	}
 
+	r1 := Client.Must(Client.GetPosts(channel1.Id, 0, 1, "")).Data.(*model.PostList)
+	if len(r1.Order) != 1 {
+		t.Fatal("Header update system message was not found")
+	} else if val, ok := r1.Posts[r1.Order[0]].Props["old_header"]; !ok || val != "" {
+		t.Fatal("Props should contain old_header with old header value")
+	} else if val, ok := r1.Posts[r1.Order[0]].Props["new_header"]; !ok || val != "new header" {
+		t.Fatal("Props should contain new_header with new header value")
+	}
+
 	if upChannel1.Header != data["channel_header"] {
 		t.Fatal("Failed to update header")
 	}
