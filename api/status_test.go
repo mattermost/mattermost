@@ -116,8 +116,8 @@ func TestStatuses(t *testing.T) {
 			t.Fatal("bad sequence number")
 		}
 
-		if len(resp.Data) != 0 {
-			t.Fatal("no status should be returned")
+		if len(resp.Data) != 2 {
+			t.Fatal("2 statuses should be returned")
 		}
 	}
 
