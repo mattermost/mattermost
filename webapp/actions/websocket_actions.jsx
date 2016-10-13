@@ -60,7 +60,6 @@ export function initialize() {
 }
 
 export function close() {
-    StatusActions.stopPeriodicStatusUpdates();
     WebSocketClient.close();
 }
 
@@ -70,7 +69,6 @@ export function getStatuses() {
 
 function handleFirstConnect() {
     getStatuses();
-    StatusActions.startPeriodicStatusUpdates();
     ErrorStore.clearLastError();
     ErrorStore.emitChange();
 }
@@ -82,7 +80,6 @@ function handleReconnect() {
     }
 
     getStatuses();
-    StatusActions.startPeriodicStatusUpdates();
     ErrorStore.clearLastError();
     ErrorStore.emitChange();
 }

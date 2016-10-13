@@ -543,16 +543,15 @@ describe('Client.User', function() {
         });
     });
 
-    /* TODO: FIX THIS TEST
-    it('getStatuses', function(done) {
+    it('getStatusesByIds', function(done) {
         TestHelper.initBasic(() => {
             var ids = [];
             ids.push(TestHelper.basicUser().id);
 
-            TestHelper.basicClient().getStatuses(
+            TestHelper.basicClient().getStatusesByIds(
                 ids,
                 function(data) {
-                    assert.equal(data[TestHelper.basicUser().id], 'online');
+                    assert.equal(data[TestHelper.basicUser().id] != null, true);
                     done();
                 },
                 function(err) {
@@ -561,7 +560,6 @@ describe('Client.User', function() {
             );
         });
     });
-    */
 
     it('setActiveChannel', function(done) {
         TestHelper.initBasic(() => {

@@ -32,6 +32,7 @@ func InitStatus() {
 	l4g.Debug(utils.T("api.status.init.debug"))
 
 	BaseRoutes.Users.Handle("/status", ApiUserRequired(getStatusesHttp)).Methods("GET")
+	BaseRoutes.Users.Handle("/status/ids", ApiUserRequired(getStatusesByIdsHttp)).Methods("POST")
 	BaseRoutes.Users.Handle("/status/set_active_channel", ApiUserRequired(setActiveChannel)).Methods("POST")
 	BaseRoutes.WebSocket.Handle("get_statuses", ApiWebSocketHandler(getStatusesWebSocket))
 	BaseRoutes.WebSocket.Handle("get_statuses_by_ids", ApiWebSocketHandler(getStatusesByIdsWebSocket))
@@ -70,6 +71,23 @@ func GetAllStatuses() (map[string]interface{}, *model.AppError) {
 
 		return statusMap, nil
 	}
+}
+
+func getStatusesByIdsHttp(c *Context, w http.ResponseWriter, r *http.Request) {
+	userIds := model.ArrayFromJson(r.Body)
+
+	if len(userIds) == 0 {
+		c.SetInvalidParam("getStatusesByIdsHttp", "user_ids")
+		return
+	}
+
+	statusMap, err := GetStatusesByIds(userIds)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(model.StringInterfaceToJson(statusMap)))
 }
 
 func getStatusesByIdsWebSocket(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {

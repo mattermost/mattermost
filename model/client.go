@@ -1577,6 +1577,18 @@ func (c *Client) GetStatuses() (*Result, *AppError) {
 	}
 }
 
+// GetStatusesByIds returns a map of string statuses using user id as the key,
+// based on the provided user ids
+func (c *Client) GetStatusesByIds(userIds []string) (*Result, *AppError) {
+	if r, err := c.DoApiPost("/users/status/ids", ArrayToJson(userIds)); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
+	}
+}
+
 // SetActiveChannel sets the the channel id the user is currently viewing.
 // The channelId key is required but the value can be blank. Returns standard
 // response.

@@ -197,6 +197,33 @@ func TestStatuses(t *testing.T) {
 	WebSocketClient.Close()
 }
 
+func TestGetStatusesByIds(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+
+	if result, err := Client.GetStatusesByIds([]string{th.BasicUser.Id}); err != nil {
+		t.Fatal(err)
+	} else {
+		statuses := result.Data.(map[string]string)
+		if len(statuses) != 1 {
+			t.Fatal("should only have 1 status")
+		}
+	}
+
+	if result, err := Client.GetStatusesByIds([]string{th.BasicUser.Id, th.BasicUser2.Id, "junk"}); err != nil {
+		t.Fatal(err)
+	} else {
+		statuses := result.Data.(map[string]string)
+		if len(statuses) != 3 {
+			t.Fatal("should have 3 statuses")
+		}
+	}
+
+	if _, err := Client.GetStatusesByIds([]string{}); err == nil {
+		t.Fatal("should have errored")
+	}
+}
+
 /*
 func TestSetActiveChannel(t *testing.T) {
 	th := Setup().InitBasic()

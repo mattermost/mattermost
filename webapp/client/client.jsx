@@ -1092,6 +1092,16 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getStatuses', success, error));
     }
 
+    getStatusesByIds(userIds, success, error) {
+        request.
+            post(`${this.getUsersRoute()}/status/ids`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(userIds).
+            end(this.handleResponse.bind(this, 'getStatuses', success, error));
+    }
+
     setActiveChannel(id, success, error) {
         request.
             post(`${this.getUsersRoute()}/status/set_active_channel`).

@@ -7,7 +7,7 @@ import ChannelStore from 'stores/channel_store.jsx';
 import PostStore from 'stores/post_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 
-import WebSocketClient from 'client/web_websocket_client.jsx';
+import Client from 'client/web_client.jsx';
 
 import {ActionTypes, Preferences, Constants} from 'utils/constants.jsx';
 
@@ -104,12 +104,12 @@ export function loadStatusesByIds(userIds) {
         return;
     }
 
-    WebSocketClient.getStatusesByIds(
+    Client.getStatusesByIds(
         userIds,
-        (resp) => {
+        (data) => {
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_STATUSES,
-                statuses: resp.data
+                statuses: data
             });
         }
     );
