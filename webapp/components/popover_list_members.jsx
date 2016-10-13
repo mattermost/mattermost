@@ -90,12 +90,6 @@ export default class PopoverListMembers extends React.Component {
                 }
 
                 if (name) {
-                    let status;
-                    if (m.status) {
-                        status = m.status;
-                    } else {
-                        status = UserStore.getStatus(m.id);
-                    }
                     popoverHtml.push(
                         <div
                             className='more-modal__row'
@@ -103,7 +97,6 @@ export default class PopoverListMembers extends React.Component {
                         >
                             <ProfilePicture
                                 src={`${Client.getUsersRoute()}/${m.id}/image?time=${m.update_at}`}
-                                status={status}
                                 width='26'
                                 height='26'
                             />

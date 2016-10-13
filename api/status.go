@@ -75,6 +75,7 @@ func GetAllStatuses() (map[string]interface{}, *model.AppError) {
 func getStatusesByIdsWebSocket(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
 	var userIds []string
 	if userIds = model.ArrayFromInterface(req.Data["user_ids"]); len(userIds) == 0 {
+		l4g.Error(model.StringInterfaceToJson(req.Data))
 		return nil, NewInvalidWebSocketParamError(req.Action, "user_ids")
 	}
 
@@ -89,17 +90,17 @@ func getStatusesByIdsWebSocket(req *model.WebSocketRequest) (map[string]interfac
 func GetStatusesByIds(userIds []string) (map[string]interface{}, *model.AppError) {
 	statusMap := map[string]interface{}{}
 
-	nonCachedUserIds := []string{}
+	missingUserIds := []string{}
 	for _, userId := range userIds {
 		if result, ok := statusCache.Get(userId); ok {
 			statusMap[userId] = result.(*model.Status).Status
 		} else {
-			nonCachedUserIds = append(nonCachedUserIds, userId)
+			missingUserIds = append(missingUserIds, userId)
 		}
 	}
 
-	if len(nonCachedUserIds) > 0 {
-		if result := <-Srv.Store.Status().GetByIds(nonCachedUserIds); result.Err != nil {
+	if len(missingUserIds) > 0 {
+		if result := <-Srv.Store.Status().GetByIds(missingUserIds); result.Err != nil {
 			return nil, result.Err
 		} else {
 			statuses := result.Data.([]*model.Status)
@@ -108,6 +109,13 @@ func GetStatusesByIds(userIds []string) (map[string]interface{}, *model.AppError
 				AddStatusCache(s)
 				statusMap[s.UserId] = s.Status
 			}
+		}
+	}
+
+	// For the case where the user does not have a row in the Status table and cache
+	for _, userId := range missingUserIds {
+		if _, ok := statusMap[userId]; !ok {
+			statusMap[userId] = model.STATUS_OFFLINE
 		}
 	}
 
@@ -188,6 +196,11 @@ func SetStatusOffline(userId string, manual bool) {
 	if result := <-Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
 		l4g.Error(utils.T("api.status.save_status.error"), userId, result.Err)
 	}
+
+	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_STATUS_CHANGE, "", "", status.UserId, nil)
+	event.Add("status", model.STATUS_OFFLINE)
+	event.Add("user_id", status.UserId)
+	go Publish(event)
 }
 
 func SetStatusAwayIfNeeded(userId string, manual bool) {
@@ -288,7 +301,9 @@ func SetActiveChannel(userId string, channelId string) *model.AppError {
 		status = &model.Status{userId, model.STATUS_ONLINE, false, model.GetMillis(), channelId}
 	} else {
 		status.ActiveChannel = channelId
-		status.Status = model.STATUS_ONLINE
+		if !status.Manual {
+			status.Status = model.STATUS_ONLINE
+		}
 		status.LastActivityAt = model.GetMillis()
 	}
 

@@ -51,7 +51,7 @@ func (c *WebConn) readPump() {
 	c.WebSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
 	c.WebSocket.SetPongHandler(func(string) error {
 		c.WebSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
-		//go SetStatusAwayIfNeeded(c.UserId, false)
+		go SetStatusAwayIfNeeded(c.UserId, false)
 		return nil
 	})
 

@@ -8,6 +8,7 @@ import TeamStore from 'stores/team_store.jsx';
 import ErrorStore from 'stores/error_store.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
+import {loadStatusesForProfilesMap} from 'actions/status_actions.jsx';
 
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import Client from 'client/web_client.jsx';
@@ -360,6 +361,8 @@ export function getProfilesInChannel(channelId = ChannelStore.getCurrentId(), of
                 offset,
                 count: Object.keys(data).length
             });
+
+            loadStatusesForProfilesMap(data);
         },
         (err) => {
             callTracker[`getProfilesInChannel${offset}${limit}`] = 0;
@@ -388,6 +391,8 @@ export function getProfilesNotInChannel(channelId = ChannelStore.getCurrentId(),
                 offset,
                 count: Object.keys(data).length
             });
+
+            loadStatusesForProfilesMap(data);
         },
         (err) => {
             callTracker[`getProfilesNotInChannel${offset}${limit}`] = 0;

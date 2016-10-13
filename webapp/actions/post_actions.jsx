@@ -8,6 +8,8 @@ import PostStore from 'stores/post_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
+import {loadStatusesForChannel} from 'actions/status_actions.jsx';
+
 import * as PostUtils from 'utils/post_utils.jsx';
 import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
@@ -186,6 +188,7 @@ export function loadPosts(channelId = ChannelStore.getCurrentId()) {
             });
 
             loadProfilesForPosts(data.posts);
+            loadStatusesForChannel(channelId);
         },
         (err) => {
             AsyncClient.dispatchError(err, 'loadPosts');
@@ -219,6 +222,7 @@ export function loadPostsPage(channelId = ChannelStore.getCurrentId(), max = Con
             });
 
             loadProfilesForPosts(data.posts);
+            loadStatusesForChannel(channelId);
         },
         (err) => {
             AsyncClient.dispatchError(err, 'loadPostsPage');
@@ -248,6 +252,7 @@ export function loadPostsBefore(postId, offset, numPost, isPost) {
             });
 
             loadProfilesForPosts(data.posts);
+            loadStatusesForChannel(channelId);
         },
         (err) => {
             AsyncClient.dispatchError(err, 'loadPostsBefore');
@@ -277,6 +282,7 @@ export function loadPostsAfter(postId, offset, numPost, isPost) {
             });
 
             loadProfilesForPosts(data.posts);
+            loadStatusesForChannel(channelId);
         },
         (err) => {
             AsyncClient.dispatchError(err, 'loadPostsAfter');
