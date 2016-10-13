@@ -4,7 +4,6 @@
 import React from 'react';
 
 import ChannelStore from 'stores/channel_store.jsx';
-import UserStore from 'stores/user_store.jsx';
 import SuggestionStore from 'stores/suggestion_store.jsx';
 import Suggestion from './suggestion.jsx';
 import Constants from 'utils/constants.jsx';
