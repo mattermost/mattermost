@@ -51,7 +51,7 @@ func InitUser() {
 	BaseRoutes.Users.Handle("/verify_email", ApiAppHandler(verifyEmail)).Methods("POST")
 	BaseRoutes.Users.Handle("/resend_verification", ApiAppHandler(resendVerification)).Methods("POST")
 	BaseRoutes.Users.Handle("/newimage", ApiUserRequired(uploadProfileImage)).Methods("POST")
-	BaseRoutes.Users.Handle("/me", ApiAppHandler(getMe)).Methods("GET")
+	BaseRoutes.Users.Handle("/me", ApiUserRequired(getMe)).Methods("GET")
 	BaseRoutes.Users.Handle("/initial_load", ApiAppHandler(getInitialLoad)).Methods("GET")
 	BaseRoutes.Users.Handle("/direct_profiles", ApiUserRequired(getDirectProfiles)).Methods("GET")
 	BaseRoutes.Users.Handle("/profiles/{id:[A-Za-z0-9]+}", ApiUserRequired(getProfiles)).Methods("GET")
@@ -842,10 +842,6 @@ func Logout(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getMe(c *Context, w http.ResponseWriter, r *http.Request) {
-
-	if len(c.Session.UserId) == 0 {
-		return
-	}
 
 	if result := <-Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
 		c.Err = result.Err
