@@ -325,13 +325,10 @@ class ChannelStoreClass extends EventEmitter {
         const ch = this.get(id);
         const chMember = this.getMember(id);
 
-        let chMentionCount = chMember.mention_count;
+        const chMentionCount = chMember.mention_count;
         let chUnreadCount = ch.total_msg_count - chMember.msg_count;
 
-        // Temporary workaround for DM channels having wrong unread values
-        if (ch.type === 'D') {
-            chMentionCount = 0;
-        } else if (chMember.notify_props && chMember.notify_props.mark_unread === NotificationPrefs.MENTION) {
+        if (chMember.notify_props && chMember.notify_props.mark_unread === NotificationPrefs.MENTION) {
             chUnreadCount = 0;
         }
 
