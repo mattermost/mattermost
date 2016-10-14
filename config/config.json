@@ -125,9 +125,8 @@
         "EmailBatchingInterval": 30
     },
     "RateLimitSettings": {
-        "Enable": false,
+        "EnableRateLimiter": true,
         "PerSec": 10,
-        "MaxBurst": 100,
         "MemoryStoreSize": 10000,
         "VaryByRemoteAddr": true,
         "VaryByHeader": ""
