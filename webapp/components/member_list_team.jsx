@@ -38,6 +38,7 @@ export default class MemberListTeam extends React.Component {
 
     componentDidMount() {
         UserStore.addInTeamChangeListener(this.onChange);
+        UserStore.addStatusesChangeListener(this.onChange);
         TeamStore.addChangeListener(this.onChange);
         TeamStore.addStatsChangeListener(this.onStatsChange);
 
@@ -47,6 +48,7 @@ export default class MemberListTeam extends React.Component {
 
     componentWillUnmount() {
         UserStore.removeInTeamChangeListener(this.onChange);
+        UserStore.removeStatusesChangeListener(this.onChange);
         TeamStore.removeChangeListener(this.onChange);
         TeamStore.removeStatsChangeListener(this.onStatsChange);
     }

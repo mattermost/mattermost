@@ -3,8 +3,6 @@
 
 import $ from 'jquery';
 
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
-
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import PostStore from 'stores/post_store.jsx';
@@ -22,8 +20,9 @@ import * as AsyncClient from 'utils/async_client.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {handleNewPost, loadPosts} from 'actions/post_actions.jsx';
 import {loadProfilesAndTeamMembersForDMSidebar} from 'actions/user_actions.jsx';
+import * as StatusActions from 'actions/status_actions.jsx';
 
-import {Constants, SocketEvents, ActionTypes} from 'utils/constants.jsx';
+import {Constants, SocketEvents, UserStatuses} from 'utils/constants.jsx';
 
 import {browserHistory} from 'react-router/es6';
 
@@ -65,14 +64,7 @@ export function close() {
 }
 
 export function getStatuses() {
-    WebSocketClient.getStatuses(
-        (resp) => {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_STATUSES,
-                statuses: resp.data
-            });
-        }
-    );
+    StatusActions.loadStatusesForChannelAndSidebar();
 }
 
 function handleFirstConnect() {
@@ -175,6 +167,10 @@ function handleEvent(msg) {
 function handleNewPostEvent(msg) {
     const post = JSON.parse(msg.data.post);
     handleNewPost(post, msg);
+
+    if (UserStore.getStatus(post.user_id) !== UserStatuses.ONLINE) {
+        StatusActions.loadStatusesByIds([post.user_id]);
+    }
 }
 
 function handlePostEditEvent(msg) {
@@ -289,6 +285,10 @@ function handlePreferenceChangedEvent(msg) {
 
 function handleUserTypingEvent(msg) {
     GlobalActions.emitRemoteUserTypingEvent(msg.broadcast.channel_id, msg.data.user_id, msg.data.parent_id);
+
+    if (UserStore.getStatus(msg.data.user_id) !== UserStatuses.ONLINE) {
+        StatusActions.loadStatusesByIds([msg.data.user_id]);
+    }
 }
 
 function handleStatusChangedEvent(msg) {

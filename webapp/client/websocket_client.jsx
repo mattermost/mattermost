@@ -163,4 +163,10 @@ export default class WebSocketClient {
     getStatuses(callback) {
         this.sendMessage('get_statuses', null, callback);
     }
+
+    getStatusesByIds(userIds, callback) {
+        const data = {};
+        data.user_ids = userIds;
+        this.sendMessage('get_statuses_by_ids', data, callback);
+    }
 }

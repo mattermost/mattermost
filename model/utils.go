@@ -175,6 +175,23 @@ func ArrayFromJson(data io.Reader) []string {
 	}
 }
 
+func ArrayFromInterface(data interface{}) []string {
+	stringArray := []string{}
+
+	dataArray, ok := data.([]interface{})
+	if !ok {
+		return stringArray
+	}
+
+	for _, v := range dataArray {
+		if str, ok := v.(string); ok {
+			stringArray = append(stringArray, str)
+		}
+	}
+
+	return stringArray
+}
+
 func StringInterfaceToJson(objmap map[string]interface{}) string {
 	if b, err := json.Marshal(objmap); err != nil {
 		return ""

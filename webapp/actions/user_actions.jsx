@@ -8,6 +8,8 @@ import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 
+import {loadStatusesForProfilesList, loadStatusesForProfilesMap} from 'actions/status_actions.jsx';
+
 import {getDirectChannelName} from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import Client from 'client/web_client.jsx';
@@ -47,6 +49,7 @@ export function loadProfilesAndTeamMembers(offset, limit, teamId = TeamStore.get
             });
 
             loadTeamMembersForProfilesMap(data, teamId, success, error);
+            loadStatusesForProfilesMap(data);
         },
         (err) => {
             AsyncClient.dispatchError(err, 'getProfilesInTeam');
@@ -261,6 +264,8 @@ export function searchUsers(term, teamId = TeamStore.getCurrentId(), options = {
         teamId,
         options,
         (data) => {
+            loadStatusesForProfilesList(data);
+
             if (success) {
                 success(data);
             }

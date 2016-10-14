@@ -206,7 +206,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.Err == nil && h.isUserActivity && token != "" && len(c.Session.UserId) > 0 {
-		//SetStatusOnline(c.Session.UserId, c.Session.Id, false)
+		SetStatusOnline(c.Session.UserId, c.Session.Id, false)
 	}
 
 	if c.Err == nil {
@@ -220,7 +220,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.LogError(c.Err)
 		c.Err.Where = r.URL.Path
 
-		// Block out detailed error whenn not in developer mode
+		// Block out detailed error when not in developer mode
 		if !*utils.Cfg.ServiceSettings.EnableDeveloper {
 			c.Err.DetailedError = ""
 		}

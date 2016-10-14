@@ -46,6 +46,7 @@ export default class MoreDirectChannels extends React.Component {
     componentDidMount() {
         UserStore.addChangeListener(this.onChange);
         UserStore.addInTeamChangeListener(this.onChange);
+        UserStore.addStatusesChangeListener(this.onChange);
         TeamStore.addChangeListener(this.onChange);
 
         AsyncClient.getProfiles(0, Constants.PROFILE_CHUNK_SIZE);
@@ -55,6 +56,7 @@ export default class MoreDirectChannels extends React.Component {
     componentWillUnmount() {
         UserStore.removeChangeListener(this.onChange);
         UserStore.removeInTeamChangeListener(this.onChange);
+        UserStore.removeStatusesChangeListener(this.onChange);
         TeamStore.removeChangeListener(this.onChange);
     }
 

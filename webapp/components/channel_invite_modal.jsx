@@ -32,7 +32,7 @@ export default class ChannelInviteModal extends React.Component {
         this.term = '';
 
         const channelStats = ChannelStore.getStats(props.channel.id);
-        const teamStats = TeamStore.getStats();
+        const teamStats = TeamStore.getCurrentStats();
 
         this.state = {
             users: [],
@@ -43,14 +43,19 @@ export default class ChannelInviteModal extends React.Component {
 
     componentWillReceiveProps(nextProps) {
         if (!this.props.show && nextProps.show) {
+            TeamStore.addStatsChangeListener(this.onChange);
             ChannelStore.addStatsChangeListener(this.onChange);
             UserStore.addNotInChannelChangeListener(this.onChange);
+            UserStore.addStatusesChangeListener(this.onChange);
 
             this.onChange();
             AsyncClient.getProfilesNotInChannel(this.props.channel.id, 0);
+            AsyncClient.getTeamStats(TeamStore.getCurrentId());
         } else if (this.props.show && !nextProps.show) {
+            TeamStore.removeStatsChangeListener(this.onChange);
             ChannelStore.removeStatsChangeListener(this.onChange);
             UserStore.removeNotInChannelChangeListener(this.onChange);
+            UserStore.removeStatusesChangeListener(this.onChange);
         }
     }
 
@@ -67,7 +72,7 @@ export default class ChannelInviteModal extends React.Component {
         }
 
         const channelStats = ChannelStore.getStats(this.props.channel.id);
-        const teamStats = TeamStore.getStats();
+        const teamStats = TeamStore.getCurrentStats();
 
         this.setState({
             users: UserStore.getProfileListNotInChannel(this.props.channel.id),
