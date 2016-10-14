@@ -584,6 +584,21 @@ func (c *Client) SearchUsers(term string, teamId string, options map[string]stri
 	}
 }
 
+// AutocompleteUsers returns two lists for autocompletion of user mentions. The first list "in",
+// specifies users in the current context (the channel, for example). The second list "out" specifies
+// users outside of that context (users not in the channel, for example). Username is required, channel
+// id is optional. Must be authenticated.
+func (c *Client) AutocompleteUsers(username string, channelId string) (*Result, *AppError) {
+	url := fmt.Sprintf("%s/users/autocomplete?username=%s&channel_id=%s", c.GetTeamRoute(), url.QueryEscape(username), url.QueryEscape(channelId))
+	if r, err := c.DoApiGet(url, "", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), UserAutocompleteFromJson(r.Body)}, nil
+	}
+}
+
 // LoginById authenticates a user by user id and password.
 func (c *Client) LoginById(id string, password string) (*Result, *AppError) {
 	m := make(map[string]string)

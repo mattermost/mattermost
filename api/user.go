@@ -59,6 +59,7 @@ func InitUser() {
 	BaseRoutes.NeedChannel.Handle("/users/not_in_channel/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getProfilesNotInChannel)).Methods("GET")
 	BaseRoutes.Users.Handle("/search", ApiUserRequired(searchUsers)).Methods("POST")
 	BaseRoutes.Users.Handle("/ids", ApiUserRequired(getProfilesByIds)).Methods("POST")
+	BaseRoutes.NeedTeam.Handle("/users/autocomplete", ApiUserRequired(autocompleteUsers)).Methods("GET")
 
 	BaseRoutes.Users.Handle("/mfa", ApiAppHandler(checkMfa)).Methods("POST")
 	BaseRoutes.Users.Handle("/generate_mfa_qr", ApiUserRequiredTrustRequester(generateMfaQrCode)).Methods("GET")
@@ -2652,4 +2653,63 @@ func getProfilesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		w.Write([]byte(model.UserMapToJson(profiles)))
 	}
+}
+
+func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	teamId := params["team_id"]
+
+	username := r.URL.Query().Get("username")
+	channelId := r.URL.Query().Get("channel_id")
+
+	if c.Session.GetTeamByTeamId(teamId) == nil {
+		if !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
+			return
+		}
+	}
+
+	if channelId != "" && !HasPermissionToChannelContext(c, channelId, model.PERMISSION_READ_CHANNEL) {
+		return
+	}
+
+	var uchan store.StoreChannel
+	var nuchan store.StoreChannel
+	if channelId != "" {
+		uchan = Srv.Store.User().SearchInChannel(channelId, username)
+		nuchan = Srv.Store.User().SearchNotInChannel(teamId, channelId, username)
+	} else {
+		uchan = Srv.Store.User().Search(teamId, username)
+	}
+
+	autocomplete := &model.UserAutocomplete{}
+
+	if result := <-uchan; result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		profiles := result.Data.([]*model.User)
+
+		for _, p := range profiles {
+			sanitizeProfile(c, p)
+		}
+
+		autocomplete.In = profiles
+	}
+
+	if nuchan != nil {
+		if result := <-nuchan; result.Err != nil {
+			c.Err = result.Err
+			return
+		} else {
+			profiles := result.Data.([]*model.User)
+
+			for _, p := range profiles {
+				sanitizeProfile(c, p)
+			}
+
+			autocomplete.Out = profiles
+		}
+	}
+
+	w.Write([]byte(autocomplete.ToJson()))
 }
