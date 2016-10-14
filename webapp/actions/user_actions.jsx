@@ -277,3 +277,20 @@ export function searchUsers(term, teamId = TeamStore.getCurrentId(), options = {
         }
     );
 }
+
+export function autocompleteUsers(username, channelId = '', success, error) {
+    Client.autocompleteUsers(
+        username,
+        channelId,
+        (data) => {
+            if (success) {
+                success(data);
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
