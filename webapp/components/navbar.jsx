@@ -18,15 +18,19 @@ import StatusIcon from './status_icon.jsx';
 import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
+import PreferenceStore from 'stores/preference_store.jsx';
 
 import ChannelSwitchModal from './channel_switch_modal.jsx';
 
 import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
+import * as ChannelUtils from 'utils/channel_utils.jsx';
+import * as ChannelActions from 'actions/channel_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
+
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 
 import {FormattedMessage} from 'react-intl';
@@ -66,12 +70,15 @@ export default class Navbar extends React.Component {
     }
 
     getStateFromStores() {
+        const channel = ChannelStore.getCurrent();
+
         return {
-            channel: ChannelStore.getCurrent(),
+            channel,
             member: ChannelStore.getCurrentMember(),
             users: [],
             userCount: ChannelStore.getCurrentStats().member_count,
-            currentUser: UserStore.getCurrentUser()
+            currentUser: UserStore.getCurrentUser(),
+            isFavorite: channel && ChannelUtils.isFavoriteChannel(channel)
         };
     }
 
@@ -83,6 +90,7 @@ export default class Navbar extends React.Component {
         ChannelStore.addChangeListener(this.onChange);
         ChannelStore.addStatsChangeListener(this.onChange);
         UserStore.addStatusesChangeListener(this.onChange);
+        PreferenceStore.addChangeListener(this.onChange);
         $('.inner-wrap').click(this.hideSidebars);
         document.addEventListener('keydown', this.showChannelSwitchModal);
     }
@@ -91,6 +99,7 @@ export default class Navbar extends React.Component {
         ChannelStore.removeChangeListener(this.onChange);
         ChannelStore.removeStatsChangeListener(this.onChange);
         UserStore.removeStatusesChangeListener(this.onChange);
+        PreferenceStore.removeChangeListener(this.onChange);
         document.removeEventListener('keydown', this.showChannelSwitchModal);
     }
 
@@ -99,10 +108,17 @@ export default class Navbar extends React.Component {
     }
 
     handleLeave() {
-        Client.leaveChannel(this.state.channel.id,
+        var channelId = this.state.channel.id;
+
+        Client.leaveChannel(channelId,
             () => {
                 AsyncClient.getChannels(true);
-                browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/town-square');
+                if (this.state.isFavorite) {
+                    ChannelActions.unmarkFavorite(channelId);
+                }
+
+                const townsquare = ChannelStore.getByName('town-square');
+                browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + townsquare.name);
             },
             (err) => {
                 AsyncClient.dispatchError(err, 'handleLeave');
@@ -213,6 +229,16 @@ export default class Navbar extends React.Component {
 
         return true;
     }
+
+    toggleFavorite = (e) => {
+        e.preventDefault();
+
+        if (this.state.isFavorite) {
+            ChannelActions.unmarkFavorite(this.state.channel.id);
+        } else {
+            ChannelActions.markFavorite(this.state.channel.id);
+        }
+    };
 
     createDropdown(channel, channelTitle, isAdmin, isSystemAdmin, isDirect, popoverContent) {
         if (channel) {
@@ -425,6 +451,29 @@ export default class Navbar extends React.Component {
                 }
             }
 
+            const toggleFavoriteOption = (
+                <li
+                    key='toggle_favorite'
+                    role='presentation'
+                >
+                    <a
+                        role='menuitem'
+                        href='#'
+                        onClick={this.toggleFavorite}
+                    >
+                        {this.state.isFavorite ?
+                            <FormattedMessage
+                                id='channelHeader.removeFromFavorites'
+                                defaultMessage='Remove from Favorites'
+                            /> :
+                            <FormattedMessage
+                                id='channelHeader.addToFavorites'
+                                defaultMessage='Add to Favorites'
+                            />}
+                    </a>
+                </li>
+            );
+
             return (
                 <div className='navbar-brand'>
                     <div className='dropdown'>
@@ -461,6 +510,7 @@ export default class Navbar extends React.Component {
                             {renameChannelOption}
                             {deleteChannelOption}
                             {leaveChannelOption}
+                            {toggleFavoriteOption}
                         </ul>
                     </div>
                 </div>

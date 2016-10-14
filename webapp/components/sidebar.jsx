@@ -14,10 +14,10 @@ import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
-import LocalizationStore from 'stores/localization_store.jsx';
 
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
+import * as ChannelUtils from 'utils/channel_utils.jsx';
 import * as ChannelActions from 'actions/channel_actions.jsx';
 import {loadProfilesAndTeamMembersForDMSidebar} from 'actions/user_actions.jsx';
 
@@ -96,63 +96,13 @@ export default class Sidebar extends React.Component {
     getStateFromStores() {
         const members = ChannelStore.getMyMembers();
         const currentChannelId = ChannelStore.getCurrentId();
-        const currentUserId = UserStore.getCurrentId();
-
-        const channels = Object.assign([], ChannelStore.getAll());
-        channels.sort(this.sortChannelsByDisplayName);
-
-        const publicChannels = channels.filter((channel) => channel.type === Constants.OPEN_CHANNEL);
-        const privateChannels = channels.filter((channel) => channel.type === Constants.PRIVATE_CHANNEL);
-
-        const preferences = PreferenceStore.getCategory(Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW);
-
-        const directChannels = [];
-        const directNonTeamChannels = [];
-        for (const [name, value] of preferences) {
-            if (value !== 'true') {
-                continue;
-            }
-
-            const teammateId = name;
-
-            let directChannel = channels.find(Utils.isDirectChannelForUser.bind(null, teammateId));
-
-            // a direct channel doesn't exist yet so create a fake one
-            if (directChannel == null) {
-                directChannel = {
-                    name: Utils.getDirectChannelName(currentUserId, teammateId),
-                    last_post_at: 0,
-                    total_msg_count: 0,
-                    type: Constants.DM_CHANNEL,
-                    fake: true
-                };
-            } else {
-                directChannel = JSON.parse(JSON.stringify(directChannel));
-            }
-
-            directChannel.display_name = Utils.displayUsername(teammateId);
-            directChannel.teammate_id = teammateId;
-            directChannel.status = UserStore.getStatus(teammateId) || 'offline';
-
-            if (TeamStore.hasActiveMemberInTeam(TeamStore.getCurrentId(), teammateId)) {
-                directChannels.push(directChannel);
-            } else if (TeamStore.hasMemberNotInTeam(TeamStore.getCurrentId(), teammateId)) {
-                directNonTeamChannels.push(directChannel);
-            }
-        }
-
-        directChannels.sort(this.sortChannelsByDisplayName);
-        directNonTeamChannels.sort(this.sortChannelsByDisplayName);
-
         const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 999);
+        const channelList = ChannelUtils.buildDisplayableChannelList(Object.assign([], ChannelStore.getAll()));
 
         return {
             activeId: currentChannelId,
             members,
-            publicChannels,
-            privateChannels,
-            directChannels,
-            directNonTeamChannels,
+            ...channelList,
             unreadCounts: JSON.parse(JSON.stringify(ChannelStore.getUnreadCounts())),
             showTutorialTip: tutorialStep === TutorialSteps.CHANNEL_POPOVER,
             currentTeam: TeamStore.getCurrent(),
@@ -379,22 +329,16 @@ export default class Sidebar extends React.Component {
                 }
             );
 
+            if (ChannelUtils.isFavoriteChannel(channel)) {
+                ChannelActions.unmarkFavorite(channel.id);
+            }
+
             this.setState(this.getStateFromStores());
         }
 
         if (channel.id === this.state.activeId) {
             browserHistory.push('/' + this.state.currentTeam.name + '/channels/town-square');
         }
-    }
-
-    sortChannelsByDisplayName(a, b) {
-        const locale = LocalizationStore.getLocale();
-
-        if (a.display_name === b.display_name) {
-            return a.name.localeCompare(b.name, locale, {numeric: true});
-        }
-
-        return a.display_name.localeCompare(b.display_name, locale, {numeric: true});
     }
 
     showMoreChannelsModal() {
@@ -522,7 +466,7 @@ export default class Sidebar extends React.Component {
                 badge = <span className='badge pull-right small'>{unreadCount.mentions}</span>;
                 this.badgesActive = true;
             }
-        } else if (this.state.loadingDMChannel === index && channel.type === 'D') {
+        } else if (this.state.loadingDMChannel === index && channel.type === Constants.DM_CHANNEL) {
             badge = (
                 <img
                     className='channel-loading-gif pull-right'
@@ -536,9 +480,9 @@ export default class Sidebar extends React.Component {
         }
 
         var icon = null;
-        if (channel.type === 'O') {
+        if (channel.type === Constants.OPEN_CHANNEL) {
             icon = <div className='status'><i className='fa fa-globe'/></div>;
-        } else if (channel.type === 'P') {
+        } else if (channel.type === Constants.PRIVATE_CHANNEL) {
             icon = <div className='status'><i className='fa fa-lock'/></div>;
         } else {
             // set up status icon for direct message channels (status is null for other channel types)
@@ -618,7 +562,15 @@ export default class Sidebar extends React.Component {
         this.firstUnreadChannel = null;
         this.lastUnreadChannel = null;
 
-        // create elements for all 3 types of channels
+        // create elements for all 4 types of channels
+        const favoriteItems = this.state.favoriteChannels.map((channel, index, arr) => {
+            if (channel.type === Constants.DM_CHANNEL) {
+                return this.createChannelElement(channel, index, arr, this.handleLeaveDirectChannel);
+            }
+
+            return this.createChannelElement(channel);
+        });
+
         const publicChannelItems = this.state.publicChannels.map(this.createChannelElement);
 
         const privateChannelItems = this.state.privateChannels.map(this.createChannelElement);
@@ -801,6 +753,17 @@ export default class Sidebar extends React.Component {
                     className='nav-pills__container'
                     onScroll={this.onScroll}
                 >
+                    {favoriteItems.length !== 0 && <ul className='nav nav-pills nav-stacked'>
+                        <li>
+                            <h4>
+                                <FormattedMessage
+                                    id='sidebar.favorite'
+                                    defaultMessage='Favorites'
+                                />
+                            </h4>
+                        </li>
+                        {favoriteItems}
+                    </ul>}
                     <ul className='nav nav-pills nav-stacked'>
                         <li>
                             <h4>
