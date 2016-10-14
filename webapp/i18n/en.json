@@ -1989,7 +1989,7 @@
   "user.settings.security.google": "Google",
   "user.settings.security.lastUpdated": "Last updated {date} at {time}",
   "user.settings.security.ldap": "AD/LDAP",
-  "user.settings.security.loginGitlab": "Login done through Gitlab",
+  "user.settings.security.loginGitlab": "Login done through GitLab",
   "user.settings.security.loginLdap": "Login done through AD/LDAP",
   "user.settings.security.logoutActiveSessions": "View and Logout of Active Sessions",
   "user.settings.security.method": "Sign-in Method",
