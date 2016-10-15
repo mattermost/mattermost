@@ -1784,7 +1784,6 @@
   "user.settings.advance.sendTitle": "CTRL + ENTERでメッセージを投稿する",
   "user.settings.advance.slashCmd_autocmp": "スラッシュコマンドの自動補完をするために外部のアプリケーションを有効にする",
   "user.settings.advance.title": "詳細の設定",
-  "user.settings.advance.webrtc_preview": "1対1のWebRTC通話をかけたり受けたりすることを可能にします",
   "user.settings.custom_theme.awayIndicator": "離席表示",
   "user.settings.custom_theme.buttonBg": "ボタンBG",
   "user.settings.custom_theme.buttonColor": "ボタンテキスト",

@@ -1784,7 +1784,6 @@
   "user.settings.advance.sendTitle": "Enviar mensajes con Ctrl + RETORNO",
   "user.settings.advance.slashCmd_autocmp": "Habilitar que una aplicación externa ofrezca el autocompletado de los comandos de barra",
   "user.settings.advance.title": "Configuración Avanzada",
-  "user.settings.advance.webrtc_preview": "Habilitar la capacidad para hacer y recibir llamadas WebRTC uno-a-uno",
   "user.settings.custom_theme.awayIndicator": "Indicador Ausente",
   "user.settings.custom_theme.buttonBg": "Fondo Botón",
   "user.settings.custom_theme.buttonColor": "Texto Botón",

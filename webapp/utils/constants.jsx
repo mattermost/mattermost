@@ -802,10 +802,6 @@ export const Constants = {
         EMBED_PREVIEW: {
             label: 'embed_preview',
             description: 'Show preview snippet of links below message'
-        },
-        WEBRTC_PREVIEW: {
-            label: 'webrtc_preview',
-            description: 'Enable WebRTC one on one calls'
         }
     },
     OVERLAY_TIME_DELAY: 400,

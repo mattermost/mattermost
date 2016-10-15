@@ -1784,7 +1784,6 @@
   "user.settings.advance.sendTitle": "Sende Nachrichten mit Strg + Enter",
   "user.settings.advance.slashCmd_autocmp": "Erlaube externe Anwendung Slash Autovervollständigung anzubieten",
   "user.settings.advance.title": "Erweiterte Einstellungen",
-  "user.settings.advance.webrtc_preview": "Enable the ability to make and receive one-on-one WebRTC calls",
   "user.settings.custom_theme.awayIndicator": "Abwesend Anzeige",
   "user.settings.custom_theme.buttonBg": "Button Hintergrund",
   "user.settings.custom_theme.buttonColor": "Button Text",

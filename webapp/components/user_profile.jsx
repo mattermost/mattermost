@@ -9,7 +9,6 @@ import * as GlobalActions from 'actions/global_actions.jsx';
 import * as WebrtcActions from 'actions/webrtc_actions.jsx';
 import Constants from 'utils/constants.jsx';
 const UserStatuses = Constants.UserStatuses;
-const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 
 import {Popover, OverlayTrigger} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
@@ -91,7 +90,7 @@ export default class UserProfile extends React.Component {
         const userMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 
         const webrtcEnabled = global.mm_config.EnableWebrtc === 'true' && global.mm_license.Webrtc === 'true' &&
-            global.mm_config.EnableDeveloper === 'true' && userMedia && Utils.isFeatureEnabled(PreReleaseFeatures.WEBRTC_PREVIEW);
+            global.mm_config.EnableDeveloper === 'true' && userMedia;
 
         if (webrtcEnabled && this.props.user.id !== this.state.currentUserId) {
             const isOnline = this.props.status !== UserStatuses.OFFLINE;
