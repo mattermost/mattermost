@@ -195,7 +195,7 @@ func StopServer() {
 
 	Srv.GracefulServer.Stop(TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN)
 	Srv.Store.Close()
-	hub.Stop()
+	HubStop()
 
 	l4g.Info(utils.T("api.server.stop_server.stopped.info"))
 }
