@@ -39,8 +39,6 @@ import {FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
 import {Tooltip, OverlayTrigger, Popover} from 'react-bootstrap';
 
-const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
-
 export default class ChannelHeader extends React.Component {
     constructor(props) {
         super(props);
@@ -284,7 +282,7 @@ export default class ChannelHeader extends React.Component {
             }
 
             const webrtcEnabled = global.mm_config.EnableWebrtc === 'true' && global.mm_license.Webrtc === 'true' &&
-                global.mm_config.EnableDeveloper === 'true' && userMedia && Utils.isFeatureEnabled(PreReleaseFeatures.WEBRTC_PREVIEW);
+                global.mm_config.EnableDeveloper === 'true' && userMedia;
 
             if (webrtcEnabled) {
                 const isOffline = UserStore.getStatus(contact.id) === UserStatuses.OFFLINE;

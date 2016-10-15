@@ -1784,7 +1784,6 @@
   "user.settings.advance.sendTitle": "Enviar mensagens com CTRL + ENTER",
   "user.settings.advance.slashCmd_autocmp": "Ativar aplicação externa para autocompletar comandos slash",
   "user.settings.advance.title": "Configurações Avançadas",
-  "user.settings.advance.webrtc_preview": "Ativar a capacidade de fazer e receber chamadas WebRTC um-pra-um",
   "user.settings.custom_theme.awayIndicator": "Indicador de Afastamento",
   "user.settings.custom_theme.buttonBg": "Fundo Botão",
   "user.settings.custom_theme.buttonColor": "Texto do Botão",

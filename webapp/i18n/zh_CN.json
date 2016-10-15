@@ -1784,7 +1784,6 @@
   "user.settings.advance.sendTitle": "按 Ctrl+Enter 发送消息",
   "user.settings.advance.slashCmd_autocmp": "启用外部应用程序提供斜杠命令的自动补全功能",
   "user.settings.advance.title": "高级设置",
-  "user.settings.advance.webrtc_preview": "开启使用 WebRTC 的一对一通话",
   "user.settings.custom_theme.awayIndicator": "离开显示",
   "user.settings.custom_theme.buttonBg": "按钮BG",
   "user.settings.custom_theme.buttonColor": "文本按钮",

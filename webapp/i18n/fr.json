@@ -1784,7 +1784,6 @@
   "user.settings.advance.sendTitle": "Envoyer vos messages avec Ctrl+Entrée",
   "user.settings.advance.slashCmd_autocmp": "Autoriser les applications externes à propose l'auto-complétion",
   "user.settings.advance.title": "Paramètres avancés",
-  "user.settings.advance.webrtc_preview": "Activer la possibilité de passer et de recevoir des appels WebRTC en tête-à-tête",
   "user.settings.custom_theme.awayIndicator": "Indicateur \"absent\"",
   "user.settings.custom_theme.buttonBg": "Fond de bouton",
   "user.settings.custom_theme.buttonColor": "Texte de bouton",

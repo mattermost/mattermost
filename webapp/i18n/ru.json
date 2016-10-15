@@ -1784,7 +1784,6 @@
   "user.settings.advance.sendTitle": "Отправлять сообщения сочетанием клавиш CTRL + ENTER",
   "user.settings.advance.slashCmd_autocmp": "Enable external application to offer slash command autocomplete",
   "user.settings.advance.title": "Дополнительные параметры",
-  "user.settings.advance.webrtc_preview": "Включить возможность совершать и принимать WebRTC звонки.",
   "user.settings.custom_theme.awayIndicator": "Индикатор отсутствия",
   "user.settings.custom_theme.buttonBg": "Button BG",
   "user.settings.custom_theme.buttonColor": "Button Text",

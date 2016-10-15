@@ -1784,7 +1784,6 @@
   "user.settings.advance.sendTitle": "Stuur berichten wanner u op CTRL + ENTER drukt",
   "user.settings.advance.slashCmd_autocmp": "Aanzetten van externe applicatie om slash commando autocomplete te gebruiken",
   "user.settings.advance.title": "Geavanceerde instellingen",
-  "user.settings.advance.webrtc_preview": "Enable the ability to make and receive one-on-one WebRTC calls",
   "user.settings.custom_theme.awayIndicator": "Weg Indicator",
   "user.settings.custom_theme.buttonBg": "Knop achtergrond",
   "user.settings.custom_theme.buttonColor": "Knoptekst",

@@ -1784,7 +1784,6 @@
   "user.settings.advance.sendTitle": "用 Ctrl + Enter 貼文",
   "user.settings.advance.slashCmd_autocmp": "啟用外部程式以提供自動完成斜線命令",
   "user.settings.advance.title": "進階設定",
-  "user.settings.advance.webrtc_preview": "啟用此功能以撥打或接收一對一的 WebRTC 通訊",
   "user.settings.custom_theme.awayIndicator": "離開標識",
   "user.settings.custom_theme.buttonBg": "按鈕 BG",
   "user.settings.custom_theme.buttonColor": "按鈕文字",
