@@ -58,7 +58,7 @@ func TestStatuses(t *testing.T) {
 		t.Fatal(err2)
 	}
 
-	time.Sleep(300 * time.Millisecond)
+	time.Sleep(500 * time.Millisecond)
 
 	WebSocketClient.GetStatuses()
 	if resp := <-WebSocketClient.ResponseChannel; resp.Error != nil {

@@ -2404,8 +2404,12 @@
     "translation": "Bad verify email link."
   },
   {
+    "id": "api.web_hub.start.starting.debug",
+    "translation": "Starting %v websocket hubs"
+  },
+  {
     "id": "api.web_hub.start.stopping.debug",
-    "translation": "stopping %v connections"
+    "translation": "stopping websocket hub connections"
   },
   {
     "id": "api.web_socket.connect.error",

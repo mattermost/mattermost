@@ -5,6 +5,8 @@ package api
 
 import (
 	"fmt"
+	"runtime"
+	"sync/atomic"
 
 	l4g "github.com/alecthomas/log4go"
 
@@ -14,43 +16,100 @@ import (
 )
 
 type Hub struct {
-	connections map[*WebConn]bool
-	register    chan *WebConn
-	unregister  chan *WebConn
-	broadcast   chan *model.WebSocketEvent
-	stop        chan string
+	connections    map[*WebConn]bool
+	register       chan *WebConn
+	unregister     chan *WebConn
+	broadcast      chan *model.WebSocketEvent
+	stop           chan string
+	invalidateUser chan string
 }
 
-var hub = &Hub{
-	register:    make(chan *WebConn),
-	unregister:  make(chan *WebConn),
-	connections: make(map[*WebConn]bool, model.SESSION_CACHE_SIZE),
-	broadcast:   make(chan *model.WebSocketEvent),
-	stop:        make(chan string),
+var hubs []*Hub = make([]*Hub, 0)
+var hubRoundRobinIndex uint64 = 0
+
+func NewWebHub() *Hub {
+	return &Hub{
+		register:       make(chan *WebConn),
+		unregister:     make(chan *WebConn),
+		connections:    make(map[*WebConn]bool, model.SESSION_CACHE_SIZE),
+		broadcast:      make(chan *model.WebSocketEvent, 4096),
+		stop:           make(chan string),
+		invalidateUser: make(chan string),
+	}
 }
 
 func TotalWebsocketConnections() int {
 	// XXX TODO FIXME, this is racy and needs to be fixed
-	return len(hub.connections)
+	count := 0
+	for _, hub := range hubs {
+		count = count + len(hub.connections)
+	}
+
+	return count
+}
+
+func HubStart() {
+	l4g.Info(utils.T("api.web_hub.start.starting.debug"), runtime.NumCPU()*2)
+
+	// Total number of hubs is twice the number of CPUs.
+	hubs = make([]*Hub, runtime.NumCPU()*2)
+
+	for i := 0; i < len(hubs); i++ {
+		hubs[i] = NewWebHub()
+		hubs[i].Start()
+	}
+}
+
+func HubStop() {
+	l4g.Info(utils.T("api.web_hub.start.stopping.debug"))
+
+	for _, hub := range hubs {
+		hub.Stop()
+	}
+
+	hubs = make([]*Hub, 0)
+}
+
+func HubRegister(webConn *WebConn) {
+	// Round robins for now, eventaully we should probably add
+	// to the hub with the lowest number of connections, but
+	// checking connection length is racy and needs a mechanism
+	// that's thread safe
+	i := atomic.AddUint64(&hubRoundRobinIndex, 1)
+	hubs[i%uint64(len(hubs))].Register(webConn)
+}
+
+func HubUnregister(webConn *WebConn) {
+	for _, hub := range hubs {
+		hub.Unregister(webConn)
+	}
 }
 
 func Publish(message *model.WebSocketEvent) {
 	message.DoPreComputeJson()
-	hub.Broadcast(message)
+	for _, hub := range hubs {
+		hub.Broadcast(message)
+	}
 
 	if einterfaces.GetClusterInterface() != nil {
 		einterfaces.GetClusterInterface().Publish(message)
 	}
-	return
 }
 
 func PublishSkipClusterSend(message *model.WebSocketEvent) {
-	hub.Broadcast(message)
+	message.DoPreComputeJson()
+	for _, hub := range hubs {
+		hub.Broadcast(message)
+	}
 }
 
 func InvalidateCacheForUser(userId string) {
 
 	Srv.Store.Channel().InvalidateAllChannelMembersForUser(userId)
+
+	for _, hub := range hubs {
+		hub.InvalidateUser(userId)
+	}
 
 	if einterfaces.GetClusterInterface() != nil {
 		einterfaces.GetClusterInterface().InvalidateCacheForUser(userId)
@@ -60,6 +119,9 @@ func InvalidateCacheForUser(userId string) {
 func InvalidateCacheForChannel(channelId string) {
 
 	// XXX TODO FIX ME
+	// This can be removed, but the performance branch
+	// needs to be merged into master so it can be removed
+	// from the enterprise repo as well.
 
 	// hub.invalidateChannel <- channelId
 
@@ -84,6 +146,10 @@ func (h *Hub) Broadcast(message *model.WebSocketEvent) {
 	if message != nil {
 		h.broadcast <- message
 	}
+}
+
+func (h *Hub) InvalidateUser(userId string) {
+	h.invalidateUser <- userId
 }
 
 func (h *Hub) Stop() {
@@ -116,9 +182,16 @@ func (h *Hub) Start() {
 					go SetStatusOffline(userId, false)
 				}
 
+			case userId := <-h.invalidateUser:
+				for webCon := range h.connections {
+					if webCon.UserId == userId {
+						webCon.InvalidateCache()
+					}
+				}
+
 			case msg := <-h.broadcast:
 				for webCon := range h.connections {
-					if shouldSendEvent(webCon, msg) {
+					if webCon.ShouldSendEvent(msg) {
 						select {
 						case webCon.Send <- msg:
 						default:
@@ -129,9 +202,7 @@ func (h *Hub) Start() {
 					}
 				}
 
-			case s := <-h.stop:
-				l4g.Info(utils.T("api.web_hub.start.stopping.debug"), s)
-
+			case <-h.stop:
 				for webCon := range h.connections {
 					webCon.WebSocket.Close()
 				}
@@ -140,44 +211,4 @@ func (h *Hub) Start() {
 			}
 		}
 	}()
-}
-
-func shouldSendEvent(webCon *WebConn, msg *model.WebSocketEvent) bool {
-	// If the event is destined to a specific user
-	if len(msg.Broadcast.UserId) > 0 && webCon.UserId != msg.Broadcast.UserId {
-		return false
-	}
-
-	// if the user is omitted don't send the message
-	if _, ok := msg.Broadcast.OmitUsers[webCon.UserId]; ok {
-		return false
-	}
-
-	// Only report events to users who are in the channel for the event
-	if len(msg.Broadcast.ChannelId) > 0 {
-		return Srv.Store.Channel().IsUserInChannelUseCache(webCon.UserId, msg.Broadcast.ChannelId)
-	}
-
-	// Only report events to users who are in the team for the event
-	if len(msg.Broadcast.TeamId) > 0 {
-		return isMemberOfTeam(webCon, msg.Broadcast.TeamId)
-
-	}
-
-	return true
-}
-
-func isMemberOfTeam(webCon *WebConn, teamId string) bool {
-	session := GetSession(webCon.SessionToken)
-	if session == nil {
-		return false
-	} else {
-		member := session.GetTeamByTeamId(teamId)
-
-		if member != nil {
-			return true
-		} else {
-			return false
-		}
-	}
 }

@@ -21,19 +21,21 @@ const (
 )
 
 type WebConn struct {
-	WebSocket    *websocket.Conn
-	Send         chan model.WebSocketMessage
-	SessionToken string
-	UserId       string
-	T            goi18n.TranslateFunc
-	Locale       string
+	WebSocket                 *websocket.Conn
+	Send                      chan model.WebSocketMessage
+	SessionToken              string
+	UserId                    string
+	T                         goi18n.TranslateFunc
+	Locale                    string
+	AllChannelMembers         map[string]string
+	LastAllChannelMembersTime int64
 }
 
 func NewWebConn(c *Context, ws *websocket.Conn) *WebConn {
 	go SetStatusOnline(c.Session.UserId, c.Session.Id, false)
 
 	return &WebConn{
-		Send:         make(chan model.WebSocketMessage, 64),
+		Send:         make(chan model.WebSocketMessage, 256),
 		WebSocket:    ws,
 		UserId:       c.Session.UserId,
 		SessionToken: c.Session.Token,
@@ -44,7 +46,7 @@ func NewWebConn(c *Context, ws *websocket.Conn) *WebConn {
 
 func (c *WebConn) readPump() {
 	defer func() {
-		hub.Unregister(c)
+		HubUnregister(c)
 		c.WebSocket.Close()
 	}()
 	c.WebSocket.SetReadLimit(SOCKET_MAX_MESSAGE_SIZE_KB)
@@ -113,6 +115,74 @@ func (c *WebConn) writePump() {
 
 				return
 			}
+		}
+	}
+}
+
+func (webCon *WebConn) InvalidateCache() {
+	webCon.AllChannelMembers = nil
+	webCon.LastAllChannelMembersTime = 0
+
+}
+
+func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
+	// If the event is destined to a specific user
+	if len(msg.Broadcast.UserId) > 0 && webCon.UserId != msg.Broadcast.UserId {
+		return false
+	}
+
+	// if the user is omitted don't send the message
+	if len(msg.Broadcast.OmitUsers) > 0 {
+		if _, ok := msg.Broadcast.OmitUsers[webCon.UserId]; ok {
+			return false
+		}
+	}
+
+	// Only report events to users who are in the channel for the event
+	if len(msg.Broadcast.ChannelId) > 0 {
+
+		if model.GetMillis()-webCon.LastAllChannelMembersTime > 1000*60*15 { // 15 minutes
+			webCon.AllChannelMembers = nil
+			webCon.LastAllChannelMembersTime = 0
+		}
+
+		if webCon.AllChannelMembers == nil {
+			if result := <-Srv.Store.Channel().GetAllChannelMembersForUser(webCon.UserId, true); result.Err != nil {
+				l4g.Error("webhub.shouldSendEvent: " + result.Err.Error())
+				return false
+			} else {
+				webCon.AllChannelMembers = result.Data.(map[string]string)
+				webCon.LastAllChannelMembersTime = model.GetMillis()
+			}
+		}
+
+		if _, ok := webCon.AllChannelMembers[msg.Broadcast.ChannelId]; ok {
+			return true
+		} else {
+			return false
+		}
+	}
+
+	// Only report events to users who are in the team for the event
+	if len(msg.Broadcast.TeamId) > 0 {
+		return webCon.IsMemberOfTeam(msg.Broadcast.TeamId)
+
+	}
+
+	return true
+}
+
+func (webCon *WebConn) IsMemberOfTeam(teamId string) bool {
+	session := GetSession(webCon.SessionToken)
+	if session == nil {
+		return false
+	} else {
+		member := session.GetTeamByTeamId(teamId)
+
+		if member != nil {
+			return true
+		} else {
+			return false
 		}
 	}
 }

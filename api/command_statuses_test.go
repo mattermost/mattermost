@@ -27,7 +27,7 @@ func commandAndTest(t *testing.T, th *TestHelper, status string) {
 		t.Fatal("Command failed to execute")
 	}
 
-	time.Sleep(300 * time.Millisecond)
+	time.Sleep(500 * time.Millisecond)
 
 	statuses := Client.Must(Client.GetStatuses()).Data.(map[string]string)
 
