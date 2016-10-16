@@ -1083,6 +1083,15 @@ export default class Client {
             end(this.handleResponse.bind(this, 'searchUsers', success, error));
     }
 
+    autocompleteUsers(username, channelId, success, error) {
+        request.
+            get(`${this.getTeamNeededRoute()}/users/autocomplete?username=${encodeURIComponent(username)}&channel_id=${encodeURIComponent(channelId)}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'autocompleteUsers', success, error));
+    }
+
     getStatuses(success, error) {
         request.
             get(`${this.getUsersRoute()}/status`).

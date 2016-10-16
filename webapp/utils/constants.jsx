@@ -850,7 +850,8 @@ export const Constants = {
     MENTION_NONMEMBERS: 'mention.nonmembers',
     MENTION_SPECIAL: 'mention.special',
     DEFAULT_NOTIFICATION_DURATION: 5000,
-    STATUS_INTERVAL: 60000
+    STATUS_INTERVAL: 60000,
+    AUTOCOMPLETE_TIMEOUT: 200
 };
 
 export default Constants;
