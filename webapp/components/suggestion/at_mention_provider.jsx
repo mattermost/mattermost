@@ -1,20 +1,19 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import React from 'react';
-
-import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
+import Suggestion from './suggestion.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
 
 import {autocompleteUsers} from 'actions/user_actions.jsx';
 
+import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Client from 'client/web_client.jsx';
 import {Constants, ActionTypes} from 'utils/constants.jsx';
 
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import Suggestion from './suggestion.jsx';
 
 class AtMentionSuggestion extends Suggestion {
     render() {
@@ -100,14 +99,19 @@ class AtMentionSuggestion extends Suggestion {
     }
 }
 
-let timeoutId = '';
-
 export default class AtMentionProvider {
     constructor(channelId) {
         this.channelId = channelId;
+        this.timeoutId = '';
+    }
+
+    componentWillUnmount() {
+        clearTimeout(this.timeoutId);
     }
 
     handlePretextChanged(suggestionId, pretext) {
+        clearTimeout(this.timeoutId);
+
         const captured = (/@([a-z0-9\-\._]*)$/i).exec(pretext.toLowerCase());
         if (captured) {
             const prefix = captured[1];
@@ -151,8 +155,7 @@ export default class AtMentionProvider {
                 );
             }
 
-            clearTimeout(timeoutId);
-            timeoutId = setTimeout(
+            this.timeoutId = setTimeout(
                 autocomplete.bind(this),
                 Constants.AUTOCOMPLETE_TIMEOUT
             );

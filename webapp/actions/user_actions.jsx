@@ -271,6 +271,8 @@ export function searchUsers(term, teamId = TeamStore.getCurrentId(), options = {
             }
         },
         (err) => {
+            AsyncClient.dispatchError(err, 'searchUsers');
+
             if (error) {
                 error(err);
             }
@@ -288,6 +290,8 @@ export function autocompleteUsers(username, channelId = '', success, error) {
             }
         },
         (err) => {
+            AsyncClient.dispatchError(err, 'autocompleteUsers');
+
             if (error) {
                 error(err);
             }

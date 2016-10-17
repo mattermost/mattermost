@@ -19,6 +19,8 @@ const (
 	MISSING_AUTH_ACCOUNT_ERROR     = "store.sql_user.get_by_auth.missing_account.app_error"
 	PROFILES_IN_CHANNEL_CACHE_SIZE = 5000
 	PROFILES_IN_CHANNEL_CACHE_SEC  = 900 // 15 mins
+	USER_SEARCH_TYPE_ALL           = "Username, FirstName, LastName, Nickname"
+	USER_SEARCH_TYPE_USERNAME      = "Username"
 )
 
 type SqlUserStore struct {
@@ -54,7 +56,8 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 func (us SqlUserStore) CreateIndexesIfNotExists() {
 	us.CreateIndexIfNotExists("idx_users_email", "Users", "Email")
 
-	us.CreateFullTextIndexIfNotExists("idx_users_username_txt", "Users", "Username")
+	us.CreateFullTextIndexIfNotExists("idx_users_username_txt", "Users", USER_SEARCH_TYPE_USERNAME)
+	us.CreateFullTextIndexIfNotExists("idx_users_all_names_txt", "Users", USER_SEARCH_TYPE_ALL)
 }
 
 func (us SqlUserStore) Save(user *model.User) StoreChannel {
@@ -1078,7 +1081,7 @@ func (us SqlUserStore) GetUnreadCountForChannel(userId string, channelId string)
 	return storeChannel
 }
 
-func (us SqlUserStore) Search(teamId string, term string) StoreChannel {
+func (us SqlUserStore) Search(teamId string, term string, searchType string) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
@@ -1110,7 +1113,7 @@ func (us SqlUserStore) Search(teamId string, term string) StoreChannel {
 			LIMIT 100`
 		}
 
-		storeChannel <- us.performSearch(searchQuery, term, map[string]interface{}{"TeamId": teamId})
+		storeChannel <- us.performSearch(searchQuery, term, searchType, map[string]interface{}{"TeamId": teamId})
 		close(storeChannel)
 
 	}()
@@ -1118,7 +1121,7 @@ func (us SqlUserStore) Search(teamId string, term string) StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) SearchNotInChannel(teamId string, channelId string, term string) StoreChannel {
+func (us SqlUserStore) SearchNotInChannel(teamId string, channelId string, term string, searchType string) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
@@ -1152,7 +1155,7 @@ func (us SqlUserStore) SearchNotInChannel(teamId string, channelId string, term 
 			LIMIT 100`
 		}
 
-		storeChannel <- us.performSearch(searchQuery, term, map[string]interface{}{"TeamId": teamId, "ChannelId": channelId})
+		storeChannel <- us.performSearch(searchQuery, term, searchType, map[string]interface{}{"TeamId": teamId, "ChannelId": channelId})
 		close(storeChannel)
 
 	}()
@@ -1160,7 +1163,7 @@ func (us SqlUserStore) SearchNotInChannel(teamId string, channelId string, term 
 	return storeChannel
 }
 
-func (us SqlUserStore) SearchInChannel(channelId string, term string) StoreChannel {
+func (us SqlUserStore) SearchInChannel(channelId string, term string, searchType string) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
@@ -1177,7 +1180,7 @@ func (us SqlUserStore) SearchInChannel(channelId string, term string) StoreChann
             ORDER BY Users.Username ASC
         LIMIT 100`
 
-		storeChannel <- us.performSearch(searchQuery, term, map[string]interface{}{"ChannelId": channelId})
+		storeChannel <- us.performSearch(searchQuery, term, searchType, map[string]interface{}{"ChannelId": channelId})
 		close(storeChannel)
 
 	}()
@@ -1185,19 +1188,19 @@ func (us SqlUserStore) SearchInChannel(channelId string, term string) StoreChann
 	return storeChannel
 }
 
-func (us SqlUserStore) performSearch(searchQuery string, term string, parameters map[string]interface{}) StoreResult {
+func (us SqlUserStore) performSearch(searchQuery string, term string, searchType string, parameters map[string]interface{}) StoreResult {
 	result := StoreResult{}
 
 	if term == "" {
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
 	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 		term = term + ":*"
-		searchClause := "AND Username @@  to_tsquery(:Term)"
+		searchClause := fmt.Sprintf("AND (%s) @@  to_tsquery(:Term)", searchType)
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
 		term = term + "*"
-		searchClause := "AND MATCH Username AGAINST (:Term IN BOOLEAN MODE)"
-		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
+		searchClause := "AND MATCH(%s) AGAINST (:Term IN BOOLEAN MODE)"
+		searchQuery = fmt.Sprintf(strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1), searchType)
 	}
 
 	var users []*model.User
@@ -1205,7 +1208,7 @@ func (us SqlUserStore) performSearch(searchQuery string, term string, parameters
 	parameters["Term"] = term
 
 	if _, err := us.GetReplica().Select(&users, searchQuery, parameters); err != nil {
-		result.Err = model.NewLocAppError("SqlUserStore.Search", "store.sql_user.search.app_error", nil, "term="+term+", "+err.Error())
+		result.Err = model.NewLocAppError("SqlUserStore.Search", "store.sql_user.search.app_error", nil, "term="+term+", "+"search_type="+searchType+", "+err.Error())
 	} else {
 		for _, u := range users {
 			u.Password = ""

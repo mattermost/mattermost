@@ -931,13 +931,16 @@ func TestUserStoreSearch(t *testing.T) {
 
 	u1 := &model.User{}
 	u1.Username = "jimbo" + model.NewId()
+	u1.FirstName = "Tim"
+	u1.LastName = "Bill"
+	u1.Nickname = "Rob"
 	u1.Email = model.NewId()
 	Must(store.User().Save(u1))
 
 	tid := model.NewId()
 	Must(store.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u1.Id}))
 
-	if r1 := <-store.User().Search(tid, "jimb"); r1.Err != nil {
+	if r1 := <-store.User().Search(tid, "jimb", USER_SEARCH_TYPE_USERNAME); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		profiles := r1.Data.([]*model.User)
@@ -954,7 +957,7 @@ func TestUserStoreSearch(t *testing.T) {
 		}
 	}
 
-	if r1 := <-store.User().Search("", "jimb"); r1.Err != nil {
+	if r1 := <-store.User().Search("", "jimb", USER_SEARCH_TYPE_USERNAME); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		profiles := r1.Data.([]*model.User)
@@ -971,7 +974,7 @@ func TestUserStoreSearch(t *testing.T) {
 		}
 	}
 
-	if r1 := <-store.User().Search(tid, ""); r1.Err != nil {
+	if r1 := <-store.User().Search(tid, "", USER_SEARCH_TYPE_USERNAME); r1.Err != nil {
 		t.Fatal(r1.Err)
 	}
 
@@ -982,7 +985,7 @@ func TestUserStoreSearch(t *testing.T) {
 	c1.Type = model.CHANNEL_OPEN
 	c1 = *Must(store.Channel().Save(&c1)).(*model.Channel)
 
-	if r1 := <-store.User().SearchNotInChannel(tid, c1.Id, "jimb"); r1.Err != nil {
+	if r1 := <-store.User().SearchNotInChannel(tid, c1.Id, "jimb", USER_SEARCH_TYPE_USERNAME); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		profiles := r1.Data.([]*model.User)
@@ -999,7 +1002,7 @@ func TestUserStoreSearch(t *testing.T) {
 		}
 	}
 
-	if r1 := <-store.User().SearchNotInChannel("", c1.Id, "jimb"); r1.Err != nil {
+	if r1 := <-store.User().SearchNotInChannel("", c1.Id, "jimb", USER_SEARCH_TYPE_USERNAME); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		profiles := r1.Data.([]*model.User)
@@ -1016,7 +1019,7 @@ func TestUserStoreSearch(t *testing.T) {
 		}
 	}
 
-	if r1 := <-store.User().SearchNotInChannel("junk", c1.Id, "jimb"); r1.Err != nil {
+	if r1 := <-store.User().SearchNotInChannel("junk", c1.Id, "jimb", USER_SEARCH_TYPE_USERNAME); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		profiles := r1.Data.([]*model.User)
@@ -1033,7 +1036,7 @@ func TestUserStoreSearch(t *testing.T) {
 		}
 	}
 
-	if r1 := <-store.User().SearchInChannel(c1.Id, "jimb"); r1.Err != nil {
+	if r1 := <-store.User().SearchInChannel(c1.Id, "jimb", USER_SEARCH_TYPE_USERNAME); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		profiles := r1.Data.([]*model.User)
@@ -1052,7 +1055,58 @@ func TestUserStoreSearch(t *testing.T) {
 
 	Must(store.Channel().SaveMember(&model.ChannelMember{ChannelId: c1.Id, UserId: u1.Id, NotifyProps: model.GetDefaultChannelNotifyProps()}))
 
-	if r1 := <-store.User().SearchInChannel(c1.Id, "jimb"); r1.Err != nil {
+	if r1 := <-store.User().SearchInChannel(c1.Id, "jimb", USER_SEARCH_TYPE_USERNAME); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		profiles := r1.Data.([]*model.User)
+		found := false
+		for _, profile := range profiles {
+			if profile.Id == u1.Id {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			t.Fatal("should have found user")
+		}
+	}
+
+	if r1 := <-store.User().Search(tid, "Tim", USER_SEARCH_TYPE_ALL); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		profiles := r1.Data.([]*model.User)
+		found := false
+		for _, profile := range profiles {
+			if profile.Id == u1.Id {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			t.Fatal("should have found user")
+		}
+	}
+
+	if r1 := <-store.User().Search(tid, "Bill", USER_SEARCH_TYPE_ALL); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		profiles := r1.Data.([]*model.User)
+		found := false
+		for _, profile := range profiles {
+			if profile.Id == u1.Id {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			t.Fatal("should have found user")
+		}
+	}
+
+	if r1 := <-store.User().Search(tid, "Rob", USER_SEARCH_TYPE_ALL); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		profiles := r1.Data.([]*model.User)
