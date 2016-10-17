@@ -1083,9 +1083,9 @@ export default class Client {
             end(this.handleResponse.bind(this, 'searchUsers', success, error));
     }
 
-    autocompleteUsers(username, channelId, success, error) {
+    autocompleteUsers(term, channelId, success, error) {
         request.
-            get(`${this.getTeamNeededRoute()}/users/autocomplete?username=${encodeURIComponent(username)}&channel_id=${encodeURIComponent(channelId)}`).
+            get(`${this.getTeamNeededRoute()}/users/autocomplete?term=${encodeURIComponent(term)}&channel_id=${encodeURIComponent(channelId)}`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').

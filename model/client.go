@@ -584,12 +584,12 @@ func (c *Client) SearchUsers(term string, teamId string, options map[string]stri
 	}
 }
 
-// AutocompleteUsers returns two lists for autocompletion of user mentions. The first list "in",
+// AutocompleteUsers returns two lists for autocompletion of users. The first list "in",
 // specifies users in the current context (the channel, for example). The second list "out" specifies
-// users outside of that context (users not in the channel, for example). Username is required, channel
-// id is optional. Must be authenticated.
-func (c *Client) AutocompleteUsers(username string, channelId string) (*Result, *AppError) {
-	url := fmt.Sprintf("%s/users/autocomplete?username=%s&channel_id=%s", c.GetTeamRoute(), url.QueryEscape(username), url.QueryEscape(channelId))
+// users outside of that context (users not in the channel, for example). Term, the string to search
+// against, is required, channel id is optional. Must be authenticated.
+func (c *Client) AutocompleteUsers(term string, channelId string) (*Result, *AppError) {
+	url := fmt.Sprintf("%s/users/autocomplete?term=%s&channel_id=%s", c.GetTeamRoute(), url.QueryEscape(term), url.QueryEscape(channelId))
 	if r, err := c.DoApiGet(url, "", ""); err != nil {
 		return nil, err
 	} else {

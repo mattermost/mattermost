@@ -2659,7 +2659,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	teamId := params["team_id"]
 
-	username := r.URL.Query().Get("username")
+	term := r.URL.Query().Get("term")
 	channelId := r.URL.Query().Get("channel_id")
 
 	if c.Session.GetTeamByTeamId(teamId) == nil {
@@ -2675,10 +2675,10 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	var uchan store.StoreChannel
 	var nuchan store.StoreChannel
 	if channelId != "" {
-		uchan = Srv.Store.User().SearchInChannel(channelId, username, store.USER_SEARCH_TYPE_ALL)
-		nuchan = Srv.Store.User().SearchNotInChannel(teamId, channelId, username, store.USER_SEARCH_TYPE_ALL)
+		uchan = Srv.Store.User().SearchInChannel(channelId, term, store.USER_SEARCH_TYPE_ALL)
+		nuchan = Srv.Store.User().SearchNotInChannel(teamId, channelId, term, store.USER_SEARCH_TYPE_ALL)
 	} else {
-		uchan = Srv.Store.User().Search(teamId, username, store.USER_SEARCH_TYPE_ALL)
+		uchan = Srv.Store.User().Search(teamId, term, store.USER_SEARCH_TYPE_ALL)
 	}
 
 	autocomplete := &model.UserAutocomplete{}

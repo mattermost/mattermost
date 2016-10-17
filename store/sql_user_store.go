@@ -1199,8 +1199,8 @@ func (us SqlUserStore) performSearch(searchQuery string, term string, searchType
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
 		term = term + "*"
-		searchClause := "AND MATCH(%s) AGAINST (:Term IN BOOLEAN MODE)"
-		searchQuery = fmt.Sprintf(strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1), searchType)
+		searchClause := fmt.Sprintf("AND MATCH(%s) AGAINST (:Term IN BOOLEAN MODE)", searchType)
+		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 	}
 
 	var users []*model.User
