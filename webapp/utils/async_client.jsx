@@ -1374,29 +1374,6 @@ export function getPublicLink(fileId, success, error) {
     );
 }
 
-export function listEmoji() {
-    if (isCallInProgress('listEmoji')) {
-        return;
-    }
-
-    callTracker.listEmoji = utils.getTimestamp();
-
-    Client.listEmoji(
-        (data) => {
-            callTracker.listEmoji = 0;
-
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_CUSTOM_EMOJIS,
-                emojis: data
-            });
-        },
-        (err) => {
-            callTracker.listEmoji = 0;
-            dispatchError(err, 'listEmoji');
-        }
-    );
-}
-
 export function addEmoji(emoji, image, success, error) {
     const callName = 'addEmoji' + emoji.name;
 
