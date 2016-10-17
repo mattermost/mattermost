@@ -598,7 +598,7 @@ func (c *Client) AutocompleteUsersInChannel(term string, channelId string) (*Res
 	}
 }
 
-// AutocompleteUsers returns two lists for autocompletion of users in a team. The list "in_team" specifies
+// AutocompleteUsersInTeam returns a list for autocompletion of users in a team. The list "in_team" specifies
 // the users in the team that match the provided term, matching against username, full name and
 // nickname. Must be authenticated.
 func (c *Client) AutocompleteUsersInTeam(term string) (*Result, *AppError) {
