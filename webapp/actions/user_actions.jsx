@@ -280,8 +280,8 @@ export function searchUsers(term, teamId = TeamStore.getCurrentId(), options = {
     );
 }
 
-export function autocompleteUsers(username, channelId = '', success, error) {
-    Client.autocompleteUsers(
+export function autocompleteUsersInChannel(username, channelId, success, error) {
+    Client.autocompleteUsersInChannel(
         username,
         channelId,
         (data) => {
@@ -290,7 +290,25 @@ export function autocompleteUsers(username, channelId = '', success, error) {
             }
         },
         (err) => {
-            AsyncClient.dispatchError(err, 'autocompleteUsers');
+            AsyncClient.dispatchError(err, 'autocompleteUsersInChannel');
+
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
+export function autocompleteUsersInTeam(username, success, error) {
+    Client.autocompleteUsersInTeam(
+        username,
+        (data) => {
+            if (success) {
+                success(data);
+            }
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'autocompleteUsersInTeam');
 
             if (error) {
                 error(err);

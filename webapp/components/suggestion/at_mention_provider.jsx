@@ -5,7 +5,7 @@ import Suggestion from './suggestion.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
 
-import {autocompleteUsers} from 'actions/user_actions.jsx';
+import {autocompleteUsersInChannel} from 'actions/user_actions.jsx';
 
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -117,16 +117,16 @@ export default class AtMentionProvider {
             const prefix = captured[1];
 
             function autocomplete() {
-                autocompleteUsers(
+                autocompleteUsersInChannel(
                     prefix,
                     this.channelId,
                     (data) => {
-                        const members = data.in;
+                        const members = data.in_channel;
                         for (const id of Object.keys(members)) {
                             members[id].type = Constants.MENTION_MEMBERS;
                         }
 
-                        const nonmembers = data.out;
+                        const nonmembers = data.out_of_channel;
                         for (const id of Object.keys(nonmembers)) {
                             nonmembers[id].type = Constants.MENTION_NONMEMBERS;
                         }

@@ -59,7 +59,9 @@ func InitUser() {
 	BaseRoutes.NeedChannel.Handle("/users/not_in_channel/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getProfilesNotInChannel)).Methods("GET")
 	BaseRoutes.Users.Handle("/search", ApiUserRequired(searchUsers)).Methods("POST")
 	BaseRoutes.Users.Handle("/ids", ApiUserRequired(getProfilesByIds)).Methods("POST")
-	BaseRoutes.NeedTeam.Handle("/users/autocomplete", ApiUserRequired(autocompleteUsers)).Methods("GET")
+
+	BaseRoutes.NeedTeam.Handle("/users/autocomplete", ApiUserRequired(autocompleteUsersInTeam)).Methods("GET")
+	BaseRoutes.NeedChannel.Handle("/users/autocomplete", ApiUserRequired(autocompleteUsersInChannel)).Methods("GET")
 
 	BaseRoutes.Users.Handle("/mfa", ApiAppHandler(checkMfa)).Methods("POST")
 	BaseRoutes.Users.Handle("/generate_mfa_qr", ApiUserRequiredTrustRequester(generateMfaQrCode)).Methods("GET")
@@ -2655,12 +2657,12 @@ func getProfilesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
+func autocompleteUsersInChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
+	channelId := params["channel_id"]
 	teamId := params["team_id"]
 
 	term := r.URL.Query().Get("term")
-	channelId := r.URL.Query().Get("channel_id")
 
 	if c.Session.GetTeamByTeamId(teamId) == nil {
 		if !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
@@ -2668,20 +2670,14 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if channelId != "" && !HasPermissionToChannelContext(c, channelId, model.PERMISSION_READ_CHANNEL) {
+	if !HasPermissionToChannelContext(c, channelId, model.PERMISSION_READ_CHANNEL) {
 		return
 	}
 
-	var uchan store.StoreChannel
-	var nuchan store.StoreChannel
-	if channelId != "" {
-		uchan = Srv.Store.User().SearchInChannel(channelId, term, store.USER_SEARCH_TYPE_ALL)
-		nuchan = Srv.Store.User().SearchNotInChannel(teamId, channelId, term, store.USER_SEARCH_TYPE_ALL)
-	} else {
-		uchan = Srv.Store.User().Search(teamId, term, store.USER_SEARCH_TYPE_ALL)
-	}
+	uchan := Srv.Store.User().SearchInChannel(channelId, term, store.USER_SEARCH_TYPE_ALL)
+	nuchan := Srv.Store.User().SearchNotInChannel(teamId, channelId, term, store.USER_SEARCH_TYPE_ALL)
 
-	autocomplete := &model.UserAutocomplete{}
+	autocomplete := &model.UserAutocompleteInChannel{}
 
 	if result := <-uchan; result.Err != nil {
 		c.Err = result.Err
@@ -2693,22 +2689,52 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			sanitizeProfile(c, p)
 		}
 
-		autocomplete.In = profiles
+		autocomplete.InChannel = profiles
 	}
 
-	if nuchan != nil {
-		if result := <-nuchan; result.Err != nil {
-			c.Err = result.Err
-			return
-		} else {
-			profiles := result.Data.([]*model.User)
+	if result := <-nuchan; result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		profiles := result.Data.([]*model.User)
 
-			for _, p := range profiles {
-				sanitizeProfile(c, p)
-			}
-
-			autocomplete.Out = profiles
+		for _, p := range profiles {
+			sanitizeProfile(c, p)
 		}
+
+		autocomplete.OutOfChannel = profiles
+	}
+
+	w.Write([]byte(autocomplete.ToJson()))
+}
+
+func autocompleteUsersInTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	teamId := params["team_id"]
+
+	term := r.URL.Query().Get("term")
+
+	if c.Session.GetTeamByTeamId(teamId) == nil {
+		if !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
+			return
+		}
+	}
+
+	uchan := Srv.Store.User().Search(teamId, term, store.USER_SEARCH_TYPE_ALL)
+
+	autocomplete := &model.UserAutocompleteInTeam{}
+
+	if result := <-uchan; result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		profiles := result.Data.([]*model.User)
+
+		for _, p := range profiles {
+			sanitizeProfile(c, p)
+		}
+
+		autocomplete.InTeam = profiles
 	}
 
 	w.Write([]byte(autocomplete.ToJson()))

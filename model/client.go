@@ -584,18 +584,31 @@ func (c *Client) SearchUsers(term string, teamId string, options map[string]stri
 	}
 }
 
-// AutocompleteUsers returns two lists for autocompletion of users. The first list "in",
-// specifies users in the current context (the channel, for example). The second list "out" specifies
-// users outside of that context (users not in the channel, for example). Term, the string to search
-// against, is required, channel id is optional. Must be authenticated.
-func (c *Client) AutocompleteUsers(term string, channelId string) (*Result, *AppError) {
-	url := fmt.Sprintf("%s/users/autocomplete?term=%s&channel_id=%s", c.GetTeamRoute(), url.QueryEscape(term), url.QueryEscape(channelId))
+// AutocompleteUsersInChannel returns two lists for autocompletion of users in a channel. The first list "in_channel",
+// specifies users in the channel. The second list "out_of_channel" specifies users outside of the
+// channel. Term, the string to search against, is required, channel id is also required. Must be authenticated.
+func (c *Client) AutocompleteUsersInChannel(term string, channelId string) (*Result, *AppError) {
+	url := fmt.Sprintf("%s/users/autocomplete?term=%s", c.GetChannelRoute(channelId), url.QueryEscape(term))
 	if r, err := c.DoApiGet(url, "", ""); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), UserAutocompleteFromJson(r.Body)}, nil
+			r.Header.Get(HEADER_ETAG_SERVER), UserAutocompleteInChannelFromJson(r.Body)}, nil
+	}
+}
+
+// AutocompleteUsers returns two lists for autocompletion of users in a team. The list "in_team" specifies
+// the users in the team that match the provided term, matching against username, full name and
+// nickname. Must be authenticated.
+func (c *Client) AutocompleteUsersInTeam(term string) (*Result, *AppError) {
+	url := fmt.Sprintf("%s/users/autocomplete?term=%s", c.GetTeamRoute(), url.QueryEscape(term))
+	if r, err := c.DoApiGet(url, "", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), UserAutocompleteInTeamFromJson(r.Body)}, nil
 	}
 }
 

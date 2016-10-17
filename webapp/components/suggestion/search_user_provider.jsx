@@ -3,7 +3,7 @@
 
 import Suggestion from './suggestion.jsx';
 
-import {autocompleteUsers} from 'actions/user_actions.jsx';
+import {autocompleteUsersInTeam} from 'actions/user_actions.jsx';
 
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import Client from 'client/web_client.jsx';
@@ -67,16 +67,16 @@ export default class SearchUserProvider {
 
     handlePretextChanged(suggestionId, pretext) {
         clearTimeout(this.timeoutId);
+
         const captured = (/\bfrom:\s*(\S*)$/i).exec(pretext.toLowerCase());
         if (captured) {
             const usernamePrefix = captured[1];
 
             function autocomplete() {
-                autocompleteUsers(
+                autocompleteUsersInTeam(
                     usernamePrefix,
-                    '',
                     (data) => {
-                        const users = data.in;
+                        const users = data.in_team;
                         const mentions = users.map((user) => user.username);
 
                         AppDispatcher.handleServerAction({

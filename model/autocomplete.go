@@ -8,12 +8,16 @@ import (
 	"io"
 )
 
-type UserAutocomplete struct {
-	In  []*User `json:"in"`
-	Out []*User `json:"out"`
+type UserAutocompleteInChannel struct {
+	InChannel    []*User `json:"in_channel"`
+	OutOfChannel []*User `json:"out_of_channel"`
 }
 
-func (o *UserAutocomplete) ToJson() string {
+type UserAutocompleteInTeam struct {
+	InTeam []*User `json:"in_team"`
+}
+
+func (o *UserAutocompleteInChannel) ToJson() string {
 	b, err := json.Marshal(o)
 	if err != nil {
 		return ""
@@ -22,9 +26,29 @@ func (o *UserAutocomplete) ToJson() string {
 	}
 }
 
-func UserAutocompleteFromJson(data io.Reader) *UserAutocomplete {
+func UserAutocompleteInChannelFromJson(data io.Reader) *UserAutocompleteInChannel {
 	decoder := json.NewDecoder(data)
-	var o UserAutocomplete
+	var o UserAutocompleteInChannel
+	err := decoder.Decode(&o)
+	if err == nil {
+		return &o
+	} else {
+		return nil
+	}
+}
+
+func (o *UserAutocompleteInTeam) ToJson() string {
+	b, err := json.Marshal(o)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
+func UserAutocompleteInTeamFromJson(data io.Reader) *UserAutocompleteInTeam {
+	decoder := json.NewDecoder(data)
+	var o UserAutocompleteInTeam
 	err := decoder.Decode(&o)
 	if err == nil {
 		return &o

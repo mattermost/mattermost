@@ -543,11 +543,26 @@ describe('Client.User', function() {
         });
     });
 
-    it('autocompleteUsers', function(done) {
+    it('autocompleteUsersInChannel', function(done) {
         TestHelper.initBasic(() => {
-            TestHelper.basicClient().autocompleteUsers(
+            TestHelper.basicClient().autocompleteUsersInChannel(
                 'uid',
-                '',
+                TestHelper.basicChannel().id,
+                function(data) {
+                    assert.equal(data != null, true);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
+    it('autocompleteUsersInTeam', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().autocompleteUsersInTeam(
+                'uid',
                 function(data) {
                     assert.equal(data != null, true);
                     done();
