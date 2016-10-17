@@ -121,16 +121,16 @@ stop-docker:
 		echo stopping mattermost-postgres; \
 		docker stop mattermost-postgres > /dev/null; \
 	fi
-	
+
 	@if [ $(shell docker ps -a | grep -ci mattermost-openldap) -eq 1 ]; then \
 		echo stopping mattermost-openldap; \
 		docker stop mattermost-openldap > /dev/null; \
 	fi
 
 	@if [ $(shell docker ps -a | grep -ci mattermost-webrtc) -eq 1 ]; then \
-    		echo stopping mattermost-webrtc; \
-    		docker stop mattermost-webrtc > /dev/null; \
-    	fi
+		echo stopping mattermost-webrtc; \
+		docker stop mattermost-webrtc > /dev/null; \
+	fi
 
 clean-docker:
 	@echo Removing docker containers
@@ -154,16 +154,16 @@ clean-docker:
 	fi
 
 	@if [ $(shell docker ps -a | grep -ci mattermost-webrtc) -eq 1 ]; then \
-    		echo removing mattermost-webrtc; \
-    		docker stop mattermost-webrtc > /dev/null; \
-    		docker rm -v mattermost-webrtc > /dev/null; \
-    	fi
+		echo removing mattermost-webrtc; \
+		docker stop mattermost-webrtc > /dev/null; \
+		docker rm -v mattermost-webrtc > /dev/null; \
+	fi
 
 check-client-style:
 	@echo Checking client style
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) check-style
-	
+
 check-server-style:
 	@echo Running GOFMT
 	$(eval GOFMT_OUTPUT := $(shell gofmt -d -s api/ model/ store/ utils/ manualtesting/ einterfaces/ mattermost.go 2>&1))
@@ -297,6 +297,9 @@ package: build build-client
 	cp -RL fonts $(DIST_PATH)
 	cp -RL templates $(DIST_PATH)
 	cp -RL i18n $(DIST_PATH)
+
+	@# Disable developer settings
+	sed -i'' 's|"ConsoleLevel": "DEBUG",|"ConsoleLevel": "INFO",|g' $(DIST_PATH)/config/config.json;
 
 	@# Package webapp
 	mkdir -p $(DIST_PATH)/webapp/dist
