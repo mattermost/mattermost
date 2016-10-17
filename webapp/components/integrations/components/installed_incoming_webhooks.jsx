@@ -1,16 +1,20 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import React from 'react';
+import BackstageList from 'components/backstage/components/backstage_list.jsx';
+import InstalledIncomingWebhook from './installed_incoming_webhook.jsx';
 
-import * as AsyncClient from 'utils/async_client.jsx';
 import IntegrationStore from 'stores/integration_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
+import UserStore from 'stores/user_store.jsx';
+
+import {loadIncomingHooks} from 'actions/integration_actions.jsx';
+
+import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
-import BackstageList from 'components/backstage/components/backstage_list.jsx';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import InstalledIncomingWebhook from './installed_incoming_webhook.jsx';
 
 export default class InstalledIncomingWebhooks extends React.Component {
     static get propTypes() {
@@ -23,27 +27,30 @@ export default class InstalledIncomingWebhooks extends React.Component {
         super(props);
 
         this.handleIntegrationChange = this.handleIntegrationChange.bind(this);
-
+        this.handleUserChange = this.handleUserChange.bind(this);
         this.deleteIncomingWebhook = this.deleteIncomingWebhook.bind(this);
 
         const teamId = TeamStore.getCurrentId();
 
         this.state = {
             incomingWebhooks: IntegrationStore.getIncomingWebhooks(teamId),
-            loading: !IntegrationStore.hasReceivedIncomingWebhooks(teamId)
+            loading: !IntegrationStore.hasReceivedIncomingWebhooks(teamId),
+            users: UserStore.getProfiles()
         };
     }
 
     componentDidMount() {
         IntegrationStore.addChangeListener(this.handleIntegrationChange);
+        UserStore.addChangeListener(this.handleUserChange);
 
         if (window.mm_config.EnableIncomingWebhooks === 'true') {
-            AsyncClient.listIncomingHooks();
+            loadIncomingHooks();
         }
     }
 
     componentWillUnmount() {
         IntegrationStore.removeChangeListener(this.handleIntegrationChange);
+        UserStore.removeChangeListener(this.handleUserChange);
     }
 
     handleIntegrationChange() {
@@ -52,6 +59,12 @@ export default class InstalledIncomingWebhooks extends React.Component {
         this.setState({
             incomingWebhooks: IntegrationStore.getIncomingWebhooks(teamId),
             loading: !IntegrationStore.hasReceivedIncomingWebhooks(teamId)
+        });
+    }
+
+    handleUserChange() {
+        this.setState({
+            users: UserStore.getProfiles()
         });
     }
 
@@ -66,6 +79,7 @@ export default class InstalledIncomingWebhooks extends React.Component {
                     key={incomingWebhook.id}
                     incomingWebhook={incomingWebhook}
                     onDelete={this.deleteIncomingWebhook}
+                    creator={this.state.users[incomingWebhook.user_id] || {}}
                 />
             );
         });
