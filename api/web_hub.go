@@ -70,11 +70,6 @@ func HubStop() {
 }
 
 func HubRegister(webConn *WebConn) {
-	// Round robins for now, eventaully we should probably add
-	// to the hub with the lowest number of connections, but
-	// checking connection length is racy and needs a mechanism
-	// that's thread safe
-
 	hash := fnv.New32a()
 	hash.Write([]byte(webConn.UserId))
 	index := hash.Sum32() % uint32(len(hubs))
