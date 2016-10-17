@@ -5,8 +5,8 @@ package api
 
 import (
 	"fmt"
+	"hash/fnv"
 	"runtime"
-	"sync/atomic"
 
 	l4g "github.com/alecthomas/log4go"
 
@@ -25,7 +25,6 @@ type Hub struct {
 }
 
 var hubs []*Hub = make([]*Hub, 0)
-var hubRoundRobinIndex uint64 = 0
 
 func NewWebHub() *Hub {
 	return &Hub{
@@ -75,8 +74,11 @@ func HubRegister(webConn *WebConn) {
 	// to the hub with the lowest number of connections, but
 	// checking connection length is racy and needs a mechanism
 	// that's thread safe
-	i := atomic.AddUint64(&hubRoundRobinIndex, 1)
-	hubs[i%uint64(len(hubs))].Register(webConn)
+
+	hash := fnv.New32a()
+	hash.Write([]byte(webConn.UserId))
+	index := hash.Sum32() % uint32(len(hubs))
+	hubs[index].Register(webConn)
 }
 
 func HubUnregister(webConn *WebConn) {
