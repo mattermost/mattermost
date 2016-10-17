@@ -83,6 +83,29 @@ func (s SqlChannelStore) Save(channel *model.Channel) StoreChannel {
 	return storeChannel
 }
 
+func (s SqlChannelStore) CreateDirectChannel(userId string, otherUserId string) StoreChannel {
+	channel := new(model.Channel)
+
+	channel.DisplayName = ""
+	channel.Name = model.GetDMNameFromIds(otherUserId, userId)
+
+	channel.Header = ""
+	channel.Type = model.CHANNEL_DIRECT
+
+	cm1 := &model.ChannelMember{
+		UserId:      userId,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		Roles:       model.ROLE_CHANNEL_USER.Id,
+	}
+	cm2 := &model.ChannelMember{
+		UserId:      otherUserId,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		Roles:       model.ROLE_CHANNEL_USER.Id,
+	}
+
+	return s.SaveDirectChannel(channel, cm1, cm2)
+}
+
 func (s SqlChannelStore) SaveDirectChannel(directchannel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 

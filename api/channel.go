@@ -137,36 +137,19 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 func CreateDirectChannel(userId string, otherUserId string) (*model.Channel, *model.AppError) {
 	uc := Srv.Store.User().Get(otherUserId)
 
-	channel := new(model.Channel)
-
-	channel.DisplayName = ""
-	channel.Name = model.GetDMNameFromIds(otherUserId, userId)
-
-	channel.Header = ""
-	channel.Type = model.CHANNEL_DIRECT
-
 	if uresult := <-uc; uresult.Err != nil {
 		return nil, model.NewLocAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, otherUserId)
 	}
 
-	cm1 := &model.ChannelMember{
-		UserId:      userId,
-		NotifyProps: model.GetDefaultChannelNotifyProps(),
-		Roles:       model.ROLE_CHANNEL_USER.Id,
-	}
-	cm2 := &model.ChannelMember{
-		UserId:      otherUserId,
-		NotifyProps: model.GetDefaultChannelNotifyProps(),
-		Roles:       model.ROLE_CHANNEL_USER.Id,
-	}
-
-	if result := <-Srv.Store.Channel().SaveDirectChannel(channel, cm1, cm2); result.Err != nil {
+	if result := <-Srv.Store.Channel().CreateDirectChannel(userId, otherUserId); result.Err != nil {
 		if result.Err.Id == store.CHANNEL_EXISTS_ERROR {
 			return result.Data.(*model.Channel), nil
 		} else {
 			return nil, result.Err
 		}
 	} else {
+		channel := result.Data.(*model.Channel)
+
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_DIRECT_ADDED, "", channel.Id, "", nil)
 		message.Add("teammate_id", otherUserId)
 		go Publish(message)

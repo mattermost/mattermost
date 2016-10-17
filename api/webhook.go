@@ -412,6 +412,7 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var channel *model.Channel
 	var cchan store.StoreChannel
+	var directUserId string
 
 	if len(channelName) != 0 {
 		if channelName[0] == '@' {
@@ -419,7 +420,8 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 				c.Err = model.NewLocAppError("incomingWebhook", "web.incoming_webhook.user.app_error", nil, "err="+result.Err.Message)
 				return
 			} else {
-				channelName = model.GetDMNameFromIds(result.Data.(*model.User).Id, hook.UserId)
+				directUserId = result.Data.(*model.User).Id
+				channelName = model.GetDMNameFromIds(directUserId, hook.UserId)
 			}
 		} else if channelName[0] == '#' {
 			channelName = channelName[1:]
@@ -433,7 +435,16 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	overrideUsername := parsedRequest.Username
 	overrideIconUrl := parsedRequest.IconURL
 
-	if result := <-cchan; result.Err != nil {
+	result := <-cchan
+	if result.Err != nil && result.Err.Id == store.MISSING_CHANNEL_ERROR && directUserId != "" {
+		newChanResult := <-Srv.Store.Channel().CreateDirectChannel(directUserId, hook.UserId)
+		if newChanResult.Err != nil {
+			c.Err = model.NewLocAppError("incomingWebhook", "web.incoming_webhook.channel.app_error", nil, "err="+newChanResult.Err.Message)
+			return
+		} else {
+			channel = newChanResult.Data.(*model.Channel)
+		}
+	} else if result.Err != nil {
 		c.Err = model.NewLocAppError("incomingWebhook", "web.incoming_webhook.channel.app_error", nil, "err="+result.Err.Message)
 		return
 	} else {

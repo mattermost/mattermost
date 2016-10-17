@@ -94,7 +94,34 @@ func TestChannelStoreSaveDirectChannel(t *testing.T) {
 	if err := (<-store.Channel().SaveDirectChannel(&o1, &m1, &m2)).Err; err == nil {
 		t.Fatal("Should not be able to save non-direct channel")
 	}
+}
 
+func TestChannelStoreCreateDirectChannel(t *testing.T) {
+	Setup()
+
+	u1 := &model.User{}
+	u1.Email = model.NewId()
+	u1.Nickname = model.NewId()
+	Must(store.User().Save(u1))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}))
+
+	u2 := &model.User{}
+	u2.Email = model.NewId()
+	u2.Nickname = model.NewId()
+	Must(store.User().Save(u2))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}))
+
+	res := <-store.Channel().CreateDirectChannel(u1.Id, u2.Id)
+	if res.Err != nil {
+		t.Fatal("couldn't create direct channel", res.Err)
+	}
+
+	c1 := res.Data.(*model.Channel)
+
+	members := (<-store.Channel().GetMembers(c1.Id)).Data.([]model.ChannelMember)
+	if len(members) != 2 {
+		t.Fatal("should have saved 2 members")
+	}
 }
 
 func TestChannelStoreUpdate(t *testing.T) {
