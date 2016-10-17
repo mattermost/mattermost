@@ -2158,3 +2158,72 @@ func TestSearchUsers(t *testing.T) {
 		t.Fatal("should not have access")
 	}
 }
+
+func TestAutocompleteUsers(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+
+	if result, err := Client.AutocompleteUsersInTeam(th.BasicUser.Username); err != nil {
+		t.Fatal(err)
+	} else {
+		autocomplete := result.Data.(*model.UserAutocompleteInTeam)
+		if len(autocomplete.InTeam) != 1 {
+			t.Fatal("should have returned 1 user in")
+		}
+	}
+
+	if result, err := Client.AutocompleteUsersInTeam(th.BasicUser.Username[0:5]); err != nil {
+		t.Fatal(err)
+	} else {
+		autocomplete := result.Data.(*model.UserAutocompleteInTeam)
+		if len(autocomplete.InTeam) < 1 {
+			t.Fatal("should have returned at least 1 user in")
+		}
+	}
+
+	if result, err := Client.AutocompleteUsersInChannel(th.BasicUser.Username, th.BasicChannel.Id); err != nil {
+		t.Fatal(err)
+	} else {
+		autocomplete := result.Data.(*model.UserAutocompleteInChannel)
+		if len(autocomplete.InChannel) != 1 {
+			t.Fatal("should have returned 1 user in")
+		}
+		if len(autocomplete.OutOfChannel) != 0 {
+			t.Fatal("should have returned no users out")
+		}
+	}
+
+	if result, err := Client.AutocompleteUsersInChannel("", th.BasicChannel.Id); err != nil {
+		t.Fatal(err)
+	} else {
+		autocomplete := result.Data.(*model.UserAutocompleteInChannel)
+		if len(autocomplete.InChannel) != 1 && autocomplete.InChannel[0].Id != th.BasicUser2.Id {
+			t.Fatal("should have returned at 1 user in")
+		}
+		if len(autocomplete.OutOfChannel) != 1 && autocomplete.OutOfChannel[0].Id != th.BasicUser2.Id {
+			t.Fatal("should have returned 1 user out")
+		}
+	}
+
+	if result, err := Client.AutocompleteUsersInTeam(""); err != nil {
+		t.Fatal(err)
+	} else {
+		autocomplete := result.Data.(*model.UserAutocompleteInTeam)
+		if len(autocomplete.InTeam) != 2 {
+			t.Fatal("should have returned 2 users in")
+		}
+	}
+
+	if _, err := Client.AutocompleteUsersInChannel("", "junk"); err == nil {
+		t.Fatal("should have errored - bad channel id")
+	}
+
+	Client.SetTeamId("junk")
+	if _, err := Client.AutocompleteUsersInChannel("", th.BasicChannel.Id); err == nil {
+		t.Fatal("should have errored - bad team id")
+	}
+
+	if _, err := Client.AutocompleteUsersInTeam(""); err == nil {
+		t.Fatal("should have errored - bad team id")
+	}
+}

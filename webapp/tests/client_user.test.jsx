@@ -543,6 +543,37 @@ describe('Client.User', function() {
         });
     });
 
+    it('autocompleteUsersInChannel', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().autocompleteUsersInChannel(
+                'uid',
+                TestHelper.basicChannel().id,
+                function(data) {
+                    assert.equal(data != null, true);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
+    it('autocompleteUsersInTeam', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().autocompleteUsersInTeam(
+                'uid',
+                function(data) {
+                    assert.equal(data != null, true);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
     it('getStatusesByIds', function(done) {
         TestHelper.initBasic(() => {
             var ids = [];

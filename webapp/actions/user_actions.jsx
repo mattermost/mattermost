@@ -271,6 +271,45 @@ export function searchUsers(term, teamId = TeamStore.getCurrentId(), options = {
             }
         },
         (err) => {
+            AsyncClient.dispatchError(err, 'searchUsers');
+
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
+export function autocompleteUsersInChannel(username, channelId, success, error) {
+    Client.autocompleteUsersInChannel(
+        username,
+        channelId,
+        (data) => {
+            if (success) {
+                success(data);
+            }
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'autocompleteUsersInChannel');
+
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
+export function autocompleteUsersInTeam(username, success, error) {
+    Client.autocompleteUsersInTeam(
+        username,
+        (data) => {
+            if (success) {
+                success(data);
+            }
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'autocompleteUsersInTeam');
+
             if (error) {
                 error(err);
             }

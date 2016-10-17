@@ -1083,6 +1083,24 @@ export default class Client {
             end(this.handleResponse.bind(this, 'searchUsers', success, error));
     }
 
+    autocompleteUsersInChannel(term, channelId, success, error) {
+        request.
+            get(`${this.getChannelNeededRoute(channelId)}/users/autocomplete?term=${encodeURIComponent(term)}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'autocompleteUsers', success, error));
+    }
+
+    autocompleteUsersInTeam(term, success, error) {
+        request.
+            get(`${this.getTeamNeededRoute()}/users/autocomplete?term=${encodeURIComponent(term)}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'autocompleteUsers', success, error));
+    }
+
     getStatuses(success, error) {
         request.
             get(`${this.getUsersRoute()}/status`).

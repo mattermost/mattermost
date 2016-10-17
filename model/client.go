@@ -584,6 +584,34 @@ func (c *Client) SearchUsers(term string, teamId string, options map[string]stri
 	}
 }
 
+// AutocompleteUsersInChannel returns two lists for autocompletion of users in a channel. The first list "in_channel",
+// specifies users in the channel. The second list "out_of_channel" specifies users outside of the
+// channel. Term, the string to search against, is required, channel id is also required. Must be authenticated.
+func (c *Client) AutocompleteUsersInChannel(term string, channelId string) (*Result, *AppError) {
+	url := fmt.Sprintf("%s/users/autocomplete?term=%s", c.GetChannelRoute(channelId), url.QueryEscape(term))
+	if r, err := c.DoApiGet(url, "", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), UserAutocompleteInChannelFromJson(r.Body)}, nil
+	}
+}
+
+// AutocompleteUsersInTeam returns a list for autocompletion of users in a team. The list "in_team" specifies
+// the users in the team that match the provided term, matching against username, full name and
+// nickname. Must be authenticated.
+func (c *Client) AutocompleteUsersInTeam(term string) (*Result, *AppError) {
+	url := fmt.Sprintf("%s/users/autocomplete?term=%s", c.GetTeamRoute(), url.QueryEscape(term))
+	if r, err := c.DoApiGet(url, "", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), UserAutocompleteInTeamFromJson(r.Body)}, nil
+	}
+}
+
 // LoginById authenticates a user by user id and password.
 func (c *Client) LoginById(id string, password string) (*Result, *AppError) {
 	m := make(map[string]string)
