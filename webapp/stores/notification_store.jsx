@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import BrowserStore from 'stores/browser_store.jsx';
 import EventEmitter from 'events';
 import Constants from 'utils/constants.jsx';
 import UserStore from './user_store.jsx';
@@ -98,11 +99,21 @@ class NotificationStoreClass extends EventEmitter {
                 duration = parseInt(user.notify_props.desktop_duration, 10) * 1000;
             }
 
-            const sound = !user.notify_props || user.notify_props.desktop_sound === 'true';
-            Utils.notifyMe(title, body, channel, teamId, duration, !sound);
+            //Play a sound if explicitly set in settings and the user is not runnning a native client
+            const sound = (!user.notify_props || user.notify_props.desktop_sound === 'true') &&
+                          !UserAgent.isWindowsApp() && !UserAgent.isMacApp();
 
-            if (sound && !UserAgent.isWindowsApp() && !UserAgent.isMacApp()) {
-                Utils.ding();
+            // Notify if you're not looking in the right channel or when
+            // the window itself is not active
+            const activeChannel = ChannelStore.getCurrent();
+            const inFocus = BrowserStore.getGlobalItem('app-focus', true);
+            const notify = activeChannel.id !== channel.id || !inFocus;
+
+            if (notify) {
+                Utils.notifyMe(title, body, channel, teamId, duration, !sound);
+                if (sound) {
+                    Utils.ding();
+                }
             }
         }
     }
