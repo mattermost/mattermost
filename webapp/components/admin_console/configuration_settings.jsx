@@ -113,7 +113,7 @@ export default class ConfigurationSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.service.listenDescription'
-                            defaultMessage='The address to which to bind and listen. Entering ":8065" will bind to all interfaces or you can choose one like "127.0.0.1:8065". If you choose a low number port, you must have permissions to bind to that port. On Linux you can use: "sudo setcap cap_net_bind_service=+ep ./bin/platform" to allow Mattermost to bind to low ports.'
+                            defaultMessage='The address and port to which to bind and listen. Specifying ":8065" will bind to all network interfaces. Specifying "127.0.0.1:8065" will only bind to the network interface having that IP address. If you choose a port of a lower level (called "system ports" or "well-known ports", in the range of 0-1023), you must have permissions to bind to that port. On Linux you can use: "sudo setcap cap_net_bind_service=+ep ./bin/platform" to allow Mattermost to bind to well-known ports.'
                         />
                     }
                     value={this.state.listenAddress}

@@ -940,12 +940,12 @@ func (o *Config) SetDefaults() {
 
 	if o.ServiceSettings.ReadTimeout == nil {
 		o.ServiceSettings.ReadTimeout = new(int)
-		*o.ServiceSettings.ReadTimeout = 30
+		*o.ServiceSettings.ReadTimeout = 300
 	}
 
 	if o.ServiceSettings.WriteTimeout == nil {
 		o.ServiceSettings.WriteTimeout = new(int)
-		*o.ServiceSettings.WriteTimeout = 60
+		*o.ServiceSettings.WriteTimeout = 300
 	}
 
 	if o.ServiceSettings.Forward80To443 == nil {
