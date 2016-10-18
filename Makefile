@@ -299,7 +299,7 @@ package: build build-client
 	cp -RL i18n $(DIST_PATH)
 
 	@# Disable developer settings
-	sed -i'' 's|"ConsoleLevel": "DEBUG",|"ConsoleLevel": "INFO",|g' $(DIST_PATH)/config/config.json;
+	sed -i'' -e 's|"ConsoleLevel": "DEBUG"|"ConsoleLevel": "INFO"|g' $(DIST_PATH)/config/config.json
 
 	@# Package webapp
 	mkdir -p $(DIST_PATH)/webapp/dist
