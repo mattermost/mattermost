@@ -199,6 +199,16 @@ export default class Post extends React.Component {
             />
         );
 
+        if (this.props.compactDisplay) {
+            profilePic = (
+                <ProfilePicture
+                    src=''
+                    status={this.props.status}
+                    user={this.props.user}
+                />
+            );
+        }
+
         if (PostUtils.isSystemMessage(post)) {
             profilePic = (
                 <span
@@ -214,10 +224,9 @@ export default class Post extends React.Component {
         }
 
         let compactClass = '';
-        let profilePicContainer = (<div className='post__img'>{profilePic}</div>);
+        const profilePicContainer = (<div className='post__img'>{profilePic}</div>);
         if (this.props.compactDisplay) {
             compactClass = 'post--compact';
-            profilePicContainer = '';
         }
 
         let dropdownOpenedClass = '';

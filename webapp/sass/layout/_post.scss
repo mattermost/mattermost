@@ -530,6 +530,12 @@ body.ios {
             }
         }
 
+        .status-wrapper {
+            &:after {
+                bottom: 10px;
+            }
+        }
+
         blockquote {
             display: inline-block;
             font-size: 1em;
@@ -636,12 +642,13 @@ body.ios {
 
         .post__img {
             padding-top: 3px;
-            width: 27px;
+            width: 16px;
 
             img,
             svg {
                 height: 20px;
-                width: 20px;
+                visibility: hidden;
+                width: 9px;
             }
         }
     }

@@ -25,6 +25,8 @@
     }
 
     .popover-content {
+        word-break: break-word;
+
         p {
             &:last-child {
                 margin-bottom: 5px;
