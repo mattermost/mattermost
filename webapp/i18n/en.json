@@ -1836,6 +1836,7 @@
   "user.settings.display.showNickname": "Show nickname if one exists, otherwise show first and last name",
   "user.settings.display.showUsername": "Show username (default)",
   "user.settings.display.teammateDisplay": "Teammate Name Display",
+  "user.settings.display.theme.applyToAllTeams": "Apply new theme to all my teams",
   "user.settings.display.theme.customTheme": "Custom Theme",
   "user.settings.display.theme.describe": "Open to manage your theme",
   "user.settings.display.theme.import": "Import theme colors from Slack",
