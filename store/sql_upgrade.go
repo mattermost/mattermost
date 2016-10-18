@@ -24,10 +24,11 @@ const (
 )
 
 const (
-	EXIT_VERSION_SAVE_MISSING = 1001
-	EXIT_TOO_OLD              = 1002
-	EXIT_VERSION_SAVE         = 1003
-	EXIT_THEME_MIGRATION      = 1004
+	EXIT_VERSION_SAVE_MISSING         = 1001
+	EXIT_TOO_OLD                      = 1002
+	EXIT_VERSION_SAVE                 = 1003
+	EXIT_THEME_MIGRATION              = 1004
+	EXIT_FILES_AND_HASHTAGS_MIGRATION = 1005
 )
 
 func UpgradeDatabase(sqlStore *SqlStore) {
@@ -100,6 +101,12 @@ func themeMigrationFailed(err error) {
 	l4g.Critical(utils.T("store.sql_user.migrate_theme.critical"), err)
 	time.Sleep(time.Second)
 	os.Exit(EXIT_THEME_MIGRATION)
+}
+
+func hasFilesAndHastagsMigrationFailed(err error) {
+	l4g.Critical(utils.T("store.sql_posts.migrate_files_hashtags.critical"), err)
+	time.Sleep(time.Second)
+	os.Exit(EXIT_FILES_AND_HASHTAGS_MIGRATION)
 }
 
 func UpgradeDatabaseToVersion33(sqlStore *SqlStore) {
@@ -202,7 +209,24 @@ func UpgradeDatabaseToVersion35(sqlStore *SqlStore) {
 	sqlStore.CreateColumnIfNotExists("Posts", "FileIds", "varchar(150)", "varchar(150)", "[]")
 
 	sqlStore.CreateColumnIfNotExists("Posts", "HasFiles", "tinyint(1)", "boolean", "0")
-	sqlStore.CreateColumnIfNotExists("Posts", "HasHashtags", "tinyint(1)", "boolean", "0")
+	created := sqlStore.CreateColumnIfNotExists("Posts", "HasHashtags", "tinyint(1)", "boolean", "0")
+	if created {
+		transaction, err := sqlStore.GetMaster().Begin()
+		if err != nil {
+			hasFilesAndHastagsMigrationFailed(err)
+		}
+
+		if _, err := transaction.Exec(
+			`UPDATE Posts
+			SET Posts.HasFiles = CASE WHEN Posts.Filenames != '[]' THEN 1 ELSE 0 END,
+			Posts.HasHashtags = CASE WHEN Posts.Hashtags != '' THEN 1 ELSE 0 END`); err != nil {
+			hasFilesAndHastagsMigrationFailed(err)
+		}
+
+		if err := transaction.Commit(); err != nil {
+			hasFilesAndHastagsMigrationFailed(err)
+		}
+	}
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// UNCOMMENT WHEN WE DO RELEASE
