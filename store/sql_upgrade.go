@@ -104,7 +104,7 @@ func themeMigrationFailed(err error) {
 }
 
 func hasFilesAndHastagsMigrationFailed(err error) {
-	l4g.Critical(utils.T("store.sql_posts.migrate_files_hashtags.critical"), err)
+	l4g.Critical(utils.T("store.sql_post.migrate_files_hashtags.critical"), err)
 	time.Sleep(time.Second)
 	os.Exit(EXIT_FILES_AND_HASHTAGS_MIGRATION)
 }
