@@ -201,6 +201,9 @@ func UpgradeDatabaseToVersion35(sqlStore *SqlStore) {
 	// The rest of the migration from Filenames -> FileIds is done lazily in api.GetFileInfosForPost
 	sqlStore.CreateColumnIfNotExists("Posts", "FileIds", "varchar(150)", "varchar(150)", "[]")
 
+	sqlStore.CreateColumnIfNotExists("Posts", "HasFiles", "tinyint(1)", "boolean", "0")
+	sqlStore.CreateColumnIfNotExists("Posts", "HasHashtags", "tinyint(1)", "boolean", "0")
+
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// UNCOMMENT WHEN WE DO RELEASE
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -37,6 +37,8 @@ type Post struct {
 	Hashtags      string          `json:"hashtags"`
 	Filenames     StringArray     `json:"filenames,omitempty"` // Deprecated, do not use this field any more
 	FileIds       StringArray     `json:"file_ids,omitempty"`
+	HasFiles      bool            `json:"-"`
+	HasHashtags   bool            `json:"-"`
 	PendingPostId string          `json:"pending_post_id" db:"-"`
 }
 

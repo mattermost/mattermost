@@ -44,6 +44,8 @@ func (s SqlPostStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_posts_channel_id", "Posts", "ChannelId")
 	s.CreateIndexIfNotExists("idx_posts_root_id", "Posts", "RootId")
 	s.CreateIndexIfNotExists("idx_posts_user_id", "Posts", "UserId")
+	s.CreateIndexIfNotExists("idx_posts_has_files", "Posts", "HasFiles")
+	s.CreateIndexIfNotExists("idx_posts_has_hashtags", "Posts", "HasHashtags")
 
 	s.CreateFullTextIndexIfNotExists("idx_posts_message_txt", "Posts", "Message")
 	s.CreateFullTextIndexIfNotExists("idx_posts_hashtags_txt", "Posts", "Hashtags")
@@ -952,11 +954,11 @@ func (s SqlPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, mustH
 		}
 
 		if mustHaveFile {
-			query += " AND (Posts.FileIds != '[]' OR Posts.Filenames != '[]')"
+			query += " AND Posts.HasFiles = 1"
 		}
 
 		if mustHaveHashtag {
-			query += " AND Posts.Hashtags != ''"
+			query += " AND Posts.HasHashtags = 1"
 		}
 
 		if v, err := s.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId}); err != nil {
