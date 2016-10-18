@@ -94,7 +94,7 @@ export default class Sidebar extends React.Component {
     }
 
     getStateFromStores() {
-        const members = ChannelStore.getAllMyMembers();
+        const members = ChannelStore.getMyMembers();
         const currentChannelId = ChannelStore.getCurrentId();
         const currentUserId = UserStore.getCurrentId();
 

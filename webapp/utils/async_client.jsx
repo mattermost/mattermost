@@ -1199,54 +1199,6 @@ export function getRecentAndNewUsersAnalytics(teamId) {
     );
 }
 
-export function listIncomingHooks() {
-    if (isCallInProgress('listIncomingHooks')) {
-        return;
-    }
-
-    callTracker.listIncomingHooks = utils.getTimestamp();
-
-    Client.listIncomingHooks(
-        (data) => {
-            callTracker.listIncomingHooks = 0;
-
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_INCOMING_WEBHOOKS,
-                teamId: Client.teamId,
-                incomingWebhooks: data
-            });
-        },
-        (err) => {
-            callTracker.listIncomingHooks = 0;
-            dispatchError(err, 'getIncomingHooks');
-        }
-    );
-}
-
-export function listOutgoingHooks() {
-    if (isCallInProgress('listOutgoingHooks')) {
-        return;
-    }
-
-    callTracker.listOutgoingHooks = utils.getTimestamp();
-
-    Client.listOutgoingHooks(
-        (data) => {
-            callTracker.listOutgoingHooks = 0;
-
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_OUTGOING_WEBHOOKS,
-                teamId: Client.teamId,
-                outgoingWebhooks: data
-            });
-        },
-        (err) => {
-            callTracker.listOutgoingHooks = 0;
-            dispatchError(err, 'getOutgoingHooks');
-        }
-    );
-}
-
 export function addIncomingHook(hook, success, error) {
     Client.addIncomingHook(
         hook,
@@ -1340,30 +1292,6 @@ export function regenOutgoingHookToken(id) {
     );
 }
 
-export function listTeamCommands() {
-    if (isCallInProgress('listTeamCommands')) {
-        return;
-    }
-
-    callTracker.listTeamCommands = utils.getTimestamp();
-
-    Client.listTeamCommands(
-        (data) => {
-            callTracker.listTeamCommands = 0;
-
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_COMMANDS,
-                teamId: Client.teamId,
-                commands: data
-            });
-        },
-        (err) => {
-            callTracker.listTeamCommands = 0;
-            dispatchError(err, 'listTeamCommands');
-        }
-    );
-}
-
 export function addCommand(command, success, error) {
     Client.addCommand(
         command,
@@ -1442,29 +1370,6 @@ export function getPublicLink(fileId, success, error) {
             } else {
                 dispatchError(err, 'getPublicLink');
             }
-        }
-    );
-}
-
-export function listEmoji() {
-    if (isCallInProgress('listEmoji')) {
-        return;
-    }
-
-    callTracker.listEmoji = utils.getTimestamp();
-
-    Client.listEmoji(
-        (data) => {
-            callTracker.listEmoji = 0;
-
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_CUSTOM_EMOJIS,
-                emojis: data
-            });
-        },
-        (err) => {
-            callTracker.listEmoji = 0;
-            dispatchError(err, 'listEmoji');
         }
     );
 }

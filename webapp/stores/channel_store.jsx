@@ -121,7 +121,7 @@ class ChannelStoreClass extends EventEmitter {
     }
 
     getMyMember(id) {
-        return this.getAllMyMembers()[id];
+        return this.getMyMembers()[id];
     }
 
     getByName(name) {
@@ -140,10 +140,6 @@ class ChannelStoreClass extends EventEmitter {
         return this.getChannels();
     }
 
-    getAllMyMembers() {
-        return this.getMyChannelMembers();
-    }
-
     getMoreAll() {
         return this.getMoreChannels();
     }
@@ -153,7 +149,7 @@ class ChannelStoreClass extends EventEmitter {
     }
 
     resetCounts(id) {
-        const cm = this.channelMembers;
+        const cm = this.myChannelMembers;
         for (var cmid in cm) {
             if (cm[cmid].channel_id === id) {
                 var c = this.get(id);
@@ -185,7 +181,7 @@ class ChannelStoreClass extends EventEmitter {
         var currentId = this.getCurrentId();
 
         if (currentId) {
-            return this.getAllMyMembers()[currentId];
+            return this.getMyMembers()[currentId];
         }
 
         return null;
@@ -245,17 +241,17 @@ class ChannelStoreClass extends EventEmitter {
     }
 
     storeMyChannelMember(channelMember) {
-        const members = Object.assign({}, this.getMyChannelMembers());
+        const members = Object.assign({}, this.getMyMembers());
         members[channelMember.channel_id] = channelMember;
         this.storeMyChannelMembers(members);
     }
 
     storeMyChannelMembers(channelMembers) {
-        this.channelMembers = channelMembers;
+        this.myChannelMembers = channelMembers;
     }
 
-    getMyChannelMembers() {
-        return this.channelMembers;
+    getMyMembers() {
+        return this.myChannelMembers;
     }
 
     storeMoreChannels(channels) {
@@ -315,7 +311,7 @@ class ChannelStoreClass extends EventEmitter {
     }
 
     leaveChannel(id) {
-        Reflect.deleteProperty(this.channelMembers, id);
+        Reflect.deleteProperty(this.myChannelMembers, id);
         const element = this.channels.indexOf(id);
         if (element > -1) {
             this.channels.splice(element, 1);

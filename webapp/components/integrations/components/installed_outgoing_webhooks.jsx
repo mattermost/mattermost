@@ -1,16 +1,20 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import React from 'react';
+import BackstageList from 'components/backstage/components/backstage_list.jsx';
+import InstalledOutgoingWebhook from './installed_outgoing_webhook.jsx';
 
-import * as AsyncClient from 'utils/async_client.jsx';
 import IntegrationStore from 'stores/integration_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
-import * as Utils from 'utils/utils.jsx';
+import UserStore from 'stores/user_store.jsx';
 
-import BackstageList from 'components/backstage/components/backstage_list.jsx';
+import {loadOutgoingHooks} from 'actions/integration_actions.jsx';
+
+import * as Utils from 'utils/utils.jsx';
+import * as AsyncClient from 'utils/async_client.jsx';
+
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import InstalledOutgoingWebhook from './installed_outgoing_webhook.jsx';
 
 export default class InstalledOutgoingWebhooks extends React.Component {
     static get propTypes() {
@@ -23,7 +27,7 @@ export default class InstalledOutgoingWebhooks extends React.Component {
         super(props);
 
         this.handleIntegrationChange = this.handleIntegrationChange.bind(this);
-
+        this.handleUserChange = this.handleUserChange.bind(this);
         this.regenOutgoingWebhookToken = this.regenOutgoingWebhookToken.bind(this);
         this.deleteOutgoingWebhook = this.deleteOutgoingWebhook.bind(this);
 
@@ -31,20 +35,23 @@ export default class InstalledOutgoingWebhooks extends React.Component {
 
         this.state = {
             outgoingWebhooks: IntegrationStore.getOutgoingWebhooks(teamId),
-            loading: !IntegrationStore.hasReceivedOutgoingWebhooks(teamId)
+            loading: !IntegrationStore.hasReceivedOutgoingWebhooks(teamId),
+            users: UserStore.getProfiles()
         };
     }
 
     componentDidMount() {
         IntegrationStore.addChangeListener(this.handleIntegrationChange);
+        UserStore.addChangeListener(this.handleUserChange);
 
         if (window.mm_config.EnableOutgoingWebhooks === 'true') {
-            AsyncClient.listOutgoingHooks();
+            loadOutgoingHooks();
         }
     }
 
     componentWillUnmount() {
         IntegrationStore.removeChangeListener(this.handleIntegrationChange);
+        UserStore.removeChangeListener(this.handleUserChange);
     }
 
     handleIntegrationChange() {
@@ -54,6 +61,10 @@ export default class InstalledOutgoingWebhooks extends React.Component {
             outgoingWebhooks: IntegrationStore.getOutgoingWebhooks(teamId),
             loading: !IntegrationStore.hasReceivedOutgoingWebhooks(teamId)
         });
+    }
+
+    handleUserChange() {
+        this.setState({users: UserStore.getProfiles()});
     }
 
     regenOutgoingWebhookToken(outgoingWebhook) {
@@ -72,6 +83,7 @@ export default class InstalledOutgoingWebhooks extends React.Component {
                     outgoingWebhook={outgoingWebhook}
                     onRegenToken={this.regenOutgoingWebhookToken}
                     onDelete={this.deleteOutgoingWebhook}
+                    creator={this.state.users[outgoingWebhook.creator_id] || {}}
                 />
             );
         });
