@@ -625,11 +625,11 @@
   },
   {
     "id": "api.command_shortcuts.msgs",
-    "translation": "#### 消息\n\nESC：标此频道所有消息为已读\nCTRL+向上键 (在空输入框)：重输入您上个输入的消息或斜杠命令\nCTRL+向下键 (在空输入框)：重输入您下个输入的消息或斜杠命令\n向上键 (在空输入框)：编辑你在本频道发的上一条消息\n@[字]+TAB：自动完成以[字]开头的 @用户名\n:[字]+TAB: 自动完成以[字]开头的表情符\n\n"
+    "translation": "#### 消息\n\nALT+[点击信息]：设信息为您在本频道最早未读信息\nESC：标此频道所有消息为已读\nCMD +向上键 (在空输入框)：重输入您上个输入的消息或斜杠命令\nCMD +向下键 (在空输入框)：重输入您下个输入的消息或斜杠命令\n向上键 (在空输入框)：编辑你在本频道发的上一条消息\n@[字]+TAB：自动完成以[字]开头的 @用户名\n:[字]+TAB: 自动完成以[字]开头的表情符\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs_mac",
-    "translation": "#### 消息\n\nESC：标此频道所有消息为已读\nCMD +向上键 (在空输入框)：重输入您上个输入的消息或斜杠命令\nCMD +向下键 (在空输入框)：重输入您下个输入的消息或斜杠命令\n向上键 (在空输入框)：编辑你在本频道发的上一条消息\n@[字]+TAB：自动完成以[字]开头的 @用户名\n:[字]+TAB: 自动完成以[字]开头的表情符\n\n"
+    "translation": "#### 消息\n\nALT+[点击信息]：设信息为您在本频道最早未读信息\nESC：标此频道所有消息为已读\nCMD +向上键 (在空输入框)：重输入您上个输入的消息或斜杠命令\nCMD +向下键 (在空输入框)：重输入您下个输入的消息或斜杠命令\n向上键 (在空输入框)：编辑你在本频道发的上一条消息\n@[字]+TAB：自动完成以[字]开头的 @用户名\n:[字]+TAB: 自动完成以[字]开头的表情符\n\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -1536,6 +1536,10 @@
     "translation": "合并现有频道: {{.DisplayName}}\r\n"
   },
   {
+    "id": "api.slackimport.slack_add_posts.attach_files.error",
+    "translation": "附加文件到信息时遇到错误, post_id=%s, file_ids=%v, err=%v"
+  },
+  {
     "id": "api.slackimport.slack_add_posts.bot.warn",
     "translation": "Slack 机器人的信息未被导入"
   },
@@ -1550,6 +1554,22 @@
   {
     "id": "api.slackimport.slack_add_posts.unsupported.warn",
     "translation": "不支持的邮件类型: %v, %v"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.upload_file_not_found.warn",
+    "translation": "没有在 Slack 导出中找到文件上传信息的文件 ID {{.FileId}}"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.upload_file_not_in_json.warn",
+    "translation": "无法导入没有 \"file\" 段的上传信息导出。"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.upload_file_open_failed.warn",
+    "translation": "无法打开导出归档中的上传文件 ID {{.FileId}}，错误：{{.Error}}"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.upload_file_upload_failed.warn",
+    "translation": "上传信息文件 ID {{.FileId}} 失败，错误：{{.Error}}"
   },
   {
     "id": "api.slackimport.slack_add_posts.user_no_exists.debug",
