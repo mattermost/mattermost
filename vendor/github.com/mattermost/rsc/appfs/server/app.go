@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Package server implements an appfs server backed by the 
+// Package server implements an appfs server backed by the
 // App Engine datastore.
 package server
 
@@ -30,6 +30,7 @@ import (
 )
 
 const pwFile = "/.password"
+
 var chatty = false
 
 func init() {
@@ -64,7 +65,7 @@ func auth(r *request) bool {
 		return false
 	}
 	user, passwd := string(data[:i]), string(data[i+1:])
-	
+
 	_, data, err = read(r.c, pwFile)
 	if err != nil {
 		r.c.Errorf("reading %s: %v", pwFile, err)
@@ -231,7 +232,7 @@ func read(c appengine.Context, name string) (fi *FileInfo, data []byte, err erro
 
 func (r *request) read() {
 	var (
-		fi *FileInfo
+		fi   *FileInfo
 		data []byte
 	)
 	r.tx(func(c appengine.Context) error {
@@ -323,10 +324,9 @@ func readdirRaw(c appengine.Context, name string) ([]proto.FileInfo, error) {
 		}
 		out = append(out, pfi)
 	}
-println("READDIR", name, len(out))
+	println("READDIR", name, len(out))
 	return out, nil
 }
-
 
 var initPasswd = `# Password file
 # This file controls access to the server.
@@ -367,7 +367,7 @@ func mkfs(c appengine.Context) (fi *FileInfo, err error) {
 	fi3 := FileInfo{
 		Path:    mpath,
 		Name:    "/",
-		Seq:     2,  // 2, not 1, because we're going to write password file with #2
+		Seq:     2, // 2, not 1, because we're going to write password file with #2
 		Qid:     1,
 		ModTime: time.Now(),
 		Size:    0,
@@ -379,22 +379,22 @@ func mkfs(c appengine.Context) (fi *FileInfo, err error) {
 	}
 
 	/*
-	 * Would like to use this code but App Engine apparently
-	 * does not let Get observe the effect of a Put in the same
-	 * transaction.  What planet does that make sense on?
-	 * Instead, we have to execute just the datastore writes that this
-	 * sequence would.
-	 *
-	_, err = create(c, pwFile, false)
-	if err != nil {
-		return nil, fmt.Errorf("mkfs create .password: %s", err)
-	}
-	_, err = write(c, pwFile, []byte(initPasswd))
-	if err != nil {
-		return nil, fmt.Errorf("mkfs write .password: %s", err)
-	}
-	 *
-	 */
+		 * Would like to use this code but App Engine apparently
+		 * does not let Get observe the effect of a Put in the same
+		 * transaction.  What planet does that make sense on?
+		 * Instead, we have to execute just the datastore writes that this
+		 * sequence would.
+		 *
+		_, err = create(c, pwFile, false)
+		if err != nil {
+			return nil, fmt.Errorf("mkfs create .password: %s", err)
+		}
+		_, err = write(c, pwFile, []byte(initPasswd))
+		if err != nil {
+			return nil, fmt.Errorf("mkfs write .password: %s", err)
+		}
+		 *
+	*/
 
 	{
 		name, mname, key := mangle(c, pwFile)
@@ -407,7 +407,7 @@ func mkfs(c appengine.Context) (fi *FileInfo, err error) {
 		if err != nil {
 			return nil, err
 		}
-	
+
 		// Create new directory entry.
 		_, elem := path.Split(name)
 		fi1 = &FileInfo{
@@ -417,7 +417,7 @@ func mkfs(c appengine.Context) (fi *FileInfo, err error) {
 			Seq:     2,
 			ModTime: time.Now(),
 			Size:    int64(len(initPasswd)),
-			IsDir: false,
+			IsDir:   false,
 		}
 		if _, err := datastore.Put(c, key, fi1); err != nil {
 			return nil, err
@@ -621,7 +621,7 @@ func (ae) User(ctxt interface{}) string {
 }
 
 type cacheKey struct {
-	t int64
+	t    int64
 	name string
 }
 
@@ -639,7 +639,7 @@ func (ae) CacheWrite(ctxt, key interface{}, data []byte) {
 
 func (ae ae) Read(ctxt interface{}, name string) (data []byte, pfi *proto.FileInfo, err error) {
 	c := ctxt.(appengine.Context)
-	name = path.Clean("/"+name)
+	name = path.Clean("/" + name)
 	if chatty {
 		c.Infof("AE Read %s", name)
 	}
@@ -695,13 +695,13 @@ func (ae) Criticalf(ctxt interface{}, format string, args ...interface{}) {
 }
 
 type readDirCacheEntry struct {
-	Dir []proto.FileInfo
+	Dir   []proto.FileInfo
 	Error string
 }
 
-func (ae) ReadDir(ctxt interface{}, name string) (dir []proto.FileInfo, err error) {	
+func (ae) ReadDir(ctxt interface{}, name string) (dir []proto.FileInfo, err error) {
 	c := ctxt.(appengine.Context)
-	name = path.Clean("/"+name)
+	name = path.Clean("/" + name)
 	t, data, _, err := cacheRead(c, "dir", name, name)
 	if err == nil {
 		var e readDirCacheEntry
@@ -830,7 +830,7 @@ func cachePathTime(c appengine.Context, path string) (t int64, err error) {
 	if err != nil {
 		return 0, err
 	}
-	
+
 	key := fmt.Sprintf("%d,mtime,%s", t, path)
 	item, err := memcache.Get(c, key)
 	if err == nil {
@@ -860,7 +860,7 @@ func cachePathTime(c appengine.Context, path string) (t int64, err error) {
 
 type statCacheEntry struct {
 	FileInfo *proto.FileInfo
-	Error string
+	Error    string
 }
 
 func cacheRead(c appengine.Context, kind, name, path string) (mtime int64, data []byte, pfi *proto.FileInfo, err error) {
@@ -869,7 +869,7 @@ func cacheRead(c appengine.Context, kind, name, path string) (mtime int64, data 
 		if err != nil {
 			return 0, nil, nil, err
 		}
-	
+
 		key := fmt.Sprintf("%d,%s,%s", t, kind, name)
 		item, err := memcache.Get(c, key)
 		var data []byte
@@ -905,7 +905,7 @@ func cacheRead(c appengine.Context, kind, name, path string) (mtime int64, data 
 				return t, data, st.FileInfo, err
 			}
 		}
-		
+
 		// Need stat, or maybe stat+data.
 		var fi *FileInfo
 		if data != nil {
@@ -936,7 +936,7 @@ func cacheRead(c appengine.Context, kind, name, path string) (mtime int64, data 
 				}
 			}
 		}
-		
+
 		// Cache stat, including error.
 		st = statCacheEntry{}
 		if fi != nil {
@@ -964,7 +964,7 @@ func cacheRead(c appengine.Context, kind, name, path string) (mtime int64, data 
 		// Done!
 		return t, data, st.FileInfo, err
 	}
-	
+
 	c.Criticalf("failed repeatedly in cacheRead")
 	return 0, nil, nil, errors.New("cacheRead loop failed")
 }

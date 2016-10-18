@@ -311,7 +311,7 @@ type renameIn struct {
 	// "oldname\x00newname\x00" follows
 }
 
-// OS X 
+// OS X
 type exchangeIn struct {
 	Olddir  uint64
 	Newdir  uint64

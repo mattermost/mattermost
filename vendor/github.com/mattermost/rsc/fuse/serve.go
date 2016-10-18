@@ -96,7 +96,7 @@ type FS interface {
 // XXX
 //
 //	Listxattr
-// 
+//
 // Listxattr lists the extended attributes recorded for the receiver.
 //
 //	Removexattr
@@ -117,7 +117,7 @@ type FS interface {
 //
 //	Create(xxx)
 //
-// Create creates 
+// Create creates
 //
 //	Link(xxx)
 //
@@ -149,7 +149,7 @@ type FS interface {
 //	Symlink
 //
 // Symlink creates a new symbolic link in the receiver, which must be a directory.
-// The entry 
+// The entry
 //
 // Optional Symlink Methods
 //

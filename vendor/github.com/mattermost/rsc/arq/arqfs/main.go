@@ -83,7 +83,7 @@ func main() {
 		mountslave()
 		return
 	}
-	
+
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "usage: arqfs [-m /mnt/arq]\n")
 		os.Exit(2)
@@ -92,13 +92,13 @@ func main() {
 	if len(flag.Args()) != 0 {
 		flag.Usage()
 	}
-	
+
 	// Run in child so that we can exit once child is running.
 	r, w, err := os.Pipe()
 	if err != nil {
 		log.Fatal(err)
 	}
-	
+
 	cmd := exec.Command(os.Args[0], "MOUNTSLAVE", *mtpt)
 	cmd.Stdout = w
 	cmd.Stderr = os.Stderr
@@ -106,14 +106,14 @@ func main() {
 		log.Fatalf("mount process: %v", err)
 	}
 	w.Close()
-	
+
 	buf := make([]byte, 10)
 	n, _ := r.Read(buf)
 	if n != 2 || string(buf[0:2]) != "OK" {
 		os.Exit(1)
 	}
-	
-	fmt.Fprintf(os.Stderr, "mounted on %s\n", *mtpt)	
+
+	fmt.Fprintf(os.Stderr, "mounted on %s\n", *mtpt)
 }
 
 func mountslave() {

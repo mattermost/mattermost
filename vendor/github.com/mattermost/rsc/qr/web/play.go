@@ -185,7 +185,7 @@ func Draw(w http.ResponseWriter, req *http.Request) {
 		if err := ctxt.Write("qrsave/"+tag, data); err != nil {
 			panic(err)
 		}
-		http.Redirect(w, req, "/qr/show/" + tag, http.StatusTemporaryRedirect)
+		http.Redirect(w, req, "/qr/show/"+tag, http.StatusTemporaryRedirect)
 		return
 	}
 
@@ -365,8 +365,8 @@ func flag(w http.ResponseWriter, req *http.Request, img string, ctxt *fs.Context
 	}
 	data, _, _ := ctxt.Read("qr/flag/" + img)
 	data = append(data, '!')
-	ctxt.Write("qr/flag/" + img, data)
-	
+	ctxt.Write("qr/flag/"+img, data)
+
 	fmt.Fprintf(w, "Thank you.  The image has been reported.\n")
 }
 
@@ -424,7 +424,7 @@ type Image struct {
 	Dx       int
 	Dy       int
 	URL      string
-	Tag string
+	Tag      string
 	Version  int
 	Mask     int
 	Scale    int

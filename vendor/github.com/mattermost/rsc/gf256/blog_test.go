@@ -27,7 +27,7 @@ func BlogECC(rs *RSEncoder, m []byte, check []byte) {
 	}
 
 	// The check bytes are the remainder after dividing
-	// data padded with c zeros by the generator polynomial.  
+	// data padded with c zeros by the generator polynomial.
 
 	// p = data padded with c zeros.
 	var p []byte

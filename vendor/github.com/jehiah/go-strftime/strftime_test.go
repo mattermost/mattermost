@@ -1,9 +1,9 @@
 package strftime
 
 import (
-	"time"
 	"fmt"
 	"testing"
+	"time"
 )
 
 func ExampleFormat() {
@@ -26,7 +26,6 @@ func TestNoLeadingPercentSign(t *testing.T) {
 	}
 }
 
-
 func TestUnsupported(t *testing.T) {
 	tm := time.Unix(1340244776, 0)
 	utc, _ := time.LoadLocation("UTC")
@@ -37,4 +36,3 @@ func TestUnsupported(t *testing.T) {
 		t.Fail()
 	}
 }
-

@@ -488,7 +488,7 @@ func Encode(w http.ResponseWriter, req *http.Request) {
 	v := coding.Version(val("v"))
 	enc := coding.String(req.FormValue("t"))
 	m := coding.Mask(val("m"))
-	
+
 	p, err := coding.NewPlan(v, l, m)
 	if err != nil {
 		panic(err)
@@ -497,10 +497,9 @@ func Encode(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	
+
 	c := &qr.Code{Bitmap: cc.Bitmap, Size: cc.Size, Stride: cc.Stride, Scale: 8}
 	w.Header().Set("Content-Type", "image/png")
 	w.Header().Set("Cache-Control", "public, max-age=3600")
 	w.Write(c.PNG())
 }
-

@@ -26,7 +26,7 @@ func main() {
 	if len(flag.Args()) < 1 {
 		flag.Usage()
 	}
-	
+
 	os.Exit(run(flag.Args()))
 }
 
@@ -39,15 +39,15 @@ func run(args []string) int {
 		pprof.StartCPUProfile(f)
 		defer pprof.StopCPUProfile()
 	}
-	
+
 	m, err := compile(flag.Args()...)
 	if err != nil {
 		log.Fatal(err)
 	}
 	n := 100
-	for ;; n *= 2 {
+	for ; ; n *= 2 {
 		if n >= *maxState {
-			if n >= 2* *maxState {
+			if n >= 2**maxState {
 				fmt.Printf("reached state limit\n")
 				return 1
 			}
