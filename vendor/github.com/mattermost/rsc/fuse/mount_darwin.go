@@ -12,17 +12,17 @@ package fuse
 // which carries this notice:
 //
 // The files in this directory are subject to the following license.
-// 
+//
 // The author of this software is Russ Cox.
-// 
+//
 //         Copyright (c) 2006 Russ Cox
-// 
+//
 // Permission to use, copy, modify, and distribute this software for any
 // purpose without fee is hereby granted, provided that this entire notice
 // is included in all copies of any software which is or includes a copy
 // or modification of this software and in all copies of the supporting
 // documentation for such software.
-// 
+//
 // THIS SOFTWARE IS BEING PROVIDED "AS IS", WITHOUT ANY EXPRESS OR IMPLIED
 // WARRANTY.  IN PARTICULAR, THE AUTHOR MAKES NO REPRESENTATION OR WARRANTY
 // OF ANY KIND CONCERNING THE MERCHANTABILITY OF THIS SOFTWARE OR ITS

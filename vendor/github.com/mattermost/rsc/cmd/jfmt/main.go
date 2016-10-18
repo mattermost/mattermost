@@ -21,14 +21,14 @@ func main() {
 		fmt.Fprintf(os.Stderr, "usage: json < input > output\n")
 		os.Exit(2)
 	}
-	
+
 	// TODO: Can do on the fly.
-	
+
 	data, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
 		log.Fatal(err)
 	}
-	
+
 	var buf bytes.Buffer
 	json.Indent(&buf, data, "", "    ")
 	buf.WriteByte('\n')

@@ -64,13 +64,13 @@ func main() {
 		fmt.Fprint(os.Stderr, usageString)
 		os.Exit(2)
 	}
-	
+
 	flag.Parse()
 	args := flag.Args()
 	if len(args) == 0 {
 		flag.Usage()
 	}
-	
+
 	dates := loadDates()
 	for _, file := range args {
 		list(dates, file)
@@ -109,13 +109,13 @@ func loadDates() []string {
 		}
 	}
 	return all
-}		
+}
 
 const timeFormat = "Jan 02 15:04:05 MST 2006"
 
 func list(dates []string, file string) {
 	var (
-		last os.FileInfo
+		last     os.FileInfo
 		lastPath string
 	)
 
@@ -127,14 +127,14 @@ func list(dates []string, file string) {
 		last = fi
 		lastPath = file
 	}
-	
+
 	file, err = filepath.Abs(file)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "hist: abs: %v\n", err)
 		return
 	}
 
-	for i := len(dates)-1; i >= 0; i-- {
+	for i := len(dates) - 1; i >= 0; i-- {
 		p := filepath.Join(dates[i], file)
 		fi, err := os.Stat(p)
 		if err != nil {
@@ -157,4 +157,3 @@ func list(dates []string, file string) {
 		lastPath = p
 	}
 }
-

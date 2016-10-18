@@ -24,12 +24,12 @@ func joinProgs(progs []*syntax.Prog) *syntax.Prog {
 		match += n
 		m := len(all.Inst)
 		all.Inst = append(all.Inst,
-			syntax.Inst{Op: syntax.InstAlt, Out: uint32(p.Start+n), Arg: uint32(m+1)},
+			syntax.Inst{Op: syntax.InstAlt, Out: uint32(p.Start + n), Arg: uint32(m + 1)},
 			syntax.Inst{Op: instByteRange, Arg: 0x00FF, Out: uint32(m)},
 			syntax.Inst{Op: instByteRange, Arg: 0x00FF, Out: uint32(match)},
 			syntax.Inst{Op: syntax.InstMatch},
 		)
-		all.Inst[match] = syntax.Inst{Op: syntax.InstAlt, Out: uint32(m+2), Arg: uint32(m+3)}
+		all.Inst[match] = syntax.Inst{Op: syntax.InstAlt, Out: uint32(m + 2), Arg: uint32(m + 3)}
 
 		if i == 0 {
 			all.Start = m

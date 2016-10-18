@@ -12,35 +12,35 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"hash/fnv"
 	"hash"
+	"hash/fnv"
 	"log"
 	"regexp/syntax"
 )
 
 // A matcher holds the state for running regular expression search.
 type matcher struct {
-	buf []byte
-	prog      *syntax.Prog       // compiled program
-	dstate    map[uint32]*dstate // dstate cache
-	start     *dstate            // start state
-	startLine *dstate            // start state for beginning of line
-	z1, z2, z3    nstate             // three temporary nstates
-	ids []int
-	numState int
-	maxState int
-	numByte int
-	numMatch int
-	undo [256]byte
-	all *dstate
-	allTail **dstate
-	h hash.Hash32
+	buf        []byte
+	prog       *syntax.Prog       // compiled program
+	dstate     map[uint32]*dstate // dstate cache
+	start      *dstate            // start state
+	startLine  *dstate            // start state for beginning of line
+	z1, z2, z3 nstate             // three temporary nstates
+	ids        []int
+	numState   int
+	maxState   int
+	numByte    int
+	numMatch   int
+	undo       [256]byte
+	all        *dstate
+	allTail    **dstate
+	h          hash.Hash32
 }
 
 // An nstate corresponds to an NFA state.
 type nstate struct {
-	q       Set // queue of program instructions
-	flag    flags      // flags (TODO)
+	q        Set   // queue of program instructions
+	flag     flags // flags (TODO)
 	needFlag syntax.EmptyOp
 }
 
@@ -57,12 +57,12 @@ const (
 
 // A dstate corresponds to a DFA state.
 type dstate struct {
-	enc      string       // encoded nstate
-	nextAll *dstate
+	enc      string // encoded nstate
+	nextAll  *dstate
 	nextHash *dstate
-	prev *dstate
+	prev     *dstate
 	prevByte int
-	done bool
+	done     bool
 }
 
 func (z *nstate) String() string {
@@ -80,7 +80,7 @@ func (m *matcher) enc(z *nstate) []byte {
 	sortInts(ids)
 	last := ^uint32(0)
 	for _, id := range ids {
-		x := uint32(id)-last
+		x := uint32(id) - last
 		last = uint32(id)
 		for x >= 0x80 {
 			buf = append(buf, byte(x)|0x80)
@@ -163,7 +163,7 @@ func (m *matcher) stepEmpty(runq, nextq *Set, flag syntax.EmptyOp) {
 func (m *matcher) stepByte(runq, nextq *Set, c int, flag syntax.EmptyOp) (match bool) {
 	nextq.Reset()
 	m.addq(nextq, uint32(m.prog.Start), flag)
-	
+
 	nmatch := 0
 	for _, id := range runq.Dense() {
 		i := &m.prog.Inst[id]
@@ -241,7 +241,7 @@ func (m *matcher) computeNext(this, next *nstate, d *dstate, c int) bool {
 	if c == endText {
 		flag |= syntax.EmptyEndLine | syntax.EmptyEndText
 	}
-	
+
 	if flag &= this.needFlag; flag != 0 {
 		// re-expand queue using new flags.
 		// TODO: only do this when it matters
@@ -269,7 +269,7 @@ func (m *matcher) computeNext(this, next *nstate, d *dstate, c int) bool {
 	if next.needFlag&syntax.EmptyBeginLine == 0 {
 		next.flag &^= flagBOL
 	}
-	if next.needFlag&(syntax.EmptyWordBoundary|syntax.EmptyNoWordBoundary) == 0{
+	if next.needFlag&(syntax.EmptyWordBoundary|syntax.EmptyNoWordBoundary) == 0 {
 		next.flag &^= flagWord
 	}
 
@@ -296,7 +296,7 @@ func (m *matcher) hash(enc []byte) uint32 {
 
 func (m *matcher) find(h uint32, enc []byte) *dstate {
 Search:
-	for d := m.dstate[h]; d!=nil; d=d.nextHash { 
+	for d := m.dstate[h]; d != nil; d = d.nextHash {
 		s := d.enc
 		if len(s) != len(enc) {
 			continue Search
@@ -324,8 +324,8 @@ func (m *matcher) cache(z *nstate, prev *dstate, prevByte int) *dstate {
 	}
 	m.numState++
 	d = &dstate{
-		enc: string(enc),
-		prev: prev,
+		enc:      string(enc),
+		prev:     prev,
 		prevByte: prevByte,
 		nextHash: m.dstate[h],
 	}
@@ -363,7 +363,7 @@ func (m *matcher) findMatch(maxState int) (s string, err error) {
 			panic(r)
 		}
 	}()
-		
+
 	m.maxState = maxState
 	numState := 0
 	var d *dstate
@@ -395,7 +395,7 @@ Found:
 	if c >= 0 {
 		buf = append(buf, byte(c))
 	}
-	for d1 := d; d1.prev != nil; d1= d1.prev {
+	for d1 := d; d1.prev != nil; d1 = d1.prev {
 		buf = append(buf, byte(d1.prevByte))
 	}
 	for i, j := 0, len(buf)-1; i < j; i, j = i+1, j-1 {

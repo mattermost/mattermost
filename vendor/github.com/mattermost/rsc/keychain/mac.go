@@ -17,7 +17,7 @@ mac2c(CFStringRef s)
 	char *p;
 	int n;
 
-	n = CFStringGetLength(s)*8;	
+	n = CFStringGetLength(s)*8;
 	p = malloc(n);
 	CFStringGetCString(s, p, n, kCFStringEncodingUTF8);
 	return p;

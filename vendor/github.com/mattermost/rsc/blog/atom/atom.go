@@ -13,24 +13,24 @@ import (
 )
 
 type Feed struct {
-	XMLName xml.Name    `xml:"http://www.w3.org/2005/Atom feed"`
-	Title   string  `xml:"title"`
-	ID      string  `xml:"id"`
-	Link    []Link  `xml:"link"`
-	Updated TimeStr    `xml:"updated"`
+	XMLName xml.Name `xml:"http://www.w3.org/2005/Atom feed"`
+	Title   string   `xml:"title"`
+	ID      string   `xml:"id"`
+	Link    []Link   `xml:"link"`
+	Updated TimeStr  `xml:"updated"`
 	Author  *Person  `xml:"author"`
 	Entry   []*Entry `xml:"entry"`
 }
 
 type Entry struct {
-	Title   string `xml:"title"`
-	ID      string `xml:"id"`
-	Link    []Link `xml:"link"`
+	Title     string  `xml:"title"`
+	ID        string  `xml:"id"`
+	Link      []Link  `xml:"link"`
 	Published TimeStr `xml:"published"`
-	Updated TimeStr   `xml:"updated"`
-	Author  *Person `xml:"author"`
-	Summary *Text   `xml:"summary"`
-	Content *Text `xml:"content"`
+	Updated   TimeStr `xml:"updated"`
+	Author    *Person `xml:"author"`
+	Summary   *Text   `xml:"summary"`
+	Content   *Text   `xml:"content"`
 }
 
 type Link struct {
@@ -55,4 +55,3 @@ type TimeStr string
 func Time(t time.Time) TimeStr {
 	return TimeStr(t.Format("2006-01-02T15:04:05-07:00"))
 }
-

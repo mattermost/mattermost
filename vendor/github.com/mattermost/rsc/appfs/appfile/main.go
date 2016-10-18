@@ -41,7 +41,7 @@ func main() {
 	if len(args) == 0 {
 		usage()
 	}
-	
+
 	if c.Password == "" {
 		var err error
 		c.User, c.Password, err = keychain.UserPasswd(c.Host, "")

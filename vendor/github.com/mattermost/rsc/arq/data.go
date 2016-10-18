@@ -15,15 +15,15 @@ import (
 // plist data structures
 
 type computerInfo struct {
-	UserName string `plist:"userName"`
+	UserName     string `plist:"userName"`
 	ComputerName string `plist:"computerName"`
 }
 
 type folderInfo struct {
-	BucketUUID string
-	BucketName string
-	ComputerUUID string
-	LocalPath string
+	BucketUUID      string
+	BucketName      string
+	ComputerUUID    string
+	LocalPath       string
 	LocalMountPoint string
 	// don't care about IgnoredRelativePaths or Excludes
 }
@@ -45,7 +45,7 @@ type sscore struct {
 type tag string
 
 type commit struct {
-	Tag tag                 `arq:"CommitV005"`
+	Tag                 tag `arq:"CommitV005"`
 	Author              string
 	Comment             string
 	ParentCommits       []sscore
@@ -58,7 +58,7 @@ type commit struct {
 }
 
 type tree struct {
-	Tag tag           `arq:"TreeV015"`
+	Tag           tag `arq:"TreeV015"`
 	CompressXattr bool
 	CompressACL   bool
 	Xattr         sscore
@@ -79,7 +79,7 @@ type tree struct {
 	StBlocks      int64
 	StBlksize     uint32
 	AggrSize      uint64
-	Crtime unixTime
+	Crtime        unixTime
 	Nodes         []*nameNode `arq:"count32"`
 }
 
@@ -123,19 +123,19 @@ type node struct {
 func fileMode(m int32) os.FileMode {
 	const (
 		// Darwin file mode.
- 		S_IFBLK                     = 0x6000
- 		S_IFCHR                     = 0x2000
- 		S_IFDIR                     = 0x4000
- 		S_IFIFO                     = 0x1000
- 		S_IFLNK                     = 0xa000
- 		S_IFMT                      = 0xf000
- 		S_IFREG                     = 0x8000
- 		S_IFSOCK                    = 0xc000
- 		S_IFWHT                     = 0xe000
- 		S_ISGID                     = 0x400
- 		S_ISTXT                     = 0x200
- 		S_ISUID                     = 0x800
- 		S_ISVTX                     = 0x200
+		S_IFBLK  = 0x6000
+		S_IFCHR  = 0x2000
+		S_IFDIR  = 0x4000
+		S_IFIFO  = 0x1000
+		S_IFLNK  = 0xa000
+		S_IFMT   = 0xf000
+		S_IFREG  = 0x8000
+		S_IFSOCK = 0xc000
+		S_IFWHT  = 0xe000
+		S_ISGID  = 0x400
+		S_ISTXT  = 0x200
+		S_ISUID  = 0x800
+		S_ISVTX  = 0x200
 	)
 	mode := os.FileMode(m & 0777)
 	switch m & S_IFMT {

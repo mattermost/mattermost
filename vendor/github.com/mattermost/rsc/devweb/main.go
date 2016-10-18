@@ -10,14 +10,14 @@
 // The server program should be a trivial main program like:
 //
 //	package main
-//	
+//
 //	import (
 //		"github.com/mattermost/rsc/devweb/slave"
-//	
+//
 //		_ "this/package"
 //		_ "that/package"
 //	)
-//	
+//
 //	func main() {
 //		slave.Main()
 //	}
@@ -31,7 +31,7 @@
 //
 package main
 
-// BUG(rsc): Devweb should probably 
+// BUG(rsc): Devweb should probably
 
 import (
 	"bufio"

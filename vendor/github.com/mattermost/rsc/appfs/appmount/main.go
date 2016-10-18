@@ -14,11 +14,11 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"runtime"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
-	"sync"
-	"runtime"
 
 	"github.com/mattermost/rsc/appfs/client"
 	"github.com/mattermost/rsc/appfs/proto"
@@ -36,8 +36,8 @@ The default host is localhost:8080.
 // Shared between master and slave.
 var z struct {
 	Client client.Client
-	Debug *bool
-	Mtpt string
+	Debug  *bool
+	Mtpt   string
 }
 
 var fc *fuse.Conn
@@ -57,12 +57,12 @@ func usage() {
 
 func main() {
 	log.SetFlags(0)
-	
+
 	if len(os.Args) == 2 && os.Args[1] == "MOUNTSLAVE" {
 		mountslave()
 		return
 	}
-		
+
 	flag.Usage = usage
 	flag.Parse()
 	args := flag.Args()
@@ -83,17 +83,17 @@ func main() {
 	if _, err := cl.Stat("/"); err != nil {
 		log.Fatal(err)
 	}
-	
+
 	// Run in child so that we can exit once child is running.
 	r, w, err := os.Pipe()
 	if err != nil {
 		log.Fatal(err)
 	}
-	
+
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
 	enc.Encode(&z)
-	
+
 	cmd := exec.Command(os.Args[0], "MOUNTSLAVE")
 	cmd.Stdin = &buf
 	cmd.Stdout = w
@@ -102,14 +102,14 @@ func main() {
 		log.Fatalf("mount process: %v", err)
 	}
 	w.Close()
-	
+
 	ok := make([]byte, 10)
 	n, _ := r.Read(ok)
 	if n != 2 || string(ok[0:2]) != "OK" {
 		os.Exit(1)
 	}
-	
-	fmt.Fprintf(os.Stderr, "mounted on %s\n", z.Mtpt)	
+
+	fmt.Fprintf(os.Stderr, "mounted on %s\n", z.Mtpt)
 }
 
 func mountslave() {
@@ -149,14 +149,14 @@ type File struct {
 }
 
 type statEntry struct {
-	fi *proto.FileInfo
+	fi  *proto.FileInfo
 	err error
-	t time.Time
+	t   time.Time
 }
 
 var statCache struct {
 	mu sync.Mutex
-	m map[string] statEntry
+	m  map[string]statEntry
 }
 
 func stat(name string) (*proto.FileInfo, error) {
@@ -172,17 +172,17 @@ func stat(name string) (*proto.FileInfo, error) {
 	}
 	fi, err := cl.Stat(name)
 	saveStat(name, fi, err)
-	return fi, err	
+	return fi, err
 }
 
 func saveStat(name string, fi *proto.FileInfo, err error) {
 	if *z.Debug {
-if fi != nil {
-	fmt.Fprintf(os.Stderr, "savestat %s %+v\n", name, *fi)
-} else {
-	fmt.Fprintf(os.Stderr, "savestat %s %v\n", name, err)
-}
-	}	
+		if fi != nil {
+			fmt.Fprintf(os.Stderr, "savestat %s %+v\n", name, *fi)
+		} else {
+			fmt.Fprintf(os.Stderr, "savestat %s %v\n", name, err)
+		}
+	}
 	statCache.mu.Lock()
 	if statCache.m == nil {
 		statCache.m = make(map[string]statEntry)
@@ -219,7 +219,7 @@ func (f *File) Attr() (attr fuse.Attr) {
 	if fi.IsDir {
 		attr.Mode |= 0111 | os.ModeDir
 	}
-	attr.Mtime =  fi.ModTime
+	attr.Mtime = fi.ModTime
 	attr.Size = uint64(fi.Size)
 	return
 }
