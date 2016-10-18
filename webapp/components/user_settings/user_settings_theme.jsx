@@ -301,7 +301,7 @@ export default class ThemeSetting extends React.Component {
                             />
                             <FormattedMessage
                                 id='user.settings.display.theme.applyToAllTeams'
-                                defaultMessage='Apply New Theme to All Teams'
+                                defaultMessage='Apply new theme to all my teams'
                             />
                         </label>
                     </div>
