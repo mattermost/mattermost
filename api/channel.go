@@ -68,8 +68,16 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if strings.Index(channel.Name, "__") > 0 {
 		c.Err = model.NewLocAppError("createDirectChannel", "api.channel.create_channel.invalid_character.app_error", nil, "")
 		return
+	}	
+
+	if channel.Type == model.CHANNEL_OPEN && !HasPermissionToTeamContext(c, channel.TeamId, model.PERMISSION_CREATE_PUBLIC_CHANNEL) {
+		return
 	}
 
+	if channel.Type == model.CHANNEL_PRIVATE && !HasPermissionToTeamContext(c, channel.TeamId, model.PERMISSION_CREATE_PRIVATE_CHANNEL) {
+		return
+	}
+	
 	if channel.TeamId == c.TeamId {
 
 		// Get total number of channels on current team
@@ -83,14 +91,6 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-	}
-
-	if channel.Type == model.CHANNEL_OPEN && !HasPermissionToTeamContext(c, channel.TeamId, model.PERMISSION_CREATE_PUBLIC_CHANNEL) {
-		return
-	}
-
-	if channel.Type == model.CHANNEL_PRIVATE && !HasPermissionToTeamContext(c, channel.TeamId, model.PERMISSION_CREATE_PRIVATE_CHANNEL) {
-		return
 	}
 
 	channel.CreatorId = c.Session.UserId
