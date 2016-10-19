@@ -9,7 +9,7 @@ import * as GlobalActions from 'actions/global_actions.jsx';
 import SuggestionStore from 'stores/suggestion_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 
-import TextareaAutosize from 'react-textarea-autosize';
+import TextareaAutosize from 'react-autosize-textarea';
 
 const KeyCodes = Constants.KeyCodes;
 
