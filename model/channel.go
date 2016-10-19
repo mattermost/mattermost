@@ -10,10 +10,14 @@ import (
 )
 
 const (
-	CHANNEL_OPEN    = "O"
-	CHANNEL_PRIVATE = "P"
-	CHANNEL_DIRECT  = "D"
-	DEFAULT_CHANNEL = "town-square"
+	CHANNEL_OPEN                   = "O"
+	CHANNEL_PRIVATE                = "P"
+	CHANNEL_DIRECT                 = "D"
+	DEFAULT_CHANNEL                = "town-square"
+	CHANNEL_DISPLAY_NAME_MAX_RUNES = 64
+	CHANNEL_NAME_MAX_LENGTH        = 64
+	CHANNEL_HEADER_MAX_RUNES       = 1024
+	CHANNEL_PURPOSE_MAX_RUNES      = 250
 )
 
 type Channel struct {
@@ -75,11 +79,11 @@ func (o *Channel) IsValid() *AppError {
 		return NewLocAppError("Channel.IsValid", "model.channel.is_valid.update_at.app_error", nil, "id="+o.Id)
 	}
 
-	if utf8.RuneCountInString(o.DisplayName) > 64 {
+	if utf8.RuneCountInString(o.DisplayName) > CHANNEL_DISPLAY_NAME_MAX_RUNES {
 		return NewLocAppError("Channel.IsValid", "model.channel.is_valid.display_name.app_error", nil, "id="+o.Id)
 	}
 
-	if len(o.Name) > 64 {
+	if len(o.Name) > CHANNEL_NAME_MAX_LENGTH {
 		return NewLocAppError("Channel.IsValid", "model.channel.is_valid.name.app_error", nil, "id="+o.Id)
 	}
 
@@ -91,11 +95,11 @@ func (o *Channel) IsValid() *AppError {
 		return NewLocAppError("Channel.IsValid", "model.channel.is_valid.type.app_error", nil, "id="+o.Id)
 	}
 
-	if utf8.RuneCountInString(o.Header) > 1024 {
+	if utf8.RuneCountInString(o.Header) > CHANNEL_HEADER_MAX_RUNES {
 		return NewLocAppError("Channel.IsValid", "model.channel.is_valid.header.app_error", nil, "id="+o.Id)
 	}
 
-	if utf8.RuneCountInString(o.Purpose) > 128 {
+	if utf8.RuneCountInString(o.Purpose) > CHANNEL_PURPOSE_MAX_RUNES {
 		return NewLocAppError("Channel.IsValid", "model.channel.is_valid.purpose.app_error", nil, "id="+o.Id)
 	}
 

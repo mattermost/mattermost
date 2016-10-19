@@ -201,6 +201,13 @@ func UpgradeDatabaseToVersion35(sqlStore *SqlStore) {
 	// The rest of the migration from Filenames -> FileIds is done lazily in api.GetFileInfosForPost
 	sqlStore.CreateColumnIfNotExists("Posts", "FileIds", "varchar(150)", "varchar(150)", "[]")
 
+	// Increase maximum length of the Channel table Purpose column.
+	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+		sqlStore.GetMaster().Exec("ALTER TABLE Channels ALTER COLUMN Purpose TYPE varchar(250)")
+	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
+		sqlStore.GetMaster().Exec("ALTER TABLE Channels MODIFY Purpose varchar(250)")
+	}
+
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// UNCOMMENT WHEN WE DO RELEASE
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
