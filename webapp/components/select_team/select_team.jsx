@@ -193,7 +193,7 @@ export default class SelectTeam extends React.Component {
         let adminConsoleLink;
         if (isSystemAdmin) {
             adminConsoleLink = (
-                <div className='margin--extra'>
+                <div className='margin--extra hidden-xs'>
                     <Link
                         to='/admin_console'
                         className='signup-team-login'

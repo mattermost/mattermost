@@ -21,6 +21,21 @@
         }
     }
 
+    .video-div {
+        &.embed-responsive-item {
+            height: 0;
+            padding-bottom: 75%;
+
+            iframe {
+                height: 100%;
+                left: 0;
+                position: absolute;
+                top: 0;
+                width: 100%;
+            }
+        }
+    }
+
     .tutorial-steps__container {
         .tutorial__content {
             .tutorial__steps {
@@ -127,6 +142,14 @@
                 content: '...';
                 font-size: 20px;
                 top: -3px;
+            }
+        }
+
+        &.post--compact {
+            .status-wrapper {
+                &:after {
+                    bottom: 12px;
+                }
             }
         }
 
@@ -801,7 +824,7 @@
     }
 
     .sidebar--menu {
-        @include single-transition(transform, .5s, ease);
+        @include single-transition(transform, .35s, ease);
         @include translate3d(290px, 0, 0);
         border: none;
         display: block;
@@ -814,7 +837,7 @@
     }
 
     .sidebar--left {
-        @include single-transition(transform, .5s, ease);
+        @include single-transition(transform, .35s, ease);
         @include translate3d(-290px, 0, 0);
         border: none;
         width: 290px;
@@ -955,7 +978,7 @@
     }
 
     .inner-wrap {
-        @include single-transition(all, .5s, ease);
+        @include single-transition(all, .35s, ease);
 
         .app__body & {
             &:before {
@@ -966,7 +989,7 @@
                 left: -15px;
                 position: absolute;
                 top: 0;
-                transition: background-color 0.5s ease, z-index 0s ease 0.5s;
+                transition: background-color .35s ease, z-index 0s ease .35s;
                 width: calc(100% + 30px);
                 z-index: 0;
             }
@@ -976,8 +999,9 @@
             @include translate3d(290px, 0, 0);
 
             &:before {
+                @include single-transition(all, .35s, ease);
+
                 background-color: rgba(0, 0, 0, .4);
-                transition: background-color .5s ease;
                 z-index: 9999;
             }
         }
@@ -986,8 +1010,8 @@
             @include translate3d(-290px, 0, 0);
 
             &:before {
-                background-color: rgba(0, 0, 0, 0.4);
-                transition: background-color 0.5s ease;
+                @include single-transition(all, .35s, ease);
+                background-color: rgba(0, 0, 0, .4);
                 z-index: 9999;
             }
         }
