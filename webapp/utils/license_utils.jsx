@@ -3,8 +3,7 @@
 
 import Constants from 'utils/constants.jsx';
 
-import React from 'react';
-import {FormattedDate} from 'react-intl';
+import LocalizationStore from 'stores/localization_store.jsx';
 
 export function isLicenseExpiring() {
     if (window.mm_license.IsLicensed !== 'true') {
@@ -34,12 +33,6 @@ export function isLicensePastGracePeriod() {
 }
 
 export function displayExpiryDate() {
-    return (
-        <FormattedDate
-            value={new Date(parseInt(global.window.mm_license.ExpiresAt, 10))}
-            day='2-digit'
-            month='long'
-            year='numeric'
-        />
-    );
+    const date = new Date(parseInt(global.window.mm_license.ExpiresAt, 10));
+    return date.toLocaleString(LocalizationStore.getLocale(), {year: 'numeric', month: 'long', day: 'numeric'});
 }
