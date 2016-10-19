@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/mail"
 	"net/url"
 	"regexp"
@@ -74,13 +75,21 @@ func (er *AppError) ToJson() string {
 
 // AppErrorFromJson will decode the input and return an AppError
 func AppErrorFromJson(data io.Reader) *AppError {
-	decoder := json.NewDecoder(data)
+	str := ""
+	bytes, rerr := ioutil.ReadAll(data)
+	if rerr != nil {
+		str = rerr.Error()
+	} else {
+		str = string(bytes)
+	}
+
+	decoder := json.NewDecoder(strings.NewReader(str))
 	var er AppError
 	err := decoder.Decode(&er)
 	if err == nil {
 		return &er
 	} else {
-		return NewLocAppError("AppErrorFromJson", "model.utils.decode_json.app_error", nil, err.Error())
+		return NewLocAppError("AppErrorFromJson", "model.utils.decode_json.app_error", nil, "body: "+str)
 	}
 }
 
@@ -164,6 +173,23 @@ func ArrayFromJson(data io.Reader) []string {
 	} else {
 		return objmap
 	}
+}
+
+func ArrayFromInterface(data interface{}) []string {
+	stringArray := []string{}
+
+	dataArray, ok := data.([]interface{})
+	if !ok {
+		return stringArray
+	}
+
+	for _, v := range dataArray {
+		if str, ok := v.(string); ok {
+			stringArray = append(stringArray, str)
+		}
+	}
+
+	return stringArray
 }
 
 func StringInterfaceToJson(objmap map[string]interface{}) string {

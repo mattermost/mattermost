@@ -2404,8 +2404,12 @@
     "translation": "Bad verify email link."
   },
   {
+    "id": "api.web_hub.start.starting.debug",
+    "translation": "Starting %v websocket hubs"
+  },
+  {
     "id": "api.web_hub.start.stopping.debug",
-    "translation": "stopping %v connections"
+    "translation": "stopping websocket hub connections"
   },
   {
     "id": "api.web_socket.connect.error",
@@ -4628,12 +4632,20 @@
     "translation": "We couldn't get the team member"
   },
   {
+    "id": "store.sql_team.get_members_by_ids.app_error",
+    "translation": "We couldn't get the team members"
+  },
+  {
     "id": "store.sql_team.get_member.missing.app_error",
     "translation": "No team member found for that user id and team id"
   },
   {
     "id": "store.sql_team.get_members.app_error",
     "translation": "We couldn't get the team members"
+  },
+  {
+    "id": "store.sql_team.get_member_count.app_error",
+    "translation": "We couldn't count the team members"
   },
   {
     "id": "store.sql_team.get_teams_for_email.app_error",
@@ -4722,6 +4734,10 @@
   {
     "id": "store.sql_user.get_profiles.app_error",
     "translation": "We encountered an error while finding user profiles"
+  },
+  {
+    "id": "store.sql_user.get_recently_active_users.app_error",
+    "translation": "We encountered an error while finding the recently active users"
   },
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",

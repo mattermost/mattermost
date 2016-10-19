@@ -361,7 +361,7 @@ run-server: prepare-enterprise start-docker
 
 run-cli: prepare-enterprise start-docker
 	@echo Running mattermost for development
-	@echo Example should be like >'make ARGS="-version" run-cli'
+	@echo Example should be like 'make ARGS="-version" run-cli'
 
 	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) *.go ${ARGS}
 

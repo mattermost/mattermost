@@ -33,6 +33,7 @@ import (
 const (
 	INDEX_TYPE_FULL_TEXT = "full_text"
 	INDEX_TYPE_DEFAULT   = "default"
+	MAX_DB_CONN_LIFETIME = 15
 )
 
 const (
@@ -94,9 +95,7 @@ func initConnection() *SqlStore {
 
 	if len(utils.Cfg.SqlSettings.DataSourceReplicas) == 0 {
 		sqlStore.replicas = make([]*gorp.DbMap, 1)
-		sqlStore.replicas[0] = setupConnection(fmt.Sprintf("replica-%v", 0), utils.Cfg.SqlSettings.DriverName, utils.Cfg.SqlSettings.DataSource,
-			utils.Cfg.SqlSettings.MaxIdleConns, utils.Cfg.SqlSettings.MaxOpenConns,
-			utils.Cfg.SqlSettings.Trace)
+		sqlStore.replicas[0] = sqlStore.master
 	} else {
 		sqlStore.replicas = make([]*gorp.DbMap, len(utils.Cfg.SqlSettings.DataSourceReplicas))
 		for i, replica := range utils.Cfg.SqlSettings.DataSourceReplicas {
@@ -183,6 +182,7 @@ func setupConnection(con_type string, driver string, dataSource string, maxIdle 
 
 	db.SetMaxIdleConns(maxIdle)
 	db.SetMaxOpenConns(maxOpen)
+	db.SetConnMaxLifetime(time.Duration(MAX_DB_CONN_LIFETIME) * time.Minute)
 
 	var dbmap *gorp.DbMap
 
@@ -203,6 +203,26 @@ func setupConnection(con_type string, driver string, dataSource string, maxIdle 
 	}
 
 	return dbmap
+}
+
+func (ss SqlStore) TotalMasterDbConnections() int {
+	return ss.GetMaster().Db.Stats().OpenConnections
+}
+
+func (ss SqlStore) TotalReadDbConnections() int {
+
+	if len(utils.Cfg.SqlSettings.DataSourceReplicas) == 0 {
+		return 0
+	} else {
+		count := 0
+		for _, db := range ss.replicas {
+			count = count + db.Db.Stats().OpenConnections
+		}
+
+		return count
+	}
+
+	return 0
 }
 
 func (ss SqlStore) GetCurrentSchemaVersion() string {

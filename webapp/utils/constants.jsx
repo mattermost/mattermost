@@ -71,7 +71,7 @@ export const ActionTypes = keyMirror({
     RECEIVED_CHANNELS: null,
     RECEIVED_CHANNEL: null,
     RECEIVED_MORE_CHANNELS: null,
-    RECEIVED_CHANNEL_EXTRA_INFO: null,
+    RECEIVED_CHANNEL_STATS: null,
 
     FOCUS_POST: null,
     RECEIVED_POSTS: null,
@@ -84,9 +84,11 @@ export const ActionTypes = keyMirror({
     RECEIVED_MENTION_DATA: null,
     RECEIVED_ADD_MENTION: null,
 
-    RECEIVED_PROFILES_FOR_DM_LIST: null,
     RECEIVED_PROFILES: null,
-    RECEIVED_DIRECT_PROFILES: null,
+    RECEIVED_PROFILES_IN_TEAM: null,
+    RECEIVED_PROFILE: null,
+    RECEIVED_PROFILES_IN_CHANNEL: null,
+    RECEIVED_PROFILE_NOT_IN_CHANNEL: null,
     RECEIVED_ME: null,
     RECEIVED_SESSIONS: null,
     RECEIVED_AUDITS: null,
@@ -129,8 +131,9 @@ export const ActionTypes = keyMirror({
     RECEIVED_SERVER_COMPLIANCE_REPORTS: null,
     RECEIVED_ALL_TEAMS: null,
     RECEIVED_ALL_TEAM_LISTINGS: null,
-    RECEIVED_TEAM_MEMBERS: null,
-    RECEIVED_MEMBERS_FOR_TEAM: null,
+    RECEIVED_MY_TEAM_MEMBERS: null,
+    RECEIVED_MEMBERS_IN_TEAM: null,
+    RECEIVED_TEAM_STATS: null,
 
     RECEIVED_LOCALE: null,
 
@@ -232,7 +235,10 @@ export const Constants = {
         POST_PER_DAY: null,
         USERS_WITH_POSTS_PER_DAY: null,
         RECENTLY_ACTIVE_USERS: null,
-        NEWLY_CREATED_USERS: null
+        NEWLY_CREATED_USERS: null,
+        TOTAL_WEBSOCKET_CONNECTIONS: null,
+        TOTAL_MASTER_DB_CONNECTIONS: null,
+        TOTAL_READ_DB_CONNECTIONS: null
     }),
     STAT_MAX_ACTIVE_USERS: 20,
     STAT_MAX_NEW_USERS: 20,
@@ -313,7 +319,7 @@ export const Constants = {
     SIGNIN_VERIFIED: 'verified',
     SESSION_EXPIRED: 'expired',
     POST_CHUNK_SIZE: 60,
-    MAX_POST_CHUNKS: 3,
+    PROFILE_CHUNK_SIZE: 100,
     POST_FOCUS_CONTEXT_RADIUS: 10,
     POST_LOADING: 'loading',
     POST_FAILED: 'failed',
@@ -843,7 +849,9 @@ export const Constants = {
     MENTION_MEMBERS: 'mention.members',
     MENTION_NONMEMBERS: 'mention.nonmembers',
     MENTION_SPECIAL: 'mention.special',
-    DEFAULT_NOTIFICATION_DURATION: 5000
+    DEFAULT_NOTIFICATION_DURATION: 5000,
+    STATUS_INTERVAL: 60000,
+    AUTOCOMPLETE_TIMEOUT: 200
 };
 
 export default Constants;

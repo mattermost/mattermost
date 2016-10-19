@@ -560,13 +560,79 @@ func TestGetMyTeam(t *testing.T) {
 func TestGetTeamMembers(t *testing.T) {
 	th := Setup().InitBasic()
 
-	if result, err := th.BasicClient.GetTeamMembers(th.BasicTeam.Id); err != nil {
+	if result, err := th.BasicClient.GetTeamMembers(th.BasicTeam.Id, 0, 100); err != nil {
 		t.Fatal(err)
 	} else {
 		members := result.Data.([]*model.TeamMember)
-		if members == nil {
+		if len(members) == 0 {
+			t.Fatal("should have results")
+		}
+	}
+
+	if _, err := th.BasicClient.GetTeamMembers("junk", 0, 100); err == nil {
+		t.Fatal("should have errored - bad team id")
+	}
+}
+
+func TestGetTeamMember(t *testing.T) {
+	th := Setup().InitBasic()
+
+	if result, err := th.BasicClient.GetTeamMember(th.BasicTeam.Id, th.BasicUser.Id); err != nil {
+		t.Fatal(err)
+	} else {
+		member := result.Data.(*model.TeamMember)
+		if member == nil {
 			t.Fatal("should be valid")
 		}
+	}
+
+	if _, err := th.BasicClient.GetTeamMember("junk", th.BasicUser.Id); err == nil {
+		t.Fatal("should have errored - bad team id")
+	}
+
+	if _, err := th.BasicClient.GetTeamMember(th.BasicTeam.Id, ""); err == nil {
+		t.Fatal("should have errored - blank user id")
+	}
+
+	if _, err := th.BasicClient.GetTeamMember(th.BasicTeam.Id, "junk"); err == nil {
+		t.Fatal("should have errored - bad user id")
+	}
+
+	if _, err := th.BasicClient.GetTeamMember(th.BasicTeam.Id, "12345678901234567890123456"); err == nil {
+		t.Fatal("should have errored - bad user id")
+	}
+}
+
+func TestGetTeamMembersByIds(t *testing.T) {
+	th := Setup().InitBasic()
+
+	if result, err := th.BasicClient.GetTeamMembersByIds(th.BasicTeam.Id, []string{th.BasicUser.Id}); err != nil {
+		t.Fatal(err)
+	} else {
+		member := result.Data.([]*model.TeamMember)[0]
+		if member.UserId != th.BasicUser.Id {
+			t.Fatal("user id did not match")
+		}
+		if member.TeamId != th.BasicTeam.Id {
+			t.Fatal("team id did not match")
+		}
+	}
+
+	if result, err := th.BasicClient.GetTeamMembersByIds(th.BasicTeam.Id, []string{th.BasicUser.Id, th.BasicUser2.Id, model.NewId()}); err != nil {
+		t.Fatal(err)
+	} else {
+		members := result.Data.([]*model.TeamMember)
+		if len(members) != 2 {
+			t.Fatal("length should have been 2")
+		}
+	}
+
+	if _, err := th.BasicClient.GetTeamMembersByIds("junk", []string{th.BasicUser.Id}); err == nil {
+		t.Fatal("should have errored - bad team id")
+	}
+
+	if _, err := th.BasicClient.GetTeamMembersByIds(th.BasicTeam.Id, []string{}); err == nil {
+		t.Fatal("should have errored - empty user ids")
 	}
 }
 
@@ -630,5 +696,44 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 	// user 1 trying to demote himself
 	if _, err := th.BasicClient.UpdateTeamRoles(th.BasicUser.Id, BASIC_MEMBER); err != nil {
 		t.Fatal("Should have worked, user is team admin")
+	}
+}
+
+func TestGetTeamStats(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	Client := th.BasicClient
+
+	if result, err := th.SystemAdminClient.GetTeamStats(th.BasicTeam.Id); err != nil {
+		t.Fatal(err)
+	} else {
+		if result.Data.(*model.TeamStats).MemberCount != 2 {
+			t.Fatal("wrong count")
+		}
+	}
+
+	if result, err := th.SystemAdminClient.GetTeamStats("junk"); err != nil {
+		t.Fatal(err)
+	} else {
+		if result.Data.(*model.TeamStats).MemberCount != 0 {
+			t.Fatal("wrong count")
+		}
+	}
+
+	if result, err := th.SystemAdminClient.GetTeamStats(th.BasicTeam.Id); err != nil {
+		t.Fatal(err)
+	} else {
+		if result.Data.(*model.TeamStats).MemberCount != 2 {
+			t.Fatal("wrong count")
+		}
+	}
+
+	user := model.User{Email: "success+" + model.NewId() + "@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
+	ruser, _ := Client.CreateUser(&user, "")
+	store.Must(Srv.Store.User().VerifyEmail(ruser.Data.(*model.User).Id))
+
+	Client.Login(user.Email, user.Password)
+
+	if _, err := Client.GetTeamStats(th.BasicTeam.Id); err == nil {
+		t.Fatal("should have errored - not on team")
 	}
 }

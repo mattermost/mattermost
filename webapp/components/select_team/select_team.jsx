@@ -46,7 +46,7 @@ export default class SelectTeam extends React.Component {
     getStateFromStores(loaded) {
         return {
             teams: TeamStore.getAll(),
-            teamMembers: TeamStore.getTeamMembers(),
+            teamMembers: TeamStore.getMyTeamMembers(),
             teamListings: TeamStore.getTeamListings(),
             loaded
         };

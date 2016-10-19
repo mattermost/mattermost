@@ -61,6 +61,10 @@ export default class RhsRootPost extends React.Component {
             return true;
         }
 
+        if (!Utils.areObjectsEqual(nextProps.user, this.props.user)) {
+            return true;
+        }
+
         if (!Utils.areObjectsEqual(nextProps.currentUser, this.props.currentUser)) {
             return true;
         }
@@ -85,7 +89,7 @@ export default class RhsRootPost extends React.Component {
         var isOwner = this.props.currentUser.id === post.user_id;
         var isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
         const isSystemMessage = post.type && post.type.startsWith(Constants.SYSTEM_MESSAGE_PREFIX);
-        var timestamp = UserStore.getProfile(post.user_id).update_at;
+        var timestamp = user.update_at;
         var channel = ChannelStore.get(post.channel_id);
         const flagIcon = Constants.FLAG_ICON_SVG;
 

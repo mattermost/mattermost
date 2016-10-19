@@ -19,6 +19,7 @@ import LocalizationStore from 'stores/localization_store.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as ChannelActions from 'actions/channel_actions.jsx';
+import {loadProfilesAndTeamMembersForDMSidebar} from 'actions/user_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 
@@ -93,7 +94,7 @@ export default class Sidebar extends React.Component {
     }
 
     getStateFromStores() {
-        const members = ChannelStore.getAllMembers();
+        const members = ChannelStore.getMyMembers();
         const currentChannelId = ChannelStore.getCurrentId();
         const currentUserId = UserStore.getCurrentId();
 
@@ -133,9 +134,9 @@ export default class Sidebar extends React.Component {
             directChannel.teammate_id = teammateId;
             directChannel.status = UserStore.getStatus(teammateId) || 'offline';
 
-            if (UserStore.hasTeamProfile(teammateId) && TeamStore.hasActiveMemberForTeam(teammateId)) {
+            if (TeamStore.hasActiveMemberInTeam(TeamStore.getCurrentId(), teammateId)) {
                 directChannels.push(directChannel);
-            } else {
+            } else if (TeamStore.hasMemberNotInTeam(TeamStore.getCurrentId(), teammateId)) {
                 directNonTeamChannels.push(directChannel);
             }
         }
@@ -164,6 +165,7 @@ export default class Sidebar extends React.Component {
     componentDidMount() {
         ChannelStore.addChangeListener(this.onChange);
         UserStore.addChangeListener(this.onChange);
+        UserStore.addInTeamChangeListener(this.onChange);
         UserStore.addStatusesChangeListener(this.onChange);
         TeamStore.addChangeListener(this.onChange);
         PreferenceStore.addChangeListener(this.onChange);
@@ -173,6 +175,8 @@ export default class Sidebar extends React.Component {
 
         document.addEventListener('keydown', this.navigateChannelShortcut);
         document.addEventListener('keydown', this.navigateUnreadChannelShortcut);
+
+        loadProfilesAndTeamMembersForDMSidebar();
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -205,6 +209,7 @@ export default class Sidebar extends React.Component {
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onChange);
         UserStore.removeChangeListener(this.onChange);
+        UserStore.removeInTeamChangeListener(this.onChange);
         UserStore.removeStatusesChangeListener(this.onChange);
         TeamStore.removeChangeListener(this.onChange);
         PreferenceStore.removeChangeListener(this.onChange);

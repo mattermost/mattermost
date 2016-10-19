@@ -44,7 +44,7 @@ class NotificationStoreClass extends EventEmitter {
 
             const channel = ChannelStore.get(post.channel_id);
             const user = UserStore.getCurrentUser();
-            const member = ChannelStore.getMember(post.channel_id);
+            const member = ChannelStore.getMyMember(post.channel_id);
 
             let notifyLevel = member && member.notify_props ? member.notify_props.desktop : 'default';
             if (notifyLevel === 'default') {

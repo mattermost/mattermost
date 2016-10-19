@@ -96,7 +96,13 @@
     }
 
     .member-select__container {
+        margin-bottom: 10px;
         margin-top: 10px;
+        overflow: hidden;
+        position: relative;
+        right: 10px;
+        top: 0;
+        width: 100%;
     }
 
     .user-popover {
@@ -842,6 +848,10 @@
 
         &.move--right {
             @include translate3d(0, 0, 0);
+        }
+
+        .nav-pills__container {
+            height: 100%;
         }
 
         > div {

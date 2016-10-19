@@ -12,7 +12,7 @@ const NotificationPrefs = Constants.NotificationPrefs;
 const CHANGE_EVENT = 'change';
 const LEAVE_EVENT = 'leave';
 const MORE_CHANGE_EVENT = 'change';
-const EXTRA_INFO_EVENT = 'extra_info';
+const STATS_EVENT = 'stats';
 const LAST_VIEVED_EVENT = 'last_viewed';
 
 class ChannelStoreClass extends EventEmitter {
@@ -21,41 +21,13 @@ class ChannelStoreClass extends EventEmitter {
 
         this.setMaxListeners(15);
 
-        this.emitChange = this.emitChange.bind(this);
-        this.addChangeListener = this.addChangeListener.bind(this);
-        this.removeChangeListener = this.removeChangeListener.bind(this);
-        this.emitMoreChange = this.emitMoreChange.bind(this);
-        this.addMoreChangeListener = this.addMoreChangeListener.bind(this);
-        this.removeMoreChangeListener = this.removeMoreChangeListener.bind(this);
-        this.emitExtraInfoChange = this.emitExtraInfoChange.bind(this);
-        this.addExtraInfoChangeListener = this.addExtraInfoChangeListener.bind(this);
-        this.removeExtraInfoChangeListener = this.removeExtraInfoChangeListener.bind(this);
-        this.emitLeave = this.emitLeave.bind(this);
-        this.addLeaveListener = this.addLeaveListener.bind(this);
-        this.removeLeaveListener = this.removeLeaveListener.bind(this);
-        this.emitLastViewed = this.emitLastViewed.bind(this);
-        this.addLastViewedListener = this.addLastViewedListener.bind(this);
-        this.removeLastViewedListener = this.removeLastViewedListener.bind(this);
-        this.findFirstBy = this.findFirstBy.bind(this);
-        this.get = this.get.bind(this);
-        this.getMember = this.getMember.bind(this);
-        this.getByName = this.getByName.bind(this);
-        this.getByDisplayName = this.getByDisplayName.bind(this);
-        this.setPostMode = this.setPostMode.bind(this);
-        this.getPostMode = this.getPostMode.bind(this);
-        this.setUnreadCount = this.setUnreadCount.bind(this);
-        this.setUnreadCounts = this.setUnreadCounts.bind(this);
-        this.getUnreadCount = this.getUnreadCount.bind(this);
-        this.getUnreadCounts = this.getUnreadCounts.bind(this);
-        this.getChannelNamesMap = this.getChannelNamesMap.bind(this);
-
         this.currentId = null;
         this.postMode = this.POST_MODE_CHANNEL;
         this.channels = [];
-        this.channelMembers = {};
+        this.myChannelMembers = {};
         this.moreChannels = {};
         this.moreChannels.loading = true;
-        this.extraInfos = {};
+        this.stats = {};
         this.unreadCounts = {};
     }
 
@@ -91,16 +63,16 @@ class ChannelStoreClass extends EventEmitter {
         this.removeListener(MORE_CHANGE_EVENT, callback);
     }
 
-    emitExtraInfoChange() {
-        this.emit(EXTRA_INFO_EVENT);
+    emitStatsChange() {
+        this.emit(STATS_EVENT);
     }
 
-    addExtraInfoChangeListener(callback) {
-        this.on(EXTRA_INFO_EVENT, callback);
+    addStatsChangeListener(callback) {
+        this.on(STATS_EVENT, callback);
     }
 
-    removeExtraInfoChangeListener(callback) {
-        this.removeListener(EXTRA_INFO_EVENT, callback);
+    removeStatsChangeListener(callback) {
+        this.removeListener(STATS_EVENT, callback);
     }
     emitLeave(id) {
         this.emit(LEAVE_EVENT, id);
@@ -148,8 +120,8 @@ class ChannelStoreClass extends EventEmitter {
         return this.findFirstBy('id', id);
     }
 
-    getMember(id) {
-        return this.getAllMembers()[id];
+    getMyMember(id) {
+        return this.getMyMembers()[id];
     }
 
     getByName(name) {
@@ -168,10 +140,6 @@ class ChannelStoreClass extends EventEmitter {
         return this.getChannels();
     }
 
-    getAllMembers() {
-        return this.getChannelMembers();
-    }
-
     getMoreAll() {
         return this.getMoreChannels();
     }
@@ -181,7 +149,7 @@ class ChannelStoreClass extends EventEmitter {
     }
 
     resetCounts(id) {
-        const cm = this.channelMembers;
+        const cm = this.myChannelMembers;
         for (var cmid in cm) {
             if (cm[cmid].channel_id === id) {
                 var c = this.get(id);
@@ -213,41 +181,34 @@ class ChannelStoreClass extends EventEmitter {
         var currentId = this.getCurrentId();
 
         if (currentId) {
-            return this.getAllMembers()[currentId];
+            return this.getMyMembers()[currentId];
         }
 
         return null;
     }
 
-    setChannelMember(member) {
-        var members = this.getChannelMembers();
-        members[member.channel_id] = member;
-        this.storeChannelMembers(members);
-        this.emitChange();
+    getCurrentStats() {
+        return this.getStats(this.getCurrentId());
     }
 
-    getCurrentExtraInfo() {
-        return this.getExtraInfo(this.getCurrentId());
-    }
-
-    getExtraInfo(channelId) {
-        var extra = null;
+    getStats(channelId) {
+        let stats;
 
         if (channelId) {
-            extra = this.getExtraInfos()[channelId];
+            stats = this.stats[channelId];
         }
 
-        if (extra) {
+        if (stats) {
             // create a defensive copy
-            extra = JSON.parse(JSON.stringify(extra));
+            stats = Object.assign({}, stats);
         } else {
-            extra = {members: []};
+            stats = {member_count: 0};
         }
 
-        return extra;
+        return stats;
     }
 
-    pStoreChannel(channel) {
+    storeChannel(channel) {
         var channels = this.getChannels();
         var found;
 
@@ -279,18 +240,18 @@ class ChannelStoreClass extends EventEmitter {
         return this.channels;
     }
 
-    pStoreChannelMember(channelMember) {
-        var members = this.getChannelMembers();
+    storeMyChannelMember(channelMember) {
+        const members = Object.assign({}, this.getMyMembers());
         members[channelMember.channel_id] = channelMember;
-        this.storeChannelMembers(members);
+        this.storeMyChannelMembers(members);
     }
 
-    storeChannelMembers(channelMembers) {
-        this.channelMembers = channelMembers;
+    storeMyChannelMembers(channelMembers) {
+        this.myChannelMembers = channelMembers;
     }
 
-    getChannelMembers() {
-        return this.channelMembers;
+    getMyMembers() {
+        return this.myChannelMembers;
     }
 
     storeMoreChannels(channels) {
@@ -301,12 +262,8 @@ class ChannelStoreClass extends EventEmitter {
         return this.moreChannels;
     }
 
-    storeExtraInfos(extraInfos) {
-        this.extraInfos = extraInfos;
-    }
-
-    getExtraInfos() {
-        return this.extraInfos;
+    storeStats(stats) {
+        this.stats = stats;
     }
 
     isDefault(channel) {
@@ -323,7 +280,7 @@ class ChannelStoreClass extends EventEmitter {
 
     setUnreadCount(id) {
         const ch = this.get(id);
-        const chMember = this.getMember(id);
+        const chMember = this.getMyMember(id);
 
         const chMentionCount = chMember.mention_count;
         let chUnreadCount = ch.total_msg_count - chMember.msg_count;
@@ -351,7 +308,7 @@ class ChannelStoreClass extends EventEmitter {
     }
 
     leaveChannel(id) {
-        Reflect.deleteProperty(this.channelMembers, id);
+        Reflect.deleteProperty(this.myChannelMembers, id);
         const element = this.channels.indexOf(id);
         if (element > -1) {
             this.channels.splice(element, 1);
@@ -405,7 +362,7 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
 
     case ActionTypes.RECEIVED_CHANNELS:
         ChannelStore.storeChannels(action.channels);
-        ChannelStore.storeChannelMembers(action.members);
+        ChannelStore.storeMyChannelMembers(action.members);
         currentId = ChannelStore.getCurrentId();
         if (currentId && window.isActive) {
             ChannelStore.resetCounts(currentId);
@@ -415,9 +372,9 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         break;
 
     case ActionTypes.RECEIVED_CHANNEL:
-        ChannelStore.pStoreChannel(action.channel);
+        ChannelStore.storeChannel(action.channel);
         if (action.member) {
-            ChannelStore.pStoreChannelMember(action.member);
+            ChannelStore.storeMyChannelMember(action.member);
         }
         currentId = ChannelStore.getCurrentId();
         if (currentId && window.isActive) {
@@ -432,11 +389,11 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         ChannelStore.emitMoreChange();
         break;
 
-    case ActionTypes.RECEIVED_CHANNEL_EXTRA_INFO:
-        var extraInfos = ChannelStore.getExtraInfos();
-        extraInfos[action.extra_info.id] = action.extra_info;
-        ChannelStore.storeExtraInfos(extraInfos);
-        ChannelStore.emitExtraInfoChange();
+    case ActionTypes.RECEIVED_CHANNEL_STATS:
+        var stats = Object.assign({}, ChannelStore.getStats());
+        stats[action.stats.channel_id] = action.stats;
+        ChannelStore.storeStats(stats);
+        ChannelStore.emitStatsChange();
         break;
 
     case ActionTypes.LEAVE_CHANNEL:

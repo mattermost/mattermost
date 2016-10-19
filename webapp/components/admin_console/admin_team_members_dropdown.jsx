@@ -8,11 +8,11 @@ import UserStore from 'stores/user_store.jsx';
 import ConfirmModal from '../confirm_modal.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
-import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 import React from 'react';
 
-export default class UserItem extends React.Component {
+export default class AdminTeamMembersDropdown extends React.Component {
     constructor(props) {
         super(props);
 
@@ -50,7 +50,7 @@ export default class UserItem extends React.Component {
             }
         );
         Client.updateTeamMemberRoles(
-            this.props.team.id,
+            this.props.teamMember.team_id,
             this.props.user.id,
             'team_user',
             () => {
@@ -74,7 +74,7 @@ export default class UserItem extends React.Component {
 
     handleRemoveFromTeam() {
         Client.removeUserFromTeam(
-                this.props.team.id,
+                this.props.teamMember.team_id,
                 this.props.user.id,
                 () => {
                     this.props.refreshProfiles();
@@ -111,7 +111,7 @@ export default class UserItem extends React.Component {
 
     doMakeTeamAdmin() {
         Client.updateTeamMemberRoles(
-            this.props.team.id,
+            this.props.teamMember.team_id,
             this.props.user.id,
             'team_user team_admin',
             () => {
@@ -241,7 +241,6 @@ export default class UserItem extends React.Component {
         }
 
         const me = UserStore.getCurrentUser();
-        const email = user.email;
         let showMakeMember = Utils.isAdmin(teamMember.roles) || Utils.isSystemAdmin(user.roles);
         let showMakeAdmin = !Utils.isAdmin(teamMember.roles) && !Utils.isSystemAdmin(user.roles);
         let showMakeSystemAdmin = !Utils.isSystemAdmin(user.roles);
@@ -406,39 +405,8 @@ export default class UserItem extends React.Component {
             );
         }
 
-        let mfaActiveText;
-        if (mfaEnabled) {
-            if (user.mfa_active) {
-                mfaActiveText = (
-                    <FormattedHTMLMessage
-                        id='admin.user_item.mfaYes'
-                        defaultMessage=', <strong>MFA</strong>: Yes'
-                    />
-                );
-            } else {
-                mfaActiveText = (
-                    <FormattedHTMLMessage
-                        id='admin.user_item.mfaNo'
-                        defaultMessage=', <strong>MFA</strong>: No'
-                    />
-                );
-            }
-        }
-
-        let authServiceText;
         let passwordReset;
         if (user.auth_service) {
-            const service = (user.auth_service === Constants.LDAP_SERVICE || user.auth_service === Constants.SAML_SERVICE) ? user.auth_service.toUpperCase() : Utils.toTitleCase(user.auth_service);
-            authServiceText = (
-                <FormattedHTMLMessage
-                    id='admin.user_item.authServiceNotEmail'
-                    defaultMessage=', <strong>Sign-in Method:</strong> {service}'
-                    values={{
-                        service
-                    }}
-                />
-            );
-
             passwordReset = (
                 <li role='presentation'>
                     <a
@@ -454,13 +422,6 @@ export default class UserItem extends React.Component {
                 </li>
             );
         } else {
-            authServiceText = (
-                <FormattedHTMLMessage
-                    id='admin.user_item.authServiceEmail'
-                    defaultMessage=', <strong>Sign-in Method:</strong> Email'
-                />
-            );
-
             passwordReset = (
                 <li role='presentation'>
                     <a
@@ -531,63 +492,38 @@ export default class UserItem extends React.Component {
         }
 
         return (
-            <div className='more-modal__row'>
-                <img
-                    className='more-modal__image pull-left'
-                    src={`${Client.getUsersRoute()}/${user.id}/image?time=${user.update_at}`}
-                    height='36'
-                    width='36'
-                />
-                <div className='more-modal__details'>
-                    <div className='more-modal__name'>{displayedName}</div>
-                    <div className='more-modal__description'>
-                        <FormattedHTMLMessage
-                            id='admin.user_item.emailTitle'
-                            defaultMessage='<strong>Email:</strong> {email}'
-                            values={{
-                                email
-                            }}
-                        />
-                        {authServiceText}
-                        {mfaActiveText}
-                    </div>
-                    {serverError}
-                </div>
-                <div className='more-modal__actions'>
-                    <div className='dropdown member-drop'>
-                        <a
-                            href='#'
-                            className='dropdown-toggle theme'
-                            type='button'
-                            data-toggle='dropdown'
-                            aria-expanded='true'
-                        >
-                            <span>{currentRoles} </span>
-                            <span className='caret'/>
-                        </a>
-                        <ul
-                            className='dropdown-menu member-menu'
-                            role='menu'
-                        >
-                            {removeFromTeam}
-                            {makeAdmin}
-                            {makeMember}
-                            {makeActive}
-                            {makeNotActive}
-                            {makeSystemAdmin}
-                            {mfaReset}
-                            {passwordReset}
-                        </ul>
-                    </div>
-                </div>
+            <div className='dropdown member-drop'>
+                <a
+                    href='#'
+                    className='dropdown-toggle theme'
+                    type='button'
+                    data-toggle='dropdown'
+                    aria-expanded='true'
+                >
+                    <span>{currentRoles} </span>
+                    <span className='caret'/>
+                </a>
+                <ul
+                    className='dropdown-menu member-menu'
+                    role='menu'
+                >
+                    {removeFromTeam}
+                    {makeAdmin}
+                    {makeMember}
+                    {makeActive}
+                    {makeNotActive}
+                    {makeSystemAdmin}
+                    {mfaReset}
+                    {passwordReset}
+                </ul>
                 {makeDemoteModal}
+                {serverError}
             </div>
         );
     }
 }
 
-UserItem.propTypes = {
-    team: React.PropTypes.object.isRequired,
+AdminTeamMembersDropdown.propTypes = {
     user: React.PropTypes.object.isRequired,
     teamMember: React.PropTypes.object.isRequired,
     refreshProfiles: React.PropTypes.func.isRequired,

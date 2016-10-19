@@ -13,6 +13,7 @@ import UserStore from 'stores/user_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
+import {startPeriodicStatusUpdates, stopPeriodicStatusUpdates} from 'actions/status_actions.jsx';
 import Constants from 'utils/constants.jsx';
 const TutorialSteps = Constants.TutorialSteps;
 const Preferences = Constants.Preferences;
@@ -80,6 +81,7 @@ export default class NeedsTeam extends React.Component {
         if (tutorialStep <= TutorialSteps.INTRO_SCREENS) {
             browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/tutorial');
         }
+        stopPeriodicStatusUpdates();
     }
 
     componentDidMount() {
@@ -88,6 +90,8 @@ export default class NeedsTeam extends React.Component {
 
         // Emit view action
         GlobalActions.viewLoggedIn();
+
+        startPeriodicStatusUpdates();
 
         // Set up tracking for whether the window is active
         window.isActive = true;

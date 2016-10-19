@@ -49,6 +49,8 @@ type Store interface {
 	MarkSystemRanUnitTests()
 	Close()
 	DropAllTables()
+	TotalMasterDbConnections() int
+	TotalReadDbConnections() int
 }
 
 type TeamStore interface {
@@ -66,7 +68,9 @@ type TeamStore interface {
 	SaveMember(member *model.TeamMember) StoreChannel
 	UpdateMember(member *model.TeamMember) StoreChannel
 	GetMember(teamId string, userId string) StoreChannel
-	GetMembers(teamId string) StoreChannel
+	GetMembers(teamId string, offset int, limit int) StoreChannel
+	GetMembersByIds(teamId string, userIds []string) StoreChannel
+	GetMemberCount(teamId string) StoreChannel
 	GetTeamsForUser(userId string) StoreChannel
 	RemoveMember(teamId string, userId string) StoreChannel
 	RemoveAllMembersByTeam(teamId string) StoreChannel
@@ -89,16 +93,17 @@ type ChannelStore interface {
 	GetChannelCounts(teamId string, userId string) StoreChannel
 	GetAll(teamId string) StoreChannel
 	GetForPost(postId string) StoreChannel
-
 	SaveMember(member *model.ChannelMember) StoreChannel
 	UpdateMember(member *model.ChannelMember) StoreChannel
 	GetMembers(channelId string) StoreChannel
 	GetMember(channelId string, userId string) StoreChannel
+	GetAllChannelMembersForUser(userId string, allowFromCache bool) StoreChannel
+	InvalidateAllChannelMembersForUser(userId string)
+	IsUserInChannelUseCache(userId string, channelId string) bool
 	GetMemberForPost(postId string, userId string) StoreChannel
 	GetMemberCount(channelId string) StoreChannel
 	RemoveMember(channelId string, userId string) StoreChannel
 	PermanentDeleteMembersByUser(userId string) StoreChannel
-	GetExtraMembers(channelId string, limit int) StoreChannel
 	UpdateLastViewedAt(channelId string, userId string) StoreChannel
 	SetLastViewedAt(channelId string, userId string, newLastViewedAt int64) StoreChannel
 	IncrementMentionCount(channelId string, userId string) StoreChannel
@@ -135,9 +140,12 @@ type UserStore interface {
 	UpdateMfaActive(userId string, active bool) StoreChannel
 	Get(id string) StoreChannel
 	GetAll() StoreChannel
-	GetAllProfiles() StoreChannel
-	GetProfiles(teamId string) StoreChannel
-	GetDirectProfiles(userId string) StoreChannel
+	InvalidateProfilesInChannelCache(channelId string)
+	GetProfilesInChannel(channelId string, offset int, limit int, allowFromCache bool) StoreChannel
+	GetProfilesNotInChannel(teamId string, channelId string, offset int, limit int) StoreChannel
+	GetProfilesByUsernames(usernames []string, teamId string) StoreChannel
+	GetAllProfiles(offset int, limit int) StoreChannel
+	GetProfiles(teamId string, offset int, limit int) StoreChannel
 	GetProfileByIds(userId []string) StoreChannel
 	GetByEmail(email string) StoreChannel
 	GetByAuth(authData *string, authService string) StoreChannel
@@ -147,7 +155,6 @@ type UserStore interface {
 	VerifyEmail(userId string) StoreChannel
 	GetEtagForAllProfiles() StoreChannel
 	GetEtagForProfiles(teamId string) StoreChannel
-	GetEtagForDirectProfiles(userId string) StoreChannel
 	UpdateFailedPasswordAttempts(userId string, attempts int) StoreChannel
 	GetTotalUsersCount() StoreChannel
 	GetSystemAdminProfiles() StoreChannel
@@ -155,6 +162,10 @@ type UserStore interface {
 	AnalyticsUniqueUserCount(teamId string) StoreChannel
 	GetUnreadCount(userId string) StoreChannel
 	GetUnreadCountForChannel(userId string, channelId string) StoreChannel
+	GetRecentlyActiveUsersForTeam(teamId string) StoreChannel
+	Search(teamId string, term string, searchType string) StoreChannel
+	SearchInChannel(channelId string, term string, searchType string) StoreChannel
+	SearchNotInChannel(teamId string, channelId string, term string, searchType string) StoreChannel
 }
 
 type SessionStore interface {
@@ -274,6 +285,7 @@ type EmojiStore interface {
 type StatusStore interface {
 	SaveOrUpdate(status *model.Status) StoreChannel
 	Get(userId string) StoreChannel
+	GetByIds(userIds []string) StoreChannel
 	GetOnlineAway() StoreChannel
 	GetOnline() StoreChannel
 	GetAllFromTeam(teamId string) StoreChannel

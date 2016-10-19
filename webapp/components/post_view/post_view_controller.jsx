@@ -34,13 +34,10 @@ export default class PostViewController extends React.Component {
         this.onBusy = this.onBusy.bind(this);
 
         const channel = props.channel;
-        let profiles = UserStore.getProfiles();
-        if (channel && channel.type === Constants.DM_CHANNEL) {
-            profiles = Object.assign({}, profiles, UserStore.getDirectProfiles());
-        }
+        const profiles = UserStore.getProfiles();
 
         let lastViewed = Number.MAX_VALUE;
-        const member = ChannelStore.getMember(channel.id);
+        const member = ChannelStore.getMyMember(channel.id);
         if (member != null) {
             lastViewed = member.last_viewed_at;
         }
@@ -107,12 +104,7 @@ export default class PostViewController extends React.Component {
     }
 
     onUserChange() {
-        const channel = this.state.channel;
-        let profiles = UserStore.getProfiles();
-        if (channel && channel.type === Constants.DM_CHANNEL) {
-            profiles = Object.assign({}, profiles, UserStore.getDirectProfiles());
-        }
-        this.setState({currentUser: UserStore.getCurrentUser(), profiles: JSON.parse(JSON.stringify(profiles))});
+        this.setState({currentUser: UserStore.getCurrentUser(), profiles: JSON.parse(JSON.stringify(UserStore.getProfiles()))});
     }
 
     onPostsChange() {
@@ -165,15 +157,12 @@ export default class PostViewController extends React.Component {
             const channel = nextProps.channel;
 
             let lastViewed = Number.MAX_VALUE;
-            const member = ChannelStore.getMember(channel.id);
+            const member = ChannelStore.getMyMember(channel.id);
             if (member != null) {
                 lastViewed = member.last_viewed_at;
             }
 
-            let profiles = UserStore.getProfiles();
-            if (channel && channel.type === Constants.DM_CHANNEL) {
-                profiles = Object.assign({}, profiles, UserStore.getDirectProfiles());
-            }
+            const profiles = UserStore.getProfiles();
 
             const joinLeaveEnabled = PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'join_leave', true);
 
