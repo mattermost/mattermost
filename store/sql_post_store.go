@@ -44,6 +44,8 @@ func (s SqlPostStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_posts_channel_id", "Posts", "ChannelId")
 	s.CreateIndexIfNotExists("idx_posts_root_id", "Posts", "RootId")
 	s.CreateIndexIfNotExists("idx_posts_user_id", "Posts", "UserId")
+	s.CreateIndexIfNotExists("idx_posts_has_files", "Posts", "HasFiles")
+	s.CreateIndexIfNotExists("idx_posts_has_hashtags", "Posts", "HasHashtags")
 
 	s.CreateFullTextIndexIfNotExists("idx_posts_message_txt", "Posts", "Message")
 	s.CreateFullTextIndexIfNotExists("idx_posts_hashtags_txt", "Posts", "Hashtags")
@@ -815,15 +817,15 @@ func (s SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) StoreChan
 			`SELECT DISTINCT
 			        DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
 			        COUNT(DISTINCT Posts.UserId) AS Value
-			FROM Posts
-            		INNER JOIN Channels
-			ON Posts.ChannelId = Channels.Id`
+			FROM Posts`
 
 		if len(teamId) > 0 {
-			query += " AND Channels.TeamId = :TeamId"
+			query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = :TeamId AND"
+		} else {
+			query += " WHERE"
 		}
 
-		query += ` AND Posts.CreateAt >= :StartTime AND Posts.CreateAt <= :EndTime
+		query += ` Posts.CreateAt >= :StartTime AND Posts.CreateAt <= :EndTime
 			GROUP BY DATE(FROM_UNIXTIME(Posts.CreateAt / 1000))
 			ORDER BY Name DESC
 			LIMIT 30`
@@ -832,15 +834,15 @@ func (s SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) StoreChan
 			query =
 				`SELECT
 					TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, COUNT(DISTINCT Posts.UserId) AS Value
-				FROM Posts
-				INNER JOIN Channels
-				ON Posts.ChannelId = Channels.Id`
+				FROM Posts`
 
 			if len(teamId) > 0 {
-				query += " AND Channels.TeamId = :TeamId"
+				query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = :TeamId AND"
+			} else {
+				query += " WHERE"
 			}
 
-			query += ` AND Posts.CreateAt >= :StartTime AND Posts.CreateAt <= :EndTime
+			query += ` Posts.CreateAt >= :StartTime AND Posts.CreateAt <= :EndTime
 				GROUP BY DATE(TO_TIMESTAMP(Posts.CreateAt / 1000))
 				ORDER BY Name DESC
 				LIMIT 30`
@@ -877,16 +879,15 @@ func (s SqlPostStore) AnalyticsPostCountsByDay(teamId string) StoreChannel {
 			`SELECT
 			        DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
 			        COUNT(Posts.Id) AS Value
-			    FROM Posts
-			    INNER JOIN Channels
-			    ON
-			        Posts.ChannelId = Channels.Id`
+			    FROM Posts`
 
 		if len(teamId) > 0 {
-			query += " AND Channels.TeamId = :TeamId"
+			query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = :TeamId AND"
+		} else {
+			query += " WHERE"
 		}
 
-		query += ` AND Posts.CreateAt <= :EndTime
+		query += ` Posts.CreateAt <= :EndTime
 			            AND Posts.CreateAt >= :StartTime
 			GROUP BY DATE(FROM_UNIXTIME(Posts.CreateAt / 1000))
 			ORDER BY Name DESC
@@ -896,15 +897,15 @@ func (s SqlPostStore) AnalyticsPostCountsByDay(teamId string) StoreChannel {
 			query =
 				`SELECT
 					TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, Count(Posts.Id) AS Value
-				FROM Posts
-				INNER JOIN Channels
-				ON Posts.ChannelId = Channels.Id`
+				FROM Posts`
 
 			if len(teamId) > 0 {
-				query += " AND Channels.TeamId = :TeamId"
+				query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id  AND Channels.TeamId = :TeamId AND"
+			} else {
+				query += " WHERE"
 			}
 
-			query += ` AND Posts.CreateAt <= :EndTime
+			query += ` Posts.CreateAt <= :EndTime
 				            AND Posts.CreateAt >= :StartTime
 				GROUP BY DATE(TO_TIMESTAMP(Posts.CreateAt / 1000))
 				ORDER BY Name DESC
@@ -952,11 +953,11 @@ func (s SqlPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, mustH
 		}
 
 		if mustHaveFile {
-			query += " AND (Posts.FileIds != '[]' OR Posts.Filenames != '[]')"
+			query += " AND Posts.HasFiles = 1"
 		}
 
 		if mustHaveHashtag {
-			query += " AND Posts.Hashtags != ''"
+			query += " AND Posts.HasHashtags = 1"
 		}
 
 		if v, err := s.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId}); err != nil {

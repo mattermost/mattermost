@@ -4392,6 +4392,10 @@
     "translation": "We couldn't get the posts for the channel"
   },
   {
+    "id": "store.sql_post.migrate_files_hashtags.critical",
+    "translation": "Failed to migrate HasFiles and HasHashtags for Posts table %v"
+  },
+  {
     "id": "store.sql_post.permanent_delete.app_error",
     "translation": "We couldn't delete the post"
   },

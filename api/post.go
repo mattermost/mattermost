@@ -135,6 +135,8 @@ func CreatePost(c *Context, post *model.Post, triggerWebhooks bool) (*model.Post
 	post.CreateAt = 0
 
 	post.Hashtags, _ = model.ParseHashtags(post.Message)
+	post.HasHashtags = len(post.Hashtags) > 0
+	post.HasFiles = len(post.FileIds) > 0
 
 	var rpost *model.Post
 	if result := <-Srv.Store.Post().Save(post); result.Err != nil {
@@ -143,7 +145,7 @@ func CreatePost(c *Context, post *model.Post, triggerWebhooks bool) (*model.Post
 		rpost = result.Data.(*model.Post)
 	}
 
-	if len(post.FileIds) > 0 {
+	if post.HasFiles {
 		// There's a rare bug where the client sends up duplicate FileIds so protect against that
 		post.FileIds = utils.RemoveDuplicatesFromStringArray(post.FileIds)
 
