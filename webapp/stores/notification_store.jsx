@@ -99,9 +99,8 @@ class NotificationStoreClass extends EventEmitter {
                 duration = parseInt(user.notify_props.desktop_duration, 10) * 1000;
             }
 
-            //Play a sound if explicitly set in settings and the user is not runnning a native client
-            const sound = (!user.notify_props || user.notify_props.desktop_sound === 'true') &&
-                          !UserAgent.isWindowsApp() && !UserAgent.isMacApp();
+            //Play a sound if explicitly set in settings
+            const sound = !user.notify_props || user.notify_props.desktop_sound === 'true';
 
             // Notify if you're not looking in the right channel or when
             // the window itself is not active
@@ -111,7 +110,9 @@ class NotificationStoreClass extends EventEmitter {
 
             if (notify) {
                 Utils.notifyMe(title, body, channel, teamId, duration, !sound);
-                if (sound) {
+
+                //Don't add extra sounds on native desktop clients
+                if (sound && !UserAgent.isWindowsApp() && !UserAgent.isMacApp()) {
                     Utils.ding();
                 }
             }
