@@ -222,7 +222,8 @@ class SuggestionStore extends EventEmitter {
 
         switch (type) {
         case ActionTypes.SUGGESTION_PRETEXT_CHANGED:
-            if (other.pretext === '') {
+            // Clear the suggestions if the pretext is empty or has whitespace
+            if (other.pretext === '' || (/\s/g.test(other.pretext))) {
                 this.clearSuggestions(id);
             }
 
