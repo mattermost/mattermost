@@ -6,8 +6,7 @@ import ReactDOM from 'react-dom';
 import * as Utils from 'utils/utils.jsx';
 
 import React from 'react';
-
-import loadingGif from 'images/load.gif';
+import FileUploadProgress from './file_upload_progress.jsx';
 
 export default class FilePreview extends React.Component {
     constructor(props) {
@@ -69,10 +68,7 @@ export default class FilePreview extends React.Component {
                     className='file-preview'
                     data-client-id={clientId}
                 >
-                    <img
-                        className='spinner'
-                        src={loadingGif}
-                    />
+                    <FileUploadProgress percent={this.props.uploadsProgressPercent[clientId]}/>
                     <a
                         className='file-preview__remove'
                         onClick={this.handleRemove.bind(this, clientId)}
@@ -96,10 +92,12 @@ export default class FilePreview extends React.Component {
 
 FilePreview.defaultProps = {
     fileInfos: [],
-    uploadsInProgress: []
+    uploadsInProgress: [],
+    uploadsProgressPercent: {}
 };
 FilePreview.propTypes = {
     onRemove: React.PropTypes.func.isRequired,
     fileInfos: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
-    uploadsInProgress: React.PropTypes.array
+    uploadsInProgress: React.PropTypes.array,
+    uploadsProgressPercent: React.PropTypes.object
 };

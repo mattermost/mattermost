@@ -640,6 +640,10 @@ export function applyTheme(theme) {
         changeCss('.app__body .post.post--comment.current--user .post__body', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .channel-header__info .status .offline--icon', 'fill:' + theme.centerChannelColor);
         changeCss('.app__body .navbar .status .offline--icon', 'fill:' + theme.centerChannelColor);
+        changeCss('.app__body .post-reaction:not(.post-reaction--current-user)', 'background-color:' + changeOpacity(theme.centerChannelColor, 0.2));
+        changeCss('.app__body .post-reaction', 'border-color:' + theme.centerChannelColor);
+        changeCss('.file-upload-progress__circle .file-upload-progress__inside-text', 'stroke:' + theme.centerChannelColor, 1);
+        changeCss('.app__body .navbar .status .offline--icon, .file-upload-progress__circle .file-upload-progress__inside-text', 'fill:' + theme.centerChannelColor, 1);
         changeCss('.app__body .post-reaction:not(.post-reaction--current-user)', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.25));
         changeCss('.app__body .post-reaction:not(.post-reaction--current-user)', 'color:' + changeOpacity(theme.centerChannelColor, 0.7));
     }

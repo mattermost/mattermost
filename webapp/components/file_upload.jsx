@@ -49,6 +49,7 @@ class FileUpload extends React.Component {
         this.pasteUpload = this.pasteUpload.bind(this);
         this.keyUpload = this.keyUpload.bind(this);
         this.handleMaxUploadReached = this.handleMaxUploadReached.bind(this);
+        this.fileUploadProgress = this.fileUploadProgress.bind(this);
 
         this.state = {
             requests: {}
@@ -67,6 +68,10 @@ class FileUpload extends React.Component {
 
     fileUploadFail(clientId, channelId, err) {
         this.props.onUploadError(err, clientId, channelId);
+    }
+
+    fileUploadProgress(clientId, progress) {
+        this.props.onUploadProgress(clientId, progress.percent);
     }
 
     uploadFiles(files) {
@@ -96,8 +101,9 @@ class FileUpload extends React.Component {
                     channelId,
                     clientId,
                     this.fileUploadSuccess.bind(this, channelId),
-                    this.fileUploadFail.bind(this, clientId)
-                );
+                    this.fileUploadFail.bind(this, clientId),
+                    this.fileUploadProgress.bind(this, clientId)
+            );
 
             const requests = this.state.requests;
             requests[clientId] = request;
@@ -283,7 +289,8 @@ class FileUpload extends React.Component {
                     channelId,
                     clientId,
                     this.fileUploadSuccess.bind(this, channelId),
-                    this.fileUploadFail.bind(this, clientId)
+                    this.fileUploadFail.bind(this, clientId),
+                    this.fileUploadProgress.bind(this, clientId)
                 );
 
                 const requests = this.state.requests;
@@ -378,6 +385,7 @@ FileUpload.propTypes = {
     onFileUpload: React.PropTypes.func,
     onUploadStart: React.PropTypes.func,
     onFileUploadChange: React.PropTypes.func,
+    onUploadProgress: React.PropTypes.func,
     onTextDrop: React.PropTypes.func,
     channelId: React.PropTypes.string,
     postType: React.PropTypes.string

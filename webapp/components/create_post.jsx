@@ -50,6 +50,7 @@ export default class CreatePost extends React.Component {
         this.handleUploadStart = this.handleUploadStart.bind(this);
         this.handleFileUploadComplete = this.handleFileUploadComplete.bind(this);
         this.handleUploadError = this.handleUploadError.bind(this);
+        this.handleUploadProgress = this.handleUploadProgress.bind(this);
         this.removePreview = this.removePreview.bind(this);
         this.onChange = this.onChange.bind(this);
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
@@ -71,6 +72,7 @@ export default class CreatePost extends React.Component {
             channelId: ChannelStore.getCurrentId(),
             message: draft.message,
             uploadsInProgress: draft.uploadsInProgress,
+            uploadsProgressPercent: {},
             fileInfos: draft.fileInfos,
             submitting: false,
             ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
@@ -314,6 +316,11 @@ export default class CreatePost extends React.Component {
         this.setState({serverError: message});
     }
 
+    handleUploadProgress(clientId, percent) {
+        const uploadsProgressPercent = {...this.state.uploadsProgressPercent, [clientId]: percent};
+        this.setState({uploadsProgressPercent});
+    }
+
     removePreview(id) {
         const fileInfos = Object.assign([], this.state.fileInfos);
         const uploadsInProgress = this.state.uploadsInProgress;
@@ -402,7 +409,15 @@ export default class CreatePost extends React.Component {
         if (this.state.channelId !== channelId) {
             const draft = PostStore.getCurrentDraft();
 
-            this.setState({channelId, message: draft.message, submitting: false, serverError: null, postError: null, fileInfos: draft.fileInfos, uploadsInProgress: draft.uploadsInProgress});
+            this.setState({
+                channelId,
+                message: draft.message,
+                submitting: false,
+                serverError: null,
+                postError: null,
+                fileInfos: draft.fileInfos,
+                uploadsInProgress: draft.uploadsInProgress
+            });
         }
     }
 
@@ -533,6 +548,7 @@ export default class CreatePost extends React.Component {
                     fileInfos={this.state.fileInfos}
                     onRemove={this.removePreview}
                     uploadsInProgress={this.state.uploadsInProgress}
+                    uploadsProgressPercent={this.state.uploadsProgressPercent}
                 />
             );
         }
@@ -588,6 +604,7 @@ export default class CreatePost extends React.Component {
                             onUploadStart={this.handleUploadStart}
                             onFileUpload={this.handleFileUploadComplete}
                             onUploadError={this.handleUploadError}
+                            onUploadProgress={this.handleUploadProgress}
                             postType='post'
                             channelId=''
                         />

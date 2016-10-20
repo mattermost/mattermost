@@ -41,6 +41,9 @@ describe('Client.File', function() {
                 },
                 function(err) {
                     done(new Error(err.message));
+                },
+                function(progress) {
+                    assert(progress);
                 }
             );
         });
@@ -66,6 +69,9 @@ describe('Client.File', function() {
                 },
                 function(err) {
                     done(new Error(err.message));
+                },
+                function(progress) {
+                    assert(progress);
                 }
             );
         });
@@ -91,6 +97,9 @@ describe('Client.File', function() {
                 },
                 function(err) {
                     done(new Error(err.message));
+                },
+                function(progress) {
+                    assert(progress);
                 }
             );
         });
@@ -116,6 +125,9 @@ describe('Client.File', function() {
                 },
                 function(err) {
                     done(new Error(err.message));
+                },
+                function(progress) {
+                    assert(progress);
                 }
             );
         });
@@ -146,6 +158,9 @@ describe('Client.File', function() {
                 },
                 function(err) {
                     done(new Error(err.message));
+                },
+                function(progress) {
+                    assert(progress);
                 }
             );
         });
@@ -200,6 +215,9 @@ describe('Client.File', function() {
                 },
                 function(err) {
                     done(new Error(err.message));
+                },
+                function(progress) {
+                    assert(progress);
                 }
             );
         });
@@ -243,6 +261,9 @@ describe('Client.File', function() {
                 },
                 function(err) {
                     done(new Error(err.message));
+                },
+                function(progress) {
+                    assert(progress);
                 }
             );
         });

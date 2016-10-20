@@ -302,3 +302,12 @@
     background: $black;
     min-height: 100px;
 }
+
+.file-upload-progress__circle {
+    margin: 30px;
+    margin-top: 20px;
+
+    .file-upload-progress__inside-text {
+        font-size: 20px;
+    }
+}
