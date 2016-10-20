@@ -35,12 +35,12 @@ type Entry struct {
 	Published time.Time `xml:"published"`
 	Content   string    `xml:"content"`
 	Updates   []Update  `xml:"updates"`
-	Author    struct {
+	Author struct {
 		Name string `xml:"name"`
 	} `xml:"author"`
-	Owner  string   `xml:"owner"`
-	Status string   `xml:"status"`
-	Label  []string `xml:"label"`
+	Owner string `xml:"owner"`
+	Status string `xml:"status"`
+	Label []string `xml:"label"`
 }
 
 type Update struct {

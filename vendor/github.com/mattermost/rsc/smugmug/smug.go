@@ -163,7 +163,7 @@ func (c *Conn) AlbumInfo(album *Album) (*AlbumInfo, error) {
 	return out.Album, nil
 }
 
-// An AlbumInfo lists the metadata for an album.
+// An AlbumInfo lists the metadata for an album.	
 type AlbumInfo struct {
 	ID    int `json:"id"`
 	Key   string
