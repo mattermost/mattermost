@@ -815,15 +815,15 @@ func (s SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) StoreChan
 			`SELECT DISTINCT
 			        DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
 			        COUNT(DISTINCT Posts.UserId) AS Value
-			FROM Posts
-            		INNER JOIN Channels
-			ON Posts.ChannelId = Channels.Id`
+			FROM Posts`
 
 		if len(teamId) > 0 {
-			query += " AND Channels.TeamId = :TeamId"
+			query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = :TeamId AND"
+		} else {
+			query += " WHERE"
 		}
 
-		query += ` AND Posts.CreateAt >= :StartTime AND Posts.CreateAt <= :EndTime
+		query += ` Posts.CreateAt >= :StartTime AND Posts.CreateAt <= :EndTime
 			GROUP BY DATE(FROM_UNIXTIME(Posts.CreateAt / 1000))
 			ORDER BY Name DESC
 			LIMIT 30`
@@ -832,15 +832,15 @@ func (s SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) StoreChan
 			query =
 				`SELECT
 					TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, COUNT(DISTINCT Posts.UserId) AS Value
-				FROM Posts
-				INNER JOIN Channels
-				ON Posts.ChannelId = Channels.Id`
+				FROM Posts`
 
 			if len(teamId) > 0 {
-				query += " AND Channels.TeamId = :TeamId"
+				query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = :TeamId AND"
+			} else {
+				query += " WHERE"
 			}
 
-			query += ` AND Posts.CreateAt >= :StartTime AND Posts.CreateAt <= :EndTime
+			query += ` Posts.CreateAt >= :StartTime AND Posts.CreateAt <= :EndTime
 				GROUP BY DATE(TO_TIMESTAMP(Posts.CreateAt / 1000))
 				ORDER BY Name DESC
 				LIMIT 30`
@@ -877,16 +877,15 @@ func (s SqlPostStore) AnalyticsPostCountsByDay(teamId string) StoreChannel {
 			`SELECT
 			        DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
 			        COUNT(Posts.Id) AS Value
-			    FROM Posts
-			    INNER JOIN Channels
-			    ON
-			        Posts.ChannelId = Channels.Id`
+			    FROM Posts`
 
 		if len(teamId) > 0 {
-			query += " AND Channels.TeamId = :TeamId"
+			query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = :TeamId AND"
+		} else {
+			query += " WHERE"
 		}
 
-		query += ` AND Posts.CreateAt <= :EndTime
+		query += ` Posts.CreateAt <= :EndTime
 			            AND Posts.CreateAt >= :StartTime
 			GROUP BY DATE(FROM_UNIXTIME(Posts.CreateAt / 1000))
 			ORDER BY Name DESC
@@ -896,15 +895,15 @@ func (s SqlPostStore) AnalyticsPostCountsByDay(teamId string) StoreChannel {
 			query =
 				`SELECT
 					TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, Count(Posts.Id) AS Value
-				FROM Posts
-				INNER JOIN Channels
-				ON Posts.ChannelId = Channels.Id`
+				FROM Posts`
 
 			if len(teamId) > 0 {
-				query += " AND Channels.TeamId = :TeamId"
+				query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id  AND Channels.TeamId = :TeamId AND"
+			} else {
+				query += " WHERE"
 			}
 
-			query += ` AND Posts.CreateAt <= :EndTime
+			query += ` Posts.CreateAt <= :EndTime
 				            AND Posts.CreateAt >= :StartTime
 				GROUP BY DATE(TO_TIMESTAMP(Posts.CreateAt / 1000))
 				ORDER BY Name DESC
