@@ -194,8 +194,8 @@ func doUploadFile(teamId string, channelId string, userId string, rawFilename st
 }
 
 func handleImages(previewPathList []string, thumbnailPathList []string, fileData [][]byte) {
-	for i := range fileData {
-		go func() {
+	for i, data := range fileData {
+		go func(i int, data []byte) {
 			// Decode image bytes into Image object
 			img, imgType, err := image.Decode(bytes.NewReader(fileData[i]))
 			if err != nil {
@@ -236,7 +236,7 @@ func handleImages(previewPathList []string, thumbnailPathList []string, fileData
 
 			go generateThumbnailImage(img, thumbnailPathList[i], width, height)
 			go generatePreviewImage(img, previewPathList[i], width)
-		}()
+		}(i, data)
 	}
 }
 
