@@ -91,6 +91,7 @@ export default class EmoticonProvider {
             const terms = matched.map((emoticon) => ':' + emoticon.name + ':');
 
             if (terms.length > 0) {
+                SuggestionStore.clearSuggestions(suggestionId);
                 SuggestionStore.addSuggestions(suggestionId, terms, matched, EmoticonSuggestion, text);
 
                 hasSuggestions = true;
