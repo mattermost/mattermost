@@ -392,15 +392,15 @@ export default class PostList extends React.Component {
         if (this.props.scrollType === ScrollTypes.BOTTOM) {
             this.scrollToBottom();
         } else if (this.props.scrollType === ScrollTypes.NEW_MESSAGE) {
-            window.setTimeout(window.requestAnimationFrame(() => {
+            window.requestAnimationFrame(() => {
                 // If separator exists scroll to it. Otherwise scroll to bottom.
                 if (this.refs.newMessageSeparator) {
                     var objDiv = this.refs.postlist;
                     objDiv.scrollTop = this.refs.newMessageSeparator.offsetTop; //scrolls node to top of Div
                 } else if (this.refs.postlist) {
-                    this.refs.postlist.scrollTop = this.refs.postlist.scrollHeight;
+                    this.scrollToBottom();
                 }
-            }), 0);
+            });
         } else if (this.props.scrollType === ScrollTypes.POST && this.props.scrollPostId) {
             window.requestAnimationFrame(() => {
                 const postNode = ReactDOM.findDOMNode(this.refs[this.props.scrollPostId]);
