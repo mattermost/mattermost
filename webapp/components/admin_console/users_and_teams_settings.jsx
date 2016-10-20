@@ -30,7 +30,6 @@ export default class UsersAndTeamsSettings extends AdminSettings {
         config.TeamSettings.EnableTeamCreation = this.state.enableTeamCreation;
         config.TeamSettings.MaxUsersPerTeam = this.parseIntNonZero(this.state.maxUsersPerTeam, Constants.DEFAULT_MAX_USERS_PER_TEAM);
         config.TeamSettings.RestrictCreationToDomains = this.state.restrictCreationToDomains;
-        config.TeamSettings.RestrictTeamNames = this.state.restrictTeamNames;
         config.TeamSettings.RestrictDirectMessage = this.state.restrictDirectMessage;
 
         return config;
@@ -42,7 +41,6 @@ export default class UsersAndTeamsSettings extends AdminSettings {
             enableTeamCreation: config.TeamSettings.EnableTeamCreation,
             maxUsersPerTeam: config.TeamSettings.MaxUsersPerTeam,
             restrictCreationToDomains: config.TeamSettings.RestrictCreationToDomains,
-            restrictTeamNames: config.TeamSettings.RestrictTeamNames,
             restrictDirectMessage: config.TeamSettings.RestrictDirectMessage
         };
     }
@@ -129,23 +127,6 @@ export default class UsersAndTeamsSettings extends AdminSettings {
                         />
                     }
                     value={this.state.restrictCreationToDomains}
-                    onChange={this.handleChange}
-                />
-                <BooleanSetting
-                    id='restrictTeamNames'
-                    label={
-                        <FormattedMessage
-                            id='admin.team.restrictNameTitle'
-                            defaultMessage='Restrict Team Names: '
-                        />
-                    }
-                    helpText={
-                        <FormattedMessage
-                            id='admin.team.restrictNameDesc'
-                            defaultMessage='When true, You cannot create a team name with reserved words like www, admin, support, test, channel, etc'
-                        />
-                    }
-                    value={this.state.restrictTeamNames}
                     onChange={this.handleChange}
                 />
                 <DropdownSetting

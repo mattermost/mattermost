@@ -43,7 +43,6 @@
         "EnableUserCreation": true,
         "EnableOpenServer": false,
         "RestrictCreationToDomains": "",
-        "RestrictTeamNames": true,
         "EnableCustomBrand": false,
         "CustomBrandText": "",
         "CustomDescriptionText": "",

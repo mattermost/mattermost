@@ -331,23 +331,13 @@ export const Constants = {
     SYSTEM_MESSAGE_PROFILE_NAME: 'System',
     SYSTEM_MESSAGE_PROFILE_IMAGE: logoImage,
     RESERVED_TEAM_NAMES: [
-        'www',
-        'web',
+        'signup',
+        'login',
         'admin',
-        'support',
-        'notify',
-        'test',
-        'demo',
-        'mail',
-        'team',
         'channel',
-        'internal',
-        'localhost',
-        'dockerhost',
-        'stag',
         'post',
-        'cluster',
-        'api'
+        'api',
+        'oauth'
     ],
     RESERVED_USERNAMES: [
         'valet',

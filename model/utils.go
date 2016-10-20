@@ -253,56 +253,13 @@ func IsValidEmail(email string) bool {
 }
 
 var reservedName = []string{
-	"www",
-	"web",
+	"signup",
+	"login",
 	"admin",
-	"support",
-	"notify",
-	"test",
-	"demo",
-	"mail",
-	"team",
 	"channel",
-	"internal",
-	"localhost",
-	"dockerhost",
-	"stag",
 	"post",
-	"cluster",
 	"api",
 	"oauth",
-}
-
-var wwwStart = regexp.MustCompile(`^www`)
-var betaStart = regexp.MustCompile(`^beta`)
-var ciStart = regexp.MustCompile(`^ci`)
-
-func GetSubDomain(s string) (string, string) {
-	s = strings.Replace(s, "http://", "", 1)
-	s = strings.Replace(s, "https://", "", 1)
-
-	match := wwwStart.MatchString(s)
-	if match {
-		return "", ""
-	}
-
-	match = betaStart.MatchString(s)
-	if match {
-		return "", ""
-	}
-
-	match = ciStart.MatchString(s)
-	if match {
-		return "", ""
-	}
-
-	parts := strings.Split(s, ".")
-
-	if len(parts) != 3 {
-		return "", ""
-	}
-
-	return parts[0], parts[1]
 }
 
 func IsValidChannelIdentifier(s string) bool {
