@@ -231,6 +231,7 @@ export default class SidebarHeaderDropdown extends React.Component {
                         href='#'
                         data-toggle='modal'
                         data-target='#team_settings'
+                        onClick={this.toggleDropdown}
                     >
                         <FormattedMessage
                             id='navbar_dropdown.teamSettings'
