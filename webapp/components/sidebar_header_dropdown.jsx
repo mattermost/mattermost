@@ -74,7 +74,9 @@ export default class SidebarHeaderDropdown extends React.Component {
         this.setState({showDropdown: !this.state.showDropdown});
     }
 
-    handleAboutModal() {
+    handleAboutModal(e) {
+        e.preventDefault();
+
         this.setState({
             showAboutModal: true,
             showDropdown: false
