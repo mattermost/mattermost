@@ -66,6 +66,16 @@ export default class PostList extends React.Component {
         }
     }
 
+    componentWillReceiveProps(nextProps) {
+        // TODO: Clean-up intro text creation
+        if (this.props.channel && this.props.channel.type === Constants.DM_CHANNEL) {
+            const teammateId = Utils.getUserIdFromChannelName(this.props.channel);
+            if (!this.props.profiles[teammateId] && nextProps.profiles[teammateId]) {
+                this.introText = createChannelIntroMessage(this.props.channel, this.state.fullWidthIntro);
+            }
+        }
+    }
+
     handleKeyDown(e) {
         if (e.which === Constants.KeyCodes.ESCAPE && $('.popover.in,.modal.in').length === 0) {
             e.preventDefault();

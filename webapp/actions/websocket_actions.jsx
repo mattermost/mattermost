@@ -3,8 +3,6 @@
 
 import $ from 'jquery';
 
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
-
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import PostStore from 'stores/post_store.jsx';
@@ -20,10 +18,11 @@ import * as Utils from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
-import * as UserActions from 'actions/user_actions.jsx';
-import {handleNewPost} from 'actions/post_actions.jsx';
+import {handleNewPost, loadPosts} from 'actions/post_actions.jsx';
+import {loadProfilesAndTeamMembersForDMSidebar} from 'actions/user_actions.jsx';
+import * as StatusActions from 'actions/status_actions.jsx';
 
-import {Constants, SocketEvents, ActionTypes} from 'utils/constants.jsx';
+import {Constants, SocketEvents, UserStatuses} from 'utils/constants.jsx';
 
 import {browserHistory} from 'react-router/es6';
 
@@ -53,6 +52,7 @@ export function initialize() {
         connUrl += Client.getUsersRoute() + '/websocket';
 
         WebSocketClient.setEventCallback(handleEvent);
+        WebSocketClient.setFirstConnectCallback(handleFirstConnect);
         WebSocketClient.setReconnectCallback(handleReconnect);
         WebSocketClient.setCloseCallback(handleClose);
         WebSocketClient.initialize(connUrl);
@@ -64,22 +64,19 @@ export function close() {
 }
 
 export function getStatuses() {
-    WebSocketClient.getStatuses(
-        (resp) => {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_STATUSES,
-                statuses: resp.data
-            });
-        }
-    );
+    StatusActions.loadStatusesForChannelAndSidebar();
+}
+
+function handleFirstConnect() {
+    getStatuses();
+    ErrorStore.clearLastError();
+    ErrorStore.emitChange();
 }
 
 function handleReconnect() {
     if (Client.teamId) {
         AsyncClient.getChannels();
-        AsyncClient.getPosts(ChannelStore.getCurrentId());
-        AsyncClient.getTeamMembers(TeamStore.getCurrentId());
-        AsyncClient.getProfiles();
+        loadPosts(ChannelStore.getCurrentId());
     }
 
     getStatuses();
@@ -112,7 +109,7 @@ function handleEvent(msg) {
         break;
 
     case SocketEvents.NEW_USER:
-        handleNewUserEvent();
+        handleNewUserEvent(msg);
         break;
 
     case SocketEvents.LEAVE_TEAM:
@@ -170,6 +167,10 @@ function handleEvent(msg) {
 function handleNewPostEvent(msg) {
     const post = JSON.parse(msg.data.post);
     handleNewPost(post, msg);
+
+    if (UserStore.getStatus(post.user_id) !== UserStatuses.ONLINE) {
+        StatusActions.loadStatusesByIds([post.user_id]);
+    }
 }
 
 function handlePostEditEvent(msg) {
@@ -196,36 +197,33 @@ function handlePostDeleteEvent(msg) {
     }
 }
 
-function handleNewUserEvent() {
-    AsyncClient.getTeamMembers(TeamStore.getCurrentId());
-    AsyncClient.getProfiles();
-    AsyncClient.getDirectProfiles();
-    AsyncClient.getChannelExtraInfo();
+function handleNewUserEvent(msg) {
+    AsyncClient.getUser(msg.user_id);
+    AsyncClient.getChannelStats();
+    loadProfilesAndTeamMembersForDMSidebar();
 }
 
 function handleLeaveTeamEvent(msg) {
     if (UserStore.getCurrentId() === msg.data.user_id) {
-        TeamStore.removeTeamMember(msg.broadcast.team_id);
+        TeamStore.removeMyTeamMember(msg.broadcast.team_id);
 
-        // if the are on the team begin removed redirect them to the root
+        // if they are on the team being removed redirect them to the root
         if (TeamStore.getCurrentId() === msg.broadcast.team_id) {
             TeamStore.setCurrentId('');
             Client.setTeamId('');
             browserHistory.push('/');
         }
-    } else if (TeamStore.getCurrentId() === msg.broadcast.team_id) {
-        UserActions.getMoreDmList();
     }
 }
 
 function handleDirectAddedEvent(msg) {
     AsyncClient.getChannel(msg.broadcast.channel_id);
-    AsyncClient.getDirectProfiles();
+    loadProfilesAndTeamMembersForDMSidebar();
 }
 
 function handleUserAddedEvent(msg) {
     if (ChannelStore.getCurrentId() === msg.broadcast.channel_id) {
-        AsyncClient.getChannelExtraInfo();
+        AsyncClient.getChannelStats();
     }
 
     if (TeamStore.getCurrentId() === msg.data.team_id && UserStore.getCurrentId() === msg.data.user_id) {
@@ -248,7 +246,7 @@ function handleUserRemovedEvent(msg) {
             $('#removed_from_channel').modal('show');
         }
     } else if (ChannelStore.getCurrentId() === msg.broadcast.channel_id) {
-        AsyncClient.getChannelExtraInfo();
+        AsyncClient.getChannelStats();
     }
 }
 
@@ -287,6 +285,10 @@ function handlePreferenceChangedEvent(msg) {
 
 function handleUserTypingEvent(msg) {
     GlobalActions.emitRemoteUserTypingEvent(msg.broadcast.channel_id, msg.data.user_id, msg.data.parent_id);
+
+    if (UserStore.getStatus(msg.data.user_id) !== UserStatuses.ONLINE) {
+        StatusActions.loadStatusesByIds([msg.data.user_id]);
+    }
 }
 
 function handleStatusChangedEvent(msg) {

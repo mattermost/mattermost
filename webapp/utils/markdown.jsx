@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import * as TextFormatting from './text_formatting.jsx';
-import * as SyntaxHighlighting from './syntax_hightlighting.jsx';
+import * as SyntaxHighlighting from './syntax_highlighting.jsx';
 
 import marked from 'marked';
 import katex from 'katex';

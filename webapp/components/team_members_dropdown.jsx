@@ -1,17 +1,20 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import ConfirmModal from './confirm_modal.jsx';
+
+import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
+
+import {removeUserFromTeam} from 'actions/team_actions.jsx';
+
 import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
-import ConfirmModal from './confirm_modal.jsx';
-import TeamStore from 'stores/team_store.jsx';
-
-import {FormattedMessage} from 'react-intl';
 
 import React from 'react';
+import {FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
 
 export default class TeamMembersDropdown extends React.Component {
@@ -44,8 +47,8 @@ export default class TeamMembersDropdown extends React.Component {
                 this.props.user.id,
                 'team_user',
                 () => {
-                    AsyncClient.getTeamMembers(TeamStore.getCurrentId());
-                    AsyncClient.getProfiles();
+                    AsyncClient.getTeamMember(this.props.teamMember.team_id);
+                    AsyncClient.getUser(this.props.user.id);
                 },
                 (err) => {
                     this.setState({serverError: err.message});
@@ -54,24 +57,23 @@ export default class TeamMembersDropdown extends React.Component {
         }
     }
     handleRemoveFromTeam() {
-        Client.removeUserFromTeam(
-                '',
-                this.props.user.id,
-                () => {
-                    AsyncClient.getTeamMembers(TeamStore.getCurrentId());
-                    AsyncClient.getProfiles();
-                },
-                (err) => {
-                    this.setState({serverError: err.message});
-                }
-            );
+        removeUserFromTeam(
+            this.props.teamMember.team_id,
+            this.props.user.id,
+            () => {
+                AsyncClient.getTeamStats(this.props.teamMember.team_id);
+            },
+            (err) => {
+                this.setState({serverError: err.message});
+            }
+        );
     }
     handleMakeActive() {
         Client.updateActive(this.props.user.id, true,
             () => {
-                AsyncClient.getTeamMembers(TeamStore.getCurrentId());
-                AsyncClient.getProfiles();
-                AsyncClient.getChannelExtraInfo(ChannelStore.getCurrentId());
+                AsyncClient.getUser(this.props.user.id);
+                AsyncClient.getChannelStats(ChannelStore.getCurrentId());
+                AsyncClient.getTeamStats(this.props.teamMember.team_id);
             },
             (err) => {
                 this.setState({serverError: err.message});
@@ -81,9 +83,9 @@ export default class TeamMembersDropdown extends React.Component {
     handleMakeNotActive() {
         Client.updateActive(this.props.user.id, false,
             () => {
-                AsyncClient.getTeamMembers(TeamStore.getCurrentId());
-                AsyncClient.getProfiles();
-                AsyncClient.getChannelExtraInfo(ChannelStore.getCurrentId());
+                AsyncClient.getUser(this.props.user.id);
+                AsyncClient.getChannelStats(ChannelStore.getCurrentId());
+                AsyncClient.getTeamStats(this.props.teamMember.team_id);
             },
             (err) => {
                 this.setState({serverError: err.message});
@@ -100,8 +102,8 @@ export default class TeamMembersDropdown extends React.Component {
                 this.props.user.id,
                 'team_user team_admin',
                 () => {
-                    AsyncClient.getTeamMembers(TeamStore.getCurrentId());
-                    AsyncClient.getProfiles();
+                    AsyncClient.getTeamMember(this.props.teamMember.team_id, this.props.user.id);
+                    AsyncClient.getUser(this.props.user.id);
                 },
                 (err) => {
                     this.setState({serverError: err.message});
@@ -133,8 +135,8 @@ export default class TeamMembersDropdown extends React.Component {
             this.props.user.id,
             this.state.newRole,
             () => {
-                AsyncClient.getTeamMembers(TeamStore.getCurrentId());
-                AsyncClient.getProfiles();
+                AsyncClient.getTeamMember(this.props.teamMember.team_id, this.props.user.id);
+                AsyncClient.getUser(this.props.user.id);
 
                 const teamUrl = TeamStore.getCurrentTeamUrl();
                 if (teamUrl) {

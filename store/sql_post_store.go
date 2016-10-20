@@ -43,6 +43,7 @@ func (s SqlPostStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_posts_create_at", "Posts", "CreateAt")
 	s.CreateIndexIfNotExists("idx_posts_channel_id", "Posts", "ChannelId")
 	s.CreateIndexIfNotExists("idx_posts_root_id", "Posts", "RootId")
+	s.CreateIndexIfNotExists("idx_posts_user_id", "Posts", "UserId")
 
 	s.CreateFullTextIndexIfNotExists("idx_posts_message_txt", "Posts", "Message")
 	s.CreateFullTextIndexIfNotExists("idx_posts_hashtags_txt", "Posts", "Hashtags")
@@ -811,47 +812,36 @@ func (s SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) StoreChan
 		result := StoreResult{}
 
 		query :=
-			`SELECT
-			    t1.Name, COUNT(t1.UserId) AS Value
-			FROM
-			    (SELECT DISTINCT
+			`SELECT DISTINCT
 			        DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
-			            Posts.UserId
-			    FROM
-			        Posts, Channels
-			    WHERE
-			        Posts.ChannelId = Channels.Id`
+			        COUNT(DISTINCT Posts.UserId) AS Value
+			FROM Posts
+            		INNER JOIN Channels
+			ON Posts.ChannelId = Channels.Id`
 
 		if len(teamId) > 0 {
 			query += " AND Channels.TeamId = :TeamId"
 		}
 
 		query += ` AND Posts.CreateAt >= :StartTime AND Posts.CreateAt <= :EndTime
-			    ORDER BY Name DESC) AS t1
-			GROUP BY Name
+			GROUP BY DATE(FROM_UNIXTIME(Posts.CreateAt / 1000))
 			ORDER BY Name DESC
 			LIMIT 30`
 
 		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 			query =
 				`SELECT
-				    TO_CHAR(t1.Name, 'YYYY-MM-DD') AS Name, COUNT(t1.UserId) AS Value
-				FROM
-				    (SELECT DISTINCT
-				        DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)) AS Name,
-				            Posts.UserId
-				    FROM
-				        Posts, Channels
-				    WHERE
-				        Posts.ChannelId = Channels.Id`
+					TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, COUNT(DISTINCT Posts.UserId) AS Value
+				FROM Posts
+				INNER JOIN Channels
+				ON Posts.ChannelId = Channels.Id`
 
 			if len(teamId) > 0 {
 				query += " AND Channels.TeamId = :TeamId"
 			}
 
 			query += ` AND Posts.CreateAt >= :StartTime AND Posts.CreateAt <= :EndTime
-				    ORDER BY Name DESC) AS t1
-				GROUP BY Name
+				GROUP BY DATE(TO_TIMESTAMP(Posts.CreateAt / 1000))
 				ORDER BY Name DESC
 				LIMIT 30`
 		}
@@ -884,15 +874,12 @@ func (s SqlPostStore) AnalyticsPostCountsByDay(teamId string) StoreChannel {
 		result := StoreResult{}
 
 		query :=
-			`SELECT 
-			    Name, COUNT(Value) AS Value
-			FROM
-			    (SELECT 
+			`SELECT
 			        DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
-			            '1' AS Value
-			    FROM
-			        Posts, Channels
-			    WHERE
+			        COUNT(Posts.Id) AS Value
+			    FROM Posts
+			    INNER JOIN Channels
+			    ON
 			        Posts.ChannelId = Channels.Id`
 
 		if len(teamId) > 0 {
@@ -900,31 +887,26 @@ func (s SqlPostStore) AnalyticsPostCountsByDay(teamId string) StoreChannel {
 		}
 
 		query += ` AND Posts.CreateAt <= :EndTime
-			            AND Posts.CreateAt >= :StartTime) AS t1
-			GROUP BY Name
+			            AND Posts.CreateAt >= :StartTime
+			GROUP BY DATE(FROM_UNIXTIME(Posts.CreateAt / 1000))
 			ORDER BY Name DESC
 			LIMIT 30`
 
 		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 			query =
-				`SELECT 
-				    Name, COUNT(Value) AS Value
-				FROM
-				    (SELECT 
-				        TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name,
-				            '1' AS Value
-				    FROM
-				        Posts, Channels
-				    WHERE
-				        Posts.ChannelId = Channels.Id`
+				`SELECT
+					TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, Count(Posts.Id) AS Value
+				FROM Posts
+				INNER JOIN Channels
+				ON Posts.ChannelId = Channels.Id`
 
 			if len(teamId) > 0 {
 				query += " AND Channels.TeamId = :TeamId"
 			}
 
 			query += ` AND Posts.CreateAt <= :EndTime
-				            AND Posts.CreateAt >= :StartTime) AS t1
-				GROUP BY Name
+				            AND Posts.CreateAt >= :StartTime
+				GROUP BY DATE(TO_TIMESTAMP(Posts.CreateAt / 1000))
 				ORDER BY Name DESC
 				LIMIT 30`
 		}

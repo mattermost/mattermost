@@ -8,12 +8,13 @@ import SwitchChannelProvider from './suggestion/switch_channel_provider.jsx';
 import {FormattedMessage} from 'react-intl';
 import {Modal} from 'react-bootstrap';
 
+import {goToChannel, openDirectChannelToUser} from 'actions/channel_actions.jsx';
+
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
 import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
-import * as ChannelActions from 'actions/channel_actions.jsx';
 
 import React from 'react';
 import $ from 'jquery';
@@ -81,15 +82,28 @@ export default class SwitchChannelModal extends React.Component {
         const name = this.state.text.trim();
         let channel = null;
 
+        // TODO: Replace this hack with something reasonable
         if (name.indexOf(Utils.localizeMessage('channel_switch_modal.dm', '(Direct Message)')) > 0) {
             const dmUsername = name.substr(0, name.indexOf(Utils.localizeMessage('channel_switch_modal.dm', '(Direct Message)')) - 1);
-            channel = ChannelStore.getByName(Utils.getDirectChannelNameByUsername(dmUsername, UserStore.getCurrentUser().username).trim());
+            const user = UserStore.getProfileByUsername(dmUsername);
+
+            if (user) {
+                openDirectChannelToUser(
+                    user,
+                    (ch) => {
+                        channel = ch;
+                    },
+                    () => {
+                        channel = null;
+                    }
+                );
+            }
         } else {
             channel = ChannelStore.getByName(this.state.text.trim());
         }
 
         if (channel !== null) {
-            ChannelActions.goToChannel(channel);
+            goToChannel(channel);
             this.onHide();
         } else if (this.state.text !== '') {
             this.setState({

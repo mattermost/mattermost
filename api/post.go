@@ -35,18 +35,18 @@ const (
 func InitPost() {
 	l4g.Debug(utils.T("api.post.init.debug"))
 
-	BaseRoutes.NeedTeam.Handle("/posts/search", ApiUserRequired(searchPosts)).Methods("POST")
-	BaseRoutes.NeedTeam.Handle("/posts/flagged/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequiredActivity(getFlaggedPosts, false)).Methods("GET")
+	BaseRoutes.NeedTeam.Handle("/posts/search", ApiUserRequiredActivity(searchPosts, true)).Methods("POST")
+	BaseRoutes.NeedTeam.Handle("/posts/flagged/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getFlaggedPosts)).Methods("GET")
 	BaseRoutes.NeedTeam.Handle("/posts/{post_id}", ApiUserRequired(getPostById)).Methods("GET")
 	BaseRoutes.NeedTeam.Handle("/pltmp/{post_id}", ApiUserRequired(getPermalinkTmp)).Methods("GET")
 
-	BaseRoutes.Posts.Handle("/create", ApiUserRequired(createPost)).Methods("POST")
-	BaseRoutes.Posts.Handle("/update", ApiUserRequired(updatePost)).Methods("POST")
-	BaseRoutes.Posts.Handle("/page/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequiredActivity(getPosts, false)).Methods("GET")
-	BaseRoutes.Posts.Handle("/since/{time:[0-9]+}", ApiUserRequiredActivity(getPostsSince, false)).Methods("GET")
+	BaseRoutes.Posts.Handle("/create", ApiUserRequiredActivity(createPost, true)).Methods("POST")
+	BaseRoutes.Posts.Handle("/update", ApiUserRequiredActivity(updatePost, true)).Methods("POST")
+	BaseRoutes.Posts.Handle("/page/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getPosts)).Methods("GET")
+	BaseRoutes.Posts.Handle("/since/{time:[0-9]+}", ApiUserRequired(getPostsSince)).Methods("GET")
 
 	BaseRoutes.NeedPost.Handle("/get", ApiUserRequired(getPost)).Methods("GET")
-	BaseRoutes.NeedPost.Handle("/delete", ApiUserRequired(deletePost)).Methods("POST")
+	BaseRoutes.NeedPost.Handle("/delete", ApiUserRequiredActivity(deletePost, true)).Methods("POST")
 	BaseRoutes.NeedPost.Handle("/before/{offset:[0-9]+}/{num_posts:[0-9]+}", ApiUserRequired(getPostsBefore)).Methods("GET")
 	BaseRoutes.NeedPost.Handle("/after/{offset:[0-9]+}/{num_posts:[0-9]+}", ApiUserRequired(getPostsAfter)).Methods("GET")
 	BaseRoutes.NeedPost.Handle("/get_file_infos", ApiUserRequired(getFileInfosForPost)).Methods("GET")
@@ -154,7 +154,7 @@ func CreatePost(c *Context, post *model.Post, triggerWebhooks bool) (*model.Post
 		}
 	}
 
-	go handlePostEvents(c, rpost, triggerWebhooks)
+	handlePostEvents(c, rpost, triggerWebhooks)
 
 	return rpost, nil
 }
@@ -250,7 +250,7 @@ func handlePostEvents(c *Context, post *model.Post, triggerWebhooks bool) {
 		channel = result.Data.(*model.Channel)
 	}
 
-	go sendNotifications(c, post, team, channel)
+	sendNotifications(c, post, team, channel)
 
 	var user *model.User
 	if result := <-uchan; result.Err != nil {
@@ -441,40 +441,31 @@ func handleWebhookEvents(c *Context, post *model.Post, team *model.Team, channel
 	}
 }
 
-// Given a map of user IDs to profiles and a map of user IDs of channel members, returns a list of mention
-// keywords for all users on the team. Users that are members of the channel will have all their mention
-// keywords returned while users that aren't in the channel will only have their @mentions returned.
-func getMentionKeywords(profiles map[string]*model.User, members map[string]string) map[string][]string {
+// Given a map of user IDs to profiles, returns a list of mention
+// keywords for all users in the channel.
+func getMentionKeywordsInChannel(profiles map[string]*model.User) map[string][]string {
 	keywords := make(map[string][]string)
 
 	for id, profile := range profiles {
-		_, inChannel := members[id]
-
-		if inChannel {
-			if len(profile.NotifyProps["mention_keys"]) > 0 {
-				// Add all the user's mention keys
-				splitKeys := strings.Split(profile.NotifyProps["mention_keys"], ",")
-				for _, k := range splitKeys {
-					// note that these are made lower case so that we can do a case insensitive check for them
-					key := strings.ToLower(k)
-					keywords[key] = append(keywords[key], id)
-				}
+		if len(profile.NotifyProps["mention_keys"]) > 0 {
+			// Add all the user's mention keys
+			splitKeys := strings.Split(profile.NotifyProps["mention_keys"], ",")
+			for _, k := range splitKeys {
+				// note that these are made lower case so that we can do a case insensitive check for them
+				key := strings.ToLower(k)
+				keywords[key] = append(keywords[key], id)
 			}
+		}
 
-			// If turned on, add the user's case sensitive first name
-			if profile.NotifyProps["first_name"] == "true" {
-				keywords[profile.FirstName] = append(keywords[profile.FirstName], profile.Id)
-			}
+		// If turned on, add the user's case sensitive first name
+		if profile.NotifyProps["first_name"] == "true" {
+			keywords[profile.FirstName] = append(keywords[profile.FirstName], profile.Id)
+		}
 
-			// Add @channel and @all to keywords if user has them turned on
-			if profile.NotifyProps["channel"] == "true" {
-				keywords["@channel"] = append(keywords["@channel"], profile.Id)
-				keywords["@all"] = append(keywords["@all"], profile.Id)
-			}
-		} else {
-			// user isn't in channel, so just look for @mentions
-			key := "@" + strings.ToLower(profile.Username)
-			keywords[key] = append(keywords[key], id)
+		// Add @channel and @all to keywords if user has them turned on
+		if profile.NotifyProps["channel"] == "true" {
+			keywords["@channel"] = append(keywords["@channel"], profile.Id)
+			keywords["@all"] = append(keywords["@all"], profile.Id)
 		}
 	}
 
@@ -482,9 +473,11 @@ func getMentionKeywords(profiles map[string]*model.User, members map[string]stri
 }
 
 // Given a message and a map mapping mention keywords to the users who use them, returns a map of mentioned
-// users and whether or not @here was mentioned.
-func getExplicitMentions(message string, keywords map[string][]string) (map[string]bool, bool) {
+// users and a slice of potencial mention users not in the channel and whether or not @here was mentioned.
+func getExplicitMentions(message string, keywords map[string][]string) (map[string]bool, []string, bool) {
 	mentioned := make(map[string]bool)
+	potentialOthersMentioned := make([]string, 0)
+	systemMentions := map[string]bool{"@here": true, "@channel": true, "@all": true}
 	hereMentioned := false
 
 	addMentionedUsers := func(ids []string) {
@@ -510,6 +503,9 @@ func getExplicitMentions(message string, keywords map[string][]string) (map[stri
 		if ids, match := keywords[word]; match {
 			addMentionedUsers(ids)
 			isMention = true
+		} else if _, ok := systemMentions[word]; !ok && strings.HasPrefix(word, "@") {
+			potentialOthersMentioned = append(potentialOthersMentioned, word[1:])
+			continue
 		}
 
 		if !isMention {
@@ -532,19 +528,19 @@ func getExplicitMentions(message string, keywords map[string][]string) (map[stri
 				// Case-sensitive check for first name
 				if ids, match := keywords[splitWord]; match {
 					addMentionedUsers(ids)
+				} else if _, ok := systemMentions[word]; !ok && strings.HasPrefix(word, "@") {
+					username := word[1:len(splitWord)]
+					potentialOthersMentioned = append(potentialOthersMentioned, username)
 				}
 			}
 		}
 	}
 
-	return mentioned, hereMentioned
+	return mentioned, potentialOthersMentioned, hereMentioned
 }
 
 func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *model.Channel) {
-	// get profiles for all users we could be mentioning
-	pchan := Srv.Store.User().GetProfiles(c.TeamId)
-	dpchan := Srv.Store.User().GetDirectProfiles(c.Session.UserId)
-	mchan := Srv.Store.Channel().GetMembers(post.ChannelId)
+	pchan := Srv.Store.User().GetProfilesInChannel(channel.Id, -1, -1, true)
 	fchan := Srv.Store.FileInfo().GetForPost(post.Id)
 
 	var profileMap map[string]*model.User
@@ -555,29 +551,10 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 		profileMap = result.Data.(map[string]*model.User)
 	}
 
-	if result := <-dpchan; result.Err != nil {
-		l4g.Error(utils.T("api.post.handle_post_events_and_forget.profiles.error"), c.TeamId, result.Err)
-		return
-	} else {
-		dps := result.Data.(map[string]*model.User)
-		for k, v := range dps {
-			profileMap[k] = v
-		}
-	}
-
+	// If the user who made the post is mention don't send a notification
 	if _, ok := profileMap[post.UserId]; !ok {
 		l4g.Error(utils.T("api.post.send_notifications_and_forget.user_id.error"), post.UserId)
 		return
-	}
-	// using a map as a pseudo-set since we're checking for containment a lot
-	members := make(map[string]string)
-	if result := <-mchan; result.Err != nil {
-		l4g.Error(utils.T("api.post.handle_post_events_and_forget.members.error"), post.ChannelId, result.Err)
-		return
-	} else {
-		for _, member := range result.Data.([]model.ChannelMember) {
-			members[member.UserId] = member.UserId
-		}
 	}
 
 	mentionedUserIds := make(map[string]bool)
@@ -595,11 +572,11 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 
 		mentionedUserIds[otherUserId] = true
 	} else {
-		keywords := getMentionKeywords(profileMap, members)
+		keywords := getMentionKeywordsInChannel(profileMap)
 
-		// get users that are explicitly mentioned
 		var mentioned map[string]bool
-		mentioned, hereNotification = getExplicitMentions(post.Message, keywords)
+		var potentialOtherMentions []string
+		mentioned, potentialOtherMentions, hereNotification = getExplicitMentions(post.Message, keywords)
 
 		// get users that have comment thread mentions enabled
 		if len(post.RootId) > 0 {
@@ -623,25 +600,15 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 			delete(mentioned, post.UserId)
 		}
 
-		outOfChannelMentions := make(map[string]bool)
-		for id := range mentioned {
-			if _, inChannel := members[id]; inChannel {
-				mentionedUserIds[id] = true
-			} else {
-				outOfChannelMentions[id] = true
+		if len(potentialOtherMentions) > 0 {
+			if result := <-Srv.Store.User().GetProfilesByUsernames(potentialOtherMentions, team.Id); result.Err == nil {
+				outOfChannelMentions := result.Data.(map[string]*model.User)
+				go sendOutOfChannelMentions(c, post, outOfChannelMentions)
 			}
 		}
 
-		go sendOutOfChannelMentions(c, post, profileMap, outOfChannelMentions)
-
 		// find which users in the channel are set up to always receive mobile notifications
-		for id := range members {
-			profile := profileMap[id]
-			if profile == nil {
-				l4g.Warn(utils.T("api.post.notification.member_profile.warn"), id)
-				continue
-			}
-
+		for _, profile := range profileMap {
 			if profile.NotifyProps["push"] == model.USER_NOTIFY_ALL &&
 				(post.UserId != profile.Id || post.Props["from_webhook"] == "true") &&
 				!post.IsSystemMessage() {
@@ -699,10 +666,9 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 				}
 
 				_, profileFound := profileMap[status.UserId]
-				_, isChannelMember := members[status.UserId]
 				_, alreadyMentioned := mentionedUserIds[status.UserId]
 
-				if status.Status == model.STATUS_ONLINE && profileFound && isChannelMember && !alreadyMentioned {
+				if status.Status == model.STATUS_ONLINE && profileFound && !alreadyMentioned {
 					mentionedUsersList = append(mentionedUsersList, status.UserId)
 					updateMentionChans = append(updateMentionChans, Srv.Store.Channel().IncrementMentionCount(post.ChannelId, status.UserId))
 				}
@@ -787,7 +753,8 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 		message.Add("mentions", model.ArrayToJson(mentionedUsersList))
 	}
 
-	go Publish(message)
+	Publish(message)
+	return
 }
 
 func sendNotificationEmail(c *Context, post *model.Post, user *model.User, channel *model.Channel, team *model.Team, senderName string, sender *model.User) {
@@ -1045,14 +1012,14 @@ func getMobileAppSession(userId string) *model.Session {
 	return nil
 }
 
-func sendOutOfChannelMentions(c *Context, post *model.Post, profiles map[string]*model.User, outOfChannelMentions map[string]bool) {
-	if len(outOfChannelMentions) == 0 {
+func sendOutOfChannelMentions(c *Context, post *model.Post, profiles map[string]*model.User) {
+	if len(profiles) == 0 {
 		return
 	}
 
 	var usernames []string
-	for id := range outOfChannelMentions {
-		usernames = append(usernames, profiles[id].Username)
+	for _, user := range profiles {
+		usernames = append(usernames, user.Username)
 	}
 	sort.Strings(usernames)
 

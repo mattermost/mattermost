@@ -48,10 +48,6 @@
     "translation": "九月"
   },
   {
-    "id": "api.admin.add_certificate.array.app_error",
-    "translation": "请求中‘certificate’为空数组"
-  },
-  {
     "id": "api.admin.add_certificate.no_file.app_error",
     "translation": "请求中'certificate'下的文件不存在"
   },
@@ -146,6 +142,10 @@
   {
     "id": "api.api.render.error",
     "translation": "渲染模板出错 %v err=%v"
+  },
+  {
+    "id": "api.auth.unable_to_get_user.app_error",
+    "translation": "可以让用户查看权限。"
   },
   {
     "id": "api.channel.add_member.added",
@@ -561,7 +561,7 @@
   },
   {
     "id": "api.command_msg.hint",
-    "translation": "@用户名 '你想发送的消息'"
+    "translation": "@[用户名] '消息'"
   },
   {
     "id": "api.command_msg.list.app_error",
@@ -814,18 +814,6 @@
     "translation": "无法创建表情符。图片长宽不能超过128像素。"
   },
   {
-    "id": "api.file.file_upload.exceeds",
-    "translation": "文件超过最大图像大小。"
-  },
-  {
-    "id": "api.file.file_upload.exceeds",
-    "translation": "文件超过最大图像大小。"
-  },
-  {
-    "id": "api.file.get_file.not_found.app_error",
-    "translation": "不能找到文件。"
-  },
-  {
     "id": "api.file.get_file.public_disabled.app_error",
     "translation": "系统管理员禁用了公开的链接"
   },
@@ -834,32 +822,116 @@
     "translation": "公共链接不显示是有效的"
   },
   {
+    "id": "api.file.get_file_preview.no_thumbnail.app_error",
+    "translation": "文件没有预览图"
+  },
+  {
+    "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
+    "translation": "文件没用缩略图"
+  },
+  {
+    "id": "api.file.get_info_for_request.no_post.app_error",
+    "translation": "无法获取文件公开链接。文件必须附在当前用户可读的信息上。"
+  },
+  {
+    "id": "api.file.get_info_for_request.storage.app_error",
+    "translation": "无法获得文件信息。图片存储没有配置。"
+  },
+  {
+    "id": "api.file.get_public_file_old.storage.app_error",
+    "translation": "无法上传文件。图片存储没有配置。"
+  },
+  {
+    "id": "api.file.get_public_file_old.storage.app_error",
+    "translation": "无法上传文件。图片存储没有配置。"
+  },
+  {
     "id": "api.file.get_public_link.disabled.app_error",
     "translation": "公共链接已经被禁用"
   },
   {
+    "id": "api.file.get_public_link.no_post.app_error",
+    "translation": "无法获取文件公开链接。文件必须附在当前用户可读的信息上。"
+  },
+  {
     "id": "api.file.handle_images_forget.decode.error",
-    "translation": "不能解码图片 channelId=%v userId=%v filename=%v err=%v"
+    "translation": "无法解码图片 err=%v"
   },
   {
     "id": "api.file.handle_images_forget.encode_jpeg.error",
-    "translation": "不能编码图片为 jpeg channelId=%v userId=%v filename=%v err=%v"
+    "translation": "无法编码图片成 jpeg path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.encode_preview.error",
-    "translation": "不能编码图片为预览jpg channelId=%v userId=%v filename=%v err=%v"
+    "translation": "无法编码图片成预览 jpeg path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.upload_preview.error",
-    "translation": "不能上传预览 channelId=%v userId=%v filename=%v err=%v"
+    "translation": "无法上传预览 path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.upload_thumb.error",
-    "translation": "不能上传缩略图 channelId=%v userId=%v filename=%v err=%v"
+    "translation": "无法上传缩略图 path=%v err=%v"
   },
   {
     "id": "api.file.init.debug",
     "translation": "初始化文件API路由"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.channel.app_error",
+    "translation": "无法转换信息到 FileInfos 时获取频道, post_id=%v, channel_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.file_not_found.warn",
+    "translation": "转换信息到 FileInfos 时未找到文件, post_id=%v, filename=%v, path=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.get_file_infos_again.warn",
+    "translation": "转移数据后未能获取 FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.get_post_again.warn",
+    "translation": "无法在转换信息到 FileInfos 时找到信息, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.info.app_error",
+    "translation": "无法转换信息到 FileInfos 时解码文件信息, post_id=%v, filename=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.migrating_post.debug",
+    "translation": "转换信息到使用 FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.mismatched_filename.warn",
+    "translation": "将信息转换到 FileInfos 时遇到不寻常文件名, post_id=%v, channel_id=%v, user_id=%v, filename=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.no_filenames.warn",
+    "translation": "无法转换拥有空 Filenames 栏的信息到 FileInfos, post_id=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.not_migrating_post.debug",
+    "translation": "信息已经转换到使用 FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.save_file_info.warn",
+    "translation": "转换信息到 FileInfos 时无法保存信息, post_id=%v, filename=%v, path=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.save_post.warn",
+    "translation": "无法转换信息到 FileInfos 时保存文件信息, post_id=%v, file_id=%v, filename=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.team_id.app_error",
+    "translation": "无法为 FileInfos 找到团队, post_id=%v, filenames=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.teams.app_error",
+    "translation": "无法在转换信息到 FileInfos 时找到团队, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.unexpected_filename.error",
+    "translation": "无法在转换信息到 FileInfos 时解码文件名, post_id=%v, filename=%v"
   },
   {
     "id": "api.file.move_file.configured.app_error",
@@ -904,10 +976,6 @@
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "读取本地存储时遇到错误"
-  },
-  {
-    "id": "api.file.upload_file.image.app_error",
-    "translation": "不能上传图片文件。"
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -1150,8 +1218,16 @@
     "translation": "{{.Username}}被提到了，但是他因不在此频道而不会收到通知。"
   },
   {
+    "id": "api.post.create_post.attach_files.error",
+    "translation": "附加文件到信息时遇到错误, post_id=%s, user_id=%s, file_ids=%v, err=%v"
+  },
+  {
     "id": "api.post.create_post.bad_filename.error",
     "translation": "坏文件名已去除，filename=%v"
+  },
+  {
+    "id": "api.post.create_post.can_not_post_to_deleted.error",
+    "translation": "无法发信息到已删除的频道。"
   },
   {
     "id": "api.post.create_post.channel_root_id.app_error",
@@ -1182,11 +1258,19 @@
     "translation": "您没有对应的权限"
   },
   {
+    "id": "api.post.delete_post_files.app_error.warn",
+    "translation": "删除信息的文件时遇到错误, post_id=%v, err=%v"
+  },
+  {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
       "one": "{{.Count}} 文件已发送：{{.Filenames}}{{.Count}} 文件已发送：{{.Filenames}}",
       "other": ""
     }
+  },
+  {
+    "id": "api.post.get_message_for_notification.get_files.error",
+    "translation": "为通知信息获取文件时遇到错误, post_id=%v, err=%v"
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
@@ -1272,6 +1356,10 @@
     "translation": "在发送通知时获取注解内容时失败 root_post_id=%v, err=%v"
   },
   {
+    "id": "api.post.send_notifications_and_forget.files.error",
+    "translation": "无法为信息通知获取文件 post_id=%v, err=%v"
+  },
+  {
     "id": "api.post.send_notifications_and_forget.get_teams.error",
     "translation": "发送跨团队私信时获取团队失败 user_id=%v，err=%v"
   },
@@ -1293,7 +1381,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_in",
-    "translation": "在"
+    "translation": " 在 "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_mention",
@@ -1400,6 +1488,14 @@
     "translation": "RateLimitSettings配置没有正确使用VaryByHeader并禁用VaryByRemoteAddr"
   },
   {
+    "id": "api.server.start_server.rate_limiting_memory_store",
+    "translation": "无法初始化频率限制内存储存。检查 MemoryStoreSize 设置。"
+  },
+  {
+    "id": "api.server.start_server.rate_limiting_rate_limiter",
+    "translation": "无法初始化频率限制。"
+  },
+  {
     "id": "api.server.start_server.starting.critical",
     "translation": "启动服务出错, err:%v"
   },
@@ -1444,6 +1540,10 @@
     "translation": "Slack 机器人的信息未被导入"
   },
   {
+    "id": "api.slackimport.slack_add_posts.msg_no_comment.debug",
+    "translation": "文件评论未定义"
+  },
+  {
     "id": "api.slackimport.slack_add_posts.msg_no_usr.debug",
     "translation": "未知用户消息"
   },
@@ -1468,8 +1568,16 @@
     "translation": "Email, 密码: {{.Email}}, {{.Password}}\r\n"
   },
   {
+    "id": "api.slackimport.slack_add_users.merge_existing",
+    "translation": "合并用户到现有帐号：{{.Email}}, {{.Username}}\r\n"
+  },
+  {
     "id": "api.slackimport.slack_add_users.unable_import",
     "translation": "不能导入用户: {{.Username}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_convert_channel_mentions.compile_regexp_failed.warn",
+    "translation": "给 Slack 频道 {{.ChannelID}} {{.ChannelName}} 编译 !频道 正规表达式时失败"
   },
   {
     "id": "api.slackimport.slack_convert_timestamp.bad.warn",
@@ -1492,6 +1600,10 @@
     "translation": "- Slack 机器人信息现在不支持。\r\n"
   },
   {
+    "id": "api.slackimport.slack_import.note3",
+    "translation": "- 更多错误可以到服务器日志查看。\r\n"
+  },
+  {
     "id": "api.slackimport.slack_import.notes",
     "translation": "\r\n 注释 \r\n"
   },
@@ -1506,6 +1618,14 @@
   {
     "id": "api.slackimport.slack_import.zip.app_error",
     "translation": "不能打开zip文件"
+  },
+  {
+    "id": "api.slackimport.slack_parse_channels.error",
+    "translation": "解析 slack 频道时出错。导入可能仍然可用。"
+  },
+  {
+    "id": "api.slackimport.slack_parse_posts.error",
+    "translation": "解析 slack 消息时出错。导入可能仍然可用。"
   },
   {
     "id": "api.status.init.debug",
@@ -1634,6 +1754,10 @@
   {
     "id": "api.team.signup_team.email_disabled.app_error",
     "translation": "使用电子邮件注册团队被禁用。"
+  },
+  {
+    "id": "api.team.update_member_roles.not_a_member",
+    "translation": "指定的用户不属于指定的团队。"
   },
   {
     "id": "api.team.update_team.permissions.app_error",
@@ -1853,7 +1977,7 @@
   },
   {
     "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost允许您通过PC或手机分享信息和文件，即时搜索和归档."
+    "translation": "Mattermost 允许您通过PC或手机分享信息和文件，即时搜索和归档。"
   },
   {
     "id": "api.templates.welcome_body.title",
@@ -1929,7 +2053,7 @@
   },
   {
     "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-    "translation": "本服务器不支持通过OAuth 2.0的{{.Service}} SSO"
+    "translation": "本服务器不支持通过 OAuth 2.0 的 {{.Service}} SSO"
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
@@ -1945,7 +2069,7 @@
   },
   {
     "id": "api.user.create_oauth_user.not_available.app_error",
-    "translation": "本服务器不支持通过OAuth 2.0的{{.Service}} SSO"
+    "translation": "本服务器不支持通过 OAuth 2.0 的 {{.Service}} SSO"
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
@@ -2057,7 +2181,7 @@
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
-    "translation": "本服务器不支持通过OAuth 2.0的{{.Service}} SSO"
+    "translation": "本服务器不支持通过 OAuth 2.0 的 {{.Service}} SSO"
   },
   {
     "id": "api.user.login_by_oauth.parse.app_error",
@@ -2356,8 +2480,32 @@
     "translation": "没有权限重新生成传出webhook令牌"
   },
   {
+    "id": "api.webrtc.init.debug",
+    "translation": "初始化 WebRTC api 路由中"
+  },
+  {
+    "id": "api.webrtc.not_available.app_error",
+    "translation": "WebRTC 在本服务器不可用。"
+  },
+  {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "无效的参数 {{.Name}}"
+  },
+  {
+    "id": "authentication.permissions.team_invite_user.description",
+    "translation": "可以邀请用户到团队"
+  },
+  {
+    "id": "authentication.permissions.team_invite_user.name",
+    "translation": "邀请用户"
+  },
+  {
+    "id": "authentication.permissions.team_use_slash_commands.description",
+    "translation": "可以使用斜杠命令"
+  },
+  {
+    "id": "authentication.permissions.team_use_slash_commands.name",
+    "translation": "使用斜杠命令"
   },
   {
     "id": "cli.license.critical",
@@ -2441,7 +2589,7 @@
   },
   {
     "id": "ent.compliance.run_finished.info",
-    "translation": "依据'{{.FilePath}}'导出{{.JobName}}'任务导出审核完成了{{.Count}}'。"
+    "translation": "合规导出任务 '{{.JobName}}' 已导出 {{.Count}} 条记录到 '{{.FilePath}}'"
   },
   {
     "id": "ent.compliance.run_limit.warning",
@@ -2557,7 +2705,7 @@
   },
   {
     "id": "ent.saml.attribute.app_error",
-    "translation": "SAML login was unsuccessful because one of the attributes is incorrect. Please contact your System Administrator."
+    "translation": "SAML登入因不正确属性而失败。请联系您的系统管理员。"
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -2626,6 +2774,18 @@
   {
     "id": "ent.saml.update_saml_user.unable_error",
     "translation": "无法更新现有SAML用户。仍允许登入。err=%v"
+  },
+  {
+    "id": "ent.webrtc.disabled.app_error",
+    "translation": "WebRTC 未在本服务器开启。"
+  },
+  {
+    "id": "ent.webrtc.license_disable.app_error",
+    "translation": "您的许可证不支持使用 Mattermost WebRTC"
+  },
+  {
+    "id": "ent.webrtc.register_token.app_error",
+    "translation": "我们在注册 WebRTC 令牌时遇到个错误"
   },
   {
     "id": "error.generic.link_message",
@@ -3076,6 +3236,10 @@
     "translation": "无效的最大尝试登录数服务设置。必须是正整数。"
   },
   {
+    "id": "model.config.is_valid.max_burst.app_error",
+    "translation": "最大过载必须大于零。"
+  },
+  {
     "id": "model.config.is_valid.max_file_size.app_error",
     "translation": "文件设置中最大大小无效。必须是0或者正整数。"
   },
@@ -3098,6 +3262,10 @@
   {
     "id": "model.config.is_valid.rate_sec.app_error",
     "translation": "速率限制设置无效。必须是正整数"
+  },
+  {
+    "id": "model.config.is_valid.read_timeout.app_error",
+    "translation": "错误的读取超时值。"
   },
   {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
@@ -3162,6 +3330,42 @@
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
     "translation": "SQL 设置中最大开启连接数无效。必须是正整数。"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_gateway_admin_secret.app_error",
+    "translation": "WebRTC 网关管理密码必须设定。"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_gateway_admin_url.app_error",
+    "translation": "WebRTC 网关管理网址必须时有效的网址并且以 http:// 或 https:// 开头。"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_gateway_ws_url.app_error",
+    "translation": "WebRTC 网关 Websocket 网址必须时有效的网址并且以 ws:// 或 wss:// 开头。"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_stun_uri.app_error",
+    "translation": "WebRTC STUN URI 必须为有效的 URI 并且以 stun: 开头"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_turn_shared_key.app_error",
+    "translation": "如果已设 TURN 网址则 WebRTC TURN 共享密钥不能留空。"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_turn_uri.app_error",
+    "translation": "WebRTC TURN 网址必须时有效的网址并且以 turn: 开头"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_turn_username.app_error",
+    "translation": "如果已设 TURN 网址则 WebRTC TURN 用户名不能留空。"
+  },
+  {
+    "id": "model.config.is_valid.webserver_security.app_error",
+    "translation": "错误的网页服务器连接安全值。"
+  },
+  {
+    "id": "model.config.is_valid.write_timeout.app_error",
+    "translation": "错误的写入超时值。"
   },
   {
     "id": "model.emoji.create_at.app_error",
@@ -3318,6 +3522,10 @@
   {
     "id": "model.post.is_valid.create_at.app_error",
     "translation": "创建时必须是有效时间"
+  },
+  {
+    "id": "model.post.is_valid.file_ids.app_error",
+    "translation": "无效文件 id"
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -3776,6 +3984,10 @@
     "translation": "我们无法获得额外的信息频道成员"
   },
   {
+    "id": "store.sql_channel.get_for_post.app_error",
+    "translation": "我们无法从提供的信息获得频道"
+  },
+  {
     "id": "store.sql_channel.get_member.app_error",
     "translation": "我们无法获得该频道成员"
   },
@@ -3786,6 +3998,10 @@
   {
     "id": "store.sql_channel.get_member_count.app_error",
     "translation": "我们无法获得该频道成员数"
+  },
+  {
+    "id": "store.sql_channel.get_member_for_post.app_error",
+    "translation": "我们无法从提供的信息获得频道成员"
   },
   {
     "id": "store.sql_channel.get_members.app_error",
@@ -3970,6 +4186,30 @@
   {
     "id": "store.sql_emoji.save.app_error",
     "translation": "我们无法保存此表情符"
+  },
+  {
+    "id": "store.sql_file_info.attach_to_post.app_error",
+    "translation": "我们没法附文件信息到信息"
+  },
+  {
+    "id": "store.sql_file_info.delete_for_post.app_error",
+    "translation": "我们没法从信息删除文件信息"
+  },
+  {
+    "id": "store.sql_file_info.get.app_error",
+    "translation": "我们无法获取文件信息"
+  },
+  {
+    "id": "store.sql_file_info.get_by_path.app_error",
+    "translation": "我们无法从路径获取文件信息"
+  },
+  {
+    "id": "store.sql_file_info.get_for_post.app_error",
+    "translation": "我们没法从信息获取文件信息"
+  },
+  {
+    "id": "store.sql_file_info.save.app_error",
+    "translation": "我们无法保存文件信息"
   },
   {
     "id": "store.sql_license.get.app_error",

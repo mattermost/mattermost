@@ -1,16 +1,20 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import React from 'react';
+import EmojiListItem from './emoji_list_item.jsx';
+import LoadingScreen from 'components/loading_screen.jsx';
+
+import EmojiStore from 'stores/emoji_store.jsx';
+import UserStore from 'stores/user_store.jsx';
+
+import {loadEmoji} from 'actions/emoji_actions.jsx';
 
 import * as AsyncClient from 'utils/async_client.jsx';
-import EmojiStore from 'stores/emoji_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 
-import {FormattedMessage} from 'react-intl';
-import EmojiListItem from './emoji_list_item.jsx';
+import React from 'react';
 import {Link} from 'react-router';
-import LoadingScreen from 'components/loading_screen.jsx';
+import {FormattedMessage} from 'react-intl';
 
 export default class EmojiList extends React.Component {
     static get propTypes() {
@@ -24,28 +28,30 @@ export default class EmojiList extends React.Component {
         super(props);
 
         this.handleEmojiChange = this.handleEmojiChange.bind(this);
-
+        this.handleUserChange = this.handleUserChange.bind(this);
         this.deleteEmoji = this.deleteEmoji.bind(this);
-
         this.updateFilter = this.updateFilter.bind(this);
 
         this.state = {
             emojis: EmojiStore.getCustomEmojiMap(),
             loading: !EmojiStore.hasReceivedCustomEmojis(),
-            filter: ''
+            filter: '',
+            users: UserStore.getProfiles()
         };
     }
 
     componentDidMount() {
         EmojiStore.addChangeListener(this.handleEmojiChange);
+        UserStore.addChangeListener(this.handleUserChange);
 
         if (window.mm_config.EnableCustomEmoji === 'true') {
-            AsyncClient.listEmoji();
+            loadEmoji();
         }
     }
 
     componentWillUnmount() {
         EmojiStore.removeChangeListener(this.handleEmojiChange);
+        UserStore.removeChangeListener(this.handleUserChange);
     }
 
     handleEmojiChange() {
@@ -53,6 +59,10 @@ export default class EmojiList extends React.Component {
             emojis: EmojiStore.getCustomEmojiMap(),
             loading: !EmojiStore.hasReceivedCustomEmojis()
         });
+    }
+
+    handleUserChange() {
+        this.setState({users: UserStore.getProfiles()});
     }
 
     updateFilter(e) {
@@ -98,6 +108,7 @@ export default class EmojiList extends React.Component {
                         emoji={emoji}
                         onDelete={onDelete}
                         filter={filter}
+                        creator={this.state.users[emoji.creator_id] || {}}
                     />
                 );
             }

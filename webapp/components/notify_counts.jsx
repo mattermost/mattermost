@@ -7,7 +7,7 @@ import ChannelStore from 'stores/channel_store.jsx';
 function getCountsStateFromStores() {
     var count = 0;
     var channels = ChannelStore.getAll();
-    var members = ChannelStore.getAllMembers();
+    var members = ChannelStore.getMyMembers();
 
     channels.forEach((channel) => {
         var channelMember = members[channel.id];

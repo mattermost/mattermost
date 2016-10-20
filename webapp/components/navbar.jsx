@@ -69,8 +69,8 @@ export default class Navbar extends React.Component {
         return {
             channel: ChannelStore.getCurrent(),
             member: ChannelStore.getCurrentMember(),
-            users: ChannelStore.getCurrentExtraInfo().members,
-            userCount: ChannelStore.getCurrentExtraInfo().member_count,
+            users: [],
+            userCount: ChannelStore.getCurrentStats().member_count,
             currentUser: UserStore.getCurrentUser()
         };
     }
@@ -81,7 +81,7 @@ export default class Navbar extends React.Component {
 
     componentDidMount() {
         ChannelStore.addChangeListener(this.onChange);
-        ChannelStore.addExtraInfoChangeListener(this.onChange);
+        ChannelStore.addStatsChangeListener(this.onChange);
         UserStore.addStatusesChangeListener(this.onChange);
         $('.inner-wrap').click(this.hideSidebars);
         document.addEventListener('keydown', this.showChannelSwitchModal);
@@ -89,7 +89,7 @@ export default class Navbar extends React.Component {
 
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onChange);
-        ChannelStore.removeExtraInfoChangeListener(this.onChange);
+        ChannelStore.removeStatsChangeListener(this.onChange);
         UserStore.removeStatusesChangeListener(this.onChange);
         document.removeEventListener('keydown', this.showChannelSwitchModal);
     }

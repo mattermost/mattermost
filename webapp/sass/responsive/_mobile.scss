@@ -1,11 +1,37 @@
 @charset 'UTF-8';
 
 @media screen and (max-width: 768px) {
+    .webrtc__notification--rhs {
+        left: auto;
+        right: 0;
+        top: 47px;
+        width: 205px;
+    }
+
+    .filtered-user-list {
+        max-height: 65vh !important;
+    }
+
     .app__body {
         .edit-modal-body {
 
             .custom-textarea {
                 max-height: 30vh;
+            }
+        }
+    }
+
+    .video-div {
+        &.embed-responsive-item {
+            height: 0;
+            padding-bottom: 75%;
+
+            iframe {
+                height: 100%;
+                left: 0;
+                position: absolute;
+                top: 0;
+                width: 100%;
             }
         }
     }
@@ -70,7 +96,13 @@
     }
 
     .member-select__container {
+        margin-bottom: 10px;
         margin-top: 10px;
+        overflow: hidden;
+        position: relative;
+        right: 10px;
+        top: 0;
+        width: 100%;
     }
 
     .user-popover {
@@ -110,6 +142,14 @@
                 content: '...';
                 font-size: 20px;
                 top: -3px;
+            }
+        }
+
+        &.post--compact {
+            .status-wrapper {
+                &:after {
+                    bottom: 12px;
+                }
             }
         }
 
@@ -784,7 +824,7 @@
     }
 
     .sidebar--menu {
-        @include single-transition(transform, .5s, ease);
+        @include single-transition(transform, .35s, ease);
         @include translate3d(290px, 0, 0);
         border: none;
         display: block;
@@ -797,16 +837,21 @@
     }
 
     .sidebar--left {
-        @include single-transition(transform, .5s, ease);
+        @include single-transition(transform, .35s, ease);
         @include translate3d(-290px, 0, 0);
-        width: 290px;
         border: none;
+        width: 290px;
+
         &.sidebar--padded {
             padding-top: 0;
         }
 
         &.move--right {
             @include translate3d(0, 0, 0);
+        }
+
+        .nav-pills__container {
+            height: 100%;
         }
 
         > div {
@@ -933,7 +978,7 @@
     }
 
     .inner-wrap {
-        @include single-transition(all, .5s, ease);
+        @include single-transition(all, .35s, ease);
 
         .app__body & {
             &:before {
@@ -944,7 +989,7 @@
                 left: -15px;
                 position: absolute;
                 top: 0;
-                transition: background-color 0.5s ease, z-index 0s ease 0.5s;
+                transition: background-color .35s ease, z-index 0s ease .35s;
                 width: calc(100% + 30px);
                 z-index: 0;
             }
@@ -954,8 +999,9 @@
             @include translate3d(290px, 0, 0);
 
             &:before {
+                @include single-transition(all, .35s, ease);
+
                 background-color: rgba(0, 0, 0, .4);
-                transition: background-color .5s ease;
                 z-index: 9999;
             }
         }
@@ -964,8 +1010,8 @@
             @include translate3d(-290px, 0, 0);
 
             &:before {
-                background-color: rgba(0, 0, 0, 0.4);
-                transition: background-color 0.5s ease;
+                @include single-transition(all, .35s, ease);
+                background-color: rgba(0, 0, 0, .4);
                 z-index: 9999;
             }
         }

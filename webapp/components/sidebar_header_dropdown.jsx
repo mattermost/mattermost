@@ -54,7 +54,7 @@ export default class SidebarHeaderDropdown extends React.Component {
 
         this.state = {
             teams: TeamStore.getAll(),
-            teamMembers: TeamStore.getTeamMembers(),
+            teamMembers: TeamStore.getMyTeamMembers(),
             showDropdown: false
         };
     }
@@ -118,7 +118,7 @@ export default class SidebarHeaderDropdown extends React.Component {
     onTeamChange() {
         this.setState({
             teams: TeamStore.getAll(),
-            teamMembers: TeamStore.getTeamMembers()
+            teamMembers: TeamStore.getMyTeamMembers()
         });
     }
 

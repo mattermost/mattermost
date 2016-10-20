@@ -94,7 +94,34 @@ func TestChannelStoreSaveDirectChannel(t *testing.T) {
 	if err := (<-store.Channel().SaveDirectChannel(&o1, &m1, &m2)).Err; err == nil {
 		t.Fatal("Should not be able to save non-direct channel")
 	}
+}
 
+func TestChannelStoreCreateDirectChannel(t *testing.T) {
+	Setup()
+
+	u1 := &model.User{}
+	u1.Email = model.NewId()
+	u1.Nickname = model.NewId()
+	Must(store.User().Save(u1))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}))
+
+	u2 := &model.User{}
+	u2.Email = model.NewId()
+	u2.Nickname = model.NewId()
+	Must(store.User().Save(u2))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}))
+
+	res := <-store.Channel().CreateDirectChannel(u1.Id, u2.Id)
+	if res.Err != nil {
+		t.Fatal("couldn't create direct channel", res.Err)
+	}
+
+	c1 := res.Data.(*model.Channel)
+
+	members := (<-store.Channel().GetMembers(c1.Id)).Data.([]model.ChannelMember)
+	if len(members) != 2 {
+		t.Fatal("should have saved 2 members")
+	}
 }
 
 func TestChannelStoreUpdate(t *testing.T) {
@@ -381,11 +408,6 @@ func TestChannelMemberStore(t *testing.T) {
 		t.Fatal("should have go member")
 	}
 
-	extraMembers := (<-store.Channel().GetExtraMembers(o1.ChannelId, 20)).Data.([]model.ExtraMember)
-	if len(extraMembers) != 1 {
-		t.Fatal("should have 1 extra members")
-	}
-
 	if err := (<-store.Channel().SaveMember(&o1)).Err; err == nil {
 		t.Fatal("Should have been a duplicate")
 	}
@@ -394,18 +416,6 @@ func TestChannelMemberStore(t *testing.T) {
 	t4 := c1t4.ExtraUpdateAt
 	if t4 != t3 {
 		t.Fatal("Should not update time upon failure")
-	}
-
-	// rejoin the channel and make sure that an inactive user isn't returned by GetExtraMambers
-	Must(store.Channel().SaveMember(&o2))
-
-	u2.DeleteAt = 1000
-	Must(store.User().Update(&u2, true))
-
-	if result := <-store.Channel().GetExtraMembers(o1.ChannelId, 20); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if extraMembers := result.Data.([]model.ExtraMember); len(extraMembers) != 1 {
-		t.Fatal("should have 1 extra members")
 	}
 }
 
@@ -507,6 +517,42 @@ func TestChannelStoreGetChannels(t *testing.T) {
 	if list.Channels[0].Id != o1.Id {
 		t.Fatal("missing channel")
 	}
+
+	acresult := <-store.Channel().GetAllChannelMembersForUser(m1.UserId, false)
+	ids := acresult.Data.(map[string]string)
+	if _, ok := ids[o1.Id]; !ok {
+		t.Fatal("missing channel")
+	}
+
+	acresult2 := <-store.Channel().GetAllChannelMembersForUser(m1.UserId, true)
+	ids2 := acresult2.Data.(map[string]string)
+	if _, ok := ids2[o1.Id]; !ok {
+		t.Fatal("missing channel")
+	}
+
+	acresult3 := <-store.Channel().GetAllChannelMembersForUser(m1.UserId, true)
+	ids3 := acresult3.Data.(map[string]string)
+	if _, ok := ids3[o1.Id]; !ok {
+		t.Fatal("missing channel")
+	}
+
+	if !store.Channel().IsUserInChannelUseCache(m1.UserId, o1.Id) {
+		t.Fatal("missing channel")
+	}
+
+	if store.Channel().IsUserInChannelUseCache(m1.UserId, o2.Id) {
+		t.Fatal("missing channel")
+	}
+
+	if store.Channel().IsUserInChannelUseCache(m1.UserId, "blahblah") {
+		t.Fatal("missing channel")
+	}
+
+	if store.Channel().IsUserInChannelUseCache("blahblah", "blahblah") {
+		t.Fatal("missing channel")
+	}
+
+	store.Channel().InvalidateAllChannelMembersForUser(m1.UserId)
 }
 
 func TestChannelStoreGetMoreChannels(t *testing.T) {
@@ -947,22 +993,10 @@ func TestUpdateExtrasByUser(t *testing.T) {
 		t.Fatal("failed to update extras by user: %v", result.Err)
 	}
 
-	if result := <-store.Channel().GetExtraMembers(c1.Id, -1); result.Err != nil {
-		t.Fatal("failed to get extras: %v", result.Err)
-	} else if len(result.Data.([]model.ExtraMember)) != 0 {
-		t.Fatal("got incorrect member count %v", len(result.Data.([]model.ExtraMember)))
-	}
-
 	u1.DeleteAt = 0
 	Must(store.User().Update(u1, true))
 
 	if result := <-store.Channel().ExtraUpdateByUser(u1.Id, u1.DeleteAt); result.Err != nil {
 		t.Fatal("failed to update extras by user: %v", result.Err)
-	}
-
-	if result := <-store.Channel().GetExtraMembers(c1.Id, -1); result.Err != nil {
-		t.Fatal("failed to get extras: %v", result.Err)
-	} else if len(result.Data.([]model.ExtraMember)) != 1 {
-		t.Fatal("got incorrect member count %v", len(result.Data.([]model.ExtraMember)))
 	}
 }

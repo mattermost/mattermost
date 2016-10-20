@@ -239,6 +239,19 @@
         }
     }
 
+    .more-modal__list {
+        .filtered-user-list {
+             .filter-controls {
+                padding-bottom: 1em;
+             }
+        }
+
+        .filter-row {
+            margin: 10px 0;
+            overflow: hidden;
+        }
+    }
+
     .member-list-holder {
         background: $white;
         margin-bottom: 4em;
@@ -451,4 +464,3 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
-

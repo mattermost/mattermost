@@ -10,7 +10,6 @@ import PreferenceStore from 'stores/preference_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import Constants from 'utils/constants.jsx';
 var ActionTypes = Constants.ActionTypes;
-import * as AsyncClient from './async_client.jsx';
 import Client from 'client/web_client.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
 
@@ -86,7 +85,7 @@ export function getCookie(name) {
 
 var requestedNotificationPermission = false;
 
-export function notifyMe(title, body, channel, teamId, duration) {
+export function notifyMe(title, body, channel, teamId, duration, silent) {
     if (!('Notification' in window)) {
         return;
     }
@@ -102,7 +101,7 @@ export function notifyMe(title, body, channel, teamId, duration) {
         Notification.requestPermission((permission) => {
             if (permission === 'granted') {
                 try {
-                    var notification = new Notification(title, {body, tag: body, icon: icon50, requireInteraction: notificationDuration === 0});
+                    var notification = new Notification(title, {body, tag: body, icon: icon50, requireInteraction: notificationDuration === 0, silent});
                     notification.onclick = () => {
                         window.focus();
                         if (channel) {
@@ -585,7 +584,7 @@ export function applyTheme(theme) {
         changeCss('.app__body .channel-header #member_popover', 'color:' + changeOpacity(theme.centerChannelColor, 0.8), 1);
         changeCss('.app__body .custom-textarea, .app__body .custom-textarea:focus, .app__body .file-preview, .app__body .post-image__details, .app__body .sidebar--right .sidebar-right__body, .app__body .markdown__table th, .app__body .markdown__table td, .app__body .suggestion-list__content, .app__body .modal .modal-content, .app__body .modal .settings-modal .settings-table .settings-content .divider-light, .app__body .webhooks__container, .app__body .dropdown-menu, .app__body .modal .modal-header, .app__body .popover', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
         changeCss('.app__body .popover.bottom>.arrow', 'border-bottom-color:' + changeOpacity(theme.centerChannelColor, 0.25), 1);
-        changeCss('.app__body .search-help-popover .search-autocomplete__divider span', 'color:' + changeOpacity(theme.centerChannelColor, 0.7), 1);
+        changeCss('.app__body .search-help-popover .search-autocomplete__divider span, .app__body .suggestion-list__divider > span', 'color:' + changeOpacity(theme.centerChannelColor, 0.7), 1);
         changeCss('.app__body .popover.right>.arrow', 'border-right-color:' + changeOpacity(theme.centerChannelColor, 0.25), 1);
         changeCss('.app__body .popover.left>.arrow', 'border-left-color:' + changeOpacity(theme.centerChannelColor, 0.25), 1);
         changeCss('.app__body .popover.top>.arrow', 'border-top-color:' + changeOpacity(theme.centerChannelColor, 0.25), 1);
@@ -1032,13 +1031,6 @@ export function getDirectChannelName(id, otherId) {
     return handle;
 }
 
-export function getDirectChannelNameByUsername(username, otherUsername) {
-    const id = UserStore.getProfileByUsername(username).id;
-    const otherId = UserStore.getProfileByUsername(otherUsername).id;
-
-    return getDirectChannelName(id, otherId);
-}
-
 // Used to get the id of the other user from a DM channel
 export function getUserIdFromChannelName(channel) {
     var ids = channel.name.split('__');
@@ -1079,66 +1071,6 @@ export function windowWidth() {
 
 export function windowHeight() {
     return $(window).height();
-}
-
-export function openDirectChannelToUser(user, successCb, errorCb) {
-    AsyncClient.savePreference(
-        Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW,
-        user.id,
-        'true'
-    );
-
-    // if the user in another team and isn't already in the direct message
-    // list then we should add him so his name shows up correctly.
-    var profileUser = UserStore.getProfile(user.id);
-    if (!profileUser) {
-        UserStore.getDirectProfiles()[user.id] = user;
-    }
-
-    const channelName = this.getDirectChannelName(UserStore.getCurrentId(), user.id);
-    let channel = ChannelStore.getByName(channelName);
-
-    if (channel) {
-        if ($.isFunction(successCb)) {
-            successCb(channel, true);
-        }
-    } else {
-        channel = {
-            name: channelName,
-            last_post_at: 0,
-            total_msg_count: 0,
-            type: 'D',
-            display_name: user.username,
-            teammate_id: user.id,
-            status: UserStore.getStatus(user.id)
-        };
-
-        Client.createDirectChannel(
-            user.id,
-            (data) => {
-                Client.getChannel(
-                    data.id,
-                    (data2) => {
-                        AppDispatcher.handleServerAction({
-                            type: ActionTypes.RECEIVED_CHANNEL,
-                            channel: data2.channel,
-                            member: data2.member
-                        });
-
-                        if ($.isFunction(successCb)) {
-                            successCb(data2.channel, false);
-                        }
-                    }
-                );
-            },
-            () => {
-                browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/' + channelName);
-                if ($.isFunction(errorCb)) {
-                    errorCb();
-                }
-            }
-        );
-    }
 }
 
 // Use when sorting multiple channels or teams by their `display_name` field

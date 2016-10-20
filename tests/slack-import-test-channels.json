@@ -1,0 +1,165 @@
+[
+    {
+        "id": "C13CFUSDV",
+        "name": "artwork",
+        "created": "1461575251",
+        "creator": "U07Q4MHCP",
+        "is_archived": false,
+        "is_general": false,
+        "members": [
+            "U07Q4MHCP",
+            "U13C5JZ7W",
+            "U13CLGTKK",
+            "U13CSKE2E"
+        ],
+        "topic": {
+            "value": "",
+            "creator": "",
+            "last_set": "0"
+        },
+        "purpose": {
+            "value": "Discussing art",
+            "creator": "U07Q4MHCP",
+            "last_set": "1461575252"
+        }
+    },
+    {
+        "id": "C13CN0Q0H",
+        "name": "eating-out",
+        "created": "1461575308",
+        "creator": "U07Q4MHCP",
+        "is_archived": false,
+        "is_general": false,
+        "members": [
+            "U07Q4MHCP",
+            "U13C5JZ7W",
+            "U13CLGTKK",
+            "U13CSKE2E"
+        ],
+        "topic": {
+            "value": "",
+            "creator": "",
+            "last_set": "0"
+        },
+        "purpose": {
+            "value": "Restaurants around town",
+            "creator": "U07Q4MHCP",
+            "last_set": "1461575309"
+        }
+    },
+    {
+        "id": "C07Q4SBL3",
+        "name": "general",
+        "created": "1437124885",
+        "creator": "U07Q4MHCP",
+        "is_archived": false,
+        "is_general": true,
+        "members": [
+            "U07Q4MHCP",
+            "U13C5JZ7W",
+            "U13CLGTKK",
+            "U13CSKE2E",
+            "U15F73RL4",
+            "U15F922BY",
+            "U15FHKEKX",
+            "U15FHR92R",
+            "U15FUR1QS",
+            "U1THQPEMV",
+            "U24CG47QU"
+        ],
+        "topic": {
+            "value": "Company-wide announcements and work-based matters",
+            "creator": "",
+            "last_set": "0"
+        },
+        "purpose": {
+            "value": "This channel is for team-wide communication and announcements. All team members are in this channel.",
+            "creator": "",
+            "last_set": "0"
+        }
+    },
+    {
+        "id": "C13B104PM",
+        "name": "movies",
+        "created": "1461575333",
+        "creator": "U07Q4MHCP",
+        "is_archived": false,
+        "is_general": false,
+        "members": [
+            "U07Q4MHCP",
+            "U13C5JZ7W",
+            "U13CLGTKK",
+            "U13CSKE2E"
+        ],
+        "topic": {
+            "value": "",
+            "creator": "",
+            "last_set": "0"
+        },
+        "purpose": {
+            "value": "New movies",
+            "creator": "U07Q4MHCP",
+            "last_set": "1461575334"
+        }
+    },
+    {
+        "id": "C15FGPREU",
+        "name": "outings",
+        "created": "1462216386",
+        "creator": "U15FUR1QS",
+        "is_archived": false,
+        "is_general": false,
+        "members": [
+            "U07Q4MHCP",
+            "U13C5JZ7W",
+            "U13CLGTKK",
+            "U13CSKE2E",
+            "U15F73RL4",
+            "U15F922BY",
+            "U15FHKEKX",
+            "U15FHR92R",
+            "U15FUR1QS"
+        ],
+        "topic": {
+            "value": "",
+            "creator": "",
+            "last_set": "0"
+        },
+        "purpose": {
+            "value": "Let's discuss our next monthly outing",
+            "creator": "U15FUR1QS",
+            "last_set": "1462216387"
+        }
+    },
+    {
+        "id": "C07Q4MBTL",
+        "name": "random",
+        "created": "1437124885",
+        "creator": "U07Q4MHCP",
+        "is_archived": false,
+        "is_general": false,
+        "members": [
+            "U07Q4MHCP",
+            "U13C5JZ7W",
+            "U13CLGTKK",
+            "U13CSKE2E",
+            "U15F73RL4",
+            "U15F922BY",
+            "U15FHKEKX",
+            "U15FHR92R",
+            "U15FUR1QS",
+            "U1THQPEMV",
+            "U24CG47QU"
+        ],
+        "topic": {
+            "value": "Non-work banter and water cooler conversation",
+            "creator": "",
+            "last_set": "0"
+        },
+        "purpose": {
+            "value": "A place for non-work-related flimflam, faffing, hodge-podge or jibber-jabber you'd prefer to keep out of more focused work-related channels.",
+            "creator": "",
+            "last_set": "0"
+        }
+    }
+]

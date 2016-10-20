@@ -77,6 +77,7 @@ start-docker:
 		docker start mattermost-postgres > /dev/null; \
 	fi
 
+ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Ldap test user test.one
 	@if [ $(shell docker ps -a | grep -ci mattermost-openldap) -eq 0 ]; then \
 		echo starting mattermost-openldap; \
@@ -106,6 +107,7 @@ start-docker:
     		echo restarting mattermost-webrtc; \
     		docker start mattermost-webrtc > /dev/null; \
     	fi
+endif
 
 stop-docker:
 	@echo Stopping docker containers
@@ -119,16 +121,16 @@ stop-docker:
 		echo stopping mattermost-postgres; \
 		docker stop mattermost-postgres > /dev/null; \
 	fi
-	
+
 	@if [ $(shell docker ps -a | grep -ci mattermost-openldap) -eq 1 ]; then \
 		echo stopping mattermost-openldap; \
 		docker stop mattermost-openldap > /dev/null; \
 	fi
 
 	@if [ $(shell docker ps -a | grep -ci mattermost-webrtc) -eq 1 ]; then \
-    		echo stopping mattermost-webrtc; \
-    		docker stop mattermost-webrtc > /dev/null; \
-    	fi
+		echo stopping mattermost-webrtc; \
+		docker stop mattermost-webrtc > /dev/null; \
+	fi
 
 clean-docker:
 	@echo Removing docker containers
@@ -152,16 +154,16 @@ clean-docker:
 	fi
 
 	@if [ $(shell docker ps -a | grep -ci mattermost-webrtc) -eq 1 ]; then \
-    		echo removing mattermost-webrtc; \
-    		docker stop mattermost-webrtc > /dev/null; \
-    		docker rm -v mattermost-webrtc > /dev/null; \
-    	fi
+		echo removing mattermost-webrtc; \
+		docker stop mattermost-webrtc > /dev/null; \
+		docker rm -v mattermost-webrtc > /dev/null; \
+	fi
 
 check-client-style:
 	@echo Checking client style
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) check-style
-	
+
 check-server-style:
 	@echo Running GOFMT
 	$(eval GOFMT_OUTPUT := $(shell gofmt -d -s api/ model/ store/ utils/ manualtesting/ einterfaces/ mattermost.go 2>&1))
@@ -296,6 +298,9 @@ package: build build-client
 	cp -RL templates $(DIST_PATH)
 	cp -RL i18n $(DIST_PATH)
 
+	@# Disable developer settings
+	sed -i'' -e 's|"ConsoleLevel": "DEBUG"|"ConsoleLevel": "INFO"|g' $(DIST_PATH)/config/config.json
+
 	@# Package webapp
 	mkdir -p $(DIST_PATH)/webapp/dist
 	cp -RL $(BUILD_WEBAPP_DIR)/dist $(DIST_PATH)/webapp
@@ -356,7 +361,7 @@ run-server: prepare-enterprise start-docker
 
 run-cli: prepare-enterprise start-docker
 	@echo Running mattermost for development
-	@echo Example should be like >'make ARGS="-version" run-cli'
+	@echo Example should be like 'make ARGS="-version" run-cli'
 
 	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) *.go ${ARGS}
 
@@ -377,21 +382,24 @@ run-fullmap: run-server run-client-fullmap
 stop-server:
 	@echo Stopping mattermost
 
+ifeq ($(BUILDER_GOOS_GOARCH),"windows_amd64")
+	wmic process where "Caption='go.exe' and CommandLine like '%go.exe run%'" call terminate
+	wmic process where "Caption='mattermost.exe' and CommandLine like '%go-build%'" call terminate
+else
 	@for PID in $$(ps -ef | grep "[g]o run" | awk '{ print $$2 }'); do \
 		echo stopping go $$PID; \
 		kill $$PID; \
 	done
-
 	@for PID in $$(ps -ef | grep "[g]o-build" | awk '{ print $$2 }'); do \
 		echo stopping mattermost $$PID; \
 		kill $$PID; \
 	done
+endif 
 
 stop-client:
 	@echo Stopping mattermost client
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) stop
-
 
 stop: stop-server stop-client
 
