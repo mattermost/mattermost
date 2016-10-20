@@ -483,7 +483,8 @@ func (ss SqlStore) createIndexIfNotExists(indexName string, tableName string, co
 
 		query := ""
 		if indexType == INDEX_TYPE_FULL_TEXT {
-			query = "CREATE INDEX " + indexName + " ON " + tableName + " USING gin(to_tsvector('english', " + columnName + "))"
+			postgresColumnNames := convertMySQLFullTextColumnsToPostgres(columnName)
+			query = "CREATE INDEX " + indexName + " ON " + tableName + " USING gin(to_tsvector('english', " + postgresColumnNames + "))"
 		} else {
 			query = "CREATE " + uniqueStr + "INDEX " + indexName + " ON " + tableName + " (" + columnName + ")"
 		}
@@ -743,6 +744,19 @@ func (me mattermConverter) FromDb(target interface{}) (gorp.CustomScanner, bool)
 	}
 
 	return gorp.CustomScanner{}, false
+}
+
+func convertMySQLFullTextColumnsToPostgres(columnNames string) string {
+	columns := strings.Split(columnNames, ", ")
+	concatenatedColumnNames := ""
+	for i, c := range columns {
+		concatenatedColumnNames += c
+		if i < len(columns)-1 {
+			concatenatedColumnNames += " || ' ' || "
+		}
+	}
+
+	return concatenatedColumnNames
 }
 
 func encrypt(key []byte, text string) (string, error) {
