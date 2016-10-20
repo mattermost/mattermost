@@ -19,7 +19,7 @@ class ChannelStoreClass extends EventEmitter {
     constructor(props) {
         super(props);
 
-        this.setMaxListeners(15);
+        this.setMaxListeners(600);
 
         this.currentId = null;
         this.postMode = this.POST_MODE_CHANNEL;
