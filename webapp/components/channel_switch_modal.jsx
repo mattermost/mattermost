@@ -18,6 +18,7 @@ import * as Utils from 'utils/utils.jsx';
 
 import React from 'react';
 import $ from 'jquery';
+
 export default class SwitchChannelModal extends React.Component {
     constructor() {
         super();
@@ -28,6 +29,8 @@ export default class SwitchChannelModal extends React.Component {
         this.onExited = this.onExited.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.switchToChannel = this.switchToChannel.bind(this);
+
         this.suggestionProviders = [new SwitchChannelProvider()];
 
         this.state = {
@@ -92,16 +95,21 @@ export default class SwitchChannelModal extends React.Component {
                     user,
                     (ch) => {
                         channel = ch;
+                        this.switchToChannel(channel);
                     },
                     () => {
                         channel = null;
+                        this.switchToChannel(channel);
                     }
                 );
             }
         } else {
             channel = ChannelStore.getByName(this.state.text.trim());
+            this.switchToChannel(channel);
         }
+    }
 
+    switchToChannel(channel) {
         if (channel !== null) {
             goToChannel(channel);
             this.onHide();

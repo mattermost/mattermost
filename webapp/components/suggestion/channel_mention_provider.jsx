@@ -124,6 +124,7 @@ export default class ChannelMentionProvider {
 
             const mentions = wrapped.map((item) => '!' + item.channel.name);
 
+            SuggestionStore.clearSuggestions(suggestionId);
             SuggestionStore.addSuggestions(suggestionId, mentions, wrapped, ChannelMentionSuggestion, captured[2]);
         }
     }
