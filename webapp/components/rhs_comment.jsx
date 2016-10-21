@@ -290,9 +290,7 @@ export default class RhsComment extends React.Component {
         const profilePicContainer = (<div className='post__img'>{profilePic}</div>);
         if (this.props.compactDisplay) {
             compactClass = 'post--compact';
-        }
 
-        if (this.props.compactDisplay) {
             profilePic = (
                 <ProfilePicture
                     src=''
