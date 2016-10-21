@@ -539,14 +539,14 @@ func getExplicitMentions(message string, keywords map[string][]string) (map[stri
 	return mentioned, potentialOthersMentioned, hereMentioned
 }
 
-func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *model.Channel) {
+func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *model.Channel) []string {
 	pchan := Srv.Store.User().GetProfilesInChannel(channel.Id, -1, -1, true)
 	fchan := Srv.Store.FileInfo().GetForPost(post.Id)
 
 	var profileMap map[string]*model.User
 	if result := <-pchan; result.Err != nil {
 		l4g.Error(utils.T("api.post.handle_post_events_and_forget.profiles.error"), c.TeamId, result.Err)
-		return
+		return nil
 	} else {
 		profileMap = result.Data.(map[string]*model.User)
 	}
@@ -554,7 +554,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 	// If the user who made the post is mention don't send a notification
 	if _, ok := profileMap[post.UserId]; !ok {
 		l4g.Error(utils.T("api.post.send_notifications_and_forget.user_id.error"), post.UserId)
-		return
+		return nil
 	}
 
 	mentionedUserIds := make(map[string]bool)
@@ -574,22 +574,21 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 	} else {
 		keywords := getMentionKeywordsInChannel(profileMap)
 
-		var mentioned map[string]bool
 		var potentialOtherMentions []string
-		mentioned, potentialOtherMentions, hereNotification = getExplicitMentions(post.Message, keywords)
+		mentionedUserIds, potentialOtherMentions, hereNotification = getExplicitMentions(post.Message, keywords)
 
 		// get users that have comment thread mentions enabled
 		if len(post.RootId) > 0 {
 			if result := <-Srv.Store.Post().Get(post.RootId); result.Err != nil {
 				l4g.Error(utils.T("api.post.send_notifications_and_forget.comment_thread.error"), post.RootId, result.Err)
-				return
+				return nil
 			} else {
 				list := result.Data.(*model.PostList)
 
 				for _, threadPost := range list.Posts {
 					profile := profileMap[threadPost.UserId]
 					if profile.NotifyProps["comments"] == "any" || (profile.NotifyProps["comments"] == "root" && threadPost.Id == list.Order[0]) {
-						mentioned[threadPost.UserId] = true
+						mentionedUserIds[threadPost.UserId] = true
 					}
 				}
 			}
@@ -597,7 +596,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 
 		// prevent the user from mentioning themselves
 		if post.Props["from_webhook"] != "true" {
-			delete(mentioned, post.UserId)
+			delete(mentionedUserIds, post.UserId)
 		}
 
 		if len(potentialOtherMentions) > 0 {
@@ -618,6 +617,10 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 	}
 
 	mentionedUsersList := make([]string, 0, len(mentionedUserIds))
+	for id := range mentionedUserIds {
+		mentionedUsersList = append(mentionedUsersList, id)
+		updateMentionChans = append(updateMentionChans, Srv.Store.Channel().IncrementMentionCount(post.ChannelId, id))
+	}
 
 	senderName := ""
 
@@ -631,11 +634,6 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 			senderName = profile.Username
 		}
 		sender = profile
-	}
-
-	for id := range mentionedUserIds {
-		mentionedUsersList = append(mentionedUsersList, id)
-		updateMentionChans = append(updateMentionChans, Srv.Store.Channel().IncrementMentionCount(post.ChannelId, id))
 	}
 
 	if utils.Cfg.EmailSettings.SendEmailNotifications {
@@ -657,7 +655,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 	if hereNotification {
 		if result := <-Srv.Store.Status().GetOnline(); result.Err != nil {
 			l4g.Warn(utils.T("api.post.notification.here.warn"), result.Err)
-			return
+			return nil
 		} else {
 			statuses := result.Data.([]*model.Status)
 			for _, status := range statuses {
@@ -754,7 +752,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 	}
 
 	Publish(message)
-	return
+	return mentionedUsersList
 }
 
 func sendNotificationEmail(c *Context, post *model.Post, user *model.User, channel *model.Channel, team *model.Team, senderName string, sender *model.User) {

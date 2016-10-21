@@ -31,6 +31,7 @@ export default class UsersAndTeamsSettings extends AdminSettings {
         config.TeamSettings.MaxUsersPerTeam = this.parseIntNonZero(this.state.maxUsersPerTeam, Constants.DEFAULT_MAX_USERS_PER_TEAM);
         config.TeamSettings.RestrictCreationToDomains = this.state.restrictCreationToDomains;
         config.TeamSettings.RestrictDirectMessage = this.state.restrictDirectMessage;
+        config.TeamSettings.MaxChannelsPerTeam = this.parseIntNonZero(this.state.maxChannelsPerTeam, Constants.DEFAULT_MAX_CHANNELS_PER_TEAM);
 
         return config;
     }
@@ -41,7 +42,8 @@ export default class UsersAndTeamsSettings extends AdminSettings {
             enableTeamCreation: config.TeamSettings.EnableTeamCreation,
             maxUsersPerTeam: config.TeamSettings.MaxUsersPerTeam,
             restrictCreationToDomains: config.TeamSettings.RestrictCreationToDomains,
-            restrictDirectMessage: config.TeamSettings.RestrictDirectMessage
+            restrictDirectMessage: config.TeamSettings.RestrictDirectMessage,
+            maxChannelsPerTeam: config.TeamSettings.MaxChannelsPerTeam
         };
     }
 
@@ -109,6 +111,24 @@ export default class UsersAndTeamsSettings extends AdminSettings {
                         />
                     }
                     value={this.state.maxUsersPerTeam}
+                    onChange={this.handleChange}
+                />
+                <TextSetting
+                    id='maxChannelsPerTeam'
+                    label={
+                        <FormattedMessage
+                            id='admin.team.maxChannelsTitle'
+                            defaultMessage='Max Channels Per Team:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.team.maxChannelsExample', 'Ex "100"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.team.maxChannelsDescription'
+                            defaultMessage='Maximum total number of channels per team, including both active and deleted channels.'
+                        />
+                    }
+                    value={this.state.maxChannelsPerTeam}
                     onChange={this.handleChange}
                 />
                 <TextSetting

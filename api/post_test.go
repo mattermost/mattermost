@@ -1273,3 +1273,41 @@ func TestGetFileInfosForPost(t *testing.T) {
 		t.Fatal("should've returned nothing because of etag")
 	}
 }
+
+// TODO: Needs to be vastly fleshed out
+func TestSendNotifications(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+
+	AddUserToChannel(th.BasicUser2, th.BasicChannel)
+
+	mockSession := model.Session{
+		UserId:      th.BasicUser.Id,
+		TeamMembers: []*model.TeamMember{{TeamId: th.BasicTeam.Id, UserId: th.BasicUser.Id}},
+		IsOAuth:     false,
+	}
+
+	newContext := &Context{
+		Session:   mockSession,
+		RequestId: model.NewId(),
+		IpAddress: "",
+		Path:      "fake",
+		Err:       nil,
+		siteURL:   *utils.Cfg.ServiceSettings.SiteURL,
+		TeamId:    th.BasicTeam.Id,
+	}
+
+	post1 := Client.Must(Client.CreatePost(&model.Post{
+		ChannelId: th.BasicChannel.Id,
+		Message:   "@" + th.BasicUser2.Username,
+	})).Data.(*model.Post)
+
+	mentions := sendNotifications(newContext, post1, th.BasicTeam, th.BasicChannel)
+	if mentions == nil {
+		t.Log(mentions)
+		t.Fatal("user should have been mentioned")
+	} else if mentions[0] != th.BasicUser2.Id {
+		t.Log(mentions)
+		t.Fatal("user should have been mentioned")
+	}
+}
