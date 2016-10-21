@@ -205,7 +205,7 @@ class TeamStoreClass extends EventEmitter {
     }
 
     getMembersInTeam(teamId = this.getCurrentId()) {
-        return this.members_in_team[teamId] || {};
+        return Object.assign({}, this.members_in_team[teamId]) || {};
     }
 
     hasActiveMemberInTeam(teamId = this.getCurrentId(), userId) {

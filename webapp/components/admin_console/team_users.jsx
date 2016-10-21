@@ -11,7 +11,7 @@ import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
 import {searchUsers, loadProfilesAndTeamMembers, loadTeamMembersForProfilesList} from 'actions/user_actions.jsx';
-import {getTeamStats} from 'utils/async_client.jsx';
+import {getTeamStats, getUser} from 'utils/async_client.jsx';
 
 import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -59,6 +59,7 @@ export default class UserList extends React.Component {
 
     componentDidMount() {
         AdminStore.addAllTeamsChangeListener(this.onAllTeamsChange);
+        UserStore.addChangeListener(this.onUsersChange);
         UserStore.addInTeamChangeListener(this.onUsersChange);
         TeamStore.addChangeListener(this.onTeamChange);
         TeamStore.addStatsChangeListener(this.onStatsChange);
@@ -83,6 +84,7 @@ export default class UserList extends React.Component {
 
     componentWillUnmount() {
         AdminStore.removeAllTeamsChangeListener(this.onAllTeamsChange);
+        UserStore.removeChangeListener(this.onUsersChange);
         UserStore.removeInTeamChangeListener(this.onUsersChange);
         TeamStore.removeChangeListener(this.onTeamChange);
         TeamStore.removeStatsChangeListener(this.onStatsChange);
@@ -129,8 +131,8 @@ export default class UserList extends React.Component {
         });
     }
 
-    doPasswordResetSubmit() {
-        this.getCurrentTeamProfiles();
+    doPasswordResetSubmit(user) {
+        getUser(user.id);
         this.setState({
             showPasswordModal: false,
             user: null
@@ -203,6 +205,7 @@ export default class UserList extends React.Component {
                     }
 
                     if (mfaEnabled) {
+                        info.push(', ');
                         if (user.mfa_active) {
                             info.push(
                                 <FormattedHTMLMessage
@@ -252,7 +255,6 @@ export default class UserList extends React.Component {
                             search={this.search}
                             actions={[AdminTeamMembersDropdown]}
                             actionProps={{
-                                refreshProfiles: this.getCurrentTeamProfiles,
                                 doPasswordReset: this.doPasswordReset
                             }}
                             actionUserProps={actionUserProps}

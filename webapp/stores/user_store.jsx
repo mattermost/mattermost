@@ -169,11 +169,12 @@ class UserStoreClass extends EventEmitter {
     // System-Wide Profiles
 
     saveProfiles(profiles) {
+        const newProfiles = Object.assign({}, profiles);
         const currentId = this.getCurrentId();
-        if (profiles[currentId]) {
-            Reflect.deleteProperty(profiles, currentId);
+        if (newProfiles[currentId]) {
+            Reflect.deleteProperty(newProfiles, currentId);
         }
-        this.profiles = Object.assign({}, this.profiles, profiles);
+        this.profiles = Object.assign({}, this.profiles, newProfiles);
     }
 
     getProfiles() {
@@ -329,6 +330,20 @@ class UserStoreClass extends EventEmitter {
         }
 
         return profiles;
+    }
+
+    removeProfileFromTeam(teamId, userId) {
+        const userIds = this.profiles_in_team[teamId];
+        if (!userIds) {
+            return;
+        }
+
+        const index = userIds.indexOf(userId);
+        if (index === -1) {
+            return;
+        }
+
+        userIds.splice(index, 1);
     }
 
     // Channel-Wide Profiles
