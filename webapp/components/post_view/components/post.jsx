@@ -214,7 +214,6 @@ export default class Post extends React.Component {
         }
 
         let compactClass = '';
-        const profilePicContainer = (<div className='post__img'>{profilePic}</div>);
         if (this.props.compactDisplay) {
             compactClass = 'post--compact';
 
@@ -226,6 +225,8 @@ export default class Post extends React.Component {
                 />
             );
         }
+
+        const profilePicContainer = (<div className='post__img'>{profilePic}</div>);
 
         let dropdownOpenedClass = '';
         if (this.state.dropdownOpened) {

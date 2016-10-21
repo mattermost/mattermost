@@ -287,7 +287,6 @@ export default class RhsComment extends React.Component {
         );
 
         let compactClass = '';
-        const profilePicContainer = (<div className='post__img'>{profilePic}</div>);
         if (this.props.compactDisplay) {
             compactClass = 'post--compact';
 
@@ -299,6 +298,8 @@ export default class RhsComment extends React.Component {
                 />
             );
         }
+
+        const profilePicContainer = (<div className='post__img'>{profilePic}</div>);
 
         let fileAttachment = null;
         if (post.file_ids && post.file_ids.length > 0) {
