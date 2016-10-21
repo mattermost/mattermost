@@ -276,7 +276,7 @@ export default class RhsComment extends React.Component {
             );
         }
 
-        const profilePic = (
+        let profilePic = (
             <ProfilePicture
                 src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
                 status={this.props.status}
@@ -287,10 +287,19 @@ export default class RhsComment extends React.Component {
         );
 
         let compactClass = '';
-        let profilePicContainer = (<div className='post__img'>{profilePic}</div>);
+        const profilePicContainer = (<div className='post__img'>{profilePic}</div>);
         if (this.props.compactDisplay) {
             compactClass = 'post--compact';
-            profilePicContainer = '';
+        }
+
+        if (this.props.compactDisplay) {
+            profilePic = (
+                <ProfilePicture
+                    src=''
+                    status={this.props.status}
+                    user={this.props.user}
+                />
+            );
         }
 
         let fileAttachment = null;
