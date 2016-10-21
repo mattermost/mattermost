@@ -21,6 +21,7 @@ type Hub struct {
 	unregister     chan *WebConn
 	broadcast      chan *model.WebSocketEvent
 	stop           chan string
+	stopAllForUser chan string
 	invalidateUser chan string
 }
 
@@ -33,6 +34,7 @@ func NewWebHub() *Hub {
 		connections:    make(map[*WebConn]bool, model.SESSION_CACHE_SIZE),
 		broadcast:      make(chan *model.WebSocketEvent, 4096),
 		stop:           make(chan string),
+		stopAllForUser: make(chan string),
 		invalidateUser: make(chan string),
 	}
 }
@@ -127,6 +129,14 @@ func InvalidateCacheForChannel(channelId string) {
 	// }
 }
 
+func StopWebSocketsForUser(userId string) {
+	l4g.Info("StopWebSocketsForUser")
+	for _, hub := range hubs {
+		hub.stopAllForUser <- userId
+	}
+	SetStatusOffline(userId, false)
+}
+
 func (h *Hub) Register(webConn *WebConn) {
 	h.register <- webConn
 
@@ -196,6 +206,15 @@ func (h *Hub) Start() {
 							close(webCon.Send)
 							delete(h.connections, webCon)
 						}
+					}
+				}
+
+			case userId := <-h.stopAllForUser:
+				for webCon := range h.connections {
+					if webCon.UserId == userId {
+						webCon.WebSocket.Close()
+						close(webCon.Send)
+						delete(h.connections, webCon)
 					}
 				}
 

@@ -776,8 +776,14 @@ func RevokeAllSession(c *Context, userId string) {
 				}
 			}
 
+			StopWebSocketsForUser(userId)
+
 			if webrtcInterface := einterfaces.GetWebrtcInterface(); webrtcInterface != nil {
 				webrtcInterface.RevokeToken(session.Id)
+			}
+
+			if einterfaces.GetClusterInterface() != nil {
+				einterfaces.GetClusterInterface().RemoveAllSessionsForUserId(userId)
 			}
 		}
 	}
@@ -801,8 +807,14 @@ func RevokeAllSessionsNoContext(userId string) *model.AppError {
 				}
 			}
 
+			StopWebSocketsForUser(userId)
+
 			if webrtcInterface := einterfaces.GetWebrtcInterface(); webrtcInterface != nil {
 				webrtcInterface.RevokeToken(session.Id)
+			}
+
+			if einterfaces.GetClusterInterface() != nil {
+				einterfaces.GetClusterInterface().RemoveAllSessionsForUserId(userId)
 			}
 		}
 	}
