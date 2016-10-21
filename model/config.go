@@ -223,6 +223,7 @@ type TeamSettings struct {
 	RestrictPublicChannelManagement  *string
 	RestrictPrivateChannelManagement *string
 	UserStatusAwayTimeout            *int64
+	MaxChannelsPerTeam               *int64
 }
 
 type LdapSettings struct {
@@ -500,6 +501,11 @@ func (o *Config) SetDefaults() {
 	if o.TeamSettings.UserStatusAwayTimeout == nil {
 		o.TeamSettings.UserStatusAwayTimeout = new(int64)
 		*o.TeamSettings.UserStatusAwayTimeout = 300
+	}
+
+	if o.TeamSettings.MaxChannelsPerTeam == nil {
+		o.TeamSettings.MaxChannelsPerTeam = new(int64)
+		*o.TeamSettings.MaxChannelsPerTeam = 2000
 	}
 
 	if o.EmailSettings.EnableSignInWithEmail == nil {
@@ -982,6 +988,10 @@ func (o *Config) IsValid() *AppError {
 
 	if o.TeamSettings.MaxUsersPerTeam <= 0 {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.max_users.app_error", nil, "")
+	}
+
+	if *o.TeamSettings.MaxChannelsPerTeam <= 0 {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.max_channels.app_error", nil, "")
 	}
 
 	if !(*o.TeamSettings.RestrictDirectMessage == DIRECT_MESSAGE_ANY || *o.TeamSettings.RestrictDirectMessage == DIRECT_MESSAGE_TEAM) {

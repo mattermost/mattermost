@@ -51,7 +51,8 @@
         "RestrictTeamInvite": "all",
         "RestrictPublicChannelManagement": "all",
         "RestrictPrivateChannelManagement": "all",
-        "UserStatusAwayTimeout": 300
+        "UserStatusAwayTimeout": 300,
+        "MaxChannelsPerTeam": 2000
     },
     "SqlSettings": {
         "DriverName": "mysql",
