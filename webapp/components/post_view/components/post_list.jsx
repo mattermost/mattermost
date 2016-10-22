@@ -6,6 +6,7 @@ import $ from 'jquery';
 import Post from './post.jsx';
 import FloatingTimestamp from './floating_timestamp.jsx';
 import ScrollToBottomArrows from './scroll_to_bottom_arrows.jsx';
+import NewMessageIndicator from './new_message_indicator.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
 
@@ -56,7 +57,8 @@ export default class PostList extends React.Component {
         this.state = {
             isScrolling: false,
             fullWidthIntro: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN,
-            topPostId: null
+            topPostId: null,
+            unViewedCount: 0
         };
 
         if (props.channel) {
@@ -74,6 +76,21 @@ export default class PostList extends React.Component {
                 this.introText = createChannelIntroMessage(this.props.channel, this.state.fullWidthIntro);
             }
         }
+
+        const posts = nextProps.postList.posts;
+        const order = nextProps.postList.order;
+        let unViewedCount = 0;
+
+        // If we're at the bottom, don't even start counting
+        if (nextProps.scrollType !== Constants.ScrollTypes.BOTTOM) {
+            for (let i = order.length - 1; i >= 0; i--) {
+                const post = posts[order[i]];
+                if (post.create_at > nextProps.lastViewedBottom) {
+                    unViewedCount++;
+                }
+            }
+        }
+        this.setState({unViewedCount});
     }
 
     handleKeyDown(e) {
@@ -553,6 +570,10 @@ export default class PostList extends React.Component {
                     atBottom={this.wasAtBottom}
                     onClick={this.scrollToBottomAnimated}
                 />
+                <NewMessageIndicator
+                    newMessages={this.state.unViewedCount}
+                    onClick={this.scrollToBottomAnimated}
+                />
                 <div
                     ref='postlist'
                     className='post-list-holder-by-time'
@@ -576,6 +597,7 @@ export default class PostList extends React.Component {
 
 PostList.defaultProps = {
     lastViewed: 0,
+    lastViewedBottom: 0,
     ownNewMessage: false
 };
 
@@ -590,6 +612,7 @@ PostList.propTypes = {
     showMoreMessagesTop: React.PropTypes.bool,
     showMoreMessagesBottom: React.PropTypes.bool,
     lastViewed: React.PropTypes.number,
+    lastViewedBottom: React.PropTypes.number,
     ownNewMessage: React.PropTypes.bool,
     postsToHighlight: React.PropTypes.object,
     displayNameType: React.PropTypes.string,
