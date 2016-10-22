@@ -122,7 +122,7 @@ func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	teamSignup.Team.PreSave()
 
-	if err := teamSignup.Team.IsValid(*utils.Cfg.TeamSettings.RestrictTeamNames); err != nil {
+	if err := teamSignup.Team.IsValid(); err != nil {
 		c.Err = err
 		return
 	}

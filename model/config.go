@@ -214,7 +214,6 @@ type TeamSettings struct {
 	EnableUserCreation               bool
 	EnableOpenServer                 *bool
 	RestrictCreationToDomains        string
-	RestrictTeamNames                *bool
 	EnableCustomBrand                *bool
 	CustomBrandText                  *string
 	CustomDescriptionText            *string
@@ -451,11 +450,6 @@ func (o *Config) SetDefaults() {
 	if o.PasswordSettings.Symbol == nil {
 		o.PasswordSettings.Symbol = new(bool)
 		*o.PasswordSettings.Symbol = false
-	}
-
-	if o.TeamSettings.RestrictTeamNames == nil {
-		o.TeamSettings.RestrictTeamNames = new(bool)
-		*o.TeamSettings.RestrictTeamNames = true
 	}
 
 	if o.TeamSettings.EnableCustomBrand == nil {
