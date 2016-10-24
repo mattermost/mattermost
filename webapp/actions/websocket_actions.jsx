@@ -198,7 +198,7 @@ function handlePostDeleteEvent(msg) {
 }
 
 function handleNewUserEvent(msg) {
-    AsyncClient.getUser(msg.user_id);
+    AsyncClient.getUser(msg.data.user_id);
     AsyncClient.getChannelStats();
     loadProfilesAndTeamMembersForDMSidebar();
 }
