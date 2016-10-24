@@ -901,7 +901,7 @@ func getMessageForNotification(post *model.Post, translateFunc i18n.TranslateFun
 }
 
 func sendPushNotification(post *model.Post, user *model.User, channel *model.Channel, senderName string, wasMentioned bool) {
-	sessions := getMobileAppSession(user.Id)
+	sessions := getMobileAppSessions(user.Id)
 
 	if sessions == nil {
 		return
@@ -956,7 +956,7 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 }
 
 func clearPushNotification(userId string, channelId string) {
-	sessions := getMobileAppSession(userId)
+	sessions := getMobileAppSessions(userId)
 	if sessions == nil {
 		return
 	}
@@ -997,7 +997,7 @@ func sendToPushProxy(msg model.PushNotification) {
 	}
 }
 
-func getMobileAppSession(userId string) []*model.Session {
+func getMobileAppSessions(userId string) []*model.Session {
 	if result := <-Srv.Store.Session().GetSessionsWithActiveDeviceIds(userId); result.Err != nil {
 		l4g.Error(utils.T("api.post.send_notifications_and_forget.sessions.error"), userId, result.Err)
 		return nil
