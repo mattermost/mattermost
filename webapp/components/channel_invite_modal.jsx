@@ -46,7 +46,6 @@ export default class ChannelInviteModal extends React.Component {
             TeamStore.addStatsChangeListener(this.onChange);
             ChannelStore.addStatsChangeListener(this.onChange);
             UserStore.addNotInChannelChangeListener(this.onChange);
-            UserStore.addStatusesChangeListener(this.onChange);
 
             this.onChange();
             AsyncClient.getProfilesNotInChannel(this.props.channel.id, 0);
@@ -55,7 +54,6 @@ export default class ChannelInviteModal extends React.Component {
             TeamStore.removeStatsChangeListener(this.onChange);
             ChannelStore.removeStatsChangeListener(this.onChange);
             UserStore.removeNotInChannelChangeListener(this.onChange);
-            UserStore.removeStatusesChangeListener(this.onChange);
         }
     }
 

@@ -621,6 +621,7 @@ func (us SqlUserStore) GetProfilesNotInChannel(teamId string, channelId string, 
             INNER JOIN TeamMembers tm
                 ON tm.UserId = u.Id
                 AND tm.TeamId = :TeamId
+                AND tm.DeleteAt = 0
             LEFT JOIN ChannelMembers cm
                 ON cm.UserId = u.Id
                 AND cm.ChannelId = :ChannelId
@@ -1146,6 +1147,7 @@ func (us SqlUserStore) SearchNotInChannel(teamId string, channelId string, term 
 			INNER JOIN TeamMembers tm
 				ON tm.UserId = u.Id
 				AND tm.TeamId = :TeamId
+				AND tm.DeleteAt = 0
 			LEFT JOIN ChannelMembers cm
 				ON cm.UserId = u.Id
 				AND cm.ChannelId = :ChannelId
