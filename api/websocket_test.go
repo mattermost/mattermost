@@ -4,11 +4,93 @@
 package api
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/mattermost/platform/model"
 )
+
+func TestWebSocketAuthentication(t *testing.T) {
+	th := Setup().InitBasic()
+	WebSocketClient, err := th.CreateWebSocketClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+	WebSocketClient.Listen()
+
+	time.Sleep(300 * time.Millisecond)
+	if resp := <-WebSocketClient.ResponseChannel; resp.Status != model.STATUS_OK {
+		t.Fatal("should have responded OK to authentication challenge")
+	}
+
+	WebSocketClient.SendMessage("ping", nil)
+	time.Sleep(300 * time.Millisecond)
+	if resp := <-WebSocketClient.ResponseChannel; resp.Data["text"].(string) != "pong" {
+		t.Fatal("wrong response")
+	}
+
+	WebSocketClient.Close()
+
+	WebSocketClient.AuthToken = "junk"
+	if err := WebSocketClient.Connect(); err != nil {
+		t.Fatal(err)
+	}
+	WebSocketClient.Listen()
+
+	if resp := <-WebSocketClient.ResponseChannel; resp != nil {
+		t.Fatal("should have closed")
+	}
+
+	WebSocketClient.Close()
+
+	if conn, _, err := websocket.DefaultDialer.Dial(WebSocketClient.ApiUrl+"/users/websocket", nil); err != nil {
+		t.Fatal("should have connected")
+	} else {
+		req := &model.WebSocketRequest{}
+		req.Seq = 1
+		req.Action = "ping"
+		conn.WriteJSON(req)
+
+		closedAutomatically := false
+		hitNotAuthedError := false
+
+		go func() {
+			time.Sleep(10 * time.Second)
+			conn.Close()
+
+			if !closedAutomatically {
+				t.Fatal("should have closed automatically in 5 seconds")
+			}
+		}()
+
+		for {
+			if _, rawMsg, err := conn.ReadMessage(); err != nil {
+				closedAutomatically = true
+				conn.Close()
+				break
+			} else {
+				var response model.WebSocketResponse
+				if err := json.Unmarshal(rawMsg, &response); err != nil && !response.IsValid() {
+					t.Fatal("should not have failed")
+				} else {
+					if response.Error == nil || response.Error.Id != "api.web_socket_router.not_authenticated.app_error" {
+						t.Log(response.Error.Id)
+						t.Fatal("wrong error")
+						continue
+					}
+
+					hitNotAuthedError = true
+				}
+			}
+		}
+
+		if !hitNotAuthedError {
+			t.Fatal("should have received a not authenticated response")
+		}
+	}
+}
 
 func TestWebSocket(t *testing.T) {
 	th := Setup().InitBasic()
@@ -29,6 +111,9 @@ func TestWebSocket(t *testing.T) {
 	WebSocketClient.Listen()
 
 	time.Sleep(300 * time.Millisecond)
+	if resp := <-WebSocketClient.ResponseChannel; resp.Status != model.STATUS_OK {
+		t.Fatal("should have responded OK to authentication challenge")
+	}
 
 	WebSocketClient.SendMessage("ping", nil)
 	time.Sleep(300 * time.Millisecond)
@@ -77,6 +162,11 @@ func TestWebSocketEvent(t *testing.T) {
 	defer WebSocketClient.Close()
 
 	WebSocketClient.Listen()
+
+	time.Sleep(300 * time.Millisecond)
+	if resp := <-WebSocketClient.ResponseChannel; resp.Status != model.STATUS_OK {
+		t.Fatal("should have responded OK to authentication challenge")
+	}
 
 	omitUser := make(map[string]bool, 1)
 	omitUser["somerandomid"] = true

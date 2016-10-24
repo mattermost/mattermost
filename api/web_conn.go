@@ -15,9 +15,10 @@ import (
 )
 
 const (
-	WRITE_WAIT  = 30 * time.Second
-	PONG_WAIT   = 100 * time.Second
-	PING_PERIOD = (PONG_WAIT * 6) / 10
+	WRITE_WAIT   = 30 * time.Second
+	PONG_WAIT    = 100 * time.Second
+	PING_PERIOD  = (PONG_WAIT * 6) / 10
+	AUTH_TIMEOUT = 5 * time.Second
 )
 
 type WebConn struct {
@@ -35,12 +36,10 @@ func NewWebConn(c *Context, ws *websocket.Conn) *WebConn {
 	go SetStatusOnline(c.Session.UserId, c.Session.Id, false)
 
 	return &WebConn{
-		Send:         make(chan model.WebSocketMessage, 256),
-		WebSocket:    ws,
-		UserId:       c.Session.UserId,
-		SessionToken: c.Session.Token,
-		T:            c.T,
-		Locale:       c.Locale,
+		Send:      make(chan model.WebSocketMessage, 256),
+		WebSocket: ws,
+		T:         c.T,
+		Locale:    c.Locale,
 	}
 }
 
@@ -57,6 +56,14 @@ func (c *WebConn) readPump() {
 		return nil
 	})
 
+	go func() {
+		time.Sleep(AUTH_TIMEOUT)
+		if c.SessionToken == "" {
+			l4g.Debug("websocket.read: did not authenticate in time, ip=%v", c.WebSocket.RemoteAddr())
+			c.WebSocket.Close()
+		}
+	}()
+
 	for {
 		var req model.WebSocketRequest
 		if err := c.WebSocket.ReadJSON(&req); err != nil {
@@ -64,7 +71,7 @@ func (c *WebConn) readPump() {
 			if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
 				l4g.Debug(fmt.Sprintf("websocket.read: client side closed socket userId=%v", c.UserId))
 			} else {
-				l4g.Debug(fmt.Sprintf("websocket.read: cannot read, closing websocket for userId=%v error=%v", c.UserId, err.Error()))
+				l4g.Debug(fmt.Sprintf("websocket.read: closing websocket for userId=%v error=%v", c.UserId, err.Error()))
 			}
 
 			return
@@ -97,7 +104,7 @@ func (c *WebConn) writePump() {
 				if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
 					l4g.Debug(fmt.Sprintf("websocket.send: client side closed socket userId=%v", c.UserId))
 				} else {
-					l4g.Debug(fmt.Sprintf("websocket.send: cannot send, closing websocket for userId=%v, error=%v", c.UserId, err.Error()))
+					l4g.Debug(fmt.Sprintf("websocket.send: closing websocket for userId=%v, error=%v", c.UserId, err.Error()))
 				}
 
 				return
@@ -110,7 +117,7 @@ func (c *WebConn) writePump() {
 				if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
 					l4g.Debug(fmt.Sprintf("websocket.ticker: client side closed socket userId=%v", c.UserId))
 				} else {
-					l4g.Debug(fmt.Sprintf("websocket.ticker: cannot read, closing websocket for userId=%v error=%v", c.UserId, err.Error()))
+					l4g.Debug(fmt.Sprintf("websocket.ticker: closing websocket for userId=%v error=%v", c.UserId, err.Error()))
 				}
 
 				return
