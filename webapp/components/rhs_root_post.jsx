@@ -302,12 +302,19 @@ export default class RhsRootPost extends React.Component {
         }
 
         let compactClass = '';
-        let profilePicContainer = (<div className='post__img'>{profilePic}</div>);
         if (this.props.compactDisplay) {
             compactClass = 'post--compact';
-            profilePicContainer = '';
+
+            profilePic = (
+                <ProfilePicture
+                    src=''
+                    status={this.props.status}
+                    user={this.props.user}
+                />
+            );
         }
 
+        const profilePicContainer = (<div className='post__img'>{profilePic}</div>);
         const messageWrapper = <PostMessageContainer post={post}/>;
 
         let flag;
