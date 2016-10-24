@@ -254,9 +254,6 @@ function handleUserUpdatedEvent(msg) {
     const user = msg.data.user;
     if (UserStore.getCurrentId() !== user.id) {
         UserStore.saveProfile(user);
-        if (UserStore.hasDirectProfile(user.id)) {
-            UserStore.saveDirectProfile(user);
-        }
         UserStore.emitChange(user.id);
     }
 }
