@@ -54,6 +54,9 @@ func NewSqlChannelStore(sqlStore *SqlStore) ChannelStore {
 func (s SqlChannelStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_channels_team_id", "Channels", "TeamId")
 	s.CreateIndexIfNotExists("idx_channels_name", "Channels", "Name")
+	s.CreateIndexIfNotExists("idx_channels_update_at", "Channels", "UpdateAt")
+	s.CreateIndexIfNotExists("idx_channels_create_at", "Channels", "CreateAt")
+	s.CreateIndexIfNotExists("idx_channels_delete_at", "Channels", "DeleteAt")
 
 	s.CreateIndexIfNotExists("idx_channelmembers_channel_id", "ChannelMembers", "ChannelId")
 	s.CreateIndexIfNotExists("idx_channelmembers_user_id", "ChannelMembers", "UserId")

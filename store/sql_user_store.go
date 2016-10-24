@@ -55,6 +55,9 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 
 func (us SqlUserStore) CreateIndexesIfNotExists() {
 	us.CreateIndexIfNotExists("idx_users_email", "Users", "Email")
+	us.CreateIndexIfNotExists("idx_users_update_at", "Users", "UpdateAt")
+	us.CreateIndexIfNotExists("idx_users_create_at", "Users", "CreateAt")
+	us.CreateIndexIfNotExists("idx_users_delete_at", "Users", "DeleteAt")
 
 	us.CreateFullTextIndexIfNotExists("idx_users_username_txt", "Users", USER_SEARCH_TYPE_USERNAME)
 	us.CreateFullTextIndexIfNotExists("idx_users_all_names_txt", "Users", USER_SEARCH_TYPE_ALL)
