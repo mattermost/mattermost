@@ -73,6 +73,21 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if channel.TeamId == c.TeamId {
+
+		// Get total number of channels on current team
+		if result := <-Srv.Store.Channel().GetChannels(channel.TeamId, c.Session.UserId); result.Err != nil {
+			c.Err = model.NewLocAppError("createChannel", "api.channel.get_channels.error", nil, result.Err.Message)
+			return
+		} else {
+			data := result.Data.(*model.ChannelList)
+			if int64(len(data.Channels)+1) > *utils.Cfg.TeamSettings.MaxChannelsPerTeam {
+				c.Err = model.NewLocAppError("createChannel", "api.channel.create_channel.max_channel_limit.app_error", map[string]interface{}{"MaxChannelsPerTeam": *utils.Cfg.TeamSettings.MaxChannelsPerTeam}, "")
+				return
+			}
+		}
+	}
+
 	channel.CreatorId = c.Session.UserId
 
 	if sc, err := CreateChannel(c, channel, true); err != nil {

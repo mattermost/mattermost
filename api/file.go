@@ -31,7 +31,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	"github.com/mssola/user_agent"
 	"github.com/rwcarlsen/goexif/exif"
 	_ "golang.org/x/image/bmp"
 )
@@ -194,8 +193,8 @@ func doUploadFile(teamId string, channelId string, userId string, rawFilename st
 }
 
 func handleImages(previewPathList []string, thumbnailPathList []string, fileData [][]byte) {
-	for i := range fileData {
-		go func() {
+	for i, data := range fileData {
+		go func(i int, data []byte) {
 			// Decode image bytes into Image object
 			img, imgType, err := image.Decode(bytes.NewReader(fileData[i]))
 			if err != nil {
@@ -236,7 +235,7 @@ func handleImages(previewPathList []string, thumbnailPathList []string, fileData
 
 			go generateThumbnailImage(img, thumbnailPathList[i], width, height)
 			go generatePreviewImage(img, previewPathList[i], width)
-		}()
+		}(i, data)
 	}
 }
 
@@ -315,7 +314,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	if data, err := ReadFile(info.Path); err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
-	} else if err := writeFileResponse(info.Name, data, w, r); err != nil {
+	} else if err := writeFileResponse(info.Name, info.MimeType, data, w, r); err != nil {
 		c.Err = err
 		return
 	}
@@ -337,7 +336,7 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 	if data, err := ReadFile(info.ThumbnailPath); err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
-	} else if err := writeFileResponse(info.Name, data, w, r); err != nil {
+	} else if err := writeFileResponse(info.Name, "", data, w, r); err != nil {
 		c.Err = err
 		return
 	}
@@ -359,7 +358,7 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 	if data, err := ReadFile(info.PreviewPath); err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
-	} else if err := writeFileResponse(info.Name, data, w, r); err != nil {
+	} else if err := writeFileResponse(info.Name, "", data, w, r); err != nil {
 		c.Err = err
 		return
 	}
@@ -409,7 +408,7 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	if data, err := ReadFile(info.Path); err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
-	} else if err := writeFileResponse(info.Name, data, w, r); err != nil {
+	} else if err := writeFileResponse(info.Name, info.MimeType, data, w, r); err != nil {
 		c.Err = err
 		return
 	}
@@ -507,26 +506,23 @@ func getPublicFileOld(c *Context, w http.ResponseWriter, r *http.Request) {
 	if data, err := ReadFile(info.Path); err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
-	} else if err := writeFileResponse(info.Name, data, w, r); err != nil {
+	} else if err := writeFileResponse(info.Name, info.MimeType, data, w, r); err != nil {
 		c.Err = err
 		return
 	}
 }
 
-func writeFileResponse(filename string, bytes []byte, w http.ResponseWriter, r *http.Request) *model.AppError {
+func writeFileResponse(filename string, contentType string, bytes []byte, w http.ResponseWriter, r *http.Request) *model.AppError {
 	w.Header().Set("Cache-Control", "max-age=2592000, public")
 	w.Header().Set("Content-Length", strconv.Itoa(len(bytes)))
-	w.Header().Del("Content-Type") // Content-Type will be set automatically by the http writer
 
-	// attach extra headers to trigger a download on IE, Edge, and Safari
-	ua := user_agent.New(r.UserAgent())
-	bname, _ := ua.Browser()
+	if contentType != "" {
+		w.Header().Set("Content-Type", contentType)
+	} else {
+		w.Header().Del("Content-Type") // Content-Type will be set automatically by the http writer
+	}
 
 	w.Header().Set("Content-Disposition", "attachment;filename=\""+filename+"\"")
-
-	if bname == "Edge" || bname == "Internet Explorer" || bname == "Safari" {
-		w.Header().Set("Content-Type", "application/octet-stream")
-	}
 
 	// prevent file links from being embedded in iframes
 	w.Header().Set("X-Frame-Options", "DENY")

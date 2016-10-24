@@ -625,11 +625,11 @@
   },
   {
     "id": "api.command_shortcuts.msgs",
-    "translation": "#### Сообщения\n\nESC: Отметить все сообщения в текущем канале как прочитанные\nCTRL+UP (в пустом поле ввода): Восстановить предыдущее введенное сообщение или команду\nCTRL+DOWN (в пустом поле ввода): Восстановить следующее введенное сообщение или команду\nUP (в пустом поле ввода): Править свое последнее сообщение в текущем канале\n@[character]+TAB: Дополнить имя пользователя @username начинающееся с символа [character]\n:[character]+TAB: Дополнить эмодзи начинающийся с символа [character]\n\n"
+    "translation": "#### Сообщения\n\nALT+[click on a message]: Установить сообщение, в текущем канале, как непрочитанное\nESC: Отметить все сообщения в текущем канале как прочитанные\nCMD+UP (в пустом поле ввода): Восстановить предыдущее введенное сообщение или команду\nCMD+DOWN (в пустом поле ввода): Восстановить следующее введенное сообщение или команду\nUP (в пустом поле ввода): Править свое последнее сообщение в текущем канале\n@[character]+TAB: Дополнить имя пользователя @username начинающееся с [character]\n:[character]+TAB: Дополнить эмодзи начинающийся с [character]\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs_mac",
-    "translation": "#### Сообщения\n\nESC: Отметить все сообщения в текущем канале как прочитанные\nCMD+UP (в пустом поле ввода): Восстановить предыдущее введенное сообщение или команду\nCMD+DOWN (в пустом поле ввода): Восстановить следующее введенное сообщение или команду\nUP (в пустом поле ввода): Править свое последнее сообщение в текущем канале\n@[character]+TAB: Дополнить имя пользователя @username начинающееся с символа [character]\n:[character]+TAB: Дополнить эмодзи начинающийся с символа [character]\n\n"
+    "translation": "#### Сообщения\n\nALT+[click on a message]: Установить сообщение, в текущем канале, как непрочитанное\nESC: Отметить все сообщения в текущем канале как прочитанные\nCMD+UP (в пустом поле ввода): Восстановить предыдущее введенное сообщение или команду\nCMD+DOWN (в пустом поле ввода): Восстановить следующее введенное сообщение или команду\nUP (в пустом поле ввода): Править свое последнее сообщение в текущем канале\n@[character]+TAB: Дополнить имя пользователя @username начинающееся с [character]\n:[character]+TAB: Дополнить эмодзи начинающийся с [character]\n\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -1536,6 +1536,10 @@
     "translation": "Слит с существующим каналом: {{.DisplayName}}\r\n"
   },
   {
+    "id": "api.slackimport.slack_add_posts.attach_files.error",
+    "translation": "Возникла ошибка при приложении файлов к сообщению, post_id=%s, file_ids=%v, err=%v"
+  },
+  {
     "id": "api.slackimport.slack_add_posts.bot.warn",
     "translation": "Посты Slack-бота еще не импортированы"
   },
@@ -1550,6 +1554,22 @@
   {
     "id": "api.slackimport.slack_add_posts.unsupported.warn",
     "translation": "Неподдерживаемый тип сообщения: %v, %v"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.upload_file_not_found.warn",
+    "translation": "Не найден файл с идентификатором {{.FileId}}, в экспорте из Слак, для загрузки сообщения"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.upload_file_not_in_json.warn",
+    "translation": "Не удается импортировать файл для загрузки сообщения отсутствует секция \"file\"."
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.upload_file_open_failed.warn",
+    "translation": "Не удалось открыть загруженный файл с идентификатором {{.FileId}} в архиве экспорта с ошибкой: {{.Error}}"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.upload_file_upload_failed.warn",
+    "translation": "Загрузка файла с идентификатором {{.FileId}} для загрузки сообщения завершилась с ошибкой: {{.Error}}"
   },
   {
     "id": "api.slackimport.slack_add_posts.user_no_exists.debug",

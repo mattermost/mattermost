@@ -1195,6 +1195,7 @@ func (us SqlUserStore) performSearch(searchQuery string, term string, searchType
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
 	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 		term = term + ":*"
+		searchType = convertMySQLFullTextColumnsToPostgres(searchType)
 		searchClause := fmt.Sprintf("AND (%s) @@  to_tsquery(:Term)", searchType)
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {

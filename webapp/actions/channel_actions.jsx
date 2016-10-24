@@ -118,7 +118,7 @@ export function removeUserFromChannel(channelId, userId, success, error) {
 
 export function openDirectChannelToUser(user, success, error) {
     const channelName = Utils.getDirectChannelName(UserStore.getCurrentId(), user.id);
-    let channel = ChannelStore.getByName(channelName);
+    const channel = ChannelStore.getByName(channelName);
 
     if (channel) {
         PreferenceStore.setPreference(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, user.id, 'true');
@@ -136,16 +136,6 @@ export function openDirectChannelToUser(user, success, error) {
 
         return;
     }
-
-    channel = {
-        name: channelName,
-        last_post_at: 0,
-        total_msg_count: 0,
-        type: 'D',
-        display_name: user.username,
-        teammate_id: user.id,
-        status: UserStore.getStatus(user.id)
-    };
 
     Client.createDirectChannel(
         user.id,

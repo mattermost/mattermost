@@ -204,6 +204,10 @@
     "translation": "Invalid character '__' in channel name for non-direct channel"
   },
   {
+    "id": "api.channel.create_channel.max_channel_limit.app_error",
+    "translation": "Cannot create more than {{.MaxChannelsPerTeam}} channels for current team"
+  },
+  {
     "id": "api.channel.create_default_channels.off_topic",
     "translation": "Off-Topic"
   },
@@ -3270,6 +3274,10 @@
   {
     "id": "model.config.is_valid.max_users.app_error",
     "translation": "Invalid maximum users per team for team settings.  Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.max_channels.app_error",
+    "translation": "Invalid maximum channels per team for team settings.  Must be a positive number."
   },
   {
     "id": "model.config.is_valid.password_length.app_error",

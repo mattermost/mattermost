@@ -21,11 +21,8 @@ export default class TeamMembersModal extends React.Component {
             team: TeamStore.getCurrent()
         };
     }
-    componentDidMount() {
-        if (this.props.show) {
-            this.onShow();
-        }
 
+    componentDidMount() {
         TeamStore.addChangeListener(this.teamChanged);
     }
 

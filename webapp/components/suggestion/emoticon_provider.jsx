@@ -90,6 +90,7 @@ export default class EmoticonProvider {
 
             const terms = matched.map((emoticon) => ':' + emoticon.name + ':');
 
+            SuggestionStore.clearSuggestions(suggestionId);
             if (terms.length > 0) {
                 SuggestionStore.addSuggestions(suggestionId, terms, matched, EmoticonSuggestion, text);
 

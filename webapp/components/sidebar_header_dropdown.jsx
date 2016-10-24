@@ -11,7 +11,6 @@ import UserStore from 'stores/user_store.jsx';
 import WebrtcStore from 'stores/webrtc_store.jsx';
 import AboutBuildModal from './about_build_modal.jsx';
 import TeamMembersModal from './team_members_modal.jsx';
-import ToggleModalButton from './toggle_modal_button.jsx';
 import UserSettingsModal from './user_settings/user_settings_modal.jsx';
 
 import {Constants, WebrtcActionTypes} from 'utils/constants.jsx';
@@ -44,6 +43,8 @@ export default class SidebarHeaderDropdown extends React.Component {
         this.toggleAccountSettingsModal = this.toggleAccountSettingsModal.bind(this);
         this.showInviteMemberModal = this.showInviteMemberModal.bind(this);
         this.showGetTeamInviteLinkModal = this.showGetTeamInviteLinkModal.bind(this);
+        this.showTeamMembersModal = this.showTeamMembersModal.bind(this);
+        this.hideTeamMembersModal = this.hideTeamMembersModal.bind(this);
 
         this.onTeamChange = this.onTeamChange.bind(this);
         this.openAccountSettings = this.openAccountSettings.bind(this);
@@ -55,7 +56,10 @@ export default class SidebarHeaderDropdown extends React.Component {
         this.state = {
             teams: TeamStore.getAll(),
             teamMembers: TeamStore.getMyTeamMembers(),
-            showDropdown: false
+            showAboutModal: false,
+            showDropdown: false,
+            showTeamMembersModal: false,
+            showUserSettingsModal: false
         };
     }
 
@@ -74,7 +78,9 @@ export default class SidebarHeaderDropdown extends React.Component {
         this.setState({showDropdown: !this.state.showDropdown});
     }
 
-    handleAboutModal() {
+    handleAboutModal(e) {
+        e.preventDefault();
+
         this.setState({
             showAboutModal: true,
             showDropdown: false
@@ -108,6 +114,21 @@ export default class SidebarHeaderDropdown extends React.Component {
         this.setState({showDropdown: false});
 
         GlobalActions.showGetTeamInviteLinkModal();
+    }
+
+    showTeamMembersModal(e) {
+        e.preventDefault();
+
+        this.setState({
+            showDropdown: false,
+            showTeamMembersModal: true
+        });
+    }
+
+    hideTeamMembersModal() {
+        this.setState({
+            showTeamMembersModal: false
+        });
     }
 
     componentDidMount() {
@@ -229,6 +250,7 @@ export default class SidebarHeaderDropdown extends React.Component {
                         href='#'
                         data-toggle='modal'
                         data-target='#team_settings'
+                        onClick={this.toggleDropdown}
                     >
                         <FormattedMessage
                             id='navbar_dropdown.teamSettings'
@@ -248,12 +270,12 @@ export default class SidebarHeaderDropdown extends React.Component {
 
         manageLink = (
             <li>
-                <ToggleModalButton
-                    dialogType={TeamMembersModal}
-                    dialogProps={{isAdmin}}
+                <a
+                    href='#'
+                    onClick={this.showTeamMembersModal}
                 >
                     {membersName}
-                </ToggleModalButton>
+                </a>
             </li>
         );
 
@@ -485,6 +507,11 @@ export default class SidebarHeaderDropdown extends React.Component {
                     <UserSettingsModal
                         show={this.state.showUserSettingsModal}
                         onModalDismissed={() => this.setState({showUserSettingsModal: false})}
+                    />
+                    <TeamMembersModal
+                        show={this.state.showTeamMembersModal}
+                        onHide={this.hideTeamMembersModal}
+                        isAdmin={isAdmin}
                     />
                     <AboutBuildModal
                         show={this.state.showAboutModal}
