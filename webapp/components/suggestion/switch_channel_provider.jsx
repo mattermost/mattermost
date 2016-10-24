@@ -4,6 +4,7 @@
 import Suggestion from './suggestion.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
+import UserStore from 'stores/user_store.jsx';
 
 import {autocompleteUsersInTeam} from 'actions/user_actions.jsx';
 
@@ -67,6 +68,7 @@ export default class SwitchChannelProvider {
                     channelPrefix,
                     (data) => {
                         const users = data.in_team;
+                        const currentId = UserStore.getCurrentId();
 
                         for (const id of Object.keys(allChannels)) {
                             const channel = allChannels[id];
@@ -75,14 +77,21 @@ export default class SwitchChannelProvider {
                             }
                         }
 
+                        const userMap = {};
                         for (let i = 0; i < users.length; i++) {
                             const user = users[i];
+
+                            if (user.id === currentId) {
+                                continue;
+                            }
+
                             const newChannel = {
                                 display_name: user.username,
                                 name: user.username + ' ' + Utils.localizeMessage('channel_switch_modal.dm', '(Direct Message)'),
                                 type: Constants.DM_CHANNEL
                             };
                             channels.push(newChannel);
+                            userMap[user.id] = user;
                         }
 
                         channels.sort((a, b) => {
@@ -106,6 +115,11 @@ export default class SwitchChannelProvider {
                             terms: channelNames,
                             items: channels,
                             component: SwitchChannelSuggestion
+                        });
+
+                        AppDispatcher.handleServerAction({
+                            type: ActionTypes.RECEIVED_PROFILES,
+                            profiles: userMap
                         });
                     }
                 );
