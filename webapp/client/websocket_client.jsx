@@ -12,6 +12,7 @@ export default class WebSocketClient {
         this.connectFailCount = 0;
         this.eventCallback = null;
         this.responseCallbacks = {};
+        this.firstConnectCallback = null;
         this.reconnectCallback = null;
         this.errorCallback = null;
         this.closeCallback = null;
@@ -29,12 +30,13 @@ export default class WebSocketClient {
         this.conn = new WebSocket(connectionUrl);
 
         this.conn.onopen = () => {
-            if (this.reconnectCallback) {
-                this.reconnectCallback();
-            }
-
             if (this.connectFailCount > 0) {
                 console.log('websocket re-established connection'); //eslint-disable-line no-console
+                if (this.reconnectCallback) {
+                    this.reconnectCallback();
+                }
+            } else if (this.firstConnectCallback) {
+                this.firstConnectCallback();
             }
 
             this.connectFailCount = 0;
@@ -104,6 +106,10 @@ export default class WebSocketClient {
         this.eventCallback = callback;
     }
 
+    setFirstConnectCallback(callback) {
+        this.firstConnectCallback = callback;
+    }
+
     setReconnectCallback(callback) {
         this.reconnectCallback = callback;
     }
@@ -156,5 +162,11 @@ export default class WebSocketClient {
 
     getStatuses(callback) {
         this.sendMessage('get_statuses', null, callback);
+    }
+
+    getStatusesByIds(userIds, callback) {
+        const data = {};
+        data.user_ids = userIds;
+        this.sendMessage('get_statuses_by_ids', data, callback);
     }
 }

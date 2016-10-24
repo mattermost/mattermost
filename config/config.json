@@ -8,8 +8,8 @@
         "UseLetsEncrypt": false,
         "LetsEncryptCertificateCacheFile": "./config/letsencrypt.cache",
         "Forward80To443": false,
-        "ReadTimeout": 30,
-        "WriteTimeout": 60,
+        "ReadTimeout": 300,
+        "WriteTimeout": 300,
         "MaximumLoginAttempts": 10,
         "SegmentDeveloperKey": "",
         "GoogleDeveloperKey": "",
@@ -43,7 +43,6 @@
         "EnableUserCreation": true,
         "EnableOpenServer": false,
         "RestrictCreationToDomains": "",
-        "RestrictTeamNames": true,
         "EnableCustomBrand": false,
         "CustomBrandText": "",
         "CustomDescriptionText": "",
@@ -51,7 +50,8 @@
         "RestrictTeamInvite": "all",
         "RestrictPublicChannelManagement": "all",
         "RestrictPrivateChannelManagement": "all",
-        "UserStatusAwayTimeout": 300
+        "UserStatusAwayTimeout": 300,
+        "MaxChannelsPerTeam": 2000
     },
     "SqlSettings": {
         "DriverName": "mysql",
@@ -63,7 +63,7 @@
         "AtRestEncryptKey": "qd4cozue64i4ktsp5tkeyx7keex66y67"
     },
     "LogSettings": {
-        "EnableConsole": false,
+        "EnableConsole": true,
         "ConsoleLevel": "DEBUG",
         "EnableFile": true,
         "FileLevel": "INFO",

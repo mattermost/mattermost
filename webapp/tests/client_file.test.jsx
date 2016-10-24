@@ -9,16 +9,18 @@ const fs = require('fs');
 describe('Client.File', function() {
     this.timeout(100000);
 
+    const testGifFileName = 'testFile.gif';
+
     before(function() {
         // write a temporary file so that we have something to upload for testing
         const buffer = new Buffer('R0lGODlhAQABAIABAP///wAAACwAAAAAAQABAAACAkQBADs=', 'base64');
 
-        const testGif = fs.openSync('test.gif', 'w+');
+        const testGif = fs.openSync(testGifFileName, 'w+');
         fs.writeFileSync(testGif, buffer);
     });
 
     after(function() {
-        fs.unlinkSync('test.gif');
+        fs.unlinkSync(testGifFileName);
     });
 
     it('uploadFile', function(done) {
@@ -26,8 +28,8 @@ describe('Client.File', function() {
             const clientId = TestHelper.generateId();
 
             TestHelper.basicClient().uploadFile(
-                fs.createReadStream('test.gif'),
-                'test.gif',
+                fs.createReadStream(testGifFileName),
+                testGifFileName,
                 TestHelper.basicChannel().id,
                 clientId,
                 function(resp) {
@@ -47,8 +49,8 @@ describe('Client.File', function() {
     it('getFile', function(done) {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().uploadFile(
-                fs.createReadStream('test.gif'),
-                'test.gif',
+                fs.createReadStream(testGifFileName),
+                testGifFileName,
                 TestHelper.basicChannel().id,
                 '',
                 function(resp) {
@@ -72,8 +74,8 @@ describe('Client.File', function() {
     it('getFileThumbnail', function(done) {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().uploadFile(
-                fs.createReadStream('test.gif'),
-                'test.gif',
+                fs.createReadStream(testGifFileName),
+                testGifFileName,
                 TestHelper.basicChannel().id,
                 '',
                 function(resp) {
@@ -97,8 +99,8 @@ describe('Client.File', function() {
     it('getFilePreview', function(done) {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().uploadFile(
-                fs.createReadStream('test.gif'),
-                'test.gif',
+                fs.createReadStream(testGifFileName),
+                testGifFileName,
                 TestHelper.basicChannel().id,
                 '',
                 function(resp) {
@@ -122,8 +124,8 @@ describe('Client.File', function() {
     it('getFileInfo', function(done) {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().uploadFile(
-                fs.createReadStream('test.gif'),
-                'test.gif',
+                fs.createReadStream(testGifFileName),
+                testGifFileName,
                 TestHelper.basicChannel().id,
                 '',
                 function(resp) {
@@ -133,7 +135,7 @@ describe('Client.File', function() {
                         fileId,
                         function(info) {
                             assert.equal(info.id, fileId);
-                            assert.equal(info.name, 'test.gif');
+                            assert.equal(info.name, testGifFileName);
 
                             done();
                         },
@@ -152,8 +154,8 @@ describe('Client.File', function() {
     it('getPublicLink', function(done) {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().uploadFile(
-                fs.createReadStream('test.gif'),
-                'test.gif',
+                fs.createReadStream(testGifFileName),
+                testGifFileName,
                 TestHelper.basicChannel().id,
                 '',
                 function(resp) {
@@ -206,8 +208,8 @@ describe('Client.File', function() {
     it('getFileInfosForPost', function(done) {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().uploadFile(
-                fs.createReadStream('test.gif'),
-                'test.gif',
+                fs.createReadStream(testGifFileName),
+                testGifFileName,
                 TestHelper.basicChannel().id,
                 '',
                 function(resp) {

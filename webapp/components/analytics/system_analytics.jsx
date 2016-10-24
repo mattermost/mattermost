@@ -82,6 +82,7 @@ class SystemAnalytics extends React.Component {
         const stats = this.state.stats;
 
         let advancedCounts;
+        let advancedStats;
         let advancedGraphs;
         let banner;
         if (global.window.mm_license.IsLicensed === 'true') {
@@ -126,6 +127,41 @@ class SystemAnalytics extends React.Component {
                         }
                         icon='fa-arrow-up'
                         count={stats[StatTypes.TOTAL_OHOOKS]}
+                    />
+                </div>
+            );
+
+            advancedStats = (
+                <div className='row'>
+                    <StatisticCount
+                        title={
+                            <FormattedMessage
+                                id='analytics.system.totalWebsockets'
+                                defaultMessage='Websocket Conns'
+                            />
+                        }
+                        icon='fa-user'
+                        count={stats[StatTypes.TOTAL_WEBSOCKET_CONNECTIONS]}
+                    />
+                    <StatisticCount
+                        title={
+                            <FormattedMessage
+                                id='analytics.system.totalMasterDbConnections'
+                                defaultMessage='Master DB Conns'
+                            />
+                        }
+                        icon='fa-terminal'
+                        count={stats[StatTypes.TOTAL_MASTER_DB_CONNECTIONS]}
+                    />
+                    <StatisticCount
+                        title={
+                            <FormattedMessage
+                                id='analytics.system.totalReadDbConnections'
+                                defaultMessage='Replica DB Conns'
+                            />
+                        }
+                        icon='fa-terminal'
+                        count={stats[StatTypes.TOTAL_READ_DB_CONNECTIONS]}
                     />
                 </div>
             );
@@ -246,6 +282,7 @@ class SystemAnalytics extends React.Component {
                     />
                 </div>
                 {advancedCounts}
+                {advancedStats}
                 {advancedGraphs}
                 <div className='row'>
                     <LineChart

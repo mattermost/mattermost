@@ -101,7 +101,8 @@ func (fs SqlFileInfoStore) GetByPath(path string) StoreChannel {
 				FileInfo
 			WHERE
 				Path = :Path
-				AND DeleteAt = 0`, map[string]interface{}{"Path": path}); err != nil {
+				AND DeleteAt = 0
+			LIMIT 1`, map[string]interface{}{"Path": path}); err != nil {
 			result.Err = model.NewLocAppError("SqlFileInfoStore.GetByPath", "store.sql_file_info.get_by_path.app_error", nil, "path="+path+", "+err.Error())
 		} else {
 			result.Data = info

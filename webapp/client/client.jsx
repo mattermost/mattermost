@@ -73,11 +73,7 @@ export default class Client {
         return `${this.url}${this.urlVersion}/teams`;
     }
 
-    getTeamNeededRoute() {
-        return `${this.url}${this.urlVersion}/teams/${this.getTeamId()}`;
-    }
-
-    getTeamNeededManualRoute(teamId) {
+    getTeamNeededRoute(teamId = this.getTeamId()) {
         return `${this.url}${this.urlVersion}/teams/${teamId}`;
     }
 
@@ -565,13 +561,41 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getMyTeam', success, error));
     }
 
-    getTeamMembers(teamId, success, error) {
+    getTeamMembers(teamId, offset, limit, success, error) {
         request.
-            get(`${this.getTeamsRoute()}/members/${teamId}`).
+            get(`${this.getTeamNeededRoute(teamId)}/members/${offset}/${limit}`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getTeamMembers', success, error));
+    }
+
+    getTeamMember(teamId, userId, success, error) {
+        request.
+            get(`${this.getTeamNeededRoute(teamId)}/members/${userId}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getTeamMember', success, error));
+    }
+
+    getTeamMembersByIds(teamId, userIds, success, error) {
+        request.
+            post(`${this.getTeamNeededRoute(teamId)}/members/ids`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(userIds).
+            end(this.handleResponse.bind(this, 'getTeamMembersByIds', success, error));
+    }
+
+    getTeamStats(teamId, success, error) {
+        request.
+            get(`${this.getTeamNeededRoute(teamId)}/stats`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getTeamStats', success, error));
     }
 
     inviteMembers(data, success, error) {
@@ -740,7 +764,7 @@ export default class Client {
         };
 
         request.
-            post(`${this.getTeamNeededManualRoute(teamId)}/update_member_roles`).
+            post(`${this.getTeamNeededRoute(teamId)}/update_member_roles`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
@@ -1003,40 +1027,78 @@ export default class Client {
         end(this.handleResponse.bind(this, 'getRecentlyActiveUsers', success, error));
     }
 
-    getDirectProfiles(success, error) {
+    getProfiles(offset, limit, success, error) {
         request.
-            get(`${this.getUsersRoute()}/direct_profiles`).
-            set(this.defaultHeaders).
-            type('application/json').
-            accept('application/json').
-            end(this.handleResponse.bind(this, 'getDirectProfiles', success, error));
-    }
-
-    getProfiles(success, error) {
-        request.
-            get(`${this.getUsersRoute()}/profiles/${this.getTeamId()}`).
+            get(`${this.getUsersRoute()}/${offset}/${limit}`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getProfiles', success, error));
     }
 
-    getProfilesForTeam(teamId, success, error) {
+    getProfilesInTeam(teamId, offset, limit, success, error) {
         request.
-            get(`${this.getUsersRoute()}/profiles/${teamId}`).
+            get(`${this.getTeamNeededRoute(teamId)}/users/${offset}/${limit}`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
-            end(this.handleResponse.bind(this, 'getProfilesForTeam', success, error));
+            end(this.handleResponse.bind(this, 'getProfilesInTeam', success, error));
     }
 
-    getProfilesForDirectMessageList(success, error) {
+    getProfilesInChannel(channelId, offset, limit, success, error) {
         request.
-            get(`${this.getUsersRoute()}/profiles_for_dm_list/${this.getTeamId()}`).
+            get(`${this.getChannelNeededRoute(channelId)}/users/${offset}/${limit}`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
-            end(this.handleResponse.bind(this, 'getProfilesForDirectMessageList', success, error));
+            end(this.handleResponse.bind(this, 'getProfilesInChannel', success, error));
+    }
+
+    getProfilesNotInChannel(channelId, offset, limit, success, error) {
+        request.
+            get(`${this.getChannelNeededRoute(channelId)}/users/not_in_channel/${offset}/${limit}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getProfilesNotInChannel', success, error));
+    }
+
+    getProfilesByIds(userIds, success, error) {
+        request.
+            post(`${this.getUsersRoute()}/ids`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(userIds).
+            end(this.handleResponse.bind(this, 'getProfilesByIds', success, error));
+    }
+
+    searchUsers(term, teamId, options, success, error) {
+        request.
+            post(`${this.getUsersRoute()}/search`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send({term, team_id: teamId, ...options}).
+            end(this.handleResponse.bind(this, 'searchUsers', success, error));
+    }
+
+    autocompleteUsersInChannel(term, channelId, success, error) {
+        request.
+            get(`${this.getChannelNeededRoute(channelId)}/users/autocomplete?term=${encodeURIComponent(term)}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'autocompleteUsers', success, error));
+    }
+
+    autocompleteUsersInTeam(term, success, error) {
+        request.
+            get(`${this.getTeamNeededRoute()}/users/autocomplete?term=${encodeURIComponent(term)}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'autocompleteUsers', success, error));
     }
 
     getStatuses(success, error) {
@@ -1045,6 +1107,16 @@ export default class Client {
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
+            end(this.handleResponse.bind(this, 'getStatuses', success, error));
+    }
+
+    getStatusesByIds(userIds, success, error) {
+        request.
+            post(`${this.getUsersRoute()}/status/ids`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(userIds).
             end(this.handleResponse.bind(this, 'getStatuses', success, error));
     }
 
@@ -1285,18 +1357,22 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getChannelCounts', success, error));
     }
 
-    getChannelExtraInfo(channelId, memberLimit, success, error) {
-        var url = `${this.getChannelNeededRoute(channelId)}/extra_info`;
-        if (memberLimit) {
-            url += '/' + memberLimit;
-        }
-
+    getChannelStats(channelId, success, error) {
         request.
-            get(url).
+            get(`${this.getChannelNeededRoute(channelId)}/stats`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
-            end(this.handleResponse.bind(this, 'getChannelExtraInfo', success, error));
+            end(this.handleResponse.bind(this, 'getChannelStats', success, error));
+    }
+
+    getChannelMember(channelId, userId, success, error) {
+        request.
+            get(`${this.getChannelNeededRoute(channelId)}/members/${userId}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getChannelMember', success, error));
     }
 
     addChannelMember(channelId, userId, success, error) {

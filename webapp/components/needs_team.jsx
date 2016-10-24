@@ -13,6 +13,7 @@ import UserStore from 'stores/user_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
+import {startPeriodicStatusUpdates, stopPeriodicStatusUpdates} from 'actions/status_actions.jsx';
 import Constants from 'utils/constants.jsx';
 const TutorialSteps = Constants.TutorialSteps;
 const Preferences = Constants.Preferences;
@@ -38,6 +39,9 @@ import ImportThemeModal from 'components/user_settings/import_theme_modal.jsx';
 import InviteMemberModal from 'components/invite_member_modal.jsx';
 import LeaveTeamModal from 'components/leave_team_modal.jsx';
 import SelectTeamModal from 'components/admin_console/select_team_modal.jsx';
+
+import iNoBounce from 'inobounce';
+import * as UserAgent from 'utils/user_agent.jsx';
 
 export default class NeedsTeam extends React.Component {
     constructor(params) {
@@ -77,6 +81,7 @@ export default class NeedsTeam extends React.Component {
         if (tutorialStep <= TutorialSteps.INTRO_SCREENS) {
             browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/tutorial');
         }
+        stopPeriodicStatusUpdates();
     }
 
     componentDidMount() {
@@ -85,6 +90,8 @@ export default class NeedsTeam extends React.Component {
 
         // Emit view action
         GlobalActions.viewLoggedIn();
+
+        startPeriodicStatusUpdates();
 
         // Set up tracking for whether the window is active
         window.isActive = true;
@@ -103,6 +110,11 @@ export default class NeedsTeam extends React.Component {
         });
 
         Utils.applyTheme(this.state.theme);
+
+        if (UserAgent.isIosSafari()) {
+            // Use iNoBounce to prevent scrolling past the boundaries of the page
+            iNoBounce.enable();
+        }
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -116,6 +128,10 @@ export default class NeedsTeam extends React.Component {
         PreferenceStore.removeChangeListener(this.onPreferencesChanged);
         $(window).off('focus');
         $(window).off('blur');
+
+        if (UserAgent.isIosSafari()) {
+            iNoBounce.disable();
+        }
     }
 
     render() {

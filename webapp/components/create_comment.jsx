@@ -169,7 +169,7 @@ export default class CreateComment extends React.Component {
     }
 
     commentMsgKeyPress(e) {
-        if (!UserAgent.isMobileApp() && ((this.state.ctrlSend && e.ctrlKey) || !this.state.ctrlSend)) {
+        if (!UserAgent.isMobile() && ((this.state.ctrlSend && e.ctrlKey) || !this.state.ctrlSend)) {
             if (e.which === KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
                 e.preventDefault();
                 ReactDOM.findDOMNode(this.refs.textbox).blur();

@@ -4,13 +4,12 @@
 package api
 
 import (
-	"strings"
-	"testing"
-	"time"
-
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
+	"strings"
+	"testing"
+	"time"
 )
 
 func TestStatuses(t *testing.T) {
@@ -59,7 +58,7 @@ func TestStatuses(t *testing.T) {
 		t.Fatal(err2)
 	}
 
-	time.Sleep(300 * time.Millisecond)
+	time.Sleep(500 * time.Millisecond)
 
 	WebSocketClient.GetStatuses()
 	if resp := <-WebSocketClient.ResponseChannel; resp.Error != nil {
@@ -76,6 +75,7 @@ func TestStatuses(t *testing.T) {
 		}
 
 		if status, ok := resp.Data[th.BasicUser2.Id]; !ok {
+			t.Log(len(resp.Data))
 			t.Fatal("should have had user status")
 		} else if status != model.STATUS_ONLINE {
 			t.Log(status)
@@ -83,7 +83,55 @@ func TestStatuses(t *testing.T) {
 		}
 	}
 
-	SetStatusAwayIfNeeded(th.BasicUser2.Id, false)
+	WebSocketClient.GetStatusesByIds([]string{th.BasicUser2.Id})
+	if resp := <-WebSocketClient.ResponseChannel; resp.Error != nil {
+		t.Fatal(resp.Error)
+	} else {
+		if resp.SeqReply != WebSocketClient.Sequence-1 {
+			t.Fatal("bad sequence number")
+		}
+
+		for _, status := range resp.Data {
+			if status != model.STATUS_OFFLINE && status != model.STATUS_AWAY && status != model.STATUS_ONLINE {
+				t.Fatal("one of the statuses had an invalid value")
+			}
+		}
+
+		if status, ok := resp.Data[th.BasicUser2.Id]; !ok {
+			t.Log(len(resp.Data))
+			t.Fatal("should have had user status")
+		} else if status != model.STATUS_ONLINE {
+			t.Log(status)
+			t.Fatal("status should have been online")
+		} else if len(resp.Data) != 1 {
+			t.Fatal("only 1 status should be returned")
+		}
+	}
+
+	WebSocketClient.GetStatusesByIds([]string{ruser2.Id, "junk"})
+	if resp := <-WebSocketClient.ResponseChannel; resp.Error != nil {
+		t.Fatal(resp.Error)
+	} else {
+		if resp.SeqReply != WebSocketClient.Sequence-1 {
+			t.Fatal("bad sequence number")
+		}
+
+		if len(resp.Data) != 2 {
+			t.Fatal("2 statuses should be returned")
+		}
+	}
+
+	WebSocketClient.GetStatusesByIds([]string{})
+	if resp := <-WebSocketClient.ResponseChannel; resp.Error == nil {
+		if resp.SeqReply != WebSocketClient.Sequence-1 {
+			t.Fatal("bad sequence number")
+		}
+		t.Fatal("should have errored - empty user ids")
+	}
+
+	WebSocketClient2.Close()
+
+	SetStatusAwayIfNeeded(th.BasicUser.Id, false)
 
 	awayTimeout := *utils.Cfg.TeamSettings.UserStatusAwayTimeout
 	defer func() {
@@ -93,10 +141,9 @@ func TestStatuses(t *testing.T) {
 
 	time.Sleep(1500 * time.Millisecond)
 
-	SetStatusAwayIfNeeded(th.BasicUser2.Id, false)
-	SetStatusAwayIfNeeded(th.BasicUser2.Id, false)
+	SetStatusAwayIfNeeded(th.BasicUser.Id, false)
+	SetStatusOnline(th.BasicUser.Id, "junk", false)
 
-	WebSocketClient2.Close()
 	time.Sleep(300 * time.Millisecond)
 
 	WebSocketClient.GetStatuses()
@@ -115,20 +162,17 @@ func TestStatuses(t *testing.T) {
 	stop := make(chan bool)
 	onlineHit := false
 	awayHit := false
-	offlineHit := false
 
 	go func() {
 		for {
 			select {
 			case resp := <-WebSocketClient.EventChannel:
-				if resp.Event == model.WEBSOCKET_EVENT_STATUS_CHANGE && resp.Data["user_id"].(string) == th.BasicUser2.Id {
+				if resp.Event == model.WEBSOCKET_EVENT_STATUS_CHANGE && resp.Data["user_id"].(string) == th.BasicUser.Id {
 					status := resp.Data["status"].(string)
 					if status == model.STATUS_ONLINE {
 						onlineHit = true
 					} else if status == model.STATUS_AWAY {
 						awayHit = true
-					} else if status == model.STATUS_OFFLINE {
-						offlineHit = true
 					}
 				}
 			case <-stop:
@@ -147,11 +191,40 @@ func TestStatuses(t *testing.T) {
 	if !awayHit {
 		t.Fatal("didn't get away event")
 	}
-	if !offlineHit {
-		t.Fatal("didn't get offline event")
+
+	time.Sleep(500 * time.Millisecond)
+
+	WebSocketClient.Close()
+}
+
+func TestGetStatusesByIds(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+
+	if result, err := Client.GetStatusesByIds([]string{th.BasicUser.Id}); err != nil {
+		t.Fatal(err)
+	} else {
+		statuses := result.Data.(map[string]string)
+		if len(statuses) != 1 {
+			t.Fatal("should only have 1 status")
+		}
+	}
+
+	if result, err := Client.GetStatusesByIds([]string{th.BasicUser.Id, th.BasicUser2.Id, "junk"}); err != nil {
+		t.Fatal(err)
+	} else {
+		statuses := result.Data.(map[string]string)
+		if len(statuses) != 3 {
+			t.Fatal("should have 3 statuses")
+		}
+	}
+
+	if _, err := Client.GetStatusesByIds([]string{}); err == nil {
+		t.Fatal("should have errored")
 	}
 }
 
+/*
 func TestSetActiveChannel(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.BasicClient
@@ -185,8 +258,9 @@ func TestSetActiveChannel(t *testing.T) {
 	time.Sleep(500 * time.Millisecond)
 
 	status, _ = GetStatus(th.BasicUser.Id)
-	// need to check if offline to catch race
+	 need to check if offline to catch race
 	if status.Status != model.STATUS_OFFLINE && status.ActiveChannel != th.BasicChannel.Id {
 		t.Fatal("active channel should be set")
 	}
 }
+*/

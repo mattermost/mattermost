@@ -178,15 +178,15 @@ class PostStoreClass extends EventEmitter {
     }
 
     // Returns true if posts need to be fetched
-    requestVisibilityIncrease(id, ammount) {
+    requestVisibilityIncrease(id, amount) {
         const endVisible = this.postsInfo[id].endVisible;
         const postList = this.postsInfo[id].postList;
         if (this.getVisibilityAtTop(id)) {
             return false;
         }
-        this.postsInfo[id].endVisible += ammount;
+        this.postsInfo[id].endVisible += amount;
         this.emitChange();
-        return endVisible + ammount > postList.order.length;
+        return endVisible + amount > postList.order.length;
     }
 
     getFocusedPostId() {
@@ -318,7 +318,7 @@ class PostStoreClass extends EventEmitter {
             // make sure to copy the post so that component state changes work properly
             postList.posts[post.id] = Object.assign({}, post, {
                 state: Constants.POST_DELETED,
-                fileIds: []
+                file_ids: []
             });
         }
     }

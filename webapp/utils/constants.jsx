@@ -71,7 +71,7 @@ export const ActionTypes = keyMirror({
     RECEIVED_CHANNELS: null,
     RECEIVED_CHANNEL: null,
     RECEIVED_MORE_CHANNELS: null,
-    RECEIVED_CHANNEL_EXTRA_INFO: null,
+    RECEIVED_CHANNEL_STATS: null,
 
     FOCUS_POST: null,
     RECEIVED_POSTS: null,
@@ -84,9 +84,11 @@ export const ActionTypes = keyMirror({
     RECEIVED_MENTION_DATA: null,
     RECEIVED_ADD_MENTION: null,
 
-    RECEIVED_PROFILES_FOR_DM_LIST: null,
     RECEIVED_PROFILES: null,
-    RECEIVED_DIRECT_PROFILES: null,
+    RECEIVED_PROFILES_IN_TEAM: null,
+    RECEIVED_PROFILE: null,
+    RECEIVED_PROFILES_IN_CHANNEL: null,
+    RECEIVED_PROFILE_NOT_IN_CHANNEL: null,
     RECEIVED_ME: null,
     RECEIVED_SESSIONS: null,
     RECEIVED_AUDITS: null,
@@ -129,8 +131,9 @@ export const ActionTypes = keyMirror({
     RECEIVED_SERVER_COMPLIANCE_REPORTS: null,
     RECEIVED_ALL_TEAMS: null,
     RECEIVED_ALL_TEAM_LISTINGS: null,
-    RECEIVED_TEAM_MEMBERS: null,
-    RECEIVED_MEMBERS_FOR_TEAM: null,
+    RECEIVED_MY_TEAM_MEMBERS: null,
+    RECEIVED_MEMBERS_IN_TEAM: null,
+    RECEIVED_TEAM_STATS: null,
 
     RECEIVED_LOCALE: null,
 
@@ -232,7 +235,10 @@ export const Constants = {
         POST_PER_DAY: null,
         USERS_WITH_POSTS_PER_DAY: null,
         RECENTLY_ACTIVE_USERS: null,
-        NEWLY_CREATED_USERS: null
+        NEWLY_CREATED_USERS: null,
+        TOTAL_WEBSOCKET_CONNECTIONS: null,
+        TOTAL_MASTER_DB_CONNECTIONS: null,
+        TOTAL_READ_DB_CONNECTIONS: null
     }),
     STAT_MAX_ACTIVE_USERS: 20,
     STAT_MAX_NEW_USERS: 20,
@@ -261,7 +267,7 @@ export const Constants = {
     PRESENTATION_TYPES: ['ppt', 'pptx'],
     SPREADSHEET_TYPES: ['xlsx', 'csv'],
     WORD_TYPES: ['doc', 'docx'],
-    CODE_TYPES: ['as', 'applescript', 'osascript', 'scpt', 'bash', 'sh', 'zsh', 'clj', 'boot', 'cl2', 'cljc', 'cljs', 'cljs.hl', 'cljscm', 'cljx', 'hic', 'coffee', '_coffee', 'cake', 'cjsx', 'cson', 'iced', 'cpp', 'c', 'cc', 'h', 'c++', 'h++', 'hpp', 'cs', 'csharp', 'css', 'd', 'di', 'dart', 'delphi', 'dpr', 'dfm', 'pas', 'pascal', 'freepascal', 'lazarus', 'lpr', 'lfm', 'diff', 'django', 'jinja', 'dockerfile', 'docker', 'erl', 'f90', 'f95', 'fsharp', 'fs', 'gcode', 'nc', 'go', 'groovy', 'handlebars', 'hbs', 'html.hbs', 'html.handlebars', 'hs', 'hx', 'java', 'jsp', 'js', 'jsx', 'json', 'jl', 'kt', 'ktm', 'kts', 'less', 'lisp', 'lua', 'mk', 'mak', 'md', 'mkdown', 'mkd', 'matlab', 'm', 'mm', 'objc', 'obj-c', 'ml', 'perl', 'pl', 'php', 'php3', 'php4', 'php5', 'php6', 'ps', 'ps1', 'pp', 'py', 'gyp', 'r', 'ruby', 'rb', 'gemspec', 'podspec', 'thor', 'irb', 'rs', 'scala', 'scm', 'sld', 'scss', 'st', 'sql', 'swift', 'tex', 'vbnet', 'vb', 'bas', 'vbs', 'v', 'veo', 'xml', 'html', 'xhtml', 'rss', 'atom', 'xsl', 'plist', 'yaml'],
+    CODE_TYPES: ['as', 'applescript', 'osascript', 'scpt', 'bash', 'sh', 'zsh', 'clj', 'boot', 'cl2', 'cljc', 'cljs', 'cljs.hl', 'cljscm', 'cljx', 'hic', 'coffee', '_coffee', 'cake', 'cjsx', 'cson', 'iced', 'cpp', 'c', 'cc', 'h', 'c++', 'h++', 'hpp', 'cs', 'csharp', 'css', 'd', 'di', 'dart', 'delphi', 'dpr', 'dfm', 'pas', 'pascal', 'freepascal', 'lazarus', 'lpr', 'lfm', 'diff', 'django', 'jinja', 'dockerfile', 'docker', 'erl', 'f90', 'f95', 'fsharp', 'fs', 'gcode', 'nc', 'go', 'groovy', 'handlebars', 'hbs', 'html.hbs', 'html.handlebars', 'hs', 'hx', 'java', 'jsp', 'js', 'jsx', 'json', 'jl', 'kt', 'ktm', 'kts', 'less', 'lisp', 'lua', 'mk', 'mak', 'md', 'mkdown', 'mkd', 'matlab', 'm', 'mm', 'objc', 'obj-c', 'ml', 'perl', 'pl', 'php', 'php3', 'php4', 'php5', 'php6', 'ps', 'ps1', 'pp', 'py', 'gyp', 'r', 'ruby', 'rb', 'gemspec', 'podspec', 'thor', 'irb', 'rs', 'scala', 'scm', 'sld', 'scss', 'st', 'sql', 'swift', 'tex', 'txt', 'vbnet', 'vb', 'bas', 'vbs', 'v', 'veo', 'xml', 'html', 'xhtml', 'rss', 'atom', 'xsl', 'plist', 'yaml'],
     PDF_TYPES: ['pdf'],
     PATCH_TYPES: ['patch'],
     ICON_FROM_TYPE: {
@@ -313,7 +319,7 @@ export const Constants = {
     SIGNIN_VERIFIED: 'verified',
     SESSION_EXPIRED: 'expired',
     POST_CHUNK_SIZE: 60,
-    MAX_POST_CHUNKS: 3,
+    PROFILE_CHUNK_SIZE: 100,
     POST_FOCUS_CONTEXT_RADIUS: 10,
     POST_LOADING: 'loading',
     POST_FAILED: 'failed',
@@ -325,23 +331,13 @@ export const Constants = {
     SYSTEM_MESSAGE_PROFILE_NAME: 'System',
     SYSTEM_MESSAGE_PROFILE_IMAGE: logoImage,
     RESERVED_TEAM_NAMES: [
-        'www',
-        'web',
+        'signup',
+        'login',
         'admin',
-        'support',
-        'notify',
-        'test',
-        'demo',
-        'mail',
-        'team',
         'channel',
-        'internal',
-        'localhost',
-        'dockerhost',
-        'stag',
         'post',
-        'cluster',
-        'api'
+        'api',
+        'oauth'
     ],
     RESERVED_USERNAMES: [
         'valet',
@@ -772,6 +768,7 @@ export const Constants = {
         sql: {name: 'SQL', extensions: ['sql']},
         swift: {name: 'Swift', extensions: ['swift']},
         tex: {name: 'TeX', extensions: ['tex']},
+        text: {name: 'Text', extensions: ['txt']},
         vbnet: {name: 'VB.Net', extensions: ['vbnet', 'vb', 'bas']},
         vbscript: {name: 'VBScript', extensions: ['vbs']},
         verilog: {name: 'Verilog', extensions: ['v', 'veo']},
@@ -811,6 +808,7 @@ export const Constants = {
     WEBRTC_TIME_DELAY: 750,
     WEBRTC_CLEAR_ERROR_DELAY: 15000,
     DEFAULT_MAX_USERS_PER_TEAM: 50,
+    DEFAULT_MAX_CHANNELS_PER_TEAM: 2000,
     MIN_TEAMNAME_LENGTH: 4,
     MAX_TEAMNAME_LENGTH: 15,
     MIN_USERNAME_LENGTH: 3,
@@ -842,7 +840,9 @@ export const Constants = {
     MENTION_MEMBERS: 'mention.members',
     MENTION_NONMEMBERS: 'mention.nonmembers',
     MENTION_SPECIAL: 'mention.special',
-    DEFAULT_NOTIFICATION_DURATION: 5000
+    DEFAULT_NOTIFICATION_DURATION: 5000,
+    STATUS_INTERVAL: 60000,
+    AUTOCOMPLETE_TIMEOUT: 200
 };
 
 export default Constants;

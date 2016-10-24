@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 	"github.com/mssola/user_agent"
+	"runtime/debug"
 )
 
 func InitAdmin() {
@@ -48,7 +49,7 @@ func InitAdmin() {
 	BaseRoutes.Admin.Handle("/remove_certificate", ApiAdminSystemRequired(removeCertificate)).Methods("POST")
 	BaseRoutes.Admin.Handle("/saml_cert_status", ApiAdminSystemRequired(samlCertificateStatus)).Methods("GET")
 	BaseRoutes.Admin.Handle("/cluster_status", ApiAdminSystemRequired(getClusterStatus)).Methods("GET")
-	BaseRoutes.Admin.Handle("/recently_active_users/{team_id:[A-Za-z0-9]+}", ApiUserRequiredActivity(getRecentlyActiveUsers, false)).Methods("GET")
+	BaseRoutes.Admin.Handle("/recently_active_users/{team_id:[A-Za-z0-9]+}", ApiUserRequired(getRecentlyActiveUsers)).Methods("GET")
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -134,6 +135,7 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func reloadConfig(c *Context, w http.ResponseWriter, r *http.Request) {
+	debug.FreeOSMemory()
 	utils.LoadConfig(utils.CfgFileName)
 
 	// start/restart email batching job if necessary
@@ -338,12 +340,15 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 	name := params["name"]
 
 	if name == "standard" {
-		var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 5)
+		var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 8)
 		rows[0] = &model.AnalyticsRow{"channel_open_count", 0}
 		rows[1] = &model.AnalyticsRow{"channel_private_count", 0}
 		rows[2] = &model.AnalyticsRow{"post_count", 0}
 		rows[3] = &model.AnalyticsRow{"unique_user_count", 0}
 		rows[4] = &model.AnalyticsRow{"team_count", 0}
+		rows[5] = &model.AnalyticsRow{"total_websocket_connections", 0}
+		rows[6] = &model.AnalyticsRow{"total_master_db_connections", 0}
+		rows[7] = &model.AnalyticsRow{"total_read_db_connections", 0}
 
 		openChan := Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN)
 		privateChan := Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_PRIVATE)
@@ -385,6 +390,10 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			rows[4].Value = float64(r.Data.(int64))
 		}
+
+		rows[5].Value = float64(TotalWebsocketConnections())
+		rows[6].Value = float64(Srv.Store.TotalMasterDbConnections())
+		rows[7].Value = float64(Srv.Store.TotalReadDbConnections())
 
 		w.Write([]byte(rows.ToJson()))
 	} else if name == "post_counts_day" {
@@ -706,32 +715,14 @@ func samlCertificateStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getRecentlyActiveUsers(c *Context, w http.ResponseWriter, r *http.Request) {
-	statusMap := map[string]interface{}{}
-
-	if result := <-Srv.Store.Status().GetAllFromTeam(c.TeamId); result.Err != nil {
-		c.Err = result.Err
-		return
-	} else {
-		statuses := result.Data.([]*model.Status)
-		for _, s := range statuses {
-			statusMap[s.UserId] = s.LastActivityAt
-		}
-	}
-
-	if result := <-Srv.Store.User().GetProfiles(c.TeamId); result.Err != nil {
+	if result := <-Srv.Store.User().GetRecentlyActiveUsersForTeam(c.TeamId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
 		profiles := result.Data.(map[string]*model.User)
 
-		for k, p := range profiles {
-			p = sanitizeProfile(c, p)
-
-			if lastActivityAt, ok := statusMap[p.Id].(int64); ok {
-				p.LastActivityAt = lastActivityAt
-			}
-
-			profiles[k] = p
+		for _, p := range profiles {
+			sanitizeProfile(c, p)
 		}
 
 		w.Write([]byte(model.UserMapToJson(profiles)))

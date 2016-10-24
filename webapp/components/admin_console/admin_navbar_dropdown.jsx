@@ -22,7 +22,7 @@ export default class AdminNavbarDropdown extends React.Component {
 
         this.state = {
             teams: TeamStore.getAll(),
-            teamMembers: TeamStore.getTeamMembers()
+            teamMembers: TeamStore.getMyTeamMembers()
         };
     }
 
@@ -45,7 +45,7 @@ export default class AdminNavbarDropdown extends React.Component {
     onTeamChange() {
         this.setState({
             teams: TeamStore.getAll(),
-            teamMembers: TeamStore.getTeamMembers()
+            teamMembers: TeamStore.getMyTeamMembers()
         });
     }
 

@@ -236,7 +236,6 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["EnableTeamCreation"] = strconv.FormatBool(c.TeamSettings.EnableTeamCreation)
 	props["EnableUserCreation"] = strconv.FormatBool(c.TeamSettings.EnableUserCreation)
 	props["EnableOpenServer"] = strconv.FormatBool(*c.TeamSettings.EnableOpenServer)
-	props["RestrictTeamNames"] = strconv.FormatBool(*c.TeamSettings.RestrictTeamNames)
 	props["RestrictDirectMessage"] = *c.TeamSettings.RestrictDirectMessage
 	props["RestrictTeamInvite"] = *c.TeamSettings.RestrictTeamInvite
 	props["RestrictPublicChannelManagement"] = *c.TeamSettings.RestrictPublicChannelManagement

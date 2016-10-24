@@ -48,10 +48,6 @@
     "translation": "Septiembre"
   },
   {
-    "id": "api.admin.add_certificate.array.app_error",
-    "translation": "Solicitud con matriz vacia en 'certificate'"
-  },
-  {
     "id": "api.admin.add_certificate.no_file.app_error",
     "translation": "No hay un archivo bajo la solicitud de 'certificate'"
   },
@@ -146,6 +142,10 @@
   {
     "id": "api.api.render.error",
     "translation": "Error renderinzando la plantilla %v err=%v"
+  },
+  {
+    "id": "api.auth.unable_to_get_user.app_error",
+    "translation": "No se puede obtener el usuario para comprobar los permisos."
   },
   {
     "id": "api.channel.add_member.added",
@@ -625,11 +625,11 @@
   },
   {
     "id": "api.command_shortcuts.msgs",
-    "translation": "#### Mensajes\n\nESC: Marca todos los mensajes como leídos en el canal actual\nCTRL+ARRIBA (con el cuadro de texto vacío): Reimprime el último mensaje o comando de barra que ingresaste\nCTRL+ABAJO (con el cuadro de texto vacío): Reimprime el siguiente mensaje o comando de barra que ingresaste\nARRIBA (con el cuadro de texto vacío): Edita tu último mensaje en el canal en el que te encuentras\n@[carácter]+TAB: Auto completa @nombre que comience por [carácter]\n:[carácter]+TAB: Auto completa el emoji que comience por [carácter]\n\n"
+    "translation": "#### Mensajes\n\nALT+[clic en un mensaje]: Marca el mensaje como el último mensaje leído en el canal actual\nESC: Marca todos los mensajes como leídos en el canal actual\nCMD+ARRIBA (con el cuadro de texto vacío): Reimprime el último mensaje o comando de barra que ingresaste\nCMD+ABAJO (con el cuadro de texto vacío): Reimprime el siguiente mensaje o comando de barra que ingresaste\nARRIBA (con el cuadro de texto vacío): Edita tu último mensaje en el canal en el que te encuentras\n@[carácter]+TAB: Auto completa @nombre que comience por [carácter]\n:[carácter]+TAB: Auto completa el emoji que comience por [carácter]\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs_mac",
-    "translation": "#### Mensajes\n\nESC: Marca todos los mensajes como leídos en el canal actual\nCMD+ARRIBA (con el cuadro de texto vacío): Reimprime el último mensaje o comando de barra que ingresaste\nCMD+ABAJO (con el cuadro de texto vacío): Reimprime el siguiente mensaje o comando de barra que ingresaste\nARRIBA (con el cuadro de texto vacío): Edita tu último mensaje en el canal en el que te encuentras\n@[carácter]+TAB: Auto completa @nombre que comience por [carácter]\n:[carácter]+TAB: Auto completa el emoji que comience por [carácter]\n\n"
+    "translation": "#### Mensajes\n\nALT+[clic en un mensaje]: Marca el mensaje como el último mensaje leído en el canal actual\nESC: Marca todos los mensajes como leídos en el canal actual\nCMD+ARRIBA (con el cuadro de texto vacío): Reimprime el último mensaje o comando de barra que ingresaste\nCMD+ABAJO (con el cuadro de texto vacío): Reimprime el siguiente mensaje o comando de barra que ingresaste\nARRIBA (con el cuadro de texto vacío): Edita tu último mensaje en el canal en el que te encuentras\n@[carácter]+TAB: Auto completa @nombre que comience por [carácter]\n:[carácter]+TAB: Auto completa el emoji que comience por [carácter]\n\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -814,18 +814,6 @@
     "translation": "No se pudo crear el emoticon. La imagen debe tener un máximo de 128 x 128 pixels."
   },
   {
-    "id": "api.file.file_upload.exceeds",
-    "translation": "El archivo excede el tamaño máximo para una imagen."
-  },
-  {
-    "id": "api.file.file_upload.exceeds",
-    "translation": "El archivo excede el tamaño máximo para una imagen."
-  },
-  {
-    "id": "api.file.get_file.not_found.app_error",
-    "translation": "No se encontró el archivo."
-  },
-  {
     "id": "api.file.get_file.public_disabled.app_error",
     "translation": "Los enlaces públicos han sido deshabilitados por un administrador del sistema"
   },
@@ -834,32 +822,116 @@
     "translation": "El enlace público parece ser inválido"
   },
   {
+    "id": "api.file.get_file_preview.no_thumbnail.app_error",
+    "translation": "Archivo no tiene una imagen de vista previa"
+  },
+  {
+    "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
+    "translation": "Archivo no tiene una imagen en miniatura"
+  },
+  {
+    "id": "api.file.get_info_for_request.no_post.app_error",
+    "translation": "No se puede obtener información de archivo. El archivo debe estar conectado a un post que puede ser leído por el usuario actual."
+  },
+  {
+    "id": "api.file.get_info_for_request.storage.app_error",
+    "translation": "No se puede obtener información de archivo. El almacenamiento de imágenes no está configurado."
+  },
+  {
+    "id": "api.file.get_public_file_old.storage.app_error",
+    "translation": "No se puede obtener el archivo. El almacenamiento de imágenes no está configurado."
+  },
+  {
+    "id": "api.file.get_public_file_old.storage.app_error",
+    "translation": "No se puede obtener el archivo. El almacenamiento de imágenes no está configurado."
+  },
+  {
     "id": "api.file.get_public_link.disabled.app_error",
     "translation": "Los enlaces públicos han sido deshabilitados"
   },
   {
+    "id": "api.file.get_public_link.no_post.app_error",
+    "translation": "No se puede obtener el enlace público para el archivo. El archivo debe estar conectado a un post que puede ser leído por el usuario actual."
+  },
+  {
     "id": "api.file.handle_images_forget.decode.error",
-    "translation": "No se puede decodificar la imagen channelId=%v userId=%v filename=%v err=%v"
+    "translation": "No se puede decodificar la imagen err=%v"
   },
   {
     "id": "api.file.handle_images_forget.encode_jpeg.error",
-    "translation": "No se puede codificar la imagen como jpeg channelId=%v userId=%v filename=%v err=%v"
+    "translation": "Incapaz de codificar la imagen como jpeg ruta=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.encode_preview.error",
-    "translation": "No se puede codificar la imagen de muestra como jpg channelId=%v userId=%v filename=%v err=%v"
+    "translation": "Incapaz de codificar la imagen como vista previa de jpg ruta=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.upload_preview.error",
-    "translation": "No se puede subir la vista previa channelId=%v userId=%v filename=%v err=%v"
+    "translation": "Error al subir la vista previa ruta=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.upload_thumb.error",
-    "translation": "No se puede subir la miniatura channelId=%v userId=%v filename=%v err=%v"
+    "translation": "Error al subir la miniatura ruta=%v err=%v"
   },
   {
     "id": "api.file.init.debug",
     "translation": "Inicializando rutas del API para los archivos"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.channel.app_error",
+    "translation": "No se puede obtener el canal al momento de migrar el mensaje para que utilice FileInfos, post_id=%v, channel_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.file_not_found.warn",
+    "translation": "No se puede encontrar archivo al momento de migrar el mensaje para que utilice FileInfos, post_id=%v, archivo=%v, ruta=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.get_file_infos_again.warn",
+    "translation": "No se puede obtener FileInfos para el mensaje después de la migración, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.get_post_again.warn",
+    "translation": "No se puede obtener los mensajes al momento de migrar para que utilice FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.info.app_error",
+    "translation": "Incapaz de decodificar la información del archivo al momento de migrar el mensaje para que utilice FileInfos, post_id=%v, archivo=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.migrating_post.debug",
+    "translation": "Migrando mensajes para que utilicen FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.mismatched_filename.warn",
+    "translation": "Se encontró un nombre de archivo inusual al momento de migrar el mensaje para que utilice FileInfos, post_id=%v, channel_id=%v, user_id=%v, archivo=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.no_filenames.warn",
+    "translation": "No se pueden migrar el mensaje para que utilicen FileInfos con el campo de Nombres vacío, post_id=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.not_migrating_post.debug",
+    "translation": "Mensaje ya migrado para que utilice FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.save_file_info.warn",
+    "translation": "No se puede guardar el mensaje al momento de migrar para que utilice FileInfos, post_id=%v, file_id=%v, ruta=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.save_post.warn",
+    "translation": "No se puede guardar la información de archivo al momento de migrar el mensaje para que utilice FileInfos, post_id=%v, file_id=%v, archivo=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.team_id.app_error",
+    "translation": "Incapaz de encontrar equipo para FileInfos, post_id=%v, archivos=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.teams.app_error",
+    "translation": "No se puede obtener los equipos al momento de migrar el mensaje para que utilice FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.unexpected_filename.error",
+    "translation": "Incapaz de descifrar el nombre de archivo al momento de migrar el mensaje para que utilice FileInfos, post_id=%v, archivo=%v"
   },
   {
     "id": "api.file.move_file.configured.app_error",
@@ -904,10 +976,6 @@
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "Se encontró un error al leer desde el almacenamiento del servidor local"
-  },
-  {
-    "id": "api.file.upload_file.image.app_error",
-    "translation": "No se puede subir el archivo de la imagen."
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -1150,8 +1218,16 @@
     "translation": "{{.Username}} fue mencionado, pero no recibió una notificación porque no pertenece a este canal."
   },
   {
+    "id": "api.post.create_post.attach_files.error",
+    "translation": "Se encontró un error al adjuntar archivos al mensaje, post_id=%s, user_id=%s, file_ids=%v, err=%v"
+  },
+  {
     "id": "api.post.create_post.bad_filename.error",
     "translation": "Nombre errado de archivo descartado, archivo=%v"
+  },
+  {
+    "id": "api.post.create_post.can_not_post_to_deleted.error",
+    "translation": "No se puede publicar en un canal eliminado."
   },
   {
     "id": "api.post.create_post.channel_root_id.app_error",
@@ -1182,11 +1258,19 @@
     "translation": "No tienes los permisos apropiados"
   },
   {
+    "id": "api.post.delete_post_files.app_error.warn",
+    "translation": "Se encontró un error al eliminar los archivos del mensaje, post_id=%v, err=%v"
+  },
+  {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
       "one": "{{.Count}} archivo enviado: {{.Filenames}}",
       "other": "{{.Count}} archivos enviados: {{.Filenames}}"
     }
+  },
+  {
+    "id": "api.post.get_message_for_notification.get_files.error",
+    "translation": "Error al obtener los archivos para el mensaje de notificación, post_id=%v, err=%v"
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
@@ -1270,6 +1354,10 @@
   {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
     "translation": "No se pudo recuperar el hilo de comentarios en las notificaciones root_post_id=%v, err=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.files.error",
+    "translation": "No se pudo obtener los archivos para la notificación del mensaje post_id=%v, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.get_teams.error",
@@ -1400,6 +1488,14 @@
     "translation": "La configuración del límite de velocidad no ha sido configurado apropiadamente utilizando VaryByHeader y deshabilitado VaryByRemoteAddr"
   },
   {
+    "id": "api.server.start_server.rate_limiting_memory_store",
+    "translation": "No se puede inicializar el almacén de memoria para la limitación de velocidad. Compruebe el ajuste de MemoryStoreSize en la configuración."
+  },
+  {
+    "id": "api.server.start_server.rate_limiting_rate_limiter",
+    "translation": "No se puede iniciar la limitación de velocidad."
+  },
+  {
     "id": "api.server.start_server.starting.critical",
     "translation": "Error arrancando el servidor, err:%v"
   },
@@ -1440,8 +1536,16 @@
     "translation": "Unificado al canal existente: {{.DisplayName}}\r\n"
   },
   {
+    "id": "api.slackimport.slack_add_posts.attach_files.error",
+    "translation": "Se encontró un error al adjuntar archivos al mensaje, post_id=%s, file_ids=%v, err=%v"
+  },
+  {
     "id": "api.slackimport.slack_add_posts.bot.warn",
     "translation": "Mensajes del Bot de Slack no han sido importados todavía"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.msg_no_comment.debug",
+    "translation": "Comentario de archivo indefinido"
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_usr.debug",
@@ -1450,6 +1554,22 @@
   {
     "id": "api.slackimport.slack_add_posts.unsupported.warn",
     "translation": "Tipo de mensaje no soportado: %v, %v"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.upload_file_not_found.warn",
+    "translation": "No se encontró el archivo en la exportación de Slack para adjuntar al mensaje con ID de archivo {{.FileId}}"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.upload_file_not_in_json.warn",
+    "translation": "No se puede importar el archivo para adjuntar al mensaje sin la sección \"file\" presente en la exportación."
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.upload_file_open_failed.warn",
+    "translation": "No se puede abrir el archivo adjunto con ID {{.FileId}} en el archivo de exportación con error: {{.Error}}"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.upload_file_upload_failed.warn",
+    "translation": "Se produjo un error al subir un archivo adjunto al mensaje con ID del archivo {{.FileId}} con el siguiente error: {{.Error}}"
   },
   {
     "id": "api.slackimport.slack_add_posts.user_no_exists.debug",
@@ -1468,8 +1588,16 @@
     "translation": "Correo electrónico, Contraseña: {{.Email}}, {{.Password}}\r\n"
   },
   {
+    "id": "api.slackimport.slack_add_users.merge_existing",
+    "translation": "Combinado el usuario con una cuenta existente: {{.Email}}, {{.Username}}\r\n"
+  },
+  {
     "id": "api.slackimport.slack_add_users.unable_import",
     "translation": "No se pudo importar el usuario: {{.Username}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_convert_channel_mentions.compile_regexp_failed.warn",
+    "translation": "No se pudo compilar la coincidencia del !canal con expresión regular para el canal de Slack {{.ChannelID}} {{.ChannelName}}"
   },
   {
     "id": "api.slackimport.slack_convert_timestamp.bad.warn",
@@ -1492,6 +1620,10 @@
     "translation": "- mensajes realizadados por el bot de Slack actualmente no son soportados.\r\n"
   },
   {
+    "id": "api.slackimport.slack_import.note3",
+    "translation": "- Errores adicionales pueden ser encontrados en los registros del servidor.\r\n"
+  },
+  {
     "id": "api.slackimport.slack_import.notes",
     "translation": "\r\n Notas \r\n"
   },
@@ -1506,6 +1638,14 @@
   {
     "id": "api.slackimport.slack_import.zip.app_error",
     "translation": "No se puede abrir el archivo comprimido"
+  },
+  {
+    "id": "api.slackimport.slack_parse_channels.error",
+    "translation": "Error de análisis de los canales de slack. Importación puede que funcione de todos modos."
+  },
+  {
+    "id": "api.slackimport.slack_parse_posts.error",
+    "translation": "Error en el análisis de los mensajes de slack. Importación puede que funcione de todos modos."
   },
   {
     "id": "api.status.init.debug",
@@ -1634,6 +1774,10 @@
   {
     "id": "api.team.signup_team.email_disabled.app_error",
     "translation": "El registro a equipos por correo electrónico está deshabilitado."
+  },
+  {
+    "id": "api.team.update_member_roles.not_a_member",
+    "translation": "Usuario especificado no es un miembro de equipo especificado."
   },
   {
     "id": "api.team.update_team.permissions.app_error",
@@ -2356,8 +2500,32 @@
     "translation": "Permisos inapropiados para regenerar un token para el Webhook saliente"
   },
   {
+    "id": "api.webrtc.init.debug",
+    "translation": "Inicializando rutas del API para WebRTC"
+  },
+  {
+    "id": "api.webrtc.not_available.app_error",
+    "translation": "WebRTC no está disponible en este servidor."
+  },
+  {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "Parámetro {{.Name}} inválido"
+  },
+  {
+    "id": "authentication.permissions.team_invite_user.description",
+    "translation": "Capacidad para invitar usuarios a un equipo"
+  },
+  {
+    "id": "authentication.permissions.team_invite_user.name",
+    "translation": "Invitar Usuario"
+  },
+  {
+    "id": "authentication.permissions.team_use_slash_commands.description",
+    "translation": "Capacidad para usar comandos de barra"
+  },
+  {
+    "id": "authentication.permissions.team_use_slash_commands.name",
+    "translation": "Usar Comandos de Barra"
   },
   {
     "id": "cli.license.critical",
@@ -2557,7 +2725,7 @@
   },
   {
     "id": "ent.saml.attribute.app_error",
-    "translation": "SAML login was unsuccessful because one of the attributes is incorrect. Please contact your System Administrator."
+    "translation": "El inicio de sesión con SAML no tuvo éxito porque uno de sus atributos es incorrecto. Por favor, póngase en contacto con su Administrador del Sistema."
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -2626,6 +2794,18 @@
   {
     "id": "ent.saml.update_saml_user.unable_error",
     "translation": "No se puede actualizar el usuario SAML existente. Se Permite el inicio de sesión de todos modos. err=%v"
+  },
+  {
+    "id": "ent.webrtc.disabled.app_error",
+    "translation": "WebRTC no está habilitado en este servidor."
+  },
+  {
+    "id": "ent.webrtc.license_disable.app_error",
+    "translation": "Tu licencia no admite el uso de Mattermost WebRTC"
+  },
+  {
+    "id": "ent.webrtc.register_token.app_error",
+    "translation": "Hemos encontrado un error al intentar registrar el Token de WebRTC"
   },
   {
     "id": "error.generic.link_message",
@@ -3076,6 +3256,10 @@
     "translation": "Número inválido de máximos intentos de inició de sesión en la configuración del servicio.  Debe ser un número positivo."
   },
   {
+    "id": "model.config.is_valid.max_burst.app_error",
+    "translation": "Máximo de ráfagas debe ser mayor que cero."
+  },
+  {
     "id": "model.config.is_valid.max_file_size.app_error",
     "translation": "El tamaño máximo de archivo para la configuración de archivos es inválido. Debe ser un cero o un número positivo."
   },
@@ -3098,6 +3282,10 @@
   {
     "id": "model.config.is_valid.rate_sec.app_error",
     "translation": "Por segundo es inválido en la configuración de límites de velocidad.  Debe ser un número positivo."
+  },
+  {
+    "id": "model.config.is_valid.read_timeout.app_error",
+    "translation": "Valor no válido para el tiempo de espera de lectura."
   },
   {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
@@ -3162,6 +3350,42 @@
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
     "translation": "Inválida cantidad de conexiones abiertas para la configuración de SQL.  Debe ser un número positivo."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_gateway_admin_secret.app_error",
+    "translation": "La clave secreta de Administración de la Puerta de enlace para WebRTC debe ser asignada."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_gateway_admin_url.app_error",
+    "translation": "La dirección url de Administración de la Puerta de enlace para WebRTC debe ser una dirección válida y comenzar con http:// o https://."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_gateway_ws_url.app_error",
+    "translation": "La dirección url de la Puerta de enlace del Websocket para WebRTC debe ser una dirección válida y comenzar con ws:// o wss://."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_stun_uri.app_error",
+    "translation": "El STUN URI de WebRTC debe ser un URI válido y comenzar con stun:"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_turn_shared_key.app_error",
+    "translation": "La Clave Compartida del TURN de WebRTC no puede estar vacía si el TURN URI se ha establecido."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_turn_uri.app_error",
+    "translation": "El TURN URI de WebRTC debe ser un URI válido y comenzar con turn:"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_turn_username.app_error",
+    "translation": "El Nombre de usuario del TURN de WebRTC no puede estar vacío si el TURN URI se ha establecido."
+  },
+  {
+    "id": "model.config.is_valid.webserver_security.app_error",
+    "translation": "Valor no válido para la seguridad de conexión del servidor."
+  },
+  {
+    "id": "model.config.is_valid.write_timeout.app_error",
+    "translation": "Valor no válido para el tiempo de espera de escritura."
   },
   {
     "id": "model.emoji.create_at.app_error",
@@ -3318,6 +3542,10 @@
   {
     "id": "model.post.is_valid.create_at.app_error",
     "translation": "Create debe ser un tiempo válido"
+  },
+  {
+    "id": "model.post.is_valid.file_ids.app_error",
+    "translation": "Identificadores de archivo no válido"
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -3776,6 +4004,10 @@
     "translation": "No pudimos obtener información extra de los miembros del canal"
   },
   {
+    "id": "store.sql_channel.get_for_post.app_error",
+    "translation": "No pudimos obtener el canal del mensaje"
+  },
+  {
     "id": "store.sql_channel.get_member.app_error",
     "translation": "No pudimos obtener el miembro del canal"
   },
@@ -3786,6 +4018,10 @@
   {
     "id": "store.sql_channel.get_member_count.app_error",
     "translation": "No pudimos obtener la cantidad de miembros del canal"
+  },
+  {
+    "id": "store.sql_channel.get_member_for_post.app_error",
+    "translation": "No pudimos obtener los miembros del canal del mensaje"
   },
   {
     "id": "store.sql_channel.get_members.app_error",
@@ -3970,6 +4206,30 @@
   {
     "id": "store.sql_emoji.save.app_error",
     "translation": "No pudimos guardar el emoticon"
+  },
+  {
+    "id": "store.sql_file_info.attach_to_post.app_error",
+    "translation": "No pudimos adjuntar la información del archivo al mensaje"
+  },
+  {
+    "id": "store.sql_file_info.delete_for_post.app_error",
+    "translation": "No pudimos eliminar la información del archivo del mensaje"
+  },
+  {
+    "id": "store.sql_file_info.get.app_error",
+    "translation": "No pudimos obtener la información del archivo"
+  },
+  {
+    "id": "store.sql_file_info.get_by_path.app_error",
+    "translation": "No pudimos obtener la información del archivo por ruta"
+  },
+  {
+    "id": "store.sql_file_info.get_for_post.app_error",
+    "translation": "No pudimos obtener la información del archivo para el mensaje"
+  },
+  {
+    "id": "store.sql_file_info.save.app_error",
+    "translation": "No pudimos guardar la información del archivo"
   },
   {
     "id": "store.sql_license.get.app_error",

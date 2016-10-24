@@ -11,8 +11,9 @@ import * as Utils from 'utils/utils.jsx';
 import Client from 'client/web_client.jsx';
 
 import React from 'react';
+import {FormattedHTMLMessage} from 'react-intl';
 
-export default function UserListRow({user, teamMember, actions, actionProps}) {
+export default function UserListRow({user, extraInfo, actions, actionProps, actionUserProps}) {
     const nameFormat = PreferenceStore.get(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', '');
 
     let name = user.username;
@@ -29,15 +30,29 @@ export default function UserListRow({user, teamMember, actions, actionProps}) {
                 <Action
                     key={index.toString()}
                     user={user}
-                    teamMember={teamMember}
                     {...actionProps}
+                    {...actionUserProps}
                 />
             );
         });
     }
 
+    // QUICK HACK, NEEDS A PROP FOR TOGGLING STATUS
+    let email = user.email;
+    let emailStyle = 'more-modal__description';
     let status;
-    if (user.status) {
+    if (extraInfo && extraInfo.length > 0) {
+        email = (
+            <FormattedHTMLMessage
+                id='admin.user_item.emailTitle'
+                defaultMessage='<strong>Email:</strong> {email}'
+                values={{
+                    email: user.email
+                }}
+            />
+        );
+        emailStyle = '';
+    } else if (user.status) {
         status = user.status;
     } else {
         status = UserStore.getStatus(user.id);
@@ -60,9 +75,10 @@ export default function UserListRow({user, teamMember, actions, actionProps}) {
                 <div className='more-modal__name'>
                     {name}
                 </div>
-                <div className='more-modal__description'>
-                    {user.email}
+                <div className={emailStyle}>
+                    {email}
                 </div>
+                {extraInfo}
             </div>
             <div
                 className='more-modal__actions'
@@ -74,17 +90,16 @@ export default function UserListRow({user, teamMember, actions, actionProps}) {
 }
 
 UserListRow.defaultProps = {
-    teamMember: {
-        team_id: '',
-        roles: ''
-    },
+    extraInfo: [],
     actions: [],
-    actionProps: {}
+    actionProps: {},
+    actionUserProps: {}
 };
 
 UserListRow.propTypes = {
     user: React.PropTypes.object.isRequired,
-    teamMember: React.PropTypes.object.isRequired,
+    extraInfo: React.PropTypes.arrayOf(React.PropTypes.object),
     actions: React.PropTypes.arrayOf(React.PropTypes.func),
-    actionProps: React.PropTypes.object
+    actionProps: React.PropTypes.object,
+    actionUserProps: React.PropTypes.object
 };

@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import Constants from 'utils/constants.jsx';
 import EventEmitter from 'events';
 
@@ -222,7 +222,10 @@ class SuggestionStore extends EventEmitter {
 
         switch (type) {
         case ActionTypes.SUGGESTION_PRETEXT_CHANGED:
-            this.clearSuggestions(id);
+            // Clear the suggestions if the pretext is empty or has whitespace
+            if (other.pretext === '' || (/\s/g.test(other.pretext))) {
+                this.clearSuggestions(id);
+            }
 
             this.setPretext(id, other.pretext);
             this.emitPretextChanged(id, other.pretext);
@@ -231,6 +234,8 @@ class SuggestionStore extends EventEmitter {
             this.emitSuggestionsChanged(id);
             break;
         case ActionTypes.SUGGESTION_RECEIVED_SUGGESTIONS:
+            this.clearSuggestions(id);
+
             // ensure the matched pretext hasn't changed so that we don't receive suggestions for outdated pretext
             this.addSuggestions(id, other.terms, other.items, other.component, other.matchedPretext);
 

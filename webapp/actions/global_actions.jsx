@@ -12,7 +12,8 @@ import TeamStore from 'stores/team_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import SearchStore from 'stores/search_store.jsx';
 
-import {handleNewPost} from 'actions/post_actions.jsx';
+import {handleNewPost, loadPosts, loadPostsBefore, loadPostsAfter} from 'actions/post_actions.jsx';
+import {loadProfilesAndTeamMembersForDMSidebar} from 'actions/user_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
@@ -43,9 +44,9 @@ export function emitChannelClickEvent(channel) {
     function switchToChannel(chan) {
         AsyncClient.getChannels(true);
         AsyncClient.getMoreChannels(true);
-        AsyncClient.getChannelExtraInfo(chan.id);
+        AsyncClient.getChannelStats(chan.id);
         AsyncClient.updateLastViewedAt(chan.id);
-        AsyncClient.getPosts(chan.id);
+        loadPosts(chan.id);
         trackPage();
 
         AppDispatcher.handleViewAction({
@@ -108,7 +109,7 @@ export function emitInitialLoad(callback) {
 
                 if (data.team_members) {
                     AppDispatcher.handleServerAction({
-                        type: ActionTypes.RECEIVED_TEAM_MEMBERS,
+                        type: ActionTypes.RECEIVED_MY_TEAM_MEMBERS,
                         team_members: data.team_members
                     });
                 }
@@ -143,9 +144,9 @@ export function doFocusPost(channelId, postId, data) {
     });
     AsyncClient.getChannels(true);
     AsyncClient.getMoreChannels(true);
-    AsyncClient.getChannelExtraInfo(channelId);
-    AsyncClient.getPostsBefore(postId, 0, Constants.POST_FOCUS_CONTEXT_RADIUS, true);
-    AsyncClient.getPostsAfter(postId, 0, Constants.POST_FOCUS_CONTEXT_RADIUS, true);
+    AsyncClient.getChannelStats(channelId);
+    loadPostsBefore(postId, 0, Constants.POST_FOCUS_CONTEXT_RADIUS, true);
+    loadPostsAfter(postId, 0, Constants.POST_FOCUS_CONTEXT_RADIUS, true);
 }
 
 export function emitPostFocusEvent(postId, onSuccess) {
@@ -246,14 +247,14 @@ export function emitLoadMorePostsFocusedTopEvent() {
 export function loadMorePostsTop(id, isFocusPost) {
     const earliestPostId = PostStore.getEarliestPost(id).id;
     if (PostStore.requestVisibilityIncrease(id, Constants.POST_CHUNK_SIZE)) {
-        AsyncClient.getPostsBefore(earliestPostId, 0, Constants.POST_CHUNK_SIZE, isFocusPost);
+        loadPostsBefore(earliestPostId, 0, Constants.POST_CHUNK_SIZE, isFocusPost);
     }
 }
 
 export function emitLoadMorePostsFocusedBottomEvent() {
     const id = PostStore.getFocusedPostId();
     const latestPostId = PostStore.getLatestPost(id).id;
-    AsyncClient.getPostsAfter(latestPostId, 0, Constants.POST_CHUNK_SIZE, Boolean(id));
+    loadPostsAfter(latestPostId, 0, Constants.POST_CHUNK_SIZE, Boolean(id));
 }
 
 export function emitUserPostedEvent(post) {
@@ -362,7 +363,7 @@ export function emitClearSuggestions(suggestionId) {
 
 export function emitPreferenceChangedEvent(preference) {
     if (preference.category === Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW) {
-        AsyncClient.getDirectProfiles();
+        loadProfilesAndTeamMembersForDMSidebar();
     }
 
     AppDispatcher.handleServerAction({
@@ -437,7 +438,7 @@ export function loadDefaultLocale() {
 export function viewLoggedIn() {
     AsyncClient.getChannels();
     AsyncClient.getMoreChannels();
-    AsyncClient.getChannelExtraInfo();
+    AsyncClient.getChannelStats();
 
     // Clear pending posts (shouldn't have pending posts if we are loading)
     PostStore.clearPendingPosts();
@@ -486,4 +487,50 @@ export function emitJoinChannelEvent(channel, success, failure) {
         success,
         failure
     );
+}
+
+export function emitSearchMentionsEvent(user) {
+    let terms = '';
+    if (user.notify_props && user.notify_props.mention_keys) {
+        const termKeys = UserStore.getMentionKeys(user.id);
+
+        if (termKeys.indexOf('@channel') !== -1) {
+            termKeys[termKeys.indexOf('@channel')] = '';
+        }
+
+        if (termKeys.indexOf('@all') !== -1) {
+            termKeys[termKeys.indexOf('@all')] = '';
+        }
+
+        terms = termKeys.join(' ');
+    }
+
+    AppDispatcher.handleServerAction({
+        type: ActionTypes.RECEIVED_SEARCH_TERM,
+        term: terms,
+        do_search: true,
+        is_mention_search: true
+    });
+}
+
+export function toggleSideBarAction(visible) {
+    if (!visible) {
+        //Array of actions resolving in the closing of the sidebar
+        AppDispatcher.handleServerAction({
+            type: ActionTypes.RECEIVED_SEARCH,
+            results: null
+        });
+
+        AppDispatcher.handleServerAction({
+            type: ActionTypes.RECEIVED_SEARCH_TERM,
+            term: null,
+            do_search: false,
+            is_mention_search: false
+        });
+
+        AppDispatcher.handleServerAction({
+            type: ActionTypes.RECEIVED_POST_SELECTED,
+            postId: null
+        });
+    }
 }

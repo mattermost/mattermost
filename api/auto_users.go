@@ -80,6 +80,13 @@ func (cfg *AutoUserCreator) createRandomUser() (*model.User, bool) {
 
 	ruser := result.Data.(*model.User)
 
+	status := &model.Status{ruser.Id, model.STATUS_ONLINE, false, model.GetMillis(), ""}
+	if result := <-Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
+		result.Err.Translate(utils.T)
+		l4g.Error(result.Err.Error())
+		return nil, false
+	}
+
 	// We need to cheat to verify the user's email
 	store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
 

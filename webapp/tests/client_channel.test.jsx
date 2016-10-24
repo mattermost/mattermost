@@ -285,13 +285,29 @@ describe('Client.Channels', function() {
         });
     });
 
-    it('getChannelExtraInfo', function(done) {
+    it('getChannelStats', function(done) {
         TestHelper.initBasic(() => {
-            TestHelper.basicClient().getChannelExtraInfo(
+            TestHelper.basicClient().getChannelStats(
                 TestHelper.basicChannel().id,
-                5,
                 function(data) {
                     assert.equal(data.member_count, 1);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
+    it('getChannelMember', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().getChannelMember(
+                TestHelper.basicChannel().id,
+                TestHelper.basicUser().id,
+                function(data) {
+                    assert.equal(data.channel_id, TestHelper.basicChannel().id);
+                    assert.equal(data.user_id, TestHelper.basicUser().id);
                     done();
                 },
                 function(err) {

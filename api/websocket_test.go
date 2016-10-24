@@ -82,7 +82,8 @@ func TestWebSocketEvent(t *testing.T) {
 	omitUser["somerandomid"] = true
 	evt1 := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_TYPING, "", th.BasicChannel.Id, "", omitUser)
 	evt1.Add("user_id", "somerandomid")
-	go Publish(evt1)
+	Publish(evt1)
+
 	time.Sleep(300 * time.Millisecond)
 
 	stop := make(chan bool)
