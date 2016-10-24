@@ -60,7 +60,7 @@
         "MaxIdleConns": 10,
         "MaxOpenConns": 10,
         "Trace": false,
-        "AtRestEncryptKey": "qd4cozue64i4ktsp5tkeyx7keex66y67"
+        "AtRestEncryptKey": ""
     },
     "LogSettings": {
         "EnableConsole": true,
