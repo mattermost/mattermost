@@ -465,6 +465,7 @@ export function applyTheme(theme) {
     if (theme.sidebarBg) {
         changeCss('.app__body .sidebar--left, .app__body .sidebar--left .sidebar__divider .sidebar__divider__text, .app__body .modal .settings-modal .settings-table .settings-links, .app__body .sidebar--menu', 'background:' + theme.sidebarBg, 1);
         changeCss('body.app__body', 'scrollbar-face-color:' + theme.sidebarBg, 3);
+        changeCss('@media(max-width: 768px){.app__body .modal .settings-modal:not(.display--content) .modal-content', 'background:' + theme.sidebarBg, 1);
     }
 
     if (theme.sidebarText) {
@@ -544,7 +545,7 @@ export function applyTheme(theme) {
     if (theme.centerChannelBg) {
         changeCss('@media(min-width: 768px){.app__body .post:hover .post__header .col__reply, .app__body .post.post--hovered .post__header .col__reply', 'background:' + theme.centerChannelBg, 1);
         changeCss('.app__body .app__content, .app__body .markdown__table, .app__body .markdown__table tbody tr, .app__body .suggestion-list__content, .app__body .modal .modal-content, .app__body .post.post--compact .post-image__column, .app__body .suggestion-list__divider > span', 'background:' + theme.centerChannelBg, 1);
-        changeCss('#post-list .post-list-holder-by-time', 'background:' + theme.centerChannelBg, 1);
+        changeCss('#post-list .post-list-holder-by-time, .app__body .post-list__table .post-list__content .dropdown-menu a', 'background:' + theme.centerChannelBg, 1);
         changeCss('#post-create', 'background:' + theme.centerChannelBg, 1);
         changeCss('.app__body .date-separator .separator__text, .app__body .new-separator .separator__text', 'background:' + theme.centerChannelBg, 1);
         changeCss('.app__body .post-image__details, .app__body .search-help-popover .search-autocomplete__divider span', 'background:' + theme.centerChannelBg, 1);
@@ -565,7 +566,7 @@ export function applyTheme(theme) {
         changeCss('.app__body .post-list__arrows, .app__body .post .flag-icon__container', 'fill:' + changeOpacity(theme.centerChannelColor, 0.3), 1);
         changeCss('.app__body .modal .status .offline--icon, .app__body .channel-header__links .icon, .app__body .sidebar--right .sidebar--right__subheader .usage__icon', 'fill:' + theme.centerChannelColor, 1);
         changeCss('@media(min-width: 768px){.app__body .post:hover .post__header .col__reply, .app__body .post.post--hovered .post__header .col__reply', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 2);
-        changeCss('.app__body .sidebar--left, .app__body .sidebar--right .sidebar--right__header, .app__body .suggestion-list__content .command', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
+        changeCss('.app__body .post-list__table .post-list__content .dropdown-menu a, .app__body .sidebar--left, .app__body .sidebar--right .sidebar--right__header, .app__body .suggestion-list__content .command', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
         changeCss('.app__body .post.post--system .post__body', 'color:' + changeOpacity(theme.centerChannelColor, 0.6), 1);
         changeCss('.app__body .input-group-addon, .app__body .app__content, .app__body .post-create__container .post-create-body .btn-file, .app__body .post-create__container .post-create-footer .msg-typing, .app__body .suggestion-list__content .command, .app__body .modal .modal-content, .app__body .dropdown-menu, .app__body .popover, .app__body .mentions__name, .app__body .tip-overlay, .app__body .form-control[disabled], .app__body .form-control[readonly], .app__body fieldset[disabled] .form-control', 'color:' + theme.centerChannelColor, 1);
         changeCss('.app__body .post .post__link', 'color:' + changeOpacity(theme.centerChannelColor, 0.65), 1);
