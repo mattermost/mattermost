@@ -5,6 +5,7 @@ import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import Client from 'client/web_client.jsx';
+import * as ChannelActions from 'actions/channel_actions.jsx';
 import UserStore from 'stores/user_store.jsx';
 import PostDeletedModal from './post_deleted_modal.jsx';
 import PostStore from 'stores/post_store.jsx';
@@ -47,6 +48,7 @@ export default class CreateComment extends React.Component {
         this.focusTextbox = this.focusTextbox.bind(this);
         this.showPostDeletedModal = this.showPostDeletedModal.bind(this);
         this.hidePostDeletedModal = this.hidePostDeletedModal.bind(this);
+        this.showShortcuts = this.showShortcuts.bind(this);
 
         PostStore.clearCommentDraftUploads();
         MessageHistoryStore.resetHistoryIndex('comment');
@@ -64,11 +66,32 @@ export default class CreateComment extends React.Component {
 
     componentDidMount() {
         PreferenceStore.addChangeListener(this.onPreferenceChange);
+
         this.focusTextbox();
+        document.addEventListener('keydown', this.showShortcuts);
     }
 
     componentWillUnmount() {
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
+        document.removeEventListener('keydown', this.showShortcuts);
+    }
+
+    showShortcuts(e) {
+        if ((e.ctrlKey || e.metaKey) && e.keyCode === Constants.KeyCodes.FORWARD_SLASH) {
+            e.preventDefault();
+            ChannelActions.executeCommand(
+                this.props.channelId,
+                '/shortcuts ',
+                false,
+                null,
+                (err) => {
+                    this.setState({
+                        serverError: err.message,
+                        submitting: false
+                    });
+                }
+            );
+        }
     }
 
     onPreferenceChange() {
@@ -121,6 +144,40 @@ export default class CreateComment extends React.Component {
 
         MessageHistoryStore.storeMessageInHistory(this.state.messageText);
 
+        this.setState({submitting: true, serverError: null});
+
+        if (post.message.indexOf('/') === 0) {
+            PostStore.storeDraft(this.props.channelId, null);
+            this.setState({messageText: '', postError: null, fileInfos: []});
+
+            ChannelActions.executeCommand(
+                this.props.channelId,
+                post.message,
+                false,
+                (data) => {
+                    this.setState({submitting: false});
+
+                    if (data.goto_location && data.goto_location.length > 0) {
+                        browserHistory.push(data.goto_location);
+                    }
+                },
+                (err) => {
+                    if (err.sendMessage) {
+                        this.sendMessage(post);
+                    } else {
+                        const state = {};
+                        state.serverError = err.message;
+                        state.submitting = false;
+                        this.setState(state);
+                    }
+                }
+            );
+        } else {
+            this.sendMessage(post);
+        }
+    }
+
+    sendMessage(post) {
         const userId = UserStore.getCurrentId();
 
         post.channel_id = this.props.channelId;
@@ -399,7 +456,6 @@ export default class CreateComment extends React.Component {
                                 messageText={this.state.messageText}
                                 createMessage={Utils.localizeMessage('create_comment.addComment', 'Add a comment...')}
                                 initialText=''
-                                supportsCommands={false}
                                 channelId={this.props.channelId}
                                 id='reply_textbox'
                                 ref='textbox'
