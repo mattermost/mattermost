@@ -41,6 +41,7 @@ func NewSqlPostStore(sqlStore *SqlStore) PostStore {
 func (s SqlPostStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_posts_update_at", "Posts", "UpdateAt")
 	s.CreateIndexIfNotExists("idx_posts_create_at", "Posts", "CreateAt")
+	s.CreateIndexIfNotExists("idx_posts_delete_at", "Posts", "DeleteAt")
 	s.CreateIndexIfNotExists("idx_posts_channel_id", "Posts", "ChannelId")
 	s.CreateIndexIfNotExists("idx_posts_root_id", "Posts", "RootId")
 	s.CreateIndexIfNotExists("idx_posts_user_id", "Posts", "UserId")

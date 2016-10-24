@@ -32,6 +32,9 @@ func NewSqlSessionStore(sqlStore *SqlStore) SessionStore {
 func (me SqlSessionStore) CreateIndexesIfNotExists() {
 	me.CreateIndexIfNotExists("idx_sessions_user_id", "Sessions", "UserId")
 	me.CreateIndexIfNotExists("idx_sessions_token", "Sessions", "Token")
+	me.CreateIndexIfNotExists("idx_sessions_expires_at", "Sessions", "ExpiresAt")
+	me.CreateIndexIfNotExists("idx_sessions_create_at", "Sessions", "CreateAt")
+	me.CreateIndexIfNotExists("idx_sessions_last_activity_at", "Sessions", "LastActivityAt")
 }
 
 func (me SqlSessionStore) Save(session *model.Session) StoreChannel {

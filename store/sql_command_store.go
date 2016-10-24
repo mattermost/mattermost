@@ -36,6 +36,9 @@ func NewSqlCommandStore(sqlStore *SqlStore) CommandStore {
 
 func (s SqlCommandStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_command_team_id", "Commands", "TeamId")
+	s.CreateIndexIfNotExists("idx_command_update_at", "Commands", "UpdateAt")
+	s.CreateIndexIfNotExists("idx_command_create_at", "Commands", "CreateAt")
+	s.CreateIndexIfNotExists("idx_command_delete_at", "Commands", "DeleteAt")
 }
 
 func (s SqlCommandStore) Save(command *model.Command) StoreChannel {
