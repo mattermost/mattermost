@@ -206,7 +206,7 @@ export default class Textbox extends React.Component {
                     spellCheck='true'
                     maxLength={Constants.MAX_POST_LEN}
                     placeholder={this.props.createMessage}
-                    onInput={this.props.onInput}
+                    onChange={this.props.onChange}
                     onKeyPress={this.handleKeyPress}
                     onKeyDown={this.handleKeyDown}
                     onHeightChange={this.handleHeightChange}
@@ -251,7 +251,7 @@ Textbox.propTypes = {
     id: React.PropTypes.string.isRequired,
     channelId: React.PropTypes.string,
     messageText: React.PropTypes.string.isRequired,
-    onInput: React.PropTypes.func.isRequired,
+    onChange: React.PropTypes.func.isRequired,
     onKeyPress: React.PropTypes.func.isRequired,
     createMessage: React.PropTypes.string.isRequired,
     onKeyDown: React.PropTypes.func,

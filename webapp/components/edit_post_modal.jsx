@@ -31,7 +31,7 @@ export default class EditPostModal extends React.Component {
         this.handleEditKeyPress = this.handleEditKeyPress.bind(this);
         this.handleEditPostEvent = this.handleEditPostEvent.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
-        this.handleInput = this.handleInput.bind(this);
+        this.handleChange = this.handleChange.bind(this);
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.onModalHidden = this.onModalHidden.bind(this);
         this.onModalShow = this.onModalShow.bind(this);
@@ -89,7 +89,7 @@ export default class EditPostModal extends React.Component {
         $('#edit_post').modal('hide');
     }
 
-    handleInput(e) {
+    handleChange(e) {
         this.setState({
             editText: e.target.value
         });
@@ -230,7 +230,7 @@ export default class EditPostModal extends React.Component {
                         </div>
                         <div className='edit-modal-body modal-body'>
                             <Textbox
-                                onInput={this.handleInput}
+                                onChange={this.handleChange}
                                 onKeyPress={this.handleEditKeyPress}
                                 onKeyDown={this.handleKeyDown}
                                 messageText={this.state.editText}

@@ -43,7 +43,7 @@ export default class CreatePost extends React.Component {
         this.getCurrentDraft = this.getCurrentDraft.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.postMsgKeyPress = this.postMsgKeyPress.bind(this);
-        this.handleInput = this.handleInput.bind(this);
+        this.handleChange = this.handleChange.bind(this);
         this.handleUploadClick = this.handleUploadClick.bind(this);
         this.handleUploadStart = this.handleUploadStart.bind(this);
         this.handleFileUploadComplete = this.handleFileUploadComplete.bind(this);
@@ -210,7 +210,7 @@ export default class CreatePost extends React.Component {
         GlobalActions.emitLocalUserTypingEvent(this.state.channelId, '');
     }
 
-    handleInput(e) {
+    handleChange(e) {
         const messageText = e.target.value;
         this.setState({messageText});
 
@@ -512,7 +512,7 @@ export default class CreatePost extends React.Component {
                     <div className='post-create-body'>
                         <div className='post-body__cell'>
                             <Textbox
-                                onInput={this.handleInput}
+                                onChange={this.handleChange}
                                 onKeyPress={this.postMsgKeyPress}
                                 onKeyDown={this.handleKeyDown}
                                 messageText={this.state.messageText}
