@@ -730,6 +730,51 @@
                 white-space: nowrap;
             }
 
+            .dropdown-menu {
+                background: alpha-color($black, .9);
+                height: 100%;
+                left: 0;
+                overflow: auto;
+                padding-bottom: 140px;
+                position: fixed;
+                top: 42px;
+                width: 100%;
+
+                &:after {
+                    @include border-radius(50%);
+                    background: alpha-color($black, .8);
+                    border-bottom: 1px solid alpha-color($white, .3);
+                    bottom: 25px;
+                    color: $white;
+                    content: '×';
+                    display: block;
+                    font-size: 30px;
+                    height: 50px;
+                    left: 50%;
+                    line-height: 50px;
+                    margin-left: -25px;
+                    position: fixed;
+                    text-align: center;
+                    width: 50px;
+                }
+
+                > li {
+                    > a {
+                        border-bottom: 1px solid alpha-color($white, .3);
+                        color: $white;
+                        font-weight: 600;
+                        line-height: 50px;
+                        margin: 0 auto;
+                        text-align: center;
+                        width: 90%;
+
+                        &:hover {
+                            background: transparent;
+                        }
+                    }
+                }
+            }
+
             .status {
                 margin: 0 5px 0 3px;
                 top: 2px;
@@ -1056,8 +1101,76 @@
 }
 
 @media screen and (max-width: 640px) {
+    .post-list__table {
+        .post-list__content {
+            .dropdown-menu {
+                &.bottom {
+                    bottom: auto;
+                    top: 30%;
+                }
+
+                bottom: auto;
+                height: auto;
+                left: 0;
+                margin-left: 25px;
+                position: fixed;
+                top: 30%;
+                width: calc(100% - 50px);
+                z-index: 9999;
+
+                > li {
+                    > a {
+                        border-bottom: 1px solid;
+                        line-height: 50px;
+                        position: relative;
+                        text-align: center;
+
+                        &:hover {
+                            background: transparent;
+                        }
+                    }
+
+                    &:last-child {
+                        a {
+                            border: none;
+                        }
+                    }
+                }
+
+                &:before {
+                    background: alpha-color($black, .3);
+                    content: '';
+                    height: 100%;
+                    left: 0;
+                    position: fixed;
+                    top: 0;
+                    width: 100%;
+                }
+            }
+        }
+    }
+
     .app__body {
         .modal {
+            overflow: hidden;
+            padding: 0 !important;
+
+            .modal-dialog {
+                height: 100%;
+                margin: 0;
+                max-width: 100%;
+
+                .modal-content {
+                    height: 100%;
+                }
+            }
+
+            .modal-footer {
+                bottom: 0;
+                position: fixed;
+                width: 100%;
+            }
+
             .about-modal {
                 .about-modal__content {
                     display: block;
@@ -1231,9 +1344,22 @@
             }
         }
     }
+
     .tip-overlay {
         &.tip-overlay--sidebar {
             min-height: 440px;
+        }
+    }
+
+    .post-list__table {
+        .post-list__content {
+            .dropdown-menu {
+                &.bottom {
+                    top: 25%;
+                }
+
+                top: 25%;
+            }
         }
     }
 }
@@ -1242,4 +1368,12 @@
 // http://stackoverflow.com/a/34810294/6325807
 label span {
     pointer-events: none;
+}
+
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+    select,
+    textarea,
+    input {
+        font-size: 16px;
+    }
 }
