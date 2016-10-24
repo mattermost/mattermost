@@ -759,6 +759,8 @@ export function getTeamMember(teamId, userId) {
 
     callTracker[callName] = utils.getTimestamp();
     Client.getTeamMember(
+        teamId,
+        userId,
         (data) => {
             callTracker[callName] = 0;
 

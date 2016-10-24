@@ -1,12 +1,15 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import ConfirmModal from '../confirm_modal.jsx';
+
+import UserStore from 'stores/user_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
+
 import Client from 'client/web_client.jsx';
 import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
-import UserStore from 'stores/user_store.jsx';
-import ConfirmModal from '../confirm_modal.jsx';
-import TeamStore from 'stores/team_store.jsx';
+import * as AsyncClient from 'utils/async_client.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
@@ -43,18 +46,19 @@ export default class AdminTeamMembersDropdown extends React.Component {
             this.props.user.id,
             'system_user',
             () => {
-                this.props.refreshProfiles();
+                AsyncClient.getUser(this.props.user.id);
             },
             (err) => {
                 this.setState({serverError: err.message});
             }
         );
+
         Client.updateTeamMemberRoles(
             this.props.teamMember.team_id,
             this.props.user.id,
             'team_user',
             () => {
-                this.props.refreshProfiles();
+                AsyncClient.getTeamMember(this.props.teamMember.team_id, this.props.user.id);
             },
             (err) => {
                 this.setState({serverError: err.message});
@@ -74,22 +78,23 @@ export default class AdminTeamMembersDropdown extends React.Component {
 
     handleRemoveFromTeam() {
         Client.removeUserFromTeam(
-                this.props.teamMember.team_id,
-                this.props.user.id,
-                () => {
-                    this.props.refreshProfiles();
-                },
-                (err) => {
-                    this.setState({serverError: err.message});
-                }
-            );
+            this.props.teamMember.team_id,
+            this.props.user.id,
+            () => {
+                UserStore.removeProfileFromTeam(this.props.teamMember.team_id, this.props.user.id);
+                UserStore.emitInTeamChange();
+            },
+            (err) => {
+                this.setState({serverError: err.message});
+            }
+        );
     }
 
     handleMakeActive(e) {
         e.preventDefault();
         Client.updateActive(this.props.user.id, true,
             () => {
-                this.props.refreshProfiles();
+                AsyncClient.getUser(this.props.user.id);
             },
             (err) => {
                 this.setState({serverError: err.message});
@@ -101,7 +106,7 @@ export default class AdminTeamMembersDropdown extends React.Component {
         e.preventDefault();
         Client.updateActive(this.props.user.id, false,
             () => {
-                this.props.refreshProfiles();
+                AsyncClient.getUser(this.props.user.id);
             },
             (err) => {
                 this.setState({serverError: err.message});
@@ -115,7 +120,7 @@ export default class AdminTeamMembersDropdown extends React.Component {
             this.props.user.id,
             'team_user team_admin',
             () => {
-                this.props.refreshProfiles();
+                AsyncClient.getTeamMember(this.props.teamMember.team_id, this.props.user.id);
             },
             (err) => {
                 this.setState({serverError: err.message});
@@ -140,7 +145,7 @@ export default class AdminTeamMembersDropdown extends React.Component {
             this.props.user.id,
             'system_user system_admin',
             () => {
-                this.props.refreshProfiles();
+                AsyncClient.getUser(this.props.user.id);
             },
             (err) => {
                 this.setState({serverError: err.message});
@@ -158,7 +163,7 @@ export default class AdminTeamMembersDropdown extends React.Component {
 
         Client.adminResetMfa(this.props.user.id,
             () => {
-                this.props.refreshProfiles();
+                AsyncClient.getUser(this.props.user.id);
             },
             (err) => {
                 this.setState({serverError: err.message});
@@ -526,6 +531,5 @@ export default class AdminTeamMembersDropdown extends React.Component {
 AdminTeamMembersDropdown.propTypes = {
     user: React.PropTypes.object.isRequired,
     teamMember: React.PropTypes.object.isRequired,
-    refreshProfiles: React.PropTypes.func.isRequired,
     doPasswordReset: React.PropTypes.func.isRequired
 };
