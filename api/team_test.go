@@ -63,7 +63,7 @@ func TestCreateFromSignupTeam(t *testing.T) {
 	}
 
 	c1 := Client.Must(Client.GetChannels("")).Data.(*model.ChannelList)
-	if len(c1.Channels) != 2 {
+	if len(*c1) != 2 {
 		t.Fatal("default channels not created")
 	}
 
@@ -94,7 +94,7 @@ func TestCreateTeam(t *testing.T) {
 	Client.SetTeamId(rteam.Data.(*model.Team).Id)
 
 	c1 := Client.Must(Client.GetChannels("")).Data.(*model.ChannelList)
-	if len(c1.Channels) != 2 {
+	if len(*c1) != 2 {
 		t.Fatal("default channels not created")
 	}
 

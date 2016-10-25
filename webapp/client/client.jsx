@@ -1357,6 +1357,15 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getChannelCounts', success, error));
     }
 
+    getChannelsUnread(success, error) {
+        request.
+        get(`${this.getChannelsRoute()}/unread`).
+        set(this.defaultHeaders).
+        type('application/json').
+        accept('application/json').
+        end(this.handleResponse.bind(this, 'getChannelsUnread', success, error));
+    }
+
     getChannelStats(channelId, success, error) {
         request.
             get(`${this.getChannelNeededRoute(channelId)}/stats`).

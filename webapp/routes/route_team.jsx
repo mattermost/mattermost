@@ -75,8 +75,7 @@ function preNeedsTeam(nextState, replace, callback) {
         (data) => {
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_CHANNELS,
-                channels: data.channels,
-                members: data.members
+                channels: data
             });
 
             d1.resolve();

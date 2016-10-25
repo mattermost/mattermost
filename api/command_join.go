@@ -38,7 +38,7 @@ func (me *JoinProvider) DoCommand(c *Context, channelId string, message string) 
 	} else {
 		channels := result.Data.(*model.ChannelList)
 
-		for _, v := range channels.Channels {
+		for _, v := range *channels {
 
 			if v.Name == message {
 
