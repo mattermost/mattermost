@@ -62,7 +62,7 @@ func (t *blogTime) UnmarshalJSON(data []byte) (err error) {
 
 type PostData struct {
 	FileModTime time.Time
-	FileSize    int64
+	FileSize int64
 
 	Title    string
 	Date     blogTime
@@ -70,16 +70,16 @@ type PostData struct {
 	OldURL   string
 	Summary  string
 	Favorite bool
-
+	
 	Reader []string
 
 	PlusAuthor string // Google+ ID of author
 	PlusPage   string // Google+ Post ID for comment post
 	PlusAPIKey string // Google+ API key
 	PlusURL    string
-	HostURL    string // host URL
-	Comments   bool
-
+	HostURL string // host URL
+	Comments bool
+	
 	article string
 }
 
@@ -146,11 +146,11 @@ func serve(w http.ResponseWriter, req *http.Request) {
 	}()
 
 	p := path.Clean("/" + req.URL.Path)
-	/*
-		if strings.Contains(req.Host, "appspot.com") {
-			http.Redirect(w, req, "http://research.swtch.com" + p, http.StatusFound)
-		}
-	*/
+/*
+	if strings.Contains(req.Host, "appspot.com") {
+		http.Redirect(w, req, "http://research.swtch.com" + p, http.StatusFound)
+	}
+*/	
 	if p != req.URL.Path {
 		http.Redirect(w, req, p, http.StatusFound)
 		return
@@ -160,7 +160,7 @@ func serve(w http.ResponseWriter, req *http.Request) {
 		atomfeed(w, req)
 		return
 	}
-
+	
 	if strings.HasPrefix(p, "/20") && strings.Contains(p[1:], "/") {
 		// Assume this is an old-style URL.
 		oldRedirect(ctxt, w, req, p)
@@ -205,9 +205,9 @@ func serve(w http.ResponseWriter, req *http.Request) {
 	// Use just 'blog' as the cache path so that if we change
 	// templates, all the cached HTML gets invalidated.
 	var data []byte
-	pp := "bloghtml:" + p
+	pp := "bloghtml:"+p
 	if draft && !isOwner {
-		pp += ",user=" + user
+		pp += ",user="+user
 	}
 	if key, ok := ctxt.CacheLoad(pp, "blog", &data); !ok {
 		meta, article, err := loadPost(ctxt, p, req)
@@ -267,7 +267,7 @@ func loadPost(c *fs.Context, name string, req *http.Request) (meta *PostData, ar
 		Title:      "TITLE HERE",
 		PlusAuthor: plusRsc,
 		PlusAPIKey: plusKey,
-		HostURL:    hostURL(req),
+		HostURL: hostURL(req),
 	}
 
 	art, fi, err := c.Read("blog/post/" + name)
@@ -298,9 +298,9 @@ func (x byTime) Swap(i, j int)      { x[i], x[j] = x[j], x[i] }
 func (x byTime) Less(i, j int) bool { return x[i].Date.Time.After(x[j].Date.Time) }
 
 type TocData struct {
-	Draft   bool
+	Draft bool
 	HostURL string
-	Posts   []*PostData
+	Posts []*PostData
 }
 
 func toc(w http.ResponseWriter, req *http.Request, draft bool, isOwner bool, user string) {
@@ -312,7 +312,7 @@ func toc(w http.ResponseWriter, req *http.Request, draft bool, isOwner bool, use
 		keystr += ",readdir=" + req.FormValue("readdir")
 	}
 	if draft {
-		keystr += ",user=" + user
+		keystr += ",user="+user
 	}
 
 	if key, ok := c.CacheLoad(keystr, "blog", &data); !ok {
@@ -333,7 +333,7 @@ func toc(w http.ResponseWriter, req *http.Request, draft bool, isOwner bool, use
 				c.Criticalf("unmarshal blogcache: %v", err)
 			}
 		}
-
+		
 		ch := make(chan *PostData, len(dir))
 		const par = 20
 		var limit = make(chan bool, par)
@@ -348,7 +348,7 @@ func toc(w http.ResponseWriter, req *http.Request, draft bool, isOwner bool, use
 
 			<-limit
 			go func(d proto.FileInfo) {
-				defer func() { limit <- true }()
+				defer func() { limit <- true }() 
 				meta, _, err := loadPost(c, d.Name, req)
 				if err != nil {
 					// Should not happen: we just listed the directory.
@@ -371,7 +371,7 @@ func toc(w http.ResponseWriter, req *http.Request, draft bool, isOwner bool, use
 			}
 		}
 		sort.Sort(byTime(all))
-
+		
 		if data, err := json.Marshal(postCache); err != nil {
 			c.Criticalf("marshal blogcache: %v", err)
 		} else if err := c.Write("blogcache", data); err != nil {
@@ -391,12 +391,12 @@ func toc(w http.ResponseWriter, req *http.Request, draft bool, isOwner bool, use
 
 func oldRedirect(ctxt *fs.Context, w http.ResponseWriter, req *http.Request, p string) {
 	m := map[string]string{}
-	if key, ok := ctxt.CacheLoad("blog:oldRedirectMap", "blog/post", &m); !ok {
+	if key, ok := ctxt.CacheLoad("blog:oldRedirectMap", "blog/post", &m); !ok {	
 		dir, err := ctxt.ReadDir("blog/post")
 		if err != nil {
 			panic(err)
 		}
-
+		
 		for _, d := range dir {
 			meta, _, err := loadPost(ctxt, d.Name, req)
 			if err != nil {
@@ -405,13 +405,13 @@ func oldRedirect(ctxt *fs.Context, w http.ResponseWriter, req *http.Request, p s
 			}
 			m[meta.OldURL] = "/" + d.Name
 		}
-
+		
 		ctxt.CacheStore(key, m)
 	}
-
+	
 	if url, ok := m[p]; ok {
 		http.Redirect(w, req, url, http.StatusFound)
-		return
+		return	
 	}
 
 	notfound(ctxt, w, req)
@@ -426,16 +426,16 @@ func hostURL(req *http.Request) string {
 
 func atomfeed(w http.ResponseWriter, req *http.Request) {
 	c := fs.NewContext(req)
-
+	
 	c.Criticalf("Header: %v", req.Header)
 
 	var data []byte
-	if key, ok := c.CacheLoad("blog:atomfeed", "blog/post", &data); !ok {
+	if key, ok := c.CacheLoad("blog:atomfeed", "blog/post", &data); !ok {	
 		dir, err := c.ReadDir("blog/post")
 		if err != nil {
 			panic(err)
 		}
-
+	
 		var all []*PostData
 		for _, d := range dir {
 			meta, article, err := loadPost(c, d.Name, req)
@@ -450,7 +450,7 @@ func atomfeed(w http.ResponseWriter, req *http.Request) {
 			all = append(all, meta)
 		}
 		sort.Sort(byTime(all))
-
+	
 		show := all
 		if len(show) > 10 {
 			show = show[:10]
@@ -460,21 +460,21 @@ func atomfeed(w http.ResponseWriter, req *http.Request) {
 				}
 			}
 		}
-
+		
 		feed := &atom.Feed{
-			Title:   "research!rsc",
-			ID:      feedID,
+			Title: "research!rsc",
+			ID: feedID,
 			Updated: atom.Time(show[0].Date.Time),
 			Author: &atom.Person{
-				Name:  "Russ Cox",
-				URI:   "https://plus.google.com/" + plusRsc,
+				Name: "Russ Cox",
+				URI: "https://plus.google.com/" + plusRsc,
 				Email: "rsc@swtch.com",
 			},
 			Link: []atom.Link{
 				{Rel: "self", Href: hostURL(req) + "/feed.atom"},
 			},
 		}
-
+		
 		for _, meta := range show {
 			t := template.New("main")
 			t.Funcs(funcMap)
@@ -486,20 +486,20 @@ func atomfeed(w http.ResponseWriter, req *http.Request) {
 			if err != nil {
 				panic(err)
 			}
-			template.Must(t.New("article").Parse(meta.article))
+			template.Must(t.New("article").Parse(meta.article))		
 			var buf bytes.Buffer
 			if err := t.Execute(&buf, meta); err != nil {
 				panic(err)
 			}
-
+	
 			e := &atom.Entry{
 				Title: meta.Title,
-				ID:    feed.ID + "/" + meta.Name,
+				ID: feed.ID + "/" + meta.Name,
 				Link: []atom.Link{
 					{Rel: "alternate", Href: meta.HostURL + "/" + meta.Name},
 				},
 				Published: atom.Time(meta.Date.Time),
-				Updated:   atom.Time(meta.Date.Time),
+				Updated: atom.Time(meta.Date.Time),
 				Summary: &atom.Text{
 					Type: "text",
 					Body: meta.Summary,
@@ -509,15 +509,15 @@ func atomfeed(w http.ResponseWriter, req *http.Request) {
 					Body: buf.String(),
 				},
 			}
-
+			
 			feed.Entry = append(feed.Entry, e)
 		}
-
+		
 		data, err = xml.Marshal(&feed)
 		if err != nil {
 			panic(err)
 		}
-
+		
 		c.CacheStore(key, data)
 	}
 

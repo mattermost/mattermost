@@ -20,7 +20,7 @@ import (
 
 type Client struct {
 	Host     string
-	User     string
+	User string
 	Password string
 }
 
@@ -32,7 +32,7 @@ func (c *Client) url(op, path string) string {
 	if strings.HasSuffix(op, "/") && strings.HasPrefix(path, "/") {
 		path = path[1:]
 	}
-	return scheme + "://" + c.User + ":" + c.Password + "@" + c.Host + op + path
+	return scheme + "://"+ c.User + ":" + c.Password + "@" + c.Host + op + path
 }
 
 func (c *Client) do(u string) error {
@@ -56,7 +56,7 @@ func (c *Client) get(u string) ([]byte, error) {
 			if r.StatusCode == 500 {
 				if tries++; tries < 3 {
 					fmt.Printf("%s %s; sleeping\n", r.Status, data)
-					time.Sleep(5 * time.Second)
+					time.Sleep(5*time.Second)
 					continue
 				}
 			}
@@ -83,7 +83,7 @@ func (c *Client) post(u string, data []byte) ([]byte, error) {
 			if r.StatusCode == 500 {
 				if tries++; tries < 3 {
 					fmt.Printf("%s %s; sleeping\n", r.Status, rdata)
-					time.Sleep(5 * time.Second)
+					time.Sleep(5*time.Second)
 					continue
 				}
 			}

@@ -300,7 +300,7 @@ func TestNode(t *testing.T) {
 		t.Error("nodeid is all zeros")
 	}
 
-	id := []byte{1, 2, 3, 4, 5, 6, 7, 8}
+	id := []byte{1,2,3,4,5,6,7,8}
 	SetNodeID(id)
 	ni = NodeID()
 	if !bytes.Equal(ni, id[:6]) {

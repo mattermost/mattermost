@@ -44,7 +44,7 @@ var ae AppEngine
 
 func Register(impl AppEngine) {
 	ae = impl
-}
+}	
 
 // Root is the root of the local file system.  It has no effect on App Engine.
 var Root = "."
@@ -232,7 +232,7 @@ func (f *fileInfo) IsDir() bool        { return f.p.IsDir }
 func (f *fileInfo) Name() string       { return f.p.Name }
 func (f *fileInfo) ModTime() time.Time { return f.p.ModTime }
 func (f *fileInfo) Size() int64        { return f.p.Size }
-func (f *fileInfo) Sys() interface{}   { return f.p }
+func (f *fileInfo) Sys() interface{} { return f.p }
 func (f *fileInfo) Mode() os.FileMode {
 	if f.p.IsDir {
 		return os.ModeDir | 0777
