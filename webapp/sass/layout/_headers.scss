@@ -9,9 +9,10 @@
 
     .member-popover__trigger {
         cursor: pointer;
+        min-width: 60px;
         padding-right: 10px;
         text-align: right;
-        width: 60px;
+        white-space: nowrap;
 
         .fa {
             font-size: 16px;
