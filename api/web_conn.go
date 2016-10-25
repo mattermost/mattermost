@@ -35,12 +35,16 @@ type WebConn struct {
 func NewWebConn(c *Context, ws *websocket.Conn) *WebConn {
 	go SetStatusOnline(c.Session.UserId, c.Session.Id, false)
 
-	return &WebConn{
-		Send:      make(chan model.WebSocketMessage, 256),
-		WebSocket: ws,
-		T:         c.T,
-		Locale:    c.Locale,
+	conn := &WebConn{
+		Send:         make(chan model.WebSocketMessage, 256),
+		WebSocket:    ws,
+		UserId:       c.Session.UserId,
+		SessionToken: c.Session.Token,
+		T:            c.T,
+		Locale:       c.Locale,
 	}
+
+	return conn
 }
 
 func (c *WebConn) readPump() {
@@ -56,13 +60,17 @@ func (c *WebConn) readPump() {
 		return nil
 	})
 
-	go func() {
-		time.Sleep(AUTH_TIMEOUT)
-		if c.SessionToken == "" {
-			l4g.Debug("websocket.read: did not authenticate in time, ip=%v", c.WebSocket.RemoteAddr())
-			c.WebSocket.Close()
-		}
-	}()
+	if c.SessionToken == "" {
+		go func() {
+			time.Sleep(AUTH_TIMEOUT)
+			if c.SessionToken == "" {
+				l4g.Debug("websocket.read: did not authenticate in time, ip=%v", c.WebSocket.RemoteAddr())
+				c.WebSocket.Close()
+			}
+		}()
+	} else {
+		HubRegister(c)
+	}
 
 	for {
 		var req model.WebSocketRequest

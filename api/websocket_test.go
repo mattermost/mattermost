@@ -5,6 +5,7 @@ package api
 
 import (
 	"encoding/json"
+	"net/http"
 	"testing"
 	"time"
 
@@ -33,6 +34,7 @@ func TestWebSocketAuthentication(t *testing.T) {
 
 	WebSocketClient.Close()
 
+	authToken := WebSocketClient.AuthToken
 	WebSocketClient.AuthToken = "junk"
 	if err := WebSocketClient.Connect(); err != nil {
 		t.Fatal(err)
@@ -89,6 +91,26 @@ func TestWebSocketAuthentication(t *testing.T) {
 		if !hitNotAuthedError {
 			t.Fatal("should have received a not authenticated response")
 		}
+	}
+
+	header := http.Header{}
+	header.Set(model.HEADER_AUTH, "BEARER "+authToken)
+	if conn, _, err := websocket.DefaultDialer.Dial(WebSocketClient.ApiUrl+"/users/websocket", header); err != nil {
+		t.Fatal("should have connected")
+	} else {
+		if _, rawMsg, err := conn.ReadMessage(); err != nil {
+			t.Fatal("should not have closed automatically")
+		} else {
+			var event model.WebSocketEvent
+			if err := json.Unmarshal(rawMsg, &event); err != nil && !event.IsValid() {
+				t.Fatal("should not have failed")
+			} else if event.Event != model.WEBSOCKET_EVENT_HELLO {
+				t.Log(event.ToJson())
+				t.Fatal("should have helloed")
+			}
+		}
+
+		conn.Close()
 	}
 }
 

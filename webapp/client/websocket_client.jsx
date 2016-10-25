@@ -1,6 +1,8 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import WebSocket from 'ws';
+
 const MAX_WEBSOCKET_FAILS = 7;
 const MIN_WEBSOCKET_RETRY_TIME = 3000; // 3 sec
 const MAX_WEBSOCKET_RETRY_TIME = 300000; // 5 mins
@@ -18,7 +20,7 @@ export default class WebSocketClient {
         this.closeCallback = null;
     }
 
-    initialize(connectionUrl) {
+    initialize(connectionUrl, token) {
         if (this.conn) {
             return;
         }
@@ -30,6 +32,10 @@ export default class WebSocketClient {
         this.conn = new WebSocket(connectionUrl);
 
         this.conn.onopen = () => {
+            if (token) {
+                this.sendMessage('authentication_challenge', {token});
+            }
+
             if (this.connectFailCount > 0) {
                 console.log('websocket re-established connection'); //eslint-disable-line no-console
                 if (this.reconnectCallback) {
@@ -68,7 +74,7 @@ export default class WebSocketClient {
 
             setTimeout(
                 () => {
-                    this.initialize(connectionUrl);
+                    this.initialize(connectionUrl, token);
                 },
                 retryTime
             );
@@ -152,12 +158,12 @@ export default class WebSocketClient {
         }
     }
 
-    userTyping(channelId, parentId) {
+    userTyping(channelId, parentId, callback) {
         const data = {};
         data.channel_id = channelId;
         data.parent_id = parentId;
 
-        this.sendMessage('user_typing', data);
+        this.sendMessage('user_typing', data, callback);
     }
 
     getStatuses(callback) {
