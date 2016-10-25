@@ -3629,7 +3629,7 @@
   },
   {
     "id": "model.team.is_valid.characters.app_error",
-    "translation": "Name must be 4 or more lowercase alphanumeric characters"
+    "translation": "Name must be 2 or more lowercase alphanumeric characters"
   },
   {
     "id": "model.team.is_valid.company.app_error",

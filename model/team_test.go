@@ -84,11 +84,11 @@ var domains = []struct {
 	{"spin-punch-", false},
 	{"spin_punch", false},
 	{"a", false},
-	{"aa", false},
-	{"aaa", false},
+	{"aa", true},
+	{"aaa", true},
 	{"aaa-999b", true},
 	{"b00b", true},
-	{"b))b", false},
+	{"b)", false},
 	{"test", true},
 }
 

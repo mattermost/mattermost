@@ -188,7 +188,7 @@ func IsValidTeamName(s string) bool {
 		return false
 	}
 
-	if len(s) <= 3 {
+	if len(s) <= 1 {
 		return false
 	}
 

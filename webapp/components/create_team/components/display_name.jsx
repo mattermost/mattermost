@@ -30,7 +30,7 @@ export default class TeamSignupDisplayNamePage extends React.Component {
             this.setState({nameError: Utils.localizeMessage('create_team.display_name.required', 'This field is required')});
             return;
         } else if (displayName.length < Constants.MIN_TEAMNAME_LENGTH || displayName.length > Constants.MAX_TEAMNAME_LENGTH) {
-            this.setState({nameError: Utils.localizeMessage('create_team.display_name.charLength', 'Name must be 4 or more characters up to a maximum of 15')});
+            this.setState({nameError: Utils.localizeMessage('create_team.display_name.charLength', 'Name must be 2 or more characters up to a maximum of 15')});
             return;
         }
 
