@@ -22,6 +22,7 @@ import * as GlobalActions from 'actions/global_actions.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {FormattedMessage} from 'react-intl';
+import {browserHistory} from 'react-router/es6';
 
 const ActionTypes = Constants.ActionTypes;
 const KeyCodes = Constants.KeyCodes;
