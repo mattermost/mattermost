@@ -204,6 +204,10 @@
     "translation": "非直接频道的频道名不能出现无效字符 '__'"
   },
   {
+    "id": "api.channel.create_channel.max_channel_limit.app_error",
+    "translation": "当前团队无法创建超过 {{.MaxChannelsPerTeam}} 个频道。"
+  },
+  {
     "id": "api.channel.create_default_channels.off_topic",
     "translation": "闲聊频道"
   },
@@ -2404,8 +2408,12 @@
     "translation": "非法确认邮件链接。"
   },
   {
+    "id": "api.web_hub.start.starting.debug",
+    "translation": "启动 %v websocket 集线器中"
+  },
+  {
     "id": "api.web_hub.start.stopping.debug",
-    "translation": "停止 %v 连接"
+    "translation": "停止 websocket 集线器连接中"
   },
   {
     "id": "api.web_socket.connect.error",
@@ -3258,6 +3266,10 @@
   {
     "id": "model.config.is_valid.max_burst.app_error",
     "translation": "最大过载必须大于零。"
+  },
+  {
+    "id": "model.config.is_valid.max_channels.app_error",
+    "translation": "团队设置中频道最大用户数无效，必须是正整数。"
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
@@ -4632,8 +4644,16 @@
     "translation": "无法找到此用户id和团队id相关联的团队成员"
   },
   {
+    "id": "store.sql_team.get_member_count.app_error",
+    "translation": "我们无法计算团队成员数"
+  },
+  {
     "id": "store.sql_team.get_members.app_error",
     "translation": "我们无法获得频道成员"
+  },
+  {
+    "id": "store.sql_team.get_members_by_ids.app_error",
+    "translation": "我们无法获得团队成员"
   },
   {
     "id": "store.sql_team.get_teams_for_email.app_error",
@@ -4722,6 +4742,10 @@
   {
     "id": "store.sql_user.get_profiles.app_error",
     "translation": "我们查找用户配置文件遇到了一个错误"
+  },
+  {
+    "id": "store.sql_user.get_recently_active_users.app_error",
+    "translation": "查找最近活动的用户时遇到错误"
   },
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",

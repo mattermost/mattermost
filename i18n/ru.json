@@ -204,6 +204,10 @@
     "translation": "Недопустимый символ '__' в имени канала не для личных сообщений"
   },
   {
+    "id": "api.channel.create_channel.max_channel_limit.app_error",
+    "translation": "Нельзя создать больше {{.MaxChannelsPerTeam}} каналов для этой команды"
+  },
+  {
     "id": "api.channel.create_default_channels.off_topic",
     "translation": "Флуд"
   },
@@ -625,7 +629,7 @@
   },
   {
     "id": "api.command_shortcuts.msgs",
-    "translation": "#### Сообщения\n\nALT+[click on a message]: Установить сообщение, в текущем канале, как непрочитанное\nESC: Отметить все сообщения в текущем канале как прочитанные\nCMD+UP (в пустом поле ввода): Восстановить предыдущее введенное сообщение или команду\nCMD+DOWN (в пустом поле ввода): Восстановить следующее введенное сообщение или команду\nUP (в пустом поле ввода): Править свое последнее сообщение в текущем канале\n@[character]+TAB: Дополнить имя пользователя @username начинающееся с [character]\n:[character]+TAB: Дополнить эмодзи начинающийся с [character]\n\n"
+    "translation": "#### Сообщения\n\nALT+[клик на сообщение]: Установить сообщение, в текущем канале, как непрочитанное\nESC: Отметить все сообщения в текущем канале как прочитанные\nCMD+UP (в пустом поле ввода): Восстановить предыдущее введенное сообщение или команду\nCMD+DOWN (в пустом поле ввода): Восстановить следующее введенное сообщение или команду\nUP (в пустом поле ввода): Править свое последнее сообщение в текущем канале\n@[character]+TAB: Дополнить имя пользователя @username начинающееся с [character]\n:[character]+TAB: Дополнить эмодзи начинающийся с [character]\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs_mac",
@@ -2404,8 +2408,12 @@
     "translation": "Плохая ссылка проверки email."
   },
   {
+    "id": "api.web_hub.start.starting.debug",
+    "translation": "Запуск %v хабов Websocket"
+  },
+  {
     "id": "api.web_hub.start.stopping.debug",
-    "translation": "остановка %v соединений"
+    "translation": "Закрытие соединений к хабам Websocket"
   },
   {
     "id": "api.web_socket.connect.error",
@@ -3258,6 +3266,10 @@
   {
     "id": "model.config.is_valid.max_burst.app_error",
     "translation": "Максимальное превышение полосы пропускания должно быть больше нуля."
+  },
+  {
+    "id": "model.config.is_valid.max_channels.app_error",
+    "translation": "Неверное максимальное количество пользователей на команду в настройках команд. Число должно быть положительным."
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
@@ -4632,8 +4644,16 @@
     "translation": "Ни одного участника канала не было найдено для данных идентификаторов пользователя и команды"
   },
   {
+    "id": "store.sql_team.get_member_count.app_error",
+    "translation": "Мы не можем посчитать количество участников команды"
+  },
+  {
     "id": "store.sql_team.get_members.app_error",
     "translation": "Не удалось получить участников команды"
+  },
+  {
+    "id": "store.sql_team.get_members_by_ids.app_error",
+    "translation": "Мы не можем получить список участников команды"
   },
   {
     "id": "store.sql_team.get_teams_for_email.app_error",
@@ -4722,6 +4742,10 @@
   {
     "id": "store.sql_user.get_profiles.app_error",
     "translation": "Возникла ошибка при поиске пользовательских профилей"
+  },
+  {
+    "id": "store.sql_user.get_recently_active_users.app_error",
+    "translation": "Произошла ошибка при поиске недавно активных пользователей"
   },
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",
