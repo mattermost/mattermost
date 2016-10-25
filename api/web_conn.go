@@ -33,9 +33,11 @@ type WebConn struct {
 }
 
 func NewWebConn(c *Context, ws *websocket.Conn) *WebConn {
-	go SetStatusOnline(c.Session.UserId, c.Session.Id, false)
+	if len(c.Session.UserId) > 0 {
+		go SetStatusOnline(c.Session.UserId, c.Session.Id, false)
+	}
 
-	conn := &WebConn{
+	return &WebConn{
 		Send:         make(chan model.WebSocketMessage, 256),
 		WebSocket:    ws,
 		UserId:       c.Session.UserId,
@@ -43,8 +45,6 @@ func NewWebConn(c *Context, ws *websocket.Conn) *WebConn {
 		T:            c.T,
 		Locale:       c.Locale,
 	}
-
-	return conn
 }
 
 func (c *WebConn) readPump() {
@@ -59,18 +59,6 @@ func (c *WebConn) readPump() {
 		go SetStatusAwayIfNeeded(c.UserId, false)
 		return nil
 	})
-
-	if c.SessionToken == "" {
-		go func() {
-			time.Sleep(AUTH_TIMEOUT)
-			if c.SessionToken == "" {
-				l4g.Debug("websocket.read: did not authenticate in time, ip=%v", c.WebSocket.RemoteAddr())
-				c.WebSocket.Close()
-			}
-		}()
-	} else {
-		HubRegister(c)
-	}
 
 	for {
 		var req model.WebSocketRequest
@@ -91,9 +79,11 @@ func (c *WebConn) readPump() {
 
 func (c *WebConn) writePump() {
 	ticker := time.NewTicker(PING_PERIOD)
+	authTicker := time.NewTicker(AUTH_TIMEOUT)
 
 	defer func() {
 		ticker.Stop()
+		authTicker.Stop()
 		c.WebSocket.Close()
 	}()
 
@@ -130,6 +120,13 @@ func (c *WebConn) writePump() {
 
 				return
 			}
+
+		case <-authTicker.C:
+			if c.SessionToken == "" {
+				l4g.Debug(fmt.Sprintf("websocket.authTicker: did not authenticate ip=%v", c.WebSocket.RemoteAddr()))
+				return
+			}
+			authTicker.Stop()
 		}
 	}
 }
@@ -141,6 +138,11 @@ func (webCon *WebConn) InvalidateCache() {
 }
 
 func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
+	// IMPORTANT: Do not send event if WebConn does not have a session
+	if webCon.SessionToken == "" {
+		return false
+	}
+
 	// If the event is destined to a specific user
 	if len(msg.Broadcast.UserId) > 0 && webCon.UserId != msg.Broadcast.UserId {
 		return false
