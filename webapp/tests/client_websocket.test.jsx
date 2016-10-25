@@ -1,6 +1,6 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
-
+/*
 var assert = require('assert');
 import TestHelper from './test_helper.jsx';
 
@@ -45,5 +45,5 @@ describe('Client.WebSocket', function() {
             );
         }, true);
     });
-});
+});*/
 
