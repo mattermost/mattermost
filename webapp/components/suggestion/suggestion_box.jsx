@@ -9,7 +9,7 @@ import * as GlobalActions from 'actions/global_actions.jsx';
 import SuggestionStore from 'stores/suggestion_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 
-import TextareaAutosize from 'react-textarea-autosize';
+import TextareaAutosize from 'react-autosize-textarea';
 
 const KeyCodes = Constants.KeyCodes;
 
@@ -22,7 +22,7 @@ export default class SuggestionBox extends React.Component {
         this.handleDocumentClick = this.handleDocumentClick.bind(this);
 
         this.handleCompleteWord = this.handleCompleteWord.bind(this);
-        this.handleInput = this.handleInput.bind(this);
+        this.handleChange = this.handleChange.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handlePretextChanged = this.handlePretextChanged.bind(this);
 
@@ -70,15 +70,15 @@ export default class SuggestionBox extends React.Component {
         }
     }
 
-    handleInput(e) {
+    handleChange(e) {
         const textbox = ReactDOM.findDOMNode(this.refs.textbox);
         const caret = Utils.getCaretPosition(textbox);
         const pretext = textbox.value.substring(0, caret);
 
         GlobalActions.emitSuggestionPretextChanged(this.suggestionId, pretext);
 
-        if (this.props.onInput) {
-            this.props.onInput(e);
+        if (this.props.onChange) {
+            this.props.onChange(e);
         }
     }
 
@@ -103,14 +103,14 @@ export default class SuggestionBox extends React.Component {
 
         this.refs.textbox.value = prefix + term + ' ' + suffix;
 
-        if (this.props.onInput) {
+        if (this.props.onChange) {
             // fake an input event to send back to parent components
             const e = {
                 target: this.refs.textbox
             };
 
-            // don't call handleInput or we'll get into an event loop
-            this.props.onInput(e);
+            // don't call handleChange or we'll get into an event loop
+            this.props.onChange(e);
         }
 
         textbox.focus();
@@ -157,7 +157,7 @@ export default class SuggestionBox extends React.Component {
                     ref='textbox'
                     type='text'
                     {...this.props}
-                    onInput={this.handleInput}
+                    onChange={this.handleChange}
                     onKeyDown={this.handleKeyDown}
                 />
             );
@@ -167,7 +167,7 @@ export default class SuggestionBox extends React.Component {
                     ref='textbox'
                     type='search'
                     {...this.props}
-                    onInput={this.handleInput}
+                    onChange={this.handleChange}
                     onKeyDown={this.handleKeyDown}
                 />
             );
@@ -177,7 +177,7 @@ export default class SuggestionBox extends React.Component {
                     id={this.suggestionId}
                     ref='textbox'
                     {...this.props}
-                    onInput={this.handleInput}
+                    onChange={this.handleChange}
                     onKeyDown={this.handleKeyDown}
                 />
             );
@@ -226,6 +226,6 @@ SuggestionBox.propTypes = {
     renderDividers: React.PropTypes.bool,
 
     // explicitly name any input event handlers we override and need to manually call
-    onInput: React.PropTypes.func,
+    onChange: React.PropTypes.func,
     onKeyDown: React.PropTypes.func
 };

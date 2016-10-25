@@ -23,7 +23,7 @@ export default class SwitchChannelModal extends React.Component {
     constructor() {
         super();
 
-        this.onInput = this.onInput.bind(this);
+        this.onChange = this.onChange.bind(this);
         this.onShow = this.onShow.bind(this);
         this.onHide = this.onHide.bind(this);
         this.onExited = this.onExited.bind(this);
@@ -68,7 +68,7 @@ export default class SwitchChannelModal extends React.Component {
         });
     }
 
-    onInput(e) {
+    onChange(e) {
         this.setState({text: e.target.value});
     }
 
@@ -152,7 +152,7 @@ export default class SwitchChannelModal extends React.Component {
                         ref='search'
                         className='form-control focused'
                         type='input'
-                        onInput={this.onInput}
+                        onChange={this.onChange}
                         value={this.state.text}
                         onKeyDown={this.handleKeyDown}
                         listComponent={SuggestionList}
