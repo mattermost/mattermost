@@ -83,9 +83,9 @@ export default class SuggestionBox extends React.Component {
     }
 
     handleCompleteWord(term, matchedPretext) {
-        const textbox = this.refs.textbox;
+        const textbox = ReactDOM.findDOMNode(this.refs.textbox);
         const caret = Utils.getCaretPosition(textbox);
-        const text = textbox.value;
+        const text = this.props.value;
         const pretext = text.substring(0, caret);
 
         let prefix;
