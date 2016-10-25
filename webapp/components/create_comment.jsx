@@ -35,7 +35,7 @@ export default class CreateComment extends React.Component {
 
         this.handleSubmit = this.handleSubmit.bind(this);
         this.commentMsgKeyPress = this.commentMsgKeyPress.bind(this);
-        this.handleInput = this.handleInput.bind(this);
+        this.handleChange = this.handleChange.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleUploadClick = this.handleUploadClick.bind(this);
         this.handleUploadStart = this.handleUploadStart.bind(this);
@@ -180,7 +180,7 @@ export default class CreateComment extends React.Component {
         GlobalActions.emitLocalUserTypingEvent(this.props.channelId, this.props.rootId);
     }
 
-    handleInput(e) {
+    handleChange(e) {
         const messageText = e.target.value;
 
         const draft = PostStore.getCommentDraft(this.props.rootId);
@@ -393,7 +393,7 @@ export default class CreateComment extends React.Component {
                     >
                         <div className='post-body__cell'>
                             <Textbox
-                                onInput={this.handleInput}
+                                onChange={this.handleChange}
                                 onKeyPress={this.commentMsgKeyPress}
                                 onKeyDown={this.handleKeyDown}
                                 messageText={this.state.messageText}
