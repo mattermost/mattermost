@@ -83,12 +83,7 @@ export default class SignupController extends React.Component {
                         this.setState({ // eslint-disable-line react/no-did-mount-set-state
                             noOpenServerError: true,
                             loading: false,
-                            serverError: (
-                                <FormattedMessage
-                                    id={e.id}
-                                    defaultMessage={e.message}
-                                />
-                            )
+                            serverError: e.message
                         });
                     }
                 );
