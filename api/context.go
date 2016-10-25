@@ -485,6 +485,8 @@ func RemoveAllSessionsForUserId(userId string) {
 		}
 	}
 
+	StopWebSocketsForUser(userId)
+
 	if einterfaces.GetClusterInterface() != nil {
 		einterfaces.GetClusterInterface().RemoveAllSessionsForUserId(userId)
 	}
