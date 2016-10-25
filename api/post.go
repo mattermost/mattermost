@@ -901,9 +901,9 @@ func getMessageForNotification(post *model.Post, translateFunc i18n.TranslateFun
 }
 
 func sendPushNotification(post *model.Post, user *model.User, channel *model.Channel, senderName string, wasMentioned bool) {
-	session := getMobileAppSession(user.Id)
+	sessions := getMobileAppSessions(user.Id)
 
-	if session == nil {
+	if sessions == nil {
 		return
 	}
 
@@ -928,8 +928,6 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 	msg.ChannelId = channel.Id
 	msg.ChannelName = channel.Name
 
-	msg.SetDeviceIdAndPlatform(session.DeviceId)
-
 	if *utils.Cfg.EmailSettings.PushNotificationContents == model.FULL_NOTIFICATION {
 		if channel.Type == model.CHANNEL_DIRECT {
 			msg.Category = model.CATEGORY_DM
@@ -949,12 +947,17 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 	}
 
 	l4g.Debug(utils.T("api.post.send_notifications_and_forget.push_notification.debug"), msg.DeviceId, msg.Message)
-	sendToPushProxy(msg)
+
+	for _, session := range sessions {
+		tmpMessage := *model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
+		tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
+		sendToPushProxy(tmpMessage)
+	}
 }
 
 func clearPushNotification(userId string, channelId string) {
-	session := getMobileAppSession(userId)
-	if session == nil {
+	sessions := getMobileAppSessions(userId)
+	if sessions == nil {
 		return
 	}
 
@@ -969,10 +972,12 @@ func clearPushNotification(userId string, channelId string) {
 		msg.Badge = int(badge.Data.(int64))
 	}
 
-	msg.SetDeviceIdAndPlatform(session.DeviceId)
-
 	l4g.Debug(utils.T("api.post.send_notifications_and_forget.clear_push_notification.debug"), msg.DeviceId, msg.ChannelId)
-	sendToPushProxy(msg)
+	for _, session := range sessions {
+		tmpMessage := *model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
+		tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
+		sendToPushProxy(tmpMessage)
+	}
 }
 
 func sendToPushProxy(msg model.PushNotification) {
@@ -992,22 +997,13 @@ func sendToPushProxy(msg model.PushNotification) {
 	}
 }
 
-func getMobileAppSession(userId string) *model.Session {
-	var sessions []*model.Session
-	if result := <-Srv.Store.Session().GetSessions(userId); result.Err != nil {
+func getMobileAppSessions(userId string) []*model.Session {
+	if result := <-Srv.Store.Session().GetSessionsWithActiveDeviceIds(userId); result.Err != nil {
 		l4g.Error(utils.T("api.post.send_notifications_and_forget.sessions.error"), userId, result.Err)
 		return nil
 	} else {
-		sessions = result.Data.([]*model.Session)
+		return result.Data.([]*model.Session)
 	}
-
-	for _, session := range sessions {
-		if session.IsMobileApp() {
-			return session
-		}
-	}
-
-	return nil
 }
 
 func sendOutOfChannelMentions(c *Context, post *model.Post, profiles map[string]*model.User) {

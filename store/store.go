@@ -172,6 +172,7 @@ type SessionStore interface {
 	Save(session *model.Session) StoreChannel
 	Get(sessionIdOrToken string) StoreChannel
 	GetSessions(userId string) StoreChannel
+	GetSessionsWithActiveDeviceIds(userId string) StoreChannel
 	Remove(sessionIdOrToken string) StoreChannel
 	RemoveAllSessions() StoreChannel
 	PermanentDeleteSessionsByUser(teamId string) StoreChannel
