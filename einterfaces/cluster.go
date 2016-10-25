@@ -13,7 +13,6 @@ type ClusterInterface interface {
 	GetClusterInfos() []*model.ClusterInfo
 	RemoveAllSessionsForUserId(userId string)
 	InvalidateCacheForUser(userId string)
-	InvalidateCacheForChannel(channelId string)
 	Publish(event *model.WebSocketEvent)
 	UpdateStatus(status *model.Status)
 	GetLogs() ([]string, *model.AppError)

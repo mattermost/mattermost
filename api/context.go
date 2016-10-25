@@ -474,6 +474,14 @@ func GetSession(token string) *model.Session {
 
 func RemoveAllSessionsForUserId(userId string) {
 
+	RemoveAllSessionsForUserIdSkipClusterSend(userId)
+
+	if einterfaces.GetClusterInterface() != nil {
+		einterfaces.GetClusterInterface().RemoveAllSessionsForUserId(userId)
+	}
+}
+
+func RemoveAllSessionsForUserIdSkipClusterSend(userId string) {
 	keys := sessionCache.Keys()
 
 	for _, key := range keys {
@@ -485,9 +493,6 @@ func RemoveAllSessionsForUserId(userId string) {
 		}
 	}
 
-	if einterfaces.GetClusterInterface() != nil {
-		einterfaces.GetClusterInterface().RemoveAllSessionsForUserId(userId)
-	}
 }
 
 func AddSessionToCache(session *model.Session) {

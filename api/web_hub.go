@@ -101,30 +101,19 @@ func PublishSkipClusterSend(message *model.WebSocketEvent) {
 }
 
 func InvalidateCacheForUser(userId string) {
-
-	Srv.Store.Channel().InvalidateAllChannelMembersForUser(userId)
-
-	for _, hub := range hubs {
-		hub.InvalidateUser(userId)
-	}
+	InvalidateCacheForUserSkipClusterSend(userId)
 
 	if einterfaces.GetClusterInterface() != nil {
 		einterfaces.GetClusterInterface().InvalidateCacheForUser(userId)
 	}
 }
 
-func InvalidateCacheForChannel(channelId string) {
+func InvalidateCacheForUserSkipClusterSend(userId string) {
+	Srv.Store.Channel().InvalidateAllChannelMembersForUser(userId)
 
-	// XXX TODO FIX ME
-	// This can be removed, but the performance branch
-	// needs to be merged into master so it can be removed
-	// from the enterprise repo as well.
-
-	// hub.invalidateChannel <- channelId
-
-	// if einterfaces.GetClusterInterface() != nil {
-	// 	einterfaces.GetClusterInterface().InvalidateCacheForChannel(channelId)
-	// }
+	for _, hub := range hubs {
+		hub.InvalidateUser(userId)
+	}
 }
 
 func (h *Hub) Register(webConn *WebConn) {
