@@ -19,7 +19,7 @@ const holders = defineMessages({
 
 import React from 'react';
 
-export default class EditChannelPurposeModal extends React.Component {
+class EditChannelPurposeModal extends React.Component {
     constructor(props) {
         super(props);
 
