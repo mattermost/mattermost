@@ -168,6 +168,28 @@ func (me SqlSessionStore) GetSessions(userId string) StoreChannel {
 	return storeChannel
 }
 
+func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+
+		result := StoreResult{}
+		var sessions []*model.Session
+
+		if _, err := me.GetReplica().Select(&sessions, "SELECT * FROM Sessions WHERE UserId = :UserId AND ExpiresAt != 0 AND :ExpiresAt <= ExpiresAt AND DeviceId != ''", map[string]interface{}{"UserId": userId, "ExpiresAt": model.GetMillis()}); err != nil {
+			result.Err = model.NewLocAppError("SqlSessionStore.GetActiveSessionsWithDeviceIds", "store.sql_session.get_sessions.app_error", nil, err.Error())
+		} else {
+
+			result.Data = sessions
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (me SqlSessionStore) Remove(sessionIdOrToken string) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
