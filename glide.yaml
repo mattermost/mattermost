@@ -63,3 +63,5 @@ import:
 - package: github.com/segmentio/analytics-go
   version: 2.1.1
 - package: github.com/rsc/letsencrypt
+- package: github.com/minio/minio-go
+  version: ^2.0.2

@@ -1238,7 +1238,7 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		} else {
-			path := "/users/" + id + "/profile.png"
+			path := "users/" + id + "/profile.png"
 
 			if data, err := ReadFile(path); err != nil {
 

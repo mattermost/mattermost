@@ -6,11 +6,6 @@ package api
 import (
 	"bytes"
 	"fmt"
-	"github.com/goamz/goamz/aws"
-	"github.com/goamz/goamz/s3"
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/store"
-	"github.com/mattermost/platform/utils"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -18,6 +13,12 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
+	"github.com/mattermost/platform/utils"
+
+	s3 "github.com/minio/minio-go"
 )
 
 func TestUploadFile(t *testing.T) {
@@ -830,25 +831,27 @@ func readTestFile(name string) ([]byte, error) {
 
 func cleanupTestFile(info *model.FileInfo) error {
 	if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
-		var auth aws.Auth
-		auth.AccessKey = utils.Cfg.FileSettings.AmazonS3AccessKeyId
-		auth.SecretKey = utils.Cfg.FileSettings.AmazonS3SecretAccessKey
-
-		s := s3.New(auth, aws.Regions[utils.Cfg.FileSettings.AmazonS3Region])
-		bucket := s.Bucket(utils.Cfg.FileSettings.AmazonS3Bucket)
-
-		if err := bucket.Del(info.Path); err != nil {
+		endpoint := utils.Cfg.FileSettings.AmazonS3Endpoint
+		accessKey := utils.Cfg.FileSettings.AmazonS3AccessKeyId
+		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
+		secure := *utils.Cfg.FileSettings.AmazonS3SSL
+		s3Clnt, err := s3.New(endpoint, accessKey, secretKey, secure)
+		if err != nil {
+			return err
+		}
+		bucket := utils.Cfg.FileSettings.AmazonS3Bucket
+		if err := s3Clnt.RemoveObject(bucket, info.Path); err != nil {
 			return err
 		}
 
 		if info.ThumbnailPath != "" {
-			if err := bucket.Del(info.ThumbnailPath); err != nil {
+			if err := s3Clnt.RemoveObject(bucket, info.ThumbnailPath); err != nil {
 				return err
 			}
 		}
 
 		if info.PreviewPath != "" {
-			if err := bucket.Del(info.PreviewPath); err != nil {
+			if err := s3Clnt.RemoveObject(bucket, info.PreviewPath); err != nil {
 				return err
 			}
 		}

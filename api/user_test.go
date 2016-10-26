@@ -16,12 +16,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/goamz/goamz/aws"
-	"github.com/goamz/goamz/s3"
-
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
+
+	s3 "github.com/minio/minio-go"
 )
 
 func TestCreateUser(t *testing.T) {
@@ -674,14 +673,16 @@ func TestUserCreateImage(t *testing.T) {
 	Client.DoApiGet("/users/"+user.Id+"/image", "", "")
 
 	if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
-		var auth aws.Auth
-		auth.AccessKey = utils.Cfg.FileSettings.AmazonS3AccessKeyId
-		auth.SecretKey = utils.Cfg.FileSettings.AmazonS3SecretAccessKey
-
-		s := s3.New(auth, aws.Regions[utils.Cfg.FileSettings.AmazonS3Region])
-		bucket := s.Bucket(utils.Cfg.FileSettings.AmazonS3Bucket)
-
-		if err := bucket.Del("/users/" + user.Id + "/profile.png"); err != nil {
+		endpoint := utils.Cfg.FileSettings.AmazonS3Endpoint
+		accessKey := utils.Cfg.FileSettings.AmazonS3AccessKeyId
+		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
+		secure := *utils.Cfg.FileSettings.AmazonS3SSL
+		s3Clnt, err := s3.New(endpoint, accessKey, secretKey, secure)
+		if err != nil {
+			t.Fatal(err)
+		}
+		bucket := utils.Cfg.FileSettings.AmazonS3Bucket
+		if err = s3Clnt.RemoveObject(bucket, "/users/"+user.Id+"/profile.png"); err != nil {
 			t.Fatal(err)
 		}
 	} else {
@@ -774,14 +775,16 @@ func TestUserUploadProfileImage(t *testing.T) {
 		Client.DoApiGet("/users/"+user.Id+"/image", "", "")
 
 		if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
-			var auth aws.Auth
-			auth.AccessKey = utils.Cfg.FileSettings.AmazonS3AccessKeyId
-			auth.SecretKey = utils.Cfg.FileSettings.AmazonS3SecretAccessKey
-
-			s := s3.New(auth, aws.Regions[utils.Cfg.FileSettings.AmazonS3Region])
-			bucket := s.Bucket(utils.Cfg.FileSettings.AmazonS3Bucket)
-
-			if err := bucket.Del("users/" + user.Id + "/profile.png"); err != nil {
+			endpoint := utils.Cfg.FileSettings.AmazonS3Endpoint
+			accessKey := utils.Cfg.FileSettings.AmazonS3AccessKeyId
+			secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
+			secure := *utils.Cfg.FileSettings.AmazonS3SSL
+			s3Clnt, err := s3.New(endpoint, accessKey, secretKey, secure)
+			if err != nil {
+				t.Fatal(err)
+			}
+			bucket := utils.Cfg.FileSettings.AmazonS3Bucket
+			if err = s3Clnt.RemoveObject(bucket, "/users/"+user.Id+"/profile.png"); err != nil {
 				t.Fatal(err)
 			}
 		} else {
