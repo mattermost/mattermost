@@ -56,7 +56,9 @@ func (c *WebConn) readPump() {
 	c.WebSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
 	c.WebSocket.SetPongHandler(func(string) error {
 		c.WebSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
-		go SetStatusAwayIfNeeded(c.UserId, false)
+		if c.isAuthenticated() {
+			go SetStatusAwayIfNeeded(c.UserId, false)
+		}
 		return nil
 	})
 
@@ -134,12 +136,15 @@ func (c *WebConn) writePump() {
 func (webCon *WebConn) InvalidateCache() {
 	webCon.AllChannelMembers = nil
 	webCon.LastAllChannelMembersTime = 0
+}
 
+func (webCon *WebConn) isAuthenticated() bool {
+	return webCon.SessionToken != ""
 }
 
 func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	// IMPORTANT: Do not send event if WebConn does not have a session
-	if webCon.SessionToken == "" {
+	if !webCon.isAuthenticated() {
 		return false
 	}
 
