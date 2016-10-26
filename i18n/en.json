@@ -2576,10 +2576,6 @@
     "translation": "Cluster send final fail at `%v` detail=%v, extra=%v, retry number=%v"
   },
   {
-    "id": "ent.cluster.same_server.warn",
-    "translation": "This request has already been recieved by this server, my_id=%v path=%v"
-  },
-  {
     "id": "ent.cluster.incompatible.warn",
     "translation": "Potential incompatible version detected for clustering with %v"
   },
