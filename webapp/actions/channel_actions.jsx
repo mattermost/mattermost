@@ -172,3 +172,17 @@ export function openDirectChannelToUser(user, success, error) {
         }
     );
 }
+
+export function markFavorite(channelId) {
+    AsyncClient.savePreference(Preferences.CATEGORY_FAVORITE_CHANNEL, channelId, 'true');
+}
+
+export function unmarkFavorite(channelId) {
+    const pref = {
+        user_id: UserStore.getCurrentId(),
+        category: Preferences.CATEGORY_FAVORITE_CHANNEL,
+        name: channelId
+    };
+
+    AsyncClient.deletePreferences([pref]);
+}

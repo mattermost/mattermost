@@ -986,6 +986,8 @@
   "channel_header.flagged": "Flagged Posts",
   "channel_header.group": "Group",
   "channel_header.leave": "Leave {term}",
+  "channel_header.addToFavorites": "Add to Favorites",
+  "channel_header.removeFromFavorites": "Remove from Favorites",
   "channel_header.manageMembers": "Manage Members",
   "channel_header.notificationPreferences": "Notification Preferences",
   "channel_header.recentMentions": "Recent Mentions",

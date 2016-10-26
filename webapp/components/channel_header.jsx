@@ -26,7 +26,9 @@ import WebrtcStore from 'stores/webrtc_store.jsx';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import * as WebrtcActions from 'actions/webrtc_actions.jsx';
+import * as ChannelActions from 'actions/channel_actions.jsx';
 import * as Utils from 'utils/utils.jsx';
+import * as ChannelUtils from 'utils/channel_utils.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
@@ -63,18 +65,19 @@ export default class ChannelHeader extends React.Component {
     }
 
     getStateFromStores() {
+        const channel = ChannelStore.get(this.props.channelId);
         const stats = ChannelStore.getStats(this.props.channelId);
-
         const users = UserStore.getProfileListInChannel(this.props.channelId);
 
         return {
-            channel: ChannelStore.get(this.props.channelId),
+            channel,
             memberChannel: ChannelStore.getMyMember(this.props.channelId),
             users,
             userCount: stats.member_count,
             currentUser: UserStore.getCurrentUser(),
             enableFormatting: PreferenceStore.getBool(Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', true),
-            isBusy: WebrtcStore.isBusy()
+            isBusy: WebrtcStore.isBusy(),
+            isFavorite: channel && ChannelUtils.isFavoriteChannel(channel)
         };
     }
 
@@ -125,10 +128,16 @@ export default class ChannelHeader extends React.Component {
     handleLeave() {
         Client.leaveChannel(this.state.channel.id,
             () => {
+                const channelId = this.state.channel.id;
+
                 AppDispatcher.handleViewAction({
                     type: ActionTypes.LEAVE_CHANNEL,
-                    id: this.state.channel.id
+                    id: channelId
                 });
+
+                if (this.state.isFavorite) {
+                    ChannelActions.unmarkFavorite(channelId);
+                }
 
                 const townsquare = ChannelStore.getByName('town-square');
                 browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + townsquare.name);
@@ -138,6 +147,16 @@ export default class ChannelHeader extends React.Component {
             }
         );
     }
+
+    toggleFavorite = (e) => {
+        e.preventDefault();
+
+        if (this.state.isFavorite) {
+            ChannelActions.unmarkFavorite(this.state.channel.id);
+        } else {
+            ChannelActions.markFavorite(this.state.channel.id);
+        }
+    };
 
     searchMentions(e) {
         e.preventDefault();
@@ -272,9 +291,9 @@ export default class ChannelHeader extends React.Component {
         if (isDirect) {
             const userMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
             const contact = this.state.users[0];
-            if (contact) {
-                channelTitle = Utils.displayUsername(contact.id);
-            }
+
+            const teammateId = Utils.getUserIdFromChannelName(channel);
+            channelTitle = Utils.displayUsername(teammateId);
 
             const webrtcEnabled = global.mm_config.EnableWebrtc === 'true' && global.mm_license.Webrtc === 'true' &&
                 global.mm_config.EnableDeveloper === 'true' && userMedia && Utils.isFeatureEnabled(PreReleaseFeatures.WEBRTC_PREVIEW);
@@ -607,6 +626,35 @@ export default class ChannelHeader extends React.Component {
             headerText = channel.header;
         }
 
+        const toggleFavoriteTooltip = (
+            <Tooltip id='favoriteTooltip'>
+                {this.state.isFavorite ?
+                    <FormattedMessage
+                        id='channelHeader.removeFromFavorites'
+                        defaultMessage='Remove from Favorites'
+                    /> :
+                    <FormattedMessage
+                        id='channelHeader.addToFavorites'
+                        defaultMessage='Add to Favorites'
+                    />}
+            </Tooltip>
+        );
+        const toggleFavorite = (
+            <OverlayTrigger
+                delayShow={Constants.OVERLAY_TIME_DELAY}
+                placement='bottom'
+                overlay={toggleFavoriteTooltip}
+            >
+                <a
+                    href='#'
+                    onClick={this.toggleFavorite}
+                    className='channel-header__favorites'
+                >
+                    <i className={'icon fa ' + (this.state.isFavorite ? 'fa-star' : 'fa-star-o')}/>
+                </a>
+            </OverlayTrigger>
+        );
+
         return (
             <div
                 id='channel-header'
@@ -618,6 +666,7 @@ export default class ChannelHeader extends React.Component {
                             <th>
                                 <div className='channel-header__info'>
                                     {webrtc}
+                                    {toggleFavorite}
                                     <div className='dropdown'>
                                         <a
                                             href='#'
