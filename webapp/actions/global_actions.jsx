@@ -42,7 +42,6 @@ export function emitChannelClickEvent(channel) {
         );
     }
     function switchToChannel(chan) {
-        AsyncClient.getChannelsUnread(true);
         AsyncClient.getChannelStats(chan.id);
         AsyncClient.updateLastViewedAt(chan.id);
         loadPosts(chan.id);

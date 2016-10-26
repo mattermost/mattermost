@@ -21,7 +21,7 @@ func InitChannel() {
 	BaseRoutes.Channels.Handle("/", ApiUserRequired(getChannels)).Methods("GET")
 	BaseRoutes.Channels.Handle("/more", ApiUserRequired(getMoreChannels)).Methods("GET")
 	BaseRoutes.Channels.Handle("/counts", ApiUserRequired(getChannelCounts)).Methods("GET")
-	BaseRoutes.Channels.Handle("/unread", ApiUserRequired(getChannelsUnread)).Methods("GET")
+	BaseRoutes.Channels.Handle("/members", ApiUserRequired(getMyChannelMembers)).Methods("GET")
 	BaseRoutes.Channels.Handle("/create", ApiUserRequired(createChannel)).Methods("POST")
 	BaseRoutes.Channels.Handle("/create_direct", ApiUserRequired(createDirectChannel)).Methods("POST")
 	BaseRoutes.Channels.Handle("/update", ApiUserRequired(updateChannel)).Methods("POST")
@@ -447,25 +447,6 @@ func getChannelCounts(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		data := result.Data.(*model.ChannelCounts)
 		w.Header().Set(model.HEADER_ETAG_SERVER, data.Etag())
-		w.Write([]byte(data.ToJson()))
-	}
-}
-
-func getChannelsUnread(c *Context, w http.ResponseWriter, r *http.Request) {
-	if result := <-Srv.Store.Channel().GetChannelsUnread(c.TeamId, c.Session.UserId); result.Err != nil {
-		if result.Err.Id == "store.sql_channel.get_channels.not_found.app_error" {
-			// lets make sure the user is valid
-			if result := <-Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
-				c.Err = result.Err
-				c.RemoveSessionCookie(w, r)
-				l4g.Error(utils.T("api.channel.get_channels.error"), c.Session.UserId)
-				return
-			}
-		}
-		c.Err = result.Err
-		return
-	} else {
-		data := result.Data.(*model.ChannelMembers)
 		w.Write([]byte(data.ToJson()))
 	}
 }
@@ -1004,6 +985,16 @@ func getChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		member := result.Data.(model.ChannelMember)
 		w.Write([]byte(member.ToJson()))
+	}
+}
+
+func getMyChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
+	if result := <-Srv.Store.Channel().GetMembersForUser(c.TeamId, c.Session.UserId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		data := result.Data.(*model.ChannelMembers)
+		w.Write([]byte(data.ToJson()))
 	}
 }
 

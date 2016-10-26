@@ -78,6 +78,8 @@ function preNeedsTeam(nextState, replace, callback) {
                 channels: data
             });
 
+            AsyncClient.getMyChannelMembers();
+
             d1.resolve();
         },
         (err) => {

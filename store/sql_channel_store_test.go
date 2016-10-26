@@ -688,7 +688,7 @@ func TestChannelStoreGetChannelCounts(t *testing.T) {
 	}
 }
 
-func TestChannelStoreGetChannelsUnread(t *testing.T) {
+func TestChannelStoreGetMembersForUser(t *testing.T) {
 	Setup()
 
 	t1 := model.Team{}
@@ -724,11 +724,11 @@ func TestChannelStoreGetChannelsUnread(t *testing.T) {
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 	Must(store.Channel().SaveMember(&m2))
 
-	cresult := <-store.Channel().GetChannelsUnread(o1.TeamId, m1.UserId)
+	cresult := <-store.Channel().GetMembersForUser(o1.TeamId, m1.UserId)
 	members := cresult.Data.(*model.ChannelMembers)
 
 	// no unread messages
-	if len(*members) != 0 {
+	if len(*members) != 2 {
 		t.Fatal("wrong number of members")
 	}
 }

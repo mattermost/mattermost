@@ -1124,8 +1124,8 @@ func (c *Client) UpdateNotifyProps(data map[string]string) (*Result, *AppError) 
 	}
 }
 
-func (c *Client) GetChannelsUnread() (*Result, *AppError) {
-	if r, err := c.DoApiGet(c.GetTeamRoute()+"/channels/unread", "", ""); err != nil {
+func (c *Client) GetMyChannelMembers() (*Result, *AppError) {
+	if r, err := c.DoApiGet(c.GetTeamRoute()+"/channels/members", "", ""); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)

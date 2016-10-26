@@ -1027,21 +1027,24 @@ func (s SqlChannelStore) ExtraUpdateByUser(userId string, time int64) StoreChann
 	return storeChannel
 }
 
-func (s SqlChannelStore) GetChannelsUnread(teamId string, userId string) StoreChannel {
+func (s SqlChannelStore) GetMembersForUser(teamId string, userId string) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
 
 		members := &model.ChannelMembers{}
-		_, err := s.GetReplica().Select(members, `SELECT ChannelId, UserId, Roles, LastViewedAt, (TotalMsgCount -  MsgCount) as MsgCount, MentionCount, NotifyProps, LastUpdateAt
-		FROM Channels, ChannelMembers
-		WHERE Id = ChannelId AND UserId = :UserId AND DeleteAt = 0 AND TeamId = :TeamId
-		AND (TotalMsgCount -  MsgCount) > 0
+		_, err := s.GetReplica().Select(members, `
+            SELECT cm.*
+            FROM ChannelMembers cm
+            INNER JOIN Channels c
+                ON c.Id = cm.ChannelId
+                AND c.TeamId = :TeamId
+            WHERE cm.UserId = :UserId
 		`, map[string]interface{}{"TeamId": teamId, "UserId": userId})
 
 		if err != nil {
-			result.Err = model.NewLocAppError("SqlChannelStore.GetChannelsUnread", "store.sql_channel.get_channels.get.app_error", nil, "teamId="+teamId+", userId="+userId+", err="+err.Error())
+			result.Err = model.NewLocAppError("SqlChannelStore.GetMembersForUser", "store.sql_channel.get_members.app_error", nil, "teamId="+teamId+", userId="+userId+", err="+err.Error())
 		} else {
 			result.Data = members
 		}

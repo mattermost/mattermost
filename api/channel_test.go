@@ -240,8 +240,8 @@ func TestUpdateChannel(t *testing.T) {
 	}
 
 	rget := Client.Must(Client.GetChannels(""))
-	data := rget.Data.(*model.ChannelList)
-	for _, c := range *data {
+	channels := rget.Data.(*model.ChannelList)
+	for _, c := range *channels {
 		if c.Name == model.DEFAULT_CHANNEL {
 			c.Header = "new header"
 			c.Name = "pseudo-square"
@@ -654,13 +654,13 @@ func TestGetChannel(t *testing.T) {
 	channel2 = Client.Must(Client.CreateChannel(channel2)).Data.(*model.Channel)
 
 	rget := Client.Must(Client.GetChannels(""))
-	data := rget.Data.(*model.ChannelList)
+	channels := rget.Data.(*model.ChannelList)
 
-	if (*data)[0].DisplayName != channel1.DisplayName {
+	if (*channels)[0].DisplayName != channel1.DisplayName {
 		t.Fatal("full name didn't match")
 	}
 
-	if (*data)[1].DisplayName != channel2.DisplayName {
+	if (*channels)[1].DisplayName != channel2.DisplayName {
 		t.Fatal("full name didn't match")
 	}
 
@@ -717,13 +717,13 @@ func TestGetMoreChannel(t *testing.T) {
 	th.LoginBasic2()
 
 	rget := Client.Must(Client.GetMoreChannels(""))
-	data := rget.Data.(*model.ChannelList)
+	channels := rget.Data.(*model.ChannelList)
 
-	if (*data)[0].DisplayName != channel1.DisplayName {
+	if (*channels)[0].DisplayName != channel1.DisplayName {
 		t.Fatal("full name didn't match")
 	}
 
-	if (*data)[1].DisplayName != channel2.DisplayName {
+	if (*channels)[1].DisplayName != channel2.DisplayName {
 		t.Fatal("full name didn't match")
 	}
 
@@ -770,7 +770,7 @@ func TestGetChannelCounts(t *testing.T) {
 
 }
 
-func TestGetChannelsUnread(t *testing.T) {
+func TestGetMyChannelMembers(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.BasicClient
 	team := th.BasicTeam
@@ -781,43 +781,14 @@ func TestGetChannelsUnread(t *testing.T) {
 	channel2 := &model.Channel{DisplayName: "B Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel2 = Client.Must(Client.CreateChannel(channel2)).Data.(*model.Channel)
 
-	Client.Must(Client.Logout())
-	th.LoginBasic2()
-	th.BasicClient.SetTeamId(th.BasicTeam.Id)
-
-	Client.Must(Client.JoinChannel(channel1.Id))
-	Client.Must(Client.JoinChannel(channel2.Id))
-
-	post1 := &model.Post{ChannelId: channel1.Id, Message: "a new message without mention"}
-	Client.Must(Client.CreatePost(post1))
-
-	post2 := &model.Post{ChannelId: channel2.Id, Message: "a new message with mention for @" + th.BasicUser.Username}
-	Client.Must(Client.CreatePost(post2))
-
-	Client.Must(Client.Logout())
-	th.LoginBasic()
-	th.BasicClient.SetTeamId(th.BasicTeam.Id)
-
-	if result, err := Client.GetChannelsUnread(); err != nil {
+	if result, err := Client.GetMyChannelMembers(); err != nil {
 		t.Fatal(err)
 	} else {
 		members := result.Data.(*model.ChannelMembers)
 
-		if len(*members) != 2 {
+		// town-square, off-topic, basic test channel, channel1, channel2
+		if len(*members) != 5 {
 			t.Fatal("wrong number of members", len(*members))
-		}
-
-		for i := range *members {
-			m := (*members)[i]
-			if m.ChannelId == channel1.Id {
-				if m.MsgCount != 1 {
-					t.Fatal("Member should have 1 unread message")
-				}
-			} else if m.ChannelId == channel2.Id {
-				if m.MentionCount != 1 {
-					t.Fatal("Member should have 1 unread mention")
-				}
-			}
 		}
 	}
 
@@ -1313,14 +1284,6 @@ func TestUpdateNotifyProps(t *testing.T) {
 	} else if notifyProps["mark_unread"] != model.CHANNEL_MARK_UNREAD_ALL {
 		t.Fatalf("NotifyProps[\"mark_unread\"] changed to %v", notifyProps["mark_unread"])
 	}
-
-	//rget := Client.Must(Client.GetChannels(""))
-	//rdata := rget.Data.(*model.ChannelList)
-	//if len(rdata.Members) == 0 || rdata.Members[channel1.Id].NotifyProps["desktop"] != data["desktop"] {
-	//	t.Fatal("NotifyProps[\"desktop\"] did not update properly")
-	//} else if rdata.Members[channel1.Id].LastUpdateAt <= timeBeforeUpdate {
-	//	t.Fatal("LastUpdateAt did not update")
-	//}
 
 	// test an empty update
 	delete(data, "desktop")

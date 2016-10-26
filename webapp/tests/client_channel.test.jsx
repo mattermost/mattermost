@@ -285,11 +285,11 @@ describe('Client.Channels', function() {
         });
     });
 
-    it('getChannelsUnread', function(done) {
+    it('getMyChannelMembers', function(done) {
         TestHelper.initBasic(() => {
-            TestHelper.basicClient().getChannelsUnread(
+            TestHelper.basicClient().getMyChannelMembers(
                 function(data) {
-                    assert.equal(data.length, 0);
+                    assert.equal(data.length > 0, true);
                     done();
                 },
                 function(err) {

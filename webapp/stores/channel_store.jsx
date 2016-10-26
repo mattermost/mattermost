@@ -250,7 +250,7 @@ class ChannelStoreClass extends EventEmitter {
         this.myChannelMembers = channelMembers;
     }
 
-    storeMyChannelMembersNew(channelMembers) {
+    storeMyChannelMembersList(channelMembers) {
         channelMembers.forEach((m) => {
             this.myChannelMembers[m.channel_id] = m;
         });
@@ -286,15 +286,7 @@ class ChannelStoreClass extends EventEmitter {
 
     setUnreadCountsByMembers(members) {
         members.forEach((m) => {
-            const id = m.channel_id;
-            const chMentionCount = m.mention_count;
-            let chUnreadCount = m.msg_count;
-
-            if (m.notify_props && m.notify_props.mark_unread === NotificationPrefs.MENTION) {
-                chUnreadCount = 0;
-            }
-
-            this.unreadCounts[id] = {msgs: chUnreadCount, mentions: chMentionCount};
+            this.setUnreadCountByChannel(m.channel_id);
         });
     }
 
@@ -391,8 +383,8 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         ChannelStore.emitChange();
         break;
 
-    case ActionTypes.RECEIVED_CHANNELS_UNREAD:
-        ChannelStore.storeMyChannelMembersNew(action.members);
+    case ActionTypes.RECEIVED_MY_CHANNEL_MEMBERS:
+        ChannelStore.storeMyChannelMembersList(action.members);
         currentId = ChannelStore.getCurrentId();
         if (currentId && window.isActive) {
             ChannelStore.resetCounts(currentId);

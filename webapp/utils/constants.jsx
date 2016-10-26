@@ -72,7 +72,7 @@ export const ActionTypes = keyMirror({
     RECEIVED_CHANNEL: null,
     RECEIVED_MORE_CHANNELS: null,
     RECEIVED_CHANNEL_STATS: null,
-    RECEIVED_CHANNELS_UNREAD: null,
+    RECEIVED_MY_CHANNEL_MEMBERS: null,
 
     FOCUS_POST: null,
     RECEIVED_POSTS: null,
