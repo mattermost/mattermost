@@ -28,6 +28,7 @@
     "react-bootstrap": "0.30.3",
     "react-custom-scrollbars": "4.0.0",
     "react-dom": "15.3.2",
+    "react-height": "^2.1.1",
     "react-infinite": "^0.10.0",
     "react-intl": "2.1.5",
     "react-router": "2.8.1",

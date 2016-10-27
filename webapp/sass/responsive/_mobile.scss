@@ -9,11 +9,18 @@
     }
 
     .filtered-user-list {
-        max-height: 65vh !important;
+        max-height: calc(100vh - 105px) !important;
+        .filter-row {
+            margin: 5px 0;
+            .filter-text {
+                padding: 0 0 0 15px;
+            }
 
-        .filter-button {
-            .btn {
-                width: 100%;
+            .filter-button {
+                padding: 0 15px 0 0;
+                .btn {
+                    text-align: center;
+                }
             }
         }
     }
@@ -140,8 +147,8 @@
     }
 
     .member-select__container {
-        margin-bottom: 10px;
-        margin-top: 10px;
+        margin-bottom: 5px;
+        margin-top: 5px;
         overflow: hidden;
         position: relative;
         right: 10px;
@@ -511,6 +518,8 @@
             }
 
             .modal-header {
+                padding: 4px 15px 1px;
+                min-height: 36px;
                 .modal-action {
                     margin-top: 10px;
                 }
@@ -534,6 +543,10 @@
                         width: 100%;
                     }
                 }
+            }
+
+            .modal-footer {
+                padding: 5px;
             }
 
             .settings-modal {

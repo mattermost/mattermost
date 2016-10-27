@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import $ from 'jquery';
 import UserListRow from './user_list_row.jsx';
 import LoadingScreen from 'components/loading_screen.jsx';
 
@@ -9,24 +10,10 @@ import {FormattedMessage} from 'react-intl';
 import Infinite from 'react-infinite';
 
 export default class UserList extends React.Component {
-
-    renderInfinite(content) {
-        if (this.props.infinite) {
-            return (
-                <Infinite
-                    elementHeight={60}
-                    containerHeight={300}
-                    infiniteLoadBeginEdgeOffset={600}
-                    onInfiniteLoad={this.props.nextPage}
-                >
-                    {content}
-                </Infinite>
-            );
-        }
-
-        return (
-          {content}
-        );
+    constructor(props) {
+        super(props);
+        this.width = $(window).width();
+        this.height = $(window).height();
     }
 
     render() {
@@ -69,14 +56,14 @@ export default class UserList extends React.Component {
                 </div>
             );
         }
-
-        if (this.props.infinite) {
+        if (this.props.infinite && (this.props.listHeight > 0)) {
             content = (
                 <Infinite
                     elementHeight={60}
-                    containerHeight={380}
-                    infiniteLoadBeginEdgeOffset={300}
+                    containerHeight={this.props.listHeight * 0.8}
+                    infiniteLoadBeginEdgeOffset={1500}
                     onInfiniteLoad={this.props.nextPage}
+                    preloadBatchSize={6230}
                 >
                     {content}
                 </Infinite>
@@ -96,7 +83,8 @@ UserList.defaultProps = {
     teamMembers: [],
     actions: [],
     actionProps: {},
-    infinite: false
+    infinite: false,
+    listHeight: 0
 };
 
 UserList.propTypes = {
@@ -105,5 +93,6 @@ UserList.propTypes = {
     actions: React.PropTypes.arrayOf(React.PropTypes.func),
     actionProps: React.PropTypes.object,
     nextPage: React.PropTypes.func,
-    infinite: React.PropTypes.boolean
+    infinite: React.PropTypes.boolean,
+    listHeight: React.PropTypes.number
 };

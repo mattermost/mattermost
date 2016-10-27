@@ -11,6 +11,7 @@ import $ from 'jquery';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {FormattedMessage} from 'react-intl';
+import ReactHeight from 'react-height';
 
 const NEXT_BUTTON_TIMEOUT = 500;
 
@@ -30,7 +31,8 @@ export default class SearchableUserList extends React.Component {
             page: 0,
             currentUsersTotal: 0,
             search: false,
-            nextDisabled: false
+            nextDisabled: false,
+            listHeight: 0
         };
     }
 
@@ -45,7 +47,7 @@ export default class SearchableUserList extends React.Component {
     }
 
     nextPage(e) {
-        if (e) {
+        if (e && e.preventDefault) {
             e.preventDefault();
         }
         if (this.readyForMoreUsers()) {
@@ -164,8 +166,15 @@ export default class SearchableUserList extends React.Component {
             if (this.props.infinite) {
                 if (this.state.nextDisabled) {
                     pageNavLinks = (
-                        <div className='filter-controls'>
+                        <div className='more-modal__loading-bar'>
                             {'Loading...'}
+                        </div>
+                    );
+                } else {
+                    pageNavLinks = (
+                        <div className='more-modal__loading-bar
+                                        more-modal__loading-bar--hidden'>
+                            {'Not Loading...'}
                         </div>
                     );
                 }
@@ -180,53 +189,61 @@ export default class SearchableUserList extends React.Component {
         }
 
         return (
-            <div
-                className='filtered-user-list'
-                style={this.props.style}
+            <ReactHeight onHeightReady={(height) => {
+                  if (this.state.listHeight === 0) {
+                      this.setState({listHeight: height})}
+                  }
+              }
             >
-                <div className='filter-row'>
-                    <div className='col-xs-9 col-sm-5'>
-                        <input
-                            ref='filter'
-                            className='form-control filter-textbox'
-                            placeholder={Utils.localizeMessage('filtered_user_list.search', 'Press enter to search')}
-                            onKeyPress={this.onSearchBoxKeyPress}
-                            onChange={this.onSearchBoxChange}
+                <div
+                    className='filtered-user-list'
+                    style={this.props.style}
+                >
+                    <div className='filter-row'>
+                        <div className='col-xs-9 col-sm-5 filter-text'>
+                            <input
+                                ref='filter'
+                                className='form-control filter-textbox'
+                                placeholder={Utils.localizeMessage('filtered_user_list.search', 'Press enter to search')}
+                                onKeyPress={this.onSearchBoxKeyPress}
+                                onChange={this.onSearchBoxChange}
+                            />
+                        </div>
+                        <div className='col-xs-3 col-sm-2 filter-button'>
+                            <button
+                                type='button'
+                                className='btn btn-primary'
+                                onClick={this.doSearch}
+                                disabled={this.props.users == null}
+                            >
+                                <FormattedMessage
+                                    id='filtered_user_list.searchButton'
+                                    defaultMessage='Search'
+                                />
+                            </button>
+                        </div>
+                        <div className='col-xs-12 col-sm-12'>
+                            <span className='member-count pull-left'>{count}</span>
+                        </div>
+                    </div>
+                    <div
+                        ref='userList'
+                        className='more-modal__list'
+                    >
+                        <UserList
+                            users={usersToDisplay}
+                            extraInfo={this.props.extraInfo}
+                            actions={this.props.actions}
+                            actionProps={this.props.actionProps}
+                            actionUserProps={this.props.actionUserProps}
+                            nextPage={this.nextPage}
+                            infinite={this.props.infinite}
+                            listHeight={this.state.listHeight}
                         />
                     </div>
-                    <div className='col-xs-3 col-sm-2 filter-button'>
-                        <button
-                            type='button'
-                            className='btn btn-primary'
-                            onClick={this.doSearch}
-                            disabled={this.props.users == null}
-                        >
-                            <FormattedMessage
-                                id='filtered_user_list.searchButton'
-                                defaultMessage='Search'
-                            />
-                        </button>
-                    </div>
-                    <div className='col-sm-12'>
-                        <span className='member-count pull-left'>{count}</span>
-                    </div>
+                    {pageNavLinks}
                 </div>
-                <div
-                    ref='userList'
-                    className='more-modal__list'
-                >
-                    <UserList
-                        users={usersToDisplay}
-                        extraInfo={this.props.extraInfo}
-                        actions={this.props.actions}
-                        actionProps={this.props.actionProps}
-                        actionUserProps={this.props.actionUserProps}
-                        nextPage={this.nextPage}
-                        infinite={this.props.infinite}
-                    />
-                </div>
-                {pageNavLinks}
-            </div>
+            </ReactHeight>
         );
     }
 }
