@@ -204,6 +204,10 @@
     "translation": "Ongeldig karakter '__' in naam van niet-direct kanaal"
   },
   {
+    "id": "api.channel.create_channel.max_channel_limit.app_error",
+    "translation": "Cannot create more than {{.MaxChannelsPerTeam}} channels for current team"
+  },
+  {
     "id": "api.channel.create_default_channels.off_topic",
     "translation": "Allerlei"
   },
@@ -895,7 +899,7 @@
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.info.app_error",
-    "translation": "Unable to fully decode file info when migrating post to use FileInfos, post_id=%v, filename=%v, err=%v"
+    "translation": "Niet mogelijk om bestand te vinden wanneer een bericht gemigreerd word met FileInfos, post_id=%v, filename=%v, path=%v, err=%v"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.migrating_post.debug",
@@ -915,11 +919,11 @@
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.save_file_info.warn",
-    "translation": "Unable to save post when migrating post to use FileInfos, post_id=%v, file_id=%v, path=%v, err=%v"
+    "translation": "Niet mogelijk om bestand te vinden wanneer een bericht gemigreerd word met FileInfos, post_id=%v, filename=%v, path=%v, err=%v"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.save_post.warn",
-    "translation": "Unable to save file info when migrating post to use FileInfos, post_id=%v, file_id=%v, filename=%v, err=%v"
+    "translation": "Niet mogelijk om bestand te vinden wanneer een bericht gemigreerd word met FileInfos, post_id=%v, filename=%v, path=%v, err=%v"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.team_id.app_error",
@@ -927,11 +931,11 @@
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.teams.app_error",
-    "translation": "Unable to get teams when migrating post to use FileInfos, post_id=%v, err=%v"
+    "translation": "Niet mogelijk om bericht te krijgen wanneer een bericht gemigreerd word met FileInfos, post_id=%v, err=%v"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.unexpected_filename.error",
-    "translation": "Unable to decipher filename when migrating post to use FileInfos, post_id=%v, filename=%v"
+    "translation": "Niet mogelijk om bericht te krijgen wanneer een bericht gemigreerd word met FileInfos, post_id=%v, err=%v"
   },
   {
     "id": "api.file.move_file.configured.app_error",
@@ -2404,8 +2408,12 @@
     "translation": "Ongeldige e-mail verificatie link."
   },
   {
+    "id": "api.web_hub.start.starting.debug",
+    "translation": "Starting %v websocket hubs"
+  },
+  {
     "id": "api.web_hub.start.stopping.debug",
-    "translation": "connecties %v worden afgesloten"
+    "translation": "stopping websocket hub connections"
   },
   {
     "id": "api.web_socket.connect.error",
@@ -3258,6 +3266,10 @@
   {
     "id": "model.config.is_valid.max_burst.app_error",
     "translation": "Maximum burst size must be greater than zero."
+  },
+  {
+    "id": "model.config.is_valid.max_channels.app_error",
+    "translation": "Ongeldig maximaal aantal gebruikers per team bij team instellingen. Moet een getal groter dan 0 zijn."
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
@@ -4632,7 +4644,15 @@
     "translation": "Geen teamlid gevonden voor dit gebruikers id en kanaal id"
   },
   {
+    "id": "store.sql_team.get_member_count.app_error",
+    "translation": "We kunnen de teamleden niet ophalen"
+  },
+  {
     "id": "store.sql_team.get_members.app_error",
+    "translation": "We kunnen de teamleden niet ophalen"
+  },
+  {
+    "id": "store.sql_team.get_members_by_ids.app_error",
     "translation": "We kunnen de teamleden niet ophalen"
   },
   {
@@ -4722,6 +4742,10 @@
   {
     "id": "store.sql_user.get_profiles.app_error",
     "translation": "Er is een probleem opgestreden tijdens het opzoeken van het gebruikersprofiel"
+  },
+  {
+    "id": "store.sql_user.get_recently_active_users.app_error",
+    "translation": "We encountered an error while finding the recently active users"
   },
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",
