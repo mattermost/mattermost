@@ -590,6 +590,7 @@
     .more-modal__row {
         border-bottom: 1px solid $light-gray;
         display: flex;
+        min-height: 65px;
         padding: 8px 15px;
     }
 

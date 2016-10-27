@@ -226,12 +226,14 @@ export default class RhsComment extends React.Component {
                     data-toggle='dropdown'
                     aria-expanded='false'
                 />
-                <ul
-                    className='dropdown-menu'
-                    role='menu'
-                >
-                    {dropdownContents}
-                </ul>
+                <div className='dropdown-menu__content'>
+                    <ul
+                        className='dropdown-menu'
+                        role='menu'
+                    >
+                        {dropdownContents}
+                    </ul>
+                </div>
             </div>
             );
     }
