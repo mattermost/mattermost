@@ -325,20 +325,20 @@ func LeaveTeam(team *model.Team, user *model.User) *model.AppError {
 		teamMember = result.Data.(model.TeamMember)
 	}
 
-	var channelMembers *model.ChannelList
+	var channelList *model.ChannelList
 
 	if result := <-Srv.Store.Channel().GetChannels(team.Id, user.Id); result.Err != nil {
 		if result.Err.Id == "store.sql_channel.get_channels.not_found.app_error" {
-			channelMembers = &model.ChannelList{make([]*model.Channel, 0), make(map[string]*model.ChannelMember)}
+			channelList = &model.ChannelList{}
 		} else {
 			return result.Err
 		}
 
 	} else {
-		channelMembers = result.Data.(*model.ChannelList)
+		channelList = result.Data.(*model.ChannelList)
 	}
 
-	for _, channel := range channelMembers.Channels {
+	for _, channel := range *channelList {
 		if channel.Type != model.CHANNEL_DIRECT {
 			Srv.Store.User().InvalidateProfilesInChannelCache(channel.Id)
 			if result := <-Srv.Store.Channel().RemoveMember(channel.Id, user.Id); result.Err != nil {

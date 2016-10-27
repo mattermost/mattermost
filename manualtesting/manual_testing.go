@@ -159,13 +159,13 @@ func getChannelID(channelname string, teamid string, userid string) (id string, 
 		return "", false
 	}
 
-	data := result.Data.(*model.ChannelList)
+	data := result.Data.(model.ChannelList)
 
-	for _, channel := range data.Channels {
+	for _, channel := range data {
 		if channel.Name == channelname {
 			return channel.Id, true
 		}
 	}
-	l4g.Debug(utils.T("manaultesting.get_channel_id.no_found.debug"), channelname, strconv.Itoa(len(data.Channels)))
+	l4g.Debug(utils.T("manaultesting.get_channel_id.no_found.debug"), channelname, strconv.Itoa(len(data)))
 	return "", false
 }

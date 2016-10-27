@@ -80,8 +80,7 @@ export function getChannels(doVersionCheck) {
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_CHANNELS,
-                channels: data.channels,
-                members: data.members
+                channels: data
             });
         },
         (err) => {
@@ -111,6 +110,33 @@ export function getChannel(id) {
         (err) => {
             callTracker['getChannel' + id] = 0;
             dispatchError(err, 'getChannel');
+        }
+    );
+}
+
+export function getMyChannelMembers(doVersionCheck) {
+    if (isCallInProgress('getMyChannelMembers')) {
+        return;
+    }
+
+    callTracker.getMyChannelMembers = utils.getTimestamp();
+
+    Client.getMyChannelMembers(
+        (data) => {
+            callTracker.getMyChannelMembers = 0;
+
+            if (doVersionCheck) {
+                checkVersion();
+            }
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_MY_CHANNEL_MEMBERS,
+                members: data
+            });
+        },
+        (err) => {
+            callTracker.getChannelsUnread = 0;
+            dispatchError(err, 'getMyChannelMembers');
         }
     );
 }
@@ -205,8 +231,7 @@ export function getMoreChannels(force) {
 
                 AppDispatcher.handleServerAction({
                     type: ActionTypes.RECEIVED_MORE_CHANNELS,
-                    channels: data.channels,
-                    members: data.members
+                    channels: data
                 });
             },
             (err) => {

@@ -21,6 +21,7 @@ func InitChannel() {
 	BaseRoutes.Channels.Handle("/", ApiUserRequired(getChannels)).Methods("GET")
 	BaseRoutes.Channels.Handle("/more", ApiUserRequired(getMoreChannels)).Methods("GET")
 	BaseRoutes.Channels.Handle("/counts", ApiUserRequired(getChannelCounts)).Methods("GET")
+	BaseRoutes.Channels.Handle("/members", ApiUserRequired(getMyChannelMembers)).Methods("GET")
 	BaseRoutes.Channels.Handle("/create", ApiUserRequired(createChannel)).Methods("POST")
 	BaseRoutes.Channels.Handle("/create_direct", ApiUserRequired(createDirectChannel)).Methods("POST")
 	BaseRoutes.Channels.Handle("/update", ApiUserRequired(updateChannel)).Methods("POST")
@@ -81,7 +82,7 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		} else {
 			data := result.Data.(*model.ChannelList)
-			if int64(len(data.Channels)+1) > *utils.Cfg.TeamSettings.MaxChannelsPerTeam {
+			if int64(len(*data)+1) > *utils.Cfg.TeamSettings.MaxChannelsPerTeam {
 				c.Err = model.NewLocAppError("createChannel", "api.channel.create_channel.max_channel_limit.app_error", map[string]interface{}{"MaxChannelsPerTeam": *utils.Cfg.TeamSettings.MaxChannelsPerTeam}, "")
 				return
 			}
@@ -984,6 +985,16 @@ func getChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		member := result.Data.(model.ChannelMember)
 		w.Write([]byte(member.ToJson()))
+	}
+}
+
+func getMyChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
+	if result := <-Srv.Store.Channel().GetMembersForUser(c.TeamId, c.Session.UserId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		data := result.Data.(*model.ChannelMembers)
+		w.Write([]byte(data.ToJson()))
 	}
 }
 

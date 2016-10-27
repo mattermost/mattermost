@@ -76,6 +76,7 @@ function handleFirstConnect() {
 function handleReconnect() {
     if (Client.teamId) {
         AsyncClient.getChannels();
+        AsyncClient.getMyChannelMembers();
         loadPosts(ChannelStore.getCurrentId());
     }
 

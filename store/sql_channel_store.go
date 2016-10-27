@@ -367,23 +367,16 @@ func (s SqlChannelStore) GetChannels(teamId string, userId string) StoreChannel 
 	go func() {
 		result := StoreResult{}
 
-		var data []channelWithMember
-		_, err := s.GetReplica().Select(&data, "SELECT * FROM Channels, ChannelMembers WHERE Id = ChannelId AND UserId = :UserId AND DeleteAt = 0 AND (TeamId = :TeamId OR TeamId = '') ORDER BY DisplayName", map[string]interface{}{"TeamId": teamId, "UserId": userId})
+		data := &model.ChannelList{}
+		_, err := s.GetReplica().Select(data, "SELECT Channels.* FROM Channels, ChannelMembers WHERE Id = ChannelId AND UserId = :UserId AND DeleteAt = 0 AND (TeamId = :TeamId OR TeamId = '') ORDER BY DisplayName", map[string]interface{}{"TeamId": teamId, "UserId": userId})
 
 		if err != nil {
 			result.Err = model.NewLocAppError("SqlChannelStore.GetChannels", "store.sql_channel.get_channels.get.app_error", nil, "teamId="+teamId+", userId="+userId+", err="+err.Error())
 		} else {
-			channels := &model.ChannelList{make([]*model.Channel, len(data)), make(map[string]*model.ChannelMember)}
-			for i := range data {
-				v := data[i]
-				channels.Channels[i] = &v.Channel
-				channels.Members[v.Channel.Id] = &v.ChannelMember
-			}
-
-			if len(channels.Channels) == 0 {
+			if len(*data) == 0 {
 				result.Err = model.NewLocAppError("SqlChannelStore.GetChannels", "store.sql_channel.get_channels.not_found.app_error", nil, "teamId="+teamId+", userId="+userId)
 			} else {
-				result.Data = channels
+				result.Data = data
 			}
 		}
 
@@ -400,8 +393,8 @@ func (s SqlChannelStore) GetMoreChannels(teamId string, userId string) StoreChan
 	go func() {
 		result := StoreResult{}
 
-		var data []*model.Channel
-		_, err := s.GetReplica().Select(&data,
+		data := &model.ChannelList{}
+		_, err := s.GetReplica().Select(data,
 			`SELECT 
 			    *
 			FROM
@@ -426,7 +419,7 @@ func (s SqlChannelStore) GetMoreChannels(teamId string, userId string) StoreChan
 		if err != nil {
 			result.Err = model.NewLocAppError("SqlChannelStore.GetMoreChannels", "store.sql_channel.get_more_channels.get.app_error", nil, "teamId="+teamId+", userId="+userId+", err="+err.Error())
 		} else {
-			result.Data = &model.ChannelList{data, make(map[string]*model.ChannelMember)}
+			result.Data = data
 		}
 
 		storeChannel <- result
@@ -918,11 +911,12 @@ func (s SqlChannelStore) IncrementMentionCount(channelId string, userId string) 
 			`UPDATE
 				ChannelMembers
 			SET
-				MentionCount = MentionCount + 1
+				MentionCount = MentionCount + 1,
+				LastUpdateAt = :LastUpdateAt
 			WHERE
 				UserId = :UserId
 					AND ChannelId = :ChannelId`,
-			map[string]interface{}{"ChannelId": channelId, "UserId": userId})
+			map[string]interface{}{"ChannelId": channelId, "UserId": userId, "LastUpdateAt": model.GetMillis()})
 		if err != nil {
 			result.Err = model.NewLocAppError("SqlChannelStore.IncrementMentionCount", "store.sql_channel.increment_mention_count.app_error", nil, "channel_id="+channelId+", user_id="+userId+", "+err.Error())
 		}
@@ -1024,6 +1018,35 @@ func (s SqlChannelStore) ExtraUpdateByUser(userId string, time int64) StoreChann
 
 		if err != nil {
 			result.Err = model.NewLocAppError("SqlChannelStore.extraUpdated", "store.sql_channel.extra_updated.app_error", nil, "user_id="+userId+", "+err.Error())
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlChannelStore) GetMembersForUser(teamId string, userId string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		members := &model.ChannelMembers{}
+		_, err := s.GetReplica().Select(members, `
+            SELECT cm.*
+            FROM ChannelMembers cm
+            INNER JOIN Channels c
+                ON c.Id = cm.ChannelId
+                AND c.TeamId = :TeamId
+            WHERE cm.UserId = :UserId
+		`, map[string]interface{}{"TeamId": teamId, "UserId": userId})
+
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlChannelStore.GetMembersForUser", "store.sql_channel.get_members.app_error", nil, "teamId="+teamId+", userId="+userId+", err="+err.Error())
+		} else {
+			result.Data = members
 		}
 
 		storeChannel <- result
