@@ -485,7 +485,7 @@ export default class Navbar extends React.Component {
                             className='description'
                             rootClose={true}
                         >
-                            <div className='description info-popover'/>
+                            <div className='pull-right description info-popover'/>
                         </OverlayTrigger>
                         <a
                             href='#'
@@ -635,6 +635,12 @@ export default class Navbar extends React.Component {
                         message={channel.header}
                         options={{singleline: true, mentionHighlight: false}}
                     />
+                    <div
+                        className='close__icon visible-xs-block'
+                        onClick={() => this.refs.headerOverlay.hide()}
+                    >
+                        {'×'}
+                    </div>
                 </Popover>
             );
 
@@ -687,6 +693,12 @@ export default class Navbar extends React.Component {
                                     link
                                 }}
                             />
+                        </div>
+                        <div
+                            className='close__icon visible-xs-block'
+                            onClick={() => this.refs.headerOverlay.hide()}
+                        >
+                            {'×'}
                         </div>
                     </Popover>
                 );

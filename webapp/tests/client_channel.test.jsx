@@ -232,7 +232,7 @@ describe('Client.Channels', function() {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().getChannels(
                 function(data) {
-                    assert.equal(data.channels.length, 3);
+                    assert.equal(data.length, 3);
                     done();
                 },
                 function(err) {
@@ -261,7 +261,7 @@ describe('Client.Channels', function() {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().getMoreChannels(
                 function(data) {
-                    assert.equal(data.channels.length, 0);
+                    assert.equal(data.length, 0);
                     done();
                 },
                 function(err) {
@@ -276,6 +276,20 @@ describe('Client.Channels', function() {
             TestHelper.basicClient().getChannelCounts(
                 function(data) {
                     assert.equal(data.counts[TestHelper.basicChannel().id], 1);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
+    it('getMyChannelMembers', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().getMyChannelMembers(
+                function(data) {
+                    assert.equal(data.length > 0, true);
                     done();
                 },
                 function(err) {

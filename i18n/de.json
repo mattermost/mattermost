@@ -204,6 +204,10 @@
     "translation": "Im Kanalnamen für Nicht-Direktnachrichten-Kanal wurde ein unerlaubtes Zeichen '__' verwendet"
   },
   {
+    "id": "api.channel.create_channel.max_channel_limit.app_error",
+    "translation": "Cannot create more than {{.MaxChannelsPerTeam}} channels for current team"
+  },
+  {
     "id": "api.channel.create_default_channels.off_topic",
     "translation": "Off-Topic"
   },
@@ -1219,7 +1223,7 @@
   },
   {
     "id": "api.post.create_post.attach_files.error",
-    "translation": "Encountered error attaching files to post, post_id=%s, user_id=%s, file_ids=%v, err=%v"
+    "translation": "Fehler beim anfügen der Dateien zu Nachricht, post_id=%s, file_ids=%v, err=%v"
   },
   {
     "id": "api.post.create_post.bad_filename.error",
@@ -1537,7 +1541,7 @@
   },
   {
     "id": "api.slackimport.slack_add_posts.attach_files.error",
-    "translation": "Encountered error attaching files to post, post_id=%s, file_ids=%v, err=%v"
+    "translation": "Fehler beim anfügen der Dateien zu Nachricht, post_id=%s, file_ids=%v, err=%v"
   },
   {
     "id": "api.slackimport.slack_add_posts.bot.warn",
@@ -2404,8 +2408,12 @@
     "translation": "Fehlerhafter E-Mail-Adresse Bestätigungslink."
   },
   {
+    "id": "api.web_hub.start.starting.debug",
+    "translation": "Starting %v websocket hubs"
+  },
+  {
     "id": "api.web_hub.start.stopping.debug",
-    "translation": "%v Verbindungen werden beendet"
+    "translation": "stopping websocket hub connections"
   },
   {
     "id": "api.web_socket.connect.error",
@@ -3258,6 +3266,10 @@
   {
     "id": "model.config.is_valid.max_burst.app_error",
     "translation": "Maximum Burst muss größer als Null sein."
+  },
+  {
+    "id": "model.config.is_valid.max_channels.app_error",
+    "translation": "Ungültige maximale Anzahl an Benutzers pro Team in Teameinstellungen.  Muss eine positive Zahl sein."
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
@@ -4632,7 +4644,15 @@
     "translation": "Kein Teammitglied mit dieser Benutzer ID und Team ID gefunden"
   },
   {
+    "id": "store.sql_team.get_member_count.app_error",
+    "translation": "Wir konnten die Kanal Mitglieder nicht finden"
+  },
+  {
     "id": "store.sql_team.get_members.app_error",
+    "translation": "Wir konnten die Kanal Mitglieder nicht finden"
+  },
+  {
+    "id": "store.sql_team.get_members_by_ids.app_error",
     "translation": "Wir konnten die Kanal Mitglieder nicht finden"
   },
   {
@@ -4722,6 +4742,10 @@
   {
     "id": "store.sql_user.get_profiles.app_error",
     "translation": "Es trat ein Fehler beim Finden der Benutzerprofile auf"
+  },
+  {
+    "id": "store.sql_user.get_recently_active_users.app_error",
+    "translation": "We encountered an error while finding the recently active users"
   },
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",

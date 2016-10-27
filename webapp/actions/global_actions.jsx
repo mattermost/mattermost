@@ -42,8 +42,6 @@ export function emitChannelClickEvent(channel) {
         );
     }
     function switchToChannel(chan) {
-        AsyncClient.getChannels(true);
-        AsyncClient.getMoreChannels(true);
         AsyncClient.getChannelStats(chan.id);
         AsyncClient.updateLastViewedAt(chan.id);
         loadPosts(chan.id);
@@ -436,10 +434,6 @@ export function loadDefaultLocale() {
 }
 
 export function viewLoggedIn() {
-    AsyncClient.getChannels();
-    AsyncClient.getMoreChannels();
-    AsyncClient.getChannelStats();
-
     // Clear pending posts (shouldn't have pending posts if we are loading)
     PostStore.clearPendingPosts();
 }

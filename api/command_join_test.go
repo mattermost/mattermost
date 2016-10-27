@@ -42,7 +42,7 @@ func TestJoinCommands(t *testing.T) {
 	c1 := Client.Must(Client.GetChannels("")).Data.(*model.ChannelList)
 
 	found := false
-	for _, c := range c1.Channels {
+	for _, c := range *c1 {
 		if c.Id == channel2.Id {
 			found = true
 		}

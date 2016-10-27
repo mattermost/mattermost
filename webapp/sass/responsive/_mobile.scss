@@ -10,6 +10,50 @@
 
     .filtered-user-list {
         max-height: 65vh !important;
+
+        .filter-button {
+            .btn {
+                width: 100%;
+            }
+        }
+    }
+
+    #header-popover {
+        @include box-shadow(none);
+        background: alpha-color($black, .8);
+        border: none;
+        height: 100%;
+        max-width: 100%;
+        position: fixed;
+        top: 47px;
+        width: 100%;
+
+        .arrow {
+            display: none;
+        }
+
+        .popover-content {
+            color: $white;
+            font-size: 15px;
+            padding: 15px 20px 100px;
+        }
+
+        .close__icon {
+            @include border-radius(50%);
+            border: 1px solid $white;
+            bottom: 25px;
+            color: $white;
+            display: block;
+            font-size: 23px;
+            font-weight: 300;
+            height: 30px;
+            left: 50%;
+            line-height: 23px;
+            margin-left: -25px;
+            position: fixed;
+            text-align: center;
+            width: 30px;
+        }
     }
 
     .app__body {
@@ -493,6 +537,10 @@
             }
 
             .settings-modal {
+                .modal-body {
+                    min-height: 100%;
+                }
+
                 &.display--content {
                     .modal-header {
                         display: none;
@@ -598,7 +646,7 @@
                     .nav {
                         > li {
                             > a {
-                                border-top: 1px solid transparent;
+                                border-bottom: 1px solid transparent;
                                 font-size: 1.1em;
                                 line-height: 2.7;
 
@@ -742,20 +790,20 @@
 
                 &:after {
                     @include border-radius(50%);
-                    background: alpha-color($black, .8);
-                    border-bottom: 1px solid alpha-color($white, .3);
+                    border: 1px solid $white;
                     bottom: 25px;
                     color: $white;
-                    content: '×';
+                    content: '\D7';
                     display: block;
-                    font-size: 30px;
-                    height: 50px;
+                    font-size: 23px;
+                    font-weight: 300;
+                    height: 30px;
                     left: 50%;
-                    line-height: 50px;
+                    line-height: 27px;
                     margin-left: -25px;
                     position: fixed;
                     text-align: center;
-                    width: 50px;
+                    width: 30px;
                 }
 
                 > li {

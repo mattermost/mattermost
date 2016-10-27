@@ -1124,13 +1124,13 @@ func (c *Client) UpdateNotifyProps(data map[string]string) (*Result, *AppError) 
 	}
 }
 
-func (c *Client) GetChannels(etag string) (*Result, *AppError) {
-	if r, err := c.DoApiGet(c.GetTeamRoute()+"/channels/", "", etag); err != nil {
+func (c *Client) GetMyChannelMembers() (*Result, *AppError) {
+	if r, err := c.DoApiGet(c.GetTeamRoute()+"/channels/members", "", ""); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), ChannelListFromJson(r.Body)}, nil
+			r.Header.Get(HEADER_ETAG_SERVER), ChannelMembersFromJson(r.Body)}, nil
 	}
 }
 
@@ -1161,6 +1161,16 @@ func (c *Client) GetChannelCounts(etag string) (*Result, *AppError) {
 		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), ChannelCountsFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) GetChannels(etag string) (*Result, *AppError) {
+	if r, err := c.DoApiGet(c.GetTeamRoute()+"/channels/", "", etag); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), ChannelListFromJson(r.Body)}, nil
 	}
 }
 

@@ -156,7 +156,7 @@ class ChannelStoreClass extends EventEmitter {
                 if (c) {
                     cm[cmid].msg_count = this.get(id).total_msg_count;
                     cm[cmid].mention_count = 0;
-                    this.setUnreadCount(id);
+                    this.setUnreadCountByChannel(id);
                 }
                 break;
             }
@@ -250,6 +250,12 @@ class ChannelStoreClass extends EventEmitter {
         this.myChannelMembers = channelMembers;
     }
 
+    storeMyChannelMembersList(channelMembers) {
+        channelMembers.forEach((m) => {
+            this.myChannelMembers[m.channel_id] = m;
+        });
+    }
+
     getMyMembers() {
         return this.myChannelMembers;
     }
@@ -278,7 +284,13 @@ class ChannelStoreClass extends EventEmitter {
         return this.postMode;
     }
 
-    setUnreadCount(id) {
+    setUnreadCountsByMembers(members) {
+        members.forEach((m) => {
+            this.setUnreadCountByChannel(m.channel_id);
+        });
+    }
+
+    setUnreadCountByChannel(id) {
         const ch = this.get(id);
         const chMember = this.getMyMember(id);
 
@@ -290,13 +302,6 @@ class ChannelStoreClass extends EventEmitter {
         }
 
         this.unreadCounts[id] = {msgs: chUnreadCount, mentions: chMentionCount};
-    }
-
-    setUnreadCounts() {
-        const channels = this.getAll();
-        channels.forEach((ch) => {
-            this.setUnreadCount(ch.id);
-        });
     }
 
     getUnreadCount(id) {
@@ -362,12 +367,6 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
 
     case ActionTypes.RECEIVED_CHANNELS:
         ChannelStore.storeChannels(action.channels);
-        ChannelStore.storeMyChannelMembers(action.members);
-        currentId = ChannelStore.getCurrentId();
-        if (currentId && window.isActive) {
-            ChannelStore.resetCounts(currentId);
-        }
-        ChannelStore.setUnreadCounts();
         ChannelStore.emitChange();
         break;
 
@@ -380,10 +379,18 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         if (currentId && window.isActive) {
             ChannelStore.resetCounts(currentId);
         }
-        ChannelStore.setUnreadCount(action.channel.id);
+        ChannelStore.setUnreadCountByChannel(action.channel.id);
         ChannelStore.emitChange();
         break;
 
+    case ActionTypes.RECEIVED_MY_CHANNEL_MEMBERS:
+        ChannelStore.storeMyChannelMembersList(action.members);
+        currentId = ChannelStore.getCurrentId();
+        if (currentId && window.isActive) {
+            ChannelStore.resetCounts(currentId);
+        }
+        ChannelStore.setUnreadCountsByMembers(action.members);
+        break;
     case ActionTypes.RECEIVED_MORE_CHANNELS:
         ChannelStore.storeMoreChannels(action.channels);
         ChannelStore.emitMoreChange();

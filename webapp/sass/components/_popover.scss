@@ -128,6 +128,10 @@
             background: alpha-color($black, .2);
         }
 
+        .mention--align {
+            display: inline-block;
+        }
+
         .fa {
             @include opacity(.5);
             margin-right: 5px;

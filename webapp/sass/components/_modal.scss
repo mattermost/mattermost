@@ -623,6 +623,12 @@
         flex-shrink: 1;
     }
 
+    .filter-button {
+        .btn {
+            height: 34px;
+        }
+    }
+
     .filter-controls {
         @include clearfix;
         flex-grow: 0;

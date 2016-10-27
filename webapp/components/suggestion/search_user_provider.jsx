@@ -37,11 +37,11 @@ class SearchUserSuggestion extends Suggestion {
                 className={className}
                 onClick={this.handleClick}
             >
+                <i className='fa fa fa-plus-square'/>
                 <img
                     className='profile-img rounded'
                     src={Client.getUsersRoute() + '/' + item.id + '/image?time=' + item.update_at}
                 />
-                <i className='fa fa fa-plus-square'/>
                 <div className='mention--align'>
                     <span>
                         {username}
