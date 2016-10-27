@@ -662,6 +662,18 @@ export default class ChannelHeader extends React.Component {
             </OverlayTrigger>
         );
 
+        let channelMembersModal;
+        if (this.state.showMembersModal) {
+            channelMembersModal = (
+                <ChannelMembersModal
+                    show={true}
+                    onModalDismissed={() => this.setState({showMembersModal: false})}
+                    channel={channel}
+                    isAdmin={isAdmin}
+                />
+            );
+        }
+
         return (
             <div
                 id='channel-header'
@@ -758,12 +770,7 @@ export default class ChannelHeader extends React.Component {
                     onModalDismissed={() => this.setState({showEditChannelPurposeModal: false})}
                     channel={channel}
                 />
-                <ChannelMembersModal
-                    show={this.state.showMembersModal}
-                    onModalDismissed={() => this.setState({showMembersModal: false})}
-                    channel={channel}
-                    isAdmin={isAdmin}
-                />
+                {channelMembersModal}
                 <RenameChannelModal
                     show={this.state.showRenameChannelModal}
                     onHide={this.hideRenameChannelModal}

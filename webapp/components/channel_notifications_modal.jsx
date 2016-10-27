@@ -1,17 +1,16 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
-import {Modal} from 'react-bootstrap';
-import SettingItemMin from './setting_item_min.jsx';
-import SettingItemMax from './setting_item_max.jsx';
+import SettingItemMin from 'components/setting_item_min.jsx';
+import SettingItemMax from 'components/setting_item_max.jsx';
 
 import Client from 'client/web_client.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 
-import {FormattedMessage} from 'react-intl';
-
+import $ from 'jquery';
 import React from 'react';
+import {Modal} from 'react-bootstrap';
+import {FormattedMessage} from 'react-intl';
 
 export default class ChannelNotificationsModal extends React.Component {
     constructor(props) {
@@ -29,16 +28,18 @@ export default class ChannelNotificationsModal extends React.Component {
 
         this.state = {
             activeSection: '',
-            notifyLevel: '',
-            unreadLevel: ''
+            notifyLevel: props.channelMember.notify_props.desktop,
+            unreadLevel: props.channelMember.notify_props.mark_unread
         };
     }
+
     updateSection(section) {
         if ($('.section-max').length) {
             $('.settings-modal .modal-body').scrollTop(0).perfectScrollbar('update');
         }
         this.setState({activeSection: section});
     }
+
     componentWillReceiveProps(nextProps) {
         if (!this.props.show && nextProps.show) {
             this.setState({
@@ -47,6 +48,7 @@ export default class ChannelNotificationsModal extends React.Component {
             });
         }
     }
+
     handleSubmitNotifyLevel() {
         var channelId = this.props.channel.id;
         var notifyLevel = this.state.notifyLevel;
@@ -75,9 +77,11 @@ export default class ChannelNotificationsModal extends React.Component {
             }
         );
     }
+
     handleUpdateNotifyLevel(notifyLevel) {
         this.setState({notifyLevel});
     }
+
     createNotifyLevelSection(serverError) {
         // Get glabal user setting for notifications
         const globalNotifyLevel = this.props.currentUser.notify_props ? this.props.currentUser.notify_props.desktop : 'all';

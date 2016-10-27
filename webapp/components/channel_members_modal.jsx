@@ -46,19 +46,12 @@ export default class ChannelMembersModal extends React.Component {
         };
     }
 
-    componentWillReceiveProps(nextProps) {
-        if (!this.props.show && nextProps.show) {
-            ChannelStore.addStatsChangeListener(this.onChange);
-            UserStore.addInChannelChangeListener(this.onChange);
-            UserStore.addStatusesChangeListener(this.onStatusChange);
+    componentDidMount() {
+        ChannelStore.addStatsChangeListener(this.onChange);
+        UserStore.addInChannelChangeListener(this.onChange);
+        UserStore.addStatusesChangeListener(this.onStatusChange);
 
-            this.onChange();
-            AsyncClient.getProfilesInChannel(this.props.channel.id, 0);
-        } else if (this.props.show && !nextProps.show) {
-            ChannelStore.removeStatsChangeListener(this.onChange);
-            UserStore.removeInChannelChangeListener(this.onChange);
-            UserStore.removeStatusesChangeListener(this.onStatusChange);
-        }
+        AsyncClient.getProfilesInChannel(this.props.channel.id, 0);
     }
 
     componentWillUnmount() {

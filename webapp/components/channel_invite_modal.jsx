@@ -36,34 +36,26 @@ export default class ChannelInviteModal extends React.Component {
         const teamStats = TeamStore.getCurrentStats();
 
         this.state = {
-            users: [],
+            users: null,
             total: teamStats.member_count - channelStats.member_count,
             search: false,
             statusChange: false
         };
     }
 
-    componentWillReceiveProps(nextProps) {
-        if (!this.props.show && nextProps.show) {
-            TeamStore.addStatsChangeListener(this.onChange);
-            ChannelStore.addStatsChangeListener(this.onChange);
-            UserStore.addNotInChannelChangeListener(this.onChange);
-            UserStore.addStatusesChangeListener(this.onStatusChange);
+    componentDidMount() {
+        TeamStore.addStatsChangeListener(this.onChange);
+        ChannelStore.addStatsChangeListener(this.onChange);
+        UserStore.addNotInChannelChangeListener(this.onChange);
+        UserStore.addStatusesChangeListener(this.onStatusChange);
 
-            this.onChange();
-            AsyncClient.getProfilesNotInChannel(this.props.channel.id, 0);
-            AsyncClient.getTeamStats(TeamStore.getCurrentId());
-        } else if (this.props.show && !nextProps.show) {
-            TeamStore.removeStatsChangeListener(this.onChange);
-            ChannelStore.removeStatsChangeListener(this.onChange);
-            UserStore.removeNotInChannelChangeListener(this.onChange);
-            UserStore.removeStatusesChangeListener(this.onStatusChange);
-        }
+        AsyncClient.getProfilesNotInChannel(this.props.channel.id, 0);
+        AsyncClient.getTeamStats(TeamStore.getCurrentId());
     }
 
     componentWillUnmount() {
+        TeamStore.removeStatsChangeListener(this.onChange);
         ChannelStore.removeStatsChangeListener(this.onChange);
-        ChannelStore.removeChangeListener(this.onChange);
         UserStore.removeNotInChannelChangeListener(this.onChange);
         UserStore.removeStatusesChangeListener(this.onStatusChange);
     }
