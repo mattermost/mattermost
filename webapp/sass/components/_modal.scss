@@ -500,11 +500,13 @@
 
 
 .status-wrapper {
+    display: inline-block;
+    height: 32px;
     position: relative;
 
     &:after {
         border-radius: 100%;
-        bottom: 4px;
+        bottom: -2px;
         content: '';
         display: block;
         height: 8px;

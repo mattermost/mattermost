@@ -619,10 +619,10 @@
 
                     .settings-content {
                         .section-edit {
-                            position: absolute;
-                            top: 14px;
-                            right: 0;
                             padding-right: 0;
+                            position: absolute;
+                            right: 15px;
+                            top: 14px;
 
                             .fa {
                                 display: inline-block;
@@ -783,7 +783,7 @@
                 height: 100%;
                 left: 0;
                 overflow: auto;
-                padding-bottom: 140px;
+                padding: 1.4em 0 140px;
                 position: fixed;
                 top: 42px;
                 width: 100%;
@@ -811,7 +811,7 @@
                         border-bottom: 1px solid alpha-color($white, .3);
                         color: $white;
                         font-weight: 600;
-                        line-height: 50px;
+                        line-height: 35px;
                         margin: 0 auto;
                         text-align: center;
                         width: 90%;
