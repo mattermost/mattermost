@@ -39,7 +39,7 @@ func (me *EchoProvider) GetCommand(c *Context) *model.Command {
 	}
 }
 
-func (me *EchoProvider) DoCommand(c *Context, channelId string, message string) *model.CommandResponse {
+func (me *EchoProvider) DoCommand(c *Context, post *model.Post, message string) *model.CommandResponse {
 	maxThreads := 100
 
 	delay := 0
@@ -74,8 +74,6 @@ func (me *EchoProvider) DoCommand(c *Context, channelId string, message string) 
 	echoSem <- true
 	go func() {
 		defer func() { <-echoSem }()
-		post := &model.Post{}
-		post.ChannelId = channelId
 		post.Message = message
 		post.UserId = c.Session.UserId
 

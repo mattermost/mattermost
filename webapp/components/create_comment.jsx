@@ -4,6 +4,8 @@
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import Client from 'client/web_client.jsx';
+import * as ChannelActions from 'actions/channel_actions.jsx';
 import EmojiStore from 'stores/emoji_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import PostDeletedModal from './post_deleted_modal.jsx';
@@ -22,6 +24,7 @@ import * as PostActions from 'actions/post_actions.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {FormattedMessage} from 'react-intl';
+import {browserHistory} from 'react-router/es6';
 
 const ActionTypes = Constants.ActionTypes;
 const KeyCodes = Constants.KeyCodes;
@@ -53,6 +56,7 @@ export default class CreateComment extends React.Component {
         this.focusTextbox = this.focusTextbox.bind(this);
         this.showPostDeletedModal = this.showPostDeletedModal.bind(this);
         this.hidePostDeletedModal = this.hidePostDeletedModal.bind(this);
+        this.showShortcuts = this.showShortcuts.bind(this);
 
         PostStore.clearCommentDraftUploads();
         MessageHistoryStore.resetHistoryIndex('comment');
@@ -71,11 +75,33 @@ export default class CreateComment extends React.Component {
 
     componentDidMount() {
         PreferenceStore.addChangeListener(this.onPreferenceChange);
+
         this.focusTextbox();
+        document.addEventListener('keydown', this.showShortcuts);
     }
 
     componentWillUnmount() {
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
+        document.removeEventListener('keydown', this.showShortcuts);
+    }
+
+    showShortcuts(e) {
+        if ((e.ctrlKey || e.metaKey) && e.keyCode === Constants.KeyCodes.FORWARD_SLASH) {
+            e.preventDefault();
+            const post = {};
+            post.channel_id = this.props.channelId;
+            post.message = '/shortcuts ';
+            ChannelActions.executeCommand(
+                post,
+                null,
+                (err) => {
+                    this.setState({
+                        serverError: err.message,
+                        submitting: false
+                    });
+                }
+            );
+        }
     }
 
     onPreferenceChange() {
@@ -121,7 +147,7 @@ export default class CreateComment extends React.Component {
         }
 
         MessageHistoryStore.storeMessageInHistory(message);
-
+        
         if (message.trim().length === 0 && this.state.fileInfos.length === 0) {
             return;
         }
@@ -129,6 +155,8 @@ export default class CreateComment extends React.Component {
         const isReaction = REACTION_PATTERN.exec(message);
         if (isReaction && EmojiStore.has(isReaction[2])) {
             this.handleSubmitReaction(isReaction);
+        } else if (message.indexOf('/') === 0) {
+            this.handleSubmitCommand(message);
         } else {
             this.handleSubmitPost(message);
         }
@@ -144,6 +172,37 @@ export default class CreateComment extends React.Component {
         const fasterThanHumanWillClick = 150;
         const forceFocus = (Date.now() - this.state.lastBlurAt < fasterThanHumanWillClick);
         this.focusTextbox(forceFocus);
+    }
+
+    handleSubmitCommand(message) {
+            PostStore.storeCommentDraft(this.props.rootId, null);
+            this.setState({message: '', postError: null, fileInfos: []});
+
+            const args = {};
+            args.channel_id = this.props.channelId;
+            args.root_id = this.props.rootId;
+            args.parent_id = this.props.rootId;
+            ChannelActions.executeCommand(
+                message,
+                args,
+                (data) => {
+                    this.setState({submitting: false});
+
+                    if (data.goto_location && data.goto_location.length > 0) {
+                        browserHistory.push(data.goto_location);
+                    }
+                },
+                (err) => {
+                    if (err.sendMessage) {
+                        this.sendMessage(post);
+                    } else {
+                        const state = {};
+                        state.serverError = err.message;
+                        state.submitting = false;
+                        this.setState(state);
+                    }
+                }
+            );
     }
 
     handleSubmitPost(message) {
@@ -444,7 +503,6 @@ export default class CreateComment extends React.Component {
                                 onBlur={this.handleBlur}
                                 createMessage={Utils.localizeMessage('create_comment.addComment', 'Add a comment...')}
                                 initialText=''
-                                supportsCommands={false}
                                 channelId={this.props.channelId}
                                 id='reply_textbox'
                                 ref='textbox'

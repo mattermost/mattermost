@@ -32,6 +32,6 @@ func (me *MeProvider) GetCommand(c *Context) *model.Command {
 	}
 }
 
-func (me *MeProvider) DoCommand(c *Context, channelId string, message string) *model.CommandResponse {
+func (me *MeProvider) DoCommand(c *Context, post *model.Post, message string) *model.CommandResponse {
 	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL, Text: "*" + message + "*"}
 }

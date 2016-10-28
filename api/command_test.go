@@ -246,7 +246,7 @@ func TestTestCommand(t *testing.T) {
 
 	cmd1 = Client.Must(Client.CreateCommand(cmd1)).Data.(*model.Command)
 
-	r1 := Client.Must(Client.Command(channel1.Id, "/test", false)).Data.(*model.CommandResponse)
+	r1 := Client.Must(Client.Command(channel1.Id, "/test")).Data.(*model.CommandResponse)
 	if r1 == nil {
 		t.Fatal("Test command failed to execute")
 	}
@@ -266,7 +266,7 @@ func TestTestCommand(t *testing.T) {
 
 	cmd2 = Client.Must(Client.CreateCommand(cmd2)).Data.(*model.Command)
 
-	r2 := Client.Must(Client.Command(channel1.Id, "/test2", false)).Data.(*model.CommandResponse)
+	r2 := Client.Must(Client.Command(channel1.Id, "/test2")).Data.(*model.CommandResponse)
 	if r2 == nil {
 		t.Fatal("Test2 command failed to execute")
 	}
