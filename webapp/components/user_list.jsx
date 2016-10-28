@@ -1,7 +1,6 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
 import UserListRow from './user_list_row.jsx';
 import LoadingScreen from 'components/loading_screen.jsx';
 
@@ -10,12 +9,6 @@ import {FormattedMessage} from 'react-intl';
 import Infinite from 'react-infinite';
 
 export default class UserList extends React.Component {
-    constructor(props) {
-        super(props);
-        this.width = $(window).width();
-        this.height = $(window).height();
-    }
-
     render() {
         const users = this.props.users;
 
@@ -60,10 +53,10 @@ export default class UserList extends React.Component {
             content = (
                 <Infinite
                     elementHeight={60}
-                    containerHeight={this.props.listHeight * 0.8}
-                    infiniteLoadBeginEdgeOffset={1500}
+                    containerHeight={this.props.listHeight - 64}
+                    infiniteLoadBeginEdgeOffset={500}
                     onInfiniteLoad={this.props.nextPage}
-                    preloadBatchSize={6230}
+                    preloadBatchSize={1500}
                 >
                     {content}
                 </Infinite>

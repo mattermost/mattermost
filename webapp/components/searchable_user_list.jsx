@@ -11,7 +11,6 @@ import $ from 'jquery';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {FormattedMessage} from 'react-intl';
-import ReactHeight from 'react-height';
 
 const NEXT_BUTTON_TIMEOUT = 500;
 
@@ -188,62 +187,57 @@ export default class SearchableUserList extends React.Component {
             }
         }
 
+        const height = $(window).height() - ($(window).width() <= 768 ? 95 : 198);
+
         return (
-            <ReactHeight onHeightReady={(height) => {
-                  if (this.state.listHeight === 0) {
-                      this.setState({listHeight: height})}
-                  }
-              }
+            <div
+                className='filtered-user-list'
+                style={$.extend(this.props.style, {'max-height': `${height}px`})}
             >
-                <div
-                    className='filtered-user-list'
-                    style={this.props.style}
-                >
-                    <div className='filter-row'>
-                        <div className='col-xs-9 col-sm-5 filter-text'>
-                            <input
-                                ref='filter'
-                                className='form-control filter-textbox'
-                                placeholder={Utils.localizeMessage('filtered_user_list.search', 'Press enter to search')}
-                                onKeyPress={this.onSearchBoxKeyPress}
-                                onChange={this.onSearchBoxChange}
-                            />
-                        </div>
-                        <div className='col-xs-3 col-sm-2 filter-button'>
-                            <button
-                                type='button'
-                                className='btn btn-primary'
-                                onClick={this.doSearch}
-                                disabled={this.props.users == null}
-                            >
-                                <FormattedMessage
-                                    id='filtered_user_list.searchButton'
-                                    defaultMessage='Search'
-                                />
-                            </button>
-                        </div>
-                        <div className='col-xs-12 col-sm-12'>
-                            <span className='member-count pull-left'>{count}</span>
-                        </div>
-                    </div>
-                    <div
-                        ref='userList'
-                        className='more-modal__list'
-                    >
-                        <UserList
-                            users={usersToDisplay}
-                            extraInfo={this.props.extraInfo}
-                            actions={this.props.actions}
-                            actionProps={this.props.actionProps}
-                            actionUserProps={this.props.actionUserProps}
-                            nextPage={this.nextPage}
-                            infinite={this.props.infinite}
-                            listHeight={this.state.listHeight}
+                <div className='filter-row'>
+                    <div className='col-xs-9 col-sm-5 filter-text'>
+                        <input
+                            ref='filter'
+                            className='form-control filter-textbox'
+                            placeholder={Utils.localizeMessage('filtered_user_list.search', 'Press enter to search')}
+                            onKeyPress={this.onSearchBoxKeyPress}
+                            onChange={this.onSearchBoxChange}
                         />
                     </div>
-                    {pageNavLinks}
+                    <div className='col-xs-3 col-sm-2 filter-button'>
+                        <button
+                            type='button'
+                            className='btn btn-primary'
+                            onClick={this.doSearch}
+                            disabled={this.props.users == null}
+                        >
+                            <FormattedMessage
+                                id='filtered_user_list.searchButton'
+                                defaultMessage='Search'
+                            />
+                        </button>
+                    </div>
+                    <div className='col-xs-12 col-sm-12'>
+                        <span className='member-count pull-left'>{count}</span>
+                    </div>
                 </div>
-            </ReactHeight>
+                <div
+                    ref='userList'
+                    className='more-modal__list'
+                >
+                    <UserList
+                        users={usersToDisplay}
+                        extraInfo={this.props.extraInfo}
+                        actions={this.props.actions}
+                        actionProps={this.props.actionProps}
+                        actionUserProps={this.props.actionUserProps}
+                        nextPage={this.nextPage}
+                        infinite={this.props.infinite}
+                        listHeight={height}
+                    />
+                </div>
+                {pageNavLinks}
+            </div>
         );
     }
 }

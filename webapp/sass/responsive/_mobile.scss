@@ -9,7 +9,6 @@
     }
 
     .filtered-user-list {
-        max-height: calc(100vh - 105px) !important;
         .filter-row {
             margin: 5px 0;
             .filter-text {
@@ -547,6 +546,7 @@
 
             .modal-footer {
                 padding: 5px;
+                background: whitesmoke;
             }
 
             .settings-modal {
