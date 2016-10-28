@@ -26,7 +26,6 @@ class ChannelStoreClass extends EventEmitter {
         this.channels = [];
         this.myChannelMembers = {};
         this.moreChannels = {};
-        this.moreChannels.loading = true;
         this.stats = {};
         this.unreadCounts = {};
     }
@@ -300,13 +299,7 @@ class ChannelStoreClass extends EventEmitter {
         const ch = this.get(id);
         const chMember = this.getMyMember(id);
 
-        if (ch == null) {
-            console.log('setUnreadCountByChannel: missing channel id ' + id); //eslint-disable-line no-console
-            return;
-        }
-
-        if (chMember == null) {
-            console.log('setUnreadCountByChannel: missing channel member for channel id ' + id); //eslint-disable-line no-console
+        if (ch == null || chMember == null) {
             return;
         }
 
