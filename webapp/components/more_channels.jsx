@@ -31,10 +31,12 @@ export default class MoreChannels extends React.Component {
 
         this.shouldComponentUpdate = PureRenderMixin.shouldComponentUpdate.bind(this);
 
-        const initState = this.getStateFromStores();
-        initState.channelType = '';
-        initState.showNewChannelModal = false;
-        this.state = initState;
+        this.state = {
+            channelType: '',
+            showNewChannelModal: false,
+            channels: null,
+            serverError: null
+        };
     }
 
     componentDidMount() {
@@ -140,31 +142,28 @@ export default class MoreChannels extends React.Component {
         }
 
         let moreChannels;
-
-        if (this.state.channels != null) {
-            var channels = this.state.channels;
-            if (channels.loading) {
-                moreChannels = <LoadingScreen/>;
-            } else if (channels.length) {
-                moreChannels = (
-                    <FilteredChannelList
-                        channels={channels}
-                        handleJoin={this.handleJoin}
-                    />
-                );
-            } else {
-                moreChannels = (
-                    <div className='no-channel-message'>
-                        <p className='primary-message'>
-                            <FormattedMessage
-                                id='more_channels.noMore'
-                                defaultMessage='No more channels to join'
-                            />
-                        </p>
-                        {createChannelHelpText}
-                    </div>
-                );
-            }
+        const channels = this.state.channels;
+        if (channels == null) {
+            moreChannels = <LoadingScreen/>;
+        } else if (channels.length) {
+            moreChannels = (
+                <FilteredChannelList
+                    channels={channels}
+                    handleJoin={this.handleJoin}
+                />
+            );
+        } else {
+            moreChannels = (
+                <div className='no-channel-message'>
+                    <p className='primary-message'>
+                        <FormattedMessage
+                            id='more_channels.noMore'
+                            defaultMessage='No more channels to join'
+                        />
+                    </p>
+                    {createChannelHelpText}
+                </div>
+            );
         }
 
         return (
