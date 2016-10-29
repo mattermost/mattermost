@@ -166,6 +166,7 @@ export default class CreateComment extends React.Component {
             fileInfos: [],
             serverError: null
         });
+        this.focusTextbox(true);
     }
 
     commentMsgKeyPress(e) {
@@ -316,8 +317,8 @@ export default class CreateComment extends React.Component {
         return this.state.fileInfos.length + this.state.uploadsInProgress.length;
     }
 
-    focusTextbox() {
-        if (!Utils.isMobile()) {
+    focusTextbox(keepFocus=false) {
+        if (keepFocus || !Utils.isMobile()) {
             this.refs.textbox.focus();
         }
     }
