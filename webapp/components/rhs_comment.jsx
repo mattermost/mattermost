@@ -227,6 +227,7 @@ export default class RhsComment extends React.Component {
     render() {
         const post = this.props.post;
         const flagIcon = Constants.FLAG_ICON_SVG;
+        const isSystemMessage = PostUtils.isSystemMessage(post);
 
         var currentUserCss = '';
         if (this.props.currentUser === post.user_id) {
@@ -236,10 +237,31 @@ export default class RhsComment extends React.Component {
         var timestamp = this.props.currentUser.update_at;
 
         let botIndicator;
-
+        let userProfile = (
+            <UserProfile user={this.props.user}/>
+        );
         if (post.props && post.props.from_webhook) {
+            if (post.props.override_username && global.window.mm_config.EnablePostUsernameOverride === 'true') {
+                userProfile = (
+                    <UserProfile
+                        user={this.props.user}
+                        overwriteName={post.props.override_username}
+                        disablePopover={true}
+                    />
+                );
+            }
             botIndicator = <li className='bot-indicator'>{Constants.BOT_NAME}</li>;
+        } else if (isSystemMessage) {
+            userProfile = (
+                <UserProfile
+                    user={{}}
+                    overwriteName={Constants.SYSTEM_MESSAGE_PROFILE_NAME}
+                    overwriteImage={Constants.SYSTEM_MESSAGE_PROFILE_IMAGE}
+                    disablePopover={true}
+                />
+            );
         }
+
         let loading;
         let postClass = '';
         let message = <PostMessageContainer post={post}/>;
@@ -393,7 +415,7 @@ export default class RhsComment extends React.Component {
                     <div>
                         <ul className='post__header'>
                             <li className='col col__name'>
-                                <strong><UserProfile user={this.props.user}/></strong>
+                                <strong>{userProfile}</strong>
                             </li>
                             {botIndicator}
                             <li className='col'>
