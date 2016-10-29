@@ -317,7 +317,7 @@ export default class CreateComment extends React.Component {
         return this.state.fileInfos.length + this.state.uploadsInProgress.length;
     }
 
-    focusTextbox(keepFocus=false) {
+    focusTextbox(keepFocus = false) {
         if (keepFocus || !Utils.isMobile()) {
             this.refs.textbox.focus();
         }

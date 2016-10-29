@@ -172,7 +172,7 @@ export default class CreatePost extends React.Component {
         );
     }
 
-    focusTextbox(keepFocus=false) {
+    focusTextbox(keepFocus = false) {
         if (keepFocus || !Utils.isMobile()) {
             this.refs.textbox.focus();
         }
