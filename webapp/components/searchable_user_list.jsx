@@ -30,8 +30,7 @@ export default class SearchableUserList extends React.Component {
             page: 0,
             currentUsersTotal: 0,
             search: false,
-            nextDisabled: false,
-            listHeight: 0
+            nextDisabled: false
         };
     }
 
@@ -169,13 +168,6 @@ export default class SearchableUserList extends React.Component {
                             {'Loading...'}
                         </div>
                     );
-                } else {
-                    pageNavLinks = (
-                        <div className='more-modal__loading-bar
-                                        more-modal__loading-bar--hidden'>
-                            {'Not Loading...'}
-                        </div>
-                    );
                 }
             } else {
                 pageNavLinks = (
@@ -192,7 +184,7 @@ export default class SearchableUserList extends React.Component {
         return (
             <div
                 className='filtered-user-list'
-                style={$.extend(this.props.style, {'max-height': `${height}px`})}
+                style={{...this.props.style, 'max-height': `${height}px`}}
             >
                 <div className='filter-row'>
                     <div className='col-xs-9 col-sm-5 filter-text'>

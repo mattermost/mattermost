@@ -11,7 +11,6 @@ import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
 import * as AsyncClient from 'utils/async_client.jsx';
-import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
 import React from 'react';
@@ -28,7 +27,8 @@ export default class MoreDirectChannels extends React.Component {
         this.handleHide = this.handleHide.bind(this);
         this.handleShowDirectChannel = this.handleShowDirectChannel.bind(this);
         this.onChange = this.onChange.bind(this);
-        this.createJoinDirectChannelButton = this.createJoinDirectChannelButton.bind(this);
+        this.createJoinDirectChannelButton =
+            this.createJoinDirectChannelButton.bind(this);
         this.toggleList = this.toggleList.bind(this);
         this.nextPage = this.nextPage.bind(this);
         this.search = this.search.bind(this);
