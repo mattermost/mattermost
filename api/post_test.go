@@ -86,6 +86,19 @@ func TestCreatePost(t *testing.T) {
 		t.Fatal("Should have been forbidden")
 	}
 
+
+	// Make sure create_at param is used if provided
+
+	post10 := &model.Post{
+		ChannelId: channel1.Id,
+		Message: "PLT-4349",
+		CreateAt: 1234,
+	}
+	if resp, err := Client.CreatePost(post10); err != nil {
+		t.Fatal(err)
+	} else if rpost10 := resp.Data.(*model.Post); rpost10.CreateAt != post10.CreateAt {
+		t.Fatal("post should be created with provided CreateAt timestamp")
+	}
 	th.LoginBasic2()
 
 	post7 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
@@ -136,6 +149,7 @@ func TestCreatePost(t *testing.T) {
 			t.Fatal("should've attached all 3 files to post")
 		}
 	}
+
 }
 
 func testCreatePostWithOutgoingHook(
