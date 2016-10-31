@@ -13,6 +13,7 @@ import {searchUsers} from 'actions/user_actions.jsx';
 import {removeUserFromChannel} from 'actions/channel_actions.jsx';
 
 import * as AsyncClient from 'utils/async_client.jsx';
+import * as UserAgent from 'utils/user_agent.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import React from 'react';
@@ -147,6 +148,7 @@ export default class ChannelMembersModal extends React.Component {
                     nextPage={this.nextPage}
                     search={this.search}
                     actions={removeButton}
+                    focusOnMount={!UserAgent.isMobile()}
                 />
             );
         }

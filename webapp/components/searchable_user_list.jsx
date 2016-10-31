@@ -33,6 +33,12 @@ export default class SearchableUserList extends React.Component {
         };
     }
 
+    componentDidMount() {
+        if (this.props.focusOnMount) {
+            this.refs.filter.focus();
+        }
+    }
+
     componentDidUpdate(prevProps, prevState) {
         if (this.state.page !== prevState.page) {
             $(ReactDOM.findDOMNode(this.refs.userList)).scrollTop(0);
@@ -209,7 +215,8 @@ SearchableUserList.defaultProps = {
     actions: [],
     actionProps: {},
     actionUserProps: {},
-    showTeamToggle: false
+    showTeamToggle: false,
+    focusOnMount: false
 };
 
 SearchableUserList.propTypes = {
@@ -222,5 +229,6 @@ SearchableUserList.propTypes = {
     actions: React.PropTypes.arrayOf(React.PropTypes.func),
     actionProps: React.PropTypes.object,
     actionUserProps: React.PropTypes.object,
-    style: React.PropTypes.object
+    style: React.PropTypes.object,
+    focusOnMount: React.PropTypes.bool.isRequired
 };
