@@ -986,6 +986,10 @@ func TestUserUpdateRoles(t *testing.T) {
 		t.Fatal("Should have errored, bad id")
 	}
 
+	if _, err := Client.UpdateUserRoles("system_admin", ""); err == nil {
+		t.Fatal("Should have errored, we want to avoid this mistake")
+	}
+
 	if _, err := Client.UpdateUserRoles("12345678901234567890123456", ""); err == nil {
 		t.Fatal("Should have errored, bad id")
 	}

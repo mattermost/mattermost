@@ -706,6 +706,15 @@ func cmdAssignRole() {
 			os.Exit(1)
 		}
 
+		// Do some conversions
+		if flagRole == "system_admin" {
+			flagRole = "system_user system_admin"
+		}
+
+		if flagRole == "" {
+			flagRole = "system_user"
+		}
+
 		if !model.IsValidUserRoles(flagRole) {
 			fmt.Fprintln(os.Stderr, "flag invalid argument: -role")
 			flag.Usage()
@@ -1527,7 +1536,7 @@ FLAGS:
 
     -role="system_admin"              The role used in other commands
                                       valid values are
-                                        "" - The empty role is basic user
+                                        "system_user" - Is basic user
                                            permissions
                                         "system_admin" - Represents a system
                                            admin who has access to all teams
@@ -1572,7 +1581,7 @@ COMMANDS:
     -assign_role                      Assigns role to a user.  It requires the -role and
                                       -email flag.  You may need to log out
                                       of your current sessions for the new role to be
-                                      applied.
+                                      applied. For system admin use "system_admin". For Regular user just use "system_user".
         Example:
             platform -assign_role -email="user@example.com" -role="system_admin"
 
