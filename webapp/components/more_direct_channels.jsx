@@ -11,6 +11,7 @@ import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
 import * as AsyncClient from 'utils/async_client.jsx';
+import * as UserAgent from 'utils/user_agent.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
@@ -258,6 +259,7 @@ export default class MoreDirectChannels extends React.Component {
                         nextPage={this.nextPage}
                         search={this.search}
                         actions={[this.createJoinDirectChannelButton]}
+                        focusOnMount={!UserAgent.isMobile()}
                     />
                 </Modal.Body>
                 <Modal.Footer>
