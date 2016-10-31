@@ -1794,6 +1794,11 @@ func TestUserTyping(t *testing.T) {
 	defer WebSocketClient.Close()
 	WebSocketClient.Listen()
 
+	time.Sleep(300 * time.Millisecond)
+	if resp := <-WebSocketClient.ResponseChannel; resp.Status != model.STATUS_OK {
+		t.Fatal("should have responded OK to authentication challenge")
+	}
+
 	WebSocketClient.UserTyping("", "")
 	time.Sleep(300 * time.Millisecond)
 	if resp := <-WebSocketClient.ResponseChannel; resp.Error.Id != "api.websocket_handler.invalid_param.app_error" {

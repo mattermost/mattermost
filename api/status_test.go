@@ -22,6 +22,11 @@ func TestStatuses(t *testing.T) {
 	defer WebSocketClient.Close()
 	WebSocketClient.Listen()
 
+	time.Sleep(300 * time.Millisecond)
+	if resp := <-WebSocketClient.ResponseChannel; resp.Status != model.STATUS_OK {
+		t.Fatal("should have responded OK to authentication challenge")
+	}
+
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
 
@@ -75,7 +80,7 @@ func TestStatuses(t *testing.T) {
 		}
 
 		if status, ok := resp.Data[th.BasicUser2.Id]; !ok {
-			t.Log(len(resp.Data))
+			t.Log(resp.Data)
 			t.Fatal("should have had user status")
 		} else if status != model.STATUS_ONLINE {
 			t.Log(status)
