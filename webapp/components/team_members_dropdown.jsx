@@ -48,7 +48,7 @@ export default class TeamMembersDropdown extends React.Component {
                 this.props.user.id,
                 'team_user',
                 () => {
-                    AsyncClient.getTeamMember(this.props.teamMember.team_id);
+                    AsyncClient.getTeamMember(this.props.teamMember.team_id, this.props.user.id);
                     AsyncClient.getUser(this.props.user.id);
                 },
                 (err) => {
