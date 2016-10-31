@@ -40,7 +40,6 @@ export default class CreatePost extends React.Component {
 
         this.lastTime = 0;
 
-        this.getCurrentDraft = this.getCurrentDraft.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.postMsgKeyPress = this.postMsgKeyPress.bind(this);
         this.handleChange = this.handleChange.bind(this);
@@ -61,7 +60,7 @@ export default class CreatePost extends React.Component {
 
         PostStore.clearDraftUploads();
 
-        const draft = this.getCurrentDraft();
+        const draft = PostStore.getCurrentDraft();
 
         this.state = {
             channelId: ChannelStore.getCurrentId(),
@@ -75,25 +74,6 @@ export default class CreatePost extends React.Component {
             showTutorialTip: false,
             showPostDeletedModal: false
         };
-    }
-
-    getCurrentDraft() {
-        const draft = PostStore.getCurrentDraft();
-        const safeDraft = {fileInfos: [], messageText: '', uploadsInProgress: []};
-
-        if (draft) {
-            if (draft.message) {
-                safeDraft.messageText = draft.message;
-            }
-            if (draft.fileInfos) {
-                safeDraft.fileInfos = draft.fileInfos;
-            }
-            if (draft.uploadsInProgress) {
-                safeDraft.uploadsInProgress = draft.uploadsInProgress;
-            }
-        }
-
-        return safeDraft;
     }
 
     handleSubmit(e) {
@@ -358,7 +338,7 @@ export default class CreatePost extends React.Component {
     onChange() {
         const channelId = ChannelStore.getCurrentId();
         if (this.state.channelId !== channelId) {
-            const draft = this.getCurrentDraft();
+            const draft = PostStore.getCurrentDraft();
 
             this.setState({channelId, messageText: draft.messageText, initialText: draft.messageText, submitting: false, serverError: null, postError: null, fileInfos: draft.fileInfos, uploadsInProgress: draft.uploadsInProgress});
         }
