@@ -9,23 +9,23 @@ export default class NewMessageIndicator extends React.Component {
         this.state = {
             visible: false,
             rendered: false
-        }
+        };
     }
     componentDidMount() {
-        this._onTransition = this.onTransition.bind(this);
-        this.refs.indicator.addEventListener("transitionend", this._onTransition);
+        this.onTransition = this.setRendered.bind(this);
+        this.refs.indicator.addEventListener('transitionend', this.onTransition);
     }
     componentWillUnmount() {
-        this.refs.indicator.removeEventListener("transitionend", this._onTransition);
+        this.refs.indicator.removeEventListener('transitionend', this.onTransition);
     }
     componentWillReceiveProps(nextProps) {
-      if(nextProps.newMessages > 0) {
-        this.setState({rendered: true}, () => {
-          this.setState({visible: true});
-        })
-      } else {
-        this.setState({visible: false})
-      }
+        if (nextProps.newMessages > 0) {
+            this.setState({rendered: true}, () => {
+                this.setState({visible: true});
+            });
+        } else {
+            this.setState({visible: false});
+        }
     }
     render() {
         let className = 'nav-pills__unread-indicator-bottom';
@@ -54,8 +54,11 @@ export default class NewMessageIndicator extends React.Component {
             </div>
         );
     }
-    onTransition() {
-        this.setState({rendered: this.state.visible })
+
+    // Sync 'rendered' state with visibility param, only after transitions
+    // have ended
+    setRendered() {
+        this.setState({rendered: this.state.visible});
     }
 }
 NewMessageIndicator.defaultProps = {

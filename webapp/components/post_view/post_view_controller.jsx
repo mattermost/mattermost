@@ -160,7 +160,6 @@ export default class PostViewController extends React.Component {
             const channel = nextProps.channel;
 
             let lastViewed = Number.MAX_VALUE;
-            let lastViewedBottom = Number.MAX_VALUE;
             const member = ChannelStore.getMyMember(channel.id);
             if (member != null) {
                 lastViewed = member.last_viewed_at;
