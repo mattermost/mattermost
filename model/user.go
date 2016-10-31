@@ -337,6 +337,11 @@ func IsValidUserRoles(userRoles string) bool {
 		}
 	}
 
+	// Exclude just the system_admin role explicitly to prevent mistakes
+	if len(roles) == 1 && roles[0] == "system_admin" {
+		return false
+	}
+
 	return true
 }
 
