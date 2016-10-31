@@ -186,3 +186,8 @@ export function unmarkFavorite(channelId) {
 
     AsyncClient.deletePreferences([pref]);
 }
+
+export function loadChannelsForCurrentUser() {
+    AsyncClient.getChannels();
+    AsyncClient.getMyChannelMembers();
+}

@@ -63,7 +63,7 @@ export function checkVersion() {
     }
 }
 
-export function getChannels(doVersionCheck) {
+export function getChannels() {
     if (isCallInProgress('getChannels')) {
         return null;
     }
@@ -73,10 +73,6 @@ export function getChannels(doVersionCheck) {
     return Client.getChannels(
         (data) => {
             callTracker.getChannels = 0;
-
-            if (doVersionCheck) {
-                checkVersion();
-            }
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_CHANNELS,
@@ -114,7 +110,7 @@ export function getChannel(id) {
     );
 }
 
-export function getMyChannelMembers(doVersionCheck) {
+export function getMyChannelMembers() {
     if (isCallInProgress('getMyChannelMembers')) {
         return;
     }
@@ -124,10 +120,6 @@ export function getMyChannelMembers(doVersionCheck) {
     Client.getMyChannelMembers(
         (data) => {
             callTracker.getMyChannelMembers = 0;
-
-            if (doVersionCheck) {
-                checkVersion();
-            }
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_MY_CHANNEL_MEMBERS,
@@ -242,7 +234,7 @@ export function getMoreChannels(force) {
     }
 }
 
-export function getChannelStats(channelId = ChannelStore.getCurrentId()) {
+export function getChannelStats(channelId = ChannelStore.getCurrentId(), doVersionCheck = false) {
     if (isCallInProgress('getChannelStats' + channelId) || channelId == null) {
         return;
     }
@@ -253,6 +245,10 @@ export function getChannelStats(channelId = ChannelStore.getCurrentId()) {
         channelId,
         (data) => {
             callTracker['getChannelStats' + channelId] = 0;
+
+            if (doVersionCheck) {
+                checkVersion();
+            }
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_CHANNEL_STATS,

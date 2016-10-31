@@ -13,6 +13,8 @@ import {browserHistory} from 'react-router/es6';
 
 import React from 'react';
 
+import {loadChannelsForCurrentUser} from 'actions/channel_actions.jsx';
+
 export default class DeleteChannelModal extends React.Component {
     constructor(props) {
         super(props);
@@ -29,7 +31,7 @@ export default class DeleteChannelModal extends React.Component {
         Client.deleteChannel(
             this.props.channel.id,
             () => {
-                AsyncClient.getChannels(true);
+                loadChannelsForCurrentUser();
             },
             (err) => {
                 AsyncClient.dispatchError(err, 'handleDelete');
