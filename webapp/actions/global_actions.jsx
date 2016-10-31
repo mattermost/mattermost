@@ -360,14 +360,14 @@ export function emitClearSuggestions(suggestionId) {
 }
 
 export function emitPreferenceChangedEvent(preference) {
-    if (preference.category === Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW) {
-        loadProfilesAndTeamMembersForDMSidebar();
-    }
-
     AppDispatcher.handleServerAction({
         type: Constants.ActionTypes.RECEIVED_PREFERENCE,
         preference
     });
+
+    if (preference.category === Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW) {
+        loadProfilesAndTeamMembersForDMSidebar();
+    }
 }
 
 export function emitRemovePost(post) {
