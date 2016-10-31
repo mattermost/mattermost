@@ -16,7 +16,9 @@ export default class ModalToggleButton extends React.Component {
     }
 
     show(e) {
-        e.preventDefault();
+        if (e) {
+            e.preventDefault();
+        }
         this.setState({show: true});
     }
 
@@ -39,9 +41,8 @@ export default class ModalToggleButton extends React.Component {
 
         let dialog;
         if (this.state.show) {
-            // this assumes that all modals will have a show property and an onHide event
+            // this assumes that all modals will have an onHide event and will show when mounted
             dialog = React.createElement(dialogType, Object.assign({}, dialogProps, {
-                show: true,
                 onHide: () => {
                     this.hide();
 

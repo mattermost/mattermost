@@ -17,6 +17,7 @@ export default class ChannelNotificationsModal extends React.Component {
         super(props);
 
         this.updateSection = this.updateSection.bind(this);
+        this.onHide = this.onHide.bind(this);
 
         this.handleSubmitNotifyLevel = this.handleSubmitNotifyLevel.bind(this);
         this.handleUpdateNotifyLevel = this.handleUpdateNotifyLevel.bind(this);
@@ -28,6 +29,7 @@ export default class ChannelNotificationsModal extends React.Component {
 
         this.state = {
             activeSection: '',
+            show: true,
             notifyLevel: props.channelMember.notify_props.desktop,
             unreadLevel: props.channelMember.notify_props.mark_unread
         };
@@ -40,13 +42,8 @@ export default class ChannelNotificationsModal extends React.Component {
         this.setState({activeSection: section});
     }
 
-    componentWillReceiveProps(nextProps) {
-        if (!this.props.show && nextProps.show) {
-            this.setState({
-                notifyLevel: nextProps.channelMember.notify_props.desktop,
-                unreadLevel: nextProps.channelMember.notify_props.mark_unread
-            });
-        }
+    onHide() {
+        this.setState({show: false});
     }
 
     handleSubmitNotifyLevel() {
@@ -384,9 +381,10 @@ export default class ChannelNotificationsModal extends React.Component {
 
         return (
             <Modal
-                show={this.props.show}
+                show={this.state.show}
                 dialogClassName='settings-modal'
-                onHide={this.props.onHide}
+                onHide={this.onHide}
+                onExited={this.props.onHide}
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title>
@@ -421,7 +419,6 @@ export default class ChannelNotificationsModal extends React.Component {
 }
 
 ChannelNotificationsModal.propTypes = {
-    show: React.PropTypes.bool.isRequired,
     onHide: React.PropTypes.func.isRequired,
     channel: React.PropTypes.object.isRequired,
     channelMember: React.PropTypes.object.isRequired,

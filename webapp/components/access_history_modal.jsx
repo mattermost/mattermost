@@ -1,8 +1,6 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
-import {Modal} from 'react-bootstrap';
 import LoadingScreen from './loading_screen.jsx';
 import AuditTable from './audit_table.jsx';
 
@@ -11,11 +9,13 @@ import UserStore from 'stores/user_store.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
-import {intlShape, injectIntl, FormattedMessage} from 'react-intl';
-
+import $ from 'jquery';
 import React from 'react';
 
-class AccessHistoryModal extends React.Component {
+import {Modal} from 'react-bootstrap';
+import {FormattedMessage} from 'react-intl';
+
+export default class AccessHistoryModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -25,45 +25,44 @@ class AccessHistoryModal extends React.Component {
 
         const state = this.getStateFromStoresForAudits();
         state.moreInfo = [];
+        state.show = true;
 
         this.state = state;
     }
+
     getStateFromStoresForAudits() {
         return {
             audits: UserStore.getAudits()
         };
     }
+
     onShow() {
         AsyncClient.getAudits();
         if (!Utils.isMobile()) {
             $('.modal-body').perfectScrollbar();
         }
     }
+
     onHide() {
-        this.setState({moreInfo: []});
-        this.props.onHide();
+        this.setState({show: false});
     }
+
     componentDidMount() {
         UserStore.addAuditsChangeListener(this.onAuditChange);
+        this.onShow();
+    }
 
-        if (this.props.show) {
-            this.onShow();
-        }
-    }
-    componentDidUpdate(prevProps) {
-        if (this.props.show && !prevProps.show) {
-            this.onShow();
-        }
-    }
     componentWillUnmount() {
         UserStore.removeAuditsChangeListener(this.onAuditChange);
     }
+
     onAuditChange() {
         var newState = this.getStateFromStoresForAudits();
         if (!Utils.areObjectsEqual(newState.audits, this.state.audits)) {
             this.setState(newState);
         }
     }
+
     render() {
         var content;
         if (this.state.audits.loading) {
@@ -80,8 +79,9 @@ class AccessHistoryModal extends React.Component {
 
         return (
             <Modal
-                show={this.props.show}
+                show={this.state.show}
                 onHide={this.onHide}
+                onExited={this.props.onHide}
                 bsSize='large'
             >
                 <Modal.Header closeButton={true}>
@@ -101,9 +101,5 @@ class AccessHistoryModal extends React.Component {
 }
 
 AccessHistoryModal.propTypes = {
-    intl: intlShape.isRequired,
-    show: React.PropTypes.bool.isRequired,
     onHide: React.PropTypes.func.isRequired
 };
-
-export default injectIntl(AccessHistoryModal);

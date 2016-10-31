@@ -36,36 +36,19 @@ class EditChannelHeaderModal extends React.Component {
 
         this.state = {
             header: props.channel.header,
+            show: true,
             serverError: '',
             submitted: false
         };
     }
 
     componentDidMount() {
-        if (this.props.show) {
-            this.onShow();
-        }
-
         PreferenceStore.addChangeListener(this.onPreferenceChange);
+        this.onShow();
     }
 
     componentWillUnmount() {
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
-    }
-
-    componentWillReceiveProps(nextProps) {
-        if (this.props.channel.header !== nextProps.channel.header && !this.props.show) {
-            this.setState({
-                header: nextProps.channel.header,
-                submitted: false
-            });
-        }
-    }
-
-    componentDidUpdate(prevProps) {
-        if (this.props.show && !prevProps.show) {
-            this.onShow();
-        }
     }
 
     handleChange(e) {
@@ -110,12 +93,7 @@ class EditChannelHeaderModal extends React.Component {
     }
 
     onHide() {
-        this.setState({
-            serverError: '',
-            header: this.props.channel.header
-        });
-
-        this.props.onHide();
+        this.setState({show: false});
     }
 
     handleKeyDown(e) {
@@ -156,8 +134,9 @@ class EditChannelHeaderModal extends React.Component {
 
         return (
             <Modal
-                show={this.props.show}
+                show={this.state.show}
                 onHide={this.onHide}
+                onExited={this.props.onHide}
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title>
@@ -213,7 +192,6 @@ class EditChannelHeaderModal extends React.Component {
 
 EditChannelHeaderModal.propTypes = {
     intl: intlShape.isRequired,
-    show: React.PropTypes.bool.isRequired,
     onHide: React.PropTypes.func.isRequired,
     channel: React.PropTypes.object.isRequired
 };

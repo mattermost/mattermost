@@ -730,21 +730,23 @@ export default class Navbar extends React.Component {
                 );
             }
 
-            editChannelHeaderModal = (
-                <EditChannelHeaderModal
-                    show={this.state.showEditChannelHeaderModal}
-                    onHide={() => this.setState({showEditChannelHeaderModal: false})}
-                    channel={channel}
-                />
-            );
+            if (this.state.showEditChannelHeaderModal) {
+                editChannelHeaderModal = (
+                    <EditChannelHeaderModal
+                        onHide={() => this.setState({showEditChannelHeaderModal: false})}
+                        channel={channel}
+                    />
+                );
+            }
 
-            editChannelPurposeModal = (
-                <EditChannelPurposeModal
-                    show={this.state.showEditChannelPurposeModal}
-                    onModalDismissed={() => this.setState({showEditChannelPurposeModal: false})}
-                    channel={channel}
-                />
-            );
+            if (this.state.showEditChannelPurposeModal) {
+                editChannelPurposeModal = (
+                    <EditChannelPurposeModal
+                        onModalDismissed={() => this.setState({showEditChannelPurposeModal: false})}
+                        channel={channel}
+                    />
+                );
+            }
 
             renameChannelModal = (
                 <RenameChannelModal
