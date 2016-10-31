@@ -57,6 +57,9 @@ export default class Navbar extends React.Component {
         this.createCollapseButtons = this.createCollapseButtons.bind(this);
         this.createDropdown = this.createDropdown.bind(this);
 
+        this.showMembersModal = this.showMembersModal.bind(this);
+        this.hideMembersModal = this.hideMembersModal.bind(this);
+
         this.showChannelSwitchModal = this.showChannelSwitchModal.bind(this);
         this.hideChannelSwitchModal = this.hideChannelSwitchModal.bind(this);
 
@@ -193,6 +196,16 @@ export default class Navbar extends React.Component {
         });
     }
 
+    showMembersModal(e) {
+        e.preventDefault();
+
+        this.setState({showMembersModal: true});
+    }
+
+    hideMembersModal() {
+        this.setState({showMembersModal: false});
+    }
+
     showChannelSwitchModal(e) {
         if (Utils.cmdOrCtrlPressed(e) && e.keyCode === Constants.KeyCodes.K) {
             e.preventDefault();
@@ -316,15 +329,36 @@ export default class Navbar extends React.Component {
 
                     if (isAdmin) {
                         manageMembersOption = (
-                            <li role='presentation'>
+                            <li
+                                key='manage_members'
+                                role='presentation'
+                            >
                                 <a
                                     role='menuitem'
                                     href='#'
-                                    onClick={() => this.setState({showMembersModal: true})}
+                                    onClick={this.showMembersModal}
                                 >
                                     <FormattedMessage
-                                        id='navbar.manageMembers'
+                                        id='channel_header.manageMembers'
                                         defaultMessage='Manage Members'
+                                    />
+                                </a>
+                            </li>
+                        );
+                    } else {
+                        manageMembersOption = (
+                            <li
+                                key='view_members'
+                                role='presentation'
+                            >
+                                <a
+                                    role='menuitem'
+                                    href='#'
+                                    onClick={this.showMembersModal}
+                                >
+                                    <FormattedMessage
+                                        id='channel_header.viewMembers'
+                                        defaultMessage='View Members'
                                     />
                                 </a>
                             </li>
@@ -731,7 +765,7 @@ export default class Navbar extends React.Component {
             channelMembersModal = (
                 <ChannelMembersModal
                     show={this.state.showMembersModal}
-                    onModalDismissed={() => this.setState({showMembersModal: false})}
+                    onModalDismissed={this.hideMembersModal}
                     channel={channel}
                     isAdmin={isAdmin}
                 />
