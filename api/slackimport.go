@@ -312,7 +312,7 @@ func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[str
 		if mChannel == nil {
 			// Maybe it already exists?
 			if result := <-Srv.Store.Channel().GetByName(teamId, sChannel.Name); result.Err != nil {
-				l4g.Debug(utils.T("api.slackimport.slack_add_channels.import_failed.debug"), newChannel.DisplayName)
+				l4g.Warn(utils.T("api.slackimport.slack_add_channels.import_failed.warn"), newChannel.DisplayName)
 				log.WriteString(utils.T("api.slackimport.slack_add_channels.import_failed", map[string]interface{}{"DisplayName": newChannel.DisplayName}))
 				continue
 			} else {
