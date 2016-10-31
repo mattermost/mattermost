@@ -132,7 +132,7 @@ func CreatePost(c *Context, post *model.Post, triggerWebhooks bool) (*model.Post
 		}
 	}
 
-	post.CreateAt = 0
+	//post.CreateAt = 0
 
 	post.Hashtags, _ = model.ParseHashtags(post.Message)
 
