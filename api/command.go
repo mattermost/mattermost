@@ -253,6 +253,7 @@ func handleResponse(c *Context, w http.ResponseWriter, response *model.CommandRe
 		post.Message = response.Text
 		post.CreateAt = model.GetMillis()
 		post.UserId = c.Session.UserId
+		post.ParentId = ""
 		SendEphemeralPost(
 			c.TeamId,
 			c.Session.UserId,
