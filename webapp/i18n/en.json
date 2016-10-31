@@ -1617,7 +1617,7 @@
   "post_info.reply": "Reply",
   "posts_view.loadMore": "Load more messages",
   "posts_view.newMsg": "New Messages",
-  "posts_view.newMsgBelow": "{count} new messages below",
+  "posts_view.newMsgBelow": "{count} new {count, plural, one {message} other {messages}} below",
   "removed_channel.channelName": "the channel",
   "removed_channel.from": "Removed from ",
   "removed_channel.okay": "Okay",

@@ -81,11 +81,13 @@ export default class PostList extends React.Component {
         const order = nextProps.postList.order;
         let unViewedCount = 0;
 
-        // If we're at the bottom, don't even start counting
-        if (nextProps.scrollType !== Constants.ScrollTypes.BOTTOM) {
+        // Only count if we're  not at the bottom, not in highlight view,
+        // or anything else
+        if (nextProps.scrollType === Constants.ScrollTypes.FREE) {
             for (let i = order.length - 1; i >= 0; i--) {
                 const post = posts[order[i]];
-                if (post.create_at > nextProps.lastViewedBottom) {
+                if (post.create_at > nextProps.lastViewedBottom &&
+                    post.user_id !== nextProps.currentUser.id) {
                     unViewedCount++;
                 }
             }
@@ -597,7 +599,7 @@ export default class PostList extends React.Component {
 
 PostList.defaultProps = {
     lastViewed: 0,
-    lastViewedBottom: 0,
+    lastViewedBottom: Number.MAX_VALUE,
     ownNewMessage: false
 };
 

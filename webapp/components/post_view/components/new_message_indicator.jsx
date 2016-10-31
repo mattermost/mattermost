@@ -4,15 +4,42 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 export default class NewMessageIndicator extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            visible: false,
+            rendered: false
+        }
+    }
+    componentDidMount() {
+        this._onTransition = this.onTransition.bind(this);
+        this.refs.indicator.addEventListener("transitionend", this._onTransition);
+    }
+    componentWillUnmount() {
+        this.refs.indicator.removeEventListener("transitionend", this._onTransition);
+    }
+    componentWillReceiveProps(nextProps) {
+      if(nextProps.newMessages > 0) {
+        this.setState({rendered: true}, () => {
+          this.setState({visible: true});
+        })
+      } else {
+        this.setState({visible: false})
+      }
+    }
     render() {
         let className = 'nav-pills__unread-indicator-bottom';
-        if (this.props.newMessages > 0) {
+        if (this.state.visible > 0) {
             className += ' visible';
+        }
+        if (!this.state.rendered) {
+            className += ' disabled';
         }
         return (
             <div
                 className={className}
                 onClick={this.props.onClick}
+                ref='indicator'
             >
                 <span>
                     <i
@@ -20,12 +47,15 @@ export default class NewMessageIndicator extends React.Component {
                     />
                     <FormattedMessage
                         id='posts_view_newMsgBelow'
-                        defaultMessage='{count, number} new messages below'
+                        defaultMessage='{count} new {count, plural, one {message} other {messages}} below'
                         values={{count: this.props.newMessages}}
                     />
                 </span>
             </div>
         );
+    }
+    onTransition() {
+        this.setState({rendered: this.state.visible })
     }
 }
 NewMessageIndicator.defaultProps = {

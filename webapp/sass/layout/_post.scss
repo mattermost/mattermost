@@ -271,8 +271,8 @@
       text-align: center;
       max-width: 250px;
       z-index: 1;
-      transition: bottom 0.2s ease-out;
       cursor: pointer;
+      transition: bottom 0.2s ease-out;
 
       .fa {
         margin-right: 0.5rem;
@@ -280,6 +280,9 @@
 
       &.visible {
         bottom: 0;
+      }
+      &.disabled {
+        display: none;
       }
     }
 }
