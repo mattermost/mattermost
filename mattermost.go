@@ -1572,9 +1572,9 @@ COMMANDS:
     -assign_role                      Assigns role to a user.  It requires the -role and
                                       -email flag.  You may need to log out
                                       of your current sessions for the new role to be
-                                      applied.
+                                      applied. For system admin use "system_user system_admin". For Regular user just use "system_user".
         Example:
-            platform -assign_role -email="user@example.com" -role="system_admin"
+            platform -assign_role -email="user@example.com" -role="system_user system_admin"
 
     -create_channel		       Create a new channel in the specified team. It requires the -email,
     					-team_name, -channel_name, -channel_type flags. Optional you can set
