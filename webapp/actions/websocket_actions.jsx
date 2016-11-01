@@ -211,10 +211,10 @@ function handleNewUserEvent(msg) {
 
 function handleLeaveTeamEvent(msg) {
     if (UserStore.getCurrentId() === msg.data.user_id) {
-        TeamStore.removeMyTeamMember(msg.broadcast.team_id);
+        TeamStore.removeMyTeamMember(msg.data.team_id);
 
         // if they are on the team being removed redirect them to the root
-        if (TeamStore.getCurrentId() === msg.broadcast.team_id) {
+        if (TeamStore.getCurrentId() === msg.data.team_id) {
             TeamStore.setCurrentId('');
             Client.setTeamId('');
             browserHistory.push('/');
