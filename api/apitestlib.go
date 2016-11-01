@@ -44,6 +44,8 @@ func SetupEnterprise() *TestHelper {
 		Srv.Store.MarkSystemRanUnitTests()
 
 		*utils.Cfg.TeamSettings.EnableOpenServer = true
+
+		InitializeMetrics()
 	}
 
 	return &TestHelper{}
@@ -64,6 +66,8 @@ func Setup() *TestHelper {
 		Srv.Store.MarkSystemRanUnitTests()
 
 		*utils.Cfg.TeamSettings.EnableOpenServer = true
+
+		InitializeMetrics()
 	}
 
 	return &TestHelper{}

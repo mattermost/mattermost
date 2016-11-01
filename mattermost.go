@@ -165,6 +165,7 @@ func main() {
 		resetStatuses()
 
 		api.StartServer()
+		api.InitializeMetrics()
 
 		// If we allow testing then listen for manual testing URL hits
 		if utils.Cfg.ServiceSettings.EnableTesting {
