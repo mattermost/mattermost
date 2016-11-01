@@ -41,7 +41,7 @@ export default class MoreChannels extends React.Component {
 
     componentDidMount() {
         const self = this;
-        ChannelStore.addMoreChangeListener(this.onListenerChange);
+        ChannelStore.addChangeListener(this.onListenerChange);
 
         $(this.refs.modal).on('shown.bs.modal', () => {
             AsyncClient.getMoreChannels(true);
@@ -54,7 +54,7 @@ export default class MoreChannels extends React.Component {
     }
 
     componentWillUnmount() {
-        ChannelStore.removeMoreChangeListener(this.onListenerChange);
+        ChannelStore.removeChangeListener(this.onListenerChange);
     }
 
     getStateFromStores() {
