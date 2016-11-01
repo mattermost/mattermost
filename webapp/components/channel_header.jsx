@@ -23,7 +23,6 @@ import SearchStore from 'stores/search_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import WebrtcStore from 'stores/webrtc_store.jsx';
 
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import * as WebrtcActions from 'actions/webrtc_actions.jsx';
 import * as ChannelActions from 'actions/channel_actions.jsx';
@@ -34,7 +33,7 @@ import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import {getFlaggedPosts} from 'actions/post_actions.jsx';
 
-import {ActionTypes, Constants, Preferences, UserStatuses} from 'utils/constants.jsx';
+import {Constants, Preferences, UserStatuses} from 'utils/constants.jsx';
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
@@ -129,11 +128,6 @@ export default class ChannelHeader extends React.Component {
         Client.leaveChannel(this.state.channel.id,
             () => {
                 const channelId = this.state.channel.id;
-
-                AppDispatcher.handleViewAction({
-                    type: ActionTypes.LEAVE_CHANNEL,
-                    id: channelId
-                });
 
                 if (this.state.isFavorite) {
                     ChannelActions.unmarkFavorite(channelId);

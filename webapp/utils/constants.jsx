@@ -63,7 +63,6 @@ export const ActionTypes = keyMirror({
 
     CLICK_CHANNEL: null,
     CREATE_CHANNEL: null,
-    LEAVE_CHANNEL: null,
     CREATE_POST: null,
     CREATE_COMMENT: null,
     POST_DELETED: null,

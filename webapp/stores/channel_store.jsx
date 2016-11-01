@@ -5,12 +5,10 @@ import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import EventEmitter from 'events';
 
 var Utils;
-import Constants from 'utils/constants.jsx';
-const ActionTypes = Constants.ActionTypes;
+import {ActionTypes, Constants} from 'utils/constants.jsx';
 const NotificationPrefs = Constants.NotificationPrefs;
 
 const CHANGE_EVENT = 'change';
-const LEAVE_EVENT = 'leave';
 const STATS_EVENT = 'stats';
 const LAST_VIEVED_EVENT = 'last_viewed';
 
@@ -59,17 +57,6 @@ class ChannelStoreClass extends EventEmitter {
 
     removeStatsChangeListener(callback) {
         this.removeListener(STATS_EVENT, callback);
-    }
-    emitLeave(id) {
-        this.emit(LEAVE_EVENT, id);
-    }
-
-    addLeaveListener(callback) {
-        this.on(LEAVE_EVENT, callback);
-    }
-
-    removeLeaveListener(callback) {
-        this.removeListener(LEAVE_EVENT, callback);
     }
 
     emitLastViewed(lastViewed, ownNewMessage) {
@@ -308,14 +295,6 @@ class ChannelStoreClass extends EventEmitter {
         return this.unreadCounts;
     }
 
-    leaveChannel(id) {
-        Reflect.deleteProperty(this.myChannelMembers, id);
-        const element = this.channels.indexOf(id);
-        if (element > -1) {
-            this.channels.splice(element, 1);
-        }
-    }
-
     getChannelNamesMap() {
         var channelNamesMap = {};
 
@@ -399,11 +378,6 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         stats[action.stats.channel_id] = action.stats;
         ChannelStore.storeStats(stats);
         ChannelStore.emitStatsChange();
-        break;
-
-    case ActionTypes.LEAVE_CHANNEL:
-        ChannelStore.leaveChannel(action.id);
-        ChannelStore.emitLeave(action.id);
         break;
 
     default:
