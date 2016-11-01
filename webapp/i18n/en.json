@@ -1134,7 +1134,7 @@
   "delete_channel.confirm": "Confirm DELETE Channel",
   "delete_channel.del": "Delete",
   "delete_channel.group": "group",
-  "delete_channel.question": "Are you sure you wish to delete the {display_name} {term}?",
+  "delete_channel.question": "This will delete the channel from the team and make its contents inaccessible for all users. Are you sure you wish to delete the {display_name} {term}?",
   "delete_post.cancel": "Cancel",
   "delete_post.comment": "Comment",
   "delete_post.confirm": "Confirm {term} Delete",
