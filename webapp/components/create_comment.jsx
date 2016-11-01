@@ -53,7 +53,7 @@ export default class CreateComment extends React.Component {
 
         const draft = PostStore.getCommentDraft(this.props.rootId);
         this.state = {
-            messageText: draft.message,
+            messageText: draft.messageText,
             uploadsInProgress: draft.uploadsInProgress,
             fileInfos: draft.fileInfos,
             submitting: false,
