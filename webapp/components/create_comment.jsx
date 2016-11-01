@@ -184,7 +184,7 @@ export default class CreateComment extends React.Component {
         const messageText = e.target.value;
 
         const draft = PostStore.getCommentDraft(this.props.rootId);
-        draft.message = messageText;
+        draft.messageText = messageText;
         PostStore.storeCommentDraft(this.props.rootId, draft);
 
         $('.post-right__scroll').parent().scrollTop($('.post-right__scroll')[0].scrollHeight);
@@ -308,7 +308,7 @@ export default class CreateComment extends React.Component {
     componentWillReceiveProps(newProps) {
         if (newProps.rootId !== this.props.rootId) {
             const draft = PostStore.getCommentDraft(newProps.rootId);
-            this.setState({messageText: draft.message, uploadsInProgress: draft.uploadsInProgress, fileInfos: draft.fileInfos});
+            this.setState({messageText: draft.messageText, uploadsInProgress: draft.uploadsInProgress, fileInfos: draft.fileInfos});
         }
     }
 
