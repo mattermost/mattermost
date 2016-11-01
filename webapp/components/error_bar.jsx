@@ -14,7 +14,7 @@ const EXPIRING_ERROR = 'error_bar.expiring';
 const EXPIRED_ERROR = 'error_bar.expired';
 const PAST_GRACE_ERROR = 'error_bar.past_grace';
 
-export default class ErrorBar extends React.Component {
+class ErrorBar extends React.Component {
     constructor() {
         super();
 

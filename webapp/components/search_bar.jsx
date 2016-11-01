@@ -27,7 +27,7 @@ export default class SearchBar extends React.Component {
         this.mounted = false;
 
         this.onListenerChange = this.onListenerChange.bind(this);
-        this.handleInput = this.handleInput.bind(this);
+        this.handleChange = this.handleChange.bind(this);
         this.handleUserFocus = this.handleUserFocus.bind(this);
         this.handleUserBlur = this.handleUserBlur.bind(this);
         this.performSearch = this.performSearch.bind(this);
@@ -94,7 +94,7 @@ export default class SearchBar extends React.Component {
         });
     }
 
-    handleInput(e) {
+    handleChange(e) {
         var term = e.target.value;
         SearchStore.storeSearchTerm(term);
         SearchStore.emitSearchTermChange(false);
@@ -188,7 +188,7 @@ export default class SearchBar extends React.Component {
                         value={this.state.searchTerm}
                         onFocus={this.handleUserFocus}
                         onBlur={this.handleUserBlur}
-                        onInput={this.handleInput}
+                        onChange={this.handleChange}
                         listComponent={SearchSuggestionList}
                         providers={this.suggestionProviders}
                         type='search'
