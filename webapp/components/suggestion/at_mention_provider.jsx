@@ -112,10 +112,9 @@ export default class AtMentionProvider {
     handlePretextChanged(suggestionId, pretext) {
         clearTimeout(this.timeoutId);
 
-        const captured = (/(\w*)@([a-z0-9\-\._]*)$/i).exec(pretext.toLowerCase());
-        const wordCharsBeforeAtSign = captured ? captured[1] : null;
-        if (captured && !wordCharsBeforeAtSign) {
-            const prefix = captured[2];
+        const captured = (/(?:^|\W)@([a-z0-9\-\._]*)$/i).exec(pretext.toLowerCase());
+        if (captured) {
+            const prefix = captured[1];
 
             function autocomplete() {
                 autocompleteUsersInChannel(
@@ -147,7 +146,7 @@ export default class AtMentionProvider {
                         AppDispatcher.handleServerAction({
                             type: ActionTypes.SUGGESTION_RECEIVED_SUGGESTIONS,
                             id: suggestionId,
-                            matchedPretext: captured[0],
+                            matchedPretext: `@${captured[1]}`,
                             terms: mentions,
                             items: users,
                             component: AtMentionSuggestion
