@@ -11,7 +11,6 @@ const NotificationPrefs = Constants.NotificationPrefs;
 
 const CHANGE_EVENT = 'change';
 const LEAVE_EVENT = 'leave';
-const MORE_CHANGE_EVENT = 'change';
 const STATS_EVENT = 'stats';
 const LAST_VIEVED_EVENT = 'last_viewed';
 
@@ -48,18 +47,6 @@ class ChannelStoreClass extends EventEmitter {
 
     removeChangeListener(callback) {
         this.removeListener(CHANGE_EVENT, callback);
-    }
-
-    emitMoreChange() {
-        this.emit(MORE_CHANGE_EVENT);
-    }
-
-    addMoreChangeListener(callback) {
-        this.on(MORE_CHANGE_EVENT, callback);
-    }
-
-    removeMoreChangeListener(callback) {
-        this.removeListener(MORE_CHANGE_EVENT, callback);
     }
 
     emitStatsChange() {
@@ -404,7 +391,7 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         break;
     case ActionTypes.RECEIVED_MORE_CHANNELS:
         ChannelStore.storeMoreChannels(action.channels);
-        ChannelStore.emitMoreChange();
+        ChannelStore.emitChange();
         break;
 
     case ActionTypes.RECEIVED_CHANNEL_STATS:
