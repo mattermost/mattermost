@@ -45,7 +45,7 @@ export default class EditChannelPurposeModal extends React.Component {
     }
 
     handleHide() {
-        this.setState({serverError: ''});
+        this.setState({serverError: '', submitted: false});
 
         if (this.props.onModalDismissed) {
             this.props.onModalDismissed();
