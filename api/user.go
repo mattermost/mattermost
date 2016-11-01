@@ -6,6 +6,7 @@ package api
 import (
 	"bytes"
 	b64 "encoding/base64"
+	"encoding/json"
 	"fmt"
 	"hash/fnv"
 	"html/template"
@@ -2592,54 +2593,45 @@ func sanitizeProfile(c *Context, user *model.User) *model.User {
 }
 
 func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.StringInterfaceFromJson(r.Body)
+	var props struct {
+		Term           string `json:"term"`
+		TeamId         string `json:"team_id"`
+		InChannelId    string `json:"in_channel_id"`
+		NotInChannelId string `json:"not_in_channel_id"`
+		AllowInactive  bool   `json:"allow_inactive"`
+	}
 
-	var term string
-	var ok bool
-	if term, ok = props["term"].(string); !ok || len(term) == 0 {
+	if propBytes, err := ioutil.ReadAll(r.Body); err != nil {
+		c.SetInvalidParam("searchUsers", "")
+		return
+	} else {
+		json.Unmarshal(propBytes, &props)
+	}
+
+	if len(props.Term) == 0 {
 		c.SetInvalidParam("searchUsers", "term")
 		return
 	}
 
-	var teamId string
-	if teamId, ok = props["team_id"].(string); !ok {
-		teamId = ""
-	}
-
-	var inChannelId string
-	if inChannelId, ok = props["in_channel"].(string); !ok {
-		inChannelId = ""
-	}
-
-	var notInChannelId string
-	if notInChannelId, ok = props["not_in_channel"].(string); !ok {
-		notInChannelId = ""
-	}
-
-	if inChannelId != "" && !HasPermissionToChannelContext(c, inChannelId, model.PERMISSION_READ_CHANNEL) {
+	if props.InChannelId != "" && !HasPermissionToChannelContext(c, props.InChannelId, model.PERMISSION_READ_CHANNEL) {
 		return
 	}
 
-	if notInChannelId != "" && !HasPermissionToChannelContext(c, notInChannelId, model.PERMISSION_READ_CHANNEL) {
+	if props.NotInChannelId != "" && !HasPermissionToChannelContext(c, props.NotInChannelId, model.PERMISSION_READ_CHANNEL) {
 		return
 	}
 
 	searchOptions := map[string]bool{}
 	searchOptions[store.USER_SEARCH_OPTION_USERNAME_ONLY] = true
-
-	if allowInactive, ok := props["allow_inactive"].(bool); ok {
-		searchOptions[store.USER_SEARCH_OPTION_ALLOW_INACTIVE] = allowInactive
-	} else {
-		searchOptions[store.USER_SEARCH_OPTION_ALLOW_INACTIVE] = false
-	}
+	searchOptions[store.USER_SEARCH_OPTION_ALLOW_INACTIVE] = props.AllowInactive
 
 	var uchan store.StoreChannel
-	if inChannelId != "" {
-		uchan = Srv.Store.User().SearchInChannel(inChannelId, term, searchOptions)
-	} else if notInChannelId != "" {
-		uchan = Srv.Store.User().SearchNotInChannel(teamId, notInChannelId, term, searchOptions)
+	if props.InChannelId != "" {
+		uchan = Srv.Store.User().SearchInChannel(props.InChannelId, props.Term, searchOptions)
+	} else if props.NotInChannelId != "" {
+		uchan = Srv.Store.User().SearchNotInChannel(props.TeamId, props.NotInChannelId, props.Term, searchOptions)
 	} else {
-		uchan = Srv.Store.User().Search(teamId, term, searchOptions)
+		uchan = Srv.Store.User().Search(props.TeamId, props.Term, searchOptions)
 	}
 
 	if result := <-uchan; result.Err != nil {

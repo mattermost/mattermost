@@ -117,7 +117,7 @@ export default class ChannelMembersModal extends React.Component {
         searchUsers(
             term,
             TeamStore.getCurrentId(),
-            {in_channel: this.props.channel.id},
+            {in_channel_id: this.props.channel.id},
             (users) => {
                 this.setState({search: true, users});
             }

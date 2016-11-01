@@ -2088,7 +2088,7 @@ func TestSearchUsers(t *testing.T) {
 		}
 	}
 
-	if result, err := Client.SearchUsers(th.BasicUser.Username, "", map[string]interface{}{"in_channel": th.BasicChannel.Id}); err != nil {
+	if result, err := Client.SearchUsers(th.BasicUser.Username, "", map[string]interface{}{"in_channel_id": th.BasicChannel.Id}); err != nil {
 		t.Fatal(err)
 	} else {
 		users := result.Data.([]*model.User)
@@ -2109,7 +2109,7 @@ func TestSearchUsers(t *testing.T) {
 		}
 	}
 
-	if result, err := Client.SearchUsers(th.BasicUser2.Username, "", map[string]interface{}{"not_in_channel": th.BasicChannel.Id}); err != nil {
+	if result, err := Client.SearchUsers(th.BasicUser2.Username, "", map[string]interface{}{"not_in_channel_id": th.BasicChannel.Id}); err != nil {
 		t.Fatal(err)
 	} else {
 		users := result.Data.([]*model.User)
@@ -2136,7 +2136,7 @@ func TestSearchUsers(t *testing.T) {
 		}
 	}
 
-	if result, err := Client.SearchUsers(th.BasicUser2.Username, th.BasicTeam.Id, map[string]interface{}{"not_in_channel": th.BasicChannel.Id}); err != nil {
+	if result, err := Client.SearchUsers(th.BasicUser2.Username, th.BasicTeam.Id, map[string]interface{}{"not_in_channel_id": th.BasicChannel.Id}); err != nil {
 		t.Fatal(err)
 	} else {
 		users := result.Data.([]*model.User)
@@ -2163,7 +2163,7 @@ func TestSearchUsers(t *testing.T) {
 		}
 	}
 
-	if result, err := Client.SearchUsers(th.BasicUser.Username, "junk", map[string]interface{}{"not_in_channel": th.BasicChannel.Id}); err != nil {
+	if result, err := Client.SearchUsers(th.BasicUser.Username, "junk", map[string]interface{}{"not_in_channel_id": th.BasicChannel.Id}); err != nil {
 		t.Fatal(err)
 	} else {
 		users := result.Data.([]*model.User)
@@ -2196,11 +2196,11 @@ func TestSearchUsers(t *testing.T) {
 		t.Fatal("should have errored - blank term")
 	}
 
-	if _, err := Client.SearchUsers(th.BasicUser.Username, "", map[string]interface{}{"in_channel": th.BasicChannel.Id}); err == nil {
+	if _, err := Client.SearchUsers(th.BasicUser.Username, "", map[string]interface{}{"in_channel_id": th.BasicChannel.Id}); err == nil {
 		t.Fatal("should not have access")
 	}
 
-	if _, err := Client.SearchUsers(th.BasicUser.Username, "", map[string]interface{}{"not_in_channel": th.BasicChannel.Id}); err == nil {
+	if _, err := Client.SearchUsers(th.BasicUser.Username, "", map[string]interface{}{"not_in_channel_id": th.BasicChannel.Id}); err == nil {
 		t.Fatal("should not have access")
 	}
 }
