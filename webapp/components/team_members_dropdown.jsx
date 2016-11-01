@@ -40,7 +40,7 @@ export default class TeamMembersDropdown extends React.Component {
 
     handleMakeMember() {
         const me = UserStore.getCurrentUser();
-        if (this.props.user.id === me.id) {
+        if (this.props.user.id === me.id && me.roles.includes('system_admin')) {
             this.handleDemote(this.props.user, 'team_user');
         } else {
             Client.updateTeamMemberRoles(
@@ -101,7 +101,7 @@ export default class TeamMembersDropdown extends React.Component {
 
     handleMakeAdmin() {
         const me = UserStore.getCurrentUser();
-        if (this.props.user.id === me.id) {
+        if (this.props.user.id === me.id && me.roles.includes('system_admin')) {
             this.handleDemote(this.props.user, 'team_user team_admin');
         } else {
             Client.updateTeamMemberRoles(

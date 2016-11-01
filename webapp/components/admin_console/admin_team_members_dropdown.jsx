@@ -69,7 +69,7 @@ export default class AdminTeamMembersDropdown extends React.Component {
     handleMakeMember(e) {
         e.preventDefault();
         const me = UserStore.getCurrentUser();
-        if (this.props.user.id === me.id) {
+        if (this.props.user.id === me.id && me.roles.includes('system_admin')) {
             this.handleDemoteSystemAdmin(this.props.user, 'member');
         } else {
             this.doMakeMember();
@@ -131,7 +131,7 @@ export default class AdminTeamMembersDropdown extends React.Component {
     handleMakeTeamAdmin(e) {
         e.preventDefault();
         const me = UserStore.getCurrentUser();
-        if (this.props.user.id === me.id) {
+        if (this.props.user.id === me.id && me.roles.includes('system_admin')) {
             this.handleDemoteSystemAdmin(this.props.user, 'teamadmin');
         } else {
             this.doMakeTeamAdmin();
