@@ -32,6 +32,7 @@ export default class UsersAndTeamsSettings extends AdminSettings {
         config.TeamSettings.RestrictCreationToDomains = this.state.restrictCreationToDomains;
         config.TeamSettings.RestrictDirectMessage = this.state.restrictDirectMessage;
         config.TeamSettings.MaxChannelsPerTeam = this.parseIntNonZero(this.state.maxChannelsPerTeam, Constants.DEFAULT_MAX_CHANNELS_PER_TEAM);
+        config.TeamSettings.DefaultTeam = this.state.defaultTeam;
 
         return config;
     }
@@ -43,7 +44,8 @@ export default class UsersAndTeamsSettings extends AdminSettings {
             maxUsersPerTeam: config.TeamSettings.MaxUsersPerTeam,
             restrictCreationToDomains: config.TeamSettings.RestrictCreationToDomains,
             restrictDirectMessage: config.TeamSettings.RestrictDirectMessage,
-            maxChannelsPerTeam: config.TeamSettings.MaxChannelsPerTeam
+            maxChannelsPerTeam: config.TeamSettings.MaxChannelsPerTeam,
+            defaultTeam: config.TeamSettings.DefaultTeam
         };
     }
 
@@ -168,6 +170,24 @@ export default class UsersAndTeamsSettings extends AdminSettings {
                         />
                     }
                     value={this.state.restrictDirectMessage}
+                    onChange={this.handleChange}
+                />
+                <TextSetting
+                    id='defaultTeam'
+                    label={
+                        <FormattedMessage
+                            id='admin.team.defaultTeam'
+                            defaultMessage='Set a default team:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.team.defaultTeam', 'Ex "example-team"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.team.defaultTeam'
+                            defaultMessage='When set, users will be automatically redirected to this team page skipping the team selection page.'
+                        />
+                    }
+                    value={this.state.defaultTeam}
                     onChange={this.handleChange}
                 />
             </SettingsGroup>
