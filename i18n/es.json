@@ -1532,8 +1532,8 @@
     "translation": "Falla al importar: {{.DisplayName}}\r\n"
   },
   {
-    "id": "api.slackimport.slack_add_channels.import_failed.debug",
-    "translation": "Falla al importar: %s"
+    "id": "api.slackimport.slack_add_channels.import_failed.warn",
+    "translation": "Importador de Slack: no se pudo importar el canal: %s"
   },
   {
     "id": "api.slackimport.slack_add_channels.merge",
@@ -3629,7 +3629,7 @@
   },
   {
     "id": "model.team.is_valid.characters.app_error",
-    "translation": "Nombre tiene que ser de 4 o más caracteres alfanuméricos en minúsculas"
+    "translation": "Nombre debe tener 2 o más caracteres alfanuméricos en minúscula"
   },
   {
     "id": "model.team.is_valid.company.app_error",

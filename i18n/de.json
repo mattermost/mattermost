@@ -1223,7 +1223,7 @@
   },
   {
     "id": "api.post.create_post.attach_files.error",
-    "translation": "Fehler beim anfügen der Dateien zu Nachricht, post_id=%s, file_ids=%v, err=%v"
+    "translation": "Fehler beim Anfügen der Dateien zu Nachricht, post_id=%s, user_id=%s, file_ids=%v, err=%v"
   },
   {
     "id": "api.post.create_post.bad_filename.error",
@@ -1532,8 +1532,8 @@
     "translation": "{{.DisplayName}} konnte nicht importiert werden\r\n"
   },
   {
-    "id": "api.slackimport.slack_add_channels.import_failed.debug",
-    "translation": "Konnte nicht importieren: %s"
+    "id": "api.slackimport.slack_add_channels.import_failed.warn",
+    "translation": "Slack Importer: Failed to import channel: %s"
   },
   {
     "id": "api.slackimport.slack_add_channels.merge",
@@ -1541,7 +1541,7 @@
   },
   {
     "id": "api.slackimport.slack_add_posts.attach_files.error",
-    "translation": "Fehler beim anfügen der Dateien zu Nachricht, post_id=%s, file_ids=%v, err=%v"
+    "translation": "Fehler beim Anfügen der Dateien zu Nachricht, post_id=%s, file_ids=%v, err=%v"
   },
   {
     "id": "api.slackimport.slack_add_posts.bot.warn",
@@ -3629,7 +3629,7 @@
   },
   {
     "id": "model.team.is_valid.characters.app_error",
-    "translation": "Name muss aus 4 oder mehr Kleinbuchstaben bestehen"
+    "translation": "Name muss 2 oder mehr Kleinbuchstaben haben"
   },
   {
     "id": "model.team.is_valid.company.app_error",

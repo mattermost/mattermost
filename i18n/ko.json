@@ -1473,7 +1473,7 @@
   },
   {
     "id": "api.saml.save_certificate.app_error",
-    "translation": "Certificate did not save properly."
+    "translation": "증명서가 정상적으로 저장되지 않았습니다."
   },
   {
     "id": "api.server.new_server.init.info",
@@ -1532,8 +1532,8 @@
     "translation": "추가 시 오류가 발생함: {{.DisplayName}}\r\n"
   },
   {
-    "id": "api.slackimport.slack_add_channels.import_failed.debug",
-    "translation": "가져오기 실패: %s"
+    "id": "api.slackimport.slack_add_channels.import_failed.warn",
+    "translation": "Slack Importer: Failed to import channel: %s"
   },
   {
     "id": "api.slackimport.slack_add_channels.merge",
@@ -1965,7 +1965,7 @@
   },
   {
     "id": "api.templates.username_change_subject",
-    "translation": "사용자명이 {{.TeamDisplayName}}(으)로 변경되었습니다."
+    "translation": "{{.TeamDisplayName}}에서 사용자명이 변경되었습니다."
   },
   {
     "id": "api.templates.verify_body.button",
@@ -3629,7 +3629,7 @@
   },
   {
     "id": "model.team.is_valid.characters.app_error",
-    "translation": "이름은 반드시 4글자 이상 영소문자 또는 숫자여야 합니다."
+    "translation": "이름은 반드시 2글자 이상의 영문 또는 숫자여야 합니다."
   },
   {
     "id": "model.team.is_valid.company.app_error",
