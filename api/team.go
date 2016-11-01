@@ -347,6 +347,12 @@ func LeaveTeam(team *model.Team, user *model.User) *model.AppError {
 		}
 	}
 
+	// Send the websocket message before we actually do the remove so the user being removed gets it.
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_LEAVE_TEAM, team.Id, "", "", nil)
+	message.Add("user_id", user.Id)
+	message.Add("team_id", team.Id)
+	Publish(message)
+
 	teamMember.Roles = ""
 	teamMember.DeleteAt = model.GetMillis()
 
@@ -360,10 +366,6 @@ func LeaveTeam(team *model.Team, user *model.User) *model.AppError {
 
 	RemoveAllSessionsForUserId(user.Id)
 	InvalidateCacheForUser(user.Id)
-
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_LEAVE_TEAM, team.Id, "", "", nil)
-	message.Add("user_id", user.Id)
-	go Publish(message)
 
 	return nil
 }
