@@ -9,8 +9,12 @@ import PostStore from 'stores/post_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
+import WebrtcStore from 'stores/webrtc_store.jsx';
+
+import * as Utils from 'utils/utils.jsx';
 
 import Constants from 'utils/constants.jsx';
+const Preferences = Constants.Preferences;
 const ScrollTypes = Constants.ScrollTypes;
 
 import React from 'react';
@@ -26,25 +30,24 @@ export default class PostFocusView extends React.Component {
         this.onStatusChange = this.onStatusChange.bind(this);
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.onPostListScroll = this.onPostListScroll.bind(this);
+        this.onBusy = this.onBusy.bind(this);
 
         const focusedPostId = PostStore.getFocusedPostId();
 
         const channel = ChannelStore.getCurrent();
-        let profiles = UserStore.getProfiles();
-        if (channel && channel.type === Constants.DM_CHANNEL) {
-            profiles = Object.assign({}, profiles, UserStore.getDirectProfiles());
-        }
+        const profiles = UserStore.getProfiles();
 
         const joinLeaveEnabled = PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'join_leave', true);
 
         let statuses;
-        if (channel && channel.type !== Constants.DM_CHANNEL) {
+        if (channel) {
             statuses = Object.assign({}, UserStore.getStatuses());
         }
 
         this.state = {
             postList: PostStore.filterPosts(focusedPostId, joinLeaveEnabled),
             currentUser: UserStore.getCurrentUser(),
+            isBusy: WebrtcStore.isBusy(),
             profiles,
             statuses,
             scrollType: ScrollTypes.POST,
@@ -53,6 +56,11 @@ export default class PostFocusView extends React.Component {
             atTop: PostStore.getVisibilityAtTop(focusedPostId),
             atBottom: PostStore.getVisibilityAtBottom(focusedPostId),
             emojis: EmojiStore.getEmojis(),
+            displayNameType: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'false'),
+            displayPostsInCenter: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED,
+            compactDisplay: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT,
+            previewsCollapsed: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLLAPSE_DISPLAY, 'false'),
+            useMilitaryTime: PreferenceStore.getBool(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, false),
             flaggedPosts: PreferenceStore.getCategory(Constants.Preferences.CATEGORY_FLAGGED_POST)
         };
     }
@@ -64,6 +72,7 @@ export default class PostFocusView extends React.Component {
         UserStore.addStatusesChangeListener(this.onStatusChange);
         EmojiStore.addChangeListener(this.onEmojiChange);
         PreferenceStore.addChangeListener(this.onPreferenceChange);
+        WebrtcStore.addBusyListener(this.onBusy);
     }
 
     componentWillUnmount() {
@@ -73,6 +82,7 @@ export default class PostFocusView extends React.Component {
         UserStore.removeStatusesChangeListener(this.onStatusChange);
         EmojiStore.removeChangeListener(this.onEmojiChange);
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
+        WebrtcStore.removeBusyListener(this.onBusy);
     }
 
     onChannelChange() {
@@ -102,18 +112,13 @@ export default class PostFocusView extends React.Component {
     }
 
     onUserChange() {
-        const channel = ChannelStore.getCurrent();
-        let profiles = UserStore.getProfiles();
-        if (channel && channel.type === Constants.DM_CHANNEL) {
-            profiles = Object.assign({}, profiles, UserStore.getDirectProfiles());
-        }
-        this.setState({currentUser: UserStore.getCurrentUser(), profiles: JSON.parse(JSON.stringify(profiles))});
+        this.setState({currentUser: UserStore.getCurrentUser(), profiles: JSON.parse(JSON.stringify(UserStore.getProfiles()))});
     }
 
     onStatusChange() {
         const channel = ChannelStore.getCurrent();
         let statuses;
-        if (channel && channel.type !== Constants.DM_CHANNEL) {
+        if (channel) {
             statuses = Object.assign({}, UserStore.getStatuses());
         }
 
@@ -126,7 +131,14 @@ export default class PostFocusView extends React.Component {
         });
     }
 
-    onPreferenceChange() {
+    onPreferenceChange(category) {
+        // Bit of a hack to force render when this setting is updated
+        // regardless of change
+        let previewSuffix = '';
+        if (category === Preferences.CATEGORY_DISPLAY_SETTINGS) {
+            previewSuffix = '_' + Utils.generateId();
+        }
+
         const focusedPostId = PostStore.getFocusedPostId();
         if (focusedPostId == null) {
             return;
@@ -136,12 +148,21 @@ export default class PostFocusView extends React.Component {
 
         this.setState({
             postList: PostStore.filterPosts(focusedPostId, joinLeaveEnabled),
+            displayNameType: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'false'),
+            displayPostsInCenter: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED,
+            compactDisplay: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT,
+            previewsCollapsed: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLLAPSE_DISPLAY, 'false') + previewSuffix,
+            useMilitaryTime: PreferenceStore.getBool(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, false),
             flaggedPosts: PreferenceStore.getCategory(Constants.Preferences.CATEGORY_FLAGGED_POST)
         });
     }
 
     onPostListScroll() {
         this.setState({scrollType: ScrollTypes.FREE});
+    }
+
+    onBusy(isBusy) {
+        this.setState({isBusy});
     }
 
     render() {
@@ -165,6 +186,11 @@ export default class PostFocusView extends React.Component {
                     scrollType={this.state.scrollType}
                     scrollPostId={this.state.scrollPostId}
                     postListScrolled={this.onPostListScroll}
+                    displayNameType={this.state.displayNameType}
+                    displayPostsInCenter={this.state.displayPostsInCenter}
+                    compactDisplay={this.state.compactDisplay}
+                    previewsCollapsed={this.state.previewsCollapsed}
+                    useMilitaryTime={this.state.useMilitaryTime}
                     showMoreMessagesTop={!this.state.atTop}
                     showMoreMessagesBottom={!this.state.atBottom}
                     postsToHighlight={postsToHighlight}
@@ -172,6 +198,7 @@ export default class PostFocusView extends React.Component {
                     emojis={this.state.emojis}
                     flaggedPosts={this.state.flaggedPosts}
                     statuses={this.state.statuses}
+                    isBusy={this.state.isBusy}
                 />
             );
         }

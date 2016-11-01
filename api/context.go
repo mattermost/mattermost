@@ -16,7 +16,6 @@ import (
 
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 )
 
@@ -58,7 +57,7 @@ func AppHandlerIndependent(h func(*Context, http.ResponseWriter, *http.Request))
 }
 
 func ApiUserRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, true, false, true, true, false, false}
+	return &handler{h, true, false, true, false, false, false}
 }
 
 func ApiUserRequiredActivity(h func(*Context, http.ResponseWriter, *http.Request), isUserActivity bool) http.Handler {
@@ -77,12 +76,16 @@ func ApiAdminSystemRequired(h func(*Context, http.ResponseWriter, *http.Request)
 	return &handler{h, true, true, true, false, false, false}
 }
 
+func ApiAdminSystemRequiredTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	return &handler{h, true, true, true, false, false, true}
+}
+
 func ApiAppHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	return &handler{h, false, false, true, false, false, true}
 }
 
 func ApiUserRequiredTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, true, false, true, true, false, true}
+	return &handler{h, true, false, true, false, false, true}
 }
 
 func ApiAppHandlerTrustRequesterIndependent(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
@@ -150,7 +153,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)
-	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v", model.CurrentVersion, utils.CfgHash))
+	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v.%v", model.CurrentVersion, model.BuildNumber, utils.CfgHash))
 	if einterfaces.GetClusterInterface() != nil {
 		w.Header().Set(model.HEADER_CLUSTER_ID, einterfaces.GetClusterInterface().GetClusterId())
 	}
@@ -202,12 +205,8 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.SystemAdminRequired()
 	}
 
-	if c.Err == nil && len(c.TeamId) > 0 && !h.isTeamIndependent {
-		c.HasPermissionsToTeam(c.TeamId, "TeamRoute")
-	}
-
 	if c.Err == nil && h.isUserActivity && token != "" && len(c.Session.UserId) > 0 {
-		SetStatusOnline(c.Session.UserId, c.Session.Id)
+		SetStatusOnline(c.Session.UserId, c.Session.Id, false)
 	}
 
 	if c.Err == nil {
@@ -221,7 +220,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.LogError(c.Err)
 		c.Err.Where = r.URL.Path
 
-		// Block out detailed error whenn not in developer mode
+		// Block out detailed error when not in developer mode
 		if !*utils.Cfg.ServiceSettings.EnableDeveloper {
 			c.Err.DetailedError = ""
 		}
@@ -320,88 +319,11 @@ func (c *Context) SystemAdminRequired() {
 		c.Err = model.NewLocAppError("", "api.context.session_expired.app_error", nil, "SystemAdminRequired")
 		c.Err.StatusCode = http.StatusUnauthorized
 		return
-	} else if !c.IsSystemAdmin() {
+	} else if !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
 		c.Err = model.NewLocAppError("", "api.context.permissions.app_error", nil, "AdminRequired")
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
-}
-
-func (c *Context) HasPermissionsToUser(userId string, where string) bool {
-
-	// You are the user
-	if c.Session.UserId == userId {
-		return true
-	}
-
-	// You're a mattermost system admin and you're on the VPN
-	if c.IsSystemAdmin() {
-		return true
-	}
-
-	c.Err = model.NewLocAppError(where, "api.context.permissions.app_error", nil, "userId="+userId)
-	c.Err.StatusCode = http.StatusForbidden
-	return false
-}
-
-func (c *Context) HasPermissionsToTeam(teamId string, where string) bool {
-	if c.IsSystemAdmin() {
-		return true
-	}
-
-	for _, teamMember := range c.Session.TeamMembers {
-		if teamId == teamMember.TeamId {
-			return true
-		}
-	}
-
-	c.Err = model.NewLocAppError(where, "api.context.permissions.app_error", nil, "userId="+c.Session.UserId+", teamId="+teamId)
-	c.Err.StatusCode = http.StatusForbidden
-	return false
-}
-
-func (c *Context) HasPermissionsToChannel(sc store.StoreChannel, where string) bool {
-	if cresult := <-sc; cresult.Err != nil {
-		c.Err = cresult.Err
-		return false
-	} else if cresult.Data.(int64) != 1 {
-		c.Err = model.NewLocAppError(where, "api.context.permissions.app_error", nil, "userId="+c.Session.UserId)
-		c.Err.StatusCode = http.StatusForbidden
-		return false
-	}
-
-	return true
-}
-
-func (c *Context) HasSystemAdminPermissions(where string) bool {
-	if c.IsSystemAdmin() {
-		return true
-	}
-
-	c.Err = model.NewLocAppError(where, "api.context.system_permissions.app_error", nil, "userId="+c.Session.UserId)
-	c.Err.StatusCode = http.StatusForbidden
-	return false
-}
-
-func (c *Context) IsSystemAdmin() bool {
-	if model.IsInRole(c.Session.Roles, model.ROLE_SYSTEM_ADMIN) {
-		return true
-	}
-	return false
-}
-
-func (c *Context) IsTeamAdmin() bool {
-
-	if c.IsSystemAdmin() {
-		return true
-	}
-
-	teamMember := c.Session.GetTeamByTeamId(c.TeamId)
-	if teamMember == nil {
-		return false
-	}
-
-	return teamMember.IsTeamAdmin()
 }
 
 func (c *Context) RemoveSessionCookie(w http.ResponseWriter, r *http.Request) {
@@ -442,7 +364,7 @@ func (c *Context) SetTeamURLFromSession() {
 }
 
 func (c *Context) SetSiteURL(url string) {
-	c.siteURL = url
+	c.siteURL = strings.TrimRight(url, "/")
 }
 
 func (c *Context) GetTeamURLFromTeam(team *model.Team) string {
@@ -461,6 +383,10 @@ func (c *Context) GetTeamURL() string {
 
 func (c *Context) GetSiteURL() string {
 	return c.siteURL
+}
+
+func (c *Context) GetCurrentTeamMember() *model.TeamMember {
+	return c.Session.GetTeamByTeamId(c.TeamId)
 }
 
 func IsApiCall(r *http.Request) bool {
@@ -548,6 +474,14 @@ func GetSession(token string) *model.Session {
 
 func RemoveAllSessionsForUserId(userId string) {
 
+	RemoveAllSessionsForUserIdSkipClusterSend(userId)
+
+	if einterfaces.GetClusterInterface() != nil {
+		einterfaces.GetClusterInterface().RemoveAllSessionsForUserId(userId)
+	}
+}
+
+func RemoveAllSessionsForUserIdSkipClusterSend(userId string) {
 	keys := sessionCache.Keys()
 
 	for _, key := range keys {
@@ -559,9 +493,6 @@ func RemoveAllSessionsForUserId(userId string) {
 		}
 	}
 
-	if einterfaces.GetClusterInterface() != nil {
-		einterfaces.GetClusterInterface().RemoveAllSessionsForUserId(userId)
-	}
 }
 
 func AddSessionToCache(session *model.Session) {

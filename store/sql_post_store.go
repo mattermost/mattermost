@@ -32,6 +32,7 @@ func NewSqlPostStore(sqlStore *SqlStore) PostStore {
 		table.ColMap("Hashtags").SetMaxSize(1000)
 		table.ColMap("Props").SetMaxSize(8000)
 		table.ColMap("Filenames").SetMaxSize(4000)
+		table.ColMap("FileIds").SetMaxSize(150)
 	}
 
 	return s
@@ -40,15 +41,17 @@ func NewSqlPostStore(sqlStore *SqlStore) PostStore {
 func (s SqlPostStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_posts_update_at", "Posts", "UpdateAt")
 	s.CreateIndexIfNotExists("idx_posts_create_at", "Posts", "CreateAt")
+	s.CreateIndexIfNotExists("idx_posts_delete_at", "Posts", "DeleteAt")
 	s.CreateIndexIfNotExists("idx_posts_channel_id", "Posts", "ChannelId")
 	s.CreateIndexIfNotExists("idx_posts_root_id", "Posts", "RootId")
+	s.CreateIndexIfNotExists("idx_posts_user_id", "Posts", "UserId")
 
 	s.CreateFullTextIndexIfNotExists("idx_posts_message_txt", "Posts", "Message")
 	s.CreateFullTextIndexIfNotExists("idx_posts_hashtags_txt", "Posts", "Hashtags")
 }
 
 func (s SqlPostStore) Save(post *model.Post) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -73,7 +76,7 @@ func (s SqlPostStore) Save(post *model.Post) StoreChannel {
 		} else {
 			time := model.GetMillis()
 
-			if post.Type != model.POST_JOIN_LEAVE {
+			if post.Type != model.POST_JOIN_LEAVE && post.Type != model.POST_ADD_REMOVE {
 				s.GetMaster().Exec("UPDATE Channels SET LastPostAt = :LastPostAt, TotalMsgCount = TotalMsgCount + 1 WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": time, "ChannelId": post.ChannelId})
 			} else {
 				// don't update TotalMsgCount for unimportant messages so that the channel isn't marked as unread
@@ -94,42 +97,39 @@ func (s SqlPostStore) Save(post *model.Post) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlPostStore) Update(oldPost *model.Post, newMessage string, newHashtags string) StoreChannel {
-	storeChannel := make(StoreChannel)
+func (s SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
 
-		editPost := *oldPost
-		editPost.Message = newMessage
-		editPost.UpdateAt = model.GetMillis()
-		editPost.Hashtags = newHashtags
+		newPost.UpdateAt = model.GetMillis()
 
-		oldPost.DeleteAt = editPost.UpdateAt
-		oldPost.UpdateAt = editPost.UpdateAt
+		oldPost.DeleteAt = newPost.UpdateAt
+		oldPost.UpdateAt = newPost.UpdateAt
 		oldPost.OriginalId = oldPost.Id
 		oldPost.Id = model.NewId()
 
-		if result.Err = editPost.IsValid(); result.Err != nil {
+		if result.Err = newPost.IsValid(); result.Err != nil {
 			storeChannel <- result
 			close(storeChannel)
 			return
 		}
 
-		if _, err := s.GetMaster().Update(&editPost); err != nil {
-			result.Err = model.NewLocAppError("SqlPostStore.Update", "store.sql_post.update.app_error", nil, "id="+editPost.Id+", "+err.Error())
+		if _, err := s.GetMaster().Update(newPost); err != nil {
+			result.Err = model.NewLocAppError("SqlPostStore.Update", "store.sql_post.update.app_error", nil, "id="+newPost.Id+", "+err.Error())
 		} else {
 			time := model.GetMillis()
-			s.GetMaster().Exec("UPDATE Channels SET LastPostAt = :LastPostAt  WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": time, "ChannelId": editPost.ChannelId})
+			s.GetMaster().Exec("UPDATE Channels SET LastPostAt = :LastPostAt  WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": time, "ChannelId": newPost.ChannelId})
 
-			if len(editPost.RootId) > 0 {
-				s.GetMaster().Exec("UPDATE Posts SET UpdateAt = :UpdateAt WHERE Id = :RootId", map[string]interface{}{"UpdateAt": time, "RootId": editPost.RootId})
+			if len(newPost.RootId) > 0 {
+				s.GetMaster().Exec("UPDATE Posts SET UpdateAt = :UpdateAt WHERE Id = :RootId", map[string]interface{}{"UpdateAt": time, "RootId": newPost.RootId})
 			}
 
 			// mark the old post as deleted
 			s.GetMaster().Insert(oldPost)
 
-			result.Data = &editPost
+			result.Data = newPost
 		}
 
 		storeChannel <- result
@@ -140,7 +140,7 @@ func (s SqlPostStore) Update(oldPost *model.Post, newMessage string, newHashtags
 }
 
 func (s SqlPostStore) GetFlaggedPosts(userId string, offset int, limit int) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 	go func() {
 		result := StoreResult{}
 		pl := &model.PostList{}
@@ -165,7 +165,7 @@ func (s SqlPostStore) GetFlaggedPosts(userId string, offset int, limit int) Stor
 }
 
 func (s SqlPostStore) Get(id string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -211,7 +211,7 @@ type etagPosts struct {
 }
 
 func (s SqlPostStore) GetEtag(channelId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -232,7 +232,7 @@ func (s SqlPostStore) GetEtag(channelId string) StoreChannel {
 }
 
 func (s SqlPostStore) Delete(postId string, time int64) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -250,7 +250,7 @@ func (s SqlPostStore) Delete(postId string, time int64) StoreChannel {
 }
 
 func (s SqlPostStore) permanentDelete(postId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -268,7 +268,7 @@ func (s SqlPostStore) permanentDelete(postId string) StoreChannel {
 }
 
 func (s SqlPostStore) permanentDeleteAllCommentByUser(userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -286,7 +286,7 @@ func (s SqlPostStore) permanentDeleteAllCommentByUser(userId string) StoreChanne
 }
 
 func (s SqlPostStore) PermanentDeleteByUser(userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -343,7 +343,7 @@ func (s SqlPostStore) PermanentDeleteByUser(userId string) StoreChannel {
 }
 
 func (s SqlPostStore) GetPosts(channelId string, offset int, limit int) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -390,7 +390,7 @@ func (s SqlPostStore) GetPosts(channelId string, offset int, limit int) StoreCha
 }
 
 func (s SqlPostStore) GetPostsSince(channelId string, time int64) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -456,7 +456,7 @@ func (s SqlPostStore) GetPostsAfter(channelId string, postId string, numPosts in
 }
 
 func (s SqlPostStore) getPostsAround(channelId string, postId string, numPosts int, offset int, before bool) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -546,7 +546,7 @@ func (s SqlPostStore) getPostsAround(channelId string, postId string, numPosts i
 }
 
 func (s SqlPostStore) getRootPosts(channelId string, offset int, limit int) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -567,7 +567,7 @@ func (s SqlPostStore) getRootPosts(channelId string, offset int, limit int) Stor
 }
 
 func (s SqlPostStore) getParentsPosts(channelId string, offset int, limit int) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -624,7 +624,7 @@ var specialSearchChar = []string{
 }
 
 func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchParams) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -807,53 +807,42 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 }
 
 func (s SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
 
 		query :=
-			`SELECT
-			    t1.Name, COUNT(t1.UserId) AS Value
-			FROM
-			    (SELECT DISTINCT
+			`SELECT DISTINCT
 			        DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
-			            Posts.UserId
-			    FROM
-			        Posts, Channels
-			    WHERE
-			        Posts.ChannelId = Channels.Id`
+			        COUNT(DISTINCT Posts.UserId) AS Value
+			FROM Posts`
 
 		if len(teamId) > 0 {
-			query += " AND Channels.TeamId = :TeamId"
+			query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = :TeamId AND"
+		} else {
+			query += " WHERE"
 		}
 
-		query += ` AND Posts.CreateAt >= :StartTime AND Posts.CreateAt <= :EndTime
-			    ORDER BY Name DESC) AS t1
-			GROUP BY Name
+		query += ` Posts.CreateAt >= :StartTime AND Posts.CreateAt <= :EndTime
+			GROUP BY DATE(FROM_UNIXTIME(Posts.CreateAt / 1000))
 			ORDER BY Name DESC
 			LIMIT 30`
 
 		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 			query =
 				`SELECT
-				    TO_CHAR(t1.Name, 'YYYY-MM-DD') AS Name, COUNT(t1.UserId) AS Value
-				FROM
-				    (SELECT DISTINCT
-				        DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)) AS Name,
-				            Posts.UserId
-				    FROM
-				        Posts, Channels
-				    WHERE
-				        Posts.ChannelId = Channels.Id`
+					TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, COUNT(DISTINCT Posts.UserId) AS Value
+				FROM Posts`
 
 			if len(teamId) > 0 {
-				query += " AND Channels.TeamId = :TeamId"
+				query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = :TeamId AND"
+			} else {
+				query += " WHERE"
 			}
 
-			query += ` AND Posts.CreateAt >= :StartTime AND Posts.CreateAt <= :EndTime
-				    ORDER BY Name DESC) AS t1
-				GROUP BY Name
+			query += ` Posts.CreateAt >= :StartTime AND Posts.CreateAt <= :EndTime
+				GROUP BY DATE(TO_TIMESTAMP(Posts.CreateAt / 1000))
 				ORDER BY Name DESC
 				LIMIT 30`
 		}
@@ -880,53 +869,44 @@ func (s SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) StoreChan
 }
 
 func (s SqlPostStore) AnalyticsPostCountsByDay(teamId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
 
 		query :=
-			`SELECT 
-			    Name, COUNT(Value) AS Value
-			FROM
-			    (SELECT 
+			`SELECT
 			        DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
-			            '1' AS Value
-			    FROM
-			        Posts, Channels
-			    WHERE
-			        Posts.ChannelId = Channels.Id`
+			        COUNT(Posts.Id) AS Value
+			    FROM Posts`
 
 		if len(teamId) > 0 {
-			query += " AND Channels.TeamId = :TeamId"
+			query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = :TeamId AND"
+		} else {
+			query += " WHERE"
 		}
 
-		query += ` AND Posts.CreateAt <= :EndTime
-			            AND Posts.CreateAt >= :StartTime) AS t1
-			GROUP BY Name
+		query += ` Posts.CreateAt <= :EndTime
+			            AND Posts.CreateAt >= :StartTime
+			GROUP BY DATE(FROM_UNIXTIME(Posts.CreateAt / 1000))
 			ORDER BY Name DESC
 			LIMIT 30`
 
 		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 			query =
-				`SELECT 
-				    Name, COUNT(Value) AS Value
-				FROM
-				    (SELECT 
-				        TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name,
-				            '1' AS Value
-				    FROM
-				        Posts, Channels
-				    WHERE
-				        Posts.ChannelId = Channels.Id`
+				`SELECT
+					TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, Count(Posts.Id) AS Value
+				FROM Posts`
 
 			if len(teamId) > 0 {
-				query += " AND Channels.TeamId = :TeamId"
+				query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id  AND Channels.TeamId = :TeamId AND"
+			} else {
+				query += " WHERE"
 			}
 
-			query += ` AND Posts.CreateAt <= :EndTime
-				            AND Posts.CreateAt >= :StartTime) AS t1
-				GROUP BY Name
+			query += ` Posts.CreateAt <= :EndTime
+				            AND Posts.CreateAt >= :StartTime
+				GROUP BY DATE(TO_TIMESTAMP(Posts.CreateAt / 1000))
 				ORDER BY Name DESC
 				LIMIT 30`
 		}
@@ -953,7 +933,7 @@ func (s SqlPostStore) AnalyticsPostCountsByDay(teamId string) StoreChannel {
 }
 
 func (s SqlPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, mustHaveHashtag bool) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -972,7 +952,7 @@ func (s SqlPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, mustH
 		}
 
 		if mustHaveFile {
-			query += " AND Posts.Filenames != '[]'"
+			query += " AND (Posts.FileIds != '[]' OR Posts.Filenames != '[]')"
 		}
 
 		if mustHaveHashtag {

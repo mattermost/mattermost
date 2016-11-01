@@ -38,7 +38,7 @@ export default class NativeAppLinkSettings extends AdminSettings {
             <h3>
                 <FormattedMessage
                     id='admin.customization.nativeAppLinks'
-                    defaultMessage='Native App Links'
+                    defaultMessage='Mattermost App Links'
                 />
             </h3>
         );

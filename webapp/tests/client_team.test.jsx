@@ -130,12 +130,63 @@ describe('Client.Team', function() {
         });
     });
 
-    it('GetTeamMembers', function(done) {
+    it('getTeamMembers', function(done) {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().getTeamMembers(
                 TestHelper.basicTeam().id,
+                0,
+                100,
                 function(data) {
                     assert.equal(data.length > 0, true);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
+    it('getTeamMember', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().getTeamMember(
+                TestHelper.basicTeam().id,
+                TestHelper.basicUser().id,
+                function(data) {
+                    assert.equal(data.user_id, TestHelper.basicUser().id);
+                    assert.equal(data.team_id, TestHelper.basicTeam().id);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
+    it('getTeamStats', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().getTeamStats(
+                TestHelper.basicTeam().id,
+                function(data) {
+                    assert.equal(data.member_count > 0, true);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
+    it('getTeamMembersByIds', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().getTeamMembersByIds(
+                TestHelper.basicTeam().id,
+                [TestHelper.basicUser().id],
+                function(data) {
+                    assert.equal(data[0].user_id, TestHelper.basicUser().id);
+                    assert.equal(data[0].team_id, TestHelper.basicTeam().id);
                     done();
                 },
                 function(err) {
@@ -232,6 +283,25 @@ describe('Client.Team', function() {
                 TestHelper.basicTeam().invite_id,
                 function(data) {
                     assert.equal(data.display_name.length > 0, true);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
+    it('updateTeamMemberRoles', function(done) {
+        TestHelper.initBasic(() => {
+            var user = TestHelper.basicUser();
+            var team = TestHelper.basicTeam();
+
+            TestHelper.basicClient().updateTeamMemberRoles(
+                team.id,
+                user.id,
+                '',
+                function() {
                     done();
                 },
                 function(err) {

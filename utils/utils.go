@@ -34,3 +34,17 @@ func FileExistsInConfigFolder(filename string) bool {
 	}
 	return false
 }
+
+func RemoveDuplicatesFromStringArray(arr []string) []string {
+	result := make([]string, 0, len(arr))
+	seen := make(map[string]bool)
+
+	for _, item := range arr {
+		if !seen[item] {
+			result = append(result, item)
+			seen[item] = true
+		}
+	}
+
+	return result
+}

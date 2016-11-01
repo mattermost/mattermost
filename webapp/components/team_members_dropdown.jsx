@@ -1,17 +1,20 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import ConfirmModal from './confirm_modal.jsx';
+
+import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
+
+import {removeUserFromTeam} from 'actions/team_actions.jsx';
+
 import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
-import ConfirmModal from './confirm_modal.jsx';
-import TeamStore from 'stores/team_store.jsx';
-
-import {FormattedMessage} from 'react-intl';
 
 import React from 'react';
+import {FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
 
 export default class TeamMembersDropdown extends React.Component {
@@ -34,18 +37,19 @@ export default class TeamMembersDropdown extends React.Component {
             role: null
         };
     }
+
     handleMakeMember() {
         const me = UserStore.getCurrentUser();
         if (this.props.user.id === me.id) {
-            this.handleDemote(this.props.user, '');
+            this.handleDemote(this.props.user, 'team_user');
         } else {
-            Client.updateRoles(
+            Client.updateTeamMemberRoles(
                 this.props.teamMember.team_id,
                 this.props.user.id,
-                '',
+                'team_user',
                 () => {
-                    AsyncClient.getTeamMembers(TeamStore.getCurrentId());
-                    AsyncClient.getProfiles();
+                    AsyncClient.getTeamMember(this.props.teamMember.team_id, this.props.user.id);
+                    AsyncClient.getUser(this.props.user.id);
                 },
                 (err) => {
                     this.setState({serverError: err.message});
@@ -53,55 +57,60 @@ export default class TeamMembersDropdown extends React.Component {
             );
         }
     }
+
     handleRemoveFromTeam() {
-        Client.removeUserFromTeam(
-                '',
-                this.props.user.id,
-                () => {
-                    AsyncClient.getTeamMembers(TeamStore.getCurrentId());
-                    AsyncClient.getProfiles();
-                },
-                (err) => {
-                    this.setState({serverError: err.message});
-                }
-            );
+        removeUserFromTeam(
+            this.props.teamMember.team_id,
+            this.props.user.id,
+            () => {
+                UserStore.removeProfileFromTeam(this.props.teamMember.team_id, this.props.user.id);
+                UserStore.emitInTeamChange();
+                AsyncClient.getTeamStats(this.props.teamMember.team_id);
+            },
+            (err) => {
+                this.setState({serverError: err.message});
+            }
+        );
     }
+
     handleMakeActive() {
         Client.updateActive(this.props.user.id, true,
             () => {
-                AsyncClient.getTeamMembers(TeamStore.getCurrentId());
-                AsyncClient.getProfiles();
-                AsyncClient.getChannelExtraInfo(ChannelStore.getCurrentId());
+                AsyncClient.getUser(this.props.user.id);
+                AsyncClient.getChannelStats(ChannelStore.getCurrentId());
+                AsyncClient.getTeamStats(this.props.teamMember.team_id);
             },
             (err) => {
                 this.setState({serverError: err.message});
             }
         );
     }
+
     handleMakeNotActive() {
         Client.updateActive(this.props.user.id, false,
             () => {
-                AsyncClient.getTeamMembers(TeamStore.getCurrentId());
-                AsyncClient.getProfiles();
-                AsyncClient.getChannelExtraInfo(ChannelStore.getCurrentId());
+                AsyncClient.getUser(this.props.user.id);
+                AsyncClient.getChannelStats(ChannelStore.getCurrentId());
+                AsyncClient.getTeamStats(this.props.teamMember.team_id);
             },
             (err) => {
                 this.setState({serverError: err.message});
             }
         );
     }
+
     handleMakeAdmin() {
         const me = UserStore.getCurrentUser();
         if (this.props.user.id === me.id) {
-            this.handleDemote(this.props.user, 'admin');
+            this.handleDemote(this.props.user, 'team_user team_admin');
         } else {
-            Client.updateRoles(
+            Client.updateTeamMemberRoles(
                 this.props.teamMember.team_id,
                 this.props.user.id,
-                'admin',
+                'team_user team_admin',
                 () => {
-                    AsyncClient.getTeamMembers(TeamStore.getCurrentId());
-                    AsyncClient.getProfiles();
+                    AsyncClient.getTeamMember(this.props.teamMember.team_id, this.props.user.id);
+                    AsyncClient.getUser(this.props.user.id);
                 },
                 (err) => {
                     this.setState({serverError: err.message});
@@ -109,6 +118,7 @@ export default class TeamMembersDropdown extends React.Component {
             );
         }
     }
+
     handleDemote(user, role, newRole) {
         this.setState({
             serverError: this.state.serverError,
@@ -118,6 +128,7 @@ export default class TeamMembersDropdown extends React.Component {
             newRole
         });
     }
+
     handleDemoteCancel() {
         this.setState({
             serverError: null,
@@ -127,14 +138,15 @@ export default class TeamMembersDropdown extends React.Component {
             newRole: null
         });
     }
+
     handleDemoteSubmit() {
-        Client.updateRoles(
+        Client.updateTeamMemberRoles(
             this.props.teamMember.team_id,
             this.props.user.id,
             this.state.newRole,
             () => {
-                AsyncClient.getTeamMembers(TeamStore.getCurrentId());
-                AsyncClient.getProfiles();
+                AsyncClient.getTeamMember(this.props.teamMember.team_id, this.props.user.id);
+                AsyncClient.getUser(this.props.user.id);
 
                 const teamUrl = TeamStore.getCurrentTeamUrl();
                 if (teamUrl) {
@@ -148,6 +160,7 @@ export default class TeamMembersDropdown extends React.Component {
             }
         );
     }
+
     render() {
         let serverError = null;
         if (this.state.serverError) {
@@ -186,10 +199,10 @@ export default class TeamMembersDropdown extends React.Component {
         }
 
         const me = UserStore.getCurrentUser();
-        let showMakeMember = teamMember.roles === 'admin' && user.roles !== 'system_admin';
-        let showMakeAdmin = teamMember.roles === '' && user.roles !== 'system_admin';
+        let showMakeMember = Utils.isAdmin(teamMember.roles) && !Utils.isSystemAdmin(user.roles);
+        let showMakeAdmin = !Utils.isAdmin(teamMember.roles) && !Utils.isSystemAdmin(user.roles);
         let showMakeActive = false;
-        let showMakeNotActive = user.roles !== 'system_admin';
+        let showMakeNotActive = Utils.isSystemAdmin(user.roles);
 
         if (user.delete_at > 0) {
             currentRoles = (
@@ -258,7 +271,7 @@ export default class TeamMembersDropdown extends React.Component {
             );
         }
 
-        let makeActive = null;
+        const makeActive = null;
         if (showMakeActive) {
             // makeActive = (
             //     <li role='presentation'>
@@ -276,7 +289,7 @@ export default class TeamMembersDropdown extends React.Component {
             // );
         }
 
-        let makeNotActive = null;
+        const makeNotActive = null;
         if (showMakeNotActive) {
             // makeNotActive = (
             //     <li role='presentation'>
@@ -352,7 +365,7 @@ export default class TeamMembersDropdown extends React.Component {
                     aria-expanded='true'
                 >
                     <span>{currentRoles} </span>
-                    <span className='fa fa-chevron-down'></span>
+                    <span className='fa fa-chevron-down'/>
                 </a>
                 <ul
                     className='dropdown-menu member-menu'

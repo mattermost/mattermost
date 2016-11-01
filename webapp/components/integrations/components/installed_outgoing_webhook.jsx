@@ -4,7 +4,6 @@
 import React from 'react';
 
 import ChannelStore from 'stores/channel_store.jsx';
-import * as Utils from 'utils/utils.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
@@ -14,7 +13,8 @@ export default class InstalledOutgoingWebhook extends React.Component {
             outgoingWebhook: React.PropTypes.object.isRequired,
             onRegenToken: React.PropTypes.func.isRequired,
             onDelete: React.PropTypes.func.isRequired,
-            filter: React.PropTypes.string
+            filter: React.PropTypes.string,
+            creator: React.PropTypes.object.isRequired
         };
     }
 
@@ -115,7 +115,7 @@ export default class InstalledOutgoingWebhook extends React.Component {
             );
         }
 
-        let urls = (
+        const urls = (
             <div className='item-details__row'>
                 <span className='item-details__url'>
                     <FormattedMessage
@@ -195,7 +195,7 @@ export default class InstalledOutgoingWebhook extends React.Component {
                                 id='installed_integrations.creation'
                                 defaultMessage='Created by {creator} on {createAt, date, full}'
                                 values={{
-                                    creator: Utils.displayUsername(outgoingWebhook.creator_id),
+                                    creator: this.props.creator.username,
                                     createAt: outgoingWebhook.create_at
                                 }}
                             />

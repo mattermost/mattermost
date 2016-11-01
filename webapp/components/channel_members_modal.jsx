@@ -1,122 +1,88 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import FilteredUserList from './filtered_user_list.jsx';
+import SearchableUserList from './searchable_user_list.jsx';
 import LoadingScreen from './loading_screen.jsx';
 import ChannelInviteModal from './channel_invite_modal.jsx';
 
 import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
+
+import {searchUsers} from 'actions/user_actions.jsx';
+import {removeUserFromChannel} from 'actions/channel_actions.jsx';
 
 import * as AsyncClient from 'utils/async_client.jsx';
-import Client from 'client/web_client.jsx';
+import * as UserAgent from 'utils/user_agent.jsx';
 import * as Utils from 'utils/utils.jsx';
 
+import React from 'react';
+import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import {Modal} from 'react-bootstrap';
-
-import React from 'react';
+const USERS_PER_PAGE = 50;
 
 export default class ChannelMembersModal extends React.Component {
     constructor(props) {
         super(props);
 
-        this.getStateFromStores = this.getStateFromStores.bind(this);
         this.onChange = this.onChange.bind(this);
         this.handleRemove = this.handleRemove.bind(this);
-
         this.createRemoveMemberButton = this.createRemoveMemberButton.bind(this);
+        this.search = this.search.bind(this);
+        this.nextPage = this.nextPage.bind(this);
 
-        // the rest of the state gets populated when the modal is shown
+        this.term = '';
+
+        const stats = ChannelStore.getStats(props.channel.id);
+
         this.state = {
-            showInviteModal: false
+            users: [],
+            total: stats.member_count,
+            showInviteModal: false,
+            search: false
         };
     }
-    shouldComponentUpdate(nextProps, nextState) {
-        if (!Utils.areObjectsEqual(this.props, nextProps)) {
-            return true;
-        }
 
-        if (!Utils.areObjectsEqual(this.state, nextState)) {
-            return true;
-        }
-
-        return false;
-    }
-    getStateFromStores() {
-        const extraInfo = ChannelStore.getCurrentExtraInfo();
-        const profiles = UserStore.getActiveOnlyProfiles();
-
-        if (extraInfo.member_count !== extraInfo.members.length) {
-            AsyncClient.getChannelExtraInfo(this.props.channel.id, -1);
-
-            return {
-                loading: true
-            };
-        }
-
-        const memberList = extraInfo.members.map((member) => {
-            return profiles[member.id];
-        });
-
-        function compareByUsername(a, b) {
-            if (a.username < b.username) {
-                return -1;
-            } else if (a.username > b.username) {
-                return 1;
-            }
-
-            return 0;
-        }
-
-        memberList.sort(compareByUsername);
-
-        return {
-            memberList,
-            loading: false
-        };
-    }
     componentWillReceiveProps(nextProps) {
         if (!this.props.show && nextProps.show) {
-            ChannelStore.addExtraInfoChangeListener(this.onChange);
-            ChannelStore.addChangeListener(this.onChange);
+            ChannelStore.addStatsChangeListener(this.onChange);
+            UserStore.addInChannelChangeListener(this.onChange);
 
             this.onChange();
+            AsyncClient.getProfilesInChannel(this.props.channel.id, 0);
         } else if (this.props.show && !nextProps.show) {
-            ChannelStore.removeExtraInfoChangeListener(this.onChange);
-            ChannelStore.removeChangeListener(this.onChange);
+            ChannelStore.removeStatsChangeListener(this.onChange);
+            UserStore.removeInChannelChangeListener(this.onChange);
         }
     }
+
     onChange() {
-        const newState = this.getStateFromStores();
-        if (!Utils.areObjectsEqual(this.state, newState)) {
-            this.setState(newState);
+        if (this.state.search) {
+            this.search(this.term);
+            return;
         }
+
+        const stats = ChannelStore.getStats(this.props.channel.id);
+        this.setState({
+            users: UserStore.getProfileListInChannel(this.props.channel.id),
+            total: stats.member_count
+        });
     }
+
     handleRemove(user) {
         const userId = user.id;
 
-        Client.removeChannelMember(
-            ChannelStore.getCurrentId(),
+        removeUserFromChannel(
+            this.props.channel.id,
             userId,
-            () => {
-                const memberList = this.state.memberList.slice();
-                for (let i = 0; i < memberList.length; i++) {
-                    if (userId === memberList[i].id) {
-                        memberList.splice(i, 1);
-                        break;
-                    }
-                }
-
-                this.setState({memberList});
-                AsyncClient.getChannelExtraInfo();
-            },
+            null,
             (err) => {
                 this.setState({inviteError: err.message});
             }
          );
     }
+
     createRemoveMemberButton({user}) {
         if (user.id === UserStore.getCurrentId()) {
             return null;
@@ -135,6 +101,29 @@ export default class ChannelMembersModal extends React.Component {
             </button>
         );
     }
+
+    nextPage(page) {
+        AsyncClient.getProfilesInChannel(this.props.channel.id, (page + 1) * USERS_PER_PAGE, USERS_PER_PAGE);
+    }
+
+    search(term) {
+        this.term = term;
+
+        if (term === '') {
+            this.setState({users: UserStore.getProfileListInChannel(this.props.channel.id), search: false});
+            return;
+        }
+
+        searchUsers(
+            term,
+            TeamStore.getCurrentId(),
+            {in_channel: this.props.channel.id},
+            (users) => {
+                this.setState({search: true, users});
+            }
+        );
+    }
+
     render() {
         let content;
         if (this.state.loading) {
@@ -151,10 +140,15 @@ export default class ChannelMembersModal extends React.Component {
             }
 
             content = (
-                <FilteredUserList
+                <SearchableUserList
                     style={{maxHeight}}
-                    users={this.state.memberList}
+                    users={this.state.users}
+                    usersPerPage={USERS_PER_PAGE}
+                    total={this.state.total}
+                    nextPage={this.nextPage}
+                    search={this.search}
                     actions={removeButton}
+                    focusOnMount={!UserAgent.isMobile()}
                 />
             );
         }

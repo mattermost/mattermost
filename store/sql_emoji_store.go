@@ -27,10 +27,13 @@ func NewSqlEmojiStore(sqlStore *SqlStore) EmojiStore {
 }
 
 func (es SqlEmojiStore) CreateIndexesIfNotExists() {
+	es.CreateIndexIfNotExists("idx_emoji_update_at", "Emoji", "UpdateAt")
+	es.CreateIndexIfNotExists("idx_emoji_create_at", "Emoji", "CreateAt")
+	es.CreateIndexIfNotExists("idx_emoji_delete_at", "Emoji", "DeleteAt")
 }
 
 func (es SqlEmojiStore) Save(emoji *model.Emoji) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -56,7 +59,7 @@ func (es SqlEmojiStore) Save(emoji *model.Emoji) StoreChannel {
 }
 
 func (es SqlEmojiStore) Get(id string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -84,7 +87,7 @@ func (es SqlEmojiStore) Get(id string) StoreChannel {
 }
 
 func (es SqlEmojiStore) GetByName(name string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -112,7 +115,7 @@ func (es SqlEmojiStore) GetByName(name string) StoreChannel {
 }
 
 func (es SqlEmojiStore) GetAll() StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -139,7 +142,7 @@ func (es SqlEmojiStore) GetAll() StoreChannel {
 }
 
 func (es SqlEmojiStore) Delete(id string, time int64) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}

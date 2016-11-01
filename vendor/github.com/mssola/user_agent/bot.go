@@ -1,4 +1,4 @@
-// Copyright (C) 2014-2016 Miquel Sabaté Solà <mikisabate@gmail.com>
+// Copyright (C) 2014 Miquel Sabaté Solà <mikisabate@gmail.com>
 // This file is licensed under the MIT license.
 // See the LICENSE file.
 
@@ -8,8 +8,6 @@ import (
 	"regexp"
 	"strings"
 )
-
-var botFromSiteRegexp = regexp.MustCompile("http://.+\\.\\w+")
 
 // Get the name of the bot from the website that may be in the given comment. If
 // there is no website in the comment, then an empty string is returned.
@@ -25,7 +23,8 @@ func getFromSite(comment []string) string {
 	}
 
 	// Pick the site.
-	results := botFromSiteRegexp.FindStringSubmatch(comment[idx])
+	re := regexp.MustCompile("http://.+\\.\\w+")
+	results := re.FindStringSubmatch(comment[idx])
 	if len(results) == 1 {
 		// If it's a simple comment, just return the name of the site.
 		if idx == 0 {
@@ -75,8 +74,6 @@ func (p *UserAgent) fixOther(sections []section) {
 	}
 }
 
-var botRegex = regexp.MustCompile("(?i)(bot|crawler|sp(i|y)der|search|worm|fetch|nutch)")
-
 // Check if we're dealing with a bot or with some weird browser. If that is the
 // case, the receiver will be modified accordingly.
 func (p *UserAgent) checkBot(sections []section) {
@@ -85,8 +82,9 @@ func (p *UserAgent) checkBot(sections []section) {
 	if len(sections) == 1 && sections[0].name != "Mozilla" {
 		p.mozilla = ""
 
-		// Check whether the name has some suspicious "bot" or "crawler" in his name.
-		if botRegex.Match([]byte(sections[0].name)) {
+		// Check whether the name has some suspicious "bot" in his name.
+		reg, _ := regexp.Compile("(?i)bot")
+		if reg.Match([]byte(sections[0].name)) {
 			p.setSimple(sections[0].name, "", true)
 			return
 		}

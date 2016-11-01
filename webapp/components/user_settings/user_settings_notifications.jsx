@@ -260,9 +260,8 @@ export default class NotificationsTab extends React.Component {
     }
 
     createPushNotificationSection() {
-        let handleUpdatePushSection;
         if (this.props.activeSection === 'push') {
-            let inputs = [];
+            const inputs = [];
             let extraInfo = null;
             let submit = null;
 
@@ -290,6 +289,13 @@ export default class NotificationsTab extends React.Component {
                     pushStatusSettings = (
                         <div>
                             <hr/>
+                            <label>
+                                <FormattedMessage
+                                    id='user.settings.notifications.push_notification.status'
+                                    defaultMessage='Trigger push notifications when'
+                                />
+                            </label>
+                            <br/>
                             <div className='radio'>
                                 <label>
                                     <input
@@ -341,7 +347,7 @@ export default class NotificationsTab extends React.Component {
                         <span>
                             <FormattedMessage
                                 id='user.settings.push_notification.status_info'
-                                defaultMessage='Notification alerts are pushed to your mobile device depending on your online status.'
+                                defaultMessage='Notification alerts are only pushed to your mobile device when your online status matches the selection above.'
                             />
                         </span>
                     );
@@ -349,6 +355,13 @@ export default class NotificationsTab extends React.Component {
 
                 inputs.push(
                     <div key='userNotificationLevelOption'>
+                        <label>
+                            <FormattedMessage
+                                id='user.settings.push_notification.send'
+                                defaultMessage='Send mobile push notifications'
+                            />
+                        </label>
+                        <br/>
                         <div className='radio'>
                             <label>
                                 <input
@@ -421,7 +434,7 @@ export default class NotificationsTab extends React.Component {
 
             return (
                 <SettingItemMax
-                    title={Utils.localizeMessage('user.settings.notifications.push', 'Send mobile push notifications')}
+                    title={Utils.localizeMessage('user.settings.notifications.push', 'Mobile push notifications')}
                     extraInfo={extraInfo}
                     inputs={inputs}
                     submit={submit}
@@ -494,13 +507,13 @@ export default class NotificationsTab extends React.Component {
             }
         }
 
-        handleUpdatePushSection = function updateDesktopSection() {
+        const handleUpdatePushSection = () => {
             this.props.updateSection('push');
-        }.bind(this);
+        };
 
         return (
             <SettingItemMin
-                title={Utils.localizeMessage('user.settings.notifications.push', 'Send mobile push notifications')}
+                title={Utils.localizeMessage('user.settings.notifications.push', 'Mobile push notifications')}
                 describe={describe}
                 updateSection={handleUpdatePushSection}
             />
@@ -514,17 +527,12 @@ export default class NotificationsTab extends React.Component {
         var keysSection;
         var handleUpdateKeysSection;
         if (this.props.activeSection === 'keys') {
-            let inputs = [];
-
-            let handleUpdateFirstNameKey;
-            let handleUpdateUsernameKey;
-            let handleUpdateMentionKey;
-            let handleUpdateChannelKey;
+            const inputs = [];
 
             if (user.first_name) {
-                handleUpdateFirstNameKey = function handleFirstNameKeyChange(e) {
+                const handleUpdateFirstNameKey = (e) => {
                     this.updateFirstNameKey(e.target.checked);
-                }.bind(this);
+                };
                 inputs.push(
                     <div key='userNotificationFirstNameOption'>
                         <div className='checkbox'>
@@ -547,9 +555,9 @@ export default class NotificationsTab extends React.Component {
                 );
             }
 
-            handleUpdateUsernameKey = function handleUsernameKeyChange(e) {
+            const handleUpdateUsernameKey = (e) => {
                 this.updateUsernameKey(e.target.checked);
-            }.bind(this);
+            };
             inputs.push(
                 <div key='userNotificationUsernameOption'>
                     <div className='checkbox'>
@@ -571,9 +579,9 @@ export default class NotificationsTab extends React.Component {
                 </div>
             );
 
-            handleUpdateMentionKey = function handleMentionKeyChange(e) {
+            const handleUpdateMentionKey = (e) => {
                 this.updateMentionKey(e.target.checked);
-            }.bind(this);
+            };
             inputs.push(
                 <div key='userNotificationMentionOption'>
                     <div className='checkbox'>
@@ -595,9 +603,9 @@ export default class NotificationsTab extends React.Component {
                 </div>
             );
 
-            handleUpdateChannelKey = function handleChannelKeyChange(e) {
+            const handleUpdateChannelKey = (e) => {
                 this.updateChannelKey(e.target.checked);
-            }.bind(this);
+            };
             inputs.push(
                 <div key='userNotificationChannelOption'>
                     <div className='checkbox'>
@@ -714,7 +722,7 @@ export default class NotificationsTab extends React.Component {
                 commentsActive[0] = true;
             }
 
-            let inputs = [];
+            const inputs = [];
 
             inputs.push(
                 <div key='userNotificationLevelOption'>
@@ -769,14 +777,14 @@ export default class NotificationsTab extends React.Component {
                 <span>
                     <FormattedMessage
                         id='user.settings.notifications.commentsInfo'
-                        defaultMessage='Mode of triggering notifications on posts in comment threads you participated in.'
+                        defaultMessage="In addition to notifications for when you're mentioned, select if you would like to receive notifications on reply threads."
                     />
                 </span>
             );
 
             commentsSection = (
                 <SettingItemMax
-                    title={Utils.localizeMessage('user.settings.notifications.comments', 'Comment threads notifications')}
+                    title={Utils.localizeMessage('user.settings.notifications.comments', 'Reply notifications')}
                     extraInfo={extraInfo}
                     inputs={inputs}
                     submit={this.handleSubmit}
@@ -790,21 +798,21 @@ export default class NotificationsTab extends React.Component {
                 describe = (
                     <FormattedMessage
                         id='user.settings.notifications.commentsNever'
-                        defaultMessage='No mentions for comments'
+                        defaultMessage="Do not trigger notifications on messages in reply threads unless I'm mentioned"
                     />
                 );
             } else if (this.state.notifyCommentsLevel === 'root') {
                 describe = (
                     <FormattedMessage
                         id='user.settings.notifications.commentsRoot'
-                        defaultMessage='Mention any comments on your post'
+                        defaultMessage='Trigger notifications on messages in threads that I start'
                     />
                 );
             } else {
                 describe = (
                     <FormattedMessage
                         id='user.settings.notifications.commentsAny'
-                        defaultMessage='Mention any comments in a thread you participated in (This will include both mentions to your root post and any comments after you commented on a post)'
+                        defaultMessage='Trigger notifications on messages in reply threads that I start or participate in'
                     />
                 );
             }
@@ -815,7 +823,7 @@ export default class NotificationsTab extends React.Component {
 
             commentsSection = (
                 <SettingItemMin
-                    title={Utils.localizeMessage('user.settings.notifications.comments', 'Comment threads notifications')}
+                    title={Utils.localizeMessage('user.settings.notifications.comments', 'Reply notifications')}
                     describe={describe}
                     updateSection={handleUpdateCommentsSection}
                 />

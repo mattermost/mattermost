@@ -43,7 +43,25 @@ type Features struct {
 	MHPNS                *bool `json:"mhpns"`
 	SAML                 *bool `json:"saml"`
 	PasswordRequirements *bool `json:"password_requirements"`
-	FutureFeatures       *bool `json:"future_features"`
+	// after we enabled more features for webrtc we'll need to control them with this
+	Webrtc         *bool `json:"webrtc"`
+	FutureFeatures *bool `json:"future_features"`
+}
+
+func (f *Features) ToMap() map[string]interface{} {
+	return map[string]interface{}{
+		"ldap":         *f.LDAP,
+		"mfa":          *f.MFA,
+		"google":       *f.GoogleOAuth,
+		"office365":    *f.Office365OAuth,
+		"compliance":   *f.Compliance,
+		"cluster":      *f.Cluster,
+		"custom_brand": *f.CustomBrand,
+		"mhpns":        *f.MHPNS,
+		"saml":         *f.SAML,
+		"password":     *f.PasswordRequirements,
+		"future":       *f.FutureFeatures,
+	}
 }
 
 func (f *Features) SetDefaults() {
@@ -105,6 +123,11 @@ func (f *Features) SetDefaults() {
 	if f.PasswordRequirements == nil {
 		f.PasswordRequirements = new(bool)
 		*f.PasswordRequirements = *f.FutureFeatures
+	}
+
+	if f.Webrtc == nil {
+		f.Webrtc = new(bool)
+		*f.Webrtc = *f.FutureFeatures
 	}
 }
 

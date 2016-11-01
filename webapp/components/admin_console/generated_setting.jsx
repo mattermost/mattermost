@@ -37,12 +37,7 @@ export default class GeneratedSetting extends React.Component {
     constructor(props) {
         super(props);
 
-        this.handleChange = this.handleChange.bind(this);
         this.regenerate = this.regenerate.bind(this);
-    }
-
-    handleChange(e) {
-        this.props.onChange(this.props.id, e.target.value === 'true');
     }
 
     regenerate(e) {
@@ -76,8 +71,7 @@ export default class GeneratedSetting extends React.Component {
                         id={this.props.id}
                         placeholder={this.props.placeholder}
                         value={this.props.value}
-                        onChange={this.handleChange}
-                        disabled={this.props.disabled}
+                        disabled={true}
                     />
                     {disabledText}
                     <div className='help-text'>

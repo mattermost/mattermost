@@ -82,12 +82,12 @@
         }
 
         .post-create-footer {
-            padding: 5px 0 10px;
+            padding: 5px 0 30px;
             width: 100%;
         }
 
         .post-right-comments-upload-in-progress {
-            color: #a8adb7;
+            @include opacity(.7);
             margin-right: 10px;
             padding: 6px 0;
         }

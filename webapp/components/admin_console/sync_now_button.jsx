@@ -53,7 +53,7 @@ export default class SyncNowButton extends React.Component {
         if (this.state.fail) {
             failMessage = (
                 <div className='alert alert-warning'>
-                    <i className='fa fa-warning'></i>
+                    <i className='fa fa-warning'/>
                     <FormattedMessage
                         id='admin.ldap.syncFailure'
                         defaultMessage='Sync Failure: {error}'
@@ -65,10 +65,10 @@ export default class SyncNowButton extends React.Component {
             );
         }
 
-        let helpText = (
+        const helpText = (
             <FormattedHTMLMessage
                 id='admin.ldap.syncNowHelpText'
-                defaultMessage='Initiates an LDAP synchronization immediately.'
+                defaultMessage='Initiates an AD/LDAP synchronization immediately.'
             />
         );
 
@@ -84,7 +84,7 @@ export default class SyncNowButton extends React.Component {
             contents = (
                 <FormattedMessage
                     id='admin.ldap.sync_button'
-                    defaultMessage='LDAP Synchronize Now'
+                    defaultMessage='AD/LDAP Synchronize Now'
                 />
             );
         }

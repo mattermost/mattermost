@@ -21,6 +21,7 @@ export default class AdminSettings extends React.Component {
 
         this.handleChange = this.handleChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.doSubmit = this.doSubmit.bind(this);
 
         this.state = Object.assign(this.getStateFromConfig(props.config), {
             saveNeeded: false,
@@ -39,6 +40,10 @@ export default class AdminSettings extends React.Component {
     handleSubmit(e) {
         e.preventDefault();
 
+        this.doSubmit();
+    }
+
+    doSubmit(callback) {
         this.setState({
             saving: true,
             serverError: null
@@ -59,12 +64,20 @@ export default class AdminSettings extends React.Component {
                     saveNeeded: false,
                     saving: false
                 });
+
+                if (callback) {
+                    callback();
+                }
             },
             (err) => {
                 this.setState({
                     saving: false,
                     serverError: err.message
                 });
+
+                if (callback) {
+                    callback();
+                }
             }
         );
     }

@@ -225,6 +225,10 @@ func TestRoles(t *testing.T) {
 		t.Fatal()
 	}
 
+	if !IsValidUserRoles("system_user system_admin") {
+		t.Fatal()
+	}
+
 	if IsInRole("system_admin junk", "admin") {
 		t.Fatal()
 	}

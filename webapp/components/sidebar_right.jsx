@@ -5,11 +5,11 @@ import $ from 'jquery';
 
 import SearchResults from './search_results.jsx';
 import RhsThread from './rhs_thread.jsx';
-
 import SearchStore from 'stores/search_store.jsx';
 import PostStore from 'stores/post_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
+import WebrtcStore from 'stores/webrtc_store.jsx';
 
 import {getFlaggedPosts} from 'actions/post_actions.jsx';
 
@@ -37,7 +37,8 @@ export default class SidebarRight extends React.Component {
         this.state = {
             searchVisible: SearchStore.getSearchResults() !== null,
             isMentionSearch: SearchStore.getIsMentionSearch(),
-            postRightVisible: !!PostStore.getSelectedPost(),
+            isFlaggedPosts: SearchStore.getIsFlaggedPosts(),
+            postRightVisible: Boolean(PostStore.getSelectedPost()),
             expanded: false,
             fromSearch: false,
             currentUser: UserStore.getCurrentUser(),
@@ -88,7 +89,7 @@ export default class SidebarRight extends React.Component {
             $('.app__body .inner-wrap').removeClass('move--left').removeClass('move--right');
             $('.app__body .sidebar--right').removeClass('move--left');
             return (
-                <div></div>
+                <div/>
             );
         }
 
@@ -101,6 +102,8 @@ export default class SidebarRight extends React.Component {
     }
 
     componentDidUpdate() {
+        const isOpen = this.state.searchVisible || this.state.postRightVisible;
+        WebrtcStore.emitRhsChanged(isOpen);
         this.doStrangeThings();
     }
 
@@ -116,14 +119,16 @@ export default class SidebarRight extends React.Component {
 
     onSelectedChange(fromSearch, fromFlaggedPosts) {
         this.setState({
-            postRightVisible: !!PostStore.getSelectedPost(),
+            postRightVisible: Boolean(PostStore.getSelectedPost()),
             fromSearch,
             fromFlaggedPosts
         });
     }
 
     onShrink() {
-        this.setState({expanded: false});
+        this.setState({
+            expanded: false
+        });
     }
 
     onSearchChange() {
@@ -175,6 +180,7 @@ export default class SidebarRight extends React.Component {
                 <RhsThread
                     fromFlaggedPosts={this.state.fromFlaggedPosts}
                     fromSearch={this.state.fromSearch}
+                    isWebrtc={WebrtcStore.isBusy()}
                     isMentionSearch={this.state.isMentionSearch}
                     currentUser={this.state.currentUser}
                     useMilitaryTime={this.state.useMilitaryTime}

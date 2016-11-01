@@ -23,7 +23,7 @@ class SearchChannelSuggestion extends Suggestion {
                 onClick={this.handleClick}
                 className={className}
             >
-                <i className='fa fa fa-plus-square'></i>{item.name}
+                <i className='fa fa fa-plus-square'/>{item.name}
             </div>
         );
     }
@@ -31,7 +31,7 @@ class SearchChannelSuggestion extends Suggestion {
 
 export default class SearchChannelProvider {
     handlePretextChanged(suggestionId, pretext) {
-        const captured = (/\b(?:in|channel):\s*(\S*)$/i).exec(pretext);
+        const captured = (/\b(?:in|channel):\s*(\S*)$/i).exec(pretext.toLowerCase());
         if (captured) {
             const channelPrefix = captured[1];
 
@@ -58,6 +58,7 @@ export default class SearchChannelProvider {
             privateChannels.sort((a, b) => a.name.localeCompare(b.name));
             const privateChannelNames = privateChannels.map((channel) => channel.name);
 
+            SuggestionStore.clearSuggestions(suggestionId);
             SuggestionStore.addSuggestions(suggestionId, publicChannelNames, publicChannels, SearchChannelSuggestion, channelPrefix);
             SuggestionStore.addSuggestions(suggestionId, privateChannelNames, privateChannels, SearchChannelSuggestion, channelPrefix);
         }

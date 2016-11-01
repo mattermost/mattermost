@@ -9,9 +9,10 @@
 
     .member-popover__trigger {
         cursor: pointer;
+        min-width: 60px;
         padding-right: 10px;
         text-align: right;
-        width: 60px;
+        white-space: nowrap;
 
         .fa {
             font-size: 16px;
@@ -217,6 +218,16 @@
 .sidebar--left,
 .sidebar--menu,
 .admin-sidebar {
+
+    .divider {
+        border-top: 1px solid transparent;
+        margin: 0.5em 0;
+
+        & + .divider {
+            display: none;
+        }
+    }
+
     .team__header {
         @include legacy-pie-clearfix;
         padding: 9px 10px;
@@ -238,12 +249,14 @@
                 @include alpha-property(background, $black, .1);
             }
 
-            a {
-                text-decoration: none;
-            }
-
             .user__name {
                 color: $white;
+            }
+
+            .sidebar-header-dropdown {
+                .sidebar-header-dropdown__toggle {
+                    @include opacity(1);
+                }
             }
 
             .navbar-right {
@@ -253,16 +266,28 @@
             }
         }
 
-        .navbar-right {
+        a {
+            text-decoration: none;
+        }
+
+        .sidebar-header-dropdown,
+        .admin-navbar-dropdown {
             font-size: .85em;
             position: absolute;
+            margin-right: -15px;
             right: 22px;
             top: 10px;
             z-index: 5;
 
-            .dropdown-toggle {
+            .sidebar-header-dropdown__toggle,
+            .admin-navbar-dropdown__toggle {
                 @include opacity(.8);
                 @include single-transition(all, .1s, linear);
+                background: none;
+                color: $white;
+                float: right;
+                font-size: 1em;
+                line-height: 1.8;
                 padding: 10px;
             }
 
@@ -278,7 +303,8 @@
                 }
             }
 
-            .dropdown__icon {
+            .sidebar-header-dropdown__icon,
+            .admin-navbar-dropdown__icon {
                 fill: $white;
             }
         }
@@ -324,22 +350,6 @@
             font-weight: 400;
             line-height: 18px;
         }
-
-        > .nav {
-            > li {
-                > a {
-                    background: none;
-                    float: right;
-                    padding: 2px;
-                }
-
-                .dropdown-toggle {
-                    color: $white;
-                    font-size: 1em;
-                    line-height: 1.8;
-                }
-            }
-        }
     }
 
     .search__clear {
@@ -369,6 +379,11 @@
     }
 }
 
+.channel-header__favorites {
+    float: left;
+    margin: 1px 10px 0 0;
+}
+
 .app__body {
 
     .channel-header__links {
@@ -388,7 +403,8 @@
             }
         }
 
-        .channel__wrap.move--left & {
+        .channel__wrap.move--left &,
+        .channel__wrap.webrtc--show & {
             position: absolute;
             right: -400px;
             top: 14px;

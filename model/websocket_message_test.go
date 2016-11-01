@@ -9,7 +9,7 @@ import (
 )
 
 func TestWebSocketEvent(t *testing.T) {
-	m := NewWebSocketEvent(NewId(), NewId(), NewId(), "some_event")
+	m := NewWebSocketEvent("some_event", NewId(), NewId(), NewId(), nil)
 	m.Add("RootId", NewId())
 	json := m.ToJson()
 	result := WebSocketEventFromJson(strings.NewReader(json))
@@ -23,7 +23,7 @@ func TestWebSocketEvent(t *testing.T) {
 		t.Fatal("should be valid")
 	}
 
-	if m.TeamId != result.TeamId {
+	if m.Broadcast.TeamId != result.Broadcast.TeamId {
 		t.Fatal("Ids do not match")
 	}
 

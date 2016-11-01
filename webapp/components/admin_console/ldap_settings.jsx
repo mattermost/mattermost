@@ -3,11 +3,12 @@
 
 import AdminSettings from './admin_settings.jsx';
 import BooleanSetting from './boolean_setting.jsx';
-import ConnectionSecurityDropdownSetting from './connection_security_dropdown_setting.jsx';
+import {ConnectionSecurityDropdownSettingLdap} from './connection_security_dropdown_setting.jsx';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
 
 import SyncNowButton from './sync_now_button.jsx';
+import LdapTestButton from './ldap_test_button.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 
@@ -76,7 +77,7 @@ export default class LdapSettings extends AdminSettings {
             <h3>
                 <FormattedMessage
                     id='admin.authentication.ldap'
-                    defaultMessage='LDAP'
+                    defaultMessage='AD/LDAP'
                 />
             </h3>
         );
@@ -95,13 +96,13 @@ export default class LdapSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.ldap.enableTitle'
-                            defaultMessage='Enable sign-in with LDAP:'
+                            defaultMessage='Enable sign-in with AD/LDAP:'
                         />
                     }
                     helpText={
                         <FormattedMessage
                             id='admin.ldap.enableDesc'
-                            defaultMessage='When true, Mattermost allows login using LDAP'
+                            defaultMessage='When true, Mattermost allows login using AD/LDAP'
                         />
                     }
                     value={this.state.enable}
@@ -112,14 +113,14 @@ export default class LdapSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.ldap.serverTitle'
-                            defaultMessage='LDAP Server:'
+                            defaultMessage='AD/LDAP Server:'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.ldap.serverEx', 'Ex "10.0.0.23"')}
                     helpText={
                         <FormattedMessage
                             id='admin.ldap.serverDesc'
-                            defaultMessage='The domain or IP address of LDAP server.'
+                            defaultMessage='The domain or IP address of AD/LDAP server.'
                         />
                     }
                     value={this.state.ldapServer}
@@ -131,24 +132,41 @@ export default class LdapSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.ldap.portTitle'
-                            defaultMessage='LDAP Port:'
+                            defaultMessage='AD/LDAP Port:'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.ldap.portEx', 'Ex "389"')}
                     helpText={
                         <FormattedMessage
                             id='admin.ldap.portDesc'
-                            defaultMessage='The port Mattermost will use to connect to the LDAP server. Default is 389.'
+                            defaultMessage='The port Mattermost will use to connect to the AD/LDAP server. Default is 389.'
                         />
                     }
                     value={this.state.ldapPort}
                     onChange={this.handleChange}
                     disabled={!this.state.enable}
                 />
-                <ConnectionSecurityDropdownSetting
+                <ConnectionSecurityDropdownSettingLdap
                     value={this.state.connectionSecurity}
                     onChange={this.handleChange}
                     disabled={!this.state.enable}
+                />
+                <BooleanSetting
+                    id='skipCertificateVerification'
+                    label={
+                        <FormattedMessage
+                            id='admin.ldap.skipCertificateVerification'
+                            defaultMessage='Skip Certificate Verification:'
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.ldap.skipCertificateVerificationDesc'
+                            defaultMessage='Skips the certificate verification step for TLS or STARTTLS connections. Not recommended for production environments where TLS is required. For testing only.'
+                        />
+                    }
+                    value={this.state.skipCertificateVerification}
+                    onChange={this.handleChange}
                 />
                 <TextSetting
                     id='baseDN'
@@ -162,7 +180,7 @@ export default class LdapSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.ldap.baseDesc'
-                            defaultMessage='The Base DN is the Distinguished Name of the location where Mattermost should start its search for users in the LDAP tree.'
+                            defaultMessage='The Base DN is the Distinguished Name of the location where Mattermost should start its search for users in the AD/LDAP tree.'
                         />
                     }
                     value={this.state.baseDN}
@@ -180,7 +198,7 @@ export default class LdapSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.ldap.bindUserDesc'
-                            defaultMessage='The username used to perform the LDAP search. This should typically be an account created specifically for use with Mattermost. It should have access limited to read the portion of the LDAP tree specified in the BaseDN field.'
+                            defaultMessage='The username used to perform the AD/LDAP search. This should typically be an account created specifically for use with Mattermost. It should have access limited to read the portion of the AD/LDAP tree specified in the BaseDN field.'
                         />
                     }
                     value={this.state.bindUsername}
@@ -217,7 +235,7 @@ export default class LdapSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.ldap.userFilterDisc'
-                            defaultMessage='(Optional) Enter an LDAP Filter to use when searching for user objects. Only the users selected by the query will be able to access Mattermost. For Active Directory, the query to filter out disabled users is (&(objectCategory=Person)(!(UserAccountControl:1.2.840.113556.1.4.803:=2))).'
+                            defaultMessage='(Optional) Enter an AD/LDAP Filter to use when searching for user objects. Only the users selected by the query will be able to access Mattermost. For Active Directory, the query to filter out disabled users is (&(objectCategory=Person)(!(UserAccountControl:1.2.840.113556.1.4.803:=2))).'
                         />
                     }
                     value={this.state.userFilter}
@@ -236,7 +254,7 @@ export default class LdapSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.ldap.firstnameAttrDesc'
-                            defaultMessage='The attribute in the LDAP server that will be used to populate the first name of users in Mattermost.'
+                            defaultMessage='(Optional) The attribute in the AD/LDAP server that will be used to populate the first name of users in Mattermost.  When set, users will not be able to edit their first name, since it is synchronized with the LDAP server. When left blank, users can set their own first name in Account Settings.'
                         />
                     }
                     value={this.state.firstNameAttribute}
@@ -255,7 +273,7 @@ export default class LdapSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.ldap.lastnameAttrDesc'
-                            defaultMessage='The attribute in the LDAP server that will be used to populate the last name of users in Mattermost.'
+                            defaultMessage='(Optional) The attribute in the AD/LDAP server that will be used to populate the last name of users in Mattermost. When set, users will not be able to edit their last name, since it is synchronized with the LDAP server. When left blank, users can set their own last name in Account Settings.'
                         />
                     }
                     value={this.state.lastNameAttribute}
@@ -274,7 +292,7 @@ export default class LdapSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.ldap.nicknameAttrDesc'
-                            defaultMessage='(Optional) The attribute in the LDAP server that will be used to populate the nickname of users in Mattermost.'
+                            defaultMessage='(Optional) The attribute in the AD/LDAP server that will be used to populate the nickname of users in Mattermost. When set, users will not be able to edit their nickname, since it is synchronized with the LDAP server. When left blank, users can set their own nickname in Account Settings.'
                         />
                     }
                     value={this.state.nicknameAttribute}
@@ -293,7 +311,7 @@ export default class LdapSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.ldap.emailAttrDesc'
-                            defaultMessage='The attribute in the LDAP server that will be used to populate the email addresses of users in Mattermost.'
+                            defaultMessage='The attribute in the AD/LDAP server that will be used to populate the email addresses of users in Mattermost.'
                         />
                     }
                     value={this.state.emailAttribute}
@@ -312,7 +330,7 @@ export default class LdapSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.ldap.uernameAttrDesc'
-                            defaultMessage='The attribute in the LDAP server that will be used to populate the username field in Mattermost. This may be the same as the ID Attribute.'
+                            defaultMessage='The attribute in the AD/LDAP server that will be used to populate the username field in Mattermost. This may be the same as the ID Attribute.'
                         />
                     }
                     value={this.state.usernameAttribute}
@@ -331,10 +349,29 @@ export default class LdapSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.ldap.idAttrDesc'
-                            defaultMessage='The attribute in the LDAP server that will be used as a unique identifier in Mattermost. It should be an LDAP attribute with a value that does not change, such as username or uid. If a user’s ID Attribute changes, it will create a new Mattermost account unassociated with their old one. This is the value used to log in to Mattermost in the "LDAP Username" field on the sign in page. Normally this attribute is the same as the “Username Attribute” field above. If your team typically uses domain\\username to sign in to other services with LDAP, you may choose to put domain\\username in this field to maintain consistency between sites.'
+                            defaultMessage='The attribute in the AD/LDAP server that will be used as a unique identifier in Mattermost. It should be an AD/LDAP attribute with a value that does not change, such as username or uid. If a user’s ID Attribute changes, it will create a new Mattermost account unassociated with their old one. This is the value used to log in to Mattermost in the "AD/LDAP Username" field on the sign in page. Normally this attribute is the same as the “Username Attribute” field above. If your team typically uses domain\\username to sign in to other services with AD/LDAP, you may choose to put domain\\username in this field to maintain consistency between sites.'
                         />
                     }
                     value={this.state.idAttribute}
+                    onChange={this.handleChange}
+                    disabled={!this.state.enable}
+                />
+                <TextSetting
+                    id='loginFieldName'
+                    label={
+                        <FormattedMessage
+                            id='admin.ldap.loginNameTitle'
+                            defaultMessage='Sign-in Field Default Text:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.ldap.loginNameEx', 'Ex "AD/LDAP Username"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.ldap.loginNameDesc'
+                            defaultMessage='The placeholder text that appears in the login field on the login page. Defaults to "AD/LDAP Username".'
+                        />
+                    }
+                    value={this.state.loginFieldName}
                     onChange={this.handleChange}
                     disabled={!this.state.enable}
                 />
@@ -343,35 +380,37 @@ export default class LdapSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.ldap.syncIntervalTitle'
-                            defaultMessage='Synchronization Interval (minutes)'
+                            defaultMessage='Synchronization Interval (minutes):'
                         />
                     }
                     helpText={
                         <FormattedMessage
                             id='admin.ldap.syncIntervalHelpText'
-                            defaultMessage='LDAP Synchronization updates Mattermost user information to reflect updates on the LDAP server. For example, when a user’s name changes on the LDAP server, the change updates in Mattermost when synchronization is performed. Accounts removed from or disabled in the LDAP server have their Mattermost accounts set to “Inactive” and have their account sessions revoked. Mattermost performs synchronization on the interval entered. For example, if 60 is entered, Mattermost synchronizes every 60 minutes.'
+                            defaultMessage='AD/LDAP Synchronization updates Mattermost user information to reflect updates on the AD/LDAP server. For example, when a user’s name changes on the AD/LDAP server, the change updates in Mattermost when synchronization is performed. Accounts removed from or disabled in the AD/LDAP server have their Mattermost accounts set to “Inactive” and have their account sessions revoked. Mattermost performs synchronization on the interval entered. For example, if 60 is entered, Mattermost synchronizes every 60 minutes.'
                         />
                     }
                     value={this.state.syncIntervalMinutes}
                     onChange={this.handleChange}
                     disabled={!this.state.enable}
                 />
-                <BooleanSetting
-                    id='skipCertificateVerification'
+                <TextSetting
+                    id='maxPageSize'
                     label={
                         <FormattedMessage
-                            id='admin.ldap.skipCertificateVerification'
-                            defaultMessage='Skip Certificate Verification'
+                            id='admin.ldap.maxPageSizeTitle'
+                            defaultMessage='Maximum Page Size:'
                         />
                     }
+                    placeholder={Utils.localizeMessage('admin.ldap.maxPageSizeEx', 'Ex "2000"')}
                     helpText={
                         <FormattedMessage
-                            id='admin.ldap.skipCertificateVerificationDesc'
-                            defaultMessage='Skips the certificate verification step for TLS or STARTTLS connections. Not recommended for production environments where TLS is required. For testing only.'
+                            id='admin.ldap.maxPageSizeHelpText'
+                            defaultMessage='The maximum number of users the Mattermost server will request from the AD/LDAP server at one time. 0 is unlimited.'
                         />
                     }
-                    value={this.state.skipCertificateVerification}
+                    value={this.state.maxPageSize}
                     onChange={this.handleChange}
+                    disabled={!this.state.enable}
                 />
                 <TextSetting
                     id='queryTimeout'
@@ -385,53 +424,20 @@ export default class LdapSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.ldap.queryDesc'
-                            defaultMessage='The timeout value for queries to the LDAP server. Increase if you are getting timeout errors caused by a slow LDAP server.'
+                            defaultMessage='The timeout value for queries to the AD/LDAP server. Increase if you are getting timeout errors caused by a slow AD/LDAP server.'
                         />
                     }
                     value={this.state.queryTimeout}
                     onChange={this.handleChange}
                     disabled={!this.state.enable}
                 />
-                <TextSetting
-                    id='maxPageSize'
-                    label={
-                        <FormattedMessage
-                            id='admin.ldap.maxPageSizeTitle'
-                            defaultMessage='Maximum Page Size'
-                        />
-                    }
-                    placeholder={Utils.localizeMessage('admin.ldap.maxPageSizeEx', 'Ex "2000"')}
-                    helpText={
-                        <FormattedMessage
-                            id='admin.ldap.maxPageSizeHelpText'
-                            defaultMessage='The maximum number of users the Mattermost server will request from the LDAP server at one time. 0 is unlimited.'
-                        />
-                    }
-                    value={this.state.maxPageSize}
-                    onChange={this.handleChange}
-                    disabled={!this.state.enable}
-                />
-                <TextSetting
-                    id='loginFieldName'
-                    label={
-                        <FormattedMessage
-                            id='admin.ldap.loginNameTitle'
-                            defaultMessage='Sign-in Field Default Text:'
-                        />
-                    }
-                    placeholder={Utils.localizeMessage('admin.ldap.loginNameEx', 'Ex "LDAP Username"')}
-                    helpText={
-                        <FormattedMessage
-                            id='admin.ldap.loginNameDesc'
-                            defaultMessage='The placeholder text that appears in the login field on the login page. Defaults to "LDAP Username".'
-                        />
-                    }
-                    value={this.state.loginFieldName}
-                    onChange={this.handleChange}
-                    disabled={!this.state.enable}
-                />
                 <SyncNowButton
                     disabled={!this.state.enable}
+                />
+                <LdapTestButton
+                    disabled={!this.state.enable}
+                    submitFunction={this.doSubmit}
+                    saveNeeded={this.state.saveNeeded}
                 />
             </SettingsGroup>
         );

@@ -65,9 +65,9 @@ export default class ChannelNotificationsModal extends React.Component {
         Client.updateChannelNotifyProps(data,
             () => {
                 // YUCK
-                var member = ChannelStore.getMember(channelId);
+                var member = ChannelStore.getMyMember(channelId);
                 member.notify_props.desktop = notifyLevel;
-                ChannelStore.setChannelMember(member);
+                ChannelStore.storeMyChannelMember(member);
                 this.updateSection('');
             },
             (err) => {
@@ -80,7 +80,7 @@ export default class ChannelNotificationsModal extends React.Component {
     }
     createNotifyLevelSection(serverError) {
         // Get glabal user setting for notifications
-        const globalNotifyLevel = this.props.currentUser.notify_props.desktop;
+        const globalNotifyLevel = this.props.currentUser.notify_props ? this.props.currentUser.notify_props.desktop : 'all';
         let globalNotifyLevelName;
         if (globalNotifyLevel === 'all') {
             globalNotifyLevelName = (
@@ -256,13 +256,13 @@ export default class ChannelNotificationsModal extends React.Component {
             mark_unread: markUnreadLevel
         };
 
-        //TODO: This should be fixed, moved to event_helpers
+        //TODO: This should be fixed, moved to actions
         Client.updateChannelNotifyProps(data,
             () => {
                 // Yuck...
-                var member = ChannelStore.getMember(channelId);
+                var member = ChannelStore.getMyMember(channelId);
                 member.notify_props.mark_unread = markUnreadLevel;
-                ChannelStore.setChannelMember(member);
+                ChannelStore.storeMyChannelMember(member);
                 this.updateSection('');
             },
             (err) => {

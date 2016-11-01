@@ -8,6 +8,7 @@ const ja = require('!!file?name=i18n/[name].[hash].[ext]!./ja.json');
 const ko = require('!!file?name=i18n/[name].[hash].[ext]!./ko.json');
 const nl = require('!!file?name=i18n/[name].[hash].[ext]!./nl.json');
 const pt_BR = require('!!file?name=i18n/[name].[hash].[ext]!./pt-BR.json'); //eslint-disable-line camelcase
+const ru = require('!!file?name=i18n/[name].[hash].[ext]!./ru.json');
 const zh_TW = require('!!file?name=i18n/[name].[hash].[ext]!./zh_TW.json'); //eslint-disable-line camelcase
 const zh_CN = require('!!file?name=i18n/[name].[hash].[ext]!./zh_CN.json'); //eslint-disable-line camelcase
 
@@ -20,6 +21,7 @@ import jaLocaleData from 'react-intl/locale-data/ja';
 import koLocaleData from 'react-intl/locale-data/ko';
 import nlLocaleData from 'react-intl/locale-data/nl';
 import ptLocaleData from 'react-intl/locale-data/pt';
+import ruLocaleData from 'react-intl/locale-data/ru';
 import zhLocaleData from 'react-intl/locale-data/zh';
 
 // should match the values in model/config.go
@@ -51,13 +53,13 @@ const languages = {
     ja: {
         value: 'ja',
         name: '日本語 (Beta)',
-        order: 9,
+        order: 10,
         url: ja
     },
     ko: {
         value: 'ko',
         name: '한국어 (Beta)',
-        order: 6,
+        order: 7,
         url: ko
     },
     nl: {
@@ -72,16 +74,22 @@ const languages = {
         order: 5,
         url: pt_BR
     },
+    ru: {
+        value: 'ru',
+        name: 'Pусский (Beta)',
+        order: 6,
+        url: ru
+    },
     'zh-TW': {
         value: 'zh-TW',
         name: '中文 (繁體) (Beta)',
-        order: 8,
+        order: 9,
         url: zh_TW
     },
     'zh-CN': {
         value: 'zh-CN',
         name: '中文 (简体) (Beta)',
-        order: 7,
+        order: 8,
         url: zh_CN
     }
 };
@@ -124,7 +132,7 @@ export function getLanguageInfo(locale) {
 }
 
 export function isLanguageAvailable(locale) {
-    return !!availableLanguages[locale];
+    return Boolean(availableLanguages[locale]);
 }
 
 export function safariFix(callback) {
@@ -138,6 +146,7 @@ export function safariFix(callback) {
         'intl/locale-data/jsonp/ko.js',
         'intl/locale-data/jsonp/nl.js',
         'intl/locale-data/jsonp/pt.js',
+        'intl/locale-data/jsonp/ru.js',
         'intl/locale-data/jsonp/zh.js'
     ], (require) => {
         require('intl');
@@ -149,6 +158,7 @@ export function safariFix(callback) {
         require('intl/locale-data/jsonp/ko.js');
         require('intl/locale-data/jsonp/nl.js');
         require('intl/locale-data/jsonp/pt.js');
+        require('intl/locale-data/jsonp/ru.js');
         require('intl/locale-data/jsonp/zh.js');
         callback();
     });
@@ -163,5 +173,6 @@ export function doAddLocaleData() {
     addLocaleData(koLocaleData);
     addLocaleData(nlLocaleData);
     addLocaleData(ptLocaleData);
+    addLocaleData(ruLocaleData);
     addLocaleData(zhLocaleData);
 }

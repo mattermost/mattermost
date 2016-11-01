@@ -4,9 +4,10 @@
 package store
 
 import (
-	"github.com/mattermost/platform/model"
 	"strconv"
 	"strings"
+
+	"github.com/mattermost/platform/model"
 )
 
 type SqlComplianceStore struct {
@@ -35,7 +36,7 @@ func (s SqlComplianceStore) CreateIndexesIfNotExists() {
 
 func (s SqlComplianceStore) Save(compliance *model.Compliance) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -62,7 +63,7 @@ func (s SqlComplianceStore) Save(compliance *model.Compliance) StoreChannel {
 
 func (us SqlComplianceStore) Update(compliance *model.Compliance) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -88,7 +89,7 @@ func (us SqlComplianceStore) Update(compliance *model.Compliance) StoreChannel {
 
 func (s SqlComplianceStore) GetAll() StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -111,7 +112,7 @@ func (s SqlComplianceStore) GetAll() StoreChannel {
 
 func (us SqlComplianceStore) Get(id string) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -133,7 +134,7 @@ func (us SqlComplianceStore) Get(id string) StoreChannel {
 }
 
 func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -198,7 +199,7 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) StoreChannel
 			    Posts.Type AS PostType,
 			    Posts.Props AS PostProps,
 			    Posts.Hashtags AS PostHashtags,
-			    Posts.Filenames AS PostFilenames
+			    Posts.FileIds AS PostFileIds
 			FROM
 			    Teams,
 			    Channels,

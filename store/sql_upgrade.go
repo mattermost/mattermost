@@ -15,6 +15,7 @@ import (
 )
 
 const (
+	VERSION_3_5_0 = "3.5.0"
 	VERSION_3_4_0 = "3.4.0"
 	VERSION_3_3_0 = "3.3.0"
 	VERSION_3_2_0 = "3.2.0"
@@ -35,6 +36,7 @@ func UpgradeDatabase(sqlStore *SqlStore) {
 	UpgradeDatabaseToVersion32(sqlStore)
 	UpgradeDatabaseToVersion33(sqlStore)
 	UpgradeDatabaseToVersion34(sqlStore)
+	UpgradeDatabaseToVersion35(sqlStore)
 
 	// If the SchemaVersion is empty this this is the first time it has ran
 	// so lets set it to the current version.
@@ -65,13 +67,13 @@ func saveSchemaVersion(sqlStore *SqlStore, version string) {
 	}
 
 	sqlStore.SchemaVersion = version
-	l4g.Info(utils.T("store.sql.upgraded.warn"), version)
+	l4g.Warn(utils.T("store.sql.upgraded.warn"), version)
 }
 
 func shouldPerformUpgrade(sqlStore *SqlStore, currentSchemaVersion string, expectedSchemaVersion string) bool {
 	if sqlStore.SchemaVersion == currentSchemaVersion {
-		l4g.Info(utils.T("store.sql.schema_out_of_date.warn"), currentSchemaVersion)
-		l4g.Info(utils.T("store.sql.schema_upgrade_attempt.warn"), expectedSchemaVersion)
+		l4g.Warn(utils.T("store.sql.schema_out_of_date.warn"), currentSchemaVersion)
+		l4g.Warn(utils.T("store.sql.schema_upgrade_attempt.warn"), expectedSchemaVersion)
 
 		return true
 	}
@@ -90,6 +92,18 @@ func UpgradeDatabaseToVersion32(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, VERSION_3_1_0, VERSION_3_2_0) {
 		sqlStore.CreateColumnIfNotExists("TeamMembers", "DeleteAt", "bigint(20)", "bigint", "0")
 
+		saveSchemaVersion(sqlStore, VERSION_3_2_0)
+	}
+}
+
+func themeMigrationFailed(err error) {
+	l4g.Critical(utils.T("store.sql_user.migrate_theme.critical"), err)
+	time.Sleep(time.Second)
+	os.Exit(EXIT_THEME_MIGRATION)
+}
+
+func UpgradeDatabaseToVersion33(sqlStore *SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_3_2_0, VERSION_3_3_0) {
 		if sqlStore.DoesColumnExist("Users", "ThemeProps") {
 			params := map[string]interface{}{
 				"Category": model.PREFERENCE_CATEGORY_THEME,
@@ -145,19 +159,6 @@ func UpgradeDatabaseToVersion32(sqlStore *SqlStore) {
 			}
 		}
 
-		saveSchemaVersion(sqlStore, VERSION_3_2_0)
-	}
-}
-
-func themeMigrationFailed(err error) {
-	l4g.Critical(utils.T("store.sql_user.migrate_theme.critical"), err)
-	time.Sleep(time.Second)
-	os.Exit(EXIT_THEME_MIGRATION)
-}
-
-func UpgradeDatabaseToVersion33(sqlStore *SqlStore) {
-	if shouldPerformUpgrade(sqlStore, VERSION_3_2_0, VERSION_3_3_0) {
-
 		sqlStore.CreateColumnIfNotExists("OAuthApps", "IsTrusted", "tinyint(1)", "boolean", "0")
 		sqlStore.CreateColumnIfNotExists("OAuthApps", "IconURL", "varchar(512)", "varchar(512)", "")
 		sqlStore.CreateColumnIfNotExists("OAuthAccessData", "ClientId", "varchar(26)", "varchar(26)", "")
@@ -179,12 +180,32 @@ func UpgradeDatabaseToVersion33(sqlStore *SqlStore) {
 }
 
 func UpgradeDatabaseToVersion34(sqlStore *SqlStore) {
-	// TODO XXX FIXME should be removed before release
-	//if shouldPerformUpgrade(sqlStore, VERSION_3_3_0, VERSION_3_4_0) {
+	if shouldPerformUpgrade(sqlStore, VERSION_3_3_0, VERSION_3_4_0) {
+		sqlStore.CreateColumnIfNotExists("Status", "Manual", "BOOLEAN", "BOOLEAN", "0")
+		sqlStore.CreateColumnIfNotExists("Status", "ActiveChannel", "varchar(26)", "varchar(26)", "")
 
-	// do the actual upgrade
+		saveSchemaVersion(sqlStore, VERSION_3_4_0)
+	}
+}
 
-	// TODO XXX FIXME should be removed before release
-	//saveSchemaVersion(sqlStore, VERSION_3_4_0)
+func UpgradeDatabaseToVersion35(sqlStore *SqlStore) {
+	//if shouldPerformUpgrade(sqlStore, VERSION_3_4_0, VERSION_3_5_0) {
+
+	sqlStore.GetMaster().Exec("UPDATE Users SET Roles = 'system_user' WHERE Roles = ''")
+	sqlStore.GetMaster().Exec("UPDATE Users SET Roles = 'system_user system_admin' WHERE Roles = 'system_admin'")
+	sqlStore.GetMaster().Exec("UPDATE TeamMembers SET Roles = 'team_user' WHERE Roles = ''")
+	sqlStore.GetMaster().Exec("UPDATE TeamMembers SET Roles = 'team_user team_admin' WHERE Roles = 'admin'")
+	sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET Roles = 'channel_user' WHERE Roles = ''")
+	sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET Roles = 'channel_user channel_admin' WHERE Roles = 'admin'")
+
+	// The rest of the migration from Filenames -> FileIds is done lazily in api.GetFileInfosForPost
+	sqlStore.CreateColumnIfNotExists("Posts", "FileIds", "varchar(150)", "varchar(150)", "[]")
+
+	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// UNCOMMENT WHEN WE DO RELEASE
+	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	//sqlStore.Session().RemoveAllSessions()
+
+	//saveSchemaVersion(sqlStore, VERSION_3_5_0)
 	//}
 }

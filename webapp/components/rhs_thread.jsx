@@ -241,7 +241,7 @@ export default class RhsThread extends React.Component {
 
         if (postsArray == null || selected == null) {
             return (
-                <div></div>
+                <div/>
             );
         }
 
@@ -265,7 +265,7 @@ export default class RhsThread extends React.Component {
 
         let rootStatus = 'offline';
         if (this.state.statuses) {
-            rootStatus = this.state.statuses[profile.id] || 'offline';
+            rootStatus = this.state.statuses[selected.user_id] || 'offline';
         }
 
         return (
@@ -276,6 +276,7 @@ export default class RhsThread extends React.Component {
                     <RhsHeaderPost
                         fromFlaggedPosts={this.props.fromFlaggedPosts}
                         fromSearch={this.props.fromSearch}
+                        isWebrtc={this.props.isWebrtc}
                         isMentionSearch={this.props.isMentionSearch}
                         toggleSize={this.props.toggleSize}
                         shrink={this.props.shrink}
@@ -356,6 +357,7 @@ RhsThread.defaultProps = {
 RhsThread.propTypes = {
     fromSearch: React.PropTypes.string,
     fromFlaggedPosts: React.PropTypes.bool,
+    isWebrtc: React.PropTypes.bool,
     isMentionSearch: React.PropTypes.bool,
     currentUser: React.PropTypes.object.isRequired,
     useMilitaryTime: React.PropTypes.bool.isRequired,

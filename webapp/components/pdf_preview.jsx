@@ -3,8 +3,6 @@
 
 import FileInfoPreview from './file_info_preview.jsx';
 
-import * as Utils from 'utils/utils.jsx';
-
 import loadingGif from 'images/load.gif';
 
 import React from 'react';
@@ -109,18 +107,8 @@ export default class PDFPreview extends React.Component {
         }
     }
 
-    static support(filename) {
-        const fileInfo = Utils.splitFileLocation(filename);
-        const ext = fileInfo.ext;
-        if (!ext) {
-            return false;
-        }
-
-        if (ext === 'pdf') {
-            return true;
-        }
-
-        return false;
+    static supports(fileInfo) {
+        return fileInfo.extension === 'pdf';
     }
 
     render() {
@@ -138,10 +126,8 @@ export default class PDFPreview extends React.Component {
         if (!this.state.success) {
             return (
                 <FileInfoPreview
-                    filename={this.props.filename}
-                    fileUrl={this.props.fileUrl}
                     fileInfo={this.props.fileInfo}
-                    formatMessage={this.props.formatMessage}
+                    fileUrl={this.props.fileUrl}
                 />
             );
         }
@@ -164,12 +150,15 @@ export default class PDFPreview extends React.Component {
 
         if (this.state.pdf.numPages > MAX_PDF_PAGES) {
             pdfCanvases.push(
-                <div className='pdf-max-pages'>
+                <a
+                    href={this.props.fileUrl}
+                    className='pdf-max-pages'
+                >
                     <FormattedMessage
                         id='pdf_preview.max_pages'
-                        defaultMessage='PDF previews only show the first five pages.'
+                        defaultMessage='Download to read more pages'
                     />
-                </div>
+                </a>
             );
         }
 
@@ -182,8 +171,6 @@ export default class PDFPreview extends React.Component {
 }
 
 PDFPreview.propTypes = {
-    filename: React.PropTypes.string.isRequired,
-    fileUrl: React.PropTypes.string.isRequired,
     fileInfo: React.PropTypes.object.isRequired,
-    formatMessage: React.PropTypes.func.isRequired
+    fileUrl: React.PropTypes.string.isRequired
 };

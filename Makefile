@@ -42,6 +42,9 @@ GO_LINKER_FLAGS ?= -ldflags \
 				    -X github.com/mattermost/platform/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
 				    -X github.com/mattermost/platform/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)"
 
+# GOOS/GOARCH of the build host, used to determine whether we're cross-compiling or not
+BUILDER_GOOS_GOARCH="$(shell $(GO) env GOOS)_$(shell $(GO) env GOARCH)"
+
 # Output paths
 DIST_ROOT=dist
 DIST_PATH=$(DIST_ROOT)/mattermost
@@ -74,6 +77,7 @@ start-docker:
 		docker start mattermost-postgres > /dev/null; \
 	fi
 
+ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Ldap test user test.one
 	@if [ $(shell docker ps -a | grep -ci mattermost-openldap) -eq 0 ]; then \
 		echo starting mattermost-openldap; \
@@ -82,7 +86,7 @@ start-docker:
 			-e LDAP_ORGANISATION="Mattermost Test" \
 			-e LDAP_DOMAIN="mm.test.com" \
 			-e LDAP_ADMIN_PASSWORD="mostest" \
-			-d osixia/openldap:1.1.2 > /dev/null;\
+			-d osixia/openldap:1.1.6 > /dev/null;\
 		sleep 10; \
 		docker exec -ti mattermost-openldap bash -c 'echo -e "dn: ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: organizationalunit" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';\
 		docker exec -ti mattermost-openldap bash -c 'echo -e "dn: uid=test.one,ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: iNetOrgPerson\nsn: User\ncn: Test1\nmail: success+testone@simulator.amazonses.com" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';\
@@ -96,6 +100,15 @@ start-docker:
 		sleep 10; \
 	fi
 
+	@if [ $(shell docker ps -a | grep -ci mattermost-webrtc) -eq 0 ]; then \
+    		echo starting mattermost-webrtc; \
+    		docker run --name mattermost-webrtc -p 7088:7088 -p 7089:7089 -p 8188:8188 -p 8189:8189 -d mattermost/webrtc:latest > /dev/null; \
+    	elif [ $(shell docker ps | grep -ci mattermost-webrtc) -eq 0 ]; then \
+    		echo restarting mattermost-webrtc; \
+    		docker start mattermost-webrtc > /dev/null; \
+    	fi
+endif
+
 stop-docker:
 	@echo Stopping docker containers
 
@@ -108,10 +121,15 @@ stop-docker:
 		echo stopping mattermost-postgres; \
 		docker stop mattermost-postgres > /dev/null; \
 	fi
-	
+
 	@if [ $(shell docker ps -a | grep -ci mattermost-openldap) -eq 1 ]; then \
 		echo stopping mattermost-openldap; \
 		docker stop mattermost-openldap > /dev/null; \
+	fi
+
+	@if [ $(shell docker ps -a | grep -ci mattermost-webrtc) -eq 1 ]; then \
+		echo stopping mattermost-webrtc; \
+		docker stop mattermost-webrtc > /dev/null; \
 	fi
 
 clean-docker:
@@ -135,11 +153,17 @@ clean-docker:
 		docker rm -v mattermost-openldap > /dev/null; \
 	fi
 
+	@if [ $(shell docker ps -a | grep -ci mattermost-webrtc) -eq 1 ]; then \
+		echo removing mattermost-webrtc; \
+		docker stop mattermost-webrtc > /dev/null; \
+		docker rm -v mattermost-webrtc > /dev/null; \
+	fi
+
 check-client-style:
 	@echo Checking client style
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) check-style
-	
+
 check-server-style:
 	@echo Running GOFMT
 	$(eval GOFMT_OUTPUT := $(shell gofmt -d -s api/ model/ store/ utils/ manualtesting/ einterfaces/ mattermost.go 2>&1))
@@ -184,6 +208,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -c ./enterprise/saml && ./saml.test -test.v -test.timeout=60s -test.coverprofile=csaml.out || exit 1
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -c ./enterprise/cluster && ./cluster.test -test.v -test.timeout=60s -test.coverprofile=ccluster.out || exit 1
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -c ./enterprise/account_migration && ./account_migration.test -test.v -test.timeout=60s -test.coverprofile=caccount_migration.out || exit 1
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -c ./enterprise/webrtc && ./webrtc.test -test.v -test.timeout=60s -test.coverprofile=cwebrtc.out || exit 1
 
 	tail -n +2 cldap.out >> ecover.out
 	tail -n +2 ccompliance.out >> ecover.out
@@ -191,14 +216,15 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	tail -n +2 csaml.out >> ecover.out
 	tail -n +2 ccluster.out >> ecover.out
 	tail -n +2 caccount_migration.out >> ecover.out
-	rm -f cldap.out ccompliance.out cemoji.out csaml.out ccluster.out caccount_migration.out
-
+	tail -n +2 cwebrtc.out >> ecover.out
+	rm -f cldap.out ccompliance.out cemoji.out csaml.out ccluster.out caccount_migration.out cwebrtc.out
 	rm -r ldap.test
 	rm -r compliance.test
 	rm -r emoji.test
 	rm -r saml.test
 	rm -r cluster.test
 	rm -r account_migration.test
+	rm -r webrtc.test
 	rm -f config/*.crt
 	rm -f config/*.key
 endif
@@ -272,6 +298,9 @@ package: build build-client
 	cp -RL templates $(DIST_PATH)
 	cp -RL i18n $(DIST_PATH)
 
+	@# Disable developer settings
+	sed -i'' -e 's|"ConsoleLevel": "DEBUG"|"ConsoleLevel": "INFO"|g' $(DIST_PATH)/config/config.json
+
 	@# Package webapp
 	mkdir -p $(DIST_PATH)/webapp/dist
 	cp -RL $(BUILD_WEBAPP_DIR)/dist $(DIST_PATH)/webapp
@@ -289,7 +318,11 @@ endif
 
 	@# Make osx package
 	@# Copy binary
-	cp $(GOPATH)/bin/darwin_amd64/platform $(DIST_PATH)/bin
+ifeq ($(BUILDER_GOOS_GOARCH),"darwin_amd64")
+	cp $(GOPATH)/bin/platform $(DIST_PATH)/bin # from native bin dir, not cross-compiled
+else
+	cp $(GOPATH)/bin/darwin_amd64/platform $(DIST_PATH)/bin # from cross-compiled bin dir
+endif
 	@# Package
 	tar -C dist -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-osx-amd64.tar.gz mattermost
 	@# Cleanup
@@ -297,18 +330,26 @@ endif
 
 	@# Make windows package
 	@# Copy binary
-	cp $(GOPATH)/bin/windows_amd64/platform.exe $(DIST_PATH)/bin
+ifeq ($(BUILDER_GOOS_GOARCH),"windows_amd64")
+	cp $(GOPATH)/bin/platform.exe $(DIST_PATH)/bin # from native bin dir, not cross-compiled
+else
+	cp $(GOPATH)/bin/windows_amd64/platform.exe $(DIST_PATH)/bin # from cross-compiled bin dir
+endif
 	@# Package
-	tar -C dist -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-windows-amd64.tar.gz mattermost
+	cd $(DIST_ROOT) && zip -9 -r -q -l mattermost-$(BUILD_TYPE_NAME)-windows-amd64.zip mattermost && cd ..
 	@# Cleanup
 	rm -f $(DIST_PATH)/bin/platform.exe
 
 	@# Make linux package
 	@# Copy binary
-	cp $(GOPATH)/bin/platform $(DIST_PATH)/bin
+ifeq ($(BUILDER_GOOS_GOARCH),"linux_amd64")
+	cp $(GOPATH)/bin/platform $(DIST_PATH)/bin # from native bin dir, not cross-compiled
+else
+	cp $(GOPATH)/bin/linux_amd64/platform $(DIST_PATH)/bin # from cross-compiled bin dir
+endif
 	@# Package
 	tar -C dist -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-linux-amd64.tar.gz mattermost
-	@# Don't cleanup linux package so dev machines will have an unziped linux package avalilable
+	@# Don't clean up native package so dev machines will have an unzipped package available
 	@#rm -f $(DIST_PATH)/bin/platform
 
 
@@ -320,7 +361,7 @@ run-server: prepare-enterprise start-docker
 
 run-cli: prepare-enterprise start-docker
 	@echo Running mattermost for development
-	@echo Example should be like >'make ARGS="-version" run-cli'
+	@echo Example should be like 'make ARGS="-version" run-cli'
 
 	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) *.go ${ARGS}
 
@@ -341,21 +382,24 @@ run-fullmap: run-server run-client-fullmap
 stop-server:
 	@echo Stopping mattermost
 
+ifeq ($(BUILDER_GOOS_GOARCH),"windows_amd64")
+	wmic process where "Caption='go.exe' and CommandLine like '%go.exe run%'" call terminate
+	wmic process where "Caption='mattermost.exe' and CommandLine like '%go-build%'" call terminate
+else
 	@for PID in $$(ps -ef | grep "[g]o run" | awk '{ print $$2 }'); do \
 		echo stopping go $$PID; \
 		kill $$PID; \
 	done
-
 	@for PID in $$(ps -ef | grep "[g]o-build" | awk '{ print $$2 }'); do \
 		echo stopping mattermost $$PID; \
 		kill $$PID; \
 	done
+endif 
 
 stop-client:
 	@echo Stopping mattermost client
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) stop
-
 
 stop: stop-server stop-client
 

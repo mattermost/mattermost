@@ -18,15 +18,19 @@ import StatusIcon from './status_icon.jsx';
 import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
+import PreferenceStore from 'stores/preference_store.jsx';
 
 import ChannelSwitchModal from './channel_switch_modal.jsx';
 
 import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
+import * as ChannelUtils from 'utils/channel_utils.jsx';
+import * as ChannelActions from 'actions/channel_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
+
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 
 import {FormattedMessage} from 'react-intl';
@@ -53,6 +57,9 @@ export default class Navbar extends React.Component {
         this.createCollapseButtons = this.createCollapseButtons.bind(this);
         this.createDropdown = this.createDropdown.bind(this);
 
+        this.showMembersModal = this.showMembersModal.bind(this);
+        this.hideMembersModal = this.hideMembersModal.bind(this);
+
         this.showChannelSwitchModal = this.showChannelSwitchModal.bind(this);
         this.hideChannelSwitchModal = this.hideChannelSwitchModal.bind(this);
 
@@ -66,12 +73,15 @@ export default class Navbar extends React.Component {
     }
 
     getStateFromStores() {
+        const channel = ChannelStore.getCurrent();
+
         return {
-            channel: ChannelStore.getCurrent(),
+            channel,
             member: ChannelStore.getCurrentMember(),
-            users: ChannelStore.getCurrentExtraInfo().members,
-            userCount: ChannelStore.getCurrentExtraInfo().member_count,
-            currentUser: UserStore.getCurrentUser()
+            users: [],
+            userCount: ChannelStore.getCurrentStats().member_count,
+            currentUser: UserStore.getCurrentUser(),
+            isFavorite: channel && ChannelUtils.isFavoriteChannel(channel)
         };
     }
 
@@ -81,16 +91,18 @@ export default class Navbar extends React.Component {
 
     componentDidMount() {
         ChannelStore.addChangeListener(this.onChange);
-        ChannelStore.addExtraInfoChangeListener(this.onChange);
+        ChannelStore.addStatsChangeListener(this.onChange);
         UserStore.addStatusesChangeListener(this.onChange);
+        PreferenceStore.addChangeListener(this.onChange);
         $('.inner-wrap').click(this.hideSidebars);
         document.addEventListener('keydown', this.showChannelSwitchModal);
     }
 
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onChange);
-        ChannelStore.removeExtraInfoChangeListener(this.onChange);
+        ChannelStore.removeStatsChangeListener(this.onChange);
         UserStore.removeStatusesChangeListener(this.onChange);
+        PreferenceStore.removeChangeListener(this.onChange);
         document.removeEventListener('keydown', this.showChannelSwitchModal);
     }
 
@@ -99,10 +111,18 @@ export default class Navbar extends React.Component {
     }
 
     handleLeave() {
-        Client.leaveChannel(this.state.channel.id,
+        var channelId = this.state.channel.id;
+
+        Client.leaveChannel(channelId,
             () => {
-                AsyncClient.getChannels(true);
-                browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/town-square');
+                ChannelActions.loadChannelsForCurrentUser();
+
+                if (this.state.isFavorite) {
+                    ChannelActions.unmarkFavorite(channelId);
+                }
+
+                const townsquare = ChannelStore.getByName('town-square');
+                browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + townsquare.name);
             },
             (err) => {
                 AsyncClient.dispatchError(err, 'handleLeave');
@@ -177,6 +197,16 @@ export default class Navbar extends React.Component {
         });
     }
 
+    showMembersModal(e) {
+        e.preventDefault();
+
+        this.setState({showMembersModal: true});
+    }
+
+    hideMembersModal() {
+        this.setState({showMembersModal: false});
+    }
+
     showChannelSwitchModal(e) {
         if (Utils.cmdOrCtrlPressed(e) && e.keyCode === Constants.KeyCodes.K) {
             e.preventDefault();
@@ -213,6 +243,16 @@ export default class Navbar extends React.Component {
 
         return true;
     }
+
+    toggleFavorite = (e) => {
+        e.preventDefault();
+
+        if (this.state.isFavorite) {
+            ChannelActions.unmarkFavorite(this.state.channel.id);
+        } else {
+            ChannelActions.markFavorite(this.state.channel.id);
+        }
+    };
 
     createDropdown(channel, channelTitle, isAdmin, isSystemAdmin, isDirect, popoverContent) {
         if (channel) {
@@ -290,15 +330,36 @@ export default class Navbar extends React.Component {
 
                     if (isAdmin) {
                         manageMembersOption = (
-                            <li role='presentation'>
+                            <li
+                                key='manage_members'
+                                role='presentation'
+                            >
                                 <a
                                     role='menuitem'
                                     href='#'
-                                    onClick={() => this.setState({showMembersModal: true})}
+                                    onClick={this.showMembersModal}
                                 >
                                     <FormattedMessage
-                                        id='navbar.manageMembers'
+                                        id='channel_header.manageMembers'
                                         defaultMessage='Manage Members'
+                                    />
+                                </a>
+                            </li>
+                        );
+                    } else {
+                        manageMembersOption = (
+                            <li
+                                key='view_members'
+                                role='presentation'
+                            >
+                                <a
+                                    role='menuitem'
+                                    href='#'
+                                    onClick={this.showMembersModal}
+                                >
+                                    <FormattedMessage
+                                        id='channel_header.viewMembers'
+                                        defaultMessage='View Members'
                                     />
                                 </a>
                             </li>
@@ -425,6 +486,29 @@ export default class Navbar extends React.Component {
                 }
             }
 
+            const toggleFavoriteOption = (
+                <li
+                    key='toggle_favorite'
+                    role='presentation'
+                >
+                    <a
+                        role='menuitem'
+                        href='#'
+                        onClick={this.toggleFavorite}
+                    >
+                        {this.state.isFavorite ?
+                            <FormattedMessage
+                                id='channelHeader.removeFromFavorites'
+                                defaultMessage='Remove from Favorites'
+                            /> :
+                            <FormattedMessage
+                                id='channelHeader.addToFavorites'
+                                defaultMessage='Add to Favorites'
+                            />}
+                    </a>
+                </li>
+            );
+
             return (
                 <div className='navbar-brand'>
                     <div className='dropdown'>
@@ -436,7 +520,7 @@ export default class Navbar extends React.Component {
                             className='description'
                             rootClose={true}
                         >
-                            <div className='description info-popover'/>
+                            <div className='pull-right description info-popover'/>
                         </OverlayTrigger>
                         <a
                             href='#'
@@ -446,7 +530,7 @@ export default class Navbar extends React.Component {
                             aria-expanded='true'
                         >
                             <span className='heading'><StatusIcon status={this.getTeammateStatus()}/>{channelTitle} </span>
-                            <span className='fa fa-chevron-down header-dropdown__icon'></span>
+                            <span className='fa fa-chevron-down header-dropdown__icon'/>
                         </a>
                         <ul
                             className='dropdown-menu'
@@ -461,6 +545,7 @@ export default class Navbar extends React.Component {
                             {renameChannelOption}
                             {deleteChannelOption}
                             {leaveChannelOption}
+                            {toggleFavoriteOption}
                         </ul>
                     </div>
                 </div>
@@ -496,9 +581,9 @@ export default class Navbar extends React.Component {
                             defaultMessage='Toggle sidebar'
                         />
                     </span>
-                    <span className='icon-bar'></span>
-                    <span className='icon-bar'></span>
-                    <span className='icon-bar'></span>
+                    <span className='icon-bar'/>
+                    <span className='icon-bar'/>
+                    <span className='icon-bar'/>
                 </button>
             );
         } else {
@@ -517,9 +602,9 @@ export default class Navbar extends React.Component {
                             defaultMessage='Toggle sidebar'
                         />
                     </span>
-                    <span className='icon-bar'></span>
-                    <span className='icon-bar'></span>
-                    <span className='icon-bar'></span>
+                    <span className='icon-bar'/>
+                    <span className='icon-bar'/>
+                    <span className='icon-bar'/>
                     <NotifyCounts/>
                 </button>
             );
@@ -585,6 +670,12 @@ export default class Navbar extends React.Component {
                         message={channel.header}
                         options={{singleline: true, mentionHighlight: false}}
                     />
+                    <div
+                        className='close__icon visible-xs-block'
+                        onClick={() => this.refs.headerOverlay.hide()}
+                    >
+                        {'×'}
+                    </div>
                 </Popover>
             );
 
@@ -597,17 +688,8 @@ export default class Navbar extends React.Component {
                 channelTitle = channel.display_name;
             } else if (channel.type === 'D') {
                 isDirect = true;
-                if (this.state.users.length > 1) {
-                    let p;
-                    if (this.state.users[0].id === currentId) {
-                        p = UserStore.getProfile(this.state.users[1].id);
-                    } else {
-                        p = UserStore.getProfile(this.state.users[0].id);
-                    }
-                    if (p != null) {
-                        channelTitle = p.username;
-                    }
-                }
+                const teammateId = Utils.getUserIdFromChannelName(channel);
+                channelTitle = Utils.displayUsername(teammateId);
             }
 
             if (channel.header.length === 0) {
@@ -637,6 +719,12 @@ export default class Navbar extends React.Component {
                                     link
                                 }}
                             />
+                        </div>
+                        <div
+                            className='close__icon visible-xs-block'
+                            onClick={() => this.refs.headerOverlay.hide()}
+                        >
+                            {'×'}
                         </div>
                     </Popover>
                 );
@@ -669,8 +757,9 @@ export default class Navbar extends React.Component {
             channelMembersModal = (
                 <ChannelMembersModal
                     show={this.state.showMembersModal}
-                    onModalDismissed={() => this.setState({showMembersModal: false})}
+                    onModalDismissed={this.hideMembersModal}
                     channel={channel}
+                    isAdmin={isAdmin}
                 />
             );
 

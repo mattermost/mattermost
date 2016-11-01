@@ -49,13 +49,12 @@ class FileUpload extends React.Component {
         this.keyUpload = this.keyUpload.bind(this);
 
         this.state = {
-            maxFileSize: global.window.mm_config.MaxFileSize,
             requests: {}
         };
     }
 
     fileUploadSuccess(channelId, data) {
-        this.props.onFileUpload(data.filenames, data.client_ids, channelId);
+        this.props.onFileUpload(data.file_infos, data.client_ids, channelId);
 
         const requests = Object.assign({}, this.state.requests);
         for (var j = 0; j < data.client_ids.length; j++) {
@@ -81,7 +80,7 @@ class FileUpload extends React.Component {
         const tooLargeFiles = [];
 
         for (let i = 0; i < files.length && numUploads < uploadsRemaining; i++) {
-            if (files[i].size > this.state.maxFileSize) {
+            if (files[i].size > global.mm_config.MaxFileSize) {
                 tooLargeFiles.push(files[i]);
                 continue;
             }
@@ -112,9 +111,9 @@ class FileUpload extends React.Component {
         } else if (tooLargeFiles.length > 1) {
             var tooLargeFilenames = tooLargeFiles.map((file) => file.name).join(', ');
 
-            this.props.onUploadError(formatMessage(holders.filesAbove, {max: (this.state.maxFileSize / 1048576), filenames: tooLargeFilenames}));
+            this.props.onUploadError(formatMessage(holders.filesAbove, {max: (global.mm_config.MaxFileSize / 1048576), filenames: tooLargeFilenames}));
         } else if (tooLargeFiles.length > 0) {
-            this.props.onUploadError(formatMessage(holders.fileAbove, {max: (this.state.maxFileSize / 1048576), filename: tooLargeFiles[0].name}));
+            this.props.onUploadError(formatMessage(holders.fileAbove, {max: (global.mm_config.MaxFileSize / 1048576), filename: tooLargeFiles[0].name}));
         }
     }
 

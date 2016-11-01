@@ -69,7 +69,7 @@ func TestContext(t *testing.T) {
 
 	// GetAllOk() for empty request
 	values, ok = GetAllOk(emptyR)
-	assertEqual(value, nil)
+	assertEqual(len(values), 0)
 	assertEqual(ok, false)
 
 	// Delete()

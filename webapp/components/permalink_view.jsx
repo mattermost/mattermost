@@ -81,7 +81,7 @@ export default class PermalinkView extends React.Component {
                             id='center_panel.recent'
                             defaultMessage='Click here to jump to recent messages. '
                         />
-                        <i className='fa fa-arrow-down'></i>
+                        <i className='fa fa-arrow-down'/>
                     </Link>
                 </div>
             </div>

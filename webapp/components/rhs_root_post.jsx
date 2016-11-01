@@ -4,7 +4,7 @@
 import UserProfile from './user_profile.jsx';
 import PostBodyAdditionalContent from 'components/post_view/components/post_body_additional_content.jsx';
 import PostMessageContainer from 'components/post_view/components/post_message_container.jsx';
-import FileAttachmentList from './file_attachment_list.jsx';
+import FileAttachmentListContainer from './file_attachment_list_container.jsx';
 import ProfilePicture from 'components/profile_picture.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
@@ -61,6 +61,10 @@ export default class RhsRootPost extends React.Component {
             return true;
         }
 
+        if (!Utils.areObjectsEqual(nextProps.user, this.props.user)) {
+            return true;
+        }
+
         if (!Utils.areObjectsEqual(nextProps.currentUser, this.props.currentUser)) {
             return true;
         }
@@ -85,7 +89,7 @@ export default class RhsRootPost extends React.Component {
         var isOwner = this.props.currentUser.id === post.user_id;
         var isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
         const isSystemMessage = post.type && post.type.startsWith(Constants.SYSTEM_MESSAGE_PREFIX);
-        var timestamp = UserStore.getProfile(post.user_id).update_at;
+        var timestamp = user.update_at;
         var channel = ChannelStore.get(post.channel_id);
         const flagIcon = Constants.FLAG_ICON_SVG;
 
@@ -232,23 +236,23 @@ export default class RhsRootPost extends React.Component {
                         data-toggle='dropdown'
                         aria-expanded='false'
                     />
-                    <ul
-                        className='dropdown-menu'
-                        role='menu'
-                    >
-                        {dropdownContents}
-                    </ul>
+                    <div className='dropdown-menu__content'>
+                        <ul
+                            className='dropdown-menu'
+                            role='menu'
+                        >
+                            {dropdownContents}
+                        </ul>
+                    </div>
                 </div>
             );
         }
 
-        var fileAttachment;
-        if (post.filenames && post.filenames.length > 0) {
+        let fileAttachment = null;
+        if (post.file_ids && post.file_ids.length > 0) {
             fileAttachment = (
-                <FileAttachmentList
-                    filenames={post.filenames}
-                    channelId={post.channel_id}
-                    userId={post.user_id}
+                <FileAttachmentListContainer
+                    post={post}
                     compactDisplay={this.props.compactDisplay}
                 />
             );
@@ -286,6 +290,7 @@ export default class RhsRootPost extends React.Component {
                 status={this.props.status}
                 width='36'
                 height='36'
+                user={this.props.user}
             />
         );
 
@@ -299,12 +304,19 @@ export default class RhsRootPost extends React.Component {
         }
 
         let compactClass = '';
-        let profilePicContainer = (<div className='post__img'>{profilePic}</div>);
         if (this.props.compactDisplay) {
             compactClass = 'post--compact';
-            profilePicContainer = '';
+
+            profilePic = (
+                <ProfilePicture
+                    src=''
+                    status={this.props.status}
+                    user={this.props.user}
+                />
+            );
         }
 
+        const profilePicContainer = (<div className='post__img'>{profilePic}</div>);
         const messageWrapper = <PostMessageContainer post={post}/>;
 
         let flag;

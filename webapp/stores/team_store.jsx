@@ -9,6 +9,7 @@ import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 
 const CHANGE_EVENT = 'change';
+const STATS_EVENT = 'stats';
 
 var Utils;
 
@@ -20,8 +21,10 @@ class TeamStoreClass extends EventEmitter {
 
     clear() {
         this.teams = {};
-        this.team_members = [];
-        this.members_for_team = [];
+        this.my_team_members = [];
+        this.members_in_team = {};
+        this.members_not_in_team = {};
+        this.stats = {};
         this.teamListings = {};
         this.currentTeamId = '';
     }
@@ -36,6 +39,18 @@ class TeamStoreClass extends EventEmitter {
 
     removeChangeListener(callback) {
         this.removeListener(CHANGE_EVENT, callback);
+    }
+
+    emitStatsChange() {
+        this.emit(STATS_EVENT);
+    }
+
+    addStatsChangeListener(callback) {
+        this.on(STATS_EVENT, callback);
+    }
+
+    removeStatsChangeListener(callback) {
+        this.removeListener(STATS_EVENT, callback);
     }
 
     get(id) {
@@ -114,6 +129,27 @@ class TeamStoreClass extends EventEmitter {
         return origin + '/' + team.name;
     }
 
+    getCurrentStats() {
+        return this.getStats(this.getCurrentId());
+    }
+
+    getStats(teamId) {
+        let stats;
+
+        if (teamId) {
+            stats = this.stats[teamId];
+        }
+
+        if (stats) {
+            // create a defensive copy
+            stats = Object.assign({}, stats);
+        } else {
+            stats = {member_count: 0};
+        }
+
+        return stats;
+    }
+
     saveTeam(team) {
         this.teams[team.id] = team;
     }
@@ -127,44 +163,62 @@ class TeamStoreClass extends EventEmitter {
         this.currentTeamId = team.id;
     }
 
-    saveTeamMembers(members) {
-        this.team_members = members;
+    saveStats(teamId, stats) {
+        this.stats[teamId] = stats;
     }
 
-    appendTeamMember(member) {
-        this.team_members.push(member);
+    saveMyTeamMembers(members) {
+        this.my_team_members = members;
     }
 
-    removeTeamMember(teamId) {
-        for (var index in this.team_members) {
-            if (this.team_members.hasOwnProperty(index)) {
-                if (this.team_members[index].team_id === teamId) {
-                    Reflect.deleteProperty(this.team_members, index);
+    appendMyTeamMember(member) {
+        this.my_team_members.push(member);
+    }
+
+    removeMyTeamMember(teamId) {
+        for (var index in this.my_team_members) {
+            if (this.my_team_members.hasOwnProperty(index)) {
+                if (this.my_team_members[index].team_id === teamId) {
+                    Reflect.deleteProperty(this.my_team_members, index);
                 }
             }
         }
     }
 
-    getTeamMembers() {
-        return this.team_members;
+    getMyTeamMembers() {
+        return this.my_team_members;
     }
 
-    saveMembersForTeam(members) {
-        this.members_for_team = members;
+    saveMembersInTeam(teamId = this.getCurrentId(), members) {
+        const oldMembers = this.members_in_team[teamId] || {};
+        this.members_in_team[teamId] = Object.assign({}, oldMembers, members);
     }
 
-    getMembersForTeam() {
-        return this.members_for_team;
+    saveMembersNotInTeam(teamId = this.getCurrentId(), nonmembers) {
+        this.members_not_in_team[teamId] = nonmembers;
     }
 
-    hasActiveMemberForTeam(userId) {
-        for (var index in this.members_for_team) {
-            if (this.members_for_team.hasOwnProperty(index)) {
-                if (this.members_for_team[index].user_id === userId &&
-                    this.members_for_team[index].team_id === this.currentTeamId) {
-                    return this.members_for_team[index].delete_at === 0;
-                }
-            }
+    removeMemberInTeam(teamId = this.getCurrentId(), userId) {
+        if (this.members_in_team[teamId]) {
+            Reflect.deleteProperty(this.members_in_team[teamId], userId);
+        }
+    }
+
+    getMembersInTeam(teamId = this.getCurrentId()) {
+        return Object.assign({}, this.members_in_team[teamId]) || {};
+    }
+
+    hasActiveMemberInTeam(teamId = this.getCurrentId(), userId) {
+        if (this.members_in_team[teamId] && this.members_in_team[teamId][userId]) {
+            return true;
+        }
+
+        return false;
+    }
+
+    hasMemberNotInTeam(teamId = this.getCurrentId(), userId) {
+        if (this.members_not_in_team[teamId] && this.members_not_in_team[teamId][userId]) {
+            return true;
         }
 
         return false;
@@ -187,7 +241,7 @@ class TeamStoreClass extends EventEmitter {
             Utils = require('utils/utils.jsx'); //eslint-disable-line global-require
         }
 
-        var teamMembers = this.getTeamMembers();
+        var teamMembers = this.getMyTeamMembers();
         const teamMember = teamMembers.find((m) => m.user_id === userId && m.team_id === teamId);
 
         if (teamMember) {
@@ -210,24 +264,31 @@ TeamStore.dispatchToken = AppDispatcher.register((payload) => {
         break;
     case ActionTypes.CREATED_TEAM:
         TeamStore.saveTeam(action.team);
-        TeamStore.appendTeamMember(action.member);
+        TeamStore.appendMyTeamMember(action.member);
         TeamStore.emitChange();
         break;
     case ActionTypes.RECEIVED_ALL_TEAMS:
         TeamStore.saveTeams(action.teams);
         TeamStore.emitChange();
         break;
-    case ActionTypes.RECEIVED_TEAM_MEMBERS:
-        TeamStore.saveTeamMembers(action.team_members);
+    case ActionTypes.RECEIVED_MY_TEAM_MEMBERS:
+        TeamStore.saveMyTeamMembers(action.team_members);
         TeamStore.emitChange();
         break;
     case ActionTypes.RECEIVED_ALL_TEAM_LISTINGS:
         TeamStore.saveTeamListings(action.teams);
         TeamStore.emitChange();
         break;
-    case ActionTypes.RECEIVED_MEMBERS_FOR_TEAM:
-        TeamStore.saveMembersForTeam(action.team_members);
+    case ActionTypes.RECEIVED_MEMBERS_IN_TEAM:
+        TeamStore.saveMembersInTeam(action.team_id, action.team_members);
+        if (action.non_team_members) {
+            TeamStore.saveMembersNotInTeam(action.team_id, action.non_team_members);
+        }
         TeamStore.emitChange();
+        break;
+    case ActionTypes.RECEIVED_TEAM_STATS:
+        TeamStore.saveStats(action.team_id, action.stats);
+        TeamStore.emitStatsChange();
         break;
     default:
     }

@@ -4,9 +4,10 @@
 package store
 
 import (
-	"github.com/mattermost/platform/model"
 	"testing"
 	"time"
+
+	"github.com/mattermost/platform/model"
 )
 
 func TestChannelStoreSave(t *testing.T) {
@@ -38,21 +39,6 @@ func TestChannelStoreSave(t *testing.T) {
 	o1.Type = model.CHANNEL_DIRECT
 	if err := (<-store.Channel().Save(&o1)).Err; err == nil {
 		t.Fatal("Should not be able to save direct channel")
-	}
-
-	o1.Type = model.CHANNEL_OPEN
-	for i := 0; i < 1000; i++ {
-		o1.Id = ""
-		o1.Name = "a" + model.NewId() + "b"
-		if err := (<-store.Channel().Save(&o1)).Err; err != nil {
-			t.Fatal("couldn't save item", err)
-		}
-	}
-
-	o1.Id = ""
-	o1.Name = "a" + model.NewId() + "b"
-	if err := (<-store.Channel().Save(&o1)).Err; err == nil {
-		t.Fatal("should be the limit")
 	}
 }
 
@@ -108,7 +94,34 @@ func TestChannelStoreSaveDirectChannel(t *testing.T) {
 	if err := (<-store.Channel().SaveDirectChannel(&o1, &m1, &m2)).Err; err == nil {
 		t.Fatal("Should not be able to save non-direct channel")
 	}
+}
 
+func TestChannelStoreCreateDirectChannel(t *testing.T) {
+	Setup()
+
+	u1 := &model.User{}
+	u1.Email = model.NewId()
+	u1.Nickname = model.NewId()
+	Must(store.User().Save(u1))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}))
+
+	u2 := &model.User{}
+	u2.Email = model.NewId()
+	u2.Nickname = model.NewId()
+	Must(store.User().Save(u2))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}))
+
+	res := <-store.Channel().CreateDirectChannel(u1.Id, u2.Id)
+	if res.Err != nil {
+		t.Fatal("couldn't create direct channel", res.Err)
+	}
+
+	c1 := res.Data.(*model.Channel)
+
+	members := (<-store.Channel().GetMembers(c1.Id)).Data.([]model.ChannelMember)
+	if len(members) != 2 {
+		t.Fatal("should have saved 2 members")
+	}
 }
 
 func TestChannelStoreUpdate(t *testing.T) {
@@ -211,6 +224,29 @@ func TestChannelStoreGet(t *testing.T) {
 	}
 }
 
+func TestChannelStoreGetForPost(t *testing.T) {
+	Setup()
+
+	o1 := Must(store.Channel().Save(&model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Name",
+		Name:        "a" + model.NewId() + "b",
+		Type:        model.CHANNEL_OPEN,
+	})).(*model.Channel)
+
+	p1 := Must(store.Post().Save(&model.Post{
+		UserId:    model.NewId(),
+		ChannelId: o1.Id,
+		Message:   "test",
+	})).(*model.Post)
+
+	if r1 := <-store.Channel().GetForPost(p1.Id); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else if r1.Data.(*model.Channel).Id != o1.Id {
+		t.Fatal("incorrect channel returned")
+	}
+}
+
 func TestChannelStoreDelete(t *testing.T) {
 	Setup()
 
@@ -269,14 +305,14 @@ func TestChannelStoreDelete(t *testing.T) {
 	cresult := <-store.Channel().GetChannels(o1.TeamId, m1.UserId)
 	list := cresult.Data.(*model.ChannelList)
 
-	if len(list.Channels) != 1 {
+	if len(*list) != 1 {
 		t.Fatal("invalid number of channels")
 	}
 
 	cresult = <-store.Channel().GetMoreChannels(o1.TeamId, m1.UserId)
 	list = cresult.Data.(*model.ChannelList)
 
-	if len(list.Channels) != 1 {
+	if len(*list) != 1 {
 		t.Fatal("invalid number of channels")
 	}
 }
@@ -372,11 +408,6 @@ func TestChannelMemberStore(t *testing.T) {
 		t.Fatal("should have go member")
 	}
 
-	extraMembers := (<-store.Channel().GetExtraMembers(o1.ChannelId, 20)).Data.([]model.ExtraMember)
-	if len(extraMembers) != 1 {
-		t.Fatal("should have 1 extra members")
-	}
-
 	if err := (<-store.Channel().SaveMember(&o1)).Err; err == nil {
 		t.Fatal("Should have been a duplicate")
 	}
@@ -385,18 +416,6 @@ func TestChannelMemberStore(t *testing.T) {
 	t4 := c1t4.ExtraUpdateAt
 	if t4 != t3 {
 		t.Fatal("Should not update time upon failure")
-	}
-
-	// rejoin the channel and make sure that an inactive user isn't returned by GetExtraMambers
-	Must(store.Channel().SaveMember(&o2))
-
-	u2.DeleteAt = 1000
-	Must(store.User().Update(&u2, true))
-
-	if result := <-store.Channel().GetExtraMembers(o1.ChannelId, 20); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if extraMembers := result.Data.([]model.ExtraMember); len(extraMembers) != 1 {
-		t.Fatal("should have 1 extra members")
 	}
 }
 
@@ -457,94 +476,6 @@ func TestChannelDeleteMemberStore(t *testing.T) {
 	}
 }
 
-func TestChannelStorePermissionsTo(t *testing.T) {
-	Setup()
-
-	o1 := model.Channel{}
-	o1.TeamId = model.NewId()
-	o1.DisplayName = "Channel1"
-	o1.Name = "a" + model.NewId() + "b"
-	o1.Type = model.CHANNEL_OPEN
-	Must(store.Channel().Save(&o1))
-
-	m1 := model.ChannelMember{}
-	m1.ChannelId = o1.Id
-	m1.UserId = model.NewId()
-	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
-	Must(store.Channel().SaveMember(&m1))
-
-	count := (<-store.Channel().CheckPermissionsTo(o1.TeamId, o1.Id, m1.UserId)).Data.(int64)
-	if count != 1 {
-		t.Fatal("should have permissions")
-	}
-
-	count = (<-store.Channel().CheckPermissionsToNoTeam(o1.Id, m1.UserId)).Data.(int64)
-	if count != 1 {
-		t.Fatal("should have permissions")
-	}
-
-	count = (<-store.Channel().CheckPermissionsTo("junk", o1.Id, m1.UserId)).Data.(int64)
-	if count != 0 {
-		t.Fatal("shouldn't have permissions")
-	}
-
-	count = (<-store.Channel().CheckPermissionsTo(o1.TeamId, "junk", m1.UserId)).Data.(int64)
-	if count != 0 {
-		t.Fatal("shouldn't have permissions")
-	}
-
-	count = (<-store.Channel().CheckPermissionsToNoTeam("junk", m1.UserId)).Data.(int64)
-	if count != 0 {
-		t.Fatal("shouldn't have permissions")
-	}
-
-	count = (<-store.Channel().CheckPermissionsTo(o1.TeamId, o1.Id, "junk")).Data.(int64)
-	if count != 0 {
-		t.Fatal("shouldn't have permissions")
-	}
-
-	count = (<-store.Channel().CheckPermissionsToNoTeam(o1.Id, "junk")).Data.(int64)
-	if count != 0 {
-		t.Fatal("shouldn't have permissions")
-	}
-
-	channelId := (<-store.Channel().CheckPermissionsToByName(o1.TeamId, o1.Name, m1.UserId)).Data.(string)
-	if channelId != o1.Id {
-		t.Fatal("should have permissions")
-	}
-
-	channelId = (<-store.Channel().CheckPermissionsToByName(o1.TeamId, "missing", m1.UserId)).Data.(string)
-	if channelId != "" {
-		t.Fatal("should not have permissions")
-	}
-}
-
-func TestChannelStoreOpenChannelPermissionsTo(t *testing.T) {
-	Setup()
-
-	o1 := model.Channel{}
-	o1.TeamId = model.NewId()
-	o1.DisplayName = "Channel1"
-	o1.Name = "a" + model.NewId() + "b"
-	o1.Type = model.CHANNEL_OPEN
-	Must(store.Channel().Save(&o1))
-
-	count := (<-store.Channel().CheckOpenChannelPermissions(o1.TeamId, o1.Id)).Data.(int64)
-	if count != 1 {
-		t.Fatal("should have permissions")
-	}
-
-	count = (<-store.Channel().CheckOpenChannelPermissions("junk", o1.Id)).Data.(int64)
-	if count != 0 {
-		t.Fatal("shouldn't have permissions")
-	}
-
-	count = (<-store.Channel().CheckOpenChannelPermissions(o1.TeamId, "junk")).Data.(int64)
-	if count != 0 {
-		t.Fatal("shouldn't have permissions")
-	}
-}
-
 func TestChannelStoreGetChannels(t *testing.T) {
 	Setup()
 
@@ -583,9 +514,45 @@ func TestChannelStoreGetChannels(t *testing.T) {
 	cresult := <-store.Channel().GetChannels(o1.TeamId, m1.UserId)
 	list := cresult.Data.(*model.ChannelList)
 
-	if list.Channels[0].Id != o1.Id {
+	if (*list)[0].Id != o1.Id {
 		t.Fatal("missing channel")
 	}
+
+	acresult := <-store.Channel().GetAllChannelMembersForUser(m1.UserId, false)
+	ids := acresult.Data.(map[string]string)
+	if _, ok := ids[o1.Id]; !ok {
+		t.Fatal("missing channel")
+	}
+
+	acresult2 := <-store.Channel().GetAllChannelMembersForUser(m1.UserId, true)
+	ids2 := acresult2.Data.(map[string]string)
+	if _, ok := ids2[o1.Id]; !ok {
+		t.Fatal("missing channel")
+	}
+
+	acresult3 := <-store.Channel().GetAllChannelMembersForUser(m1.UserId, true)
+	ids3 := acresult3.Data.(map[string]string)
+	if _, ok := ids3[o1.Id]; !ok {
+		t.Fatal("missing channel")
+	}
+
+	if !store.Channel().IsUserInChannelUseCache(m1.UserId, o1.Id) {
+		t.Fatal("missing channel")
+	}
+
+	if store.Channel().IsUserInChannelUseCache(m1.UserId, o2.Id) {
+		t.Fatal("missing channel")
+	}
+
+	if store.Channel().IsUserInChannelUseCache(m1.UserId, "blahblah") {
+		t.Fatal("missing channel")
+	}
+
+	if store.Channel().IsUserInChannelUseCache("blahblah", "blahblah") {
+		t.Fatal("missing channel")
+	}
+
+	store.Channel().InvalidateAllChannelMembersForUser(m1.UserId)
 }
 
 func TestChannelStoreGetMoreChannels(t *testing.T) {
@@ -647,11 +614,11 @@ func TestChannelStoreGetMoreChannels(t *testing.T) {
 	cresult := <-store.Channel().GetMoreChannels(o1.TeamId, m1.UserId)
 	list := cresult.Data.(*model.ChannelList)
 
-	if len(list.Channels) != 1 {
+	if len(*list) != 1 {
 		t.Fatal("wrong list")
 	}
 
-	if list.Channels[0].Name != o3.Name {
+	if (*list)[0].Name != o3.Name {
 		t.Fatal("missing channel")
 	}
 
@@ -718,6 +685,51 @@ func TestChannelStoreGetChannelCounts(t *testing.T) {
 
 	if len(counts.UpdateTimes) != 1 {
 		t.Fatal("wrong number of update times")
+	}
+}
+
+func TestChannelStoreGetMembersForUser(t *testing.T) {
+	Setup()
+
+	t1 := model.Team{}
+	t1.DisplayName = "Name"
+	t1.Name = model.NewId()
+	t1.Email = model.NewId() + "@nowhere.com"
+	t1.Type = model.TEAM_OPEN
+	Must(store.Team().Save(&t1))
+
+	o1 := model.Channel{}
+	o1.TeamId = t1.Id
+	o1.DisplayName = "Channel1"
+	o1.Name = "a" + model.NewId() + "b"
+	o1.Type = model.CHANNEL_OPEN
+	Must(store.Channel().Save(&o1))
+
+	o2 := model.Channel{}
+	o2.TeamId = o1.TeamId
+	o2.DisplayName = "Channel2"
+	o2.Name = "a" + model.NewId() + "b"
+	o2.Type = model.CHANNEL_OPEN
+	Must(store.Channel().Save(&o2))
+
+	m1 := model.ChannelMember{}
+	m1.ChannelId = o1.Id
+	m1.UserId = model.NewId()
+	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
+	Must(store.Channel().SaveMember(&m1))
+
+	m2 := model.ChannelMember{}
+	m2.ChannelId = o2.Id
+	m2.UserId = m1.UserId
+	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
+	Must(store.Channel().SaveMember(&m2))
+
+	cresult := <-store.Channel().GetMembersForUser(o1.TeamId, m1.UserId)
+	members := cresult.Data.(*model.ChannelMembers)
+
+	// no unread messages
+	if len(*members) != 2 {
+		t.Fatal("wrong number of members")
 	}
 }
 
@@ -847,6 +859,39 @@ func TestGetMember(t *testing.T) {
 	}
 }
 
+func TestChannelStoreGetMemberForPost(t *testing.T) {
+	Setup()
+
+	o1 := Must(store.Channel().Save(&model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Name",
+		Name:        "a" + model.NewId() + "b",
+		Type:        model.CHANNEL_OPEN,
+	})).(*model.Channel)
+
+	m1 := Must(store.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   o1.Id,
+		UserId:      model.NewId(),
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})).(*model.ChannelMember)
+
+	p1 := Must(store.Post().Save(&model.Post{
+		UserId:    model.NewId(),
+		ChannelId: o1.Id,
+		Message:   "test",
+	})).(*model.Post)
+
+	if r1 := <-store.Channel().GetMemberForPost(p1.Id, m1.UserId); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else if r1.Data.(*model.ChannelMember).ToJson() != m1.ToJson() {
+		t.Fatal("invalid returned channel member")
+	}
+
+	if r2 := <-store.Channel().GetMemberForPost(p1.Id, model.NewId()); r2.Err == nil {
+		t.Fatal("shouldn't have returned a member")
+	}
+}
+
 func TestGetMemberCount(t *testing.T) {
 	Setup()
 
@@ -867,8 +912,6 @@ func TestGetMemberCount(t *testing.T) {
 		Type:        model.CHANNEL_OPEN,
 	}
 	Must(store.Channel().Save(&c2))
-
-	t.Logf("c1.Id = %v", c1.Id)
 
 	u1 := &model.User{
 		Email:    model.NewId(),
@@ -974,8 +1017,6 @@ func TestUpdateExtrasByUser(t *testing.T) {
 	}
 	Must(store.Channel().Save(&c2))
 
-	t.Logf("c1.Id = %v", c1.Id)
-
 	u1 := &model.User{
 		Email:    model.NewId(),
 		DeleteAt: 0,
@@ -997,22 +1038,10 @@ func TestUpdateExtrasByUser(t *testing.T) {
 		t.Fatal("failed to update extras by user: %v", result.Err)
 	}
 
-	if result := <-store.Channel().GetExtraMembers(c1.Id, -1); result.Err != nil {
-		t.Fatal("failed to get extras: %v", result.Err)
-	} else if len(result.Data.([]model.ExtraMember)) != 0 {
-		t.Fatal("got incorrect member count %v", len(result.Data.([]model.ExtraMember)))
-	}
-
 	u1.DeleteAt = 0
 	Must(store.User().Update(u1, true))
 
 	if result := <-store.Channel().ExtraUpdateByUser(u1.Id, u1.DeleteAt); result.Err != nil {
 		t.Fatal("failed to update extras by user: %v", result.Err)
-	}
-
-	if result := <-store.Channel().GetExtraMembers(c1.Id, -1); result.Err != nil {
-		t.Fatal("failed to get extras: %v", result.Err)
-	} else if len(result.Data.([]model.ExtraMember)) != 1 {
-		t.Fatal("got incorrect member count %v", len(result.Data.([]model.ExtraMember)))
 	}
 }

@@ -575,6 +575,17 @@ func TestBinaryByteSliceToInt(t *testing.T) {
 	}
 }
 
+func TestTextDecodeIntoString(t *testing.T) {
+	input := []byte("hello world")
+	want := string(input)
+	for _, typ := range []oid.Oid{oid.T_char, oid.T_varchar, oid.T_text} {
+		got := decode(&parameterStatus{}, input, typ, formatText)
+		if got != want {
+			t.Errorf("invalid string decoding output for %T(%+v), got %v but expected %v", typ, typ, got, want)
+		}
+	}
+}
+
 func TestByteaOutputFormatEncoding(t *testing.T) {
 	input := []byte("\\x\x00\x01\x02\xFF\xFEabcdefg0123")
 	want := []byte("\\x5c78000102fffe6162636465666730313233")

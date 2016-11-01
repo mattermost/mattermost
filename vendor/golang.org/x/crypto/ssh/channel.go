@@ -67,6 +67,8 @@ type Channel interface {
 	// boolean, otherwise the return value will be false. Channel
 	// requests are out-of-band messages so they may be sent even
 	// if the data stream is closed or blocked by flow control.
+	// If the channel is closed before a reply is returned, io.EOF
+	// is returned.
 	SendRequest(name string, wantReply bool, payload []byte) (bool, error)
 
 	// Stderr returns an io.ReadWriter that writes to this channel

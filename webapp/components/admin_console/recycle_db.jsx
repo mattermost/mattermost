@@ -45,14 +45,14 @@ export default class RecycleDbButton extends React.Component {
 
     render() {
         if (global.window.mm_license.IsLicensed !== 'true') {
-            return <div></div>;
+            return <div/>;
         }
 
         let testMessage = null;
         if (this.state.fail) {
             testMessage = (
                 <div className='alert alert-warning'>
-                    <i className='fa fa-warning'></i>
+                    <i className='fa fa-warning'/>
                     <FormattedMessage
                         id='admin.recycle.reloadFail'
                         defaultMessage='Recycling unsuccessful: {error}'
@@ -64,7 +64,7 @@ export default class RecycleDbButton extends React.Component {
             );
         }
 
-        let helpText = (
+        const helpText = (
             <FormattedHTMLMessage
                 id='admin.recycle.recycleDescription'
                 defaultMessage='Deployments using multiple databases can switch from one master database to another without restarting the Mattermost server by updating "config.json" to the new desired configuration and using the <a href="../general/configuration"><b>Configuration > Reload Configuration from Disk</b></a> feature to load the new settings while the server is running. The administrator should then use <b>Recycle Database Connections</b> feature to recycle the database connections based on the new settings.'

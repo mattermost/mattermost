@@ -115,9 +115,9 @@ export default class WebhookSettings extends AdminSettings {
                         />
                     }
                     helpText={
-                        <FormattedMessage
+                        <FormattedHTMLMessage
                             id='admin.oauth.providerDescription'
-                            defaultMessage='When true, Mattermost can act as an OAuth 2.0 service provider allowing Mattermost to authorize API requests from external applications.'
+                            defaultMessage='When true, Mattermost can act as an OAuth 2.0 service provider allowing Mattermost to authorize API requests from external applications. See <a href="https://docs.mattermost.com/developer/oauth-2-0-applications.html" target="_blank">documentation</a> to learn more.'
                         />
                     }
                     value={this.state.enableOAuthServiceProvider}
@@ -128,13 +128,13 @@ export default class WebhookSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.service.integrationAdmin'
-                            defaultMessage='Restrict creating integrations to Team and System Admins: '
+                            defaultMessage='Restrict managing integrations to Admins:'
                         />
                     }
                     helpText={
                         <FormattedMessage
                             id='admin.service.integrationAdminDesc'
-                            defaultMessage='When true, user created integrations can only be created by admins.'
+                            defaultMessage='When true, webhooks and slash commands can only be created, edited and viewed by Team and System Admins, and OAuth 2.0 applications by System Admins. Integrations are available to all users after they have been created by the Admin.'
                         />
                     }
                     value={this.state.enableOnlyAdminIntegrations}
@@ -145,13 +145,13 @@ export default class WebhookSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.service.overrideTitle'
-                            defaultMessage='Enable webhooks and slash commands to override usernames:'
+                            defaultMessage='Enable integrations to override usernames:'
                         />
                     }
                     helpText={
-                        <FormattedMessage
+                        <FormattedHTMLMessage
                             id='admin.service.overrideDescription'
-                            defaultMessage='When true, webhooks and slash commands will be allowed to change the username they are posting as. Note, combined with allowing icon overriding, this could open users up to phishing attacks.'
+                            defaultMessage='When true, webhooks, slash commands and other integrations, such as <a href="https://docs.mattermost.com/integrations/zapier.html" target="_blank">Zapier</a>, will be allowed to change the username they are posting as. Note: Combined with allowing integrations to override profile picture icons, users may be able to perform phishing attacks by attempting to impersonate other users.'
                         />
                     }
                     value={this.state.enablePostUsernameOverride}
@@ -162,13 +162,13 @@ export default class WebhookSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.service.iconTitle'
-                            defaultMessage='Enable webhooks and slash commands to override profile picture icons:'
+                            defaultMessage='Enable integrations to override profile picture icons:'
                         />
                     }
                     helpText={
-                        <FormattedMessage
+                        <FormattedHTMLMessage
                             id='admin.service.iconDescription'
-                            defaultMessage='When true, webhooks and slash commands will be allowed to change the icon they post with. Note, combined with allowing username overriding, this could open users up to phishing attacks.'
+                            defaultMessage='When true, webhooks, slash commands and other integrations, such as <a href="https://docs.mattermost.com/integrations/zapier.html" target="_blank">Zapier</a>, will be allowed to change the profile picture they post with. Note: Combined with allowing integrations to override usernames, users may be able to perform phishing attacks by attempting to impersonate other users.'
                         />
                     }
                     value={this.state.enablePostIconOverride}

@@ -47,20 +47,22 @@ func (me *msgProvider) DoCommand(c *Context, channelId string, message string) *
 	targetUser = strings.SplitN(message, " ", 2)[0]
 	targetUser = strings.TrimPrefix(targetUser, "@")
 
-	if profileList := <-Srv.Store.User().GetAllProfiles(); profileList.Err != nil {
+	// FIX ME
+	// Why isn't this selecting by username since we have that?
+	if profileList := <-Srv.Store.User().GetAll(); profileList.Err != nil {
 		c.Err = profileList.Err
 		return &model.CommandResponse{Text: c.T("api.command_msg.list.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	} else {
-		profileUsers := profileList.Data.(map[string]*model.User)
+		profileUsers := profileList.Data.([]*model.User)
 		for _, userProfile := range profileUsers {
-			//Don't let users open DMs with themselves. It probably won't work out well.
+			// Don't let users open DMs with themselves. It probably won't work out well.
 			if userProfile.Id == c.Session.UserId {
 				continue
 			}
 			if userProfile.Username == targetUser {
 				targetChannelId := ""
 
-				//Find the channel based on this user
+				// Find the channel based on this user
 				channelName := model.GetDMNameFromIds(c.Session.UserId, userProfile.Id)
 
 				if channel := <-Srv.Store.Channel().GetByName(c.TeamId, channelName); channel.Err != nil {
@@ -79,7 +81,7 @@ func (me *msgProvider) DoCommand(c *Context, channelId string, message string) *
 					targetChannelId = channel.Data.(*model.Channel).Id
 				}
 
-				makeDirectChannelVisible(c.TeamId, targetChannelId)
+				makeDirectChannelVisible(targetChannelId)
 				if len(parsedMessage) > 0 {
 					post := &model.Post{}
 					post.Message = parsedMessage

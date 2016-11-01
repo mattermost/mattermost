@@ -13,7 +13,8 @@ export default class InstalledIncomingWebhook extends React.Component {
         return {
             incomingWebhook: React.PropTypes.object.isRequired,
             onDelete: React.PropTypes.func.isRequired,
-            filter: React.PropTypes.string
+            filter: React.PropTypes.string,
+            creator: React.PropTypes.object.isRequired
         };
     }
 
@@ -108,7 +109,7 @@ export default class InstalledIncomingWebhook extends React.Component {
                                 id='installed_integrations.creation'
                                 defaultMessage='Created by {creator} on {createAt, date, full}'
                                 values={{
-                                    creator: Utils.displayUsername(incomingWebhook.user_id),
+                                    creator: this.props.creator.username,
                                     createAt: incomingWebhook.create_at
                                 }}
                             />

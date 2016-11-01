@@ -174,6 +174,31 @@ func (f *face) GlyphAdvance(r rune) (advance fixed.Int26_6, ok bool) {
 	return 0, false
 }
 
+// For subfont files, if reading the given file name fails, we try appending
+// ".n" where n is the log2 of the grayscale depth in bits (so at most 3) and
+// then work down to 0. This was done in Plan 9 when antialiased fonts were
+// introduced so that the 1-bit displays could keep using the 1-bit forms but
+// higher depth displays could use the antialiased forms.
+var subfontSuffixes = [...]string{
+	"",
+	".3",
+	".2",
+	".1",
+	".0",
+}
+
+func (f *face) readSubfontFile(name string) ([]byte, error) {
+	var firstErr error
+	for _, suffix := range subfontSuffixes {
+		if b, err := f.readFile(name + suffix); err == nil {
+			return b, nil
+		} else if firstErr == nil {
+			firstErr = err
+		}
+	}
+	return nil, firstErr
+}
+
 func (f *face) subface(r rune) (*subface, rune) {
 	// Fall back on U+FFFD if we can't find r.
 	for _, rr := range [2]rune{r, '\ufffd'} {
@@ -188,7 +213,7 @@ func (f *face) subface(r rune) (*subface, rune) {
 				continue
 			}
 			if x.subface == nil {
-				data, err := f.readFile(x.relFilename)
+				data, err := f.readSubfontFile(x.relFilename)
 				if err != nil {
 					log.Printf("plan9font: couldn't read subfont %q: %v", x.relFilename, err)
 					x.bad = true

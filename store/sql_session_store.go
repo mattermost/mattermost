@@ -32,11 +32,14 @@ func NewSqlSessionStore(sqlStore *SqlStore) SessionStore {
 func (me SqlSessionStore) CreateIndexesIfNotExists() {
 	me.CreateIndexIfNotExists("idx_sessions_user_id", "Sessions", "UserId")
 	me.CreateIndexIfNotExists("idx_sessions_token", "Sessions", "Token")
+	me.CreateIndexIfNotExists("idx_sessions_expires_at", "Sessions", "ExpiresAt")
+	me.CreateIndexIfNotExists("idx_sessions_create_at", "Sessions", "CreateAt")
+	me.CreateIndexIfNotExists("idx_sessions_last_activity_at", "Sessions", "LastActivityAt")
 }
 
 func (me SqlSessionStore) Save(session *model.Session) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -85,7 +88,7 @@ func (me SqlSessionStore) Save(session *model.Session) StoreChannel {
 
 func (me SqlSessionStore) Get(sessionIdOrToken string) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -123,7 +126,7 @@ func (me SqlSessionStore) Get(sessionIdOrToken string) StoreChannel {
 }
 
 func (me SqlSessionStore) GetSessions(userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 
@@ -165,8 +168,30 @@ func (me SqlSessionStore) GetSessions(userId string) StoreChannel {
 	return storeChannel
 }
 
+func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+
+		result := StoreResult{}
+		var sessions []*model.Session
+
+		if _, err := me.GetReplica().Select(&sessions, "SELECT * FROM Sessions WHERE UserId = :UserId AND ExpiresAt != 0 AND :ExpiresAt <= ExpiresAt AND DeviceId != ''", map[string]interface{}{"UserId": userId, "ExpiresAt": model.GetMillis()}); err != nil {
+			result.Err = model.NewLocAppError("SqlSessionStore.GetActiveSessionsWithDeviceIds", "store.sql_session.get_sessions.app_error", nil, err.Error())
+		} else {
+
+			result.Data = sessions
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (me SqlSessionStore) Remove(sessionIdOrToken string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -184,7 +209,7 @@ func (me SqlSessionStore) Remove(sessionIdOrToken string) StoreChannel {
 }
 
 func (me SqlSessionStore) RemoveAllSessions() StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -202,7 +227,7 @@ func (me SqlSessionStore) RemoveAllSessions() StoreChannel {
 }
 
 func (me SqlSessionStore) PermanentDeleteSessionsByUser(userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -220,7 +245,7 @@ func (me SqlSessionStore) PermanentDeleteSessionsByUser(userId string) StoreChan
 }
 
 func (me SqlSessionStore) CleanUpExpiredSessions(userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -239,7 +264,7 @@ func (me SqlSessionStore) CleanUpExpiredSessions(userId string) StoreChannel {
 }
 
 func (me SqlSessionStore) UpdateLastActivityAt(sessionId string, time int64) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -258,7 +283,7 @@ func (me SqlSessionStore) UpdateLastActivityAt(sessionId string, time int64) Sto
 }
 
 func (me SqlSessionStore) UpdateRoles(userId, roles string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -276,7 +301,7 @@ func (me SqlSessionStore) UpdateRoles(userId, roles string) StoreChannel {
 }
 
 func (me SqlSessionStore) UpdateDeviceId(id string, deviceId string, expiresAt int64) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -294,7 +319,7 @@ func (me SqlSessionStore) UpdateDeviceId(id string, deviceId string, expiresAt i
 }
 
 func (me SqlSessionStore) AnalyticsSessionCount() StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}

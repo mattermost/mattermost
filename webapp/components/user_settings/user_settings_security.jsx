@@ -56,13 +56,15 @@ export default class SecurityTab extends React.Component {
     }
 
     componentDidMount() {
-        Client.getAuthorizedApps(
-            (authorizedApps) => {
-                this.setState({authorizedApps, serverError: null}); //eslint-disable-line react/no-did-mount-set-state
-            },
-            (err) => {
-                this.setState({serverError: err.message}); //eslint-disable-line react/no-did-mount-set-state
-            });
+        if (global.mm_config.EnableOAuthServiceProvider === 'true') {
+            Client.getAuthorizedApps(
+                (authorizedApps) => {
+                    this.setState({authorizedApps, serverError: null}); //eslint-disable-line react/no-did-mount-set-state
+                },
+                (err) => {
+                    this.setState({serverError: err.message}); //eslint-disable-line react/no-did-mount-set-state
+                });
+        }
     }
 
     submitPassword(e) {
@@ -448,7 +450,7 @@ export default class SecurityTab extends React.Component {
                         <div className='setting-list__hint'>
                             <FormattedMessage
                                 id='user.settings.security.passwordLdapCantUpdate'
-                                defaultMessage='Login occurs through LDAP. Password cannot be updated.'
+                                defaultMessage='Login occurs through AD/LDAP. Password cannot be updated.'
                             />
                         </div>
                     </div>
@@ -520,7 +522,7 @@ export default class SecurityTab extends React.Component {
             describe = (
                 <FormattedMessage
                     id='user.settings.security.loginLdap'
-                    defaultMessage='Login done through LDAP'
+                    defaultMessage='Login done through AD/LDAP'
                 />
             );
         }
@@ -616,7 +618,7 @@ export default class SecurityTab extends React.Component {
                             >
                                 <FormattedMessage
                                     id='user.settings.security.switchLdap'
-                                    defaultMessage='Switch to using LDAP'
+                                    defaultMessage='Switch to using AD/LDAP'
                                 />
                             </Link>
                             <br/>
@@ -737,7 +739,7 @@ export default class SecurityTab extends React.Component {
             describe = (
                 <FormattedMessage
                     id='user.settings.security.ldap'
-                    defaultMessage='LDAP'
+                    defaultMessage='AD/LDAP'
                 />
             );
         } else if (this.props.user.auth_service === Constants.SAML_SERVICE) {
@@ -969,23 +971,23 @@ export default class SecurityTab extends React.Component {
                     <div className='divider-light'/>
                     {signInSection}
                     <div className='divider-dark'/>
-                    <br></br>
+                    <br/>
                     <ToggleModalButton
                         className='security-links theme'
                         dialogType={AccessHistoryModal}
                     >
-                        <i className='fa fa-clock-o'></i>
+                        <i className='fa fa-clock-o'/>
                         <FormattedMessage
                             id='user.settings.security.viewHistory'
                             defaultMessage='View Access History'
                         />
                     </ToggleModalButton>
-                    <b> </b>
+                    <b/>
                     <ToggleModalButton
                         className='security-links theme'
                         dialogType={ActivityLogModal}
                     >
-                        <i className='fa fa-clock-o'></i>
+                        <i className='fa fa-clock-o'/>
                         <FormattedMessage
                             id='user.settings.security.logoutActiveSessions'
                             defaultMessage='View and Logout of Active Sessions'

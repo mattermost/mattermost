@@ -8,26 +8,6 @@ import (
 	"testing"
 )
 
-func TestContext(t *testing.T) {
-	context := Context{}
-
-	context.IpAddress = "127.0.0.1"
-	context.Session.UserId = "5"
-
-	if !context.HasPermissionsToUser("5", "") {
-		t.Fatal("should have permissions")
-	}
-
-	if context.HasPermissionsToUser("6", "") {
-		t.Fatal("shouldn't have permissions")
-	}
-
-	context.Session.Roles = model.ROLE_SYSTEM_ADMIN
-	if !context.HasPermissionsToUser("6", "") {
-		t.Fatal("should have permissions")
-	}
-}
-
 func TestCache(t *testing.T) {
 	session := &model.Session{
 		Id:     model.NewId(),
@@ -48,4 +28,25 @@ func TestCache(t *testing.T) {
 	if len(rkeys) != len(keys)-1 {
 		t.Fatal("should have one less")
 	}
+}
+
+func TestSiteURL(t *testing.T) {
+	c := &Context{}
+
+	testCases := []struct {
+		url  string
+		want string
+	}{
+		{"http://mattermost.com/", "http://mattermost.com"},
+		{"http://mattermost.com", "http://mattermost.com"},
+	}
+
+	for _, tc := range testCases {
+		c.SetSiteURL(tc.url)
+
+		if c.siteURL != tc.want {
+			t.Fatalf("expected %s, got %s", tc.want, c.siteURL)
+		}
+	}
+
 }

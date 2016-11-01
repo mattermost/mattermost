@@ -16,6 +16,7 @@ type LdapInterface interface {
 	Syncronize() *model.AppError
 	StartLdapSyncJob()
 	SyncNow()
+	RunTest() *model.AppError
 	GetAllLdapUsers() ([]*model.User, *model.AppError)
 }
 

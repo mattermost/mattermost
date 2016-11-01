@@ -2,9 +2,6 @@
 // See License.txt for license information.
 
 import React from 'react';
-
-import * as Utils from 'utils/utils.jsx';
-
 import {FormattedMessage} from 'react-intl';
 
 export default class InstalledCommand extends React.Component {
@@ -13,7 +10,8 @@ export default class InstalledCommand extends React.Component {
             command: React.PropTypes.object.isRequired,
             onRegenToken: React.PropTypes.func.isRequired,
             onDelete: React.PropTypes.func.isRequired,
-            filter: React.PropTypes.string
+            filter: React.PropTypes.string,
+            creator: React.PropTypes.object.isRequired
         };
     }
 
@@ -113,7 +111,7 @@ export default class InstalledCommand extends React.Component {
                                 id='installed_integrations.creation'
                                 defaultMessage='Created by {creator} on {createAt, date, full}'
                                 values={{
-                                    creator: Utils.displayUsername(command.creator_id),
+                                    creator: this.props.creator.username,
                                     createAt: command.create_at
                                 }}
                             />

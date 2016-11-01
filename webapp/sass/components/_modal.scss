@@ -24,6 +24,10 @@
             min-height: 8em;
         }
 
+        .suggestion-list {
+            bottom: -149px;
+        }
+
         .suggestion-list__content {
             max-height: 150px;
         }
@@ -120,10 +124,14 @@
             margin-left: auto;
             margin-right: auto;
             max-width: 95%;
+
+            &.modal-xl {
+                width: 800px;
+            }
         }
 
         .modal-push-down {
-            margin-top: 5%;
+            margin-top: 60px;
         }
 
         .modal-next-bar {
@@ -227,7 +235,14 @@
 
         &.more-channel__modal {
             .modal-body {
-                padding: 0;
+                overflow-x: hidden;
+                padding: 10px 0 15px;
+            }
+
+            .channel-count {
+                @include opacity(.8);
+                float: right;
+                margin-top: 5px;
             }
         }
 
@@ -442,12 +457,12 @@
 
         .modal-body {
             overflow-x: hidden;
-            padding: 10px 0 20px;
+            padding: 10px 0 15px;
         }
 
         .filter-row {
             @include clearfix;
-            margin: 10px 0;
+            margin: 5px 0 10px;
         }
 
         .member-count {
@@ -485,11 +500,13 @@
 
 
 .status-wrapper {
+    display: inline-block;
+    height: 32px;
     position: relative;
 
     &:after {
         border-radius: 100%;
-        bottom: 4px;
+        bottom: -2px;
         content: '';
         display: block;
         height: 8px;
@@ -575,6 +592,7 @@
     .more-modal__row {
         border-bottom: 1px solid $light-gray;
         display: flex;
+        min-height: 65px;
         padding: 8px 15px;
     }
 
@@ -587,9 +605,16 @@
     }
 }
 
+.member-select__container {
+    position: absolute;
+    right: 15px;
+    top: 15px;
+}
+
 .filtered-user-list {
     display: flex;
     flex-direction: column;
+    width: 100%;
 
     .filter-row {
         flex-grow: 0;
@@ -599,5 +624,27 @@
     .user-list {
         flex-grow: 1;
         flex-shrink: 1;
+    }
+
+    .filter-button {
+        .btn {
+            height: 34px;
+        }
+    }
+
+    .filter-controls {
+        @include clearfix;
+        flex-grow: 0;
+        flex-shrink: 0;
+        padding: 1em 1.5em 0;
+
+        .filter-control__next {
+            float: right;
+        }
+    }
+
+    .filter-button {
+        margin-left: 0;
+        padding-left: 0;
     }
 }

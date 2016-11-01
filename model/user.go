@@ -15,7 +15,6 @@ import (
 )
 
 const (
-	ROLE_SYSTEM_ADMIN          = "system_admin"
 	USER_NOTIFY_ALL            = "all"
 	USER_NOTIFY_MENTION        = "mention"
 	USER_NOTIFY_NONE           = "none"
@@ -48,6 +47,7 @@ type User struct {
 	Locale             string    `json:"locale"`
 	MfaActive          bool      `json:"mfa_active,omitempty"`
 	MfaSecret          string    `json:"mfa_secret,omitempty"`
+	LastActivityAt     int64     `db:"-" json:"last_activity_at,omitempty"`
 }
 
 // IsValid validates the user and returns an error if it isn't configured
@@ -232,14 +232,15 @@ func (u *User) Sanitize(options map[string]bool) {
 	if len(options) != 0 && !options["passwordupdate"] {
 		u.LastPasswordUpdate = 0
 	}
+	if len(options) != 0 && !options["authservice"] {
+		u.AuthService = ""
+	}
 }
 
 func (u *User) ClearNonProfileFields() {
 	u.Password = ""
 	u.AuthData = new(string)
 	*u.AuthData = ""
-	u.AuthService = ""
-	u.MfaActive = false
 	u.MfaSecret = ""
 	u.EmailVerified = false
 	u.AllowMarketing = false
@@ -250,18 +251,8 @@ func (u *User) ClearNonProfileFields() {
 	u.FailedAttempts = 0
 }
 
-func (u *User) SanitizeProfile(isSystemAdmin, pwdupdate, fullname, email bool) {
-	options := map[string]bool{}
-	options["passwordupdate"] = pwdupdate
-
-	if isSystemAdmin {
-		options["fullname"] = true
-		options["email"] = true
-	} else {
-		options["fullname"] = fullname
-		options["email"] = email
-		u.ClearNonProfileFields()
-	}
+func (u *User) SanitizeProfile(options map[string]bool) {
+	u.ClearNonProfileFields()
 
 	u.Sanitize(options)
 }
@@ -328,9 +319,17 @@ func (u *User) GetDisplayNameForPreference(nameFormat string) string {
 	return displayName
 }
 
+func (u *User) GetRoles() []string {
+	return strings.Fields(u.Roles)
+}
+
+func (u *User) GetRawRoles() string {
+	return u.Roles
+}
+
 func IsValidUserRoles(userRoles string) bool {
 
-	roles := strings.Split(userRoles, " ")
+	roles := strings.Fields(userRoles)
 
 	for _, r := range roles {
 		if !isValidRole(r) {
@@ -338,19 +337,17 @@ func IsValidUserRoles(userRoles string) bool {
 		}
 	}
 
+	// Exclude just the system_admin role explicitly to prevent mistakes
+	if len(roles) == 1 && roles[0] == "system_admin" {
+		return false
+	}
+
 	return true
 }
 
-func isValidRole(role string) bool {
-	if role == "" {
-		return true
-	}
-
-	if role == ROLE_SYSTEM_ADMIN {
-		return true
-	}
-
-	return false
+func isValidRole(roleId string) bool {
+	_, ok := BuiltInRoles[roleId]
+	return ok
 }
 
 // Make sure you acually want to use this function. In context.go there are functions to check permissions
@@ -388,24 +385,6 @@ func (u *User) IsLDAPUser() bool {
 	return false
 }
 
-func (u *User) StatusAllowsPushNotification(status *Status) bool {
-	props := u.NotifyProps
-
-	if props["push"] == "none" {
-		return false
-	}
-
-	if pushStatus, ok := props["push_status"]; pushStatus == STATUS_ONLINE || !ok {
-		return true
-	} else if pushStatus == STATUS_AWAY && (status.Status == STATUS_AWAY || status.Status == STATUS_OFFLINE) {
-		return true
-	} else if pushStatus == STATUS_OFFLINE && status.Status == STATUS_OFFLINE {
-		return true
-	}
-
-	return false
-}
-
 // UserFromJson will decode the input and return a User
 func UserFromJson(data io.Reader) *User {
 	decoder := json.NewDecoder(data)
@@ -430,6 +409,26 @@ func UserMapToJson(u map[string]*User) string {
 func UserMapFromJson(data io.Reader) map[string]*User {
 	decoder := json.NewDecoder(data)
 	var users map[string]*User
+	err := decoder.Decode(&users)
+	if err == nil {
+		return users
+	} else {
+		return nil
+	}
+}
+
+func UserListToJson(u []*User) string {
+	b, err := json.Marshal(u)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
+func UserListFromJson(data io.Reader) []*User {
+	decoder := json.NewDecoder(data)
+	var users []*User
 	err := decoder.Decode(&users)
 	if err == nil {
 		return users

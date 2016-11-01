@@ -22,7 +22,7 @@ export default class AdminNavbarDropdown extends React.Component {
 
         this.state = {
             teams: TeamStore.getAll(),
-            teamMembers: TeamStore.getTeamMembers()
+            teamMembers: TeamStore.getMyTeamMembers()
         };
     }
 
@@ -45,7 +45,7 @@ export default class AdminNavbarDropdown extends React.Component {
     onTeamChange() {
         this.setState({
             teams: TeamStore.getAll(),
-            teamMembers: TeamStore.getTeamMembers()
+            teamMembers: TeamStore.getMyTeamMembers()
         });
     }
 
@@ -77,25 +77,25 @@ export default class AdminNavbarDropdown extends React.Component {
                 <li
                     key='teamDiv'
                     className='divider'
-                ></li>
+                />
             );
         }
 
         return (
-            <ul className='nav navbar-nav navbar-right'>
+            <ul className='nav navbar-nav navbar-right admin-navbar-dropdown'>
                 <li
                     ref='dropdown'
                     className='dropdown'
                 >
                     <a
                         href='#'
-                        className='dropdown-toggle'
+                        className='dropdown-toggle admin-navbar-dropdown__toggle'
                         data-toggle='dropdown'
                         role='button'
                         aria-expanded='false'
                     >
                         <span
-                            className='dropdown__icon'
+                            className='dropdown__icon admin-navbar-dropdown__icon'
                             dangerouslySetInnerHTML={{__html: Constants.MENU_ICON}}
                         />
                     </a>
@@ -118,7 +118,7 @@ export default class AdminNavbarDropdown extends React.Component {
                         <li
                             key='teamDiv'
                             className='divider'
-                        ></li>
+                        />
                         <li>
                             <a
                                 href='#'

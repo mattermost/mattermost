@@ -4,7 +4,6 @@
 package api
 
 import (
-	"bytes"
 	"crypto/tls"
 	b64 "encoding/base64"
 	"fmt"
@@ -32,7 +31,8 @@ func InitOAuth() {
 	BaseRoutes.OAuth.Handle("/allow", ApiUserRequired(allowOAuth)).Methods("GET")
 	BaseRoutes.OAuth.Handle("/authorized", ApiUserRequired(getAuthorizedApps)).Methods("GET")
 	BaseRoutes.OAuth.Handle("/delete", ApiUserRequired(deleteOAuthApp)).Methods("POST")
-	BaseRoutes.OAuth.Handle("/{id:[A-Za-z0-9]+}/deauthorize", AppHandlerIndependent(deauthorizeOAuthApp)).Methods("POST")
+	BaseRoutes.OAuth.Handle("/{id:[A-Za-z0-9]+}/deauthorize", ApiUserRequired(deauthorizeOAuthApp)).Methods("POST")
+	BaseRoutes.OAuth.Handle("/{id:[A-Za-z0-9]+}/regen_secret", ApiUserRequired(regenerateOAuthSecret)).Methods("POST")
 	BaseRoutes.OAuth.Handle("/{service:[A-Za-z0-9]+}/complete", AppHandlerIndependent(completeOAuth)).Methods("GET")
 	BaseRoutes.OAuth.Handle("/{service:[A-Za-z0-9]+}/login", AppHandlerIndependent(loginWithOAuth)).Methods("GET")
 	BaseRoutes.OAuth.Handle("/{service:[A-Za-z0-9]+}/signup", AppHandlerIndependent(signupWithOAuth)).Methods("GET")
@@ -53,12 +53,10 @@ func registerOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
-		if !c.IsSystemAdmin() {
-			c.Err = model.NewLocAppError("registerOAuthApp", "api.command.admin_only.app_error", nil, "")
-			c.Err.StatusCode = http.StatusForbidden
-			return
-		}
+	if !HasPermissionToContext(c, model.PERMISSION_MANAGE_OAUTH) {
+		c.Err = model.NewLocAppError("registerOAuthApp", "api.command.admin_only.app_error", nil, "")
+		c.Err.StatusCode = http.StatusForbidden
+		return
 	}
 
 	app := model.OAuthAppFromJson(r.Body)
@@ -94,20 +92,17 @@ func getOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	isSystemAdmin := c.IsSystemAdmin()
-
-	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
-		if !isSystemAdmin {
-			c.Err = model.NewLocAppError("getOAuthAppsByUser", "api.command.admin_only.app_error", nil, "")
-			c.Err.StatusCode = http.StatusForbidden
-			return
-		}
+	if !HasPermissionToContext(c, model.PERMISSION_MANAGE_OAUTH) {
+		c.Err = model.NewLocAppError("getOAuthApps", "api.command.admin_only.app_error", nil, "")
+		c.Err.StatusCode = http.StatusForbidden
+		return
 	}
 
 	var ochan store.StoreChannel
-	if isSystemAdmin {
+	if HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH) {
 		ochan = Srv.Store.OAuth().GetApps()
 	} else {
+		c.Err = nil
 		ochan = Srv.Store.OAuth().GetAppByUser(c.Session.UserId)
 	}
 
@@ -152,24 +147,26 @@ func allowOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("attempt")
 
-	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
 	responseData := map[string]string{}
 
 	responseType := r.URL.Query().Get("response_type")
 	if len(responseType) == 0 {
 		c.Err = model.NewLocAppError("allowOAuth", "api.oauth.allow_oauth.bad_response.app_error", nil, "")
+		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
 
 	clientId := r.URL.Query().Get("client_id")
 	if len(clientId) != 26 {
 		c.Err = model.NewLocAppError("allowOAuth", "api.oauth.allow_oauth.bad_client.app_error", nil, "")
+		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
 
 	redirectUri := r.URL.Query().Get("redirect_uri")
 	if len(redirectUri) == 0 {
 		c.Err = model.NewLocAppError("allowOAuth", "api.oauth.allow_oauth.bad_redirect.app_error", nil, "")
+		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
 
@@ -191,6 +188,7 @@ func allowOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !app.IsValidRedirectURL(redirectUri) {
 		c.LogAudit("fail - redirect_uri did not match registered callback")
 		c.Err = model.NewLocAppError("allowOAuth", "api.oauth.allow_oauth.redirect_callback.app_error", nil, "")
+		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
 
@@ -226,7 +224,6 @@ func allowOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("success")
 
 	responseData["redirect"] = redirectUri + "?code=" + url.QueryEscape(authData.Code) + "&state=" + url.QueryEscape(authData.State)
-	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(model.MapToJson(responseData)))
 }
 
@@ -288,6 +285,11 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	service := params["service"]
 
 	code := r.URL.Query().Get("code")
+	if len(code) == 0 {
+		c.Err = model.NewLocAppError("completeOAuth", "api.oauth.complete_oauth.missing_code.app_error", map[string]interface{}{"service": strings.Title(service)}, "URL: "+r.URL.String())
+		return
+	}
+
 	state := r.URL.Query().Get("state")
 
 	uri := c.GetSiteURL() + "/signup/" + service + "/complete"
@@ -429,7 +431,7 @@ func authorizeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 
 	w.Header().Set("Cache-Control", "no-cache, max-age=31556926, public")
-	http.ServeFile(w, r, utils.FindDir("webapp/dist")+"root.html")
+	http.ServeFile(w, r, utils.FindDir(model.CLIENT_DIR)+"root.html")
 }
 
 func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -774,12 +776,7 @@ func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser
 	if resp, err := client.Do(req); err != nil {
 		return nil, "", nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_failed.app_error", nil, err.Error())
 	} else {
-		// temporarily read the raw body for debugging purposes
-		respBody, _ = ioutil.ReadAll(resp.Body)
-
-		reader := bytes.NewReader(respBody)
-
-		ar = model.AccessResponseFromJson(reader)
+		ar = model.AccessResponseFromJson(resp.Body)
 		defer func() {
 			ioutil.ReadAll(resp.Body)
 			resp.Body.Close()
@@ -870,14 +867,10 @@ func deleteOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	isSystemAdmin := c.IsSystemAdmin()
-
-	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
-		if !isSystemAdmin {
-			c.Err = model.NewLocAppError("deleteOAuthApp", "api.command.admin_only.app_error", nil, "")
-			c.Err.StatusCode = http.StatusForbidden
-			return
-		}
+	if !HasPermissionToContext(c, model.PERMISSION_MANAGE_OAUTH) {
+		c.Err = model.NewLocAppError("deleteOAuthApp", "api.command.admin_only.app_error", nil, "")
+		c.Err.StatusCode = http.StatusForbidden
+		return
 	}
 
 	c.LogAudit("attempt")
@@ -894,7 +887,7 @@ func deleteOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = result.Err
 		return
 	} else {
-		if c.Session.UserId != result.Data.(*model.OAuthApp).CreatorId && !isSystemAdmin {
+		if c.Session.UserId != result.Data.(*model.OAuthApp).CreatorId && !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH) {
 			c.LogAudit("fail - inappropriate permissions")
 			c.Err = model.NewLocAppError("deleteOAuthApp", "api.oauth.delete.permissions.app_error", nil, "user_id="+c.Session.UserId)
 			return
@@ -953,6 +946,45 @@ func deauthorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("success")
 	ReturnStatusOK(w)
+}
+
+func regenerateOAuthSecret(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !utils.Cfg.ServiceSettings.EnableOAuthServiceProvider {
+		c.Err = model.NewLocAppError("registerOAuthApp", "api.oauth.register_oauth_app.turn_off.app_error", nil, "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
+
+	params := mux.Vars(r)
+	id := params["id"]
+
+	if len(id) == 0 {
+		c.SetInvalidParam("regenerateOAuthSecret", "id")
+		return
+	}
+
+	var app *model.OAuthApp
+	if result := <-Srv.Store.OAuth().GetApp(id); result.Err != nil {
+		c.Err = model.NewLocAppError("regenerateOAuthSecret", "api.oauth.allow_oauth.database.app_error", nil, "")
+		return
+	} else {
+		app = result.Data.(*model.OAuthApp)
+
+		if app.CreatorId != c.Session.UserId && !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH) {
+			c.Err = model.NewLocAppError("registerOAuthApp", "api.command.admin_only.app_error", nil, "")
+			c.Err.StatusCode = http.StatusForbidden
+			return
+		}
+
+		app.ClientSecret = model.NewId()
+		if update := <-Srv.Store.OAuth().UpdateApp(app); update.Err != nil {
+			c.Err = update.Err
+			return
+		}
+
+		w.Write([]byte(app.ToJson()))
+		return
+	}
 }
 
 func newSession(appName string, user *model.User) (*model.Session, *model.AppError) {

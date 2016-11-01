@@ -21,8 +21,9 @@ export default class RateSettings extends AdminSettings {
     }
 
     getConfigFromState(config) {
-        config.RateLimitSettings.EnableRateLimiter = this.state.enableRateLimiter;
+        config.RateLimitSettings.Enable = this.state.enable;
         config.RateLimitSettings.PerSec = this.parseIntNonZero(this.state.perSec);
+        config.RateLimitSettings.MaxBurst = this.parseIntNonZero(this.state.maxBurst);
         config.RateLimitSettings.MemoryStoreSize = this.parseIntNonZero(this.state.memoryStoreSize);
         config.RateLimitSettings.VaryByRemoteAddr = this.state.varyByRemoteAddr;
         config.RateLimitSettings.VaryByHeader = this.state.varyByHeader;
@@ -32,8 +33,9 @@ export default class RateSettings extends AdminSettings {
 
     getStateFromConfig(config) {
         return {
-            enableRateLimiter: config.RateLimitSettings.EnableRateLimiter,
+            enable: config.RateLimitSettings.Enable,
             perSec: config.RateLimitSettings.PerSec,
+            maxBurst: config.RateLimitSettings.MaxBurst,
             memoryStoreSize: config.RateLimitSettings.MemoryStoreSize,
             varyByRemoteAddr: config.RateLimitSettings.VaryByRemoteAddr,
             varyByHeader: config.RateLimitSettings.VaryByHeader
@@ -63,7 +65,7 @@ export default class RateSettings extends AdminSettings {
                     </div>
                 </div>
                 <BooleanSetting
-                    id='enableRateLimiter'
+                    id='enable'
                     label={
                         <FormattedMessage
                             id='admin.rate.enableLimiterTitle'
@@ -76,7 +78,7 @@ export default class RateSettings extends AdminSettings {
                             defaultMessage='When true, APIs are throttled at rates specified below.'
                         />
                     }
-                    value={this.state.enableRateLimiter}
+                    value={this.state.enable}
                     onChange={this.handleChange}
                 />
                 <TextSetting
@@ -96,7 +98,26 @@ export default class RateSettings extends AdminSettings {
                     }
                     value={this.state.perSec}
                     onChange={this.handleChange}
-                    disabled={!this.state.enableRateLimiter}
+                    disabled={!this.state.enable}
+                />
+                <TextSetting
+                    id='maxBurst'
+                    label={
+                        <FormattedMessage
+                            id='admin.rate.maxBurst'
+                            defaultMessage='Maximum Burst Size:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.rate.maxBurstExample', 'Ex "100"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.rate.maxBurstDescription'
+                            defaultMessage='Maximum number of requests allowed beyond the per second query limit.'
+                        />
+                    }
+                    value={this.state.maxBurst}
+                    onChange={this.handleChange}
+                    disabled={!this.state.enable}
                 />
                 <TextSetting
                     id='memoryStoreSize'
@@ -115,7 +136,7 @@ export default class RateSettings extends AdminSettings {
                     }
                     value={this.state.memoryStoreSize}
                     onChange={this.handleChange}
-                    disabled={!this.state.enableRateLimiter}
+                    disabled={!this.state.enable}
                 />
                 <BooleanSetting
                     id='varyByRemoteAddr'
@@ -133,7 +154,7 @@ export default class RateSettings extends AdminSettings {
                     }
                     value={this.state.varyByRemoteAddr}
                     onChange={this.handleChange}
-                    disabled={!this.state.enableRateLimiter}
+                    disabled={!this.state.enable}
                 />
                 <TextSetting
                     id='varyByHeader'
@@ -152,7 +173,7 @@ export default class RateSettings extends AdminSettings {
                     }
                     value={this.state.varyByHeader}
                     onChange={this.handleChange}
-                    disabled={!this.state.enableRateLimiter || this.state.varyByRemoteAddr}
+                    disabled={!this.state.enable || this.state.varyByRemoteAddr}
                 />
             </SettingsGroup>
         );

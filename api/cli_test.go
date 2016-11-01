@@ -68,7 +68,7 @@ func TestCliCreateUserWithTeam(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	profiles := th.SystemAdminClient.Must(th.SystemAdminClient.GetProfiles(th.SystemAdminTeam.Id, "")).Data.(map[string]*model.User)
+	profiles := th.SystemAdminClient.Must(th.SystemAdminClient.GetProfilesInTeam(th.SystemAdminTeam.Id, 0, 1000, "")).Data.(map[string]*model.User)
 
 	found := false
 
@@ -118,7 +118,7 @@ func TestCliAssignRole(t *testing.T) {
 
 	th := Setup().InitBasic()
 
-	cmd := exec.Command("bash", "-c", `go run ../mattermost.go -assign_role -email="`+th.BasicUser.Email+`" -role="system_admin"`)
+	cmd := exec.Command("bash", "-c", `go run ../mattermost.go -assign_role -email="`+th.BasicUser.Email+`" -role="system_user system_admin"`)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Log(string(output))
@@ -129,7 +129,7 @@ func TestCliAssignRole(t *testing.T) {
 		t.Fatal()
 	} else {
 		user := result.Data.(*model.User)
-		if user.Roles != "system_admin" {
+		if user.Roles != "system_user system_admin" {
 			t.Fatal()
 		}
 	}
@@ -318,7 +318,7 @@ func TestCliJoinTeam(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	profiles := th.SystemAdminClient.Must(th.SystemAdminClient.GetProfiles(th.SystemAdminTeam.Id, "")).Data.(map[string]*model.User)
+	profiles := th.SystemAdminClient.Must(th.SystemAdminClient.GetProfilesInTeam(th.SystemAdminTeam.Id, 0, 1000, "")).Data.(map[string]*model.User)
 
 	found := false
 
@@ -348,7 +348,7 @@ func TestCliLeaveTeam(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	profiles := th.BasicClient.Must(th.BasicClient.GetProfiles(th.BasicTeam.Id, "")).Data.(map[string]*model.User)
+	profiles := th.BasicClient.Must(th.BasicClient.GetProfilesInTeam(th.BasicTeam.Id, 0, 1000, "")).Data.(map[string]*model.User)
 
 	found := false
 
@@ -359,8 +359,8 @@ func TestCliLeaveTeam(t *testing.T) {
 
 	}
 
-	if !found {
-		t.Fatal("profile still should be in team even if deleted")
+	if found {
+		t.Fatal("profile should not be on team")
 	}
 
 	if result := <-Srv.Store.Team().GetTeamsByUserId(th.BasicUser.Id); result.Err != nil {
@@ -413,6 +413,30 @@ func TestCliCreateChannel(t *testing.T) {
 	cmd2 := exec.Command("bash", "-c", `go run ../mattermost.go -create_channel -email="`+th.BasicUser.Email+`" -team_name="`+th.BasicTeam.Name+`" -channel_type="P" -channel_name="`+name+`"`)
 	output2, err2 := cmd2.CombinedOutput()
 	if err2 == nil {
+		t.Log(string(output2))
+		t.Fatal()
+	}
+}
+
+func TestCliMakeUserActiveAndInactive(t *testing.T) {
+	if disableCliTests {
+		return
+	}
+
+	th := Setup().InitBasic()
+
+	// first inactivate the user
+	cmd := exec.Command("bash", "-c", `go run ../mattermost.go -activate_user -inactive -email="`+th.BasicUser.Email+`"`)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Log(string(output))
+		t.Fatal()
+	}
+
+	// activate the inactive user
+	cmd2 := exec.Command("bash", "-c", `go run ../mattermost.go -activate_user -email="`+th.BasicUser.Email+`"`)
+	output2, err2 := cmd2.CombinedOutput()
+	if err2 != nil {
 		t.Log(string(output2))
 		t.Fatal()
 	}

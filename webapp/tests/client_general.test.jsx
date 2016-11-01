@@ -43,43 +43,5 @@ describe('Client.General', function() {
             done();
         });
     });
-
-    it('File.getFileInfo', function(done) {
-        TestHelper.initBasic(() => {
-            TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
-
-            TestHelper.basicClient().getFileInfo(
-                `/${TestHelper.basicChannel().id}/${TestHelper.basicUser().id}/filename.txt`,
-                function(data) {
-                    assert.equal(data.filename, 'filename.txt');
-                    done();
-                },
-                function(err) {
-                    done(new Error(err.message));
-                }
-            );
-        });
-    });
-
-    it('File.getPublicLink', function(done) {
-        TestHelper.initBasic(() => {
-            TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
-            var data = {};
-            data.channel_id = TestHelper.basicChannel().id;
-            data.user_id = TestHelper.basicUser().id;
-            data.filename = `/${TestHelper.basicChannel().id}/${TestHelper.basicUser().id}/filename.txt`;
-
-            TestHelper.basicClient().getPublicLink(
-                data,
-                function() {
-                    done(new Error('not enabled'));
-                },
-                function(err) {
-                    assert.equal(err.id, 'api.file.get_public_link.disabled.app_error');
-                    done();
-                }
-            );
-        });
-    });
 });
 

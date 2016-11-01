@@ -139,8 +139,9 @@
 }
 
 .pdf-max-pages {
-    bottom: 0;
     background: $white;
+    bottom: 0;
+    display: block;
     left: 0;
     position: relative;
     width: 100%;
@@ -165,6 +166,10 @@
     margin: 5px 10px 5px 0;
     position: relative;
     width: 240px;
+
+    &--placeholder {
+        visibility: hidden;
+    }
 }
 
 .post-image__load {

@@ -5,7 +5,7 @@ import ChannelStore from 'stores/channel_store.jsx';
 import WebClient from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
-const ytRegex = /(?:http|https):\/\/(?:www\.)?(?:(?:youtube\.com\/(?:(?:v\/)|(\/u\/\w\/)|(?:(?:watch|embed\/watch)(?:\/|.*v=))|(?:embed\/)|(?:user\/[^\/]+\/u\/[0-9]\/)))|(?:youtu\.be\/))([^#&\?]*)/;
+const ytRegex = /(?:http|https):\/\/(?:www\.|m\.)?(?:(?:youtube\.com\/(?:(?:v\/)|(?:(?:watch|embed\/watch)(?:\/|.*v=))|(?:embed\/)|(?:user\/[^\/]+\/u\/[0-9]\/)))|(?:youtu\.be\/))([^#&\?]*)/;
 
 import React from 'react';
 
@@ -42,7 +42,7 @@ export default class YoutubeVideo extends React.Component {
         const link = props.link;
 
         const match = link.trim().match(ytRegex);
-        if (!match || match[2].length !== 11) {
+        if (!match || match[1].length !== 11) {
             return;
         }
 
@@ -51,7 +51,7 @@ export default class YoutubeVideo extends React.Component {
         }
 
         this.setState({
-            videoId: match[2],
+            videoId: match[1],
             time: this.handleYoutubeTime(link)
         });
     }

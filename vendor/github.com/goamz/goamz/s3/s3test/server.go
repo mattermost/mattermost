@@ -497,6 +497,8 @@ type objectResource struct {
 	object  *object // may be nil.
 }
 
+const awsTimeFormat = "Mon, 2 Jan 2006 15:04:05 GMT"
+
 // GET on an object gets the contents of the object.
 // http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTObjectGET.html
 func (objr objectResource) get(a *action) interface{} {
@@ -531,7 +533,7 @@ func (objr objectResource) get(a *action) interface{} {
 	// TODO x-amz-request-id
 	h.Set("Content-Length", fmt.Sprint(len(obj.data)))
 	h.Set("ETag", hex.EncodeToString(obj.checksum))
-	h.Set("Last-Modified", obj.mtime.Format(time.RFC1123))
+	h.Set("Last-Modified", obj.mtime.Format(awsTimeFormat))
 	if a.req.Method == "HEAD" {
 		return nil
 	}

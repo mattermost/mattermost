@@ -22,6 +22,9 @@ export default class PasswordSettings extends AdminSettings {
 
         this.getSampleErrorMsg = this.getSampleErrorMsg.bind(this);
 
+        this.handlePasswordLengthChange = this.handlePasswordLengthChange.bind(this);
+        this.handleCheckboxChange = this.handleCheckboxChange.bind(this);
+
         this.state = Object.assign(this.state, {
             passwordMinimumLength: props.config.PasswordSettings.MinimumLength,
             passwordLowercase: props.config.PasswordSettings.Lowercase,
@@ -54,15 +57,11 @@ export default class PasswordSettings extends AdminSettings {
                     id={sampleErrorMsgId}
                     default='Your password must be at least {min} characters.'
                     values={{
-                        min: props.config.PasswordSettings.MinimumLength
+                        min: (this.state.passwordMinimumLength || Constants.MIN_PASSWORD_LENGTH)
                     }}
                 />
             );
         }
-    }
-
-    componentWillUpdate() {
-        this.sampleErrorMsg = this.getSampleErrorMsg();
     }
 
     getConfigFromState(config) {
@@ -96,7 +95,7 @@ export default class PasswordSettings extends AdminSettings {
         };
     }
 
-    getSampleErrorMsg() {
+    getSampleErrorMsg(minLength) {
         if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.PasswordRequirements === 'true') {
             if (this.props.config.PasswordSettings.MinimumLength > Constants.MAX_PASSWORD_LENGTH || this.props.config.PasswordSettings.MinimumLength < Constants.MIN_PASSWORD_LENGTH) {
                 return (
@@ -106,7 +105,6 @@ export default class PasswordSettings extends AdminSettings {
                     />
                 );
             }
-
             let sampleErrorMsgId = 'user.settings.security.passwordError';
             if (this.refs.lowercase.checked) {
                 sampleErrorMsgId = sampleErrorMsgId + 'Lowercase';
@@ -125,13 +123,23 @@ export default class PasswordSettings extends AdminSettings {
                     id={sampleErrorMsgId}
                     default='Your password must be at least {min} characters.'
                     values={{
-                        min: this.props.config.PasswordSettings.MinimumLength
+                        min: (minLength || Constants.MIN_PASSWORD_LENGTH)
                     }}
                 />
             );
         }
 
         return null;
+    }
+
+    handlePasswordLengthChange(id, value) {
+        this.sampleErrorMsg = this.getSampleErrorMsg(value);
+        this.handleChange(id, value);
+    }
+
+    handleCheckboxChange(id, value) {
+        this.sampleErrorMsg = this.getSampleErrorMsg(this.state.passwordMinimumLength);
+        this.handleChange(id, value);
     }
 
     renderTitle() {
@@ -187,13 +195,13 @@ export default class PasswordSettings extends AdminSettings {
                                 id='admin.password.minimumLengthDescription'
                                 defaultMessage='Minimum number of characters required for a valid password. Must be a whole number greater than or equal to {min} and less than or equal to {max}.'
                                 values={{
-                                    min: Constants.MIN_PASSWORD_LENGTH,
+                                    min: (this.state.passwordMinimumLength || Constants.MIN_PASSWORD_LENGTH),
                                     max: Constants.MAX_PASSWORD_LENGTH
                                 }}
                             />
                         }
                         value={this.state.passwordMinimumLength}
-                        onChange={this.handleChange}
+                        onChange={this.handlePasswordLengthChange}
                     />
                     <Setting
                         label={
@@ -210,7 +218,7 @@ export default class PasswordSettings extends AdminSettings {
                                     ref='lowercase'
                                     defaultChecked={this.state.passwordLowercase}
                                     name='admin.password.lowercase'
-                                    onChange={this.handleChange}
+                                    onChange={this.handleCheckboxChange}
                                 />
                                 <FormattedMessage
                                     id='admin.password.lowercase'
@@ -225,7 +233,7 @@ export default class PasswordSettings extends AdminSettings {
                                     ref='uppercase'
                                     defaultChecked={this.state.passwordUppercase}
                                     name='admin.password.uppercase'
-                                    onChange={this.handleChange}
+                                    onChange={this.handleCheckboxChange}
                                 />
                                 <FormattedMessage
                                     id='admin.password.uppercase'
@@ -240,7 +248,7 @@ export default class PasswordSettings extends AdminSettings {
                                     ref='number'
                                     defaultChecked={this.state.passwordNumber}
                                     name='admin.password.number'
-                                    onChange={this.handleChange}
+                                    onChange={this.handleCheckboxChange}
                                 />
                                 <FormattedMessage
                                     id='admin.password.number'
@@ -255,7 +263,7 @@ export default class PasswordSettings extends AdminSettings {
                                     ref='symbol'
                                     defaultChecked={this.state.passwordSymbol}
                                     name='admin.password.symbol'
-                                    onChange={this.handleChange}
+                                    onChange={this.handleCheckboxChange}
                                 />
                                 <FormattedMessage
                                     id='admin.password.symbol'

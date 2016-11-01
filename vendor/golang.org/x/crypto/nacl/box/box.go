@@ -13,15 +13,16 @@ example, by using nonce 1 for the first message, nonce 2 for the second
 message, etc. Nonces are long enough that randomly generated nonces have
 negligible risk of collision.
 
-This package is interoperable with NaCl: http://nacl.cr.yp.to/box.html.
+This package is interoperable with NaCl: https://nacl.cr.yp.to/box.html.
 */
 package box // import "golang.org/x/crypto/nacl/box"
 
 import (
+	"io"
+
 	"golang.org/x/crypto/curve25519"
 	"golang.org/x/crypto/nacl/secretbox"
 	"golang.org/x/crypto/salsa20/salsa"
-	"io"
 )
 
 // Overhead is the number of bytes of overhead when boxing a message.

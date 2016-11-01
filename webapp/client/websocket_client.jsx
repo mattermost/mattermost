@@ -12,12 +12,13 @@ export default class WebSocketClient {
         this.connectFailCount = 0;
         this.eventCallback = null;
         this.responseCallbacks = {};
+        this.firstConnectCallback = null;
         this.reconnectCallback = null;
         this.errorCallback = null;
         this.closeCallback = null;
     }
 
-    initialize(connectionUrl) {
+    initialize(connectionUrl, token) {
         if (this.conn) {
             return;
         }
@@ -29,12 +30,17 @@ export default class WebSocketClient {
         this.conn = new WebSocket(connectionUrl);
 
         this.conn.onopen = () => {
-            if (this.reconnectCallback) {
-                this.reconnectCallback();
+            if (token) {
+                this.sendMessage('authentication_challenge', {token});
             }
 
             if (this.connectFailCount > 0) {
                 console.log('websocket re-established connection'); //eslint-disable-line no-console
+                if (this.reconnectCallback) {
+                    this.reconnectCallback();
+                }
+            } else if (this.firstConnectCallback) {
+                this.firstConnectCallback();
             }
 
             this.connectFailCount = 0;
@@ -66,7 +72,7 @@ export default class WebSocketClient {
 
             setTimeout(
                 () => {
-                    this.initialize(connectionUrl);
+                    this.initialize(connectionUrl, token);
                 },
                 retryTime
             );
@@ -102,6 +108,10 @@ export default class WebSocketClient {
 
     setEventCallback(callback) {
         this.eventCallback = callback;
+    }
+
+    setFirstConnectCallback(callback) {
+        this.firstConnectCallback = callback;
     }
 
     setReconnectCallback(callback) {
@@ -146,15 +156,21 @@ export default class WebSocketClient {
         }
     }
 
-    userTyping(channelId, parentId) {
+    userTyping(channelId, parentId, callback) {
         const data = {};
         data.channel_id = channelId;
         data.parent_id = parentId;
 
-        this.sendMessage('user_typing', data);
+        this.sendMessage('user_typing', data, callback);
     }
 
     getStatuses(callback) {
         this.sendMessage('get_statuses', null, callback);
+    }
+
+    getStatusesByIds(userIds, callback) {
+        const data = {};
+        data.user_ids = userIds;
+        this.sendMessage('get_statuses_by_ids', data, callback);
     }
 }

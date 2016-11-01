@@ -1,16 +1,25 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import AdminStore from 'stores/admin_store.jsx';
-import Client from 'client/web_client.jsx';
-import FormError from 'components/form_error.jsx';
-import LoadingScreen from '../loading_screen.jsx';
-import UserItem from './user_item.jsx';
+import SearchableUserList from 'components/searchable_user_list.jsx';
+import AdminTeamMembersDropdown from './admin_team_members_dropdown.jsx';
 import ResetPasswordModal from './reset_password_modal.jsx';
+import FormError from 'components/form_error.jsx';
 
-import {FormattedMessage} from 'react-intl';
+import AdminStore from 'stores/admin_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
+import UserStore from 'stores/user_store.jsx';
+
+import {searchUsers, loadProfilesAndTeamMembers, loadTeamMembersForProfilesList} from 'actions/user_actions.jsx';
+import {getTeamStats, getUser} from 'utils/async_client.jsx';
+
+import Constants from 'utils/constants.jsx';
+import * as Utils from 'utils/utils.jsx';
 
 import React from 'react';
+import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
+
+const USERS_PER_PAGE = 50;
 
 export default class UserList extends React.Component {
     static get propTypes() {
@@ -23,34 +32,50 @@ export default class UserList extends React.Component {
         super(props);
 
         this.onAllTeamsChange = this.onAllTeamsChange.bind(this);
+        this.onStatsChange = this.onStatsChange.bind(this);
+        this.onUsersChange = this.onUsersChange.bind(this);
+        this.onTeamChange = this.onTeamChange.bind(this);
 
-        this.getTeamProfiles = this.getTeamProfiles.bind(this);
-        this.getCurrentTeamProfiles = this.getCurrentTeamProfiles.bind(this);
         this.doPasswordReset = this.doPasswordReset.bind(this);
         this.doPasswordResetDismiss = this.doPasswordResetDismiss.bind(this);
         this.doPasswordResetSubmit = this.doPasswordResetSubmit.bind(this);
-        this.getTeamMemberForUser = this.getTeamMemberForUser.bind(this);
+        this.nextPage = this.nextPage.bind(this);
+        this.search = this.search.bind(this);
+        this.loadComplete = this.loadComplete.bind(this);
+
+        const stats = TeamStore.getStats(this.props.params.team);
 
         this.state = {
             team: AdminStore.getTeam(this.props.params.team),
-            users: null,
-            teamMembers: null,
+            users: [],
+            teamMembers: TeamStore.getMembersInTeam(this.props.params.team),
+            total: stats.member_count,
             serverError: null,
             showPasswordModal: false,
+            loading: true,
             user: null
         };
     }
 
     componentDidMount() {
-        this.getCurrentTeamProfiles();
-
         AdminStore.addAllTeamsChangeListener(this.onAllTeamsChange);
+        UserStore.addChangeListener(this.onUsersChange);
+        UserStore.addInTeamChangeListener(this.onUsersChange);
+        TeamStore.addChangeListener(this.onTeamChange);
+        TeamStore.addStatsChangeListener(this.onStatsChange);
+
+        loadProfilesAndTeamMembers(0, Constants.PROFILE_CHUNK_SIZE, this.props.params.team, this.loadComplete);
+        getTeamStats(this.props.params.team);
     }
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.params.team !== this.props.params.team) {
+            const stats = TeamStore.getStats(nextProps.params.team);
             this.setState({
-                team: AdminStore.getTeam(nextProps.params.team)
+                team: AdminStore.getTeam(nextProps.params.team),
+                users: [],
+                teamMembers: TeamStore.getMembersInTeam(nextProps.params.team),
+                total: stats.member_count
             });
 
             this.getTeamProfiles(nextProps.params.team);
@@ -59,6 +84,14 @@ export default class UserList extends React.Component {
 
     componentWillUnmount() {
         AdminStore.removeAllTeamsChangeListener(this.onAllTeamsChange);
+        UserStore.removeChangeListener(this.onUsersChange);
+        UserStore.removeInTeamChangeListener(this.onUsersChange);
+        TeamStore.removeChangeListener(this.onTeamChange);
+        TeamStore.removeStatsChangeListener(this.onStatsChange);
+    }
+
+    loadComplete() {
+        this.setState({loading: false});
     }
 
     onAllTeamsChange() {
@@ -67,59 +100,21 @@ export default class UserList extends React.Component {
         });
     }
 
-    getCurrentTeamProfiles() {
-        this.getTeamProfiles(this.props.params.team);
+    onStatsChange() {
+        const stats = TeamStore.getStats(this.props.params.team);
+        this.setState({total: stats.member_count});
     }
 
-    getTeamProfiles(teamId) {
-        Client.getTeamMembers(
-            teamId,
-            (data) => {
-                this.setState({
-                    teamMembers: data
-                });
-            },
-            (err) => {
-                this.setState({
-                    teamMembers: null,
-                    serverError: err.message
-                });
-            }
-        );
+    onUsersChange() {
+        this.setState({users: UserStore.getProfileListInTeam(this.props.params.team)});
+    }
 
-        Client.getProfilesForTeam(
-            teamId,
-            (users) => {
-                var memberList = [];
-                for (var id in users) {
-                    if (users.hasOwnProperty(id)) {
-                        memberList.push(users[id]);
-                    }
-                }
+    onTeamChange() {
+        this.setState({teamMembers: TeamStore.getMembersInTeam(this.props.params.team)});
+    }
 
-                memberList.sort((a, b) => {
-                    if (a.username < b.username) {
-                        return -1;
-                    }
-
-                    if (a.username > b.username) {
-                        return 1;
-                    }
-
-                    return 0;
-                });
-
-                this.setState({
-                    users: memberList
-                });
-            },
-            (err) => {
-                this.setState({
-                    users: null,
-                    serverError: err.message
-                });
-            }
-        );
+    nextPage(page) {
+        loadProfilesAndTeamMembers((page + 1) * USERS_PER_PAGE, USERS_PER_PAGE, this.props.params.team);
     }
 
     doPasswordReset(user) {
@@ -136,28 +131,29 @@ export default class UserList extends React.Component {
         });
     }
 
-    doPasswordResetSubmit() {
-        this.getCurrentTeamProfiles();
+    doPasswordResetSubmit(user) {
+        getUser(user.id);
         this.setState({
             showPasswordModal: false,
             user: null
         });
     }
 
-    getTeamMemberForUser(userId) {
-        if (this.state.teamMembers) {
-            for (const index in this.state.teamMembers) {
-                if (this.state.teamMembers.hasOwnProperty(index)) {
-                    var teamMember = this.state.teamMembers[index];
-
-                    if (teamMember.user_id === userId) {
-                        return teamMember;
-                    }
-                }
-            }
+    search(term) {
+        if (term === '') {
+            this.setState({search: false, users: UserStore.getProfileListInTeam(this.props.params.team)});
+            return;
         }
 
-        return null;
+        searchUsers(
+            term,
+            this.props.params.team,
+            {},
+            (users) => {
+                this.setState({loading: true, search: true, users});
+                loadTeamMembersForProfilesList(users, this.props.params.team, this.loadComplete);
+            }
+        );
     }
 
     render() {
@@ -165,41 +161,72 @@ export default class UserList extends React.Component {
             return null;
         }
 
-        if (this.state.users == null || this.state.teamMembers == null) {
-            return (
-                <div className='wrapper--fixed'>
-                    <h3>
-                        <FormattedMessage
-                            id='admin.userList.title'
-                            defaultMessage='Users for {team}'
-                            values={{
-                                team: this.state.team.name
-                            }}
-                        />
-                    </h3>
-                    <FormError error={this.state.serverError}/>
-                    <LoadingScreen/>
-                </div>
-            );
-        }
+        const teamMembers = this.state.teamMembers;
+        const users = this.state.users;
+        const actionUserProps = {};
+        const extraInfo = {};
+        const mfaEnabled = global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.MFA === 'true' && global.window.mm_config.EnableMultifactorAuthentication === 'true';
 
-        var memberList = this.state.users.map((user) => {
-            var teamMember = this.getTeamMemberForUser(user.id);
+        let usersToDisplay;
+        if (this.state.loading) {
+            usersToDisplay = null;
+        } else {
+            usersToDisplay = [];
 
-            if (!teamMember || teamMember.delete_at > 0) {
-                return null;
+            for (let i = 0; i < users.length; i++) {
+                const user = users[i];
+
+                if (teamMembers[user.id]) {
+                    usersToDisplay.push(user);
+                    actionUserProps[user.id] = {
+                        teamMember: teamMembers[user.id]
+                    };
+
+                    const info = [];
+
+                    if (user.auth_service) {
+                        const service = (user.auth_service === Constants.LDAP_SERVICE || user.auth_service === Constants.SAML_SERVICE) ? user.auth_service.toUpperCase() : Utils.toTitleCase(user.auth_service);
+                        info.push(
+                            <FormattedHTMLMessage
+                                id='admin.user_item.authServiceNotEmail'
+                                defaultMessage='<strong>Sign-in Method:</strong> {service}'
+                                values={{
+                                    service
+                                }}
+                            />
+                        );
+                    } else {
+                        info.push(
+                            <FormattedHTMLMessage
+                                id='admin.user_item.authServiceEmail'
+                                defaultMessage='<strong>Sign-in Method:</strong> Email'
+                            />
+                        );
+                    }
+
+                    if (mfaEnabled) {
+                        info.push(', ');
+                        if (user.mfa_active) {
+                            info.push(
+                                <FormattedHTMLMessage
+                                    id='admin.user_item.mfaYes'
+                                    defaultMessage='<strong>MFA</strong>: Yes'
+                                />
+                            );
+                        } else {
+                            info.push(
+                                <FormattedHTMLMessage
+                                    id='admin.user_item.mfaNo'
+                                    defaultMessage='<strong>MFA</strong>: No'
+                                />
+                            );
+                        }
+                    }
+
+                    extraInfo[user.id] = info;
+                }
             }
-
-            return (
-                <UserItem
-                    team={this.state.team}
-                    key={'user_' + user.id}
-                    user={user}
-                    teamMember={teamMember}
-                    refreshProfiles={this.getCurrentTeamProfiles}
-                    doPasswordReset={this.doPasswordReset}
-                />);
-        });
+        }
 
         return (
             <div className='wrapper--fixed'>
@@ -209,7 +236,7 @@ export default class UserList extends React.Component {
                         defaultMessage='Users for {team} ({count})'
                         values={{
                             team: this.state.team.name,
-                            count: this.state.users.length
+                            count: this.state.total
                         }}
                     />
                 </h3>
@@ -219,7 +246,19 @@ export default class UserList extends React.Component {
                     role='form'
                 >
                     <div className='more-modal__list member-list-holder'>
-                        {memberList}
+                        <SearchableUserList
+                            users={usersToDisplay}
+                            usersPerPage={USERS_PER_PAGE}
+                            total={this.state.total}
+                            extraInfo={extraInfo}
+                            nextPage={this.nextPage}
+                            search={this.search}
+                            actions={[AdminTeamMembersDropdown]}
+                            actionProps={{
+                                doPasswordReset: this.doPasswordReset
+                            }}
+                            actionUserProps={actionUserProps}
+                        />
                     </div>
                 </form>
                 <ResetPasswordModal

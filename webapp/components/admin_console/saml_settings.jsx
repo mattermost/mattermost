@@ -292,6 +292,14 @@ export default class SamlSettings extends AdminSettings {
 
         return (
             <SettingsGroup>
+                <div className='banner'>
+                    <div className='banner__content'>
+                        <FormattedMessage
+                            id='admin.saml.bannerDesc'
+                            defaultMessage='If a user attribute changes on the SAML server it will be updated the next time the user enters their credentials to log in to Mattermost. This includes if a user is made inactive or removed from a SAML Identity Provider. Remote logout with SAML servers is considered in a future release.'
+                        />
+                    </div>
+                </div>
                 <BooleanSetting
                     id='enable'
                     label={
@@ -455,7 +463,7 @@ export default class SamlSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.saml.firstnameAttrDesc'
-                            defaultMessage='The attribute in the SAML Assertion that will be used to populate the first name of users in Mattermost.'
+                            defaultMessage='(Optional) The attribute in the SAML Assertion that will be used to populate the first name of users in Mattermost.'
                         />
                     }
                     value={this.state.firstNameAttribute}
@@ -474,7 +482,7 @@ export default class SamlSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.saml.lastnameAttrDesc'
-                            defaultMessage='The attribute in the SAML Assertion that will be used to populate the last name of users in Mattermost.'
+                            defaultMessage='(Optional) The attribute in the SAML Assertion that will be used to populate the last name of users in Mattermost.'
                         />
                     }
                     value={this.state.lastNameAttribute}

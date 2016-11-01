@@ -4,6 +4,7 @@
 import $ from 'jquery';
 import LoadingScreen from './loading_screen.jsx';
 import NewChannelFlow from './new_channel_flow.jsx';
+import FilteredChannelList from './filtered_channel_list.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
@@ -18,17 +19,7 @@ import {FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
 
 import React from 'react';
-import ReactDOM from 'react-dom';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
-
-import loadingGif from 'images/load.gif';
-
-function getStateFromStores() {
-    return {
-        channels: ChannelStore.getMoreAll(),
-        serverError: null
-    };
-}
 
 export default class MoreChannels extends React.Component {
     constructor(props) {
@@ -37,100 +28,80 @@ export default class MoreChannels extends React.Component {
         this.onListenerChange = this.onListenerChange.bind(this);
         this.handleJoin = this.handleJoin.bind(this);
         this.handleNewChannel = this.handleNewChannel.bind(this);
-        this.createChannelRow = this.createChannelRow.bind(this);
 
         this.shouldComponentUpdate = PureRenderMixin.shouldComponentUpdate.bind(this);
 
-        var initState = getStateFromStores();
-        initState.channelType = '';
-        initState.joiningChannel = '';
-        initState.showNewChannelModal = false;
-        this.state = initState;
+        this.state = {
+            channelType: '',
+            showNewChannelModal: false,
+            channels: null,
+            serverError: null
+        };
     }
+
     componentDidMount() {
-        ChannelStore.addMoreChangeListener(this.onListenerChange);
-        $(ReactDOM.findDOMNode(this.refs.modal)).on('shown.bs.modal', () => {
+        const self = this;
+        ChannelStore.addChangeListener(this.onListenerChange);
+
+        $(this.refs.modal).on('shown.bs.modal', () => {
             AsyncClient.getMoreChannels(true);
         });
 
-        var self = this;
-        $(ReactDOM.findDOMNode(this.refs.modal)).on('show.bs.modal', (e) => {
-            var button = e.relatedTarget;
+        $(this.refs.modal).on('show.bs.modal', (e) => {
+            const button = e.relatedTarget;
             self.setState({channelType: $(button).attr('data-channeltype')});
         });
     }
+
     componentWillUnmount() {
-        ChannelStore.removeMoreChangeListener(this.onListenerChange);
+        ChannelStore.removeChangeListener(this.onListenerChange);
     }
+
+    getStateFromStores() {
+        return {
+            channels: ChannelStore.getMoreAll(),
+            serverError: null
+        };
+    }
+
     onListenerChange() {
-        var newState = getStateFromStores();
+        const newState = this.getStateFromStores();
         if (!Utils.areObjectsEqual(newState.channels, this.state.channels)) {
             this.setState(newState);
         }
     }
-    handleJoin(channel) {
-        this.setState({joiningChannel: channel.id});
+
+    handleJoin(channel, done) {
         GlobalActions.emitJoinChannelEvent(
             channel,
             () => {
-                $(ReactDOM.findDOMNode(this.refs.modal)).modal('hide');
+                $(this.refs.modal).modal('hide');
                 browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + channel.name);
-                this.setState({joiningChannel: ''});
+                if (done) {
+                    done();
+                }
             },
             (err) => {
-                this.setState({joiningChannel: '', serverError: err.message});
+                this.setState({serverError: err.message});
+                if (done) {
+                    done();
+                }
             }
         );
     }
+
     handleNewChannel() {
-        $(ReactDOM.findDOMNode(this.refs.modal)).modal('hide');
+        $(this.refs.modal).modal('hide');
         this.setState({showNewChannelModal: true});
     }
-    createChannelRow(channel) {
-        let joinButton;
-        if (this.state.joiningChannel === channel.id) {
-            joinButton = (
-                <img
-                    className='join-channel-loading-gif'
-                    src={loadingGif}
-                />
-            );
-        } else {
-            joinButton = (
-                <button
-                    onClick={this.handleJoin.bind(self, channel)}
-                    className='btn btn-primary'
-                >
-                    <FormattedMessage
-                        id='more_channels.join'
-                        defaultMessage='Join'
-                    />
-                </button>
-            );
-        }
 
-        return (
-            <div
-                className='more-modal__row'
-                key={channel.id}
-            >
-                <div className='more-modal__details'>
-                    <p className='more-modal__name'>{channel.display_name}</p>
-                    <p className='more-modal__description'>{channel.purpose}</p>
-                </div>
-                <div className='more-modal__actions'>
-                    {joinButton}
-                </div>
-            </div>
-        );
-    }
     render() {
         let maxHeight = 1000;
         if (Utils.windowHeight() <= 1200) {
             maxHeight = Utils.windowHeight() - 300;
         }
 
-        var serverError;
+        let serverError;
         if (this.state.serverError) {
             serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
         }
@@ -170,31 +141,29 @@ export default class MoreChannels extends React.Component {
             }
         }
 
-        var moreChannels;
-
-        if (this.state.channels != null) {
-            var channels = this.state.channels;
-            if (channels.loading) {
-                moreChannels = <LoadingScreen/>;
-            } else if (channels.length) {
-                moreChannels = (
-                    <div className='more-modal__list'>
-                        {channels.map(this.createChannelRow)}
-                    </div>
-                );
-            } else {
-                moreChannels = (
-                    <div className='no-channel-message'>
-                        <p className='primary-message'>
-                            <FormattedMessage
-                                id='more_channels.noMore'
-                                defaultMessage='No more channels to join'
-                            />
-                        </p>
-                        {createChannelHelpText}
-                    </div>
-                );
-            }
+        let moreChannels;
+        const channels = this.state.channels;
+        if (channels == null) {
+            moreChannels = <LoadingScreen/>;
+        } else if (channels.length) {
+            moreChannels = (
+                <FilteredChannelList
+                    channels={channels}
+                    handleJoin={this.handleJoin}
+                />
+            );
+        } else {
+            moreChannels = (
+                <div className='no-channel-message'>
+                    <p className='primary-message'>
+                        <FormattedMessage
+                            id='more_channels.noMore'
+                            defaultMessage='No more channels to join'
+                        />
+                    </p>
+                    {createChannelHelpText}
+                </div>
+            );
         }
 
         return (

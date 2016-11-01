@@ -4,7 +4,7 @@
     border-right: $border-gray;
     height: 100%;
     left: 0;
-    position: absolute;
+    position: fixed;
     width: 220px;
     z-index: 5;
 
@@ -117,6 +117,7 @@
             > a {
                 border-radius: 0;
                 line-height: 1.5;
+                outline: none;
                 overflow: hidden;
                 padding: 3px 10px 3px 25px;
                 text-overflow: ellipsis;

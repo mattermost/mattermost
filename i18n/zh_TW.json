@@ -48,10 +48,6 @@
     "translation": "九月"
   },
   {
-    "id": "api.admin.add_certificate.array.app_error",
-    "translation": "要求中的 'certificate' 欄位為空陣列"
-  },
-  {
     "id": "api.admin.add_certificate.no_file.app_error",
     "translation": "要求中的 'certificate' 欄位沒有檔案"
   },
@@ -148,6 +144,10 @@
     "translation": "樣板 %v 產生時遇到錯誤 err=%v"
   },
   {
+    "id": "api.auth.unable_to_get_user.app_error",
+    "translation": "無法取得使用者以檢查權限。"
+  },
+  {
     "id": "api.channel.add_member.added",
     "translation": "%v 由 %v 邀請加入頻道"
   },
@@ -202,6 +202,10 @@
   {
     "id": "api.channel.create_channel.invalid_character.app_error",
     "translation": "在非直接訊息的頻道不可使用字元'__'作為頻道名稱"
+  },
+  {
+    "id": "api.channel.create_channel.max_channel_limit.app_error",
+    "translation": "Cannot create more than {{.MaxChannelsPerTeam}} channels for current team"
   },
   {
     "id": "api.channel.create_default_channels.off_topic",
@@ -352,6 +356,10 @@
     "translation": "已對預設頻道 {{.Channel}} 嘗試執行無效的更新"
   },
   {
+    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
+    "translation": "無法計算未讀訊息數量：user_id=%v, channel_id=%v, err=%v"
+  },
+  {
     "id": "api.command.admin_only.app_error",
     "translation": "整合功能被限定為只有管理員可以設定。"
   },
@@ -430,6 +438,18 @@
   {
     "id": "api.command.regen.app_error",
     "translation": "沒有適當的權限重新產生命令 Token"
+  },
+  {
+    "id": "api.command_away.desc",
+    "translation": "將狀態設定為「離開」"
+  },
+  {
+    "id": "api.command_away.name",
+    "translation": "離開"
+  },
+  {
+    "id": "api.command_away.success",
+    "translation": "現在狀態為「離開」"
   },
   {
     "id": "api.command_collapse.desc",
@@ -564,12 +584,36 @@
     "translation": "已傳訊給使用者。"
   },
   {
+    "id": "api.command_offline.desc",
+    "translation": "將狀態設定為「離線」"
+  },
+  {
+    "id": "api.command_offline.name",
+    "translation": "離線"
+  },
+  {
+    "id": "api.command_offline.success",
+    "translation": "現在狀態為「離線」"
+  },
+  {
+    "id": "api.command_online.desc",
+    "translation": "將狀態設定為「上線」"
+  },
+  {
+    "id": "api.command_online.name",
+    "translation": "上線"
+  },
+  {
+    "id": "api.command_online.success",
+    "translation": "現在狀態為「上線」"
+  },
+  {
     "id": "api.command_shortcuts.browser",
-    "translation": "#### Built-in Browser Commands\n\nALT+LEFT: Previous channel in your history\nALT+RIGHT: Next channel in your history\nCTRL+PLUS: Increase font size (zoom in)\nCTRL+MINUS: Decrease font size (zoom out)\nSHIFT+UP (in input field): Highlight text to the previous line\nSHIFT+DOWN (in input field): Highlight text to the next line\nSHIFT+ENTER (in input field): Create a new line\n"
+    "translation": "#### 瀏覽器內建命令\n\nALT+LEFT：瀏覽紀錄的前一個頻道\nALT+RIGHT：瀏覽紀錄的下一個頻道\nCTRL+PLUS：增加字體尺寸(放大)\nCTRL+MINUS：減少字體尺寸(縮小)\nSHIFT+UP (在輸入欄)：標記現在到上一行同位置之間的文字\nSHIFT+DOWN (在輸入欄)：標記現在到下一行同位置之間的文字\nSHIFT+ENTER (在輸入欄)：新增一行\n"
   },
   {
     "id": "api.command_shortcuts.browser_mac",
-    "translation": "#### Built-in Browser Commands\n\nCMD+[: Previous channel in your history\nCMD+]: Next channel in your history\nCMD+PLUS: Increase font size (zoom in)\nCMD+MINUS: Decrease font size (zoom out)\nSHIFT+UP (in input field): Highlight text to the previous line\nSHIFT+DOWN (in input field): Highlight text to the next line\nSHIFT+ENTER (in input field): Create a new line\n"
+    "translation": "#### 瀏覽器內建命令\n\nCMD+[：瀏覽紀錄的前一個頻道\nCMD+]：瀏覽紀錄的下一個頻道\nCMD+PLUS：增加字體尺寸(放大)\nCMD+MINUS：減少字體尺寸(縮小)\nSHIFT+UP (在輸入欄)：標記現在到上一行同位置之間的文字\nSHIFT+DOWN (在輸入欄)：標記現在到下一行同位置之間的文字\nSHIFT+ENTER (在輸入欄)：新增一行\n"
   },
   {
     "id": "api.command_shortcuts.desc",
@@ -577,19 +621,19 @@
   },
   {
     "id": "api.command_shortcuts.files",
-    "translation": "#### Files\n\nCTRL+U: Upload file(s)\n\n"
+    "translation": "#### 檔案\n\nCTRL+U：上傳檔案\n\n"
   },
   {
     "id": "api.command_shortcuts.files_mac",
-    "translation": "#### Files\n\nCMD+U: Upload file(s)\n\n"
+    "translation": "#### 檔案\n\nCMD+U：上傳檔案\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs",
-    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCTRL+UP (in empty input field): Reprint the previous message or slash command you entered\nCTRL+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
+    "translation": "#### 訊息\n\nALT+[按訊息]：設定訊息為目前頻道中最舊的未讀訊息\nESC：將當前頻道所有訊息設為已讀\nCMD+UP (在空的輸入欄)：顯示上一個您輸入的訊息或是斜線命令\nCMD+DOWN (在空的輸入欄)：顯示下一個您輸入的訊息或是斜線命令\nUP (在空的輸入欄)：編輯當前頻道您的上一個訊息\n@[文字]+TAB：自動完成以[文字]起始的@使用者帳號\n:[文字]+TAB：自動完成以[文字]起始的顏文字\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs_mac",
-    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCMD+UP (in empty input field): Reprint the previous message or slash command you entered\nCMD+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
+    "translation": "#### 訊息\n\nALT+[按訊息]：設定訊息為目前頻道中最舊的未讀訊息\nESC：將當前頻道所有訊息設為已讀\nCMD+UP (在空的輸入欄)：顯示上一個您輸入的訊息或是斜線命令\nCMD+DOWN (在空的輸入欄)：顯示下一個您輸入的訊息或是斜線命令\nUP (在空的輸入欄)：編輯當前頻道您的上一個訊息\n@[文字]+TAB：自動完成以[文字]起始的@使用者帳號\n:[文字]+TAB：自動完成以[文字]起始的顏文字\n\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -597,11 +641,11 @@
   },
   {
     "id": "api.command_shortcuts.nav",
-    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in left hand sidebar\nALT+DOWN: Next channel or direct message in left hand sidebar\nALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\nCTRL+K: Open a quick channel switcher dialog\nCTRL+SHIFT+A: Open account settings\nCTRL+SHIFT+M: Open recent mentions\n\n"
+    "translation": "### 鍵盤快捷鍵\n\n#### 瀏覽\n\nALT+UP：側邊欄裡面上一個頻道或直接訊息\nALT+DOWN：側邊欄裡面下一個頻道或直接訊息\nALT+SHIFT+UP：側邊欄裡面上一個有未讀訊息的頻道或直接訊息\nALT+SHIFT+DOWN：側邊欄裡面下一個有未讀訊息的頻道或直接訊息\nCTRL+K：開啟快速切換頻道對話框\nCTRL+SHIFT+A：開啟帳號設定\nCTRL+SHIFT+M：開啟最近提及您的訊息\n\n"
   },
   {
     "id": "api.command_shortcuts.nav_mac",
-    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in left hand sidebar\nALT+DOWN: Next channel or direct message in left hand sidebar\nALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\nCMD+K: Open a quick channel switcher dialog\nCMD+SHIFT+A: Open account settings\nCMD+SHIFT+M: Open recent mentions\n\n"
+    "translation": "### 鍵盤快捷鍵\n\n#### 瀏覽\n\nALT+UP：側邊欄裡面上一個頻道或直接訊息\nALT+DOWN：側邊欄裡面下一個頻道或直接訊息\nALT+SHIFT+UP：側邊欄裡面上一個有未讀訊息的頻道或直接訊息\nALT+SHIFT+DOWN：側邊欄裡面下一個有未讀訊息的頻道或直接訊息\nCMD+K：開啟快速切換頻道對話框\nCMD+SHIFT+A：開啟帳號設定\nCMD+SHIFT+M：開啟最近提及您的訊息\n\n"
   },
   {
     "id": "api.command_shrug.desc",
@@ -774,18 +818,6 @@
     "translation": "無法建立繪文字。圖片長寬皆須小於等於128像素。"
   },
   {
-    "id": "api.file.file_upload.exceeds",
-    "translation": "檔案大小超出最大影像限制。"
-  },
-  {
-    "id": "api.file.file_upload.exceeds",
-    "translation": "檔案大小超出最大影像限制。"
-  },
-  {
-    "id": "api.file.get_file.not_found.app_error",
-    "translation": "找不到檔案。"
-  },
-  {
     "id": "api.file.get_file.public_disabled.app_error",
     "translation": "公開連結已被系統管理員停用"
   },
@@ -794,32 +826,116 @@
     "translation": "此公開連結不是有效連結"
   },
   {
+    "id": "api.file.get_file_preview.no_thumbnail.app_error",
+    "translation": "檔案沒有預覽圖像"
+  },
+  {
+    "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
+    "translation": "檔案沒有縮圖"
+  },
+  {
+    "id": "api.file.get_info_for_request.no_post.app_error",
+    "translation": "無法取得檔案資料。檔案必須附加在可以被當前使用者讀取的發文。"
+  },
+  {
+    "id": "api.file.get_info_for_request.storage.app_error",
+    "translation": "無法取得檔案資料。尚未設定圖片儲存位置。"
+  },
+  {
+    "id": "api.file.get_public_file_old.storage.app_error",
+    "translation": "無法取得檔案。尚未設定圖片儲存位置。"
+  },
+  {
+    "id": "api.file.get_public_file_old.storage.app_error",
+    "translation": "無法取得檔案。尚未設定圖片儲存位置。"
+  },
+  {
     "id": "api.file.get_public_link.disabled.app_error",
     "translation": "公開連結已停用"
   },
   {
+    "id": "api.file.get_public_link.no_post.app_error",
+    "translation": "無法取得檔案公開連結。檔案必須附加在可以被當前使用者讀取的發文。"
+  },
+  {
     "id": "api.file.handle_images_forget.decode.error",
-    "translation": "無法解碼影像 channelId=%v userId=%v filename=%v err=%v"
+    "translation": "無法解碼圖片：err=%v"
   },
   {
     "id": "api.file.handle_images_forget.encode_jpeg.error",
-    "translation": "無法將圖片編碼成 jpeg channelId=%v userId=%v filename=%v err=%v"
+    "translation": "無法將圖片編碼成 JPEG：path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.encode_preview.error",
-    "translation": "無法將圖片編碼成預覽 jpg channelId=%v userId=%v filename=%v err=%v"
+    "translation": "無法將圖片編碼成預覽 JPEG：path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.upload_preview.error",
-    "translation": "無法上傳預覽 channelId=%v userId=%v filename=%v err=%v"
+    "translation": "無法上傳預覽檔：path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.upload_thumb.error",
-    "translation": "無法上傳縮圖 channelId=%v userId=%v filename=%v err=%v"
+    "translation": "無法上傳縮圖：path=%v err=%v"
   },
   {
     "id": "api.file.init.debug",
     "translation": "正在初始化檔案 API 路徑"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.channel.app_error",
+    "translation": "將文章轉移成使用 FileInfos 時無法取得頻道：post_id=%v, channel_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.file_not_found.warn",
+    "translation": "將文章轉移成使用 FileInfos 時無法搜尋到檔案：post_id=%v, filename=%v, path=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.get_file_infos_again.warn",
+    "translation": "轉移成使用 FileInfos 後無法取得文章的 FileInfos 頻道：post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.get_post_again.warn",
+    "translation": "將文章轉移成使用 FileInfos 時無法取得文章：post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.info.app_error",
+    "translation": "將文章轉移成使用 FileInfos 時無法解碼檔案資料：post_id=%v, filename=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.migrating_post.debug",
+    "translation": "轉移文章為使用 FileInfos：post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.mismatched_filename.warn",
+    "translation": "將文章轉移成使用 FileInfos 時發現不尋常的檔案名稱：post_id=%v, channel_id=%v, user_id=%v, filename=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.no_filenames.warn",
+    "translation": "將文章轉移成使用 FileInfos 時發現欄位 Filenames 為空：post_id=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.not_migrating_post.debug",
+    "translation": "文章以轉移至使用 FileInfos：post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.save_file_info.warn",
+    "translation": "將文章轉移成使用 FileInfos 時無法儲存檔案：post_id=%v, file_id=%v, path=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.save_post.warn",
+    "translation": "將文章轉移成使用 FileInfos 時無法儲存檔案：post_id=%v, file_id=%v, filename=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.team_id.app_error",
+    "translation": "無法尋找團隊給 FileInfos 使用：post_id=%v, filenames=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.teams.app_error",
+    "translation": "將文章轉移成使用 FileInfos 時無法取得團隊：post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.unexpected_filename.error",
+    "translation": "將文章轉移成使用 FileInfos 時無法解碼檔案名稱：post_id=%v, filename=%v"
   },
   {
     "id": "api.file.move_file.configured.app_error",
@@ -864,10 +980,6 @@
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "從本地儲存讀取時遇到錯誤"
-  },
-  {
-    "id": "api.file.upload_file.image.app_error",
-    "translation": "無法上傳圖片檔案。"
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -998,6 +1110,10 @@
     "translation": "response_type、client_id 或 redirect_uri 中缺少一個以上"
   },
   {
+    "id": "api.oauth.complete_oauth.missing_code.app_error",
+    "translation": "服務提供者 {{.service}} 在重導向網址中沒有提供授權碼。\n\n若使用 [Google Apps](https://docs.mattermost.com/deployment/sso-google.html)，請確定管理員有啟用 Google+ API。\n\n若使用 [Office 365](https://docs.mattermost.com/deployment/sso-office.html)，請確定微軟雲端服務的組織管理員有啟用 Mattermost 應用程式。\n\n若使用 [GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html)，請確定有根據設定指示完成設定。\n\n如果重新確認過上面的文件且還是有設定上的問題，請至[障礙排除論壇](https://forum.mattermost.org/c/general/trouble-shoot)發文，我們很樂意在那邊為您排除設定上的問題。"
+  },
+  {
     "id": "api.oauth.delete.permissions.app_error",
     "translation": "權限不足以刪除 OAuth2 應用程式"
   },
@@ -1066,6 +1182,10 @@
     "translation": "正在初始化 OAuth API 路徑"
   },
   {
+    "id": "api.oauth.regenerate_secret.app_error",
+    "translation": "權限不足以重新產生 OAuth2 應用程式密碼"
+  },
+  {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
     "translation": "系統管理員已關閉 OAuth2 服務提供者。"
   },
@@ -1102,8 +1222,16 @@
     "translation": "無法傳送通知給未加入此頻道的{{.Username}}。"
   },
   {
+    "id": "api.post.create_post.attach_files.error",
+    "translation": "附加檔案於文章時遭遇錯誤：post_id=%s, user_id=%s, file_ids=%v, err=%v"
+  },
+  {
     "id": "api.post.create_post.bad_filename.error",
     "translation": "無效的檔名，filename=%v"
+  },
+  {
+    "id": "api.post.create_post.can_not_post_to_deleted.error",
+    "translation": "無法發文至已刪除的頻道。"
   },
   {
     "id": "api.post.create_post.channel_root_id.app_error",
@@ -1127,11 +1255,15 @@
   },
   {
     "id": "api.post.delete_flagged_post.app_error.warn",
-    "translation": "Unable to delete flagged post preference when deleting post, err=%v"
+    "translation": "刪除發文時無法刪除發文的標記設定：err=%v"
   },
   {
     "id": "api.post.delete_post.permissions.app_error",
     "translation": "您沒有適當的權限"
+  },
+  {
+    "id": "api.post.delete_post_files.app_error.warn",
+    "translation": "刪除文章的檔案時遭遇錯誤：post_id=%v, err=%v"
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
@@ -1139,6 +1271,10 @@
       "one": "已送出 {{.Count}} 個檔案：{{.Filenames}}已送出 {{.Count}} 個檔案：{{.Filenames}}",
       "other": ""
     }
+  },
+  {
+    "id": "api.post.get_message_for_notification.get_files.error",
+    "translation": "為通知訊息取得檔案於文章時遭遇錯誤：post_id=%v, err=%v"
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
@@ -1216,8 +1352,20 @@
     "translation": "無法取得頻道成員資訊 user_id=%v"
   },
   {
+    "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
+    "translation": "正在清除至 %v 的推播通知，channel_id %v"
+  },
+  {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
     "translation": "在發送通知時取得註解文章失敗 root_post_id=%v err=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.files.error",
+    "translation": "無法為貼文通知取得檔案： post_id=%v, err=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.get_teams.error",
+    "translation": "發送跨團隊直接訊移時無法取得團隊：user_id=%v, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.mention_body",
@@ -1253,11 +1401,11 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.debug",
-    "translation": "正在傳送推播通知至 %v，來自於 '%v'"
+    "translation": "正在傳送推播通知至 %v，訊息為 '%v'"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
-    "translation": "推播傳送失敗 notificationid=%v, err=%v"
+    "translation": "無法發送推播 device_id=%v, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.send.error",
@@ -1344,6 +1492,14 @@
     "translation": "張貼速率限制沒有正確的設定，請使用 VaryByHeader 並停用 VaryByRemoteAddr"
   },
   {
+    "id": "api.server.start_server.rate_limiting_memory_store",
+    "translation": "無法初始化張貼速率限制所需的記憶體儲存。請確定 MemoryStoreSize 的設定值。"
+  },
+  {
+    "id": "api.server.start_server.rate_limiting_rate_limiter",
+    "translation": "無法初始化張貼速率限制。"
+  },
+  {
     "id": "api.server.start_server.starting.critical",
     "translation": "啟動伺服器時遇到錯誤 err:%v"
   },
@@ -1384,8 +1540,16 @@
     "translation": "已與頻道 {{.DisplayName}} 合併\r\n"
   },
   {
+    "id": "api.slackimport.slack_add_posts.attach_files.error",
+    "translation": "附加檔案於文章時遭遇錯誤：post_id=%s, file_ids=%v, err=%v"
+  },
+  {
     "id": "api.slackimport.slack_add_posts.bot.warn",
     "translation": "Slack 機器人的訊息還未被匯入"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.msg_no_comment.debug",
+    "translation": "檔案註解未定義"
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_usr.debug",
@@ -1394,6 +1558,22 @@
   {
     "id": "api.slackimport.slack_add_posts.unsupported.warn",
     "translation": "不支援的文章類型: %v, %v"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.upload_file_not_found.warn",
+    "translation": "由 Slack 匯出的檔案上傳訊息中找不到檔案：檔案 ID {{.Field}}"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.upload_file_not_in_json.warn",
+    "translation": "由於匯出資料中沒有 \"file\" 欄位，無法為上傳訊息匯入檔案。"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.upload_file_open_failed.warn",
+    "translation": "無法從匯出檔中開啟上傳檔案：檔案 ID {{.Field}}, 錯誤 {{.Error}}"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.upload_file_upload_failed.warn",
+    "translation": "為上傳訊息上傳檔案失敗：檔案 ID {{.Field}}, 錯誤 {{.Error}}"
   },
   {
     "id": "api.slackimport.slack_add_posts.user_no_exists.debug",
@@ -1412,12 +1592,24 @@
     "translation": "電子郵件，密碼： {{.Email}}，{{.Password}}\r\n"
   },
   {
+    "id": "api.slackimport.slack_add_users.merge_existing",
+    "translation": "將使用者與現有帳號合併：{{.Email}}，{{.Username}}\r\n"
+  },
+  {
     "id": "api.slackimport.slack_add_users.unable_import",
     "translation": "無法匯入使用者： {{.Username}}\r\n"
   },
   {
+    "id": "api.slackimport.slack_convert_channel_mentions.compile_regexp_failed.warn",
+    "translation": "無法為 Slack 頻道 {{.ChannelD}} {{.ChannelName}} 編譯匹配!頻道的正規表示式"
+  },
+  {
     "id": "api.slackimport.slack_convert_timestamp.bad.warn",
     "translation": "發現錯誤的時間戳記"
+  },
+  {
+    "id": "api.slackimport.slack_convert_user_mentions.compile_regexp_failed.warn",
+    "translation": "無法為 Slack 使用者 {{.UserID}} {{.Username}} 編譯匹配@提及的正規表示式"
   },
   {
     "id": "api.slackimport.slack_import.log",
@@ -1430,6 +1622,10 @@
   {
     "id": "api.slackimport.slack_import.note2",
     "translation": "- 目前尚未支援 Slack bot 張貼訊息。\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.note3",
+    "translation": "- 伺服器紀錄也許有紀錄到額外的錯誤。\r\n"
   },
   {
     "id": "api.slackimport.slack_import.notes",
@@ -1446,6 +1642,14 @@
   {
     "id": "api.slackimport.slack_import.zip.app_error",
     "translation": "無法開啟 zip 檔案"
+  },
+  {
+    "id": "api.slackimport.slack_parse_channels.error",
+    "translation": "解析 Slack 頻道時發生錯誤。匯入功能有可能照樣運作。"
+  },
+  {
+    "id": "api.slackimport.slack_parse_posts.error",
+    "translation": "解析 Slack 訊息時發生錯誤。匯入功能有可能照樣運作。"
   },
   {
     "id": "api.status.init.debug",
@@ -1576,6 +1780,10 @@
     "translation": "使用電子郵件註冊團隊已被停用。"
   },
   {
+    "id": "api.team.update_member_roles.not_a_member",
+    "translation": "指定的使用者不是指定團隊的成員。"
+  },
+  {
     "id": "api.team.update_team.permissions.app_error",
     "translation": "您沒有適當的權限"
   },
@@ -1684,8 +1892,12 @@
     "translation": "頻道：{{.ChannelName}}<br>{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
-    "id": "api.templates.post_subject",
-    "translation": "於 {{.Month}} {{.Day}}, {{.Year}} {{.TeamDisplayName}} 上的 {{.SubjectText}}"
+    "id": "api.templates.post_subject_in_channel",
+    "translation": "{{.SubjectText}}，在{{.TeamDisplayName}}團隊，發於 {{.Year}} {{.Month}} {{.Day}}"
+  },
+  {
+    "id": "api.templates.post_subject_in_direct_message",
+    "translation": "{{.SubjectText}}，來自於{{.TeamDisplayName}}團隊的{{.SenderDisplayName}}，發於 {{.Year}} {{.Month}} {{.Day}}"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -1729,7 +1941,7 @@
   },
   {
     "id": "api.templates.singin_change_email.body.info",
-    "translation": "您已經變更了 {{ .TeamURL }} 上 {{.TeamDisplayName}} 的登入方式為 {{.Method}}。<br>如果這項變更不是您做的，請聯繫系統管理員。"
+    "translation": "您已經將 {{ .SiteName }} 上的登入方式變更為 {{.Method}}。<br>如果這項變更不是您做的，請聯繫系統管理員。"
   },
   {
     "id": "api.templates.singin_change_email.subject",
@@ -1937,7 +2149,7 @@
   },
   {
     "id": "api.user.email_to_ldap.not_available.app_error",
-    "translation": "本機不支援 LDAP"
+    "translation": "此伺服器不支援 AD/LDAP"
   },
   {
     "id": "api.user.generate_mfa_qr.not_available.app_error",
@@ -1957,11 +2169,11 @@
   },
   {
     "id": "api.user.ldap_to_email.not_available.app_error",
-    "translation": "本機不支援 LDAP"
+    "translation": "此伺服器不支援 AD/LDAP"
   },
   {
     "id": "api.user.ldap_to_email.not_ldap_account.app_error",
-    "translation": "此使用者帳號並沒有使用 LDAP"
+    "translation": "此使用者帳號並沒有使用 AD/LDAP"
   },
   {
     "id": "api.user.login.blank_pwd.app_error",
@@ -2005,7 +2217,7 @@
   },
   {
     "id": "api.user.login_ldap.disabled.app_error",
-    "translation": "本機未啟用 LDAP"
+    "translation": "此伺服器未啟用 AD/LDAP"
   },
   {
     "id": "api.user.login_ldap.need_id.app_error",
@@ -2013,7 +2225,7 @@
   },
   {
     "id": "api.user.login_ldap.not_available.app_error",
-    "translation": "本機未安裝 LDAP"
+    "translation": "此伺服器不支援 AD/LDAP"
   },
   {
     "id": "api.user.oauth_to_email.context.app_error",
@@ -2097,7 +2309,7 @@
   },
   {
     "id": "api.user.update_active.no_deactivate_ldap.app_error",
-    "translation": "不能變更 LDAP 帳號的啟用狀態。請變更 LDAP 伺服器上對應的帳號狀態。"
+    "translation": "不能變更 AD/LDAP 帳號的啟用狀態。請變更 AD/LDAP 伺服器上對應的帳號狀態。"
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -2196,8 +2408,12 @@
     "translation": "錯誤的驗證電子郵件連結。"
   },
   {
+    "id": "api.web_hub.start.starting.debug",
+    "translation": "Starting %v websocket hubs"
+  },
+  {
     "id": "api.web_hub.start.stopping.debug",
-    "translation": "正在停止 %v 的連線"
+    "translation": "stopping websocket hub connections"
   },
   {
     "id": "api.web_socket.connect.error",
@@ -2292,8 +2508,32 @@
     "translation": "沒有適當的權限重新產生傳出的 Webhook Token"
   },
   {
+    "id": "api.webrtc.init.debug",
+    "translation": "正在初始化 WebRTC API 路徑"
+  },
+  {
+    "id": "api.webrtc.not_available.app_error",
+    "translation": "此伺服器不支援 WebRTC。"
+  },
+  {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "無效的參數 {{.Name}}"
+  },
+  {
+    "id": "authentication.permissions.team_invite_user.description",
+    "translation": "允許邀請使用者至團隊"
+  },
+  {
+    "id": "authentication.permissions.team_invite_user.name",
+    "translation": "邀請使用者"
+  },
+  {
+    "id": "authentication.permissions.team_use_slash_commands.description",
+    "translation": "允許使用斜線命令"
+  },
+  {
+    "id": "authentication.permissions.team_use_slash_commands.name",
+    "translation": "使用斜線命令"
   },
   {
     "id": "cli.license.critical",
@@ -2392,8 +2632,12 @@
     "translation": "目前授權不提供限制自訂繪文字，請聯繫系統管理員將系統升級為企業版授權。"
   },
   {
+    "id": "ent.ldap.disabled.app_error",
+    "translation": "已停用 AD/LDAP 或授權不支援 AD/LDAP。"
+  },
+  {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
-    "translation": "無法綁定 LDAP 伺服器，請檢查綁定使用者帳號與綁定密碼。"
+    "translation": "無法綁定 AD/LDAP 伺服器，請檢查綁定使用者帳號與綁定密碼。"
   },
   {
     "id": "ent.ldap.do_login.invalid_password.app_error",
@@ -2401,7 +2645,7 @@
   },
   {
     "id": "ent.ldap.do_login.licence_disable.app_error",
-    "translation": "目前的授權無法使用 LDAP 功能。請聯繫系統管理員升級為企業授權"
+    "translation": "目前的授權無法使用 AD/LDAP 功能。請聯繫系統管理員升級為企業授權。"
   },
   {
     "id": "ent.ldap.do_login.matched_to_many_users.app_error",
@@ -2409,11 +2653,11 @@
   },
   {
     "id": "ent.ldap.do_login.search_ldap_server.app_error",
-    "translation": "搜尋 LDAP 伺服器失敗"
+    "translation": "搜尋 AD/LDAP 伺服器失敗"
   },
   {
     "id": "ent.ldap.do_login.unable_to_connect.app_error",
-    "translation": "無法連線到 LDAP 伺服器"
+    "translation": "無法連線到 AD/LDAP 伺服器"
   },
   {
     "id": "ent.ldap.do_login.unable_to_create_user.app_error",
@@ -2421,27 +2665,27 @@
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
-    "translation": "您的 LDAP 帳號沒有使用此 Mattermost 伺服器的權限。請向系統管理員詢問確認 LDAP 使用者過濾條件。"
+    "translation": "您的 AD/LDAP 帳號沒有使用此 Mattermost 伺服器的權限。請向系統管理員詢問確認 AD/LDAP 使用者過濾條件。"
   },
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
-    "translation": "使用者尚未於 LDAP 伺服器註冊"
+    "translation": "使用者尚未於 AD/LDAP 伺服器註冊"
   },
   {
     "id": "ent.ldap.mattermost_user_update",
-    "translation": "Mattermost 使用者已根據 LDAP 伺服器更新。"
+    "translation": "Mattermost 使用者已根據 AD/LDAP 伺服器更新。"
   },
   {
     "id": "ent.ldap.syncdone.info",
-    "translation": "LDAP 同步完成"
+    "translation": "AD/LDAP 同步完成"
   },
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
-    "translation": "無法用 LDAP 取得所有使用者"
+    "translation": "無法用 AD/LDAP 取得所有使用者"
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
-    "translation": "無效的 LDAP Filter"
+    "translation": "無效的 AD/LDAP Filter"
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",
@@ -2481,11 +2725,15 @@
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
-    "translation": "無法根據指定的欄位移轉至 LDAP 使用者。偵測到重複的項目。請移除所有重複項目然後再次嚐試。"
+    "translation": "無法根據指定的欄位移轉至 AD/LDAP 使用者。偵測到重複的項目。請移除所有重複項目然後再次嚐試。"
   },
   {
     "id": "ent.migration.migratetoldap.user_not_found",
-    "translation": "找不到使用者，LDAP 伺服器："
+    "translation": "找不到使用者，AD/LDAP 伺服器："
+  },
+  {
+    "id": "ent.saml.attribute.app_error",
+    "translation": "由於不正確的屬性，SAML 登入失敗。請聯繫系統管理員。"
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -2554,6 +2802,18 @@
   {
     "id": "ent.saml.update_saml_user.unable_error",
     "translation": "無法更新現有的 SAML 使用者。總之先允許登入。err=%v"
+  },
+  {
+    "id": "ent.webrtc.disabled.app_error",
+    "translation": "此伺服器未啟用 WebRTC。"
+  },
+  {
+    "id": "ent.webrtc.license_disable.app_error",
+    "translation": "授權不支援 Mattermost WebRTC"
+  },
+  {
+    "id": "ent.webrtc.register_token.app_error",
+    "translation": "嘗試註冊 WebRTC Token時發生錯誤"
   },
   {
     "id": "error.generic.link_message",
@@ -2881,7 +3141,7 @@
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
-    "translation": "Unable to enable email batching when clustering is enabled"
+    "translation": "啟用叢集時無法啟用批次郵件"
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -2941,31 +3201,31 @@
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
-    "translation": "LDAP 欄位 \"BaseDN\" 為必須欄位。"
+    "translation": "AD/LDAP 欄位 \"BaseDN\" 為必須欄位。"
   },
   {
     "id": "model.config.is_valid.ldap_bind_password",
-    "translation": "LDAP 欄位 \"綁定使用者密碼\" 為必須欄位。"
+    "translation": "AD/LDAP 欄位 \"綁定使用者密碼\" 為必須欄位。"
   },
   {
     "id": "model.config.is_valid.ldap_bind_username",
-    "translation": "LDAP 欄位 \"綁定使用者帳號\" 為必須欄位。"
+    "translation": "AD/LDAP 欄位 \"綁定使用者帳號\" 為必須欄位。"
   },
   {
     "id": "model.config.is_valid.ldap_email",
-    "translation": "LDAP 欄位 \"電子郵件位址屬性\" 為必須欄位。"
+    "translation": "AD/LDAP 欄位 \"電子郵件位址屬性\" 為必須欄位。"
   },
   {
     "id": "model.config.is_valid.ldap_firstname",
-    "translation": "LDAP 欄位 \"名字屬性\" 為必須欄位。"
+    "translation": "AD/LDAP 欄位 \"名字屬性\" 為必須欄位。"
   },
   {
     "id": "model.config.is_valid.ldap_id",
-    "translation": "LDAP 欄位 \"ID 的屬性\" 為必須欄位。"
+    "translation": "AD/LDAP 欄位 \"ID 的屬性\" 為必須欄位。"
   },
   {
     "id": "model.config.is_valid.ldap_lastname",
-    "translation": "LDAP 欄位 \"姓氏屬性\" 為必須欄位。"
+    "translation": "AD/LDAP 欄位 \"姓氏屬性\" 為必須欄位。"
   },
   {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",
@@ -2973,19 +3233,19 @@
   },
   {
     "id": "model.config.is_valid.ldap_required.app_error",
-    "translation": "遺漏 LDAP 必填欄位"
+    "translation": "遺漏 AD/LDAP 必填欄位"
   },
   {
     "id": "model.config.is_valid.ldap_required.app_error",
-    "translation": "遺漏 LDAP 必填欄位"
+    "translation": "遺漏 AD/LDAP 必填欄位"
   },
   {
     "id": "model.config.is_valid.ldap_security.app_error",
-    "translation": "LDAP 設定中的連線安全性設定無效. 必須為 '', 'TLS', 或 'STARTTLS'"
+    "translation": "AD/LDAP 設定中的連線安全性設定無效. 必須為 '', 'TLS', 或 'STARTTLS'"
   },
   {
     "id": "model.config.is_valid.ldap_server",
-    "translation": "LDAP 欄位 \"LDAP 伺服器\" 為必須欄位。"
+    "translation": "AD/LDAP 欄位 \"LDAP 伺服器\" 為必須欄位。"
   },
   {
     "id": "model.config.is_valid.ldap_sync_interval.app_error",
@@ -2993,7 +3253,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_username",
-    "translation": "LDAP 欄位 \"使用者名稱的屬性\" 為必須欄位。"
+    "translation": "AD/LDAP 欄位 \"使用者名稱的屬性\" 為必須欄位。"
   },
   {
     "id": "model.config.is_valid.listen_address.app_error",
@@ -3002,6 +3262,14 @@
   {
     "id": "model.config.is_valid.login_attempts.app_error",
     "translation": "服務設定中的最多登入嘗試次數無效。必須為正數."
+  },
+  {
+    "id": "model.config.is_valid.max_burst.app_error",
+    "translation": "最大高載值必須大於0。"
+  },
+  {
+    "id": "model.config.is_valid.max_channels.app_error",
+    "translation": "團隊設定中的單一團隊最高使用者數無效。必須為正數。"
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
@@ -3028,6 +3296,10 @@
     "translation": "張貼速率限制設定中的每秒設定無效。必須為正數。"
   },
   {
+    "id": "model.config.is_valid.read_timeout.app_error",
+    "translation": "讀取逾時的值不正確。"
+  },
+  {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
     "translation": "無效的直接訊息限制。必須為 'any', 或 'team'"
   },
@@ -3040,10 +3312,6 @@
     "translation": "無效的電子郵件屬性。此屬性必須設定。"
   },
   {
-    "id": "model.config.is_valid.saml_first_name_attribute.app_error",
-    "translation": "無效的名字屬性。此屬性必須設定。"
-  },
-  {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
     "translation": "找不到身份識別提供者公開憑證。是否忘記上傳？"
   },
@@ -3054,10 +3322,6 @@
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
     "translation": "SAML SSO 網址必須使用以 http:// 或 https:// 開頭的有效網址。"
-  },
-  {
-    "id": "model.config.is_valid.saml_last_name_attribute.app_error",
-    "translation": "無效的姓氏屬性。此屬性必須設定。"
   },
   {
     "id": "model.config.is_valid.saml_private_key.app_error",
@@ -3077,7 +3341,7 @@
   },
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
-    "translation": "Unable to enable email batching when SiteURL isn't set."
+    "translation": "站台網址設定完畢之前無法啟用批次郵件"
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
@@ -3098,6 +3362,42 @@
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
     "translation": "SQL 設定中的最高開啟連線數無效。必須為正數。"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_gateway_admin_secret.app_error",
+    "translation": "必須設定 WebRTC 閘道管理員密碼。"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_gateway_admin_url.app_error",
+    "translation": "WebRTC 閘道管理員網址必須是以 http:// 或 https:// 起始的有效網址。"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_gateway_ws_url.app_error",
+    "translation": "WebRTC 閘道 Websocket 網址必須是以 ws:// 或 wss:// 起始的有效網址。"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_stun_uri.app_error",
+    "translation": "WebRTC STUN URI 必須是以 stun: 的有效 URI。"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_turn_shared_key.app_error",
+    "translation": "如果已設定 TURN URI，WebRTC TURN 共享金鑰不能為空。"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_turn_uri.app_error",
+    "translation": "WebRTC TURN URI 必須是以 turn: 的有效 URI。"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_turn_username.app_error",
+    "translation": "如果已設定 TURN URI，WebRTC TURN 使用者名稱不能為空。"
+  },
+  {
+    "id": "model.config.is_valid.webserver_security.app_error",
+    "translation": "網頁伺服器連線安全的值不正確。"
+  },
+  {
+    "id": "model.config.is_valid.write_timeout.app_error",
+    "translation": "寫入逾時的值不正確。"
   },
   {
     "id": "model.emoji.create_at.app_error",
@@ -3254,6 +3554,10 @@
   {
     "id": "model.post.is_valid.create_at.app_error",
     "translation": "\"新增時間\"必須是一個有效時間"
+  },
+  {
+    "id": "model.post.is_valid.file_ids.app_error",
+    "translation": "無效的檔名 ID"
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -3712,6 +4016,10 @@
     "translation": "無法取得頻道成員的更多資訊"
   },
   {
+    "id": "store.sql_channel.get_for_post.app_error",
+    "translation": "無法取得此發文的頻道"
+  },
+  {
     "id": "store.sql_channel.get_member.app_error",
     "translation": "無法取得頻道的成員"
   },
@@ -3722,6 +4030,10 @@
   {
     "id": "store.sql_channel.get_member_count.app_error",
     "translation": "無法取得頻道成員數"
+  },
+  {
+    "id": "store.sql_channel.get_member_for_post.app_error",
+    "translation": "無法取得此發文的頻道成員"
   },
   {
     "id": "store.sql_channel.get_members.app_error",
@@ -3908,6 +4220,30 @@
     "translation": "無法儲存繪文字"
   },
   {
+    "id": "store.sql_file_info.attach_to_post.app_error",
+    "translation": "無法添加檔案訊息到發文上"
+  },
+  {
+    "id": "store.sql_file_info.delete_for_post.app_error",
+    "translation": "無法從發文刪除檔案訊息"
+  },
+  {
+    "id": "store.sql_file_info.get.app_error",
+    "translation": "無法取得檔案訊息"
+  },
+  {
+    "id": "store.sql_file_info.get_by_path.app_error",
+    "translation": "無法根據路徑取得檔案訊息"
+  },
+  {
+    "id": "store.sql_file_info.get_for_post.app_error",
+    "translation": "無法取得發文的檔案訊息"
+  },
+  {
+    "id": "store.sql_file_info.save.app_error",
+    "translation": "無法儲存檔案訊息"
+  },
+  {
     "id": "store.sql_license.get.app_error",
     "translation": "取得授權時遇到錯誤"
   },
@@ -3937,6 +4273,10 @@
   },
   {
     "id": "store.sql_oauth.get_access_data.app_error",
+    "translation": "尋找存取 Token 時遇到錯誤"
+  },
+  {
+    "id": "store.sql_oauth.get_access_data_by_user_for_app.app_error",
     "translation": "尋找存取 Token 時遇到錯誤"
   },
   {
@@ -4224,6 +4564,10 @@
     "translation": "嘗試取得所有使用者的在線/離開狀態時遇到錯誤"
   },
   {
+    "id": "store.sql_status.get_team_statuses.app_error",
+    "translation": "嘗試取得團隊成員狀態時遇到錯誤"
+  },
+  {
     "id": "store.sql_status.get_total_active_users_count.app_error",
     "translation": "無法計算活躍使用者的數量"
   },
@@ -4246,6 +4590,10 @@
   {
     "id": "store.sql_system.get_by_name.app_error",
     "translation": "找不到該系統參數。"
+  },
+  {
+    "id": "store.sql_system.get_version.app_error",
+    "translation": "無法取得資料庫版本"
   },
   {
     "id": "store.sql_system.save.app_error",
@@ -4296,7 +4644,15 @@
     "translation": "相關的使用者 ID 與團隊 ID 找不到任何團隊成員"
   },
   {
+    "id": "store.sql_team.get_member_count.app_error",
+    "translation": "無法計算團隊成員數量"
+  },
+  {
     "id": "store.sql_team.get_members.app_error",
+    "translation": "無法取得團隊成員"
+  },
+  {
+    "id": "store.sql_team.get_members_by_ids.app_error",
     "translation": "無法取得團隊成員"
   },
   {
@@ -4388,6 +4744,10 @@
     "translation": "尋找使用者資訊時遇到錯誤"
   },
   {
+    "id": "store.sql_user.get_recently_active_users.app_error",
+    "translation": "We encountered an error while finding the recently active users"
+  },
+  {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",
     "translation": "尋找使用者資訊時遇到錯誤"
   },
@@ -4398,6 +4758,10 @@
   {
     "id": "store.sql_user.get_unread_count.app_error",
     "translation": "無法計算該使用者的未讀訊息數量"
+  },
+  {
+    "id": "store.sql_user.get_unread_count_for_channel.app_error",
+    "translation": "無法取得使用者跟頻道的未讀訊息數量"
   },
   {
     "id": "store.sql_user.migrate_theme.critical",
@@ -4421,7 +4785,7 @@
   },
   {
     "id": "store.sql_user.save.email_exists.ldap_app_error",
-    "translation": "該帳號未使用 LDAP 認證。請用電子郵件地址與密碼登入。"
+    "translation": "該帳號未使用 AD/LDAP 認證。請用電子郵件地址與密碼登入。"
   },
   {
     "id": "store.sql_user.save.email_exists.saml_app_error",
@@ -4457,7 +4821,7 @@
   },
   {
     "id": "store.sql_user.update.can_not_change_ldap.app_error",
-    "translation": "不能變更經由 LDAP 設定的欄位資料"
+    "translation": "不能變更經由 AD/LDAP 設定的欄位資料"
   },
   {
     "id": "store.sql_user.update.email_taken.app_error",
@@ -4610,6 +4974,10 @@
   {
     "id": "utils.config.save_config.saving.app_error",
     "translation": "儲存檔案到 {{.Filename}} 時發生錯誤"
+  },
+  {
+    "id": "utils.diagnostic.analytics_not_found.app_error",
+    "translation": "分析尚未初始化"
   },
   {
     "id": "utils.i18n.loaded",

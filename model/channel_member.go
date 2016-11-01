@@ -10,7 +10,6 @@ import (
 )
 
 const (
-	CHANNEL_ROLE_ADMIN          = "admin"
 	CHANNEL_NOTIFY_DEFAULT      = "default"
 	CHANNEL_NOTIFY_ALL          = "all"
 	CHANNEL_NOTIFY_MENTION      = "mention"
@@ -28,6 +27,27 @@ type ChannelMember struct {
 	MentionCount int64     `json:"mention_count"`
 	NotifyProps  StringMap `json:"notify_props"`
 	LastUpdateAt int64     `json:"last_update_at"`
+}
+
+type ChannelMembers []ChannelMember
+
+func (o *ChannelMembers) ToJson() string {
+	if b, err := json.Marshal(o); err != nil {
+		return "[]"
+	} else {
+		return string(b)
+	}
+}
+
+func ChannelMembersFromJson(data io.Reader) *ChannelMembers {
+	decoder := json.NewDecoder(data)
+	var o ChannelMembers
+	err := decoder.Decode(&o)
+	if err == nil {
+		return &o
+	} else {
+		return nil
+	}
 }
 
 func (o *ChannelMember) ToJson() string {
@@ -60,12 +80,6 @@ func (o *ChannelMember) IsValid() *AppError {
 		return NewLocAppError("ChannelMember.IsValid", "model.channel_member.is_valid.user_id.app_error", nil, "")
 	}
 
-	for _, role := range strings.Split(o.Roles, " ") {
-		if !(role == "" || role == CHANNEL_ROLE_ADMIN) {
-			return NewLocAppError("ChannelMember.IsValid", "model.channel_member.is_valid.role.app_error", nil, "role="+role)
-		}
-	}
-
 	notifyLevel := o.NotifyProps["desktop"]
 	if len(notifyLevel) > 20 || !IsChannelNotifyLevelValid(notifyLevel) {
 		return NewLocAppError("ChannelMember.IsValid", "model.channel_member.is_valid.notify_level.app_error",
@@ -87,6 +101,10 @@ func (o *ChannelMember) PreSave() {
 
 func (o *ChannelMember) PreUpdate() {
 	o.LastUpdateAt = GetMillis()
+}
+
+func (o *ChannelMember) GetRoles() []string {
+	return strings.Fields(o.Roles)
 }
 
 func IsChannelNotifyLevelValid(notifyLevel string) bool {

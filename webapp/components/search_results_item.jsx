@@ -4,6 +4,7 @@
 import $ from 'jquery';
 import PostMessageContainer from 'components/post_view/components/post_message_container.jsx';
 import UserProfile from './user_profile.jsx';
+import ProfilePicture from './profile_picture.jsx';
 
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
@@ -72,7 +73,10 @@ export default class SearchResultsItem extends React.Component {
                 channelName = (
                     <FormattedMessage
                         id='search_item.direct'
-                        defaultMessage='Direct Message'
+                        defaultMessage='Direct Message (with {username})'
+                        values={{
+                            username: Utils.displayUsernameForUser(Utils.getDirectTeammate(channel.id))
+                        }}
                     />
                 );
             }
@@ -93,19 +97,18 @@ export default class SearchResultsItem extends React.Component {
             botIndicator = <li className='bot-indicator'>{Constants.BOT_NAME}</li>;
         }
 
-        let profilePic = (
-            <img
+        const profilePic = (
+            <ProfilePicture
                 src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
-                height='36'
-                width='36'
+                user={this.props.user}
             />
+
         );
 
         let compactClass = '';
-        let profilePicContainer = (<div className='post__img'>{profilePic}</div>);
+        const profilePicContainer = (<div className='post__img'>{profilePic}</div>);
         if (this.props.compactDisplay) {
             compactClass = 'post--compact';
-            profilePicContainer = '';
         }
 
         let flag;

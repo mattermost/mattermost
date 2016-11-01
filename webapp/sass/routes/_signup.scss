@@ -484,13 +484,19 @@
         width: 90%;
     }
 
-    .signup-team-dir__arrow {
+    .signup-team__icon {
         color: $dark-gray;
         float: right;
         font-size: 1.5em;
         line-height: 25px;
         position: relative;
         top: .66em;
+
+        &.fa-spin {
+            font-size: .9em;
+            right: -2px;
+            top: 16px;
+        }
     }
 }
 

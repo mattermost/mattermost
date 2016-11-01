@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/mail"
 	"net/url"
 	"regexp"
@@ -74,13 +75,21 @@ func (er *AppError) ToJson() string {
 
 // AppErrorFromJson will decode the input and return an AppError
 func AppErrorFromJson(data io.Reader) *AppError {
-	decoder := json.NewDecoder(data)
+	str := ""
+	bytes, rerr := ioutil.ReadAll(data)
+	if rerr != nil {
+		str = rerr.Error()
+	} else {
+		str = string(bytes)
+	}
+
+	decoder := json.NewDecoder(strings.NewReader(str))
 	var er AppError
 	err := decoder.Decode(&er)
 	if err == nil {
 		return &er
 	} else {
-		return NewLocAppError("AppErrorFromJson", "model.utils.decode_json.app_error", nil, err.Error())
+		return NewLocAppError("AppErrorFromJson", "model.utils.decode_json.app_error", nil, "body: "+str)
 	}
 }
 
@@ -166,6 +175,23 @@ func ArrayFromJson(data io.Reader) []string {
 	}
 }
 
+func ArrayFromInterface(data interface{}) []string {
+	stringArray := []string{}
+
+	dataArray, ok := data.([]interface{})
+	if !ok {
+		return stringArray
+	}
+
+	for _, v := range dataArray {
+		if str, ok := v.(string); ok {
+			stringArray = append(stringArray, str)
+		}
+	}
+
+	return stringArray
+}
+
 func StringInterfaceToJson(objmap map[string]interface{}) string {
 	if b, err := json.Marshal(objmap); err != nil {
 		return ""
@@ -227,56 +253,13 @@ func IsValidEmail(email string) bool {
 }
 
 var reservedName = []string{
-	"www",
-	"web",
+	"signup",
+	"login",
 	"admin",
-	"support",
-	"notify",
-	"test",
-	"demo",
-	"mail",
-	"team",
 	"channel",
-	"internal",
-	"localhost",
-	"dockerhost",
-	"stag",
 	"post",
-	"cluster",
 	"api",
 	"oauth",
-}
-
-var wwwStart = regexp.MustCompile(`^www`)
-var betaStart = regexp.MustCompile(`^beta`)
-var ciStart = regexp.MustCompile(`^ci`)
-
-func GetSubDomain(s string) (string, string) {
-	s = strings.Replace(s, "http://", "", 1)
-	s = strings.Replace(s, "https://", "", 1)
-
-	match := wwwStart.MatchString(s)
-	if match {
-		return "", ""
-	}
-
-	match = betaStart.MatchString(s)
-	if match {
-		return "", ""
-	}
-
-	match = ciStart.MatchString(s)
-	if match {
-		return "", ""
-	}
-
-	parts := strings.Split(s, ".")
-
-	if len(parts) != 3 {
-		return "", ""
-	}
-
-	return parts[0], parts[1]
 }
 
 func IsValidChannelIdentifier(s string) bool {
@@ -413,6 +396,18 @@ func IsValidHttpsUrl(rawUrl string) bool {
 	return true
 }
 
+func IsValidTurnOrStunServer(rawUri string) bool {
+	if strings.Index(rawUri, "turn:") != 0 && strings.Index(rawUri, "stun:") != 0 {
+		return false
+	}
+
+	if _, err := url.ParseRequestURI(rawUri); err != nil {
+		return false
+	}
+
+	return true
+}
+
 func IsSafeLink(link *string) bool {
 	if link != nil {
 		if IsValidHttpUrl(*link) {
@@ -422,6 +417,18 @@ func IsSafeLink(link *string) bool {
 		} else {
 			return false
 		}
+	}
+
+	return true
+}
+
+func IsValidWebsocketUrl(rawUrl string) bool {
+	if strings.Index(rawUrl, "ws://") != 0 && strings.Index(rawUrl, "wss://") != 0 {
+		return false
+	}
+
+	if _, err := url.ParseRequestURI(rawUrl); err != nil {
+		return false
 	}
 
 	return true

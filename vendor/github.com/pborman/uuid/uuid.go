@@ -13,20 +13,6 @@ import (
 	"strings"
 )
 
-// Array is a pass-by-value UUID that can be used as an effecient key in a map.
-type Array [16]byte
-
-// UUID converts uuid into a slice.
-func (uuid Array) UUID() UUID {
-	return uuid[:]
-}
-
-// String returns the string representation of uuid,
-// xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.
-func (uuid Array) String() string {
-	return uuid.UUID().String()
-}
-
 // A UUID is a 128 bit (16 byte) Universal Unique IDentifier as defined in RFC
 // 4122.
 type UUID []byte
@@ -88,17 +74,6 @@ func Parse(s string) UUID {
 // Equal returns true if uuid1 and uuid2 are equal.
 func Equal(uuid1, uuid2 UUID) bool {
 	return bytes.Equal(uuid1, uuid2)
-}
-
-// Array returns an array representation of uuid that can be used as a map key.
-// Array panics if uuid is not valid.
-func (uuid UUID) Array() Array {
-	if len(uuid) != 16 {
-		panic("invalid uuid")
-	}
-	var a Array
-	copy(a[:], uuid)
-	return a
 }
 
 // String returns the string form of uuid, xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx

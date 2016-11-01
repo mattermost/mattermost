@@ -21,14 +21,19 @@ export default class PostBodyAdditionalContent extends React.Component {
         this.generateToggleableEmbed = this.generateToggleableEmbed.bind(this);
         this.generateStaticEmbed = this.generateStaticEmbed.bind(this);
         this.toggleEmbedVisibility = this.toggleEmbedVisibility.bind(this);
+        this.isLinkToggleable = this.isLinkToggleable.bind(this);
 
         this.state = {
-            embedVisible: props.previewCollapsed.startsWith('false')
+            embedVisible: props.previewCollapsed.startsWith('false'),
+            link: Utils.extractFirstLink(props.post.message)
         };
     }
 
     componentWillReceiveProps(nextProps) {
-        this.setState({embedVisible: nextProps.previewCollapsed.startsWith('false')});
+        this.setState({
+            embedVisible: nextProps.previewCollapsed.startsWith('false'),
+            link: Utils.extractFirstLink(nextProps.post.message)
+        });
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -73,8 +78,37 @@ export default class PostBodyAdditionalContent extends React.Component {
         return null;
     }
 
+    isLinkImage(link) {
+        for (let i = 0; i < Constants.IMAGE_TYPES.length; i++) {
+            const imageType = Constants.IMAGE_TYPES[i];
+            const suffix = link.substring(link.length - (imageType.length + 1));
+            if (suffix === '.' + imageType || suffix === '=' + imageType) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    isLinkToggleable() {
+        const link = this.state.link;
+        if (!link) {
+            return false;
+        }
+
+        if (YoutubeVideo.isYoutubeLink(link)) {
+            return true;
+        }
+
+        if (this.isLinkImage(link)) {
+            return true;
+        }
+
+        return false;
+    }
+
     generateToggleableEmbed() {
-        const link = Utils.extractFirstLink(this.props.post.message);
+        const link = this.state.link;
         if (!link) {
             return null;
         }
@@ -89,17 +123,13 @@ export default class PostBodyAdditionalContent extends React.Component {
             );
         }
 
-        for (let i = 0; i < Constants.IMAGE_TYPES.length; i++) {
-            const imageType = Constants.IMAGE_TYPES[i];
-            const suffix = link.substring(link.length - (imageType.length + 1));
-            if (suffix === '.' + imageType || suffix === '=' + imageType) {
-                return (
-                    <PostImage
-                        channelId={this.props.post.channel_id}
-                        link={link}
-                    />
-                );
-            }
+        if (this.isLinkImage(link)) {
+            return (
+                <PostImage
+                    channelId={this.props.post.channel_id}
+                    link={link}
+                />
+            );
         }
 
         return null;
@@ -143,10 +173,8 @@ export default class PostBodyAdditionalContent extends React.Component {
             );
         }
 
-        const toggleableEmbed = this.generateToggleableEmbed();
-
-        if (toggleableEmbed) {
-            let messageWithToggle = [];
+        if (this.isLinkToggleable()) {
+            const messageWithToggle = [];
 
             // if message has only one line and starts with a link place toggle in this only line
             // else - place it in new line between message and embed
@@ -166,15 +194,21 @@ export default class PostBodyAdditionalContent extends React.Component {
                 messageWithToggle.unshift(this.props.message);
             }
 
+            let toggleableEmbed;
+            if (this.state.embedVisible) {
+                toggleableEmbed = (
+                    <div
+                        className='post__embed-container'
+                    >
+                        {this.generateToggleableEmbed()}
+                    </div>
+                );
+            }
+
             return (
                 <div>
                     {messageWithToggle}
-                    <div
-                        className='post__embed-container'
-                        hidden={!this.state.embedVisible}
-                    >
                     {toggleableEmbed}
-                    </div>
                 </div>
             );
         }

@@ -44,7 +44,7 @@ const holders = defineMessages({
 
 import React from 'react';
 
-export default class RenameChannelModal extends React.Component {
+export class RenameChannelModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -216,7 +216,7 @@ export default class RenameChannelModal extends React.Component {
         const {formatMessage} = this.props.intl;
 
         let handleInputLabel = formatMessage(holders.handle);
-        let handleInputClass = 'form-control';
+        const handleInputClass = 'form-control';
         let readOnlyHandleInput = false;
         if (this.state.channelName === Constants.DEFAULT_CHANNEL) {
             handleInputLabel += formatMessage(holders.defaultError);

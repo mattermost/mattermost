@@ -230,5 +230,7 @@ describe('Client.Posts', function() {
             );
         });
     });
+
+    // getFileInfosForPost is tested in client_files.test.jsx
 });
 

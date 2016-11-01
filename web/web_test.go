@@ -23,7 +23,7 @@ func Setup() {
 		utils.TranslationsPreInit()
 		utils.LoadConfig("config.json")
 		utils.InitTranslations(utils.Cfg.LocalizationSettings)
-		api.NewServer()
+		api.NewServer(false)
 		api.StartServer()
 		api.InitApi()
 		InitWeb()
@@ -83,8 +83,10 @@ func TestGetAccessToken(t *testing.T) {
 	ApiClient.Must(ApiClient.LoginById(ruser.Id, "passwd1"))
 	ApiClient.SetTeamId(rteam.Data.(*model.Team).Id)
 	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+	utils.SetDefaultRolesBasedOnConfig()
 	app = ApiClient.Must(ApiClient.RegisterApp(app)).Data.(*model.OAuthApp)
 	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = true
+	utils.SetDefaultRolesBasedOnConfig()
 
 	redirect := ApiClient.Must(ApiClient.AllowOAuth(model.AUTHCODE_RESPONSE_TYPE, app.Id, app.CallbackUrls[0], "all", "123")).Data.(map[string]string)["redirect"]
 	rurl, _ := url.Parse(redirect)
@@ -159,7 +161,7 @@ func TestGetAccessToken(t *testing.T) {
 		}
 	}
 
-	if result, err := ApiClient.DoApiGet("/users/profiles/"+teamId+"?access_token="+token, "", ""); err != nil {
+	if result, err := ApiClient.DoApiGet("/teams/"+teamId+"/users/0/100?access_token="+token, "", ""); err != nil {
 		t.Fatal(err)
 	} else {
 		userMap := model.UserMapFromJson(result.Body)
@@ -168,16 +170,16 @@ func TestGetAccessToken(t *testing.T) {
 		}
 	}
 
-	if _, err := ApiClient.DoApiGet("/users/profiles/"+teamId, "", ""); err == nil {
+	if _, err := ApiClient.DoApiGet("/teams/"+teamId+"/users/0/100", "", ""); err == nil {
 		t.Fatal("should have failed - no access token provided")
 	}
 
-	if _, err := ApiClient.DoApiGet("/users/profiles/"+teamId+"?access_token=junk", "", ""); err == nil {
+	if _, err := ApiClient.DoApiGet("/teams/"+teamId+"/users/0/100?access_token=junk", "", ""); err == nil {
 		t.Fatal("should have failed - bad access token provided")
 	}
 
 	ApiClient.SetOAuthToken(token)
-	if result, err := ApiClient.DoApiGet("/users/profiles/"+teamId, "", ""); err != nil {
+	if result, err := ApiClient.DoApiGet("/teams/"+teamId+"/users/0/100", "", ""); err != nil {
 		t.Fatal(err)
 	} else {
 		userMap := model.UserMapFromJson(result.Body)
@@ -207,7 +209,7 @@ func TestIncomingWebhook(t *testing.T) {
 	c := &api.Context{}
 	c.RequestId = model.NewId()
 	c.IpAddress = "cmd_line"
-	api.UpdateUserRoles(c, user, model.ROLE_SYSTEM_ADMIN)
+	api.UpdateUserRoles(c, user, model.ROLE_SYSTEM_ADMIN.Id)
 	ApiClient.Login(user.Email, "passwd1")
 	ApiClient.SetTeamId(team.Id)
 

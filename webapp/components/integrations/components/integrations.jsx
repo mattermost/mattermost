@@ -11,16 +11,39 @@ import OutgoingWebhookIcon from 'images/outgoing_webhook.jpg';
 import SlashCommandIcon from 'images/slash_command_icon.jpg';
 import OAuthIcon from 'images/oauth_icon.png';
 
+import * as Utils from 'utils/utils.jsx';
+
 export default class Integrations extends React.Component {
     static get propTypes() {
         return {
-            team: React.propTypes.object.isRequired
+            team: React.propTypes.object.isRequired,
+            user: React.PropTypes.object.isRequired
         };
+    }
+
+    constructor(props) {
+        super(props);
+
+        this.updateTitle = this.updateTitle.bind(this);
+    }
+
+    componentDidMount() {
+        this.updateTitle();
+    }
+
+    updateTitle() {
+        let currentSiteName = '';
+        if (global.window.mm_config.SiteName != null) {
+            currentSiteName = global.window.mm_config.SiteName;
+        }
+
+        document.title = Utils.localizeMessage('admin.sidebar.integrations', 'Integrations') + ' - ' + this.props.team.display_name + ' ' + currentSiteName;
     }
 
     render() {
         const options = [];
         const config = window.mm_config;
+        const isSystemAdmin = Utils.isSystemAdmin(this.props.user.roles);
 
         if (config.EnableIncomingWebhooks === 'true') {
             options.push(
@@ -88,7 +111,7 @@ export default class Integrations extends React.Component {
             );
         }
 
-        if (config.EnableOAuthServiceProvider === 'true') {
+        if (config.EnableOAuthServiceProvider === 'true' && (isSystemAdmin || config.EnableOnlyAdminIntegrations !== 'true')) {
             options.push(
                 <IntegrationOption
                     key='oauth2Apps'

@@ -1,22 +1,28 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
 import LoadingScreen from 'components/loading_screen.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
+
 import UserStore from 'stores/user_store.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
-import * as Utils from 'utils/utils.jsx';
+
 import * as GlobalActions from 'actions/global_actions.jsx';
 import * as WebSocketActions from 'actions/websocket_actions.jsx';
+import {loadEmoji} from 'actions/emoji_actions.jsx';
+
+import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {browserHistory} from 'react-router/es6';
 
 const BACKSPACE_CHAR = 8;
 
+import $ from 'jquery';
 import React from 'react';
+
+// import the EmojiStore so that it'll register to receive the results of the listEmojis call further down
+import 'stores/emoji_store.jsx';
 
 export default class LoggedIn extends React.Component {
     constructor(params) {
@@ -81,10 +87,7 @@ export default class LoggedIn extends React.Component {
         // Update segment indentify
         if (global.window.mm_config.SegmentDeveloperKey != null && global.window.mm_config.SegmentDeveloperKey !== '') {
             global.window.analytics.identify(user.id, {
-                name: user.nickname,
-                email: user.email,
                 createdAt: user.create_at,
-                username: user.username,
                 id: user.id
             });
         }
@@ -148,7 +151,7 @@ export default class LoggedIn extends React.Component {
 
         // Get custom emoji from the server
         if (window.mm_config.EnableCustomEmoji === 'true') {
-            AsyncClient.listEmoji();
+            loadEmoji(false);
         }
     }
 

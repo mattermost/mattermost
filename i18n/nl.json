@@ -48,10 +48,6 @@
     "translation": "September"
   },
   {
-    "id": "api.admin.add_certificate.array.app_error",
-    "translation": "'certificate' veld in de aanvraag is een lege array"
-  },
-  {
     "id": "api.admin.add_certificate.no_file.app_error",
     "translation": "Geen bestand in 'certificate' veld in aanvraag"
   },
@@ -65,7 +61,7 @@
   },
   {
     "id": "api.admin.file_read_error",
-    "translation": "Fout bij het lezen log bestand"
+    "translation": "Fout bij lezen van logbestand"
   },
   {
     "id": "api.admin.get_brand_image.not_available.app_error",
@@ -73,27 +69,27 @@
   },
   {
     "id": "api.admin.get_brand_image.storage.app_error",
-    "translation": "Afbeeldingen opslag is niet geconfigureerd."
+    "translation": "Afbeeldingenopslag is niet geconfigureerd."
   },
   {
     "id": "api.admin.init.debug",
-    "translation": "Initialisatie van de admin api routes"
+    "translation": "Initialisatie van de admin-api-routes"
   },
   {
     "id": "api.admin.recycle_db_end.warn",
-    "translation": "Klaar met herstarten van de database verbinding"
+    "translation": "Klaar met herstarten van de databaseverbinding"
   },
   {
     "id": "api.admin.recycle_db_start.warn",
-    "translation": "Proberen om de database verbinding te herstarten"
+    "translation": "Proberen om de databaseverbinding te herstarten"
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "Er is een fout opgetreden bij het verwijderen van het certificaat. Controleer het bestaan van het bestand config/{{.Filename}} ."
+    "translation": "Er is een fout opgetreden bij het verwijderen van het certificaat. Controleer dat het bestand config/{{.Filename}} bestaat."
   },
   {
     "id": "api.admin.saml.metadata.app_error",
-    "translation": "Er is een fout opgetreden tijdens het opbouwen van service provider metadata"
+    "translation": "Er is een fout opgetreden bij het opbouwen van serviceprovider-metadata"
   },
   {
     "id": "api.admin.test_email.body",
@@ -101,19 +97,19 @@
   },
   {
     "id": "api.admin.test_email.missing_server",
-    "translation": "SMTP Server is verplicht"
+    "translation": "SMTP-server is verplicht"
   },
   {
     "id": "api.admin.test_email.reenter_password",
-    "translation": "De SMTP server, poort of gebruikersnaam is verandert. Voer opnieuw het SMTP wachtwoord in om de verbinding te testen."
+    "translation": "De SMTP-server, -poort of -gebruikersnaam is veranderd. Voer het SMTP-wachtwoord opnieuw in om de verbinding te testen."
   },
   {
     "id": "api.admin.test_email.subject",
-    "translation": "Mattermost - Test e-mail instellingen"
+    "translation": "Mattermost - E-mail-instellingen testen"
   },
   {
     "id": "api.admin.upload_brand_image.array.app_error",
-    "translation": "Een lege array bij 'image' in aanvraag"
+    "translation": "Lege array bij 'image' in aanvraag"
   },
   {
     "id": "api.admin.upload_brand_image.no_file.app_error",
@@ -125,11 +121,11 @@
   },
   {
     "id": "api.admin.upload_brand_image.parse.app_error",
-    "translation": "Kan het 'multipart' formulier niet verwerken"
+    "translation": "Kan het 'multipart'-formulier niet verwerken"
   },
   {
     "id": "api.admin.upload_brand_image.storage.app_error",
-    "translation": "Kan afbeelding niet uploaden. Afbeeldings opslag is niet geconfigureerd."
+    "translation": "Kan afbeelding niet uploaden. Afbeeldingsopslag is niet geconfigureerd."
   },
   {
     "id": "api.admin.upload_brand_image.too_large.app_error",
@@ -137,19 +133,23 @@
   },
   {
     "id": "api.api.init.parsing_templates.debug",
-    "translation": "Server template aan het verwerken voor %v"
+    "translation": "Server-templates aan het verwerken voor %v"
   },
   {
     "id": "api.api.init.parsing_templates.error",
-    "translation": "Server template %v is niet te verwerken"
+    "translation": "Verwerken van server-template %v is mislukt"
   },
   {
     "id": "api.api.render.error",
     "translation": "Template kan niet gerenderd worden %v, fout=%v"
   },
   {
+    "id": "api.auth.unable_to_get_user.app_error",
+    "translation": "Niet mogelijk om de rechten te controleren."
+  },
+  {
     "id": "api.channel.add_member.added",
-    "translation": "%v is toegevoegd aan het kanaal door %v"
+    "translation": "%v is door %v aan het kanaal toegevoegd"
   },
   {
     "id": "api.channel.add_member.find_channel.app_error",
@@ -177,31 +177,35 @@
   },
   {
     "id": "api.channel.add_user_to_channel.type.app_error",
-    "translation": "Kan geen gebruikers toevoegen aan dit kanaal type"
+    "translation": "Kan geen gebruikers toevoegen aan dit soort kanaal"
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
-    "translation": "Prive Groep beheer en aanmaak is voorbehouden aan Systeem beheerders."
+    "translation": "Privégroep-beheer en -aanmaak is voorbehouden aan systeembeheerders."
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
-    "translation": "Prive Groep beheer en aanmaak is voorbehouden aan Team en Systeem beheerders."
+    "translation": "Privégroep-beheer en -aanmaak is voorbehouden aan team- en systeembeheerders."
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
-    "translation": "Beheer en aanmaken van publieke kanalen is alleen toegestaan voor beheerders."
+    "translation": "Alleen systeembeheerders mogen publieke kanalen beheren en aanmaken."
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_team_admin.app_error",
-    "translation": "Het beheren en aanmaken van publieke kanalen is alleen toegestaan voor teams en beheerders."
+    "translation": "Alleen team- en systeembeheerders mogen publieke kanalen beheren en aanmaken."
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
-    "translation": "De api service createDirectChallel moet gebruikt worden voor het creeren van een direct kanaal"
+    "translation": "U moet de api-service createDirectChallel gebruiken voor het creëren van een direct kanaal"
   },
   {
     "id": "api.channel.create_channel.invalid_character.app_error",
-    "translation": "Ongeldig karakter '_' in kanaal naam"
+    "translation": "Ongeldig karakter '__' in naam van niet-direct kanaal"
+  },
+  {
+    "id": "api.channel.create_channel.max_channel_limit.app_error",
+    "translation": "Cannot create more than {{.MaxChannelsPerTeam}} channels for current team"
   },
   {
     "id": "api.channel.create_default_channels.off_topic",
@@ -209,7 +213,7 @@
   },
   {
     "id": "api.channel.create_default_channels.town_square",
-    "translation": "Dorps Plein"
+    "translation": "Dorpsplein"
   },
   {
     "id": "api.channel.create_direct_channel.invalid_user.app_error",
@@ -221,7 +225,7 @@
   },
   {
     "id": "api.channel.delete_channel.cannot.app_error",
-    "translation": "Het standaard kanaal {{.Channel}} kan niet verwijderd worden"
+    "translation": "Het standaardkanaal {{.Channel}} kan niet verwijderd worden"
   },
   {
     "id": "api.channel.delete_channel.deleted.app_error",
@@ -229,11 +233,11 @@
   },
   {
     "id": "api.channel.delete_channel.failed_post.error",
-    "translation": "Het plaatsen van het archiveer bericht %v is mislukt"
+    "translation": "Het plaatsen van het archiveerbericht %v is mislukt"
   },
   {
     "id": "api.channel.delete_channel.failed_send.app_error",
-    "translation": "Het archiveer bericht kan niet verstuurd worden"
+    "translation": "Het archiveerbericht kan niet verstuurd worden"
   },
   {
     "id": "api.channel.delete_channel.incoming_webhook.error",
@@ -249,11 +253,11 @@
   },
   {
     "id": "api.channel.get_channel.wrong_team.app_error",
-    "translation": "Er is geen kanaal met channel_id={{.ChannelId}} en team_id={{.TeamId}}"
+    "translation": "Er is geen kanaal met channel_id={{.ChannelId}} in het team met team_id={{.TeamId}}"
   },
   {
     "id": "api.channel.get_channel_counts.app_error",
-    "translation": "Kan kanaal statistieken niet uit de database halen"
+    "translation": "Kan kanaalstatistieken niet uit de database halen"
   },
   {
     "id": "api.channel.get_channel_extra_info.deleted.app_error",
@@ -265,23 +269,23 @@
   },
   {
     "id": "api.channel.get_channels.error",
-    "translation": "Probleem bij het ophalen van het gebruikersprofiel voor id=%v, uitlog actie geforceerd"
+    "translation": "Probleem bij het ophalen van het gebruikersprofiel voor id=%v, uitloggen geforceerd"
   },
   {
     "id": "api.channel.init.debug",
-    "translation": "Initialisatie van de kanaal api routes"
+    "translation": "Initialisatie van de kanaal-api-routes"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
-    "translation": "U berchikt niet over de juiste rechten"
+    "translation": "U beschikt niet over de juiste rechten"
   },
   {
     "id": "api.channel.join_channel.post_and_forget",
-    "translation": "%v neemt deel aan dit kanaal."
+    "translation": "%v is het kanaal binnengekomen."
   },
   {
     "id": "api.channel.leave.default.app_error",
-    "translation": "Kan het standaard kanaal niet verlaten {{.Channel}}"
+    "translation": "Kan het standaardkanaal {{.Channel}} niet verlaten"
   },
   {
     "id": "api.channel.leave.direct.app_error",
@@ -289,7 +293,7 @@
   },
   {
     "id": "api.channel.leave.last_member.app_error",
-    "translation": "U bent het laatste lid, probeer de privé groep te verwijderen i.p.v. te verlaten."
+    "translation": "U bent het laatste lid, probeer de privégroep te verwijderen in plaats van die te verlaten."
   },
   {
     "id": "api.channel.leave.left",
@@ -297,23 +301,23 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.join_leave.error",
-    "translation": "Bericht plaatsen voor komen / verlaten bericht %v is mislukt"
+    "translation": "Plaatsen van bericht over binnenkomen/verlaten %v is mislukt"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.removed",
-    "translation": "%s heeft de kanaal titel verwijderd (was: %s)"
+    "translation": "%s heeft de kanaalkoptekst verwijderd (was: %s)"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
-    "translation": "Kon de gebruiker niet ophalen tijdens het bewaren van de nieuwe kanaal titel %v"
+    "translation": "Kon de gebruiker niet ophalen tijdens het bewaren van de nieuwe kanaalkoptekst %v"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
-    "translation": "%s heeft de kanaal titel bijgewerkt van; %s naar; %s"
+    "translation": "%s heeft de kanaalkoptekst veranderd van \"%s\" naar \"%s\""
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_to",
-    "translation": "%s heeft de kanaal titel bijgewerkt naar: %s"
+    "translation": "%s heeft de kanaalkoptekst bijgewerkt naar: %s"
   },
   {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
@@ -325,7 +329,7 @@
   },
   {
     "id": "api.channel.remove_member.removed",
-    "translation": "%v was removed from the channel."
+    "translation": "%v was verwijdert van het kanaal."
   },
   {
     "id": "api.channel.remove_member.unable.app_error",
@@ -333,7 +337,7 @@
   },
   {
     "id": "api.channel.remove_member.user.app_error",
-    "translation": "Gebruiker om toe te voegen kon niet gevonden worden"
+    "translation": "Gebruiker om te verwijderen kon niet gevonden worden"
   },
   {
     "id": "api.channel.remove_user_from_channel.deleted.app_error",
@@ -350,6 +354,10 @@
   {
     "id": "api.channel.update_channel.tried.app_error",
     "translation": "Een ongeldige bijwerkings-poging van het standaard kanaal {{.Channel}} is geprobeerd"
+  },
+  {
+    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
+    "translation": "Onmogelijk om het aantal ongelezen bericht op te halen voor user_id=%v en channel_id=%v, err=%v"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -430,6 +438,18 @@
   {
     "id": "api.command.regen.app_error",
     "translation": "Ongeldige rechten om commando tokens opnieuw te genereren"
+  },
+  {
+    "id": "api.command_away.desc",
+    "translation": "Stel uw status in naar afwezig"
+  },
+  {
+    "id": "api.command_away.name",
+    "translation": "afwezig "
+  },
+  {
+    "id": "api.command_away.success",
+    "translation": "Je bent nu afwezig"
   },
   {
     "id": "api.command_collapse.desc",
@@ -564,12 +584,36 @@
     "translation": "Bericht verzonden."
   },
   {
+    "id": "api.command_offline.desc",
+    "translation": "Stel uw status in naar offline"
+  },
+  {
+    "id": "api.command_offline.name",
+    "translation": "offline"
+  },
+  {
+    "id": "api.command_offline.success",
+    "translation": "U bent nu offline"
+  },
+  {
+    "id": "api.command_online.desc",
+    "translation": "Stel uw status in naar Online."
+  },
+  {
+    "id": "api.command_online.name",
+    "translation": "online"
+  },
+  {
+    "id": "api.command_online.success",
+    "translation": "Je bent nu online"
+  },
+  {
     "id": "api.command_shortcuts.browser",
-    "translation": "#### Built-in Browser Commands\n\nALT+LEFT: Previous channel in your history\nALT+RIGHT: Next channel in your history\nCTRL+PLUS: Increase font size (zoom in)\nCTRL+MINUS: Decrease font size (zoom out)\nSHIFT+UP (in input field): Highlight text to the previous line\nSHIFT+DOWN (in input field): Highlight text to the next line\nSHIFT+ENTER (in input field): Create a new line\n"
+    "translation": "#### Ingebouwde Blader Commando's\n\nALT+LEFT: Vorig Kanaal in jouw geschiedenis\nALT+RIGHT: Volgens Kanaal in jouw geschiedenis\nCTRL+PLUS: Vergroot lettertype grootte (inzoomen)\nCTRL+MINUS: Verklein lettertype grootte (uitzooment)\nSHIFT+UP (in invoer veld): Benadruk tekst in de vorige lijn\nSHIFT+DOWN (in invoer veld): Benadruk tekst op de volgende lijn\nSHIFT+ENTER (in invoer veld): Maak een nieuwe lijn\n"
   },
   {
     "id": "api.command_shortcuts.browser_mac",
-    "translation": "#### Built-in Browser Commands\n\nCMD+[: Previous channel in your history\nCMD+]: Next channel in your history\nCMD+PLUS: Increase font size (zoom in)\nCMD+MINUS: Decrease font size (zoom out)\nSHIFT+UP (in input field): Highlight text to the previous line\nSHIFT+DOWN (in input field): Highlight text to the next line\nSHIFT+ENTER (in input field): Create a new line\n"
+    "translation": "#### Ingebouwde Blader Commando's\n\nALT+LEFT: Vorig Kanaal in jouw geschiedenis\nALT+RIGHT: Volgens Kanaal in jouw geschiedenis\nCTRL+PLUS: Vergroot lettertype grootte (inzoomen)\nCTRL+MINUS: Verklein lettertype grootte (uitzooment)\nSHIFT+UP (in invoer veld): Benadruk tekst in de vorige lijn\nSHIFT+DOWN (in invoer veld): Benadruk tekst op de volgende lijn\nSHIFT+ENTER (in invoer veld): Maak een nieuwe lijn\n"
   },
   {
     "id": "api.command_shortcuts.desc",
@@ -577,19 +621,19 @@
   },
   {
     "id": "api.command_shortcuts.files",
-    "translation": "#### Files\n\nCTRL+U: Upload file(s)\n\n"
+    "translation": "#### Bestanden\n\nCTRL+U: Upload bestanden\n\n"
   },
   {
     "id": "api.command_shortcuts.files_mac",
-    "translation": "#### Files\n\nCMD+U: Upload file(s)\n\n"
+    "translation": "#### Bestanden\n\nCMD+U: Upload bestand(en)\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs",
-    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCTRL+UP (in empty input field): Reprint the previous message or slash command you entered\nCTRL+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
+    "translation": "#### Berichten\n\nALT+[klik op een bericht]: Markeer bericht als oudste ongelezen bericht in het huidige kanaal\nESC: Markeer alle berichten in het huidige kanaal als gelezen\nCTRL+UP (in een leeg invoer veld): Herhaal het vorige bericht of slash commando U heeft gegeven\nCTRL+DOWN (in een leeg invoer veld): Herhaal het volgende bericht of slash commando U heeft gegeven\nUP (in een leeg invoer veld): Bewerk jouw laatste bericht in het huidige kanaal\n@[karakter]+TAB: Autocomplete @gebruikersnaam begint met [karakter]\n:[karakter]+TAB: Autocomplete emoji begint met [karakter]\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs_mac",
-    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCMD+UP (in empty input field): Reprint the previous message or slash command you entered\nCMD+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
+    "translation": "#### Berichten\n\nALT+[klik op een bericht]: Markeer bericht als oudste ongelezen bericht in het huidige kanaal\nESC: Markeer alle berichten in het huidige kanaal als gelezen\nCTRL+UP (in een leeg invoer veld): Herhaal het vorige bericht of slash commando U heeft gegeven\nCTRL+DOWN (in een leeg invoer veld): Herhaal het volgende bericht of slash commando U heeft gegeven\nUP (in een leeg invoer veld): Bewerk jouw laatste bericht in het huidige kanaal\n@[karakter]+TAB: Autocomplete @gebruikersnaam begint met [karakter]\n:[karakter]+TAB: Autocomplete emoji begint met [karakter]\n\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -597,11 +641,11 @@
   },
   {
     "id": "api.command_shortcuts.nav",
-    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in left hand sidebar\nALT+DOWN: Next channel or direct message in left hand sidebar\nALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\nCTRL+K: Open a quick channel switcher dialog\nCTRL+SHIFT+A: Open account settings\nCTRL+SHIFT+M: Open recent mentions\n\n"
+    "translation": "### Keyboard Sneltoetsen\n\n#### Navigatie\n\nALT+UP: Vorig kanaal of direct bericht in linker zijbalk\nALT+DOWN: Volgend kanaal of direct bericht in linker zijbalk\nALT+SHIFT+UP: Vorig kanaal of direct bericht in linker zijbalk met ongelezen berichten\nALT+SHIFT+DOWN: Volgend kanaal of direct bericht in linker zijbalk met ongelezen berichten\nCTRL+K: Open een snelle kanaal wisselaar\nCTRL+SHIFT+A: Open account instellingen\nCTRL+SHIFT+M: Open recente vermeldingen\n\n"
   },
   {
     "id": "api.command_shortcuts.nav_mac",
-    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in left hand sidebar\nALT+DOWN: Next channel or direct message in left hand sidebar\nALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\nCMD+K: Open a quick channel switcher dialog\nCMD+SHIFT+A: Open account settings\nCMD+SHIFT+M: Open recent mentions\n\n"
+    "translation": "### Keyboard Sneltoetsen\n\n#### Navigatie\n\nALT+UP: Vorig kanaal of direct bericht in linker zijbalk\nALT+DOWN: Volgend kanaal of direct bericht in linker zijbalk\nALT+SHIFT+UP: Vorig kanaal of direct bericht in linker zijbalk met ongelezen berichten\nALT+SHIFT+DOWN: Volgend kanaal of direct bericht in linker zijbalk met ongelezen berichten\nCTRL+K: Open een snelle kanaal wisselaar\nCTRL+SHIFT+A: Open account instellingen\nCTRL+SHIFT+M: Open recente vermeldingen\n\n"
   },
   {
     "id": "api.command_shrug.desc",
@@ -661,23 +705,23 @@
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
-    "translation": "Email batching job's receiving channel was full. Please increase the EmailBatchingBufferSize."
+    "translation": "Kanaal voor e-mail batch taken was vol. Verhoog a.u.b. de EmailBatchingBufferSize"
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
-    "translation": "Publieke links zijn uitgeschakeld door de systeembeheerder"
+    "translation": "Bulk emails zijn uitgeschakeld door de systeembeheerder"
   },
   {
     "id": "api.email_batching.check_pending_emails.finished_running",
-    "translation": "Email batching job ran. %v user(s) still have notifications pending."
+    "translation": "Bulk emails job heeft gelopen. %v gebruiker(s) hebben notificaties in afwachting."
   },
   {
     "id": "api.email_batching.check_pending_emails.status.app_error",
-    "translation": "Unable to find status of recipient for batched email notification"
+    "translation": "Kon de status of ontvanger voor batch email notificatie niet vinden."
   },
   {
     "id": "api.email_batching.render_batched_post.channel.app_error",
-    "translation": "Unable to find channel of post for batched email notification"
+    "translation": "Kon kanaal niet vinden voor bericht van e-mail notificatie."
   },
   {
     "id": "api.email_batching.render_batched_post.date",
@@ -693,7 +737,7 @@
   },
   {
     "id": "api.email_batching.render_batched_post.sender.app_error",
-    "translation": "Unable to find sender of post for batched email notification"
+    "translation": "Kon de verzender van bericht voor batch email notificatie niet vinden."
   },
   {
     "id": "api.email_batching.send_batched_email_notification.body_text",
@@ -704,26 +748,26 @@
   },
   {
     "id": "api.email_batching.send_batched_email_notification.preferences.app_error",
-    "translation": "Unable to find display preferences of recipient for batched email notification"
+    "translation": "Kon de scherm voorkeuren van ontvanger van het batch email notificatie niet vinden."
   },
   {
     "id": "api.email_batching.send_batched_email_notification.send.app_error",
-    "translation": "Failed to send batched email notification to %v: %v"
+    "translation": "Verzenden van batch e-mail notificatie naar %v: %v was gefaald."
   },
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
-      "one": "[{{.SiteName}}] New Notification for {{.Month}} {{.Day}}, {{.Year}}",
-      "other": "[{{.SiteName}}] New Notifications for {{.Month}} {{.Day}}, {{.Year}}"
+      "one": "[{{.SiteName}}] Nieuwe Notificatie voor {{.Month}} {{.Day}}, {{.Year}}",
+      "other": "[{{.SiteName}}] Nieuwe Notificaties voor {{.Month}} {{.Day}}, {{.Year}}"
     }
   },
   {
     "id": "api.email_batching.send_batched_email_notification.user.app_error",
-    "translation": "Unable to find recipient for batched email notification"
+    "translation": "Kon de ontvanger voor batch email notificatie niet vinden."
   },
   {
     "id": "api.email_batching.start.starting",
-    "translation": "Email batching job starting. Checking for pending emails every %v seconds."
+    "translation": "Bulk email job is gestart. Controleren van wachtende e-mails iedere %v secondes."
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
@@ -774,18 +818,6 @@
     "translation": "Kon emoticon niet aanmaken. Afbeelding moet minstens 128 bij 128 pixels groot zijn."
   },
   {
-    "id": "api.file.file_upload.exceeds",
-    "translation": "Bestand is groter dan maximale afbeeldings grootte."
-  },
-  {
-    "id": "api.file.file_upload.exceeds",
-    "translation": "Bestand is groter dan maximale afbeeldings grootte."
-  },
-  {
-    "id": "api.file.get_file.not_found.app_error",
-    "translation": "Kan het bestand niet vinden."
-  },
-  {
     "id": "api.file.get_file.public_disabled.app_error",
     "translation": "Publieke links zijn uitgeschakeld door de systeembeheerder"
   },
@@ -794,32 +826,116 @@
     "translation": "De publieke link lijkt niet geldig"
   },
   {
+    "id": "api.file.get_file_preview.no_thumbnail.app_error",
+    "translation": "Bestand heeft geen voorvertoning afbeelding"
+  },
+  {
+    "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
+    "translation": "Bestand heeft geen miniatuur afbeelding"
+  },
+  {
+    "id": "api.file.get_info_for_request.no_post.app_error",
+    "translation": "Kon bestand info niet ophalen. Bestand moet bijgevoegd zijn aan een bericht dat kan worden gelezen door de huidige gebruiker."
+  },
+  {
+    "id": "api.file.get_info_for_request.storage.app_error",
+    "translation": "Kan bestand info niet ophalen. Afbeeldings opslag is niet geconfigureerd."
+  },
+  {
+    "id": "api.file.get_public_file_old.storage.app_error",
+    "translation": "Kan bestand niet ophalen. Afbeeldings opslag is niet geconfigureerd."
+  },
+  {
+    "id": "api.file.get_public_file_old.storage.app_error",
+    "translation": "Kan bestand niet ophalen. Afbeeldings opslag is niet geconfigureerd."
+  },
+  {
     "id": "api.file.get_public_link.disabled.app_error",
     "translation": "Publieke links zijn uitgeschakeld"
   },
   {
+    "id": "api.file.get_public_link.no_post.app_error",
+    "translation": "Kon publieke link voor bestand niet ophalen. Bestand moet bijgevoegd zijn aan een bericht dat kan worden gelezen door de huidige gebruiker. "
+  },
+  {
     "id": "api.file.handle_images_forget.decode.error",
-    "translation": "Kan figuur niet decoderen kanaal=%v userId=%v bestandsnaam=%v fout=%v"
+    "translation": "De afbeelding kon niet gedecodeerd worden err=%v"
   },
   {
     "id": "api.file.handle_images_forget.encode_jpeg.error",
-    "translation": "Kan figuur niet coderen als jpeg channelId=%v userId=%v bestandsnaam=%v fout=%v"
+    "translation": "Niet mogelijk om afbeelding te coderen als jpeg path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.encode_preview.error",
-    "translation": "Kan figuur niet coderen als voorbeeld jpg channelId=%v userId=%v bestandsnaam=%v fout=%v"
+    "translation": "Niet mogelijk om afbeelding te coderen als voorvertoning jpg path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.upload_preview.error",
-    "translation": "Kan voorvertoning niet uploaden channelId=%v userId=%v bestandsnaam=%v fout=%v"
+    "translation": "Niet mogelijk om voorvertoning te uploaden path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.upload_thumb.error",
-    "translation": "Kan miniatuur niet uploaden channelId=%v userId=%v bestandsnaam=%v err=%v"
+    "translation": "Niet mogelijk om miniatuur te uploaden path=%v err=%v"
   },
   {
     "id": "api.file.init.debug",
     "translation": "Initialisatie bestand api routes"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.channel.app_error",
+    "translation": "Niet mogelijk om kanaal te krijgen wanneer een bericht gemigreerd word met FileInfos, post_id=%v, channel_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.file_not_found.warn",
+    "translation": "Niet mogelijk om bestand te vinden wanneer een bericht gemigreerd word met FileInfos, post_id=%v, filename=%v, path=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.get_file_infos_again.warn",
+    "translation": "Niet mogelijk om FileInfos te krijgen nadat een bericht gemigreerd is, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.get_post_again.warn",
+    "translation": "Niet mogelijk om bericht te krijgen wanneer een bericht gemigreerd word met FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.info.app_error",
+    "translation": "Niet mogelijk om bestand te vinden wanneer een bericht gemigreerd word met FileInfos, post_id=%v, filename=%v, path=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.migrating_post.debug",
+    "translation": "Migrating post to use FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.mismatched_filename.warn",
+    "translation": "Found an unusual filename when migrating post to use FileInfos, post_id=%v, channel_id=%v, user_id=%v, filename=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.no_filenames.warn",
+    "translation": "Unable to migrate post to use FileInfos with an empty Filenames field, post_id=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.not_migrating_post.debug",
+    "translation": "Post already migrated to use FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.save_file_info.warn",
+    "translation": "Niet mogelijk om bestand te vinden wanneer een bericht gemigreerd word met FileInfos, post_id=%v, filename=%v, path=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.save_post.warn",
+    "translation": "Niet mogelijk om bestand te vinden wanneer een bericht gemigreerd word met FileInfos, post_id=%v, filename=%v, path=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.team_id.app_error",
+    "translation": "Unable to find team for FileInfos, post_id=%v, filenames=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.teams.app_error",
+    "translation": "Niet mogelijk om bericht te krijgen wanneer een bericht gemigreerd word met FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.unexpected_filename.error",
+    "translation": "Niet mogelijk om bericht te krijgen wanneer een bericht gemigreerd word met FileInfos, post_id=%v, err=%v"
   },
   {
     "id": "api.file.move_file.configured.app_error",
@@ -864,10 +980,6 @@
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "Er is een fout opgetreden bij het lezen van een bestand uit lokale opslag"
-  },
-  {
-    "id": "api.file.upload_file.image.app_error",
-    "translation": "Kan afbeelding niet uploaden."
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -998,6 +1110,10 @@
     "translation": "Mist een of meerdere elementen uit: response_type, client_id of redirect_uri"
   },
   {
+    "id": "api.oauth.complete_oauth.missing_code.app_error",
+    "translation": "De service provider {{.service}} heeft geen autorisatie code gegeven in de doorrstuur URL.\n\nVoor [Google Apps](https://docs.mattermost.com/deployment/sso-google.html) wees zeker dat Uw beheerder de Google+ API heeft aangezet.\n\nVoor [Office 365](https://docs.mattermost.com/deployment/sso-office.html) wees zeker dat Uw beheerder van Uw Microsoft domein de Mattermost app heeft aangezet.\n\nVor [GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html) wees zeker dat U onderstaande instructies heeft gevolgd.\n\nIf you reviewed the above and are still having trouble with configuration, you may post in our [Troubleshooting forum](https://forum.mattermost.org/c/general/trouble-shoot) where we'll be happy to help with issues during setup."
+  },
+  {
     "id": "api.oauth.delete.permissions.app_error",
     "translation": "Onvoldoende rechten voor het verwijderen van de OAuth2 applicatie"
   },
@@ -1066,6 +1182,10 @@
     "translation": "Initialisatie van de oauth api"
   },
   {
+    "id": "api.oauth.regenerate_secret.app_error",
+    "translation": "Onvoldoende rechten voor het hergenereren van de OAuth2 Applicatie Secret"
+  },
+  {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
     "translation": "De systeembeheerder heeft de OAuth2 Service Provider uitgeschakeld."
   },
@@ -1102,8 +1222,16 @@
     "translation": "{{.Username}} zijn genoemd, maar ze hebben geen notificatie gekregen, omdat ze niet deelnemen aan dit kanaal."
   },
   {
+    "id": "api.post.create_post.attach_files.error",
+    "translation": "Encountered error attaching files to post, post_id=%s, user_id=%s, file_ids=%v, err=%v"
+  },
+  {
     "id": "api.post.create_post.bad_filename.error",
     "translation": "Ongeldige bestandsnaam, bestandsnaam=%v"
+  },
+  {
+    "id": "api.post.create_post.can_not_post_to_deleted.error",
+    "translation": "Kan niet plaatsen in verwijdert kanaal."
   },
   {
     "id": "api.post.create_post.channel_root_id.app_error",
@@ -1127,24 +1255,32 @@
   },
   {
     "id": "api.post.delete_flagged_post.app_error.warn",
-    "translation": "Unable to delete flagged post preference when deleting post, err=%v"
+    "translation": "Niet mogelijk om gemarkeerde berichten te verwijderen bij verwijderen van bericht, err=%v"
   },
   {
     "id": "api.post.delete_post.permissions.app_error",
     "translation": "U beschikt niet over juiste de rechten"
   },
   {
+    "id": "api.post.delete_post_files.app_error.warn",
+    "translation": "Encountered error when deleting files for post, post_id=%v, err=%v"
+  },
+  {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
-      "one": "{{.Count}} file sent: {{.Filenames}}",
-      "other": "{{.Count}} files sent: {{.Filenames}}"
+      "one": "{{.Count}} bestand verzonden: {{.Filenames}}",
+      "other": "{{.Count}} bestanden verzonden: {{.Filenames}}"
     }
+  },
+  {
+    "id": "api.post.get_message_for_notification.get_files.error",
+    "translation": "Encountered error when getting files for notification message, post_id=%v, err=%v"
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
-      "one": "{{.Count}} image sent: {{.Filenames}}",
-      "other": "{{.Count}} images sent: {{.Filenames}}"
+      "one": "{{.Count}} afbeelding verzonden: {{.Filenames}}",
+      "other": "{{.Count}} afbeeldingen verzonden: {{.Filenames}}"
     }
   },
   {
@@ -1213,11 +1349,23 @@
   },
   {
     "id": "api.post.notification.member_profile.warn",
-    "translation": "Unable to get profile for channel member, user_id=%v"
+    "translation": "Niet mogelijk om profiel voor kanaal lid op te halen, user_id=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
+    "translation": "Verwijderen van push notificatie aan %v met kanaal_id %v"
   },
   {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
     "translation": "Niet gelukt om commentaar thread berichten op te halen uit notificaties root_post_id=%v, err=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.files.error",
+    "translation": "Failed to get files for post notification post_id=%v, err=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.get_teams.error",
+    "translation": "Mislukt om teams op te halen bij versturen van cross-team DM user_id=%v, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.mention_body",
@@ -1253,11 +1401,11 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.debug",
-    "translation": "Verzenden van notificatie naar %v wi bericht van '%v'"
+    "translation": "Verzenden van push notificatie naar %v met bericht van '%v'"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
-    "translation": "Het versturen van een push bericht is mislukt. notificationid=%v, fout=%v"
+    "translation": "Het versturen van een push bericht is mislukt, device_id=%v, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.send.error",
@@ -1344,6 +1492,14 @@
     "translation": "RateLimitSettings niet goed geconfigureerd met behulp van inschakelen VaryByHeader en uitschakelen VaryByRemoteAddr"
   },
   {
+    "id": "api.server.start_server.rate_limiting_memory_store",
+    "translation": "Unable to initialize rate limiting memory store. Check MemoryStoreSize config setting."
+  },
+  {
+    "id": "api.server.start_server.rate_limiting_rate_limiter",
+    "translation": "Unable to initialize rate limiting."
+  },
+  {
     "id": "api.server.start_server.starting.critical",
     "translation": "Fout bij het starten van de server, fout:%v"
   },
@@ -1384,8 +1540,16 @@
     "translation": "Samengevoegd met bestaand kanaal: {{.DisplayName}}\r\n"
   },
   {
+    "id": "api.slackimport.slack_add_posts.attach_files.error",
+    "translation": "Encountered error attaching files to post, post_id=%s, file_ids=%v, err=%v"
+  },
+  {
     "id": "api.slackimport.slack_add_posts.bot.warn",
     "translation": "Slack bot posts zijn nog niet geimporteerd"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.msg_no_comment.debug",
+    "translation": "File comment undefined"
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_usr.debug",
@@ -1394,6 +1558,22 @@
   {
     "id": "api.slackimport.slack_add_posts.unsupported.warn",
     "translation": "Niet ondersteund bericht type: %v, %v"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.upload_file_not_found.warn",
+    "translation": "No file found in Slack export for file upload message with file ID {{.FileId}}"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.upload_file_not_in_json.warn",
+    "translation": "Cannot import file for upload post with no \"file\" section present in export."
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.upload_file_open_failed.warn",
+    "translation": "Could not open the upload file with ID {{.FileId}} in the export archive with error: {{.Error}}"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.upload_file_upload_failed.warn",
+    "translation": "Uploading the file for upload message with file ID {{.FileId}} failed with error: {{.Error}}"
   },
   {
     "id": "api.slackimport.slack_add_posts.user_no_exists.debug",
@@ -1412,12 +1592,24 @@
     "translation": "E-mail, Wachtwoord: {{.Email}}, {{.Password}}\r\n"
   },
   {
+    "id": "api.slackimport.slack_add_users.merge_existing",
+    "translation": "Samengevoegd met bestaand account: {{.Email}}, {{.Username}}\r\n"
+  },
+  {
     "id": "api.slackimport.slack_add_users.unable_import",
     "translation": "Kan gebruiker niet importeren: {{.Username}}\r\n"
   },
   {
+    "id": "api.slackimport.slack_convert_channel_mentions.compile_regexp_failed.warn",
+    "translation": "Mislukt om de @vermelding te maken met reguliere expressie voor Slack gebruiker {{.UserID}} {{.Username}}"
+  },
+  {
     "id": "api.slackimport.slack_convert_timestamp.bad.warn",
     "translation": "Ongeldige 'timestamp' gevonden"
+  },
+  {
+    "id": "api.slackimport.slack_convert_user_mentions.compile_regexp_failed.warn",
+    "translation": "Mislukt om de @vermelding te maken met reguliere expressie voor Slack gebruiker {{.UserID}} {{.Username}}"
   },
   {
     "id": "api.slackimport.slack_import.log",
@@ -1430,6 +1622,10 @@
   {
     "id": "api.slackimport.slack_import.note2",
     "translation": "- Slack bot berichten worden op dit moment niet ondersteund.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.note3",
+    "translation": "- Additional errors may be found in the server logs.\r\n"
   },
   {
     "id": "api.slackimport.slack_import.notes",
@@ -1446,6 +1642,14 @@
   {
     "id": "api.slackimport.slack_import.zip.app_error",
     "translation": "Zip bestand kan niet worden geopend"
+  },
+  {
+    "id": "api.slackimport.slack_parse_channels.error",
+    "translation": "Error parsing slack channels. Import may work anyway."
+  },
+  {
+    "id": "api.slackimport.slack_parse_posts.error",
+    "translation": "Error parsing some slack posts. Import may work anyway."
   },
   {
     "id": "api.status.init.debug",
@@ -1557,7 +1761,7 @@
   },
   {
     "id": "api.team.is_team_creation_allowed.domain.app_error",
-    "translation": "Email moet uit bepaalde domeinen komen (b.v. @voorbeeld.nl). Neem contact op met de systeem beheerder voor meer details."
+    "translation": "Email moet uit bepaalde domeinen komen (bijv. @voorbeeld.nl). Neem contact op met de systeem beheerder voor meer details."
   },
   {
     "id": "api.team.permanent_delete_team.attempting.warn",
@@ -1574,6 +1778,10 @@
   {
     "id": "api.team.signup_team.email_disabled.app_error",
     "translation": "Team aanmelding via e-mail is uitgeschakeld."
+  },
+  {
+    "id": "api.team.update_member_roles.not_a_member",
+    "translation": "Specified user is not a member of specified team."
   },
   {
     "id": "api.team.update_team.permissions.app_error",
@@ -1684,8 +1892,12 @@
     "translation": "KANAAL: {{.ChannelName}}<br>{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
-    "id": "api.templates.post_subject",
-    "translation": "{{.SubjectText}} op {{.TeamDisplayName}} om {{.Month}} {{.Day}} {{.Year}}"
+    "id": "api.templates.post_subject_in_channel",
+    "translation": "{{.SubjectText}} in {{.TeamDisplayName}} {{.ChannelName}}) op {{.Month}} {{.Day}} {{.Year}}"
+  },
+  {
+    "id": "api.templates.post_subject_in_direct_message",
+    "translation": "{{.SubjectText}} in {{.TeamDisplayName}} van {{.SenderDisplayName}} op {{.Month}} {{.Day}} {{.Year}}"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -1937,7 +2149,7 @@
   },
   {
     "id": "api.user.email_to_ldap.not_available.app_error",
-    "translation": "LDAP is niet beschikbaar op deze server"
+    "translation": "AD/LDAP is niet beschikbaar op deze server"
   },
   {
     "id": "api.user.generate_mfa_qr.not_available.app_error",
@@ -1957,11 +2169,11 @@
   },
   {
     "id": "api.user.ldap_to_email.not_available.app_error",
-    "translation": "LDAP is niet beschikbaar op deze server"
+    "translation": "AS/LDAP is niet beschikbaar op deze server"
   },
   {
     "id": "api.user.ldap_to_email.not_ldap_account.app_error",
-    "translation": "Dit gebruikers account gebruikt geen LDAP"
+    "translation": "Dit gebruikers account gebruikt geen AD/LDAP"
   },
   {
     "id": "api.user.login.blank_pwd.app_error",
@@ -2005,7 +2217,7 @@
   },
   {
     "id": "api.user.login_ldap.disabled.app_error",
-    "translation": "LDAP is niet beschikbaar op deze server"
+    "translation": "AD/LDAP is niet beschikbaar op deze server"
   },
   {
     "id": "api.user.login_ldap.need_id.app_error",
@@ -2013,7 +2225,7 @@
   },
   {
     "id": "api.user.login_ldap.not_available.app_error",
-    "translation": "LDAP is niet beschikbaar op deze server"
+    "translation": "AD/LDAP is niet beschikbaar op deze server"
   },
   {
     "id": "api.user.oauth_to_email.context.app_error",
@@ -2097,7 +2309,7 @@
   },
   {
     "id": "api.user.update_active.no_deactivate_ldap.app_error",
-    "translation": "Je kan niet de activatie status veranderen van LDAP account. Wijzig dit via de LDAP server."
+    "translation": "Je kan niet de activatie status veranderen van AD/LDAP account. Wijzig dit via de AD/LDAP server."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -2196,8 +2408,12 @@
     "translation": "Ongeldige e-mail verificatie link."
   },
   {
+    "id": "api.web_hub.start.starting.debug",
+    "translation": "Starting %v websocket hubs"
+  },
+  {
     "id": "api.web_hub.start.stopping.debug",
-    "translation": "connecties %v worden afgesloten"
+    "translation": "stopping websocket hub connections"
   },
   {
     "id": "api.web_socket.connect.error",
@@ -2292,8 +2508,32 @@
     "translation": "Ongeldige rechten om tokens voor uitgaande webhooks opnieuw te genereren"
   },
   {
+    "id": "api.webrtc.init.debug",
+    "translation": "Initialisatie van de WebRTC api routes"
+  },
+  {
+    "id": "api.webrtc.not_available.app_error",
+    "translation": "WebRTC is niet beschikbaar op deze server."
+  },
+  {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "Ongeldige {{.Name}} parameter"
+  },
+  {
+    "id": "authentication.permissions.team_invite_user.description",
+    "translation": "Mogelijkheid om gebruikers uit te nodigen in een team"
+  },
+  {
+    "id": "authentication.permissions.team_invite_user.name",
+    "translation": "Nodig Gebruiker uit"
+  },
+  {
+    "id": "authentication.permissions.team_use_slash_commands.description",
+    "translation": "Mogelijkheid om slash commando's te gebruiken"
+  },
+  {
+    "id": "authentication.permissions.team_use_slash_commands.name",
+    "translation": "Gebruik Slash Commando's"
   },
   {
     "id": "cli.license.critical",
@@ -2392,8 +2632,12 @@
     "translation": "Aangepaste emoji restricties is uitgeschakeld vanwege de huidige licentie. Neem contact op met de beheerder voor een upgrade van de licentie."
   },
   {
+    "id": "ent.ldap.disabled.app_error",
+    "translation": "AD/LDAP uitgeschakeld of licentie ondersteund geen AD/LDAP."
+  },
+  {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
-    "translation": "Kan verbinding maken met de LDAP server. Controleer de opgegeven gebruikersnaam en wachtwoord."
+    "translation": "Kan geen verbinding maken met de AD/LDAP server. Controleer de opgegeven Bindgebruikersnaam en Bindwachtwoord."
   },
   {
     "id": "ent.ldap.do_login.invalid_password.app_error",
@@ -2401,7 +2645,7 @@
   },
   {
     "id": "ent.ldap.do_login.licence_disable.app_error",
-    "translation": "LDAP functionaliteit is uitgeschakeld met de huidige licentie. Neem contact op met de beheerder voor een upgrade van de licentie."
+    "translation": "AD/LDAP functionaliteit is uitgeschakeld met de huidige licentie. Neem contact op met de beheerder voor een upgrade van de licentie."
   },
   {
     "id": "ent.ldap.do_login.matched_to_many_users.app_error",
@@ -2409,11 +2653,11 @@
   },
   {
     "id": "ent.ldap.do_login.search_ldap_server.app_error",
-    "translation": "Kan niet zoeken op de LDAP server"
+    "translation": "Kan niet zoeken op de AD/LDAP server"
   },
   {
     "id": "ent.ldap.do_login.unable_to_connect.app_error",
-    "translation": "Kan niet verbinden met de LDAP server"
+    "translation": "Kan niet verbinden met de AD/LDAP server"
   },
   {
     "id": "ent.ldap.do_login.unable_to_create_user.app_error",
@@ -2421,27 +2665,27 @@
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
-    "translation": "Je LDAP account heeft niet de juiste permissies om van deze Mattermost server gebruik te maken. Vraag je Systeembeheerder om het LDAP gebruikersfilter te controleren."
+    "translation": "Je AD/LDAP account heeft niet de juiste permissies om van deze Mattermost server gebruik te maken. Vraag je Systeembeheerder om het AD/LDAP gebruikersfilter te controleren."
   },
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
-    "translation": "Gebruiker is niet bekend op de LDAP server"
+    "translation": "Gebruiker is niet bekend op de AD/LDAP server"
   },
   {
     "id": "ent.ldap.mattermost_user_update",
-    "translation": "Mattermost gebruiker is bijgewerkt door de LDAP server."
+    "translation": "Mattermost gebruiker is bijgewerkt door de AD/LDAP server."
   },
   {
     "id": "ent.ldap.syncdone.info",
-    "translation": "LDAP Synchronisatie voltooid"
+    "translation": "AD/LDAP Synchronisatie voltooid"
   },
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
-    "translation": "Niet mogelijk alle gebruikers te krijgen via LDAP"
+    "translation": "Niet mogelijk alle gebruikers te krijgen via AD/LDAP"
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
-    "translation": "Ongeldig LDAP filter"
+    "translation": "Ongeldig AD/LDAP filter"
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",
@@ -2481,11 +2725,15 @@
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
-    "translation": "Niet mogelijk om LDAP gebruikers te migreren met het opgegeven veld. Dubbele vermelding ontdekt. Verwijder alle dubbele vermeldingen en probeer opnieuw."
+    "translation": "Niet mogelijk om AD/LDAP gebruikers te migreren met het opgegeven veld. Dubbele vermelding ontdekt. Verwijder alle dubbele vermeldingen en probeer opnieuw."
   },
   {
     "id": "ent.migration.migratetoldap.user_not_found",
-    "translation": "Kon gebruiker niet vinden op de LDAP server: "
+    "translation": "Kon gebruiker niet vinden op de AD/LDAP server: "
+  },
+  {
+    "id": "ent.saml.attribute.app_error",
+    "translation": "SAML aanmelding is mislukt vanwege verkeerde attributen. Neem contact op met de beheerder."
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -2554,6 +2802,18 @@
   {
     "id": "ent.saml.update_saml_user.unable_error",
     "translation": "Kon bestaande SAML gebruiker niet bijwerken. Inloggen toch toestaan. err=%v"
+  },
+  {
+    "id": "ent.webrtc.disabled.app_error",
+    "translation": "WebRTC is niet ingeschakeld op deze server."
+  },
+  {
+    "id": "ent.webrtc.license_disable.app_error",
+    "translation": "Jouw licentie ondersteund geen gebruik van Mattermost WebRTC"
+  },
+  {
+    "id": "ent.webrtc.register_token.app_error",
+    "translation": "We encountered an error trying to register the WebRTC Token"
   },
   {
     "id": "error.generic.link_message",
@@ -2881,15 +3141,15 @@
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
-    "translation": "Unable to enable email batching when clustering is enabled"
+    "translation": "Niet mogelijk om bulk email aan te zetten als clustering aan staat."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
-    "translation": "Invalid email batching buffer size for email settings.  Must be zero or a positive number."
+    "translation": "Verkeerde buffer grootte bij bulk email instellingen. Moet 0 zijn of een positief nummer."
   },
   {
     "id": "model.config.is_valid.email_batching_interval.app_error",
-    "translation": "Invalid email batching interval for email settings.  Must be 30 seconds or more."
+    "translation": "Verkeerde interval bij bulk email instellingen. Moet 30 secondes of meer zijn."
   },
   {
     "id": "model.config.is_valid.email_reset_salt.app_error",
@@ -2913,7 +3173,7 @@
   },
   {
     "id": "model.config.is_valid.file_preview_height.app_error",
-    "translation": "Ongeldige voorvertonings hoogte voor bestand instellingen. Moet 0 of groter zijn."
+    "translation": "Ongeldige voorvertonings-hoogte voor bestand instellingen.  Moet 0 of groter zijn."
   },
   {
     "id": "model.config.is_valid.file_preview_width.app_error",
@@ -2941,31 +3201,31 @@
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
-    "translation": "LDAP veld \"BaseDN\" is verplicht."
+    "translation": "AD/LDAP veld \"BaseDN\" is verplicht."
   },
   {
     "id": "model.config.is_valid.ldap_bind_password",
-    "translation": "LDAP veld \"Bind Password\" is verplicht"
+    "translation": "AD/LDAP veld \"Bind Password\" is verplicht"
   },
   {
     "id": "model.config.is_valid.ldap_bind_username",
-    "translation": "LDAP veld \"Bind Username\" is verplicht."
+    "translation": "AD/LDAP veld \"Bind Username\" is verplicht."
   },
   {
     "id": "model.config.is_valid.ldap_email",
-    "translation": "LDAP veld \"Email Attribute\" is verplicht."
+    "translation": "AD/LDAP veld \"Email Attribute\" is verplicht."
   },
   {
     "id": "model.config.is_valid.ldap_firstname",
-    "translation": "LDAP veld \"First Name Attribute\" is verplicht."
+    "translation": "AD/LDAP veld \"First Name Attribute\" is verplicht."
   },
   {
     "id": "model.config.is_valid.ldap_id",
-    "translation": "LDAP veld \"ID Attribute\" is verplicht."
+    "translation": "AD/LDAP veld \"ID Attribute\" is verplicht."
   },
   {
     "id": "model.config.is_valid.ldap_lastname",
-    "translation": "LDAP veld \"Last Name Attribute\" is verplicht."
+    "translation": "AD/LDAP veld \"Last Name Attribute\" is verplicht."
   },
   {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",
@@ -2973,19 +3233,19 @@
   },
   {
     "id": "model.config.is_valid.ldap_required.app_error",
-    "translation": "Verplicht LDAP veld is niet ingevuld."
+    "translation": "Verplicht AD/LDAP veld is niet ingevuld."
   },
   {
     "id": "model.config.is_valid.ldap_required.app_error",
-    "translation": "Verplicht LDAP veld is niet ingevuld."
+    "translation": "Verplicht AD/LDAP veld is niet ingevuld."
   },
   {
     "id": "model.config.is_valid.ldap_security.app_error",
-    "translation": "Ongeldige verbindings instelling bij LDAP instellingen. Keuze uit; '', 'TLS' of 'STARTTLS'"
+    "translation": "Ongeldige verbindings instelling bij AD/LDAP instellingen. Keuze uit; '', 'TLS' of 'STARTTLS'"
   },
   {
     "id": "model.config.is_valid.ldap_server",
-    "translation": "LDAP veld \"LDAP Server\" is verplicht."
+    "translation": "AD/LDAP veld \"AD/LDAP Server\" is verplicht."
   },
   {
     "id": "model.config.is_valid.ldap_sync_interval.app_error",
@@ -2993,7 +3253,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_username",
-    "translation": "LDAP veld \"Username Attribute\" is verplicht."
+    "translation": "AD/LDAP veld \"Username Attribute\" is verplicht."
   },
   {
     "id": "model.config.is_valid.listen_address.app_error",
@@ -3002,6 +3262,14 @@
   {
     "id": "model.config.is_valid.login_attempts.app_error",
     "translation": "Maximaal aantal inlog poging bij service instellingen. Moet een getal grote dan 0 zijn."
+  },
+  {
+    "id": "model.config.is_valid.max_burst.app_error",
+    "translation": "Maximum burst size must be greater than zero."
+  },
+  {
+    "id": "model.config.is_valid.max_channels.app_error",
+    "translation": "Ongeldig maximaal aantal gebruikers per team bij team instellingen. Moet een getal groter dan 0 zijn."
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
@@ -3028,6 +3296,10 @@
     "translation": "Ongeldige frequentie beperings instelling. Moet een getal groter dan 0 zijn"
   },
   {
+    "id": "model.config.is_valid.read_timeout.app_error",
+    "translation": "Invalid value for read timeout."
+  },
+  {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
     "translation": "Ongeldig privé bericht beperking. Moet zijn 'allen' of 'team'"
   },
@@ -3040,10 +3312,6 @@
     "translation": "Ongeldig Email attribuut. Dit moet ingesteld worden."
   },
   {
-    "id": "model.config.is_valid.saml_first_name_attribute.app_error",
-    "translation": "Ongeldig voornaam attribuut. Dit moet ingesteld worden."
-  },
-  {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
     "translation": "Publiek certificaat van Identity Provider is niet gevonden. Vergeten te uploaden?"
   },
@@ -3054,10 +3322,6 @@
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
     "translation": "Ongeldige URL. Een geldige URl begint met http:// of https://."
-  },
-  {
-    "id": "model.config.is_valid.saml_last_name_attribute.app_error",
-    "translation": "Ongeldig Achternaam attribuut. Dit moet ingesteld worden."
   },
   {
     "id": "model.config.is_valid.saml_private_key.app_error",
@@ -3077,7 +3341,7 @@
   },
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
-    "translation": "Unable to enable email batching when SiteURL isn't set."
+    "translation": "Niet mogelijk om bulk email aan te zetten als de SiteURL niet is ingevuld."
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
@@ -3098,6 +3362,42 @@
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
     "translation": "Ongeldig maximaal aantal open verbindingen bij SQL instellingen. Moet een getal groter dan 0 zijn."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_gateway_admin_secret.app_error",
+    "translation": "WebRTC Gateway Admin Secret moet worden ingesteld."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_gateway_admin_url.app_error",
+    "translation": "WebRTC Gateway Admin Url moet een geldige URL zijn en starten met http:// of https://."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_gateway_ws_url.app_error",
+    "translation": "WebRTC Gateway Websocket Url moet een geldige URL zijn en starten met ws:// of wss://."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_stun_uri.app_error",
+    "translation": "WebRTC STUN URI must be a valid URI and start with stun:"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_turn_shared_key.app_error",
+    "translation": "WebRTC TURN Gebruikersnaam kan niet leeg zijn als de TURN URI is ingesteld."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_turn_uri.app_error",
+    "translation": "WebRTC TURN URI must be a valid URI and start with turn:"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_turn_username.app_error",
+    "translation": "WebRTC TURN Gebruikersnaam kan niet leeg zijn als de TURN URI is ingesteld."
+  },
+  {
+    "id": "model.config.is_valid.webserver_security.app_error",
+    "translation": "Invalid value for webserver connection security."
+  },
+  {
+    "id": "model.config.is_valid.write_timeout.app_error",
+    "translation": "Invalid value for write timeout."
   },
   {
     "id": "model.emoji.create_at.app_error",
@@ -3254,6 +3554,10 @@
   {
     "id": "model.post.is_valid.create_at.app_error",
     "translation": "Aangemaakt op moet een geldige tijd bevatten"
+  },
+  {
+    "id": "model.post.is_valid.file_ids.app_error",
+    "translation": "Ongeldige bestands-ids"
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -3712,6 +4016,10 @@
     "translation": "We kunnen de extra info niet ophalen voor de kanaal leden"
   },
   {
+    "id": "store.sql_channel.get_for_post.app_error",
+    "translation": "We couldn't get the channel for the given post"
+  },
+  {
     "id": "store.sql_channel.get_member.app_error",
     "translation": "We kunnen de kanaal leden niet ophalen"
   },
@@ -3722,6 +4030,10 @@
   {
     "id": "store.sql_channel.get_member_count.app_error",
     "translation": "We kunnen het aantal leden van het kanaal niet tellen"
+  },
+  {
+    "id": "store.sql_channel.get_member_for_post.app_error",
+    "translation": "We couldn't get the channel member for the given post"
   },
   {
     "id": "store.sql_channel.get_members.app_error",
@@ -3908,6 +4220,30 @@
     "translation": "De emoji kon niet opgeslagen worden"
   },
   {
+    "id": "store.sql_file_info.attach_to_post.app_error",
+    "translation": "We konden de bestandsinfo niet ophalen"
+  },
+  {
+    "id": "store.sql_file_info.delete_for_post.app_error",
+    "translation": "We konden de bestandsinfo niet ophalen"
+  },
+  {
+    "id": "store.sql_file_info.get.app_error",
+    "translation": "We konden de bestandsinfo niet ophalen"
+  },
+  {
+    "id": "store.sql_file_info.get_by_path.app_error",
+    "translation": "We konden de bestandsinfo niet ophalen"
+  },
+  {
+    "id": "store.sql_file_info.get_for_post.app_error",
+    "translation": "We konden de bestandsinfo niet ophalen"
+  },
+  {
+    "id": "store.sql_file_info.save.app_error",
+    "translation": "We konden de bestandsinfo niet opslaan"
+  },
+  {
     "id": "store.sql_license.get.app_error",
     "translation": "Er is een probleem opgetreden bij het ophalen van de licentie"
   },
@@ -3938,6 +4274,10 @@
   {
     "id": "store.sql_oauth.get_access_data.app_error",
     "translation": "Er is een probleem opgetreden bij het ophalen van het access token"
+  },
+  {
+    "id": "store.sql_oauth.get_access_data_by_user_for_app.app_error",
+    "translation": "Er is een probleem opgetreden bij het ophalen van alle access tokens"
   },
   {
     "id": "store.sql_oauth.get_app.find.app_error",
@@ -4224,6 +4564,10 @@
     "translation": "Fout bij het ophalen van de online/weg statuses"
   },
   {
+    "id": "store.sql_status.get_team_statuses.app_error",
+    "translation": "Fout bij het ophalen van de statussen van alle team leden"
+  },
+  {
     "id": "store.sql_status.get_total_active_users_count.app_error",
     "translation": "De gebruikers kunnen niet geteld worden"
   },
@@ -4246,6 +4590,10 @@
   {
     "id": "store.sql_system.get_by_name.app_error",
     "translation": "De systeem variabele kan niet gevonden worden."
+  },
+  {
+    "id": "store.sql_system.get_version.app_error",
+    "translation": "We konden de database versie niet ophalen"
   },
   {
     "id": "store.sql_system.save.app_error",
@@ -4296,7 +4644,15 @@
     "translation": "Geen teamlid gevonden voor dit gebruikers id en kanaal id"
   },
   {
+    "id": "store.sql_team.get_member_count.app_error",
+    "translation": "We kunnen de teamleden niet ophalen"
+  },
+  {
     "id": "store.sql_team.get_members.app_error",
+    "translation": "We kunnen de teamleden niet ophalen"
+  },
+  {
+    "id": "store.sql_team.get_members_by_ids.app_error",
     "translation": "We kunnen de teamleden niet ophalen"
   },
   {
@@ -4388,6 +4744,10 @@
     "translation": "Er is een probleem opgestreden tijdens het opzoeken van het gebruikersprofiel"
   },
   {
+    "id": "store.sql_user.get_recently_active_users.app_error",
+    "translation": "We encountered an error while finding the recently active users"
+  },
+  {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",
     "translation": "Er is een probleem opgestreden tijdens het opzoeken van het gebruikersprofiel"
   },
@@ -4398,6 +4758,10 @@
   {
     "id": "store.sql_user.get_unread_count.app_error",
     "translation": "Het aantal ongelezen berichten voor de gebruiker kan niet geteld worden"
+  },
+  {
+    "id": "store.sql_user.get_unread_count_for_channel.app_error",
+    "translation": "Het aantal ongelezen berichten voor de gebruiker en kanaal kan niet geteld worden"
   },
   {
     "id": "store.sql_user.migrate_theme.critical",
@@ -4421,7 +4785,7 @@
   },
   {
     "id": "store.sql_user.save.email_exists.ldap_app_error",
-    "translation": "Dit account gebruikt geen LDAP authenticatie. Log in met e-mail en wachtwoord."
+    "translation": "Dit account gebruikt geen AD/LDAP authenticatie. Log in met e-mail en wachtwoord."
   },
   {
     "id": "store.sql_user.save.email_exists.saml_app_error",
@@ -4457,7 +4821,7 @@
   },
   {
     "id": "store.sql_user.update.can_not_change_ldap.app_error",
-    "translation": "Velden die gezet zijn door LDAP kunnen niet gewijzigd worden"
+    "translation": "Velden die gezet zijn door AD/LDAP kunnen niet gewijzigd worden"
   },
   {
     "id": "store.sql_user.update.email_taken.app_error",
@@ -4610,6 +4974,10 @@
   {
     "id": "utils.config.save_config.saving.app_error",
     "translation": "Er is ee probleem opgetreden bij het opslaan van het bestand in {{.Filename}}"
+  },
+  {
+    "id": "utils.diagnostic.analytics_not_found.app_error",
+    "translation": "Analytics niet geïnitialiseerd"
   },
   {
     "id": "utils.i18n.loaded",

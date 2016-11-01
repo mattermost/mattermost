@@ -297,7 +297,6 @@ func TestUnknownExitSignal(t *testing.T) {
 	}
 }
 
-// Test WaitMsg is not returned if the channel closes abruptly.
 func TestExitWithoutStatusOrSignal(t *testing.T) {
 	conn := dial(exitWithoutSignalOrStatus, t)
 	defer conn.Close()
@@ -313,11 +312,8 @@ func TestExitWithoutStatusOrSignal(t *testing.T) {
 	if err == nil {
 		t.Fatalf("expected command to fail but it didn't")
 	}
-	_, ok := err.(*ExitError)
-	if ok {
-		// you can't actually test for errors.errorString
-		// because it's not exported.
-		t.Fatalf("expected *errorString but got %T", err)
+	if _, ok := err.(*ExitMissingError); !ok {
+		t.Fatalf("got %T want *ExitMissingError", err)
 	}
 }
 

@@ -4,11 +4,115 @@
 package api
 
 import (
+	"encoding/json"
+	"net/http"
 	"testing"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/mattermost/platform/model"
 )
+
+func TestWebSocketAuthentication(t *testing.T) {
+	th := Setup().InitBasic()
+	WebSocketClient, err := th.CreateWebSocketClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+	WebSocketClient.Listen()
+
+	time.Sleep(300 * time.Millisecond)
+	if resp := <-WebSocketClient.ResponseChannel; resp.Status != model.STATUS_OK {
+		t.Fatal("should have responded OK to authentication challenge")
+	}
+
+	WebSocketClient.SendMessage("ping", nil)
+	time.Sleep(300 * time.Millisecond)
+	if resp := <-WebSocketClient.ResponseChannel; resp.Data["text"].(string) != "pong" {
+		t.Fatal("wrong response")
+	}
+
+	WebSocketClient.Close()
+
+	authToken := WebSocketClient.AuthToken
+	WebSocketClient.AuthToken = "junk"
+	if err := WebSocketClient.Connect(); err != nil {
+		t.Fatal(err)
+	}
+	WebSocketClient.Listen()
+
+	if resp := <-WebSocketClient.ResponseChannel; resp != nil {
+		t.Fatal("should have closed")
+	}
+
+	WebSocketClient.Close()
+
+	if conn, _, err := websocket.DefaultDialer.Dial(WebSocketClient.ApiUrl+"/users/websocket", nil); err != nil {
+		t.Fatal("should have connected")
+	} else {
+		req := &model.WebSocketRequest{}
+		req.Seq = 1
+		req.Action = "ping"
+		conn.WriteJSON(req)
+
+		closedAutomatically := false
+		hitNotAuthedError := false
+
+		go func() {
+			time.Sleep(10 * time.Second)
+			conn.Close()
+
+			if !closedAutomatically {
+				t.Fatal("should have closed automatically in 5 seconds")
+			}
+		}()
+
+		for {
+			if _, rawMsg, err := conn.ReadMessage(); err != nil {
+				closedAutomatically = true
+				conn.Close()
+				break
+			} else {
+				var response model.WebSocketResponse
+				if err := json.Unmarshal(rawMsg, &response); err != nil && !response.IsValid() {
+					t.Fatal("should not have failed")
+				} else {
+					if response.Error == nil || response.Error.Id != "api.web_socket_router.not_authenticated.app_error" {
+						t.Log(response.Error.Id)
+						t.Fatal("wrong error")
+						continue
+					}
+
+					hitNotAuthedError = true
+				}
+			}
+		}
+
+		if !hitNotAuthedError {
+			t.Fatal("should have received a not authenticated response")
+		}
+	}
+
+	header := http.Header{}
+	header.Set(model.HEADER_AUTH, "BEARER "+authToken)
+	if conn, _, err := websocket.DefaultDialer.Dial(WebSocketClient.ApiUrl+"/users/websocket", header); err != nil {
+		t.Fatal("should have connected")
+	} else {
+		if _, rawMsg, err := conn.ReadMessage(); err != nil {
+			t.Fatal("should not have closed automatically")
+		} else {
+			var event model.WebSocketEvent
+			if err := json.Unmarshal(rawMsg, &event); err != nil && !event.IsValid() {
+				t.Fatal("should not have failed")
+			} else if event.Event != model.WEBSOCKET_EVENT_HELLO {
+				t.Log(event.ToJson())
+				t.Fatal("should have helloed")
+			}
+		}
+
+		conn.Close()
+	}
+}
 
 func TestWebSocket(t *testing.T) {
 	th := Setup().InitBasic()
@@ -29,6 +133,9 @@ func TestWebSocket(t *testing.T) {
 	WebSocketClient.Listen()
 
 	time.Sleep(300 * time.Millisecond)
+	if resp := <-WebSocketClient.ResponseChannel; resp.Status != model.STATUS_OK {
+		t.Fatal("should have responded OK to authentication challenge")
+	}
 
 	WebSocketClient.SendMessage("ping", nil)
 	time.Sleep(300 * time.Millisecond)
@@ -78,8 +185,17 @@ func TestWebSocketEvent(t *testing.T) {
 
 	WebSocketClient.Listen()
 
-	evt1 := model.NewWebSocketEvent(th.BasicTeam.Id, th.BasicChannel.Id, "somerandomid", model.WEBSOCKET_EVENT_TYPING)
-	go Publish(evt1)
+	time.Sleep(300 * time.Millisecond)
+	if resp := <-WebSocketClient.ResponseChannel; resp.Status != model.STATUS_OK {
+		t.Fatal("should have responded OK to authentication challenge")
+	}
+
+	omitUser := make(map[string]bool, 1)
+	omitUser["somerandomid"] = true
+	evt1 := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_TYPING, "", th.BasicChannel.Id, "", omitUser)
+	evt1.Add("user_id", "somerandomid")
+	Publish(evt1)
+
 	time.Sleep(300 * time.Millisecond)
 
 	stop := make(chan bool)
@@ -89,7 +205,7 @@ func TestWebSocketEvent(t *testing.T) {
 		for {
 			select {
 			case resp := <-WebSocketClient.EventChannel:
-				if resp.Event == model.WEBSOCKET_EVENT_TYPING && resp.UserId == "somerandomid" {
+				if resp.Event == model.WEBSOCKET_EVENT_TYPING && resp.Data["user_id"].(string) == "somerandomid" {
 					eventHit = true
 				}
 			case <-stop:
@@ -98,7 +214,7 @@ func TestWebSocketEvent(t *testing.T) {
 		}
 	}()
 
-	time.Sleep(300 * time.Millisecond)
+	time.Sleep(400 * time.Millisecond)
 
 	stop <- true
 
@@ -106,7 +222,7 @@ func TestWebSocketEvent(t *testing.T) {
 		t.Fatal("did not receive typing event")
 	}
 
-	evt2 := model.NewWebSocketEvent(th.BasicTeam.Id, "somerandomid", "somerandomid", model.WEBSOCKET_EVENT_TYPING)
+	evt2 := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_TYPING, "", "somerandomid", "", nil)
 	go Publish(evt2)
 	time.Sleep(300 * time.Millisecond)
 
@@ -125,7 +241,7 @@ func TestWebSocketEvent(t *testing.T) {
 		}
 	}()
 
-	time.Sleep(300 * time.Millisecond)
+	time.Sleep(400 * time.Millisecond)
 
 	stop <- true
 

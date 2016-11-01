@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// IMPLEMENTOR NOTE: To avoid a package loop, this file is in three places:
+// IMPLEMENTATION NOTE: To avoid a package loop, this file is in three places:
 // ssh/, ssh/agent, and ssh/test/. It should be kept in sync across all three
 // instances.
 

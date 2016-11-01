@@ -6,9 +6,11 @@ import ProfilePicture from 'components/profile_picture.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
+import {openDirectChannelToUser} from 'actions/channel_actions.jsx';
+
+import * as AsyncClient from 'utils/async_client.jsx';
 import Client from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
-import Constants from 'utils/constants.jsx';
 
 import $ from 'jquery';
 import React from 'react';
@@ -22,20 +24,18 @@ export default class PopoverListMembers extends React.Component {
 
         this.handleShowDirectChannel = this.handleShowDirectChannel.bind(this);
         this.closePopover = this.closePopover.bind(this);
+
+        this.state = {showPopover: false};
     }
 
     componentDidUpdate() {
         $('.member-list__popover .popover-content').perfectScrollbar();
     }
 
-    componentWillMount() {
-        this.setState({showPopover: false});
-    }
-
     handleShowDirectChannel(teammate, e) {
         e.preventDefault();
 
-        Utils.openDirectChannelToUser(
+        openDirectChannelToUser(
             teammate,
             (channel, channelAlreadyExisted) => {
                 browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + channel.name);
@@ -90,12 +90,6 @@ export default class PopoverListMembers extends React.Component {
                 }
 
                 if (name) {
-                    let status;
-                    if (m.status) {
-                        status = m.status;
-                    } else {
-                        status = UserStore.getStatus(m.id);
-                    }
                     popoverHtml.push(
                         <div
                             className='more-modal__row'
@@ -103,7 +97,6 @@ export default class PopoverListMembers extends React.Component {
                         >
                             <ProfilePicture
                                 src={`${Client.getUsersRoute()}/${m.id}/image?time=${m.update_at}`}
-                                status={status}
                                 width='26'
                                 height='26'
                             />
@@ -123,19 +116,27 @@ export default class PopoverListMembers extends React.Component {
                     );
                 }
             });
+
+            popoverHtml.push(
+                <div
+                    className='more-modal__row'
+                    key={'popover-member-more'}
+                >
+                    <div className='col-sm-5'/>
+                    <div className='more-modal__details'>
+                        <div
+                            className='more-modal__name'
+                        >
+                            {'...'}
+                        </div>
+                    </div>
+                </div>
+            );
         }
 
-        let count = this.props.memberCount;
+        const count = this.props.memberCount;
         let countText = '-';
-
-        // fall back to checking the length of the member list if the count isn't set
-        if (!count && members) {
-            count = members.length;
-        }
-
-        if (count > Constants.MAX_CHANNEL_POPOVER_COUNT) {
-            countText = Constants.MAX_CHANNEL_POPOVER_COUNT + '+';
-        } else if (count > 0) {
+        if (count > 0) {
             countText = count.toString();
         }
 
@@ -151,7 +152,10 @@ export default class PopoverListMembers extends React.Component {
                     id='member_popover'
                     className='member-popover__trigger'
                     ref='member_popover_target'
-                    onClick={(e) => this.setState({popoverTarget: e.target, showPopover: !this.state.showPopover})}
+                    onClick={(e) => {
+                        this.setState({popoverTarget: e.target, showPopover: !this.state.showPopover});
+                        AsyncClient.getProfilesInChannel(this.props.channel.id, 0);
+                    }}
                 >
                     <div>
                         {countText}

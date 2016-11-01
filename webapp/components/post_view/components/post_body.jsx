@@ -1,11 +1,12 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import FileAttachmentList from 'components/file_attachment_list.jsx';
 import UserStore from 'stores/user_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import Constants from 'utils/constants.jsx';
+import CommentedOnFilesMessageContainer from './commented_on_files_message_container.jsx';
+import FileAttachmentListContainer from 'components/file_attachment_list_container.jsx';
 import PostBodyAdditionalContent from './post_body_additional_content.jsx';
 import PostMessageContainer from './post_message_container.jsx';
 import PendingPostOptions from './pending_post_options.jsx';
@@ -22,7 +23,12 @@ export default class PostBody extends React.Component {
 
         this.removePost = this.removePost.bind(this);
     }
+
     shouldComponentUpdate(nextProps) {
+        if (nextProps.isCommentMention !== this.props.isCommentMention) {
+            return true;
+        }
+
         if (!Utils.areObjectsEqual(nextProps.post, this.props.post)) {
             return true;
         }
@@ -52,7 +58,6 @@ export default class PostBody extends React.Component {
 
     render() {
         const post = this.props.post;
-        const filenames = this.props.post.filenames;
         const parentPost = this.props.parentPost;
 
         let comment = '';
@@ -90,14 +95,13 @@ export default class PostBody extends React.Component {
             let message = '';
             if (parentPost.message) {
                 message = Utils.replaceHtmlEntities(parentPost.message);
-            } else if (parentPost.filenames.length) {
-                message = parentPost.filenames[0].split('/').pop();
-
-                if (parentPost.filenames.length === 2) {
-                    message += Utils.localizeMessage('post_body.plusOne', ' plus 1 other file');
-                } else if (parentPost.filenames.length > 2) {
-                    message += Utils.localizeMessage('post_body.plusMore', ' plus {count} other files').replace('{count}', (parentPost.filenames.length - 1).toString());
-                }
+            } else if (parentPost.file_ids && parentPost.file_ids.length > 0) {
+                message = (
+                    <CommentedOnFilesMessageContainer
+                        parentPostChannelId={parentPost.channel_id}
+                        parentPostId={parentPost.id}
+                    />
+                );
             }
 
             comment = (
@@ -136,14 +140,11 @@ export default class PostBody extends React.Component {
             );
         }
 
-        let fileAttachmentHolder = '';
-        if (filenames && filenames.length > 0) {
+        let fileAttachmentHolder = null;
+        if ((post.file_ids && post.file_ids.length > 0) || (post.filenames && post.filenames.length > 0)) {
             fileAttachmentHolder = (
-                <FileAttachmentList
-
-                    filenames={filenames}
-                    channelId={post.channel_id}
-                    userId={post.user_id}
+                <FileAttachmentListContainer
+                    post={post}
                     compactDisplay={this.props.compactDisplay}
                 />
             );
@@ -165,7 +166,7 @@ export default class PostBody extends React.Component {
             );
         }
 
-        let messageWrapper = (
+        const messageWrapper = (
             <div
                 key={`${post.id}_message`}
                 id={`${post.id}_message`}
@@ -190,10 +191,15 @@ export default class PostBody extends React.Component {
             );
         }
 
+        let mentionHighlightClass = '';
+        if (this.props.isCommentMention) {
+            mentionHighlightClass = 'mention-comment';
+        }
+
         return (
             <div>
                 {comment}
-                <div className='post__body'>
+                <div className={'post__body ' + mentionHighlightClass}>
                     {messageWithAdditionalContent}
                     {fileAttachmentHolder}
                 </div>
@@ -208,5 +214,6 @@ PostBody.propTypes = {
     retryPost: React.PropTypes.func.isRequired,
     handleCommentClick: React.PropTypes.func.isRequired,
     compactDisplay: React.PropTypes.bool,
-    previewCollapsed: React.PropTypes.string
+    previewCollapsed: React.PropTypes.string,
+    isCommentMention: React.PropTypes.bool
 };

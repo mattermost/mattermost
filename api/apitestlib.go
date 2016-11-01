@@ -33,9 +33,10 @@ func SetupEnterprise() *TestHelper {
 		utils.LoadConfig("config.json")
 		utils.InitTranslations(utils.Cfg.LocalizationSettings)
 		utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
+		*utils.Cfg.RateLimitSettings.Enable = false
 		utils.DisableDebugLogForTest()
 		utils.License.Features.SetDefaults()
-		NewServer()
+		NewServer(false)
 		StartServer()
 		utils.InitHTML()
 		InitApi()
@@ -54,8 +55,9 @@ func Setup() *TestHelper {
 		utils.LoadConfig("config.json")
 		utils.InitTranslations(utils.Cfg.LocalizationSettings)
 		utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
+		*utils.Cfg.RateLimitSettings.Enable = false
 		utils.DisableDebugLogForTest()
-		NewServer()
+		NewServer(false)
 		StartServer()
 		InitApi()
 		utils.EnableDebugLogForTest()
@@ -91,7 +93,7 @@ func (me *TestHelper) InitSystemAdmin() *TestHelper {
 	c := &Context{}
 	c.RequestId = model.NewId()
 	c.IpAddress = "cmd_line"
-	UpdateUserRoles(c, me.SystemAdminUser, model.ROLE_SYSTEM_ADMIN)
+	UpdateUserRoles(c, me.SystemAdminUser, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_ADMIN.Id)
 	me.SystemAdminUser.Password = "Password1"
 	me.LoginSystemAdmin()
 	me.SystemAdminChannel = me.CreateChannel(me.SystemAdminClient, me.SystemAdminTeam)
@@ -157,13 +159,15 @@ func LinkUserToTeam(user *model.User, team *model.Team) {
 func UpdateUserToTeamAdmin(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	tm := &model.TeamMember{TeamId: team.Id, UserId: user.Id, Roles: model.ROLE_TEAM_ADMIN}
+	tm := &model.TeamMember{TeamId: team.Id, UserId: user.Id, Roles: model.ROLE_TEAM_USER.Id + " " + model.ROLE_TEAM_ADMIN.Id}
 	if tmr := <-Srv.Store.Team().UpdateMember(tm); tmr.Err != nil {
+		utils.EnableDebugLogForTest()
 		l4g.Error(tmr.Err.Error())
 		l4g.Close()
 		time.Sleep(time.Second)
 		panic(tmr.Err)
 	}
+	utils.EnableDebugLogForTest()
 }
 
 func (me *TestHelper) CreateChannel(client *model.Client, team *model.Team) *model.Channel {

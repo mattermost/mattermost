@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import * as TextFormatting from './text_formatting.jsx';
-import * as SyntaxHighlighting from './syntax_hightlighting.jsx';
+import * as SyntaxHighlighting from './syntax_highlighting.jsx';
 
 import marked from 'marked';
 import katex from 'katex';
@@ -135,7 +135,13 @@ class MattermostMarkdownRenderer extends marked.Renderer {
         let outHref = href;
 
         try {
-            const unescaped = decodeURIComponent(unescape(href)).replace(/[^\w:]/g, '').toLowerCase();
+            let unescaped = unescape(href);
+            try {
+                unescaped = decodeURIComponent(unescaped);
+            } catch (e) {
+                unescaped = global.unescape(unescaped);
+            }
+            unescaped = unescaped.replace(/[^\w:]/g, '').toLowerCase();
 
             if (unescaped.indexOf('javascript:') === 0 || unescaped.indexOf('vbscript:') === 0 || unescaped.indexOf('data:') === 0) { // eslint-disable-line no-script-url
                 return text;
@@ -232,7 +238,7 @@ function unescape(html) {
         } else if (n.charAt(0) === '#') {
             return n.charAt(1) === 'x' ?
                 String.fromCharCode(parseInt(n.substring(2), 16)) :
-                String.fromCharCode(+n.substring(1));
+                String.fromCharCode(Number(n.substring(1)));
         }
         return '';
     });

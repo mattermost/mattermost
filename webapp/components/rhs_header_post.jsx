@@ -36,7 +36,7 @@ export default class RhsHeaderPost extends React.Component {
     handleBack(e) {
         e.preventDefault();
 
-        if (this.props.fromSearch) {
+        if (this.props.fromSearch || this.props.isWebrtc) {
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_SEARCH_TERM,
                 term: this.props.fromSearch,
@@ -82,6 +82,15 @@ export default class RhsHeaderPost extends React.Component {
                     />
                 </Tooltip>
             );
+        } else if (this.props.isWebrtc) {
+            backToResultsTooltip = (
+                <Tooltip id='backToResultsTooltip'>
+                    <FormattedMessage
+                        id='rhs_header.backToCallTooltip'
+                        defaultMessage='Back to Call'
+                    />
+                </Tooltip>
+            );
         }
 
         const expandSidebarTooltip = (
@@ -102,7 +111,7 @@ export default class RhsHeaderPost extends React.Component {
             </Tooltip>
         );
 
-        if (this.props.fromSearch || this.props.fromFlaggedPosts) {
+        if (this.props.fromSearch || this.props.fromFlaggedPosts || this.props.isWebrtc) {
             back = (
                 <a
                     href='#'
@@ -114,7 +123,7 @@ export default class RhsHeaderPost extends React.Component {
                         placement='top'
                         overlay={backToResultsTooltip}
                     >
-                        <i className='fa fa-angle-left'></i>
+                        <i className='fa fa-angle-left'/>
                     </OverlayTrigger>
                 </a>
             );
@@ -178,6 +187,7 @@ RhsHeaderPost.defaultProps = {
 };
 RhsHeaderPost.propTypes = {
     isMentionSearch: React.PropTypes.bool,
+    isWebrtc: React.PropTypes.bool,
     fromSearch: React.PropTypes.string,
     fromFlaggedPosts: React.PropTypes.bool,
     toggleSize: React.PropTypes.function,

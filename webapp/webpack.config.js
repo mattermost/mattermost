@@ -56,7 +56,7 @@ var config = {
                 loader: 'file?name=files/[hash].[ext]'
             },
             {
-                test: /(node_modules|non_npm_dependencies)\/.+\.(js|jsx)$/,
+                test: /(node_modules|non_npm_dependencies)(\\|\/).+\.(js|jsx)$/,
                 loader: 'imports',
                 query: {
                     $: 'jquery',
@@ -84,9 +84,6 @@ var config = {
             }
         ]
     },
-    sassLoader: {
-        includePaths: ['node_modules/compass-mixins/lib']
-    },
     plugins: [
         new webpack.ProvidePlugin({
             'window.jQuery': 'jquery'
@@ -101,6 +98,13 @@ var config = {
         new webpack.LoaderOptionsPlugin({
             minimize: !DEV,
             debug: false
+        }),
+        new webpack.LoaderOptionsPlugin({
+            options: {
+                sassLoader: {
+                    includePaths: ['node_modules/compass-mixins/lib']
+                }
+            }
         }),
         new webpack.DefinePlugin({
             'process.env': {

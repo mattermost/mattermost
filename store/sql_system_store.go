@@ -28,7 +28,7 @@ func (s SqlSystemStore) CreateIndexesIfNotExists() {
 
 func (s SqlSystemStore) Save(system *model.System) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -46,7 +46,7 @@ func (s SqlSystemStore) Save(system *model.System) StoreChannel {
 
 func (s SqlSystemStore) SaveOrUpdate(system *model.System) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -70,7 +70,7 @@ func (s SqlSystemStore) SaveOrUpdate(system *model.System) StoreChannel {
 
 func (s SqlSystemStore) Update(system *model.System) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -88,7 +88,7 @@ func (s SqlSystemStore) Update(system *model.System) StoreChannel {
 
 func (s SqlSystemStore) Get() StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -114,7 +114,7 @@ func (s SqlSystemStore) Get() StoreChannel {
 
 func (s SqlSystemStore) GetByName(name string) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}

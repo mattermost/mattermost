@@ -530,6 +530,12 @@ body.ios {
             }
         }
 
+        .status-wrapper {
+            &:after {
+                bottom: 10px;
+            }
+        }
+
         blockquote {
             display: inline-block;
             font-size: 1em;
@@ -636,14 +642,19 @@ body.ios {
 
         .post__img {
             padding-top: 3px;
-            width: 27px;
+            width: 16px;
 
             img,
             svg {
                 height: 20px;
-                width: 20px;
+                visibility: hidden;
+                width: 9px;
             }
         }
+    }
+
+    .post__img:hover {
+        cursor: pointer;
     }
 
     .post--fail {
@@ -681,6 +692,11 @@ body.ios {
         .post__body {
             border-left: 4px solid $gray;
             padding-left: 7px;
+
+            &.mention-comment {
+                border-left: 4px solid $yellow;
+                border-color: $yellow;
+            }
         }
     }
 
@@ -959,6 +975,7 @@ body.ios {
 
         ul,
         ol {
+            font-size: .97em;
             margin-bottom: .4em;
             padding-left: 20px;
 

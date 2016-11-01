@@ -4,9 +4,10 @@
 package store
 
 import (
+	"strings"
+
 	"github.com/go-gorp/gorp"
 	"github.com/mattermost/platform/model"
-	"strings"
 )
 
 type SqlOAuthStore struct {
@@ -57,7 +58,7 @@ func (as SqlOAuthStore) CreateIndexesIfNotExists() {
 
 func (as SqlOAuthStore) SaveApp(app *model.OAuthApp) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -91,7 +92,7 @@ func (as SqlOAuthStore) SaveApp(app *model.OAuthApp) StoreChannel {
 
 func (as SqlOAuthStore) UpdateApp(app *model.OAuthApp) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -111,7 +112,6 @@ func (as SqlOAuthStore) UpdateApp(app *model.OAuthApp) StoreChannel {
 		} else {
 			oldApp := oldAppResult.(*model.OAuthApp)
 			app.CreateAt = oldApp.CreateAt
-			app.ClientSecret = oldApp.ClientSecret
 			app.CreatorId = oldApp.CreatorId
 
 			if count, err := as.GetMaster().Update(app); err != nil {
@@ -132,7 +132,7 @@ func (as SqlOAuthStore) UpdateApp(app *model.OAuthApp) StoreChannel {
 
 func (as SqlOAuthStore) GetApp(id string) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -155,7 +155,7 @@ func (as SqlOAuthStore) GetApp(id string) StoreChannel {
 
 func (as SqlOAuthStore) GetAppByUser(userId string) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -177,7 +177,7 @@ func (as SqlOAuthStore) GetAppByUser(userId string) StoreChannel {
 
 func (as SqlOAuthStore) GetApps() StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -198,7 +198,7 @@ func (as SqlOAuthStore) GetApps() StoreChannel {
 }
 
 func (as SqlOAuthStore) GetAuthorizedApps(userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -221,7 +221,7 @@ func (as SqlOAuthStore) GetAuthorizedApps(userId string) StoreChannel {
 }
 
 func (as SqlOAuthStore) DeleteApp(id string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -256,7 +256,7 @@ func (as SqlOAuthStore) DeleteApp(id string) StoreChannel {
 
 func (as SqlOAuthStore) SaveAccessData(accessData *model.AccessData) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -282,7 +282,7 @@ func (as SqlOAuthStore) SaveAccessData(accessData *model.AccessData) StoreChanne
 
 func (as SqlOAuthStore) GetAccessData(token string) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -305,7 +305,7 @@ func (as SqlOAuthStore) GetAccessData(token string) StoreChannel {
 
 func (as SqlOAuthStore) GetAccessDataByUserForApp(userId, clientId string) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -332,7 +332,7 @@ func (as SqlOAuthStore) GetAccessDataByUserForApp(userId, clientId string) Store
 
 func (as SqlOAuthStore) GetAccessDataByRefreshToken(token string) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -355,7 +355,7 @@ func (as SqlOAuthStore) GetAccessDataByRefreshToken(token string) StoreChannel {
 
 func (as SqlOAuthStore) GetPreviousAccessData(userId, clientId string) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -382,7 +382,7 @@ func (as SqlOAuthStore) GetPreviousAccessData(userId, clientId string) StoreChan
 }
 
 func (as SqlOAuthStore) UpdateAccessData(accessData *model.AccessData) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -403,7 +403,7 @@ func (as SqlOAuthStore) UpdateAccessData(accessData *model.AccessData) StoreChan
 }
 
 func (as SqlOAuthStore) RemoveAccessData(token string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -421,7 +421,7 @@ func (as SqlOAuthStore) RemoveAccessData(token string) StoreChannel {
 
 func (as SqlOAuthStore) SaveAuthData(authData *model.AuthData) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -448,7 +448,7 @@ func (as SqlOAuthStore) SaveAuthData(authData *model.AuthData) StoreChannel {
 
 func (as SqlOAuthStore) GetAuthData(code string) StoreChannel {
 
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -470,7 +470,7 @@ func (as SqlOAuthStore) GetAuthData(code string) StoreChannel {
 }
 
 func (as SqlOAuthStore) RemoveAuthData(code string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
@@ -488,7 +488,7 @@ func (as SqlOAuthStore) RemoveAuthData(code string) StoreChannel {
 }
 
 func (as SqlOAuthStore) PermanentDeleteAuthDataByUser(userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
+	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}

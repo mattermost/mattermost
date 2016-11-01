@@ -1,13 +1,11 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import Constants from 'utils/constants.jsx';
 import {Tooltip, OverlayTrigger} from 'react-bootstrap';
+import * as GlobalActions from 'actions/global_actions.jsx';
 
 import {FormattedMessage} from 'react-intl';
-
-var ActionTypes = Constants.ActionTypes;
 
 import React from 'react';
 
@@ -22,22 +20,7 @@ export default class SearchResultsHeader extends React.Component {
     handleClose(e) {
         e.preventDefault();
 
-        AppDispatcher.handleServerAction({
-            type: ActionTypes.RECEIVED_SEARCH,
-            results: null
-        });
-
-        AppDispatcher.handleServerAction({
-            type: ActionTypes.RECEIVED_SEARCH_TERM,
-            term: null,
-            do_search: false,
-            is_mention_search: false
-        });
-
-        AppDispatcher.handleServerAction({
-            type: ActionTypes.RECEIVED_POST_SELECTED,
-            postId: null
-        });
+        GlobalActions.toggleSideBarAction(false);
 
         this.props.shrink();
     }
@@ -58,7 +41,7 @@ export default class SearchResultsHeader extends React.Component {
         const closeSidebarTooltip = (
             <Tooltip id='closeSidebarTooltip'>
                 <FormattedMessage
-                    id='rhs_header.closeTooltip'
+                    id='rhs_header.closeSidebarTooltip'
                     defaultMessage='Close Sidebar'
                 />
             </Tooltip>
@@ -67,7 +50,7 @@ export default class SearchResultsHeader extends React.Component {
         const expandSidebarTooltip = (
             <Tooltip id='expandSidebarTooltip'>
                 <FormattedMessage
-                    id='rhs_header.expandTooltip'
+                    id='rhs_header.expandSidebarTooltip'
                     defaultMessage='Expand Sidebar'
                 />
             </Tooltip>
@@ -76,7 +59,7 @@ export default class SearchResultsHeader extends React.Component {
         const shrinkSidebarTooltip = (
             <Tooltip id='shrinkSidebarTooltip'>
                 <FormattedMessage
-                    id='rhs_header.expandTooltip'
+                    id='rhs_header.shrinkSidebarTooltip'
                     defaultMessage='Shrink Sidebar'
                 />
             </Tooltip>

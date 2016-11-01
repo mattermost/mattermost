@@ -1,41 +1,67 @@
 package: github.com/mattermost/platform
 import:
 - package: github.com/NYTimes/gziphandler
+  version: f6438dbf4a82c56684964b03956aa727b0d7816b
 - package: github.com/alecthomas/log4go
+  version: e5dc62318d9bd58682f1dceb53a4b24e8253682f
 - package: github.com/braintree/manners
+  version: 0.4.0
 - package: github.com/dgryski/dgoogauth
+  version: 96977cbd42e27be71f9f731db6634123de7e861a
 - package: github.com/disintegration/imaging
+  version: 5b7e22645c93e3f3911b36b7d66bf8799f3eddfd
 - package: github.com/go-gorp/gorp
   version: 0c9bc0918534d133cedb439a24adc7cbe66e4a9d
 - package: github.com/go-ldap/ldap
+  version: v2.4.1
 - package: github.com/go-sql-driver/mysql
+  version: v1.2
 - package: github.com/goamz/goamz
+  version: fb002ae75f50beb93874fa6ce2c861e488ce08a0
   subpackages:
   - aws
   - s3
 - package: github.com/golang/freetype
+  version: 38b4c392adc5eed94207994c4848fff99f4ac234
 - package: github.com/gorilla/handlers
+  version: v1.1
 - package: github.com/gorilla/mux
+  version: v1.1
 - package: github.com/gorilla/websocket
+  version: v1.0.0
 - package: github.com/lib/pq
+  version: 50761b0867bd1d9d069276790bcd4a3bccf2324a
 - package: github.com/mattermost/rsc
   subpackages:
   - qr
 - package: github.com/mssola/user_agent
+  version: v0.4.1
 - package: github.com/nicksnyder/go-i18n
+  version: v1.4.0
   subpackages:
   - i18n
 - package: github.com/pborman/uuid
+  version: v1.0
 - package: github.com/rwcarlsen/goexif
+  version: 709fab3d192d7c62f86043caff1e7e3fb0f42bd8
   subpackages:
   - exif
 - package: golang.org/x/crypto
+  version: 6ab629be5e31660579425a738ba8870beb5b7404
   subpackages:
   - bcrypt
 - package: golang.org/x/image
+  version: bb355ba4424d077d404aafbb59b05776b2e88fa7
   subpackages:
   - bmp
 - package: gopkg.in/fsnotify.v1
-- package: gopkg.in/throttled/throttled.v1
+  version: v1.3.1
+- package: gopkg.in/throttled/throttled.v2
+  version: v2.0.3
   subpackages:
   - store
+- package: github.com/segmentio/analytics-go
+  version: 2.1.1
+- package: github.com/rsc/letsencrypt
+- package: github.com/minio/minio-go
+  version: ^2.0.2

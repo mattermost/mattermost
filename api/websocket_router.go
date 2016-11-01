@@ -37,6 +37,37 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 		return
 	}
 
+	if r.Action == model.WEBSOCKET_AUTHENTICATION_CHALLENGE {
+		token, ok := r.Data["token"].(string)
+		if !ok {
+			conn.WebSocket.Close()
+			return
+		}
+
+		session := GetSession(token)
+
+		if session == nil || session.IsExpired() {
+			conn.WebSocket.Close()
+		} else {
+			go SetStatusOnline(session.UserId, session.Id, false)
+
+			conn.SessionToken = session.Token
+			conn.UserId = session.UserId
+
+			resp := model.NewWebSocketResponse(model.STATUS_OK, r.Seq, nil)
+			resp.DoPreComputeJson()
+			conn.Send <- resp
+		}
+
+		return
+	}
+
+	if conn.SessionToken == "" {
+		err := model.NewLocAppError("ServeWebSocket", "api.web_socket_router.not_authenticated.app_error", nil, "")
+		wr.ReturnWebSocketError(conn, r, err)
+		return
+	}
+
 	var handler *webSocketHandler
 	if h, ok := wr.handlers[r.Action]; !ok {
 		err := model.NewLocAppError("ServeWebSocket", "api.web_socket_router.bad_action.app_error", nil, "")
@@ -54,6 +85,7 @@ func (wr *WebSocketRouter) ReturnWebSocketError(conn *WebConn, r *model.WebSocke
 
 	err.DetailedError = ""
 	errorResp := model.NewWebSocketError(r.Seq, err)
+	errorResp.DoPreComputeJson()
 
 	conn.Send <- errorResp
 }

@@ -28,8 +28,25 @@ export default class SignupLdap extends React.Component {
         this.handleLdapSignup = this.handleLdapSignup.bind(this);
         this.handleLdapSignupSuccess = this.handleLdapSignupSuccess.bind(this);
 
+        this.handleLdapIdChange = this.handleLdapIdChange.bind(this);
+        this.handleLdapPasswordChange = this.handleLdapPasswordChange.bind(this);
+
         this.state = ({
-            ldapError: ''
+            ldapError: '',
+            ldapId: '',
+            ldapPassword: ''
+        });
+    }
+
+    handleLdapIdChange(e) {
+        this.setState({
+            ldapId: e.target.value
+        });
+    }
+
+    handleLdapPasswordChange(e) {
+        this.setState({
+            ldapPassword: e.target.value
         });
     }
 
@@ -39,8 +56,8 @@ export default class SignupLdap extends React.Component {
         this.setState({ldapError: ''});
 
         Client.webLoginByLdap(
-            this.refs.id.value.trim(),
-            this.refs.password.value,
+            this.state.ldapId,
+            this.state.ldapPassword,
             null,
             this.handleLdapSignupSuccess,
             (err) => {
@@ -86,7 +103,7 @@ export default class SignupLdap extends React.Component {
         if (global.window.mm_config.LdapLoginFieldName) {
             ldapIdPlaceholder = global.window.mm_config.LdapLoginFieldName;
         } else {
-            ldapIdPlaceholder = Utils.localizeMessage('login.ldap_username', 'LDAP Username');
+            ldapIdPlaceholder = Utils.localizeMessage('login.ldap_username', 'AD/LDAP Username');
         }
 
         let errorClass = '';
@@ -102,7 +119,7 @@ export default class SignupLdap extends React.Component {
                         <strong>
                             <FormattedMessage
                                 id='signup.ldap'
-                                defaultMessage='LDAP Credentials'
+                                defaultMessage='AD/LDAP Credentials'
                             />
                         </strong>
                     </h5>
@@ -118,8 +135,9 @@ export default class SignupLdap extends React.Component {
                                 <input
                                     className='form-control'
                                     name='ldapId'
-                                    ref='id'
+                                    value={this.state.ldapId}
                                     placeholder={ldapIdPlaceholder}
+                                    onChange={this.handleLdapIdChange}
                                     spellCheck='false'
                                     autoCapitalize='off'
                                 />
@@ -129,8 +147,9 @@ export default class SignupLdap extends React.Component {
                                     type='password'
                                     className='form-control'
                                     name='password'
-                                    ref='password'
+                                    value={this.state.ldapPassword}
                                     placeholder={Utils.localizeMessage('login.password', 'Password')}
+                                    onChange={this.handleLdapPasswordChange}
                                     spellCheck='false'
                                 />
                             </div>

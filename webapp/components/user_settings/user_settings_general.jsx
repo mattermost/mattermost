@@ -466,7 +466,7 @@ class UserSettingsGeneralTab extends React.Component {
                         <div className='setting-list__hint'>
                             <FormattedMessage
                                 id='user.settings.general.emailLdapCantUpdate'
-                                defaultMessage='Login occurs through LDAP. Email cannot be updated. Email address used for notifications is {email}.'
+                                defaultMessage='Login occurs through AD/LDAP. Email cannot be updated. Email address used for notifications is {email}.'
                                 values={{
                                     email: this.state.email
                                 }}
@@ -573,7 +573,7 @@ class UserSettingsGeneralTab extends React.Component {
                 describe = (
                     <FormattedMessage
                         id='user.settings.general.loginLdap'
-                        defaultMessage='Login done through LDAP ({email})'
+                        defaultMessage='Login done through AD/LDAP ({email})'
                         values={{
                             email: this.state.email
                         }}
@@ -629,7 +629,9 @@ class UserSettingsGeneralTab extends React.Component {
         if (this.props.activeSection === 'name') {
             let extraInfo;
             let submit = null;
-            if (this.props.user.auth_service === '') {
+            if (this.props.user.auth_service === '' ||
+                 ((this.props.user.auth_service === 'ldap' || this.props.user.auth_service === Constants.SAML_SERVICE) &&
+                  (global.window.mm_config.FirstNameAttributeSet === 'false' || global.window.mm_config.LastNameAttributeSet === 'false'))) {
                 inputs.push(
                     <div
                         key='firstNameSetting'
@@ -763,7 +765,7 @@ class UserSettingsGeneralTab extends React.Component {
         if (this.props.activeSection === 'nickname') {
             let extraInfo;
             let submit = null;
-            if (this.props.user.auth_service === 'ldap' && global.window.mm_config.NicknameAttributeSet === 'true') {
+            if ((this.props.user.auth_service === 'ldap' || this.props.user.auth_service === Constants.SAML_SERVICE) && global.window.mm_config.NicknameAttributeSet === 'true') {
                 extraInfo = (
                     <span>
                         <FormattedMessage

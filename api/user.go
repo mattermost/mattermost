@@ -39,7 +39,6 @@ func InitUser() {
 
 	BaseRoutes.Users.Handle("/create", ApiAppHandler(createUser)).Methods("POST")
 	BaseRoutes.Users.Handle("/update", ApiUserRequired(updateUser)).Methods("POST")
-	BaseRoutes.Users.Handle("/update_roles", ApiUserRequired(updateRoles)).Methods("POST")
 	BaseRoutes.Users.Handle("/update_active", ApiUserRequired(updateActive)).Methods("POST")
 	BaseRoutes.Users.Handle("/update_notify", ApiUserRequired(updateUserNotify)).Methods("POST")
 	BaseRoutes.Users.Handle("/newpassword", ApiUserRequired(updatePassword)).Methods("POST")
@@ -52,11 +51,17 @@ func InitUser() {
 	BaseRoutes.Users.Handle("/verify_email", ApiAppHandler(verifyEmail)).Methods("POST")
 	BaseRoutes.Users.Handle("/resend_verification", ApiAppHandler(resendVerification)).Methods("POST")
 	BaseRoutes.Users.Handle("/newimage", ApiUserRequired(uploadProfileImage)).Methods("POST")
-	BaseRoutes.Users.Handle("/me", ApiAppHandler(getMe)).Methods("GET")
+	BaseRoutes.Users.Handle("/me", ApiUserRequired(getMe)).Methods("GET")
 	BaseRoutes.Users.Handle("/initial_load", ApiAppHandler(getInitialLoad)).Methods("GET")
-	BaseRoutes.Users.Handle("/direct_profiles", ApiUserRequired(getDirectProfiles)).Methods("GET")
-	BaseRoutes.Users.Handle("/profiles/{id:[A-Za-z0-9]+}", ApiUserRequired(getProfiles)).Methods("GET")
-	BaseRoutes.Users.Handle("/profiles_for_dm_list/{id:[A-Za-z0-9]+}", ApiUserRequired(getProfilesForDirectMessageList)).Methods("GET")
+	BaseRoutes.Users.Handle("/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getProfiles)).Methods("GET")
+	BaseRoutes.NeedTeam.Handle("/users/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getProfilesInTeam)).Methods("GET")
+	BaseRoutes.NeedChannel.Handle("/users/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getProfilesInChannel)).Methods("GET")
+	BaseRoutes.NeedChannel.Handle("/users/not_in_channel/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getProfilesNotInChannel)).Methods("GET")
+	BaseRoutes.Users.Handle("/search", ApiUserRequired(searchUsers)).Methods("POST")
+	BaseRoutes.Users.Handle("/ids", ApiUserRequired(getProfilesByIds)).Methods("POST")
+
+	BaseRoutes.NeedTeam.Handle("/users/autocomplete", ApiUserRequired(autocompleteUsersInTeam)).Methods("GET")
+	BaseRoutes.NeedChannel.Handle("/users/autocomplete", ApiUserRequired(autocompleteUsersInChannel)).Methods("GET")
 
 	BaseRoutes.Users.Handle("/mfa", ApiAppHandler(checkMfa)).Methods("POST")
 	BaseRoutes.Users.Handle("/generate_mfa_qr", ApiUserRequiredTrustRequester(generateMfaQrCode)).Methods("GET")
@@ -71,6 +76,7 @@ func InitUser() {
 	BaseRoutes.NeedUser.Handle("/sessions", ApiUserRequired(getSessions)).Methods("GET")
 	BaseRoutes.NeedUser.Handle("/audits", ApiUserRequired(getAudits)).Methods("GET")
 	BaseRoutes.NeedUser.Handle("/image", ApiUserRequiredTrustRequester(getProfileImage)).Methods("GET")
+	BaseRoutes.NeedUser.Handle("/update_roles", ApiUserRequired(updateRoles)).Methods("POST")
 
 	BaseRoutes.Root.Handle("/login/sso/saml", AppHandlerIndependent(loginWithSaml)).Methods("GET")
 	BaseRoutes.Root.Handle("/login/sso/saml", AppHandlerIndependent(completeSaml)).Methods("POST")
@@ -230,16 +236,16 @@ func IsVerifyHashRequired(user *model.User, team *model.Team, hash string) bool 
 
 func CreateUser(user *model.User) (*model.User, *model.AppError) {
 
-	user.Roles = ""
+	user.Roles = model.ROLE_SYSTEM_USER.Id
 
 	// Below is a special case where the first user in the entire
-	// system is granted the system_admin role instead of admin
+	// system is granted the system_admin role
 	if result := <-Srv.Store.User().GetTotalUsersCount(); result.Err != nil {
 		return nil, result.Err
 	} else {
 		count := result.Data.(int64)
 		if count <= 0 {
-			user.Roles = model.ROLE_SYSTEM_ADMIN
+			user.Roles = model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id
 		}
 	}
 
@@ -269,8 +275,10 @@ func CreateUser(user *model.User) (*model.User, *model.AppError) {
 
 		ruser.Sanitize(map[string]bool{})
 
-		// This message goes to every channel, so the channelId is irrelevant
-		go Publish(model.NewWebSocketEvent("", "", ruser.Id, model.WEBSOCKET_EVENT_NEW_USER))
+		// This message goes to everyone, so the teamId, channelId and userId are irrelevant
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_NEW_USER, "", "", "", nil)
+		message.Add("user_id", ruser.Id)
+		go Publish(message)
 
 		return ruser, nil
 	}
@@ -379,7 +387,7 @@ func sendWelcomeEmail(c *Context, userId string, email string, siteURL string, v
 
 func addDirectChannels(teamId string, user *model.User) {
 	var profiles map[string]*model.User
-	if result := <-Srv.Store.User().GetProfiles(teamId); result.Err != nil {
+	if result := <-Srv.Store.User().GetProfiles(teamId, 0, 100); result.Err != nil {
 		l4g.Error(utils.T("api.user.add_direct_channels_and_forget.failed.error"), user.Id, teamId, result.Err.Error())
 		return
 	} else {
@@ -487,6 +495,9 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAuditWithUserId(user.Id, "success")
 
 	doLogin(c, w, r, user, deviceId)
+	if c.Err != nil {
+		return
+	}
 
 	user.Sanitize(map[string]bool{})
 
@@ -554,6 +565,9 @@ func LoginByOAuth(c *Context, w http.ResponseWriter, r *http.Request, service st
 	} else {
 		user = result.Data.(*model.User)
 		doLogin(c, w, r, user, "")
+		if c.Err != nil {
+			return nil
+		}
 		return user
 	}
 }
@@ -561,7 +575,7 @@ func LoginByOAuth(c *Context, w http.ResponseWriter, r *http.Request, service st
 // User MUST be authenticated completely before calling Login
 func doLogin(c *Context, w http.ResponseWriter, r *http.Request, user *model.User, deviceId string) {
 
-	session := &model.Session{UserId: user.Id, Roles: user.Roles, DeviceId: deviceId, IsOAuth: false}
+	session := &model.Session{UserId: user.Id, Roles: user.GetRawRoles(), DeviceId: deviceId, IsOAuth: false}
 
 	maxAge := *utils.Cfg.ServiceSettings.SessionLengthWebInDays * 60 * 60 * 24
 
@@ -735,6 +749,10 @@ func RevokeSessionById(c *Context, sessionId string) {
 				c.Err = result.Err
 			}
 		}
+
+		if webrtcInterface := einterfaces.GetWebrtcInterface(); webrtcInterface != nil {
+			webrtcInterface.RevokeToken(session.Id)
+		}
 	}
 }
 
@@ -757,6 +775,10 @@ func RevokeAllSession(c *Context, userId string) {
 					return
 				}
 			}
+
+			if webrtcInterface := einterfaces.GetWebrtcInterface(); webrtcInterface != nil {
+				webrtcInterface.RevokeToken(session.Id)
+			}
 		}
 	}
 }
@@ -778,6 +800,10 @@ func RevokeAllSessionsNoContext(userId string) *model.AppError {
 					return result.Err
 				}
 			}
+
+			if webrtcInterface := einterfaces.GetWebrtcInterface(); webrtcInterface != nil {
+				webrtcInterface.RevokeToken(session.Id)
+			}
 		}
 	}
 	return nil
@@ -788,7 +814,7 @@ func getSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["user_id"]
 
-	if !c.HasPermissionsToUser(id, "getSessions") {
+	if !HasPermissionToUser(c, id) {
 		return
 	}
 
@@ -825,10 +851,6 @@ func Logout(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getMe(c *Context, w http.ResponseWriter, r *http.Request) {
 
-	if len(c.Session.UserId) == 0 {
-		return
-	}
-
 	if result := <-Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
 		c.Err = result.Err
 		c.RemoveSessionCookie(w, r)
@@ -861,7 +883,6 @@ func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 		uchan := Srv.Store.User().Get(c.Session.UserId)
 		pchan := Srv.Store.Preference().GetAll(c.Session.UserId)
 		tchan := Srv.Store.Team().GetTeamsByUserId(c.Session.UserId)
-		dpchan := Srv.Store.User().GetDirectProfiles(c.Session.UserId)
 
 		il.TeamMembers = c.Session.TeamMembers
 
@@ -890,20 +911,6 @@ func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 				team.Sanitize()
 			}
 		}
-
-		if dp := <-dpchan; dp.Err != nil {
-			c.Err = dp.Err
-			return
-		} else {
-			profiles := dp.Data.(map[string]*model.User)
-
-			for k, p := range profiles {
-				p.SanitizeProfile(c.IsSystemAdmin(), false, true, true)
-				profiles[k] = p
-			}
-
-			il.DirectProfiles = profiles
-		}
 	}
 
 	if cchan != nil {
@@ -919,11 +926,12 @@ func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	il.ClientCfg = utils.ClientCfg
-	if c.IsSystemAdmin() {
+	if HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
 		il.LicenseCfg = utils.ClientLicense
 	} else {
 		il.LicenseCfg = utils.GetSanitizedClientLicense()
 	}
+	c.Err = nil
 
 	w.Write([]byte(il.ToJson()))
 }
@@ -932,80 +940,90 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["user_id"]
 
-	if !c.HasPermissionsToUser(id, "getUser") {
-		return
-	}
-
 	if result := <-Srv.Store.User().Get(id); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else if HandleEtag(result.Data.(*model.User).Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress), w, r) {
 		return
 	} else {
-		result.Data.(*model.User).Sanitize(map[string]bool{})
-		w.Header().Set(model.HEADER_ETAG_SERVER, result.Data.(*model.User).Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress))
+		user := sanitizeProfile(c, result.Data.(*model.User))
+
+		w.Header().Set(model.HEADER_ETAG_SERVER, user.Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress))
 		w.Write([]byte(result.Data.(*model.User).ToJson()))
 		return
 	}
 }
 
-func getProfilesForDirectMessageList(c *Context, w http.ResponseWriter, r *http.Request) {
+func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	id := params["id"]
 
-	var pchan store.StoreChannel
-
-	if *utils.Cfg.TeamSettings.RestrictDirectMessage == model.DIRECT_MESSAGE_TEAM {
-		if c.Session.GetTeamByTeamId(id) == nil {
-			if !c.HasSystemAdminPermissions("getProfiles") {
-				return
-			}
-		}
-
-		pchan = Srv.Store.User().GetProfiles(id)
-	} else {
-		pchan = Srv.Store.User().GetAllProfiles()
+	offset, err := strconv.Atoi(params["offset"])
+	if err != nil {
+		c.SetInvalidParam("getProfiles", "offset")
+		return
 	}
 
-	if result := <-pchan; result.Err != nil {
+	limit, err := strconv.Atoi(params["limit"])
+	if err != nil {
+		c.SetInvalidParam("getProfiles", "limit")
+		return
+	}
+
+	etag := (<-Srv.Store.User().GetEtagForAllProfiles()).Data.(string)
+	if HandleEtag(etag, w, r) {
+		return
+	}
+
+	if result := <-Srv.Store.User().GetAllProfiles(offset, limit); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
 		profiles := result.Data.(map[string]*model.User)
 
 		for k, p := range profiles {
-			p.SanitizeProfile(c.IsSystemAdmin(), false, false, false)
-			profiles[k] = p
+			profiles[k] = sanitizeProfile(c, p)
 		}
 
+		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 		w.Write([]byte(model.UserMapToJson(profiles)))
 	}
 }
 
-func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
+func getProfilesInTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	id := params["id"]
+	teamId := params["team_id"]
 
-	if c.Session.GetTeamByTeamId(id) == nil {
-		if !c.HasSystemAdminPermissions("getProfiles") {
+	if c.Session.GetTeamByTeamId(teamId) == nil {
+		if !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
 			return
 		}
 	}
 
-	etag := (<-Srv.Store.User().GetEtagForProfiles(id)).Data.(string)
+	offset, err := strconv.Atoi(params["offset"])
+	if err != nil {
+		c.SetInvalidParam("getProfilesInTeam", "offset")
+		return
+	}
+
+	limit, err := strconv.Atoi(params["limit"])
+	if err != nil {
+		c.SetInvalidParam("getProfilesInTeam", "limit")
+		return
+	}
+
+	etag := (<-Srv.Store.User().GetEtagForProfiles(teamId)).Data.(string)
 	if HandleEtag(etag, w, r) {
 		return
 	}
 
-	if result := <-Srv.Store.User().GetProfiles(id); result.Err != nil {
+	if result := <-Srv.Store.User().GetProfiles(teamId, offset, limit); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
 		profiles := result.Data.(map[string]*model.User)
 
 		for k, p := range profiles {
-			p.SanitizeProfile(c.IsSystemAdmin(), false, true, true)
-			profiles[k] = p
+			profiles[k] = sanitizeProfile(c, p)
 		}
 
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
@@ -1013,24 +1031,82 @@ func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getDirectProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
-	etag := (<-Srv.Store.User().GetEtagForDirectProfiles(c.Session.UserId)).Data.(string)
-	if HandleEtag(etag, w, r) {
+func getProfilesInChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	channelId := params["channel_id"]
+
+	if c.Session.GetTeamByTeamId(c.TeamId) == nil {
+		if !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
+			return
+		}
+	}
+
+	if !HasPermissionToChannelContext(c, channelId, model.PERMISSION_READ_CHANNEL) {
 		return
 	}
 
-	if result := <-Srv.Store.User().GetDirectProfiles(c.Session.UserId); result.Err != nil {
+	offset, err := strconv.Atoi(params["offset"])
+	if err != nil {
+		c.SetInvalidParam("getProfiles", "offset")
+		return
+	}
+
+	limit, err := strconv.Atoi(params["limit"])
+	if err != nil {
+		c.SetInvalidParam("getProfiles", "limit")
+		return
+	}
+
+	if result := <-Srv.Store.User().GetProfilesInChannel(channelId, offset, limit, false); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
 		profiles := result.Data.(map[string]*model.User)
 
 		for k, p := range profiles {
-			p.SanitizeProfile(c.IsSystemAdmin(), false, true, true)
-			profiles[k] = p
+			profiles[k] = sanitizeProfile(c, p)
 		}
 
-		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
+		w.Write([]byte(model.UserMapToJson(profiles)))
+	}
+}
+
+func getProfilesNotInChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	channelId := params["channel_id"]
+
+	if c.Session.GetTeamByTeamId(c.TeamId) == nil {
+		if !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
+			return
+		}
+	}
+
+	if !HasPermissionToChannelContext(c, channelId, model.PERMISSION_READ_CHANNEL) {
+		return
+	}
+
+	offset, err := strconv.Atoi(params["offset"])
+	if err != nil {
+		c.SetInvalidParam("getProfiles", "offset")
+		return
+	}
+
+	limit, err := strconv.Atoi(params["limit"])
+	if err != nil {
+		c.SetInvalidParam("getProfiles", "limit")
+		return
+	}
+
+	if result := <-Srv.Store.User().GetProfilesNotInChannel(c.TeamId, channelId, offset, limit); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		profiles := result.Data.(map[string]*model.User)
+
+		for k, p := range profiles {
+			profiles[k] = sanitizeProfile(c, p)
+		}
+
 		w.Write([]byte(model.UserMapToJson(profiles)))
 	}
 }
@@ -1039,7 +1115,7 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["user_id"]
 
-	if !c.HasPermissionsToUser(id, "getAudits") {
+	if !HasPermissionToUser(c, id) {
 		return
 	}
 
@@ -1162,7 +1238,7 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		} else {
-			path := "/users/" + id + "/profile.png"
+			path := "users/" + id + "/profile.png"
 
 			if data, err := ReadFile(path); err != nil {
 
@@ -1276,9 +1352,12 @@ func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		l4g.Error(utils.T("api.user.get_me.getting.error"), c.Session.UserId)
 	} else {
 		user := result.Data.(*model.User)
-		user.SanitizeProfile(c.IsSystemAdmin(), false, true, true)
-		message := model.NewWebSocketEvent("", "", c.Session.UserId, model.WEBSOCKET_EVENT_USER_UPDATED)
+		user = sanitizeProfile(c, user)
+		omitUsers := make(map[string]bool, 1)
+		omitUsers[user.Id] = true
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", omitUsers)
 		message.Add("user", user)
+
 		go Publish(message)
 	}
 
@@ -1296,7 +1375,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.HasPermissionsToUser(user.Id, "updateUser") {
+	if !HasPermissionToUser(c, user.Id) {
 		return
 	}
 
@@ -1326,9 +1405,11 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		updatedUser := rusers[0]
-		updatedUser.SanitizeProfile(c.IsSystemAdmin(), false, true, true)
+		updatedUser = sanitizeProfile(c, updatedUser)
 
-		message := model.NewWebSocketEvent("", "", user.Id, model.WEBSOCKET_EVENT_USER_UPDATED)
+		omitUsers := make(map[string]bool, 1)
+		omitUsers[user.Id] = true
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", omitUsers)
 		message.Add("user", updatedUser)
 		go Publish(message)
 
@@ -1416,143 +1497,63 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
+	params := mux.Vars(r)
 
-	user_id := props["user_id"]
-	if len(user_id) != 26 {
-		c.SetInvalidParam("updateRoles", "user_id")
+	userId := params["user_id"]
+	if len(userId) != 26 {
+		c.SetInvalidParam("updateMemberRoles", "user_id")
 		return
 	}
 
-	team_id := props["team_id"]
-
-	// Set context TeamId as the team_id in the request cause at this point c.TeamId is empty
-	if len(c.TeamId) == 0 {
-		c.TeamId = team_id
-	}
-
-	if !(len(user_id) == 26 || len(user_id) == 0) {
-		c.SetInvalidParam("updateRoles", "team_id")
+	newRoles := props["new_roles"]
+	if !(model.IsValidUserRoles(newRoles)) {
+		c.SetInvalidParam("updateMemberRoles", "new_roles")
 		return
 	}
 
-	new_roles := props["new_roles"]
-	if !(model.IsValidUserRoles(new_roles) || model.IsValidTeamRoles(new_roles)) {
-		c.SetInvalidParam("updateRoles", "new_roles")
-		return
-	}
-
-	// If you are not the team admin then you can only demote yourself
-	if !c.IsTeamAdmin() && user_id != c.Session.UserId {
-		c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.team_admin_needed.app_error", nil, "")
-		c.Err.StatusCode = http.StatusForbidden
-		return
-	}
-
-	// Only another system admin can add the system admin role
-	if model.IsInRole(new_roles, model.ROLE_SYSTEM_ADMIN) && !c.IsSystemAdmin() {
-		c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.system_admin_set.app_error", nil, "")
-		c.Err.StatusCode = http.StatusForbidden
+	if !HasPermissionToContext(c, model.PERMISSION_MANAGE_ROLES) {
 		return
 	}
 
 	var user *model.User
-	if result := <-Srv.Store.User().Get(user_id); result.Err != nil {
+	if result := <-Srv.Store.User().Get(userId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
 		user = result.Data.(*model.User)
 	}
 
-	// only another system admin can remove another system admin
-	if model.IsInRole(user.Roles, model.ROLE_SYSTEM_ADMIN) && !c.IsSystemAdmin() {
-		c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.system_admin_needed.app_error", nil, "")
-		c.Err.StatusCode = http.StatusForbidden
+	UpdateUserRoles(c, user, newRoles)
+	if c.Err != nil {
 		return
 	}
 
-	// if the team role has changed then lets update team members
-	if model.IsValidTeamRoles(new_roles) && len(team_id) > 0 {
-
-		var members []*model.TeamMember
-		if result := <-Srv.Store.Team().GetTeamsForUser(user_id); result.Err != nil {
-			c.Err = result.Err
-			return
-		} else {
-			members = result.Data.([]*model.TeamMember)
-		}
-
-		var member *model.TeamMember
-		for _, m := range members {
-			if m.TeamId == team_id {
-				member = m
-			}
-		}
-
-		if member == nil {
-			c.SetInvalidParam("updateRoles", "team_id")
-			return
-		}
-
-		if !c.IsSystemAdmin() {
-			currentUserTeamMember := c.Session.GetTeamByTeamId(team_id)
-
-			// Only the system admin can modify other team
-			if currentUserTeamMember == nil {
-				c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.system_admin_needed.app_error", nil, "")
-				c.Err.StatusCode = http.StatusForbidden
-				return
-			}
-
-			// Only another team admin can make a team admin
-			if !currentUserTeamMember.IsTeamAdmin() && model.IsInRole(new_roles, model.ROLE_TEAM_ADMIN) {
-				c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.team_admin_needed.app_error", nil, "")
-				c.Err.StatusCode = http.StatusForbidden
-				return
-			}
-		}
-
-		member.Roles = new_roles
-
-		if result := <-Srv.Store.Team().UpdateMember(member); result.Err != nil {
-			c.Err = result.Err
-			return
-		}
-	}
-
-	// If the users role has changed then lets update the user
-	if model.IsValidUserRoles(new_roles) {
-		UpdateUserRoles(c, user, new_roles)
-		if c.Err != nil {
-			return
-		}
-
-		uchan := Srv.Store.Session().UpdateRoles(user.Id, new_roles)
-
-		if result := <-uchan; result.Err != nil {
-			// soft error since the user roles were still updated
-			l4g.Error(result.Err)
-		}
-	}
-
-	RemoveAllSessionsForUserId(user_id)
-
-	data := make(map[string]string)
-	data["user_id"] = user_id
-	w.Write([]byte(model.MapToJson(data)))
+	rdata := map[string]string{}
+	rdata["status"] = "ok"
+	w.Write([]byte(model.MapToJson(rdata)))
 }
 
-func UpdateUserRoles(c *Context, user *model.User, roles string) *model.User {
+func UpdateUserRoles(c *Context, user *model.User, newRoles string) *model.User {
 
-	user.Roles = roles
+	user.Roles = newRoles
+	uchan := Srv.Store.User().Update(user, true)
+	schan := Srv.Store.Session().UpdateRoles(user.Id, newRoles)
 
 	var ruser *model.User
-	if result := <-Srv.Store.User().Update(user, true); result.Err != nil {
+	if result := <-uchan; result.Err != nil {
 		c.Err = result.Err
 		return nil
 	} else {
-		c.LogAuditWithUserId(user.Id, "roles="+roles)
+		c.LogAuditWithUserId(user.Id, "roles="+newRoles)
 		ruser = result.Data.([2]*model.User)[0]
 	}
+
+	if result := <-schan; result.Err != nil {
+		// soft error since the user roles were still updated
+		l4g.Error(result.Err)
+	}
+
+	RemoveAllSessionsForUserId(user.Id)
 
 	return ruser
 }
@@ -1579,7 +1580,7 @@ func updateActive(c *Context, w http.ResponseWriter, r *http.Request) {
 	// true when you're trying to de-activate yourself
 	isSelfDeactive := !active && user_id == c.Session.UserId
 
-	if !isSelfDeactive && !c.IsSystemAdmin() {
+	if !isSelfDeactive && !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
 		c.Err = model.NewLocAppError("updateActive", "api.user.update_active.permissions.app_error", nil, "userId="+user_id)
 		c.Err.StatusCode = http.StatusForbidden
 		return
@@ -1630,7 +1631,7 @@ func PermanentDeleteUser(c *Context, user *model.User) *model.AppError {
 	c.Path = "/users/permanent_delete"
 	c.LogAuditWithUserId(user.Id, fmt.Sprintf("attempt userId=%v", user.Id))
 	c.LogAuditWithUserId("", fmt.Sprintf("attempt userId=%v", user.Id))
-	if user.IsInRole(model.ROLE_SYSTEM_ADMIN) {
+	if user.IsInRole(model.ROLE_SYSTEM_ADMIN.Id) {
 		l4g.Warn(utils.T("api.user.permanent_delete_user.system_admin.warn"), user.Email)
 	}
 
@@ -1818,7 +1819,7 @@ func ResetPassword(c *Context, userId, newPassword string) *model.AppError {
 		user = result.Data.(*model.User)
 	}
 
-	if user.AuthData != nil && len(*user.AuthData) != 0 && !c.IsSystemAdmin() {
+	if user.AuthData != nil && len(*user.AuthData) != 0 && !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
 		return model.NewLocAppError("ResetPassword", "api.user.reset_password.sso.app_error", nil, "userId="+user.Id)
 
 	}
@@ -1915,7 +1916,7 @@ func updateUserNotify(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	uchan := Srv.Store.User().Get(user_id)
 
-	if !c.HasPermissionsToUser(user_id, "updateUserNotify") {
+	if !HasPermissionToUser(c, user_id) {
 		return
 	}
 
@@ -2160,7 +2161,7 @@ func emailToLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go sendSignInChangeEmail(c, user.Email, c.GetSiteURL(), "LDAP")
+	go sendSignInChangeEmail(c, user.Email, c.GetSiteURL(), "AD/LDAP")
 
 	m := map[string]string{}
 	m["follow_link"] = "/login?extra=signin_change"
@@ -2540,6 +2541,9 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			break
 		}
 		doLogin(c, w, r, user, "")
+		if c.Err != nil {
+			return
+		}
 
 		if val, ok := relayProps["redirect_to"]; ok {
 			http.Redirect(w, r, c.GetSiteURL()+val, http.StatusFound)
@@ -2561,9 +2565,177 @@ func userTyping(req *model.WebSocketRequest) (map[string]interface{}, *model.App
 		parentId = ""
 	}
 
-	event := model.NewWebSocketEvent("", channelId, req.Session.UserId, model.WEBSOCKET_EVENT_TYPING)
+	omitUsers := make(map[string]bool, 1)
+	omitUsers[req.Session.UserId] = true
+
+	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_TYPING, "", channelId, "", omitUsers)
 	event.Add("parent_id", parentId)
+	event.Add("user_id", req.Session.UserId)
 	go Publish(event)
 
 	return nil, nil
+}
+
+func sanitizeProfile(c *Context, user *model.User) *model.User {
+	options := utils.Cfg.GetSanitizeOptions()
+
+	if HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
+		options["email"] = true
+		options["fullname"] = true
+		options["authservice"] = true
+	}
+	c.Err = nil
+
+	user.SanitizeProfile(options)
+
+	return user
+}
+
+func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJson(r.Body)
+
+	term := props["term"]
+	if len(term) == 0 {
+		c.SetInvalidParam("searchUsers", "term")
+		return
+	}
+
+	teamId := props["team_id"]
+	inChannelId := props["in_channel"]
+	notInChannelId := props["not_in_channel"]
+
+	if inChannelId != "" && !HasPermissionToChannelContext(c, inChannelId, model.PERMISSION_READ_CHANNEL) {
+		return
+	}
+
+	if notInChannelId != "" && !HasPermissionToChannelContext(c, notInChannelId, model.PERMISSION_READ_CHANNEL) {
+		return
+	}
+
+	var uchan store.StoreChannel
+	if inChannelId != "" {
+		uchan = Srv.Store.User().SearchInChannel(inChannelId, term, store.USER_SEARCH_TYPE_USERNAME)
+	} else if notInChannelId != "" {
+		uchan = Srv.Store.User().SearchNotInChannel(teamId, notInChannelId, term, store.USER_SEARCH_TYPE_USERNAME)
+	} else {
+		uchan = Srv.Store.User().Search(teamId, term, store.USER_SEARCH_TYPE_USERNAME)
+	}
+
+	if result := <-uchan; result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		profiles := result.Data.([]*model.User)
+
+		for _, p := range profiles {
+			sanitizeProfile(c, p)
+		}
+
+		w.Write([]byte(model.UserListToJson(profiles)))
+	}
+}
+
+func getProfilesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
+	userIds := model.ArrayFromJson(r.Body)
+
+	if len(userIds) == 0 {
+		c.SetInvalidParam("getProfilesByIds", "user_ids")
+		return
+	}
+
+	if result := <-Srv.Store.User().GetProfileByIds(userIds); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		profiles := result.Data.(map[string]*model.User)
+
+		for _, p := range profiles {
+			sanitizeProfile(c, p)
+		}
+
+		w.Write([]byte(model.UserMapToJson(profiles)))
+	}
+}
+
+func autocompleteUsersInChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	channelId := params["channel_id"]
+	teamId := params["team_id"]
+
+	term := r.URL.Query().Get("term")
+
+	if c.Session.GetTeamByTeamId(teamId) == nil {
+		if !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
+			return
+		}
+	}
+
+	if !HasPermissionToChannelContext(c, channelId, model.PERMISSION_READ_CHANNEL) {
+		return
+	}
+
+	uchan := Srv.Store.User().SearchInChannel(channelId, term, store.USER_SEARCH_TYPE_ALL)
+	nuchan := Srv.Store.User().SearchNotInChannel(teamId, channelId, term, store.USER_SEARCH_TYPE_ALL)
+
+	autocomplete := &model.UserAutocompleteInChannel{}
+
+	if result := <-uchan; result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		profiles := result.Data.([]*model.User)
+
+		for _, p := range profiles {
+			sanitizeProfile(c, p)
+		}
+
+		autocomplete.InChannel = profiles
+	}
+
+	if result := <-nuchan; result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		profiles := result.Data.([]*model.User)
+
+		for _, p := range profiles {
+			sanitizeProfile(c, p)
+		}
+
+		autocomplete.OutOfChannel = profiles
+	}
+
+	w.Write([]byte(autocomplete.ToJson()))
+}
+
+func autocompleteUsersInTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	teamId := params["team_id"]
+
+	term := r.URL.Query().Get("term")
+
+	if c.Session.GetTeamByTeamId(teamId) == nil {
+		if !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
+			return
+		}
+	}
+
+	uchan := Srv.Store.User().Search(teamId, term, store.USER_SEARCH_TYPE_ALL)
+
+	autocomplete := &model.UserAutocompleteInTeam{}
+
+	if result := <-uchan; result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		profiles := result.Data.([]*model.User)
+
+		for _, p := range profiles {
+			sanitizeProfile(c, p)
+		}
+
+		autocomplete.InTeam = profiles
+	}
+
+	w.Write([]byte(autocomplete.ToJson()))
 }

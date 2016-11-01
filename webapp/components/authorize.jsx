@@ -2,9 +2,9 @@
 // See License.txt for license information.
 
 import Client from 'client/web_client.jsx';
+import FormError from 'components/form_error.jsx';
 
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
-
 import React from 'react';
 
 import icon50 from 'images/icon50x50.png';
@@ -52,8 +52,8 @@ export default class Authorize extends React.Component {
                     window.location.href = data.redirect;
                 }
             },
-            () => {
-                //Do nothing on error
+            (err) => {
+                this.setState({error: err.message});
             }
         );
     }
@@ -73,6 +73,15 @@ export default class Authorize extends React.Component {
             icon = app.icon_url;
         } else {
             icon = icon50;
+        }
+
+        let error;
+        if (this.state.error) {
+            error = (
+                <div className='prompt__error form-group'>
+                    <FormError error={this.state.error}/>
+                </div>
+            );
         }
 
         return (
@@ -137,6 +146,7 @@ export default class Authorize extends React.Component {
                             />
                         </button>
                     </div>
+                    {error}
                 </div>
             </div>
         );

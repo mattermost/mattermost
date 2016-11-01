@@ -14,6 +14,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"runtime"
+	"runtime/pprof"
 	"strconv"
 	"strings"
 	"syscall"
@@ -62,6 +63,8 @@ var flagCmdPermanentDeleteAllUsers bool
 var flagCmdResetDatabase bool
 var flagCmdRunLdapSync bool
 var flagCmdMigrateAccounts bool
+var flagCmdActivateUser bool
+var flagCmdSlackImport bool
 var flagUsername string
 var flagCmdUploadLicense bool
 var flagConfigFile string
@@ -79,6 +82,12 @@ var flagMatchField string
 var flagChannelType string
 var flagChannelHeader string
 var flagChannelPurpose string
+var flagUserSetInactive bool
+var flagImportArchive string
+var flagCpuProfile bool
+var flagMemProfile bool
+var flagBlockProfile bool
+var flagHttpProfiler bool
 
 func doLoadConfig(filename string) (err string) {
 	defer func() {
@@ -118,7 +127,26 @@ func main() {
 
 	cmdUpdateDb30()
 
-	api.NewServer()
+	if flagCpuProfile {
+		f, err := os.Create(utils.GetLogFileLocation(utils.Cfg.LogSettings.FileLocation) + ".cpu.prof")
+		if err != nil {
+			l4g.Error("Error creating cpu profile log: " + err.Error())
+		}
+
+		l4g.Info("CPU Profiler is logging to " + utils.GetLogFileLocation(utils.Cfg.LogSettings.FileLocation) + ".cpu.prof")
+		pprof.StartCPUProfile(f)
+	}
+
+	if flagBlockProfile {
+		l4g.Info("Block Profiler is logging to " + utils.GetLogFileLocation(utils.Cfg.LogSettings.FileLocation) + ".blk.prof")
+		runtime.SetBlockProfileRate(1)
+	}
+
+	if flagMemProfile {
+		l4g.Info("Memory Profiler is logging to " + utils.GetLogFileLocation(utils.Cfg.LogSettings.FileLocation) + ".mem.prof")
+	}
+
+	api.NewServer(flagHttpProfiler)
 	api.InitApi()
 	web.InitWeb()
 
@@ -165,6 +193,37 @@ func main() {
 		}
 
 		api.StopServer()
+
+		if flagCpuProfile {
+			l4g.Info("Closing CPU Profiler")
+			pprof.StopCPUProfile()
+		}
+
+		if flagBlockProfile {
+			f, err := os.Create(utils.GetLogFileLocation(utils.Cfg.LogSettings.FileLocation) + ".blk.prof")
+			if err != nil {
+				l4g.Error("Error creating block profile log: " + err.Error())
+			}
+
+			l4g.Info("Writing Block Profiler to: " + utils.GetLogFileLocation(utils.Cfg.LogSettings.FileLocation) + ".blk.prof")
+			pprof.Lookup("block").WriteTo(f, 0)
+			f.Close()
+			runtime.SetBlockProfileRate(0)
+		}
+
+		if flagMemProfile {
+			f, err := os.Create(utils.GetLogFileLocation(utils.Cfg.LogSettings.FileLocation) + ".mem.prof")
+			if err != nil {
+				l4g.Error("Error creating memory profile file: " + err.Error())
+			}
+
+			l4g.Info("Writing Memory Profiler to: " + utils.GetLogFileLocation(utils.Cfg.LogSettings.FileLocation) + ".mem.prof")
+			runtime.GC()
+			if err := pprof.WriteHeapProfile(f); err != nil {
+				l4g.Error("Error creating memory profile: " + err.Error())
+			}
+			f.Close()
+		}
 	}
 }
 
@@ -279,6 +338,47 @@ func doSecurityAndDiagnostics() {
 			}
 		}
 	}
+
+	if *utils.Cfg.LogSettings.EnableDiagnostics {
+		utils.SendGeneralDiagnostics()
+		sendServerDiagnostics()
+	}
+}
+
+func sendServerDiagnostics() {
+	var userCount int64
+	var activeUserCount int64
+	var teamCount int64
+
+	if ucr := <-api.Srv.Store.User().GetTotalUsersCount(); ucr.Err == nil {
+		userCount = ucr.Data.(int64)
+	}
+
+	if ucr := <-api.Srv.Store.Status().GetTotalActiveUsersCount(); ucr.Err == nil {
+		activeUserCount = ucr.Data.(int64)
+	}
+
+	if tcr := <-api.Srv.Store.Team().AnalyticsTeamCount(); tcr.Err == nil {
+		teamCount = tcr.Data.(int64)
+	}
+
+	utils.SendDiagnostic(utils.TRACK_ACTIVITY, map[string]interface{}{
+		"registered_users": userCount,
+		"active_users":     activeUserCount,
+		"teams":            teamCount,
+	})
+
+	edition := model.BuildEnterpriseReady
+	version := model.CurrentVersion
+	database := utils.Cfg.SqlSettings.DriverName
+	operatingSystem := runtime.GOOS
+
+	utils.SendDiagnostic(utils.TRACK_VERSION, map[string]interface{}{
+		"edition":          edition,
+		"version":          version,
+		"database":         database,
+		"operating_system": operatingSystem,
+	})
 }
 
 func runSecurityAndDiagnosticsJob() {
@@ -306,6 +406,7 @@ func parseCmds() {
 	flag.StringVar(&flagChannelType, "channel_type", "O", "")
 	flag.StringVar(&flagChannelHeader, "channel_header", "", "")
 	flag.StringVar(&flagChannelPurpose, "channel_purpose", "", "")
+	flag.StringVar(&flagImportArchive, "import_archive", "", "")
 
 	flag.BoolVar(&flagCmdUpdateDb30, "upgrade_db_30", false, "")
 	flag.BoolVar(&flagCmdCreateTeam, "create_team", false, "")
@@ -331,6 +432,13 @@ func parseCmds() {
 	flag.BoolVar(&flagCmdRunLdapSync, "ldap_sync", false, "")
 	flag.BoolVar(&flagCmdMigrateAccounts, "migrate_accounts", false, "")
 	flag.BoolVar(&flagCmdUploadLicense, "upload_license", false, "")
+	flag.BoolVar(&flagCmdActivateUser, "activate_user", false, "")
+	flag.BoolVar(&flagCmdSlackImport, "slack_import", false, "")
+	flag.BoolVar(&flagUserSetInactive, "inactive", false, "")
+	flag.BoolVar(&flagCpuProfile, "cpuprofile", false, "")
+	flag.BoolVar(&flagMemProfile, "memprofile", false, "")
+	flag.BoolVar(&flagBlockProfile, "blkprofile", false, "")
+	flag.BoolVar(&flagHttpProfiler, "httpprofiler", false, "")
 
 	flag.Parse()
 
@@ -356,7 +464,9 @@ func parseCmds() {
 		flagCmdResetDatabase ||
 		flagCmdRunLdapSync ||
 		flagCmdMigrateAccounts ||
-		flagCmdUploadLicense)
+		flagCmdUploadLicense ||
+		flagCmdActivateUser ||
+		flagCmdSlackImport)
 }
 
 func runCmds() {
@@ -382,6 +492,8 @@ func runCmds() {
 	cmdUploadLicense()
 	cmdRunLdapSync()
 	cmdRunMigrateAccounts()
+	cmdActivateUser()
+	cmdSlackImport()
 }
 
 type TeamForUpgrade struct {
@@ -396,6 +508,7 @@ func setupClientTests() {
 	*utils.Cfg.ServiceSettings.EnableCustomEmoji = true
 	utils.Cfg.ServiceSettings.EnableIncomingWebhooks = false
 	utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = false
+	utils.SetDefaultRolesBasedOnConfig()
 }
 
 func executeTestCommand(cmd *exec.Cmd) {
@@ -591,6 +704,15 @@ func cmdAssignRole() {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -email")
 			flag.Usage()
 			os.Exit(1)
+		}
+
+		// Do some conversions
+		if flagRole == "system_admin" {
+			flagRole = "system_user system_admin"
+		}
+
+		if flagRole == "" {
+			flagRole = "system_user"
 		}
 
 		if !model.IsValidUserRoles(flagRole) {
@@ -1214,11 +1336,11 @@ func cmdRunLdapSync() {
 	if flagCmdRunLdapSync {
 		if ldapI := einterfaces.GetLdapInterface(); ldapI != nil {
 			if err := ldapI.Syncronize(); err != nil {
-				fmt.Println("ERROR: Ldap Syncronization Failed")
+				fmt.Println("ERROR: AD/LDAP Syncronization Failed")
 				l4g.Error("%v", err.Error())
 				flushLogAndExit(1)
 			} else {
-				fmt.Println("SUCCESS: Ldap Syncronization Complete")
+				fmt.Println("SUCCESS: AD/LDAP Syncronization Complete")
 				flushLogAndExit(0)
 			}
 		}
@@ -1294,6 +1416,77 @@ func cmdUploadLicense() {
 	}
 }
 
+func cmdActivateUser() {
+	if flagCmdActivateUser {
+		if len(flagEmail) == 0 {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -email")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		var user *model.User
+		if result := <-api.Srv.Store.User().GetByEmail(flagEmail); result.Err != nil {
+			l4g.Error("%v", result.Err)
+			flushLogAndExit(1)
+		} else {
+			user = result.Data.(*model.User)
+		}
+
+		if user.IsLDAPUser() {
+			l4g.Error("%v", utils.T("api.user.update_active.no_deactivate_ldap.app_error"))
+		}
+
+		if _, err := api.UpdateActive(user, !flagUserSetInactive); err != nil {
+			l4g.Error("%v", err)
+		}
+
+		os.Exit(0)
+	}
+}
+
+func cmdSlackImport() {
+	if flagCmdSlackImport {
+		if len(flagTeamName) == 0 {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		if len(flagImportArchive) == 0 {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -import_archive")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		var team *model.Team
+		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
+			l4g.Error("%v", result.Err)
+			flushLogAndExit(1)
+		} else {
+			team = result.Data.(*model.Team)
+		}
+
+		fileReader, err := os.Open(flagImportArchive)
+		if err != nil {
+			l4g.Error("%v", err)
+			flushLogAndExit(1)
+		}
+		defer fileReader.Close()
+
+		fileInfo, err := fileReader.Stat()
+		if err != nil {
+			l4g.Error("%v", err)
+			flushLogAndExit(1)
+		}
+
+		fmt.Fprintln(os.Stdout, "Running Slack Import. This may take a long time for large teams or teams with many messages.")
+
+		api.SlackImport(fileReader, fileInfo.Size(), team.Id)
+
+		flushLogAndExit(0)
+	}
+}
+
 func flushLogAndExit(code int) {
 	l4g.Close()
 	time.Sleep(time.Second)
@@ -1343,12 +1536,22 @@ FLAGS:
 
     -role="system_admin"              The role used in other commands
                                       valid values are
-                                        "" - The empty role is basic user
+                                        "system_user" - Is basic user
                                            permissions
                                         "system_admin" - Represents a system
                                            admin who has access to all teams
                                            and configuration settings.
+
+    -import_archive="export.zip"      The path to the archive to import used in other commands
+
 COMMANDS:
+    -activate_user		      Set a user as active or inactive. It requies
+    				      the -email flag.
+
+        Examples:
+            platform -activate_user -email="user@example.com"
+            platform -activate_user -inactive -email="user@example.com"
+
     -create_team                      Creates a team.  It requires the -team_name
                                       and -email flag to create a team.
         Example:
@@ -1378,7 +1581,7 @@ COMMANDS:
     -assign_role                      Assigns role to a user.  It requires the -role and
                                       -email flag.  You may need to log out
                                       of your current sessions for the new role to be
-                                      applied.
+                                      applied. For system admin use "system_admin". For Regular user just use "system_user".
         Example:
             platform -assign_role -email="user@example.com" -role="system_admin"
 
@@ -1455,11 +1658,17 @@ COMMANDS:
 
         Example:
             platform -upload_license -license="/path/to/license/example.mattermost-license"
-			
+
 	-migrate_accounts				  Migrates accounts from one authentication provider to anouther. Requires -from_auth -to_auth and -match_field flags. Supported options for -from_auth: email, gitlab, saml. Supported options for -to_auth ldap. Supported options for -match_field email, username. Will display any accounts that are not migrated succesfully.
 
         Example:
             platform -migrate_accounts -from_auth email -to_auth ldap -match_field username
+
+    -slack_import                    Imports a Slack team export zip file. It requires the -team_name
+                                     and -import_archive flags.
+
+        Example:
+            platform -slack_import -team_name="name" -import_archive="/path/to/slack_export.zip"
 
     -upgrade_db_30                   Upgrades the database from a version 2.x schema to version 3 see
                                       http://www.mattermost.org/upgrading-to-mattermost-3-0/

@@ -15,29 +15,32 @@ import ChannelNotificationsModal from './channel_notifications_modal.jsx';
 import DeleteChannelModal from './delete_channel_modal.jsx';
 import RenameChannelModal from './rename_channel_modal.jsx';
 import ToggleModalButton from './toggle_modal_button.jsx';
-import StatusIcon from './status_icon.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import SearchStore from 'stores/search_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
+import WebrtcStore from 'stores/webrtc_store.jsx';
 
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
+import * as WebrtcActions from 'actions/webrtc_actions.jsx';
+import * as ChannelActions from 'actions/channel_actions.jsx';
 import * as Utils from 'utils/utils.jsx';
+import * as ChannelUtils from 'utils/channel_utils.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import {getFlaggedPosts} from 'actions/post_actions.jsx';
 
-import Constants from 'utils/constants.jsx';
-const UserStatuses = Constants.UserStatuses;
-const ActionTypes = Constants.ActionTypes;
+import {Constants, Preferences, UserStatuses} from 'utils/constants.jsx';
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
 import {Tooltip, OverlayTrigger, Popover} from 'react-bootstrap';
+
+const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 
 export default class ChannelHeader extends React.Component {
     constructor(props) {
@@ -48,8 +51,10 @@ export default class ChannelHeader extends React.Component {
         this.searchMentions = this.searchMentions.bind(this);
         this.showRenameChannelModal = this.showRenameChannelModal.bind(this);
         this.hideRenameChannelModal = this.hideRenameChannelModal.bind(this);
-        this.openRecentMentions = this.openRecentMentions.bind(this);
+        this.handleShortcut = this.handleShortcut.bind(this);
         this.getFlagged = this.getFlagged.bind(this);
+        this.initWebrtc = this.initWebrtc.bind(this);
+        this.onBusy = this.onBusy.bind(this);
 
         const state = this.getStateFromStores();
         state.showEditChannelPurposeModal = false;
@@ -59,14 +64,19 @@ export default class ChannelHeader extends React.Component {
     }
 
     getStateFromStores() {
-        const extraInfo = ChannelStore.getExtraInfo(this.props.channelId);
+        const channel = ChannelStore.get(this.props.channelId);
+        const stats = ChannelStore.getStats(this.props.channelId);
+        const users = UserStore.getProfileListInChannel(this.props.channelId);
 
         return {
-            channel: ChannelStore.get(this.props.channelId),
-            memberChannel: ChannelStore.getMember(this.props.channelId),
-            users: extraInfo.members,
-            userCount: extraInfo.member_count,
-            currentUser: UserStore.getCurrentUser()
+            channel,
+            memberChannel: ChannelStore.getMyMember(this.props.channelId),
+            users,
+            userCount: stats.member_count,
+            currentUser: UserStore.getCurrentUser(),
+            enableFormatting: PreferenceStore.getBool(Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', true),
+            isBusy: WebrtcStore.isBusy(),
+            isFavorite: channel && ChannelUtils.isFavoriteChannel(channel)
         };
     }
 
@@ -83,43 +93,45 @@ export default class ChannelHeader extends React.Component {
 
     componentDidMount() {
         ChannelStore.addChangeListener(this.onListenerChange);
-        ChannelStore.addExtraInfoChangeListener(this.onListenerChange);
+        ChannelStore.addStatsChangeListener(this.onListenerChange);
         SearchStore.addSearchChangeListener(this.onListenerChange);
         PreferenceStore.addChangeListener(this.onListenerChange);
-        UserStore.addChangeListener(this.onListenerChange);
+        UserStore.addInChannelChangeListener(this.onListenerChange);
         UserStore.addStatusesChangeListener(this.onListenerChange);
+        WebrtcStore.addChangedListener(this.onListenerChange);
+        WebrtcStore.addBusyListener(this.onBusy);
         $('.sidebar--left .dropdown-menu').perfectScrollbar();
-        document.addEventListener('keydown', this.openRecentMentions);
+        document.addEventListener('keydown', this.handleShortcut);
     }
 
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onListenerChange);
-        ChannelStore.removeExtraInfoChangeListener(this.onListenerChange);
+        ChannelStore.removeStatsChangeListener(this.onListenerChange);
         SearchStore.removeSearchChangeListener(this.onListenerChange);
         PreferenceStore.removeChangeListener(this.onListenerChange);
-        UserStore.removeChangeListener(this.onListenerChange);
+        UserStore.removeInChannelChangeListener(this.onListenerChange);
         UserStore.removeStatusesChangeListener(this.onListenerChange);
-        document.removeEventListener('keydown', this.openRecentMentions);
+        WebrtcStore.removeChangedListener(this.onListenerChange);
+        WebrtcStore.removeBusyListener(this.onBusy);
+        document.removeEventListener('keydown', this.handleShortcut);
     }
 
     shouldComponentUpdate(nextProps) {
-        return !!nextProps.channelId;
+        return Boolean(nextProps.channelId);
     }
 
     onListenerChange() {
-        const newState = this.getStateFromStores();
-        if (!Utils.areObjectsEqual(newState, this.state)) {
-            this.setState(newState);
-        }
+        this.setState(this.getStateFromStores());
     }
 
     handleLeave() {
         Client.leaveChannel(this.state.channel.id,
             () => {
-                AppDispatcher.handleViewAction({
-                    type: ActionTypes.LEAVE_CHANNEL,
-                    id: this.state.channel.id
-                });
+                const channelId = this.state.channel.id;
+
+                if (this.state.isFavorite) {
+                    ChannelActions.unmarkFavorite(channelId);
+                }
 
                 const townsquare = ChannelStore.getByName('town-square');
                 browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + townsquare.name);
@@ -130,43 +142,47 @@ export default class ChannelHeader extends React.Component {
         );
     }
 
-    searchMentions(e) {
+    toggleFavorite = (e) => {
         e.preventDefault();
 
-        const user = this.state.currentUser;
-
-        let terms = '';
-        if (user.notify_props && user.notify_props.mention_keys) {
-            const termKeys = UserStore.getMentionKeys(user.id);
-
-            if (termKeys.indexOf('@channel') !== -1) {
-                termKeys[termKeys.indexOf('@channel')] = '';
-            }
-
-            if (termKeys.indexOf('@all') !== -1) {
-                termKeys[termKeys.indexOf('@all')] = '';
-            }
-
-            terms = termKeys.join(' ');
+        if (this.state.isFavorite) {
+            ChannelActions.unmarkFavorite(this.state.channel.id);
+        } else {
+            ChannelActions.markFavorite(this.state.channel.id);
         }
+    };
 
-        AppDispatcher.handleServerAction({
-            type: ActionTypes.RECEIVED_SEARCH_TERM,
-            term: terms,
-            do_search: true,
-            is_mention_search: true
-        });
+    searchMentions(e) {
+        e.preventDefault();
+        const user = this.state.currentUser;
+        if (SearchStore.isMentionSearch) {
+            // Close
+            GlobalActions.toggleSideBarAction(false);
+        } else {
+            GlobalActions.emitSearchMentionsEvent(user);
+        }
     }
 
     getFlagged(e) {
         e.preventDefault();
-        getFlaggedPosts();
+        if (SearchStore.isFlaggedPosts) {
+            GlobalActions.toggleSideBarAction(false);
+        } else {
+            getFlaggedPosts();
+        }
     }
 
-    openRecentMentions(e) {
-        if (Utils.cmdOrCtrlPressed(e) && e.shiftKey && e.keyCode === Constants.KeyCodes.M) {
-            e.preventDefault();
-            this.searchMentions(e);
+    handleShortcut(e) {
+        if (Utils.cmdOrCtrlPressed(e) && e.shiftKey) {
+            if (e.keyCode === Constants.KeyCodes.M) {
+                e.preventDefault();
+                this.searchMentions(e);
+            }
+
+          //@TODO create shortcut for toggling flagged posts
+          // else if (e.keyCode == Constants.KeyCodes.<keycode>) {
+          //   this.toggleFlagged();
+          // }
         }
     }
 
@@ -182,21 +198,6 @@ export default class ChannelHeader extends React.Component {
         this.setState({
             showRenameChannelModal: false
         });
-    }
-
-    getTeammateStatus() {
-        const channel = this.state.channel;
-
-        // get status for direct message channels
-        if (channel.type === 'D') {
-            const currentUserId = this.state.currentUser.id;
-            const teammate = this.state.users.find((user) => user.id !== currentUserId);
-            if (teammate) {
-                return UserStore.getStatus(teammate.id);
-            }
-            return UserStatuses.OFFLINE;
-        }
-        return null;
     }
 
     showManagementOptions(channel, isAdmin, isSystemAdmin) {
@@ -221,6 +222,17 @@ export default class ChannelHeader extends React.Component {
         }
 
         return true;
+    }
+
+    initWebrtc(contactId, isOnline) {
+        if (isOnline && !this.state.isBusy) {
+            GlobalActions.emitCloseRightHandSide();
+            WebrtcActions.initWebrtc(contactId, true);
+        }
+    }
+
+    onBusy(isBusy) {
+        this.setState({isBusy});
     }
 
     render() {
@@ -265,20 +277,78 @@ export default class ChannelHeader extends React.Component {
             </Popover>
         );
         let channelTitle = channel.display_name;
-        const currentId = this.state.currentUser.id;
         const isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
         const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
         const isDirect = (this.state.channel.type === 'D');
+        let webrtc;
 
         if (isDirect) {
-            if (this.state.users.length > 1) {
-                let contact;
-                if (this.state.users[0].id === currentId) {
-                    contact = this.state.users[1];
+            const userMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+            const contact = this.state.users[0];
+
+            const teammateId = Utils.getUserIdFromChannelName(channel);
+            channelTitle = Utils.displayUsername(teammateId);
+
+            const webrtcEnabled = global.mm_config.EnableWebrtc === 'true' && global.mm_license.Webrtc === 'true' &&
+                global.mm_config.EnableDeveloper === 'true' && userMedia && Utils.isFeatureEnabled(PreReleaseFeatures.WEBRTC_PREVIEW);
+
+            if (webrtcEnabled) {
+                const isOffline = UserStore.getStatus(contact.id) === UserStatuses.OFFLINE;
+                const busy = this.state.isBusy;
+                let circleClass = '';
+                let webrtcMessage;
+
+                if (isOffline || busy) {
+                    circleClass = 'offline';
+                    if (busy) {
+                        webrtcMessage = (
+                            <FormattedMessage
+                                id='channel_header.webrtc.unavailable'
+                                defaultMessage='New call unavailable until your existing call ends'
+                            />
+                        );
+                    }
                 } else {
-                    contact = this.state.users[0];
+                    webrtcMessage = (
+                        <FormattedMessage
+                            id='channel_header.webrtc.call'
+                            defaultMessage='Start Video Call'
+                        />
+                    );
                 }
-                channelTitle = Utils.displayUsername(contact.id);
+
+                webrtc = (
+                    <div className='webrtc__header'>
+                        <a
+                            href='#'
+                            onClick={() => this.initWebrtc(contact.id, !isOffline)}
+                            disabled={isOffline}
+                        >
+                            <svg
+                                id='webrtc-btn'
+                                className='webrtc__button'
+                                xmlns='http://www.w3.org/2000/svg'
+                            >
+                                <circle
+                                    className={circleClass}
+                                    cx='16'
+                                    cy='16'
+                                    r='18'
+                                >
+                                    <title>
+                                        {webrtcMessage}
+                                    </title>
+                                </circle>
+                                <path
+                                    className='off'
+                                    transform='scale(0.4), translate(17,16)'
+                                    d='M40 8H8c-2.21 0-4 1.79-4 4v24c0 2.21 1.79 4 4 4h32c2.21 0 4-1.79 4-4V12c0-2.21-1.79-4-4-4zm-4 24l-8-6.4V32H12V16h16v6.4l8-6.4v16z'
+                                    fill='white'
+                                />
+                            </svg>
+                        </a>
+                    </div>
+                );
             }
         }
 
@@ -543,6 +613,42 @@ export default class ChannelHeader extends React.Component {
             }
         }
 
+        let headerText;
+        if (this.state.enableFormatting) {
+            headerText = TextFormatting.formatText(channel.header, {singleline: true, mentionHighlight: false, siteURL: Utils.getSiteURL()});
+        } else {
+            headerText = channel.header;
+        }
+
+        const toggleFavoriteTooltip = (
+            <Tooltip id='favoriteTooltip'>
+                {this.state.isFavorite ?
+                    <FormattedMessage
+                        id='channelHeader.removeFromFavorites'
+                        defaultMessage='Remove from Favorites'
+                    /> :
+                    <FormattedMessage
+                        id='channelHeader.addToFavorites'
+                        defaultMessage='Add to Favorites'
+                    />}
+            </Tooltip>
+        );
+        const toggleFavorite = (
+            <OverlayTrigger
+                delayShow={Constants.OVERLAY_TIME_DELAY}
+                placement='bottom'
+                overlay={toggleFavoriteTooltip}
+            >
+                <a
+                    href='#'
+                    onClick={this.toggleFavorite}
+                    className='channel-header__favorites'
+                >
+                    <i className={'icon fa ' + (this.state.isFavorite ? 'fa-star' : 'fa-star-o')}/>
+                </a>
+            </OverlayTrigger>
+        );
+
         return (
             <div
                 id='channel-header'
@@ -553,6 +659,8 @@ export default class ChannelHeader extends React.Component {
                         <tr>
                             <th>
                                 <div className='channel-header__info'>
+                                    {webrtc}
+                                    {toggleFavorite}
                                     <div className='dropdown'>
                                         <a
                                             href='#'
@@ -562,7 +670,7 @@ export default class ChannelHeader extends React.Component {
                                             data-toggle='dropdown'
                                             aria-expanded='true'
                                         >
-                                            <strong className='heading'><StatusIcon status={this.getTeammateStatus()}/>{channelTitle} </strong>
+                                            <strong className='heading'>{channelTitle} </strong>
                                             <span className='fa fa-chevron-down header-dropdown__icon'/>
                                         </a>
                                         <ul
@@ -576,14 +684,14 @@ export default class ChannelHeader extends React.Component {
                                     <OverlayTrigger
                                         trigger={'click'}
                                         placement='bottom'
-                                        overlay={popoverContent}
                                         rootClose={true}
+                                        overlay={popoverContent}
                                         ref='headerOverlay'
                                     >
                                         <div
                                             onClick={Utils.handleFormattedTextClick}
                                             className='description'
-                                            dangerouslySetInnerHTML={{__html: TextFormatting.formatText(channel.header, {singleline: true, mentionHighlight: false, siteURL: Utils.getSiteURL()})}}
+                                            dangerouslySetInnerHTML={{__html: headerText}}
                                         />
                                     </OverlayTrigger>
                                 </div>

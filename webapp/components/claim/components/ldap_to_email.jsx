@@ -6,7 +6,6 @@ import * as Utils from 'utils/utils.jsx';
 import {switchFromLdapToEmail} from 'actions/user_actions.jsx';
 
 import React from 'react';
-import ReactDOM from 'react-dom';
 import {FormattedMessage} from 'react-intl';
 
 export default class LDAPToEmail extends React.Component {
@@ -32,14 +31,14 @@ export default class LDAPToEmail extends React.Component {
             serverError: ''
         };
 
-        const ldapPassword = ReactDOM.findDOMNode(this.refs.ldappassword).value;
+        const ldapPassword = this.refs.ldappassword.value;
         if (!ldapPassword) {
-            state.ldapPasswordError = Utils.localizeMessage('claim.ldap_to_email.ldapPasswordError', 'Please enter your LDAP password.');
+            state.ldapPasswordError = Utils.localizeMessage('claim.ldap_to_email.ldapPasswordError', 'Please enter your AD/LDAP password.');
             this.setState(state);
             return;
         }
 
-        const password = ReactDOM.findDOMNode(this.refs.password).value;
+        const password = this.refs.password.value;
         if (!password) {
             state.passwordError = Utils.localizeMessage('claim.ldap_to_email.pwdError', 'Please enter your password.');
             this.setState(state);
@@ -54,9 +53,9 @@ export default class LDAPToEmail extends React.Component {
             return;
         }
 
-        const confirmPassword = ReactDOM.findDOMNode(this.refs.passwordconfirm).value;
+        const confirmPassword = this.refs.passwordconfirm.value;
         if (!confirmPassword || password !== confirmPassword) {
-            state.error = Utils.localizeMessage('claim.ldap_to_email.pwdNotMatch', 'Passwords do not match.');
+            state.confirmError = Utils.localizeMessage('claim.ldap_to_email.pwdNotMatch', 'Passwords do not match.');
             this.setState(state);
             return;
         }
@@ -105,7 +104,7 @@ export default class LDAPToEmail extends React.Component {
         if (global.window.mm_config.LdapPasswordFieldName) {
             passwordPlaceholder = global.window.mm_config.LdapPasswordFieldName;
         } else {
-            passwordPlaceholder = Utils.localizeMessage('claim.ldap_to_email.ldapPwd', 'LDAP Password');
+            passwordPlaceholder = Utils.localizeMessage('claim.ldap_to_email.ldapPwd', 'AD/LDAP Password');
         }
 
         return (
@@ -113,7 +112,7 @@ export default class LDAPToEmail extends React.Component {
                 <h3>
                     <FormattedMessage
                         id='claim.ldap_to_email.title'
-                        defaultMessage='Switch LDAP Account to Email/Password'
+                        defaultMessage='Switch AD/LDAP Account to Email/Password'
                     />
                 </h3>
                 <form

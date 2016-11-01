@@ -121,7 +121,7 @@ export default class SuggestionList extends React.Component {
             // ReactComponent names need to be upper case when used in JSX
             const Component = this.state.components[i];
 
-            if (item.type !== lastType) {
+            if (this.props.renderDividers && item.type !== lastType) {
                 items.push(this.renderDivider(item.type));
                 lastType = item.type;
             }
@@ -157,5 +157,10 @@ export default class SuggestionList extends React.Component {
 
 SuggestionList.propTypes = {
     suggestionId: React.PropTypes.string.isRequired,
-    location: React.PropTypes.string
+    location: React.PropTypes.string,
+    renderDividers: React.PropTypes.bool
+};
+
+SuggestionList.defaultProps = {
+    renderDividers: false
 };

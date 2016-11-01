@@ -21,7 +21,7 @@ func TestDefaultCiphersExist(t *testing.T) {
 }
 
 func TestPacketCiphers(t *testing.T) {
-	// Still test aes128cbc cipher althought it's commented out.
+	// Still test aes128cbc cipher although it's commented out.
 	cipherModes[aes128cbcID] = &streamCipherMode{16, aes.BlockSize, 0, nil}
 	defer delete(cipherModes, aes128cbcID)
 

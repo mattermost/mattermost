@@ -201,7 +201,7 @@ export default class ComplianceReports extends React.Component {
                     <table className='table'>
                         <thead>
                             <tr>
-                                <th></th>
+                                <th/>
                                 <th>
                                     <FormattedMessage
                                         id='admin.compliance_table.timestamp'
@@ -373,7 +373,7 @@ export default class ComplianceReports extends React.Component {
                         className='btn btn-link'
                         onClick={this.reload}
                     >
-                        <i className='fa fa-refresh'></i>
+                        <i className='fa fa-refresh'/>
                         <FormattedMessage
                             id='admin.compliance_reports.reload'
                             defaultMessage='Reload Completed Compliance Reports'

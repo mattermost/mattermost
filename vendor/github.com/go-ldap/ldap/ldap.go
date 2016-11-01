@@ -36,6 +36,7 @@ const (
 	ApplicationExtendedResponse      = 24
 )
 
+// ApplicationMap contains human readable descriptions of LDAP Application Codes
 var ApplicationMap = map[uint8]string{
 	ApplicationBindRequest:           "Bind Request",
 	ApplicationBindResponse:          "Bind Response",
@@ -72,6 +73,7 @@ const (
 	BeheraPasswordInHistory           = 8
 )
 
+// BeheraPasswordPolicyErrorMap contains human readable descriptions of Behera Password Policy error codes
 var BeheraPasswordPolicyErrorMap = map[int8]string{
 	BeheraPasswordExpired:             "Password expired",
 	BeheraAccountLocked:               "Account locked",
@@ -237,6 +239,7 @@ func addDefaultLDAPResponseDescriptions(packet *ber.Packet) {
 	}
 }
 
+// DebugBinaryFile reads and prints packets from the given filename
 func DebugBinaryFile(fileName string) error {
 	file, err := ioutil.ReadFile(fileName)
 	if err != nil {

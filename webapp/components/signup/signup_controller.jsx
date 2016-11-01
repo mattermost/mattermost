@@ -31,16 +31,15 @@ export default class SignupController extends React.Component {
         let usedBefore = false;
 
         if (props.location.query) {
-            loading = true;
             const hash = props.location.query.h;
             const inviteId = props.location.query.id;
 
-            if (hash && hash.length > 0 && !UserStore.getCurrentUser()) {
+            if (inviteId) {
+                loading = true;
+            } else if (hash && !UserStore.getCurrentUser()) {
                 usedBefore = BrowserStore.getGlobalItem(hash);
-                loading = false;
             } else if (!inviteId && global.window.mm_config.EnableOpenServer !== 'true' && !UserStore.getNoAccounts()) {
                 noOpenServerError = true;
-                loading = false;
                 serverError = (
                     <FormattedMessage
                         id='signup_user_completed.no_open_server'
@@ -66,58 +65,64 @@ export default class SignupController extends React.Component {
             const data = this.props.location.query.d;
             const inviteId = this.props.location.query.id;
 
-            if ((inviteId && inviteId.length > 0) || (hash && hash.length > 0)) {
-                if (UserStore.getCurrentUser()) {
-                    Client.addUserToTeamFromInvite(
-                        data,
-                        hash,
-                        inviteId,
-                        (team) => {
-                            GlobalActions.emitInitialLoad(
-                                () => {
-                                    browserHistory.push('/' + team.name + '/channels/town-square');
-                                }
-                            );
-                        },
-                        (err) => {
-                            this.setState({ // eslint-disable-line react/no-did-mount-set-state
-                                serverError: err.message
-                            });
-                        }
-                    );
-                } else if (!this.state.usedBefore) {
-                    Client.getInviteInfo(
-                        inviteId,
-                        (inviteData) => {
-                            if (!inviteData) {
-                                return;
-                            }
+            const userLoggedIn = UserStore.getCurrentUser() != null;
 
-                            this.setState({ // eslint-disable-line react/no-did-mount-set-state
-                                serverError: '',
-                                loading: false
-                            });
-                        },
-                        () => {
-                            this.setState({ // eslint-disable-line react/no-did-mount-set-state
-                                noOpenServerError: true,
-                                loading: false,
-                                serverError: (
-                                    <FormattedMessage
-                                        id='signup_user_completed.invalid_invite'
-                                        defaultMessage='The invite link was invalid.  Please speak with your Administrator to receive an invitation.'
-                                    />
-                                )
-                            });
+            if ((inviteId || hash) && userLoggedIn) {
+                Client.addUserToTeamFromInvite(
+                    data,
+                    hash,
+                    inviteId,
+                    (team) => {
+                        GlobalActions.emitInitialLoad(
+                            () => {
+                                browserHistory.push('/' + team.name + '/channels/town-square');
+                            }
+                        );
+                    },
+                    (e) => {
+                        this.setState({ // eslint-disable-line react/no-did-mount-set-state
+                            noOpenServerError: true,
+                            loading: false,
+                            serverError: e.message
+                        });
+                    }
+                );
+
+                return;
+            }
+
+            if (inviteId) {
+                Client.getInviteInfo(
+                    inviteId,
+                    (inviteData) => {
+                        if (!inviteData) {
+                            return;
                         }
-                    );
-                }
-            } else if (UserStore.getCurrentUser()) {
+
+                        this.setState({ // eslint-disable-line react/no-did-mount-set-state
+                            serverError: '',
+                            loading: false
+                        });
+                    },
+                    () => {
+                        this.setState({ // eslint-disable-line react/no-did-mount-set-state
+                            noOpenServerError: true,
+                            loading: false,
+                            serverError: (
+                                <FormattedMessage
+                                    id='signup_user_completed.invalid_invite'
+                                    defaultMessage='The invite link was invalid.  Please speak with your Administrator to receive an invitation.'
+                                />
+                            )
+                        });
+                    }
+                );
+
+                return;
+            }
+
+            if (userLoggedIn) {
                 browserHistory.push('/select_team');
-            } else {
-                this.setState({ // eslint-disable-line react/no-did-mount-set-state
-                    loading: false
-                });
             }
         }
     }
@@ -203,13 +208,13 @@ export default class SignupController extends React.Component {
                 <Link
                     className='btn btn-custom-login btn--full ldap'
                     key='ldap'
-                    to={'/signup_ldap'}
+                    to={'/signup_ldap' + window.location.search}
                 >
                     <span className='icon fa fa-folder-open fa--margin-top'/>
                     <span>
                         <FormattedMessage
                             id='signup.ldap'
-                            defaultMessage='LDAP Credentials'
+                            defaultMessage='AD/LDAP Credentials'
                         />
                     </span>
                 </Link>
@@ -278,8 +283,6 @@ export default class SignupController extends React.Component {
             );
         }
 
-        let signupControls = this.renderSignupControls();
-
         let serverError = null;
         if (this.state.serverError) {
             serverError = (
@@ -289,8 +292,11 @@ export default class SignupController extends React.Component {
             );
         }
 
+        let signupControls;
         if (this.state.noOpenServerError || this.state.usedBefore) {
             signupControls = null;
+        } else {
+            signupControls = this.renderSignupControls();
         }
 
         return (

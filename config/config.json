@@ -2,6 +2,14 @@
     "ServiceSettings": {
         "SiteURL": "",
         "ListenAddress": ":8065",
+        "ConnectionSecurity": "",
+        "TLSCertFile": "",
+        "TLSKeyFile": "",
+        "UseLetsEncrypt": false,
+        "LetsEncryptCertificateCacheFile": "./config/letsencrypt.cache",
+        "Forward80To443": false,
+        "ReadTimeout": 300,
+        "WriteTimeout": 300,
         "MaximumLoginAttempts": 10,
         "SegmentDeveloperKey": "",
         "GoogleDeveloperKey": "",
@@ -35,7 +43,6 @@
         "EnableUserCreation": true,
         "EnableOpenServer": false,
         "RestrictCreationToDomains": "",
-        "RestrictTeamNames": true,
         "EnableCustomBrand": false,
         "CustomBrandText": "",
         "CustomDescriptionText": "",
@@ -43,7 +50,8 @@
         "RestrictTeamInvite": "all",
         "RestrictPublicChannelManagement": "all",
         "RestrictPrivateChannelManagement": "all",
-        "UserStatusAwayTimeout": 300
+        "UserStatusAwayTimeout": 300,
+        "MaxChannelsPerTeam": 2000
     },
     "SqlSettings": {
         "DriverName": "mysql",
@@ -52,7 +60,7 @@
         "MaxIdleConns": 10,
         "MaxOpenConns": 10,
         "Trace": false,
-        "AtRestEncryptKey": "7rAh6iwQCkV4cA1Gsg3fgGOXJAQ43QVg"
+        "AtRestEncryptKey": ""
     },
     "LogSettings": {
         "EnableConsole": true,
@@ -61,7 +69,8 @@
         "FileLevel": "INFO",
         "FileFormat": "",
         "FileLocation": "",
-        "EnableWebhookDebugging": true
+        "EnableWebhookDebugging": true,
+        "EnableDiagnostics": true
     },
     "PasswordSettings": {
         "MinimumLength": 5,
@@ -75,7 +84,7 @@
         "DriverName": "local",
         "Directory": "./data/",
         "EnablePublicLink": false,
-        "PublicLinkSalt": "A705AklYF8MFDOfcwh3I488G8vtLlVip",
+        "PublicLinkSalt": "",
         "ThumbnailWidth": 120,
         "ThumbnailHeight": 100,
         "PreviewWidth": 1024,
@@ -86,11 +95,9 @@
         "AmazonS3AccessKeyId": "",
         "AmazonS3SecretAccessKey": "",
         "AmazonS3Bucket": "",
-        "AmazonS3Region": "",
-        "AmazonS3Endpoint": "",
-        "AmazonS3BucketEndpoint": "",
-        "AmazonS3LocationConstraint": false,
-        "AmazonS3LowercaseBucket": false
+        "AmazonS3Region": "us-east-1",
+        "AmazonS3Endpoint": "s3.amazonaws.com",
+        "AmazonS3SSL": true
     },
     "EmailSettings": {
         "EnableSignUpWithEmail": true,
@@ -106,8 +113,8 @@
         "SMTPServer": "",
         "SMTPPort": "",
         "ConnectionSecurity": "",
-        "InviteSalt": "bjlSR4QqkXFBr7TP4oDzlfZmcNuH9YoS",
-        "PasswordResetSalt": "vZ4DcKyVVRlKHHJpexcuXzojkE5PZ5eL",
+        "InviteSalt": "",
+        "PasswordResetSalt": "",
         "SendPushNotifications": false,
         "PushNotificationServer": "",
         "PushNotificationContents": "generic",
@@ -116,8 +123,9 @@
         "EmailBatchingInterval": 30
     },
     "RateLimitSettings": {
-        "EnableRateLimiter": true,
+        "Enable": false,
         "PerSec": 10,
+        "MaxBurst": 100,
         "MemoryStoreSize": 10000,
         "VaryByRemoteAddr": true,
         "VaryByHeader": ""
@@ -219,5 +227,15 @@
         "Enable": false,
         "InterNodeListenAddress": ":8075",
         "InterNodeUrls": []
+    },
+    "WebrtcSettings": {
+        "Enable": false,
+        "GatewayWebsocketUrl": "",
+        "GatewayAdminUrl": "",
+        "GatewayAdminSecret": "",
+        "StunURI": "",
+        "TurnURI": "",
+        "TurnUsername": "",
+        "TurnSharedKey": ""
     }
 }

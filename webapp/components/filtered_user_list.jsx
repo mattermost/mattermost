@@ -3,6 +3,7 @@
 
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
+import * as UserAgent from 'utils/user_agent.jsx';
 import UserList from './user_list.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
@@ -60,7 +61,10 @@ class FilteredUserList extends React.Component {
     }
 
     componentDidMount() {
-        ReactDOM.findDOMNode(this.refs.filter).focus();
+        // only focus the search box on desktop so that we don't cause the keyboard to open on mobile
+        if (!UserAgent.isMobile()) {
+            ReactDOM.findDOMNode(this.refs.filter).focus();
+        }
     }
 
     componentDidUpdate(prevProps, prevState) {

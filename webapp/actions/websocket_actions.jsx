@@ -3,8 +3,6 @@
 
 import $ from 'jquery';
 
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
-
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import PostStore from 'stores/post_store.jsx';
@@ -15,16 +13,17 @@ import NotificationStore from 'stores/notification_store.jsx'; //eslint-disable-
 
 import Client from 'client/web_client.jsx';
 import WebSocketClient from 'client/web_websocket_client.jsx';
+import * as WebrtcActions from './webrtc_actions.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
-import * as UserActions from 'actions/user_actions.jsx';
-import {handleNewPost} from 'actions/post_actions.jsx';
+import {handleNewPost, loadPosts} from 'actions/post_actions.jsx';
+import {loadProfilesAndTeamMembersForDMSidebar} from 'actions/user_actions.jsx';
+import {loadChannelsForCurrentUser} from 'actions/channel_actions.jsx';
+import * as StatusActions from 'actions/status_actions.jsx';
 
-import Constants from 'utils/constants.jsx';
-const SocketEvents = Constants.SocketEvents;
-const ActionTypes = Constants.ActionTypes;
+import {Constants, SocketEvents, UserStatuses} from 'utils/constants.jsx';
 
 import {browserHistory} from 'react-router/es6';
 
@@ -54,6 +53,7 @@ export function initialize() {
         connUrl += Client.getUsersRoute() + '/websocket';
 
         WebSocketClient.setEventCallback(handleEvent);
+        WebSocketClient.setFirstConnectCallback(handleFirstConnect);
         WebSocketClient.setReconnectCallback(handleReconnect);
         WebSocketClient.setCloseCallback(handleClose);
         WebSocketClient.initialize(connUrl);
@@ -65,22 +65,19 @@ export function close() {
 }
 
 export function getStatuses() {
-    WebSocketClient.getStatuses(
-        (resp) => {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_STATUSES,
-                statuses: resp.data
-            });
-        }
-    );
+    StatusActions.loadStatusesForChannelAndSidebar();
+}
+
+function handleFirstConnect() {
+    getStatuses();
+    ErrorStore.clearLastError();
+    ErrorStore.emitChange();
 }
 
 function handleReconnect() {
     if (Client.teamId) {
-        AsyncClient.getChannels();
-        AsyncClient.getPosts(ChannelStore.getCurrentId());
-        AsyncClient.getTeamMembers(TeamStore.getCurrentId());
-        AsyncClient.getProfiles();
+        loadChannelsForCurrentUser();
+        loadPosts(ChannelStore.getCurrentId());
     }
 
     getStatuses();
@@ -113,7 +110,7 @@ function handleEvent(msg) {
         break;
 
     case SocketEvents.NEW_USER:
-        handleNewUserEvent();
+        handleNewUserEvent(msg);
         break;
 
     case SocketEvents.LEAVE_TEAM:
@@ -156,6 +153,14 @@ function handleEvent(msg) {
         handleStatusChangedEvent(msg);
         break;
 
+    case SocketEvents.HELLO:
+        handleHelloEvent(msg);
+        break;
+
+    case SocketEvents.WEBRTC:
+        handleWebrtc(msg);
+        break;
+
     default:
     }
 }
@@ -163,6 +168,10 @@ function handleEvent(msg) {
 function handleNewPostEvent(msg) {
     const post = JSON.parse(msg.data.post);
     handleNewPost(post, msg);
+
+    if (UserStore.getStatus(post.user_id) !== UserStatuses.ONLINE) {
+        StatusActions.loadStatusesByIds([post.user_id]);
+    }
 }
 
 function handlePostEditEvent(msg) {
@@ -172,9 +181,9 @@ function handlePostEditEvent(msg) {
     PostStore.emitChange();
 
     // Update channel state
-    if (ChannelStore.getCurrentId() === msg.channel_id) {
+    if (ChannelStore.getCurrentId() === msg.broadcast.channel_id) {
         if (window.isActive) {
-            AsyncClient.updateLastViewedAt();
+            AsyncClient.updateLastViewedAt(null, false);
         }
     }
 }
@@ -189,49 +198,46 @@ function handlePostDeleteEvent(msg) {
     }
 }
 
-function handleNewUserEvent() {
-    AsyncClient.getTeamMembers(TeamStore.getCurrentId());
-    AsyncClient.getProfiles();
-    AsyncClient.getDirectProfiles();
-    AsyncClient.getChannelExtraInfo();
+function handleNewUserEvent(msg) {
+    AsyncClient.getUser(msg.data.user_id);
+    AsyncClient.getChannelStats();
+    loadProfilesAndTeamMembersForDMSidebar();
 }
 
 function handleLeaveTeamEvent(msg) {
-    if (UserStore.getCurrentId() === msg.user_id) {
-        TeamStore.removeTeamMember(msg.team_id);
+    if (UserStore.getCurrentId() === msg.data.user_id) {
+        TeamStore.removeMyTeamMember(msg.broadcast.team_id);
 
-        // if the are on the team begin removed redirect them to the root
-        if (TeamStore.getCurrentId() === msg.team_id) {
+        // if they are on the team being removed redirect them to the root
+        if (TeamStore.getCurrentId() === msg.broadcast.team_id) {
             TeamStore.setCurrentId('');
             Client.setTeamId('');
             browserHistory.push('/');
         }
-    } else if (TeamStore.getCurrentId() === msg.team_id) {
-        UserActions.getMoreDmList();
     }
 }
 
 function handleDirectAddedEvent(msg) {
-    AsyncClient.getChannel(msg.channel_id);
-    AsyncClient.getDirectProfiles();
+    AsyncClient.getChannel(msg.broadcast.channel_id);
+    loadProfilesAndTeamMembersForDMSidebar();
 }
 
 function handleUserAddedEvent(msg) {
-    if (ChannelStore.getCurrentId() === msg.channel_id) {
-        AsyncClient.getChannelExtraInfo();
+    if (ChannelStore.getCurrentId() === msg.broadcast.channel_id) {
+        AsyncClient.getChannelStats();
     }
 
-    if (TeamStore.getCurrentId() === msg.team_id && UserStore.getCurrentId() === msg.user_id) {
-        AsyncClient.getChannel(msg.channel_id);
+    if (TeamStore.getCurrentId() === msg.data.team_id && UserStore.getCurrentId() === msg.data.user_id) {
+        AsyncClient.getChannel(msg.broadcast.channel_id);
     }
 }
 
 function handleUserRemovedEvent(msg) {
-    if (UserStore.getCurrentId() === msg.user_id) {
-        AsyncClient.getChannels();
+    if (UserStore.getCurrentId() === msg.broadcast.user_id) {
+        loadChannelsForCurrentUser();
 
-        if (msg.data.remover_id !== msg.user_id &&
-                msg.channel_id === ChannelStore.getCurrentId() &&
+        if (msg.data.remover_id !== msg.broadcast.user_id &&
+                msg.data.channel_id === ChannelStore.getCurrentId() &&
                 $('#removed_from_channel').length > 0) {
             var sentState = {};
             sentState.channelName = ChannelStore.getCurrent().display_name;
@@ -240,36 +246,34 @@ function handleUserRemovedEvent(msg) {
             BrowserStore.setItem('channel-removed-state', sentState);
             $('#removed_from_channel').modal('show');
         }
-    } else if (ChannelStore.getCurrentId() === msg.channel_id) {
-        AsyncClient.getChannelExtraInfo();
+    } else if (ChannelStore.getCurrentId() === msg.broadcast.channel_id) {
+        AsyncClient.getChannelStats();
     }
 }
 
 function handleUserUpdatedEvent(msg) {
-    if (UserStore.getCurrentId() !== msg.user_id) {
-        UserStore.saveProfile(msg.data.user);
-        if (UserStore.hasDirectProfile(msg.user_id)) {
-            UserStore.saveDirectProfile(msg.data.user);
-        }
-        UserStore.emitChange(msg.user_id);
+    const user = msg.data.user;
+    if (UserStore.getCurrentId() !== user.id) {
+        UserStore.saveProfile(user);
+        UserStore.emitChange(user.id);
     }
 }
 
 function handleChannelViewedEvent(msg) {
     // Useful for when multiple devices have the app open to different channels
-    if (TeamStore.getCurrentId() === msg.team_id &&
-            ChannelStore.getCurrentId() !== msg.channel_id &&
-            UserStore.getCurrentId() === msg.user_id) {
-        AsyncClient.getChannel(msg.channel_id);
+    if (TeamStore.getCurrentId() === msg.broadcast.team_id &&
+            ChannelStore.getCurrentId() !== msg.data.channel_id &&
+            UserStore.getCurrentId() === msg.broadcast.user_id) {
+        AsyncClient.getChannel(msg.data.channel_id);
     }
 }
 
 function handleChannelDeletedEvent(msg) {
-    if (ChannelStore.getCurrentId() === msg.channel_id) {
+    if (ChannelStore.getCurrentId() === msg.data.channel_id) {
         const teamUrl = TeamStore.getCurrentTeamRelativeUrl();
         browserHistory.push(teamUrl + '/channels/' + Constants.DEFAULT_CHANNEL);
     }
-    AsyncClient.getChannels();
+    loadChannelsForCurrentUser();
 }
 
 function handlePreferenceChangedEvent(msg) {
@@ -278,9 +282,23 @@ function handlePreferenceChangedEvent(msg) {
 }
 
 function handleUserTypingEvent(msg) {
-    GlobalActions.emitRemoteUserTypingEvent(msg.channel_id, msg.user_id, msg.data.parent_id);
+    GlobalActions.emitRemoteUserTypingEvent(msg.broadcast.channel_id, msg.data.user_id, msg.data.parent_id);
+
+    if (UserStore.getStatus(msg.data.user_id) !== UserStatuses.ONLINE) {
+        StatusActions.loadStatusesByIds([msg.data.user_id]);
+    }
 }
 
 function handleStatusChangedEvent(msg) {
-    UserStore.setStatus(msg.user_id, msg.data.status);
+    UserStore.setStatus(msg.data.user_id, msg.data.status);
+}
+
+function handleHelloEvent(msg) {
+    Client.serverVersion = msg.data.server_version;
+    AsyncClient.checkVersion();
+}
+
+function handleWebrtc(msg) {
+    const data = msg.data;
+    return WebrtcActions.handle(data);
 }

@@ -52,6 +52,12 @@
         }
     }
 
+    .btn {
+        &.btn-spacing--right {
+            margin-right: 10px;
+        }
+    }
+
     .log__panel {
         background-color: white;
         border: 1px solid #ddd;
@@ -230,6 +236,19 @@
             .fa-plus {
                 display: none;
             }
+        }
+    }
+
+    .more-modal__list {
+        .filtered-user-list {
+             .filter-controls {
+                padding-bottom: 1em;
+             }
+        }
+
+        .filter-row {
+            margin: 10px 0;
+            overflow: hidden;
         }
     }
 
@@ -445,4 +464,3 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
-

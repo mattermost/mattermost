@@ -55,19 +55,25 @@ import (
 	ber "gopkg.in/asn1-ber.v1"
 )
 
+// AttributeTypeAndValue represents an attributeTypeAndValue from https://tools.ietf.org/html/rfc4514
 type AttributeTypeAndValue struct {
-	Type  string
+	// Type is the attribute type
+	Type string
+	// Value is the attribute value
 	Value string
 }
 
+// RelativeDN represents a relativeDistinguishedName from https://tools.ietf.org/html/rfc4514
 type RelativeDN struct {
 	Attributes []*AttributeTypeAndValue
 }
 
+// DN represents a distinguishedName from https://tools.ietf.org/html/rfc4514
 type DN struct {
 	RDNs []*RelativeDN
 }
 
+// ParseDN returns a distinguishedName or an error
 func ParseDN(str string) (*DN, error) {
 	dn := new(DN)
 	dn.RDNs = make([]*RelativeDN, 0)
@@ -94,11 +100,9 @@ func ParseDN(str string) (*DN, error) {
 			dst := []byte{0}
 			n, err := enchex.Decode([]byte(dst), []byte(str[i:i+2]))
 			if err != nil {
-				return nil, errors.New(
-					fmt.Sprintf("Failed to decode escaped character: %s", err))
+				return nil, fmt.Errorf("Failed to decode escaped character: %s", err)
 			} else if n != 1 {
-				return nil, errors.New(
-					fmt.Sprintf("Expected 1 byte when un-escaping, got %d", n))
+				return nil, fmt.Errorf("Expected 1 byte when un-escaping, got %d", n)
 			}
 			buffer.WriteByte(dst[0])
 			i++
@@ -119,12 +123,11 @@ func ParseDN(str string) (*DN, error) {
 				} else {
 					data = str[i:]
 				}
-				raw_ber, err := enchex.DecodeString(data)
+				rawBER, err := enchex.DecodeString(data)
 				if err != nil {
-					return nil, errors.New(
-						fmt.Sprintf("Failed to decode BER encoding: %s", err))
+					return nil, fmt.Errorf("Failed to decode BER encoding: %s", err)
 				}
-				packet := ber.DecodePacket(raw_ber)
+				packet := ber.DecodePacket(rawBER)
 				buffer.WriteString(packet.Data.String())
 				i += len(data) - 1
 			}

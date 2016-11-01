@@ -4,6 +4,10 @@
 package api
 
 import (
+	"fmt"
+	"hash/fnv"
+	"runtime"
+
 	l4g "github.com/alecthomas/log4go"
 
 	"github.com/mattermost/platform/einterfaces"
@@ -12,27 +16,77 @@ import (
 )
 
 type Hub struct {
-	connections       map[*WebConn]bool
-	register          chan *WebConn
-	unregister        chan *WebConn
-	broadcast         chan *model.WebSocketEvent
-	stop              chan string
-	invalidateUser    chan string
-	invalidateChannel chan string
+	connections    map[*WebConn]bool
+	register       chan *WebConn
+	unregister     chan *WebConn
+	broadcast      chan *model.WebSocketEvent
+	stop           chan string
+	invalidateUser chan string
 }
 
-var hub = &Hub{
-	register:          make(chan *WebConn),
-	unregister:        make(chan *WebConn),
-	connections:       make(map[*WebConn]bool),
-	broadcast:         make(chan *model.WebSocketEvent),
-	stop:              make(chan string),
-	invalidateUser:    make(chan string),
-	invalidateChannel: make(chan string),
+var hubs []*Hub = make([]*Hub, 0)
+
+func NewWebHub() *Hub {
+	return &Hub{
+		register:       make(chan *WebConn),
+		unregister:     make(chan *WebConn),
+		connections:    make(map[*WebConn]bool, model.SESSION_CACHE_SIZE),
+		broadcast:      make(chan *model.WebSocketEvent, 4096),
+		stop:           make(chan string),
+		invalidateUser: make(chan string),
+	}
+}
+
+func TotalWebsocketConnections() int {
+	// XXX TODO FIXME, this is racy and needs to be fixed
+	count := 0
+	for _, hub := range hubs {
+		count = count + len(hub.connections)
+	}
+
+	return count
+}
+
+func HubStart() {
+	l4g.Info(utils.T("api.web_hub.start.starting.debug"), runtime.NumCPU()*2)
+
+	// Total number of hubs is twice the number of CPUs.
+	hubs = make([]*Hub, runtime.NumCPU()*2)
+
+	for i := 0; i < len(hubs); i++ {
+		hubs[i] = NewWebHub()
+		hubs[i].Start()
+	}
+}
+
+func HubStop() {
+	l4g.Info(utils.T("api.web_hub.start.stopping.debug"))
+
+	for _, hub := range hubs {
+		hub.Stop()
+	}
+
+	hubs = make([]*Hub, 0)
+}
+
+func HubRegister(webConn *WebConn) {
+	hash := fnv.New32a()
+	hash.Write([]byte(webConn.UserId))
+	index := hash.Sum32() % uint32(len(hubs))
+	hubs[index].Register(webConn)
+}
+
+func HubUnregister(webConn *WebConn) {
+	for _, hub := range hubs {
+		hub.Unregister(webConn)
+	}
 }
 
 func Publish(message *model.WebSocketEvent) {
-	hub.Broadcast(message)
+	message.DoPreComputeJson()
+	for _, hub := range hubs {
+		hub.Broadcast(message)
+	}
 
 	if einterfaces.GetClusterInterface() != nil {
 		einterfaces.GetClusterInterface().Publish(message)
@@ -40,27 +94,34 @@ func Publish(message *model.WebSocketEvent) {
 }
 
 func PublishSkipClusterSend(message *model.WebSocketEvent) {
-	hub.Broadcast(message)
+	message.DoPreComputeJson()
+	for _, hub := range hubs {
+		hub.Broadcast(message)
+	}
 }
 
 func InvalidateCacheForUser(userId string) {
-	hub.invalidateUser <- userId
+	InvalidateCacheForUserSkipClusterSend(userId)
 
 	if einterfaces.GetClusterInterface() != nil {
 		einterfaces.GetClusterInterface().InvalidateCacheForUser(userId)
 	}
 }
 
-func InvalidateCacheForChannel(channelId string) {
-	hub.invalidateChannel <- channelId
+func InvalidateCacheForUserSkipClusterSend(userId string) {
+	Srv.Store.Channel().InvalidateAllChannelMembersForUser(userId)
 
-	if einterfaces.GetClusterInterface() != nil {
-		einterfaces.GetClusterInterface().InvalidateCacheForChannel(channelId)
+	for _, hub := range hubs {
+		hub.InvalidateUser(userId)
 	}
 }
 
 func (h *Hub) Register(webConn *WebConn) {
 	h.register <- webConn
+
+	msg := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_HELLO, "", "", webConn.UserId, nil)
+	msg.Add("server_version", fmt.Sprintf("%v.%v.%v", model.CurrentVersion, model.BuildNumber, utils.CfgHash))
+	go Publish(msg)
 }
 
 func (h *Hub) Unregister(webConn *WebConn) {
@@ -71,6 +132,10 @@ func (h *Hub) Broadcast(message *model.WebSocketEvent) {
 	if message != nil {
 		h.broadcast <- message
 	}
+}
+
+func (h *Hub) InvalidateUser(userId string) {
+	h.invalidateUser <- userId
 }
 
 func (h *Hub) Stop() {
@@ -91,6 +156,10 @@ func (h *Hub) Start() {
 					close(webCon.Send)
 				}
 
+				if len(userId) == 0 {
+					continue
+				}
+
 				found := false
 				for webCon := range h.connections {
 					if userId == webCon.UserId {
@@ -100,8 +169,9 @@ func (h *Hub) Start() {
 				}
 
 				if !found {
-					go SetStatusOffline(userId)
+					go SetStatusOffline(userId, false)
 				}
+
 			case userId := <-h.invalidateUser:
 				for webCon := range h.connections {
 					if webCon.UserId == userId {
@@ -109,26 +179,20 @@ func (h *Hub) Start() {
 					}
 				}
 
-			case channelId := <-h.invalidateChannel:
-				for webCon := range h.connections {
-					webCon.InvalidateCacheForChannel(channelId)
-				}
-
 			case msg := <-h.broadcast:
 				for webCon := range h.connections {
-					if shouldSendEvent(webCon, msg) {
+					if webCon.ShouldSendEvent(msg) {
 						select {
 						case webCon.Send <- msg:
 						default:
+							l4g.Error(fmt.Sprintf("webhub.broadcast: cannot send, closing websocket for userId=%v", webCon.UserId))
 							close(webCon.Send)
 							delete(h.connections, webCon)
 						}
 					}
 				}
 
-			case s := <-h.stop:
-				l4g.Debug(utils.T("api.web_hub.start.stopping.debug"), s)
-
+			case <-h.stop:
 				for webCon := range h.connections {
 					webCon.WebSocket.Close()
 				}
@@ -137,53 +201,4 @@ func (h *Hub) Start() {
 			}
 		}
 	}()
-}
-
-func shouldSendEvent(webCon *WebConn, msg *model.WebSocketEvent) bool {
-	if webCon.UserId == msg.UserId {
-		// Don't need to tell the user they are typing
-		if msg.Event == model.WEBSOCKET_EVENT_TYPING {
-			return false
-		}
-
-		// We have to make sure the user is in the channel. Otherwise system messages that
-		// post about users in channels they are not in trigger warnings.
-		if len(msg.ChannelId) > 0 {
-			allowed := webCon.HasPermissionsToChannel(msg.ChannelId)
-
-			if !allowed {
-				return false
-			}
-		}
-	} else {
-		// Don't share a user's view or preference events with other users
-		if msg.Event == model.WEBSOCKET_EVENT_CHANNEL_VIEWED {
-			return false
-		} else if msg.Event == model.WEBSOCKET_EVENT_PREFERENCE_CHANGED {
-			return false
-		} else if msg.Event == model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE {
-			// For now, ephemeral messages are sent directly to individual users
-			return false
-		}
-
-		// Only report events to users who are in the team for the event
-		if len(msg.TeamId) > 0 {
-			allowed := webCon.HasPermissionsToTeam(msg.TeamId)
-
-			if !allowed {
-				return false
-			}
-		}
-
-		// Only report events to users who are in the channel for the event execept deleted events
-		if len(msg.ChannelId) > 0 && msg.Event != model.WEBSOCKET_EVENT_CHANNEL_DELETED {
-			allowed := webCon.HasPermissionsToChannel(msg.ChannelId)
-
-			if !allowed {
-				return false
-			}
-		}
-	}
-
-	return true
 }

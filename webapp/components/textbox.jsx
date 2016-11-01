@@ -3,6 +3,7 @@
 
 import $ from 'jquery';
 import AtMentionProvider from './suggestion/at_mention_provider.jsx';
+import ChannelMentionProvider from './suggestion/channel_mention_provider.jsx';
 import CommandProvider from './suggestion/command_provider.jsx';
 import EmoticonProvider from './suggestion/emoticon_provider.jsx';
 import SuggestionList from './suggestion/suggestion_list.jsx';
@@ -35,7 +36,11 @@ export default class Textbox extends React.Component {
             connection: ''
         };
 
-        this.suggestionProviders = [new AtMentionProvider(), new EmoticonProvider()];
+        this.suggestionProviders = [
+            new AtMentionProvider(this.props.channelId),
+            new ChannelMentionProvider(),
+            new EmoticonProvider()
+        ];
         if (props.supportsCommands) {
             this.suggestionProviders.push(new CommandProvider());
         }
@@ -103,8 +108,20 @@ export default class Textbox extends React.Component {
         this.setState({preview: !this.state.preview});
     }
 
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.channelId !== this.props.channelId) {
+            // Update channel id for AtMentionProvider.
+            const providers = this.suggestionProviders;
+            for (let i = 0; i < providers.length; i++) {
+                if (providers[i] instanceof AtMentionProvider) {
+                    providers[i] = new AtMentionProvider(nextProps.channelId);
+                }
+            }
+        }
+    }
+
     render() {
-        const hasText = this.props.messageText.length > 0;
+        const hasText = this.props.messageText && this.props.messageText.length > 0;
 
         let previewLink = null;
         if (Utils.isFeatureEnabled(PreReleaseFeatures.MARKDOWN_PREVIEW)) {
@@ -189,7 +206,7 @@ export default class Textbox extends React.Component {
                     spellCheck='true'
                     maxLength={Constants.MAX_POST_LEN}
                     placeholder={this.props.createMessage}
-                    onInput={this.props.onInput}
+                    onChange={this.props.onChange}
                     onKeyPress={this.handleKeyPress}
                     onKeyDown={this.handleKeyDown}
                     onHeightChange={this.handleHeightChange}
@@ -198,14 +215,14 @@ export default class Textbox extends React.Component {
                     providers={this.suggestionProviders}
                     channelId={this.props.channelId}
                     value={this.props.messageText}
+                    renderDividers={true}
                 />
                 <div
                     ref='preview'
                     className='form-control custom-textarea textbox-preview-area'
                     style={{display: this.state.preview ? 'block' : 'none'}}
                     dangerouslySetInnerHTML={{__html: this.state.preview ? TextFormatting.formatText(this.props.messageText) : ''}}
-                >
-                </div>
+                />
                 <div className='help__text'>
                     {helpText}
                     {previewLink}
@@ -234,7 +251,7 @@ Textbox.propTypes = {
     id: React.PropTypes.string.isRequired,
     channelId: React.PropTypes.string,
     messageText: React.PropTypes.string.isRequired,
-    onInput: React.PropTypes.func.isRequired,
+    onChange: React.PropTypes.func.isRequired,
     onKeyPress: React.PropTypes.func.isRequired,
     createMessage: React.PropTypes.string.isRequired,
     onKeyDown: React.PropTypes.func,

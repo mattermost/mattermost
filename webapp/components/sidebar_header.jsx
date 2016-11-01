@@ -1,24 +1,17 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
-import NavbarDropdown from './navbar_dropdown.jsx';
-import 'bootstrap';
+import React from 'react';
 
-import PreferenceStore from 'stores/preference_store.jsx';
-
-import * as Utils from 'utils/utils.jsx';
 import Client from 'client/web_client.jsx';
-import Constants from 'utils/constants.jsx';
+import PreferenceStore from 'stores/preference_store.jsx';
+import * as Utils from 'utils/utils.jsx';
 
-const Preferences = Constants.Preferences;
-const TutorialSteps = Constants.TutorialSteps;
-
+import SidebarHeaderDropdown from './sidebar_header_dropdown.jsx';
 import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 
+import {Preferences, TutorialSteps} from 'utils/constants.jsx';
 import {createMenuTip} from 'components/tutorial/tutorial_tip.jsx';
-
-import React from 'react';
 
 export default class SidebarHeader extends React.Component {
     constructor(props) {
@@ -29,28 +22,31 @@ export default class SidebarHeader extends React.Component {
 
         this.state = this.getStateFromStores();
     }
+
     componentDidMount() {
         PreferenceStore.addChangeListener(this.onPreferenceChange);
     }
+
     componentWillUnmount() {
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
     }
+
     getStateFromStores() {
         const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, this.props.currentUser.id, 999);
 
         return {showTutorialTip: tutorialStep === TutorialSteps.MENU_POPOVER && !Utils.isMobile()};
     }
+
     onPreferenceChange() {
         this.setState(this.getStateFromStores());
     }
+
     toggleDropdown(e) {
         e.preventDefault();
-        if (this.refs.dropdown.blockToggle) {
-            this.refs.dropdown.blockToggle = false;
-            return;
-        }
-        $('.team__header').find('.dropdown-toggle').dropdown('toggle');
+
+        this.refs.dropdown.toggleDropdown();
     }
+
     render() {
         var me = this.props.currentUser;
         var profilePicture = null;
@@ -94,7 +90,7 @@ export default class SidebarHeader extends React.Component {
                         </OverlayTrigger>
                     </div>
                 </a>
-                <NavbarDropdown
+                <SidebarHeaderDropdown
                     ref='dropdown'
                     teamType={this.props.teamType}
                     teamDisplayName={this.props.teamDisplayName}

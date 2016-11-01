@@ -209,7 +209,7 @@ export default class ThemeSetting extends React.Component {
 
         let themeUI;
         if (this.props.selected) {
-            let inputs = [];
+            const inputs = [];
 
             inputs.push(
                 <div
@@ -301,7 +301,7 @@ export default class ThemeSetting extends React.Component {
                             />
                             <FormattedMessage
                                 id='user.settings.display.theme.applyToAllTeams'
-                                defaultMessage='Apply New Theme to All Teams'
+                                defaultMessage='Apply new theme to all my teams'
                             />
                         </label>
                     </div>

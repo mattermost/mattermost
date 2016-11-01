@@ -3,9 +3,11 @@
 
 import React from 'react';
 
+import ChannelStore from 'stores/channel_store.jsx';
 import EmojiStore from 'stores/emoji_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import {Preferences} from 'utils/constants.jsx';
+import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
 import PostMessageView from './post_message_view.jsx';
@@ -26,6 +28,7 @@ export default class PostMessageContainer extends React.Component {
         this.onEmojiChange = this.onEmojiChange.bind(this);
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.onUserChange = this.onUserChange.bind(this);
+        this.onChannelChange = this.onChannelChange.bind(this);
 
         const mentionKeys = UserStore.getCurrentMentionKeys();
         mentionKeys.push('@here');
@@ -34,7 +37,9 @@ export default class PostMessageContainer extends React.Component {
             emojis: EmojiStore.getEmojis(),
             enableFormatting: PreferenceStore.getBool(Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', true),
             mentionKeys,
-            usernameMap: UserStore.getProfilesUsernameMap()
+            usernameMap: UserStore.getProfilesUsernameMap(),
+            channelNamesMap: ChannelStore.getChannelNamesMap(),
+            team: TeamStore.getCurrent()
         };
     }
 
@@ -42,12 +47,14 @@ export default class PostMessageContainer extends React.Component {
         EmojiStore.addChangeListener(this.onEmojiChange);
         PreferenceStore.addChangeListener(this.onPreferenceChange);
         UserStore.addChangeListener(this.onUserChange);
+        ChannelStore.addChangeListener(this.onChannelChange);
     }
 
     componentWillUnmount() {
         EmojiStore.removeChangeListener(this.onEmojiChange);
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
         UserStore.removeChangeListener(this.onUserChange);
+        ChannelStore.removeChangeListener(this.onChannelChange);
     }
 
     onEmojiChange() {
@@ -72,6 +79,12 @@ export default class PostMessageContainer extends React.Component {
         });
     }
 
+    onChannelChange() {
+        this.setState({
+            channelNamesMap: ChannelStore.getChannelNamesMap()
+        });
+    }
+
     render() {
         return (
             <PostMessageView
@@ -81,6 +94,8 @@ export default class PostMessageContainer extends React.Component {
                 enableFormatting={this.state.enableFormatting}
                 mentionKeys={this.state.mentionKeys}
                 usernameMap={this.state.usernameMap}
+                channelNamesMap={this.state.channelNamesMap}
+                team={this.state.team}
             />
         );
     }

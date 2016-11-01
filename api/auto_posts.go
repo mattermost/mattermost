@@ -8,7 +8,6 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"io"
-	"mime/multipart"
 	"os"
 )
 
@@ -40,53 +39,31 @@ func NewAutoPostCreator(client *model.Client, channelid string) *AutoPostCreator
 }
 
 func (cfg *AutoPostCreator) UploadTestFile() ([]string, bool) {
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-
 	filename := cfg.ImageFilenames[utils.RandIntFromRange(utils.Range{0, len(cfg.ImageFilenames) - 1})]
-
-	part, err := writer.CreateFormFile("files", filename)
-	if err != nil {
-		return nil, false
-	}
 
 	path := utils.FindDir("web/static/images")
 	file, err := os.Open(path + "/" + filename)
 	defer file.Close()
 
-	_, err = io.Copy(part, file)
+	data := &bytes.Buffer{}
+	_, err = io.Copy(data, file)
 	if err != nil {
 		return nil, false
 	}
 
-	field, err := writer.CreateFormField("channel_id")
-	if err != nil {
-		return nil, false
-	}
-
-	_, err = field.Write([]byte(cfg.channelid))
-	if err != nil {
-		return nil, false
-	}
-
-	err = writer.Close()
-	if err != nil {
-		return nil, false
-	}
-
-	resp, appErr := cfg.client.UploadPostAttachment(body.Bytes(), writer.FormDataContentType())
+	resp, appErr := cfg.client.UploadPostAttachment(data.Bytes(), cfg.channelid, filename)
 	if appErr != nil {
 		return nil, false
 	}
 
-	return resp.Data.(*model.FileUploadResponse).Filenames, true
+	return []string{resp.FileInfos[0].Id}, true
 }
 
 func (cfg *AutoPostCreator) CreateRandomPost() (*model.Post, bool) {
-	var filenames []string
+	var fileIds []string
 	if cfg.HasImage {
 		var err1 bool
-		filenames, err1 = cfg.UploadTestFile()
+		fileIds, err1 = cfg.UploadTestFile()
 		if err1 == false {
 			return nil, false
 		}
@@ -102,7 +79,7 @@ func (cfg *AutoPostCreator) CreateRandomPost() (*model.Post, bool) {
 	post := &model.Post{
 		ChannelId: cfg.channelid,
 		Message:   postText,
-		Filenames: filenames}
+		FileIds:   fileIds}
 	result, err2 := cfg.client.CreatePost(post)
 	if err2 != nil {
 		return nil, false

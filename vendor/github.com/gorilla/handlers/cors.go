@@ -112,9 +112,6 @@ func (ch *cors) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set(corsAllowOriginHeader, origin)
 
-	if r.Method == corsOptionMethod {
-		return
-	}
 	ch.h.ServeHTTP(w, r)
 }
 

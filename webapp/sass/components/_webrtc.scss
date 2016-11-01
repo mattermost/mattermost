@@ -1,0 +1,340 @@
+@charset 'UTF-8';
+
+.webrtc__user-profile {
+    @include webrtc-button;
+    text-align: center;
+
+    #webrtc-btn {
+        display: inherit;
+    }
+}
+
+.webrtc__header {
+    @include webrtc-button;
+    float: left;
+    margin-right: 10px;
+    position: relative;
+    top: 13px;
+}
+
+.webrtc__notification--rhs {
+    background: $button--ready;
+    border-radius: 3px 0 0 3px;
+    color: $white;
+    cursor: pointer;
+    left: 50%;
+    margin-left: -150px;
+    overflow: hidden;
+    padding: 10px 15px;
+    position: absolute;
+    text-align: center;
+    text-overflow: ellipsis;
+    top: 0;
+    white-space: nowrap;
+    width: 300px;
+    z-index: 9999;
+
+    &:empty {
+        display: none;
+    }
+
+    .fa {
+        margin-right: 6px;
+    }
+}
+
+.webrtc__error {
+    padding: 0 20px;
+    text-align: center;
+
+    .sidebar--right--expanded & {
+        bottom: 80px;
+        padding: 0 20px;
+        position: absolute;
+        text-align: center;
+        width: 100%;
+    }
+
+    .form-group {
+        padding: 0 20px;
+        position: relative;
+        text-align: center;
+        z-index: 9999;
+    }
+
+    .control-label {
+        @include border-radius(3px);
+        background: #f2f2f2;
+        font-size: 14px;
+        font-weight: normal;
+        margin: 1em 0 -1em;
+        padding: .7em 1em;
+    }
+
+    .has-error {
+        .control-label {
+            color: #a94442;
+            font-size: .95em;
+
+            &.warning {
+                color: #444;
+
+                &:before {
+                    display: none;
+                }
+            }
+
+            &:before {
+                -moz-osx-font-smoothing: grayscale;
+                -webkit-font-smoothing: antialiased;
+                color: #a94442;
+                content: '\F071';
+                display: inline-block;
+                font: normal normal normal 14px/1 FontAwesome;
+                margin-right: 4px;
+                text-rendering: auto;
+                transform: translate(0, 0);
+            }
+        }
+    }
+}
+
+#videos {
+    background: $black;
+    font-size: 0;
+    height: 300px;
+    left: 0;
+    pointer-events: none;
+    position: relative;
+    text-align: center;
+    transition: all 1s;
+    width: 100%;
+
+    #main-video video {
+        height: 100%;
+        left: 0;
+        position: absolute;
+        top: 0;
+        width: 100%;
+    }
+
+    #local-video {
+        border: 1px solid gray;
+        max-width: 30%;
+        opacity: 1;
+        position: absolute;
+        right: 10px;
+        top: 10px;
+        transition: opacity 1s;
+        z-index: 2;
+
+        &.full {
+            background: $black;
+            border: none;
+            height: 80%;
+            max-width: 100% !important;
+            right: 0;
+            top: 0;
+            width: 100%;
+        }
+
+        video {
+            -moz-transform: scale(-1, 1);
+            -ms-transform: scale(-1, 1);
+            -o-transform: scale(-1, 1);
+            -webkit-transform: scale(-1, 1);
+            height: 100%;
+            max-height: 100%;
+            max-width: 100%;
+            object-fit: cover;
+            transform: scale(-1, 1);
+            transition: opacity 1s;
+            width: 100%;
+        }
+    }
+
+    .webrtc__local-image {
+        position: absolute;
+        right: 10px;
+        top: 10px;
+        z-index: 2;
+
+        img {
+            border-radius: 50%;
+            height: 64px;
+            max-width: 100%;
+            width: 64px;
+        }
+    }
+
+    .webrtc__remote-image {
+        background-color: $black;
+        border: 1px solid alpha-color($black, .2);
+        padding: 40px 0;
+
+        img {
+            border-radius: 50%;
+            max-height: 128px;
+            max-width: 128px;
+            width: 100%;
+        }
+    }
+
+    .webrtc__remote-mute {
+        bottom: 0;
+        position: absolute;
+        right: 10px;
+        z-index: 9999;
+    }
+}
+
+.webrtc-buttons {
+    margin-top: 1.2em;
+    text-align: center;
+
+    .webrtc-icons__call {
+        border-radius: 48px;
+
+        circle {
+            fill: $button--ready;
+        }
+
+        &:hover {
+            cursor: pointer;
+
+            circle {
+                fill: darken($button--ready, 5%);
+            }
+        }
+
+        &[disabled] {
+            circle {
+                fill: $video-circle-offline;
+            }
+        }
+    }
+
+    .webrtc-icons__cancel {
+        border-radius: 48px;
+
+        circle {
+            fill: $button--cancel;
+        }
+
+        &:hover {
+            cursor: pointer;
+
+            circle {
+                fill: darken($button--cancel, 5%);
+            }
+        }
+    }
+}
+
+.webrtc-icons {
+    &.active {
+        svg {
+            transform: translateY(0);
+        }
+    }
+
+    svg {
+        border-radius: 48px;
+        margin: 5px;
+
+        path {
+            &.on {
+                display: block;
+            }
+
+            &.off {
+                display: none;
+            }
+        }
+    }
+}
+
+.connecting {
+    position: absolute;
+    top: 0;
+    width: 100%;
+
+    .loading-screen {
+        background-color: rgba(0,0,0, .3);
+        color: $connecting;
+        margin-left: 5px;
+        padding: 20px;
+        position: relative;
+        top: 75px;
+        width: 97%;
+
+        .loading__content {
+            .round {
+                background: $connecting !important;
+            }
+        }
+    }
+}
+
+.webrtc-notification {
+    background-color: $webrtc-notification-bg;
+    color: $white;
+    left: calc(50% - 200px);
+    padding: 20px 30px 10px;
+    position: absolute;
+    text-align: center;
+    top: calc(50% - 115px);
+    width: 400px;
+    z-index: 99999;
+
+    .webrtc-buttons {
+        margin-top: 1.2em;
+        text-align: center;
+
+        .webrtc-icons__pickup {
+            circle {
+                fill: $button--pickup;
+            }
+
+            &:hover {
+                cursor: pointer;
+
+                circle {
+                    fill: darken($button--pickup, 3%);
+                }
+            }
+        }
+    }
+}
+
+.sidebar--right--expanded {
+    #videos {
+        height: 100%;
+        position: absolute;
+
+        #main-video {
+            height: 100%;
+
+            video {
+                height: 100%;
+                width: 100%;
+            }
+        }
+    }
+
+    .webrtc-buttons {
+        bottom: 5px;
+        position: absolute;
+        width: 100%;
+    }
+
+    #videos {
+        #local-video {
+            max-width: 200px;
+        }
+    }
+
+    #videos.small {
+        position: relative;
+    }
+}

@@ -48,10 +48,6 @@
     "translation": "September"
   },
   {
-    "id": "api.admin.add_certificate.array.app_error",
-    "translation": "Empty array under 'certificate' in request"
-  },
-  {
     "id": "api.admin.add_certificate.no_file.app_error",
     "translation": "No file under 'certificate' in request"
   },
@@ -148,6 +144,10 @@
     "translation": "Error rendering template %v err=%v"
   },
   {
+    "id": "api.auth.unable_to_get_user.app_error",
+    "translation": "Unable to get user to check permissions."
+  },
+  {
     "id": "api.channel.add_member.added",
     "translation": "%v added to the channel by %v"
   },
@@ -202,6 +202,10 @@
   {
     "id": "api.channel.create_channel.invalid_character.app_error",
     "translation": "Invalid character '__' in channel name for non-direct channel"
+  },
+  {
+    "id": "api.channel.create_channel.max_channel_limit.app_error",
+    "translation": "Cannot create more than {{.MaxChannelsPerTeam}} channels for current team"
   },
   {
     "id": "api.channel.create_default_channels.off_topic",
@@ -352,6 +356,10 @@
     "translation": "Tried to perform an invalid update of the default channel {{.Channel}}"
   },
   {
+    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
+    "translation": "Unable to get the unread count for user_id=%v and channel_id=%v, err=%v"
+  },
+  {
     "id": "api.command.admin_only.app_error",
     "translation": "Integrations have been limited to admins only."
   },
@@ -430,6 +438,18 @@
   {
     "id": "api.command.regen.app_error",
     "translation": "Inappropriate permissions to regenerate command token"
+  },
+  {
+    "id": "api.command_away.desc",
+    "translation": "Set your status away"
+  },
+  {
+    "id": "api.command_away.name",
+    "translation": "away"
+  },
+  {
+    "id": "api.command_away.success",
+    "translation": "You are now away"
   },
   {
     "id": "api.command_collapse.desc",
@@ -564,6 +584,30 @@
     "translation": "Messaged user."
   },
   {
+    "id": "api.command_offline.desc",
+    "translation": "Set your status offline"
+  },
+  {
+    "id": "api.command_offline.name",
+    "translation": "offline"
+  },
+  {
+    "id": "api.command_offline.success",
+    "translation": "You are now offline"
+  },
+  {
+    "id": "api.command_online.desc",
+    "translation": "Set your status online"
+  },
+  {
+    "id": "api.command_online.name",
+    "translation": "online"
+  },
+  {
+    "id": "api.command_online.success",
+    "translation": "You are now online"
+  },
+  {
     "id": "api.command_shortcuts.browser",
     "translation": "#### Built-in Browser Commands\n\nALT+LEFT: Previous channel in your history\nALT+RIGHT: Next channel in your history\nCTRL+PLUS: Increase font size (zoom in)\nCTRL+MINUS: Decrease font size (zoom out)\nSHIFT+UP (in input field): Highlight text to the previous line\nSHIFT+DOWN (in input field): Highlight text to the next line\nSHIFT+ENTER (in input field): Create a new line\n"
   },
@@ -585,11 +629,11 @@
   },
   {
     "id": "api.command_shortcuts.msgs",
-    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCTRL+UP (in empty input field): Reprint the previous message or slash command you entered\nCTRL+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
+    "translation": "#### Messages\n\nALT+[click on a message]: Set a message as your oldest unread message in the current channel\nESC: Mark all messages in the current channel as read\nCTRL+UP (in empty input field): Reprint the previous message or slash command you entered\nCTRL+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs_mac",
-    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCMD+UP (in empty input field): Reprint the previous message or slash command you entered\nCMD+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
+    "translation": "#### Messages\n\nALT+[click on a message]: Set a message as your oldest unread message in the current channel\nESC: Mark all messages in the current channel as read\nCMD+UP (in empty input field): Reprint the previous message or slash command you entered\nCMD+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -774,18 +818,6 @@
     "translation": "Unable to create emoji. Image must be at most 128 by 128 pixels."
   },
   {
-    "id": "api.file.file_upload.exceeds",
-    "translation": "File exceeds max image size."
-  },
-  {
-    "id": "api.file.file_upload.exceeds",
-    "translation": "File exceeds max image size."
-  },
-  {
-    "id": "api.file.get_file.not_found.app_error",
-    "translation": "Could not find file."
-  },
-  {
     "id": "api.file.get_file.public_disabled.app_error",
     "translation": "Public links have been disabled by the system administrator"
   },
@@ -794,32 +826,116 @@
     "translation": "The public link does not appear to be valid"
   },
   {
+    "id": "api.file.get_file_preview.no_thumbnail.app_error",
+    "translation": "File doesn't have a preview image"
+  },
+  {
+    "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
+    "translation": "File doesn't have a thumbnail image"
+  },
+  {
+    "id": "api.file.get_info_for_request.no_post.app_error",
+    "translation": "Unable to get info for file. File must be attached to a post that can be read by the current user."
+  },
+  {
+    "id": "api.file.get_info_for_request.storage.app_error",
+    "translation": "Unable to get info for file. Image storage is not configured."
+  },
+  {
+    "id": "api.file.get_public_file_old.storage.app_error",
+    "translation": "Unable to get file. Image storage is not configured."
+  },
+  {
+    "id": "api.file.get_public_file_old.storage.app_error",
+    "translation": "Unable to get file. Image storage is not configured."
+  },
+  {
     "id": "api.file.get_public_link.disabled.app_error",
     "translation": "Public links have been disabled"
   },
   {
+    "id": "api.file.get_public_link.no_post.app_error",
+    "translation": "Unable to get public link for file. File must be attached to a post that can be read by the current user."
+  },
+  {
     "id": "api.file.handle_images_forget.decode.error",
-    "translation": "Unable to decode image channelId=%v userId=%v filename=%v err=%v"
+    "translation": "Unable to decode image err=%v"
   },
   {
     "id": "api.file.handle_images_forget.encode_jpeg.error",
-    "translation": "Unable to encode image as jpeg channelId=%v userId=%v filename=%v err=%v"
+    "translation": "Unable to encode image as jpeg path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.encode_preview.error",
-    "translation": "Unable to encode image as preview jpg channelId=%v userId=%v filename=%v err=%v"
+    "translation": "Unable to encode image as preview jpg path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.upload_preview.error",
-    "translation": "Unable to upload preview channelId=%v userId=%v filename=%v err=%v"
+    "translation": "Unable to upload preview path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.upload_thumb.error",
-    "translation": "Unable to upload thumbnail channelId=%v userId=%v filename=%v err=%v"
+    "translation": "Unable to upload thumbnail path=%v err=%v"
   },
   {
     "id": "api.file.init.debug",
     "translation": "Initializing file api routes"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.channel.app_error",
+    "translation": "Unable to get channel when migrating post to use FileInfos, post_id=%v, channel_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.file_not_found.warn",
+    "translation": "Unable to find file when migrating post to use FileInfos, post_id=%v, filename=%v, path=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.get_file_infos_again.warn",
+    "translation": "Unable to get FileInfos for post after migratio, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.get_post_again.warn",
+    "translation": "Unable to get post when migrating to use FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.info.app_error",
+    "translation": "Unable to fully decode file info when migrating post to use FileInfos, post_id=%v, filename=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.migrating_post.debug",
+    "translation": "Migrating post to use FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.mismatched_filename.warn",
+    "translation": "Found an unusual filename when migrating post to use FileInfos, post_id=%v, channel_id=%v, user_id=%v, filename=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.no_filenames.warn",
+    "translation": "Unable to migrate post to use FileInfos with an empty Filenames field, post_id=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.not_migrating_post.debug",
+    "translation": "Post already migrated to use FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.save_file_info.warn",
+    "translation": "Unable to save post when migrating post to use FileInfos, post_id=%v, file_id=%v, path=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.save_post.warn",
+    "translation": "Unable to save file info when migrating post to use FileInfos, post_id=%v, file_id=%v, filename=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.team_id.app_error",
+    "translation": "Unable to find team for FileInfos, post_id=%v, filenames=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.teams.app_error",
+    "translation": "Unable to get teams when migrating post to use FileInfos, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.file.migrate_filenames_to_file_infos.unexpected_filename.error",
+    "translation": "Unable to decipher filename when migrating post to use FileInfos, post_id=%v, filename=%v"
   },
   {
     "id": "api.file.move_file.configured.app_error",
@@ -864,10 +980,6 @@
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "Encountered an error reading from local server storage"
-  },
-  {
-    "id": "api.file.upload_file.image.app_error",
-    "translation": "Unable to upload image file."
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -998,6 +1110,10 @@
     "translation": "Missing one or more of response_type, client_id, or redirect_uri"
   },
   {
+    "id": "api.oauth.complete_oauth.missing_code.app_error",
+    "translation": "The service provider {{.service}} did not provide an authorization code in the redirect URL.\n\nFor [Google Apps](https://docs.mattermost.com/deployment/sso-google.html) make sure your administrator enabled the Google+ API.\n\nFor [Office 365](https://docs.mattermost.com/deployment/sso-office.html) make sure the administrator of your Microsoft organization has enabled the Mattermost app.\n\nFor [GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html) please make sure you followed the setup instructions.\n\nIf you reviewed the above and are still having trouble with configuration, you may post in our [Troubleshooting forum](https://forum.mattermost.org/c/general/trouble-shoot) where we'll be happy to help with issues during setup."
+  },
+  {
     "id": "api.oauth.delete.permissions.app_error",
     "translation": "Inappropriate permissions to delete the OAuth2 App"
   },
@@ -1066,6 +1182,10 @@
     "translation": "Initializing oauth api routes"
   },
   {
+    "id": "api.oauth.regenerate_secret.app_error",
+    "translation": "Inappropriate permissions to regenerate the OAuth2 App Secret"
+  },
+  {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
     "translation": "The system admin has turned off OAuth2 Service Provider."
   },
@@ -1102,8 +1222,16 @@
     "translation": "{{.Username}} was mentioned, but they did not receive a notification because they do not belong to this channel."
   },
   {
+    "id": "api.post.create_post.attach_files.error",
+    "translation": "Encountered error attaching files to post, post_id=%s, user_id=%s, file_ids=%v, err=%v"
+  },
+  {
     "id": "api.post.create_post.bad_filename.error",
     "translation": "Bad filename discarded, filename=%v"
+  },
+  {
+    "id": "api.post.create_post.can_not_post_to_deleted.error",
+    "translation": "Can not post to deleted channel."
   },
   {
     "id": "api.post.create_post.channel_root_id.app_error",
@@ -1134,11 +1262,19 @@
     "translation": "You do not have the appropriate permissions"
   },
   {
+    "id": "api.post.delete_post_files.app_error.warn",
+    "translation": "Encountered error when deleting files for post, post_id=%v, err=%v"
+  },
+  {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
       "one": "{{.Count}} file sent: {{.Filenames}}",
       "other": "{{.Count}} files sent: {{.Filenames}}"
     }
+  },
+  {
+    "id": "api.post.get_message_for_notification.get_files.error",
+    "translation": "Encountered error when getting files for notification message, post_id=%v, err=%v"
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
@@ -1216,8 +1352,20 @@
     "translation": "Unable to get profile for channel member, user_id=%v"
   },
   {
+    "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
+    "translation": "Clearing push notification to %v with channel_id %v"
+  },
+  {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
     "translation": "Failed to retrieve comment thread posts in notifications root_post_id=%v, err=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.files.error",
+    "translation": "Failed to get files for post notification post_id=%v, err=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.get_teams.error",
+    "translation": "Failed to get teams when sending cross-team DM user_id=%v, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.mention_body",
@@ -1253,11 +1401,11 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.debug",
-    "translation": "Sending push notification to %v wi msg of '%v'"
+    "translation": "Sending push notification to %v with msg of '%v'"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
-    "translation": "Failed to send push notificationid=%v, err=%v"
+    "translation": "Failed to send push device_id=%v, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.send.error",
@@ -1344,6 +1492,14 @@
     "translation": "RateLimitSettings not configured properly using VaryByHeader and disabling VaryByRemoteAddr"
   },
   {
+    "id": "api.server.start_server.rate_limiting_memory_store",
+    "translation": "Unable to initialize rate limiting memory store. Check MemoryStoreSize config setting."
+  },
+  {
+    "id": "api.server.start_server.rate_limiting_rate_limiter",
+    "translation": "Unable to initialize rate limiting."
+  },
+  {
     "id": "api.server.start_server.starting.critical",
     "translation": "Error starting server, err:%v"
   },
@@ -1376,16 +1532,24 @@
     "translation": "Failed to import: {{.DisplayName}}\r\n"
   },
   {
-    "id": "api.slackimport.slack_add_channels.import_failed.debug",
-    "translation": "Failed to import: %s"
+    "id": "api.slackimport.slack_add_channels.import_failed.warn",
+    "translation": "Slack Importer: Failed to import channel: %s"
   },
   {
     "id": "api.slackimport.slack_add_channels.merge",
     "translation": "Merged with existing channel: {{.DisplayName}}\r\n"
   },
   {
+    "id": "api.slackimport.slack_add_posts.attach_files.error",
+    "translation": "Encountered error attaching files to post, post_id=%s, file_ids=%v, err=%v"
+  },
+  {
     "id": "api.slackimport.slack_add_posts.bot.warn",
     "translation": "Slack bot posts are not imported yet"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.msg_no_comment.debug",
+    "translation": "File comment undefined"
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_usr.debug",
@@ -1394,6 +1558,22 @@
   {
     "id": "api.slackimport.slack_add_posts.unsupported.warn",
     "translation": "Unsupported post type: %v, %v"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.upload_file_not_found.warn",
+    "translation": "No file found in Slack export for file upload message with file ID {{.FileId}}"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.upload_file_not_in_json.warn",
+    "translation": "Cannot import file for upload post with no \"file\" section present in export."
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.upload_file_open_failed.warn",
+    "translation": "Could not open the upload file with ID {{.FileId}} in the export archive with error: {{.Error}}"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.upload_file_upload_failed.warn",
+    "translation": "Uploading the file for upload message with file ID {{.FileId}} failed with error: {{.Error}}"
   },
   {
     "id": "api.slackimport.slack_add_posts.user_no_exists.debug",
@@ -1412,8 +1592,16 @@
     "translation": "Email, Password: {{.Email}}, {{.Password}}\r\n"
   },
   {
+    "id": "api.slackimport.slack_add_users.merge_existing",
+    "translation": "Merged user with existing account: {{.Email}}, {{.Username}}\r\n"
+  },
+  {
     "id": "api.slackimport.slack_add_users.unable_import",
     "translation": "Unable to import user: {{.Username}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_convert_channel_mentions.compile_regexp_failed.warn",
+    "translation": "Failed to compile the !channel matching regular expression for Slack channel {{.ChannelID}} {{.ChannelName}}"
   },
   {
     "id": "api.slackimport.slack_convert_timestamp.bad.warn",
@@ -1436,6 +1624,10 @@
     "translation": "- Slack bot posts are currently not supported.\r\n"
   },
   {
+    "id": "api.slackimport.slack_import.note3",
+    "translation": "- Additional errors may be found in the server logs.\r\n"
+  },
+  {
     "id": "api.slackimport.slack_import.notes",
     "translation": "\r\n Notes \r\n"
   },
@@ -1450,6 +1642,14 @@
   {
     "id": "api.slackimport.slack_import.zip.app_error",
     "translation": "Unable to open zip file"
+  },
+  {
+    "id": "api.slackimport.slack_parse_channels.error",
+    "translation": "Error parsing slack channels. Import may work anyway."
+  },
+  {
+    "id": "api.slackimport.slack_parse_posts.error",
+    "translation": "Error parsing some slack posts. Import may work anyway."
   },
   {
     "id": "api.status.init.debug",
@@ -1578,6 +1778,10 @@
   {
     "id": "api.team.signup_team.email_disabled.app_error",
     "translation": "Team sign-up with email is disabled."
+  },
+  {
+    "id": "api.team.update_member_roles.not_a_member",
+    "translation": "Specified user is not a member of specified team."
   },
   {
     "id": "api.team.update_team.permissions.app_error",
@@ -1737,7 +1941,7 @@
   },
   {
     "id": "api.templates.singin_change_email.body.info",
-    "translation": "You updated your sign-in method for on {{ .SiteName }} to {{.Method}}.<br>If this change wasn't initiated by you, please contact your system administrator."
+    "translation": "You updated your sign-in method on {{ .SiteName }} to {{.Method}}.<br>If this change wasn't initiated by you, please contact your system administrator."
   },
   {
     "id": "api.templates.singin_change_email.subject",
@@ -1945,7 +2149,7 @@
   },
   {
     "id": "api.user.email_to_ldap.not_available.app_error",
-    "translation": "LDAP not available on this server"
+    "translation": "AD/LDAP not available on this server"
   },
   {
     "id": "api.user.generate_mfa_qr.not_available.app_error",
@@ -1965,11 +2169,11 @@
   },
   {
     "id": "api.user.ldap_to_email.not_available.app_error",
-    "translation": "LDAP not available on this server"
+    "translation": "AD/LDAP not available on this server"
   },
   {
     "id": "api.user.ldap_to_email.not_ldap_account.app_error",
-    "translation": "This user account does not use LDAP"
+    "translation": "This user account does not use AD/LDAP"
   },
   {
     "id": "api.user.login.blank_pwd.app_error",
@@ -2013,7 +2217,7 @@
   },
   {
     "id": "api.user.login_ldap.disabled.app_error",
-    "translation": "LDAP not enabled on this server"
+    "translation": "AD/LDAP not enabled on this server"
   },
   {
     "id": "api.user.login_ldap.need_id.app_error",
@@ -2021,7 +2225,7 @@
   },
   {
     "id": "api.user.login_ldap.not_available.app_error",
-    "translation": "LDAP not available on this server"
+    "translation": "AD/LDAP not available on this server"
   },
   {
     "id": "api.user.oauth_to_email.context.app_error",
@@ -2105,7 +2309,7 @@
   },
   {
     "id": "api.user.update_active.no_deactivate_ldap.app_error",
-    "translation": "You can not modify the activation status of LDAP accounts. Please modify through the LDAP server."
+    "translation": "You can not modify the activation status of AD/LDAP accounts. Please modify through the AD/LDAP server."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -2204,8 +2408,12 @@
     "translation": "Bad verify email link."
   },
   {
+    "id": "api.web_hub.start.starting.debug",
+    "translation": "Starting %v websocket hubs"
+  },
+  {
     "id": "api.web_hub.start.stopping.debug",
-    "translation": "stopping %v connections"
+    "translation": "stopping websocket hub connections"
   },
   {
     "id": "api.web_socket.connect.error",
@@ -2300,8 +2508,32 @@
     "translation": "Inappropriate permissions to regenerate outcoming webhook token"
   },
   {
+    "id": "api.webrtc.init.debug",
+    "translation": "Initializing WebRTC api routes"
+  },
+  {
+    "id": "api.webrtc.not_available.app_error",
+    "translation": "WebRTC is not available on this server."
+  },
+  {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "Invalid {{.Name}} parameter"
+  },
+  {
+    "id": "authentication.permissions.team_invite_user.description",
+    "translation": "Ability to invite users to a team"
+  },
+  {
+    "id": "authentication.permissions.team_invite_user.name",
+    "translation": "Invite User"
+  },
+  {
+    "id": "authentication.permissions.team_use_slash_commands.description",
+    "translation": "Ability to use slash commands"
+  },
+  {
+    "id": "authentication.permissions.team_use_slash_commands.name",
+    "translation": "Use Slash Commands"
   },
   {
     "id": "cli.license.critical",
@@ -2400,8 +2632,12 @@
     "translation": "Custom emoji restrictions disabled by current license. Please contact your system administrator about upgrading your enterprise license."
   },
   {
+    "id": "ent.ldap.disabled.app_error",
+    "translation": "AD/LDAP disabled or licence does not support AD/LDAP."
+  },
+  {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
-    "translation": "Unable to bind to LDAP server. Check BindUsername and BindPassword."
+    "translation": "Unable to bind to AD/LDAP server. Check BindUsername and BindPassword."
   },
   {
     "id": "ent.ldap.do_login.invalid_password.app_error",
@@ -2409,7 +2645,7 @@
   },
   {
     "id": "ent.ldap.do_login.licence_disable.app_error",
-    "translation": "LDAP functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license."
+    "translation": "AD/LDAP functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license."
   },
   {
     "id": "ent.ldap.do_login.matched_to_many_users.app_error",
@@ -2417,11 +2653,11 @@
   },
   {
     "id": "ent.ldap.do_login.search_ldap_server.app_error",
-    "translation": "Failed to search LDAP server"
+    "translation": "Failed to search AD/LDAP server"
   },
   {
     "id": "ent.ldap.do_login.unable_to_connect.app_error",
-    "translation": "Unable to connect to LDAP server"
+    "translation": "Unable to connect to AD/LDAP server"
   },
   {
     "id": "ent.ldap.do_login.unable_to_create_user.app_error",
@@ -2429,27 +2665,27 @@
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
-    "translation": "Your LDAP account does not have permission to use this Mattermost server. Please ask your System Administrator to check the LDAP user filter."
+    "translation": "Your AD/LDAP account does not have permission to use this Mattermost server. Please ask your System Administrator to check the AD/LDAP user filter."
   },
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
-    "translation": "User not registered on LDAP server"
+    "translation": "User not registered on AD/LDAP server"
   },
   {
     "id": "ent.ldap.mattermost_user_update",
-    "translation": "Mattermost user was updated by LDAP server."
+    "translation": "Mattermost user was updated by AD/LDAP server."
   },
   {
     "id": "ent.ldap.syncdone.info",
-    "translation": "LDAP Synchronization completed"
+    "translation": "AD/LDAP Synchronization completed"
   },
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
-    "translation": "Unable to get all users using LDAP"
+    "translation": "Unable to get all users using AD/LDAP"
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
-    "translation": "Invalid LDAP Filter"
+    "translation": "Invalid AD/LDAP Filter"
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",
@@ -2489,11 +2725,15 @@
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
-    "translation": "Unable to migrate LDAP users with specified field. Duplicate entry detected. Please remove all duplcates and try again."
+    "translation": "Unable to migrate AD/LDAP users with specified field. Duplicate entry detected. Please remove all duplcates and try again."
   },
   {
     "id": "ent.migration.migratetoldap.user_not_found",
-    "translation": "Unable to find user on LDAP server: "
+    "translation": "Unable to find user on AD/LDAP server: "
+  },
+  {
+    "id": "ent.saml.attribute.app_error",
+    "translation": "SAML login was unsuccessful because one of the attributes is incorrect. Please contact your System Administrator."
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -2562,6 +2802,18 @@
   {
     "id": "ent.saml.update_saml_user.unable_error",
     "translation": "Unable to update existing SAML user. Allowing login anyway. err=%v"
+  },
+  {
+    "id": "ent.webrtc.disabled.app_error",
+    "translation": "WebRTC is not enabled in this server."
+  },
+  {
+    "id": "ent.webrtc.license_disable.app_error",
+    "translation": "Your license does not support using Mattermost WebRTC"
+  },
+  {
+    "id": "ent.webrtc.register_token.app_error",
+    "translation": "We encountered an error trying to register the WebRTC Token"
   },
   {
     "id": "error.generic.link_message",
@@ -2949,31 +3201,31 @@
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
-    "translation": "LDAP field \"BaseDN\" is required."
+    "translation": "AD/LDAP field \"BaseDN\" is required."
   },
   {
     "id": "model.config.is_valid.ldap_bind_password",
-    "translation": "LDAP field \"Bind Password\" is required."
+    "translation": "AD/LDAP field \"Bind Password\" is required."
   },
   {
     "id": "model.config.is_valid.ldap_bind_username",
-    "translation": "LDAP field \"Bind Username\" is required."
+    "translation": "AD/LDAP field \"Bind Username\" is required."
   },
   {
     "id": "model.config.is_valid.ldap_email",
-    "translation": "LDAP field \"Email Attribute\" is required."
+    "translation": "AD/LDAP field \"Email Attribute\" is required."
   },
   {
     "id": "model.config.is_valid.ldap_firstname",
-    "translation": "LDAP field \"First Name Attribute\" is required."
+    "translation": "AD/LDAP field \"First Name Attribute\" is required."
   },
   {
     "id": "model.config.is_valid.ldap_id",
-    "translation": "LDAP field \"ID Attribute\" is required."
+    "translation": "AD/LDAP field \"ID Attribute\" is required."
   },
   {
     "id": "model.config.is_valid.ldap_lastname",
-    "translation": "LDAP field \"Last Name Attribute\" is required."
+    "translation": "AD/LDAP field \"Last Name Attribute\" is required."
   },
   {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",
@@ -2981,19 +3233,19 @@
   },
   {
     "id": "model.config.is_valid.ldap_required.app_error",
-    "translation": "Required LDAP field missing."
+    "translation": "Required AD/LDAP field missing."
   },
   {
     "id": "model.config.is_valid.ldap_required.app_error",
-    "translation": "Required LDAP field missing."
+    "translation": "Required AD/LDAP field missing."
   },
   {
     "id": "model.config.is_valid.ldap_security.app_error",
-    "translation": "Invalid connection security for LDAP settings.  Must be '', 'TLS', or 'STARTTLS'"
+    "translation": "Invalid connection security for AD/LDAP settings.  Must be '', 'TLS', or 'STARTTLS'"
   },
   {
     "id": "model.config.is_valid.ldap_server",
-    "translation": "LDAP field \"LDAP Server\" is required."
+    "translation": "AD/LDAP field \"AD/LDAP Server\" is required."
   },
   {
     "id": "model.config.is_valid.ldap_sync_interval.app_error",
@@ -3001,7 +3253,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_username",
-    "translation": "LDAP field \"Username Attribute\" is required."
+    "translation": "AD/LDAP field \"Username Attribute\" is required."
   },
   {
     "id": "model.config.is_valid.listen_address.app_error",
@@ -3010,6 +3262,14 @@
   {
     "id": "model.config.is_valid.login_attempts.app_error",
     "translation": "Invalid maximum login attempts for service settings.  Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.max_burst.app_error",
+    "translation": "Maximum burst size must be greater than zero."
+  },
+  {
+    "id": "model.config.is_valid.max_channels.app_error",
+    "translation": "Invalid maximum channels per team for team settings.  Must be a positive number."
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
@@ -3036,6 +3296,10 @@
     "translation": "Invalid per sec for rate limit settings.  Must be a positive number"
   },
   {
+    "id": "model.config.is_valid.read_timeout.app_error",
+    "translation": "Invalid value for read timeout."
+  },
+  {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
     "translation": "Invalid direct message restriction.  Must be 'any', or 'team'"
   },
@@ -3048,10 +3312,6 @@
     "translation": "Invalid Email attribute. Must be set."
   },
   {
-    "id": "model.config.is_valid.saml_first_name_attribute.app_error",
-    "translation": "Invalid First Name attribute. Must be set."
-  },
-  {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
     "translation": "Identity Provider Public Certificate missing. Did you forget to upload it?"
   },
@@ -3062,10 +3322,6 @@
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
     "translation": "SAML SSO URL must be a valid URL and start with http:// or https://."
-  },
-  {
-    "id": "model.config.is_valid.saml_last_name_attribute.app_error",
-    "translation": "Invalid Last Name attribute. Must be set."
   },
   {
     "id": "model.config.is_valid.saml_private_key.app_error",
@@ -3106,6 +3362,42 @@
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
     "translation": "Invalid maximum open connection for SQL settings.  Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_gateway_admin_secret.app_error",
+    "translation": "WebRTC Gateway Admin Secret must be set."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_gateway_admin_url.app_error",
+    "translation": "WebRTC Gateway Admin Url must be set a valid URL and start with http:// or https://."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_gateway_ws_url.app_error",
+    "translation": "WebRTC Gateway Websocket Url must be a valid URL and start with ws:// or wss://."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_stun_uri.app_error",
+    "translation": "WebRTC STUN URI must be a valid URI and start with stun:"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_turn_shared_key.app_error",
+    "translation": "WebRTC TURN Shared Key cannot be empty if the TURN URI has been set."
+  },
+  {
+    "id": "model.config.is_valid.webrtc_turn_uri.app_error",
+    "translation": "WebRTC TURN URI must be a valid URI and start with turn:"
+  },
+  {
+    "id": "model.config.is_valid.webrtc_turn_username.app_error",
+    "translation": "WebRTC TURN Username cannot be empty if the TURN URI has been set."
+  },
+  {
+    "id": "model.config.is_valid.webserver_security.app_error",
+    "translation": "Invalid value for webserver connection security."
+  },
+  {
+    "id": "model.config.is_valid.write_timeout.app_error",
+    "translation": "Invalid value for write timeout."
   },
   {
     "id": "model.emoji.create_at.app_error",
@@ -3264,6 +3556,10 @@
     "translation": "Create at must be a valid time"
   },
   {
+    "id": "model.post.is_valid.file_ids.app_error",
+    "translation": "Invalid file ids"
+  },
+  {
     "id": "model.post.is_valid.filenames.app_error",
     "translation": "Invalid filenames"
   },
@@ -3333,7 +3629,7 @@
   },
   {
     "id": "model.team.is_valid.characters.app_error",
-    "translation": "Name must be 4 or more lowercase alphanumeric characters"
+    "translation": "Name must be 2 or more lowercase alphanumeric characters"
   },
   {
     "id": "model.team.is_valid.company.app_error",
@@ -3720,6 +4016,10 @@
     "translation": "We couldn't get the extra info for channel members"
   },
   {
+    "id": "store.sql_channel.get_for_post.app_error",
+    "translation": "We couldn't get the channel for the given post"
+  },
+  {
     "id": "store.sql_channel.get_member.app_error",
     "translation": "We couldn't get the channel member"
   },
@@ -3730,6 +4030,10 @@
   {
     "id": "store.sql_channel.get_member_count.app_error",
     "translation": "We couldn't get the channel member count"
+  },
+  {
+    "id": "store.sql_channel.get_member_for_post.app_error",
+    "translation": "We couldn't get the channel member for the given post"
   },
   {
     "id": "store.sql_channel.get_members.app_error",
@@ -3914,6 +4218,30 @@
   {
     "id": "store.sql_emoji.save.app_error",
     "translation": "We couldn't save the emoji"
+  },
+  {
+    "id": "store.sql_file_info.attach_to_post.app_error",
+    "translation": "We couldn't attach the file info to the post"
+  },
+  {
+    "id": "store.sql_file_info.delete_for_post.app_error",
+    "translation": "We couldn't delete the file info to the post"
+  },
+  {
+    "id": "store.sql_file_info.get.app_error",
+    "translation": "We couldn't get the file info"
+  },
+  {
+    "id": "store.sql_file_info.get_by_path.app_error",
+    "translation": "We couldn't get the file info by path"
+  },
+  {
+    "id": "store.sql_file_info.get_for_post.app_error",
+    "translation": "We couldn't get the file info for the post"
+  },
+  {
+    "id": "store.sql_file_info.save.app_error",
+    "translation": "We couldn't save the file info"
   },
   {
     "id": "store.sql_license.get.app_error",
@@ -4236,6 +4564,10 @@
     "translation": "Encountered an error retrieving all the online/away statuses"
   },
   {
+    "id": "store.sql_status.get_team_statuses.app_error",
+    "translation": "Encountered an error retrieving all statuses from the team members"
+  },
+  {
     "id": "store.sql_status.get_total_active_users_count.app_error",
     "translation": "We could not count the active users"
   },
@@ -4258,6 +4590,10 @@
   {
     "id": "store.sql_system.get_by_name.app_error",
     "translation": "We couldn't find the system variable."
+  },
+  {
+    "id": "store.sql_system.get_version.app_error",
+    "translation": "We couldn't get the database version"
   },
   {
     "id": "store.sql_system.save.app_error",
@@ -4308,7 +4644,15 @@
     "translation": "No team member found for that user id and team id"
   },
   {
+    "id": "store.sql_team.get_member_count.app_error",
+    "translation": "We couldn't count the team members"
+  },
+  {
     "id": "store.sql_team.get_members.app_error",
+    "translation": "We couldn't get the team members"
+  },
+  {
+    "id": "store.sql_team.get_members_by_ids.app_error",
     "translation": "We couldn't get the team members"
   },
   {
@@ -4400,6 +4744,10 @@
     "translation": "We encountered an error while finding user profiles"
   },
   {
+    "id": "store.sql_user.get_recently_active_users.app_error",
+    "translation": "We encountered an error while finding the recently active users"
+  },
+  {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",
     "translation": "We encountered an error while finding user profiles"
   },
@@ -4410,6 +4758,10 @@
   {
     "id": "store.sql_user.get_unread_count.app_error",
     "translation": "We could not get the unread message count for the user"
+  },
+  {
+    "id": "store.sql_user.get_unread_count_for_channel.app_error",
+    "translation": "We could not get the unread message count for the user and channel"
   },
   {
     "id": "store.sql_user.migrate_theme.critical",
@@ -4433,7 +4785,7 @@
   },
   {
     "id": "store.sql_user.save.email_exists.ldap_app_error",
-    "translation": "This account does not use LDAP authentication. Please sign in using email and password."
+    "translation": "This account does not use AD/LDAP authentication. Please sign in using email and password."
   },
   {
     "id": "store.sql_user.save.email_exists.saml_app_error",
@@ -4469,7 +4821,7 @@
   },
   {
     "id": "store.sql_user.update.can_not_change_ldap.app_error",
-    "translation": "Can not change fields set by LDAP"
+    "translation": "Can not change fields set by AD/LDAP"
   },
   {
     "id": "store.sql_user.update.email_taken.app_error",
@@ -4622,6 +4974,10 @@
   {
     "id": "utils.config.save_config.saving.app_error",
     "translation": "An error occurred while saving the file to {{.Filename}}"
+  },
+  {
+    "id": "utils.diagnostic.analytics_not_found.app_error",
+    "translation": "Analytics not initialized"
   },
   {
     "id": "utils.i18n.loaded",

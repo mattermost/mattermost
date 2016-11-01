@@ -58,7 +58,6 @@ function preNeedsTeam(nextState, replace, callback) {
     // for the current url.
     const teamName = nextState.params.team;
     var team = TeamStore.getByName(teamName);
-    const oldTeamId = TeamStore.getCurrentId();
 
     if (!team) {
         browserHistory.push('/');
@@ -70,22 +69,13 @@ function preNeedsTeam(nextState, replace, callback) {
     TeamStore.saveMyTeam(team);
     TeamStore.emitChange();
 
-    // If the old team id is null then we will already have the direct
-    // profiles from initial load
-    if (oldTeamId != null) {
-        AsyncClient.getDirectProfiles();
-    }
-
     var d1 = $.Deferred(); //eslint-disable-line new-cap
-    var d2 = $.Deferred(); //eslint-disable-line new-cap
-    var d3 = $.Deferred(); //eslint-disable-line new-cap
 
     Client.getChannels(
         (data) => {
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_CHANNELS,
-                channels: data.channels,
-                members: data.members
+                channels: data
             });
 
             d1.resolve();
@@ -96,45 +86,17 @@ function preNeedsTeam(nextState, replace, callback) {
         }
     );
 
-    Client.getProfiles(
-        (data) => {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_PROFILES,
-                profiles: data
-            });
-
-            d2.resolve();
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'getProfiles');
-            d2.resolve();
-        }
-    );
-
-    Client.getTeamMembers(
-        TeamStore.getCurrentId(),
-        (data) => {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_MEMBERS_FOR_TEAM,
-                team_members: data
-            });
-
-            d3.resolve();
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'getTeamMembers');
-            d3.resolve();
-        }
-    );
-
-    $.when(d1, d2, d3).done(() => {
+    $.when(d1).done(() => {
         callback();
     });
 }
 
-function onPermalinkEnter(nextState) {
+function onPermalinkEnter(nextState, replace, callback) {
     const postId = nextState.params.postid;
-    GlobalActions.emitPostFocusEvent(postId);
+    GlobalActions.emitPostFocusEvent(
+        postId,
+        () => callback()
+    );
 }
 
 export default {

@@ -11,6 +11,7 @@ import (
 
 const (
 	CONN_SECURITY_NONE     = ""
+	CONN_SECURITY_PLAIN    = "PLAIN"
 	CONN_SECURITY_TLS      = "TLS"
 	CONN_SECURITY_STARTTLS = "STARTTLS"
 
@@ -56,6 +57,14 @@ const (
 type ServiceSettings struct {
 	SiteURL                           *string
 	ListenAddress                     string
+	ConnectionSecurity                *string
+	TLSCertFile                       *string
+	TLSKeyFile                        *string
+	UseLetsEncrypt                    *bool
+	LetsEncryptCertificateCacheFile   *string
+	Forward80To443                    *bool
+	ReadTimeout                       *int
+	WriteTimeout                      *int
 	MaximumLoginAttempts              int
 	SegmentDeveloperKey               string
 	GoogleDeveloperKey                string
@@ -117,6 +126,7 @@ type LogSettings struct {
 	FileFormat             string
 	FileLocation           string
 	EnableWebhookDebugging bool
+	EnableDiagnostics      *bool
 }
 
 type PasswordSettings struct {
@@ -128,26 +138,24 @@ type PasswordSettings struct {
 }
 
 type FileSettings struct {
-	MaxFileSize                *int64
-	DriverName                 string
-	Directory                  string
-	EnablePublicLink           bool
-	PublicLinkSalt             *string
-	ThumbnailWidth             int
-	ThumbnailHeight            int
-	PreviewWidth               int
-	PreviewHeight              int
-	ProfileWidth               int
-	ProfileHeight              int
-	InitialFont                string
-	AmazonS3AccessKeyId        string
-	AmazonS3SecretAccessKey    string
-	AmazonS3Bucket             string
-	AmazonS3Region             string
-	AmazonS3Endpoint           string
-	AmazonS3BucketEndpoint     string
-	AmazonS3LocationConstraint *bool
-	AmazonS3LowercaseBucket    *bool
+	MaxFileSize             *int64
+	DriverName              string
+	Directory               string
+	EnablePublicLink        bool
+	PublicLinkSalt          *string
+	ThumbnailWidth          int
+	ThumbnailHeight         int
+	PreviewWidth            int
+	PreviewHeight           int
+	ProfileWidth            int
+	ProfileHeight           int
+	InitialFont             string
+	AmazonS3AccessKeyId     string
+	AmazonS3SecretAccessKey string
+	AmazonS3Bucket          string
+	AmazonS3Region          string
+	AmazonS3Endpoint        string
+	AmazonS3SSL             *bool
 }
 
 type EmailSettings struct {
@@ -175,11 +183,12 @@ type EmailSettings struct {
 }
 
 type RateLimitSettings struct {
-	EnableRateLimiter bool
-	PerSec            int
-	MemoryStoreSize   int
-	VaryByRemoteAddr  bool
-	VaryByHeader      string
+	Enable           *bool
+	PerSec           int
+	MaxBurst         *int
+	MemoryStoreSize  int
+	VaryByRemoteAddr bool
+	VaryByHeader     string
 }
 
 type PrivacySettings struct {
@@ -203,7 +212,6 @@ type TeamSettings struct {
 	EnableUserCreation               bool
 	EnableOpenServer                 *bool
 	RestrictCreationToDomains        string
-	RestrictTeamNames                *bool
 	EnableCustomBrand                *bool
 	CustomBrandText                  *string
 	CustomDescriptionText            *string
@@ -212,6 +220,7 @@ type TeamSettings struct {
 	RestrictPublicChannelManagement  *string
 	RestrictPrivateChannelManagement *string
 	UserStatusAwayTimeout            *int64
+	MaxChannelsPerTeam               *int64
 }
 
 type LdapSettings struct {
@@ -290,6 +299,17 @@ type NativeAppSettings struct {
 	IosAppDownloadLink     *string
 }
 
+type WebrtcSettings struct {
+	Enable              *bool
+	GatewayWebsocketUrl *string
+	GatewayAdminUrl     *string
+	GatewayAdminSecret  *string
+	StunURI             *string
+	TurnURI             *string
+	TurnUsername        *string
+	TurnSharedKey       *string
+}
+
 type Config struct {
 	ServiceSettings      ServiceSettings
 	TeamSettings         TeamSettings
@@ -310,6 +330,7 @@ type Config struct {
 	SamlSettings         SamlSettings
 	NativeAppSettings    NativeAppSettings
 	ClusterSettings      ClusterSettings
+	WebrtcSettings       WebrtcSettings
 }
 
 func (o *Config) ToJson() string {
@@ -351,24 +372,25 @@ func (o *Config) SetDefaults() {
 		o.SqlSettings.AtRestEncryptKey = NewRandomString(32)
 	}
 
+	if o.FileSettings.AmazonS3Endpoint == "" {
+		// Defaults to "s3.amazonaws.com"
+		o.FileSettings.AmazonS3Endpoint = "s3.amazonaws.com"
+	}
+	if o.FileSettings.AmazonS3Region == "" {
+		// Defaults to "us-east-1" region.
+		o.FileSettings.AmazonS3Region = "us-east-1"
+	}
+	if o.FileSettings.AmazonS3SSL == nil {
+		o.FileSettings.AmazonS3SSL = new(bool)
+		*o.FileSettings.AmazonS3SSL = true // Secure by default.
+	}
 	if o.FileSettings.MaxFileSize == nil {
 		o.FileSettings.MaxFileSize = new(int64)
 		*o.FileSettings.MaxFileSize = 52428800 // 50 MB
 	}
-
 	if len(*o.FileSettings.PublicLinkSalt) == 0 {
 		o.FileSettings.PublicLinkSalt = new(string)
 		*o.FileSettings.PublicLinkSalt = NewRandomString(32)
-	}
-
-	if o.FileSettings.AmazonS3LocationConstraint == nil {
-		o.FileSettings.AmazonS3LocationConstraint = new(bool)
-		*o.FileSettings.AmazonS3LocationConstraint = false
-	}
-
-	if o.FileSettings.AmazonS3LowercaseBucket == nil {
-		o.FileSettings.AmazonS3LowercaseBucket = new(bool)
-		*o.FileSettings.AmazonS3LowercaseBucket = false
 	}
 
 	if len(o.EmailSettings.InviteSalt) == 0 {
@@ -429,11 +451,6 @@ func (o *Config) SetDefaults() {
 		*o.PasswordSettings.Symbol = false
 	}
 
-	if o.TeamSettings.RestrictTeamNames == nil {
-		o.TeamSettings.RestrictTeamNames = new(bool)
-		*o.TeamSettings.RestrictTeamNames = true
-	}
-
 	if o.TeamSettings.EnableCustomBrand == nil {
 		o.TeamSettings.EnableCustomBrand = new(bool)
 		*o.TeamSettings.EnableCustomBrand = false
@@ -477,6 +494,11 @@ func (o *Config) SetDefaults() {
 	if o.TeamSettings.UserStatusAwayTimeout == nil {
 		o.TeamSettings.UserStatusAwayTimeout = new(int64)
 		*o.TeamSettings.UserStatusAwayTimeout = 300
+	}
+
+	if o.TeamSettings.MaxChannelsPerTeam == nil {
+		o.TeamSettings.MaxChannelsPerTeam = new(int64)
+		*o.TeamSettings.MaxChannelsPerTeam = 2000
 	}
 
 	if o.EmailSettings.EnableSignInWithEmail == nil {
@@ -780,6 +802,11 @@ func (o *Config) SetDefaults() {
 		*o.LocalizationSettings.AvailableLocales = ""
 	}
 
+	if o.LogSettings.EnableDiagnostics == nil {
+		o.LogSettings.EnableDiagnostics = new(bool)
+		*o.LogSettings.EnableDiagnostics = true
+	}
+
 	if o.SamlSettings.Enable == nil {
 		o.SamlSettings.Enable = new(bool)
 		*o.SamlSettings.Enable = false
@@ -874,6 +901,58 @@ func (o *Config) SetDefaults() {
 		o.NativeAppSettings.IosAppDownloadLink = new(string)
 		*o.NativeAppSettings.IosAppDownloadLink = "https://about.mattermost.com/mattermost-ios-app/"
 	}
+
+	if o.RateLimitSettings.Enable == nil {
+		o.RateLimitSettings.Enable = new(bool)
+		*o.RateLimitSettings.Enable = false
+	}
+
+	if o.RateLimitSettings.MaxBurst == nil {
+		o.RateLimitSettings.MaxBurst = new(int)
+		*o.RateLimitSettings.MaxBurst = 100
+	}
+
+	if o.ServiceSettings.ConnectionSecurity == nil {
+		o.ServiceSettings.ConnectionSecurity = new(string)
+		*o.ServiceSettings.ConnectionSecurity = ""
+	}
+
+	if o.ServiceSettings.TLSKeyFile == nil {
+		o.ServiceSettings.TLSKeyFile = new(string)
+		*o.ServiceSettings.TLSKeyFile = ""
+	}
+
+	if o.ServiceSettings.TLSCertFile == nil {
+		o.ServiceSettings.TLSCertFile = new(string)
+		*o.ServiceSettings.TLSCertFile = ""
+	}
+
+	if o.ServiceSettings.UseLetsEncrypt == nil {
+		o.ServiceSettings.UseLetsEncrypt = new(bool)
+		*o.ServiceSettings.UseLetsEncrypt = false
+	}
+
+	if o.ServiceSettings.LetsEncryptCertificateCacheFile == nil {
+		o.ServiceSettings.LetsEncryptCertificateCacheFile = new(string)
+		*o.ServiceSettings.LetsEncryptCertificateCacheFile = "./config/letsencrypt.cache"
+	}
+
+	if o.ServiceSettings.ReadTimeout == nil {
+		o.ServiceSettings.ReadTimeout = new(int)
+		*o.ServiceSettings.ReadTimeout = 300
+	}
+
+	if o.ServiceSettings.WriteTimeout == nil {
+		o.ServiceSettings.WriteTimeout = new(int)
+		*o.ServiceSettings.WriteTimeout = 300
+	}
+
+	if o.ServiceSettings.Forward80To443 == nil {
+		o.ServiceSettings.Forward80To443 = new(bool)
+		*o.ServiceSettings.Forward80To443 = false
+	}
+
+	o.defaultWebrtcSettings()
 }
 
 func (o *Config) IsValid() *AppError {
@@ -902,6 +981,10 @@ func (o *Config) IsValid() *AppError {
 
 	if o.TeamSettings.MaxUsersPerTeam <= 0 {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.max_users.app_error", nil, "")
+	}
+
+	if *o.TeamSettings.MaxChannelsPerTeam <= 0 {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.max_channels.app_error", nil, "")
 	}
 
 	if !(*o.TeamSettings.RestrictDirectMessage == DIRECT_MESSAGE_ANY || *o.TeamSettings.RestrictDirectMessage == DIRECT_MESSAGE_TEAM) {
@@ -964,7 +1047,7 @@ func (o *Config) IsValid() *AppError {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.file_salt.app_error", nil, "")
 	}
 
-	if !(o.EmailSettings.ConnectionSecurity == CONN_SECURITY_NONE || o.EmailSettings.ConnectionSecurity == CONN_SECURITY_TLS || o.EmailSettings.ConnectionSecurity == CONN_SECURITY_STARTTLS) {
+	if !(o.EmailSettings.ConnectionSecurity == CONN_SECURITY_NONE || o.EmailSettings.ConnectionSecurity == CONN_SECURITY_TLS || o.EmailSettings.ConnectionSecurity == CONN_SECURITY_STARTTLS || o.EmailSettings.ConnectionSecurity == CONN_SECURITY_PLAIN) {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.email_security.app_error", nil, "")
 	}
 
@@ -1013,14 +1096,6 @@ func (o *Config) IsValid() *AppError {
 			return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_basedn", nil, "")
 		}
 
-		if *o.LdapSettings.FirstNameAttribute == "" {
-			return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_firstname", nil, "")
-		}
-
-		if *o.LdapSettings.LastNameAttribute == "" {
-			return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_lastname", nil, "")
-		}
-
 		if *o.LdapSettings.EmailAttribute == "" {
 			return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_email", nil, "")
 		}
@@ -1055,14 +1130,6 @@ func (o *Config) IsValid() *AppError {
 			return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_username_attribute.app_error", nil, "")
 		}
 
-		if len(*o.SamlSettings.FirstNameAttribute) == 0 {
-			return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_first_name_attribute.app_error", nil, "")
-		}
-
-		if len(*o.SamlSettings.LastNameAttribute) == 0 {
-			return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_last_name_attribute.app_error", nil, "")
-		}
-
 		if *o.SamlSettings.Verify {
 			if len(*o.SamlSettings.AssertionConsumerServiceURL) == 0 || !IsValidHttpUrl(*o.SamlSettings.AssertionConsumerServiceURL) {
 				return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_assertion_consumer_service_url.app_error", nil, "")
@@ -1090,6 +1157,26 @@ func (o *Config) IsValid() *AppError {
 
 	if len(o.TeamSettings.SiteName) > SITENAME_MAX_LENGTH {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.sitename_length.app_error", map[string]interface{}{"MaxLength": SITENAME_MAX_LENGTH}, "")
+	}
+
+	if *o.RateLimitSettings.MaxBurst <= 0 {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.max_burst.app_error", nil, "")
+	}
+
+	if err := o.isValidWebrtcSettings(); err != nil {
+		return err
+	}
+
+	if !(*o.ServiceSettings.ConnectionSecurity == CONN_SECURITY_NONE || *o.ServiceSettings.ConnectionSecurity == CONN_SECURITY_TLS) {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.webserver_security.app_error", nil, "")
+	}
+
+	if *o.ServiceSettings.ReadTimeout <= 0 {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.read_timeout.app_error", nil, "")
+	}
+
+	if *o.ServiceSettings.WriteTimeout <= 0 {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.write_timeout.app_error", nil, "")
 	}
 
 	return nil
@@ -1129,4 +1216,72 @@ func (o *Config) Sanitize() {
 	for i := range o.SqlSettings.DataSourceReplicas {
 		o.SqlSettings.DataSourceReplicas[i] = FAKE_SETTING
 	}
+}
+
+func (o *Config) defaultWebrtcSettings() {
+	if o.WebrtcSettings.Enable == nil {
+		o.WebrtcSettings.Enable = new(bool)
+		*o.WebrtcSettings.Enable = false
+	}
+
+	if o.WebrtcSettings.GatewayWebsocketUrl == nil {
+		o.WebrtcSettings.GatewayWebsocketUrl = new(string)
+		*o.WebrtcSettings.GatewayWebsocketUrl = ""
+	}
+
+	if o.WebrtcSettings.GatewayAdminUrl == nil {
+		o.WebrtcSettings.GatewayAdminUrl = new(string)
+		*o.WebrtcSettings.GatewayAdminUrl = ""
+	}
+
+	if o.WebrtcSettings.GatewayAdminSecret == nil {
+		o.WebrtcSettings.GatewayAdminSecret = new(string)
+		*o.WebrtcSettings.GatewayAdminSecret = ""
+	}
+
+	if o.WebrtcSettings.StunURI == nil {
+		o.WebrtcSettings.StunURI = new(string)
+		*o.WebrtcSettings.StunURI = ""
+	}
+
+	if o.WebrtcSettings.TurnURI == nil {
+		o.WebrtcSettings.TurnURI = new(string)
+		*o.WebrtcSettings.TurnURI = ""
+	}
+
+	if o.WebrtcSettings.TurnUsername == nil {
+		o.WebrtcSettings.TurnUsername = new(string)
+		*o.WebrtcSettings.TurnUsername = ""
+	}
+
+	if o.WebrtcSettings.TurnSharedKey == nil {
+		o.WebrtcSettings.TurnSharedKey = new(string)
+		*o.WebrtcSettings.TurnSharedKey = ""
+	}
+}
+
+func (o *Config) isValidWebrtcSettings() *AppError {
+	if *o.WebrtcSettings.Enable {
+		if len(*o.WebrtcSettings.GatewayWebsocketUrl) == 0 || !IsValidWebsocketUrl(*o.WebrtcSettings.GatewayWebsocketUrl) {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.webrtc_gateway_ws_url.app_error", nil, "")
+		} else if len(*o.WebrtcSettings.GatewayAdminUrl) == 0 || !IsValidHttpUrl(*o.WebrtcSettings.GatewayAdminUrl) {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.webrtc_gateway_admin_url.app_error", nil, "")
+		} else if len(*o.WebrtcSettings.GatewayAdminSecret) == 0 {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.webrtc_gateway_admin_secret.app_error", nil, "")
+		} else if len(*o.WebrtcSettings.StunURI) != 0 && !IsValidTurnOrStunServer(*o.WebrtcSettings.StunURI) {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.webrtc_stun_uri.app_error", nil, "")
+		} else if len(*o.WebrtcSettings.TurnURI) != 0 {
+			if !IsValidTurnOrStunServer(*o.WebrtcSettings.TurnURI) {
+				return NewLocAppError("Config.IsValid", "model.config.is_valid.webrtc_turn_uri.app_error", nil, "")
+			}
+			if len(*o.WebrtcSettings.TurnUsername) == 0 {
+				return NewLocAppError("Config.IsValid", "model.config.is_valid.webrtc_turn_username.app_error", nil, "")
+			} else if len(*o.WebrtcSettings.TurnSharedKey) == 0 {
+				return NewLocAppError("Config.IsValid", "model.config.is_valid.webrtc_turn_shared_key.app_error", nil, "")
+			}
+
+		}
+	}
+
+	return nil
 }

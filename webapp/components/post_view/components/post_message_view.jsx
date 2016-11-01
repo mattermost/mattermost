@@ -13,7 +13,9 @@ export default class PostMessageView extends React.Component {
         emojis: React.PropTypes.object.isRequired,
         enableFormatting: React.PropTypes.bool.isRequired,
         mentionKeys: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
-        usernameMap: React.PropTypes.object.isRequired
+        usernameMap: React.PropTypes.object.isRequired,
+        channelNamesMap: React.PropTypes.object.isRequired,
+        team: React.PropTypes.object.isRequired
     };
 
     shouldComponentUpdate(nextProps) {
@@ -40,6 +42,7 @@ export default class PostMessageView extends React.Component {
 
         // Don't check if props.usernameMap changes since it is very large and inefficient to do so.
         // This mimics previous behaviour, but could be changed if we decide it's worth it.
+        // The same choice (and reasoning) is also applied to the this.props.channelNamesMap.
 
         return false;
     }
@@ -53,7 +56,9 @@ export default class PostMessageView extends React.Component {
             emojis: this.props.emojis,
             siteURL: Utils.getSiteURL(),
             mentionKeys: this.props.mentionKeys,
-            usernameMap: this.props.usernameMap
+            usernameMap: this.props.usernameMap,
+            channelNamesMap: this.props.channelNamesMap,
+            team: this.props.team
         });
 
         return (

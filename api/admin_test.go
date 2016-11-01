@@ -154,10 +154,21 @@ func TestEmailTest(t *testing.T) {
 	if _, err := th.SystemAdminClient.TestEmail(utils.Cfg); err == nil {
 		t.Fatal("should have errored")
 	} else {
-		println(err.Id)
 		if err.Id != "api.admin.test_email.missing_server" {
 			t.Fatal(err)
 		}
+	}
+}
+
+func TestLdapTest(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+
+	if _, err := th.BasicClient.TestLdap(utils.Cfg); err == nil {
+		t.Fatal("Shouldn't have permissions")
+	}
+
+	if _, err := th.SystemAdminClient.TestLdap(utils.Cfg); err == nil {
+		t.Fatal("should have errored")
 	}
 }
 
@@ -199,7 +210,7 @@ func TestGetTeamAnalyticsStandard(t *testing.T) {
 			t.Fatal()
 		}
 
-		if rows[2].Value != 3 {
+		if rows[2].Value != 5 {
 			t.Log(rows.ToJson())
 			t.Fatal()
 		}
@@ -513,5 +524,16 @@ func TestAdminLdapSyncNow(t *testing.T) {
 
 	if _, err := Client.LdapSyncNow(); err != nil {
 		t.Fatal("Returned Failure")
+	}
+}
+
+// Needs more work
+func TestGetRecentlyActiveUsers(t *testing.T) {
+	th := Setup().InitBasic()
+
+	if userMap, err := th.BasicClient.GetRecentlyActiveUsers(th.BasicTeam.Id); err != nil {
+		t.Fatal(err)
+	} else if len(userMap.Data.(map[string]*model.User)) >= 2 {
+		t.Fatal("should have been at least 2")
 	}
 }

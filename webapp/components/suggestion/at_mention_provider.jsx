@@ -1,19 +1,19 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import React from 'react';
-
-import SuggestionStore from 'stores/suggestion_store.jsx';
-import ChannelStore from 'stores/channel_store.jsx';
-import UserStore from 'stores/user_store.jsx';
-import * as Utils from 'utils/utils.jsx';
-import Client from 'client/web_client.jsx';
-import Constants from 'utils/constants.jsx';
-
-import {FormattedMessage} from 'react-intl';
 import Suggestion from './suggestion.jsx';
 
-const MaxUserSuggestions = 40;
+import ChannelStore from 'stores/channel_store.jsx';
+
+import {autocompleteUsersInChannel} from 'actions/user_actions.jsx';
+
+import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
+import * as Utils from 'utils/utils.jsx';
+import Client from 'client/web_client.jsx';
+import {Constants, ActionTypes} from 'utils/constants.jsx';
+
+import React from 'react';
+import {FormattedMessage} from 'react-intl';
 
 class AtMentionSuggestion extends Suggestion {
     render() {
@@ -99,95 +99,66 @@ class AtMentionSuggestion extends Suggestion {
     }
 }
 
-function filterUsersByPrefix(users, prefix, limit) {
-    const filtered = [];
-
-    for (const id of Object.keys(users)) {
-        if (filtered.length >= limit) {
-            break;
-        }
-
-        const user = users[id];
-
-        if (user.delete_at > 0) {
-            continue;
-        }
-
-        if (user.username.startsWith(prefix) ||
-            (user.first_name && user.first_name.toLowerCase().startsWith(prefix)) ||
-            (user.last_name && user.last_name.toLowerCase().startsWith(prefix)) ||
-            (user.nickname && user.nickname.toLowerCase().startsWith(prefix))) {
-            filtered.push(user);
-        }
+export default class AtMentionProvider {
+    constructor(channelId) {
+        this.channelId = channelId;
+        this.timeoutId = '';
     }
 
-    return filtered;
-}
+    componentWillUnmount() {
+        clearTimeout(this.timeoutId);
+    }
 
-export default class AtMentionProvider {
     handlePretextChanged(suggestionId, pretext) {
+        clearTimeout(this.timeoutId);
+
         const captured = (/@([a-z0-9\-\._]*)$/i).exec(pretext.toLowerCase());
         if (captured) {
             const prefix = captured[1];
 
-            // Group users into members and nonmembers of the channel.
-            const users = UserStore.getActiveOnlyProfiles(true);
-            const channelMembers = {};
-            const extra = ChannelStore.getCurrentExtraInfo();
-            for (let i = 0; i < extra.members.length; i++) {
-                const id = extra.members[i].id;
-                if (users[id]) {
-                    channelMembers[id] = users[id];
-                    Reflect.deleteProperty(users, id);
-                }
-            }
-            const channelNonmembers = users;
+            function autocomplete() {
+                autocompleteUsersInChannel(
+                    prefix,
+                    this.channelId,
+                    (data) => {
+                        const members = data.in_channel;
+                        for (const id of Object.keys(members)) {
+                            members[id].type = Constants.MENTION_MEMBERS;
+                        }
 
-            // Filter users by prefix.
-            const filteredMembers = filterUsersByPrefix(
-                    channelMembers, prefix, MaxUserSuggestions);
-            const filteredNonmembers = filterUsersByPrefix(
-                    channelNonmembers, prefix, MaxUserSuggestions - filteredMembers.length);
-            let filteredSpecialMentions = [];
-            if (!pretext.startsWith('/msg')) {
-                filteredSpecialMentions = ['here', 'channel', 'all'].filter((item) => {
-                    return item.startsWith(prefix);
-                }).map((name) => {
-                    return {username: name};
-                });
-            }
+                        const nonmembers = data.out_of_channel;
+                        for (const id of Object.keys(nonmembers)) {
+                            nonmembers[id].type = Constants.MENTION_NONMEMBERS;
+                        }
 
-            // Sort users by username.
-            [filteredMembers, filteredNonmembers].forEach((items) => {
-                items.sort((a, b) => {
-                    const aPrefix = a.username.startsWith(prefix);
-                    const bPrefix = b.username.startsWith(prefix);
+                        let specialMentions = [];
+                        if (!pretext.startsWith('/msg')) {
+                            specialMentions = ['here', 'channel', 'all'].filter((item) => {
+                                return item.startsWith(prefix);
+                            }).map((name) => {
+                                return {username: name, type: Constants.MENTION_SPECIAL};
+                            });
+                        }
 
-                    if (aPrefix === bPrefix) {
-                        return a.username.localeCompare(b.username);
-                    } else if (aPrefix) {
-                        return -1;
+                        const users = members.concat(specialMentions).concat(nonmembers);
+                        const mentions = users.map((user) => '@' + user.username);
+
+                        AppDispatcher.handleServerAction({
+                            type: ActionTypes.SUGGESTION_RECEIVED_SUGGESTIONS,
+                            id: suggestionId,
+                            matchedPretext: captured[0],
+                            terms: mentions,
+                            items: users,
+                            component: AtMentionSuggestion
+                        });
                     }
+                );
+            }
 
-                    return 1;
-                });
-            });
-
-            filteredMembers.forEach((item) => {
-                item.type = Constants.MENTION_MEMBERS;
-            });
-            filteredNonmembers.forEach((item) => {
-                item.type = Constants.MENTION_NONMEMBERS;
-            });
-            filteredSpecialMentions.forEach((item) => {
-                item.type = Constants.MENTION_SPECIAL;
-            });
-
-            const filtered = filteredMembers.concat(filteredSpecialMentions).concat(filteredNonmembers);
-
-            const mentions = filtered.map((user) => '@' + user.username);
-
-            SuggestionStore.addSuggestions(suggestionId, mentions, filtered, AtMentionSuggestion, captured[0]);
+            this.timeoutId = setTimeout(
+                autocomplete.bind(this),
+                Constants.AUTOCOMPLETE_TIMEOUT
+            );
         }
     }
 }

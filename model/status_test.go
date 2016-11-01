@@ -9,7 +9,7 @@ import (
 )
 
 func TestStatus(t *testing.T) {
-	status := Status{NewId(), STATUS_ONLINE, 0}
+	status := Status{NewId(), STATUS_ONLINE, true, 0, ""}
 	json := status.ToJson()
 	status2 := StatusFromJson(strings.NewReader(json))
 
@@ -23,5 +23,9 @@ func TestStatus(t *testing.T) {
 
 	if status.LastActivityAt != status2.LastActivityAt {
 		t.Fatal("LastActivityAt should have matched")
+	}
+
+	if status.Manual != status2.Manual {
+		t.Fatal("Manual should have matched")
 	}
 }

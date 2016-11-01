@@ -11,13 +11,10 @@ package mysql
 import (
 	"bytes"
 	"database/sql"
-	"database/sql/driver"
-	"math"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
-	"time"
 )
 
 type TB testing.B
@@ -48,11 +45,7 @@ func initDB(b *testing.B, queries ...string) *sql.DB {
 	db := tb.checkDB(sql.Open("mysql", dsn))
 	for _, query := range queries {
 		if _, err := db.Exec(query); err != nil {
-			if w, ok := err.(MySQLWarnings); ok {
-				b.Logf("warning on %q: %v", query, w)
-			} else {
-				b.Fatalf("error on %q: %v", query, err)
-			}
+			b.Fatalf("Error on %q: %v", query, err)
 		}
 	}
 	return db
@@ -211,36 +204,5 @@ func BenchmarkRoundtripBin(b *testing.B) {
 			b.Errorf("mismatch")
 		}
 		rows.Close()
-	}
-}
-
-func BenchmarkInterpolation(b *testing.B) {
-	mc := &mysqlConn{
-		cfg: &Config{
-			InterpolateParams: true,
-			Loc:               time.UTC,
-		},
-		maxPacketAllowed: maxPacketSize,
-		maxWriteSize:     maxPacketSize - 1,
-		buf:              newBuffer(nil),
-	}
-
-	args := []driver.Value{
-		int64(42424242),
-		float64(math.Pi),
-		false,
-		time.Unix(1423411542, 807015000),
-		[]byte("bytes containing special chars ' \" \a \x00"),
-		"string containing special chars ' \" \a \x00",
-	}
-	q := "SELECT ?, ?, ?, ?, ?, ?"
-
-	b.ReportAllocs()
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		_, err := mc.interpolateParams(q, args)
-		if err != nil {
-			b.Fatal(err)
-		}
 	}
 }

@@ -5,34 +5,13 @@ import (
 	"net/http"
 	"testing"
 	"time"
-
-	helpers "github.com/braintree/manners/test_helpers"
 )
-
-type httpInterface interface {
-	ListenAndServe() error
-	ListenAndServeTLS(certFile, keyFile string) error
-	Serve(listener net.Listener) error
-}
-
-// Test that the method signatures of the methods we override from net/http/Server match those of the original.
-func TestInterface(t *testing.T) {
-	var original, ours interface{}
-	original = &http.Server{}
-	ours = &GracefulServer{}
-	if _, ok := original.(httpInterface); !ok {
-		t.Errorf("httpInterface definition does not match the canonical server!")
-	}
-	if _, ok := ours.(httpInterface); !ok {
-		t.Errorf("GracefulServer does not implement httpInterface")
-	}
-}
 
 // Tests that the server allows in-flight requests to complete
 // before shutting down.
 func TestGracefulness(t *testing.T) {
-	server := NewServer()
-	wg := helpers.NewWaitGroup()
+	server := newServer()
+	wg := newTestWg()
 	server.wg = wg
 	statechanged := make(chan http.ConnState)
 	listener, exitchan := startServer(t, server, statechanged)
@@ -44,13 +23,14 @@ func TestGracefulness(t *testing.T) {
 	if err := <-client.connected; err != nil {
 		t.Fatal("Client failed to connect to server", err)
 	}
-	// Even though the client is connected, the server ConnState handler may
-	// not know about that yet. So wait until it is called.
-	waitForState(t, statechanged, http.StateNew, "Request not received")
+	// avoid a race between the client connection and the server accept
+	if state := <-statechanged; state != http.StateNew {
+		t.Fatal("Unexpected state", state)
+	}
 
 	server.Close()
 
-	waiting := <-wg.WaitCalled
+	waiting := <-wg.waitCalled
 	if waiting < 1 {
 		t.Errorf("Expected the waitgroup to equal 1 at shutdown; actually %d", waiting)
 	}
@@ -64,23 +44,11 @@ func TestGracefulness(t *testing.T) {
 	}
 }
 
-// Tests that starting the server and closing in 2 new, separate goroutines doesnot
-// get flagged by the race detector (need to run 'go test' w/the -race flag)
-func TestRacyClose(t *testing.T) {
-	go func() {
-		ListenAndServe(":9000", nil)
-	}()
-
-	go func() {
-		Close()
-	}()
-}
-
 // Tests that the server begins to shut down when told to and does not accept
 // new requests once shutdown has begun
 func TestShutdown(t *testing.T) {
-	server := NewServer()
-	wg := helpers.NewWaitGroup()
+	server := newServer()
+	wg := newTestWg()
 	server.wg = wg
 	statechanged := make(chan http.ConnState)
 	listener, exitchan := startServer(t, server, statechanged)
@@ -92,9 +60,10 @@ func TestShutdown(t *testing.T) {
 	if err := <-client1.connected; err != nil {
 		t.Fatal("Client failed to connect to server", err)
 	}
-	// Even though the client is connected, the server ConnState handler may
-	// not know about that yet. So wait until it is called.
-	waitForState(t, statechanged, http.StateNew, "Request not received")
+	// avoid a race between the client connection and the server accept
+	if state := <-statechanged; state != http.StateNew {
+		t.Fatal("Unexpected state", state)
+	}
 
 	// start the shutdown; once it hits waitgroup.Wait()
 	// the listener should of been closed, though client1 is still connected
@@ -105,7 +74,7 @@ func TestShutdown(t *testing.T) {
 		t.Fatal("second call to Close returned true")
 	}
 
-	waiting := <-wg.WaitCalled
+	waiting := <-wg.waitCalled
 	if waiting != 1 {
 		t.Errorf("Waitcount should be one, got %d", waiting)
 	}
@@ -124,32 +93,36 @@ func TestShutdown(t *testing.T) {
 	<-exitchan
 }
 
-// If a request is sent to a closed server via a kept alive connection then
-// the server closes the connection upon receiving the request.
-func TestRequestAfterClose(t *testing.T) {
-	// Given
-	server := NewServer()
-	srvStateChangedCh := make(chan http.ConnState, 100)
-	listener, srvClosedCh := startServer(t, server, srvStateChangedCh)
-
-	client := newClient(listener.Addr(), false)
-	client.Run()
-	<-client.connected
-	client.sendrequest <- true
-	<-client.response
-
-	server.Close()
-	if err := <-srvClosedCh; err != nil {
-		t.Error("Unexpected error during shutdown", err)
+// Test that a connection is closed upon reaching an idle state if and only if the server
+// is shutting down.
+func TestCloseOnIdle(t *testing.T) {
+	server := newServer()
+	wg := newTestWg()
+	server.wg = wg
+	fl := newFakeListener()
+	runner := func() error {
+		return server.Serve(fl)
 	}
 
-	// When
-	client.sendrequest <- true
-	rr := <-client.response
+	startGenericServer(t, server, nil, runner)
 
-	// Then
-	if rr.body != nil || rr.err != nil {
-		t.Errorf("Request should be rejected, body=%v, err=%v", rr.body, rr.err)
+	// Change to idle state while server is not closing; Close should not be called
+	conn := &fakeConn{}
+	server.ConnState(conn, http.StateIdle)
+	if conn.closeCalled {
+		t.Error("Close was called unexpected")
+	}
+
+	server.Close()
+
+	// wait until the server calls Close() on the listener
+	// by that point the atomic closing variable will have been updated, avoiding a race.
+	<-fl.closeCalled
+
+	conn = &fakeConn{}
+	server.ConnState(conn, http.StateIdle)
+	if !conn.closeCalled {
+		t.Error("Close was not called")
 	}
 }
 
@@ -169,8 +142,8 @@ func waitForState(t *testing.T, waiter chan http.ConnState, state http.ConnState
 // Test that a request moving from active->idle->active using an actual
 // network connection still results in a corect shutdown
 func TestStateTransitionActiveIdleActive(t *testing.T) {
-	server := NewServer()
-	wg := helpers.NewWaitGroup()
+	server := newServer()
+	wg := newTestWg()
 	statechanged := make(chan http.ConnState)
 	server.wg = wg
 	listener, exitchan := startServer(t, server, statechanged)
@@ -186,14 +159,15 @@ func TestStateTransitionActiveIdleActive(t *testing.T) {
 	for i := 0; i < 2; i++ {
 		client.sendrequest <- true
 		waitForState(t, statechanged, http.StateActive, "Client failed to reach active state")
-		<-client.response
+		<-client.idle
+		client.idlerelease <- true
 		waitForState(t, statechanged, http.StateIdle, "Client failed to reach idle state")
 	}
 
 	// client is now in an idle state
 
 	server.Close()
-	waiting := <-wg.WaitCalled
+	waiting := <-wg.waitCalled
 	if waiting != 0 {
 		t.Errorf("Waitcount should be zero, got %d", waiting)
 	}
@@ -211,8 +185,8 @@ func TestStateTransitionActiveIdleClosed(t *testing.T) {
 		exitchan chan error
 	)
 
-	keyFile, err1 := helpers.NewTempFile(helpers.Key)
-	certFile, err2 := helpers.NewTempFile(helpers.Cert)
+	keyFile, err1 := newTempFile(localhostKey)
+	certFile, err2 := newTempFile(localhostCert)
 	defer keyFile.Unlink()
 	defer certFile.Unlink()
 
@@ -221,8 +195,8 @@ func TestStateTransitionActiveIdleClosed(t *testing.T) {
 	}
 
 	for _, withTLS := range []bool{false, true} {
-		server := NewServer()
-		wg := helpers.NewWaitGroup()
+		server := newServer()
+		wg := newTestWg()
 		statechanged := make(chan http.ConnState)
 		server.wg = wg
 		if withTLS {
@@ -242,11 +216,12 @@ func TestStateTransitionActiveIdleClosed(t *testing.T) {
 		client.sendrequest <- true
 		waitForState(t, statechanged, http.StateActive, "Client failed to reach active state")
 
-		rr := <-client.response
-		if rr.err != nil {
-			t.Fatalf("tls=%t unexpected error from client %s", withTLS, rr.err)
+		err := <-client.idle
+		if err != nil {
+			t.Fatalf("tls=%t unexpected error from client %s", withTLS, err)
 		}
 
+		client.idlerelease <- true
 		waitForState(t, statechanged, http.StateIdle, "Client failed to reach idle state")
 
 		// client is now in an idle state
@@ -255,7 +230,7 @@ func TestStateTransitionActiveIdleClosed(t *testing.T) {
 		waitForState(t, statechanged, http.StateClosed, "Client failed to reach closed state")
 
 		server.Close()
-		waiting := <-wg.WaitCalled
+		waiting := <-wg.waitCalled
 		if waiting != 0 {
 			t.Errorf("Waitcount should be zero, got %d", waiting)
 		}
@@ -263,27 +238,5 @@ func TestStateTransitionActiveIdleClosed(t *testing.T) {
 		if err := <-exitchan; err != nil {
 			t.Error("Unexpected error during shutdown", err)
 		}
-	}
-}
-
-func TestRoutinesCount(t *testing.T) {
-	var count int
-	server := NewServer()
-
-	count = server.RoutinesCount()
-	if count != 0 {
-		t.Errorf("Expected the routines count to equal 0; actually %d", count)
-	}
-
-	server.StartRoutine()
-	count = server.RoutinesCount()
-	if count != 1 {
-		t.Errorf("Expected the routines count to equal 1; actually %d", count)
-	}
-
-	server.FinishRoutine()
-	count = server.RoutinesCount()
-	if count != 0 {
-		t.Errorf("Expected the routines count to equal 0; actually %d", count)
 	}
 }

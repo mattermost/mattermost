@@ -27,37 +27,42 @@ export default class TeamUrl extends React.Component {
             isLoading: false
         };
     }
+
     submitBack(e) {
         e.preventDefault();
         this.props.state.wizard = 'display_name';
         this.props.updateParent(this.props.state);
     }
+
     submitNext(e) {
         e.preventDefault();
 
         const name = ReactDOM.findDOMNode(this.refs.name).value.trim();
+        const cleanedName = Utils.cleanUpUrlable(name);
+        const urlRegex = /^[a-z]+([a-z\-0-9]+|(__)?)[a-z0-9]+$/g;
+
         if (!name) {
             this.setState({nameError: Utils.localizeMessage('create_team.team_url.required', 'This field is required')});
             return;
         }
 
-        const cleanedName = Utils.cleanUpUrlable(name);
-
-        const urlRegex = /^[a-z]+([a-z\-0-9]+|(__)?)[a-z0-9]+$/g;
-        if (cleanedName !== name || !urlRegex.test(name)) {
-            this.setState({nameError: Utils.localizeMessage('create_team.team_url.regex', "Use only lower case letters, numbers and dashes. Must start with a letter and can't end in a dash.")});
-            return;
-        } else if (cleanedName.length < Constants.MIN_TEAMNAME_LENGTH || cleanedName.length > Constants.MAX_TEAMNAME_LENGTH) {
+        if (cleanedName.length < Constants.MIN_TEAMNAME_LENGTH || cleanedName.length > Constants.MAX_TEAMNAME_LENGTH) {
             this.setState({nameError: Utils.localizeMessage('create_team.team_url.charLength', 'Name must be 4 or more characters up to a maximum of 15')});
             return;
         }
 
-        if (global.window.mm_config.RestrictTeamNames === 'true') {
-            for (let index = 0; index < Constants.RESERVED_TEAM_NAMES.length; index++) {
-                if (cleanedName.indexOf(Constants.RESERVED_TEAM_NAMES[index]) === 0) {
-                    this.setState({nameError: Utils.localizeMessage('create_team.team_url.taken', 'URL is taken or contains a reserved word')});
-                    return;
-                }
+        if (cleanedName !== name || !urlRegex.test(name)) {
+            this.setState({nameError: Utils.localizeMessage('create_team.team_url.regex', "Use only lower case letters, numbers and dashes. Must start with a letter and can't end in a dash.")});
+            return;
+        } else if (cleanedName.length < Constants.MIN_TEAMNAME_LENGTH || cleanedName.length > Constants.MAX_TEAMNAME_LENGTH) {
+            this.setState({nameError: Utils.localizeMessage('create_team.team_url.charLength', 'Name must be 2 or more characters up to a maximum of 15')});
+            return;
+        }
+
+        for (let index = 0; index < Constants.RESERVED_TEAM_NAMES.length; index++) {
+            if (cleanedName.indexOf(Constants.RESERVED_TEAM_NAMES[index]) === 0) {
+                this.setState({nameError: Utils.localizeMessage('create_team.team_url.taken', 'URL is taken or contains a reserved word')});
+                return;
             }
         }
 
