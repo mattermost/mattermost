@@ -11,11 +11,7 @@ import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
 import * as AsyncClient from 'utils/async_client.jsx';
-<<<<<<< HEAD
-=======
 import * as UserAgent from 'utils/user_agent.jsx';
-import * as Utils from 'utils/utils.jsx';
->>>>>>> 90a0b1d... PLT-4433 Gave focus to the search box when the direct channels or channel member modal is opened (#4391)
 import Constants from 'utils/constants.jsx';
 
 import React from 'react';
