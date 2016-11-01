@@ -115,7 +115,8 @@ export default class Navbar extends React.Component {
 
         Client.leaveChannel(channelId,
             () => {
-                AsyncClient.getChannels(true);
+                ChannelActions.loadChannelsForCurrentUser();
+
                 if (this.state.isFavorite) {
                     ChannelActions.unmarkFavorite(channelId);
                 }
