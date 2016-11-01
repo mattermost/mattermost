@@ -12,7 +12,6 @@ import TeamStore from 'stores/team_store.jsx';
 
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
-import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
 import React from 'react';
@@ -30,7 +29,8 @@ export default class MoreDirectChannels extends React.Component {
         this.handleExit = this.handleExit.bind(this);
         this.handleShowDirectChannel = this.handleShowDirectChannel.bind(this);
         this.onChange = this.onChange.bind(this);
-        this.createJoinDirectChannelButton = this.createJoinDirectChannelButton.bind(this);
+        this.createJoinDirectChannelButton =
+            this.createJoinDirectChannelButton.bind(this);
         this.toggleList = this.toggleList.bind(this);
         this.nextPage = this.nextPage.bind(this);
         this.search = this.search.bind(this);
@@ -188,11 +188,6 @@ export default class MoreDirectChannels extends React.Component {
     }
 
     render() {
-        let maxHeight = 1000;
-        if (Utils.windowHeight() <= 1200) {
-            maxHeight = Utils.windowHeight() - 300;
-        }
-
         let teamToggle;
         if (global.window.mm_config.RestrictDirectMessage === 'any') {
             teamToggle = (
@@ -253,12 +248,12 @@ export default class MoreDirectChannels extends React.Component {
                     {teamToggle}
                     <SearchableUserList
                         key={'moreDirectChannelsList_' + this.state.listType}
-                        style={{maxHeight}}
                         users={users}
                         usersPerPage={USERS_PER_PAGE}
                         nextPage={this.nextPage}
                         search={this.search}
                         actions={[this.createJoinDirectChannelButton]}
+                        infinite={true}
                         focusOnMount={!UserAgent.isMobile()}
                     />
                 </Modal.Body>

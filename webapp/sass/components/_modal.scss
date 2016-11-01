@@ -11,8 +11,7 @@
     }
 
     .modal-body {
-        max-height: calc(90vh - 62px);
-        overflow: auto;
+        overflow: hidden;
         padding: 20px 15px;
     }
 
@@ -457,7 +456,7 @@
 
         .modal-body {
             overflow-x: hidden;
-            padding: 10px 0 15px;
+            padding: 10px 0 0;
         }
 
         .filter-row {
@@ -525,7 +524,7 @@
 .more-modal__list {
     display: flex;
     flex-direction: column;
-    overflow: auto;
+    overflow: hidden;
 
     .popover & {
         font-size: .95em;
@@ -602,6 +601,24 @@
         margin: 5px 0;
         overflow: hidden;
         text-overflow: ellipsis;
+    }
+}
+
+// 1. Should only contain a string
+.more-modal__loading-bar {
+    @include clearfix;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 0.25em 1em;
+    background-color: white;
+    opacity: 0.9;
+
+    text-align: center; /* 1 */
+
+    &--hidden {
+      display: none;
     }
 }
 
