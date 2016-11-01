@@ -2612,13 +2612,16 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	searchOptions := map[string]bool{}
+	searchOptions[store.USER_SEARCH_OPTION_USERNAME_ONLY] = true
+
 	var uchan store.StoreChannel
 	if inChannelId != "" {
-		uchan = Srv.Store.User().SearchInChannel(inChannelId, term, store.USER_SEARCH_TYPE_USERNAME)
+		uchan = Srv.Store.User().SearchInChannel(inChannelId, term, searchOptions)
 	} else if notInChannelId != "" {
-		uchan = Srv.Store.User().SearchNotInChannel(teamId, notInChannelId, term, store.USER_SEARCH_TYPE_USERNAME)
+		uchan = Srv.Store.User().SearchNotInChannel(teamId, notInChannelId, term, searchOptions)
 	} else {
-		uchan = Srv.Store.User().Search(teamId, term, store.USER_SEARCH_TYPE_USERNAME)
+		uchan = Srv.Store.User().Search(teamId, term, searchOptions)
 	}
 
 	if result := <-uchan; result.Err != nil {
@@ -2674,8 +2677,8 @@ func autocompleteUsersInChannel(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	uchan := Srv.Store.User().SearchInChannel(channelId, term, store.USER_SEARCH_TYPE_ALL)
-	nuchan := Srv.Store.User().SearchNotInChannel(teamId, channelId, term, store.USER_SEARCH_TYPE_ALL)
+	uchan := Srv.Store.User().SearchInChannel(channelId, term, map[string]bool{})
+	nuchan := Srv.Store.User().SearchNotInChannel(teamId, channelId, term, map[string]bool{})
 
 	autocomplete := &model.UserAutocompleteInChannel{}
 
@@ -2720,7 +2723,7 @@ func autocompleteUsersInTeam(c *Context, w http.ResponseWriter, r *http.Request)
 		}
 	}
 
-	uchan := Srv.Store.User().Search(teamId, term, store.USER_SEARCH_TYPE_ALL)
+	uchan := Srv.Store.User().Search(teamId, term, map[string]bool{})
 
 	autocomplete := &model.UserAutocompleteInTeam{}
 
