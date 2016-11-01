@@ -68,7 +68,6 @@ export default class CreatePost extends React.Component {
             uploadsInProgress: draft.uploadsInProgress,
             fileInfos: draft.fileInfos,
             submitting: false,
-            initialText: draft.message,
             ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
             fullWidthTextBox: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN,
             showTutorialTip: false,
@@ -340,7 +339,7 @@ export default class CreatePost extends React.Component {
         if (this.state.channelId !== channelId) {
             const draft = PostStore.getCurrentDraft();
 
-            this.setState({channelId, message: draft.message, initialText: draft.message, submitting: false, serverError: null, postError: null, fileInfos: draft.fileInfos, uploadsInProgress: draft.uploadsInProgress});
+            this.setState({channelId, message: draft.message, submitting: false, serverError: null, postError: null, fileInfos: draft.fileInfos, uploadsInProgress: draft.uploadsInProgress});
         }
     }
 
