@@ -199,6 +199,11 @@ function handlePostDeleteEvent(msg) {
 }
 
 function handleNewUserEvent(msg) {
+    if (TeamStore.getCurrentId() === '') {
+        // Any new users will be loaded when we switch into a context with a team
+        return;
+    }
+
     AsyncClient.getUser(msg.data.user_id);
     AsyncClient.getChannelStats();
     loadProfilesAndTeamMembersForDMSidebar();
