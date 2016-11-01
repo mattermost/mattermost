@@ -243,7 +243,7 @@ export function getMoreChannels(force) {
 }
 
 export function getChannelStats(channelId = ChannelStore.getCurrentId()) {
-    if (isCallInProgress('getChannelStats' + channelId)) {
+    if (isCallInProgress('getChannelStats' + channelId) || channelId == null) {
         return;
     }
 
