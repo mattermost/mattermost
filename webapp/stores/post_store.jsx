@@ -515,7 +515,7 @@ class PostStoreClass extends EventEmitter {
 
     normalizeDraft(originalDraft) {
         let draft = {
-            messageText: '',
+            message: '',
             uploadsInProgress: [],
             fileInfos: []
         };
@@ -523,7 +523,7 @@ class PostStoreClass extends EventEmitter {
         // Make sure that the post draft is non-null and has all the required fields
         if (originalDraft) {
             draft = {
-                messageText: originalDraft.messageText || draft.messageText,
+                message: originalDraft.message || draft.message,
                 uploadsInProgress: originalDraft.uploadsInProgress || draft.uploadsInProgress,
                 fileInfos: originalDraft.fileInfos || draft.fileInfos
             };
