@@ -13,7 +13,7 @@ import UserStore from 'stores/user_store.jsx';
 import {searchUsers, loadProfilesAndTeamMembers, loadTeamMembersForProfilesList} from 'actions/user_actions.jsx';
 import {getTeamStats, getUser} from 'utils/async_client.jsx';
 
-import Constants from 'utils/constants.jsx';
+import {Constants, UserSearchOptions} from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import React from 'react';
@@ -145,10 +145,13 @@ export default class UserList extends React.Component {
             return;
         }
 
+        const options = {};
+        options[UserSearchOptions.ALLOW_INACTIVE] = true;
+
         searchUsers(
             term,
             this.props.params.team,
-            {},
+            options,
             (users) => {
                 this.setState({loading: true, search: true, users});
                 loadTeamMembersForProfilesList(users, this.props.params.team, this.loadComplete);

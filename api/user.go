@@ -2592,17 +2592,29 @@ func sanitizeProfile(c *Context, user *model.User) *model.User {
 }
 
 func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.MapFromJson(r.Body)
+	props := model.StringInterfaceFromJson(r.Body)
 
-	term := props["term"]
-	if len(term) == 0 {
+	var term string
+	var ok bool
+	if term, ok = props["term"].(string); !ok || len(term) == 0 {
 		c.SetInvalidParam("searchUsers", "term")
 		return
 	}
 
-	teamId := props["team_id"]
-	inChannelId := props["in_channel"]
-	notInChannelId := props["not_in_channel"]
+	var teamId string
+	if teamId, ok = props["team_id"].(string); !ok {
+		teamId = ""
+	}
+
+	var inChannelId string
+	if inChannelId, ok = props["in_channel"].(string); !ok {
+		inChannelId = ""
+	}
+
+	var notInChannelId string
+	if notInChannelId, ok = props["not_in_channel"].(string); !ok {
+		notInChannelId = ""
+	}
 
 	if inChannelId != "" && !HasPermissionToChannelContext(c, inChannelId, model.PERMISSION_READ_CHANNEL) {
 		return
@@ -2614,6 +2626,12 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	searchOptions := map[string]bool{}
 	searchOptions[store.USER_SEARCH_OPTION_USERNAME_ONLY] = true
+
+	if allowInactive, ok := props["allow_inactive"].(bool); ok {
+		searchOptions[store.USER_SEARCH_OPTION_ALLOW_INACTIVE] = allowInactive
+	} else {
+		searchOptions[store.USER_SEARCH_OPTION_ALLOW_INACTIVE] = false
+	}
 
 	var uchan store.StoreChannel
 	if inChannelId != "" {

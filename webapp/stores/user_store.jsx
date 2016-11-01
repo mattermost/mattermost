@@ -312,7 +312,7 @@ class UserStoreClass extends EventEmitter {
         this.saveProfiles(profiles);
     }
 
-    getProfileListInTeam(teamId = TeamStore.getCurrentId(), skipCurrent) {
+    getProfileListInTeam(teamId = TeamStore.getCurrentId(), skipCurrent = false, skipInactive = false) {
         const userIds = this.profiles_in_team[teamId] || [];
         const profiles = [];
         const currentId = this.getCurrentId();
@@ -321,6 +321,10 @@ class UserStoreClass extends EventEmitter {
             const profile = this.getProfile(userIds[i]);
 
             if (skipCurrent && profile.id === currentId) {
+                continue;
+            }
+
+            if (skipInactive && profile.delete_at > 0) {
                 continue;
             }
 

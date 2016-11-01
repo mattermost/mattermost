@@ -182,6 +182,10 @@ export const UserStatuses = {
     ONLINE: 'online'
 };
 
+export const UserSearchOptions = {
+    ALLOW_INACTIVE: 'allow_inactive'
+};
+
 export const SocketEvents = {
     POSTED: 'posted',
     POST_EDITED: 'post_edited',
@@ -215,6 +219,7 @@ export const Constants = {
     ActionTypes,
     WebrtcActionTypes,
     UserStatuses,
+    UserSearchOptions,
     TutorialSteps,
 
     PayloadSources: keyMirror({

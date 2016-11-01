@@ -37,7 +37,7 @@ export default class MoreDirectChannels extends React.Component {
         this.loadComplete = this.loadComplete.bind(this);
 
         this.state = {
-            users: UserStore.getProfileListInTeam(TeamStore.getCurrentId(), true),
+            users: UserStore.getProfileListInTeam(TeamStore.getCurrentId(), true, true),
             loadingDMChannel: -1,
             listType: 'team',
             loading: false,
@@ -111,7 +111,7 @@ export default class MoreDirectChannels extends React.Component {
         if (this.state.listType === 'any') {
             users = UserStore.getProfileList();
         } else {
-            users = UserStore.getProfileListInTeam(TeamStore.getCurrentId(), true);
+            users = UserStore.getProfileListInTeam(TeamStore.getCurrentId(), true, true);
         }
 
         this.setState({
@@ -125,7 +125,7 @@ export default class MoreDirectChannels extends React.Component {
         if (listType === 'any') {
             users = UserStore.getProfileList();
         } else {
-            users = UserStore.getProfileListInTeam(TeamStore.getCurrentId(), true);
+            users = UserStore.getProfileListInTeam(TeamStore.getCurrentId(), true, true);
         }
 
         this.setState({
