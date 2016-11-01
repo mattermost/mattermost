@@ -121,7 +121,7 @@ export default class Textbox extends React.Component {
     }
 
     render() {
-        const hasText = this.props.messageText.length > 0;
+        const hasText = this.props.messageText && this.props.messageText.length > 0;
 
         let previewLink = null;
         if (Utils.isFeatureEnabled(PreReleaseFeatures.MARKDOWN_PREVIEW)) {
