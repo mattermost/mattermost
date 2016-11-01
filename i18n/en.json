@@ -891,7 +891,7 @@
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.get_file_infos_again.warn",
-    "translation": "Unable to get FileInfos for post after migratio, post_id=%v, err=%v"
+    "translation": "Unable to get FileInfos for post after migration, post_id=%v, err=%v"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.get_post_again.warn",
