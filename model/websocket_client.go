@@ -6,7 +6,6 @@ package model
 import (
 	"encoding/json"
 	"github.com/gorilla/websocket"
-	"net/http"
 )
 
 type WebSocketClient struct {
@@ -23,14 +22,12 @@ type WebSocketClient struct {
 // NewWebSocketClient constructs a new WebSocket client with convienence
 // methods for talking to the server.
 func NewWebSocketClient(url, authToken string) (*WebSocketClient, *AppError) {
-	header := http.Header{}
-	header.Set(HEADER_AUTH, "BEARER "+authToken)
-	conn, _, err := websocket.DefaultDialer.Dial(url+API_URL_SUFFIX+"/users/websocket", header)
+	conn, _, err := websocket.DefaultDialer.Dial(url+API_URL_SUFFIX+"/users/websocket", nil)
 	if err != nil {
 		return nil, NewLocAppError("NewWebSocketClient", "model.websocket_client.connect_fail.app_error", nil, err.Error())
 	}
 
-	return &WebSocketClient{
+	client := &WebSocketClient{
 		url,
 		url + API_URL_SUFFIX,
 		conn,
@@ -39,18 +36,24 @@ func NewWebSocketClient(url, authToken string) (*WebSocketClient, *AppError) {
 		make(chan *WebSocketEvent, 100),
 		make(chan *WebSocketResponse, 100),
 		nil,
-	}, nil
+	}
+
+	client.SendMessage(WEBSOCKET_AUTHENTICATION_CHALLENGE, map[string]interface{}{"token": authToken})
+
+	return client, nil
 }
 
 func (wsc *WebSocketClient) Connect() *AppError {
-	header := http.Header{}
-	header.Set(HEADER_AUTH, "BEARER "+wsc.AuthToken)
-
 	var err error
-	wsc.Conn, _, err = websocket.DefaultDialer.Dial(wsc.ApiUrl+"/users/websocket", header)
+	wsc.Conn, _, err = websocket.DefaultDialer.Dial(wsc.ApiUrl+"/users/websocket", nil)
 	if err != nil {
 		return NewLocAppError("NewWebSocketClient", "model.websocket_client.connect_fail.app_error", nil, err.Error())
 	}
+
+	wsc.EventChannel = make(chan *WebSocketEvent, 100)
+	wsc.ResponseChannel = make(chan *WebSocketResponse, 100)
+
+	wsc.SendMessage(WEBSOCKET_AUTHENTICATION_CHALLENGE, map[string]interface{}{"token": wsc.AuthToken})
 
 	return nil
 }
@@ -89,6 +92,7 @@ func (wsc *WebSocketClient) Listen() {
 				wsc.ResponseChannel <- &response
 				continue
 			}
+
 		}
 	}()
 }

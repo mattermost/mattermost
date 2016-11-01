@@ -513,8 +513,23 @@ class PostStoreClass extends EventEmitter {
         return lastPost;
     }
 
-    getEmptyDraft() {
-        return {message: '', uploadsInProgress: [], fileInfos: []};
+    normalizeDraft(originalDraft) {
+        let draft = {
+            messageText: '',
+            uploadsInProgress: [],
+            fileInfos: []
+        };
+
+        // Make sure that the post draft is non-null and has all the required fields
+        if (originalDraft) {
+            draft = {
+                messageText: originalDraft.messageText || draft.messageText,
+                uploadsInProgress: originalDraft.uploadsInProgress || draft.uploadsInProgress,
+                fileInfos: originalDraft.fileInfos || draft.fileInfos
+            };
+        }
+
+        return draft;
     }
 
     storeCurrentDraft(draft) {
@@ -532,7 +547,7 @@ class PostStoreClass extends EventEmitter {
     }
 
     getDraft(channelId) {
-        return BrowserStore.getGlobalItem('draft_' + channelId, this.getEmptyDraft());
+        return this.normalizeDraft(BrowserStore.getGlobalItem('draft_' + channelId));
     }
 
     storeCommentDraft(parentPostId, draft) {
@@ -540,7 +555,7 @@ class PostStoreClass extends EventEmitter {
     }
 
     getCommentDraft(parentPostId) {
-        return BrowserStore.getGlobalItem('comment_draft_' + parentPostId, this.getEmptyDraft());
+        return this.normalizeDraft(BrowserStore.getGlobalItem('comment_draft_' + parentPostId));
     }
 
     clearDraftUploads() {

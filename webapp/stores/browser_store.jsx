@@ -52,7 +52,7 @@ class BrowserStoreClass {
         }
     }
 
-    getGlobalItem(name, defaultValue) {
+    getGlobalItem(name, defaultValue = null) {
         var result = null;
         try {
             if (this.isLocalStorageSupported()) {
@@ -64,7 +64,7 @@ class BrowserStoreClass {
             result = null;
         }
 
-        if (result === null && typeof defaultValue !== 'undefined') {
+        if (!result) {
             result = defaultValue;
         }
 

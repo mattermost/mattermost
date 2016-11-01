@@ -167,6 +167,7 @@ export default class PostInfo extends React.Component {
                 <li
                     key='editPost'
                     role='presentation'
+                    className='dropdown-submenu'
                 >
                     <a
                         href='#'
@@ -205,12 +206,14 @@ export default class PostInfo extends React.Component {
                     aria-expanded='false'
                     onClick={this.handleDropdownClick}
                 />
-                <ul
-                    className='dropdown-menu'
-                    role='menu'
-                >
-                    {dropdownContents}
-                </ul>
+                <div className='dropdown-menu__content'>
+                    <ul
+                        className='dropdown-menu'
+                        role='menu'
+                    >
+                        {dropdownContents}
+                    </ul>
+                </div>
             </div>
         );
     }

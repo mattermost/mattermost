@@ -1039,7 +1039,8 @@ func (s SqlChannelStore) GetMembersForUser(teamId string, userId string) StoreCh
             FROM ChannelMembers cm
             INNER JOIN Channels c
                 ON c.Id = cm.ChannelId
-                AND c.TeamId = :TeamId
+                AND (c.TeamId = :TeamId OR c.TeamId = '')
+                AND c.DeleteAt = 0
             WHERE cm.UserId = :UserId
 		`, map[string]interface{}{"TeamId": teamId, "UserId": userId})
 

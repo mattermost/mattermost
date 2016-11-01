@@ -937,8 +937,14 @@ func TestUserStoreSearch(t *testing.T) {
 	u1.Email = model.NewId()
 	Must(store.User().Save(u1))
 
+	u2 := &model.User{}
+	u2.Username = "jim-bobby" + model.NewId()
+	u2.Email = model.NewId()
+	Must(store.User().Save(u2))
+
 	tid := model.NewId()
 	Must(store.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u1.Id}))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u2.Id}))
 
 	if r1 := <-store.User().Search(tid, "jimb", USER_SEARCH_TYPE_USERNAME); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -964,6 +970,24 @@ func TestUserStoreSearch(t *testing.T) {
 		found := false
 		for _, profile := range profiles {
 			if profile.Id == u1.Id {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			t.Fatal("should have found user")
+		}
+	}
+
+	if r1 := <-store.User().Search("", "jim-bobb", USER_SEARCH_TYPE_USERNAME); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		profiles := r1.Data.([]*model.User)
+		found := false
+		for _, profile := range profiles {
+			t.Log(profile.Username)
+			if profile.Id == u2.Id {
 				found = true
 				break
 			}

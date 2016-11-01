@@ -26,7 +26,6 @@ class ChannelStoreClass extends EventEmitter {
         this.channels = [];
         this.myChannelMembers = {};
         this.moreChannels = {};
-        this.moreChannels.loading = true;
         this.stats = {};
         this.unreadCounts = {};
     }
@@ -150,11 +149,11 @@ class ChannelStoreClass extends EventEmitter {
 
     resetCounts(id) {
         const cm = this.myChannelMembers;
-        for (var cmid in cm) {
+        for (const cmid in cm) {
             if (cm[cmid].channel_id === id) {
-                var c = this.get(id);
-                if (c) {
-                    cm[cmid].msg_count = this.get(id).total_msg_count;
+                const channel = this.get(id);
+                if (channel) {
+                    cm[cmid].msg_count = channel.total_msg_count;
                     cm[cmid].mention_count = 0;
                     this.setUnreadCountByChannel(id);
                 }
@@ -290,9 +289,19 @@ class ChannelStoreClass extends EventEmitter {
         });
     }
 
+    setUnreadCountsByChannels(channels) {
+        channels.forEach((c) => {
+            this.setUnreadCountByChannel(c.id);
+        });
+    }
+
     setUnreadCountByChannel(id) {
         const ch = this.get(id);
         const chMember = this.getMyMember(id);
+
+        if (ch == null || chMember == null) {
+            return;
+        }
 
         const chMentionCount = chMember.mention_count;
         let chUnreadCount = ch.total_msg_count - chMember.msg_count;
@@ -367,6 +376,7 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
 
     case ActionTypes.RECEIVED_CHANNELS:
         ChannelStore.storeChannels(action.channels);
+        ChannelStore.setUnreadCountsByChannels(action.channels);
         ChannelStore.emitChange();
         break;
 
@@ -390,6 +400,7 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
             ChannelStore.resetCounts(currentId);
         }
         ChannelStore.setUnreadCountsByMembers(action.members);
+        ChannelStore.emitChange();
         break;
     case ActionTypes.RECEIVED_MORE_CHANNELS:
         ChannelStore.storeMoreChannels(action.channels);

@@ -632,10 +632,10 @@
 
                     .settings-content {
                         .section-edit {
-                            position: absolute;
-                            top: 14px;
-                            right: 0;
                             padding-right: 0;
+                            position: absolute;
+                            right: 15px;
+                            top: 14px;
 
                             .fa {
                                 display: inline-block;
@@ -796,7 +796,7 @@
                 height: 100%;
                 left: 0;
                 overflow: auto;
-                padding-bottom: 140px;
+                padding: 1.4em 0 140px;
                 position: fixed;
                 top: 42px;
                 width: 100%;
@@ -824,7 +824,7 @@
                         border-bottom: 1px solid alpha-color($white, .3);
                         color: $white;
                         font-weight: 600;
-                        line-height: 50px;
+                        line-height: 35px;
                         margin: 0 auto;
                         text-align: center;
                         width: 90%;
@@ -1162,41 +1162,25 @@
 }
 
 @media screen and (max-width: 640px) {
-    .post-list__table {
-        .post-list__content {
-            .dropdown-menu {
-                &.bottom {
-                    bottom: auto;
-                    top: 30%;
-                }
+    .app__body {
+        .post {
+            .open {
+                > .dropdown-menu__content {
+                    display: table;
 
-                bottom: auto;
-                height: auto;
+                    > .dropdown-menu {
+                        display: table-cell;
+                    }
+                }
+            }
+
+            .dropdown-menu__content {
+                height: 100%;
                 left: 0;
-                margin-left: 25px;
                 position: fixed;
-                top: 30%;
-                width: calc(100% - 50px);
+                top: 0;
+                width: 100%;
                 z-index: 9999;
-
-                > li {
-                    > a {
-                        border-bottom: 1px solid;
-                        line-height: 50px;
-                        position: relative;
-                        text-align: center;
-
-                        &:hover {
-                            background: transparent;
-                        }
-                    }
-
-                    &:last-child {
-                        a {
-                            border: none;
-                        }
-                    }
-                }
 
                 &:before {
                     background: alpha-color($black, .3);
@@ -1208,10 +1192,45 @@
                     width: 100%;
                 }
             }
-        }
-    }
 
-    .app__body {
+            .dropdown-menu {
+                &.bottom {
+                    bottom: auto;
+                    top: 0;
+                }
+
+                background: transparent;
+                border: none;
+                bottom: auto;
+                box-shadow: none;
+                float: none;
+                height: 100%;
+                left: 0;
+                margin: 0;
+                padding: 0 2em;
+                position: relative;
+                top: 0;
+                vertical-align: middle;
+                width: 100%;
+                z-index: 9999;
+
+                > li {
+                    &:last-child {
+                        a {
+                            border: none;
+                        }
+                    }
+                }
+
+                a {
+                    border-bottom: 1px solid;
+                    line-height: 50px;
+                    position: relative;
+                    text-align: center;
+                }
+            }
+        }
+
         .modal {
             overflow: hidden;
             padding: 0 !important;
@@ -1409,18 +1428,6 @@
     .tip-overlay {
         &.tip-overlay--sidebar {
             min-height: 440px;
-        }
-    }
-
-    .post-list__table {
-        .post-list__content {
-            .dropdown-menu {
-                &.bottom {
-                    top: 25%;
-                }
-
-                top: 25%;
-            }
         }
     }
 }

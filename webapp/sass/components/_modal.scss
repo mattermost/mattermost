@@ -499,11 +499,13 @@
 
 
 .status-wrapper {
+    display: inline-block;
+    height: 32px;
     position: relative;
 
     &:after {
         border-radius: 100%;
-        bottom: 4px;
+        bottom: -2px;
         content: '';
         display: block;
         height: 8px;
@@ -589,6 +591,7 @@
     .more-modal__row {
         border-bottom: 1px solid $light-gray;
         display: flex;
+        min-height: 65px;
         padding: 8px 15px;
     }
 

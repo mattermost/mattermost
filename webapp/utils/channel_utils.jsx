@@ -35,7 +35,7 @@ export function buildDisplayableChannelList(persistentChannels) {
         publicChannels: notFavoriteChannels.filter(isOpenChannel),
         privateChannels: notFavoriteChannels.filter(isPrivateChannel),
         directChannels: directChannels.filter(isConnectedToTeamMember),
-        directNonTeamChannels: directChannels.filter(not(isConnectedToTeamMember))
+        directNonTeamChannels: directChannels.filter(isNotConnectedToTeamMember)
     };
 }
 
@@ -117,6 +117,10 @@ function isConnectedToTeamMember(channel) {
 
 function isTeamMember(userId) {
     return TeamStore.hasActiveMemberInTeam(TeamStore.getCurrentId(), userId);
+}
+
+function isNotConnectedToTeamMember(channel) {
+    return TeamStore.hasMemberNotInTeam(TeamStore.getCurrentId(), channel.teammate_id);
 }
 
 function not(f) {

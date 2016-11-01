@@ -27,11 +27,13 @@ export default class TeamUrl extends React.Component {
             isLoading: false
         };
     }
+
     submitBack(e) {
         e.preventDefault();
         this.props.state.wizard = 'display_name';
         this.props.updateParent(this.props.state);
     }
+
     submitNext(e) {
         e.preventDefault();
 

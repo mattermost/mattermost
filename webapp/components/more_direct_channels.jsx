@@ -11,6 +11,7 @@ import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
 import * as AsyncClient from 'utils/async_client.jsx';
+import * as UserAgent from 'utils/user_agent.jsx';
 import Constants from 'utils/constants.jsx';
 
 import React from 'react';
@@ -25,6 +26,7 @@ export default class MoreDirectChannels extends React.Component {
         super(props);
 
         this.handleHide = this.handleHide.bind(this);
+        this.handleExit = this.handleExit.bind(this);
         this.handleShowDirectChannel = this.handleShowDirectChannel.bind(this);
         this.onChange = this.onChange.bind(this);
         this.createJoinDirectChannelButton =
@@ -70,6 +72,12 @@ export default class MoreDirectChannels extends React.Component {
         }
     }
 
+    handleExit() {
+        if (this.exitToDirectChannel) {
+            browserHistory.push(this.exitToDirectChannel);
+        }
+    }
+
     handleShowDirectChannel(teammate, e) {
         e.preventDefault();
 
@@ -81,7 +89,10 @@ export default class MoreDirectChannels extends React.Component {
         openDirectChannelToUser(
             teammate,
             (channel) => {
-                browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/' + channel.name);
+                // Due to how react-overlays Modal handles focus, we delay pushing
+                // the new channel information until the modal is fully exited.
+                // The channel information will be pushed in `handleExit`
+                this.exitToDirectChannel = TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + channel.name;
                 this.setState({loadingDMChannel: -1});
                 this.handleHide();
             },
@@ -223,6 +234,7 @@ export default class MoreDirectChannels extends React.Component {
                 dialogClassName='more-modal more-direct-channels'
                 show={this.props.show}
                 onHide={this.handleHide}
+                onExited={this.handleExit}
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title>
@@ -242,6 +254,7 @@ export default class MoreDirectChannels extends React.Component {
                         search={this.search}
                         actions={[this.createJoinDirectChannelButton]}
                         infinite={true}
+                        focusOnMount={!UserAgent.isMobile()}
                     />
                 </Modal.Body>
                 <Modal.Footer>
