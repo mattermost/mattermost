@@ -121,7 +121,7 @@ export default class Textbox extends React.Component {
     }
 
     render() {
-        const hasText = this.props.messageText && this.props.messageText.length > 0;
+        const hasText = this.props.value && this.props.value.length > 0;
 
         let previewLink = null;
         if (Utils.isFeatureEnabled(PreReleaseFeatures.MARKDOWN_PREVIEW)) {
@@ -214,14 +214,14 @@ export default class Textbox extends React.Component {
                     listComponent={SuggestionList}
                     providers={this.suggestionProviders}
                     channelId={this.props.channelId}
-                    value={this.props.messageText}
+                    value={this.props.value}
                     renderDividers={true}
                 />
                 <div
                     ref='preview'
                     className='form-control custom-textarea textbox-preview-area'
                     style={{display: this.state.preview ? 'block' : 'none'}}
-                    dangerouslySetInnerHTML={{__html: this.state.preview ? TextFormatting.formatText(this.props.messageText) : ''}}
+                    dangerouslySetInnerHTML={{__html: this.state.preview ? TextFormatting.formatText(this.props.value) : ''}}
                 />
                 <div className='help__text'>
                     {helpText}
@@ -250,7 +250,7 @@ Textbox.defaultProps = {
 Textbox.propTypes = {
     id: React.PropTypes.string.isRequired,
     channelId: React.PropTypes.string,
-    messageText: React.PropTypes.string.isRequired,
+    value: React.PropTypes.string.isRequired,
     onChange: React.PropTypes.func.isRequired,
     onKeyPress: React.PropTypes.func.isRequired,
     createMessage: React.PropTypes.string.isRequired,

@@ -53,7 +53,7 @@ export default class CreateComment extends React.Component {
 
         const draft = PostStore.getCommentDraft(this.props.rootId);
         this.state = {
-            messageText: draft.messageText,
+            message: draft.message,
             uploadsInProgress: draft.uploadsInProgress,
             fileInfos: draft.fileInfos,
             submitting: false,
@@ -100,7 +100,7 @@ export default class CreateComment extends React.Component {
 
         const post = {};
         post.file_ids = [];
-        post.message = this.state.messageText;
+        post.message = this.state.message;
 
         if (post.message.trim().length === 0 && this.state.fileInfos.length === 0) {
             return;
@@ -119,7 +119,7 @@ export default class CreateComment extends React.Component {
             return;
         }
 
-        MessageHistoryStore.storeMessageInHistory(this.state.messageText);
+        MessageHistoryStore.storeMessageInHistory(this.state.message);
 
         const userId = UserStore.getCurrentId();
 
@@ -160,7 +160,7 @@ export default class CreateComment extends React.Component {
         );
 
         this.setState({
-            messageText: '',
+            message: '',
             submitting: false,
             postError: null,
             fileInfos: [],
@@ -181,15 +181,15 @@ export default class CreateComment extends React.Component {
     }
 
     handleChange(e) {
-        const messageText = e.target.value;
+        const message = e.target.value;
 
         const draft = PostStore.getCommentDraft(this.props.rootId);
-        draft.messageText = messageText;
+        draft.message = message;
         PostStore.storeCommentDraft(this.props.rootId, draft);
 
         $('.post-right__scroll').parent().scrollTop($('.post-right__scroll')[0].scrollHeight);
 
-        this.setState({messageText});
+        this.setState({message});
     }
 
     handleKeyDown(e) {
@@ -198,7 +198,7 @@ export default class CreateComment extends React.Component {
             return;
         }
 
-        if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && e.keyCode === KeyCodes.UP && this.state.messageText === '') {
+        if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && e.keyCode === KeyCodes.UP && this.state.message === '') {
             e.preventDefault();
 
             const lastPost = PostStore.getCurrentUsersLatestPost(this.props.channelId, this.props.rootId);
@@ -218,11 +218,11 @@ export default class CreateComment extends React.Component {
         }
 
         if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
-            const lastMessage = MessageHistoryStore.nextMessageInHistory(e.keyCode, this.state.messageText, 'comment');
+            const lastMessage = MessageHistoryStore.nextMessageInHistory(e.keyCode, this.state.message, 'comment');
             if (lastMessage !== null) {
                 e.preventDefault();
                 this.setState({
-                    messageText: lastMessage
+                    message: lastMessage
                 });
             }
         }
@@ -308,7 +308,7 @@ export default class CreateComment extends React.Component {
     componentWillReceiveProps(newProps) {
         if (newProps.rootId !== this.props.rootId) {
             const draft = PostStore.getCommentDraft(newProps.rootId);
-            this.setState({messageText: draft.messageText, uploadsInProgress: draft.uploadsInProgress, fileInfos: draft.fileInfos});
+            this.setState({message: draft.message, uploadsInProgress: draft.uploadsInProgress, fileInfos: draft.fileInfos});
         }
     }
 
@@ -396,7 +396,7 @@ export default class CreateComment extends React.Component {
                                 onChange={this.handleChange}
                                 onKeyPress={this.commentMsgKeyPress}
                                 onKeyDown={this.handleKeyDown}
-                                messageText={this.state.messageText}
+                                value={this.state.message}
                                 createMessage={Utils.localizeMessage('create_comment.addComment', 'Add a comment...')}
                                 initialText=''
                                 supportsCommands={false}
