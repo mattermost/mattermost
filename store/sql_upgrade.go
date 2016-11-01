@@ -202,10 +202,8 @@ func UpgradeDatabaseToVersion35(sqlStore *SqlStore) {
 	sqlStore.CreateColumnIfNotExists("Posts", "FileIds", "varchar(150)", "varchar(150)", "[]")
 
 	// Increase maximum length of the Channel table Purpose column.
-	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
-		sqlStore.GetMaster().Exec("ALTER TABLE Channels ALTER COLUMN Purpose TYPE varchar(250)")
-	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
-		sqlStore.GetMaster().Exec("ALTER TABLE Channels MODIFY Purpose varchar(250)")
+	if sqlStore.GetMaxLengthOfColumnIfExists("Channels", "Purpose") != "250" {
+		sqlStore.AlterColumnTypeIfExists("Channels", "Purpose", "varchar(250)", "varchar(250)")
 	}
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
