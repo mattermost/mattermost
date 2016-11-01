@@ -138,6 +138,37 @@ func TestCreatePost(t *testing.T) {
 	}
 }
 
+func TestCreatePostWithCreateAt(t *testing.T) {
+
+	// An ordinary user cannot use CreateAt
+
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+	channel1 := th.BasicChannel
+
+	post := &model.Post{
+		ChannelId: channel1.Id,
+		Message:   "PLT-4349",
+		CreateAt:  1234,
+	}
+	if resp, err := Client.CreatePost(post); err != nil {
+		t.Fatal(err)
+	} else if rpost := resp.Data.(*model.Post); rpost.CreateAt == post.CreateAt {
+		t.Fatal("post should be created with default CreateAt timestamp for ordinary user")
+	}
+
+	// But a System Admin user can
+
+	th2 := Setup().InitSystemAdmin()
+	SysClient := th2.SystemAdminClient
+
+	if resp, err := SysClient.CreatePost(post); err != nil {
+		t.Fatal(err)
+	} else if rpost := resp.Data.(*model.Post); rpost.CreateAt != post.CreateAt {
+		t.Fatal("post should be created with provided CreateAt timestamp for System Admin user")
+	}
+}
+
 func testCreatePostWithOutgoingHook(
 	t *testing.T,
 	hookContentType string,
