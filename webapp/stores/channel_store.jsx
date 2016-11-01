@@ -400,6 +400,7 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
             ChannelStore.resetCounts(currentId);
         }
         ChannelStore.setUnreadCountsByMembers(action.members);
+        ChannelStore.emitChange();
         break;
     case ActionTypes.RECEIVED_MORE_CHANNELS:
         ChannelStore.storeMoreChannels(action.channels);

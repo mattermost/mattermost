@@ -80,7 +80,7 @@ export default class ChannelNotificationsModal extends React.Component {
     }
     createNotifyLevelSection(serverError) {
         // Get glabal user setting for notifications
-        const globalNotifyLevel = this.props.currentUser.notify_props.desktop;
+        const globalNotifyLevel = this.props.currentUser.notify_props ? this.props.currentUser.notify_props.desktop : 'all';
         let globalNotifyLevelName;
         if (globalNotifyLevel === 'all') {
             globalNotifyLevelName = (
