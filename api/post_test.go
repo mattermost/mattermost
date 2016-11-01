@@ -148,8 +148,8 @@ func TestCreatePostWithCreateAt(t *testing.T) {
 
 	post := &model.Post{
 		ChannelId: channel1.Id,
-		Message: "PLT-4349",
-		CreateAt: 1234,
+		Message:   "PLT-4349",
+		CreateAt:  1234,
 	}
 	if resp, err := Client.CreatePost(post); err != nil {
 		t.Fatal(err)
@@ -159,7 +159,7 @@ func TestCreatePostWithCreateAt(t *testing.T) {
 
 	// But a System Admin user can
 
-	th2:= Setup().InitSystemAdmin()
+	th2 := Setup().InitSystemAdmin()
 	SysClient := th2.SystemAdminClient
 
 	if resp, err := SysClient.CreatePost(post); err != nil {
