@@ -29,6 +29,7 @@ export default class Textbox extends React.Component {
         this.onRecievedError = this.onRecievedError.bind(this);
         this.handleKeyPress = this.handleKeyPress.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
+        this.handleBlur = this.handleBlur.bind(this);
         this.handleHeightChange = this.handleHeightChange.bind(this);
         this.showPreview = this.showPreview.bind(this);
 
@@ -81,6 +82,12 @@ export default class Textbox extends React.Component {
     handleKeyDown(e) {
         if (this.props.onKeyDown) {
             this.props.onKeyDown(e);
+        }
+    }
+
+    handleBlur(e) {
+        if (this.props.onBlur) {
+            this.props.onBlur(e);
         }
     }
 
@@ -209,6 +216,7 @@ export default class Textbox extends React.Component {
                     onChange={this.props.onChange}
                     onKeyPress={this.handleKeyPress}
                     onKeyDown={this.handleKeyDown}
+                    onBlur={this.handleBlur}
                     onHeightChange={this.handleHeightChange}
                     style={{visibility: this.state.preview ? 'hidden' : 'visible'}}
                     listComponent={SuggestionList}
@@ -255,5 +263,6 @@ Textbox.propTypes = {
     onKeyPress: React.PropTypes.func.isRequired,
     createMessage: React.PropTypes.string.isRequired,
     onKeyDown: React.PropTypes.func,
+    onBlur: React.PropTypes.func,
     supportsCommands: React.PropTypes.bool.isRequired
 };
