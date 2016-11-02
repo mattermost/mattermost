@@ -18,6 +18,10 @@ const Preferences = Constants.Preferences;
 
 import {FormattedMessage} from 'react-intl';
 
+const EnableFontManagement = false;
+const EnableThemeManagement = false;
+const EnableDisplayNameManagement = false;
+
 function getDisplayStateFromStores() {
     return {
         militaryTime: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'use_military_time', 'false'),
@@ -198,18 +202,21 @@ export default class UserSettingsDisplay extends React.Component {
             ];
 
             return (
-                <SettingItemMax
-                    title={
-                        <FormattedMessage
-                            id='user.settings.display.collapseDisplay'
-                            defaultMessage='Link previews'
-                        />
-                    }
-                    inputs={inputs}
-                    submit={this.handleSubmit}
-                    server_error={this.state.serverError}
-                    updateSection={handleUpdateCollapseSection}
-                />
+                <div>
+                    <SettingItemMax
+                        title={
+                            <FormattedMessage
+                                id='user.settings.display.collapseDisplay'
+                                defaultMessage='Link previews'
+                            />
+                        }
+                        inputs={inputs}
+                        submit={this.handleSubmit}
+                        server_error={this.state.serverError}
+                        updateSection={handleUpdateCollapseSection}
+                    />
+                    <div className='divider-dark'/>
+                </div>
             );
         }
 
@@ -235,16 +242,19 @@ export default class UserSettingsDisplay extends React.Component {
         };
 
         return (
-            <SettingItemMin
-                title={
-                    <FormattedMessage
-                        id='user.settings.display.collapseDisplay'
-                        defaultMessage='Link previews'
-                    />
-                }
-                describe={describe}
-                updateSection={handleUpdateCollapseSection}
-            />
+            <div>
+                <SettingItemMin
+                    title={
+                        <FormattedMessage
+                            id='user.settings.display.collapseDisplay'
+                            defaultMessage='Link previews'
+                        />
+                    }
+                    describe={describe}
+                    updateSection={handleUpdateCollapseSection}
+                />
+                <div className='divider-dark'/>
+            </div>
         );
     }
 
@@ -315,18 +325,21 @@ export default class UserSettingsDisplay extends React.Component {
             ];
 
             clockSection = (
-                <SettingItemMax
-                    title={
-                        <FormattedMessage
-                            id='user.settings.display.clockDisplay'
-                            defaultMessage='Clock Display'
-                        />
-                    }
-                    inputs={inputs}
-                    submit={this.handleSubmit}
-                    server_error={serverError}
-                    updateSection={handleUpdateClockSection}
-                />
+                <div>
+                    <SettingItemMax
+                        title={
+                            <FormattedMessage
+                                id='user.settings.display.clockDisplay'
+                                defaultMessage='Clock Display'
+                            />
+                        }
+                        inputs={inputs}
+                        submit={this.handleSubmit}
+                        server_error={serverError}
+                        updateSection={handleUpdateClockSection}
+                    />
+                    <div className='divider-dark'/>
+                </div>
             );
         } else {
             let describe;
@@ -351,16 +364,19 @@ export default class UserSettingsDisplay extends React.Component {
             };
 
             clockSection = (
-                <SettingItemMin
-                    title={
-                        <FormattedMessage
-                            id='user.settings.display.clockDisplay'
-                            defaultMessage='Clock Display'
-                        />
-                    }
-                    describe={describe}
-                    updateSection={handleUpdateClockSection}
-                />
+                <div>
+                    <SettingItemMin
+                        title={
+                            <FormattedMessage
+                                id='user.settings.display.clockDisplay'
+                                defaultMessage='Clock Display'
+                            />
+                        }
+                        describe={describe}
+                        updateSection={handleUpdateClockSection}
+                    />
+                    <div className='divider-dark'/>
+                </div>
             );
         }
 
@@ -440,23 +456,28 @@ export default class UserSettingsDisplay extends React.Component {
                 </div>
             ];
 
-            nameFormatSection = (
-                <SettingItemMax
-                    title={
-                        <FormattedMessage
-                            id='user.settings.display.teammateDisplay'
-                            defaultMessage='Teammate Name Display'
+            if (EnableDisplayNameManagement) {
+                nameFormatSection = (
+                    <div>
+                        <SettingItemMax
+                            title={
+                                <FormattedMessage
+                                    id='user.settings.display.teammateDisplay'
+                                    defaultMessage='Teammate Name Display'
+                                />
+                            }
+                            inputs={inputs}
+                            submit={this.handleSubmit}
+                            server_error={serverError}
+                            updateSection={(e) => {
+                                this.updateSection('');
+                                e.preventDefault();
+                            }}
                         />
-                    }
-                    inputs={inputs}
-                    submit={this.handleSubmit}
-                    server_error={serverError}
-                    updateSection={(e) => {
-                        this.updateSection('');
-                        e.preventDefault();
-                    }}
-                />
-            );
+                        <div className='divider-dark'/>
+                    </div>
+                );
+            }
         } else {
             let describe;
             if (this.state.nameFormat === 'username') {
@@ -482,20 +503,25 @@ export default class UserSettingsDisplay extends React.Component {
                 );
             }
 
-            nameFormatSection = (
-                <SettingItemMin
-                    title={
-                        <FormattedMessage
-                            id='user.settings.display.teammateDisplay'
-                            defaultMessage='Teammate Name Display'
+            if (EnableDisplayNameManagement) {
+                nameFormatSection = (
+                    <div>
+                        <SettingItemMin
+                            title={
+                                <FormattedMessage
+                                    id='user.settings.display.teammateDisplay'
+                                    defaultMessage='Teammate Name Display'
+                                />
+                            }
+                            describe={describe}
+                            updateSection={() => {
+                                this.props.updateSection('name_format');
+                            }}
                         />
-                    }
-                    describe={describe}
-                    updateSection={() => {
-                        this.props.updateSection('name_format');
-                    }}
-                />
-            );
+                        <div className='divider-dark'/>
+                    </div>
+                );
+            }
         }
 
         if (this.props.activeSection === Preferences.MESSAGE_DISPLAY) {
@@ -563,21 +589,24 @@ export default class UserSettingsDisplay extends React.Component {
             ];
 
             messageDisplaySection = (
-                <SettingItemMax
-                    title={
-                        <FormattedMessage
-                            id='user.settings.display.messageDisplayTitle'
-                            defaultMessage='Message Display'
-                        />
-                    }
-                    inputs={inputs}
-                    submit={this.handleSubmit}
-                    server_error={serverError}
-                    updateSection={(e) => {
-                        this.updateSection('');
-                        e.preventDefault();
-                    }}
-                />
+                <div>
+                    <SettingItemMax
+                        title={
+                            <FormattedMessage
+                                id='user.settings.display.messageDisplayTitle'
+                                defaultMessage='Message Display'
+                            />
+                        }
+                        inputs={inputs}
+                        submit={this.handleSubmit}
+                        server_error={serverError}
+                        updateSection={(e) => {
+                            this.updateSection('');
+                            e.preventDefault();
+                        }}
+                    />
+                    <div className='divider-dark'/>
+                </div>
             );
         } else {
             let describe;
@@ -598,18 +627,21 @@ export default class UserSettingsDisplay extends React.Component {
             }
 
             messageDisplaySection = (
-                <SettingItemMin
-                    title={
-                        <FormattedMessage
-                            id='user.settings.display.messageDisplayTitle'
-                            defaultMessage='Message Display'
-                        />
-                    }
-                    describe={describe}
-                    updateSection={() => {
-                        this.props.updateSection(Preferences.MESSAGE_DISPLAY);
-                    }}
-                />
+                <div>
+                    <SettingItemMin
+                        title={
+                            <FormattedMessage
+                                id='user.settings.display.messageDisplayTitle'
+                                defaultMessage='Message Display'
+                            />
+                        }
+                        describe={describe}
+                        updateSection={() => {
+                            this.props.updateSection(Preferences.MESSAGE_DISPLAY);
+                        }}
+                    />
+                    <div className='divider-dark'/>
+                </div>
             );
         }
 
@@ -664,21 +696,24 @@ export default class UserSettingsDisplay extends React.Component {
             ];
 
             channelDisplayModeSection = (
-                <SettingItemMax
-                    title={
-                        <FormattedMessage
-                            id='user.settings.display.channelDisplayTitle'
-                            defaultMessage='Channel Display Mode'
-                        />
-                    }
-                    inputs={inputs}
-                    submit={this.handleSubmit}
-                    server_error={serverError}
-                    updateSection={(e) => {
-                        this.updateSection('');
-                        e.preventDefault();
-                    }}
-                />
+                <div>
+                    <SettingItemMax
+                        title={
+                            <FormattedMessage
+                                id='user.settings.display.channelDisplayTitle'
+                                defaultMessage='Channel Display Mode'
+                            />
+                        }
+                        inputs={inputs}
+                        submit={this.handleSubmit}
+                        server_error={serverError}
+                        updateSection={(e) => {
+                            this.updateSection('');
+                            e.preventDefault();
+                        }}
+                    />
+                    <div className='divider-dark'/>
+                </div>
             );
         } else {
             let describe;
@@ -699,18 +734,21 @@ export default class UserSettingsDisplay extends React.Component {
             }
 
             channelDisplayModeSection = (
-                <SettingItemMin
-                    title={
-                        <FormattedMessage
-                            id='user.settings.display.channelDisplayTitle'
-                            defaultMessage='Channel Display Mode'
-                        />
-                    }
-                    describe={describe}
-                    updateSection={() => {
-                        this.props.updateSection(Preferences.CHANNEL_DISPLAY_MODE);
-                    }}
-                />
+                <div>
+                    <SettingItemMin
+                        title={
+                            <FormattedMessage
+                                id='user.settings.display.channelDisplayTitle'
+                                defaultMessage='Channel Display Mode'
+                            />
+                        }
+                        describe={describe}
+                        updateSection={() => {
+                            this.props.updateSection(Preferences.CHANNEL_DISPLAY_MODE);
+                        }}
+                    />
+                    <div className='divider-dark'/>
+                </div>
             );
         }
 
@@ -753,37 +791,45 @@ export default class UserSettingsDisplay extends React.Component {
                 </div>
             ];
 
-            fontSection = (
-                <SettingItemMax
-                    title={
-                        <FormattedMessage
-                            id='user.settings.display.fontTitle'
-                            defaultMessage='Display Font'
+            if (EnableFontManagement) {
+                fontSection = (
+                    <div>
+                        <SettingItemMax
+                            title={
+                                <FormattedMessage
+                                    id='user.settings.display.fontTitle'
+                                    defaultMessage='Display Font'
+                                />
+                            }
+                            inputs={inputs}
+                            submit={this.handleSubmit}
+                            server_error={serverError}
+                            updateSection={(e) => {
+                                this.updateSection('');
+                                e.preventDefault();
+                            }}
                         />
-                    }
-                    inputs={inputs}
-                    submit={this.handleSubmit}
-                    server_error={serverError}
-                    updateSection={(e) => {
-                        this.updateSection('');
-                        e.preventDefault();
-                    }}
-                />
-            );
-        } else {
+                        <div className='divider-dark'/>
+                    </div>
+                );
+            }
+        } else if (EnableFontManagement) {
             fontSection = (
-                <SettingItemMin
-                    title={
-                        <FormattedMessage
-                            id='user.settings.display.fontTitle'
-                            defaultMessage='Display Font'
-                        />
-                    }
-                    describe={this.state.selectedFont}
-                    updateSection={() => {
-                        this.props.updateSection('font');
-                    }}
-                />
+                <div>
+                    <SettingItemMin
+                        title={
+                            <FormattedMessage
+                                id='user.settings.display.fontTitle'
+                                defaultMessage='Display Font'
+                            />
+                        }
+                        describe={this.state.selectedFont}
+                        updateSection={() => {
+                            this.props.updateSection('font');
+                        }}
+                    />
+                    <div className='divider-dark'/>
+                </div>
             );
         }
 
@@ -793,13 +839,16 @@ export default class UserSettingsDisplay extends React.Component {
                 this.props.user.locale = global.window.mm_config.DefaultClientLocale;
             }
             languagesSection = (
-                <ManageLanguages
-                    user={this.props.user}
-                    updateSection={(e) => {
-                        this.updateSection('');
-                        e.preventDefault();
-                    }}
-                />
+                <div>
+                    <ManageLanguages
+                        user={this.props.user}
+                        updateSection={(e) => {
+                            this.updateSection('');
+                            e.preventDefault();
+                        }}
+                    />
+                    <div className='divider-dark'/>
+                </div>
             );
         } else {
             let locale;
@@ -810,19 +859,37 @@ export default class UserSettingsDisplay extends React.Component {
             }
 
             languagesSection = (
-                <SettingItemMin
-                    title={
-                        <FormattedMessage
-                            id='user.settings.display.language'
-                            defaultMessage='Language'
-                        />
-                    }
-                    width='medium'
-                    describe={locale}
-                    updateSection={() => {
-                        this.updateSection('languages');
-                    }}
-                />
+                <div>
+                    <SettingItemMin
+                        title={
+                            <FormattedMessage
+                                id='user.settings.display.language'
+                                defaultMessage='Language'
+                            />
+                        }
+                        width='medium'
+                        describe={locale}
+                        updateSection={() => {
+                            this.updateSection('languages');
+                        }}
+                    />
+                    <div className='divider-dark'/>
+                </div>
+            );
+        }
+
+        let themeSection;
+        if (EnableThemeManagement) {
+            themeSection = (
+                <div>
+                    <ThemeSetting
+                        selected={this.props.activeSection === 'theme'}
+                        updateSection={this.updateSection}
+                        setRequireConfirm={this.props.setRequireConfirm}
+                        setEnforceFocus={this.props.setEnforceFocus}
+                    />
+                    <div className='divider-dark'/>
+                </div>
             );
         }
 
@@ -861,26 +928,13 @@ export default class UserSettingsDisplay extends React.Component {
                             defaultMessage='Display Settings'
                         />
                     </h3>
-                    <div className='divider-dark first'/>
-                    <ThemeSetting
-                        selected={this.props.activeSection === 'theme'}
-                        updateSection={this.updateSection}
-                        setRequireConfirm={this.props.setRequireConfirm}
-                        setEnforceFocus={this.props.setEnforceFocus}
-                    />
-                    <div className='divider-dark'/>
+                    {themeSection}
                     {fontSection}
-                    <div className='divider-dark'/>
                     {clockSection}
-                    <div className='divider-dark'/>
                     {nameFormatSection}
-                    <div className='divider-dark'/>
                     {collapseSection}
-                    <div className='divider-dark'/>
                     {messageDisplaySection}
-                    <div className='divider-dark'/>
                     {channelDisplayModeSection}
-                    <div className='divider-dark'/>
                     {languagesSection}
                 </div>
             </div>
