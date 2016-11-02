@@ -1687,7 +1687,7 @@ func TestMeInitialLoad(t *testing.T) {
 
 }
 
-func TestGenerateMfaQrCode(t *testing.T) {
+func TestGenerateMfaSecret(t *testing.T) {
 	th := Setup()
 	Client := th.CreateClient()
 
@@ -1701,13 +1701,13 @@ func TestGenerateMfaQrCode(t *testing.T) {
 
 	Client.Logout()
 
-	if _, err := Client.GenerateMfaQrCode(); err == nil {
+	if _, err := Client.GenerateMfaSecret(); err == nil {
 		t.Fatal("should have failed - not logged in")
 	}
 
 	Client.Login(user.Email, user.Password)
 
-	if _, err := Client.GenerateMfaQrCode(); err == nil {
+	if _, err := Client.GenerateMfaSecret(); err == nil {
 		t.Fatal("should have failed - not licensed")
 	}
 
