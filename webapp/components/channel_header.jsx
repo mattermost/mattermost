@@ -84,6 +84,7 @@ export default class ChannelHeader extends React.Component {
         if (!this.state.channel ||
             !this.state.memberChannel ||
             !this.state.users ||
+            (Object.keys(this.state.users).length === 0 && this.state.channel.type === 'D') ||
             !this.state.userCount ||
             !this.state.currentUser) {
             return false;
