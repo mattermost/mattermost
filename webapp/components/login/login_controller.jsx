@@ -21,7 +21,7 @@ import {browserHistory, Link} from 'react-router/es6';
 import React from 'react';
 import logoImage from 'images/logo.png';
 
-const DefaultTeamName = global.window.mm_config.DefaultTeamName;
+const DefaultTeam = global.window.mm_config.DefaultTeam;
 
 export default class LoginController extends React.Component {
     static get propTypes() {
@@ -59,8 +59,8 @@ export default class LoginController extends React.Component {
             browserHistory.push('/select_team');
         }
 
-        if (UserStore.getCurrentUser() && DefaultTeamName) {
-            browserHistory.push(`/${DefaultTeamName}/channels/town-square`);
+        if (UserStore.getCurrentUser() && DefaultTeam) {
+            browserHistory.push(`/${DefaultTeam}/channels/town-square`);
         }
 
         AsyncClient.checkVersion();
@@ -209,8 +209,8 @@ export default class LoginController extends React.Component {
                 GlobalActions.loadDefaultLocale();
                 if (query.redirect_to) {
                     browserHistory.push(query.redirect_to);
-                } else if (DefaultTeamName) {
-                    browserHistory.push(`/${DefaultTeamName}/channels/town-square`);
+                } else if (DefaultTeam) {
+                    browserHistory.push(`/${DefaultTeam}/channels/town-square`);
                 } else {
                     browserHistory.push('/select_team');
                 }
