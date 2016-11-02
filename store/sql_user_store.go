@@ -1092,7 +1092,10 @@ func (us SqlUserStore) Search(teamId string, term string, options map[string]boo
 
 	go func() {
 		searchQuery := ""
+
 		if teamId == "" {
+
+			// Id != '' is added because both SEARCH_CLAUSE and INACTIVE_CLAUSE start with an AND
 			searchQuery = `
 			SELECT
 				*
