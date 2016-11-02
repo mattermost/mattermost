@@ -112,7 +112,7 @@ export default class AtMentionProvider {
     handlePretextChanged(suggestionId, pretext) {
         clearTimeout(this.timeoutId);
 
-        const captured = (/@([a-z0-9\-\._]*)$/i).exec(pretext.toLowerCase());
+        const captured = (/(?:^|\W)@([a-z0-9\-\._]*)$/i).exec(pretext.toLowerCase());
         if (captured) {
             const prefix = captured[1];
 
@@ -146,7 +146,7 @@ export default class AtMentionProvider {
                         AppDispatcher.handleServerAction({
                             type: ActionTypes.SUGGESTION_RECEIVED_SUGGESTIONS,
                             id: suggestionId,
-                            matchedPretext: captured[0],
+                            matchedPretext: `@${captured[1]}`,
                             terms: mentions,
                             items: users,
                             component: AtMentionSuggestion
