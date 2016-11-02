@@ -17,13 +17,16 @@
         @include opacity(.15);
     }
 
-    div > a {
-        color: inherit;
-        text-decoration: none;
-
-        &:focus,
-        &:hover {
+    div,
+    li {
+        > a {
             color: inherit;
+            text-decoration: none;
+
+            &:focus,
+            &:hover {
+                color: inherit;
+            }
         }
     }
 }

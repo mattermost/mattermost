@@ -82,6 +82,10 @@
     &.placeholder {
         height: 500px;
     }
+
+    .sidebar--right & {
+        max-width: 100%;
+    }
 }
 
 .video-loading {

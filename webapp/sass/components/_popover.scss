@@ -187,6 +187,12 @@
 .member-list__popover {
     max-width: initial;
 
+    .more-modal__list {
+        .more-modal__row {
+            min-height: inherit;
+        }
+    }
+
     .popover-content {
         max-height: 350px;
         padding: 0;
