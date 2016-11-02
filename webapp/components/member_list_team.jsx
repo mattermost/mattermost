@@ -30,7 +30,7 @@ export default class MemberListTeam extends React.Component {
         this.state = {
             users: UserStore.getProfileListInTeam(),
             teamMembers: Object.assign([], TeamStore.getMembersInTeam()),
-            total: stats.member_count,
+            total: stats.total_member_count,
             search: false,
             loading: true
         };
@@ -67,7 +67,7 @@ export default class MemberListTeam extends React.Component {
 
     onStatsChange() {
         const stats = TeamStore.getCurrentStats();
-        this.setState({total: stats.member_count});
+        this.setState({total: stats.total_member_count});
     }
 
     nextPage(page) {

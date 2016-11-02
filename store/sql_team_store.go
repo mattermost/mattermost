@@ -467,7 +467,7 @@ func (s SqlTeamStore) GetMembers(teamId string, offset int, limit int) StoreChan
 	return storeChannel
 }
 
-func (s SqlTeamStore) GetMemberCount(teamId string) StoreChannel {
+func (s SqlTeamStore) GetTotalMemberCount(teamId string) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
@@ -482,10 +482,39 @@ func (s SqlTeamStore) GetMemberCount(teamId string) StoreChannel {
 			WHERE
 				TeamMembers.UserId = Users.Id
 				AND TeamMembers.TeamId = :TeamId
-                AND TeamMembers.DeleteAt = 0
+				AND TeamMembers.DeleteAt = 0`, map[string]interface{}{"TeamId": teamId})
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlTeamStore.GetTotalMemberCount", "store.sql_team.get_member_count.app_error", nil, "teamId="+teamId+" "+err.Error())
+		} else {
+			result.Data = count
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlTeamStore) GetActiveMemberCount(teamId string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		count, err := s.GetReplica().SelectInt(`
+			SELECT
+				count(*)
+			FROM
+				TeamMembers,
+				Users
+			WHERE
+				TeamMembers.UserId = Users.Id
+				AND TeamMembers.TeamId = :TeamId
+				AND TeamMembers.DeleteAt = 0
 				AND Users.DeleteAt = 0`, map[string]interface{}{"TeamId": teamId})
 		if err != nil {
-			result.Err = model.NewLocAppError("SqlTeamStore.GetMemberCount", "store.sql_team.get_member_count.app_error", nil, "teamId="+teamId+" "+err.Error())
+			result.Err = model.NewLocAppError("SqlTeamStore.GetActiveMemberCount", "store.sql_team.get_member_count.app_error", nil, "teamId="+teamId+" "+err.Error())
 		} else {
 			result.Data = count
 		}

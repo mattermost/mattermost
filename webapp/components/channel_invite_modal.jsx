@@ -38,7 +38,7 @@ export default class ChannelInviteModal extends React.Component {
 
         this.state = {
             users: null,
-            total: teamStats.member_count - channelStats.member_count,
+            total: teamStats.active_member_count - channelStats.member_count,
             show: true,
             search: false,
             statusChange: false
@@ -72,8 +72,8 @@ export default class ChannelInviteModal extends React.Component {
         const teamStats = TeamStore.getCurrentStats();
 
         this.setState({
-            users: UserStore.getProfileListNotInChannel(this.props.channel.id),
-            total: teamStats.member_count - channelStats.member_count
+            users: UserStore.getProfileListNotInChannel(this.props.channel.id, true),
+            total: teamStats.active_member_count - channelStats.member_count
         });
     }
 

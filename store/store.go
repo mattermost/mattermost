@@ -70,7 +70,8 @@ type TeamStore interface {
 	GetMember(teamId string, userId string) StoreChannel
 	GetMembers(teamId string, offset int, limit int) StoreChannel
 	GetMembersByIds(teamId string, userIds []string) StoreChannel
-	GetMemberCount(teamId string) StoreChannel
+	GetTotalMemberCount(teamId string) StoreChannel
+	GetActiveMemberCount(teamId string) StoreChannel
 	GetTeamsForUser(userId string) StoreChannel
 	RemoveMember(teamId string, userId string) StoreChannel
 	RemoveAllMembersByTeam(teamId string) StoreChannel
