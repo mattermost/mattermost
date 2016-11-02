@@ -240,13 +240,13 @@ export default class SecurityTab extends React.Component {
                 content = (
                     <div key='mfaButton'>
                         <div className='form-group'>
-                            <label className='col-sm-5 control-label'>
+                            <label className='col-sm-3 control-label'>
                                 <FormattedMessage
                                     id='user.settings.mfa.qrCode'
                                     defaultMessage='Bar Code'
                                 />
                             </label>
-                            <div className='col-sm-7'>
+                            <div className='col-sm-5'>
                                 <img
                                     className='qr-code-img'
                                     src={'data:image/png;base64,' + this.state.qrCode}
@@ -254,16 +254,17 @@ export default class SecurityTab extends React.Component {
                             </div>
                         </div>
                         <div className='form-group'>
-                            <label className='col-sm-5 control-label'>
+                            <label className='col-sm-3 control-label'>
                                 <FormattedMessage
                                     id='user.settings.mfa.secret'
                                     defaultMessage='Secret'
                                 />
                             </label>
-                            <div className='col-sm-7'>
+                            <div className='col-sm-9 padding-top'>
                                 {this.state.secret}
                             </div>
                         </div>
+                        <hr/>
                         <div className='form-group'>
                             <label className='col-sm-5 control-label'>
                                 <FormattedMessage
@@ -325,7 +326,7 @@ export default class SecurityTab extends React.Component {
             inputs.push(
                 <div
                     key='mfaSetting'
-                    className='form-group'
+                    className='padding-top'
                 >
                     {content}
                 </div>
@@ -346,6 +347,7 @@ export default class SecurityTab extends React.Component {
                     server_error={this.state.serverError}
                     client_error={this.state.mfaError}
                     updateSection={updateSectionStatus}
+                    width='medium'
                 />
             );
         }
