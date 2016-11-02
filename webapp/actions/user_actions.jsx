@@ -316,3 +316,20 @@ export function autocompleteUsersInTeam(username, success, error) {
         }
     );
 }
+
+export function generateMfaSecret(success, error) {
+    Client.generateMfaSecret(
+        (data) => {
+            if (success) {
+                success(data);
+            }
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'generateMfaSecret');
+
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
