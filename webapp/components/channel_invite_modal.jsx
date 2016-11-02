@@ -105,7 +105,7 @@ export default class ChannelInviteModal extends React.Component {
         searchUsers(
             term,
             TeamStore.getCurrentId(),
-            {not_in_channel: this.props.channel.id},
+            {not_in_channel_id: this.props.channel.id},
             (users) => {
                 this.setState({search: true, users});
             }

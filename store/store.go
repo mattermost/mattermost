@@ -164,9 +164,9 @@ type UserStore interface {
 	GetUnreadCount(userId string) StoreChannel
 	GetUnreadCountForChannel(userId string, channelId string) StoreChannel
 	GetRecentlyActiveUsersForTeam(teamId string) StoreChannel
-	Search(teamId string, term string, searchType string) StoreChannel
-	SearchInChannel(channelId string, term string, searchType string) StoreChannel
-	SearchNotInChannel(teamId string, channelId string, term string, searchType string) StoreChannel
+	Search(teamId string, term string, options map[string]bool) StoreChannel
+	SearchInChannel(channelId string, term string, options map[string]bool) StoreChannel
+	SearchNotInChannel(teamId string, channelId string, term string, options map[string]bool) StoreChannel
 }
 
 type SessionStore interface {

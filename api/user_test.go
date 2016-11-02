@@ -2034,10 +2034,14 @@ func TestGetProfilesNotInChannel(t *testing.T) {
 }
 
 func TestSearchUsers(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup().InitBasic().InitSystemAdmin()
 	Client := th.BasicClient
 
-	if result, err := Client.SearchUsers(th.BasicUser.Username, "", map[string]string{}); err != nil {
+	inactiveUser := th.CreateUser(Client)
+	LinkUserToTeam(inactiveUser, th.BasicTeam)
+	th.SystemAdminClient.Must(th.SystemAdminClient.UpdateActive(inactiveUser.Id, false))
+
+	if result, err := Client.SearchUsers(model.UserSearch{Term: th.BasicUser.Username}); err != nil {
 		t.Fatal(err)
 	} else {
 		users := result.Data.([]*model.User)
@@ -2054,7 +2058,41 @@ func TestSearchUsers(t *testing.T) {
 		}
 	}
 
-	if result, err := Client.SearchUsers(th.BasicUser.Username, "", map[string]string{"in_channel": th.BasicChannel.Id}); err != nil {
+	if result, err := Client.SearchUsers(model.UserSearch{Term: inactiveUser.Username, TeamId: th.BasicTeam.Id}); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.([]*model.User)
+
+		found := false
+		for _, user := range users {
+			if user.Id == inactiveUser.Id {
+				found = true
+			}
+		}
+
+		if found {
+			t.Fatal("should not have found inactive user")
+		}
+	}
+
+	if result, err := Client.SearchUsers(model.UserSearch{Term: inactiveUser.Username, TeamId: th.BasicTeam.Id, AllowInactive: true}); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.([]*model.User)
+
+		found := false
+		for _, user := range users {
+			if user.Id == inactiveUser.Id {
+				found = true
+			}
+		}
+
+		if !found {
+			t.Fatal("should have found inactive user")
+		}
+	}
+
+	if result, err := Client.SearchUsers(model.UserSearch{Term: th.BasicUser.Username, InChannelId: th.BasicChannel.Id}); err != nil {
 		t.Fatal(err)
 	} else {
 		users := result.Data.([]*model.User)
@@ -2075,7 +2113,7 @@ func TestSearchUsers(t *testing.T) {
 		}
 	}
 
-	if result, err := Client.SearchUsers(th.BasicUser2.Username, "", map[string]string{"not_in_channel": th.BasicChannel.Id}); err != nil {
+	if result, err := Client.SearchUsers(model.UserSearch{Term: th.BasicUser2.Username, NotInChannelId: th.BasicChannel.Id}); err != nil {
 		t.Fatal(err)
 	} else {
 		users := result.Data.([]*model.User)
@@ -2102,7 +2140,7 @@ func TestSearchUsers(t *testing.T) {
 		}
 	}
 
-	if result, err := Client.SearchUsers(th.BasicUser2.Username, th.BasicTeam.Id, map[string]string{"not_in_channel": th.BasicChannel.Id}); err != nil {
+	if result, err := Client.SearchUsers(model.UserSearch{Term: th.BasicUser2.Username, TeamId: th.BasicTeam.Id, NotInChannelId: th.BasicChannel.Id}); err != nil {
 		t.Fatal(err)
 	} else {
 		users := result.Data.([]*model.User)
@@ -2129,7 +2167,7 @@ func TestSearchUsers(t *testing.T) {
 		}
 	}
 
-	if result, err := Client.SearchUsers(th.BasicUser.Username, "junk", map[string]string{"not_in_channel": th.BasicChannel.Id}); err != nil {
+	if result, err := Client.SearchUsers(model.UserSearch{Term: th.BasicUser.Username, TeamId: "junk", NotInChannelId: th.BasicChannel.Id}); err != nil {
 		t.Fatal(err)
 	} else {
 		users := result.Data.([]*model.User)
@@ -2141,7 +2179,7 @@ func TestSearchUsers(t *testing.T) {
 
 	th.LoginBasic2()
 
-	if result, err := Client.SearchUsers(th.BasicUser.Username, "", map[string]string{}); err != nil {
+	if result, err := Client.SearchUsers(model.UserSearch{Term: th.BasicUser.Username}); err != nil {
 		t.Fatal(err)
 	} else {
 		users := result.Data.([]*model.User)
@@ -2158,15 +2196,15 @@ func TestSearchUsers(t *testing.T) {
 		}
 	}
 
-	if _, err := Client.SearchUsers("", "", map[string]string{}); err == nil {
+	if _, err := Client.SearchUsers(model.UserSearch{}); err == nil {
 		t.Fatal("should have errored - blank term")
 	}
 
-	if _, err := Client.SearchUsers(th.BasicUser.Username, "", map[string]string{"in_channel": th.BasicChannel.Id}); err == nil {
+	if _, err := Client.SearchUsers(model.UserSearch{Term: th.BasicUser.Username, InChannelId: th.BasicChannel.Id}); err == nil {
 		t.Fatal("should not have access")
 	}
 
-	if _, err := Client.SearchUsers(th.BasicUser.Username, "", map[string]string{"not_in_channel": th.BasicChannel.Id}); err == nil {
+	if _, err := Client.SearchUsers(model.UserSearch{Term: th.BasicUser.Username, NotInChannelId: th.BasicChannel.Id}); err == nil {
 		t.Fatal("should not have access")
 	}
 }
