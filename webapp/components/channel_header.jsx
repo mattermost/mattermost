@@ -393,7 +393,7 @@ export default class ChannelHeader extends React.Component {
                     >
                         <FormattedMessage
                             id='channel_header.channelHeader'
-                            defaultMessage='Set Channel Header...'
+                            defaultMessage='Edit Channel Header'
                         />
                     </ToggleModalButton>
                 </li>
@@ -415,6 +415,32 @@ export default class ChannelHeader extends React.Component {
                         />
                     </ToggleModalButton>
                 </li>
+            );
+
+            dropdownContents.push(
+                <li
+                    key='notification_preferences'
+                    role='presentation'
+                >
+                    <ToggleModalButton
+                        role='menuitem'
+                        dialogType={ChannelNotificationsModal}
+                        dialogProps={{
+                            channel,
+                            channelMember: this.state.memberChannel,
+                            currentUser: this.state.currentUser
+                        }}
+                    >
+                        <FormattedMessage
+                            id='channel_header.notificationPreferences'
+                            defaultMessage='Notification Preferences'
+                        />
+                    </ToggleModalButton>
+                </li>
+            );
+
+            dropdownContents.push(
+                <li className='divider'/>
             );
 
             if (!ChannelStore.isDefault(channel)) {
@@ -476,25 +502,7 @@ export default class ChannelHeader extends React.Component {
             }
 
             dropdownContents.push(
-                <li
-                    key='notification_preferences'
-                    role='presentation'
-                >
-                    <ToggleModalButton
-                        role='menuitem'
-                        dialogType={ChannelNotificationsModal}
-                        dialogProps={{
-                            channel,
-                            channelMember: this.state.memberChannel,
-                            currentUser: this.state.currentUser
-                        }}
-                    >
-                        <FormattedMessage
-                            id='channel_header.notificationPreferences'
-                            defaultMessage='Notification Preferences'
-                        />
-                    </ToggleModalButton>
-                </li>
+                <li className='divider'/>
             );
 
             const deleteOption = (
@@ -509,7 +517,7 @@ export default class ChannelHeader extends React.Component {
                     >
                         <FormattedMessage
                             id='channel_header.delete'
-                            defaultMessage='Delete {term}...'
+                            defaultMessage='Delete {term}'
                             values={{
                                 term: (channelTerm)
                             }}
@@ -531,7 +539,7 @@ export default class ChannelHeader extends React.Component {
                         >
                             <FormattedMessage
                                 id='channel_header.setHeader'
-                                defaultMessage='Set {term} Header...'
+                                defaultMessage='Edit {term} Header'
                                 values={{
                                     term: (channelTerm)
                                 }}
@@ -552,7 +560,7 @@ export default class ChannelHeader extends React.Component {
                         >
                             <FormattedMessage
                                 id='channel_header.setPurpose'
-                                defaultMessage='Set {term} Purpose...'
+                                defaultMessage='Edit {term} Purpose'
                                 values={{
                                     term: (channelTerm)
                                 }}
@@ -573,7 +581,7 @@ export default class ChannelHeader extends React.Component {
                         >
                             <FormattedMessage
                                 id='channel_header.rename'
-                                defaultMessage='Rename {term}...'
+                                defaultMessage='Rename {term}'
                                 values={{
                                     term: (channelTerm)
                                 }}
@@ -588,6 +596,10 @@ export default class ChannelHeader extends React.Component {
             } else if (this.state.userCount === 1) {
                 dropdownContents.push(deleteOption);
             }
+
+            dropdownContents.push(
+                <li className='divider'/>
+            );
 
             const canLeave = channel.type === Constants.PRIVATE_CHANNEL ? this.state.userCount > 1 : true;
             if (!ChannelStore.isDefault(channel) && canLeave) {
