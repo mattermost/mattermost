@@ -20,6 +20,14 @@ const holders = defineMessages({
     nameEx: {
         id: 'channel_modal.nameEx',
         defaultMessage: 'E.g.: "Bugs", "Marketing", "客户支持"'
+    },
+    purposeEx: {
+        id: 'channel_modal.purposeEx',
+        defaultMessage: 'E.g.: "A channel to file bugs and improvements"'
+    },
+    headerEx: {
+        id: 'channel_modal.headerEx',
+        defaultMessage: 'E.g.: "[Link Title](http://example.com)"'
     }
 });
 
@@ -267,7 +275,7 @@ class NewChannelModal extends React.Component {
                                     <label className='form__label control-label'>
                                         <FormattedMessage
                                             id='channel_modal.purpose'
-                                            defaultMessage='E.g.: "A channel to file bugs and improvements"'
+                                            defaultMessage='Purpose'
                                         />
                                     </label>
                                     <label className='form__label light'>
@@ -282,7 +290,7 @@ class NewChannelModal extends React.Component {
                                         className='form-control no-resize'
                                         ref='channel_purpose'
                                         rows='4'
-                                        placeholder={this.props.intl.formatMessage({id: 'channel_modal.purpose'})}
+                                        placeholder={this.props.intl.formatMessage(holders.purposeEx)}
                                         maxLength='128'
                                         value={this.props.channelData.purpose}
                                         onChange={this.handleChange}
@@ -304,7 +312,7 @@ class NewChannelModal extends React.Component {
                                     <label className='form__label control-label'>
                                         <FormattedMessage
                                             id='channel_modal.header'
-                                            defaultMessage='E.g.: "[Link Title](http://example.com)"'
+                                            defaultMessage='E.g.: "Header'
                                         />
                                     </label>
                                     <label className='form__label light'>
@@ -319,7 +327,7 @@ class NewChannelModal extends React.Component {
                                         className='form-control no-resize'
                                         ref='channel_header'
                                         rows='4'
-                                        placeholder={this.props.intl.formatMessage({id: 'channel_modal.header'})}
+                                        placeholder={this.props.intl.formatMessage(holders.headerEx)}
                                         maxLength='128'
                                         value={this.props.channelData.header}
                                         onChange={this.handleChange}
