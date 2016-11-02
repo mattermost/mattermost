@@ -192,7 +192,11 @@
         &.post--compact {
             .status-wrapper {
                 &:after {
-                    bottom: 12px;
+                    bottom: 3px;
+
+                    .sidebar--right & {
+                        bottom: 0;
+                    }
                 }
             }
         }
@@ -1305,6 +1309,24 @@
 }
 
 @media screen and (max-width: 480px) {
+    .sidebar--right {
+        .post {
+            &.post--compact {
+                .post__header {
+                    height: auto;
+                }
+            }
+
+            .post__header {
+                .col__name {
+                    .user-popover {
+                        max-width: 100%;
+                    }
+                }
+            }
+        }
+    }
+
     .backstage-header {
         h1 {
             float: none;

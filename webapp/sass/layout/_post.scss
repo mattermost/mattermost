@@ -530,9 +530,15 @@ body.ios {
             }
         }
 
+        .post__img {
+            padding-top: 0;
+        }
+
         .status-wrapper {
+            height: 14px;
+
             &:after {
-                bottom: 10px;
+                bottom: 0;
             }
         }
 

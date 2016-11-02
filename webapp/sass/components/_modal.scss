@@ -21,7 +21,7 @@
 
         .custom-textarea {
             max-height: 60vh;
-            min-height: 8em;
+            min-height: 20em;
         }
 
         .suggestion-list {
@@ -192,7 +192,7 @@
             .btn {
                 &.btn-primary {
                     float: right;
-                    margin: -4px 25px 0 0;
+                    margin: -4px 33px 0 0;
                     position: relative;
 
                     i {
@@ -592,7 +592,7 @@
     .more-modal__row {
         border-bottom: 1px solid $light-gray;
         display: flex;
-        min-height: 65px;
+        min-height: 50px;
         padding: 8px 15px;
     }
 
