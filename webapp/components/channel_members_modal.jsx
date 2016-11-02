@@ -27,6 +27,7 @@ export default class ChannelMembersModal extends React.Component {
         super(props);
 
         this.onChange = this.onChange.bind(this);
+        this.onStatusChange = this.onStatusChange.bind(this);
         this.handleRemove = this.handleRemove.bind(this);
         this.createRemoveMemberButton = this.createRemoveMemberButton.bind(this);
         this.search = this.search.bind(this);
@@ -40,7 +41,8 @@ export default class ChannelMembersModal extends React.Component {
             users: [],
             total: stats.member_count,
             showInviteModal: false,
-            search: false
+            search: false,
+            statusChange: false
         };
     }
 
@@ -48,17 +50,25 @@ export default class ChannelMembersModal extends React.Component {
         if (!this.props.show && nextProps.show) {
             ChannelStore.addStatsChangeListener(this.onChange);
             UserStore.addInChannelChangeListener(this.onChange);
+            UserStore.addStatusesChangeListener(this.onStatusChange);
 
             this.onChange();
             AsyncClient.getProfilesInChannel(this.props.channel.id, 0);
         } else if (this.props.show && !nextProps.show) {
             ChannelStore.removeStatsChangeListener(this.onChange);
             UserStore.removeInChannelChangeListener(this.onChange);
+            UserStore.removeStatusesChangeListener(this.onStatusChange);
         }
     }
 
-    onChange() {
-        if (this.state.search) {
+    componentWillUnmount() {
+        ChannelStore.removeStatsChangeListener(this.onChange);
+        UserStore.removeInChannelChangeListener(this.onChange);
+        UserStore.removeStatusesChangeListener(this.onStatusChange);
+    }
+
+    onChange(force) {
+        if (this.state.search && !force) {
             this.search(this.term);
             return;
         }
@@ -67,6 +77,13 @@ export default class ChannelMembersModal extends React.Component {
         this.setState({
             users: UserStore.getProfileListInChannel(this.props.channel.id),
             total: stats.member_count
+        });
+    }
+
+    onStatusChange() {
+        // Initiate a render to pick up on new statuses
+        this.setState({
+            statusChange: !this.state.statusChange
         });
     }
 
@@ -110,7 +127,8 @@ export default class ChannelMembersModal extends React.Component {
         this.term = term;
 
         if (term === '') {
-            this.setState({users: UserStore.getProfileListInChannel(this.props.channel.id), search: false});
+            this.onChange(true);
+            this.setState({search: false});
             return;
         }
 
