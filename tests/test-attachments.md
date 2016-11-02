@@ -68,6 +68,10 @@ Expected: Generic Powerpoint thumbnail & preview window.
 Expected: Generic Word thumbnail & preview window.  
 [Permalink](https://pre-release.mattermost.com/core/pl/d7s76wp6kjdwfp4hgrwpijsnyy)
 
+**Text**  
+`Documents/Text.txt`  
+Expected: Generic code thumbnail & file previewer.
+[Permalink](https://pre-release.mattermost.com/core/pl/cpw539wcxtdmzeh5ju71y73o4e)
 
 ### Videos
 
