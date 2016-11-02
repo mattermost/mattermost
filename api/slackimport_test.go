@@ -110,10 +110,10 @@ func TestSlackConvertChannelMentions(t *testing.T) {
 	expectedPosts := map[string][]SlackPost{
 		"test-channel": {
 			{
-				Text: "Go to !one.",
+				Text: "Go to ~one.",
 			},
 			{
-				Text: "Try !two for this.",
+				Text: "Try ~two for this.",
 			},
 		},
 	}
