@@ -70,7 +70,7 @@ Expected: Generic Word thumbnail & preview window.
 
 **Text**  
 `Documents/Text.txt`  
-Expected: Generic Text thumbnail & file previewer.
+Expected: Generic code thumbnail & file previewer.
 [Permalink](https://pre-release.mattermost.com/core/pl/cpw539wcxtdmzeh5ju71y73o4e)
 
 ### Videos
