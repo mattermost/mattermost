@@ -52,6 +52,11 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(channel.TeamID) > 0 && channel.TeamId != c.TeamId {
+		c.SetInvalidParam("createChannel", "channel.TeamId")
+		return
+	}
+
 	if len(channel.TeamId) == 0 {
 		channel.TeamId = c.TeamId
 	}
