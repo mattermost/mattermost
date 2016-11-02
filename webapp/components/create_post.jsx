@@ -131,7 +131,8 @@ export default class CreatePost extends React.Component {
             this.sendMessage(post);
         }
 
-        const forceFocus = (Date.now() - this.state.lastBlurAt < 25);
+        const fasterThanHumanWillClick = 150;
+        const forceFocus = (Date.now() - this.state.lastBlurAt < fasterThanHumanWillClick);
         this.focusTextbox(forceFocus);
     }
 

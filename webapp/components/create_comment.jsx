@@ -37,6 +37,7 @@ export default class CreateComment extends React.Component {
         this.commentMsgKeyPress = this.commentMsgKeyPress.bind(this);
         this.handleChange = this.handleChange.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
+        this.handleBlur = this.handleBlur.bind(this);
         this.handleUploadClick = this.handleUploadClick.bind(this);
         this.handleUploadStart = this.handleUploadStart.bind(this);
         this.handleFileUploadComplete = this.handleFileUploadComplete.bind(this);
@@ -58,7 +59,8 @@ export default class CreateComment extends React.Component {
             fileInfos: draft.fileInfos,
             submitting: false,
             ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
-            showPostDeletedModal: false
+            showPostDeletedModal: false,
+            lastBlurAt: 0
         };
     }
 
@@ -166,7 +168,10 @@ export default class CreateComment extends React.Component {
             fileInfos: [],
             serverError: null
         });
-        this.focusTextbox(true);
+
+        const fasterThanHumanWillClick = 150;
+        const forceFocus = (Date.now() - this.state.lastBlurAt < fasterThanHumanWillClick);
+        this.focusTextbox(forceFocus);
     }
 
     commentMsgKeyPress(e) {
@@ -335,6 +340,10 @@ export default class CreateComment extends React.Component {
         });
     }
 
+    handleBlur() {
+        this.setState({lastBlurAt: Date.now()});
+    }
+
     render() {
         let serverError = null;
         if (this.state.serverError) {
@@ -398,6 +407,7 @@ export default class CreateComment extends React.Component {
                                 onKeyPress={this.commentMsgKeyPress}
                                 onKeyDown={this.handleKeyDown}
                                 value={this.state.message}
+                                onBlur={this.handleBlur}
                                 createMessage={Utils.localizeMessage('create_comment.addComment', 'Add a comment...')}
                                 initialText=''
                                 supportsCommands={false}
