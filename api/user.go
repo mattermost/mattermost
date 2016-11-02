@@ -6,7 +6,6 @@ package api
 import (
 	"bytes"
 	b64 "encoding/base64"
-	"encoding/json"
 	"fmt"
 	"hash/fnv"
 	"html/template"
@@ -2593,19 +2592,10 @@ func sanitizeProfile(c *Context, user *model.User) *model.User {
 }
 
 func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
-	var props struct {
-		Term           string `json:"term"`
-		TeamId         string `json:"team_id"`
-		InChannelId    string `json:"in_channel_id"`
-		NotInChannelId string `json:"not_in_channel_id"`
-		AllowInactive  bool   `json:"allow_inactive"`
-	}
-
-	if propBytes, err := ioutil.ReadAll(r.Body); err != nil {
+	props := model.UserSearchFromJson(r.Body)
+	if props == nil {
 		c.SetInvalidParam("searchUsers", "")
 		return
-	} else {
-		json.Unmarshal(propBytes, &props)
 	}
 
 	if len(props.Term) == 0 {
