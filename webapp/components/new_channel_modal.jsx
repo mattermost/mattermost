@@ -267,7 +267,7 @@ class NewChannelModal extends React.Component {
                                     <label className='form__label control-label'>
                                         <FormattedMessage
                                             id='channel_modal.purpose'
-                                            defaultMessage='Purpose'
+                                            defaultMessage='E.g.: “A channel to file bugs and improvements"'
                                         />
                                     </label>
                                     <label className='form__label light'>
@@ -304,7 +304,7 @@ class NewChannelModal extends React.Component {
                                     <label className='form__label control-label'>
                                         <FormattedMessage
                                             id='channel_modal.header'
-                                            defaultMessage='Header'
+                                            defaultMessage='E.g.: “[Link Title](http://example.com)"'
                                         />
                                     </label>
                                     <label className='form__label light'>
