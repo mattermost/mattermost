@@ -440,7 +440,7 @@ func SlackConvertChannelMentions(channels []SlackChannel, posts map[string][]Sla
 			l4g.Warn(utils.T("api.slackimport.slack_convert_channel_mentions.compile_regexp_failed.warn"), channel.Id, channel.Name)
 			continue
 		}
-		regexes["!"+channel.Name] = r
+		regexes["~"+channel.Name] = r
 	}
 
 	for channelName, channelPosts := range posts {

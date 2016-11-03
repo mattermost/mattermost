@@ -24,7 +24,7 @@ class ChannelMentionSuggestion extends Suggestion {
             className += ' suggestion--selected';
         }
 
-        const description = '(!' + item.channel.name + ')';
+        const description = '(~' + item.channel.name + ')';
 
         return (
             <div
@@ -72,7 +72,7 @@ function filterChannelsByPrefix(channels, prefix, limit) {
 
 export default class ChannelMentionProvider {
     handlePretextChanged(suggestionId, pretext) {
-        const captured = (/(^|\s)(!([^!]*))$/i).exec(pretext.toLowerCase());
+        const captured = (/(^|\s)(~([^~]*))$/i).exec(pretext.toLowerCase());
         if (captured) {
             const prefix = captured[3];
 
@@ -122,7 +122,7 @@ export default class ChannelMentionProvider {
 
             const wrapped = wrappedChannels.concat(wrappedMoreChannels);
 
-            const mentions = wrapped.map((item) => '!' + item.channel.name);
+            const mentions = wrapped.map((item) => '~' + item.channel.name);
 
             SuggestionStore.clearSuggestions(suggestionId);
             SuggestionStore.addSuggestions(suggestionId, mentions, wrapped, ChannelMentionSuggestion, captured[2]);

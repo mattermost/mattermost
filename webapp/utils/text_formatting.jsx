@@ -14,7 +14,7 @@ import XRegExp from 'xregexp';
 const cjkPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf]/;
 
 // Performs formatting of user posts including highlighting mentions and search terms and converting urls, hashtags,
-// @mentions and !channels to links by taking a user's message and returning a string of formatted html. Also takes
+// @mentions and ~channels to links by taking a user's message and returning a string of formatted html. Also takes
 // a number of options as part of the second parameter:
 // - searchTerm - If specified, this word is highlighted in the resulting html. Defaults to nothing.
 // - mentionHighlight - Specifies whether or not to highlight mentions of the current user. Defaults to true.
@@ -26,7 +26,7 @@ const cjkPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-
 //     links that can be handled by a special click handler.
 // - usernameMap - An object mapping usernames to users. If provided, at mentions will be replaced with internal links that can
 //      be handled by a special click handler (Utils.handleFormattedTextClick)
-// - channelNamesMap - An object mapping channel display names to channels. If provided, !channel mentions will be replaced with
+// - channelNamesMap - An object mapping channel display names to channels. If provided, ~channel mentions will be replaced with
 //      links to the relevant channel.
 // - team - The current team.
 export function formatText(text, inputOptions) {
@@ -217,7 +217,7 @@ function autolinkChannelMentions(text, tokens, channelNamesMap, team) {
 
         if (channelMentionExists(channelNameLower)) {
             // Exact match
-            const alias = addToken(channelNameLower, mention, '!' + channelNamesMap[channelNameLower].display_name);
+            const alias = addToken(channelNameLower, mention, '~' + channelNamesMap[channelNameLower].display_name);
             return spacer + alias;
         }
 
@@ -230,7 +230,7 @@ function autolinkChannelMentions(text, tokens, channelNamesMap, team) {
 
                 if (channelMentionExists(channelNameLower)) {
                     const suffix = originalChannelName.substr(c - 1);
-                    const alias = addToken(channelNameLower, '!' + channelNameLower, '!' + channelNamesMap[channelNameLower].display_name);
+                    const alias = addToken(channelNameLower, '~' + channelNameLower, '~' + channelNamesMap[channelNameLower].display_name);
                     return spacer + alias + suffix;
                 }
             } else {
@@ -243,7 +243,7 @@ function autolinkChannelMentions(text, tokens, channelNamesMap, team) {
     }
 
     let output = text;
-    output = output.replace(/(^|\s)(!([a-z0-9.\-_]*))/gi, replaceChannelMentionWithToken);
+    output = output.replace(/(^|\s)(~([a-z0-9.\-_]*))/gi, replaceChannelMentionWithToken);
 
     return output;
 }
