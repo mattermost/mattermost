@@ -381,7 +381,7 @@ export default class ChannelNotificationsModal extends React.Component {
         return (
             <Modal
                 show={this.props.show}
-                dialogClassName='settings-modal'
+                dialogClassName='settings-modal settings-modal__tabless'
                 onHide={this.props.onHide}
             >
                 <Modal.Header closeButton={true}>
