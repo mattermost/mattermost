@@ -77,6 +77,14 @@ start-docker:
 		docker start mattermost-postgres > /dev/null; \
 	fi
 
+	@if [ $(shell docker ps -a | grep -ci mattermost-webrtc) -eq 0 ]; then \
+    	echo starting mattermost-webrtc; \
+        docker run --name mattermost-webrtc -p 7088:7088 -p 7089:7089 -p 8188:8188 -p 8189:8189 -d mattermost/webrtc:latest > /dev/null; \
+    elif [ $(shell docker ps | grep -ci mattermost-webrtc) -eq 0 ]; then \
+    	echo restarting mattermost-webrtc; \
+        docker start mattermost-webrtc > /dev/null; \
+    fi
+
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Ldap test user test.one
 	@if [ $(shell docker ps -a | grep -ci mattermost-openldap) -eq 0 ]; then \
@@ -99,14 +107,6 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 		docker start mattermost-openldap > /dev/null; \
 		sleep 10; \
 	fi
-
-	@if [ $(shell docker ps -a | grep -ci mattermost-webrtc) -eq 0 ]; then \
-    		echo starting mattermost-webrtc; \
-    		docker run --name mattermost-webrtc -p 7088:7088 -p 7089:7089 -p 8188:8188 -p 8189:8189 -d mattermost/webrtc:latest > /dev/null; \
-    	elif [ $(shell docker ps | grep -ci mattermost-webrtc) -eq 0 ]; then \
-    		echo restarting mattermost-webrtc; \
-    		docker start mattermost-webrtc > /dev/null; \
-    	fi
 endif
 
 stop-docker:

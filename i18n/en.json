@@ -2528,12 +2528,16 @@
     "translation": "Inappropriate permissions to regenerate outcoming webhook token"
   },
   {
+    "id": "api.webrtc.disabled.app_error",
+    "translation": "WebRTC is not enabled in this server."
+  },
+  {
     "id": "api.webrtc.init.debug",
     "translation": "Initializing WebRTC api routes"
   },
   {
-    "id": "api.webrtc.not_available.app_error",
-    "translation": "WebRTC is not available on this server."
+    "id": "api.webrtc.register_token.app_error",
+    "translation": "We encountered an error trying to register the WebRTC Token"
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
@@ -2822,18 +2826,6 @@
   {
     "id": "ent.saml.update_saml_user.unable_error",
     "translation": "Unable to update existing SAML user. Allowing login anyway. err=%v"
-  },
-  {
-    "id": "ent.webrtc.disabled.app_error",
-    "translation": "WebRTC is not enabled in this server."
-  },
-  {
-    "id": "ent.webrtc.license_disable.app_error",
-    "translation": "Your license does not support using Mattermost WebRTC"
-  },
-  {
-    "id": "ent.webrtc.register_token.app_error",
-    "translation": "We encountered an error trying to register the WebRTC Token"
   },
   {
     "id": "error.generic.link_message",

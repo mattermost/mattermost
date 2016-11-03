@@ -290,8 +290,7 @@ export default class ChannelHeader extends React.Component {
             const teammateId = Utils.getUserIdFromChannelName(channel);
             channelTitle = Utils.displayUsername(teammateId);
 
-            const webrtcEnabled = global.mm_config.EnableWebrtc === 'true' && global.mm_license.Webrtc === 'true' &&
-                global.mm_config.EnableDeveloper === 'true' && userMedia && Utils.isFeatureEnabled(PreReleaseFeatures.WEBRTC_PREVIEW);
+            const webrtcEnabled = global.mm_config.EnableWebrtc === 'true' && userMedia && Utils.isFeatureEnabled(PreReleaseFeatures.WEBRTC_PREVIEW);
 
             if (webrtcEnabled) {
                 const isOffline = UserStore.getStatus(contact.id) === UserStatuses.OFFLINE;
