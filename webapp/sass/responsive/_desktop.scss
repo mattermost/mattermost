@@ -75,6 +75,18 @@
     }
 }
 
+@media (max-width: 1024px) {
+    .inner-wrap {
+        &.move--left {
+            .channel-header {
+                .heading {
+                    width: 100px;
+                }
+            }
+        }
+    }
+}
+
 @media (min-width: 992px) {
     .modal-lg {
         width: 700px;

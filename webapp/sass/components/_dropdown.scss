@@ -16,6 +16,10 @@
     .divider {
         @include opacity(.15);
 
+        & + .divider {
+            display: none;
+        }
+
         &:last-child {
             display: none;
         }
