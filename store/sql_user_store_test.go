@@ -934,7 +934,7 @@ func TestUserStoreSearch(t *testing.T) {
 	u1.FirstName = "Tim"
 	u1.LastName = "Bill"
 	u1.Nickname = "Rob"
-	u1.Email = model.NewId()
+	u1.Email = "harold" + model.NewId()
 	Must(store.User().Save(u1))
 
 	u2 := &model.User{}
@@ -954,7 +954,7 @@ func TestUserStoreSearch(t *testing.T) {
 	Must(store.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u3.Id}))
 
 	searchOptions := map[string]bool{}
-	searchOptions[USER_SEARCH_OPTION_USERNAME_ONLY] = true
+	searchOptions[USER_SEARCH_OPTION_NAMES_ONLY] = true
 
 	if r1 := <-store.User().Search(tid, "jimb", searchOptions); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -978,6 +978,22 @@ func TestUserStoreSearch(t *testing.T) {
 
 		if found2 {
 			t.Fatal("should not have found inactive user")
+		}
+	}
+
+	if r1 := <-store.User().Search(tid, "harol", searchOptions); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		profiles := r1.Data.([]*model.User)
+		found1 := false
+		for _, profile := range profiles {
+			if profile.Id == u1.Id {
+				found1 = true
+			}
+		}
+
+		if found1 {
+			t.Fatal("should not have found user")
 		}
 	}
 
@@ -1161,6 +1177,22 @@ func TestUserStoreSearch(t *testing.T) {
 	}
 
 	searchOptions = map[string]bool{}
+
+	if r1 := <-store.User().Search(tid, "harol", searchOptions); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		profiles := r1.Data.([]*model.User)
+		found1 := false
+		for _, profile := range profiles {
+			if profile.Id == u1.Id {
+				found1 = true
+			}
+		}
+
+		if !found1 {
+			t.Fatal("should have found user")
+		}
+	}
 
 	if r1 := <-store.User().Search(tid, "Tim", searchOptions); r1.Err != nil {
 		t.Fatal(r1.Err)
