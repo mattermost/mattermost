@@ -156,6 +156,10 @@ func (h *Hub) Start() {
 					close(webCon.Send)
 				}
 
+				if len(userId) == 0 {
+					continue
+				}
+
 				found := false
 				for webCon := range h.connections {
 					if userId == webCon.UserId {

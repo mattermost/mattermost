@@ -15,12 +15,14 @@ import (
 )
 
 const (
-	MISSING_ACCOUNT_ERROR          = "store.sql_user.missing_account.const"
-	MISSING_AUTH_ACCOUNT_ERROR     = "store.sql_user.get_by_auth.missing_account.app_error"
-	PROFILES_IN_CHANNEL_CACHE_SIZE = 5000
-	PROFILES_IN_CHANNEL_CACHE_SEC  = 900 // 15 mins
-	USER_SEARCH_TYPE_ALL           = "Username, FirstName, LastName, Nickname"
-	USER_SEARCH_TYPE_USERNAME      = "Username"
+	MISSING_ACCOUNT_ERROR             = "store.sql_user.missing_account.const"
+	MISSING_AUTH_ACCOUNT_ERROR        = "store.sql_user.get_by_auth.missing_account.app_error"
+	PROFILES_IN_CHANNEL_CACHE_SIZE    = 5000
+	PROFILES_IN_CHANNEL_CACHE_SEC     = 900 // 15 mins
+	USER_SEARCH_OPTION_NAMES_ONLY     = "names_only"
+	USER_SEARCH_OPTION_ALLOW_INACTIVE = "allow_inactive"
+	USER_SEARCH_TYPE_NAMES            = "Username, FirstName, LastName, Nickname"
+	USER_SEARCH_TYPE_ALL              = "Username, FirstName, LastName, Nickname, Email"
 )
 
 type SqlUserStore struct {
@@ -59,8 +61,8 @@ func (us SqlUserStore) CreateIndexesIfNotExists() {
 	us.CreateIndexIfNotExists("idx_users_create_at", "Users", "CreateAt")
 	us.CreateIndexIfNotExists("idx_users_delete_at", "Users", "DeleteAt")
 
-	us.CreateFullTextIndexIfNotExists("idx_users_username_txt", "Users", USER_SEARCH_TYPE_USERNAME)
-	us.CreateFullTextIndexIfNotExists("idx_users_all_names_txt", "Users", USER_SEARCH_TYPE_ALL)
+	us.CreateFullTextIndexIfNotExists("idx_users_all_txt", "Users", USER_SEARCH_TYPE_ALL)
+	us.CreateFullTextIndexIfNotExists("idx_users_names_txt", "Users", USER_SEARCH_TYPE_NAMES)
 }
 
 func (us SqlUserStore) Save(user *model.User) StoreChannel {
@@ -1085,20 +1087,24 @@ func (us SqlUserStore) GetUnreadCountForChannel(userId string, channelId string)
 	return storeChannel
 }
 
-func (us SqlUserStore) Search(teamId string, term string, searchType string) StoreChannel {
+func (us SqlUserStore) Search(teamId string, term string, options map[string]bool) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		searchQuery := ""
+
 		if teamId == "" {
+
+			// Id != '' is added because both SEARCH_CLAUSE and INACTIVE_CLAUSE start with an AND
 			searchQuery = `
 			SELECT
 				*
 			FROM
 				Users
 			WHERE
-				DeleteAt = 0
+				Id != ''
 				SEARCH_CLAUSE
+				INACTIVE_CLAUSE
 				ORDER BY Username ASC
 			LIMIT 50`
 		} else {
@@ -1110,14 +1116,14 @@ func (us SqlUserStore) Search(teamId string, term string, searchType string) Sto
 			WHERE
 				TeamMembers.TeamId = :TeamId
 				AND Users.Id = TeamMembers.UserId
-				AND Users.DeleteAt = 0
 				AND TeamMembers.DeleteAt = 0
 				SEARCH_CLAUSE
+				INACTIVE_CLAUSE
 				ORDER BY Users.Username ASC
 			LIMIT 100`
 		}
 
-		storeChannel <- us.performSearch(searchQuery, term, searchType, map[string]interface{}{"TeamId": teamId})
+		storeChannel <- us.performSearch(searchQuery, term, options, map[string]interface{}{"TeamId": teamId})
 		close(storeChannel)
 
 	}()
@@ -1125,7 +1131,7 @@ func (us SqlUserStore) Search(teamId string, term string, searchType string) Sto
 	return storeChannel
 }
 
-func (us SqlUserStore) SearchNotInChannel(teamId string, channelId string, term string, searchType string) StoreChannel {
+func (us SqlUserStore) SearchNotInChannel(teamId string, channelId string, term string, options map[string]bool) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
@@ -1133,34 +1139,38 @@ func (us SqlUserStore) SearchNotInChannel(teamId string, channelId string, term 
 		if teamId == "" {
 			searchQuery = `
 			SELECT
-				u.*
-			FROM Users u
+				Users.*
+			FROM Users
 			LEFT JOIN ChannelMembers cm
-				ON cm.UserId = u.Id
+				ON cm.UserId = Users.Id
 				AND cm.ChannelId = :ChannelId
-			WHERE cm.UserId IS NULL
-			SEARCH_CLAUSE
-			ORDER BY u.Username ASC
+			WHERE
+				cm.UserId IS NULL
+				SEARCH_CLAUSE
+				INACTIVE_CLAUSE
+			ORDER BY Users.Username ASC
 			LIMIT 100`
 		} else {
 			searchQuery = `
 			SELECT
-				u.*
-			FROM Users u
+				Users.*
+			FROM Users
 			INNER JOIN TeamMembers tm
-				ON tm.UserId = u.Id
+				ON tm.UserId = Users.Id
 				AND tm.TeamId = :TeamId
 				AND tm.DeleteAt = 0
 			LEFT JOIN ChannelMembers cm
-				ON cm.UserId = u.Id
+				ON cm.UserId = Users.Id
 				AND cm.ChannelId = :ChannelId
-			WHERE cm.UserId IS NULL
-			SEARCH_CLAUSE
-			ORDER BY u.Username ASC
+			WHERE
+				cm.UserId IS NULL
+				SEARCH_CLAUSE
+				INACTIVE_CLAUSE
+			ORDER BY Users.Username ASC
 			LIMIT 100`
 		}
 
-		storeChannel <- us.performSearch(searchQuery, term, searchType, map[string]interface{}{"TeamId": teamId, "ChannelId": channelId})
+		storeChannel <- us.performSearch(searchQuery, term, options, map[string]interface{}{"TeamId": teamId, "ChannelId": channelId})
 		close(storeChannel)
 
 	}()
@@ -1168,7 +1178,7 @@ func (us SqlUserStore) SearchNotInChannel(teamId string, channelId string, term 
 	return storeChannel
 }
 
-func (us SqlUserStore) SearchInChannel(channelId string, term string, searchType string) StoreChannel {
+func (us SqlUserStore) SearchInChannel(channelId string, term string, options map[string]bool) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
@@ -1180,12 +1190,12 @@ func (us SqlUserStore) SearchInChannel(channelId string, term string, searchType
         WHERE
             ChannelMembers.ChannelId = :ChannelId
             AND ChannelMembers.UserId = Users.Id
-            AND Users.DeleteAt = 0
             SEARCH_CLAUSE
+            INACTIVE_CLAUSE
             ORDER BY Users.Username ASC
         LIMIT 100`
 
-		storeChannel <- us.performSearch(searchQuery, term, searchType, map[string]interface{}{"ChannelId": channelId})
+		storeChannel <- us.performSearch(searchQuery, term, options, map[string]interface{}{"ChannelId": channelId})
 		close(storeChannel)
 
 	}()
@@ -1193,18 +1203,50 @@ func (us SqlUserStore) SearchInChannel(channelId string, term string, searchType
 	return storeChannel
 }
 
-func (us SqlUserStore) performSearch(searchQuery string, term string, searchType string, parameters map[string]interface{}) StoreResult {
+func (us SqlUserStore) performSearch(searchQuery string, term string, options map[string]bool, parameters map[string]interface{}) StoreResult {
 	result := StoreResult{}
+
+	// these chars have special meaning and can be treated as spaces
+	for _, c := range specialSearchChar {
+		term = strings.Replace(term, c, " ", -1)
+	}
+
+	searchType := USER_SEARCH_TYPE_ALL
+	if ok := options[USER_SEARCH_OPTION_NAMES_ONLY]; ok {
+		searchType = USER_SEARCH_TYPE_NAMES
+	}
+
+	if ok := options[USER_SEARCH_OPTION_ALLOW_INACTIVE]; ok {
+		searchQuery = strings.Replace(searchQuery, "INACTIVE_CLAUSE", "", 1)
+	} else {
+		searchQuery = strings.Replace(searchQuery, "INACTIVE_CLAUSE", "AND Users.DeleteAt = 0", 1)
+	}
 
 	if term == "" {
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
 	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
-		term = term + ":*"
+		splitTerm := strings.Fields(term)
+		for i, t := range strings.Fields(term) {
+			if i == len(splitTerm)-1 {
+				splitTerm[i] = t + ":*"
+			} else {
+				splitTerm[i] = t + ":* &"
+			}
+		}
+
+		term = strings.Join(splitTerm, " ")
+
 		searchType = convertMySQLFullTextColumnsToPostgres(searchType)
 		searchClause := fmt.Sprintf("AND (%s) @@  to_tsquery(:Term)", searchType)
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
-		term = term + "*"
+		splitTerm := strings.Fields(term)
+		for i, t := range strings.Fields(term) {
+			splitTerm[i] = "+" + t + "*"
+		}
+
+		term = strings.Join(splitTerm, " ")
+
 		searchClause := fmt.Sprintf("AND MATCH(%s) AGAINST (:Term IN BOOLEAN MODE)", searchType)
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 	}

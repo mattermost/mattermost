@@ -8,6 +8,7 @@ import SettingItemMax from './setting_item_max.jsx';
 import Client from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import TeamStore from 'stores/team_store.jsx';
+import Constants from 'utils/constants.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
@@ -430,7 +431,7 @@ class GeneralTab extends React.Component {
                         <input
                             className='form-control'
                             type='text'
-                            maxLength='22'
+                            maxLength={Constants.MAX_TEAMNAME_LENGTH.toString()}
                             onChange={this.updateName}
                             value={this.state.name}
                         />

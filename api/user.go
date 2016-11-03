@@ -64,7 +64,7 @@ func InitUser() {
 	BaseRoutes.NeedChannel.Handle("/users/autocomplete", ApiUserRequired(autocompleteUsersInChannel)).Methods("GET")
 
 	BaseRoutes.Users.Handle("/mfa", ApiAppHandler(checkMfa)).Methods("POST")
-	BaseRoutes.Users.Handle("/generate_mfa_qr", ApiUserRequiredTrustRequester(generateMfaQrCode)).Methods("GET")
+	BaseRoutes.Users.Handle("/generate_mfa_secret", ApiUserRequiredTrustRequester(generateMfaSecret)).Methods("GET")
 	BaseRoutes.Users.Handle("/update_mfa", ApiUserRequired(updateMfa)).Methods("POST")
 
 	BaseRoutes.Users.Handle("/claim/email_to_oauth", ApiAppHandler(emailToOAuth)).Methods("POST")
@@ -2306,7 +2306,7 @@ func resendVerification(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func generateMfaQrCode(c *Context, w http.ResponseWriter, r *http.Request) {
+func generateMfaSecret(c *Context, w http.ResponseWriter, r *http.Request) {
 	uchan := Srv.Store.User().Get(c.Session.UserId)
 
 	var user *model.User
@@ -2319,22 +2319,25 @@ func generateMfaQrCode(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	mfaInterface := einterfaces.GetMfaInterface()
 	if mfaInterface == nil {
-		c.Err = model.NewLocAppError("generateMfaQrCode", "api.user.generate_mfa_qr.not_available.app_error", nil, "")
+		c.Err = model.NewLocAppError("generateMfaSecret", "api.user.generate_mfa_qr.not_available.app_error", nil, "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
 
-	img, err := mfaInterface.GenerateQrCode(user)
+	secret, img, err := mfaInterface.GenerateSecret(user)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	w.Header().Del("Content-Type") // Content-Type will be set automatically by the http writer
+	resp := map[string]string{}
+	resp["qr_code"] = b64.StdEncoding.EncodeToString(img)
+	resp["secret"] = secret
+
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Pragma", "no-cache")
 	w.Header().Set("Expires", "0")
-	w.Write(img)
+	w.Write([]byte(model.MapToJson(resp)))
 }
 
 func updateMfa(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2592,33 +2595,35 @@ func sanitizeProfile(c *Context, user *model.User) *model.User {
 }
 
 func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.MapFromJson(r.Body)
+	props := model.UserSearchFromJson(r.Body)
+	if props == nil {
+		c.SetInvalidParam("searchUsers", "")
+		return
+	}
 
-	term := props["term"]
-	if len(term) == 0 {
+	if len(props.Term) == 0 {
 		c.SetInvalidParam("searchUsers", "term")
 		return
 	}
 
-	teamId := props["team_id"]
-	inChannelId := props["in_channel"]
-	notInChannelId := props["not_in_channel"]
-
-	if inChannelId != "" && !HasPermissionToChannelContext(c, inChannelId, model.PERMISSION_READ_CHANNEL) {
+	if props.InChannelId != "" && !HasPermissionToChannelContext(c, props.InChannelId, model.PERMISSION_READ_CHANNEL) {
 		return
 	}
 
-	if notInChannelId != "" && !HasPermissionToChannelContext(c, notInChannelId, model.PERMISSION_READ_CHANNEL) {
+	if props.NotInChannelId != "" && !HasPermissionToChannelContext(c, props.NotInChannelId, model.PERMISSION_READ_CHANNEL) {
 		return
 	}
+
+	searchOptions := map[string]bool{}
+	searchOptions[store.USER_SEARCH_OPTION_ALLOW_INACTIVE] = props.AllowInactive
 
 	var uchan store.StoreChannel
-	if inChannelId != "" {
-		uchan = Srv.Store.User().SearchInChannel(inChannelId, term, store.USER_SEARCH_TYPE_USERNAME)
-	} else if notInChannelId != "" {
-		uchan = Srv.Store.User().SearchNotInChannel(teamId, notInChannelId, term, store.USER_SEARCH_TYPE_USERNAME)
+	if props.InChannelId != "" {
+		uchan = Srv.Store.User().SearchInChannel(props.InChannelId, props.Term, searchOptions)
+	} else if props.NotInChannelId != "" {
+		uchan = Srv.Store.User().SearchNotInChannel(props.TeamId, props.NotInChannelId, props.Term, searchOptions)
 	} else {
-		uchan = Srv.Store.User().Search(teamId, term, store.USER_SEARCH_TYPE_USERNAME)
+		uchan = Srv.Store.User().Search(props.TeamId, props.Term, searchOptions)
 	}
 
 	if result := <-uchan; result.Err != nil {
@@ -2674,8 +2679,11 @@ func autocompleteUsersInChannel(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	uchan := Srv.Store.User().SearchInChannel(channelId, term, store.USER_SEARCH_TYPE_ALL)
-	nuchan := Srv.Store.User().SearchNotInChannel(teamId, channelId, term, store.USER_SEARCH_TYPE_ALL)
+	searchOptions := map[string]bool{}
+	searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
+
+	uchan := Srv.Store.User().SearchInChannel(channelId, term, map[string]bool{})
+	nuchan := Srv.Store.User().SearchNotInChannel(teamId, channelId, term, map[string]bool{})
 
 	autocomplete := &model.UserAutocompleteInChannel{}
 
@@ -2720,7 +2728,7 @@ func autocompleteUsersInTeam(c *Context, w http.ResponseWriter, r *http.Request)
 		}
 	}
 
-	uchan := Srv.Store.User().Search(teamId, term, store.USER_SEARCH_TYPE_ALL)
+	uchan := Srv.Store.User().Search(teamId, term, map[string]bool{})
 
 	autocomplete := &model.UserAutocompleteInTeam{}
 

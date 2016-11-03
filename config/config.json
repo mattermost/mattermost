@@ -57,8 +57,8 @@
         "DriverName": "mysql",
         "DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8",
         "DataSourceReplicas": [],
-        "MaxIdleConns": 10,
-        "MaxOpenConns": 10,
+        "MaxIdleConns": 20,
+        "MaxOpenConns": 300,
         "Trace": false,
         "AtRestEncryptKey": ""
     },

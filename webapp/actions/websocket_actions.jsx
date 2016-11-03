@@ -20,6 +20,7 @@ import * as AsyncClient from 'utils/async_client.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {handleNewPost, loadPosts} from 'actions/post_actions.jsx';
 import {loadProfilesAndTeamMembersForDMSidebar} from 'actions/user_actions.jsx';
+import {loadChannelsForCurrentUser} from 'actions/channel_actions.jsx';
 import * as StatusActions from 'actions/status_actions.jsx';
 
 import {Constants, SocketEvents, UserStatuses} from 'utils/constants.jsx';
@@ -75,7 +76,7 @@ function handleFirstConnect() {
 
 function handleReconnect() {
     if (Client.teamId) {
-        AsyncClient.getChannels();
+        loadChannelsForCurrentUser();
         loadPosts(ChannelStore.getCurrentId());
     }
 
@@ -198,6 +199,11 @@ function handlePostDeleteEvent(msg) {
 }
 
 function handleNewUserEvent(msg) {
+    if (TeamStore.getCurrentId() === '') {
+        // Any new users will be loaded when we switch into a context with a team
+        return;
+    }
+
     AsyncClient.getUser(msg.data.user_id);
     AsyncClient.getChannelStats();
     loadProfilesAndTeamMembersForDMSidebar();
@@ -205,10 +211,10 @@ function handleNewUserEvent(msg) {
 
 function handleLeaveTeamEvent(msg) {
     if (UserStore.getCurrentId() === msg.data.user_id) {
-        TeamStore.removeMyTeamMember(msg.broadcast.team_id);
+        TeamStore.removeMyTeamMember(msg.data.team_id);
 
         // if they are on the team being removed redirect them to the root
-        if (TeamStore.getCurrentId() === msg.broadcast.team_id) {
+        if (TeamStore.getCurrentId() === msg.data.team_id) {
             TeamStore.setCurrentId('');
             Client.setTeamId('');
             browserHistory.push('/');
@@ -233,7 +239,7 @@ function handleUserAddedEvent(msg) {
 
 function handleUserRemovedEvent(msg) {
     if (UserStore.getCurrentId() === msg.broadcast.user_id) {
-        AsyncClient.getChannels();
+        loadChannelsForCurrentUser();
 
         if (msg.data.remover_id !== msg.broadcast.user_id &&
                 msg.data.channel_id === ChannelStore.getCurrentId() &&
@@ -272,7 +278,7 @@ function handleChannelDeletedEvent(msg) {
         const teamUrl = TeamStore.getCurrentTeamRelativeUrl();
         browserHistory.push(teamUrl + '/channels/' + Constants.DEFAULT_CHANNEL);
     }
-    AsyncClient.getChannels();
+    loadChannelsForCurrentUser();
 }
 
 function handlePreferenceChangedEvent(msg) {

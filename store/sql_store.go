@@ -15,13 +15,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	l4g "github.com/alecthomas/log4go"
 	"io"
 	sqltrace "log"
-	"math/rand"
 	"os"
 	"strings"
+	"sync/atomic"
 	"time"
+
+	l4g "github.com/alecthomas/log4go"
 
 	"github.com/go-gorp/gorp"
 	_ "github.com/go-sql-driver/mysql"
@@ -84,10 +85,13 @@ type SqlStore struct {
 	status        StatusStore
 	fileInfo      FileInfoStore
 	SchemaVersion string
+	rrCounter     int64
 }
 
 func initConnection() *SqlStore {
-	sqlStore := &SqlStore{}
+	sqlStore := &SqlStore{
+		rrCounter: 0,
+	}
 
 	sqlStore.master = setupConnection("master", utils.Cfg.SqlSettings.DriverName,
 		utils.Cfg.SqlSettings.DataSource, utils.Cfg.SqlSettings.MaxIdleConns,
@@ -205,11 +209,11 @@ func setupConnection(con_type string, driver string, dataSource string, maxIdle 
 	return dbmap
 }
 
-func (ss SqlStore) TotalMasterDbConnections() int {
+func (ss *SqlStore) TotalMasterDbConnections() int {
 	return ss.GetMaster().Db.Stats().OpenConnections
 }
 
-func (ss SqlStore) TotalReadDbConnections() int {
+func (ss *SqlStore) TotalReadDbConnections() int {
 
 	if len(utils.Cfg.SqlSettings.DataSourceReplicas) == 0 {
 		return 0
@@ -225,12 +229,12 @@ func (ss SqlStore) TotalReadDbConnections() int {
 	return 0
 }
 
-func (ss SqlStore) GetCurrentSchemaVersion() string {
+func (ss *SqlStore) GetCurrentSchemaVersion() string {
 	version, _ := ss.GetMaster().SelectStr("SELECT Value FROM Systems WHERE Name='Version'")
 	return version
 }
 
-func (ss SqlStore) MarkSystemRanUnitTests() {
+func (ss *SqlStore) MarkSystemRanUnitTests() {
 	if result := <-ss.System().Get(); result.Err == nil {
 		props := result.Data.(model.StringMap)
 		unitTests := props[model.SYSTEM_RAN_UNIT_TESTS]
@@ -241,7 +245,7 @@ func (ss SqlStore) MarkSystemRanUnitTests() {
 	}
 }
 
-func (ss SqlStore) DoesTableExist(tableName string) bool {
+func (ss *SqlStore) DoesTableExist(tableName string) bool {
 	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 		count, err := ss.GetMaster().SelectInt(
 			`SELECT count(relname) FROM pg_class WHERE relname=$1`,
@@ -286,7 +290,7 @@ func (ss SqlStore) DoesTableExist(tableName string) bool {
 	}
 }
 
-func (ss SqlStore) DoesColumnExist(tableName string, columnName string) bool {
+func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 		count, err := ss.GetMaster().SelectInt(
 			`SELECT COUNT(0)
@@ -341,7 +345,7 @@ func (ss SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 	}
 }
 
-func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, mySqlColType string, postgresColType string, defaultValue string) bool {
+func (ss *SqlStore) CreateColumnIfNotExists(tableName string, columnName string, mySqlColType string, postgresColType string, defaultValue string) bool {
 
 	if ss.DoesColumnExist(tableName, columnName) {
 		return false
@@ -375,7 +379,7 @@ func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, 
 	}
 }
 
-func (ss SqlStore) RemoveColumnIfExists(tableName string, columnName string) bool {
+func (ss *SqlStore) RemoveColumnIfExists(tableName string, columnName string) bool {
 
 	if !ss.DoesColumnExist(tableName, columnName) {
 		return false
@@ -391,7 +395,7 @@ func (ss SqlStore) RemoveColumnIfExists(tableName string, columnName string) boo
 	return true
 }
 
-func (ss SqlStore) RenameColumnIfExists(tableName string, oldColumnName string, newColumnName string, colType string) bool {
+func (ss *SqlStore) RenameColumnIfExists(tableName string, oldColumnName string, newColumnName string, colType string) bool {
 	if !ss.DoesColumnExist(tableName, oldColumnName) {
 		return false
 	}
@@ -412,7 +416,7 @@ func (ss SqlStore) RenameColumnIfExists(tableName string, oldColumnName string, 
 	return true
 }
 
-func (ss SqlStore) GetMaxLengthOfColumnIfExists(tableName string, columnName string) string {
+func (ss *SqlStore) GetMaxLengthOfColumnIfExists(tableName string, columnName string) string {
 	if !ss.DoesColumnExist(tableName, columnName) {
 		return ""
 	}
@@ -434,7 +438,7 @@ func (ss SqlStore) GetMaxLengthOfColumnIfExists(tableName string, columnName str
 	return result
 }
 
-func (ss SqlStore) AlterColumnTypeIfExists(tableName string, columnName string, mySqlColType string, postgresColType string) bool {
+func (ss *SqlStore) AlterColumnTypeIfExists(tableName string, columnName string, mySqlColType string, postgresColType string) bool {
 	if !ss.DoesColumnExist(tableName, columnName) {
 		return false
 	}
@@ -455,19 +459,19 @@ func (ss SqlStore) AlterColumnTypeIfExists(tableName string, columnName string, 
 	return true
 }
 
-func (ss SqlStore) CreateUniqueIndexIfNotExists(indexName string, tableName string, columnName string) {
+func (ss *SqlStore) CreateUniqueIndexIfNotExists(indexName string, tableName string, columnName string) {
 	ss.createIndexIfNotExists(indexName, tableName, columnName, INDEX_TYPE_DEFAULT, true)
 }
 
-func (ss SqlStore) CreateIndexIfNotExists(indexName string, tableName string, columnName string) {
+func (ss *SqlStore) CreateIndexIfNotExists(indexName string, tableName string, columnName string) {
 	ss.createIndexIfNotExists(indexName, tableName, columnName, INDEX_TYPE_DEFAULT, false)
 }
 
-func (ss SqlStore) CreateFullTextIndexIfNotExists(indexName string, tableName string, columnName string) {
+func (ss *SqlStore) CreateFullTextIndexIfNotExists(indexName string, tableName string, columnName string) {
 	ss.createIndexIfNotExists(indexName, tableName, columnName, INDEX_TYPE_FULL_TEXT, false)
 }
 
-func (ss SqlStore) createIndexIfNotExists(indexName string, tableName string, columnName string, indexType string, unique bool) {
+func (ss *SqlStore) createIndexIfNotExists(indexName string, tableName string, columnName string, indexType string, unique bool) {
 
 	uniqueStr := ""
 	if unique {
@@ -526,7 +530,7 @@ func (ss SqlStore) createIndexIfNotExists(indexName string, tableName string, co
 	}
 }
 
-func (ss SqlStore) RemoveIndexIfExists(indexName string, tableName string) {
+func (ss *SqlStore) RemoveIndexIfExists(indexName string, tableName string) {
 
 	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 		_, err := ss.GetMaster().SelectStr("SELECT $1::regclass", indexName)
@@ -580,22 +584,23 @@ func IsUniqueConstraintError(err string, indexName []string) bool {
 	return unique && field
 }
 
-func (ss SqlStore) GetMaster() *gorp.DbMap {
+func (ss *SqlStore) GetMaster() *gorp.DbMap {
 	return ss.master
 }
 
-func (ss SqlStore) GetReplica() *gorp.DbMap {
-	return ss.replicas[rand.Intn(len(ss.replicas))]
+func (ss *SqlStore) GetReplica() *gorp.DbMap {
+	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.replicas))
+	return ss.replicas[rrNum]
 }
 
-func (ss SqlStore) GetAllConns() []*gorp.DbMap {
+func (ss *SqlStore) GetAllConns() []*gorp.DbMap {
 	all := make([]*gorp.DbMap, len(ss.replicas)+1)
 	copy(all, ss.replicas)
 	all[len(ss.replicas)] = ss.master
 	return all
 }
 
-func (ss SqlStore) Close() {
+func (ss *SqlStore) Close() {
 	l4g.Info(utils.T("store.sql.closing.info"))
 	ss.master.Db.Close()
 	for _, replica := range ss.replicas {
@@ -603,75 +608,75 @@ func (ss SqlStore) Close() {
 	}
 }
 
-func (ss SqlStore) Team() TeamStore {
+func (ss *SqlStore) Team() TeamStore {
 	return ss.team
 }
 
-func (ss SqlStore) Channel() ChannelStore {
+func (ss *SqlStore) Channel() ChannelStore {
 	return ss.channel
 }
 
-func (ss SqlStore) Post() PostStore {
+func (ss *SqlStore) Post() PostStore {
 	return ss.post
 }
 
-func (ss SqlStore) User() UserStore {
+func (ss *SqlStore) User() UserStore {
 	return ss.user
 }
 
-func (ss SqlStore) Session() SessionStore {
+func (ss *SqlStore) Session() SessionStore {
 	return ss.session
 }
 
-func (ss SqlStore) Audit() AuditStore {
+func (ss *SqlStore) Audit() AuditStore {
 	return ss.audit
 }
 
-func (ss SqlStore) Compliance() ComplianceStore {
+func (ss *SqlStore) Compliance() ComplianceStore {
 	return ss.compliance
 }
 
-func (ss SqlStore) OAuth() OAuthStore {
+func (ss *SqlStore) OAuth() OAuthStore {
 	return ss.oauth
 }
 
-func (ss SqlStore) System() SystemStore {
+func (ss *SqlStore) System() SystemStore {
 	return ss.system
 }
 
-func (ss SqlStore) Webhook() WebhookStore {
+func (ss *SqlStore) Webhook() WebhookStore {
 	return ss.webhook
 }
 
-func (ss SqlStore) Command() CommandStore {
+func (ss *SqlStore) Command() CommandStore {
 	return ss.command
 }
 
-func (ss SqlStore) Preference() PreferenceStore {
+func (ss *SqlStore) Preference() PreferenceStore {
 	return ss.preference
 }
 
-func (ss SqlStore) License() LicenseStore {
+func (ss *SqlStore) License() LicenseStore {
 	return ss.license
 }
 
-func (ss SqlStore) PasswordRecovery() PasswordRecoveryStore {
+func (ss *SqlStore) PasswordRecovery() PasswordRecoveryStore {
 	return ss.recovery
 }
 
-func (ss SqlStore) Emoji() EmojiStore {
+func (ss *SqlStore) Emoji() EmojiStore {
 	return ss.emoji
 }
 
-func (ss SqlStore) Status() StatusStore {
+func (ss *SqlStore) Status() StatusStore {
 	return ss.status
 }
 
-func (ss SqlStore) FileInfo() FileInfoStore {
+func (ss *SqlStore) FileInfo() FileInfoStore {
 	return ss.fileInfo
 }
 
-func (ss SqlStore) DropAllTables() {
+func (ss *SqlStore) DropAllTables() {
 	ss.master.TruncateTables()
 }
 

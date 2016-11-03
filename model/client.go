@@ -572,10 +572,8 @@ func (c *Client) GetProfilesByIds(userIds []string) (*Result, *AppError) {
 
 // SearchUsers returns a list of users that have a username matching or similar to the search term. Must
 // be authenticated.
-func (c *Client) SearchUsers(term string, teamId string, options map[string]string) (*Result, *AppError) {
-	options["term"] = term
-	options["team_id"] = teamId
-	if r, err := c.DoApiPost("/users/search", MapToJson(options)); err != nil {
+func (c *Client) SearchUsers(params UserSearch) (*Result, *AppError) {
+	if r, err := c.DoApiPost("/users/search", params.ToJson()); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)
@@ -698,15 +696,16 @@ func (c *Client) CheckMfa(loginId string) (*Result, *AppError) {
 	}
 }
 
-// GenerateMfaQrCode returns a QR code imagem containing the secret, to be scanned
-// by a multi-factor authentication mobile application. Must be authenticated.
-func (c *Client) GenerateMfaQrCode() (*Result, *AppError) {
-	if r, err := c.DoApiGet("/users/generate_mfa_qr", "", ""); err != nil {
+// GenerateMfaSecret returns a QR code image containing the secret, to be scanned
+// by a multi-factor authentication mobile application. It also returns the secret
+// for manual entry. Must be authenticated.
+func (c *Client) GenerateMfaSecret() (*Result, *AppError) {
+	if r, err := c.DoApiGet("/users/generate_mfa_secret", "", ""); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), r.Body}, nil
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
 }
 
@@ -1124,13 +1123,13 @@ func (c *Client) UpdateNotifyProps(data map[string]string) (*Result, *AppError) 
 	}
 }
 
-func (c *Client) GetChannels(etag string) (*Result, *AppError) {
-	if r, err := c.DoApiGet(c.GetTeamRoute()+"/channels/", "", etag); err != nil {
+func (c *Client) GetMyChannelMembers() (*Result, *AppError) {
+	if r, err := c.DoApiGet(c.GetTeamRoute()+"/channels/members", "", ""); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), ChannelListFromJson(r.Body)}, nil
+			r.Header.Get(HEADER_ETAG_SERVER), ChannelMembersFromJson(r.Body)}, nil
 	}
 }
 
@@ -1161,6 +1160,16 @@ func (c *Client) GetChannelCounts(etag string) (*Result, *AppError) {
 		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), ChannelCountsFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) GetChannels(etag string) (*Result, *AppError) {
+	if r, err := c.DoApiGet(c.GetTeamRoute()+"/channels/", "", etag); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), ChannelListFromJson(r.Body)}, nil
 	}
 }
 

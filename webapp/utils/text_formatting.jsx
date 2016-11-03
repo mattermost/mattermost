@@ -152,7 +152,7 @@ function autolinkEmails(text, tokens) {
 
 const punctuation = XRegExp.cache('[^\\pL\\d]');
 
-function autolinkAtMentions(text, tokens, usernameMap) {
+export function autolinkAtMentions(text, tokens, usernameMap) {
     // Test if provided text needs to be highlighted, special mention or current user
     function mentionExists(u) {
         return (Constants.SPECIAL_MENTIONS.indexOf(u) !== -1 || Boolean(usernameMap[u]));
@@ -169,30 +169,18 @@ function autolinkAtMentions(text, tokens, usernameMap) {
         return alias;
     }
 
-    function replaceAtMentionWithToken(fullMatch, mention, username) {
-        let usernameLower = username.toLowerCase();
+    function replaceAtMentionWithToken(fullMatch, prefix, mention, username) {
+        const usernameLower = username.toLowerCase();
 
-        if (mentionExists(usernameLower)) {
-            // Exact match
-            const alias = addToken(usernameLower, mention, '');
-            return alias;
-        }
-
-        // Not an exact match, attempt to truncate any punctuation to see if we can find a user
-        const originalUsername = usernameLower;
-
+        // Check if the text makes up an explicit mention, possible trimming extra punctuation from the end of the name if necessary
         for (let c = usernameLower.length; c > 0; c--) {
-            if (punctuation.test(usernameLower[c - 1])) {
-                usernameLower = usernameLower.substring(0, c - 1);
+            const truncated = usernameLower.substring(0, c);
+            const suffix = usernameLower.substring(c);
 
-                if (mentionExists(usernameLower)) {
-                    const suffix = originalUsername.substr(c - 1);
-                    const alias = addToken(usernameLower, '@' + usernameLower);
-                    return alias + suffix;
-                }
-            } else {
-                // If the last character is not punctuation, no point in going any further
-                break;
+            // If we've found a username or run out of punctuation to trim off, render it as an at mention
+            if (mentionExists(truncated) || !punctuation.test(truncated[truncated.length - 1])) {
+                const alias = addToken(truncated, '@' + truncated);
+                return prefix + alias + suffix;
             }
         }
 
@@ -200,7 +188,7 @@ function autolinkAtMentions(text, tokens, usernameMap) {
     }
 
     let output = text;
-    output = output.replace(/(@([a-z0-9.\-_]*))/gi, replaceAtMentionWithToken);
+    output = output.replace(/(^|\W)(@([a-z0-9.\-_]*))/gi, replaceAtMentionWithToken);
 
     return output;
 }

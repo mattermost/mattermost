@@ -17,7 +17,7 @@ const (
 
 func InitWebSocket() {
 	l4g.Debug(utils.T("api.web_socket.init.debug"))
-	BaseRoutes.Users.Handle("/websocket", ApiUserRequiredTrustRequester(connect)).Methods("GET")
+	BaseRoutes.Users.Handle("/websocket", ApiAppHandlerTrustRequester(connect)).Methods("GET")
 	HubStart()
 }
 

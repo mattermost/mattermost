@@ -27,6 +27,8 @@ export default class EmojiList extends React.Component {
     constructor(props) {
         super(props);
 
+        this.updateTitle = this.updateTitle.bind(this);
+
         this.handleEmojiChange = this.handleEmojiChange.bind(this);
         this.handleUserChange = this.handleUserChange.bind(this);
         this.deleteEmoji = this.deleteEmoji.bind(this);
@@ -47,6 +49,17 @@ export default class EmojiList extends React.Component {
         if (window.mm_config.EnableCustomEmoji === 'true') {
             loadEmoji();
         }
+
+        this.updateTitle();
+    }
+
+    updateTitle() {
+        let currentSiteName = '';
+        if (global.window.mm_config.SiteName != null) {
+            currentSiteName = global.window.mm_config.SiteName;
+        }
+
+        document.title = Utils.localizeMessage('custom_emoji.header', 'Custom Emoji') + ' - ' + this.props.team.display_name + ' ' + currentSiteName;
     }
 
     componentWillUnmount() {

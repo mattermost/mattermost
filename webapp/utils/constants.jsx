@@ -63,7 +63,6 @@ export const ActionTypes = keyMirror({
 
     CLICK_CHANNEL: null,
     CREATE_CHANNEL: null,
-    LEAVE_CHANNEL: null,
     CREATE_POST: null,
     CREATE_COMMENT: null,
     POST_DELETED: null,
@@ -73,6 +72,7 @@ export const ActionTypes = keyMirror({
     RECEIVED_CHANNEL: null,
     RECEIVED_MORE_CHANNELS: null,
     RECEIVED_CHANNEL_STATS: null,
+    RECEIVED_MY_CHANNEL_MEMBERS: null,
 
     FOCUS_POST: null,
     RECEIVED_POSTS: null,
@@ -181,6 +181,10 @@ export const UserStatuses = {
     ONLINE: 'online'
 };
 
+export const UserSearchOptions = {
+    ALLOW_INACTIVE: 'allow_inactive'
+};
+
 export const SocketEvents = {
     POSTED: 'posted',
     POST_EDITED: 'post_edited',
@@ -214,6 +218,7 @@ export const Constants = {
     ActionTypes,
     WebrtcActionTypes,
     UserStatuses,
+    UserSearchOptions,
     TutorialSteps,
 
     PayloadSources: keyMirror({

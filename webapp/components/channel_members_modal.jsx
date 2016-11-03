@@ -13,6 +13,7 @@ import {searchUsers} from 'actions/user_actions.jsx';
 import {removeUserFromChannel} from 'actions/channel_actions.jsx';
 
 import * as AsyncClient from 'utils/async_client.jsx';
+import * as UserAgent from 'utils/user_agent.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import React from 'react';
@@ -26,6 +27,7 @@ export default class ChannelMembersModal extends React.Component {
         super(props);
 
         this.onChange = this.onChange.bind(this);
+        this.onStatusChange = this.onStatusChange.bind(this);
         this.handleRemove = this.handleRemove.bind(this);
         this.createRemoveMemberButton = this.createRemoveMemberButton.bind(this);
         this.search = this.search.bind(this);
@@ -39,7 +41,8 @@ export default class ChannelMembersModal extends React.Component {
             users: [],
             total: stats.member_count,
             showInviteModal: false,
-            search: false
+            search: false,
+            statusChange: false
         };
     }
 
@@ -47,17 +50,25 @@ export default class ChannelMembersModal extends React.Component {
         if (!this.props.show && nextProps.show) {
             ChannelStore.addStatsChangeListener(this.onChange);
             UserStore.addInChannelChangeListener(this.onChange);
+            UserStore.addStatusesChangeListener(this.onStatusChange);
 
             this.onChange();
             AsyncClient.getProfilesInChannel(this.props.channel.id, 0);
         } else if (this.props.show && !nextProps.show) {
             ChannelStore.removeStatsChangeListener(this.onChange);
             UserStore.removeInChannelChangeListener(this.onChange);
+            UserStore.removeStatusesChangeListener(this.onStatusChange);
         }
     }
 
-    onChange() {
-        if (this.state.search) {
+    componentWillUnmount() {
+        ChannelStore.removeStatsChangeListener(this.onChange);
+        UserStore.removeInChannelChangeListener(this.onChange);
+        UserStore.removeStatusesChangeListener(this.onStatusChange);
+    }
+
+    onChange(force) {
+        if (this.state.search && !force) {
             this.search(this.term);
             return;
         }
@@ -66,6 +77,13 @@ export default class ChannelMembersModal extends React.Component {
         this.setState({
             users: UserStore.getProfileListInChannel(this.props.channel.id),
             total: stats.member_count
+        });
+    }
+
+    onStatusChange() {
+        // Initiate a render to pick up on new statuses
+        this.setState({
+            statusChange: !this.state.statusChange
         });
     }
 
@@ -109,14 +127,15 @@ export default class ChannelMembersModal extends React.Component {
         this.term = term;
 
         if (term === '') {
-            this.setState({users: UserStore.getProfileListInChannel(this.props.channel.id), search: false});
+            this.onChange(true);
+            this.setState({search: false});
             return;
         }
 
         searchUsers(
             term,
             TeamStore.getCurrentId(),
-            {in_channel: this.props.channel.id},
+            {in_channel_id: this.props.channel.id},
             (users) => {
                 this.setState({search: true, users});
             }
@@ -147,6 +166,7 @@ export default class ChannelMembersModal extends React.Component {
                     nextPage={this.nextPage}
                     search={this.search}
                     actions={removeButton}
+                    focusOnMount={!UserAgent.isMobile()}
                 />
             );
         }

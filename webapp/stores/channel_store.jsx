@@ -5,13 +5,10 @@ import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import EventEmitter from 'events';
 
 var Utils;
-import Constants from 'utils/constants.jsx';
-const ActionTypes = Constants.ActionTypes;
+import {ActionTypes, Constants} from 'utils/constants.jsx';
 const NotificationPrefs = Constants.NotificationPrefs;
 
 const CHANGE_EVENT = 'change';
-const LEAVE_EVENT = 'leave';
-const MORE_CHANGE_EVENT = 'change';
 const STATS_EVENT = 'stats';
 const LAST_VIEVED_EVENT = 'last_viewed';
 
@@ -26,7 +23,6 @@ class ChannelStoreClass extends EventEmitter {
         this.channels = [];
         this.myChannelMembers = {};
         this.moreChannels = {};
-        this.moreChannels.loading = true;
         this.stats = {};
         this.unreadCounts = {};
     }
@@ -51,18 +47,6 @@ class ChannelStoreClass extends EventEmitter {
         this.removeListener(CHANGE_EVENT, callback);
     }
 
-    emitMoreChange() {
-        this.emit(MORE_CHANGE_EVENT);
-    }
-
-    addMoreChangeListener(callback) {
-        this.on(MORE_CHANGE_EVENT, callback);
-    }
-
-    removeMoreChangeListener(callback) {
-        this.removeListener(MORE_CHANGE_EVENT, callback);
-    }
-
     emitStatsChange() {
         this.emit(STATS_EVENT);
     }
@@ -73,17 +57,6 @@ class ChannelStoreClass extends EventEmitter {
 
     removeStatsChangeListener(callback) {
         this.removeListener(STATS_EVENT, callback);
-    }
-    emitLeave(id) {
-        this.emit(LEAVE_EVENT, id);
-    }
-
-    addLeaveListener(callback) {
-        this.on(LEAVE_EVENT, callback);
-    }
-
-    removeLeaveListener(callback) {
-        this.removeListener(LEAVE_EVENT, callback);
     }
 
     emitLastViewed(lastViewed, ownNewMessage) {
@@ -150,13 +123,13 @@ class ChannelStoreClass extends EventEmitter {
 
     resetCounts(id) {
         const cm = this.myChannelMembers;
-        for (var cmid in cm) {
+        for (const cmid in cm) {
             if (cm[cmid].channel_id === id) {
-                var c = this.get(id);
-                if (c) {
-                    cm[cmid].msg_count = this.get(id).total_msg_count;
+                const channel = this.get(id);
+                if (channel) {
+                    cm[cmid].msg_count = channel.total_msg_count;
                     cm[cmid].mention_count = 0;
-                    this.setUnreadCount(id);
+                    this.setUnreadCountByChannel(id);
                 }
                 break;
             }
@@ -250,6 +223,12 @@ class ChannelStoreClass extends EventEmitter {
         this.myChannelMembers = channelMembers;
     }
 
+    storeMyChannelMembersList(channelMembers) {
+        channelMembers.forEach((m) => {
+            this.myChannelMembers[m.channel_id] = m;
+        });
+    }
+
     getMyMembers() {
         return this.myChannelMembers;
     }
@@ -278,9 +257,25 @@ class ChannelStoreClass extends EventEmitter {
         return this.postMode;
     }
 
-    setUnreadCount(id) {
+    setUnreadCountsByMembers(members) {
+        members.forEach((m) => {
+            this.setUnreadCountByChannel(m.channel_id);
+        });
+    }
+
+    setUnreadCountsByChannels(channels) {
+        channels.forEach((c) => {
+            this.setUnreadCountByChannel(c.id);
+        });
+    }
+
+    setUnreadCountByChannel(id) {
         const ch = this.get(id);
         const chMember = this.getMyMember(id);
+
+        if (ch == null || chMember == null) {
+            return;
+        }
 
         const chMentionCount = chMember.mention_count;
         let chUnreadCount = ch.total_msg_count - chMember.msg_count;
@@ -292,27 +287,12 @@ class ChannelStoreClass extends EventEmitter {
         this.unreadCounts[id] = {msgs: chUnreadCount, mentions: chMentionCount};
     }
 
-    setUnreadCounts() {
-        const channels = this.getAll();
-        channels.forEach((ch) => {
-            this.setUnreadCount(ch.id);
-        });
-    }
-
     getUnreadCount(id) {
         return this.unreadCounts[id] || {msgs: 0, mentions: 0};
     }
 
     getUnreadCounts() {
         return this.unreadCounts;
-    }
-
-    leaveChannel(id) {
-        Reflect.deleteProperty(this.myChannelMembers, id);
-        const element = this.channels.indexOf(id);
-        if (element > -1) {
-            this.channels.splice(element, 1);
-        }
     }
 
     getChannelNamesMap() {
@@ -362,12 +342,7 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
 
     case ActionTypes.RECEIVED_CHANNELS:
         ChannelStore.storeChannels(action.channels);
-        ChannelStore.storeMyChannelMembers(action.members);
-        currentId = ChannelStore.getCurrentId();
-        if (currentId && window.isActive) {
-            ChannelStore.resetCounts(currentId);
-        }
-        ChannelStore.setUnreadCounts();
+        ChannelStore.setUnreadCountsByChannels(action.channels);
         ChannelStore.emitChange();
         break;
 
@@ -380,13 +355,22 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         if (currentId && window.isActive) {
             ChannelStore.resetCounts(currentId);
         }
-        ChannelStore.setUnreadCount(action.channel.id);
+        ChannelStore.setUnreadCountByChannel(action.channel.id);
         ChannelStore.emitChange();
         break;
 
+    case ActionTypes.RECEIVED_MY_CHANNEL_MEMBERS:
+        ChannelStore.storeMyChannelMembersList(action.members);
+        currentId = ChannelStore.getCurrentId();
+        if (currentId && window.isActive) {
+            ChannelStore.resetCounts(currentId);
+        }
+        ChannelStore.setUnreadCountsByMembers(action.members);
+        ChannelStore.emitChange();
+        break;
     case ActionTypes.RECEIVED_MORE_CHANNELS:
         ChannelStore.storeMoreChannels(action.channels);
-        ChannelStore.emitMoreChange();
+        ChannelStore.emitChange();
         break;
 
     case ActionTypes.RECEIVED_CHANNEL_STATS:
@@ -394,11 +378,6 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         stats[action.stats.channel_id] = action.stats;
         ChannelStore.storeStats(stats);
         ChannelStore.emitStatsChange();
-        break;
-
-    case ActionTypes.LEAVE_CHANNEL:
-        ChannelStore.leaveChannel(action.id);
-        ChannelStore.emitLeave(action.id);
         break;
 
     default:

@@ -14,6 +14,7 @@ import SearchStore from 'stores/search_store.jsx';
 
 import {handleNewPost, loadPosts, loadPostsBefore, loadPostsAfter} from 'actions/post_actions.jsx';
 import {loadProfilesAndTeamMembersForDMSidebar} from 'actions/user_actions.jsx';
+import {loadChannelsForCurrentUser} from 'actions/channel_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
@@ -42,9 +43,7 @@ export function emitChannelClickEvent(channel) {
         );
     }
     function switchToChannel(chan) {
-        AsyncClient.getChannels(true);
-        AsyncClient.getMoreChannels(true);
-        AsyncClient.getChannelStats(chan.id);
+        AsyncClient.getChannelStats(chan.id, true);
         AsyncClient.updateLastViewedAt(chan.id);
         loadPosts(chan.id);
         trackPage();
@@ -142,7 +141,7 @@ export function doFocusPost(channelId, postId, data) {
         channelId,
         post_list: data
     });
-    AsyncClient.getChannels(true);
+    loadChannelsForCurrentUser();
     AsyncClient.getMoreChannels(true);
     AsyncClient.getChannelStats(channelId);
     loadPostsBefore(postId, 0, Constants.POST_FOCUS_CONTEXT_RADIUS, true);
@@ -150,7 +149,7 @@ export function doFocusPost(channelId, postId, data) {
 }
 
 export function emitPostFocusEvent(postId, onSuccess) {
-    AsyncClient.getChannels(true);
+    loadChannelsForCurrentUser();
     Client.getPermalinkTmp(
         postId,
         (data) => {
@@ -362,14 +361,14 @@ export function emitClearSuggestions(suggestionId) {
 }
 
 export function emitPreferenceChangedEvent(preference) {
-    if (preference.category === Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW) {
-        loadProfilesAndTeamMembersForDMSidebar();
-    }
-
     AppDispatcher.handleServerAction({
         type: Constants.ActionTypes.RECEIVED_PREFERENCE,
         preference
     });
+
+    if (preference.category === Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW) {
+        loadProfilesAndTeamMembersForDMSidebar();
+    }
 }
 
 export function emitRemovePost(post) {
@@ -436,10 +435,6 @@ export function loadDefaultLocale() {
 }
 
 export function viewLoggedIn() {
-    AsyncClient.getChannels();
-    AsyncClient.getMoreChannels();
-    AsyncClient.getChannelStats();
-
     // Clear pending posts (shouldn't have pending posts if we are loading)
     PostStore.clearPendingPosts();
 }

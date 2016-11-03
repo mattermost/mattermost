@@ -204,6 +204,10 @@
     "translation": "채널 이름 중 '__' 와 같은 글자는 개인 메시지가 아닌 채널에 적합하지 않습니다"
   },
   {
+    "id": "api.channel.create_channel.max_channel_limit.app_error",
+    "translation": "현재 팀에서 {{.MaxChannelsPerTeam}} 이상의 채널을 생성할 수 없습니다."
+  },
+  {
     "id": "api.channel.create_default_channels.off_topic",
     "translation": "잡담방"
   },
@@ -605,11 +609,11 @@
   },
   {
     "id": "api.command_shortcuts.browser",
-    "translation": "#### 브라우저 내장 단축키\n\nALT+LEFT: 이전 채널\nALT+RIGHT: 다음 채널\nCTRL+PLUS: 폰트 사이즈 키우기 (zoom in)\nCTRL+MINUS: 폰트 사이즈 줄이기 (zoom out)\n(입력란에서)SHIFT+UP: 이전 줄까지 선택\n(입력란에서)SHIFT+DOWN: 다음 줄 까지 선택\n(입력란에서)SHIFT+ENTER: 줄 바꿈\n"
+    "translation": "#### 브라우저 단축키\n\nALT+LEFT: 이전 채널\nALT+RIGHT: 다음 채널\nCTRL+PLUS: 폰트 사이즈 키우기 (zoom in)\nCTRL+MINUS: 폰트 사이즈 줄이기 (zoom out)\n(입력란에서)SHIFT+UP: 이전 줄까지 선택\n(입력란에서)SHIFT+DOWN: 다음 줄 까지 선택\n(입력란에서)SHIFT+ENTER: 줄 바꿈\n"
   },
   {
     "id": "api.command_shortcuts.browser_mac",
-    "translation": "#### 브라우저 내장 단축키\n\nCMD+[: 이전 채널\nCMD+]: 다음 채널\nCMD+PLUS: 폰트 사이즈 키우기 (zoom in)\nCMD+MINUS: 폰트 사이즈 줄이기 (zoom out)\n(입력란에서)SHIFT+UP: 이전 줄까지 선택\n(입력란에서)SHIFT+DOWN: 다음 줄 까지 선택\n(입력란에서)SHIFT+ENTER: 줄 바꿈\n"
+    "translation": "#### 브라우저 단축키\n\nCMD+[: 이전 채널\nCMD+]: 다음 채널\nCMD+PLUS: 폰트 사이즈 키우기 (zoom in)\nCMD+MINUS: 폰트 사이즈 줄이기 (zoom out)\n(입력란에서)SHIFT+UP: 이전 줄까지 선택\n(입력란에서)SHIFT+DOWN: 다음 줄 까지 선택\n(입력란에서)SHIFT+ENTER: 줄 바꿈\n"
   },
   {
     "id": "api.command_shortcuts.desc",
@@ -625,11 +629,11 @@
   },
   {
     "id": "api.command_shortcuts.msgs",
-    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCMD+UP (in empty input field): Reprint the previous message or slash command you entered\nCMD+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
+    "translation": "#### Messages\n\nALT+[click on a message]: 현재 채널에서 가장 오래 읽지 않은 매세지로 설정합니다. \nESC: 현재 채널의 모든 메세지를 읽은 상태로 표시합니다.\nCTRL+UP (in empty input field): 이전 메세지나 입력한 슬래쉬 명령어를 다시 표시합니다.\nCTRL+DOWN (in empty input field): 다음 메세지나 입력한 슬래쉬 명령을 다시 표시합니다.\nUP (in empty input field): 현재 채널의 당신의 마지막 메세지를 수정합니다.\n@[character]+TAB: [character]로 시작하는 @유저명을 자동완성합니다.\n:[character]+TAB: [character]로 시작하는 emoji를 자동 완성합니다.\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs_mac",
-    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCMD+UP (in empty input field): Reprint the previous message or slash command you entered\nCMD+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
+    "translation": "#### Messages\n\nALT+[click on a message]: 현재 채널에서 가장 오래 읽지 않은 매세지로 설정합니다\nESC: 현재 채널의 모든 메세지를 읽은 상태로 표시합니다\nCMD+UP (in empty input field): 이전 메세지나 입력한 슬래쉬 명령어를 다시 표시합니다.\nCMD+DOWN (in empty input field): 이전 메세지나 입력한 슬래쉬 명령어를 다시 표시합니다.\nUP (in empty input field): 현재 채널의 당신의 마지막 메세지를 수정합니다.\n@[character]+TAB: 현재 채널의 당신의 마지막 메세지를 수정합니다.\n:[character]+TAB: 현재 채널의 당신의 마지막 메세지를 수정합니다.\n\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -637,11 +641,11 @@
   },
   {
     "id": "api.command_shortcuts.nav",
-    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in left hand sidebar\nALT+DOWN: Next channel or direct message in left hand sidebar\nALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\nCTRL+K: Open a quick channel switcher dialog\nCTRL+SHIFT+A: Open account settings\nCTRL+SHIFT+M: Open recent mentions\n\n"
+    "translation": "### 키보드 단축키\n\n#### 탐색\n\nALT+UP: 왼쪽 사이드바의 이전 채널이나 개인 메시지\nALT+DOWN: 왼쪽 사이드바의 다음 채널이나 개인 메시지\nALT+SHIFT+UP: 왼쪽 사이드바의 읽지 않은 이전 채널이나 개인 메시지\nALT+SHIFT+DOWN: 왼쪽 사이드바의 읽지 않은 다음 채널이나 개인 메시지\nCTRL+K: 빠른 채널 변경 창 열기\nCTRL+SHIFT+A: 계정 설정 열기\nCTRL+SHIFT+M: 최근 멘션 열기\n\n"
   },
   {
     "id": "api.command_shortcuts.nav_mac",
-    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in left hand sidebar\nALT+DOWN: Next channel or direct message in left hand sidebar\nALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\nCMD+K: Open a quick channel switcher dialog\nCMD+SHIFT+A: Open account settings\nCMD+SHIFT+M: Open recent mentions\n\n"
+    "translation": "### 키보드 단축키\n\n#### 탐색\n\nALT+UP: 왼쪽 사이드바의 이전 채널이나 개인 메시지\nALT+DOWN: 왼쪽 사이드바의 다음 채널이나 개인 메시지\nALT+SHIFT+UP: 왼쪽 사이드바의 읽지 않은 이전 채널이나 개인 메시지\nALT+SHIFT+DOWN: 왼쪽 사이드바의 읽지 않은 다음 채널이나 개인 메시지\nCMD+K: 빠른 채널 변경 창 열기\nCMD+SHIFT+A: 계정 설정 열기\nCMD+SHIFT+M: 최근 멘션 열기\n\n"
   },
   {
     "id": "api.command_shrug.desc",
@@ -701,7 +705,7 @@
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
-    "translation": "Email batching job's receiving channel was full. Please increase the EmailBatchingBufferSize."
+    "translation": "이메일 배치 작업을 받는 채널이 가득 찼습니다. EmailBatchingBufferSize를 늘려주세요."
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
@@ -709,15 +713,15 @@
   },
   {
     "id": "api.email_batching.check_pending_emails.finished_running",
-    "translation": "Email batching job ran. %v user(s) still have notifications pending."
+    "translation": "이메일 배치 작업이 실행됐습니다. 아직 사용자 %v명의 알림이 남아있습니다."
   },
   {
     "id": "api.email_batching.check_pending_emails.status.app_error",
-    "translation": "Unable to find status of recipient for batched email notification"
+    "translation": "배치된 이메일 알림 수신자의 상태를 확인할 수 없습니다."
   },
   {
     "id": "api.email_batching.render_batched_post.channel.app_error",
-    "translation": "Unable to find channel of post for batched email notification"
+    "translation": "배치된 이메일 알림 대상 글의 채널을 찾을 수 없습니다."
   },
   {
     "id": "api.email_batching.render_batched_post.date",
@@ -733,7 +737,7 @@
   },
   {
     "id": "api.email_batching.render_batched_post.sender.app_error",
-    "translation": "Unable to find sender of post for batched email notification"
+    "translation": "배치된 이메일 알림 대상 글의 작성자를 찾을 수 없습니다."
   },
   {
     "id": "api.email_batching.send_batched_email_notification.body_text",
@@ -744,26 +748,26 @@
   },
   {
     "id": "api.email_batching.send_batched_email_notification.preferences.app_error",
-    "translation": "Unable to find display preferences of recipient for batched email notification"
+    "translation": "배치된 이메일 알림 수신자의 화면 설정을 확인할 수 없습니다."
   },
   {
     "id": "api.email_batching.send_batched_email_notification.send.app_error",
-    "translation": "Failed to send batched email notification to %v: %v"
+    "translation": "%v: %v에 배치성 알림 이메일을 보내는데 실패하였습니다."
   },
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
-      "one": "[{{.SiteName}}] New Notification for {{.Month}} {{.Day}}, {{.Year}}",
-      "other": "[{{.SiteName}}] New Notifications for {{.Month}} {{.Day}}, {{.Year}}"
+      "one": "[{{.SiteName}}] 새 알림 {{.Month}} {{.Day}}, {{.Year}}",
+      "other": ""
     }
   },
   {
     "id": "api.email_batching.send_batched_email_notification.user.app_error",
-    "translation": "Unable to find recipient for batched email notification"
+    "translation": "배치된 이메일 알림의 수신자를 찾을 수 없습니다."
   },
   {
     "id": "api.email_batching.start.starting",
-    "translation": "Email batching job starting. Checking for pending emails every %v seconds."
+    "translation": "이메일 배치 작업을 시작합니다. 매 %v초마다 남은 이메일을 확인하세요."
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
@@ -823,35 +827,35 @@
   },
   {
     "id": "api.file.get_file_preview.no_thumbnail.app_error",
-    "translation": "File doesn't have a preview image"
+    "translation": "파일 미리보기 이미지가 없습니다."
   },
   {
     "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
-    "translation": "File doesn't have a thumbnail image"
+    "translation": "파일 썸네일 이미지가 없습니다."
   },
   {
     "id": "api.file.get_info_for_request.no_post.app_error",
-    "translation": "Unable to get info for file. File must be attached to a post that can be read by the current user."
+    "translation": "파일의 정보를 가져올 수 없습니다. 파일에 현재 유저가 읽을 수 있는 정보가 작성되어야 합니다."
   },
   {
     "id": "api.file.get_info_for_request.storage.app_error",
-    "translation": "파일을 업로드할 수 없습니다. 이미지 저장소가 설정되지 않았습니다."
+    "translation": "파일의 정보를 가져올 수 없습니다. 이미지 저장소가 설정되지 않았습니다."
   },
   {
     "id": "api.file.get_public_file_old.storage.app_error",
-    "translation": "파일을 업로드할 수 없습니다. 이미지 저장소가 설정되지 않았습니다."
+    "translation": "파일을 가져올 수 없습니다. 이미지 저장소가 설정되지 않았습니다."
   },
   {
     "id": "api.file.get_public_file_old.storage.app_error",
-    "translation": "파일을 업로드할 수 없습니다. 이미지 저장소가 설정되지 않았습니다."
+    "translation": "파일을 가져올 수 없습니다. 이미지 저장소가 설정되지 않았습니다."
   },
   {
     "id": "api.file.get_public_link.disabled.app_error",
-    "translation": "개인 링크들을 사용할 수 없어졌습니다."
+    "translation": "공개 링크가 비활성화되어 있습니다."
   },
   {
     "id": "api.file.get_public_link.no_post.app_error",
-    "translation": "Unable to get public link for file. File must be attached to a post that can be read by the current user."
+    "translation": "파일의 공개링크를 가져올 수 없습니다. 파일에 현재 유저가 읽을 수 있는 설명이 작성되어야 합니다."
   },
   {
     "id": "api.file.handle_images_forget.decode.error",
@@ -859,19 +863,19 @@
   },
   {
     "id": "api.file.handle_images_forget.encode_jpeg.error",
-    "translation": "Unable to encode image as jpeg path=%v err=%v"
+    "translation": "JPEG 포맷처럼 이미지를 인코딩할 수 없습니다. path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.encode_preview.error",
-    "translation": "Unable to encode image as preview jpg path=%v err=%v"
+    "translation": "미리보기 JPG로 이미지를 인코드할 수 없습니다. path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.upload_preview.error",
-    "translation": "Unable to upload preview path=%v err=%v"
+    "translation": "미리보기를 업로드할 수 없습니다. path=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.upload_thumb.error",
-    "translation": "Unable to upload thumbnail path=%v err=%v"
+    "translation": "썸네일을 업로드할 수 없습니다.  path=%v err=%v"
   },
   {
     "id": "api.file.init.debug",
@@ -879,59 +883,59 @@
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.channel.app_error",
-    "translation": "Unable to get channel when migrating post to use FileInfos, post_id=%v, channel_id=%v, err=%v"
+    "translation": "FileInfos를 사용하기위한 게시글을 마이그레이션할 때 채널을 가져올 수 없습니다. post_id=%v, channel_id=%v, err=%v"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.file_not_found.warn",
-    "translation": "Unable to find file when migrating post to use FileInfos, post_id=%v, filename=%v, path=%v, err=%v"
+    "translation": "FIleInfos를 사용하기 위해 게시글을 마이그레이션 할 때 파일을 찾을 수 없습니다. post_id=%v, filename=%v, path=%v, err=%v"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.get_file_infos_again.warn",
-    "translation": "Unable to get FileInfos for post after migratio, post_id=%v, err=%v"
+    "translation": "마이그레이션 후 게시글을 위한 FileInfos를 가져올 수 없습니다. post_id=%v, err=%v"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.get_post_again.warn",
-    "translation": "Unable to get post when migrating to use FileInfos, post_id=%v, err=%v"
+    "translation": "FileInfos를 사용하기 위해 마이그레이션할 때 게시글을 가져올 수 없습니다, post_id=%v, err=%v"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.info.app_error",
-    "translation": "Unable to fully decode file info when migrating post to use FileInfos, post_id=%v, filename=%v, err=%v"
+    "translation": "FileInfos를 사용하기위해 게시글을 마이그레이션할 때 파일 정보를 완벽하게 디코드할 수 없습니다, post_id=%v, filename=%v, err=%v"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.migrating_post.debug",
-    "translation": "Migrating post to use FileInfos, post_id=%v, err=%v"
+    "translation": "FilesInfos를 사용하기 위해 게시글을 마이그레이션 중입니다, post_id=%v, err=%v"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.mismatched_filename.warn",
-    "translation": "Found an unusual filename when migrating post to use FileInfos, post_id=%v, channel_id=%v, user_id=%v, filename=%v"
+    "translation": "FileInfos를 사용하기 위해 게시글을 마이그레이션 할 때 특이한 파일명을 찾았습니다, post_id=%v, channel_id=%v, user_id=%v, filename=%v"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.no_filenames.warn",
-    "translation": "Unable to migrate post to use FileInfos with an empty Filenames field, post_id=%v"
+    "translation": "Filenames 필드가 공란일 때 Fileinfos를 사용하기 위한 게시글 마이그레이션 할 수 없습니다, post_id=%v"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.not_migrating_post.debug",
-    "translation": "Post already migrated to use FileInfos, post_id=%v, err=%v"
+    "translation": "이 게시글을 이미 FileInfos를 사용하기 위한 마이그레이션이 되어있습니다, post_id=%v, err=%v"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.save_file_info.warn",
-    "translation": "Unable to save post when migrating post to use FileInfos, post_id=%v, file_id=%v, path=%v, err=%v"
+    "translation": "FileInfos를 사용하기 위해 게시글을 마이그레이션 할 때 게시글을 저장할 수 없습니다, post_id=%v, file_id=%v, path=%v, err=%v"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.save_post.warn",
-    "translation": "Unable to save file info when migrating post to use FileInfos, post_id=%v, file_id=%v, filename=%v, err=%v"
+    "translation": "FIleInfos를 사용하기 위해 게시글을 마이그레이션 할 때 파일을 저장할 수 없습니다, post_id=%v, filename=%v, path=%v, err=%v"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.team_id.app_error",
-    "translation": "Unable to find team for FileInfos, post_id=%v, filenames=%v"
+    "translation": "FileInfos에 대한 팀을 찾을 수 없습니다, post_id=%v, filenames=%v"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.teams.app_error",
-    "translation": "Unable to get teams when migrating post to use FileInfos, post_id=%v, err=%v"
+    "translation": "FileInfos를 사용하기 위한 마이그레이션할 때 팀들을 가져올 수 없습니다, post_id=%v, err=%v"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.unexpected_filename.error",
-    "translation": "Unable to decipher filename when migrating post to use FileInfos, post_id=%v, filename=%v"
+    "translation": "FileInfos를 사용하기위해 게시글을 마이그레이션할 때 파일 정보를 완벽하게 디코드할 수 없습니다, post_id=%v, filename=%v"
   },
   {
     "id": "api.file.move_file.configured.app_error",
@@ -1107,11 +1111,11 @@
   },
   {
     "id": "api.oauth.complete_oauth.missing_code.app_error",
-    "translation": "The service provider {{.service}} did not provide an authorization code in the redirect URL.\n\nFor [Google Apps](https://docs.mattermost.com/deployment/sso-google.html) make sure your administrator enabled the Google+ API.\n\nFor [Office 365](https://docs.mattermost.com/deployment/sso-office.html) make sure the administrator of your Microsoft organization has enabled the Mattermost app.\n\nFor [GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html) please make sure you followed the setup instructions.\n\nIf you reviewed the above and are still having trouble with configuration, you may post in our [Troubleshooting forum](https://forum.mattermost.org/c/general/trouble-shoot) where we'll be happy to help with issues during setup."
+    "translation": "서비스 제공자 {{.service}}(이)가 리다이렉트 URL에서 Authorization 코드를 제공하지 않습니다.\n\n[Google Apps](https://docs.mattermost.com/deployment/sso-google.html) 관리자가 Google+ API를 활성화 했는지 확인해보세요.\n\n[Office 365](https://docs.mattermost.com/deployment/sso-office.html) 관리자가  Microsoft organization에서 Mattermost 앱을 활성화 했는지 확인해보세요.\n\n[GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html) 설정 지시를 잘 따라했는지 확인해보세요.\n\n위 설정을 모두 확인한 후 문제가 지속된다면, [Troubleshooting 포럼](https://forum.mattermost.org/c/general/trouble-shoot)에 글로 남겨주시세요. 성심성의 껏 도와드립니다."
   },
   {
     "id": "api.oauth.delete.permissions.app_error",
-    "translation": "Inappropriate permissions to delete the OAuth2 App"
+    "translation": "OAuth2 앱을 삭제하기에 적절하지 않은 권한"
   },
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
@@ -1139,7 +1143,7 @@
   },
   {
     "id": "api.oauth.get_access_token.internal.app_error",
-    "translation": "server_error: Encountered internal server error while accessing database"
+    "translation": "server_error: 데이터베이스를 엑세스하는 동안 내부 서버에러가 발생되었습니다."
   },
   {
     "id": "api.oauth.get_access_token.internal_saving.app_error",
@@ -1159,7 +1163,7 @@
   },
   {
     "id": "api.oauth.get_access_token.missing_refresh_token.app_error",
-    "translation": "invalid_request: Missing refresh_token"
+    "translation": "invalid_request: refresh_token 누락"
   },
   {
     "id": "api.oauth.get_access_token.redirect_uri.app_error",
@@ -1167,7 +1171,7 @@
   },
   {
     "id": "api.oauth.get_access_token.refresh_token.app_error",
-    "translation": "invalid_grant: Invalid refresh token"
+    "translation": "invalid_grant: 잘못된 refresh 토큰"
   },
   {
     "id": "api.oauth.get_auth_data.find.error",
@@ -1179,7 +1183,7 @@
   },
   {
     "id": "api.oauth.regenerate_secret.app_error",
-    "translation": "Inappropriate permissions to delete the OAuth2 App"
+    "translation": "OAuth2 앱의 Secret를 재생성하기에 부적절한 권합니다."
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
@@ -1219,7 +1223,7 @@
   },
   {
     "id": "api.post.create_post.attach_files.error",
-    "translation": "Encountered error attaching files to post, post_id=%s, user_id=%s, file_ids=%v, err=%v"
+    "translation": "게시글에 파일을 등록하는 동안 에러가 발생되었습니다, post_id=%s, user_id=%s, file_ids=%v, err=%v"
   },
   {
     "id": "api.post.create_post.bad_filename.error",
@@ -1251,7 +1255,7 @@
   },
   {
     "id": "api.post.delete_flagged_post.app_error.warn",
-    "translation": "Unable to delete flagged post preference when deleting post, err=%v"
+    "translation": "중요 메시지로 지정된 글을 삭제할 수 없습니다. err=%v"
   },
   {
     "id": "api.post.delete_post.permissions.app_error",
@@ -1259,24 +1263,24 @@
   },
   {
     "id": "api.post.delete_post_files.app_error.warn",
-    "translation": "Encountered error when deleting files for post, post_id=%v, err=%v"
+    "translation": "게시글에 대한 파일을 삭제할 때 에러가 발생되었습니다, post_id=%v, err=%v"
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
-      "one": "{{.Count}} file sent: {{.Filenames}}",
-      "other": "{{.Count}} files sent: {{.Filenames}}"
+      "one": "{{.Count}}개 파일 발송됨: {{.Filenames}}",
+      "other": ""
     }
   },
   {
     "id": "api.post.get_message_for_notification.get_files.error",
-    "translation": "Encountered error when getting files for notification message, post_id=%v, err=%v"
+    "translation": "알림 메세지에 대한 파일을 가져올 때 에러가 발생되었습니다,  post_id=%v, err=%v"
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
-      "one": "{{.Count}} image sent: {{.Filenames}}",
-      "other": "{{.Count}} images sent: {{.Filenames}}"
+      "one": "{{.Count}}개 이미지 발송됨: {{.Filenames}}",
+      "other": ""
     }
   },
   {
@@ -1337,15 +1341,15 @@
   },
   {
     "id": "api.post.make_direct_channel_visible.update_pref.error",
-    "translation": "Failed to update direct channel preference user_id=%v other_user_id=%v err=%v"
+    "translation": "개인 메시지 채널의 속성을 변경하지 못했습니다. user_id=%v other_user_id=%v err=%v"
   },
   {
     "id": "api.post.notification.here.warn",
-    "translation": "Unable to send notification to online users with @here, err=%v"
+    "translation": "@here (으)로 온라인 사용자에게 알림을 보낼 수 없습니다. err=%v"
   },
   {
     "id": "api.post.notification.member_profile.warn",
-    "translation": "Unable to get profile for channel member, user_id=%v"
+    "translation": "채널 회원의 프로필 사진을 불러올 수 없습니다. user_id=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
@@ -1357,7 +1361,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.files.error",
-    "translation": "Failed to get files for post notification post_id=%v, err=%v"
+    "translation": "게시글 알림에 대한 파일을 가져오는데 실패했습니다, post_id=%v, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.get_teams.error",
@@ -1489,11 +1493,11 @@
   },
   {
     "id": "api.server.start_server.rate_limiting_memory_store",
-    "translation": "Unable to initialize rate limiting memory store. Check MemoryStoreSize config setting."
+    "translation": "메모리 스토어의 속도 제한을 초기화할 수 없습니다. MemoryStoreSize 설정 세팅을 확인하십시오."
   },
   {
     "id": "api.server.start_server.rate_limiting_rate_limiter",
-    "translation": "Unable to initialize rate limiting."
+    "translation": "속도 제한을 초기화할 수 없습니다."
   },
   {
     "id": "api.server.start_server.starting.critical",
@@ -1537,7 +1541,7 @@
   },
   {
     "id": "api.slackimport.slack_add_posts.attach_files.error",
-    "translation": "Encountered error attaching files to post, post_id=%s, file_ids=%v, err=%v"
+    "translation": "게시글에 파일을 첨부하는 동안 에러가 발생되었습니다, post_id=%s, file_ids=%v, err=%v"
   },
   {
     "id": "api.slackimport.slack_add_posts.bot.warn",
@@ -1545,7 +1549,7 @@
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_comment.debug",
-    "translation": "File comment undefined"
+    "translation": "파일 코멘트가 정의되지 않았습니다."
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_usr.debug",
@@ -1557,7 +1561,7 @@
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_not_found.warn",
-    "translation": "No file found in Slack export for file upload message with file ID {{.FileId}}"
+    "translation": "Slack export의 파일 업로드 메시지를 위한 파일(file id : {{.FileId}})가 없습니다."
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_not_in_json.warn",
@@ -1565,11 +1569,11 @@
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_open_failed.warn",
-    "translation": "Could not open the upload file with ID {{.FileId}} in the export archive with error: {{.Error}}"
+    "translation": "export archive의 업로드 파일(file id : {{.FileId}})을 열 수 없습니다, error: {{.Error}}"
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_upload_failed.warn",
-    "translation": "Uploading the file for upload message with file ID {{.FileId}} failed with error: {{.Error}}"
+    "translation": "메세지를 업로드하기 위한 파일(ID : {{.FileId}} )을 업로드하는 것을 실패했습니다, error: {{.Error}}"
   },
   {
     "id": "api.slackimport.slack_add_posts.user_no_exists.debug",
@@ -1621,7 +1625,7 @@
   },
   {
     "id": "api.slackimport.slack_import.note3",
-    "translation": "- Additional errors may be found in the server logs.\r\n"
+    "translation": "- 서버 로그에서 찾을 수 있는 추가적인 오류들.\r\n"
   },
   {
     "id": "api.slackimport.slack_import.notes",
@@ -1777,7 +1781,7 @@
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
-    "translation": "Specified user is not a member of specified team."
+    "translation": "지정된 사용자는 지정된 팀의 멤버가 아닙니다."
   },
   {
     "id": "api.team.update_team.permissions.app_error",
@@ -2404,8 +2408,12 @@
     "translation": "잘못된 이메일 검증 링크입니다."
   },
   {
+    "id": "api.web_hub.start.starting.debug",
+    "translation": "%v 웹소켓 허브를 실행합니다."
+  },
+  {
     "id": "api.web_hub.start.stopping.debug",
-    "translation": "%v 연결 중지"
+    "translation": "웹소켓 허브 커넥션들을 중단합니다."
   },
   {
     "id": "api.web_socket.connect.error",
@@ -3165,15 +3173,15 @@
   },
   {
     "id": "model.config.is_valid.file_preview_height.app_error",
-    "translation": "잘못된 파일 최대 용량 설정입니다. 0보다 큰 값이여야 합니다."
+    "translation": "파일 설정에 대해 옳바르지 않은 미리보기 높이 값입니다. 0이거나 양수여야 합니다."
   },
   {
     "id": "model.config.is_valid.file_preview_width.app_error",
-    "translation": "잘못된 파일 최대 용량 설정입니다. 0보다 큰 값이여야 합니다."
+    "translation": "파일 세팅에 대한 잘못된 미리보기 너비 값입니다. 0보다 큰 값이여야 합니다."
   },
   {
     "id": "model.config.is_valid.file_profile_height.app_error",
-    "translation": "잘못된 파일 최대 용량 설정입니다. 0보다 큰 값이여야 합니다."
+    "translation": "파일 세팅에 대해 잘못된 프로파일 높이 값입니다. 0보다 큰 값이여야 합니다."
   },
   {
     "id": "model.config.is_valid.file_profile_width.app_error",
@@ -3185,11 +3193,11 @@
   },
   {
     "id": "model.config.is_valid.file_thumb_height.app_error",
-    "translation": "잘못된 파일 최대 용량 설정입니다. 0보다 큰 값이여야 합니다."
+    "translation": "파일 세팅에 대한 잘못된 썸네일 높이 값입니다. 0보다 큰 값이여야 합니다."
   },
   {
     "id": "model.config.is_valid.file_thumb_width.app_error",
-    "translation": "잘못된 파일 최대 용량 설정입니다. 0보다 큰 값이여야 합니다."
+    "translation": "파일 세팅에 대한 잘못된 썸네일 너비값입니다. 0보다 큰 값이여야 합니다."
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
@@ -3225,15 +3233,15 @@
   },
   {
     "id": "model.config.is_valid.ldap_required.app_error",
-    "translation": "Required LDAP field missing."
+    "translation": "필수 필드인 AD/LDAP가 비어있습니다."
   },
   {
     "id": "model.config.is_valid.ldap_required.app_error",
-    "translation": "Required LDAP field missing."
+    "translation": "필수 필드인 AD/LDAP가 비어있습니다."
   },
   {
     "id": "model.config.is_valid.ldap_security.app_error",
-    "translation": "Invalid connection security for LDAP settings.  Must be '', 'TLS', or 'STARTTLS'"
+    "translation": "LDAP 세팅을 위한 잘못된 Connection Security입니다. '', 'TLS', 'STARTTLS' 중 하나여야 합니다."
   },
   {
     "id": "model.config.is_valid.ldap_server",
@@ -3257,7 +3265,11 @@
   },
   {
     "id": "model.config.is_valid.max_burst.app_error",
-    "translation": "Maximum burst size must be greater than zero."
+    "translation": "burst 크기의 최대 값은 0이상이여야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.max_channels.app_error",
+    "translation": "팀 설정에 대한 잘못된 팀 당 최대 채널 값입니다. 0보다 큰 값이여야 합니다."
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
@@ -3285,7 +3297,7 @@
   },
   {
     "id": "model.config.is_valid.read_timeout.app_error",
-    "translation": "Invalid value for read timeout."
+    "translation": "read timeout 항목의 허용되지 않는 값입니다."
   },
   {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
@@ -3353,39 +3365,39 @@
   },
   {
     "id": "model.config.is_valid.webrtc_gateway_admin_secret.app_error",
-    "translation": "WebRTC Gateway Admin Secret must be set."
+    "translation": "WebRTC Gateway Admin Secret 이 설정되어야 합니다."
   },
   {
     "id": "model.config.is_valid.webrtc_gateway_admin_url.app_error",
-    "translation": "WebRTC Gateway Admin Url must be set a valid URL and start with http:// or https://."
+    "translation": "WebRTC Gateway Admin Url은 URL형식과 맞아야하며 http:// 나 https://. 로 시작하도록 세팅되어야합니다."
   },
   {
     "id": "model.config.is_valid.webrtc_gateway_ws_url.app_error",
-    "translation": "WebRTC Gateway Websocket Url must be a valid URL and start with ws:// or wss://."
+    "translation": "WebRTC Gateway Websocket Url은 URL형식이여야 하며 ws:// 또는 wss://로 시작해야합니다."
   },
   {
     "id": "model.config.is_valid.webrtc_stun_uri.app_error",
-    "translation": "WebRTC STUN URI must be a valid URI and start with stun:"
+    "translation": "WebRTC STUN URI는 stun: 으로 시작하고 URI 형식에 맞아야 합니다."
   },
   {
     "id": "model.config.is_valid.webrtc_turn_shared_key.app_error",
-    "translation": "WebRTC TURN Shared Key cannot be empty if the TURN URI has been set."
+    "translation": "만약 TURN URI가 설정되어 있다면, WebRTC TURN Shared Key는 공백일 수 없습니다. "
   },
   {
     "id": "model.config.is_valid.webrtc_turn_uri.app_error",
-    "translation": "WebRTC TURN URI must be a valid URI and start with turn:"
+    "translation": "WebRTC TURN URI는 turn: 으로 시작하고 URI형식에 맞아야 합니다."
   },
   {
     "id": "model.config.is_valid.webrtc_turn_username.app_error",
-    "translation": "WebRTC TURN Username cannot be empty if the TURN URI has been set."
+    "translation": "TURN URI가 설정되어 있다면, WebRTC TURN Username은 공백일 수 없습니다."
   },
   {
     "id": "model.config.is_valid.webserver_security.app_error",
-    "translation": "Invalid value for webserver connection security."
+    "translation": "webserver connection security에 대해 허용되지 않은 값입니다."
   },
   {
     "id": "model.config.is_valid.write_timeout.app_error",
-    "translation": "Invalid value for write timeout."
+    "translation": "write timeout에 대해 잘못된 값입니다."
   },
   {
     "id": "model.emoji.create_at.app_error",
@@ -3545,7 +3557,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "잘못된 파일명"
+    "translation": "잘못된 파일 아이디입니다."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -3569,15 +3581,15 @@
   },
   {
     "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "잘못된 클라이언트 ID"
+    "translation": "잘못된 Parent Id 입니다."
   },
   {
     "id": "model.post.is_valid.props.app_error",
-    "translation": "올바르지 않은 형식"
+    "translation": "잘못된 프로퍼티입니다."
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
-    "translation": "잘못된 클라이언트 ID"
+    "translation": "잘못된 루트 아이디입니다."
   },
   {
     "id": "model.post.is_valid.root_parent.app_error",
@@ -3585,7 +3597,7 @@
   },
   {
     "id": "model.post.is_valid.type.app_error",
-    "translation": "올바르지 않은 형식"
+    "translation": "올바르지 않은 형식입니다."
   },
   {
     "id": "model.post.is_valid.update_at.app_error",
@@ -3661,19 +3673,19 @@
   },
   {
     "id": "model.team_member.is_valid.role.app_error",
-    "translation": "올바르지 않은 형식"
+    "translation": "잘못된 역할입니다."
   },
   {
     "id": "model.team_member.is_valid.team_id.app_error",
-    "translation": "올바르지 않은 형식"
+    "translation": "잘못된 팀 아이디입니다."
   },
   {
     "id": "model.team_member.is_valid.user_id.app_error",
-    "translation": "올바르지 않은 형식"
+    "translation": "잘못된 유저 아이디입니다."
   },
   {
     "id": "model.user.is_valid.auth_data.app_error",
-    "translation": "잘못된 인증 코드"
+    "translation": "잘못된 인증 데이터입니다."
   },
   {
     "id": "model.user.is_valid.auth_data_pwd.app_error",
@@ -3693,19 +3705,19 @@
   },
   {
     "id": "model.user.is_valid.first_name.app_error",
-    "translation": "올바르지 않은 형식"
+    "translation": "잘못된 이름입니다."
   },
   {
     "id": "model.user.is_valid.id.app_error",
-    "translation": "올바르지 않은 형식"
+    "translation": "잘못된 유저 아이디입니다."
   },
   {
     "id": "model.user.is_valid.last_name.app_error",
-    "translation": "올바르지 않은 형식"
+    "translation": "잘못된 성(Last name)입니다."
   },
   {
     "id": "model.user.is_valid.nickname.app_error",
-    "translation": "올바르지 않은 형식"
+    "translation": "잘못된 닉네임입니다."
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
@@ -3773,7 +3785,7 @@
   },
   {
     "id": "model.user.is_valid.team_id.app_error",
-    "translation": "올바르지 않은 형식"
+    "translation": "잘못된 팀 아이디입니다."
   },
   {
     "id": "model.user.is_valid.update_at.app_error",
@@ -3781,7 +3793,7 @@
   },
   {
     "id": "model.user.is_valid.username.app_error",
-    "translation": "올바르지 않은 형식"
+    "translation": "잘못된 유저이름입니다."
   },
   {
     "id": "model.utils.decode_json.app_error",
@@ -3881,7 +3893,7 @@
   },
   {
     "id": "store.sql.read_replicas_not_licensed.critical",
-    "translation": "LDAP 기능을 활성화 하려면 엔터프라이즈 라이센스가 필요합니다. 시스템 관리자에게 업그레이드를 문의해보세요."
+    "translation": "현재 라이센스로는 1개 이상의 읽기 복제가 기능적으로 비활성화 되어있습니다. 엔터프라이즈 라이센스의 업그레이드에 대해 시스템 관리자에게 문의하십시오."
   },
   {
     "id": "store.sql.remove_index.critical",
@@ -3949,19 +3961,19 @@
   },
   {
     "id": "store.sql_channel.check_open_channel_permissions.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "권한을 확인할 수 없었습니다."
   },
   {
     "id": "store.sql_channel.check_permissions.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "권한을 확인할 수 없었습니다."
   },
   {
     "id": "store.sql_channel.check_permissions_by_name.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "권한을 확인할 수 없었습니다."
   },
   {
     "id": "store.sql_channel.delete.channel.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "채널을 삭제하지 못했습니다."
   },
   {
     "id": "store.sql_channel.extra_updated.app_error",
@@ -3969,7 +3981,7 @@
   },
   {
     "id": "store.sql_channel.get.existing.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "존재하는 채널을 찾지 못했습니다."
   },
   {
     "id": "store.sql_channel.get.find.app_error",
@@ -3977,11 +3989,11 @@
   },
   {
     "id": "store.sql_channel.get_all.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "모든 채널을 가져오지 못했습니다."
   },
   {
     "id": "store.sql_channel.get_by_name.existing.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "존재하는 채널을 찾지 못했습니다."
   },
   {
     "id": "store.sql_channel.get_by_name.missing.app_error",
@@ -4632,7 +4644,15 @@
     "translation": "No team member found for that user id and team id"
   },
   {
+    "id": "store.sql_team.get_member_count.app_error",
+    "translation": "채널을 찾을 수 없습니다"
+  },
+  {
     "id": "store.sql_team.get_members.app_error",
+    "translation": "채널을 찾을 수 없습니다"
+  },
+  {
+    "id": "store.sql_team.get_members_by_ids.app_error",
     "translation": "채널을 찾을 수 없습니다"
   },
   {
@@ -4722,6 +4742,10 @@
   {
     "id": "store.sql_user.get_profiles.app_error",
     "translation": "We encountered an error while finding user profiles"
+  },
+  {
+    "id": "store.sql_user.get_recently_active_users.app_error",
+    "translation": "We encountered an error while finding the recently active users"
   },
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",

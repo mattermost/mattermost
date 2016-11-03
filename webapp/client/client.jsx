@@ -990,6 +990,15 @@ export default class Client {
         this.track('api', 'api_users_oauth_to_email');
     }
 
+    generateMfaSecret(success, error) {
+        request.
+            get(`${this.getUsersRoute()}/generate_mfa_secret`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'generateMfaSecret', success, error));
+    }
+
     revokeSession(altId, success, error) {
         request.
             post(`${this.getUsersRoute()}/revoke_session`).
@@ -1355,6 +1364,15 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getChannelCounts', success, error));
+    }
+
+    getMyChannelMembers(success, error) {
+        request.
+        get(`${this.getChannelsRoute()}/members`).
+        set(this.defaultHeaders).
+        type('application/json').
+        accept('application/json').
+        end(this.handleResponse.bind(this, 'getMyChannelMembers', success, error));
     }
 
     getChannelStats(channelId, success, error) {

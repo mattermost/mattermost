@@ -934,13 +934,99 @@ func TestUserStoreSearch(t *testing.T) {
 	u1.FirstName = "Tim"
 	u1.LastName = "Bill"
 	u1.Nickname = "Rob"
-	u1.Email = model.NewId()
+	u1.Email = "harold" + model.NewId()
 	Must(store.User().Save(u1))
+
+	u2 := &model.User{}
+	u2.Username = "jim-bobby" + model.NewId()
+	u2.Email = model.NewId()
+	Must(store.User().Save(u2))
+
+	u3 := &model.User{}
+	u3.Username = "jimbo" + model.NewId()
+	u3.Email = model.NewId()
+	u3.DeleteAt = 1
+	Must(store.User().Save(u3))
 
 	tid := model.NewId()
 	Must(store.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u1.Id}))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u2.Id}))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u3.Id}))
 
-	if r1 := <-store.User().Search(tid, "jimb", USER_SEARCH_TYPE_USERNAME); r1.Err != nil {
+	searchOptions := map[string]bool{}
+	searchOptions[USER_SEARCH_OPTION_NAMES_ONLY] = true
+
+	if r1 := <-store.User().Search(tid, "jimb", searchOptions); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		profiles := r1.Data.([]*model.User)
+		found1 := false
+		found2 := false
+		for _, profile := range profiles {
+			if profile.Id == u1.Id {
+				found1 = true
+			}
+
+			if profile.Id == u3.Id {
+				found2 = true
+			}
+		}
+
+		if !found1 {
+			t.Fatal("should have found user")
+		}
+
+		if found2 {
+			t.Fatal("should not have found inactive user")
+		}
+	}
+
+	if r1 := <-store.User().Search(tid, "harol", searchOptions); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		profiles := r1.Data.([]*model.User)
+		found1 := false
+		for _, profile := range profiles {
+			if profile.Id == u1.Id {
+				found1 = true
+			}
+		}
+
+		if found1 {
+			t.Fatal("should not have found user")
+		}
+	}
+
+	searchOptions[USER_SEARCH_OPTION_ALLOW_INACTIVE] = true
+
+	if r1 := <-store.User().Search(tid, "jimb", searchOptions); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		profiles := r1.Data.([]*model.User)
+		found1 := false
+		found2 := false
+		for _, profile := range profiles {
+			if profile.Id == u1.Id {
+				found1 = true
+			}
+
+			if profile.Id == u3.Id {
+				found2 = true
+			}
+		}
+
+		if !found1 {
+			t.Fatal("should have found user")
+		}
+
+		if !found2 {
+			t.Fatal("should have found inactive user")
+		}
+	}
+
+	searchOptions[USER_SEARCH_OPTION_ALLOW_INACTIVE] = false
+
+	if r1 := <-store.User().Search(tid, "jimb", searchOptions); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		profiles := r1.Data.([]*model.User)
@@ -957,7 +1043,7 @@ func TestUserStoreSearch(t *testing.T) {
 		}
 	}
 
-	if r1 := <-store.User().Search("", "jimb", USER_SEARCH_TYPE_USERNAME); r1.Err != nil {
+	if r1 := <-store.User().Search("", "jimb", searchOptions); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		profiles := r1.Data.([]*model.User)
@@ -974,7 +1060,25 @@ func TestUserStoreSearch(t *testing.T) {
 		}
 	}
 
-	if r1 := <-store.User().Search(tid, "", USER_SEARCH_TYPE_USERNAME); r1.Err != nil {
+	if r1 := <-store.User().Search("", "jim-bobb", searchOptions); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		profiles := r1.Data.([]*model.User)
+		found := false
+		for _, profile := range profiles {
+			t.Log(profile.Username)
+			if profile.Id == u2.Id {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			t.Fatal("should have found user")
+		}
+	}
+
+	if r1 := <-store.User().Search(tid, "", searchOptions); r1.Err != nil {
 		t.Fatal(r1.Err)
 	}
 
@@ -985,7 +1089,7 @@ func TestUserStoreSearch(t *testing.T) {
 	c1.Type = model.CHANNEL_OPEN
 	c1 = *Must(store.Channel().Save(&c1)).(*model.Channel)
 
-	if r1 := <-store.User().SearchNotInChannel(tid, c1.Id, "jimb", USER_SEARCH_TYPE_USERNAME); r1.Err != nil {
+	if r1 := <-store.User().SearchNotInChannel(tid, c1.Id, "jimb", searchOptions); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		profiles := r1.Data.([]*model.User)
@@ -1002,7 +1106,7 @@ func TestUserStoreSearch(t *testing.T) {
 		}
 	}
 
-	if r1 := <-store.User().SearchNotInChannel("", c1.Id, "jimb", USER_SEARCH_TYPE_USERNAME); r1.Err != nil {
+	if r1 := <-store.User().SearchNotInChannel("", c1.Id, "jimb", searchOptions); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		profiles := r1.Data.([]*model.User)
@@ -1019,7 +1123,7 @@ func TestUserStoreSearch(t *testing.T) {
 		}
 	}
 
-	if r1 := <-store.User().SearchNotInChannel("junk", c1.Id, "jimb", USER_SEARCH_TYPE_USERNAME); r1.Err != nil {
+	if r1 := <-store.User().SearchNotInChannel("junk", c1.Id, "jimb", searchOptions); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		profiles := r1.Data.([]*model.User)
@@ -1036,7 +1140,7 @@ func TestUserStoreSearch(t *testing.T) {
 		}
 	}
 
-	if r1 := <-store.User().SearchInChannel(c1.Id, "jimb", USER_SEARCH_TYPE_USERNAME); r1.Err != nil {
+	if r1 := <-store.User().SearchInChannel(c1.Id, "jimb", searchOptions); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		profiles := r1.Data.([]*model.User)
@@ -1055,7 +1159,7 @@ func TestUserStoreSearch(t *testing.T) {
 
 	Must(store.Channel().SaveMember(&model.ChannelMember{ChannelId: c1.Id, UserId: u1.Id, NotifyProps: model.GetDefaultChannelNotifyProps()}))
 
-	if r1 := <-store.User().SearchInChannel(c1.Id, "jimb", USER_SEARCH_TYPE_USERNAME); r1.Err != nil {
+	if r1 := <-store.User().SearchInChannel(c1.Id, "jimb", searchOptions); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		profiles := r1.Data.([]*model.User)
@@ -1072,7 +1176,25 @@ func TestUserStoreSearch(t *testing.T) {
 		}
 	}
 
-	if r1 := <-store.User().Search(tid, "Tim", USER_SEARCH_TYPE_ALL); r1.Err != nil {
+	searchOptions = map[string]bool{}
+
+	if r1 := <-store.User().Search(tid, "harol", searchOptions); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		profiles := r1.Data.([]*model.User)
+		found1 := false
+		for _, profile := range profiles {
+			if profile.Id == u1.Id {
+				found1 = true
+			}
+		}
+
+		if !found1 {
+			t.Fatal("should have found user")
+		}
+	}
+
+	if r1 := <-store.User().Search(tid, "Tim", searchOptions); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		profiles := r1.Data.([]*model.User)
@@ -1089,7 +1211,7 @@ func TestUserStoreSearch(t *testing.T) {
 		}
 	}
 
-	if r1 := <-store.User().Search(tid, "Bill", USER_SEARCH_TYPE_ALL); r1.Err != nil {
+	if r1 := <-store.User().Search(tid, "Bill", searchOptions); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		profiles := r1.Data.([]*model.User)
@@ -1106,7 +1228,7 @@ func TestUserStoreSearch(t *testing.T) {
 		}
 	}
 
-	if r1 := <-store.User().Search(tid, "Rob", USER_SEARCH_TYPE_ALL); r1.Err != nil {
+	if r1 := <-store.User().Search(tid, "Rob", searchOptions); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		profiles := r1.Data.([]*model.User)

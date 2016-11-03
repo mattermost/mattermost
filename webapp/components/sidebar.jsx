@@ -127,6 +127,7 @@ export default class Sidebar extends React.Component {
         document.addEventListener('keydown', this.navigateUnreadChannelShortcut);
 
         loadProfilesAndTeamMembersForDMSidebar();
+        AsyncClient.getMyChannelMembers();
     }
 
     shouldComponentUpdate(nextProps, nextState) {

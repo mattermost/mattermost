@@ -1,6 +1,14 @@
 @charset 'UTF-8';
 
 @media screen and (max-width: 960px) {
+    .channel-header {
+        .search-bar__container {
+            .search__form {
+                width: 150px;
+            }
+        }
+    }
+
     .signup-team__container {
         &.branded {
             display: block;

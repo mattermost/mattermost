@@ -48,7 +48,6 @@ export default class PostMessageContainer extends React.Component {
         PreferenceStore.addChangeListener(this.onPreferenceChange);
         UserStore.addChangeListener(this.onUserChange);
         ChannelStore.addChangeListener(this.onChannelChange);
-        ChannelStore.addMoreChangeListener(this.onChannelChange);
     }
 
     componentWillUnmount() {
@@ -56,7 +55,6 @@ export default class PostMessageContainer extends React.Component {
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
         UserStore.removeChangeListener(this.onUserChange);
         ChannelStore.removeChangeListener(this.onChannelChange);
-        ChannelStore.removeMoreChangeListener(this.onChannelChange);
     }
 
     onEmojiChange() {

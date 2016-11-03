@@ -204,6 +204,10 @@
     "translation": "在非直接訊息的頻道不可使用字元'__'作為頻道名稱"
   },
   {
+    "id": "api.channel.create_channel.max_channel_limit.app_error",
+    "translation": "Cannot create more than {{.MaxChannelsPerTeam}} channels for current team"
+  },
+  {
     "id": "api.channel.create_default_channels.off_topic",
     "translation": "閒聊"
   },
@@ -2404,8 +2408,12 @@
     "translation": "錯誤的驗證電子郵件連結。"
   },
   {
+    "id": "api.web_hub.start.starting.debug",
+    "translation": "Starting %v websocket hubs"
+  },
+  {
     "id": "api.web_hub.start.stopping.debug",
-    "translation": "正在停止 %v 的連線"
+    "translation": "stopping websocket hub connections"
   },
   {
     "id": "api.web_socket.connect.error",
@@ -3258,6 +3266,10 @@
   {
     "id": "model.config.is_valid.max_burst.app_error",
     "translation": "最大高載值必須大於0。"
+  },
+  {
+    "id": "model.config.is_valid.max_channels.app_error",
+    "translation": "團隊設定中的單一團隊最高使用者數無效。必須為正數。"
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
@@ -4632,7 +4644,15 @@
     "translation": "相關的使用者 ID 與團隊 ID 找不到任何團隊成員"
   },
   {
+    "id": "store.sql_team.get_member_count.app_error",
+    "translation": "無法計算團隊成員數量"
+  },
+  {
     "id": "store.sql_team.get_members.app_error",
+    "translation": "無法取得團隊成員"
+  },
+  {
+    "id": "store.sql_team.get_members_by_ids.app_error",
     "translation": "無法取得團隊成員"
   },
   {
@@ -4722,6 +4742,10 @@
   {
     "id": "store.sql_user.get_profiles.app_error",
     "translation": "尋找使用者資訊時遇到錯誤"
+  },
+  {
+    "id": "store.sql_user.get_recently_active_users.app_error",
+    "translation": "We encountered an error while finding the recently active users"
   },
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",

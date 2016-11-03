@@ -13,6 +13,8 @@ import {browserHistory} from 'react-router/es6';
 
 import React from 'react';
 
+import {loadChannelsForCurrentUser} from 'actions/channel_actions.jsx';
+
 export default class DeleteChannelModal extends React.Component {
     constructor(props) {
         super(props);
@@ -29,7 +31,7 @@ export default class DeleteChannelModal extends React.Component {
         Client.deleteChannel(
             this.props.channel.id,
             () => {
-                AsyncClient.getChannels(true);
+                loadChannelsForCurrentUser();
             },
             (err) => {
                 AsyncClient.dispatchError(err, 'handleDelete');
@@ -67,14 +69,16 @@ export default class DeleteChannelModal extends React.Component {
                     </h4>
                 </Modal.Header>
                 <Modal.Body>
-                    <FormattedMessage
-                        id='delete_channel.question'
-                        defaultMessage='Are you sure you wish to delete the {display_name} {term}?'
-                        values={{
-                            display_name: this.props.channel.display_name,
-                            term: (channelTerm)
-                        }}
-                    />
+                    <div className='alert alert-danger'>
+                        <FormattedMessage
+                            id='delete_channel.question'
+                            defaultMessage='This will delete the channel from the team and make its contents inaccessible for all users. Are you sure you wish to delete the {display_name} {term}?'
+                            values={{
+                                display_name: this.props.channel.display_name,
+                                term: (channelTerm)
+                            }}
+                        />
+                    </div>
                 </Modal.Body>
                 <Modal.Footer>
                     <button

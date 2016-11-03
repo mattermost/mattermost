@@ -1329,16 +1329,15 @@ func getPermalinkTmp(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		post := list.Posts[list.Order[0]]
 
-		if !HasPermissionToChannelContext(c, post.ChannelId, model.PERMISSION_READ_CHANNEL) {
-			// If we don't have permissions attempt to join the channel to fix the problem
-			if err, _ := JoinChannelById(c, c.Session.UserId, post.ChannelId); err != nil {
-				// On error just return with permissions error
-				c.Err = err
-				return
-			} else {
-				// If we sucessfully joined the channel then clear the permissions error and continue
-				c.Err = nil
-			}
+		// Because we confuse permissions and membership in Mattermost's model, we have to just
+		// try to join the channel without checking if we already have permission to it. This is
+		// because system admins have permissions to every channel but are not nessisary a member
+		// of every channel. If we checked here then system admins would skip joining the channel and
+		// error when they tried to view it.
+		if err, _ := JoinChannelById(c, c.Session.UserId, post.ChannelId); err != nil {
+			// On error just return with permissions error
+			c.Err = err
+			return
 		}
 
 		if HandleEtag(list.Etag(), w, r) {

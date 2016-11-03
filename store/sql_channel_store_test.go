@@ -305,14 +305,14 @@ func TestChannelStoreDelete(t *testing.T) {
 	cresult := <-store.Channel().GetChannels(o1.TeamId, m1.UserId)
 	list := cresult.Data.(*model.ChannelList)
 
-	if len(list.Channels) != 1 {
+	if len(*list) != 1 {
 		t.Fatal("invalid number of channels")
 	}
 
 	cresult = <-store.Channel().GetMoreChannels(o1.TeamId, m1.UserId)
 	list = cresult.Data.(*model.ChannelList)
 
-	if len(list.Channels) != 1 {
+	if len(*list) != 1 {
 		t.Fatal("invalid number of channels")
 	}
 }
@@ -514,7 +514,7 @@ func TestChannelStoreGetChannels(t *testing.T) {
 	cresult := <-store.Channel().GetChannels(o1.TeamId, m1.UserId)
 	list := cresult.Data.(*model.ChannelList)
 
-	if list.Channels[0].Id != o1.Id {
+	if (*list)[0].Id != o1.Id {
 		t.Fatal("missing channel")
 	}
 
@@ -614,11 +614,11 @@ func TestChannelStoreGetMoreChannels(t *testing.T) {
 	cresult := <-store.Channel().GetMoreChannels(o1.TeamId, m1.UserId)
 	list := cresult.Data.(*model.ChannelList)
 
-	if len(list.Channels) != 1 {
+	if len(*list) != 1 {
 		t.Fatal("wrong list")
 	}
 
-	if list.Channels[0].Name != o3.Name {
+	if (*list)[0].Name != o3.Name {
 		t.Fatal("missing channel")
 	}
 
@@ -685,6 +685,51 @@ func TestChannelStoreGetChannelCounts(t *testing.T) {
 
 	if len(counts.UpdateTimes) != 1 {
 		t.Fatal("wrong number of update times")
+	}
+}
+
+func TestChannelStoreGetMembersForUser(t *testing.T) {
+	Setup()
+
+	t1 := model.Team{}
+	t1.DisplayName = "Name"
+	t1.Name = model.NewId()
+	t1.Email = model.NewId() + "@nowhere.com"
+	t1.Type = model.TEAM_OPEN
+	Must(store.Team().Save(&t1))
+
+	o1 := model.Channel{}
+	o1.TeamId = t1.Id
+	o1.DisplayName = "Channel1"
+	o1.Name = "a" + model.NewId() + "b"
+	o1.Type = model.CHANNEL_OPEN
+	Must(store.Channel().Save(&o1))
+
+	o2 := model.Channel{}
+	o2.TeamId = o1.TeamId
+	o2.DisplayName = "Channel2"
+	o2.Name = "a" + model.NewId() + "b"
+	o2.Type = model.CHANNEL_OPEN
+	Must(store.Channel().Save(&o2))
+
+	m1 := model.ChannelMember{}
+	m1.ChannelId = o1.Id
+	m1.UserId = model.NewId()
+	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
+	Must(store.Channel().SaveMember(&m1))
+
+	m2 := model.ChannelMember{}
+	m2.ChannelId = o2.Id
+	m2.UserId = m1.UserId
+	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
+	Must(store.Channel().SaveMember(&m2))
+
+	cresult := <-store.Channel().GetMembersForUser(o1.TeamId, m1.UserId)
+	members := cresult.Data.(*model.ChannelMembers)
+
+	// no unread messages
+	if len(*members) != 2 {
+		t.Fatal("wrong number of members")
 	}
 }
 

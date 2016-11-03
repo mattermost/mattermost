@@ -391,6 +391,19 @@ describe('Client.User', function() {
         });
     });
 
+    it('generateMfaSecret', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().generateMfaSecret(
+                function() {
+                    done(new Error('not enabled'));
+                },
+                function() {
+                    done();
+                }
+            );
+        });
+    });
+
     it('getSessions', function(done) {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().getSessions(

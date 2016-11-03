@@ -204,6 +204,10 @@
     "translation": "ダイレクトチャンネル以外では文字列'__'をチャンネル名称に使うことはできません"
   },
   {
+    "id": "api.channel.create_channel.max_channel_limit.app_error",
+    "translation": "Cannot create more than {{.MaxChannelsPerTeam}} channels for current team"
+  },
+  {
     "id": "api.channel.create_default_channels.off_topic",
     "translation": "オフトピック"
   },
@@ -625,7 +629,7 @@
   },
   {
     "id": "api.command_shortcuts.msgs",
-    "translation": "#### メッセージ\n\nAlt+[メッセージ上でクリック]: 現在のチャンネルで、そのメッセージを最古の未読のメッセージにする\nESC: 現在のチャンネルの全てのメッセージを既読にする\nCMD+UP (空白の入力欄で): 一つ前に入力したメッセージやスラッシュコマンドを呼び出す\nCMD+DOWN (空白の入力欄で): 一つ次に入力したメッセージやスラッシュコマンドを呼び出す\nUP (空白の入力欄で): 現在のチャンネルの最新のメッセージを修正する\n@[文字]+TAB: [文字]で始まる@usernameを自動補完する\n:[文字]+TAB: [文字]で始まる絵文字を自動補完する\n\n"
+    "translation": "#### メッセージ\n\nAlt+[メッセージ上でクリック]: 現在のチャンネルで、そのメッセージを最古の未読のメッセージにする\nESC: 現在のチャンネルの全てのメッセージを既読にする\nCTRL+UP (空白の入力欄で): 一つ前に入力したメッセージやスラッシュコマンドを呼び出す\nCTRL+DOWN (空白の入力欄で): 一つ次に入力したメッセージやスラッシュコマンドを呼び出す\nUP (空白の入力欄で): 現在のチャンネルの最新のメッセージを修正する\n@[文字]+TAB: [文字]で始まる@usernameを自動補完する\n:[文字]+TAB: [文字]で始まる絵文字を自動補完する\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs_mac",
@@ -2404,8 +2408,12 @@
     "translation": "不正な電子メール確認リンクです。"
   },
   {
+    "id": "api.web_hub.start.starting.debug",
+    "translation": "Starting %v websocket hubs"
+  },
+  {
     "id": "api.web_hub.start.stopping.debug",
-    "translation": "%vの接続を停止しています"
+    "translation": "stopping websocket hub connections"
   },
   {
     "id": "api.web_socket.connect.error",
@@ -3258,6 +3266,10 @@
   {
     "id": "model.config.is_valid.max_burst.app_error",
     "translation": "最大バーストには0より大きな値を指定してください。"
+  },
+  {
+    "id": "model.config.is_valid.max_channels.app_error",
+    "translation": "チーム設定のチーム毎の最大ユーザー数が不正です。正の数を指定してください。"
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
@@ -4632,7 +4644,15 @@
     "translation": "そのユーザーIDとチームIDに合致するチームのメンバーが見付かりません"
   },
   {
+    "id": "store.sql_team.get_member_count.app_error",
+    "translation": "チャンネルのメンバーが取得できませんでした"
+  },
+  {
     "id": "store.sql_team.get_members.app_error",
+    "translation": "チャンネルのメンバーが取得できませんでした"
+  },
+  {
+    "id": "store.sql_team.get_members_by_ids.app_error",
     "translation": "チャンネルのメンバーが取得できませんでした"
   },
   {
@@ -4722,6 +4742,10 @@
   {
     "id": "store.sql_user.get_profiles.app_error",
     "translation": "ユーザーのプロフィールを探す際にエラーが発生しました"
+  },
+  {
+    "id": "store.sql_user.get_recently_active_users.app_error",
+    "translation": "We encountered an error while finding the recently active users"
   },
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",
