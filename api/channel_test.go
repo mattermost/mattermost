@@ -546,7 +546,7 @@ func TestUpdateChannelPurpose(t *testing.T) {
 	}
 
 	data["channel_id"] = channel1.Id
-	data["channel_purpose"] = strings.Repeat("a", 150)
+	data["channel_purpose"] = strings.Repeat("a", 350)
 	if _, err := Client.UpdateChannelPurpose(data); err == nil {
 		t.Fatal("should have errored on bad channel purpose")
 	}
