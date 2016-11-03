@@ -1532,8 +1532,8 @@
     "translation": "Échec de l'import : {{.DisplayName}}\r\n"
   },
   {
-    "id": "api.slackimport.slack_add_channels.import_failed.debug",
-    "translation": "Échec de l'import : %s"
+    "id": "api.slackimport.slack_add_channels.import_failed.warn",
+    "translation": "Slack Importer: Failed to import channel: %s"
   },
   {
     "id": "api.slackimport.slack_add_channels.merge",
@@ -3629,7 +3629,7 @@
   },
   {
     "id": "model.team.is_valid.characters.app_error",
-    "translation": "Le nom doit posséder au moins 4 caractères alphanumériques minuscules"
+    "translation": "Le nom doit être composé d'au moins 2 caractères alphanumériques en minuscules."
   },
   {
     "id": "model.team.is_valid.company.app_error",

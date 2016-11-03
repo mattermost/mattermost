@@ -205,7 +205,7 @@
   },
   {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
-    "translation": "Cannot create more than {{.MaxChannelsPerTeam}} channels for current team"
+    "translation": "Não é possível criar mais de {{.MaxChannelsPerTeam}} canais para a equipe atual"
   },
   {
     "id": "api.channel.create_default_channels.off_topic",
@@ -1532,8 +1532,8 @@
     "translation": "Falha ao importar: {{.DisplayName}}\r\n"
   },
   {
-    "id": "api.slackimport.slack_add_channels.import_failed.debug",
-    "translation": "Falha ao importar: %s"
+    "id": "api.slackimport.slack_add_channels.import_failed.warn",
+    "translation": "Slack Importer: Failed to import channel: %s"
   },
   {
     "id": "api.slackimport.slack_add_channels.merge",
@@ -3269,7 +3269,7 @@
   },
   {
     "id": "model.config.is_valid.max_channels.app_error",
-    "translation": "Inválido máximo de usuários por equipe em configurações de equipe.  Deve ser um número positivo."
+    "translation": "Inválido máximo de canais por equipe em configurações de equipe.  Deve ser um número positivo."
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
@@ -3629,7 +3629,7 @@
   },
   {
     "id": "model.team.is_valid.characters.app_error",
-    "translation": "Nome deve ter 4 ou mais caracteres alfanuméricos em minúsculas"
+    "translation": "Nome deve ter 2 ou mais caracteres alfanuméricos em minúsculas"
   },
   {
     "id": "model.team.is_valid.company.app_error",
@@ -4645,7 +4645,7 @@
   },
   {
     "id": "store.sql_team.get_member_count.app_error",
-    "translation": "Não foi possível obter os membros da equipe"
+    "translation": "Não foi possível obter os número de membros da equipe"
   },
   {
     "id": "store.sql_team.get_members.app_error",

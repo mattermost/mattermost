@@ -1532,8 +1532,8 @@
     "translation": "导入失败: {{.DisplayName}}\r\n"
   },
   {
-    "id": "api.slackimport.slack_add_channels.import_failed.debug",
-    "translation": "导入失败: %s"
+    "id": "api.slackimport.slack_add_channels.import_failed.warn",
+    "translation": "Slack Importer: Failed to import channel: %s"
   },
   {
     "id": "api.slackimport.slack_add_channels.merge",
@@ -3629,7 +3629,7 @@
   },
   {
     "id": "model.team.is_valid.characters.app_error",
-    "translation": "名称必须是4个及以上的小写字母"
+    "translation": "名称必须是2个或以上的小写字母"
   },
   {
     "id": "model.team.is_valid.company.app_error",
