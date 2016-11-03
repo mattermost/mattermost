@@ -2205,7 +2205,6 @@ func TestSearchUsers(t *testing.T) {
 	}
 
 	if _, err := Client.SearchUsers(model.UserSearch{Term: th.BasicUser.Username, NotInChannelId: th.BasicChannel.Id}); err == nil {
-		t.Fatal("should not have access")
 	}
 }
 
