@@ -437,11 +437,15 @@ export default class PostList extends React.Component {
     }
 
     scrollToBottom() {
+        /*
         this.animationFrameId = window.requestAnimationFrame(() => {
             if (this.refs.postlist) {
-                this.refs.postlist.scrollTop = this.refs.postlist.scrollHeight;
+                this.refs.postlist.scrollTop = this.refs.postlistcontent.scrollHeight;
             }
         });
+        */
+        var postList = $(this.refs.postlist);
+        postList.animate({scrollTop: this.refs.postlist.scrollHeight}, '200');
     }
 
     scrollToBottomAnimated() {
