@@ -1548,12 +1548,20 @@
     "translation": "Slack bot posts are not imported yet"
   },
   {
+    "id": "api.slackimport.slack_add_posts.bot_user_no_exists.warn",
+    "translation": "Slack Importer: Not importing bot message as the bot-importing user does not exist."
+  },
+  {
     "id": "api.slackimport.slack_add_posts.msg_no_comment.debug",
     "translation": "File comment undefined"
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_usr.debug",
     "translation": "Message without user"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.no_bot_id.warn",
+    "translation": "Slack Importer: Not importing bot message due to lack of BotId field."
   },
   {
     "id": "api.slackimport.slack_add_posts.unsupported.warn",
@@ -1600,6 +1608,14 @@
     "translation": "Unable to import user: {{.Username}}\r\n"
   },
   {
+    "id": "api.slackimport.slack_add_bot_user.email_pwd",
+    "translation": "Slack Bot/Integration Posts Import User: Email, Password: {{.Email}}, {{.Password}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_bot_user.unable_import",
+    "translation": "Unable to import Slack Bot/Integration Posts Import User: {{.Username}}\r\n"
+  },
+  {
     "id": "api.slackimport.slack_convert_channel_mentions.compile_regexp_failed.warn",
     "translation": "Failed to compile the !channel matching regular expression for Slack channel {{.ChannelID}} {{.ChannelName}}"
   },
@@ -1610,6 +1626,10 @@
   {
     "id": "api.slackimport.slack_convert_user_mentions.compile_regexp_failed.warn",
     "translation": "Failed to compile the @mention matching regular expression for Slack user {{.UserID}} {{.Username}}"
+  },
+  {
+    "id": "api.slackimport.slack_deactivate_bot_user.failed_to_deactivate",
+    "translation": "Slack Importer: Failed to deactivate the bot-importing user."
   },
   {
     "id": "api.slackimport.slack_import.log",
