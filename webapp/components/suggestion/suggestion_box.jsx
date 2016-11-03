@@ -53,6 +53,12 @@ export default class SuggestionBox extends React.Component {
         return this.refs.textbox;
     }
 
+    recalculateSize() {
+        if (this.props.type === 'textarea') {
+            this.refs.textbox.recalculateSize();
+        }
+    }
+
     handleDocumentClick(e) {
         const container = $(ReactDOM.findDOMNode(this));
         if ($('.suggestion-list__content').length) {

@@ -27,6 +27,10 @@ export default class AutosizeTextarea extends React.Component {
     }
 
     componentDidUpdate() {
+        this.recalculateSize();
+    }
+
+    recalculateSize() {
         const height = this.refs.reference.scrollHeight;
 
         if (height > 0 && height !== this.height) {
@@ -44,10 +48,6 @@ export default class AutosizeTextarea extends React.Component {
                 this.props.onHeightChange(height, parseInt($textarea.css('max-height'), 10));
             }
         }
-    }
-
-    focus() {
-        this.refs.textarea.focus();
     }
 
     getDOMNode() {
