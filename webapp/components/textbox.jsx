@@ -91,13 +91,10 @@ export default class Textbox extends React.Component {
         }
     }
 
-    handleHeightChange(height) {
-        const textbox = $(this.refs.message.getTextbox());
+    handleHeightChange(height, maxHeight) {
         const wrapper = $(this.refs.wrapper);
 
-        const maxHeight = parseInt(textbox.css('max-height'), 10);
-
-        // move over attachment icon to compensate for the scrollbar
+        // Move over attachment icon to compensate for the scrollbar
         if (height > maxHeight) {
             wrapper.closest('.post-body__cell').addClass('scroll');
         } else {
