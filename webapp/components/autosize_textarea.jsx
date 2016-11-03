@@ -3,8 +3,6 @@
 
 import React from 'react';
 
-import $ from 'jquery';
-
 export default class AutosizeTextarea extends React.Component {
     static propTypes = {
         value: React.PropTypes.string,
@@ -35,9 +33,9 @@ export default class AutosizeTextarea extends React.Component {
 
         if (height > 0 && height !== this.height) {
             const textarea = this.refs.textarea;
-            const $textarea = $(textarea);
 
-            const borderWidth = parseInt($textarea.css('border-top-width'), 10) + parseInt($textarea.css('border-bottom-width'), 10);
+            const style = getComputedStyle(textarea);
+            const borderWidth = parseInt(style.borderTopWidth, 10) + parseInt(style.borderBottomWidth, 10);
 
             // Directly change the height to avoid circular rerenders
             textarea.style.height = String(height + borderWidth) + 'px';
@@ -45,7 +43,7 @@ export default class AutosizeTextarea extends React.Component {
             this.height = height;
 
             if (this.props.onHeightChange) {
-                this.props.onHeightChange(height, parseInt($textarea.css('max-height'), 10));
+                this.props.onHeightChange(height, parseInt(style.maxHeight, 10));
             }
         }
     }
