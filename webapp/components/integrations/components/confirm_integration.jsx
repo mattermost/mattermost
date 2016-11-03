@@ -16,7 +16,8 @@ export default class ConfirmIntegration extends React.Component {
     static get propTypes() {
         return {
             team: React.propTypes.object.isRequired,
-            location: React.PropTypes.object
+            location: React.PropTypes.object,
+            loading: React.PropTypes.bool
         };
     }
 
@@ -56,6 +57,11 @@ export default class ConfirmIntegration extends React.Component {
         let headerText = null;
         let helpText = null;
         let tokenText = null;
+
+        if (this.props.loading === true) {
+            return (<div/>);
+        }
+
         if (this.state.type === Constants.Integrations.COMMAND) {
             headerText = (
                 <FormattedMessage
