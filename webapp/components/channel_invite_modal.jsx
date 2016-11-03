@@ -25,6 +25,7 @@ export default class ChannelInviteModal extends React.Component {
         super(props);
 
         this.onChange = this.onChange.bind(this);
+        this.onStatusChange = this.onStatusChange.bind(this);
         this.handleInviteError = this.handleInviteError.bind(this);
         this.nextPage = this.nextPage.bind(this);
         this.search = this.search.bind(this);
@@ -37,7 +38,8 @@ export default class ChannelInviteModal extends React.Component {
         this.state = {
             users: [],
             total: teamStats.member_count - channelStats.member_count,
-            search: false
+            search: false,
+            statusChange: false
         };
     }
 
@@ -46,6 +48,7 @@ export default class ChannelInviteModal extends React.Component {
             TeamStore.addStatsChangeListener(this.onChange);
             ChannelStore.addStatsChangeListener(this.onChange);
             UserStore.addNotInChannelChangeListener(this.onChange);
+            UserStore.addStatusesChangeListener(this.onStatusChange);
 
             this.onChange();
             AsyncClient.getProfilesNotInChannel(this.props.channel.id, 0);
@@ -54,6 +57,7 @@ export default class ChannelInviteModal extends React.Component {
             TeamStore.removeStatsChangeListener(this.onChange);
             ChannelStore.removeStatsChangeListener(this.onChange);
             UserStore.removeNotInChannelChangeListener(this.onChange);
+            UserStore.removeStatusesChangeListener(this.onStatusChange);
         }
     }
 
@@ -61,10 +65,11 @@ export default class ChannelInviteModal extends React.Component {
         ChannelStore.removeStatsChangeListener(this.onChange);
         ChannelStore.removeChangeListener(this.onChange);
         UserStore.removeNotInChannelChangeListener(this.onChange);
+        UserStore.removeStatusesChangeListener(this.onStatusChange);
     }
 
-    onChange() {
-        if (this.state.search) {
+    onChange(force) {
+        if (this.state.search && !force) {
             this.search(this.term);
             return;
         }
@@ -75,6 +80,13 @@ export default class ChannelInviteModal extends React.Component {
         this.setState({
             users: UserStore.getProfileListNotInChannel(this.props.channel.id),
             total: teamStats.member_count - channelStats.member_count
+        });
+    }
+
+    onStatusChange() {
+        // Initiate a render to pick up on new statuses
+        this.setState({
+            statusChange: !this.state.statusChange
         });
     }
 
@@ -98,7 +110,8 @@ export default class ChannelInviteModal extends React.Component {
         this.term = term;
 
         if (term === '') {
-            this.setState({users: UserStore.getProfileListNotInChannel(), search: false});
+            this.onChange(true);
+            this.setState({search: false});
             return;
         }
 
