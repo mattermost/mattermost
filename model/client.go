@@ -696,15 +696,16 @@ func (c *Client) CheckMfa(loginId string) (*Result, *AppError) {
 	}
 }
 
-// GenerateMfaQrCode returns a QR code imagem containing the secret, to be scanned
-// by a multi-factor authentication mobile application. Must be authenticated.
-func (c *Client) GenerateMfaQrCode() (*Result, *AppError) {
-	if r, err := c.DoApiGet("/users/generate_mfa_qr", "", ""); err != nil {
+// GenerateMfaSecret returns a QR code image containing the secret, to be scanned
+// by a multi-factor authentication mobile application. It also returns the secret
+// for manual entry. Must be authenticated.
+func (c *Client) GenerateMfaSecret() (*Result, *AppError) {
+	if r, err := c.DoApiGet("/users/generate_mfa_secret", "", ""); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), r.Body}, nil
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
 }
 

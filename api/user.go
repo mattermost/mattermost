@@ -64,7 +64,7 @@ func InitUser() {
 	BaseRoutes.NeedChannel.Handle("/users/autocomplete", ApiUserRequired(autocompleteUsersInChannel)).Methods("GET")
 
 	BaseRoutes.Users.Handle("/mfa", ApiAppHandler(checkMfa)).Methods("POST")
-	BaseRoutes.Users.Handle("/generate_mfa_qr", ApiUserRequiredTrustRequester(generateMfaQrCode)).Methods("GET")
+	BaseRoutes.Users.Handle("/generate_mfa_secret", ApiUserRequiredTrustRequester(generateMfaSecret)).Methods("GET")
 	BaseRoutes.Users.Handle("/update_mfa", ApiUserRequired(updateMfa)).Methods("POST")
 
 	BaseRoutes.Users.Handle("/claim/email_to_oauth", ApiAppHandler(emailToOAuth)).Methods("POST")
@@ -2306,7 +2306,7 @@ func resendVerification(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func generateMfaQrCode(c *Context, w http.ResponseWriter, r *http.Request) {
+func generateMfaSecret(c *Context, w http.ResponseWriter, r *http.Request) {
 	uchan := Srv.Store.User().Get(c.Session.UserId)
 
 	var user *model.User
@@ -2319,22 +2319,25 @@ func generateMfaQrCode(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	mfaInterface := einterfaces.GetMfaInterface()
 	if mfaInterface == nil {
-		c.Err = model.NewLocAppError("generateMfaQrCode", "api.user.generate_mfa_qr.not_available.app_error", nil, "")
+		c.Err = model.NewLocAppError("generateMfaSecret", "api.user.generate_mfa_qr.not_available.app_error", nil, "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
 
-	img, err := mfaInterface.GenerateQrCode(user)
+	secret, img, err := mfaInterface.GenerateSecret(user)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	w.Header().Del("Content-Type") // Content-Type will be set automatically by the http writer
+	resp := map[string]string{}
+	resp["qr_code"] = b64.StdEncoding.EncodeToString(img)
+	resp["secret"] = secret
+
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Pragma", "no-cache")
 	w.Header().Set("Expires", "0")
-	w.Write(img)
+	w.Write([]byte(model.MapToJson(resp)))
 }
 
 func updateMfa(c *Context, w http.ResponseWriter, r *http.Request) {
