@@ -24,7 +24,6 @@ export default class SuggestionBox extends React.Component {
         this.handleCompleteWord = this.handleCompleteWord.bind(this);
         this.handleChange = this.handleChange.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
-        this.handleBlur = this.handleBlur.bind(this);
         this.handlePretextChanged = this.handlePretextChanged.bind(this);
 
         this.suggestionId = Utils.generateId();
@@ -80,12 +79,6 @@ export default class SuggestionBox extends React.Component {
 
         if (this.props.onChange) {
             this.props.onChange(e);
-        }
-    }
-
-    handleBlur(e) {
-        if (this.props.onBlur) {
-            this.props.onBlur(e);
         }
     }
 
@@ -166,7 +159,6 @@ export default class SuggestionBox extends React.Component {
                     {...this.props}
                     onChange={this.handleChange}
                     onKeyDown={this.handleKeyDown}
-                    onBlur={this.handleBlur}
                 />
             );
         } else if (this.props.type === 'search') {
@@ -177,7 +169,6 @@ export default class SuggestionBox extends React.Component {
                     {...this.props}
                     onChange={this.handleChange}
                     onKeyDown={this.handleKeyDown}
-                    onBlur={this.handleBlur}
                 />
             );
         } else if (this.props.type === 'textarea') {
@@ -188,7 +179,6 @@ export default class SuggestionBox extends React.Component {
                     {...this.props}
                     onChange={this.handleChange}
                     onKeyDown={this.handleKeyDown}
-                    onBlur={this.handleBlur}
                 />
             );
         }
