@@ -107,14 +107,6 @@
         margin-right: 0 !important;
     }
 
-    #post-list {
-        .post-list-holder-by-time {
-            .modal-open & {
-                @include clearfix;
-            }
-        }
-    }
-
     .post-code__language {
         @include opacity(.6);
         @include transition(none);
