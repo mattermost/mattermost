@@ -69,17 +69,19 @@ func HubStop() {
 	hubs = make([]*Hub, 0)
 }
 
-func HubRegister(webConn *WebConn) {
+func GetHubForUserId(userId string) *Hub {
 	hash := fnv.New32a()
-	hash.Write([]byte(webConn.UserId))
+	hash.Write([]byte(userId))
 	index := hash.Sum32() % uint32(len(hubs))
-	hubs[index].Register(webConn)
+	return hubs[index]
+}
+
+func HubRegister(webConn *WebConn) {
+	GetHubForUserId(webConn.UserId).Register(webConn)
 }
 
 func HubUnregister(webConn *WebConn) {
-	for _, hub := range hubs {
-		hub.Unregister(webConn)
-	}
+	GetHubForUserId(webConn.UserId).Unregister(webConn)
 }
 
 func Publish(message *model.WebSocketEvent) {
@@ -111,9 +113,7 @@ func InvalidateCacheForUser(userId string) {
 func InvalidateCacheForUserSkipClusterSend(userId string) {
 	Srv.Store.Channel().InvalidateAllChannelMembersForUser(userId)
 
-	for _, hub := range hubs {
-		hub.InvalidateUser(userId)
-	}
+	GetHubForUserId(userId).InvalidateUser(userId)
 }
 
 func (h *Hub) Register(webConn *WebConn) {
