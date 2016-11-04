@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 
 	l4g "github.com/alecthomas/log4go"
@@ -108,6 +109,12 @@ func (c *WebConn) writePump() {
 				}
 
 				return
+			}
+
+			if msg.EventType() == model.WEBSOCKET_EVENT_POSTED {
+				if einterfaces.GetMetricsInterface() != nil {
+					einterfaces.GetMetricsInterface().IncrementPostBroadcast()
+				}
 			}
 
 		case <-ticker.C:

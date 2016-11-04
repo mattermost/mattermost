@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
@@ -103,7 +104,12 @@ type handler struct {
 }
 
 func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	now := time.Now()
 	l4g.Debug("%v", r.URL.Path)
+
+	if einterfaces.GetMetricsInterface() != nil {
+		einterfaces.GetMetricsInterface().IncrementHttpRequest()
+	}
 
 	c := &Context{}
 	c.T, c.Locale = utils.GetTranslationsAndLocale(w, r)
@@ -228,6 +234,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if h.isApi {
 			w.WriteHeader(c.Err.StatusCode)
 			w.Write([]byte(c.Err.ToJson()))
+
 		} else {
 			if c.Err.StatusCode == http.StatusUnauthorized {
 				http.Redirect(w, r, c.GetTeamURL()+"/?redirect="+url.QueryEscape(r.URL.Path), http.StatusTemporaryRedirect)
@@ -235,6 +242,15 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				RenderWebError(c.Err, w, r)
 			}
 		}
+
+		if einterfaces.GetMetricsInterface() != nil {
+			einterfaces.GetMetricsInterface().IncrementHttpError()
+		}
+	}
+
+	if einterfaces.GetMetricsInterface() != nil {
+		elapsed := float64(time.Since(now)) / float64(time.Second)
+		einterfaces.GetMetricsInterface().ObserveHttpRequestDuration(elapsed)
 	}
 }
 

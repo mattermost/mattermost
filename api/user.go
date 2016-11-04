@@ -469,6 +469,9 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.LogAuditWithUserId(user.Id, "failure")
 			c.Err = result.Err
 			c.Err.StatusCode = http.StatusBadRequest
+			if einterfaces.GetMetricsInterface() != nil {
+				einterfaces.GetMetricsInterface().IncrementLoginFail()
+			}
 			return
 		} else {
 			user = result.Data.(*model.User)
@@ -479,6 +482,9 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		if user, err = getUserForLogin(loginId, ldapOnly); err != nil {
 			c.LogAudit("failure")
 			c.Err = err
+			if einterfaces.GetMetricsInterface() != nil {
+				einterfaces.GetMetricsInterface().IncrementLoginFail()
+			}
 			return
 		}
 
@@ -489,10 +495,16 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	if user, err = authenticateUser(user, password, mfaToken); err != nil {
 		c.LogAuditWithUserId(user.Id, "failure")
 		c.Err = err
+		if einterfaces.GetMetricsInterface() != nil {
+			einterfaces.GetMetricsInterface().IncrementLoginFail()
+		}
 		return
 	}
 
 	c.LogAuditWithUserId(user.Id, "success")
+	if einterfaces.GetMetricsInterface() != nil {
+		einterfaces.GetMetricsInterface().IncrementLogin()
+	}
 
 	doLogin(c, w, r, user, deviceId)
 	if c.Err != nil {

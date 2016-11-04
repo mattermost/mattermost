@@ -165,7 +165,6 @@ func main() {
 		resetStatuses()
 
 		api.StartServer()
-		api.InitializeMetrics()
 
 		// If we allow testing then listen for manual testing URL hits
 		if utils.Cfg.ServiceSettings.EnableTesting {
@@ -183,6 +182,10 @@ func main() {
 			einterfaces.GetClusterInterface().StartInterNodeCommunication()
 		}
 
+		if einterfaces.GetMetricsInterface() != nil {
+			einterfaces.GetMetricsInterface().StartServer()
+		}
+
 		// wait for kill signal before attempting to gracefully shutdown
 		// the running service
 		c := make(chan os.Signal)
@@ -191,6 +194,10 @@ func main() {
 
 		if einterfaces.GetClusterInterface() != nil {
 			einterfaces.GetClusterInterface().StopInterNodeCommunication()
+		}
+
+		if einterfaces.GetMetricsInterface() != nil {
+			einterfaces.GetMetricsInterface().StopServer()
 		}
 
 		api.StopServer()
