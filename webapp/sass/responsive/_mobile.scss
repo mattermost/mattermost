@@ -83,9 +83,10 @@
     .tutorial-steps__container {
         .tutorial__content {
             .tutorial__steps {
-                margin-bottom: 0;
-                min-height: auto;
-                padding-bottom: 8em;
+                margin-top: 15%;
+                margin-bottom: 15%;
+                max-height: 70%;
+                padding-bottom: 0;
             }
         }
     }
@@ -1389,6 +1390,25 @@
             .tutorial__steps {
                 padding: 0 20px;
                 width: 100%;
+                h1 {
+                    font-size: 35px;
+                    margin: -5px 0 20px;
+                }
+                h3 {
+                    margin-bottom: 10px;
+                }
+                .tutorial__app-icons {
+                    margin: 10px 0;
+                }
+                .tutorial__circles {
+                    margin: 0 0 15px;
+                    bottom: 60px;
+                    position: absolute;
+                }
+                .tutorial__footer {
+                    bottom: 30px;
+                    position: absolute;
+                }
             }
         }
     }
