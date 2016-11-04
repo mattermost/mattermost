@@ -482,11 +482,27 @@ func TestTeamStoreMemberCount(t *testing.T) {
 	u1.Email = model.NewId()
 	Must(store.User().Save(u1))
 
+	u2 := &model.User{}
+	u2.Email = model.NewId()
+	u2.DeleteAt = 1
+	Must(store.User().Save(u2))
+
 	teamId1 := model.NewId()
 	m1 := &model.TeamMember{TeamId: teamId1, UserId: u1.Id}
 	Must(store.Team().SaveMember(m1))
 
-	if result := <-store.Team().GetMemberCount(teamId1); result.Err != nil {
+	m2 := &model.TeamMember{TeamId: teamId1, UserId: u2.Id}
+	Must(store.Team().SaveMember(m2))
+
+	if result := <-store.Team().GetTotalMemberCount(teamId1); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		if result.Data.(int64) != 2 {
+			t.Fatal("wrong count")
+		}
+	}
+
+	if result := <-store.Team().GetActiveMemberCount(teamId1); result.Err != nil {
 		t.Fatal(result.Err)
 	} else {
 		if result.Data.(int64) != 1 {
@@ -494,10 +510,18 @@ func TestTeamStoreMemberCount(t *testing.T) {
 		}
 	}
 
-	m2 := &model.TeamMember{TeamId: teamId1, UserId: model.NewId()}
-	Must(store.Team().SaveMember(m2))
+	m3 := &model.TeamMember{TeamId: teamId1, UserId: model.NewId()}
+	Must(store.Team().SaveMember(m3))
 
-	if result := <-store.Team().GetMemberCount(teamId1); result.Err != nil {
+	if result := <-store.Team().GetTotalMemberCount(teamId1); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		if result.Data.(int64) != 2 {
+			t.Fatal("wrong count")
+		}
+	}
+
+	if result := <-store.Team().GetActiveMemberCount(teamId1); result.Err != nil {
 		t.Fatal(result.Err)
 	} else {
 		if result.Data.(int64) != 1 {

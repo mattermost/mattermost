@@ -9,8 +9,9 @@ import (
 )
 
 type TeamStats struct {
-	TeamId      string `json:"team_id"`
-	MemberCount int64  `json:"member_count"`
+	TeamId            string `json:"team_id"`
+	TotalMemberCount  int64  `json:"total_member_count"`
+	ActiveMemberCount int64  `json:"active_member_count"`
 }
 
 func (o *TeamStats) ToJson() string {

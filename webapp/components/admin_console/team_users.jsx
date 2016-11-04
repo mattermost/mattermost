@@ -49,7 +49,7 @@ export default class UserList extends React.Component {
             team: AdminStore.getTeam(this.props.params.team),
             users: [],
             teamMembers: TeamStore.getMembersInTeam(this.props.params.team),
-            total: stats.member_count,
+            total: stats.total_member_count,
             serverError: null,
             showPasswordModal: false,
             loading: true,
@@ -75,7 +75,7 @@ export default class UserList extends React.Component {
                 team: AdminStore.getTeam(nextProps.params.team),
                 users: [],
                 teamMembers: TeamStore.getMembersInTeam(nextProps.params.team),
-                total: stats.member_count
+                total: stats.total_member_count
             });
 
             this.getTeamProfiles(nextProps.params.team);
@@ -102,7 +102,7 @@ export default class UserList extends React.Component {
 
     onStatsChange() {
         const stats = TeamStore.getStats(this.props.params.team);
-        this.setState({total: stats.member_count});
+        this.setState({total: stats.total_member_count});
     }
 
     onUsersChange() {

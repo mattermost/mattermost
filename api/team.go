@@ -902,16 +902,27 @@ func getTeamStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if result := <-Srv.Store.Team().GetMemberCount(c.TeamId); result.Err != nil {
+	tchan := Srv.Store.Team().GetTotalMemberCount(c.TeamId)
+	achan := Srv.Store.Team().GetActiveMemberCount(c.TeamId)
+
+	stats := &model.TeamStats{}
+	stats.TeamId = c.TeamId
+
+	if result := <-tchan; result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
-		stats := &model.TeamStats{}
-		stats.MemberCount = result.Data.(int64)
-		stats.TeamId = c.TeamId
-		w.Write([]byte(stats.ToJson()))
-		return
+		stats.TotalMemberCount = result.Data.(int64)
 	}
+
+	if result := <-achan; result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		stats.ActiveMemberCount = result.Data.(int64)
+	}
+
+	w.Write([]byte(stats.ToJson()))
 }
 
 func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {

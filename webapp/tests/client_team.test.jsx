@@ -169,7 +169,7 @@ describe('Client.Team', function() {
             TestHelper.basicClient().getTeamStats(
                 TestHelper.basicTeam().id,
                 function(data) {
-                    assert.equal(data.member_count > 0, true);
+                    assert.equal(data.total_member_count > 0, true);
                     done();
                 },
                 function(err) {

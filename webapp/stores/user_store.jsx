@@ -320,6 +320,10 @@ class UserStoreClass extends EventEmitter {
         for (let i = 0; i < userIds.length; i++) {
             const profile = this.getProfile(userIds[i]);
 
+            if (!profile) {
+                continue;
+            }
+
             if (skipCurrent && profile.id === currentId) {
                 continue;
             }
@@ -328,9 +332,7 @@ class UserStoreClass extends EventEmitter {
                 continue;
             }
 
-            if (profile) {
-                profiles.push(profile);
-            }
+            profiles.push(profile);
         }
 
         return profiles;
@@ -473,15 +475,22 @@ class UserStoreClass extends EventEmitter {
         userIds.splice(index, 1);
     }
 
-    getProfileListNotInChannel(channelId = ChannelStore.getCurrentId()) {
+    getProfileListNotInChannel(channelId = ChannelStore.getCurrentId(), skipInactive = false) {
         const userIds = this.profiles_not_in_channel[channelId] || [];
         const profiles = [];
 
         for (let i = 0; i < userIds.length; i++) {
             const profile = this.getProfile(userIds[i]);
-            if (profile) {
-                profiles.push(profile);
+
+            if (!profile) {
+                continue;
             }
+
+            if (skipInactive && profile.delete_at > 0) {
+                continue;
+            }
+
+            profiles.push(profile);
         }
 
         return profiles;
