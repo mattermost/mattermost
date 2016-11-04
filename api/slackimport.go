@@ -7,15 +7,17 @@ import (
 	"archive/zip"
 	"bytes"
 	"encoding/json"
-	l4g "github.com/alecthomas/log4go"
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/utils"
 	"io"
 	"mime/multipart"
 	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
+	"unicode/utf8"
+
+	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 type SlackChannel struct {
@@ -61,6 +63,14 @@ type SlackAttachment struct {
 	Text    string                   `json:"text"`
 	Pretext string                   `json:"pretext"`
 	Fields  []map[string]interface{} `json:"fields"`
+}
+
+func truncateRunes(s string, i int) string {
+	runes := []rune(s)
+	if len(runes) > i {
+		return string(runes[:i])
+	}
+	return s
 }
 
 func SlackConvertTimeStamp(ts string) int64 {
@@ -368,6 +378,30 @@ func addSlackUsersToChannel(members []string, users map[string]*model.User, chan
 	}
 }
 
+func SlackSanitiseChannelProperties(channel model.Channel) model.Channel {
+	if utf8.RuneCountInString(channel.DisplayName) > model.CHANNEL_DISPLAY_NAME_MAX_RUNES {
+		l4g.Warn("api.slackimport.slack_sanitise_channel_properties.display_name_too_long.warn", map[string]interface{}{"ChannelName": channel.DisplayName})
+		channel.DisplayName = truncateRunes(channel.DisplayName, model.CHANNEL_DISPLAY_NAME_MAX_RUNES)
+	}
+
+	if len(channel.Name) > model.CHANNEL_NAME_MAX_LENGTH {
+		l4g.Warn("api.slackimport.slack_sanitise_channel_properties.name_too_long.warn", map[string]interface{}{"ChannelName": channel.DisplayName})
+		channel.Name = channel.Name[0:model.CHANNEL_NAME_MAX_LENGTH]
+	}
+
+	if utf8.RuneCountInString(channel.Purpose) > model.CHANNEL_PURPOSE_MAX_RUNES {
+		l4g.Warn("api.slackimport.slack_sanitise_channel_properties.purpose_too_long.warn", map[string]interface{}{"ChannelName": channel.DisplayName})
+		channel.Purpose = truncateRunes(channel.Purpose, model.CHANNEL_PURPOSE_MAX_RUNES)
+	}
+
+	if utf8.RuneCountInString(channel.Header) > model.CHANNEL_HEADER_MAX_RUNES {
+		l4g.Warn("api.slackimport.slack_sanitise_channel_properties.header_too_long.warn", map[string]interface{}{"ChannelName": channel.DisplayName})
+		channel.Header = truncateRunes(channel.Header, model.CHANNEL_HEADER_MAX_RUNES)
+	}
+
+	return channel
+}
+
 func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[string][]SlackPost, users map[string]*model.User, uploads map[string]*zip.File, botUser *model.User, log *bytes.Buffer) map[string]*model.Channel {
 	// Write Header
 	log.WriteString(utils.T("api.slackimport.slack_add_channels.added"))
@@ -383,6 +417,7 @@ func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[str
 			Purpose:     sChannel.Purpose["value"],
 			Header:      sChannel.Topic["value"],
 		}
+		newChannel = SlackSanitiseChannelProperties(newChannel)
 		mChannel := ImportChannel(&newChannel)
 		if mChannel == nil {
 			// Maybe it already exists?
