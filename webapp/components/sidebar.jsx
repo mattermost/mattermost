@@ -309,7 +309,7 @@ export default class Sidebar extends React.Component {
     }
 
     getDisplayedChannels() {
-        return this.state.publicChannels.concat(this.state.privateChannels).concat(this.state.directChannels).concat(this.state.directNonTeamChannels);
+        return this.state.favoriteChannels.concat(this.state.publicChannels).concat(this.state.privateChannels).concat(this.state.directChannels).concat(this.state.directNonTeamChannels);
     }
 
     handleLeaveDirectChannel(e, channel) {
