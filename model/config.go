@@ -221,6 +221,7 @@ type TeamSettings struct {
 	RestrictPrivateChannelManagement *string
 	UserStatusAwayTimeout            *int64
 	MaxChannelsPerTeam               *int64
+	DefaultTeam                      string
 }
 
 type LdapSettings struct {

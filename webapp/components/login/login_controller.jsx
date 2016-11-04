@@ -21,6 +21,8 @@ import {browserHistory, Link} from 'react-router/es6';
 import React from 'react';
 import logoImage from 'images/logo.png';
 
+const config = global.window.mm_config;
+
 export default class LoginController extends React.Component {
     static get propTypes() {
         return {
@@ -40,10 +42,10 @@ export default class LoginController extends React.Component {
         this.handlePasswordChange = this.handlePasswordChange.bind(this);
 
         this.state = {
-            ldapEnabled: global.window.mm_license.IsLicensed === 'true' && global.window.mm_config.EnableLdap === 'true',
-            usernameSigninEnabled: global.window.mm_config.EnableSignInWithUsername === 'true',
-            emailSigninEnabled: global.window.mm_config.EnableSignInWithEmail === 'true',
-            samlEnabled: global.window.mm_license.IsLicensed === 'true' && global.window.mm_config.EnableSaml === 'true',
+            ldapEnabled: global.window.mm_license.IsLicensed === 'true' && config.EnableLdap === 'true',
+            usernameSigninEnabled: config.EnableSignInWithUsername === 'true',
+            emailSigninEnabled: config.EnableSignInWithEmail === 'true',
+            samlEnabled: global.window.mm_license.IsLicensed === 'true' && config.EnableSaml === 'true',
             loginId: '', // the browser will set a default for this
             password: '',
             showMfa: false
@@ -51,10 +53,14 @@ export default class LoginController extends React.Component {
     }
 
     componentDidMount() {
-        document.title = global.window.mm_config.SiteName;
+        document.title = config.SiteName;
 
         if (UserStore.getCurrentUser()) {
             browserHistory.push('/select_team');
+        }
+
+        if (UserStore.getCurrentUser() && config.DefaultTeam) {
+            browserHistory.push(`/${config.DefaultTeam}/channels/town-square`);
         }
 
         AsyncClient.checkVersion();
@@ -96,7 +102,7 @@ export default class LoginController extends React.Component {
                     <FormattedMessage
                         id={msgId}
                         values={{
-                            ldapUsername: global.window.mm_config.LdapLoginFieldName || Utils.localizeMessage('login.ldapUsernameLower', 'AD/LDAP username')
+                            ldapUsername: config.LdapLoginFieldName || Utils.localizeMessage('login.ldapUsernameLower', 'AD/LDAP username')
                         }}
                     />
                 )
@@ -116,7 +122,7 @@ export default class LoginController extends React.Component {
             return;
         }
 
-        if (global.window.mm_config.EnableMultifactorAuthentication === 'true') {
+        if (config.EnableMultifactorAuthentication === 'true') {
             Client.checkMfa(
                 loginId,
                 (data) => {
@@ -203,6 +209,8 @@ export default class LoginController extends React.Component {
                 GlobalActions.loadDefaultLocale();
                 if (query.redirect_to) {
                     browserHistory.push(query.redirect_to);
+                } else if (config.DefaultTeam) {
+                    browserHistory.push(`/${config.DefaultTeam}/channels/town-square`);
                 } else {
                     browserHistory.push('/select_team');
                 }
@@ -225,8 +233,8 @@ export default class LoginController extends React.Component {
     createCustomLogin() {
         if (global.window.mm_license.IsLicensed === 'true' &&
                 global.window.mm_license.CustomBrand === 'true' &&
-                global.window.mm_config.EnableCustomBrand === 'true') {
-            const text = global.window.mm_config.CustomBrandText || '';
+                config.EnableCustomBrand === 'true') {
+            const text = config.CustomBrandText || '';
 
             return (
                 <div>
@@ -256,8 +264,8 @@ export default class LoginController extends React.Component {
         }
 
         if (ldapEnabled) {
-            if (global.window.mm_config.LdapLoginFieldName) {
-                loginPlaceholders.push(global.window.mm_config.LdapLoginFieldName);
+            if (config.LdapLoginFieldName) {
+                loginPlaceholders.push(config.LdapLoginFieldName);
             } else {
                 loginPlaceholders.push(Utils.localizeMessage('login.ldapUsername', 'AD/LDAP Username'));
             }
@@ -275,12 +283,12 @@ export default class LoginController extends React.Component {
     }
 
     checkSignUpEnabled() {
-        return global.window.mm_config.EnableSignUpWithEmail === 'true' ||
-            global.window.mm_config.EnableSignUpWithGitLab === 'true' ||
-            global.window.mm_config.EnableSignUpWithOffice365 === 'true' ||
-            global.window.mm_config.EnableSignUpWithGoogle === 'true' ||
-            global.window.mm_config.EnableLdap === 'true' ||
-            global.window.mm_config.EnableSaml === 'true';
+        return config.EnableSignUpWithEmail === 'true' ||
+            config.EnableSignUpWithGitLab === 'true' ||
+            config.EnableSignUpWithOffice365 === 'true' ||
+            config.EnableSignUpWithGoogle === 'true' ||
+            config.EnableLdap === 'true' ||
+            config.EnableSaml === 'true';
     }
 
     createLoginOptions() {
@@ -333,9 +341,9 @@ export default class LoginController extends React.Component {
         const loginControls = [];
 
         const ldapEnabled = this.state.ldapEnabled;
-        const gitlabSigninEnabled = global.window.mm_config.EnableSignUpWithGitLab === 'true';
-        const googleSigninEnabled = global.window.mm_config.EnableSignUpWithGoogle === 'true';
-        const office365SigninEnabled = global.window.mm_config.EnableSignUpWithOffice365 === 'true';
+        const gitlabSigninEnabled = config.EnableSignUpWithGitLab === 'true';
+        const googleSigninEnabled = config.EnableSignUpWithGoogle === 'true';
+        const office365SigninEnabled = config.EnableSignUpWithOffice365 === 'true';
         const samlSigninEnabled = this.state.samlEnabled;
         const usernameSigninEnabled = this.state.usernameSigninEnabled;
         const emailSigninEnabled = this.state.emailSigninEnabled;
@@ -396,7 +404,7 @@ export default class LoginController extends React.Component {
             );
         }
 
-        if (global.window.mm_config.EnableOpenServer === 'true' && this.checkSignUpEnabled()) {
+        if (config.EnableOpenServer === 'true' && this.checkSignUpEnabled()) {
             loginControls.push(
                 <div
                     className='form-group'
@@ -583,8 +591,8 @@ export default class LoginController extends React.Component {
         }
 
         let description = null;
-        if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.CustomBrand === 'true' && global.window.mm_config.EnableCustomBrand === 'true') {
-            description = global.window.mm_config.CustomDescriptionText;
+        if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.CustomBrand === 'true' && config.EnableCustomBrand === 'true') {
+            description = config.CustomDescriptionText;
         } else {
             description = (
                 <FormattedMessage
@@ -607,7 +615,7 @@ export default class LoginController extends React.Component {
                             src={logoImage}
                         />
                         <div className='signup__content'>
-                            <h1>{global.window.mm_config.SiteName}</h1>
+                            <h1>{config.SiteName}</h1>
                             <h4 className='color--light'>
                                 {description}
                             </h4>

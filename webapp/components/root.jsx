@@ -46,9 +46,12 @@ export default class Root extends React.Component {
     }
 
     redirectIfNecessary(props) {
+        const DefaultTeam = global.window.mm_config.DefaultTeam;
         if (props.location.pathname === '/') {
             if (UserStore.getNoAccounts()) {
                 browserHistory.push('/signup_user_complete');
+            } else if (UserStore.getCurrentUser() && DefaultTeam) {
+                browserHistory.push(`/${DefaultTeam}/channels/town-square`);
             } else if (UserStore.getCurrentUser()) {
                 browserHistory.push('/select_team');
             } else {
