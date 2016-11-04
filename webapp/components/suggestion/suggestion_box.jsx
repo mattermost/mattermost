@@ -66,14 +66,8 @@ export default class SuggestionBox extends React.Component {
 
         const container = $(ReactDOM.findDOMNode(this));
 
-        // if ($('.suggestion-list__content').length) {
-        //     if (!($(e.target).hasClass('suggestion-list__content') || $(e.target).parents().hasClass('suggestion-list__content'))) {
-        //         $('body').removeClass('modal-open');
-        //     }
-        // }
-
         if (!(container.is(e.target) || container.has(e.target).length > 0)) {
-            // we can't just use blur for this because it fires and hides the children before
+            // We can't just use blur for this because it fires and hides the children before
             // their click handlers can be called
             GlobalActions.emitClearSuggestions(this.suggestionId);
         }
