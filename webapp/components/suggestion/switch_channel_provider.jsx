@@ -72,7 +72,7 @@ export default class SwitchChannelProvider {
 
                         for (const id of Object.keys(allChannels)) {
                             const channel = allChannels[id];
-                            if (channel.display_name.toLowerCase().startsWith(channelPrefix.toLowerCase())) {
+                            if (channel.display_name.toLowerCase().indexOf(channelPrefix.toLowerCase()) !== -1) {
                                 channels.push(channel);
                             }
                         }
