@@ -13,7 +13,6 @@ import {removeUserFromChannel} from 'actions/channel_actions.jsx';
 
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
-import * as Utils from 'utils/utils.jsx';
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
@@ -144,11 +143,6 @@ export default class ChannelMembersModal extends React.Component {
         if (this.state.loading) {
             content = (<LoadingScreen/>);
         } else {
-            let maxHeight = 1000;
-            if (Utils.windowHeight() <= 1200) {
-                maxHeight = Utils.windowHeight() - 300;
-            }
-
             let removeButton = null;
             if (this.props.isAdmin) {
                 removeButton = [this.createRemoveMemberButton];
@@ -156,7 +150,6 @@ export default class ChannelMembersModal extends React.Component {
 
             content = (
                 <SearchableUserList
-                    style={{maxHeight}}
                     users={this.state.users}
                     usersPerPage={USERS_PER_PAGE}
                     total={this.state.total}

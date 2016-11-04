@@ -9,8 +9,6 @@
     }
 
     .filtered-user-list {
-        max-height: 65vh !important;
-
         .filter-button {
             .btn {
                 width: 100%;
@@ -1309,6 +1307,12 @@
 
     .app__body {
         .modal {
+            &.more-channel__modal {
+                .modal-body {
+                    padding-bottom: 35px;
+                }
+            }
+
             .settings-modal {
                 &.display--content {
                     .modal-body {
@@ -1318,6 +1322,7 @@
 
                 .modal-body {
                     max-height: 70%;
+                    padding-bottom: 0;
                 }
 
                 .settings-table {
