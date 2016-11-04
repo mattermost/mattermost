@@ -155,10 +155,11 @@ export default class SearchableUserList extends React.Component {
             }
         }
 
+        const height = $(window).height() - 186;
         return (
             <div
                 className='filtered-user-list'
-                style={this.props.style}
+                style={{...this.props.style, 'max-height': `${height}px`}}
             >
                 <div className='filter-row'>
                     <div className='col-xs-9 col-sm-5'>
