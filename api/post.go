@@ -486,53 +486,27 @@ func getExplicitMentions(message string, keywords map[string][]string) (map[stri
 		}
 	}
 
-	for _, word := range strings.Fields(message) {
-		isMention := false
+	splitWords := strings.FieldsFunc(message, func(c rune) bool {
+		return model.SplitRunes[c]
+	})
 
-		if word == "@here" {
+	for _, splitWord := range splitWords {
+		l4g.Debug("split word = %v", splitWord)
+		if splitWord == "@here" {
 			hereMentioned = true
 		}
 
 		// Non-case-sensitive check for regular keys
-		if ids, match := keywords[strings.ToLower(word)]; match {
+		if ids, match := keywords[strings.ToLower(splitWord)]; match {
 			addMentionedUsers(ids)
-			isMention = true
 		}
 
 		// Case-sensitive check for first name
-		if ids, match := keywords[word]; match {
+		if ids, match := keywords[splitWord]; match {
 			addMentionedUsers(ids)
-			isMention = true
-		} else if _, ok := systemMentions[word]; !ok && strings.HasPrefix(word, "@") {
-			potentialOthersMentioned = append(potentialOthersMentioned, word[1:])
-			continue
-		}
-
-		if !isMention {
-			// No matches were found with the string split just on whitespace so try further splitting
-			// the message on punctuation
-			splitWords := strings.FieldsFunc(word, func(c rune) bool {
-				return model.SplitRunes[c]
-			})
-
-			for _, splitWord := range splitWords {
-				if splitWord == "@here" {
-					hereMentioned = true
-				}
-
-				// Non-case-sensitive check for regular keys
-				if ids, match := keywords[strings.ToLower(splitWord)]; match {
-					addMentionedUsers(ids)
-				}
-
-				// Case-sensitive check for first name
-				if ids, match := keywords[splitWord]; match {
-					addMentionedUsers(ids)
-				} else if _, ok := systemMentions[word]; !ok && strings.HasPrefix(word, "@") {
-					username := word[1:len(splitWord)]
-					potentialOthersMentioned = append(potentialOthersMentioned, username)
-				}
-			}
+		} else if _, ok := systemMentions[splitWord]; !ok && strings.HasPrefix(splitWord, "@") {
+			username := splitWord[1:]
+			potentialOthersMentioned = append(potentialOthersMentioned, username)
 		}
 	}
 
