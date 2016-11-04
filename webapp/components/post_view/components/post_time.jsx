@@ -6,7 +6,7 @@ import React from 'react';
 import Constants from 'utils/constants.jsx';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 
-import {FormattedTime} from 'react-intl';
+import {getDateForUnixTicks} from 'utils/utils.jsx';
 
 export default class PostTime extends React.Component {
     constructor(props) {
@@ -28,12 +28,7 @@ export default class PostTime extends React.Component {
     render() {
         return (
             <time className='post__time'>
-                <FormattedTime
-                    value={this.props.eventTime}
-                    hour='2-digit'
-                    minute='2-digit'
-                    hour12={!this.props.useMilitaryTime}
-                />
+                {getDateForUnixTicks(this.props.eventTime).toLocaleString('en', {hour: '2-digit', minute: '2-digit', hour12: !this.props.useMilitaryTime})}
             </time>
         );
     }
