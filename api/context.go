@@ -107,10 +107,6 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
 	l4g.Debug("%v", r.URL.Path)
 
-	if einterfaces.GetMetricsInterface() != nil {
-		einterfaces.GetMetricsInterface().IncrementHttpRequest()
-	}
-
 	c := &Context{}
 	c.T, c.Locale = utils.GetTranslationsAndLocale(w, r)
 	c.RequestId = model.NewId()
@@ -235,6 +231,9 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(c.Err.StatusCode)
 			w.Write([]byte(c.Err.ToJson()))
 
+			if einterfaces.GetMetricsInterface() != nil {
+				einterfaces.GetMetricsInterface().IncrementHttpError()
+			}
 		} else {
 			if c.Err.StatusCode == http.StatusUnauthorized {
 				http.Redirect(w, r, c.GetTeamURL()+"/?redirect="+url.QueryEscape(r.URL.Path), http.StatusTemporaryRedirect)
@@ -243,14 +242,15 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		if einterfaces.GetMetricsInterface() != nil {
-			einterfaces.GetMetricsInterface().IncrementHttpError()
-		}
 	}
 
-	if einterfaces.GetMetricsInterface() != nil {
-		elapsed := float64(time.Since(now)) / float64(time.Second)
-		einterfaces.GetMetricsInterface().ObserveHttpRequestDuration(elapsed)
+	if h.isApi && einterfaces.GetMetricsInterface() != nil {
+		einterfaces.GetMetricsInterface().IncrementHttpRequest()
+
+		if r.URL.Path != model.API_URL_SUFFIX+"/users/websocket" {
+			elapsed := float64(time.Since(now)) / float64(time.Second)
+			einterfaces.GetMetricsInterface().ObserveHttpRequestDuration(elapsed)
+		}
 	}
 }
 
