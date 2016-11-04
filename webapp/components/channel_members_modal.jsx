@@ -3,7 +3,6 @@
 
 import SearchableUserList from './searchable_user_list.jsx';
 import LoadingScreen from './loading_screen.jsx';
-import ChannelInviteModal from './channel_invite_modal.jsx';
 
 import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
@@ -28,6 +27,7 @@ export default class ChannelMembersModal extends React.Component {
 
         this.onChange = this.onChange.bind(this);
         this.onStatusChange = this.onStatusChange.bind(this);
+        this.onHide = this.onHide.bind(this);
         this.handleRemove = this.handleRemove.bind(this);
         this.createRemoveMemberButton = this.createRemoveMemberButton.bind(this);
         this.search = this.search.bind(this);
@@ -40,25 +40,18 @@ export default class ChannelMembersModal extends React.Component {
         this.state = {
             users: [],
             total: stats.member_count,
-            showInviteModal: false,
+            show: true,
             search: false,
             statusChange: false
         };
     }
 
-    componentWillReceiveProps(nextProps) {
-        if (!this.props.show && nextProps.show) {
-            ChannelStore.addStatsChangeListener(this.onChange);
-            UserStore.addInChannelChangeListener(this.onChange);
-            UserStore.addStatusesChangeListener(this.onStatusChange);
+    componentDidMount() {
+        ChannelStore.addStatsChangeListener(this.onChange);
+        UserStore.addInChannelChangeListener(this.onChange);
+        UserStore.addStatusesChangeListener(this.onStatusChange);
 
-            this.onChange();
-            AsyncClient.getProfilesInChannel(this.props.channel.id, 0);
-        } else if (this.props.show && !nextProps.show) {
-            ChannelStore.removeStatsChangeListener(this.onChange);
-            UserStore.removeInChannelChangeListener(this.onChange);
-            UserStore.removeStatusesChangeListener(this.onStatusChange);
-        }
+        AsyncClient.getProfilesInChannel(this.props.channel.id, 0);
     }
 
     componentWillUnmount() {
@@ -85,6 +78,10 @@ export default class ChannelMembersModal extends React.Component {
         this.setState({
             statusChange: !this.state.statusChange
         });
+    }
+
+    onHide() {
+        this.setState({show: false});
     }
 
     handleRemove(user) {
@@ -175,8 +172,9 @@ export default class ChannelMembersModal extends React.Component {
             <div>
                 <Modal
                     dialogClassName='more-modal'
-                    show={this.props.show}
-                    onHide={this.props.onModalDismissed}
+                    show={this.state.show}
+                    onHide={this.onHide}
+                    onExited={this.props.onModalDismissed}
                 >
                     <Modal.Header closeButton={true}>
                         <Modal.Title>
@@ -190,8 +188,8 @@ export default class ChannelMembersModal extends React.Component {
                             className='btn btn-md btn-primary'
                             href='#'
                             onClick={() => {
-                                this.setState({showInviteModal: true});
-                                this.props.onModalDismissed();
+                                this.props.showInviteModal();
+                                this.onHide();
                             }}
                         >
                             <FormattedMessage
@@ -209,7 +207,7 @@ export default class ChannelMembersModal extends React.Component {
                         <button
                             type='button'
                             className='btn btn-default'
-                            onClick={this.props.onModalDismissed}
+                            onClick={this.onHide}
                         >
                             <FormattedMessage
                                 id='channel_members_modal.close'
@@ -218,23 +216,14 @@ export default class ChannelMembersModal extends React.Component {
                         </button>
                     </Modal.Footer>
                 </Modal>
-                <ChannelInviteModal
-                    show={this.state.showInviteModal}
-                    onHide={() => this.setState({showInviteModal: false})}
-                    channel={this.props.channel}
-                />
             </div>
         );
     }
 }
 
-ChannelMembersModal.defaultProps = {
-    show: false
-};
-
 ChannelMembersModal.propTypes = {
-    show: React.PropTypes.bool.isRequired,
     onModalDismissed: React.PropTypes.func.isRequired,
+    showInviteModal: React.PropTypes.func.isRequired,
     channel: React.PropTypes.object.isRequired,
     isAdmin: React.PropTypes.bool.isRequired
 };

@@ -450,6 +450,7 @@ export default class ChannelHeader extends React.Component {
                         role='presentation'
                     >
                         <ToggleModalButton
+                            ref='channelInviteModalButton'
                             role='menuitem'
                             dialogType={ChannelInviteModal}
                             dialogProps={{channel, currentUser: this.state.currentUser}}
@@ -662,6 +663,28 @@ export default class ChannelHeader extends React.Component {
             </OverlayTrigger>
         );
 
+        let channelMembersModal;
+        if (this.state.showMembersModal) {
+            channelMembersModal = (
+                <ChannelMembersModal
+                    onModalDismissed={() => this.setState({showMembersModal: false})}
+                    showInviteModal={() => this.refs.channelInviteModalButton.show()}
+                    channel={channel}
+                    isAdmin={isAdmin}
+                />
+            );
+        }
+
+        let editPurposeModal;
+        if (this.state.showEditChannelPurposeModal) {
+            editPurposeModal = (
+                <EditChannelPurposeModal
+                    onModalDismissed={() => this.setState({showEditChannelPurposeModal: false})}
+                    channel={channel}
+                />
+            );
+        }
+
         return (
             <div
                 id='channel-header'
@@ -753,17 +776,8 @@ export default class ChannelHeader extends React.Component {
                         </tr>
                     </tbody>
                 </table>
-                <EditChannelPurposeModal
-                    show={this.state.showEditChannelPurposeModal}
-                    onModalDismissed={() => this.setState({showEditChannelPurposeModal: false})}
-                    channel={channel}
-                />
-                <ChannelMembersModal
-                    show={this.state.showMembersModal}
-                    onModalDismissed={() => this.setState({showMembersModal: false})}
-                    channel={channel}
-                    isAdmin={isAdmin}
-                />
+                {editPurposeModal}
+                {channelMembersModal}
                 <RenameChannelModal
                     show={this.state.showRenameChannelModal}
                     onHide={this.hideRenameChannelModal}

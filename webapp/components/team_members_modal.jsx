@@ -16,9 +16,11 @@ export default class TeamMembersModal extends React.Component {
         super(props);
 
         this.teamChanged = this.teamChanged.bind(this);
+        this.onHide = this.onHide.bind(this);
 
         this.state = {
-            team: TeamStore.getCurrent()
+            team: TeamStore.getCurrent(),
+            show: true
         };
     }
 
@@ -32,6 +34,10 @@ export default class TeamMembersModal extends React.Component {
 
     teamChanged() {
         this.setState({team: TeamStore.getCurrent()});
+    }
+
+    onHide() {
+        this.setState({show: false});
     }
 
     render() {
@@ -48,8 +54,9 @@ export default class TeamMembersModal extends React.Component {
         return (
             <Modal
                 dialogClassName='more-modal'
-                show={this.props.show}
-                onHide={this.props.onHide}
+                show={this.state.show}
+                onHide={this.onHide}
+                onExited={this.props.onHide}
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title>
@@ -72,7 +79,7 @@ export default class TeamMembersModal extends React.Component {
                     <button
                         type='button'
                         className='btn btn-default'
-                        onClick={this.props.onHide}
+                        onClick={this.onHide}
                     >
                         <FormattedMessage
                             id='team_member_modal.close'
@@ -86,7 +93,6 @@ export default class TeamMembersModal extends React.Component {
 }
 
 TeamMembersModal.propTypes = {
-    show: React.PropTypes.bool.isRequired,
     onHide: React.PropTypes.func.isRequired,
     isAdmin: React.PropTypes.bool.isRequired
 };

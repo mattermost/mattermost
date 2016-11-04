@@ -715,6 +715,16 @@ export default class Sidebar extends React.Component {
             }
         }
 
+        let moreDirectChannelsModal;
+        if (this.state.showDirectChannelsModal) {
+            moreDirectChannelsModal = (
+                <MoreDirectChannels
+                    show={true}
+                    onModalDismissed={this.hideMoreDirectChannelsModal}
+                />
+            );
+        }
+
         return (
             <div
                 className='sidebar--left'
@@ -726,10 +736,7 @@ export default class Sidebar extends React.Component {
                     channelType={this.state.newChannelModalType}
                     onModalDismissed={this.hideNewChannelModal}
                 />
-                <MoreDirectChannels
-                    show={this.state.showDirectChannelsModal}
-                    onModalDismissed={this.hideMoreDirectChannelsModal}
-                />
+                {moreDirectChannelsModal}
 
                 <SidebarHeader
                     teamDisplayName={this.state.currentTeam.display_name}
