@@ -1641,6 +1641,7 @@
   "sidebar.createChannel": "Create new channel",
   "sidebar.createGroup": "Create new group",
   "sidebar.direct": "Direct Messages",
+  "sidebar.favorite": "Favorites",
   "sidebar.more": "More",
   "sidebar.moreElips": "More...",
   "sidebar.otherMembers": "Outside this team",
