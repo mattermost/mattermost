@@ -503,9 +503,6 @@ func getExplicitMentions(message string, keywords map[string][]string) (map[stri
 		if ids, match := keywords[word]; match {
 			addMentionedUsers(ids)
 			isMention = true
-		} else if _, ok := systemMentions[word]; !ok && strings.HasPrefix(word, "@") {
-			potentialOthersMentioned = append(potentialOthersMentioned, word[1:])
-			continue
 		}
 
 		if !isMention {
