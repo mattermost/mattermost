@@ -44,7 +44,6 @@ type Features struct {
 	SAML                 *bool `json:"saml"`
 	PasswordRequirements *bool `json:"password_requirements"`
 	// after we enabled more features for webrtc we'll need to control them with this
-	Webrtc         *bool `json:"webrtc"`
 	FutureFeatures *bool `json:"future_features"`
 }
 
@@ -123,11 +122,6 @@ func (f *Features) SetDefaults() {
 	if f.PasswordRequirements == nil {
 		f.PasswordRequirements = new(bool)
 		*f.PasswordRequirements = *f.FutureFeatures
-	}
-
-	if f.Webrtc == nil {
-		f.Webrtc = new(bool)
-		*f.Webrtc = *f.FutureFeatures
 	}
 }
 
