@@ -25,6 +25,7 @@ export default class Textbox extends React.Component {
         super(props);
 
         this.focus = this.focus.bind(this);
+        this.recalculateSize = this.recalculateSize.bind(this);
         this.getStateFromStores = this.getStateFromStores.bind(this);
         this.onRecievedError = this.onRecievedError.bind(this);
         this.handleKeyPress = this.handleKeyPress.bind(this);
@@ -91,13 +92,10 @@ export default class Textbox extends React.Component {
         }
     }
 
-    handleHeightChange(height) {
-        const textbox = $(this.refs.message.getTextbox());
+    handleHeightChange(height, maxHeight) {
         const wrapper = $(this.refs.wrapper);
 
-        const maxHeight = parseInt(textbox.css('max-height'), 10);
-
-        // move over attachment icon to compensate for the scrollbar
+        // Move over attachment icon to compensate for the scrollbar
         if (height > maxHeight) {
             wrapper.closest('.post-body__cell').addClass('scroll');
         } else {
@@ -106,7 +104,14 @@ export default class Textbox extends React.Component {
     }
 
     focus() {
-        this.refs.message.getTextbox().focus();
+        const textbox = this.refs.message.getTextbox();
+
+        textbox.focus();
+        Utils.placeCaretAtEnd(textbox);
+    }
+
+    recalculateSize() {
+        this.refs.message.recalculateSize();
     }
 
     showPreview(e) {

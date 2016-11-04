@@ -156,6 +156,8 @@ export default class EditPostModal extends React.Component {
 
     onModalShown() {
         this.refs.editbox.focus();
+
+        this.refs.editbox.recalculateSize();
     }
 
     onModalHide() {
