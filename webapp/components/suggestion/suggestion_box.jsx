@@ -227,5 +227,6 @@ SuggestionBox.propTypes = {
 
     // explicitly name any input event handlers we override and need to manually call
     onChange: React.PropTypes.func,
+    onBlur: React.PropTypes.func,
     onKeyDown: React.PropTypes.func
 };

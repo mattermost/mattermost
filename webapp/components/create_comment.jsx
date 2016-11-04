@@ -37,6 +37,7 @@ export default class CreateComment extends React.Component {
         this.commentMsgKeyPress = this.commentMsgKeyPress.bind(this);
         this.handleChange = this.handleChange.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
+        this.handleBlur = this.handleBlur.bind(this);
         this.handleUploadClick = this.handleUploadClick.bind(this);
         this.handleUploadStart = this.handleUploadStart.bind(this);
         this.handleFileUploadComplete = this.handleFileUploadComplete.bind(this);
@@ -58,7 +59,8 @@ export default class CreateComment extends React.Component {
             fileInfos: draft.fileInfos,
             submitting: false,
             ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
-            showPostDeletedModal: false
+            showPostDeletedModal: false,
+            lastBlurAt: 0
         };
     }
 
@@ -166,6 +168,10 @@ export default class CreateComment extends React.Component {
             fileInfos: [],
             serverError: null
         });
+
+        const fasterThanHumanWillClick = 150;
+        const forceFocus = (Date.now() - this.state.lastBlurAt < fasterThanHumanWillClick);
+        this.focusTextbox(forceFocus);
     }
 
     commentMsgKeyPress(e) {
@@ -316,8 +322,8 @@ export default class CreateComment extends React.Component {
         return this.state.fileInfos.length + this.state.uploadsInProgress.length;
     }
 
-    focusTextbox() {
-        if (!Utils.isMobile()) {
+    focusTextbox(keepFocus = false) {
+        if (keepFocus || !Utils.isMobile()) {
             this.refs.textbox.focus();
         }
     }
@@ -332,6 +338,10 @@ export default class CreateComment extends React.Component {
         this.setState({
             showPostDeletedModal: false
         });
+    }
+
+    handleBlur() {
+        this.setState({lastBlurAt: Date.now()});
     }
 
     render() {
@@ -397,6 +407,7 @@ export default class CreateComment extends React.Component {
                                 onKeyPress={this.commentMsgKeyPress}
                                 onKeyDown={this.handleKeyDown}
                                 value={this.state.message}
+                                onBlur={this.handleBlur}
                                 createMessage={Utils.localizeMessage('create_comment.addComment', 'Add a comment...')}
                                 initialText=''
                                 supportsCommands={false}

@@ -52,6 +52,7 @@ export default class CreatePost extends React.Component {
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.getFileCount = this.getFileCount.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
+        this.handleBlur = this.handleBlur.bind(this);
         this.sendMessage = this.sendMessage.bind(this);
         this.focusTextbox = this.focusTextbox.bind(this);
         this.showPostDeletedModal = this.showPostDeletedModal.bind(this);
@@ -71,7 +72,8 @@ export default class CreatePost extends React.Component {
             ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
             fullWidthTextBox: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN,
             showTutorialTip: false,
-            showPostDeletedModal: false
+            showPostDeletedModal: false,
+            lastBlurAt: 0
         };
     }
 
@@ -128,6 +130,10 @@ export default class CreatePost extends React.Component {
         } else {
             this.sendMessage(post);
         }
+
+        const fasterThanHumanWillClick = 150;
+        const forceFocus = (Date.now() - this.state.lastBlurAt < fasterThanHumanWillClick);
+        this.focusTextbox(forceFocus);
     }
 
     sendMessage(post) {
@@ -171,8 +177,8 @@ export default class CreatePost extends React.Component {
         );
     }
 
-    focusTextbox() {
-        if (!Utils.isMobile()) {
+    focusTextbox(keepFocus = false) {
+        if (keepFocus || !Utils.isMobile()) {
             this.refs.textbox.focus();
         }
     }
@@ -405,6 +411,10 @@ export default class CreatePost extends React.Component {
         }
     }
 
+    handleBlur() {
+        this.setState({lastBlurAt: Date.now()});
+    }
+
     showPostDeletedModal() {
         this.setState({
             showPostDeletedModal: true
@@ -495,6 +505,7 @@ export default class CreatePost extends React.Component {
                                 onKeyPress={this.postMsgKeyPress}
                                 onKeyDown={this.handleKeyDown}
                                 value={this.state.message}
+                                onBlur={this.handleBlur}
                                 createMessage={Utils.localizeMessage('create_post.write', 'Write a message...')}
                                 channelId={this.state.channelId}
                                 id='post_textbox'
