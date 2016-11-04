@@ -155,7 +155,7 @@ export default class EditChannelPurposeModal extends React.Component {
                         ref='purpose'
                         className='form-control no-resize'
                         rows='6'
-                        maxLength='128'
+                        maxLength='250'
                         defaultValue={this.props.channel.purpose}
                         onKeyDown={this.handleKeyDown}
                     />

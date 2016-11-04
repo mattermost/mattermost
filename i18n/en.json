@@ -1672,6 +1672,22 @@
     "translation": "Error parsing some slack posts. Import may work anyway."
   },
   {
+    "id": "api.slackimport.slack_sanitise_channel_properties.display_name_too_long.warn",
+    "translation": "Slack Importer: Channel {{.ChannelName}} has a display name which is too long. It will be truncated when imported."
+  },
+  {
+    "id": "api.slackimport.slack_sanitise_channel_properties.header_too_long.warn",
+    "translation": "Slack Importer: Channel {{.ChannelName}} has a header which is too long. It will be truncated when imported."
+  },
+  {
+    "id": "api.slackimport.slack_sanitise_channel_properties.name_too_long.warn",
+    "translation": "Slack Importer: Channel {{.ChannelName}} has a name which is too long. It will be truncated when imported."
+  },
+  {
+    "id": "api.slackimport.slack_sanitise_channel_properties.purpose_too_long.warn",
+    "translation": "Slack Importer: Channel {{.ChannelName}} has a purpose which is too long. It will be truncated when imported."
+  },
+  {
     "id": "api.status.init.debug",
     "translation": "Initializing status api routes"
   },
