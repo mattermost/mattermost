@@ -57,6 +57,10 @@ export default class LoginController extends React.Component {
             browserHistory.push('/select_team');
         }
 
+        if (UserStore.getCurrentUser() && global.window.mm_config.DefaultTeamName) {
+            browserHistory.push(`/${global.window.mm_config.DefaultTeamName}/channels/town-square`);
+        }
+
         AsyncClient.checkVersion();
     }
 
@@ -203,6 +207,8 @@ export default class LoginController extends React.Component {
                 GlobalActions.loadDefaultLocale();
                 if (query.redirect_to) {
                     browserHistory.push(query.redirect_to);
+                } else if (global.window.mm_config.DefaultTeamName) {
+                    browserHistory.push(`/${global.window.mm_config.DefaultTeamName}/channels/town-square`);
                 } else {
                     browserHistory.push('/select_team');
                 }
@@ -534,7 +540,7 @@ export default class LoginController extends React.Component {
                 >
                     <span className='icon fa fa-lock fa--margin-top'/>
                     <span>
-                        {window.mm_config.SamlLoginButtonText}
+                        {window.mm_global.window.mm_config.SamlLoginButtonText}
                     </span>
                 </a>
             );

@@ -465,7 +465,7 @@ export function applyTheme(theme) {
     if (theme.sidebarBg) {
         changeCss('.sidebar--left, .sidebar--left .sidebar__divider .sidebar__divider__text, .app__body .modal .settings-modal .settings-table .settings-links, .app__body .sidebar--menu', 'background:' + theme.sidebarBg, 1);
         changeCss('body.app__body', 'scrollbar-face-color:' + theme.sidebarBg, 3);
-        changeCss('@media(max-width: 768px){.app__body .modal .settings-modal:not(.display--content) .modal-content', 'background:' + theme.sidebarBg, 1);
+        changeCss('@media(max-width: 768px){.app__body .modal .settings-modal:not(.settings-modal--tabless):not(.display--content) .modal-content', 'background:' + theme.sidebarBg, 1);
     }
 
     if (theme.sidebarText) {
