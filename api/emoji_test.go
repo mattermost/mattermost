@@ -177,8 +177,8 @@ func TestCreateEmoji(t *testing.T) {
 		CreatorId: th.BasicUser.Id,
 		Name:      model.NewId(),
 	}
-	if _, err := Client.CreateEmoji(emoji, createTestGif(t, 1000, 10), "image.gif"); err == nil {
-		t.Fatal("shouldn't be able to create an emoji that's too wide")
+	if _, err := Client.CreateEmoji(emoji, createTestGif(t, 1000, 10), "image.gif"); err != nil {
+		t.Fatal("should be able to create an emoji that's too wide by resizing it")
 	}
 
 	// try to create an emoji that's too tall
@@ -186,8 +186,8 @@ func TestCreateEmoji(t *testing.T) {
 		CreatorId: th.BasicUser.Id,
 		Name:      model.NewId(),
 	}
-	if _, err := Client.CreateEmoji(emoji, createTestGif(t, 10, 1000), "image.gif"); err == nil {
-		t.Fatal("shouldn't be able to create an emoji that's too tall")
+	if _, err := Client.CreateEmoji(emoji, createTestGif(t, 10, 1000), "image.gif"); err != nil {
+		t.Fatal("should be able to create an emoji that's too tall by resizing it")
 	}
 
 	// try to create an emoji that's too large
@@ -195,7 +195,7 @@ func TestCreateEmoji(t *testing.T) {
 		CreatorId: th.BasicUser.Id,
 		Name:      model.NewId(),
 	}
-	if _, err := Client.CreateEmoji(emoji, createTestAnimatedGif(t, 100, 100, 4000), "image.gif"); err == nil {
+	if _, err := Client.CreateEmoji(emoji, createTestAnimatedGif(t, 100, 100, 10000), "image.gif"); err == nil {
 		t.Fatal("shouldn't be able to create an emoji that's too large")
 	}
 
@@ -422,5 +422,54 @@ func TestGetEmojiImage(t *testing.T) {
 
 	if _, err := Client.DoApiGet(Client.GetCustomEmojiImageUrl(emoji5.Id), "", ""); err == nil {
 		t.Fatal("should've failed to get image for deleted emoji")
+	}
+}
+
+func TestResizeEmoji(t *testing.T) {
+	// try to resize a jpeg image within MaxEmojiWidth and MaxEmojiHeight
+	small_img_data := createTestJpeg(t, MaxEmojiWidth, MaxEmojiHeight)
+	if small_img, _, err := image.Decode(bytes.NewReader(small_img_data)); err != nil {
+		t.Fatal("failed to decode jpeg bytes to image.Image")
+	} else {
+		resized_img := resizeEmoji(small_img, small_img.Bounds().Dx(), small_img.Bounds().Dy())
+		if resized_img.Bounds().Dx() > MaxEmojiWidth || resized_img.Bounds().Dy() > MaxEmojiHeight {
+			t.Fatal("resized jpeg width and height should not be greater than MaxEmojiWidth or MaxEmojiHeight")
+		}
+		if resized_img != small_img {
+			t.Fatal("should've returned small_img itself")
+		}
+	}
+	// try to resize a jpeg image
+	jpeg_data := createTestJpeg(t, 256, 256)
+	if jpeg_img, _, err := image.Decode(bytes.NewReader(jpeg_data)); err != nil {
+		t.Fatal("failed to decode jpeg bytes to image.Image")
+	} else {
+		resized_jpeg := resizeEmoji(jpeg_img, jpeg_img.Bounds().Dx(), jpeg_img.Bounds().Dy())
+		if resized_jpeg.Bounds().Dx() > MaxEmojiWidth || resized_jpeg.Bounds().Dy() > MaxEmojiHeight {
+			t.Fatal("resized jpeg width and height should not be greater than MaxEmojiWidth or MaxEmojiHeight")
+		}
+	}
+	// try to resize a png image
+	png_data := createTestJpeg(t, 256, 256)
+	if png_img, _, err := image.Decode(bytes.NewReader(png_data)); err != nil {
+		t.Fatal("failed to decode png bytes to image.Image")
+	} else {
+		resized_png := resizeEmoji(png_img, png_img.Bounds().Dx(), png_img.Bounds().Dy())
+		if resized_png.Bounds().Dx() > MaxEmojiWidth || resized_png.Bounds().Dy() > MaxEmojiHeight {
+			t.Fatal("resized png width and height should not be greater than MaxEmojiWidth or MaxEmojiHeight")
+		}
+	}
+	// try to resize an animated gif
+	gif_data := createTestAnimatedGif(t, 256, 256, 10)
+	if gif_img, err := gif.DecodeAll(bytes.NewReader(gif_data)); err != nil {
+		t.Fatal("failed to decode gif bytes to gif.GIF")
+	} else {
+		resized_gif := resizeEmojiGif(gif_img)
+		if resized_gif.Config.Width > MaxEmojiWidth || resized_gif.Config.Height > MaxEmojiHeight {
+			t.Fatal("resized gif width and height should not be greater than MaxEmojiWidth or MaxEmojiHeight")
+		}
+		if len(resized_gif.Image) != len(gif_img.Image) {
+			t.Fatal("resized gif should have the same number of frames as original gif")
+		}
 	}
 }

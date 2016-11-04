@@ -6,23 +6,26 @@ package api
 import (
 	"bytes"
 	"image"
-	_ "image/gif"
+	"image/draw"
+	"image/gif"
 	_ "image/jpeg"
-	_ "image/png"
+	"image/png"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
+	"github.com/disintegration/imaging"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	"image/color/palette"
 )
 
 const (
-	MaxEmojiFileSize = 64 * 1024 // 64 KB
+	MaxEmojiFileSize = 1000 * 1024 // 1 MB
 	MaxEmojiWidth    = 128
 	MaxEmojiHeight   = 128
 )
@@ -147,11 +150,39 @@ func uploadEmojiImage(id string, imageData *multipart.FileHeader) *model.AppErro
 	if config, _, err := image.DecodeConfig(bytes.NewReader(buf.Bytes())); err != nil {
 		return model.NewLocAppError("uploadEmojiImage", "api.emoji.upload.image.app_error", nil, err.Error())
 	} else if config.Width > MaxEmojiWidth || config.Height > MaxEmojiHeight {
-		return model.NewLocAppError("uploadEmojiImage", "api.emoji.upload.large_image.app_error", nil, "")
-	}
-
-	if err := WriteFile(buf.Bytes(), getEmojiImagePath(id)); err != nil {
-		return err
+		data := buf.Bytes()
+		newbuf := bytes.NewBuffer(nil)
+		if info, err := model.GetInfoForBytes(imageData.Filename, data); err != nil {
+			return err
+		} else if info.MimeType == "image/gif" {
+			if gif_data, err := gif.DecodeAll(bytes.NewReader(data)); err != nil {
+				return model.NewLocAppError("uploadEmojiImage", "api.emoji.upload.large_image.gif_decode_error", nil, "")
+			} else {
+				resized_gif := resizeEmojiGif(gif_data)
+				if err := gif.EncodeAll(newbuf, resized_gif); err != nil {
+					return model.NewLocAppError("uploadEmojiImage", "api.emoji.upload.large_image.gif_encode_error", nil, "")
+				}
+				if err := WriteFile(newbuf.Bytes(), getEmojiImagePath(id)); err != nil {
+					return err
+				}
+			}
+		} else {
+			if img, _, err := image.Decode(bytes.NewReader(data)); err != nil {
+				return model.NewLocAppError("uploadEmojiImage", "api.emoji.upload.large_image.decode_error", nil, "")
+			} else {
+				resized_image := resizeEmoji(img, config.Width, config.Height)
+				if err := png.Encode(newbuf, resized_image); err != nil {
+					return model.NewLocAppError("uploadEmojiImage", "api.emoji.upload.large_image.encode_error", nil, "")
+				}
+				if err := WriteFile(newbuf.Bytes(), getEmojiImagePath(id)); err != nil {
+					return err
+				}
+			}
+		}
+	} else {
+		if err := WriteFile(buf.Bytes(), getEmojiImagePath(id)); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -251,4 +282,44 @@ func getEmojiImage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getEmojiImagePath(id string) string {
 	return "emoji/" + id + "/image"
+}
+
+func resizeEmoji(img image.Image, width int, height int) image.Image {
+	emojiWidth := float64(width)
+	emojiHeight := float64(height)
+
+	var emoji image.Image
+	if emojiHeight <= MaxEmojiHeight && emojiWidth <= MaxEmojiWidth {
+		emoji = img
+	} else {
+		emoji = imaging.Fit(img, MaxEmojiWidth, MaxEmojiHeight, imaging.Lanczos)
+	}
+	return emoji
+}
+
+func resizeEmojiGif(gifImg *gif.GIF) *gif.GIF {
+	// Create a new RGBA image to hold the incremental frames.
+	firstFrame := gifImg.Image[0].Bounds()
+	b := image.Rect(0, 0, firstFrame.Dx(), firstFrame.Dy())
+	img := image.NewRGBA(b)
+
+	resizedImage := image.Image(nil)
+	// Resize each frame.
+	for index, frame := range gifImg.Image {
+		bounds := frame.Bounds()
+		draw.Draw(img, bounds, frame, bounds.Min, draw.Over)
+		resizedImage = resizeEmoji(img, firstFrame.Dx(), firstFrame.Dy())
+		gifImg.Image[index] = imageToPaletted(resizedImage)
+	}
+	// Set new gif width and height
+	gifImg.Config.Width = resizedImage.Bounds().Dx()
+	gifImg.Config.Height = resizedImage.Bounds().Dy()
+	return gifImg
+}
+
+func imageToPaletted(img image.Image) *image.Paletted {
+	b := img.Bounds()
+	pm := image.NewPaletted(b, palette.Plan9)
+	draw.FloydSteinberg.Draw(pm, b, img, image.ZP)
+	return pm
 }
