@@ -209,11 +209,12 @@
 
         .post__header {
             margin-bottom: 0;
+            padding-right: 50px;
 
             .col__reply {
                 top: -3px;
-                width: 65px;
                 z-index: auto;
+                text-align: center;
             }
 
             .col__name {
