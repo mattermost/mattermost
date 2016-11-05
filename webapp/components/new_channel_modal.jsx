@@ -283,7 +283,7 @@ class NewChannelModal extends React.Component {
                                         ref='channel_purpose'
                                         rows='4'
                                         placeholder={this.props.intl.formatMessage({id: 'channel_modal.purpose'})}
-                                        maxLength='128'
+                                        maxLength='250'
                                         value={this.props.channelData.purpose}
                                         onChange={this.handleChange}
                                         tabIndex='2'

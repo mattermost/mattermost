@@ -20,7 +20,7 @@ import * as PostUtils from 'utils/post_utils.jsx';
 import Constants from 'utils/constants.jsx';
 import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 
-import {FormattedMessage, FormattedDate} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 import React from 'react';
 
@@ -357,6 +357,15 @@ export default class RhsRootPost extends React.Component {
             flagFunc = this.flagPost;
         }
 
+        const timeOptions = {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: !this.props.useMilitaryTime
+        };
+
         return (
             <div className={'post post--root post--thread ' + userCss + ' ' + systemMessageClass + ' ' + compactClass}>
                 <div className='post-right-channel__name'>{channelName}</div>
@@ -368,15 +377,7 @@ export default class RhsRootPost extends React.Component {
                             {botIndicator}
                             <li className='col'>
                                 <time className='post__time'>
-                                    <FormattedDate
-                                        value={post.create_at}
-                                        day='numeric'
-                                        month='short'
-                                        year='numeric'
-                                        hour12={!this.props.useMilitaryTime}
-                                        hour='2-digit'
-                                        minute='2-digit'
-                                    />
+                                    {Utils.getDateForUnixTicks(post.create_at).toLocaleString('en', timeOptions)}
                                 </time>
                                 <OverlayTrigger
                                     key={'rootpostflagtooltipkey' + flagVisible}
