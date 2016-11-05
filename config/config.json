@@ -52,7 +52,7 @@
         "RestrictPrivateChannelManagement": "all",
         "UserStatusAwayTimeout": 300,
         "MaxChannelsPerTeam": 2000,
-        "DefaultTeam": ""
+        "DefaultTeamName": ""
     },
     "SqlSettings": {
         "DriverName": "mysql",
