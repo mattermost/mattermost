@@ -521,7 +521,6 @@ export default class Sidebar extends React.Component {
         let tutorialTip = null;
         if (this.state.showTutorialTip && channel.name === Constants.DEFAULT_CHANNEL) {
             tutorialTip = this.createTutorialTip();
-            this.openLeftSidebar();
         }
 
         let link = '';
