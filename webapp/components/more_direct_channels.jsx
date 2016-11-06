@@ -2,7 +2,6 @@
 // See License.txt for license information.
 
 import SearchableUserList from 'components/searchable_user_list.jsx';
-import SpinnerButton from 'components/spinner_button.jsx';
 
 import {searchUsers} from 'actions/user_actions.jsx';
 import {openDirectChannelToUser} from 'actions/channel_actions.jsx';
@@ -12,6 +11,7 @@ import TeamStore from 'stores/team_store.jsx';
 
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
+import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
 import React from 'react';
@@ -38,6 +38,7 @@ export default class MoreDirectChannels extends React.Component {
             users: null,
             loadingDMChannel: -1,
             listType: 'team',
+            show: true,
             search: false
         };
     }
@@ -60,20 +61,20 @@ export default class MoreDirectChannels extends React.Component {
     }
 
     handleHide() {
-        if (this.props.onModalDismissed) {
-            this.props.onModalDismissed();
-        }
+        this.setState({show: false});
     }
 
     handleExit() {
         if (this.exitToDirectChannel) {
             browserHistory.push(this.exitToDirectChannel);
         }
+
+        if (this.props.onModalDismissed) {
+            this.props.onModalDismissed();
+        }
     }
 
-    handleShowDirectChannel(teammate, e) {
-        e.preventDefault();
-
+    handleShowDirectChannel(teammate) {
         if (this.state.loadingDMChannel !== -1) {
             return;
         }
@@ -127,19 +128,8 @@ export default class MoreDirectChannels extends React.Component {
         });
     }
 
-    createJoinDirectChannelButton({user}) {
-        return (
-            <SpinnerButton
-                className='btn btm-sm btn-primary'
-                spinning={this.state.loadingDMChannel === user.id}
-                onClick={this.handleShowDirectChannel.bind(this, user)}
-            >
-                <FormattedMessage
-                    id='more_direct_channels.message'
-                    defaultMessage='Message'
-                />
-            </SpinnerButton>
-        );
+    createJoinDirectChannelButton(user) {
+        return Reflect.apply(this.handleShowDirectChannel, this, [user]);
     }
 
     nextPage(page) {
@@ -181,6 +171,11 @@ export default class MoreDirectChannels extends React.Component {
     }
 
     render() {
+        let maxHeight = 1000;
+        if (Utils.windowHeight() <= 1200) {
+            maxHeight = Utils.windowHeight() - 300;
+        }
+
         let teamToggle;
         if (global.window.mm_config.RestrictDirectMessage === 'any') {
             teamToggle = (
@@ -220,7 +215,7 @@ export default class MoreDirectChannels extends React.Component {
         return (
             <Modal
                 dialogClassName='more-modal more-direct-channels'
-                show={this.props.show}
+                show={this.state.show}
                 onHide={this.handleHide}
                 onExited={this.handleExit}
             >
@@ -236,11 +231,12 @@ export default class MoreDirectChannels extends React.Component {
                     {teamToggle}
                     <SearchableUserList
                         key={'moreDirectChannelsList_' + this.state.listType}
+                        style={{maxHeight}}
                         users={this.state.users}
                         usersPerPage={USERS_PER_PAGE}
                         nextPage={this.nextPage}
                         search={this.search}
-                        actions={[this.createJoinDirectChannelButton]}
+                        rowAction={this.createJoinDirectChannelButton}
                         focusOnMount={!UserAgent.isMobile()}
                     />
                 </Modal.Body>

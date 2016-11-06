@@ -1505,7 +1505,6 @@
   "more_channels.noMore": "No more channels to join",
   "more_channels.title": "More Channels",
   "more_direct_channels.close": "Close",
-  "more_direct_channels.message": "Message",
   "more_direct_channels.title": "Direct Messages",
   "msg_typing.areTyping": "{users} and {last} are typing...",
   "msg_typing.isTyping": "{user} is typing...",

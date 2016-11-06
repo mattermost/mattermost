@@ -13,7 +13,7 @@ import Client from 'client/web_client.jsx';
 import React from 'react';
 import {FormattedHTMLMessage} from 'react-intl';
 
-export default function UserListRow({user, extraInfo, actions, actionProps, actionUserProps}) {
+export default function UserListRow({user, extraInfo, actions, rowAction, actionProps, actionUserProps}) {
     const nameFormat = PreferenceStore.get(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', '');
 
     let name = user.username;
@@ -58,10 +58,17 @@ export default function UserListRow({user, extraInfo, actions, actionProps, acti
         status = UserStore.getStatus(user.id);
     }
 
+    let rowStyle;
+    if (rowAction) {
+        rowStyle = {cursor: 'pointer'};
+    }
+
     return (
         <div
             key={user.id}
+            onClick={rowAction.bind(null, user)}
             className='more-modal__row'
+            style={rowStyle}
         >
             <ProfilePicture
                 src={`${Client.getUsersRoute()}/${user.id}/image?time=${user.update_at}`}
@@ -92,6 +99,7 @@ export default function UserListRow({user, extraInfo, actions, actionProps, acti
 UserListRow.defaultProps = {
     extraInfo: [],
     actions: [],
+    rowAction: null,
     actionProps: {},
     actionUserProps: {}
 };
@@ -100,6 +108,7 @@ UserListRow.propTypes = {
     user: React.PropTypes.object.isRequired,
     extraInfo: React.PropTypes.arrayOf(React.PropTypes.object),
     actions: React.PropTypes.arrayOf(React.PropTypes.func),
+    rowAction: React.PropTypes.func,
     actionProps: React.PropTypes.object,
     actionUserProps: React.PropTypes.object
 };
