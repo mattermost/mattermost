@@ -22,6 +22,7 @@ export default class UserList extends React.Component {
                         user={user}
                         extraInfo={this.props.extraInfo[user.id]}
                         actions={this.props.actions}
+                        rowAction={this.props.rowAction}
                         actionProps={this.props.actionProps}
                         actionUserProps={this.props.actionUserProps[user.id]}
                     />
@@ -55,6 +56,7 @@ UserList.defaultProps = {
     users: [],
     extraInfo: {},
     actions: [],
+    rowAction: null,
     actionProps: {}
 };
 
@@ -62,6 +64,7 @@ UserList.propTypes = {
     users: React.PropTypes.arrayOf(React.PropTypes.object),
     extraInfo: React.PropTypes.object,
     actions: React.PropTypes.arrayOf(React.PropTypes.func),
+    rowAction: React.PropTypes.func,
     actionProps: React.PropTypes.object,
     actionUserProps: React.PropTypes.object
 };
