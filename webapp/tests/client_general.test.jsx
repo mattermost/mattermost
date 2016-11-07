@@ -11,7 +11,7 @@ describe('Client.General', function() {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().getClientConfig(
                 function(data) {
-                    assert.equal(data.SiteName, 'Mattermost');
+                    assert.equal(data.SiteName, 'UChat');
                     done();
                 },
                 function(err) {
@@ -44,4 +44,3 @@ describe('Client.General', function() {
         });
     });
 });
-

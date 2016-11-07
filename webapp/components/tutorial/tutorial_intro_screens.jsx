@@ -80,7 +80,7 @@ export default class TutorialIntroScreens extends React.Component {
                 <FormattedHTMLMessage
                     id='tutorial_intro.screenOne'
                     defaultMessage='<h3>Welcome to:</h3>
-                    <h1>Mattermost</h1>
+                  <h1>UChat</h1>
                     <p>Your team communication all in one place, instantly searchable and available anywhere.</p>
                     <p>Keep your team connected to help them achieve what matters most.</p>'
                 />
@@ -135,7 +135,7 @@ export default class TutorialIntroScreens extends React.Component {
             <div>
                 <FormattedHTMLMessage
                     id='tutorial_intro.screenTwo'
-                    defaultMessage='<h3>How Mattermost works:</h3>
+                    defaultMessage='<h3>How UChat works:</h3>
                     <p>Communication happens in public discussion channels, private groups and direct messages.</p>
                     <p>Everything is archived and searchable from any web-enabled desktop, laptop or phone.</p>'
                 />

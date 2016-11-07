@@ -58,7 +58,7 @@ export default class EmailAuthenticationSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.email.allowSignupDescription'
-                            defaultMessage='When true, Mattermost allows team creation and account signup using email and password.  This value should be false only when you want to limit signup to a single-sign-on service like OAuth or AD/LDAP.'
+                            defaultMessage='When true, UChat allows team creation and account signup using email and password.  This value should be false only when you want to limit signup to a single-sign-on service like OAuth or AD/LDAP.'
                         />
                     }
                     value={this.state.enableSignUpWithEmail}
@@ -75,7 +75,7 @@ export default class EmailAuthenticationSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.email.allowEmailSignInDescription'
-                            defaultMessage='When true, Mattermost allows users to sign in using their email and password.'
+                            defaultMessage='When true, UChat allows users to sign in using their email and password.'
                         />
                     }
                     value={this.state.enableSignInWithEmail}
@@ -92,7 +92,7 @@ export default class EmailAuthenticationSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.email.allowUsernameSignInDescription'
-                            defaultMessage='When true, Mattermost allows users to sign in using their username and password.  This setting is typically only used when email verification is disabled.'
+                            defaultMessage='When true, UChat allows users to sign in using their username and password.  This setting is typically only used when email verification is disabled.'
                         />
                     }
                     value={this.state.enableSignInWithUsername}

@@ -64,7 +64,7 @@ export default class LegalAndSupportSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.support.termsDesc'
-                            defaultMessage='Link to the terms under which users may use your online service. By default, this includes the "Mattermost Conditions of Use (End Users)" explaining the terms under which Mattermost software is provided to end users. If you change the default link to add your own terms for using the service you provide, your new terms must include a link to the default terms so end users are aware of the Mattermost Conditions of Use (End User) for Mattermost software.'
+                            defaultMessage='Link to the terms under which users may use your online service. By default, this includes the "UChat Conditions of Use (End Users)" explaining the terms under which UChat software is provided to end users. If you change the default link to add your own terms for using the service you provide, your new terms must include a link to the default terms so end users are aware of the UChat Conditions of Use (End User) for UChat software.'
                         />
                     }
                     value={this.state.termsOfServiceLink}
@@ -98,7 +98,7 @@ export default class LegalAndSupportSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.support.aboutDesc'
-                            defaultMessage='Link to About page for more information on your Mattermost deployment, for example its purpose and audience within your organization. Defaults to Mattermost information page.'
+                            defaultMessage='Link to About page for more information on your UChat deployment, for example its purpose and audience within your organization. Defaults to UChat information page.'
                         />
                     }
                     value={this.state.aboutLink}

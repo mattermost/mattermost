@@ -99,7 +99,7 @@ export default class Authorize extends React.Component {
                         <div className='text'>
                             <FormattedHTMLMessage
                                 id='authorize.title'
-                                defaultMessage='<strong>{appName}</strong> would like to connect to your <strong>Mattermost</strong> user account'
+                                defaultMessage='<strong>{appName}</strong> would like to connect to your <strong>UChat</strong> user account'
                                 values={{
                                     appName: app.name
                                 }}

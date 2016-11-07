@@ -107,7 +107,7 @@ export default class EmailSettings extends AdminSettings {
                     helpText={
                         <FormattedHTMLMessage
                             id='admin.email.notificationsDescription'
-                            defaultMessage='Typically set to true in production. When true, Mattermost attempts to send email notifications. Developers may set this field to false to skip email setup for faster development.<br />Setting this to true removes the Preview Mode banner (requires logging out and logging back in after setting is changed).'
+                            defaultMessage='Typically set to true in production. When true, UChat attempts to send email notifications. Developers may set this field to false to skip email setup for faster development.<br />Setting this to true removes the Preview Mode banner (requires logging out and logging back in after setting is changed).'
                         />
                     }
                     value={this.state.sendEmailNotifications}
@@ -141,11 +141,11 @@ export default class EmailSettings extends AdminSettings {
                             defaultMessage='Notification Display Name:'
                         />
                     }
-                    placeholder={Utils.localizeMessage('admin.email.notificationDisplayExample', 'Ex: "Mattermost Notification", "System", "No-Reply"')}
+                    placeholder={Utils.localizeMessage('admin.email.notificationDisplayExample', 'Ex: "UChat Notification", "System", "No-Reply"')}
                     helpText={
                         <FormattedMessage
                             id='admin.email.notificationDisplayDescription'
-                            defaultMessage='Display name on email account used when sending notification emails from Mattermost.'
+                            defaultMessage='Display name on email account used when sending notification emails from UChat.'
                         />
                     }
                     value={this.state.feedbackName}
@@ -164,7 +164,7 @@ export default class EmailSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.email.notificationEmailDescription'
-                            defaultMessage='Email address displayed on email account used when sending notification emails from Mattermost.'
+                            defaultMessage='Email address displayed on email account used when sending notification emails from UChat.'
                         />
                     }
                     value={this.state.feedbackEmail}
@@ -183,7 +183,7 @@ export default class EmailSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.email.notificationOrganizationDescription'
-                            defaultMessage='Organization name and address displayed on email notifications from Mattermost, such as "© ABC Corporation, 565 Knight Way, Palo Alto, California, 94305, USA". If the field is left empty, the organization name and address will not be displayed.'
+                            defaultMessage='Organization name and address displayed on email notifications from UChat, such as "© ABC Corporation, 565 Knight Way, Palo Alto, California, 94305, USA". If the field is left empty, the organization name and address will not be displayed.'
                         />
                     }
                     value={this.state.feedbackOrganization}

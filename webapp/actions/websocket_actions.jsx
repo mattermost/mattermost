@@ -91,7 +91,7 @@ function handleReconnect() {
 
 function handleClose(failCount) {
     if (failCount > MAX_WEBSOCKET_FAILS) {
-        ErrorStore.storeLastError({message: Utils.localizeMessage('channel_loader.socketError', 'Please check connection, Mattermost unreachable. If issue persists, ask administrator to check WebSocket port.')});
+        ErrorStore.storeLastError({message: Utils.localizeMessage('channel_loader.socketError', 'Please check connection, UChat unreachable. If issue persists, ask administrator to check WebSocket port.')});
     }
 
     ErrorStore.setConnectionErrorCount(failCount);

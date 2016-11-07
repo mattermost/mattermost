@@ -141,7 +141,7 @@ export default class CustomBrandSettings extends AdminSettings {
                         />
                     }
                     maxLength={Constants.MAX_SITENAME_LENGTH}
-                    placeholder={Utils.localizeMessage('admin.team.siteNameExample', 'Ex "Mattermost"')}
+                    placeholder={Utils.localizeMessage('admin.team.siteNameExample', 'Ex "UChat"')}
                     helpText={
                         <FormattedMessage
                             id='admin.team.siteNameDescription'

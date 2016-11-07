@@ -34,7 +34,7 @@ export default class ErrorPage extends React.Component {
 
         let linkMessage = this.props.location.query.linkmessage;
         if (!linkMessage || linkMessage === '') {
-            linkMessage = Utils.localizeMessage('error.generic.link_message', 'Back to Mattermost');
+            linkMessage = Utils.localizeMessage('error.generic.link_message', 'Back to UChat');
         }
 
         return (

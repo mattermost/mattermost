@@ -93,7 +93,7 @@ export default class InstalledOAuthApps extends React.Component {
                 helpText={
                     <FormattedMessage
                         id='installed_oauth_apps.help'
-                        defaultMessage='Create OAuth 2.0 applications to securely integrate bots and third-party applications with Mattermost. Please see {link} to learn more.'
+                        defaultMessage='Create OAuth 2.0 applications to securely integrate bots and third-party applications with UChat. Please see {link} to learn more.'
                         values={{
                             link: (
                                 <a

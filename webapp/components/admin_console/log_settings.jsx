@@ -200,7 +200,7 @@ export default class LogSettings extends AdminSettings {
                     helpText={
                         <FormattedHTMLMessage
                             id='admin.log.enableDiagnosticsDescription'
-                            defaultMessage='Enable this feature to improve the quality and performance of Mattermost by sending error reporting and diagnostic information to Mattermost, Inc. Read our <a href="https://about.mattermost.com/default-privacy-policy/" target="_blank">privacy policy</a> to learn more.'
+                            defaultMessage='Enable this feature to improve the quality and performance of UChat by sending error reporting and diagnostic information to UChat, Inc. Read our <a href="https://about.mattermost.com/default-privacy-policy/" target="_blank">privacy policy</a> to learn more.'
                         />
                     }
                     value={this.state.enableDiagnostics}
