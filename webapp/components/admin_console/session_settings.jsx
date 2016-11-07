@@ -99,7 +99,7 @@ export default class SessionSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.service.ssoSessionDaysDesc'
-                            defaultMessage='The number of days from the last time a user entered their credentials to the expiry of the users session. If the authentication method is SAML or GitLab, the user may automatically be logged back in to UChat if they are already logged in to SAML or GitLab. After changing this setting, the setting will take effect after the next time the user enters their credentials. '
+                            defaultMessage='The number of days from the last time a user entered their credentials to the expiry of the users session. If the authentication method is SAML or GitLab, the user may automatically be logged back in to uChat if they are already logged in to SAML or GitLab. After changing this setting, the setting will take effect after the next time the user enters their credentials. '
                         />
                     }
                     value={this.state.sessionLengthSSOInDays}

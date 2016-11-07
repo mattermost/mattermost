@@ -41,7 +41,7 @@ export default class AboutBuildModal extends React.Component {
             <div>
                 <FormattedMessage
                     id='about.teamEditionLearn'
-                    defaultMessage='Join the UChat community at '
+                    defaultMessage='Join the uChat community at '
                 />
                 <a
                     target='_blank'
@@ -119,7 +119,7 @@ export default class AboutBuildModal extends React.Component {
                     <Modal.Title>
                         <FormattedMessage
                             id='about.title'
-                            defaultMessage='About UChat'
+                            defaultMessage='About uChat'
                         />
                     </Modal.Title>
                 </Modal.Header>
@@ -132,7 +132,7 @@ export default class AboutBuildModal extends React.Component {
                             />
                         </div>
                         <div>
-                            <h3 className='about-modal__title'>{'UChat'} {title}</h3>
+                            <h3 className='about-modal__title'>{'uChat'} {title}</h3>
                             <p className='about-modal__subtitle padding-bottom'>{subTitle}</p>
                             <div className='form-group less'>
                                 <div>
@@ -158,7 +158,7 @@ export default class AboutBuildModal extends React.Component {
                         <div className='form-group about-modal__copyright'>
                             <FormattedMessage
                                 id='about.copyright'
-                                defaultMessage='Copyright 2016 UChat, Inc. All rights reserved'
+                                defaultMessage='Copyright 2016 uChat, Inc. All rights reserved'
                             />
                         </div>
                     </div>

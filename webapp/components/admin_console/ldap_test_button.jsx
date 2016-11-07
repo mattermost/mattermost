@@ -99,7 +99,7 @@ export default class LdapTestButton extends React.Component {
         const helpText = (
             <FormattedHTMLMessage
                 id='admin.ldap.testHelpText'
-                defaultMessage='Tests if the UChat server can connect to the AD/LDAP server specified. See log file for more detailed error messages.'
+                defaultMessage='Tests if the uChat server can connect to the AD/LDAP server specified. See log file for more detailed error messages.'
             />
         );
 

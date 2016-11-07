@@ -18,7 +18,7 @@ const SECTION_NONE = (
         <td>
             <FormattedMessage
                 id='admin.connectionSecurityNoneDescription'
-                defaultMessage='UChat will connect over an unsecure connection.'
+                defaultMessage='uChat will connect over an unsecure connection.'
             />
         </td>
     </tr>
@@ -35,7 +35,7 @@ const SECTION_PLAIN = (
         <td>
             <FormattedMessage
                 id='admin.connectionSecurityPlainDescription'
-                defaultMessage='UChat will connect and authenticate over an unsecure connection.'
+                defaultMessage='uChat will connect and authenticate over an unsecure connection.'
             />
         </td>
     </tr>
@@ -52,7 +52,7 @@ const SECTION_TLS = (
         <td>
             <FormattedMessage
                 id='admin.connectionSecurityTlsDescription'
-                defaultMessage='Encrypts the communication between UChat and your server.'
+                defaultMessage='Encrypts the communication between uChat and your server.'
             />
         </td>
     </tr>

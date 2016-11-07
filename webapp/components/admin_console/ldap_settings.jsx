@@ -102,7 +102,7 @@ export default class LdapSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.ldap.enableDesc'
-                            defaultMessage='When true, UChat allows login using AD/LDAP'
+                            defaultMessage='When true, uChat allows login using AD/LDAP'
                         />
                     }
                     value={this.state.enable}
@@ -139,7 +139,7 @@ export default class LdapSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.ldap.portDesc'
-                            defaultMessage='The port UChat will use to connect to the AD/LDAP server. Default is 389.'
+                            defaultMessage='The port uChat will use to connect to the AD/LDAP server. Default is 389.'
                         />
                     }
                     value={this.state.ldapPort}
@@ -180,7 +180,7 @@ export default class LdapSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.ldap.baseDesc'
-                            defaultMessage='The Base DN is the Distinguished Name of the location where UChat should start its search for users in the AD/LDAP tree.'
+                            defaultMessage='The Base DN is the Distinguished Name of the location where uChat should start its search for users in the AD/LDAP tree.'
                         />
                     }
                     value={this.state.baseDN}
@@ -198,7 +198,7 @@ export default class LdapSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.ldap.bindUserDesc'
-                            defaultMessage='The username used to perform the AD/LDAP search. This should typically be an account created specifically for use with UChat. It should have access limited to read the portion of the AD/LDAP tree specified in the BaseDN field.'
+                            defaultMessage='The username used to perform the AD/LDAP search. This should typically be an account created specifically for use with uChat. It should have access limited to read the portion of the AD/LDAP tree specified in the BaseDN field.'
                         />
                     }
                     value={this.state.bindUsername}
@@ -235,7 +235,7 @@ export default class LdapSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.ldap.userFilterDisc'
-                            defaultMessage='(Optional) Enter an AD/LDAP Filter to use when searching for user objects. Only the users selected by the query will be able to access UChat. For Active Directory, the query to filter out disabled users is (&(objectCategory=Person)(!(UserAccountControl:1.2.840.113556.1.4.803:=2))).'
+                            defaultMessage='(Optional) Enter an AD/LDAP Filter to use when searching for user objects. Only the users selected by the query will be able to access uChat. For Active Directory, the query to filter out disabled users is (&(objectCategory=Person)(!(UserAccountControl:1.2.840.113556.1.4.803:=2))).'
                         />
                     }
                     value={this.state.userFilter}
@@ -254,7 +254,7 @@ export default class LdapSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.ldap.firstnameAttrDesc'
-                            defaultMessage='(Optional) The attribute in the AD/LDAP server that will be used to populate the first name of users in UChat.  When set, users will not be able to edit their first name, since it is synchronized with the LDAP server. When left blank, users can set their own first name in Account Settings.'
+                            defaultMessage='(Optional) The attribute in the AD/LDAP server that will be used to populate the first name of users in uChat.  When set, users will not be able to edit their first name, since it is synchronized with the LDAP server. When left blank, users can set their own first name in Account Settings.'
                         />
                     }
                     value={this.state.firstNameAttribute}
@@ -273,7 +273,7 @@ export default class LdapSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.ldap.lastnameAttrDesc'
-                            defaultMessage='(Optional) The attribute in the AD/LDAP server that will be used to populate the last name of users in UChat. When set, users will not be able to edit their last name, since it is synchronized with the LDAP server. When left blank, users can set their own last name in Account Settings.'
+                            defaultMessage='(Optional) The attribute in the AD/LDAP server that will be used to populate the last name of users in uChat. When set, users will not be able to edit their last name, since it is synchronized with the LDAP server. When left blank, users can set their own last name in Account Settings.'
                         />
                     }
                     value={this.state.lastNameAttribute}
@@ -292,7 +292,7 @@ export default class LdapSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.ldap.nicknameAttrDesc'
-                            defaultMessage='(Optional) The attribute in the AD/LDAP server that will be used to populate the nickname of users in UChat. When set, users will not be able to edit their nickname, since it is synchronized with the LDAP server. When left blank, users can set their own nickname in Account Settings.'
+                            defaultMessage='(Optional) The attribute in the AD/LDAP server that will be used to populate the nickname of users in uChat. When set, users will not be able to edit their nickname, since it is synchronized with the LDAP server. When left blank, users can set their own nickname in Account Settings.'
                         />
                     }
                     value={this.state.nicknameAttribute}
@@ -311,7 +311,7 @@ export default class LdapSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.ldap.emailAttrDesc'
-                            defaultMessage='The attribute in the AD/LDAP server that will be used to populate the email addresses of users in UChat.'
+                            defaultMessage='The attribute in the AD/LDAP server that will be used to populate the email addresses of users in uChat.'
                         />
                     }
                     value={this.state.emailAttribute}
@@ -330,7 +330,7 @@ export default class LdapSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.ldap.uernameAttrDesc'
-                            defaultMessage='The attribute in the AD/LDAP server that will be used to populate the username field in UChat. This may be the same as the ID Attribute.'
+                            defaultMessage='The attribute in the AD/LDAP server that will be used to populate the username field in uChat. This may be the same as the ID Attribute.'
                         />
                     }
                     value={this.state.usernameAttribute}
@@ -349,7 +349,7 @@ export default class LdapSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.ldap.idAttrDesc'
-                            defaultMessage='The attribute in the AD/LDAP server that will be used as a unique identifier in UChat. It should be an AD/LDAP attribute with a value that does not change, such as username or uid. If a user’s ID Attribute changes, it will create a new UChat account unassociated with their old one. This is the value used to log in to UChat in the "AD/LDAP Username" field on the sign in page. Normally this attribute is the same as the “Username Attribute” field above. If your team typically uses domain\\username to sign in to other services with AD/LDAP, you may choose to put domain\\username in this field to maintain consistency between sites.'
+                            defaultMessage='The attribute in the AD/LDAP server that will be used as a unique identifier in uChat. It should be an AD/LDAP attribute with a value that does not change, such as username or uid. If a user’s ID Attribute changes, it will create a new uChat account unassociated with their old one. This is the value used to log in to uChat in the "AD/LDAP Username" field on the sign in page. Normally this attribute is the same as the “Username Attribute” field above. If your team typically uses domain\\username to sign in to other services with AD/LDAP, you may choose to put domain\\username in this field to maintain consistency between sites.'
                         />
                     }
                     value={this.state.idAttribute}
@@ -386,7 +386,7 @@ export default class LdapSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.ldap.syncIntervalHelpText'
-                            defaultMessage='AD/LDAP Synchronization updates UChat user information to reflect updates on the AD/LDAP server. For example, when a user’s name changes on the AD/LDAP server, the change updates in UChat when synchronization is performed. Accounts removed from or disabled in the AD/LDAP server have their UChat accounts set to “Inactive” and have their account sessions revoked. UChat performs synchronization on the interval entered. For example, if 60 is entered, UChat synchronizes every 60 minutes.'
+                            defaultMessage='AD/LDAP Synchronization updates uChat user information to reflect updates on the AD/LDAP server. For example, when a user’s name changes on the AD/LDAP server, the change updates in uChat when synchronization is performed. Accounts removed from or disabled in the AD/LDAP server have their uChat accounts set to “Inactive” and have their account sessions revoked. uChat performs synchronization on the interval entered. For example, if 60 is entered, uChat synchronizes every 60 minutes.'
                         />
                     }
                     value={this.state.syncIntervalMinutes}
@@ -405,7 +405,7 @@ export default class LdapSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.ldap.maxPageSizeHelpText'
-                            defaultMessage='The maximum number of users the UChat server will request from the AD/LDAP server at one time. 0 is unlimited.'
+                            defaultMessage='The maximum number of users the uChat server will request from the AD/LDAP server at one time. 0 is unlimited.'
                         />
                     }
                     value={this.state.maxPageSize}

@@ -38,7 +38,7 @@ export default class NativeAppLinkSettings extends AdminSettings {
             <h3>
                 <FormattedMessage
                     id='admin.customization.nativeAppLinks'
-                    defaultMessage='UChat App Links'
+                    defaultMessage='uChat App Links'
                 />
             </h3>
         );
@@ -52,13 +52,13 @@ export default class NativeAppLinkSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.customization.appDownloadLinkTitle'
-                            defaultMessage='UChat Apps Download Page Link:'
+                            defaultMessage='uChat Apps Download Page Link:'
                         />
                     }
                     helpText={
                         <FormattedMessage
                             id='admin.customization.appDownloadLinkDesc'
-                            defaultMessage='Add a link to a download page for the UChat apps. When a link is present, an option to "Download UChat Apps" will be added in the Main Menu so users can find the download page. Leave this field blank to hide the option from the Main Menu.'
+                            defaultMessage='Add a link to a download page for the uChat apps. When a link is present, an option to "Download uChat Apps" will be added in the Main Menu so users can find the download page. Leave this field blank to hide the option from the Main Menu.'
                         />
                     }
                     value={this.state.appDownloadLink}

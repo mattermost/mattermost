@@ -24,7 +24,7 @@ const WEBSERVER_MODE_HELP_TEXT = (
                     <td>
                         <FormattedMessage
                             id='admin.webserverModeGzipDescription'
-                            defaultMessage='The UChat server will serve static files compressed with gzip.'
+                            defaultMessage='The uChat server will serve static files compressed with gzip.'
                         />
                     </td>
                 </tr>
@@ -38,7 +38,7 @@ const WEBSERVER_MODE_HELP_TEXT = (
                     <td>
                         <FormattedMessage
                             id='admin.webserverModeUncompressedDescription'
-                            defaultMessage='The UChat server will serve static files uncompressed.'
+                            defaultMessage='The uChat server will serve static files uncompressed.'
                         />
                     </td>
                 </tr>
@@ -52,7 +52,7 @@ const WEBSERVER_MODE_HELP_TEXT = (
                     <td>
                         <FormattedMessage
                             id='admin.webserverModeDisabledDescription'
-                            defaultMessage='The UChat server will not serve static files.'
+                            defaultMessage='The uChat server will not serve static files.'
                         />
                     </td>
                 </tr>

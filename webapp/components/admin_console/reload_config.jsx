@@ -70,7 +70,7 @@ export default class ReloadConfigButton extends React.Component {
         const helpText = (
             <FormattedHTMLMessage
                 id='admin.reload.reloadDescription'
-                defaultMessage='Deployments using multiple databases can switch from one master database to another without restarting the UChat server by updating "config.json" to the new desired configuration and using the <b>Reload Configuration from Disk</b> feature to load the new settings while the server is running. The administrator should then use the <a href="../advanced/database"><b>Database > Recycle Database Connections</b></a> feature to recycle the database connections based on the new settings.'
+                defaultMessage='Deployments using multiple databases can switch from one master database to another without restarting the uChat server by updating "config.json" to the new desired configuration and using the <b>Reload Configuration from Disk</b> feature to load the new settings while the server is running. The administrator should then use the <a href="../advanced/database"><b>Database > Recycle Database Connections</b></a> feature to recycle the database connections based on the new settings.'
             />
         );
 

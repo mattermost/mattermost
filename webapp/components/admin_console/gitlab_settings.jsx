@@ -68,7 +68,7 @@ export default class GitLabSettings extends AdminSettings {
                         <div>
                             <FormattedMessage
                                 id='admin.gitlab.enableDescription'
-                                defaultMessage='When true, UChat allows team creation and account signup using GitLab OAuth.'
+                                defaultMessage='When true, uChat allows team creation and account signup using GitLab OAuth.'
                             />
                             <br/>
                             <FormattedHTMLMessage

@@ -59,7 +59,7 @@ export default class SignupSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.email.requireVerificationDescription'
-                            defaultMessage='Typically set to true in production. When true, UChat requires email verification after account creation prior to allowing login. Developers may set this field to false so skip sending verification emails for faster development.'
+                            defaultMessage='Typically set to true in production. When true, uChat requires email verification after account creation prior to allowing login. Developers may set this field to false so skip sending verification emails for faster development.'
                         />
                     }
                     value={this.state.requireEmailVerification}
