@@ -189,11 +189,11 @@ export default class LoggedIn extends React.Component {
     }
 
     onFocusListener() {
-        BrowserStore.setGlobalItem('app-focus', true);
+        GlobalActions.emitBrowserFocus(true);
     }
 
     onBlurListener() {
-        BrowserStore.setGlobalItem('app-focus', false);
+        GlobalActions.emitBrowserFocus(false);
     }
 }
 

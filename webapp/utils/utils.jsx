@@ -5,7 +5,6 @@ import $ from 'jquery';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
-import BrowserStore from 'stores/browser_store.jsx';
 import LocalizationStore from 'stores/localization_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
@@ -94,15 +93,6 @@ export function notifyMe(title, body, channel, teamId, duration, silent) {
     let notificationDuration = Constants.DEFAULT_NOTIFICATION_DURATION;
     if (duration != null) {
         notificationDuration = duration;
-    }
-
-    // If notification is meant for the current active channel, don't
-    // show the notification. Also if the window is currently focussed
-    const activeChannel = ChannelStore.getCurrent();
-    const inFocus = BrowserStore.getGlobalItem('app-focus', true);
-
-    if (activeChannel.id === channel.id && inFocus) {
-        return;
     }
 
     if (Notification.permission === 'granted' || (Notification.permission === 'default' && !requestedNotificationPermission)) {

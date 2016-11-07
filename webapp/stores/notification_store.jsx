@@ -2,7 +2,6 @@
 // See License.txt for license information.
 
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
-import BrowserStore from 'stores/browser_store.jsx';
 import EventEmitter from 'events';
 import Constants from 'utils/constants.jsx';
 import UserStore from './user_store.jsx';
@@ -26,6 +25,9 @@ class NotificationStoreClass extends EventEmitter {
 
     removeChangeListener(callback) {
         this.removeListener(CHANGE_EVENT, callback);
+    }
+    setFocus(focus) {
+        this.inFocus = focus;
     }
 
     handleRecievedPost(post, msgProps) {
@@ -105,14 +107,13 @@ class NotificationStoreClass extends EventEmitter {
             // Notify if you're not looking in the right channel or when
             // the window itself is not active
             const activeChannel = ChannelStore.getCurrent();
-            const inFocus = BrowserStore.getGlobalItem('app-focus', true);
-            const notify = activeChannel.id !== channel.id || !inFocus;
+            const notify = activeChannel.id !== channel.id || !this.inFocus;
 
             if (notify) {
                 Utils.notifyMe(title, body, channel, teamId, duration, !sound);
 
                 //Don't add extra sounds on native desktop clients
-                if (sound && !UserAgent.isWindowsApp() && !UserAgent.isMacApp()) {
+                if (sound && !UserAgent.isWindowsApp() && !UserAgent.isMacApp() && !UserAgent.isMobileApp()) {
                     Utils.ding();
                 }
             }
@@ -129,6 +130,9 @@ NotificationStore.dispatchToken = AppDispatcher.register((payload) => {
     case ActionTypes.RECEIVED_POST:
         NotificationStore.handleRecievedPost(action.post, action.websocketMessageProps);
         NotificationStore.emitChange();
+        break;
+    case ActionTypes.BROWSER_CHANGE_FOCUS:
+        NotificationStore.setFocus(action.focus);
         break;
     }
 });
