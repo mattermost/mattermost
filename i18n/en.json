@@ -105,7 +105,7 @@
   },
   {
     "id": "api.admin.test_email.subject",
-    "translation": "Uchat - Testing Email Settings"
+    "translation": "uChat - Testing Email Settings"
   },
   {
     "id": "api.admin.upload_brand_image.array.app_error",
@@ -525,7 +525,7 @@
   },
   {
     "id": "api.command_logout.desc",
-    "translation": "Logout of Uchat"
+    "translation": "Logout of uChat"
   },
   {
     "id": "api.command_logout.fail_message",
