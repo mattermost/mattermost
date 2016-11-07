@@ -58,6 +58,7 @@ export default class SearchChannelProvider {
             privateChannels.sort((a, b) => a.name.localeCompare(b.name));
             const privateChannelNames = privateChannels.map((channel) => channel.name);
 
+            SuggestionStore.clearSuggestions(suggestionId);
             SuggestionStore.addSuggestions(suggestionId, publicChannelNames, publicChannels, SearchChannelSuggestion, channelPrefix);
             SuggestionStore.addSuggestions(suggestionId, privateChannelNames, privateChannels, SearchChannelSuggestion, channelPrefix);
         }

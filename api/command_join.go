@@ -38,7 +38,7 @@ func (me *JoinProvider) DoCommand(c *Context, channelId string, message string) 
 	} else {
 		channels := result.Data.(*model.ChannelList)
 
-		for _, v := range channels.Channels {
+		for _, v := range *channels {
 
 			if v.Name == message {
 
@@ -46,7 +46,7 @@ func (me *JoinProvider) DoCommand(c *Context, channelId string, message string) 
 					return &model.CommandResponse{Text: c.T("api.command_join.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 				}
 
-				if err, _ := JoinChannelById(c, c.Session.UserId, channelId); err != nil {
+				if err, _ := JoinChannelById(c, c.Session.UserId, v.Id); err != nil {
 					return &model.CommandResponse{Text: c.T("api.command_join.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 				}
 

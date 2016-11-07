@@ -172,10 +172,6 @@
             margin-bottom: 0.5em;
         }
 
-        .banner__content {
-            width: 80%;
-        }
-
         &.warning {
             background: #e60000;
         }
@@ -236,6 +232,19 @@
             .fa-plus {
                 display: none;
             }
+        }
+    }
+
+    .more-modal__list {
+        .filtered-user-list {
+             .filter-controls {
+                padding-bottom: 1em;
+             }
+        }
+
+        .filter-row {
+            margin: 10px 0;
+            overflow: hidden;
         }
     }
 
@@ -451,4 +460,3 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
-

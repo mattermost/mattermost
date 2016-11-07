@@ -14,7 +14,7 @@ import XRegExp from 'xregexp';
 const cjkPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf]/;
 
 // Performs formatting of user posts including highlighting mentions and search terms and converting urls, hashtags,
-// @mentions and !channels to links by taking a user's message and returning a string of formatted html. Also takes
+// @mentions and ~channels to links by taking a user's message and returning a string of formatted html. Also takes
 // a number of options as part of the second parameter:
 // - searchTerm - If specified, this word is highlighted in the resulting html. Defaults to nothing.
 // - mentionHighlight - Specifies whether or not to highlight mentions of the current user. Defaults to true.
@@ -26,7 +26,7 @@ const cjkPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-
 //     links that can be handled by a special click handler.
 // - usernameMap - An object mapping usernames to users. If provided, at mentions will be replaced with internal links that can
 //      be handled by a special click handler (Utils.handleFormattedTextClick)
-// - channelNamesMap - An object mapping channel display names to channels. If provided, !channel mentions will be replaced with
+// - channelNamesMap - An object mapping channel display names to channels. If provided, ~channel mentions will be replaced with
 //      links to the relevant channel.
 // - team - The current team.
 export function formatText(text, inputOptions) {
@@ -152,7 +152,7 @@ function autolinkEmails(text, tokens) {
 
 const punctuation = XRegExp.cache('[^\\pL\\d]');
 
-function autolinkAtMentions(text, tokens, usernameMap) {
+export function autolinkAtMentions(text, tokens, usernameMap) {
     // Test if provided text needs to be highlighted, special mention or current user
     function mentionExists(u) {
         return (Constants.SPECIAL_MENTIONS.indexOf(u) !== -1 || Boolean(usernameMap[u]));
@@ -169,30 +169,18 @@ function autolinkAtMentions(text, tokens, usernameMap) {
         return alias;
     }
 
-    function replaceAtMentionWithToken(fullMatch, mention, username) {
-        let usernameLower = username.toLowerCase();
+    function replaceAtMentionWithToken(fullMatch, prefix, mention, username) {
+        const usernameLower = username.toLowerCase();
 
-        if (mentionExists(usernameLower)) {
-            // Exact match
-            const alias = addToken(usernameLower, mention, '');
-            return alias;
-        }
-
-        // Not an exact match, attempt to truncate any punctuation to see if we can find a user
-        const originalUsername = usernameLower;
-
+        // Check if the text makes up an explicit mention, possible trimming extra punctuation from the end of the name if necessary
         for (let c = usernameLower.length; c > 0; c--) {
-            if (punctuation.test(usernameLower[c - 1])) {
-                usernameLower = usernameLower.substring(0, c - 1);
+            const truncated = usernameLower.substring(0, c);
+            const suffix = usernameLower.substring(c);
 
-                if (mentionExists(usernameLower)) {
-                    const suffix = originalUsername.substr(c - 1);
-                    const alias = addToken(usernameLower, '@' + usernameLower);
-                    return alias + suffix;
-                }
-            } else {
-                // If the last character is not punctuation, no point in going any further
-                break;
+            // If we've found a username or run out of punctuation to trim off, render it as an at mention
+            if (mentionExists(truncated) || !punctuation.test(truncated[truncated.length - 1])) {
+                const alias = addToken(truncated, '@' + truncated);
+                return prefix + alias + suffix;
             }
         }
 
@@ -200,7 +188,7 @@ function autolinkAtMentions(text, tokens, usernameMap) {
     }
 
     let output = text;
-    output = output.replace(/(@([a-z0-9.\-_]*))/gi, replaceAtMentionWithToken);
+    output = output.replace(/(^|\W)(@([a-z0-9.\-_]*))/gi, replaceAtMentionWithToken);
 
     return output;
 }
@@ -229,7 +217,7 @@ function autolinkChannelMentions(text, tokens, channelNamesMap, team) {
 
         if (channelMentionExists(channelNameLower)) {
             // Exact match
-            const alias = addToken(channelNameLower, mention, '!' + channelNamesMap[channelNameLower].display_name);
+            const alias = addToken(channelNameLower, mention, '~' + channelNamesMap[channelNameLower].display_name);
             return spacer + alias;
         }
 
@@ -242,7 +230,7 @@ function autolinkChannelMentions(text, tokens, channelNamesMap, team) {
 
                 if (channelMentionExists(channelNameLower)) {
                     const suffix = originalChannelName.substr(c - 1);
-                    const alias = addToken(channelNameLower, '!' + channelNameLower, '!' + channelNamesMap[channelNameLower].display_name);
+                    const alias = addToken(channelNameLower, '~' + channelNameLower, '~' + channelNamesMap[channelNameLower].display_name);
                     return spacer + alias + suffix;
                 }
             } else {
@@ -255,7 +243,7 @@ function autolinkChannelMentions(text, tokens, channelNamesMap, team) {
     }
 
     let output = text;
-    output = output.replace(/(^|\s)(!([a-z0-9.\-_]*))/gi, replaceChannelMentionWithToken);
+    output = output.replace(/(^|\s)(~([a-z0-9.\-_]*))/gi, replaceChannelMentionWithToken);
 
     return output;
 }

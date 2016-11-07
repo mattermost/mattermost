@@ -9,9 +9,10 @@
 
     .member-popover__trigger {
         cursor: pointer;
+        min-width: 60px;
         padding-right: 10px;
         text-align: right;
-        width: 60px;
+        white-space: nowrap;
 
         .fa {
             font-size: 16px;
@@ -376,6 +377,11 @@
     .header-dropdown__icon {
         top: 1px;
     }
+}
+
+.channel-header__favorites {
+    float: left;
+    margin: 1px 10px 0 0;
 }
 
 .app__body {

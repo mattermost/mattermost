@@ -57,7 +57,7 @@ func AppHandlerIndependent(h func(*Context, http.ResponseWriter, *http.Request))
 }
 
 func ApiUserRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, true, false, true, true, false, false}
+	return &handler{h, true, false, true, false, false, false}
 }
 
 func ApiUserRequiredActivity(h func(*Context, http.ResponseWriter, *http.Request), isUserActivity bool) http.Handler {
@@ -85,7 +85,7 @@ func ApiAppHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Req
 }
 
 func ApiUserRequiredTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, true, false, true, true, false, true}
+	return &handler{h, true, false, true, false, false, true}
 }
 
 func ApiAppHandlerTrustRequesterIndependent(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
@@ -220,7 +220,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.LogError(c.Err)
 		c.Err.Where = r.URL.Path
 
-		// Block out detailed error whenn not in developer mode
+		// Block out detailed error when not in developer mode
 		if !*utils.Cfg.ServiceSettings.EnableDeveloper {
 			c.Err.DetailedError = ""
 		}
@@ -474,6 +474,14 @@ func GetSession(token string) *model.Session {
 
 func RemoveAllSessionsForUserId(userId string) {
 
+	RemoveAllSessionsForUserIdSkipClusterSend(userId)
+
+	if einterfaces.GetClusterInterface() != nil {
+		einterfaces.GetClusterInterface().RemoveAllSessionsForUserId(userId)
+	}
+}
+
+func RemoveAllSessionsForUserIdSkipClusterSend(userId string) {
 	keys := sessionCache.Keys()
 
 	for _, key := range keys {
@@ -485,9 +493,6 @@ func RemoveAllSessionsForUserId(userId string) {
 		}
 	}
 
-	if einterfaces.GetClusterInterface() != nil {
-		einterfaces.GetClusterInterface().RemoveAllSessionsForUserId(userId)
-	}
 }
 
 func AddSessionToCache(session *model.Session) {

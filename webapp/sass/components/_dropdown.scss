@@ -15,14 +15,40 @@
 
     .divider {
         @include opacity(.15);
-    }
 
-    > li > a {
-        color: inherit;
+        & + .divider {
+            display: none;
+        }
 
-        &:focus,
-        &:hover {
-            color: inherit;
+        &:last-child {
+            display: none;
         }
     }
+
+    div,
+    li {
+        > a {
+            color: inherit;
+            text-decoration: none;
+
+            &:focus,
+            &:hover {
+                color: inherit;
+            }
+        }
+    }
+}
+
+.open {
+    > .dropdown-menu__content {
+        display: block;
+
+        > .dropdown-menu {
+            display: block;
+        }
+    }
+}
+
+.dropdown-menu__content {
+    display: none;
 }

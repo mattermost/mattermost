@@ -1,26 +1,27 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
-import ReactDOM from 'react-dom';
-import Client from 'client/web_client.jsx';
-import * as UserAgent from 'utils/user_agent.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
-import * as GlobalActions from 'actions/global_actions.jsx';
 import Textbox from './textbox.jsx';
+
 import BrowserStore from 'stores/browser_store.jsx';
 import PostStore from 'stores/post_store.jsx';
 import MessageHistoryStore from 'stores/message_history_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
+
+import * as GlobalActions from 'actions/global_actions.jsx';
+import {loadPosts} from 'actions/post_actions.jsx';
+
+import Client from 'client/web_client.jsx';
+import * as UserAgent from 'utils/user_agent.jsx';
+import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
-
 import Constants from 'utils/constants.jsx';
+const KeyCodes = Constants.KeyCodes;
 
-import {FormattedMessage} from 'react-intl';
-
-var KeyCodes = Constants.KeyCodes;
-
+import $ from 'jquery';
 import React from 'react';
+import ReactDOM from 'react-dom';
+import {FormattedMessage} from 'react-intl';
 
 export default class EditPostModal extends React.Component {
     constructor(props) {
@@ -30,7 +31,7 @@ export default class EditPostModal extends React.Component {
         this.handleEditKeyPress = this.handleEditKeyPress.bind(this);
         this.handleEditPostEvent = this.handleEditPostEvent.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
-        this.handleInput = this.handleInput.bind(this);
+        this.handleChange = this.handleChange.bind(this);
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.onModalHidden = this.onModalHidden.bind(this);
         this.onModalShow = this.onModalShow.bind(this);
@@ -77,7 +78,7 @@ export default class EditPostModal extends React.Component {
         Client.updatePost(
             updatedPost,
             () => {
-                AsyncClient.getPosts(updatedPost.channel_id);
+                loadPosts(updatedPost.channel_id);
                 window.scrollTo(0, 0);
             },
             (err) => {
@@ -88,7 +89,7 @@ export default class EditPostModal extends React.Component {
         $('#edit_post').modal('hide');
     }
 
-    handleInput(e) {
+    handleChange(e) {
         this.setState({
             editText: e.target.value
         });
@@ -155,6 +156,8 @@ export default class EditPostModal extends React.Component {
 
     onModalShown() {
         this.refs.editbox.focus();
+
+        this.refs.editbox.recalculateSize();
     }
 
     onModalHide() {
@@ -229,10 +232,11 @@ export default class EditPostModal extends React.Component {
                         </div>
                         <div className='edit-modal-body modal-body'>
                             <Textbox
-                                onInput={this.handleInput}
+                                onChange={this.handleChange}
                                 onKeyPress={this.handleEditKeyPress}
                                 onKeyDown={this.handleKeyDown}
-                                messageText={this.state.editText}
+                                value={this.state.editText}
+                                channelId={this.state.channel_id}
                                 createMessage={Utils.localizeMessage('edit_post.editPost', 'Edit the post...')}
                                 supportsCommands={false}
                                 id='edit_textbox'

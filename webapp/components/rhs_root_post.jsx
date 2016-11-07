@@ -20,7 +20,7 @@ import * as PostUtils from 'utils/post_utils.jsx';
 import Constants from 'utils/constants.jsx';
 import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 
-import {FormattedMessage, FormattedDate} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 import React from 'react';
 
@@ -61,6 +61,10 @@ export default class RhsRootPost extends React.Component {
             return true;
         }
 
+        if (!Utils.areObjectsEqual(nextProps.user, this.props.user)) {
+            return true;
+        }
+
         if (!Utils.areObjectsEqual(nextProps.currentUser, this.props.currentUser)) {
             return true;
         }
@@ -85,7 +89,7 @@ export default class RhsRootPost extends React.Component {
         var isOwner = this.props.currentUser.id === post.user_id;
         var isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
         const isSystemMessage = post.type && post.type.startsWith(Constants.SYSTEM_MESSAGE_PREFIX);
-        var timestamp = UserStore.getProfile(post.user_id).update_at;
+        var timestamp = user.update_at;
         var channel = ChannelStore.get(post.channel_id);
         const flagIcon = Constants.FLAG_ICON_SVG;
 
@@ -232,12 +236,14 @@ export default class RhsRootPost extends React.Component {
                         data-toggle='dropdown'
                         aria-expanded='false'
                     />
-                    <ul
-                        className='dropdown-menu'
-                        role='menu'
-                    >
-                        {dropdownContents}
-                    </ul>
+                    <div className='dropdown-menu__content'>
+                        <ul
+                            className='dropdown-menu'
+                            role='menu'
+                        >
+                            {dropdownContents}
+                        </ul>
+                    </div>
                 </div>
             );
         }
@@ -298,12 +304,19 @@ export default class RhsRootPost extends React.Component {
         }
 
         let compactClass = '';
-        let profilePicContainer = (<div className='post__img'>{profilePic}</div>);
         if (this.props.compactDisplay) {
             compactClass = 'post--compact';
-            profilePicContainer = '';
+
+            profilePic = (
+                <ProfilePicture
+                    src=''
+                    status={this.props.status}
+                    user={this.props.user}
+                />
+            );
         }
 
+        const profilePicContainer = (<div className='post__img'>{profilePic}</div>);
         const messageWrapper = <PostMessageContainer post={post}/>;
 
         let flag;
@@ -344,6 +357,15 @@ export default class RhsRootPost extends React.Component {
             flagFunc = this.flagPost;
         }
 
+        const timeOptions = {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: !this.props.useMilitaryTime
+        };
+
         return (
             <div className={'post post--root post--thread ' + userCss + ' ' + systemMessageClass + ' ' + compactClass}>
                 <div className='post-right-channel__name'>{channelName}</div>
@@ -355,15 +377,7 @@ export default class RhsRootPost extends React.Component {
                             {botIndicator}
                             <li className='col'>
                                 <time className='post__time'>
-                                    <FormattedDate
-                                        value={post.create_at}
-                                        day='numeric'
-                                        month='short'
-                                        year='numeric'
-                                        hour12={!this.props.useMilitaryTime}
-                                        hour='2-digit'
-                                        minute='2-digit'
-                                    />
+                                    {Utils.getDateForUnixTicks(post.create_at).toLocaleString('en', timeOptions)}
                                 </time>
                                 <OverlayTrigger
                                     key={'rootpostflagtooltipkey' + flagVisible}

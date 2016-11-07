@@ -11,16 +11,16 @@ import * as TextFormatting from 'utils/text_formatting.jsx';
 import React from 'react';
 
 export default class ChannelInfoModal extends React.Component {
-    shouldComponentUpdate(nextProps) {
-        if (nextProps.show !== this.props.show) {
-            return true;
-        }
+    constructor(props) {
+        super(props);
 
-        if (!Utils.areObjectsEqual(nextProps.channel, this.props.channel)) {
-            return true;
-        }
+        this.onHide = this.onHide.bind(this);
 
-        return false;
+        this.state = {show: true};
+    }
+
+    onHide() {
+        this.setState({show: false});
     }
 
     render() {
@@ -83,8 +83,9 @@ export default class ChannelInfoModal extends React.Component {
         return (
             <Modal
                 dialogClassName='about-modal'
-                show={this.props.show}
-                onHide={this.props.onHide}
+                show={this.state.show}
+                onHide={this.onHide}
+                onExited={this.props.onHide}
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title>
@@ -123,7 +124,6 @@ export default class ChannelInfoModal extends React.Component {
 }
 
 ChannelInfoModal.propTypes = {
-    show: React.PropTypes.bool.isRequired,
     onHide: React.PropTypes.func.isRequired,
     channel: React.PropTypes.object.isRequired
 };

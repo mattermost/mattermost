@@ -18,22 +18,21 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/disintegration/imaging"
-	"github.com/goamz/goamz/aws"
-	"github.com/goamz/goamz/s3"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	"github.com/mssola/user_agent"
 	"github.com/rwcarlsen/goexif/exif"
 	_ "golang.org/x/image/bmp"
+
+	s3 "github.com/minio/minio-go"
 )
 
 const (
@@ -194,8 +193,8 @@ func doUploadFile(teamId string, channelId string, userId string, rawFilename st
 }
 
 func handleImages(previewPathList []string, thumbnailPathList []string, fileData [][]byte) {
-	for i := range fileData {
-		go func() {
+	for i, data := range fileData {
+		go func(i int, data []byte) {
 			// Decode image bytes into Image object
 			img, imgType, err := image.Decode(bytes.NewReader(fileData[i]))
 			if err != nil {
@@ -236,7 +235,7 @@ func handleImages(previewPathList []string, thumbnailPathList []string, fileData
 
 			go generateThumbnailImage(img, thumbnailPathList[i], width, height)
 			go generatePreviewImage(img, previewPathList[i], width)
-		}()
+		}(i, data)
 	}
 }
 
@@ -315,7 +314,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	if data, err := ReadFile(info.Path); err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
-	} else if err := writeFileResponse(info.Name, data, w, r); err != nil {
+	} else if err := writeFileResponse(info.Name, info.MimeType, data, w, r); err != nil {
 		c.Err = err
 		return
 	}
@@ -337,7 +336,7 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 	if data, err := ReadFile(info.ThumbnailPath); err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
-	} else if err := writeFileResponse(info.Name, data, w, r); err != nil {
+	} else if err := writeFileResponse(info.Name, "", data, w, r); err != nil {
 		c.Err = err
 		return
 	}
@@ -359,7 +358,7 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 	if data, err := ReadFile(info.PreviewPath); err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
-	} else if err := writeFileResponse(info.Name, data, w, r); err != nil {
+	} else if err := writeFileResponse(info.Name, "", data, w, r); err != nil {
 		c.Err = err
 		return
 	}
@@ -409,7 +408,7 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	if data, err := ReadFile(info.Path); err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
-	} else if err := writeFileResponse(info.Name, data, w, r); err != nil {
+	} else if err := writeFileResponse(info.Name, info.MimeType, data, w, r); err != nil {
 		c.Err = err
 		return
 	}
@@ -507,26 +506,23 @@ func getPublicFileOld(c *Context, w http.ResponseWriter, r *http.Request) {
 	if data, err := ReadFile(info.Path); err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
-	} else if err := writeFileResponse(info.Name, data, w, r); err != nil {
+	} else if err := writeFileResponse(info.Name, info.MimeType, data, w, r); err != nil {
 		c.Err = err
 		return
 	}
 }
 
-func writeFileResponse(filename string, bytes []byte, w http.ResponseWriter, r *http.Request) *model.AppError {
+func writeFileResponse(filename string, contentType string, bytes []byte, w http.ResponseWriter, r *http.Request) *model.AppError {
 	w.Header().Set("Cache-Control", "max-age=2592000, public")
 	w.Header().Set("Content-Length", strconv.Itoa(len(bytes)))
-	w.Header().Del("Content-Type") // Content-Type will be set automatically by the http writer
 
-	// attach extra headers to trigger a download on IE, Edge, and Safari
-	ua := user_agent.New(r.UserAgent())
-	bname, _ := ua.Browser()
+	if contentType != "" {
+		w.Header().Set("Content-Type", contentType)
+	} else {
+		w.Header().Del("Content-Type") // Content-Type will be set automatically by the http writer
+	}
 
 	w.Header().Set("Content-Disposition", "attachment;filename=\""+filename+"\"")
-
-	if bname == "Edge" || bname == "Internet Explorer" || bname == "Safari" {
-		w.Header().Set("Content-Type", "application/octet-stream")
-	}
 
 	// prevent file links from being embedded in iframes
 	w.Header().Set("X-Frame-Options", "DENY")
@@ -742,25 +738,22 @@ func getInfoForFilename(post *model.Post, teamId string, filename string) *model
 
 func WriteFile(f []byte, path string) *model.AppError {
 	if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
-		var auth aws.Auth
-		auth.AccessKey = utils.Cfg.FileSettings.AmazonS3AccessKeyId
-		auth.SecretKey = utils.Cfg.FileSettings.AmazonS3SecretAccessKey
-
-		s := s3.New(auth, awsRegion())
-		bucket := s.Bucket(utils.Cfg.FileSettings.AmazonS3Bucket)
-
+		endpoint := utils.Cfg.FileSettings.AmazonS3Endpoint
+		accessKey := utils.Cfg.FileSettings.AmazonS3AccessKeyId
+		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
+		secure := *utils.Cfg.FileSettings.AmazonS3SSL
+		s3Clnt, err := s3.New(endpoint, accessKey, secretKey, secure)
+		if err != nil {
+			return model.NewLocAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error())
+		}
+		bucket := utils.Cfg.FileSettings.AmazonS3Bucket
 		ext := filepath.Ext(path)
 
-		var err error
 		if model.IsFileExtImage(ext) {
-			options := s3.Options{}
-			err = bucket.Put(path, f, model.GetImageMimeType(ext), s3.Private, options)
-
+			_, err = s3Clnt.PutObject(bucket, path, bytes.NewReader(f), model.GetImageMimeType(ext))
 		} else {
-			options := s3.Options{}
-			err = bucket.Put(path, f, "binary/octet-stream", s3.Private, options)
+			_, err = s3Clnt.PutObject(bucket, path, bytes.NewReader(f), "binary/octet-stream")
 		}
-
 		if err != nil {
 			return model.NewLocAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error())
 		}
@@ -777,28 +770,24 @@ func WriteFile(f []byte, path string) *model.AppError {
 
 func MoveFile(oldPath, newPath string) *model.AppError {
 	if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
-		fileBytes, _ := ReadFile(oldPath)
-
-		if fileBytes == nil {
-			return model.NewLocAppError("moveFile", "api.file.move_file.get_from_s3.app_error", nil, "")
+		endpoint := utils.Cfg.FileSettings.AmazonS3Endpoint
+		accessKey := utils.Cfg.FileSettings.AmazonS3AccessKeyId
+		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
+		secure := *utils.Cfg.FileSettings.AmazonS3SSL
+		s3Clnt, err := s3.New(endpoint, accessKey, secretKey, secure)
+		if err != nil {
+			return model.NewLocAppError("moveFile", "api.file.write_file.s3.app_error", nil, err.Error())
 		}
+		bucket := utils.Cfg.FileSettings.AmazonS3Bucket
 
-		var auth aws.Auth
-		auth.AccessKey = utils.Cfg.FileSettings.AmazonS3AccessKeyId
-		auth.SecretKey = utils.Cfg.FileSettings.AmazonS3SecretAccessKey
-
-		s := s3.New(auth, awsRegion())
-		bucket := s.Bucket(utils.Cfg.FileSettings.AmazonS3Bucket)
-
-		if err := bucket.Del(oldPath); err != nil {
+		var copyConds = s3.NewCopyConditions()
+		if err = s3Clnt.CopyObject(bucket, newPath, "/"+path.Join(bucket, oldPath), copyConds); err != nil {
 			return model.NewLocAppError("moveFile", "api.file.move_file.delete_from_s3.app_error", nil, err.Error())
 		}
-
-		if err := WriteFile(fileBytes, newPath); err != nil {
-			return err
+		if err = s3Clnt.RemoveObject(bucket, oldPath); err != nil {
+			return model.NewLocAppError("moveFile", "api.file.move_file.delete_from_s3.app_error", nil, err.Error())
 		}
 	} else if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
-
 		if err := os.MkdirAll(filepath.Dir(utils.Cfg.FileSettings.Directory+newPath), 0774); err != nil {
 			return model.NewLocAppError("moveFile", "api.file.move_file.rename.app_error", nil, err.Error())
 		}
@@ -828,26 +817,23 @@ func writeFileLocally(f []byte, path string) *model.AppError {
 
 func ReadFile(path string) ([]byte, *model.AppError) {
 	if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
-		var auth aws.Auth
-		auth.AccessKey = utils.Cfg.FileSettings.AmazonS3AccessKeyId
-		auth.SecretKey = utils.Cfg.FileSettings.AmazonS3SecretAccessKey
-
-		s := s3.New(auth, awsRegion())
-		bucket := s.Bucket(utils.Cfg.FileSettings.AmazonS3Bucket)
-
-		// try to get the file from S3 with some basic retry logic
-		tries := 0
-		for {
-			tries++
-
-			f, err := bucket.Get(path)
-
-			if f != nil {
-				return f, nil
-			} else if tries >= 3 {
-				return nil, model.NewLocAppError("ReadFile", "api.file.read_file.get.app_error", nil, "path="+path+", err="+err.Error())
-			}
-			time.Sleep(3000 * time.Millisecond)
+		endpoint := utils.Cfg.FileSettings.AmazonS3Endpoint
+		accessKey := utils.Cfg.FileSettings.AmazonS3AccessKeyId
+		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
+		secure := *utils.Cfg.FileSettings.AmazonS3SSL
+		s3Clnt, err := s3.New(endpoint, accessKey, secretKey, secure)
+		if err != nil {
+			return nil, model.NewLocAppError("ReadFile", "api.file.read_file.s3.app_error", nil, err.Error())
+		}
+		bucket := utils.Cfg.FileSettings.AmazonS3Bucket
+		reader, err := s3Clnt.GetObject(bucket, path)
+		if err != nil {
+			return nil, model.NewLocAppError("ReadFile", "api.file.read_file.s3.app_error", nil, err.Error())
+		}
+		if f, err := ioutil.ReadAll(reader); err != nil {
+			return nil, model.NewLocAppError("ReadFile", "api.file.read_file.s3.app_error", nil, err.Error())
+		} else {
+			return f, nil
 		}
 	} else if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
 		if f, err := ioutil.ReadFile(utils.Cfg.FileSettings.Directory + path); err != nil {
@@ -881,18 +867,4 @@ func openFileWriteStream(path string) (io.Writer, *model.AppError) {
 
 func closeFileWriteStream(file io.Writer) {
 	file.(*os.File).Close()
-}
-
-func awsRegion() aws.Region {
-	if region, ok := aws.Regions[utils.Cfg.FileSettings.AmazonS3Region]; ok {
-		return region
-	}
-
-	return aws.Region{
-		Name:                 utils.Cfg.FileSettings.AmazonS3Region,
-		S3Endpoint:           utils.Cfg.FileSettings.AmazonS3Endpoint,
-		S3BucketEndpoint:     utils.Cfg.FileSettings.AmazonS3BucketEndpoint,
-		S3LocationConstraint: *utils.Cfg.FileSettings.AmazonS3LocationConstraint,
-		S3LowercaseBucket:    *utils.Cfg.FileSettings.AmazonS3LowercaseBucket,
-	}
 }

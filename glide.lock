@@ -1,5 +1,5 @@
-hash: afa53c89914e2b6e9cf9782c799239e036916356cd65c920dccc68eb1f5ff8d8
-updated: 2016-09-28T16:46:11.923812036-04:00
+hash: ef894d83b32bdf0fdeaebf16b6e56a1e8e865c5ff62cef1ef9740ea68a677a41
+updated: 2016-10-10T11:22:33.842051046-07:00
 imports:
 - name: github.com/alecthomas/log4go
   version: e5dc62318d9bd58682f1dceb53a4b24e8253682f
@@ -51,6 +51,11 @@ imports:
   - qr/coding
 - name: github.com/miekg/dns
   version: db96a2b759cdef4f11a34506a42eb8d1290c598e
+- name: github.com/minio/minio-go
+  version: c040578255dbb1a1f41cbdc5bd944de4140b4149
+  subpackages:
+  - pkg/policy
+  - pkg/set
 - name: github.com/mssola/user_agent
   version: 85b2f5798558a46fc23443c596e781712f4b7792
 - name: github.com/nicksnyder/go-i18n
@@ -77,8 +82,6 @@ imports:
   version: 204274ad699c0983a70203a566887f17a717fef4
 - name: github.com/tylerb/graceful
   version: 50a48b6e73fcc75b45e22c05b79629a67c79e938
-- name: github.com/vaughan0/go-ini
-  version: a98ad7ee00ec53921f08832bc06ecf7fd600e6a1
 - name: github.com/xenolf/lego
   version: ca0bd606b23a8b50f92915772917bd187ae1491b
   subpackages:

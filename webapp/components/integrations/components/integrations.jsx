@@ -21,6 +21,25 @@ export default class Integrations extends React.Component {
         };
     }
 
+    constructor(props) {
+        super(props);
+
+        this.updateTitle = this.updateTitle.bind(this);
+    }
+
+    componentDidMount() {
+        this.updateTitle();
+    }
+
+    updateTitle() {
+        let currentSiteName = '';
+        if (global.window.mm_config.SiteName != null) {
+            currentSiteName = global.window.mm_config.SiteName;
+        }
+
+        document.title = Utils.localizeMessage('admin.sidebar.integrations', 'Integrations') + ' - ' + this.props.team.display_name + ' ' + currentSiteName;
+    }
+
     render() {
         const options = [];
         const config = window.mm_config;

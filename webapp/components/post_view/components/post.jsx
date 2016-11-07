@@ -4,7 +4,6 @@
 import PostHeader from './post_header.jsx';
 import PostBody from './post_body.jsx';
 import ProfilePicture from 'components/profile_picture.jsx';
-import * as PostActions from 'actions/post_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
@@ -22,7 +21,6 @@ export default class Post extends React.Component {
         this.handleCommentClick = this.handleCommentClick.bind(this);
         this.handleDropdownOpened = this.handleDropdownOpened.bind(this);
         this.forceUpdateInfo = this.forceUpdateInfo.bind(this);
-        this.handlePostClick = this.handlePostClick.bind(this);
 
         this.state = {
             dropdownOpened: false
@@ -50,12 +48,7 @@ export default class Post extends React.Component {
         this.refs.info.forceUpdate();
         this.refs.header.forceUpdate();
     }
-    handlePostClick(e) {
-        if (e.altKey) {
-            e.preventDefault();
-            PostActions.setUnreadPost(this.props.post.channel_id, this.props.post.id);
-        }
-    }
+
     shouldComponentUpdate(nextProps, nextState) {
         if (!Utils.areObjectsEqual(nextProps.post, this.props.post)) {
             return true;
@@ -214,11 +207,19 @@ export default class Post extends React.Component {
         }
 
         let compactClass = '';
-        let profilePicContainer = (<div className='post__img'>{profilePic}</div>);
         if (this.props.compactDisplay) {
             compactClass = 'post--compact';
-            profilePicContainer = '';
+
+            profilePic = (
+                <ProfilePicture
+                    src=''
+                    status={this.props.status}
+                    user={this.props.user}
+                />
+            );
         }
+
+        const profilePicContainer = (<div className='post__img'>{profilePic}</div>);
 
         let dropdownOpenedClass = '';
         if (this.state.dropdownOpened) {
@@ -230,7 +231,6 @@ export default class Post extends React.Component {
                 <div
                     id={'post_' + post.id}
                     className={'post ' + sameUserClass + ' ' + compactClass + ' ' + rootUser + ' ' + postType + ' ' + currentUserCss + ' ' + shouldHighlightClass + ' ' + systemMessageClass + ' ' + hideControls + ' ' + dropdownOpenedClass}
-                    onClick={this.handlePostClick}
                 >
                     <div className={'post__content ' + centerClass}>
                         {profilePicContainer}

@@ -236,7 +236,6 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["EnableTeamCreation"] = strconv.FormatBool(c.TeamSettings.EnableTeamCreation)
 	props["EnableUserCreation"] = strconv.FormatBool(c.TeamSettings.EnableUserCreation)
 	props["EnableOpenServer"] = strconv.FormatBool(*c.TeamSettings.EnableOpenServer)
-	props["RestrictTeamNames"] = strconv.FormatBool(*c.TeamSettings.RestrictTeamNames)
 	props["RestrictDirectMessage"] = *c.TeamSettings.RestrictDirectMessage
 	props["RestrictTeamInvite"] = *c.TeamSettings.RestrictTeamInvite
 	props["RestrictPublicChannelManagement"] = *c.TeamSettings.RestrictPublicChannelManagement
@@ -293,6 +292,8 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["AndroidAppDownloadLink"] = *c.NativeAppSettings.AndroidAppDownloadLink
 	props["IosAppDownloadLink"] = *c.NativeAppSettings.IosAppDownloadLink
 
+	props["EnableWebrtc"] = strconv.FormatBool(*c.WebrtcSettings.Enable)
+
 	if IsLicensed {
 		if *License.Features.CustomBrand {
 			props["EnableCustomBrand"] = strconv.FormatBool(*c.TeamSettings.EnableCustomBrand)
@@ -342,10 +343,6 @@ func getClientConfig(c *model.Config) map[string]string {
 			props["PasswordRequireUppercase"] = strconv.FormatBool(*c.PasswordSettings.Uppercase)
 			props["PasswordRequireNumber"] = strconv.FormatBool(*c.PasswordSettings.Number)
 			props["PasswordRequireSymbol"] = strconv.FormatBool(*c.PasswordSettings.Symbol)
-		}
-
-		if *License.Features.Webrtc {
-			props["EnableWebrtc"] = strconv.FormatBool(*c.WebrtcSettings.Enable)
 		}
 	}
 

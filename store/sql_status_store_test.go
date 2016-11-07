@@ -60,6 +60,15 @@ func TestSqlStatusStore(t *testing.T) {
 		}
 	}
 
+	if result := <-store.Status().GetByIds([]string{status.UserId, "junk"}); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		statuses := result.Data.([]*model.Status)
+		if len(statuses) != 1 {
+			t.Fatal("should only have 1 status")
+		}
+	}
+
 	if err := (<-store.Status().ResetAll()).Err; err != nil {
 		t.Fatal(err)
 	}

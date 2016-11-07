@@ -1,6 +1,65 @@
 @charset 'UTF-8';
 
 @media screen and (max-width: 960px) {
+    .channel-header {
+        .search-bar__container {
+            .search__form {
+                width: 150px;
+            }
+        }
+
+        .heading {
+            width: 130px;
+        }
+    }
+
+    .post-create__container {
+        form {
+            padding: .5em 0;
+        }
+
+        .post-create-footer {
+            padding: 0 1em;
+
+            .msg-typing {
+                display: none;
+            }
+
+            .control-label {
+                top: 0;
+            }
+        }
+
+        .post-create-body {
+            display: table;
+            width: 100%;
+
+            .post-body__cell {
+                display: table-cell;
+                padding-left: 45px;
+
+                .sidebar--right & {
+                    padding-left: 0;
+                }
+            }
+
+            .app__content & {
+                .btn-file {
+                    bottom: -2px;
+                    left: 0;
+                    line-height: 36px;
+                    padding: 0;
+                    top: auto;
+                    width: 45px;
+                }
+            }
+
+            .send-button {
+                display: table-cell;
+            }
+        }
+    }
+
     .signup-team__container {
         &.branded {
             display: block;

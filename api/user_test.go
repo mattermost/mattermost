@@ -16,12 +16,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/goamz/goamz/aws"
-	"github.com/goamz/goamz/s3"
-
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
+
+	s3 "github.com/minio/minio-go"
 )
 
 func TestCreateUser(t *testing.T) {
@@ -435,7 +434,7 @@ func TestGetUser(t *testing.T) {
 		}
 	}
 
-	if userMap, err := Client.GetProfiles(rteam.Data.(*model.Team).Id, ""); err != nil {
+	if userMap, err := Client.GetProfilesInTeam(rteam.Data.(*model.Team).Id, 0, 100, ""); err != nil {
 		t.Fatal(err)
 	} else if len(userMap.Data.(map[string]*model.User)) != 2 {
 		t.Fatal("should have been 2")
@@ -444,7 +443,7 @@ func TestGetUser(t *testing.T) {
 	} else {
 
 		// test etag caching
-		if cache_result, err := Client.GetProfiles(rteam.Data.(*model.Team).Id, userMap.Etag); err != nil {
+		if cache_result, err := Client.GetProfilesInTeam(rteam.Data.(*model.Team).Id, 0, 100, userMap.Etag); err != nil {
 			t.Fatal(err)
 		} else if cache_result.Data.(map[string]*model.User) != nil {
 			t.Log(cache_result.Data)
@@ -452,7 +451,25 @@ func TestGetUser(t *testing.T) {
 		}
 	}
 
-	if _, err := Client.GetProfiles(rteam2.Data.(*model.Team).Id, ""); err == nil {
+	if userMap, err := Client.GetProfilesInTeam(rteam.Data.(*model.Team).Id, 0, 1, ""); err != nil {
+		t.Fatal(err)
+	} else if len(userMap.Data.(map[string]*model.User)) != 1 {
+		t.Fatal("should have been 1")
+	}
+
+	if userMap, err := Client.GetProfilesInTeam(rteam.Data.(*model.Team).Id, 1, 1, ""); err != nil {
+		t.Fatal(err)
+	} else if len(userMap.Data.(map[string]*model.User)) != 1 {
+		t.Fatal("should have been 1")
+	}
+
+	if userMap, err := Client.GetProfilesInTeam(rteam.Data.(*model.Team).Id, 10, 10, ""); err != nil {
+		t.Fatal(err)
+	} else if len(userMap.Data.(map[string]*model.User)) != 0 {
+		t.Fatal("should have been 0")
+	}
+
+	if _, err := Client.GetProfilesInTeam(rteam2.Data.(*model.Team).Id, 0, 100, ""); err == nil {
 		t.Fatal("shouldn't have access")
 	}
 
@@ -468,12 +485,12 @@ func TestGetUser(t *testing.T) {
 
 	Client.Login(user.Email, "passwd1")
 
-	if _, err := Client.GetProfiles(rteam2.Data.(*model.Team).Id, ""); err != nil {
+	if _, err := Client.GetProfilesInTeam(rteam2.Data.(*model.Team).Id, 0, 100, ""); err != nil {
 		t.Fatal(err)
 	}
 }
 
-func TestGetDirectProfiles(t *testing.T) {
+func TestGetProfiles(t *testing.T) {
 	th := Setup().InitBasic()
 
 	th.BasicClient.Must(th.BasicClient.CreateDirectChannel(th.BasicUser2.Id))
@@ -485,62 +502,7 @@ func TestGetDirectProfiles(t *testing.T) {
 
 	utils.Cfg.PrivacySettings.ShowEmailAddress = true
 
-	if result, err := th.BasicClient.GetDirectProfiles(""); err != nil {
-		t.Fatal(err)
-	} else {
-		users := result.Data.(map[string]*model.User)
-
-		if len(users) != 1 {
-			t.Fatal("map was wrong length")
-		}
-
-		if users[th.BasicUser2.Id] == nil {
-			t.Fatal("missing expected user")
-		}
-
-		for _, user := range users {
-			if user.Email == "" {
-				t.Fatal("problem with show email")
-			}
-		}
-	}
-
-	utils.Cfg.PrivacySettings.ShowEmailAddress = false
-
-	if result, err := th.BasicClient.GetDirectProfiles(""); err != nil {
-		t.Fatal(err)
-	} else {
-		users := result.Data.(map[string]*model.User)
-
-		if len(users) != 1 {
-			t.Fatal("map was wrong length")
-		}
-
-		if users[th.BasicUser2.Id] == nil {
-			t.Fatal("missing expected user")
-		}
-
-		for _, user := range users {
-			if user.Email != "" {
-				t.Fatal("problem with show email")
-			}
-		}
-	}
-}
-
-func TestGetProfilesForDirectMessageList(t *testing.T) {
-	th := Setup().InitBasic()
-
-	th.BasicClient.Must(th.BasicClient.CreateDirectChannel(th.BasicUser2.Id))
-
-	prevShowEmail := utils.Cfg.PrivacySettings.ShowEmailAddress
-	defer func() {
-		utils.Cfg.PrivacySettings.ShowEmailAddress = prevShowEmail
-	}()
-
-	utils.Cfg.PrivacySettings.ShowEmailAddress = true
-
-	if result, err := th.BasicClient.GetProfilesForDirectMessageList(th.BasicTeam.Id); err != nil {
+	if result, err := th.BasicClient.GetProfiles(0, 100, ""); err != nil {
 		t.Fatal(err)
 	} else {
 		users := result.Data.(map[string]*model.User)
@@ -554,11 +516,20 @@ func TestGetProfilesForDirectMessageList(t *testing.T) {
 				t.Fatal("problem with show email")
 			}
 		}
+
+		// test etag caching
+		if cache_result, err := th.BasicClient.GetProfiles(0, 100, result.Etag); err != nil {
+			t.Fatal(err)
+		} else if cache_result.Data.(map[string]*model.User) != nil {
+			t.Log(cache_result.Etag)
+			t.Log(result.Etag)
+			t.Fatal("cache should be empty")
+		}
 	}
 
 	utils.Cfg.PrivacySettings.ShowEmailAddress = false
 
-	if result, err := th.BasicClient.GetProfilesForDirectMessageList(th.BasicTeam.Id); err != nil {
+	if result, err := th.BasicClient.GetProfiles(0, 100, ""); err != nil {
 		t.Fatal(err)
 	} else {
 		users := result.Data.(map[string]*model.User)
@@ -571,6 +542,61 @@ func TestGetProfilesForDirectMessageList(t *testing.T) {
 			if user.Email != "" {
 				t.Fatal("problem with show email")
 			}
+		}
+	}
+}
+
+func TestGetProfilesByIds(t *testing.T) {
+	th := Setup().InitBasic()
+
+	prevShowEmail := utils.Cfg.PrivacySettings.ShowEmailAddress
+	defer func() {
+		utils.Cfg.PrivacySettings.ShowEmailAddress = prevShowEmail
+	}()
+
+	utils.Cfg.PrivacySettings.ShowEmailAddress = true
+
+	if result, err := th.BasicClient.GetProfilesByIds([]string{th.BasicUser.Id}); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.(map[string]*model.User)
+
+		if len(users) != 1 {
+			t.Fatal("map was wrong length")
+		}
+
+		for _, user := range users {
+			if user.Email == "" {
+				t.Fatal("problem with show email")
+			}
+		}
+	}
+
+	utils.Cfg.PrivacySettings.ShowEmailAddress = false
+
+	if result, err := th.BasicClient.GetProfilesByIds([]string{th.BasicUser.Id}); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.(map[string]*model.User)
+
+		if len(users) != 1 {
+			t.Fatal("map was wrong length")
+		}
+
+		for _, user := range users {
+			if user.Email != "" {
+				t.Fatal("problem with show email")
+			}
+		}
+	}
+
+	if result, err := th.BasicClient.GetProfilesByIds([]string{th.BasicUser.Id, th.BasicUser2.Id}); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.(map[string]*model.User)
+
+		if len(users) != 2 {
+			t.Fatal("map was wrong length")
 		}
 	}
 }
@@ -647,14 +673,16 @@ func TestUserCreateImage(t *testing.T) {
 	Client.DoApiGet("/users/"+user.Id+"/image", "", "")
 
 	if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
-		var auth aws.Auth
-		auth.AccessKey = utils.Cfg.FileSettings.AmazonS3AccessKeyId
-		auth.SecretKey = utils.Cfg.FileSettings.AmazonS3SecretAccessKey
-
-		s := s3.New(auth, aws.Regions[utils.Cfg.FileSettings.AmazonS3Region])
-		bucket := s.Bucket(utils.Cfg.FileSettings.AmazonS3Bucket)
-
-		if err := bucket.Del("/users/" + user.Id + "/profile.png"); err != nil {
+		endpoint := utils.Cfg.FileSettings.AmazonS3Endpoint
+		accessKey := utils.Cfg.FileSettings.AmazonS3AccessKeyId
+		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
+		secure := *utils.Cfg.FileSettings.AmazonS3SSL
+		s3Clnt, err := s3.New(endpoint, accessKey, secretKey, secure)
+		if err != nil {
+			t.Fatal(err)
+		}
+		bucket := utils.Cfg.FileSettings.AmazonS3Bucket
+		if err = s3Clnt.RemoveObject(bucket, "/users/"+user.Id+"/profile.png"); err != nil {
 			t.Fatal(err)
 		}
 	} else {
@@ -747,14 +775,16 @@ func TestUserUploadProfileImage(t *testing.T) {
 		Client.DoApiGet("/users/"+user.Id+"/image", "", "")
 
 		if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
-			var auth aws.Auth
-			auth.AccessKey = utils.Cfg.FileSettings.AmazonS3AccessKeyId
-			auth.SecretKey = utils.Cfg.FileSettings.AmazonS3SecretAccessKey
-
-			s := s3.New(auth, aws.Regions[utils.Cfg.FileSettings.AmazonS3Region])
-			bucket := s.Bucket(utils.Cfg.FileSettings.AmazonS3Bucket)
-
-			if err := bucket.Del("users/" + user.Id + "/profile.png"); err != nil {
+			endpoint := utils.Cfg.FileSettings.AmazonS3Endpoint
+			accessKey := utils.Cfg.FileSettings.AmazonS3AccessKeyId
+			secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
+			secure := *utils.Cfg.FileSettings.AmazonS3SSL
+			s3Clnt, err := s3.New(endpoint, accessKey, secretKey, secure)
+			if err != nil {
+				t.Fatal(err)
+			}
+			bucket := utils.Cfg.FileSettings.AmazonS3Bucket
+			if err = s3Clnt.RemoveObject(bucket, "/users/"+user.Id+"/profile.png"); err != nil {
 				t.Fatal(err)
 			}
 		} else {
@@ -954,6 +984,10 @@ func TestUserUpdateRoles(t *testing.T) {
 
 	if _, err := Client.UpdateUserRoles("junk", ""); err == nil {
 		t.Fatal("Should have errored, bad id")
+	}
+
+	if _, err := Client.UpdateUserRoles("system_admin", ""); err == nil {
+		t.Fatal("Should have errored, we want to avoid this mistake")
 	}
 
 	if _, err := Client.UpdateUserRoles("12345678901234567890123456", ""); err == nil {
@@ -1653,7 +1687,7 @@ func TestMeInitialLoad(t *testing.T) {
 
 }
 
-func TestGenerateMfaQrCode(t *testing.T) {
+func TestGenerateMfaSecret(t *testing.T) {
 	th := Setup()
 	Client := th.CreateClient()
 
@@ -1667,13 +1701,13 @@ func TestGenerateMfaQrCode(t *testing.T) {
 
 	Client.Logout()
 
-	if _, err := Client.GenerateMfaQrCode(); err == nil {
+	if _, err := Client.GenerateMfaSecret(); err == nil {
 		t.Fatal("should have failed - not logged in")
 	}
 
 	Client.Login(user.Email, user.Password)
 
-	if _, err := Client.GenerateMfaQrCode(); err == nil {
+	if _, err := Client.GenerateMfaSecret(); err == nil {
 		t.Fatal("should have failed - not licensed")
 	}
 
@@ -1764,6 +1798,11 @@ func TestUserTyping(t *testing.T) {
 	defer WebSocketClient.Close()
 	WebSocketClient.Listen()
 
+	time.Sleep(300 * time.Millisecond)
+	if resp := <-WebSocketClient.ResponseChannel; resp.Status != model.STATUS_OK {
+		t.Fatal("should have responded OK to authentication challenge")
+	}
+
 	WebSocketClient.UserTyping("", "")
 	time.Sleep(300 * time.Millisecond)
 	if resp := <-WebSocketClient.ResponseChannel; resp.Error.Id != "api.websocket_handler.invalid_param.app_error" {
@@ -1835,5 +1874,405 @@ func TestUserTyping(t *testing.T) {
 
 	if !eventHit {
 		t.Fatal("did not receive typing event")
+	}
+}
+
+func TestGetProfilesInChannel(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+
+	prevShowEmail := utils.Cfg.PrivacySettings.ShowEmailAddress
+	defer func() {
+		utils.Cfg.PrivacySettings.ShowEmailAddress = prevShowEmail
+	}()
+
+	utils.Cfg.PrivacySettings.ShowEmailAddress = true
+
+	if result, err := Client.GetProfilesInChannel(th.BasicChannel.Id, 0, 100, ""); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.(map[string]*model.User)
+
+		if len(users) < 1 {
+			t.Fatal("map was wrong length")
+		}
+
+		for _, user := range users {
+			if user.Email == "" {
+				t.Fatal("problem with show email")
+			}
+		}
+	}
+
+	th.LoginBasic2()
+
+	if _, err := Client.GetProfilesInChannel(th.BasicChannel.Id, 0, 100, ""); err == nil {
+		t.Fatal("should not have access")
+	}
+
+	Client.Must(Client.JoinChannel(th.BasicChannel.Id))
+
+	utils.Cfg.PrivacySettings.ShowEmailAddress = false
+
+	if result, err := Client.GetProfilesInChannel(th.BasicChannel.Id, 0, 100, ""); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.(map[string]*model.User)
+
+		if len(users) < 1 {
+			t.Fatal("map was wrong length")
+		}
+
+		found := false
+		for _, user := range users {
+			if user.Email != "" {
+				t.Fatal("problem with show email")
+			}
+			if user.Id == th.BasicUser2.Id {
+				found = true
+			}
+		}
+
+		if !found {
+			t.Fatal("should have found profile")
+		}
+	}
+
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
+	Client.Must(Client.CreateUser(&user, ""))
+
+	Client.Login(user.Email, "passwd1")
+	Client.SetTeamId("junk")
+
+	if _, err := Client.GetProfilesInChannel(th.BasicChannel.Id, 0, 100, ""); err == nil {
+		t.Fatal("should not have access")
+	}
+}
+
+func TestGetProfilesNotInChannel(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+
+	prevShowEmail := utils.Cfg.PrivacySettings.ShowEmailAddress
+	defer func() {
+		utils.Cfg.PrivacySettings.ShowEmailAddress = prevShowEmail
+	}()
+
+	utils.Cfg.PrivacySettings.ShowEmailAddress = true
+
+	if result, err := Client.GetProfilesNotInChannel(th.BasicChannel.Id, 0, 100, ""); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.(map[string]*model.User)
+
+		if len(users) < 1 {
+			t.Fatal("map was wrong length")
+		}
+
+		found := false
+		for _, user := range users {
+			if user.Email == "" {
+				t.Fatal("problem with show email")
+			}
+			if user.Id == th.BasicUser2.Id {
+				found = true
+			}
+		}
+
+		if !found {
+			t.Fatal("should have found profile")
+		}
+	}
+
+	user := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
+	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
+	LinkUserToTeam(user, th.BasicTeam)
+
+	th.LoginBasic2()
+
+	if _, err := Client.GetProfilesNotInChannel(th.BasicChannel.Id, 0, 100, ""); err == nil {
+		t.Fatal("should not have access")
+	}
+
+	Client.Must(Client.JoinChannel(th.BasicChannel.Id))
+
+	utils.Cfg.PrivacySettings.ShowEmailAddress = false
+
+	if result, err := Client.GetProfilesNotInChannel(th.BasicChannel.Id, 0, 100, ""); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.(map[string]*model.User)
+
+		if len(users) < 1 {
+			t.Fatal("map was wrong length")
+		}
+
+		found := false
+		for _, user := range users {
+			if user.Email != "" {
+				t.Fatal("problem with show email")
+			}
+			if user.Id == th.BasicUser2.Id {
+				found = true
+			}
+		}
+
+		if found {
+			t.Fatal("should not have found profile")
+		}
+	}
+
+	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
+	Client.Must(Client.CreateUser(&user2, ""))
+
+	Client.Login(user2.Email, "passwd1")
+	Client.SetTeamId(th.BasicTeam.Id)
+
+	if _, err := Client.GetProfilesNotInChannel(th.BasicChannel.Id, 0, 100, ""); err == nil {
+		t.Fatal("should not have access")
+	}
+}
+
+func TestSearchUsers(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	Client := th.BasicClient
+
+	inactiveUser := th.CreateUser(Client)
+	LinkUserToTeam(inactiveUser, th.BasicTeam)
+	th.SystemAdminClient.Must(th.SystemAdminClient.UpdateActive(inactiveUser.Id, false))
+
+	if result, err := Client.SearchUsers(model.UserSearch{Term: th.BasicUser.Username}); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.([]*model.User)
+
+		found := false
+		for _, user := range users {
+			if user.Id == th.BasicUser.Id {
+				found = true
+			}
+		}
+
+		if !found {
+			t.Fatal("should have found profile")
+		}
+	}
+
+	if result, err := Client.SearchUsers(model.UserSearch{Term: inactiveUser.Username, TeamId: th.BasicTeam.Id}); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.([]*model.User)
+
+		found := false
+		for _, user := range users {
+			if user.Id == inactiveUser.Id {
+				found = true
+			}
+		}
+
+		if found {
+			t.Fatal("should not have found inactive user")
+		}
+	}
+
+	if result, err := Client.SearchUsers(model.UserSearch{Term: inactiveUser.Username, TeamId: th.BasicTeam.Id, AllowInactive: true}); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.([]*model.User)
+
+		found := false
+		for _, user := range users {
+			if user.Id == inactiveUser.Id {
+				found = true
+			}
+		}
+
+		if !found {
+			t.Fatal("should have found inactive user")
+		}
+	}
+
+	if result, err := Client.SearchUsers(model.UserSearch{Term: th.BasicUser.Username, InChannelId: th.BasicChannel.Id}); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.([]*model.User)
+
+		if len(users) != 1 {
+			t.Fatal("map was wrong length")
+		}
+
+		found := false
+		for _, user := range users {
+			if user.Id == th.BasicUser.Id {
+				found = true
+			}
+		}
+
+		if !found {
+			t.Fatal("should have found profile")
+		}
+	}
+
+	if result, err := Client.SearchUsers(model.UserSearch{Term: th.BasicUser2.Username, NotInChannelId: th.BasicChannel.Id}); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.([]*model.User)
+
+		if len(users) != 1 {
+			t.Fatal("map was wrong length")
+		}
+
+		found1 := false
+		found2 := false
+		for _, user := range users {
+			if user.Id == th.BasicUser.Id {
+				found1 = true
+			} else if user.Id == th.BasicUser2.Id {
+				found2 = true
+			}
+		}
+
+		if found1 {
+			t.Fatal("should not have found profile")
+		}
+		if !found2 {
+			t.Fatal("should have found profile")
+		}
+	}
+
+	if result, err := Client.SearchUsers(model.UserSearch{Term: th.BasicUser2.Username, TeamId: th.BasicTeam.Id, NotInChannelId: th.BasicChannel.Id}); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.([]*model.User)
+
+		if len(users) != 1 {
+			t.Fatal("map was wrong length")
+		}
+
+		found1 := false
+		found2 := false
+		for _, user := range users {
+			if user.Id == th.BasicUser.Id {
+				found1 = true
+			} else if user.Id == th.BasicUser2.Id {
+				found2 = true
+			}
+		}
+
+		if found1 {
+			t.Fatal("should not have found profile")
+		}
+		if !found2 {
+			t.Fatal("should have found profile")
+		}
+	}
+
+	if result, err := Client.SearchUsers(model.UserSearch{Term: th.BasicUser.Username, TeamId: "junk", NotInChannelId: th.BasicChannel.Id}); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.([]*model.User)
+
+		if len(users) != 0 {
+			t.Fatal("map was wrong length")
+		}
+	}
+
+	th.LoginBasic2()
+
+	if result, err := Client.SearchUsers(model.UserSearch{Term: th.BasicUser.Username}); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.([]*model.User)
+
+		found := false
+		for _, user := range users {
+			if user.Id == th.BasicUser.Id {
+				found = true
+			}
+		}
+
+		if !found {
+			t.Fatal("should have found profile")
+		}
+	}
+
+	if _, err := Client.SearchUsers(model.UserSearch{}); err == nil {
+		t.Fatal("should have errored - blank term")
+	}
+
+	if _, err := Client.SearchUsers(model.UserSearch{Term: th.BasicUser.Username, InChannelId: th.BasicChannel.Id}); err == nil {
+		t.Fatal("should not have access")
+	}
+
+	if _, err := Client.SearchUsers(model.UserSearch{Term: th.BasicUser.Username, NotInChannelId: th.BasicChannel.Id}); err == nil {
+	}
+}
+
+func TestAutocompleteUsers(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+
+	if result, err := Client.AutocompleteUsersInTeam(th.BasicUser.Username); err != nil {
+		t.Fatal(err)
+	} else {
+		autocomplete := result.Data.(*model.UserAutocompleteInTeam)
+		if len(autocomplete.InTeam) != 1 {
+			t.Fatal("should have returned 1 user in")
+		}
+	}
+
+	if result, err := Client.AutocompleteUsersInTeam(th.BasicUser.Username[0:5]); err != nil {
+		t.Fatal(err)
+	} else {
+		autocomplete := result.Data.(*model.UserAutocompleteInTeam)
+		if len(autocomplete.InTeam) < 1 {
+			t.Fatal("should have returned at least 1 user in")
+		}
+	}
+
+	if result, err := Client.AutocompleteUsersInChannel(th.BasicUser.Username, th.BasicChannel.Id); err != nil {
+		t.Fatal(err)
+	} else {
+		autocomplete := result.Data.(*model.UserAutocompleteInChannel)
+		if len(autocomplete.InChannel) != 1 {
+			t.Fatal("should have returned 1 user in")
+		}
+		if len(autocomplete.OutOfChannel) != 0 {
+			t.Fatal("should have returned no users out")
+		}
+	}
+
+	if result, err := Client.AutocompleteUsersInChannel("", th.BasicChannel.Id); err != nil {
+		t.Fatal(err)
+	} else {
+		autocomplete := result.Data.(*model.UserAutocompleteInChannel)
+		if len(autocomplete.InChannel) != 1 && autocomplete.InChannel[0].Id != th.BasicUser2.Id {
+			t.Fatal("should have returned at 1 user in")
+		}
+		if len(autocomplete.OutOfChannel) != 1 && autocomplete.OutOfChannel[0].Id != th.BasicUser2.Id {
+			t.Fatal("should have returned 1 user out")
+		}
+	}
+
+	if result, err := Client.AutocompleteUsersInTeam(""); err != nil {
+		t.Fatal(err)
+	} else {
+		autocomplete := result.Data.(*model.UserAutocompleteInTeam)
+		if len(autocomplete.InTeam) != 2 {
+			t.Fatal("should have returned 2 users in")
+		}
+	}
+
+	if _, err := Client.AutocompleteUsersInChannel("", "junk"); err == nil {
+		t.Fatal("should have errored - bad channel id")
+	}
+
+	Client.SetTeamId("junk")
+	if _, err := Client.AutocompleteUsersInChannel("", th.BasicChannel.Id); err == nil {
+		t.Fatal("should have errored - bad team id")
+	}
+
+	if _, err := Client.AutocompleteUsersInTeam(""); err == nil {
+		t.Fatal("should have errored - bad team id")
 	}
 }

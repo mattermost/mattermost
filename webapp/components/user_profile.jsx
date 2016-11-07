@@ -90,8 +90,7 @@ export default class UserProfile extends React.Component {
         let webrtc;
         const userMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 
-        const webrtcEnabled = global.mm_config.EnableWebrtc === 'true' && global.mm_license.Webrtc === 'true' &&
-            global.mm_config.EnableDeveloper === 'true' && userMedia && Utils.isFeatureEnabled(PreReleaseFeatures.WEBRTC_PREVIEW);
+        const webrtcEnabled = global.mm_config.EnableWebrtc === 'true' && userMedia && Utils.isFeatureEnabled(PreReleaseFeatures.WEBRTC_PREVIEW);
 
         if (webrtcEnabled && this.props.user.id !== this.state.currentUserId) {
             const isOnline = this.props.status !== UserStatuses.OFFLINE;

@@ -35,8 +35,9 @@ export default class CreateComment extends React.Component {
 
         this.handleSubmit = this.handleSubmit.bind(this);
         this.commentMsgKeyPress = this.commentMsgKeyPress.bind(this);
-        this.handleInput = this.handleInput.bind(this);
+        this.handleChange = this.handleChange.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
+        this.handleBlur = this.handleBlur.bind(this);
         this.handleUploadClick = this.handleUploadClick.bind(this);
         this.handleUploadStart = this.handleUploadStart.bind(this);
         this.handleFileUploadComplete = this.handleFileUploadComplete.bind(this);
@@ -53,12 +54,13 @@ export default class CreateComment extends React.Component {
 
         const draft = PostStore.getCommentDraft(this.props.rootId);
         this.state = {
-            messageText: draft.message,
+            message: draft.message,
             uploadsInProgress: draft.uploadsInProgress,
             fileInfos: draft.fileInfos,
             submitting: false,
             ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
-            showPostDeletedModal: false
+            showPostDeletedModal: false,
+            lastBlurAt: 0
         };
     }
 
@@ -100,7 +102,7 @@ export default class CreateComment extends React.Component {
 
         const post = {};
         post.file_ids = [];
-        post.message = this.state.messageText;
+        post.message = this.state.message;
 
         if (post.message.trim().length === 0 && this.state.fileInfos.length === 0) {
             return;
@@ -119,7 +121,7 @@ export default class CreateComment extends React.Component {
             return;
         }
 
-        MessageHistoryStore.storeMessageInHistory(this.state.messageText);
+        MessageHistoryStore.storeMessageInHistory(this.state.message);
 
         const userId = UserStore.getCurrentId();
 
@@ -160,12 +162,16 @@ export default class CreateComment extends React.Component {
         );
 
         this.setState({
-            messageText: '',
+            message: '',
             submitting: false,
             postError: null,
             fileInfos: [],
             serverError: null
         });
+
+        const fasterThanHumanWillClick = 150;
+        const forceFocus = (Date.now() - this.state.lastBlurAt < fasterThanHumanWillClick);
+        this.focusTextbox(forceFocus);
     }
 
     commentMsgKeyPress(e) {
@@ -180,16 +186,16 @@ export default class CreateComment extends React.Component {
         GlobalActions.emitLocalUserTypingEvent(this.props.channelId, this.props.rootId);
     }
 
-    handleInput(e) {
-        const messageText = e.target.value;
+    handleChange(e) {
+        const message = e.target.value;
 
         const draft = PostStore.getCommentDraft(this.props.rootId);
-        draft.message = messageText;
+        draft.message = message;
         PostStore.storeCommentDraft(this.props.rootId, draft);
 
         $('.post-right__scroll').parent().scrollTop($('.post-right__scroll')[0].scrollHeight);
 
-        this.setState({messageText});
+        this.setState({message});
     }
 
     handleKeyDown(e) {
@@ -198,7 +204,7 @@ export default class CreateComment extends React.Component {
             return;
         }
 
-        if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && e.keyCode === KeyCodes.UP && this.state.messageText === '') {
+        if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && e.keyCode === KeyCodes.UP && this.state.message === '') {
             e.preventDefault();
 
             const lastPost = PostStore.getCurrentUsersLatestPost(this.props.channelId, this.props.rootId);
@@ -218,11 +224,11 @@ export default class CreateComment extends React.Component {
         }
 
         if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
-            const lastMessage = MessageHistoryStore.nextMessageInHistory(e.keyCode, this.state.messageText, 'comment');
+            const lastMessage = MessageHistoryStore.nextMessageInHistory(e.keyCode, this.state.message, 'comment');
             if (lastMessage !== null) {
                 e.preventDefault();
                 this.setState({
-                    messageText: lastMessage
+                    message: lastMessage
                 });
             }
         }
@@ -308,7 +314,7 @@ export default class CreateComment extends React.Component {
     componentWillReceiveProps(newProps) {
         if (newProps.rootId !== this.props.rootId) {
             const draft = PostStore.getCommentDraft(newProps.rootId);
-            this.setState({messageText: draft.message, uploadsInProgress: draft.uploadsInProgress, fileInfos: draft.fileInfos});
+            this.setState({message: draft.message, uploadsInProgress: draft.uploadsInProgress, fileInfos: draft.fileInfos});
         }
     }
 
@@ -316,8 +322,8 @@ export default class CreateComment extends React.Component {
         return this.state.fileInfos.length + this.state.uploadsInProgress.length;
     }
 
-    focusTextbox() {
-        if (!Utils.isMobile()) {
+    focusTextbox(keepFocus = false) {
+        if (keepFocus || !Utils.isMobile()) {
             this.refs.textbox.focus();
         }
     }
@@ -332,6 +338,10 @@ export default class CreateComment extends React.Component {
         this.setState({
             showPostDeletedModal: false
         });
+    }
+
+    handleBlur() {
+        this.setState({lastBlurAt: Date.now()});
     }
 
     render() {
@@ -393,10 +403,11 @@ export default class CreateComment extends React.Component {
                     >
                         <div className='post-body__cell'>
                             <Textbox
-                                onInput={this.handleInput}
+                                onChange={this.handleChange}
                                 onKeyPress={this.commentMsgKeyPress}
                                 onKeyDown={this.handleKeyDown}
-                                messageText={this.state.messageText}
+                                value={this.state.message}
+                                onBlur={this.handleBlur}
                                 createMessage={Utils.localizeMessage('create_comment.addComment', 'Add a comment...')}
                                 initialText=''
                                 supportsCommands={false}

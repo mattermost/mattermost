@@ -501,4 +501,18 @@ describe('Markdown.Links', function() {
 
         done();
     });
+
+    it('Links containing %', function(done) {
+        assert.equal(
+            Markdown.format('https://en.wikipedia.org/wiki/%C3%89').trim(),
+            '<p><a class="theme markdown__link" href="https://en.wikipedia.org/wiki/%C3%89" rel="noreferrer" target="_blank">https://en.wikipedia.org/wiki/%C3%89</a></p>'
+        );
+
+        assert.equal(
+            Markdown.format('https://en.wikipedia.org/wiki/%E9').trim(),
+            '<p><a class="theme markdown__link" href="https://en.wikipedia.org/wiki/%E9" rel="noreferrer" target="_blank">https://en.wikipedia.org/wiki/%E9</a></p>'
+        );
+
+        done();
+    });
 });

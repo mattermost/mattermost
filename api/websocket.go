@@ -11,16 +11,20 @@ import (
 	"net/http"
 )
 
+const (
+	SOCKET_MAX_MESSAGE_SIZE_KB = 8 * 1024 // 8KB
+)
+
 func InitWebSocket() {
 	l4g.Debug(utils.T("api.web_socket.init.debug"))
-	BaseRoutes.Users.Handle("/websocket", ApiUserRequiredTrustRequester(connect)).Methods("GET")
-	hub.Start()
+	BaseRoutes.Users.Handle("/websocket", ApiAppHandlerTrustRequester(connect)).Methods("GET")
+	HubStart()
 }
 
 func connect(c *Context, w http.ResponseWriter, r *http.Request) {
 	upgrader := websocket.Upgrader{
-		ReadBufferSize:  1024,
-		WriteBufferSize: 1024,
+		ReadBufferSize:  SOCKET_MAX_MESSAGE_SIZE_KB,
+		WriteBufferSize: SOCKET_MAX_MESSAGE_SIZE_KB,
 		CheckOrigin: func(r *http.Request) bool {
 			return true
 		},
@@ -34,7 +38,7 @@ func connect(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	wc := NewWebConn(c, ws)
-	hub.Register(wc)
+	HubRegister(wc)
 	go wc.writePump()
 	wc.readPump()
 }

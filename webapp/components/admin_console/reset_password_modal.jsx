@@ -1,7 +1,6 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import ReactDOM from 'react-dom';
 import Client from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import {Modal} from 'react-bootstrap';
@@ -37,7 +36,7 @@ class ResetPasswordModal extends React.Component {
             this.props.user.id,
             password,
             () => {
-                this.props.onModalSubmit(ReactDOM.findDOMNode(this.refs.password).value);
+                this.props.onModalSubmit(this.props.user);
             },
             (err) => {
                 this.setState({serverError: err.message});

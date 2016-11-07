@@ -12,8 +12,9 @@ const (
 	STATUS_OFFLINE         = "offline"
 	STATUS_AWAY            = "away"
 	STATUS_ONLINE          = "online"
-	STATUS_CACHE_SIZE      = 10000
-	STATUS_CHANNEL_TIMEOUT = 20000 // 20 seconds
+	STATUS_CACHE_SIZE      = 25000
+	STATUS_CHANNEL_TIMEOUT = 20000  // 20 seconds
+	STATUS_MIN_UPDATE_TIME = 120000 // 2 minutes
 )
 
 type Status struct {

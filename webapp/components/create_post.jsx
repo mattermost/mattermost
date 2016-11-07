@@ -40,10 +40,9 @@ export default class CreatePost extends React.Component {
 
         this.lastTime = 0;
 
-        this.getCurrentDraft = this.getCurrentDraft.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.postMsgKeyPress = this.postMsgKeyPress.bind(this);
-        this.handleInput = this.handleInput.bind(this);
+        this.handleChange = this.handleChange.bind(this);
         this.handleUploadClick = this.handleUploadClick.bind(this);
         this.handleUploadStart = this.handleUploadStart.bind(this);
         this.handleFileUploadComplete = this.handleFileUploadComplete.bind(this);
@@ -53,6 +52,7 @@ export default class CreatePost extends React.Component {
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.getFileCount = this.getFileCount.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
+        this.handleBlur = this.handleBlur.bind(this);
         this.sendMessage = this.sendMessage.bind(this);
         this.focusTextbox = this.focusTextbox.bind(this);
         this.showPostDeletedModal = this.showPostDeletedModal.bind(this);
@@ -61,39 +61,20 @@ export default class CreatePost extends React.Component {
 
         PostStore.clearDraftUploads();
 
-        const draft = this.getCurrentDraft();
+        const draft = PostStore.getCurrentDraft();
 
         this.state = {
             channelId: ChannelStore.getCurrentId(),
-            messageText: draft.messageText,
+            message: draft.message,
             uploadsInProgress: draft.uploadsInProgress,
             fileInfos: draft.fileInfos,
             submitting: false,
-            initialText: draft.messageText,
             ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
             fullWidthTextBox: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN,
             showTutorialTip: false,
-            showPostDeletedModal: false
+            showPostDeletedModal: false,
+            lastBlurAt: 0
         };
-    }
-
-    getCurrentDraft() {
-        const draft = PostStore.getCurrentDraft();
-        const safeDraft = {fileInfos: [], messageText: '', uploadsInProgress: []};
-
-        if (draft) {
-            if (draft.message) {
-                safeDraft.messageText = draft.message;
-            }
-            if (draft.fileInfos) {
-                safeDraft.fileInfos = draft.fileInfos;
-            }
-            if (draft.uploadsInProgress) {
-                safeDraft.uploadsInProgress = draft.uploadsInProgress;
-            }
-        }
-
-        return safeDraft;
     }
 
     handleSubmit(e) {
@@ -105,7 +86,7 @@ export default class CreatePost extends React.Component {
 
         const post = {};
         post.file_ids = [];
-        post.message = this.state.messageText;
+        post.message = this.state.message;
 
         if (post.message.trim().length === 0 && this.state.fileInfos.length === 0) {
             return;
@@ -116,13 +97,13 @@ export default class CreatePost extends React.Component {
             return;
         }
 
-        MessageHistoryStore.storeMessageInHistory(this.state.messageText);
+        MessageHistoryStore.storeMessageInHistory(this.state.message);
 
         this.setState({submitting: true, serverError: null});
 
         if (post.message.indexOf('/') === 0) {
             PostStore.storeDraft(this.state.channelId, null);
-            this.setState({messageText: '', postError: null, fileInfos: []});
+            this.setState({message: '', postError: null, fileInfos: []});
 
             ChannelActions.executeCommand(
                 this.state.channelId,
@@ -149,6 +130,10 @@ export default class CreatePost extends React.Component {
         } else {
             this.sendMessage(post);
         }
+
+        const fasterThanHumanWillClick = 150;
+        const forceFocus = (Date.now() - this.state.lastBlurAt < fasterThanHumanWillClick);
+        this.focusTextbox(forceFocus);
     }
 
     sendMessage(post) {
@@ -163,7 +148,7 @@ export default class CreatePost extends React.Component {
         post.parent_id = this.state.parentId;
 
         GlobalActions.emitUserPostedEvent(post);
-        this.setState({messageText: '', submitting: false, postError: null, fileInfos: [], serverError: null});
+        this.setState({message: '', submitting: false, postError: null, fileInfos: [], serverError: null});
 
         Client.createPost(post,
             (data) => {
@@ -192,8 +177,8 @@ export default class CreatePost extends React.Component {
         );
     }
 
-    focusTextbox() {
-        if (!Utils.isMobile()) {
+    focusTextbox(keepFocus = false) {
+        if (keepFocus || !Utils.isMobile()) {
             this.refs.textbox.focus();
         }
     }
@@ -210,12 +195,12 @@ export default class CreatePost extends React.Component {
         GlobalActions.emitLocalUserTypingEvent(this.state.channelId, '');
     }
 
-    handleInput(e) {
-        const messageText = e.target.value;
-        this.setState({messageText});
+    handleChange(e) {
+        const message = e.target.value;
+        this.setState({message});
 
         const draft = PostStore.getCurrentDraft();
-        draft.message = messageText;
+        draft.message = message;
         PostStore.storeCurrentDraft(draft);
     }
 
@@ -358,9 +343,9 @@ export default class CreatePost extends React.Component {
     onChange() {
         const channelId = ChannelStore.getCurrentId();
         if (this.state.channelId !== channelId) {
-            const draft = this.getCurrentDraft();
+            const draft = PostStore.getCurrentDraft();
 
-            this.setState({channelId, messageText: draft.messageText, initialText: draft.messageText, submitting: false, serverError: null, postError: null, fileInfos: draft.fileInfos, uploadsInProgress: draft.uploadsInProgress});
+            this.setState({channelId, message: draft.message, submitting: false, serverError: null, postError: null, fileInfos: draft.fileInfos, uploadsInProgress: draft.uploadsInProgress});
         }
     }
 
@@ -388,7 +373,7 @@ export default class CreatePost extends React.Component {
             return;
         }
 
-        if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && e.keyCode === KeyCodes.UP && this.state.messageText === '') {
+        if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && e.keyCode === KeyCodes.UP && this.state.message === '') {
             e.preventDefault();
 
             const channelId = ChannelStore.getCurrentId();
@@ -416,14 +401,18 @@ export default class CreatePost extends React.Component {
         }
 
         if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
-            const lastMessage = MessageHistoryStore.nextMessageInHistory(e.keyCode, this.state.messageText, 'post');
+            const lastMessage = MessageHistoryStore.nextMessageInHistory(e.keyCode, this.state.message, 'post');
             if (lastMessage !== null) {
                 e.preventDefault();
                 this.setState({
-                    messageText: lastMessage
+                    message: lastMessage
                 });
             }
         }
+    }
+
+    handleBlur() {
+        this.setState({lastBlurAt: Date.now()});
     }
 
     showPostDeletedModal() {
@@ -512,10 +501,11 @@ export default class CreatePost extends React.Component {
                     <div className='post-create-body'>
                         <div className='post-body__cell'>
                             <Textbox
-                                onInput={this.handleInput}
+                                onChange={this.handleChange}
                                 onKeyPress={this.postMsgKeyPress}
                                 onKeyDown={this.handleKeyDown}
-                                messageText={this.state.messageText}
+                                value={this.state.message}
+                                onBlur={this.handleBlur}
                                 createMessage={Utils.localizeMessage('create_post.write', 'Write a message...')}
                                 channelId={this.state.channelId}
                                 id='post_textbox'

@@ -50,7 +50,35 @@ func TestSessionGet(t *testing.T) {
 			t.Fatal("should match len")
 		}
 	}
+}
 
+func TestSessionGetWithDeviceId(t *testing.T) {
+	Setup()
+
+	s1 := model.Session{}
+	s1.UserId = model.NewId()
+	s1.ExpiresAt = model.GetMillis() + 10000
+	Must(store.Session().Save(&s1))
+
+	s2 := model.Session{}
+	s2.UserId = s1.UserId
+	s2.DeviceId = model.NewId()
+	s2.ExpiresAt = model.GetMillis() + 10000
+	Must(store.Session().Save(&s2))
+
+	s3 := model.Session{}
+	s3.UserId = s1.UserId
+	s3.ExpiresAt = 1
+	s3.DeviceId = model.NewId()
+	Must(store.Session().Save(&s3))
+
+	if rs1 := (<-store.Session().GetSessionsWithActiveDeviceIds(s1.UserId)); rs1.Err != nil {
+		t.Fatal(rs1.Err)
+	} else {
+		if len(rs1.Data.([]*model.Session)) != 1 {
+			t.Fatal("should match len")
+		}
+	}
 }
 
 func TestSessionRemove(t *testing.T) {

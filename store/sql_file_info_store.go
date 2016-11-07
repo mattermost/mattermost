@@ -30,6 +30,9 @@ func NewSqlFileInfoStore(sqlStore *SqlStore) FileInfoStore {
 }
 
 func (fs SqlFileInfoStore) CreateIndexesIfNotExists() {
+	fs.CreateIndexIfNotExists("idx_fileinfo_update_at", "FileInfo", "UpdateAt")
+	fs.CreateIndexIfNotExists("idx_fileinfo_create_at", "FileInfo", "CreateAt")
+	fs.CreateIndexIfNotExists("idx_fileinfo_delete_at", "FileInfo", "DeleteAt")
 }
 
 func (fs SqlFileInfoStore) Save(info *model.FileInfo) StoreChannel {

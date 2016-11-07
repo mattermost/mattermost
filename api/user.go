@@ -51,14 +51,20 @@ func InitUser() {
 	BaseRoutes.Users.Handle("/verify_email", ApiAppHandler(verifyEmail)).Methods("POST")
 	BaseRoutes.Users.Handle("/resend_verification", ApiAppHandler(resendVerification)).Methods("POST")
 	BaseRoutes.Users.Handle("/newimage", ApiUserRequired(uploadProfileImage)).Methods("POST")
-	BaseRoutes.Users.Handle("/me", ApiAppHandler(getMe)).Methods("GET")
+	BaseRoutes.Users.Handle("/me", ApiUserRequired(getMe)).Methods("GET")
 	BaseRoutes.Users.Handle("/initial_load", ApiAppHandler(getInitialLoad)).Methods("GET")
-	BaseRoutes.Users.Handle("/direct_profiles", ApiUserRequired(getDirectProfiles)).Methods("GET")
-	BaseRoutes.Users.Handle("/profiles/{id:[A-Za-z0-9]+}", ApiUserRequired(getProfiles)).Methods("GET")
-	BaseRoutes.Users.Handle("/profiles_for_dm_list/{id:[A-Za-z0-9]+}", ApiUserRequired(getProfilesForDirectMessageList)).Methods("GET")
+	BaseRoutes.Users.Handle("/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getProfiles)).Methods("GET")
+	BaseRoutes.NeedTeam.Handle("/users/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getProfilesInTeam)).Methods("GET")
+	BaseRoutes.NeedChannel.Handle("/users/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getProfilesInChannel)).Methods("GET")
+	BaseRoutes.NeedChannel.Handle("/users/not_in_channel/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getProfilesNotInChannel)).Methods("GET")
+	BaseRoutes.Users.Handle("/search", ApiUserRequired(searchUsers)).Methods("POST")
+	BaseRoutes.Users.Handle("/ids", ApiUserRequired(getProfilesByIds)).Methods("POST")
+
+	BaseRoutes.NeedTeam.Handle("/users/autocomplete", ApiUserRequired(autocompleteUsersInTeam)).Methods("GET")
+	BaseRoutes.NeedChannel.Handle("/users/autocomplete", ApiUserRequired(autocompleteUsersInChannel)).Methods("GET")
 
 	BaseRoutes.Users.Handle("/mfa", ApiAppHandler(checkMfa)).Methods("POST")
-	BaseRoutes.Users.Handle("/generate_mfa_qr", ApiUserRequiredTrustRequester(generateMfaQrCode)).Methods("GET")
+	BaseRoutes.Users.Handle("/generate_mfa_secret", ApiUserRequiredTrustRequester(generateMfaSecret)).Methods("GET")
 	BaseRoutes.Users.Handle("/update_mfa", ApiUserRequired(updateMfa)).Methods("POST")
 
 	BaseRoutes.Users.Handle("/claim/email_to_oauth", ApiAppHandler(emailToOAuth)).Methods("POST")
@@ -270,7 +276,9 @@ func CreateUser(user *model.User) (*model.User, *model.AppError) {
 		ruser.Sanitize(map[string]bool{})
 
 		// This message goes to everyone, so the teamId, channelId and userId are irrelevant
-		go Publish(model.NewWebSocketEvent(model.WEBSOCKET_EVENT_NEW_USER, "", "", "", nil))
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_NEW_USER, "", "", "", nil)
+		message.Add("user_id", ruser.Id)
+		go Publish(message)
 
 		return ruser, nil
 	}
@@ -379,7 +387,7 @@ func sendWelcomeEmail(c *Context, userId string, email string, siteURL string, v
 
 func addDirectChannels(teamId string, user *model.User) {
 	var profiles map[string]*model.User
-	if result := <-Srv.Store.User().GetProfiles(teamId); result.Err != nil {
+	if result := <-Srv.Store.User().GetProfiles(teamId, 0, 100); result.Err != nil {
 		l4g.Error(utils.T("api.user.add_direct_channels_and_forget.failed.error"), user.Id, teamId, result.Err.Error())
 		return
 	} else {
@@ -742,9 +750,7 @@ func RevokeSessionById(c *Context, sessionId string) {
 			}
 		}
 
-		if webrtcInterface := einterfaces.GetWebrtcInterface(); webrtcInterface != nil {
-			webrtcInterface.RevokeToken(session.Id)
-		}
+		RevokeWebrtcToken(session.Id)
 	}
 }
 
@@ -768,9 +774,7 @@ func RevokeAllSession(c *Context, userId string) {
 				}
 			}
 
-			if webrtcInterface := einterfaces.GetWebrtcInterface(); webrtcInterface != nil {
-				webrtcInterface.RevokeToken(session.Id)
-			}
+			RevokeWebrtcToken(session.Id)
 		}
 	}
 }
@@ -793,9 +797,7 @@ func RevokeAllSessionsNoContext(userId string) *model.AppError {
 				}
 			}
 
-			if webrtcInterface := einterfaces.GetWebrtcInterface(); webrtcInterface != nil {
-				webrtcInterface.RevokeToken(session.Id)
-			}
+			RevokeWebrtcToken(session.Id)
 		}
 	}
 	return nil
@@ -843,10 +845,6 @@ func Logout(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getMe(c *Context, w http.ResponseWriter, r *http.Request) {
 
-	if len(c.Session.UserId) == 0 {
-		return
-	}
-
 	if result := <-Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
 		c.Err = result.Err
 		c.RemoveSessionCookie(w, r)
@@ -879,7 +877,6 @@ func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 		uchan := Srv.Store.User().Get(c.Session.UserId)
 		pchan := Srv.Store.Preference().GetAll(c.Session.UserId)
 		tchan := Srv.Store.Team().GetTeamsByUserId(c.Session.UserId)
-		dpchan := Srv.Store.User().GetDirectProfiles(c.Session.UserId)
 
 		il.TeamMembers = c.Session.TeamMembers
 
@@ -907,19 +904,6 @@ func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 			for _, team := range il.Teams {
 				team.Sanitize()
 			}
-		}
-
-		if dp := <-dpchan; dp.Err != nil {
-			c.Err = dp.Err
-			return
-		} else {
-			profiles := dp.Data.(map[string]*model.User)
-
-			for k, p := range profiles {
-				profiles[k] = sanitizeProfile(c, p)
-			}
-
-			il.DirectProfiles = profiles
 		}
 	}
 
@@ -964,25 +948,27 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getProfilesForDirectMessageList(c *Context, w http.ResponseWriter, r *http.Request) {
+func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	id := params["id"]
 
-	var pchan store.StoreChannel
-
-	if *utils.Cfg.TeamSettings.RestrictDirectMessage == model.DIRECT_MESSAGE_TEAM {
-		if c.Session.GetTeamByTeamId(id) == nil {
-			if !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
-				return
-			}
-		}
-
-		pchan = Srv.Store.User().GetProfiles(id)
-	} else {
-		pchan = Srv.Store.User().GetAllProfiles()
+	offset, err := strconv.Atoi(params["offset"])
+	if err != nil {
+		c.SetInvalidParam("getProfiles", "offset")
+		return
 	}
 
-	if result := <-pchan; result.Err != nil {
+	limit, err := strconv.Atoi(params["limit"])
+	if err != nil {
+		c.SetInvalidParam("getProfiles", "limit")
+		return
+	}
+
+	etag := (<-Srv.Store.User().GetEtagForAllProfiles()).Data.(string)
+	if HandleEtag(etag, w, r) {
+		return
+	}
+
+	if result := <-Srv.Store.User().GetAllProfiles(offset, limit); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -992,26 +978,39 @@ func getProfilesForDirectMessageList(c *Context, w http.ResponseWriter, r *http.
 			profiles[k] = sanitizeProfile(c, p)
 		}
 
+		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 		w.Write([]byte(model.UserMapToJson(profiles)))
 	}
 }
 
-func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
+func getProfilesInTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	id := params["id"]
+	teamId := params["team_id"]
 
-	if c.Session.GetTeamByTeamId(id) == nil {
+	if c.Session.GetTeamByTeamId(teamId) == nil {
 		if !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
 			return
 		}
 	}
 
-	etag := (<-Srv.Store.User().GetEtagForProfiles(id)).Data.(string)
+	offset, err := strconv.Atoi(params["offset"])
+	if err != nil {
+		c.SetInvalidParam("getProfilesInTeam", "offset")
+		return
+	}
+
+	limit, err := strconv.Atoi(params["limit"])
+	if err != nil {
+		c.SetInvalidParam("getProfilesInTeam", "limit")
+		return
+	}
+
+	etag := (<-Srv.Store.User().GetEtagForProfiles(teamId)).Data.(string)
 	if HandleEtag(etag, w, r) {
 		return
 	}
 
-	if result := <-Srv.Store.User().GetProfiles(id); result.Err != nil {
+	if result := <-Srv.Store.User().GetProfiles(teamId, offset, limit); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -1026,13 +1025,33 @@ func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getDirectProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
-	etag := (<-Srv.Store.User().GetEtagForDirectProfiles(c.Session.UserId)).Data.(string)
-	if HandleEtag(etag, w, r) {
+func getProfilesInChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	channelId := params["channel_id"]
+
+	if c.Session.GetTeamByTeamId(c.TeamId) == nil {
+		if !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
+			return
+		}
+	}
+
+	if !HasPermissionToChannelContext(c, channelId, model.PERMISSION_READ_CHANNEL) {
 		return
 	}
 
-	if result := <-Srv.Store.User().GetDirectProfiles(c.Session.UserId); result.Err != nil {
+	offset, err := strconv.Atoi(params["offset"])
+	if err != nil {
+		c.SetInvalidParam("getProfiles", "offset")
+		return
+	}
+
+	limit, err := strconv.Atoi(params["limit"])
+	if err != nil {
+		c.SetInvalidParam("getProfiles", "limit")
+		return
+	}
+
+	if result := <-Srv.Store.User().GetProfilesInChannel(channelId, offset, limit, false); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -1042,7 +1061,46 @@ func getDirectProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 			profiles[k] = sanitizeProfile(c, p)
 		}
 
-		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
+		w.Write([]byte(model.UserMapToJson(profiles)))
+	}
+}
+
+func getProfilesNotInChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	channelId := params["channel_id"]
+
+	if c.Session.GetTeamByTeamId(c.TeamId) == nil {
+		if !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
+			return
+		}
+	}
+
+	if !HasPermissionToChannelContext(c, channelId, model.PERMISSION_READ_CHANNEL) {
+		return
+	}
+
+	offset, err := strconv.Atoi(params["offset"])
+	if err != nil {
+		c.SetInvalidParam("getProfiles", "offset")
+		return
+	}
+
+	limit, err := strconv.Atoi(params["limit"])
+	if err != nil {
+		c.SetInvalidParam("getProfiles", "limit")
+		return
+	}
+
+	if result := <-Srv.Store.User().GetProfilesNotInChannel(c.TeamId, channelId, offset, limit); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		profiles := result.Data.(map[string]*model.User)
+
+		for k, p := range profiles {
+			profiles[k] = sanitizeProfile(c, p)
+		}
+
 		w.Write([]byte(model.UserMapToJson(profiles)))
 	}
 }
@@ -1174,7 +1232,7 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		} else {
-			path := "/users/" + id + "/profile.png"
+			path := "users/" + id + "/profile.png"
 
 			if data, err := ReadFile(path); err != nil {
 
@@ -2242,7 +2300,7 @@ func resendVerification(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func generateMfaQrCode(c *Context, w http.ResponseWriter, r *http.Request) {
+func generateMfaSecret(c *Context, w http.ResponseWriter, r *http.Request) {
 	uchan := Srv.Store.User().Get(c.Session.UserId)
 
 	var user *model.User
@@ -2255,22 +2313,25 @@ func generateMfaQrCode(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	mfaInterface := einterfaces.GetMfaInterface()
 	if mfaInterface == nil {
-		c.Err = model.NewLocAppError("generateMfaQrCode", "api.user.generate_mfa_qr.not_available.app_error", nil, "")
+		c.Err = model.NewLocAppError("generateMfaSecret", "api.user.generate_mfa_qr.not_available.app_error", nil, "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
 
-	img, err := mfaInterface.GenerateQrCode(user)
+	secret, img, err := mfaInterface.GenerateSecret(user)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	w.Header().Del("Content-Type") // Content-Type will be set automatically by the http writer
+	resp := map[string]string{}
+	resp["qr_code"] = b64.StdEncoding.EncodeToString(img)
+	resp["secret"] = secret
+
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Pragma", "no-cache")
 	w.Header().Set("Expires", "0")
-	w.Write(img)
+	w.Write([]byte(model.MapToJson(resp)))
 }
 
 func updateMfa(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2525,4 +2586,158 @@ func sanitizeProfile(c *Context, user *model.User) *model.User {
 	user.SanitizeProfile(options)
 
 	return user
+}
+
+func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.UserSearchFromJson(r.Body)
+	if props == nil {
+		c.SetInvalidParam("searchUsers", "")
+		return
+	}
+
+	if len(props.Term) == 0 {
+		c.SetInvalidParam("searchUsers", "term")
+		return
+	}
+
+	if props.InChannelId != "" && !HasPermissionToChannelContext(c, props.InChannelId, model.PERMISSION_READ_CHANNEL) {
+		return
+	}
+
+	if props.NotInChannelId != "" && !HasPermissionToChannelContext(c, props.NotInChannelId, model.PERMISSION_READ_CHANNEL) {
+		return
+	}
+
+	searchOptions := map[string]bool{}
+	searchOptions[store.USER_SEARCH_OPTION_ALLOW_INACTIVE] = props.AllowInactive
+
+	var uchan store.StoreChannel
+	if props.InChannelId != "" {
+		uchan = Srv.Store.User().SearchInChannel(props.InChannelId, props.Term, searchOptions)
+	} else if props.NotInChannelId != "" {
+		uchan = Srv.Store.User().SearchNotInChannel(props.TeamId, props.NotInChannelId, props.Term, searchOptions)
+	} else {
+		uchan = Srv.Store.User().Search(props.TeamId, props.Term, searchOptions)
+	}
+
+	if result := <-uchan; result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		profiles := result.Data.([]*model.User)
+
+		for _, p := range profiles {
+			sanitizeProfile(c, p)
+		}
+
+		w.Write([]byte(model.UserListToJson(profiles)))
+	}
+}
+
+func getProfilesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
+	userIds := model.ArrayFromJson(r.Body)
+
+	if len(userIds) == 0 {
+		c.SetInvalidParam("getProfilesByIds", "user_ids")
+		return
+	}
+
+	if result := <-Srv.Store.User().GetProfileByIds(userIds); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		profiles := result.Data.(map[string]*model.User)
+
+		for _, p := range profiles {
+			sanitizeProfile(c, p)
+		}
+
+		w.Write([]byte(model.UserMapToJson(profiles)))
+	}
+}
+
+func autocompleteUsersInChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	channelId := params["channel_id"]
+	teamId := params["team_id"]
+
+	term := r.URL.Query().Get("term")
+
+	if c.Session.GetTeamByTeamId(teamId) == nil {
+		if !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
+			return
+		}
+	}
+
+	if !HasPermissionToChannelContext(c, channelId, model.PERMISSION_READ_CHANNEL) {
+		return
+	}
+
+	searchOptions := map[string]bool{}
+	searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
+
+	uchan := Srv.Store.User().SearchInChannel(channelId, term, map[string]bool{})
+	nuchan := Srv.Store.User().SearchNotInChannel(teamId, channelId, term, map[string]bool{})
+
+	autocomplete := &model.UserAutocompleteInChannel{}
+
+	if result := <-uchan; result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		profiles := result.Data.([]*model.User)
+
+		for _, p := range profiles {
+			sanitizeProfile(c, p)
+		}
+
+		autocomplete.InChannel = profiles
+	}
+
+	if result := <-nuchan; result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		profiles := result.Data.([]*model.User)
+
+		for _, p := range profiles {
+			sanitizeProfile(c, p)
+		}
+
+		autocomplete.OutOfChannel = profiles
+	}
+
+	w.Write([]byte(autocomplete.ToJson()))
+}
+
+func autocompleteUsersInTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	teamId := params["team_id"]
+
+	term := r.URL.Query().Get("term")
+
+	if c.Session.GetTeamByTeamId(teamId) == nil {
+		if !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
+			return
+		}
+	}
+
+	uchan := Srv.Store.User().Search(teamId, term, map[string]bool{})
+
+	autocomplete := &model.UserAutocompleteInTeam{}
+
+	if result := <-uchan; result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		profiles := result.Data.([]*model.User)
+
+		for _, p := range profiles {
+			sanitizeProfile(c, p)
+		}
+
+		autocomplete.InTeam = profiles
+	}
+
+	w.Write([]byte(autocomplete.ToJson()))
 }

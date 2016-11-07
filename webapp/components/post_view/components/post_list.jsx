@@ -66,6 +66,16 @@ export default class PostList extends React.Component {
         }
     }
 
+    componentWillReceiveProps(nextProps) {
+        // TODO: Clean-up intro text creation
+        if (this.props.channel && this.props.channel.type === Constants.DM_CHANNEL) {
+            const teammateId = Utils.getUserIdFromChannelName(this.props.channel);
+            if (!this.props.profiles[teammateId] && nextProps.profiles[teammateId]) {
+                this.introText = createChannelIntroMessage(this.props.channel, this.state.fullWidthIntro);
+            }
+        }
+    }
+
     handleKeyDown(e) {
         if (e.which === Constants.KeyCodes.ESCAPE && $('.popover.in,.modal.in').length === 0) {
             e.preventDefault();
@@ -254,7 +264,6 @@ export default class PostList extends React.Component {
 
             let commentCount = 0;
             let isCommentMention = false;
-            let lastCommentOnThreadTime = Number.MAX_SAFE_INTEGER;
             let commentRootId;
             if (parentPost) {
                 commentRootId = post.root_id;
@@ -265,18 +274,14 @@ export default class PostList extends React.Component {
             for (const postId in posts) {
                 if (posts[postId].root_id === commentRootId) {
                     commentCount += 1;
-                    if (posts[postId].user_id === userId && (lastCommentOnThreadTime === Number.MAX_SAFE_INTEGER || lastCommentOnThreadTime < posts[postId].create_at)) {
-                        lastCommentOnThreadTime = posts[postId].create_at;
-                    }
                 }
             }
 
             if (parentPost && commentRootId) {
                 const commentsNotifyLevel = this.props.currentUser.notify_props.comments || 'never';
                 const notCurrentUser = post.user_id !== userId || (post.props && post.props.from_webhook);
-                const notViewed = this.props.lastViewed !== 0 && post.create_at > this.props.lastViewed;
-                if (notCurrentUser && notViewed) {
-                    if (commentsNotifyLevel === 'any' && (posts[commentRootId].user_id === userId || post.create_at > lastCommentOnThreadTime)) {
+                if (notCurrentUser) {
+                    if (commentsNotifyLevel === 'any') {
                         isCommentMention = true;
                     } else if (commentsNotifyLevel === 'root' && posts[commentRootId].user_id === userId) {
                         isCommentMention = true;
@@ -382,15 +387,15 @@ export default class PostList extends React.Component {
         if (this.props.scrollType === ScrollTypes.BOTTOM) {
             this.scrollToBottom();
         } else if (this.props.scrollType === ScrollTypes.NEW_MESSAGE) {
-            window.setTimeout(window.requestAnimationFrame(() => {
+            window.requestAnimationFrame(() => {
                 // If separator exists scroll to it. Otherwise scroll to bottom.
                 if (this.refs.newMessageSeparator) {
                     var objDiv = this.refs.postlist;
                     objDiv.scrollTop = this.refs.newMessageSeparator.offsetTop; //scrolls node to top of Div
                 } else if (this.refs.postlist) {
-                    this.refs.postlist.scrollTop = this.refs.postlist.scrollHeight;
+                    this.scrollToBottom();
                 }
-            }), 0);
+            });
         } else if (this.props.scrollType === ScrollTypes.POST && this.props.scrollPostId) {
             window.requestAnimationFrame(() => {
                 const postNode = ReactDOM.findDOMNode(this.refs[this.props.scrollPostId]);
@@ -433,7 +438,9 @@ export default class PostList extends React.Component {
 
     scrollToBottom() {
         this.animationFrameId = window.requestAnimationFrame(() => {
-            this.refs.postlist.scrollTop = this.refs.postlist.scrollHeight;
+            if (this.refs.postlist) {
+                this.refs.postlist.scrollTop = this.refs.postlist.scrollHeight;
+            }
         });
     }
 

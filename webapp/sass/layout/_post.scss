@@ -22,31 +22,6 @@
     color: #d04444 !important;
 }
 
-.textarea-div {
-    border: 0;
-    color: rgba(0,0,0,0);
-    height: auto;
-    left: 1px;
-    line-height: 20px;
-    min-height: 36px;
-    position: absolute;
-    top: 0px;
-    white-space: pre-wrap;
-    word-break: break-word;
-    word-wrap: normal;
-}
-
-body.ios {
-    .textarea-div {
-        -webkit-overflow-scrolling: auto;
-        padding: 7px 17px 7px 15px;
-    }
-}
-
-.textarea-div::-webkit-scrollbar {
-    display: none;
-}
-
 .textarea-wrapper {
     min-height: 36px;
     position: relative;
@@ -390,7 +365,6 @@ body.ios {
 
         .custom-textarea {
             bottom: 0;
-            line-height: 1.5;
             max-height: 162px !important;
             padding-right: 28px;
             padding-top: 8px;
@@ -530,6 +504,18 @@ body.ios {
             }
         }
 
+        .post__img {
+            padding-top: 0;
+        }
+
+        .status-wrapper {
+            height: 14px;
+
+            &:after {
+                bottom: 0;
+            }
+        }
+
         blockquote {
             display: inline-block;
             font-size: 1em;
@@ -636,12 +622,13 @@ body.ios {
 
         .post__img {
             padding-top: 3px;
-            width: 27px;
+            width: 16px;
 
             img,
             svg {
                 height: 20px;
-                width: 20px;
+                visibility: hidden;
+                width: 9px;
             }
         }
     }

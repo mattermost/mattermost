@@ -10,6 +10,7 @@ import DropdownSetting from './dropdown_setting.jsx';
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
+import BooleanSetting from './boolean_setting.jsx';
 
 const DRIVER_LOCAL = 'local';
 const DRIVER_S3 = 'amazons3';
@@ -30,7 +31,8 @@ export default class StorageSettings extends AdminSettings {
         config.FileSettings.AmazonS3AccessKeyId = this.state.amazonS3AccessKeyId;
         config.FileSettings.AmazonS3SecretAccessKey = this.state.amazonS3SecretAccessKey;
         config.FileSettings.AmazonS3Bucket = this.state.amazonS3Bucket;
-        config.FileSettings.AmazonS3Region = this.state.amazonS3Region;
+        config.FileSettings.AmazonS3Endpoint = this.state.amazonS3Endpoint;
+        config.FileSettings.AmazonS3SSL = this.state.amazonS3SSL;
 
         return config;
     }
@@ -43,7 +45,8 @@ export default class StorageSettings extends AdminSettings {
             amazonS3AccessKeyId: config.FileSettings.AmazonS3AccessKeyId,
             amazonS3SecretAccessKey: config.FileSettings.AmazonS3SecretAccessKey,
             amazonS3Bucket: config.FileSettings.AmazonS3Bucket,
-            amazonS3Region: config.FileSettings.AmazonS3Region
+            amazonS3Endpoint: config.FileSettings.AmazonS3Endpoint,
+            amazonS3SSL: config.FileSettings.AmazonS3SSL
         };
     }
 
@@ -161,21 +164,40 @@ export default class StorageSettings extends AdminSettings {
                     disabled={this.state.driverName !== DRIVER_S3}
                 />
                 <TextSetting
-                    id='amazonS3Region'
+                    id='amazonS3Endpoint'
                     label={
                         <FormattedMessage
-                            id='admin.image.amazonS3RegionTitle'
-                            defaultMessage='Amazon S3 Region:'
+                            id='admin.image.amazonS3EndpointTitle'
+                            defaultMessage='Amazon S3 Endpoint:'
                         />
                     }
-                    placeholder={Utils.localizeMessage('admin.image.amazonS3RegionExample', 'Ex "us-east-1"')}
+                    placeholder={Utils.localizeMessage('admin.image.amazonS3EndpointExample', 'Ex "s3.amazonaws.com"')}
                     helpText={
                         <FormattedMessage
-                            id='admin.image.amazonS3RegionDescription'
-                            defaultMessage='AWS region you selected for creating your S3 bucket.'
+                            id='admin.image.amazonS3EndpointDescription'
+                            defaultMessage='Hostname of your S3 Compatible Storage provider. Defaults to `s3.amazonaws.com`.'
                         />
                     }
-                    value={this.state.amazonS3Region}
+                    value={this.state.amazonS3Endpoint}
+                    onChange={this.handleChange}
+                    disabled={this.state.driverName !== DRIVER_S3}
+                />
+                <BooleanSetting
+                    id='amazonS3SSL'
+                    label={
+                        <FormattedMessage
+                            id='admin.image.amazonS3SSLTitle'
+                            defaultMessage='Enable Secure Amazon S3 Connections:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.image.amazonS3SSLExample', 'Ex "true"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.image.amazonS3SSLDescription'
+                            defaultMessage='When false, allow insecure connections to Amazon S3. Defaults to secure connections only.'
+                        />
+                    }
+                    value={this.state.amazonS3SSL}
                     onChange={this.handleChange}
                     disabled={this.state.driverName !== DRIVER_S3}
                 />

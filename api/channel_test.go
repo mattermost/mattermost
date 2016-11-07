@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 )
 
@@ -36,7 +35,7 @@ func TestCreateChannel(t *testing.T) {
 
 	rget := Client.Must(Client.GetChannels("")).Data.(*model.ChannelList)
 	nameMatch := false
-	for _, c := range rget.Channels {
+	for _, c := range *rget {
 		if c.Name == channel.Name {
 			nameMatch = true
 		}
@@ -241,8 +240,8 @@ func TestUpdateChannel(t *testing.T) {
 	}
 
 	rget := Client.Must(Client.GetChannels(""))
-	data := rget.Data.(*model.ChannelList)
-	for _, c := range data.Channels {
+	channels := rget.Data.(*model.ChannelList)
+	for _, c := range *channels {
 		if c.Name == model.DEFAULT_CHANNEL {
 			c.Header = "new header"
 			c.Name = "pseudo-square"
@@ -547,7 +546,7 @@ func TestUpdateChannelPurpose(t *testing.T) {
 	}
 
 	data["channel_id"] = channel1.Id
-	data["channel_purpose"] = strings.Repeat("a", 150)
+	data["channel_purpose"] = strings.Repeat("a", 350)
 	if _, err := Client.UpdateChannelPurpose(data); err == nil {
 		t.Fatal("should have errored on bad channel purpose")
 	}
@@ -655,13 +654,13 @@ func TestGetChannel(t *testing.T) {
 	channel2 = Client.Must(Client.CreateChannel(channel2)).Data.(*model.Channel)
 
 	rget := Client.Must(Client.GetChannels(""))
-	data := rget.Data.(*model.ChannelList)
+	channels := rget.Data.(*model.ChannelList)
 
-	if data.Channels[0].DisplayName != channel1.DisplayName {
+	if (*channels)[0].DisplayName != channel1.DisplayName {
 		t.Fatal("full name didn't match")
 	}
 
-	if data.Channels[1].DisplayName != channel2.DisplayName {
+	if (*channels)[1].DisplayName != channel2.DisplayName {
 		t.Fatal("full name didn't match")
 	}
 
@@ -718,13 +717,13 @@ func TestGetMoreChannel(t *testing.T) {
 	th.LoginBasic2()
 
 	rget := Client.Must(Client.GetMoreChannels(""))
-	data := rget.Data.(*model.ChannelList)
+	channels := rget.Data.(*model.ChannelList)
 
-	if data.Channels[0].DisplayName != channel1.DisplayName {
+	if (*channels)[0].DisplayName != channel1.DisplayName {
 		t.Fatal("full name didn't match")
 	}
 
-	if data.Channels[1].DisplayName != channel2.DisplayName {
+	if (*channels)[1].DisplayName != channel2.DisplayName {
 		t.Fatal("full name didn't match")
 	}
 
@@ -766,6 +765,30 @@ func TestGetChannelCounts(t *testing.T) {
 		} else if cache_result.Data.(*model.ChannelCounts) != nil {
 			t.Log(cache_result.Data)
 			t.Fatal("result data should be empty")
+		}
+	}
+
+}
+
+func TestGetMyChannelMembers(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+	team := th.BasicTeam
+
+	channel1 := &model.Channel{DisplayName: "A Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
+
+	channel2 := &model.Channel{DisplayName: "B Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel2 = Client.Must(Client.CreateChannel(channel2)).Data.(*model.Channel)
+
+	if result, err := Client.GetMyChannelMembers(); err != nil {
+		t.Fatal(err)
+	} else {
+		members := result.Data.(*model.ChannelMembers)
+
+		// town-square, off-topic, basic test channel, channel1, channel2
+		if len(*members) != 5 {
+			t.Fatal("wrong number of members", len(*members))
 		}
 	}
 
@@ -906,7 +929,7 @@ func TestLeaveChannel(t *testing.T) {
 
 	rget := Client.Must(Client.GetChannels(""))
 	cdata := rget.Data.(*model.ChannelList)
-	for _, c := range cdata.Channels {
+	for _, c := range *cdata {
 		if c.Name == model.DEFAULT_CHANNEL {
 			if _, err := Client.LeaveChannel(c.Id); err == nil {
 				t.Fatal("should have errored on leaving default channel")
@@ -970,7 +993,7 @@ func TestDeleteChannel(t *testing.T) {
 
 	rget := Client.Must(Client.GetChannels(""))
 	cdata := rget.Data.(*model.ChannelList)
-	for _, c := range cdata.Channels {
+	for _, c := range *cdata {
 		if c.Name == model.DEFAULT_CHANNEL {
 			if _, err := Client.DeleteChannel(c.Id); err == nil {
 				t.Fatal("should have errored on deleting default channel")
@@ -1106,7 +1129,7 @@ func TestDeleteChannel(t *testing.T) {
 	}
 }
 
-func TestGetChannelExtraInfo(t *testing.T) {
+func TestGetChannelStats(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.BasicClient
 	team := th.BasicTeam
@@ -1114,115 +1137,13 @@ func TestGetChannelExtraInfo(t *testing.T) {
 	channel1 := &model.Channel{DisplayName: "A Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
 
-	rget := Client.Must(Client.GetChannelExtraInfo(channel1.Id, -1, ""))
-	data := rget.Data.(*model.ChannelExtra)
-	if data.Id != channel1.Id {
+	rget := Client.Must(Client.GetChannelStats(channel1.Id, ""))
+	data := rget.Data.(*model.ChannelStats)
+	if data.ChannelId != channel1.Id {
 		t.Fatal("couldnt't get extra info")
-	} else if len(data.Members) != 1 {
-		t.Fatal("got incorrect members")
 	} else if data.MemberCount != 1 {
 		t.Fatal("got incorrect member count")
 	}
-
-	//
-	// Testing etag caching
-	//
-
-	currentEtag := rget.Etag
-
-	if cache_result, err := Client.GetChannelExtraInfo(channel1.Id, -1, currentEtag); err != nil {
-		t.Fatal(err)
-	} else if cache_result.Data.(*model.ChannelExtra) != nil {
-		t.Log(cache_result.Data)
-		t.Fatal("response should be empty")
-	} else {
-		currentEtag = cache_result.Etag
-	}
-
-	Client2 := model.NewClient("http://localhost" + utils.Cfg.ServiceSettings.ListenAddress)
-
-	user2 := &model.User{Email: "success+" + model.NewId() + "@simulator.amazonses.com", Nickname: "Tester 2", Password: "passwd1"}
-	user2 = Client2.Must(Client2.CreateUser(user2, "")).Data.(*model.User)
-	LinkUserToTeam(user2, team)
-	Client2.SetTeamId(team.Id)
-	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
-
-	Client2.Login(user2.Email, "passwd1")
-	Client2.Must(Client2.JoinChannel(channel1.Id))
-
-	if cache_result, err := Client.GetChannelExtraInfo(channel1.Id, -1, currentEtag); err != nil {
-		t.Fatal(err)
-	} else if cache_result.Data.(*model.ChannelExtra) == nil {
-		t.Log(cache_result.Data)
-		t.Fatal("response should not be empty")
-	} else {
-		currentEtag = cache_result.Etag
-	}
-
-	if cache_result, err := Client.GetChannelExtraInfo(channel1.Id, -1, currentEtag); err != nil {
-		t.Fatal(err)
-	} else if cache_result.Data.(*model.ChannelExtra) != nil {
-		t.Log(cache_result.Data)
-		t.Fatal("response should be empty")
-	} else {
-		currentEtag = cache_result.Etag
-	}
-
-	Client2.Must(Client2.LeaveChannel(channel1.Id))
-
-	if cache_result, err := Client.GetChannelExtraInfo(channel1.Id, -1, currentEtag); err != nil {
-		t.Fatal(err)
-	} else if cache_result.Data.(*model.ChannelExtra) == nil {
-		t.Log(cache_result.Data)
-		t.Fatal("response should not be empty")
-	} else {
-		currentEtag = cache_result.Etag
-	}
-
-	if cache_result, err := Client.GetChannelExtraInfo(channel1.Id, -1, currentEtag); err != nil {
-		t.Fatal(err)
-	} else if cache_result.Data.(*model.ChannelExtra) != nil {
-		t.Log(cache_result.Data)
-		t.Fatal("response should be empty")
-	} else {
-		currentEtag = cache_result.Etag
-	}
-
-	Client2.Must(Client2.JoinChannel(channel1.Id))
-
-	if cache_result, err := Client.GetChannelExtraInfo(channel1.Id, 2, currentEtag); err != nil {
-		t.Fatal(err)
-	} else if extra := cache_result.Data.(*model.ChannelExtra); extra == nil {
-		t.Fatal("response should not be empty")
-	} else if len(extra.Members) != 2 {
-		t.Fatal("should've returned 2 members")
-	} else if extra.MemberCount != 2 {
-		t.Fatal("should've returned member count of 2")
-	} else {
-		currentEtag = cache_result.Etag
-	}
-
-	if cache_result, err := Client.GetChannelExtraInfo(channel1.Id, 1, currentEtag); err != nil {
-		t.Fatal(err)
-	} else if extra := cache_result.Data.(*model.ChannelExtra); extra == nil {
-		t.Fatal("response should not be empty")
-	} else if len(extra.Members) != 1 {
-		t.Fatal("should've returned only 1 member")
-	} else if extra.MemberCount != 2 {
-		t.Fatal("should've returned member count of 2")
-	} else {
-		currentEtag = cache_result.Etag
-	}
-
-	if cache_result, err := Client.GetChannelExtraInfo(channel1.Id, 1, currentEtag); err != nil {
-		t.Fatal(err)
-	} else if cache_result.Data.(*model.ChannelExtra) != nil {
-		t.Log(cache_result.Data)
-		t.Fatal("response should be empty")
-	} else {
-		currentEtag = cache_result.Etag
-	}
-
 }
 
 func TestAddChannelMember(t *testing.T) {
@@ -1352,7 +1273,7 @@ func TestUpdateNotifyProps(t *testing.T) {
 	data["user_id"] = user.Id
 	data["desktop"] = model.CHANNEL_NOTIFY_MENTION
 
-	timeBeforeUpdate := model.GetMillis()
+	//timeBeforeUpdate := model.GetMillis()
 	time.Sleep(100 * time.Millisecond)
 
 	// test updating desktop
@@ -1362,14 +1283,6 @@ func TestUpdateNotifyProps(t *testing.T) {
 		t.Fatal("NotifyProps[\"desktop\"] did not update properly")
 	} else if notifyProps["mark_unread"] != model.CHANNEL_MARK_UNREAD_ALL {
 		t.Fatalf("NotifyProps[\"mark_unread\"] changed to %v", notifyProps["mark_unread"])
-	}
-
-	rget := Client.Must(Client.GetChannels(""))
-	rdata := rget.Data.(*model.ChannelList)
-	if len(rdata.Members) == 0 || rdata.Members[channel1.Id].NotifyProps["desktop"] != data["desktop"] {
-		t.Fatal("NotifyProps[\"desktop\"] did not update properly")
-	} else if rdata.Members[channel1.Id].LastUpdateAt <= timeBeforeUpdate {
-		t.Fatal("LastUpdateAt did not update")
 	}
 
 	// test an empty update
@@ -1493,5 +1406,43 @@ func TestFuzzyChannel(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+	}
+}
+
+func TestGetChannelMember(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+	team := th.BasicTeam
+
+	channel1 := &model.Channel{DisplayName: "A Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
+
+	if result, err := Client.GetChannelMember(channel1.Id, th.BasicUser.Id); err != nil {
+		t.Fatal(err)
+	} else {
+		cm := result.Data.(*model.ChannelMember)
+
+		if cm.UserId != th.BasicUser.Id {
+			t.Fatal("user ids didn't match")
+		}
+		if cm.ChannelId != channel1.Id {
+			t.Fatal("channel ids didn't match")
+		}
+	}
+
+	if _, err := Client.GetChannelMember(channel1.Id, th.BasicUser2.Id); err == nil {
+		t.Fatal("should have failed - user not in channel")
+	}
+
+	if _, err := Client.GetChannelMember("junk", th.BasicUser2.Id); err == nil {
+		t.Fatal("should have failed - bad channel id")
+	}
+
+	if _, err := Client.GetChannelMember(channel1.Id, "junk"); err == nil {
+		t.Fatal("should have failed - bad user id")
+	}
+
+	if _, err := Client.GetChannelMember("junk", "junk"); err == nil {
+		t.Fatal("should have failed - bad channel and user id")
 	}
 }

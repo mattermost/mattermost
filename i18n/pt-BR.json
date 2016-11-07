@@ -204,6 +204,10 @@
     "translation": "Caractere inválido '__' no nome do canal para um canal não-direto"
   },
   {
+    "id": "api.channel.create_channel.max_channel_limit.app_error",
+    "translation": "Não é possível criar mais de {{.MaxChannelsPerTeam}} canais para a equipe atual"
+  },
+  {
     "id": "api.channel.create_default_channels.off_topic",
     "translation": "Off-Topic"
   },
@@ -625,11 +629,11 @@
   },
   {
     "id": "api.command_shortcuts.msgs",
-    "translation": "#### Mensagens\n\nESC: Marca todas as mensagens do canal atual como lida\nCTRL+UP (campo de entrada vazio): Reimprimi a mensagem anterior ou comando slash digitado\nCTRL+DOWN (campo de entrada vazio): Reimprimi a próxima mensagem ou comando slash digitado\nUP (campo de entrada vazio): Editar sua última mensagem no canal atual\n@[caracter]+TAB: Autocompleta @usuário começando com [caracter]\n:[caracter]+TAB: Autocompleta o emoji começando com [caracter]\n\n"
+    "translation": "#### Mensagens\n\nALT+[clique na mensagem]: Define a mensagem como a mensagem mais velha não lida no canal atual\nESC: Marca todas as mensagens do canal atual como lida\nCTRL+UP (campo de entrada vazio): Reimprimi a mensagem anterior ou comando slash digitado\nCTRL+DOWN (campo de entrada vazio): Reimprimi a próxima mensagem ou comando slash digitado\nUP (campo de entrada vazio): Editar sua última mensagem no canal atual\n@[caracter]+TAB: Autocompleta @usuário começando com [caracter]\n:[caracter]+TAB: Autocompleta o emoji começando com [caracter]\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs_mac",
-    "translation": "#### Mensagens\n\nESC: Marca todas as mensagens do canal atual como lida\nCMD+UP (campo de entrada vazio): Reimprimi a mensagem anterior ou comando slash digitado\nCMD+DOWN (campo de entrada vazio): Reimprimi a próxima mensagem ou comando slash digitado\nUP (campo de entrada vazio): Editar sua última mensagem no canal atual\n@[caracter]+TAB: Autocompleta @usuário começando com [caracter]\n:[caracter]+TAB: Autocompleta o emoji começando com [caracter]\n\n"
+    "translation": "#### Mensagens\n\nALT+[clique na mensagem]: Define a mensagem como a mensagem mais velha não lida no canal atual\nESC: Marca todas as mensagens do canal atual como lida\nCMD+UP (campo de entrada vazio): Reimprimi a mensagem anterior ou comando slash digitado\nCMD+DOWN (campo de entrada vazio): Reimprimi a próxima mensagem ou comando slash digitado\nUP (campo de entrada vazio): Editar sua última mensagem no canal atual\n@[caracter]+TAB: Autocompleta @usuário começando com [caracter]\n:[caracter]+TAB: Autocompleta o emoji começando com [caracter]\n\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -1528,12 +1532,16 @@
     "translation": "Falha ao importar: {{.DisplayName}}\r\n"
   },
   {
-    "id": "api.slackimport.slack_add_channels.import_failed.debug",
-    "translation": "Falha ao importar: %s"
+    "id": "api.slackimport.slack_add_channels.import_failed.warn",
+    "translation": "Slack Importer: Failed to import channel: %s"
   },
   {
     "id": "api.slackimport.slack_add_channels.merge",
     "translation": "Mesclado com o canal existente: {{.DisplayName}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.attach_files.error",
+    "translation": "Erro encontrado ao anexar arquivos para postar, post_id=%s, file_ids=%v, err=%v"
   },
   {
     "id": "api.slackimport.slack_add_posts.bot.warn",
@@ -1550,6 +1558,22 @@
   {
     "id": "api.slackimport.slack_add_posts.unsupported.warn",
     "translation": "Tipo de post não suportado: %v, %v"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.upload_file_not_found.warn",
+    "translation": "Nenhum arquivo encontrado na exportação Slack para o arquivo enviado com ID {{.FileId}}"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.upload_file_not_in_json.warn",
+    "translation": "Não é possível importar arquivos para  envio de post sem a seção \"file\" presente na exportação."
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.upload_file_open_failed.warn",
+    "translation": "Não foi possível abrir o arquivo enviado com ID {{.FileId}} no arquivo de exportação com erro: {{.Error}}"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.upload_file_upload_failed.warn",
+    "translation": "Envio do arquivo para envio de mensagem com ID do arquivo {{.FileId}} falhou com erro: {{.Error}}"
   },
   {
     "id": "api.slackimport.slack_add_posts.user_no_exists.debug",
@@ -2384,8 +2408,12 @@
     "translation": "Erro na verificação link de email."
   },
   {
+    "id": "api.web_hub.start.starting.debug",
+    "translation": "Iniciando websocket %v hubs"
+  },
+  {
     "id": "api.web_hub.start.stopping.debug",
-    "translation": "parando %v conexões"
+    "translation": "parando conexão de websocket hub"
   },
   {
     "id": "api.web_socket.connect.error",
@@ -3240,6 +3268,10 @@
     "translation": "Burst máximo deve ser maior que zero."
   },
   {
+    "id": "model.config.is_valid.max_channels.app_error",
+    "translation": "Inválido máximo de canais por equipe em configurações de equipe.  Deve ser um número positivo."
+  },
+  {
     "id": "model.config.is_valid.max_file_size.app_error",
     "translation": "Tamanho máximo do arquivo inválido nas configurações de arquivo. Deve ser zero ou um número positivo."
   },
@@ -3597,7 +3629,7 @@
   },
   {
     "id": "model.team.is_valid.characters.app_error",
-    "translation": "Nome deve ter 4 ou mais caracteres alfanuméricos em minúsculas"
+    "translation": "Nome deve ter 2 ou mais caracteres alfanuméricos em minúsculas"
   },
   {
     "id": "model.team.is_valid.company.app_error",
@@ -4612,7 +4644,15 @@
     "translation": "Nenhum membro encontrado para esse id de usuário e id de equipe"
   },
   {
+    "id": "store.sql_team.get_member_count.app_error",
+    "translation": "Não foi possível obter os número de membros da equipe"
+  },
+  {
     "id": "store.sql_team.get_members.app_error",
+    "translation": "Não foi possível obter os membros da equipe"
+  },
+  {
+    "id": "store.sql_team.get_members_by_ids.app_error",
     "translation": "Não foi possível obter os membros da equipe"
   },
   {
@@ -4702,6 +4742,10 @@
   {
     "id": "store.sql_user.get_profiles.app_error",
     "translation": "Encontramos um erro enquanto procurava os perfis de usuários"
+  },
+  {
+    "id": "store.sql_user.get_recently_active_users.app_error",
+    "translation": "Encontramos um erro enquanto procurava usuários recentemente ativos"
   },
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",

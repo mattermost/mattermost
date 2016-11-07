@@ -204,6 +204,10 @@
     "translation": "Caractère '__' invalide dans le nom du canal pour un canal indirect."
   },
   {
+    "id": "api.channel.create_channel.max_channel_limit.app_error",
+    "translation": "Cannot create more than {{.MaxChannelsPerTeam}} channels for current team"
+  },
+  {
     "id": "api.channel.create_default_channels.off_topic",
     "translation": "Hors-sujet"
   },
@@ -625,11 +629,11 @@
   },
   {
     "id": "api.command_shortcuts.msgs",
-    "translation": "#### Messages\n\nESC: Marque tous les messages du canal courant comme lus\nCTRL+HAUT (dans un champ de saisie vide): Réaffiche le message précédent ou la commande slash que vous avez précédemment tapés\nCTRL+BAS (dans un champ de saisie vide): Réaffiche le message suivant ou la commande slash que vous avez précédemment saisis\nHAUT (dans un champ de saisie vide): Édite le dernier message que vous avez saisi dans le canal courant\n@[caractère]+TAB: Suggère le @nom d'utilisateur commençant par [caractère]\n:[caractère]+TAB: Suggère des émoticônes commençant par [caractère]\n\n"
+    "translation": "#### Messages\n\nALT+[clic sur un message]: Définit un message comme le plus vieux message non lu du canal courant\nESC: Marque tous mes messages du canal courant comme lus\nCTRL+HAUT (dans un champ d'édition vide): Affiche à nouveau le message ou la commande slash précédents que vous avez saisis\nCTRL+BAS (dans un champ d'édition vide): Affiche à nouveau le message ou la commande slash suivants que vous avez saisis\nHAUT (dans un champ d'édition vide): Édite le dernier message que vous avez saisi dans le canal courant\n@[caractère]+TAB: Complète automatiquement le @nom d'utilisateur commençant par [caractère]\n:[caractère]+TAB: Complète automatiquement l'émoticône commençant par [caractère]\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs_mac",
-    "translation": "#### Messages\n\nESC: Marque tous les messages du canal courant comme lus\nCMD+Haut (dans un champ d'édition vide): Affiche à nouveau le message ou la commande slash précédent que vous avez saisis\nCMD+Bas (dans un champ d'édition vide): Affiche à nouveau le message ou la commande slash suivant que vous avez saisis\nHaut (dans un champ d'édition vide): Edite le dernier message que vous avez saisi dans le canal courant\n@[caractère]+TAB: Complète automatiquement le @nom d'utilisateur commençant par [caractère]\n:[caractère]+TAB: Complète automatiquement l'émoticône commençant par [caractère]\n\n"
+    "translation": "#### Messages\n\nALT+[clic sur un message]: Définit un message comme le plus vieux message non lu du canal courant\nESC: Marque tous mes messages du canal courant comme lus\nCMD+HAUT (dans un champ d'édition vide): Affiche à nouveau le message ou la commande slash précédents que vous avez saisis\nCMD+BAS (dans un champ d'édition vide): Affiche à nouveau le message ou la commande slash suivants que vous avez saisis\nHAUT (dans un champ d'édition vide): Édite le dernier message que vous avez saisi dans le canal courant\n@[caractère]+TAB: Complète automatiquement le @nom d'utilisateur commençant par [caractère]\n:[caractère]+TAB: Complète automatiquement l'émoticône commençant par [caractère]\n\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -641,7 +645,7 @@
   },
   {
     "id": "api.command_shortcuts.nav_mac",
-    "translation": "### Raccourcis clavier\n\n#### Navigation\n\nALT+HAUT : Canal ou message privé dans la barre latérale gauche\nALT+BAS : Canal ou message privé suivant dans la barre latérale gauche\nALT+MAJ+UP : Canal ou message privé précédent dans la barre latérale de gauche comportant des messages non lus\nALT+MAJ+DOWN : Canal ou message privé suivant dans la barre latérale de gauche comportant des messages non lus\nCMD+K : Ouvre une boîte de dialogue permettant de changer de canal rapidement\nCMD+MAJ+A : Ouvre les paramètres du compte\nCMD+MAJ+M : Ouvre les mentions récentes\n\n"
+    "translation": "### Raccourcis clavier\n\n#### Navigation\n\nALT+HAUT : Canal ou message privé dans la barre latérale gauche\nALT+BAS : Canal ou message privé suivant dans la barre latérale gauche\nALT+MAJ+HAUT : Canal ou message privé précédent dans la barre latérale de gauche comportant des messages non lus\nALT+MAJ+BAS : Canal ou message privé suivant dans la barre latérale de gauche comportant des messages non lus\nCMD+K : Ouvre une boîte de dialogue permettant de changer de canal rapidement\nCMD+MAJ+A : Ouvre les paramètres du compte\nCMD+MAJ+M : Ouvre les mentions récentes\n\n"
   },
   {
     "id": "api.command_shrug.desc",
@@ -1219,7 +1223,7 @@
   },
   {
     "id": "api.post.create_post.attach_files.error",
-    "translation": "Une erreur s'est produite lors du lien des fichiers au message, post_id=%s, user_id=%s, file_ids=%v, err=%v"
+    "translation": "Une erreur s'est produite en ajoutant les fichiers au message, post_id=%s, user_id=%s, file_ids=%v, err=%v"
   },
   {
     "id": "api.post.create_post.bad_filename.error",
@@ -1528,12 +1532,16 @@
     "translation": "Échec de l'import : {{.DisplayName}}\r\n"
   },
   {
-    "id": "api.slackimport.slack_add_channels.import_failed.debug",
-    "translation": "Échec de l'import : %s"
+    "id": "api.slackimport.slack_add_channels.import_failed.warn",
+    "translation": "Slack Importer: Failed to import channel: %s"
   },
   {
     "id": "api.slackimport.slack_add_channels.merge",
     "translation": "Fusionné avec un canal existant : {{.DisplayName}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.attach_files.error",
+    "translation": "Une erreur s'est produite lors en ajoutant les fichiers au message, post_id=%s, file_ids=%v, err=%v"
   },
   {
     "id": "api.slackimport.slack_add_posts.bot.warn",
@@ -1550,6 +1558,22 @@
   {
     "id": "api.slackimport.slack_add_posts.unsupported.warn",
     "translation": "Type de message non supporté : %v, %v"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.upload_file_not_found.warn",
+    "translation": "No file found in Slack export for file upload message with file ID {{.FileId}}"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.upload_file_not_in_json.warn",
+    "translation": "Cannot import file for upload post with no \"file\" section present in export."
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.upload_file_open_failed.warn",
+    "translation": "Could not open the upload file with ID {{.FileId}} in the export archive with error: {{.Error}}"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.upload_file_upload_failed.warn",
+    "translation": "Uploading the file for upload message with file ID {{.FileId}} failed with error: {{.Error}}"
   },
   {
     "id": "api.slackimport.slack_add_posts.user_no_exists.debug",
@@ -2384,8 +2408,12 @@
     "translation": "Mauvais lien de vérification de l'adresse électronique."
   },
   {
+    "id": "api.web_hub.start.starting.debug",
+    "translation": "Starting %v websocket hubs"
+  },
+  {
     "id": "api.web_hub.start.stopping.debug",
-    "translation": "Arrêt des connexions %v en cours"
+    "translation": "stopping websocket hub connections"
   },
   {
     "id": "api.web_socket.connect.error",
@@ -3240,6 +3268,10 @@
     "translation": "La limite maximale de dépassement doit être plus grande que zéro."
   },
   {
+    "id": "model.config.is_valid.max_channels.app_error",
+    "translation": "Nombre maximum d'utilisateurs par équipe invalide dans les paramètres d'équipes. Doit être un entier positif."
+  },
+  {
     "id": "model.config.is_valid.max_file_size.app_error",
     "translation": "Taille de fichier max invalide pour les paramètres du fichier. Doit être zéro ou un entier positif."
   },
@@ -3597,7 +3629,7 @@
   },
   {
     "id": "model.team.is_valid.characters.app_error",
-    "translation": "Le nom doit posséder au moins 4 caractères alphanumériques minuscules"
+    "translation": "Le nom doit être composé d'au moins 2 caractères alphanumériques en minuscules."
   },
   {
     "id": "model.team.is_valid.company.app_error",
@@ -4612,7 +4644,15 @@
     "translation": "Aucun membre d'équipe trouvé pour cet id d'utilisateur et cet id d'équipe"
   },
   {
+    "id": "store.sql_team.get_member_count.app_error",
+    "translation": "Nous ne pouvons pas obtenir les membres de l'équipe"
+  },
+  {
     "id": "store.sql_team.get_members.app_error",
+    "translation": "Nous ne pouvons pas obtenir les membres de l'équipe"
+  },
+  {
+    "id": "store.sql_team.get_members_by_ids.app_error",
     "translation": "Nous ne pouvons pas obtenir les membres de l'équipe"
   },
   {
@@ -4702,6 +4742,10 @@
   {
     "id": "store.sql_user.get_profiles.app_error",
     "translation": "Nous avons rencontré une erreur lors de la recherche des profils utilisateurs"
+  },
+  {
+    "id": "store.sql_user.get_recently_active_users.app_error",
+    "translation": "We encountered an error while finding the recently active users"
   },
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",

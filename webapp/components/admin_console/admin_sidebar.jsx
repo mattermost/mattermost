@@ -35,6 +35,8 @@ export default class AdminSidebar extends React.Component {
         this.teamSelectedModal = this.teamSelectedModal.bind(this);
         this.teamSelectedModalDismissed = this.teamSelectedModalDismissed.bind(this);
 
+        this.updateTitle = this.updateTitle.bind(this);
+
         this.renderAddTeamButton = this.renderAddTeamButton.bind(this);
         this.renderTeams = this.renderTeams.bind(this);
 
@@ -48,6 +50,8 @@ export default class AdminSidebar extends React.Component {
     componentDidMount() {
         AdminStore.addAllTeamsChangeListener(this.handleAllTeamsChange);
         AsyncClient.getAllTeams();
+
+        this.updateTitle();
     }
 
     componentDidUpdate() {
@@ -99,6 +103,15 @@ export default class AdminSidebar extends React.Component {
 
     teamSelectedModalDismissed() {
         this.setState({showSelectModal: false});
+    }
+
+    updateTitle() {
+        let currentSiteName = '';
+        if (global.window.mm_config.SiteName != null) {
+            currentSiteName = global.window.mm_config.SiteName;
+        }
+
+        document.title = Utils.localizeMessage('sidebar_right_menu.console', 'System Console') + ' - ' + currentSiteName;
     }
 
     renderAddTeamButton() {
@@ -180,7 +193,6 @@ export default class AdminSidebar extends React.Component {
         let samlSettings = null;
         let clusterSettings = null;
         let complianceSettings = null;
-        let webrtcSettings = null;
 
         let license = null;
         let audits = null;
@@ -251,20 +263,6 @@ export default class AdminSidebar extends React.Component {
                             <FormattedMessage
                                 id='admin.sidebar.compliance'
                                 defaultMessage='Compliance'
-                            />
-                        }
-                    />
-                );
-            }
-
-            if (global.window.mm_license.Webrtc === 'true') {
-                webrtcSettings = (
-                    <AdminSidebarSection
-                        name='webrtc'
-                        title={
-                            <FormattedMessage
-                                id='admin.sidebar.webrtc'
-                                defaultMessage='WebRTC (Beta)'
                             />
                         }
                     />
@@ -356,6 +354,18 @@ export default class AdminSidebar extends React.Component {
                 </AdminSidebarCategory>
             );
         }
+
+        const webrtcSettings = (
+            <AdminSidebarSection
+                name='webrtc'
+                title={
+                    <FormattedMessage
+                        id='admin.sidebar.webrtc'
+                        defaultMessage='WebRTC (Beta)'
+                    />
+                }
+            />
+        );
 
         return (
             <div className='admin-sidebar'>

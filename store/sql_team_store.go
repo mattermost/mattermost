@@ -5,6 +5,7 @@ package store
 
 import (
 	"database/sql"
+	"strconv"
 
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -43,9 +44,13 @@ func NewSqlTeamStore(sqlStore *SqlStore) TeamStore {
 func (s SqlTeamStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_teams_name", "Teams", "Name")
 	s.CreateIndexIfNotExists("idx_teams_invite_id", "Teams", "InviteId")
+	s.CreateIndexIfNotExists("idx_teams_update_at", "Teams", "UpdateAt")
+	s.CreateIndexIfNotExists("idx_teams_create_at", "Teams", "CreateAt")
+	s.CreateIndexIfNotExists("idx_teams_delete_at", "Teams", "DeleteAt")
 
 	s.CreateIndexIfNotExists("idx_teammembers_team_id", "TeamMembers", "TeamId")
 	s.CreateIndexIfNotExists("idx_teammembers_user_id", "TeamMembers", "UserId")
+	s.CreateIndexIfNotExists("idx_teammembers_delete_at", "TeamMembers", "DeleteAt")
 }
 
 func (s SqlTeamStore) Save(team *model.Team) StoreChannel {
@@ -64,7 +69,7 @@ func (s SqlTeamStore) Save(team *model.Team) StoreChannel {
 
 		team.PreSave()
 
-		if result.Err = team.IsValid(*utils.Cfg.TeamSettings.RestrictTeamNames); result.Err != nil {
+		if result.Err = team.IsValid(); result.Err != nil {
 			storeChannel <- result
 			close(storeChannel)
 			return
@@ -96,7 +101,7 @@ func (s SqlTeamStore) Update(team *model.Team) StoreChannel {
 
 		team.PreUpdate()
 
-		if result.Err = team.IsValid(*utils.Cfg.TeamSettings.RestrictTeamNames); result.Err != nil {
+		if result.Err = team.IsValid(); result.Err != nil {
 			storeChannel <- result
 			close(storeChannel)
 			return
@@ -441,16 +446,109 @@ func (s SqlTeamStore) GetMember(teamId string, userId string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlTeamStore) GetMembers(teamId string) StoreChannel {
+func (s SqlTeamStore) GetMembers(teamId string, offset int, limit int) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
 
 		var members []*model.TeamMember
-		_, err := s.GetReplica().Select(&members, "SELECT * FROM TeamMembers WHERE TeamId = :TeamId", map[string]interface{}{"TeamId": teamId})
+		_, err := s.GetReplica().Select(&members, "SELECT * FROM TeamMembers WHERE TeamId = :TeamId AND DeleteAt = 0 LIMIT :Limit OFFSET :Offset", map[string]interface{}{"TeamId": teamId, "Offset": offset, "Limit": limit})
 		if err != nil {
 			result.Err = model.NewLocAppError("SqlTeamStore.GetMembers", "store.sql_team.get_members.app_error", nil, "teamId="+teamId+" "+err.Error())
+		} else {
+			result.Data = members
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlTeamStore) GetTotalMemberCount(teamId string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		count, err := s.GetReplica().SelectInt(`
+			SELECT
+				count(*)
+			FROM
+				TeamMembers,
+				Users
+			WHERE
+				TeamMembers.UserId = Users.Id
+				AND TeamMembers.TeamId = :TeamId
+				AND TeamMembers.DeleteAt = 0`, map[string]interface{}{"TeamId": teamId})
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlTeamStore.GetTotalMemberCount", "store.sql_team.get_member_count.app_error", nil, "teamId="+teamId+" "+err.Error())
+		} else {
+			result.Data = count
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlTeamStore) GetActiveMemberCount(teamId string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		count, err := s.GetReplica().SelectInt(`
+			SELECT
+				count(*)
+			FROM
+				TeamMembers,
+				Users
+			WHERE
+				TeamMembers.UserId = Users.Id
+				AND TeamMembers.TeamId = :TeamId
+				AND TeamMembers.DeleteAt = 0
+				AND Users.DeleteAt = 0`, map[string]interface{}{"TeamId": teamId})
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlTeamStore.GetActiveMemberCount", "store.sql_team.get_member_count.app_error", nil, "teamId="+teamId+" "+err.Error())
+		} else {
+			result.Data = count
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlTeamStore) GetMembersByIds(teamId string, userIds []string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		var members []*model.TeamMember
+		props := make(map[string]interface{})
+		idQuery := ""
+
+		for index, userId := range userIds {
+			if len(idQuery) > 0 {
+				idQuery += ", "
+			}
+
+			props["userId"+strconv.Itoa(index)] = userId
+			idQuery += ":userId" + strconv.Itoa(index)
+		}
+
+		props["TeamId"] = teamId
+
+		if _, err := s.GetReplica().Select(&members, "SELECT * FROM TeamMembers WHERE TeamId = :TeamId AND UserId IN ("+idQuery+") AND DeleteAt = 0", props); err != nil {
+			result.Err = model.NewLocAppError("SqlTeamStore.GetMembersByIds", "store.sql_team.get_members_by_ids.app_error", nil, "teamId="+teamId+" "+err.Error())
 		} else {
 			result.Data = members
 		}

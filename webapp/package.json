@@ -30,7 +30,6 @@
     "react-intl": "2.1.5",
     "react-router": "2.8.1",
     "react-select": "1.0.0-rc.2",
-    "react-textarea-autosize": "4.0.5",
     "superagent": "2.3.0",
     "twemoji": "2.2.0",
     "velocity-animate": "1.2.3",

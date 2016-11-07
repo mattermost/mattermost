@@ -29,6 +29,27 @@ type ChannelMember struct {
 	LastUpdateAt int64     `json:"last_update_at"`
 }
 
+type ChannelMembers []ChannelMember
+
+func (o *ChannelMembers) ToJson() string {
+	if b, err := json.Marshal(o); err != nil {
+		return "[]"
+	} else {
+		return string(b)
+	}
+}
+
+func ChannelMembersFromJson(data io.Reader) *ChannelMembers {
+	decoder := json.NewDecoder(data)
+	var o ChannelMembers
+	err := decoder.Decode(&o)
+	if err == nil {
+		return &o
+	} else {
+		return nil
+	}
+}
+
 func (o *ChannelMember) ToJson() string {
 	b, err := json.Marshal(o)
 	if err != nil {

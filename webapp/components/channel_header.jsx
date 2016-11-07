@@ -23,16 +23,17 @@ import SearchStore from 'stores/search_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import WebrtcStore from 'stores/webrtc_store.jsx';
 
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import * as WebrtcActions from 'actions/webrtc_actions.jsx';
+import * as ChannelActions from 'actions/channel_actions.jsx';
 import * as Utils from 'utils/utils.jsx';
+import * as ChannelUtils from 'utils/channel_utils.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import {getFlaggedPosts} from 'actions/post_actions.jsx';
 
-import {ActionTypes, Constants, Preferences, UserStatuses} from 'utils/constants.jsx';
+import {Constants, Preferences, UserStatuses} from 'utils/constants.jsx';
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
@@ -63,16 +64,19 @@ export default class ChannelHeader extends React.Component {
     }
 
     getStateFromStores() {
-        const extraInfo = ChannelStore.getExtraInfo(this.props.channelId);
+        const channel = ChannelStore.get(this.props.channelId);
+        const stats = ChannelStore.getStats(this.props.channelId);
+        const users = UserStore.getProfileListInChannel(this.props.channelId);
 
         return {
-            channel: ChannelStore.get(this.props.channelId),
-            memberChannel: ChannelStore.getMember(this.props.channelId),
-            users: extraInfo.members,
-            userCount: extraInfo.member_count,
+            channel,
+            memberChannel: ChannelStore.getMyMember(this.props.channelId),
+            users,
+            userCount: stats.member_count,
             currentUser: UserStore.getCurrentUser(),
             enableFormatting: PreferenceStore.getBool(Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', true),
-            isBusy: WebrtcStore.isBusy()
+            isBusy: WebrtcStore.isBusy(),
+            isFavorite: channel && ChannelUtils.isFavoriteChannel(channel)
         };
     }
 
@@ -80,6 +84,7 @@ export default class ChannelHeader extends React.Component {
         if (!this.state.channel ||
             !this.state.memberChannel ||
             !this.state.users ||
+            (Object.keys(this.state.users).length === 0 && this.state.channel.type === 'D') ||
             !this.state.userCount ||
             !this.state.currentUser) {
             return false;
@@ -89,10 +94,10 @@ export default class ChannelHeader extends React.Component {
 
     componentDidMount() {
         ChannelStore.addChangeListener(this.onListenerChange);
-        ChannelStore.addExtraInfoChangeListener(this.onListenerChange);
+        ChannelStore.addStatsChangeListener(this.onListenerChange);
         SearchStore.addSearchChangeListener(this.onListenerChange);
         PreferenceStore.addChangeListener(this.onListenerChange);
-        UserStore.addChangeListener(this.onListenerChange);
+        UserStore.addInChannelChangeListener(this.onListenerChange);
         UserStore.addStatusesChangeListener(this.onListenerChange);
         WebrtcStore.addChangedListener(this.onListenerChange);
         WebrtcStore.addBusyListener(this.onBusy);
@@ -102,10 +107,10 @@ export default class ChannelHeader extends React.Component {
 
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onListenerChange);
-        ChannelStore.removeExtraInfoChangeListener(this.onListenerChange);
+        ChannelStore.removeStatsChangeListener(this.onListenerChange);
         SearchStore.removeSearchChangeListener(this.onListenerChange);
         PreferenceStore.removeChangeListener(this.onListenerChange);
-        UserStore.removeChangeListener(this.onListenerChange);
+        UserStore.removeInChannelChangeListener(this.onListenerChange);
         UserStore.removeStatusesChangeListener(this.onListenerChange);
         WebrtcStore.removeChangedListener(this.onListenerChange);
         WebrtcStore.removeBusyListener(this.onBusy);
@@ -117,19 +122,17 @@ export default class ChannelHeader extends React.Component {
     }
 
     onListenerChange() {
-        const newState = this.getStateFromStores();
-        if (!Utils.areObjectsEqual(newState, this.state)) {
-            this.setState(newState);
-        }
+        this.setState(this.getStateFromStores());
     }
 
     handleLeave() {
         Client.leaveChannel(this.state.channel.id,
             () => {
-                AppDispatcher.handleViewAction({
-                    type: ActionTypes.LEAVE_CHANNEL,
-                    id: this.state.channel.id
-                });
+                const channelId = this.state.channel.id;
+
+                if (this.state.isFavorite) {
+                    ChannelActions.unmarkFavorite(channelId);
+                }
 
                 const townsquare = ChannelStore.getByName('town-square');
                 browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + townsquare.name);
@@ -139,6 +142,16 @@ export default class ChannelHeader extends React.Component {
             }
         );
     }
+
+    toggleFavorite = (e) => {
+        e.preventDefault();
+
+        if (this.state.isFavorite) {
+            ChannelActions.unmarkFavorite(this.state.channel.id);
+        } else {
+            ChannelActions.markFavorite(this.state.channel.id);
+        }
+    };
 
     searchMentions(e) {
         e.preventDefault();
@@ -265,7 +278,6 @@ export default class ChannelHeader extends React.Component {
             </Popover>
         );
         let channelTitle = channel.display_name;
-        const currentId = this.state.currentUser.id;
         const isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
         const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
         const isDirect = (this.state.channel.type === 'D');
@@ -273,18 +285,12 @@ export default class ChannelHeader extends React.Component {
 
         if (isDirect) {
             const userMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-            let contact;
-            if (this.state.users.length > 1) {
-                if (this.state.users[0].id === currentId) {
-                    contact = this.state.users[1];
-                } else {
-                    contact = this.state.users[0];
-                }
-                channelTitle = Utils.displayUsername(contact.id);
-            }
+            const contact = this.state.users[0];
 
-            const webrtcEnabled = global.mm_config.EnableWebrtc === 'true' && global.mm_license.Webrtc === 'true' &&
-                global.mm_config.EnableDeveloper === 'true' && userMedia && Utils.isFeatureEnabled(PreReleaseFeatures.WEBRTC_PREVIEW);
+            const teammateId = Utils.getUserIdFromChannelName(channel);
+            channelTitle = Utils.displayUsername(teammateId);
+
+            const webrtcEnabled = global.mm_config.EnableWebrtc === 'true' && userMedia && Utils.isFeatureEnabled(PreReleaseFeatures.WEBRTC_PREVIEW);
 
             if (webrtcEnabled) {
                 const isOffline = UserStore.getStatus(contact.id) === UserStatuses.OFFLINE;
@@ -386,7 +392,7 @@ export default class ChannelHeader extends React.Component {
                     >
                         <FormattedMessage
                             id='channel_header.channelHeader'
-                            defaultMessage='Set Channel Header...'
+                            defaultMessage='Edit Channel Header'
                         />
                     </ToggleModalButton>
                 </li>
@@ -410,6 +416,32 @@ export default class ChannelHeader extends React.Component {
                 </li>
             );
 
+            dropdownContents.push(
+                <li
+                    key='notification_preferences'
+                    role='presentation'
+                >
+                    <ToggleModalButton
+                        role='menuitem'
+                        dialogType={ChannelNotificationsModal}
+                        dialogProps={{
+                            channel,
+                            channelMember: this.state.memberChannel,
+                            currentUser: this.state.currentUser
+                        }}
+                    >
+                        <FormattedMessage
+                            id='channel_header.notificationPreferences'
+                            defaultMessage='Notification Preferences'
+                        />
+                    </ToggleModalButton>
+                </li>
+            );
+
+            dropdownContents.push(
+                <li className='divider'/>
+            );
+
             if (!ChannelStore.isDefault(channel)) {
                 dropdownContents.push(
                     <li
@@ -417,6 +449,7 @@ export default class ChannelHeader extends React.Component {
                         role='presentation'
                     >
                         <ToggleModalButton
+                            ref='channelInviteModalButton'
                             role='menuitem'
                             dialogType={ChannelInviteModal}
                             dialogProps={{channel, currentUser: this.state.currentUser}}
@@ -469,25 +502,7 @@ export default class ChannelHeader extends React.Component {
             }
 
             dropdownContents.push(
-                <li
-                    key='notification_preferences'
-                    role='presentation'
-                >
-                    <ToggleModalButton
-                        role='menuitem'
-                        dialogType={ChannelNotificationsModal}
-                        dialogProps={{
-                            channel,
-                            channelMember: this.state.memberChannel,
-                            currentUser: this.state.currentUser
-                        }}
-                    >
-                        <FormattedMessage
-                            id='channel_header.notificationPreferences'
-                            defaultMessage='Notification Preferences'
-                        />
-                    </ToggleModalButton>
-                </li>
+                <li className='divider'/>
             );
 
             const deleteOption = (
@@ -502,7 +517,7 @@ export default class ChannelHeader extends React.Component {
                     >
                         <FormattedMessage
                             id='channel_header.delete'
-                            defaultMessage='Delete {term}...'
+                            defaultMessage='Delete {term}'
                             values={{
                                 term: (channelTerm)
                             }}
@@ -524,7 +539,7 @@ export default class ChannelHeader extends React.Component {
                         >
                             <FormattedMessage
                                 id='channel_header.setHeader'
-                                defaultMessage='Set {term} Header...'
+                                defaultMessage='Edit {term} Header'
                                 values={{
                                     term: (channelTerm)
                                 }}
@@ -545,7 +560,7 @@ export default class ChannelHeader extends React.Component {
                         >
                             <FormattedMessage
                                 id='channel_header.setPurpose'
-                                defaultMessage='Set {term} Purpose...'
+                                defaultMessage='Edit {term} Purpose'
                                 values={{
                                     term: (channelTerm)
                                 }}
@@ -566,7 +581,7 @@ export default class ChannelHeader extends React.Component {
                         >
                             <FormattedMessage
                                 id='channel_header.rename'
-                                defaultMessage='Rename {term}...'
+                                defaultMessage='Rename {term}'
                                 values={{
                                     term: (channelTerm)
                                 }}
@@ -581,6 +596,10 @@ export default class ChannelHeader extends React.Component {
             } else if (this.state.userCount === 1) {
                 dropdownContents.push(deleteOption);
             }
+
+            dropdownContents.push(
+                <li className='divider'/>
+            );
 
             const canLeave = channel.type === Constants.PRIVATE_CHANNEL ? this.state.userCount > 1 : true;
             if (!ChannelStore.isDefault(channel) && canLeave) {
@@ -614,6 +633,57 @@ export default class ChannelHeader extends React.Component {
             headerText = channel.header;
         }
 
+        const toggleFavoriteTooltip = (
+            <Tooltip id='favoriteTooltip'>
+                {this.state.isFavorite ?
+                    <FormattedMessage
+                        id='channelHeader.removeFromFavorites'
+                        defaultMessage='Remove from Favorites'
+                    /> :
+                    <FormattedMessage
+                        id='channelHeader.addToFavorites'
+                        defaultMessage='Add to Favorites'
+                    />}
+            </Tooltip>
+        );
+        const toggleFavorite = (
+            <OverlayTrigger
+                delayShow={Constants.OVERLAY_TIME_DELAY}
+                placement='bottom'
+                overlay={toggleFavoriteTooltip}
+            >
+                <a
+                    href='#'
+                    onClick={this.toggleFavorite}
+                    className='channel-header__favorites'
+                >
+                    <i className={'icon fa ' + (this.state.isFavorite ? 'fa-star' : 'fa-star-o')}/>
+                </a>
+            </OverlayTrigger>
+        );
+
+        let channelMembersModal;
+        if (this.state.showMembersModal) {
+            channelMembersModal = (
+                <ChannelMembersModal
+                    onModalDismissed={() => this.setState({showMembersModal: false})}
+                    showInviteModal={() => this.refs.channelInviteModalButton.show()}
+                    channel={channel}
+                    isAdmin={isAdmin}
+                />
+            );
+        }
+
+        let editPurposeModal;
+        if (this.state.showEditChannelPurposeModal) {
+            editPurposeModal = (
+                <EditChannelPurposeModal
+                    onModalDismissed={() => this.setState({showEditChannelPurposeModal: false})}
+                    channel={channel}
+                />
+            );
+        }
+
         return (
             <div
                 id='channel-header'
@@ -625,6 +695,7 @@ export default class ChannelHeader extends React.Component {
                             <th>
                                 <div className='channel-header__info'>
                                     {webrtc}
+                                    {toggleFavorite}
                                     <div className='dropdown'>
                                         <a
                                             href='#'
@@ -704,17 +775,8 @@ export default class ChannelHeader extends React.Component {
                         </tr>
                     </tbody>
                 </table>
-                <EditChannelPurposeModal
-                    show={this.state.showEditChannelPurposeModal}
-                    onModalDismissed={() => this.setState({showEditChannelPurposeModal: false})}
-                    channel={channel}
-                />
-                <ChannelMembersModal
-                    show={this.state.showMembersModal}
-                    onModalDismissed={() => this.setState({showMembersModal: false})}
-                    channel={channel}
-                    isAdmin={isAdmin}
-                />
+                {editPurposeModal}
+                {channelMembersModal}
                 <RenameChannelModal
                     show={this.state.showRenameChannelModal}
                     onHide={this.hideRenameChannelModal}

@@ -241,7 +241,6 @@ func (u *User) ClearNonProfileFields() {
 	u.Password = ""
 	u.AuthData = new(string)
 	*u.AuthData = ""
-	u.MfaActive = false
 	u.MfaSecret = ""
 	u.EmailVerified = false
 	u.AllowMarketing = false
@@ -338,6 +337,11 @@ func IsValidUserRoles(userRoles string) bool {
 		}
 	}
 
+	// Exclude just the system_admin role explicitly to prevent mistakes
+	if len(roles) == 1 && roles[0] == "system_admin" {
+		return false
+	}
+
 	return true
 }
 
@@ -405,6 +409,26 @@ func UserMapToJson(u map[string]*User) string {
 func UserMapFromJson(data io.Reader) map[string]*User {
 	decoder := json.NewDecoder(data)
 	var users map[string]*User
+	err := decoder.Decode(&users)
+	if err == nil {
+		return users
+	} else {
+		return nil
+	}
+}
+
+func UserListToJson(u []*User) string {
+	b, err := json.Marshal(u)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
+func UserListFromJson(data io.Reader) []*User {
+	decoder := json.NewDecoder(data)
+	var users []*User
 	err := decoder.Decode(&users)
 	if err == nil {
 		return users

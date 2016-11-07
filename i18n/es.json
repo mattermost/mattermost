@@ -204,6 +204,10 @@
     "translation": "carácter '__' inválido en el nombre del canal para un canal no-directo"
   },
   {
+    "id": "api.channel.create_channel.max_channel_limit.app_error",
+    "translation": "No se puede crear más de {{.MaxChannelsPerTeam}} canales para el equipo actual"
+  },
+  {
     "id": "api.channel.create_default_channels.off_topic",
     "translation": "Fuera de Tópico"
   },
@@ -625,11 +629,11 @@
   },
   {
     "id": "api.command_shortcuts.msgs",
-    "translation": "#### Mensajes\n\nESC: Marca todos los mensajes como leídos en el canal actual\nCTRL+ARRIBA (con el cuadro de texto vacío): Reimprime el último mensaje o comando de barra que ingresaste\nCTRL+ABAJO (con el cuadro de texto vacío): Reimprime el siguiente mensaje o comando de barra que ingresaste\nARRIBA (con el cuadro de texto vacío): Edita tu último mensaje en el canal en el que te encuentras\n@[carácter]+TAB: Auto completa @nombre que comience por [carácter]\n:[carácter]+TAB: Auto completa el emoji que comience por [carácter]\n\n"
+    "translation": "#### Mensajes\n\nALT+[clic en un mensaje]: Marca el mensaje como el último mensaje leído en el canal actual\nESC: Marca todos los mensajes como leídos en el canal actual\nCMD+ARRIBA (con el cuadro de texto vacío): Reimprime el último mensaje o comando de barra que ingresaste\nCMD+ABAJO (con el cuadro de texto vacío): Reimprime el siguiente mensaje o comando de barra que ingresaste\nARRIBA (con el cuadro de texto vacío): Edita tu último mensaje en el canal en el que te encuentras\n@[carácter]+TAB: Auto completa @nombre que comience por [carácter]\n:[carácter]+TAB: Auto completa el emoji que comience por [carácter]\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs_mac",
-    "translation": "#### Mensajes\n\nESC: Marca todos los mensajes como leídos en el canal actual\nCMD+ARRIBA (con el cuadro de texto vacío): Reimprime el último mensaje o comando de barra que ingresaste\nCMD+ABAJO (con el cuadro de texto vacío): Reimprime el siguiente mensaje o comando de barra que ingresaste\nARRIBA (con el cuadro de texto vacío): Edita tu último mensaje en el canal en el que te encuentras\n@[carácter]+TAB: Auto completa @nombre que comience por [carácter]\n:[carácter]+TAB: Auto completa el emoji que comience por [carácter]\n\n"
+    "translation": "#### Mensajes\n\nALT+[clic en un mensaje]: Marca el mensaje como el último mensaje leído en el canal actual\nESC: Marca todos los mensajes como leídos en el canal actual\nCMD+ARRIBA (con el cuadro de texto vacío): Reimprime el último mensaje o comando de barra que ingresaste\nCMD+ABAJO (con el cuadro de texto vacío): Reimprime el siguiente mensaje o comando de barra que ingresaste\nARRIBA (con el cuadro de texto vacío): Edita tu último mensaje en el canal en el que te encuentras\n@[carácter]+TAB: Auto completa @nombre que comience por [carácter]\n:[carácter]+TAB: Auto completa el emoji que comience por [carácter]\n\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -1528,12 +1532,16 @@
     "translation": "Falla al importar: {{.DisplayName}}\r\n"
   },
   {
-    "id": "api.slackimport.slack_add_channels.import_failed.debug",
-    "translation": "Falla al importar: %s"
+    "id": "api.slackimport.slack_add_channels.import_failed.warn",
+    "translation": "Importador de Slack: no se pudo importar el canal: %s"
   },
   {
     "id": "api.slackimport.slack_add_channels.merge",
     "translation": "Unificado al canal existente: {{.DisplayName}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.attach_files.error",
+    "translation": "Se encontró un error al adjuntar archivos al mensaje, post_id=%s, file_ids=%v, err=%v"
   },
   {
     "id": "api.slackimport.slack_add_posts.bot.warn",
@@ -1550,6 +1558,22 @@
   {
     "id": "api.slackimport.slack_add_posts.unsupported.warn",
     "translation": "Tipo de mensaje no soportado: %v, %v"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.upload_file_not_found.warn",
+    "translation": "No se encontró el archivo en la exportación de Slack para adjuntar al mensaje con ID de archivo {{.FileId}}"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.upload_file_not_in_json.warn",
+    "translation": "No se puede importar el archivo para adjuntar al mensaje sin la sección \"file\" presente en la exportación."
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.upload_file_open_failed.warn",
+    "translation": "No se puede abrir el archivo adjunto con ID {{.FileId}} en el archivo de exportación con error: {{.Error}}"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.upload_file_upload_failed.warn",
+    "translation": "Se produjo un error al subir un archivo adjunto al mensaje con ID del archivo {{.FileId}} con el siguiente error: {{.Error}}"
   },
   {
     "id": "api.slackimport.slack_add_posts.user_no_exists.debug",
@@ -1989,7 +2013,7 @@
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
-    "translation": "AMF no está disponible para este tipo de cuenta."
+    "translation": "MFA no está disponible para este tipo de cuenta."
   },
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
@@ -2033,11 +2057,11 @@
   },
   {
     "id": "api.user.check_user_mfa.bad_code.app_error",
-    "translation": "Token AMF inválido."
+    "translation": "Token MFA inválido."
   },
   {
     "id": "api.user.check_user_mfa.not_available.app_error",
-    "translation": "AMF no está configurado o no es soportado en este servidor"
+    "translation": "MFA no está configurado o no es soportado en este servidor"
   },
   {
     "id": "api.user.check_user_password.invalid.app_error",
@@ -2129,7 +2153,7 @@
   },
   {
     "id": "api.user.generate_mfa_qr.not_available.app_error",
-    "translation": "AMF no está configurado o disponible en este servidor"
+    "translation": "MFA no está configurado o disponible en este servidor"
   },
   {
     "id": "api.user.get_authorization_code.unsupported.app_error",
@@ -2293,7 +2317,7 @@
   },
   {
     "id": "api.user.update_mfa.not_available.app_error",
-    "translation": "AMF no está configurado o disponible en este servidor"
+    "translation": "MFA no está configurado o disponible en este servidor"
   },
   {
     "id": "api.user.update_password.context.app_error",
@@ -2384,8 +2408,12 @@
     "translation": "Enlace de verificación de correo electrónico errado."
   },
   {
+    "id": "api.web_hub.start.starting.debug",
+    "translation": "Iniciando %v centros de websocket"
+  },
+  {
     "id": "api.web_hub.start.stopping.debug",
-    "translation": "deteniendo conexiones %v"
+    "translation": "deteniendo conexiones de los centros de websocket"
   },
   {
     "id": "api.web_socket.connect.error",
@@ -2661,23 +2689,23 @@
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",
-    "translation": "Error intentando autenticar el token AMF"
+    "translation": "Error intentando autenticar el token MFA"
   },
   {
     "id": "ent.mfa.activate.bad_token.app_error",
-    "translation": "Token AMF inválido"
+    "translation": "Token MFA inválido"
   },
   {
     "id": "ent.mfa.activate.save_active.app_erro",
-    "translation": "No se pudo actualizar el estado activo AMF para el usuario"
+    "translation": "No se pudo actualizar el estado activo MFA para el usuario"
   },
   {
     "id": "ent.mfa.deactivate.save_active.app_erro",
-    "translation": "No se pudo actualizar el estado activo AMF para el usuario"
+    "translation": "No se pudo actualizar el estado activo MFA para el usuario"
   },
   {
     "id": "ent.mfa.deactivate.save_secret.app_error",
-    "translation": "Error al limpiar el secreto AMF"
+    "translation": "Error al limpiar el secreto MFA"
   },
   {
     "id": "ent.mfa.generate_qr_code.create_code.app_error",
@@ -2685,7 +2713,7 @@
   },
   {
     "id": "ent.mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Error guardando el secreto AMF"
+    "translation": "Error guardando el secreto MFA"
   },
   {
     "id": "ent.mfa.license_disable.app_error",
@@ -2693,7 +2721,7 @@
   },
   {
     "id": "ent.mfa.validate_token.authenticate.app_error",
-    "translation": "Error intentando autenticar el token AMF"
+    "translation": "Error intentando autenticar el token MFA"
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -3240,6 +3268,10 @@
     "translation": "Máximo de ráfagas debe ser mayor que cero."
   },
   {
+    "id": "model.config.is_valid.max_channels.app_error",
+    "translation": "Número inválido del máximo de canales por equipo en la configuración de equipo.  Debe ser un número positivo."
+  },
+  {
     "id": "model.config.is_valid.max_file_size.app_error",
     "translation": "El tamaño máximo de archivo para la configuración de archivos es inválido. Debe ser un cero o un número positivo."
   },
@@ -3597,7 +3629,7 @@
   },
   {
     "id": "model.team.is_valid.characters.app_error",
-    "translation": "Nombre tiene que ser de 4 o más caracteres alfanuméricos en minúsculas"
+    "translation": "Nombre debe tener 2 o más caracteres alfanuméricos en minúscula"
   },
   {
     "id": "model.team.is_valid.company.app_error",
@@ -4612,7 +4644,15 @@
     "translation": "No se encontró un miembro del equipo para el id de usuario y el id del equipo"
   },
   {
+    "id": "store.sql_team.get_member_count.app_error",
+    "translation": "No pudimos obtener los miembros del equipo"
+  },
+  {
     "id": "store.sql_team.get_members.app_error",
+    "translation": "No pudimos obtener los miembros del equipo"
+  },
+  {
+    "id": "store.sql_team.get_members_by_ids.app_error",
     "translation": "No pudimos obtener los miembros del equipo"
   },
   {
@@ -4702,6 +4742,10 @@
   {
     "id": "store.sql_user.get_profiles.app_error",
     "translation": "Encontramos un error mientras buscabamos los perfiles de usuario"
+  },
+  {
+    "id": "store.sql_user.get_recently_active_users.app_error",
+    "translation": "Hemos encontrado un error al buscar a los usuarios recientemente activos"
   },
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",
@@ -4825,11 +4869,11 @@
   },
   {
     "id": "store.sql_user.update_mfa_active.app_error",
-    "translation": "Encontramos un error al actualizar el estado activo AMF del usuario"
+    "translation": "Encontramos un error al actualizar el estado activo MFA del usuario"
   },
   {
     "id": "store.sql_user.update_mfa_secret.app_error",
-    "translation": "Encontramos un error al actualizar el secreto AMF del usuario"
+    "translation": "Encontramos un error al actualizar el secreto MFA del usuario"
   },
   {
     "id": "store.sql_user.update_password.app_error",

@@ -14,6 +14,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"runtime"
+	"runtime/pprof"
 	"strconv"
 	"strings"
 	"syscall"
@@ -83,6 +84,10 @@ var flagChannelHeader string
 var flagChannelPurpose string
 var flagUserSetInactive bool
 var flagImportArchive string
+var flagCpuProfile bool
+var flagMemProfile bool
+var flagBlockProfile bool
+var flagHttpProfiler bool
 
 func doLoadConfig(filename string) (err string) {
 	defer func() {
@@ -122,7 +127,26 @@ func main() {
 
 	cmdUpdateDb30()
 
-	api.NewServer()
+	if flagCpuProfile {
+		f, err := os.Create(utils.GetLogFileLocation(utils.Cfg.LogSettings.FileLocation) + ".cpu.prof")
+		if err != nil {
+			l4g.Error("Error creating cpu profile log: " + err.Error())
+		}
+
+		l4g.Info("CPU Profiler is logging to " + utils.GetLogFileLocation(utils.Cfg.LogSettings.FileLocation) + ".cpu.prof")
+		pprof.StartCPUProfile(f)
+	}
+
+	if flagBlockProfile {
+		l4g.Info("Block Profiler is logging to " + utils.GetLogFileLocation(utils.Cfg.LogSettings.FileLocation) + ".blk.prof")
+		runtime.SetBlockProfileRate(1)
+	}
+
+	if flagMemProfile {
+		l4g.Info("Memory Profiler is logging to " + utils.GetLogFileLocation(utils.Cfg.LogSettings.FileLocation) + ".mem.prof")
+	}
+
+	api.NewServer(flagHttpProfiler)
 	api.InitApi()
 	web.InitWeb()
 
@@ -169,6 +193,37 @@ func main() {
 		}
 
 		api.StopServer()
+
+		if flagCpuProfile {
+			l4g.Info("Closing CPU Profiler")
+			pprof.StopCPUProfile()
+		}
+
+		if flagBlockProfile {
+			f, err := os.Create(utils.GetLogFileLocation(utils.Cfg.LogSettings.FileLocation) + ".blk.prof")
+			if err != nil {
+				l4g.Error("Error creating block profile log: " + err.Error())
+			}
+
+			l4g.Info("Writing Block Profiler to: " + utils.GetLogFileLocation(utils.Cfg.LogSettings.FileLocation) + ".blk.prof")
+			pprof.Lookup("block").WriteTo(f, 0)
+			f.Close()
+			runtime.SetBlockProfileRate(0)
+		}
+
+		if flagMemProfile {
+			f, err := os.Create(utils.GetLogFileLocation(utils.Cfg.LogSettings.FileLocation) + ".mem.prof")
+			if err != nil {
+				l4g.Error("Error creating memory profile file: " + err.Error())
+			}
+
+			l4g.Info("Writing Memory Profiler to: " + utils.GetLogFileLocation(utils.Cfg.LogSettings.FileLocation) + ".mem.prof")
+			runtime.GC()
+			if err := pprof.WriteHeapProfile(f); err != nil {
+				l4g.Error("Error creating memory profile: " + err.Error())
+			}
+			f.Close()
+		}
 	}
 }
 
@@ -380,6 +435,10 @@ func parseCmds() {
 	flag.BoolVar(&flagCmdActivateUser, "activate_user", false, "")
 	flag.BoolVar(&flagCmdSlackImport, "slack_import", false, "")
 	flag.BoolVar(&flagUserSetInactive, "inactive", false, "")
+	flag.BoolVar(&flagCpuProfile, "cpuprofile", false, "")
+	flag.BoolVar(&flagMemProfile, "memprofile", false, "")
+	flag.BoolVar(&flagBlockProfile, "blkprofile", false, "")
+	flag.BoolVar(&flagHttpProfiler, "httpprofiler", false, "")
 
 	flag.Parse()
 
@@ -645,6 +704,15 @@ func cmdAssignRole() {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -email")
 			flag.Usage()
 			os.Exit(1)
+		}
+
+		// Do some conversions
+		if flagRole == "system_admin" {
+			flagRole = "system_user system_admin"
+		}
+
+		if flagRole == "" {
+			flagRole = "system_user"
 		}
 
 		if !model.IsValidUserRoles(flagRole) {
@@ -1414,6 +1482,8 @@ func cmdSlackImport() {
 		fmt.Fprintln(os.Stdout, "Running Slack Import. This may take a long time for large teams or teams with many messages.")
 
 		api.SlackImport(fileReader, fileInfo.Size(), team.Id)
+
+		flushLogAndExit(0)
 	}
 }
 
@@ -1466,7 +1536,7 @@ FLAGS:
 
     -role="system_admin"              The role used in other commands
                                       valid values are
-                                        "" - The empty role is basic user
+                                        "system_user" - Is basic user
                                            permissions
                                         "system_admin" - Represents a system
                                            admin who has access to all teams
@@ -1511,7 +1581,7 @@ COMMANDS:
     -assign_role                      Assigns role to a user.  It requires the -role and
                                       -email flag.  You may need to log out
                                       of your current sessions for the new role to be
-                                      applied.
+                                      applied. For system admin use "system_admin". For Regular user just use "system_user".
         Example:
             platform -assign_role -email="user@example.com" -role="system_admin"
 
