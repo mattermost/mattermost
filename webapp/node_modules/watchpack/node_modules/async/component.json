@@ -1,0 +1,17 @@
+{
+  "name": "async",
+  "description": "Higher-order functions and common patterns for asynchronous code",
+  "version": "2.0.0-rc.4",
+  "keywords": [
+    "async",
+    "callback",
+    "module",
+    "utility"
+  ],
+  "license": "MIT",
+  "main": "dist/async.js",
+  "repository": "caolan/async",
+  "scripts": [
+    "dist/async.js"
+  ]
+}

@@ -1,0 +1,296 @@
+{
+  "title":"SVG SMIL animation",
+  "description":"Method of using animation elements to animate SVG images",
+  "spec":"http://www.w3.org/TR/SVG/animate.html",
+  "status":"rec",
+  "links":[
+    {
+      "url":"http://svg-wow.org/blog/category/animation/",
+      "title":"Examples on SVG WOW"
+    },
+    {
+      "url":"https://developer.mozilla.org/en/SVG/SVG_animation_with_SMIL",
+      "title":"MDN article"
+    },
+    {
+      "url":"http://leunen.me/fakesmile/",
+      "title":"JS library to support SMIL in SVG"
+    },
+    {
+      "url":"https://raw.github.com/phiggins42/has.js/master/detect/graphics.js#svg-smil",
+      "title":"has.js test"
+    },
+    {
+      "url":"https://github.com/madsgraphics/SVGEventListener",
+      "title":"Polyfill for SMIL animate events on SVG"
+    }
+  ],
+  "bugs":[
+    {
+      "description":"No events are fired at all in WebKit/Blink browsers during animation (onbegin/onrepeat/onend) [see bug](https://bugs.webkit.org/show_bug.cgi?id=63727)"
+    },
+    {
+      "description":"Animation in SVG is not supported in inline SVG on Android browsers prior to version 4.4."
+    }
+  ],
+  "categories":[
+    "SVG"
+  ],
+  "stats":{
+    "ie":{
+      "5.5":"n",
+      "6":"p",
+      "7":"p",
+      "8":"p",
+      "9":"p",
+      "10":"p",
+      "11":"p"
+    },
+    "edge":{
+      "12":"p",
+      "13":"p",
+      "14":"p"
+    },
+    "firefox":{
+      "2":"p",
+      "3":"p",
+      "3.5":"p",
+      "3.6":"p",
+      "4":"y",
+      "5":"y",
+      "6":"y",
+      "7":"y",
+      "8":"y",
+      "9":"y",
+      "10":"y",
+      "11":"y",
+      "12":"y",
+      "13":"y",
+      "14":"y",
+      "15":"y",
+      "16":"y",
+      "17":"y",
+      "18":"y",
+      "19":"y",
+      "20":"y",
+      "21":"y",
+      "22":"y",
+      "23":"y",
+      "24":"y",
+      "25":"y",
+      "26":"y",
+      "27":"y",
+      "28":"y",
+      "29":"y",
+      "30":"y",
+      "31":"y",
+      "32":"y",
+      "33":"y",
+      "34":"y",
+      "35":"y",
+      "36":"y",
+      "37":"y",
+      "38":"y",
+      "39":"y",
+      "40":"y",
+      "41":"y",
+      "42":"y",
+      "43":"y",
+      "44":"y",
+      "45":"y",
+      "46":"y",
+      "47":"y",
+      "48":"y",
+      "49":"y",
+      "50":"y",
+      "51":"y",
+      "52":"y"
+    },
+    "chrome":{
+      "4":"a",
+      "5":"y",
+      "6":"y",
+      "7":"y",
+      "8":"y",
+      "9":"y",
+      "10":"y",
+      "11":"y",
+      "12":"y",
+      "13":"y",
+      "14":"y",
+      "15":"y",
+      "16":"y",
+      "17":"y",
+      "18":"y",
+      "19":"y",
+      "20":"y",
+      "21":"y",
+      "22":"y",
+      "23":"y",
+      "24":"y",
+      "25":"y",
+      "26":"y",
+      "27":"y",
+      "28":"y",
+      "29":"y",
+      "30":"y",
+      "31":"y",
+      "32":"y",
+      "33":"y",
+      "34":"y",
+      "35":"y",
+      "36":"y",
+      "37":"y",
+      "38":"y",
+      "39":"y",
+      "40":"y",
+      "41":"y",
+      "42":"y",
+      "43":"y",
+      "44":"y",
+      "45":"y #2",
+      "46":"y #2",
+      "47":"y #2",
+      "48":"y #2",
+      "49":"y #2",
+      "50":"y #2",
+      "51":"y #2",
+      "52":"y #2",
+      "53":"y #2",
+      "54":"y #2",
+      "55":"y #2",
+      "56":"y #2",
+      "57":"y #2"
+    },
+    "safari":{
+      "3.1":"p",
+      "3.2":"p",
+      "4":"a #1",
+      "5":"a #1",
+      "5.1":"a #1",
+      "6":"y",
+      "6.1":"y",
+      "7":"y",
+      "7.1":"y",
+      "8":"y",
+      "9":"y",
+      "9.1":"y",
+      "10":"y",
+      "TP":"y"
+    },
+    "opera":{
+      "9":"y",
+      "9.5-9.6":"y",
+      "10.0-10.1":"y",
+      "10.5":"y",
+      "10.6":"y",
+      "11":"y",
+      "11.1":"y",
+      "11.5":"y",
+      "11.6":"y",
+      "12":"y",
+      "12.1":"y",
+      "15":"y",
+      "16":"y",
+      "17":"y",
+      "18":"y",
+      "19":"y",
+      "20":"y",
+      "21":"y",
+      "22":"y",
+      "23":"y",
+      "24":"y",
+      "25":"y",
+      "26":"y",
+      "27":"y",
+      "28":"y",
+      "29":"y",
+      "30":"y",
+      "31":"y",
+      "32":"y #2",
+      "33":"y #2",
+      "34":"y #2",
+      "35":"y #2",
+      "36":"y #2",
+      "37":"y #2",
+      "38":"y #2",
+      "39":"y #2",
+      "40":"y #2",
+      "41":"y #2",
+      "42":"y #2",
+      "43":"y #2"
+    },
+    "ios_saf":{
+      "3.2":"a #1",
+      "4.0-4.1":"a #1",
+      "4.2-4.3":"a #1",
+      "5.0-5.1":"a #1",
+      "6.0-6.1":"y",
+      "7.0-7.1":"y",
+      "8":"y",
+      "8.1-8.4":"y",
+      "9.0-9.2":"y",
+      "9.3":"y",
+      "10":"y"
+    },
+    "op_mini":{
+      "all":"n"
+    },
+    "android":{
+      "2.1":"n",
+      "2.2":"n",
+      "2.3":"n",
+      "3":"y",
+      "4":"y",
+      "4.1":"y",
+      "4.2-4.3":"y",
+      "4.4":"y",
+      "4.4.3-4.4.4":"y",
+      "53":"y"
+    },
+    "bb":{
+      "7":"y",
+      "10":"y"
+    },
+    "op_mob":{
+      "10":"y",
+      "11":"y",
+      "11.1":"y",
+      "11.5":"y",
+      "12":"y",
+      "12.1":"y",
+      "37":"y"
+    },
+    "and_chr":{
+      "53":"y"
+    },
+    "and_ff":{
+      "49":"y"
+    },
+    "ie_mob":{
+      "10":"p",
+      "11":"p"
+    },
+    "and_uc":{
+      "11":"y"
+    },
+    "samsung":{
+      "4":"y"
+    }
+  },
+  "notes":"",
+  "notes_by_num":{
+    "1":"Partial support in older Safari versions refers to not working in HTML files or CSS background images.",
+    "2":"As of Chrome 45 & Opera 32 SMIL is deprecated and usage will result in a warning in the console. Support is expected to be dropped in some future version."
+  },
+  "usage_perc_y":86.64,
+  "usage_perc_a":0.15,
+  "ucprefix":false,
+  "parent":"",
+  "keywords":"svg animation",
+  "ie_id":"svgsmilanimation",
+  "chrome_id":"",
+  "firefox_id":"",
+  "webkit_id":"",
+  "shown":true
+}

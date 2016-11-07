@@ -1,0 +1,5 @@
+true
+/*
+    This block comment doesn't terminate.
+    There was a legitimate value before this,
+    but this is still invalid JS/JSON5.

@@ -1,0 +1,36 @@
+// 
+// A partial implementation of the Ruby display functions from Compass:
+// https://github.com/Compass/compass/blob/stable/core/lib/compass/core/sass_extensions/functions/display.rb
+// 
+
+@function elements-of-type($type){
+    @if ($type == block){
+        @return address, article, aside, blockquote, center, dir, div, dd, details, dl, dt, fieldset, figcaption, figure, form, footer, frameset, h1, h2, h3, h4, h5, h6, hr, header, hgroup, isindex, main, menu, nav, noframes, noscript, ol, p, pre, section, summary, ul;
+    } @else if ($type == inline){
+        @return a, abbr, acronym, audio, b, basefont, bdo, big, br, canvas, cite, code, command, datalist, dfn, em, embed, font, i, img, input, keygen, kbd, label, mark, meter, output, progress, q, rp, rt, ruby, s, samp, select, small, span, strike, strong, sub, sup, textarea, time, tt, u, var, video, wbr;
+    } @else if ($type == inline-block){
+        @return img;
+    } @else if ($type == table){
+        @return table;
+    } @else if ($type == list-item){
+        @return li;
+    } @else if ($type == table-row-group){
+        @return tbody;
+    } @else if ($type == table-header-group){
+        @return thead;
+    } @else if ($type == table-footer-group){
+        @return tfoot;
+    } @else if ($type == table-row){
+        @return tr;
+    } @else if ($type == table-cell){
+        @return th, td;
+    } @else if ($type == html5-block){
+        @return article, aside, details, figcaption, figure, footer, header, hgroup, main, menu, nav, section, summary;
+    } @else if ($type == html5-inline){
+        @return audio, canvas, command, datalist, embed, keygen, mark, meter, output, progress, rp, rt, ruby, time, video, wbr;
+    } @else if ($type == html5){
+        @return article, aside, audio, canvas, command, datalist, details, embed, figcaption, figure, footer, header, hgroup, keygen, main, mark, menu, meter, nav, output, progress, rp, rt, ruby, section, summary, time, video, wbr;
+    } @else if ($type == text-input){
+        @return input, textarea;
+    }
+}

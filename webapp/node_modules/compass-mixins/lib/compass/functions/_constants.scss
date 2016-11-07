@@ -1,0 +1,18 @@
+// 
+// A partial implementation of the Ruby constants functions from Compass:
+// https://github.com/Compass/compass/blob/stable/lib/compass/sass_extensions/functions/constants.rb
+// 
+
+@function opposite-position($from) {
+    @if ($from == top) {
+        @return bottom;
+    } @else if ($from == bottom) {
+        @return top;
+    } @else if ($from == left) {
+        @return right;
+    } @else if ($from == right) {
+        @return left;
+    } @else if ($from == center) {
+        @return center;
+    }
+}

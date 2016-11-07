@@ -1,0 +1,32 @@
+{
+  "title": "UAParser.js",
+  "name": "ua-parser-js",
+  "version": "0.7.11",
+  "description": "Lightweight JavaScript-based user-agent string parser",
+  "keywords": [
+    "user-agent",
+    "parser",
+    "browser",
+    "engine",
+    "os",
+    "device",
+    "cpu"
+  ],
+  "homepage": "https://faisalman.github.com/ua-parser-js",
+  "author": {
+    "name": "Faisal Salman",
+    "email": "fyzlman@gmail.com"
+  },
+  "dependencies": {
+    "jquery": ">=1.5"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://www.opensource.org/licenses/mit-license.php"
+    }
+  ],
+  "bugs": "https://github.com/faisalman/ua-parser-js/issues",
+  "docs": "https://github.com/faisalman/ua-parser-js",
+  "download": "https://raw.github.com/faisalman/ua-parser-js/master/dist/ua-parser.min.js"
+}

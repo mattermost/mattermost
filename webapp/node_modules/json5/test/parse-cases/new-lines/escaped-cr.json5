@@ -1,0 +1,1 @@
+{    // the following string contains an escaped `\r`    a: 'line 1 \line 2'}

@@ -1,0 +1,306 @@
+{
+  "title":"Full Screen API",
+  "description":"API for allowing content (like a video or canvas element) to take up the entire screen.",
+  "spec":"https://fullscreen.spec.whatwg.org/",
+  "status":"ls",
+  "links":[
+    {
+      "url":"https://developer.mozilla.org/en/DOM/Using_full-screen_mode",
+      "title":"MDN article"
+    },
+    {
+      "url":"http://jlongster.com/2011/11/21/canvas.html",
+      "title":"Blog post"
+    },
+    {
+      "url":"http://hacks.mozilla.org/2012/01/using-the-fullscreen-api-in-web-browsers/",
+      "title":"Mozilla hacks article"
+    },
+    {
+      "url":"http://docs.webplatform.org/wiki/dom/Element/requestFullscreen",
+      "title":"WebPlatform Docs"
+    }
+  ],
+  "bugs":[
+    {
+      "description":"IE 11 doesn't allow going to fullscreen mode when the event that triggers `msRequestFullscreen()` is a `keydown` or `pointerdown` event (`keypress` and `click` do work)"
+    },
+    {
+      "description":"Safari blocks access to keyboard events in fullscreen mode (as a security measure)."
+    },
+    {
+      "description":"Safari doesn't support stacking, meaning only one element can be set to full screen. `webkitRequestFullScreen()` is ignored for other elements and no error event is dispatched."
+    },
+    {
+      "description":"IE 11 does not allow scrolling when document.documentElement is set to full screen."
+    },
+    {
+      "description":"IE 11 does not properly support fullscreen when opening from an iframe."
+    },
+    {
+      "description":"Opera 12.1 uses the older specificaton's `:fullscreen-ancestor` pseudo-class instead of the  the `::backdrop` pseudo-element."
+    }
+  ],
+  "categories":[
+    "JS API"
+  ],
+  "stats":{
+    "ie":{
+      "5.5":"n",
+      "6":"n",
+      "7":"n",
+      "8":"n",
+      "9":"n",
+      "10":"n",
+      "11":"a x #3"
+    },
+    "edge":{
+      "12":"a #3",
+      "13":"a #3",
+      "14":"a #3"
+    },
+    "firefox":{
+      "2":"n",
+      "3":"n",
+      "3.5":"n",
+      "3.6":"n",
+      "4":"n",
+      "5":"n",
+      "6":"n",
+      "7":"n",
+      "8":"n",
+      "9":"n",
+      "10":"a x #1 #3",
+      "11":"a x #1 #3",
+      "12":"a x #1 #3",
+      "13":"a x #1 #3",
+      "14":"a x #1 #3",
+      "15":"a x #1 #3",
+      "16":"a x #1 #3",
+      "17":"a x #1 #3",
+      "18":"a x #1 #3",
+      "19":"a x #1 #3",
+      "20":"a x #1 #3",
+      "21":"a x #1 #3",
+      "22":"a x #1 #3",
+      "23":"a x #1 #3",
+      "24":"a x #1 #3",
+      "25":"a x #1 #3",
+      "26":"a x #1 #3",
+      "27":"a x #1 #3",
+      "28":"a x #1 #3",
+      "29":"a x #1 #3",
+      "30":"a x #1 #3",
+      "31":"a x #1 #3",
+      "32":"a x #1 #3",
+      "33":"a x #1 #3",
+      "34":"a x #1 #3",
+      "35":"a x #1 #3",
+      "36":"a x #1 #3",
+      "37":"a x #1 #3",
+      "38":"a x #1 #3",
+      "39":"a x #1 #3",
+      "40":"a x #1 #3",
+      "41":"a x #1 #3",
+      "42":"a x #1 #3",
+      "43":"a x #1 #3",
+      "44":"a x #1 #3",
+      "45":"a x #1 #3",
+      "46":"a x #1 #3",
+      "47":"a x #1 #3 #4",
+      "48":"a x #1 #3 #4",
+      "49":"a x #1 #3 #4",
+      "50":"a x #1 #3 #4",
+      "51":"a x #1 #3 #4",
+      "52":"a x #1 #3 #4"
+    },
+    "chrome":{
+      "4":"n",
+      "5":"n",
+      "6":"n",
+      "7":"n",
+      "8":"n",
+      "9":"n",
+      "10":"n",
+      "11":"n",
+      "12":"n",
+      "13":"n",
+      "14":"n",
+      "15":"a x #1 #3",
+      "16":"a x #1 #3",
+      "17":"a x #1 #3",
+      "18":"a x #1 #3",
+      "19":"a x #1 #3",
+      "20":"a x #2 #3",
+      "21":"a x #2 #3",
+      "22":"a x #2 #3",
+      "23":"a x #2 #3",
+      "24":"a x #2 #3",
+      "25":"a x #2 #3",
+      "26":"a x #2 #3",
+      "27":"a x #2 #3",
+      "28":"a x #2 #3",
+      "29":"a x #2 #3",
+      "30":"a x #2 #3",
+      "31":"a x #2 #3",
+      "32":"a x #2 #3",
+      "33":"a x #2 #3",
+      "34":"a x #2 #3",
+      "35":"a x #2 #3",
+      "36":"a x #2 #3",
+      "37":"a x #2 #3",
+      "38":"a x #2 #3",
+      "39":"a x #2 #3",
+      "40":"a x #2 #3",
+      "41":"a x #2 #3",
+      "42":"a x #2 #3",
+      "43":"a x #2 #3",
+      "44":"a x #2 #3",
+      "45":"a x #2 #3",
+      "46":"a x #2 #3",
+      "47":"a x #2 #3",
+      "48":"a x #2 #3",
+      "49":"a x #2 #3",
+      "50":"a x #2 #3",
+      "51":"a x #2 #3",
+      "52":"a x #2 #3",
+      "53":"a x #2 #3",
+      "54":"a x #2 #3",
+      "55":"a x #2 #3",
+      "56":"a x #2 #3",
+      "57":"a x #2 #3"
+    },
+    "safari":{
+      "3.1":"n",
+      "3.2":"n",
+      "4":"n",
+      "5":"n",
+      "5.1":"a x #1 #3",
+      "6":"a x #2 #3",
+      "6.1":"a x #2 #3",
+      "7":"a x #2 #3",
+      "7.1":"a x #2 #3",
+      "8":"a x #2 #3",
+      "9":"a x #2 #3",
+      "9.1":"a x #2 #3",
+      "10":"a x #2 #3",
+      "TP":"a x #2 #3"
+    },
+    "opera":{
+      "9":"n",
+      "9.5-9.6":"n",
+      "10.0-10.1":"n",
+      "10.5":"n",
+      "10.6":"n",
+      "11":"n",
+      "11.1":"n",
+      "11.5":"n",
+      "11.6":"n",
+      "12":"n",
+      "12.1":"y",
+      "15":"a x #2 #3",
+      "16":"a x #2 #3",
+      "17":"a x #2 #3",
+      "18":"a x #2 #3",
+      "19":"a x #2 #3",
+      "20":"a x #2 #3",
+      "21":"a x #2 #3",
+      "22":"a x #2 #3",
+      "23":"a x #2 #3",
+      "24":"a x #2 #3",
+      "25":"a x #2 #3",
+      "26":"a x #2 #3",
+      "27":"a x #2 #3",
+      "28":"a x #2 #3",
+      "29":"a x #2 #3",
+      "30":"a x #2 #3",
+      "31":"a x #2 #3",
+      "32":"a x #2 #3",
+      "33":"a x #2 #3",
+      "34":"a x #2 #3",
+      "35":"a x #2 #3",
+      "36":"a x #2 #3",
+      "37":"a x #2 #3",
+      "38":"a x #2 #3",
+      "39":"a x #2 #3",
+      "40":"a x #2 #3",
+      "41":"a x #2 #3",
+      "42":"a x #2 #3",
+      "43":"a x #2 #3"
+    },
+    "ios_saf":{
+      "3.2":"n",
+      "4.0-4.1":"n",
+      "4.2-4.3":"n",
+      "5.0-5.1":"n",
+      "6.0-6.1":"n",
+      "7.0-7.1":"n",
+      "8":"n",
+      "8.1-8.4":"n",
+      "9.0-9.2":"n",
+      "9.3":"n",
+      "10":"n"
+    },
+    "op_mini":{
+      "all":"n"
+    },
+    "android":{
+      "2.1":"n",
+      "2.2":"n",
+      "2.3":"n",
+      "3":"n",
+      "4":"n",
+      "4.1":"n",
+      "4.2-4.3":"n",
+      "4.4":"n",
+      "4.4.3-4.4.4":"n",
+      "53":"n"
+    },
+    "bb":{
+      "7":"n",
+      "10":"a x #2"
+    },
+    "op_mob":{
+      "10":"n",
+      "11":"n",
+      "11.1":"n",
+      "11.5":"n",
+      "12":"n",
+      "12.1":"n",
+      "37":"a x #2 #3"
+    },
+    "and_chr":{
+      "53":"a x #2 #3"
+    },
+    "and_ff":{
+      "49":"a x #1 #3 #4"
+    },
+    "ie_mob":{
+      "10":"n",
+      "11":"a x #3"
+    },
+    "and_uc":{
+      "11":"n"
+    },
+    "samsung":{
+      "4":"a x #2 #3"
+    }
+  },
+  "notes":"",
+  "notes_by_num":{
+    "1":"Partial support refers to supporting an earlier draft of the spec.",
+    "2":"Partial support refers to not supporting `::backdrop`, and supporting the old `:full-screen` syntax rather than the standard `:fullscreen`.",
+    "3":"Partial support refers to not returning a Promise, as specified in the latest version of the spec.",
+    "4":"Unprefixed support is available behind the `full-screen-api.unprefix.enabled` flag"
+  },
+  "usage_perc_y":0.15,
+  "usage_perc_a":70.81,
+  "ucprefix":false,
+  "parent":"",
+  "keywords":"full-screen",
+  "ie_id":"fullscreenapi",
+  "chrome_id":"5259513871466496",
+  "firefox_id":"fullscreen",
+  "webkit_id":"",
+  "shown":true
+}

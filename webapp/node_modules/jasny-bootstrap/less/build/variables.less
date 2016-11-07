@@ -1,0 +1,218 @@
+//
+// These variables are used when Jasny Bootstrap is built
+// without importing vanilla Bootstrap.
+// --------------------------------------------------------
+
+//-- Colors
+//
+//## Gray colors for use across Bootstrap.
+
+@gray-darker:            lighten(#000, 13.5%); // #222
+@gray-dark:              lighten(#000, 20%);   // #333
+@gray:                   lighten(#000, 33.5%); // #555
+@gray-light:             lighten(#000, 60%);   // #999
+@gray-lighter:           lighten(#000, 93.5%); // #eee
+
+//-- Typography
+//
+//## Font size and line-height.
+
+@font-size-base:          14px;
+@font-size-large:         ceil((@font-size-base * 1.25)); // ~18px
+@font-size-small:         ceil((@font-size-base * 0.85)); // ~12px
+
+//** Unit-less `line-height` for use in components like buttons.
+@line-height-base:        1.428571429; // 20/14
+//** Computed "line-height" (`font-size` * `line-height`) for use with `margin`, `padding`, etc.
+@line-height-computed:    floor((@font-size-base * @line-height-base)); // ~20px
+
+
+//== Components
+//
+//## Define common padding and border radius sizes and more. Values based on 14px text and 1.428 line-height (~20px to start).
+
+@padding-base-vertical:     6px;
+@padding-base-horizontal:   12px;
+
+@padding-large-vertical:    10px;
+@padding-large-horizontal:  16px;
+
+@padding-small-vertical:    5px;
+@padding-small-horizontal:  10px;
+
+@padding-xs-vertical:       1px;
+@padding-xs-horizontal:     5px;
+
+@line-height-large:         1.33;
+@line-height-small:         1.5;
+
+@border-radius-base:        4px;
+@border-radius-large:       6px;
+@border-radius-small:       3px;
+
+
+//== Tables
+//
+//## Customizes the `.table` component with basic values, each used across all table variations.
+
+//** Background color used for `.table-hover`.
+@table-bg-hover:                #f5f5f5;
+
+
+//-- Z-index master list
+//
+// Warning: Avoid customizing these values. They're used for a bird's eye view
+// of components dependent on the z-axis and are designed to all work together.
+//
+// Note: These variables are not generated into the Customizer.
+
+@zindex-navmenu-fixed:     1030;
+@zindex-alert-fixed:       1035;
+
+@zindex-modal:             1050;
+
+
+//== Media queries breakpoints
+//
+//## Define the breakpoints at which your layout will change, adapting to different screen sizes.
+
+// Extra small screen / phone
+@screen-xs:              480px;
+
+// Small screen / tablet
+@screen-sm:              768px;
+
+// Medium screen / desktop
+@screen-md:              992px;
+
+// Large screen / wide desktop
+@screen-lg:              1200px;
+
+//-- So media queries don't overlap when required, provide a maximum
+//
+// Note: These variables are not generated into the Customizer.
+@screen-xs-min:              @screen-xs;
+@screen-sm-min:              @screen-sm;
+@screen-md-min:              @screen-md;
+@screen-lg-min:              @screen-lg;
+
+@screen-xs-max:              (@screen-sm-min - 1);
+@screen-sm-max:              (@screen-md-min - 1);
+@screen-md-max:              (@screen-lg-min - 1);
+
+//--
+@container-lg:              ((1140px + @grid-gutter-width));
+
+//== Grid system
+//
+//## Define your custom responsive grid.
+
+//** Padding between columns. Gets divided in half for the left and right.
+@grid-gutter-width:         30px;
+//** Point at which the navbar becomes uncollapsed.
+@grid-float-breakpoint:     768px;
+
+//** Maximum with of a smooth container.
+@container-smooth:          @container-lg;
+
+//== Navbar
+//
+//##
+
+// Basics of a navbar
+@navbar-height:                    50px;
+@navbar-padding-horizontal:        floor((@grid-gutter-width / 2));
+@navbar-padding-vertical:          ((@navbar-height - @line-height-computed) / 2);
+
+
+//== Navmenu
+//
+//##
+
+// Basics of a navmenu
+@navmenu-width:                     300px;
+@navmenu-margin-vertical:           (0.5 * @line-height-computed);
+@navmenu-default-color:             #777;
+@navmenu-default-bg:                #f8f8f8;
+@navmenu-default-border:            darken(@navmenu-default-bg, 6.5%);
+
+// Navmenu links
+@navmenu-default-link-color:                #777;
+@navmenu-default-link-hover-color:          #333;
+@navmenu-default-link-hover-bg:             transparent;
+@navmenu-default-link-active-color:         #555;
+@navmenu-default-link-active-bg:            darken(@navmenu-default-bg, 6.5%);
+@navmenu-default-link-disabled-color:       #ccc;
+@navmenu-default-link-disabled-bg:          transparent;
+
+// Navmenu brand label
+@navmenu-default-brand-color:               @navmenu-default-link-color;
+@navmenu-default-brand-hover-color:         darken(@navmenu-default-link-color, 10%);
+@navmenu-default-brand-hover-bg:            transparent;
+
+
+// Inverted navmenu
+//
+// Reset inverted navmenu basics
+@navmenu-inverse-color:                      @gray-light;
+@navmenu-inverse-bg:                         #222;
+@navmenu-inverse-border:                     darken(@navmenu-inverse-bg, 10%);
+
+// Inverted navmenu links
+@navmenu-inverse-link-color:                 @gray-light;
+@navmenu-inverse-link-hover-color:           #fff;
+@navmenu-inverse-link-hover-bg:              transparent;
+@navmenu-inverse-link-active-color:          @navmenu-inverse-link-hover-color;
+@navmenu-inverse-link-active-bg:             darken(@navmenu-inverse-bg, 10%);
+@navmenu-inverse-link-disabled-color:        #444;
+@navmenu-inverse-link-disabled-bg:           transparent;
+
+// Inverted navmenu brand label
+@navmenu-inverse-brand-color:                @navmenu-inverse-link-color;
+@navmenu-inverse-brand-hover-color:          #fff;
+@navmenu-inverse-brand-hover-bg:             transparent;
+
+// Inverted navmenu search
+// Normal navmenu needs no special styles or vars
+@navmenu-inverse-search-bg:                  lighten(@navmenu-inverse-bg, 25%);
+@navmenu-inverse-search-bg-focus:            #fff;
+@navmenu-inverse-search-border:              @navmenu-inverse-bg;
+@navmenu-inverse-search-placeholder-color:   #ccc;
+
+
+//== Navs
+//
+//##
+
+@nav-link-padding:                          10px 15px;
+@nav-tabs-active-link-hover-border-color:   #ddd;
+@nav-tabs-border-color:                     #ddd;
+
+
+//== Form states and alerts
+//
+//## Define colors for form feedback states and, by default, alerts.
+
+@state-success-text:             #3c763d;
+@state-success-bg:               #dff0d8;
+@state-success-border:           darken(spin(@state-success-bg, -10), 5%);
+
+@state-info-text:                #31708f;
+@state-info-bg:                  #d9edf7;
+@state-info-border:              darken(spin(@state-info-bg, -10), 7%);
+
+@state-warning-text:             #8a6d3b;
+@state-warning-bg:               #fcf8e3;
+@state-warning-border:           darken(spin(@state-warning-bg, -10), 5%);
+
+@state-danger-text:              #a94442;
+@state-danger-bg:                #f2dede;
+@state-danger-border:            darken(spin(@state-danger-bg, -10), 5%);
+
+
+//== Alerts
+//
+//## Define alert colors, border radius, and padding.
+
+@alert-border-radius:         @border-radius-base;
+@alert-fixed-width:           @screen-md;

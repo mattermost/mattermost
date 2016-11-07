@@ -1,0 +1,55 @@
+{
+  "esnext": true,
+  "requireSemicolons": true,
+  "validateLineBreaks": "LF",
+  "validateIndentation": 8,
+  "validateQuoteMarks": "'",
+  "maximumLineLength": {
+    "value": 120
+  },
+  "validateParameterSeparator": ", ",
+  "disallowMultipleVarDecl": true,
+  "disallowTrailingComma": true,
+  "disallowTrailingWhitespace": true,
+  "disallowYodaConditions": true,
+  "disallowSpacesInFunctionDeclaration": {
+    "beforeOpeningRoundBrace": true
+  },
+  "disallowSpacesInFunctionExpression": {
+    "beforeOpeningRoundBrace": true
+  },
+  "disallowNewlineBeforeBlockStatements": true,
+  "requireAlignedObjectValues": "all",
+  "requireBlocksOnNewline": true,
+  "requireCamelCaseOrUpperCaseIdentifiers": true,
+  "requireCapitalizedConstructors": true,
+  "requireCommaBeforeLineBreak": true,
+  "requireCurlyBraces": [
+    "if",
+    "else",
+    "for",
+    "while",
+    "do",
+    "try",
+    "catch"
+  ],
+  "requireDotNotation": "except_snake_case",
+  "requireKeywordsOnNewLine": ["else", "catch"],
+  "requireLineBreakAfterVariableAssignment": true,
+  "requireLineFeedAtFileEnd": true,
+  "requirePaddingNewLinesAfterUseStrict": true,
+  "requirePaddingNewLinesBeforeExport": true,
+  "requirePaddingNewlinesBeforeKeywords": [
+    "do",
+    "for",
+    "if",
+    "switch",
+    "case",
+    "try",
+    "while",
+    "return",
+    "function"
+  ]
+
+
+}

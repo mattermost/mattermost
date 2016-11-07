@@ -1,0 +1,324 @@
+{
+  "title":"Viewport units: vw, vh, vmin, vmax",
+  "description":"Length units representing 1% of the viewport size for viewport width (vw), height (vh), the smaller of the two (vmin), or the larger of the two (vmax).",
+  "spec":"http://www.w3.org/TR/css3-values/#viewport-relative-lengths",
+  "status":"cr",
+  "links":[
+    {
+      "url":"http://css-tricks.com/viewport-sized-typography/",
+      "title":"Blog post"
+    },
+    {
+      "url":"https://github.com/saabi/vminpoly",
+      "title":"Polyfill"
+    },
+    {
+      "url":"https://github.com/rodneyrehm/viewport-units-buggyfill",
+      "title":"Buggyfill - Polyfill that fixes buggy support"
+    },
+    {
+      "url":"http://blog.rodneyrehm.de/archives/34-iOS7-Mobile-Safari-And-Viewport-Units.html",
+      "title":"Back-Forward issue blog post"
+    },
+    {
+      "url":"https://wpdev.uservoice.com/forums/257854-microsoft-edge-developer/suggestions/6514497-vmax-unit",
+      "title":"Microsoft Edge feature request on UserVoice"
+    }
+  ],
+  "bugs":[
+    {
+      "description":"Chrome does not support viewport units for border widths, column gaps, transform values, box shadows or in `calc()` until version 34."
+    },
+    {
+      "description":"Safari & iOS Safari (both 6 and 7) does not support viewport units for border widths, column gaps, transform values, box shadows or in `calc()`."
+    },
+    {
+      "description":"iOS 7 Safari sets viewport unit values to 0 if the page has been left and is returned to after 60 seconds."
+    },
+    {
+      "description":"Internet Explorer 9 in print-mode interprets `vh` as pages. `30vh` = 30 pages"
+    },
+    {
+      "description":"iOS 7 Safari recalculates widths set in `vh` as `vw`, and heights set in `vw` as `vh`, when orientation changes."
+    },
+    {
+      "description":"In IE 10 and 11, using `vw` units with 3D transforms causes unexpected behavior"
+    },
+    {
+      "description":"Currently all browsers but Firefox incorrectly consider 100vw to be the entire page width, including vertical scroll bar, which can [cause a horizontal scroll bar](http://codepen.io/anon/pen/ZGYNWZ) when `overflow: auto` is set."
+    },
+    {
+      "description":"IE9 does not calculate viewport units correctly when the browser or OS is zoomed."
+    },
+    {
+      "description":"In IE9 inside an iframe, viewport units will be calculated in the context of the parent window and not the iframe."
+    },
+    {
+      "description":"[Chrome does not print elements defined with viewport units.](https://code.google.com/p/chromium/issues/detail?id=382313)"
+    },
+    {
+      "description":"`vh` on iOS is reported to include the height of the bottom toolbar in the height calculation, and the width of the sidebar (bookmarks) in the `vw` width calculation."
+    }
+  ],
+  "categories":[
+    "CSS3"
+  ],
+  "stats":{
+    "ie":{
+      "5.5":"n",
+      "6":"n",
+      "7":"n",
+      "8":"n",
+      "9":"a #1",
+      "10":"a #2",
+      "11":"a #2"
+    },
+    "edge":{
+      "12":"a #2",
+      "13":"a #2",
+      "14":"a #2"
+    },
+    "firefox":{
+      "2":"n",
+      "3":"n",
+      "3.5":"n",
+      "3.6":"n",
+      "4":"n",
+      "5":"n",
+      "6":"n",
+      "7":"n",
+      "8":"n",
+      "9":"n",
+      "10":"n",
+      "11":"n",
+      "12":"n",
+      "13":"n",
+      "14":"n",
+      "15":"n",
+      "16":"n",
+      "17":"n",
+      "18":"n",
+      "19":"y",
+      "20":"y",
+      "21":"y",
+      "22":"y",
+      "23":"y",
+      "24":"y",
+      "25":"y",
+      "26":"y",
+      "27":"y",
+      "28":"y",
+      "29":"y",
+      "30":"y",
+      "31":"y",
+      "32":"y",
+      "33":"y",
+      "34":"y",
+      "35":"y",
+      "36":"y",
+      "37":"y",
+      "38":"y",
+      "39":"y",
+      "40":"y",
+      "41":"y",
+      "42":"y",
+      "43":"y",
+      "44":"y",
+      "45":"y",
+      "46":"y",
+      "47":"y",
+      "48":"y",
+      "49":"y",
+      "50":"y",
+      "51":"y",
+      "52":"y"
+    },
+    "chrome":{
+      "4":"n",
+      "5":"n",
+      "6":"n",
+      "7":"n",
+      "8":"n",
+      "9":"n",
+      "10":"n",
+      "11":"n",
+      "12":"n",
+      "13":"n",
+      "14":"n",
+      "15":"n",
+      "16":"n",
+      "17":"n",
+      "18":"n",
+      "19":"n",
+      "20":"a #2",
+      "21":"a #2",
+      "22":"a #2",
+      "23":"a #2",
+      "24":"a #2",
+      "25":"a #2",
+      "26":"y",
+      "27":"y",
+      "28":"y",
+      "29":"y",
+      "30":"y",
+      "31":"y",
+      "32":"y",
+      "33":"y",
+      "34":"y",
+      "35":"y",
+      "36":"y",
+      "37":"y",
+      "38":"y",
+      "39":"y",
+      "40":"y",
+      "41":"y",
+      "42":"y",
+      "43":"y",
+      "44":"y",
+      "45":"y",
+      "46":"y",
+      "47":"y",
+      "48":"y",
+      "49":"y",
+      "50":"y",
+      "51":"y",
+      "52":"y",
+      "53":"y",
+      "54":"y",
+      "55":"y",
+      "56":"y",
+      "57":"y"
+    },
+    "safari":{
+      "3.1":"n",
+      "3.2":"n",
+      "4":"n",
+      "5":"n",
+      "5.1":"n",
+      "6":"a #2",
+      "6.1":"y",
+      "7":"y",
+      "7.1":"y",
+      "8":"y",
+      "9":"y",
+      "9.1":"y",
+      "10":"y",
+      "TP":"y"
+    },
+    "opera":{
+      "9":"n",
+      "9.5-9.6":"n",
+      "10.0-10.1":"n",
+      "10.5":"n",
+      "10.6":"n",
+      "11":"n",
+      "11.1":"n",
+      "11.5":"n",
+      "11.6":"n",
+      "12":"n",
+      "12.1":"n",
+      "15":"y",
+      "16":"y",
+      "17":"y",
+      "18":"y",
+      "19":"y",
+      "20":"y",
+      "21":"y",
+      "22":"y",
+      "23":"y",
+      "24":"y",
+      "25":"y",
+      "26":"y",
+      "27":"y",
+      "28":"y",
+      "29":"y",
+      "30":"y",
+      "31":"y",
+      "32":"y",
+      "33":"y",
+      "34":"y",
+      "35":"y",
+      "36":"y",
+      "37":"y",
+      "38":"y",
+      "39":"y",
+      "40":"y",
+      "41":"y",
+      "42":"y",
+      "43":"y"
+    },
+    "ios_saf":{
+      "3.2":"n",
+      "4.0-4.1":"n",
+      "4.2-4.3":"n",
+      "5.0-5.1":"n",
+      "6.0-6.1":"a #2 #3",
+      "7.0-7.1":"a #3",
+      "8":"y",
+      "8.1-8.4":"y",
+      "9.0-9.2":"y",
+      "9.3":"y",
+      "10":"y"
+    },
+    "op_mini":{
+      "all":"n"
+    },
+    "android":{
+      "2.1":"n",
+      "2.2":"n",
+      "2.3":"n",
+      "3":"n",
+      "4":"n",
+      "4.1":"n",
+      "4.2-4.3":"n",
+      "4.4":"y",
+      "4.4.3-4.4.4":"y",
+      "53":"y"
+    },
+    "bb":{
+      "7":"n",
+      "10":"y"
+    },
+    "op_mob":{
+      "10":"n",
+      "11":"n",
+      "11.1":"n",
+      "11.5":"n",
+      "12":"n",
+      "12.1":"n",
+      "37":"y"
+    },
+    "and_chr":{
+      "53":"y"
+    },
+    "and_ff":{
+      "49":"y"
+    },
+    "ie_mob":{
+      "10":"a #2",
+      "11":"a #2"
+    },
+    "and_uc":{
+      "11":"n"
+    },
+    "samsung":{
+      "4":"y"
+    }
+  },
+  "notes":"",
+  "notes_by_num":{
+    "1":"Partial support in IE9 refers to supporting \"vm\" instead of \"vmin\".",
+    "2":"Partial support refers to not supporting the \"vmax\" unit. ",
+    "3":"Partial support in iOS7 is due to buggy behavior of the \"vh\" unit (see workarounds: [1](https://gist.github.com/pburtchaell/e702f441ba9b3f76f587), [2](https://gist.github.com/BenMorel/e9e34c08360ebbbd0634))."
+  },
+  "usage_perc_y":75.76,
+  "usage_perc_a":6.79,
+  "ucprefix":false,
+  "parent":"",
+  "keywords":"vm,viewport-percentage",
+  "ie_id":"cssvmaxunit",
+  "chrome_id":"",
+  "firefox_id":"",
+  "webkit_id":"",
+  "shown":true
+}

@@ -1,0 +1,3 @@
+---
+rules:
+  no-process-exit: 0

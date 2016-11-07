@@ -1,0 +1,299 @@
+{
+  "title":"classList (DOMTokenList)",
+  "description":"Method of easily manipulating classes on elements, using the DOMTokenList object.",
+  "spec":"https://dom.spec.whatwg.org/#dom-element-classlist",
+  "status":"ls",
+  "links":[
+    {
+      "url":"http://hacks.mozilla.org/2010/01/classlist-in-firefox-3-6/",
+      "title":"Mozilla Hacks article"
+    },
+    {
+      "url":"https://github.com/eligrey/classList.js",
+      "title":"Polyfill script"
+    },
+    {
+      "url":"http://docs.webplatform.org/wiki/dom/Element/classList",
+      "title":"WebPlatform Docs"
+    },
+    {
+      "url":"http://www.sitepoint.com/exploring-classlist-api/",
+      "title":"SitePoint article"
+    },
+    {
+      "url":"http://aurelio.audero.it/demo/classlist-api-demo.html",
+      "title":"Demo using classList"
+    },
+    {
+      "url":"https://developer.mozilla.org/en-US/docs/Web/API/Element.classList",
+      "title":"MDN article"
+    }
+  ],
+  "bugs":[
+    {
+      "description":"Opera (Presto) has `classList` support on SVG elements, but not on MathML elements."
+    }
+  ],
+  "categories":[
+    "DOM",
+    "HTML5"
+  ],
+  "stats":{
+    "ie":{
+      "5.5":"p",
+      "6":"p",
+      "7":"p",
+      "8":"p",
+      "9":"p",
+      "10":"a #1 #2 #3",
+      "11":"a #1 #2 #3"
+    },
+    "edge":{
+      "12":"y",
+      "13":"y",
+      "14":"y"
+    },
+    "firefox":{
+      "2":"p",
+      "3":"p",
+      "3.5":"p",
+      "3.6":"a #2 #3",
+      "4":"a #2 #3",
+      "5":"a #2 #3",
+      "6":"a #2 #3",
+      "7":"a #2 #3",
+      "8":"a #2 #3",
+      "9":"a #2 #3",
+      "10":"a #2 #3",
+      "11":"a #2 #3",
+      "12":"a #2 #3",
+      "13":"a #2 #3",
+      "14":"a #2 #3",
+      "15":"a #2 #3",
+      "16":"a #2 #3",
+      "17":"a #2 #3",
+      "18":"a #2 #3",
+      "19":"a #2 #3",
+      "20":"a #2 #3",
+      "21":"a #2 #3",
+      "22":"a #2 #3",
+      "23":"a #2 #3",
+      "24":"a #3",
+      "25":"a #3",
+      "26":"y",
+      "27":"y",
+      "28":"y",
+      "29":"y",
+      "30":"y",
+      "31":"y",
+      "32":"y",
+      "33":"y",
+      "34":"y",
+      "35":"y",
+      "36":"y",
+      "37":"y",
+      "38":"y",
+      "39":"y",
+      "40":"y",
+      "41":"y",
+      "42":"y",
+      "43":"y",
+      "44":"y",
+      "45":"y",
+      "46":"y",
+      "47":"y",
+      "48":"y",
+      "49":"y",
+      "50":"y",
+      "51":"y",
+      "52":"y"
+    },
+    "chrome":{
+      "4":"p",
+      "5":"p",
+      "6":"p",
+      "7":"p",
+      "8":"a #1 #2 #3",
+      "9":"a #1 #2 #3",
+      "10":"a #1 #2 #3",
+      "11":"a #1 #2 #3",
+      "12":"a #1 #2 #3",
+      "13":"a #1 #2 #3",
+      "14":"a #1 #2 #3",
+      "15":"a #1 #2 #3",
+      "16":"a #1 #2 #3",
+      "17":"a #1 #2 #3",
+      "18":"a #1 #2 #3",
+      "19":"a #1 #2 #3",
+      "20":"a #1 #2 #3",
+      "21":"a #1 #2 #3",
+      "22":"a #1 #2 #3",
+      "23":"a #2 #3",
+      "24":"a #3",
+      "25":"a #3",
+      "26":"a #3",
+      "27":"a #3",
+      "28":"y",
+      "29":"y",
+      "30":"y",
+      "31":"y",
+      "32":"y",
+      "33":"y",
+      "34":"y",
+      "35":"y",
+      "36":"y",
+      "37":"y",
+      "38":"y",
+      "39":"y",
+      "40":"y",
+      "41":"y",
+      "42":"y",
+      "43":"y",
+      "44":"y",
+      "45":"y",
+      "46":"y",
+      "47":"y",
+      "48":"y",
+      "49":"y",
+      "50":"y",
+      "51":"y",
+      "52":"y",
+      "53":"y",
+      "54":"y",
+      "55":"y",
+      "56":"y",
+      "57":"y"
+    },
+    "safari":{
+      "3.1":"p",
+      "3.2":"p",
+      "4":"p",
+      "5":"p",
+      "5.1":"a #1 #2 #3",
+      "6":"a #1 #2 #3",
+      "6.1":"a #1 #2 #3",
+      "7":"y",
+      "7.1":"y",
+      "8":"y",
+      "9":"y",
+      "9.1":"y",
+      "10":"y",
+      "TP":"y"
+    },
+    "opera":{
+      "9":"p",
+      "9.5-9.6":"p",
+      "10.0-10.1":"p",
+      "10.5":"p",
+      "10.6":"p",
+      "11":"p",
+      "11.1":"p",
+      "11.5":"a #1 #2 #3",
+      "11.6":"a #1 #2 #3",
+      "12":"a #1 #2 #3",
+      "12.1":"a #1 #2 #3",
+      "15":"y",
+      "16":"y",
+      "17":"y",
+      "18":"y",
+      "19":"y",
+      "20":"y",
+      "21":"y",
+      "22":"y",
+      "23":"y",
+      "24":"y",
+      "25":"y",
+      "26":"y",
+      "27":"y",
+      "28":"y",
+      "29":"y",
+      "30":"y",
+      "31":"y",
+      "32":"y",
+      "33":"y",
+      "34":"y",
+      "35":"y",
+      "36":"y",
+      "37":"y",
+      "38":"y",
+      "39":"y",
+      "40":"y",
+      "41":"y",
+      "42":"y",
+      "43":"y"
+    },
+    "ios_saf":{
+      "3.2":"p",
+      "4.0-4.1":"p",
+      "4.2-4.3":"p",
+      "5.0-5.1":"a #1 #2 #3",
+      "6.0-6.1":"a #1 #2 #3",
+      "7.0-7.1":"y",
+      "8":"y",
+      "8.1-8.4":"y",
+      "9.0-9.2":"y",
+      "9.3":"y",
+      "10":"y"
+    },
+    "op_mini":{
+      "all":"p"
+    },
+    "android":{
+      "2.1":"p",
+      "2.2":"p",
+      "2.3":"p",
+      "3":"a #1 #2 #3",
+      "4":"a #1 #2 #3",
+      "4.1":"a #1 #2 #3",
+      "4.2-4.3":"a #1 #2 #3",
+      "4.4":"y",
+      "4.4.3-4.4.4":"y",
+      "53":"y"
+    },
+    "bb":{
+      "7":"a #1 #2 #3",
+      "10":"y"
+    },
+    "op_mob":{
+      "10":"p",
+      "11":"p",
+      "11.1":"a #1 #2 #3",
+      "11.5":"a #1 #2 #3",
+      "12":"a #1 #2 #3",
+      "12.1":"a #1 #2 #3",
+      "37":"y"
+    },
+    "and_chr":{
+      "53":"y"
+    },
+    "and_ff":{
+      "49":"y"
+    },
+    "ie_mob":{
+      "10":"a #1 #2 #3",
+      "11":"a #1 #2 #3"
+    },
+    "and_uc":{
+      "11":"a #1 #2 #3"
+    },
+    "samsung":{
+      "4":"y"
+    }
+  },
+  "notes":"",
+  "notes_by_num":{
+    "1":"Does not have support for `classList` on SVG or MathML elements.",
+    "2":"Does not support the second parameter for the `toggle` method",
+    "3":"Does not support multiple parameters for the `add()` & `remove()` methods"
+  },
+  "usage_perc_y":77.21,
+  "usage_perc_a":15.67,
+  "ucprefix":false,
+  "parent":"",
+  "keywords":"",
+  "ie_id":"",
+  "chrome_id":"",
+  "firefox_id":"",
+  "webkit_id":"",
+  "shown":true
+}

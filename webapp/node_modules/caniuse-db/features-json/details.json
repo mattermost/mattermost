@@ -1,0 +1,305 @@
+{
+  "title":"Details & Summary elements",
+  "description":"The <details> element generates a simple no-JavaScript widget to show/hide element contents, optionally by clicking on its child <summary> element.",
+  "spec":"https://html.spec.whatwg.org/multipage/forms.html#the-details-element",
+  "status":"ls",
+  "links":[
+    {
+      "url":"https://mathiasbynens.be/notes/html5-details-jquery",
+      "title":"jQuery fallback script"
+    },
+    {
+      "url":"https://gist.github.com/370590",
+      "title":"Fallback script"
+    },
+    {
+      "url":"http://html5doctor.com/summary-figcaption-element/",
+      "title":"HTML5 Doctor article"
+    },
+    {
+      "url":"https://raw.github.com/phiggins42/has.js/master/detect/features.js#native-details",
+      "title":"has.js test"
+    },
+    {
+      "url":"http://docs.webplatform.org/wiki/html/elements/details",
+      "title":"WebPlatform Docs"
+    },
+    {
+      "url":"https://bugzilla.mozilla.org/show_bug.cgi?id=591737",
+      "title":"Bug on Firefox support"
+    },
+    {
+      "url":"https://github.com/javan/details-element-polyfill",
+      "title":"Details Element Polyfill"
+    }
+  ],
+  "bugs":[
+    {
+      "description":"`<select>` within `<details>` elements won't have their value changed on the Android browser shipped with most of Samsung's devices (i.e. Note 3, Galaxy 5)\r\nThe picker will appear, but attempting to select any option won't update the `<select>` or trigger any event."
+    },
+    {
+      "description":"In Chrome, when using the common inherit box-sizing fix (http://www.paulirish.com/2012/box-sizing-border-box-ftw/) in combination with a `<details>` element, the children of the `<details>` element get rendered as if they were `box-sizing: content-box;`. See: http://codepen.io/jochemnabuurs/pen/yYzYqM"
+    }
+  ],
+  "categories":[
+    "HTML5"
+  ],
+  "stats":{
+    "ie":{
+      "5.5":"n",
+      "6":"p",
+      "7":"p",
+      "8":"p",
+      "9":"n",
+      "10":"n",
+      "11":"n"
+    },
+    "edge":{
+      "12":"n",
+      "13":"n",
+      "14":"n"
+    },
+    "firefox":{
+      "2":"n",
+      "3":"p",
+      "3.5":"p",
+      "3.6":"p",
+      "4":"p",
+      "5":"p",
+      "6":"p",
+      "7":"p",
+      "8":"p",
+      "9":"p",
+      "10":"p",
+      "11":"p",
+      "12":"p",
+      "13":"p",
+      "14":"p",
+      "15":"p",
+      "16":"p",
+      "17":"p",
+      "18":"p",
+      "19":"p",
+      "20":"p",
+      "21":"p",
+      "22":"p",
+      "23":"p",
+      "24":"p",
+      "25":"p",
+      "26":"p",
+      "27":"p",
+      "28":"p",
+      "29":"p",
+      "30":"p",
+      "31":"p",
+      "32":"p",
+      "33":"p",
+      "34":"p",
+      "35":"p",
+      "36":"p",
+      "37":"p",
+      "38":"p",
+      "39":"p",
+      "40":"p",
+      "41":"p",
+      "42":"p",
+      "43":"p",
+      "44":"p",
+      "45":"p",
+      "46":"p",
+      "47":"n d #1",
+      "48":"n d #1",
+      "49":"y",
+      "50":"y",
+      "51":"y",
+      "52":"y"
+    },
+    "chrome":{
+      "4":"p",
+      "5":"p",
+      "6":"p",
+      "7":"p",
+      "8":"p",
+      "9":"p",
+      "10":"p",
+      "11":"p",
+      "12":"y #2 #3",
+      "13":"y #2 #3",
+      "14":"y #2 #3",
+      "15":"y #2 #3",
+      "16":"y #2 #3",
+      "17":"y #2 #3",
+      "18":"y #2 #3",
+      "19":"y #2",
+      "20":"y #2",
+      "21":"y #2",
+      "22":"y #2",
+      "23":"y #2",
+      "24":"y #2",
+      "25":"y #2",
+      "26":"y #2",
+      "27":"y #2",
+      "28":"y #2",
+      "29":"y #2",
+      "30":"y #2",
+      "31":"y #2",
+      "32":"y #2",
+      "33":"y #2",
+      "34":"y #2",
+      "35":"y #2",
+      "36":"y",
+      "37":"y",
+      "38":"y",
+      "39":"y",
+      "40":"y",
+      "41":"y",
+      "42":"y",
+      "43":"y",
+      "44":"y",
+      "45":"y",
+      "46":"y",
+      "47":"y",
+      "48":"y",
+      "49":"y",
+      "50":"y",
+      "51":"y",
+      "52":"y",
+      "53":"y",
+      "54":"y",
+      "55":"y",
+      "56":"y",
+      "57":"y"
+    },
+    "safari":{
+      "3.1":"p",
+      "3.2":"p",
+      "4":"p",
+      "5":"p",
+      "5.1":"p",
+      "6":"y #2",
+      "6.1":"y #2",
+      "7":"y #2",
+      "7.1":"y #2",
+      "8":"y #2",
+      "9":"y #2",
+      "9.1":"y #2",
+      "10":"y #2",
+      "TP":"y"
+    },
+    "opera":{
+      "9":"p",
+      "9.5-9.6":"p",
+      "10.0-10.1":"p",
+      "10.5":"p",
+      "10.6":"p",
+      "11":"p",
+      "11.1":"n",
+      "11.5":"n",
+      "11.6":"n",
+      "12":"n",
+      "12.1":"n",
+      "15":"y",
+      "16":"y",
+      "17":"y",
+      "18":"y",
+      "19":"y",
+      "20":"y",
+      "21":"y",
+      "22":"y",
+      "23":"y",
+      "24":"y",
+      "25":"y",
+      "26":"y",
+      "27":"y",
+      "28":"y",
+      "29":"y",
+      "30":"y",
+      "31":"y",
+      "32":"y",
+      "33":"y",
+      "34":"y",
+      "35":"y",
+      "36":"y",
+      "37":"y",
+      "38":"y",
+      "39":"y",
+      "40":"y",
+      "41":"y",
+      "42":"y",
+      "43":"y"
+    },
+    "ios_saf":{
+      "3.2":"p",
+      "4.0-4.1":"p",
+      "4.2-4.3":"p",
+      "5.0-5.1":"p",
+      "6.0-6.1":"y",
+      "7.0-7.1":"y",
+      "8":"y",
+      "8.1-8.4":"y",
+      "9.0-9.2":"y",
+      "9.3":"y",
+      "10":"y"
+    },
+    "op_mini":{
+      "all":"p"
+    },
+    "android":{
+      "2.1":"p",
+      "2.2":"p",
+      "2.3":"p",
+      "3":"p",
+      "4":"y",
+      "4.1":"y",
+      "4.2-4.3":"y",
+      "4.4":"y",
+      "4.4.3-4.4.4":"y",
+      "53":"y"
+    },
+    "bb":{
+      "7":"p",
+      "10":"y"
+    },
+    "op_mob":{
+      "10":"p",
+      "11":"p",
+      "11.1":"p",
+      "11.5":"p",
+      "12":"p",
+      "12.1":"p",
+      "37":"y"
+    },
+    "and_chr":{
+      "53":"y"
+    },
+    "and_ff":{
+      "49":"y"
+    },
+    "ie_mob":{
+      "10":"n",
+      "11":"n"
+    },
+    "and_uc":{
+      "11":"y #2 #3"
+    },
+    "samsung":{
+      "4":"y"
+    }
+  },
+  "notes":"",
+  "notes_by_num":{
+    "1":"Enabled in Firefox through the `dom.details_element.enabled` flag",
+    "2":"'toggle' event is not supported",
+    "3":"<summary> is not keyboard accessible"
+  },
+  "usage_perc_y":84.02,
+  "usage_perc_a":0,
+  "ucprefix":false,
+  "parent":"",
+  "keywords":"",
+  "ie_id":"detailssummary",
+  "chrome_id":"5348024557502464",
+  "firefox_id":"",
+  "webkit_id":"",
+  "shown":true
+}

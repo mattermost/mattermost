@@ -1,0 +1,90 @@
+//
+// A partial implementation of the Ruby list functions from Compass:
+// https://github.com/Compass/compass/blob/stable/lib/compass/sass_extensions/functions/lists.rb
+//
+
+
+// compact is part of libsass
+
+@function -compass-nth($list, $place) {
+  // Yep, Sass-lists are 1-indexed.
+  @if $place == "first" {
+    $place: 1;
+  }
+  @if $place == "last" {
+    $place: length($list);
+  }
+  @return nth($list, $place);
+}
+
+// compass_list can't be implemented in sass script
+
+@function -compass-space-list($item1, $item2:null, $item3:null, $item4:null, $item5:null, $item6:null, $item7:null, $item8:null, $item9:null) {
+  $items: ();
+  // Support for polymorphism.
+  @if type-of($item1) == 'list' {
+    // Passing a single array of properties.
+    $items: $item1;
+  } @else {
+    $items: $item1 $item2 $item3 $item4 $item5 $item6 $item7 $item8 $item9;
+  }
+
+  $full: first-value-of($items);
+
+  @for $i from 2 through length($items) {
+    $item: nth($items, $i);
+    @if $item != null {
+      $full: $full $item;
+    }
+  }
+
+  @return $full;
+}
+
+@function -compass-list-size($list) {
+  @return length($list);
+}
+
+@function -compass-slice($list, $start, $end: false) {
+  @if $end == false {
+    $end: length($list);
+  }
+  $full: nth($list, $start);
+  @for $i from $start + 1 through $end {
+    $full: $full, nth($list, $i);
+  }
+  @return $full;
+}
+
+@function reject($list, $reject1, $reject2:null, $reject3:null, $reject4:null, $reject5:null, $reject6:null, $reject7:null, $reject8:null, $reject9:null) {
+  $rejects: $reject1, $reject2, $reject3, $reject4, $reject5, $reject6, $reject7, $reject8, $reject9;
+
+  $full: false;
+  @each $item in $list {
+    @if index($rejects, $item) {}
+    @else {
+      @if $full {
+        $full: $full, $item;
+      }
+      @else {
+        $full: $item;
+      }
+    }
+  }
+  @return $full;
+}
+
+@function first-value-of($list) {
+  @return nth($list, 1);
+}
+
+@function compact($vars...) {
+  $separator: list-separator($vars);
+  $list: ();
+  @each $var in $vars {
+      @if $var {
+          $list: append($list, $var, $separator);
+      }
+  }
+  @return $list;
+}

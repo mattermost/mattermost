@@ -1,0 +1,86 @@
+// ---------------------------------------------------------------------------
+@include keyframes(fadeIn) {
+  0% {
+    opacity: 0; }
+  100% {
+    opacity: 1; } }
+
+
+// ---------------------------------------------------------------------------
+@include keyframes(fadeInUp) {
+  0% {
+    @include translateY(20px);
+    opacity: 0; }
+  100% {
+    @include translateY(0);
+    opacity: 1; } }
+
+
+// ---------------------------------------------------------------------------
+@include keyframes(fadeInDown) {
+  0% {
+    @include translateY(-20px);
+    opacity: 0; }
+  100% {
+    @include translateY(0);
+    opacity: 1; } }
+
+
+// ---------------------------------------------------------------------------
+@include keyframes(fadeInRight) {
+  0% {
+    @include translateX(20px);
+    opacity: 0; }
+  100% {
+    @include translateX(0);
+    opacity: 1; } }
+
+
+// ---------------------------------------------------------------------------
+@include keyframes(fadeInLeft) {
+  0% {
+    @include translateX(-20px);
+    opacity: 0; }
+  100% {
+    @include translateX(0);
+    opacity: 1; } }
+
+
+// ---------------------------------------------------------------------------
+@include keyframes(fadeInUpBig) {
+  0% {
+    @include translateY(2000px);
+    opacity: 0; }
+  100% {
+    @include translateY(0);
+    opacity: 1; } }
+
+
+// ---------------------------------------------------------------------------
+@include keyframes(fadeInDownBig) {
+  0% {
+    opacity: 0;
+    @include translateY(-2000px); }
+  100% {
+    opacity: 1;
+    @include translateY(0); } }
+
+
+// ---------------------------------------------------------------------------
+@include keyframes(fadeInRightBig) {
+  0% {
+    opacity: 0;
+    @include translateX(2000px); }
+  100% {
+    opacity: 1;
+    @include translateX(0); } }
+
+
+// ---------------------------------------------------------------------------
+@include keyframes(fadeInLeftBig) {
+  0% {
+    opacity: 0;
+    @include translateX(-2000px); }
+  100% {
+    opacity: 1;
+    @include translateX(0); } }

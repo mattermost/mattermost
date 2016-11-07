@@ -1,0 +1,66 @@
+//
+// Variables
+//
+// Either vanilla Bootstrap's "variables.less" or this package's
+//  "default-variables.less" should be loaded before this file.
+// -------------------------------------------------------------
+
+$zindex-navmenu-fixed:     1030 !default;
+$zindex-alert-fixed:       1035 !default;
+
+$container-smooth:         $container-lg !default;
+
+$alert-fixed-width:        $screen-md-min !default;
+
+
+//== Navmenu
+
+// Basics of a navmenu
+$navmenu-width:                     300px !default;
+$navmenu-margin-vertical:           (0.5 * $line-height-computed) !default;
+$navmenu-default-color:             #777 !default;
+$navmenu-default-bg:                #f8f8f8 !default;
+$navmenu-default-border:            darken($navmenu-default-bg, 6.5%) !default;
+
+// Navmenu links
+$navmenu-default-link-color:                #777 !default;
+$navmenu-default-link-hover-color:          #333 !default;
+$navmenu-default-link-hover-bg:             transparent !default;
+$navmenu-default-link-active-color:         #555 !default;
+$navmenu-default-link-active-bg:            darken($navmenu-default-bg, 6.5%) !default;
+$navmenu-default-link-disabled-color:       #ccc !default;
+$navmenu-default-link-disabled-bg:          transparent !default;
+
+// Navmenu brand label
+$navmenu-default-brand-color:               $navmenu-default-link-color !default;
+$navmenu-default-brand-hover-color:         darken($navmenu-default-link-color, 10%) !default;
+$navmenu-default-brand-hover-bg:            transparent !default;
+
+
+// Inverted navmenu
+//
+// Reset inverted navmenu basics
+$navmenu-inverse-color:                      $gray-light !default;
+$navmenu-inverse-bg:                         #222 !default;
+$navmenu-inverse-border:                     darken($navmenu-inverse-bg, 10%) !default;
+
+// Inverted navmenu links
+$navmenu-inverse-link-color:                 $gray-light !default;
+$navmenu-inverse-link-hover-color:           #fff !default;
+$navmenu-inverse-link-hover-bg:              transparent !default;
+$navmenu-inverse-link-active-color:          $navmenu-inverse-link-hover-color !default;
+$navmenu-inverse-link-active-bg:             darken($navmenu-inverse-bg, 10%) !default;
+$navmenu-inverse-link-disabled-color:        #444 !default;
+$navmenu-inverse-link-disabled-bg:           transparent !default;
+
+// Inverted navmenu brand label
+$navmenu-inverse-brand-color:                $navmenu-inverse-link-color !default;
+$navmenu-inverse-brand-hover-color:          #fff !default;
+$navmenu-inverse-brand-hover-bg:             transparent !default;
+
+// Inverted navmenu search
+// Normal navmenu needs no special styles or vars
+$navmenu-inverse-search-bg:                  lighten($navmenu-inverse-bg, 25%) !default;
+$navmenu-inverse-search-bg-focus:            #fff !default;
+$navmenu-inverse-search-border:              $navmenu-inverse-bg !default;
+$navmenu-inverse-search-placeholder-color:   #ccc !default;

@@ -1,0 +1,8 @@
+.gitignore
+.gitattributes
+
+.travis.yml
+validator/
+
+Contributing.md
+sample-data.json

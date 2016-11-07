@@ -1,0 +1,5 @@
+/node_modules
+/test/fixtures
+/playground/folder
+/coverage
+.DS_Store

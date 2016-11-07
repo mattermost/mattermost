@@ -1,0 +1,308 @@
+{
+  "title":"CSS3 Border-radius (rounded corners)",
+  "description":"Method of making the border corners round. Covers support for the shorthand `border-radius` as well as the long-hand properties (e.g. `border-top-left-radius`)",
+  "spec":"http://www.w3.org/TR/css3-background/#the-border-radius",
+  "status":"cr",
+  "links":[
+    {
+      "url":"http://border-radius.com",
+      "title":"Border-radius CSS Generator"
+    },
+    {
+      "url":"http://muddledramblings.com/table-of-css3-border-radius-compliance",
+      "title":"Detailed compliance table"
+    },
+    {
+      "url":"http://www.css3files.com/border/#borderradius",
+      "title":"Information page"
+    },
+    {
+      "url":"http://css3pie.com/",
+      "title":"Polyfill which includes border-radius"
+    },
+    {
+      "url":"http://docs.webplatform.org/wiki/css/properties/border-radius",
+      "title":"WebPlatform Docs"
+    }
+  ],
+  "bugs":[
+    {
+      "description":"Safari does not apply `border-radius` correctly to image borders: http://stackoverflow.com/q/17202128"
+    },
+    {
+      "description":"Android Browser 2.3 does not support % value for `border-radius`."
+    },
+    {
+      "description":"Border-radius does not work on fieldset elements in IE9."
+    },
+    {
+      "description":"The stock browser on the Samsung Galaxy S4 with Android 4.2 does not support the `border-radius` shorthand property but does support the long-hand properties for each corner like `border-top-left-radius`."
+    },
+    {
+      "description":"Older versions of Safari [had a bug](https://bugs.webkit.org/show_bug.cgi?id=50072) where background images would bleed out of the border-radius."
+    },
+    {
+      "description":"Dotted and dashed rounded border corners are rendered as solid in Firefox. Fixed since Firefox 50. [see bug](https://bugzilla.mozilla.org/show_bug.cgi?id=382721)"
+    }
+  ],
+  "categories":[
+    "CSS3"
+  ],
+  "stats":{
+    "ie":{
+      "5.5":"n",
+      "6":"n",
+      "7":"n",
+      "8":"n",
+      "9":"y",
+      "10":"y",
+      "11":"y"
+    },
+    "edge":{
+      "12":"y",
+      "13":"y",
+      "14":"y"
+    },
+    "firefox":{
+      "2":"a x #2",
+      "3":"y x #2",
+      "3.5":"y x #2",
+      "3.6":"y x #2",
+      "4":"y #2",
+      "5":"y #2",
+      "6":"y #2",
+      "7":"y #2",
+      "8":"y #2",
+      "9":"y #2",
+      "10":"y #2",
+      "11":"y #2",
+      "12":"y #2",
+      "13":"y #2",
+      "14":"y #2",
+      "15":"y #2",
+      "16":"y #2",
+      "17":"y #2",
+      "18":"y #2",
+      "19":"y #2",
+      "20":"y #2",
+      "21":"y #2",
+      "22":"y #2",
+      "23":"y #2",
+      "24":"y #2",
+      "25":"y #2",
+      "26":"y #2",
+      "27":"y #2",
+      "28":"y #2",
+      "29":"y #2",
+      "30":"y #2",
+      "31":"y #2",
+      "32":"y #2",
+      "33":"y #2",
+      "34":"y #2",
+      "35":"y #2",
+      "36":"y #2",
+      "37":"y #2",
+      "38":"y #2",
+      "39":"y #2",
+      "40":"y #2",
+      "41":"y #2",
+      "42":"y #2",
+      "43":"y #2",
+      "44":"y #2",
+      "45":"y #2",
+      "46":"y #2",
+      "47":"y #2",
+      "48":"y #2",
+      "49":"y #2",
+      "50":"y",
+      "51":"y",
+      "52":"y"
+    },
+    "chrome":{
+      "4":"y x",
+      "5":"y",
+      "6":"y",
+      "7":"y",
+      "8":"y",
+      "9":"y",
+      "10":"y",
+      "11":"y",
+      "12":"y",
+      "13":"y",
+      "14":"y",
+      "15":"y",
+      "16":"y",
+      "17":"y",
+      "18":"y",
+      "19":"y",
+      "20":"y",
+      "21":"y",
+      "22":"y",
+      "23":"y",
+      "24":"y",
+      "25":"y",
+      "26":"y",
+      "27":"y",
+      "28":"y",
+      "29":"y",
+      "30":"y",
+      "31":"y",
+      "32":"y",
+      "33":"y",
+      "34":"y",
+      "35":"y",
+      "36":"y",
+      "37":"y",
+      "38":"y",
+      "39":"y",
+      "40":"y",
+      "41":"y",
+      "42":"y",
+      "43":"y",
+      "44":"y",
+      "45":"y",
+      "46":"y",
+      "47":"y",
+      "48":"y",
+      "49":"y",
+      "50":"y",
+      "51":"y",
+      "52":"y",
+      "53":"y",
+      "54":"y",
+      "55":"y",
+      "56":"y",
+      "57":"y"
+    },
+    "safari":{
+      "3.1":"y x",
+      "3.2":"y x",
+      "4":"y x",
+      "5":"y",
+      "5.1":"y #1",
+      "6":"y #1",
+      "6.1":"y #1",
+      "7":"y",
+      "7.1":"y",
+      "8":"y",
+      "9":"y",
+      "9.1":"y",
+      "10":"y",
+      "TP":"y"
+    },
+    "opera":{
+      "9":"n",
+      "9.5-9.6":"n",
+      "10.0-10.1":"n",
+      "10.5":"y",
+      "10.6":"y",
+      "11":"y",
+      "11.1":"y",
+      "11.5":"y",
+      "11.6":"y",
+      "12":"y",
+      "12.1":"y",
+      "15":"y",
+      "16":"y",
+      "17":"y",
+      "18":"y",
+      "19":"y",
+      "20":"y",
+      "21":"y",
+      "22":"y",
+      "23":"y",
+      "24":"y",
+      "25":"y",
+      "26":"y",
+      "27":"y",
+      "28":"y",
+      "29":"y",
+      "30":"y",
+      "31":"y",
+      "32":"y",
+      "33":"y",
+      "34":"y",
+      "35":"y",
+      "36":"y",
+      "37":"y",
+      "38":"y",
+      "39":"y",
+      "40":"y",
+      "41":"y",
+      "42":"y",
+      "43":"y"
+    },
+    "ios_saf":{
+      "3.2":"y x",
+      "4.0-4.1":"y",
+      "4.2-4.3":"y",
+      "5.0-5.1":"y",
+      "6.0-6.1":"y",
+      "7.0-7.1":"y",
+      "8":"y",
+      "8.1-8.4":"y",
+      "9.0-9.2":"y",
+      "9.3":"y",
+      "10":"y"
+    },
+    "op_mini":{
+      "all":"n"
+    },
+    "android":{
+      "2.1":"y x",
+      "2.2":"y",
+      "2.3":"y",
+      "3":"y",
+      "4":"y",
+      "4.1":"y",
+      "4.2-4.3":"y",
+      "4.4":"y",
+      "4.4.3-4.4.4":"y",
+      "53":"y"
+    },
+    "bb":{
+      "7":"y",
+      "10":"y"
+    },
+    "op_mob":{
+      "10":"n",
+      "11":"y",
+      "11.1":"y",
+      "11.5":"y",
+      "12":"y",
+      "12.1":"y",
+      "37":"y"
+    },
+    "and_chr":{
+      "53":"y"
+    },
+    "and_ff":{
+      "49":"y"
+    },
+    "ie_mob":{
+      "10":"y",
+      "11":"y"
+    },
+    "and_uc":{
+      "11":"y"
+    },
+    "samsung":{
+      "4":"y"
+    }
+  },
+  "notes":"",
+  "notes_by_num":{
+    "1":"Safari 6.1 and earlier did not apply `border-radius` correctly to image borders: http://stackoverflow.com/q/17202128",
+    "2":"Dotted and dashed rounded border corners are rendered as solid in Firefox. [see bug](https://bugzilla.mozilla.org/show_bug.cgi?id=382721)"
+  },
+  "usage_perc_y":93.39,
+  "usage_perc_a":0.01,
+  "ucprefix":false,
+  "parent":"",
+  "keywords":"roundedcorners, border radius,-moz-border-radius",
+  "ie_id":"",
+  "chrome_id":"",
+  "firefox_id":"",
+  "webkit_id":"",
+  "shown":true
+}

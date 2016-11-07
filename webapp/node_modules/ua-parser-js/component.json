@@ -1,0 +1,24 @@
+{
+  "name": "ua-parser-js",
+  "version": "0.7.11",
+  "description": "Lightweight JavaScript-based user-agent string parser",
+  "keywords": [
+    "user-agent",
+    "parser",
+    "browser",
+    "engine",
+    "os",
+    "device",
+    "cpu"
+  ],
+  "scripts": [
+    "src/ua-parser.js"
+  ],
+  "main": "src/ua-parser.js",
+  "license": "MIT",
+  "development": {
+    "jshint/jshint": "*",
+    "visionmedia/mocha": "*",
+    "mishoo/uglifyjs2": "*"
+  }
+}

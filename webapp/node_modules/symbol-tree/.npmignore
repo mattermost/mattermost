@@ -1,0 +1,6 @@
+/node_modules
+/jsdoc
+/coverage
+/.idea
+/symbol-tree.iml
+/npm-debug.log

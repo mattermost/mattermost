@@ -1,0 +1,51 @@
+/**
+ * @fileoverview Prevent usage of setState
+ * @author Mark Dalgleish
+ */
+'use strict';
+
+// ------------------------------------------------------------------------------
+// Rule Definition
+// ------------------------------------------------------------------------------
+
+module.exports = {
+  meta: {
+    docs: {
+      description: 'Prevent usage of setState',
+      category: 'Stylistic Issues',
+      recommended: false
+    },
+    schema: []
+  },
+
+  create: function(context) {
+
+    // --------------------------------------------------------------------------
+    // Public
+    // --------------------------------------------------------------------------
+
+    return {
+
+      CallExpression: function(node) {
+        var callee = node.callee;
+        if (callee.type !== 'MemberExpression') {
+          return;
+        }
+        if (callee.object.type !== 'ThisExpression' || callee.property.name !== 'setState') {
+          return;
+        }
+        var ancestors = context.getAncestors(callee);
+        for (var i = 0, j = ancestors.length; i < j; i++) {
+          if (ancestors[i].type === 'Property' || ancestors[i].type === 'MethodDefinition') {
+            context.report({
+              node: callee,
+              message: 'Do not use setState'
+            });
+            break;
+          }
+        }
+      }
+    };
+
+  }
+};

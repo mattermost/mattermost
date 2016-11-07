@@ -1,0 +1,19 @@
+{
+  "name": "is-url",
+  "repo": "segmentio/is-url",
+  "version": "1.2.0",
+  "license": "MIT",
+  "description": "Check whether a string is a URL.",
+  "keywords": [
+    "url",
+    "regexp",
+    "regex",
+    "validate"
+  ],
+  "scripts": [
+    "index.js"
+  ],
+  "development": {
+    "component/assert": "*"
+  }
+}

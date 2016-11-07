@@ -1,0 +1,8 @@
+{
+	"version": 3,
+	"file": "no-source-contents.generated.txt",
+	"sources": [
+		"hello-world.txt"
+	],
+	"mappings": "AAAA;AACA;"
+}

@@ -1,0 +1,304 @@
+{
+  "title":"Web Cryptography",
+  "description":"JavaScript API for performing basic cryptographic operations in web applications",
+  "spec":"http://www.w3.org/TR/WebCryptoAPI/",
+  "status":"cr",
+  "links":[
+    {
+      "url":"http://www.slideshare.net/Channy/the-history-and-status-of-web-crypto-api",
+      "title":"The History and Status of Web Crypto API"
+    },
+    {
+      "url":"http://research.microsoft.com/en-us/projects/msrjscrypto/",
+      "title":"Microsoft Research JavaScript Cryptography Library"
+    },
+    {
+      "url":"http://bitwiseshiftleft.github.io/sjcl/",
+      "title":"Cross-browser cryptography library"
+    },
+    {
+      "url":"https://docs.google.com/spreadsheet/ccc?key=0AiAcidBZRLxndE9LWEs2R1oxZ0xidUVoU3FQbFFobkE#gid=1",
+      "title":"Support for recommended algorithms in Firefox"
+    },
+    {
+      "url":"https://github.com/Netflix/NfWebCrypto",
+      "title":"Polyfill by Netflix with partial support"
+    },
+    {
+      "url":"https://github.com/GlobalSign/PKI.js",
+      "title":"PKI.js - another crypto library for Public Key Infrastructure applications"
+    },
+    {
+      "url":"https://diafygi.github.io/webcrypto-examples/",
+      "title":"Test suite for various algorithms/methods"
+    },
+    {
+      "url":"https://github.com/vibornoff/webcrypto-shim",
+      "title":"Web Cryptography API shim for IE11 and Safari - set of bugfixes and workarounds of prefixed api implementations"
+    }
+  ],
+  "bugs":[
+    
+  ],
+  "categories":[
+    "JS API"
+  ],
+  "stats":{
+    "ie":{
+      "5.5":"n",
+      "6":"p",
+      "7":"p",
+      "8":"p",
+      "9":"p",
+      "10":"p",
+      "11":"a x #1"
+    },
+    "edge":{
+      "12":"y",
+      "13":"y",
+      "14":"y"
+    },
+    "firefox":{
+      "2":"p",
+      "3":"p",
+      "3.5":"p",
+      "3.6":"p",
+      "4":"p",
+      "5":"p",
+      "6":"p",
+      "7":"p",
+      "8":"p",
+      "9":"p",
+      "10":"p",
+      "11":"p",
+      "12":"p",
+      "13":"p",
+      "14":"p",
+      "15":"p",
+      "16":"p",
+      "17":"p",
+      "18":"p",
+      "19":"p",
+      "20":"p",
+      "21":"p",
+      "22":"p",
+      "23":"p",
+      "24":"p",
+      "25":"p",
+      "26":"p",
+      "27":"p",
+      "28":"p",
+      "29":"p",
+      "30":"p",
+      "31":"p",
+      "32":"n d #2",
+      "33":"n d #2",
+      "34":"y",
+      "35":"y",
+      "36":"y",
+      "37":"y",
+      "38":"y",
+      "39":"y",
+      "40":"y",
+      "41":"y",
+      "42":"y",
+      "43":"y",
+      "44":"y",
+      "45":"y",
+      "46":"y",
+      "47":"y",
+      "48":"y",
+      "49":"y",
+      "50":"y",
+      "51":"y",
+      "52":"y"
+    },
+    "chrome":{
+      "4":"p",
+      "5":"p",
+      "6":"p",
+      "7":"p",
+      "8":"p",
+      "9":"p",
+      "10":"p",
+      "11":"p",
+      "12":"p",
+      "13":"p",
+      "14":"p",
+      "15":"p",
+      "16":"p",
+      "17":"p",
+      "18":"p",
+      "19":"p",
+      "20":"p",
+      "21":"p",
+      "22":"p",
+      "23":"p",
+      "24":"p",
+      "25":"p",
+      "26":"p",
+      "27":"p",
+      "28":"p",
+      "29":"p",
+      "30":"p",
+      "31":"p",
+      "32":"p",
+      "33":"p",
+      "34":"p",
+      "35":"p",
+      "36":"p",
+      "37":"y",
+      "38":"y",
+      "39":"y",
+      "40":"y",
+      "41":"y",
+      "42":"y",
+      "43":"y",
+      "44":"y",
+      "45":"y",
+      "46":"y",
+      "47":"y",
+      "48":"y",
+      "49":"y",
+      "50":"y",
+      "51":"y",
+      "52":"y",
+      "53":"y",
+      "54":"y",
+      "55":"y",
+      "56":"y",
+      "57":"y"
+    },
+    "safari":{
+      "3.1":"p",
+      "3.2":"p",
+      "4":"p",
+      "5":"p",
+      "5.1":"p",
+      "6":"p",
+      "6.1":"p",
+      "7":"p",
+      "7.1":"y x #3",
+      "8":"y x #3",
+      "9":"y x #3",
+      "9.1":"y x #3",
+      "10":"y x #3",
+      "TP":"y x #3"
+    },
+    "opera":{
+      "9":"p",
+      "9.5-9.6":"p",
+      "10.0-10.1":"p",
+      "10.5":"p",
+      "10.6":"p",
+      "11":"p",
+      "11.1":"p",
+      "11.5":"p",
+      "11.6":"p",
+      "12":"p",
+      "12.1":"p",
+      "15":"p",
+      "16":"p",
+      "17":"p",
+      "18":"p",
+      "19":"p",
+      "20":"p",
+      "21":"p",
+      "22":"p",
+      "23":"p",
+      "24":"y",
+      "25":"y",
+      "26":"y",
+      "27":"y",
+      "28":"y",
+      "29":"y",
+      "30":"y",
+      "31":"y",
+      "32":"y",
+      "33":"y",
+      "34":"y",
+      "35":"y",
+      "36":"y",
+      "37":"y",
+      "38":"y",
+      "39":"y",
+      "40":"y",
+      "41":"y",
+      "42":"y",
+      "43":"y"
+    },
+    "ios_saf":{
+      "3.2":"p",
+      "4.0-4.1":"p",
+      "4.2-4.3":"p",
+      "5.0-5.1":"p",
+      "6.0-6.1":"p",
+      "7.0-7.1":"p",
+      "8":"y x #3",
+      "8.1-8.4":"y x #3",
+      "9.0-9.2":"y x #3",
+      "9.3":"y x #3",
+      "10":"y x #3"
+    },
+    "op_mini":{
+      "all":"n"
+    },
+    "android":{
+      "2.1":"p",
+      "2.2":"p",
+      "2.3":"p",
+      "3":"p",
+      "4":"p",
+      "4.1":"p",
+      "4.2-4.3":"p",
+      "4.4":"p",
+      "4.4.3-4.4.4":"p",
+      "53":"y"
+    },
+    "bb":{
+      "7":"p",
+      "10":"p"
+    },
+    "op_mob":{
+      "10":"p",
+      "11":"p",
+      "11.1":"p",
+      "11.5":"p",
+      "12":"p",
+      "12.1":"p",
+      "37":"y"
+    },
+    "and_chr":{
+      "53":"y"
+    },
+    "and_ff":{
+      "49":"p"
+    },
+    "ie_mob":{
+      "10":"p",
+      "11":"a x #1"
+    },
+    "and_uc":{
+      "11":"p"
+    },
+    "samsung":{
+      "4":"y"
+    }
+  },
+  "notes":"Many browsers support the `[crypto.getRandomValues()](#feat=getrandomvalues)` method, but not actual cryptography functionality under `crypto.subtle`. \r\n\r\nFirefox also has support for [unofficial features](https://developer.mozilla.org/en-US/docs/JavaScript_crypto). \r\n\r\nIn Chrome the API is only usable over secure connections. ([corresponding bug](https://code.google.com/p/chromium/issues/detail?id=373032))",
+  "notes_by_num":{
+    "1":"Support in IE11 is based an older version of the specification.",
+    "2":"Supported in Firefox behind the `dom.webcrypto.enabled` flag.",
+    "3":"Supported in Safari using the `crypto.webkitSubtle` prefix."
+  },
+  "usage_perc_y":74.17,
+  "usage_perc_a":4.27,
+  "ucprefix":false,
+  "parent":"",
+  "keywords":"subtle,subtlecrypto",
+  "ie_id":"webcryptoapi",
+  "chrome_id":"5030265697075200",
+  "firefox_id":"",
+  "webkit_id":"specification-webcrypto",
+  "shown":true
+}

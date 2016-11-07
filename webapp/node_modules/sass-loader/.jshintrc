@@ -1,0 +1,49 @@
+{
+    "browser": true,
+    "node": true,
+    "expr": true,
+    "predef": [         // Extra globals.
+        "describe",
+        "it",
+        "before",
+        "after",
+        "beforeEach",
+        "afterEach",
+        "phantom"
+    ],
+
+    "curly": true,     // Require {} for every new block or scope.
+    "eqeqeq": true,     // Require triple equals i.e. `===`.
+    "forin": true,     // Tolerate `for in` loops without `hasOwnPrototype`.
+    "immed": true,     // Require immediate invocations to be wrapped in parens e.g. `( function(){}() );`
+    "latedef": false,     // Prohibit variable use before definition.
+    "newcap": false,     // Require capitalization of all constructor functions e.g. `new F()`.
+    "noempty": true,     // Prohibit use of empty blocks.
+    "nonew": false,     // Prohibit use of constructors for side-effects.
+    "plusplus": false,     // Prohibit use of `++` & `--`.
+    "undef": true,     // Require all non-global variables be declared before they are used.
+    "strict": true,     // Require `use strict` pragma in every file.
+    "trailing": true,    // Prohibit trailing whitespaces.
+    "asi": false,    // Tolerate Automatic Semicolon Insertion (no semicolons).
+    "boss": false,    // Tolerate assignments inside if, for & while. Usually conditions & loops are for comparison, not assignments.
+    "debug": false,    // Allow debugger statements e.g. browser breakpoints.
+    "eqnull": false,    // Tolerate use of `== null`.
+    "esnext": false,    // Allow ES.next specific features such as `const` and `let`.
+    "evil": false,    // Tolerate use of `eval`.
+    "funcscope": false,    // Tolerate declarations of variables inside of control structures while accessing them later from the outside.
+    "globalstrict": false,    // Allow global "use strict" (also enables 'strict').
+    "iterator": false,    // Allow usage of __iterator__ property.
+    "lastsemic": false,    // Tolerat missing semicolons when the it is omitted for the last statement in a one-line block.
+    "laxbreak": false,    // Tolerate unsafe line breaks e.g. `return [\n] x` without semicolons.
+    "laxcomma": false,    // Suppress warnings about comma-first coding style.
+    "loopfunc": false,    // Allow functions to be defined within loops.
+    "multistr": false,    // Tolerate multi-line strings.
+    "quotmark": "single", // Only single quotes for strings.
+    "proto": false,    // Tolerate __proto__ property. This property is deprecated.
+    "scripturl": false,    // Tolerate script-targeted URLs.
+    "smarttabs": false,    // Tolerate mixed tabs and spaces when the latter are used for alignmnent only.
+    "shadow": false,    // Allows re-define variables later in code e.g. `var x=1; x=2;`.
+    "sub": true,    // Tolerate all forms of subscript notation besides dot notation e.g. `dict['key']` instead of `dict.key`.
+    "supernew": false,    // Tolerate `new function () { ... };` and `new Object;`.
+    "validthis": false    // Tolerate strict violations when the code is running in strict mode and you use this in a non-constructor function
+}

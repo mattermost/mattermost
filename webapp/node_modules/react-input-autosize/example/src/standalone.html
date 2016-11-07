@@ -1,0 +1,41 @@
+<!doctype html>
+<head>
+	<title>React-Autosize-Input Standalone Example</title>
+	<link rel="stylesheet" href="example.css">
+</head>
+<body>
+	<div class="container">
+		<h1>React Autosize Input</h1>
+		<h2>Standalone example</h2>
+			<!-- the React application is loaded in the #example element -->
+		<div id="example"></div>
+		<div class="hint">
+			The component above is provided by the standalone build, and React is loaded from cdnjs.
+		</div>
+		<div><a href="/">Back to the main example</a></div>
+		<div class="footer">
+			Copyright &copy; Jed Watson 2014. MIT Licensed.
+		</div>
+	</div>
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/react/0.12.0/JSXTransformer.js"></script>
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/react/0.12.0/react.js"></script>
+	<script src="standalone.js"></script>
+	<script type="text/jsx">
+		var Example = React.createClass({
+			getInitialState: function() {
+				return {
+					inputValue: ''
+				};
+			},
+			updateValue: function(event) {
+				this.setState({
+					inputValue: event.target.value
+				});
+			},
+			render: function() {
+				return <AutosizeInput value={this.state.inputValue} onChange={this.updateValue} />
+			}
+		});
+		React.render(<Example />, document.getElementById('example'));
+	</script>
+</body>

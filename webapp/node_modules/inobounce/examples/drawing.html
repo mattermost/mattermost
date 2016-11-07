@@ -1,0 +1,160 @@
+<!doctype html>
+<html>
+<title>iNoBounce Example - Touchable</title>
+
+<!-- Ensure correct presentation on iOS -->
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+<!-- iNoBounce to prevent bouncing -->
+<script src="../inobounce.js"></script>
+
+<style>
+	body, html {
+		height: 100%; /* Fill the window */
+	}
+
+	body {
+		font-family: sans-serif;
+		margin: 0;
+	}
+
+	/* A simple CSS class to enable scrolling with momentum on iOS */
+	.scrollable {
+		overflow: auto;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	#drawing {
+		position: absolute;
+		top: 0;
+		width: 100%;
+		height: 50%;
+		bottom: 50%;
+		left: 0;
+		right: 0;
+		box-sizing: border-box;
+		border: 1px solid gray;
+	}
+
+	ul {
+		position: absolute;
+		top: 50%;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	li {
+		margin: 0;
+		padding: 0.5em 1em;
+		background: -webkit-linear-gradient(top, rgb(255,255,255) 0%,rgb(238,238,238) 100%);
+		background: linear-gradient(to bottom, rgb(255,255,255) 0%,rgb(238,238,238) 100%);
+	}
+</style>
+
+<canvas id="drawing"></canvas>
+<script>
+	window.addEventListener('load', function() {
+		// Get the device's pixel ratio
+		var pixelRatio = window.devicePixelRatio || 1;
+
+		// Get the canvas context
+		var canvas = document.getElementById('drawing');
+		var ctx = canvas.getContext('2d');
+
+		// Set the width according to pixel ratio
+		function setWidth() {
+			canvas.width = document.body.clientWidth * pixelRatio;
+			canvas.height = document.body.clientHeight/2 * pixelRatio;
+			console.log(canvas.width, canvas.height)
+		}
+
+		// Store the position of the last touch
+		var lastTouch = { x: null, y: null };
+		
+		// Add a few touch listeners
+		canvas.addEventListener('touchmove', function(evt) {
+			if (evt.touches && evt.touches.length) {
+				// Get the position of the touch
+				var touch = evt.touches[0];
+				var x = touch.pageX*pixelRatio;
+				var y = touch.pageY*pixelRatio;
+
+				// Draw a line
+				if (lastTouch.x !== null) {
+					ctx.beginPath();
+					ctx.moveTo(lastTouch.x, lastTouch.y);
+					ctx.lineTo(x, y);
+					ctx.closePath();
+					ctx.stroke();
+				}
+
+				// Store the coordinates for the start of our next line
+				lastTouch.x = x;
+				lastTouch.y = y;
+			}
+		}, false);
+
+		canvas.addEventListener('touchend', function(evt) {
+			lastTouch.x = null;
+			lastTouch.y = null;
+		}, false);
+
+		// Handle rotation
+		window.addEventListener('orientationchange', setWidth, false);
+
+		// Finally, set the initial width
+		setWidth();
+	}, false);
+</script>
+
+<ul class="scrollable">
+	<li>List Item 1</li>
+	<li>List Item 2</li>
+	<li>List Item 3</li>
+	<li>List Item 4</li>
+	<li>List Item 5</li>
+	<li>List Item 6</li>
+	<li>List Item 7</li>
+	<li>List Item 8</li>
+	<li>List Item 9</li>
+	<li>List Item 10</li>
+	<li>List Item 11</li>
+	<li>List Item 12</li>
+	<li>List Item 13</li>
+	<li>List Item 14</li>
+	<li>List Item 15</li>
+	<li>List Item 16</li>
+	<li>List Item 17</li>
+	<li>List Item 18</li>
+	<li>List Item 19</li>
+	<li>List Item 20</li>
+	<li>List Item 20</li>
+	<li>List Item 21</li>
+	<li>List Item 22</li>
+	<li>List Item 23</li>
+	<li>List Item 24</li>
+	<li>List Item 25</li>
+	<li>List Item 26</li>
+	<li>List Item 27</li>
+	<li>List Item 28</li>
+	<li>List Item 29</li>
+	<li>List Item 20</li>
+	<li>List Item 30</li>
+	<li>List Item 31</li>
+	<li>List Item 32</li>
+	<li>List Item 33</li>
+	<li>List Item 34</li>
+	<li>List Item 35</li>
+	<li>List Item 36</li>
+	<li>List Item 37</li>
+	<li>List Item 38</li>
+	<li>List Item 39</li>
+	<li>List Item 40</li>
+</ul>
+
+</html>

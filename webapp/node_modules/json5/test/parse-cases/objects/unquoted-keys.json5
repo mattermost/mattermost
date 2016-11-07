@@ -1,0 +1,8 @@
+{
+    hello: "world",
+    _: "underscore",
+    $: "dollar sign",
+    one1: "numerals",
+    _$_: "multiple symbols",
+    $_$hello123world_$_: "mixed"
+}

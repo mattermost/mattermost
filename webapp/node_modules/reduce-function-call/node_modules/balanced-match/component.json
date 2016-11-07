@@ -1,0 +1,15 @@
+{
+  "name": "balanced-match",
+  "description": "Match balanced character pairs, like \"{\" and \"}\"",
+  "version": "0.0.1",
+  "repository": "juliangruber/balanced-match",
+  "keywords": [
+    "match",
+    "regexp",
+    "test",
+    "balanced",
+    "parse"
+  ],
+  "scripts": ["index.js"],
+  "license": "MIT"
+}

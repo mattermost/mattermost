@@ -1,0 +1,295 @@
+{
+  "title":"CSS3 Background-image options",
+  "description":"New properties to affect background images, including background-clip, background-origin and background-size",
+  "spec":"http://www.w3.org/TR/css3-background/#backgrounds",
+  "status":"cr",
+  "links":[
+    {
+      "url":"http://www.standardista.com/css3/css3-background-properties",
+      "title":"Detailed compatibility tables and demos"
+    },
+    {
+      "url":"http://www.css3files.com/background/",
+      "title":"Information page"
+    },
+    {
+      "url":"https://github.com/louisremi/background-size-polyfill",
+      "title":"Polyfill for IE7-8"
+    }
+  ],
+  "bugs":[
+    {
+      "description":"iOS Safari has buggy behavior with `background-size: cover;` on a page's body."
+    },
+    {
+      "description":"iOS Safari has buggy behavior with `background-size: cover;` + `background-attachment: fixed;`"
+    },
+    {
+      "description":"Safari (OS X and iOS) and Chrome do not support background-size: 100% <height>px; in combination with SVG images, it leaves them at the original size while other browsers stretch the vector image correctly while leaving the height at the specified number of pixels."
+    },
+    {
+      "description":"Android 4.3 browser and below are reported to not support percentages in `background-size`"
+    }
+  ],
+  "categories":[
+    "CSS3"
+  ],
+  "stats":{
+    "ie":{
+      "5.5":"n",
+      "6":"n",
+      "7":"n",
+      "8":"n",
+      "9":"y",
+      "10":"y",
+      "11":"y"
+    },
+    "edge":{
+      "12":"y",
+      "13":"y",
+      "14":"y"
+    },
+    "firefox":{
+      "2":"n",
+      "3":"n",
+      "3.5":"n",
+      "3.6":"a x",
+      "4":"y",
+      "5":"y",
+      "6":"y",
+      "7":"y",
+      "8":"y",
+      "9":"y",
+      "10":"y",
+      "11":"y",
+      "12":"y",
+      "13":"y",
+      "14":"y",
+      "15":"y",
+      "16":"y",
+      "17":"y",
+      "18":"y",
+      "19":"y",
+      "20":"y",
+      "21":"y",
+      "22":"y",
+      "23":"y",
+      "24":"y",
+      "25":"y",
+      "26":"y",
+      "27":"y",
+      "28":"y",
+      "29":"y",
+      "30":"y",
+      "31":"y",
+      "32":"y",
+      "33":"y",
+      "34":"y",
+      "35":"y",
+      "36":"y",
+      "37":"y",
+      "38":"y",
+      "39":"y",
+      "40":"y",
+      "41":"y",
+      "42":"y",
+      "43":"y",
+      "44":"y",
+      "45":"y",
+      "46":"y",
+      "47":"y",
+      "48":"y",
+      "49":"y",
+      "50":"y",
+      "51":"y",
+      "52":"y"
+    },
+    "chrome":{
+      "4":"a #3",
+      "5":"a #3",
+      "6":"a #3",
+      "7":"a #3",
+      "8":"a #3",
+      "9":"a #3",
+      "10":"a #3",
+      "11":"a #3",
+      "12":"a #3",
+      "13":"a #3",
+      "14":"a #3",
+      "15":"y",
+      "16":"y",
+      "17":"y",
+      "18":"y",
+      "19":"y",
+      "20":"y",
+      "21":"y",
+      "22":"y",
+      "23":"y",
+      "24":"y",
+      "25":"y",
+      "26":"y",
+      "27":"y",
+      "28":"y",
+      "29":"y",
+      "30":"y",
+      "31":"y",
+      "32":"y",
+      "33":"y",
+      "34":"y",
+      "35":"y",
+      "36":"y",
+      "37":"y",
+      "38":"y",
+      "39":"y",
+      "40":"y",
+      "41":"y",
+      "42":"y",
+      "43":"y",
+      "44":"y",
+      "45":"y",
+      "46":"y",
+      "47":"y",
+      "48":"y",
+      "49":"y",
+      "50":"y",
+      "51":"y",
+      "52":"y",
+      "53":"y",
+      "54":"y",
+      "55":"y",
+      "56":"y",
+      "57":"y"
+    },
+    "safari":{
+      "3.1":"a #2 #3",
+      "3.2":"a #2 #3",
+      "4":"a #2 #3",
+      "5":"a #2 #3",
+      "5.1":"a #2 #3",
+      "6":"a #2 #3",
+      "6.1":"a #2 #3",
+      "7":"y",
+      "7.1":"y",
+      "8":"y",
+      "9":"y",
+      "9.1":"y",
+      "10":"y",
+      "TP":"y"
+    },
+    "opera":{
+      "9":"n",
+      "9.5-9.6":"n",
+      "10.0-10.1":"a x",
+      "10.5":"y",
+      "10.6":"y",
+      "11":"y",
+      "11.1":"y",
+      "11.5":"y",
+      "11.6":"y",
+      "12":"y",
+      "12.1":"y",
+      "15":"y",
+      "16":"y",
+      "17":"y",
+      "18":"y",
+      "19":"y",
+      "20":"y",
+      "21":"y",
+      "22":"y",
+      "23":"y",
+      "24":"y",
+      "25":"y",
+      "26":"y",
+      "27":"y",
+      "28":"y",
+      "29":"y",
+      "30":"y",
+      "31":"y",
+      "32":"y",
+      "33":"y",
+      "34":"y",
+      "35":"y",
+      "36":"y",
+      "37":"y",
+      "38":"y",
+      "39":"y",
+      "40":"y",
+      "41":"y",
+      "42":"y",
+      "43":"y"
+    },
+    "ios_saf":{
+      "3.2":"a",
+      "4.0-4.1":"a",
+      "4.2-4.3":"a",
+      "5.0-5.1":"a #3",
+      "6.0-6.1":"a",
+      "7.0-7.1":"y",
+      "8":"y",
+      "8.1-8.4":"y",
+      "9.0-9.2":"y",
+      "9.3":"y",
+      "10":"y"
+    },
+    "op_mini":{
+      "all":"a #1"
+    },
+    "android":{
+      "2.1":"a x",
+      "2.2":"a x #3",
+      "2.3":"a x #3",
+      "3":"a #3",
+      "4":"a #3",
+      "4.1":"a #3",
+      "4.2-4.3":"a #3",
+      "4.4":"y",
+      "4.4.3-4.4.4":"y",
+      "53":"y"
+    },
+    "bb":{
+      "7":"y",
+      "10":"y"
+    },
+    "op_mob":{
+      "10":"y",
+      "11":"y",
+      "11.1":"y",
+      "11.5":"y",
+      "12":"y",
+      "12.1":"y",
+      "37":"y"
+    },
+    "and_chr":{
+      "53":"y"
+    },
+    "and_ff":{
+      "49":"y"
+    },
+    "ie_mob":{
+      "10":"y",
+      "11":"y"
+    },
+    "and_uc":{
+      "11":"y"
+    },
+    "samsung":{
+      "4":"y"
+    }
+  },
+  "notes":"Safari also supports the unofficial `-webkit-background-clip: text` (only with prefix)",
+  "notes_by_num":{
+    "1":"Partial support in Opera Mini refers to not supporting background sizing or background attachments. However Opera Mini 7.5 supports background sizing (including cover and contain values).",
+    "2":"Partial support in Safari 6 refers to not supporting background sizing offset from edges syntax.",
+    "3":"Does not support `background-size` values in the `background` shorthand"
+  },
+  "usage_perc_y":92.18,
+  "usage_perc_a":5.26,
+  "ucprefix":false,
+  "parent":"",
+  "keywords":"",
+  "ie_id":"",
+  "chrome_id":"",
+  "firefox_id":"",
+  "webkit_id":"",
+  "shown":true
+}

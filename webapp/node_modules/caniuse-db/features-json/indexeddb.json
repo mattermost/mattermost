@@ -1,0 +1,295 @@
+{
+  "title":"IndexedDB",
+  "description":"Method of storing data client-side, allows indexed database queries.",
+  "spec":"http://www.w3.org/TR/IndexedDB/",
+  "status":"rec",
+  "links":[
+    {
+      "url":"http://hacks.mozilla.org/2010/06/comparing-indexeddb-and-webdatabase/",
+      "title":"Mozilla Hacks article"
+    },
+    {
+      "url":"https://github.com/axemclion/IndexedDBShim",
+      "title":"Polyfill for browsers supporting WebSQL"
+    },
+    {
+      "url":"https://raw.github.com/phiggins42/has.js/master/detect/features.js#native-indexeddb",
+      "title":"has.js test"
+    },
+    {
+      "url":"http://docs.webplatform.org/wiki/apis/indexedDB",
+      "title":"WebPlatform Docs"
+    }
+  ],
+  "bugs":[
+    {
+      "description":"Firefox (prior to version 37) and [Safari](https://bugs.webkit.org/show_bug.cgi?id=149953) do not support IndexedDB inside web workers."
+    },
+    {
+      "description":"Not supported in Chrome 47 for iOS & below or other older iOS WebViews using UIWebView instead of WKWebView [see details](http://blog.chromium.org/2016/01/a-faster-more-stable-chrome-on-ios.html)\r\n\r\nChrome 36 and below did not support Blob objects as indexedDB values."
+    },
+    {
+      "description":"Chrome has a bug where a deleted indexedDB can be re-created when dev tools are open (fixed in latest builds) [see bug](https://code.google.com/p/chromium/issues/detail?id=539931)"
+    }
+  ],
+  "categories":[
+    "JS API"
+  ],
+  "stats":{
+    "ie":{
+      "5.5":"n",
+      "6":"n",
+      "7":"n",
+      "8":"n",
+      "9":"n",
+      "10":"a #1",
+      "11":"a #1"
+    },
+    "edge":{
+      "12":"a #1",
+      "13":"a #1",
+      "14":"a #1"
+    },
+    "firefox":{
+      "2":"n",
+      "3":"n",
+      "3.5":"n",
+      "3.6":"n",
+      "4":"a x",
+      "5":"a x",
+      "6":"a x",
+      "7":"a x",
+      "8":"a x",
+      "9":"a x",
+      "10":"y x",
+      "11":"y x",
+      "12":"y x",
+      "13":"y x",
+      "14":"y x",
+      "15":"y x",
+      "16":"y",
+      "17":"y",
+      "18":"y",
+      "19":"y",
+      "20":"y",
+      "21":"y",
+      "22":"y",
+      "23":"y",
+      "24":"y",
+      "25":"y",
+      "26":"y",
+      "27":"y",
+      "28":"y",
+      "29":"y",
+      "30":"y",
+      "31":"y",
+      "32":"y",
+      "33":"y",
+      "34":"y",
+      "35":"y",
+      "36":"y",
+      "37":"y",
+      "38":"y",
+      "39":"y",
+      "40":"y",
+      "41":"y",
+      "42":"y",
+      "43":"y",
+      "44":"y",
+      "45":"y",
+      "46":"y",
+      "47":"y",
+      "48":"y",
+      "49":"y",
+      "50":"y",
+      "51":"y",
+      "52":"y"
+    },
+    "chrome":{
+      "4":"p",
+      "5":"p",
+      "6":"p",
+      "7":"p",
+      "8":"p",
+      "9":"p",
+      "10":"n",
+      "11":"a x",
+      "12":"a x",
+      "13":"a x",
+      "14":"a x",
+      "15":"a x",
+      "16":"a x",
+      "17":"a x",
+      "18":"a x",
+      "19":"a x",
+      "20":"a x",
+      "21":"a x",
+      "22":"a x",
+      "23":"y x",
+      "24":"y",
+      "25":"y",
+      "26":"y",
+      "27":"y",
+      "28":"y",
+      "29":"y",
+      "30":"y",
+      "31":"y",
+      "32":"y",
+      "33":"y",
+      "34":"y",
+      "35":"y",
+      "36":"y",
+      "37":"y",
+      "38":"y",
+      "39":"y",
+      "40":"y",
+      "41":"y",
+      "42":"y",
+      "43":"y",
+      "44":"y",
+      "45":"y",
+      "46":"y",
+      "47":"y",
+      "48":"y",
+      "49":"y",
+      "50":"y",
+      "51":"y",
+      "52":"y",
+      "53":"y",
+      "54":"y",
+      "55":"y",
+      "56":"y",
+      "57":"y"
+    },
+    "safari":{
+      "3.1":"p",
+      "3.2":"p",
+      "4":"p",
+      "5":"p",
+      "5.1":"p",
+      "6":"p",
+      "6.1":"p",
+      "7":"p",
+      "7.1":"a #2",
+      "8":"a #2",
+      "9":"a #2",
+      "9.1":"a #2",
+      "10":"y",
+      "TP":"y"
+    },
+    "opera":{
+      "9":"n",
+      "9.5-9.6":"n",
+      "10.0-10.1":"n",
+      "10.5":"p",
+      "10.6":"p",
+      "11":"p",
+      "11.1":"p",
+      "11.5":"p",
+      "11.6":"p",
+      "12":"p",
+      "12.1":"p",
+      "15":"y",
+      "16":"y",
+      "17":"y",
+      "18":"y",
+      "19":"y",
+      "20":"y",
+      "21":"y",
+      "22":"y",
+      "23":"y",
+      "24":"y",
+      "25":"y",
+      "26":"y",
+      "27":"y",
+      "28":"y",
+      "29":"y",
+      "30":"y",
+      "31":"y",
+      "32":"y",
+      "33":"y",
+      "34":"y",
+      "35":"y",
+      "36":"y",
+      "37":"y",
+      "38":"y",
+      "39":"y",
+      "40":"y",
+      "41":"y",
+      "42":"y",
+      "43":"y"
+    },
+    "ios_saf":{
+      "3.2":"p",
+      "4.0-4.1":"p",
+      "4.2-4.3":"p",
+      "5.0-5.1":"p",
+      "6.0-6.1":"p",
+      "7.0-7.1":"p",
+      "8":"a #2",
+      "8.1-8.4":"a #2",
+      "9.0-9.2":"a #2",
+      "9.3":"a #2",
+      "10":"y"
+    },
+    "op_mini":{
+      "all":"n"
+    },
+    "android":{
+      "2.1":"p",
+      "2.2":"p",
+      "2.3":"p",
+      "3":"p",
+      "4":"p",
+      "4.1":"p",
+      "4.2-4.3":"p",
+      "4.4":"y",
+      "4.4.3-4.4.4":"y",
+      "53":"y"
+    },
+    "bb":{
+      "7":"p",
+      "10":"y"
+    },
+    "op_mob":{
+      "10":"n",
+      "11":"p",
+      "11.1":"p",
+      "11.5":"p",
+      "12":"p",
+      "12.1":"p",
+      "37":"y"
+    },
+    "and_chr":{
+      "53":"y"
+    },
+    "and_ff":{
+      "49":"y"
+    },
+    "ie_mob":{
+      "10":"a #1",
+      "11":"a #1"
+    },
+    "and_uc":{
+      "11":"p"
+    },
+    "samsung":{
+      "4":"y"
+    }
+  },
+  "notes":"",
+  "notes_by_num":{
+    "1":"Partial support in IE 10 & 11 refers to a number of subfeatures [not being supported](http://codepen.io/cemerick/pen/Itymi).",
+    "2":"Partial support in Safari & iOS 8 & 9 refers to [seriously buggy behavior](http://www.raymondcamden.com/2014/09/25/IndexedDB-on-iOS-8-Broken-Bad/) as well as complete lack of support in WebViews."
+  },
+  "usage_perc_y":71.93,
+  "usage_perc_a":10.32,
+  "ucprefix":false,
+  "parent":"",
+  "keywords":"indexdb",
+  "ie_id":"indexeddb",
+  "chrome_id":"6507459568992256",
+  "firefox_id":"indexeddb",
+  "webkit_id":"specification-indexed-database",
+  "shown":true
+}

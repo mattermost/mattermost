@@ -1,0 +1,6 @@
+coverage/
+tasks/
+tests/
+tmp/
+.travis.yml
+Gruntfile.js

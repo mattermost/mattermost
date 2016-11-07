@@ -1,0 +1,21 @@
+{
+  "name": "intl",
+  "version": "1.2.5",
+  "description": "Polyfill the ECMA-402 Intl API (except collation)",
+  "main": ["dist/Intl.js", "locale-data/jsonp"],
+  "keywords": [
+    "intl",
+    "i18n",
+    "internationalization",
+    "ecma402",
+    "polyfill"
+  ],
+  "ignore": [
+    "/src",
+    "/task",
+    "/tools",
+    "/tests",
+    "index.js",
+    "Gruntfile.js"
+  ]
+}

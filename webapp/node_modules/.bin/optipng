@@ -1,0 +1,1 @@
+../optipng-bin/cli.js

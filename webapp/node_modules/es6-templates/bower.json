@@ -1,0 +1,23 @@
+{
+  "name": "es6-templates",
+  "version": "0.2.3",
+  "homepage": "https://github.com/square/es6-templates",
+  "authors": [
+    "Brian Donovan <donovan@squareup.com>"
+  ],
+  "description": "ES6 template strings compiled to ES5.",
+  "main": "lib/index.js",
+  "keywords": [
+    "es6",
+    "template string",
+    "string",
+    "interpolation",
+    "tagged template"
+  ],
+  "license": "Apache 2",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "test"
+  ]
+}

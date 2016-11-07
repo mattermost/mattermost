@@ -1,0 +1,15 @@
+---
+layout: home
+title: Jasny Bootstrap
+---
+
+<main class="bs-masthead" id="content" role="main">
+  <div class="container">
+    <h1>{{ page.title }}</h1>
+    <p class="lead">The missing components for your favorite front-end framework.</p>
+    <p>
+      <a href="{{ site.download.dist }}" class="btn btn-outline-inverse btn-lg" onclick="_gaq.push(['_trackEvent', 'Jumbotron actions', 'Download', 'Download {{ site.current_version }}']);">Download</a>
+      or <a href="{{ site.download.source }}" onclick="_gaq.push(['_trackEvent', 'Jumbotron actions', 'Download', 'Download {{ site.current_version }} source']);">Download source</a>
+    </p>
+  </div>
+</main>

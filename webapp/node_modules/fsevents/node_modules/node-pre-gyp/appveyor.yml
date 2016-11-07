@@ -1,0 +1,30 @@
+environment:
+  matrix:
+    - nodejs_version: 0.10.36
+    - nodejs_version: 4
+    - nodejs_version: 5
+
+platform:
+  - x64
+  - x86
+
+shallow_clone: true
+
+install:
+  - ps: Install-Product node $env:nodejs_version $env:Platform
+  - node --version
+  - npm --version
+  - SET PATH=%APPDATA%\npm;%PATH%
+  - npm update -g npm
+  - npm --version
+  - node -e "console.log(process.arch);"
+  - SET PATH=C:\Program Files (x86)\MSBuild\12.0\bin\;%PATH%
+  - if "%PLATFORM%" == "x64" set PATH=C:\Python27-x64;%PATH%
+  - if "%PLATFORM%" == "x86" SET PATH=C:\python27;%PATH%
+  - npm install
+  - npm test
+  - .\scripts\test.bat
+
+build: off
+test: off
+deploy: off

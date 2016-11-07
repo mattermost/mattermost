@@ -1,0 +1,335 @@
+{
+  "title":"Flexible Box Layout Module",
+  "description":"Method of positioning elements in horizontal or vertical stacks. Support includes the support for the all properties prefixed with `flex` as well as `display: flex`, `display: inline-flex`, `align-content`, `align-items`, `align-self`, `justify-content` and `order`.",
+  "spec":"http://www.w3.org/TR/css3-flexbox/",
+  "status":"cr",
+  "links":[
+    {
+      "url":"http://bennettfeely.com/flexplorer/",
+      "title":"Flexbox CSS generator"
+    },
+    {
+      "url":"http://www.adobe.com/devnet/html5/articles/working-with-flexbox-the-new-spec.html",
+      "title":"Article on using the latest spec"
+    },
+    {
+      "url":"https://dev.opera.com/articles/view/advanced-cross-browser-flexbox/",
+      "title":"Tutorial on cross-browser support"
+    },
+    {
+      "url":"http://philipwalton.github.io/solved-by-flexbox/",
+      "title":"Examples on how to solve common layout problems with flexbox"
+    },
+    {
+      "url":"http://css-tricks.com/snippets/css/a-guide-to-flexbox/",
+      "title":"A Complete Guide to Flexbox"
+    },
+    {
+      "url":"http://the-echoplex.net/flexyboxes/",
+      "title":"Flexbox playground and code generator"
+    },
+    {
+      "url":"https://github.com/philipwalton/flexbugs",
+      "title":"Flexbugs: Repo for flexbox bugs"
+    },
+    {
+      "url":"https://github.com/10up/flexibility/",
+      "title":"10up Open Sources IE 8 and 9 Support for Flexbox"
+    },
+    {
+      "url":"https://github.com/vadimyer/ecligrid",
+      "title":"Ecligrid - Mobile first flexbox grid system"
+    }
+  ],
+  "bugs":[
+    {
+      "description":"In IE10 the default value for `flex` is `0 0 auto` rather than `0 1 auto` as defined in the latest spec."
+    },
+    {
+      "description":"In Safari, the height of (non flex) children are not recognized in percentages. However other browsers recognize and scale the children based on percentage heights. ([See bug](https://bugs.webkit.org/show_bug.cgi?id=137730)) The bug also appeared in Chrome but was fixed in [Chrome 51](http://crbug.com/341310)"
+    },
+    {
+      "description":"Firefox does not support [Flexbox in button elements](https://bugzilla.mozilla.org/show_bug.cgi?id=984869#c2)"
+    },
+    {
+      "description":"[Flexbugs](https://github.com/philipwalton/flexbugs): community-curated list of flexbox issues and cross-browser workarounds for them"
+    },
+    {
+      "description":"In IE 10, setting `-ms-flex-flow: row wrap` will not wrap unless `display: inline-block` is set on child elements."
+    },
+    {
+      "description":"IE 11 does not vertically align items correctly when `min-height` is used [see bug](https://connect.microsoft.com/IE/feedback/details/816293/ie11-flexbox-with-min-height-not-vertically-aligning-with-align-items-center)"
+    },
+    {
+      "description":"In IE10 and IE11, containers with `display: flex` and `flex-direction: column` will not properly calculate their flexed childrens' sizes if the container has `min-height` but no explicit `height` property. [See bug](https://connect.microsoft.com/IE/feedback/details/802625/min-height-and-flexbox-flex-direction-column-dont-work-together-in-ie-10-11-preview)."
+    },
+    {
+      "description":"IE 11 requires a unit to be added to the third argument, the flex-basis property [see MSFT documentation](https://msdn.microsoft.com/en-us/library/dn254946%28v=vs.85%29.aspx)"
+    },
+    {
+      "description":"Safari uses min/max width/height declarations for actually rendering the size of flex items, but it ignores those values when calculating how many items should be on a single line of a multi-line flex container. Instead, it simply uses the item's flex-basis value, or its width if the flex basis is set to auto. [see bug](https://bugs.webkit.org/show_bug.cgi?id=136041)"
+    }
+  ],
+  "categories":[
+    "CSS3"
+  ],
+  "stats":{
+    "ie":{
+      "5.5":"n",
+      "6":"n",
+      "7":"n",
+      "8":"n",
+      "9":"n",
+      "10":"a x #2 #4",
+      "11":"a #4"
+    },
+    "edge":{
+      "12":"y",
+      "13":"y",
+      "14":"y"
+    },
+    "firefox":{
+      "2":"a x #1",
+      "3":"a x #1",
+      "3.5":"a x #1",
+      "3.6":"a x #1",
+      "4":"a x #1",
+      "5":"a x #1",
+      "6":"a x #1",
+      "7":"a x #1",
+      "8":"a x #1",
+      "9":"a x #1",
+      "10":"a x #1",
+      "11":"a x #1",
+      "12":"a x #1",
+      "13":"a x #1",
+      "14":"a x #1",
+      "15":"a x #1",
+      "16":"a x #1",
+      "17":"a x #1",
+      "18":"a x #1",
+      "19":"a x #1",
+      "20":"a x #1",
+      "21":"a x #1",
+      "22":"a #3",
+      "23":"a #3",
+      "24":"a #3",
+      "25":"a #3",
+      "26":"a #3",
+      "27":"a #3",
+      "28":"y",
+      "29":"y",
+      "30":"y",
+      "31":"y",
+      "32":"y",
+      "33":"y",
+      "34":"y",
+      "35":"y",
+      "36":"y",
+      "37":"y",
+      "38":"y",
+      "39":"y",
+      "40":"y",
+      "41":"y",
+      "42":"y",
+      "43":"y",
+      "44":"y",
+      "45":"y",
+      "46":"y",
+      "47":"y",
+      "48":"y",
+      "49":"y",
+      "50":"y",
+      "51":"y",
+      "52":"y"
+    },
+    "chrome":{
+      "4":"a x #1",
+      "5":"a x #1",
+      "6":"a x #1",
+      "7":"a x #1",
+      "8":"a x #1",
+      "9":"a x #1",
+      "10":"a x #1",
+      "11":"a x #1",
+      "12":"a x #1",
+      "13":"a x #1",
+      "14":"a x #1",
+      "15":"a x #1",
+      "16":"a x #1",
+      "17":"a x #1",
+      "18":"a x #1",
+      "19":"a x #1",
+      "20":"a x #1",
+      "21":"y x",
+      "22":"y x",
+      "23":"y x",
+      "24":"y x",
+      "25":"y x",
+      "26":"y x",
+      "27":"y x",
+      "28":"y x",
+      "29":"y",
+      "30":"y",
+      "31":"y",
+      "32":"y",
+      "33":"y",
+      "34":"y",
+      "35":"y",
+      "36":"y",
+      "37":"y",
+      "38":"y",
+      "39":"y",
+      "40":"y",
+      "41":"y",
+      "42":"y",
+      "43":"y",
+      "44":"y",
+      "45":"y",
+      "46":"y",
+      "47":"y",
+      "48":"y",
+      "49":"y",
+      "50":"y",
+      "51":"y",
+      "52":"y",
+      "53":"y",
+      "54":"y",
+      "55":"y",
+      "56":"y",
+      "57":"y"
+    },
+    "safari":{
+      "3.1":"a x #1",
+      "3.2":"a x #1",
+      "4":"a x #1",
+      "5":"a x #1",
+      "5.1":"a x #1",
+      "6":"a x #1",
+      "6.1":"y x",
+      "7":"y x",
+      "7.1":"y x",
+      "8":"y x",
+      "9":"y",
+      "9.1":"y",
+      "10":"y",
+      "TP":"y"
+    },
+    "opera":{
+      "9":"n",
+      "9.5-9.6":"n",
+      "10.0-10.1":"n",
+      "10.5":"n",
+      "10.6":"n",
+      "11":"n",
+      "11.1":"n",
+      "11.5":"n",
+      "11.6":"n",
+      "12":"n",
+      "12.1":"y",
+      "15":"y x",
+      "16":"y x",
+      "17":"y",
+      "18":"y",
+      "19":"y",
+      "20":"y",
+      "21":"y",
+      "22":"y",
+      "23":"y",
+      "24":"y",
+      "25":"y",
+      "26":"y",
+      "27":"y",
+      "28":"y",
+      "29":"y",
+      "30":"y",
+      "31":"y",
+      "32":"y",
+      "33":"y",
+      "34":"y",
+      "35":"y",
+      "36":"y",
+      "37":"y",
+      "38":"y",
+      "39":"y",
+      "40":"y",
+      "41":"y",
+      "42":"y",
+      "43":"y"
+    },
+    "ios_saf":{
+      "3.2":"a x #1",
+      "4.0-4.1":"a x #1",
+      "4.2-4.3":"a x #1",
+      "5.0-5.1":"a x #1",
+      "6.0-6.1":"a x #1",
+      "7.0-7.1":"y x",
+      "8":"y x",
+      "8.1-8.4":"y x",
+      "9.0-9.2":"y",
+      "9.3":"y",
+      "10":"y"
+    },
+    "op_mini":{
+      "all":"y"
+    },
+    "android":{
+      "2.1":"a x #1",
+      "2.2":"a x #1",
+      "2.3":"a x #1",
+      "3":"a x #1",
+      "4":"a x #1",
+      "4.1":"a x #1",
+      "4.2-4.3":"a x #1",
+      "4.4":"y",
+      "4.4.3-4.4.4":"y",
+      "53":"y"
+    },
+    "bb":{
+      "7":"a x #1",
+      "10":"y"
+    },
+    "op_mob":{
+      "10":"n",
+      "11":"n",
+      "11.1":"n",
+      "11.5":"n",
+      "12":"n",
+      "12.1":"y",
+      "37":"y"
+    },
+    "and_chr":{
+      "53":"y"
+    },
+    "and_ff":{
+      "49":"y"
+    },
+    "ie_mob":{
+      "10":"a x #2",
+      "11":"y"
+    },
+    "and_uc":{
+      "11":"a x #1"
+    },
+    "samsung":{
+      "4":"y"
+    }
+  },
+  "notes":"Most partial support refers to supporting an [older version](http://www.w3.org/TR/2009/WD-css3-flexbox-20090723/) of the specification or an [older syntax](http://www.w3.org/TR/2012/WD-css3-flexbox-20120322/).",
+  "notes_by_num":{
+    "1":"Only supports the [old flexbox](http://www.w3.org/TR/2009/WD-css3-flexbox-20090723) specification and does not support wrapping.",
+    "2":"Only supports the [2012 syntax](http://www.w3.org/TR/2012/WD-css3-flexbox-20120322/)",
+    "3":"Does not support flex-wrap or flex-flow properties",
+    "4":"Partial support is due to large amount of bugs present (see known issues)"
+  },
+  "usage_perc_y":82.18,
+  "usage_perc_a":14.94,
+  "ucprefix":false,
+  "parent":"",
+  "keywords":"flex-box,flex-direction,flex-wrap,flex-flow,flex-grow,flex-basis,display:flex,flex box",
+  "ie_id":"flexbox",
+  "chrome_id":"4837301406400512",
+  "firefox_id":"",
+  "webkit_id":"",
+  "shown":true
+}

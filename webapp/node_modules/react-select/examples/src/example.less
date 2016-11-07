@@ -1,0 +1,256 @@
+//
+// Common Example Styles
+// ------------------------------
+
+
+
+
+// import select field styles
+
+@import "../../less/select.less";
+
+
+
+
+// Constants
+// ------------------------------
+
+// example site
+
+@heading-color:                  black;
+@text-color:                     #333;
+@link-color:                     #007eff;
+@gutter:                         30px;
+
+
+
+
+// Base
+// ------------------------------
+
+body {
+	color: @text-color;
+	font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+	font-size: 14px;
+	line-height: 1.4;
+	margin: 0;
+	padding: 0;
+}
+
+a {
+	color: @link-color;
+	text-decoration: none;
+
+	&:hover {
+		text-decoration: underline;
+	}
+}
+
+.container {
+	margin-left: auto;
+	margin-right: auto;
+	max-width: 400px;
+	padding: 0 @gutter;
+}
+
+
+
+
+// Headings
+// ------------------------------
+
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+	color: @heading-color;
+	font-weight: 500;
+	line-height: 1;
+	margin-bottom: .66em;
+	margin-top: 0;
+}
+
+h1, .h1 {
+	font-size: 3em;
+}
+h2, .h2 {
+	font-size: 2em;
+	font-weight: 300;
+}
+h3, .h3 {
+	font-size: 1.25em;
+	// text-transform: uppercase;
+}
+h4, .h4 {
+	font-size: 1em;
+}
+h5, .h5 {
+	font-size: .85em;
+}
+h6, .h6 {
+	font-size: .75em;
+}
+
+
+
+
+// Layout
+// ------------------------------
+
+// common
+
+.page-body,
+.page-footer,
+.page-header {
+	padding: @gutter 0;
+}
+
+// header
+
+.page-header {
+	background-color: @link-color;
+	color: mix(white, @link-color, 75%);
+
+	h1, h2, h3 {
+		color: white;
+	}
+	p {
+		font-size: 1.2em;
+		margin: 0;
+	}
+	a {
+		border-bottom: 1px solid fade(white, 30%);
+		color: white;
+		text-decoration: none;
+
+		&:hover,
+		&:focus {
+			border-bottom-color: white;
+			outline: none;
+			text-decoration: none;
+		}
+	}
+}
+
+// subheader
+
+.page-subheader {
+	background-color: mix(@link-color, white, 10%);
+	line-height: 20px;
+	padding: @gutter 0;
+}
+.page-subheader__button {
+	float: right;
+}
+.page-subheader__link {
+	border-bottom: 1px solid fade(@link-color, 30%);
+	outline: none;
+	text-decoration: none;
+
+	&:hover,
+	&:focus {
+		border-bottom-color: @link-color;
+		outline: none;
+		text-decoration: none;
+	}
+}
+
+// footer
+
+.page-footer {
+	background-color: #fafafa;
+	// border-top: 1px solid #eee;
+	color: #999;
+	padding: @gutter 0;
+	text-align: center;
+
+	a {
+		color: black;
+	}
+}
+
+// layout changes based on screen dimensions
+
+@media (min-width: 480px) {
+	.page-body,
+	.page-header {
+		padding: (@gutter * 2) 0;
+	}
+	.page-header {
+		font-size: 1.4em;
+	}
+	.page-subheader {
+		font-size: 1.125em;
+		line-height: 28px;
+	}
+}
+
+
+
+
+// Form Styles
+// ------------------------------
+
+.checkbox-list {
+	margin-top: .5em;
+	overflow: hidden;
+}
+.checkbox-list > .checkbox {
+	clear: left;
+	float: left;
+	margin-top: .5em;
+}
+.checkbox-control {
+	margin-right: .5em;
+	position: relative;
+	top: -1px;
+}
+.checkbox-label {}
+
+
+
+
+// Switcher
+// ------------------------------
+
+.switcher {
+	color: #999;
+	cursor: default;
+	font-size: 12px;
+	margin: 10px 0;
+	text-transform: uppercase;
+
+	.link {
+		color: @link-color;
+		cursor: pointer;
+		font-weight: bold;
+		margin-left: 10px;
+
+		&:hover {
+			text-decoration: underline;
+		}
+	}
+	.active {
+		color: #666;
+		font-weight: bold;
+		margin-left: 10px;
+	}
+}
+
+
+
+
+// Miscellaneous
+// ------------------------------
+
+.section {
+	margin-bottom: 40px;
+}
+
+.hint {
+	font-size: .85em;
+	margin: 15px 0;
+	color: #666;
+}
+
+.virtual-scroll {
+	z-index: 1;
+}

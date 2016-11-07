@@ -1,0 +1,5 @@
+lib
+**/node_modules
+**/webpack.config.js
+**/prepublish.js
+examples/**/server.js

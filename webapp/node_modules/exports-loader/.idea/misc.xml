@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="JSHintConfiguration" version="2.6.3" use-config-file="true">
+    <option asi="false" />
+    <option bitwise="true" />
+    <option boss="false" />
+    <option browser="true" />
+    <option browserify="false" />
+    <option camelcase="false" />
+    <option couch="false" />
+    <option curly="true" />
+    <option debug="false" />
+    <option devel="false" />
+    <option dojo="false" />
+    <option elision="false" />
+    <option enforceall="false" />
+    <option eqeqeq="true" />
+    <option eqnull="false" />
+    <option es3="false" />
+    <option es5="false" />
+    <option esnext="false" />
+    <option evil="false" />
+    <option expr="false" />
+    <option forin="true" />
+    <option freeze="false" />
+    <option funcscope="false" />
+    <option futurehostile="false" />
+    <option gcl="false" />
+    <option globalstrict="false" />
+    <option immed="false" />
+    <option iterator="false" />
+    <option jasmine="false" />
+    <option jquery="false" />
+    <option lastsemic="false" />
+    <option latedef="false" />
+    <option laxbreak="false" />
+    <option laxcomma="false" />
+    <option loopfunc="false" />
+    <option maxerr="50" />
+    <option mocha="false" />
+    <option mootools="false" />
+    <option moz="false" />
+    <option multistr="false" />
+    <option newcap="false" />
+    <option noarg="true" />
+    <option nocomma="false" />
+    <option node="false" />
+    <option noempty="true" />
+    <option nomen="false" />
+    <option nonbsp="false" />
+    <option nonew="true" />
+    <option nonstandard="false" />
+    <option notypeof="false" />
+    <option noyield="false" />
+    <option onevar="false" />
+    <option passfail="false" />
+    <option phantom="false" />
+    <option plusplus="false" />
+    <option proto="false" />
+    <option prototypejs="false" />
+    <option qunit="false" />
+    <option quotmark="false" />
+    <option rhino="false" />
+    <option scripturl="false" />
+    <option shadow="false" />
+    <option shelljs="false" />
+    <option singleGroups="false" />
+    <option smarttabs="false" />
+    <option strict="true" />
+    <option sub="false" />
+    <option supernew="false" />
+    <option trailing="false" />
+    <option typed="false" />
+    <option undef="true" />
+    <option unused="false" />
+    <option validthis="false" />
+    <option white="false" />
+    <option withstmt="false" />
+    <option worker="false" />
+    <option wsh="false" />
+    <option yui="false" />
+  </component>
+  <component name="JsBowerSettings">
+    <exe-path>/usr/local/bin/bower</exe-path>
+    <config-path />
+  </component>
+  <component name="ProjectInspectionProfilesVisibleTreeState">
+    <entry key="Project Default">
+      <profile-state>
+        <expanded-state>
+          <State>
+            <id />
+          </State>
+          <State>
+            <id>GeneralJavaScript</id>
+          </State>
+          <State>
+            <id>JavaScript</id>
+          </State>
+        </expanded-state>
+        <selected-state>
+          <State>
+            <id>ES6Validation</id>
+          </State>
+        </selected-state>
+      </profile-state>
+    </entry>
+  </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="false">
+    <OptionsSetting value="true" id="Add" />
+    <OptionsSetting value="true" id="Remove" />
+    <OptionsSetting value="true" id="Checkout" />
+    <OptionsSetting value="true" id="Update" />
+    <OptionsSetting value="true" id="Status" />
+    <OptionsSetting value="true" id="Edit" />
+    <ConfirmationsSetting value="2" id="Add" />
+    <ConfirmationsSetting value="2" id="Remove" />
+  </component>
+  <component name="VagrantProjectSettings">
+    <option name="instanceFolder" value="" />
+    <option name="provider" value="" />
+  </component>
+  <component name="masterDetails">
+    <states>
+      <state key="ScopeChooserConfigurable.UI">
+        <settings>
+          <last-edited>Unnamed</last-edited>
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.2841855" />
+              </list>
+            </option>
+          </splitter-proportions>
+        </settings>
+      </state>
+    </states>
+  </component>
+</project>

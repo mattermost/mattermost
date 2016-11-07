@@ -1,0 +1,122 @@
+// Fileinput.less
+// CSS for file upload button and fileinput widget
+// ------------------------------------------------
+
+.btn-file {
+  overflow: hidden;
+  position: relative;
+  vertical-align: middle;
+  > input {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 0;
+    opacity: 0;
+    filter: alpha(opacity=0);
+    font-size: 23px;
+    height: 100%;
+    width: 100%;
+    direction: ltr;
+    cursor: pointer;
+  }
+}
+
+.fileinput {
+  margin-bottom: 9px;
+  display: inline-block;
+  .form-control {
+    padding-top: 7px;
+    padding-bottom: 5px;
+    display: inline-block;
+    margin-bottom: 0px;
+    vertical-align: middle;
+    cursor: text;
+  }
+  .thumbnail {
+    overflow: hidden;
+    display: inline-block;
+    margin-bottom: 5px;
+    vertical-align: middle;
+    text-align: center;
+    > img {
+      max-height: 100%;
+    }
+  }
+  .btn {
+    vertical-align: middle;
+  }
+}
+.fileinput-exists .fileinput-new,
+.fileinput-new .fileinput-exists {
+  display: none;
+}
+.fileinput-inline .fileinput-controls {
+  display: inline;
+}
+
+.fileinput-filename {
+  vertical-align: middle;
+  display: inline-block;
+  overflow: hidden;
+}
+.form-control .fileinput-filename {
+  vertical-align: bottom;
+}
+
+.fileinput.input-group {
+    display: table;
+    
+    > * {
+        position: relative;
+        z-index: 2;
+    }
+    > .btn-file {
+        z-index: 1;
+    }
+}
+
+// Not 100% correct, but helps in typical use case
+.fileinput-new.input-group .btn-file,
+.fileinput-new .input-group .btn-file {
+  border-radius: 0 @border-radius-base @border-radius-base 0;
+
+  &.btn-xs,
+  &.btn-sm {
+    border-radius: 0 @border-radius-small @border-radius-small 0;
+  }
+  &.btn-lg {
+    border-radius: 0 @border-radius-large @border-radius-large 0;
+  }
+}
+
+.form-group.has-warning .fileinput {
+  .fileinput-preview {
+    color: @state-warning-text;
+  }
+  .thumbnail {
+    border-color: @state-warning-border;
+  }
+}
+.form-group.has-error .fileinput {
+  .fileinput-preview {
+    color: @state-danger-text;
+  }
+  .thumbnail {
+    border-color: @state-danger-border;
+  }
+}
+.form-group.has-success .fileinput {
+  .fileinput-preview {
+    color: @state-success-text;
+  }
+  .thumbnail {
+    border-color: @state-success-border;
+  }
+}
+
+
+// Input group fixes
+
+.input-group-addon:not(:first-child) {
+  border-left: 0;
+}

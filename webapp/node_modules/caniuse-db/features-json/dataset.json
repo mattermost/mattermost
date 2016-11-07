@@ -1,0 +1,300 @@
+{
+  "title":"dataset & data-* attributes",
+  "description":"Method of applying and accessing custom data to elements.",
+  "spec":"https://html.spec.whatwg.org/multipage/dom.html#embedding-custom-non-visible-data-with-the-data-*-attributes",
+  "status":"ls",
+  "links":[
+    {
+      "url":"http://html5doctor.com/html5-custom-data-attributes/",
+      "title":"HTML5 Doctor article"
+    },
+    {
+      "url":"http://html5demos.com/dataset",
+      "title":"Demo using dataset"
+    },
+    {
+      "url":"https://raw.github.com/phiggins42/has.js/master/detect/dom.js#dom-dataset",
+      "title":"has.js test"
+    },
+    {
+      "url":"http://docs.webplatform.org/wiki/html/attributes/data-*",
+      "title":"WebPlatform Docs"
+    },
+    {
+      "url":"https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement.dataset",
+      "title":"MDN Reference - dataset"
+    },
+    {
+      "url":"https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Using_data_attributes",
+      "title":"MDN Guide - Using data-* attributes"
+    },
+    {
+      "url":"https://wpdev.uservoice.com/forums/257854-microsoft-edge-developer/suggestions/15885483-support-dataset-and-data-attributes-on-svg-element",
+      "title":"MS Edge UserVoice #15885483: Support dataset and data attributes on SVG elements"
+    }
+  ],
+  "bugs":[
+    {
+      "description":"Android 2.3 cannot read `data-*` properties from `select` elements.\r\n"
+    }
+  ],
+  "categories":[
+    "HTML5"
+  ],
+  "stats":{
+    "ie":{
+      "5.5":"a",
+      "6":"a",
+      "7":"a",
+      "8":"a",
+      "9":"a",
+      "10":"a",
+      "11":"y"
+    },
+    "edge":{
+      "12":"y",
+      "13":"y",
+      "14":"y"
+    },
+    "firefox":{
+      "2":"a",
+      "3":"a",
+      "3.5":"a",
+      "3.6":"a",
+      "4":"a",
+      "5":"a",
+      "6":"y",
+      "7":"y",
+      "8":"y",
+      "9":"y",
+      "10":"y",
+      "11":"y",
+      "12":"y",
+      "13":"y",
+      "14":"y",
+      "15":"y",
+      "16":"y",
+      "17":"y",
+      "18":"y",
+      "19":"y",
+      "20":"y",
+      "21":"y",
+      "22":"y",
+      "23":"y",
+      "24":"y",
+      "25":"y",
+      "26":"y",
+      "27":"y",
+      "28":"y",
+      "29":"y",
+      "30":"y",
+      "31":"y",
+      "32":"y",
+      "33":"y",
+      "34":"y",
+      "35":"y",
+      "36":"y",
+      "37":"y",
+      "38":"y",
+      "39":"y",
+      "40":"y",
+      "41":"y",
+      "42":"y",
+      "43":"y",
+      "44":"y",
+      "45":"y",
+      "46":"y",
+      "47":"y",
+      "48":"y",
+      "49":"y",
+      "50":"y",
+      "51":"y #1",
+      "52":"y #1"
+    },
+    "chrome":{
+      "4":"a",
+      "5":"a",
+      "6":"a",
+      "7":"y #1",
+      "8":"y #1",
+      "9":"y #1",
+      "10":"y #1",
+      "11":"y #1",
+      "12":"y #1",
+      "13":"y #1",
+      "14":"y #1",
+      "15":"y #1",
+      "16":"y #1",
+      "17":"y #1",
+      "18":"y #1",
+      "19":"y #1",
+      "20":"y #1",
+      "21":"y #1",
+      "22":"y #1",
+      "23":"y #1",
+      "24":"y #1",
+      "25":"y #1",
+      "26":"y #1",
+      "27":"y #1",
+      "28":"y #1",
+      "29":"y #1",
+      "30":"y #1",
+      "31":"y #1",
+      "32":"y #1",
+      "33":"y #1",
+      "34":"y #1",
+      "35":"y #1",
+      "36":"y #1",
+      "37":"y #1",
+      "38":"y #1",
+      "39":"y #1",
+      "40":"y #1",
+      "41":"y #1",
+      "42":"y #1",
+      "43":"y #1",
+      "44":"y #1",
+      "45":"y",
+      "46":"y",
+      "47":"y",
+      "48":"y",
+      "49":"y",
+      "50":"y",
+      "51":"y",
+      "52":"y",
+      "53":"y",
+      "54":"y #1",
+      "55":"y #1",
+      "56":"y #1",
+      "57":"y #1"
+    },
+    "safari":{
+      "3.1":"a",
+      "3.2":"a",
+      "4":"a",
+      "5":"a",
+      "5.1":"y #1",
+      "6":"y #1",
+      "6.1":"y #1",
+      "7":"y #1",
+      "7.1":"y #1",
+      "8":"y #1",
+      "9":"y #1",
+      "9.1":"y #1",
+      "10":"y #1",
+      "TP":"y #1"
+    },
+    "opera":{
+      "9":"a",
+      "9.5-9.6":"a",
+      "10.0-10.1":"a",
+      "10.5":"a",
+      "10.6":"a",
+      "11":"a",
+      "11.1":"y",
+      "11.5":"y",
+      "11.6":"y",
+      "12":"y",
+      "12.1":"y",
+      "15":"y #1",
+      "16":"y #1",
+      "17":"y #1",
+      "18":"y #1",
+      "19":"y #1",
+      "20":"y #1",
+      "21":"y #1",
+      "22":"y #1",
+      "23":"y #1",
+      "24":"y #1",
+      "25":"y #1",
+      "26":"y #1",
+      "27":"y #1",
+      "28":"y #1",
+      "29":"y #1",
+      "30":"y #1",
+      "31":"y #1",
+      "32":"y",
+      "33":"y",
+      "34":"y",
+      "35":"y",
+      "36":"y",
+      "37":"y",
+      "38":"y",
+      "39":"y",
+      "40":"y",
+      "41":"y #1",
+      "42":"y #1",
+      "43":"y #1"
+    },
+    "ios_saf":{
+      "3.2":"a",
+      "4.0-4.1":"a",
+      "4.2-4.3":"a",
+      "5.0-5.1":"y #1",
+      "6.0-6.1":"y #1",
+      "7.0-7.1":"y #1",
+      "8":"y #1",
+      "8.1-8.4":"y #1",
+      "9.0-9.2":"y #1",
+      "9.3":"y #1",
+      "10":"y #1"
+    },
+    "op_mini":{
+      "all":"a"
+    },
+    "android":{
+      "2.1":"a",
+      "2.2":"a",
+      "2.3":"a",
+      "3":"y #1",
+      "4":"y #1",
+      "4.1":"y #1",
+      "4.2-4.3":"y #1",
+      "4.4":"y #1",
+      "4.4.3-4.4.4":"y #1",
+      "53":"y #1"
+    },
+    "bb":{
+      "7":"y #1",
+      "10":"y #1"
+    },
+    "op_mob":{
+      "10":"a",
+      "11":"a",
+      "11.1":"y",
+      "11.5":"y",
+      "12":"y",
+      "12.1":"y",
+      "37":"y #1"
+    },
+    "and_chr":{
+      "53":"y"
+    },
+    "and_ff":{
+      "49":"y"
+    },
+    "ie_mob":{
+      "10":"a",
+      "11":"y"
+    },
+    "and_uc":{
+      "11":"y #1"
+    },
+    "samsung":{
+      "4":"y #1"
+    }
+  },
+  "notes":"Partial support refers to being able to use `data-*` attributes and access them using `getAttribute`. \r\n\r\n\"Supported\" refers to accessing the values using the `dataset` property. Current spec only refers to support on HTML elements, only some browsers also have support for SVG/MathML elements.",
+  "notes_by_num":{
+    "1":"While the HTML spec doesn't require it, these browsers also support `dataset` and `data-*` attributes on SVG elements, in compliance with [current plans for SVG2](http://www.w3.org/2015/01/15-svg-minutes.html#item03)"
+  },
+  "usage_perc_y":92.42,
+  "usage_perc_a":5.63,
+  "ucprefix":false,
+  "parent":"",
+  "keywords":"DOMStringMap",
+  "ie_id":"",
+  "chrome_id":"",
+  "firefox_id":"",
+  "webkit_id":"",
+  "shown":true
+}

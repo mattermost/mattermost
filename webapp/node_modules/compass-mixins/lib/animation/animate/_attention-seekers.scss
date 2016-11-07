@@ -1,0 +1,152 @@
+// ---------------------------------------------------------------------------
+@include keyframes(flash) {
+  0% {
+    opacity: 1; }
+  25% {
+    opacity: 0; }
+  50% {
+    opacity: 1; }
+  75% {
+    opacity: 0; }
+  100% {
+    opacity: 1; } }
+
+
+// ---------------------------------------------------------------------------
+@include keyframes(bounce) {
+  0% {
+    @include translateY(0); }
+  20% {
+    @include translateY(0); }
+  40% {
+    @include translateY(-30px); }
+  50% {
+    @include translateY(0); }
+  60% {
+    @include translateY(-15px); }
+  80% {
+    @include translateY(0); }
+  100% {
+    @include translateY(0); } }
+
+
+// ---------------------------------------------------------------------------
+@include keyframes(shake) {
+  0% {
+    @include translateX(0); }
+  10% {
+    @include translateX(-10px); }
+  20% {
+    @include translateX(10px); }
+  30% {
+    @include translateX(-10px); }
+  40% {
+    @include translateX(10px); }
+  50% {
+    @include translateX(-10px); }
+  60% {
+    @include translateX(10px); }
+  70% {
+    @include translateX(-10px); }
+  80% {
+    @include translateX(10px); }
+  90% {
+    @include translateX(-10px); }
+  100% {
+    @include translateX(0); } }
+
+
+// ---------------------------------------------------------------------------
+@include keyframes(tada) {
+  0% {
+    @include scale(1); }
+  10% {
+    @include transform(scale(0.9) rotate(-3deg)); }
+  20% {
+    @include transform(scale(0.9) rotate(-3deg)); }
+  30% {
+    @include transform(scale(1.1) rotate(3deg)); }
+  40% {
+    @include transform(scale(1.1) rotate(-3deg)); }
+  50% {
+    @include transform(scale(1.1) rotate(3deg)); }
+  60% {
+    @include transform(scale(1.1) rotate(-3deg)); }
+  70% {
+    @include transform(scale(1.1) rotate(3deg)); }
+  80% {
+    @include transform(scale(1.1) rotate(-3deg)); }
+  90% {
+    @include transform(scale(1.1) rotate(3deg)); }
+  100% {
+    @include transform(scale(1) rotate(0)); } }
+
+
+// ---------------------------------------------------------------------------
+@include keyframes(swing) {
+  20%, 40%, 60%, 80%, 100% {
+    @include transform-origin(top center); }
+  20% {
+    @include rotate(15deg); }
+  40% {
+    @include rotate(-10deg); }
+  60% {
+    @include rotate(5deg); }
+  80% {
+    @include rotate(-5deg); }
+  100% {
+    @include rotate(0deg); } }
+
+
+// ---------------------------------------------------------------------------
+@include keyframes(wobble) {
+  0% {
+    @include translateX(0%); }
+  15% {
+    @include transform(translateX(-25%) rotate(-5deg)); }
+  30% {
+    @include transform(translateX(20%) rotate(3deg)); }
+  45% {
+    @include transform(translateX(-15%) rotate(-3deg)); }
+  60% {
+    @include transform(translateX(10%) rotate(2deg)); }
+  75% {
+    @include transform(translateX(-5%) rotate(-1deg)); }
+  100% {
+    @include transform(translateX(0%)); } }
+
+
+// ---------------------------------------------------------------------------
+@include keyframes(pulse) {
+  0% {
+    @include scale(1); }
+  50% {
+    @include scale(1.1); }
+  100% {
+    @include scale(1); } }
+    
+    
+// ---------------------------------------------------------------------------
+@include keyframes(wiggle) {
+  0% {
+    @include skewX(9deg); }
+  10% {
+    @include skewX(-8deg); }
+  20% {
+    @include skewX(7deg); }
+  30% {
+    @include skewX(-6deg); }
+  40% {
+    @include skewX(5deg); }
+  50% {
+    @include skewX(-4deg); }
+  60% {
+    @include skewX(3deg); }
+  70% {
+    @include skewX(-2deg); }
+  80% {
+    @include skewX(1deg); }
+  90% {
+    @include skewX(0deg); }
+  100% {
+    @include skewX(0deg); } }

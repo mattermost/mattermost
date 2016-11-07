@@ -1,0 +1,16 @@
+{
+  "libs": [
+    "browser",
+    "jquery",
+    "underscore",
+    "ecma5",
+    "ecma6",
+    "reserved",
+    "lodash"
+  ],
+  "plugins": {
+    "node": {},
+    "angular": {},
+    "complete_strings": {}
+  }
+}

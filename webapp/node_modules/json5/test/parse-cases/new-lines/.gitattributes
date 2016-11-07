@@ -1,0 +1,4 @@
+# Since we're testing different representations of new lines,
+# treat all tests in this folder as binary files.
+
+* binary

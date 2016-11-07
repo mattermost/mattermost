@@ -1,0 +1,33 @@
+{
+    "parser": "babel-eslint",
+    "extends": "eslint:recommended",
+    "parserOptions": {
+        "ecmaVersion": 6,
+        "sourceType": "module",
+        "ecmaFeatures": {},
+    },
+    "env": {
+        "node": true,
+        "browser": true
+    },
+    "rules": {
+        "no-console": 0,
+
+        "arrow-parens": [2, "always"],
+        "comma-dangle": [2, "never"],
+        "eqeqeq": 2,
+        "linebreak-style": [2, "unix"],
+        "prefer-arrow-callback": 2,
+        "semi": [2, "always"],
+        "strict": [2, "never"],
+        "yoda": [2, "never"],
+
+        "no-alert": 2,
+        "no-const-assign": 2,
+        "no-else-return": 2,
+        "no-this-before-super": 2,
+        "no-unexpected-multiline": 2,
+        "no-var": 2,
+        "no-warning-comments": 1
+    }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "compass-mixins",
+  "version": "0.12.6",
+  "authors": [
+    "Guillaume Balaine <igosuki@gmail.com>",
+    "Michael Heillein <michaek>"
+  ],
+  "description": "Compass stylesheets",
+  "main": "lib/_compass.scss",
+  "keywords": [
+    "compass",
+    "mixins",
+    "sass",
+    "css3"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

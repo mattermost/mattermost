@@ -1,0 +1,46 @@
+/**
+ * Copyright (c) 2013-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
+ *
+ * 
+ * @typechecks
+ */
+
+'use strict';
+
+var hasOwnProperty = Object.prototype.hasOwnProperty;
+
+/**
+ * Executes the provided `callback` once for each enumerable own property in the
+ * object until it finds one where callback returns a falsy value. If such a
+ * property is found, `everyObject` immediately returns false. Otherwise, it
+ * returns true.
+ *
+ * The `callback` is invoked with three arguments:
+ *
+ *  - the property value
+ *  - the property name
+ *  - the object being traversed
+ *
+ * Properties that are added after the call to `everyObject` will not be
+ * visited by `callback`. If the values of existing properties are changed, the
+ * value passed to `callback` will be the value at the time `everyObject`
+ * visits them. Properties that are deleted before being visited are not
+ * visited.
+ */
+function everyObject(object, callback, context) {
+  for (var name in object) {
+    if (hasOwnProperty.call(object, name)) {
+      if (!callback.call(context, object[name], name, object)) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+module.exports = everyObject;

@@ -1,0 +1,48 @@
+<!doctype html>
+<head>
+	<title>React-Select Example</title>
+	<link rel="stylesheet" href="example.css">
+</head>
+<body>
+	<div class="container">
+		<h1 style="margin-top: 40px;">React Select</h1>
+		<h2>Standalone bulid</h2>
+		<div>For usage without babel / browserify / webpack</div>
+		<div id="select" style="margin: 20px 0;"></div>
+		<div class="footer">
+			Copyright &copy; Jed Watson 2016. MIT Licensed.
+		</div>
+	</div>
+	<script src="//npmcdn.com/react@0.14.2/dist/react.min.js"></script>
+	<script src="//npmcdn.com/react-dom@0.14.2/dist/react-dom.min.js"></script>
+	<script src="//npmcdn.com/three.js@0.73.0/build/three.min.js"></script>
+	<script src="//npmcdn.com/classnames@2.0.0/index.js"></script>
+	<script src="//npmcdn.com/react-input-autosize@0.6.3/dist/react-input-autosize.min.js"></script>
+	<script src="standalone.js"></script>
+	<script>
+		var options = [
+			{ label: 'One', value: 1 },
+			{ label: 'Two', value: 2 },
+			{ label: 'Three', value: 3 },
+		];
+		var Container = React.createClass({
+			getInitialState () {
+				return { value: '' };
+			},
+			updateValue (value) {
+				this.setState({ value: value });
+			},
+			render () {
+				return React.createElement(Select, {
+					options: options,
+					onChange: this.updateValue,
+					value: this.state.value,
+				});
+			}
+		});
+		React.render(
+			React.createElement(Container),
+			document.getElementById('select')
+		);
+	</script>
+</body>
