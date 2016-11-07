@@ -17,6 +17,8 @@ import ChannelStore from 'stores/channel_store.jsx';
 import emojiRoute from 'routes/route_emoji.jsx';
 import integrationsRoute from 'routes/route_integrations.jsx';
 
+import {loadProfilesAndTeamMembersForDMSidebar} from 'actions/user_actions.jsx';
+
 function onChannelEnter(nextState, replace, callback) {
     doChannelChange(nextState, replace, callback);
 }
@@ -68,6 +70,8 @@ function preNeedsTeam(nextState, replace, callback) {
 
     TeamStore.saveMyTeam(team);
     TeamStore.emitChange();
+    loadProfilesAndTeamMembersForDMSidebar();
+    AsyncClient.getMyChannelMembers();
 
     var d1 = $.Deferred(); //eslint-disable-line new-cap
 
