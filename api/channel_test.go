@@ -378,6 +378,8 @@ func TestUpdateChannelHeader(t *testing.T) {
 		upChannel1 = result.Data.(*model.Channel)
 	}
 
+	time.Sleep(100 * time.Millisecond)
+
 	r1 := Client.Must(Client.GetPosts(channel1.Id, 0, 1, "")).Data.(*model.PostList)
 	if len(r1.Order) != 1 {
 		t.Fatal("Header update system message was not found")
