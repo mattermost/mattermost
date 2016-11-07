@@ -3,7 +3,6 @@
 
 import MemberListTeam from './member_list_team.jsx';
 import TeamStore from 'stores/team_store.jsx';
-import * as Utils from 'utils/utils.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
@@ -46,11 +45,6 @@ export default class TeamMembersModal extends React.Component {
             teamDisplayName = this.state.team.display_name;
         }
 
-        let maxHeight = 1000;
-        if (Utils.windowHeight() <= 1200) {
-            maxHeight = Utils.windowHeight() - 300;
-        }
-
         return (
             <Modal
                 dialogClassName='more-modal'
@@ -71,7 +65,6 @@ export default class TeamMembersModal extends React.Component {
                 </Modal.Header>
                 <Modal.Body>
                     <MemberListTeam
-                        style={{maxHeight}}
                         isAdmin={this.props.isAdmin}
                     />
                 </Modal.Body>
