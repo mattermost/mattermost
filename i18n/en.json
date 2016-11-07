@@ -2676,6 +2676,10 @@
     "translation": "AD/LDAP disabled or licence does not support AD/LDAP."
   },
   {
+    "id": "ent.ldap.create_fail",
+    "translation": "Unable to create LDAP user."
+  },
+  {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
     "translation": "Unable to bind to AD/LDAP server. Check BindUsername and BindPassword."
   },
