@@ -197,8 +197,8 @@
     .btn {
         font-size: 1em;
         font-weight: 600;
-        margin-right: 5px;
         padding: em(7px) em(15px);
+        min-width: em(110px);
 
         .fa {
             font-size: 17px;
@@ -329,6 +329,13 @@
 
         &.btn-default {
             color: #444444;
+        }
+
+        &--link {
+            display: inline-block;
+            padding: em(7px) 0;
+            border: 1px solid transparent;
+            vertical-align: middle;
         }
 
         .fa {
