@@ -240,6 +240,7 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["RestrictTeamInvite"] = *c.TeamSettings.RestrictTeamInvite
 	props["RestrictPublicChannelManagement"] = *c.TeamSettings.RestrictPublicChannelManagement
 	props["RestrictPrivateChannelManagement"] = *c.TeamSettings.RestrictPrivateChannelManagement
+	props["DefaultTeamName"] = c.TeamSettings.DefaultTeamName
 
 	props["EnableOAuthServiceProvider"] = strconv.FormatBool(c.ServiceSettings.EnableOAuthServiceProvider)
 	props["SegmentDeveloperKey"] = c.ServiceSettings.SegmentDeveloperKey

@@ -335,47 +335,49 @@ export default class SidebarHeaderDropdown extends React.Component {
             );
         }
 
-        teams.push(
-            <li key='leaveTeam_li'>
-                <a
-                    href='#'
-                    onClick={GlobalActions.showLeaveTeamModal}
-                >
-                    <FormattedMessage
-                        id='navbar_dropdown.leave'
-                        defaultMessage='Leave Team'
-                    />
-                </a>
-            </li>
-        );
-
-        if (this.state.teamMembers && this.state.teamMembers.length > 1) {
+        if (!config.DefaultTeamName) {
             teams.push(
-                <li
-                    key='teamDiv'
-                    className='divider'
-                />
+                <li key='leaveTeam_li'>
+                    <a
+                        href='#'
+                        onClick={GlobalActions.showLeaveTeamModal}
+                    >
+                        <FormattedMessage
+                            id='navbar_dropdown.leave'
+                            defaultMessage='Leave Team'
+                        />
+                    </a>
+                </li>
             );
 
-            for (var index in this.state.teamMembers) {
-                if (this.state.teamMembers.hasOwnProperty(index)) {
-                    var teamMember = this.state.teamMembers[index];
-                    var team = this.state.teams[teamMember.team_id];
+            if (this.state.teamMembers && this.state.teamMembers.length > 1) {
+                teams.push(
+                    <li
+                        key='teamDiv'
+                        className='divider'
+                    />
+                );
 
-                    if (team.name !== this.props.teamName) {
-                        teams.push(
-                            <li key={'team_' + team.name}>
-                                <Link
-                                    to={'/' + team.name + '/channels/town-square'}
-                                >
-                                    <FormattedMessage
-                                        id='navbar_dropdown.switchTo'
-                                        defaultMessage='Switch to '
-                                    />
-                                    {team.display_name}
-                                </Link>
-                            </li>
-                        );
+                for (var index in this.state.teamMembers) {
+                    if (this.state.teamMembers.hasOwnProperty(index)) {
+                        var teamMember = this.state.teamMembers[index];
+                        var team = this.state.teams[teamMember.team_id];
+
+                        if (team.name !== this.props.teamName) {
+                            teams.push(
+                                <li key={'team_' + team.name}>
+                                    <Link
+                                        to={'/' + team.name + '/channels/town-square'}
+                                    >
+                                        <FormattedMessage
+                                            id='navbar_dropdown.switchTo'
+                                            defaultMessage='Switch to '
+                                        />
+                                        {team.display_name}
+                                    </Link>
+                                </li>
+                            );
+                        }
                     }
                 }
             }

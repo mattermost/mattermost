@@ -58,6 +58,10 @@ export function initialize() {
         WebSocketClient.setCloseCallback(handleClose);
         WebSocketClient.initialize(connUrl);
     }
+
+    global.window.triggerSoftRefresh = () => {
+        handleReconnect();
+    };
 }
 
 export function close() {

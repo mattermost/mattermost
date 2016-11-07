@@ -21,6 +21,7 @@ import {FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
 
 const USERS_PER_PAGE = 50;
+const config = global.window.mm_config;
 
 export default class MoreDirectChannels extends React.Component {
     constructor(props) {
@@ -188,7 +189,7 @@ export default class MoreDirectChannels extends React.Component {
         }
 
         let teamToggle;
-        if (global.window.mm_config.RestrictDirectMessage === 'any') {
+        if (config.RestrictDirectMessage === 'any' && !config.DefaultTeamName) {
             teamToggle = (
                 <div className='member-select__container'>
                     <select
