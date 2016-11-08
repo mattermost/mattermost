@@ -45,7 +45,7 @@ export default class GetIosApp extends React.Component {
                         id='get_app.openMattermost'
                         defaultMessage='Open uChat'
                     />
-                </a>
+                </a> 
                 <span className='get-app__continue-with-browser'>
                     <FormattedMessage
                         id='get_app.continueWithBrowser'

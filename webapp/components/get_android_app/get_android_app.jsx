@@ -6,8 +6,8 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router';
 
-import MattermostIcon from 'images/favicon/android-chrome-192x192.png';
-import Nexus6Mockup from 'images/nexus-6p-mockup.png';
+import UberIcon from 'images/logo-email.png';
+import Nexus6Mockup   from 'images/nexus-6p-mockup.png';
 
 export default class GetAndroidApp extends React.Component {
     render() {
@@ -23,7 +23,7 @@ export default class GetAndroidApp extends React.Component {
                 <div>
                     <img
                         className='get-android-app__icon'
-                        src={MattermostIcon}
+                        src={UberIcon}
                     />
                     <div className='get-android-app__app-info'>
                         <span className='get-android-app__app-name'>
