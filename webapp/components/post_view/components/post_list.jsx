@@ -272,11 +272,13 @@ export default class PostList extends React.Component {
                 commentRootId = post.id;
             }
 
-            for (const postId in posts) {
-                if (posts[postId].root_id === commentRootId) {
-                    commentCount += 1;
-                    if (posts[postId].user_id === userId) {
-                        shouldHighlightThreads = true;
+            if (commentRootId) {
+                for (const postId in posts) {
+                    if (posts[postId].root_id === commentRootId) {
+                        commentCount += 1;
+                        if (posts[postId].user_id === userId) {
+                            shouldHighlightThreads = true;
+                        }
                     }
                 }
             }
