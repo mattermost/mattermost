@@ -195,7 +195,7 @@ export default class Post extends React.Component {
         if (PostUtils.isSystemMessage(post)) {
             profilePic = (
                 <span
-                    className='icon'
+                    className='icon icon--uchat'
                     dangerouslySetInnerHTML={{__html: mattermostLogo}}
                 />
             );
