@@ -38,21 +38,25 @@
             padding: 15px 20px 100px;
         }
 
-        .close__icon {
+        .close {
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
             @include border-radius(50%);
             border: 1px solid $white;
             bottom: 25px;
-            color: $white;
             display: block;
-            font-size: 23px;
-            font-weight: 300;
             height: 36px;
             width: 36px;
             margin-left: -18px;
             left: 50%;
-            line-height: 23px;
             position: fixed;
             text-align: center;
+            opacity: 1;
+
+            svg {
+                fill: #fff !important;
+            }
         }
     }
 
@@ -751,22 +755,25 @@
                 top: 42px;
                 width: 100%;
 
-                &:after {
+                .close {
+                    display: flex !important;
+                    align-items: center;
+                    justify-content: center;
                     @include border-radius(50%);
                     border: 1px solid $white;
                     bottom: 25px;
-                    color: $white;
-                    content: '\D7';
                     display: block;
-                    font-size: 23px;
-                    font-weight: 300;
                     height: 36px;
                     width: 36px;
                     margin-left: -18px;
                     left: 50%;
-                    line-height: 27px;
                     position: fixed;
                     text-align: center;
+                    opacity: 1;
+
+                    svg {
+                        fill: #fff !important;
+                    }
                 }
 
                 > li {
