@@ -96,11 +96,6 @@ export default class MoreChannels extends React.Component {
     }
 
     render() {
-        let maxHeight = 1000;
-        if (Utils.windowHeight() <= 1200) {
-            maxHeight = Utils.windowHeight() - 300;
-        }
-
         let serverError;
         if (this.state.serverError) {
             serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
@@ -204,10 +199,7 @@ export default class MoreChannels extends React.Component {
                                 onModalDismissed={() => this.setState({showNewChannelModal: false})}
                             />
                         </div>
-                        <div
-                            className='modal-body'
-                            style={{maxHeight}}
-                        >
+                        <div className='modal-body'>
                             {moreChannels}
                             {serverError}
                         </div>
