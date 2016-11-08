@@ -78,7 +78,7 @@ export default class ComplianceSettings extends AdminSettings {
                     helpText={
                         <FormattedHTMLMessage
                             id='admin.compliance.enableDesc'
-                            defaultMessage='When true, Mattermost allows compliance reporting from the <strong>Compliance and Auditing</strong> tab. See <a href="https://docs.mattermost.com/administration/compliance.html" target="_blank">documentation</a> to learn more.'
+                            defaultMessage='When true, uChat allows compliance reporting from the <strong>Compliance and Auditing</strong> tab. See <a href="https://docs.mattermost.com/administration/compliance.html" target="_blank">documentation</a> to learn more.'
                         />
                     }
                     value={this.state.enable}
@@ -115,7 +115,7 @@ export default class ComplianceSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.compliance.enableDailyDesc'
-                            defaultMessage='When true, Mattermost will generate a daily compliance report.'
+                            defaultMessage='When true, uChat will generate a daily compliance report.'
                         />
                     }
                     value={this.state.enableDaily}

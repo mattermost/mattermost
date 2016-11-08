@@ -178,7 +178,7 @@ export default class UsersAndTeamsSettings extends AdminSettings {
                 <DropdownSetting
                     id='restrictDirectMessage'
                     values={[
-                        {value: RESTRICT_DIRECT_MESSAGE_ANY, text: Utils.localizeMessage('admin.team.restrict_direct_message_any', 'Any user on the Mattermost server')},
+                        {value: RESTRICT_DIRECT_MESSAGE_ANY, text: Utils.localizeMessage('admin.team.restrict_direct_message_any', 'Any user on the uChat server')},
                         {value: RESTRICT_DIRECT_MESSAGE_TEAM, text: Utils.localizeMessage('admin.team.restrict_direct_message_team', 'Any member of the team')}
                     ]}
                     label={
@@ -190,7 +190,7 @@ export default class UsersAndTeamsSettings extends AdminSettings {
                     helpText={
                         <FormattedHTMLMessage
                             id='admin.team.restrictDirectMessageDesc'
-                            defaultMessage='"Any user on the Mattermost server" enables users to open a Direct Message channel with any user on the server, even if they are not on any teams together. "Any member of the team" limits the ability to open Direct Message channels to only users who are in the same team.'
+                            defaultMessage='"Any user on the uChat server" enables users to open a Direct Message channel with any user on the server, even if they are not on any teams together. "Any member of the team" limits the ability to open Direct Message channels to only users who are in the same team.'
                         />
                     }
                     value={this.state.restrictDirectMessage}

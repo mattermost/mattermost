@@ -16,7 +16,7 @@ export default class GetAndroidApp extends React.Component {
                 <h1 className='get-app__header'>
                     <FormattedMessage
                         id='get_app.androidHeader'
-                        defaultMessage='Mattermost works best if you switch to our Android app'
+                        defaultMessage='uChat works best if you switch to our Android app'
                     />
                 </h1>
                 <hr/>
@@ -29,13 +29,13 @@ export default class GetAndroidApp extends React.Component {
                         <span className='get-android-app__app-name'>
                             <FormattedMessage
                                 id='get_app.androidAppName'
-                                defaultMessage='Mattermost for Android'
+                                defaultMessage='uChat for Android'
                             />
                         </span>
                         <span className='get-android-app__app-creator'>
                             <FormattedMessage
                                 id='get_app.mattermostInc'
-                                defaultMessage='Mattermost, Inc'
+                                defaultMessage='uChat, Inc'
                             />
                         </span>
                     </div>

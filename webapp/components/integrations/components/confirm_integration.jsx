@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016 uChat, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
@@ -73,7 +73,7 @@ export default class ConfirmIntegration extends React.Component {
                 <p>
                     <FormattedHTMLMessage
                         id='add_command.doneHelp'
-                        defaultMessage='Your slash command has been set up. The following token will be sent in the outgoing payload. Please use it to verify the request came from your Mattermost team (see <a href="https://docs.mattermost.com/developer/slash-commands.html">documentation</a> for further details).'
+                        defaultMessage='Your slash command has been set up. The following token will be sent in the outgoing payload. Please use it to verify the request came from your uChat team (see <a href="https://docs.mattermost.com/developer/slash-commands.html">documentation</a> for further details).'
                     />
                 </p>
             );
@@ -125,7 +125,7 @@ export default class ConfirmIntegration extends React.Component {
                 <p>
                     <FormattedHTMLMessage
                         id='add_outgoing_webhook.doneHelp'
-                        defaultMessage='Your outgoing webhook has been set up. The following token will be sent in the outgoing payload. Please use it to verify the request came from your Mattermost team (see <a href=\"https://docs.mattermost.com/developer/webhooks-outgoing.html\">documentation</a> for further details).'
+                        defaultMessage='Your outgoing webhook has been set up. The following token will be sent in the outgoing payload. Please use it to verify the request came from your uChat team (see <a href=\"https://docs.mattermost.com/developer/webhooks-outgoing.html\">documentation</a> for further details).'
                     />
                 </p>
             );

@@ -12,8 +12,8 @@ export default class HelpCommands extends React.Component {
     render() {
         const message = [];
         message.push(localizeMessage('help.commands.title', '# Executing Commands\n___'));
-        message.push(localizeMessage('help.commands.intro', 'Slash commands perform operations in Mattermost by typing into the text input box. Enter a `/` followed by a command and some arguments to perform actions.\n\nBuilt-in slash commands come with all Mattermost installations and custom slash commands are configurable to interact with external applications. Learn about configuring custom slash commands on the [developer slash command documentation page](http://docs.mattermost.com/developer/slash-commands.html).'));
-        message.push(localizeMessage('help.commands.builtin', '## Built-in Commands\nThe following slash commands are available on all Mattermost installations:'));
+        message.push(localizeMessage('help.commands.intro', 'Slash commands perform operations in uChat by typing into the text input box. Enter a `/` followed by a command and some arguments to perform actions.\n\nBuilt-in slash commands come with all uChat installations and custom slash commands are configurable to interact with external applications. Learn about configuring custom slash commands on the [developer slash command documentation page](http://docs.mattermost.com/developer/slash-commands.html).'));
+        message.push(localizeMessage('help.commands.builtin', '## Built-in Commands\nThe following slash commands are available on all uChat installations:'));
         message.push('![commands](https://docs.mattermost.com/_images/slashCommandsTable1.PNG)');
         message.push(localizeMessage('help.commands.builtin2', 'Begin by typing `/` and a list of slash command options appears above the text input box. The autocomplete suggestions help by providing a format example in black text and a short description of the slash command in grey text.'));
         message.push('![autocomplete](https://docs.mattermost.com/_images/slashCommandsAutocomplete.PNG)');
