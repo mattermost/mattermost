@@ -52,7 +52,6 @@ func CheckBrowserCompatability(c *api.Context, r *http.Request) bool {
 		version := strings.Split(browser, "/")
 
 		if strings.HasPrefix(bname, version[0]) && strings.HasPrefix(bversion, version[1]) {
-			c.Err = model.NewLocAppError("CheckBrowserCompatability", "web.check_browser_compatibility.app_error", nil, "")
 			return false
 		}
 	}
@@ -63,6 +62,9 @@ func CheckBrowserCompatability(c *api.Context, r *http.Request) bool {
 
 func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	if !CheckBrowserCompatability(c, r) {
+		w.Header().Set("Cache-Control", "no-store")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(c.T("web.check_browser_compatibility.app_error")))
 		return
 	}
 
