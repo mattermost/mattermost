@@ -549,8 +549,9 @@ export default class Navbar extends React.Component {
                             <div
                                 className='close visible-xs-block'
                                 onClick={() => this.refs.headerOverlay.hide()}
-                                dangerouslySetInnerHTML={{__html: Constants.CLOSE_ICON}}
-                            />
+                            >
+                                {'×'}
+                            </div>
                         </ul>
                     </div>
                 </div>
@@ -678,8 +679,9 @@ export default class Navbar extends React.Component {
                     <div
                         className='close visible-xs-block'
                         onClick={() => this.refs.headerOverlay.hide()}
-                        dangerouslySetInnerHTML={{__html: Constants.CLOSE_ICON}}
-                    />
+                    >
+                        {'×'}
+                    </div>
                 </Popover>
             );
 
@@ -727,8 +729,9 @@ export default class Navbar extends React.Component {
                         <div
                             className='close visible-xs-block'
                             onClick={() => this.refs.headerOverlay.hide()}
-                            dangerouslySetInnerHTML={{__html: Constants.CLOSE_ICON}}
-                        />
+                        >
+                            {'×'}
+                        </div>
                     </Popover>
                 );
             }

@@ -39,24 +39,23 @@
         }
 
         .close {
-            display: flex !important;
-            align-items: center;
-            justify-content: center;
-            @include border-radius(50%);
-            border: 1px solid $white;
-            bottom: 25px;
+            font-family: 'Open Sans', sans-serif;
             display: block;
-            height: 36px;
-            width: 36px;
-            margin-left: -18px;
-            left: 50%;
             position: fixed;
+            bottom: 25px;
+            height: 30px;
+            width: 30px;
+            margin-left: -15px;
+            left: 50%;
+            font-size: 23px;
+            line-height: 27px;
+            border-radius: 50%;
+            border: 1px solid $white;
             text-align: center;
             opacity: 1;
-
-            svg {
-                fill: #fff !important;
-            }
+            text-shadow: none;
+            color: white;
+            font-weight: 200;
         }
     }
 
@@ -756,24 +755,23 @@
                 width: 100%;
 
                 .close {
-                    display: flex !important;
-                    align-items: center;
-                    justify-content: center;
-                    @include border-radius(50%);
-                    border: 1px solid $white;
-                    bottom: 25px;
+                    font-family: 'Open Sans', sans-serif;
                     display: block;
-                    height: 36px;
-                    width: 36px;
-                    margin-left: -18px;
-                    left: 50%;
                     position: fixed;
+                    bottom: 25px;
+                    height: 30px;
+                    width: 30px;
+                    margin-left: -15px;
+                    left: 50%;
+                    font-size: 23px;
+                    line-height: 27px;
+                    border-radius: 50%;
+                    border: 1px solid $white;
                     text-align: center;
                     opacity: 1;
-
-                    svg {
-                        fill: #fff !important;
-                    }
+                    text-shadow: none;
+                    color: white;
+                    font-weight: 200;
                 }
 
                 > li {
