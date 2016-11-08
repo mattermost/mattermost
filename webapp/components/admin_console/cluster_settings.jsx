@@ -104,7 +104,7 @@ export default class ClusterSettings extends AdminSettings {
                     <i className='fa fa-warning'/>
                     <FormattedMessage
                         id='admin.cluster.should_not_change'
-                        defaultMessage='WARNING: These settings may not sync with the other servers in the cluster. High Availability inter-node communication will not start until you modify the config.json to be identical on all servers and restart Mattermost. Please see the <a href="http://docs.mattermost.com/deployment/cluster.html" target="_blank">documentation</a> on how to add or remove a server from the cluster. If you are accessing the System Console through a load balancer and experiencing issues, please see the Troubleshooting Guide in our <a href="http://docs.mattermost.com/deployment/cluster.html" target="_blank">documentation</a>.'
+                        defaultMessage='WARNING: These settings may not sync with the other servers in the cluster. High Availability inter-node communication will not start until you modify the config.json to be identical on all servers and restart uChat. Please see the <a href="http://docs.mattermost.com/deployment/cluster.html" target="_blank">documentation</a> on how to add or remove a server from the cluster. If you are accessing the System Console through a load balancer and experiencing issues, please see the Troubleshooting Guide in our <a href="http://docs.mattermost.com/deployment/cluster.html" target="_blank">documentation</a>.'
                     />
                 </div>
             );
@@ -137,7 +137,7 @@ export default class ClusterSettings extends AdminSettings {
                     helpText={
                         <FormattedHTMLMessage
                             id='admin.cluster.enableDescription'
-                            defaultMessage='When true, Mattermost will run in High Availability mode. Please see <a href="http://docs.mattermost.com/deployment/cluster.html" target="_blank">documentation</a> to learn more about configuring High Availability for Mattermost.'
+                            defaultMessage='When true, uChat will run in High Availability mode. Please see <a href="http://docs.mattermost.com/deployment/cluster.html" target="_blank">documentation</a> to learn more about configuring High Availability for uChat.'
                         />
                     }
                     value={this.state.enable}
@@ -175,7 +175,7 @@ export default class ClusterSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.cluster.interNodeUrlsDesc'
-                            defaultMessage='The internal/private URLs of all the Mattermost servers separated by commas.'
+                            defaultMessage='The internal/private URLs of all the uChat servers separated by commas.'
                         />
                     }
                     value={this.state.interNodeUrls}

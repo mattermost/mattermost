@@ -37,7 +37,7 @@
         "RestrictCustomEmojiCreation": "all"
     },
     "TeamSettings": {
-        "SiteName": "Mattermost",
+        "SiteName": "uChat",
         "MaxUsersPerTeam": 50,
         "EnableTeamCreation": true,
         "EnableUserCreation": true,
