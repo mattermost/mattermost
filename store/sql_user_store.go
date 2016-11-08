@@ -1029,10 +1029,11 @@ func (us SqlUserStore) AnalyticsUniqueUserCount(teamId string) StoreChannel {
 	go func() {
 		result := StoreResult{}
 
-		query := "SELECT COUNT(DISTINCT Email) FROM Users"
-
+		query := ""
 		if len(teamId) > 0 {
-			query += ", TeamMembers WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId"
+			query = "SELECT COUNT(DISTINCT Users.Email) From Users, TeamMembers WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId AND TeamMembers.DeleteAt = 0 AND Users.DeleteAt = 0"
+		} else {
+			query = "SELECT COUNT(DISTINCT Email) FROM Users WHERE DeleteAt = 0"
 		}
 
 		v, err := us.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId})

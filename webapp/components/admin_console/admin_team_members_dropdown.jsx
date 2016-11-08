@@ -81,6 +81,7 @@ export default class AdminTeamMembersDropdown extends React.Component {
             this.props.teamMember.team_id,
             this.props.user.id,
             () => {
+                AsyncClient.getTeamStats(this.props.teamMember.team_id);
                 UserStore.removeProfileFromTeam(this.props.teamMember.team_id, this.props.user.id);
                 UserStore.emitInTeamChange();
             },
