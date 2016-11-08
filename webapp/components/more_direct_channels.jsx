@@ -39,6 +39,7 @@ export default class MoreDirectChannels extends React.Component {
             users: null,
             loadingDMChannel: -1,
             listType: 'team',
+            show: true,
             search: false
         };
     }
@@ -61,14 +62,16 @@ export default class MoreDirectChannels extends React.Component {
     }
 
     handleHide() {
-        if (this.props.onModalDismissed) {
-            this.props.onModalDismissed();
-        }
+        this.setState({show: false});
     }
 
     handleExit() {
         if (this.exitToDirectChannel) {
             browserHistory.push(this.exitToDirectChannel);
+        }
+
+        if (this.props.onModalDismissed) {
+            this.props.onModalDismissed();
         }
     }
 
@@ -226,7 +229,7 @@ export default class MoreDirectChannels extends React.Component {
         return (
             <Modal
                 dialogClassName='more-modal more-direct-channels'
-                show={this.props.show}
+                show={this.state.show}
                 onHide={this.handleHide}
                 onExited={this.handleExit}
             >
@@ -269,6 +272,5 @@ export default class MoreDirectChannels extends React.Component {
 }
 
 MoreDirectChannels.propTypes = {
-    show: React.PropTypes.bool.isRequired,
     onModalDismissed: React.PropTypes.func
 };
