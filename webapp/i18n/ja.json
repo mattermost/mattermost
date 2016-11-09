@@ -1108,7 +1108,7 @@
   "create_post.shortcutsNotSupported": "このデバイスではキーボードショートカットはサポートされていません。",
   "create_post.tutorialTip": "<h4>メッセージを送信する</h4><p>ここにメッセージを書き、<strong>ENTER</strong>を押すことで投稿します。</p><p><strong>添付</strong>ボタンを押すことで画像やファイルをアップロードします。</p>",
   "create_post.write": "メッセージを書き込んでいます…",
-  "create_team.agreement": "アカウントを作成し{siteName}を利用する前に<a href='/static/help/terms.html'>使用条件</a>と<a href='/static/help/privacy.html'>プライバシーポリシー</a>に同意してください。同意できない場合は{siteName}は使用できません。",
+  "create_team.agreement": "アカウントを作成し{siteName}を利用する前に<a href={TermsOfServiceLink}>使用条件</a>と<a href={PrivacyPolicyLink}>プライバシーポリシー</a>に同意してください。同意できない場合は{siteName}は使用できません。",
   "create_team.display_name.back": "前のステップに戻る",
   "create_team.display_name.charLength": "名前は2文字以上の15文字以下にしてください",
   "create_team.display_name.nameHelp": "チーム名はどんな言語でも使うことができます。チーム名はメニューと画面上部に表示されます。",

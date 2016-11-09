@@ -1108,7 +1108,7 @@
   "create_post.shortcutsNotSupported": "Atalhos do teclado não está disponível no seu dispositivo.",
   "create_post.tutorialTip": "<h4>Enviando Mensagens</h4><p>Digite aqui para escrever uma mensagem e pressione <strong>ENTER</strong> para posta-lá.</p><p>Clique no botão <strong>Anexo</strong> para enviar uma imagem ou arquivo.</p>",
   "create_post.write": "Escreva uma mensagem...",
-  "create_team.agreement": "Ao prosseguir para criar sua conta e usar {siteName}, você concorda com nosso <a href='/static/help/terms.html'>Termo de Serviço</a> e <a href='/static/help/privacy.html'>Politica de Privacidade</a>. Se você não concorda, você não pode usar {siteName}.",
+  "create_team.agreement": "Ao prosseguir para criar sua conta e usar {siteName}, você concorda com nosso <a href={TermsOfServiceLink}>Termo de Serviço</a> e <a href={PrivacyPolicyLink}>Politica de Privacidade</a>. Se você não concorda, você não pode usar {siteName}.",
   "create_team.display_name.back": "Voltar para o passo anterior",
   "create_team.display_name.charLength": "O nome deve ter 2 ou mais caracteres até um máximo de 15",
   "create_team.display_name.nameHelp": "Nome da sua equipe em qualquer idioma. Seu nome de equipe é mostrado em menus e títulos.",

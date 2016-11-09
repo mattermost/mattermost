@@ -1108,7 +1108,7 @@
   "create_post.shortcutsNotSupported": "Tastenkürzel werden auf Ihrem Gerät nicht unterstützt.",
   "create_post.tutorialTip": "<h4>Nachrichten senden</h4><p>Geben Sie hier Ihre Nachricht ein und drücken Sie <strong>Enter</strong> um sie senden.</p><p>Klicken Sie den <strong>Anhang</strong> Button um ein Bild oder eine Datei hochzuladen.</p>",
   "create_post.write": "Schreiben Sie eine Nachricht...",
-  "create_team.agreement": "Wenn Sie die Erstellung Ihres Accounts fortsetzen und {siteName} nutzen, verstehen Sie sich mit unseren <a href='/static/help/terms.html'>Nutzungsbedingungen</a> und <a href='/static/help/privacy.html'>Datenschutzbedingungen</a> einverstanden. Wenn Sie nicht zustimmen, dürfen Sie {siteName} nicht nutzen.",
+  "create_team.agreement": "Wenn Sie die Erstellung Ihres Accounts fortsetzen und {siteName} nutzen, verstehen Sie sich mit unseren <a href={TermsOfServiceLink}>Nutzungsbedingungen</a> und <a href={PrivacyPolicyLink}>Datenschutzbedingungen</a> einverstanden. Wenn Sie nicht zustimmen, dürfen Sie {siteName} nicht nutzen.",
   "create_team.display_name.back": "Zurück zum vorherigem Schritt",
   "create_team.display_name.charLength": "Der Name muss mindestens 2 Zeichen und darf maximal 15 Zeichen lang sein",
   "create_team.display_name.nameHelp": "Benennen Sie Ihr Team in jeglicher Sprache. Ihr Teamname wird in Menüs und Überschriften angezeigt.",
