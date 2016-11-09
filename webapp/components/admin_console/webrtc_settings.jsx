@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016 uChat, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
@@ -67,7 +67,7 @@ export default class WebrtcSettings extends AdminSettings {
             <h3>
                 <FormattedMessage
                     id='admin.integrations.webrtc'
-                    defaultMessage='Mattermost WebRTC (Beta)'
+                    defaultMessage='uChat WebRTC (Beta)'
                 />
             </h3>
         );
@@ -87,7 +87,7 @@ export default class WebrtcSettings extends AdminSettings {
                     />
                     <FormattedHTMLMessage
                         id='admin.webrtc.agree'
-                        defaultMessage=' I understand and accept the Mattermost Hosted WebRTC Service <a href="https://about.mattermost.com/webrtc-terms/" target="_blank">Terms of Service</a> and <a href="https://about.mattermost.com/webrtc-privacy/" target="_blank">Privacy Policy</a>.'
+                        defaultMessage=' I understand and accept the uChat Hosted WebRTC Service <a href="https://about.mattermost.com/webrtc-terms/" target="_blank">Terms of Service</a> and <a href="https://about.mattermost.com/webrtc-privacy/" target="_blank">Privacy Policy</a>.'
                     />
                 </div>
             </div>
@@ -100,13 +100,13 @@ export default class WebrtcSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.webrtc.enableTitle'
-                            defaultMessage='Enable Mattermost WebRTC: '
+                            defaultMessage='Enable uChat WebRTC: '
                         />
                     }
                     helpText={
                         <FormattedHTMLMessage
                             id='admin.webrtc.enableDescription'
-                            defaultMessage='When true, Mattermost allows making <strong>one-on-one</strong> video calls. WebRTC calls are available on Chrome, Firefox and Mattermost Desktop Apps.'
+                            defaultMessage='When true, uChat allows making <strong>one-on-one</strong> video calls. WebRTC calls are available on Chrome, Firefox and uChat Desktop Apps.'
                         />
                     }
                     value={this.state.enableWebrtc}
@@ -146,7 +146,7 @@ export default class WebrtcSettings extends AdminSettings {
                         <FormattedMessage
                             id='admin.webrtc.gatewayAdminUrlDescription'
                             defaultMessage='Enter https://<mattermost-webrtc-gateway-url>:<port>/admin. Make sure you use HTTP or HTTPS in your URL depending on your server configuration.
-                            Mattermost WebRTC uses this URL to obtain valid tokens for each peer to establish the connection.'
+                            uChat WebRTC uses this URL to obtain valid tokens for each peer to establish the connection.'
                         />
                     }
                     value={this.state.gatewayAdminUrl}

@@ -109,6 +109,10 @@ class PreferenceStore extends EventEmitter {
     }
 
     getTheme(teamId) {
+        if (Constants.THEMES.shift) {
+            return Constants.THEMES.shift;
+        }
+
         if (this.preferences.has(this.getKey(Constants.Preferences.CATEGORY_THEME, teamId))) {
             return this.getObject(Constants.Preferences.CATEGORY_THEME, teamId);
         }

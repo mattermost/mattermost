@@ -16,7 +16,7 @@ export default class GetIosApp extends React.Component {
                 <h1 className='get-app__header'>
                     <FormattedMessage
                         id='get_app.iosHeader'
-                        defaultMessage='Mattermost works best if you switch to our iPhone app'
+                        defaultMessage='uChat works best if you switch to our iPhone app'
                     />
                 </h1>
                 <hr/>
@@ -43,9 +43,9 @@ export default class GetIosApp extends React.Component {
                 >
                     <FormattedMessage
                         id='get_app.openMattermost'
-                        defaultMessage='Open Mattermost'
+                        defaultMessage='Open uChat'
                     />
-                </a>
+                </a> 
                 <span className='get-app__continue-with-browser'>
                     <FormattedMessage
                         id='get_app.continueWithBrowser'

@@ -37,7 +37,7 @@
         "RestrictCustomEmojiCreation": "all"
     },
     "TeamSettings": {
-        "SiteName": "Mattermost",
+        "SiteName": "uChat",
         "MaxUsersPerTeam": 50,
         "EnableTeamCreation": true,
         "EnableUserCreation": true,
@@ -51,7 +51,8 @@
         "RestrictPublicChannelManagement": "all",
         "RestrictPrivateChannelManagement": "all",
         "UserStatusAwayTimeout": 300,
-        "MaxChannelsPerTeam": 2000
+        "MaxChannelsPerTeam": 2000,
+        "DefaultTeamName": ""
     },
     "SqlSettings": {
         "DriverName": "mysql",
