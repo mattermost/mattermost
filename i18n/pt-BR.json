@@ -629,11 +629,11 @@
   },
   {
     "id": "api.command_shortcuts.msgs",
-    "translation": "#### Mensagens\n\nALT+[clique na mensagem]: Define a mensagem como a mensagem mais velha não lida no canal atual\nESC: Marca todas as mensagens do canal atual como lida\nCTRL+UP (campo de entrada vazio): Reimprimi a mensagem anterior ou comando slash digitado\nCTRL+DOWN (campo de entrada vazio): Reimprimi a próxima mensagem ou comando slash digitado\nUP (campo de entrada vazio): Editar sua última mensagem no canal atual\n@[caracter]+TAB: Autocompleta @usuário começando com [caracter]\n:[caracter]+TAB: Autocompleta o emoji começando com [caracter]\n\n"
+    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCTRL+UP (in empty input field): Reprint the previous message or slash command you entered\nCTRL+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n#[character]+TAB: Autocomplete channel beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs_mac",
-    "translation": "#### Mensagens\n\nALT+[clique na mensagem]: Define a mensagem como a mensagem mais velha não lida no canal atual\nESC: Marca todas as mensagens do canal atual como lida\nCMD+UP (campo de entrada vazio): Reimprimi a mensagem anterior ou comando slash digitado\nCMD+DOWN (campo de entrada vazio): Reimprimi a próxima mensagem ou comando slash digitado\nUP (campo de entrada vazio): Editar sua última mensagem no canal atual\n@[caracter]+TAB: Autocompleta @usuário começando com [caracter]\n:[caracter]+TAB: Autocompleta o emoji começando com [caracter]\n\n"
+    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCMD+UP (in empty input field): Reprint the previous message or slash command you entered\nCMD+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n#[character]+TAB: Autocomplete channel beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -1520,6 +1520,14 @@
     "translation": "Parando o Servidor..."
   },
   {
+    "id": "api.slackimport.slack_add_bot_user.email_pwd",
+    "translation": "Slack Bot/Integração Importar Posts Usuário: Email, Senha: {{.Email}}, {{.Password}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_bot_user.unable_import",
+    "translation": "Não foi possível importar Slack Bot/Integração Importar Posts Usuário: {{.Username}}\r\n"
+  },
+  {
     "id": "api.slackimport.slack_add_channels.added",
     "translation": "\r\n Canal Adicionado \r\n"
   },
@@ -1533,7 +1541,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.import_failed.warn",
-    "translation": "Slack Importer: Failed to import channel: %s"
+    "translation": "Slack Importer: Falha ao importar o canal: %s"
   },
   {
     "id": "api.slackimport.slack_add_channels.merge",
@@ -1548,12 +1556,20 @@
     "translation": "Slack bot posts não foram importados ainda"
   },
   {
+    "id": "api.slackimport.slack_add_posts.bot_user_no_exists.warn",
+    "translation": "Slack Importer: Não importado mensagens do bot usuário bot-importing não existe."
+  },
+  {
     "id": "api.slackimport.slack_add_posts.msg_no_comment.debug",
     "translation": "Comentário do arquivo indefinido"
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_usr.debug",
     "translation": "Mensagem sem usuário"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.no_bot_id.warn",
+    "translation": "Slack Importer: Não importado mensagens do bot devido a falta do campo Botid."
   },
   {
     "id": "api.slackimport.slack_add_posts.unsupported.warn",
@@ -1612,6 +1628,10 @@
     "translation": "Falha ao compilar a @menção correspondendo a expressão regular para o usuário Slack {{.UserID}} {{.Username}}"
   },
   {
+    "id": "api.slackimport.slack_deactivate_bot_user.failed_to_deactivate",
+    "translation": "Slack Importer: Falha ao desativar o usuário bot-importing."
+  },
+  {
     "id": "api.slackimport.slack_import.log",
     "translation": "Mattermost Log de Importação Slack\r\n"
   },
@@ -1650,6 +1670,22 @@
   {
     "id": "api.slackimport.slack_parse_posts.error",
     "translation": "Erro ao analisar algumas postagens do slack. Importação deve funcionar de qualquer maneira."
+  },
+  {
+    "id": "api.slackimport.slack_sanitise_channel_properties.display_name_too_long.warn",
+    "translation": "Slack Importer: Channel {{.ChannelName}} has a display name which is too long. It will be truncated when imported."
+  },
+  {
+    "id": "api.slackimport.slack_sanitise_channel_properties.header_too_long.warn",
+    "translation": "Slack Importer: Channel {{.ChannelName}} has a header which is too long. It will be truncated when imported."
+  },
+  {
+    "id": "api.slackimport.slack_sanitise_channel_properties.name_too_long.warn",
+    "translation": "Slack Importer: Channel {{.ChannelName}} has a name which is too long. It will be truncated when imported."
+  },
+  {
+    "id": "api.slackimport.slack_sanitise_channel_properties.purpose_too_long.warn",
+    "translation": "Slack Importer: Channel {{.ChannelName}} has a purpose which is too long. It will be truncated when imported."
   },
   {
     "id": "api.status.init.debug",
@@ -2508,12 +2544,16 @@
     "translation": "Permissões inadequadas para re-gerar o token do webhook de saída"
   },
   {
+    "id": "api.webrtc.disabled.app_error",
+    "translation": "WebRTC não está ativo neste servidor."
+  },
+  {
     "id": "api.webrtc.init.debug",
     "translation": "Inicializando WebRTC api routes"
   },
   {
-    "id": "api.webrtc.not_available.app_error",
-    "translation": "WebRTC não está disponível neste servidor."
+    "id": "api.webrtc.register_token.app_error",
+    "translation": "Encontrado um erro ao tentar registrar o Token WebRTC"
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
@@ -2802,18 +2842,6 @@
   {
     "id": "ent.saml.update_saml_user.unable_error",
     "translation": "Não é possível atualizar o usuário SAML existente. Permitindo o login de qualquer maneira. err=%v"
-  },
-  {
-    "id": "ent.webrtc.disabled.app_error",
-    "translation": "WebRTC não está ativo neste servidor."
-  },
-  {
-    "id": "ent.webrtc.license_disable.app_error",
-    "translation": "Sua licença não suporta usar Mattermost WebRTC"
-  },
-  {
-    "id": "ent.webrtc.register_token.app_error",
-    "translation": "Encontrado um erro ao tentar registrar o Token WebRTC"
   },
   {
     "id": "error.generic.link_message",

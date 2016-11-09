@@ -629,11 +629,11 @@
   },
   {
     "id": "api.command_shortcuts.msgs",
-    "translation": "#### 訊息\n\nALT+[按訊息]：設定訊息為目前頻道中最舊的未讀訊息\nESC：將當前頻道所有訊息設為已讀\nCMD+UP (在空的輸入欄)：顯示上一個您輸入的訊息或是斜線命令\nCMD+DOWN (在空的輸入欄)：顯示下一個您輸入的訊息或是斜線命令\nUP (在空的輸入欄)：編輯當前頻道您的上一個訊息\n@[文字]+TAB：自動完成以[文字]起始的@使用者帳號\n:[文字]+TAB：自動完成以[文字]起始的顏文字\n\n"
+    "translation": "#### 訊息\n\nESC：將當前頻道所有訊息設為已讀\nCTRL+UP (在空的輸入欄)：顯示上一個您輸入的訊息或是斜線命令\nCTRL+DOWN (在空的輸入欄)：顯示下一個您輸入的訊息或是斜線命令\nUP (在空的輸入欄)：編輯當前頻道您的上一個訊息\n@[文字]+TAB：自動完成以[文字]起始的@使用者帳號\n#[文字]+TAB：自動完成以[文字]起始的頻道\n:[文字]+TAB：自動完成以[文字]起始的顏文字\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs_mac",
-    "translation": "#### 訊息\n\nALT+[按訊息]：設定訊息為目前頻道中最舊的未讀訊息\nESC：將當前頻道所有訊息設為已讀\nCMD+UP (在空的輸入欄)：顯示上一個您輸入的訊息或是斜線命令\nCMD+DOWN (在空的輸入欄)：顯示下一個您輸入的訊息或是斜線命令\nUP (在空的輸入欄)：編輯當前頻道您的上一個訊息\n@[文字]+TAB：自動完成以[文字]起始的@使用者帳號\n:[文字]+TAB：自動完成以[文字]起始的顏文字\n\n"
+    "translation": "#### 訊息\n\nESC：將當前頻道所有訊息設為已讀\nCMD+UP (在空的輸入欄)：顯示上一個您輸入的訊息或是斜線命令\nCMD+DOWN (在空的輸入欄)：顯示下一個您輸入的訊息或是斜線命令\nUP (在空的輸入欄)：編輯當前頻道您的上一個訊息\n@[文字]+TAB：自動完成以[文字]起始的@使用者帳號\n#[文字]+TAB：自動完成以[文字]起始的頻道\n:[文字]+TAB：自動完成以[文字]起始的顏文字\n\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -891,7 +891,7 @@
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.get_file_infos_again.warn",
-    "translation": "轉移成使用 FileInfos 後無法取得文章的 FileInfos 頻道：post_id=%v, err=%v"
+    "translation": "轉移成使用 FileInfos 後無法取得文章的 FileInfos：post_id=%v, err=%v"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.get_post_again.warn",
@@ -1520,6 +1520,14 @@
     "translation": "正在停止伺服器..."
   },
   {
+    "id": "api.slackimport.slack_add_bot_user.email_pwd",
+    "translation": "Slack 機器人/外部整合發文匯入使用者：電子郵件，密碼：{{.Email}}，{{.Password}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_bot_user.unable_import",
+    "translation": "無法匯入Slack 機器人/外部整合發文匯入使用者：{{.Username}}\r\n"
+  },
+  {
     "id": "api.slackimport.slack_add_channels.added",
     "translation": "\r\n 頻道已加入 \r\n"
   },
@@ -1533,7 +1541,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.import_failed.warn",
-    "translation": "Slack Importer: Failed to import channel: %s"
+    "translation": "Slack 匯入：無法匯入頻道：%s"
   },
   {
     "id": "api.slackimport.slack_add_channels.merge",
@@ -1548,12 +1556,20 @@
     "translation": "Slack 機器人的訊息還未被匯入"
   },
   {
+    "id": "api.slackimport.slack_add_posts.bot_user_no_exists.warn",
+    "translation": "Slack 匯入：由於匯入機器人使用者不存在，將不匯入機器人訊息。"
+  },
+  {
     "id": "api.slackimport.slack_add_posts.msg_no_comment.debug",
     "translation": "檔案註解未定義"
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_usr.debug",
     "translation": "訊息沒有使用者"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.no_bot_id.warn",
+    "translation": "Slack 匯入：BotId 欄位缺失，將不匯入機器人訊息。"
   },
   {
     "id": "api.slackimport.slack_add_posts.unsupported.warn",
@@ -1612,6 +1628,10 @@
     "translation": "無法為 Slack 使用者 {{.UserID}} {{.Username}} 編譯匹配@提及的正規表示式"
   },
   {
+    "id": "api.slackimport.slack_deactivate_bot_user.failed_to_deactivate",
+    "translation": "Slack 匯入：無法停用匯入機器人使用者。"
+  },
+  {
     "id": "api.slackimport.slack_import.log",
     "translation": "Mattermost Slack 匯入記錄\r\n"
   },
@@ -1650,6 +1670,22 @@
   {
     "id": "api.slackimport.slack_parse_posts.error",
     "translation": "解析 Slack 訊息時發生錯誤。匯入功能有可能照樣運作。"
+  },
+  {
+    "id": "api.slackimport.slack_sanitise_channel_properties.display_name_too_long.warn",
+    "translation": "Slack 匯入：頻道 {{.ChannelName}} 的顯示名稱過長，將會在匯入時被截短。"
+  },
+  {
+    "id": "api.slackimport.slack_sanitise_channel_properties.header_too_long.warn",
+    "translation": "Slack 匯入：頻道 {{.ChannelName}} 的標題過長，將會在匯入時被截短。"
+  },
+  {
+    "id": "api.slackimport.slack_sanitise_channel_properties.name_too_long.warn",
+    "translation": "Slack 匯入：頻道 {{.ChannelName}} 的名字過長，將會在匯入時被截短。"
+  },
+  {
+    "id": "api.slackimport.slack_sanitise_channel_properties.purpose_too_long.warn",
+    "translation": "Slack 匯入：頻道 {{.ChannelName}} 的用途過長，將會在匯入時被截短。"
   },
   {
     "id": "api.status.init.debug",
@@ -2508,12 +2544,16 @@
     "translation": "沒有適當的權限重新產生傳出的 Webhook Token"
   },
   {
+    "id": "api.webrtc.disabled.app_error",
+    "translation": "此伺服器未啟用 WebRTC。"
+  },
+  {
     "id": "api.webrtc.init.debug",
     "translation": "正在初始化 WebRTC API 路徑"
   },
   {
-    "id": "api.webrtc.not_available.app_error",
-    "translation": "此伺服器不支援 WebRTC。"
+    "id": "api.webrtc.register_token.app_error",
+    "translation": "嘗試註冊 WebRTC Token時發生錯誤"
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
@@ -2802,18 +2842,6 @@
   {
     "id": "ent.saml.update_saml_user.unable_error",
     "translation": "無法更新現有的 SAML 使用者。總之先允許登入。err=%v"
-  },
-  {
-    "id": "ent.webrtc.disabled.app_error",
-    "translation": "此伺服器未啟用 WebRTC。"
-  },
-  {
-    "id": "ent.webrtc.license_disable.app_error",
-    "translation": "授權不支援 Mattermost WebRTC"
-  },
-  {
-    "id": "ent.webrtc.register_token.app_error",
-    "translation": "嘗試註冊 WebRTC Token時發生錯誤"
   },
   {
     "id": "error.generic.link_message",
@@ -3269,7 +3297,7 @@
   },
   {
     "id": "model.config.is_valid.max_channels.app_error",
-    "translation": "團隊設定中的單一團隊最高使頻道數無效。必須為正數。"
+    "translation": "團隊設定中的單一團隊最高頻道數無效。必須為正數。"
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
