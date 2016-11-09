@@ -92,6 +92,7 @@ type ChannelStore interface {
 	GetChannels(teamId string, userId string) StoreChannel
 	GetMoreChannels(teamId string, userId string) StoreChannel
 	GetChannelCounts(teamId string, userId string) StoreChannel
+	GetTeamChannels(teamId string) StoreChannel
 	GetAll(teamId string) StoreChannel
 	GetForPost(postId string) StoreChannel
 	SaveMember(member *model.ChannelMember) StoreChannel
