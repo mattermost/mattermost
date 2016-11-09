@@ -38,21 +38,24 @@
             padding: 15px 20px 100px;
         }
 
-        .close__icon {
-            @include border-radius(50%);
-            border: 1px solid $white;
-            bottom: 25px;
-            color: $white;
+        .close {
+            font-family: 'Open Sans', sans-serif;
             display: block;
-            font-size: 23px;
-            font-weight: 300;
-            height: 30px;
-            left: 50%;
-            line-height: 23px;
-            margin-left: -25px;
             position: fixed;
-            text-align: center;
+            bottom: 25px;
+            height: 30px;
             width: 30px;
+            margin-left: -15px;
+            left: 50%;
+            font-size: 23px;
+            line-height: 27px;
+            border-radius: 50%;
+            border: 1px solid $white;
+            text-align: center;
+            opacity: 1;
+            text-shadow: none;
+            color: white;
+            font-weight: 200;
         }
     }
 
@@ -752,22 +755,24 @@
                 top: 42px;
                 width: 100%;
 
-                &:after {
-                    @include border-radius(50%);
-                    border: 1px solid $white;
-                    bottom: 25px;
-                    color: $white;
-                    content: '\D7';
+                .close {
+                    font-family: 'Open Sans', sans-serif;
                     display: block;
-                    font-size: 23px;
-                    font-weight: 300;
-                    height: 30px;
-                    left: 50%;
-                    line-height: 27px;
-                    margin-left: -25px;
                     position: fixed;
-                    text-align: center;
+                    bottom: 25px;
+                    height: 30px;
                     width: 30px;
+                    margin-left: -15px;
+                    left: 50%;
+                    font-size: 23px;
+                    line-height: 27px;
+                    border-radius: 50%;
+                    border: 1px solid $white;
+                    text-align: center;
+                    opacity: 1;
+                    text-shadow: none;
+                    color: white;
+                    font-weight: 200;
                 }
 
                 > li {
