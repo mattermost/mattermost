@@ -307,8 +307,6 @@ export default class SidebarRightMenu extends React.Component {
         let tutorialTip = null;
         if (this.state.showTutorialTip) {
             tutorialTip = createMenuTip((e) => e.preventDefault(), true);
-            this.closeLeftSidebar();
-            this.openRightSidebar();
         }
 
         let nativeAppLink = null;

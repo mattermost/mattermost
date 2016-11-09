@@ -856,6 +856,18 @@
             fill: inherit;
         }
 
+        .icon {
+            &--uchat {
+                .uchat-bubble-color {
+                    fill: #8ed0bc;
+                }
+
+                .uchat-letter-color {
+                    fill: #fff;
+                }
+            }
+        }
+
         img {
             @include border-radius(50px);
             height: 32px;

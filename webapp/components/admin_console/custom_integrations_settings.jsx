@@ -117,7 +117,7 @@ export default class WebhookSettings extends AdminSettings {
                     helpText={
                         <FormattedHTMLMessage
                             id='admin.oauth.providerDescription'
-                            defaultMessage='When true, Mattermost can act as an OAuth 2.0 service provider allowing Mattermost to authorize API requests from external applications. See <a href="https://docs.mattermost.com/developer/oauth-2-0-applications.html" target="_blank">documentation</a> to learn more.'
+                            defaultMessage='When true, uChat can act as an OAuth 2.0 service provider allowing uChat to authorize API requests from external applications. See <a href="https://docs.mattermost.com/developer/oauth-2-0-applications.html" target="_blank">documentation</a> to learn more.'
                         />
                     }
                     value={this.state.enableOAuthServiceProvider}

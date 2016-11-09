@@ -57,6 +57,10 @@ export default class LoginController extends React.Component {
             browserHistory.push('/select_team');
         }
 
+        if (UserStore.getCurrentUser() && global.window.mm_config.DefaultTeamName) {
+            browserHistory.push(`/${global.window.mm_config.DefaultTeamName}/channels/town-square`);
+        }
+
         AsyncClient.checkVersion();
     }
 
@@ -203,6 +207,8 @@ export default class LoginController extends React.Component {
                 GlobalActions.loadDefaultLocale();
                 if (query.redirect_to) {
                     browserHistory.push(query.redirect_to);
+                } else if (global.window.mm_config.DefaultTeamName) {
+                    browserHistory.push(`/${global.window.mm_config.DefaultTeamName}/channels/town-square`);
                 } else {
                     browserHistory.push('/select_team');
                 }
@@ -380,7 +386,7 @@ export default class LoginController extends React.Component {
                                 spellCheck='false'
                             />
                         </div>
-                        <div className='form-group'>
+                        <div className='form-group pull-right'>
                             <button
                                 type='submit'
                                 className='btn btn-primary'
@@ -399,7 +405,7 @@ export default class LoginController extends React.Component {
         if (global.window.mm_config.EnableOpenServer === 'true' && this.checkSignUpEnabled()) {
             loginControls.push(
                 <div
-                    className='form-group'
+                    className='form-group hidden'
                     key='signup'
                 >
                     <span>
@@ -427,7 +433,10 @@ export default class LoginController extends React.Component {
                     key='forgotPassword'
                     className='form-group'
                 >
-                    <Link to={'/reset_password'}>
+                    <Link
+                        to={'/reset_password'}
+                        className='btn--link hidden'
+                    >
                         <FormattedMessage
                             id='login.forgot'
                             defaultMessage='I forgot my password'
@@ -534,7 +543,7 @@ export default class LoginController extends React.Component {
                 >
                     <span className='icon fa fa-lock fa--margin-top'/>
                     <span>
-                        {window.mm_config.SamlLoginButtonText}
+                        {window.mm_global.window.mm_config.SamlLoginButtonText}
                     </span>
                 </a>
             );
@@ -607,8 +616,10 @@ export default class LoginController extends React.Component {
                             src={logoImage}
                         />
                         <div className='signup__content'>
-                            <h1>{global.window.mm_config.SiteName}</h1>
-                            <h4 className='color--light'>
+                            <h1 className='text-center'>
+                                {global.window.mm_config.SiteName}
+                            </h1>
+                            <h4 className='text-center color--light'>
                                 {description}
                             </h4>
                             {content}

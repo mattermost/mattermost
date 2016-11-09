@@ -6,8 +6,8 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router';
 
-import MattermostIcon from 'images/favicon/android-chrome-192x192.png';
-import Nexus6Mockup from 'images/nexus-6p-mockup.png';
+import UberIcon from 'images/logo-email.png';
+import Nexus6Mockup   from 'images/nexus-6p-mockup.png';
 
 export default class GetAndroidApp extends React.Component {
     render() {
@@ -16,26 +16,26 @@ export default class GetAndroidApp extends React.Component {
                 <h1 className='get-app__header'>
                     <FormattedMessage
                         id='get_app.androidHeader'
-                        defaultMessage='Mattermost works best if you switch to our Android app'
+                        defaultMessage='uChat works best if you switch to our Android app'
                     />
                 </h1>
                 <hr/>
                 <div>
                     <img
                         className='get-android-app__icon'
-                        src={MattermostIcon}
+                        src={UberIcon}
                     />
                     <div className='get-android-app__app-info'>
                         <span className='get-android-app__app-name'>
                             <FormattedMessage
                                 id='get_app.androidAppName'
-                                defaultMessage='Mattermost for Android'
+                                defaultMessage='uChat for Android'
                             />
                         </span>
                         <span className='get-android-app__app-creator'>
                             <FormattedMessage
                                 id='get_app.mattermostInc'
-                                defaultMessage='Mattermost, Inc'
+                                defaultMessage='uChat, Inc'
                             />
                         </span>
                     </div>

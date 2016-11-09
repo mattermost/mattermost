@@ -19,7 +19,6 @@ import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as ChannelUtils from 'utils/channel_utils.jsx';
 import * as ChannelActions from 'actions/channel_actions.jsx';
-import {loadProfilesAndTeamMembersForDMSidebar} from 'actions/user_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 
@@ -125,9 +124,6 @@ export default class Sidebar extends React.Component {
 
         document.addEventListener('keydown', this.navigateChannelShortcut);
         document.addEventListener('keydown', this.navigateUnreadChannelShortcut);
-
-        loadProfilesAndTeamMembersForDMSidebar();
-        AsyncClient.getMyChannelMembers();
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -521,7 +517,6 @@ export default class Sidebar extends React.Component {
         let tutorialTip = null;
         if (this.state.showTutorialTip && channel.name === Constants.DEFAULT_CHANNEL) {
             tutorialTip = this.createTutorialTip();
-            this.openLeftSidebar();
         }
 
         let link = '';

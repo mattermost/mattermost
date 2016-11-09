@@ -110,7 +110,7 @@ export default class ManageLanguage extends React.Component {
                     <br/>
                     <FormattedHTMLMessage
                         id='user.settings.languages.promote'
-                        defaultMessage='Select which language Mattermost displays in the user interface.<br /><br />Would like to help with translations? Join the <a href="http://translate.mattermost.com/" target="_blank">Mattermost Translation Server</a> to contribute.'
+                        defaultMessage='Select which language uChat displays in the user interface.<br /><br />Would like to help with translations? Join the <a href="http://translate.mattermost.com/" target="_blank">uChat Translation Server</a> to contribute.'
                     />
                 </div>
             </div>

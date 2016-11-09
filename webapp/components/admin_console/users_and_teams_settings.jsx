@@ -5,6 +5,7 @@ import React from 'react';
 
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
+import TeamStore from 'stores/team_store.jsx';
 
 import AdminSettings from './admin_settings.jsx';
 import BooleanSetting from './boolean_setting.jsx';
@@ -23,6 +24,16 @@ export default class UsersAndTeamsSettings extends AdminSettings {
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
+        this.teamValues = this.teamValues.bind(this);
+
+        this.state = this.getStateFromStores(false);
+    }
+
+    getStateFromStores() {
+        return {
+            ...this.state,
+            teams: TeamStore.getAll()
+        };
     }
 
     getConfigFromState(config) {
@@ -32,6 +43,7 @@ export default class UsersAndTeamsSettings extends AdminSettings {
         config.TeamSettings.RestrictCreationToDomains = this.state.restrictCreationToDomains;
         config.TeamSettings.RestrictDirectMessage = this.state.restrictDirectMessage;
         config.TeamSettings.MaxChannelsPerTeam = this.parseIntNonZero(this.state.maxChannelsPerTeam, Constants.DEFAULT_MAX_CHANNELS_PER_TEAM);
+        config.TeamSettings.DefaultTeamName = this.state.DefaultTeamName;
 
         return config;
     }
@@ -43,7 +55,8 @@ export default class UsersAndTeamsSettings extends AdminSettings {
             maxUsersPerTeam: config.TeamSettings.MaxUsersPerTeam,
             restrictCreationToDomains: config.TeamSettings.RestrictCreationToDomains,
             restrictDirectMessage: config.TeamSettings.RestrictDirectMessage,
-            maxChannelsPerTeam: config.TeamSettings.MaxChannelsPerTeam
+            maxChannelsPerTeam: config.TeamSettings.MaxChannelsPerTeam,
+            DefaultTeamName: config.TeamSettings.DefaultTeamName
         };
     }
 
@@ -56,6 +69,19 @@ export default class UsersAndTeamsSettings extends AdminSettings {
                 />
             </h3>
         );
+    }
+
+    teamValues() {
+        const teamValues = [];
+        const teams = this.state.teams;
+
+        for (const id in teams) {
+            if (teams[id]) {
+                teamValues.push({value: teams[id].name, text: teams[id].display_name});
+            }
+        }
+        teamValues.unshift({value: '', text: 'No Defalut'});
+        return teamValues;
     }
 
     renderSettings() {
@@ -152,7 +178,7 @@ export default class UsersAndTeamsSettings extends AdminSettings {
                 <DropdownSetting
                     id='restrictDirectMessage'
                     values={[
-                        {value: RESTRICT_DIRECT_MESSAGE_ANY, text: Utils.localizeMessage('admin.team.restrict_direct_message_any', 'Any user on the Mattermost server')},
+                        {value: RESTRICT_DIRECT_MESSAGE_ANY, text: Utils.localizeMessage('admin.team.restrict_direct_message_any', 'Any user on the uChat server')},
                         {value: RESTRICT_DIRECT_MESSAGE_TEAM, text: Utils.localizeMessage('admin.team.restrict_direct_message_team', 'Any member of the team')}
                     ]}
                     label={
@@ -164,10 +190,29 @@ export default class UsersAndTeamsSettings extends AdminSettings {
                     helpText={
                         <FormattedHTMLMessage
                             id='admin.team.restrictDirectMessageDesc'
-                            defaultMessage='"Any user on the Mattermost server" enables users to open a Direct Message channel with any user on the server, even if they are not on any teams together. "Any member of the team" limits the ability to open Direct Message channels to only users who are in the same team.'
+                            defaultMessage='"Any user on the uChat server" enables users to open a Direct Message channel with any user on the server, even if they are not on any teams together. "Any member of the team" limits the ability to open Direct Message channels to only users who are in the same team.'
                         />
                     }
                     value={this.state.restrictDirectMessage}
+                    onChange={this.handleChange}
+                />
+                <DropdownSetting
+                    id='DefaultTeamName'
+                    values={this.teamValues()}
+                    label={
+                        <FormattedMessage
+                            id='admin.team.DefaultTeamName'
+                            defaultMessage='Set a default team:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.team.DefaultTeamName', 'Ex "example-team"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.team.DefaultTeamName'
+                            defaultMessage='When set, users will be automatically redirected to this team page skipping the team selection page.'
+                        />
+                    }
+                    value={this.state.DefaultTeamName}
                     onChange={this.handleChange}
                 />
             </SettingsGroup>
