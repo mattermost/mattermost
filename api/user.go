@@ -1398,6 +1398,8 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 			go sendEmailChangeUsername(c, rusers[1].Username, rusers[0].Username, rusers[0].Email, c.GetSiteURL())
 		}
 
+		InvalidateCacheForUser(user.Id)
+
 		updatedUser := rusers[0]
 		updatedUser = sanitizeProfile(c, updatedUser)
 
@@ -1955,6 +1957,7 @@ func updateUserNotify(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		c.LogAuditWithUserId(user.Id, "")
+		InvalidateCacheForUser(user.Id)
 
 		ruser := result.Data.([2]*model.User)[0]
 		options := utils.Cfg.GetSanitizeOptions()
