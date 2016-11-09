@@ -1276,6 +1276,24 @@
                     height: auto;
                 }
             }
+            .post__header {
+                .col__name {
+                    .user-popover {
+                        max-width: 80px;
+                    }
+                }
+            }
+        }
+        .search-items-container {
+            .post {
+                .post__header {
+                    .col__name {
+                        .user-popover {
+                            max-width: 120px;
+                        }
+                    }
+                }
+            }
         }
     }
 
