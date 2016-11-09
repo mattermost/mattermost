@@ -629,11 +629,11 @@
   },
   {
     "id": "api.command_shortcuts.msgs",
-    "translation": "#### メッセージ\n\nAlt+[メッセージ上でクリック]: 現在のチャンネルで、そのメッセージを最古の未読のメッセージにする\nESC: 現在のチャンネルの全てのメッセージを既読にする\nCTRL+UP (空白の入力欄で): 一つ前に入力したメッセージやスラッシュコマンドを呼び出す\nCTRL+DOWN (空白の入力欄で): 一つ次に入力したメッセージやスラッシュコマンドを呼び出す\nUP (空白の入力欄で): 現在のチャンネルの最新のメッセージを修正する\n@[文字]+TAB: [文字]で始まる@usernameを自動補完する\n:[文字]+TAB: [文字]で始まる絵文字を自動補完する\n\n"
+    "translation": "#### メッセージ\n\nESC: 現在のチャンネルの全てのメッセージを既読にする\nCTRL+UP (空白の入力欄で): 一つ前に入力したメッセージやスラッシュコマンドを呼び出す\nCTRL+DOWN (空白の入力欄で): 一つ次に入力したメッセージやスラッシュコマンドを呼び出す\nUP (空白の入力欄で): 現在のチャンネルの最新のメッセージを修正する\n@[文字]+TAB: [文字]で始まる@usernameを自動補完する\n#[文字]+TAB: [文字]で始まるチャンネルを自動補完する\n:[文字]+TAB: [文字]で始まる絵文字を自動補完する\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs_mac",
-    "translation": "#### メッセージ\n\nAlt+[メッセージ上でクリック]: 現在のチャンネルで、そのメッセージを最古の未読のメッセージにする\nESC: 現在のチャンネルの全てのメッセージを既読にする\nCMD+UP (空白の入力欄で): 一つ前に入力したメッセージやスラッシュコマンドを呼び出す\nCMD+DOWN (空白の入力欄で): 一つ次に入力したメッセージやスラッシュコマンドを呼び出す\nUP (空白の入力欄で): 現在のチャンネルの最新のメッセージを修正する\n@[文字]+TAB: [文字]で始まる@usernameを自動補完する\n:[文字]+TAB: [文字]で始まる絵文字を自動補完する\n\n"
+    "translation": "#### メッセージ\n\nESC: 現在のチャンネルの全てのメッセージを既読にする\nCMD+UP (空白の入力欄で): 一つ前に入力したメッセージやスラッシュコマンドを呼び出す\nCMD+DOWN (空白の入力欄で): 一つ次に入力したメッセージやスラッシュコマンドを呼び出す\nUP (空白の入力欄で): 現在のチャンネルの最新のメッセージを修正する\n@[文字]+TAB: [文字]で始まる@usernameを自動補完する\n#[文字]+TAB: [文字]で始まるチャンネルを自動補完する\n:[文字]+TAB: [文字]で始まる絵文字を自動補完する\n\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -1520,6 +1520,14 @@
     "translation": "サーバーを停止しています…"
   },
   {
+    "id": "api.slackimport.slack_add_bot_user.email_pwd",
+    "translation": "Slack Bot/Integration投稿インポートユーザー: 電子メール, パスワード: {{.Email}}, {{.Password}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_bot_user.unable_import",
+    "translation": "Slack Bot/Integration投稿インポートユーザーをインポートできませんでした: {{.Username}}\r\n"
+  },
+  {
     "id": "api.slackimport.slack_add_channels.added",
     "translation": "\r\n チャンネルが追加されました \r\n"
   },
@@ -1533,7 +1541,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.import_failed.warn",
-    "translation": "Slack Importer: Failed to import channel: %s"
+    "translation": "Slack Importer: チャンネルをインポートできませんでした: %s"
   },
   {
     "id": "api.slackimport.slack_add_channels.merge",
@@ -1548,12 +1556,20 @@
     "translation": "Slack botの投稿はまだインポートされていません"
   },
   {
+    "id": "api.slackimport.slack_add_posts.bot_user_no_exists.warn",
+    "translation": "Slack Importer: botインポートユーザーが存在しないためbotメッセージをインポートしませんでした。"
+  },
+  {
     "id": "api.slackimport.slack_add_posts.msg_no_comment.debug",
     "translation": "ファイルコメントが定義されていません"
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_usr.debug",
     "translation": "ユーザーなしのメッセージ"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.no_bot_id.warn",
+    "translation": "Slack Importer: 項目BotIdが欠けていたためbotメッセージをインポートしませんでした。"
   },
   {
     "id": "api.slackimport.slack_add_posts.unsupported.warn",
@@ -1612,6 +1628,10 @@
     "translation": "Slackユーザー{{.UserID}} {{.Username}}の@mensionに一致する正規表現のコンパイルに失敗しました。"
   },
   {
+    "id": "api.slackimport.slack_deactivate_bot_user.failed_to_deactivate",
+    "translation": "Slack Importer: botインポートユーザーを非活性にできませんでした。"
+  },
+  {
     "id": "api.slackimport.slack_import.log",
     "translation": "Mattermost Slackインポートログ\r\n"
   },
@@ -1650,6 +1670,22 @@
   {
     "id": "api.slackimport.slack_parse_posts.error",
     "translation": "Slackの投稿を読み込み中にエラーが発生しました。しかしインポートは継続できます。"
+  },
+  {
+    "id": "api.slackimport.slack_sanitise_channel_properties.display_name_too_long.warn",
+    "translation": "Slack Importer: チャンネル {{.ChannelName}} の表示名が長すぎます。インポートの際に切り詰められます。"
+  },
+  {
+    "id": "api.slackimport.slack_sanitise_channel_properties.header_too_long.warn",
+    "translation": "Slack Importer: チャンネル {{.ChannelName}}のヘッダーが長すぎます。インポートの際に切り詰められます。"
+  },
+  {
+    "id": "api.slackimport.slack_sanitise_channel_properties.name_too_long.warn",
+    "translation": "Slack Importer: チャンネル {{.ChannelName}}の名前が長すぎます。インポートの際に切り詰められます。"
+  },
+  {
+    "id": "api.slackimport.slack_sanitise_channel_properties.purpose_too_long.warn",
+    "translation": "Slack Importer: チャンネル {{.ChannelName}}の目的が長すぎます。インポートの際に切り詰められます。"
   },
   {
     "id": "api.status.init.debug",
@@ -2508,12 +2544,16 @@
     "translation": "外向きのウェブフックトークンを再生成するのに十分な権限が付与されていません"
   },
   {
+    "id": "api.webrtc.disabled.app_error",
+    "translation": "WebRTCはこのサーバーでは有効化されていません。"
+  },
+  {
     "id": "api.webrtc.init.debug",
     "translation": "WebRTC APIルートを初期化しています"
   },
   {
-    "id": "api.webrtc.not_available.app_error",
-    "translation": "WebRTCはこのサーバーでは利用できません。"
+    "id": "api.webrtc.register_token.app_error",
+    "translation": "WebRTCトークンを登録する際にエラーが発生しました"
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
@@ -2802,18 +2842,6 @@
   {
     "id": "ent.saml.update_saml_user.unable_error",
     "translation": "既存のSAMLユーザーをアップデートすることはできません。ログインは有効です。err=%v"
-  },
-  {
-    "id": "ent.webrtc.disabled.app_error",
-    "translation": "WebRTCはこのサーバーでは有効化されていません。"
-  },
-  {
-    "id": "ent.webrtc.license_disable.app_error",
-    "translation": "あなたのライセンスではMattermost WebRTCを使うことはできません"
-  },
-  {
-    "id": "ent.webrtc.register_token.app_error",
-    "translation": "WebRTCトークンを登録する際にエラーが発生しました"
   },
   {
     "id": "error.generic.link_message",
