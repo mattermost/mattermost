@@ -6,7 +6,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router';
 
-import UberIcon from 'images/logo-email.png';
+import UberIcon from 'images/logo-194-194.png';
 import Nexus6Mockup   from 'images/nexus-6p-mockup.png';
 
 export default class GetAndroidApp extends React.Component {
