@@ -28,7 +28,7 @@ func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if reaction.UserId != c.Session.UserId {
 		c.Err = model.NewLocAppError("saveReaction", "api.reaction.save_reaction.user_id.app_error", nil, "")
-		c.Err.StatusCode = http.StatusUnauthorized
+		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
 
@@ -84,7 +84,7 @@ func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if reaction.UserId != c.Session.UserId {
 		c.Err = model.NewLocAppError("deleteReaction", "api.reaction.delete_reaction.user_id.app_error", nil, "")
-		c.Err.StatusCode = http.StatusUnauthorized
+		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
 
