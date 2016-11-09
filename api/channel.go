@@ -1176,6 +1176,8 @@ func updateNotifyProps(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = result.Err
 		return
 	} else {
+		InvalidateCacheForUser(userId)
+
 		// return the updated notify properties including any unchanged ones
 		w.Write([]byte(model.MapToJson(member.NotifyProps)))
 	}
