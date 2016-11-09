@@ -119,9 +119,9 @@ func InvalidateCacheForUserSkipClusterSend(userId string) {
 func (h *Hub) Register(webConn *WebConn) {
 	h.register <- webConn
 
-	msg := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_HELLO, "", "", webConn.UserId, nil)
-	msg.Add("server_version", fmt.Sprintf("%v.%v.%v", model.CurrentVersion, model.BuildNumber, utils.CfgHash))
-	go Publish(msg)
+	if webConn.isAuthenticated() {
+		webConn.SendHello()
+	}
 }
 
 func (h *Hub) Unregister(webConn *WebConn) {
