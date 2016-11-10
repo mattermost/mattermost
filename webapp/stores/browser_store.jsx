@@ -203,7 +203,11 @@ class BrowserStoreClass {
     }
 
     hasSeenLandingPage() {
-        return JSON.parse(sessionStorage.getItem('__landingPageSeen__'));
+        if (this.isLocalStorageSupported()) {
+            return JSON.parse(sessionStorage.getItem('__landingPageSeen__'));
+        }
+
+        return true;
     }
 
     setLandingPageSeen(landingPageSeen) {
