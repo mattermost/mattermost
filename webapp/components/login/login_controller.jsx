@@ -7,6 +7,7 @@ import FormError from 'components/form_error.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
 import UserStore from 'stores/user_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
 
 import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
@@ -52,13 +53,12 @@ export default class LoginController extends React.Component {
 
     componentDidMount() {
         document.title = global.window.mm_config.SiteName;
-
-        if (UserStore.getCurrentUser()) {
+        const DefaultTeamName = global.window.mm_config.DefaultTeamName;
+        const defaultTeam = TeamStore.getByName(DefaultTeamName);
+        if (UserStore.getCurrentUser() && defaultTeam) {
+            browserHistory.push(`/${defaultTeam.name}/channels/town-square`);
+        } else if (UserStore.getCurrentUser()) {
             browserHistory.push('/select_team');
-        }
-
-        if (UserStore.getCurrentUser() && global.window.mm_config.DefaultTeamName) {
-            browserHistory.push(`/${global.window.mm_config.DefaultTeamName}/channels/town-square`);
         }
 
         AsyncClient.checkVersion();
@@ -203,12 +203,14 @@ export default class LoginController extends React.Component {
     finishSignin() {
         GlobalActions.emitInitialLoad(
             () => {
+                const DefaultTeamName = global.window.mm_config.DefaultTeamName;
+                const defaultTeam = TeamStore.getByName(DefaultTeamName);
                 const query = this.props.location.query;
                 GlobalActions.loadDefaultLocale();
                 if (query.redirect_to) {
                     browserHistory.push(query.redirect_to);
-                } else if (global.window.mm_config.DefaultTeamName) {
-                    browserHistory.push(`/${global.window.mm_config.DefaultTeamName}/channels/town-square`);
+                } else if (defaultTeam) {
+                    browserHistory.push(`/${defaultTeam.name}/channels/town-square`);
                 } else {
                     browserHistory.push('/select_team');
                 }
