@@ -1198,17 +1198,28 @@ func TestSendPasswordReset(t *testing.T) {
 	LinkUserToTeam(user, team)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
-	if _, err := Client.SendPasswordReset(user.Email); err != nil {
+	if result, err := Client.SendPasswordReset(user.Email); err != nil {
 		t.Fatal(err)
+	} else {
+		resp := result.Data.(map[string]string)
+		if resp["email"] != user.Email {
+			t.Fatal("wrong email")
+		}
 	}
 
 	if _, err := Client.SendPasswordReset(""); err == nil {
 		t.Fatal("Should have errored - no email")
 	}
 
-	if _, err := Client.SendPasswordReset("junk@junk.com"); err == nil {
+  if result, err := Client.SendPasswordReset("junk@junk.com"); err != nil {
 		t.Fatal("Should have errored - bad email")
+	} else {
+		resp := result.Data.(map[string]string)
+		if resp["email"] != "" {
+			t.Fatal("email is in the databsase")
+		}
 	}
+
 
 	authData := model.NewId()
 	user2 := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", AuthData: &authData, AuthService: "random"}

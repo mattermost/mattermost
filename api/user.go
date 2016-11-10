@@ -1711,7 +1711,8 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var user *model.User
 	if result := <-Srv.Store.User().GetByEmail(email); result.Err != nil {
-		c.Err = model.NewLocAppError("sendPasswordReset", "api.user.send_password_reset.find.app_error", nil, "email="+email)
+		props["email"] = ""
+		w.Write([]byte(model.MapToJson(props)))
 		return
 	} else {
 		user = result.Data.(*model.User)

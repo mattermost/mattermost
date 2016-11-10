@@ -45,25 +45,47 @@ class PasswordResetSendLink extends React.Component {
 
         client.sendPasswordReset(
             email,
-            () => {
-                this.setState({
-                    error: null,
-                    updateText: (
-                        <div className='reset-form alert alert-success'>
-                            <FormattedHTMLMessage
-                                id='password_send.link'
-                                defaultMessage='<p>A password reset link has been sent to <b>{email}</b></p>'
-                                values={{
-                                    email
-                                }}
-                            />
-                            <FormattedMessage
-                                id={'password_send.checkInbox'}
-                                defaultMessage={'Please check your inbox.'}
-                            />
-                        </div>
-                    )
-                });
+            (response) => {
+                if(response.email == ''){
+                    this.setState({
+                        error: null,
+                        updateText: (
+                            <div className='reset-form alert alert-success'>
+                                <FormattedHTMLMessage
+                                    id='password_send.invalidemail'
+                                    defaultMessage='<p>If the account exists, a password reset email will be sent to <b>{email}</b></p>'
+                                    values={{
+                                        email
+                                    }}
+                                />
+                                <FormattedMessage
+                                    id={'password_send.checkInbox'}
+                                    defaultMessage={'Please check your inbox.'}
+                                />
+                            </div>
+                        )
+                    });
+                }
+                else {
+                    this.setState({
+                        error: null,
+                        updateText: (
+                            <div className='reset-form alert alert-success'>
+                                <FormattedHTMLMessage
+                                    id='password_send.link'
+                                    defaultMessage='<p>A password reset link has been sent to <b>{email}</b></p>'
+                                    values={{
+                                        email
+                                    }}
+                                />
+                                <FormattedMessage
+                                    id={'password_send.checkInbox'}
+                                    defaultMessage={'Please check your inbox.'}
+                                />
+                            </div>
+                        )
+                    });
+                }
                 $(ReactDOM.findDOMNode(this.refs.reset_form)).hide();
             },
             (err) => {
