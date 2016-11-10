@@ -143,6 +143,7 @@ type UserStore interface {
 	UpdateMfaActive(userId string, active bool) StoreChannel
 	Get(id string) StoreChannel
 	GetAll() StoreChannel
+	InvalidateProfilesInChannelCacheByUser(userId string)
 	InvalidateProfilesInChannelCache(channelId string)
 	GetProfilesInChannel(channelId string, offset int, limit int, allowFromCache bool) StoreChannel
 	GetProfilesNotInChannel(teamId string, channelId string, offset int, limit int) StoreChannel
