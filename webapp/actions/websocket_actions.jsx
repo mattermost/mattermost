@@ -30,34 +30,37 @@ import {browserHistory} from 'react-router/es6';
 const MAX_WEBSOCKET_FAILS = 7;
 
 export function initialize() {
-    if (window.WebSocket) {
-        let connUrl = Utils.getSiteURL();
-
-        // replace the protocol with a websocket one
-        if (connUrl.startsWith('https:')) {
-            connUrl = connUrl.replace(/^https:/, 'wss:');
-        } else {
-            connUrl = connUrl.replace(/^http:/, 'ws:');
-        }
-
-        // append a port number if one isn't already specified
-        if (!(/:\d+$/).test(connUrl)) {
-            if (connUrl.startsWith('wss:')) {
-                connUrl += ':' + global.window.mm_config.WebsocketSecurePort;
-            } else {
-                connUrl += ':' + global.window.mm_config.WebsocketPort;
-            }
-        }
-
-        // append the websocket api path
-        connUrl += Client.getUsersRoute() + '/websocket';
-
-        WebSocketClient.setEventCallback(handleEvent);
-        WebSocketClient.setFirstConnectCallback(handleFirstConnect);
-        WebSocketClient.setReconnectCallback(handleReconnect);
-        WebSocketClient.setCloseCallback(handleClose);
-        WebSocketClient.initialize(connUrl);
+    if (!window.WebSocket) {
+        console.log('Browser does not support websocket'); //eslint-disable-line no-console
+        return;
     }
+
+    let connUrl = Utils.getSiteURL();
+
+    // replace the protocol with a websocket one
+    if (connUrl.startsWith('https:')) {
+        connUrl = connUrl.replace(/^https:/, 'wss:');
+    } else {
+        connUrl = connUrl.replace(/^http:/, 'ws:');
+    }
+
+    // append a port number if one isn't already specified
+    if (!(/:\d+$/).test(connUrl)) {
+        if (connUrl.startsWith('wss:')) {
+            connUrl += ':' + global.window.mm_config.WebsocketSecurePort;
+        } else {
+            connUrl += ':' + global.window.mm_config.WebsocketPort;
+        }
+    }
+
+    // append the websocket api path
+    connUrl += Client.getUsersRoute() + '/websocket';
+
+    WebSocketClient.setEventCallback(handleEvent);
+    WebSocketClient.setFirstConnectCallback(handleFirstConnect);
+    WebSocketClient.setReconnectCallback(handleReconnect);
+    WebSocketClient.setCloseCallback(handleClose);
+    WebSocketClient.initialize(connUrl);
 }
 
 export function close() {

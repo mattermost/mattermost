@@ -105,7 +105,7 @@ export default class LoggedIn extends React.Component {
     }
 
     componentDidMount() {
-        // Initalize websocket
+        // Initialize websocket
         WebSocketActions.initialize();
 
         // Listen for user
