@@ -1207,11 +1207,7 @@ func TestSendPasswordReset(t *testing.T) {
 		}
 	}
 
-	if _, err := Client.SendPasswordReset(""); err == nil {
-		t.Fatal("Should have errored - no email")
-	}
-
-  if result, err := Client.SendPasswordReset("junk@junk.com"); err != nil {
+	if result, err := Client.SendPasswordReset("junk@junk.com"); err != nil {
 		t.Fatal("Should have errored - bad email")
 	} else {
 		resp := result.Data.(map[string]string)
@@ -1220,6 +1216,9 @@ func TestSendPasswordReset(t *testing.T) {
 		}
 	}
 
+	if _, err := Client.SendPasswordReset(""); err == nil {
+		t.Fatal("Should have errored - no email")
+	}
 
 	authData := model.NewId()
 	user2 := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", AuthData: &authData, AuthService: "random"}

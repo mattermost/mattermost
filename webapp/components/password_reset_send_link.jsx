@@ -46,7 +46,7 @@ class PasswordResetSendLink extends React.Component {
         client.sendPasswordReset(
             email,
             (response) => {
-                if(response.email == ''){
+                if (response.email === '') {
                     this.setState({
                         error: null,
                         updateText: (
@@ -65,8 +65,7 @@ class PasswordResetSendLink extends React.Component {
                             </div>
                         )
                     });
-                }
-                else {
+                } else {
                     this.setState({
                         error: null,
                         updateText: (
