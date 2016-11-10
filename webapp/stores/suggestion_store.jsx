@@ -223,7 +223,7 @@ class SuggestionStore extends EventEmitter {
     }
 
     handleEventPayload(payload) {
-        const {type, id, ...other} = payload.action; // eslint-disable-line no-use-before-define
+        const {type, id, ...other} = payload.action;
 
         switch (type) {
         case ActionTypes.SUGGESTION_PRETEXT_CHANGED:
