@@ -2,10 +2,14 @@
 
 .webrtc__user-profile {
     @include webrtc-button;
+    position: absolute;
+    right: 7px;
     text-align: center;
+    top: 5px;
 
     #webrtc-btn {
-        display: inherit;
+        height: 23px;
+        width: 23px;
     }
 }
 
@@ -15,6 +19,11 @@
     margin-right: 10px;
     position: relative;
     top: 13px;
+
+    svg {
+        position: relative;
+        width: 20px;
+    }
 }
 
 .webrtc__notification--rhs {
