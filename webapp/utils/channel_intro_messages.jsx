@@ -224,7 +224,7 @@ export function createStandardIntroMessage(channel, centeredIntro) {
             <span>
                 <FormattedMessage
                     id='intro_messages.purpose'
-                    defaultMessage=' This {type} purpose is: {purpose}'
+                    defaultMessage=" This {type}'s purpose is: {purpose}"
                     values={{
                         purpose: channel.purpose,
                         type: (uiType)
