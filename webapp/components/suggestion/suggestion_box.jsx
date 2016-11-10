@@ -37,6 +37,13 @@ export default class SuggestionBox extends React.Component {
         SuggestionStore.addPretextChangedListener(this.suggestionId, this.handlePretextChanged);
     }
 
+    componentWillReceiveProps(nextProps) {
+        // Clear any suggestions when the SuggestionBox is cleared
+        if (nextProps.value === '' && this.props.value !== nextProps.value) {
+            GlobalActions.emitClearSuggestions(this.suggestionId);
+        }
+    }
+
     componentWillUnmount() {
         SuggestionStore.removeCompleteWordListener(this.suggestionId, this.handleCompleteWord);
         SuggestionStore.removePretextChangedListener(this.suggestionId, this.handlePretextChanged);
