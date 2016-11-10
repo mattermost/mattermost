@@ -4,7 +4,7 @@
 import AdminStore from 'stores/admin_store.jsx';
 import LoadingScreen from '../loading_screen.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
-
+import ReactDOM from 'react-dom';
 import {FormattedMessage} from 'react-intl';
 
 import React from 'react';
@@ -24,6 +24,12 @@ export default class Logs extends React.Component {
     componentDidMount() {
         AdminStore.addLogChangeListener(this.onLogListenerChange);
         AsyncClient.getLogs();
+    }
+
+    componentDidUpdate() {
+        // Scroll Down to get the latest logs
+        var node = ReactDOM.findDOMNode(this.refs.logPanel);
+        node.scrollTop = node.scrollHeight;
     }
 
     componentWillUnmount() {
@@ -93,7 +99,10 @@ export default class Logs extends React.Component {
                         defaultMessage='Reload'
                     />
                 </button>
-                <div className='log__panel'>
+                <div
+                    ref='logPanel'
+                    className='log__panel'
+                >
                     {content}
                 </div>
             </div>
