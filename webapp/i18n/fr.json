@@ -1108,7 +1108,7 @@
   "create_post.shortcutsNotSupported": "Les raccourcis clavier ne sont pas pris en charge sur votre appareil.",
   "create_post.tutorialTip": "<h4>Envoyer des messages</h4><p>Entrez votre message ici et tapez <strong>Entrée</strong> pour l'envoyer.</p><p>Cliquez sur le bouton <strong>pièce-jointe</strong> pour télécharger une image ou un fichier.</p>",
   "create_post.write": "Écrire un message...",
-  "create_team.agreement": "En créant votre compte et en utilisant votre {siteName},  vous acceptez nos <a href={TermsOfServiceLink}>Terms of Service</a> and <a href={PrivacyPolicyLink}>Privacy Policy</a>. Si vous n’acceptez pas, vous ne pouvez utilisé votre {siteName}.",
+  "create_team.agreement": "En créant votre compte et en utilisant votre {siteName},  vous acceptez nos <a href='/static/help/terms.html'>Terms of Service</a> and <a href='/static/help/privacy.html'>Privacy Policy</a>. Si vous n’acceptez pas, vous ne pouvez utilisé votre {siteName}.",
   "create_team.display_name.back": "Retour à l’étape précedente",
   "create_team.display_name.charLength": "Le nom doit contenir de 4 à 15 caractères",
   "create_team.display_name.nameHelp": "Nommez votre équipe dans toutes les langues. Votre nom d'équipe sera montré dans les menus et rubriques.",

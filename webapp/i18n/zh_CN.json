@@ -1108,7 +1108,7 @@
   "create_post.shortcutsNotSupported": "您的设备不支持键盘快捷键。",
   "create_post.tutorialTip": "<h4>发送信息</h4><p>在这输入信息并按<strong>回车</strong>发送。</p><p>点击<strong>附件</strong>按钮上传图片或文件。</p>",
   "create_post.write": "写一个消息...",
-  "create_team.agreement": "如果继续创建您的帐户和使用{siteName}，您需要同意<a href={TermsOfServiceLink}>服务条款</a>和<a href={PrivacyPolicyLink}>隐私政策</a>。如果不同意，您将不能使用{siteName}。",
+  "create_team.agreement": "如果继续创建您的帐户和使用{siteName}，您需要同意<a href='/static/help/terms.html'>服务条款</a>和<a href='/static/help/privacy.html'>隐私政策</a>。如果不同意，您将不能使用{siteName}。",
   "create_team.display_name.back": "返回上一步",
   "create_team.display_name.charLength": "名称必须是2到15个字符",
   "create_team.display_name.nameHelp": "您可以使用任何语言命名您的团队。您的团队名称将显示在菜单和标题栏上。",

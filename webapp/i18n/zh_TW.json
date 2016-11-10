@@ -1108,7 +1108,7 @@
   "create_post.shortcutsNotSupported": "此裝置不支援鍵盤快速鍵。",
   "create_post.tutorialTip": "<h4>發送訊息</h4><p>在這邊輸入訊息並按下 <strong>Enter</strong> 來發文。</p><p>按下<strong>附件</strong>按鈕來上傳圖片或是檔案。</p>",
   "create_post.write": "輸入訊息...",
-  "create_team.agreement": "一旦建立帳號使用{siteName}，即表示您同意<a href={TermsOfServiceLink}>服務條款</a>以及<a href={PrivacyPolicyLink}>隱私政策</a>。如果您不同意，請停止使用{siteName}。",
+  "create_team.agreement": "一旦建立帳號使用{siteName}，即表示您同意<a href='/static/help/terms.html'>服務條款</a>以及<a href='/static/help/privacy.html'>隱私政策</a>。如果您不同意，請停止使用{siteName}。",
   "create_team.display_name.back": "回到上一步",
   "create_team.display_name.charLength": "名稱長度為2到15字元",
   "create_team.display_name.nameHelp": "團隊可以用任何語言取名。團隊名稱將會顯示在選單跟畫面上方。",

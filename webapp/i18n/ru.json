@@ -1108,7 +1108,7 @@
   "create_post.shortcutsNotSupported": "Горячие клавиши не поддерживаются на вашем устройстве.",
   "create_post.tutorialTip": "<h4>Отправка сообщений</h4><p>Напишите здесь сообщение и нажмите <strong>Enter</strong> для отправки.</p><p>Нажмите кнопку <strong>Вложение</strong> для загрузки изображения или файла.</p>",
   "create_post.write": "Ваше сообщение...",
-  "create_team.agreement": "By proceeding to create your account and use {siteName}, you agree to our <a href={TermsOfServiceLink}>Terms of Service</a> and <a href={PrivacyPolicyLink}>Privacy Policy</a>. If you do not agree, you cannot use {siteName}.",
+  "create_team.agreement": "By proceeding to create your account and use {siteName}, you agree to our <a href='/static/help/terms.html'>Terms of Service</a> and <a href='/static/help/privacy.html'>Privacy Policy</a>. If you do not agree, you cannot use {siteName}.",
   "create_team.display_name.back": "На предыдущий шаг",
   "create_team.display_name.charLength": "Имя должно быть больше двух символов и меньше 15",
   "create_team.display_name.nameHelp": "Название команды на любом языке. Название команды будет показано в меню и заголовках.",

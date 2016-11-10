@@ -1108,7 +1108,7 @@
   "create_post.shortcutsNotSupported": "Toetsenbord snelkoppelingen worden niet ondersteund op jouw apparaat.",
   "create_post.tutorialTip": "<h4>Versturen van berichten</h4><p>Tik hier om een bericht te maken en druk op <strong>Enter</strong> op het te versturen.</p><p>Klik de <strong>Bijlage</strong> knop om een beeld of bestand te uploaden.</p> ",
   "create_post.write": "Schrijf een bericht...",
-  "create_team.agreement": "Door verder te gaan maak je jouw account en gebruik je {siteName}, je gaat akkoord met onze <a href={TermsOfServiceLink}>Voorwaarden</a> and <a href={PrivacyPolicyLink}>Privacy Policy</a>. Als je niet akkoord gaat, kan je geen gebruik maken van {siteName}.",
+  "create_team.agreement": "Door verder te gaan maak je jouw account en gebruik je {siteName}, je gaat akkoord met onze <a href='/static/help/terms.html'>Voorwaarden</a> and <a href='/static/help/privacy.html'>Privacy Policy</a>. Als je niet akkoord gaat, kan je geen gebruik maken van {siteName}.",
   "create_team.display_name.back": "Terug naar de vorige stap",
   "create_team.display_name.charLength": "Uw naam moet langer zijn dan 4 tekens met een maximum van 15",
   "create_team.display_name.nameHelp": "Geef uw team een naam – in eender welke taal. De naam van uw team wordt in menu's en kopteksten getoond.",

@@ -1108,7 +1108,7 @@
   "create_post.shortcutsNotSupported": "Keyboard shortcuts are not supported on your device.",
   "create_post.tutorialTip": "<h4>메시지 보내기</h4><p>보내고 싶은 메시지를 작성하고 <strong>Enter</strong>키를 눌러 보내세요.</p><p><strong>첨부</strong> 버튼을 눌러 이미지나 파일을 업로드하세요.</p>",
   "create_post.write": "메시지를 입력하세요...",
-  "create_team.agreement": "By proceeding to create your account and use {siteName}, you agree to our <a href={TermsOfServiceLink}>Terms of Service</a> and <a href={PrivacyPolicyLink}>Privacy Policy</a>. If you do not agree, you cannot use {siteName}.",
+  "create_team.agreement": "By proceeding to create your account and use {siteName}, you agree to our <a href='/static/help/terms.html'>Terms of Service</a> and <a href='/static/help/privacy.html'>Privacy Policy</a>. If you do not agree, you cannot use {siteName}.",
   "create_team.display_name.back": "이전 단계로 돌아가기",
   "create_team.display_name.charLength": "Name must be 4 or more characters up to a maximum of 15",
   "create_team.display_name.nameHelp": "Name your team in any language. Your team name shows in menus and headings.",
