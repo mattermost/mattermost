@@ -5,10 +5,10 @@ package utils
 
 import (
 	"crypto/tls"
-	"encoding/base64"
 	"fmt"
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
+	"mime"
 	"net"
 	"net/mail"
 	"net/smtp"
@@ -16,10 +16,7 @@ import (
 )
 
 func encodeRFC2047Word(s string) string {
-	// TODO: use `mime.BEncoding.Encode` instead when `go` >= 1.5
-	// return mime.BEncoding.Encode("utf-8", s)
-	dst := base64.StdEncoding.EncodeToString([]byte(s))
-	return "=?utf-8?b?" + dst + "?="
+	return mime.BEncoding.Encode("utf-8", s)
 }
 
 func connectToSMTPServer(config *model.Config) (net.Conn, *model.AppError) {
