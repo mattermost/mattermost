@@ -242,6 +242,13 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["RestrictPrivateChannelManagement"] = *c.TeamSettings.RestrictPrivateChannelManagement
 	props["DefaultTeamName"] = c.TeamSettings.DefaultTeamName
 
+	props["AndroidLatestVersion"] = c.ClientRequirements.AndroidLatestVersion
+	props["AndroidMinVersion"] = c.ClientRequirements.AndroidMinVersion
+	props["DesktopLatestVersion"] = c.ClientRequirements.DesktopLatestVersion
+	props["DesktopMinVersion"] = c.ClientRequirements.DesktopMinVersion
+	props["IosLatestVersion"] = c.ClientRequirements.IosLatestVersion
+	props["IosMinVersion"] =  c.ClientRequirements.IosMinVersion
+
 	props["EnableOAuthServiceProvider"] = strconv.FormatBool(c.ServiceSettings.EnableOAuthServiceProvider)
 	props["SegmentDeveloperKey"] = c.ServiceSettings.SegmentDeveloperKey
 	props["GoogleDeveloperKey"] = c.ServiceSettings.GoogleDeveloperKey

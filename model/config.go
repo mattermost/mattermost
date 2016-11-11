@@ -224,6 +224,15 @@ type TeamSettings struct {
 	DefaultTeamName                  string
 }
 
+type ClientRequirements struct {
+	AndroidLatestVersion string
+	AndroidMinVersion    string
+	DesktopLatestVersion string
+	DesktopMinVersion    string
+	IosLatestVersion     string
+	IosMinVersion        string
+}
+
 type LdapSettings struct {
 	// Basic
 	Enable             *bool
@@ -314,6 +323,7 @@ type WebrtcSettings struct {
 type Config struct {
 	ServiceSettings      ServiceSettings
 	TeamSettings         TeamSettings
+	ClientRequirements   ClientRequirements
 	SqlSettings          SqlSettings
 	LogSettings          LogSettings
 	PasswordSettings     PasswordSettings
