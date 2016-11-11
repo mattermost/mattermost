@@ -23,6 +23,7 @@ import PasswordSettings from 'components/admin_console/password_settings.jsx';
 import PublicLinkSettings from 'components/admin_console/public_link_settings.jsx';
 import SessionSettings from 'components/admin_console/session_settings.jsx';
 import ConnectionSettings from 'components/admin_console/connection_settings.jsx';
+import ClientVersionsSettings from 'components/admin_console/client_versions_settings.jsx';
 import EmailSettings from 'components/admin_console/email_settings.jsx';
 import PushSettings from 'components/admin_console/push_settings.jsx';
 import CustomIntegrationsSettings from 'components/admin_console/custom_integrations_settings.jsx';
@@ -125,6 +126,10 @@ export default (
             <Route
                 path='connections'
                 component={ConnectionSettings}
+            />
+            <Route
+                path='client_versions'
+                component={ClientVersionsSettings}
             />
         </Route>
         <Route path='notifications'>
