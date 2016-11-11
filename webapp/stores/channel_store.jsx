@@ -263,6 +263,12 @@ class ChannelStoreClass extends EventEmitter {
         });
     }
 
+    setUnreadCountsByCurrentMembers() {
+        Object.keys(this.myChannelMembers).forEach((key) => {
+            this.setUnreadCountByChannel(this.myChannelMembers[key].channel_id);
+        });
+    }
+
     setUnreadCountsByChannels(channels) {
         channels.forEach((c) => {
             this.setUnreadCountByChannel(c.id);
@@ -366,6 +372,15 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
             ChannelStore.resetCounts(currentId);
         }
         ChannelStore.setUnreadCountsByMembers(action.members);
+        ChannelStore.emitChange();
+        break;
+    case ActionTypes.RECEIVED_CHANNEL_MEMBER:
+        ChannelStore.storeMyChannelMember(action.member);
+        currentId = ChannelStore.getCurrentId();
+        if (currentId && window.isActive) {
+            ChannelStore.resetCounts(currentId);
+        }
+        ChannelStore.setUnreadCountsByCurrentMembers();
         ChannelStore.emitChange();
         break;
     case ActionTypes.RECEIVED_MORE_CHANNELS:
