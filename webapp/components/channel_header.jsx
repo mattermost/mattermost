@@ -300,6 +300,13 @@ export default class ChannelHeader extends React.Component {
 
                 if (isOffline || busy) {
                     circleClass = 'offline';
+                    webrtcMessage = (
+                        <FormattedMessage
+                            id='channel_header.webrtc.offline'
+                            defaultMessage='The user is offline'
+                        />
+                    );
+
                     if (busy) {
                         webrtcMessage = (
                             <FormattedMessage
@@ -317,6 +324,10 @@ export default class ChannelHeader extends React.Component {
                     );
                 }
 
+                const webrtcTooltip = (
+                    <Tooltip id='webrtcTooltip'>{webrtcMessage}</Tooltip>
+                );
+
                 webrtc = (
                     <div className='webrtc__header'>
                         <a
@@ -324,28 +335,18 @@ export default class ChannelHeader extends React.Component {
                             onClick={() => this.initWebrtc(contact.id, !isOffline)}
                             disabled={isOffline}
                         >
-                            <svg
-                                id='webrtc-btn'
-                                className='webrtc__button'
-                                xmlns='http://www.w3.org/2000/svg'
+                            <OverlayTrigger
+                                delayShow={Constants.WEBRTC_TIME_DELAY}
+                                placement='bottom'
+                                overlay={webrtcTooltip}
                             >
-                                <circle
-                                    className={circleClass}
-                                    cx='16'
-                                    cy='16'
-                                    r='18'
+                                <div
+                                    id='webrtc-btn'
+                                    className={'webrtc__button ' + circleClass}
                                 >
-                                    <title>
-                                        {webrtcMessage}
-                                    </title>
-                                </circle>
-                                <path
-                                    className='off'
-                                    transform='scale(0.4), translate(17,16)'
-                                    d='M40 8H8c-2.21 0-4 1.79-4 4v24c0 2.21 1.79 4 4 4h32c2.21 0 4-1.79 4-4V12c0-2.21-1.79-4-4-4zm-4 24l-8-6.4V32H12V16h16v6.4l8-6.4v16z'
-                                    fill='white'
-                                />
-                            </svg>
+                                    <span dangerouslySetInnerHTML={{__html: Constants.VIDEO_ICON}}/>
+                                </div>
+                            </OverlayTrigger>
                         </a>
                     </div>
                 );
