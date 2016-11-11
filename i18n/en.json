@@ -983,7 +983,7 @@
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
-    "translation": "Unable to upload image file. File is too large."
+    "translation": "File above maximum dimensions could not be uploaded: {{.Filename}}"
   },
   {
     "id": "api.file.upload_file.storage.app_error",
