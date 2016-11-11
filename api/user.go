@@ -192,6 +192,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 }
 
+// Check that a user's email domain matches a list of space-delimited domains as a string.
 func CheckUserDomain(user *model.User, domains string) bool {
 	if len(domains) == 0 {
 		return true
