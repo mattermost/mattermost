@@ -121,7 +121,7 @@ class SuggestionStore extends EventEmitter {
     }
 
     addSuggestions(id, terms, items, component, matchedPretext) {
-        if (this.getPretext(id) !== matchedPretext) {
+        if (!this.getPretext(id).endsWith(matchedPretext)) {
             // These suggestions are out of date since the pretext has changed
             return;
         }
