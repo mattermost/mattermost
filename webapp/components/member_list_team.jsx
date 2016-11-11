@@ -125,7 +125,6 @@ export default class MemberListTeam extends React.Component {
 
         return (
             <SearchableUserList
-                style={this.props.style}
                 users={usersToDisplay}
                 usersPerPage={USERS_PER_PAGE}
                 total={this.state.total}
@@ -139,6 +138,5 @@ export default class MemberListTeam extends React.Component {
 }
 
 MemberListTeam.propTypes = {
-    style: React.PropTypes.object,
     isAdmin: React.PropTypes.bool
 };
