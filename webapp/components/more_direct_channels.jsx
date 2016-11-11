@@ -12,7 +12,6 @@ import TeamStore from 'stores/team_store.jsx';
 
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
-import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
 import React from 'react';
@@ -185,11 +184,6 @@ export default class MoreDirectChannels extends React.Component {
     }
 
     render() {
-        let maxHeight = 1000;
-        if (Utils.windowHeight() <= 1200) {
-            maxHeight = Utils.windowHeight() - 300;
-        }
-
         let teamToggle;
         if (global.window.mm_config.RestrictDirectMessage === 'any') {
             teamToggle = (
@@ -245,7 +239,6 @@ export default class MoreDirectChannels extends React.Component {
                     {teamToggle}
                     <SearchableUserList
                         key={'moreDirectChannelsList_' + this.state.listType}
-                        style={{maxHeight}}
                         users={this.state.users}
                         usersPerPage={USERS_PER_PAGE}
                         nextPage={this.nextPage}
