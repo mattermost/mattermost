@@ -1965,6 +1965,7 @@ func updateUserNotify(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Check if the username is already used by another user. Return false if the username is invalid.
 func IsUsernameTaken(name string) bool {
 
 	if !model.IsValidUsername(name) {
