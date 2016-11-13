@@ -48,7 +48,7 @@ class TeamImportTab extends React.Component {
             <div>
                 <FormattedHTMLMessage
                     id='team_import_tab.importHelp'
-                    defaultMessage="<p>Import users and public channel information from Slack. <a href=&quot;https://docs.mattermost.com/help/settings/team-settings.html#import&quot;>See documentation for instructions on generating a Slack export file.</a></p>"
+                    defaultMessage="<p>Import users and public channel information from Slack. <a href=&quot;https://docs.mattermost.com/help/settings/team-settings.html#import&quot;>See documentation for instructions on generating a Slack file to import.</a></p>"
                 />
             </div>
         );
