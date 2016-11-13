@@ -1102,6 +1102,34 @@
     "translation": "License did not remove properly."
   },
   {
+    "id": "api.matterbot.channel.retrieve_members.error",
+    "translation": "Could not retrieve list of members belonging to channel, err=%v"
+  },
+  {
+    "id": "api.matterbot.channel.delete_channel.archived",
+    "translation": "%v archived the private group/public channel %v"
+  },
+  {
+    "id": "api.matterbot.channel.remove_member.error",
+    "translation": "Could not retrieve the removing user, err=%v"
+  },
+  {
+    "id": "api.matterbot.channel.remove_member.removed",
+    "translation": "You have been removed from the channel %v by %v."
+  },
+  {
+    "id": "api.matterbot.init_matterbot.create_user.error",
+    "translation": "Error creating a user for matterbot, err=%v"
+  },
+  {
+    "id": "api.matterbot.send_message.create_direct_channel.error",
+    "translation": "Error creating a direct channel for matterbot, err=%v"
+  },
+  {
+    "id": "api.matterbot.send_message.create_post.error",
+    "translation": "Error creating a matterbot message, err=%v"
+  },
+  {
     "id": "api.oauth.allow_oauth.bad_client.app_error",
     "translation": "invalid_request: Bad client_id"
   },
