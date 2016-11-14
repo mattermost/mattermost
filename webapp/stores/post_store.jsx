@@ -245,7 +245,7 @@ class PostStoreClass extends EventEmitter {
         this.postsInfo[id].postList = combinedPosts;
     }
 
-    storePost(post) {
+    storePost(post, isNewPost = false) {
         const postList = makePostListNonNull(this.getAllPosts(post.channel_id));
 
         if (post.pending_post_id !== '') {
@@ -255,7 +255,7 @@ class PostStoreClass extends EventEmitter {
         post.pending_post_id = '';
 
         postList.posts[post.id] = post;
-        if (postList.order.indexOf(post.id) === -1) {
+        if (isNewPost && postList.order.indexOf(post.id) === -1) {
             postList.order.unshift(post.id);
         }
 
@@ -629,7 +629,7 @@ PostStore.dispatchToken = AppDispatcher.register((payload) => {
         PostStore.emitChange();
         break;
     case ActionTypes.RECEIVED_POST:
-        PostStore.storePost(action.post);
+        PostStore.storePost(action.post, true);
         PostStore.emitChange();
         break;
     case ActionTypes.RECEIVED_EDIT_POST:

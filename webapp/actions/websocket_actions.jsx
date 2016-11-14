@@ -180,7 +180,7 @@ function handleNewPostEvent(msg) {
 function handlePostEditEvent(msg) {
     // Store post
     const post = JSON.parse(msg.data.post);
-    PostStore.storePost(post);
+    PostStore.storePost(post, false);
     PostStore.emitChange();
 
     // Update channel state
