@@ -50,13 +50,13 @@ export function emitChannelClickEvent(channel) {
             AsyncClient.updateLastViewedAt(chan.id);
             loadPosts(chan.id);
             trackPage();
+        });
 
-            AppDispatcher.handleViewAction({
-                type: ActionTypes.CLICK_CHANNEL,
-                name: chan.name,
-                id: chan.id,
-                prev: ChannelStore.getCurrentId()
-            });
+        AppDispatcher.handleViewAction({
+            type: ActionTypes.CLICK_CHANNEL,
+            name: chan.name,
+            id: chan.id,
+            prev: ChannelStore.getCurrentId()
         });
     }
 
