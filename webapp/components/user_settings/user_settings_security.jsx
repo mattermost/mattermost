@@ -473,6 +473,20 @@ export default class SecurityTab extends React.Component {
                         </div>
                     </div>
                 );
+            } else if (this.props.user.auth_service === Constants.SAML_SERVICE) {
+                inputs.push(
+                    <div
+                        key='oauthEmailInfo'
+                        className='form-group'
+                    >
+                        <div className='setting-list__hint'>
+                            <FormattedMessage
+                                id='user.settings.security.passwordSamlCantUpdate'
+                                defaultMessage='This field is handled through your login provider. If you want to change it, you need to do so through your login provider.'
+                            />
+                        </div>
+                    </div>
+                );
             }
 
             updateSectionStatus = function resetSection(e) {
@@ -533,7 +547,7 @@ export default class SecurityTab extends React.Component {
             describe = (
                 <FormattedMessage
                     id='user.settings.security.loginGitlab'
-                    defaultMessage='Login done through Gitlab'
+                    defaultMessage='Login done through GitLab'
                 />
             );
         } else if (this.props.user.auth_service === Constants.LDAP_SERVICE) {
@@ -541,6 +555,13 @@ export default class SecurityTab extends React.Component {
                 <FormattedMessage
                     id='user.settings.security.loginLdap'
                     defaultMessage='Login done through AD/LDAP'
+                />
+            );
+        } else if (this.props.user.auth_service === Constants.SAML_SERVICE) {
+            describe = (
+                <FormattedMessage
+                    id='user.settings.security.loginSaml'
+                    defaultMessage='Login done through SAML'
                 />
             );
         }
