@@ -6,6 +6,7 @@ import PostBodyAdditionalContent from 'components/post_view/components/post_body
 import PostMessageContainer from 'components/post_view/components/post_message_container.jsx';
 import FileAttachmentListContainer from './file_attachment_list_container.jsx';
 import ProfilePicture from 'components/profile_picture.jsx';
+import RhsDropdown from 'components/rhs_dropdown.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
@@ -228,23 +229,7 @@ export default class RhsRootPost extends React.Component {
         var rootOptions = '';
         if (dropdownContents.length > 0) {
             rootOptions = (
-                <div className='dropdown'>
-                    <a
-                        href='#'
-                        className='post__dropdown dropdown-toggle'
-                        type='button'
-                        data-toggle='dropdown'
-                        aria-expanded='false'
-                    />
-                    <div className='dropdown-menu__content'>
-                        <ul
-                            className='dropdown-menu'
-                            role='menu'
-                        >
-                            {dropdownContents}
-                        </ul>
-                    </div>
-                </div>
+                <RhsDropdown dropdownContents={dropdownContents}/>
             );
         }
 
