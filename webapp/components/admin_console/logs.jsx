@@ -4,7 +4,7 @@
 import AdminStore from 'stores/admin_store.jsx';
 import LoadingScreen from '../loading_screen.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
-import ReactDOM from 'react-dom';
+
 import {FormattedMessage} from 'react-intl';
 
 import React from 'react';
@@ -28,7 +28,7 @@ export default class Logs extends React.Component {
 
     componentDidUpdate() {
         // Scroll Down to get the latest logs
-        var node = ReactDOM.findDOMNode(this.refs.logPanel);
+        var node = this.refs.logPanel;
         node.scrollTop = node.scrollHeight;
     }
 
