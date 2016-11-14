@@ -629,11 +629,11 @@
   },
   {
     "id": "api.command_shortcuts.msgs",
-    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCTRL+UP (in empty input field): Reprint the previous message or slash command you entered\nCTRL+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n#[character]+TAB: Autocomplete channel beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
+    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCTRL+UP (in empty input field): Reprint the previous message or slash command you entered\nCTRL+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n~[character]+TAB: Autocomplete channel beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs_mac",
-    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCMD+UP (in empty input field): Reprint the previous message or slash command you entered\nCMD+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n#[character]+TAB: Autocomplete channel beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
+    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCMD+UP (in empty input field): Reprint the previous message or slash command you entered\nCMD+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n~[character]+TAB: Autocomplete channel beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -1520,6 +1520,14 @@
     "translation": "Stopping Server..."
   },
   {
+    "id": "api.slackimport.slack_add_bot_user.email_pwd",
+    "translation": "Slack Bot/Integration Posts Import User: Email, Password: {{.Email}}, {{.Password}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_bot_user.unable_import",
+    "translation": "Unable to import Slack Bot/Integration Posts Import User: {{.Username}}\r\n"
+  },
+  {
     "id": "api.slackimport.slack_add_channels.added",
     "translation": "\r\n Channels Added \r\n"
   },
@@ -1606,14 +1614,6 @@
   {
     "id": "api.slackimport.slack_add_users.unable_import",
     "translation": "Unable to import user: {{.Username}}\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Slack Bot/Integration Posts Import User: Email, Password: {{.Email}}, {{.Password}}\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_bot_user.unable_import",
-    "translation": "Unable to import Slack Bot/Integration Posts Import User: {{.Username}}\r\n"
   },
   {
     "id": "api.slackimport.slack_convert_channel_mentions.compile_regexp_failed.warn",

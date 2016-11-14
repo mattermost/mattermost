@@ -928,8 +928,9 @@ export default class SecurityTab extends React.Component {
         numMethods = config.EnableLdap === 'true' ? numMethods + 1 : numMethods;
         numMethods = config.EnableSaml === 'true' ? numMethods + 1 : numMethods;
 
+        // If there are other sign-in methods and either email is enabled or the user's account is email, then allow switching
         let signInSection;
-        if (config.EnableSignUpWithEmail === 'true' && numMethods > 0) {
+        if ((config.EnableSignUpWithEmail === 'true' || user.auth_service === '') && numMethods > 0) {
             signInSection = this.createSignInSection();
         }
 

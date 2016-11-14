@@ -36,21 +36,24 @@
             padding: 15px 20px 100px;
         }
 
-        .close__icon {
-            @include border-radius(50%);
-            border: 1px solid $white;
-            bottom: 25px;
-            color: $white;
+        .close {
+            font-family: 'Open Sans', sans-serif;
             display: block;
-            font-size: 23px;
-            font-weight: 300;
-            height: 30px;
-            left: 50%;
-            line-height: 23px;
-            margin-left: -25px;
             position: fixed;
-            text-align: center;
+            bottom: 25px;
+            height: 30px;
             width: 30px;
+            margin-left: -15px;
+            left: 50%;
+            font-size: 23px;
+            line-height: 27px;
+            border-radius: 50%;
+            border: 1px solid $white;
+            text-align: center;
+            opacity: 1;
+            text-shadow: none;
+            color: white;
+            font-weight: 200;
         }
     }
 
@@ -81,9 +84,10 @@
     .tutorial-steps__container {
         .tutorial__content {
             .tutorial__steps {
-                margin-bottom: 0;
-                min-height: auto;
-                padding-bottom: 8em;
+                margin-top: 15%;
+                margin-bottom: 15%;
+                max-height: 70%;
+                padding-bottom: 0;
             }
         }
     }
@@ -749,22 +753,24 @@
                 top: 42px;
                 width: 100%;
 
-                &:after {
-                    @include border-radius(50%);
-                    border: 1px solid $white;
-                    bottom: 25px;
-                    color: $white;
-                    content: '\D7';
+                .close {
+                    font-family: 'Open Sans', sans-serif;
                     display: block;
-                    font-size: 23px;
-                    font-weight: 300;
-                    height: 30px;
-                    left: 50%;
-                    line-height: 27px;
-                    margin-left: -25px;
                     position: fixed;
-                    text-align: center;
+                    bottom: 25px;
+                    height: 30px;
                     width: 30px;
+                    margin-left: -15px;
+                    left: 50%;
+                    font-size: 23px;
+                    line-height: 27px;
+                    border-radius: 50%;
+                    border: 1px solid $white;
+                    text-align: center;
+                    opacity: 1;
+                    text-shadow: none;
+                    color: white;
+                    font-weight: 200;
                 }
 
                 > li {
@@ -1306,8 +1312,28 @@
     }
 
     .app__body {
+        .more-modal {
+            .modal-body {
+                padding-bottom: 5px;
+            }
+
+            .more-modal__list {
+                max-height: calc(100vh - 260px);
+            }
+
+            &.more-direct-channels {
+                .more-modal__list {
+                    max-height: calc(100vh - 295px);
+                }
+            }
+        }
+
         .modal {
             &.more-channel__modal {
+                .more-modal__list {
+                    max-height: calc(100vh - 250px);
+                }
+
                 .modal-body {
                     padding-bottom: 35px;
                 }
@@ -1394,6 +1420,25 @@
             .tutorial__steps {
                 padding: 0 20px;
                 width: 100%;
+                h1 {
+                    font-size: 35px;
+                    margin: -5px 0 20px;
+                }
+                h3 {
+                    margin-bottom: 10px;
+                }
+                .tutorial__app-icons {
+                    margin: 10px 0;
+                }
+                .tutorial__circles {
+                    margin: 0 0 15px;
+                    bottom: 60px;
+                    position: absolute;
+                }
+                .tutorial__footer {
+                    bottom: 30px;
+                    position: absolute;
+                }
             }
         }
     }

@@ -464,6 +464,32 @@ func (s SqlChannelStore) GetChannelCounts(teamId string, userId string) StoreCha
 	return storeChannel
 }
 
+func (s SqlChannelStore) GetTeamChannels(teamId string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		data := &model.ChannelList{}
+		_, err := s.GetReplica().Select(data, "SELECT * FROM Channels WHERE TeamId = :TeamId And Type != 'D' ORDER BY DisplayName", map[string]interface{}{"TeamId": teamId})
+
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlChannelStore.GetChannels", "store.sql_channel.get_channels.get.app_error", nil, "teamId="+teamId+",  err="+err.Error())
+		} else {
+			if len(*data) == 0 {
+				result.Err = model.NewLocAppError("SqlChannelStore.GetChannels", "store.sql_channel.get_channels.not_found.app_error", nil, "teamId="+teamId)
+			} else {
+				result.Data = data
+			}
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (s SqlChannelStore) GetByName(teamId string, name string) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 

@@ -13,6 +13,7 @@ import SearchSuggestionList from './suggestion/search_suggestion_list.jsx';
 import SearchUserProvider from './suggestion/search_user_provider.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
+import {loadProfilesForPosts} from 'actions/post_actions.jsx';
 
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
@@ -129,6 +130,8 @@ export default class SearchBar extends React.Component {
                         results: data,
                         is_mention_search: isMentionSearch
                     });
+
+                    loadProfilesForPosts(data.posts);
                 },
                 (err) => {
                     this.setState({isSearching: false});

@@ -137,7 +137,7 @@
   },
   {
     "id": "api.api.init.parsing_templates.error",
-    "translation": "Impossible d'analyser les gabarits du serveur %v"
+    "translation": "Impossible d'analyser les modèles du serveur %v"
   },
   {
     "id": "api.api.render.error",
@@ -165,7 +165,7 @@
   },
   {
     "id": "api.channel.add_user.to.channel.failed.app_error",
-    "translation": "Échec de l'ajout utilisateur"
+    "translation": "Impossible d'ajouter l'utilisateur au canal"
   },
   {
     "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
@@ -205,7 +205,7 @@
   },
   {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
-    "translation": "Cannot create more than {{.MaxChannelsPerTeam}} channels for current team"
+    "translation": "Impossible de créer plus de {{.MaxChannelsPerTeam}} canaux pour l'équipe actuelle"
   },
   {
     "id": "api.channel.create_default_channels.off_topic",
@@ -233,11 +233,11 @@
   },
   {
     "id": "api.channel.delete_channel.failed_post.error",
-    "translation": "Échec de l'envoi du message archivé %v"
+    "translation": "Impossible d'envoyer le message archivé %v"
   },
   {
     "id": "api.channel.delete_channel.failed_send.app_error",
-    "translation": "Échec de l'envoi du message archivé"
+    "translation": "Impossible d'envoyer le message archivé"
   },
   {
     "id": "api.channel.delete_channel.incoming_webhook.error",
@@ -309,7 +309,7 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
-    "translation": "Échec du chargement de l'utilisateur lors de l'enregistrement de la mise à jour de l'entête du canal %v"
+    "translation": "Impossible de récupérer l'utilisateur lors de l'enregistrement d'un nouveau message de canal %v"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
@@ -321,7 +321,7 @@
   },
   {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
-    "translation": "Échec de l'envoi du message joindre/quitter %v"
+    "translation": "Impossible d'envoyer le message joindre/quitter %v"
   },
   {
     "id": "api.channel.remove_member.permissions.app_error",
@@ -337,7 +337,7 @@
   },
   {
     "id": "api.channel.remove_member.user.app_error",
-    "translation": "Impossible de trouver l'utilisateur à ajouter"
+    "translation": "Impossible de trouver l'utilisateur à supprimer"
   },
   {
     "id": "api.channel.remove_user_from_channel.deleted.app_error",
@@ -461,7 +461,7 @@
   },
   {
     "id": "api.command_echo.create.app_error",
-    "translation": "Impossible de créer /echo post, err=%v"
+    "translation": "Impossible de créer le message /echo, err=%v"
   },
   {
     "id": "api.command_echo.delay.app_error",
@@ -629,11 +629,11 @@
   },
   {
     "id": "api.command_shortcuts.msgs",
-    "translation": "#### Messages\n\nALT+[clic sur un message]: Définit un message comme le plus vieux message non lu du canal courant\nESC: Marque tous mes messages du canal courant comme lus\nCTRL+HAUT (dans un champ d'édition vide): Affiche à nouveau le message ou la commande slash précédents que vous avez saisis\nCTRL+BAS (dans un champ d'édition vide): Affiche à nouveau le message ou la commande slash suivants que vous avez saisis\nHAUT (dans un champ d'édition vide): Édite le dernier message que vous avez saisi dans le canal courant\n@[caractère]+TAB: Complète automatiquement le @nom d'utilisateur commençant par [caractère]\n:[caractère]+TAB: Complète automatiquement l'émoticône commençant par [caractère]\n\n"
+    "translation": "#### Messages\n\nESC : Marque tous les messages du canal actuel comme lus\nCTRL+HAUT (dans un champ de saisie vide) : Affiche le message précédent ou la commande slash précédemment saisis\nCTRL+BAS (dans un champ de saisie vide): Affiche le message suivant ou la commande slash que vous avez précédemment saisis\nHAUT (dans un champ de saisie vide): Édite votre dernier message du canal actuel\n@[caractère]+TAB: Complète automatiquement le nom d'@utilisateur commençant par [caractère]\n#[caractère]+TAB: Complète automatiquement le nom de canal commençant par [caractère]\n:[caractère]+TAB: Complète automatiquement l'émoticône commençant par [caractère]\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs_mac",
-    "translation": "#### Messages\n\nALT+[clic sur un message]: Définit un message comme le plus vieux message non lu du canal courant\nESC: Marque tous mes messages du canal courant comme lus\nCMD+HAUT (dans un champ d'édition vide): Affiche à nouveau le message ou la commande slash précédents que vous avez saisis\nCMD+BAS (dans un champ d'édition vide): Affiche à nouveau le message ou la commande slash suivants que vous avez saisis\nHAUT (dans un champ d'édition vide): Édite le dernier message que vous avez saisi dans le canal courant\n@[caractère]+TAB: Complète automatiquement le @nom d'utilisateur commençant par [caractère]\n:[caractère]+TAB: Complète automatiquement l'émoticône commençant par [caractère]\n\n"
+    "translation": "#### Messages\n\nESC : Marque tous les messages du canal actuel comme lus\nCTRL+HAUT (dans un champ de saisie vide) : Affiche le message précédent ou la commande slash précédemment saisis\nCTRL+BAS (dans un champ de saisie vide): Affiche le message suivant ou la commande slash que vous avez précédemment saisis\nHAUT (dans un champ de saisie vide): Édite votre dernier message du canal actuel\n@[caractère]+TAB: Complète automatiquement le nom d'@utilisateur commençant par [caractère]\n#[caractère]+TAB: Complète automatiquement le nom de canal commençant par [caractère]\n:[caractère]+TAB: Complète automatiquement l'émoticône commençant par [caractère]\n\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -677,7 +677,7 @@
   },
   {
     "id": "api.context.last_activity_at.error",
-    "translation": "Échec de la mise à jour de LastActivityAt pour user_id=%v et session_id=%v, err=%v"
+    "translation": "Impossible de mettre à jour le LastActivityAt de user_id=%v et session_id=%v, err=%v"
   },
   {
     "id": "api.context.log.error",
@@ -752,7 +752,7 @@
   },
   {
     "id": "api.email_batching.send_batched_email_notification.send.app_error",
-    "translation": "Echec de l'envoi du courriel groupé à %v: %v"
+    "translation": "Impossible d'envoyer le courriel groupé à %v: %v"
   },
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
@@ -891,11 +891,11 @@
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.get_file_infos_again.warn",
-    "translation": "Unable to get FileInfos for post after migratio, post_id=%v, err=%v"
+    "translation": "Impossible de récupérer le FileInfos du message après la migration, post_id=%v, err=%v"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.get_post_again.warn",
-    "translation": "Impossible de récupérer les équipes lorsque le message est en cours de migration vers FileInfos, post_id=%v, err=%v"
+    "translation": "Impossible de récupérer le message lors de la migration vers FileInfos, post_id=%v, err=%v"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.info.app_error",
@@ -903,7 +903,7 @@
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.migrating_post.debug",
-    "translation": "Migrating post to use FileInfos, post_id=%v, err=%v"
+    "translation": "Migration du message vers FileInfos en cours, post_id=%v, err=%v"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.mismatched_filename.warn",
@@ -915,11 +915,11 @@
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.not_migrating_post.debug",
-    "translation": "Post already migrated to use FileInfos, post_id=%v, err=%v"
+    "translation": "Le message a déjà migré vers FileInfos, post_id=%v, err=%v"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.save_file_info.warn",
-    "translation": "Impossible de trouver le fichier lorsque le message est en cours de migration vers FileInfos, post_id=%v, channel_id=%v, path=%v, err=%v"
+    "translation": "Impossible de sauvegarder le message lorsque celui-ci est en cours de migration vers FileInfos, post_id=%v, file_id=%v, path=%v, err=%v"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.save_post.warn",
@@ -1285,7 +1285,7 @@
   },
   {
     "id": "api.post.get_out_of_channel_mentions.regex.error",
-    "translation": "Échec de la compilation @mention regex user_id=%v, err=%v"
+    "translation": "Impossible de compiler la regex de @mention user_id=%v, err=%v"
   },
   {
     "id": "api.post.get_post.permissions.app_error",
@@ -1297,11 +1297,11 @@
   },
   {
     "id": "api.post.handle_post_events_and_forget.members.error",
-    "translation": "Échec de la récupération des membres du canal channel_id=%v err=%v"
+    "translation": "Impossible de récupérer les membres du canal channel_id=%v err=%v"
   },
   {
     "id": "api.post.handle_post_events_and_forget.profiles.error",
-    "translation": "Échec de la récupération des profils utilisateurs team_id=%v, err=%v"
+    "translation": "Impossible de récupérer les profils utilisateurs team_id=%v, err=%v"
   },
   {
     "id": "api.post.handle_post_events_and_forget.team.error",
@@ -1313,7 +1313,7 @@
   },
   {
     "id": "api.post.handle_webhook_events_and_forget.create_post.error",
-    "translation": "Échec de la création du message de réponse , err=%v"
+    "translation": "Impossible de créer le message de réponse, err=%v"
   },
   {
     "id": "api.post.handle_webhook_events_and_forget.event_post.error",
@@ -1493,11 +1493,11 @@
   },
   {
     "id": "api.server.start_server.rate_limiting_memory_store",
-    "translation": "Unable to initialize rate limiting memory store. Check MemoryStoreSize config setting."
+    "translation": "Impossible d'initialiser la limite d'utilisation de mémoire. Veuillez vérifier la valeur MemoryStoreSize dans les paramètres de configuration."
   },
   {
     "id": "api.server.start_server.rate_limiting_rate_limiter",
-    "translation": "Impossible d'initialiser la limite du taux."
+    "translation": "Impossible d'initialiser le taux de limite d'appel sur l'API."
   },
   {
     "id": "api.server.start_server.starting.critical",
@@ -1520,6 +1520,14 @@
     "translation": "Arrêt du serveur..."
   },
   {
+    "id": "api.slackimport.slack_add_bot_user.email_pwd",
+    "translation": "Importation de l'utilisateur pour le Bot Slack/messages d'intégration : adresse email, mot de passe : {{.Email}}, {{.Password}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_bot_user.unable_import",
+    "translation": "Impossible d'importer l'utilisateur pour le Bot Slack/messages d'intégration : {{.Username}}\r\n"
+  },
+  {
     "id": "api.slackimport.slack_add_channels.added",
     "translation": "\r\n Canaux ajoutés \r\n"
   },
@@ -1533,7 +1541,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.import_failed.warn",
-    "translation": "Slack Importer: Failed to import channel: %s"
+    "translation": "Importateur Slack : Impossible d'importer le canal: %s"
   },
   {
     "id": "api.slackimport.slack_add_channels.merge",
@@ -1548,12 +1556,20 @@
     "translation": "Les messages du bot Slack ne sont pas encore importés"
   },
   {
+    "id": "api.slackimport.slack_add_posts.bot_user_no_exists.warn",
+    "translation": "Importateur Slack : Impossible d'importer le message du bot car un utilisateur pour le bot n'existe pas"
+  },
+  {
     "id": "api.slackimport.slack_add_posts.msg_no_comment.debug",
-    "translation": "File comment undefined"
+    "translation": "Commentaire de fichier non défini"
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_usr.debug",
     "translation": "Message sans utilisateur"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.no_bot_id.warn",
+    "translation": "Importateur Slack : Impossible d'importer le message du bot car le champ BodId est absent"
   },
   {
     "id": "api.slackimport.slack_add_posts.unsupported.warn",
@@ -1561,19 +1577,19 @@
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_not_found.warn",
-    "translation": "No file found in Slack export for file upload message with file ID {{.FileId}}"
+    "translation": "Aucun fichier trouvé dans l'export du message Slack contenant le fichier envoyé portant l'ID {{.FileId}}"
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_not_in_json.warn",
-    "translation": "Cannot import file for upload post with no \"file\" section present in export."
+    "translation": "Impossible d'importer le fichier car l'exportation de Slack ne comporte pas de section 'file'"
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_open_failed.warn",
-    "translation": "Could not open the upload file with ID {{.FileId}} in the export archive with error: {{.Error}}"
+    "translation": "Impossible d'ouvrir le fichier portant l'ID {{.FileId}} provenant de l'exportation de Slack car l'erreur suivante s'est produite : {{.Error}}"
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_upload_failed.warn",
-    "translation": "Uploading the file for upload message with file ID {{.FileId}} failed with error: {{.Error}}"
+    "translation": "L'envoi du message comprenant le fichier ayant l'ID {{.FileId}} a échoué avec l'erreur : {{.Error}}"
   },
   {
     "id": "api.slackimport.slack_add_posts.user_no_exists.debug",
@@ -1610,6 +1626,10 @@
   {
     "id": "api.slackimport.slack_convert_user_mentions.compile_regexp_failed.warn",
     "translation": "Échec de la compilation de la @mention correspondant à l'expression régulière pour l'utilisateur Slack {{.UserID}} {{.Username}}"
+  },
+  {
+    "id": "api.slackimport.slack_deactivate_bot_user.failed_to_deactivate",
+    "translation": "Importateur Slack : Impossible de désactiver l'utilisateur dédié au bot"
   },
   {
     "id": "api.slackimport.slack_import.log",
@@ -1650,6 +1670,22 @@
   {
     "id": "api.slackimport.slack_parse_posts.error",
     "translation": "Erreur lors de la lecture de certains messages slack. L'importation peut toutefois quand même fonctionner."
+  },
+  {
+    "id": "api.slackimport.slack_sanitise_channel_properties.display_name_too_long.warn",
+    "translation": "Importateur Slack : Le nom d'affichage du canal {{.ChannelName}} est trop long. Il sera tronqué lors de l'import."
+  },
+  {
+    "id": "api.slackimport.slack_sanitise_channel_properties.header_too_long.warn",
+    "translation": "Importateur Slack : L'entête du canal {{.ChannelName}} est trop long. Il sera tronqué lors de l'import."
+  },
+  {
+    "id": "api.slackimport.slack_sanitise_channel_properties.name_too_long.warn",
+    "translation": "Importateur Slack : Le nom du canal {{.ChannelName}} est trop long. Il sera tronqué lors de l'import."
+  },
+  {
+    "id": "api.slackimport.slack_sanitise_channel_properties.purpose_too_long.warn",
+    "translation": "Importateur Slack : La description du canal {{.ChannelName}} est trop longue. Elle sera tronquée lors de l'import."
   },
   {
     "id": "api.status.init.debug",
@@ -2409,11 +2445,11 @@
   },
   {
     "id": "api.web_hub.start.starting.debug",
-    "translation": "Starting %v websocket hubs"
+    "translation": "Lancement de %v concentrateurs websocket"
   },
   {
     "id": "api.web_hub.start.stopping.debug",
-    "translation": "stopping websocket hub connections"
+    "translation": "Arrêt des connexions des concentrateurs websocket"
   },
   {
     "id": "api.web_socket.connect.error",
@@ -2508,12 +2544,16 @@
     "translation": "Droits insuffisants pour regénérer le jeton du webhook sortant"
   },
   {
+    "id": "api.webrtc.disabled.app_error",
+    "translation": "WebRTC n'est pas activé sur ce serveur."
+  },
+  {
     "id": "api.webrtc.init.debug",
     "translation": "Initialisation des routes de l'api WebRTC"
   },
   {
-    "id": "api.webrtc.not_available.app_error",
-    "translation": "WebRTC n'est pas disponible sur ce serveur."
+    "id": "api.webrtc.register_token.app_error",
+    "translation": "Une erreur s'est produite lors de l'enregistrement du jeton WebRTC"
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
@@ -2802,18 +2842,6 @@
   {
     "id": "ent.saml.update_saml_user.unable_error",
     "translation": "Impossible de mettre à jour l'utilisateur SAML. Connexion autorisée malgré tout. err=%v"
-  },
-  {
-    "id": "ent.webrtc.disabled.app_error",
-    "translation": "WebRTC n'est pas activé sur ce serveur."
-  },
-  {
-    "id": "ent.webrtc.license_disable.app_error",
-    "translation": "Votre licence ne supporte pas l'utilisation de Mattermost WebRTC"
-  },
-  {
-    "id": "ent.webrtc.register_token.app_error",
-    "translation": "Une erreur s'est produite lors de l'enregistrement du jeton WebRTC"
   },
   {
     "id": "error.generic.link_message",
@@ -3269,7 +3297,7 @@
   },
   {
     "id": "model.config.is_valid.max_channels.app_error",
-    "translation": "Nombre maximum d'utilisateurs par équipe invalide dans les paramètres d'équipes. Doit être un entier positif."
+    "translation": "Le nombre maximum de canaux par équipe défini dans les paramètres d'équipe est invalide. Doit être un entier positif."
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
@@ -3629,7 +3657,7 @@
   },
   {
     "id": "model.team.is_valid.characters.app_error",
-    "translation": "Le nom doit être composé d'au moins 2 caractères alphanumériques en minuscules."
+    "translation": "Le nom doit être composé d'au moins 2 caractères alphanumériques minuscules"
   },
   {
     "id": "model.team.is_valid.company.app_error",
@@ -4645,7 +4673,7 @@
   },
   {
     "id": "store.sql_team.get_member_count.app_error",
-    "translation": "Nous ne pouvons pas obtenir les membres de l'équipe"
+    "translation": "Impossible de récupérer le nombre de membres de l'équipe"
   },
   {
     "id": "store.sql_team.get_members.app_error",
@@ -4653,7 +4681,7 @@
   },
   {
     "id": "store.sql_team.get_members_by_ids.app_error",
-    "translation": "Nous ne pouvons pas obtenir les membres de l'équipe"
+    "translation": "Impossible de récupérer les membres de l'équipe"
   },
   {
     "id": "store.sql_team.get_teams_for_email.app_error",
@@ -4745,7 +4773,7 @@
   },
   {
     "id": "store.sql_user.get_recently_active_users.app_error",
-    "translation": "We encountered an error while finding the recently active users"
+    "translation": "Une erreur s'est produite lors de la recherche des utilisateurs récemment actifs"
   },
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",
@@ -4801,7 +4829,7 @@
   },
   {
     "id": "store.sql_user.save.member_count.app_error",
-    "translation": "Échec lors de l'obtention du nombre de membres de l'équipe courante"
+    "translation": "Impossible de récupérer le nombre de membres de l'équipe actuelle"
   },
   {
     "id": "store.sql_user.save.username_exists.app_error",
