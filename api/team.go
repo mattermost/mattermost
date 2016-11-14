@@ -69,8 +69,7 @@ func signupTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	subjectPage := utils.NewHTMLTemplate("signup_team_subject", c.Locale)
-	subjectPage.Props["Subject"] = c.T("api.templates.signup_team_subject",
+	subject := c.T("api.templates.signup_team_subject",
 		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"]})
 
 	bodyPage := utils.NewHTMLTemplate("signup_team_body", c.Locale)
@@ -89,7 +88,7 @@ func signupTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_team_complete/?d=%s&h=%s", c.GetSiteURL(), url.QueryEscape(data), url.QueryEscape(hash))
 
-	if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render()); err != nil {
+	if err := utils.SendMail(email, subject, bodyPage.Render()); err != nil {
 		c.Err = err
 		return
 	}
@@ -717,8 +716,7 @@ func InviteMembers(c *Context, team *model.Team, user *model.User, invites []str
 
 			senderRole := c.T("api.team.invite_members.member")
 
-			subjectPage := utils.NewHTMLTemplate("invite_subject", c.Locale)
-			subjectPage.Props["Subject"] = c.T("api.templates.invite_subject",
+			subject := c.T("api.templates.invite_subject",
 				map[string]interface{}{"SenderName": sender, "TeamDisplayName": team.DisplayName, "SiteName": utils.ClientCfg["SiteName"]})
 
 			bodyPage := utils.NewHTMLTemplate("invite_body", c.Locale)
@@ -744,7 +742,7 @@ func InviteMembers(c *Context, team *model.Team, user *model.User, invites []str
 				l4g.Info(utils.T("api.team.invite_members.sending.info"), invite, bodyPage.Props["Link"])
 			}
 
-			if err := utils.SendMail(invite, subjectPage.Render(), bodyPage.Render()); err != nil {
+			if err := utils.SendMail(invite, subject, bodyPage.Render()); err != nil {
 				l4g.Error(utils.T("api.team.invite_members.send.error"), err)
 			}
 		}
