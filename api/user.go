@@ -751,6 +751,10 @@ func RevokeSessionById(c *Context, sessionId string) {
 		}
 
 		RevokeWebrtcToken(session.Id)
+
+		if einterfaces.GetClusterInterface() != nil {
+			einterfaces.GetClusterInterface().RemoveAllSessionsForUserId(session.UserId)
+		}
 	}
 }
 
@@ -767,7 +771,6 @@ func RevokeAllSession(c *Context, userId string) {
 			if session.IsOAuth {
 				RevokeAccessToken(session.Token)
 			} else {
-				sessionCache.Remove(session.Token)
 				if result := <-Srv.Store.Session().Remove(session.Id); result.Err != nil {
 					c.Err = result.Err
 					return
@@ -777,6 +780,8 @@ func RevokeAllSession(c *Context, userId string) {
 			RevokeWebrtcToken(session.Id)
 		}
 	}
+
+	RemoveAllSessionsForUserId(userId)
 }
 
 // UGH...
@@ -791,7 +796,6 @@ func RevokeAllSessionsNoContext(userId string) *model.AppError {
 			if session.IsOAuth {
 				RevokeAccessToken(session.Token)
 			} else {
-				sessionCache.Remove(session.Token)
 				if result := <-Srv.Store.Session().Remove(session.Id); result.Err != nil {
 					return result.Err
 				}
@@ -800,6 +804,9 @@ func RevokeAllSessionsNoContext(userId string) *model.AppError {
 			RevokeWebrtcToken(session.Id)
 		}
 	}
+
+	RemoveAllSessionsForUserId(userId)
+
 	return nil
 }
 
@@ -1589,6 +1596,10 @@ func updateActive(c *Context, w http.ResponseWriter, r *http.Request) {
 	if ruser, err := UpdateActive(user, active); err != nil {
 		c.Err = err
 	} else {
+		if !active {
+			SetStatusOffline(ruser.Id, false)
+		}
+
 		c.LogAuditWithUserId(ruser.Id, fmt.Sprintf("active=%v", active))
 		w.Write([]byte(ruser.ToJson()))
 	}
