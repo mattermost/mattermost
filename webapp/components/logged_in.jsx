@@ -14,8 +14,6 @@ import {loadEmoji} from 'actions/emoji_actions.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
-import {browserHistory} from 'react-router/es6';
-
 const BACKSPACE_CHAR = 8;
 
 import $ from 'jquery';
@@ -41,7 +39,7 @@ export default class LoggedIn extends React.Component {
                 }
 
                 console.log('detected logout from a different tab'); //eslint-disable-line no-console
-                browserHistory.push('/');
+                GlobalActions.emitUserLoggedOutEvent('/', false);
             }
 
             if (e.originalEvent.key === '__login__' && e.originalEvent.storageArea === localStorage && e.originalEvent.newValue) {

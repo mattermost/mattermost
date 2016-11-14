@@ -461,21 +461,23 @@ export function emitRemoteUserTypingEvent(channelId, userId, postParentId) {
     });
 }
 
-export function emitUserLoggedOutEvent(redirectTo) {
-    const rURL = (redirectTo && typeof redirectTo === 'string') ? redirectTo : '/';
+export function emitUserLoggedOutEvent(redirectTo = '/', shouldSignalLogout = true) {
     Client.logout(
         () => {
-            BrowserStore.signalLogout();
+            if (shouldSignalLogout) {
+                BrowserStore.signalLogout();
+            }
+
             BrowserStore.clear();
             ErrorStore.clearLastError();
             PreferenceStore.clear();
             UserStore.clear();
             TeamStore.clear();
             newLocalizationSelected(global.window.mm_config.DefaultClientLocale);
-            browserHistory.push(rURL);
+            browserHistory.push(redirectTo);
         },
         () => {
-            browserHistory.push(rURL);
+            browserHistory.push(redirectTo);
         }
     );
 }
