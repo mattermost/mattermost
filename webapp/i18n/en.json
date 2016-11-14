@@ -1109,7 +1109,7 @@
   "create_post.shortcutsNotSupported": "Keyboard shortcuts are not supported on your device.",
   "create_post.tutorialTip": "<h4>Sending Messages</h4><p>Type here to write a message and press <strong>ENTER</strong> to post it.</p><p>Click the <strong>Attachment</strong> button to upload an image or a file.</p>",
   "create_post.write": "Write a message...",
-  "create_team.agreement": "By proceeding to create your account and use {siteName}, you agree to our <a href='/static/help/terms.html'>Terms of Service</a> and <a href='/static/help/privacy.html'>Privacy Policy</a>. If you do not agree, you cannot use {siteName}.",
+  "create_team.agreement": "By proceeding to create your account and use {siteName}, you agree to our <a href={TermsOfServiceLink}>Terms of Service</a> and <a href={PrivacyPolicyLink}>Privacy Policy</a>. If you do not agree, you cannot use {siteName}.",
   "create_team.display_name.back": "Back to previous step",
   "create_team.display_name.charLength": "Name must be 2 or more characters up to a maximum of 15",
   "create_team.display_name.nameHelp": "Name your team in any language. Your team name shows in menus and headings.",

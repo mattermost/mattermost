@@ -429,9 +429,11 @@ export default class SignupEmail extends React.Component {
                 <p>
                     <FormattedHTMLMessage
                         id='create_team.agreement'
-                        defaultMessage="By proceeding to create your account and use {siteName}, you agree to our <a href='/static/help/terms.html'>Terms of Service</a> and <a href='/static/help/privacy.html'>Privacy Policy</a>. If you do not agree, you cannot use {siteName}."
+                        defaultMessage="By proceeding to create your account and use {siteName}, you agree to our <a href='{TermsOfServiceLink}'>Terms of Service</a> and <a href='{PrivacyPolicyLink}'>Privacy Policy</a>. If you do not agree, you cannot use {siteName}."
                         values={{
-                            siteName: global.window.mm_config.SiteName
+                            siteName: global.window.mm_config.SiteName,
+                            TermsOfServiceLink: global.window.mm_config.TermsOfServiceLink,
+                            PrivacyPolicyLink: global.window.mm_config.PrivacyPolicyLink
                         }}
                     />
                 </p>
