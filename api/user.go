@@ -1711,7 +1711,6 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var user *model.User
 	if result := <-Srv.Store.User().GetByEmail(email); result.Err != nil {
-		props["email"] = ""
 		w.Write([]byte(model.MapToJson(props)))
 		return
 	} else {
