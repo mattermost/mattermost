@@ -206,7 +206,12 @@ export default class Client {
         }
 
         if (successCallback) {
-            successCallback(res.body, res);
+            if (res.body) {
+                successCallback(res.body, res);
+            } else {
+                console.error('Missing response body for ' + methodName); // eslint-disable-line no-console
+                successCallback('', res);
+            }
         }
     }
 
@@ -1952,6 +1957,11 @@ export default class Client {
             if (err) {
                 return error(err);
             }
+
+            if (!res.body) {
+                console.error('Missing response body for samlCertificateStatus'); // eslint-disable-line no-console
+            }
+
             return success(res.body);
         });
     }
