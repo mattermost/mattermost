@@ -440,6 +440,14 @@
     "translation": "Inappropriate permissions to regenerate command token"
   },
   {
+    "id": "api.command.team_mismatch.app_error",
+    "translation": "Cannot update commands across teams"
+  },
+  {
+    "id": "api.command.update.app_error",
+    "translation": "Inappropriate permissions to update command"
+  },
+  {
     "id": "api.command_away.desc",
     "translation": "Set your status away"
   },

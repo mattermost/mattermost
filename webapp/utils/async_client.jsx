@@ -1348,6 +1348,29 @@ export function addCommand(command, success, error) {
     );
 }
 
+export function editCommand(command, success, error) {
+    Client.editCommand(
+        command,
+        (data) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_COMMAND,
+                command: data
+            });
+
+            if (success) {
+                success(data);
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            } else {
+                dispatchError(err, 'editCommand');
+            }
+        }
+    );
+}
+
 export function deleteCommand(id) {
     Client.deleteCommand(
         id,

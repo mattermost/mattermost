@@ -1457,6 +1457,18 @@ export default class Client {
         this.track('api', 'api_integrations_created');
     }
 
+    editCommand(command, success, error) {
+        request.
+            post(`${this.getCommandsRoute()}/update`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(command).
+            end(this.handleResponse.bind(this, 'editCommand', success, error));
+
+        this.track('api', 'api_integrations_created');
+    }
+
     deleteCommand(commandId, success, error) {
         request.
             post(`${this.getCommandsRoute()}/delete`).

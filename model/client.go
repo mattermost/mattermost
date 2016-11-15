@@ -846,6 +846,16 @@ func (c *Client) CreateCommand(cmd *Command) (*Result, *AppError) {
 	}
 }
 
+func (c *Client) UpdateCommand(cmd *Command) (*Result, *AppError) {
+	if r, err := c.DoApiPost(c.GetTeamRoute()+"/commands/update", cmd.ToJson()); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), CommandFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) RegenCommandToken(data map[string]string) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/commands/regen_token", MapToJson(data)); err != nil {
 		return nil, err
