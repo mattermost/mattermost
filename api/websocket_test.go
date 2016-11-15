@@ -45,8 +45,6 @@ func TestWebSocketAuthentication(t *testing.T) {
 		t.Fatal("should have closed")
 	}
 
-	WebSocketClient.Close()
-
 	if conn, _, err := websocket.DefaultDialer.Dial(WebSocketClient.ApiUrl+"/users/websocket", nil); err != nil {
 		t.Fatal("should have connected")
 	} else {
