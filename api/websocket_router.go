@@ -63,7 +63,7 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 		return
 	}
 
-	if conn.SessionToken == "" {
+	if !conn.isAuthenticated() {
 		err := model.NewLocAppError("ServeWebSocket", "api.web_socket_router.not_authenticated.app_error", nil, "")
 		wr.ReturnWebSocketError(conn, r, err)
 		return

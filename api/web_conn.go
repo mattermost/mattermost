@@ -140,7 +140,16 @@ func (webCon *WebConn) InvalidateCache() {
 }
 
 func (webCon *WebConn) isAuthenticated() bool {
-	return webCon.SessionToken != ""
+	if webCon.SessionToken == "" {
+		return false
+	}
+
+	session := GetSession(webCon.SessionToken)
+	if session == nil || session.IsExpired() {
+		return false
+	}
+
+	return true
 }
 
 func (webCon *WebConn) SendHello() {
