@@ -345,7 +345,7 @@ function autolinkHashtags(text, tokens) {
         return prefix + alias;
     }
 
-    return output.replace(new RegExp(`(^|\\W)(#[a-zäöüÄÖÜß${cjkRanges}][a-z0-9äöüÄÖÜß.\\-_${cjkRanges}]*[a-zäöüÄÖÜß${cjkRanges}])`, 'gi'), replaceHashtagWithToken);
+    return output.replace(new RegExp(`(^|\\W)(#[a-zäöüÄÖÜß${cjkRanges}][a-z0-9äöüÄÖÜß.\\-_${cjkRanges}]*[a-z0-9äöüÄÖÜß${cjkRanges}])`, 'gi'), replaceHashtagWithToken);
 }
 
 const puncStart = XRegExp.cache('^[^\\pL\\d\\s#]+');
