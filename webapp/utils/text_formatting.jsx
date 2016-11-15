@@ -12,6 +12,7 @@ import XRegExp from 'xregexp';
 // pattern to detect the existance of a Chinese, Japanese, or Korean character in a string
 // http://stackoverflow.com/questions/15033196/using-javascript-to-check-whether-a-string-contains-japanese-characters-includi
 const cjkPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf\uac00-\ud7a3]/;
+const cjkRanges = '\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf\uac00-\ud7a3';
 
 // Performs formatting of user posts including highlighting mentions and search terms and converting urls, hashtags,
 // @mentions and ~channels to links by taking a user's message and returning a string of formatted html. Also takes
@@ -328,7 +329,9 @@ function autolinkHashtags(text, tokens) {
         const index = tokens.size;
         const alias = `MM_HASHTAG${index}`;
 
-        if (text.length < Constants.MIN_HASHTAG_LINK_LENGTH + 1) {
+        const minHashtagLength = cjkPattern.test(text) ? Constants.MIN_CJK_HASHTAG_LINK_LENGTH : Constants.MIN_HASHTAG_LINK_LENGTH;
+
+        if (text.length < minHashtagLength + 1) {
             // too short to be a hashtag
             return fullMatch;
         }
@@ -342,7 +345,7 @@ function autolinkHashtags(text, tokens) {
         return prefix + alias;
     }
 
-    return output.replace(/(^|\W)(#[a-zA-ZäöüÄÖÜß][a-zA-Z0-9äöüÄÖÜß.\-_]*)\b/g, replaceHashtagWithToken);
+    return output.replace(new RegExp(`(^|\\W)(#[a-zäöüÄÖÜß${cjkRanges}][a-z0-9äöüÄÖÜß.\\-_${cjkRanges}]*[a-zäöüÄÖÜß${cjkRanges}])`, 'gi'), replaceHashtagWithToken);
 }
 
 const puncStart = XRegExp.cache('^[^\\pL\\d\\s#]+');
