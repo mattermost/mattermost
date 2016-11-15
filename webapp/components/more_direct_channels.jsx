@@ -105,7 +105,7 @@ export default class MoreDirectChannels extends React.Component {
 
         let users;
         if (this.state.listType === 'any') {
-            users = UserStore.getProfileList();
+            users = UserStore.getProfileList(true);
         } else {
             users = UserStore.getProfileListInTeam(TeamStore.getCurrentId(), true, true);
         }
@@ -119,7 +119,7 @@ export default class MoreDirectChannels extends React.Component {
         const listType = e.target.value;
         let users;
         if (listType === 'any') {
-            users = UserStore.getProfileList();
+            users = UserStore.getProfileList(true);
         } else {
             users = UserStore.getProfileListInTeam(TeamStore.getCurrentId(), true, true);
         }
