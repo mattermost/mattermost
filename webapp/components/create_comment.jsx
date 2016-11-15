@@ -36,6 +36,8 @@ export default class CreateComment extends React.Component {
         this.lastTime = 0;
 
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.handleSubmitPost = this.handleSubmitPost.bind(this);
+        this.handleSubmitReaction = this.handleSubmitReaction.bind(this);
         this.commentMsgKeyPress = this.commentMsgKeyPress.bind(this);
         this.handleChange = this.handleChange.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
@@ -102,38 +104,9 @@ export default class CreateComment extends React.Component {
             return;
         }
 
+        const message = this.state.message;
 
-        const userId = UserStore.getCurrentId();
-
-        const post = {};
-        post.file_ids = [];
-        post.message = this.state.message;
-
-        if (post.message.trim().length === 0 && this.state.previews.length === 0) {
-            return;
-        }
-
-        const isReaction = (/^(\+|\-):([^:\s]+):\s*$/).exec(post.message);
-        if (isReaction && EmojiStore.has(isReaction[2])) {
-            const action = isReaction[1];
-
-            const emojiName = isReaction[2];
-            const postId = this.props.latestPostId;
-
-            if (action === '+') {
-                PostActions.addReaction(this.props.channelId, postId, emojiName);
-            } else if (action === '-') {
-                PostActions.removeReaction(this.props.channelId, postId, emojiName);
-            }
-
-            PostStore.storeCurrentDraft(null);
-            PostStore.storeCommentDraft(this.props.rootId, null);
-            this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
-
-            return;
-        }
-
-        if (post.message.length > Constants.CHARACTER_LIMIT) {
+        if (message.length > Constants.CHARACTER_LIMIT) {
             this.setState({
                 postError: (
                     <FormattedMessage
@@ -146,15 +119,43 @@ export default class CreateComment extends React.Component {
             return;
         }
 
-        MessageHistoryStore.storeMessageInHistory(this.state.message);
+        MessageHistoryStore.storeMessageInHistory(message);
 
+        if (message.trim().length === 0 && this.state.previews.length === 0) {
+            return;
+        }
+
+        const isReaction = (/^(\+|\-):([^:\s]+):\s*$/).exec(message);
+        if (isReaction && EmojiStore.has(isReaction[2])) {
+            this.handleSubmitReaction(isReaction);
+        } else {
+            this.handleSubmitPost(message);
+        }
+
+        this.setState({
+            message: '',
+            submitting: false,
+            postError: null,
+            fileInfos: [],
+            serverError: null
+        });
+
+        const fasterThanHumanWillClick = 150;
+        const forceFocus = (Date.now() - this.state.lastBlurAt < fasterThanHumanWillClick);
+        this.focusTextbox(forceFocus);
+    }
+
+    handleSubmitPost(message) {
         const userId = UserStore.getCurrentId();
+        const time = Utils.getTimestamp();
 
+        const post = {};
+        post.file_ids = [];
+        post.message = message;
         post.channel_id = this.props.channelId;
         post.root_id = this.props.rootId;
         post.parent_id = this.props.rootId;
         post.file_ids = this.state.fileInfos.map((info) => info.id);
-        const time = Utils.getTimestamp();
         post.pending_post_id = `${userId}:${time}`;
         post.user_id = userId;
         post.create_at = time;
@@ -185,18 +186,21 @@ export default class CreateComment extends React.Component {
                 });
             }
         );
+    }
 
-        this.setState({
-            message: '',
-            submitting: false,
-            postError: null,
-            fileInfos: [],
-            serverError: null
-        });
+    handleSubmitReaction(isReaction) {
+        const action = isReaction[1];
 
-        const fasterThanHumanWillClick = 150;
-        const forceFocus = (Date.now() - this.state.lastBlurAt < fasterThanHumanWillClick);
-        this.focusTextbox(forceFocus);
+        const emojiName = isReaction[2];
+        const postId = this.props.latestPostId;
+
+        if (action === '+') {
+            PostActions.addReaction(this.props.channelId, postId, emojiName);
+        } else if (action === '-') {
+            PostActions.removeReaction(this.props.channelId, postId, emojiName);
+        }
+
+        PostStore.storeCommentDraft(this.props.rootId, null);
     }
 
     commentMsgKeyPress(e) {

@@ -131,22 +131,12 @@ export default class CreatePost extends React.Component {
                 }
             );
         } else if (isReaction && EmojiStore.has(isReaction[2])) {
-            const action = isReaction[1];
-
-            const emojiName = isReaction[2];
-            const postId = PostStore.getLatestPost(this.state.channelId).id;
-
-            if (action === '+') {
-                PostActions.addReaction(this.state.channelId, postId, emojiName);
-            } else if (action === '-') {
-                PostActions.removeReaction(this.state.channelId, postId, emojiName);
-            }
-
-            PostStore.storeCurrentDraft(null);
-            this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
+            this.sendReaction(isReaction);
         } else {
             this.sendMessage(post);
         }
+
+        this.setState({message: '', submitting: false, postError: null, fileInfos: [], serverError: null});
 
         const fasterThanHumanWillClick = 150;
         const forceFocus = (Date.now() - this.state.lastBlurAt < fasterThanHumanWillClick);
@@ -165,7 +155,6 @@ export default class CreatePost extends React.Component {
         post.parent_id = this.state.parentId;
 
         GlobalActions.emitUserPostedEvent(post);
-        this.setState({message: '', submitting: false, postError: null, fileInfos: [], serverError: null});
 
         Client.createPost(post,
             (data) => {
@@ -192,6 +181,21 @@ export default class CreatePost extends React.Component {
                 });
             }
         );
+    }
+
+    sendReaction(isReaction) {
+        const action = isReaction[1];
+
+        const emojiName = isReaction[2];
+        const postId = PostStore.getLatestPost(this.state.channelId).id;
+
+        if (action === '+') {
+            PostActions.addReaction(this.state.channelId, postId, emojiName);
+        } else if (action === '-') {
+            PostActions.removeReaction(this.state.channelId, postId, emojiName);
+        }
+
+        PostStore.storeCurrentDraft(null);
     }
 
     focusTextbox(keepFocus = false) {

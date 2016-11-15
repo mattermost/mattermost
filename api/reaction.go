@@ -67,7 +67,7 @@ func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = result.Err
 		return
 	} else {
-		go sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_ADDED, c.TeamId, channelId, reaction, postHadReactions)
+		go sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_ADDED, channelId, reaction, postHadReactions)
 
 		reaction := result.Data.(*model.Reaction)
 
@@ -123,16 +123,16 @@ func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = result.Err
 		return
 	} else {
-		go sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_REMOVED, c.TeamId, channelId, reaction, postHadReactions)
+		go sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_REMOVED, channelId, reaction, postHadReactions)
 
 		ReturnStatusOK(w)
 	}
 }
 
-func sendReactionEvent(event string, teamId string, channelId string, reaction *model.Reaction, postHadReactions bool) {
+func sendReactionEvent(event string, channelId string, reaction *model.Reaction, postHadReactions bool) {
 	// send out that a reaction has been added/removed
 	go func() {
-		message := model.NewWebSocketEvent(teamId, channelId, reaction.UserId, event)
+		message := model.NewWebSocketEvent(event, "", channelId, "", nil)
 		message.Add("reaction", reaction.ToJson())
 
 		Publish(message)
@@ -149,7 +149,7 @@ func sendReactionEvent(event string, teamId string, channelId string, reaction *
 		}
 
 		if post.HasReactions != postHadReactions {
-			message := model.NewWebSocketEvent(teamId, channelId, reaction.UserId, model.WEBSOCKET_EVENT_POST_EDITED)
+			message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", channelId, "", nil)
 			message.Add("post", post.ToJson())
 
 			Publish(message)
