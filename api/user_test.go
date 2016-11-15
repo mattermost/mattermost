@@ -1207,13 +1207,8 @@ func TestSendPasswordReset(t *testing.T) {
 		}
 	}
 
-	if result, err := Client.SendPasswordReset("junk@junk.com"); err != nil {
+	if _, err := Client.SendPasswordReset("junk@junk.com"); err != nil {
 		t.Fatal("Should have errored - bad email")
-	} else {
-		resp := result.Data.(map[string]string)
-		if resp["email"] != "" {
-			t.Fatal("email is in the databsase")
-		}
 	}
 
 	if _, err := Client.SendPasswordReset(""); err == nil {
