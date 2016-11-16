@@ -83,8 +83,14 @@ export default class SearchableUserList extends React.Component {
         if (searchTerm === '') {
             this.props.search(''); // clear search
             this.setState({page: 0, search: false});
-        } else if (this.props.autoSearch === true && searchTerm && searchTerm.length >= 2) {
-            this.props.search(searchTerm);
+        } else if (this.props.autoSearch === true) {
+            clearTimeout(this.timeoutId);
+            if (searchTerm && searchTerm.length >= 2) {
+                this.timeoutId = setTimeout(
+                    () => this.props.search(searchTerm),
+                    Constants.AUTOCOMPLETE_TIMEOUT
+                );
+            }
         }
     }
 
