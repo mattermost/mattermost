@@ -79,9 +79,12 @@ export default class SearchableUserList extends React.Component {
     }
 
     onSearchBoxChange(e) {
-        if (e.target.value === '') {
+        const searchTerm = e.target.value;
+        if (searchTerm === '') {
             this.props.search(''); // clear search
             this.setState({page: 0, search: false});
+        } else if (this.props.autoSearch === true && searchTerm && searchTerm.length >= 2) {
+            this.props.search(searchTerm);
         }
     }
 
@@ -216,6 +219,7 @@ SearchableUserList.defaultProps = {
     actionProps: {},
     actionUserProps: {},
     showTeamToggle: false,
+    autoSearch: false,
     focusOnMount: false
 };
 
@@ -230,5 +234,6 @@ SearchableUserList.propTypes = {
     actionProps: React.PropTypes.object,
     actionUserProps: React.PropTypes.object,
     style: React.PropTypes.object,
+    autoSearch: React.PropTypes.bool,
     focusOnMount: React.PropTypes.bool.isRequired
 };
