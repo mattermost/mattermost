@@ -1270,7 +1270,15 @@ export function isValidPassword(password) {
 }
 
 export function getSiteURL() {
-    return global.mm_config.SiteURL || window.location.origin;
+    if (global.mm_config.SiteURL) {
+        return global.mm_config.SiteURL;
+    }
+
+    if (window.location.origin) {
+        return window.location.origin;
+    }
+
+    return window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '');
 }
 
 export function handleFormattedTextClick(e) {

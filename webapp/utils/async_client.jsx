@@ -111,26 +111,31 @@ export function getChannel(id) {
 }
 
 export function getMyChannelMembers() {
-    if (isCallInProgress('getMyChannelMembers')) {
-        return;
-    }
-
-    callTracker.getMyChannelMembers = utils.getTimestamp();
-
-    Client.getMyChannelMembers(
-        (data) => {
-            callTracker.getMyChannelMembers = 0;
-
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_MY_CHANNEL_MEMBERS,
-                members: data
-            });
-        },
-        (err) => {
-            callTracker.getChannelsUnread = 0;
-            dispatchError(err, 'getMyChannelMembers');
+    return new Promise((resolve, reject) => {
+        if (isCallInProgress('getMyChannelMembers')) {
+            resolve();
+            return;
         }
-    );
+
+        callTracker.getMyChannelMembers = utils.getTimestamp();
+
+        Client.getMyChannelMembers(
+            (data) => {
+                callTracker.getMyChannelMembers = 0;
+
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECEIVED_MY_CHANNEL_MEMBERS,
+                    members: data
+                });
+                resolve();
+            },
+            (err) => {
+                callTracker.getChannelsUnread = 0;
+                dispatchError(err, 'getMyChannelMembers');
+                reject();
+            }
+        );
+    });
 }
 
 export function updateLastViewedAt(id, active) {
@@ -263,28 +268,33 @@ export function getChannelStats(channelId = ChannelStore.getCurrentId(), doVersi
 }
 
 export function getChannelMember(channelId, userId) {
-    if (isCallInProgress(`getChannelMember${channelId}${userId}`)) {
-        return;
-    }
-
-    callTracker[`getChannelMember${channelId}${userId}`] = utils.getTimestamp();
-
-    Client.getChannelMember(
-        channelId,
-        userId,
-        (data) => {
-            callTracker[`getChannelMember${channelId}${userId}`] = 0;
-
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_CHANNEL_MEMBER,
-                member: data
-            });
-        },
-        (err) => {
-            callTracker[`getChannelMember${channelId}${userId}`] = 0;
-            dispatchError(err, 'getChannelMember');
+    return new Promise((resolve, reject) => {
+        if (isCallInProgress(`getChannelMember${channelId}${userId}`)) {
+            resolve();
+            return;
         }
-    );
+
+        callTracker[`getChannelMember${channelId}${userId}`] = utils.getTimestamp();
+
+        Client.getChannelMember(
+            channelId,
+            userId,
+            (data) => {
+                callTracker[`getChannelMember${channelId}${userId}`] = 0;
+
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECEIVED_CHANNEL_MEMBER,
+                    member: data
+                });
+                resolve();
+            },
+            (err) => {
+                callTracker[`getChannelMember${channelId}${userId}`] = 0;
+                dispatchError(err, 'getChannelMember');
+                reject();
+            }
+        );
+    });
 }
 
 export function getUser(userId) {

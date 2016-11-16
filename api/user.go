@@ -376,7 +376,7 @@ func sendWelcomeEmail(c *Context, userId string, email string, siteURL string, v
 	}
 
 	if !verified {
-		link := fmt.Sprintf("%s/do_verify_email?uid=%s&hid=%s&email=%s", siteURL, userId, model.HashPassword(userId), url.QueryEscape(email))
+		link := fmt.Sprintf("%s/do_verify_email?uid=%s&hid=%s&email=%s", siteURL, userId, model.HashPassword(userId+utils.Cfg.EmailSettings.InviteSalt), url.QueryEscape(email))
 		bodyPage.Props["VerifyUrl"] = link
 	}
 
@@ -423,7 +423,7 @@ func addDirectChannels(teamId string, user *model.User) {
 }
 
 func SendVerifyEmail(c *Context, userId, userEmail, siteURL string) {
-	link := fmt.Sprintf("%s/do_verify_email?uid=%s&hid=%s&email=%s", siteURL, userId, model.HashPassword(userId), url.QueryEscape(userEmail))
+	link := fmt.Sprintf("%s/do_verify_email?uid=%s&hid=%s&email=%s", siteURL, userId, model.HashPassword(userId+utils.Cfg.EmailSettings.InviteSalt), url.QueryEscape(userEmail))
 
 	url, _ := url.Parse(siteURL)
 
@@ -1398,6 +1398,8 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 			go sendEmailChangeUsername(c, rusers[1].Username, rusers[0].Username, rusers[0].Email, c.GetSiteURL())
 		}
 
+		InvalidateCacheForUser(user.Id)
+
 		updatedUser := rusers[0]
 		updatedUser = sanitizeProfile(c, updatedUser)
 
@@ -1861,7 +1863,7 @@ func sendEmailChangeEmail(c *Context, oldEmail, newEmail, siteURL string) {
 }
 
 func SendEmailChangeVerifyEmail(c *Context, userId, newUserEmail, siteURL string) {
-	link := fmt.Sprintf("%s/do_verify_email?uid=%s&hid=%s&email=%s", siteURL, userId, model.HashPassword(userId), url.QueryEscape(newUserEmail))
+	link := fmt.Sprintf("%s/do_verify_email?uid=%s&hid=%s&email=%s", siteURL, userId, model.HashPassword(userId+utils.Cfg.EmailSettings.InviteSalt), url.QueryEscape(newUserEmail))
 
 	subjectPage := utils.NewHTMLTemplate("email_change_verify_subject", c.Locale)
 	subjectPage.Props["Subject"] = c.T("api.templates.email_change_verify_subject",
@@ -1955,6 +1957,7 @@ func updateUserNotify(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		c.LogAuditWithUserId(user.Id, "")
+		InvalidateCacheForUser(user.Id)
 
 		ruser := result.Data.([2]*model.User)[0]
 		options := utils.Cfg.GetSanitizeOptions()
@@ -2266,7 +2269,7 @@ func verifyEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if model.ComparePassword(hashedId, userId) {
+	if model.ComparePassword(hashedId, userId+utils.Cfg.EmailSettings.InviteSalt) {
 		if c.Err = (<-Srv.Store.User().VerifyEmail(userId)).Err; c.Err != nil {
 			return
 		} else {

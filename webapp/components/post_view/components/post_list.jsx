@@ -264,6 +264,7 @@ export default class PostList extends React.Component {
 
             let commentCount = 0;
             let isCommentMention = false;
+            let shouldHighlightThreads = false;
             let commentRootId;
             if (parentPost) {
                 commentRootId = post.root_id;
@@ -271,9 +272,14 @@ export default class PostList extends React.Component {
                 commentRootId = post.id;
             }
 
-            for (const postId in posts) {
-                if (posts[postId].root_id === commentRootId) {
-                    commentCount += 1;
+            if (commentRootId) {
+                for (const postId in posts) {
+                    if (posts[postId].root_id === commentRootId) {
+                        commentCount += 1;
+                        if (posts[postId].user_id === userId) {
+                            shouldHighlightThreads = true;
+                        }
+                    }
                 }
             }
 
@@ -281,7 +287,7 @@ export default class PostList extends React.Component {
                 const commentsNotifyLevel = this.props.currentUser.notify_props.comments || 'never';
                 const notCurrentUser = post.user_id !== userId || (post.props && post.props.from_webhook);
                 if (notCurrentUser) {
-                    if (commentsNotifyLevel === 'any') {
+                    if (commentsNotifyLevel === 'any' && (posts[commentRootId].user_id === userId || shouldHighlightThreads)) {
                         isCommentMention = true;
                     } else if (commentsNotifyLevel === 'root' && posts[commentRootId].user_id === userId) {
                         isCommentMention = true;

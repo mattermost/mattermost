@@ -329,7 +329,7 @@
   },
   {
     "id": "api.channel.remove_member.removed",
-    "translation": "%v foi removido do canal"
+    "translation": "%v foi removido do canal."
   },
   {
     "id": "api.channel.remove_member.unable.app_error",
@@ -609,11 +609,11 @@
   },
   {
     "id": "api.command_shortcuts.browser",
-    "translation": "#### Comandos Nativos do Navegador\n\nALT+LEFT: Canal anterior no seu histórico\nALT+RIGHT: Próximo canal no seu histórico\nCTRL+PLUS: Aumenta o tamanho da fonte (zoom in)\nCTRL+MINUS: Diminui o tamanho da fonte (zoom out)\nSHIFT+UP (no campo de entrada): Seleciona o texto até a linha anterior\nSHIFT+DOWN (no campo de entrada): Seleciona o texto até a próxima linha\nSHIFT+ENTER (no campo de entrada): Cria nova linha\n"
+    "translation": "#### Comandos Nativos do Navegador\n\nALT+ESQUERDA: Canal anterior no seu histórico\nALT+DIREITA: Próximo canal no seu histórico\nCTRL+MAIS: Aumenta o tamanho da fonte (zoom in)\nCTRL+MENOS: Diminui o tamanho da fonte (zoom out)\nSHIFT+CIMA (no campo de entrada): Seleciona o texto até a linha anterior\nSHIFT+BAIXO (no campo de entrada): Seleciona o texto até a próxima linha\nSHIFT+ENTER (no campo de entrada): Cria nova linha\n"
   },
   {
     "id": "api.command_shortcuts.browser_mac",
-    "translation": "#### Comandos Nativos do Navegador\n\nCMD+[: Canal anterior no seu histórico\nCMD+]: Próximo canal no seu histórico\nCMD+PLUS: Aumenta o tamanho da fonte (zoom in)\nCMD+MINUS: Diminui o tamanho da fonte (zoom out)\nSHIFT+UP (no campo de entrada): Seleciona o texto até a linha anterior\nSHIFT+DOWN (no campo de entrada): Seleciona o texto até a próxima linha\nSHIFT+ENTER (no campo de entrada): Cria nova linha\n"
+    "translation": "#### Comandos Nativos do Navegador\n\nCMD+[: Canal anterior no seu histórico\nCMD+]: Próximo canal no seu histórico\nCMD+MAIS: Aumenta o tamanho da fonte (zoom in)\nCMD+MENOS: Diminui o tamanho da fonte (zoom out)\nSHIFT+CIMA (no campo de entrada): Seleciona o texto até a linha anterior\nSHIFT+BAIXO (no campo de entrada): Seleciona o texto até a próxima linha\nSHIFT+ENTER (no campo de entrada): Cria nova linha\n"
   },
   {
     "id": "api.command_shortcuts.desc",
@@ -629,11 +629,11 @@
   },
   {
     "id": "api.command_shortcuts.msgs",
-    "translation": "#### Mensagens\n\nALT+[clique na mensagem]: Define a mensagem como a mensagem mais velha não lida no canal atual\nESC: Marca todas as mensagens do canal atual como lida\nCTRL+UP (campo de entrada vazio): Reimprimi a mensagem anterior ou comando slash digitado\nCTRL+DOWN (campo de entrada vazio): Reimprimi a próxima mensagem ou comando slash digitado\nUP (campo de entrada vazio): Editar sua última mensagem no canal atual\n@[caracter]+TAB: Autocompleta @usuário começando com [caracter]\n:[caracter]+TAB: Autocompleta o emoji começando com [caracter]\n\n"
+    "translation": "#### Mensagens\n\nESC: Marcar todas as mensagens do canal atual como lidas\nCTRL+CIMA (no campo de entrada vazio): Mostra a última mensagem ou comando digitado\nCTRL+BAIXO (no campo de entrada vazio): Mostra a próxima mensagem ou comando digitado\nCIMA (no campo de entrada vazio): Edita sua última mensagem no canal atual\n@[caracter]+TAB: Autocompleta @usuário começado com [caracter]\n#[caracter]+TAB: Autocompleta canal começado com [caracter]\n:[caracter]+TAB: Autocompleta emoji começado com [caracter]\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs_mac",
-    "translation": "#### Mensagens\n\nALT+[clique na mensagem]: Define a mensagem como a mensagem mais velha não lida no canal atual\nESC: Marca todas as mensagens do canal atual como lida\nCMD+UP (campo de entrada vazio): Reimprimi a mensagem anterior ou comando slash digitado\nCMD+DOWN (campo de entrada vazio): Reimprimi a próxima mensagem ou comando slash digitado\nUP (campo de entrada vazio): Editar sua última mensagem no canal atual\n@[caracter]+TAB: Autocompleta @usuário começando com [caracter]\n:[caracter]+TAB: Autocompleta o emoji começando com [caracter]\n\n"
+    "translation": "#### Mensagens\n\nESC: Marcar todas as mensagens do canal atual como lidas\nCMD+CIMA (no campo vazio de entrada): Mostra a última mensagem ou comando digitado\nCMD+BAIXO (no campo vazio de entrada): Mostra a próxima mensagem ou comando digitado\nCIMA (no campo vazio de entrada): Edita sua última mensagem no canal atual\n@[caracter]+TAB: Autocompleta @usuário começado com [caracter]\n#[caracter]+TAB: Autocompleta channel começado com [caracter]\n:[caracter]+TAB: Autocompleta emoji começado com [caracter]\n\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -641,11 +641,11 @@
   },
   {
     "id": "api.command_shortcuts.nav",
-    "translation": "### Atalhos do Teclado\n\n#### Navegação\n\nALT+UP: Canal ou mensagem direta anterior na barra lateral esquerda\nALT+DOWN: Próximo canal ou mensagem direta na barra lateral esquerda\nALT+SHIFT+UP: Canal anterior ou mensagem direta na barra lateral esquerda com mensagens não lidas\nALT+SHIFT+DOWN: Próximo canal ou mensagem direta na barra lateral esquerda com mensagens não lidas\nCTRL+K: Abra uma janela de troca rápida de canal\nCTRL+SHIFT+A: Abre as configurações de conta\nCTRL+SHIFT+M: Abre as menções recentes\n\n"
+    "translation": "### Atalhos do Teclado\n\n#### Navegação\n\nALT+CIMA: Canal ou mensagem direta anterior na barra lateral esquerda\nALT+BAIXO: Próximo canal ou mensagem direta na barra lateral esquerda\nALT+SHIFT+CIMA: Canal anterior ou mensagem direta na barra lateral esquerda com mensagens não lidas\nALT+SHIFT+BAIXO: Próximo canal ou mensagem direta na barra lateral esquerda com mensagens não lidas\nCTRL+K: Abra uma janela de troca rápida de canal\nCTRL+SHIFT+A: Abre as configurações de conta\nCTRL+SHIFT+M: Abre as menções recentes\n\n"
   },
   {
     "id": "api.command_shortcuts.nav_mac",
-    "translation": "### Atalhos do Teclado\n\n#### Navegação\n\nALT+UP: Canal ou mensagem direta anterior na barra lateral esquerda\nALT+DOWN: Próximo canal ou mensagem direta na barra lateral esquerda\nALT+SHIFT+UP: Canal anterior ou mensagem direta na barra lateral esquerda com mensagens não lidas\nALT+SHIFT+DOWN: Próximo canal ou mensagem direta na barra lateral esquerda com mensagens não lidas\nCMD+K: Abra uma janela de troca rápida de canal\nCMD+SHIFT+A: Abre as configurações de conta\nCMD+SHIFT+M: Abre as menções recentes\n\n"
+    "translation": "### Atalhos do Teclado\n\n#### Navegação\n\nALT+CIMA: Canal ou mensagem direta anterior na barra lateral esquerda\nALT+BAIXO: Próximo canal ou mensagem direta na barra lateral esquerda\nALT+SHIFT+CIMA: Canal anterior ou mensagem direta na barra lateral esquerda com mensagens não lidas\nALT+SHIFT+BAIXO: Próximo canal ou mensagem direta na barra lateral esquerda com mensagens não lidas\nCMD+K: Abra uma janela de troca rápida de canal\nCMD+SHIFT+A: Abre as configurações de conta\nCMD+SHIFT+M: Abre as menções recentes\n\n"
   },
   {
     "id": "api.command_shrug.desc",
@@ -763,7 +763,7 @@
   },
   {
     "id": "api.email_batching.send_batched_email_notification.user.app_error",
-    "translation": "Não foi possível encontrar o o destinatário para a notificação de e mail em lote"
+    "translation": "Não foi possível encontrar o destinatário para a notificação de email em lote"
   },
   {
     "id": "api.email_batching.start.starting",
@@ -1520,6 +1520,14 @@
     "translation": "Parando o Servidor..."
   },
   {
+    "id": "api.slackimport.slack_add_bot_user.email_pwd",
+    "translation": "Slack Bot/Integração Importar Posts Usuário: Email, Senha: {{.Email}}, {{.Password}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_bot_user.unable_import",
+    "translation": "Não foi possível importar Slack Bot/Integração Importar Posts Usuário: {{.Username}}\r\n"
+  },
+  {
     "id": "api.slackimport.slack_add_channels.added",
     "translation": "\r\n Canal Adicionado \r\n"
   },
@@ -1533,7 +1541,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.import_failed.warn",
-    "translation": "Slack Importer: Failed to import channel: %s"
+    "translation": "Slack Importer: Falha ao importar o canal: %s"
   },
   {
     "id": "api.slackimport.slack_add_channels.merge",
@@ -1548,12 +1556,20 @@
     "translation": "Slack bot posts não foram importados ainda"
   },
   {
+    "id": "api.slackimport.slack_add_posts.bot_user_no_exists.warn",
+    "translation": "Slack Importer: Não importado mensagens do bot usuário bot-importing não existe."
+  },
+  {
     "id": "api.slackimport.slack_add_posts.msg_no_comment.debug",
     "translation": "Comentário do arquivo indefinido"
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_usr.debug",
     "translation": "Mensagem sem usuário"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.no_bot_id.warn",
+    "translation": "Slack Importer: Não importado mensagens do bot devido a falta do campo Botid."
   },
   {
     "id": "api.slackimport.slack_add_posts.unsupported.warn",
@@ -1612,6 +1628,10 @@
     "translation": "Falha ao compilar a @menção correspondendo a expressão regular para o usuário Slack {{.UserID}} {{.Username}}"
   },
   {
+    "id": "api.slackimport.slack_deactivate_bot_user.failed_to_deactivate",
+    "translation": "Slack Importer: Falha ao desativar o usuário bot-importing."
+  },
+  {
     "id": "api.slackimport.slack_import.log",
     "translation": "Mattermost Log de Importação Slack\r\n"
   },
@@ -1650,6 +1670,22 @@
   {
     "id": "api.slackimport.slack_parse_posts.error",
     "translation": "Erro ao analisar algumas postagens do slack. Importação deve funcionar de qualquer maneira."
+  },
+  {
+    "id": "api.slackimport.slack_sanitise_channel_properties.display_name_too_long.warn",
+    "translation": "Slack Importer: Canal {{.ChannelName}} tem um nome de exibição muito grande. Será truncado quando importado."
+  },
+  {
+    "id": "api.slackimport.slack_sanitise_channel_properties.header_too_long.warn",
+    "translation": "Slack Importer: Canal {{.ChannelName}} tem um cabeçalho que é muito grande. Será truncado quando importado."
+  },
+  {
+    "id": "api.slackimport.slack_sanitise_channel_properties.name_too_long.warn",
+    "translation": "Slack Importer: Canal {{.ChannelName}} tem um nome muito grande. Será truncado quando importado."
+  },
+  {
+    "id": "api.slackimport.slack_sanitise_channel_properties.purpose_too_long.warn",
+    "translation": "Slack Importer: Canal {{.ChannelName}} tem um propósito muito grande. Será truncado quando importado."
   },
   {
     "id": "api.status.init.debug",
@@ -1741,11 +1777,11 @@
   },
   {
     "id": "api.team.invite_members.restricted_system_admin.app_error",
-    "translation": "Convite a novos usuários para uma equipe está restrito para o Administrador do Sistema"
+    "translation": "Convite a novos usuários para uma equipe está restrito para o Administrador do Sistema."
   },
   {
     "id": "api.team.invite_members.restricted_team_admin.app_error",
-    "translation": "Convite a novos usuários para uma equipe está restrito para o Administrador do Sistema e Equipe"
+    "translation": "Convite a novos usuários para uma equipe está restrito para o Administrador do Sistema e Equipe."
   },
   {
     "id": "api.team.invite_members.send.error",
@@ -2508,12 +2544,16 @@
     "translation": "Permissões inadequadas para re-gerar o token do webhook de saída"
   },
   {
+    "id": "api.webrtc.disabled.app_error",
+    "translation": "WebRTC não está ativo neste servidor."
+  },
+  {
     "id": "api.webrtc.init.debug",
     "translation": "Inicializando WebRTC api routes"
   },
   {
-    "id": "api.webrtc.not_available.app_error",
-    "translation": "WebRTC não está disponível neste servidor."
+    "id": "api.webrtc.register_token.app_error",
+    "translation": "Encontrado um erro ao tentar registrar o Token WebRTC"
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
@@ -2802,18 +2842,6 @@
   {
     "id": "ent.saml.update_saml_user.unable_error",
     "translation": "Não é possível atualizar o usuário SAML existente. Permitindo o login de qualquer maneira. err=%v"
-  },
-  {
-    "id": "ent.webrtc.disabled.app_error",
-    "translation": "WebRTC não está ativo neste servidor."
-  },
-  {
-    "id": "ent.webrtc.license_disable.app_error",
-    "translation": "Sua licença não suporta usar Mattermost WebRTC"
-  },
-  {
-    "id": "ent.webrtc.register_token.app_error",
-    "translation": "Encontrado um erro ao tentar registrar o Token WebRTC"
   },
   {
     "id": "error.generic.link_message",
