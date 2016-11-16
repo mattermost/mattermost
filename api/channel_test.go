@@ -738,6 +738,75 @@ func TestGetMoreChannel(t *testing.T) {
 	}
 }
 
+func TestGetMoreChannelsPage(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+	team := th.BasicTeam
+
+	channel1 := &model.Channel{DisplayName: "A Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
+
+	channel2 := &model.Channel{DisplayName: "B Test API Name", Name: "b" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel2 = Client.Must(Client.CreateChannel(channel2)).Data.(*model.Channel)
+
+	channel3 := &model.Channel{DisplayName: "C Test API Name", Name: "c" + model.NewId() + "a", Type: model.CHANNEL_PRIVATE, TeamId: team.Id}
+	channel3 = Client.Must(Client.CreateChannel(channel3)).Data.(*model.Channel)
+
+	th.LoginBasic2()
+
+	if r, err := Client.GetMoreChannelsPage(0, 100); err != nil {
+		t.Fatal(err)
+	} else {
+		channels := r.Data.(*model.ChannelList)
+
+		// 1 for BasicChannel, 2 for open channels created above
+		if len(*channels) != 3 {
+			t.Fatal("wrong length")
+		}
+
+		if (*channels)[0].DisplayName != channel1.DisplayName {
+			t.Fatal("full name didn't match")
+		}
+
+		if (*channels)[1].DisplayName != channel2.DisplayName {
+			t.Fatal("full name didn't match")
+		}
+	}
+
+	if r, err := Client.GetMoreChannelsPage(0, 1); err != nil {
+		t.Fatal(err)
+	} else {
+		channels := r.Data.(*model.ChannelList)
+
+		if len(*channels) != 1 {
+			t.Fatal("wrong length")
+		}
+
+		if (*channels)[0].DisplayName != channel1.DisplayName {
+			t.Fatal("full name didn't match")
+		}
+	}
+
+	if r, err := Client.GetMoreChannelsPage(1, 1); err != nil {
+		t.Fatal(err)
+	} else {
+		channels := r.Data.(*model.ChannelList)
+
+		if len(*channels) != 1 {
+			t.Fatal("wrong length")
+		}
+
+		if (*channels)[0].DisplayName != channel2.DisplayName {
+			t.Fatal("full name didn't match")
+		}
+	}
+
+	Client.SetTeamId("junk")
+	if _, err := Client.GetMoreChannelsPage(0, 1); err == nil {
+		t.Fatal("should have failed - bad team id")
+	}
+}
+
 func TestGetChannelCounts(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.BasicClient

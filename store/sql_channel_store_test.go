@@ -309,7 +309,7 @@ func TestChannelStoreDelete(t *testing.T) {
 		t.Fatal("invalid number of channels")
 	}
 
-	cresult = <-store.Channel().GetMoreChannels(o1.TeamId, m1.UserId)
+	cresult = <-store.Channel().GetMoreChannels(o1.TeamId, m1.UserId, 0, 100)
 	list = cresult.Data.(*model.ChannelList)
 
 	if len(*list) != 1 {
@@ -611,7 +611,10 @@ func TestChannelStoreGetMoreChannels(t *testing.T) {
 	o5.Type = model.CHANNEL_PRIVATE
 	Must(store.Channel().Save(&o5))
 
-	cresult := <-store.Channel().GetMoreChannels(o1.TeamId, m1.UserId)
+	cresult := <-store.Channel().GetMoreChannels(o1.TeamId, m1.UserId, 0, 100)
+	if cresult.Err != nil {
+		t.Fatal(cresult.Err)
+	}
 	list := cresult.Data.(*model.ChannelList)
 
 	if len(*list) != 1 {
@@ -622,10 +625,38 @@ func TestChannelStoreGetMoreChannels(t *testing.T) {
 		t.Fatal("missing channel")
 	}
 
+	o6 := model.Channel{}
+	o6.TeamId = o1.TeamId
+	o6.DisplayName = "ChannelA"
+	o6.Name = "a" + model.NewId() + "b"
+	o6.Type = model.CHANNEL_OPEN
+	Must(store.Channel().Save(&o6))
+
+	cresult = <-store.Channel().GetMoreChannels(o1.TeamId, m1.UserId, 0, 100)
+	list = cresult.Data.(*model.ChannelList)
+
+	if len(*list) != 2 {
+		t.Fatal("wrong list length")
+	}
+
+	cresult = <-store.Channel().GetMoreChannels(o1.TeamId, m1.UserId, 0, 1)
+	list = cresult.Data.(*model.ChannelList)
+
+	if len(*list) != 1 {
+		t.Fatal("wrong list length")
+	}
+
+	cresult = <-store.Channel().GetMoreChannels(o1.TeamId, m1.UserId, 1, 1)
+	list = cresult.Data.(*model.ChannelList)
+
+	if len(*list) != 1 {
+		t.Fatal("wrong list length")
+	}
+
 	if r1 := <-store.Channel().AnalyticsTypeCount(o1.TeamId, model.CHANNEL_OPEN); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
-		if r1.Data.(int64) != 2 {
+		if r1.Data.(int64) != 3 {
 			t.Log(r1.Data)
 			t.Fatal("wrong value")
 		}

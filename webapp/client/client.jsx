@@ -1353,6 +1353,7 @@ export default class Client {
         this.track('api', 'api_channel_get');
     }
 
+    // SCHEDULED FOR DEPRECATION IN 3.7 - use getMoreChannelsPage instead
     getMoreChannels(success, error) {
         request.
             get(`${this.getChannelsRoute()}/more`).
@@ -1360,6 +1361,15 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getMoreChannels', success, error));
+    }
+
+    getMoreChannelsPage(offset, limit, success, error) {
+        request.
+            get(`${this.getChannelsRoute()}/more/${offset}/${limit}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getMoreChannelsPage', success, error));
     }
 
     getChannelCounts(success, error) {

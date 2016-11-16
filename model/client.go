@@ -1153,8 +1153,19 @@ func (c *Client) GetChannel(id, etag string) (*Result, *AppError) {
 	}
 }
 
+// SCHEDULED FOR DEPRECATION IN 3.7 - use GetMoreChannelsPage instead
 func (c *Client) GetMoreChannels(etag string) (*Result, *AppError) {
 	if r, err := c.DoApiGet(c.GetTeamRoute()+"/channels/more", "", etag); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), ChannelListFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) GetMoreChannelsPage(offset int, limit int) (*Result, *AppError) {
+	if r, err := c.DoApiGet(fmt.Sprintf(c.GetTeamRoute()+"/channels/more/%v/%v", offset, limit), "", ""); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)

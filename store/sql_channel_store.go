@@ -387,7 +387,7 @@ func (s SqlChannelStore) GetChannels(teamId string, userId string) StoreChannel 
 	return storeChannel
 }
 
-func (s SqlChannelStore) GetMoreChannels(teamId string, userId string) StoreChannel {
+func (s SqlChannelStore) GetMoreChannels(teamId string, userId string, offset int, limit int) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
@@ -395,7 +395,7 @@ func (s SqlChannelStore) GetMoreChannels(teamId string, userId string) StoreChan
 
 		data := &model.ChannelList{}
 		_, err := s.GetReplica().Select(data,
-			`SELECT 
+			`SELECT
 			    *
 			FROM
 			    Channels
@@ -403,7 +403,7 @@ func (s SqlChannelStore) GetMoreChannels(teamId string, userId string) StoreChan
 			    TeamId = :TeamId1
 					AND Type IN ('O')
 					AND DeleteAt = 0
-			        AND Id NOT IN (SELECT 
+			        AND Id NOT IN (SELECT
 			            Channels.Id
 			        FROM
 			            Channels,
@@ -413,8 +413,10 @@ func (s SqlChannelStore) GetMoreChannels(teamId string, userId string) StoreChan
 			                AND TeamId = :TeamId2
 			                AND UserId = :UserId
 			                AND DeleteAt = 0)
-			ORDER BY DisplayName`,
-			map[string]interface{}{"TeamId1": teamId, "TeamId2": teamId, "UserId": userId})
+			ORDER BY DisplayName
+			LIMIT :Limit
+			OFFSET :Offset`,
+			map[string]interface{}{"TeamId1": teamId, "TeamId2": teamId, "UserId": userId, "Limit": limit, "Offset": offset})
 
 		if err != nil {
 			result.Err = model.NewLocAppError("SqlChannelStore.GetMoreChannels", "store.sql_channel.get_more_channels.get.app_error", nil, "teamId="+teamId+", userId="+userId+", err="+err.Error())
