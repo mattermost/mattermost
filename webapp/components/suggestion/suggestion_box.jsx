@@ -2,7 +2,6 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
-import ReactDOM from 'react-dom';
 
 import Constants from 'utils/constants.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
@@ -37,6 +36,13 @@ export default class SuggestionBox extends React.Component {
         SuggestionStore.addPretextChangedListener(this.suggestionId, this.handlePretextChanged);
     }
 
+    componentWillReceiveProps(nextProps) {
+        // Clear any suggestions when the SuggestionBox is cleared
+        if (nextProps.value === '' && this.props.value !== nextProps.value) {
+            GlobalActions.emitClearSuggestions(this.suggestionId);
+        }
+    }
+
     componentWillUnmount() {
         SuggestionStore.removeCompleteWordListener(this.suggestionId, this.handleCompleteWord);
         SuggestionStore.removePretextChangedListener(this.suggestionId, this.handlePretextChanged);
@@ -64,7 +70,7 @@ export default class SuggestionBox extends React.Component {
             return;
         }
 
-        const container = $(ReactDOM.findDOMNode(this));
+        const container = $(this.refs.container);
 
         if (!(container.is(e.target) || container.has(e.target).length > 0)) {
             // We can't just use blur for this because it fires and hides the children before
@@ -198,7 +204,7 @@ export default class SuggestionBox extends React.Component {
         const SuggestionListComponent = listComponent;
 
         return (
-            <div>
+            <div ref='container'>
                 {textbox}
                 <SuggestionListComponent
                     suggestionId={this.suggestionId}
@@ -239,6 +245,5 @@ SuggestionBox.propTypes = {
 
     // explicitly name any input event handlers we override and need to manually call
     onChange: React.PropTypes.func,
-    onBlur: React.PropTypes.func,
     onKeyDown: React.PropTypes.func
 };

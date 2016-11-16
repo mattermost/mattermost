@@ -547,6 +547,12 @@ export default class Navbar extends React.Component {
                             {deleteChannelOption}
                             {leaveChannelOption}
                             {toggleFavoriteOption}
+                            <div
+                                className='close visible-xs-block'
+                                onClick={() => this.refs.headerOverlay.hide()}
+                            >
+                                {'×'}
+                            </div>
                         </ul>
                     </div>
                 </div>
@@ -672,7 +678,7 @@ export default class Navbar extends React.Component {
                         options={{singleline: true, mentionHighlight: false}}
                     />
                     <div
-                        className='close__icon visible-xs-block'
+                        className='close visible-xs-block'
                         onClick={() => this.refs.headerOverlay.hide()}
                     >
                         {'×'}
@@ -722,7 +728,7 @@ export default class Navbar extends React.Component {
                             />
                         </div>
                         <div
-                            className='close__icon visible-xs-block'
+                            className='close visible-xs-block'
                             onClick={() => this.refs.headerOverlay.hide()}
                         >
                             {'×'}

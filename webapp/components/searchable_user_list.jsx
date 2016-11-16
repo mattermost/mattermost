@@ -165,10 +165,7 @@ export default class SearchableUserList extends React.Component {
         }
 
         return (
-            <div
-                className='filtered-user-list'
-                style={this.props.style}
-            >
+            <div className='filtered-user-list'>
                 <div className='filter-row'>
                     <div className='col-xs-9 col-sm-5'>
                         <input
@@ -239,7 +236,6 @@ SearchableUserList.propTypes = {
     actions: React.PropTypes.arrayOf(React.PropTypes.func),
     actionProps: React.PropTypes.object,
     actionUserProps: React.PropTypes.object,
-    style: React.PropTypes.object,
     autoSearch: React.PropTypes.bool.isRequired,
     focusOnMount: React.PropTypes.bool.isRequired
 };

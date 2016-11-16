@@ -11,7 +11,6 @@ import TeamStore from 'stores/team_store.jsx';
 
 import {searchUsers} from 'actions/user_actions.jsx';
 
-import * as Utils from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 
 import React from 'react';
@@ -133,13 +132,8 @@ export default class ChannelInviteModal extends React.Component {
         if (this.state.loading) {
             content = (<LoadingScreen/>);
         } else {
-            let maxHeight = 1000;
-            if (Utils.windowHeight() <= 1200) {
-                maxHeight = Utils.windowHeight() - 300;
-            }
             content = (
                 <SearchableUserList
-                    style={{maxHeight}}
                     users={this.state.users}
                     usersPerPage={USERS_PER_PAGE}
                     total={this.state.total}

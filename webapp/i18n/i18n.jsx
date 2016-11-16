@@ -28,7 +28,7 @@ import zhLocaleData from 'react-intl/locale-data/zh';
 const languages = {
     de: {
         value: 'de',
-        name: 'Deutsch (Beta)',
+        name: 'Deutsch',
         order: 0,
         url: de
     },
@@ -46,19 +46,19 @@ const languages = {
     },
     fr: {
         value: 'fr',
-        name: 'Français (Beta)',
+        name: 'Français',
         order: 3,
         url: fr
     },
     ja: {
         value: 'ja',
-        name: '日本語 (Beta)',
+        name: '日本語',
         order: 10,
         url: ja
     },
     ko: {
         value: 'ko',
-        name: '한국어 (Beta)',
+        name: '한국어 (Alpha)',
         order: 7,
         url: ko
     },
@@ -82,13 +82,13 @@ const languages = {
     },
     'zh-TW': {
         value: 'zh-TW',
-        name: '中文 (繁體) (Beta)',
+        name: '中文 (繁體)',
         order: 9,
         url: zh_TW
     },
     'zh-CN': {
         value: 'zh-CN',
-        name: '中文 (简体) (Beta)',
+        name: '中文 (简体)',
         order: 8,
         url: zh_CN
     }

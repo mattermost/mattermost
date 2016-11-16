@@ -8,6 +8,7 @@ const MAX_WEBSOCKET_RETRY_TIME = 300000; // 5 mins
 export default class WebSocketClient {
     constructor() {
         this.conn = null;
+        this.connectionUrl = null;
         this.sequence = 1;
         this.connectFailCount = 0;
         this.eventCallback = null;
@@ -18,8 +19,13 @@ export default class WebSocketClient {
         this.closeCallback = null;
     }
 
-    initialize(connectionUrl, token) {
+    initialize(connectionUrl = this.connectionUrl, token) {
         if (this.conn) {
+            return;
+        }
+
+        if (connectionUrl == null) {
+            console.log('websocket must have connection url'); //eslint-disable-line no-console
             return;
         }
 
@@ -28,6 +34,7 @@ export default class WebSocketClient {
         }
 
         this.conn = new WebSocket(connectionUrl);
+        this.connectionUrl = connectionUrl;
 
         this.conn.onopen = () => {
             if (token) {
@@ -150,7 +157,7 @@ export default class WebSocketClient {
 
         if (this.conn && this.conn.readyState === WebSocket.OPEN) {
             this.conn.send(JSON.stringify(msg));
-        } else if (!this.conn || this.conn.readyState === WebSocket.Closed) {
+        } else if (!this.conn || this.conn.readyState === WebSocket.CLOSED) {
             this.conn = null;
             this.initialize();
         }
