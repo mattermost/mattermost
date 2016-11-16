@@ -225,7 +225,7 @@ SearchableUserList.defaultProps = {
     actionProps: {},
     actionUserProps: {},
     showTeamToggle: false,
-    autoSearch: false,
+    autoSearch: true,
     focusOnMount: false
 };
 
@@ -240,6 +240,6 @@ SearchableUserList.propTypes = {
     actionProps: React.PropTypes.object,
     actionUserProps: React.PropTypes.object,
     style: React.PropTypes.object,
-    autoSearch: React.PropTypes.bool,
+    autoSearch: React.PropTypes.bool.isRequired,
     focusOnMount: React.PropTypes.bool.isRequired
 };
