@@ -234,11 +234,23 @@ class ChannelStoreClass extends EventEmitter {
     }
 
     storeMoreChannels(channels) {
-        this.moreChannels = channels;
+        const newChannels = {};
+        for (let i = 0; i < channels.length; i++) {
+            newChannels[channels[i].id] = channels[i];
+        }
+        this.moreChannels = Object.assign({}, this.moreChannels, newChannels);
+    }
+
+    removeMoreChannel(channelId) {
+        Reflect.deleteProperty(this.moreChannels, channelId);
     }
 
     getMoreChannels() {
-        return this.moreChannels;
+        return Object.assign({}, this.moreChannels);
+    }
+
+    getMoreChannelsList() {
+        return Object.keys(this.moreChannels).map((cid) => this.moreChannels[cid]);
     }
 
     storeStats(stats) {

@@ -191,3 +191,21 @@ export function loadChannelsForCurrentUser() {
     AsyncClient.getChannels();
     AsyncClient.getMyChannelMembers();
 }
+
+export function joinChannel(channel, success, error) {
+    Client.joinChannel(
+        channel.id,
+        () => {
+            ChannelStore.removeMoreChannel(channel.id);
+
+            if (success) {
+                success();
+            }
+        },
+        () => {
+            if (error) {
+                error();
+            }
+        }
+    );
+}

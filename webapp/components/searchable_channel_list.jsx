@@ -1,50 +1,47 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
-import ReactDOM from 'react-dom';
+import LoadingScreen from './loading_screen.jsx';
+
 import * as UserAgent from 'utils/user_agent.jsx';
 
+import $ from 'jquery';
+import React from 'react';
 import {localizeMessage} from 'utils/utils.jsx';
 import {FormattedMessage} from 'react-intl';
 
-import React from 'react';
 import loadingGif from 'images/load.gif';
 
-export default class FilteredChannelList extends React.Component {
+const NEXT_BUTTON_TIMEOUT = 500;
+
+export default class SearchableChannelList extends React.Component {
     constructor(props) {
         super(props);
 
-        this.handleFilterChange = this.handleFilterChange.bind(this);
         this.createChannelRow = this.createChannelRow.bind(this);
-        this.filterChannels = this.filterChannels.bind(this);
+        this.nextPage = this.nextPage.bind(this);
+        this.previousPage = this.previousPage.bind(this);
+        this.doSearch = this.doSearch.bind(this);
+
+        this.nextTimeoutId = 0;
 
         this.state = {
-            filter: '',
             joiningChannel: '',
-            channels: this.filterChannels(props.channels)
+            page: 0,
+            nextDisabled: false
         };
-    }
-
-    componentWillReceiveProps(nextProps) {
-        // assume the channel list is immutable
-        if (this.props.channels !== nextProps.channels) {
-            this.setState({
-                channels: this.filterChannels(nextProps.channels)
-            });
-        }
     }
 
     componentDidMount() {
         // only focus the search box on desktop so that we don't cause the keyboard to open on mobile
         if (!UserAgent.isMobile()) {
-            ReactDOM.findDOMNode(this.refs.filter).focus();
+            this.refs.filter.focus();
         }
     }
 
     componentDidUpdate(prevProps, prevState) {
-        if (prevState.filter !== this.state.filter) {
-            $(ReactDOM.findDOMNode(this.refs.channelList)).scrollTop(0);
+        if (prevState.page !== this.state.page) {
+            $(this.refs.channelList).scrollTop(0);
         }
     }
 
@@ -54,7 +51,8 @@ export default class FilteredChannelList extends React.Component {
             channel,
             () => {
                 this.setState({joiningChannel: ''});
-            });
+            }
+        );
     }
 
     createChannelRow(channel) {
@@ -96,32 +94,79 @@ export default class FilteredChannelList extends React.Component {
         );
     }
 
-    filterChannels(channels) {
-        if (!this.state || !this.state.filter) {
-            return channels;
-        }
-
-        return channels.filter((chan) => {
-            const filter = this.state.filter.toLowerCase();
-            return Boolean((chan.name.toLowerCase().indexOf(filter) !== -1 || chan.display_name.toLowerCase().indexOf(filter) !== -1) && chan.delete_at === 0);
-        });
+    nextPage(e) {
+        e.preventDefault();
+        this.setState({page: this.state.page + 1, nextDisabled: true});
+        this.nextTimeoutId = setTimeout(() => this.setState({nextDisabled: false}), NEXT_BUTTON_TIMEOUT);
+        this.props.nextPage(this.state.page + 1);
     }
 
-    handleFilterChange(e) {
-        this.setState({
-            filter: e.target.value
-        });
+    previousPage(e) {
+        e.preventDefault();
+        this.setState({page: this.state.page - 1});
+    }
+
+    doSearch() {
+        const term = this.refs.filter.value;
+        this.props.search(term);
+        if (term === '') {
+            this.setState({page: 0});
+        }
     }
 
     render() {
-        let channels = this.state.channels;
+        const channels = this.props.channels;
+        let listContent;
+        let nextButton;
+        let previousButton;
 
-        if (this.state.filter && this.state.filter.length > 0) {
-            channels = this.filterChannels(channels);
+        if (channels == null) {
+            listContent = <LoadingScreen/>;
+        } else if (channels.length === 0) {
+            listContent = (
+                <div className='no-channel-message'>
+                    <p className='primary-message'>
+                        <FormattedMessage
+                            id='more_channels.noMore'
+                            defaultMessage='No more channels to join'
+                        />
+                    </p>
+                    {this.props.noResultsText}
+                </div>
+            );
+        } else {
+            const pageStart = this.state.page * this.props.channelsPerPage;
+            const pageEnd = pageStart + this.props.channelsPerPage;
+            const channelsToDisplay = this.props.channels.slice(pageStart, pageEnd);
+            listContent = channelsToDisplay.map(this.createChannelRow);
+
+            if (channelsToDisplay.length >= this.props.channelsPerPage) {
+                nextButton = (
+                    <button
+                        className='btn btn-default filter-control filter-control__next'
+                        onClick={this.nextPage}
+                        disabled={this.state.nextDisabled}
+                    >
+                        {'Next'}
+                    </button>
+                );
+            }
+
+            if (this.state.page > 0) {
+                previousButton = (
+                    <button
+                        className='btn btn-default filter-control filter-control__prev'
+                        onClick={this.previousPage}
+                    >
+                        {'Previous'}
+                    </button>
+                );
+            }
         }
 
         let count;
-        if (channels.length === this.props.channels.length) {
+
+        /*if (channelschannels.length === this.props.channels.length) {
             count = (
                 <FormattedMessage
                     id='filtered_channels_list.count'
@@ -142,7 +187,7 @@ export default class FilteredChannelList extends React.Component {
                     }}
                 />
             );
-        }
+        }*/
 
         return (
             <div className='filtered-user-list'>
@@ -152,7 +197,7 @@ export default class FilteredChannelList extends React.Component {
                             ref='filter'
                             className='form-control filter-textbox'
                             placeholder={localizeMessage('filtered_channels_list.search', 'Search channels')}
-                            onInput={this.handleFilterChange}
+                            onInput={this.doSearch}
                         />
                     </div>
                     <div className='col-sm-12'>
@@ -163,18 +208,26 @@ export default class FilteredChannelList extends React.Component {
                     ref='channelList'
                     className='more-modal__list'
                 >
-                    {channels.map(this.createChannelRow)}
+                    {listContent}
+                </div>
+                <div className='filter-controls'>
+                    {previousButton}
+                    {nextButton}
                 </div>
             </div>
         );
     }
 }
 
-FilteredChannelList.defaultProps = {
+SearchableChannelList.defaultProps = {
     channels: []
 };
 
-FilteredChannelList.propTypes = {
+SearchableChannelList.propTypes = {
     channels: React.PropTypes.arrayOf(React.PropTypes.object),
-    handleJoin: React.PropTypes.func.isRequired
+    channelsPerPage: React.PropTypes.number,
+    nextPage: React.PropTypes.func.isRequired,
+    search: React.PropTypes.func.isRequired,
+    handleJoin: React.PropTypes.func.isRequired,
+    noResultsText: React.PropTypes.object
 };
