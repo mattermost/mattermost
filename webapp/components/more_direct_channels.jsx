@@ -252,6 +252,7 @@ export default class MoreDirectChannels extends React.Component {
                         nextPage={this.nextPage}
                         search={this.search}
                         actions={[this.createJoinDirectChannelButton]}
+                        autoSearch={true}
                         focusOnMount={!UserAgent.isMobile()}
                     />
                 </Modal.Body>
