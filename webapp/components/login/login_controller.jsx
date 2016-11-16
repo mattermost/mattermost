@@ -250,6 +250,9 @@ export default class LoginController extends React.Component {
     }
 
     createLoginPlaceholder() {
+        if (global.window.mm_config.CustomOverride) {
+            return 'Login with your email';
+        }
         const ldapEnabled = this.state.ldapEnabled;
         const usernameSigninEnabled = this.state.usernameSigninEnabled;
         const emailSigninEnabled = this.state.emailSigninEnabled;

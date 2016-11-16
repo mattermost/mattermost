@@ -246,5 +246,6 @@
         "TurnURI": "",
         "TurnUsername": "",
         "TurnSharedKey": ""
-    }
+    },
+    "CustomOverride": true
 }
