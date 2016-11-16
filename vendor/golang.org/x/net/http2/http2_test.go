@@ -27,6 +27,7 @@ func condSkipFailingTest(t *testing.T) {
 }
 
 func init() {
+	inTests = true
 	DebugGoroutines = true
 	flag.BoolVar(&VerboseLogs, "verboseh2", VerboseLogs, "Verbose HTTP/2 debug logging")
 }

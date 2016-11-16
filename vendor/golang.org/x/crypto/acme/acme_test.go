@@ -562,11 +562,15 @@ func TestRevokeAuthorization(t *testing.T) {
 		case "/1":
 			var req struct {
 				Resource string
+				Status   string
 				Delete   bool
 			}
 			decodeJWSRequest(t, &req, r)
 			if req.Resource != "authz" {
 				t.Errorf("req.Resource = %q; want authz", req.Resource)
+			}
+			if req.Status != "deactivated" {
+				t.Errorf("req.Status = %q; want deactivated", req.Status)
 			}
 			if !req.Delete {
 				t.Errorf("req.Delete is false")

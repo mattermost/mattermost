@@ -1,8 +1,8 @@
-// Copyright 2012 The Go Authors.  All rights reserved.
+// Copyright 2012 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// +build darwin dragonfly freebsd linux netbsd openbsd windows
+// +build darwin dragonfly freebsd linux netbsd openbsd solaris windows
 
 package ipv4
 
@@ -84,8 +84,8 @@ func getICMPFilter(s uintptr, opt *sockOpt) (*ICMPFilter, error) {
 		return nil, errOpNoSupport
 	}
 	var f ICMPFilter
-	l := uint32(sysSizeofICMPFilter)
-	if err := getsockopt(s, iana.ProtocolReserved, opt.name, unsafe.Pointer(&f.sysICMPFilter), &l); err != nil {
+	l := uint32(sizeofICMPFilter)
+	if err := getsockopt(s, iana.ProtocolReserved, opt.name, unsafe.Pointer(&f.icmpFilter), &l); err != nil {
 		return nil, os.NewSyscallError("getsockopt", err)
 	}
 	return &f, nil
@@ -95,7 +95,7 @@ func setICMPFilter(s uintptr, opt *sockOpt, f *ICMPFilter) error {
 	if opt.name < 1 || opt.typ != ssoTypeICMPFilter {
 		return errOpNoSupport
 	}
-	return os.NewSyscallError("setsockopt", setsockopt(s, iana.ProtocolReserved, opt.name, unsafe.Pointer(&f.sysICMPFilter), sysSizeofICMPFilter))
+	return os.NewSyscallError("setsockopt", setsockopt(s, iana.ProtocolReserved, opt.name, unsafe.Pointer(&f.icmpFilter), sizeofICMPFilter))
 }
 
 func setGroup(s uintptr, opt *sockOpt, ifi *net.Interface, grp net.IP) error {

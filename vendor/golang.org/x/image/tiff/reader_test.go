@@ -192,6 +192,24 @@ func TestDecodeLZW(t *testing.T) {
 	compare(t, img0, img1)
 }
 
+// TestDecodeTagOrder tests that a malformed image with unsorted IFD entries is
+// correctly rejected.
+func TestDecodeTagOrder(t *testing.T) {
+	data, err := ioutil.ReadFile("../testdata/video-001.tiff")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Swap the first two IFD entries.
+	ifdOffset := int64(binary.LittleEndian.Uint32(data[4:8]))
+	for i := ifdOffset + 2; i < ifdOffset+14; i++ {
+		data[i], data[i+12] = data[i+12], data[i]
+	}
+	if _, _, err := image.Decode(bytes.NewReader(data)); err == nil {
+		t.Fatal("got nil error, want non-nil")
+	}
+}
+
 // TestDecompress tests that decoding some TIFF images that use different
 // compression formats result in the same pixel data.
 func TestDecompress(t *testing.T) {

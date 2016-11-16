@@ -26,11 +26,26 @@ type fakeNetConn struct {
 }
 
 func (c fakeNetConn) Close() error                       { return nil }
-func (c fakeNetConn) LocalAddr() net.Addr                { return nil }
-func (c fakeNetConn) RemoteAddr() net.Addr               { return nil }
+func (c fakeNetConn) LocalAddr() net.Addr                { return localAddr }
+func (c fakeNetConn) RemoteAddr() net.Addr               { return remoteAddr }
 func (c fakeNetConn) SetDeadline(t time.Time) error      { return nil }
 func (c fakeNetConn) SetReadDeadline(t time.Time) error  { return nil }
 func (c fakeNetConn) SetWriteDeadline(t time.Time) error { return nil }
+
+type fakeAddr int
+
+var (
+	localAddr  = fakeAddr(1)
+	remoteAddr = fakeAddr(2)
+)
+
+func (a fakeAddr) Network() string {
+	return "net"
+}
+
+func (a fakeAddr) String() string {
+	return "str"
+}
 
 func TestFraming(t *testing.T) {
 	frameSizes := []int{0, 1, 2, 124, 125, 126, 127, 128, 129, 65534, 65535, 65536, 65537}
@@ -42,66 +57,78 @@ func TestFraming(t *testing.T) {
 		{"one", iotest.OneByteReader},
 		{"asis", func(r io.Reader) io.Reader { return r }},
 	}
-
 	writeBuf := make([]byte, 65537)
 	for i := range writeBuf {
 		writeBuf[i] = byte(i)
 	}
+	var writers = []struct {
+		name string
+		f    func(w io.Writer, n int) (int, error)
+	}{
+		{"iocopy", func(w io.Writer, n int) (int, error) {
+			nn, err := io.Copy(w, bytes.NewReader(writeBuf[:n]))
+			return int(nn), err
+		}},
+		{"write", func(w io.Writer, n int) (int, error) {
+			return w.Write(writeBuf[:n])
+		}},
+		{"string", func(w io.Writer, n int) (int, error) {
+			return io.WriteString(w, string(writeBuf[:n]))
+		}},
+	}
 
-	for _, isServer := range []bool{true, false} {
-		for _, chunker := range readChunkers {
+	for _, compress := range []bool{false, true} {
+		for _, isServer := range []bool{true, false} {
+			for _, chunker := range readChunkers {
 
-			var connBuf bytes.Buffer
-			wc := newConn(fakeNetConn{Reader: nil, Writer: &connBuf}, isServer, 1024, 1024)
-			rc := newConn(fakeNetConn{Reader: chunker.f(&connBuf), Writer: nil}, !isServer, 1024, 1024)
+				var connBuf bytes.Buffer
+				wc := newConn(fakeNetConn{Reader: nil, Writer: &connBuf}, isServer, 1024, 1024)
+				rc := newConn(fakeNetConn{Reader: chunker.f(&connBuf), Writer: nil}, !isServer, 1024, 1024)
+				if compress {
+					wc.newCompressionWriter = compressNoContextTakeover
+					rc.newDecompressionReader = decompressNoContextTakeover
+				}
+				for _, n := range frameSizes {
+					for _, writer := range writers {
+						name := fmt.Sprintf("z:%v, s:%v, r:%s, n:%d w:%s", compress, isServer, chunker.name, n, writer.name)
 
-			for _, n := range frameSizes {
-				for _, iocopy := range []bool{true, false} {
-					name := fmt.Sprintf("s:%v, r:%s, n:%d c:%v", isServer, chunker.name, n, iocopy)
+						w, err := wc.NextWriter(TextMessage)
+						if err != nil {
+							t.Errorf("%s: wc.NextWriter() returned %v", name, err)
+							continue
+						}
+						nn, err := writer.f(w, n)
+						if err != nil || nn != n {
+							t.Errorf("%s: w.Write(writeBuf[:n]) returned %d, %v", name, nn, err)
+							continue
+						}
+						err = w.Close()
+						if err != nil {
+							t.Errorf("%s: w.Close() returned %v", name, err)
+							continue
+						}
 
-					w, err := wc.NextWriter(TextMessage)
-					if err != nil {
-						t.Errorf("%s: wc.NextWriter() returned %v", name, err)
-						continue
-					}
-					var nn int
-					if iocopy {
-						var n64 int64
-						n64, err = io.Copy(w, bytes.NewReader(writeBuf[:n]))
-						nn = int(n64)
-					} else {
-						nn, err = w.Write(writeBuf[:n])
-					}
-					if err != nil || nn != n {
-						t.Errorf("%s: w.Write(writeBuf[:n]) returned %d, %v", name, nn, err)
-						continue
-					}
-					err = w.Close()
-					if err != nil {
-						t.Errorf("%s: w.Close() returned %v", name, err)
-						continue
-					}
+						opCode, r, err := rc.NextReader()
+						if err != nil || opCode != TextMessage {
+							t.Errorf("%s: NextReader() returned %d, r, %v", name, opCode, err)
+							continue
+						}
+						rbuf, err := ioutil.ReadAll(r)
+						if err != nil {
+							t.Errorf("%s: ReadFull() returned rbuf, %v", name, err)
+							continue
+						}
 
-					opCode, r, err := rc.NextReader()
-					if err != nil || opCode != TextMessage {
-						t.Errorf("%s: NextReader() returned %d, r, %v", name, opCode, err)
-						continue
-					}
-					rbuf, err := ioutil.ReadAll(r)
-					if err != nil {
-						t.Errorf("%s: ReadFull() returned rbuf, %v", name, err)
-						continue
-					}
+						if len(rbuf) != n {
+							t.Errorf("%s: len(rbuf) is %d, want %d", name, len(rbuf), n)
+							continue
+						}
 
-					if len(rbuf) != n {
-						t.Errorf("%s: len(rbuf) is %d, want %d", name, len(rbuf), n)
-						continue
-					}
-
-					for i, b := range rbuf {
-						if byte(i) != b {
-							t.Errorf("%s: bad byte at offset %d", name, i)
-							break
+						for i, b := range rbuf {
+							if byte(i) != b {
+								t.Errorf("%s: bad byte at offset %d", name, i)
+								break
+							}
 						}
 					}
 				}
@@ -146,7 +173,7 @@ func TestControl(t *testing.T) {
 	}
 }
 
-func TestCloseBeforeFinalFrame(t *testing.T) {
+func TestCloseFrameBeforeFinalMessageFrame(t *testing.T) {
 	const bufSize = 512
 
 	expectedErr := &CloseError{Code: CloseNormalClosure, Text: "hello"}
@@ -233,6 +260,32 @@ func TestEOFBeforeFinalFrame(t *testing.T) {
 	}
 }
 
+func TestWriteAfterMessageWriterClose(t *testing.T) {
+	wc := newConn(fakeNetConn{Reader: nil, Writer: &bytes.Buffer{}}, false, 1024, 1024)
+	w, _ := wc.NextWriter(BinaryMessage)
+	io.WriteString(w, "hello")
+	if err := w.Close(); err != nil {
+		t.Fatalf("unxpected error closing message writer, %v", err)
+	}
+
+	if _, err := io.WriteString(w, "world"); err == nil {
+		t.Fatalf("no error writing after close")
+	}
+
+	w, _ = wc.NextWriter(BinaryMessage)
+	io.WriteString(w, "hello")
+
+	// close w by getting next writer
+	_, err := wc.NextWriter(BinaryMessage)
+	if err != nil {
+		t.Fatalf("unexpected error getting next writer, %v", err)
+	}
+
+	if _, err := io.WriteString(w, "world"); err == nil {
+		t.Fatalf("no error writing after close")
+	}
+}
+
 func TestReadLimit(t *testing.T) {
 
 	const readLimit = 512
@@ -264,6 +317,16 @@ func TestReadLimit(t *testing.T) {
 	_, err = io.Copy(ioutil.Discard, r)
 	if err != ErrReadLimit {
 		t.Fatalf("io.Copy() returned %v", err)
+	}
+}
+
+func TestAddrs(t *testing.T) {
+	c := newConn(&fakeNetConn{}, true, 1024, 1024)
+	if c.LocalAddr() != localAddr {
+		t.Errorf("LocalAddr = %v, want %v", c.LocalAddr(), localAddr)
+	}
+	if c.RemoteAddr() != remoteAddr {
+		t.Errorf("RemoteAddr = %v, want %v", c.RemoteAddr(), remoteAddr)
 	}
 }
 

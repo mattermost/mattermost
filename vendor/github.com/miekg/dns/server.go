@@ -147,7 +147,7 @@ func (mux *ServeMux) match(q string, t uint16) Handler {
 				b[i] |= ('a' - 'A')
 			}
 		}
-		if h, ok := mux.z[string(b[:l])]; ok { // 'causes garbage, might want to change the map key
+		if h, ok := mux.z[string(b[:l])]; ok { // causes garbage, might want to change the map key
 			if t != TypeDS {
 				return h
 			}
