@@ -32,6 +32,17 @@ export default class ReactionListContainer extends React.Component {
         }
     }
 
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.post.id !== this.props.post.id) {
+            ReactionStore.removeChangeListener(this.props.post.id, this.handleReactionsChanged);
+            ReactionStore.addChangeListener(nextProps.post.id, this.handleReactionsChanged);
+
+            this.setState({
+                reactions: ReactionStore.getReactions(nextProps.post.id)
+            });
+        }
+    }
+
     shouldComponentUpdate(nextProps, nextState) {
         if (nextProps.post.has_reactions !== this.props.post.has_reactions) {
             return true;
