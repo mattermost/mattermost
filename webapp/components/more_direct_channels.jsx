@@ -12,7 +12,6 @@ import TeamStore from 'stores/team_store.jsx';
 
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
-import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
 import React from 'react';
@@ -34,13 +33,12 @@ export default class MoreDirectChannels extends React.Component {
         this.toggleList = this.toggleList.bind(this);
         this.nextPage = this.nextPage.bind(this);
         this.search = this.search.bind(this);
-        this.loadComplete = this.loadComplete.bind(this);
 
         this.state = {
-            users: UserStore.getProfileListInTeam(TeamStore.getCurrentId(), true, true),
+            users: null,
             loadingDMChannel: -1,
             listType: 'team',
-            loading: false,
+            show: true,
             search: false
         };
     }
@@ -62,19 +60,17 @@ export default class MoreDirectChannels extends React.Component {
         TeamStore.removeChangeListener(this.onChange);
     }
 
-    loadComplete() {
-        this.setState({loading: false});
-    }
-
     handleHide() {
-        if (this.props.onModalDismissed) {
-            this.props.onModalDismissed();
-        }
+        this.setState({show: false});
     }
 
     handleExit() {
         if (this.exitToDirectChannel) {
             browserHistory.push(this.exitToDirectChannel);
+        }
+
+        if (this.props.onModalDismissed) {
+            this.props.onModalDismissed();
         }
     }
 
@@ -109,7 +105,7 @@ export default class MoreDirectChannels extends React.Component {
 
         let users;
         if (this.state.listType === 'any') {
-            users = UserStore.getProfileList();
+            users = UserStore.getProfileList(true);
         } else {
             users = UserStore.getProfileListInTeam(TeamStore.getCurrentId(), true, true);
         }
@@ -123,7 +119,7 @@ export default class MoreDirectChannels extends React.Component {
         const listType = e.target.value;
         let users;
         if (listType === 'any') {
-            users = UserStore.getProfileList();
+            users = UserStore.getProfileList(true);
         } else {
             users = UserStore.getProfileListInTeam(TeamStore.getCurrentId(), true, true);
         }
@@ -188,11 +184,6 @@ export default class MoreDirectChannels extends React.Component {
     }
 
     render() {
-        let maxHeight = 1000;
-        if (Utils.windowHeight() <= 1200) {
-            maxHeight = Utils.windowHeight() - 300;
-        }
-
         let teamToggle;
         if (global.window.mm_config.RestrictDirectMessage === 'any') {
             teamToggle = (
@@ -229,15 +220,10 @@ export default class MoreDirectChannels extends React.Component {
             );
         }
 
-        let users = this.state.users;
-        if (this.state.loading) {
-            users = null;
-        }
-
         return (
             <Modal
                 dialogClassName='more-modal more-direct-channels'
-                show={this.props.show}
+                show={this.state.show}
                 onHide={this.handleHide}
                 onExited={this.handleExit}
             >
@@ -253,8 +239,7 @@ export default class MoreDirectChannels extends React.Component {
                     {teamToggle}
                     <SearchableUserList
                         key={'moreDirectChannelsList_' + this.state.listType}
-                        style={{maxHeight}}
-                        users={users}
+                        users={this.state.users}
                         usersPerPage={USERS_PER_PAGE}
                         nextPage={this.nextPage}
                         search={this.search}
@@ -280,6 +265,5 @@ export default class MoreDirectChannels extends React.Component {
 }
 
 MoreDirectChannels.propTypes = {
-    show: React.PropTypes.bool.isRequired,
     onModalDismissed: React.PropTypes.func
 };

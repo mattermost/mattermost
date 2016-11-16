@@ -189,23 +189,24 @@ func UpgradeDatabaseToVersion34(sqlStore *SqlStore) {
 }
 
 func UpgradeDatabaseToVersion35(sqlStore *SqlStore) {
-	//if shouldPerformUpgrade(sqlStore, VERSION_3_4_0, VERSION_3_5_0) {
+	if shouldPerformUpgrade(sqlStore, VERSION_3_4_0, VERSION_3_5_0) {
+		sqlStore.GetMaster().Exec("UPDATE Users SET Roles = 'system_user' WHERE Roles = ''")
+		sqlStore.GetMaster().Exec("UPDATE Users SET Roles = 'system_user system_admin' WHERE Roles = 'system_admin'")
+		sqlStore.GetMaster().Exec("UPDATE TeamMembers SET Roles = 'team_user' WHERE Roles = ''")
+		sqlStore.GetMaster().Exec("UPDATE TeamMembers SET Roles = 'team_user team_admin' WHERE Roles = 'admin'")
+		sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET Roles = 'channel_user' WHERE Roles = ''")
+		sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET Roles = 'channel_user channel_admin' WHERE Roles = 'admin'")
 
-	sqlStore.GetMaster().Exec("UPDATE Users SET Roles = 'system_user' WHERE Roles = ''")
-	sqlStore.GetMaster().Exec("UPDATE Users SET Roles = 'system_user system_admin' WHERE Roles = 'system_admin'")
-	sqlStore.GetMaster().Exec("UPDATE TeamMembers SET Roles = 'team_user' WHERE Roles = ''")
-	sqlStore.GetMaster().Exec("UPDATE TeamMembers SET Roles = 'team_user team_admin' WHERE Roles = 'admin'")
-	sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET Roles = 'channel_user' WHERE Roles = ''")
-	sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET Roles = 'channel_user channel_admin' WHERE Roles = 'admin'")
+		// The rest of the migration from Filenames -> FileIds is done lazily in api.GetFileInfosForPost
+		sqlStore.CreateColumnIfNotExists("Posts", "FileIds", "varchar(150)", "varchar(150)", "[]")
 
-	// The rest of the migration from Filenames -> FileIds is done lazily in api.GetFileInfosForPost
-	sqlStore.CreateColumnIfNotExists("Posts", "FileIds", "varchar(150)", "varchar(150)", "[]")
+		// Increase maximum length of the Channel table Purpose column.
+		if sqlStore.GetMaxLengthOfColumnIfExists("Channels", "Purpose") != "250" {
+			sqlStore.AlterColumnTypeIfExists("Channels", "Purpose", "varchar(250)", "varchar(250)")
+		}
 
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// UNCOMMENT WHEN WE DO RELEASE
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	//sqlStore.Session().RemoveAllSessions()
+		sqlStore.Session().RemoveAllSessions()
 
-	//saveSchemaVersion(sqlStore, VERSION_3_5_0)
-	//}
+		saveSchemaVersion(sqlStore, VERSION_3_5_0)
+	}
 }

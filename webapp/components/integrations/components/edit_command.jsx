@@ -4,29 +4,40 @@
 import React from 'react';
 
 import * as AsyncClient from 'utils/async_client.jsx';
+import IntegrationStore from 'stores/integration_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 
+import {loadTeamCommands} from 'actions/integration_actions.jsx';
 import BackstageHeader from 'components/backstage/components/backstage_header.jsx';
 import {FormattedMessage} from 'react-intl';
 import FormError from 'components/form_error.jsx';
 import {browserHistory, Link} from 'react-router/es6';
 import SpinnerButton from 'components/spinner_button.jsx';
 import Constants from 'utils/constants.jsx';
+import ConfirmModal from 'components/confirm_modal.jsx';
 
 const REQUEST_POST = 'P';
 const REQUEST_GET = 'G';
 
-export default class AddCommand extends React.Component {
+export default class EditCommand extends React.Component {
     static get propTypes() {
         return {
-            team: React.propTypes.object.isRequired
+            team: React.propTypes.object.isRequired,
+            location: React.PropTypes.object
         };
     }
 
     constructor(props) {
         super(props);
 
+        this.handleIntegrationChange = this.handleIntegrationChange.bind(this);
+
+        this.submitCommand = this.submitCommand.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.handleUpdate = this.handleUpdate.bind(this);
+        this.handleConfirmModal = this.handleConfirmModal.bind(this);
+        this.confirmModalDismissed = this.confirmModalDismissed.bind(this);
 
         this.updateDisplayName = this.updateDisplayName.bind(this);
         this.updateDescription = this.updateDescription.bind(this);
@@ -38,6 +49,11 @@ export default class AddCommand extends React.Component {
         this.updateAutocomplete = this.updateAutocomplete.bind(this);
         this.updateAutocompleteHint = this.updateAutocompleteHint.bind(this);
         this.updateAutocompleteDescription = this.updateAutocompleteDescription.bind(this);
+
+        this.originalCommand = null;
+        this.newCommand = null;
+
+        const teamId = TeamStore.getCurrentId();
 
         this.state = {
             displayName: '',
@@ -52,8 +68,80 @@ export default class AddCommand extends React.Component {
             autocompleteDescription: '',
             saving: false,
             serverError: '',
-            clientError: null
+            clientError: null,
+            showConfirmModal: false,
+            commands: IntegrationStore.getCommands(teamId),
+            loading: !IntegrationStore.hasReceivedCommands(teamId)
         };
+    }
+
+    componentDidMount() {
+        IntegrationStore.addChangeListener(this.handleIntegrationChange);
+
+        if (window.mm_config.EnableCommands === 'true') {
+            loadTeamCommands();
+        }
+    }
+
+    componentWillUnmount() {
+        IntegrationStore.removeChangeListener(this.handleIntegrationChange);
+    }
+
+    handleConfirmModal() {
+        this.setState({showConfirmModal: true});
+    }
+
+    confirmModalDismissed() {
+        this.setState({showConfirmModal: false});
+    }
+
+    submitCommand() {
+        AsyncClient.editCommand(
+            this.newCmd,
+            browserHistory.push('/' + this.props.team.name + '/integrations/commands'),
+            (err) => {
+                this.setState({
+                    saving: false,
+                    serverError: err.message
+                });
+            }
+        );
+    }
+
+    handleUpdate() {
+        this.setState({
+            saving: true,
+            serverError: '',
+            clientError: ''
+        });
+
+        this.submitCommand();
+    }
+
+    handleIntegrationChange() {
+        const teamId = TeamStore.getCurrentId();
+
+        this.setState({
+            commands: IntegrationStore.getCommands(teamId),
+            loading: !IntegrationStore.hasReceivedCommands(teamId)
+        });
+
+        if (!this.state.loading) {
+            this.originalCommand = this.state.commands.filter((command) => command.id === this.props.location.query.id)[0];
+
+            this.setState({
+                displayName: this.originalCommand.display_name,
+                description: this.originalCommand.description,
+                trigger: this.originalCommand.trigger,
+                url: this.originalCommand.url,
+                method: this.originalCommand.method,
+                username: this.originalCommand.username,
+                iconUrl: this.originalCommand.icon_url,
+                autocomplete: this.originalCommand.auto_complete,
+                autocompleteHint: this.originalCommand.auto_complete_hint,
+                autocompleteDescription: this.originalCommand.auto_complete_desc
+            });
+        }
     }
 
     handleSubmit(e) {
@@ -84,6 +172,10 @@ export default class AddCommand extends React.Component {
             icon_url: this.state.iconUrl,
             auto_complete: this.state.autocomplete
         };
+
+        if (this.originalCommand.id) {
+            command.id = this.originalCommand.id;
+        }
 
         if (command.auto_complete) {
             command.auto_complete_desc = this.state.autocompleteDescription;
@@ -163,18 +255,16 @@ export default class AddCommand extends React.Component {
             return;
         }
 
-        AsyncClient.addCommand(
-            command,
-            (data) => {
-                browserHistory.push('/' + this.props.team.name + '/integrations/commands/confirm?type=commands&id=' + data.id);
-            },
-            (err) => {
-                this.setState({
-                    saving: false,
-                    serverError: err.message
-                });
-            }
-        );
+        this.newCmd = command;
+
+        if (this.originalCommand.url !== this.newCmd.url || this.originalCommand.trigger !== this.newCmd.trigger || this.originalCommand.method !== this.newCmd.method) {
+            this.handleConfirmModal();
+            this.setState({
+                saving: false
+            });
+        } else {
+            this.submitCommand();
+        }
     }
 
     updateDisplayName(e) {
@@ -238,6 +328,27 @@ export default class AddCommand extends React.Component {
     }
 
     render() {
+        const confirmButton = (
+            <FormattedMessage
+                id='update_command.update'
+                defaultMessage='Update'
+            />
+        );
+
+        const confirmTitle = (
+            <FormattedMessage
+                id='update_command.confirm'
+                defaultMessage='Edit Slash Command'
+            />
+        );
+
+        const confirmMessage = (
+            <FormattedMessage
+                id='update_command.question'
+                defaultMessage='Your changes may break the existing slash command. Are you sure you would like to update it?'
+            />
+        );
+
         let autocompleteFields = null;
         if (this.state.autocomplete) {
             autocompleteFields = [(
@@ -318,8 +429,8 @@ export default class AddCommand extends React.Component {
                         />
                     </Link>
                     <FormattedMessage
-                        id='integrations.add'
-                        defaultMessage='Add'
+                        id='integrations.edit'
+                        defaultMessage='Edit'
                     />
                 </BackstageHeader>
                 <div className='backstage-form'>
@@ -596,12 +707,21 @@ export default class AddCommand extends React.Component {
                                 type='submit'
                                 spinning={this.state.saving}
                                 onClick={this.handleSubmit}
+                                disabled={this.state.loading}
                             >
                                 <FormattedMessage
-                                    id='add_command.save'
-                                    defaultMessage='Save'
+                                    id='edit_command.save'
+                                    defaultMessage='Update'
                                 />
                             </SpinnerButton>
+                            <ConfirmModal
+                                title={confirmTitle}
+                                message={confirmMessage}
+                                confirmButton={confirmButton}
+                                show={this.state.showConfirmModal}
+                                onConfirm={this.handleUpdate}
+                                onCancel={this.confirmModalDismissed}
+                            />
                         </div>
                     </form>
                 </div>

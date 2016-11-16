@@ -92,6 +92,11 @@ class WebClientClass extends Client {
             if (err) {
                 return error(err);
             }
+
+            if (!res.body) {
+                console.error('Missing response body for getYoutubeVideoInfo'); // eslint-disable-line no-console
+            }
+
             return success(res.body);
         });
     }

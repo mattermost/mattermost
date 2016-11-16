@@ -156,6 +156,8 @@ export default class EditPostModal extends React.Component {
 
     onModalShown() {
         this.refs.editbox.focus();
+
+        this.refs.editbox.recalculateSize();
     }
 
     onModalHide() {
@@ -234,6 +236,7 @@ export default class EditPostModal extends React.Component {
                                 onKeyPress={this.handleEditKeyPress}
                                 onKeyDown={this.handleKeyDown}
                                 value={this.state.editText}
+                                channelId={this.state.channel_id}
                                 createMessage={Utils.localizeMessage('edit_post.editPost', 'Edit the post...')}
                                 supportsCommands={false}
                                 id='edit_textbox'

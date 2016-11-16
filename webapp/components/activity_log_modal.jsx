@@ -1,17 +1,18 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
+import LoadingScreen from './loading_screen.jsx';
+
 import UserStore from 'stores/user_store.jsx';
+
 import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
-import {Modal} from 'react-bootstrap';
-import LoadingScreen from './loading_screen.jsx';
 import * as Utils from 'utils/utils.jsx';
 
-import {FormattedMessage, FormattedTime, FormattedDate} from 'react-intl';
-
+import $ from 'jquery';
 import React from 'react';
+import {Modal} from 'react-bootstrap';
+import {FormattedMessage, FormattedTime, FormattedDate} from 'react-intl';
 
 export default class ActivityLogModal extends React.Component {
     constructor(props) {
@@ -25,9 +26,11 @@ export default class ActivityLogModal extends React.Component {
 
         const state = this.getStateFromStores();
         state.moreInfo = [];
+        state.show = true;
 
         this.state = state;
     }
+
     getStateFromStores() {
         return {
             sessions: UserStore.getSessions(),
@@ -35,6 +38,7 @@ export default class ActivityLogModal extends React.Component {
             clientError: null
         };
     }
+
     submitRevoke(altId, e) {
         e.preventDefault();
         var modalContent = $(e.target).closest('.modal-content');
@@ -53,42 +57,40 @@ export default class ActivityLogModal extends React.Component {
             }
         );
     }
+
     onShow() {
         AsyncClient.getSessions();
         if (!Utils.isMobile()) {
             $('.modal-body').perfectScrollbar();
         }
     }
+
     onHide() {
-        this.setState({moreInfo: []});
-        this.props.onHide();
+        this.setState({show: false});
     }
+
     componentDidMount() {
         UserStore.addSessionsChangeListener(this.onListenerChange);
+        this.onShow();
+    }
 
-        if (this.props.show) {
-            this.onShow();
-        }
-    }
-    componentDidUpdate(prevProps) {
-        if (this.props.show && !prevProps.show) {
-            this.onShow();
-        }
-    }
     componentWillUnmount() {
         UserStore.removeSessionsChangeListener(this.onListenerChange);
     }
+
     onListenerChange() {
         const newState = this.getStateFromStores();
         if (!Utils.areObjectsEqual(newState.sessions, this.state.sessions)) {
             this.setState(newState);
         }
     }
+
     handleMoreInfo(index) {
         const newMoreInfo = this.state.moreInfo;
         newMoreInfo[index] = true;
         this.setState({moreInfo: newMoreInfo});
     }
+
     render() {
         const activityList = [];
 
@@ -263,8 +265,9 @@ export default class ActivityLogModal extends React.Component {
 
         return (
             <Modal
-                show={this.props.show}
+                show={this.state.show}
                 onHide={this.onHide}
+                onExited={this.props.onHide}
                 bsSize='large'
             >
                 <Modal.Header closeButton={true}>
@@ -290,6 +293,5 @@ export default class ActivityLogModal extends React.Component {
 }
 
 ActivityLogModal.propTypes = {
-    show: React.PropTypes.bool.isRequired,
     onHide: React.PropTypes.func.isRequired
 };

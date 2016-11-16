@@ -78,12 +78,17 @@ func TestChannelIsValid(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	o.Purpose = strings.Repeat("01234567890", 20)
+	o.Purpose = strings.Repeat("01234567890", 30)
 	if err := o.IsValid(); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.Purpose = "1234"
+	if err := o.IsValid(); err != nil {
+		t.Fatal(err)
+	}
+
+	o.Purpose = strings.Repeat("0123456789", 25)
 	if err := o.IsValid(); err != nil {
 		t.Fatal(err)
 	}

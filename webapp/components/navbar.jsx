@@ -546,6 +546,12 @@ export default class Navbar extends React.Component {
                             {deleteChannelOption}
                             {leaveChannelOption}
                             {toggleFavoriteOption}
+                            <div
+                                className='close visible-xs-block'
+                                onClick={() => this.refs.headerOverlay.hide()}
+                            >
+                                {'×'}
+                            </div>
                         </ul>
                     </div>
                 </div>
@@ -671,7 +677,7 @@ export default class Navbar extends React.Component {
                         options={{singleline: true, mentionHighlight: false}}
                     />
                     <div
-                        className='close__icon visible-xs-block'
+                        className='close visible-xs-block'
                         onClick={() => this.refs.headerOverlay.hide()}
                     >
                         {'×'}
@@ -721,7 +727,7 @@ export default class Navbar extends React.Component {
                             />
                         </div>
                         <div
-                            className='close__icon visible-xs-block'
+                            className='close visible-xs-block'
                             onClick={() => this.refs.headerOverlay.hide()}
                         >
                             {'×'}
@@ -730,21 +736,23 @@ export default class Navbar extends React.Component {
                 );
             }
 
-            editChannelHeaderModal = (
-                <EditChannelHeaderModal
-                    show={this.state.showEditChannelHeaderModal}
-                    onHide={() => this.setState({showEditChannelHeaderModal: false})}
-                    channel={channel}
-                />
-            );
+            if (this.state.showEditChannelHeaderModal) {
+                editChannelHeaderModal = (
+                    <EditChannelHeaderModal
+                        onHide={() => this.setState({showEditChannelHeaderModal: false})}
+                        channel={channel}
+                    />
+                );
+            }
 
-            editChannelPurposeModal = (
-                <EditChannelPurposeModal
-                    show={this.state.showEditChannelPurposeModal}
-                    onModalDismissed={() => this.setState({showEditChannelPurposeModal: false})}
-                    channel={channel}
-                />
-            );
+            if (this.state.showEditChannelPurposeModal) {
+                editChannelPurposeModal = (
+                    <EditChannelPurposeModal
+                        onModalDismissed={() => this.setState({showEditChannelPurposeModal: false})}
+                        channel={channel}
+                    />
+                );
+            }
 
             renameChannelModal = (
                 <RenameChannelModal
@@ -754,14 +762,16 @@ export default class Navbar extends React.Component {
                 />
             );
 
-            channelMembersModal = (
-                <ChannelMembersModal
-                    show={this.state.showMembersModal}
-                    onModalDismissed={this.hideMembersModal}
-                    channel={channel}
-                    isAdmin={isAdmin}
-                />
-            );
+            if (this.state.showMembersModal) {
+                channelMembersModal = (
+                    <ChannelMembersModal
+                        show={true}
+                        onModalDismissed={this.hideMembersModal}
+                        channel={channel}
+                        isAdmin={isAdmin}
+                    />
+                );
+            }
 
             channelSwitchModal = (
                 <ChannelSwitchModal

@@ -25,10 +25,12 @@ export default class Textbox extends React.Component {
         super(props);
 
         this.focus = this.focus.bind(this);
+        this.recalculateSize = this.recalculateSize.bind(this);
         this.getStateFromStores = this.getStateFromStores.bind(this);
         this.onRecievedError = this.onRecievedError.bind(this);
         this.handleKeyPress = this.handleKeyPress.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
+        this.handleBlur = this.handleBlur.bind(this);
         this.handleHeightChange = this.handleHeightChange.bind(this);
         this.showPreview = this.showPreview.bind(this);
 
@@ -84,13 +86,16 @@ export default class Textbox extends React.Component {
         }
     }
 
-    handleHeightChange(height) {
-        const textbox = $(this.refs.message.getTextbox());
+    handleBlur(e) {
+        if (this.props.onBlur) {
+            this.props.onBlur(e);
+        }
+    }
+
+    handleHeightChange(height, maxHeight) {
         const wrapper = $(this.refs.wrapper);
 
-        const maxHeight = parseInt(textbox.css('max-height'), 10);
-
-        // move over attachment icon to compensate for the scrollbar
+        // Move over attachment icon to compensate for the scrollbar
         if (height > maxHeight) {
             wrapper.closest('.post-body__cell').addClass('scroll');
         } else {
@@ -99,7 +104,14 @@ export default class Textbox extends React.Component {
     }
 
     focus() {
-        this.refs.message.getTextbox().focus();
+        const textbox = this.refs.message.getTextbox();
+
+        textbox.focus();
+        Utils.placeCaretAtEnd(textbox);
+    }
+
+    recalculateSize() {
+        this.refs.message.recalculateSize();
     }
 
     showPreview(e) {
@@ -209,6 +221,7 @@ export default class Textbox extends React.Component {
                     onChange={this.props.onChange}
                     onKeyPress={this.handleKeyPress}
                     onKeyDown={this.handleKeyDown}
+                    onBlur={this.handleBlur}
                     onHeightChange={this.handleHeightChange}
                     style={{visibility: this.state.preview ? 'hidden' : 'visible'}}
                     listComponent={SuggestionList}
@@ -255,5 +268,6 @@ Textbox.propTypes = {
     onKeyPress: React.PropTypes.func.isRequired,
     createMessage: React.PropTypes.string.isRequired,
     onKeyDown: React.PropTypes.func,
+    onBlur: React.PropTypes.func,
     supportsCommands: React.PropTypes.bool.isRequired
 };

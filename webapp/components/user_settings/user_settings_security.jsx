@@ -473,6 +473,20 @@ export default class SecurityTab extends React.Component {
                         </div>
                     </div>
                 );
+            } else if (this.props.user.auth_service === Constants.SAML_SERVICE) {
+                inputs.push(
+                    <div
+                        key='oauthEmailInfo'
+                        className='form-group'
+                    >
+                        <div className='setting-list__hint'>
+                            <FormattedMessage
+                                id='user.settings.security.passwordSamlCantUpdate'
+                                defaultMessage='This field is handled through your login provider. If you want to change it, you need to do so through your login provider.'
+                            />
+                        </div>
+                    </div>
+                );
             }
 
             updateSectionStatus = function resetSection(e) {
@@ -533,7 +547,7 @@ export default class SecurityTab extends React.Component {
             describe = (
                 <FormattedMessage
                     id='user.settings.security.loginGitlab'
-                    defaultMessage='Login done through Gitlab'
+                    defaultMessage='Login done through GitLab'
                 />
             );
         } else if (this.props.user.auth_service === Constants.LDAP_SERVICE) {
@@ -541,6 +555,13 @@ export default class SecurityTab extends React.Component {
                 <FormattedMessage
                     id='user.settings.security.loginLdap'
                     defaultMessage='Login done through AD/LDAP'
+                />
+            );
+        } else if (this.props.user.auth_service === Constants.SAML_SERVICE) {
+            describe = (
+                <FormattedMessage
+                    id='user.settings.security.loginSaml'
+                    defaultMessage='Login done through SAML'
                 />
             );
         }
@@ -928,8 +949,9 @@ export default class SecurityTab extends React.Component {
         numMethods = config.EnableLdap === 'true' ? numMethods + 1 : numMethods;
         numMethods = config.EnableSaml === 'true' ? numMethods + 1 : numMethods;
 
+        // If there are other sign-in methods and either email is enabled or the user's account is email, then allow switching
         let signInSection;
-        if (config.EnableSignUpWithEmail === 'true' && numMethods > 0) {
+        if ((config.EnableSignUpWithEmail === 'true' || user.auth_service === '') && numMethods > 0) {
             signInSection = this.createSignInSection();
         }
 

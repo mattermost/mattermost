@@ -443,6 +443,8 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		} else {
 			channel = newChanResult.Data.(*model.Channel)
+			InvalidateCacheForUser(directUserId)
+			InvalidateCacheForUser(hook.UserId)
 		}
 	} else if result.Err != nil {
 		c.Err = model.NewLocAppError("incomingWebhook", "web.incoming_webhook.channel.app_error", nil, "err="+result.Err.Message)

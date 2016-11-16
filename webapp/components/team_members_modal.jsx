@@ -3,7 +3,6 @@
 
 import MemberListTeam from './member_list_team.jsx';
 import TeamStore from 'stores/team_store.jsx';
-import * as Utils from 'utils/utils.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
@@ -16,9 +15,11 @@ export default class TeamMembersModal extends React.Component {
         super(props);
 
         this.teamChanged = this.teamChanged.bind(this);
+        this.onHide = this.onHide.bind(this);
 
         this.state = {
-            team: TeamStore.getCurrent()
+            team: TeamStore.getCurrent(),
+            show: true
         };
     }
 
@@ -34,22 +35,22 @@ export default class TeamMembersModal extends React.Component {
         this.setState({team: TeamStore.getCurrent()});
     }
 
+    onHide() {
+        this.setState({show: false});
+    }
+
     render() {
         let teamDisplayName = '';
         if (this.state.team) {
             teamDisplayName = this.state.team.display_name;
         }
 
-        let maxHeight = 1000;
-        if (Utils.windowHeight() <= 1200) {
-            maxHeight = Utils.windowHeight() - 300;
-        }
-
         return (
             <Modal
                 dialogClassName='more-modal'
-                show={this.props.show}
-                onHide={this.props.onHide}
+                show={this.state.show}
+                onHide={this.onHide}
+                onExited={this.props.onHide}
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title>
@@ -64,7 +65,6 @@ export default class TeamMembersModal extends React.Component {
                 </Modal.Header>
                 <Modal.Body>
                     <MemberListTeam
-                        style={{maxHeight}}
                         isAdmin={this.props.isAdmin}
                     />
                 </Modal.Body>
@@ -72,7 +72,7 @@ export default class TeamMembersModal extends React.Component {
                     <button
                         type='button'
                         className='btn btn-default'
-                        onClick={this.props.onHide}
+                        onClick={this.onHide}
                     >
                         <FormattedMessage
                             id='team_member_modal.close'
@@ -86,7 +86,6 @@ export default class TeamMembersModal extends React.Component {
 }
 
 TeamMembersModal.propTypes = {
-    show: React.PropTypes.bool.isRequired,
     onHide: React.PropTypes.func.isRequired,
     isAdmin: React.PropTypes.bool.isRequired
 };

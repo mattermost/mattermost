@@ -9,6 +9,7 @@ import (
 
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/websocket"
@@ -146,7 +147,23 @@ func (webCon *WebConn) InvalidateCache() {
 }
 
 func (webCon *WebConn) isAuthenticated() bool {
-	return webCon.SessionToken != ""
+	if webCon.SessionToken == "" {
+		return false
+	}
+
+	session := GetSession(webCon.SessionToken)
+	if session == nil || session.IsExpired() {
+		return false
+	}
+
+	return true
+}
+
+func (webCon *WebConn) SendHello() {
+	msg := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_HELLO, "", "", webCon.UserId, nil)
+	msg.Add("server_version", fmt.Sprintf("%v.%v.%v", model.CurrentVersion, model.BuildNumber, utils.CfgHash))
+	msg.DoPreComputeJson()
+	webCon.Send <- msg
 }
 
 func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {

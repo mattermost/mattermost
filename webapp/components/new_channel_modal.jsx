@@ -209,6 +209,7 @@ class NewChannelModal extends React.Component {
                     show={this.props.show}
                     bsSize='large'
                     onHide={this.props.onModalDismissed}
+                    onExited={this.props.onModalExited}
                 >
                     <Modal.Header closeButton={true}>
                         <Modal.Title>
@@ -283,7 +284,7 @@ class NewChannelModal extends React.Component {
                                         ref='channel_purpose'
                                         rows='4'
                                         placeholder={this.props.intl.formatMessage({id: 'channel_modal.purpose'})}
-                                        maxLength='128'
+                                        maxLength='250'
                                         value={this.props.channelData.purpose}
                                         onChange={this.handleChange}
                                         tabIndex='2'
@@ -382,6 +383,7 @@ NewChannelModal.propTypes = {
     serverError: React.PropTypes.node,
     onSubmitChannel: React.PropTypes.func.isRequired,
     onModalDismissed: React.PropTypes.func.isRequired,
+    onModalExited: React.PropTypes.func.optional,
     onTypeSwitched: React.PropTypes.func.isRequired,
     onChangeURLPressed: React.PropTypes.func.isRequired,
     onDataChanged: React.PropTypes.func.isRequired

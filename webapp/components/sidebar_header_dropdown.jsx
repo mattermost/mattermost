@@ -437,6 +437,16 @@ export default class SidebarHeaderDropdown extends React.Component {
             );
         }
 
+        let teamMembersModal;
+        if (this.state.showTeamMembersModal) {
+            teamMembersModal = (
+                <TeamMembersModal
+                    onHide={this.hideTeamMembersModal}
+                    isAdmin={isAdmin}
+                />
+            );
+        }
+
         return (
             <Dropdown
                 open={this.state.showDropdown}
@@ -508,11 +518,7 @@ export default class SidebarHeaderDropdown extends React.Component {
                         show={this.state.showUserSettingsModal}
                         onModalDismissed={() => this.setState({showUserSettingsModal: false})}
                     />
-                    <TeamMembersModal
-                        show={this.state.showTeamMembersModal}
-                        onHide={this.hideTeamMembersModal}
-                        isAdmin={isAdmin}
-                    />
+                    {teamMembersModal}
                     <AboutBuildModal
                         show={this.state.showAboutModal}
                         onModalDismissed={this.aboutModalDismissed}

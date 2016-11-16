@@ -2,14 +2,13 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
-import ReactDOM from 'react-dom';
 
 import Constants from 'utils/constants.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import SuggestionStore from 'stores/suggestion_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 
-import TextareaAutosize from 'react-autosize-textarea';
+import AutosizeTextarea from 'components/autosize_textarea.jsx';
 
 const KeyCodes = Constants.KeyCodes;
 
@@ -31,10 +30,17 @@ export default class SuggestionBox extends React.Component {
     }
 
     componentDidMount() {
-        $(document).on('click touchstart', this.handleDocumentClick);
+        $(document).on('click', this.handleDocumentClick);
 
         SuggestionStore.addCompleteWordListener(this.suggestionId, this.handleCompleteWord);
         SuggestionStore.addPretextChangedListener(this.suggestionId, this.handlePretextChanged);
+    }
+
+    componentWillReceiveProps(nextProps) {
+        // Clear any suggestions when the SuggestionBox is cleared
+        if (nextProps.value === '' && this.props.value !== nextProps.value) {
+            GlobalActions.emitClearSuggestions(this.suggestionId);
+        }
     }
 
     componentWillUnmount() {
@@ -42,36 +48,39 @@ export default class SuggestionBox extends React.Component {
         SuggestionStore.removePretextChangedListener(this.suggestionId, this.handlePretextChanged);
 
         SuggestionStore.unregisterSuggestionBox(this.suggestionId);
-        $(document).off('click touchstart', this.handleDocumentClick);
+        $(document).off('click', this.handleDocumentClick);
     }
 
     getTextbox() {
-        // this is to support old code that looks at the input/textarea DOM nodes
-        let textbox = this.refs.textbox;
-
-        if (!(textbox instanceof HTMLElement)) {
-            textbox = ReactDOM.findDOMNode(textbox);
+        if (this.props.type === 'textarea') {
+            return this.refs.textbox.getDOMNode();
         }
 
-        return textbox;
+        return this.refs.textbox;
+    }
+
+    recalculateSize() {
+        if (this.props.type === 'textarea') {
+            this.refs.textbox.recalculateSize();
+        }
     }
 
     handleDocumentClick(e) {
-        const container = $(ReactDOM.findDOMNode(this));
-        if ($('.suggestion-list__content').length) {
-            if (!($(e.target).hasClass('suggestion-list__content') || $(e.target).parents().hasClass('suggestion-list__content'))) {
-                $('body').removeClass('modal-open');
-            }
+        if (!SuggestionStore.hasSuggestions(this.suggestionId)) {
+            return;
         }
+
+        const container = $(this.refs.container);
+
         if (!(container.is(e.target) || container.has(e.target).length > 0)) {
-            // we can't just use blur for this because it fires and hides the children before
+            // We can't just use blur for this because it fires and hides the children before
             // their click handlers can be called
             GlobalActions.emitClearSuggestions(this.suggestionId);
         }
     }
 
     handleChange(e) {
-        const textbox = ReactDOM.findDOMNode(this.refs.textbox);
+        const textbox = this.getTextbox();
         const caret = Utils.getCaretPosition(textbox);
         const pretext = textbox.value.substring(0, caret);
 
@@ -83,7 +92,7 @@ export default class SuggestionBox extends React.Component {
     }
 
     handleCompleteWord(term, matchedPretext) {
-        const textbox = ReactDOM.findDOMNode(this.refs.textbox);
+        const textbox = this.getTextbox();
         const caret = Utils.getCaretPosition(textbox);
         const text = this.props.value;
         const pretext = text.substring(0, caret);
@@ -150,48 +159,57 @@ export default class SuggestionBox extends React.Component {
     }
 
     render() {
+        const {
+            type,
+            listComponent,
+            listStyle,
+            renderDividers,
+            ...props
+        } = this.props;
+
         let textbox = null;
-        if (this.props.type === 'input') {
+        if (type === 'input') {
             textbox = (
                 <input
                     ref='textbox'
                     type='text'
-                    {...this.props}
-                    onChange={this.handleChange}
+                    {...props}
+                    onInput={this.handleChange}
                     onKeyDown={this.handleKeyDown}
                 />
             );
-        } else if (this.props.type === 'search') {
+        } else if (type === 'search') {
             textbox = (
                 <input
                     ref='textbox'
                     type='search'
-                    {...this.props}
-                    onChange={this.handleChange}
+                    {...props}
+                    onInput={this.handleChange}
                     onKeyDown={this.handleKeyDown}
                 />
             );
-        } else if (this.props.type === 'textarea') {
+        } else if (type === 'textarea') {
             textbox = (
-                <TextareaAutosize
+                <AutosizeTextarea
                     id={this.suggestionId}
                     ref='textbox'
-                    {...this.props}
-                    onChange={this.handleChange}
+                    {...props}
+                    onInput={this.handleChange}
                     onKeyDown={this.handleKeyDown}
                 />
             );
         }
 
-        const SuggestionListComponent = this.props.listComponent;
+        // This needs to be upper case so React doesn't think it's an html tag
+        const SuggestionListComponent = listComponent;
 
         return (
-            <div>
+            <div ref='container'>
                 {textbox}
                 <SuggestionListComponent
                     suggestionId={this.suggestionId}
-                    location={this.props.listStyle}
-                    renderDividers={this.props.renderDividers}
+                    location={listStyle}
+                    renderDividers={renderDividers}
                 />
             </div>
         );

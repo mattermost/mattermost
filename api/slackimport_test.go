@@ -4,7 +4,9 @@
 package api
 
 import (
+	"github.com/mattermost/platform/model"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -110,10 +112,10 @@ func TestSlackConvertChannelMentions(t *testing.T) {
 	expectedPosts := map[string][]SlackPost{
 		"test-channel": {
 			{
-				Text: "Go to !one.",
+				Text: "Go to ~one.",
 			},
 			{
-				Text: "Try !two for this.",
+				Text: "Try ~two for this.",
 			},
 		},
 	}
@@ -175,5 +177,43 @@ func TestSlackParsePosts(t *testing.T) {
 
 	if len(posts) != 8 {
 		t.Fatalf("Unexpected number of posts: %v", len(posts))
+	}
+}
+
+func TestSlackSanitiseChannelProperties(t *testing.T) {
+	c1 := model.Channel{
+		DisplayName: "display-name",
+		Name:        "name",
+		Purpose:     "The channel purpose",
+		Header:      "The channel header",
+	}
+
+	c1s := SlackSanitiseChannelProperties(c1)
+	if c1.DisplayName != c1s.DisplayName || c1.Name != c1s.Name || c1.Purpose != c1s.Purpose || c1.Header != c1s.Header {
+		t.Fatalf("Unexpected alterations to the channel properties.")
+	}
+
+	c2 := model.Channel{
+		DisplayName: strings.Repeat("abcdefghij", 7),
+		Name:        strings.Repeat("abcdefghij", 7),
+		Purpose:     strings.Repeat("0123456789", 30),
+		Header:      strings.Repeat("0123456789", 120),
+	}
+
+	c2s := SlackSanitiseChannelProperties(c2)
+	if c2s.DisplayName != strings.Repeat("abcdefghij", 6)+"abcd" {
+		t.Fatalf("Unexpected alterations to the channel properties: %v", c2s.DisplayName)
+	}
+
+	if c2s.Name != strings.Repeat("abcdefghij", 6)+"abcd" {
+		t.Fatalf("Unexpected alterations to the channel properties: %v", c2s.Name)
+	}
+
+	if c2s.Purpose != strings.Repeat("0123456789", 25) {
+		t.Fatalf("Unexpected alterations to the channel properties: %v", c2s.Purpose)
+	}
+
+	if c2s.Header != strings.Repeat("0123456789", 102)+"0123" {
+		t.Fatalf("Unexpected alterations to the channel properties: %v", c2s.Header)
 	}
 }

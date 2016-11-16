@@ -264,7 +264,7 @@ export default class PostList extends React.Component {
 
             let commentCount = 0;
             let isCommentMention = false;
-            let lastCommentOnThreadTime = Number.MAX_SAFE_INTEGER;
+            let shouldHighlightThreads = false;
             let commentRootId;
             if (parentPost) {
                 commentRootId = post.root_id;
@@ -272,11 +272,13 @@ export default class PostList extends React.Component {
                 commentRootId = post.id;
             }
 
-            for (const postId in posts) {
-                if (posts[postId].root_id === commentRootId) {
-                    commentCount += 1;
-                    if (posts[postId].user_id === userId && (lastCommentOnThreadTime === Number.MAX_SAFE_INTEGER || lastCommentOnThreadTime < posts[postId].create_at)) {
-                        lastCommentOnThreadTime = posts[postId].create_at;
+            if (commentRootId) {
+                for (const postId in posts) {
+                    if (posts[postId].root_id === commentRootId) {
+                        commentCount += 1;
+                        if (posts[postId].user_id === userId) {
+                            shouldHighlightThreads = true;
+                        }
                     }
                 }
             }
@@ -284,9 +286,8 @@ export default class PostList extends React.Component {
             if (parentPost && commentRootId) {
                 const commentsNotifyLevel = this.props.currentUser.notify_props.comments || 'never';
                 const notCurrentUser = post.user_id !== userId || (post.props && post.props.from_webhook);
-                const notViewed = this.props.lastViewed !== 0 && post.create_at > this.props.lastViewed;
-                if (notCurrentUser && notViewed) {
-                    if (commentsNotifyLevel === 'any' && (posts[commentRootId].user_id === userId || post.create_at > lastCommentOnThreadTime)) {
+                if (notCurrentUser) {
+                    if (commentsNotifyLevel === 'any' && (posts[commentRootId].user_id === userId || shouldHighlightThreads)) {
                         isCommentMention = true;
                     } else if (commentsNotifyLevel === 'root' && posts[commentRootId].user_id === userId) {
                         isCommentMention = true;

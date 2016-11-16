@@ -11,7 +11,7 @@ import Constants from 'utils/constants.jsx';
 const UserStatuses = Constants.UserStatuses;
 const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 
-import {Popover, OverlayTrigger} from 'react-bootstrap';
+import {Popover, OverlayTrigger, Tooltip} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
 import React from 'react';
@@ -90,8 +90,7 @@ export default class UserProfile extends React.Component {
         let webrtc;
         const userMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 
-        const webrtcEnabled = global.mm_config.EnableWebrtc === 'true' && global.mm_license.Webrtc === 'true' &&
-            global.mm_config.EnableDeveloper === 'true' && userMedia && Utils.isFeatureEnabled(PreReleaseFeatures.WEBRTC_PREVIEW);
+        const webrtcEnabled = global.mm_config.EnableWebrtc === 'true' && userMedia && Utils.isFeatureEnabled(PreReleaseFeatures.WEBRTC_PREVIEW);
 
         if (webrtcEnabled && this.props.user.id !== this.state.currentUserId) {
             const isOnline = this.props.status !== UserStatuses.OFFLINE;
@@ -112,7 +111,18 @@ export default class UserProfile extends React.Component {
                         defaultMessage='New call unavailable until your existing call ends'
                     />
                 );
+            } else {
+                webrtcMessage = (
+                    <FormattedMessage
+                        id='user_profile.webrtc.offline'
+                        defaultMessage='The user is offline'
+                    />
+                );
             }
+
+            const webrtcTooltip = (
+                <Tooltip id='webrtcTooltip'>{webrtcMessage}</Tooltip>
+            );
 
             webrtc = (
                 <div
@@ -124,28 +134,18 @@ export default class UserProfile extends React.Component {
                         onClick={() => this.initWebrtc()}
                         disabled={!isOnline}
                     >
-                        <svg
-                            id='webrtc-btn'
-                            className='webrtc__button'
-                            xmlns='http://www.w3.org/2000/svg'
+                        <OverlayTrigger
+                            delayShow={Constants.WEBRTC_TIME_DELAY}
+                            placement='top'
+                            overlay={webrtcTooltip}
                         >
-                            <circle
-                                className={circleClass}
-                                cx='16'
-                                cy='16'
-                                r='18'
+                            <div
+                                id='webrtc-btn'
+                                className={'webrtc__button ' + circleClass}
                             >
-                                <title>
-                                    {webrtcMessage}
-                                </title>
-                            </circle>
-                            <path
-                                className='off'
-                                transform='scale(0.4), translate(17,16)'
-                                d='M40 8H8c-2.21 0-4 1.79-4 4v24c0 2.21 1.79 4 4 4h32c2.21 0 4-1.79 4-4V12c0-2.21-1.79-4-4-4zm-4 24l-8-6.4V32H12V16h16v6.4l8-6.4v16z'
-                                fill='white'
-                            />
-                        </svg>
+                                <span dangerouslySetInnerHTML={{__html: Constants.VIDEO_ICON}}/>
+                            </div>
+                        </OverlayTrigger>
                     </a>
                 </div>
             );

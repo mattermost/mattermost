@@ -26,6 +26,12 @@ export default class Logs extends React.Component {
         AsyncClient.getLogs();
     }
 
+    componentDidUpdate() {
+        // Scroll Down to get the latest logs
+        var node = this.refs.logPanel;
+        node.scrollTop = node.scrollHeight;
+    }
+
     componentWillUnmount() {
         AdminStore.removeLogChangeListener(this.onLogListenerChange);
     }
@@ -93,7 +99,10 @@ export default class Logs extends React.Component {
                         defaultMessage='Reload'
                     />
                 </button>
-                <div className='log__panel'>
+                <div
+                    ref='logPanel'
+                    className='log__panel'
+                >
                     {content}
                 </div>
             </div>

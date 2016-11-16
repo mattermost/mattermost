@@ -121,6 +121,11 @@ class SuggestionStore extends EventEmitter {
     }
 
     addSuggestions(id, terms, items, component, matchedPretext) {
+        if (!this.getPretext(id).endsWith(matchedPretext)) {
+            // These suggestions are out of date since the pretext has changed
+            return;
+        }
+
         const suggestion = this.suggestions.get(id);
 
         suggestion.terms.push(...terms);
@@ -218,7 +223,7 @@ class SuggestionStore extends EventEmitter {
     }
 
     handleEventPayload(payload) {
-        const {type, id, ...other} = payload.action; // eslint-disable-line no-use-before-define
+        const {type, id, ...other} = payload.action;
 
         switch (type) {
         case ActionTypes.SUGGESTION_PRETEXT_CHANGED:
@@ -243,6 +248,7 @@ class SuggestionStore extends EventEmitter {
             this.emitSuggestionsChanged(id);
             break;
         case ActionTypes.SUGGESTION_CLEAR_SUGGESTIONS:
+            this.setPretext(id, '');
             this.clearSuggestions(id);
             this.clearSelection(id);
             this.emitSuggestionsChanged(id);

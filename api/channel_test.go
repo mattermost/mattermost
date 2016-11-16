@@ -378,6 +378,8 @@ func TestUpdateChannelHeader(t *testing.T) {
 		upChannel1 = result.Data.(*model.Channel)
 	}
 
+	time.Sleep(100 * time.Millisecond)
+
 	r1 := Client.Must(Client.GetPosts(channel1.Id, 0, 1, "")).Data.(*model.PostList)
 	if len(r1.Order) != 1 {
 		t.Fatal("Header update system message was not found")
@@ -546,7 +548,7 @@ func TestUpdateChannelPurpose(t *testing.T) {
 	}
 
 	data["channel_id"] = channel1.Id
-	data["channel_purpose"] = strings.Repeat("a", 150)
+	data["channel_purpose"] = strings.Repeat("a", 350)
 	if _, err := Client.UpdateChannelPurpose(data); err == nil {
 		t.Fatal("should have errored on bad channel purpose")
 	}

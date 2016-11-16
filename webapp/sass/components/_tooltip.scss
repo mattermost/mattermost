@@ -8,3 +8,9 @@
         word-break: break-word;
     }
 }
+
+#webrtcTooltip {
+    .tooltip-inner {
+        word-break: normal;
+    }
+}

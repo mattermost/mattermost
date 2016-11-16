@@ -77,7 +77,7 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if channel.TeamId == c.TeamId {
 
 		// Get total number of channels on current team
-		if result := <-Srv.Store.Channel().GetChannels(channel.TeamId, c.Session.UserId); result.Err != nil {
+		if result := <-Srv.Store.Channel().GetTeamChannels(channel.TeamId); result.Err != nil {
 			c.Err = model.NewLocAppError("createChannel", "api.channel.get_channels.error", nil, result.Err.Message)
 			return
 		} else {
@@ -1176,6 +1176,8 @@ func updateNotifyProps(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = result.Err
 		return
 	} else {
+		InvalidateCacheForUser(userId)
+
 		// return the updated notify properties including any unchanged ones
 		w.Write([]byte(model.MapToJson(member.NotifyProps)))
 	}

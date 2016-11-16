@@ -55,8 +55,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
 
         let enabledFeatures = 0;
         for (const [name, value] of advancedSettings) {
-            const webrtcEnabled = global.mm_config.EnableWebrtc === 'true' && global.mm_license.Webrtc === 'true' &&
-                global.mm_config.EnableDeveloper === 'true';
+            const webrtcEnabled = global.mm_config.EnableWebrtc === 'true';
 
             if (!webrtcEnabled) {
                 preReleaseFeaturesKeys = preReleaseFeaturesKeys.filter((f) => f !== 'WEBRTC_PREVIEW');

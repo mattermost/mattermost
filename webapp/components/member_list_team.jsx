@@ -30,8 +30,9 @@ export default class MemberListTeam extends React.Component {
         this.state = {
             users: UserStore.getProfileListInTeam(),
             teamMembers: Object.assign([], TeamStore.getMembersInTeam()),
-            total: stats.member_count,
+            total: stats.total_member_count,
             search: false,
+            term: '',
             loading: true
         };
     }
@@ -39,7 +40,7 @@ export default class MemberListTeam extends React.Component {
     componentDidMount() {
         UserStore.addInTeamChangeListener(this.onChange);
         UserStore.addStatusesChangeListener(this.onChange);
-        TeamStore.addChangeListener(this.onChange);
+        TeamStore.addChangeListener(this.onChange.bind(null, true));
         TeamStore.addStatsChangeListener(this.onStatsChange);
 
         loadProfilesAndTeamMembers(0, Constants.PROFILE_CHUNK_SIZE, TeamStore.getCurrentId(), this.loadComplete);
@@ -60,6 +61,9 @@ export default class MemberListTeam extends React.Component {
     onChange(force) {
         if (this.state.search && !force) {
             return;
+        } else if (this.state.search) {
+            this.search(this.state.term);
+            return;
         }
 
         this.setState({users: UserStore.getProfileListInTeam(), teamMembers: Object.assign([], TeamStore.getMembersInTeam())});
@@ -67,7 +71,7 @@ export default class MemberListTeam extends React.Component {
 
     onStatsChange() {
         const stats = TeamStore.getCurrentStats();
-        this.setState({total: stats.member_count});
+        this.setState({total: stats.total_member_count});
     }
 
     nextPage(page) {
@@ -76,8 +80,7 @@ export default class MemberListTeam extends React.Component {
 
     search(term) {
         if (term === '') {
-            this.onChange(true);
-            this.setState({search: false});
+            this.setState({search: false, term, users: UserStore.getProfileListInTeam(), teamMembers: Object.assign([], TeamStore.getMembersInTeam())});
             return;
         }
 
@@ -86,7 +89,7 @@ export default class MemberListTeam extends React.Component {
             TeamStore.getCurrentId(),
             {},
             (users) => {
-                this.setState({loading: true, search: true, users});
+                this.setState({loading: true, search: true, users, term, teamMembers: Object.assign([], TeamStore.getMembersInTeam())});
                 loadTeamMembersForProfilesList(users, TeamStore.getCurrentId(), this.loadComplete);
             }
         );
@@ -122,7 +125,6 @@ export default class MemberListTeam extends React.Component {
 
         return (
             <SearchableUserList
-                style={this.props.style}
                 users={usersToDisplay}
                 usersPerPage={USERS_PER_PAGE}
                 total={this.state.total}
@@ -136,6 +138,5 @@ export default class MemberListTeam extends React.Component {
 }
 
 MemberListTeam.propTypes = {
-    style: React.PropTypes.object,
     isAdmin: React.PropTypes.bool
 };

@@ -6,6 +6,7 @@ import PostBodyAdditionalContent from 'components/post_view/components/post_body
 import PostMessageContainer from 'components/post_view/components/post_message_container.jsx';
 import FileAttachmentListContainer from './file_attachment_list_container.jsx';
 import ProfilePicture from 'components/profile_picture.jsx';
+import RhsDropdown from 'components/rhs_dropdown.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
@@ -20,7 +21,7 @@ import * as PostUtils from 'utils/post_utils.jsx';
 import Constants from 'utils/constants.jsx';
 import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 
-import {FormattedMessage, FormattedDate} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 import React from 'react';
 
@@ -228,23 +229,7 @@ export default class RhsRootPost extends React.Component {
         var rootOptions = '';
         if (dropdownContents.length > 0) {
             rootOptions = (
-                <div className='dropdown'>
-                    <a
-                        href='#'
-                        className='post__dropdown dropdown-toggle'
-                        type='button'
-                        data-toggle='dropdown'
-                        aria-expanded='false'
-                    />
-                    <div className='dropdown-menu__content'>
-                        <ul
-                            className='dropdown-menu'
-                            role='menu'
-                        >
-                            {dropdownContents}
-                        </ul>
-                    </div>
-                </div>
+                <RhsDropdown dropdownContents={dropdownContents}/>
             );
         }
 
@@ -357,6 +342,15 @@ export default class RhsRootPost extends React.Component {
             flagFunc = this.flagPost;
         }
 
+        const timeOptions = {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: !this.props.useMilitaryTime
+        };
+
         return (
             <div className={'post post--root post--thread ' + userCss + ' ' + systemMessageClass + ' ' + compactClass}>
                 <div className='post-right-channel__name'>{channelName}</div>
@@ -368,15 +362,7 @@ export default class RhsRootPost extends React.Component {
                             {botIndicator}
                             <li className='col'>
                                 <time className='post__time'>
-                                    <FormattedDate
-                                        value={post.create_at}
-                                        day='numeric'
-                                        month='short'
-                                        year='numeric'
-                                        hour12={!this.props.useMilitaryTime}
-                                        hour='2-digit'
-                                        minute='2-digit'
-                                    />
+                                    {Utils.getDateForUnixTicks(post.create_at).toLocaleString('en', timeOptions)}
                                 </time>
                                 <OverlayTrigger
                                     key={'rootpostflagtooltipkey' + flagVisible}

@@ -145,6 +145,7 @@ export default class ChangeUrlModal extends React.Component {
             <Modal
                 show={this.props.show}
                 onHide={this.doCancel}
+                onExited={this.props.onModalExited}
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title>{this.props.title}</Modal.Title>
@@ -226,5 +227,6 @@ ChangeUrlModal.propTypes = {
     currentURL: React.PropTypes.string,
     serverError: React.PropTypes.node,
     onModalSubmit: React.PropTypes.func.isRequired,
+    onModalExited: React.PropTypes.func.optional,
     onModalDismissed: React.PropTypes.func.isRequired
 };

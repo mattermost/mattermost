@@ -81,7 +81,6 @@ export default class NeedsTeam extends React.Component {
         if (tutorialStep <= TutorialSteps.INTRO_SCREENS) {
             browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/tutorial');
         }
-        stopPeriodicStatusUpdates();
     }
 
     componentDidMount() {
@@ -132,6 +131,7 @@ export default class NeedsTeam extends React.Component {
         if (UserAgent.isIosSafari()) {
             iNoBounce.disable();
         }
+        stopPeriodicStatusUpdates();
     }
 
     render() {

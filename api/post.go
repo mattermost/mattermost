@@ -512,9 +512,6 @@ func getExplicitMentions(message string, keywords map[string][]string) (map[stri
 		if ids, match := keywords[word]; match {
 			addMentionedUsers(ids)
 			isMention = true
-		} else if _, ok := systemMentions[word]; !ok && strings.HasPrefix(word, "@") {
-			potentialOthersMentioned = append(potentialOthersMentioned, word[1:])
-			continue
 		}
 
 		if !isMention {
@@ -854,9 +851,7 @@ func sendNotificationEmail(c *Context, post *model.Post, user *model.User, chann
 			"ChannelName": channelName, "Month": month, "Day": day, "Year": year}
 	}
 
-	subjectPage := utils.NewHTMLTemplate("post_subject", user.Locale)
-	subjectPage.Props["Subject"] = userLocale(mailTemplate, mailParameters)
-	subjectPage.Props["SiteName"] = utils.Cfg.TeamSettings.SiteName
+	subject := fmt.Sprintf("[%v] %v", utils.Cfg.TeamSettings.SiteName, userLocale(mailTemplate, mailParameters))
 
 	bodyPage := utils.NewHTMLTemplate("post_body", user.Locale)
 	bodyPage.Props["SiteURL"] = c.GetSiteURL()
@@ -869,7 +864,7 @@ func sendNotificationEmail(c *Context, post *model.Post, user *model.User, chann
 			"Hour": fmt.Sprintf("%02d", tm.Hour()), "Minute": fmt.Sprintf("%02d", tm.Minute()),
 			"TimeZone": zone, "Month": month, "Day": day}))
 
-	if err := utils.SendMail(user.Email, html.UnescapeString(subjectPage.Render()), bodyPage.Render()); err != nil {
+	if err := utils.SendMail(user.Email, html.UnescapeString(subject), bodyPage.Render()); err != nil {
 		l4g.Error(utils.T("api.post.send_notifications_and_forget.send.error"), user.Email, err)
 	}
 

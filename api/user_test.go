@@ -80,6 +80,51 @@ func TestCreateUser(t *testing.T) {
 	}
 }
 
+func TestCheckUserDomain(t *testing.T) {
+	th := Setup().InitBasic()
+	user := th.BasicUser
+
+	cases := []struct {
+		domains string
+		matched bool
+	}{
+		{"simulator.amazonses.com", true},
+		{"gmail.com", false},
+		{"", true},
+		{"gmail.com simulator.amazonses.com", true},
+	}
+	for _, c := range cases {
+		matched := CheckUserDomain(user, c.domains)
+		if matched != c.matched {
+			if c.matched {
+				t.Logf("'%v' should have matched '%v'", user.Email, c.domains)
+			} else {
+				t.Logf("'%v' should not have matched '%v'", user.Email, c.domains)
+			}
+			t.FailNow()
+		}
+	}
+}
+
+func TestIsUsernameTaken(t *testing.T) {
+	th := Setup().InitBasic()
+	user := th.BasicUser
+	taken := IsUsernameTaken(user.Username)
+
+	if !taken {
+		t.Logf("the username '%v' should be taken", user.Username)
+		t.FailNow()
+	}
+
+	newUsername := "randomUsername"
+	taken = IsUsernameTaken(newUsername)
+
+	if taken {
+		t.Logf("the username '%v' should not be taken", newUsername)
+		t.FailNow()
+	}
+}
+
 func TestLogin(t *testing.T) {
 	th := Setup()
 	Client := th.CreateClient()
@@ -1088,8 +1133,9 @@ func TestUserUpdateDeviceId(t *testing.T) {
 }
 
 func TestUserUpdateActive(t *testing.T) {
-	th := Setup()
+	th := Setup().InitSystemAdmin()
 	Client := th.CreateClient()
+	SystemAdminClient := th.SystemAdminClient
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
@@ -1141,6 +1187,18 @@ func TestUserUpdateActive(t *testing.T) {
 
 	if _, err := Client.UpdateActive("12345678901234567890123456", false); err == nil {
 		t.Fatal("Should have errored, bad id")
+	}
+
+	SetStatusOnline(user3.Id, "", false)
+
+	if _, err := SystemAdminClient.UpdateActive(user3.Id, false); err != nil {
+		t.Fatal(err)
+	}
+
+	if status, err := GetStatus(user3.Id); err != nil {
+		t.Fatal(err)
+	} else if status.Status != model.STATUS_OFFLINE {
+		t.Fatal("status should have been set to offline")
 	}
 }
 

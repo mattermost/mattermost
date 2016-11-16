@@ -19,7 +19,6 @@ import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as ChannelUtils from 'utils/channel_utils.jsx';
 import * as ChannelActions from 'actions/channel_actions.jsx';
-import {loadProfilesAndTeamMembersForDMSidebar} from 'actions/user_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 
@@ -125,9 +124,6 @@ export default class Sidebar extends React.Component {
 
         document.addEventListener('keydown', this.navigateChannelShortcut);
         document.addEventListener('keydown', this.navigateUnreadChannelShortcut);
-
-        loadProfilesAndTeamMembersForDMSidebar();
-        AsyncClient.getMyChannelMembers();
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -309,7 +305,7 @@ export default class Sidebar extends React.Component {
     }
 
     getDisplayedChannels() {
-        return this.state.publicChannels.concat(this.state.privateChannels).concat(this.state.directChannels).concat(this.state.directNonTeamChannels);
+        return this.state.favoriteChannels.concat(this.state.publicChannels).concat(this.state.privateChannels).concat(this.state.directChannels).concat(this.state.directNonTeamChannels);
     }
 
     handleLeaveDirectChannel(e, channel) {
@@ -715,6 +711,16 @@ export default class Sidebar extends React.Component {
             }
         }
 
+        let moreDirectChannelsModal;
+        if (this.state.showDirectChannelsModal) {
+            moreDirectChannelsModal = (
+                <MoreDirectChannels
+                    show={true}
+                    onModalDismissed={this.hideMoreDirectChannelsModal}
+                />
+            );
+        }
+
         return (
             <div
                 className='sidebar--left'
@@ -726,10 +732,7 @@ export default class Sidebar extends React.Component {
                     channelType={this.state.newChannelModalType}
                     onModalDismissed={this.hideNewChannelModal}
                 />
-                <MoreDirectChannels
-                    show={this.state.showDirectChannelsModal}
-                    onModalDismissed={this.hideMoreDirectChannelsModal}
-                />
+                {moreDirectChannelsModal}
 
                 <SidebarHeader
                     teamDisplayName={this.state.currentTeam.display_name}

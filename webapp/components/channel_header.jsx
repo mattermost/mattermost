@@ -290,8 +290,7 @@ export default class ChannelHeader extends React.Component {
             const teammateId = Utils.getUserIdFromChannelName(channel);
             channelTitle = Utils.displayUsername(teammateId);
 
-            const webrtcEnabled = global.mm_config.EnableWebrtc === 'true' && global.mm_license.Webrtc === 'true' &&
-                global.mm_config.EnableDeveloper === 'true' && userMedia && Utils.isFeatureEnabled(PreReleaseFeatures.WEBRTC_PREVIEW);
+            const webrtcEnabled = global.mm_config.EnableWebrtc === 'true' && userMedia && Utils.isFeatureEnabled(PreReleaseFeatures.WEBRTC_PREVIEW);
 
             if (webrtcEnabled) {
                 const isOffline = UserStore.getStatus(contact.id) === UserStatuses.OFFLINE;
@@ -301,6 +300,13 @@ export default class ChannelHeader extends React.Component {
 
                 if (isOffline || busy) {
                     circleClass = 'offline';
+                    webrtcMessage = (
+                        <FormattedMessage
+                            id='channel_header.webrtc.offline'
+                            defaultMessage='The user is offline'
+                        />
+                    );
+
                     if (busy) {
                         webrtcMessage = (
                             <FormattedMessage
@@ -318,6 +324,10 @@ export default class ChannelHeader extends React.Component {
                     );
                 }
 
+                const webrtcTooltip = (
+                    <Tooltip id='webrtcTooltip'>{webrtcMessage}</Tooltip>
+                );
+
                 webrtc = (
                     <div className='webrtc__header'>
                         <a
@@ -325,28 +335,18 @@ export default class ChannelHeader extends React.Component {
                             onClick={() => this.initWebrtc(contact.id, !isOffline)}
                             disabled={isOffline}
                         >
-                            <svg
-                                id='webrtc-btn'
-                                className='webrtc__button'
-                                xmlns='http://www.w3.org/2000/svg'
+                            <OverlayTrigger
+                                delayShow={Constants.WEBRTC_TIME_DELAY}
+                                placement='bottom'
+                                overlay={webrtcTooltip}
                             >
-                                <circle
-                                    className={circleClass}
-                                    cx='16'
-                                    cy='16'
-                                    r='18'
+                                <div
+                                    id='webrtc-btn'
+                                    className={'webrtc__button ' + circleClass}
                                 >
-                                    <title>
-                                        {webrtcMessage}
-                                    </title>
-                                </circle>
-                                <path
-                                    className='off'
-                                    transform='scale(0.4), translate(17,16)'
-                                    d='M40 8H8c-2.21 0-4 1.79-4 4v24c0 2.21 1.79 4 4 4h32c2.21 0 4-1.79 4-4V12c0-2.21-1.79-4-4-4zm-4 24l-8-6.4V32H12V16h16v6.4l8-6.4v16z'
-                                    fill='white'
-                                />
-                            </svg>
+                                    <span dangerouslySetInnerHTML={{__html: Constants.VIDEO_ICON}}/>
+                                </div>
+                            </OverlayTrigger>
                         </a>
                     </div>
                 );
@@ -450,6 +450,7 @@ export default class ChannelHeader extends React.Component {
                         role='presentation'
                     >
                         <ToggleModalButton
+                            ref='channelInviteModalButton'
                             role='menuitem'
                             dialogType={ChannelInviteModal}
                             dialogProps={{channel, currentUser: this.state.currentUser}}
@@ -662,6 +663,28 @@ export default class ChannelHeader extends React.Component {
             </OverlayTrigger>
         );
 
+        let channelMembersModal;
+        if (this.state.showMembersModal) {
+            channelMembersModal = (
+                <ChannelMembersModal
+                    onModalDismissed={() => this.setState({showMembersModal: false})}
+                    showInviteModal={() => this.refs.channelInviteModalButton.show()}
+                    channel={channel}
+                    isAdmin={isAdmin}
+                />
+            );
+        }
+
+        let editPurposeModal;
+        if (this.state.showEditChannelPurposeModal) {
+            editPurposeModal = (
+                <EditChannelPurposeModal
+                    onModalDismissed={() => this.setState({showEditChannelPurposeModal: false})}
+                    channel={channel}
+                />
+            );
+        }
+
         return (
             <div
                 id='channel-header'
@@ -753,17 +776,8 @@ export default class ChannelHeader extends React.Component {
                         </tr>
                     </tbody>
                 </table>
-                <EditChannelPurposeModal
-                    show={this.state.showEditChannelPurposeModal}
-                    onModalDismissed={() => this.setState({showEditChannelPurposeModal: false})}
-                    channel={channel}
-                />
-                <ChannelMembersModal
-                    show={this.state.showMembersModal}
-                    onModalDismissed={() => this.setState({showMembersModal: false})}
-                    channel={channel}
-                    isAdmin={isAdmin}
-                />
+                {editPurposeModal}
+                {channelMembersModal}
                 <RenameChannelModal
                     show={this.state.showRenameChannelModal}
                     onHide={this.hideRenameChannelModal}

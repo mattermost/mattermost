@@ -6,6 +6,7 @@ import FileAttachmentListContainer from './file_attachment_list_container.jsx';
 import PendingPostOptions from 'components/post_view/components/pending_post_options.jsx';
 import PostMessageContainer from 'components/post_view/components/post_message_container.jsx';
 import ProfilePicture from 'components/profile_picture.jsx';
+import RhsDropdown from 'components/rhs_dropdown.jsx';
 
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
@@ -19,7 +20,7 @@ import * as PostUtils from 'utils/post_utils.jsx';
 import Constants from 'utils/constants.jsx';
 import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 
-import {FormattedMessage, FormattedDate} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 import loadingGif from 'images/load.gif';
 
@@ -218,24 +219,8 @@ export default class RhsComment extends React.Component {
         }
 
         return (
-            <div className='dropdown'>
-                <a
-                    href='#'
-                    className='post__dropdown dropdown-toggle'
-                    type='button'
-                    data-toggle='dropdown'
-                    aria-expanded='false'
-                />
-                <div className='dropdown-menu__content'>
-                    <ul
-                        className='dropdown-menu'
-                        role='menu'
-                    >
-                        {dropdownContents}
-                    </ul>
-                </div>
-            </div>
-            );
+            <RhsDropdown dropdownContents={dropdownContents}/>
+        );
     }
 
     render() {
@@ -386,6 +371,15 @@ export default class RhsComment extends React.Component {
             );
         }
 
+        const timeOptions = {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: !this.props.useMilitaryTime
+        };
+
         return (
             <div className={'post post--thread ' + currentUserCss + ' ' + compactClass}>
                 <div className='post__content'>
@@ -398,15 +392,7 @@ export default class RhsComment extends React.Component {
                             {botIndicator}
                             <li className='col'>
                                 <time className='post__time'>
-                                    <FormattedDate
-                                        value={post.create_at}
-                                        day='numeric'
-                                        month='short'
-                                        year='numeric'
-                                        hour12={!this.props.useMilitaryTime}
-                                        hour='2-digit'
-                                        minute='2-digit'
-                                    />
+                                    {Utils.getDateForUnixTicks(post.create_at).toLocaleString('en', timeOptions)}
                                 </time>
                                 {flagTrigger}
                             </li>

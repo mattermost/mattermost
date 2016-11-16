@@ -19,6 +19,7 @@
     overflow-y: scroll;
     padding-bottom: 5px;
     width: 100%;
+    -webkit-overflow-scrolling: touch;
 
     .command {
         border-bottom: 1px solid $light-gray;

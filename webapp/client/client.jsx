@@ -206,7 +206,12 @@ export default class Client {
         }
 
         if (successCallback) {
-            successCallback(res.body, res);
+            if (res.body) {
+                successCallback(res.body, res);
+            } else {
+                console.error('Missing response body for ' + methodName); // eslint-disable-line no-console
+                successCallback('', res);
+            }
         }
     }
 
@@ -1452,6 +1457,18 @@ export default class Client {
         this.track('api', 'api_integrations_created');
     }
 
+    editCommand(command, success, error) {
+        request.
+            post(`${this.getCommandsRoute()}/update`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(command).
+            end(this.handleResponse.bind(this, 'editCommand', success, error));
+
+        this.track('api', 'api_integrations_created');
+    }
+
     deleteCommand(commandId, success, error) {
         request.
             post(`${this.getCommandsRoute()}/delete`).
@@ -1952,6 +1969,11 @@ export default class Client {
             if (err) {
                 return error(err);
             }
+
+            if (!res.body) {
+                console.error('Missing response body for samlCertificateStatus'); // eslint-disable-line no-console
+            }
+
             return success(res.body);
         });
     }

@@ -6,6 +6,7 @@ package model
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"regexp"
 	"strings"
@@ -233,7 +234,7 @@ func expandAnnouncements(i *IncomingWebhookRequest) {
 				for _, field := range fields {
 					f := field.(map[string]interface{})
 					if f["value"] != nil {
-						f["value"] = expandAnnouncement(f["value"].(string))
+						f["value"] = expandAnnouncement(fmt.Sprintf("%v", f["value"]))
 					}
 				}
 			}

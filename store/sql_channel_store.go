@@ -38,7 +38,7 @@ func NewSqlChannelStore(sqlStore *SqlStore) ChannelStore {
 		table.ColMap("Name").SetMaxSize(64)
 		table.SetUniqueTogether("Name", "TeamId")
 		table.ColMap("Header").SetMaxSize(1024)
-		table.ColMap("Purpose").SetMaxSize(128)
+		table.ColMap("Purpose").SetMaxSize(250)
 		table.ColMap("CreatorId").SetMaxSize(26)
 
 		tablem := db.AddTableWithName(model.ChannelMember{}, "ChannelMembers").SetKeys(false, "ChannelId", "UserId")
@@ -455,6 +455,32 @@ func (s SqlChannelStore) GetChannelCounts(teamId string, userId string) StoreCha
 			}
 
 			result.Data = counts
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlChannelStore) GetTeamChannels(teamId string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		data := &model.ChannelList{}
+		_, err := s.GetReplica().Select(data, "SELECT * FROM Channels WHERE TeamId = :TeamId And Type != 'D' ORDER BY DisplayName", map[string]interface{}{"TeamId": teamId})
+
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlChannelStore.GetChannels", "store.sql_channel.get_channels.get.app_error", nil, "teamId="+teamId+",  err="+err.Error())
+		} else {
+			if len(*data) == 0 {
+				result.Err = model.NewLocAppError("SqlChannelStore.GetChannels", "store.sql_channel.get_channels.not_found.app_error", nil, "teamId="+teamId)
+			} else {
+				result.Data = data
+			}
 		}
 
 		storeChannel <- result
