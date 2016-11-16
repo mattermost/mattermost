@@ -92,15 +92,17 @@ export default class AboutBuildModal extends React.Component {
                         defaultMessage='Enterprise Edition'
                     />
                 );
-                licensee = (
-                    <div className='form-group'>
-                        <FormattedMessage
-                            id='about.licensed'
-                            defaultMessage='Licensed to:'
-                        />
-                        &nbsp;{license.Company}
-                    </div>
-                );
+                if (license.Company) {
+                    licensee = (
+                        <div className='form-group'>
+                            <FormattedMessage
+                                id='about.licensed'
+                                defaultMessage='Licensed to:'
+                            />
+                            &nbsp;{license.Company}
+                        </div>
+                    );
+                }
             }
         }
 
