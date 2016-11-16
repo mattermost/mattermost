@@ -245,7 +245,10 @@ export default class ChannelHeader extends React.Component {
 
         const channel = this.state.channel;
         const recentMentionsTooltip = (
-            <Tooltip id='recentMentionsTooltip'>
+            <Tooltip
+                className='hidden-xs'
+                id='recentMentionsTooltip'
+            >
                 <FormattedMessage
                     id='channel_header.recentMentions'
                     defaultMessage='Recent Mentions'
@@ -254,7 +257,10 @@ export default class ChannelHeader extends React.Component {
         );
 
         const flaggedTooltip = (
-            <Tooltip id='flaggedTooltip'>
+            <Tooltip
+                className='hidden-xs'
+                id='flaggedTooltip'
+            >
                 <FormattedMessage
                     id='channel_header.flagged'
                     defaultMessage='Flagged Posts'
@@ -634,7 +640,10 @@ export default class ChannelHeader extends React.Component {
         }
 
         const toggleFavoriteTooltip = (
-            <Tooltip id='favoriteTooltip'>
+            <Tooltip
+                className='hidden-xs'
+                id='favoriteTooltip'
+            >
                 {this.state.isFavorite ?
                     <FormattedMessage
                         id='channelHeader.removeFromFavorites'
@@ -648,6 +657,7 @@ export default class ChannelHeader extends React.Component {
         );
         const toggleFavorite = (
             <OverlayTrigger
+                className='hidden-xs'
                 delayShow={Constants.OVERLAY_TIME_DELAY}
                 placement='bottom'
                 overlay={toggleFavoriteTooltip}
@@ -717,6 +727,7 @@ export default class ChannelHeader extends React.Component {
                                         </ul>
                                     </div>
                                     <OverlayTrigger
+                                        className='hidden-xs'
                                         trigger={'click'}
                                         placement='bottom'
                                         rootClose={true}
@@ -738,6 +749,7 @@ export default class ChannelHeader extends React.Component {
                             <th>
                                 <div className='dropdown channel-header__links'>
                                     <OverlayTrigger
+                                        className='hidden-xs'
                                         delayShow={Constants.OVERLAY_TIME_DELAY}
                                         placement='bottom'
                                         overlay={recentMentionsTooltip}
@@ -755,6 +767,7 @@ export default class ChannelHeader extends React.Component {
                             <th>
                                 <div className='dropdown channel-header__links'>
                                     <OverlayTrigger
+                                        className='hidden-xs'
                                         delayShow={Constants.OVERLAY_TIME_DELAY}
                                         placement='bottom'
                                         overlay={flaggedTooltip}

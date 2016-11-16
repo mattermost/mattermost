@@ -115,7 +115,10 @@ export default class SearchResultsItem extends React.Component {
         let flagFunc;
         let flagVisible = '';
         let flagTooltip = (
-            <Tooltip id='flagTooltip'>
+            <Tooltip
+                className='hidden-xs'
+                id='flagTooltip'
+            >
                 <FormattedMessage
                     id='flag_post.flag'
                     defaultMessage='Flag for follow up'
@@ -125,7 +128,10 @@ export default class SearchResultsItem extends React.Component {
         if (this.props.isFlagged) {
             flagVisible = 'visible';
             flagTooltip = (
-                <Tooltip id='flagTooltip'>
+                <Tooltip
+                    className='hidden-xs'
+                    id='flagTooltip'
+                >
                     <FormattedMessage
                         id='flag_post.unflag'
                         defaultMessage='Unflag'
@@ -188,6 +194,7 @@ export default class SearchResultsItem extends React.Component {
                                         />
                                     </time>
                                     <OverlayTrigger
+                                        className='hidden-xs'
                                         delayShow={Constants.OVERLAY_TIME_DELAY}
                                         placement='top'
                                         overlay={flagTooltip}

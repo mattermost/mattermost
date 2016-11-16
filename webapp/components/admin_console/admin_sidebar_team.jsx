@@ -32,7 +32,10 @@ export default class AdminSidebarTeam extends React.Component {
         const team = this.props.team;
 
         const removeTeamTooltip = (
-            <Tooltip id='remove-team-tooltip'>
+            <Tooltip
+                className='hidden-xs'
+                id='remove-team-tooltip'
+            >
                 <FormattedMessage
                     id='admin.sidebar.rmTeamSidebar'
                     defaultMessage='Remove team from sidebar menu'
@@ -42,6 +45,7 @@ export default class AdminSidebarTeam extends React.Component {
 
         const removeTeamButton = (
             <OverlayTrigger
+                className='hidden-xs'
                 delayShow={1000}
                 placement='top'
                 overlay={removeTeamTooltip}

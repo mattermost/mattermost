@@ -488,7 +488,10 @@ export default class Sidebar extends React.Component {
 
         let closeButton = null;
         const removeTooltip = (
-            <Tooltip id='remove-dm-tooltip'>
+            <Tooltip
+                className='hidden-xs'
+                className='hidden-xs' id='remove-dm-tooltip'
+            >
                 <FormattedMessage
                     id='sidebar.removeList'
                     defaultMessage='Remove from list'
@@ -498,6 +501,7 @@ export default class Sidebar extends React.Component {
         if (handleClose && !badge) {
             closeButton = (
                 <OverlayTrigger
+                    className='hidden-xs'
                     delayShow={1000}
                     placement='top'
                     overlay={removeTooltip}
@@ -631,7 +635,10 @@ export default class Sidebar extends React.Component {
         }
 
         const createChannelTootlip = (
-            <Tooltip id='new-channel-tooltip' >
+            <Tooltip
+                className='hidden-xs'
+                className='hidden-xs' id='new-channel-tooltip'
+            >
                 <FormattedMessage
                     id='sidebar.createChannel'
                     defaultMessage='Create new channel'
@@ -639,7 +646,10 @@ export default class Sidebar extends React.Component {
             </Tooltip>
         );
         const createGroupTootlip = (
-            <Tooltip id='new-group-tooltip'>
+            <Tooltip
+                className='hidden-xs'
+                className='hidden-xs' id='new-group-tooltip'
+            >
                 <FormattedMessage
                     id='sidebar.createGroup'
                     defaultMessage='Create new group'
@@ -666,6 +676,7 @@ export default class Sidebar extends React.Component {
 
         let createPublicChannelIcon = (
             <OverlayTrigger
+                className='hidden-xs'
                 delayShow={500}
                 placement='top'
                 overlay={createChannelTootlip}
@@ -682,6 +693,7 @@ export default class Sidebar extends React.Component {
 
         let createPrivateChannelIcon = (
             <OverlayTrigger
+                className='hidden-xs'
                 delayShow={500}
                 placement='top'
                 overlay={createGroupTootlip}
