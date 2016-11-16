@@ -342,6 +342,7 @@ type Config struct {
 	NativeAppSettings    NativeAppSettings
 	ClusterSettings      ClusterSettings
 	WebrtcSettings       WebrtcSettings
+	CustomOverride       *bool
 }
 
 func (o *Config) ToJson() string {

@@ -301,6 +301,7 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["IosAppDownloadLink"] = *c.NativeAppSettings.IosAppDownloadLink
 
 	props["EnableWebrtc"] = strconv.FormatBool(*c.WebrtcSettings.Enable)
+	props["CustomOverride"] = strconv.FormatBool(*c.CustomOverride)
 
 	if IsLicensed {
 		if *License.Features.CustomBrand {
