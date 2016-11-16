@@ -116,7 +116,10 @@ export default class AdminSidebar extends React.Component {
 
     renderAddTeamButton() {
         const addTeamTooltip = (
-            <Tooltip id='add-team-tooltip'>
+            <Tooltip
+                className='hidden-xs'
+                id='add-team-tooltip'
+            >
                 <FormattedMessage
                     id='admin.sidebar.addTeamSidebar'
                     defaultMessage='Add team from sidebar menu'
@@ -127,6 +130,7 @@ export default class AdminSidebar extends React.Component {
         return (
             <span className='menu-icon--right'>
                 <OverlayTrigger
+                    className='hidden-xs'
                     delayShow={1000}
                     placement='top'
                     overlay={addTeamTooltip}

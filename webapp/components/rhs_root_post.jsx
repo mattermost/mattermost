@@ -323,7 +323,10 @@ export default class RhsRootPost extends React.Component {
         let flagFunc;
         let flagVisible = '';
         let flagTooltip = (
-            <Tooltip id='flagTooltip'>
+            <Tooltip
+                className='hidden-xs'
+                id='flagTooltip'
+            >
                 <FormattedMessage
                     id='flag_post.flag'
                     defaultMessage='Flag for follow up'
@@ -340,7 +343,10 @@ export default class RhsRootPost extends React.Component {
             );
             flagFunc = this.unflagPost;
             flagTooltip = (
-                <Tooltip id='flagTooltip'>
+                <Tooltip
+                    className='hidden-xs'
+                    id='flagTooltip'
+                >
                     <FormattedMessage
                         id='flag_post.unflag'
                         defaultMessage='Unflag'
@@ -380,6 +386,7 @@ export default class RhsRootPost extends React.Component {
                                     {Utils.getDateForUnixTicks(post.create_at).toLocaleString('en', timeOptions)}
                                 </time>
                                 <OverlayTrigger
+                                    className='hidden-xs'
                                     key={'rootpostflagtooltipkey' + flagVisible}
                                     delayShow={Constants.OVERLAY_TIME_DELAY}
                                     placement='top'

@@ -78,6 +78,7 @@ export default class ProfilePicture extends React.Component {
             }
             return (
                 <OverlayTrigger
+                    className='hidden-xs'
                     trigger='click'
                     placement='right'
                     rootClose={true}

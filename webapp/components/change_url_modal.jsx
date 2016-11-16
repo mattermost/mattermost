@@ -138,7 +138,12 @@ export default class ChangeUrlModal extends React.Component {
         const fullTeamUrl = TeamStore.getCurrentTeamUrl();
         const teamURL = Utils.getShortenedTeamURL(TeamStore.getCurrentTeamUrl());
         const urlTooltip = (
-            <Tooltip id='urlTooltip'>{fullTeamUrl}</Tooltip>
+            <Tooltip
+                className='hidden-xs'
+                id='urlTooltip'
+            >
+                {fullTeamUrl}
+            </Tooltip>
         );
 
         return (
@@ -160,6 +165,7 @@ export default class ChangeUrlModal extends React.Component {
                             <div className='col-sm-10'>
                                 <div className={urlClass}>
                                     <OverlayTrigger
+                                        className='hidden-xs'
                                         delayShow={Constants.OVERLAY_TIME_DELAY}
                                         placement='top'
                                         overlay={urlTooltip}
