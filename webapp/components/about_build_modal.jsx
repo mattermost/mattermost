@@ -46,9 +46,9 @@ export default class AboutBuildModal extends React.Component {
                 <a
                     target='_blank'
                     rel='noopener noreferrer'
-                    href='http://www.mattermost.org/'
+                    href='https://uchat.uberinternal.com/downloads'
                 >
-                    {'mattermost.org'}
+                    {'uchat.uberinternal.com'}
                 </a>
             </div>
         );
@@ -73,14 +73,14 @@ export default class AboutBuildModal extends React.Component {
                 <div>
                     <FormattedMessage
                         id='about.enterpriseEditionLearn'
-                        defaultMessage='Learn more about Enterprise Edition at '
+                        defaultMessage='Learn more at '
                     />
                     <a
                         target='_blank'
                         rel='noopener noreferrer'
-                        href='http://about.mattermost.com/'
+                        href='https://uchat.uberinternal.com/downloads'
                     >
-                        {'about.mattermost.com'}
+                        {'uchat.uberinternal.com'}
                     </a>
                 </div>
             );
@@ -132,7 +132,7 @@ export default class AboutBuildModal extends React.Component {
                             />
                         </div>
                         <div>
-                            <h3 className='about-modal__title'>{'uChat'} {title}</h3>
+                            <h3 className='about-modal__title'>{'uChat'}</h3>
                             <p className='about-modal__subtitle padding-bottom'>{subTitle}</p>
                             <div className='form-group less'>
                                 <div>
