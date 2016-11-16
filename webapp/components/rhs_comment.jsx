@@ -302,7 +302,10 @@ export default class RhsComment extends React.Component {
         let flagFunc;
         let flagVisible = '';
         let flagTooltip = (
-            <Tooltip id='flagTooltip'>
+            <Tooltip
+                className='hidden-xs'
+                id='flagTooltip'
+            >
                 <FormattedMessage
                     id='flag_post.flag'
                     defaultMessage='Flag for follow up'
@@ -319,7 +322,10 @@ export default class RhsComment extends React.Component {
             );
             flagFunc = this.unflagPost;
             flagTooltip = (
-                <Tooltip id='flagTooltip'>
+                <Tooltip
+                    className='hidden-xs'
+                    id='flagTooltip'
+                >
                     <FormattedMessage
                         id='flag_post.unflag'
                         defaultMessage='Unflag'
@@ -340,6 +346,7 @@ export default class RhsComment extends React.Component {
         if (!Utils.isPostEphemeral(post)) {
             flagTrigger = (
                 <OverlayTrigger
+                    className='hidden-xs'
                     key={'commentflagtooltipkey' + flagVisible}
                     delayShow={Constants.OVERLAY_TIME_DELAY}
                     placement='top'

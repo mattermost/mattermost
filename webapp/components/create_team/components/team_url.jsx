@@ -112,7 +112,12 @@ export default class TeamUrl extends React.Component {
 
         const title = `${Utils.getSiteURL()}/`;
         const urlTooltip = (
-            <Tooltip id='urlTooltip'>{title}</Tooltip>
+            <Tooltip
+                className='hidden-xs'
+                id='urlTooltip'
+            >
+                {title}
+            </Tooltip>
         );
 
         let finishMessage = (
@@ -149,6 +154,7 @@ export default class TeamUrl extends React.Component {
                             <div className='col-sm-11'>
                                 <div className='input-group input-group--limit'>
                                     <OverlayTrigger
+                                        className='hidden-xs'
                                         delayShow={Constants.OVERLAY_TIME_DELAY}
                                         placement='top'
                                         overlay={urlTooltip}

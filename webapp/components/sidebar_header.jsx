@@ -80,10 +80,11 @@ export default class SidebarHeader extends React.Component {
                     <div className='header__info'>
                         <div className='user__name'>{'@' + me.username}</div>
                         <OverlayTrigger
+                            className='hidden-xs'
                             trigger={['hover', 'focus']}
                             delayShow={1000}
                             placement='bottom'
-                            overlay={<Tooltip id='team-name__tooltip'>{this.props.teamDisplayName}</Tooltip>}
+                            overlay={<Tooltip className='hidden-xs' id='team-name__tooltip'>{this.props.teamDisplayName}</Tooltip>}
                             ref='descriptionOverlay'
                         >
                             <div className='team__name'>{this.props.teamDisplayName}</div>

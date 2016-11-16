@@ -21,7 +21,10 @@ export default class TableChart extends React.Component {
                                 {
                                     this.props.data.map((item) => {
                                         const tooltip = (
-                                            <Tooltip id={'tip-table-entry-' + item.name}>
+                                            <Tooltip
+                                                className='hidden-xs'
+                                                id={'tip-table-entry-' + item.name}
+                                            >
                                                 {item.tip}
                                             </Tooltip>
                                         );
@@ -30,6 +33,7 @@ export default class TableChart extends React.Component {
                                             <tr key={'table-entry-' + item.name}>
                                                 <td>
                                                     <OverlayTrigger
+                                                        className='hidden-xs'
                                                         delayShow={Constants.OVERLAY_TIME_DELAY}
                                                         placement='top'
                                                         overlay={tooltip}

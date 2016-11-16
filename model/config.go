@@ -224,6 +224,15 @@ type TeamSettings struct {
 	DefaultTeamName                  string
 }
 
+type ClientRequirements struct {
+	AndroidLatestVersion string
+	AndroidMinVersion    string
+	DesktopLatestVersion string
+	DesktopMinVersion    string
+	IosLatestVersion     string
+	IosMinVersion        string
+}
+
 type LdapSettings struct {
 	// Basic
 	Enable             *bool
@@ -314,6 +323,7 @@ type WebrtcSettings struct {
 type Config struct {
 	ServiceSettings      ServiceSettings
 	TeamSettings         TeamSettings
+	ClientRequirements   ClientRequirements
 	SqlSettings          SqlSettings
 	LogSettings          LogSettings
 	PasswordSettings     PasswordSettings
@@ -332,6 +342,7 @@ type Config struct {
 	NativeAppSettings    NativeAppSettings
 	ClusterSettings      ClusterSettings
 	WebrtcSettings       WebrtcSettings
+	CustomOverride       *bool
 }
 
 func (o *Config) ToJson() string {
@@ -354,6 +365,10 @@ func (o *Config) GetSSOService(service string) *SSOSettings {
 	}
 
 	return nil
+}
+
+func (o *Config) getClientRequirementsFromConfig() ClientRequirements {
+	return o.ClientRequirements
 }
 
 func ConfigFromJson(data io.Reader) *Config {
