@@ -158,7 +158,7 @@ export default class AboutBuildModal extends React.Component {
                         <div className='form-group about-modal__copyright'>
                             <FormattedMessage
                                 id='about.copyright'
-                                defaultMessage='Copyright 2016 uChat, Inc. All rights reserved'
+                                defaultMessage='Copyright 2016, Uber Technologies, Inc. All rights reserved.'
                             />
                         </div>
                     </div>
