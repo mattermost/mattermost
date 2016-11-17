@@ -1558,7 +1558,7 @@
   "password_send.description": "To reset your password, enter the email address you used to sign up",
   "password_send.email": "Email",
   "password_send.error": "Please enter a valid email address.",
-  "password_send.link": "<p>A password reset link has been sent to <b>{email}</b></p>",
+  "password_send.link": "If the account exists, a password reset email will be sent to: <br/><b>{email}</b><br/><br/>",
   "password_send.reset": "Reset my password",
   "password_send.title": "Password Reset",
   "pdf_preview.max_pages": "Download to read more pages",
