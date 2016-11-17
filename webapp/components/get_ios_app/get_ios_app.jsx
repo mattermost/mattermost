@@ -5,6 +5,8 @@ import React from 'react';
 
 import {FormattedMessage} from 'react-intl';
 
+const {IosAppUrlScheme, IosAppDownloadLink} = global.window.mm_config;
+
 export default class GetIosApp extends React.Component {
     render() {
         return (
@@ -14,12 +16,12 @@ export default class GetIosApp extends React.Component {
                     className='centerMeImage'
                 />
                 <a
-                    href={`${global.window.mm_config.IosAppUrlScheme}://`}
+                    href={IosAppUrlScheme ? `${IosAppUrlScheme}://` : IosAppDownloadLink}
                     className='btn btn-primary get-ios-app__open-mattermost'
                 >
                     <FormattedMessage
                         id='get_app.openMattermost'
-                        defaultMessage='Open in uChat App'
+                        defaultMessage={IosAppUrlScheme ? 'Open in uChat App' : 'Download uChat App'}
                     />
                 </a>
                 <a
