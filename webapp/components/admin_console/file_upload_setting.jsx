@@ -108,7 +108,7 @@ export default class FileUploadSetting extends Setting {
                         disabled={!this.state.fileSelected}
                         onClick={this.handleSubmit}
                         ref='upload_button'
-                        data-loading-text={`<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> ${this.props.uploadingText}`}
+                        data-loading-text={`<span class='glyphicon glyphicon-refresh glyphicon-refresh-animate'></span> ${this.props.uploadingText}`}
                     >
                         <FormattedMessage
                             id='admin.file_upload.uploadFile'
