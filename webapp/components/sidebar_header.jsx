@@ -49,6 +49,7 @@ export default class SidebarHeader extends React.Component {
 
     render() {
         var me = this.props.currentUser;
+        const fullName = Utils.getFullName(me);
         var profilePicture = null;
 
         if (!me) {
@@ -86,15 +87,15 @@ export default class SidebarHeader extends React.Component {
                             placement='bottom'
                             overlay={(
                                 <Tooltip
-                                    id='team-name__tooltip'
+                                    id='full-name__tooltip'
                                     className='hidden-xs'
                                 >
-                                    {this.props.teamDisplayName}
+                                    {fullName}
                                 </Tooltip>
                             )}
                             ref='descriptionOverlay'
                         >
-                            <div className='team__name'>{this.props.teamDisplayName}</div>
+                            <div className='full__name'>{fullName}</div>
                         </OverlayTrigger>
                     </div>
                 </a>

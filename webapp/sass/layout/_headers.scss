@@ -325,7 +325,7 @@
             z-index: 1;
         }
 
-        .team__name,
+        .full__name,
         .user__name {
             display: block;
             font-size: 16px;
@@ -337,7 +337,7 @@
             white-space: nowrap;
         }
 
-        .team__name {
+        .full__name {
             float: left;
             line-height: 22px;
             margin-top: -2px;
