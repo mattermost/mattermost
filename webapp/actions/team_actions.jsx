@@ -57,3 +57,25 @@ export function removeUserFromTeam(teamId, userId, success, error) {
         }
     );
 }
+
+export function updateTeam(teamId, userId, success, error) {
+    Client.updateTeam(
+        teamId,
+        userId,
+        () => {
+            TeamStore.removeMemberInTeam(teamId, userId);
+            AsyncClient.getUser(userId);
+
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'updateTeam');
+
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}

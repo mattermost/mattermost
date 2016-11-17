@@ -11,6 +11,7 @@ import TeamStore from 'stores/team_store.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage, FormattedHTMLMessage} from 'react-intl';
+import {updateTeam} from 'actions/team_actions.jsx';
 
 const holders = defineMessages({
     dirDisabled: {
@@ -131,7 +132,7 @@ class GeneralTab extends React.Component {
 
         var data = this.props.team;
         data.allow_open_invite = this.state.allow_open_invite;
-        Client.updateTeam(data,
+        updateTeam(data,
             (team) => {
                 TeamStore.saveTeam(team);
                 TeamStore.emitChange();
