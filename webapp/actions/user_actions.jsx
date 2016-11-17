@@ -317,6 +317,24 @@ export function autocompleteUsersInTeam(username, success, error) {
     );
 }
 
+export function updateUser(username, success, error) {
+    Client.updateUser(
+        username,
+        (data) => {
+            if (success) {
+                success(data);
+            }
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'updateUser');
+
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
 export function generateMfaSecret(success, error) {
     Client.generateMfaSecret(
         (data) => {
