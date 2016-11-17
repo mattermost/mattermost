@@ -299,6 +299,7 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["AppDownloadLink"] = *c.NativeAppSettings.AppDownloadLink
 	props["AndroidAppDownloadLink"] = *c.NativeAppSettings.AndroidAppDownloadLink
 	props["IosAppDownloadLink"] = *c.NativeAppSettings.IosAppDownloadLink
+	props["IosAppUrlScheme"] = *c.NativeAppSettings.IosAppUrlScheme
 
 	props["EnableWebrtc"] = strconv.FormatBool(*c.WebrtcSettings.Enable)
 	props["CustomOverride"] = strconv.FormatBool(*c.CustomOverride)

@@ -230,7 +230,8 @@
     "NativeAppSettings": {
         "AppDownloadLink": "https://about.mattermost.com/downloads/",
         "AndroidAppDownloadLink": "https://about.mattermost.com/mattermost-android-app/",
-        "IosAppDownloadLink": "https://about.mattermost.com/mattermost-ios-app/"
+        "IosAppDownloadLink": "https://about.mattermost.com/mattermost-ios-app/",
+        "IosAppUrlScheme": ""
     },
     "ClusterSettings": {
         "Enable": false,

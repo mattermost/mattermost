@@ -307,6 +307,7 @@ type NativeAppSettings struct {
 	AppDownloadLink        *string
 	AndroidAppDownloadLink *string
 	IosAppDownloadLink     *string
+	IosAppUrlScheme        *string
 }
 
 type WebrtcSettings struct {

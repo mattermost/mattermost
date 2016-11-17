@@ -14,7 +14,7 @@ export default class GetIosApp extends React.Component {
                     className='centerMeImage'
                 />
                 <a
-                    href='mattermost://'
+                    href={`${global.window.mm_config.IosAppUrlScheme}://`}
                     className='btn btn-primary get-ios-app__open-mattermost'
                 >
                     <FormattedMessage
