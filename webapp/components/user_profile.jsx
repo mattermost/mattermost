@@ -38,6 +38,10 @@ export default class UserProfile extends React.Component {
             return true;
         }
 
+        if (!Utils.areObjectsEqual(nextProps.post, this.props.post)) {
+            return true;
+        }
+
         if (nextProps.overwriteName !== this.props.overwriteName) {
             return true;
         }
@@ -232,6 +236,7 @@ UserProfile.defaultProps = {
 };
 UserProfile.propTypes = {
     user: React.PropTypes.object,
+    post: React.PropTypes.object,
     overwriteName: React.PropTypes.string,
     overwriteImage: React.PropTypes.string,
     disablePopover: React.PropTypes.bool,
