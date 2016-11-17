@@ -287,6 +287,21 @@ describe('Client.Channels', function() {
         });
     });
 
+    it('searchMoreChannels', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().searchMoreChannels(
+                'blargh',
+                function(data) {
+                    assert.equal(data.length, 0);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
     it('getChannelCounts', function(done) {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().getChannelCounts(

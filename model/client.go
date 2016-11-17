@@ -1174,6 +1174,16 @@ func (c *Client) GetMoreChannelsPage(offset int, limit int) (*Result, *AppError)
 	}
 }
 
+func (c *Client) SearchMoreChannels(channelSearch ChannelSearch) (*Result, *AppError) {
+	if r, err := c.DoApiPost(c.GetTeamRoute()+"/channels/more/search", channelSearch.ToJson()); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), ChannelListFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) GetChannelCounts(etag string) (*Result, *AppError) {
 	if r, err := c.DoApiGet(c.GetTeamRoute()+"/channels/counts", "", etag); err != nil {
 		return nil, err

@@ -1517,3 +1517,75 @@ func TestGetChannelMember(t *testing.T) {
 		t.Fatal("should have failed - bad channel and user id")
 	}
 }
+
+func TestSearchMoreChannels(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+	team := th.BasicTeam
+
+	channel1 := &model.Channel{DisplayName: "TestAPINameA", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
+
+	channel2 := &model.Channel{DisplayName: "TestAPINameB", Name: "b" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel2 = Client.Must(Client.CreateChannel(channel2)).Data.(*model.Channel)
+
+	th.LoginBasic2()
+
+	if result, err := Client.SearchMoreChannels(model.ChannelSearch{Term: "TestAPIName"}); err != nil {
+		t.Fatal(err)
+	} else {
+		channels := result.Data.(*model.ChannelList)
+
+		if (*channels)[0].DisplayName != channel1.DisplayName {
+			t.Fatal("full name didn't match")
+		}
+
+		if (*channels)[1].DisplayName != channel2.DisplayName {
+			t.Fatal("full name didn't match")
+		}
+	}
+
+	if result, err := Client.SearchMoreChannels(model.ChannelSearch{Term: "TestAPINameA"}); err != nil {
+		t.Fatal(err)
+	} else {
+		channels := result.Data.(*model.ChannelList)
+
+		if (*channels)[0].DisplayName != channel1.DisplayName {
+			t.Fatal("full name didn't match")
+		}
+	}
+
+	if result, err := Client.SearchMoreChannels(model.ChannelSearch{Term: "TestAPINameB"}); err != nil {
+		t.Fatal(err)
+	} else {
+		channels := result.Data.(*model.ChannelList)
+
+		if (*channels)[0].DisplayName != channel2.DisplayName {
+			t.Fatal("full name didn't match")
+		}
+	}
+
+	if result, err := Client.SearchMoreChannels(model.ChannelSearch{Term: channel1.Name}); err != nil {
+		t.Fatal(err)
+	} else {
+		channels := result.Data.(*model.ChannelList)
+
+		if (*channels)[0].DisplayName != channel1.DisplayName {
+			t.Fatal("full name didn't match")
+		}
+	}
+
+	if _, err := Client.SearchMoreChannels(model.ChannelSearch{Term: ""}); err == nil {
+		t.Fatal("should have errored - empty term")
+	}
+
+	if result, err := Client.SearchMoreChannels(model.ChannelSearch{Term: "blargh"}); err != nil {
+		t.Fatal(err)
+	} else {
+		channels := result.Data.(*model.ChannelList)
+
+		if len(*channels) != 0 {
+			t.Fatal("should have no channels")
+		}
+	}
+}

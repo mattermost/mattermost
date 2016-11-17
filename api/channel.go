@@ -21,6 +21,7 @@ func InitChannel() {
 
 	BaseRoutes.Channels.Handle("/", ApiUserRequired(getChannels)).Methods("GET")
 	BaseRoutes.Channels.Handle("/more/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getMoreChannelsPage)).Methods("GET")
+	BaseRoutes.Channels.Handle("/more/search", ApiUserRequired(searchMoreChannels)).Methods("POST")
 	BaseRoutes.Channels.Handle("/counts", ApiUserRequired(getChannelCounts)).Methods("GET")
 	BaseRoutes.Channels.Handle("/members", ApiUserRequired(getMyChannelMembers)).Methods("GET")
 	BaseRoutes.Channels.Handle("/create", ApiUserRequired(createChannel)).Methods("POST")
@@ -1215,4 +1216,25 @@ func updateNotifyProps(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(model.MapToJson(member.NotifyProps)))
 	}
 
+}
+
+func searchMoreChannels(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.ChannelSearchFromJson(r.Body)
+	if props == nil {
+		c.SetInvalidParam("searchMoreChannels", "")
+		return
+	}
+
+	if len(props.Term) == 0 {
+		c.SetInvalidParam("searchMoreChannels", "term")
+		return
+	}
+
+	if result := <-Srv.Store.Channel().SearchMore(c.Session.UserId, c.TeamId, props.Term); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		channels := result.Data.(*model.ChannelList)
+		w.Write([]byte(channels.ToJson()))
+	}
 }

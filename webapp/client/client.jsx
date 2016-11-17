@@ -1372,6 +1372,16 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getMoreChannelsPage', success, error));
     }
 
+    searchMoreChannels(term, success, error) {
+        request.
+            post(`${this.getChannelsRoute()}/more/search`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send({term}).
+            end(this.handleResponse.bind(this, 'searchMoreChannels', success, error));
+    }
+
     getChannelCounts(success, error) {
         request.
             get(`${this.getChannelsRoute()}/counts`).
