@@ -1076,3 +1076,180 @@ func TestUpdateExtrasByUser(t *testing.T) {
 		t.Fatal("failed to update extras by user: %v", result.Err)
 	}
 }
+
+func TestChannelStoreSearchMore(t *testing.T) {
+	Setup()
+
+	o1 := model.Channel{}
+	o1.TeamId = model.NewId()
+	o1.DisplayName = "ChannelA"
+	o1.Name = "a" + model.NewId() + "b"
+	o1.Type = model.CHANNEL_OPEN
+	Must(store.Channel().Save(&o1))
+
+	o2 := model.Channel{}
+	o2.TeamId = model.NewId()
+	o2.DisplayName = "Channel2"
+	o2.Name = "a" + model.NewId() + "b"
+	o2.Type = model.CHANNEL_OPEN
+	Must(store.Channel().Save(&o2))
+
+	m1 := model.ChannelMember{}
+	m1.ChannelId = o1.Id
+	m1.UserId = model.NewId()
+	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
+	Must(store.Channel().SaveMember(&m1))
+
+	m2 := model.ChannelMember{}
+	m2.ChannelId = o1.Id
+	m2.UserId = model.NewId()
+	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
+	Must(store.Channel().SaveMember(&m2))
+
+	m3 := model.ChannelMember{}
+	m3.ChannelId = o2.Id
+	m3.UserId = model.NewId()
+	m3.NotifyProps = model.GetDefaultChannelNotifyProps()
+	Must(store.Channel().SaveMember(&m3))
+
+	o3 := model.Channel{}
+	o3.TeamId = o1.TeamId
+	o3.DisplayName = "ChannelA"
+	o3.Name = "a" + model.NewId() + "b"
+	o3.Type = model.CHANNEL_OPEN
+	Must(store.Channel().Save(&o3))
+
+	o4 := model.Channel{}
+	o4.TeamId = o1.TeamId
+	o4.DisplayName = "ChannelB"
+	o4.Name = "a" + model.NewId() + "b"
+	o4.Type = model.CHANNEL_PRIVATE
+	Must(store.Channel().Save(&o4))
+
+	o5 := model.Channel{}
+	o5.TeamId = o1.TeamId
+	o5.DisplayName = "ChannelC"
+	o5.Name = "a" + model.NewId() + "b"
+	o5.Type = model.CHANNEL_PRIVATE
+	Must(store.Channel().Save(&o5))
+
+	if result := <-store.Channel().SearchMore(m1.UserId, o1.TeamId, "ChannelA"); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		channels := result.Data.(*model.ChannelList)
+		if len(*channels) == 0 {
+			t.Fatal("should not be empty")
+		}
+
+		if (*channels)[0].Name != o3.Name {
+			t.Fatal("wrong channel returned")
+		}
+	}
+
+	if result := <-store.Channel().SearchMore(m1.UserId, o1.TeamId, o4.Name); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		channels := result.Data.(*model.ChannelList)
+		if len(*channels) != 0 {
+			t.Fatal("should be empty")
+		}
+	}
+
+	if result := <-store.Channel().SearchMore(m1.UserId, o1.TeamId, o3.Name); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		channels := result.Data.(*model.ChannelList)
+		if len(*channels) == 0 {
+			t.Fatal("should not be empty")
+		}
+
+		if (*channels)[0].Name != o3.Name {
+			t.Fatal("wrong channel returned")
+		}
+	}
+
+}
+
+func TestChannelStoreSearchInTeam(t *testing.T) {
+	Setup()
+
+	o1 := model.Channel{}
+	o1.TeamId = model.NewId()
+	o1.DisplayName = "ChannelA"
+	o1.Name = "a" + model.NewId() + "b"
+	o1.Type = model.CHANNEL_OPEN
+	Must(store.Channel().Save(&o1))
+
+	o2 := model.Channel{}
+	o2.TeamId = model.NewId()
+	o2.DisplayName = "Channel2"
+	o2.Name = "a" + model.NewId() + "b"
+	o2.Type = model.CHANNEL_OPEN
+	Must(store.Channel().Save(&o2))
+
+	m1 := model.ChannelMember{}
+	m1.ChannelId = o1.Id
+	m1.UserId = model.NewId()
+	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
+	Must(store.Channel().SaveMember(&m1))
+
+	m2 := model.ChannelMember{}
+	m2.ChannelId = o1.Id
+	m2.UserId = model.NewId()
+	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
+	Must(store.Channel().SaveMember(&m2))
+
+	m3 := model.ChannelMember{}
+	m3.ChannelId = o2.Id
+	m3.UserId = model.NewId()
+	m3.NotifyProps = model.GetDefaultChannelNotifyProps()
+	Must(store.Channel().SaveMember(&m3))
+
+	o3 := model.Channel{}
+	o3.TeamId = o1.TeamId
+	o3.DisplayName = "ChannelA"
+	o3.Name = "a" + model.NewId() + "b"
+	o3.Type = model.CHANNEL_OPEN
+	Must(store.Channel().Save(&o3))
+
+	o4 := model.Channel{}
+	o4.TeamId = o1.TeamId
+	o4.DisplayName = "ChannelB"
+	o4.Name = "a" + model.NewId() + "b"
+	o4.Type = model.CHANNEL_PRIVATE
+	Must(store.Channel().Save(&o4))
+
+	o5 := model.Channel{}
+	o5.TeamId = o1.TeamId
+	o5.DisplayName = "ChannelC"
+	o5.Name = "a" + model.NewId() + "b"
+	o5.Type = model.CHANNEL_PRIVATE
+	Must(store.Channel().Save(&o5))
+
+	if result := <-store.Channel().SearchInTeam(o1.TeamId, "ChannelA"); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		channels := result.Data.(*model.ChannelList)
+		if len(*channels) != 2 {
+			t.Fatal("wrong length")
+		}
+	}
+
+	if result := <-store.Channel().SearchInTeam(o1.TeamId, ""); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		channels := result.Data.(*model.ChannelList)
+		if len(*channels) == 0 {
+			t.Fatal("should not be empty")
+		}
+	}
+
+	if result := <-store.Channel().SearchInTeam(o1.TeamId, "blargh"); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		channels := result.Data.(*model.ChannelList)
+		if len(*channels) != 0 {
+			t.Fatal("should be empty")
+		}
+	}
+}
