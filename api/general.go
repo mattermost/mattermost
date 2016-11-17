@@ -69,7 +69,7 @@ func ping(c *Context, w http.ResponseWriter, r *http.Request) {
 	m := make(map[string]string)
 	m["version"] = model.CurrentVersion
 	m["server_time"] = fmt.Sprintf("%v", model.GetMillis())
-	
+
 	reqs := utils.Cfg.ClientRequirements
 	m["AndroidLatestVersion"] = reqs.AndroidLatestVersion
 	m["AndroidMinVersion"] = reqs.AndroidMinVersion
@@ -77,7 +77,7 @@ func ping(c *Context, w http.ResponseWriter, r *http.Request) {
 	m["DesktopMinVersion"] = reqs.DesktopMinVersion
 	m["IosLatestVersion"] = reqs.IosLatestVersion
 	m["IosMinVersion"] = reqs.IosMinVersion
-	
+
 	w.Write([]byte(model.MapToJson(m)))
 }
 

@@ -247,7 +247,7 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["DesktopLatestVersion"] = c.ClientRequirements.DesktopLatestVersion
 	props["DesktopMinVersion"] = c.ClientRequirements.DesktopMinVersion
 	props["IosLatestVersion"] = c.ClientRequirements.IosLatestVersion
-	props["IosMinVersion"] =  c.ClientRequirements.IosMinVersion
+	props["IosMinVersion"] = c.ClientRequirements.IosMinVersion
 
 	props["EnableOAuthServiceProvider"] = strconv.FormatBool(c.ServiceSettings.EnableOAuthServiceProvider)
 	props["SegmentDeveloperKey"] = c.ServiceSettings.SegmentDeveloperKey
