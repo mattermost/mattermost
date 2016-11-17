@@ -53,7 +53,6 @@ export default class ClientVersionsSettings extends AdminSettings {
     }
 
     renderSettings() {
-        console.log(this.state);
         return (
             <SettingsGroup>
                 <TextSetting
