@@ -23,7 +23,7 @@ export default class GetIosApp extends React.Component {
                     />
                 </a>
                 <a
-                    href='mattermost://'
+                    href='/login'
                     className='btn btn-primary get-ios-app__continue-with-browser'
                 >
                     <FormattedMessage

@@ -23,7 +23,7 @@ export default class GetAndroidApp extends React.Component {
                     />
                 </a>
                 <a
-                    href='mattermost://'
+                    href='/login'
                     className='btn btn-primary get-android-app__continue-with-browser'
                 >
                     <FormattedMessage
