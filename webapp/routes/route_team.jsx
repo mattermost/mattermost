@@ -126,10 +126,11 @@ export default {
                     onEnter: onChannelEnter,
                     getComponents: (location, callback) => {
                         Promise.all([
+                            System.import('components/team_sidebar/team_sidebar_controller.jsx'),
                             System.import('components/sidebar.jsx'),
                             System.import('components/channel_view.jsx')
                         ]).then(
-                        (comarr) => callback(null, {sidebar: comarr[0].default, center: comarr[1].default})
+                        (comarr) => callback(null, {team_sidebar: comarr[0].default, sidebar: comarr[1].default, center: comarr[2].default})
                         );
                     }
                 },
@@ -138,10 +139,11 @@ export default {
                     onEnter: onPermalinkEnter,
                     getComponents: (location, callback) => {
                         Promise.all([
+                            System.import('components/team_sidebar/team_sidebar_controller.jsx'),
                             System.import('components/sidebar.jsx'),
                             System.import('components/permalink_view.jsx')
                         ]).then(
-                        (comarr) => callback(null, {sidebar: comarr[0].default, center: comarr[1].default})
+                        (comarr) => callback(null, {team_sidebar: comarr[0].default, sidebar: comarr[1].default, center: comarr[2].default})
                         );
                     }
                 },
@@ -149,10 +151,11 @@ export default {
                     path: 'tutorial',
                     getComponents: (location, callback) => {
                         Promise.all([
+                            System.import('components/team_sidebar/team_sidebar_controller.jsx'),
                             System.import('components/sidebar.jsx'),
                             System.import('components/tutorial/tutorial_view.jsx')
                         ]).then(
-                        (comarr) => callback(null, {sidebar: comarr[0].default, center: comarr[1].default})
+                        (comarr) => callback(null, {team_sidebar: comarr[0].default, sidebar: comarr[1].default, center: comarr[2].default})
                         );
                     }
                 }

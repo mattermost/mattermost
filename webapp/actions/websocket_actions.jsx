@@ -122,6 +122,10 @@ function handleEvent(msg) {
         handleLeaveTeamEvent(msg);
         break;
 
+    case SocketEvents.UPDATE_TEAM:
+        handleUpdateTeamEvent(msg);
+        break;
+
     case SocketEvents.USER_ADDED:
         handleUserAddedEvent(msg);
         break;
@@ -229,6 +233,10 @@ function handleNewUserEvent(msg) {
     AsyncClient.getUser(msg.data.user_id);
     AsyncClient.getChannelStats();
     loadProfilesAndTeamMembersForDMSidebar();
+
+    if (msg.data.user_id === UserStore.getCurrentId()) {
+        AsyncClient.getMyTeamMembers();
+    }
 }
 
 function handleLeaveTeamEvent(msg) {
@@ -242,6 +250,10 @@ function handleLeaveTeamEvent(msg) {
             browserHistory.push('/');
         }
     }
+}
+
+function handleUpdateTeamEvent(msg) {
+    TeamStore.updateTeam(msg.data.team);
 }
 
 function handleDirectAddedEvent(msg) {

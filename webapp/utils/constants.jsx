@@ -202,6 +202,7 @@ export const SocketEvents = {
     DIRECT_ADDED: 'direct_added',
     NEW_USER: 'new_user',
     LEAVE_TEAM: 'leave_team',
+    UPDATE_TEAM: 'update_team',
     USER_ADDED: 'user_added',
     USER_REMOVED: 'user_removed',
     USER_UPDATED: 'user_updated',

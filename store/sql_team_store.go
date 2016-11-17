@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"strconv"
 
+	"github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -568,9 +569,15 @@ func (s SqlTeamStore) GetTeamsForUser(userId string) StoreChannel {
 	go func() {
 		result := StoreResult{}
 
-		var members []*model.TeamMember
-		_, err := s.GetReplica().Select(&members, "SELECT * FROM TeamMembers WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
+		var members []*model.TeamMemberExtra
+		_, err := s.GetReplica().Select(&members,
+			`SELECT TeamMembers.*, SUM(Channels.TotalMsgCount - ChannelMembers.MsgCount) as MsgCount, SUM(ChannelMembers.MentionCount) as MentionCount
+			FROM TeamMembers
+			LEFT JOIN Channels ON TeamMembers.UserId = :UserId AND TeamMembers.TeamId=Channels.TeamId AND TeamMembers.DeleteAt = 0
+			INNER JOIN ChannelMembers ON Channels.Id=ChannelMembers.ChannelId AND ChannelMembers.UserId=TeamMembers.UserId
+			GROUP BY TeamMembers.TeamId, TeamMembers.UserId`, map[string]interface{}{"UserId": userId})
 		if err != nil {
+			log4go.Debug(err.Error())
 			result.Err = model.NewLocAppError("SqlTeamStore.GetMembers", "store.sql_team.get_members.app_error", nil, "userId="+userId+" "+err.Error())
 		} else {
 			result.Data = members

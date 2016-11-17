@@ -576,6 +576,19 @@ func TestGetTeamMembers(t *testing.T) {
 	}
 }
 
+func TestGetMyTeamMembers(t *testing.T) {
+	th := Setup().InitBasic()
+
+	if result, err := th.BasicClient.GetMyTeamMembers(); err != nil {
+		t.Fatal(err)
+	} else {
+		members := result.Data.([]*model.TeamMemberExtra)
+		if len(members) == 0 {
+			t.Fatal("should have results")
+		}
+	}
+}
+
 func TestGetTeamMember(t *testing.T) {
 	th := Setup().InitBasic()
 

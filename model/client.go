@@ -1752,6 +1752,18 @@ func (c *Client) GetTeamMembers(teamId string, offset int, limit int) (*Result, 
 	}
 }
 
+// GetMyTeamMembers will return the team member extra objects that the current user
+// is a member of. Must be authenticated.
+func (c *Client) GetMyTeamMembers() (*Result, *AppError) {
+	if r, err := c.DoApiGet("/teams/my_members", "", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), TeamMembersExtraFromJson(r.Body)}, nil
+	}
+}
+
 // GetTeamMember will return a team member object based on the team id and user id provided.
 // Must be authenticated.
 func (c *Client) GetTeamMember(teamId string, userId string) (*Result, *AppError) {
