@@ -1,6 +1,7 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 import * as Utils from 'utils/utils.jsx';
+import * as PostUtils from 'utils/post_utils.jsx';
 import UserStore from 'stores/user_store.jsx';
 import React from 'react';
 import {Popover, OverlayTrigger} from 'react-bootstrap';
@@ -23,14 +24,22 @@ export default class ProfilePicture extends React.Component {
             return true;
         }
 
+        if (!Utils.areObjectsEqual(nextProps.post, this.props.post)) {
+            return true;
+        }
+
         return false;
     }
 
     render() {
         let email = '';
         let statusClass = '';
+        let isSystemMessage = false;
         if (this.props.status) {
             statusClass = 'status-' + this.props.status;
+        }
+        if (this.props.post) {
+          isSystemMessage = PostUtils.isSystemMessage(this.props.post);
         }
         if (this.props.user) {
             email = this.props.user.email;
@@ -93,7 +102,7 @@ export default class ProfilePicture extends React.Component {
                 >
                     <span className={`status-wrapper ${statusClass}`}>
                         <img
-                            className='more-modal__image'
+                            className={`more-modal__image ${ isSystemMessage && 'icon--uchat'}`}
                             width={this.props.width}
                             height={this.props.width}
                             src={this.props.src}
@@ -105,7 +114,7 @@ export default class ProfilePicture extends React.Component {
         return (
             <span className={`status-wrapper ${statusClass}`}>
                 <img
-                    className='more-modal__image'
+                    className={`more-modal__image ${ isSystemMessage && 'icon--uchat'}`}
                     width={this.props.width}
                     height={this.props.width}
                     src={this.props.src}
@@ -124,5 +133,6 @@ ProfilePicture.propTypes = {
     status: React.PropTypes.string,
     width: React.PropTypes.string,
     height: React.PropTypes.string,
-    user: React.PropTypes.object
+    user: React.PropTypes.object,
+    post: React.PropTypes.object
 };

@@ -875,6 +875,10 @@
             width: 32px;
             max-width:none;
         }
+
+        .icon--uchat {
+          @include border-radius(0px);
+        }
     }
 
     .post__embed-container {
