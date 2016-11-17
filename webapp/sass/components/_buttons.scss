@@ -1,17 +1,24 @@
 @charset 'UTF-8';
 
+
+// .getButton {
+//     border: 1px solid #90D0BD;
+// }
+
 .btn {
     @include single-transition(all, .25s, ease-in);
     @include border-radius($border-rad);
 
     &.btn-primary {
-        background: $primary-color;
-        border-color: transparent;
+        background: transparent;
+        border-color: $primary-color;
+        color: $primary-color;
 
         &:hover,
         &:focus,
         &:active {
-            background: $primary-color--hover;
+          border-color  : $primary-color--hover ;
+          color         : $primary-color--hover ;
         }
     }
 
