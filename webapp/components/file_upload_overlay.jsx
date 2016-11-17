@@ -6,7 +6,6 @@ import {FormattedMessage} from 'react-intl';
 import React from 'react';
 
 import fileOverlayImage from 'images/filesOverlay.png';
-import overlayLogoImage from 'images/logoWhite.png';
 
 export default class FileUploadOverlay extends React.Component {
     render() {
@@ -32,12 +31,6 @@ export default class FileUploadOverlay extends React.Component {
                                 defaultMessage='Drop a file to upload it.'
                             />
                         </span>
-                        <img
-                            className='overlay__logo'
-                            src={overlayLogoImage}
-                            width='100'
-                            alt='Logo'
-                        />
                     </div>
                 </div>
             </div>

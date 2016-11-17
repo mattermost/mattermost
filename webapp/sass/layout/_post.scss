@@ -211,14 +211,6 @@
         margin: 75px auto 20px;
     }
 
-    .overlay__logo {
-        @include opacity(.3);
-        bottom: 30px;
-        left: 50%;
-        margin-left: -50px;
-        position: absolute;
-    }
-
     .fa {
         display: inline-block;
         font-size: 1.1em;
