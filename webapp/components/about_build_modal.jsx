@@ -46,9 +46,9 @@ export default class AboutBuildModal extends React.Component {
                 <a
                     target='_blank'
                     rel='noopener noreferrer'
-                    href='http://www.mattermost.org/'
+                    href='https://uchat.uberinternal.com/downloads'
                 >
-                    {'mattermost.org'}
+                    {'uchat.uberinternal.com'}
                 </a>
             </div>
         );
@@ -73,14 +73,14 @@ export default class AboutBuildModal extends React.Component {
                 <div>
                     <FormattedMessage
                         id='about.enterpriseEditionLearn'
-                        defaultMessage='Learn more about Enterprise Edition at '
+                        defaultMessage='Learn more at '
                     />
                     <a
                         target='_blank'
                         rel='noopener noreferrer'
-                        href='http://about.mattermost.com/'
+                        href='https://uchat.uberinternal.com/downloads'
                     >
-                        {'about.mattermost.com'}
+                        {'uchat.uberinternal.com'}
                     </a>
                 </div>
             );
@@ -92,15 +92,17 @@ export default class AboutBuildModal extends React.Component {
                         defaultMessage='Enterprise Edition'
                     />
                 );
-                licensee = (
-                    <div className='form-group'>
-                        <FormattedMessage
-                            id='about.licensed'
-                            defaultMessage='Licensed to:'
-                        />
-                        &nbsp;{license.Company}
-                    </div>
-                );
+                if (license.Company) {
+                    licensee = (
+                        <div className='form-group'>
+                            <FormattedMessage
+                                id='about.licensed'
+                                defaultMessage='Licensed to:'
+                            />
+                            &nbsp;{license.Company}
+                        </div>
+                    );
+                }
             }
         }
 
@@ -132,7 +134,7 @@ export default class AboutBuildModal extends React.Component {
                             />
                         </div>
                         <div>
-                            <h3 className='about-modal__title'>{'uChat'} {title}</h3>
+                            <h3 className='about-modal__title'>{'uChat'}</h3>
                             <p className='about-modal__subtitle padding-bottom'>{subTitle}</p>
                             <div className='form-group less'>
                                 <div>
@@ -158,7 +160,7 @@ export default class AboutBuildModal extends React.Component {
                         <div className='form-group about-modal__copyright'>
                             <FormattedMessage
                                 id='about.copyright'
-                                defaultMessage='Copyright 2016 uChat, Inc. All rights reserved'
+                                defaultMessage='Copyright 2016, Uber Technologies, Inc. All rights reserved.'
                             />
                         </div>
                     </div>
