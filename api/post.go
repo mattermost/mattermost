@@ -801,6 +801,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 	message.Add("post", post.ToJson())
 	message.Add("channel_type", channel.Type)
 	message.Add("channel_display_name", channel.DisplayName)
+	message.Add("channel_name", channel.Name)
 	message.Add("sender_name", senderName)
 	message.Add("team_id", team.Id)
 

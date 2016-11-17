@@ -31,6 +31,7 @@ func InitTeam() {
 	BaseRoutes.Teams.Handle("/all_team_listings", ApiUserRequired(GetAllTeamListings)).Methods("GET")
 	BaseRoutes.Teams.Handle("/get_invite_info", ApiAppHandler(getInviteInfo)).Methods("POST")
 	BaseRoutes.Teams.Handle("/find_team_by_name", ApiAppHandler(findTeamByName)).Methods("POST")
+	BaseRoutes.Teams.Handle("/my_members", ApiAppHandler(getMyTeamMembers)).Methods("GET")
 
 	BaseRoutes.NeedTeam.Handle("/me", ApiUserRequired(getMyTeam)).Methods("GET")
 	BaseRoutes.NeedTeam.Handle("/stats", ApiUserRequired(getTeamStats)).Methods("GET")
@@ -708,6 +709,16 @@ func findTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func getMyTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
+	if result := <-Srv.Store.Team().GetTeamsForUser(c.Session.UserId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		data := result.Data.([]*model.TeamMemberExtra)
+		w.Write([]byte(model.TeamMembersExtraToJson(data)))
+	}
+}
+
 func InviteMembers(c *Context, team *model.Team, user *model.User, invites []string) {
 	for _, invite := range invites {
 		if len(invite) > 0 {
@@ -788,6 +799,10 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	oldTeam.Sanitize()
 
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_UPDATE_TEAM, "", "", "", nil)
+	message.Add("team", oldTeam.ToJson())
+	go Publish(message)
+
 	w.Write([]byte(oldTeam.ToJson()))
 }
 
@@ -819,10 +834,10 @@ func updateMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = result.Err
 		return
 	} else {
-		members := result.Data.([]*model.TeamMember)
+		members := result.Data.([]*model.TeamMemberExtra)
 		for _, m := range members {
 			if m.TeamId == teamId {
-				member = m
+				member = &m.TeamMember
 			}
 		}
 	}

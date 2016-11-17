@@ -45,7 +45,7 @@ class NotificationStoreClass extends EventEmitter {
             }
             const teamId = msgProps.team_id;
 
-            const channel = ChannelStore.get(post.channel_id);
+            let channel = ChannelStore.get(post.channel_id);
             const user = UserStore.getCurrentUser();
             const member = ChannelStore.getMyMember(post.channel_id);
 
@@ -72,6 +72,9 @@ class NotificationStoreClass extends EventEmitter {
             let title = Utils.localizeMessage('channel_loader.posted', 'Posted');
             if (!channel) {
                 title = msgProps.channel_display_name;
+                channel = {
+                    name: msgProps.channel_name
+                };
             } else if (channel.type === Constants.DM_CHANNEL) {
                 title = Utils.localizeMessage('notification.dm', 'Direct Message');
             } else {

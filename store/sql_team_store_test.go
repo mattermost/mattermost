@@ -295,6 +295,12 @@ func TestTeamMembers(t *testing.T) {
 		t.Fatal(r1.Err)
 	}
 
+	c1 := &model.Channel{TeamId: m1.TeamId, Name: model.NewId(), DisplayName: "Town Square", Type: model.CHANNEL_OPEN}
+	Must(store.Channel().Save(c1))
+
+	cm1 := &model.ChannelMember{ChannelId: c1.Id, UserId: m1.UserId, NotifyProps: model.GetDefaultChannelNotifyProps()}
+	Must(store.Channel().SaveMember(cm1))
+
 	Must(store.Team().SaveMember(m2))
 	Must(store.Team().SaveMember(m3))
 
@@ -326,7 +332,7 @@ func TestTeamMembers(t *testing.T) {
 	if r1 := <-store.Team().GetTeamsForUser(m1.UserId); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
-		ms := r1.Data.([]*model.TeamMember)
+		ms := r1.Data.([]*model.TeamMemberExtra)
 
 		if len(ms) != 1 {
 			t.Fatal()
@@ -379,10 +385,20 @@ func TestTeamMembers(t *testing.T) {
 	Must(store.Team().SaveMember(m4))
 	Must(store.Team().SaveMember(m5))
 
+	c4 := &model.Channel{TeamId: m4.TeamId, Name: model.NewId(), DisplayName: "Town Square", Type: model.CHANNEL_OPEN}
+	Must(store.Channel().Save(c4))
+	c5 := &model.Channel{TeamId: m5.TeamId, Name: model.NewId(), DisplayName: "Town Square", Type: model.CHANNEL_OPEN}
+	Must(store.Channel().Save(c5))
+
+	cm4 := &model.ChannelMember{ChannelId: c4.Id, UserId: m4.UserId, NotifyProps: model.GetDefaultChannelNotifyProps()}
+	Must(store.Channel().SaveMember(cm4))
+	cm5 := &model.ChannelMember{ChannelId: c5.Id, UserId: m5.UserId, NotifyProps: model.GetDefaultChannelNotifyProps()}
+	Must(store.Channel().SaveMember(cm5))
+
 	if r1 := <-store.Team().GetTeamsForUser(uid); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
-		ms := r1.Data.([]*model.TeamMember)
+		ms := r1.Data.([]*model.TeamMemberExtra)
 
 		if len(ms) != 2 {
 			t.Fatal()
@@ -391,16 +407,6 @@ func TestTeamMembers(t *testing.T) {
 
 	if r1 := <-store.Team().RemoveAllMembersByUser(uid); r1.Err != nil {
 		t.Fatal(r1.Err)
-	}
-
-	if r1 := <-store.Team().GetTeamsForUser(m1.UserId); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		ms := r1.Data.([]*model.TeamMember)
-
-		if len(ms) != 0 {
-			t.Fatal()
-		}
 	}
 }
 

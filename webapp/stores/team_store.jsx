@@ -10,6 +10,7 @@ const ActionTypes = Constants.ActionTypes;
 
 const CHANGE_EVENT = 'change';
 const STATS_EVENT = 'stats';
+const UNREAD_EVENT = 'unread';
 
 var Utils;
 
@@ -51,6 +52,18 @@ class TeamStoreClass extends EventEmitter {
 
     removeStatsChangeListener(callback) {
         this.removeListener(STATS_EVENT, callback);
+    }
+
+    emitUnreadChange() {
+        this.emit(UNREAD_EVENT);
+    }
+
+    addUnreadChangeListener(callback) {
+        this.on(UNREAD_EVENT, callback);
+    }
+
+    removeUnreadChangeListener(callback) {
+        this.removeListener(UNREAD_EVENT, callback);
     }
 
     get(id) {
@@ -158,6 +171,25 @@ class TeamStoreClass extends EventEmitter {
         this.teams = teams;
     }
 
+    updateTeam(team) {
+        const t = JSON.parse(team);
+        if (this.teams && this.teams[t.id]) {
+            this.teams[t.id] = t;
+        }
+
+        if (this.teamListings && this.teamListings[t.id]) {
+            if (t.allow_open_invite) {
+                this.teamListings[t.id] = t;
+            } else {
+                Reflect.deleteProperty(this.teamListings, t.id);
+            }
+        } else if (t.allow_open_invite) {
+            this.teamListings[t.id] = t;
+        }
+
+        this.emitChange();
+    }
+
     saveMyTeam(team) {
         this.saveTeam(team);
         this.currentTeamId = team.id;
@@ -181,6 +213,7 @@ class TeamStoreClass extends EventEmitter {
                 this.my_team_members.splice(i, 1);
             }
         }
+        this.emitChange();
     }
 
     getMyTeamMembers() {
@@ -248,6 +281,14 @@ class TeamStoreClass extends EventEmitter {
 
         return false;
     }
+
+    updateUnreadCount(teamId, totalMsgCount, channelMember) {
+        const member = this.my_team_members.filter((m) => m.team_id === teamId)[0];
+        if (member) {
+            member.msg_count -= (totalMsgCount - channelMember.msg_count);
+            member.mention_count -= channelMember.mention_count;
+        }
+    }
 }
 
 var TeamStore = new TeamStoreClass();
@@ -291,6 +332,12 @@ TeamStore.dispatchToken = AppDispatcher.register((payload) => {
     case ActionTypes.RECEIVED_TEAM_STATS:
         TeamStore.saveStats(action.team_id, action.stats);
         TeamStore.emitStatsChange();
+        break;
+    case ActionTypes.CLICK_CHANNEL:
+        if (action.channelMember) {
+            TeamStore.updateUnreadCount(action.team_id, action.total_msg_count, action.channelMember);
+            TeamStore.emitUnreadChange();
+        }
         break;
     default:
     }
