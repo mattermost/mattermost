@@ -1116,7 +1116,7 @@
   "create_team.display_name.required": "Обязательное поле",
   "create_team.display_name.teamName": "Название команды",
   "create_team.team_url.back": "На предыдущий шаг",
-  "create_team.team_url.charLength": "Имя должно быть больше {min} букв и меньше {max}",
+  "create_team.team_url.charLength": "Имя должно быть больше 2 букв и меньше 15",
   "create_team.team_url.creatingTeam": "Создание команды...",
   "create_team.team_url.finish": "Готово",
   "create_team.team_url.hint": "<li>Short and memorable is best</li><li>Use lowercase letters, numbers and dashes</li><li>Must start with a letter and can't end in a dash</li>",

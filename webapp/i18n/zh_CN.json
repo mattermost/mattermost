@@ -1116,7 +1116,7 @@
   "create_team.display_name.required": "此栏必须填写",
   "create_team.display_name.teamName": "团队名称",
   "create_team.team_url.back": "返回上一步",
-  "create_team.team_url.charLength": "名称必须是{min}到{max}个字符",
+  "create_team.team_url.charLength": "名称必须是2到15个字符",
   "create_team.team_url.creatingTeam": "创建团队...",
   "create_team.team_url.finish": "完成",
   "create_team.team_url.hint": "<li>简短和易记为最好的</li><li>使用小写字母，数字和连字符</li><li>必须以字母开头且不能以连字符结尾</li>",

@@ -1116,7 +1116,7 @@
   "create_team.display_name.required": "Dieses Feld ist erforderlich",
   "create_team.display_name.teamName": "Teamname",
   "create_team.team_url.back": "Zurück zum vorigen Schritt",
-  "create_team.team_url.charLength": "Der Name muss mindestens {min} Zeichen und darf maximal {max} Zeichen lang sein",
+  "create_team.team_url.charLength": "Der Name muss mindestens 2 Zeichen und darf maximal 15 Zeichen lang sein",
   "create_team.team_url.creatingTeam": "Erstelle Team...",
   "create_team.team_url.finish": "Fertigstellen",
   "create_team.team_url.hint": "<li>Kurz und gut merkbar ist von Vorteil</li><li>Nur Kleinbuchstaben, Ziffern und Bindestriche verwenden</li><li>Es muss mit einem Buchstaben begonnen werden und darf nicht mit einem Bindestrich enden.</li>",
