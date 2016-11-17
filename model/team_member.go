@@ -16,6 +16,12 @@ type TeamMember struct {
 	DeleteAt int64  `json:"delete_at"`
 }
 
+type TeamMemberExtra struct {
+	TeamMember
+	MsgCount     int64 `json:"msg_count"`
+	MentionCount int64 `json:"mention_count"`
+}
+
 func (o *TeamMember) ToJson() string {
 	b, err := json.Marshal(o)
 	if err != nil {
@@ -47,6 +53,25 @@ func TeamMembersToJson(o []*TeamMember) string {
 func TeamMembersFromJson(data io.Reader) []*TeamMember {
 	decoder := json.NewDecoder(data)
 	var o []*TeamMember
+	err := decoder.Decode(&o)
+	if err == nil {
+		return o
+	} else {
+		return nil
+	}
+}
+
+func TeamMembersExtraToJson(o []*TeamMemberExtra) string {
+	if b, err := json.Marshal(o); err != nil {
+		return "[]"
+	} else {
+		return string(b)
+	}
+}
+
+func TeamMembersExtraFromJson(data io.Reader) []*TeamMemberExtra {
+	decoder := json.NewDecoder(data)
+	var o []*TeamMemberExtra
 	err := decoder.Decode(&o)
 	if err == nil {
 		return o

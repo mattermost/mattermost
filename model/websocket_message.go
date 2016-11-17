@@ -18,6 +18,7 @@ const (
 	WEBSOCKET_EVENT_DIRECT_ADDED       = "direct_added"
 	WEBSOCKET_EVENT_NEW_USER           = "new_user"
 	WEBSOCKET_EVENT_LEAVE_TEAM         = "leave_team"
+	WEBSOCKET_EVENT_UPDATE_TEAM        = "update_team"
 	WEBSOCKET_EVENT_USER_ADDED         = "user_added"
 	WEBSOCKET_EVENT_USER_UPDATED       = "user_updated"
 	WEBSOCKET_EVENT_USER_REMOVED       = "user_removed"

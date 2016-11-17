@@ -1,0 +1,90 @@
+.multi-teams {
+    .team-sidebar {
+        height: 100%;
+        left: 0;
+        position: fixed;
+        text-align: center;
+        width: 75px;
+        z-index: 5;
+
+        .team-wrapper {
+            background-color: rgba(0, 0, 0, 0.2);
+            height: 100%;
+            overflow: auto;
+            padding-top: 15px;
+
+            .team-container {
+                width: 100%;
+                text-align: center;
+                display: table;
+                margin-bottom: 10px;
+                position: relative;
+
+                .team-btn {
+                    border: none;
+                    height: 42px;
+                    text-align: center;
+                    font-weight: bold;
+                    border-radius: 5px;
+                    position: relative;
+                    width: 42px;
+                    background-color: rgba(0, 0, 0, 0.3);
+                    display: table-cell;
+                    vertical-align: middle;
+
+                    .badge {
+                        position: absolute;
+                        top: -3px;
+                        right: -6px;
+                        font-size: 10px;
+                    }
+                }
+
+                &.active {
+                    .team-btn {
+                        border: 1px solid #fff;
+                        background-color: transparent;
+                    }
+                }
+
+                &.active:before {
+                    background: black;
+                    content: '';
+                    height: 100%;
+                    left: 0;
+                    position: absolute;
+                    top: 0;
+                    width: 5px;
+                }
+
+                &.unread:before {
+                    background: black;
+                    border-radius: 50%;
+                    content: '';
+                    height: 5px;
+                    left: 0;
+                    position: absolute;
+                    top: 18px;
+                    width: 5px;
+                }
+
+                a.team-disabled {
+                    cursor: not-allowed;
+                    opacity: 0.5;
+                }
+            }
+
+            .team-container a:hover {
+                text-decoration: none;
+            }
+        }
+    }
+
+    .sidebar--left {
+        left: 75px;
+    }
+
+    .app__content {
+        margin-left: 295px;
+    }
+}

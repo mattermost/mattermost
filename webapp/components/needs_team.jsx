@@ -142,6 +142,7 @@ export default class NeedsTeam extends React.Component {
             content.push(
                 this.props.navbar
             );
+            content.push(this.props.team_sidebar);
             content.push(
                 this.props.sidebar
             );
@@ -199,6 +200,7 @@ NeedsTeam.propTypes = {
     ]),
     navbar: React.PropTypes.element,
     sidebar: React.PropTypes.element,
+    team_sidebar: React.PropTypes.element,
     center: React.PropTypes.element,
     params: React.PropTypes.object,
     user: React.PropTypes.object

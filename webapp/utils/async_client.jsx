@@ -847,6 +847,29 @@ export function getTeamMember(teamId, userId) {
     );
 }
 
+export function getMyTeamMembers() {
+    const callName = 'getMyTeamMembers';
+    if (isCallInProgress(callName)) {
+        return;
+    }
+
+    callTracker[callName] = utils.getTimestamp();
+    Client.getMyTeamMembers(
+        (data) => {
+            callTracker[callName] = 0;
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_MY_TEAM_MEMBERS,
+                team_members: data
+            });
+        },
+        (err) => {
+            callTracker[callName] = 0;
+            dispatchError(err, 'getMyTeamMembers');
+        }
+    );
+}
+
 export function getTeamStats(teamId) {
     const callName = `getTeamStats${teamId}`;
     if (isCallInProgress(callName)) {
