@@ -14,12 +14,12 @@ export default class GetAndroidApp extends React.Component {
                     className='centerMeImage'
                 />
                 <a
-                    href='mattermost://'
+                    href={global.window.mm_config.AndroidAppDownloadLink}
                     className='btn btn-primary get-android-app__open-mattermost'
                 >
                     <FormattedMessage
                         id='get_app.openMattermost'
-                        defaultMessage='Open in uChat App'
+                        defaultMessage='Download the uChat App'
                     />
                 </a>
                 <a
