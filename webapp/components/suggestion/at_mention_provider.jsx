@@ -112,7 +112,7 @@ export default class AtMentionProvider {
     handlePretextChanged(suggestionId, pretext) {
         clearTimeout(this.timeoutId);
 
-        const captured = (/(?:^|\W)@([a-z0-9\-\._]*)$/i).exec(pretext.toLowerCase());
+        const captured = (/(?:^|\W)@([a-z0-9\-._]*)$/i).exec(pretext.toLowerCase());
         if (captured) {
             const prefix = captured[1];
 

@@ -30,8 +30,8 @@ export function isEmail(email) {
 export function cleanUpUrlable(input) {
     var cleaned = input.trim().replace(/-/g, ' ').replace(/[^\w\s]/gi, '').toLowerCase().replace(/\s/g, '-');
     cleaned = cleaned.replace(/-{2,}/, '-');
-    cleaned = cleaned.replace(/^\-+/, '');
-    cleaned = cleaned.replace(/\-+$/, '');
+    cleaned = cleaned.replace(/^-+/, '');
+    cleaned = cleaned.replace(/-+$/, '');
     return cleaned;
 }
 
@@ -135,7 +135,6 @@ export function ding() {
         canDing = false;
         setTimeout(() => {
             canDing = true;
-            return;
         }, 3000);
     }
 }
@@ -194,14 +193,14 @@ export function getTimestamp() {
 
 // extracts links not styled by Markdown
 export function extractFirstLink(text) {
-    const pattern = /(^|[\s\n]|<br\/?>)((?:https?|ftp):\/\/[\-A-Z0-9+\u0026\u2019@#\/%?=()~_|!:,.;]*[\-A-Z0-9+\u0026@#\/%=~()_|])/i;
+    const pattern = /(^|[\s\n]|<br\/?>)((?:https?|ftp):\/\/[-A-Z0-9+\u0026\u2019@#/%?=()~_|!:,.;]*[-A-Z0-9+\u0026@#/%=~()_|])/i;
     let inText = text;
 
     // strip out code blocks
     inText = inText.replace(/`[^`]*`/g, '');
 
     // strip out inline markdown images
-    inText = inText.replace(/!\[[^\]]*\]\([^\)]*\)/g, '');
+    inText = inText.replace(/!\[[^\]]*]\([^)]*\)/g, '');
 
     const match = pattern.exec(inText);
     if (match) {
@@ -212,7 +211,7 @@ export function extractFirstLink(text) {
 }
 
 export function escapeRegExp(string) {
-    return string.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, '\\$1');
+    return string.replace(/([.*+?^=!:${}()|[\]/\\])/g, '\\$1');
 }
 
 // Taken from http://stackoverflow.com/questions/1068834/object-comparison-in-javascript and modified slightly
@@ -708,7 +707,6 @@ export function updateCodeTheme(userTheme) {
             element.themes.forEach((theme) => {
                 if (userTheme === theme.id) {
                     cssPath = theme.cssURL;
-                    return;
                 }
             });
         }
@@ -736,8 +734,6 @@ export function placeCaretAtEnd(el) {
     el.focus();
     el.selectionStart = el.value.length;
     el.selectionEnd = el.value.length;
-
-    return;
 }
 
 export function getCaretPosition(el) {
@@ -799,7 +795,7 @@ export function isValidUsername(name) {
         error = 'This field is required';
     } else if (name.length < Constants.MIN_USERNAME_LENGTH || name.length > Constants.MAX_USERNAME_LENGTH) {
         error = 'Must be between ' + Constants.MIN_USERNAME_LENGTH + ' and ' + Constants.MAX_USERNAME_LENGTH + ' characters';
-    } else if (!(/^[a-z0-9\.\-_]+$/).test(name)) {
+    } else if (!(/^[a-z0-9.\-_]+$/).test(name)) {
         error = "Must contain only letters, numbers, and the symbols '.', '-', and '_'.";
     } else if (!(/[a-z]/).test(name.charAt(0))) { //eslint-disable-line no-negated-condition
         error = 'First character must be a letter.';

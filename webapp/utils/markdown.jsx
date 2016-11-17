@@ -197,7 +197,7 @@ class MattermostMarkdownRenderer extends marked.Renderer {
     }
 
     listitem(text, bullet) {
-        const taskListReg = /^\[([ |xX])\] /;
+        const taskListReg = /^\[([ |xX])] /;
         const isTaskList = taskListReg.exec(text);
 
         if (isTaskList) {

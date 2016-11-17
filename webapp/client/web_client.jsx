@@ -17,23 +17,23 @@ class WebClientClass extends Client {
         TeamStore.addChangeListener(this.onTeamStoreChanged);
     }
 
-    onTeamStoreChanged = () => {
+    onTeamStoreChanged() {
         this.setTeamId(TeamStore.getCurrentId());
     }
 
-    track = (category, action, label, property, value) => {
+    track(category, action, label, property, value) {
         if (global.window && global.window.analytics) {
             global.window.analytics.track(action, {category, label, property, value});
         }
     }
 
-    trackPage = () => {
+    trackPage() {
         if (global.window && global.window.analytics) {
             global.window.analytics.page();
         }
     }
 
-    handleError = (err, res) => { // eslint-disable-line no-unused-vars
+    handleError(err, res) {
         if (err.status === HTTP_UNAUTHORIZED && res.req.url !== '/api/v3/users/login') {
             GlobalActions.emitUserLoggedOutEvent('/login');
         }
