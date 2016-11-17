@@ -181,7 +181,7 @@ func GzipHandler(h http.Handler) http.Handler {
 }
 
 // acceptsGzip returns true if the given HTTP request indicates that it will
-// accept a gzippped response.
+// accept a gzipped response.
 func acceptsGzip(r *http.Request) bool {
 	acceptedEncodings, _ := parseEncodings(r.Header.Get(acceptEncoding))
 	return acceptedEncodings["gzip"] > 0.0

@@ -26,6 +26,11 @@ type Route struct {
 	// If true, when the path pattern is "/path/", accessing "/path" will
 	// redirect to the former and vice versa.
 	strictSlash bool
+	// If true, when the path pattern is "/path//to", accessing "/path//to"
+	// will not redirect
+	skipClean bool
+	// If true, "/path/foo%2Fbar/to" will match the path "/path/{var}/to"
+	useEncodedPath bool
 	// If true, this route never matches: it is only used to build URLs.
 	buildOnly bool
 	// The name used to build URLs.
@@ -34,6 +39,10 @@ type Route struct {
 	err error
 
 	buildVarsFunc BuildVarsFunc
+}
+
+func (r *Route) SkipClean() bool {
+	return r.skipClean
 }
 
 // Match matches the route against the request.
@@ -151,7 +160,7 @@ func (r *Route) addRegexpMatcher(tpl string, matchHost, matchPrefix, matchQuery 
 			tpl = strings.TrimRight(r.regexp.path.template, "/") + tpl
 		}
 	}
-	rr, err := newRouteRegexp(tpl, matchHost, matchPrefix, matchQuery, r.strictSlash)
+	rr, err := newRouteRegexp(tpl, matchHost, matchPrefix, matchQuery, r.strictSlash, r.useEncodedPath)
 	if err != nil {
 		return err
 	}

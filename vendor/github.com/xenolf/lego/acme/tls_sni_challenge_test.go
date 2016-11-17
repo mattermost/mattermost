@@ -59,7 +59,7 @@ func TestTLSSNIChallengeInvalidPort(t *testing.T) {
 
 	if err := solver.Solve(clientChallenge, "localhost:123456"); err == nil {
 		t.Errorf("Solve error: got %v, want error", err)
-	} else if want := "invalid port 123456"; !strings.HasSuffix(err.Error(), want) {
+	} else if want, want18 := "invalid port 123456", "123456: invalid port"; !strings.HasSuffix(err.Error(), want) && !strings.HasSuffix(err.Error(), want18) {
 		t.Errorf("Solve error: got %q, want suffix %q", err.Error(), want)
 	}
 }

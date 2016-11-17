@@ -270,6 +270,26 @@ func BenchmarkTranslatePluralWithMap(b *testing.B) {
 	}
 }
 
+func BenchmarkTranslatePluralWithMapAndCountField(b *testing.B) {
+	data := map[string]interface{}{
+		"Person": "Bob",
+		"Count":  26,
+	}
+
+	translationTemplate := map[string]interface{}{
+		"one":   "{{.Person}} is {{.Count}} year old.",
+		"other": "{{.Person}} is {{.Count}} years old.",
+	}
+	expected := "Bob is 26 years old."
+
+	tf := createBenchmarkTranslateFunc(b, translationTemplate, nil, expected)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		tf(data)
+	}
+}
+
 func BenchmarkTranslatePluralWithStruct(b *testing.B) {
 	data := struct{ Person string }{Person: "Bob"}
 	tf := createBenchmarkPluralTranslateFunc(b)

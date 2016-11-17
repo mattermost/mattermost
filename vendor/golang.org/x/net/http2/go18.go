@@ -6,6 +6,36 @@
 
 package http2
 
-import "crypto/tls"
+import (
+	"crypto/tls"
+	"net/http"
+)
 
 func cloneTLSConfig(c *tls.Config) *tls.Config { return c.Clone() }
+
+var _ http.Pusher = (*responseWriter)(nil)
+
+// Push implements http.Pusher.
+func (w *responseWriter) Push(target string, opts *http.PushOptions) error {
+	internalOpts := pushOptions{}
+	if opts != nil {
+		internalOpts.Method = opts.Method
+		internalOpts.Header = opts.Header
+	}
+	return w.push(target, internalOpts)
+}
+
+func configureServer18(h1 *http.Server, h2 *Server) error {
+	if h2.IdleTimeout == 0 {
+		if h1.IdleTimeout != 0 {
+			h2.IdleTimeout = h1.IdleTimeout
+		} else {
+			h2.IdleTimeout = h1.ReadTimeout
+		}
+	}
+	return nil
+}
+
+func shouldLogPanic(panicValue interface{}) bool {
+	return panicValue != nil && panicValue != http.ErrAbortHandler
+}

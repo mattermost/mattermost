@@ -63,7 +63,7 @@ func (s *HTTPProviderServer) serve(domain, token, keyAuth string) {
 			w.Write([]byte(keyAuth))
 			logf("[INFO][%s] Served key authentication", domain)
 		} else {
-			logf("[INFO] Received request for domain %s with method %s", r.Host, r.Method)
+			logf("[WARN] Received request for domain %s with method %s but the domain did not match any challenge. Please ensure your are passing the HOST header properly.", r.Host, r.Method)
 			w.Write([]byte("TEST"))
 		}
 	})

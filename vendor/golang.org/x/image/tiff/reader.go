@@ -118,8 +118,9 @@ func (d *decoder) ifdUint(p []byte) (u []uint, err error) {
 }
 
 // parseIFD decides whether the the IFD entry in p is "interesting" and
-// stows away the data in the decoder.
-func (d *decoder) parseIFD(p []byte) error {
+// stows away the data in the decoder. It returns the tag number of the
+// entry and an error, if any.
+func (d *decoder) parseIFD(p []byte) (int, error) {
 	tag := d.byteOrder.Uint16(p[0:2])
 	switch tag {
 	case tBitsPerSample,
@@ -138,17 +139,17 @@ func (d *decoder) parseIFD(p []byte) error {
 		tImageWidth:
 		val, err := d.ifdUint(p)
 		if err != nil {
-			return err
+			return 0, err
 		}
 		d.features[int(tag)] = val
 	case tColorMap:
 		val, err := d.ifdUint(p)
 		if err != nil {
-			return err
+			return 0, err
 		}
 		numcolors := len(val) / 3
 		if len(val)%3 != 0 || numcolors <= 0 || numcolors > 256 {
-			return FormatError("bad ColorMap length")
+			return 0, FormatError("bad ColorMap length")
 		}
 		d.palette = make([]color.Color, numcolors)
 		for i := 0; i < numcolors; i++ {
@@ -166,15 +167,15 @@ func (d *decoder) parseIFD(p []byte) error {
 		// must terminate the import process gracefully.
 		val, err := d.ifdUint(p)
 		if err != nil {
-			return err
+			return 0, err
 		}
 		for _, v := range val {
 			if v != 1 {
-				return UnsupportedError("sample format")
+				return 0, UnsupportedError("sample format")
 			}
 		}
 	}
-	return nil
+	return int(tag), nil
 }
 
 // readBits reads n bits from the internal buffer starting at the current offset.
@@ -428,10 +429,16 @@ func newDecoder(r io.Reader) (*decoder, error) {
 		return nil, err
 	}
 
+	prevTag := -1
 	for i := 0; i < len(p); i += ifdLen {
-		if err := d.parseIFD(p[i : i+ifdLen]); err != nil {
+		tag, err := d.parseIFD(p[i : i+ifdLen])
+		if err != nil {
 			return nil, err
 		}
+		if tag <= prevTag {
+			return nil, FormatError("tags are not sorted in ascending order")
+		}
+		prevTag = tag
 	}
 
 	d.config.Width = int(d.firstVal(tImageWidth))

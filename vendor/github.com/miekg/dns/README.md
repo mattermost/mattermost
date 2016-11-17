@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/miekg/dns.svg?branch=master)](https://travis-ci.org/miekg/dns)
+[![Build Status](https://travis-ci.org/miekg/dns.svg?branch=master)](https://travis-ci.org/miekg/dns) [![](https://godoc.org/github.com/miekg/dns?status.svg)](https://godoc.org/github.com/miekg/dns)
 
 # Alternative (more granular) approach to a DNS library
 
@@ -50,6 +50,9 @@ A not-so-up-to-date-list-that-may-be-actually-current:
 * https://dnslookup.org
 * https://github.com/looterz/grimd
 * https://github.com/phamhongviet/serf-dns
+* https://github.com/mehrdadrad/mylg
+* https://github.com/bamarni/dockness
+* https://github.com/fffaraz/microdns
 
 Send pull request if you want to be listed here.
 

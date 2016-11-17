@@ -1,5 +1,5 @@
-hash: ef894d83b32bdf0fdeaebf16b6e56a1e8e865c5ff62cef1ef9740ea68a677a41
-updated: 2016-10-10T11:22:33.842051046-07:00
+hash: 21760a0ad0c2c37b28af04c042b714a1f1d0370ee1959e4ec90a1168d011cb0f
+updated: 2016-11-16T16:57:00.442024925-05:00
 imports:
 - name: github.com/alecthomas/log4go
   version: e5dc62318d9bd58682f1dceb53a4b24e8253682f
@@ -28,11 +28,11 @@ imports:
 - name: github.com/gorilla/context
   version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
 - name: github.com/gorilla/handlers
-  version: ee54c7b44cab12289237fb8631314790076e728b
+  version: e1b2144f2167de0e1042d1d35e5cba5119d4fb5d
 - name: github.com/gorilla/mux
-  version: 0eeaf8392f5b04950925b8a69fe70f110fa7cbfc
+  version: 757bef944d0f21880861c2dd9c871ca543023cba
 - name: github.com/gorilla/websocket
-  version: 1f512fc3f05332ba7117626cdfb4e07474e58e60
+  version: e8f0f8aaa98dfb6586cbdf2978d511e3199a960a
 - name: github.com/hashicorp/golang-lru
   version: 0a025b7e63adc15a622f29b0b2c4c3848243bbf6
   subpackages:
@@ -40,7 +40,7 @@ imports:
 - name: github.com/jehiah/go-strftime
   version: 834e15c05a45371503440cc195bbd05c9a0968d9
 - name: github.com/lib/pq
-  version: 50761b0867bd1d9d069276790bcd4a3bccf2324a
+  version: d8eeeb8bae8896dd8e1b7e514ab0d396c4f12a1b
   subpackages:
   - oid
 - name: github.com/mattermost/rsc
@@ -50,7 +50,7 @@ imports:
   - qr
   - qr/coding
 - name: github.com/miekg/dns
-  version: db96a2b759cdef4f11a34506a42eb8d1290c598e
+  version: 58f52c57ce9df13460ac68200cef30a008b9c468
 - name: github.com/minio/minio-go
   version: c040578255dbb1a1f41cbdc5bd944de4140b4149
   subpackages:
@@ -59,18 +59,18 @@ imports:
 - name: github.com/mssola/user_agent
   version: 85b2f5798558a46fc23443c596e781712f4b7792
 - name: github.com/nicksnyder/go-i18n
-  version: 37e5c2de3e03e4b82693e3fcb4a6aa2cc4eb07e3
+  version: 1c9e01733308fe876a840a54ce7633540b182a75
   subpackages:
   - i18n
   - i18n/bundle
   - i18n/language
   - i18n/translation
 - name: github.com/NYTimes/gziphandler
-  version: f6438dbf4a82c56684964b03956aa727b0d7816b
+  version: 172fbbbb329cf7e031dd3ab35766186fc2081eab
 - name: github.com/pborman/uuid
   version: a97ce2ca70fa5a848076093f05e639a89ca34d06
 - name: github.com/rsc/letsencrypt
-  version: 35c6e61d12298c67f1e90548d34a34585ac289da
+  version: 76104d26167d38b6a0010f42bfc8ec5487742e8b
 - name: github.com/rwcarlsen/goexif
   version: 709fab3d192d7c62f86043caff1e7e3fb0f42bd8
   subpackages:
@@ -83,19 +83,19 @@ imports:
 - name: github.com/tylerb/graceful
   version: 50a48b6e73fcc75b45e22c05b79629a67c79e938
 - name: github.com/xenolf/lego
-  version: ca0bd606b23a8b50f92915772917bd187ae1491b
+  version: 9f86882f775f75f69617ecc160e39f4e0b7ae27f
   subpackages:
   - acme
 - name: github.com/xtgo/uuid
   version: a0b114877d4caeffbd7f87e3757c17fce570fea7
 - name: golang.org/x/crypto
-  version: 6ab629be5e31660579425a738ba8870beb5b7404
+  version: 9477e0b78b9ac3d0b03822fd95422e2fe07627cd
   subpackages:
   - bcrypt
   - blowfish
   - ocsp
 - name: golang.org/x/image
-  version: bb355ba4424d077d404aafbb59b05776b2e88fa7
+  version: 507b1a44bd72830c136e6ecf7c05f9089796d572
   subpackages:
   - bmp
   - font
@@ -103,22 +103,22 @@ imports:
   - tiff
   - tiff/lzw
 - name: golang.org/x/net
-  version: f09c4662a0bd6bd8943ac7b4931e185df9471da4
+  version: 4971afdc2f162e82d185353533d3cf16188a9f4e
   subpackages:
   - context
   - publicsuffix
 - name: golang.org/x/sys
-  version: 8f0908ab3b2457e2e15403d3697c9ef5cb4b57a9
+  version: b699b7032584f0953262cb2788a0ca19bb494703
   subpackages:
   - unix
 - name: golang.org/x/time
-  version: 711ca1cb87636abec28122ef3bc6a77269d433f3
+  version: f51c12702a4d776e4c1fa9b0fabab841babae631
   subpackages:
   - rate
 - name: gopkg.in/asn1-ber.v1
   version: 4e86f4367175e39f69d9358a5f17b4dda270378d
 - name: gopkg.in/fsnotify.v1
-  version: a8a77c9133d2d6fd8334f3260d06f60e8d80a5fb
+  version: 629574ca2a5df945712d3079857300b5e4da0236
 - name: gopkg.in/square/go-jose.v1
   version: aa2e30fdd1fe9dd3394119af66451ae790d50e0d
   subpackages:

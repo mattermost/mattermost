@@ -23,13 +23,36 @@ var (
 	fqdnToZone                  = map[string]string{}
 )
 
-var RecursiveNameservers = []string{
+const defaultResolvConf = "/etc/resolv.conf"
+
+var defaultNameservers = []string{
 	"google-public-dns-a.google.com:53",
 	"google-public-dns-b.google.com:53",
 }
 
+var RecursiveNameservers = getNameservers(defaultResolvConf, defaultNameservers)
+
 // DNSTimeout is used to override the default DNS timeout of 10 seconds.
 var DNSTimeout = 10 * time.Second
+
+// getNameservers attempts to get systems nameservers before falling back to the defaults
+func getNameservers(path string, defaults []string) []string {
+	config, err := dns.ClientConfigFromFile(path)
+	if err != nil || len(config.Servers) == 0 {
+		return defaults
+	}
+
+	systemNameservers := []string{}
+	for _, server := range config.Servers {
+		// ensure all servers have a port number
+		if _, _, err := net.SplitHostPort(server); err != nil {
+			systemNameservers = append(systemNameservers, net.JoinHostPort(server, "53"))
+		} else {
+			systemNameservers = append(systemNameservers, server)
+		}
+	}
+	return systemNameservers
+}
 
 // DNS01Record returns a DNS record which will fulfill the `dns-01` challenge
 func DNS01Record(domain, keyAuth string) (fqdn string, value string, ttl int) {
@@ -75,7 +98,7 @@ func (s *dnsChallenge) Solve(chlng challenge, domain string) error {
 
 	fqdn, value, _ := DNS01Record(domain, keyAuth)
 
-	logf("[INFO][%s] Checking DNS record propagation...", domain)
+	logf("[INFO][%s] Checking DNS record propagation using %+v", domain, RecursiveNameservers)
 
 	var timeout, interval time.Duration
 	switch provider := s.provider.(type) {

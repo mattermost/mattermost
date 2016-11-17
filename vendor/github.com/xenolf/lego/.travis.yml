@@ -3,6 +3,10 @@ go:
 - 1.6.3
 - 1.7
 - tip
+services:
+  - memcached
+env:
+  - MEMCACHED_HOSTS=localhost:11211
 install:
 - go get -t ./...
 script:

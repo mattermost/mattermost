@@ -174,8 +174,9 @@ func (h *Handler) handleOptions(w http.ResponseWriter, r *http.Request) (status 
 	if err != nil {
 		return status, err
 	}
+	ctx := getContext(r)
 	allow := "OPTIONS, LOCK, PUT, MKCOL"
-	if fi, err := h.FileSystem.Stat(reqPath); err == nil {
+	if fi, err := h.FileSystem.Stat(ctx, reqPath); err == nil {
 		if fi.IsDir() {
 			allow = "OPTIONS, LOCK, DELETE, PROPPATCH, COPY, MOVE, UNLOCK, PROPFIND"
 		} else {
@@ -196,7 +197,8 @@ func (h *Handler) handleGetHeadPost(w http.ResponseWriter, r *http.Request) (sta
 		return status, err
 	}
 	// TODO: check locks for read-only access??
-	f, err := h.FileSystem.OpenFile(reqPath, os.O_RDONLY, 0)
+	ctx := getContext(r)
+	f, err := h.FileSystem.OpenFile(ctx, reqPath, os.O_RDONLY, 0)
 	if err != nil {
 		return http.StatusNotFound, err
 	}
@@ -208,7 +210,7 @@ func (h *Handler) handleGetHeadPost(w http.ResponseWriter, r *http.Request) (sta
 	if fi.IsDir() {
 		return http.StatusMethodNotAllowed, nil
 	}
-	etag, err := findETag(h.FileSystem, h.LockSystem, reqPath, fi)
+	etag, err := findETag(ctx, h.FileSystem, h.LockSystem, reqPath, fi)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -229,18 +231,20 @@ func (h *Handler) handleDelete(w http.ResponseWriter, r *http.Request) (status i
 	}
 	defer release()
 
+	ctx := getContext(r)
+
 	// TODO: return MultiStatus where appropriate.
 
 	// "godoc os RemoveAll" says that "If the path does not exist, RemoveAll
 	// returns nil (no error)." WebDAV semantics are that it should return a
 	// "404 Not Found". We therefore have to Stat before we RemoveAll.
-	if _, err := h.FileSystem.Stat(reqPath); err != nil {
+	if _, err := h.FileSystem.Stat(ctx, reqPath); err != nil {
 		if os.IsNotExist(err) {
 			return http.StatusNotFound, err
 		}
 		return http.StatusMethodNotAllowed, err
 	}
-	if err := h.FileSystem.RemoveAll(reqPath); err != nil {
+	if err := h.FileSystem.RemoveAll(ctx, reqPath); err != nil {
 		return http.StatusMethodNotAllowed, err
 	}
 	return http.StatusNoContent, nil
@@ -258,8 +262,9 @@ func (h *Handler) handlePut(w http.ResponseWriter, r *http.Request) (status int,
 	defer release()
 	// TODO(rost): Support the If-Match, If-None-Match headers? See bradfitz'
 	// comments in http.checkEtag.
+	ctx := getContext(r)
 
-	f, err := h.FileSystem.OpenFile(reqPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
+	f, err := h.FileSystem.OpenFile(ctx, reqPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
 		return http.StatusNotFound, err
 	}
@@ -276,7 +281,7 @@ func (h *Handler) handlePut(w http.ResponseWriter, r *http.Request) (status int,
 	if closeErr != nil {
 		return http.StatusMethodNotAllowed, closeErr
 	}
-	etag, err := findETag(h.FileSystem, h.LockSystem, reqPath, fi)
+	etag, err := findETag(ctx, h.FileSystem, h.LockSystem, reqPath, fi)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -295,10 +300,12 @@ func (h *Handler) handleMkcol(w http.ResponseWriter, r *http.Request) (status in
 	}
 	defer release()
 
+	ctx := getContext(r)
+
 	if r.ContentLength > 0 {
 		return http.StatusUnsupportedMediaType, nil
 	}
-	if err := h.FileSystem.Mkdir(reqPath, 0777); err != nil {
+	if err := h.FileSystem.Mkdir(ctx, reqPath, 0777); err != nil {
 		if os.IsNotExist(err) {
 			return http.StatusConflict, err
 		}
@@ -337,6 +344,8 @@ func (h *Handler) handleCopyMove(w http.ResponseWriter, r *http.Request) (status
 		return http.StatusForbidden, errDestinationEqualsSource
 	}
 
+	ctx := getContext(r)
+
 	if r.Method == "COPY" {
 		// Section 7.5.1 says that a COPY only needs to lock the destination,
 		// not both destination and source. Strictly speaking, this is racy,
@@ -360,7 +369,7 @@ func (h *Handler) handleCopyMove(w http.ResponseWriter, r *http.Request) (status
 				return http.StatusBadRequest, errInvalidDepth
 			}
 		}
-		return copyFiles(h.FileSystem, src, dst, r.Header.Get("Overwrite") != "F", depth, 0)
+		return copyFiles(ctx, h.FileSystem, src, dst, r.Header.Get("Overwrite") != "F", depth, 0)
 	}
 
 	release, status, err := h.confirmLocks(r, src, dst)
@@ -377,7 +386,7 @@ func (h *Handler) handleCopyMove(w http.ResponseWriter, r *http.Request) (status
 			return http.StatusBadRequest, errInvalidDepth
 		}
 	}
-	return moveFiles(h.FileSystem, src, dst, r.Header.Get("Overwrite") == "T")
+	return moveFiles(ctx, h.FileSystem, src, dst, r.Header.Get("Overwrite") == "T")
 }
 
 func (h *Handler) handleLock(w http.ResponseWriter, r *http.Request) (retStatus int, retErr error) {
@@ -390,6 +399,7 @@ func (h *Handler) handleLock(w http.ResponseWriter, r *http.Request) (retStatus 
 		return status, err
 	}
 
+	ctx := getContext(r)
 	token, ld, now, created := "", LockDetails{}, time.Now(), false
 	if li == (lockInfo{}) {
 		// An empty lockInfo means to refresh the lock.
@@ -447,8 +457,8 @@ func (h *Handler) handleLock(w http.ResponseWriter, r *http.Request) (retStatus 
 		}()
 
 		// Create the resource if it didn't previously exist.
-		if _, err := h.FileSystem.Stat(reqPath); err != nil {
-			f, err := h.FileSystem.OpenFile(reqPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
+		if _, err := h.FileSystem.Stat(ctx, reqPath); err != nil {
+			f, err := h.FileSystem.OpenFile(ctx, reqPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 			if err != nil {
 				// TODO: detect missing intermediate dirs and return http.StatusConflict?
 				return http.StatusInternalServerError, err
@@ -501,7 +511,8 @@ func (h *Handler) handlePropfind(w http.ResponseWriter, r *http.Request) (status
 	if err != nil {
 		return status, err
 	}
-	fi, err := h.FileSystem.Stat(reqPath)
+	ctx := getContext(r)
+	fi, err := h.FileSystem.Stat(ctx, reqPath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return http.StatusNotFound, err
@@ -528,7 +539,7 @@ func (h *Handler) handlePropfind(w http.ResponseWriter, r *http.Request) (status
 		}
 		var pstats []Propstat
 		if pf.Propname != nil {
-			pnames, err := propnames(h.FileSystem, h.LockSystem, reqPath)
+			pnames, err := propnames(ctx, h.FileSystem, h.LockSystem, reqPath)
 			if err != nil {
 				return err
 			}
@@ -538,9 +549,9 @@ func (h *Handler) handlePropfind(w http.ResponseWriter, r *http.Request) (status
 			}
 			pstats = append(pstats, pstat)
 		} else if pf.Allprop != nil {
-			pstats, err = allprop(h.FileSystem, h.LockSystem, reqPath, pf.Prop)
+			pstats, err = allprop(ctx, h.FileSystem, h.LockSystem, reqPath, pf.Prop)
 		} else {
-			pstats, err = props(h.FileSystem, h.LockSystem, reqPath, pf.Prop)
+			pstats, err = props(ctx, h.FileSystem, h.LockSystem, reqPath, pf.Prop)
 		}
 		if err != nil {
 			return err
@@ -548,7 +559,7 @@ func (h *Handler) handlePropfind(w http.ResponseWriter, r *http.Request) (status
 		return mw.write(makePropstatResponse(path.Join(h.Prefix, reqPath), pstats))
 	}
 
-	walkErr := walkFS(h.FileSystem, depth, reqPath, fi, walkFn)
+	walkErr := walkFS(ctx, h.FileSystem, depth, reqPath, fi, walkFn)
 	closeErr := mw.close()
 	if walkErr != nil {
 		return http.StatusInternalServerError, walkErr
@@ -570,7 +581,9 @@ func (h *Handler) handleProppatch(w http.ResponseWriter, r *http.Request) (statu
 	}
 	defer release()
 
-	if _, err := h.FileSystem.Stat(reqPath); err != nil {
+	ctx := getContext(r)
+
+	if _, err := h.FileSystem.Stat(ctx, reqPath); err != nil {
 		if os.IsNotExist(err) {
 			return http.StatusNotFound, err
 		}
@@ -580,7 +593,7 @@ func (h *Handler) handleProppatch(w http.ResponseWriter, r *http.Request) (statu
 	if err != nil {
 		return status, err
 	}
-	pstats, err := patch(h.FileSystem, h.LockSystem, reqPath, patches)
+	pstats, err := patch(ctx, h.FileSystem, h.LockSystem, reqPath, patches)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

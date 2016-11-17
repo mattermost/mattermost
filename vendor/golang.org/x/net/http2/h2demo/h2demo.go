@@ -19,6 +19,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"path"
 	"regexp"
 	"runtime"
@@ -27,8 +28,8 @@ import (
 	"sync"
 	"time"
 
-	"camlistore.org/pkg/googlestorage"
 	"go4.org/syncutil/singleflight"
+	"golang.org/x/crypto/acme/autocert"
 	"golang.org/x/net/http2"
 )
 
@@ -378,37 +379,18 @@ func httpHost() string {
 }
 
 func serveProdTLS() error {
-	c, err := googlestorage.NewServiceClient()
-	if err != nil {
+	const cacheDir = "/var/cache/autocert"
+	if err := os.MkdirAll(cacheDir, 0700); err != nil {
 		return err
 	}
-	slurp := func(key string) ([]byte, error) {
-		const bucket = "http2-demo-server-tls"
-		rc, _, err := c.GetObject(&googlestorage.Object{
-			Bucket: bucket,
-			Key:    key,
-		})
-		if err != nil {
-			return nil, fmt.Errorf("Error fetching GCS object %q in bucket %q: %v", key, bucket, err)
-		}
-		defer rc.Close()
-		return ioutil.ReadAll(rc)
-	}
-	certPem, err := slurp("http2.golang.org.chained.pem")
-	if err != nil {
-		return err
-	}
-	keyPem, err := slurp("http2.golang.org.key")
-	if err != nil {
-		return err
-	}
-	cert, err := tls.X509KeyPair(certPem, keyPem)
-	if err != nil {
-		return err
+	m := autocert.Manager{
+		Cache:      autocert.DirCache(cacheDir),
+		Prompt:     autocert.AcceptTOS,
+		HostPolicy: autocert.HostWhitelist("http2.golang.org"),
 	}
 	srv := &http.Server{
 		TLSConfig: &tls.Config{
-			Certificates: []tls.Certificate{cert},
+			GetCertificate: m.GetCertificate,
 		},
 	}
 	http2.ConfigureServer(srv, &http2.Server{})

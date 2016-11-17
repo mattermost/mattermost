@@ -21,6 +21,9 @@ func SupportsIPv4() bool {
 // SupportsIPv6 reports whether the platform supports IPv6 networking
 // functionality.
 func SupportsIPv6() bool {
+	if causesIPv6Crash() {
+		return false
+	}
 	ln, err := net.Listen("tcp6", "[::1]:0")
 	if err != nil {
 		return false

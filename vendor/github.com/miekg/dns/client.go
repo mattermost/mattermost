@@ -39,7 +39,7 @@ type Client struct {
 }
 
 // Exchange performs a synchronous UDP query. It sends the message m to the address
-// contained in a and waits for an reply. Exchange does not retry a failed query, nor
+// contained in a and waits for a reply. Exchange does not retry a failed query, nor
 // will it fall back to TCP in case of truncation.
 // See client.Exchange for more information on setting larger buffer sizes.
 func Exchange(m *Msg, a string) (r *Msg, err error) {
@@ -93,8 +93,8 @@ func ExchangeConn(c net.Conn, m *Msg) (r *Msg, err error) {
 	return r, err
 }
 
-// Exchange performs an synchronous query. It sends the message m to the address
-// contained in a and waits for an reply. Basic use pattern with a *dns.Client:
+// Exchange performs a synchronous query. It sends the message m to the address
+// contained in a and waits for a reply. Basic use pattern with a *dns.Client:
 //
 //	c := new(dns.Client)
 //	in, rtt, err := c.Exchange(message, "127.0.0.1:53")

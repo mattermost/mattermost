@@ -80,18 +80,19 @@ func newServerTester(t testing.TB, handler http.HandlerFunc, opts ...interface{}
 
 	tlsConfig := &tls.Config{
 		InsecureSkipVerify: true,
-		// The h2-14 is temporary, until curl is updated. (as used by unit tests
-		// in Docker)
-		NextProtos: []string{NextProtoTLS, "h2-14"},
+		NextProtos:         []string{NextProtoTLS},
 	}
 
 	var onlyServer, quiet bool
+	h2server := new(Server)
 	for _, opt := range opts {
 		switch v := opt.(type) {
 		case func(*tls.Config):
 			v(tlsConfig)
 		case func(*httptest.Server):
 			v(ts)
+		case func(*Server):
+			v(h2server)
 		case serverTesterOpt:
 			switch v {
 			case optOnlyServer:
@@ -106,7 +107,7 @@ func newServerTester(t testing.TB, handler http.HandlerFunc, opts ...interface{}
 		}
 	}
 
-	ConfigureServer(ts.Config, &Server{})
+	ConfigureServer(ts.Config, h2server)
 
 	st := &serverTester{
 		t:      t,
@@ -253,6 +254,12 @@ func (st *serverTester) writeHeaders(p HeadersFrameParam) {
 	}
 }
 
+func (st *serverTester) writePriority(id uint32, p PriorityParam) {
+	if err := st.fr.WritePriority(id, p); err != nil {
+		st.t.Fatalf("Error writing PRIORITY: %v", err)
+	}
+}
+
 func (st *serverTester) encodeHeaderField(k, v string) {
 	err := st.hpackEnc.WriteField(hpack.HeaderField{Name: k, Value: v})
 	if err != nil {
@@ -278,37 +285,42 @@ func (st *serverTester) encodeHeaderRaw(headers ...string) []byte {
 // encodeHeader encodes headers and returns their HPACK bytes. headers
 // must contain an even number of key/value pairs.  There may be
 // multiple pairs for keys (e.g. "cookie").  The :method, :path, and
-// :scheme headers default to GET, / and https.
+// :scheme headers default to GET, / and https. The :authority header
+// defaults to st.ts.Listener.Addr().
 func (st *serverTester) encodeHeader(headers ...string) []byte {
 	if len(headers)%2 == 1 {
 		panic("odd number of kv args")
 	}
 
 	st.headerBuf.Reset()
+	defaultAuthority := st.ts.Listener.Addr().String()
 
 	if len(headers) == 0 {
 		// Fast path, mostly for benchmarks, so test code doesn't pollute
 		// profiles when we're looking to improve server allocations.
 		st.encodeHeaderField(":method", "GET")
-		st.encodeHeaderField(":path", "/")
 		st.encodeHeaderField(":scheme", "https")
+		st.encodeHeaderField(":authority", defaultAuthority)
+		st.encodeHeaderField(":path", "/")
 		return st.headerBuf.Bytes()
 	}
 
 	if len(headers) == 2 && headers[0] == ":method" {
 		// Another fast path for benchmarks.
 		st.encodeHeaderField(":method", headers[1])
-		st.encodeHeaderField(":path", "/")
 		st.encodeHeaderField(":scheme", "https")
+		st.encodeHeaderField(":authority", defaultAuthority)
+		st.encodeHeaderField(":path", "/")
 		return st.headerBuf.Bytes()
 	}
 
 	pseudoCount := map[string]int{}
-	keys := []string{":method", ":path", ":scheme"}
+	keys := []string{":method", ":scheme", ":authority", ":path"}
 	vals := map[string][]string{
-		":method": {"GET"},
-		":path":   {"/"},
-		":scheme": {"https"},
+		":method":    {"GET"},
+		":scheme":    {"https"},
+		":authority": {defaultAuthority},
+		":path":      {"/"},
 	}
 	for len(headers) > 0 {
 		k, v := headers[0], headers[1]
@@ -503,7 +515,18 @@ func (st *serverTester) wantSettingsAck() {
 	if !sf.Header().Flags.Has(FlagSettingsAck) {
 		st.t.Fatal("Settings Frame didn't have ACK set")
 	}
+}
 
+func (st *serverTester) wantPushPromise() *PushPromiseFrame {
+	f, err := st.readFrame()
+	if err != nil {
+		st.t.Fatal(err)
+	}
+	ppf, ok := f.(*PushPromiseFrame)
+	if !ok {
+		st.t.Fatalf("Wanted PushPromise, received %T", ppf)
+	}
+	return ppf
 }
 
 func TestServer(t *testing.T) {
@@ -758,7 +781,7 @@ func TestServer_Request_Get_Host(t *testing.T) {
 	testServerRequest(t, func(st *serverTester) {
 		st.writeHeaders(HeadersFrameParam{
 			StreamID:      1, // clients send odd numbers
-			BlockFragment: st.encodeHeader("host", host),
+			BlockFragment: st.encodeHeader(":authority", "", "host", host),
 			EndStream:     true,
 			EndHeaders:    true,
 		})
@@ -937,13 +960,46 @@ func TestServer_Request_Reject_Pseudo_Unknown(t *testing.T) {
 
 func testRejectRequest(t *testing.T, send func(*serverTester)) {
 	st := newServerTester(t, func(w http.ResponseWriter, r *http.Request) {
-		t.Fatal("server request made it to handler; should've been rejected")
+		t.Error("server request made it to handler; should've been rejected")
 	})
 	defer st.Close()
 
 	st.greet()
 	send(st)
 	st.wantRSTStream(1, ErrCodeProtocol)
+}
+
+func testRejectRequestWithProtocolError(t *testing.T, send func(*serverTester)) {
+	st := newServerTester(t, func(w http.ResponseWriter, r *http.Request) {
+		t.Error("server request made it to handler; should've been rejected")
+	}, optQuiet)
+	defer st.Close()
+
+	st.greet()
+	send(st)
+	gf := st.wantGoAway()
+	if gf.ErrCode != ErrCodeProtocol {
+		t.Errorf("err code = %v; want %v", gf.ErrCode, ErrCodeProtocol)
+	}
+}
+
+// Section 5.1, on idle connections: "Receiving any frame other than
+// HEADERS or PRIORITY on a stream in this state MUST be treated as a
+// connection error (Section 5.4.1) of type PROTOCOL_ERROR."
+func TestRejectFrameOnIdle_WindowUpdate(t *testing.T) {
+	testRejectRequestWithProtocolError(t, func(st *serverTester) {
+		st.fr.WriteWindowUpdate(123, 456)
+	})
+}
+func TestRejectFrameOnIdle_Data(t *testing.T) {
+	testRejectRequestWithProtocolError(t, func(st *serverTester) {
+		st.fr.WriteData(123, true, nil)
+	})
+}
+func TestRejectFrameOnIdle_RSTStream(t *testing.T) {
+	testRejectRequestWithProtocolError(t, func(st *serverTester) {
+		st.fr.WriteRSTStream(123, ErrCodeCancel)
+	})
 }
 
 func TestServer_Request_Connect(t *testing.T) {
@@ -1442,6 +1498,36 @@ func TestServer_Rejects_Continuation0(t *testing.T) {
 		if err := st.fr.WriteContinuation(0, true, st.encodeHeader()); err != nil {
 			t.Fatal(err)
 		}
+	})
+}
+
+// No PRIORITY on stream 0.
+func TestServer_Rejects_Priority0(t *testing.T) {
+	testServerRejectsConn(t, func(st *serverTester) {
+		st.fr.AllowIllegalWrites = true
+		st.writePriority(0, PriorityParam{StreamDep: 1})
+	})
+}
+
+// No HEADERS frame with a self-dependence.
+func TestServer_Rejects_HeadersSelfDependence(t *testing.T) {
+	testServerRejectsStream(t, ErrCodeProtocol, func(st *serverTester) {
+		st.fr.AllowIllegalWrites = true
+		st.writeHeaders(HeadersFrameParam{
+			StreamID:      1,
+			BlockFragment: st.encodeHeader(),
+			EndStream:     true,
+			EndHeaders:    true,
+			Priority:      PriorityParam{StreamDep: 1},
+		})
+	})
+}
+
+// No PRIORTY frame with a self-dependence.
+func TestServer_Rejects_PrioritySelfDependence(t *testing.T) {
+	testServerRejectsStream(t, ErrCodeProtocol, func(st *serverTester) {
+		st.fr.AllowIllegalWrites = true
+		st.writePriority(1, PriorityParam{StreamDep: 1})
 	})
 }
 
@@ -2840,6 +2926,12 @@ func BenchmarkServerPosts(b *testing.B) {
 
 	const msg = "Hello, world"
 	st := newServerTester(b, func(w http.ResponseWriter, r *http.Request) {
+		// Consume the (empty) body from th peer before replying, otherwise
+		// the server will sometimes (depending on scheduling) send the peer a
+		// a RST_STREAM with the CANCEL error code.
+		if n, err := io.Copy(ioutil.Discard, r.Body); n != 0 || err != nil {
+			b.Errorf("Copy error; got %v, %v; want 0, nil", n, err)
+		}
 		io.WriteString(w, msg)
 	})
 	defer st.Close()
@@ -3236,40 +3328,40 @@ func (he *hpackEncoder) encodeHeaderRaw(t *testing.T, headers ...string) []byte 
 
 func TestCheckValidHTTP2Request(t *testing.T) {
 	tests := []struct {
-		req  *http.Request
+		h    http.Header
 		want error
 	}{
 		{
-			req:  &http.Request{Header: http.Header{"Te": {"trailers"}}},
+			h:    http.Header{"Te": {"trailers"}},
 			want: nil,
 		},
 		{
-			req:  &http.Request{Header: http.Header{"Te": {"trailers", "bogus"}}},
+			h:    http.Header{"Te": {"trailers", "bogus"}},
 			want: errors.New(`request header "TE" may only be "trailers" in HTTP/2`),
 		},
 		{
-			req:  &http.Request{Header: http.Header{"Foo": {""}}},
+			h:    http.Header{"Foo": {""}},
 			want: nil,
 		},
 		{
-			req:  &http.Request{Header: http.Header{"Connection": {""}}},
+			h:    http.Header{"Connection": {""}},
 			want: errors.New(`request header "Connection" is not valid in HTTP/2`),
 		},
 		{
-			req:  &http.Request{Header: http.Header{"Proxy-Connection": {""}}},
+			h:    http.Header{"Proxy-Connection": {""}},
 			want: errors.New(`request header "Proxy-Connection" is not valid in HTTP/2`),
 		},
 		{
-			req:  &http.Request{Header: http.Header{"Keep-Alive": {""}}},
+			h:    http.Header{"Keep-Alive": {""}},
 			want: errors.New(`request header "Keep-Alive" is not valid in HTTP/2`),
 		},
 		{
-			req:  &http.Request{Header: http.Header{"Upgrade": {""}}},
+			h:    http.Header{"Upgrade": {""}},
 			want: errors.New(`request header "Upgrade" is not valid in HTTP/2`),
 		},
 	}
 	for i, tt := range tests {
-		got := checkValidHTTP2Request(tt.req)
+		got := checkValidHTTP2RequestHeaders(tt.h)
 		if !reflect.DeepEqual(got, tt.want) {
 			t.Errorf("%d. checkValidHTTP2Request = %v; want %v", i, got, tt.want)
 		}
@@ -3365,4 +3457,119 @@ func TestUnreadFlowControlReturned_Server(t *testing.T) {
 		res.Body.Close()
 	}
 
+}
+
+func TestServerIdleTimeout(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping in short mode")
+	}
+
+	st := newServerTester(t, func(w http.ResponseWriter, r *http.Request) {
+	}, func(h2s *Server) {
+		h2s.IdleTimeout = 500 * time.Millisecond
+	})
+	defer st.Close()
+
+	st.greet()
+	ga := st.wantGoAway()
+	if ga.ErrCode != ErrCodeNo {
+		t.Errorf("GOAWAY error = %v; want ErrCodeNo", ga.ErrCode)
+	}
+}
+
+func TestServerIdleTimeout_AfterRequest(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping in short mode")
+	}
+	const timeout = 250 * time.Millisecond
+
+	st := newServerTester(t, func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(timeout * 2)
+	}, func(h2s *Server) {
+		h2s.IdleTimeout = timeout
+	})
+	defer st.Close()
+
+	st.greet()
+
+	// Send a request which takes twice the timeout. Verifies the
+	// idle timeout doesn't fire while we're in a request:
+	st.bodylessReq1()
+	st.wantHeaders()
+
+	// But the idle timeout should be rearmed after the request
+	// is done:
+	ga := st.wantGoAway()
+	if ga.ErrCode != ErrCodeNo {
+		t.Errorf("GOAWAY error = %v; want ErrCodeNo", ga.ErrCode)
+	}
+}
+
+// grpc-go closes the Request.Body currently with a Read.
+// Verify that it doesn't race.
+// See https://github.com/grpc/grpc-go/pull/938
+func TestRequestBodyReadCloseRace(t *testing.T) {
+	for i := 0; i < 100; i++ {
+		body := &requestBody{
+			pipe: &pipe{
+				b: new(bytes.Buffer),
+			},
+		}
+		body.pipe.CloseWithError(io.EOF)
+
+		done := make(chan bool, 1)
+		buf := make([]byte, 10)
+		go func() {
+			time.Sleep(1 * time.Millisecond)
+			body.Close()
+			done <- true
+		}()
+		body.Read(buf)
+		<-done
+	}
+}
+
+func TestServerGracefulShutdown(t *testing.T) {
+	shutdownCh := make(chan struct{})
+	defer func() { testh1ServerShutdownChan = nil }()
+	testh1ServerShutdownChan = func(*http.Server) <-chan struct{} { return shutdownCh }
+
+	var st *serverTester
+	handlerDone := make(chan struct{})
+	st = newServerTester(t, func(w http.ResponseWriter, r *http.Request) {
+		defer close(handlerDone)
+		close(shutdownCh)
+
+		ga := st.wantGoAway()
+		if ga.ErrCode != ErrCodeNo {
+			t.Errorf("GOAWAY error = %v; want ErrCodeNo", ga.ErrCode)
+		}
+		if ga.LastStreamID != 1 {
+			t.Errorf("GOAWAY LastStreamID = %v; want 1", ga.LastStreamID)
+		}
+
+		w.Header().Set("x-foo", "bar")
+	})
+	defer st.Close()
+
+	st.greet()
+	st.bodylessReq1()
+
+	<-handlerDone
+	hf := st.wantHeaders()
+	goth := st.decodeHeader(hf.HeaderBlockFragment())
+	wanth := [][2]string{
+		{":status", "200"},
+		{"x-foo", "bar"},
+		{"content-type", "text/plain; charset=utf-8"},
+		{"content-length", "0"},
+	}
+	if !reflect.DeepEqual(goth, wanth) {
+		t.Errorf("Got headers %v; want %v", goth, wanth)
+	}
+
+	n, err := st.cc.Read([]byte{0})
+	if n != 0 || err == nil {
+		t.Errorf("Read = %v, %v; want 0, non-nil", n, err)
+	}
 }
