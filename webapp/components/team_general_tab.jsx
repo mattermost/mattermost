@@ -5,7 +5,6 @@ import $ from 'jquery';
 import SettingItemMin from './setting_item_min.jsx';
 import SettingItemMax from './setting_item_max.jsx';
 
-import Client from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import Constants from 'utils/constants.jsx';
@@ -171,7 +170,7 @@ class GeneralTab extends React.Component {
 
         var data = this.props.team;
         data.display_name = this.state.name;
-        Client.updateTeam(data,
+        updateTeam(data,
             (team) => {
                 TeamStore.saveTeam(team);
                 TeamStore.emitChange();
@@ -206,7 +205,7 @@ class GeneralTab extends React.Component {
 
         var data = this.props.team;
         data.invite_id = this.state.invite_id;
-        Client.updateTeam(data,
+        updateTeam(data,
             (team) => {
                 TeamStore.saveTeam(team);
                 TeamStore.emitChange();
