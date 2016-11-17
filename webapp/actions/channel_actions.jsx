@@ -209,3 +209,19 @@ export function joinChannel(channel, success, error) {
         }
     );
 }
+
+export function searchMoreChannels(term, success, error) {
+    Client.searchMoreChannels(
+        term,
+        (data) => {
+            if (success) {
+                success(data);
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}

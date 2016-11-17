@@ -11,7 +11,7 @@ import TeamStore from 'stores/team_store.jsx';
 
 import Constants from 'utils/constants.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
-import {joinChannel} from 'actions/channel_actions.jsx';
+import {joinChannel, searchMoreChannels} from 'actions/channel_actions.jsx';
 
 import {FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
@@ -21,6 +21,7 @@ import PureRenderMixin from 'react-addons-pure-render-mixin';
 
 const CHANNELS_CHUNK_SIZE = 50;
 const CHANNELS_PER_PAGE = 50;
+const SEARCH_TIMEOUT = 100; // 100 ms
 
 export default class MoreChannels extends React.Component {
     constructor(props) {
@@ -33,6 +34,8 @@ export default class MoreChannels extends React.Component {
         this.search = this.search.bind(this);
 
         this.shouldComponentUpdate = PureRenderMixin.shouldComponentUpdate.bind(this);
+
+        this.searchTimeoutId = 0;
 
         this.state = {
             channelType: '',
@@ -101,7 +104,25 @@ export default class MoreChannels extends React.Component {
     }
 
     search(term) {
-        return term;
+        if (term === '') {
+            this.onChange(true);
+            this.setState({search: false});
+            return;
+        }
+
+        clearTimeout(this.searchTimeoutId);
+
+        this.searchTimeoutId = setTimeout(
+            () => {
+                searchMoreChannels(
+                    term,
+                    (channels) => {
+                        this.setState({search: true, channels});
+                    }
+                );
+            },
+            SEARCH_TIMEOUT
+        );
     }
 
     render() {
