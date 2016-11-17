@@ -132,7 +132,9 @@ func CreatePost(c *Context, post *model.Post, triggerWebhooks bool) (*model.Post
 		}
 	}
 
-	post.CreateAt = 0
+	if post.CreateAt != 0 && !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
+		post.CreateAt = 0
+	}
 
 	post.Hashtags, _ = model.ParseHashtags(post.Message)
 
