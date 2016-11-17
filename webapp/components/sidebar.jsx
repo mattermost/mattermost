@@ -489,8 +489,8 @@ export default class Sidebar extends React.Component {
         let closeButton = null;
         const removeTooltip = (
             <Tooltip
+                id='remove-dm-tooltip'
                 className='hidden-xs'
-                className='hidden-xs' id='remove-dm-tooltip'
             >
                 <FormattedMessage
                     id='sidebar.removeList'
@@ -636,8 +636,8 @@ export default class Sidebar extends React.Component {
 
         const createChannelTootlip = (
             <Tooltip
+                id='new-channel-tooltip'
                 className='hidden-xs'
-                className='hidden-xs' id='new-channel-tooltip'
             >
                 <FormattedMessage
                     id='sidebar.createChannel'
@@ -647,8 +647,8 @@ export default class Sidebar extends React.Component {
         );
         const createGroupTootlip = (
             <Tooltip
+                id='new-group-tooltip'
                 className='hidden-xs'
-                className='hidden-xs' id='new-group-tooltip'
             >
                 <FormattedMessage
                     id='sidebar.createGroup'

@@ -513,12 +513,11 @@ export default class Navbar extends React.Component {
                 <div className='navbar-brand'>
                     <div className='dropdown'>
                         <OverlayTrigger
-                            className='hidden-xs'
                             ref='headerOverlay'
                             trigger='click'
                             placement='bottom'
                             overlay={popoverContent}
-                            className='description'
+                            className='description hidden-xs'
                             rootClose={true}
                         >
                             <div className='pull-right description info-popover'/>
