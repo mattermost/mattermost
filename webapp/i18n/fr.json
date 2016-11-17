@@ -1116,7 +1116,7 @@
   "create_team.display_name.required": "Ce champ est obligatoire",
   "create_team.display_name.teamName": "Nom de l'équipe",
   "create_team.team_url.back": "Retour à l’étape précedente",
-  "create_team.team_url.charLength": "Le nom doit comporter au minimum 2 caractères avec un maximum de 15",
+  "create_team.team_url.charLength": "Le nom doit comporter au minimum {min} caractères avec un maximum de {max}",
   "create_team.team_url.creatingTeam": "Création de l'équipe...",
   "create_team.team_url.finish": "Terminer",
   "create_team.team_url.hint": "<li>Courte et facile à retenir</li><li>Utilisez des lettres minuscules, des chiffres et des tirets </li><li>Doit commencer par une lettre et ne peut pas se terminer par un tiret</li>",

@@ -1117,7 +1117,7 @@
   "create_team.display_name.required": "This field is required",
   "create_team.display_name.teamName": "Team Name",
   "create_team.team_url.back": "Back to previous step",
-  "create_team.team_url.charLength": "Name must be 2 or more characters up to a maximum of 15",
+  "create_team.team_url.charLength": "Name must be {min} or more characters up to a maximum of {max}",
   "create_team.team_url.creatingTeam": "Creating team...",
   "create_team.team_url.finish": "Finish",
   "create_team.team_url.hint": "<li>Short and memorable is best</li><li>Use lowercase letters, numbers and dashes</li><li>Must start with a letter and can't end in a dash</li>",
