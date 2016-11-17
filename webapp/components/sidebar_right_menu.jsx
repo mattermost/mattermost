@@ -68,6 +68,7 @@ export default class SidebarRightMenu extends React.Component {
     getFlagged(e) {
         e.preventDefault();
         getFlaggedPosts();
+        this.hideSidebars();
     }
 
     componentDidMount() {

@@ -1,6 +1,23 @@
 @charset 'UTF-8';
 
 @media screen and (max-width: 768px) {
+    .modal {
+        .modal-dialog {
+            &.new-channel__modal {
+                position: fixed;
+                @include translate3d(0, 100%, 0);
+            }
+        }
+
+        &.in {
+            .modal-dialog {
+                &.new-channel__modal {
+                    @include translate3d(0, 0, 0);
+                }
+            }
+        }
+    }
+
     .webrtc__notification--rhs {
         left: auto;
         right: 0;
@@ -17,14 +34,20 @@
     }
 
     #header-popover {
+        @include single-transition(all, .35s, ease);
+        @include translate3d(0, 100%, 0);
         @include box-shadow(none);
         background: alpha-color($black, .8);
         border: none;
-        height: 100%;
+        height: calc(100% - 45px);
         max-width: 100%;
         position: fixed;
         top: 47px;
         width: 100%;
+
+        &.in {
+            @include translate3d(0, 0, 0);
+        }
 
         .arrow {
             display: none;
@@ -37,23 +60,23 @@
         }
 
         .close {
-            font-family: 'Open Sans', sans-serif;
-            display: block;
-            position: fixed;
-            bottom: 25px;
-            height: 30px;
-            width: 30px;
-            margin-left: -15px;
-            left: 50%;
-            font-size: 23px;
-            line-height: 27px;
-            border-radius: 50%;
+            @include border-radius(50%);
             border: 1px solid $white;
-            text-align: center;
-            opacity: 1;
-            text-shadow: none;
-            color: white;
+            bottom: 25px;
+            color: $white;
+            display: block;
+            font-family: 'Open Sans', sans-serif;
+            font-size: 23px;
             font-weight: 200;
+            height: 30px;
+            left: 50%;
+            line-height: 27px;
+            margin-left: -15px;
+            opacity: 1;
+            position: fixed;
+            text-align: center;
+            text-shadow: none;
+            width: 30px;
         }
     }
 
@@ -743,34 +766,47 @@
                 white-space: nowrap;
             }
 
+            .dropdown {
+                &.open {
+                    .dropdown-menu {
+                        @include translate3d(0, 0, 0);
+                        visibility: visible;
+                    }
+                }
+            }
+
             .dropdown-menu {
+                @include single-transition(all, .35s, ease);
+                @include translate3d(0, 100%, 0);
                 background: alpha-color($black, .9);
-                height: 100%;
+                display: block;
+                height: calc(100% - 45px);
                 left: 0;
                 overflow: auto;
-                padding: 1.4em 0 140px;
+                padding: 1.4em 0 0;
                 position: fixed;
                 top: 42px;
+                visibility: hidden;
                 width: 100%;
 
                 .close {
-                    font-family: 'Open Sans', sans-serif;
-                    display: block;
-                    position: fixed;
-                    bottom: 25px;
-                    height: 30px;
-                    width: 30px;
-                    margin-left: -15px;
-                    left: 50%;
-                    font-size: 23px;
-                    line-height: 27px;
-                    border-radius: 50%;
+                    @include border-radius(50%);
                     border: 1px solid $white;
-                    text-align: center;
-                    opacity: 1;
-                    text-shadow: none;
-                    color: white;
+                    bottom: 25px;
+                    color: $white;
+                    display: block;
+                    font-family: 'Open Sans', sans-serif;
+                    font-size: 23px;
                     font-weight: 200;
+                    height: 30px;
+                    left: 50%;
+                    line-height: 27px;
+                    margin-left: -15px;
+                    opacity: 1;
+                    position: fixed;
+                    text-align: center;
+                    text-shadow: none;
+                    width: 30px;
                 }
 
                 > li {
@@ -1056,7 +1092,7 @@
         }
 
         &.move--right {
-            @include translate3d(290px, 0, 0);
+            @include translate3d(0, 0, 0);
 
             &:before {
                 @include single-transition(all, .35s, ease);
@@ -1281,11 +1317,7 @@
             }
 
             .post__header {
-                .col__name {
-                    .user-popover {
-                        max-width: 100%;
-                    }
-                }
+                padding-right: 50px;
             }
         }
     }
@@ -1394,7 +1426,7 @@
 
     .inner-wrap {
         &.move--right {
-            @include translate3d(260px, 0, 0);
+            @include translate3d(0, 0, 0);
         }
     }
 
@@ -1415,26 +1447,41 @@
 }
 
 @media screen and (max-width: 320px) {
+    .post {
+        .post__header {
+            .col__name {
+                .user-popover {
+                    max-width: 105px;
+                }
+            }
+        }
+    }
+
     .tutorial-steps__container {
         .tutorial__content {
             .tutorial__steps {
                 padding: 0 20px;
                 width: 100%;
+
                 h1 {
                     font-size: 35px;
                     margin: -5px 0 20px;
                 }
+
                 h3 {
                     margin-bottom: 10px;
                 }
+
                 .tutorial__app-icons {
                     margin: 10px 0;
                 }
+
                 .tutorial__circles {
-                    margin: 0 0 15px;
                     bottom: 60px;
+                    margin: 0 0 15px;
                     position: absolute;
                 }
+
                 .tutorial__footer {
                     bottom: 30px;
                     position: absolute;
@@ -1450,13 +1497,30 @@
     }
 }
 
+@media screen and (max-width: 320px) and (max-height: 560px) {
+    #navbar {
+        .navbar-default {
+            .dropdown-menu {
+                padding-top: 1em;
+
+                > li {
+                    > a {
+                        border: none;
+                        line-height: 28px;
+                    }
+                }
+            }
+        }
+    }
+}
+
 // on iOS, allow clicks within an input's label to actually propagate through to the input itself
 // http://stackoverflow.com/a/34810294/6325807
 label span {
     pointer-events: none;
 }
 
-@media screen and (-webkit-min-device-pixel-ratio:0) {
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
     select,
     textarea,
     input {

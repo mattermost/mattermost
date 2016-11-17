@@ -61,7 +61,7 @@
     .log__panel {
         background-color: white;
         border: 1px solid #ddd;
-        height: 800px;
+        height: calc(100vh - 200px);
         margin-top: 10px;
         overflow: scroll;
         padding: 5px;

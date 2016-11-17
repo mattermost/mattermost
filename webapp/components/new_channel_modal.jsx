@@ -206,6 +206,7 @@ class NewChannelModal extends React.Component {
         return (
             <span>
                 <Modal
+                    dialogClassName='new-channel__modal'
                     show={this.props.show}
                     bsSize='large'
                     onHide={this.props.onModalDismissed}
