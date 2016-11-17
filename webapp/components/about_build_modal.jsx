@@ -134,7 +134,9 @@ export default class AboutBuildModal extends React.Component {
                             />
                         </div>
                         <div>
-                            <h3 className='about-modal__title'>{'uChat'}</h3>
+                            <h3 className='about-modal__title'>
+                                {'uChat'} {global.window.mm_config.CustomOverride ? '' : title}
+                            </h3>
                             <p className='about-modal__subtitle padding-bottom'>{subTitle}</p>
                             <div className='form-group less'>
                                 <div>
