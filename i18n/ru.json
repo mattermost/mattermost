@@ -629,11 +629,11 @@
   },
   {
     "id": "api.command_shortcuts.msgs",
-    "translation": "#### Сообщения\n\nALT+[клик на сообщение]: Установить сообщение, в текущем канале, как непрочитанное\nESC: Отметить все сообщения в текущем канале как прочитанные\nCMD+UP (в пустом поле ввода): Восстановить предыдущее введенное сообщение или команду\nCMD+DOWN (в пустом поле ввода): Восстановить следующее введенное сообщение или команду\nUP (в пустом поле ввода): Править свое последнее сообщение в текущем канале\n@[character]+TAB: Дополнить имя пользователя @username начинающееся с [character]\n:[character]+TAB: Дополнить эмодзи начинающийся с [character]\n\n"
+    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCTRL+UP (in empty input field): Reprint the previous message or slash command you entered\nCTRL+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n~[character]+TAB: Autocomplete channel beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs_mac",
-    "translation": "#### Сообщения\n\nALT+[click on a message]: Установить сообщение, в текущем канале, как непрочитанное\nESC: Отметить все сообщения в текущем канале как прочитанные\nCMD+UP (в пустом поле ввода): Восстановить предыдущее введенное сообщение или команду\nCMD+DOWN (в пустом поле ввода): Восстановить следующее введенное сообщение или команду\nUP (в пустом поле ввода): Править свое последнее сообщение в текущем канале\n@[character]+TAB: Дополнить имя пользователя @username начинающееся с [character]\n:[character]+TAB: Дополнить эмодзи начинающийся с [character]\n\n"
+    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCMD+UP (in empty input field): Reprint the previous message or slash command you entered\nCMD+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n~[character]+TAB: Autocomplete channel beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -891,7 +891,7 @@
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.get_file_infos_again.warn",
-    "translation": "Невозможно получить FileInfos из сообщения после миграции, post_id=%v, err=%v"
+    "translation": "Невозможно получить информацию о файлах из сообщения после миграции, post_id=%v, err=%v"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.get_post_again.warn",
@@ -1520,6 +1520,14 @@
     "translation": "Остановка сервера..."
   },
   {
+    "id": "api.slackimport.slack_add_bot_user.email_pwd",
+    "translation": "Slack Bot/Integration Posts Import User: Email, Password: {{.Email}}, {{.Password}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_bot_user.unable_import",
+    "translation": "Unable to import Slack Bot/Integration Posts Import User: {{.Username}}\r\n"
+  },
+  {
     "id": "api.slackimport.slack_add_channels.added",
     "translation": "\r\n Каналы добавлены \r\n"
   },
@@ -1533,7 +1541,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.import_failed.warn",
-    "translation": "Slack Importer: Failed to import channel: %s"
+    "translation": "Slack Импортер: не удалось импортировать канал: %s"
   },
   {
     "id": "api.slackimport.slack_add_channels.merge",
@@ -1548,12 +1556,20 @@
     "translation": "Посты Slack-бота еще не импортированы"
   },
   {
+    "id": "api.slackimport.slack_add_posts.bot_user_no_exists.warn",
+    "translation": "Slack Importer: Not importing bot message as the bot-importing user does not exist."
+  },
+  {
     "id": "api.slackimport.slack_add_posts.msg_no_comment.debug",
     "translation": "Комментарий к файлу неопределен"
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_usr.debug",
     "translation": "Сообщение без участия пользователя"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.no_bot_id.warn",
+    "translation": "Slack Importer: Not importing bot message due to lack of BotId field."
   },
   {
     "id": "api.slackimport.slack_add_posts.unsupported.warn",
@@ -1612,6 +1628,10 @@
     "translation": "Не удалось составить @упоминание, соответствующее регулярному выражению, для пользователя Slack {{.UserID}} {{.Username}}"
   },
   {
+    "id": "api.slackimport.slack_deactivate_bot_user.failed_to_deactivate",
+    "translation": "Slack Importer: Failed to deactivate the bot-importing user."
+  },
+  {
     "id": "api.slackimport.slack_import.log",
     "translation": "Лог импорта Mattermost Slack\r\n"
   },
@@ -1650,6 +1670,22 @@
   {
     "id": "api.slackimport.slack_parse_posts.error",
     "translation": "Ошибка разбора некоторых постов slack. Несмотря на это, импорт может быть выполнен."
+  },
+  {
+    "id": "api.slackimport.slack_sanitise_channel_properties.display_name_too_long.warn",
+    "translation": "Менеджер импорта Slack: Канал {{.ChannelName}} имеет слишком длинное имя. Оно будет укорочено при импорте."
+  },
+  {
+    "id": "api.slackimport.slack_sanitise_channel_properties.header_too_long.warn",
+    "translation": "Менеджер импорта Slack: Канал {{.ChannelName}} имеет слишком длинный заголовок. Он будет укорочен при импорте."
+  },
+  {
+    "id": "api.slackimport.slack_sanitise_channel_properties.name_too_long.warn",
+    "translation": "Менеджер импорта Slack: Канал {{.ChannelName}} имеет слишком длинное имя. Оно будет укорочено при импорте."
+  },
+  {
+    "id": "api.slackimport.slack_sanitise_channel_properties.purpose_too_long.warn",
+    "translation": "Менеджер импорта Slack: Канал {{.ChannelName}} имеет слишком длинное имя. Оно будет укорочено при импорте."
   },
   {
     "id": "api.status.init.debug",
@@ -2508,12 +2544,16 @@
     "translation": "Несоответствующие права для генерации нового токена для исходящего вебхука"
   },
   {
+    "id": "api.webrtc.disabled.app_error",
+    "translation": "WebRTC не доступен на этом сервере."
+  },
+  {
     "id": "api.webrtc.init.debug",
     "translation": "Инициализация API WebRTC"
   },
   {
-    "id": "api.webrtc.not_available.app_error",
-    "translation": "WebRTC недоступен на этом сервере."
+    "id": "api.webrtc.register_token.app_error",
+    "translation": "Мы столкнулись с неожиданной ошибкой при попытке зарегистрировать токен WebRTC"
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
@@ -2802,18 +2842,6 @@
   {
     "id": "ent.saml.update_saml_user.unable_error",
     "translation": "Невозможно обновить существующего пользователя SAML. Несмотря на это, вход разрешен. err=%v"
-  },
-  {
-    "id": "ent.webrtc.disabled.app_error",
-    "translation": "WebRTC не включен на этом сервере."
-  },
-  {
-    "id": "ent.webrtc.license_disable.app_error",
-    "translation": "Ваша лицензия не поддерживает использование Mattermost WebRTC"
-  },
-  {
-    "id": "ent.webrtc.register_token.app_error",
-    "translation": "Мы столкнулись с неожиданной ошибкой при попытке зарегистрировать WebRTC Токен"
   },
   {
     "id": "error.generic.link_message",

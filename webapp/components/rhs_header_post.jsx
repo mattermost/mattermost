@@ -55,7 +55,10 @@ export default class RhsHeaderPost extends React.Component {
     render() {
         let back;
         const closeSidebarTooltip = (
-            <Tooltip id='closeSidebarTooltip'>
+            <Tooltip
+                className='hidden-xs'
+                id='closeSidebarTooltip'
+            >
                 <FormattedMessage
                     id='rhs_header.closeSidebarTooltip'
                     defaultMessage='Close Sidebar'
@@ -66,7 +69,10 @@ export default class RhsHeaderPost extends React.Component {
         let backToResultsTooltip;
         if (this.props.fromSearch) {
             backToResultsTooltip = (
-                <Tooltip id='backToResultsTooltip'>
+                <Tooltip
+                    className='hidden-xs'
+                    id='backToResultsTooltip'
+                >
                     <FormattedMessage
                         id='rhs_header.backToResultsTooltip'
                         defaultMessage='Back to Search Results'
@@ -75,7 +81,10 @@ export default class RhsHeaderPost extends React.Component {
             );
         } else if (this.props.fromFlaggedPosts) {
             backToResultsTooltip = (
-                <Tooltip id='backToResultsTooltip'>
+                <Tooltip
+                    className='hidden-xs'
+                    id='backToResultsTooltip'
+                >
                     <FormattedMessage
                         id='rhs_header.backToFlaggedTooltip'
                         defaultMessage='Back to Flagged Posts'
@@ -84,7 +93,10 @@ export default class RhsHeaderPost extends React.Component {
             );
         } else if (this.props.isWebrtc) {
             backToResultsTooltip = (
-                <Tooltip id='backToResultsTooltip'>
+                <Tooltip
+                    className='hidden-xs'
+                    id='backToResultsTooltip'
+                >
                     <FormattedMessage
                         id='rhs_header.backToCallTooltip'
                         defaultMessage='Back to Call'
@@ -94,7 +106,10 @@ export default class RhsHeaderPost extends React.Component {
         }
 
         const expandSidebarTooltip = (
-            <Tooltip id='expandSidebarTooltip'>
+            <Tooltip
+                className='hidden-xs'
+                id='expandSidebarTooltip'
+            >
                 <FormattedMessage
                     id='rhs_header.expandSidebarTooltip'
                     defaultMessage='Expand Sidebar'
@@ -103,7 +118,10 @@ export default class RhsHeaderPost extends React.Component {
         );
 
         const shrinkSidebarTooltip = (
-            <Tooltip id='shrinkSidebarTooltip'>
+            <Tooltip
+                className='hidden-xs'
+                id='shrinkSidebarTooltip'
+            >
                 <FormattedMessage
                     id='rhs_header.shrinkSidebarTooltip'
                     defaultMessage='Shrink Sidebar'
@@ -119,6 +137,7 @@ export default class RhsHeaderPost extends React.Component {
                     className='sidebar--right__back'
                 >
                     <OverlayTrigger
+                        className='hidden-xs'
                         delayShow={Constants.OVERLAY_TIME_DELAY}
                         placement='top'
                         overlay={backToResultsTooltip}
@@ -146,6 +165,7 @@ export default class RhsHeaderPost extends React.Component {
                         onClick={this.toggleSize}
                     >
                         <OverlayTrigger
+                            className='hidden-xs'
                             delayShow={Constants.OVERLAY_TIME_DELAY}
                             placement='top'
                             overlay={expandSidebarTooltip}
@@ -153,6 +173,7 @@ export default class RhsHeaderPost extends React.Component {
                             <i className='fa fa-expand'/>
                         </OverlayTrigger>
                         <OverlayTrigger
+                            className='hidden-xs'
                             delayShow={Constants.OVERLAY_TIME_DELAY}
                             placement='top'
                             overlay={shrinkSidebarTooltip}
@@ -168,6 +189,7 @@ export default class RhsHeaderPost extends React.Component {
                     >
 
                         <OverlayTrigger
+                            className='hidden-xs'
                             delayShow={Constants.OVERLAY_TIME_DELAY}
                             placement='top'
                             overlay={closeSidebarTooltip}

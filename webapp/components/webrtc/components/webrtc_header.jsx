@@ -21,7 +21,10 @@ export default class WebrtcHeader extends React.Component {
         );
 
         const closeSidebarTooltip = (
-            <Tooltip id='closeSidebarTooltip'>
+            <Tooltip
+                className='hidden-xs'
+                id='closeSidebarTooltip'
+            >
                 <FormattedMessage
                     id='rhs_header.closeTooltip'
                     defaultMessage='Close Sidebar'
@@ -30,7 +33,10 @@ export default class WebrtcHeader extends React.Component {
         );
 
         const expandSidebarTooltip = (
-            <Tooltip id='expandSidebarTooltip'>
+            <Tooltip
+                className='hidden-xs'
+                id='expandSidebarTooltip'
+            >
                 <FormattedMessage
                     id='rhs_header.expandTooltip'
                     defaultMessage='Expand Sidebar'
@@ -39,7 +45,10 @@ export default class WebrtcHeader extends React.Component {
         );
 
         const shrinkSidebarTooltip = (
-            <Tooltip id='shrinkSidebarTooltip'>
+            <Tooltip
+                className='hidden-xs'
+                id='shrinkSidebarTooltip'
+            >
                 <FormattedMessage
                     id='rhs_header.expandTooltip'
                     defaultMessage='Shrink Sidebar'
@@ -58,6 +67,7 @@ export default class WebrtcHeader extends React.Component {
                         onClick={this.props.toggleSize}
                     >
                         <OverlayTrigger
+                            className='hidden-xs'
                             delayShow={Constants.OVERLAY_TIME_DELAY}
                             placement='top'
                             overlay={expandSidebarTooltip}
@@ -65,6 +75,7 @@ export default class WebrtcHeader extends React.Component {
                             <i className='fa fa-expand'/>
                         </OverlayTrigger>
                         <OverlayTrigger
+                            className='hidden-xs'
                             delayShow={Constants.OVERLAY_TIME_DELAY}
                             placement='top'
                             overlay={shrinkSidebarTooltip}
@@ -80,6 +91,7 @@ export default class WebrtcHeader extends React.Component {
                         onClick={this.props.onClose}
                     >
                         <OverlayTrigger
+                            className='hidden-xs'
                             delayShow={Constants.OVERLAY_TIME_DELAY}
                             placement='top'
                             overlay={closeSidebarTooltip}

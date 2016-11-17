@@ -555,6 +555,19 @@ func (us SqlUserStore) GetProfiles(teamId string, offset int, limit int) StoreCh
 	return storeChannel
 }
 
+func (us SqlUserStore) InvalidateProfilesInChannelCacheByUser(userId string) {
+	keys := profilesInChannelCache.Keys()
+
+	for _, key := range keys {
+		if cacheItem, ok := profilesInChannelCache.Get(key); ok {
+			userMap := cacheItem.(map[string]*model.User)
+			if _, userInCache := userMap[userId]; userInCache {
+				profilesInChannelCache.Remove(key)
+			}
+		}
+	}
+}
+
 func (us SqlUserStore) InvalidateProfilesInChannelCache(channelId string) {
 	profilesInChannelCache.Remove(channelId)
 }

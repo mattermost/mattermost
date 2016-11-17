@@ -57,6 +57,7 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 			resp := model.NewWebSocketResponse(model.STATUS_OK, r.Seq, nil)
 			resp.DoPreComputeJson()
 			conn.Send <- resp
+			conn.SendHello()
 		}
 
 		return

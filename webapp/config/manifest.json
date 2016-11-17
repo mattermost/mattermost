@@ -1,6 +1,6 @@
 {
-    "name": "Mattermost",
-    "description": "Mattermost is an open source, self-hosted Slack-alternative",
+    "name": "uChat",
+    "description": "Uber's internal, real-time communication platform",
     "icons": [{
         "src": "/static/images/favicon/android-chrome-192x192.png",
         "type": "image/png",

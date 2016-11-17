@@ -92,6 +92,7 @@ type ChannelStore interface {
 	GetChannels(teamId string, userId string) StoreChannel
 	GetMoreChannels(teamId string, userId string) StoreChannel
 	GetChannelCounts(teamId string, userId string) StoreChannel
+	GetTeamChannels(teamId string) StoreChannel
 	GetAll(teamId string) StoreChannel
 	GetForPost(postId string) StoreChannel
 	SaveMember(member *model.ChannelMember) StoreChannel
@@ -142,6 +143,7 @@ type UserStore interface {
 	UpdateMfaActive(userId string, active bool) StoreChannel
 	Get(id string) StoreChannel
 	GetAll() StoreChannel
+	InvalidateProfilesInChannelCacheByUser(userId string)
 	InvalidateProfilesInChannelCache(channelId string)
 	GetProfilesInChannel(channelId string, offset int, limit int, allowFromCache bool) StoreChannel
 	GetProfilesNotInChannel(teamId string, channelId string, offset int, limit int) StoreChannel

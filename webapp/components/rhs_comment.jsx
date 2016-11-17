@@ -6,6 +6,7 @@ import FileAttachmentListContainer from './file_attachment_list_container.jsx';
 import PendingPostOptions from 'components/post_view/components/pending_post_options.jsx';
 import PostMessageContainer from 'components/post_view/components/post_message_container.jsx';
 import ProfilePicture from 'components/profile_picture.jsx';
+import RhsDropdown from 'components/rhs_dropdown.jsx';
 
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
@@ -218,24 +219,8 @@ export default class RhsComment extends React.Component {
         }
 
         return (
-            <div className='dropdown'>
-                <a
-                    href='#'
-                    className='post__dropdown dropdown-toggle'
-                    type='button'
-                    data-toggle='dropdown'
-                    aria-expanded='false'
-                />
-                <div className='dropdown-menu__content'>
-                    <ul
-                        className='dropdown-menu'
-                        role='menu'
-                    >
-                        {dropdownContents}
-                    </ul>
-                </div>
-            </div>
-            );
+            <RhsDropdown dropdownContents={dropdownContents}/>
+        );
     }
 
     render() {
@@ -317,7 +302,10 @@ export default class RhsComment extends React.Component {
         let flagFunc;
         let flagVisible = '';
         let flagTooltip = (
-            <Tooltip id='flagTooltip'>
+            <Tooltip
+                className='hidden-xs'
+                id='flagTooltip'
+            >
                 <FormattedMessage
                     id='flag_post.flag'
                     defaultMessage='Flag for follow up'
@@ -334,7 +322,10 @@ export default class RhsComment extends React.Component {
             );
             flagFunc = this.unflagPost;
             flagTooltip = (
-                <Tooltip id='flagTooltip'>
+                <Tooltip
+                    className='hidden-xs'
+                    id='flagTooltip'
+                >
                     <FormattedMessage
                         id='flag_post.unflag'
                         defaultMessage='Unflag'
@@ -355,6 +346,7 @@ export default class RhsComment extends React.Component {
         if (!Utils.isPostEphemeral(post)) {
             flagTrigger = (
                 <OverlayTrigger
+                    className='hidden-xs'
                     key={'commentflagtooltipkey' + flagVisible}
                     delayShow={Constants.OVERLAY_TIME_DELAY}
                     placement='top'

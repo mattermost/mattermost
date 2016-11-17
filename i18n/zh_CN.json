@@ -629,11 +629,11 @@
   },
   {
     "id": "api.command_shortcuts.msgs",
-    "translation": "#### 消息\n\nALT+[点击信息]：设信息为您在本频道最早未读信息\nESC：标此频道所有消息为已读\nCMD +向上键 (在空输入框)：重输入您上个输入的消息或斜杠命令\nCMD +向下键 (在空输入框)：重输入您下个输入的消息或斜杠命令\n向上键 (在空输入框)：编辑你在本频道发的上一条消息\n@[字]+TAB：自动完成以[字]开头的 @用户名\n:[字]+TAB: 自动完成以[字]开头的表情符\n\n"
+    "translation": "#### 消息\n\nESC：标当前频道所有消息为已读\nCTRL+向上键 (在空输入栏)：重用您输入的上一条消息或斜杠命令\nCTRL+向下键 (在空输入栏)：重用您输入的下一条消息或斜杠命令\n向上键 (在空输入栏)：修改您当前频道的上一条消息\n@[字符]+TAB：自动完成以[字符]开头的 @用户名\n#[字符]+TAB：自动完成以[字符]开头的频道\n:[字符]+TAB：自动完成以[字符]开头的表情符\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs_mac",
-    "translation": "#### 消息\n\nALT+[点击信息]：设信息为您在本频道最早未读信息\nESC：标此频道所有消息为已读\nCMD +向上键 (在空输入框)：重输入您上个输入的消息或斜杠命令\nCMD +向下键 (在空输入框)：重输入您下个输入的消息或斜杠命令\n向上键 (在空输入框)：编辑你在本频道发的上一条消息\n@[字]+TAB：自动完成以[字]开头的 @用户名\n:[字]+TAB: 自动完成以[字]开头的表情符\n\n"
+    "translation": "#### 消息\n\nESC：标当前频道所有消息为已读\nCMD+向上键 (在空输入栏)：重用您输入的上一条消息或斜杠命令\nCMD+向下键 (在空输入栏)：重用您输入的下一条消息或斜杠命令\n向上键 (在空输入栏)：修改您当前频道的上一条消息\n@[字符]+TAB：自动完成以[字符]开头的 @用户名\n#[字符]+TAB：自动完成以[字符]开头的频道\n:[字符]+TAB：自动完成以[字符]开头的表情符\n\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -891,7 +891,7 @@
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.get_file_infos_again.warn",
-    "translation": "转移数据后未能获取 FileInfos, post_id=%v, err=%v"
+    "translation": "转移数据后未能获取消息 FileInfos, post_id=%v, err=%v"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.get_post_again.warn",
@@ -1520,6 +1520,14 @@
     "translation": "正在停止服务..."
   },
   {
+    "id": "api.slackimport.slack_add_bot_user.email_pwd",
+    "translation": "Slack 机器人/整合消息导入用户：邮箱地址，密码: {{.Email}}, {{.Password}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_bot_user.unable_import",
+    "translation": "无法导入 Slack 机器人/整合消息导入用户：{{.Username}}\r\n"
+  },
+  {
     "id": "api.slackimport.slack_add_channels.added",
     "translation": "\r\n 频道已添加 \r\n"
   },
@@ -1533,7 +1541,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.import_failed.warn",
-    "translation": "Slack Importer: Failed to import channel: %s"
+    "translation": "Slack 导入：导入频道失败：%s"
   },
   {
     "id": "api.slackimport.slack_add_channels.merge",
@@ -1548,12 +1556,20 @@
     "translation": "Slack 机器人的信息未被导入"
   },
   {
+    "id": "api.slackimport.slack_add_posts.bot_user_no_exists.warn",
+    "translation": "Slack 导入：未导入机器人消息因为机器人导入用户不存在。"
+  },
+  {
     "id": "api.slackimport.slack_add_posts.msg_no_comment.debug",
     "translation": "文件评论未定义"
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_usr.debug",
     "translation": "未知用户消息"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.no_bot_id.warn",
+    "translation": "Slack 导入：未导入机器人消息因为缺少 BotId 字段。"
   },
   {
     "id": "api.slackimport.slack_add_posts.unsupported.warn",
@@ -1612,6 +1628,10 @@
     "translation": "给 Slack 用户 {{.UserID}} {{.Username}} 编译 @提及 正规表达式时失败"
   },
   {
+    "id": "api.slackimport.slack_deactivate_bot_user.failed_to_deactivate",
+    "translation": "Slack 导入：停用机器人导入用户失败。"
+  },
+  {
     "id": "api.slackimport.slack_import.log",
     "translation": "Mattermost Slack 导入日志 \r\n"
   },
@@ -1650,6 +1670,22 @@
   {
     "id": "api.slackimport.slack_parse_posts.error",
     "translation": "解析 slack 消息时出错。导入可能仍然可用。"
+  },
+  {
+    "id": "api.slackimport.slack_sanitise_channel_properties.display_name_too_long.warn",
+    "translation": "Slack 导入：频道 {{.ChannelName}} 的显示名过长。导入时会被截断。"
+  },
+  {
+    "id": "api.slackimport.slack_sanitise_channel_properties.header_too_long.warn",
+    "translation": "Slack 导入：频道 {{.ChannelName}} 的标题过长。导入时会被截断。"
+  },
+  {
+    "id": "api.slackimport.slack_sanitise_channel_properties.name_too_long.warn",
+    "translation": "Slack 导入：频道 {{.ChannelName}} 的名称过长。导入时会被截断。"
+  },
+  {
+    "id": "api.slackimport.slack_sanitise_channel_properties.purpose_too_long.warn",
+    "translation": "Slack 导入：频道 {{.ChannelName}} 的作用过长。导入时会被截断。"
   },
   {
     "id": "api.status.init.debug",
@@ -2508,12 +2544,16 @@
     "translation": "没有权限重新生成传出webhook令牌"
   },
   {
+    "id": "api.webrtc.disabled.app_error",
+    "translation": "WebRTC 未在本服务器开启。"
+  },
+  {
     "id": "api.webrtc.init.debug",
     "translation": "初始化 WebRTC api 路由中"
   },
   {
-    "id": "api.webrtc.not_available.app_error",
-    "translation": "WebRTC 在本服务器不可用。"
+    "id": "api.webrtc.register_token.app_error",
+    "translation": "我们在注册 WebRTC 令牌时遇到个错误"
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
@@ -2802,18 +2842,6 @@
   {
     "id": "ent.saml.update_saml_user.unable_error",
     "translation": "无法更新现有SAML用户。仍允许登入。err=%v"
-  },
-  {
-    "id": "ent.webrtc.disabled.app_error",
-    "translation": "WebRTC 未在本服务器开启。"
-  },
-  {
-    "id": "ent.webrtc.license_disable.app_error",
-    "translation": "您的许可证不支持使用 Mattermost WebRTC"
-  },
-  {
-    "id": "ent.webrtc.register_token.app_error",
-    "translation": "我们在注册 WebRTC 令牌时遇到个错误"
   },
   {
     "id": "error.generic.link_message",

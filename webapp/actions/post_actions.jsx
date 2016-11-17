@@ -232,7 +232,7 @@ export function loadPostsAfter(postId, offset, numPost, isPost) {
     );
 }
 
-function loadProfilesForPosts(posts) {
+export function loadProfilesForPosts(posts) {
     const profilesToLoad = {};
     for (const pid in posts) {
         if (!posts.hasOwnProperty(pid)) {
