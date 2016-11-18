@@ -36,6 +36,24 @@ export function createTeam(team, onSuccess, onError) {
     );
 }
 
+export function updateTeam(team, onSuccess, onError) {
+    Client.updateTeam(team,
+        (rteam) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.UPDATE_TEAM,
+                team: rteam
+            });
+
+            browserHistory.push('/' + rteam.name + '/channels/town-square');
+
+            if (onSuccess) {
+                onSuccess(rteam);
+            }
+        },
+        onError
+    );
+}
+
 export function removeUserFromTeam(teamId, userId, success, error) {
     Client.removeUserFromTeam(
         teamId,
@@ -50,28 +68,6 @@ export function removeUserFromTeam(teamId, userId, success, error) {
         },
         (err) => {
             AsyncClient.dispatchError(err, 'removeUserFromTeam');
-
-            if (error) {
-                error(err);
-            }
-        }
-    );
-}
-
-export function updateTeam(teamId, userId, success, error) {
-    Client.updateTeam(
-        teamId,
-        userId,
-        () => {
-            TeamStore.removeMemberInTeam(teamId, userId);
-            AsyncClient.getUser(userId);
-
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'updateTeam');
 
             if (error) {
                 error(err);
