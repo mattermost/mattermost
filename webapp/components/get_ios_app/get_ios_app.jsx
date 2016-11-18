@@ -4,6 +4,7 @@
 import React from 'react';
 
 import {FormattedMessage} from 'react-intl';
+import logoImage from 'images/uchat_color.png';
 
 const {IosAppUrlScheme, IosAppDownloadLink} = global.window.mm_config;
 
@@ -12,7 +13,7 @@ export default class GetIosApp extends React.Component {
         return (
             <div className='get-app get-ios-app'>
                 <img
-                    src='https://s3.amazonaws.com/uber-test/uchat/uchat_color.png'
+                    src={logoImage}
                     className='get-app__logo'
                 />
                 <a
