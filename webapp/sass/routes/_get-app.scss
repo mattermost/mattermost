@@ -1,4 +1,11 @@
 .get-app {
+    $uchat-teal: #90d0bd;
+
+    @include display-flex;
+    @include flex-direction(column);
+
+    height: 90vh;
+
     hr {
         border-top: 1px solid #ddd;
     }
@@ -10,22 +17,43 @@
         text-align: center
     }
 
-    .get-app__screenshot {
-        border-bottom: 1px solid #ddd;
-        display: block;
-        margin: auto;
-    }
-
     .get-app__continue-with-browser {
         display: block;
         margin-top: 40px;
         text-align: center;
     }
+
+    .get-app__logo {
+        width: 120px;
+        margin: auto;
+        display: block;
+    }
+
+    .btn {
+        display: block;
+        font-size: 20px;
+        margin: 0 auto 20px;
+        padding: 12px;
+        width: 80%;
+        border-width: 2px;
+        color: $uchat-teal;
+
+        &.btn-primary.get-android-app__open-mattermost,
+        &.btn-primary.get-ios-app__open-mattermost {
+            font-weight: bold;
+            background-color: transparent;
+            border-color: $uchat-teal;
+            &:hover,
+            &:focus,
+            &:active {
+                color: $white;
+                background: $uchat-teal;
+            }
+        }
+    }
 }
 
 .get-android-app {
-    margin: 20px;
-
     .get-app__header {
         text-align: left;
     }
@@ -53,41 +81,11 @@
         }
     }
 
-    .get-app__screenshot {
-        width: 240px;
-    }
-
     .get-android-app__continue {
         display: block;
         font-size: 16px;
         margin-bottom: 40px;
         margin-top: 15px;
         padding: 12px;
-    }
-}
-
-.get-android-app ,
-.get-ios-app {
-    margin: 30px;
-
-    .get-app__screenshot {
-        width: 180px;
-    }
-
-    .get-android-app__app-store-link  ,
-    .get-android-app__already-have-it ,
-    .get-android-app__open-mattermost ,
-    .get-android-app__continue-with-browser ,
-        .get-ios-app__app-store-link  ,
-        .get-ios-app__already-have-it ,
-        .get-ios-app__open-mattermost ,
-        .get-ios-app__continue-with-browser {
-        display       : block ;
-        font-size     : 20px  ;
-        font-weight   : bold  ;
-        margin        : 0 auto 20px;
-        padding       : 12px  ;
-        width         : 300px ;
-        border-width  : 2px   ;
     }
 }
