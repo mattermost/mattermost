@@ -45,7 +45,6 @@ func InitChannel() {
 	BaseRoutes.NeedChannel.Handle("/update_last_viewed_at", ApiUserRequired(updateLastViewedAt)).Methods("POST")
 	BaseRoutes.NeedChannel.Handle("/set_last_viewed_at", ApiUserRequired(setLastViewedAt)).Methods("POST")
 
-	BaseRoutes.Channels.Handle("/more", ApiUserRequired(getMoreChannels)).Methods("GET") // SCHEDULED FOR DEPRECATION IN 3.7
 }
 
 func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -443,25 +442,6 @@ func getMoreChannelsPage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if result := <-Srv.Store.Channel().GetMoreChannels(c.TeamId, c.Session.UserId, offset, limit); result.Err != nil {
 		c.Err = result.Err
-		return
-	} else {
-		data := result.Data.(*model.ChannelList)
-		w.Header().Set(model.HEADER_ETAG_SERVER, data.Etag())
-		w.Write([]byte(data.ToJson()))
-	}
-}
-
-func getMoreChannels(c *Context, w http.ResponseWriter, r *http.Request) {
-
-	// user is already in the team
-	if !HasPermissionToTeamContext(c, c.TeamId, model.PERMISSION_LIST_TEAM_CHANNELS) {
-		return
-	}
-
-	if result := <-Srv.Store.Channel().GetMoreChannels(c.TeamId, c.Session.UserId, 0, 10000); result.Err != nil {
-		c.Err = result.Err
-		return
-	} else if HandleEtag(result.Data.(*model.ChannelList).Etag(), w, r) {
 		return
 	} else {
 		data := result.Data.(*model.ChannelList)
