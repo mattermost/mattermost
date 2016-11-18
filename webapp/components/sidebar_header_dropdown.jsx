@@ -137,7 +137,8 @@ export default class SidebarHeaderDropdown extends React.Component {
 
     onTeamChange() {
         this.setState({
-            teamMembers: TeamStore.getMyTeamMembers()
+            teamMembers: TeamStore.getMyTeamMembers(),
+            teamListings: TeamStore.getTeamListings()
         });
     }
 
@@ -352,7 +353,7 @@ export default class SidebarHeaderDropdown extends React.Component {
                     <Link to='/select_team'>
                         <FormattedMessage
                             id='navbar_dropdown.join'
-                            defaultMessage='Join another team'
+                            defaultMessage='Join Another Team'
                         />
                     </Link>
                 </li>

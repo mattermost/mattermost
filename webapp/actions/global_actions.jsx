@@ -538,3 +538,33 @@ export function emitBrowserFocus(focus) {
         focus
     });
 }
+
+export function redirectUserToDefaultTeam() {
+    const teams = TeamStore.getAll();
+    const teamMembers = TeamStore.getMyTeamMembers();
+    let teamId = BrowserStore.getGlobalItem('team');
+
+    if (!teamId && teamMembers.length > 0) {
+        let myTeams = [];
+        for (const index in teamMembers) {
+            if (teamMembers.hasOwnProperty(index)) {
+                const teamMember = teamMembers[index];
+                myTeams.push(Object.assign({
+                    unread: teamMember.msg_count > 0,
+                    mentions: teamMember.mention_count
+                }, teams[teamMember.team_id]));
+            }
+        }
+
+        if (myTeams.length > 0) {
+            myTeams = myTeams.sort((a, b) => a.display_name.localeCompare(b.display_name));
+            teamId = myTeams[0].id;
+        }
+    }
+
+    if (teamId) {
+        browserHistory.push(`/${teams[teamId].name}`);
+    } else {
+        browserHistory.push('/select_team');
+    }
+}

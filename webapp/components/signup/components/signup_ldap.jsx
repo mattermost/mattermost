@@ -90,8 +90,13 @@ export default class SignupLdap extends React.Component {
     finishSignup() {
         GlobalActions.emitInitialLoad(
             () => {
+                const query = this.props.location.query;
                 GlobalActions.loadDefaultLocale();
-                browserHistory.push('/select_team');
+                if (query.redirect_to) {
+                    browserHistory.push(query.redirect_to);
+                } else {
+                    GlobalActions.redirectUserToDefaultTeam();
+                }
             }
         );
     }

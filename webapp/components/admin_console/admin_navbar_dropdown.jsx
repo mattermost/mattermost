@@ -104,17 +104,6 @@ export default class AdminNavbarDropdown extends React.Component {
                         role='menu'
                     >
                         {teams}
-                        <li>
-                            <Link
-                                to={'/select_team'}
-                            >
-                                <i className='fa fa-exchange'/>
-                                <FormattedMessage
-                                    id='admin.nav.switch'
-                                    defaultMessage='Team Selection'
-                                />
-                            </Link>
-                        </li>
                         <li
                             key='teamDiv'
                             className='divider'

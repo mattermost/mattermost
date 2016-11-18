@@ -245,6 +245,7 @@ function handleLeaveTeamEvent(msg) {
 
         // if they are on the team being removed redirect them to the root
         if (TeamStore.getCurrentId() === msg.data.team_id) {
+            BrowserStore.removeGlobalItem('team');
             TeamStore.setCurrentId('');
             Client.setTeamId('');
             browserHistory.push('/');
