@@ -302,6 +302,21 @@ describe('Client.Channels', function() {
         });
     });
 
+    it('autocompleteChannels', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().autocompleteChannels(
+                TestHelper.basicChannel().name,
+                function(data) {
+                    assert.equal(data != null, true);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
     it('getChannelCounts', function(done) {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().getChannelCounts(

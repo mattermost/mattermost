@@ -1164,6 +1164,8 @@ func (c *Client) GetMoreChannels(etag string) (*Result, *AppError) {
 	}
 }
 
+// GetMoreChannelsPage will return a page of open channels the user is not in based on
+// the provided offset and limit. Must be authenticated.
 func (c *Client) GetMoreChannelsPage(offset int, limit int) (*Result, *AppError) {
 	if r, err := c.DoApiGet(fmt.Sprintf(c.GetTeamRoute()+"/channels/more/%v/%v", offset, limit), "", ""); err != nil {
 		return nil, err
@@ -1176,6 +1178,17 @@ func (c *Client) GetMoreChannelsPage(offset int, limit int) (*Result, *AppError)
 
 func (c *Client) SearchMoreChannels(channelSearch ChannelSearch) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/channels/more/search", channelSearch.ToJson()); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), ChannelListFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) AutocompleteChannels(term string) (*Result, *AppError) {
+	url := fmt.Sprintf("%s/channels/autocomplete?term=%s", c.GetTeamRoute(), url.QueryEscape(term))
+	if r, err := c.DoApiGet(url, "", ""); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)

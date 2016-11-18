@@ -1382,6 +1382,15 @@ export default class Client {
             end(this.handleResponse.bind(this, 'searchMoreChannels', success, error));
     }
 
+    autocompleteChannels(term, success, error) {
+        request.
+            get(`${this.getChannelsRoute()}/autocomplete?term=${encodeURIComponent(term)}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'autocompleteChannels', success, error));
+    }
+
     getChannelCounts(success, error) {
         request.
             get(`${this.getChannelsRoute()}/counts`).

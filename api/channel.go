@@ -30,6 +30,7 @@ func InitChannel() {
 	BaseRoutes.Channels.Handle("/update_header", ApiUserRequired(updateChannelHeader)).Methods("POST")
 	BaseRoutes.Channels.Handle("/update_purpose", ApiUserRequired(updateChannelPurpose)).Methods("POST")
 	BaseRoutes.Channels.Handle("/update_notify_props", ApiUserRequired(updateNotifyProps)).Methods("POST")
+	BaseRoutes.Channels.Handle("/autocomplete", ApiUserRequired(autocompleteChannels)).Methods("GET")
 
 	BaseRoutes.NeedChannelName.Handle("/join", ApiUserRequired(join)).Methods("POST")
 
@@ -1237,4 +1238,25 @@ func searchMoreChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		channels := result.Data.(*model.ChannelList)
 		w.Write([]byte(channels.ToJson()))
 	}
+}
+
+func autocompleteChannels(c *Context, w http.ResponseWriter, r *http.Request) {
+	term := r.URL.Query().Get("term")
+
+	if c.Session.GetTeamByTeamId(c.TeamId) == nil {
+		if !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
+			return
+		}
+	}
+
+	var channels *model.ChannelList
+
+	if result := <-Srv.Store.Channel().SearchInTeam(c.TeamId, term); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		channels = result.Data.(*model.ChannelList)
+	}
+
+	w.Write([]byte(channels.ToJson()))
 }
