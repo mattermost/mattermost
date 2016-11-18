@@ -126,6 +126,7 @@ export const ActionTypes = keyMirror({
 
     RECEIVED_MY_TEAM: null,
     CREATED_TEAM: null,
+    UPDATE_TEAM: null,
 
     RECEIVED_CONFIG: null,
     RECEIVED_LOGS: null,
