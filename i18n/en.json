@@ -1925,7 +1925,7 @@
   },
   {
     "id": "api.templates.post_body.info",
-    "translation": "CHANNEL: {{.ChannelName}}<br>{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "translation": "{{.ChannelName}}<br>{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
     "id": "api.templates.post_subject_in_channel",
