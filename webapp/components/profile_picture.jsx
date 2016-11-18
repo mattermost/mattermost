@@ -102,7 +102,7 @@ export default class ProfilePicture extends React.Component {
                 >
                     <span className={`status-wrapper ${statusClass}`}>
                         <img
-                            className={`more-modal__image ${isSystemMessage && 'icon--uchat'}`}
+                            className={`more-modal__image ${isSystemMessage ? 'icon--uchat' : ''}`}
                             width={this.props.width}
                             height={this.props.width}
                             src={this.props.src}
@@ -114,7 +114,7 @@ export default class ProfilePicture extends React.Component {
         return (
             <span className={`status-wrapper ${statusClass}`}>
                 <img
-                    className={`more-modal__image ${isSystemMessage && 'icon--uchat'}`}
+                    className={`more-modal__image ${isSystemMessage ? 'icon--uchat' : ''}`}
                     width={this.props.width}
                     height={this.props.width}
                     src={this.props.src}
