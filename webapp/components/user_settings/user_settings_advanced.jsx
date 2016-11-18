@@ -441,7 +441,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
         if (displayJoinLeaveSection) {
             displayJoinLeaveSectionDivider = <div className='divider-light'/>;
         }
-
+        /*
         let previewFeaturesSection;
         let previewFeaturesSectionDivider;
         if (this.state.preReleaseFeaturesKeys.length > 0) {
@@ -514,6 +514,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                 );
             }
         }
+        */
 
         return (
             <div>
@@ -556,8 +557,8 @@ export default class AdvancedSettingsDisplay extends React.Component {
                     {formattingSection}
                     {displayJoinLeaveSectionDivider}
                     {displayJoinLeaveSection}
-                    {previewFeaturesSectionDivider}
-                    {previewFeaturesSection}
+                    {false && previewFeaturesSectionDivider}
+                    {false && previewFeaturesSection}
                     <div className='divider-dark'/>
                 </div>
             </div>
