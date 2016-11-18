@@ -1206,6 +1206,12 @@ func searchMoreChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if c.Session.GetTeamByTeamId(c.TeamId) == nil {
+		if !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
+			return
+		}
+	}
+
 	if len(props.Term) == 0 {
 		c.SetInvalidParam("searchMoreChannels", "term")
 		return

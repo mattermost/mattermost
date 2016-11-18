@@ -1555,6 +1555,11 @@ func TestSearchMoreChannels(t *testing.T) {
 			t.Fatal("should have no channels")
 		}
 	}
+
+	Client.SetTeamId("junk")
+	if _, err := Client.SearchMoreChannels(model.ChannelSearch{Term: "blargh"}); err == nil {
+		t.Fatal("should have errored - bad team id")
+	}
 }
 
 func TestAutocompleteChannels(t *testing.T) {

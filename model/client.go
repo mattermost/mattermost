@@ -1176,6 +1176,8 @@ func (c *Client) GetMoreChannelsPage(offset int, limit int) (*Result, *AppError)
 	}
 }
 
+// SearchMoreChannels will return a list of open channels the user is not in, that matches
+// the search criteria provided. Must be authenticated.
 func (c *Client) SearchMoreChannels(channelSearch ChannelSearch) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/channels/more/search", channelSearch.ToJson()); err != nil {
 		return nil, err
@@ -1186,6 +1188,8 @@ func (c *Client) SearchMoreChannels(channelSearch ChannelSearch) (*Result, *AppE
 	}
 }
 
+// AutocompleteChannels will return a list of open channels that match the provided
+// string. Must be authenticated.
 func (c *Client) AutocompleteChannels(term string) (*Result, *AppError) {
 	url := fmt.Sprintf("%s/channels/autocomplete?term=%s", c.GetTeamRoute(), url.QueryEscape(term))
 	if r, err := c.DoApiGet(url, "", ""); err != nil {

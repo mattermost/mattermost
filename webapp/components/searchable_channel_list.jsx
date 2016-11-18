@@ -164,31 +164,6 @@ export default class SearchableChannelList extends React.Component {
             }
         }
 
-        let count;
-
-        /*if (channelschannels.length === this.props.channels.length) {
-            count = (
-                <FormattedMessage
-                    id='filtered_channels_list.count'
-                    defaultMessage='{count} {count, plural, =0 {0 channels} one {channel} other {channels}}'
-                    values={{
-                        count: channels.length
-                    }}
-                />
-            );
-        } else {
-            count = (
-                <FormattedMessage
-                    id='filtered_channels_list.countTotal'
-                    defaultMessage='{count} {count, plural, =0 {0 channels} one {channel} other {channels}} of {total} Total'
-                    values={{
-                        count: channels.length,
-                        total: this.props.channels.length
-                    }}
-                />
-            );
-        }*/
-
         return (
             <div className='filtered-user-list'>
                 <div className='filter-row'>
@@ -199,9 +174,6 @@ export default class SearchableChannelList extends React.Component {
                             placeholder={localizeMessage('filtered_channels_list.search', 'Search channels')}
                             onInput={this.doSearch}
                         />
-                    </div>
-                    <div className='col-sm-12'>
-                        <span className='channel-count pull-left'>{count}</span>
                     </div>
                 </div>
                 <div
