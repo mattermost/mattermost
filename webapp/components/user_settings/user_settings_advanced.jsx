@@ -24,8 +24,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
         this.updateSection = this.updateSection.bind(this);
         this.updateSetting = this.updateSetting.bind(this);
         this.toggleFeature = this.toggleFeature.bind(this);
-        this.saveEnabledFeatures = this.saveEnabledFeatures.bind(this);
-
+        // this.saveEnabledFeatures = this.saveEnabledFeatures.bind(this);
         this.renderFormattingSection = this.renderFormattingSection.bind(this);
         this.renderJoinLeaveSection = this.renderJoinLeaveSection.bind(this);
 
@@ -101,6 +100,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
         this.setState({settings, enabledFeatures});
     }
 
+    /*
     saveEnabledFeatures() {
         const features = [];
         Object.keys(this.state.settings).forEach((setting) => {
@@ -111,6 +111,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
 
         this.handleSubmit(features);
     }
+    */
 
     handleSubmit(settings) {
         const preferences = [];
