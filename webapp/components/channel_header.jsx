@@ -245,7 +245,10 @@ export default class ChannelHeader extends React.Component {
         const flagIcon = Constants.FLAG_ICON_SVG;
 
         if (!this.validState()) {
-            return null;
+            // Use an empty div to make sure the header's height stays constant
+            return (
+                <div className='channel-header'/>
+            );
         }
 
         const channel = this.state.channel;
