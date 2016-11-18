@@ -21,7 +21,7 @@ export default class TeamButton extends React.Component {
     render() {
         let teamClass = this.props.active ? 'active' : '';
         const disabled = this.props.disabled ? 'team-disabled' : '';
-        const handleDisabled = this.props.disabled ? this.handleDisabled : null;
+        const handleClick = (this.props.active || this.props.disabled) ? this.handleDisabled : null;
         let badge;
 
         if (!teamClass) {
@@ -42,7 +42,7 @@ export default class TeamButton extends React.Component {
                 <Link
                     className={disabled}
                     to={this.props.url}
-                    onClick={handleDisabled}
+                    onClick={handleClick}
                 >
                     <OverlayTrigger
                         delayShow={Constants.OVERLAY_TIME_DELAY}

@@ -110,7 +110,7 @@ export default class SignupEmail extends React.Component {
                 if (query.redirect_to) {
                     browserHistory.push(query.redirect_to);
                 } else {
-                    browserHistory.push('/select_team');
+                    GlobalActions.redirectUserToDefaultTeam();
                 }
             }
         );
@@ -133,7 +133,7 @@ export default class SignupEmail extends React.Component {
                         if (query.redirect_to) {
                             browserHistory.push(query.redirect_to);
                         } else {
-                            browserHistory.push('/select_team');
+                            GlobalActions.redirectUserToDefaultTeam();
                         }
                     }
                 );
