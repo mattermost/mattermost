@@ -1,4 +1,4 @@
-// Copyright 2013 The Go Authors.  All rights reserved.
+// Copyright 2013 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -17,7 +17,7 @@ import (
 var (
 	ctlOpts = [ctlMax]ctlOpt{
 		ctlHopLimit:   {sysIPV6_2292HOPLIMIT, 4, marshal2292HopLimit, parseHopLimit},
-		ctlPacketInfo: {sysIPV6_2292PKTINFO, sysSizeofInet6Pktinfo, marshal2292PacketInfo, parsePacketInfo},
+		ctlPacketInfo: {sysIPV6_2292PKTINFO, sizeofInet6Pktinfo, marshal2292PacketInfo, parsePacketInfo},
 	}
 
 	sockOpts = [ssoMax]sockOpt{
@@ -54,9 +54,9 @@ func init() {
 	}
 	ctlOpts[ctlTrafficClass] = ctlOpt{sysIPV6_TCLASS, 4, marshalTrafficClass, parseTrafficClass}
 	ctlOpts[ctlHopLimit] = ctlOpt{sysIPV6_HOPLIMIT, 4, marshalHopLimit, parseHopLimit}
-	ctlOpts[ctlPacketInfo] = ctlOpt{sysIPV6_PKTINFO, sysSizeofInet6Pktinfo, marshalPacketInfo, parsePacketInfo}
-	ctlOpts[ctlNextHop] = ctlOpt{sysIPV6_NEXTHOP, sysSizeofSockaddrInet6, marshalNextHop, parseNextHop}
-	ctlOpts[ctlPathMTU] = ctlOpt{sysIPV6_PATHMTU, sysSizeofIPv6Mtuinfo, marshalPathMTU, parsePathMTU}
+	ctlOpts[ctlPacketInfo] = ctlOpt{sysIPV6_PKTINFO, sizeofInet6Pktinfo, marshalPacketInfo, parsePacketInfo}
+	ctlOpts[ctlNextHop] = ctlOpt{sysIPV6_NEXTHOP, sizeofSockaddrInet6, marshalNextHop, parseNextHop}
+	ctlOpts[ctlPathMTU] = ctlOpt{sysIPV6_PATHMTU, sizeofIPv6Mtuinfo, marshalPathMTU, parsePathMTU}
 	sockOpts[ssoTrafficClass] = sockOpt{iana.ProtocolIPv6, sysIPV6_TCLASS, ssoTypeInt}
 	sockOpts[ssoReceiveTrafficClass] = sockOpt{iana.ProtocolIPv6, sysIPV6_RECVTCLASS, ssoTypeInt}
 	sockOpts[ssoReceiveHopLimit] = sockOpt{iana.ProtocolIPv6, sysIPV6_RECVHOPLIMIT, ssoTypeInt}
@@ -71,35 +71,35 @@ func init() {
 	sockOpts[ssoUnblockSourceGroup] = sockOpt{iana.ProtocolIPv6, sysMCAST_UNBLOCK_SOURCE, ssoTypeGroupSourceReq}
 }
 
-func (sa *sysSockaddrInet6) setSockaddr(ip net.IP, i int) {
-	sa.Len = sysSizeofSockaddrInet6
+func (sa *sockaddrInet6) setSockaddr(ip net.IP, i int) {
+	sa.Len = sizeofSockaddrInet6
 	sa.Family = syscall.AF_INET6
 	copy(sa.Addr[:], ip)
 	sa.Scope_id = uint32(i)
 }
 
-func (pi *sysInet6Pktinfo) setIfindex(i int) {
+func (pi *inet6Pktinfo) setIfindex(i int) {
 	pi.Ifindex = uint32(i)
 }
 
-func (mreq *sysIPv6Mreq) setIfindex(i int) {
+func (mreq *ipv6Mreq) setIfindex(i int) {
 	mreq.Interface = uint32(i)
 }
 
-func (gr *sysGroupReq) setGroup(grp net.IP) {
-	sa := (*sysSockaddrInet6)(unsafe.Pointer(&gr.Pad_cgo_0[0]))
-	sa.Len = sysSizeofSockaddrInet6
+func (gr *groupReq) setGroup(grp net.IP) {
+	sa := (*sockaddrInet6)(unsafe.Pointer(uintptr(unsafe.Pointer(gr)) + 4))
+	sa.Len = sizeofSockaddrInet6
 	sa.Family = syscall.AF_INET6
 	copy(sa.Addr[:], grp)
 }
 
-func (gsr *sysGroupSourceReq) setSourceGroup(grp, src net.IP) {
-	sa := (*sysSockaddrInet6)(unsafe.Pointer(&gsr.Pad_cgo_0[0]))
-	sa.Len = sysSizeofSockaddrInet6
+func (gsr *groupSourceReq) setSourceGroup(grp, src net.IP) {
+	sa := (*sockaddrInet6)(unsafe.Pointer(uintptr(unsafe.Pointer(gsr)) + 4))
+	sa.Len = sizeofSockaddrInet6
 	sa.Family = syscall.AF_INET6
 	copy(sa.Addr[:], grp)
-	sa = (*sysSockaddrInet6)(unsafe.Pointer(&gsr.Pad_cgo_1[0]))
-	sa.Len = sysSizeofSockaddrInet6
+	sa = (*sockaddrInet6)(unsafe.Pointer(uintptr(unsafe.Pointer(gsr)) + 132))
+	sa.Len = sizeofSockaddrInet6
 	sa.Family = syscall.AF_INET6
 	copy(sa.Addr[:], src)
 }

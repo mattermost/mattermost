@@ -58,7 +58,7 @@ var (
 	ErrTruncated     error = &Error{err: "failed to unpack truncated message"} // ErrTruncated indicates that we failed to unpack a truncated message. We unpacked as much as we had so Msg can still be used, if desired.
 )
 
-// Id, by default, returns a 16 bits random number to be used as a
+// Id by default, returns a 16 bits random number to be used as a
 // message id. The random provided should be good enough. This being a
 // variable the function can be reassigned to a custom function.
 // For instance, to make it return a static value:

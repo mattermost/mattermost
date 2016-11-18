@@ -1,8 +1,12 @@
-hash: ef894d83b32bdf0fdeaebf16b6e56a1e8e865c5ff62cef1ef9740ea68a677a41
-updated: 2016-10-10T11:22:33.842051046-07:00
+hash: 4436129ec9bd4bcd2f6b926e3ffb3d19c51fc7fbc41ae3a5fdc42e2b7ebe9335
+updated: 2016-11-17T09:40:48.293056146-08:00
 imports:
 - name: github.com/alecthomas/log4go
   version: e5dc62318d9bd58682f1dceb53a4b24e8253682f
+- name: github.com/beorn7/perks
+  version: 4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9
+  subpackages:
+  - quantile
 - name: github.com/braintree/manners
   version: 0b5e6b2c2843f4c83c2a40f96980b09cf4af733c
 - name: github.com/dgryski/dgoogauth
@@ -25,6 +29,10 @@ imports:
   subpackages:
   - raster
   - truetype
+- name: github.com/golang/protobuf
+  version: 8ee79997227bf9b34611aee7946ae64735e6fd93
+  subpackages:
+  - proto
 - name: github.com/gorilla/context
   version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
 - name: github.com/gorilla/handlers
@@ -49,8 +57,12 @@ imports:
   - gf256
   - qr
   - qr/coding
+- name: github.com/matttproud/golang_protobuf_extensions
+  version: 3247c84500bff8d9fb6d579d800f20b3e091582c
+  subpackages:
+  - pbutil
 - name: github.com/miekg/dns
-  version: db96a2b759cdef4f11a34506a42eb8d1290c598e
+  version: 58f52c57ce9df13460ac68200cef30a008b9c468
 - name: github.com/minio/minio-go
   version: c040578255dbb1a1f41cbdc5bd944de4140b4149
   subpackages:
@@ -69,8 +81,22 @@ imports:
   version: f6438dbf4a82c56684964b03956aa727b0d7816b
 - name: github.com/pborman/uuid
   version: a97ce2ca70fa5a848076093f05e639a89ca34d06
+- name: github.com/prometheus/client_golang
+  version: c5b7fccd204277076155f10851dad72b76a49317
+  subpackages:
+  - prometheus
+- name: github.com/prometheus/client_model
+  version: fa8ad6fec33561be4280a8f0514318c79d7f6cb6
+  subpackages:
+  - go
+- name: github.com/prometheus/common
+  version: 0d5de9d6d8629cb8bee6d4674da4127cd8b615a3
+  subpackages:
+  - expfmt
+- name: github.com/prometheus/procfs
+  version: abf152e5f3e97f2fafac028d2cc06c1feb87ffa5
 - name: github.com/rsc/letsencrypt
-  version: 35c6e61d12298c67f1e90548d34a34585ac289da
+  version: 76104d26167d38b6a0010f42bfc8ec5487742e8b
 - name: github.com/rwcarlsen/goexif
   version: 709fab3d192d7c62f86043caff1e7e3fb0f42bd8
   subpackages:
@@ -81,9 +107,9 @@ imports:
 - name: github.com/segmentio/backo-go
   version: 204274ad699c0983a70203a566887f17a717fef4
 - name: github.com/tylerb/graceful
-  version: 50a48b6e73fcc75b45e22c05b79629a67c79e938
+  version: 4df1190835320af7076dfcf27b3d071fd3612caf
 - name: github.com/xenolf/lego
-  version: ca0bd606b23a8b50f92915772917bd187ae1491b
+  version: 9f86882f775f75f69617ecc160e39f4e0b7ae27f
   subpackages:
   - acme
 - name: github.com/xtgo/uuid
@@ -103,16 +129,16 @@ imports:
   - tiff
   - tiff/lzw
 - name: golang.org/x/net
-  version: f09c4662a0bd6bd8943ac7b4931e185df9471da4
+  version: 4971afdc2f162e82d185353533d3cf16188a9f4e
   subpackages:
   - context
   - publicsuffix
 - name: golang.org/x/sys
-  version: 8f0908ab3b2457e2e15403d3697c9ef5cb4b57a9
+  version: b699b7032584f0953262cb2788a0ca19bb494703
   subpackages:
   - unix
 - name: golang.org/x/time
-  version: 711ca1cb87636abec28122ef3bc6a77269d433f3
+  version: f51c12702a4d776e4c1fa9b0fabab841babae631
   subpackages:
   - rate
 - name: gopkg.in/asn1-ber.v1

@@ -97,7 +97,7 @@ func NewClient(caDirURL string, user User, keyType KeyType) (*Client, error) {
 	return &Client{directory: dir, user: user, jws: jws, keyType: keyType, solvers: solvers}, nil
 }
 
-// SetChallengeProvider specifies a custom provider that will make the solution available
+// SetChallengeProvider specifies a custom provider p that can solve the given challenge type.
 func (c *Client) SetChallengeProvider(challenge Challenge, p ChallengeProvider) error {
 	switch challenge {
 	case HTTP01:
@@ -115,6 +115,9 @@ func (c *Client) SetChallengeProvider(challenge Challenge, p ChallengeProvider) 
 // SetHTTPAddress specifies a custom interface:port to be used for HTTP based challenges.
 // If this option is not used, the default port 80 and all interfaces will be used.
 // To only specify a port and no interface use the ":port" notation.
+//
+// NOTE: This REPLACES any custom HTTP provider previously set by calling
+// c.SetChallengeProvider with the default HTTP challenge provider.
 func (c *Client) SetHTTPAddress(iface string) error {
 	host, port, err := net.SplitHostPort(iface)
 	if err != nil {
@@ -131,6 +134,9 @@ func (c *Client) SetHTTPAddress(iface string) error {
 // SetTLSAddress specifies a custom interface:port to be used for TLS based challenges.
 // If this option is not used, the default port 443 and all interfaces will be used.
 // To only specify a port and no interface use the ":port" notation.
+//
+// NOTE: This REPLACES any custom TLS-SNI provider previously set by calling
+// c.SetChallengeProvider with the default TLS-SNI challenge provider.
 func (c *Client) SetTLSAddress(iface string) error {
 	host, port, err := net.SplitHostPort(iface)
 	if err != nil {
@@ -347,7 +353,7 @@ DNSNames:
 // your issued certificate as a bundle.
 // This function will never return a partial certificate. If one domain in the list fails,
 // the whole certificate will fail.
-func (c *Client) ObtainCertificate(domains []string, bundle bool, privKey crypto.PrivateKey) (CertificateResource, map[string]error) {
+func (c *Client) ObtainCertificate(domains []string, bundle bool, privKey crypto.PrivateKey, mustStaple bool) (CertificateResource, map[string]error) {
 	if bundle {
 		logf("[INFO][%s] acme: Obtaining bundled SAN certificate", strings.Join(domains, ", "))
 	} else {
@@ -368,7 +374,7 @@ func (c *Client) ObtainCertificate(domains []string, bundle bool, privKey crypto
 
 	logf("[INFO][%s] acme: Validations succeeded; requesting certificates", strings.Join(domains, ", "))
 
-	cert, err := c.requestCertificate(challenges, bundle, privKey)
+	cert, err := c.requestCertificate(challenges, bundle, privKey, mustStaple)
 	if err != nil {
 		for _, chln := range challenges {
 			failures[chln.Domain] = err
@@ -404,7 +410,7 @@ func (c *Client) RevokeCertificate(certificate []byte) error {
 // If bundle is true, the []byte contains both the issuer certificate and
 // your issued certificate as a bundle.
 // For private key reuse the PrivateKey property of the passed in CertificateResource should be non-nil.
-func (c *Client) RenewCertificate(cert CertificateResource, bundle bool) (CertificateResource, error) {
+func (c *Client) RenewCertificate(cert CertificateResource, bundle, mustStaple bool) (CertificateResource, error) {
 	// Input certificate is PEM encoded. Decode it here as we may need the decoded
 	// cert later on in the renewal process. The input may be a bundle or a single certificate.
 	certificates, err := parsePEMBundle(cert.Certificate)
@@ -421,50 +427,7 @@ func (c *Client) RenewCertificate(cert CertificateResource, bundle bool) (Certif
 	timeLeft := x509Cert.NotAfter.Sub(time.Now().UTC())
 	logf("[INFO][%s] acme: Trying renewal with %d hours remaining", cert.Domain, int(timeLeft.Hours()))
 
-	// The first step of renewal is to check if we get a renewed cert
-	// directly from the cert URL.
-	resp, err := httpGet(cert.CertURL)
-	if err != nil {
-		return CertificateResource{}, err
-	}
-	defer resp.Body.Close()
-	serverCertBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return CertificateResource{}, err
-	}
-
-	serverCert, err := x509.ParseCertificate(serverCertBytes)
-	if err != nil {
-		return CertificateResource{}, err
-	}
-
-	// If the server responds with a different certificate we are effectively renewed.
-	// TODO: Further test if we can actually use the new certificate (Our private key works)
-	if !x509Cert.Equal(serverCert) {
-		logf("[INFO][%s] acme: Server responded with renewed certificate", cert.Domain)
-		issuedCert := pemEncode(derCertificateBytes(serverCertBytes))
-		// If bundle is true, we want to return a certificate bundle.
-		// To do this, we need the issuer certificate.
-		if bundle {
-			// The issuer certificate link is always supplied via an "up" link
-			// in the response headers of a new certificate.
-			links := parseLinks(resp.Header["Link"])
-			issuerCert, err := c.getIssuerCertificate(links["up"])
-			if err != nil {
-				// If we fail to acquire the issuer cert, return the issued certificate - do not fail.
-				logf("[ERROR][%s] acme: Could not bundle issuer certificate: %v", cert.Domain, err)
-			} else {
-				// Success - append the issuer cert to the issued cert.
-				issuerCert = pemEncode(derCertificateBytes(issuerCert))
-				issuedCert = append(issuedCert, issuerCert...)
-			}
-		}
-
-		cert.Certificate = issuedCert
-		return cert, nil
-	}
-
-	// If the certificate is the same, then we need to request a new certificate.
+	// We always need to request a new certificate to renew.
 	// Start by checking to see if the certificate was based off a CSR, and
 	// use that if it's defined.
 	if len(cert.CSR) > 0 {
@@ -499,7 +462,7 @@ func (c *Client) RenewCertificate(cert CertificateResource, bundle bool) (Certif
 		domains = append(domains, x509Cert.Subject.CommonName)
 	}
 
-	newCert, failures := c.ObtainCertificate(domains, bundle, privKey)
+	newCert, failures := c.ObtainCertificate(domains, bundle, privKey, mustStaple)
 	return newCert, failures[cert.Domain]
 }
 
@@ -600,7 +563,7 @@ func (c *Client) getChallenges(domains []string) ([]authorizationResource, map[s
 	return challenges, failures
 }
 
-func (c *Client) requestCertificate(authz []authorizationResource, bundle bool, privKey crypto.PrivateKey) (CertificateResource, error) {
+func (c *Client) requestCertificate(authz []authorizationResource, bundle bool, privKey crypto.PrivateKey, mustStaple bool) (CertificateResource, error) {
 	if len(authz) == 0 {
 		return CertificateResource{}, errors.New("Passed no authorizations to requestCertificate!")
 	}
@@ -621,7 +584,7 @@ func (c *Client) requestCertificate(authz []authorizationResource, bundle bool, 
 	}
 
 	// TODO: should the CSR be customizable?
-	csr, err := generateCsr(privKey, commonName.Domain, san)
+	csr, err := generateCsr(privKey, commonName.Domain, san, mustStaple)
 	if err != nil {
 		return CertificateResource{}, err
 	}

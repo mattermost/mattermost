@@ -1,4 +1,4 @@
-// Copyright 2013 The Go Authors.  All rights reserved.
+// Copyright 2013 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -31,7 +31,7 @@ func (typ ICMPType) Protocol() int {
 // packets not explicitly addressed to itself, and a host means a node
 // that is not a router.
 type ICMPFilter struct {
-	sysICMPv6Filter
+	icmpv6Filter
 }
 
 // Accept accepts incoming ICMP packets including the type field value

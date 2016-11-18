@@ -1,8 +1,8 @@
-// Copyright 2012 The Go Authors.  All rights reserved.
+// Copyright 2012 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// +build darwin dragonfly freebsd netbsd openbsd windows
+// +build darwin dragonfly freebsd netbsd openbsd solaris windows
 
 package ipv4
 
@@ -15,11 +15,11 @@ import (
 )
 
 func setsockoptIPMreq(s uintptr, name int, ifi *net.Interface, grp net.IP) error {
-	mreq := sysIPMreq{Multiaddr: [4]byte{grp[0], grp[1], grp[2], grp[3]}}
+	mreq := ipMreq{Multiaddr: [4]byte{grp[0], grp[1], grp[2], grp[3]}}
 	if err := setIPMreqInterface(&mreq, ifi); err != nil {
 		return err
 	}
-	return os.NewSyscallError("setsockopt", setsockopt(s, iana.ProtocolIP, name, unsafe.Pointer(&mreq), sysSizeofIPMreq))
+	return os.NewSyscallError("setsockopt", setsockopt(s, iana.ProtocolIP, name, unsafe.Pointer(&mreq), sizeofIPMreq))
 }
 
 func getsockoptInterface(s uintptr, name int) (*net.Interface, error) {

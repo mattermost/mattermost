@@ -1,8 +1,8 @@
-// Copyright 2012 The Go Authors.  All rights reserved.
+// Copyright 2012 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// +build darwin dragonfly freebsd linux netbsd openbsd
+// +build darwin dragonfly freebsd linux netbsd openbsd solaris
 
 package ipv4
 
@@ -83,22 +83,6 @@ func newControlMessage(opt *rawOpt) (oob []byte) {
 	}
 	if l > 0 {
 		oob = make([]byte, l)
-		b := oob
-		if opt.isset(FlagTTL) && ctlOpts[ctlTTL].name > 0 {
-			b = ctlOpts[ctlTTL].marshal(b, nil)
-		}
-		if ctlOpts[ctlPacketInfo].name > 0 {
-			if opt.isset(FlagSrc | FlagDst | FlagInterface) {
-				b = ctlOpts[ctlPacketInfo].marshal(b, nil)
-			}
-		} else {
-			if opt.isset(FlagDst) && ctlOpts[ctlDst].name > 0 {
-				b = ctlOpts[ctlDst].marshal(b, nil)
-			}
-			if opt.isset(FlagInterface) && ctlOpts[ctlInterface].name > 0 {
-				b = ctlOpts[ctlInterface].marshal(b, nil)
-			}
-		}
 	}
 	opt.RUnlock()
 	return

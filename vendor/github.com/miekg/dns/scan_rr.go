@@ -1746,6 +1746,41 @@ func setTLSA(h RR_Header, c chan lex, o, f string) (RR, *ParseError, string) {
 	return rr, nil, c1
 }
 
+func setSMIMEA(h RR_Header, c chan lex, o, f string) (RR, *ParseError, string) {
+	rr := new(SMIMEA)
+	rr.Hdr = h
+	l := <-c
+	if l.length == 0 {
+		return rr, nil, l.comment
+	}
+	i, e := strconv.Atoi(l.token)
+	if e != nil || l.err {
+		return nil, &ParseError{f, "bad SMIMEA Usage", l}, ""
+	}
+	rr.Usage = uint8(i)
+	<-c // zBlank
+	l = <-c
+	i, e = strconv.Atoi(l.token)
+	if e != nil || l.err {
+		return nil, &ParseError{f, "bad SMIMEA Selector", l}, ""
+	}
+	rr.Selector = uint8(i)
+	<-c // zBlank
+	l = <-c
+	i, e = strconv.Atoi(l.token)
+	if e != nil || l.err {
+		return nil, &ParseError{f, "bad SMIMEA MatchingType", l}, ""
+	}
+	rr.MatchingType = uint8(i)
+	// So this needs be e2 (i.e. different than e), because...??t
+	s, e2, c1 := endingToString(c, "bad SMIMEA Certificate", f)
+	if e2 != nil {
+		return nil, e2, c1
+	}
+	rr.Certificate = s
+	return rr, nil, c1
+}
+
 func setRFC3597(h RR_Header, c chan lex, o, f string) (RR, *ParseError, string) {
 	rr := new(RFC3597)
 	rr.Hdr = h
@@ -2128,6 +2163,7 @@ var typeToparserFunc = map[uint16]parserFunc{
 	TypeRP:         {setRP, false},
 	TypeRRSIG:      {setRRSIG, true},
 	TypeRT:         {setRT, false},
+	TypeSMIMEA:     {setSMIMEA, true},
 	TypeSOA:        {setSOA, false},
 	TypeSPF:        {setSPF, true},
 	TypeSRV:        {setSRV, false},

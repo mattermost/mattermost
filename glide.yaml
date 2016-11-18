@@ -65,3 +65,24 @@ import:
 - package: github.com/rsc/letsencrypt
 - package: github.com/minio/minio-go
   version: ^2.0.2
+- package: github.com/prometheus/client_golang
+  version: v0.8.0
+  subpackages:
+  - prometheus
+- package: github.com/beorn7/perks
+  subpackages:
+  - quantile
+- package: github.com/golang/protobuf
+  subpackages:
+  - proto
+- package: github.com/prometheus/client_model
+  subpackages:
+  - go
+- package: github.com/prometheus/common
+  subpackages:
+  - expfmt
+- package: github.com/matttproud/golang_protobuf_extensions
+  version: v1.0.0
+  subpackages:
+  - pbutil
+- package: github.com/prometheus/procfs

@@ -19,11 +19,6 @@ type MetricsInterface interface {
 
 	IncrementLogin()
 	IncrementLoginFail()
-
-	// TODO
-	// SessionCacheHit
-	// CacheHit in web_hub
-	// CacheHit in member in channel
 }
 
 var theMetricsInterface MetricsInterface
