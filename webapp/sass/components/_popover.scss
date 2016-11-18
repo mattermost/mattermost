@@ -56,6 +56,7 @@
 .user-popover__image {
     @include border-radius(128px);
     margin: 0 0 10px;
+    object-fit: cover;
 }
 
 .user-popover__email {
