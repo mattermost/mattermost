@@ -135,6 +135,10 @@
 
     form {
         margin-bottom: .8em;
+
+        .login-button:hover {
+            background: #2389d7;
+        }
     }
 
     .signup-team-confirm__container {
