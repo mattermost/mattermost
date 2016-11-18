@@ -2727,7 +2727,10 @@ func autocompleteUsersInTeam(c *Context, w http.ResponseWriter, r *http.Request)
 		}
 	}
 
-	uchan := Srv.Store.User().Search(teamId, term, map[string]bool{})
+	searchOptions := map[string]bool{}
+	searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
+
+	uchan := Srv.Store.User().Search(teamId, term, searchOptions)
 
 	autocomplete := &model.UserAutocompleteInTeam{}
 

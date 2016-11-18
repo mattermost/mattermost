@@ -1103,7 +1103,8 @@ func (s SqlChannelStore) SearchInTeam(teamId string, term string) StoreChannel {
 				AND Type = 'O'
 				AND DeleteAt = 0
 			    SEARCH_CLAUSE
-			ORDER BY DisplayName`
+			ORDER BY DisplayName
+			LIMIT 100`
 
 		storeChannel <- s.performSearch(searchQuery, term, map[string]interface{}{"TeamId": teamId})
 		close(storeChannel)
@@ -1136,7 +1137,8 @@ func (s SqlChannelStore) SearchMore(userId string, teamId string, term string) S
 			        AND UserId = :UserId
 			        AND DeleteAt = 0)
 			    SEARCH_CLAUSE
-			ORDER BY DisplayName`
+			ORDER BY DisplayName
+			LIMIT 100`
 
 		storeChannel <- s.performSearch(searchQuery, term, map[string]interface{}{"TeamId": teamId, "UserId": userId})
 		close(storeChannel)

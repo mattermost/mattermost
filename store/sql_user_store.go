@@ -1120,7 +1120,7 @@ func (us SqlUserStore) Search(teamId string, term string, options map[string]boo
 				SEARCH_CLAUSE
 				INACTIVE_CLAUSE
 				ORDER BY Username ASC
-			LIMIT 50`
+			LIMIT 100`
 		} else {
 			searchQuery = `
 			SELECT

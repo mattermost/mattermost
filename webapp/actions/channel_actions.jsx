@@ -225,3 +225,21 @@ export function searchMoreChannels(term, success, error) {
         }
     );
 }
+
+export function autocompleteChannels(term, success, error) {
+    Client.autocompleteChannels(
+        term,
+        (data) => {
+            if (success) {
+                success(data);
+            }
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'autocompleteChannels');
+
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
