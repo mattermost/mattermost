@@ -11,7 +11,7 @@ export default class GetAndroidApp extends React.Component {
             <div className='get-app get-android-app'>
                 <img
                     src='https://s3.amazonaws.com/uber-test/uchat/uchat_color.png'
-                    className='get-app__logo'
+                    className='centerMeImage'
                 />
                 <a
                     href={global.window.mm_config.AndroidAppDownloadLink}
@@ -24,7 +24,7 @@ export default class GetAndroidApp extends React.Component {
                 </a>
                 <a
                     href='/login'
-                    className='btn btn-secondary get-android-app__continue-with-browser'
+                    className='btn btn-primary get-android-app__continue-with-browser'
                 >
                     <FormattedMessage
                         id='get_app.continueWithBrowserLink'

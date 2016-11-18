@@ -21,7 +21,7 @@
         "EnablePostUsernameOverride": false,
         "EnablePostIconOverride": false,
         "EnableTesting": false,
-        "EnableDeveloper": true,
+        "EnableDeveloper": false,
         "EnableSecurityFixAlert": true,
         "EnableInsecureOutgoingConnections": false,
         "EnableMultifactorAuthentication": false,
@@ -52,7 +52,7 @@
         "RestrictPrivateChannelManagement": "all",
         "UserStatusAwayTimeout": 300,
         "MaxChannelsPerTeam": 2000,
-        "DefaultTeamName": "team-name"
+        "DefaultTeamName": ""
     },
     "ClientRequirements": {
         "AndroidLatestVersion": "",
@@ -69,7 +69,7 @@
         "MaxIdleConns": 20,
         "MaxOpenConns": 300,
         "Trace": false,
-        "AtRestEncryptKey": "xbjhkqdsxsim19fc4i96ndpwd788utbe"
+        "AtRestEncryptKey": ""
     },
     "LogSettings": {
         "EnableConsole": true,
@@ -93,7 +93,7 @@
         "DriverName": "local",
         "Directory": "./data/",
         "EnablePublicLink": false,
-        "PublicLinkSalt": "stwk66w6rx7pky59dgze6ehog3pfmnz5",
+        "PublicLinkSalt": "",
         "ThumbnailWidth": 120,
         "ThumbnailHeight": 100,
         "PreviewWidth": 1024,
@@ -122,9 +122,9 @@
         "SMTPServer": "",
         "SMTPPort": "",
         "ConnectionSecurity": "",
-        "InviteSalt": "o7e61zzoq7kujzazxfbnucwr5satj1ts",
-        "PasswordResetSalt": "sz4xjxa5ysadbc8se4oimkcjmctq51zn",
-        "SendPushNotifications": true,
+        "InviteSalt": "",
+        "PasswordResetSalt": "",
+        "SendPushNotifications": false,
         "PushNotificationServer": "",
         "PushNotificationContents": "generic",
         "EnableEmailBatching": false,

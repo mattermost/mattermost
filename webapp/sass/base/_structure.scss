@@ -59,3 +59,9 @@ img {
         @include border-radius(100%);
     }
 }
+
+.centerMeImage {
+  margin: 135px auto 90px;
+  width: 160px;
+  display: block;
+}

@@ -13,7 +13,7 @@ export default class GetIosApp extends React.Component {
             <div className='get-app get-ios-app'>
                 <img
                     src='https://s3.amazonaws.com/uber-test/uchat/uchat_color.png'
-                    className='get-app__logo'
+                    className='centerMeImage'
                 />
                 <a
                     href={IosAppUrlScheme ? `${IosAppUrlScheme}://` : IosAppDownloadLink}
@@ -26,7 +26,7 @@ export default class GetIosApp extends React.Component {
                 </a>
                 <a
                     href='/login'
-                    className='btn btn-secondary get-ios-app__continue-with-browser'
+                    className='btn btn-primary get-ios-app__continue-with-browser'
                 >
                     <FormattedMessage
                         id='get_app.continueWithBrowserLink'
