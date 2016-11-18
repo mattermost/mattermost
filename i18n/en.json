@@ -1825,7 +1825,7 @@
   },
   {
     "id": "api.templates.email_change_body.info",
-    "translation": "Your email address for {{.TeamDisplayName}} has been changed to {{.NewEmail}}.<br>If you did not make this change, please contact the system administrator."
+    "translation": "Your email address has been changed to {{.NewEmail}}.<br>If you did not make this change, please contact the system administrator."
   },
   {
     "id": "api.templates.email_change_body.title",
@@ -1833,7 +1833,7 @@
   },
   {
     "id": "api.templates.email_change_subject",
-    "translation": "Your email address has changed for {{.TeamDisplayName}}"
+    "translation": "Your email address has changed"
   },
   {
     "id": "api.templates.email_change_verify_body.button",
@@ -1841,7 +1841,7 @@
   },
   {
     "id": "api.templates.email_change_verify_body.info",
-    "translation": "To finish updating your email address for {{.TeamDisplayName}}, please click the link below to confirm this is the right address."
+    "translation": "To finish updating your email address, please click the link below to confirm this is the right address."
   },
   {
     "id": "api.templates.email_change_verify_body.title",
@@ -1849,11 +1849,11 @@
   },
   {
     "id": "api.templates.email_change_verify_subject",
-    "translation": "Verify new email address for {{.TeamDisplayName}}"
+    "translation": "Verify new email address"
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "To change your notification preferences, log in to your team site and go to Account Settings > Notifications."
+    "translation": "To change your notification preferences, log in and go to Account Settings > Notifications."
   },
   {
     "id": "api.templates.email_info",
@@ -1893,11 +1893,11 @@
   },
   {
     "id": "api.templates.invite_body.extra_info",
-    "translation": "uChat lets you share messages and files from your PC or phone, with instant search and archiving. After you’ve joined <strong>{{.TeamDisplayName}}</strong>, you can sign-in to your new team and access these features anytime from the web address:<br/><br/><a href='{{.TeamURL}}'>{{.TeamURL}}</a>"
+    "translation": "uChat lets you share messages and files from your PC or phone, with instant search and archiving. After you’ve joined, you can sign-in to your new team and access these features anytime from the web address:<br/><br/><a href='{{.TeamURL}}'>{{.TeamURL}}</a>"
   },
   {
     "id": "api.templates.invite_body.info",
-    "translation": "The team {{.SenderStatus}} <strong>{{.SenderName}}</strong>, has invited you to join <strong>{{.TeamDisplayName}}</strong>."
+    "translation": "The team {{.SenderStatus}} <strong>{{.SenderName}}</strong>, has invited you to join."
   },
   {
     "id": "api.templates.invite_body.title",
@@ -1905,11 +1905,11 @@
   },
   {
     "id": "api.templates.invite_subject",
-    "translation": "{{ .SenderName }} invited you to join {{ .TeamDisplayName }} Team on {{.SiteName}}"
+    "translation": "{{ .SenderName }} invited you to join {{.SiteName}}"
   },
   {
     "id": "api.templates.password_change_body.info",
-    "translation": "Your password has been updated for {{.TeamDisplayName}} on {{ .TeamURL }} by {{.Method}}.<br>If this change wasn't initiated by you, please contact your system administrator."
+    "translation": "Your password has been updated for by {{.Method}}.<br>If this change wasn't initiated by you, please contact your system administrator."
   },
   {
     "id": "api.templates.password_change_body.title",
@@ -1917,7 +1917,7 @@
   },
   {
     "id": "api.templates.password_change_subject",
-    "translation": "Your password has been updated for {{.TeamDisplayName}} on {{ .SiteName }}"
+    "translation": "Your password has been updated on {{ .SiteName }}"
   },
   {
     "id": "api.templates.post_body.button",
@@ -1929,11 +1929,11 @@
   },
   {
     "id": "api.templates.post_subject_in_channel",
-    "translation": "{{.SubjectText}} in {{.TeamDisplayName}} ({{.ChannelName}}) on {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "{{.SubjectText}} {{.ChannelName}} on {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "api.templates.post_subject_in_direct_message",
-    "translation": "{{.SubjectText}} in {{.TeamDisplayName}} from {{.SenderDisplayName}} on {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "{{.SubjectText}} from {{.SenderDisplayName}} on {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -1993,7 +1993,7 @@
   },
   {
     "id": "api.templates.username_change_body.info",
-    "translation": "Your username for {{.TeamDisplayName}} has been changed to {{.NewUsername}}.<br>If you did not make this change, please contact the system administrator."
+    "translation": "Your username has been changed to {{.NewUsername}}.<br>If you did not make this change, please contact the system administrator."
   },
   {
     "id": "api.templates.username_change_body.title",
@@ -2001,7 +2001,7 @@
   },
   {
     "id": "api.templates.username_change_subject",
-    "translation": "Your username has changed for {{.TeamDisplayName}}"
+    "translation": "Your username has changed"
   },
   {
     "id": "api.templates.verify_body.button",
