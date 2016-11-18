@@ -2,6 +2,8 @@
 // See License.txt for license information.
 
 import TeamButton from './components/team_button.jsx';
+
+import BrowserStore from 'stores/browser_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
 import * as AsyncClient from 'utils/async_client.jsx';
@@ -114,11 +116,18 @@ export default class TeamSidebar extends React.Component {
 
         const teams = myTeams.
         sort((a, b) => a.display_name.localeCompare(b.display_name)).
-        map((team, i) => {
+        map((team) => {
+            let channel = 'town-square';
+            const prevChannel = BrowserStore.getGlobalItem(team.id);
+
+            if (prevChannel) {
+                channel = prevChannel;
+            }
+
             return (
                 <TeamButton
-                    key={'switch_team_' + team.name + i.toString()}
-                    url={'/' + team.name + '/channels/town-square'}
+                    key={'switch_team_' + team.name}
+                    url={`/${team.name}/channels/${channel}`}
                     tip={team.display_name}
                     active={team.id === this.state.currentTeamId}
                     contents={team.display_name.substr(0, 1).toUpperCase()}
@@ -136,7 +145,7 @@ export default class TeamSidebar extends React.Component {
                     tip={
                         <FormattedMessage
                             id='team_sidebar.join'
-                            defaultMessage='Other teams you can join'
+                            defaultMessage='Other teams you can join.'
                         />
                     }
                     contents={<i className='fa fa-plus'/>}
@@ -151,7 +160,7 @@ export default class TeamSidebar extends React.Component {
                     tip={
                         <FormattedMessage
                             id='team_sidebar.no_more_teams'
-                            defaultMessage='No other teams to join. Create a new team from Main Menu or contact your administrator'
+                            defaultMessage='No other teams to join. Create a new team from Main Menu or contact your administrator.'
                         />
                     }
                     contents={<i className='fa fa-plus'/>}

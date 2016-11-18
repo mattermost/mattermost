@@ -122,7 +122,7 @@ export default class SignupController extends React.Component {
             }
 
             if (userLoggedIn) {
-                browserHistory.push('/select_team');
+                GlobalActions.redirectUserToDefaultTeam();
             }
         }
     }

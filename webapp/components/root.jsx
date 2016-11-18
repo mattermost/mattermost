@@ -50,7 +50,7 @@ export default class Root extends React.Component {
             if (UserStore.getNoAccounts()) {
                 browserHistory.push('/signup_user_complete');
             } else if (UserStore.getCurrentUser()) {
-                browserHistory.push('/select_team');
+                GlobalActions.redirectUserToDefaultTeam();
             } else {
                 browserHistory.push('/login');
             }
