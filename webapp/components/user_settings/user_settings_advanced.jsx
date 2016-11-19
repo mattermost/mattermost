@@ -8,7 +8,6 @@ import SettingItemMax from '../setting_item_max.jsx';
 import Constants from 'utils/constants.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import UserStore from 'stores/user_store.jsx';
-import * as Utils from 'utils/utils.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
@@ -24,6 +23,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
         this.updateSection = this.updateSection.bind(this);
         this.updateSetting = this.updateSetting.bind(this);
         this.toggleFeature = this.toggleFeature.bind(this);
+
         // this.saveEnabledFeatures = this.saveEnabledFeatures.bind(this);
         this.renderFormattingSection = this.renderFormattingSection.bind(this);
         this.renderJoinLeaveSection = this.renderJoinLeaveSection.bind(this);
@@ -442,9 +442,11 @@ export default class AdvancedSettingsDisplay extends React.Component {
         if (displayJoinLeaveSection) {
             displayJoinLeaveSectionDivider = <div className='divider-light'/>;
         }
-        /*
+
         let previewFeaturesSection;
         let previewFeaturesSectionDivider;
+
+        /*
         if (this.state.preReleaseFeaturesKeys.length > 0) {
             previewFeaturesSectionDivider = (
                 <div className='divider-light'/>
