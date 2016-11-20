@@ -12,6 +12,8 @@ import {getTeamStats} from 'utils/async_client.jsx';
 
 import Constants from 'utils/constants.jsx';
 
+import * as UserAgent from 'utils/user_agent.jsx';
+
 import React from 'react';
 
 const USERS_PER_PAGE = 50;
@@ -132,6 +134,7 @@ export default class MemberListTeam extends React.Component {
                 search={this.search}
                 actions={teamMembersDropdown}
                 actionUserProps={actionUserProps}
+                focusOnMount={!UserAgent.isMobile()}
             />
         );
     }
