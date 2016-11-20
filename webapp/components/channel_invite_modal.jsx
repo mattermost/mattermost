@@ -12,6 +12,7 @@ import TeamStore from 'stores/team_store.jsx';
 import {searchUsers} from 'actions/user_actions.jsx';
 
 import * as AsyncClient from 'utils/async_client.jsx';
+import * as UserAgent from 'utils/user_agent.jsx';
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
@@ -140,6 +141,7 @@ export default class ChannelInviteModal extends React.Component {
                     nextPage={this.nextPage}
                     search={this.search}
                     actions={[ChannelInviteButton]}
+                    focusOnMount={!UserAgent.isMobile()}
                     actionProps={{
                         channel: this.props.channel,
                         onInviteError: this.handleInviteError
