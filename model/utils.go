@@ -304,8 +304,7 @@ func Etag(parts ...interface{}) string {
 	return etag
 }
 
-var cjkRanges = "\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf\uac00-\ud7a3"
-var validHashtag = regexp.MustCompile(`^(#[A-Za-zäöüÄÖÜß` + cjkRanges + `]+[A-Za-z0-9äöüÄÖÜß.\-_` + cjkRanges + `]*[A-Za-z0-9äöüÄÖÜß` + cjkRanges + `])$`)
+var validHashtag = regexp.MustCompile(`^(#\\pL[\\pL\\d\\-_.]*[\\pL\\d])$`)
 var puncStart = regexp.MustCompile(`^[^\pL\d\s#]+`)
 var hashtagStart = regexp.MustCompile(`^#{2,}`)
 var puncEnd = regexp.MustCompile(`[^\pL\d\s]+$`)
