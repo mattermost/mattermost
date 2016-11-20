@@ -121,7 +121,6 @@ export default class SidebarHeaderDropdown extends React.Component {
         e.preventDefault();
 
         this.setState({
-            // showDropdown: false,
             showTeamMembersModal: true
         });
     }
