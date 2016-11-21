@@ -90,7 +90,7 @@ export default class RhsRootPost extends React.Component {
         var isOwner = this.props.currentUser.id === post.user_id;
         var isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
         const isSystemMessage = post.type && post.type.startsWith(Constants.SYSTEM_MESSAGE_PREFIX);
-        var timestamp = user.update_at;
+        var timestamp = user ? user.update_at : 0;
         var channel = ChannelStore.get(post.channel_id);
         const flagIcon = Constants.FLAG_ICON_SVG;
 
