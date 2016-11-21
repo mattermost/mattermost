@@ -2342,24 +2342,9 @@ func TestAutocompleteUsers(t *testing.T) {
 
 func TestGetByUsername(t *testing.T) {
 	th := Setup().InitBasic()
-	Client := th.CreateClient()
+	Client := th.BasicClient
 
-	user := model.User{Email: strings.ToLower(model.NewId()) + "yomamma@simulator.amazonses.com", Nickname: "Jabba The Hutt", Password: "passwd1"}
-	ruser, _ := Client.CreateUser(&user, "")
-	LinkUserToTeam(ruser.Data.(*model.User), th.BasicTeam)
-	store.Must(Srv.Store.User().VerifyEmail(ruser.Data.(*model.User).Id))
-
-	user2 := model.User{Email: strings.ToLower(model.NewId()) + "second_example", Nickname: "Anakin Skywalker", Password: "passwd1", FirstName: "Anakin", LastName: "Skywalker"}
-	ruser2, _ := Client.CreateUser(&user2, "")
-	LinkUserToTeam(ruser2.Data.(*model.User), th.BasicTeam)
-	store.Must(Srv.Store.User().VerifyEmail(ruser2.Data.(*model.User).Id))
-
-	Client.Login(user.Email, user.Password)
-
-	rUsername := ruser.Data.(*model.User).Username
-
-	// First user and the same which logins
-	if result, err := Client.GetByUsername(rUsername, ""); err != nil {
+	if result, err := Client.GetByUsername(th.BasicUser.Username, ""); err != nil {
 		t.Fatal("Failed to get user")
 	} else {
 		if result.Data.(*model.User).Password != "" {
@@ -2377,7 +2362,7 @@ func TestGetByUsername(t *testing.T) {
 	utils.Cfg.PrivacySettings.ShowEmailAddress = false
 	utils.Cfg.PrivacySettings.ShowFullName = false
 
-	if result, err := Client.GetByUsername(ruser2.Data.(*model.User).Username, ""); err != nil {
+	if result, err := Client.GetByUsername(th.BasicUser2.Username, ""); err != nil {
 		t.Fatal(err)
 	} else {
 		u := result.Data.(*model.User)
@@ -2395,24 +2380,6 @@ func TestGetByUsername(t *testing.T) {
 		}
 		if u.LastName != "" {
 			t.Fatal("full name should be sanitized")
-		}
-	}
-
-	utils.Cfg.PrivacySettings.ShowEmailAddress = true
-	utils.Cfg.PrivacySettings.ShowFullName = true
-
-	if result, err := Client.GetByUsername(ruser2.Data.(*model.User).Username, ""); err != nil {
-		t.Fatal(err)
-	} else {
-		u := result.Data.(*model.User)
-		if u.Email == "" {
-			t.Fatal("email should not be sanitized")
-		}
-		if u.FirstName == "" {
-			t.Fatal("full name should not be sanitized")
-		}
-		if u.LastName == "" {
-			t.Fatal("full name should not be sanitized")
 		}
 	}
 
