@@ -1508,7 +1508,7 @@ export default class Client {
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
-            send(post).
+            send({...post, create_at: 0}).
             end(this.handleResponse.bind(this, 'createPost', success, error));
 
         this.track('api', 'api_posts_create', post.channel_id, 'length', post.message.length);
