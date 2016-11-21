@@ -59,8 +59,8 @@ class ChannelStoreClass extends EventEmitter {
         this.removeListener(STATS_EVENT, callback);
     }
 
-    emitLastViewed(lastViewed, ownNewMessage) {
-        this.emit(LAST_VIEVED_EVENT, lastViewed, ownNewMessage);
+    emitLastViewed() {
+        this.emit(LAST_VIEVED_EVENT);
     }
 
     addLastViewedListener(callback) {
@@ -373,6 +373,7 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         }
         ChannelStore.setUnreadCountsByMembers(action.members);
         ChannelStore.emitChange();
+        ChannelStore.emitLastViewed();
         break;
     case ActionTypes.RECEIVED_CHANNEL_MEMBER:
         ChannelStore.storeMyChannelMember(action.member);
@@ -382,6 +383,7 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         }
         ChannelStore.setUnreadCountsByCurrentMembers();
         ChannelStore.emitChange();
+        ChannelStore.emitLastViewed();
         break;
     case ActionTypes.RECEIVED_MORE_CHANNELS:
         ChannelStore.storeMoreChannels(action.channels);
