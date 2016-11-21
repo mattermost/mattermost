@@ -2347,75 +2347,76 @@ func TestGetUsername(t *testing.T) {
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
 
-	user := model.User{Email: strings.ToLower(model.NewId()) + "yomamma@example.com", Nickname: "Jabba The Hutt", Password: "passwd1"}
-  ruser, _ := Client.CreateUser(&user, "")
-  LinkUserToTeam(ruser.Data.(*model.User), rteam.Data.(*model.Team))
-  store.Must(Srv.Store.User().VerifyEmail(ruser.Data.(*model.User).Id))
+	user := model.User{Email: strings.ToLower(model.NewId()) + "yomamma@simulator.amazonses.com", Nickname: "Jabba The Hutt", Password: "passwd1"}
+	ruser, _ := Client.CreateUser(&user, "")
+	LinkUserToTeam(ruser.Data.(*model.User), rteam.Data.(*model.Team))
+	store.Must(Srv.Store.User().VerifyEmail(ruser.Data.(*model.User).Id))
 
-  user2 := model.User{Email: strings.ToLower(model.NewId()) + "second_example", Nickname: "Anakin Skywalker", Password: "passwd1", FirstName: "Anakin", LastName: "Skywalker"}
-  ruser2, _ := Client.CreateUser(&user2, "")
-  LinkUserToTeam(ruser2.Data.(*model.User), rteam.Data.(*model.Team))
-  store.Must(Srv.Store.User().VerifyEmail(ruser2.Data.(*model.User).Id))
+	user2 := model.User{Email: strings.ToLower(model.NewId()) + "second_example", Nickname: "Anakin Skywalker", Password: "passwd1", FirstName: "Anakin", LastName: "Skywalker"}
+	ruser2, _ := Client.CreateUser(&user2, "")
+	LinkUserToTeam(ruser2.Data.(*model.User), rteam.Data.(*model.Team))
+	store.Must(Srv.Store.User().VerifyEmail(ruser2.Data.(*model.User).Id))
 
-  Client.Login(user.Email, user.Password)
+	Client.Login(user.Email, user.Password)
 
-  rUsername := ruser.Data.(*model.User).Username
+	rUsername := ruser.Data.(*model.User).Username
 
-  // First user and the same which logins
-  if result, err := Client.GetUsername(rUsername, ""); err != nil {
-    t.Fatal("Failed to get user")
-  } else {
-    if result.Data.(*model.User).Password != "" {
-      t.Fatal("User shouldn't have any password data once set")
-    }
-  }
+	// First user and the same which logins
+	if result, err := Client.GetUsername(rUsername, ""); err != nil {
+		t.Fatal("Failed to get user")
+	} else {
+		if result.Data.(*model.User).Password != "" {
+			t.Fatal("User shouldn't have any password data once set")
+		}
+	}
 
-  emailPrivacy := utils.Cfg.PrivacySettings.ShowEmailAddress
-  namePrivacy := utils.Cfg.PrivacySettings.ShowFullName
-  defer func() {
-    utils.Cfg.PrivacySettings.ShowEmailAddress = emailPrivacy
-    utils.Cfg.PrivacySettings.ShowFullName = namePrivacy
-  }()
-  utils.Cfg.PrivacySettings.ShowEmailAddress = false
-  utils.Cfg.PrivacySettings.ShowFullName = false
+	emailPrivacy := utils.Cfg.PrivacySettings.ShowEmailAddress
+	namePrivacy := utils.Cfg.PrivacySettings.ShowFullName
+	defer func() {
+		utils.Cfg.PrivacySettings.ShowEmailAddress = emailPrivacy
+		utils.Cfg.PrivacySettings.ShowFullName = namePrivacy
+	}()
 
-  if result, err := Client.GetUsername(ruser2.Data.(*model.User).Username, ""); err != nil {
-    t.Fatal(err)
-  } else {
-    u := result.Data.(*model.User)
-    if u.Password != "" {
-      t.Fatal("password must be empty")
-    }
-    if *u.AuthData != "" {
-      t.Fatal("auth data must be empty")
-    }
-    if u.Email != "" {
-      t.Fatal("email should be sanitized")
-    }
-    if u.FirstName != "" {
-      t.Fatal("full name should be sanitized")
-    }
-    if u.LastName != "" {
-      t.Fatal("full name should be sanitized")
-    }
-  }
+	utils.Cfg.PrivacySettings.ShowEmailAddress = false
+	utils.Cfg.PrivacySettings.ShowFullName = false
 
-  utils.Cfg.PrivacySettings.ShowEmailAddress = true
-  utils.Cfg.PrivacySettings.ShowFullName = true
+	if result, err := Client.GetUsername(ruser2.Data.(*model.User).Username, ""); err != nil {
+		t.Fatal(err)
+	} else {
+		u := result.Data.(*model.User)
+		if u.Password != "" {
+			t.Fatal("password must be empty")
+		}
+		if *u.AuthData != "" {
+			t.Fatal("auth data must be empty")
+		}
+		if u.Email != "" {
+			t.Fatal("email should be sanitized")
+		}
+		if u.FirstName != "" {
+			t.Fatal("full name should be sanitized")
+		}
+		if u.LastName != "" {
+			t.Fatal("full name should be sanitized")
+		}
+	}
 
-  if result, err := Client.GetUsername(ruser2.Data.(*model.User).Username, ""); err != nil {
-    t.Fatal(err)
-  } else {
-    u := result.Data.(*model.User)
-    if u.Email == "" {
-      t.Fatal("email should not be sanitized")
-    }
-    if u.FirstName == "" {
-      t.Fatal("full name should not be sanitized")
-    }
-    if u.LastName == "" {
-      t.Fatal("full name should not be sanitized")
-    }
-  }
+	utils.Cfg.PrivacySettings.ShowEmailAddress = true
+	utils.Cfg.PrivacySettings.ShowFullName = true
+
+	if result, err := Client.GetUsername(ruser2.Data.(*model.User).Username, ""); err != nil {
+		t.Fatal(err)
+	} else {
+		u := result.Data.(*model.User)
+		if u.Email == "" {
+			t.Fatal("email should not be sanitized")
+		}
+		if u.FirstName == "" {
+			t.Fatal("full name should not be sanitized")
+		}
+		if u.LastName == "" {
+			t.Fatal("full name should not be sanitized")
+		}
+	}
 
 }
