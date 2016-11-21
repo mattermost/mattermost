@@ -99,11 +99,6 @@ var config = {
                 }
             }
         }),
-        new webpack.DefinePlugin({
-            'process.env': {
-                NODE_ENV: JSON.stringify('production')
-            }
-        }),
         new webpack.optimize.CommonsChunkPlugin({
             minChunks: 2,
             children: true
@@ -143,11 +138,19 @@ if (!DEV) {
             compress: {
                 warnings: false
             },
-            comments: false
+            comments: false,
+            sourceMap: true
         })
     );
     config.plugins.push(
         new webpack.optimize.OccurrenceOrderPlugin(true)
+    );
+    config.plugins.push(
+        new webpack.DefinePlugin({
+            'process.env': {
+                NODE_ENV: JSON.stringify('production')
+            }
+        })
     );
 }
 
