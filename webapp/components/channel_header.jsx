@@ -69,7 +69,7 @@ export default class ChannelHeader extends React.Component {
         const users = UserStore.getProfileListInChannel(this.props.channelId);
 
         let otherUserId = null;
-        if (channel.type === 'D') {
+        if (channel && channel.type === 'D') {
             otherUserId = Utils.getUserIdFromChannelName(channel);
         }
 
