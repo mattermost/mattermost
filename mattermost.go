@@ -1499,6 +1499,11 @@ func getMockContext() *api.Context {
 	c.IpAddress = "cmd_line"
 	c.T = utils.TfuncWithFallback(model.DEFAULT_LOCALE)
 	c.Locale = model.DEFAULT_LOCALE
+
+	if *utils.Cfg.ServiceSettings.SiteURL != "" {
+		c.SetSiteURL(*utils.Cfg.ServiceSettings.SiteURL)
+	}
+
 	return c
 }
 
