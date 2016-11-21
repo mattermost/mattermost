@@ -21,6 +21,7 @@ import {browserHistory, Link} from 'react-router/es6';
 
 import React from 'react';
 import logoImage from 'images/logo.png';
+import loadingGif from 'images/spinner.gif';
 
 export default class LoginController extends React.Component {
     static get propTypes() {
@@ -47,7 +48,8 @@ export default class LoginController extends React.Component {
             samlEnabled: global.window.mm_license.IsLicensed === 'true' && global.window.mm_config.EnableSaml === 'true',
             loginId: '', // the browser will set a default for this
             password: '',
-            showMfa: false
+            showMfa: false,
+            isLoading: false
         };
     }
 
@@ -140,7 +142,10 @@ export default class LoginController extends React.Component {
     }
 
     submit(loginId, password, token) {
-        this.setState({serverError: null});
+        this.setState({
+            serverError: null,
+            isLoading: true
+        });
 
         Client.webLogin(
             loginId,
@@ -176,6 +181,7 @@ export default class LoginController extends React.Component {
                     err.id === 'ent.ldap.do_login.user_not_registered.app_error') {
                     this.setState({
                         showMfa: false,
+                        isLoading: false,
                         serverError: (
                             <FormattedMessage
                                 id='login.userNotFound'
@@ -186,6 +192,7 @@ export default class LoginController extends React.Component {
                 } else if (err.id === 'api.user.check_user_password.invalid.app_error' || err.id === 'ent.ldap.do_login.invalid_password.app_error') {
                     this.setState({
                         showMfa: false,
+                        isLoading: false,
                         serverError: (
                             <FormattedMessage
                                 id='login.invalidPassword'
@@ -194,7 +201,7 @@ export default class LoginController extends React.Component {
                         )
                     });
                 } else {
-                    this.setState({showMfa: false, serverError: err.message});
+                    this.setState({showMfa: false, isLoading: false, serverError: err.message});
                 }
             }
         );
@@ -356,6 +363,22 @@ export default class LoginController extends React.Component {
             if (this.state.serverError) {
                 errorClass = ' has-error';
             }
+            let loginButton;
+            if (this.state.isLoading) {
+                loginButton = (
+                    <img
+                        className='loader-image'
+                        src={loadingGif}
+                    />
+                );
+            } else {
+                loginButton = (
+                    <FormattedMessage
+                        id='login.signIn'
+                        defaultMessage='Sign in'
+                    />
+                );
+            }
 
             loginControls.push(
                 <form
@@ -394,12 +417,10 @@ export default class LoginController extends React.Component {
                         <div className='form-group pull-right'>
                             <button
                                 type='submit'
-                                className='btn btn-primary'
+                                disabled={this.state.isLoading}
+                                className='btn btn-primary login-button'
                             >
-                                <FormattedMessage
-                                    id='login.signIn'
-                                    defaultMessage='Sign in'
-                                />
+                                {loginButton}
                             </button>
                         </div>
                     </div>

@@ -572,6 +572,7 @@
         flex-shrink: 0;
         margin-top: 2px;
         max-width: none;
+        object-fit: cover;
 
         .status-wrapper {
             &:after {
