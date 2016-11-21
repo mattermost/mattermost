@@ -18,6 +18,7 @@ import OAuthSettings from 'components/admin_console/oauth_settings.jsx';
 import LdapSettings from 'components/admin_console/ldap_settings.jsx';
 import SamlSettings from 'components/admin_console/saml_settings.jsx';
 import ClusterSettings from 'components/admin_console/cluster_settings.jsx';
+import MetricsSettings from 'components/admin_console/metrics_settings.jsx';
 import SignupSettings from 'components/admin_console/signup_settings.jsx';
 import PasswordSettings from 'components/admin_console/password_settings.jsx';
 import PublicLinkSettings from 'components/admin_console/public_link_settings.jsx';
@@ -200,6 +201,10 @@ export default (
             <Route
                 path='cluster'
                 component={ClusterSettings}
+            />
+            <Route
+                path='metrics'
+                component={MetricsSettings}
             />
         </Route>
         <Route path='team'>
