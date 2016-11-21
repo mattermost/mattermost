@@ -2339,3 +2339,42 @@ func TestAutocompleteUsers(t *testing.T) {
 		t.Fatal("should have errored - bad team id")
 	}
 }
+
+func TestGetByUsername(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+
+	if result, err := Client.GetByUsername(th.BasicUser.Username, ""); err != nil {
+		t.Fatal("Failed to get user")
+	} else {
+		if result.Data.(*model.User).Password != "" {
+			t.Fatal("User shouldn't have any password data once set")
+		}
+	}
+
+	emailPrivacy := utils.Cfg.PrivacySettings.ShowEmailAddress
+	namePrivacy := utils.Cfg.PrivacySettings.ShowFullName
+	defer func() {
+		utils.Cfg.PrivacySettings.ShowEmailAddress = emailPrivacy
+		utils.Cfg.PrivacySettings.ShowFullName = namePrivacy
+	}()
+
+	utils.Cfg.PrivacySettings.ShowEmailAddress = false
+	utils.Cfg.PrivacySettings.ShowFullName = false
+
+	if result, err := Client.GetByUsername(th.BasicUser2.Username, ""); err != nil {
+		t.Fatal(err)
+	} else {
+		u := result.Data.(*model.User)
+		if u.Password != "" {
+			t.Fatal("password must be empty")
+		}
+		if *u.AuthData != "" {
+			t.Fatal("auth data must be empty")
+		}
+		if u.Email != "" {
+			t.Fatal("email should be sanitized")
+		}
+	}
+
+}

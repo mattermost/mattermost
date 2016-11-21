@@ -921,6 +921,15 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getUser', success, error));
     }
 
+    getByUsername(userName, success, error) {
+        request.
+            get(`${this.getUsersRoute()}/name/${userName}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getByUsername', success, error));
+    }
+
     login(loginId, password, mfaToken, success, error) {
         this.doLogin({login_id: loginId, password, token: mfaToken}, success, error);
 

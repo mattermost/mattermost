@@ -36,6 +36,21 @@ describe('Client.User', function() {
         });
     });
 
+    it('getByUsername', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().getByUsername(
+                TestHelper.basicUser().username,
+                function(data) {
+                    assert.equal(data.username, TestHelper.basicUser().username);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
     it('getInitialLoad', function(done) {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().getInitialLoad(
