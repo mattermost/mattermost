@@ -2375,12 +2375,6 @@ func TestGetByUsername(t *testing.T) {
 		if u.Email != "" {
 			t.Fatal("email should be sanitized")
 		}
-		if u.FirstName != "" {
-			t.Fatal("full name should be sanitized")
-		}
-		if u.LastName != "" {
-			t.Fatal("full name should be sanitized")
-		}
 	}
 
 }
