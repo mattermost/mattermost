@@ -58,6 +58,12 @@ const (
 	MaxImageSize = 6048 * 4032 // 24 megapixels, roughly 36MB as a raw image
 )
 
+type PreparedImage struct {
+	Img    image.Image
+	Width  int
+	Height int
+}
+
 func InitFile() {
 	l4g.Debug(utils.T("api.file.init.debug"))
 
@@ -195,47 +201,56 @@ func doUploadFile(teamId string, channelId string, userId string, rawFilename st
 func handleImages(previewPathList []string, thumbnailPathList []string, fileData [][]byte) {
 	for i, data := range fileData {
 		go func(i int, data []byte) {
-			// Decode image bytes into Image object
-			img, imgType, err := image.Decode(bytes.NewReader(fileData[i]))
-			if err != nil {
-				l4g.Error(utils.T("api.file.handle_images_forget.decode.error"), err)
-				return
+			preparedImage := prepareImage(fileData[i])
+			if preparedImage != nil {
+				go generateThumbnailImage(preparedImage.Img, thumbnailPathList[i], preparedImage.Width, preparedImage.Height)
+				go generatePreviewImage(preparedImage.Img, previewPathList[i], preparedImage.Width)
 			}
-
-			width := img.Bounds().Dx()
-			height := img.Bounds().Dy()
-
-			// Fill in the background of a potentially-transparent png file as white
-			if imgType == "png" {
-				dst := image.NewRGBA(img.Bounds())
-				draw.Draw(dst, dst.Bounds(), image.NewUniform(color.White), image.Point{}, draw.Src)
-				draw.Draw(dst, dst.Bounds(), img, img.Bounds().Min, draw.Over)
-				img = dst
-			}
-
-			// Flip the image to be upright
-			orientation, _ := getImageOrientation(fileData[i])
-
-			switch orientation {
-			case UprightMirrored:
-				img = imaging.FlipH(img)
-			case UpsideDown:
-				img = imaging.Rotate180(img)
-			case UpsideDownMirrored:
-				img = imaging.FlipV(img)
-			case RotatedCWMirrored:
-				img = imaging.Transpose(img)
-			case RotatedCCW:
-				img = imaging.Rotate270(img)
-			case RotatedCCWMirrored:
-				img = imaging.Transverse(img)
-			case RotatedCW:
-				img = imaging.Rotate90(img)
-			}
-
-			go generateThumbnailImage(img, thumbnailPathList[i], width, height)
-			go generatePreviewImage(img, previewPathList[i], width)
 		}(i, data)
+	}
+}
+
+func prepareImage(fileData []byte) *PreparedImage {
+	// Decode image bytes into Image object
+	img, imgType, err := image.Decode(bytes.NewReader(fileData))
+	if err != nil {
+		l4g.Error(utils.T("api.file.handle_images_forget.decode.error"), err)
+		return nil
+	}
+
+	width := img.Bounds().Dx()
+	height := img.Bounds().Dy()
+
+	// Fill in the background of a potentially-transparent png file as white
+	if imgType == "png" {
+		dst := image.NewRGBA(img.Bounds())
+		draw.Draw(dst, dst.Bounds(), image.NewUniform(color.White), image.Point{}, draw.Src)
+		draw.Draw(dst, dst.Bounds(), img, img.Bounds().Min, draw.Over)
+		img = dst
+	}
+
+	// Flip the image to be upright
+	orientation, _ := getImageOrientation(fileData)
+
+	switch orientation {
+	case UprightMirrored:
+		img = imaging.FlipH(img)
+	case UpsideDown:
+		img = imaging.Rotate180(img)
+	case UpsideDownMirrored:
+		img = imaging.FlipV(img)
+	case RotatedCWMirrored:
+		img = imaging.Transpose(img)
+	case RotatedCCW:
+		img = imaging.Rotate270(img)
+	case RotatedCCWMirrored:
+		img = imaging.Transverse(img)
+	case RotatedCW:
+		img = imaging.Rotate90(img)
+	}
+
+	return &PreparedImage{
+		img, width, height,
 	}
 }
 
