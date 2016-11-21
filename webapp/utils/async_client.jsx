@@ -298,15 +298,17 @@ export function getChannelMember(channelId, userId) {
 }
 
 export function getUser(userId) {
-    if (isCallInProgress(`getUser${userId}`)) {
+    const callName = `getUser${userId}`;
+
+    if (isCallInProgress(callName)) {
         return;
     }
 
-    callTracker[`getUser${userId}`] = utils.getTimestamp();
+    callTracker[callName] = utils.getTimestamp();
     Client.getUser(
         userId,
         (data) => {
-            callTracker[`getUser${userId}`] = 0;
+            callTracker[callName] = 0;
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_PROFILE,
@@ -314,23 +316,25 @@ export function getUser(userId) {
             });
         },
         (err) => {
-            callTracker[`getUser${userId}`] = 0;
+            callTracker[callName] = 0;
             dispatchError(err, 'getUser');
         }
     );
 }
 
 export function getProfiles(offset = UserStore.getPagingOffset(), limit = Constants.PROFILE_CHUNK_SIZE) {
-    if (isCallInProgress(`getProfiles${offset}${limit}`)) {
+    const callName = `getProfiles${offset}${limit}`;
+
+    if (isCallInProgress(callName)) {
         return;
     }
 
-    callTracker[`getProfiles${offset}${limit}`] = utils.getTimestamp();
+    callTracker[callName] = utils.getTimestamp();
     Client.getProfiles(
         offset,
         limit,
         (data) => {
-            callTracker[`getProfiles${offset}${limit}`] = 0;
+            callTracker[callName] = 0;
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_PROFILES,
@@ -338,24 +342,26 @@ export function getProfiles(offset = UserStore.getPagingOffset(), limit = Consta
             });
         },
         (err) => {
-            callTracker[`getProfiles${offset}${limit}`] = 0;
+            callTracker[callName] = 0;
             dispatchError(err, 'getProfiles');
         }
     );
 }
 
 export function getProfilesInTeam(teamId = TeamStore.getCurrentId(), offset = UserStore.getInTeamPagingOffset(), limit = Constants.PROFILE_CHUNK_SIZE) {
-    if (isCallInProgress(`getProfilesInTeam${offset}${limit}`)) {
+    const callName = `getProfilesInTeam${teamId}${offset}${limit}`;
+
+    if (isCallInProgress(callName)) {
         return;
     }
 
-    callTracker[`getProfilesInTeam${offset}${limit}`] = utils.getTimestamp();
+    callTracker[callName] = utils.getTimestamp();
     Client.getProfilesInTeam(
         teamId,
         offset,
         limit,
         (data) => {
-            callTracker[`getProfilesInTeam${offset}${limit}`] = 0;
+            callTracker[callName] = 0;
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_PROFILES_IN_TEAM,
@@ -366,24 +372,26 @@ export function getProfilesInTeam(teamId = TeamStore.getCurrentId(), offset = Us
             });
         },
         (err) => {
-            callTracker[`getProfilesInTeam${offset}${limit}`] = 0;
+            callTracker[callName] = 0;
             dispatchError(err, 'getProfilesInTeam');
         }
     );
 }
 
 export function getProfilesInChannel(channelId = ChannelStore.getCurrentId(), offset = UserStore.getInChannelPagingOffset(), limit = Constants.PROFILE_CHUNK_SIZE) {
-    if (isCallInProgress(`getProfilesInChannel${offset}${limit}`)) {
+    const callName = `getProfilesInChannel${channelId}${offset}${limit}`;
+
+    if (isCallInProgress()) {
         return;
     }
 
-    callTracker[`getProfilesInChannel${offset}${limit}`] = utils.getTimestamp();
+    callTracker[callName] = utils.getTimestamp();
     Client.getProfilesInChannel(
         channelId,
         offset,
         limit,
         (data) => {
-            callTracker[`getProfilesInChannel${offset}${limit}`] = 0;
+            callTracker[callName] = 0;
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_PROFILES_IN_CHANNEL,
@@ -396,24 +404,26 @@ export function getProfilesInChannel(channelId = ChannelStore.getCurrentId(), of
             loadStatusesForProfilesMap(data);
         },
         (err) => {
-            callTracker[`getProfilesInChannel${offset}${limit}`] = 0;
+            callTracker[callName] = 0;
             dispatchError(err, 'getProfilesInChannel');
         }
     );
 }
 
 export function getProfilesNotInChannel(channelId = ChannelStore.getCurrentId(), offset = UserStore.getNotInChannelPagingOffset(), limit = Constants.PROFILE_CHUNK_SIZE) {
-    if (isCallInProgress(`getProfilesNotInChannel${offset}${limit}`)) {
+    const callName = `getProfilesNotInChannel${channelId}${offset}${limit}`;
+
+    if (isCallInProgress(callName)) {
         return;
     }
 
-    callTracker[`getProfilesNotInChannel${offset}${limit}`] = utils.getTimestamp();
+    callTracker[callName] = utils.getTimestamp();
     Client.getProfilesNotInChannel(
         channelId,
         offset,
         limit,
         (data) => {
-            callTracker[`getProfilesNotInChannel${offset}${limit}`] = 0;
+            callTracker[callName] = 0;
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_PROFILES_NOT_IN_CHANNEL,
@@ -426,14 +436,16 @@ export function getProfilesNotInChannel(channelId = ChannelStore.getCurrentId(),
             loadStatusesForProfilesMap(data);
         },
         (err) => {
-            callTracker[`getProfilesNotInChannel${offset}${limit}`] = 0;
+            callTracker[callName] = 0;
             dispatchError(err, 'getProfilesNotInChannel');
         }
     );
 }
 
 export function getProfilesByIds(userIds) {
-    if (isCallInProgress('getProfilesByIds')) {
+    const callName = 'getProfilesByIds' + JSON.stringify(userIds);
+
+    if (isCallInProgress(callName)) {
         return;
     }
 
@@ -441,11 +453,11 @@ export function getProfilesByIds(userIds) {
         return;
     }
 
-    callTracker.getProfilesByIds = utils.getTimestamp();
+    callTracker[callName] = utils.getTimestamp();
     Client.getProfilesByIds(
         userIds,
         (data) => {
-            callTracker.getProfilesByIds = 0;
+            callTracker[callName] = 0;
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_PROFILES,
@@ -453,7 +465,7 @@ export function getProfilesByIds(userIds) {
             });
         },
         (err) => {
-            callTracker.getProfilesByIds = 0;
+            callTracker[callName] = 0;
             dispatchError(err, 'getProfilesByIds');
         }
     );
