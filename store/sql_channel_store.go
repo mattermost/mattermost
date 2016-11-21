@@ -1169,7 +1169,7 @@ func (s SqlChannelStore) performSearch(searchQuery string, term string, paramete
 
 		term = strings.Join(splitTerm, " ")
 
-		searchClause := fmt.Sprintf("AND (%s) @@  to_tsquery(:Term)", "Name || ' ' || DisplayName")
+		searchClause := fmt.Sprintf("AND (%s) @@  to_tsquery('simple', :Term)", "Name || ' ' || DisplayName")
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
 		splitTerm := strings.Fields(term)
