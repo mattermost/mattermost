@@ -37,7 +37,7 @@ type User struct {
 	Nickname           string    `json:"nickname"`
 	FirstName          string    `json:"first_name"`
 	LastName           string    `json:"last_name"`
-	Position	   string    `json:"position"`
+	Position           string    `json:"position"`
 	Roles              string    `json:"roles"`
 	AllowMarketing     bool      `json:"allow_marketing,omitempty"`
 	Props              StringMap `json:"props,omitempty"`
