@@ -40,7 +40,7 @@ Contribute upstream:
 3. Push to the branch (`git push fork my-new-feature`)
 4. Create a new Pull Request on GitHub
 
-This workflow is [thoroughly explained by Katrina Owen](https://blog.splice.com/contributing-open-source-git-repositories-go/).
+This workflow is [thoroughly explained by Katrina Owen](https://splice.com/blog/contributing-open-source-git-repositories-go/).
 
 ### Testing
 

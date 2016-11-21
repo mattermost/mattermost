@@ -641,10 +641,10 @@ export default class ChannelHeader extends React.Component {
                         id='channelHeader.removeFromFavorites'
                         defaultMessage='Remove from Favorites'
                     /> :
-                    <FormattedMessage
-                        id='channelHeader.addToFavorites'
-                        defaultMessage='Add to Favorites'
-                    />}
+                        <FormattedMessage
+                            id='channelHeader.addToFavorites'
+                            defaultMessage='Add to Favorites'
+                        />}
             </Tooltip>
         );
         const toggleFavorite = (

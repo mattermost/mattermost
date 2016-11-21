@@ -15,21 +15,8 @@ export default class WebrtcSettings extends AdminSettings {
     constructor(props) {
         super(props);
 
-        this.canSave = this.canSave.bind(this);
-        this.handleAgreeChange = this.handleAgreeChange.bind(this);
-
         this.getConfigFromState = this.getConfigFromState.bind(this);
         this.renderSettings = this.renderSettings.bind(this);
-    }
-
-    canSave() {
-        return !this.state.enableWebrtc || this.state.agree;
-    }
-
-    handleAgreeChange(e) {
-        this.setState({
-            agree: e.target.checked
-        });
     }
 
     getConfigFromState(config) {
@@ -57,8 +44,7 @@ export default class WebrtcSettings extends AdminSettings {
             stunURI: settings.StunURI,
             turnURI: settings.TurnURI,
             turnUsername: settings.TurnUsername,
-            turnSharedKey: settings.TurnSharedKey,
-            agree: settings.Enable
+            turnSharedKey: settings.TurnSharedKey
         };
     }
 
@@ -74,25 +60,6 @@ export default class WebrtcSettings extends AdminSettings {
     }
 
     renderSettings() {
-        const tosCheckbox = (
-            <div className='form-group'>
-                <div className='col-sm-4'/>
-                <div className='col-sm-8'>
-                    <input
-                        type='checkbox'
-                        ref='agree'
-                        checked={this.state.agree}
-                        onChange={this.handleAgreeChange}
-                        disabled={!this.state.enableWebrtc}
-                    />
-                    <FormattedHTMLMessage
-                        id='admin.webrtc.agree'
-                        defaultMessage=' I understand and accept the Mattermost Hosted WebRTC Service <a href="https://about.mattermost.com/webrtc-terms/" target="_blank">Terms of Service</a> and <a href="https://about.mattermost.com/webrtc-privacy/" target="_blank">Privacy Policy</a>.'
-                    />
-                </div>
-            </div>
-        );
-
         return (
             <SettingsGroup>
                 <BooleanSetting
@@ -112,7 +79,6 @@ export default class WebrtcSettings extends AdminSettings {
                     value={this.state.enableWebrtc}
                     onChange={this.handleChange}
                 />
-                {tosCheckbox}
                 <TextSetting
                     id='gatewayWebsocketUrl'
                     label={

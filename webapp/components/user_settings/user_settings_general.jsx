@@ -15,6 +15,7 @@ import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage, FormattedHTMLMessage, FormattedDate} from 'react-intl';
+import {updateUser} from 'actions/user_actions.jsx';
 
 const holders = defineMessages({
     usernameReserved: {
@@ -187,7 +188,7 @@ class UserSettingsGeneralTab extends React.Component {
     }
 
     submitUser(user, type, emailUpdated) {
-        Client.updateUser(user, type,
+        updateUser(user, type,
             () => {
                 this.updateSection('');
                 AsyncClient.getMe();

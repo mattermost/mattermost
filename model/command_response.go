@@ -16,6 +16,8 @@ const (
 type CommandResponse struct {
 	ResponseType string      `json:"response_type"`
 	Text         string      `json:"text"`
+	Username     string      `json:"username"`
+	IconURL      string      `json:"icon_url"`
 	GotoLocation string      `json:"goto_location"`
 	Attachments  interface{} `json:"attachments"`
 }

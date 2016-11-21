@@ -406,9 +406,11 @@ func (c *Client) GetAuthorization(ctx context.Context, url string) (*Authorizati
 func (c *Client) RevokeAuthorization(ctx context.Context, url string) error {
 	req := struct {
 		Resource string `json:"resource"`
+		Status   string `json:"status"`
 		Delete   bool   `json:"delete"`
 	}{
 		Resource: "authz",
+		Status:   "deactivated",
 		Delete:   true,
 	}
 	res, err := postJWS(ctx, c.HTTPClient, c.Key, url, req)

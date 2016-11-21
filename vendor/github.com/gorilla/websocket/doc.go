@@ -149,4 +149,25 @@
 // The deprecated Upgrade function does not enforce an origin policy. It's the
 // application's responsibility to check the Origin header before calling
 // Upgrade.
+//
+// Compression [Experimental]
+//
+// Per message compression extensions (RFC 7692) are experimentally supported
+// by this package in a limited capacity. Setting the EnableCompression option
+// to true in Dialer or Upgrader will attempt to negotiate per message deflate
+// support. If compression was successfully negotiated with the connection's
+// peer, any message received in compressed form will be automatically
+// decompressed. All Read methods will return uncompressed bytes.
+//
+// Per message compression of messages written to a connection can be enabled
+// or disabled by calling the corresponding Conn method:
+//
+// conn.EnableWriteCompression(true)
+//
+// Currently this package does not support compression with "context takeover".
+// This means that messages must be compressed and decompressed in isolation,
+// without retaining sliding window or dictionary state across messages. For
+// more details refer to RFC 7692.
+//
+// Use of compression is experimental and may result in decreased performance.
 package websocket

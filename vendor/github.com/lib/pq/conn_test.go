@@ -5,6 +5,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"io"
+	"net"
 	"os"
 	"reflect"
 	"strings"
@@ -385,9 +386,15 @@ func TestEmptyQuery(t *testing.T) {
 	db := openTestConn(t)
 	defer db.Close()
 
-	_, err := db.Exec("")
+	res, err := db.Exec("")
 	if err != nil {
 		t.Fatal(err)
+	}
+	if _, err := res.RowsAffected(); err != errNoRowsAffected {
+		t.Fatalf("expected %s, got %v", errNoRowsAffected, err)
+	}
+	if _, err := res.LastInsertId(); err != errNoLastInsertId {
+		t.Fatalf("expected %s, got %v", errNoLastInsertId, err)
 	}
 	rows, err := db.Query("")
 	if err != nil {
@@ -411,9 +418,15 @@ func TestEmptyQuery(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = stmt.Exec()
+	res, err = stmt.Exec()
 	if err != nil {
 		t.Fatal(err)
+	}
+	if _, err := res.RowsAffected(); err != errNoRowsAffected {
+		t.Fatalf("expected %s, got %v", errNoRowsAffected, err)
+	}
+	if _, err := res.LastInsertId(); err != errNoLastInsertId {
+		t.Fatalf("expected %s, got %v", errNoLastInsertId, err)
 	}
 	rows, err = stmt.Query()
 	if err != nil {
@@ -650,6 +663,40 @@ func TestBadConn(t *testing.T) {
 	}
 	if !cn.bad {
 		t.Fatalf("expected cn.bad")
+	}
+}
+
+// TestCloseBadConn tests that the underlying connection can be closed with
+// Close after an error.
+func TestCloseBadConn(t *testing.T) {
+	nc, err := net.Dial("tcp", "localhost:5432")
+	if err != nil {
+		t.Fatal(err)
+	}
+	cn := conn{c: nc}
+	func() {
+		defer cn.errRecover(&err)
+		panic(io.EOF)
+	}()
+	// Verify we can write before closing.
+	if _, err := nc.Write(nil); err != nil {
+		t.Fatal(err)
+	}
+	// First close should close the connection.
+	if err := cn.Close(); err != nil {
+		t.Fatal(err)
+	}
+	// Verify write after closing fails.
+	if _, err := nc.Write(nil); err == nil {
+		t.Fatal("expected error")
+	} else if !strings.Contains(err.Error(), "use of closed network connection") {
+		t.Fatalf("expected use of closed network connection error, got %s", err)
+	}
+	// Verify second close fails.
+	if err := cn.Close(); err == nil {
+		t.Fatal("expected error")
+	} else if !strings.Contains(err.Error(), "use of closed network connection") {
+		t.Fatalf("expected use of closed network connection error, got %s", err)
 	}
 }
 

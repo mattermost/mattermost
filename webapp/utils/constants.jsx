@@ -16,16 +16,16 @@ import genericIcon from 'images/icons/generic.png';
 import logoImage from 'images/logo_compact.png';
 import logoWebhook from 'images/webhook_icon.jpg';
 
-import solarizedDarkCSS from '!!file?name=files/code_themes/[hash].[ext]!highlight.js/styles/solarized-dark.css';
+import solarizedDarkCSS from '!!file-loader?name=files/code_themes/[hash].[ext]!highlight.js/styles/solarized-dark.css';
 import solarizedDarkIcon from 'images/themes/code_themes/solarized-dark.png';
 
-import solarizedLightCSS from '!!file?name=files/code_themes/[hash].[ext]!highlight.js/styles/solarized-light.css';
+import solarizedLightCSS from '!!file-loader?name=files/code_themes/[hash].[ext]!highlight.js/styles/solarized-light.css';
 import solarizedLightIcon from 'images/themes/code_themes/solarized-light.png';
 
-import githubCSS from '!!file?name=files/code_themes/[hash].[ext]!highlight.js/styles/github.css';
+import githubCSS from '!!file-loader?name=files/code_themes/[hash].[ext]!highlight.js/styles/github.css';
 import githubIcon from 'images/themes/code_themes/github.png';
 
-import monokaiCSS from '!!file?name=files/code_themes/[hash].[ext]!highlight.js/styles/monokai.css';
+import monokaiCSS from '!!file-loader?name=files/code_themes/[hash].[ext]!highlight.js/styles/monokai.css';
 import monokaiIcon from 'images/themes/code_themes/monokai.png';
 
 import defaultThemeImage from 'images/themes/organization.png';
@@ -126,6 +126,7 @@ export const ActionTypes = keyMirror({
 
     RECEIVED_MY_TEAM: null,
     CREATED_TEAM: null,
+    UPDATE_TEAM: null,
 
     RECEIVED_CONFIG: null,
     RECEIVED_LOGS: null,
@@ -156,7 +157,9 @@ export const ActionTypes = keyMirror({
     SUGGESTION_CLEAR_SUGGESTIONS: null,
     SUGGESTION_COMPLETE_WORD: null,
     SUGGESTION_SELECT_NEXT: null,
-    SUGGESTION_SELECT_PREVIOUS: null
+    SUGGESTION_SELECT_PREVIOUS: null,
+
+    BROWSER_CHANGE_FOCUS: null
 });
 
 export const WebrtcActionTypes = keyMirror({

@@ -464,7 +464,7 @@ func TestClientAuthNone(t *testing.T) {
 	go NewClientConn(c2, "", clientConfig)
 	serverConn, err := newServer(c1, serverConfig)
 	if err != nil {
-		t.Fatal("newServer: %v", err)
+		t.Fatalf("newServer: %v", err)
 	}
 	if serverConn.User() != user {
 		t.Fatalf("server: got %q, want %q", serverConn.User(), user)

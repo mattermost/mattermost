@@ -60,7 +60,7 @@ export default class ClusterSettings extends AdminSettings {
         );
     }
 
-    overrideHandleChange = (id, value) => {
+    overrideHandleChange(id, value) {
         this.setState({
             showWarning: true
         });

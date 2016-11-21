@@ -249,7 +249,7 @@ function autolinkChannelMentions(text, tokens, channelNamesMap, team) {
 }
 
 export function escapeRegex(text) {
-    return text.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+    return text.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
 }
 
 function highlightCurrentMentions(text, tokens, mentionKeys = []) {
@@ -386,7 +386,7 @@ function parseSearchTerms(searchTerm) {
             termString = termString.substring(captured[0].length);
 
             // break the text up into words based on how the server splits them in SqlPostStore.SearchPosts and then discard empty terms
-            terms.push(...captured[0].split(/[ <>+\(\)~@]/).filter((term) => Boolean(term)));
+            terms.push(...captured[0].split(/[ <>+()~@]/).filter((term) => Boolean(term)));
             continue;
         }
 

@@ -26,6 +26,9 @@ class NotificationStoreClass extends EventEmitter {
     removeChangeListener(callback) {
         this.removeListener(CHANGE_EVENT, callback);
     }
+    setFocus(focus) {
+        this.inFocus = focus;
+    }
 
     handleRecievedPost(post, msgProps) {
         // Send desktop notification
@@ -98,11 +101,21 @@ class NotificationStoreClass extends EventEmitter {
                 duration = parseInt(user.notify_props.desktop_duration, 10) * 1000;
             }
 
+            //Play a sound if explicitly set in settings
             const sound = !user.notify_props || user.notify_props.desktop_sound === 'true';
-            Utils.notifyMe(title, body, channel, teamId, duration, !sound);
 
-            if (sound && !UserAgent.isWindowsApp() && !UserAgent.isMacApp()) {
-                Utils.ding();
+            // Notify if you're not looking in the right channel or when
+            // the window itself is not active
+            const activeChannel = ChannelStore.getCurrent();
+            const notify = activeChannel.id !== channel.id || !this.inFocus;
+
+            if (notify) {
+                Utils.notifyMe(title, body, channel, teamId, duration, !sound);
+
+                //Don't add extra sounds on native desktop clients
+                if (sound && !UserAgent.isWindowsApp() && !UserAgent.isMacApp() && !UserAgent.isMobileApp()) {
+                    Utils.ding();
+                }
             }
         }
     }
@@ -117,6 +130,9 @@ NotificationStore.dispatchToken = AppDispatcher.register((payload) => {
     case ActionTypes.RECEIVED_POST:
         NotificationStore.handleRecievedPost(action.post, action.websocketMessageProps);
         NotificationStore.emitChange();
+        break;
+    case ActionTypes.BROWSER_CHANGE_FOCUS:
+        NotificationStore.setFocus(action.focus);
         break;
     }
 });

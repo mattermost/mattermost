@@ -1,16 +1,16 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const de = require('!!file?name=i18n/[name].[hash].[ext]!./de.json');
-const es = require('!!file?name=i18n/[name].[hash].[ext]!./es.json');
-const fr = require('!!file?name=i18n/[name].[hash].[ext]!./fr.json');
-const ja = require('!!file?name=i18n/[name].[hash].[ext]!./ja.json');
-const ko = require('!!file?name=i18n/[name].[hash].[ext]!./ko.json');
-const nl = require('!!file?name=i18n/[name].[hash].[ext]!./nl.json');
-const pt_BR = require('!!file?name=i18n/[name].[hash].[ext]!./pt-BR.json'); //eslint-disable-line camelcase
-const ru = require('!!file?name=i18n/[name].[hash].[ext]!./ru.json');
-const zh_TW = require('!!file?name=i18n/[name].[hash].[ext]!./zh_TW.json'); //eslint-disable-line camelcase
-const zh_CN = require('!!file?name=i18n/[name].[hash].[ext]!./zh_CN.json'); //eslint-disable-line camelcase
+const de = require('!!file-loader?name=i18n/[name].[hash].[ext]!./de.json');
+const es = require('!!file-loader?name=i18n/[name].[hash].[ext]!./es.json');
+const fr = require('!!file-loader?name=i18n/[name].[hash].[ext]!./fr.json');
+const ja = require('!!file-loader?name=i18n/[name].[hash].[ext]!./ja.json');
+const ko = require('!!file-loader?name=i18n/[name].[hash].[ext]!./ko.json');
+const nl = require('!!file-loader?name=i18n/[name].[hash].[ext]!./nl.json');
+const pt_BR = require('!!file-loader?name=i18n/[name].[hash].[ext]!./pt-BR.json'); //eslint-disable-line camelcase
+const ru = require('!!file-loader?name=i18n/[name].[hash].[ext]!./ru.json');
+const zh_TW = require('!!file-loader?name=i18n/[name].[hash].[ext]!./zh_TW.json'); //eslint-disable-line camelcase
+const zh_CN = require('!!file-loader?name=i18n/[name].[hash].[ext]!./zh_CN.json'); //eslint-disable-line camelcase
 
 import {addLocaleData} from 'react-intl';
 import deLocaleData from 'react-intl/locale-data/de';

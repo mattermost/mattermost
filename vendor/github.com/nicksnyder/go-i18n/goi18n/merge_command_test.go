@@ -33,10 +33,10 @@ func testMergeExecute(t *testing.T, files []string) {
 	resetDir(t, "testdata/output")
 
 	mc := &mergeCommand{
-		translationFiles:  files,
-		sourceLanguageTag: "en-us",
-		outdir:            "testdata/output",
-		format:            "json",
+		translationFiles: files,
+		sourceLanguage:   "en-us",
+		outdir:           "testdata/output",
+		format:           "json",
 	}
 	if err := mc.execute(); err != nil {
 		t.Fatal(err)

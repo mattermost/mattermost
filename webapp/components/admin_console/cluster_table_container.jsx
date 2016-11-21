@@ -18,7 +18,7 @@ export default class ClusterTableContainer extends React.Component {
         };
     }
 
-    load = () => {
+    load() {
         Client.getClusterStatus(
             (data) => {
                 this.setState({
@@ -44,7 +44,7 @@ export default class ClusterTableContainer extends React.Component {
         }
     }
 
-    reload = (e) => {
+    reload(e) {
         if (e) {
             e.preventDefault();
         }

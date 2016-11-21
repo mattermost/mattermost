@@ -57,7 +57,11 @@ export default class CodePreview extends React.Component {
     }
 
     handleReceivedCode(data) {
-        this.setState({code: data, loading: false, success: true});
+        let code = data;
+        if (data.nodeName === '#document') {
+            code = new XMLSerializer().serializeToString(data);
+        }
+        this.setState({code, loading: false, success: true});
     }
 
     handleReceivedError() {

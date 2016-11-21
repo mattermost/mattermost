@@ -47,6 +47,9 @@ func TestGetScheme(t *testing.T) {
 		{xForwardedProto, "https", "https"},
 		{xForwardedProto, "http", "http"},
 		{xForwardedProto, "HTTP", "http"},
+		{xForwardedScheme, "https", "https"},
+		{xForwardedScheme, "http", "http"},
+		{xForwardedScheme, "HTTP", "http"},
 		{forwarded, `For="[2001:db8:cafe::17]:4711`, ""},                      // No proto
 		{forwarded, `for=192.0.2.43, for=198.51.100.17;proto=https`, "https"}, // Multiple params before proto
 		{forwarded, `for=172.32.10.15; proto=https;by=127.0.0.1`, "https"},    // Space before proto
@@ -74,13 +77,17 @@ func TestProxyHeaders(t *testing.T) {
 
 	r.Header.Set(xForwardedFor, "8.8.8.8")
 	r.Header.Set(xForwardedProto, "https")
-
-	var addr string
-	var proto string
+	r.Header.Set(xForwardedHost, "google.com")
+	var (
+		addr  string
+		proto string
+		host  string
+	)
 	ProxyHeaders(http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			addr = r.RemoteAddr
 			proto = r.URL.Scheme
+			host = r.Host
 		})).ServeHTTP(rr, r)
 
 	if rr.Code != http.StatusOK {
@@ -95,6 +102,10 @@ func TestProxyHeaders(t *testing.T) {
 	if proto != r.Header.Get(xForwardedProto) {
 		t.Fatalf("wrong address: got %s want %s", proto,
 			r.Header.Get(xForwardedProto))
+	}
+	if host != r.Header.Get(xForwardedHost) {
+		t.Fatalf("wrong address: got %s want %s", host,
+			r.Header.Get(xForwardedHost))
 	}
 
 }

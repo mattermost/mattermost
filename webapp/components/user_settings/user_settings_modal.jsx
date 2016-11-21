@@ -104,7 +104,6 @@ class UserSettingsModal extends React.Component {
         }
 
         this.props.onModalDismissed();
-        return;
     }
 
     // called after the dialog is fully hidden and faded out
@@ -251,7 +250,6 @@ class UserSettingsModal extends React.Component {
                                 setRequireConfirm={
                                     (requireConfirm) => {
                                         this.requireConfirm = requireConfirm;
-                                        return;
                                     }
                                 }
                             />

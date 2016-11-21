@@ -5,12 +5,11 @@ import $ from 'jquery';
 import SettingItemMin from './setting_item_min.jsx';
 import SettingItemMax from './setting_item_max.jsx';
 
-import Client from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
-import TeamStore from 'stores/team_store.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage, FormattedHTMLMessage} from 'react-intl';
+import {updateTeam} from 'actions/team_actions.jsx';
 
 const holders = defineMessages({
     dirDisabled: {
@@ -131,10 +130,8 @@ class GeneralTab extends React.Component {
 
         var data = this.props.team;
         data.allow_open_invite = this.state.allow_open_invite;
-        Client.updateTeam(data,
-            (team) => {
-                TeamStore.saveTeam(team);
-                TeamStore.emitChange();
+        updateTeam(data,
+            () => {
                 this.updateSection('');
             },
             (err) => {
@@ -170,10 +167,8 @@ class GeneralTab extends React.Component {
 
         var data = this.props.team;
         data.display_name = this.state.name;
-        Client.updateTeam(data,
-            (team) => {
-                TeamStore.saveTeam(team);
-                TeamStore.emitChange();
+        updateTeam(data,
+            () => {
                 this.updateSection('');
             },
             (err) => {
@@ -205,10 +200,8 @@ class GeneralTab extends React.Component {
 
         var data = this.props.team;
         data.invite_id = this.state.invite_id;
-        Client.updateTeam(data,
-            (team) => {
-                TeamStore.saveTeam(team);
-                TeamStore.emitChange();
+        updateTeam(data,
+            () => {
                 this.updateSection('');
             },
             (err) => {

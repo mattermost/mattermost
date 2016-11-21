@@ -150,8 +150,8 @@ export default class LoginController extends React.Component {
                         query.d,
                         query.h,
                         query.id,
-                        () => {
-                            this.finishSignin();
+                        (team) => {
+                            this.finishSignin(team);
                         },
                         () => {
                             // there's not really a good way to deal with this, so just let the user log in like normal
@@ -167,7 +167,6 @@ export default class LoginController extends React.Component {
             (err) => {
                 if (err.id === 'api.user.login.not_verified.app_error') {
                     browserHistory.push('/should_verify_email?&email=' + encodeURIComponent(loginId));
-                    return;
                 } else if (err.id === 'store.sql_user.get_for_login.app_error' ||
                     err.id === 'ent.ldap.do_login.user_not_registered.app_error') {
                     this.setState({
@@ -196,13 +195,15 @@ export default class LoginController extends React.Component {
         );
     }
 
-    finishSignin() {
+    finishSignin(team) {
         GlobalActions.emitInitialLoad(
             () => {
                 const query = this.props.location.query;
                 GlobalActions.loadDefaultLocale();
                 if (query.redirect_to) {
                     browserHistory.push(query.redirect_to);
+                } else if (team) {
+                    browserHistory.push(`/${team.name}`);
                 } else {
                     browserHistory.push('/select_team');
                 }

@@ -535,3 +535,10 @@ export function toggleSideBarAction(visible) {
         });
     }
 }
+
+export function emitBrowserFocus(focus) {
+    AppDispatcher.handleViewAction({
+        type: ActionTypes.BROWSER_CHANGE_FOCUS,
+        focus
+    });
+}

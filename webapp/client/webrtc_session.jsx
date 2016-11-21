@@ -1951,7 +1951,7 @@ export default class WebrtcSession {
         return (trickle === true);
     }
 
-    unbindWebSocket = (onUnbindMessage, onUnbindError) => {
+    unbindWebSocket(onUnbindMessage, onUnbindError) {
         for (var eventName in this.wsHandlers) {
             if (this.wsHandlers.hasOwnProperty(eventName)) {
                 this.ws.removeEventListener(eventName, this.wsHandlers[eventName]);
@@ -1962,5 +1962,5 @@ export default class WebrtcSession {
         if (this.wsKeepaliveTimeoutId) {
             clearTimeout(this.wsKeepaliveTimeoutId);
         }
-    };
+    }
 }

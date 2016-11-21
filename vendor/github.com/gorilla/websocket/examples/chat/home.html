@@ -2,47 +2,53 @@
 <html lang="en">
 <head>
 <title>Chat Example</title>
-<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
 <script type="text/javascript">
-    $(function() {
-
+window.onload = function () {
     var conn;
-    var msg = $("#msg");
-    var log = $("#log");
+    var msg = document.getElementById("msg");
+    var log = document.getElementById("log");
 
-    function appendLog(msg) {
-        var d = log[0]
-        var doScroll = d.scrollTop == d.scrollHeight - d.clientHeight;
-        msg.appendTo(log)
+    function appendLog(item) {
+        var doScroll = log.scrollTop === log.scrollHeight - log.clientHeight;
+        log.appendChild(item);
         if (doScroll) {
-            d.scrollTop = d.scrollHeight - d.clientHeight;
+            log.scrollTop = log.scrollHeight - log.clientHeight;
         }
     }
 
-    $("#form").submit(function() {
+    document.getElementById("form").onsubmit = function () {
         if (!conn) {
             return false;
         }
-        if (!msg.val()) {
+        if (!msg.value) {
             return false;
         }
-        conn.send(msg.val());
-        msg.val("");
-        return false
-    });
+        conn.send(msg.value);
+        msg.value = "";
+        return false;
+    };
 
     if (window["WebSocket"]) {
         conn = new WebSocket("ws://{{$}}/ws");
-        conn.onclose = function(evt) {
-            appendLog($("<div><b>Connection closed.</b></div>"))
-        }
-        conn.onmessage = function(evt) {
-            appendLog($("<div/>").text(evt.data))
-        }
+        conn.onclose = function (evt) {
+            var item = document.createElement("div");
+            item.innerHTML = "<b>Connection closed.</b>";
+            appendLog(item);
+        };
+        conn.onmessage = function (evt) {
+            var messages = evt.data.split('\n');
+            for (var i = 0; i < messages.length; i++) {
+                var item = document.createElement("div");
+                item.innerText = messages[i];
+                appendLog(item);
+            }
+        };
     } else {
-        appendLog($("<div><b>Your browser does not support WebSockets.</b></div>"))
+        var item = document.createElement("div");
+        item.innerHTML = "<b>Your browser does not support WebSockets.</b>";
+        appendLog(item);
     }
-    });
+};
 </script>
 <style type="text/css">
 html {
