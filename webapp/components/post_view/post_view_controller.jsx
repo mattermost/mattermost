@@ -202,8 +202,13 @@ export default class PostViewController extends React.Component {
         }
     }
 
-    onSetNewMessageIndicator(lastViewed, ownNewMessage) {
-        this.setState({lastViewed, ownNewMessage});
+    onSetNewMessageIndicator() {
+        let lastViewed = Number.MAX_VALUE;
+        const member = ChannelStore.getMyMember(this.props.channel.id);
+        if (member != null) {
+            lastViewed = member.last_viewed_at;
+        }
+        this.setState({lastViewed});
     }
 
     onPostListScroll(atBottom) {
