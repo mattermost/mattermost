@@ -25,7 +25,7 @@ function getNotificationsStateFromStores() {
     let comments = 'never';
     let enableEmail = 'true';
     let pushActivity = 'mention';
-    let pushStatus = Constants.UserStatuses.ONLINE;
+    let pushStatus = Constants.UserStatuses.AWAY;
 
     if (user.notify_props) {
         if (user.notify_props.desktop) {
