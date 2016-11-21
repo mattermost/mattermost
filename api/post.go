@@ -646,7 +646,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 			}
 
 			if userAllowsEmails && status.Status != model.STATUS_ONLINE {
-				sendNotificationEmail(c, post, profileMap[id], channel, team, senderName, sender)
+				go sendNotificationEmail(c, post, profileMap[id], channel, team, senderName, sender)
 			}
 		}
 	}
@@ -702,7 +702,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 			}
 
 			if DoesStatusAllowPushNotification(profileMap[id], status, post.ChannelId) {
-				sendPushNotification(post, profileMap[id], channel, senderName, true)
+				go sendPushNotification(post, profileMap[id], channel, senderName, true)
 			}
 		}
 
@@ -715,7 +715,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 				}
 
 				if DoesStatusAllowPushNotification(profileMap[id], status, post.ChannelId) {
-					sendPushNotification(post, profileMap[id], channel, senderName, false)
+					go sendPushNotification(post, profileMap[id], channel, senderName, false)
 				}
 			}
 		}
@@ -777,8 +777,11 @@ func sendNotificationEmail(c *Context, post *model.Post, user *model.User, chann
 				}
 			}
 
-			if !found {
+			if !found && len(teams) > 0 {
 				team = teams[0]
+			} else {
+				// in case the user hasn't joined any teams we send them to the select_team page
+				team = &model.Team{Name: "select_team", DisplayName: utils.Cfg.TeamSettings.SiteName}
 			}
 		}
 	}
@@ -849,7 +852,12 @@ func sendNotificationEmail(c *Context, post *model.Post, user *model.User, chann
 	bodyPage := utils.NewHTMLTemplate("post_body", user.Locale)
 	bodyPage.Props["SiteURL"] = c.GetSiteURL()
 	bodyPage.Props["PostMessage"] = getMessageForNotification(post, userLocale)
-	bodyPage.Props["TeamLink"] = teamURL + "/pl/" + post.Id
+	if team.Name != "select_team" {
+		bodyPage.Props["TeamLink"] = teamURL + "/pl/" + post.Id
+	} else {
+		bodyPage.Props["TeamLink"] = teamURL
+	}
+
 	bodyPage.Props["BodyText"] = bodyText
 	bodyPage.Props["Button"] = userLocale("api.templates.post_body.button")
 	bodyPage.Html["Info"] = template.HTML(userLocale("api.templates.post_body.info",
