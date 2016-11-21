@@ -500,8 +500,8 @@ func (c *Client) GetUser(id string, etag string) (*Result, *AppError) {
 	}
 }
 
-// GetUsername returns a user based on a provided username string. Must be authenticated.
-func (c *Client) GetUsername(username string, etag string) (*Result, *AppError) {
+// getByUsername returns a user based on a provided username string. Must be authenticated.
+func (c *Client) GetByUsername(username string, etag string) (*Result, *AppError) {
 	if r, err := c.DoApiGet(fmt.Sprintf("/users/name/%v", username), "", etag); err != nil {
 		return nil, err
 	} else {

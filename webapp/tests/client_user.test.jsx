@@ -36,9 +36,9 @@ describe('Client.User', function() {
         });
     });
 
-    it('getUsername', function(done) {
+    it('getByUsername', function(done) {
         TestHelper.initBasic(() => {
-            TestHelper.basicClient().getUsername(
+            TestHelper.basicClient().getByUsername(
                 TestHelper.basicUser().username,
                 function(data) {
                     assert.equal(data.username, TestHelper.basicUser().username);

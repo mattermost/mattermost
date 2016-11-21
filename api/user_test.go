@@ -2340,21 +2340,18 @@ func TestAutocompleteUsers(t *testing.T) {
 	}
 }
 
-func TestGetUsername(t *testing.T) {
-	th := Setup()
+func TestGetByUsername(t *testing.T) {
+	th := Setup().InitBasic()
 	Client := th.CreateClient()
-
-	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	rteam, _ := Client.CreateTeam(&team)
 
 	user := model.User{Email: strings.ToLower(model.NewId()) + "yomamma@simulator.amazonses.com", Nickname: "Jabba The Hutt", Password: "passwd1"}
 	ruser, _ := Client.CreateUser(&user, "")
-	LinkUserToTeam(ruser.Data.(*model.User), rteam.Data.(*model.Team))
+	LinkUserToTeam(ruser.Data.(*model.User), th.BasicTeam)
 	store.Must(Srv.Store.User().VerifyEmail(ruser.Data.(*model.User).Id))
 
 	user2 := model.User{Email: strings.ToLower(model.NewId()) + "second_example", Nickname: "Anakin Skywalker", Password: "passwd1", FirstName: "Anakin", LastName: "Skywalker"}
 	ruser2, _ := Client.CreateUser(&user2, "")
-	LinkUserToTeam(ruser2.Data.(*model.User), rteam.Data.(*model.Team))
+	LinkUserToTeam(ruser2.Data.(*model.User), th.BasicTeam)
 	store.Must(Srv.Store.User().VerifyEmail(ruser2.Data.(*model.User).Id))
 
 	Client.Login(user.Email, user.Password)
@@ -2362,7 +2359,7 @@ func TestGetUsername(t *testing.T) {
 	rUsername := ruser.Data.(*model.User).Username
 
 	// First user and the same which logins
-	if result, err := Client.GetUsername(rUsername, ""); err != nil {
+	if result, err := Client.GetByUsername(rUsername, ""); err != nil {
 		t.Fatal("Failed to get user")
 	} else {
 		if result.Data.(*model.User).Password != "" {
@@ -2380,7 +2377,7 @@ func TestGetUsername(t *testing.T) {
 	utils.Cfg.PrivacySettings.ShowEmailAddress = false
 	utils.Cfg.PrivacySettings.ShowFullName = false
 
-	if result, err := Client.GetUsername(ruser2.Data.(*model.User).Username, ""); err != nil {
+	if result, err := Client.GetByUsername(ruser2.Data.(*model.User).Username, ""); err != nil {
 		t.Fatal(err)
 	} else {
 		u := result.Data.(*model.User)
@@ -2404,7 +2401,7 @@ func TestGetUsername(t *testing.T) {
 	utils.Cfg.PrivacySettings.ShowEmailAddress = true
 	utils.Cfg.PrivacySettings.ShowFullName = true
 
-	if result, err := Client.GetUsername(ruser2.Data.(*model.User).Username, ""); err != nil {
+	if result, err := Client.GetByUsername(ruser2.Data.(*model.User).Username, ""); err != nil {
 		t.Fatal(err)
 	} else {
 		u := result.Data.(*model.User)
