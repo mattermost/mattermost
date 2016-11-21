@@ -228,6 +228,10 @@
         "InterNodeListenAddress": ":8075",
         "InterNodeUrls": []
     },
+    "MetricsSettings": {
+        "Enable": false,
+        "ListenAddress": ":8067"
+    },
     "WebrtcSettings": {
         "Enable": false,
         "GatewayWebsocketUrl": "",

@@ -2649,7 +2649,7 @@
   },
   {
     "id": "ent.metrics.starting.info",
-    "translation": "Metrics and profiling server is listening on %v access at '/metrics' and '/debug'"
+    "translation": "Metrics and profiling server is listening on %v"
   },
   {
     "id": "ent.metrics.stopping.info",
