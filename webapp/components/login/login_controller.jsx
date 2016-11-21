@@ -150,8 +150,8 @@ export default class LoginController extends React.Component {
                         query.d,
                         query.h,
                         query.id,
-                        () => {
-                            this.finishSignin();
+                        (team) => {
+                            this.finishSignin(team);
                         },
                         () => {
                             // there's not really a good way to deal with this, so just let the user log in like normal
@@ -195,13 +195,15 @@ export default class LoginController extends React.Component {
         );
     }
 
-    finishSignin() {
+    finishSignin(team) {
         GlobalActions.emitInitialLoad(
             () => {
                 const query = this.props.location.query;
                 GlobalActions.loadDefaultLocale();
                 if (query.redirect_to) {
                     browserHistory.push(query.redirect_to);
+                } else if (team) {
+                    browserHistory.push(`/${team.name}`);
                 } else {
                     browserHistory.push('/select_team');
                 }
