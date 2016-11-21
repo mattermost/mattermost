@@ -408,6 +408,16 @@
             position: relative;
             top: -5px;
         }
+
+        .help__text {
+            bottom: 6px;
+            right: 15px;
+            cursor: pointer;
+            font-size: 13px;
+            position: absolute;
+            text-align: right;
+            z-index: 3;
+        }
     }
 
     .msg-typing {
