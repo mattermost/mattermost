@@ -931,6 +931,7 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 		msg.Badge = int(badge.Data.(int64))
 	}
 	msg.Type = model.PUSH_TYPE_MESSAGE
+	msg.TeamId = channel.TeamId
 	msg.ChannelId = channel.Id
 	msg.ChannelName = channel.Name
 
