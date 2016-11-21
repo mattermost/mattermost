@@ -211,6 +211,11 @@ function handleNewUserEvent(msg) {
         return;
     }
 
+    if (msg.data.user_id === UserStore.getCurrentId()) {
+        // We should already have ourselves
+        return;
+    }
+
     AsyncClient.getUser(msg.data.user_id);
     AsyncClient.getChannelStats();
     loadProfilesAndTeamMembersForDMSidebar();
