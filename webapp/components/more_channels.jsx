@@ -35,7 +35,8 @@ export default class MoreChannels extends React.Component {
             channelType: '',
             showNewChannelModal: false,
             channels: null,
-            serverError: null
+            serverError: null,
+            shown: false
         };
     }
 
@@ -49,7 +50,12 @@ export default class MoreChannels extends React.Component {
 
         $(this.refs.modal).on('show.bs.modal', (e) => {
             const button = e.relatedTarget;
-            self.setState({channelType: $(button).attr('data-channeltype')});
+            self.setState({shown: true, channelType: $(button).attr('data-channeltype')});
+        });
+
+        $(this.refs.modal).on('hide.bs.modal', () => {
+            self.setState({shown: false});
+            this.refs.channelList.clearFilters(this.state.channels);
         });
     }
 
@@ -66,7 +72,7 @@ export default class MoreChannels extends React.Component {
 
     onListenerChange() {
         const newState = this.getStateFromStores();
-        if (!Utils.areObjectsEqual(newState.channels, this.state.channels)) {
+        if (this.state.shown && !Utils.areObjectsEqual(newState.channels, this.state.channels)) {
             this.setState(newState);
         }
     }
@@ -143,6 +149,7 @@ export default class MoreChannels extends React.Component {
         } else if (channels.length) {
             moreChannels = (
                 <FilteredChannelList
+                    ref='channelList'
                     channels={channels}
                     handleJoin={this.handleJoin}
                 />
