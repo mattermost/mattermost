@@ -1188,7 +1188,7 @@ func (s SqlChannelStore) performSearch(searchQuery string, term string, paramete
 	parameters["Term"] = term
 
 	if _, err := s.GetReplica().Select(&channels, searchQuery, parameters); err != nil {
-		result.Err = model.NewLocAppError("SqlUserStore.Search", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error())
+		result.Err = model.NewLocAppError("SqlChannelStore.Search", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error())
 	} else {
 		result.Data = &channels
 	}
