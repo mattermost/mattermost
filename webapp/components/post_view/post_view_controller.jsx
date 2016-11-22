@@ -190,9 +190,11 @@ export default class PostViewController extends React.Component {
 
     onPostsViewJumpRequest(type, postId) {
         switch (type) {
-        case Constants.PostsViewJumpTypes.BOTTOM:
-            this.setState({scrollType: ScrollTypes.BOTTOM, lastViewedBottom: new Date().getTime()});
+        case Constants.PostsViewJumpTypes.BOTTOM: {
+            const lastPost = PostStore.getLatestPost(this.state.channel.id);
+            this.setState({scrollType: ScrollTypes.BOTTOM, lastViewedBottom: lastPost.create_at || new Date().getTime()});
             break;
+        }
         case Constants.PostsViewJumpTypes.POST:
             this.setState({
                 scrollType: ScrollTypes.POST,
@@ -211,7 +213,8 @@ export default class PostViewController extends React.Component {
 
     onPostListScroll(atBottom) {
         if (atBottom) {
-            this.setState({scrollType: ScrollTypes.BOTTOM, lastViewedBottom: new Date().getTime()});
+            const lastPost = PostStore.getLatestPost(this.state.channel.id);
+            this.setState({scrollType: ScrollTypes.BOTTOM, lastViewedBottom: lastPost.create_at || new Date().getTime()});
         } else {
             this.setState({scrollType: ScrollTypes.FREE});
         }
