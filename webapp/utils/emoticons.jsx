@@ -38,7 +38,7 @@ export function handleEmoticons(text, tokens, emojis) {
 
             // we have an image path so we found a matching emoticon
             tokens.set(alias, {
-                value: `<img align="absmiddle" alt="${matchText}" class="emoticon" src="${path}" title="${matchText}" />`,
+                value: `<span alt="${matchText}" class="emoticon" title="${matchText}" style="background-image:url(${path})"></span>`,
                 originalText: fullMatch
             });
 
