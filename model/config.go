@@ -98,6 +98,11 @@ type ClusterSettings struct {
 	InterNodeUrls          []string
 }
 
+type MetricsSettings struct {
+	Enable        *bool
+	ListenAddress *string
+}
+
 type SSOSettings struct {
 	Enable          bool
 	Secret          string
@@ -330,6 +335,7 @@ type Config struct {
 	SamlSettings         SamlSettings
 	NativeAppSettings    NativeAppSettings
 	ClusterSettings      ClusterSettings
+	MetricsSettings      MetricsSettings
 	WebrtcSettings       WebrtcSettings
 }
 
@@ -770,6 +776,16 @@ func (o *Config) SetDefaults() {
 
 	if o.ClusterSettings.InterNodeUrls == nil {
 		o.ClusterSettings.InterNodeUrls = []string{}
+	}
+
+	if o.MetricsSettings.ListenAddress == nil {
+		o.MetricsSettings.ListenAddress = new(string)
+		*o.MetricsSettings.ListenAddress = ":8067"
+	}
+
+	if o.MetricsSettings.Enable == nil {
+		o.MetricsSettings.Enable = new(bool)
+		*o.MetricsSettings.Enable = false
 	}
 
 	if o.ComplianceSettings.Enable == nil {

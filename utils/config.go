@@ -329,6 +329,10 @@ func getClientConfig(c *model.Config) map[string]string {
 			props["EnableCluster"] = strconv.FormatBool(*c.ClusterSettings.Enable)
 		}
 
+		if *License.Features.Cluster {
+			props["EnableMetrics"] = strconv.FormatBool(*c.MetricsSettings.Enable)
+		}
+
 		if *License.Features.GoogleOAuth {
 			props["EnableSignUpWithGoogle"] = strconv.FormatBool(c.GoogleSettings.Enable)
 		}

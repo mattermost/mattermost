@@ -4,8 +4,6 @@ import:
   version: 172fbbbb329cf7e031dd3ab35766186fc2081eab
 - package: github.com/alecthomas/log4go
   version: e5dc62318d9bd58682f1dceb53a4b24e8253682f
-- package: github.com/braintree/manners
-  version: 0.4.0
 - package: github.com/dgryski/dgoogauth
   version: 96977cbd42e27be71f9f731db6634123de7e861a
 - package: github.com/disintegration/imaging
@@ -66,4 +64,25 @@ import:
 - package: github.com/rsc/letsencrypt
   version: 76104d26167d38b6a0010f42bfc8ec5487742e8b
 - package: github.com/minio/minio-go
-  version: v2.0.2
+  version: 2.0.2
+- package: github.com/prometheus/client_golang
+  version: v0.8.0
+  subpackages:
+  - prometheus
+- package: github.com/beorn7/perks
+  subpackages:
+  - quantile
+- package: github.com/golang/protobuf
+  subpackages:
+  - proto
+- package: github.com/prometheus/client_model
+  subpackages:
+  - go
+- package: github.com/prometheus/common
+  subpackages:
+  - expfmt
+- package: github.com/matttproud/golang_protobuf_extensions
+  version: v1.0.0
+  subpackages:
+  - pbutil
+- package: github.com/prometheus/procfs

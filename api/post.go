@@ -21,6 +21,7 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
+	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
@@ -146,6 +147,10 @@ func CreatePost(c *Context, post *model.Post, triggerWebhooks bool) (*model.Post
 		rpost = result.Data.(*model.Post)
 	}
 
+	if einterfaces.GetMetricsInterface() != nil {
+		einterfaces.GetMetricsInterface().IncrementPostCreate()
+	}
+
 	if len(post.FileIds) > 0 {
 		// There's a rare bug where the client sends up duplicate FileIds so protect against that
 		post.FileIds = utils.RemoveDuplicatesFromStringArray(post.FileIds)
@@ -154,6 +159,10 @@ func CreatePost(c *Context, post *model.Post, triggerWebhooks bool) (*model.Post
 			if result := <-Srv.Store.FileInfo().AttachToPost(fileId, post.Id); result.Err != nil {
 				l4g.Error(utils.T("api.post.create_post.attach_files.error"), post.Id, post.FileIds, c.Session.UserId, result.Err)
 			}
+		}
+
+		if einterfaces.GetMetricsInterface() != nil {
+			einterfaces.GetMetricsInterface().IncrementPostFileAttachment(len(post.FileIds))
 		}
 	}
 
@@ -869,6 +878,10 @@ func sendNotificationEmail(c *Context, post *model.Post, user *model.User, chann
 	if err := utils.SendMail(user.Email, html.UnescapeString(subject), bodyPage.Render()); err != nil {
 		l4g.Error(utils.T("api.post.send_notifications_and_forget.send.error"), user.Email, err)
 	}
+
+	if einterfaces.GetMetricsInterface() != nil {
+		einterfaces.GetMetricsInterface().IncrementPostSentEmail()
+	}
 }
 
 func getMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
@@ -959,6 +972,9 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 		tmpMessage := *model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
 		tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
 		sendToPushProxy(tmpMessage)
+		if einterfaces.GetMetricsInterface() != nil {
+			einterfaces.GetMetricsInterface().IncrementPostSentPush()
+		}
 	}
 }
 

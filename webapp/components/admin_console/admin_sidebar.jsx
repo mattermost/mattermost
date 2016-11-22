@@ -192,6 +192,7 @@ export default class AdminSidebar extends React.Component {
         let ldapSettings = null;
         let samlSettings = null;
         let clusterSettings = null;
+        let metricsSettings = null;
         let complianceSettings = null;
 
         let license = null;
@@ -235,6 +236,20 @@ export default class AdminSidebar extends React.Component {
                             <FormattedMessage
                                 id='admin.sidebar.cluster'
                                 defaultMessage='High Availability (Beta)'
+                            />
+                        }
+                    />
+                );
+            }
+
+            if (global.window.mm_license.Metrics === 'true') {
+                metricsSettings = (
+                    <AdminSidebarSection
+                        name='metrics'
+                        title={
+                            <FormattedMessage
+                                id='admin.sidebar.metrics'
+                                defaultMessage='Performance Monitoring (Beta)'
                             />
                         }
                     />
@@ -716,6 +731,7 @@ export default class AdminSidebar extends React.Component {
                                     }
                                 />
                                 {clusterSettings}
+                                {metricsSettings}
                             </AdminSidebarSection>
                         </AdminSidebarCategory>
                         {this.renderTeams()}

@@ -34,6 +34,7 @@ type WebSocketMessage interface {
 	IsValid() bool
 	DoPreComputeJson()
 	GetPreComputeJson() []byte
+	EventType() string
 }
 
 type WebsocketBroadcast struct {
@@ -61,6 +62,10 @@ func NewWebSocketEvent(event, teamId, channelId, userId string, omitUsers map[st
 
 func (o *WebSocketEvent) IsValid() bool {
 	return o.Event != ""
+}
+
+func (o *WebSocketEvent) EventType() string {
+	return o.Event
 }
 
 func (o *WebSocketEvent) DoPreComputeJson() {
@@ -118,6 +123,10 @@ func NewWebSocketError(seqReply int64, err *AppError) *WebSocketResponse {
 
 func (o *WebSocketResponse) IsValid() bool {
 	return o.Status != ""
+}
+
+func (o *WebSocketResponse) EventType() string {
+	return ""
 }
 
 func (o *WebSocketResponse) ToJson() string {

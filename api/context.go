@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
@@ -103,6 +104,7 @@ type handler struct {
 }
 
 func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	now := time.Now()
 	l4g.Debug("%v", r.URL.Path)
 
 	c := &Context{}
@@ -228,12 +230,26 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if h.isApi {
 			w.WriteHeader(c.Err.StatusCode)
 			w.Write([]byte(c.Err.ToJson()))
+
+			if einterfaces.GetMetricsInterface() != nil {
+				einterfaces.GetMetricsInterface().IncrementHttpError()
+			}
 		} else {
 			if c.Err.StatusCode == http.StatusUnauthorized {
 				http.Redirect(w, r, c.GetTeamURL()+"/?redirect="+url.QueryEscape(r.URL.Path), http.StatusTemporaryRedirect)
 			} else {
 				RenderWebError(c.Err, w, r)
 			}
+		}
+
+	}
+
+	if h.isApi && einterfaces.GetMetricsInterface() != nil {
+		einterfaces.GetMetricsInterface().IncrementHttpRequest()
+
+		if r.URL.Path != model.API_URL_SUFFIX+"/users/websocket" {
+			elapsed := float64(time.Since(now)) / float64(time.Second)
+			einterfaces.GetMetricsInterface().ObserveHttpRequestDuration(elapsed)
 		}
 	}
 }

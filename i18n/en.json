@@ -2660,6 +2660,14 @@
     "translation": "System Console is set to read-only when High Availability is enabled."
   },
   {
+    "id": "ent.metrics.starting.info",
+    "translation": "Metrics and profiling server is listening on %v"
+  },
+  {
+    "id": "ent.metrics.stopping.info",
+    "translation": "Metrics and profiling server is stopping on %v"
+  },
+  {
     "id": "ent.cluster.starting.info",
     "translation": "Cluster internode communication is listening on %v with hostname=%v id=%v"
   },
