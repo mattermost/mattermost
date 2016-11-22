@@ -67,10 +67,10 @@ func ImportFile(file io.Reader, teamId string, channelId string, userId string, 
 		return nil, err
 	}
 
-	preparedImage := prepareImage(data)
-	if preparedImage != nil {
-		generateThumbnailImage(preparedImage.Img, fileInfo.ThumbnailPath, preparedImage.Width, preparedImage.Height)
-		generatePreviewImage(preparedImage.Img, fileInfo.PreviewPath, preparedImage.Width)
+	img, width, height := prepareImage(data)
+	if img != nil {
+		generateThumbnailImage(*img, fileInfo.ThumbnailPath, width, height)
+		generatePreviewImage(*img, fileInfo.PreviewPath, width)
 	}
 
 	return fileInfo, nil

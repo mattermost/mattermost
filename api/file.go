@@ -58,12 +58,6 @@ const (
 	MaxImageSize = 6048 * 4032 // 24 megapixels, roughly 36MB as a raw image
 )
 
-type PreparedImage struct {
-	Img    image.Image
-	Width  int
-	Height int
-}
-
 func InitFile() {
 	l4g.Debug(utils.T("api.file.init.debug"))
 
@@ -201,21 +195,21 @@ func doUploadFile(teamId string, channelId string, userId string, rawFilename st
 func handleImages(previewPathList []string, thumbnailPathList []string, fileData [][]byte) {
 	for i, data := range fileData {
 		go func(i int, data []byte) {
-			preparedImage := prepareImage(fileData[i])
-			if preparedImage != nil {
-				go generateThumbnailImage(preparedImage.Img, thumbnailPathList[i], preparedImage.Width, preparedImage.Height)
-				go generatePreviewImage(preparedImage.Img, previewPathList[i], preparedImage.Width)
+			img, width, height := prepareImage(fileData[i])
+			if img != nil {
+				go generateThumbnailImage(*img, thumbnailPathList[i], width, height)
+				go generatePreviewImage(*img, previewPathList[i], width)
 			}
 		}(i, data)
 	}
 }
 
-func prepareImage(fileData []byte) *PreparedImage {
+func prepareImage(fileData []byte) (*image.Image, int, int) {
 	// Decode image bytes into Image object
 	img, imgType, err := image.Decode(bytes.NewReader(fileData))
 	if err != nil {
 		l4g.Error(utils.T("api.file.handle_images_forget.decode.error"), err)
-		return nil
+		return nil, 0, 0
 	}
 
 	width := img.Bounds().Dx()
@@ -249,9 +243,7 @@ func prepareImage(fileData []byte) *PreparedImage {
 		img = imaging.Rotate90(img)
 	}
 
-	return &PreparedImage{
-		img, width, height,
-	}
+	return &img, width, height
 }
 
 func getImageOrientation(imageData []byte) (int, error) {
