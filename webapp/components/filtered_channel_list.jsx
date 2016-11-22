@@ -43,7 +43,7 @@ export default class FilteredChannelList extends React.Component {
     }
 
     clearFilters(channels) {
-        this.setState({filter: '', channels: channels});
+        this.setState({filter: '', channels});
     }
 
     componentDidUpdate(prevProps, prevState) {
