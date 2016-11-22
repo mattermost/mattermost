@@ -41,6 +41,8 @@ func GetCommandProvider(name string) CommandProvider {
 func InitCommand() {
 	l4g.Debug(utils.T("api.command.init.debug"))
 
+	InitCommandFromConfig()
+
 	BaseRoutes.Commands.Handle("/execute", ApiUserRequired(executeCommand)).Methods("POST")
 	BaseRoutes.Commands.Handle("/list", ApiUserRequired(listCommands)).Methods("GET")
 
@@ -111,7 +113,9 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if provider != nil {
 		response := provider.DoCommand(c, channelId, message)
-		handleResponse(c, w, response, channelId, provider.GetCommand(c), true)
+		if c.Err == nil {
+			handleResponse(c, w, response, channelId, provider.GetCommand(c), true)
+		}
 		return
 	} else {
 
