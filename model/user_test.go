@@ -128,6 +128,17 @@ func TestUserIsValid(t *testing.T) {
 	if err := user.IsValid(); err == nil {
 		t.Fatal(err)
 	}
+
+	user.LastName = ""
+	user.Position = ""
+	if err := user.IsValid(); err != nil {
+		t.Fatal(err)
+	}
+
+	user.Position = strings.Repeat("01234567890", 20)
+	if err := user.IsValid(); err == nil {
+		t.Fatal(err)
+	}
 }
 
 func TestUserGetFullName(t *testing.T) {
