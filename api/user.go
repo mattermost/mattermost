@@ -357,25 +357,26 @@ func CreateOAuthUser(c *Context, w http.ResponseWriter, r *http.Request, service
 
 func sendWelcomeEmail(c *Context, userId string, email string, siteURL string, verified bool) {
 	rawUrl, _ := url.Parse(siteURL)
+	siteName := utils.Cfg.TeamSettings.SiteName
 
 	subjectPage := utils.NewHTMLTemplate("welcome_subject", c.Locale)
-	subjectPage.Props["Subject"] = c.T("api.templates.welcome_subject", map[string]interface{}{"ServerURL": rawUrl.Host})
+	subjectPage.Props["Subject"] = c.T("api.templates.welcome_subject", map[string]interface{}{"ServerURL": rawUrl.Host, "SiteName": siteName})
 
 	bodyPage := utils.NewHTMLTemplate("welcome_body", c.Locale)
 	bodyPage.Props["SiteURL"] = siteURL
-	bodyPage.Props["Title"] = c.T("api.templates.welcome_body.title", map[string]interface{}{"ServerURL": rawUrl.Host})
+	bodyPage.Props["SiteName"] = siteName
+	bodyPage.Props["Title"] = c.T("api.templates.welcome_body.title", map[string]interface{}{"ServerURL": rawUrl.Host, "SiteName": siteName})
 	bodyPage.Props["Info"] = c.T("api.templates.welcome_body.info")
 	bodyPage.Props["Button"] = c.T("api.templates.welcome_body.button")
 	bodyPage.Props["Info2"] = c.T("api.templates.welcome_body.info2")
 	bodyPage.Props["Info3"] = c.T("api.templates.welcome_body.info3")
-	bodyPage.Props["SiteURL"] = siteURL
 
 	if *utils.Cfg.NativeAppSettings.AppDownloadLink != "" {
-		bodyPage.Props["AppDownloadInfo"] = c.T("api.templates.welcome_body.app_download_info")
+		bodyPage.Props["AppDownloadInfo"] = c.T("api.templates.welcome_body.app_download_info", map[string]interface{}{"SiteName": siteName})
 		bodyPage.Props["AppDownloadLink"] = *utils.Cfg.NativeAppSettings.AppDownloadLink
 	}
 
-	if !verified {
+	if utils.Cfg.EmailSettings.RequireEmailVerification && !verified {
 		link := fmt.Sprintf("%s/do_verify_email?uid=%s&hid=%s&email=%s", siteURL, userId, model.HashPassword(userId+utils.Cfg.EmailSettings.InviteSalt), url.QueryEscape(email))
 		bodyPage.Props["VerifyUrl"] = link
 	}

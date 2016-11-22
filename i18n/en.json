@@ -2021,7 +2021,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "For the best experience, download the apps for PC, Mac, iOS and Android from:"
+    "translation": "Get {{ .SiteName }} today by visiting our download page:"
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -2037,15 +2037,15 @@
   },
   {
     "id": "api.templates.welcome_body.info3",
-    "translation": "uChat lets you share messages and files from your PC or phone, with instant search and archiving."
+    "translation": "Hi There! You are receiving this email because you and your team have been given access to uChat."
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "You've joined {{ .ServerURL }}"
+    "translation": "Welcome to {{ .SiteName }}!"
   },
   {
     "id": "api.templates.welcome_subject",
-    "translation": "You joined {{ .ServerURL }}"
+    "translation": "Welcome to {{ .SiteName }}!"
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
