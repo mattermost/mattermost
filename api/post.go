@@ -28,9 +28,8 @@ import (
 )
 
 const (
-	TRIGGERWORDS_FULL                   = 0
-	TRIGGERWORDS_STARTSWITH             = 1
-	MAX_USERS_IN_CHANNEL_FOR_EXTRA_WORK = 1000
+	TRIGGERWORDS_FULL       = 0
+	TRIGGERWORDS_STARTSWITH = 1
 )
 
 func InitPost() {
@@ -467,7 +466,7 @@ func getMentionKeywordsInChannel(profiles map[string]*model.User) map[string][]s
 		}
 
 		// Add @channel and @all to keywords if user has them turned on
-		if len(profiles) < MAX_USERS_IN_CHANNEL_FOR_EXTRA_WORK && profile.NotifyProps["channel"] == "true" {
+		if int64(len(profiles)) < *utils.Cfg.TeamSettings.MaxNotificationsPerChannel && profile.NotifyProps["channel"] == "true" {
 			keywords["@channel"] = append(keywords["@channel"], profile.Id)
 			keywords["@all"] = append(keywords["@all"], profile.Id)
 		}
@@ -680,40 +679,40 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 	}
 
 	// If the channel has more than 1K users then @here is disabled
-	if hereNotification && len(profileMap) > MAX_USERS_IN_CHANNEL_FOR_EXTRA_WORK {
+	if hereNotification && int64(len(profileMap)) > *utils.Cfg.TeamSettings.MaxNotificationsPerChannel {
 		hereNotification = false
 		SendEphemeralPost(
 			c.TeamId,
 			post.UserId,
 			&model.Post{
 				ChannelId: post.ChannelId,
-				Message:   utils.T("api.post.disabled_here", map[string]interface{}{"Users": MAX_USERS_IN_CHANNEL_FOR_EXTRA_WORK}),
+				Message:   utils.T("api.post.disabled_here", map[string]interface{}{"Users": *utils.Cfg.TeamSettings.MaxNotificationsPerChannel}),
 				CreateAt:  post.CreateAt + 1,
 			},
 		)
 	}
 
 	// If the channel has more than 1K users then @channel is disabled
-	if channelNotification && len(profileMap) > MAX_USERS_IN_CHANNEL_FOR_EXTRA_WORK {
+	if channelNotification && int64(len(profileMap)) > *utils.Cfg.TeamSettings.MaxNotificationsPerChannel {
 		SendEphemeralPost(
 			c.TeamId,
 			post.UserId,
 			&model.Post{
 				ChannelId: post.ChannelId,
-				Message:   utils.T("api.post.disabled_channel", map[string]interface{}{"Users": MAX_USERS_IN_CHANNEL_FOR_EXTRA_WORK}),
+				Message:   utils.T("api.post.disabled_channel", map[string]interface{}{"Users": *utils.Cfg.TeamSettings.MaxNotificationsPerChannel}),
 				CreateAt:  post.CreateAt + 1,
 			},
 		)
 	}
 
 	// If the channel has more than 1K users then @all is disabled
-	if allNotification && len(profileMap) > MAX_USERS_IN_CHANNEL_FOR_EXTRA_WORK {
+	if allNotification && int64(len(profileMap)) > *utils.Cfg.TeamSettings.MaxNotificationsPerChannel {
 		SendEphemeralPost(
 			c.TeamId,
 			post.UserId,
 			&model.Post{
 				ChannelId: post.ChannelId,
-				Message:   utils.T("api.post.disabled_all", map[string]interface{}{"Users": MAX_USERS_IN_CHANNEL_FOR_EXTRA_WORK}),
+				Message:   utils.T("api.post.disabled_all", map[string]interface{}{"Users": *utils.Cfg.TeamSettings.MaxNotificationsPerChannel}),
 				CreateAt:  post.CreateAt + 1,
 			},
 		)

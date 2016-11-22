@@ -186,7 +186,7 @@ func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 				l4g.Error("webhub.shouldSendEvent: " + result.Err.Error())
 				return false
 			} else {
-				if result.Data.(int64) > MAX_USERS_IN_CHANNEL_FOR_EXTRA_WORK {
+				if result.Data.(int64) > *utils.Cfg.TeamSettings.MaxNotificationsPerChannel {
 					return false
 				}
 			}

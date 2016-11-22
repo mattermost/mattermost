@@ -32,6 +32,7 @@ export default class UsersAndTeamsSettings extends AdminSettings {
         config.TeamSettings.RestrictCreationToDomains = this.state.restrictCreationToDomains;
         config.TeamSettings.RestrictDirectMessage = this.state.restrictDirectMessage;
         config.TeamSettings.MaxChannelsPerTeam = this.parseIntNonZero(this.state.maxChannelsPerTeam, Constants.DEFAULT_MAX_CHANNELS_PER_TEAM);
+        config.TeamSettings.MaxNotificationsPerChannel = this.parseIntNonZero(this.state.maxNotificationsPerChannel, Constants.DEFAULT_MAX_NOTIFICATIONS_PER_CHANNEL);
 
         return config;
     }
@@ -43,7 +44,8 @@ export default class UsersAndTeamsSettings extends AdminSettings {
             maxUsersPerTeam: config.TeamSettings.MaxUsersPerTeam,
             restrictCreationToDomains: config.TeamSettings.RestrictCreationToDomains,
             restrictDirectMessage: config.TeamSettings.RestrictDirectMessage,
-            maxChannelsPerTeam: config.TeamSettings.MaxChannelsPerTeam
+            maxChannelsPerTeam: config.TeamSettings.MaxChannelsPerTeam,
+            maxNotificationsPerChannel: config.TeamSettings.MaxNotificationsPerChannel
         };
     }
 
@@ -129,6 +131,24 @@ export default class UsersAndTeamsSettings extends AdminSettings {
                         />
                     }
                     value={this.state.maxChannelsPerTeam}
+                    onChange={this.handleChange}
+                />
+                <TextSetting
+                    id='maxNotificationsPerChannel'
+                    label={
+                        <FormattedMessage
+                            id='admin.team.maxNotificationsPerChannelTitle'
+                            defaultMessage='Max Notifications Per Channel:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.team.maxNotificationsPerChannelExample', 'Ex "1000"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.team.maxNotificationsPerChannelDescription'
+                            defaultMessage='Maximum total number of users in a channel before users typing messages, @all, @here, and @channel no longer send notifications because of performance.'
+                        />
+                    }
+                    value={this.state.maxNotificationsPerChannel}
                     onChange={this.handleChange}
                 />
                 <TextSetting
