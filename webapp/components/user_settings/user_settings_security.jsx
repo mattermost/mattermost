@@ -289,7 +289,7 @@ export default class SecurityTab extends React.Component {
                     <span>
                         <FormattedMessage
                             id='user.settings.mfa.addHelpQr'
-                            defaultMessage='Please scan the QR code with the Google Authenticator app on your smartphone and fill in the token with one provided by the app. If you are unable to scan the code, you can maunally enter the secret provided.'
+                            defaultMessage='Please scan the QR code with the Google Authenticator app on your smartphone and fill in the token with one provided by the app. If you are unable to scan the code, you can manually enter the secret provided.'
                         />
                     </span>
                 );
