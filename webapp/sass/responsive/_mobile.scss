@@ -1,6 +1,10 @@
 @charset 'UTF-8';
 
 @media screen and (max-width: 768px) {
+    .suggestion-list__content {
+        max-height: 145px;
+    }
+
     .modal {
         .modal-dialog {
             &.new-channel__modal {
@@ -206,6 +210,11 @@
             }
         }
 
+        .post__remove {
+            margin-right: 10px;
+            visibility: visible;
+        }
+
         &.post--compact {
             .status-wrapper {
                 &:after {
@@ -338,6 +347,24 @@
             }
 
             &.same--user {
+                &.post--compact {
+                    .status-wrapper {
+                        &:after {
+                            bottom: -2px;
+                        }
+                    }
+                }
+
+                .post__img {
+                    .status-wrapper {
+                        display: inline-block;
+                    }
+
+                    img {
+                        display: block;
+                    }
+                }
+
                 .post__header {
                     height: auto;
                     margin-top: 5px;
