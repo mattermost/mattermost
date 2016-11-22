@@ -421,7 +421,7 @@ func PostUpdateChannelPurposeMessage(c *Context, channelId string, oldChannelPur
 			UserId:    c.Session.UserId,
 			Props: model.StringInterface{
 				"old_purpose": oldChannelPurpose,
-				"new_header":  newChannelPurpose,
+				"new_purpose": newChannelPurpose,
 			},
 		}
 		if _, err := CreatePost(c, post, false); err != nil {
