@@ -73,7 +73,7 @@
   "add_emoji.header": "Add",
   "add_emoji.image": "Image",
   "add_emoji.image.button": "Select",
-  "add_emoji.image.help": "Choose the image for your emoji. The image can be a gif, png, or jpeg file with a max size of 64 KB and dimensions up to 128 by 128 pixels.",
+  "add_emoji.image.help": "Choose the image for your emoji. The image can be a gif, png, or jpeg file with a max size of 1 MB. Dimensions will automatically resize to fit 128 by 128 pixels but keeping aspect ratio.",
   "add_emoji.imageRequired": "An image is required for the emoji",
   "add_emoji.name": "Name",
   "add_emoji.name.help": "Choose a name for your emoji made of up to 64 characters consisting of lowercase letters, numbers, and the symbols '-' and '_'.",

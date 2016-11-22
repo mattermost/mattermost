@@ -791,7 +791,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Unable to create emoji. Image must be less than 64 KB in size."
+    "translation": "Unable to create emoji. Image must be less than 1 MB in size."
   },
   {
     "id": "api.emoji.delete.permissions.app_error",
@@ -822,8 +822,20 @@
     "translation": "Unable to create emoji. File must be a PNG, JPEG, or GIF."
   },
   {
-    "id": "api.emoji.upload.large_image.app_error",
-    "translation": "Unable to create emoji. Image must be at most 128 by 128 pixels."
+    "id": "api.emoji.upload.large_image.decode_error",
+    "translation": "Unable to create emoji. An error occurred when trying to decode the image."
+  },
+  {
+    "id": "api.emoji.upload.large_image.encode_error",
+    "translation": "Unable to create emoji. An error occurred when trying to encode the image."
+  },
+  {
+    "id": "api.emoji.upload.large_image.gif_decode_error",
+    "translation": "Unable to create emoji. An error occurred when trying to decode the GIF image."
+  },
+  {
+    "id": "api.emoji.upload.large_image.gif_encode_error",
+    "translation": "Unable to create emoji. An error occurred when trying to encode the GIF image."
   },
   {
     "id": "api.file.get_file.public_disabled.app_error",
