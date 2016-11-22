@@ -365,7 +365,7 @@
   },
   {
     "id": "api.command.delete.app_error",
-    "translation": "Permisos inapropiados para utilizar el comando de borrar"
+    "translation": "Permisos inapropiados para eliminar el comando de barra"
   },
   {
     "id": "api.command.disabled.app_error",
@@ -438,6 +438,14 @@
   {
     "id": "api.command.regen.app_error",
     "translation": "Permisos inapropiados para utilizar le comando de regenerar token"
+  },
+  {
+    "id": "api.command.team_mismatch.app_error",
+    "translation": "No se puede actualizar comandos a través de equipos"
+  },
+  {
+    "id": "api.command.update.app_error",
+    "translation": "Permisos inapropiados para actualizar el comando de barra"
   },
   {
     "id": "api.command_away.desc",
@@ -983,7 +991,7 @@
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
-    "translation": "No se pudo subir la imagen. El archivo es demasiado grande."
+    "translation": "No se pudo subir el archivo que supera las dimensiones máximas: {{.Filename}}"
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -2670,6 +2678,10 @@
   {
     "id": "ent.emoji.licence_disable.app_error",
     "translation": "Las restricciones de los Emoticones Personalizados están desactivadas por la licencia actual. Por favor contacta a un Administrador del Sistema sobre como actualizar a una licencia enterprise."
+  },
+  {
+    "id": "ent.ldap.create_fail",
+    "translation": "No se puede crear el usuario de LDAP."
   },
   {
     "id": "ent.ldap.disabled.app_error",

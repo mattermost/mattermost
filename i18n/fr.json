@@ -440,6 +440,14 @@
     "translation": "Droits insuffisants pour regénérer la clé de commande"
   },
   {
+    "id": "api.command.team_mismatch.app_error",
+    "translation": "Cannot update commands across teams"
+  },
+  {
+    "id": "api.command.update.app_error",
+    "translation": "Droits insuffisants pour supprimer la commande"
+  },
+  {
     "id": "api.command_away.desc",
     "translation": "Changer votre état en « Absent »."
   },
@@ -983,7 +991,7 @@
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
-    "translation": "Impossible d'envoyer le fichier image. Le fichier est trop volumineux."
+    "translation": "File above maximum dimensions could not be uploaded: {{.Filename}}"
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -2670,6 +2678,10 @@
   {
     "id": "ent.emoji.licence_disable.app_error",
     "translation": "Les émoticônes personnalisées sont désactivées par la licence actuellement utilisée. Veuillez contacter votre administrateur système à propos d'une mise à niveau vers la licence entreprise."
+  },
+  {
+    "id": "ent.ldap.create_fail",
+    "translation": "Impossible de créer l'utilisateur LDAP."
   },
   {
     "id": "ent.ldap.disabled.app_error",

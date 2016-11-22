@@ -440,6 +440,14 @@
     "translation": "没有重新生成命令令牌的权限"
   },
   {
+    "id": "api.command.team_mismatch.app_error",
+    "translation": "无法跨团队更新命令"
+  },
+  {
+    "id": "api.command.update.app_error",
+    "translation": "无效更新命令权限"
+  },
+  {
     "id": "api.command_away.desc",
     "translation": "设置您的状态设为离开"
   },
@@ -629,11 +637,11 @@
   },
   {
     "id": "api.command_shortcuts.msgs",
-    "translation": "#### 消息\n\nESC：标当前频道所有消息为已读\nCTRL+向上键 (在空输入栏)：重用您输入的上一条消息或斜杠命令\nCTRL+向下键 (在空输入栏)：重用您输入的下一条消息或斜杠命令\n向上键 (在空输入栏)：修改您当前频道的上一条消息\n@[字符]+TAB：自动完成以[字符]开头的 @用户名\n#[字符]+TAB：自动完成以[字符]开头的频道\n:[字符]+TAB：自动完成以[字符]开头的表情符\n\n"
+    "translation": "#### 消息\n\nESC：标当前频道所有消息为已读\nCTRL+向上键 (在空输入栏)：重用您输入的上一条消息或斜杠命令\nCTRL+向下键 (在空输入栏)：重用您输入的下一条消息或斜杠命令\n向上键 (在空输入栏)：修改您当前频道的上一条消息\n@[字符]+TAB：自动完成以[字符]开头的 @用户名\n~[字符]+TAB：自动完成以[字符]开头的频道\n:[字符]+TAB：自动完成以[字符]开头的表情符\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs_mac",
-    "translation": "#### 消息\n\nESC：标当前频道所有消息为已读\nCMD+向上键 (在空输入栏)：重用您输入的上一条消息或斜杠命令\nCMD+向下键 (在空输入栏)：重用您输入的下一条消息或斜杠命令\n向上键 (在空输入栏)：修改您当前频道的上一条消息\n@[字符]+TAB：自动完成以[字符]开头的 @用户名\n#[字符]+TAB：自动完成以[字符]开头的频道\n:[字符]+TAB：自动完成以[字符]开头的表情符\n\n"
+    "translation": "#### 消息\n\nESC：标当前频道所有消息为已读\nCMD+向上键 (在空输入栏)：重用您输入的上一条消息或斜杠命令\nCMD+向下键 (在空输入栏)：重用您输入的下一条消息或斜杠命令\n向上键 (在空输入栏)：修改您当前频道的上一条消息\n@[字符]+TAB：自动完成以[字符]开头的 @用户名\n~[字符]+TAB：自动完成以[字符]开头的频道\n:[字符]+TAB：自动完成以[字符]开头的表情符\n\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -983,7 +991,7 @@
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
-    "translation": "不能上传图片文件。文件太大。"
+    "translation": "无法上传超过最大尺寸的文件：{{.Filename}}"
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -2670,6 +2678,10 @@
   {
     "id": "ent.emoji.licence_disable.app_error",
     "translation": "当前许可证禁用了自定义表情符。请联系您的系统管理员关于升级您的企业许可证。"
+  },
+  {
+    "id": "ent.ldap.create_fail",
+    "translation": "无法创建 LDAP 用户。"
   },
   {
     "id": "ent.ldap.disabled.app_error",
