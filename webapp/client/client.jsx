@@ -201,12 +201,12 @@ export default class Client {
 
             if (errorCallback) {
                 errorCallback(e, err, res);
-                return;
             }
+            return;
         }
 
         if (successCallback) {
-            if (res.body) {
+            if (res && res.body) {
                 successCallback(res.body, res);
             } else {
                 console.error('Missing response body for ' + methodName); // eslint-disable-line no-console
