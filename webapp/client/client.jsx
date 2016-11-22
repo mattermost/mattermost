@@ -201,8 +201,8 @@ export default class Client {
 
             if (errorCallback) {
                 errorCallback(e, err, res);
-                return;
             }
+            return;
         }
 
         if (successCallback) {
