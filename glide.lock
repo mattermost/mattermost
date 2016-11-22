@@ -1,5 +1,5 @@
-hash: 73585b7d4a0a7b42896242fda4c0808aecf41194c57fe12d17be453aab6046fa
-updated: 2016-11-21T14:31:34.225927877-08:00
+hash: 6356cb81d6e15717a3ca6e205184d4144bf7087feebeb19d24ff72b20c65b985
+updated: 2016-11-22T09:00:05.599031729-08:00
 imports:
 - name: github.com/alecthomas/log4go
   version: e5dc62318d9bd58682f1dceb53a4b24e8253682f
@@ -7,8 +7,6 @@ imports:
   version: 4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9
   subpackages:
   - quantile
-- name: github.com/braintree/manners
-  version: 0b5e6b2c2843f4c83c2a40f96980b09cf4af733c
 - name: github.com/dgryski/dgoogauth
   version: 96977cbd42e27be71f9f731db6634123de7e861a
 - name: github.com/disintegration/imaging
@@ -62,7 +60,7 @@ imports:
   subpackages:
   - pbutil
 - name: github.com/miekg/dns
-  version: a8a1273f08d171f75254d2157ee546ea65bd0a27
+  version: 271c58e0c14f552178ea321a545ff9af38930f39
 - name: github.com/minio/minio-go
   version: c040578255dbb1a1f41cbdc5bd944de4140b4149
   subpackages:
