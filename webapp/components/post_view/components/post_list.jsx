@@ -284,7 +284,7 @@ export default class PostList extends React.Component {
             }
 
             if (parentPost && commentRootId) {
-                const commentsNotifyLevel = this.props.currentUser.notify_props.comments || 'never';
+                const commentsNotifyLevel = this.props.currentUser.notify_props.comments || 'root';
                 const notCurrentUser = post.user_id !== userId || (post.props && post.props.from_webhook);
                 if (notCurrentUser) {
                     if (commentsNotifyLevel === 'any' && (posts[commentRootId].user_id === userId || shouldHighlightThreads)) {

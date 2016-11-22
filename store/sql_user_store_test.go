@@ -981,6 +981,32 @@ func TestUserStoreSearch(t *testing.T) {
 		}
 	}
 
+	// * should be treated as a space
+	if r1 := <-store.User().Search(tid, "jimb*", searchOptions); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		profiles := r1.Data.([]*model.User)
+		found1 := false
+		found2 := false
+		for _, profile := range profiles {
+			if profile.Id == u1.Id {
+				found1 = true
+			}
+
+			if profile.Id == u3.Id {
+				found2 = true
+			}
+		}
+
+		if !found1 {
+			t.Fatal("should have found user")
+		}
+
+		if found2 {
+			t.Fatal("should not have found inactive user")
+		}
+	}
+
 	if r1 := <-store.User().Search(tid, "harol", searchOptions); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {

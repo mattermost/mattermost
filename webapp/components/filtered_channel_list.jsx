@@ -42,6 +42,10 @@ export default class FilteredChannelList extends React.Component {
         }
     }
 
+    clearFilters(channels) {
+        this.setState({filter: '', channels});
+    }
+
     componentDidUpdate(prevProps, prevState) {
         if (prevState.filter !== this.state.filter) {
             $(ReactDOM.findDOMNode(this.refs.channelList)).scrollTop(0);
@@ -153,6 +157,7 @@ export default class FilteredChannelList extends React.Component {
                             className='form-control filter-textbox'
                             placeholder={localizeMessage('filtered_channels_list.search', 'Search channels')}
                             onInput={this.handleFilterChange}
+                            value={this.state.filter}
                         />
                     </div>
                     <div className='col-sm-12'>
