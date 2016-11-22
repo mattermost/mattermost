@@ -676,6 +676,18 @@
     "translation": "Invalid {{.Name}} parameter"
   },
   {
+    "id": "api.post.disabled_here",
+    "translation": "@here has been disabled because the channel has more than {{.Users}} users."
+  },
+  {
+    "id": "api.post.disabled_all",
+    "translation": "@all has been disabled because the channel has more than {{.Users}} users."
+  },
+  {
+    "id": "api.post.disabled_channel",
+    "translation": "@channel has been disabled because the channel has more than {{.Users}} users."
+  },
+  {
     "id": "api.context.invalid_team_url.debug",
     "translation": "TeamURL accessed when not valid. Team URL should not be used in api functions or those that are team independent"
   },

@@ -13,18 +13,23 @@ import (
 )
 
 const (
-	MISSING_CHANNEL_ERROR                   = "store.sql_channel.get_by_name.missing.app_error"
-	MISSING_CHANNEL_MEMBER_ERROR            = "store.sql_channel.get_member.missing.app_error"
-	CHANNEL_EXISTS_ERROR                    = "store.sql_channel.save_channel.exists.app_error"
+	MISSING_CHANNEL_ERROR        = "store.sql_channel.get_by_name.missing.app_error"
+	MISSING_CHANNEL_MEMBER_ERROR = "store.sql_channel.get_member.missing.app_error"
+	CHANNEL_EXISTS_ERROR         = "store.sql_channel.save_channel.exists.app_error"
+
 	ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SIZE = model.SESSION_CACHE_SIZE
 	ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SEC  = 900 // 15 mins
+
+	CHANNEL_MEMBERS_COUNTS_CACHE_SIZE = 20000
+	CHANNEL_MEMBERS_COUNTS_CACHE_SEC  = 900 // 15 mins
 )
 
 type SqlChannelStore struct {
 	*SqlStore
 }
 
-var allChannelMembersForUserCache *utils.Cache = utils.NewLru(ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SIZE)
+var channelMemberCountsCache = utils.NewLru(CHANNEL_MEMBERS_COUNTS_CACHE_SIZE)
+var allChannelMembersForUserCache = utils.NewLru(ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SIZE)
 
 func NewSqlChannelStore(sqlStore *SqlStore) ChannelStore {
 	s := &SqlChannelStore{sqlStore}
@@ -395,7 +400,7 @@ func (s SqlChannelStore) GetMoreChannels(teamId string, userId string) StoreChan
 
 		data := &model.ChannelList{}
 		_, err := s.GetReplica().Select(data,
-			`SELECT 
+			`SELECT
 			    *
 			FROM
 			    Channels
@@ -403,7 +408,7 @@ func (s SqlChannelStore) GetMoreChannels(teamId string, userId string) StoreChan
 			    TeamId = :TeamId1
 					AND Type IN ('O')
 					AND DeleteAt = 0
-			        AND Id NOT IN (SELECT 
+			        AND Id NOT IN (SELECT
 			            Channels.Id
 			        FROM
 			            Channels,
@@ -751,11 +756,24 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCac
 	return storeChannel
 }
 
-func (s SqlChannelStore) GetMemberCount(channelId string) StoreChannel {
+func (us SqlChannelStore) InvalidateMemberCount(channelId string) {
+	channelMemberCountsCache.Remove(channelId)
+}
+
+func (s SqlChannelStore) GetMemberCount(channelId string, allowFromCache bool) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
+
+		if allowFromCache {
+			if cacheItem, ok := channelMemberCountsCache.Get(channelId); ok {
+				result.Data = cacheItem.(int64)
+				storeChannel <- result
+				close(storeChannel)
+				return
+			}
+		}
 
 		count, err := s.GetReplica().SelectInt(`
 			SELECT
@@ -771,6 +789,10 @@ func (s SqlChannelStore) GetMemberCount(channelId string) StoreChannel {
 			result.Err = model.NewLocAppError("SqlChannelStore.GetMemberCount", "store.sql_channel.get_member_count.app_error", nil, "channel_id="+channelId+", "+err.Error())
 		} else {
 			result.Data = count
+
+			if allowFromCache {
+				channelMemberCountsCache.AddWithExpiresInSecs(channelId, count, CHANNEL_MEMBERS_COUNTS_CACHE_SEC)
+			}
 		}
 
 		storeChannel <- result

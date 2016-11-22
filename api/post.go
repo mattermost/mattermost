@@ -28,8 +28,9 @@ import (
 )
 
 const (
-	TRIGGERWORDS_FULL       = 0
-	TRIGGERWORDS_STARTSWITH = 1
+	TRIGGERWORDS_FULL                   = 0
+	TRIGGERWORDS_STARTSWITH             = 1
+	MAX_USERS_IN_CHANNEL_FOR_EXTRA_WORK = 1000
 )
 
 func InitPost() {
@@ -466,7 +467,7 @@ func getMentionKeywordsInChannel(profiles map[string]*model.User) map[string][]s
 		}
 
 		// Add @channel and @all to keywords if user has them turned on
-		if profile.NotifyProps["channel"] == "true" {
+		if len(profiles) < MAX_USERS_IN_CHANNEL_FOR_EXTRA_WORK && profile.NotifyProps["channel"] == "true" {
 			keywords["@channel"] = append(keywords["@channel"], profile.Id)
 			keywords["@all"] = append(keywords["@all"], profile.Id)
 		}
@@ -477,11 +478,13 @@ func getMentionKeywordsInChannel(profiles map[string]*model.User) map[string][]s
 
 // Given a message and a map mapping mention keywords to the users who use them, returns a map of mentioned
 // users and a slice of potencial mention users not in the channel and whether or not @here was mentioned.
-func getExplicitMentions(message string, keywords map[string][]string) (map[string]bool, []string, bool) {
+func getExplicitMentions(message string, keywords map[string][]string) (map[string]bool, []string, bool, bool, bool) {
 	mentioned := make(map[string]bool)
 	potentialOthersMentioned := make([]string, 0)
 	systemMentions := map[string]bool{"@here": true, "@channel": true, "@all": true}
 	hereMentioned := false
+	allMentioned := false
+	channelMentioned := false
 
 	addMentionedUsers := func(ids []string) {
 		for _, id := range ids {
@@ -494,6 +497,14 @@ func getExplicitMentions(message string, keywords map[string][]string) (map[stri
 
 		if word == "@here" {
 			hereMentioned = true
+		}
+
+		if word == "@channel" {
+			channelMentioned = true
+		}
+
+		if word == "@all" {
+			allMentioned = true
 		}
 
 		// Non-case-sensitive check for regular keys
@@ -520,6 +531,14 @@ func getExplicitMentions(message string, keywords map[string][]string) (map[stri
 					hereMentioned = true
 				}
 
+				if splitWord == "@all" {
+					allMentioned = true
+				}
+
+				if splitWord == "@channel" {
+					channelMentioned = true
+				}
+
 				// Non-case-sensitive check for regular keys
 				if ids, match := keywords[strings.ToLower(splitWord)]; match {
 					addMentionedUsers(ids)
@@ -536,7 +555,7 @@ func getExplicitMentions(message string, keywords map[string][]string) (map[stri
 		}
 	}
 
-	return mentioned, potentialOthersMentioned, hereMentioned
+	return mentioned, potentialOthersMentioned, hereMentioned, channelMentioned, allMentioned
 }
 
 func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *model.Channel) []string {
@@ -560,6 +579,8 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 	mentionedUserIds := make(map[string]bool)
 	allActivityPushUserIds := []string{}
 	hereNotification := false
+	channelNotification := false
+	allNotification := false
 	updateMentionChans := []store.StoreChannel{}
 
 	if channel.Type == model.CHANNEL_DIRECT {
@@ -575,7 +596,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 		keywords := getMentionKeywordsInChannel(profileMap)
 
 		var potentialOtherMentions []string
-		mentionedUserIds, potentialOtherMentions, hereNotification = getExplicitMentions(post.Message, keywords)
+		mentionedUserIds, potentialOtherMentions, hereNotification, channelNotification, allNotification = getExplicitMentions(post.Message, keywords)
 
 		// get users that have comment thread mentions enabled
 		if len(post.RootId) > 0 {
@@ -643,13 +664,59 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 			var status *model.Status
 			var err *model.AppError
 			if status, err = GetStatus(id); err != nil {
-				status = &model.Status{id, model.STATUS_OFFLINE, false, 0, ""}
+				status = &model.Status{
+					UserId:         id,
+					Status:         model.STATUS_OFFLINE,
+					Manual:         false,
+					LastActivityAt: 0,
+					ActiveChannel:  "",
+				}
 			}
 
 			if userAllowsEmails && status.Status != model.STATUS_ONLINE {
 				go sendNotificationEmail(c, post, profileMap[id], channel, team, senderName, sender)
 			}
 		}
+	}
+
+	// If the channel has more than 1K users then @here is disabled
+	if hereNotification && len(profileMap) > MAX_USERS_IN_CHANNEL_FOR_EXTRA_WORK {
+		hereNotification = false
+		SendEphemeralPost(
+			c.TeamId,
+			post.UserId,
+			&model.Post{
+				ChannelId: post.ChannelId,
+				Message:   utils.T("api.post.disabled_here", map[string]interface{}{"Users": MAX_USERS_IN_CHANNEL_FOR_EXTRA_WORK}),
+				CreateAt:  post.CreateAt + 1,
+			},
+		)
+	}
+
+	// If the channel has more than 1K users then @channel is disabled
+	if channelNotification && len(profileMap) > MAX_USERS_IN_CHANNEL_FOR_EXTRA_WORK {
+		SendEphemeralPost(
+			c.TeamId,
+			post.UserId,
+			&model.Post{
+				ChannelId: post.ChannelId,
+				Message:   utils.T("api.post.disabled_channel", map[string]interface{}{"Users": MAX_USERS_IN_CHANNEL_FOR_EXTRA_WORK}),
+				CreateAt:  post.CreateAt + 1,
+			},
+		)
+	}
+
+	// If the channel has more than 1K users then @all is disabled
+	if allNotification && len(profileMap) > MAX_USERS_IN_CHANNEL_FOR_EXTRA_WORK {
+		SendEphemeralPost(
+			c.TeamId,
+			post.UserId,
+			&model.Post{
+				ChannelId: post.ChannelId,
+				Message:   utils.T("api.post.disabled_all", map[string]interface{}{"Users": MAX_USERS_IN_CHANNEL_FOR_EXTRA_WORK}),
+				CreateAt:  post.CreateAt + 1,
+			},
+		)
 	}
 
 	if hereNotification {
