@@ -47,7 +47,7 @@ export default class EmoticonProvider {
         let hasSuggestions = false;
 
         // look for the potential emoticons at the start of the text, after whitespace, and at the start of emoji reaction commands
-        const captured = (/(^|\s|^\+|^\-)(:([^:\s]*))$/g).exec(pretext);
+        const captured = (/(^|\s|^\+|^-)(:([^:\s]*))$/g).exec(pretext);
         if (captured) {
             const prefix = captured[1];
             const text = captured[2];

@@ -103,7 +103,7 @@ export default class CreatePost extends React.Component {
 
         this.setState({submitting: true, serverError: null});
 
-        const isReaction = (/^(\+|\-):([^:\s]+):\s*$/).exec(post.message);
+        const isReaction = (/^(\+|-):([^:\s]+):\s*$/).exec(post.message);
         if (post.message.indexOf('/') === 0) {
             PostStore.storeDraft(this.state.channelId, null);
             this.setState({message: '', postError: null, fileInfos: []});
