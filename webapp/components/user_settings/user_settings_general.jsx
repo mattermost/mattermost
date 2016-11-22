@@ -462,7 +462,7 @@ class UserSettingsGeneralTab extends React.Component {
                 inputs.push(
                     <div
                         key='oauthEmailInfo'
-                        className='form-group'
+                        className='padding-bottom'
                     >
                         <div className='setting-list__hint'>
                             <FormattedMessage
@@ -480,7 +480,7 @@ class UserSettingsGeneralTab extends React.Component {
                 inputs.push(
                     <div
                         key='oauthEmailInfo'
-                        className='form-group'
+                        className='padding-bottom'
                     >
                         <div className='setting-list__hint'>
                             <FormattedMessage

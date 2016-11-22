@@ -1,11 +1,14 @@
 @charset 'UTF-8';
 
 .emoticon {
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
     background-size: contain;
     display: inline-block;
-    height: 1.5em;
-    margin-bottom: .25em;
-    width: 1.5em;
+    font-size: 19px;
+    height: 1em;
+    vertical-align: text-top;
+    width: 1em;
 }
 
 .emoticon-suggestion {

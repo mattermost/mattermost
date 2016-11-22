@@ -39,7 +39,8 @@ export default class SuggestionBox extends React.Component {
     componentWillReceiveProps(nextProps) {
         // Clear any suggestions when the SuggestionBox is cleared
         if (nextProps.value === '' && this.props.value !== nextProps.value) {
-            GlobalActions.emitClearSuggestions(this.suggestionId);
+            // TODO - Find a better way to not "dispatch during dispatch"
+            setTimeout(() => GlobalActions.emitClearSuggestions(this.suggestionId), 1);
         }
     }
 

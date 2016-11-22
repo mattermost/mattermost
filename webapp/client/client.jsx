@@ -201,12 +201,12 @@ export default class Client {
 
             if (errorCallback) {
                 errorCallback(e, err, res);
-                return;
             }
+            return;
         }
 
         if (successCallback) {
-            if (res.body) {
+            if (res && res.body) {
                 successCallback(res.body, res);
             } else {
                 console.error('Missing response body for ' + methodName); // eslint-disable-line no-console
@@ -919,6 +919,15 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getUser', success, error));
+    }
+
+    getByUsername(userName, success, error) {
+        request.
+            get(`${this.getUsersRoute()}/name/${userName}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getByUsername', success, error));
     }
 
     login(loginId, password, mfaToken, success, error) {
