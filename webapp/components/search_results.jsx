@@ -19,7 +19,7 @@ import React from 'react';
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
 function getStateFromStores() {
-    const results = SearchStore.getSearchResults();
+    const results = JSON.parse(JSON.stringify(SearchStore.getSearchResults()));
 
     const channels = new Map();
 

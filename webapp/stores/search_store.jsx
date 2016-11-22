@@ -96,6 +96,21 @@ class SearchStoreClass extends EventEmitter {
         this.isMentionSearch = isMentionSearch;
         this.isFlaggedPosts = isFlaggedPosts;
     }
+
+    deletePost(post) {
+        const results = this.getSearchResults();
+        if (results == null) {
+            return;
+        }
+
+        if (post.id in results.posts) {
+            // make sure to copy the post so that component state changes work properly
+            results.posts[post.id] = Object.assign({}, post, {
+                state: Constants.POST_DELETED,
+                file_ids: []
+            });
+        }
+    }
 }
 
 var SearchStore = new SearchStoreClass();
@@ -114,6 +129,10 @@ SearchStore.dispatchToken = AppDispatcher.register((payload) => {
         break;
     case ActionTypes.SHOW_SEARCH:
         SearchStore.emitShowSearch();
+        break;
+    case ActionTypes.POST_DELETED:
+        SearchStore.deletePost(action.post);
+        SearchStore.emitSearchChange();
         break;
     default:
     }
