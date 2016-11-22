@@ -4,6 +4,7 @@
 import Suggestion from './suggestion.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
+import SuggestionStore from 'stores/suggestion_store.jsx';
 
 import {autocompleteUsersInChannel} from 'actions/user_actions.jsx';
 
@@ -106,11 +107,22 @@ export default class AtMentionProvider {
     }
 
     componentWillUnmount() {
-        clearTimeout(this.timeoutId);
+        this.clearTimeout(this.timeoutId);
+    }
+
+    clearTimeout() {
+        if (this.timeoutId) {
+            clearTimeout(this.timeoutId);
+            this.timeoutId = '';
+
+            return true;
+        }
+
+        return false;
     }
 
     handlePretextChanged(suggestionId, pretext) {
-        clearTimeout(this.timeoutId);
+        const hadSuggestions = this.clearTimeout(this.timeoutId);
 
         const captured = (/(?:^|\W)@([a-z0-9\-._]*)$/i).exec(pretext.toLowerCase());
         if (captured) {
@@ -159,6 +171,11 @@ export default class AtMentionProvider {
                 autocomplete.bind(this),
                 Constants.AUTOCOMPLETE_TIMEOUT
             );
+        }
+
+        if (hadSuggestions) {
+            // Clear the suggestions since the user has now typed something invalid
+            SuggestionStore.clearSuggestions(suggestionId);
         }
     }
 }
