@@ -236,12 +236,12 @@
                     }
 
                     .theme-elements__header {
-                        border-bottom: 1px solid #ccc;
+                        border-bottom: 1px solid;
                         cursor: pointer;
                         font-size: em(13.5px);
                         font-weight: 600;
                         margin: 10px 20px 0 0;
-                        padding: 5px 0 10px;
+                        padding: 1px 0 10px;
 
                         .fa-minus {
                             display: none;
