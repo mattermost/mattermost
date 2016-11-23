@@ -272,3 +272,37 @@ export function removeReaction(channelId, postId, emojiName) {
 
     AsyncClient.deleteReaction(channelId, reaction);
 }
+
+export function createPost(post, doLoadPost) {
+    Client.createPost(post,
+        (data) => {
+            if (doLoadPost) {
+                loadPosts(post.channel_id);
+            } else {
+                PostStore.removePendingPost(post.pending_post_id);
+            }
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_POST,
+                post: data
+            });
+        },
+
+        (err) => {
+            if (err.id === 'api.post.create_post.root_id.app_error') {
+                // this should never actually happen since you can't reply from this textbox
+                this.showPostDeletedModal();
+
+                PostStore.removePendingPost(post.pending_post_id);
+            } else {
+                post.state = Constants.POST_FAILED;
+                PostStore.updatePendingPost(post);
+                this.forceUpdate();
+            }
+
+            this.setState({
+                submitting: false
+            });
+        }
+    );
+}

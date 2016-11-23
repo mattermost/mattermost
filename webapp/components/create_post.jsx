@@ -11,7 +11,6 @@ import TutorialTip from './tutorial/tutorial_tip.jsx';
 
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
-import Client from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
 import * as ChannelActions from 'actions/channel_actions.jsx';
@@ -28,6 +27,7 @@ import Constants from 'utils/constants.jsx';
 
 import {FormattedHTMLMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
+import {createPost} from 'actions/post_actions.jsx';
 
 const Preferences = Constants.Preferences;
 const TutorialSteps = Constants.TutorialSteps;
@@ -158,31 +158,8 @@ export default class CreatePost extends React.Component {
 
         GlobalActions.emitUserPostedEvent(post);
 
-        Client.createPost(post,
-            (data) => {
-                PostStore.removePendingPost(post.pending_post_id);
-
-                AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECEIVED_POST,
-                    post: data
-                });
-            },
-            (err) => {
-                if (err.id === 'api.post.create_post.root_id.app_error') {
-                    // this should never actually happen since you can't reply from this textbox
-                    this.showPostDeletedModal();
-
-                    PostStore.removePendingPost(post.pending_post_id);
-                } else {
-                    post.state = Constants.POST_FAILED;
-                    PostStore.updatePendingPost(post);
-                }
-
-                this.setState({
-                    submitting: false
-                });
-            }
-        );
+        var doLoadPost = false;
+        createPost(post, doLoadPost);
     }
 
     sendReaction(isReaction) {
