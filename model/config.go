@@ -251,6 +251,7 @@ type LdapSettings struct {
 	UsernameAttribute  *string
 	NicknameAttribute  *string
 	IdAttribute        *string
+	PositionAttribute  *string
 
 	// Syncronization
 	SyncIntervalMinutes *int
@@ -688,6 +689,11 @@ func (o *Config) SetDefaults() {
 	if o.LdapSettings.IdAttribute == nil {
 		o.LdapSettings.IdAttribute = new(string)
 		*o.LdapSettings.IdAttribute = ""
+	}
+
+	if o.LdapSettings.PositionAttribute == nil {
+		o.LdapSettings.PositionAttribute = new(string)
+		*o.LdapSettings.PositionAttribute = ""
 	}
 
 	if o.LdapSettings.SyncIntervalMinutes == nil {
