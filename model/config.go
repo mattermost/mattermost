@@ -298,6 +298,7 @@ type SamlSettings struct {
 	UsernameAttribute  *string
 	NicknameAttribute  *string
 	LocaleAttribute    *string
+	PositionAttribute  *string
 
 	LoginButtonText *string
 }
@@ -915,6 +916,11 @@ func (o *Config) SetDefaults() {
 	if o.SamlSettings.NicknameAttribute == nil {
 		o.SamlSettings.NicknameAttribute = new(string)
 		*o.SamlSettings.NicknameAttribute = ""
+	}
+
+	if o.SamlSettings.PositionAttribute == nil {
+		o.SamlSettings.PositionAttribute = new(string)
+		*o.SamlSettings.PositionAttribute = ""
 	}
 
 	if o.SamlSettings.LocaleAttribute == nil {

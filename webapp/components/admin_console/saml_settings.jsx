@@ -41,6 +41,7 @@ export default class SamlSettings extends AdminSettings {
         config.SamlSettings.EmailAttribute = this.state.emailAttribute;
         config.SamlSettings.UsernameAttribute = this.state.usernameAttribute;
         config.SamlSettings.NicknameAttribute = this.state.nicknameAttribute;
+        config.SamlSettings.PositionAttribute = this.state.positionAttribute;
         config.SamlSettings.LocaleAttribute = this.state.localeAttribute;
         config.SamlSettings.LoginButtonText = this.state.loginButtonText;
 
@@ -65,6 +66,7 @@ export default class SamlSettings extends AdminSettings {
             emailAttribute: settings.EmailAttribute,
             usernameAttribute: settings.UsernameAttribute,
             nicknameAttribute: settings.NicknameAttribute,
+            positionAttribute: settings.PositionAttribute,
             localeAttribute: settings.LocaleAttribute,
             loginButtonText: settings.LoginButtonText
         };
@@ -505,6 +507,25 @@ export default class SamlSettings extends AdminSettings {
                         />
                     }
                     value={this.state.nicknameAttribute}
+                    onChange={this.handleChange}
+                    disabled={!this.state.enable}
+                />
+                <TextSetting
+                    id='positionAttribute'
+                    label={
+                        <FormattedMessage
+                            id='admin.saml.positionAttrTitle'
+                            defaultMessage='Position Attribute:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.saml.positionAttrEx', 'E.g.: "Role"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.saml.positionAttrDesc'
+                            defaultMessage='(Optional) The attribute in the SAML Assertion that will be used to populate the position of users in Mattermost.'
+                        />
+                    }
+                    value={this.state.positionAttribute}
                     onChange={this.handleChange}
                     disabled={!this.state.enable}
                 />
