@@ -79,7 +79,7 @@ func (u *User) IsValid() *AppError {
 		return NewLocAppError("User.IsValid", "model.user.is_valid.nickname.app_error", nil, "user_id="+u.Id)
 	}
 
-	if utf8.RuneCountInString(u.Position) > 128 {
+	if utf8.RuneCountInString(u.Position) > 35 {
 		return NewLocAppError("User.IsValid", "model.user.is_valid.position.app_error", nil, "user_id="+u.Id)
 	}
 

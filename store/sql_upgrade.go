@@ -223,7 +223,7 @@ func UpgradeDatabaseToVersion36(sqlStore *SqlStore) {
 	sqlStore.CreateColumnIfNotExists("Teams", "Description", "varchar(255)", "varchar(255)", "")
 
 	// Add a Position column to users.
-	sqlStore.CreateColumnIfNotExists("Users", "Position", "varchar(128)", "varchar(128)", "")
+	sqlStore.CreateColumnIfNotExists("Users", "Position", "varchar(35)", "varchar(35)", "")
 
 	//saveSchemaVersion(sqlStore, VERSION_3_6_0)
 	//}
