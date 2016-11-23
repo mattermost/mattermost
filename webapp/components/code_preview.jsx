@@ -51,13 +51,18 @@ export default class CodePreview extends React.Component {
             async: true,
             url: props.fileUrl,
             type: 'GET',
+            dataType: 'text',
             error: this.handleReceivedError,
             success: this.handleReceivedCode
         });
     }
 
     handleReceivedCode(data) {
-        this.setState({code: data, loading: false, success: true});
+        this.setState({
+            code: data,
+            loading: false,
+            success: true
+        });
     }
 
     handleReceivedError() {
