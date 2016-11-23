@@ -1040,7 +1040,7 @@ class UserSettingsGeneralTab extends React.Component {
                 describe = (
                     <FormattedMessage
                         id='user.settings.general.emptyPosition'
-                        defaultMessage="Click 'Edit' to add your position"
+                        defaultMessage="Click 'Edit' to add your job title / position"
                     />
                 );
             }

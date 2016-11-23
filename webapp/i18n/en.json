@@ -1959,7 +1959,7 @@
   "user.settings.general.emailUnchanged": "Your new email address is the same as your old email address.",
   "user.settings.general.emptyName": "Click 'Edit' to add your full name",
   "user.settings.general.emptyNickname": "Click 'Edit' to add a nickname",
-  "user.settings.general.emptyPosition": "Click 'Edit' to add your position",
+  "user.settings.general.emptyPosition": "Click 'Edit' to add your job title / position",
   "user.settings.general.field_handled_externally": "This field is handled through your login provider. If you want to change it, you need to do so through your login provider.",
   "user.settings.general.firstName": "First Name",
   "user.settings.general.fullName": "Full Name",
