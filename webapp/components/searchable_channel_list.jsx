@@ -12,7 +12,7 @@ import {FormattedMessage} from 'react-intl';
 
 import loadingGif from 'images/load.gif';
 
-const NEXT_BUTTON_TIMEOUT = 500;
+const NEXT_BUTTON_TIMEOUT_MILLISECONDS = 500;
 
 export default class SearchableChannelList extends React.Component {
     constructor(props) {
@@ -97,7 +97,7 @@ export default class SearchableChannelList extends React.Component {
     nextPage(e) {
         e.preventDefault();
         this.setState({page: this.state.page + 1, nextDisabled: true});
-        this.nextTimeoutId = setTimeout(() => this.setState({nextDisabled: false}), NEXT_BUTTON_TIMEOUT);
+        this.nextTimeoutId = setTimeout(() => this.setState({nextDisabled: false}), NEXT_BUTTON_TIMEOUT_MILLISECONDS);
         this.props.nextPage(this.state.page + 1);
     }
 

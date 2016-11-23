@@ -21,7 +21,7 @@ import PureRenderMixin from 'react-addons-pure-render-mixin';
 
 const CHANNELS_CHUNK_SIZE = 50;
 const CHANNELS_PER_PAGE = 50;
-const SEARCH_TIMEOUT = 100; // 100 ms
+const SEARCH_TIMEOUT_MILLISECONDS = 100;
 
 export default class MoreChannels extends React.Component {
     constructor(props) {
@@ -121,7 +121,7 @@ export default class MoreChannels extends React.Component {
                     }
                 );
             },
-            SEARCH_TIMEOUT
+            SEARCH_TIMEOUT_MILLISECONDS
         );
     }
 
