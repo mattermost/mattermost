@@ -215,18 +215,6 @@ export default class MoreChannels extends React.Component {
                             />
                             {serverError}
                         </div>
-                        <div className='modal-footer'>
-                            <button
-                                type='button'
-                                className='btn btn-default'
-                                data-dismiss='modal'
-                            >
-                                <FormattedMessage
-                                    id='more_channels.close'
-                                    defaultMessage='Close'
-                                />
-                            </button>
-                        </div>
                     </div>
                 </div>
             </div>
