@@ -103,7 +103,8 @@ type ChannelStore interface {
 	InvalidateAllChannelMembersForUser(userId string)
 	IsUserInChannelUseCache(userId string, channelId string) bool
 	GetMemberForPost(postId string, userId string) StoreChannel
-	GetMemberCount(channelId string) StoreChannel
+	InvalidateMemberCount(channelId string)
+	GetMemberCount(channelId string, allowFromCache bool) StoreChannel
 	RemoveMember(channelId string, userId string) StoreChannel
 	PermanentDeleteMembersByUser(userId string) StoreChannel
 	UpdateLastViewedAt(channelId string, userId string) StoreChannel

@@ -102,6 +102,11 @@ func PublishSkipClusterSend(message *model.WebSocketEvent) {
 	}
 }
 
+func InvalidateCacheForChannel(channelId string) {
+	Srv.Store.User().InvalidateProfilesInChannelCache(channelId)
+	Srv.Store.Channel().InvalidateMemberCount(channelId)
+}
+
 func InvalidateCacheForUser(userId string) {
 	InvalidateCacheForUserSkipClusterSend(userId)
 

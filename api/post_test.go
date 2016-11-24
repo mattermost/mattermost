@@ -1062,7 +1062,7 @@ func TestGetExplicitMentionsAtHere(t *testing.T) {
 	}
 
 	for message, shouldMention := range cases {
-		if _, _, hereMentioned := getExplicitMentions(message, nil); hereMentioned && !shouldMention {
+		if _, _, hereMentioned, _, _ := getExplicitMentions(message, nil); hereMentioned && !shouldMention {
 			t.Fatalf("shouldn't have mentioned @here with \"%v\"", message)
 		} else if !hereMentioned && shouldMention {
 			t.Fatalf("should've have mentioned @here with \"%v\"", message)
@@ -1071,7 +1071,7 @@ func TestGetExplicitMentionsAtHere(t *testing.T) {
 
 	// mentioning @here and someone
 	id := model.NewId()
-	if mentions, potential, hereMentioned := getExplicitMentions("@here @user @potential", map[string][]string{"@user": {id}}); !hereMentioned {
+	if mentions, potential, hereMentioned, _, _ := getExplicitMentions("@here @user @potential", map[string][]string{"@user": {id}}); !hereMentioned {
 		t.Fatal("should've mentioned @here with \"@here @user\"")
 	} else if len(mentions) != 1 || !mentions[id] {
 		t.Fatal("should've mentioned @user with \"@here @user\"")
@@ -1087,74 +1087,74 @@ func TestGetExplicitMentions(t *testing.T) {
 	// not mentioning anybody
 	message := "this is a message"
 	keywords := map[string][]string{}
-	if mentions, potential, _ := getExplicitMentions(message, keywords); len(mentions) != 0 || len(potential) != 0 {
+	if mentions, potential, _, _, _ := getExplicitMentions(message, keywords); len(mentions) != 0 || len(potential) != 0 {
 		t.Fatal("shouldn't have mentioned anybody or have any potencial mentions")
 	}
 
 	// mentioning a user that doesn't exist
 	message = "this is a message for @user"
-	if mentions, _, _ := getExplicitMentions(message, keywords); len(mentions) != 0 {
+	if mentions, _, _, _, _ := getExplicitMentions(message, keywords); len(mentions) != 0 {
 		t.Fatal("shouldn't have mentioned user that doesn't exist")
 	}
 
 	// mentioning one person
 	keywords = map[string][]string{"@user": {id1}}
-	if mentions, _, _ := getExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] {
+	if mentions, _, _, _, _ := getExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] {
 		t.Fatal("should've mentioned @user")
 	}
 
 	// mentioning one person without an @mention
 	message = "this is a message for @user"
 	keywords = map[string][]string{"this": {id1}}
-	if mentions, _, _ := getExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] {
+	if mentions, _, _, _, _ := getExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] {
 		t.Fatal("should've mentioned this")
 	}
 
 	// mentioning multiple people with one word
 	message = "this is a message for @user"
 	keywords = map[string][]string{"@user": {id1, id2}}
-	if mentions, _, _ := getExplicitMentions(message, keywords); len(mentions) != 2 || !mentions[id1] || !mentions[id2] {
+	if mentions, _, _, _, _ := getExplicitMentions(message, keywords); len(mentions) != 2 || !mentions[id1] || !mentions[id2] {
 		t.Fatal("should've mentioned two users with @user")
 	}
 
 	// mentioning only one of multiple people
 	keywords = map[string][]string{"@user": {id1}, "@mention": {id2}}
-	if mentions, _, _ := getExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] || mentions[id2] {
+	if mentions, _, _, _, _ := getExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] || mentions[id2] {
 		t.Fatal("should've mentioned @user and not @mention")
 	}
 
 	// mentioning multiple people with multiple words
 	message = "this is an @mention for @user"
 	keywords = map[string][]string{"@user": {id1}, "@mention": {id2}}
-	if mentions, _, _ := getExplicitMentions(message, keywords); len(mentions) != 2 || !mentions[id1] || !mentions[id2] {
+	if mentions, _, _, _, _ := getExplicitMentions(message, keywords); len(mentions) != 2 || !mentions[id1] || !mentions[id2] {
 		t.Fatal("should've mentioned two users with @user and @mention")
 	}
 
 	// mentioning @channel (not a special case, but it's good to double check)
 	message = "this is an message for @channel"
 	keywords = map[string][]string{"@channel": {id1, id2}}
-	if mentions, _, _ := getExplicitMentions(message, keywords); len(mentions) != 2 || !mentions[id1] || !mentions[id2] {
+	if mentions, _, _, _, _ := getExplicitMentions(message, keywords); len(mentions) != 2 || !mentions[id1] || !mentions[id2] {
 		t.Fatal("should've mentioned two users with @channel")
 	}
 
 	// mentioning @all (not a special case, but it's good to double check)
 	message = "this is an message for @all"
 	keywords = map[string][]string{"@all": {id1, id2}}
-	if mentions, _, _ := getExplicitMentions(message, keywords); len(mentions) != 2 || !mentions[id1] || !mentions[id2] {
+	if mentions, _, _, _, _ := getExplicitMentions(message, keywords); len(mentions) != 2 || !mentions[id1] || !mentions[id2] {
 		t.Fatal("should've mentioned two users with @all")
 	}
 
 	// mentioning user.period without mentioning user (PLT-3222)
 	message = "user.period doesn't complicate things at all by including periods in their username"
 	keywords = map[string][]string{"user.period": {id1}, "user": {id2}}
-	if mentions, _, _ := getExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] || mentions[id2] {
+	if mentions, _, _, _, _ := getExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] || mentions[id2] {
 		t.Fatal("should've mentioned user.period and not user")
 	}
 
 	// mentioning a potential out of channel user
 	message = "this is an message for @potential and @user"
 	keywords = map[string][]string{"@user": {id1}}
-	if mentions, potential, _ := getExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] || len(potential) != 1 {
+	if mentions, potential, _, _, _ := getExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] || len(potential) != 1 {
 		t.Fatal("should've mentioned user and have a potential not in channel")
 	}
 }

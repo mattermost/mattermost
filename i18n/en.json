@@ -676,6 +676,18 @@
     "translation": "Invalid {{.Name}} parameter"
   },
   {
+    "id": "api.post.disabled_here",
+    "translation": "@here has been disabled because the channel has more than {{.Users}} users."
+  },
+  {
+    "id": "api.post.disabled_all",
+    "translation": "@all has been disabled because the channel has more than {{.Users}} users."
+  },
+  {
+    "id": "api.post.disabled_channel",
+    "translation": "@channel has been disabled because the channel has more than {{.Users}} users."
+  },
+  {
     "id": "api.context.invalid_team_url.debug",
     "translation": "TeamURL accessed when not valid. Team URL should not be used in api functions or those that are team independent"
   },
@@ -3330,6 +3342,10 @@
   {
     "id": "model.config.is_valid.max_channels.app_error",
     "translation": "Invalid maximum channels per team for team settings.  Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.max_notify_per_channel.app_error",
+    "translation": "Invalid maximum notifications per channel for team settings.  Must be a positive number."
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
