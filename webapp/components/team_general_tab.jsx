@@ -55,6 +55,10 @@ const holders = defineMessages({
     teamNameInfo: {
         id: 'general_tab.teamNameInfo',
         defaultMessage: 'Set the name of the team as it appears on your sign-in screen and at the top of the left-hand sidebar.'
+    },
+    teamDescription: {
+        id: 'general_tab.teamDescription',
+        defaultMessage: 'Team description provides additional information to help users select the right team. Maximum of 50 characters.'
     }
 });
 
@@ -71,6 +75,7 @@ class GeneralTab extends React.Component {
         this.handleClose = this.handleClose.bind(this);
         this.onUpdateNameSection = this.onUpdateNameSection.bind(this);
         this.updateName = this.updateName.bind(this);
+        this.updateDescription = this.updateDescription.bind(this);
         this.onUpdateInviteIdSection = this.onUpdateInviteIdSection.bind(this);
         this.updateInviteId = this.updateInviteId.bind(this);
         this.onUpdateOpenInviteSection = this.onUpdateOpenInviteSection.bind(this);
@@ -86,6 +91,14 @@ class GeneralTab extends React.Component {
         }
         this.setState(this.setupInitialState(this.props));
         this.props.updateSection(section);
+    }
+
+    updateDescription(section) {
+        if ($('.section-max').length) {
+            $('.settings-modal .modal-body').scrollTop(0).perfectScrollbar('update');
+        }
+        this.setState(this.setupInitialState(this.props));
+        this.props.updateDescription(section);
     }
 
     setupInitialState(props) {
@@ -457,6 +470,64 @@ class GeneralTab extends React.Component {
             );
         }
 
+        let descriptionSection;
+
+        if (this.props.activeSection === 'description') {
+            const inputs = [];
+
+            let teamDescriptionLabel = (
+                <FormattedMessage
+                    id='general_tab.teamDescription'
+                    defaultMessage='Team Description'
+                />
+            );
+            if (Utils.isMobile()) {
+                teamDescriptionLabel = '';
+            }
+
+            inputs.push(
+                <div
+                    key='teamDescriptionSetting'
+                    className='form-group'
+                >
+                    <label className='col-sm-5 control-label'>{teamDescriptionLabel}</label>
+                    <div className='col-sm-7'>
+                        <input
+                            className='form-control'
+                            type='text'
+                            maxLength={Constants.MAX_TEAMNAME_LENGTH.toString()}
+                            onChange={this.updateName}
+                            value={this.state.name}
+                        />
+                    </div>
+                </div>
+            );
+
+            const nameExtraInfo = <span>{formatMessage(holders.teamNameInfo)}</span>;
+
+            descriptionSection = (
+                <SettingItemMax
+                    title={formatMessage({id: 'general_tab.teamDescription'})}
+                    inputs={inputs}
+                    submit={this.handleNameSubmit}
+                    server_error={serverError}
+                    client_error={clientError}
+                    updateSection={this.onUpdateNameSection}
+                    extraInfo={nameExtraInfo}
+                />
+            );
+        } else {
+            var describe = this.state.name;
+
+            descriptionSection = (
+                <SettingItemMin
+                    title={formatMessage({id: 'general_tab.teamDescription'})}
+                    describe={describe}
+                    updateSection={this.onUpdateNameSection}
+                />
+            );
+        }
+
         return (
             <div>
                 <div className='modal-header'>
@@ -495,6 +566,8 @@ class GeneralTab extends React.Component {
                     </h3>
                     <div className='divider-dark first'/>
                     {nameSection}
+                    <div className='divider-light'/>
+                    {descriptionSection}
                     <div className='divider-light'/>
                     {openInviteSection}
                     <div className='divider-light'/>

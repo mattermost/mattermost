@@ -1145,7 +1145,7 @@
   "create_post.write": "Write a message...",
   "create_team.agreement": "By proceeding to create your account and use {siteName}, you agree to our <a href={TermsOfServiceLink}>Terms of Service</a> and <a href={PrivacyPolicyLink}>Privacy Policy</a>. If you do not agree, you cannot use {siteName}.",
   "create_team.display_name.back": "Back to previous step",
-  "create_team.display_name.charLength": "Name must be 2 or more characters up to a maximum of 15",
+  "create_team.display_name.charLength": "Name must be {min} or more characters up to a maximum of {max}. You can add a longer team description later.",
   "create_team.display_name.nameHelp": "Name your team in any language. Your team name shows in menus and headings.",
   "create_team.display_name.next": "Next",
   "create_team.display_name.required": "This field is required",
