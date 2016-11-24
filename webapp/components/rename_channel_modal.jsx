@@ -160,7 +160,17 @@ export class RenameChannelModal extends React.Component {
             return;
         }
 
-        updateChannel(channel);
+        updateChannel(channel,
+            () => {
+                this.handleHide();
+            },
+            (err) => {
+                this.setState({
+                    serverError: err.message,
+                    invalid: true
+                });
+            }
+        );
     }
 
     handleCancel(e) {

@@ -192,18 +192,20 @@ export function loadChannelsForCurrentUser() {
     AsyncClient.getMyChannelMembers();
 }
 
-export function updateChannel(channel) {
+export function updateChannel(channel, success, error) {
     Client.updateChannel(
         channel,
         () => {
             AsyncClient.getChannel(channel.id);
-            this.handleHide();
+
+            if (success) {
+                success();
+            }
         },
         (err) => {
-            this.setState({
-                serverError: err.message,
-                invalid: true
-            });
+            if (error) {
+                error(err);
+            }
         }
     );
 }
