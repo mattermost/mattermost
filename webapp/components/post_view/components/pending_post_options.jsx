@@ -22,8 +22,23 @@ export default class PendingPostOptions extends React.Component {
         e.preventDefault();
 
         var post = this.props.post;
-        var doLoadPost = true;
-        createPost(post, doLoadPost);
+        createPost(post, true,
+            () => {
+                // DO nothing.
+            },
+            (err) => {
+                if (err.id === 'api.post.create_post.root_id.app_error') {
+                    // this should never actually happen since you can't reply from this textbox
+                    this.showPostDeletedModal();
+                } else {
+                    this.forceUpdate();
+                }
+
+                this.setState({
+                    submitting: false
+                });
+            }
+        );
 
         post.state = Constants.POST_LOADING;
         PostStore.updatePendingPost(post);

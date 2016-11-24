@@ -291,18 +291,11 @@ export function createPost(post, doLoadPost) {
         (err) => {
             if (err.id === 'api.post.create_post.root_id.app_error') {
                 // this should never actually happen since you can't reply from this textbox
-                this.showPostDeletedModal();
-
                 PostStore.removePendingPost(post.pending_post_id);
             } else {
                 post.state = Constants.POST_FAILED;
                 PostStore.updatePendingPost(post);
-                this.forceUpdate();
             }
-
-            this.setState({
-                submitting: false
-            });
         }
     );
 }
