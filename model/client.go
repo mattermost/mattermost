@@ -1755,7 +1755,7 @@ func (c *Client) GetTeamMembers(teamId string, offset int, limit int) (*Result, 
 // GetMyTeamMembers will return the team member extra objects that the current user
 // is a member of. Must be authenticated.
 func (c *Client) GetMyTeamMembers() (*Result, *AppError) {
-	if r, err := c.DoApiGet("/teams/my_members", "", ""); err != nil {
+	if r, err := c.DoApiGet("/teams/members", "", ""); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)
