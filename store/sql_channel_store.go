@@ -502,14 +502,29 @@ func (s SqlChannelStore) GetTeamChannels(teamId string) StoreChannel {
 }
 
 func (s SqlChannelStore) GetByName(teamId string, name string) StoreChannel {
+	return s.getByName(teamId, name, false)
+}
+
+func (s SqlChannelStore) GetByNameIncludeDeleted(teamId string, name string) StoreChannel {
+	return s.getByName(teamId, name, true)
+}
+
+func (s SqlChannelStore) getByName(teamId string, name string, includeDeleted bool) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
+
+	var query string
+	if includeDeleted {
+		query = "SELECT * FROM Channels WHERE (TeamId = :TeamId OR TeamId = '') AND Name = :Name"
+	} else {
+		query = "SELECT * FROM Channels WHERE (TeamId = :TeamId OR TeamId = '') AND Name = :Name AND DeleteAt = 0"
+	}
 
 	go func() {
 		result := StoreResult{}
 
 		channel := model.Channel{}
 
-		if err := s.GetReplica().SelectOne(&channel, "SELECT * FROM Channels WHERE (TeamId = :TeamId OR TeamId = '') AND Name = :Name AND DeleteAt = 0", map[string]interface{}{"TeamId": teamId, "Name": name}); err != nil {
+		if err := s.GetReplica().SelectOne(&channel, query, map[string]interface{}{"TeamId": teamId, "Name": name}); err != nil {
 			if err == sql.ErrNoRows {
 				result.Err = model.NewLocAppError("SqlChannelStore.GetByName", MISSING_CHANNEL_ERROR, nil, "teamId="+teamId+", "+"name="+name+", "+err.Error())
 			} else {

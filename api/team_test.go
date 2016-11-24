@@ -5,11 +5,12 @@ package api
 
 import (
 	"fmt"
+	"strings"
+	"testing"
+
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
-	"strings"
-	"testing"
 )
 
 func TestSignupTeam(t *testing.T) {
@@ -315,10 +316,7 @@ func TestGetAllTeamListings(t *testing.T) {
 		}
 	}
 
-	c := &Context{}
-	c.RequestId = model.NewId()
-	c.IpAddress = "cmd_line"
-	UpdateUserRoles(c, user, model.ROLE_SYSTEM_ADMIN.Id)
+	UpdateUserRoles(user, model.ROLE_SYSTEM_ADMIN.Id)
 
 	Client.Login(user.Email, "passwd1")
 	Client.SetTeamId(team.Id)
@@ -371,7 +369,7 @@ func TestTeamPermDelete(t *testing.T) {
 	c.RequestId = model.NewId()
 	c.IpAddress = "test"
 
-	err := PermanentDeleteTeam(c, team)
+	err := PermanentDeleteTeam(team)
 	if err != nil {
 		t.Fatal(err)
 	}

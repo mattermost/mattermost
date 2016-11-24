@@ -4,12 +4,13 @@
 package api
 
 import (
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/store"
-	"github.com/mattermost/platform/utils"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
+	"github.com/mattermost/platform/utils"
 )
 
 func TestStatuses(t *testing.T) {
@@ -63,7 +64,7 @@ func TestStatuses(t *testing.T) {
 		t.Fatal(err2)
 	}
 
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(1000 * time.Millisecond)
 
 	WebSocketClient.GetStatuses()
 	if resp := <-WebSocketClient.ResponseChannel; resp.Error != nil {
@@ -149,7 +150,7 @@ func TestStatuses(t *testing.T) {
 	SetStatusAwayIfNeeded(th.BasicUser.Id, false)
 	SetStatusOnline(th.BasicUser.Id, "junk", false)
 
-	time.Sleep(300 * time.Millisecond)
+	time.Sleep(1500 * time.Millisecond)
 
 	WebSocketClient.GetStatuses()
 	if resp := <-WebSocketClient.ResponseChannel; resp.Error != nil {

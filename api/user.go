@@ -1557,9 +1557,10 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		user = result.Data.(*model.User)
 	}
 
-	UpdateUserRoles(c, user, newRoles)
-	if c.Err != nil {
+	if _, err := UpdateUserRoles(user, newRoles); err != nil {
 		return
+	} else {
+		c.LogAuditWithUserId(user.Id, "roles="+newRoles)
 	}
 
 	rdata := map[string]string{}
@@ -1567,7 +1568,7 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.MapToJson(rdata)))
 }
 
-func UpdateUserRoles(c *Context, user *model.User, newRoles string) *model.User {
+func UpdateUserRoles(user *model.User, newRoles string) (*model.User, *model.AppError) {
 
 	user.Roles = newRoles
 	uchan := Srv.Store.User().Update(user, true)
@@ -1575,10 +1576,8 @@ func UpdateUserRoles(c *Context, user *model.User, newRoles string) *model.User 
 
 	var ruser *model.User
 	if result := <-uchan; result.Err != nil {
-		c.Err = result.Err
-		return nil
+		return nil, result.Err
 	} else {
-		c.LogAuditWithUserId(user.Id, "roles="+newRoles)
 		ruser = result.Data.([2]*model.User)[0]
 	}
 
@@ -1589,7 +1588,7 @@ func UpdateUserRoles(c *Context, user *model.User, newRoles string) *model.User 
 
 	RemoveAllSessionsForUserId(user.Id)
 
-	return ruser
+	return ruser, nil
 }
 
 func updateActive(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1664,11 +1663,8 @@ func UpdateActive(user *model.User, active bool) (*model.User, *model.AppError) 
 	}
 }
 
-func PermanentDeleteUser(c *Context, user *model.User) *model.AppError {
+func PermanentDeleteUser(user *model.User) *model.AppError {
 	l4g.Warn(utils.T("api.user.permanent_delete_user.attempting.warn"), user.Email, user.Id)
-	c.Path = "/users/permanent_delete"
-	c.LogAuditWithUserId(user.Id, fmt.Sprintf("attempt userId=%v", user.Id))
-	c.LogAuditWithUserId("", fmt.Sprintf("attempt userId=%v", user.Id))
 	if user.IsInRole(model.ROLE_SYSTEM_ADMIN.Id) {
 		l4g.Warn(utils.T("api.user.permanent_delete_user.system_admin.warn"), user.Email)
 	}
@@ -1726,18 +1722,17 @@ func PermanentDeleteUser(c *Context, user *model.User) *model.AppError {
 	}
 
 	l4g.Warn(utils.T("api.user.permanent_delete_user.deleted.warn"), user.Email, user.Id)
-	c.LogAuditWithUserId("", fmt.Sprintf("success userId=%v", user.Id))
 
 	return nil
 }
 
-func PermanentDeleteAllUsers(c *Context) *model.AppError {
+func PermanentDeleteAllUsers() *model.AppError {
 	if result := <-Srv.Store.User().GetAll(); result.Err != nil {
 		return result.Err
 	} else {
 		users := result.Data.([]*model.User)
 		for _, user := range users {
-			PermanentDeleteUser(c, user)
+			PermanentDeleteUser(user)
 		}
 	}
 

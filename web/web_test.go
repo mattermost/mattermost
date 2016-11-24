@@ -24,6 +24,8 @@ func Setup() {
 		utils.LoadConfig("config.json")
 		utils.InitTranslations(utils.Cfg.LocalizationSettings)
 		api.NewServer()
+		api.InitStores()
+		api.InitRouter()
 		api.StartServer()
 		api.InitApi()
 		InitWeb()
@@ -206,10 +208,7 @@ func TestIncomingWebhook(t *testing.T) {
 	store.Must(api.Srv.Store.User().VerifyEmail(user.Id))
 	api.JoinUserToTeam(team, user)
 
-	c := &api.Context{}
-	c.RequestId = model.NewId()
-	c.IpAddress = "cmd_line"
-	api.UpdateUserRoles(c, user, model.ROLE_SYSTEM_ADMIN.Id)
+	api.UpdateUserRoles(user, model.ROLE_SYSTEM_ADMIN.Id)
 	ApiClient.Login(user.Email, "passwd1")
 	ApiClient.SetTeamId(team.Id)
 

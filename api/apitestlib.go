@@ -37,6 +37,8 @@ func SetupEnterprise() *TestHelper {
 		utils.DisableDebugLogForTest()
 		utils.License.Features.SetDefaults()
 		NewServer()
+		InitStores()
+		InitRouter()
 		StartServer()
 		utils.InitHTML()
 		InitApi()
@@ -58,6 +60,8 @@ func Setup() *TestHelper {
 		*utils.Cfg.RateLimitSettings.Enable = false
 		utils.DisableDebugLogForTest()
 		NewServer()
+		InitStores()
+		InitRouter()
 		StartServer()
 		InitApi()
 		utils.EnableDebugLogForTest()
@@ -90,10 +94,7 @@ func (me *TestHelper) InitSystemAdmin() *TestHelper {
 	me.SystemAdminUser = me.CreateUser(me.SystemAdminClient)
 	LinkUserToTeam(me.SystemAdminUser, me.SystemAdminTeam)
 	me.SystemAdminClient.SetTeamId(me.SystemAdminTeam.Id)
-	c := &Context{}
-	c.RequestId = model.NewId()
-	c.IpAddress = "cmd_line"
-	UpdateUserRoles(c, me.SystemAdminUser, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_ADMIN.Id)
+	UpdateUserRoles(me.SystemAdminUser, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_ADMIN.Id)
 	me.SystemAdminUser.Password = "Password1"
 	me.LoginSystemAdmin()
 	me.SystemAdminChannel = me.CreateChannel(me.SystemAdminClient, me.SystemAdminTeam)
