@@ -26,6 +26,11 @@ export default class SuggestionBox extends React.Component {
         this.handlePretextChanged = this.handlePretextChanged.bind(this);
 
         this.suggestionId = Utils.generateId();
+
+        if (this.props.suggestionId !== null) {
+            this.suggestionId = this.props.suggestionId;
+        }
+
         SuggestionStore.registerSuggestionBox(this.suggestionId);
     }
 
@@ -243,6 +248,7 @@ SuggestionBox.propTypes = {
     providers: React.PropTypes.arrayOf(React.PropTypes.object),
     listStyle: React.PropTypes.string,
     renderDividers: React.PropTypes.bool,
+    suggestionId: React.PropTypes.string,
 
     // explicitly name any input event handlers we override and need to manually call
     onChange: React.PropTypes.func,

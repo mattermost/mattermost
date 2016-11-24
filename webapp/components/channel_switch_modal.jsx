@@ -12,6 +12,7 @@ import {goToChannel, openDirectChannelToUser} from 'actions/channel_actions.jsx'
 
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
+import SuggestionStore from 'stores/suggestion_store.jsx';
 
 import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -29,6 +30,7 @@ export default class SwitchChannelModal extends React.Component {
         this.onExited = this.onExited.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.getDmChannel = this.getDmChannel.bind(this);
         this.switchToChannel = this.switchToChannel.bind(this);
 
         this.suggestionProviders = [new SwitchChannelProvider()];
@@ -73,9 +75,13 @@ export default class SwitchChannelModal extends React.Component {
     }
 
     handleKeyDown(e) {
-        this.setState({
-            error: ''
-        });
+        let error = '';
+        if (this.state.text !== '' && SuggestionStore.getSuggestions(Constants.CHANNEL_SWITCH_ID).items.length === 0) {
+            error = Utils.localizeMessage('channel_switch_modal.not_found', 'No matches found.');
+        }
+
+        this.setState({error});
+
         if (e.keyCode === Constants.KeyCodes.ENTER) {
             this.handleSubmit();
         }
@@ -85,7 +91,16 @@ export default class SwitchChannelModal extends React.Component {
         const name = this.state.text.trim();
         let channel = null;
 
-        // TODO: Replace this hack with something reasonable
+        channel = this.getDmChannel(name);
+        if (!channel) {
+            channel = ChannelStore.getByName(name);
+        }
+
+        this.switchToChannel(channel);
+    }
+
+    getDmChannel(name) {
+        let channel = null;
         if (name.indexOf(Utils.localizeMessage('channel_switch_modal.dm', '(Direct Message)')) > 0) {
             const dmUsername = name.substr(0, name.indexOf(Utils.localizeMessage('channel_switch_modal.dm', '(Direct Message)')) - 1);
             const user = UserStore.getProfileByUsername(dmUsername);
@@ -95,22 +110,17 @@ export default class SwitchChannelModal extends React.Component {
                     user,
                     (ch) => {
                         channel = ch;
-                        this.switchToChannel(channel);
                     },
-                    () => {
-                        channel = null;
-                        this.switchToChannel(channel);
-                    }
+                    null
                 );
             }
-        } else {
-            channel = ChannelStore.getByName(this.state.text.trim());
-            this.switchToChannel(channel);
         }
+
+        return channel;
     }
 
     switchToChannel(channel) {
-        if (channel !== null) {
+        if (channel) {
             goToChannel(channel);
             this.onHide();
         } else if (this.state.text !== '') {
@@ -154,6 +164,7 @@ export default class SwitchChannelModal extends React.Component {
                         type='input'
                         onChange={this.onChange}
                         value={this.state.text}
+                        suggestionId={Constants.CHANNEL_SWITCH_ID}
                         onKeyDown={this.handleKeyDown}
                         listComponent={SuggestionList}
                         maxLength='64'
