@@ -31,7 +31,7 @@ func InitTeam() {
 	BaseRoutes.Teams.Handle("/all_team_listings", ApiUserRequired(GetAllTeamListings)).Methods("GET")
 	BaseRoutes.Teams.Handle("/get_invite_info", ApiAppHandler(getInviteInfo)).Methods("POST")
 	BaseRoutes.Teams.Handle("/find_team_by_name", ApiAppHandler(findTeamByName)).Methods("POST")
-	BaseRoutes.Teams.Handle("/my_members", ApiAppHandler(getMyTeamMembers)).Methods("GET")
+	BaseRoutes.Teams.Handle("/members", ApiAppHandler(getMyTeamMembers)).Methods("GET")
 
 	BaseRoutes.NeedTeam.Handle("/me", ApiUserRequired(getMyTeam)).Methods("GET")
 	BaseRoutes.NeedTeam.Handle("/stats", ApiUserRequired(getTeamStats)).Methods("GET")

@@ -586,7 +586,7 @@ export default class Client {
 
     getMyTeamMembers(success, error) {
         request.
-        get(`${this.getTeamsRoute()}/my_members`).
+        get(`${this.getTeamsRoute()}/members`).
         set(this.defaultHeaders).
         type('application/json').
         accept('application/json').
