@@ -389,7 +389,9 @@ func (srv *Server) ActivateAndServe() error {
 		if srv.UDPSize == 0 {
 			srv.UDPSize = MinMsgSize
 		}
-		if t, ok := pConn.(*net.UDPConn); ok {
+		// Check PacketConn interface's type is valid and value
+		// is not nil
+		if t, ok := pConn.(*net.UDPConn); ok && t != nil {
 			if e := setUDPSocketOptions(t); e != nil {
 				return e
 			}

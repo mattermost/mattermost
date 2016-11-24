@@ -9,7 +9,7 @@
         }
 
         .heading {
-            width: 130px;
+            max-width: 150px;
         }
     }
 
@@ -73,7 +73,7 @@
     }
 
     .sidebar--right {
-        @include single-transition(all, .5s, ease);
+        @include single-transition(all, .35s, ease);
         @include translateX(100%);
 
         &.move--left,

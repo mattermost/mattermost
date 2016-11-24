@@ -705,7 +705,7 @@ func TestGetChannel(t *testing.T) {
 	}
 }
 
-func TestGetMoreChannel(t *testing.T) {
+func TestGetMoreChannelsPage(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.BasicClient
 	team := th.BasicTeam
@@ -713,28 +713,64 @@ func TestGetMoreChannel(t *testing.T) {
 	channel1 := &model.Channel{DisplayName: "A Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
 
-	channel2 := &model.Channel{DisplayName: "B Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel2 := &model.Channel{DisplayName: "B Test API Name", Name: "b" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel2 = Client.Must(Client.CreateChannel(channel2)).Data.(*model.Channel)
+
+	channel3 := &model.Channel{DisplayName: "C Test API Name", Name: "c" + model.NewId() + "a", Type: model.CHANNEL_PRIVATE, TeamId: team.Id}
+	channel3 = Client.Must(Client.CreateChannel(channel3)).Data.(*model.Channel)
 
 	th.LoginBasic2()
 
-	rget := Client.Must(Client.GetMoreChannels(""))
-	channels := rget.Data.(*model.ChannelList)
-
-	if (*channels)[0].DisplayName != channel1.DisplayName {
-		t.Fatal("full name didn't match")
-	}
-
-	if (*channels)[1].DisplayName != channel2.DisplayName {
-		t.Fatal("full name didn't match")
-	}
-
-	// test etag caching
-	if cache_result, err := Client.GetMoreChannels(rget.Etag); err != nil {
+	if r, err := Client.GetMoreChannelsPage(0, 100); err != nil {
 		t.Fatal(err)
-	} else if cache_result.Data.(*model.ChannelList) != nil {
-		t.Log(cache_result.Data)
-		t.Fatal("cache should be empty")
+	} else {
+		channels := r.Data.(*model.ChannelList)
+
+		// 1 for BasicChannel, 2 for open channels created above
+		if len(*channels) != 3 {
+			t.Fatal("wrong length")
+		}
+
+		if (*channels)[0].DisplayName != channel1.DisplayName {
+			t.Fatal("full name didn't match")
+		}
+
+		if (*channels)[1].DisplayName != channel2.DisplayName {
+			t.Fatal("full name didn't match")
+		}
+	}
+
+	if r, err := Client.GetMoreChannelsPage(0, 1); err != nil {
+		t.Fatal(err)
+	} else {
+		channels := r.Data.(*model.ChannelList)
+
+		if len(*channels) != 1 {
+			t.Fatal("wrong length")
+		}
+
+		if (*channels)[0].DisplayName != channel1.DisplayName {
+			t.Fatal("full name didn't match")
+		}
+	}
+
+	if r, err := Client.GetMoreChannelsPage(1, 1); err != nil {
+		t.Fatal(err)
+	} else {
+		channels := r.Data.(*model.ChannelList)
+
+		if len(*channels) != 1 {
+			t.Fatal("wrong length")
+		}
+
+		if (*channels)[0].DisplayName != channel2.DisplayName {
+			t.Fatal("full name didn't match")
+		}
+	}
+
+	Client.SetTeamId("junk")
+	if _, err := Client.GetMoreChannelsPage(0, 1); err == nil {
+		t.Fatal("should have failed - bad team id")
 	}
 }
 
@@ -1446,5 +1482,150 @@ func TestGetChannelMember(t *testing.T) {
 
 	if _, err := Client.GetChannelMember("junk", "junk"); err == nil {
 		t.Fatal("should have failed - bad channel and user id")
+	}
+}
+
+func TestSearchMoreChannels(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+	team := th.BasicTeam
+
+	channel1 := &model.Channel{DisplayName: "TestAPINameA", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
+
+	channel2 := &model.Channel{DisplayName: "TestAPINameB", Name: "b" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel2 = Client.Must(Client.CreateChannel(channel2)).Data.(*model.Channel)
+
+	th.LoginBasic2()
+
+	if result, err := Client.SearchMoreChannels(model.ChannelSearch{Term: "TestAPIName"}); err != nil {
+		t.Fatal(err)
+	} else {
+		channels := result.Data.(*model.ChannelList)
+
+		if (*channels)[0].DisplayName != channel1.DisplayName {
+			t.Fatal("full name didn't match")
+		}
+
+		if (*channels)[1].DisplayName != channel2.DisplayName {
+			t.Fatal("full name didn't match")
+		}
+	}
+
+	if result, err := Client.SearchMoreChannels(model.ChannelSearch{Term: "TestAPINameA"}); err != nil {
+		t.Fatal(err)
+	} else {
+		channels := result.Data.(*model.ChannelList)
+
+		if (*channels)[0].DisplayName != channel1.DisplayName {
+			t.Fatal("full name didn't match")
+		}
+	}
+
+	if result, err := Client.SearchMoreChannels(model.ChannelSearch{Term: "TestAPINameB"}); err != nil {
+		t.Fatal(err)
+	} else {
+		channels := result.Data.(*model.ChannelList)
+
+		if (*channels)[0].DisplayName != channel2.DisplayName {
+			t.Fatal("full name didn't match")
+		}
+	}
+
+	if result, err := Client.SearchMoreChannels(model.ChannelSearch{Term: channel1.Name}); err != nil {
+		t.Fatal(err)
+	} else {
+		channels := result.Data.(*model.ChannelList)
+
+		if (*channels)[0].DisplayName != channel1.DisplayName {
+			t.Fatal("full name didn't match")
+		}
+	}
+
+	if _, err := Client.SearchMoreChannels(model.ChannelSearch{Term: ""}); err == nil {
+		t.Fatal("should have errored - empty term")
+	}
+
+	if result, err := Client.SearchMoreChannels(model.ChannelSearch{Term: "blargh"}); err != nil {
+		t.Fatal(err)
+	} else {
+		channels := result.Data.(*model.ChannelList)
+
+		if len(*channels) != 0 {
+			t.Fatal("should have no channels")
+		}
+	}
+
+	Client.SetTeamId("junk")
+	if _, err := Client.SearchMoreChannels(model.ChannelSearch{Term: "blargh"}); err == nil {
+		t.Fatal("should have errored - bad team id")
+	}
+}
+
+func TestAutocompleteChannels(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	Client := th.BasicClient
+	team := th.BasicTeam
+
+	channel1 := &model.Channel{DisplayName: "TestAPINameA", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
+
+	channel2 := &model.Channel{DisplayName: "TestAPINameB", Name: "b" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel2 = Client.Must(Client.CreateChannel(channel2)).Data.(*model.Channel)
+
+	channel3 := &model.Channel{DisplayName: "BadChannelC", Name: "c" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: model.NewId()}
+	channel3 = th.SystemAdminClient.Must(th.SystemAdminClient.CreateChannel(channel3)).Data.(*model.Channel)
+
+	channel4 := &model.Channel{DisplayName: "BadChannelD", Name: "d" + model.NewId() + "a", Type: model.CHANNEL_PRIVATE, TeamId: team.Id}
+	channel4 = Client.Must(Client.CreateChannel(channel4)).Data.(*model.Channel)
+
+	if result, err := Client.AutocompleteChannels("TestAPIName"); err != nil {
+		t.Fatal(err)
+	} else {
+		channels := result.Data.(*model.ChannelList)
+
+		if (*channels)[0].DisplayName != channel1.DisplayName {
+			t.Fatal("full name didn't match")
+		}
+
+		if (*channels)[1].DisplayName != channel2.DisplayName {
+			t.Fatal("full name didn't match")
+		}
+	}
+
+	if result, err := Client.AutocompleteChannels(channel1.Name); err != nil {
+		t.Fatal(err)
+	} else {
+		channels := result.Data.(*model.ChannelList)
+
+		if (*channels)[0].DisplayName != channel1.DisplayName {
+			t.Fatal("full name didn't match")
+		}
+	}
+
+	if result, err := Client.AutocompleteChannels("BadChannelC"); err != nil {
+		t.Fatal(err)
+	} else {
+		channels := result.Data.(*model.ChannelList)
+
+		if len(*channels) != 0 {
+			t.Fatal("should have been empty")
+		}
+	}
+
+	if result, err := Client.AutocompleteChannels("BadChannelD"); err != nil {
+		t.Fatal(err)
+	} else {
+		channels := result.Data.(*model.ChannelList)
+
+		if len(*channels) != 0 {
+			t.Fatal("should have been empty")
+		}
+	}
+
+	Client.SetTeamId("junk")
+
+	if _, err := Client.AutocompleteChannels("BadChannelD"); err == nil {
+		t.Fatal("should have failed - bad team id")
 	}
 }

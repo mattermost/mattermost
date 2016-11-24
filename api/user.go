@@ -73,6 +73,7 @@ func InitUser() {
 	BaseRoutes.Users.Handle("/claim/ldap_to_email", ApiAppHandler(ldapToEmail)).Methods("POST")
 
 	BaseRoutes.NeedUser.Handle("/get", ApiUserRequired(getUser)).Methods("GET")
+	BaseRoutes.Users.Handle("/name/{username:[A-Za-z0-9_\\-.]+}", ApiUserRequired(getByUsername)).Methods("GET")
 	BaseRoutes.NeedUser.Handle("/sessions", ApiUserRequired(getSessions)).Methods("GET")
 	BaseRoutes.NeedUser.Handle("/audits", ApiUserRequired(getAudits)).Methods("GET")
 	BaseRoutes.NeedUser.Handle("/image", ApiUserRequiredTrustRequester(getProfileImage)).Methods("GET")
@@ -468,6 +469,9 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.LogAuditWithUserId(user.Id, "failure")
 			c.Err = result.Err
 			c.Err.StatusCode = http.StatusBadRequest
+			if einterfaces.GetMetricsInterface() != nil {
+				einterfaces.GetMetricsInterface().IncrementLoginFail()
+			}
 			return
 		} else {
 			user = result.Data.(*model.User)
@@ -478,6 +482,9 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		if user, err = getUserForLogin(loginId, ldapOnly); err != nil {
 			c.LogAudit("failure")
 			c.Err = err
+			if einterfaces.GetMetricsInterface() != nil {
+				einterfaces.GetMetricsInterface().IncrementLoginFail()
+			}
 			return
 		}
 
@@ -488,10 +495,16 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	if user, err = authenticateUser(user, password, mfaToken); err != nil {
 		c.LogAuditWithUserId(user.Id, "failure")
 		c.Err = err
+		if einterfaces.GetMetricsInterface() != nil {
+			einterfaces.GetMetricsInterface().IncrementLoginFail()
+		}
 		return
 	}
 
 	c.LogAuditWithUserId(user.Id, "success")
+	if einterfaces.GetMetricsInterface() != nil {
+		einterfaces.GetMetricsInterface().IncrementLogin()
+	}
 
 	doLogin(c, w, r, user, deviceId)
 	if c.Err != nil {
@@ -941,6 +954,24 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	id := params["user_id"]
 
 	if result := <-Srv.Store.User().Get(id); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else if HandleEtag(result.Data.(*model.User).Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress), w, r) {
+		return
+	} else {
+		user := sanitizeProfile(c, result.Data.(*model.User))
+
+		w.Header().Set(model.HEADER_ETAG_SERVER, user.Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress))
+		w.Write([]byte(result.Data.(*model.User).ToJson()))
+		return
+	}
+}
+
+func getByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	username := params["username"]
+
+	if result := <-Srv.Store.User().GetByUsername(username); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else if HandleEtag(result.Data.(*model.User).Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress), w, r) {
@@ -2681,8 +2712,8 @@ func autocompleteUsersInChannel(c *Context, w http.ResponseWriter, r *http.Reque
 	searchOptions := map[string]bool{}
 	searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
 
-	uchan := Srv.Store.User().SearchInChannel(channelId, term, map[string]bool{})
-	nuchan := Srv.Store.User().SearchNotInChannel(teamId, channelId, term, map[string]bool{})
+	uchan := Srv.Store.User().SearchInChannel(channelId, term, searchOptions)
+	nuchan := Srv.Store.User().SearchNotInChannel(teamId, channelId, term, searchOptions)
 
 	autocomplete := &model.UserAutocompleteInChannel{}
 
@@ -2727,7 +2758,10 @@ func autocompleteUsersInTeam(c *Context, w http.ResponseWriter, r *http.Request)
 		}
 	}
 
-	uchan := Srv.Store.User().Search(teamId, term, map[string]bool{})
+	searchOptions := map[string]bool{}
+	searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
+
+	uchan := Srv.Store.User().Search(teamId, term, searchOptions)
 
 	autocomplete := &model.UserAutocompleteInTeam{}
 

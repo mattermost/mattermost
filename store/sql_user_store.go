@@ -1120,7 +1120,7 @@ func (us SqlUserStore) Search(teamId string, term string, options map[string]boo
 				SEARCH_CLAUSE
 				INACTIVE_CLAUSE
 				ORDER BY Username ASC
-			LIMIT 50`
+			LIMIT 100`
 		} else {
 			searchQuery = `
 			SELECT
@@ -1217,11 +1217,24 @@ func (us SqlUserStore) SearchInChannel(channelId string, term string, options ma
 	return storeChannel
 }
 
+var specialUserSearchChar = []string{
+	"<",
+	">",
+	"+",
+	"-",
+	"(",
+	")",
+	"~",
+	"@",
+	":",
+	"*",
+}
+
 func (us SqlUserStore) performSearch(searchQuery string, term string, options map[string]bool, parameters map[string]interface{}) StoreResult {
 	result := StoreResult{}
 
 	// these chars have special meaning and can be treated as spaces
-	for _, c := range specialSearchChar {
+	for _, c := range specialUserSearchChar {
 		term = strings.Replace(term, c, " ", -1)
 	}
 
@@ -1251,7 +1264,7 @@ func (us SqlUserStore) performSearch(searchQuery string, term string, options ma
 		term = strings.Join(splitTerm, " ")
 
 		searchType = convertMySQLFullTextColumnsToPostgres(searchType)
-		searchClause := fmt.Sprintf("AND (%s) @@  to_tsquery(:Term)", searchType)
+		searchClause := fmt.Sprintf("AND (%s) @@  to_tsquery('simple', :Term)", searchType)
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
 		splitTerm := strings.Fields(term)

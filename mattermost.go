@@ -14,7 +14,6 @@ import (
 	"os/exec"
 	"os/signal"
 	"runtime"
-	"runtime/pprof"
 	"strconv"
 	"strings"
 	"syscall"
@@ -84,10 +83,6 @@ var flagChannelHeader string
 var flagChannelPurpose string
 var flagUserSetInactive bool
 var flagImportArchive string
-var flagCpuProfile bool
-var flagMemProfile bool
-var flagBlockProfile bool
-var flagHttpProfiler bool
 
 func doLoadConfig(filename string) (err string) {
 	defer func() {
@@ -127,26 +122,7 @@ func main() {
 
 	cmdUpdateDb30()
 
-	if flagCpuProfile {
-		f, err := os.Create(utils.GetLogFileLocation(utils.Cfg.LogSettings.FileLocation) + ".cpu.prof")
-		if err != nil {
-			l4g.Error("Error creating cpu profile log: " + err.Error())
-		}
-
-		l4g.Info("CPU Profiler is logging to " + utils.GetLogFileLocation(utils.Cfg.LogSettings.FileLocation) + ".cpu.prof")
-		pprof.StartCPUProfile(f)
-	}
-
-	if flagBlockProfile {
-		l4g.Info("Block Profiler is logging to " + utils.GetLogFileLocation(utils.Cfg.LogSettings.FileLocation) + ".blk.prof")
-		runtime.SetBlockProfileRate(1)
-	}
-
-	if flagMemProfile {
-		l4g.Info("Memory Profiler is logging to " + utils.GetLogFileLocation(utils.Cfg.LogSettings.FileLocation) + ".mem.prof")
-	}
-
-	api.NewServer(flagHttpProfiler)
+	api.NewServer()
 	api.InitApi()
 	web.InitWeb()
 
@@ -182,6 +158,10 @@ func main() {
 			einterfaces.GetClusterInterface().StartInterNodeCommunication()
 		}
 
+		if einterfaces.GetMetricsInterface() != nil {
+			einterfaces.GetMetricsInterface().StartServer()
+		}
+
 		// wait for kill signal before attempting to gracefully shutdown
 		// the running service
 		c := make(chan os.Signal)
@@ -192,38 +172,11 @@ func main() {
 			einterfaces.GetClusterInterface().StopInterNodeCommunication()
 		}
 
+		if einterfaces.GetMetricsInterface() != nil {
+			einterfaces.GetMetricsInterface().StopServer()
+		}
+
 		api.StopServer()
-
-		if flagCpuProfile {
-			l4g.Info("Closing CPU Profiler")
-			pprof.StopCPUProfile()
-		}
-
-		if flagBlockProfile {
-			f, err := os.Create(utils.GetLogFileLocation(utils.Cfg.LogSettings.FileLocation) + ".blk.prof")
-			if err != nil {
-				l4g.Error("Error creating block profile log: " + err.Error())
-			}
-
-			l4g.Info("Writing Block Profiler to: " + utils.GetLogFileLocation(utils.Cfg.LogSettings.FileLocation) + ".blk.prof")
-			pprof.Lookup("block").WriteTo(f, 0)
-			f.Close()
-			runtime.SetBlockProfileRate(0)
-		}
-
-		if flagMemProfile {
-			f, err := os.Create(utils.GetLogFileLocation(utils.Cfg.LogSettings.FileLocation) + ".mem.prof")
-			if err != nil {
-				l4g.Error("Error creating memory profile file: " + err.Error())
-			}
-
-			l4g.Info("Writing Memory Profiler to: " + utils.GetLogFileLocation(utils.Cfg.LogSettings.FileLocation) + ".mem.prof")
-			runtime.GC()
-			if err := pprof.WriteHeapProfile(f); err != nil {
-				l4g.Error("Error creating memory profile: " + err.Error())
-			}
-			f.Close()
-		}
 	}
 }
 
@@ -435,10 +388,6 @@ func parseCmds() {
 	flag.BoolVar(&flagCmdActivateUser, "activate_user", false, "")
 	flag.BoolVar(&flagCmdSlackImport, "slack_import", false, "")
 	flag.BoolVar(&flagUserSetInactive, "inactive", false, "")
-	flag.BoolVar(&flagCpuProfile, "cpuprofile", false, "")
-	flag.BoolVar(&flagMemProfile, "memprofile", false, "")
-	flag.BoolVar(&flagBlockProfile, "blkprofile", false, "")
-	flag.BoolVar(&flagHttpProfiler, "httpprofiler", false, "")
 
 	flag.Parse()
 

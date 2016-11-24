@@ -201,12 +201,12 @@ export default class Client {
 
             if (errorCallback) {
                 errorCallback(e, err, res);
-                return;
             }
+            return;
         }
 
         if (successCallback) {
-            if (res.body) {
+            if (res && res.body) {
                 successCallback(res.body, res);
             } else {
                 console.error('Missing response body for ' + methodName); // eslint-disable-line no-console
@@ -921,6 +921,15 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getUser', success, error));
     }
 
+    getByUsername(userName, success, error) {
+        request.
+            get(`${this.getUsersRoute()}/name/${userName}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getByUsername', success, error));
+    }
+
     login(loginId, password, mfaToken, success, error) {
         this.doLogin({login_id: loginId, password, token: mfaToken}, success, error);
 
@@ -1353,6 +1362,7 @@ export default class Client {
         this.track('api', 'api_channel_get');
     }
 
+    // SCHEDULED FOR DEPRECATION IN 3.7 - use getMoreChannelsPage instead
     getMoreChannels(success, error) {
         request.
             get(`${this.getChannelsRoute()}/more`).
@@ -1360,6 +1370,34 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getMoreChannels', success, error));
+    }
+
+    getMoreChannelsPage(offset, limit, success, error) {
+        request.
+            get(`${this.getChannelsRoute()}/more/${offset}/${limit}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getMoreChannelsPage', success, error));
+    }
+
+    searchMoreChannels(term, success, error) {
+        request.
+            post(`${this.getChannelsRoute()}/more/search`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send({term}).
+            end(this.handleResponse.bind(this, 'searchMoreChannels', success, error));
+    }
+
+    autocompleteChannels(term, success, error) {
+        request.
+            get(`${this.getChannelsRoute()}/autocomplete?term=${encodeURIComponent(term)}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'autocompleteChannels', success, error));
     }
 
     getChannelCounts(success, error) {

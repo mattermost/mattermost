@@ -2,18 +2,16 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
-import LoadingScreen from './loading_screen.jsx';
 import NewChannelFlow from './new_channel_flow.jsx';
-import FilteredChannelList from './filtered_channel_list.jsx';
+import SearchableChannelList from './searchable_channel_list.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
-import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
-import * as GlobalActions from 'actions/global_actions.jsx';
+import {joinChannel, searchMoreChannels} from 'actions/channel_actions.jsx';
 
 import {FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
@@ -21,19 +19,28 @@ import {browserHistory} from 'react-router/es6';
 import React from 'react';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 
+const CHANNELS_CHUNK_SIZE = 50;
+const CHANNELS_PER_PAGE = 50;
+const SEARCH_TIMEOUT_MILLISECONDS = 100;
+
 export default class MoreChannels extends React.Component {
     constructor(props) {
         super(props);
 
-        this.onListenerChange = this.onListenerChange.bind(this);
+        this.onChange = this.onChange.bind(this);
         this.handleJoin = this.handleJoin.bind(this);
         this.handleNewChannel = this.handleNewChannel.bind(this);
+        this.nextPage = this.nextPage.bind(this);
+        this.search = this.search.bind(this);
 
         this.shouldComponentUpdate = PureRenderMixin.shouldComponentUpdate.bind(this);
+
+        this.searchTimeoutId = 0;
 
         this.state = {
             channelType: '',
             showNewChannelModal: false,
+            search: false,
             channels: null,
             serverError: null
         };
@@ -41,10 +48,10 @@ export default class MoreChannels extends React.Component {
 
     componentDidMount() {
         const self = this;
-        ChannelStore.addChangeListener(this.onListenerChange);
+        ChannelStore.addChangeListener(this.onChange);
 
         $(this.refs.modal).on('shown.bs.modal', () => {
-            AsyncClient.getMoreChannels(true);
+            AsyncClient.getMoreChannelsPage(0, CHANNELS_CHUNK_SIZE * 2);
         });
 
         $(this.refs.modal).on('show.bs.modal', (e) => {
@@ -54,25 +61,26 @@ export default class MoreChannels extends React.Component {
     }
 
     componentWillUnmount() {
-        ChannelStore.removeChangeListener(this.onListenerChange);
+        ChannelStore.removeChangeListener(this.onChange);
     }
 
-    getStateFromStores() {
-        return {
-            channels: ChannelStore.getMoreAll(),
-            serverError: null
-        };
-    }
-
-    onListenerChange() {
-        const newState = this.getStateFromStores();
-        if (!Utils.areObjectsEqual(newState.channels, this.state.channels)) {
-            this.setState(newState);
+    onChange(force) {
+        if (this.state.search && !force) {
+            return;
         }
+
+        this.setState({
+            channels: ChannelStore.getMoreChannelsList(),
+            serverError: null
+        });
+    }
+
+    nextPage(page) {
+        AsyncClient.getMoreChannelsPage((page + 1) * CHANNELS_PER_PAGE, CHANNELS_PER_PAGE);
     }
 
     handleJoin(channel, done) {
-        GlobalActions.emitJoinChannelEvent(
+        joinChannel(
             channel,
             () => {
                 $(this.refs.modal).modal('hide');
@@ -93,6 +101,28 @@ export default class MoreChannels extends React.Component {
     handleNewChannel() {
         $(this.refs.modal).modal('hide');
         this.setState({showNewChannelModal: true});
+    }
+
+    search(term) {
+        if (term === '') {
+            this.onChange(true);
+            this.setState({search: false});
+            return;
+        }
+
+        clearTimeout(this.searchTimeoutId);
+
+        this.searchTimeoutId = setTimeout(
+            () => {
+                searchMoreChannels(
+                    term,
+                    (channels) => {
+                        this.setState({search: true, channels});
+                    }
+                );
+            },
+            SEARCH_TIMEOUT_MILLISECONDS
+        );
     }
 
     render() {
@@ -136,31 +166,6 @@ export default class MoreChannels extends React.Component {
             }
         }
 
-        let moreChannels;
-        const channels = this.state.channels;
-        if (channels == null) {
-            moreChannels = <LoadingScreen/>;
-        } else if (channels.length) {
-            moreChannels = (
-                <FilteredChannelList
-                    channels={channels}
-                    handleJoin={this.handleJoin}
-                />
-            );
-        } else {
-            moreChannels = (
-                <div className='no-channel-message'>
-                    <p className='primary-message'>
-                        <FormattedMessage
-                            id='more_channels.noMore'
-                            defaultMessage='No more channels to join'
-                        />
-                    </p>
-                    {createChannelHelpText}
-                </div>
-            );
-        }
-
         return (
             <div
                 className='modal fade more-channel__modal'
@@ -200,7 +205,14 @@ export default class MoreChannels extends React.Component {
                             />
                         </div>
                         <div className='modal-body'>
-                            {moreChannels}
+                            <SearchableChannelList
+                                channels={this.state.channels}
+                                channelsPerPage={CHANNELS_PER_PAGE}
+                                nextPage={this.nextPage}
+                                search={this.search}
+                                handleJoin={this.handleJoin}
+                                noResultsText={createChannelHelpText}
+                            />
                             {serverError}
                         </div>
                         <div className='modal-footer'>

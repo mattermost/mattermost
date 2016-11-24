@@ -37,3 +37,10 @@ fieldset {
 .admin-textarea {
     resize: none;
 }
+
+input {
+    &[type='radio'],
+    &[type='checkbox'] {
+        margin-top: 1px;
+    }
+}

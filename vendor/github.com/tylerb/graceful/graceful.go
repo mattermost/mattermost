@@ -6,9 +6,7 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"os/signal"
 	"sync"
-	"syscall"
 	"time"
 )
 
@@ -299,7 +297,7 @@ func (srv *Server) Serve(listener net.Listener) error {
 	interrupt := srv.interruptChan()
 	// Set up the interrupt handler
 	if !srv.NoSignalHandling {
-		signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM)
+		signalNotify(interrupt)
 	}
 	quitting := make(chan struct{})
 	go srv.handleInterrupt(interrupt, quitting, listener)
@@ -336,8 +334,7 @@ func (srv *Server) Stop(timeout time.Duration) {
 	defer srv.stopLock.Unlock()
 
 	srv.Timeout = timeout
-	interrupt := srv.interruptChan()
-	interrupt <- syscall.SIGINT
+	sendSignalInt(srv.interruptChan())
 }
 
 // StopChan gets the stop channel which will block until

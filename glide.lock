@@ -1,10 +1,12 @@
-hash: 21760a0ad0c2c37b28af04c042b714a1f1d0370ee1959e4ec90a1168d011cb0f
-updated: 2016-11-16T16:57:00.442024925-05:00
+hash: 6356cb81d6e15717a3ca6e205184d4144bf7087feebeb19d24ff72b20c65b985
+updated: 2016-11-22T09:00:05.599031729-08:00
 imports:
 - name: github.com/alecthomas/log4go
   version: e5dc62318d9bd58682f1dceb53a4b24e8253682f
-- name: github.com/braintree/manners
-  version: 0b5e6b2c2843f4c83c2a40f96980b09cf4af733c
+- name: github.com/beorn7/perks
+  version: 4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9
+  subpackages:
+  - quantile
 - name: github.com/dgryski/dgoogauth
   version: 96977cbd42e27be71f9f731db6634123de7e861a
 - name: github.com/disintegration/imaging
@@ -25,6 +27,10 @@ imports:
   subpackages:
   - raster
   - truetype
+- name: github.com/golang/protobuf
+  version: 8ee79997227bf9b34611aee7946ae64735e6fd93
+  subpackages:
+  - proto
 - name: github.com/gorilla/context
   version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
 - name: github.com/gorilla/handlers
@@ -49,8 +55,12 @@ imports:
   - gf256
   - qr
   - qr/coding
+- name: github.com/matttproud/golang_protobuf_extensions
+  version: 3247c84500bff8d9fb6d579d800f20b3e091582c
+  subpackages:
+  - pbutil
 - name: github.com/miekg/dns
-  version: 58f52c57ce9df13460ac68200cef30a008b9c468
+  version: 271c58e0c14f552178ea321a545ff9af38930f39
 - name: github.com/minio/minio-go
   version: c040578255dbb1a1f41cbdc5bd944de4140b4149
   subpackages:
@@ -69,6 +79,20 @@ imports:
   version: 172fbbbb329cf7e031dd3ab35766186fc2081eab
 - name: github.com/pborman/uuid
   version: a97ce2ca70fa5a848076093f05e639a89ca34d06
+- name: github.com/prometheus/client_golang
+  version: c5b7fccd204277076155f10851dad72b76a49317
+  subpackages:
+  - prometheus
+- name: github.com/prometheus/client_model
+  version: fa8ad6fec33561be4280a8f0514318c79d7f6cb6
+  subpackages:
+  - go
+- name: github.com/prometheus/common
+  version: 0d5de9d6d8629cb8bee6d4674da4127cd8b615a3
+  subpackages:
+  - expfmt
+- name: github.com/prometheus/procfs
+  version: abf152e5f3e97f2fafac028d2cc06c1feb87ffa5
 - name: github.com/rsc/letsencrypt
   version: 76104d26167d38b6a0010f42bfc8ec5487742e8b
 - name: github.com/rwcarlsen/goexif
@@ -81,9 +105,9 @@ imports:
 - name: github.com/segmentio/backo-go
   version: 204274ad699c0983a70203a566887f17a717fef4
 - name: github.com/tylerb/graceful
-  version: 50a48b6e73fcc75b45e22c05b79629a67c79e938
+  version: 4df1190835320af7076dfcf27b3d071fd3612caf
 - name: github.com/xenolf/lego
-  version: 9f86882f775f75f69617ecc160e39f4e0b7ae27f
+  version: 0abbd738a45af51595a214c52b02b18d16974f19
   subpackages:
   - acme
 - name: github.com/xtgo/uuid

@@ -90,7 +90,7 @@ type ChannelStore interface {
 	PermanentDeleteByTeam(teamId string) StoreChannel
 	GetByName(team_id string, domain string) StoreChannel
 	GetChannels(teamId string, userId string) StoreChannel
-	GetMoreChannels(teamId string, userId string) StoreChannel
+	GetMoreChannels(teamId string, userId string, offset int, limit int) StoreChannel
 	GetChannelCounts(teamId string, userId string) StoreChannel
 	GetTeamChannels(teamId string) StoreChannel
 	GetAll(teamId string) StoreChannel
@@ -103,7 +103,8 @@ type ChannelStore interface {
 	InvalidateAllChannelMembersForUser(userId string)
 	IsUserInChannelUseCache(userId string, channelId string) bool
 	GetMemberForPost(postId string, userId string) StoreChannel
-	GetMemberCount(channelId string) StoreChannel
+	InvalidateMemberCount(channelId string)
+	GetMemberCount(channelId string, allowFromCache bool) StoreChannel
 	RemoveMember(channelId string, userId string) StoreChannel
 	PermanentDeleteMembersByUser(userId string) StoreChannel
 	UpdateLastViewedAt(channelId string, userId string) StoreChannel
@@ -112,6 +113,8 @@ type ChannelStore interface {
 	AnalyticsTypeCount(teamId string, channelType string) StoreChannel
 	ExtraUpdateByUser(userId string, time int64) StoreChannel
 	GetMembersForUser(teamId string, userId string) StoreChannel
+	SearchInTeam(teamId string, term string) StoreChannel
+	SearchMore(userId string, teamId string, term string) StoreChannel
 }
 
 type PostStore interface {

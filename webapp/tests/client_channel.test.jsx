@@ -271,6 +271,52 @@ describe('Client.Channels', function() {
         });
     });
 
+    it('getMoreChannelsPage', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().getMoreChannelsPage(
+                0,
+                100,
+                function(data) {
+                    assert.equal(data.length, 0);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
+    it('searchMoreChannels', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().searchMoreChannels(
+                'blargh',
+                function(data) {
+                    assert.equal(data.length, 0);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
+    it('autocompleteChannels', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().autocompleteChannels(
+                TestHelper.basicChannel().name,
+                function(data) {
+                    assert.equal(data != null, true);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
     it('getChannelCounts', function(done) {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().getChannelCounts(

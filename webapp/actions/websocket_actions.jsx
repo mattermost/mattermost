@@ -18,7 +18,7 @@ import * as Utils from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
-import {handleNewPost, loadPosts} from 'actions/post_actions.jsx';
+import {handleNewPost, loadPosts, loadProfilesForPosts} from 'actions/post_actions.jsx';
 import {loadProfilesAndTeamMembersForDMSidebar} from 'actions/user_actions.jsx';
 import {loadChannelsForCurrentUser} from 'actions/channel_actions.jsx';
 import * as StatusActions from 'actions/status_actions.jsx';
@@ -172,6 +172,10 @@ function handleNewPostEvent(msg) {
     const post = JSON.parse(msg.data.post);
     handleNewPost(post, msg);
 
+    const posts = {};
+    posts[post.id] = post;
+    loadProfilesForPosts(posts);
+
     if (UserStore.getStatus(post.user_id) !== UserStatuses.ONLINE) {
         StatusActions.loadStatusesByIds([post.user_id]);
     }
@@ -204,6 +208,11 @@ function handlePostDeleteEvent(msg) {
 function handleNewUserEvent(msg) {
     if (TeamStore.getCurrentId() === '') {
         // Any new users will be loaded when we switch into a context with a team
+        return;
+    }
+
+    if (msg.data.user_id === UserStore.getCurrentId()) {
+        // We should already have ourselves
         return;
     }
 

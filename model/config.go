@@ -98,6 +98,11 @@ type ClusterSettings struct {
 	InterNodeUrls          []string
 }
 
+type MetricsSettings struct {
+	Enable        *bool
+	ListenAddress *string
+}
+
 type SSOSettings struct {
 	Enable          bool
 	Secret          string
@@ -221,6 +226,7 @@ type TeamSettings struct {
 	RestrictPrivateChannelManagement *string
 	UserStatusAwayTimeout            *int64
 	MaxChannelsPerTeam               *int64
+	MaxNotificationsPerChannel       *int64
 }
 
 type LdapSettings struct {
@@ -330,6 +336,7 @@ type Config struct {
 	SamlSettings         SamlSettings
 	NativeAppSettings    NativeAppSettings
 	ClusterSettings      ClusterSettings
+	MetricsSettings      MetricsSettings
 	WebrtcSettings       WebrtcSettings
 }
 
@@ -499,6 +506,11 @@ func (o *Config) SetDefaults() {
 	if o.TeamSettings.MaxChannelsPerTeam == nil {
 		o.TeamSettings.MaxChannelsPerTeam = new(int64)
 		*o.TeamSettings.MaxChannelsPerTeam = 2000
+	}
+
+	if o.TeamSettings.MaxNotificationsPerChannel == nil {
+		o.TeamSettings.MaxNotificationsPerChannel = new(int64)
+		*o.TeamSettings.MaxNotificationsPerChannel = 1000
 	}
 
 	if o.EmailSettings.EnableSignInWithEmail == nil {
@@ -772,6 +784,16 @@ func (o *Config) SetDefaults() {
 		o.ClusterSettings.InterNodeUrls = []string{}
 	}
 
+	if o.MetricsSettings.ListenAddress == nil {
+		o.MetricsSettings.ListenAddress = new(string)
+		*o.MetricsSettings.ListenAddress = ":8067"
+	}
+
+	if o.MetricsSettings.Enable == nil {
+		o.MetricsSettings.Enable = new(bool)
+		*o.MetricsSettings.Enable = false
+	}
+
 	if o.ComplianceSettings.Enable == nil {
 		o.ComplianceSettings.Enable = new(bool)
 		*o.ComplianceSettings.Enable = false
@@ -985,6 +1007,10 @@ func (o *Config) IsValid() *AppError {
 
 	if *o.TeamSettings.MaxChannelsPerTeam <= 0 {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.max_channels.app_error", nil, "")
+	}
+
+	if *o.TeamSettings.MaxNotificationsPerChannel <= 0 {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.max_notify_per_channel.app_error", nil, "")
 	}
 
 	if !(*o.TeamSettings.RestrictDirectMessage == DIRECT_MESSAGE_ANY || *o.TeamSettings.RestrictDirectMessage == DIRECT_MESSAGE_TEAM) {

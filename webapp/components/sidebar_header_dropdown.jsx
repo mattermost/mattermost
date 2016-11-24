@@ -45,6 +45,7 @@ export default class SidebarHeaderDropdown extends React.Component {
         this.showGetTeamInviteLinkModal = this.showGetTeamInviteLinkModal.bind(this);
         this.showTeamMembersModal = this.showTeamMembersModal.bind(this);
         this.hideTeamMembersModal = this.hideTeamMembersModal.bind(this);
+        this.handleSwitchTeams = this.handleSwitchTeams.bind(this);
 
         this.onTeamChange = this.onTeamChange.bind(this);
         this.openAccountSettings = this.openAccountSettings.bind(this);
@@ -129,6 +130,11 @@ export default class SidebarHeaderDropdown extends React.Component {
         this.setState({
             showTeamMembersModal: false
         });
+    }
+
+    handleSwitchTeams() {
+        // The actual switching of teams is handled by the react-router Link
+        this.setState({showDropdown: false});
     }
 
     componentDidMount() {
@@ -367,6 +373,7 @@ export default class SidebarHeaderDropdown extends React.Component {
                             <li key={'team_' + team.name}>
                                 <Link
                                     to={'/' + team.name + '/channels/town-square'}
+                                    onClick={this.handleSwitchTeams}
                                 >
                                     <FormattedMessage
                                         id='navbar_dropdown.switchTo'

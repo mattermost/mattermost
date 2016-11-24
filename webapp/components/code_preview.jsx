@@ -51,6 +51,7 @@ export default class CodePreview extends React.Component {
             async: true,
             url: props.fileUrl,
             type: 'GET',
+            dataType: 'text',
             error: this.handleReceivedError,
             success: this.handleReceivedCode
         });
@@ -61,7 +62,11 @@ export default class CodePreview extends React.Component {
         if (data.nodeName === '#document') {
             code = new XMLSerializer().serializeToString(data);
         }
-        this.setState({code, loading: false, success: true});
+        this.setState({
+            code,
+            loading: false,
+            success: true
+        });
     }
 
     handleReceivedError() {

@@ -30,6 +30,7 @@ type PushNotification struct {
 	Message          string `json:"message"`
 	Badge            int    `json:"badge"`
 	ContentAvailable int    `json:"cont_ava"`
+	TeamId           string `json:"team_id"`
 	ChannelId        string `json:"channel_id"`
 	ChannelName      string `json:"channel_name"`
 	Type             string `json:"type"`

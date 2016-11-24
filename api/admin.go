@@ -176,6 +176,14 @@ func saveConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	utils.SaveConfig(utils.CfgFileName, cfg)
 	utils.LoadConfig(utils.CfgFileName)
 
+	if einterfaces.GetMetricsInterface() != nil {
+		if *utils.Cfg.MetricsSettings.Enable {
+			einterfaces.GetMetricsInterface().StartServer()
+		} else {
+			einterfaces.GetMetricsInterface().StopServer()
+		}
+	}
+
 	// Future feature is to sync the configuration files
 	// if einterfaces.GetClusterInterface() != nil {
 	// 	err := einterfaces.GetClusterInterface().ConfigChanged(cfg, oldCfg, true)

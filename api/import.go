@@ -62,22 +62,16 @@ func ImportFile(file io.Reader, teamId string, channelId string, userId string, 
 	io.Copy(buf, file)
 	data := buf.Bytes()
 
-	previewPathList := []string{}
-	thumbnailPathList := []string{}
-	imageDataList := [][]byte{}
-
 	fileInfo, err := doUploadFile(teamId, channelId, userId, fileName, data)
 	if err != nil {
 		return nil, err
 	}
 
-	if fileInfo.PreviewPath != "" || fileInfo.ThumbnailPath != "" {
-		previewPathList = append(previewPathList, fileInfo.PreviewPath)
-		thumbnailPathList = append(thumbnailPathList, fileInfo.ThumbnailPath)
-		imageDataList = append(imageDataList, data)
+	img, width, height := prepareImage(data)
+	if img != nil {
+		generateThumbnailImage(*img, fileInfo.ThumbnailPath, width, height)
+		generatePreviewImage(*img, fileInfo.PreviewPath, width)
 	}
-
-	go handleImages(previewPathList, thumbnailPathList, imageDataList)
 
 	return fileInfo, nil
 }

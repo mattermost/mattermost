@@ -135,6 +135,7 @@ function populateDMChannelsWithProfiles(userIds) {
     const currentUserId = UserStore.getCurrentId();
 
     for (let i = 0; i < userIds.length; i++) {
+        // TODO There's a race condition here for DM channels if those channels aren't loaded yet
         const channelName = getDirectChannelName(currentUserId, userIds[i]);
         const channel = ChannelStore.getByName(channelName);
         if (channel) {
