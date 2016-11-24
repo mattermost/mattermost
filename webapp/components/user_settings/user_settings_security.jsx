@@ -9,8 +9,6 @@ import ToggleModalButton from '../toggle_modal_button.jsx';
 
 import PreferenceStore from 'stores/preference_store.jsx';
 
-import {generateMfaSecret} from 'actions/user_actions.jsx';
-
 import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -19,7 +17,7 @@ import Constants from 'utils/constants.jsx';
 import $ from 'jquery';
 import React from 'react';
 import {FormattedMessage, FormattedHTMLMessage, FormattedTime, FormattedDate} from 'react-intl';
-import {Link} from 'react-router/es6';
+import {browserHistory, Link} from 'react-router/es6';
 
 import icon50 from 'images/icon50x50.png';
 
@@ -28,17 +26,15 @@ export default class SecurityTab extends React.Component {
         super(props);
 
         this.submitPassword = this.submitPassword.bind(this);
-        this.activateMfa = this.activateMfa.bind(this);
+        this.setupMfa = this.setupMfa.bind(this);
         this.deactivateMfa = this.deactivateMfa.bind(this);
         this.updateCurrentPassword = this.updateCurrentPassword.bind(this);
         this.updateNewPassword = this.updateNewPassword.bind(this);
         this.updateConfirmPassword = this.updateConfirmPassword.bind(this);
-        this.updateMfaToken = this.updateMfaToken.bind(this);
         this.getDefaultState = this.getDefaultState.bind(this);
         this.createPasswordSection = this.createPasswordSection.bind(this);
         this.createSignInSection = this.createSignInSection.bind(this);
         this.createOAuthAppsSection = this.createOAuthAppsSection.bind(this);
-        this.showQrCode = this.showQrCode.bind(this);
         this.deauthorizeApp = this.deauthorizeApp.bind(this);
 
         this.state = this.getDefaultState();
@@ -51,9 +47,7 @@ export default class SecurityTab extends React.Component {
             confirmPassword: '',
             passwordError: '',
             serverError: '',
-            authService: this.props.user.auth_service,
-            mfaShowQr: false,
-            mfaToken: ''
+            authService: this.props.user.auth_service
         };
     }
 
@@ -119,26 +113,9 @@ export default class SecurityTab extends React.Component {
         );
     }
 
-    activateMfa() {
-        Client.updateMfa(
-            this.state.mfaToken,
-            true,
-            () => {
-                this.props.updateSection('');
-                AsyncClient.getMe();
-                this.setState(this.getDefaultState());
-            },
-            (err) => {
-                const state = this.getDefaultState();
-                if (err.message) {
-                    state.serverError = err.message;
-                } else {
-                    state.serverError = err;
-                }
-                state.mfaError = '';
-                this.setState(state);
-            }
-        );
+    setupMfa(e) {
+        e.preventDefault();
+        browserHistory.push('/mfa/setup');
     }
 
     deactivateMfa() {
@@ -157,7 +134,6 @@ export default class SecurityTab extends React.Component {
                 } else {
                     state.serverError = err;
                 }
-                state.mfaError = '';
                 this.setState(state);
             }
         );
@@ -173,18 +149,6 @@ export default class SecurityTab extends React.Component {
 
     updateConfirmPassword(e) {
         this.setState({confirmPassword: e.target.value});
-    }
-
-    updateMfaToken(e) {
-        this.setState({mfaToken: e.target.value});
-    }
-
-    showQrCode(e) {
-        e.preventDefault();
-        generateMfaSecret(
-            (data) => this.setState({mfaShowQr: true, secret: data.secret, qrCode: data.qr_code}),
-            (err) => this.setState({serverError: err.message})
-        );
     }
 
     deauthorizeApp(e) {
@@ -236,72 +200,13 @@ export default class SecurityTab extends React.Component {
                         />
                     </span>
                 );
-            } else if (this.state.mfaShowQr) {
-                content = (
-                    <div key='mfaButton'>
-                        <div className='form-group'>
-                            <label className='col-sm-3 control-label'>
-                                <FormattedMessage
-                                    id='user.settings.mfa.qrCode'
-                                    defaultMessage='Bar Code'
-                                />
-                            </label>
-                            <div className='col-sm-5'>
-                                <img
-                                    className='qr-code-img'
-                                    src={'data:image/png;base64,' + this.state.qrCode}
-                                />
-                            </div>
-                        </div>
-                        <div className='form-group'>
-                            <label className='col-sm-3 control-label'>
-                                <FormattedMessage
-                                    id='user.settings.mfa.secret'
-                                    defaultMessage='Secret'
-                                />
-                            </label>
-                            <div className='col-sm-9 padding-top'>
-                                {this.state.secret}
-                            </div>
-                        </div>
-                        <hr/>
-                        <div className='form-group'>
-                            <label className='col-sm-5 control-label'>
-                                <FormattedMessage
-                                    id='user.settings.mfa.enterToken'
-                                    defaultMessage='Token (numbers only)'
-                                />
-                            </label>
-                            <div className='col-sm-7'>
-                                <input
-                                    className='form-control'
-                                    type='number'
-                                    autoFocus={true}
-                                    onChange={this.updateMfaToken}
-                                    value={this.state.mfaToken}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                );
-
-                extraInfo = (
-                    <span>
-                        <FormattedMessage
-                            id='user.settings.mfa.addHelpQr'
-                            defaultMessage='Please scan the QR code with the Google Authenticator app on your smartphone and fill in the token with one provided by the app. If you are unable to scan the code, you can manually enter the secret provided.'
-                        />
-                    </span>
-                );
-
-                submit = this.activateMfa;
             } else {
                 content = (
                     <div key='mfaQrCode'>
                         <a
                             className='btn btn-primary'
                             href='#'
-                            onClick={this.showQrCode}
+                            onClick={this.setupMfa}
                         >
                             <FormattedMessage
                                 id='user.settings.mfa.add'
@@ -314,9 +219,9 @@ export default class SecurityTab extends React.Component {
 
                 extraInfo = (
                     <span>
-                        <FormattedHTMLMessage
+                        <FormattedMessage
                             id='user.settings.mfa.addHelp'
-                            defaultMessage="You can require a smartphone-based token, in addition to your password, to sign into Mattermost.<br/><br/>To enable, download Google Authenticator from <a target='_blank' href='https://itunes.apple.com/us/app/google-authenticator/id388497605?mt=8'>iTunes</a> or <a target='_blank' href='https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&hl=en'>Google Play</a> for your phone, then<br/><br/>1. Click the <strong>Add MFA to your account</strong> button above.<br/>2. Use Google Authenticator to scan the QR code that appears or type in the secret manually.<br/>3. Type in the Token generated by Google Authenticator and click <strong>Save</strong>.<br/><br/>When logging in, you will be asked to enter a token from Google Authenticator in addition to your regular credentials."
+                            defaultMessage='Adding multi-factor authentication will make your account more secure by requiring a code from your mobile phone each time you sign in.'
                         />
                     </span>
                 );
@@ -334,7 +239,7 @@ export default class SecurityTab extends React.Component {
 
             updateSectionStatus = function resetSection(e) {
                 this.props.updateSection('');
-                this.setState({mfaToken: '', mfaShowQr: false, mfaError: null, serverError: null});
+                this.setState({serverError: null});
                 e.preventDefault();
             }.bind(this);
 
@@ -345,7 +250,6 @@ export default class SecurityTab extends React.Component {
                     extraInfo={extraInfo}
                     submit={submit}
                     server_error={this.state.serverError}
-                    client_error={this.state.mfaError}
                     updateSection={updateSectionStatus}
                     width='medium'
                 />

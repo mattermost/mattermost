@@ -391,3 +391,22 @@ export function updateUserRoles(userId, newRoles, success, error) {
       }
     );
 }
+
+export function activateMfa(code, success, error) {
+    Client.updateMfa(
+        code,
+        true,
+        () => {
+            AsyncClient.getMe();
+
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
