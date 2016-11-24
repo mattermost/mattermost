@@ -4036,6 +4036,10 @@
     "translation": "We couldn't get channel type counts"
   },
   {
+    "id": "store.sql_channel.search.app_error",
+    "translation": "We encountered an error searching channels"
+  },
+  {
     "id": "store.sql_channel.check_open_channel_permissions.app_error",
     "translation": "We couldn't check the permissions"
   },

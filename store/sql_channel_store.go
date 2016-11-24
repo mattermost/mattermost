@@ -5,6 +5,8 @@ package store
 
 import (
 	"database/sql"
+	"fmt"
+	"strings"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/go-gorp/gorp"
@@ -65,6 +67,8 @@ func (s SqlChannelStore) CreateIndexesIfNotExists() {
 
 	s.CreateIndexIfNotExists("idx_channelmembers_channel_id", "ChannelMembers", "ChannelId")
 	s.CreateIndexIfNotExists("idx_channelmembers_user_id", "ChannelMembers", "UserId")
+
+	s.CreateFullTextIndexIfNotExists("idx_channels_txt", "Channels", "Name, DisplayName")
 }
 
 func (s SqlChannelStore) Save(channel *model.Channel) StoreChannel {
@@ -392,7 +396,7 @@ func (s SqlChannelStore) GetChannels(teamId string, userId string) StoreChannel 
 	return storeChannel
 }
 
-func (s SqlChannelStore) GetMoreChannels(teamId string, userId string) StoreChannel {
+func (s SqlChannelStore) GetMoreChannels(teamId string, userId string, offset int, limit int) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
@@ -418,8 +422,10 @@ func (s SqlChannelStore) GetMoreChannels(teamId string, userId string) StoreChan
 			                AND TeamId = :TeamId2
 			                AND UserId = :UserId
 			                AND DeleteAt = 0)
-			ORDER BY DisplayName`,
-			map[string]interface{}{"TeamId1": teamId, "TeamId2": teamId, "UserId": userId})
+			ORDER BY DisplayName
+			LIMIT :Limit
+			OFFSET :Offset`,
+			map[string]interface{}{"TeamId1": teamId, "TeamId2": teamId, "UserId": userId, "Limit": limit, "Offset": offset})
 
 		if err != nil {
 			result.Err = model.NewLocAppError("SqlChannelStore.GetMoreChannels", "store.sql_channel.get_more_channels.get.app_error", nil, "teamId="+teamId+", userId="+userId+", err="+err.Error())
@@ -1103,4 +1109,111 @@ func (s SqlChannelStore) GetMembersForUser(teamId string, userId string) StoreCh
 	}()
 
 	return storeChannel
+}
+
+func (s SqlChannelStore) SearchInTeam(teamId string, term string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		searchQuery := `
+			SELECT
+			    *
+			FROM
+			    Channels
+			WHERE
+			    TeamId = :TeamId
+				AND Type = 'O'
+				AND DeleteAt = 0
+			    SEARCH_CLAUSE
+			ORDER BY DisplayName
+			LIMIT 100`
+
+		storeChannel <- s.performSearch(searchQuery, term, map[string]interface{}{"TeamId": teamId})
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlChannelStore) SearchMore(userId string, teamId string, term string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		searchQuery := `
+			SELECT
+			    *
+			FROM
+			    Channels
+			WHERE
+			    TeamId = :TeamId
+				AND Type = 'O'
+				AND DeleteAt = 0
+			    AND Id NOT IN (SELECT
+			        Channels.Id
+			    FROM
+			        Channels,
+			        ChannelMembers
+			    WHERE
+			        Id = ChannelId
+			        AND TeamId = :TeamId
+			        AND UserId = :UserId
+			        AND DeleteAt = 0)
+			    SEARCH_CLAUSE
+			ORDER BY DisplayName
+			LIMIT 100`
+
+		storeChannel <- s.performSearch(searchQuery, term, map[string]interface{}{"TeamId": teamId, "UserId": userId})
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlChannelStore) performSearch(searchQuery string, term string, parameters map[string]interface{}) StoreResult {
+	result := StoreResult{}
+
+	// these chars have special meaning and can be treated as spaces
+	for _, c := range specialSearchChar {
+		term = strings.Replace(term, c, " ", -1)
+	}
+
+	if term == "" {
+		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
+	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+		splitTerm := strings.Fields(term)
+		for i, t := range strings.Fields(term) {
+			if i == len(splitTerm)-1 {
+				splitTerm[i] = t + ":*"
+			} else {
+				splitTerm[i] = t + ":* &"
+			}
+		}
+
+		term = strings.Join(splitTerm, " ")
+
+		searchClause := fmt.Sprintf("AND (%s) @@  to_tsquery('simple', :Term)", "Name || ' ' || DisplayName")
+		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
+	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
+		splitTerm := strings.Fields(term)
+		for i, t := range strings.Fields(term) {
+			splitTerm[i] = "+" + t + "*"
+		}
+
+		term = strings.Join(splitTerm, " ")
+
+		searchClause := fmt.Sprintf("AND MATCH(%s) AGAINST (:Term IN BOOLEAN MODE)", "Name, DisplayName")
+		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
+	}
+
+	var channels model.ChannelList
+
+	parameters["Term"] = term
+
+	if _, err := s.GetReplica().Select(&channels, searchQuery, parameters); err != nil {
+		result.Err = model.NewLocAppError("SqlChannelStore.Search", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error())
+	} else {
+		result.Data = &channels
+	}
+
+	return result
 }

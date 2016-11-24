@@ -239,6 +239,30 @@ export function getMoreChannels(force) {
     }
 }
 
+export function getMoreChannelsPage(offset, limit) {
+    if (isCallInProgress('getMoreChannelsPage')) {
+        return;
+    }
+
+    callTracker.getMoreChannelsPage = utils.getTimestamp();
+    Client.getMoreChannelsPage(
+        offset,
+        limit,
+        (data) => {
+            callTracker.getMoreChannelsPage = 0;
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_MORE_CHANNELS,
+                channels: data
+            });
+        },
+        (err) => {
+            callTracker.getMoreChannelsPage = 0;
+            dispatchError(err, 'getMoreChannelsPage');
+        }
+    );
+}
+
 export function getChannelStats(channelId = ChannelStore.getCurrentId(), doVersionCheck = false) {
     if (isCallInProgress('getChannelStats' + channelId) || channelId == null) {
         return;

@@ -2712,8 +2712,8 @@ func autocompleteUsersInChannel(c *Context, w http.ResponseWriter, r *http.Reque
 	searchOptions := map[string]bool{}
 	searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
 
-	uchan := Srv.Store.User().SearchInChannel(channelId, term, map[string]bool{})
-	nuchan := Srv.Store.User().SearchNotInChannel(teamId, channelId, term, map[string]bool{})
+	uchan := Srv.Store.User().SearchInChannel(channelId, term, searchOptions)
+	nuchan := Srv.Store.User().SearchNotInChannel(teamId, channelId, term, searchOptions)
 
 	autocomplete := &model.UserAutocompleteInChannel{}
 
@@ -2758,7 +2758,10 @@ func autocompleteUsersInTeam(c *Context, w http.ResponseWriter, r *http.Request)
 		}
 	}
 
-	uchan := Srv.Store.User().Search(teamId, term, map[string]bool{})
+	searchOptions := map[string]bool{}
+	searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
+
+	uchan := Srv.Store.User().Search(teamId, term, searchOptions)
 
 	autocomplete := &model.UserAutocompleteInTeam{}
 

@@ -6,6 +6,7 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
@@ -19,7 +20,8 @@ func InitChannel() {
 	l4g.Debug(utils.T("api.channel.init.debug"))
 
 	BaseRoutes.Channels.Handle("/", ApiUserRequired(getChannels)).Methods("GET")
-	BaseRoutes.Channels.Handle("/more", ApiUserRequired(getMoreChannels)).Methods("GET")
+	BaseRoutes.Channels.Handle("/more/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getMoreChannelsPage)).Methods("GET")
+	BaseRoutes.Channels.Handle("/more/search", ApiUserRequired(searchMoreChannels)).Methods("POST")
 	BaseRoutes.Channels.Handle("/counts", ApiUserRequired(getChannelCounts)).Methods("GET")
 	BaseRoutes.Channels.Handle("/members", ApiUserRequired(getMyChannelMembers)).Methods("GET")
 	BaseRoutes.Channels.Handle("/create", ApiUserRequired(createChannel)).Methods("POST")
@@ -28,6 +30,7 @@ func InitChannel() {
 	BaseRoutes.Channels.Handle("/update_header", ApiUserRequired(updateChannelHeader)).Methods("POST")
 	BaseRoutes.Channels.Handle("/update_purpose", ApiUserRequired(updateChannelPurpose)).Methods("POST")
 	BaseRoutes.Channels.Handle("/update_notify_props", ApiUserRequired(updateNotifyProps)).Methods("POST")
+	BaseRoutes.Channels.Handle("/autocomplete", ApiUserRequired(autocompleteChannels)).Methods("GET")
 
 	BaseRoutes.NeedChannelName.Handle("/join", ApiUserRequired(join)).Methods("POST")
 
@@ -41,6 +44,7 @@ func InitChannel() {
 	BaseRoutes.NeedChannel.Handle("/remove", ApiUserRequired(removeMember)).Methods("POST")
 	BaseRoutes.NeedChannel.Handle("/update_last_viewed_at", ApiUserRequired(updateLastViewedAt)).Methods("POST")
 	BaseRoutes.NeedChannel.Handle("/set_last_viewed_at", ApiUserRequired(setLastViewedAt)).Methods("POST")
+
 }
 
 func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -416,17 +420,28 @@ func getChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getMoreChannels(c *Context, w http.ResponseWriter, r *http.Request) {
+func getMoreChannelsPage(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+
+	offset, err := strconv.Atoi(params["offset"])
+	if err != nil {
+		c.SetInvalidParam("getProfiles", "offset")
+		return
+	}
+
+	limit, err := strconv.Atoi(params["limit"])
+	if err != nil {
+		c.SetInvalidParam("getProfiles", "limit")
+		return
+	}
 
 	// user is already in the team
 	if !HasPermissionToTeamContext(c, c.TeamId, model.PERMISSION_LIST_TEAM_CHANNELS) {
 		return
 	}
 
-	if result := <-Srv.Store.Channel().GetMoreChannels(c.TeamId, c.Session.UserId); result.Err != nil {
+	if result := <-Srv.Store.Channel().GetMoreChannels(c.TeamId, c.Session.UserId, offset, limit); result.Err != nil {
 		c.Err = result.Err
-		return
-	} else if HandleEtag(result.Data.(*model.ChannelList).Etag(), w, r) {
 		return
 	} else {
 		data := result.Data.(*model.ChannelList)
@@ -1181,4 +1196,52 @@ func updateNotifyProps(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(model.MapToJson(member.NotifyProps)))
 	}
 
+}
+
+func searchMoreChannels(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.ChannelSearchFromJson(r.Body)
+	if props == nil {
+		c.SetInvalidParam("searchMoreChannels", "")
+		return
+	}
+
+	if c.Session.GetTeamByTeamId(c.TeamId) == nil {
+		if !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
+			return
+		}
+	}
+
+	if len(props.Term) == 0 {
+		c.SetInvalidParam("searchMoreChannels", "term")
+		return
+	}
+
+	if result := <-Srv.Store.Channel().SearchMore(c.Session.UserId, c.TeamId, props.Term); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		channels := result.Data.(*model.ChannelList)
+		w.Write([]byte(channels.ToJson()))
+	}
+}
+
+func autocompleteChannels(c *Context, w http.ResponseWriter, r *http.Request) {
+	term := r.URL.Query().Get("term")
+
+	if c.Session.GetTeamByTeamId(c.TeamId) == nil {
+		if !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
+			return
+		}
+	}
+
+	var channels *model.ChannelList
+
+	if result := <-Srv.Store.Channel().SearchInTeam(c.TeamId, term); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		channels = result.Data.(*model.ChannelList)
+	}
+
+	w.Write([]byte(channels.ToJson()))
 }

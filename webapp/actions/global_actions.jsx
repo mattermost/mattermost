@@ -482,14 +482,6 @@ export function emitUserLoggedOutEvent(redirectTo = '/', shouldSignalLogout = tr
     );
 }
 
-export function emitJoinChannelEvent(channel, success, failure) {
-    Client.joinChannel(
-        channel.id,
-        success,
-        failure
-    );
-}
-
 export function emitSearchMentionsEvent(user) {
     let terms = '';
     if (user.notify_props && user.notify_props.mention_keys) {
