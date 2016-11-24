@@ -68,12 +68,18 @@ export default class ChannelHeader extends React.Component {
         const stats = ChannelStore.getStats(this.props.channelId);
         const users = UserStore.getProfileListInChannel(this.props.channelId);
 
+        let otherUserId = null;
+        if (channel && channel.type === 'D') {
+            otherUserId = Utils.getUserIdFromChannelName(channel);
+        }
+
         return {
             channel,
             memberChannel: ChannelStore.getMyMember(this.props.channelId),
             users,
             userCount: stats.member_count,
             currentUser: UserStore.getCurrentUser(),
+            otherUserId,
             enableFormatting: PreferenceStore.getBool(Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', true),
             isBusy: WebrtcStore.isBusy(),
             isFavorite: channel && ChannelUtils.isFavoriteChannel(channel)
@@ -84,7 +90,6 @@ export default class ChannelHeader extends React.Component {
         if (!this.state.channel ||
             !this.state.memberChannel ||
             !this.state.users ||
-            (Object.keys(this.state.users).length === 0 && this.state.channel.type === 'D') ||
             !this.state.userCount ||
             !this.state.currentUser) {
             return false;
@@ -240,7 +245,10 @@ export default class ChannelHeader extends React.Component {
         const flagIcon = Constants.FLAG_ICON_SVG;
 
         if (!this.validState()) {
-            return null;
+            // Use an empty div to make sure the header's height stays constant
+            return (
+                <div className='channel-header'/>
+            );
         }
 
         const channel = this.state.channel;
@@ -285,7 +293,7 @@ export default class ChannelHeader extends React.Component {
 
         if (isDirect) {
             const userMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-            const contact = this.state.users[0];
+            const otherUserId = this.state.otherUserId;
 
             const teammateId = Utils.getUserIdFromChannelName(channel);
             channelTitle = Utils.displayUsername(teammateId);
@@ -293,7 +301,7 @@ export default class ChannelHeader extends React.Component {
             const webrtcEnabled = global.mm_config.EnableWebrtc === 'true' && userMedia && Utils.isFeatureEnabled(PreReleaseFeatures.WEBRTC_PREVIEW);
 
             if (webrtcEnabled) {
-                const isOffline = UserStore.getStatus(contact.id) === UserStatuses.OFFLINE;
+                const isOffline = UserStore.getStatus(otherUserId) === UserStatuses.OFFLINE;
                 const busy = this.state.isBusy;
                 let circleClass = '';
                 let webrtcMessage;
@@ -332,7 +340,7 @@ export default class ChannelHeader extends React.Component {
                     <div className='webrtc__header'>
                         <a
                             href='#'
-                            onClick={() => this.initWebrtc(contact.id, !isOffline)}
+                            onClick={() => this.initWebrtc(otherUserId, !isOffline)}
                             disabled={isOffline}
                         >
                             <OverlayTrigger
