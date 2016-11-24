@@ -1929,7 +1929,7 @@
   },
   {
     "id": "api.templates.post_subject_in_channel",
-    "translation": "{{.SubjectText}} {{.ChannelName}} on {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "{{.SubjectText}} in {{.ChannelName}} on {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "api.templates.post_subject_in_direct_message",
