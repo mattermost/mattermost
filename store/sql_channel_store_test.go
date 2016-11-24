@@ -352,7 +352,8 @@ func TestChannelStoreGetByName(t *testing.T) {
 	o1.Type = model.CHANNEL_OPEN
 	Must(store.Channel().Save(&o1))
 
-	if r1 := <-store.Channel().GetByName(o1.TeamId, o1.Name); r1.Err != nil {
+	r1 := <-store.Channel().GetByName(o1.TeamId, o1.Name)
+	if r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		if r1.Data.(*model.Channel).ToJson() != o1.ToJson() {
@@ -361,6 +362,36 @@ func TestChannelStoreGetByName(t *testing.T) {
 	}
 
 	if err := (<-store.Channel().GetByName(o1.TeamId, "")).Err; err == nil {
+		t.Fatal("Missing id should have failed")
+	}
+
+	Must(store.Channel().Delete(r1.Data.(*model.Channel).Id, model.GetMillis()))
+
+	if err := (<-store.Channel().GetByName(o1.TeamId, "")).Err; err == nil {
+		t.Fatal("Deleted channel should not be returned by GetByName()")
+	}
+}
+
+func TestChannelStoreGetDeletedByName(t *testing.T) {
+	Setup()
+
+	o1 := model.Channel{}
+	o1.TeamId = model.NewId()
+	o1.DisplayName = "Name"
+	o1.Name = "a" + model.NewId() + "b"
+	o1.Type = model.CHANNEL_OPEN
+	o1.DeleteAt = model.GetMillis()
+	Must(store.Channel().Save(&o1))
+
+	if r1 := <-store.Channel().GetDeletedByName(o1.TeamId, o1.Name); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		if r1.Data.(*model.Channel).ToJson() != o1.ToJson() {
+			t.Fatal("invalid returned channel")
+		}
+	}
+
+	if err := (<-store.Channel().GetDeletedByName(o1.TeamId, "")).Err; err == nil {
 		t.Fatal("Missing id should have failed")
 	}
 }
