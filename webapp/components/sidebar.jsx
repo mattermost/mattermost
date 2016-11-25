@@ -736,6 +736,7 @@ export default class Sidebar extends React.Component {
 
                 <SidebarHeader
                     teamDisplayName={this.state.currentTeam.display_name}
+                    teamDescription={this.state.currentTeam.description}
                     teamName={this.state.currentTeam.name}
                     teamType={this.state.currentTeam.type}
                     currentUser={this.state.currentUser}
