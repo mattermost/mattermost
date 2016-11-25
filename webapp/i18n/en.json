@@ -1272,6 +1272,8 @@
   "general_tab.required": "This field is required",
   "general_tab.teamName": "Team Name",
   "general_tab.teamNameInfo": "Set the name of the team as it appears on your sign-in screen and at the top of the left-hand sidebar.",
+  "general_tab.teamDescription": "Team Description",
+  "general_tab.teamDescriptionInfo": "Team description provides additional information to help users select the right team. Maximum of 50 characters.",
   "general_tab.title": "General Settings",
   "general_tab.yes": "Yes",
   "get_app.alreadyHaveIt": "Already have it?",

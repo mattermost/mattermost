@@ -56,8 +56,8 @@ const holders = defineMessages({
         id: 'general_tab.teamNameInfo',
         defaultMessage: 'Set the name of the team as it appears on your sign-in screen and at the top of the left-hand sidebar.'
     },
-    teamDescription: {
-        id: 'general_tab.teamDescription',
+    teamDescriptionInfo: {
+        id: 'general_tab.teamDescriptionInfo',
         defaultMessage: 'Team description provides additional information to help users select the right team. Maximum of 50 characters.'
     }
 });
@@ -72,10 +72,12 @@ class GeneralTab extends React.Component {
         this.handleNameSubmit = this.handleNameSubmit.bind(this);
         this.handleInviteIdSubmit = this.handleInviteIdSubmit.bind(this);
         this.handleOpenInviteSubmit = this.handleOpenInviteSubmit.bind(this);
+        this.handleDescriptionSubmit = this.handleDescriptionSubmit.bind(this);
         this.handleClose = this.handleClose.bind(this);
         this.onUpdateNameSection = this.onUpdateNameSection.bind(this);
         this.updateName = this.updateName.bind(this);
         this.updateDescription = this.updateDescription.bind(this);
+        this.onUpdateDescriptionSection = this.onUpdateDescriptionSection.bind(this);
         this.onUpdateInviteIdSection = this.onUpdateInviteIdSection.bind(this);
         this.updateInviteId = this.updateInviteId.bind(this);
         this.onUpdateOpenInviteSection = this.onUpdateOpenInviteSection.bind(this);
@@ -93,14 +95,6 @@ class GeneralTab extends React.Component {
         this.props.updateSection(section);
     }
 
-    updateDescription(section) {
-        if ($('.section-max').length) {
-            $('.settings-modal .modal-body').scrollTop(0).perfectScrollbar('update');
-        }
-        this.setState(this.setupInitialState(this.props));
-        this.props.updateDescription(section);
-    }
-
     setupInitialState(props) {
         const team = props.team;
 
@@ -108,6 +102,7 @@ class GeneralTab extends React.Component {
             name: team.display_name,
             invite_id: team.invite_id,
             allow_open_invite: team.allow_open_invite,
+            description: team.description,
             serverError: '',
             clientError: ''
         };
@@ -116,6 +111,7 @@ class GeneralTab extends React.Component {
     componentWillReceiveProps(nextProps) {
         this.setState({
             name: nextProps.team.display_name,
+            description: nextProps.team.description,
             invite_id: nextProps.team.invite_id,
             allow_open_invite: nextProps.team.allow_open_invite
         });
@@ -228,6 +224,40 @@ class GeneralTab extends React.Component {
         this.updateSection('');
     }
 
+    handleDescriptionSubmit(e) {
+        e.preventDefault();
+
+        var state = {serverError: '', clientError: ''};
+        let valid = true;
+
+        const {formatMessage} = this.props.intl;
+        const description = this.state.description.trim();
+        if (description === this.props.team.description) {
+            state.clientError = formatMessage(holders.chooseName);
+            valid = false;
+        } else {
+            state.clientError = '';
+        }
+
+        this.setState(state);
+
+        if (!valid) {
+            return;
+        }
+
+        var data = this.props.team;
+        data.description = this.state.description;
+        updateTeam(data,
+            () => {
+                this.updateSection('');
+            },
+            (err) => {
+                state.serverError = err.message;
+                this.setState(state);
+            }
+        );
+    }
+
     componentDidMount() {
         $('#team_settings').on('hidden.bs.modal', this.handleClose);
     }
@@ -242,6 +272,15 @@ class GeneralTab extends React.Component {
             this.updateSection('');
         } else {
             this.updateSection('name');
+        }
+    }
+
+    onUpdateDescriptionSection(e) {
+        e.preventDefault();
+        if (this.props.activeSection === 'description') {
+            this.updateSection('');
+        } else {
+            this.updateSection('description');
         }
     }
 
@@ -265,6 +304,10 @@ class GeneralTab extends React.Component {
 
     updateName(e) {
         this.setState({name: e.target.value});
+    }
+
+    updateDescription(e) {
+        this.setState({description: e.target.value});
     }
 
     updateInviteId(e) {
@@ -495,35 +538,35 @@ class GeneralTab extends React.Component {
                         <input
                             className='form-control'
                             type='text'
-                            maxLength={Constants.MAX_TEAMNAME_LENGTH.toString()}
-                            onChange={this.updateName}
-                            value={this.state.name}
+                            maxLength={Constants.MAX_TEAMDESCRIPTION_LENGTH.toString()}
+                            onChange={this.updateDescription}
+                            value={this.state.description}
                         />
                     </div>
                 </div>
             );
 
-            const nameExtraInfo = <span>{formatMessage(holders.teamNameInfo)}</span>;
+            const descriptionExtraInfo = <span>{formatMessage(holders.teamDescriptionInfo)}</span>;
 
             descriptionSection = (
                 <SettingItemMax
                     title={formatMessage({id: 'general_tab.teamDescription'})}
                     inputs={inputs}
-                    submit={this.handleNameSubmit}
+                    submit={this.handleDescriptionSubmit}
                     server_error={serverError}
                     client_error={clientError}
-                    updateSection={this.onUpdateNameSection}
-                    extraInfo={nameExtraInfo}
+                    updateSection={this.onUpdateDescriptionSection}
+                    extraInfo={descriptionExtraInfo}
                 />
             );
         } else {
-            var describe = this.state.name;
+            var describemsg = this.state.description;
 
             descriptionSection = (
                 <SettingItemMin
                     title={formatMessage({id: 'general_tab.teamDescription'})}
-                    describe={describe}
-                    updateSection={this.onUpdateNameSection}
+                    describe={describemsg}
+                    updateSection={this.onUpdateDescriptionSection}
                 />
             );
         }

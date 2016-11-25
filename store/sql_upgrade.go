@@ -202,6 +202,9 @@ func UpgradeDatabaseToVersion35(sqlStore *SqlStore) {
 		// The rest of the migration from Filenames -> FileIds is done lazily in api.GetFileInfosForPost
 		sqlStore.CreateColumnIfNotExists("Posts", "FileIds", "varchar(150)", "varchar(150)", "[]")
 
+		// Create Team Description column
+		sqlStore.CreateColumnIfNotExists("Teams", "Description", "varchar(255)", "varchar(255)", "")
+
 		// Increase maximum length of the Channel table Purpose column.
 		if sqlStore.GetMaxLengthOfColumnIfExists("Channels", "Purpose") != "250" {
 			sqlStore.AlterColumnTypeIfExists("Channels", "Purpose", "varchar(250)", "varchar(250)")
