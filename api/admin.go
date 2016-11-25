@@ -407,9 +407,9 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			totalSockets := 0
-			totalMasterDb := 0
-			totalReadDb := 0
+			totalSockets := TotalWebsocketConnections()
+			totalMasterDb := Srv.Store.TotalMasterDbConnections()
+			totalReadDb := Srv.Store.TotalReadDbConnections()
 
 			for _, stat := range stats {
 				totalSockets = totalSockets + stat.TotalWebsocketConnections
