@@ -273,7 +273,8 @@ export function removeReaction(channelId, postId, emojiName) {
     AsyncClient.deleteReaction(channelId, reaction);
 }
 
-export function createPost(post, doLoadPost) {
+export function createPost(post, doLoadPost, success, error) {
+
     Client.createPost(post,
         (data) => {
             if (doLoadPost) {
@@ -286,6 +287,10 @@ export function createPost(post, doLoadPost) {
                 type: ActionTypes.RECEIVED_POST,
                 post: data
             });
+
+            if (success) {
+                success(data);
+            }
         },
 
         (err) => {
@@ -295,6 +300,10 @@ export function createPost(post, doLoadPost) {
             } else {
                 post.state = Constants.POST_FAILED;
                 PostStore.updatePendingPost(post);
+            }
+
+            if (error) {
+                error(err);
             }
         }
     );
