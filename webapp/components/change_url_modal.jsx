@@ -227,6 +227,6 @@ ChangeUrlModal.propTypes = {
     currentURL: React.PropTypes.string,
     serverError: React.PropTypes.node,
     onModalSubmit: React.PropTypes.func.isRequired,
-    onModalExited: React.PropTypes.func.optional,
+    onModalExited: React.PropTypes.func,
     onModalDismissed: React.PropTypes.func.isRequired
 };

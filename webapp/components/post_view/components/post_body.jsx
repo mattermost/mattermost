@@ -211,7 +211,7 @@ export default class PostBody extends React.Component {
 PostBody.propTypes = {
     post: React.PropTypes.object.isRequired,
     parentPost: React.PropTypes.object,
-    retryPost: React.PropTypes.func.isRequired,
+    retryPost: React.PropTypes.func,
     handleCommentClick: React.PropTypes.func.isRequired,
     compactDisplay: React.PropTypes.bool,
     previewCollapsed: React.PropTypes.string,

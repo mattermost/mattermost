@@ -456,7 +456,8 @@ export default class SidebarHeaderDropdown extends React.Component {
 
         return (
             <Dropdown
-                open={this.state.showDropdown}
+                id='sidebar-header-dropdown'
+                defaultOpen={this.state.showDropdown}
                 onClose={this.toggleDropdown}
                 className='sidebar-header-dropdown'
                 pullRight={true}

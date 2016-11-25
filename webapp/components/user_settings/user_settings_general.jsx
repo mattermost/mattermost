@@ -96,7 +96,6 @@ class UserSettingsGeneralTab extends React.Component {
         this.updateSection = this.updateSection.bind(this);
 
         this.state = this.setupInitialState(props);
-        this.setState({maxFileSize: global.window.mm_config.MaxFileSize});
     }
 
     submitUsername(e) {
@@ -307,7 +306,8 @@ class UserSettingsGeneralTab extends React.Component {
             confirmEmail: '',
             picture: null,
             loadingPicture: false,
-            emailChangeInProgress: false
+            emailChangeInProgress: false,
+            maxFileSize: global.window.mm_config.MaxFileSize
         };
     }
 
