@@ -56,7 +56,6 @@ export default class CreateComment extends React.Component {
         this.focusTextbox = this.focusTextbox.bind(this);
         this.showPostDeletedModal = this.showPostDeletedModal.bind(this);
         this.hidePostDeletedModal = this.hidePostDeletedModal.bind(this);
-        this.showShortcuts = this.showShortcuts.bind(this);
 
         PostStore.clearCommentDraftUploads();
         MessageHistoryStore.resetHistoryIndex('comment');
@@ -77,31 +76,10 @@ export default class CreateComment extends React.Component {
         PreferenceStore.addChangeListener(this.onPreferenceChange);
 
         this.focusTextbox();
-        document.addEventListener('keydown', this.showShortcuts);
     }
 
     componentWillUnmount() {
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
-        document.removeEventListener('keydown', this.showShortcuts);
-    }
-
-    showShortcuts(e) {
-        if ((e.ctrlKey || e.metaKey) && e.keyCode === Constants.KeyCodes.FORWARD_SLASH) {
-            e.preventDefault();
-            const post = {};
-            post.channel_id = this.props.channelId;
-            post.message = '/shortcuts ';
-            ChannelActions.executeCommand(
-                post,
-                null,
-                (err) => {
-                    this.setState({
-                        serverError: err.message,
-                        submitting: false
-                    });
-                }
-            );
-        }
     }
 
     onPreferenceChange() {
