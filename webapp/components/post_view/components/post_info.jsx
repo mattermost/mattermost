@@ -44,22 +44,22 @@ export default class PostInfo extends React.Component {
     }
 
     createDropdown() {
-        var post = this.props.post;
-        var isOwner = this.props.currentUser.id === post.user_id;
-        var isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
+        const post = this.props.post;
+        const isOwner = this.props.currentUser.id === post.user_id;
+        const isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
         const isSystemMessage = post.type && post.type.startsWith(Constants.SYSTEM_MESSAGE_PREFIX);
 
         if (post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING) {
             return '';
         }
 
-        var type = 'Post';
+        let type = 'Post';
         if (post.root_id && post.root_id.length > 0) {
             type = 'Comment';
         }
 
-        var dropdownContents = [];
-        var dataComments = 0;
+        const dropdownContents = [];
+        let dataComments = 0;
         if (type === 'Post') {
             dataComments = this.props.commentCount;
         }
@@ -140,6 +140,27 @@ export default class PostInfo extends React.Component {
         );
 
         if (isOwner || isAdmin) {
+            dropdownContents.push(
+                <li
+                    key='copyPost'
+                    role='presentation'
+                >
+                    <a
+                        href='#'
+                        role='menuitem'
+                        onClick={(e) => {
+                            e.preventDefault();
+                            GlobalActions.showCopyPostModal(post);
+                        }}
+                    >
+                        <FormattedMessage
+                            id='post_info.copy'
+                            defaultMessage='Copy'
+                        />
+                    </a>
+                </li>
+            );
+
             dropdownContents.push(
                 <li
                     key='deletePost'
@@ -251,10 +272,10 @@ export default class PostInfo extends React.Component {
     }
 
     render() {
-        var post = this.props.post;
-        var comments = '';
-        var showCommentClass = '';
-        var commentCountText = this.props.commentCount;
+        const post = this.props.post;
+        let comments = '';
+        let showCommentClass = '';
+        let commentCountText = this.props.commentCount;
         const flagIcon = Constants.FLAG_ICON_SVG;
 
         if (this.props.commentCount >= 1) {

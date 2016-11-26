@@ -5390,5 +5390,9 @@
   {
     "id": "web.watcher_fail.error",
     "translation": "Failed to add directory to watcher %v"
+  },
+  {
+    "id": "api.post.copy_post.permissions.app_error",
+    "translation": "You do not have the appropriate permissions"
   }
 ]

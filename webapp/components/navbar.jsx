@@ -19,6 +19,7 @@ import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
+import ModalStore from 'stores/modal_store.jsx';
 
 import ChannelSwitchModal from './channel_switch_modal.jsx';
 
@@ -47,6 +48,7 @@ export default class Navbar extends React.Component {
 
         this.onChange = this.onChange.bind(this);
         this.handleLeave = this.handleLeave.bind(this);
+        this.handleCopyPost = this.handleCopyPost.bind(this);
         this.showSearch = this.showSearch.bind(this);
 
         this.showEditChannelHeaderModal = this.showEditChannelHeaderModal.bind(this);
@@ -94,6 +96,7 @@ export default class Navbar extends React.Component {
         ChannelStore.addStatsChangeListener(this.onChange);
         UserStore.addStatusesChangeListener(this.onChange);
         PreferenceStore.addChangeListener(this.onChange);
+        ModalStore.addModalListener(ActionTypes.TOGGLE_COPY_POST_MODAL, this.handleCopyPost);
         $('.inner-wrap').click(this.hideSidebars);
         document.addEventListener('keydown', this.showChannelSwitchModal);
     }
@@ -103,6 +106,7 @@ export default class Navbar extends React.Component {
         ChannelStore.removeStatsChangeListener(this.onChange);
         UserStore.removeStatusesChangeListener(this.onChange);
         PreferenceStore.removeChangeListener(this.onChange);
+        ModalStore.removeModalListener(ActionTypes.TOGGLE_COPY_POST_MODAL, this.handleCopyPost);
         document.removeEventListener('keydown', this.showChannelSwitchModal);
     }
 
@@ -150,6 +154,13 @@ export default class Navbar extends React.Component {
                 $('.app__body .sidebar--menu').removeClass('move--left');
             }
         }
+    }
+
+    handleCopyPost(value, args) {
+        this.setState({
+            showChannelSwitchModal: value,
+            postToCopy: args.post
+        });
     }
 
     toggleLeftSidebar() {
@@ -216,7 +227,8 @@ export default class Navbar extends React.Component {
 
     hideChannelSwitchModal() {
         this.setState({
-            showChannelSwitchModal: false
+            showChannelSwitchModal: false,
+            postToCopy: null
         });
     }
 
@@ -777,6 +789,7 @@ export default class Navbar extends React.Component {
                 <ChannelSwitchModal
                     show={this.state.showChannelSwitchModal}
                     onHide={this.hideChannelSwitchModal}
+                    postToCopy={this.state.postToCopy}
                 />
             );
         }

@@ -51,6 +51,7 @@ func InitPost() {
 	BaseRoutes.NeedPost.Handle("/before/{offset:[0-9]+}/{num_posts:[0-9]+}", ApiUserRequired(getPostsBefore)).Methods("GET")
 	BaseRoutes.NeedPost.Handle("/after/{offset:[0-9]+}/{num_posts:[0-9]+}", ApiUserRequired(getPostsAfter)).Methods("GET")
 	BaseRoutes.NeedPost.Handle("/get_file_infos", ApiUserRequired(getFileInfosForPost)).Methods("GET")
+	BaseRoutes.NeedPost.Handle("/copy", ApiUserRequiredActivity(copyPost, true)).Methods("POST")
 }
 
 func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1679,5 +1680,129 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 		w.Write([]byte(model.FileInfosToJson(infos)))
+	}
+}
+
+func copyPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	// this will only copy the selected post to the selected channel, if the post was part of a thread it will create
+	// a new post in the target channel as a root post
+	props := model.StringInterfaceFromJson(r.Body)
+	params := mux.Vars(r)
+
+	channelId := params["channel_id"]
+	if len(channelId) != 26 {
+		c.SetInvalidParam("copyPost", "channelId")
+		return
+	}
+
+	postId := params["post_id"]
+	if len(postId) != 26 {
+		c.SetInvalidParam("copyPost", "postId")
+		return
+	}
+
+	toChannelId := props["to_channel_id"].(string)
+	if len(toChannelId) != 26 {
+		c.SetInvalidParam("copyPost", "toChannelId")
+		return
+	}
+
+	if !HasPermissionToChannelContext(c, channelId, model.PERMISSION_COPY_POST) {
+		return
+	}
+
+	pchan := Srv.Store.Post().Get(postId)
+
+	if result := <-pchan; result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+
+		post := result.Data.(*model.PostList).Posts[postId]
+
+		if post == nil {
+			c.SetInvalidParam("copyPost", "postId")
+			return
+		}
+
+		if post.ChannelId != channelId {
+			c.Err = model.NewLocAppError("copyPost", "api.post.copy_post.permissions.app_error", nil, "")
+			c.Err.StatusCode = http.StatusForbidden
+			return
+		}
+
+		if post.UserId != c.Session.UserId && !HasPermissionToChannelContext(c, post.ChannelId, model.PERMISSION_COPY_OTHERS_POSTS) {
+			c.Err = model.NewLocAppError("deletePost", "api.post.copy_post.permissions.app_error", nil, "")
+			c.Err.StatusCode = http.StatusForbidden
+			return
+		}
+
+		copiedPost := &model.Post{
+			ChannelId: toChannelId,
+			Hashtags:  post.Hashtags,
+			Message:   post.Message,
+			UserId:    post.UserId,
+			Props:     post.Props,
+			Type:      post.Type,
+		}
+
+		cchan := Srv.Store.Channel().Get(toChannelId)
+
+		var channel *model.Channel
+		if result := <-cchan; result.Err != nil {
+			return
+		} else {
+			channel = result.Data.(*model.Channel)
+		}
+
+		if channel.DeleteAt != 0 {
+			c.Err = model.NewLocAppError("copyPost", "api.post.create_post.can_not_post_to_deleted.error", nil, "")
+			c.Err.StatusCode = http.StatusBadRequest
+			return
+		}
+
+		if len(post.FileIds) > 0 {
+			fileIds := make([]string, 0, len(post.FileIds))
+			if result := <-Srv.Store.FileInfo().GetForPost(post.Id); result.Err == nil {
+				fileInfos := result.Data.([]*model.FileInfo)
+				for _, fileInfo := range fileInfos {
+					info := &model.FileInfo{
+						CreatorId:       fileInfo.CreatorId,
+						Extension:       fileInfo.Extension,
+						HasPreviewImage: fileInfo.HasPreviewImage,
+						Height:          fileInfo.Height,
+						MimeType:        fileInfo.MimeType,
+						Name:            fileInfo.Name,
+						Path:            fileInfo.Path,
+						PreviewPath:     fileInfo.PreviewPath,
+						Size:            fileInfo.Size,
+						ThumbnailPath:   fileInfo.ThumbnailPath,
+						Width:           fileInfo.Width,
+					}
+					if result := <-Srv.Store.FileInfo().Save(info); result.Err == nil {
+						fileIds = append(fileIds, info.Id)
+					}
+				}
+				copiedPost.FileIds = fileIds
+			}
+		}
+
+		if rp, err := CreatePost(c, copiedPost, true); err != nil {
+			c.Err = err
+
+			if c.Err.Id == "api.post.create_post.root_id.app_error" ||
+				c.Err.Id == "api.post.create_post.channel_root_id.app_error" ||
+				c.Err.Id == "api.post.create_post.parent_id.app_error" {
+				c.Err.StatusCode = http.StatusBadRequest
+			}
+
+			return
+		} else {
+			if result := <-Srv.Store.Channel().UpdateLastViewedAt(toChannelId, c.Session.UserId); result.Err != nil {
+				l4g.Error(utils.T("api.post.create_post.last_viewed.error"), toChannelId, c.Session.UserId, result.Err)
+			}
+
+			w.Write([]byte(rp.ToJson()))
+		}
 	}
 }

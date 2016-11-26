@@ -9,6 +9,7 @@ import {FormattedMessage} from 'react-intl';
 import {Modal} from 'react-bootstrap';
 
 import {goToChannel, openDirectChannelToUser} from 'actions/channel_actions.jsx';
+import {copyPost} from 'actions/post_actions.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
@@ -29,6 +30,7 @@ export default class SwitchChannelModal extends React.Component {
         this.onExited = this.onExited.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.handleCopyPost = this.handleCopyPost.bind(this);
         this.switchToChannel = this.switchToChannel.bind(this);
 
         this.suggestionProviders = [new SwitchChannelProvider()];
@@ -77,36 +79,68 @@ export default class SwitchChannelModal extends React.Component {
             error: ''
         });
         if (e.keyCode === Constants.KeyCodes.ENTER) {
-            this.handleSubmit();
+            if (this.props.postToCopy) {
+                this.handleCopyPost(e);
+            } else {
+                this.handleSubmit(e);
+            }
         }
     }
 
-    handleSubmit() {
+    handleSubmit(evt) {
+        evt.preventDefault();
+
         const name = this.state.text.trim();
-        let channel = null;
-
-        // TODO: Replace this hack with something reasonable
-        if (name.indexOf(Utils.localizeMessage('channel_switch_modal.dm', '(Direct Message)')) > 0) {
-            const dmUsername = name.substr(0, name.indexOf(Utils.localizeMessage('channel_switch_modal.dm', '(Direct Message)')) - 1);
-            const user = UserStore.getProfileByUsername(dmUsername);
-
-            if (user) {
-                openDirectChannelToUser(
-                    user,
-                    (ch) => {
-                        channel = ch;
-                        this.switchToChannel(channel);
-                    },
-                    () => {
-                        channel = null;
-                        this.switchToChannel(channel);
-                    }
-                );
+        this.getDmChannel(name).then((ch) => {
+            let channel = ch;
+            if (!channel) {
+                channel = ChannelStore.getByName(name);
             }
-        } else {
-            channel = ChannelStore.getByName(this.state.text.trim());
+
             this.switchToChannel(channel);
-        }
+        });
+    }
+
+    getDmChannel(name) {
+        return new Promise((resolve) => {
+            if (name.indexOf(Utils.localizeMessage('channel_switch_modal.dm', '(Direct Message)')) > 0) {
+                const dmUsername = name.substr(0, name.indexOf(Utils.localizeMessage('channel_switch_modal.dm', '(Direct Message)')) - 1);
+                const user = UserStore.getProfileByUsername(dmUsername);
+
+                if (user) {
+                    openDirectChannelToUser(
+                        user,
+                        (ch) => {
+                            resolve(ch);
+                        },
+                        null
+                    );
+                }
+            }
+            resolve(null);
+        });
+    }
+
+    handleCopyPost(evt) {
+        evt.preventDefault();
+
+        const name = this.state.text.trim();
+        this.getDmChannel(name).then((ch) => {
+            let channel = ch;
+            if (!channel) {
+                channel = ChannelStore.getByName(name);
+            }
+
+            copyPost(this.props.postToCopy, channel.id).
+            then(() => {
+                this.switchToChannel(channel);
+            }).
+            catch((e) => {
+                this.setState({
+                    error: e.message
+                });
+            });
+        });
     }
 
     switchToChannel(channel) {
@@ -122,6 +156,34 @@ export default class SwitchChannelModal extends React.Component {
 
     render() {
         const message = this.state.error;
+        let submit = (
+            <button
+                type='button'
+                className='btn btn-primary'
+                onClick={this.handleSubmit}
+            >
+                <FormattedMessage
+                    id='channel_switch_modal.submit'
+                    defaultMessage='Switch'
+                />
+            </button>
+        );
+
+        if (this.props.postToCopy) {
+            submit = (
+                <button
+                    type='button'
+                    className='btn btn-primary'
+                    onClick={this.handleCopyPost}
+                >
+                    <FormattedMessage
+                        id='channel_switch_modal.copy'
+                        defaultMessage='Copy Post'
+                    />
+                </button>
+            );
+        }
+
         return (
             <Modal
                 className='modal-browse-channel'
@@ -158,7 +220,6 @@ export default class SwitchChannelModal extends React.Component {
                         listComponent={SuggestionList}
                         maxLength='64'
                         providers={this.suggestionProviders}
-                        preventDefaultSubmit={false}
                         listStyle='bottom'
                     />
                 </Modal.Body>
@@ -176,16 +237,7 @@ export default class SwitchChannelModal extends React.Component {
                             defaultMessage='Cancel'
                         />
                     </button>
-                    <button
-                        type='button'
-                        className='btn btn-primary'
-                        onClick={this.handleSubmit}
-                    >
-                        <FormattedMessage
-                            id='channel_switch_modal.submit'
-                            defaultMessage='Switch'
-                        />
-                    </button>
+                    {submit}
                 </Modal.Footer>
             </Modal>
         );
@@ -194,6 +246,7 @@ export default class SwitchChannelModal extends React.Component {
 
 SwitchChannelModal.propTypes = {
     show: React.PropTypes.bool.isRequired,
-    onHide: React.PropTypes.func.isRequired
+    onHide: React.PropTypes.func.isRequired,
+    postToCopy: React.PropTypes.object
 };
 

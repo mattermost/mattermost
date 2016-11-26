@@ -46,6 +46,8 @@ var PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH *Permission
 var PERMISSION_CREATE_POST *Permission
 var PERMISSION_EDIT_POST *Permission
 var PERMISSION_EDIT_OTHERS_POSTS *Permission
+var PERMISSION_COPY_POST *Permission
+var PERMISSION_COPY_OTHERS_POSTS *Permission
 var PERMISSION_REMOVE_USER_FROM_TEAM *Permission
 var PERMISSION_MANAGE_TEAM *Permission
 var PERMISSION_IMPORT_TEAM *Permission
@@ -223,6 +225,16 @@ func InitalizePermissions() {
 		"authentication.permissions.edit_others_posts.name",
 		"authentication.permissions.edit_others_posts.description",
 	}
+	PERMISSION_COPY_POST = &Permission{
+		"copy_post",
+		"authentication.permissions.copy_post.name",
+		"authentication.permissions.copy_post.description",
+	}
+	PERMISSION_COPY_OTHERS_POSTS = &Permission{
+		"copy_others_posts",
+		"authentication.permissions.copy_others_posts.name",
+		"authentication.permissions.copy_others_posts.description",
+	}
 	PERMISSION_REMOVE_USER_FROM_TEAM = &Permission{
 		"remove_user_from_team",
 		"authentication.permissions.remove_user_from_team.name",
@@ -256,6 +268,7 @@ func InitalizeRoles() {
 			PERMISSION_GET_PUBLIC_LINK.Id,
 			PERMISSION_CREATE_POST.Id,
 			PERMISSION_EDIT_POST.Id,
+			PERMISSION_COPY_POST.Id,
 			PERMISSION_USE_SLASH_COMMANDS.Id,
 		},
 	}
@@ -291,6 +304,7 @@ func InitalizeRoles() {
 		"authentication.roles.team_admin.description",
 		[]string{
 			PERMISSION_EDIT_OTHERS_POSTS.Id,
+			PERMISSION_COPY_OTHERS_POSTS.Id,
 			PERMISSION_ADD_USER_TO_TEAM.Id,
 			PERMISSION_REMOVE_USER_FROM_TEAM.Id,
 			PERMISSION_MANAGE_TEAM.Id,
