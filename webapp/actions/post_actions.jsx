@@ -32,7 +32,7 @@ export function handleNewPost(post, msg) {
 
     AsyncClient.getMyTeamMembers();
 
-    var websocketMessageProps = null;
+    let websocketMessageProps = null;
     if (msg) {
         websocketMessageProps = msg.data;
     }

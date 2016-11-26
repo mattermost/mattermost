@@ -176,14 +176,14 @@ export default class SidebarHeaderDropdown extends React.Component {
 
     render() {
         const config = global.mm_config;
-        var teamLink = '';
-        var inviteLink = '';
-        var manageLink = '';
-        var sysAdminLink = '';
-        var currentUser = this.props.currentUser;
-        var isAdmin = false;
-        var isSystemAdmin = false;
-        var teamSettings = null;
+        const currentUser = this.props.currentUser;
+        let teamLink = '';
+        let inviteLink = '';
+        let manageLink = '';
+        let sysAdminLink = '';
+        let isAdmin = false;
+        let isSystemAdmin = false;
+        let teamSettings = null;
         let integrationsLink = null;
 
         if (!currentUser) {
@@ -336,7 +336,7 @@ export default class SidebarHeaderDropdown extends React.Component {
         }
 
         const isAlreadyMember = this.state.teamMembers.reduce((result, item) => {
-            result[item.team_id] = null;
+            result[item.team_id] = true;
             return result;
         }, {});
 

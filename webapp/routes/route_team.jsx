@@ -66,7 +66,7 @@ function preNeedsTeam(nextState, replace, callback) {
     // First check to make sure you're in the current team
     // for the current url.
     const teamName = nextState.params.team;
-    var team = TeamStore.getByName(teamName);
+    const team = TeamStore.getByName(teamName);
 
     if (!team) {
         browserHistory.push('/');
@@ -79,9 +79,10 @@ function preNeedsTeam(nextState, replace, callback) {
     BrowserStore.setGlobalItem('team', team.id);
     TeamStore.emitChange();
     loadProfilesAndTeamMembersForDMSidebar();
+    AsyncClient.getMyTeamMembers();
     AsyncClient.getMyChannelMembers();
 
-    var d1 = $.Deferred(); //eslint-disable-line new-cap
+    const d1 = $.Deferred(); //eslint-disable-line new-cap
 
     Client.getChannels(
         (data) => {
