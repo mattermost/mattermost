@@ -11,13 +11,6 @@ export default class NewMessageIndicator extends React.Component {
             rendered: false
         };
     }
-    componentDidMount() {
-        this.onTransition = this.setRendered.bind(this);
-        this.refs.indicator.addEventListener('transitionend', this.onTransition);
-    }
-    componentWillUnmount() {
-        this.refs.indicator.removeEventListener('transitionend', this.onTransition);
-    }
     componentWillReceiveProps(nextProps) {
         if (nextProps.newMessages > 0) {
             this.setState({rendered: true}, () => {
@@ -39,6 +32,7 @@ export default class NewMessageIndicator extends React.Component {
             <div
                 className={className}
                 onClick={this.props.onClick}
+                onTransitionEnd={this.setRendered.bind(this)}
                 ref='indicator'
             >
                 <span>
