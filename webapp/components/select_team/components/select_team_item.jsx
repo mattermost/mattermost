@@ -5,7 +5,6 @@ import React from 'react';
 
 import {Link} from 'react-router/es6';
 import {Tooltip, OverlayTrigger} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
 
 export default class SelectTeamItem extends React.Component {
     static propTypes = {
@@ -38,43 +37,37 @@ export default class SelectTeamItem extends React.Component {
         }
 
         var descriptionTooltip = '';
-        if (this.props.team.description === '') {
-            descriptionTooltip = (
-                <Tooltip id='team-description__tooltip'>
-                    <FormattedMessage
-                        id='select_team_item_noTeamDescription'
-                        defaultMessage='No Team Description.'
-                    />
-                </Tooltip>
-            );
-        } else {
+        var showDescriptionTooltip = '';
+        if (this.props.team.description) {
             descriptionTooltip = (
                 <Tooltip id='team-description__tooltip'>
                     {this.props.team.description}
                 </Tooltip>
             );
+
+            showDescriptionTooltip = (
+                <OverlayTrigger
+                    trigger={['hover', 'focus', 'click']}
+                    delayShow={1000}
+                    placement='left'
+                    overlay={descriptionTooltip}
+                    ref='descriptionOverlay'
+                >
+                    <span className='fa fa-info-circle signup-team__icon'/>
+                </OverlayTrigger>
+            );
         }
 
         return (
             <div className='signup-team-dir'>
+                {showDescriptionTooltip}
                 <Link
                     to={this.props.url}
                     onClick={this.handleTeamClick}
                 >
-                    <OverlayTrigger
-                        trigger={['hover', 'focus']}
-                        delayShow={1000}
-                        placement='top'
-                        overlay={descriptionTooltip}
-                        ref='descriptionOverlay'
-                    >
-                        <span className='fa fa-info-circle signup-team__icon'/>
-                    </OverlayTrigger>
-
                     <span className='signup-team-dir__name'>{this.props.team.display_name}</span>
                     {icon}
                 </Link>
-
             </div>
         );
     }
