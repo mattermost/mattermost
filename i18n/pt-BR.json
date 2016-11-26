@@ -440,6 +440,14 @@
     "translation": "Permissões inadequadas para re-gerar o token de comando"
   },
   {
+    "id": "api.command.team_mismatch.app_error",
+    "translation": "Não é possível atualizar os comandos entre equipes"
+  },
+  {
+    "id": "api.command.update.app_error",
+    "translation": "Permissões inadequadas para atualizar o comando"
+  },
+  {
     "id": "api.command_away.desc",
     "translation": "Defina seu status como ausente"
   },
@@ -629,11 +637,11 @@
   },
   {
     "id": "api.command_shortcuts.msgs",
-    "translation": "#### Mensagens\n\nESC: Marcar todas as mensagens do canal atual como lidas\nCTRL+CIMA (no campo de entrada vazio): Mostra a última mensagem ou comando digitado\nCTRL+BAIXO (no campo de entrada vazio): Mostra a próxima mensagem ou comando digitado\nCIMA (no campo de entrada vazio): Edita sua última mensagem no canal atual\n@[caracter]+TAB: Autocompleta @usuário começado com [caracter]\n#[caracter]+TAB: Autocompleta canal começado com [caracter]\n:[caracter]+TAB: Autocompleta emoji começado com [caracter]\n\n"
+    "translation": "#### Mensagens\n\nESC: Marcar todas as mensagens do canal atual como lidas\nCTRL+CIMA (no campo de entrada vazio): Mostra a última mensagem ou comando digitado\nCTRL+BAIXO (no campo de entrada vazio): Mostra a próxima mensagem ou comando digitado\nCIMA (no campo de entrada vazio): Edita sua última mensagem no canal atual\n@[caractere]+TAB: Autocompleta o @usuário começado com [caractere]\n~[caractere]+TAB: Autocompleta o canal começado com [caractere]\n:[caractere]+TAB: Autocompleta o emoji começado com [caractere]\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs_mac",
-    "translation": "#### Mensagens\n\nESC: Marcar todas as mensagens do canal atual como lidas\nCMD+CIMA (no campo vazio de entrada): Mostra a última mensagem ou comando digitado\nCMD+BAIXO (no campo vazio de entrada): Mostra a próxima mensagem ou comando digitado\nCIMA (no campo vazio de entrada): Edita sua última mensagem no canal atual\n@[caracter]+TAB: Autocompleta @usuário começado com [caracter]\n#[caracter]+TAB: Autocompleta channel começado com [caracter]\n:[caracter]+TAB: Autocompleta emoji começado com [caracter]\n\n"
+    "translation": "#### Mensagens\n\nESC: Marcar todas as mensagens do canal atual como lidas\nCMD+CIMA (no campo vazio de entrada): Mostra a última mensagem ou comando digitado\nCMD+BAIXO (no campo vazio de entrada): Mostra a próxima mensagem ou comando digitado\nCIMA (no campo vazio de entrada): Edita sua última mensagem no canal atual\n@[caractere]+TAB: Autocompleta @usuário começado com [caractere]\n~[caractere]+TAB: Autocompleta o canal começado com [caractere]\n:[caractere]+TAB: Autocompleta o emoji começado com [caractere]\n\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -983,7 +991,7 @@
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
-    "translation": "Não foi possível enviar o arquivo de imagem. Arquivo muito grande."
+    "translation": "Arquivo acima das dimensões máximas não pode ser enviado: {{.Filename}}"
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -2670,6 +2678,10 @@
   {
     "id": "ent.emoji.licence_disable.app_error",
     "translation": "Emoji personalizado desabilitado pela licença atual. Entre em contato com o administrador do sistema sobre como atualizar sua licença enterprise."
+  },
+  {
+    "id": "ent.ldap.create_fail",
+    "translation": "Não é possível criar usuário LDAP."
   },
   {
     "id": "ent.ldap.disabled.app_error",

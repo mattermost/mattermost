@@ -365,7 +365,7 @@
   },
   {
     "id": "api.command.delete.app_error",
-    "translation": "削除コマンドに必要な権限が付与されていません"
+    "translation": "コマンドの削除に必要な権限が付与されていません"
   },
   {
     "id": "api.command.disabled.app_error",
@@ -438,6 +438,14 @@
   {
     "id": "api.command.regen.app_error",
     "translation": "コマンドトークンを再生成するために必要な権限が付与されていません"
+  },
+  {
+    "id": "api.command.team_mismatch.app_error",
+    "translation": "Cannot update commands across teams"
+  },
+  {
+    "id": "api.command.update.app_error",
+    "translation": "コマンドの更新に必要な権限が付与されていません"
   },
   {
     "id": "api.command_away.desc",
@@ -629,11 +637,11 @@
   },
   {
     "id": "api.command_shortcuts.msgs",
-    "translation": "#### メッセージ\n\nESC: 現在のチャンネルの全てのメッセージを既読にする\nCTRL+UP (空白の入力欄で): 一つ前に入力したメッセージやスラッシュコマンドを呼び出す\nCTRL+DOWN (空白の入力欄で): 一つ次に入力したメッセージやスラッシュコマンドを呼び出す\nUP (空白の入力欄で): 現在のチャンネルの最新のメッセージを修正する\n@[文字]+TAB: [文字]で始まる@usernameを自動補完する\n#[文字]+TAB: [文字]で始まるチャンネルを自動補完する\n:[文字]+TAB: [文字]で始まる絵文字を自動補完する\n\n"
+    "translation": "#### メッセージ\n\nESC: 現在のチャンネルの全てのメッセージを既読にする\nCTRL+UP (空白の入力欄で): 一つ前に入力したメッセージやスラッシュコマンドを呼び出す\nCTRL+DOWN (空白の入力欄で): 一つ次に入力したメッセージやスラッシュコマンドを呼び出す\nUP (空白の入力欄で): 現在のチャンネルの最新のメッセージを修正する\n@[文字]+TAB: [文字]で始まる@usernameを自動補完する\n~[文字]+TAB: [文字]で始まるチャンネルを自動補完する\n:[文字]+TAB: [文字]で始まる絵文字を自動補完する\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs_mac",
-    "translation": "#### メッセージ\n\nESC: 現在のチャンネルの全てのメッセージを既読にする\nCMD+UP (空白の入力欄で): 一つ前に入力したメッセージやスラッシュコマンドを呼び出す\nCMD+DOWN (空白の入力欄で): 一つ次に入力したメッセージやスラッシュコマンドを呼び出す\nUP (空白の入力欄で): 現在のチャンネルの最新のメッセージを修正する\n@[文字]+TAB: [文字]で始まる@usernameを自動補完する\n#[文字]+TAB: [文字]で始まるチャンネルを自動補完する\n:[文字]+TAB: [文字]で始まる絵文字を自動補完する\n\n"
+    "translation": "#### メッセージ\n\nESC: 現在のチャンネルの全てのメッセージを既読にする\nCMD+UP (空白の入力欄で): 一つ前に入力したメッセージやスラッシュコマンドを呼び出す\nCMD+DOWN (空白の入力欄で): 一つ次に入力したメッセージやスラッシュコマンドを呼び出す\nUP (空白の入力欄で): 現在のチャンネルの最新のメッセージを修正する\n@[文字]+TAB: [文字]で始まる@usernameを自動補完する\n~[文字]+TAB: [文字]で始まるチャンネルを自動補完する\n:[文字]+TAB: [文字]で始まる絵文字を自動補完する\n\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -983,7 +991,7 @@
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
-    "translation": "画像ファイルをアップロードできません。ファイルが大き過ぎます。"
+    "translation": "File above maximum dimensions could not be uploaded: {{.Filename}}"
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -2670,6 +2678,10 @@
   {
     "id": "ent.emoji.licence_disable.app_error",
     "translation": "カスタム絵文字の制限機能が現在のライセンスでは無効になっています。システム管理者にエンタープライズライセンスをアップグレードするように連絡してください。"
+  },
+  {
+    "id": "ent.ldap.create_fail",
+    "translation": "LDAPユーザーを作成できません。"
   },
   {
     "id": "ent.ldap.disabled.app_error",

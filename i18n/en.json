@@ -2712,12 +2712,12 @@
     "translation": "Custom emoji restrictions disabled by current license. Please contact your system administrator about upgrading your enterprise license."
   },
   {
-    "id": "ent.ldap.disabled.app_error",
-    "translation": "AD/LDAP disabled or licence does not support AD/LDAP."
-  },
-  {
     "id": "ent.ldap.create_fail",
     "translation": "Unable to create LDAP user."
+  },
+  {
+    "id": "ent.ldap.disabled.app_error",
+    "translation": "AD/LDAP disabled or licence does not support AD/LDAP."
   },
   {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",

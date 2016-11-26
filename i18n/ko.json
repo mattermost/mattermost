@@ -440,6 +440,14 @@
     "translation": "명령어 토큰을 재생성할 권한 없음"
   },
   {
+    "id": "api.command.team_mismatch.app_error",
+    "translation": "Cannot update commands across teams"
+  },
+  {
+    "id": "api.command.update.app_error",
+    "translation": "삭제 명령 권한 없음"
+  },
+  {
     "id": "api.command_away.desc",
     "translation": "현재 상태를 자리비움으로 설정합니다."
   },
@@ -983,7 +991,7 @@
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
-    "translation": "이미지 파일을 불러올 수 없습니다. 파일이 너무 큽니다."
+    "translation": "File above maximum dimensions could not be uploaded: {{.Filename}}"
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -2670,6 +2678,10 @@
   {
     "id": "ent.emoji.licence_disable.app_error",
     "translation": "사용자 정의 이모티콘 제한을 활성화 하려면 엔터프라이즈 라이센스가 필요합니다. 시스템 관리자에게 업그레이드를 문의해보세요."
+  },
+  {
+    "id": "ent.ldap.create_fail",
+    "translation": "Unable to create LDAP user."
   },
   {
     "id": "ent.ldap.disabled.app_error",

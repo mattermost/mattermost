@@ -440,6 +440,14 @@
     "translation": "沒有適當的權限重新產生命令 Token"
   },
   {
+    "id": "api.command.team_mismatch.app_error",
+    "translation": "Cannot update commands across teams"
+  },
+  {
+    "id": "api.command.update.app_error",
+    "translation": "沒有適當的權限刪除命令"
+  },
+  {
     "id": "api.command_away.desc",
     "translation": "將狀態設定為「離開」"
   },
@@ -983,7 +991,7 @@
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
-    "translation": "無法上傳圖片檔案。檔案太大。"
+    "translation": "File above maximum dimensions could not be uploaded: {{.Filename}}"
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -2670,6 +2678,10 @@
   {
     "id": "ent.emoji.licence_disable.app_error",
     "translation": "目前授權不提供限制自訂繪文字，請聯繫系統管理員將系統升級為企業版授權。"
+  },
+  {
+    "id": "ent.ldap.create_fail",
+    "translation": "Unable to create LDAP user."
   },
   {
     "id": "ent.ldap.disabled.app_error",

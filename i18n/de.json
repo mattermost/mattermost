@@ -101,7 +101,7 @@
   },
   {
     "id": "api.admin.test_email.reenter_password",
-    "translation": "Der SMTP Server, Port oder Benutzername wurde geändert. Bitte geben Sie das SMTP Passwort erneut ein um die Verbindung zu testen."
+    "translation": "Der SMTP Server, Port oder Benutzername wurde geändert. Bitte geben Sie das SMTP Passwort erneut ein, um die Verbindung zu testen."
   },
   {
     "id": "api.admin.test_email.subject",
@@ -273,7 +273,7 @@
   },
   {
     "id": "api.channel.init.debug",
-    "translation": "Initialisieren Kanal-Api-Routen"
+    "translation": "Initialisiere Kanal API Routen"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -289,7 +289,7 @@
   },
   {
     "id": "api.channel.leave.direct.app_error",
-    "translation": "Eine Direktnachricht kann nicht verlassen werden"
+    "translation": "Ein Direktnachrichtenkanal kann nicht verlassen werden"
   },
   {
     "id": "api.channel.leave.last_member.app_error",
@@ -309,7 +309,7 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
-    "translation": "Fehler beim Abrufen des Nutzers während des Sicherns der Kanal Überschrift %v"
+    "translation": "Fehler beim Abrufen des Nutzers während des Sicherns der Kanalüberschrift %v"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
@@ -357,7 +357,7 @@
   },
   {
     "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
-    "translation": "Konnte die Ungelesen-Zahl für user_id=%v und channel_id=%v abrufen, err=%v"
+    "translation": "Konnte die Ungelesen-Zahl für user_id=%v und channel_id=%v nicht abrufen, err=%v"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -405,7 +405,7 @@
   },
   {
     "id": "api.command.init.debug",
-    "translation": "Initialisieren der Datei-Api-Routen"
+    "translation": "Initialisiere Befehle API Routen"
   },
   {
     "id": "api.command.invite_people.desc",
@@ -438,6 +438,14 @@
   {
     "id": "api.command.regen.app_error",
     "translation": "Die Berechtigungen für die Erneuerung des Befehls-Tokens sind ungeeignet"
+  },
+  {
+    "id": "api.command.team_mismatch.app_error",
+    "translation": "Cannot update commands across teams"
+  },
+  {
+    "id": "api.command.update.app_error",
+    "translation": "Die Berechtigungen für den Lösch-Befehl sind ungeeignet"
   },
   {
     "id": "api.command_away.desc",
@@ -501,7 +509,7 @@
   },
   {
     "id": "api.command_join.fail.app_error",
-    "translation": "Beim Beitreten zu einem Kanal ist ein Fehler aufgetreten."
+    "translation": "Beim Beitreten des Kanals ist ein Fehler aufgetreten."
   },
   {
     "id": "api.command_join.hint",
@@ -525,11 +533,11 @@
   },
   {
     "id": "api.command_logout.desc",
-    "translation": "Aus Mattermost ausloggen"
+    "translation": "Von Mattermost abmelden"
   },
   {
     "id": "api.command_logout.fail_message",
-    "translation": "Ausloggen fehlgeschlagen"
+    "translation": "Abmelden fehlgeschlagen"
   },
   {
     "id": "api.command_logout.name",
@@ -803,7 +811,7 @@
   },
   {
     "id": "api.emoji.init.debug",
-    "translation": "Initialisiere Emoji-Api-Routen"
+    "translation": "Initialisiere Emoji API Routen"
   },
   {
     "id": "api.emoji.storage.app_error",
@@ -827,11 +835,11 @@
   },
   {
     "id": "api.file.get_file_preview.no_thumbnail.app_error",
-    "translation": "Datei hat kein Vorschaubild."
+    "translation": "Datei hat kein Vorschaubild"
   },
   {
     "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
-    "translation": "Datei hat kein Miniaturbild."
+    "translation": "Datei hat kein Miniaturbild"
   },
   {
     "id": "api.file.get_info_for_request.no_post.app_error",
@@ -879,7 +887,7 @@
   },
   {
     "id": "api.file.init.debug",
-    "translation": "Initialisieren Datei-Api-Routen"
+    "translation": "Initialisiere Datei API Routen"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.channel.app_error",
@@ -895,7 +903,7 @@
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.get_post_again.warn",
-    "translation": "Während der Migration zur Verwendung von FileInfos konnte die Nachricht abgerufen werdne, post_id=%v, err=%v"
+    "translation": "Während der Migration zur Verwendung von FileInfos konnte die Nachricht abgerufen werden, post_id=%v, err=%v"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.info.app_error",
@@ -983,7 +991,7 @@
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
-    "translation": "Bildupload nicht möglich. Datei ist zu groß."
+    "translation": "File above maximum dimensions could not be uploaded: {{.Filename}}"
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -999,7 +1007,7 @@
   },
   {
     "id": "api.file.write_file.s3.app_error",
-    "translation": "Beim schreiben zu S3 ist ein Fehler aufgetreten"
+    "translation": "Beim Schreiben zu S3 ist ein Fehler aufgetreten"
   },
   {
     "id": "api.file.write_file_locally.create_dir.app_error",
@@ -1011,7 +1019,7 @@
   },
   {
     "id": "api.general.init.debug",
-    "translation": "Initialisieren der Datei-API-Routen"
+    "translation": "Initialisiere allgemeine API Routen"
   },
   {
     "id": "api.import.import_post.saving.debug",
@@ -1019,7 +1027,7 @@
   },
   {
     "id": "api.import.import_user.join_team.error",
-    "translation": "Fehler beim Beitritt zum Team während des Imports Meldung=%v"
+    "translation": "Fehler beim Beitritt zum Team während des Imports err=%v"
   },
   {
     "id": "api.import.import_user.joining_default.error",
@@ -1031,7 +1039,7 @@
   },
   {
     "id": "api.import.import_user.set_email.error",
-    "translation": "Fehler beim setzen der E-Mail-Adresse als geprüft. Fehler=%v"
+    "translation": "Fehler beim Setzen der E-Mail-Adresse als geprüft. Fehler=%v"
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -1051,7 +1059,7 @@
   },
   {
     "id": "api.license.add_license.no_file.app_error",
-    "translation": "keine Datei unter 'licence' in der Anfrage"
+    "translation": "Keine Datei unter 'licence' in der Anfrage"
   },
   {
     "id": "api.license.add_license.open.app_error",
@@ -1071,7 +1079,7 @@
   },
   {
     "id": "api.license.init.debug",
-    "translation": "Initialisiere Datei-Api-Routen"
+    "translation": "Initialisiere Lizenz API Routen"
   },
   {
     "id": "api.license.remove_license.remove.app_error",
@@ -1099,11 +1107,11 @@
   },
   {
     "id": "api.oauth.allow_oauth.turn_off.app_error",
-    "translation": "Der Systemadministrator hat die OAuth2 Authentifizierung deaktiviert."
+    "translation": "Der Systemadministrator hat den OAuth2 Service Provider deaktiviert."
   },
   {
     "id": "api.oauth.authorize_oauth.disabled.app_error",
-    "translation": "Der Systemadministrator hat die OAuth2 Authentifizierung deaktiviert."
+    "translation": "Der Systemadministrator hat den OAuth2 Service Provider deaktiviert."
   },
   {
     "id": "api.oauth.authorize_oauth.missing.app_error",
@@ -1111,11 +1119,11 @@
   },
   {
     "id": "api.oauth.complete_oauth.missing_code.app_error",
-    "translation": "Der Dienstprovider {{.service}} übermittelte keinen Autorisationscode in der Weiterleitungsadresse.\n\nFür [Google Apps](https://docs.mattermost.com/deployment/sso-google.html) stellen Sie sicher das Ihr Administrator die Google+ API aktiviert hat.\n\nFür [Office 365](https://docs.mattermost.com/deployment/sso-office.html) stellen Sie sicher das der Administrator der Microsoft Organisation die Mattermost App aktiviert hat.\n\nFür [GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html) stellen Sie sicher das die Einrichtungsanleitung befolgt wurde.\n\nWenn Sie die oberen Informationen überprüft haben und immer noch Probleme mit der Konfiguration haben, können Sie in unserem [Troubleshooting forum](https://forum.mattermost.org/c/general/trouble-shoot) eine Nachricht hinterlassen und wir werden Ihnen gerne bei Ihrem Anliegen helfen."
+    "translation": "Der Dienstprovider {{.service}} übermittelte keinen Autorisationscode in der Weiterleitungsadresse.\n\nFür [Google Apps](https://docs.mattermost.com/deployment/sso-google.html) stellen Sie sicher, dass Ihr Administrator die Google+ API aktiviert hat.\n\nFür [Office 365](https://docs.mattermost.com/deployment/sso-office.html) stellen Sie sicher, dass der Administrator der Microsoft Organisation die Mattermost App aktiviert hat.\n\nFür [GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html) stellen Sie sicher, dass die Einrichtungsanleitung befolgt wurde.\n\nWenn Sie die oberen Informationen überprüft haben und immer noch Probleme mit der Konfiguration haben, können Sie in unserem [Troubleshooting forum](https://forum.mattermost.org/c/general/trouble-shoot) eine Nachricht hinterlassen und wir werden Ihnen gerne bei Ihrem Anliegen helfen."
   },
   {
     "id": "api.oauth.delete.permissions.app_error",
-    "translation": "Ungeeignete Berechtigungen um die OAth2 App zu entfernen"
+    "translation": "Ungeeignete Berechtigungen um die OAuth2 App zu entfernen"
   },
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
@@ -1135,11 +1143,11 @@
   },
   {
     "id": "api.oauth.get_access_token.disabled.app_error",
-    "translation": "Der Administrator hat die OAuth2 Authentifizierung deaktiviert."
+    "translation": "Der Administrator hat den OAuth2 Service Provider deaktiviert."
   },
   {
     "id": "api.oauth.get_access_token.expired_code.app_error",
-    "translation": "invalid_grant: Ungültiger oder abgelaufener Authorisationscode"
+    "translation": "invalid_grant: Ungültiger oder abgelaufener Autorisationscode"
   },
   {
     "id": "api.oauth.get_access_token.internal.app_error",
@@ -1167,7 +1175,7 @@
   },
   {
     "id": "api.oauth.get_access_token.redirect_uri.app_error",
-    "translation": "invalid_request: Angegebene redirect_uri entspricht nicht redirect_uri des Authorisationscodes"
+    "translation": "invalid_request: Angegebene redirect_uri entspricht nicht redirect_uri des Autorisationscodes"
   },
   {
     "id": "api.oauth.get_access_token.refresh_token.app_error",
@@ -1179,11 +1187,11 @@
   },
   {
     "id": "api.oauth.init.debug",
-    "translation": "Initialisiere OAuth-Api-Routen"
+    "translation": "Initialisiere OAuth API Routen"
   },
   {
     "id": "api.oauth.regenerate_secret.app_error",
-    "translation": "Ungeeignete Berechtigungen um den OAth2 App Schlüssel neu zu generieren"
+    "translation": "Ungeeignete Berechtigungen um den OAuth2 App Schlüssel neu zu generieren"
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
@@ -1215,11 +1223,11 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "{{.Usernames}} und {{.LastUsername}} wurden erwähnt, aber sie haben keine Benachrichtigung erhalten weil sie nicht im Kanal sind."
+    "translation": "{{.Usernames}} und {{.LastUsername}} wurden erwähnt, aber sie haben keine Benachrichtigung erhalten, weil sie nicht im Kanal sind."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "{{.Username}} wurde benachrichtigt, aber er hat keine Benachrichtigung erhalten, weil er nicht im Channel ist."
+    "translation": "{{.Username}} wurde benachrichtigt, aber er hat keine Benachrichtigung erhalten, weil er nicht im Kanal ist."
   },
   {
     "id": "api.post.create_post.attach_files.error",
@@ -1231,15 +1239,15 @@
   },
   {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
-    "translation": "Kann in gelöschten Kanal senden."
+    "translation": "Kann nicht in gelöschten Kanal senden."
   },
   {
     "id": "api.post.create_post.channel_root_id.app_error",
-    "translation": "Ungültige Kanal-ID für den Root-ID Parameter"
+    "translation": "Ungültige Kanal-ID für den Root-ID-Parameter"
   },
   {
     "id": "api.post.create_post.last_viewed.error",
-    "translation": "Fehler beim Aktualisieren der zuletzt aufgerufenen, channel_id=%s, user_id=%s, err=%v"
+    "translation": "Fehler beim Aktualisieren des Werts, Zuletzt aufgerufen“, channel_id=%s, user_id=%s, err=%v"
   },
   {
     "id": "api.post.create_post.parent_id.app_error",
@@ -1325,7 +1333,7 @@
   },
   {
     "id": "api.post.init.debug",
-    "translation": "Initialisieren Datei-Api-Routen"
+    "translation": "Initialisieren Nachrichten API Routen"
   },
   {
     "id": "api.post.make_direct_channel_visible.get_2_members.error",
@@ -1457,7 +1465,7 @@
   },
   {
     "id": "api.preference.init.debug",
-    "translation": "Initialisieren Datei-Api-Routen"
+    "translation": "Initialisieren Einstellungen API Routen"
   },
   {
     "id": "api.preference.save_preferences.decode.app_error",
@@ -1689,7 +1697,7 @@
   },
   {
     "id": "api.status.init.debug",
-    "translation": "Initialisieren Status-Api-Routen"
+    "translation": "Initialisieren Status API Routen"
   },
   {
     "id": "api.status.last_activity.error",
@@ -1757,7 +1765,7 @@
   },
   {
     "id": "api.team.init.debug",
-    "translation": "Initialisieren Datei-Api-Routen"
+    "translation": "Initialisieren Team API Routen"
   },
   {
     "id": "api.team.invite_members.admin",
@@ -2201,7 +2209,7 @@
   },
   {
     "id": "api.user.init.debug",
-    "translation": "Initialisieren Datei-Api-Routen"
+    "translation": "Initialisiere Benutzer API Routen"
   },
   {
     "id": "api.user.ldap_to_email.not_available.app_error",
@@ -2461,7 +2469,7 @@
   },
   {
     "id": "api.web_socket.init.debug",
-    "translation": "Initialisieren Web-Socket-Api-Routen"
+    "translation": "Initialisiere WebSocket API Routen"
   },
   {
     "id": "api.web_socket_handler.log.error",
@@ -2533,7 +2541,7 @@
   },
   {
     "id": "api.webhook.init.debug",
-    "translation": "Initialisieren webhook-Api-Routen"
+    "translation": "Initialisiere Webhook API Routen"
   },
   {
     "id": "api.webhook.regen_outgoing_token.disabled.app_error",
@@ -2549,7 +2557,7 @@
   },
   {
     "id": "api.webrtc.init.debug",
-    "translation": "Initialisiere WebRTC-API-Routen"
+    "translation": "Initialisiere WebRTC API Routen "
   },
   {
     "id": "api.webrtc.register_token.app_error",
@@ -2670,6 +2678,10 @@
   {
     "id": "ent.emoji.licence_disable.app_error",
     "translation": "Benutzerdefinierte Emojireaktionen durch die aktuelle Lizenz deaktiviert. Bitte kontaktieren Sie Ihren Systemadministrator wegen eines Enterprise Lizenzupgrades."
+  },
+  {
+    "id": "ent.ldap.create_fail",
+    "translation": "Unable to create LDAP user."
   },
   {
     "id": "ent.ldap.disabled.app_error",
@@ -5169,7 +5181,7 @@
   },
   {
     "id": "web.init.debug",
-    "translation": "Initialisieren Datei-Api-Routen"
+    "translation": "Initialisiere Web Routen"
   },
   {
     "id": "web.login.error",
