@@ -1782,7 +1782,7 @@
   "team_export_tab.unable": " Unable to export: {error}",
   "team_import_tab.failure": " Import failure: ",
   "team_import_tab.import": "Import",
-  "team_import_tab.importHelp": "<p>To import a team from Slack go to Slack > Team Settings > Import/Export Data > Export > Start Export. Slack does not allow you to export files, images, private groups or direct messages stored in Slack. Therefore, Slack import to Mattermost only supports importing of text messages in your Slack team's public channels.</p><p>The Slack import to Mattermost is in 'Beta'. Slack bot posts do not yet import.</p>",
+  "team_import_tab.importHelp": "<p>Slack import to Mattermost supports importing of messages in your Slack team's public channels.</p><p>To import a team from Slack, go to <strong>Slack > Team Settings > Import/Export Data > Export > Start Export</strong>.  See <a href=\"https://docs.mattermost.com/administration/migrating.html#migrating-from-slack\">documentation</a> to learn more.</p><p>To import posts with attached files, see <a href=\"https://github.com/grundleborg/slack-advanced-exporter\">Slack Advanced Exporter</a> for details.</p>",
   "team_import_tab.importSlack": "Import from Slack (Beta)",
   "team_import_tab.importing": " Importing...",
   "team_import_tab.successful": " Import successful: ",
