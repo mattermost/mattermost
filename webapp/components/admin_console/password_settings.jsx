@@ -6,7 +6,6 @@ import AdminSettings from './admin_settings.jsx';
 import {FormattedMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
-import BooleanSetting from './boolean_setting.jsx';
 import Setting from './setting.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
