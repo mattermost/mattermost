@@ -441,7 +441,7 @@
   },
   {
     "id": "api.command.team_mismatch.app_error",
-    "translation": "Cannot update commands across teams"
+    "translation": "無法更新不同團隊的指令"
   },
   {
     "id": "api.command.update.app_error",
@@ -637,11 +637,11 @@
   },
   {
     "id": "api.command_shortcuts.msgs",
-    "translation": "#### 訊息\n\nESC：將當前頻道所有訊息設為已讀\nCTRL+UP (在空的輸入欄)：顯示上一個您輸入的訊息或是斜線命令\nCTRL+DOWN (在空的輸入欄)：顯示下一個您輸入的訊息或是斜線命令\nUP (在空的輸入欄)：編輯當前頻道您的上一個訊息\n@[文字]+TAB：自動完成以[文字]起始的@使用者帳號\n#[文字]+TAB：自動完成以[文字]起始的頻道\n:[文字]+TAB：自動完成以[文字]起始的顏文字\n\n"
+    "translation": "#### 訊息\n\nESC：將當前頻道所有訊息設為已讀\nCTRL+UP (在空的輸入欄)：顯示上一個您輸入的訊息或是斜線命令\nCTRL+DOWN (在空的輸入欄)：顯示下一個您輸入的訊息或是斜線命令\nUP (在空的輸入欄)：編輯當前頻道您的上一個訊息\n@[文字]+TAB：自動完成以[文字]起始的@使用者帳號\n~[文字]+TAB：自動完成以[文字]起始的頻道\n:[文字]+TAB：自動完成以[文字]起始的顏文字\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs_mac",
-    "translation": "#### 訊息\n\nESC：將當前頻道所有訊息設為已讀\nCMD+UP (在空的輸入欄)：顯示上一個您輸入的訊息或是斜線命令\nCMD+DOWN (在空的輸入欄)：顯示下一個您輸入的訊息或是斜線命令\nUP (在空的輸入欄)：編輯當前頻道您的上一個訊息\n@[文字]+TAB：自動完成以[文字]起始的@使用者帳號\n#[文字]+TAB：自動完成以[文字]起始的頻道\n:[文字]+TAB：自動完成以[文字]起始的顏文字\n\n"
+    "translation": "#### 訊息\n\nESC：將當前頻道所有訊息設為已讀\nCMD+UP (在空的輸入欄)：顯示上一個您輸入的訊息或是斜線命令\nCMD+DOWN (在空的輸入欄)：顯示下一個您輸入的訊息或是斜線命令\nUP (在空的輸入欄)：編輯當前頻道您的上一個訊息\n@[文字]+TAB：自動完成以[文字]起始的@使用者帳號\n~[文字]+TAB：自動完成以[文字]起始的頻道\n:[文字]+TAB：自動完成以[文字]起始的顏文字\n\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -791,7 +791,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "無法建立繪文字。圖片必須小於64KB。"
+    "translation": "無法建立繪文字。圖片必須小於1 MB。"
   },
   {
     "id": "api.emoji.delete.permissions.app_error",
@@ -822,8 +822,20 @@
     "translation": "無法新增繪文字。檔案必須是PNG、JPEG或GIF。"
   },
   {
-    "id": "api.emoji.upload.large_image.app_error",
-    "translation": "無法建立繪文字。圖片長寬皆須小於等於128像素。"
+    "id": "api.emoji.upload.large_image.decode_error",
+    "translation": "無法建立繪文字。嘗試解碼圖片時發生錯誤。"
+  },
+  {
+    "id": "api.emoji.upload.large_image.encode_error",
+    "translation": "無法建立繪文字。嘗試編碼圖片時發生錯誤。"
+  },
+  {
+    "id": "api.emoji.upload.large_image.gif_decode_error",
+    "translation": "無法建立繪文字。嘗試解碼 gif 圖片時發生錯誤。"
+  },
+  {
+    "id": "api.emoji.upload.large_image.gif_encode_error",
+    "translation": "無法建立繪文字。嘗試編碼 gif 圖片時發生錯誤。"
   },
   {
     "id": "api.file.get_file.public_disabled.app_error",
@@ -991,7 +1003,7 @@
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
-    "translation": "File above maximum dimensions could not be uploaded: {{.Filename}}"
+    "translation": "無法上傳超過最大尺寸的檔案：{{.Filename}}"
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -1272,6 +1284,18 @@
   {
     "id": "api.post.delete_post_files.app_error.warn",
     "translation": "刪除文章的檔案時遭遇錯誤：post_id=%v, err=%v"
+  },
+  {
+    "id": "api.post.disabled_all",
+    "translation": "由於頻道使用者超過 {{.Users}} 人，已停用@all。"
+  },
+  {
+    "id": "api.post.disabled_channel",
+    "translation": "由於頻道使用者超過 {{.Users}} 人，已停用@channel。"
+  },
+  {
+    "id": "api.post.disabled_here",
+    "translation": "由於頻道使用者超過 {{.Users}} 人，已停用@here。"
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
@@ -1618,6 +1642,10 @@
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
     "translation": "將使用者與現有帳號合併：{{.Email}}，{{.Username}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.merge_existing_failed",
+    "translation": "Tried to merge user with existing account: {{.Email}}, {{.Username}}, but failed to add the user to this team.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
@@ -2681,7 +2709,7 @@
   },
   {
     "id": "ent.ldap.create_fail",
-    "translation": "Unable to create LDAP user."
+    "translation": "無法建立 LDAP 使用者。"
   },
   {
     "id": "ent.ldap.disabled.app_error",
@@ -2738,6 +2766,14 @@
   {
     "id": "ent.ldap.validate_filter.app_error",
     "translation": "無效的 AD/LDAP Filter"
+  },
+  {
+    "id": "ent.metrics.starting.info",
+    "translation": "計量與分析伺服器正在 %v 上監聽"
+  },
+  {
+    "id": "ent.metrics.stopping.info",
+    "translation": "%v 上的計量與分析伺服器正在停止"
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",
@@ -3314,6 +3350,10 @@
   {
     "id": "model.config.is_valid.max_file_size.app_error",
     "translation": "檔案設定中的最大大小無效。必須為0或者正數。"
+  },
+  {
+    "id": "model.config.is_valid.max_notify_per_channel.app_error",
+    "translation": "團隊設定中的單一團隊最高通知數無效。必須為正數。"
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
@@ -4166,6 +4206,10 @@
   {
     "id": "store.sql_channel.save_member.save.app_error",
     "translation": "無法儲存頻道成員"
+  },
+  {
+    "id": "store.sql_channel.search.app_error",
+    "translation": "搜尋頻道時遇到錯誤"
   },
   {
     "id": "store.sql_channel.set_last_viewed_at.app_error",

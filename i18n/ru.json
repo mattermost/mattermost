@@ -441,11 +441,11 @@
   },
   {
     "id": "api.command.team_mismatch.app_error",
-    "translation": "Cannot update commands across teams"
+    "translation": "Невозможно обновить команды через команды"
   },
   {
     "id": "api.command.update.app_error",
-    "translation": "Несоответствующие права для команды удаления"
+    "translation": "Несоответствующие права для обновления команды"
   },
   {
     "id": "api.command_away.desc",
@@ -791,7 +791,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Не удалось создать смайлик. Размер изображения должен быть меньше 64KB."
+    "translation": "Невозможно создать смайлик. Изображение должно быть не более 1 Мб."
   },
   {
     "id": "api.emoji.delete.permissions.app_error",
@@ -822,8 +822,20 @@
     "translation": "Не удалось создать эмодзи. Должен быть PNG, JPEG или GIF файл."
   },
   {
-    "id": "api.emoji.upload.large_image.app_error",
-    "translation": "Не удалось создать эмодзи. Изображение должно быть не больше 128 на 128 пикселей."
+    "id": "api.emoji.upload.large_image.decode_error",
+    "translation": "Невозможно создать смайлик. Произошла ошибка при декодировании изображения."
+  },
+  {
+    "id": "api.emoji.upload.large_image.encode_error",
+    "translation": "Невозможно создать смайлик. Произошла ошибка при кодировании изображения."
+  },
+  {
+    "id": "api.emoji.upload.large_image.gif_decode_error",
+    "translation": "Невозможно создать смайлик. Произошла ошибка при декодировании GIF изображения."
+  },
+  {
+    "id": "api.emoji.upload.large_image.gif_encode_error",
+    "translation": "Невозможно создать смайлик. Произошла ошибка при кодирования GIF изображения."
   },
   {
     "id": "api.file.get_file.public_disabled.app_error",
@@ -991,7 +1003,7 @@
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
-    "translation": "File above maximum dimensions could not be uploaded: {{.Filename}}"
+    "translation": "Размер файла превышает максимальный размер и не может быть загружен: {{.Filename}}"
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -1272,6 +1284,18 @@
   {
     "id": "api.post.delete_post_files.app_error.warn",
     "translation": "Возникла ошибка при удалении файлов из сообщения, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.post.disabled_all",
+    "translation": "@all has been disabled because the channel has more than {{.Users}} users."
+  },
+  {
+    "id": "api.post.disabled_channel",
+    "translation": "@channel был отключен, поскольку количество пользователей превышает {{.Users}}."
+  },
+  {
+    "id": "api.post.disabled_here",
+    "translation": "@here has been disabled because the channel has more than {{.Users}} users."
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
@@ -1620,6 +1644,10 @@
     "translation": "Пользователь был слит с существующей учетной записью: {{.Email}}, {{.Username}}\r\n"
   },
   {
+    "id": "api.slackimport.slack_add_users.merge_existing_failed",
+    "translation": "Tried to merge user with existing account: {{.Email}}, {{.Username}}, but failed to add the user to this team.\r\n"
+  },
+  {
     "id": "api.slackimport.slack_add_users.unable_import",
     "translation": "Невозможно импортировать пользователя: {{.Username}}\r\n"
   },
@@ -1693,7 +1721,7 @@
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.purpose_too_long.warn",
-    "translation": "Менеджер импорта Slack: Канал {{.ChannelName}} имеет слишком длинное имя. Оно будет укорочено при импорте."
+    "translation": "Менеджер импорта Slack: Канал {{.ChannelName}} имеет слишком длинное описание. Оно будет укорочено при импорте."
   },
   {
     "id": "api.status.init.debug",
@@ -2681,7 +2709,7 @@
   },
   {
     "id": "ent.ldap.create_fail",
-    "translation": "Unable to create LDAP user."
+    "translation": "Невозможно создать пользователя LDAP."
   },
   {
     "id": "ent.ldap.disabled.app_error",
@@ -2738,6 +2766,14 @@
   {
     "id": "ent.ldap.validate_filter.app_error",
     "translation": "Неверный фильтр AD/LDAP"
+  },
+  {
+    "id": "ent.metrics.starting.info",
+    "translation": "Metrics and profiling server is listening on %v"
+  },
+  {
+    "id": "ent.metrics.stopping.info",
+    "translation": "Metrics and profiling server is stopping on %v"
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",
@@ -3314,6 +3350,10 @@
   {
     "id": "model.config.is_valid.max_file_size.app_error",
     "translation": "Неверный максимальный размер файла в настройках файлов. Число должно быть неотрицательным."
+  },
+  {
+    "id": "model.config.is_valid.max_notify_per_channel.app_error",
+    "translation": "Неверное максимальное количество пользователей на команду. Число должно быть положительным."
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
@@ -4166,6 +4206,10 @@
   {
     "id": "store.sql_channel.save_member.save.app_error",
     "translation": "Не удалось сохранить участника канала"
+  },
+  {
+    "id": "store.sql_channel.search.app_error",
+    "translation": "Возникла проблема при поиске канала"
   },
   {
     "id": "store.sql_channel.set_last_viewed_at.app_error",

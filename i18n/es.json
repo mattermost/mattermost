@@ -791,7 +791,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "No se pudo crear el emoticon. La imagen debe tener un tamaño inferior a 64 KB."
+    "translation": "No se puede crear el emoticon. La imagen debe tener un tamaño inferior a 1 MB."
   },
   {
     "id": "api.emoji.delete.permissions.app_error",
@@ -822,8 +822,20 @@
     "translation": "No se puede crear el emoticon. El archivo debe ser un archivo PNG, JPEG o GIF."
   },
   {
-    "id": "api.emoji.upload.large_image.app_error",
-    "translation": "No se pudo crear el emoticon. La imagen debe tener un máximo de 128 x 128 pixels."
+    "id": "api.emoji.upload.large_image.decode_error",
+    "translation": "No se puede crear el emoticon. Se ha producido un error al intentar decodificar la imagen."
+  },
+  {
+    "id": "api.emoji.upload.large_image.encode_error",
+    "translation": "No se puede crear el emoticon. Se ha producido un error al intentar codificar la imagen."
+  },
+  {
+    "id": "api.emoji.upload.large_image.gif_decode_error",
+    "translation": "No se puede crear el emoticon. Se ha producido un error al intentar decodificar la imagen GIF."
+  },
+  {
+    "id": "api.emoji.upload.large_image.gif_encode_error",
+    "translation": "No se puede crear el emoticon. Se ha producido un error al intentar codificar la imagen GIF."
   },
   {
     "id": "api.file.get_file.public_disabled.app_error",
@@ -1274,6 +1286,18 @@
     "translation": "Se encontró un error al eliminar los archivos del mensaje, post_id=%v, err=%v"
   },
   {
+    "id": "api.post.disabled_all",
+    "translation": "@all ha sido desactivado debido a que el canal tiene más de {{.Users}} usuarios."
+  },
+  {
+    "id": "api.post.disabled_channel",
+    "translation": "@channel ha sido desactivado debido a que el canal tiene más de {{.Users}} usuarios."
+  },
+  {
+    "id": "api.post.disabled_here",
+    "translation": "@here ha sido desactivado debido a que el canal tiene más de {{.Users}} usuarios."
+  },
+  {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
       "one": "{{.Count}} archivo enviado: {{.Filenames}}",
@@ -1618,6 +1642,10 @@
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
     "translation": "Combinado el usuario con una cuenta existente: {{.Email}}, {{.Username}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.merge_existing_failed",
+    "translation": "Tried to merge user with existing account: {{.Email}}, {{.Username}}, but failed to add the user to this team.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
@@ -2740,6 +2768,14 @@
     "translation": "Filtro de AD/LDAP inválido"
   },
   {
+    "id": "ent.metrics.starting.info",
+    "translation": "Las métricas y los perfiles de servidor está escuchando en %v"
+  },
+  {
+    "id": "ent.metrics.stopping.info",
+    "translation": "Las métricas y los perfiles de servidor se detuvieron en %v"
+  },
+  {
     "id": "ent.mfa.activate.authenticate.app_error",
     "translation": "Error intentando autenticar el token MFA"
   },
@@ -3309,11 +3345,15 @@
   },
   {
     "id": "model.config.is_valid.max_channels.app_error",
-    "translation": "Número inválido del máximo de canales por equipo en la configuración de equipo.  Debe ser un número positivo."
+    "translation": "Número máximo de canales por equipo es inválido en la configuración de equipo.  Debe ser un número positivo."
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
     "translation": "El tamaño máximo de archivo para la configuración de archivos es inválido. Debe ser un cero o un número positivo."
+  },
+  {
+    "id": "model.config.is_valid.max_notify_per_channel.app_error",
+    "translation": "Número máximo de notificaciones por canal es inválido en la configuración de equipo.  Debe ser un número positivo."
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
@@ -4166,6 +4206,10 @@
   {
     "id": "store.sql_channel.save_member.save.app_error",
     "translation": "No pudimos guardar el miembro del canal"
+  },
+  {
+    "id": "store.sql_channel.search.app_error",
+    "translation": "Encontramos un error buscando en los canales"
   },
   {
     "id": "store.sql_channel.set_last_viewed_at.app_error",

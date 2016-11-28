@@ -791,7 +791,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Não foi possível criar o emoji. A imagem tem que ser menor que 64 KB em tamanho."
+    "translation": "Não foi possível criar o emoji. A imagem tem que ser menor que 1 MB em tamanho."
   },
   {
     "id": "api.emoji.delete.permissions.app_error",
@@ -822,8 +822,20 @@
     "translation": "Não foi possível criar o emoji. Arquivo precisa ser um PNG, JPEG ou GIF."
   },
   {
-    "id": "api.emoji.upload.large_image.app_error",
-    "translation": "Não foi possível criar o emoji. A imagem deve ser, no máximo 128 por 128 pixels."
+    "id": "api.emoji.upload.large_image.decode_error",
+    "translation": "Não foi possível criar o emoji. Um error ocorreu enquanto tentava decodificar a imagem."
+  },
+  {
+    "id": "api.emoji.upload.large_image.encode_error",
+    "translation": "Não foi possível criar o emoji. Um erro ocorreu enquanto tentava codificar a imagem."
+  },
+  {
+    "id": "api.emoji.upload.large_image.gif_decode_error",
+    "translation": "Não foi possível criar o emoji. Um erro ocorreu enquanto tentava decodificar uma imagem GIF."
+  },
+  {
+    "id": "api.emoji.upload.large_image.gif_encode_error",
+    "translation": "Não foi possível criar o emoji. Um erro ocorreu enquanto tentava codificar uma imagem GIF."
   },
   {
     "id": "api.file.get_file.public_disabled.app_error",
@@ -1274,6 +1286,18 @@
     "translation": "Erro encontrado ao deletar arquivos para postar, post_id=%v, err=%v"
   },
   {
+    "id": "api.post.disabled_all",
+    "translation": "@all foi desabilitado devido ao canal ter mais de {{.Users}} usuários."
+  },
+  {
+    "id": "api.post.disabled_channel",
+    "translation": "@channel foi desabilitado devido ao canal ter mais de {{.Users}} usuários."
+  },
+  {
+    "id": "api.post.disabled_here",
+    "translation": "@here foi desabilitado devido ao canal ter mais de {{.Users}} usuários."
+  },
+  {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
       "one": "{{.Count}} arquivo enviado: {{.Filenames}}",
@@ -1618,6 +1642,10 @@
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
     "translation": "Mesclado usuário com conta existente: {{.Email}}, {{.Username}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.merge_existing_failed",
+    "translation": "Tried to merge user with existing account: {{.Email}}, {{.Username}}, but failed to add the user to this team.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
@@ -2740,6 +2768,14 @@
     "translation": "Filtro AD/LDAP Inválido"
   },
   {
+    "id": "ent.metrics.starting.info",
+    "translation": "Servidor de métricas e profiling está escutando na porta %v"
+  },
+  {
+    "id": "ent.metrics.stopping.info",
+    "translation": "Servidor de métricas e profiling está parando na porta %v"
+  },
+  {
     "id": "ent.mfa.activate.authenticate.app_error",
     "translation": "Erro ao tentar autenticar o token MFA"
   },
@@ -3314,6 +3350,10 @@
   {
     "id": "model.config.is_valid.max_file_size.app_error",
     "translation": "Tamanho máximo do arquivo inválido nas configurações de arquivo. Deve ser zero ou um número positivo."
+  },
+  {
+    "id": "model.config.is_valid.max_notify_per_channel.app_error",
+    "translation": "Número inválido para máximo de notificações por canal para a configuração da equipe.  Deve ser um número positivo."
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
@@ -4166,6 +4206,10 @@
   {
     "id": "store.sql_channel.save_member.save.app_error",
     "translation": "Não foi possível salvar o membro do canal"
+  },
+  {
+    "id": "store.sql_channel.search.app_error",
+    "translation": "Encontramos um erro ao procurar pelos canais"
   },
   {
     "id": "store.sql_channel.set_last_viewed_at.app_error",
