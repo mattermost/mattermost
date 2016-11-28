@@ -11,6 +11,7 @@ type ClusterInterface interface {
 	StartInterNodeCommunication()
 	StopInterNodeCommunication()
 	GetClusterInfos() []*model.ClusterInfo
+	GetClusterStats() ([]*model.ClusterStats, *model.AppError)
 	RemoveAllSessionsForUserId(userId string)
 	InvalidateCacheForUser(userId string)
 	Publish(event *model.WebSocketEvent)
