@@ -428,10 +428,14 @@ func TestInviteMembers(t *testing.T) {
 	}
 
 	isLicensed := utils.IsLicensed
+	license := utils.License
 	defer func() {
 		utils.IsLicensed = isLicensed
+		utils.License = license
 	}()
 	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
 
 	if _, err := Client.InviteMembers(invites); err == nil {
 		t.Fatal("should have errored not team admin and licensed")
