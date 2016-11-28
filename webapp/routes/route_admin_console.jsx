@@ -21,6 +21,7 @@ import ClusterSettings from 'components/admin_console/cluster_settings.jsx';
 import MetricsSettings from 'components/admin_console/metrics_settings.jsx';
 import SignupSettings from 'components/admin_console/signup_settings.jsx';
 import PasswordSettings from 'components/admin_console/password_settings.jsx';
+import MfaSettings from 'components/admin_console/mfa_settings.jsx';
 import PublicLinkSettings from 'components/admin_console/public_link_settings.jsx';
 import SessionSettings from 'components/admin_console/session_settings.jsx';
 import ConnectionSettings from 'components/admin_console/connection_settings.jsx';
@@ -103,6 +104,10 @@ export default (
             <Route
                 path='saml'
                 component={SamlSettings}
+            />
+            <Route
+                path='mfa'
+                component={MfaSettings}
             />
         </Route>
         <Route path='security'>

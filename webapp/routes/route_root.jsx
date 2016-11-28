@@ -13,7 +13,10 @@ import helpRoute from 'routes/route_help.jsx';
 
 import BrowserStore from 'stores/browser_store.jsx';
 import ErrorStore from 'stores/error_store.jsx';
+import UserStore from 'stores/user_store.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
+
+import {browserHistory} from 'react-router/es6';
 
 function preLogin(nextState, replace, callback) {
     // redirect to the mobile landing page if the user hasn't seen it before
@@ -28,7 +31,23 @@ function preLogin(nextState, replace, callback) {
     callback();
 }
 
+const mfaPaths = [
+    '/mfa/setup',
+    '/mfa/confirm'
+];
+
 function preLoggedIn(nextState, replace, callback) {
+    if (window.mm_license.MFA === 'true' &&
+            window.mm_config.EnableMultifactorAuthentication === 'true' &&
+            window.mm_config.EnforceMultifactorAuthentication === 'true' &&
+            mfaPaths.indexOf(nextState.location.pathname) === -1) {
+        const user = UserStore.getCurrentUser();
+        if (user && !user.mfa_active) {
+            browserHistory.push('/mfa/setup');
+            return;
+        }
+    }
+
     ErrorStore.clearLastError();
     callback();
 }
