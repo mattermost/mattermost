@@ -20,7 +20,7 @@ export default class GetAndroidApp extends React.Component {
                 >
                     <FormattedMessage
                         id='get_app.openMattermost'
-                        defaultMessage='Download the uChat App'
+                        defaultMessage='Download uChat for Android'
                     />
                 </a>
                 <a
