@@ -448,7 +448,10 @@ export default class ChannelHeader extends React.Component {
             );
 
             dropdownContents.push(
-                <li className='divider'/>
+                <li
+                    key='divider-1'
+                    className='divider'
+                />
             );
 
             if (!ChannelStore.isDefault(channel)) {
@@ -511,7 +514,10 @@ export default class ChannelHeader extends React.Component {
             }
 
             dropdownContents.push(
-                <li className='divider'/>
+                <li
+                    key='divider-2'
+                    className='divider'
+                />
             );
 
             const deleteOption = (
@@ -607,7 +613,10 @@ export default class ChannelHeader extends React.Component {
             }
 
             dropdownContents.push(
-                <li className='divider'/>
+                <li
+                    key='divider-3'
+                    className='divider'
+                />
             );
 
             const canLeave = channel.type === Constants.PRIVATE_CHANNEL ? this.state.userCount > 1 : true;

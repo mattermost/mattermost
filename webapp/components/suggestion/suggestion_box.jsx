@@ -180,11 +180,13 @@ export default class SuggestionBox extends React.Component {
                 />
             );
         } else if (type === 'search') {
+            const newProps = {...props};
+            Reflect.deleteProperty(newProps, 'providers');
             textbox = (
                 <input
                     ref='textbox'
                     type='search'
-                    {...props}
+                    {...newProps}
                     onInput={this.handleChange}
                     onKeyDown={this.handleKeyDown}
                 />

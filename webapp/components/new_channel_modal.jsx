@@ -12,20 +12,13 @@ import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 
-import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 import {Modal} from 'react-bootstrap';
 
-const holders = defineMessages({
-    nameEx: {
-        id: 'channel_modal.nameEx',
-        defaultMessage: 'E.g.: "Bugs", "Marketing", "客户支持"'
-    }
-});
-
 import React from 'react';
 
-class NewChannelModal extends React.Component {
+export default class NewChannelModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -242,7 +235,7 @@ class NewChannelModal extends React.Component {
                                         type='text'
                                         ref='display_name'
                                         className='form-control'
-                                        placeholder={this.props.intl.formatMessage(holders.nameEx)}
+                                        placeholder={Utils.localizeMessage('channel_modal.nameEx', 'E.g.: "Bugs", "Marketing", "客户支持"')}
                                         maxLength='22'
                                         value={this.props.channelData.displayName}
                                         autoFocus={true}
@@ -284,7 +277,7 @@ class NewChannelModal extends React.Component {
                                         className='form-control no-resize'
                                         ref='channel_purpose'
                                         rows='4'
-                                        placeholder={this.props.intl.formatMessage({id: 'channel_modal.purpose'})}
+                                        placeholder={Utils.localizeMessage('channel_modal.purpose', 'Purpose')}
                                         maxLength='250'
                                         value={this.props.channelData.purpose}
                                         onChange={this.handleChange}
@@ -321,7 +314,7 @@ class NewChannelModal extends React.Component {
                                         className='form-control no-resize'
                                         ref='channel_header'
                                         rows='4'
-                                        placeholder={this.props.intl.formatMessage({id: 'channel_modal.header'})}
+                                        placeholder={Utils.localizeMessage('channel_modal.header', 'Header')}
                                         maxLength='128'
                                         value={this.props.channelData.header}
                                         onChange={this.handleChange}
@@ -377,17 +370,15 @@ NewChannelModal.defaultProps = {
     serverError: null
 };
 NewChannelModal.propTypes = {
-    intl: intlShape.isRequired,
     show: React.PropTypes.bool.isRequired,
     channelType: React.PropTypes.string.isRequired,
     channelData: React.PropTypes.object.isRequired,
     serverError: React.PropTypes.node,
     onSubmitChannel: React.PropTypes.func.isRequired,
     onModalDismissed: React.PropTypes.func.isRequired,
-    onModalExited: React.PropTypes.func.optional,
+    onModalExited: React.PropTypes.func,
     onTypeSwitched: React.PropTypes.func.isRequired,
     onChangeURLPressed: React.PropTypes.func.isRequired,
     onDataChanged: React.PropTypes.func.isRequired
 };
 
-export default injectIntl(NewChannelModal);

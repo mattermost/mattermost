@@ -33,5 +33,5 @@ export default class StatusIcon extends React.Component {
 }
 
 StatusIcon.propTypes = {
-    status: React.PropTypes.string.isRequired
+    status: React.PropTypes.string
 };
