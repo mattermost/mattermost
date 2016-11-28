@@ -16,7 +16,7 @@ import Constants from 'utils/constants.jsx';
 
 import $ from 'jquery';
 import React from 'react';
-import {FormattedMessage, FormattedHTMLMessage, FormattedTime, FormattedDate} from 'react-intl';
+import {FormattedMessage, FormattedTime, FormattedDate} from 'react-intl';
 import {browserHistory, Link} from 'react-router/es6';
 
 import icon50 from 'images/icon50x50.png';
