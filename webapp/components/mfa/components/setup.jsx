@@ -74,10 +74,10 @@ export default class Setup extends React.Component {
                 >
                     <p>
                         <FormattedHTMLMessage
-                            id='mfa.introduction.required'
+                            id='mfa.setup.required'
                             defaultMessage='<strong>Multi-factor authentication is required on {siteName}.</strong>'
                             values={{
-                                siteName: 'SITE_NAME'
+                                siteName: global.window.mm_config.SiteName
                             }}
                         />
                     </p>

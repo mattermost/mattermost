@@ -34,6 +34,11 @@ class WebClientClass extends Client {
     }
 
     handleError(err, res) {
+        if (res.body.id === 'api.context.mfa_required.app_error') {
+            window.location.reload();
+            return;
+        }
+
         if (err.status === HTTP_UNAUTHORIZED && res.req.url !== '/api/v3/users/login') {
             GlobalActions.emitUserLoggedOutEvent('/login');
         }

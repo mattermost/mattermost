@@ -712,6 +712,10 @@
     "translation": "Invalid or expired session, please login again."
   },
   {
+    "id": "api.context.mfa_required.app_error",
+    "translation": "Multi-factor authentication is required on this server."
+  },
+  {
     "id": "api.context.system_permissions.app_error",
     "translation": "You do not have the appropriate permissions (system)"
   },

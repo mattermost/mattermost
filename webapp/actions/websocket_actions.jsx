@@ -72,7 +72,6 @@ export function getStatuses() {
 }
 
 function handleFirstConnect() {
-    getStatuses();
     ErrorStore.clearLastError();
     ErrorStore.emitChange();
 }
