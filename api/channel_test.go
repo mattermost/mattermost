@@ -94,18 +94,22 @@ func TestCreateChannel(t *testing.T) {
 	}
 
 	isLicensed := utils.IsLicensed
+	license := utils.License
 	restrictPublicChannel := *utils.Cfg.TeamSettings.RestrictPublicChannelManagement
 	restrictPrivateChannel := *utils.Cfg.TeamSettings.RestrictPrivateChannelManagement
 	defer func() {
 		*utils.Cfg.TeamSettings.RestrictPublicChannelManagement = restrictPublicChannel
 		*utils.Cfg.TeamSettings.RestrictPrivateChannelManagement = restrictPrivateChannel
 		utils.IsLicensed = isLicensed
+		utils.License = license
 		utils.SetDefaultRolesBasedOnConfig()
 	}()
 	*utils.Cfg.TeamSettings.RestrictPublicChannelManagement = model.PERMISSIONS_ALL
 	*utils.Cfg.TeamSettings.RestrictPrivateChannelManagement = model.PERMISSIONS_ALL
 	utils.SetDefaultRolesBasedOnConfig()
 	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
 
 	channel2 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel3 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_PRIVATE, TeamId: team.Id}
@@ -284,17 +288,21 @@ func TestUpdateChannel(t *testing.T) {
 	}
 
 	isLicensed := utils.IsLicensed
+	license := utils.License
 	restrictPublicChannel := *utils.Cfg.TeamSettings.RestrictPublicChannelManagement
 	restrictPrivateChannel := *utils.Cfg.TeamSettings.RestrictPrivateChannelManagement
 	defer func() {
 		*utils.Cfg.TeamSettings.RestrictPublicChannelManagement = restrictPublicChannel
 		*utils.Cfg.TeamSettings.RestrictPrivateChannelManagement = restrictPrivateChannel
 		utils.IsLicensed = isLicensed
+		utils.License = license
 		utils.SetDefaultRolesBasedOnConfig()
 	}()
 	*utils.Cfg.TeamSettings.RestrictPublicChannelManagement = model.PERMISSIONS_ALL
 	*utils.Cfg.TeamSettings.RestrictPrivateChannelManagement = model.PERMISSIONS_ALL
 	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
 	utils.SetDefaultRolesBasedOnConfig()
 
 	channel2 := th.CreateChannel(Client, team)
@@ -432,17 +440,21 @@ func TestUpdateChannelHeader(t *testing.T) {
 	}
 
 	isLicensed := utils.IsLicensed
+	license := utils.License
 	restrictPublicChannel := *utils.Cfg.TeamSettings.RestrictPublicChannelManagement
 	restrictPrivateChannel := *utils.Cfg.TeamSettings.RestrictPrivateChannelManagement
 	defer func() {
 		*utils.Cfg.TeamSettings.RestrictPublicChannelManagement = restrictPublicChannel
 		*utils.Cfg.TeamSettings.RestrictPrivateChannelManagement = restrictPrivateChannel
 		utils.IsLicensed = isLicensed
+		utils.License = license
 		utils.SetDefaultRolesBasedOnConfig()
 	}()
 	*utils.Cfg.TeamSettings.RestrictPublicChannelManagement = model.PERMISSIONS_ALL
 	*utils.Cfg.TeamSettings.RestrictPrivateChannelManagement = model.PERMISSIONS_ALL
 	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
 	utils.SetDefaultRolesBasedOnConfig()
 
 	th.LoginBasic()
@@ -562,17 +574,21 @@ func TestUpdateChannelPurpose(t *testing.T) {
 	}
 
 	isLicensed := utils.IsLicensed
+	license := utils.License
 	restrictPublicChannel := *utils.Cfg.TeamSettings.RestrictPublicChannelManagement
 	restrictPrivateChannel := *utils.Cfg.TeamSettings.RestrictPrivateChannelManagement
 	defer func() {
 		*utils.Cfg.TeamSettings.RestrictPublicChannelManagement = restrictPublicChannel
 		*utils.Cfg.TeamSettings.RestrictPrivateChannelManagement = restrictPrivateChannel
 		utils.IsLicensed = isLicensed
+		utils.License = license
 		utils.SetDefaultRolesBasedOnConfig()
 	}()
 	*utils.Cfg.TeamSettings.RestrictPublicChannelManagement = model.PERMISSIONS_ALL
 	*utils.Cfg.TeamSettings.RestrictPrivateChannelManagement = model.PERMISSIONS_ALL
 	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
 	utils.SetDefaultRolesBasedOnConfig()
 
 	th.LoginBasic()
@@ -1067,17 +1083,21 @@ func TestDeleteChannel(t *testing.T) {
 	}
 
 	isLicensed := utils.IsLicensed
+	license := utils.License
 	restrictPublicChannel := *utils.Cfg.TeamSettings.RestrictPublicChannelManagement
 	restrictPrivateChannel := *utils.Cfg.TeamSettings.RestrictPrivateChannelManagement
 	defer func() {
 		*utils.Cfg.TeamSettings.RestrictPublicChannelManagement = restrictPublicChannel
 		*utils.Cfg.TeamSettings.RestrictPrivateChannelManagement = restrictPrivateChannel
 		utils.IsLicensed = isLicensed
+		utils.License = license
 		utils.SetDefaultRolesBasedOnConfig()
 	}()
 	*utils.Cfg.TeamSettings.RestrictPublicChannelManagement = model.PERMISSIONS_ALL
 	*utils.Cfg.TeamSettings.RestrictPrivateChannelManagement = model.PERMISSIONS_ALL
 	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
 	utils.SetDefaultRolesBasedOnConfig()
 
 	th.LoginSystemAdmin()
