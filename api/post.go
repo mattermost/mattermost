@@ -652,7 +652,6 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 	}
 
 	senderName := ""
-
 	var sender *model.User
 	if post.IsSystemMessage() {
 		senderName = c.T("system.message.name")
@@ -660,7 +659,12 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 		if value, ok := post.Props["override_username"]; ok && post.Props["from_webhook"] == "true" {
 			senderName = value.(string)
 		} else {
-			senderName = profile.Username
+			if result := <-Srv.Store.Preference().Get(profile.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "name_format"); result.Err != nil {
+				// Show default sender's name if user doesn't set display settings.
+				senderName = profile.Username
+			} else {
+				senderName = profile.GetDisplayNameForPreference(result.Data.(model.Preference).Value)
+			}
 		}
 		sender = profile
 	}
@@ -902,14 +906,6 @@ func sendNotificationEmail(c *Context, post *model.Post, user *model.User, chann
 		subjectText = userLocale("api.post.send_notifications_and_forget.message_subject")
 
 		senderDisplayName := senderName
-		if sender != nil {
-			if result := <-Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "name_format"); result.Err != nil {
-				// Show default sender's name if user doesn't set display settings.
-				senderDisplayName = senderName
-			} else {
-				senderDisplayName = sender.GetDisplayNameForPreference(result.Data.(model.Preference).Value)
-			}
-		}
 
 		mailTemplate = "api.templates.post_subject_in_direct_message"
 		mailParameters = map[string]interface{}{"SubjectText": subjectText, "TeamDisplayName": team.DisplayName,
