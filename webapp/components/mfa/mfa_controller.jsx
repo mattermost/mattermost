@@ -1,13 +1,19 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router/es6';
+import {browserHistory, Link} from 'react-router/es6';
 
 import logoImage from 'images/logo.png';
 
 export default class MFAController extends React.Component {
+    componentDidMount() {
+        if (window.mm_license.MFA !== 'true' || window.mm_config.EnableMultifactorAuthentication !== 'true') {
+            browserHistory.push('/');
+        }
+    }
+
     render() {
         return (
             <div>
@@ -19,7 +25,7 @@ export default class MFAController extends React.Component {
                         />
                     </Link>
                     <FormattedMessage
-                        id='mfa.title'
+                        id='mfa.setupTitle'
                         defaultMessage='Multi-factor Authentication Setup'
                     />
                 </div>

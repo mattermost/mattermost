@@ -46,51 +46,55 @@ type Context struct {
 }
 
 func ApiAppHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, false, false, true, false, false, false}
+	return &handler{h, false, false, true, false, false, false, false}
 }
 
 func AppHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, false, false, false, false, false, false}
+	return &handler{h, false, false, false, false, false, false, false}
 }
 
 func AppHandlerIndependent(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, false, false, false, false, true, false}
+	return &handler{h, false, false, false, false, true, false, false}
 }
 
 func ApiUserRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, true, false, true, false, false, false}
+	return &handler{h, true, false, true, false, false, false, true}
 }
 
 func ApiUserRequiredActivity(h func(*Context, http.ResponseWriter, *http.Request), isUserActivity bool) http.Handler {
-	return &handler{h, true, false, true, isUserActivity, false, false}
+	return &handler{h, true, false, true, isUserActivity, false, false, true}
+}
+
+func ApiUserRequiredMfa(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	return &handler{h, true, false, true, false, false, false, false}
 }
 
 func UserRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, true, false, false, false, false, false}
+	return &handler{h, true, false, false, false, false, false, true}
 }
 
 func AppHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, false, false, false, false, false, true}
+	return &handler{h, false, false, false, false, false, true, false}
 }
 
 func ApiAdminSystemRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, true, true, true, false, false, false}
+	return &handler{h, true, true, true, false, false, false, true}
 }
 
 func ApiAdminSystemRequiredTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, true, true, true, false, false, true}
+	return &handler{h, true, true, true, false, false, true, true}
 }
 
 func ApiAppHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, false, false, true, false, false, true}
+	return &handler{h, false, false, true, false, false, true, false}
 }
 
 func ApiUserRequiredTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, true, false, true, false, false, true}
+	return &handler{h, true, false, true, false, false, true, true}
 }
 
 func ApiAppHandlerTrustRequesterIndependent(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, false, false, true, false, true, true}
+	return &handler{h, false, false, true, false, true, true, false}
 }
 
 type handler struct {
@@ -101,6 +105,7 @@ type handler struct {
 	isUserActivity     bool
 	isTeamIndependent  bool
 	trustRequester     bool
+	requireMfa         bool
 }
 
 func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -201,6 +206,10 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if c.Err == nil && h.requireUser {
 		c.UserRequired()
+	}
+
+	if c.Err == nil && h.requireMfa {
+		c.MfaRequired()
 	}
 
 	if c.Err == nil && h.requireSystemAdmin {
@@ -327,6 +336,26 @@ func (c *Context) UserRequired() {
 		c.Err = model.NewLocAppError("", "api.context.session_expired.app_error", nil, "UserRequired")
 		c.Err.StatusCode = http.StatusUnauthorized
 		return
+	}
+}
+
+func (c *Context) MfaRequired() {
+	// Must be licensed for MFA and have it configured for encforcement
+	if !utils.IsLicensed || !*utils.License.Features.MFA || !*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication || !*utils.Cfg.ServiceSettings.EnforceMultifactorAuthentication {
+		return
+	}
+
+	if result := <-Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
+		c.Err = model.NewLocAppError("", "api.context.session_expired.app_error", nil, "MfaRequired")
+		c.Err.StatusCode = http.StatusUnauthorized
+		return
+	} else {
+		user := result.Data.(*model.User)
+		if !user.MfaActive {
+			c.Err = model.NewLocAppError("", "api.context.mfa_required.app_error", nil, "MfaRequired")
+			c.Err.StatusCode = http.StatusUnauthorized
+			return
+		}
 	}
 }
 

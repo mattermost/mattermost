@@ -123,6 +123,13 @@ export default class SecurityTab extends React.Component {
             '',
             false,
             () => {
+                if (global.window.mm_license.MFA === 'true' &&
+                        global.window.mm_config.EnableMultifactorAuthentication === 'true' &&
+                        global.window.mm_config.EnforceMultifactorAuthentication === 'true') {
+                    window.location.href = '/mfa/setup';
+                    return;
+                }
+
                 this.props.updateSection('');
                 AsyncClient.getMe();
                 this.setState(this.getDefaultState());
@@ -192,12 +199,26 @@ export default class SecurityTab extends React.Component {
                     </div>
                 );
 
-                extraInfo = (
-                    <span>
+                let mfaRemoveHelp;
+                if (global.window.mm_config.EnforceMultifactorAuthentication === 'true') {
+                    mfaRemoveHelp = (
+                        <FormattedMessage
+                            id='user.settings.mfa.requiredHelp'
+                            defaultMessage='Multi-factor authentication is required on this server. Resetting is only recommended when you need to switch code generation to a new mobile device. You will be required to set it up again immediately.'
+                        />
+                    );
+                } else {
+                    mfaRemoveHelp = (
                         <FormattedMessage
                             id='user.settings.mfa.removeHelp'
-                            defaultMessage='Removing multi-factor authentication will make your account more vulnerable to attacks.'
+                            defaultMessage='Removing multi-factor authentication means you will no longer require a phone-based passcode to sign-in to your account.'
                         />
+                    );
+                }
+
+                extraInfo = (
+                    <span>
+                        {mfaRemoveHelp}
                     </span>
                 );
             } else {
