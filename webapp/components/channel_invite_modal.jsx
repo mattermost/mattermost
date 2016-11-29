@@ -168,18 +168,6 @@ export default class ChannelInviteModal extends React.Component {
                     {inviteError}
                     {content}
                 </Modal.Body>
-                <Modal.Footer>
-                    <button
-                        type='button'
-                        className='btn btn-default'
-                        onClick={this.onHide}
-                    >
-                        <FormattedMessage
-                            id='channel_invite.close'
-                            defaultMessage='Close'
-                        />
-                    </button>
-                </Modal.Footer>
             </Modal>
         );
     }

@@ -247,18 +247,6 @@ export default class MoreDirectChannels extends React.Component {
                         focusOnMount={!UserAgent.isMobile()}
                     />
                 </Modal.Body>
-                <Modal.Footer>
-                    <button
-                        type='button'
-                        className='btn btn-default'
-                        onClick={this.handleHide}
-                    >
-                        <FormattedMessage
-                            id='more_direct_channels.close'
-                            defaultMessage='Close'
-                        />
-                    </button>
-                </Modal.Footer>
             </Modal>
         );
     }
