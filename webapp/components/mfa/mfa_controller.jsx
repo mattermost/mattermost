@@ -16,27 +16,33 @@ export default class MFAController extends React.Component {
 
     render() {
         return (
-            <div>
-                <div className='signup-header'>
-                    <Link to='/'>
-                        <span className='fa fa-chevron-left'/>
-                        <FormattedMessage
-                            id='web.header.back'
-                        />
-                    </Link>
-                    <FormattedMessage
-                        id='mfa.setupTitle'
-                        defaultMessage='Multi-factor Authentication Setup'
-                    />
-                </div>
-                <div className='col-sm-12'>
-                    <div className='signup-team__container'>
-                        <img
-                            className='signup-team-logo'
-                            src={logoImage}
-                        />
-                        <div id='mfa'>
-                            {React.cloneElement(this.props.children, {})}
+            <div className='inner-wrap sticky'>
+                <div className='content'>
+                    <div>
+                        <div className='signup-header'>
+                            <Link to='/'>
+                                <span className='fa fa-chevron-left'/>
+                                <FormattedMessage
+                                    id='web.header.back'
+                                />
+                            </Link>
+                        </div>
+                        <div className='col-sm-12'>
+                            <div className='signup-team__container'>
+                                <h3>
+                                    <FormattedMessage
+                                        id='mfa.setupTitle'
+                                        defaultMessage='Multi-factor Authentication Setup'
+                                    />
+                                </h3>
+                                <img
+                                    className='signup-team-logo'
+                                    src={logoImage}
+                                />
+                                <div id='mfa'>
+                                    {React.cloneElement(this.props.children, {})}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
