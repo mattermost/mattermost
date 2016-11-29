@@ -27,6 +27,8 @@ import {FormattedMessage} from 'react-intl';
 const ActionTypes = Constants.ActionTypes;
 const KeyCodes = Constants.KeyCodes;
 
+import {REACTION_PATTERN} from './create_post.jsx';
+
 import React from 'react';
 
 export default class CreateComment extends React.Component {
@@ -125,7 +127,7 @@ export default class CreateComment extends React.Component {
             return;
         }
 
-        const isReaction = (/^(\+|-):([^:\s]+):\s*$/).exec(message);
+        const isReaction = REACTION_PATTERN.exec(message);
         if (isReaction && EmojiStore.has(isReaction[2])) {
             this.handleSubmitReaction(isReaction);
         } else {

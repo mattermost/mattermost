@@ -36,6 +36,8 @@ const KeyCodes = Constants.KeyCodes;
 
 import React from 'react';
 
+export const REACTION_PATTERN = /^(\+|-):([^:\s]+):\s*$/;
+
 export default class CreatePost extends React.Component {
     constructor(props) {
         super(props);
@@ -103,7 +105,7 @@ export default class CreatePost extends React.Component {
 
         this.setState({submitting: true, serverError: null});
 
-        const isReaction = (/^(\+|-):([^:\s]+):\s*$/).exec(post.message);
+        const isReaction = REACTION_PATTERN.exec(post.message);
         if (post.message.indexOf('/') === 0) {
             PostStore.storeDraft(this.state.channelId, null);
             this.setState({message: '', postError: null, fileInfos: []});
