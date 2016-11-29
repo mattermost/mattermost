@@ -1362,6 +1362,15 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getMoreChannels', success, error));
     }
 
+    getPaginatedChannels(offset, limit, term = '', success, error) {
+        request.
+            get(`${this.getChannelsRoute()}/paginated/${offset}/${limit}?term=${term}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getPaginatedChannels', success, error));
+    }
+
     getChannelCounts(success, error) {
         request.
             get(`${this.getChannelsRoute()}/counts`).

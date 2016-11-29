@@ -25,6 +25,11 @@ class ChannelStoreClass extends EventEmitter {
         this.moreChannels = {};
         this.stats = {};
         this.unreadCounts = {};
+
+        // Lists of sorted IDs for paginated channels
+        this.paginated_channels = {};
+        this.paging_offset = 0;
+        this.paging_count = 0;
     }
 
     get POST_MODE_CHANNEL() {
@@ -322,6 +327,42 @@ class ChannelStoreClass extends EventEmitter {
 
         return channelNamesMap;
     }
+
+    storePaginatedChannels(channels) {
+        this.paginated_channels = channels.reduce(function(map, obj) {
+            map[obj.id] = obj;
+            return map;
+        }, {});
+    }
+
+    storePaginatedChannelsNext(channels) {
+        const newChannels = channels.reduce(function(map, obj) {
+            map[obj.id] = obj;
+            return map;
+        }, {});
+        const currentId = this.getCurrentId();
+        if (newChannels[currentId]) {
+            Reflect.deleteProperty(newChannels, currentId);
+        }
+        this.paginated_channels = Object.assign({}, this.paginated_channels, newChannels);
+    }
+
+    getPaginatedChannels() {
+        return this.paginated_channels;
+    }
+
+    setPage(offset, count) {
+        this.paging_offset = offset + count;
+        this.paging_count = this.paging_count + count;
+    }
+
+    getPagingOffset() {
+        return this.paging_offset;
+    }
+
+    getPagingCount() {
+        return this.paging_count;
+    }
 }
 
 var ChannelStore = new ChannelStoreClass();
@@ -387,6 +428,20 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         break;
     case ActionTypes.RECEIVED_MORE_CHANNELS:
         ChannelStore.storeMoreChannels(action.channels);
+        ChannelStore.emitChange();
+        break;
+    case ActionTypes.RECEIVED_PAGINATED_CHANNELS:
+        ChannelStore.storePaginatedChannels(action.channels);
+        if (action.offset != null && action.count != null) {
+            ChannelStore.setPage(action.offset, action.count);
+        }
+        ChannelStore.emitChange();
+        break;
+    case ActionTypes.RECEIVED_PAGINATED_CHANNELS_NEXT:
+        ChannelStore.storePaginatedChannelsNext(action.channels);
+        if (action.offset != null && action.count != null) {
+            ChannelStore.setPage(action.offset, action.count);
+        }
         ChannelStore.emitChange();
         break;
 
