@@ -687,18 +687,25 @@ export function applyFont(fontName) {
 }
 
 export function changeCss(className, classValue) {
-    let styleEl = document.querySelector('style[data-class="' + className + classValue + '"]');
+    let styleEl = document.querySelector('style[data-class="' + className + '"]');
     if (!styleEl) {
         styleEl = document.createElement('style');
         styleEl.setAttribute('data-class', className);
+
+        // Append style element to head
+        document.head.appendChild(styleEl);
     }
 
-    // Append style element to head
-    document.head.appendChild(styleEl);
-
     // Grab style sheet
-    var styleSheet = styleEl.sheet;
-    styleSheet.insertRule(className + '{' + classValue + '}', styleSheet.cssRules.length);
+    const styleSheet = styleEl.sheet;
+    let mediaQuery = '';
+    if (className.indexOf('@media') >= 0) {
+        mediaQuery = '}';
+    }
+    if (styleSheet.cssRules.length > 0) {
+        styleSheet.deleteRule(0);
+    }
+    styleSheet.insertRule(className + '{' + classValue + '}' + mediaQuery, 0);
 }
 
 export function updateCodeTheme(userTheme) {
