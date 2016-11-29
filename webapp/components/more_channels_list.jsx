@@ -68,15 +68,12 @@ export default class MoreChannelsList extends React.Component {
         this.setState({filter: '', channels});
     }
 
-<<<<<<< HEAD
-=======
     componentDidUpdate(prevProps, prevState) {
         if (prevState.filter !== this.state.filter) {
             $(ReactDOM.findDOMNode(this.refs.channelList)).scrollTop(0);
         }
     }
 
->>>>>>> UCHAT-180 Paginate more channels modal to improve perf
     handleJoin(channel) {
         this.setState({joiningChannel: channel.id});
         this.props.handleJoin(
@@ -131,18 +128,13 @@ export default class MoreChannelsList extends React.Component {
     }
 
     render() {
-<<<<<<< HEAD
         const channels = Object.values(this.state.channels);
-=======
-        let channels = Object.values(this.state.channels);
->>>>>>> UCHAT-180 Paginate more channels modal to improve perf
 
         let nextButton;
         let previousButton;
         let count;
 
         const startCount = this.state.page * this.props.channelsPerPage;
-<<<<<<< HEAD
         let endCount = startCount + this.props.channelsPerPage;
         if (this.props.total < endCount) {
             endCount = this.props.total;
@@ -150,12 +142,6 @@ export default class MoreChannelsList extends React.Component {
         const channelsToDisplay = channels.slice(startCount, endCount);
 
         if (endCount < this.props.total) {
-=======
-        const endCount = startCount + this.props.channelsPerPage;
-        const channelsToDisplay = channels.slice(startCount, endCount);
-
-        if (channelsToDisplay.length >= this.props.channelsPerPage) {
->>>>>>> UCHAT-180 Paginate more channels modal to improve perf
             nextButton = (
                 <button
                     className='btn btn-default filter-control filter-control__next'
@@ -196,11 +182,7 @@ export default class MoreChannelsList extends React.Component {
         return (
             <div className='filtered-user-list'>
                 <div className='filter-row'>
-<<<<<<< HEAD
                     <div className='col-sm-12'>
-=======
-                    <div className='col-sm-6'>
->>>>>>> UCHAT-180 Paginate more channels modal to improve perf
                         <input
                             ref='filter'
                             className='form-control filter-textbox'
@@ -210,11 +192,7 @@ export default class MoreChannelsList extends React.Component {
                         />
                     </div>
                     <div className='col-sm-12'>
-<<<<<<< HEAD
                         <span className='member-count pull-left'>{count}</span>
-=======
-                        <span className='channel-count pull-left'>{count}</span>
->>>>>>> UCHAT-180 Paginate more channels modal to improve perf
                     </div>
                 </div>
                 <div
@@ -234,11 +212,7 @@ export default class MoreChannelsList extends React.Component {
 
 MoreChannelsList.defaultProps = {
     channels: [],
-<<<<<<< HEAD
     channelsPerPage: 50 //eslint-disable-line no-magic-numbers
-=======
-    channelsPerPage: 50, //eslint-disable-line no-magic-numbers
->>>>>>> UCHAT-180 Paginate more channels modal to improve perf
 };
 
 MoreChannelsList.propTypes = {
@@ -247,9 +221,5 @@ MoreChannelsList.propTypes = {
     channelsPerPage: React.PropTypes.number,
     total: React.PropTypes.number,
     nextPage: React.PropTypes.func.isRequired,
-<<<<<<< HEAD
     search: React.PropTypes.func.isRequired
-=======
-    search: React.PropTypes.func.isRequired,
->>>>>>> UCHAT-180 Paginate more channels modal to improve perf
 };
