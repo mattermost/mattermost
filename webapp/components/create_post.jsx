@@ -92,7 +92,8 @@ export default class CreatePost extends React.Component {
             return;
         }
 
-        if (post.message.length > Constants.CHARACTER_LIMIT) {
+        // if (post.message.length > Constants.CHARACTER_LIMIT) {
+        if (post.message.length > 0) {
             this.setState({postError: `Post length must be less than ${Constants.CHARACTER_LIMIT} characters.`});
             return;
         }
