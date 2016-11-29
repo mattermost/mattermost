@@ -5,7 +5,6 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {browserHistory, Link} from 'react-router/es6';
 
-import $ from 'jquery';
 import logoImage from 'images/logo.png';
 
 export default class MFAController extends React.Component {
@@ -13,15 +12,12 @@ export default class MFAController extends React.Component {
         if (window.mm_license.MFA !== 'true' || window.mm_config.EnableMultifactorAuthentication !== 'true') {
             browserHistory.push('/');
         }
-
-        $('body').attr('class', 'sticky');
-        $('#root').attr('class', 'container-fluid');
     }
 
     render() {
         return (
-            <div className='inner-wrap'>
-                <div className='row content'>
+            <div className='inner-wrap sticky'>
+                <div className='content'>
                     <div>
                         <div className='signup-header'>
                             <Link to='/'>
