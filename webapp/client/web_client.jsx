@@ -17,7 +17,7 @@ class WebClientClass extends Client {
     constructor() {
         super();
         this.enableLogErrorsToConsole(true);
-        this.connected = true;
+        this.hasInternetConnection = true;
         TeamStore.addChangeListener(this.onTeamStoreChanged.bind(this));
     }
 
@@ -43,14 +43,14 @@ class WebClientClass extends Client {
         }
 
         if (err.status == null) {
-            this.connected = false;
+            this.hasInternetConnection = false;
         }
     }
 
     handleSuccess = (res) => { // eslint-disable-line no-unused-vars
-        if (res && !this.connected) {
+        if (res && !this.hasInternetConnection) {
             reconnect();
-            this.connected = true;
+            this.hasInternetConnection = true;
         }
     }
 
