@@ -257,7 +257,7 @@ export default class ThemeSetting extends React.Component {
             inputs.push(custom);
 
             inputs.push(
-                <div>
+                <div key='otherThemes'>
                     <br/>
                     <a
                         href='http://docs.mattermost.com/help/settings/theme-colors.html#custom-theme-examples'

@@ -885,7 +885,7 @@ export default class NotificationsTab extends React.Component {
                     <EmailNotificationSetting
                         activeSection={this.props.activeSection}
                         updateSection={this.props.updateSection}
-                        enableEmail={this.state.enableEmail}
+                        enableEmail={this.state.enableEmail === 'true'}
                         onChange={this.handleEmailRadio}
                         onSubmit={this.handleSubmit}
                         serverError={this.state.serverError}
