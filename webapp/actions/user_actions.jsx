@@ -318,6 +318,24 @@ export function autocompleteUsersInTeam(username, success, error) {
     );
 }
 
+export function autocompleteUsers(username, success, error) {
+    Client.autocompleteUsers(
+        username,
+        (data) => {
+            if (success) {
+                success(data);
+            }
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'autocompleteUsers');
+
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
 export function updateUser(username, success, error) {
     Client.updateUser(
         username,

@@ -1112,12 +1112,21 @@ export default class Client {
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
-            end(this.handleResponse.bind(this, 'autocompleteUsers', success, error));
+            end(this.handleResponse.bind(this, 'autocompleteUsersInChannel', success, error));
     }
 
     autocompleteUsersInTeam(term, success, error) {
         request.
             get(`${this.getTeamNeededRoute()}/users/autocomplete?term=${encodeURIComponent(term)}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'autocompleteUsersInTeam', success, error));
+    }
+
+    autocompleteUsers(term, success, error) {
+        request.
+            get(`${this.getUsersRoute()}/autocomplete?term=${encodeURIComponent(term)}`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').

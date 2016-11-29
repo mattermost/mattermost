@@ -621,6 +621,19 @@ func (c *Client) AutocompleteUsersInTeam(term string) (*Result, *AppError) {
 	}
 }
 
+// AutocompleteUsers returns a list for autocompletion of users on the system that match the provided term,
+// matching against username, full name and nickname. Must be authenticated.
+func (c *Client) AutocompleteUsers(term string) (*Result, *AppError) {
+	url := fmt.Sprintf("/users/autocomplete?term=%s", url.QueryEscape(term))
+	if r, err := c.DoApiGet(url, "", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), UserListFromJson(r.Body)}, nil
+	}
+}
+
 // LoginById authenticates a user by user id and password.
 func (c *Client) LoginById(id string, password string) (*Result, *AppError) {
 	m := make(map[string]string)

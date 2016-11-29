@@ -2275,6 +2275,44 @@ func TestAutocompleteUsers(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.BasicClient
 
+	if result, err := Client.AutocompleteUsers(th.BasicUser.Username); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.([]*model.User)
+		if len(users) != 1 {
+			t.Fatal("should have returned 1 user in")
+		}
+	}
+
+	if result, err := Client.AutocompleteUsers(""); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.([]*model.User)
+		if len(users) == 0 {
+			t.Fatal("should have many users")
+		}
+	}
+
+	notInTeamUser := th.CreateUser(Client)
+
+	if result, err := Client.AutocompleteUsers(notInTeamUser.Username); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.([]*model.User)
+		if len(users) != 1 {
+			t.Fatal("should have returned 1 user in")
+		}
+	}
+
+	if result, err := Client.AutocompleteUsersInTeam(notInTeamUser.Username); err != nil {
+		t.Fatal(err)
+	} else {
+		autocomplete := result.Data.(*model.UserAutocompleteInTeam)
+		if len(autocomplete.InTeam) != 0 {
+			t.Fatal("should have returned 0 users")
+		}
+	}
+
 	if result, err := Client.AutocompleteUsersInTeam(th.BasicUser.Username); err != nil {
 		t.Fatal(err)
 	} else {

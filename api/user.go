@@ -59,6 +59,7 @@ func InitUser() {
 	BaseRoutes.NeedChannel.Handle("/users/not_in_channel/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getProfilesNotInChannel)).Methods("GET")
 	BaseRoutes.Users.Handle("/search", ApiUserRequired(searchUsers)).Methods("POST")
 	BaseRoutes.Users.Handle("/ids", ApiUserRequired(getProfilesByIds)).Methods("POST")
+	BaseRoutes.Users.Handle("/autocomplete", ApiUserRequired(autocompleteUsers)).Methods("GET")
 
 	BaseRoutes.NeedTeam.Handle("/users/autocomplete", ApiUserRequired(autocompleteUsersInTeam)).Methods("GET")
 	BaseRoutes.NeedChannel.Handle("/users/autocomplete", ApiUserRequired(autocompleteUsersInChannel)).Methods("GET")
@@ -2779,4 +2780,25 @@ func autocompleteUsersInTeam(c *Context, w http.ResponseWriter, r *http.Request)
 	}
 
 	w.Write([]byte(autocomplete.ToJson()))
+}
+
+func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
+	term := r.URL.Query().Get("term")
+
+	uchan := Srv.Store.User().Search("", term, map[string]bool{})
+
+	var profiles []*model.User
+
+	if result := <-uchan; result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		profiles = result.Data.([]*model.User)
+
+		for _, p := range profiles {
+			sanitizeProfile(c, p)
+		}
+	}
+
+	w.Write([]byte(model.UserListToJson(profiles)))
 }

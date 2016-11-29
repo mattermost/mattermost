@@ -6,7 +6,7 @@ import Suggestion from './suggestion.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
-import {autocompleteUsersInTeam} from 'actions/user_actions.jsx';
+import {autocompleteUsers} from 'actions/user_actions.jsx';
 
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import {Constants, ActionTypes} from 'utils/constants.jsx';
@@ -64,10 +64,9 @@ export default class SwitchChannelProvider {
             const channels = [];
 
             function autocomplete() {
-                autocompleteUsersInTeam(
+                autocompleteUsers(
                     channelPrefix,
-                    (data) => {
-                        const users = data.in_team;
+                    (users) => {
                         const currentId = UserStore.getCurrentId();
 
                         for (const id of Object.keys(allChannels)) {

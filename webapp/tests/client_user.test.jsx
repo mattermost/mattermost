@@ -602,6 +602,21 @@ describe('Client.User', function() {
         });
     });
 
+    it('autocompleteUsers', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().autocompleteUsers(
+                'uid',
+                function(data) {
+                    assert.equal(data != null, true);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
     it('getStatusesByIds', function(done) {
         TestHelper.initBasic(() => {
             var ids = [];
