@@ -10,6 +10,7 @@ import Client from 'client/web_client.jsx';
 import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
+import {updateUserRoles} from 'actions/user_actions.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
@@ -42,12 +43,10 @@ export default class AdminTeamMembersDropdown extends React.Component {
     }
 
     doMakeMember() {
-        Client.updateUserRoles(
+        updateUserRoles(
             this.props.user.id,
             'system_user',
-            () => {
-                AsyncClient.getUser(this.props.user.id);
-            },
+            null,
             (err) => {
                 this.setState({serverError: err.message});
             }
@@ -142,12 +141,10 @@ export default class AdminTeamMembersDropdown extends React.Component {
     handleMakeSystemAdmin(e) {
         e.preventDefault();
 
-        Client.updateUserRoles(
+        updateUserRoles(
             this.props.user.id,
             'system_user system_admin',
-            () => {
-                AsyncClient.getUser(this.props.user.id);
-            },
+            null,
             (err) => {
                 this.setState({serverError: err.message});
             }

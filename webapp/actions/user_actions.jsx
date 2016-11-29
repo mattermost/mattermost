@@ -352,3 +352,22 @@ export function generateMfaSecret(success, error) {
         }
     );
 }
+
+export function updateUserRoles(userId, newRoles, success, error) {
+    Client.updateUserRoles(
+      userId,
+      newRoles,
+      () => {
+          AsyncClient.getUser(this.props.user.id);
+
+          if (success) {
+              success();
+          }
+      },
+      (err) => {
+          if (error) {
+              error(err);
+          }
+      }
+    );
+}
