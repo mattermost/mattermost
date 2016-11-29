@@ -141,12 +141,10 @@ export default class AdminTeamMembersDropdown extends React.Component {
     handleMakeSystemAdmin(e) {
         e.preventDefault();
 
-        Client.updateUserRoles(
+        updateUserRoles(
             this.props.user.id,
             'system_user system_admin',
-            () => {
-                AsyncClient.getUser(this.props.user.id);
-            },
+            null,
             (err) => {
                 this.setState({serverError: err.message});
             }
