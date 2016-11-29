@@ -66,21 +66,28 @@ export default class Setup extends React.Component {
             formClass += ' has-error';
         }
 
+        let mfaRequired;
+        if (global.window.mm_config.EnforceMultifactorAuthentication) {
+            mfaRequired = (
+                <p>
+                    <FormattedHTMLMessage
+                        id='mfa.setup.required'
+                        defaultMessage='<strong>Multi-factor authentication is required on {siteName}.</strong>'
+                        values={{
+                            siteName: global.window.mm_config.SiteName
+                        }}
+                    />
+                </p>
+            );
+        }
+
         return (
             <div>
                 <form
                     onSubmit={this.submit}
                     className={formClass}
                 >
-                    <p>
-                        <FormattedHTMLMessage
-                            id='mfa.setup.required'
-                            defaultMessage='<strong>Multi-factor authentication is required on {siteName}.</strong>'
-                            values={{
-                                siteName: global.window.mm_config.SiteName
-                            }}
-                        />
-                    </p>
+                    {mfaRequired}
                     <p>
                         <FormattedHTMLMessage
                             id='mfa.setup.step1'
