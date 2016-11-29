@@ -560,7 +560,17 @@ class GeneralTab extends React.Component {
                 />
             );
         } else {
-            var describemsg = this.state.description;
+            let describemsg = '';
+            if (this.state.description) {
+                describemsg = this.state.description;
+            } else {
+                describemsg = (
+                    <FormattedMessage
+                        id='general_tab.emptyDescription'
+                        defaultMessage="Click 'Edit' to add a team description."
+                    />
+                );
+            }
 
             descriptionSection = (
                 <SettingItemMin
