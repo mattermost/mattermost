@@ -463,7 +463,7 @@ export function isHexColor(value) {
 export function applyTheme(theme) {
     if (theme.sidebarBg) {
         changeCss('.sidebar--left, .sidebar--left .sidebar__divider .sidebar__divider__text, .app__body .modal .settings-modal .settings-table .settings-links, .app__body .sidebar--menu', 'background:' + theme.sidebarBg);
-        changeCss('body.app__body', 'scrollbar-face-color:' + theme.sidebarBg);
+        changeCss('body.app__body', 'scrollbar-face-color:' + theme.sidebarBg, 1);
         changeCss('@media(max-width: 768px){.app__body .modal .settings-modal:not(.settings-modal--tabless):not(.display--content) .modal-content', 'background:' + theme.sidebarBg);
     }
 
@@ -502,8 +502,8 @@ export function applyTheme(theme) {
         changeCss('.sidebar--left .team__header, .app__body .sidebar--menu .team__header, .app__body .post-list__timestamp > div', 'background:' + theme.sidebarHeaderBg);
         changeCss('.app__body .modal .modal-header', 'background:' + theme.sidebarHeaderBg);
         changeCss('.app__body #navbar .navbar-default', 'background:' + theme.sidebarHeaderBg);
-        changeCss('@media(max-width: 768px){.app__body .search-bar__container', 'background:' + theme.sidebarHeaderBg);
-        changeCss('.app__body .attachment .attachment__container', 'border-left-color:' + theme.sidebarHeaderBg);
+        changeCss('@media(max-width: 768px){.app__body .search-bar__container', 'background:' + theme.sidebarHeaderBg, 1);
+        changeCss('.app__body .attachment .attachment__container', 'border-left-color:' + theme.sidebarHeaderBg, 1);
     }
 
     if (theme.sidebarHeaderTextColor) {
@@ -514,7 +514,7 @@ export function applyTheme(theme) {
         changeCss('.app__body .modal .modal-header .modal-title, .app__body .modal .modal-header .modal-title .name, .app__body .modal .modal-header button.close', 'color:' + theme.sidebarHeaderTextColor);
         changeCss('.app__body #navbar .navbar-default .navbar-brand .heading', 'color:' + theme.sidebarHeaderTextColor);
         changeCss('.app__body #navbar .navbar-default .navbar-toggle .icon-bar', 'background:' + theme.sidebarHeaderTextColor);
-        changeCss('@media(max-width: 768px){.app__body .search-bar__container', 'color:' + theme.sidebarHeaderTextColor);
+        changeCss('@media(max-width: 768px){.app__body .search-bar__container', 'color:' + theme.sidebarHeaderTextColor, 2);
     }
 
     if (theme.onlineIndicator) {
@@ -532,17 +532,17 @@ export function applyTheme(theme) {
     }
 
     if (theme.mentionBj) {
-        changeCss('.sidebar--left .nav-pills__unread-indicator', 'background:' + theme.mentionBj);
-        changeCss('.sidebar--left .badge', 'background:' + theme.mentionBj + '!important;');
+        changeCss('.sidebar--left .nav-pills__unread-indicator', 'background:' + theme.mentionBj, 1);
+        changeCss('.sidebar--left .badge', 'background:' + theme.mentionBj + '!important;', 1);
     }
 
     if (theme.mentionColor) {
-        changeCss('.sidebar--left .nav-pills__unread-indicator', 'color:' + theme.mentionColor);
-        changeCss('.sidebar--left .badge', 'color:' + theme.mentionColor + '!important;');
+        changeCss('.sidebar--left .nav-pills__unread-indicator', 'color:' + theme.mentionColor, 2);
+        changeCss('.sidebar--left .badge', 'color:' + theme.mentionColor + '!important;', 2);
     }
 
     if (theme.centerChannelBg) {
-        changeCss('@media(min-width: 768px){.app__body .post:hover .post__header .col__reply, .app__body .post.post--hovered .post__header .col__reply', 'background:' + theme.centerChannelBg);
+        changeCss('@media(min-width: 768px){.app__body .post:hover .post__header .col__reply, .app__body .post.post--hovered .post__header .col__reply', 'background:' + theme.centerChannelBg, 1);
         changeCss('.app__body .app__content, .app__body .markdown__table, .app__body .markdown__table tbody tr, .app__body .suggestion-list__content, .app__body .modal .modal-content, .app__body .modal .modal-footer, .app__body .post.post--compact .post-image__column, .app__body .suggestion-list__divider > span', 'background:' + theme.centerChannelBg);
         changeCss('#post-list .post-list-holder-by-time, .app__body .post .dropdown-menu a', 'background:' + theme.centerChannelBg);
         changeCss('#post-create', 'background:' + theme.centerChannelBg);
@@ -553,30 +553,30 @@ export function applyTheme(theme) {
         changeCss('.app__body .popover.right>.arrow:after, .app__body .tip-overlay.tip-overlay--sidebar .arrow, .app__body .tip-overlay.tip-overlay--header .arrow', 'border-right-color:' + theme.centerChannelBg);
         changeCss('.app__body .popover.left>.arrow:after', 'border-left-color:' + theme.centerChannelBg);
         changeCss('.app__body .popover.top>.arrow:after, .app__body .tip-overlay.tip-overlay--chat .arrow', 'border-top-color:' + theme.centerChannelBg);
-        changeCss('@media(min-width: 768px){.app__body .search-bar__container .search__form .search-bar, .app__body .form-control', 'background:' + theme.centerChannelBg);
+        changeCss('@media(min-width: 768px){.app__body .search-bar__container .search__form .search-bar, .app__body .form-control', 'background:' + theme.centerChannelBg, 1);
         changeCss('@media(min-width: 768px){.app__body .sidebar--right.sidebar--right--expanded .sidebar-right-container', 'background:' + theme.centerChannelBg);
         changeCss('.app__body .attachment__content', 'background:' + theme.centerChannelBg);
-        changeCss('body.app__body', 'scrollbar-face-color:' + theme.centerChannelBg);
-        changeCss('body.app__body', 'scrollbar-track-color:' + theme.centerChannelBg);
-        changeCss('.app__body .post-list__new-messages-below', 'color:' + theme.centerChannelBg);
+        changeCss('body.app__body', 'scrollbar-face-color:' + theme.centerChannelBg, 2);
+        changeCss('body.app__body', 'scrollbar-track-color:' + theme.centerChannelBg, 3);
+        changeCss('.app__body .post-list__new-messages-below', 'color:' + theme.centerChannelBg, 1);
     }
 
     if (theme.centerChannelColor) {
         changeCss('.app__body .post-list__arrows, .app__body .post .flag-icon__container', 'fill:' + changeOpacity(theme.centerChannelColor, 0.3));
         changeCss('.app__body .modal .status .offline--icon, .app__body .channel-header__links .icon, .app__body .sidebar--right .sidebar--right__subheader .usage__icon', 'fill:' + theme.centerChannelColor);
-        changeCss('@media(min-width: 768px){.app__body .post:hover .post__header .col__reply, .app__body .post.post--hovered .post__header .col__reply', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
+        changeCss('@media(min-width: 768px){.app__body .post:hover .post__header .col__reply, .app__body .post.post--hovered .post__header .col__reply', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 2);
         changeCss('.app__body .post .dropdown-menu a, .sidebar--left, .app__body .sidebar--right .sidebar--right__header, .app__body .suggestion-list__content .command', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .post.post--system .post__body', 'color:' + changeOpacity(theme.centerChannelColor, 0.6));
         changeCss('.app__body .input-group-addon, .app__body .app__content, .app__body .post-create__container .post-create-body .btn-file, .app__body .post-create__container .post-create-footer .msg-typing, .app__body .suggestion-list__content .command, .app__body .modal .modal-content, .app__body .dropdown-menu, .app__body .popover, .app__body .mentions__name, .app__body .tip-overlay, .app__body .form-control[disabled], .app__body .form-control[readonly], .app__body fieldset[disabled] .form-control', 'color:' + theme.centerChannelColor);
         changeCss('.app__body .post .post__link', 'color:' + changeOpacity(theme.centerChannelColor, 0.65));
         changeCss('.app__body #archive-link-home, .video-div .video-thumbnail__error', 'background:' + changeOpacity(theme.centerChannelColor, 0.15));
         changeCss('.app__body #post-create', 'color:' + theme.centerChannelColor);
-        changeCss('.app__body .mentions--top, .app__body .suggestion-list', 'box-shadow:' + changeOpacity(theme.centerChannelColor, 0.2) + ' 1px -3px 12px');
-        changeCss('.app__body .mentions--top, .app__body .suggestion-list', '-webkit-box-shadow:' + changeOpacity(theme.centerChannelColor, 0.2) + ' 1px -3px 12px');
-        changeCss('.app__body .mentions--top, .app__body .suggestion-list', '-moz-box-shadow:' + changeOpacity(theme.centerChannelColor, 0.2) + ' 1px -3px 12px');
-        changeCss('.app__body .dropdown-menu, .app__body .popover ', 'box-shadow:' + changeOpacity(theme.centerChannelColor, 0.1) + ' 0px 6px 12px');
-        changeCss('.app__body .dropdown-menu, .app__body .popover ', '-webkit-box-shadow:' + changeOpacity(theme.centerChannelColor, 0.1) + ' 0px 6px 12px');
-        changeCss('.app__body .dropdown-menu, .app__body .popover ', '-moz-box-shadow:' + changeOpacity(theme.centerChannelColor, 0.1) + ' 0px 6px 12px');
+        changeCss('.app__body .mentions--top, .app__body .suggestion-list', 'box-shadow:' + changeOpacity(theme.centerChannelColor, 0.2) + ' 1px -3px 12px', 1);
+        changeCss('.app__body .mentions--top, .app__body .suggestion-list', '-webkit-box-shadow:' + changeOpacity(theme.centerChannelColor, 0.2) + ' 1px -3px 12px', 2);
+        changeCss('.app__body .mentions--top, .app__body .suggestion-list', '-moz-box-shadow:' + changeOpacity(theme.centerChannelColor, 0.2) + ' 1px -3px 12px', 3);
+        changeCss('.app__body .dropdown-menu, .app__body .popover', 'box-shadow:' + changeOpacity(theme.centerChannelColor, 0.1) + ' 0px 6px 12px', 1);
+        changeCss('.app__body .dropdown-menu, .app__body .popover', '-webkit-box-shadow:' + changeOpacity(theme.centerChannelColor, 0.1) + ' 0px 6px 12px', 2);
+        changeCss('.app__body .dropdown-menu, .app__body .popover', '-moz-box-shadow:' + changeOpacity(theme.centerChannelColor, 0.1) + ' 0px 6px 12px', 3);
         changeCss('.app__body .post__body hr, .app__body .loading-screen .loading__content .round, .app__body .tutorial__circles .circle', 'background:' + theme.centerChannelColor);
         changeCss('.app__body .channel-header .heading', 'color:' + theme.centerChannelColor);
         changeCss('.app__body .markdown__table tbody tr:nth-child(2n)', 'background:' + changeOpacity(theme.centerChannelColor, 0.07));
@@ -594,7 +594,7 @@ export function applyTheme(theme) {
         changeCss('.app__body .post-image__column', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .post-image__details', 'color:' + theme.centerChannelColor);
         changeCss('.app__body .post-image__column a, .app__body .post-image__column a:hover, .app__body .post-image__column a:focus', 'color:' + theme.centerChannelColor);
-        changeCss('@media(min-width: 768px){.app__body .search-bar__container .search__form .search-bar, .app__body .form-control', 'color:' + theme.centerChannelColor);
+        changeCss('@media(min-width: 768px){.app__body .search-bar__container .search__form .search-bar, .app__body .form-control', 'color:' + theme.centerChannelColor, 2);
         changeCss('.app__body .input-group-addon, .app__body .search-bar__container .search__form, .app__body .form-control', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('@media(min-width: 768px){.app__body .post-list__table .post-list__content .dropdown-menu a:hover', 'background:' + changeOpacity(theme.centerChannelColor, 0.1));
         changeCss('.app__body .form-control:focus', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.3));
@@ -614,7 +614,7 @@ export function applyTheme(theme) {
         changeCss('@media(min-width: 768px){.app__body .suggestion-list__content .command:hover, .app__body .mentions__name:hover, .app__body .dropdown-menu>li>a:focus, .app__body .dropdown-menu>li>a:hover, .app__body .bot-indicator', 'background:' + changeOpacity(theme.centerChannelColor, 0.15));
         changeCss('.app__body .suggestion--selected', 'background:' + changeOpacity(theme.centerChannelColor, 0.15), 1);
         changeCss('code, .app__body .form-control[disabled], .app__body .form-control[readonly], .app__body fieldset[disabled] .form-control', 'background:' + changeOpacity(theme.centerChannelColor, 0.1));
-        changeCss('@media(min-width: 960px){.app__body .post.current--user:hover .post__body ', 'background: none;');
+        changeCss('@media(min-width: 960px){.app__body .post.current--user:hover .post__body', 'background: none;');
         changeCss('.app__body .sidebar--right', 'color:' + theme.centerChannelColor);
         changeCss('.app__body .search-help-popover .search-autocomplete__item:hover, .app__body .modal .settings-modal .settings-table .settings-content .appearance-section .theme-elements__body', 'background:' + changeOpacity(theme.centerChannelColor, 0.05));
         changeCss('.app__body .search-help-popover .search-autocomplete__item.selected', 'background:' + changeOpacity(theme.centerChannelColor, 0.15));
@@ -622,7 +622,7 @@ export function applyTheme(theme) {
         changeCss('body', 'scrollbar-arrow-color:' + theme.centerChannelColor);
         changeCss('.app__body .post-create__container .post-create-body .btn-file svg, .app__body .post.post--compact .post-image__column .post-image__details svg, .app__body .modal .about-modal .about-modal__logo svg, .app__body .post .post__img svg', 'fill:' + theme.centerChannelColor);
         changeCss('.app__body .scrollbar--horizontal, .app__body .scrollbar--vertical', 'background:' + changeOpacity(theme.centerChannelColor, 0.5));
-        changeCss('.app__body .post-list__new-messages-below', 'background:' + changeColor(theme.centerChannelColor, 0.5));
+        changeCss('.app__body .post-list__new-messages-below', 'background:' + changeColor(theme.centerChannelColor, 0.5), 2);
         changeCss('.app__body .post.post--comment .post__body', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('@media(min-width: 768px){.app__body .post.post--compact.same--root.post--comment .post__content', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .post.post--comment.current--user .post__body', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
@@ -637,7 +637,7 @@ export function applyTheme(theme) {
 
     if (theme.linkColor) {
         changeCss('.app__body a, .app__body a:focus, .app__body a:hover, .app__body .btn, .app__body .btn:focus, .app__body .btn:hover', 'color:' + theme.linkColor);
-        changeCss('.app__body .attachment .attachment__container', 'border-left-color:' + changeOpacity(theme.linkColor, 0.5));
+        changeCss('.app__body .attachment .attachment__container', 'border-left-color:' + changeOpacity(theme.linkColor, 0.5), 2);
         changeCss('.app__body .channel-header__links .icon:hover, .app__body .post .flag-icon__container.visible, .app__body .post .comment-icon__container, .app__body .post .post__reply', 'fill:' + theme.linkColor);
     }
 
@@ -686,19 +686,24 @@ export function applyFont(fontName) {
     }
 }
 
-export function changeCss(className, classValue) {
-    let styleEl = document.querySelector('style[data-class="' + className + classValue + '"]');
-    if (!styleEl) {
-        styleEl = document.createElement('style');
-        styleEl.setAttribute('data-class', className);
+export function changeCss(className, classValue, classRepeat) {
+    // we need invisible container to store additional css definitions
+    var cssMainContainer = $('#css-modifier-container');
+    if (cssMainContainer.length === 0) {
+        cssMainContainer = $('<div id="css-modifier-container"></div>');
+        cssMainContainer.hide();
+        cssMainContainer.appendTo($('body'));
     }
 
-    // Append style element to head
-    document.head.appendChild(styleEl);
+    // and we need one div for each class
+    var classContainer = cssMainContainer.find('div[data-class="' + className + classRepeat + '"]');
+    if (classContainer.length === 0) {
+        classContainer = $('<div data-class="' + className + classRepeat + '"></div>');
+        classContainer.appendTo(cssMainContainer);
+    }
 
-    // Grab style sheet
-    var styleSheet = styleEl.sheet;
-    styleSheet.insertRule(className + '{' + classValue + '}', styleSheet.cssRules.length);
+    // append additional style
+    classContainer.html('<style>' + className + ' {' + classValue + '}</style>');
 }
 
 export function updateCodeTheme(userTheme) {
