@@ -68,12 +68,6 @@ export default class MoreChannelsList extends React.Component {
         this.setState({filter: '', channels});
     }
 
-    componentDidUpdate(prevProps, prevState) {
-        if (prevState.filter !== this.state.filter) {
-            $(ReactDOM.findDOMNode(this.refs.channelList)).scrollTop(0);
-        }
-    }
-
     handleJoin(channel) {
         this.setState({joiningChannel: channel.id});
         this.props.handleJoin(
@@ -128,7 +122,7 @@ export default class MoreChannelsList extends React.Component {
     }
 
     render() {
-        let channels = Object.values(this.state.channels);
+        const channels = Object.values(this.state.channels);
 
         let nextButton;
         let previousButton;
@@ -209,7 +203,7 @@ export default class MoreChannelsList extends React.Component {
 
 MoreChannelsList.defaultProps = {
     channels: [],
-    channelsPerPage: 50, //eslint-disable-line no-magic-numbers
+    channelsPerPage: 50 //eslint-disable-line no-magic-numbers
 };
 
 MoreChannelsList.propTypes = {
@@ -218,5 +212,5 @@ MoreChannelsList.propTypes = {
     channelsPerPage: React.PropTypes.number,
     total: React.PropTypes.number,
     nextPage: React.PropTypes.func.isRequired,
-    search: React.PropTypes.func.isRequired,
+    search: React.PropTypes.func.isRequired
 };

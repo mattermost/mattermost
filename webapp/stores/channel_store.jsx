@@ -329,14 +329,14 @@ class ChannelStoreClass extends EventEmitter {
     }
 
     storePaginatedChannels(channels) {
-        this.paginated_channels = channels.reduce(function(map, obj) {
+        this.paginated_channels = channels.reduce((map, obj) => {
             map[obj.id] = obj;
             return map;
         }, {});
     }
 
     storePaginatedChannelsNext(channels) {
-        const newChannels = channels.reduce(function(map, obj) {
+        const newChannels = channels.reduce((map, obj) => {
             map[obj.id] = obj;
             return map;
         }, {});

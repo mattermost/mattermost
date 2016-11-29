@@ -732,7 +732,9 @@ export default class Sidebar extends React.Component {
             moreChannelsModal = (
                 <MoreChannelsNew
                     show={true}
-                    onModalDismissed={() => {this.hideMoreChannelsModal();}}
+                    onModalDismissed={() => {
+                        this.hideMoreChannelsModal();
+                    }}
                 />
             );
         }

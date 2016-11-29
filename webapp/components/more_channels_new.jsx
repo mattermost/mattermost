@@ -19,7 +19,6 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
-import PureRenderMixin from 'react-addons-pure-render-mixin';
 
 const CHANNELS_PER_PAGE = 50;
 const config = global.window.mm_config;
@@ -146,10 +145,10 @@ export default class MoreChannelsNew extends React.Component {
         const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
 
         if (global.window.mm_license.IsLicensed === 'true') {
-            if (global.window.mm_config.RestrictPublicChannelManagement === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
+            if (config.RestrictPublicChannelManagement === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
                 createNewChannelButton = null;
                 createChannelHelpText = null;
-            } else if (global.window.mm_config.RestrictPublicChannelManagement === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
+            } else if (config.RestrictPublicChannelManagement === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
                 createNewChannelButton = null;
                 createChannelHelpText = null;
             }
