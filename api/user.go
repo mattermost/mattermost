@@ -2647,14 +2647,19 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	searchOptions := map[string]bool{}
 	searchOptions[store.USER_SEARCH_OPTION_ALLOW_INACTIVE] = props.AllowInactive
 
-	hideFullName := !utils.Cfg.PrivacySettings.ShowFullName
-	hideEmail := !utils.Cfg.PrivacySettings.ShowEmailAddress
-	if hideFullName && hideEmail {
-		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
-	} else if hideFullName {
-		searchOptions[store.USER_SEARCH_OPTION_ALL_NO_FULL_NAME] = true
-	} else if hideEmail {
-		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
+	if !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
+		hideFullName := !utils.Cfg.PrivacySettings.ShowFullName
+		hideEmail := !utils.Cfg.PrivacySettings.ShowEmailAddress
+
+		if hideFullName && hideEmail {
+			searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
+		} else if hideFullName {
+			searchOptions[store.USER_SEARCH_OPTION_ALL_NO_FULL_NAME] = true
+		} else if hideEmail {
+			searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
+		}
+
+		c.Err = nil
 	}
 
 	var uchan store.StoreChannel
@@ -2722,8 +2727,9 @@ func autocompleteUsersInChannel(c *Context, w http.ResponseWriter, r *http.Reque
 	searchOptions := map[string]bool{}
 
 	hideFullName := !utils.Cfg.PrivacySettings.ShowFullName
-	if hideFullName {
+	if hideFullName && !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
 		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
+		c.Err = nil
 	} else {
 		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
 	}
@@ -2777,8 +2783,9 @@ func autocompleteUsersInTeam(c *Context, w http.ResponseWriter, r *http.Request)
 	searchOptions := map[string]bool{}
 
 	hideFullName := !utils.Cfg.PrivacySettings.ShowFullName
-	if hideFullName {
+	if hideFullName && !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
 		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
+		c.Err = nil
 	} else {
 		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
 	}

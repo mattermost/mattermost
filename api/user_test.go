@@ -2432,6 +2432,37 @@ func TestAutocompleteUsers(t *testing.T) {
 		}
 	}
 
+	namePrivacy := utils.Cfg.PrivacySettings.ShowFullName
+	defer func() {
+		utils.Cfg.PrivacySettings.ShowFullName = namePrivacy
+	}()
+	utils.Cfg.PrivacySettings.ShowFullName = false
+
+	privacyUser := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", FirstName: model.NewId(), LastName: "Jimmers"}
+	privacyUser = Client.Must(Client.CreateUser(privacyUser, "")).Data.(*model.User)
+	LinkUserToTeam(privacyUser, th.BasicTeam)
+
+	if result, err := Client.AutocompleteUsersInChannel(privacyUser.FirstName, th.BasicChannel.Id); err != nil {
+		t.Fatal(err)
+	} else {
+		autocomplete := result.Data.(*model.UserAutocompleteInChannel)
+		if len(autocomplete.InChannel) != 0 {
+			t.Fatal("should have returned no users")
+		}
+		if len(autocomplete.OutOfChannel) != 0 {
+			t.Fatal("should have returned no users")
+		}
+	}
+
+	if result, err := Client.AutocompleteUsersInTeam(privacyUser.FirstName); err != nil {
+		t.Fatal(err)
+	} else {
+		autocomplete := result.Data.(*model.UserAutocompleteInTeam)
+		if len(autocomplete.InTeam) != 0 {
+			t.Fatal("should have returned no users")
+		}
+	}
+
 	if _, err := Client.AutocompleteUsersInChannel("", "junk"); err == nil {
 		t.Fatal("should have errored - bad channel id")
 	}
