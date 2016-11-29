@@ -2647,6 +2647,16 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	searchOptions := map[string]bool{}
 	searchOptions[store.USER_SEARCH_OPTION_ALLOW_INACTIVE] = props.AllowInactive
 
+	hideFullName := !utils.Cfg.PrivacySettings.ShowFullName
+	hideEmail := !utils.Cfg.PrivacySettings.ShowEmailAddress
+	if hideFullName && hideEmail {
+		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
+	} else if hideFullName {
+		searchOptions[store.USER_SEARCH_OPTION_ALL_NO_FULL_NAME] = true
+	} else if hideEmail {
+		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
+	}
+
 	var uchan store.StoreChannel
 	if props.InChannelId != "" {
 		uchan = Srv.Store.User().SearchInChannel(props.InChannelId, props.Term, searchOptions)
@@ -2710,7 +2720,13 @@ func autocompleteUsersInChannel(c *Context, w http.ResponseWriter, r *http.Reque
 	}
 
 	searchOptions := map[string]bool{}
-	searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
+
+	hideFullName := !utils.Cfg.PrivacySettings.ShowFullName
+	if hideFullName {
+		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
+	} else {
+		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
+	}
 
 	uchan := Srv.Store.User().SearchInChannel(channelId, term, searchOptions)
 	nuchan := Srv.Store.User().SearchNotInChannel(teamId, channelId, term, searchOptions)
@@ -2759,7 +2775,13 @@ func autocompleteUsersInTeam(c *Context, w http.ResponseWriter, r *http.Request)
 	}
 
 	searchOptions := map[string]bool{}
-	searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
+
+	hideFullName := !utils.Cfg.PrivacySettings.ShowFullName
+	if hideFullName {
+		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
+	} else {
+		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
+	}
 
 	uchan := Srv.Store.User().Search(teamId, term, searchOptions)
 

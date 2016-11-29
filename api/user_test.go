@@ -2240,6 +2240,112 @@ func TestSearchUsers(t *testing.T) {
 		}
 	}
 
+	emailPrivacy := utils.Cfg.PrivacySettings.ShowEmailAddress
+	namePrivacy := utils.Cfg.PrivacySettings.ShowFullName
+	defer func() {
+		utils.Cfg.PrivacySettings.ShowEmailAddress = emailPrivacy
+		utils.Cfg.PrivacySettings.ShowFullName = namePrivacy
+	}()
+	utils.Cfg.PrivacySettings.ShowEmailAddress = false
+	utils.Cfg.PrivacySettings.ShowFullName = false
+
+	privacyEmailPrefix := strings.ToLower(model.NewId())
+	privacyUser := &model.User{Email: privacyEmailPrefix + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", FirstName: model.NewId(), LastName: "Jimmers"}
+	privacyUser = Client.Must(Client.CreateUser(privacyUser, "")).Data.(*model.User)
+	LinkUserToTeam(privacyUser, th.BasicTeam)
+
+	if result, err := Client.SearchUsers(model.UserSearch{Term: privacyUser.FirstName}); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.([]*model.User)
+
+		found := false
+		for _, user := range users {
+			if user.Id == privacyUser.Id {
+				found = true
+			}
+		}
+
+		if found {
+			t.Fatal("should not have found profile")
+		}
+	}
+
+	utils.Cfg.PrivacySettings.ShowEmailAddress = true
+
+	if result, err := Client.SearchUsers(model.UserSearch{Term: privacyUser.FirstName}); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.([]*model.User)
+
+		found := false
+		for _, user := range users {
+			if user.Id == privacyUser.Id {
+				found = true
+			}
+		}
+
+		if found {
+			t.Fatal("should not have found profile")
+		}
+	}
+
+	utils.Cfg.PrivacySettings.ShowEmailAddress = false
+	utils.Cfg.PrivacySettings.ShowFullName = true
+
+	if result, err := Client.SearchUsers(model.UserSearch{Term: privacyUser.FirstName}); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.([]*model.User)
+
+		found := false
+		for _, user := range users {
+			if user.Id == privacyUser.Id {
+				found = true
+			}
+		}
+
+		if !found {
+			t.Fatal("should have found profile")
+		}
+	}
+
+	if result, err := Client.SearchUsers(model.UserSearch{Term: privacyEmailPrefix}); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.([]*model.User)
+
+		found := false
+		for _, user := range users {
+			if user.Id == privacyUser.Id {
+				found = true
+			}
+		}
+
+		if found {
+			t.Fatal("should not have found profile")
+		}
+	}
+
+	utils.Cfg.PrivacySettings.ShowEmailAddress = true
+
+	if result, err := Client.SearchUsers(model.UserSearch{Term: privacyEmailPrefix}); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.([]*model.User)
+
+		found := false
+		for _, user := range users {
+			if user.Id == privacyUser.Id {
+				found = true
+			}
+		}
+
+		if !found {
+			t.Fatal("should have found profile")
+		}
+	}
+
 	th.LoginBasic2()
 
 	if result, err := Client.SearchUsers(model.UserSearch{Term: th.BasicUser.Username}); err != nil {
