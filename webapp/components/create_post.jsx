@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import MsgTyping from './msg_typing.jsx';
 import Textbox from './textbox.jsx';
@@ -92,9 +93,12 @@ export default class CreatePost extends React.Component {
             return;
         }
 
-        // if (post.message.length > Constants.CHARACTER_LIMIT) {
-        if (post.message.length > 0) {
-            this.setState({postError: `Post length must be less than ${Constants.CHARACTER_LIMIT} characters.`});
+        if (this.state.postError) {
+            var postError = $('.post-error');
+            postError.addClass('animation--highlight');
+            setTimeout(() => {
+                postError.removeClass('animation--highlight');
+            }, 1000);
             return;
         }
 
@@ -203,6 +207,12 @@ export default class CreatePost extends React.Component {
         const draft = PostStore.getCurrentDraft();
         draft.message = message;
         PostStore.storeCurrentDraft(draft);
+
+        if (message.length > Constants.CHARACTER_LIMIT) {
+            this.setState({postError: `Your message is too long. Character count: ${message.length}/${Constants.CHARACTER_LIMIT}`});
+        } else {
+            this.setState({postError: null});
+        }
     }
 
     handleUploadClick() {
@@ -461,7 +471,7 @@ export default class CreatePost extends React.Component {
 
         let postError = null;
         if (this.state.postError) {
-            postError = <label className='control-label'>{this.state.postError}</label>;
+            postError = <label className='control-label post-error'>{this.state.postError}</label>;
         }
 
         let preview = null;

@@ -50,6 +50,11 @@
     }
 }
 
+.post-error {
+  display: inline-block;
+  font-size: .85em;
+}
+
 .help__format-text {
     @include opacity(0);
     @include single-transition(all, .5s, ease, .5s);
