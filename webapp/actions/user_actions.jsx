@@ -236,7 +236,7 @@ function onThemeSaved(teamId, theme, onSuccess) {
     const toDelete = [];
 
     for (const [name] of themePreferences) {
-        if (name === '') {
+        if (name === '' || name === teamId) {
             continue;
         }
 
@@ -247,14 +247,16 @@ function onThemeSaved(teamId, theme, onSuccess) {
         });
     }
 
-    // we're saving a new global theme so delete any team-specific ones
-    AsyncClient.deletePreferences(toDelete);
+    if (toDelete.length > 0) {
+        // we're saving a new global theme so delete any team-specific ones
+        AsyncClient.deletePreferences(toDelete);
 
-    // delete them locally before we hear from the server so that the UI flow is smoother
-    AppDispatcher.handleServerAction({
-        type: ActionTypes.DELETED_PREFERENCES,
-        preferences: toDelete
-    });
+        // delete them locally before we hear from the server so that the UI flow is smoother
+        AppDispatcher.handleServerAction({
+            type: ActionTypes.DELETED_PREFERENCES,
+            preferences: toDelete
+        });
+    }
 
     onSuccess();
 }

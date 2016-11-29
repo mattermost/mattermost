@@ -24,7 +24,7 @@ export default class EmailNotificationSetting extends React.Component {
         enableEmail: React.PropTypes.bool.isRequired,
         onChange: React.PropTypes.func.isRequired,
         onSubmit: React.PropTypes.func.isRequired,
-        serverError: React.PropTypes.string.isRequired
+        serverError: React.PropTypes.string
     };
 
     constructor(props) {
