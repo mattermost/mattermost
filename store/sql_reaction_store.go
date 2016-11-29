@@ -67,11 +67,18 @@ func (s SqlReactionStore) Save(reaction *model.Reaction) StoreChannel {
 			if err != nil {
 				transaction.Rollback()
 
-				result.Err = model.NewLocAppError("SqlPreferenceStore.Save", "store.sql_reaction.save.save.app_error", nil, err.Error())
-			} else if err := transaction.Commit(); err != nil {
-				// don't need to rollback here since the transaction is already closed
-				result.Err = model.NewLocAppError("SqlPreferenceStore.Save", "store.sql_preference.save.commit.app_error", nil, err.Error())
+				// We don't consider duplicated save calls as an error
+				if !IsUniqueConstraintError(err.Error(), []string{"reactions_pkey", "PRIMARY"}) {
+					result.Err = model.NewLocAppError("SqlPreferenceStore.Save", "store.sql_reaction.save.save.app_error", nil, err.Error())
+				}
 			} else {
+				if err := transaction.Commit(); err != nil {
+					// don't need to rollback here since the transaction is already closed
+					result.Err = model.NewLocAppError("SqlPreferenceStore.Save", "store.sql_preference.save.commit.app_error", nil, err.Error())
+				}
+			}
+
+			if result.Err == nil {
 				result.Data = reaction
 			}
 		}
@@ -90,17 +97,17 @@ func (s SqlReactionStore) Delete(reaction *model.Reaction) StoreChannel {
 		result := StoreResult{}
 
 		if transaction, err := s.GetMaster().Begin(); err != nil {
-			result.Err = model.NewLocAppError("SqlReactionStore.Save", "store.sql_reaction.delete.begin.app_error", nil, err.Error())
+			result.Err = model.NewLocAppError("SqlReactionStore.Delete", "store.sql_reaction.delete.begin.app_error", nil, err.Error())
 		} else {
 			err := deleteReactionAndUpdatePost(transaction, reaction)
 
 			if err != nil {
 				transaction.Rollback()
 
-				result.Err = model.NewLocAppError("SqlPreferenceStore.Save", "store.sql_reaction.delete.app_error", nil, err.Error())
+				result.Err = model.NewLocAppError("SqlPreferenceStore.Delete", "store.sql_reaction.delete.app_error", nil, err.Error())
 			} else if err := transaction.Commit(); err != nil {
 				// don't need to rollback here since the transaction is already closed
-				result.Err = model.NewLocAppError("SqlPreferenceStore.Save", "store.sql_preference.delete.commit.app_error", nil, err.Error())
+				result.Err = model.NewLocAppError("SqlPreferenceStore.Delete", "store.sql_preference.delete.commit.app_error", nil, err.Error())
 			} else {
 				result.Data = reaction
 			}
@@ -114,22 +121,6 @@ func (s SqlReactionStore) Delete(reaction *model.Reaction) StoreChannel {
 }
 
 func saveReactionAndUpdatePost(transaction *gorp.Transaction, reaction *model.Reaction) error {
-	if count, err := transaction.SelectInt(
-		`SELECT
-			COUNT(0)
-		FROM
-			Reactions
-		WHERE
-			PostId = :PostId AND
-			UserId = :UserId AND
-			EmojiName = :EmojiName`,
-		map[string]interface{}{"PostId": reaction.PostId, "UserId": reaction.UserId, "EmojiName": reaction.EmojiName}); err != nil {
-		return err
-	} else if count != 0 {
-		// reaction already exists, just return
-		return nil
-	}
-
 	if err := transaction.Insert(reaction); err != nil {
 		return err
 	}
