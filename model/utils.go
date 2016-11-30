@@ -144,6 +144,15 @@ func MapToJson(objmap map[string]string) string {
 	}
 }
 
+// MapInterfaceToJson converts a map to a json string
+func MapInterfaceToJson(objmap map[string]interface{}) string {
+	if b, err := json.Marshal(objmap); err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
 // MapFromJson will decode the key/value pair map
 func MapFromJson(data io.Reader) map[string]string {
 	decoder := json.NewDecoder(data)

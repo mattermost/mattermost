@@ -465,7 +465,8 @@ func getPaginatedChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		data := result.Data.(*model.ChannelList)
 		w.Header().Set(model.HEADER_ETAG_SERVER, data.Etag())
-		w.Write([]byte(data.ToJson()))
+		rdata := map[string]interface{}{"count": result.Count, "list": data}
+		w.Write([]byte(model.MapInterfaceToJson(rdata)))
 	}
 }
 

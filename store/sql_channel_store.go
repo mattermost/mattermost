@@ -457,8 +457,7 @@ func (s SqlChannelStore) GetPaginatedChannels(teamId string, userId string, offs
 	            AND TeamId = :TeamId2
 	            AND UserId = :UserId
 	            AND DeleteAt = 0)
-			ORDER BY DisplayName
-			LIMIT :Limit OFFSET :Offset`
+			ORDER BY DisplayName`
 
 		if len(strings.TrimSpace(term)) == 0 {
 			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
@@ -467,16 +466,23 @@ func (s SqlChannelStore) GetPaginatedChannels(teamId string, userId string, offs
 			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 		}
 
+		countQuery := strings.Replace(searchQuery, "*", "COUNT(*)", 1)
+		searchQuery = searchQuery + ` LIMIT :Limit OFFSET :Offset`
+
 		result := StoreResult{}
 
-		data := &model.ChannelList{}
-		_, err := s.GetReplica().Select(data, searchQuery,
-			map[string]interface{}{"TeamId1": teamId, "TeamId2": teamId, "UserId": userId, "Offset": offset, "Limit": limit, "Term": "%"+term+"%"})
+		params_map := map[string]interface{}{"TeamId1": teamId, "TeamId2": teamId, "UserId": userId, "Offset": offset, "Limit": limit, "Term": "%"+term+"%"}
 
-		if err != nil {
+		count, count_err := s.GetReplica().SelectInt(countQuery, params_map)
+
+		data := &model.ChannelList{}
+		_, err := s.GetReplica().Select(data, searchQuery, params_map)
+
+		if count_err != nil || err != nil {
 			result.Err = model.NewLocAppError("SqlChannelStore.GetPaginatedChannels", "store.sql_channel.get_paginated_channels.get.app_error", nil, "teamId="+teamId+", userId="+userId+", Offset="+strconv.Itoa(offset)+", Limit="+strconv.Itoa(limit)+", term="+term+", err="+err.Error())
 		} else {
 			result.Data = data
+			result.Count = count
 		}
 
 		storeChannel <- result
