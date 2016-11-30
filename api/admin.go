@@ -793,20 +793,7 @@ func adminCreateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	firstAccount := false
-	if sessionCache.Len() == 0 {
-		if cr := <-Srv.Store.User().GetTotalUsersCount(); cr.Err != nil {
-			c.Err = cr.Err
-			return
-		} else {
-			count := cr.Data.(int64)
-			if count <= 0 {
-				firstAccount = true
-			}
-		}
-	}
-
-	if !firstAccount && !*utils.Cfg.TeamSettings.EnableOpenServer && len(teamId) == 0 {
+	if !*utils.Cfg.TeamSettings.EnableOpenServer && len(teamId) == 0 {
 		c.Err = model.NewLocAppError("createUser", "api.user.create_user.no_open_server", nil, "email="+user.Email)
 		return
 	}
@@ -859,20 +846,7 @@ func AdminCheckUserDomain(user *model.User, domains string) bool {
 }
 
 func AdminCreateUser(user *model.User) (*model.User, *model.AppError) {
-
 	user.Roles = model.ROLE_SYSTEM_USER.Id
-
-	// Below is a special case where the first user in the entire
-	// system is granted the system_admin role
-	if result := <-Srv.Store.User().GetTotalUsersCount(); result.Err != nil {
-		return nil, result.Err
-	} else {
-		count := result.Data.(int64)
-		if count <= 0 {
-			user.Roles = model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id
-		}
-	}
-
 	user.MakeNonNil()
 	user.Locale = *utils.Cfg.LocalizationSettings.DefaultClientLocale
 
