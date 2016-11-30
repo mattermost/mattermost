@@ -705,10 +705,7 @@ export function changeCss(className, classValue) {
     if (className.indexOf('@media') >= 0) {
         mediaQuery = '}';
     }
-    if (styleSheet.cssRules.length > 0) {
-        styleSheet.deleteRule(0);
-    }
-    styleSheet.insertRule(className + '{' + classValue + '}' + mediaQuery, 0);
+    styleSheet.insertRule(className + '{' + classValue + '}' + mediaQuery, styleSheet.cssRules.length);
 }
 
 export function updateCodeTheme(userTheme) {
