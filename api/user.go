@@ -715,7 +715,7 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	sessionCache.Remove(c.Session.Token)
+	RemoveAllSessionsForUserId(c.Session.UserId)
 	c.Session.SetExpireInDays(*utils.Cfg.ServiceSettings.SessionLengthMobileInDays)
 
 	maxAge := *utils.Cfg.ServiceSettings.SessionLengthMobileInDays * 60 * 60 * 24
@@ -756,18 +756,13 @@ func RevokeSessionById(c *Context, sessionId string) {
 		if session.IsOAuth {
 			RevokeAccessToken(session.Token)
 		} else {
-			sessionCache.Remove(session.Token)
-
 			if result := <-Srv.Store.Session().Remove(session.Id); result.Err != nil {
 				c.Err = result.Err
 			}
 		}
 
 		RevokeWebrtcToken(session.Id)
-
-		if einterfaces.GetClusterInterface() != nil {
-			einterfaces.GetClusterInterface().RemoveAllSessionsForUserId(session.UserId)
-		}
+		RemoveAllSessionsForUserId(session.UserId)
 	}
 }
 
