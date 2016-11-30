@@ -1506,6 +1506,7 @@
   "more_channels.title": "Plus de canaux",
   "more_direct_channels.close": "Fermer",
   "more_direct_channels.message": "Message",
+  "more_direct_channels.load_more": "Montrer plus",
   "more_direct_channels.title": "Messages privés",
   "msg_typing.areTyping": "{users} et {last} sont en train d'écrire...",
   "msg_typing.isTyping": "{user} est en train d'écrire...",
