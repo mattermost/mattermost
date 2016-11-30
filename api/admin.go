@@ -739,7 +739,6 @@ func adminCreateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shouldSendWelcomeEmail := true
 	user.EmailVerified = false
 
 	if !AdminCheckUserDomain(user, utils.Cfg.TeamSettings.RestrictCreationToDomains) {
@@ -751,10 +750,6 @@ func adminCreateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Err = err
 		return
-	}
-
-	if shouldSendWelcomeEmail {
-		go sendWelcomeEmail(c, ruser.Id, ruser.Email, c.GetSiteURL(), ruser.EmailVerified)
 	}
 
 	w.Write([]byte(ruser.ToJson()))
