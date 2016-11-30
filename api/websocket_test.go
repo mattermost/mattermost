@@ -4,12 +4,12 @@
 package api
 
 import (
-	"encoding/json"
-	"net/http"
+	//"encoding/json"
+	//"net/http"
 	"testing"
 	"time"
 
-	"github.com/gorilla/websocket"
+	//"github.com/gorilla/websocket"
 	"github.com/mattermost/platform/model"
 )
 
