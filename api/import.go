@@ -20,9 +20,9 @@ import (
 //
 
 func ImportPost(post *model.Post) {
-	for utf8.RuneCountInString(post.Message) > 0 {
+	for messageRuneCount := utf8.RuneCountInString(post.Message); messageRuneCount > 0; messageRuneCount = utf8.RuneCountInString(post.Message) {
 		var remainder string
-		if utf8.RuneCountInString(post.Message) > model.POST_MESSAGE_MAX_RUNES {
+		if messageRuneCount > model.POST_MESSAGE_MAX_RUNES {
 			remainder = string(([]rune(post.Message))[model.POST_MESSAGE_MAX_RUNES:])
 			post.Message = truncateRunes(post.Message, model.POST_MESSAGE_MAX_RUNES)
 		} else {
