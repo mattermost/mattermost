@@ -135,7 +135,7 @@ export default class SearchableUserList extends React.Component {
                 nextButton = (
                     <div style={{'text-align': 'center'}}>
                         <SpinnerButton
-                            className='btn btn-warning filter-control filter-control__next'
+                            className='btn btn-default filter-control filter-control__next'
                             onClick={this.nextPage}
                             spinning={this.state.nextDisabled}
                         >

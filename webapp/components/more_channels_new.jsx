@@ -190,18 +190,6 @@ export default class MoreChannelsNew extends React.Component {
                         <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>
                     }
                 </Modal.Body>
-                <Modal.Footer>
-                    <button
-                        type='button'
-                        className='btn btn-default'
-                        onClick={this.handleHide}
-                    >
-                        <FormattedMessage
-                            id='more_channels.close'
-                            defaultMessage='Close'
-                        />
-                    </button>
-                </Modal.Footer>
             </Modal>
         );
     }
