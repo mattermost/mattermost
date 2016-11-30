@@ -32,9 +32,11 @@ func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	channelId := mux.Vars(r)["channel_id"]
+	params := mux.Vars(r)
+
+	channelId := params["channel_id"]
 	if len(channelId) != 26 {
-		c.SetInvalidParam("saveReaction", "postId")
+		c.SetInvalidParam("saveReaction", "channelId")
 		return
 	}
 
@@ -42,7 +44,7 @@ func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postId := mux.Vars(r)["post_id"]
+	postId := params["post_id"]
 	if len(postId) != 26 || postId != reaction.PostId {
 		c.SetInvalidParam("saveReaction", "postId")
 		return
@@ -88,9 +90,11 @@ func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	channelId := mux.Vars(r)["channel_id"]
+	params := mux.Vars(r)
+
+	channelId := params["channel_id"]
 	if len(channelId) != 26 {
-		c.SetInvalidParam("deleteReaction", "postId")
+		c.SetInvalidParam("deleteReaction", "channelId")
 		return
 	}
 
@@ -98,7 +102,7 @@ func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postId := mux.Vars(r)["post_id"]
+	postId := params["post_id"]
 	if len(postId) != 26 || postId != reaction.PostId {
 		c.SetInvalidParam("deleteReaction", "postId")
 		return
