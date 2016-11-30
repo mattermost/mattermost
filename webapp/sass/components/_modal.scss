@@ -560,6 +560,15 @@
     flex-direction: column;
     overflow: auto;
 
+    .filter-control__next {
+        font-weight: bolder;
+        margin: 1%;
+        margin-right: 15px;
+        background-color: transparent;
+        border-color: transparent;
+        width: 90%;
+    }
+
     .popover & {
         font-size: .95em;
 
