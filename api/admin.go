@@ -51,7 +51,7 @@ func InitAdmin() {
 	BaseRoutes.Admin.Handle("/saml_cert_status", ApiAdminSystemRequired(samlCertificateStatus)).Methods("GET")
 	BaseRoutes.Admin.Handle("/cluster_status", ApiAdminSystemRequired(getClusterStatus)).Methods("GET")
 	BaseRoutes.Admin.Handle("/recently_active_users/{team_id:[A-Za-z0-9]+}", ApiUserRequired(getRecentlyActiveUsers)).Methods("GET")
-	BaseRoutes.Admin.Handle("/users/create", ApiAppHandler(createUser)).Methods("POST")
+	BaseRoutes.Admin.Handle("/users/create", ApiAppHandler(adminCreateUser)).Methods("POST")
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -732,7 +732,7 @@ func getRecentlyActiveUsers(c *Context, w http.ResponseWriter, r *http.Request) 
 
 }
 
-func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
+func adminCreateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !utils.Cfg.EmailSettings.EnableSignUpWithEmail || !utils.Cfg.TeamSettings.EnableUserCreation {
 		c.Err = model.NewLocAppError("signupTeam", "api.user.create_user.signup_email_disabled.app_error", nil, "")
 		c.Err.StatusCode = http.StatusNotImplemented
@@ -811,12 +811,12 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !CheckUserDomain(user, utils.Cfg.TeamSettings.RestrictCreationToDomains) {
+	if !AdminCheckUserDomain(user, utils.Cfg.TeamSettings.RestrictCreationToDomains) {
 		c.Err = model.NewLocAppError("createUser", "api.user.create_user.accepted_domain.app_error", nil, "")
 		return
 	}
 
-	ruser, err := CreateUser(user)
+	ruser, err := AdminCreateUser(user)
 	if err != nil {
 		c.Err = err
 		return
@@ -840,7 +840,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 }
 
-func CheckUserDomain(user *model.User, domains string) bool {
+func AdminCheckUserDomain(user *model.User, domains string) bool {
 	if len(domains) == 0 {
 		return true
 	}
@@ -858,7 +858,7 @@ func CheckUserDomain(user *model.User, domains string) bool {
 	return matched
 }
 
-func CreateUser(user *model.User) (*model.User, *model.AppError) {
+func AdminCreateUser(user *model.User) (*model.User, *model.AppError) {
 
 	user.Roles = model.ROLE_SYSTEM_USER.Id
 

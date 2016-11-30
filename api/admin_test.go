@@ -538,7 +538,7 @@ func TestGetRecentlyActiveUsers(t *testing.T) {
 	}
 }
 
-func TestCreateUser(t *testing.T) {
+func TestAdminCreateUser(t *testing.T) {
 	th := Setup()
 	Client := th.CreateClient()
 
