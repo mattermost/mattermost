@@ -15,7 +15,7 @@ import Constants from 'utils/constants.jsx';
 export default class ConfirmIntegration extends React.Component {
     static get propTypes() {
         return {
-            team: React.propTypes.object.isRequired,
+            team: React.PropTypes.object.isRequired,
             location: React.PropTypes.object,
             loading: React.PropTypes.bool
         };

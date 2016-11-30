@@ -19,7 +19,7 @@ import {FormattedMessage} from 'react-intl';
 export default class InstalledIncomingWebhooks extends React.Component {
     static get propTypes() {
         return {
-            team: React.propTypes.object.isRequired
+            team: React.PropTypes.object.isRequired
         };
     }
 
