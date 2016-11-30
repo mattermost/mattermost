@@ -2176,7 +2176,7 @@ func (c *Client) GetFileInfosForPost(channelId string, postId string, etag strin
 
 // Saves an emoji reaction for a post in the given channel. Returns the saved reaction if successful, otherwise returns an AppError.
 func (c *Client) SaveReaction(channelId string, reaction *Reaction) (*Reaction, *AppError) {
-	if r, err := c.DoApiPost(c.GetChannelRoute(channelId)+fmt.Sprintf("/posts/%v/save_reaction", reaction.PostId), reaction.ToJson()); err != nil {
+	if r, err := c.DoApiPost(c.GetChannelRoute(channelId)+fmt.Sprintf("/posts/%v/reactions/save", reaction.PostId), reaction.ToJson()); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)
@@ -2187,7 +2187,7 @@ func (c *Client) SaveReaction(channelId string, reaction *Reaction) (*Reaction, 
 
 // Removes an emoji reaction for a post in the given channel. Returns nil if successful, otherwise returns an AppError.
 func (c *Client) DeleteReaction(channelId string, reaction *Reaction) *AppError {
-	if r, err := c.DoApiPost(c.GetChannelRoute(channelId)+fmt.Sprintf("/posts/%v/delete_reaction", reaction.PostId), reaction.ToJson()); err != nil {
+	if r, err := c.DoApiPost(c.GetChannelRoute(channelId)+fmt.Sprintf("/posts/%v/reactions/delete", reaction.PostId), reaction.ToJson()); err != nil {
 		return err
 	} else {
 		defer closeBody(r)
@@ -2198,7 +2198,7 @@ func (c *Client) DeleteReaction(channelId string, reaction *Reaction) *AppError 
 
 // Lists all emoji reactions made for the given post in the given channel. Returns a list of Reactions if successful, otherwise returns an AppError.
 func (c *Client) ListReactions(channelId string, postId string) ([]*Reaction, *AppError) {
-	if r, err := c.DoApiGet(c.GetChannelRoute(channelId)+fmt.Sprintf("/posts/%v/list_reactions", postId), "", ""); err != nil {
+	if r, err := c.DoApiGet(c.GetChannelRoute(channelId)+fmt.Sprintf("/posts/%v/reactions", postId), "", ""); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)

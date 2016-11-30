@@ -2018,7 +2018,7 @@ export default class Client {
 
     saveReaction(channelId, reaction, success, error) {
         request.
-            post(`${this.getChannelNeededRoute(channelId)}/posts/${reaction.post_id}/save_reaction`).
+            post(`${this.getChannelNeededRoute(channelId)}/posts/${reaction.post_id}/reactions/save`).
             set(this.defaultHeaders).
             accept('application/json').
             send(reaction).
@@ -2027,7 +2027,7 @@ export default class Client {
 
     deleteReaction(channelId, reaction, success, error) {
         request.
-            post(`${this.getChannelNeededRoute(channelId)}/posts/${reaction.post_id}/delete_reaction`).
+            post(`${this.getChannelNeededRoute(channelId)}/posts/${reaction.post_id}/reactions/delete`).
             set(this.defaultHeaders).
             accept('application/json').
             send(reaction).
@@ -2036,7 +2036,7 @@ export default class Client {
 
     listReactions(channelId, postId, success, error) {
         request.
-            get(`${this.getChannelNeededRoute(channelId)}/posts/${postId}/list_reactions`).
+            get(`${this.getChannelNeededRoute(channelId)}/posts/${postId}/reactions`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').

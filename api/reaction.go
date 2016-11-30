@@ -14,9 +14,9 @@ import (
 func InitReaction() {
 	l4g.Debug(utils.T("api.reaction.init.debug"))
 
-	BaseRoutes.NeedPost.Handle("/save_reaction", ApiUserRequired(saveReaction)).Methods("POST")
-	BaseRoutes.NeedPost.Handle("/delete_reaction", ApiUserRequired(deleteReaction)).Methods("POST")
-	BaseRoutes.NeedPost.Handle("/list_reactions", ApiUserRequired(listReactions)).Methods("GET")
+	BaseRoutes.NeedPost.Handle("/reactions/save", ApiUserRequired(saveReaction)).Methods("POST")
+	BaseRoutes.NeedPost.Handle("/reactions/delete", ApiUserRequired(deleteReaction)).Methods("POST")
+	BaseRoutes.NeedPost.Handle("/reactions", ApiUserRequired(listReactions)).Methods("GET")
 }
 
 func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
