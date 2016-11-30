@@ -739,8 +739,6 @@ func adminCreateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	teamId := ""
-	var team *model.Team
 	shouldSendWelcomeEmail := true
 	user.EmailVerified = false
 
@@ -755,22 +753,11 @@ func adminCreateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(teamId) > 0 {
-		err := JoinUserToTeam(team, ruser)
-		if err != nil {
-			c.Err = err
-			return
-		}
-
-		go addDirectChannels(team.Id, ruser)
-	}
-
 	if shouldSendWelcomeEmail {
 		go sendWelcomeEmail(c, ruser.Id, ruser.Email, c.GetSiteURL(), ruser.EmailVerified)
 	}
 
 	w.Write([]byte(ruser.ToJson()))
-
 }
 
 func AdminCheckUserDomain(user *model.User, domains string) bool {
