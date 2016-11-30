@@ -122,6 +122,10 @@ export const ActionTypes = keyMirror({
     UPDATED_CUSTOM_EMOJI: null,
     REMOVED_CUSTOM_EMOJI: null,
 
+    RECEIVED_REACTIONS: null,
+    ADDED_REACTION: null,
+    REMOVED_REACTION: null,
+
     RECEIVED_MSG: null,
 
     RECEIVED_MY_TEAM: null,
@@ -206,7 +210,9 @@ export const SocketEvents = {
     EPHEMERAL_MESSAGE: 'ephemeral_message',
     STATUS_CHANGED: 'status_change',
     HELLO: 'hello',
-    WEBRTC: 'webrtc'
+    WEBRTC: 'webrtc',
+    REACTION_ADDED: 'reaction_added',
+    REACTION_REMOVED: 'reaction_removed'
 };
 
 export const TutorialSteps = {

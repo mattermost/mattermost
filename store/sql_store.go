@@ -84,6 +84,7 @@ type SqlStore struct {
 	emoji         EmojiStore
 	status        StatusStore
 	fileInfo      FileInfoStore
+	reaction      ReactionStore
 	SchemaVersion string
 	rrCounter     int64
 }
@@ -134,6 +135,7 @@ func NewSqlStore() Store {
 	sqlStore.emoji = NewSqlEmojiStore(sqlStore)
 	sqlStore.status = NewSqlStatusStore(sqlStore)
 	sqlStore.fileInfo = NewSqlFileInfoStore(sqlStore)
+	sqlStore.reaction = NewSqlReactionStore(sqlStore)
 
 	err := sqlStore.master.CreateTablesIfNotExists()
 	if err != nil {
@@ -161,6 +163,7 @@ func NewSqlStore() Store {
 	sqlStore.emoji.(*SqlEmojiStore).CreateIndexesIfNotExists()
 	sqlStore.status.(*SqlStatusStore).CreateIndexesIfNotExists()
 	sqlStore.fileInfo.(*SqlFileInfoStore).CreateIndexesIfNotExists()
+	sqlStore.reaction.(*SqlReactionStore).CreateIndexesIfNotExists()
 
 	sqlStore.preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
 
@@ -674,6 +677,10 @@ func (ss *SqlStore) Status() StatusStore {
 
 func (ss *SqlStore) FileInfo() FileInfoStore {
 	return ss.fileInfo
+}
+
+func (ss *SqlStore) Reaction() ReactionStore {
+	return ss.reaction
 }
 
 func (ss *SqlStore) DropAllTables() {

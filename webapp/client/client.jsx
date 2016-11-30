@@ -2005,11 +2005,11 @@ export default class Client {
 
     removeCertificateFile(filename, success, error) {
         request.
-        post(`${this.getAdminRoute()}/remove_certificate`).
-        set(this.defaultHeaders).
-        accept('application/json').
-        send({filename}).
-        end(this.handleResponse.bind(this, 'removeCertificateFile', success, error));
+            post(`${this.getAdminRoute()}/remove_certificate`).
+            set(this.defaultHeaders).
+            accept('application/json').
+            send({filename}).
+            end(this.handleResponse.bind(this, 'removeCertificateFile', success, error));
     }
 
     samlCertificateStatus(success, error) {
@@ -2028,6 +2028,33 @@ export default class Client {
 
             return success(res.body);
         });
+    }
+
+    saveReaction(channelId, reaction, success, error) {
+        request.
+            post(`${this.getChannelNeededRoute(channelId)}/posts/${reaction.post_id}/reactions/save`).
+            set(this.defaultHeaders).
+            accept('application/json').
+            send(reaction).
+            end(this.handleResponse.bind(this, 'saveReaction', success, error));
+    }
+
+    deleteReaction(channelId, reaction, success, error) {
+        request.
+            post(`${this.getChannelNeededRoute(channelId)}/posts/${reaction.post_id}/reactions/delete`).
+            set(this.defaultHeaders).
+            accept('application/json').
+            send(reaction).
+            end(this.handleResponse.bind(this, 'deleteReaction', success, error));
+    }
+
+    listReactions(channelId, postId, success, error) {
+        request.
+            get(`${this.getChannelNeededRoute(channelId)}/posts/${postId}/reactions`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'listReactions', success, error));
     }
 
     webrtcToken(success, error) {

@@ -252,3 +252,23 @@ export function loadProfilesForPosts(posts) {
 
     AsyncClient.getProfilesByIds(list);
 }
+
+export function addReaction(channelId, postId, emojiName) {
+    const reaction = {
+        post_id: postId,
+        user_id: UserStore.getCurrentId(),
+        emoji_name: emojiName
+    };
+
+    AsyncClient.saveReaction(channelId, reaction);
+}
+
+export function removeReaction(channelId, postId, emojiName) {
+    const reaction = {
+        post_id: postId,
+        user_id: UserStore.getCurrentId(),
+        emoji_name: emojiName
+    };
+
+    AsyncClient.deleteReaction(channelId, reaction);
+}

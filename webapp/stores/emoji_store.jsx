@@ -5,11 +5,63 @@ import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import Constants from 'utils/constants.jsx';
 import EventEmitter from 'events';
 
-import EmojiJson from 'utils/emoji.json';
+import * as Emoji from 'utils/emoji.jsx';
 
 const ActionTypes = Constants.ActionTypes;
 
 const CHANGE_EVENT = 'changed';
+
+// Wrap the contents of the store so that we don't need to construct an ES6 map where most of the content
+// (the system emojis) will never change. It provides the get/has functions of a map and an iterator so
+// that it can be used in for..of loops
+class EmojiMap {
+    constructor(customEmojis) {
+        this.customEmojis = customEmojis;
+
+        // Store customEmojis to an array so we can iterate it more easily
+        this.customEmojisArray = [...customEmojis];
+    }
+
+    has(name) {
+        return Emoji.EmojiIndicesByAlias.has(name) || this.customEmojis.has(name);
+    }
+
+    get(name) {
+        if (Emoji.EmojiIndicesByAlias.has(name)) {
+            return Emoji.Emojis[Emoji.EmojiIndicesByAlias.get(name)];
+        }
+
+        return this.customEmojis.get(name);
+    }
+
+    [Symbol.iterator]() {
+        const customEmojisArray = this.customEmojisArray;
+
+        return {
+            systemIndex: 0,
+            customIndex: 0,
+            next() {
+                if (this.systemIndex < Emoji.Emojis.length) {
+                    const emoji = Emoji.Emojis[this.systemIndex];
+
+                    this.systemIndex += 1;
+
+                    return {value: [emoji.aliases[0], emoji]};
+                }
+
+                if (this.customIndex < customEmojisArray.length) {
+                    const emoji = customEmojisArray[this.customIndex][1];
+
+                    this.customIndex += 1;
+
+                    return {value: [emoji.name, emoji]};
+                }
+
+                return {done: true};
+            }
+        };
+    }
+}
 
 class EmojiStore extends EventEmitter {
     constructor() {
@@ -19,18 +71,10 @@ class EmojiStore extends EventEmitter {
 
         this.setMaxListeners(600);
 
-        this.emojis = new Map(EmojiJson);
-        this.systemEmojis = new Map(EmojiJson);
-
-        this.unicodeEmojis = new Map();
-        for (const [, emoji] of this.systemEmojis) {
-            if (emoji.unicode) {
-                this.unicodeEmojis.set(emoji.unicode, emoji);
-            }
-        }
-
         this.receivedCustomEmojis = false;
         this.customEmojis = new Map();
+
+        this.map = new EmojiMap(this.customEmojis);
     }
 
     addChangeListener(callback) {
@@ -50,20 +94,19 @@ class EmojiStore extends EventEmitter {
     }
 
     setCustomEmojis(customEmojis) {
+        customEmojis.sort((a, b) => a.name[0].localeCompare(b.name[0]));
+
         this.customEmojis = new Map();
 
         for (const emoji of customEmojis) {
             this.addCustomEmoji(emoji);
         }
 
-        this.sortCustomEmojis();
-        this.updateEmojiMap();
+        this.map = new EmojiMap(this.customEmojis);
     }
 
     addCustomEmoji(emoji) {
         this.customEmojis.set(emoji.name, emoji);
-
-        // this doesn't update this.emojis, but it's only called by setCustomEmojis which does that afterwards
     }
 
     removeCustomEmoji(id) {
@@ -73,21 +116,10 @@ class EmojiStore extends EventEmitter {
                 break;
             }
         }
-
-        this.updateEmojiMap();
     }
 
-    sortCustomEmojis() {
-        this.customEmojis = new Map([...this.customEmojis.entries()].sort((a, b) => a[0].localeCompare(b[0])));
-    }
-
-    updateEmojiMap() {
-        // add custom emojis to the map first so that they can't override system ones
-        this.emojis = new Map([...this.customEmojis, ...this.systemEmojis]);
-    }
-
-    getSystemEmojis() {
-        return this.systemEmojis;
+    hasSystemEmoji(name) {
+        return Emoji.EmojiIndicesByAlias.has(name);
     }
 
     getCustomEmojiMap() {
@@ -95,24 +127,23 @@ class EmojiStore extends EventEmitter {
     }
 
     getEmojis() {
-        return this.emojis;
+        return this.map;
     }
 
     has(name) {
-        return this.emojis.has(name);
+        return this.map.has(name);
     }
 
     get(name) {
-        // prioritize system emojis so that custom ones can't override them
-        return this.emojis.get(name);
+        return this.map.get(name);
     }
 
     hasUnicode(codepoint) {
-        return this.unicodeEmojis.has(codepoint);
+        return Emoji.EmojiIndicesByUnicode.has(codepoint);
     }
 
     getUnicode(codepoint) {
-        return this.unicodeEmojis.get(codepoint);
+        return Emoji.Emojis[Emoji.EmojiIndicesByUnicode.get(codepoint)];
     }
 
     getEmojiImageUrl(emoji) {
@@ -121,7 +152,7 @@ class EmojiStore extends EventEmitter {
             return `/api/v3/emoji/${emoji.id}`;
         }
 
-        const filename = emoji.unicode || emoji.filename || emoji.name;
+        const filename = emoji.filename || emoji.aliases[0];
 
         return Constants.EMOJI_PATH + '/' + filename + '.png';
     }
