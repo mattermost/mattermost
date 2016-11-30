@@ -4632,8 +4632,8 @@
     "translation": "Unable to update Post.HasReactions while removing reactions post_id=%v, error=%v"
   },
   {
-    "id": "store.sql_reaction.list.app_error",
-    "translation": "Unable to list reactions"
+    "id": "store.sql_reaction.get_for_post.app_error",
+    "translation": "Unable to get reactions for post"
   },
   {
     "id": "store.sql_reaction.save.begin.app_error",

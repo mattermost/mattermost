@@ -192,7 +192,7 @@ func listReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.Reaction().List(postId); result.Err != nil {
+	if result := <-Srv.Store.Reaction().GetForPost(postId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {

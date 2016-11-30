@@ -108,7 +108,7 @@ func TestReactionDelete(t *testing.T) {
 		t.Fatal(result.Err)
 	}
 
-	if result := <-store.Reaction().List(post.Id); result.Err != nil {
+	if result := <-store.Reaction().GetForPost(post.Id); result.Err != nil {
 		t.Fatal(result.Err)
 	} else if len(result.Data.([]*model.Reaction)) != 0 {
 		t.Fatal("should've deleted reaction")
@@ -121,7 +121,7 @@ func TestReactionDelete(t *testing.T) {
 	}
 }
 
-func TestReactionList(t *testing.T) {
+func TestReactionGetForPost(t *testing.T) {
 	Setup()
 
 	postId := model.NewId()
@@ -155,7 +155,7 @@ func TestReactionList(t *testing.T) {
 		Must(store.Reaction().Save(reaction))
 	}
 
-	if result := <-store.Reaction().List(postId); result.Err != nil {
+	if result := <-store.Reaction().GetForPost(postId); result.Err != nil {
 		t.Fatal(result.Err)
 	} else if returned := result.Data.([]*model.Reaction); len(returned) != 3 {
 		t.Fatal("should've returned 3 reactions")
@@ -237,7 +237,7 @@ func TestReactionDeleteAllWithEmojiName(t *testing.T) {
 	}
 
 	// check that the reactions were deleted
-	if returned := Must(store.Reaction().List(post.Id)).([]*model.Reaction); len(returned) != 1 {
+	if returned := Must(store.Reaction().GetForPost(post.Id)).([]*model.Reaction); len(returned) != 1 {
 		t.Fatal("should've only removed reactions with emoji name")
 	} else {
 		for _, reaction := range returned {
@@ -247,11 +247,11 @@ func TestReactionDeleteAllWithEmojiName(t *testing.T) {
 		}
 	}
 
-	if returned := Must(store.Reaction().List(post2.Id)).([]*model.Reaction); len(returned) != 1 {
+	if returned := Must(store.Reaction().GetForPost(post2.Id)).([]*model.Reaction); len(returned) != 1 {
 		t.Fatal("should've only removed reactions with emoji name")
 	}
 
-	if returned := Must(store.Reaction().List(post3.Id)).([]*model.Reaction); len(returned) != 0 {
+	if returned := Must(store.Reaction().GetForPost(post3.Id)).([]*model.Reaction); len(returned) != 0 {
 		t.Fatal("should've only removed reactions with emoji name")
 	}
 

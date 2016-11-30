@@ -11,20 +11,6 @@ import (
 	"github.com/go-gorp/gorp"
 )
 
-const (
-	// set HasReactions = true iff the post has reactions, update UpdateAt only if HasReactions changes
-	UPDATE_POST_HAS_REACTIONS_QUERY = `UPDATE
-			Posts
-		SET
-			UpdateAt = (CASE
-				WHEN HasReactions != (SELECT count(0) > 0 FROM Reactions WHERE PostId = :PostId) THEN :UpdateAt
-				ELSE UpdateAt
-			END),
-			HasReactions = (SELECT count(0) > 0 FROM Reactions WHERE PostId = :PostId)
-		WHERE
-			Id = :PostId`
-)
-
 type SqlReactionStore struct {
 	*SqlStore
 }
@@ -143,13 +129,27 @@ func deleteReactionAndUpdatePost(transaction *gorp.Transaction, reaction *model.
 	return updatePostForReactions(transaction, reaction.PostId)
 }
 
+const (
+	// Set HasReactions = true if and only if the post has reactions, update UpdateAt only if HasReactions changes
+	UPDATE_POST_HAS_REACTIONS_QUERY = `UPDATE
+			Posts
+		SET
+			UpdateAt = (CASE
+				WHEN HasReactions != (SELECT count(0) > 0 FROM Reactions WHERE PostId = :PostId) THEN :UpdateAt
+				ELSE UpdateAt
+			END),
+			HasReactions = (SELECT count(0) > 0 FROM Reactions WHERE PostId = :PostId)
+		WHERE
+			Id = :PostId`
+)
+
 func updatePostForReactions(transaction *gorp.Transaction, postId string) error {
 	_, err := transaction.Exec(UPDATE_POST_HAS_REACTIONS_QUERY, map[string]interface{}{"PostId": postId, "UpdateAt": model.GetMillis()})
 
 	return err
 }
 
-func (s SqlReactionStore) List(postId string) StoreChannel {
+func (s SqlReactionStore) GetForPost(postId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -166,7 +166,7 @@ func (s SqlReactionStore) List(postId string) StoreChannel {
 				PostId = :PostId
 			ORDER BY
 				CreateAt`, map[string]interface{}{"PostId": postId}); err != nil {
-			result.Err = model.NewLocAppError("SqlReactionStore.List", "store.sql_reaction.list.app_error", nil, "")
+			result.Err = model.NewLocAppError("SqlReactionStore.GetForPost", "store.sql_reaction.get_for_post.app_error", nil, "")
 		} else {
 			result.Data = reactions
 		}
