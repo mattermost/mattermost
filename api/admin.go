@@ -5,6 +5,7 @@ package api
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -50,6 +51,7 @@ func InitAdmin() {
 	BaseRoutes.Admin.Handle("/saml_cert_status", ApiAdminSystemRequired(samlCertificateStatus)).Methods("GET")
 	BaseRoutes.Admin.Handle("/cluster_status", ApiAdminSystemRequired(getClusterStatus)).Methods("GET")
 	BaseRoutes.Admin.Handle("/recently_active_users/{team_id:[A-Za-z0-9]+}", ApiUserRequired(getRecentlyActiveUsers)).Methods("GET")
+	BaseRoutes.Admin.Handle("/users/create", ApiAppHandler(createUser)).Methods("POST")
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -728,4 +730,180 @@ func getRecentlyActiveUsers(c *Context, w http.ResponseWriter, r *http.Request) 
 		w.Write([]byte(model.UserMapToJson(profiles)))
 	}
 
+}
+
+func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !utils.Cfg.EmailSettings.EnableSignUpWithEmail || !utils.Cfg.TeamSettings.EnableUserCreation {
+		c.Err = model.NewLocAppError("signupTeam", "api.user.create_user.signup_email_disabled.app_error", nil, "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
+
+	user := model.UserFromJson(r.Body)
+
+	if user == nil {
+		c.SetInvalidParam("createUser", "user")
+		return
+	}
+
+	hash := r.URL.Query().Get("h")
+	teamId := ""
+	var team *model.Team
+	shouldSendWelcomeEmail := true
+	user.EmailVerified = false
+
+	if len(hash) > 0 {
+		data := r.URL.Query().Get("d")
+		props := model.MapFromJson(strings.NewReader(data))
+
+		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt)) {
+			c.Err = model.NewLocAppError("createUser", "api.user.create_user.signup_link_invalid.app_error", nil, "")
+			return
+		}
+
+		t, err := strconv.ParseInt(props["time"], 10, 64)
+		if err != nil || model.GetMillis()-t > 1000*60*60*48 { // 48 hours
+			c.Err = model.NewLocAppError("createUser", "api.user.create_user.signup_link_expired.app_error", nil, "")
+			return
+		}
+
+		teamId = props["id"]
+
+		// try to load the team to make sure it exists
+		if result := <-Srv.Store.Team().Get(teamId); result.Err != nil {
+			c.Err = result.Err
+			return
+		} else {
+			team = result.Data.(*model.Team)
+		}
+
+		user.Email = props["email"]
+		user.EmailVerified = true
+		shouldSendWelcomeEmail = false
+	}
+
+	inviteId := r.URL.Query().Get("iid")
+	if len(inviteId) > 0 {
+		if result := <-Srv.Store.Team().GetByInviteId(inviteId); result.Err != nil {
+			c.Err = result.Err
+			return
+		} else {
+			team = result.Data.(*model.Team)
+			teamId = team.Id
+		}
+	}
+
+	firstAccount := false
+	if sessionCache.Len() == 0 {
+		if cr := <-Srv.Store.User().GetTotalUsersCount(); cr.Err != nil {
+			c.Err = cr.Err
+			return
+		} else {
+			count := cr.Data.(int64)
+			if count <= 0 {
+				firstAccount = true
+			}
+		}
+	}
+
+	if !firstAccount && !*utils.Cfg.TeamSettings.EnableOpenServer && len(teamId) == 0 {
+		c.Err = model.NewLocAppError("createUser", "api.user.create_user.no_open_server", nil, "email="+user.Email)
+		return
+	}
+
+	if !CheckUserDomain(user, utils.Cfg.TeamSettings.RestrictCreationToDomains) {
+		c.Err = model.NewLocAppError("createUser", "api.user.create_user.accepted_domain.app_error", nil, "")
+		return
+	}
+
+	ruser, err := CreateUser(user)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if len(teamId) > 0 {
+		err := JoinUserToTeam(team, ruser)
+		if err != nil {
+			c.Err = err
+			return
+		}
+
+		go addDirectChannels(team.Id, ruser)
+	}
+
+	if shouldSendWelcomeEmail {
+		go sendWelcomeEmail(c, ruser.Id, ruser.Email, c.GetSiteURL(), ruser.EmailVerified)
+	}
+
+	w.Write([]byte(ruser.ToJson()))
+
+}
+
+func CheckUserDomain(user *model.User, domains string) bool {
+	if len(domains) == 0 {
+		return true
+	}
+
+	domainArray := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(domains, "@", " ", -1), ",", " ", -1))))
+
+	matched := false
+	for _, d := range domainArray {
+		if strings.HasSuffix(strings.ToLower(user.Email), "@"+d) {
+			matched = true
+			break
+		}
+	}
+
+	return matched
+}
+
+func CreateUser(user *model.User) (*model.User, *model.AppError) {
+
+	user.Roles = model.ROLE_SYSTEM_USER.Id
+
+	// Below is a special case where the first user in the entire
+	// system is granted the system_admin role
+	if result := <-Srv.Store.User().GetTotalUsersCount(); result.Err != nil {
+		return nil, result.Err
+	} else {
+		count := result.Data.(int64)
+		if count <= 0 {
+			user.Roles = model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id
+		}
+	}
+
+	user.MakeNonNil()
+	user.Locale = *utils.Cfg.LocalizationSettings.DefaultClientLocale
+
+	if err := utils.IsPasswordValid(user.Password); user.AuthService == "" && err != nil {
+		return nil, err
+	}
+
+	if result := <-Srv.Store.User().Save(user); result.Err != nil {
+		l4g.Error(utils.T("api.user.create_user.save.error"), result.Err)
+		return nil, result.Err
+	} else {
+		ruser := result.Data.(*model.User)
+
+		if user.EmailVerified {
+			if cresult := <-Srv.Store.User().VerifyEmail(ruser.Id); cresult.Err != nil {
+				l4g.Error(utils.T("api.user.create_user.verified.error"), cresult.Err)
+			}
+		}
+
+		pref := model.Preference{UserId: ruser.Id, Category: model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, Name: ruser.Id, Value: "0"}
+		if presult := <-Srv.Store.Preference().Save(&model.Preferences{pref}); presult.Err != nil {
+			l4g.Error(utils.T("api.user.create_user.tutorial.error"), presult.Err.Message)
+		}
+
+		ruser.Sanitize(map[string]bool{})
+
+		// This message goes to everyone, so the teamId, channelId and userId are irrelevant
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_NEW_USER, "", "", "", nil)
+		message.Add("user_id", ruser.Id)
+		go Publish(message)
+
+		return ruser, nil
+	}
 }
