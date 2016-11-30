@@ -84,8 +84,8 @@ func (me *LoadTestProvider) GetCommand(c *Context) *model.Command {
 	}
 }
 
-func (me *LoadTestProvider) DoCommand(c *Context, post *model.Post, message string) *model.CommandResponse {
-	channelId := post.ChannelId
+func (me *LoadTestProvider) DoCommand(c *Context, args *model.CommandArgs, message string) *model.CommandResponse {
+	channelId := args.ChannelId
 
 	//This command is only available when EnableTesting is true
 	if !utils.Cfg.ServiceSettings.EnableTesting {

@@ -20,7 +20,7 @@ import (
 type CommandProvider interface {
 	GetTrigger() string
 	GetCommand(c *Context) *model.Command
-	DoCommand(c *Context, post *model.Post, message string) *model.CommandResponse
+	DoCommand(c *Context, args *model.CommandArgs, message string) *model.CommandResponse
 }
 
 var commandProviders = make(map[string]CommandProvider)
@@ -88,29 +88,28 @@ func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
-	post := model.PostFromJson(r.Body)
-	command := post.Message
+	commandArgs := model.CommandArgsFromJson(r.Body)
 
-	if len(command) <= 1 || strings.Index(command, "/") != 0 {
+	if len(commandArgs.Command) <= 1 || strings.Index(commandArgs.Command, "/") != 0 {
 		c.Err = model.NewLocAppError("executeCommand", "api.command.execute_command.start.app_error", nil, "")
 		return
 	}
 
-	if len(post.ChannelId) > 0 {
-		if !HasPermissionToChannelContext(c, post.ChannelId, model.PERMISSION_USE_SLASH_COMMANDS) {
+	if len(commandArgs.ChannelId) > 0 {
+		if !HasPermissionToChannelContext(c, commandArgs.ChannelId, model.PERMISSION_USE_SLASH_COMMANDS) {
 			return
 		}
 	}
 
-	parts := strings.Split(command, " ")
+	parts := strings.Split(commandArgs.Command, " ")
 	trigger := parts[0][1:]
 	trigger = strings.ToLower(trigger)
 	message := strings.Join(parts[1:], " ")
 	provider := GetCommandProvider(trigger)
 
 	if provider != nil {
-		response := provider.DoCommand(c, post, message)
-		handleResponse(c, w, response, post, provider.GetCommand(c), true)
+		response := provider.DoCommand(c, commandArgs, message)
+		handleResponse(c, w, response, commandArgs, provider.GetCommand(c), true)
 		return
 	} else {
 
@@ -120,7 +119,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		chanChan := Srv.Store.Channel().Get(post.ChannelId)
+		chanChan := Srv.Store.Channel().Get(commandArgs.ChannelId)
 		teamChan := Srv.Store.Team().Get(c.TeamId)
 		userChan := Srv.Store.User().Get(c.Session.UserId)
 
@@ -165,7 +164,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 					p.Set("team_id", cmd.TeamId)
 					p.Set("team_domain", team.Name)
 
-					p.Set("channel_id", post.ChannelId)
+					p.Set("channel_id", commandArgs.ChannelId)
 					p.Set("channel_name", channel.Name)
 
 					p.Set("user_id", c.Session.UserId)
@@ -199,7 +198,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 							if response == nil {
 								c.Err = model.NewLocAppError("command", "api.command.execute_command.failed_empty.app_error", map[string]interface{}{"Trigger": trigger}, "")
 							} else {
-								handleResponse(c, w, response, post, cmd, false)
+								handleResponse(c, w, response, commandArgs, cmd, false)
 							}
 						} else {
 							defer resp.Body.Close()
@@ -218,7 +217,12 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.Err = model.NewLocAppError("command", "api.command.execute_command.not_found.app_error", map[string]interface{}{"Trigger": trigger}, "")
 }
 
-func handleResponse(c *Context, w http.ResponseWriter, response *model.CommandResponse, post *model.Post, cmd *model.Command, builtIn bool) {
+func handleResponse(c *Context, w http.ResponseWriter, response *model.CommandResponse, commandArgs *model.CommandArgs, cmd *model.Command, builtIn bool) {
+	post := &model.Post{}
+	post.ChannelId = commandArgs.ChannelId
+	post.RootId = commandArgs.RootId
+	post.ParentId = commandArgs.ParentId
+
 	if !builtIn {
 		post.AddProp("from_webhook", "true")
 	}

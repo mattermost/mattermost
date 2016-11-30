@@ -827,8 +827,8 @@ func (c *Client) EmailToLDAP(m map[string]string) (*Result, *AppError) {
 }
 
 func (c *Client) Command(channelId string, command string) (*Result, *AppError) {
-	post := &Post{Message: command, ChannelId: channelId}
-	if r, err := c.DoApiPost(c.GetTeamRoute()+"/commands/execute", post.ToJson()); err != nil {
+	args := &CommandArgs{ChannelId: channelId, Command: command}
+	if r, err := c.DoApiPost(c.GetTeamRoute()+"/commands/execute", args.ToJson()); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)

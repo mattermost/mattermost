@@ -112,9 +112,11 @@ export default class CreatePost extends React.Component {
             PostStore.storeDraft(this.state.channelId, null);
             this.setState({message: '', postError: null, fileInfos: []});
 
-            post.channel_id = this.state.channelId;
+            const args = {};
+            args.channel_id = this.state.channelId;
             ChannelActions.executeCommand(
-                post,
+                post.message,
+                args,
                 (data) => {
                     this.setState({submitting: false});
 
@@ -356,11 +358,11 @@ export default class CreatePost extends React.Component {
     showShortcuts(e) {
         if ((e.ctrlKey || e.metaKey) && e.keyCode === Constants.KeyCodes.FORWARD_SLASH) {
             e.preventDefault();
-            const post = {};
-            post.channel_id = this.state.channelId;
-            post.message = '/shortcuts ';
+            const args = {};
+            args.channel_id = this.state.channelId;
             ChannelActions.executeCommand(
-                post,
+                '/shortcuts',
+                args,
                 null,
                 (err) => {
                     this.setState({

@@ -4,7 +4,6 @@
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
-import Client from 'client/web_client.jsx';
 import * as ChannelActions from 'actions/channel_actions.jsx';
 import EmojiStore from 'stores/emoji_store.jsx';
 import UserStore from 'stores/user_store.jsx';
@@ -74,7 +73,6 @@ export default class CreateComment extends React.Component {
 
     componentDidMount() {
         PreferenceStore.addChangeListener(this.onPreferenceChange);
-
         this.focusTextbox();
     }
 
@@ -125,7 +123,6 @@ export default class CreateComment extends React.Component {
         }
 
         MessageHistoryStore.storeMessageInHistory(message);
-        
         if (message.trim().length === 0 && this.state.fileInfos.length === 0) {
             return;
         }
@@ -153,34 +150,33 @@ export default class CreateComment extends React.Component {
     }
 
     handleSubmitCommand(message) {
-            PostStore.storeCommentDraft(this.props.rootId, null);
-            this.setState({message: '', postError: null, fileInfos: []});
+        PostStore.storeCommentDraft(this.props.rootId, null);
+        this.setState({message: '', postError: null, fileInfos: []});
 
-            const args = {};
-            args.channel_id = this.props.channelId;
-            args.root_id = this.props.rootId;
-            args.parent_id = this.props.rootId;
-            ChannelActions.executeCommand(
-                message,
-                args,
-                (data) => {
-                    this.setState({submitting: false});
-
-                    if (data.goto_location && data.goto_location.length > 0) {
-                        browserHistory.push(data.goto_location);
-                    }
-                },
-                (err) => {
-                    if (err.sendMessage) {
-                        this.sendMessage(post);
-                    } else {
-                        const state = {};
-                        state.serverError = err.message;
-                        state.submitting = false;
-                        this.setState(state);
-                    }
+        const args = {};
+        args.channel_id = this.props.channelId;
+        args.root_id = this.props.rootId;
+        args.parent_id = this.props.rootId;
+        ChannelActions.executeCommand(
+            message,
+            args,
+            (data) => {
+                this.setState({submitting: false});
+                if (data.goto_location && data.goto_location.length > 0) {
+                    browserHistory.push(data.goto_location);
                 }
-            );
+            },
+            (err) => {
+                if (err.sendMessage) {
+                    this.handleSubmitPost(message);
+                } else {
+                    const state = {};
+                    state.serverError = err.message;
+                    state.submitting = false;
+                    this.setState(state);
+                }
+            }
+        );
     }
 
     handleSubmitPost(message) {
