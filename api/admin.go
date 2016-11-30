@@ -733,12 +733,6 @@ func getRecentlyActiveUsers(c *Context, w http.ResponseWriter, r *http.Request) 
 }
 
 func adminCreateUser(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !utils.Cfg.EmailSettings.EnableSignUpWithEmail || !utils.Cfg.TeamSettings.EnableUserCreation {
-		c.Err = model.NewLocAppError("signupTeam", "api.user.create_user.signup_email_disabled.app_error", nil, "")
-		c.Err.StatusCode = http.StatusNotImplemented
-		return
-	}
-
 	user := model.UserFromJson(r.Body)
 
 	if user == nil {
@@ -791,11 +785,6 @@ func adminCreateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 			team = result.Data.(*model.Team)
 			teamId = team.Id
 		}
-	}
-
-	if !*utils.Cfg.TeamSettings.EnableOpenServer && len(teamId) == 0 {
-		c.Err = model.NewLocAppError("createUser", "api.user.create_user.no_open_server", nil, "email="+user.Email)
-		return
 	}
 
 	if !AdminCheckUserDomain(user, utils.Cfg.TeamSettings.RestrictCreationToDomains) {
