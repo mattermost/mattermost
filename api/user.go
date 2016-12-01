@@ -1885,6 +1885,30 @@ func sendPasswordChangeEmail(c *Context, email, siteURL, method string) {
 	}
 }
 
+func sendMfaChangeEmail(c *Context, email string, siteURL string, activated bool) {
+	subject := c.T("api.templates.mfa_change_subject",
+		map[string]interface{}{"SiteName": utils.Cfg.TeamSettings.SiteName})
+
+	bodyPage := utils.NewHTMLTemplate("mfa_change_body", c.Locale)
+	bodyPage.Props["SiteURL"] = siteURL
+
+	bodyText := ""
+	if activated {
+		bodyText = "api.templates.mfa_activated_body.info"
+		bodyPage.Props["Title"] = c.T("api.templates.mfa_activated_body.title")
+	} else {
+		bodyText = "api.templates.mfa_deactivated_body.info"
+		bodyPage.Props["Title"] = c.T("api.templates.mfa_deactivated_body.title")
+	}
+
+	bodyPage.Html["Info"] = template.HTML(c.T(bodyText,
+		map[string]interface{}{"SiteURL": siteURL}))
+
+	if err := utils.SendMail(email, subject, bodyPage.Render()); err != nil {
+		l4g.Error(utils.T("api.user.send_mfa_change_email.error"), err)
+	}
+}
+
 func sendEmailChangeEmail(c *Context, oldEmail, newEmail, siteURL string) {
 	subject := fmt.Sprintf("[%v] %v", utils.Cfg.TeamSettings.SiteName, c.T("api.templates.email_change_subject",
 		map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName}))
@@ -2391,17 +2415,32 @@ func updateMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	c.LogAudit("attempt")
+
 	if activate {
 		if err := ActivateMfa(c.Session.UserId, token); err != nil {
 			c.Err = err
 			return
 		}
+		c.LogAudit("success - activated")
 	} else {
 		if err := DeactivateMfa(c.Session.UserId); err != nil {
 			c.Err = err
 			return
 		}
+		c.LogAudit("success - deactivated")
 	}
+
+	go func() {
+		var user *model.User
+		if result := <-Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
+			l4g.Warn(result.Err)
+		} else {
+			user = result.Data.(*model.User)
+		}
+
+		sendMfaChangeEmail(c, user.Email, c.GetSiteURL(), activate)
+	}()
 
 	rdata := map[string]string{}
 	rdata["status"] = "ok"
