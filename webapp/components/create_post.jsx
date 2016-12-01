@@ -94,10 +94,10 @@ export default class CreatePost extends React.Component {
         }
 
         if (this.state.postError) {
-            var postError = $('.post-error');
-            postError.addClass('animation--highlight');
+            const errorElement = $('.post-error');
+            errorElement.addClass('animation--highlight');
             setTimeout(() => {
-                postError.removeClass('animation--highlight');
+                errorElement.removeClass('animation--highlight');
             }, 1000);
             return;
         }
