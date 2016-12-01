@@ -55,6 +55,7 @@ export default class MoreChannels extends React.Component {
 
         $(this.refs.modal).on('hide.bs.modal', () => {
             self.setState({shown: false});
+
             // channelList may not be defined or still loading
             if (this.refs.channelList) {
                 this.refs.channelList.clearFilters(this.state.channels);
