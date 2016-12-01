@@ -35,8 +35,7 @@ export default class Textbox extends React.Component {
         this.showPreview = this.showPreview.bind(this);
 
         this.state = {
-            connection: '',
-            msgLength: 0
+            connection: ''
         };
 
         this.suggestionProviders = [
@@ -130,12 +129,6 @@ export default class Textbox extends React.Component {
                     providers[i] = new AtMentionProvider(nextProps.channelId);
                 }
             }
-        }
-
-        if (typeof nextProps.value === 'string') {
-            this.setState({
-                textLength: nextProps.value.length
-            });
         }
     }
 
