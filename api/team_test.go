@@ -797,3 +797,16 @@ func TestUpdateTeamDescription(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestGetTeamByName(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+
+	if _, err := Client.GetTeamByName(th.BasicTeam.Name); err != nil {
+		t.Fatal("Failed to get team")
+	}
+
+	if _, err := Client.GetTeamByName("InvalidTeamName"); err == nil {
+		t.Fatal("Failed to get team")
+	}
+}
