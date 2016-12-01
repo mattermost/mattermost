@@ -180,7 +180,7 @@ export default class SearchableUserList extends React.Component {
             }
         }
 
-        const height = $(window).height() - ($(window).width() <= 768 ? 100 : 170);
+        const height = $(window).height() - ($(window).width() <= 768 ? 120 : 170);
 
         return (
             <div
