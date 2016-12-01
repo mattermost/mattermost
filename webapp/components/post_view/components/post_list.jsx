@@ -16,6 +16,8 @@ import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
 import DelayedAction from 'utils/delayed_action.jsx';
 
+import SpinnerButton from 'components/spinner_button.jsx';
+
 import * as ChannelActions from 'actions/channel_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
@@ -29,6 +31,8 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 
 const Preferences = Constants.Preferences;
+
+const MORE_BUTTON_TIMEOUT = 700;
 
 export default class PostList extends React.Component {
     constructor(props) {
@@ -50,13 +54,15 @@ export default class PostList extends React.Component {
         this.wasAtBottom = true;
         this.scrollHeight = 0;
         this.animationFrameId = 0;
+        this.moreTimeoutId = 0;
 
         this.scrollStopAction = new DelayedAction(this.handleScrollStop);
 
         this.state = {
             isScrolling: false,
             fullWidthIntro: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN,
-            topPostId: null
+            topPostId: null,
+            isLoadingMore: false
         };
 
         if (props.channel) {
@@ -165,6 +171,8 @@ export default class PostList extends React.Component {
 
     loadMorePostsTop(e) {
         e.preventDefault();
+        this.setState({isLoadingMore: true});
+        this.moreTimeoutId = setTimeout(() => this.setState({isLoadingMore: false}), MORE_BUTTON_TIMEOUT);
 
         if (this.props.isFocusPost) {
             return GlobalActions.emitLoadMorePostsFocusedTopEvent();
@@ -502,17 +510,19 @@ export default class PostList extends React.Component {
         let moreMessagesTop;
         if (this.props.showMoreMessagesTop) {
             moreMessagesTop = (
-                <a
-                    ref='loadmoretop'
-                    className='more-messages-text theme'
-                    href='#'
-                    onClick={this.loadMorePostsTop}
-                >
-                    <FormattedMessage
-                        id='posts_view.loadMore'
-                        defaultMessage='Load more messages'
-                    />
-                </a>
+                <div style={{'text-align': 'center'}}>
+                    <SpinnerButton
+                        ref='loadmoretop'
+                        className='btn btn-as-link'
+                        onClick={this.loadMorePostsTop}
+                        spinning={this.state.isLoadingMore}
+                    >
+                        <FormattedMessage
+                            id='posts_view.loadMore'
+                            defaultMessage='Load more messages'
+                        />
+                    </SpinnerButton>
+                </div>
             );
         } else {
             moreMessagesTop = this.introText;

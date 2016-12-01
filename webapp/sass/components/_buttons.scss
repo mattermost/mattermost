@@ -52,4 +52,11 @@
         border-color: transparent;
         color: $white;
     }
+
+    &.btn-as-link {
+        background-color: transparent;
+        border-color: transparent;
+        width: 95%;
+        font-size: 13px;
+    }
 }
