@@ -183,28 +183,21 @@ export default class SecurityTab extends React.Component {
             let content;
             let extraInfo;
             if (this.props.user.mfa_active) {
-                content = (
-                    <div key='mfaQrCode'>
-                        <a
-                            className='btn btn-primary'
-                            href='#'
-                            onClick={this.deactivateMfa}
-                        >
-                            <FormattedMessage
-                                id='user.settings.mfa.remove'
-                                defaultMessage='Remove MFA from your account'
-                            />
-                        </a>
-                        <br/>
-                    </div>
-                );
-
                 let mfaRemoveHelp;
+                let mfaButtonText;
+
                 if (global.window.mm_config.EnforceMultifactorAuthentication === 'true') {
                     mfaRemoveHelp = (
                         <FormattedMessage
                             id='user.settings.mfa.requiredHelp'
                             defaultMessage='Multi-factor authentication is required on this server. Resetting is only recommended when you need to switch code generation to a new mobile device. You will be required to set it up again immediately.'
+                        />
+                    );
+
+                    mfaButtonText = (
+                        <FormattedMessage
+                            id='user.settings.mfa.reset'
+                            defaultMessage='Reset MFA on your account'
                         />
                     );
                 } else {
@@ -214,7 +207,27 @@ export default class SecurityTab extends React.Component {
                             defaultMessage='Removing multi-factor authentication means you will no longer require a phone-based passcode to sign-in to your account.'
                         />
                     );
+
+                    mfaButtonText = (
+                        <FormattedMessage
+                            id='user.settings.mfa.remove'
+                            defaultMessage='Remove MFA from your account'
+                        />
+                    );
                 }
+
+                content = (
+                    <div key='mfaQrCode'>
+                        <a
+                            className='btn btn-primary'
+                            href='#'
+                            onClick={this.deactivateMfa}
+                        >
+                            {mfaButtonText}
+                        </a>
+                        <br/>
+                    </div>
+                );
 
                 extraInfo = (
                     <span>

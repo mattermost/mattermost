@@ -15,18 +15,25 @@ export default class MFAController extends React.Component {
     }
 
     render() {
+        let backButton;
+        if (window.mm_config.EnforceMultifactorAuthentication !== 'true') {
+            backButton = (
+                <div className='signup-header'>
+                    <Link to='/'>
+                        <span className='fa fa-chevron-left'/>
+                        <FormattedMessage
+                            id='web.header.back'
+                        />
+                    </Link>
+                </div>
+            );
+        }
+
         return (
             <div className='inner-wrap sticky'>
                 <div className='content'>
                     <div>
-                        <div className='signup-header'>
-                            <Link to='/'>
-                                <span className='fa fa-chevron-left'/>
-                                <FormattedMessage
-                                    id='web.header.back'
-                                />
-                            </Link>
-                        </div>
+                        {backButton}
                         <div className='col-sm-12'>
                             <div className='signup-team__container'>
                                 <h3>

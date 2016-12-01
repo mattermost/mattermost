@@ -50,6 +50,14 @@ export default class MfaSettings extends AdminSettings {
     renderSettings() {
         return (
             <SettingsGroup>
+                <div className='banner'>
+                    <div className='banner__content'>
+                        <FormattedMessage
+                            id='admin.mfa.bannerDesc'
+                            defaultMessage='Multi-factor authentication is only available for accounts with LDAP and email login methods. If there are users on your system with other login methods, it is recommended you set up multi-factor authentication directly with the SSO or SAML provider.'
+                        />
+                    </div>
+                </div>
                 <BooleanSetting
                     id='enableMultifactorAuthentication'
                     label={
