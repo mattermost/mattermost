@@ -345,12 +345,25 @@ func (c *Context) MfaRequired() {
 		return
 	}
 
+	// OAuth integrations are excepted
+	if c.Session.IsOAuth {
+		return
+	}
+
 	if result := <-Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
 		c.Err = model.NewLocAppError("", "api.context.session_expired.app_error", nil, "MfaRequired")
 		c.Err.StatusCode = http.StatusUnauthorized
 		return
 	} else {
 		user := result.Data.(*model.User)
+
+		// Only required for email and ldap accounts
+		if user.AuthService != "" &&
+			user.AuthService != model.USER_AUTH_SERVICE_EMAIL &&
+			user.AuthService != model.USER_AUTH_SERVICE_LDAP {
+			return
+		}
+
 		if !user.MfaActive {
 			c.Err = model.NewLocAppError("", "api.context.mfa_required.app_error", nil, "MfaRequired")
 			c.Err.StatusCode = http.StatusUnauthorized

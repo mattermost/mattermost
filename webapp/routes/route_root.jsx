@@ -36,13 +36,20 @@ const mfaPaths = [
     '/mfa/confirm'
 ];
 
+const mfaAuthServices = [
+    '',
+    'email',
+    'ldap'
+];
+
 function preLoggedIn(nextState, replace, callback) {
     if (window.mm_license.MFA === 'true' &&
             window.mm_config.EnableMultifactorAuthentication === 'true' &&
             window.mm_config.EnforceMultifactorAuthentication === 'true' &&
             mfaPaths.indexOf(nextState.location.pathname) === -1) {
         const user = UserStore.getCurrentUser();
-        if (user && !user.mfa_active) {
+        if (user && !user.mfa_active &&
+                mfaAuthServices.indexOf(user.auth_service) !== -1) {
             browserHistory.push('/mfa/setup');
             return;
         }

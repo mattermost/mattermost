@@ -2026,6 +2026,8 @@ func emailToOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	mfaToken := props["token"]
+
 	service := props["service"]
 	if len(service) == 0 {
 		c.SetInvalidParam("emailToOAuth", "service")
@@ -2049,7 +2051,7 @@ func emailToOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		user = result.Data.(*model.User)
 	}
 
-	if err := checkPasswordAndAllCriteria(user, password, ""); err != nil {
+	if err := checkPasswordAndAllCriteria(user, password, mfaToken); err != nil {
 		c.LogAuditWithUserId(user.Id, "failed - bad authentication")
 		c.Err = err
 		return

@@ -17,6 +17,7 @@ export default class LoginMfa extends React.Component {
             serverError: ''
         };
     }
+
     handleSubmit(e) {
         e.preventDefault();
         const state = {};

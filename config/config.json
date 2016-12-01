@@ -21,11 +21,11 @@
         "EnablePostUsernameOverride": false,
         "EnablePostIconOverride": false,
         "EnableTesting": false,
-        "EnableDeveloper": false,
+        "EnableDeveloper": true,
         "EnableSecurityFixAlert": true,
         "EnableInsecureOutgoingConnections": false,
-        "EnableMultifactorAuthentication": false,
-        "EnforceMultifactorAuthentication": false,
+        "EnableMultifactorAuthentication": true,
+        "EnforceMultifactorAuthentication": true,
         "AllowCorsFrom": "",
         "SessionLengthWebInDays": 30,
         "SessionLengthMobileInDays": 30,
@@ -42,7 +42,7 @@
         "MaxUsersPerTeam": 50,
         "EnableTeamCreation": true,
         "EnableUserCreation": true,
-        "EnableOpenServer": false,
+        "EnableOpenServer": true,
         "RestrictCreationToDomains": "",
         "EnableCustomBrand": false,
         "CustomBrandText": "",
@@ -62,7 +62,7 @@
         "MaxIdleConns": 20,
         "MaxOpenConns": 300,
         "Trace": false,
-        "AtRestEncryptKey": ""
+        "AtRestEncryptKey": "3ktbdier1rbqm888t986cgfr5ipitqar"
     },
     "LogSettings": {
         "EnableConsole": true,
@@ -86,7 +86,7 @@
         "DriverName": "local",
         "Directory": "./data/",
         "EnablePublicLink": false,
-        "PublicLinkSalt": "",
+        "PublicLinkSalt": "tmzfs13echn7p78b4wpg1uao3eaikjmh",
         "ThumbnailWidth": 120,
         "ThumbnailHeight": 100,
         "PreviewWidth": 1024,
@@ -115,8 +115,8 @@
         "SMTPServer": "",
         "SMTPPort": "",
         "ConnectionSecurity": "",
-        "InviteSalt": "",
-        "PasswordResetSalt": "",
+        "InviteSalt": "b1ejd46u8upcmic9zu1geyoemb6hr3s1",
+        "PasswordResetSalt": "ucrjxskokhfefqt9tnsoow3kurfzrih3",
         "SendPushNotifications": false,
         "PushNotificationServer": "",
         "PushNotificationContents": "generic",
@@ -145,13 +145,13 @@
         "SupportEmail": "feedback@mattermost.com"
     },
     "GitLabSettings": {
-        "Enable": false,
-        "Secret": "",
-        "Id": "",
+        "Enable": true,
+        "Secret": "a7ee4474265bd6410b9b2ce3b7d14263afdfffd759a487fe6022a9872ed8edbf",
+        "Id": "5e996a895651a5f9b0a3fe5607e07ab98d14f913c3600076303e70c7450a02ea",
         "Scope": "",
-        "AuthEndpoint": "",
-        "TokenEndpoint": "",
-        "UserApiEndpoint": ""
+        "AuthEndpoint": "http://dockerhost:8080/oauth/authorize",
+        "TokenEndpoint": "http://dockerhost:8080/oauth/token",
+        "UserApiEndpoint": "http://dockerhost:8080/api/v3/user"
     },
     "GoogleSettings": {
         "Enable": false,

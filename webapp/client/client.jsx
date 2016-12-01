@@ -831,18 +831,13 @@ export default class Client {
         this.track('api', 'api_users_reset_password');
     }
 
-    emailToOAuth(email, password, service, success, error) {
-        var data = {};
-        data.password = password;
-        data.email = email;
-        data.service = service;
-
+    emailToOAuth(email, password, token, service, success, error) {
         request.
             post(`${this.getUsersRoute()}/claim/email_to_oauth`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
-            send(data).
+            send({password, email, token, service}).
             end(this.handleResponse.bind(this, 'emailToOAuth', success, error));
 
         this.track('api', 'api_users_email_to_oauth');

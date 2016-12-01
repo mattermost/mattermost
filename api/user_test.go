@@ -1344,7 +1344,7 @@ func TestResetPassword(t *testing.T) {
 	}
 
 	authData := model.NewId()
-	if result := <-Srv.Store.User().UpdateAuthData(user.Id, "random", &authData, ""); result.Err != nil {
+	if result := <-Srv.Store.User().UpdateAuthData(user.Id, "random", &authData, "", true); result.Err != nil {
 		t.Fatal(result.Err)
 	}
 

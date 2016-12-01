@@ -410,3 +410,23 @@ export function activateMfa(code, success, error) {
         }
     );
 }
+
+export function checkMfa(loginId, success, error) {
+    if (global.window.mm_config.EnableMultifactorAuthentication === 'true') {
+        success(false);
+    }
+
+    Client.checkMfa(
+        loginId,
+        (data) => {
+            if (success) {
+                success(data.mfa_required === 'true');
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
