@@ -130,7 +130,9 @@ export default class MoreChannelsList extends React.Component {
 
         const startCount = this.state.page * this.props.channelsPerPage;
         let endCount = startCount + this.props.channelsPerPage;
-        if (this.props.total < endCount) { endCount = this.props.total; }
+        if (this.props.total < endCount) {
+            endCount = this.props.total;
+        }
         const channelsToDisplay = channels.slice(startCount, endCount);
 
         if (endCount < this.props.total) {

@@ -28,7 +28,7 @@ class ChannelStoreClass extends EventEmitter {
 
         // Lists of sorted IDs for paginated channels
         this.paginated_channels = {};
-        this.paginated_channels_count =0;
+        this.paginated_channels_count = 0;
         this.paging_offset = 0;
         this.paging_count = 0;
     }
@@ -330,7 +330,7 @@ class ChannelStoreClass extends EventEmitter {
     }
 
     storePaginatedChannels(channels, count) {
-        this.paginated_channels_count = count
+        this.paginated_channels_count = count;
         this.paginated_channels = channels.reduce((map, obj) => {
             map[obj.id] = obj;
             return map;
@@ -338,7 +338,7 @@ class ChannelStoreClass extends EventEmitter {
     }
 
     storePaginatedChannelsNext(channels, count) {
-        this.paginated_channels_count = count
+        this.paginated_channels_count = count;
         const newChannels = channels.reduce((map, obj) => {
             map[obj.id] = obj;
             return map;

@@ -247,7 +247,7 @@ export function getPaginatedChannelsNext(
     offset = UserStore.getPagingOffset(),
     limit = Constants.CHANNELS_CHUNK_SIZE,
     term = '',
-    action_type = ActionTypes.RECEIVED_PAGINATED_CHANNELS_NEXT
+    actionType = ActionTypes.RECEIVED_PAGINATED_CHANNELS_NEXT
 ) {
     const callName = `getPaginatedChannels_${term}${offset}${limit}`;
     if (isCallInProgress(callName)) {
@@ -262,7 +262,7 @@ export function getPaginatedChannelsNext(
         (data) => {
             callTracker[callName] = 0;
             AppDispatcher.handleServerAction({
-                type: action_type,
+                type: actionType,
                 channels: data.list,
                 count: data.count
             });

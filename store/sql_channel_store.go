@@ -471,7 +471,7 @@ func (s SqlChannelStore) GetPaginatedChannels(teamId string, userId string, offs
 
 		result := StoreResult{}
 
-		params_map := map[string]interface{}{"TeamId1": teamId, "TeamId2": teamId, "UserId": userId, "Offset": offset, "Limit": limit, "Term": "%"+term+"%"}
+		params_map := map[string]interface{}{"TeamId1": teamId, "TeamId2": teamId, "UserId": userId, "Offset": offset, "Limit": limit, "Term": "%" + term + "%"}
 
 		count, count_err := s.GetReplica().SelectInt(countQuery, params_map)
 

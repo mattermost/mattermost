@@ -20,8 +20,6 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
 
-const ActionTypes = Constants.ActionTypes;
-
 const config = global.window.mm_config;
 
 export default class MoreChannelsNew extends React.Component {
