@@ -1139,6 +1139,7 @@
   "create_comment.file": "File uploading",
   "create_comment.files": "Files uploading",
   "create_post.comment": "Comment",
+  "create_post.error_message": "Your message is too long. Character count: {length}/{limit}",
   "create_post.post": "Post",
   "create_post.shortcutsNotSupported": "Keyboard shortcuts are not supported on your device.",
   "create_post.tutorialTip": "<h4>Sending Messages</h4><p>Type here to write a message and press <strong>ENTER</strong> to post it.</p><p>Click the <strong>Attachment</strong> button to upload an image or a file.</p>",
