@@ -14,7 +14,7 @@ export default class BackstageController extends React.Component {
         return {
             children: React.PropTypes.node.isRequired,
             params: React.PropTypes.object.isRequired,
-            user: React.PropTypes.user.isRequired
+            user: React.PropTypes.object.isRequired
         };
     }
 

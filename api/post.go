@@ -600,6 +600,9 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 		}
 
 		mentionedUserIds[otherUserId] = true
+		if post.Props["from_webhook"] == "true" {
+			mentionedUserIds[post.UserId] = true
+		}
 	} else {
 		keywords := getMentionKeywordsInChannel(profileMap)
 

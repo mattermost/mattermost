@@ -15,7 +15,7 @@ import SpinnerButton from 'components/spinner_button.jsx';
 export default class AddIncomingWebhook extends React.Component {
     static get propTypes() {
         return {
-            team: React.propTypes.object.isRequired
+            team: React.PropTypes.object.isRequired
         };
     }
 
