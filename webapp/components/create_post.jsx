@@ -25,7 +25,7 @@ import PreferenceStore from 'stores/preference_store.jsx';
 
 import Constants from 'utils/constants.jsx';
 
-import {FormattedHTMLMessage} from 'react-intl';
+import {FormattedHTMLMessage, FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
 
 const Preferences = Constants.Preferences;
@@ -209,7 +209,16 @@ export default class CreatePost extends React.Component {
         PostStore.storeCurrentDraft(draft);
 
         if (message.length > Constants.CHARACTER_LIMIT) {
-            this.setState({postError: `Your message is too long. Character count: ${message.length}/${Constants.CHARACTER_LIMIT}`});
+            const errorMessage = (
+                <FormattedMessage
+                    id='create_post.error_message'
+                    defaultMessage='Your message is too long. Character count: {length}/{limit}'
+                    values={{
+                        length: message.length,
+                        limit: Constants.CHARACTER_LIMIT
+                    }}
+                />);
+            this.setState({postError: errorMessage});
         } else {
             this.setState({postError: null});
         }
@@ -546,8 +555,8 @@ export default class CreatePost extends React.Component {
                             channelId={this.state.channelId}
                             parentId=''
                         />
-                        {preview}
                         {postError}
+                        {preview}
                         {serverError}
                     </div>
                 </div>

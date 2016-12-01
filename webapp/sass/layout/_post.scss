@@ -50,11 +50,6 @@
     }
 }
 
-.post-error {
-  display: inline-block;
-  font-size: .85em;
-}
-
 .help__format-text {
     @include opacity(0);
     @include single-transition(all, .5s, ease, .5s);
@@ -414,12 +409,22 @@
         @include clearfix;
         font-size: 13px;
         padding: 3px 0 0;
+        position: relative;
 
         .control-label {
             font-weight: normal;
             margin-bottom: 0;
             position: relative;
             top: -5px;
+
+            &.post-error {
+              display: inline-block;
+              font-size: .85em;
+              @include opacity(.9);
+              color: #444444;
+              position: absolute;
+              top: 4px;
+            }
         }
     }
 
