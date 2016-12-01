@@ -66,6 +66,10 @@ export default class RhsComment extends React.Component {
             return true;
         }
 
+        if (nextProps.isBusy !== this.props.isBusy) {
+            return true;
+        }
+
         if (nextProps.compactDisplay !== this.props.compactDisplay) {
             return true;
         }
@@ -304,6 +308,7 @@ export default class RhsComment extends React.Component {
                 width='36'
                 height='36'
                 user={this.props.user}
+                isBusy={this.props.isBusy}
             />
         );
 
@@ -325,6 +330,7 @@ export default class RhsComment extends React.Component {
                     src=''
                     status={status}
                     user={this.props.user}
+                    isBusy={this.props.isBusy}
                 />
             );
         }
@@ -430,7 +436,13 @@ export default class RhsComment extends React.Component {
                     <div>
                         <ul className='post__header'>
                             <li className='col col__name'>
-                                <strong>{userProfile}</strong>
+                                <strong>
+                                    <UserProfile
+                                        user={this.props.user}
+                                        status={this.props.status}
+                                        isBusy={this.props.isBusy}
+                                    />
+                                </strong>
                             </li>
                             {botIndicator}
                             <li className='col'>
@@ -466,5 +478,6 @@ RhsComment.propTypes = {
     compactDisplay: React.PropTypes.bool,
     useMilitaryTime: React.PropTypes.bool.isRequired,
     isFlagged: React.PropTypes.bool,
-    status: React.PropTypes.string
+    status: React.PropTypes.string,
+    isBusy: React.PropTypes.bool
 };

@@ -101,6 +101,8 @@ export default class SearchResultsItem extends React.Component {
             <ProfilePicture
                 src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
                 user={this.props.user}
+                status={this.props.status}
+                isBusy={this.props.isBusy}
             />
 
         );
@@ -265,6 +267,8 @@ export default class SearchResultsItem extends React.Component {
                                         user={user}
                                         overwriteName={overrideUsername}
                                         disablePopover={disableProfilePopover}
+                                        status={this.props.status}
+                                        isBusy={this.props.isBusy}
                                     />
                                 </strong></li>
                                 {botIndicator}
@@ -302,5 +306,7 @@ SearchResultsItem.propTypes = {
     term: React.PropTypes.string,
     useMilitaryTime: React.PropTypes.bool.isRequired,
     shrink: React.PropTypes.func,
-    isFlagged: React.PropTypes.bool
+    isFlagged: React.PropTypes.bool,
+    isBusy: React.PropTypes.bool,
+    status: React.PropTypes.string
 };

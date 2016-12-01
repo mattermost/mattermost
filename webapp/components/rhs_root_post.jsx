@@ -47,6 +47,10 @@ export default class RhsRootPost extends React.Component {
             return true;
         }
 
+        if (nextProps.isBusy !== this.props.isBusy) {
+            return true;
+        }
+
         if (nextProps.compactDisplay !== this.props.compactDisplay) {
             return true;
         }
@@ -248,7 +252,13 @@ export default class RhsRootPost extends React.Component {
             );
         }
 
-        let userProfile = <UserProfile user={user}/>;
+        let userProfile = (
+            <UserProfile
+                user={user}
+                status={this.props.status}
+                isBusy={this.props.isBusy}
+            />
+        );
         let botIndicator;
 
         if (post.props && post.props.from_webhook) {
@@ -286,6 +296,7 @@ export default class RhsRootPost extends React.Component {
                 width='36'
                 height='36'
                 user={this.props.user}
+                isBusy={this.props.isBusy}
             />
         );
 
@@ -307,6 +318,7 @@ export default class RhsRootPost extends React.Component {
                     src=''
                     status={status}
                     user={this.props.user}
+                    isBusy={this.props.isBusy}
                 />
             );
         }
@@ -424,5 +436,6 @@ RhsRootPost.propTypes = {
     useMilitaryTime: React.PropTypes.bool.isRequired,
     isFlagged: React.PropTypes.bool,
     status: React.PropTypes.string,
-    previewCollapsed: React.PropTypes.string
+    previewCollapsed: React.PropTypes.string,
+    isBusy: React.PropTypes.bool
 };

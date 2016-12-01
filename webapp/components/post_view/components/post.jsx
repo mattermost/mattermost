@@ -194,6 +194,7 @@ export default class Post extends React.Component {
                 src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
                 status={status}
                 user={this.props.user}
+                isBusy={this.props.isBusy}
             />
         );
 
@@ -219,6 +220,7 @@ export default class Post extends React.Component {
                 <ProfilePicture
                     src=''
                     status={status}
+                    isBusy={this.props.isBusy}
                     user={this.props.user}
                 />
             );
