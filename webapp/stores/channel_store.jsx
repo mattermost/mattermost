@@ -28,6 +28,7 @@ class ChannelStoreClass extends EventEmitter {
 
         // Lists of sorted IDs for paginated channels
         this.paginated_channels = {};
+        this.paginated_channels_count =0;
         this.paging_offset = 0;
         this.paging_count = 0;
     }
@@ -328,14 +329,16 @@ class ChannelStoreClass extends EventEmitter {
         return channelNamesMap;
     }
 
-    storePaginatedChannels(channels) {
+    storePaginatedChannels(channels, count) {
+        this.paginated_channels_count = count
         this.paginated_channels = channels.reduce((map, obj) => {
             map[obj.id] = obj;
             return map;
         }, {});
     }
 
-    storePaginatedChannelsNext(channels) {
+    storePaginatedChannelsNext(channels, count) {
+        this.paginated_channels_count = count
         const newChannels = channels.reduce((map, obj) => {
             map[obj.id] = obj;
             return map;
@@ -349,6 +352,10 @@ class ChannelStoreClass extends EventEmitter {
 
     getPaginatedChannels() {
         return this.paginated_channels;
+    }
+
+    getPaginatedChannelsCount() {
+        return this.paginated_channels_count;
     }
 
     setPage(offset, count) {
@@ -431,14 +438,14 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         ChannelStore.emitChange();
         break;
     case ActionTypes.RECEIVED_PAGINATED_CHANNELS:
-        ChannelStore.storePaginatedChannels(action.channels);
+        ChannelStore.storePaginatedChannels(action.channels, action.count);
         if (action.offset != null && action.count != null) {
             ChannelStore.setPage(action.offset, action.count);
         }
         ChannelStore.emitChange();
         break;
     case ActionTypes.RECEIVED_PAGINATED_CHANNELS_NEXT:
-        ChannelStore.storePaginatedChannelsNext(action.channels);
+        ChannelStore.storePaginatedChannelsNext(action.channels, action.count);
         if (action.offset != null && action.count != null) {
             ChannelStore.setPage(action.offset, action.count);
         }

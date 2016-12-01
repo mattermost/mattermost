@@ -240,32 +240,16 @@ export function getMoreChannels(force) {
 }
 
 export function getPaginatedChannels(limit = Constants.CHANNELS_CHUNK_SIZE, term = '') {
-    const callName = `getPaginatedChannels_${term}${0}${limit}`;
-    if (isCallInProgress(callName)) {
-        return;
-    }
-
-    callTracker[callName] = utils.getTimestamp();
-    Client.getPaginatedChannels(
-        0,
-        limit,
-        term,
-        (data) => {
-            callTracker[callName] = 0;
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_PAGINATED_CHANNELS,
-                channels: data
-            });
-        },
-        (err) => {
-            callTracker[callName] = 0;
-            dispatchError(err, 'getPaginatedChannels');
-        }
-    );
+    getPaginatedChannelsNext(0, limit, term, ActionTypes.RECEIVED_PAGINATED_CHANNELS);
 }
 
-export function getPaginatedChannelsNext(offset = UserStore.getPagingOffset(), limit = Constants.CHANNELS_CHUNK_SIZE, term = '') {
-    const callName = `getPaginatedChannelsNext_${term}${offset}${limit}`;
+export function getPaginatedChannelsNext(
+    offset = UserStore.getPagingOffset(),
+    limit = Constants.CHANNELS_CHUNK_SIZE,
+    term = '',
+    action_type = ActionTypes.RECEIVED_PAGINATED_CHANNELS_NEXT
+) {
+    const callName = `getPaginatedChannels_${term}${offset}${limit}`;
     if (isCallInProgress(callName)) {
         return;
     }
@@ -278,8 +262,9 @@ export function getPaginatedChannelsNext(offset = UserStore.getPagingOffset(), l
         (data) => {
             callTracker[callName] = 0;
             AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_PAGINATED_CHANNELS_NEXT,
-                channels: data
+                type: action_type,
+                channels: data.list,
+                count: data.count
             });
         },
         (err) => {

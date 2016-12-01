@@ -129,10 +129,11 @@ export default class MoreChannelsList extends React.Component {
         let count;
 
         const startCount = this.state.page * this.props.channelsPerPage;
-        const endCount = startCount + this.props.channelsPerPage;
+        let endCount = startCount + this.props.channelsPerPage;
+        if (this.props.total < endCount) { endCount = this.props.total; }
         const channelsToDisplay = channels.slice(startCount, endCount);
 
-        if (channelsToDisplay.length >= this.props.channelsPerPage) {
+        if (endCount < this.props.total) {
             nextButton = (
                 <button
                     className='btn btn-default filter-control filter-control__next'

@@ -20,7 +20,8 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
 
-const CHANNELS_PER_PAGE = 50;
+const ActionTypes = Constants.ActionTypes;
+
 const config = global.window.mm_config;
 
 export default class MoreChannelsNew extends React.Component {
@@ -46,7 +47,7 @@ export default class MoreChannelsNew extends React.Component {
 
     componentDidMount() {
         ChannelStore.addChangeListener(this.onChange);
-        AsyncClient.getPaginatedChannels(CHANNELS_PER_PAGE);
+        AsyncClient.getPaginatedChannels(Constants.CHANNELS_CHUNK_SIZE);
     }
 
     componentWillUnmount() {
@@ -71,7 +72,6 @@ export default class MoreChannelsNew extends React.Component {
         GlobalActions.emitJoinChannelEvent(
             channel,
             () => {
-                // $(this.refs.modal).modal('hide');
                 browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + channel.name);
                 this.handleHide();
                 if (done) {
@@ -110,12 +110,12 @@ export default class MoreChannelsNew extends React.Component {
     }
 
     nextPage(page) {
-        AsyncClient.getPaginatedChannelsNext((page + 1) * CHANNELS_PER_PAGE, CHANNELS_PER_PAGE, this.state.search);
+        AsyncClient.getPaginatedChannelsNext(page * Constants.CHANNELS_CHUNK_SIZE, Constants.CHANNELS_CHUNK_SIZE, this.state.search);
     }
 
     search(term) {
         this.setState({search: $.trim(term)});
-        AsyncClient.getPaginatedChannels(CHANNELS_PER_PAGE, term);
+        AsyncClient.getPaginatedChannels(Constants.CHANNELS_CHUNK_SIZE, term);
     }
 
     render() {
@@ -163,11 +163,11 @@ export default class MoreChannelsNew extends React.Component {
                 <MoreChannelsList
                     ref='channelList'
                     channels={channels}
-                    channelsPerPage={CHANNELS_PER_PAGE}
+                    channelsPerPage={Constants.CHANNELS_CHUNK_SIZE}
                     handleJoin={this.handleJoin}
                     search={this.search}
                     nextPage={this.nextPage}
-                    total={(channels || []).length}
+                    total={ChannelStore.getPaginatedChannelsCount()}
                 />
             );
         } else {
