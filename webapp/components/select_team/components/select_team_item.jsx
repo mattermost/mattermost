@@ -4,6 +4,7 @@
 import React from 'react';
 
 import {Link} from 'react-router/es6';
+import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 
 export default class SelectTeamItem extends React.Component {
     static propTypes = {
@@ -35,8 +36,31 @@ export default class SelectTeamItem extends React.Component {
             );
         }
 
+        var descriptionTooltip = '';
+        var showDescriptionTooltip = '';
+        if (this.props.team.description) {
+            descriptionTooltip = (
+                <Tooltip id='team-description__tooltip'>
+                    {this.props.team.description}
+                </Tooltip>
+            );
+
+            showDescriptionTooltip = (
+                <OverlayTrigger
+                    trigger={['hover', 'focus', 'click']}
+                    delayShow={1000}
+                    placement='left'
+                    overlay={descriptionTooltip}
+                    ref='descriptionOverlay'
+                >
+                    <span className='fa fa-info-circle signup-team__icon'/>
+                </OverlayTrigger>
+            );
+        }
+
         return (
             <div className='signup-team-dir'>
+                {showDescriptionTooltip}
                 <Link
                     to={this.props.url}
                     onClick={this.handleTeamClick}

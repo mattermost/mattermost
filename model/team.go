@@ -24,6 +24,7 @@ type Team struct {
 	DeleteAt        int64  `json:"delete_at"`
 	DisplayName     string `json:"display_name"`
 	Name            string `json:"name"`
+	Description     string `json:"description"`
 	Email           string `json:"email"`
 	Type            string `json:"type"`
 	CompanyName     string `json:"company_name"`
@@ -128,6 +129,10 @@ func (o *Team) IsValid() *AppError {
 
 	if len(o.Name) > 64 {
 		return NewLocAppError("Team.IsValid", "model.team.is_valid.url.app_error", nil, "id="+o.Id)
+	}
+
+	if len(o.Description) > 255 {
+		return NewLocAppError("Team.IsValid", "model.team.is_valid.description.app_error", nil, "id="+o.Id)
 	}
 
 	if IsReservedTeamName(o.Name) {

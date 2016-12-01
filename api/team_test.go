@@ -759,3 +759,43 @@ func TestGetTeamStats(t *testing.T) {
 		t.Fatal("should have errored - not on team")
 	}
 }
+
+func TestUpdateTeamDescription(t *testing.T) {
+	th := Setup().InitBasic()
+	th.BasicClient.Logout()
+	Client := th.BasicClient
+
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN}
+	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+
+	user := &model.User{Email: team.Email, Nickname: "My Testing", Password: "passwd1"}
+	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
+	LinkUserToTeam(user, team)
+	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+
+	user2 := &model.User{Email: "success+" + model.NewId() + "@simulator.amazonses.com", Nickname: "Jabba the Hutt", Password: "passwd1"}
+	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
+	LinkUserToTeam(user2, team)
+	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
+
+	Client.Login(user2.Email, "passwd1")
+	Client.SetTeamId(team.Id)
+
+	vteam := &model.Team{DisplayName: team.DisplayName, Name: team.Name, Description: team.Description, Email: team.Email, Type: team.Type}
+	vteam.Description = "yommamma"
+	if _, err := Client.UpdateTeam(vteam); err == nil {
+		t.Fatal("Should have errored, not admin")
+	}
+
+	Client.Login(user.Email, "passwd1")
+
+	vteam.Description = ""
+	if _, err := Client.UpdateTeam(vteam); err != nil {
+		t.Fatal("Should have errored, should save blank Description")
+	}
+
+	vteam.Description = "yommamma"
+	if _, err := Client.UpdateTeam(vteam); err != nil {
+		t.Fatal(err)
+	}
+}

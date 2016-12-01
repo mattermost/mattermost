@@ -237,6 +237,24 @@ describe('Client.Team', function() {
         });
     });
 
+    it('updateTeamDescription', function(done) {
+        TestHelper.initBasic(() => {
+            var team = TestHelper.basicTeam();
+            team.description = 'test_updated';
+
+            TestHelper.basicClient().updateTeam(
+                team,
+                function(data) {
+                    assert.equal(data.description, 'test_updated');
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
     it('addUserToTeam', function(done) {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().createUser(

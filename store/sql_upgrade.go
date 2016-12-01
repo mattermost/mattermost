@@ -218,6 +218,9 @@ func UpgradeDatabaseToVersion36(sqlStore *SqlStore) {
 
 	sqlStore.CreateColumnIfNotExists("Posts", "HasReactions", "tinyint", "boolean", "0")
 
+	// Create Team Description column
+	sqlStore.CreateColumnIfNotExists("Teams", "Description", "varchar(255)", "varchar(255)", "")
+
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// TODO FIXME UNCOMMENT WHEN WE DO RELEASE
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

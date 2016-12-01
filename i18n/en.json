@@ -3772,6 +3772,10 @@
     "translation": "Invalid name"
   },
   {
+    "id": "model.team.is_valid.description.app_error",
+    "translation": "Invalid description"
+  },
+  {
     "id": "model.team.is_valid.reserved.app_error",
     "translation": "This URL is unavailable. Please try another."
   },
