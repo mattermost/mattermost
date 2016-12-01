@@ -420,8 +420,8 @@
             &.post-error {
               display: inline-block;
               font-size: .85em;
-              @include opacity(.9);
-              color: #444444;
+              @include opacity(.55);
+              color: rgb(51, 51, 51);
               position: absolute;
               top: 4px;
             }
