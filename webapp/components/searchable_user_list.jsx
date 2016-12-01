@@ -185,7 +185,7 @@ export default class SearchableUserList extends React.Component {
         return (
             <div
                 className='filtered-user-list'
-                style={{...this.props.style, 'max-height': `${height}px`}}
+                style={{'max-height': `${height}px`}}
             >
                 <div className='filter-row'>
                     <div className='col-xs-12'>

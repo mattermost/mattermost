@@ -199,7 +199,7 @@ export default class MoreChannelsList extends React.Component {
         return (
             <div
                 className='filtered-user-list'
-                style={{...this.props.style, 'max-height': `${height}px`}}
+                style={{'max-height': `${height}px`}}
             >
                 <div className='filter-row'>
                     <div className='col-sm-12'>
