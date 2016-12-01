@@ -11,7 +11,6 @@ import RhsDropdown from 'components/rhs_dropdown.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
-import TeamStore from 'stores/team_store.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {flagPost, unflagPost} from 'actions/post_actions.jsx';
@@ -20,6 +19,7 @@ import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
 
 import Constants from 'utils/constants.jsx';
+import DelayedAction from 'utils/delayed_action.jsx';
 import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 
 import {FormattedMessage} from 'react-intl';
@@ -34,12 +34,20 @@ export default class RhsRootPost extends React.Component {
         this.flagPost = this.flagPost.bind(this);
         this.unflagPost = this.unflagPost.bind(this);
 
+        this.canEdit = false;
+        this.canDelete = false;
+        this.editDisableAction = new DelayedAction(this.handleEditDisable);
+
         this.state = {};
     }
 
     handlePermalink(e) {
         e.preventDefault();
         GlobalActions.showGetPostLinkModal(this.props.post);
+    }
+
+    handleEditDisable() {
+        this.canEdit = false;
     }
 
     shouldComponentUpdate(nextProps) {
@@ -96,12 +104,12 @@ export default class RhsRootPost extends React.Component {
         const post = this.props.post;
         const user = this.props.user;
         const mattermostLogo = Constants.MATTERMOST_ICON_SVG;
-        var isOwner = this.props.currentUser.id === post.user_id;
-        var isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
-        const isSystemMessage = post.type && post.type.startsWith(Constants.SYSTEM_MESSAGE_PREFIX);
         var timestamp = user ? user.last_picture_update : 0;
         var channel = ChannelStore.get(post.channel_id);
         const flagIcon = Constants.FLAG_ICON_SVG;
+
+        this.canDelete = PostUtils.canDeletePost(post);
+        this.canEdit = PostUtils.canEditPost(post, this.editDisableAction);
 
         var type = 'Post';
         if (post.root_id.length > 0) {
@@ -189,7 +197,7 @@ export default class RhsRootPost extends React.Component {
             </li>
         );
 
-        if (isOwner || isAdmin) {
+        if (this.canDelete) {
             dropdownContents.push(
                 <li
                     key='rhs-root-delete'
@@ -209,11 +217,12 @@ export default class RhsRootPost extends React.Component {
             );
         }
 
-        if (isOwner && !isSystemMessage) {
+        if (this.canEdit) {
             dropdownContents.push(
                 <li
                     key='rhs-root-edit'
                     role='presentation'
+                    className={this.canEdit ? '' : 'hide'}
                 >
                     <a
                         href='#'
