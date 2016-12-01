@@ -460,11 +460,11 @@ func getPaginatedChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	if result := <-Srv.Store.Channel().GetPaginatedChannels(c.TeamId, c.Session.UserId, offset, limit, r.URL.Query().Get("term")); result.Err != nil {
 		c.Err = result.Err
 		return
-	} else if HandleEtag(result.Data.(*model.ChannelList).Etag(), w, r) {
+	} else if HandleEtag(result.Data.(*model.ChannelList).Etag() + "_" + strconv.Itoa(int(result.Count)), w, r) {
 		return
 	} else {
 		data := result.Data.(*model.ChannelList)
-		w.Header().Set(model.HEADER_ETAG_SERVER, data.Etag())
+		w.Header().Set(model.HEADER_ETAG_SERVER, data.Etag() + "_" + strconv.Itoa(int(result.Count)))
 		rdata := map[string]interface{}{"count": result.Count, "list": data}
 		w.Write([]byte(model.MapInterfaceToJson(rdata)))
 	}

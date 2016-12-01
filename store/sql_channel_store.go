@@ -439,24 +439,24 @@ func (s SqlChannelStore) GetPaginatedChannels(teamId string, userId string, offs
 	go func() {
 		searchQuery := `
 			SELECT
-			    *
+			  *
 			FROM
-			    Channels
+			  Channels
 			WHERE
-			    TeamId = :TeamId1
-					AND Type IN ('O')
-					AND DeleteAt = 0
-					SEARCH_CLAUSE
-		      AND Id NOT IN (SELECT
-		            Channels.Id
-		        FROM
-		            Channels,
-		            ChannelMembers
-		        WHERE
-	            Id = ChannelId
-	            AND TeamId = :TeamId2
-	            AND UserId = :UserId
-	            AND DeleteAt = 0)
+		    TeamId = :TeamId1
+				AND Type IN ('O')
+				AND DeleteAt = 0
+				SEARCH_CLAUSE
+	      AND Id NOT IN (SELECT
+	            Channels.Id
+	        FROM
+	            Channels,
+	            ChannelMembers
+	        WHERE
+            Id = ChannelId
+            AND TeamId = :TeamId2
+            AND UserId = :UserId
+            AND DeleteAt = 0)
 			ORDER BY DisplayName`
 
 		if len(strings.TrimSpace(term)) == 0 {
