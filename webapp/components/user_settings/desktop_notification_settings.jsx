@@ -105,7 +105,7 @@ export default class DesktopNotificationSettings extends React.Component {
                         <span>
                             <FormattedMessage
                                 id='user.settings.notifications.sounds_info'
-                                defaultMessage='Notification sounds are available on IE11, Edge, Safari and Chrome.'
+                                defaultMessage='Notification sounds are available on IE11, Edge, Safari, Chrome and Mattermost Desktop Apps.'
                             />
                         </span>
                     </div>
@@ -207,7 +207,7 @@ export default class DesktopNotificationSettings extends React.Component {
                 <span>
                     <FormattedMessage
                         id='user.settings.notifications.desktop.durationInfo'
-                        defaultMessage='Sets how long desktop notifications will remain on screen.'
+                        defaultMessage='Sets how long desktop notifications will remain on screen when using Firefox or Chrome. Desktop notifications in Edge and Safari can only stay on screen for a maximum of 5 seconds.'
                     />
                 </span>
             );
@@ -270,7 +270,7 @@ export default class DesktopNotificationSettings extends React.Component {
                 <span>
                     <FormattedMessage
                         id='user.settings.notifications.info'
-                        defaultMessage='Desktop notifications are available on Firefox, Safari, and Chrome.'
+                        defaultMessage='Desktop notifications are available on Edge, Firefox, Safari, Chrome and Mattermost Desktop Apps.'
                     />
                 </span>
                 {soundSection}
