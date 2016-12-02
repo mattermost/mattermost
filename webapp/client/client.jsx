@@ -520,6 +520,15 @@ export default class Client {
             end(this.handleResponse.bind(this, 'findTeamByName', success, error));
     }
 
+    getTeamByName(teamName, success, error) {
+        request.
+            get(`${this.getTeamsRoute()}/name/${teamName}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getTeamByName', success, error));
+    }
+
     createTeam(team, success, error) {
         request.
             post(`${this.getTeamsRoute()}/create`).

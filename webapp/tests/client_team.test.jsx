@@ -328,5 +328,21 @@ describe('Client.Team', function() {
             );
         });
     });
+
+    it('getTeamByName', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().getTeamByName(
+                TestHelper.basicTeam().name,
+                function(data) {
+                    console.log(data);
+                    assert.equal(data.name, TestHelper.basicTeam().name);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
 });
 

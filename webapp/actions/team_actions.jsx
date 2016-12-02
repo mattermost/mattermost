@@ -75,3 +75,21 @@ export function removeUserFromTeam(teamId, userId, success, error) {
         }
     );
 }
+
+export function getTeamByName(teamName, success, error) {
+    Client.removeUserFromTeam(
+        teamName,
+        (data) => {
+            if (success) {
+                success(data);
+            }
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'getTeamByName');
+
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
