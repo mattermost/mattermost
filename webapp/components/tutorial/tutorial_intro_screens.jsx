@@ -136,8 +136,7 @@ export default class TutorialIntroScreens extends React.Component {
                 <FormattedHTMLMessage
                     id='tutorial_intro.screenTwo'
                     defaultMessage='<h3>How uChat works:</h3>
-                    <p>Communication happens in public discussion channels, private groups and direct messages.</p>
-                    <p>Everything is archived and searchable from any web-enabled desktop, laptop or phone.</p>'
+                    <p>Communication happens in public discussion channels, private groups and direct messages.</p>'
                 />
                 {appDownloadLink}
                 {appDownloadImage}
