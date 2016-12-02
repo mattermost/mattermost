@@ -312,7 +312,17 @@ export default class RhsComment extends React.Component {
             />
         );
 
-        if (isSystemMessage) {
+        if (post.props && post.props.from_webhook) {
+            profilePic = (
+                <ProfilePicture
+                    src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
+                    width='36'
+                    height='36'
+                />
+            );
+        }
+
+        if (PostUtils.isSystemMessage(post)) {
             profilePic = (
                 <span
                     className='icon'
@@ -325,14 +335,22 @@ export default class RhsComment extends React.Component {
         if (this.props.compactDisplay) {
             compactClass = 'post--compact';
 
-            profilePic = (
-                <ProfilePicture
-                    src=''
-                    status={status}
-                    user={this.props.user}
-                    isBusy={this.props.isBusy}
-                />
-            );
+            if (post.props && post.props.from_webhook) {
+                profilePic = (
+                    <ProfilePicture
+                        src=''
+                    />
+                );
+            } else {
+                profilePic = (
+                    <ProfilePicture
+                        src=''
+                        status=status
+                        user={this.props.user}
+                        isBusy={this.props.isBusy}
+                    />
+                );
+            }
         }
 
         const profilePicContainer = (<div className='post__img'>{profilePic}</div>);
@@ -429,6 +447,44 @@ export default class RhsComment extends React.Component {
             hour12: !this.props.useMilitaryTime
         };
 
+        let userProfile = (
+            <UserProfile
+                user={this.props.user}
+                status={status}
+                isBusy={this.props.isBusy}
+            />
+        );
+
+        if (post.props && post.props.from_webhook) {
+            if (post.props.override_username && global.window.mm_config.EnablePostUsernameOverride === 'true') {
+                userProfile = (
+                    <UserProfile
+                        user={this.props.user}
+                        overwriteName={post.props.override_username}
+                        disablePopover={true}
+                    />
+                );
+            } else {
+                userProfile = (
+                    <UserProfile
+                        user={this.props.user}
+                        disablePopover={true}
+                    />
+                )
+            }
+
+            botIndicator = <li className='col col__name bot-indicator'>{'BOT'}</li>;
+        } else if (PostUtils.isSystemMessage(post)) {
+            userProfile = (
+                <UserProfile
+                    user={this.props.user}
+                    overwriteName={Constants.SYSTEM_MESSAGE_PROFILE_NAME}
+                    overwriteImage={Constants.SYSTEM_MESSAGE_PROFILE_IMAGE}
+                    disablePopover={true}
+                />
+            );
+        }
+
         return (
             <div className={'post post--thread ' + currentUserCss + ' ' + compactClass + ' ' + systemMessageClass}>
                 <div className='post__content'>
@@ -436,13 +492,7 @@ export default class RhsComment extends React.Component {
                     <div>
                         <ul className='post__header'>
                             <li className='col col__name'>
-                                <strong>
-                                    <UserProfile
-                                        user={this.props.user}
-                                        status={this.props.status}
-                                        isBusy={this.props.isBusy}
-                                    />
-                                </strong>
+                                <strong>{userProfile}</strong>
                             </li>
                             {botIndicator}
                             <li className='col'>

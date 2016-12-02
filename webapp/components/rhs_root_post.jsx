@@ -270,13 +270,20 @@ export default class RhsRootPost extends React.Component {
                         disablePopover={true}
                     />
                 );
+            } else {
+                userProfile = (
+                    <UserProfile
+                        user={user}
+                        disablePopover={true}
+                    />
+                )
             }
 
             botIndicator = <li className='col col__name bot-indicator'>{'BOT'}</li>;
         } else if (PostUtils.isSystemMessage(post)) {
             userProfile = (
                 <UserProfile
-                    user={{}}
+                    user={user}
                     overwriteName={Constants.SYSTEM_MESSAGE_PROFILE_NAME}
                     overwriteImage={Constants.SYSTEM_MESSAGE_PROFILE_IMAGE}
                     disablePopover={true}
@@ -300,6 +307,16 @@ export default class RhsRootPost extends React.Component {
             />
         );
 
+        if (post.props && post.props.from_webhook) {
+            profilePic = (
+                <ProfilePicture
+                    src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
+                    width='36'
+                    height='36'
+                />
+            );
+        }
+
         if (PostUtils.isSystemMessage(post)) {
             profilePic = (
                 <span
@@ -313,14 +330,22 @@ export default class RhsRootPost extends React.Component {
         if (this.props.compactDisplay) {
             compactClass = 'post--compact';
 
-            profilePic = (
-                <ProfilePicture
-                    src=''
-                    status={status}
-                    user={this.props.user}
-                    isBusy={this.props.isBusy}
-                />
-            );
+            if (post.props && post.props.from_webhook) {
+                profilePic = (
+                    <ProfilePicture
+                        src=''
+                    />
+                );
+            } else {
+                profilePic = (
+                    <ProfilePicture
+                        src=''
+                        status={status}
+                        user={this.props.user}
+                        isBusy={this.props.isBusy}
+                    />
+                );
+            }
         }
 
         const profilePicContainer = (<div className='post__img'>{profilePic}</div>);
