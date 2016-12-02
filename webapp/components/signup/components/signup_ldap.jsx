@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import FormError from 'components/form_error.jsx';
+import BrowserStore from 'stores/browser_store.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {track} from 'actions/analytics_actions.jsx';
@@ -24,6 +25,8 @@ export default class SignupLdap extends React.Component {
 
     constructor(props) {
         super(props);
+
+        BrowserStore.removeGlobalItem('team');
 
         this.handleLdapSignup = this.handleLdapSignup.bind(this);
         this.handleLdapSignupSuccess = this.handleLdapSignupSuccess.bind(this);

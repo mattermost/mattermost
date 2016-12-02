@@ -37,7 +37,6 @@ export default class TeamButton extends React.Component {
         return (
             <div
                 className={`team-container ${teamClass}`}
-                key={this.props.key}
             >
                 <Link
                     className={disabled}
@@ -48,7 +47,7 @@ export default class TeamButton extends React.Component {
                         delayShow={Constants.OVERLAY_TIME_DELAY}
                         placement={this.props.placement}
                         overlay={
-                            <Tooltip id={`tooltip-${this.props.key}`}>
+                            <Tooltip id={`tooltip-${this.props.url}`}>
                                 {this.props.tip}
                             </Tooltip>
                         }
@@ -74,10 +73,9 @@ TeamButton.defaultProps = {
 };
 
 TeamButton.propTypes = {
-    key: React.PropTypes.string.isRequired,
     url: React.PropTypes.string.isRequired,
-    contents: React.PropTypes.element.isRequired,
-    tip: React.PropTypes.element,
+    contents: React.PropTypes.node.isRequired,
+    tip: React.PropTypes.node,
     active: React.PropTypes.bool,
     disabled: React.PropTypes.bool,
     unread: React.PropTypes.bool,

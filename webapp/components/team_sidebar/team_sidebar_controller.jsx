@@ -5,10 +5,11 @@ import TeamButton from './components/team_button.jsx';
 
 import BrowserStore from 'stores/browser_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
+import UserStore from 'stores/user_store.jsx';
 
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
-import {isMobile} from 'utils/utils.jsx';
+import * as Utils from 'utils/utils.jsx';
 
 import $ from 'jquery';
 import React from 'react';
@@ -35,7 +36,7 @@ export default class TeamSidebar extends React.Component {
             teamListings: TeamStore.getTeamListings(),
             teamMembers,
             currentTeamId,
-            show: teamMembers && teamMembers.length > 1 && (!UserAgent.isMobile() && !UserAgent.isMobileApp() && !isMobile())
+            show: teamMembers && teamMembers.length > 1 && (!UserAgent.isMobile() && !UserAgent.isMobileApp() && !Utils.isMobile())
         };
     }
 
@@ -54,7 +55,7 @@ export default class TeamSidebar extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
-        if (!isMobile()) {
+        if (!Utils.isMobile()) {
             $('.team-wrapper').perfectScrollbar();
         }
 
@@ -72,7 +73,7 @@ export default class TeamSidebar extends React.Component {
 
     handleResize() {
         const teamMembers = this.state.teamMembers;
-        this.setState({show: teamMembers && teamMembers.length > 1 && (!UserAgent.isMobile() && !UserAgent.isMobileApp() && !isMobile())});
+        this.setState({show: teamMembers && teamMembers.length > 1 && (!UserAgent.isMobile() && !UserAgent.isMobileApp() && !Utils.isMobile())});
         this.setStyles();
     }
 
@@ -92,6 +93,7 @@ export default class TeamSidebar extends React.Component {
         }
 
         const myTeams = [];
+        const isSystemAdmin = Utils.isSystemAdmin(UserStore.getCurrentUser().roles);
         const isAlreadyMember = new Map();
         let moreTeams = false;
 
@@ -151,16 +153,15 @@ export default class TeamSidebar extends React.Component {
                     contents={<i className='fa fa-plus'/>}
                 />
             );
-        } else {
+        } else if (global.window.mm_config.EnableTeamCreation === 'true' || isSystemAdmin) {
             teams.push(
                 <TeamButton
                     key='more_teams'
-                    url=''
-                    disabled={true}
+                    url='/create_team'
                     tip={
                         <FormattedMessage
-                            id='team_sidebar.no_more_teams'
-                            defaultMessage='No other teams to join. Create a new team from Main Menu or contact your administrator.'
+                            id='navbar_dropdown.create'
+                            defaultMessage='Create a New Team'
                         />
                     }
                     contents={<i className='fa fa-plus'/>}

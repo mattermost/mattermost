@@ -82,14 +82,20 @@ export default class Sidebar extends React.Component {
         let msgs = 0;
         let mentions = 0;
         const unreadCounts = this.state.unreadCounts;
+        const teamMembers = this.state.teamMembers;
 
         Object.keys(unreadCounts).forEach((chId) => {
             const channel = ChannelStore.get(chId);
 
-            if (channel && (!channel.team_id || channel.team_id === this.state.currentTeam.id)) {
+            if (channel && channel.type === 'D' && (!channel.team_id || channel.team_id === this.state.currentTeam.id)) {
                 msgs += unreadCounts[chId].msgs;
                 mentions += unreadCounts[chId].mentions;
             }
+        });
+
+        teamMembers.forEach((member) => {
+            msgs += member.msg_count;
+            mentions += member.mention_count;
         });
 
         return {msgs, mentions};
@@ -97,6 +103,7 @@ export default class Sidebar extends React.Component {
 
     getStateFromStores() {
         const members = ChannelStore.getMyMembers();
+        const teamMembers = TeamStore.getMyTeamMembers();
         const currentChannelId = ChannelStore.getCurrentId();
         const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 999);
         const channelList = ChannelUtils.buildDisplayableChannelList(Object.assign([], ChannelStore.getAll()));
@@ -104,6 +111,7 @@ export default class Sidebar extends React.Component {
         return {
             activeId: currentChannelId,
             members,
+            teamMembers,
             ...channelList,
             unreadCounts: JSON.parse(JSON.stringify(ChannelStore.getUnreadCounts())),
             showTutorialTip: tutorialStep === TutorialSteps.CHANNEL_POPOVER,
