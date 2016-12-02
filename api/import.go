@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"io"
 	"regexp"
+	"unicode/utf8"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
@@ -19,10 +20,24 @@ import (
 //
 
 func ImportPost(post *model.Post) {
-	post.Hashtags, _ = model.ParseHashtags(post.Message)
+	for messageRuneCount := utf8.RuneCountInString(post.Message); messageRuneCount > 0; messageRuneCount = utf8.RuneCountInString(post.Message) {
+		var remainder string
+		if messageRuneCount > model.POST_MESSAGE_MAX_RUNES {
+			remainder = string(([]rune(post.Message))[model.POST_MESSAGE_MAX_RUNES:])
+			post.Message = truncateRunes(post.Message, model.POST_MESSAGE_MAX_RUNES)
+		} else {
+			remainder = ""
+		}
 
-	if result := <-Srv.Store.Post().Save(post); result.Err != nil {
-		l4g.Debug(utils.T("api.import.import_post.saving.debug"), post.UserId, post.Message)
+		post.Hashtags, _ = model.ParseHashtags(post.Message)
+
+		if result := <-Srv.Store.Post().Save(post); result.Err != nil {
+			l4g.Debug(utils.T("api.import.import_post.saving.debug"), post.UserId, post.Message)
+		}
+
+		post.Id = ""
+		post.CreateAt++
+		post.Message = remainder
 	}
 }
 
