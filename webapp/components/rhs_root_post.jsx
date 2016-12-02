@@ -283,7 +283,7 @@ export default class RhsRootPost extends React.Component {
         } else if (PostUtils.isSystemMessage(post)) {
             userProfile = (
                 <UserProfile
-                    user={user}
+                    user={{}}
                     overwriteName={Constants.SYSTEM_MESSAGE_PROFILE_NAME}
                     overwriteImage={Constants.SYSTEM_MESSAGE_PROFILE_IMAGE}
                     disablePopover={true}

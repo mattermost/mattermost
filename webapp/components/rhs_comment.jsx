@@ -477,7 +477,7 @@ export default class RhsComment extends React.Component {
         } else if (PostUtils.isSystemMessage(post)) {
             userProfile = (
                 <UserProfile
-                    user={this.props.user}
+                    user={{}}
                     overwriteName={Constants.SYSTEM_MESSAGE_PROFILE_NAME}
                     overwriteImage={Constants.SYSTEM_MESSAGE_PROFILE_IMAGE}
                     disablePopover={true}
