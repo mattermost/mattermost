@@ -261,19 +261,3 @@ export function autocompleteChannels(term, success, error) {
         }
     );
 }
-
-export function getByChannelName(channelName, success, error) {
-    Client.getByChannelName(
-        channelName,
-        (data) => {
-            if (success) {
-                success(data);
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
-            }
-        }
-    );
-}

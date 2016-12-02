@@ -1432,13 +1432,13 @@ export default class Client {
         end(this.handleResponse.bind(this, 'getMyChannelMembers', success, error));
     }
 
-    getByChannelName(channelName, success, error) {
+    getChannelByName(channelName, success, error) {
         request.
         get(`${this.getChannelsRoute()}/name/${channelName}`).
         set(this.defaultHeaders).
         type('application/json').
         accept('application/json').
-        end(this.handleResponse.bind(this, 'getByChannelName', success, error));
+        end(this.handleResponse.bind(this, 'getChannelByName', success, error));
     }
 
     getChannelStats(channelId, success, error) {

@@ -427,12 +427,12 @@ describe('Client.Channels', function() {
         });
     });
 
-    it('getByChannelName', function(done) {
+    it('getChannelByName', function(done) {
         TestHelper.initBasic(() => {
-            TestHelper.basicClient().getByChannelName(
+            TestHelper.basicClient().getChannelByName(
                 TestHelper.basicChannel().name,
                 function(data) {
-                    assert.equal(data.channel.name, TestHelper.basicChannel().name);
+                    assert.equal(data.name, TestHelper.basicChannel().name);
                     done();
                 },
                 function(err) {

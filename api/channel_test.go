@@ -1629,3 +1629,16 @@ func TestAutocompleteChannels(t *testing.T) {
 		t.Fatal("should have failed - bad team id")
 	}
 }
+
+func TestGetChannelByName(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+
+	if _, err := Client.GetChannelByName(th.BasicChannel.Name); err != nil {
+		t.Fatal("Failed to get channel")
+	}
+
+	if _, err := Client.GetChannelByName("InvalidChannelName"); err == nil {
+		t.Fatal("Failed to get team")
+	}
+}
