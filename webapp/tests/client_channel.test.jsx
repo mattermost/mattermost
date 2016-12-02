@@ -432,7 +432,7 @@ describe('Client.Channels', function() {
             TestHelper.basicClient().getByChannelName(
                 TestHelper.basicChannel().name,
                 function(data) {
-                    assert.equal(data.name, TestHelper.basicChannel().name);
+                    assert.equal(data.channel.name, TestHelper.basicChannel().name);
                     done();
                 },
                 function(err) {
