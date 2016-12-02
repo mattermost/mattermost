@@ -537,3 +537,62 @@ func TestGetRecentlyActiveUsers(t *testing.T) {
 		t.Fatal("should have been at least 2")
 	}
 }
+
+func TestAdminCreateUser(t *testing.T) {
+	th := Setup().InitSystemAdmin().InitBasic()
+	Client := th.SystemAdminClient
+	team := th.SystemAdminTeam
+
+	user := model.User{Email: strings.ToLower("success+"+model.NewId()) + "@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "hello1", Username: "n" + model.NewId()}
+
+	if _, err := th.BasicClient.AdminCreateUser(&user, ""); err == nil {
+		t.Fatal("Shouldn't have permissions")
+	}
+
+	ruser, err := Client.AdminCreateUser(&user, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	LinkUserToTeam(ruser.Data.(*model.User), team)
+
+	if ruser.Data.(*model.User).Nickname != user.Nickname {
+		t.Fatal("nickname didn't match")
+	}
+
+	if ruser.Data.(*model.User).Password != "" {
+		t.Fatal("password wasn't blank")
+	}
+
+	if _, err := Client.AdminCreateUser(ruser.Data.(*model.User), ""); err == nil {
+		t.Fatal("Cannot create an existing")
+	}
+
+	ruser.Data.(*model.User).Id = ""
+	ruser.Data.(*model.User).Username = "n" + model.NewId()
+	ruser.Data.(*model.User).Password = "passwd1"
+	if _, err := Client.AdminCreateUser(ruser.Data.(*model.User), ""); err != nil {
+		if err.Message != "An account with that email already exists." {
+			t.Fatal(err)
+		}
+	}
+
+	ruser.Data.(*model.User).Email = "success+" + model.NewId() + "@simulator.amazonses.com"
+	ruser.Data.(*model.User).Username = user.Username
+	if _, err := Client.AdminCreateUser(ruser.Data.(*model.User), ""); err != nil {
+		if err.Message != "An account with that username already exists." {
+			t.Fatal(err)
+		}
+	}
+
+	ruser.Data.(*model.User).Email = ""
+	if _, err := Client.AdminCreateUser(ruser.Data.(*model.User), ""); err != nil {
+		if err.Message != "Invalid email" {
+			t.Fatal(err)
+		}
+	}
+
+	if _, err := Client.DoApiPost("/admin/users/create", "garbage"); err == nil {
+		t.Fatal("should have been an error")
+	}
+}

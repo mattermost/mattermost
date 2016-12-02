@@ -50,6 +50,7 @@ func InitAdmin() {
 	BaseRoutes.Admin.Handle("/saml_cert_status", ApiAdminSystemRequired(samlCertificateStatus)).Methods("GET")
 	BaseRoutes.Admin.Handle("/cluster_status", ApiAdminSystemRequired(getClusterStatus)).Methods("GET")
 	BaseRoutes.Admin.Handle("/recently_active_users/{team_id:[A-Za-z0-9]+}", ApiUserRequired(getRecentlyActiveUsers)).Methods("GET")
+	BaseRoutes.Admin.Handle("/users/create", ApiAdminSystemRequired(adminCreateUser)).Methods("POST")
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -728,4 +729,83 @@ func getRecentlyActiveUsers(c *Context, w http.ResponseWriter, r *http.Request) 
 		w.Write([]byte(model.UserMapToJson(profiles)))
 	}
 
+}
+
+func adminCreateUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	user := model.UserFromJson(r.Body)
+
+	if user == nil {
+		c.SetInvalidParam("createUser", "user")
+		return
+	}
+
+	user.EmailVerified = false
+
+	if !AdminCheckUserDomain(user, utils.Cfg.TeamSettings.RestrictCreationToDomains) {
+		c.Err = model.NewLocAppError("createUser", "api.user.create_user.accepted_domain.app_error", nil, "")
+		return
+	}
+
+	ruser, err := AdminCreateUser(user)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(ruser.ToJson()))
+}
+
+func AdminCheckUserDomain(user *model.User, domains string) bool {
+	if len(domains) == 0 {
+		return true
+	}
+
+	domainArray := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(domains, "@", " ", -1), ",", " ", -1))))
+
+	matched := false
+	for _, d := range domainArray {
+		if strings.HasSuffix(strings.ToLower(user.Email), "@"+d) {
+			matched = true
+			break
+		}
+	}
+
+	return matched
+}
+
+func AdminCreateUser(user *model.User) (*model.User, *model.AppError) {
+	user.Roles = model.ROLE_SYSTEM_USER.Id
+	user.MakeNonNil()
+	user.Locale = *utils.Cfg.LocalizationSettings.DefaultClientLocale
+
+	if err := utils.IsPasswordValid(user.Password); user.AuthService == "" && err != nil {
+		return nil, err
+	}
+
+	if result := <-Srv.Store.User().Save(user); result.Err != nil {
+		l4g.Error(utils.T("api.user.create_user.save.error"), result.Err)
+		return nil, result.Err
+	} else {
+		ruser := result.Data.(*model.User)
+
+		if user.EmailVerified {
+			if cresult := <-Srv.Store.User().VerifyEmail(ruser.Id); cresult.Err != nil {
+				l4g.Error(utils.T("api.user.create_user.verified.error"), cresult.Err)
+			}
+		}
+
+		pref := model.Preference{UserId: ruser.Id, Category: model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, Name: ruser.Id, Value: "0"}
+		if presult := <-Srv.Store.Preference().Save(&model.Preferences{pref}); presult.Err != nil {
+			l4g.Error(utils.T("api.user.create_user.tutorial.error"), presult.Err.Message)
+		}
+
+		ruser.Sanitize(map[string]bool{})
+
+		// This message goes to everyone, so the teamId, channelId and userId are irrelevant
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_NEW_USER, "", "", "", nil)
+		message.Add("user_id", ruser.Id)
+		go Publish(message)
+
+		return ruser, nil
+	}
 }

@@ -906,6 +906,17 @@ func (c *Client) GetRecentlyActiveUsers(teamId string) (*Result, *AppError) {
 	}
 }
 
+// AdminCreateUser creates a user in the system based on the provided user struct.
+func (c *Client) AdminCreateUser(user *User, hash string) (*Result, *AppError) {
+	if r, err := c.DoApiPost("/admin/users/create", user.ToJson()); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), UserFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) GetAllAudits() (*Result, *AppError) {
 	if r, err := c.DoApiGet("/admin/audits", "", ""); err != nil {
 		return nil, err
