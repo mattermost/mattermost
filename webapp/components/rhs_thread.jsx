@@ -65,6 +65,7 @@ export default class RhsThread extends React.Component {
         state.compactDisplay = PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT;
         state.flaggedPosts = PreferenceStore.getCategory(Constants.Preferences.CATEGORY_FLAGGED_POST);
         state.statuses = Object.assign({}, UserStore.getStatuses());
+        state.previewsCollapsed = PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLLAPSE_DISPLAY, 'false');
 
         this.state = state;
     }
@@ -130,6 +131,10 @@ export default class RhsThread extends React.Component {
             return true;
         }
 
+        if (nextState.previewsCollapsed !== this.state.previewsCollapsed) {
+            return true;
+        }
+
         if (!Utils.areObjectsEqual(nextState.flaggedPosts, this.state.flaggedPosts)) {
             return true;
         }
@@ -162,10 +167,16 @@ export default class RhsThread extends React.Component {
         });
     }
 
-    onPreferenceChange() {
+    onPreferenceChange(category) {
+        let previewSuffix = '';
+        if (category === Preferences.CATEGORY_DISPLAY_SETTINGS) {
+            previewSuffix = '_' + Utils.generateId();
+        }
+
         this.setState({
             compactDisplay: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT,
-            flaggedPosts: PreferenceStore.getCategory(Constants.Preferences.CATEGORY_FLAGGED_POST)
+            flaggedPosts: PreferenceStore.getCategory(Constants.Preferences.CATEGORY_FLAGGED_POST),
+            previewsCollapsed: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLLAPSE_DISPLAY, 'false') + previewSuffix
         });
         this.forceUpdateInfo();
     }
@@ -300,6 +311,7 @@ export default class RhsThread extends React.Component {
                                 useMilitaryTime={this.props.useMilitaryTime}
                                 isFlagged={isRootFlagged}
                                 status={rootStatus}
+                                previewCollapsed={this.state.previewsCollapsed}
                             />
                             <div className='post-right-comments-container'>
                                 {postsArray.map((comPost) => {

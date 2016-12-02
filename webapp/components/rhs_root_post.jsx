@@ -59,6 +59,10 @@ export default class RhsRootPost extends React.Component {
             return true;
         }
 
+        if (nextProps.previewCollapsed !== this.props.previewCollapsed) {
+            return true;
+        }
+
         if (!Utils.areObjectsEqual(nextProps.post, this.props.post)) {
             return true;
         }
@@ -388,6 +392,7 @@ export default class RhsRootPost extends React.Component {
                             <PostBodyAdditionalContent
                                 post={post}
                                 message={messageWrapper}
+                                previewCollapsed={this.props.previewCollapsed}
                             />
                             {fileAttachment}
                             <ReactionListContainer
@@ -413,5 +418,6 @@ RhsRootPost.propTypes = {
     compactDisplay: React.PropTypes.bool,
     useMilitaryTime: React.PropTypes.bool.isRequired,
     isFlagged: React.PropTypes.bool,
-    status: React.PropTypes.string
+    status: React.PropTypes.string,
+    previewCollapsed: React.PropTypes.string
 };
