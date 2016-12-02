@@ -306,6 +306,7 @@ describe('Client.User', function() {
             TestHelper.basicClient().emailToOAuth(
                 user.email,
                 'new_password',
+                '',
                 'gitlab',
                 function() {
                     throw Error('shouldnt work');
