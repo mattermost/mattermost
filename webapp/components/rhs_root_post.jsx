@@ -276,7 +276,7 @@ export default class RhsRootPost extends React.Component {
                         user={user}
                         disablePopover={true}
                     />
-                )
+                );
             }
 
             botIndicator = <li className='col col__name bot-indicator'>{'BOT'}</li>;

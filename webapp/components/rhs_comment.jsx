@@ -470,7 +470,7 @@ export default class RhsComment extends React.Component {
                         user={this.props.user}
                         disablePopover={true}
                     />
-                )
+                );
             }
 
             botIndicator = <li className='col col__name bot-indicator'>{'BOT'}</li>;

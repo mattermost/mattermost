@@ -5,8 +5,7 @@ import ProfilePopover from './profile_popover.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Client from 'client/web_client.jsx';
 
-import {Popover, OverlayTrigger, Tooltip} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import {OverlayTrigger} from 'react-bootstrap';
 
 import React from 'react';
 

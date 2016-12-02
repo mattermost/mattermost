@@ -11,6 +11,7 @@ const UserStatuses = Constants.UserStatuses;
 const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 
 import {Popover, OverlayTrigger, Tooltip} from 'react-bootstrap';
+import {FormattedMessage} from 'react-intl';
 import React from 'react';
 
 export default class ProfilePopover extends React.Component {
@@ -67,7 +68,7 @@ export default class ProfilePopover extends React.Component {
     }
 
     render() {
-        let popoverProps = Object.assign({}, this.props);
+        const popoverProps = Object.assign({}, this.props);
         delete popoverProps.user;
         delete popoverProps.src;
         delete popoverProps.status;
@@ -184,7 +185,7 @@ export default class ProfilePopover extends React.Component {
 
         dataContent.push(webrtc);
 
-        let email = this.props.user.email;
+        const email = this.props.user.email;
         if (global.window.mm_config.ShowEmailAddress === 'true' || UserStore.isSystemAdminForCurrentUser() || this.props.user === UserStore.getCurrentUser()) {
             dataContent.push(
                 <div
@@ -214,9 +215,10 @@ export default class ProfilePopover extends React.Component {
     }
 }
 
-ProfilePopover.propTypes = {
+ProfilePopover.propTypes = Object.assign({
     src: React.PropTypes.string.isRequired,
     user: React.PropTypes.object.isRequired,
     status: React.PropTypes.string.isRequired,
     isBusy: React.PropTypes.bool.isRequired
-};
+}, Popover.propTypes);
+delete ProfilePopover.propTypes.id;
