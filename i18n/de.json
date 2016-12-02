@@ -441,11 +441,11 @@
   },
   {
     "id": "api.command.team_mismatch.app_error",
-    "translation": "Cannot update commands across teams"
+    "translation": "Kann Befehle nicht über Teams hinweg aktualisieren"
   },
   {
     "id": "api.command.update.app_error",
-    "translation": "Die Berechtigungen für den Lösch-Befehl sind ungeeignet"
+    "translation": "Die Berechtigungen für den Aktualisierungsbefehl sind ungeeignet"
   },
   {
     "id": "api.command_away.desc",
@@ -593,11 +593,11 @@
   },
   {
     "id": "api.command_offline.desc",
-    "translation": "Setzen Sie Ihren Status auf Offline"
+    "translation": "Setzen Sie Ihren Status auf offline"
   },
   {
     "id": "api.command_offline.name",
-    "translation": "Offline"
+    "translation": "offline"
   },
   {
     "id": "api.command_offline.success",
@@ -605,11 +605,11 @@
   },
   {
     "id": "api.command_online.desc",
-    "translation": "Setzen Sie Ihren Status auf Online"
+    "translation": "Setzen Sie Ihren Status auf online"
   },
   {
     "id": "api.command_online.name",
-    "translation": "Online"
+    "translation": "online"
   },
   {
     "id": "api.command_online.success",
@@ -617,11 +617,11 @@
   },
   {
     "id": "api.command_shortcuts.browser",
-    "translation": "#### Eingebaute Browser Befehle\n\nAlt+Links: Vorheriger Kanal in Ihrem Verlauf\nAlt+Rechts: Nächster Kanal in Ihrem Verlauf\nStrg+Plus: Schriftgröße vergrößern (hineinzoomen)\nStrg+Minus: Schriftgröße verkleinern (herauszoomen)\nShift+Hoch (im Eingabefeld): Text bis zur vorherigen Zeile markieren\nShift+Runter (im Eingabefeld): Text bis zur nächsten Zeile markieren\nShift+Enter (im Eingabefeld): Eine neue Zeile erstellen\n"
+    "translation": "#### Eingebaute Browser-Befehle\n\nAlt+Links: Vorheriger Kanal in Ihrem Verlauf\nAlt+Rechts: Nächster Kanal in Ihrem Verlauf\nStrg+Plus: Schriftgröße vergrößern (hineinzoomen)\nStrg+Minus: Schriftgröße verkleinern (herauszoomen)\nShift+Hoch (im Eingabefeld): Text bis zur vorherigen Zeile markieren\nShift+Runter (im Eingabefeld): Text bis zur nächsten Zeile markieren\nShift+Enter (im Eingabefeld): Eine neue Zeile erstellen\n"
   },
   {
     "id": "api.command_shortcuts.browser_mac",
-    "translation": "#### Eingebaute Browser Befehle\n\nCmd+[: Vorheriger Kanal in Ihrem Verlauf\nCmd+]: Nächster Kanal in Ihrem Verlauf\nCmd+Plus: Schriftgröße erhöhen (hineinzoomen)\nCmd+Minus: Schriftgröße verkleinern (herauszoomen)\nShift+Hoch (im Eingabefeld): Text bis zur vorherigen Zeile markieren\nShift+Runter (im Eingabefeld): Text bis zur nächsten Zeile markieren\nShift+Enter (im Eingabefeld): Eine neue Zeile erstellen\n"
+    "translation": "#### Eingebaute Browser-Befehle\n\nCmd+[: Vorheriger Kanal in Ihrem Verlauf\nCmd+]: Nächster Kanal in Ihrem Verlauf\nCmd+Plus: Schriftgröße erhöhen (hineinzoomen)\nCmd+Minus: Schriftgröße verkleinern (herauszoomen)\nShift+Hoch (im Eingabefeld): Text bis zur vorherigen Zeile markieren\nShift+Runter (im Eingabefeld): Text bis zur nächsten Zeile markieren\nShift+Enter (im Eingabefeld): Eine neue Zeile erstellen\n"
   },
   {
     "id": "api.command_shortcuts.desc",
@@ -637,11 +637,11 @@
   },
   {
     "id": "api.command_shortcuts.msgs",
-    "translation": "#### Mitteilungen\n\nEsc: Alle Mitteilungen im aktuellen Kanal als gelesen markieren\nStrg+Hoch (in leerem Eingabefeld): Vorherige Mitteilung oder Slash Befehl anzeigen\nStrg+Runter (in leerem Eingabefeld): Nächste Mitteilung oder Slash Befehl anzeigen\nHoch (in leerem Eingabefeld): Die letzte Nachricht im aktuellen Kanal bearbeiten\n@[Zeichen]+Tab: @Benutzername beginnend mit [Zeichen] vervollständigen\n#[Zeichen]+Tab: Kanal beginnend mit [Zeichen] vervollständigen\n:[Zeichen]+Tab: Emoji beginnend mit [Zeichen] vervollständigen\n\\\n"
+    "translation": "#### Mitteilungen\n\nEsc: Alle Mitteilungen im aktuellen Kanal als gelesen markieren\nStrg+Hoch (in leerem Eingabefeld): Vorherige Mitteilung oder Slash-Befehl anzeigen\nStrg+Runter (in leerem Eingabefeld): Nächste Mitteilung oder Slash-Befehl anzeigen\nHoch (in leerem Eingabefeld): Die letzte Nachricht im aktuellen Kanal bearbeiten\n@[Zeichen]+Tab: @Benutzername beginnend mit [Zeichen] vervollständigen\n~[Zeichen]+Tab: Kanal beginnend mit [Zeichen] vervollständigen\n:[Zeichen]+Tab: Emoji beginnend mit [Zeichen] vervollständigen\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs_mac",
-    "translation": "#### Nachrichten\n\nEsc: Alle Mitteilungen im aktuellen Kanal als gelesen markieren\nCmd+Hoch (in leerem Eingabefeld): Vorherige Mitteilung oder Slash Befehl anzeigen\nCmd+Runter (in leerem Eingabefeld): Nächste Mitteilung oder Slash Befehl anzeigen\nHoch (in leerem Eingabefeld): Ihre letzte Nachricht im aktuellen Kanal bearbeiten\n@[Zeichen]+Tab: @Benutzername beginnend mit [Zeichen] vervollständigen\n#[Zeichen]+Tab: Kanal beginnend mit [Zeichen] vervollständigen\n:[Zeichen]+Tab: Emoji beginnend mit [Zeichen] vervollständigen\n\n "
+    "translation": "#### Nachrichten\n\nEsc: Alle Mitteilungen im aktuellen Kanal als gelesen markieren\nCmd+Hoch (in leerem Eingabefeld): Vorherige Mitteilung oder Slash-Befehl anzeigen\nCmd+Runter (in leerem Eingabefeld): Nächste Mitteilung oder Slash-Befehl anzeigen\nHoch (in leerem Eingabefeld): Ihre letzte Nachricht im aktuellen Kanal bearbeiten\n@[Zeichen]+Tab: @Benutzername beginnend mit [Zeichen] vervollständigen\n~[Zeichen]+Tab: Kanal beginnend mit [Zeichen] vervollständigen\n:[Zeichen]+Tab: Emoji beginnend mit [Zeichen] vervollständigen\n\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -791,7 +791,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Das Emoji konnte nicht erstellt werden. Das Bild darf maximal 64 KB groß sein."
+    "translation": "Das Emoji konnte nicht erstellt werden. Das Bild darf maximal 1 MB groß sein."
   },
   {
     "id": "api.emoji.delete.permissions.app_error",
@@ -822,8 +822,20 @@
     "translation": "Das Emoji kann nicht erstellt werden. Die Datei muss vom Typ PNG, JPEG oder GIF sein."
   },
   {
-    "id": "api.emoji.upload.large_image.app_error",
-    "translation": "Das Emoji konnte nicht erstellt werden. Das Bild darf maximal 128 x 128 pixel groß sein."
+    "id": "api.emoji.upload.large_image.decode_error",
+    "translation": "Konnte Emoji nicht erstellen. Es trat ein Fehler beim Dekodieren des Bildes auf."
+  },
+  {
+    "id": "api.emoji.upload.large_image.encode_error",
+    "translation": "Konnte Emoji nicht erstellen. Es trat ein Fehler beim Umwandeln des Bildes auf."
+  },
+  {
+    "id": "api.emoji.upload.large_image.gif_decode_error",
+    "translation": "Konnte Emoji nicht erstellen. Es trat ein Fehler beim Dekodieren des GIF auf."
+  },
+  {
+    "id": "api.emoji.upload.large_image.gif_encode_error",
+    "translation": "Konnte Emoji nicht erstellen. Es trat ein Fehler beim Umwandeln des GIF auf."
   },
   {
     "id": "api.file.get_file.public_disabled.app_error",
@@ -991,7 +1003,7 @@
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
-    "translation": "File above maximum dimensions could not be uploaded: {{.Filename}}"
+    "translation": "Datei über den maximalen Dimensionen konnte nicht hochgeladen werden: {{.Filename}}"
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -1255,7 +1267,7 @@
   },
   {
     "id": "api.post.create_post.root_id.app_error",
-    "translation": "Ungültiger Root-ID Parameter"
+    "translation": "Ungültiger RootId Parameter"
   },
   {
     "id": "api.post.create_webhook_post.creating.app_error",
@@ -1263,7 +1275,7 @@
   },
   {
     "id": "api.post.delete_flagged_post.app_error.warn",
-    "translation": "Konnte markierte Nachrichten Einstellungen beim entfernen der Nachricht nicht löschen, err=%v"
+    "translation": "Konnte markierte Nachrichten Einstellungen beim Entfernen der Nachricht nicht löschen, err=%v"
   },
   {
     "id": "api.post.delete_post.permissions.app_error",
@@ -1272,6 +1284,18 @@
   {
     "id": "api.post.delete_post_files.app_error.warn",
     "translation": "Es trat ein Fehler beim Löschen von Dateien für die Nachricht auf, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.post.disabled_all",
+    "translation": "@all wurde deaktiviert, da der Kanal mehr als {{.Users}} Benutzer hat."
+  },
+  {
+    "id": "api.post.disabled_channel",
+    "translation": "@channel wurde deaktiviert, da der Kanal mehr als {{.Users}} Benutzer hat."
+  },
+  {
+    "id": "api.post.disabled_here",
+    "translation": "@here wurde deaktiviert, da der Kanal mehr als {{.Users}} Benutzer hat."
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
@@ -1333,7 +1357,7 @@
   },
   {
     "id": "api.post.init.debug",
-    "translation": "Initialisieren Nachrichten API Routen"
+    "translation": "Initialisiere API-Routen für Nachrichten"
   },
   {
     "id": "api.post.make_direct_channel_visible.get_2_members.error",
@@ -1489,7 +1513,7 @@
   },
   {
     "id": "api.server.start_server.listening.info",
-    "translation": "Server ist online auf %v"
+    "translation": "Server hört auf %v"
   },
   {
     "id": "api.server.start_server.rate.info",
@@ -1525,7 +1549,7 @@
   },
   {
     "id": "api.server.stop_server.stopping.info",
-    "translation": "Stoppe Server..."
+    "translation": "Server wird heruntergefahren..."
   },
   {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
@@ -1541,7 +1565,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.failed_to_add_user",
-    "translation": "Fehler beim hinzufügen des Benutzers zum Kanal: {{.Username}}\r\n"
+    "translation": "Fehler beim Hinzufügen des Benutzers zum Kanal: {{.Username}}\r\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.import_failed",
@@ -1618,6 +1642,10 @@
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
     "translation": "Benutzer mit vorhandenem Account verbunden: {{.Email}}, {{.Username}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.merge_existing_failed",
+    "translation": "Tried to merge user with existing account: {{.Email}}, {{.Username}}, but failed to add the user to this team.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
@@ -2557,7 +2585,7 @@
   },
   {
     "id": "api.webrtc.init.debug",
-    "translation": "Initialisiere WebRTC API Routen "
+    "translation": "Initialisiere WebRTC API Routen"
   },
   {
     "id": "api.webrtc.register_token.app_error",
@@ -2681,7 +2709,7 @@
   },
   {
     "id": "ent.ldap.create_fail",
-    "translation": "Unable to create LDAP user."
+    "translation": "Konnte LDAP Benutzer nicht erstellen."
   },
   {
     "id": "ent.ldap.disabled.app_error",
@@ -2738,6 +2766,14 @@
   {
     "id": "ent.ldap.validate_filter.app_error",
     "translation": "Ungültiger AD/LDAP Filter"
+  },
+  {
+    "id": "ent.metrics.starting.info",
+    "translation": "Metrics and profiling server is listening on %v"
+  },
+  {
+    "id": "ent.metrics.stopping.info",
+    "translation": "Metrics and profiling server is stopping on %v"
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",
@@ -3314,6 +3350,10 @@
   {
     "id": "model.config.is_valid.max_file_size.app_error",
     "translation": "Ungültige maximale Dateigröße in Dateieinstellungen. Muss 0 oder eine positive Zahl sein."
+  },
+  {
+    "id": "model.config.is_valid.max_notify_per_channel.app_error",
+    "translation": "Ungültige maximale Anzahl an Benachrichtigungen pro Kanal in Teameinstellungen.  Muss eine positive Zahl sein."
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
@@ -4166,6 +4206,10 @@
   {
     "id": "store.sql_channel.save_member.save.app_error",
     "translation": "Wir konnten die Kanalmitglieder nicht speichern"
+  },
+  {
+    "id": "store.sql_channel.search.app_error",
+    "translation": "Es trat ein Fehler beim Suchen nach Kanälen auf"
   },
   {
     "id": "store.sql_channel.set_last_viewed_at.app_error",

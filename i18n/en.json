@@ -676,18 +676,6 @@
     "translation": "Invalid {{.Name}} parameter"
   },
   {
-    "id": "api.post.disabled_here",
-    "translation": "@here has been disabled because the channel has more than {{.Users}} users."
-  },
-  {
-    "id": "api.post.disabled_all",
-    "translation": "@all has been disabled because the channel has more than {{.Users}} users."
-  },
-  {
-    "id": "api.post.disabled_channel",
-    "translation": "@channel has been disabled because the channel has more than {{.Users}} users."
-  },
-  {
     "id": "api.context.invalid_team_url.debug",
     "translation": "TeamURL accessed when not valid. Team URL should not be used in api functions or those that are team independent"
   },
@@ -1300,6 +1288,18 @@
   {
     "id": "api.post.delete_post_files.app_error.warn",
     "translation": "Encountered error when deleting files for post, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.post.disabled_all",
+    "translation": "@all has been disabled because the channel has more than {{.Users}} users."
+  },
+  {
+    "id": "api.post.disabled_channel",
+    "translation": "@channel has been disabled because the channel has more than {{.Users}} users."
+  },
+  {
+    "id": "api.post.disabled_here",
+    "translation": "@here has been disabled because the channel has more than {{.Users}} users."
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
@@ -2696,14 +2696,6 @@
     "translation": "System Console is set to read-only when High Availability is enabled."
   },
   {
-    "id": "ent.metrics.starting.info",
-    "translation": "Metrics and profiling server is listening on %v"
-  },
-  {
-    "id": "ent.metrics.stopping.info",
-    "translation": "Metrics and profiling server is stopping on %v"
-  },
-  {
     "id": "ent.cluster.starting.info",
     "translation": "Cluster internode communication is listening on %v with hostname=%v id=%v"
   },
@@ -2794,6 +2786,14 @@
   {
     "id": "ent.ldap.validate_filter.app_error",
     "translation": "Invalid AD/LDAP Filter"
+  },
+  {
+    "id": "ent.metrics.starting.info",
+    "translation": "Metrics and profiling server is listening on %v"
+  },
+  {
+    "id": "ent.metrics.stopping.info",
+    "translation": "Metrics and profiling server is stopping on %v"
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",
@@ -3368,12 +3368,12 @@
     "translation": "Invalid maximum channels per team for team settings.  Must be a positive number."
   },
   {
-    "id": "model.config.is_valid.max_notify_per_channel.app_error",
-    "translation": "Invalid maximum notifications per channel for team settings.  Must be a positive number."
-  },
-  {
     "id": "model.config.is_valid.max_file_size.app_error",
     "translation": "Invalid max file size for file settings. Must be a zero or positive number."
+  },
+  {
+    "id": "model.config.is_valid.max_notify_per_channel.app_error",
+    "translation": "Invalid maximum notifications per channel for team settings.  Must be a positive number."
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
@@ -4080,10 +4080,6 @@
     "translation": "We couldn't get channel type counts"
   },
   {
-    "id": "store.sql_channel.search.app_error",
-    "translation": "We encountered an error searching channels"
-  },
-  {
     "id": "store.sql_channel.check_open_channel_permissions.app_error",
     "translation": "We couldn't check the permissions"
   },
@@ -4250,6 +4246,10 @@
   {
     "id": "store.sql_channel.save_member.save.app_error",
     "translation": "We couldn't save the channel member"
+  },
+  {
+    "id": "store.sql_channel.search.app_error",
+    "translation": "We encountered an error searching channels"
   },
   {
     "id": "store.sql_channel.set_last_viewed_at.app_error",
