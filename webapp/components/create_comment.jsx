@@ -22,7 +22,6 @@ import * as PostActions from 'actions/post_actions.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {FormattedMessage} from 'react-intl';
-import {createPost} from 'actions/post_actions.jsx';
 
 const ActionTypes = Constants.ActionTypes;
 const KeyCodes = Constants.KeyCodes;
@@ -164,7 +163,7 @@ export default class CreateComment extends React.Component {
 
         GlobalActions.emitUserCommentedEvent(post);
 
-        createPost(post, false,
+        PostActions.createPost(post, false,
             () => {
                 // DO nothing.
             },

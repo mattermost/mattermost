@@ -274,7 +274,6 @@ export function removeReaction(channelId, postId, emojiName) {
 }
 
 export function createPost(post, doLoadPost, success, error) {
-
     Client.createPost(post,
         (data) => {
             if (doLoadPost) {

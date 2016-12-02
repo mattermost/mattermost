@@ -27,7 +27,6 @@ import Constants from 'utils/constants.jsx';
 
 import {FormattedHTMLMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
-import {createPost} from 'actions/post_actions.jsx';
 
 const Preferences = Constants.Preferences;
 const TutorialSteps = Constants.TutorialSteps;
@@ -158,7 +157,7 @@ export default class CreatePost extends React.Component {
 
         GlobalActions.emitUserPostedEvent(post);
 
-        createPost(post, false,
+        PostActions.createPost(post, false,
             () => {
                 // DO nothing.
             },
