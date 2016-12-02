@@ -169,7 +169,6 @@ export default class CreateComment extends React.Component {
             },
             (err) => {
                 if (err.id === 'api.post.create_post.root_id.app_error') {
-                    // this should never actually happen since you can't reply from this textbox
                     this.showPostDeletedModal();
                 } else {
                     this.forceUpdate();
