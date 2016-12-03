@@ -123,12 +123,12 @@ export default class ChannelInviteModal extends React.Component {
     }
 
     render() {
-        var inviteError = null;
+        let inviteError = null;
         if (this.state.inviteError) {
             inviteError = (<label className='has-error control-label'>{this.state.inviteError}</label>);
         }
 
-        var content;
+        let content;
         if (this.state.loading) {
             content = (<LoadingScreen/>);
         } else {

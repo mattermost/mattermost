@@ -271,7 +271,7 @@ export default class SearchResults extends React.Component {
 SearchResults.propTypes = {
     isMentionSearch: React.PropTypes.bool,
     useMilitaryTime: React.PropTypes.bool.isRequired,
-    toggleSize: React.PropTypes.function,
-    shrink: React.PropTypes.function,
+    toggleSize: React.PropTypes.func,
+    shrink: React.PropTypes.func,
     isFlaggedPosts: React.PropTypes.bool
 };

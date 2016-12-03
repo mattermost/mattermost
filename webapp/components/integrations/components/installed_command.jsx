@@ -2,11 +2,13 @@
 // See License.txt for license information.
 
 import React from 'react';
+import {Link} from 'react-router';
 import {FormattedMessage} from 'react-intl';
 
 export default class InstalledCommand extends React.Component {
     static get propTypes() {
         return {
+            team: React.PropTypes.object.isRequired,
             command: React.PropTypes.object.isRequired,
             onRegenToken: React.PropTypes.func.isRequired,
             onDelete: React.PropTypes.func.isRequired,
@@ -129,14 +131,14 @@ export default class InstalledCommand extends React.Component {
                         />
                     </a>
                     {' - '}
-                    <a
-                        href={'edit?id=' + command.id}
+                    <Link
+                        to={`/${this.props.team.name}/integrations/commands/edit?id=${command.id}`}
                     >
                         <FormattedMessage
                             id='installed_integrations.edit'
                             defaultMessage='Edit'
                         />
-                    </a>
+                    </Link>
                     {' - '}
                     <a
                         href='#'

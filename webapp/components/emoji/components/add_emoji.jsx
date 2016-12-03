@@ -14,13 +14,13 @@ import SpinnerButton from 'components/spinner_button.jsx';
 
 export default class AddEmoji extends React.Component {
     static propTypes = {
-        team: React.PropTypes.object.isRequired,
-        user: React.PropTypes.object.isRequired
-    }
+        team: React.PropTypes.object,
+        user: React.PropTypes.object
+    };
 
     static contextTypes = {
         router: React.PropTypes.object.isRequired
-    }
+    };
 
     constructor(props) {
         super(props);

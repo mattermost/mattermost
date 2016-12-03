@@ -1218,5 +1218,5 @@ WebrtcController.propTypes = {
     userId: React.PropTypes.string.isRequired,
     isCaller: React.PropTypes.bool.isRequired,
     expanded: React.PropTypes.bool.isRequired,
-    toggleSize: React.PropTypes.function
+    toggleSize: React.PropTypes.func
 };

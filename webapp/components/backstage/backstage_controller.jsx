@@ -4,6 +4,7 @@
 import React from 'react';
 
 import TeamStore from 'stores/team_store.jsx';
+import UserStore from 'stores/user_store.jsx';
 
 import BackstageSidebar from './components/backstage_sidebar.jsx';
 import BackstageNavbar from './components/backstage_navbar.jsx';
@@ -13,8 +14,7 @@ export default class BackstageController extends React.Component {
     static get propTypes() {
         return {
             children: React.PropTypes.node.isRequired,
-            params: React.PropTypes.object.isRequired,
-            user: React.PropTypes.object.isRequired
+            params: React.PropTypes.object.isRequired
         };
     }
 
@@ -24,6 +24,7 @@ export default class BackstageController extends React.Component {
         this.onTeamChange = this.onTeamChange.bind(this);
 
         this.state = {
+            user: UserStore.getCurrentUser(),
             team: props.params.team ? TeamStore.getByName(props.params.team) : TeamStore.getCurrent()
         };
     }
@@ -50,7 +51,7 @@ export default class BackstageController extends React.Component {
                 <div className='backstage-body'>
                     <BackstageSidebar
                         team={this.state.team}
-                        user={this.props.user}
+                        user={this.state.user}
                     />
                     {
                         React.Children.map(this.props.children, (child) => {
@@ -60,7 +61,7 @@ export default class BackstageController extends React.Component {
 
                             return React.cloneElement(child, {
                                 team: this.state.team,
-                                user: this.props.user
+                                user: this.state.user
                             });
                         })
                     }
