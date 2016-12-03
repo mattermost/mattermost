@@ -50,6 +50,7 @@ export default class FilePreview extends React.Component {
                     className={className}
                 >
                     {previewImage}
+                    {info.name}
                     <a
                         className='file-preview__remove'
                         onClick={this.handleRemove.bind(this, info.id)}
@@ -61,6 +62,7 @@ export default class FilePreview extends React.Component {
         });
 
         this.props.uploadsInProgress.forEach((clientId) => {
+            const {percent, fileName} = this.props.uploadsProgressPercent[clientId];
             previews.push(
                 <div
                     ref={clientId}
@@ -68,7 +70,8 @@ export default class FilePreview extends React.Component {
                     className='file-preview'
                     data-client-id={clientId}
                 >
-                    <FileUploadProgress percent={this.props.uploadsProgressPercent[clientId]}/>
+                    <FileUploadProgress percent={percent}/>
+                    <p>{fileName}</p>
                     <a
                         className='file-preview__remove'
                         onClick={this.handleRemove.bind(this, clientId)}

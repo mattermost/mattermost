@@ -24,6 +24,12 @@
         margin-left: 0;
     }
 
+    &.custom-file {
+        .file-preview__image, .file-icon.generic {
+            height: 80%;
+        }
+    }
+
     .spinner {
         height: 32px;
         left: 50%;
@@ -304,8 +310,7 @@
 }
 
 .file-upload-progress__circle {
-    margin: 30px;
-    margin-top: 20px;
+    margin: 10px 30px 5px 30px;
 
     .file-upload-progress__inside-text {
         font-size: 20px;

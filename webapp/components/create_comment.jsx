@@ -377,8 +377,8 @@ export default class CreateComment extends React.Component {
         }
     }
 
-    handleUploadProgress(clientId, percent) {
-        const uploadsProgressPercent = {...this.state.uploadsProgressPercent, [clientId]: percent};
+    handleUploadProgress(clientId, fileName, percent) {
+        const uploadsProgressPercent = {...this.state.uploadsProgressPercent, [clientId]: {percent, fileName}};
         this.setState({uploadsProgressPercent});
     }
 

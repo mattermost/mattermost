@@ -70,8 +70,8 @@ class FileUpload extends React.Component {
         this.props.onUploadError(err, clientId, channelId);
     }
 
-    fileUploadProgress(clientId, progress) {
-        this.props.onUploadProgress(clientId, progress.percent);
+    fileUploadProgress(clientId, fileName, progress) {
+        this.props.onUploadProgress(clientId, fileName, progress.percent);
     }
 
     uploadFiles(files) {

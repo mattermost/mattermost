@@ -20,7 +20,7 @@ export default class FileUploadProgress extends React.Component {
         } = Constants.FileUploadProgress;
         const percent = Math.floor(this.props.percent || 0);
         const radius = 50 - (strokeWidth / 2);
-        const {pathString, pathStyle} = this.computePathString(radius);
+        const {pathString, pathStyle} = this.computePathString(radius, percent);
 
         return (
             <svg
@@ -65,7 +65,7 @@ export default class FileUploadProgress extends React.Component {
                          a ${radius}, ${radius} 0 1 1 0, -${2 * radius}`,
             pathStyle: {
                 strokeDasharray: `${len}px ${len}px`,
-                strokeDashoffset: `${((100 - percent) / (100 * len))}px`,
+                strokeDashoffset: `${100 - percent}px`,
                 transition: 'stroke-dashoffset 0.6s ease 0s, stroke 0.6s ease'
             }
         };
