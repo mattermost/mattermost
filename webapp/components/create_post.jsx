@@ -1,7 +1,6 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import MsgTyping from './msg_typing.jsx';
 import Textbox from './textbox.jsx';
@@ -94,10 +93,9 @@ export default class CreatePost extends React.Component {
         }
 
         if (this.state.postError) {
-            const errorElement = $('.post-error');
-            errorElement.addClass('animation--highlight');
+            this.setState({errorClass: 'animation--highlight'});
             setTimeout(() => {
-                errorElement.removeClass('animation--highlight');
+                this.setState({errorClass: null});
             }, 1000);
             return;
         }
@@ -480,7 +478,8 @@ export default class CreatePost extends React.Component {
 
         let postError = null;
         if (this.state.postError) {
-            postError = <label className='control-label post-error'>{this.state.postError}</label>;
+            const postErrorClass = 'control-label post-error' + (this.state.errorClass ? (' ' + this.state.errorClass) : '');
+            postError = <label className={postErrorClass}>{this.state.postError}</label>;
         }
 
         let preview = null;
