@@ -185,14 +185,27 @@ export default class SelectTeam extends React.Component {
             );
         }
 
+        let headerButton;
+        if (isAlreadyMember.size) {
+            headerButton = (
+                <Link to='/'>
+                    <span className='fa fa-chevron-left'/>
+                    <FormattedMessage id='web.header.back'/>
+                </Link>
+            );
+        } else {
+            headerButton = (
+                <Link to='/'>
+                    <span className='fa fa-chevron-left'/>
+                    <FormattedMessage id='web.header.logout'/>
+                </Link>
+            );
+        }
         return (
             <div>
                 <ErrorBar/>
                 <div className='signup-header'>
-                    <Link to='/'>
-                        <span className='fa fa-chevron-left'/>
-                        <FormattedMessage id='web.header.back'/>
-                    </Link>
+                    {headerButton}
                 </div>
                 <div className='col-sm-12'>
                     <div className={'signup-team__container'}>

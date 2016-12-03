@@ -50,7 +50,8 @@ export default class AdminNavbarDropdown extends React.Component {
     }
 
     render() {
-        var teams = [];
+        const teams = [];
+        let switchTeams;
 
         if (this.state.teamMembers && this.state.teamMembers.length > 0) {
             for (var index in this.state.teamMembers) {
@@ -79,6 +80,20 @@ export default class AdminNavbarDropdown extends React.Component {
                     className='divider'
                 />
             );
+        } else {
+            switchTeams = (
+                <li>
+                    <Link
+                        to={'/select_team'}
+                    >
+                        <i className='fa fa-exchange'/>
+                        <FormattedMessage
+                            id='admin.nav.switch'
+                            defaultMessage='Team Selection'
+                        />
+                    </Link>
+                </li>
+            );
         }
 
         return (
@@ -104,6 +119,7 @@ export default class AdminNavbarDropdown extends React.Component {
                         role='menu'
                     >
                         {teams}
+                        {switchTeams}
                         <li
                             key='teamDiv'
                             className='divider'
