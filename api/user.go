@@ -467,7 +467,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.LogAuditWithUserId(id, "attempt")
 
 		if result := <-Srv.Store.User().Get(id); result.Err != nil {
-			c.LogAuditWithUserId(user.Id, "failure")
+			c.LogAuditWithUserId(id, "failure")
 			c.Err = result.Err
 			c.Err.StatusCode = http.StatusBadRequest
 			if einterfaces.GetMetricsInterface() != nil {
