@@ -167,27 +167,14 @@ export default class SearchableUserList extends React.Component {
         return (
             <div className='filtered-user-list'>
                 <div className='filter-row'>
-                    <div className='col-xs-9 col-sm-5'>
+                    <div className='col-xs-12'>
                         <input
                             ref='filter'
                             className='form-control filter-textbox'
-                            placeholder={Utils.localizeMessage('filtered_user_list.search', 'Press enter to search')}
+                            placeholder={Utils.localizeMessage('filtered_user_list.search', 'Search')}
                             onKeyPress={this.onSearchBoxKeyPress}
                             onChange={this.onSearchBoxChange}
                         />
-                    </div>
-                    <div className='col-xs-3 col-sm-2 filter-button'>
-                        <button
-                            type='button'
-                            className='btn btn-primary'
-                            onClick={this.doSearch}
-                            disabled={this.props.users == null}
-                        >
-                            <FormattedMessage
-                                id='filtered_user_list.searchButton'
-                                defaultMessage='Search'
-                            />
-                        </button>
                     </div>
                     <div className='col-sm-12'>
                         <span className='member-count pull-left'>{count}</span>

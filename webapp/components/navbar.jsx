@@ -671,6 +671,7 @@ export default class Navbar extends React.Component {
                     bsStyle='info'
                     placement='bottom'
                     id='header-popover'
+                    onClick={() => this.refs.headerOverlay.hide()}
                 >
                     <MessageWrapper
                         message={channel.header}
@@ -715,6 +716,7 @@ export default class Navbar extends React.Component {
                         bsStyle='info'
                         placement='bottom'
                         id='header-popover'
+                        onClick={() => this.refs.headerOverlay.hide()}
                     >
                         <div>
                             <FormattedMessage

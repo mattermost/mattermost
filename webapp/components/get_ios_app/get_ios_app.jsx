@@ -22,7 +22,7 @@ export default class GetIosApp extends React.Component {
                 >
                     <FormattedMessage
                         id='get_app.openMattermost'
-                        defaultMessage={IosAppUrlScheme ? 'Open in uChat App' : 'Download uChat App'}
+                        defaultMessage={IosAppUrlScheme ? 'Open in uChat App' : 'Download uChat for iOS'}
                     />
                 </a>
                 <a
