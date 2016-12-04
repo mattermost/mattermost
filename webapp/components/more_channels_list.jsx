@@ -186,7 +186,7 @@ export default class MoreChannelsList extends React.Component {
                         />
                     </div>
                     <div className='col-sm-12'>
-                        <span className='channel-count pull-left'>{count}</span>
+                        <span className='member-count pull-left'>{count}</span>
                     </div>
                 </div>
                 <div
