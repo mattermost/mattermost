@@ -323,6 +323,10 @@ type WebrtcSettings struct {
 	TurnSharedKey       *string
 }
 
+type UchatConfig struct {
+	PaginateMoreChannelsModal *bool
+}
+
 type Config struct {
 	ServiceSettings      ServiceSettings
 	TeamSettings         TeamSettings
@@ -345,6 +349,7 @@ type Config struct {
 	NativeAppSettings    NativeAppSettings
 	ClusterSettings      ClusterSettings
 	WebrtcSettings       WebrtcSettings
+	UchatConfig          UchatConfig
 	CustomOverride       *bool
 }
 

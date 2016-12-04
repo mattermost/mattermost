@@ -341,7 +341,11 @@ export default class Sidebar extends React.Component {
     }
 
     showMoreChannelsModal() {
-        this.setState({showChannelsModal: true});
+        if (global.window.mm_config.PaginateMoreChannelsModal === 'true') {
+            this.setState({showChannelsModal: true});
+        } else {
+            $('#more_channels').modal({'data-channeltype': 'O'}).modal('show');
+        }
     }
 
     hideMoreChannelsModal() {
