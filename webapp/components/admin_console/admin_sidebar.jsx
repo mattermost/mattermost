@@ -228,6 +228,20 @@ export default class AdminSidebar extends React.Component {
                 );
             }
 
+            if (global.window.mm_license.SAML === 'true') {
+                samlSettings = (
+                    <AdminSidebarSection
+                        name='saml'
+                        title={
+                            <FormattedMessage
+                                id='admin.sidebar.saml'
+                                defaultMessage='SAML'
+                            />
+                        }
+                    />
+                );
+            }
+
             if (global.window.mm_license.Cluster === 'true') {
                 clusterSettings = (
                     <AdminSidebarSection
