@@ -989,7 +989,7 @@ export function getSuggestedCommands(command, suggestionId, component) {
             }
         },
         (err) => {
-            dispatchError(err, 'getCommandSuggestions');
+            dispatchError(err, 'getSuggestedCommands');
         }
     );
 }
