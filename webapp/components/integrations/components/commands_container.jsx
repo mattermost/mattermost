@@ -12,7 +12,9 @@ export default class CommandsContainer extends React.Component {
     static get propTypes() {
         return {
             team: React.PropTypes.object,
-            children: React.PropTypes.node
+            user: React.PropTypes.object,
+            children: React.PropTypes.node.isRequired,
+            isAdmin: React.PropTypes.bool
         };
     }
 
@@ -65,7 +67,9 @@ export default class CommandsContainer extends React.Component {
                     commands: this.state.commands,
                     users: this.state.users,
                     loading: this.state.loading,
-                    team: this.props.team
+                    team: this.props.team,
+                    user: this.props.user,
+                    isAdmin: this.props.isAdmin
                 })}
             </div>
         );

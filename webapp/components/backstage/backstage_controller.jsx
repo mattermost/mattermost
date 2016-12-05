@@ -13,8 +13,8 @@ import ErrorBar from 'components/error_bar.jsx';
 export default class BackstageController extends React.Component {
     static get propTypes() {
         return {
-            children: React.PropTypes.node.isRequired,
-            params: React.PropTypes.object.isRequired
+            user: React.PropTypes.object,
+            children: React.PropTypes.node.isRequired
         };
     }
 
@@ -23,9 +23,12 @@ export default class BackstageController extends React.Component {
 
         this.onTeamChange = this.onTeamChange.bind(this);
 
+        const team = TeamStore.getCurrent();
+
         this.state = {
-            user: UserStore.getCurrentUser(),
-            team: props.params.team ? TeamStore.getByName(props.params.team) : TeamStore.getCurrent()
+            team,
+            isAdmin: UserStore.isSystemAdminForCurrentUser(this.props.user) ||
+                TeamStore.isTeamAdminForCurrentTeam(team)
         };
     }
 
@@ -38,8 +41,12 @@ export default class BackstageController extends React.Component {
     }
 
     onTeamChange() {
+        const team = TeamStore.getCurrent();
+
         this.state = {
-            team: this.props.params.team ? TeamStore.getByName(this.props.params.team) : TeamStore.getCurrent()
+            team,
+            isAdmin: UserStore.isSystemAdminForCurrentUser(this.props.user) ||
+                TeamStore.isTeamAdminForCurrentTeam(team)
         };
     }
 
@@ -51,7 +58,7 @@ export default class BackstageController extends React.Component {
                 <div className='backstage-body'>
                     <BackstageSidebar
                         team={this.state.team}
-                        user={this.state.user}
+                        user={this.props.user}
                     />
                     {
                         React.Children.map(this.props.children, (child) => {
@@ -61,7 +68,8 @@ export default class BackstageController extends React.Component {
 
                             return React.cloneElement(child, {
                                 team: this.state.team,
-                                user: this.state.user
+                                user: this.props.user,
+                                isAdmin: this.state.isAdmin
                             });
                         })
                     }

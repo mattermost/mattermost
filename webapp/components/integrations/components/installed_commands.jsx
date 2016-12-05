@@ -14,9 +14,11 @@ export default class InstalledCommands extends React.Component {
     static get propTypes() {
         return {
             team: React.PropTypes.object,
+            user: React.PropTypes.object,
             users: React.PropTypes.object,
             commands: React.PropTypes.array,
-            loading: React.PropTypes.bool
+            loading: React.PropTypes.bool,
+            isAdmin: React.PropTypes.bool
         };
     }
 
@@ -37,6 +39,8 @@ export default class InstalledCommands extends React.Component {
 
     render() {
         const commands = this.props.commands.map((command) => {
+            const canChange = this.props.isAdmin || this.props.user.id === command.creator_id;
+
             return (
                 <InstalledCommand
                     key={command.id}
@@ -45,6 +49,7 @@ export default class InstalledCommands extends React.Component {
                     onRegenToken={this.regenCommandToken}
                     onDelete={this.deleteCommand}
                     creator={this.props.users[command.creator_id] || {}}
+                    canChange={canChange}
                 />
             );
         });
