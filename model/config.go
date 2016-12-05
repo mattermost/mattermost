@@ -1014,6 +1014,10 @@ func (o *Config) IsValid() *AppError {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.restrict_direct_message.app_error", nil, "")
 	}
 
+	if !(*o.TeamSettings.RestrictChannelDeletion == PERMISSIONS_ALL || *o.TeamSettings.RestrictChannelDeletion == PERMISSIONS_TEAM_ADMIN || *o.TeamSettings.RestrictChannelDeletion == PERMISSIONS_SYSTEM_ADMIN) {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.restrict_channel_deletion.app_error", nil, "")
+	}
+
 	if len(o.SqlSettings.AtRestEncryptKey) < 32 {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.encrypt_sql.app_error", nil, "")
 	}
