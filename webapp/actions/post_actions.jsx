@@ -30,7 +30,7 @@ export function handleNewPost(post, msg) {
         }
     }
 
-    var websocketMessageProps = null;
+    let websocketMessageProps = null;
     if (msg) {
         websocketMessageProps = msg.data;
     }
@@ -271,4 +271,21 @@ export function removeReaction(channelId, postId, emojiName) {
     };
 
     AsyncClient.deleteReaction(channelId, reaction);
+}
+
+export function copyPost(post, toChannelId) {
+    return new Promise((resolve, reject) => {
+        Client.copyPost(
+            post,
+            toChannelId,
+            (data) => {
+                resolve(data);
+            },
+            (err) => {
+                AsyncClient.dispatchError(err, 'copyPost');
+
+                reject(err);
+            }
+        );
+    });
 }

@@ -1437,6 +1437,18 @@ func (c *Client) SearchPosts(terms string, isOrSearch bool) (*Result, *AppError)
 	}
 }
 
+func (c *Client) CopyPost(channelId, postId, toChannelId string) (*Result, *AppError) {
+	data := map[string]interface{}{}
+	data["to_channel_id"] = toChannelId
+	if r, err := c.DoApiPost(c.GetChannelRoute(channelId)+fmt.Sprintf("/posts/%v/create", postId), StringInterfaceToJson(data)); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), PostFromJson(r.Body)}, nil
+	}
+}
+
 // GetFlaggedPosts will return a post list of posts that have been flagged by the user.
 // The page is set by the integer parameters offset and limit.
 func (c *Client) GetFlaggedPosts(offset int, limit int) (*Result, *AppError) {

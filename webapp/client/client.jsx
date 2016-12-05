@@ -1574,6 +1574,18 @@ export default class Client {
         }
     }
 
+    copyPost(post, toChannelId, success, error) {
+        request.
+        post(`${this.getChannelNeededRoute(post.channel_id)}/posts/${post.id}/copy`).
+        set(this.defaultHeaders).
+        type('application/json').
+        accept('application/json').
+        send({to_channel_id: toChannelId}).
+        end(this.handleResponse.bind(this, 'copyPost', success, error));
+
+        this.track('api', 'api_posts_copy');
+    }
+
     // This is a temporary route to get around a problem with the permissions system that
     // will be fixed in 3.1 or 3.2
     getPermalinkTmp(postId, success, error) {

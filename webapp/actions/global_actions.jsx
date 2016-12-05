@@ -534,3 +534,11 @@ export function emitBrowserFocus(focus) {
         focus
     });
 }
+
+export function showCopyPostModal(post) {
+    AppDispatcher.handleViewAction({
+        type: ActionTypes.TOGGLE_COPY_POST_MODAL,
+        value: true,
+        post
+    });
+}
