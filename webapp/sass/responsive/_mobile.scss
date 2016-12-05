@@ -5,23 +5,6 @@
         max-height: 145px;
     }
 
-    .modal {
-        .modal-dialog {
-            &.new-channel__modal {
-                position: fixed;
-                @include translate3d(0, 100%, 0);
-            }
-        }
-
-        &.in {
-            .modal-dialog {
-                &.new-channel__modal {
-                    @include translate3d(0, 0, 0);
-                }
-            }
-        }
-    }
-
     .webrtc__notification--rhs {
         left: auto;
         right: 0;
