@@ -2183,6 +2183,8 @@ func emailToLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	token := props["token"]
+
 	c.LogAudit("attempt")
 
 	var user *model.User
@@ -2194,7 +2196,7 @@ func emailToLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		user = result.Data.(*model.User)
 	}
 
-	if err := checkPasswordAndAllCriteria(user, emailPassword, ""); err != nil {
+	if err := checkPasswordAndAllCriteria(user, emailPassword, token); err != nil {
 		c.LogAuditWithUserId(user.Id, "failed - bad authentication")
 		c.Err = err
 		return
@@ -2249,6 +2251,8 @@ func ldapToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	token := props["token"]
+
 	c.LogAudit("attempt")
 
 	var user *model.User
@@ -2274,6 +2278,12 @@ func ldapToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if err := ldapInterface.CheckPassword(*user.AuthData, ldapPassword); err != nil {
 		c.LogAuditWithUserId(user.Id, "fail - ldap authentication failed")
+		c.Err = err
+		return
+	}
+
+	if err := checkUserMfa(user, token); err != nil {
+		c.LogAuditWithUserId(user.Id, "fail - mfa token failed")
 		c.Err = err
 		return
 	}

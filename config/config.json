@@ -145,13 +145,13 @@
         "SupportEmail": "feedback@mattermost.com"
     },
     "GitLabSettings": {
-        "Enable": true,
-        "Secret": "a7ee4474265bd6410b9b2ce3b7d14263afdfffd759a487fe6022a9872ed8edbf",
-        "Id": "5e996a895651a5f9b0a3fe5607e07ab98d14f913c3600076303e70c7450a02ea",
+        "Enable": false,
+        "Secret": "",
+        "Id": "",
         "Scope": "",
-        "AuthEndpoint": "http://dockerhost:8080/oauth/authorize",
-        "TokenEndpoint": "http://dockerhost:8080/oauth/token",
-        "UserApiEndpoint": "http://dockerhost:8080/api/v3/user"
+        "AuthEndpoint": "",
+        "TokenEndpoint": "",
+        "UserApiEndpoint": ""
     },
     "GoogleSettings": {
         "Enable": false,

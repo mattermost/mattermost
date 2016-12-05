@@ -16,10 +16,11 @@ import Client from 'client/web_client.jsx';
 
 import {ActionTypes, Preferences} from 'utils/constants.jsx';
 
-export function switchFromLdapToEmail(email, password, ldapPassword, onSuccess, onError) {
+export function switchFromLdapToEmail(email, password, token, ldapPassword, onSuccess, onError) {
     Client.ldapToEmail(
         email,
         password,
+        token,
         ldapPassword,
         (data) => {
             if (data.follow_link) {
@@ -412,8 +413,9 @@ export function activateMfa(code, success, error) {
 }
 
 export function checkMfa(loginId, success, error) {
-    if (global.window.mm_config.EnableMultifactorAuthentication === 'true') {
+    if (global.window.mm_config.EnableMultifactorAuthentication !== 'true') {
         success(false);
+        return;
     }
 
     Client.checkMfa(

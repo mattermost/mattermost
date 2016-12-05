@@ -1,14 +1,37 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import Constants from 'utils/constants.jsx';
+const KeyCodes = Constants.KeyCodes;
+
 import React from 'react';
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
 
 export default class Confirm extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.onKeyPress = this.onKeyPress.bind(this);
+    }
+
+    componentDidMount() {
+        document.body.addEventListener('keydown', this.onKeyPress);
+    }
+
+    componentWillUnmount() {
+        document.body.removeEventListener('keydown', this.onKeyPress);
+    }
+
     submit(e) {
         e.preventDefault();
         browserHistory.push('/');
+    }
+
+    onKeyPress(e) {
+        if (e.which === KeyCodes.ENTER) {
+            this.submit(e);
+        }
     }
 
     render() {
@@ -16,6 +39,7 @@ export default class Confirm extends React.Component {
             <div>
                 <form
                     onSubmit={this.submit}
+                    onKeyPress={this.onKeyPress}
                     className='form-group'
                 >
                     <p>

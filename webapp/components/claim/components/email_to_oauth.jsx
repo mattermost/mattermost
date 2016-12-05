@@ -66,7 +66,7 @@ export default class EmailToOAuth extends React.Component {
                 }
             },
             (err) => {
-                this.setState({error: err.message});
+                this.setState({error: err.message, showMfa: false});
             }
         );
     }

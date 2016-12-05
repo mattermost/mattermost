@@ -1,9 +1,11 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import LoginMfa from 'components/login/components/login_mfa.jsx';
+
 import * as Utils from 'utils/utils.jsx';
 
-import {switchFromLdapToEmail} from 'actions/user_actions.jsx';
+import {checkMfa, switchFromLdapToEmail} from 'actions/user_actions.jsx';
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
@@ -13,6 +15,7 @@ export default class LDAPToEmail extends React.Component {
         super(props);
 
         this.submit = this.submit.bind(this);
+        this.preSubmit = this.preSubmit.bind(this);
 
         this.state = {
             passwordError: '',
@@ -22,8 +25,9 @@ export default class LDAPToEmail extends React.Component {
         };
     }
 
-    submit(e) {
+    preSubmit(e) {
         e.preventDefault();
+
         var state = {
             passwordError: '',
             confirmError: '',
@@ -60,14 +64,33 @@ export default class LDAPToEmail extends React.Component {
             return;
         }
 
+        state.password = password;
+        state.ldapPassword = ldapPassword;
         this.setState(state);
 
+        checkMfa(
+            this.props.email,
+            (requiresMfa) => {
+                if (requiresMfa) {
+                    this.setState({showMfa: true});
+                } else {
+                    this.submit(this.props.email, password, '', ldapPassword);
+                }
+            },
+            (err) => {
+                this.setState({error: err.message});
+            }
+        );
+    }
+
+    submit(loginId, password, token, ldapPassword) {
         switchFromLdapToEmail(
             this.props.email,
             password,
-            ldapPassword,
+            token,
+            ldapPassword || this.state.ldapPassword,
             null,
-            (err) => this.setState({serverError: err.message})
+            (err) => this.setState({serverError: err.message, showMfa: false})
         );
     }
 
@@ -107,16 +130,19 @@ export default class LDAPToEmail extends React.Component {
             passwordPlaceholder = Utils.localizeMessage('claim.ldap_to_email.ldapPwd', 'AD/LDAP Password');
         }
 
-        return (
-            <div>
-                <h3>
-                    <FormattedMessage
-                        id='claim.ldap_to_email.title'
-                        defaultMessage='Switch AD/LDAP Account to Email/Password'
-                    />
-                </h3>
+        let content;
+        if (this.state.showMfa) {
+            content = (
+                <LoginMfa
+                    loginId={this.props.email}
+                    password={this.state.password}
+                    submit={this.submit}
+                />
+            );
+        } else {
+            content = (
                 <form
-                    onSubmit={this.submit}
+                    onSubmit={this.preSubmit}
                     className={formClass}
                 >
                     <p>
@@ -194,6 +220,18 @@ export default class LDAPToEmail extends React.Component {
                     </button>
                     {serverError}
                 </form>
+            );
+        }
+
+        return (
+            <div>
+                <h3>
+                    <FormattedMessage
+                        id='claim.ldap_to_email.title'
+                        defaultMessage='Switch AD/LDAP Account to Email/Password'
+                    />
+                </h3>
+                {content}
             </div>
         );
     }
