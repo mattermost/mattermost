@@ -476,6 +476,7 @@ export function applyTheme(theme) {
         changeCss('.sidebar--left .add-channel-btn:hover, .sidebar--left .add-channel-btn:focus', 'color:' + theme.sidebarText);
         changeCss('.sidebar--left .status .offline--icon', 'fill:' + theme.sidebarText);
         changeCss('@media(max-width: 768px){.app__body .modal .settings-modal .settings-table .nav>li>a, .app__body .sidebar--menu .divider', 'border-color:' + changeOpacity(theme.sidebarText, 0.2));
+        changeCss('@media(max-width: 768px){.sidebar--left .add-channel-btn:hover, .sidebar--left .add-channel-btn:focus', 'color:' + changeOpacity(theme.sidebarText, 0.6));
     }
 
     if (theme.sidebarUnreadText) {
@@ -484,7 +485,6 @@ export function applyTheme(theme) {
 
     if (theme.sidebarTextHoverBg) {
         changeCss('.sidebar--left .nav-pills__container li>a:hover, .app__body .modal .settings-modal .nav-pills>li:hover a', 'background:' + theme.sidebarTextHoverBg);
-        changeCss('@media(max-width: 768px){.app__body .modal .settings-modal .settings-table .nav>li:hover a', 'background:' + theme.sidebarTextHoverBg);
     }
 
     if (theme.sidebarTextActiveBorder) {

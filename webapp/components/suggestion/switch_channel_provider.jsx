@@ -35,6 +35,8 @@ class SwitchChannelSuggestion extends Suggestion {
             icon = <div className='status'><i className='fa fa-globe'/></div>;
         } else if (item.type === Constants.PRIVATE_CHANNEL) {
             icon = <div className='status'><i className='fa fa-lock'/></div>;
+        } else {
+            icon = <div className='status'><i className='fa fa-user'/></div>;
         }
 
         return (

@@ -171,7 +171,7 @@ export default class ImportThemeModal extends React.Component {
                                 />
                             </p>
                             <div className='form-group less'>
-                                <div className='col-sm-9'>
+                                <div className='col-sm-12'>
                                     <input
                                         type='text'
                                         className='form-control'
