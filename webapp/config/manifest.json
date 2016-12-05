@@ -18,6 +18,14 @@
         "type": "image/png",
         "sizes": "152x152"
     }, {
+        "src": "/static/images/favicon/apple-touch-icon-167x167.png",
+        "type": "image/png",
+        "sizes": "167x167"
+    }, {
+        "src": "/static/images/favicon/apple-touch-icon-180x180.png",
+        "type": "image/png",
+        "sizes": "180x180"
+    }, {
         "src": "/static/images/favicon/apple-touch-icon-57x57.png",
         "type": "image/png",
         "sizes": "57x57"
