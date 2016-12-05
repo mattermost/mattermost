@@ -59,4 +59,7 @@
         width: 95%;
         font-size: 13px;
     }
+    &.btn-as-link:hover {
+        text-decoration: underline;
+    }
 }
