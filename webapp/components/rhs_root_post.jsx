@@ -6,6 +6,7 @@ import PostBodyAdditionalContent from 'components/post_view/components/post_body
 import PostMessageContainer from 'components/post_view/components/post_message_container.jsx';
 import FileAttachmentListContainer from './file_attachment_list_container.jsx';
 import ProfilePicture from 'components/profile_picture.jsx';
+import ReactionListContainer from 'components/post_view/components/reaction_list_container.jsx';
 import RhsDropdown from 'components/rhs_dropdown.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
@@ -55,6 +56,10 @@ export default class RhsRootPost extends React.Component {
         }
 
         if (nextProps.isFlagged !== this.props.isFlagged) {
+            return true;
+        }
+
+        if (nextProps.previewCollapsed !== this.props.previewCollapsed) {
             return true;
         }
 
@@ -387,8 +392,13 @@ export default class RhsRootPost extends React.Component {
                             <PostBodyAdditionalContent
                                 post={post}
                                 message={messageWrapper}
+                                previewCollapsed={this.props.previewCollapsed}
                             />
                             {fileAttachment}
+                            <ReactionListContainer
+                                post={post}
+                                currentUserId={this.props.currentUser.id}
+                            />
                         </div>
                     </div>
                 </div>
@@ -408,5 +418,6 @@ RhsRootPost.propTypes = {
     compactDisplay: React.PropTypes.bool,
     useMilitaryTime: React.PropTypes.bool.isRequired,
     isFlagged: React.PropTypes.bool,
-    status: React.PropTypes.string
+    status: React.PropTypes.string,
+    previewCollapsed: React.PropTypes.string
 };

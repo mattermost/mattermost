@@ -90,7 +90,7 @@ export const ActionTypes = keyMirror({
     RECEIVED_PROFILES_IN_TEAM: null,
     RECEIVED_PROFILE: null,
     RECEIVED_PROFILES_IN_CHANNEL: null,
-    RECEIVED_PROFILE_NOT_IN_CHANNEL: null,
+    RECEIVED_PROFILES_NOT_IN_CHANNEL: null,
     RECEIVED_ME: null,
     RECEIVED_SESSIONS: null,
     RECEIVED_AUDITS: null,
@@ -121,6 +121,10 @@ export const ActionTypes = keyMirror({
     RECEIVED_CUSTOM_EMOJI: null,
     UPDATED_CUSTOM_EMOJI: null,
     REMOVED_CUSTOM_EMOJI: null,
+
+    RECEIVED_REACTIONS: null,
+    ADDED_REACTION: null,
+    REMOVED_REACTION: null,
 
     RECEIVED_MSG: null,
 
@@ -206,7 +210,9 @@ export const SocketEvents = {
     EPHEMERAL_MESSAGE: 'ephemeral_message',
     STATUS_CHANGED: 'status_change',
     HELLO: 'hello',
-    WEBRTC: 'webrtc'
+    WEBRTC: 'webrtc',
+    REACTION_ADDED: 'reaction_added',
+    REACTION_REMOVED: 'reaction_removed'
 };
 
 export const TutorialSteps = {
@@ -823,6 +829,7 @@ export const Constants = {
     DEFAULT_MAX_CHANNELS_PER_TEAM: 2000,
     DEFAULT_MAX_NOTIFICATIONS_PER_CHANNEL: 1000,
     MAX_TEAMNAME_LENGTH: 15,
+    MAX_TEAMDESCRIPTION_LENGTH: 50,
     MIN_USERNAME_LENGTH: 3,
     MAX_USERNAME_LENGTH: 22,
     MAX_NICKNAME_LENGTH: 22,

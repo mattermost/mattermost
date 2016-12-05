@@ -38,7 +38,7 @@ export default class TeamSignupDisplayNamePage extends React.Component {
             this.setState({nameError: (
                 <FormattedMessage
                     id='create_team.display_name.charLength'
-                    defaultMessage='Name must be {min} or more characters up to a maximum of {max}'
+                    defaultMessage='Name must be {min} or more characters up to a maximum of {max}. You can add a longer team description later.'
                     values={{
                         min: Constants.MIN_TEAMNAME_LENGTH,
                         max: Constants.MAX_TEAMNAME_LENGTH

@@ -1,7 +1,7 @@
 # Emoticon Testing  
 Verify that all emoticons render. 
 
-:mm: :mattermost:
+:mattermost:
 
 ### Emoticon - Punctuation  
 

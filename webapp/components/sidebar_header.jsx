@@ -69,6 +69,25 @@ export default class SidebarHeader extends React.Component {
             tutorialTip = createMenuTip(this.toggleDropdown);
         }
 
+        let teamNameWithToolTip = null;
+        if (this.props.teamDescription === '') {
+            teamNameWithToolTip = (
+                <div className='team__name'>{this.props.teamDisplayName}</div>
+            );
+        } else {
+            teamNameWithToolTip = (
+                <OverlayTrigger
+                    trigger={['hover', 'focus']}
+                    delayShow={1000}
+                    placement='bottom'
+                    overlay={<Tooltip id='team-name__tooltip'>{this.props.teamDescription}</Tooltip>}
+                    ref='descriptionOverlay'
+                >
+                    <div className='team__name'>{this.props.teamDisplayName}</div>
+                </OverlayTrigger>
+            );
+        }
+
         return (
             <div className='team__header theme'>
                 {tutorialTip}
@@ -79,15 +98,7 @@ export default class SidebarHeader extends React.Component {
                     {profilePicture}
                     <div className='header__info'>
                         <div className='user__name'>{'@' + me.username}</div>
-                        <OverlayTrigger
-                            trigger={['hover', 'focus']}
-                            delayShow={1000}
-                            placement='bottom'
-                            overlay={<Tooltip id='team-name__tooltip'>{this.props.teamDisplayName}</Tooltip>}
-                            ref='descriptionOverlay'
-                        >
-                            <div className='team__name'>{this.props.teamDisplayName}</div>
-                        </OverlayTrigger>
+                        {teamNameWithToolTip}
                     </div>
                 </a>
                 <SidebarHeaderDropdown
@@ -104,10 +115,12 @@ export default class SidebarHeader extends React.Component {
 
 SidebarHeader.defaultProps = {
     teamDisplayName: '',
+    teamDescription: '',
     teamType: ''
 };
 SidebarHeader.propTypes = {
     teamDisplayName: React.PropTypes.string,
+    teamDescription: React.PropTypes.string,
     teamName: React.PropTypes.string,
     teamType: React.PropTypes.string,
     currentUser: React.PropTypes.object

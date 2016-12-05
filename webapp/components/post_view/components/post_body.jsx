@@ -10,6 +10,7 @@ import FileAttachmentListContainer from 'components/file_attachment_list_contain
 import PostBodyAdditionalContent from './post_body_additional_content.jsx';
 import PostMessageContainer from './post_message_container.jsx';
 import PendingPostOptions from './pending_post_options.jsx';
+import ReactionListContainer from './reaction_list_container.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
@@ -202,6 +203,10 @@ export default class PostBody extends React.Component {
                 <div className={'post__body ' + mentionHighlightClass}>
                     {messageWithAdditionalContent}
                     {fileAttachmentHolder}
+                    <ReactionListContainer
+                        post={post}
+                        currentUserId={this.props.currentUser.id}
+                    />
                 </div>
             </div>
         );
@@ -210,6 +215,7 @@ export default class PostBody extends React.Component {
 
 PostBody.propTypes = {
     post: React.PropTypes.object.isRequired,
+    currentUser: React.PropTypes.object.isRequired,
     parentPost: React.PropTypes.object,
     retryPost: React.PropTypes.func,
     handleCommentClick: React.PropTypes.func.isRequired,

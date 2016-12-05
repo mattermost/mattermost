@@ -2102,6 +2102,7 @@ func (c *Client) DeleteEmoji(id string) (bool, *AppError) {
 	if r, err := c.DoApiPost(c.GetEmojiRoute()+"/delete", MapToJson(data)); err != nil {
 		return false, err
 	} else {
+		defer closeBody(r)
 		c.fillInExtraProperties(r)
 		return c.CheckStatusOK(r), nil
 	}
@@ -2132,6 +2133,7 @@ func (c *Client) UploadCertificateFile(data []byte, contentType string) *AppErro
 		return AppErrorFromJson(rp.Body)
 	} else {
 		defer closeBody(rp)
+		c.fillInExtraProperties(rp)
 		return nil
 	}
 }
@@ -2143,6 +2145,7 @@ func (c *Client) RemoveCertificateFile(filename string) *AppError {
 		return err
 	} else {
 		defer closeBody(r)
+		c.fillInExtraProperties(r)
 		return nil
 	}
 }
@@ -2154,6 +2157,7 @@ func (c *Client) SamlCertificateStatus(filename string) (map[string]interface{},
 		return nil, err
 	} else {
 		defer closeBody(r)
+		c.fillInExtraProperties(r)
 		return StringInterfaceFromJson(r.Body), nil
 	}
 }
@@ -2180,5 +2184,38 @@ func (c *Client) GetFileInfosForPost(channelId string, postId string, etag strin
 		defer closeBody(r)
 		c.fillInExtraProperties(r)
 		return FileInfosFromJson(r.Body), nil
+	}
+}
+
+// Saves an emoji reaction for a post in the given channel. Returns the saved reaction if successful, otherwise returns an AppError.
+func (c *Client) SaveReaction(channelId string, reaction *Reaction) (*Reaction, *AppError) {
+	if r, err := c.DoApiPost(c.GetChannelRoute(channelId)+fmt.Sprintf("/posts/%v/reactions/save", reaction.PostId), reaction.ToJson()); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		c.fillInExtraProperties(r)
+		return ReactionFromJson(r.Body), nil
+	}
+}
+
+// Removes an emoji reaction for a post in the given channel. Returns nil if successful, otherwise returns an AppError.
+func (c *Client) DeleteReaction(channelId string, reaction *Reaction) *AppError {
+	if r, err := c.DoApiPost(c.GetChannelRoute(channelId)+fmt.Sprintf("/posts/%v/reactions/delete", reaction.PostId), reaction.ToJson()); err != nil {
+		return err
+	} else {
+		defer closeBody(r)
+		c.fillInExtraProperties(r)
+		return nil
+	}
+}
+
+// Lists all emoji reactions made for the given post in the given channel. Returns a list of Reactions if successful, otherwise returns an AppError.
+func (c *Client) ListReactions(channelId string, postId string) ([]*Reaction, *AppError) {
+	if r, err := c.DoApiGet(c.GetChannelRoute(channelId)+fmt.Sprintf("/posts/%v/reactions", postId), "", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		c.fillInExtraProperties(r)
+		return ReactionsFromJson(r.Body), nil
 	}
 }

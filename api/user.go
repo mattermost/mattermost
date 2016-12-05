@@ -467,7 +467,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.LogAuditWithUserId(id, "attempt")
 
 		if result := <-Srv.Store.User().Get(id); result.Err != nil {
-			c.LogAuditWithUserId(user.Id, "failure")
+			c.LogAuditWithUserId(id, "failure")
 			c.Err = result.Err
 			c.Err.StatusCode = http.StatusBadRequest
 			if einterfaces.GetMetricsInterface() != nil {
@@ -2643,6 +2643,21 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	searchOptions := map[string]bool{}
 	searchOptions[store.USER_SEARCH_OPTION_ALLOW_INACTIVE] = props.AllowInactive
 
+	if !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
+		hideFullName := !utils.Cfg.PrivacySettings.ShowFullName
+		hideEmail := !utils.Cfg.PrivacySettings.ShowEmailAddress
+
+		if hideFullName && hideEmail {
+			searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
+		} else if hideFullName {
+			searchOptions[store.USER_SEARCH_OPTION_ALL_NO_FULL_NAME] = true
+		} else if hideEmail {
+			searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
+		}
+
+		c.Err = nil
+	}
+
 	var uchan store.StoreChannel
 	if props.InChannelId != "" {
 		uchan = Srv.Store.User().SearchInChannel(props.InChannelId, props.Term, searchOptions)
@@ -2706,7 +2721,14 @@ func autocompleteUsersInChannel(c *Context, w http.ResponseWriter, r *http.Reque
 	}
 
 	searchOptions := map[string]bool{}
-	searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
+
+	hideFullName := !utils.Cfg.PrivacySettings.ShowFullName
+	if hideFullName && !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
+		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
+		c.Err = nil
+	} else {
+		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
+	}
 
 	uchan := Srv.Store.User().SearchInChannel(channelId, term, searchOptions)
 	nuchan := Srv.Store.User().SearchNotInChannel(teamId, channelId, term, searchOptions)
@@ -2755,7 +2777,14 @@ func autocompleteUsersInTeam(c *Context, w http.ResponseWriter, r *http.Request)
 	}
 
 	searchOptions := map[string]bool{}
-	searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
+
+	hideFullName := !utils.Cfg.PrivacySettings.ShowFullName
+	if hideFullName && !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
+		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
+		c.Err = nil
+	} else {
+		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
+	}
 
 	uchan := Srv.Store.User().Search(teamId, term, searchOptions)
 

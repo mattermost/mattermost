@@ -46,6 +46,7 @@ type Store interface {
 	Emoji() EmojiStore
 	Status() StatusStore
 	FileInfo() FileInfoStore
+	Reaction() ReactionStore
 	MarkSystemRanUnitTests()
 	Close()
 	DropAllTables()
@@ -309,4 +310,11 @@ type FileInfoStore interface {
 	GetForPost(postId string) StoreChannel
 	AttachToPost(fileId string, postId string) StoreChannel
 	DeleteForPost(postId string) StoreChannel
+}
+
+type ReactionStore interface {
+	Save(reaction *model.Reaction) StoreChannel
+	Delete(reaction *model.Reaction) StoreChannel
+	GetForPost(postId string) StoreChannel
+	DeleteAllWithEmojiName(emojiName string) StoreChannel
 }

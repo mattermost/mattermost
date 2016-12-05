@@ -301,6 +301,6 @@ SearchResultsItem.propTypes = {
     isFlaggedSearch: React.PropTypes.bool,
     term: React.PropTypes.string,
     useMilitaryTime: React.PropTypes.bool.isRequired,
-    shrink: React.PropTypes.function,
+    shrink: React.PropTypes.func,
     isFlagged: React.PropTypes.bool
 };

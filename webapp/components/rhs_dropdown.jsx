@@ -18,11 +18,7 @@ export default class RhsDropdown extends React.Component {
         };
     }
 
-    toggleDropdown(e) {
-        if (e) {
-            e.preventDefault();
-        }
-
+    toggleDropdown() {
         const showDropdown = !this.state.showDropdown;
         if (Agent.isMobile() || Agent.isMobileApp()) {
             const scroll = document.querySelector('.scrollbar--view');
@@ -39,8 +35,9 @@ export default class RhsDropdown extends React.Component {
     render() {
         return (
             <Dropdown
+                id='rhs_dropdown'
                 open={this.state.showDropdown}
-                onClose={this.toggleDropdown}
+                onToggle={this.toggleDropdown}
             >
                 <a
                     href='#'

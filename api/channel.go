@@ -120,6 +120,8 @@ func CreateChannel(c *Context, channel *model.Channel, addMember bool) (*model.C
 			if cmresult := <-Srv.Store.Channel().SaveMember(cm); cmresult.Err != nil {
 				return nil, cmresult.Err
 			}
+
+			InvalidateCacheForUser(c.Session.UserId)
 		}
 
 		c.LogAudit("name=" + channel.Name)

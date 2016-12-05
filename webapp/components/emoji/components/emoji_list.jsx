@@ -19,8 +19,8 @@ import {FormattedMessage} from 'react-intl';
 export default class EmojiList extends React.Component {
     static get propTypes() {
         return {
-            team: React.propTypes.object.isRequired,
-            user: React.propTypes.object.isRequired
+            team: React.PropTypes.object,
+            user: React.PropTypes.object
         };
     }
 
@@ -95,11 +95,21 @@ export default class EmojiList extends React.Component {
         const emojis = [];
         if (this.state.loading) {
             emojis.push(
-                <LoadingScreen key='loading'/>
+                <tr
+                    key='loading'
+                    className='backstage-list__item backstage-list__empty'
+                >
+                    <td colSpan='4'>
+                        <LoadingScreen key='loading'/>
+                    </td>
+                </tr>
             );
-        } else if (this.state.emojis.length === 0) {
+        } else if (this.state.emojis.size === 0) {
             emojis.push(
-                <tr className='backstage-list__item backstage-list__empty'>
+                <tr
+                    key='empty'
+                    className='backstage-list__item backstage-list__empty'
+                >
                     <td colSpan='4'>
                         <FormattedMessage
                             id='emoji_list.empty'
@@ -180,33 +190,37 @@ export default class EmojiList extends React.Component {
                 </span>
                 <div className='backstage-list'>
                     <table className='emoji-list__table'>
-                        <tr className='backstage-list__item emoji-list__table-header'>
-                            <th className='emoji-list__name'>
-                                <FormattedMessage
-                                    id='emoji_list.name'
-                                    defaultMessage='Name'
-                                />
-                            </th>
-                            <th className='emoji-list__image'>
-                                <FormattedMessage
-                                    id='emoji_list.image'
-                                    defaultMessage='Image'
-                                />
-                            </th>
-                            <th className='emoji-list__creator'>
-                                <FormattedMessage
-                                    id='emoji_list.creator'
-                                    defaultMessage='Creator'
-                                />
-                            </th>
-                            <th className='emoji-list_actions'>
-                                <FormattedMessage
-                                    id='emoji_list.actions'
-                                    defaultMessage='Actions'
-                                />
-                            </th>
-                        </tr>
-                        {emojis}
+                        <thead>
+                            <tr className='backstage-list__item emoji-list__table-header'>
+                                <th className='emoji-list__name'>
+                                    <FormattedMessage
+                                        id='emoji_list.name'
+                                        defaultMessage='Name'
+                                    />
+                                </th>
+                                <th className='emoji-list__image'>
+                                    <FormattedMessage
+                                        id='emoji_list.image'
+                                        defaultMessage='Image'
+                                    />
+                                </th>
+                                <th className='emoji-list__creator'>
+                                    <FormattedMessage
+                                        id='emoji_list.creator'
+                                        defaultMessage='Creator'
+                                    />
+                                </th>
+                                <th className='emoji-list_actions'>
+                                    <FormattedMessage
+                                        id='emoji_list.actions'
+                                        defaultMessage='Actions'
+                                    />
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {emojis}
+                        </tbody>
                     </table>
                 </div>
             </div>

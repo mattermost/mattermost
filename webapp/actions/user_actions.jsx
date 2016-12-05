@@ -378,7 +378,7 @@ export function updateUserRoles(userId, newRoles, success, error) {
       userId,
       newRoles,
       () => {
-          AsyncClient.getUser(this.props.user.id);
+          AsyncClient.getUser(userId);
 
           if (success) {
               success();

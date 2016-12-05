@@ -103,6 +103,7 @@ func InitApi() {
 	InitEmoji()
 	InitStatus()
 	InitWebrtc()
+	InitReaction()
 	InitDeprecated()
 
 	// 404 on any api route before web.go has a chance to serve it

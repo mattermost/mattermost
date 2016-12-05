@@ -217,3 +217,24 @@ func TestSlackSanitiseChannelProperties(t *testing.T) {
 		t.Fatalf("Unexpected alterations to the channel properties: %v", c2s.Header)
 	}
 }
+
+func TestSlackConvertPostsMarkup(t *testing.T) {
+	input := make(map[string][]SlackPost)
+	input["test"] = []SlackPost{
+		{
+			Text: "This message contains a link to <https://google.com|Google>.",
+		},
+		{
+			Text: "This message contains a mailto link to <mailto:me@example.com|me@example.com> in it.",
+		},
+	}
+
+	output := SlackConvertPostsMarkup(input)
+
+	if output["test"][0].Text != "This message contains a link to [Google](https://google.com)." {
+		t.Fatalf("Unexpected message after markup translation: %v", output["test"][0].Text)
+	}
+	if output["test"][1].Text != "This message contains a mailto link to [me@example.com](mailto:me@example.com) in it." {
+		t.Fatalf("Unexpected message after markup translation: %v", output["test"][0].Text)
+	}
+}

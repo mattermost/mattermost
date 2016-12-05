@@ -210,6 +210,24 @@ export function joinChannel(channel, success, error) {
     );
 }
 
+export function updateChannel(channel, success, error) {
+    Client.updateChannel(
+        channel,
+        () => {
+            AsyncClient.getChannel(channel.id);
+
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
 export function searchMoreChannels(term, success, error) {
     Client.searchMoreChannels(
         term,

@@ -11,6 +11,7 @@ import BrowserStore from 'stores/browser_store.jsx';
 import ErrorStore from 'stores/error_store.jsx';
 import NotificationStore from 'stores/notification_store.jsx'; //eslint-disable-line no-unused-vars
 
+import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import Client from 'client/web_client.jsx';
 import WebSocketClient from 'client/web_websocket_client.jsx';
 import * as WebrtcActions from './webrtc_actions.jsx';
@@ -23,7 +24,7 @@ import {loadProfilesAndTeamMembersForDMSidebar} from 'actions/user_actions.jsx';
 import {loadChannelsForCurrentUser} from 'actions/channel_actions.jsx';
 import * as StatusActions from 'actions/status_actions.jsx';
 
-import {Constants, SocketEvents, UserStatuses} from 'utils/constants.jsx';
+import {ActionTypes, Constants, SocketEvents, UserStatuses} from 'utils/constants.jsx';
 
 import {browserHistory} from 'react-router/es6';
 
@@ -163,6 +164,14 @@ function handleEvent(msg) {
 
     case SocketEvents.WEBRTC:
         handleWebrtc(msg);
+        break;
+
+    case SocketEvents.REACTION_ADDED:
+        handleReactionAddedEvent(msg);
+        break;
+
+    case SocketEvents.REACTION_REMOVED:
+        handleReactionRemovedEvent(msg);
         break;
 
     default:
@@ -319,4 +328,24 @@ function handleHelloEvent(msg) {
 function handleWebrtc(msg) {
     const data = msg.data;
     return WebrtcActions.handle(data);
+}
+
+function handleReactionAddedEvent(msg) {
+    const reaction = JSON.parse(msg.data.reaction);
+
+    AppDispatcher.handleServerAction({
+        type: ActionTypes.ADDED_REACTION,
+        postId: reaction.post_id,
+        reaction
+    });
+}
+
+function handleReactionRemovedEvent(msg) {
+    const reaction = JSON.parse(msg.data.reaction);
+
+    AppDispatcher.handleServerAction({
+        type: ActionTypes.REMOVED_REACTION,
+        postId: reaction.post_id,
+        reaction
+    });
 }

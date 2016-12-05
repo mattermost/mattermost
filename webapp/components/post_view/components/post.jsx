@@ -255,6 +255,7 @@ export default class Post extends React.Component {
                             />
                             <PostBody
                                 post={post}
+                                currentUser={this.props.currentUser}
                                 sameRoot={this.props.sameRoot}
                                 parentPost={parentPost}
                                 handleCommentClick={this.handleCommentClick}

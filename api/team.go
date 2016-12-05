@@ -774,6 +774,7 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	oldTeam.DisplayName = team.DisplayName
+	oldTeam.Description = team.Description
 	oldTeam.InviteId = team.InviteId
 	oldTeam.AllowOpenInvite = team.AllowOpenInvite
 	oldTeam.CompanyName = team.CompanyName
@@ -1009,6 +1010,7 @@ func getInviteInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		result := map[string]string{}
 		result["display_name"] = team.DisplayName
+		result["description"] = team.Description
 		result["name"] = team.Name
 		result["id"] = team.Id
 		w.Write([]byte(model.MapToJson(result)))

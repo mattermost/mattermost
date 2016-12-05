@@ -12,6 +12,7 @@ import TeamStore from 'stores/team_store.jsx';
 
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
+import {localizeMessage} from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
 import React from 'react';
@@ -196,16 +197,10 @@ export default class MoreDirectChannels extends React.Component {
                         onChange={this.toggleList}
                     >
                         <option value='any'>
-                            <FormattedMessage
-                                id='filtered_user_list.any_team'
-                                defaultMessage='All Users'
-                            />
+                            {localizeMessage('filtered_user_list.any_team', 'All Users')}
                         </option>
                         <option value='team'>
-                            <FormattedMessage
-                                id='filtered_user_list.team_only'
-                                defaultMessage='Members of this Team'
-                            />
+                            {localizeMessage('filtered_user_list.team_only', 'Members of this Team')}
                         </option>
                     </select>
                     <span
@@ -247,18 +242,6 @@ export default class MoreDirectChannels extends React.Component {
                         focusOnMount={!UserAgent.isMobile()}
                     />
                 </Modal.Body>
-                <Modal.Footer>
-                    <button
-                        type='button'
-                        className='btn btn-default'
-                        onClick={this.handleHide}
-                    >
-                        <FormattedMessage
-                            id='more_direct_channels.close'
-                            defaultMessage='Close'
-                        />
-                    </button>
-                </Modal.Footer>
             </Modal>
         );
     }

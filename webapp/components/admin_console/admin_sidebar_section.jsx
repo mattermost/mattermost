@@ -79,8 +79,6 @@ export default class AdminSidebarSection extends React.Component {
             sidebarItem = (
                 <div
                     className={`${className}-title`}
-                    activeClassName={`${className}-title ${className}-title--active`}
-                    onlyActiveOnIndex={this.props.onlyActiveOnIndex}
                 >
                     <span className={`${className}-title__text`}>
                         {this.props.title}

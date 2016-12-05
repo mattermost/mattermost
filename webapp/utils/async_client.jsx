@@ -1389,7 +1389,7 @@ export function editCommand(command, success, error) {
         command,
         (data) => {
             AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_COMMAND,
+                type: ActionTypes.UPDATED_COMMAND,
                 command: data
             });
 
@@ -1524,6 +1524,56 @@ export function deleteEmoji(id) {
         (err) => {
             callTracker[callName] = 0;
             dispatchError(err, 'deleteEmoji');
+        }
+    );
+}
+
+export function saveReaction(channelId, reaction) {
+    Client.saveReaction(
+        channelId,
+        reaction,
+        null, // the added reaction will be sent over the websocket
+        (err) => {
+            dispatchError(err, 'saveReaction');
+        }
+    );
+}
+
+export function deleteReaction(channelId, reaction) {
+    Client.deleteReaction(
+        channelId,
+        reaction,
+        null, // the removed reaction will be sent over the websocket
+        (err) => {
+            dispatchError(err, 'deleteReaction');
+        }
+    );
+}
+
+export function listReactions(channelId, postId) {
+    const callName = 'deleteEmoji' + postId;
+
+    if (isCallInProgress(callName)) {
+        return;
+    }
+
+    callTracker[callName] = utils.getTimestamp();
+
+    Client.listReactions(
+        channelId,
+        postId,
+        (data) => {
+            callTracker[callName] = 0;
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_REACTIONS,
+                postId,
+                reactions: data
+            });
+        },
+        (err) => {
+            callTracker[callName] = 0;
+            dispatchError(err, 'listReactions');
         }
     );
 }

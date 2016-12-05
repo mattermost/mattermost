@@ -252,3 +252,57 @@ export function loadProfilesForPosts(posts) {
 
     AsyncClient.getProfilesByIds(list);
 }
+
+export function addReaction(channelId, postId, emojiName) {
+    const reaction = {
+        post_id: postId,
+        user_id: UserStore.getCurrentId(),
+        emoji_name: emojiName
+    };
+
+    AsyncClient.saveReaction(channelId, reaction);
+}
+
+export function removeReaction(channelId, postId, emojiName) {
+    const reaction = {
+        post_id: postId,
+        user_id: UserStore.getCurrentId(),
+        emoji_name: emojiName
+    };
+
+    AsyncClient.deleteReaction(channelId, reaction);
+}
+
+export function createPost(post, doLoadPost, success, error) {
+    Client.createPost(post,
+        (data) => {
+            if (doLoadPost) {
+                loadPosts(post.channel_id);
+            } else {
+                PostStore.removePendingPost(post.pending_post_id);
+            }
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_POST,
+                post: data
+            });
+
+            if (success) {
+                success(data);
+            }
+        },
+
+        (err) => {
+            if (err.id === 'api.post.create_post.root_id.app_error') {
+                PostStore.removePendingPost(post.pending_post_id);
+            } else {
+                post.state = Constants.POST_FAILED;
+                PostStore.updatePendingPost(post);
+            }
+
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}

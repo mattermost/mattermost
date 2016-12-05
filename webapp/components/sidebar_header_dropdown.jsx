@@ -322,7 +322,7 @@ export default class SidebarHeaderDropdown extends React.Component {
             );
         }
 
-        var teams = [];
+        const teams = [];
 
         if (config.EnableTeamCreation === 'true') {
             teams.push(

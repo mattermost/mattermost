@@ -27,6 +27,7 @@ func NewSqlTeamStore(sqlStore *SqlStore) TeamStore {
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("DisplayName").SetMaxSize(64)
 		table.ColMap("Name").SetMaxSize(64).SetUnique(true)
+		table.ColMap("Description").SetMaxSize(255)
 		table.ColMap("Email").SetMaxSize(128)
 		table.ColMap("CompanyName").SetMaxSize(64)
 		table.ColMap("AllowedDomains").SetMaxSize(500)
@@ -43,6 +44,7 @@ func NewSqlTeamStore(sqlStore *SqlStore) TeamStore {
 
 func (s SqlTeamStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_teams_name", "Teams", "Name")
+	s.CreateIndexIfNotExists("idx_teams_description", "Teams", "Description")
 	s.CreateIndexIfNotExists("idx_teams_invite_id", "Teams", "InviteId")
 	s.CreateIndexIfNotExists("idx_teams_update_at", "Teams", "UpdateAt")
 	s.CreateIndexIfNotExists("idx_teams_create_at", "Teams", "CreateAt")

@@ -1206,3 +1206,31 @@
     margin-left: 50px !important;
     min-width: 320px;
 }
+
+.post-reaction-list {
+    height: 24px;
+}
+
+.post-reaction {
+    border: 1px solid $primary-color;
+    border-radius: 3px;
+    cursor: pointer;
+    display: inline-block;
+    padding: 1px 2px;
+    @include user-select(none);
+
+    .post-reaction__emoji {
+        height: 14px;
+        margin-top: 3px;
+        width: 14px;
+        vertical-align: top;
+    }
+
+    & + & {
+        margin-left: 5px;
+    }
+
+    &--current-user {
+        // background-colour set by theme code
+    }
+}
