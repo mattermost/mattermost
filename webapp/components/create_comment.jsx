@@ -4,7 +4,6 @@
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
-import Client from 'client/web_client.jsx';
 import EmojiStore from 'stores/emoji_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import PostDeletedModal from './post_deleted_modal.jsx';
@@ -163,24 +162,16 @@ export default class CreateComment extends React.Component {
         post.create_at = time;
 
         GlobalActions.emitUserCommentedEvent(post);
-        Client.createPost(
-            post,
-            (data) => {
-                PostStore.removePendingPost(post.channel_id, post.pending_post_id);
 
-                AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECEIVED_POST,
-                    post: data
-                });
+        PostActions.createPost(post, false,
+            () => {
+                // DO nothing.
             },
             (err) => {
                 if (err.id === 'api.post.create_post.root_id.app_error') {
                     this.showPostDeletedModal();
-
-                    PostStore.removePendingPost(post.channel_id, post.pending_post_id);
                 } else {
-                    post.state = Constants.POST_FAILED;
-                    PostStore.updatePendingPost(post);
+                    this.forceUpdate();
                 }
 
                 this.setState({
@@ -188,6 +179,18 @@ export default class CreateComment extends React.Component {
                 });
             }
         );
+
+        this.setState({
+            message: '',
+            submitting: false,
+            postError: null,
+            fileInfos: [],
+            serverError: null
+        });
+
+        const fasterThanHumanWillClick = 150;
+        const forceFocus = (Date.now() - this.state.lastBlurAt < fasterThanHumanWillClick);
+        this.focusTextbox(forceFocus);
     }
 
     handleSubmitReaction(isReaction) {
