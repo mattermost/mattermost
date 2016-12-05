@@ -651,22 +651,26 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 		updateMentionChans = append(updateMentionChans, Srv.Store.Channel().IncrementMentionCount(post.ChannelId, id))
 	}
 
-	senderName := ""
 	var sender *model.User
-	if post.IsSystemMessage() {
-		senderName = c.T("system.message.name")
-	} else if profile, ok := profileMap[post.UserId]; ok {
-		if value, ok := post.Props["override_username"]; ok && post.Props["from_webhook"] == "true" {
-			senderName = value.(string)
-		} else {
-			if result := <-Srv.Store.Preference().Get(profile.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "name_format"); result.Err != nil {
-				// Show default sender's name if user doesn't set display settings.
-				senderName = profile.Username
+	senderName := make(map[string]string)
+	for _, id := range mentionedUsersList {
+		senderName[id] = ""
+		if post.IsSystemMessage() {
+			senderName[id] = c.T("system.message.name")
+		} else if profile, ok := profileMap[post.UserId]; ok {
+			if value, ok := post.Props["override_username"]; ok && post.Props["from_webhook"] == "true" {
+				senderName[id] = value.(string)
 			} else {
-				senderName = profile.GetDisplayNameForPreference(result.Data.(model.Preference).Value)
+				//Get the Display name preference from the receiver
+				if result := <-Srv.Store.Preference().Get(id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "name_format"); result.Err != nil {
+					// Show default sender's name if user doesn't set display settings.
+					senderName[id] = profile.Username
+				} else {
+					senderName[id] = profile.GetDisplayNameForPreference(result.Data.(model.Preference).Value)
+				}
 			}
+			sender = profile
 		}
-		sender = profile
 	}
 
 	if utils.Cfg.EmailSettings.SendEmailNotifications {
@@ -686,7 +690,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 			}
 
 			if userAllowsEmails && status.Status != model.STATUS_ONLINE {
-				go sendNotificationEmail(c, post, profileMap[id], channel, team, senderName, sender)
+				go sendNotificationEmail(c, post, profileMap[id], channel, team, senderName[id], sender)
 			}
 		}
 	}
@@ -782,7 +786,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 			}
 
 			if DoesStatusAllowPushNotification(profileMap[id], status, post.ChannelId) {
-				go sendPushNotification(post, profileMap[id], channel, senderName, true)
+				go sendPushNotification(post, profileMap[id], channel, senderName[id], true)
 			}
 		}
 
@@ -795,7 +799,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 				}
 
 				if DoesStatusAllowPushNotification(profileMap[id], status, post.ChannelId) {
-					go sendPushNotification(post, profileMap[id], channel, senderName, false)
+					go sendPushNotification(post, profileMap[id], channel, senderName[id], false)
 				}
 			}
 		}
