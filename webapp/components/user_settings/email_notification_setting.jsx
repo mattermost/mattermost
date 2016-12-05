@@ -64,7 +64,7 @@ export default class EmailNotificationSetting extends React.Component {
         if (this.props.activeSection !== 'email') {
             let description;
 
-            if (this.props.enableEmail === 'true') {
+            if (this.props.enableEmail) {
                 switch (this.state.emailInterval) {
                 case INTERVAL_IMMEDIATE:
                     description = (
@@ -119,7 +119,7 @@ export default class EmailNotificationSetting extends React.Component {
                             <input
                                 type='radio'
                                 name='emailNotifications'
-                                checked={this.props.enableEmail === 'true' && this.state.emailInterval === INTERVAL_FIFTEEN_MINUTES}
+                                checked={this.props.enableEmail && this.state.emailInterval === INTERVAL_FIFTEEN_MINUTES}
                                 onChange={this.handleChange.bind(this, 'true', INTERVAL_FIFTEEN_MINUTES)}
                             />
                             <FormattedMessage
@@ -134,7 +134,7 @@ export default class EmailNotificationSetting extends React.Component {
                             <input
                                 type='radio'
                                 name='emailNotifications'
-                                checked={this.props.enableEmail === 'true' && this.state.emailInterval === INTERVAL_HOUR}
+                                checked={this.props.enableEmail && this.state.emailInterval === INTERVAL_HOUR}
                                 onChange={this.handleChange.bind(this, 'true', INTERVAL_HOUR)}
                             />
                             <FormattedMessage
@@ -170,7 +170,7 @@ export default class EmailNotificationSetting extends React.Component {
                                 <input
                                     type='radio'
                                     name='emailNotifications'
-                                    checked={this.props.enableEmail === 'true' && this.state.emailInterval === INTERVAL_IMMEDIATE}
+                                    checked={this.props.enableEmail && this.state.emailInterval === INTERVAL_IMMEDIATE}
                                     onChange={this.handleChange.bind(this, 'true', INTERVAL_IMMEDIATE)}
                                 />
                                 <FormattedMessage
@@ -185,7 +185,7 @@ export default class EmailNotificationSetting extends React.Component {
                                 <input
                                     type='radio'
                                     name='emailNotifications'
-                                    checked={this.props.enableEmail === 'false'}
+                                    checked={!this.props.enableEmail}
                                     onChange={this.handleChange.bind(this, 'false', INTERVAL_IMMEDIATE)}
                                 />
                                 <FormattedMessage
