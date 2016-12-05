@@ -16,8 +16,8 @@ import * as Utils from 'utils/utils.jsx';
 export default class Integrations extends React.Component {
     static get propTypes() {
         return {
-            team: React.PropTypes.object.isRequired,
-            user: React.PropTypes.object.isRequired
+            team: React.PropTypes.object,
+            user: React.PropTypes.object
         };
     }
 

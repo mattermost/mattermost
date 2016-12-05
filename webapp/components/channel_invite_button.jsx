@@ -40,10 +40,6 @@ export default class ChannelInviteButton extends React.Component {
             this.props.channel.id,
             this.props.user.id,
             () => {
-                this.setState({
-                    addingUser: false
-                });
-
                 this.props.onInviteError(null);
             },
             (err) => {

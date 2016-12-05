@@ -4,6 +4,7 @@
 import React from 'react';
 
 import * as AsyncClient from 'utils/async_client.jsx';
+import {localizeMessage} from 'utils/utils.jsx';
 
 import BackstageHeader from 'components/backstage/components/backstage_header.jsx';
 import ChannelSelect from 'components/channel_select.jsx';
@@ -15,7 +16,7 @@ import SpinnerButton from 'components/spinner_button.jsx';
 export default class AddOutgoingWebhook extends React.Component {
     static get propTypes() {
         return {
-            team: React.propTypes.object.isRequired
+            team: React.PropTypes.object
         };
     }
 
@@ -368,18 +369,12 @@ export default class AddOutgoingWebhook extends React.Component {
                                     <option
                                         value='0'
                                     >
-                                        <FormattedMessage
-                                            id='add_outgoing_webhook.triggerWordsTriggerWhenFullWord'
-                                            defaultMessage='First word matches a trigger word exactly'
-                                        />
+                                        {localizeMessage('add_outgoing_webhook.triggerWordsTriggerWhenFullWord', 'First word matches a trigger word exactly')}
                                     </option>
                                     <option
                                         value='1'
                                     >
-                                        <FormattedMessage
-                                            id='add_outgoing_webhook.triggerWordsTriggerWhenStartsWith'
-                                            defaultMessage='First word starts with a trigger word'
-                                        />
+                                        {localizeMessage('add_outgoing_webhook.triggerWordsTriggerWhenStartsWith', 'First word starts with a trigger word')}
                                     </option>
                                 </select>
                                 <div className='form__help'>

@@ -52,7 +52,7 @@ class UserStoreClass extends EventEmitter {
 
         this.statuses = {};
         this.sessions = {};
-        this.audits = {};
+        this.audits = [];
         this.currentUserId = '';
         this.noAccounts = false;
     }

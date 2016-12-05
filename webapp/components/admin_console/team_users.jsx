@@ -191,6 +191,7 @@ export default class UserList extends React.Component {
                         const service = (user.auth_service === Constants.LDAP_SERVICE || user.auth_service === Constants.SAML_SERVICE) ? user.auth_service.toUpperCase() : Utils.toTitleCase(user.auth_service);
                         info.push(
                             <FormattedHTMLMessage
+                                key='admin.user_item.authServiceNotEmail'
                                 id='admin.user_item.authServiceNotEmail'
                                 defaultMessage='<strong>Sign-in Method:</strong> {service}'
                                 values={{
@@ -201,6 +202,7 @@ export default class UserList extends React.Component {
                     } else {
                         info.push(
                             <FormattedHTMLMessage
+                                key='admin.user_item.authServiceEmail'
                                 id='admin.user_item.authServiceEmail'
                                 defaultMessage='<strong>Sign-in Method:</strong> Email'
                             />
@@ -212,6 +214,7 @@ export default class UserList extends React.Component {
                         if (user.mfa_active) {
                             info.push(
                                 <FormattedHTMLMessage
+                                    key='admin.user_item.mfaYes'
                                     id='admin.user_item.mfaYes'
                                     defaultMessage='<strong>MFA</strong>: Yes'
                                 />
@@ -219,6 +222,7 @@ export default class UserList extends React.Component {
                         } else {
                             info.push(
                                 <FormattedHTMLMessage
+                                    key='admin.user_item.mfaNo'
                                     id='admin.user_item.mfaNo'
                                     defaultMessage='<strong>MFA</strong>: No'
                                 />

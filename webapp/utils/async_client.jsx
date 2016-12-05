@@ -1389,7 +1389,7 @@ export function editCommand(command, success, error) {
         command,
         (data) => {
             AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_COMMAND,
+                type: ActionTypes.UPDATED_COMMAND,
                 command: data
             });
 

@@ -129,7 +129,7 @@ export default class SearchResultsHeader extends React.Component {
 
 SearchResultsHeader.propTypes = {
     isMentionSearch: React.PropTypes.bool,
-    toggleSize: React.PropTypes.function,
-    shrink: React.PropTypes.function,
+    toggleSize: React.PropTypes.func,
+    shrink: React.PropTypes.func,
     isFlaggedPosts: React.PropTypes.bool
 };

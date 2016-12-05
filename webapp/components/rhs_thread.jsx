@@ -374,6 +374,6 @@ RhsThread.propTypes = {
     isMentionSearch: React.PropTypes.bool,
     currentUser: React.PropTypes.object.isRequired,
     useMilitaryTime: React.PropTypes.bool.isRequired,
-    toggleSize: React.PropTypes.function,
-    shrink: React.PropTypes.function
+    toggleSize: React.PropTypes.func,
+    shrink: React.PropTypes.func
 };
