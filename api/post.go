@@ -459,6 +459,9 @@ func getMentionKeywordsInChannel(profiles map[string]*model.User) map[string][]s
 	keywords := make(map[string][]string)
 
 	for id, profile := range profiles {
+		userMention := "@" + strings.ToLower(profile.Username)
+		keywords[userMention] = append(keywords[userMention], id)
+
 		if len(profile.NotifyProps["mention_keys"]) > 0 {
 			// Add all the user's mention keys
 			splitKeys := strings.Split(profile.NotifyProps["mention_keys"], ",")
@@ -698,7 +701,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 			post.UserId,
 			&model.Post{
 				ChannelId: post.ChannelId,
-				Message:   utils.T("api.post.disabled_here", map[string]interface{}{"Users": *utils.Cfg.TeamSettings.MaxNotificationsPerChannel}),
+				Message:   c.T("api.post.disabled_here", map[string]interface{}{"Users": *utils.Cfg.TeamSettings.MaxNotificationsPerChannel}),
 				CreateAt:  post.CreateAt + 1,
 			},
 		)
@@ -711,7 +714,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 			post.UserId,
 			&model.Post{
 				ChannelId: post.ChannelId,
-				Message:   utils.T("api.post.disabled_channel", map[string]interface{}{"Users": *utils.Cfg.TeamSettings.MaxNotificationsPerChannel}),
+				Message:   c.T("api.post.disabled_channel", map[string]interface{}{"Users": *utils.Cfg.TeamSettings.MaxNotificationsPerChannel}),
 				CreateAt:  post.CreateAt + 1,
 			},
 		)
@@ -724,7 +727,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 			post.UserId,
 			&model.Post{
 				ChannelId: post.ChannelId,
-				Message:   utils.T("api.post.disabled_all", map[string]interface{}{"Users": *utils.Cfg.TeamSettings.MaxNotificationsPerChannel}),
+				Message:   c.T("api.post.disabled_all", map[string]interface{}{"Users": *utils.Cfg.TeamSettings.MaxNotificationsPerChannel}),
 				CreateAt:  post.CreateAt + 1,
 			},
 		)

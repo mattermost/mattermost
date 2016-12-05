@@ -937,8 +937,8 @@ func TestGetMentionKeywords(t *testing.T) {
 
 	profiles = map[string]*model.User{user2.Id: user2}
 	mentions = getMentionKeywordsInChannel(profiles)
-	if len(mentions) != 1 {
-		t.Fatal("should've returned one mention keyword")
+	if len(mentions) != 2 {
+		t.Fatal("should've returned two mention keyword")
 	} else if ids, ok := mentions["First"]; !ok || ids[0] != user2.Id {
 		t.Fatal("should've returned mention key of First")
 	}
@@ -955,8 +955,8 @@ func TestGetMentionKeywords(t *testing.T) {
 
 	profiles = map[string]*model.User{user3.Id: user3}
 	mentions = getMentionKeywordsInChannel(profiles)
-	if len(mentions) != 2 {
-		t.Fatal("should've returned two mention keywords")
+	if len(mentions) != 3 {
+		t.Fatal("should've returned three mention keywords")
 	} else if ids, ok := mentions["@channel"]; !ok || ids[0] != user3.Id {
 		t.Fatal("should've returned mention key of @channel")
 	} else if ids, ok := mentions["@all"]; !ok || ids[0] != user3.Id {
@@ -993,6 +993,24 @@ func TestGetMentionKeywords(t *testing.T) {
 		t.Fatal("should've returned mention key of @all")
 	}
 
+	dup_count := func(list []string) map[string]int {
+
+		duplicate_frequency := make(map[string]int)
+
+		for _, item := range list {
+			// check if the item/element exist in the duplicate_frequency map
+
+			_, exist := duplicate_frequency[item]
+
+			if exist {
+				duplicate_frequency[item] += 1 // increase counter by 1 if already in the map
+			} else {
+				duplicate_frequency[item] = 1 // else start counting from 1
+			}
+		}
+		return duplicate_frequency
+	}
+
 	// multiple users
 	profiles = map[string]*model.User{
 		user1.Id: user1,
@@ -1005,7 +1023,7 @@ func TestGetMentionKeywords(t *testing.T) {
 		t.Fatal("should've returned six mention keywords")
 	} else if ids, ok := mentions["user"]; !ok || len(ids) != 2 || (ids[0] != user1.Id && ids[1] != user1.Id) || (ids[0] != user4.Id && ids[1] != user4.Id) {
 		t.Fatal("should've mentioned user1 and user4 with user")
-	} else if ids, ok := mentions["@user"]; !ok || len(ids) != 2 || (ids[0] != user1.Id && ids[1] != user1.Id) || (ids[0] != user4.Id && ids[1] != user4.Id) {
+	} else if ids := dup_count(mentions["@user"]); len(ids) != 4 || (ids[user1.Id] != 2) || (ids[user4.Id] != 2) {
 		t.Fatal("should've mentioned user1 and user4 with @user")
 	} else if ids, ok := mentions["mention"]; !ok || len(ids) != 2 || (ids[0] != user1.Id && ids[1] != user1.Id) || (ids[0] != user4.Id && ids[1] != user4.Id) {
 		t.Fatal("should've mentioned user1 and user4 with mention")
