@@ -219,6 +219,7 @@ type TeamSettings struct {
 	RestrictTeamInvite               *string
 	RestrictPublicChannelManagement  *string
 	RestrictPrivateChannelManagement *string
+	RestrictChannelDeletion          *string
 	UserStatusAwayTimeout            *int64
 	MaxChannelsPerTeam               *int64
 	DefaultTeamName                  string
@@ -506,6 +507,11 @@ func (o *Config) SetDefaults() {
 	if o.TeamSettings.RestrictPrivateChannelManagement == nil {
 		o.TeamSettings.RestrictPrivateChannelManagement = new(string)
 		*o.TeamSettings.RestrictPrivateChannelManagement = PERMISSIONS_ALL
+	}
+
+	if o.TeamSettings.RestrictChannelDeletion == nil {
+		o.TeamSettings.RestrictChannelDeletion = new(string)
+		*o.TeamSettings.RestrictChannelDeletion = PERMISSIONS_ALL
 	}
 
 	if o.TeamSettings.UserStatusAwayTimeout == nil {

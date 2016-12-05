@@ -90,6 +90,7 @@ func trackConfig() {
 		"restrict_team_invite":                *Cfg.TeamSettings.RestrictTeamInvite,
 		"restrict_public_channel_management":  *Cfg.TeamSettings.RestrictPublicChannelManagement,
 		"restrict_private_channel_management": *Cfg.TeamSettings.RestrictPrivateChannelManagement,
+		"restrict_channel_deletion":           *Cfg.TeamSettings.RestrictChannelDeletion,
 		"enable_open_server":                  *Cfg.TeamSettings.EnableOpenServer,
 		"enable_custom_brand":                 *Cfg.TeamSettings.EnableCustomBrand,
 	})
