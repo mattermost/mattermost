@@ -72,17 +72,22 @@ export default class SwitchChannelModal extends React.Component {
         this.setState({text: e.target.value});
     }
 
-    handleKeyDown(e) {
-        this.setState({
+    handleKeyDown(e, selectionText) {
+        const newState = {
             error: ''
-        });
+        };
+        if (selectionText) {
+            newState.text = selectionText;
+        }
+        this.setState(newState);
+
         if (e.keyCode === Constants.KeyCodes.ENTER) {
-            this.handleSubmit();
+            this.handleSubmit(selectionText);
         }
     }
 
-    handleSubmit() {
-        const name = this.state.text.trim();
+    handleSubmit(selectionText) {
+        const name = selectionText || this.state.text.trim();
         let channel = null;
 
         // TODO: Replace this hack with something reasonable
@@ -95,25 +100,25 @@ export default class SwitchChannelModal extends React.Component {
                     user,
                     (ch) => {
                         channel = ch;
-                        this.switchToChannel(channel);
+                        this.switchToChannel(channel, name);
                     },
                     () => {
                         channel = null;
-                        this.switchToChannel(channel);
+                        this.switchToChannel(channel, name);
                     }
                 );
             }
         } else {
-            channel = ChannelStore.getByName(this.state.text.trim());
-            this.switchToChannel(channel);
+            channel = ChannelStore.getByName(name);
+            this.switchToChannel(channel, name);
         }
     }
 
-    switchToChannel(channel) {
+    switchToChannel(channel, name) {
         if (channel !== null) {
             goToChannel(channel);
             this.onHide();
-        } else if (this.state.text !== '') {
+        } else if (name !== '') {
             this.setState({
                 error: Utils.localizeMessage('channel_switch_modal.not_found', 'No matches found.')
             });
@@ -155,6 +160,7 @@ export default class SwitchChannelModal extends React.Component {
                         onChange={this.onChange}
                         value={this.state.text}
                         onKeyDown={this.handleKeyDown}
+                        overrideEnterKey={true}
                         listComponent={SuggestionList}
                         maxLength='64'
                         providers={this.suggestionProviders}
