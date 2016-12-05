@@ -22,11 +22,15 @@ export default class SuggestionBox extends React.Component {
 
         this.handleCompleteWord = this.handleCompleteWord.bind(this);
         this.handleChange = this.handleChange.bind(this);
+        this.handleCompositionUpdate = this.handleCompositionUpdate.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handlePretextChanged = this.handlePretextChanged.bind(this);
 
         this.suggestionId = Utils.generateId();
         SuggestionStore.registerSuggestionBox(this.suggestionId);
+
+        // Keep track of whether we're composing a CJK character so we can make suggetsions for partial characters
+        this.partialCharacter = '';
     }
 
     componentDidMount() {
@@ -83,20 +87,28 @@ export default class SuggestionBox extends React.Component {
     handleChange(e) {
         const textbox = this.getTextbox();
         const caret = Utils.getCaretPosition(textbox);
-        const pretext = textbox.value.substring(0, caret);
+        const pretext = textbox.value.substring(0, caret) + this.partialCharacter;
 
-        GlobalActions.emitSuggestionPretextChanged(this.suggestionId, pretext);
+        if (SuggestionStore.getPretext(this.suggestionId) !== pretext) {
+            GlobalActions.emitSuggestionPretextChanged(this.suggestionId, pretext);
+        }
 
         if (this.props.onChange) {
             this.props.onChange(e);
         }
     }
 
+    handleCompositionUpdate(e) {
+        // Save the currently composing character so that it can be used for autocomplete suggestions
+        // when handleChange is called immediately after this
+        this.partialCharacter = e.data;
+    }
+
     handleCompleteWord(term, matchedPretext) {
         const textbox = this.getTextbox();
         const caret = Utils.getCaretPosition(textbox);
         const text = this.props.value;
-        const pretext = text.substring(0, caret);
+        const pretext = text.substring(0, caret) + this.partialCharacter;
 
         let prefix;
         if (pretext.endsWith(matchedPretext)) {
@@ -168,37 +180,38 @@ export default class SuggestionBox extends React.Component {
             ...props
         } = this.props;
 
+        // Don't pass props used by SuggestionBox
+        Reflect.deleteProperty(props, 'providers');
+
+        const childProps = {
+            ref: 'textbox',
+            onInput: this.handleChange,
+            onCompositionUpdate: this.handleCompositionUpdate,
+            onKeyDown: this.handleKeyDown
+        };
+
         let textbox = null;
         if (type === 'input') {
             textbox = (
                 <input
-                    ref='textbox'
                     type='text'
                     {...props}
-                    onInput={this.handleChange}
-                    onKeyDown={this.handleKeyDown}
+                    {...childProps}
                 />
             );
         } else if (type === 'search') {
-            const newProps = {...props};
-            Reflect.deleteProperty(newProps, 'providers');
             textbox = (
                 <input
-                    ref='textbox'
                     type='search'
-                    {...newProps}
-                    onInput={this.handleChange}
-                    onKeyDown={this.handleKeyDown}
+                    {...props}
+                    {...childProps}
                 />
             );
         } else if (type === 'textarea') {
             textbox = (
                 <AutosizeTextarea
-                    id={this.suggestionId}
-                    ref='textbox'
                     {...props}
-                    onInput={this.handleChange}
-                    onKeyDown={this.handleKeyDown}
+                    {...childProps}
                 />
             );
         }
