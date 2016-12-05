@@ -123,7 +123,7 @@ export default class CreateComment extends React.Component {
 
         MessageHistoryStore.storeMessageInHistory(message);
 
-        if (message.trim().length === 0 && this.state.previews.length === 0) {
+        if (message.trim().length === 0 && this.state.fileInfos.length === 0) {
             return;
         }
 
