@@ -251,6 +251,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		oldChannel.Purpose = channel.Purpose
 
 		if len(channel.DisplayName) > 0 {
+			go PostUpdateChannelHeaderMessage(c, channel.Id, oldChannel.DisplayName, channel.DisplayName)
 			oldChannel.DisplayName = channel.DisplayName
 		}
 
