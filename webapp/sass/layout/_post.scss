@@ -409,12 +409,22 @@
         @include clearfix;
         font-size: 13px;
         padding: 3px 0 0;
+        position: relative;
 
         .control-label {
             font-weight: normal;
             margin-bottom: 0;
             position: relative;
             top: -5px;
+
+            &.post-error {
+              display: inline-block;
+              font-size: .85em;
+              @include opacity(.55);
+              color: rgb(51, 51, 51);
+              position: absolute;
+              top: 4px;
+            }
         }
     }
 

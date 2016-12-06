@@ -205,7 +205,6 @@ export default class Textbox extends React.Component {
                     className={`form-control custom-textarea ${this.state.connection}`}
                     type='textarea'
                     spellCheck='true'
-                    maxLength={Constants.MAX_POST_LEN}
                     placeholder={this.props.createMessage}
                     onChange={this.props.onChange}
                     onKeyPress={this.handleKeyPress}

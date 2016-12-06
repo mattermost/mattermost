@@ -25,7 +25,7 @@ import PreferenceStore from 'stores/preference_store.jsx';
 
 import Constants from 'utils/constants.jsx';
 
-import {FormattedHTMLMessage} from 'react-intl';
+import {FormattedHTMLMessage, FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
 
 const Preferences = Constants.Preferences;
@@ -95,8 +95,11 @@ export default class CreatePost extends React.Component {
             return;
         }
 
-        if (post.message.length > Constants.CHARACTER_LIMIT) {
-            this.setState({postError: `Post length must be less than ${Constants.CHARACTER_LIMIT} characters.`});
+        if (this.state.postError) {
+            this.setState({errorClass: 'animation--highlight'});
+            setTimeout(() => {
+                this.setState({errorClass: null});
+            }, 1000);
             return;
         }
 
@@ -216,6 +219,21 @@ export default class CreatePost extends React.Component {
         const draft = PostStore.getCurrentDraft();
         draft.message = message;
         PostStore.storeCurrentDraft(draft);
+
+        if (message.length > Constants.CHARACTER_LIMIT) {
+            const errorMessage = (
+                <FormattedMessage
+                    id='create_post.error_message'
+                    defaultMessage='Your message is too long. Character count: {length}/{limit}'
+                    values={{
+                        length: message.length,
+                        limit: Constants.CHARACTER_LIMIT
+                    }}
+                />);
+            this.setState({postError: errorMessage});
+        } else {
+            this.setState({postError: null});
+        }
     }
 
     handleUploadClick() {
@@ -474,7 +492,8 @@ export default class CreatePost extends React.Component {
 
         let postError = null;
         if (this.state.postError) {
-            postError = <label className='control-label'>{this.state.postError}</label>;
+            const postErrorClass = 'control-label post-error' + (this.state.errorClass ? (' ' + this.state.errorClass) : '');
+            postError = <label className={postErrorClass}>{this.state.postError}</label>;
         }
 
         let preview = null;
@@ -549,8 +568,8 @@ export default class CreatePost extends React.Component {
                             channelId={this.state.channelId}
                             parentId=''
                         />
-                        {preview}
                         {postError}
+                        {preview}
                         {serverError}
                     </div>
                 </div>

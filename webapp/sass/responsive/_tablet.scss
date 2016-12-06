@@ -27,6 +27,12 @@
 
             .control-label {
                 top: 0;
+
+                &.post-error {
+                  left: 32px;
+                  top: 0px;
+                  position: relative;
+                }
             }
         }
 
