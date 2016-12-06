@@ -12,6 +12,10 @@ import {FormattedMessage} from 'react-intl';
 import {Popover} from 'react-bootstrap';
 
 export default class SearchSuggestionList extends SuggestionList {
+    static propTypes = {
+        ...SuggestionList.propTypes
+    };
+
     getContent() {
         return $(ReactDOM.findDOMNode(this.refs.popover)).find('.popover-content');
     }
@@ -92,7 +96,3 @@ export default class SearchSuggestionList extends SuggestionList {
         );
     }
 }
-
-SearchSuggestionList.propTypes = {
-    ...SuggestionList.propTypes
-};
