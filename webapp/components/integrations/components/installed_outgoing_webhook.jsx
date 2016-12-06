@@ -14,7 +14,8 @@ export default class InstalledOutgoingWebhook extends React.Component {
             onRegenToken: React.PropTypes.func.isRequired,
             onDelete: React.PropTypes.func.isRequired,
             filter: React.PropTypes.string,
-            creator: React.PropTypes.object.isRequired
+            creator: React.PropTypes.object.isRequired,
+            canChange: React.PropTypes.bool.isRequired
         };
     }
 
@@ -146,6 +147,33 @@ export default class InstalledOutgoingWebhook extends React.Component {
             );
         }
 
+        let actions = null;
+        if (this.props.canChange) {
+            actions = (
+                <div className='item-actions'>
+                    <a
+                        href='#'
+                        onClick={this.handleRegenToken}
+                    >
+                        <FormattedMessage
+                            id='installed_integrations.regenToken'
+                            defaultMessage='Regen Token'
+                        />
+                    </a>
+                    {' - '}
+                    <a
+                        href='#'
+                        onClick={this.handleDelete}
+                    >
+                        <FormattedMessage
+                            id='installed_integrations.delete'
+                            defaultMessage='Delete'
+                        />
+                    </a>
+                </div>
+            );
+        }
+
         return (
             <div className='backstage-list__item'>
                 <div className='item-details'>
@@ -203,27 +231,7 @@ export default class InstalledOutgoingWebhook extends React.Component {
                     </div>
                     {urls}
                 </div>
-                <div className='item-actions'>
-                    <a
-                        href='#'
-                        onClick={this.handleRegenToken}
-                    >
-                        <FormattedMessage
-                            id='installed_integrations.regenToken'
-                            defaultMessage='Regen Token'
-                        />
-                    </a>
-                    {' - '}
-                    <a
-                        href='#'
-                        onClick={this.handleDelete}
-                    >
-                        <FormattedMessage
-                            id='installed_integrations.delete'
-                            defaultMessage='Delete'
-                        />
-                    </a>
-                </div>
+                {actions}
             </div>
         );
     }

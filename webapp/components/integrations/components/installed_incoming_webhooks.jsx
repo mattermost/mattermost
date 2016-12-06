@@ -19,7 +19,9 @@ import {FormattedMessage} from 'react-intl';
 export default class InstalledIncomingWebhooks extends React.Component {
     static get propTypes() {
         return {
-            team: React.PropTypes.object
+            team: React.PropTypes.object,
+            user: React.PropTypes.object,
+            isAdmin: React.PropTypes.bool
         };
     }
 
@@ -74,12 +76,15 @@ export default class InstalledIncomingWebhooks extends React.Component {
 
     render() {
         const incomingWebhooks = this.state.incomingWebhooks.map((incomingWebhook) => {
+            const canChange = this.props.isAdmin || this.props.user.id === incomingWebhook.user_id;
+
             return (
                 <InstalledIncomingWebhook
                     key={incomingWebhook.id}
                     incomingWebhook={incomingWebhook}
                     onDelete={this.deleteIncomingWebhook}
                     creator={this.state.users[incomingWebhook.user_id] || {}}
+                    canChange={canChange}
                 />
             );
         });
