@@ -6,9 +6,11 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
+
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
@@ -20,6 +22,7 @@ func InitChannel() {
 
 	BaseRoutes.Channels.Handle("/", ApiUserRequired(getChannels)).Methods("GET")
 	BaseRoutes.Channels.Handle("/more", ApiUserRequired(getMoreChannels)).Methods("GET")
+	BaseRoutes.Channels.Handle("/paginated/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getPaginatedChannels)).Methods("GET")
 	BaseRoutes.Channels.Handle("/counts", ApiUserRequired(getChannelCounts)).Methods("GET")
 	BaseRoutes.Channels.Handle("/members", ApiUserRequired(getMyChannelMembers)).Methods("GET")
 	BaseRoutes.Channels.Handle("/create", ApiUserRequired(createChannel)).Methods("POST")
@@ -434,6 +437,38 @@ func getMoreChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		data := result.Data.(*model.ChannelList)
 		w.Header().Set(model.HEADER_ETAG_SERVER, data.Etag())
 		w.Write([]byte(data.ToJson()))
+	}
+}
+
+func getPaginatedChannels(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	// user is already in the team
+	if !HasPermissionToTeamContext(c, c.TeamId, model.PERMISSION_LIST_TEAM_CHANNELS) {
+		return
+	}
+
+	offset, err := strconv.Atoi(params["offset"])
+	if err != nil {
+		c.SetInvalidParam("getPaginatedChannels", "offset")
+		return
+	}
+
+	limit, err := strconv.Atoi(params["limit"])
+	if err != nil {
+		c.SetInvalidParam("getPaginatedChannels", "limit")
+		return
+	}
+
+	if result := <-Srv.Store.Channel().GetPaginatedChannels(c.TeamId, c.Session.UserId, offset, limit, r.URL.Query().Get("term")); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else if HandleEtag(result.Data.(*model.ChannelList).Etag()+"_"+strconv.Itoa(int(result.Count)), w, r) {
+		return
+	} else {
+		data := result.Data.(*model.ChannelList)
+		w.Header().Set(model.HEADER_ETAG_SERVER, data.Etag()+"_"+strconv.Itoa(int(result.Count)))
+		rdata := map[string]interface{}{"count": result.Count, "list": data}
+		w.Write([]byte(model.MapInterfaceToJson(rdata)))
 	}
 }
 

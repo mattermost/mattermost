@@ -11,8 +11,9 @@ import (
 )
 
 type StoreResult struct {
-	Data interface{}
-	Err  *model.AppError
+	Data  interface{}
+	Err   *model.AppError
+	Count int64
 }
 
 type StoreChannel chan StoreResult
@@ -91,6 +92,7 @@ type ChannelStore interface {
 	GetByName(team_id string, domain string) StoreChannel
 	GetChannels(teamId string, userId string) StoreChannel
 	GetMoreChannels(teamId string, userId string) StoreChannel
+	GetPaginatedChannels(teamId string, userId string, offset int, limit int, term string) StoreChannel
 	GetChannelCounts(teamId string, userId string) StoreChannel
 	GetTeamChannels(teamId string) StoreChannel
 	GetAll(teamId string) StoreChannel

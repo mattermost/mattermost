@@ -5,8 +5,12 @@ package store
 
 import (
 	"database/sql"
+	"fmt"
+	"strconv"
+	"strings"
 
 	l4g "github.com/alecthomas/log4go"
+
 	"github.com/go-gorp/gorp"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -395,7 +399,7 @@ func (s SqlChannelStore) GetMoreChannels(teamId string, userId string) StoreChan
 
 		data := &model.ChannelList{}
 		_, err := s.GetReplica().Select(data,
-			`SELECT 
+			`SELECT
 			    *
 			FROM
 			    Channels
@@ -403,7 +407,7 @@ func (s SqlChannelStore) GetMoreChannels(teamId string, userId string) StoreChan
 			    TeamId = :TeamId1
 					AND Type IN ('O')
 					AND DeleteAt = 0
-			        AND Id NOT IN (SELECT 
+			        AND Id NOT IN (SELECT
 			            Channels.Id
 			        FROM
 			            Channels,
@@ -420,6 +424,65 @@ func (s SqlChannelStore) GetMoreChannels(teamId string, userId string) StoreChan
 			result.Err = model.NewLocAppError("SqlChannelStore.GetMoreChannels", "store.sql_channel.get_more_channels.get.app_error", nil, "teamId="+teamId+", userId="+userId+", err="+err.Error())
 		} else {
 			result.Data = data
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlChannelStore) GetPaginatedChannels(teamId string, userId string, offset int, limit int, term string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		searchQuery := `
+			SELECT
+			  *
+			FROM
+			  Channels
+			WHERE
+		    TeamId = :TeamId1
+				AND Type IN ('O')
+				AND DeleteAt = 0
+				SEARCH_CLAUSE
+	      AND Id NOT IN (SELECT
+	            Channels.Id
+	        FROM
+	            Channels,
+	            ChannelMembers
+	        WHERE
+            Id = ChannelId
+            AND TeamId = :TeamId2
+            AND UserId = :UserId
+            AND DeleteAt = 0)
+			ORDER BY DisplayName`
+
+		if len(strings.TrimSpace(term)) == 0 {
+			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
+		} else {
+			searchClause := fmt.Sprintf("AND Name like :Term OR DisplayName like :Term")
+			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
+		}
+
+		countQuery := strings.Replace(searchQuery, "*", "COUNT(*)", 1)
+		searchQuery = searchQuery + ` LIMIT :Limit OFFSET :Offset`
+
+		result := StoreResult{}
+
+		params_map := map[string]interface{}{"TeamId1": teamId, "TeamId2": teamId, "UserId": userId, "Offset": offset, "Limit": limit, "Term": "%" + term + "%"}
+
+		count, count_err := s.GetReplica().SelectInt(countQuery, params_map)
+
+		data := &model.ChannelList{}
+		_, err := s.GetReplica().Select(data, searchQuery, params_map)
+
+		if count_err != nil || err != nil {
+			result.Err = model.NewLocAppError("SqlChannelStore.GetPaginatedChannels", "store.sql_channel.get_paginated_channels.get.app_error", nil, "teamId="+teamId+", userId="+userId+", Offset="+strconv.Itoa(offset)+", Limit="+strconv.Itoa(limit)+", term="+term+", err="+err.Error())
+		} else {
+			result.Data = data
+			result.Count = count
 		}
 
 		storeChannel <- result

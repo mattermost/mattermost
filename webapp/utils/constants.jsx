@@ -72,6 +72,8 @@ export const ActionTypes = keyMirror({
     RECEIVED_CHANNEL: null,
     RECEIVED_CHANNEL_MEMBER: null,
     RECEIVED_MORE_CHANNELS: null,
+    RECEIVED_PAGINATED_CHANNELS: null,
+    RECEIVED_PAGINATED_CHANNELS_NEXT: null,
     RECEIVED_CHANNEL_STATS: null,
     RECEIVED_MY_CHANNEL_MEMBERS: null,
 
@@ -249,6 +251,7 @@ export const Constants = {
     }),
     STAT_MAX_ACTIVE_USERS: 20,
     STAT_MAX_NEW_USERS: 20,
+    CHANNELS_CHUNK_SIZE: 50,
 
     UserUpdateEvents: {
         USERNAME: 'username',
