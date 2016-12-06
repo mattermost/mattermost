@@ -471,6 +471,12 @@
         .permalink-icon {
             visibility: visible;
         }
+
+        .post__header {
+            .col__reply {
+                display: inline-block;
+            }
+        }
     }
 
     &.post--hovered {
@@ -480,6 +486,12 @@
         .post__remove,
         .permalink-icon {
             visibility: visible;
+        }
+
+        .post__header {
+            .col__reply {
+                display: inline-block;
+            }
         }
 
         .post__body {
@@ -812,6 +824,7 @@
         }
 
         .col__reply {
+            display: none;
             border: 1px solid transparent;
             border-radius: 2px;
             min-width: 70px;
