@@ -3,7 +3,6 @@
 
 import $ from 'jquery';
 import LoadingScreen from './loading_screen.jsx';
-import NewChannelFlow from './new_channel_flow.jsx';
 import MoreChannelsList from './more_channels_list.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
@@ -35,7 +34,6 @@ export default class MoreChannelsNew extends React.Component {
         this.state = {
             channels: null,
             serverError: null,
-            showNewChannelModal: false,
             show: true,
             search: ''
         };
@@ -72,10 +70,6 @@ export default class MoreChannelsNew extends React.Component {
                 }
             }
         );
-    }
-
-    closeNewChannel() {
-        this.setState({showNewChannelModal: false});
     }
 
     getStateFromStores() {
@@ -185,11 +179,6 @@ export default class MoreChannelsNew extends React.Component {
                         />
                     </Modal.Title>
                     {createNewChannelButton}
-                    <NewChannelFlow
-                        show={this.state.showNewChannelModal}
-                        channelType={this.state.channelType}
-                        onModalDismissed={() => this.closeNewChannel()}
-                    />
                 </Modal.Header>
                 <Modal.Body>
                     {moreChannels}
