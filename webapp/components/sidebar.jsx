@@ -634,11 +634,6 @@ export default class Sidebar extends React.Component {
             </li>
         );
 
-        let showChannelModal = false;
-        if (this.state.newChannelModalType !== '') {
-            showChannelModal = true;
-        }
-
         const createChannelTootlip = (
             <Tooltip
                 id='new-channel-tooltip'
@@ -727,14 +722,24 @@ export default class Sidebar extends React.Component {
             }
         }
 
+        let newChannelModal;
+        if (this.state.newChannelModalType !== '') {
+            newChannelModal = (
+                <NewChannelFlow
+                    show={true}
+                    channelType={this.state.newChannelModalType}
+                    onModalDismissed={this.hideNewChannelModal}
+                />
+            );
+        }
+
         let moreChannelsModal;
         if (this.state.showChannelsModal) {
             moreChannelsModal = (
                 <MoreChannelsNew
                     show={true}
-                    onModalDismissed={() => {
-                        this.hideMoreChannelsModal();
-                    }}
+                    onModalDismissed={() => this.hideMoreChannelsModal()}
+                    showCreateChannelModal={() => this.showNewChannelModal(Constants.OPEN_CHANNEL)}
                 />
             );
         }
@@ -755,11 +760,7 @@ export default class Sidebar extends React.Component {
                 id='sidebar-left'
                 key='sidebar-left'
             >
-                <NewChannelFlow
-                    show={showChannelModal}
-                    channelType={this.state.newChannelModalType}
-                    onModalDismissed={this.hideNewChannelModal}
-                />
+                {newChannelModal}
                 {moreChannelsModal}
                 {moreDirectChannelsModal}
 

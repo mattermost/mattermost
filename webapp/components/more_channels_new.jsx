@@ -30,7 +30,6 @@ export default class MoreChannelsNew extends React.Component {
         this.handleExit = this.handleExit.bind(this);
         this.onChange = this.onChange.bind(this);
         this.handleJoin = this.handleJoin.bind(this);
-        this.handleNewChannel = this.handleNewChannel.bind(this);
         this.nextPage = this.nextPage.bind(this);
         this.search = this.search.bind(this);
 
@@ -54,16 +53,12 @@ export default class MoreChannelsNew extends React.Component {
 
     handleHide() {
         this.setState({show: false});
+        this.props.onModalDismissed();
     }
 
     handleExit() {
-        if (this.exitToDirectChannel) {
-            browserHistory.push(this.exitToDirectChannel);
-        }
-
-        if (this.props.onModalDismissed) {
-            this.props.onModalDismissed();
-        }
+        this.setState({show: false});
+        this.props.onModalDismissed();
     }
 
     handleJoin(channel, done) {
@@ -85,12 +80,8 @@ export default class MoreChannelsNew extends React.Component {
         );
     }
 
-    handleNewChannel() {
-        this.setState({showNewChannelModal: true});
-    }
-
     closeNewChannel() {
-        this.setState({showNewChannelModal: false, show: false});
+        this.setState({showNewChannelModal: false});
     }
 
     getStateFromStores() {
@@ -121,7 +112,10 @@ export default class MoreChannelsNew extends React.Component {
             <button
                 type='button'
                 className='btn btn-primary channel-create-btn'
-                onClick={this.handleNewChannel}
+                onClick={() => {
+                    this.props.showCreateChannelModal();
+                    this.handleHide();
+                }}
             >
                 <FormattedMessage
                     id='more_channels.create'
@@ -187,7 +181,7 @@ export default class MoreChannelsNew extends React.Component {
                 dialogClassName='more-modal more-channels more-direct-channels'
                 show={this.state.show}
                 onHide={this.handleHide}
-                onExited={this.handleExit}
+                onExited={this.props.onModalDismissed}
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title>
@@ -227,5 +221,6 @@ export default class MoreChannelsNew extends React.Component {
 }
 
 MoreChannelsNew.propTypes = {
-    onModalDismissed: React.PropTypes.func
+    showCreateChannelModal: React.PropTypes.func.isRequired,
+    onModalDismissed: React.PropTypes.func.isRequired
 };
