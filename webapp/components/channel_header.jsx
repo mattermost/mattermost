@@ -230,6 +230,23 @@ export default class ChannelHeader extends React.Component {
         return true;
     }
 
+    showDeleteOption(channel, isAdmin, isSystemAdmin) {
+        const {RestrictChannelDeletion} = global.window.mm_config;
+        if (global.window.mm_license.IsLicensed !== 'true') {
+            return true;
+        }
+        if (this.state.userCount === 1) {
+            return true;
+        }
+        if (RestrictChannelDeletion === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
+            return false;
+        }
+        if (RestrictChannelDeletion === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
+            return false;
+        }
+        return true;
+    }
+
     initWebrtc(contactId, isOnline) {
         if (isOnline && !this.state.isBusy) {
             GlobalActions.emitCloseRightHandSide();
@@ -604,7 +621,8 @@ export default class ChannelHeader extends React.Component {
                     </li>
                 );
 
-                if (!ChannelStore.isDefault(channel)) {
+                const canDelete = this.showDeleteOption(channel, isAdmin, isSystemAdmin);
+                if (!ChannelStore.isDefault(channel) && canDelete) {
                     dropdownContents.push(deleteOption);
                 }
             } else if (this.state.userCount === 1) {

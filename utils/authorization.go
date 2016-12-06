@@ -17,17 +17,28 @@ func SetDefaultRolesBasedOnConfig() {
 		)
 		model.ROLE_TEAM_USER.Permissions = append(
 			model.ROLE_TEAM_USER.Permissions,
-			model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id,
 			model.PERMISSION_CREATE_PUBLIC_CHANNEL.Id,
 		)
+		if *Cfg.TeamSettings.RestrictChannelDeletion == model.PERMISSIONS_ALL {
+			model.ROLE_TEAM_USER.Permissions = append(
+				model.ROLE_TEAM_USER.Permissions,
+				model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id,
+			)
+		}
 		break
 	case model.PERMISSIONS_TEAM_ADMIN:
 		model.ROLE_TEAM_ADMIN.Permissions = append(
 			model.ROLE_TEAM_ADMIN.Permissions,
 			model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES.Id,
-			model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id,
 			model.PERMISSION_CREATE_PUBLIC_CHANNEL.Id,
 		)
+		if *Cfg.TeamSettings.RestrictChannelDeletion == model.PERMISSIONS_ALL ||
+			*Cfg.TeamSettings.RestrictChannelDeletion == model.PERMISSIONS_TEAM_ADMIN {
+			model.ROLE_TEAM_ADMIN.Permissions = append(
+				model.ROLE_TEAM_ADMIN.Permissions,
+				model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id,
+			)
+		}
 		break
 	}
 
@@ -39,17 +50,28 @@ func SetDefaultRolesBasedOnConfig() {
 		)
 		model.ROLE_TEAM_USER.Permissions = append(
 			model.ROLE_TEAM_USER.Permissions,
-			model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id,
 			model.PERMISSION_CREATE_PRIVATE_CHANNEL.Id,
 		)
+		if *Cfg.TeamSettings.RestrictChannelDeletion == model.PERMISSIONS_ALL {
+			model.ROLE_TEAM_USER.Permissions = append(
+				model.ROLE_TEAM_USER.Permissions,
+				model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id,
+			)
+		}
 		break
 	case model.PERMISSIONS_TEAM_ADMIN:
 		model.ROLE_TEAM_ADMIN.Permissions = append(
 			model.ROLE_TEAM_ADMIN.Permissions,
 			model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES.Id,
-			model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id,
 			model.PERMISSION_CREATE_PRIVATE_CHANNEL.Id,
 		)
+		if *Cfg.TeamSettings.RestrictChannelDeletion == model.PERMISSIONS_ALL ||
+			*Cfg.TeamSettings.RestrictChannelDeletion == model.PERMISSIONS_TEAM_ADMIN {
+			model.ROLE_TEAM_ADMIN.Permissions = append(
+				model.ROLE_TEAM_ADMIN.Permissions,
+				model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id,
+			)
+		}
 		break
 	}
 

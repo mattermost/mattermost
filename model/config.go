@@ -219,6 +219,7 @@ type TeamSettings struct {
 	RestrictTeamInvite               *string
 	RestrictPublicChannelManagement  *string
 	RestrictPrivateChannelManagement *string
+	RestrictChannelDeletion          *string
 	UserStatusAwayTimeout            *int64
 	MaxChannelsPerTeam               *int64
 	DefaultTeamName                  string
@@ -506,6 +507,11 @@ func (o *Config) SetDefaults() {
 	if o.TeamSettings.RestrictPrivateChannelManagement == nil {
 		o.TeamSettings.RestrictPrivateChannelManagement = new(string)
 		*o.TeamSettings.RestrictPrivateChannelManagement = PERMISSIONS_ALL
+	}
+
+	if o.TeamSettings.RestrictChannelDeletion == nil {
+		o.TeamSettings.RestrictChannelDeletion = new(string)
+		*o.TeamSettings.RestrictChannelDeletion = PERMISSIONS_ALL
 	}
 
 	if o.TeamSettings.UserStatusAwayTimeout == nil {
@@ -1006,6 +1012,10 @@ func (o *Config) IsValid() *AppError {
 
 	if !(*o.TeamSettings.RestrictDirectMessage == DIRECT_MESSAGE_ANY || *o.TeamSettings.RestrictDirectMessage == DIRECT_MESSAGE_TEAM) {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.restrict_direct_message.app_error", nil, "")
+	}
+
+	if !(*o.TeamSettings.RestrictChannelDeletion == PERMISSIONS_ALL || *o.TeamSettings.RestrictChannelDeletion == PERMISSIONS_TEAM_ADMIN || *o.TeamSettings.RestrictChannelDeletion == PERMISSIONS_SYSTEM_ADMIN) {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.restrict_channel_deletion.app_error", nil, "")
 	}
 
 	if len(o.SqlSettings.AtRestEncryptKey) < 32 {
