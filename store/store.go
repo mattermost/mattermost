@@ -89,7 +89,8 @@ type ChannelStore interface {
 	Delete(channelId string, time int64) StoreChannel
 	SetDeleteAt(channelId string, deleteAt int64, updateAt int64) StoreChannel
 	PermanentDeleteByTeam(teamId string) StoreChannel
-	GetByName(team_id string, domain string) StoreChannel
+	GetByName(team_id string, name string) StoreChannel
+	GetByNameIncludeDeleted(team_id string, name string) StoreChannel
 	GetChannels(teamId string, userId string) StoreChannel
 	GetMoreChannels(teamId string, userId string, offset int, limit int) StoreChannel
 	GetChannelCounts(teamId string, userId string) StoreChannel

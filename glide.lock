@@ -1,5 +1,5 @@
-hash: 6356cb81d6e15717a3ca6e205184d4144bf7087feebeb19d24ff72b20c65b985
-updated: 2016-11-22T09:00:05.599031729-08:00
+hash: a8fe20af467bdf57b944108bb00f8b410d73ad13a2cc5616ae2c410d510e5d90
+updated: 2016-11-23T19:38:17.926223307-05:00
 imports:
 - name: github.com/alecthomas/log4go
   version: e5dc62318d9bd58682f1dceb53a4b24e8253682f
@@ -43,6 +43,8 @@ imports:
   version: 0a025b7e63adc15a622f29b0b2c4c3848243bbf6
   subpackages:
   - simplelru
+- name: github.com/inconshreveable/mousetrap
+  version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/jehiah/go-strftime
   version: 834e15c05a45371503440cc195bbd05c9a0968d9
 - name: github.com/lib/pq
@@ -104,6 +106,10 @@ imports:
   version: 2d840d861c322bdf5346ba7917af1c2285e653d3
 - name: github.com/segmentio/backo-go
   version: 204274ad699c0983a70203a566887f17a717fef4
+- name: github.com/spf13/cobra
+  version: 9495bc009a56819bdb0ddbc1a373e29c140bc674
+- name: github.com/spf13/pflag
+  version: 5ccb023bc27df288a957c5e994cd44fd19619465
 - name: github.com/tylerb/graceful
   version: 4df1190835320af7076dfcf27b3d071fd3612caf
 - name: github.com/xenolf/lego
@@ -132,7 +138,7 @@ imports:
   - context
   - publicsuffix
 - name: golang.org/x/sys
-  version: b699b7032584f0953262cb2788a0ca19bb494703
+  version: 30237cf4eefd639b184d1f2cb77a581ea0be8947
   subpackages:
   - unix
 - name: golang.org/x/time

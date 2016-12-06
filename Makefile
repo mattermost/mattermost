@@ -166,7 +166,7 @@ check-client-style:
 
 check-server-style:
 	@echo Running GOFMT
-	$(eval GOFMT_OUTPUT := $(shell gofmt -d -s api/ model/ store/ utils/ manualtesting/ einterfaces/ mattermost.go 2>&1))
+	$(eval GOFMT_OUTPUT := $(shell gofmt -d -s api/ model/ store/ utils/ manualtesting/ einterfaces/ cmd/platform/ 2>&1))
 	@echo "$(GOFMT_OUTPUT)"
 	@if [ ! "$(GOFMT_OUTPUT)" ]; then \
 		echo "gofmt sucess"; \
@@ -233,10 +233,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 
 internal-test-web-client: start-docker prepare-enterprise
-	$(GO) run $(GOFLAGS) *.go -run_web_client_tests
-
-internal-test-javascript-client: start-docker prepare-enterprise
-	$(GO) run $(GOFLAGS) *.go -run_javascript_client_tests
+	$(GO) run $(GOFLAGS) ./cmd/platform/*go test web_client_tests
 
 test-client: start-docker prepare-enterprise
 	@echo Running client tests
@@ -260,22 +257,22 @@ cover:
 prepare-enterprise:
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Enterprise build selected, preparing
-	cp $(BUILD_ENTERPRISE_DIR)/imports.go .
+	cp $(BUILD_ENTERPRISE_DIR)/imports.go cmd/platform/
 	rm -f enterprise
 	ln -s $(BUILD_ENTERPRISE_DIR) enterprise
 endif
 
 build-linux: .prebuild prepare-enterprise
 	@echo Build Linux amd64
-	env GOOS=linux GOARCH=amd64 $(GO) install $(GOFLAGS) $(GO_LINKER_FLAGS) $(go list ./... | grep -v /vendor/)
+	env GOOS=linux GOARCH=amd64 $(GO) install $(GOFLAGS) $(GO_LINKER_FLAGS) ./cmd/platform
 
 build-osx: .prebuild prepare-enterprise
 	@echo Build OSX amd64
-	env GOOS=darwin GOARCH=amd64 $(GO) install $(GOFLAGS) $(GO_LINKER_FLAGS) $(go list ./... | grep -v /vendor/) 
+	env GOOS=darwin GOARCH=amd64 $(GO) install $(GOFLAGS) $(GO_LINKER_FLAGS) ./cmd/platform
 
 build-windows: .prebuild prepare-enterprise
 	@echo Build Windows amd64
-	env GOOS=windows GOARCH=amd64 $(GO) install $(GOFLAGS) $(GO_LINKER_FLAGS) $(go list ./... | grep -v /vendor/) 
+	env GOOS=windows GOARCH=amd64 $(GO) install $(GOFLAGS) $(GO_LINKER_FLAGS) ./cmd/platform
 
 build: build-linux build-windows build-osx
 
@@ -360,13 +357,13 @@ run-server: prepare-enterprise start-docker
 	@echo Running mattermost for development
 
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
-	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) *.go &
+	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) ./cmd/platform/*.go &
 
 run-cli: prepare-enterprise start-docker
 	@echo Running mattermost for development
 	@echo Example should be like 'make ARGS="-version" run-cli'
 
-	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) *.go ${ARGS}
+	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) ./cmd/platform/*.go ${ARGS}
 
 run-client:
 	@echo Running mattermost client for development

@@ -180,7 +180,7 @@ func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		JoinUserToTeam(rteam, ruser)
 
-		InviteMembers(c, rteam, ruser, teamSignup.Invites)
+		InviteMembers(rteam, ruser.GetDisplayName(), teamSignup.Invites)
 
 		teamSignup.Team = *rteam
 		teamSignup.User = *ruser
@@ -210,6 +210,10 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if !isTeamCreationAllowed(c, team.Email) {
+		return
+	}
+
 	rteam := CreateTeam(c, team)
 	if c.Err != nil {
 		return
@@ -227,16 +231,6 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateTeam(c *Context, team *model.Team) *model.Team {
-
-	if team == nil {
-		c.SetInvalidParam("createTeam", "team")
-		return nil
-	}
-
-	if !isTeamCreationAllowed(c, team.Email) {
-		return nil
-	}
-
 	if result := <-Srv.Store.Team().Save(team); result.Err != nil {
 		c.Err = result.Err
 		return nil
@@ -522,7 +516,7 @@ func inviteMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		emailList = append(emailList, invite["email"])
 	}
 
-	InviteMembers(c, team, user, emailList)
+	InviteMembers(team, user.GetDisplayName(), emailList)
 
 	w.Write([]byte(invites.ToJson()))
 }
@@ -708,25 +702,22 @@ func findTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func InviteMembers(c *Context, team *model.Team, user *model.User, invites []string) {
+func InviteMembers(team *model.Team, senderName string, invites []string) {
 	for _, invite := range invites {
 		if len(invite) > 0 {
+			senderRole := utils.T("api.team.invite_members.member")
 
-			sender := user.GetDisplayName()
+			subject := utils.T("api.templates.invite_subject",
+				map[string]interface{}{"SenderName": senderName, "TeamDisplayName": team.DisplayName, "SiteName": utils.ClientCfg["SiteName"]})
 
-			senderRole := c.T("api.team.invite_members.member")
-
-			subject := c.T("api.templates.invite_subject",
-				map[string]interface{}{"SenderName": sender, "TeamDisplayName": team.DisplayName, "SiteName": utils.ClientCfg["SiteName"]})
-
-			bodyPage := utils.NewHTMLTemplate("invite_body", c.Locale)
-			bodyPage.Props["SiteURL"] = c.GetSiteURL()
-			bodyPage.Props["Title"] = c.T("api.templates.invite_body.title")
-			bodyPage.Html["Info"] = template.HTML(c.T("api.templates.invite_body.info",
-				map[string]interface{}{"SenderStatus": senderRole, "SenderName": sender, "TeamDisplayName": team.DisplayName}))
-			bodyPage.Props["Button"] = c.T("api.templates.invite_body.button")
-			bodyPage.Html["ExtraInfo"] = template.HTML(c.T("api.templates.invite_body.extra_info",
-				map[string]interface{}{"TeamDisplayName": team.DisplayName, "TeamURL": c.GetTeamURL()}))
+			bodyPage := utils.NewHTMLTemplate("invite_body", model.DEFAULT_LOCALE)
+			bodyPage.Props["SiteURL"] = *utils.Cfg.ServiceSettings.SiteURL
+			bodyPage.Props["Title"] = utils.T("api.templates.invite_body.title")
+			bodyPage.Html["Info"] = template.HTML(utils.T("api.templates.invite_body.info",
+				map[string]interface{}{"SenderStatus": senderRole, "SenderName": senderName, "TeamDisplayName": team.DisplayName}))
+			bodyPage.Props["Button"] = utils.T("api.templates.invite_body.button")
+			bodyPage.Html["ExtraInfo"] = template.HTML(utils.T("api.templates.invite_body.extra_info",
+				map[string]interface{}{"TeamDisplayName": team.DisplayName, "TeamURL": *utils.Cfg.ServiceSettings.SiteURL + "/" + team.Name}))
 
 			props := make(map[string]string)
 			props["email"] = invite
@@ -736,7 +727,7 @@ func InviteMembers(c *Context, team *model.Team, user *model.User, invites []str
 			props["time"] = fmt.Sprintf("%v", model.GetMillis())
 			data := model.MapToJson(props)
 			hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
-			bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&h=%s", c.GetSiteURL(), url.QueryEscape(data), url.QueryEscape(hash))
+			bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&h=%s", *utils.Cfg.ServiceSettings.SiteURL, url.QueryEscape(data), url.QueryEscape(hash))
 
 			if !utils.Cfg.EmailSettings.SendEmailNotifications {
 				l4g.Info(utils.T("api.team.invite_members.sending.info"), invite, bodyPage.Props["Link"])
@@ -848,11 +839,7 @@ func updateMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.MapToJson(rdata)))
 }
 
-func PermanentDeleteTeam(c *Context, team *model.Team) *model.AppError {
-	l4g.Warn(utils.T("api.team.permanent_delete_team.attempting.warn"), team.Name, team.Id)
-	c.Path = "/teams/permanent_delete"
-	c.LogAuditWithUserId("", fmt.Sprintf("attempt teamId=%v", team.Id))
-
+func PermanentDeleteTeam(team *model.Team) *model.AppError {
 	team.DeleteAt = model.GetMillis()
 	if result := <-Srv.Store.Team().Update(team); result.Err != nil {
 		return result.Err
@@ -869,9 +856,6 @@ func PermanentDeleteTeam(c *Context, team *model.Team) *model.AppError {
 	if result := <-Srv.Store.Team().PermanentDelete(team.Id); result.Err != nil {
 		return result.Err
 	}
-
-	l4g.Warn(utils.T("api.team.permanent_delete_team.deleted.warn"), team.Name, team.Id)
-	c.LogAuditWithUserId("", fmt.Sprintf("success teamId=%v", team.Id))
 
 	return nil
 }

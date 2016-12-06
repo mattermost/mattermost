@@ -37,12 +37,16 @@ const TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN = time.Second
 var Srv *Server
 
 func NewServer() {
-
 	l4g.Info(utils.T("api.server.new_server.init.info"))
 
 	Srv = &Server{}
-	Srv.Store = store.NewSqlStore()
+}
 
+func InitStores() {
+	Srv.Store = store.NewSqlStore()
+}
+
+func InitRouter() {
 	Srv.Router = mux.NewRouter()
 	Srv.Router.NotFoundHandler = http.HandlerFunc(Handle404)
 }

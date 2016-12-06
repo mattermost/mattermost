@@ -1,43 +1,24 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"net/http"
-	"net/url"
 	"os"
-	"os/exec"
-	"os/signal"
-	"runtime"
-	"strconv"
 	"strings"
-	"syscall"
 	"time"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/api"
 	"github.com/mattermost/platform/einterfaces"
-	"github.com/mattermost/platform/manualtesting"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 	"github.com/mattermost/platform/web"
-
-	// Plugins
-	_ "github.com/mattermost/platform/model/gitlab"
-
-	// Enterprise Deps
-	_ "github.com/dgryski/dgoogauth"
-	_ "github.com/go-ldap/ldap"
-	_ "github.com/mattermost/rsc/qr"
 )
-
-//ENTERPRISE_IMPORTS
 
 var flagCmdUpdateDb30 bool
 var flagCmdCreateTeam bool
@@ -84,45 +65,13 @@ var flagChannelPurpose string
 var flagUserSetInactive bool
 var flagImportArchive string
 
-func doLoadConfig(filename string) (err string) {
-	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Sprintf("%v", r)
-		}
-	}()
-	utils.TranslationsPreInit()
-	utils.LoadConfig(filename)
-	return ""
-}
-
-func main() {
-	parseCmds()
-
-	if errstr := doLoadConfig(flagConfigFile); errstr != "" {
-		l4g.Exit("Unable to load mattermost configuration file: ", errstr)
-		return
-	}
-
-	if flagRunCmds {
-		utils.ConfigureCmdLineLog()
-	}
+func doLegacyCommands() {
+	doLoadConfig(flagConfigFile)
 	utils.InitTranslations(utils.Cfg.LocalizationSettings)
-	utils.TestConnection(utils.Cfg)
-
-	pwd, _ := os.Getwd()
-	l4g.Info(utils.T("mattermost.current_version"), model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise)
-	l4g.Info(utils.T("mattermost.entreprise_enabled"), model.BuildEnterpriseReady)
-	l4g.Info(utils.T("mattermost.working_dir"), pwd)
-	l4g.Info(utils.T("mattermost.config_file"), utils.FindConfigFile(flagConfigFile))
-
-	// Enable developer settings if this is a "dev" build
-	if model.BuildNumber == "dev" {
-		*utils.Cfg.ServiceSettings.EnableDeveloper = true
-	}
-
-	cmdUpdateDb30()
-
+	utils.ConfigureCmdLineLog()
 	api.NewServer()
+	api.InitStores()
+	api.InitRouter()
 	api.InitApi()
 	web.InitWeb()
 
@@ -130,220 +79,10 @@ func main() {
 		api.LoadLicense()
 	}
 
-	if !utils.IsLicensed && len(utils.Cfg.SqlSettings.DataSourceReplicas) > 1 {
-		l4g.Critical(utils.T("store.sql.read_replicas_not_licensed.critical"))
-		return
-	}
-
-	if flagRunCmds {
-		runCmds()
-	} else {
-		resetStatuses()
-
-		api.StartServer()
-
-		// If we allow testing then listen for manual testing URL hits
-		if utils.Cfg.ServiceSettings.EnableTesting {
-			manualtesting.InitManualTesting()
-		}
-
-		setDiagnosticId()
-		go runSecurityAndDiagnosticsJob()
-
-		if complianceI := einterfaces.GetComplianceInterface(); complianceI != nil {
-			complianceI.StartComplianceDailyJob()
-		}
-
-		if einterfaces.GetClusterInterface() != nil {
-			einterfaces.GetClusterInterface().StartInterNodeCommunication()
-		}
-
-		if einterfaces.GetMetricsInterface() != nil {
-			einterfaces.GetMetricsInterface().StartServer()
-		}
-
-		// wait for kill signal before attempting to gracefully shutdown
-		// the running service
-		c := make(chan os.Signal)
-		signal.Notify(c, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-		<-c
-
-		if einterfaces.GetClusterInterface() != nil {
-			einterfaces.GetClusterInterface().StopInterNodeCommunication()
-		}
-
-		if einterfaces.GetMetricsInterface() != nil {
-			einterfaces.GetMetricsInterface().StopServer()
-		}
-
-		api.StopServer()
-	}
-}
-
-func resetStatuses() {
-	if result := <-api.Srv.Store.Status().ResetAll(); result.Err != nil {
-		l4g.Error(utils.T("mattermost.reset_status.error"), result.Err.Error())
-	}
-}
-
-func setDiagnosticId() {
-	if result := <-api.Srv.Store.System().Get(); result.Err == nil {
-		props := result.Data.(model.StringMap)
-
-		id := props[model.SYSTEM_DIAGNOSTIC_ID]
-		if len(id) == 0 {
-			id = model.NewId()
-			systemId := &model.System{Name: model.SYSTEM_DIAGNOSTIC_ID, Value: id}
-			<-api.Srv.Store.System().Save(systemId)
-		}
-
-		utils.CfgDiagnosticId = id
-	}
-}
-
-func doSecurityAndDiagnostics() {
-	if *utils.Cfg.ServiceSettings.EnableSecurityFixAlert {
-		if result := <-api.Srv.Store.System().Get(); result.Err == nil {
-			props := result.Data.(model.StringMap)
-			lastSecurityTime, _ := strconv.ParseInt(props[model.SYSTEM_LAST_SECURITY_TIME], 10, 0)
-			currentTime := model.GetMillis()
-
-			if (currentTime - lastSecurityTime) > 1000*60*60*24*1 {
-				l4g.Debug(utils.T("mattermost.security_checks.debug"))
-
-				v := url.Values{}
-
-				v.Set(utils.PROP_DIAGNOSTIC_ID, utils.CfgDiagnosticId)
-				v.Set(utils.PROP_DIAGNOSTIC_BUILD, model.CurrentVersion+"."+model.BuildNumber)
-				v.Set(utils.PROP_DIAGNOSTIC_ENTERPRISE_READY, model.BuildEnterpriseReady)
-				v.Set(utils.PROP_DIAGNOSTIC_DATABASE, utils.Cfg.SqlSettings.DriverName)
-				v.Set(utils.PROP_DIAGNOSTIC_OS, runtime.GOOS)
-				v.Set(utils.PROP_DIAGNOSTIC_CATEGORY, utils.VAL_DIAGNOSTIC_CATEGORY_DEFAULT)
-
-				if len(props[model.SYSTEM_RAN_UNIT_TESTS]) > 0 {
-					v.Set(utils.PROP_DIAGNOSTIC_UNIT_TESTS, "1")
-				} else {
-					v.Set(utils.PROP_DIAGNOSTIC_UNIT_TESTS, "0")
-				}
-
-				systemSecurityLastTime := &model.System{Name: model.SYSTEM_LAST_SECURITY_TIME, Value: strconv.FormatInt(currentTime, 10)}
-				if lastSecurityTime == 0 {
-					<-api.Srv.Store.System().Save(systemSecurityLastTime)
-				} else {
-					<-api.Srv.Store.System().Update(systemSecurityLastTime)
-				}
-
-				if ucr := <-api.Srv.Store.User().GetTotalUsersCount(); ucr.Err == nil {
-					v.Set(utils.PROP_DIAGNOSTIC_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
-				}
-
-				if ucr := <-api.Srv.Store.Status().GetTotalActiveUsersCount(); ucr.Err == nil {
-					v.Set(utils.PROP_DIAGNOSTIC_ACTIVE_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
-				}
-
-				if tcr := <-api.Srv.Store.Team().AnalyticsTeamCount(); tcr.Err == nil {
-					v.Set(utils.PROP_DIAGNOSTIC_TEAM_COUNT, strconv.FormatInt(tcr.Data.(int64), 10))
-				}
-
-				res, err := http.Get(utils.DIAGNOSTIC_URL + "/security?" + v.Encode())
-				if err != nil {
-					l4g.Error(utils.T("mattermost.security_info.error"))
-					return
-				}
-
-				bulletins := model.SecurityBulletinsFromJson(res.Body)
-				ioutil.ReadAll(res.Body)
-				res.Body.Close()
-
-				for _, bulletin := range bulletins {
-					if bulletin.AppliesToVersion == model.CurrentVersion {
-						if props["SecurityBulletin_"+bulletin.Id] == "" {
-							if results := <-api.Srv.Store.User().GetSystemAdminProfiles(); results.Err != nil {
-								l4g.Error(utils.T("mattermost.system_admins.error"))
-								return
-							} else {
-								users := results.Data.(map[string]*model.User)
-
-								resBody, err := http.Get(utils.DIAGNOSTIC_URL + "/bulletins/" + bulletin.Id)
-								if err != nil {
-									l4g.Error(utils.T("mattermost.security_bulletin.error"))
-									return
-								}
-
-								body, err := ioutil.ReadAll(resBody.Body)
-								res.Body.Close()
-								if err != nil || resBody.StatusCode != 200 {
-									l4g.Error(utils.T("mattermost.security_bulletin_read.error"))
-									return
-								}
-
-								for _, user := range users {
-									l4g.Info(utils.T("mattermost.send_bulletin.info"), bulletin.Id, user.Email)
-									utils.SendMail(user.Email, utils.T("mattermost.bulletin.subject"), string(body))
-								}
-							}
-
-							bulletinSeen := &model.System{Name: "SecurityBulletin_" + bulletin.Id, Value: bulletin.Id}
-							<-api.Srv.Store.System().Save(bulletinSeen)
-						}
-					}
-				}
-			}
-		}
-	}
-
-	if *utils.Cfg.LogSettings.EnableDiagnostics {
-		utils.SendGeneralDiagnostics()
-		sendServerDiagnostics()
-	}
-}
-
-func sendServerDiagnostics() {
-	var userCount int64
-	var activeUserCount int64
-	var teamCount int64
-
-	if ucr := <-api.Srv.Store.User().GetTotalUsersCount(); ucr.Err == nil {
-		userCount = ucr.Data.(int64)
-	}
-
-	if ucr := <-api.Srv.Store.Status().GetTotalActiveUsersCount(); ucr.Err == nil {
-		activeUserCount = ucr.Data.(int64)
-	}
-
-	if tcr := <-api.Srv.Store.Team().AnalyticsTeamCount(); tcr.Err == nil {
-		teamCount = tcr.Data.(int64)
-	}
-
-	utils.SendDiagnostic(utils.TRACK_ACTIVITY, map[string]interface{}{
-		"registered_users": userCount,
-		"active_users":     activeUserCount,
-		"teams":            teamCount,
-	})
-
-	edition := model.BuildEnterpriseReady
-	version := model.CurrentVersion
-	database := utils.Cfg.SqlSettings.DriverName
-	operatingSystem := runtime.GOOS
-
-	utils.SendDiagnostic(utils.TRACK_VERSION, map[string]interface{}{
-		"edition":          edition,
-		"version":          version,
-		"database":         database,
-		"operating_system": operatingSystem,
-	})
-}
-
-func runSecurityAndDiagnosticsJob() {
-	doSecurityAndDiagnostics()
-	model.CreateRecurringTask("Security and Diagnostics", doSecurityAndDiagnostics, time.Hour*4)
+	runCmds()
 }
 
 func parseCmds() {
-	flag.Usage = func() {
-		fmt.Fprintln(os.Stderr, usage)
-	}
-
 	flag.StringVar(&flagConfigFile, "config", "config.json", "")
 	flag.StringVar(&flagUsername, "username", "", "")
 	flag.StringVar(&flagLicenseFile, "license", "", "")
@@ -445,47 +184,6 @@ func runCmds() {
 	cmdSlackImport()
 }
 
-type TeamForUpgrade struct {
-	Id   string
-	Name string
-}
-
-func setupClientTests() {
-	*utils.Cfg.TeamSettings.EnableOpenServer = true
-	*utils.Cfg.ServiceSettings.EnableCommands = false
-	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
-	*utils.Cfg.ServiceSettings.EnableCustomEmoji = true
-	utils.Cfg.ServiceSettings.EnableIncomingWebhooks = false
-	utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = false
-	utils.SetDefaultRolesBasedOnConfig()
-}
-
-func executeTestCommand(cmd *exec.Cmd) {
-	cmdOutPipe, err := cmd.StdoutPipe()
-	if err != nil {
-		l4g.Error("Failed to run tests")
-		os.Exit(1)
-	}
-
-	cmdOutReader := bufio.NewScanner(cmdOutPipe)
-	go func() {
-		for cmdOutReader.Scan() {
-			fmt.Println(cmdOutReader.Text())
-		}
-	}()
-
-	if err := cmd.Run(); err != nil {
-		l4g.Error("Client Tests failed")
-		os.Exit(1)
-	}
-}
-
-func runWebClientTests() {
-	os.Chdir("webapp")
-	cmd := exec.Command("npm", "test")
-	executeTestCommand(cmd)
-}
-
 func cmdRunClientTests() {
 	if flagCmdRunWebClientTests {
 		setupClientTests()
@@ -506,13 +204,11 @@ func cmdCreateTeam() {
 	if flagCmdCreateTeam {
 		if len(flagTeamName) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
-			flag.Usage()
 			os.Exit(1)
 		}
 
 		if len(flagEmail) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -email")
-			flag.Usage()
 			os.Exit(1)
 		}
 
@@ -540,13 +236,11 @@ func cmdCreateUser() {
 	if flagCmdCreateUser {
 		if len(flagEmail) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -email")
-			flag.Usage()
 			os.Exit(1)
 		}
 
 		if len(flagPassword) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -password")
-			flag.Usage()
 			os.Exit(1)
 		}
 
@@ -595,13 +289,11 @@ func cmdInviteUser() {
 	if flagCmdInviteUser {
 		if len(flagTeamName) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
-			flag.Usage()
 			os.Exit(1)
 		}
 
 		if len(flagEmail) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -email")
-			flag.Usage()
 			os.Exit(1)
 		}
 
@@ -627,8 +319,7 @@ func cmdInviteUser() {
 		}
 
 		invites := []string{flagEmail}
-		c := getMockContext()
-		api.InviteMembers(c, team, user, invites)
+		api.InviteMembers(team, user.GetDisplayName(), invites)
 
 		os.Exit(0)
 	}
@@ -651,7 +342,6 @@ func cmdAssignRole() {
 	if flagCmdAssignRole {
 		if len(flagEmail) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -email")
-			flag.Usage()
 			os.Exit(1)
 		}
 
@@ -666,11 +356,8 @@ func cmdAssignRole() {
 
 		if !model.IsValidUserRoles(flagRole) {
 			fmt.Fprintln(os.Stderr, "flag invalid argument: -role")
-			flag.Usage()
 			os.Exit(1)
 		}
-
-		c := getMockContext()
 
 		var user *model.User
 		if result := <-api.Srv.Store.User().GetByEmail(flagEmail); result.Err != nil {
@@ -681,7 +368,7 @@ func cmdAssignRole() {
 		}
 
 		if !user.IsInRole(flagRole) {
-			api.UpdateUserRoles(c, user, flagRole)
+			api.UpdateUserRoles(user, flagRole)
 		}
 
 		os.Exit(0)
@@ -692,31 +379,26 @@ func cmdCreateChannel() {
 	if flagCmdCreateChannel {
 		if len(flagTeamName) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
-			flag.Usage()
 			os.Exit(1)
 		}
 
 		if len(flagChannelName) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -channel_name")
-			flag.Usage()
 			os.Exit(1)
 		}
 
 		if len(flagEmail) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -email")
-			flag.Usage()
 			os.Exit(1)
 		}
 
 		if flagChannelType != "O" && flagChannelType != "P" {
 			fmt.Fprintln(os.Stderr, "flag channel_type must have on of the following values: O or P")
-			flag.Usage()
 			os.Exit(1)
 		}
 
 		if !utils.IsLicensed {
 			fmt.Fprintln(os.Stderr, utils.T("cli.license.critical"))
-			flag.Usage()
 			os.Exit(1)
 		}
 
@@ -761,25 +443,21 @@ func cmdJoinChannel() {
 	if flagCmdJoinChannel {
 		if len(flagTeamName) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
-			flag.Usage()
 			os.Exit(1)
 		}
 
 		if len(flagEmail) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -email")
-			flag.Usage()
 			os.Exit(1)
 		}
 
 		if len(flagChannelName) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -channel_name")
-			flag.Usage()
 			os.Exit(1)
 		}
 
 		if !utils.IsLicensed {
 			fmt.Fprintln(os.Stderr, utils.T("cli.license.critical"))
-			flag.Usage()
 			os.Exit(1)
 		}
 
@@ -821,31 +499,26 @@ func cmdLeaveChannel() {
 	if flagCmdLeaveChannel {
 		if len(flagTeamName) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
-			flag.Usage()
 			os.Exit(1)
 		}
 
 		if len(flagEmail) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -email")
-			flag.Usage()
 			os.Exit(1)
 		}
 
 		if len(flagChannelName) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -channel_name")
-			flag.Usage()
 			os.Exit(1)
 		}
 
 		if flagChannelName == model.DEFAULT_CHANNEL {
 			fmt.Fprintln(os.Stderr, "flag has invalid argument: -channel_name (cannot leave town-square)")
-			flag.Usage()
 			os.Exit(1)
 		}
 
 		if !utils.IsLicensed {
 			fmt.Fprintln(os.Stderr, utils.T("cli.license.critical"))
-			flag.Usage()
 			os.Exit(1)
 		}
 
@@ -887,13 +560,11 @@ func cmdListChannels() {
 	if flagCmdListChannels {
 		if len(flagTeamName) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
-			flag.Usage()
 			os.Exit(1)
 		}
 
 		if !utils.IsLicensed {
 			fmt.Fprintln(os.Stderr, utils.T("cli.license.critical"))
-			flag.Usage()
 			os.Exit(1)
 		}
 
@@ -929,19 +600,16 @@ func cmdRestoreChannel() {
 	if flagCmdRestoreChannel {
 		if len(flagTeamName) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
-			flag.Usage()
 			os.Exit(1)
 		}
 
 		if len(flagChannelName) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -channel_name")
-			flag.Usage()
 			os.Exit(1)
 		}
 
 		if !utils.IsLicensed {
 			fmt.Fprintln(os.Stderr, utils.T("cli.license.critical"))
-			flag.Usage()
 			os.Exit(1)
 		}
 
@@ -981,13 +649,11 @@ func cmdJoinTeam() {
 	if flagCmdJoinTeam {
 		if len(flagTeamName) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
-			flag.Usage()
 			os.Exit(1)
 		}
 
 		if len(flagEmail) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -email")
-			flag.Usage()
 			os.Exit(1)
 		}
 
@@ -1021,13 +687,11 @@ func cmdLeaveTeam() {
 	if flagCmdLeaveTeam {
 		if len(flagTeamName) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
-			flag.Usage()
 			os.Exit(1)
 		}
 
 		if len(flagEmail) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -email")
-			flag.Usage()
 			os.Exit(1)
 		}
 
@@ -1062,19 +726,16 @@ func cmdResetPassword() {
 	if flagCmdResetPassword {
 		if len(flagEmail) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -email")
-			flag.Usage()
 			os.Exit(1)
 		}
 
 		if len(flagPassword) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -password")
-			flag.Usage()
 			os.Exit(1)
 		}
 
 		if len(flagPassword) < 5 {
 			fmt.Fprintln(os.Stderr, "flag invalid argument needs to be more than 4 characters: -password")
-			flag.Usage()
 			os.Exit(1)
 		}
 
@@ -1099,7 +760,6 @@ func cmdResetMfa() {
 	if flagCmdResetMfa {
 		if len(flagEmail) == 0 && len(flagUsername) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -email OR -username")
-			flag.Usage()
 			os.Exit(1)
 		}
 
@@ -1133,11 +793,8 @@ func cmdPermDeleteUser() {
 	if flagCmdPermanentDeleteUser {
 		if len(flagEmail) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -email")
-			flag.Usage()
 			os.Exit(1)
 		}
-
-		c := getMockContext()
 
 		var user *model.User
 		if result := <-api.Srv.Store.User().GetByEmail(flagEmail); result.Err != nil {
@@ -1165,7 +822,7 @@ func cmdPermDeleteUser() {
 			flushLogAndExit(1)
 		}
 
-		if err := api.PermanentDeleteUser(c, user); err != nil {
+		if err := api.PermanentDeleteUser(user); err != nil {
 			l4g.Error("%v", err)
 			flushLogAndExit(1)
 		} else {
@@ -1179,11 +836,8 @@ func cmdPermDeleteTeam() {
 	if flagCmdPermanentDeleteTeam {
 		if len(flagTeamName) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
-			flag.Usage()
 			os.Exit(1)
 		}
-
-		c := getMockContext()
 
 		var team *model.Team
 		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
@@ -1211,7 +865,7 @@ func cmdPermDeleteTeam() {
 			flushLogAndExit(1)
 		}
 
-		if err := api.PermanentDeleteTeam(c, team); err != nil {
+		if err := api.PermanentDeleteTeam(team); err != nil {
 			l4g.Error("%v", err)
 			flushLogAndExit(1)
 		} else {
@@ -1223,8 +877,6 @@ func cmdPermDeleteTeam() {
 
 func cmdPermDeleteAllUsers() {
 	if flagCmdPermanentDeleteAllUsers {
-		c := getMockContext()
-
 		if len(flagConfirmBackup) == 0 {
 			fmt.Print("Have you performed a database backup? (YES/NO): ")
 			fmt.Scanln(&flagConfirmBackup)
@@ -1243,7 +895,7 @@ func cmdPermDeleteAllUsers() {
 			flushLogAndExit(1)
 		}
 
-		if err := api.PermanentDeleteAllUsers(c); err != nil {
+		if err := api.PermanentDeleteAllUsers(); err != nil {
 			l4g.Error("%v", err)
 			flushLogAndExit(1)
 		} else {
@@ -1300,13 +952,11 @@ func cmdRunMigrateAccounts() {
 	if flagCmdMigrateAccounts {
 		if len(flagFromAuth) == 0 || (flagFromAuth != "email" && flagFromAuth != "gitlab" && flagFromAuth != "saml") {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -from_auth")
-			flag.Usage()
 			os.Exit(1)
 		}
 
 		if len(flagToAuth) == 0 || flagToAuth != "ldap" {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -from_auth")
-			flag.Usage()
 			os.Exit(1)
 		}
 
@@ -1317,7 +967,6 @@ func cmdRunMigrateAccounts() {
 
 		if len(flagMatchField) == 0 || (flagMatchField != "email" && flagMatchField != "username") {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -match_field")
-			flag.Usage()
 			os.Exit(1)
 		}
 
@@ -1343,7 +992,6 @@ func cmdUploadLicense() {
 
 		if len(flagLicenseFile) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
-			flag.Usage()
 			os.Exit(1)
 		}
 
@@ -1369,7 +1017,6 @@ func cmdActivateUser() {
 	if flagCmdActivateUser {
 		if len(flagEmail) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -email")
-			flag.Usage()
 			os.Exit(1)
 		}
 
@@ -1397,13 +1044,11 @@ func cmdSlackImport() {
 	if flagCmdSlackImport {
 		if len(flagTeamName) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
-			flag.Usage()
 			os.Exit(1)
 		}
 
 		if len(flagImportArchive) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -import_archive")
-			flag.Usage()
 			os.Exit(1)
 		}
 
@@ -1455,181 +1100,3 @@ func getMockContext() *api.Context {
 
 	return c
 }
-
-var usage = `Mattermost commands to help configure the system
-
-NAME:
-    platform -- platform configuation tool
-
-USAGE:
-    platform [options]
-
-FLAGS:
-    -config="config.json"             Path to the config file
-
-    -username="someuser"              Username used in other commands
-
-    -license="ex.mattermost-license"  Path to your license file
-
-    -email="user@example.com"         Email address used in other commands
-
-    -password="mypassword"            Password used in other commands
-
-    -team_name="name"                 The team name used in other commands
-
-    -channel_name="name"	      The channel name used in other commands
-
-    -channel_header="string"	      The channel header used in other commands
-
-    -channel_purpose="string"	      The channel purpose used in other commands
-
-    -channel_type="type"	      The channel type used in other commands
-     				      valid values are
-     				        "O" - public channel
-     				        "P" - private group
-
-    -role="system_admin"              The role used in other commands
-                                      valid values are
-                                        "system_user" - Is basic user
-                                           permissions
-                                        "system_admin" - Represents a system
-                                           admin who has access to all teams
-                                           and configuration settings.
-
-    -import_archive="export.zip"      The path to the archive to import used in other commands
-
-COMMANDS:
-    -activate_user		      Set a user as active or inactive. It requies
-    				      the -email flag.
-
-        Examples:
-            platform -activate_user -email="user@example.com"
-            platform -activate_user -inactive -email="user@example.com"
-
-    -create_team                      Creates a team.  It requires the -team_name
-                                      and -email flag to create a team.
-        Example:
-            platform -create_team -team_name="name" -email="user@example.com"
-
-    -create_user                      Creates a user.  It requires the -email and -password flag
-                                      and -team_name and -username are optional to create a user.
-        Example:
-            platform -create_user -team_name="name" -email="user@example.com" -password="mypassword" -username="user"
-
-    -invite_user                      Invites a user to a team by email. It requires the -team_name
-                                      and -email flags.
-        Example:
-	    platform -invite_user -team_name="name" -email="user@example.com"
-
-    -leave_team                       Removes a user from a team.  It requires the -team_name
-                                      and -email.
-        Example:
-	    platform -remove_user_from_team -team_name="name" -email="user@example.com"
-
-    -join_team                        Joins a user to the team.  It required the -email and
-                                      -team_name.  You may need to logout of your current session
-                                      for the new team to be applied.
-        Example:
-            platform -join_team -email="user@example.com" -team_name="name"
-
-    -assign_role                      Assigns role to a user.  It requires the -role and
-                                      -email flag.  You may need to log out
-                                      of your current sessions for the new role to be
-                                      applied. For system admin use "system_admin". For Regular user just use "system_user".
-        Example:
-            platform -assign_role -email="user@example.com" -role="system_admin"
-
-    -create_channel		       Create a new channel in the specified team. It requires the -email,
-    					-team_name, -channel_name, -channel_type flags. Optional you can set
-    					the -channel_header and -channel_purpose.
-
-	Example:
-            platform -create_channel -email="user@example.com" -team_name="name" -channel_name="channel_name" -channel_type="O"
-
-    -join_channel                      Joins a user to the channel.  It requires the -email, channel_name and
-                                       -team_name flags.  You may need to logout of your current session
-                                       for the new channel to be applied.  Requires an enterprise license.
-        Example:
-            platform -join_channel -email="user@example.com" -team_name="name" -channel_name="channel_name"
-
-    -leave_channel                     Removes a user from the channel.  It requires the -email, channel_name and
-                                       -team_name flags.  You may need to logout of your current session
-                                       for the channel to be removed.  Requires an enterprise license.
-        Example:
-            platform -leave_channel -email="user@example.com" -team_name="name" -channel_name="channel_name"
-
-    -list_channels                     Lists all public channels and private groups for a given team.
-                                       It will append ' (archived)' to the channel name if archived.  It requires the 
-                                       -team_name flag.  Requires an enterprise license.
-        Example:
-            platform -list_channels -team_name="name"
-
-    -restore_channel                   Restores a previously deleted channel.
-                                       It requires the -channel_name and
-                                       -team_name flags.  Requires an enterprise license.
-        Example:
-            platform -restore_channel -team_name="name" -channel_name="channel_name"
-
-    -reset_password                   Resets the password for a user.  It requires the
-                                      -email and -password flag.
-        Example:
-            platform -reset_password -email="user@example.com" -password="newpassword"
-
-    -reset_mfa                        Turns off multi-factor authentication for a user.  It requires the
-                                      -email or -username flag.
-        Example:
-            platform -reset_mfa -username="someuser"
-
-    -reset_database                   Completely erases the database causing the loss of all data. This 
-                                      will reset Mattermost to it's initial state. (note this will not 
-                                      erase your configuration.)
-
-        Example:
-            platform -reset_database
-
-    -permanent_delete_user            Permanently deletes a user and all related information
-                                      including posts from the database.  It requires the 
-                                      -email flag.  You may need to restart the
-                                      server to invalidate the cache
-        Example:
-            platform -permanent_delete_user -email="user@example.com"
-
-    -permanent_delete_all_users       Permanently deletes all users and all related information
-                                      including posts from the database.  It requires the 
-                                      -team_name, and -email flag.  You may need to restart the
-                                      server to invalidate the cache
-        Example:
-            platform -permanent_delete_all_users -team_name="name" -email="user@example.com"
-
-    -permanent_delete_team            Permanently deletes a team allong with
-                                      all related information including posts from the database.
-                                      It requires the -team_name flag.  You may need to restart
-                                      the server to invalidate the cache.
-        Example:
-            platform -permanent_delete_team -team_name="name"
-
-    -upload_license                   Uploads a license to the server. Requires the -license flag.
-
-        Example:
-            platform -upload_license -license="/path/to/license/example.mattermost-license"
-
-	-migrate_accounts				  Migrates accounts from one authentication provider to anouther. Requires -from_auth -to_auth and -match_field flags. Supported options for -from_auth: email, gitlab, saml. Supported options for -to_auth ldap. Supported options for -match_field email, username. Will display any accounts that are not migrated succesfully.
-
-        Example:
-            platform -migrate_accounts -from_auth email -to_auth ldap -match_field username
-
-    -slack_import                    Imports a Slack team export zip file. It requires the -team_name
-                                     and -import_archive flags.
-
-        Example:
-            platform -slack_import -team_name="name" -import_archive="/path/to/slack_export.zip"
-
-    -upgrade_db_30                   Upgrades the database from a version 2.x schema to version 3 see
-                                      http://www.mattermost.org/upgrading-to-mattermost-3-0/
-
-        Example:
-            platform -upgrade_db_30
-
-    -version                          Display the current version of the Mattermost platform 
-
-    -help                             Displays this help page`

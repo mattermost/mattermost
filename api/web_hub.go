@@ -119,7 +119,9 @@ func InvalidateCacheForUserSkipClusterSend(userId string) {
 	Srv.Store.Channel().InvalidateAllChannelMembersForUser(userId)
 	Srv.Store.User().InvalidateProfilesInChannelCacheByUser(userId)
 
-	GetHubForUserId(userId).InvalidateUser(userId)
+	if len(hubs) != 0 {
+		GetHubForUserId(userId).InvalidateUser(userId)
+	}
 }
 
 func (h *Hub) Register(webConn *WebConn) {
