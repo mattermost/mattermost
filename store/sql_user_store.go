@@ -15,14 +15,18 @@ import (
 )
 
 const (
-	MISSING_ACCOUNT_ERROR             = "store.sql_user.missing_account.const"
-	MISSING_AUTH_ACCOUNT_ERROR        = "store.sql_user.get_by_auth.missing_account.app_error"
-	PROFILES_IN_CHANNEL_CACHE_SIZE    = 5000
-	PROFILES_IN_CHANNEL_CACHE_SEC     = 900 // 15 mins
-	USER_SEARCH_OPTION_NAMES_ONLY     = "names_only"
-	USER_SEARCH_OPTION_ALLOW_INACTIVE = "allow_inactive"
-	USER_SEARCH_TYPE_NAMES            = "Username, FirstName, LastName, Nickname"
-	USER_SEARCH_TYPE_ALL              = "Username, FirstName, LastName, Nickname, Email"
+	MISSING_ACCOUNT_ERROR                      = "store.sql_user.missing_account.const"
+	MISSING_AUTH_ACCOUNT_ERROR                 = "store.sql_user.get_by_auth.missing_account.app_error"
+	PROFILES_IN_CHANNEL_CACHE_SIZE             = 5000
+	PROFILES_IN_CHANNEL_CACHE_SEC              = 900 // 15 mins
+	USER_SEARCH_OPTION_NAMES_ONLY              = "names_only"
+	USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME = "names_only_no_full_name"
+	USER_SEARCH_OPTION_ALL_NO_FULL_NAME        = "all_no_full_name"
+	USER_SEARCH_OPTION_ALLOW_INACTIVE          = "allow_inactive"
+	USER_SEARCH_TYPE_NAMES_NO_FULL_NAME        = "Username, Nickname"
+	USER_SEARCH_TYPE_NAMES                     = "Username, FirstName, LastName, Nickname"
+	USER_SEARCH_TYPE_ALL_NO_FULL_NAME          = "Username, Nickname, Email"
+	USER_SEARCH_TYPE_ALL                       = "Username, FirstName, LastName, Nickname, Email"
 )
 
 type SqlUserStore struct {
@@ -62,7 +66,9 @@ func (us SqlUserStore) CreateIndexesIfNotExists() {
 	us.CreateIndexIfNotExists("idx_users_delete_at", "Users", "DeleteAt")
 
 	us.CreateFullTextIndexIfNotExists("idx_users_all_txt", "Users", USER_SEARCH_TYPE_ALL)
+	us.CreateFullTextIndexIfNotExists("idx_users_all_no_full_name_txt", "Users", USER_SEARCH_TYPE_ALL_NO_FULL_NAME)
 	us.CreateFullTextIndexIfNotExists("idx_users_names_txt", "Users", USER_SEARCH_TYPE_NAMES)
+	us.CreateFullTextIndexIfNotExists("idx_users_names_no_full_name_txt", "Users", USER_SEARCH_TYPE_NAMES_NO_FULL_NAME)
 }
 
 func (us SqlUserStore) Save(user *model.User) StoreChannel {
@@ -1120,7 +1126,7 @@ func (us SqlUserStore) Search(teamId string, term string, options map[string]boo
 				SEARCH_CLAUSE
 				INACTIVE_CLAUSE
 				ORDER BY Username ASC
-			LIMIT 50`
+			LIMIT 100`
 		} else {
 			searchQuery = `
 			SELECT
@@ -1217,17 +1223,34 @@ func (us SqlUserStore) SearchInChannel(channelId string, term string, options ma
 	return storeChannel
 }
 
+var specialUserSearchChar = []string{
+	"<",
+	">",
+	"+",
+	"-",
+	"(",
+	")",
+	"~",
+	"@",
+	":",
+	"*",
+}
+
 func (us SqlUserStore) performSearch(searchQuery string, term string, options map[string]bool, parameters map[string]interface{}) StoreResult {
 	result := StoreResult{}
 
 	// these chars have special meaning and can be treated as spaces
-	for _, c := range specialSearchChar {
+	for _, c := range specialUserSearchChar {
 		term = strings.Replace(term, c, " ", -1)
 	}
 
 	searchType := USER_SEARCH_TYPE_ALL
 	if ok := options[USER_SEARCH_OPTION_NAMES_ONLY]; ok {
 		searchType = USER_SEARCH_TYPE_NAMES
+	} else if ok = options[USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME]; ok {
+		searchType = USER_SEARCH_TYPE_NAMES_NO_FULL_NAME
+	} else if ok = options[USER_SEARCH_OPTION_ALL_NO_FULL_NAME]; ok {
+		searchType = USER_SEARCH_TYPE_ALL_NO_FULL_NAME
 	}
 
 	if ok := options[USER_SEARCH_OPTION_ALLOW_INACTIVE]; ok {
@@ -1251,7 +1274,7 @@ func (us SqlUserStore) performSearch(searchQuery string, term string, options ma
 		term = strings.Join(splitTerm, " ")
 
 		searchType = convertMySQLFullTextColumnsToPostgres(searchType)
-		searchClause := fmt.Sprintf("AND (%s) @@  to_tsquery(:Term)", searchType)
+		searchClause := fmt.Sprintf("AND (%s) @@  to_tsquery('simple', :Term)", searchType)
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
 		splitTerm := strings.Fields(term)

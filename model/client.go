@@ -621,6 +621,19 @@ func (c *Client) AutocompleteUsersInTeam(term string) (*Result, *AppError) {
 	}
 }
 
+// AutocompleteUsers returns a list for autocompletion of users on the system that match the provided term,
+// matching against username, full name and nickname. Must be authenticated.
+func (c *Client) AutocompleteUsers(term string) (*Result, *AppError) {
+	url := fmt.Sprintf("/users/autocomplete?term=%s", url.QueryEscape(term))
+	if r, err := c.DoApiGet(url, "", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), UserListFromJson(r.Body)}, nil
+	}
+}
+
 // LoginById authenticates a user by user id and password.
 func (c *Client) LoginById(id string, password string) (*Result, *AppError) {
 	m := make(map[string]string)
@@ -1164,8 +1177,46 @@ func (c *Client) GetChannel(id, etag string) (*Result, *AppError) {
 	}
 }
 
+// SCHEDULED FOR DEPRECATION IN 3.7 - use GetMoreChannelsPage instead
 func (c *Client) GetMoreChannels(etag string) (*Result, *AppError) {
 	if r, err := c.DoApiGet(c.GetTeamRoute()+"/channels/more", "", etag); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), ChannelListFromJson(r.Body)}, nil
+	}
+}
+
+// GetMoreChannelsPage will return a page of open channels the user is not in based on
+// the provided offset and limit. Must be authenticated.
+func (c *Client) GetMoreChannelsPage(offset int, limit int) (*Result, *AppError) {
+	if r, err := c.DoApiGet(fmt.Sprintf(c.GetTeamRoute()+"/channels/more/%v/%v", offset, limit), "", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), ChannelListFromJson(r.Body)}, nil
+	}
+}
+
+// SearchMoreChannels will return a list of open channels the user is not in, that matches
+// the search criteria provided. Must be authenticated.
+func (c *Client) SearchMoreChannels(channelSearch ChannelSearch) (*Result, *AppError) {
+	if r, err := c.DoApiPost(c.GetTeamRoute()+"/channels/more/search", channelSearch.ToJson()); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), ChannelListFromJson(r.Body)}, nil
+	}
+}
+
+// AutocompleteChannels will return a list of open channels that match the provided
+// string. Must be authenticated.
+func (c *Client) AutocompleteChannels(term string) (*Result, *AppError) {
+	url := fmt.Sprintf("%s/channels/autocomplete?term=%s", c.GetTeamRoute(), url.QueryEscape(term))
+	if r, err := c.DoApiGet(url, "", ""); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)
@@ -2051,6 +2102,7 @@ func (c *Client) DeleteEmoji(id string) (bool, *AppError) {
 	if r, err := c.DoApiPost(c.GetEmojiRoute()+"/delete", MapToJson(data)); err != nil {
 		return false, err
 	} else {
+		defer closeBody(r)
 		c.fillInExtraProperties(r)
 		return c.CheckStatusOK(r), nil
 	}
@@ -2081,6 +2133,7 @@ func (c *Client) UploadCertificateFile(data []byte, contentType string) *AppErro
 		return AppErrorFromJson(rp.Body)
 	} else {
 		defer closeBody(rp)
+		c.fillInExtraProperties(rp)
 		return nil
 	}
 }
@@ -2092,6 +2145,7 @@ func (c *Client) RemoveCertificateFile(filename string) *AppError {
 		return err
 	} else {
 		defer closeBody(r)
+		c.fillInExtraProperties(r)
 		return nil
 	}
 }
@@ -2103,6 +2157,7 @@ func (c *Client) SamlCertificateStatus(filename string) (map[string]interface{},
 		return nil, err
 	} else {
 		defer closeBody(r)
+		c.fillInExtraProperties(r)
 		return StringInterfaceFromJson(r.Body), nil
 	}
 }
@@ -2129,5 +2184,38 @@ func (c *Client) GetFileInfosForPost(channelId string, postId string, etag strin
 		defer closeBody(r)
 		c.fillInExtraProperties(r)
 		return FileInfosFromJson(r.Body), nil
+	}
+}
+
+// Saves an emoji reaction for a post in the given channel. Returns the saved reaction if successful, otherwise returns an AppError.
+func (c *Client) SaveReaction(channelId string, reaction *Reaction) (*Reaction, *AppError) {
+	if r, err := c.DoApiPost(c.GetChannelRoute(channelId)+fmt.Sprintf("/posts/%v/reactions/save", reaction.PostId), reaction.ToJson()); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		c.fillInExtraProperties(r)
+		return ReactionFromJson(r.Body), nil
+	}
+}
+
+// Removes an emoji reaction for a post in the given channel. Returns nil if successful, otherwise returns an AppError.
+func (c *Client) DeleteReaction(channelId string, reaction *Reaction) *AppError {
+	if r, err := c.DoApiPost(c.GetChannelRoute(channelId)+fmt.Sprintf("/posts/%v/reactions/delete", reaction.PostId), reaction.ToJson()); err != nil {
+		return err
+	} else {
+		defer closeBody(r)
+		c.fillInExtraProperties(r)
+		return nil
+	}
+}
+
+// Lists all emoji reactions made for the given post in the given channel. Returns a list of Reactions if successful, otherwise returns an AppError.
+func (c *Client) ListReactions(channelId string, postId string) ([]*Reaction, *AppError) {
+	if r, err := c.DoApiGet(c.GetChannelRoute(channelId)+fmt.Sprintf("/posts/%v/reactions", postId), "", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		c.fillInExtraProperties(r)
+		return ReactionsFromJson(r.Body), nil
 	}
 }

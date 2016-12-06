@@ -156,6 +156,10 @@ export default class Client {
         // NO-OP for inherited classes to override
     }
 
+    handleSuccess(res) { // eslint-disable-line no-unused-vars
+        // NO-OP for inherited classes to override
+    }
+
     handleResponse(methodName, successCallback, errorCallback, err, res) {
         if (res && res.header) {
             this.serverVersion = res.header[HEADER_X_VERSION_ID];
@@ -212,6 +216,7 @@ export default class Client {
                 console.error('Missing response body for ' + methodName); // eslint-disable-line no-console
                 successCallback('', res);
             }
+            this.handleSuccess(res);
         }
     }
 
@@ -1112,12 +1117,21 @@ export default class Client {
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
-            end(this.handleResponse.bind(this, 'autocompleteUsers', success, error));
+            end(this.handleResponse.bind(this, 'autocompleteUsersInChannel', success, error));
     }
 
     autocompleteUsersInTeam(term, success, error) {
         request.
             get(`${this.getTeamNeededRoute()}/users/autocomplete?term=${encodeURIComponent(term)}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'autocompleteUsersInTeam', success, error));
+    }
+
+    autocompleteUsers(term, success, error) {
+        request.
+            get(`${this.getUsersRoute()}/autocomplete?term=${encodeURIComponent(term)}`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
@@ -1362,6 +1376,7 @@ export default class Client {
         this.track('api', 'api_channel_get');
     }
 
+    // SCHEDULED FOR DEPRECATION IN 3.7 - use getMoreChannelsPage instead
     getMoreChannels(success, error) {
         request.
             get(`${this.getChannelsRoute()}/more`).
@@ -1369,6 +1384,34 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getMoreChannels', success, error));
+    }
+
+    getMoreChannelsPage(offset, limit, success, error) {
+        request.
+            get(`${this.getChannelsRoute()}/more/${offset}/${limit}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getMoreChannelsPage', success, error));
+    }
+
+    searchMoreChannels(term, success, error) {
+        request.
+            post(`${this.getChannelsRoute()}/more/search`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send({term}).
+            end(this.handleResponse.bind(this, 'searchMoreChannels', success, error));
+    }
+
+    autocompleteChannels(term, success, error) {
+        request.
+            get(`${this.getChannelsRoute()}/autocomplete?term=${encodeURIComponent(term)}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'autocompleteChannels', success, error));
     }
 
     getChannelCounts(success, error) {
@@ -1962,11 +2005,11 @@ export default class Client {
 
     removeCertificateFile(filename, success, error) {
         request.
-        post(`${this.getAdminRoute()}/remove_certificate`).
-        set(this.defaultHeaders).
-        accept('application/json').
-        send({filename}).
-        end(this.handleResponse.bind(this, 'removeCertificateFile', success, error));
+            post(`${this.getAdminRoute()}/remove_certificate`).
+            set(this.defaultHeaders).
+            accept('application/json').
+            send({filename}).
+            end(this.handleResponse.bind(this, 'removeCertificateFile', success, error));
     }
 
     samlCertificateStatus(success, error) {
@@ -1985,6 +2028,33 @@ export default class Client {
 
             return success(res.body);
         });
+    }
+
+    saveReaction(channelId, reaction, success, error) {
+        request.
+            post(`${this.getChannelNeededRoute(channelId)}/posts/${reaction.post_id}/reactions/save`).
+            set(this.defaultHeaders).
+            accept('application/json').
+            send(reaction).
+            end(this.handleResponse.bind(this, 'saveReaction', success, error));
+    }
+
+    deleteReaction(channelId, reaction, success, error) {
+        request.
+            post(`${this.getChannelNeededRoute(channelId)}/posts/${reaction.post_id}/reactions/delete`).
+            set(this.defaultHeaders).
+            accept('application/json').
+            send(reaction).
+            end(this.handleResponse.bind(this, 'deleteReaction', success, error));
+    }
+
+    listReactions(channelId, postId, success, error) {
+        request.
+            get(`${this.getChannelNeededRoute(channelId)}/posts/${postId}/reactions`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'listReactions', success, error));
     }
 
     webrtcToken(success, error) {

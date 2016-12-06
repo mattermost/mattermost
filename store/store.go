@@ -46,6 +46,7 @@ type Store interface {
 	Emoji() EmojiStore
 	Status() StatusStore
 	FileInfo() FileInfoStore
+	Reaction() ReactionStore
 	MarkSystemRanUnitTests()
 	Close()
 	DropAllTables()
@@ -88,9 +89,10 @@ type ChannelStore interface {
 	Delete(channelId string, time int64) StoreChannel
 	SetDeleteAt(channelId string, deleteAt int64, updateAt int64) StoreChannel
 	PermanentDeleteByTeam(teamId string) StoreChannel
-	GetByName(team_id string, domain string) StoreChannel
+	GetByName(team_id string, name string) StoreChannel
+	GetByNameIncludeDeleted(team_id string, name string) StoreChannel
 	GetChannels(teamId string, userId string) StoreChannel
-	GetMoreChannels(teamId string, userId string) StoreChannel
+	GetMoreChannels(teamId string, userId string, offset int, limit int) StoreChannel
 	GetChannelCounts(teamId string, userId string) StoreChannel
 	GetTeamChannels(teamId string) StoreChannel
 	GetAll(teamId string) StoreChannel
@@ -103,7 +105,8 @@ type ChannelStore interface {
 	InvalidateAllChannelMembersForUser(userId string)
 	IsUserInChannelUseCache(userId string, channelId string) bool
 	GetMemberForPost(postId string, userId string) StoreChannel
-	GetMemberCount(channelId string) StoreChannel
+	InvalidateMemberCount(channelId string)
+	GetMemberCount(channelId string, allowFromCache bool) StoreChannel
 	RemoveMember(channelId string, userId string) StoreChannel
 	PermanentDeleteMembersByUser(userId string) StoreChannel
 	UpdateLastViewedAt(channelId string, userId string) StoreChannel
@@ -112,6 +115,8 @@ type ChannelStore interface {
 	AnalyticsTypeCount(teamId string, channelType string) StoreChannel
 	ExtraUpdateByUser(userId string, time int64) StoreChannel
 	GetMembersForUser(teamId string, userId string) StoreChannel
+	SearchInTeam(teamId string, term string) StoreChannel
+	SearchMore(userId string, teamId string, term string) StoreChannel
 }
 
 type PostStore interface {
@@ -306,4 +311,11 @@ type FileInfoStore interface {
 	GetForPost(postId string) StoreChannel
 	AttachToPost(fileId string, postId string) StoreChannel
 	DeleteForPost(postId string) StoreChannel
+}
+
+type ReactionStore interface {
+	Save(reaction *model.Reaction) StoreChannel
+	Delete(reaction *model.Reaction) StoreChannel
+	GetForPost(postId string) StoreChannel
+	DeleteAllWithEmojiName(emojiName string) StoreChannel
 }

@@ -60,6 +60,26 @@
     }
 }
 
+.has-error {
+    .help-block,
+    .control-label,
+    .radio,
+    .checkbox,
+    .radio-inline,
+    .checkbox-inline {
+        color: $red;
+    }
+
+    &.radio,
+    &.checkbox,
+    &.radio-inline,
+    &.checkbox-inline {
+        label {
+            color: $red;
+        }
+    }
+}
+
 .padding-top {
     padding-top: 7px;
 

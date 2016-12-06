@@ -191,3 +191,73 @@ export function loadChannelsForCurrentUser() {
     AsyncClient.getChannels();
     AsyncClient.getMyChannelMembers();
 }
+
+export function joinChannel(channel, success, error) {
+    Client.joinChannel(
+        channel.id,
+        () => {
+            ChannelStore.removeMoreChannel(channel.id);
+
+            if (success) {
+                success();
+            }
+        },
+        () => {
+            if (error) {
+                error();
+            }
+        }
+    );
+}
+
+export function updateChannel(channel, success, error) {
+    Client.updateChannel(
+        channel,
+        () => {
+            AsyncClient.getChannel(channel.id);
+
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
+export function searchMoreChannels(term, success, error) {
+    Client.searchMoreChannels(
+        term,
+        (data) => {
+            if (success) {
+                success(data);
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
+export function autocompleteChannels(term, success, error) {
+    Client.autocompleteChannels(
+        term,
+        (data) => {
+            if (success) {
+                success(data);
+            }
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'autocompleteChannels');
+
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}

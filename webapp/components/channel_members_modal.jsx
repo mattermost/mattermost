@@ -196,18 +196,6 @@ export default class ChannelMembersModal extends React.Component {
                     >
                         {content}
                     </Modal.Body>
-                    <Modal.Footer>
-                        <button
-                            type='button'
-                            className='btn btn-default'
-                            onClick={this.onHide}
-                        >
-                            <FormattedMessage
-                                id='channel_members_modal.close'
-                                defaultMessage='Close'
-                            />
-                        </button>
-                    </Modal.Footer>
                 </Modal>
             </div>
         );

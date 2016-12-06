@@ -794,6 +794,10 @@
     "translation": "Unable to create emoji. Image must be less than 1 MB in size."
   },
   {
+    "id": "api.emoji.delete.delete_reactions.app_error",
+    "translation": "Unable to delete reactions when deleting emoji with emoji name %v"
+  },
+  {
     "id": "api.emoji.delete.permissions.app_error",
     "translation": "Inappropriate permissions to delete emoji."
   },
@@ -1286,6 +1290,18 @@
     "translation": "Encountered error when deleting files for post, post_id=%v, err=%v"
   },
   {
+    "id": "api.post.disabled_all",
+    "translation": "@all has been disabled because the channel has more than {{.Users}} users."
+  },
+  {
+    "id": "api.post.disabled_channel",
+    "translation": "@channel has been disabled because the channel has more than {{.Users}} users."
+  },
+  {
+    "id": "api.post.disabled_here",
+    "translation": "@here has been disabled because the channel has more than {{.Users}} users."
+  },
+  {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
       "one": "{{.Count}} file sent: {{.Filenames}}",
@@ -1492,6 +1508,22 @@
     "translation": "session.user_id={{.SessionUserId}}, preference.user_id={{.PreferenceUserId}}"
   },
   {
+    "id": "api.reaction.delete_reaction.mismatched_channel_id.app_error",
+    "translation": "Failed to delete reaction when channel id in URL doesn't match post id in URL"
+  },
+  {
+    "id": "api.reaction.list_reactions.mismatched_channel_id.app_error",
+    "translation": "Failed to get reactions when channel id in URL doesn't match post id in URL"
+  },
+  {
+    "id": "api.reaction.save_reaction.mismatched_channel_id.app_error",
+    "translation": "Failed to save reaction when channel id in URL doesn't match post id in URL"
+  },
+  {
+    "id": "api.reaction.send_reaction_event.post.app_error",
+    "translation": "Failed to get post when sending websocket event for reaction"
+  },
+  {
     "id": "api.saml.save_certificate.app_error",
     "translation": "Certificate did not save properly."
   },
@@ -1630,6 +1662,10 @@
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
     "translation": "Merged user with existing account: {{.Email}}, {{.Username}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.merge_existing_failed",
+    "translation": "Tried to merge user with existing account: {{.Email}}, {{.Username}}, but failed to add the user to this team.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
@@ -2660,14 +2696,6 @@
     "translation": "System Console is set to read-only when High Availability is enabled."
   },
   {
-    "id": "ent.metrics.starting.info",
-    "translation": "Metrics and profiling server is listening on %v"
-  },
-  {
-    "id": "ent.metrics.stopping.info",
-    "translation": "Metrics and profiling server is stopping on %v"
-  },
-  {
     "id": "ent.cluster.starting.info",
     "translation": "Cluster internode communication is listening on %v with hostname=%v id=%v"
   },
@@ -2700,12 +2728,12 @@
     "translation": "Custom emoji restrictions disabled by current license. Please contact your system administrator about upgrading your enterprise license."
   },
   {
-    "id": "ent.ldap.disabled.app_error",
-    "translation": "AD/LDAP disabled or licence does not support AD/LDAP."
-  },
-  {
     "id": "ent.ldap.create_fail",
     "translation": "Unable to create LDAP user."
+  },
+  {
+    "id": "ent.ldap.disabled.app_error",
+    "translation": "AD/LDAP disabled or licence does not support AD/LDAP."
   },
   {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
@@ -2758,6 +2786,14 @@
   {
     "id": "ent.ldap.validate_filter.app_error",
     "translation": "Invalid AD/LDAP Filter"
+  },
+  {
+    "id": "ent.metrics.starting.info",
+    "translation": "Metrics and profiling server is listening on %v"
+  },
+  {
+    "id": "ent.metrics.stopping.info",
+    "translation": "Metrics and profiling server is stopping on %v"
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",
@@ -3336,6 +3372,10 @@
     "translation": "Invalid max file size for file settings. Must be a zero or positive number."
   },
   {
+    "id": "model.config.is_valid.max_notify_per_channel.app_error",
+    "translation": "Invalid maximum notifications per channel for team settings.  Must be a positive number."
+  },
+  {
     "id": "model.config.is_valid.max_users.app_error",
     "translation": "Invalid maximum users per team for team settings.  Must be a positive number."
   },
@@ -3688,6 +3728,22 @@
     "translation": "Value is too long"
   },
   {
+    "id": "model.reaction.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time"
+  },
+  {
+    "id": "model.reaction.is_valid.emoji_name.app_error",
+    "translation": "Invalid emoji name"
+  },
+  {
+    "id": "model.reaction.is_valid.post_id.app_error",
+    "translation": "Invalid post id"
+  },
+  {
+    "id": "model.reaction.is_valid.user_id.app_error",
+    "translation": "Invalid user id"
+  },
+  {
     "id": "model.team.is_valid.characters.app_error",
     "translation": "Name must be 2 or more lowercase alphanumeric characters"
   },
@@ -3714,6 +3770,10 @@
   {
     "id": "model.team.is_valid.name.app_error",
     "translation": "Invalid name"
+  },
+  {
+    "id": "model.team.is_valid.description.app_error",
+    "translation": "Invalid description"
   },
   {
     "id": "model.team.is_valid.reserved.app_error",
@@ -4188,6 +4248,10 @@
     "translation": "We couldn't save the channel member"
   },
   {
+    "id": "store.sql_channel.search.app_error",
+    "translation": "We encountered an error searching channels"
+  },
+  {
     "id": "store.sql_channel.set_last_viewed_at.app_error",
     "translation": "We couldn't set the last viewed at time"
   },
@@ -4550,6 +4614,46 @@
   {
     "id": "store.sql_preference.update.app_error",
     "translation": "We couldn't update the preference"
+  },
+  {
+    "id": "store.sql_reaction.delete.begin.app_error",
+    "translation": "Unable to open transaction while deleting reaction"
+  },
+  {
+    "id": "store.sql_reaction.delete.commit.app_error",
+    "translation": "Unable to commit transaction while deleting reaction"
+  },
+  {
+    "id": "store.sql_reaction.delete.save.app_error",
+    "translation": "Unable to delete reaction"
+  },
+  {
+    "id": "store.sql_reaction.delete_all_with_emoj_name.delete_reactions.app_error",
+    "translation": "Unable to delete reactions with the given emoji name"
+  },
+  {
+    "id": "store.sql_reaction.delete_all_with_emoj_name.get_reactions.app_error",
+    "translation": "Unable to get reactions with the given emoji name"
+  },
+  {
+    "id": "store.sql_reaction.delete_all_with_emoji_name.update_post.warn",
+    "translation": "Unable to update Post.HasReactions while removing reactions post_id=%v, error=%v"
+  },
+  {
+    "id": "store.sql_reaction.get_for_post.app_error",
+    "translation": "Unable to get reactions for post"
+  },
+  {
+    "id": "store.sql_reaction.save.begin.app_error",
+    "translation": "Unable to open transaction while saving reaction"
+  },
+  {
+    "id": "store.sql_reaction.save.commit.app_error",
+    "translation": "Unable to commit transaction while saving reaction"
+  },
+  {
+    "id": "store.sql_reaction.save.save.app_error",
+    "translation": "Unable to save reaction"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",

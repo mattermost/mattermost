@@ -135,6 +135,7 @@ function populateDMChannelsWithProfiles(userIds) {
     const currentUserId = UserStore.getCurrentId();
 
     for (let i = 0; i < userIds.length; i++) {
+        // TODO There's a race condition here for DM channels if those channels aren't loaded yet
         const channelName = getDirectChannelName(currentUserId, userIds[i]);
         const channel = ChannelStore.getByName(channelName);
         if (channel) {
@@ -235,7 +236,7 @@ function onThemeSaved(teamId, theme, onSuccess) {
     const toDelete = [];
 
     for (const [name] of themePreferences) {
-        if (name === '') {
+        if (name === '' || name === teamId) {
             continue;
         }
 
@@ -246,14 +247,16 @@ function onThemeSaved(teamId, theme, onSuccess) {
         });
     }
 
-    // we're saving a new global theme so delete any team-specific ones
-    AsyncClient.deletePreferences(toDelete);
+    if (toDelete.length > 0) {
+        // we're saving a new global theme so delete any team-specific ones
+        AsyncClient.deletePreferences(toDelete);
 
-    // delete them locally before we hear from the server so that the UI flow is smoother
-    AppDispatcher.handleServerAction({
-        type: ActionTypes.DELETED_PREFERENCES,
-        preferences: toDelete
-    });
+        // delete them locally before we hear from the server so that the UI flow is smoother
+        AppDispatcher.handleServerAction({
+            type: ActionTypes.DELETED_PREFERENCES,
+            preferences: toDelete
+        });
+    }
 
     onSuccess();
 }
@@ -317,6 +320,24 @@ export function autocompleteUsersInTeam(username, success, error) {
     );
 }
 
+export function autocompleteUsers(username, success, error) {
+    Client.autocompleteUsers(
+        username,
+        (data) => {
+            if (success) {
+                success(data);
+            }
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'autocompleteUsers');
+
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
 export function updateUser(username, success, error) {
     Client.updateUser(
         username,
@@ -349,5 +370,24 @@ export function generateMfaSecret(success, error) {
                 error(err);
             }
         }
+    );
+}
+
+export function updateUserRoles(userId, newRoles, success, error) {
+    Client.updateUserRoles(
+      userId,
+      newRoles,
+      () => {
+          AsyncClient.getUser(userId);
+
+          if (success) {
+              success();
+          }
+      },
+      (err) => {
+          if (error) {
+              error(err);
+          }
+      }
     );
 }

@@ -162,7 +162,11 @@ func SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Buffer) map
 		if result := <-Srv.Store.User().GetByEmail(email); result.Err == nil {
 			existingUser := result.Data.(*model.User)
 			addedUsers[sUser.Id] = existingUser
-			log.WriteString(utils.T("api.slackimport.slack_add_users.merge_existing", map[string]interface{}{"Email": existingUser.Email, "Username": existingUser.Username}))
+			if err := JoinUserToTeam(team, addedUsers[sUser.Id]); err != nil {
+				log.WriteString(utils.T("api.slackimport.slack_add_users.merge_existing_failed", map[string]interface{}{"Email": existingUser.Email, "Username": existingUser.Username}))
+			} else {
+				log.WriteString(utils.T("api.slackimport.slack_add_users.merge_existing", map[string]interface{}{"Email": existingUser.Email, "Username": existingUser.Username}))
+			}
 			continue
 		}
 
@@ -490,6 +494,19 @@ func SlackConvertChannelMentions(channels []SlackChannel, posts map[string][]Sla
 	return posts
 }
 
+func SlackConvertPostsMarkup(posts map[string][]SlackPost) map[string][]SlackPost {
+	// Convert URLs in Slack's format to Markdown format.
+	regex := regexp.MustCompile(`<([^|<>]+)\|([^|<>]+)>`)
+
+	for channelName, channelPosts := range posts {
+		for postIdx, post := range channelPosts {
+			posts[channelName][postIdx].Text = regex.ReplaceAllString(post.Text, "[$2]($1)")
+		}
+	}
+
+	return posts
+}
+
 func SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model.AppError, *bytes.Buffer) {
 	// Create log file
 	log := bytes.NewBufferString(utils.T("api.slackimport.slack_import.log"))
@@ -532,6 +549,7 @@ func SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model
 
 	posts = SlackConvertUserMentions(users, posts)
 	posts = SlackConvertChannelMentions(channels, posts)
+	posts = SlackConvertPostsMarkup(posts)
 
 	addedUsers := SlackAddUsers(teamID, users, log)
 	botUser := SlackAddBotUser(teamID, log)

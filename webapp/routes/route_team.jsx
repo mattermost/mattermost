@@ -7,6 +7,7 @@ import {browserHistory} from 'react-router/es6';
 
 import TeamStore from 'stores/team_store.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
+import {loadStatusesForChannelAndSidebar} from 'actions/status_actions.jsx';
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
@@ -29,13 +30,16 @@ function doChannelChange(state, replace, callback) {
         channel = JSON.parse(state.location.query.fakechannel);
     } else {
         channel = ChannelStore.getByName(state.params.channel);
-        if (!channel) {
-            channel = ChannelStore.getMoreByName(state.params.channel);
-        }
+
         if (!channel) {
             Client.joinChannelByName(
                 state.params.channel,
                 (data) => {
+                    AppDispatcher.handleServerAction({
+                        type: ActionTypes.RECEIVED_CHANNEL,
+                        channel: data
+                    });
+
                     GlobalActions.emitChannelClickEvent(data);
                     callback();
                 },
@@ -81,6 +85,8 @@ function preNeedsTeam(nextState, replace, callback) {
                 type: ActionTypes.RECEIVED_CHANNELS,
                 channels: data
             });
+
+            loadStatusesForChannelAndSidebar();
 
             d1.resolve();
         },

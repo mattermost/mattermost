@@ -187,6 +187,18 @@ func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	// Only report events to users who are in the channel for the event
 	if len(msg.Broadcast.ChannelId) > 0 {
 
+		// Only broadcast typing messages if less than 1K people in channel
+		if msg.Event == model.WEBSOCKET_EVENT_TYPING {
+			if result := <-Srv.Store.Channel().GetMemberCount(msg.Broadcast.ChannelId, true); result.Err != nil {
+				l4g.Error("webhub.shouldSendEvent: " + result.Err.Error())
+				return false
+			} else {
+				if result.Data.(int64) > *utils.Cfg.TeamSettings.MaxNotificationsPerChannel {
+					return false
+				}
+			}
+		}
+
 		if model.GetMillis()-webCon.LastAllChannelMembersTime > 1000*60*15 { // 15 minutes
 			webCon.AllChannelMembers = nil
 			webCon.LastAllChannelMembersTime = 0

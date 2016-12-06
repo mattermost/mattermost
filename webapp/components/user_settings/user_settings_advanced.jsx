@@ -175,8 +175,8 @@ export default class AdvancedSettingsDisplay extends React.Component {
                             defaultMessage='Enable Post Formatting'
                         />
                     }
-                    inputs={
-                        <div>
+                    inputs={[
+                        <div key='formattingSetting'>
                             <div className='radio'>
                                 <label>
                                     <input
@@ -215,7 +215,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                                 />
                             </div>
                         </div>
-                    }
+                    ]}
                     submit={() => this.handleSubmit('formatting')}
                     server_error={this.state.serverError}
                     updateSection={(e) => {
@@ -251,8 +251,8 @@ export default class AdvancedSettingsDisplay extends React.Component {
                                 defaultMessage='Enable Join/Leave Messages'
                             />
                         }
-                        inputs={
-                            <div>
+                        inputs={[
+                            <div key='joinLeaveSetting'>
                                 <div className='radio'>
                                     <label>
                                         <input
@@ -291,7 +291,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                                     />
                                 </div>
                             </div>
-                        }
+                        ]}
                         submit={() => this.handleSubmit('join_leave')}
                         server_error={this.state.serverError}
                         updateSection={(e) => {

@@ -51,7 +51,8 @@
         "RestrictPublicChannelManagement": "all",
         "RestrictPrivateChannelManagement": "all",
         "UserStatusAwayTimeout": 300,
-        "MaxChannelsPerTeam": 2000
+        "MaxChannelsPerTeam": 2000,
+        "MaxNotificationsPerChannel": 1000
     },
     "SqlSettings": {
         "DriverName": "mysql",

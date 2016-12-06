@@ -17,11 +17,12 @@ export default class PostViewCache extends React.Component {
 
         this.onChannelChange = this.onChannelChange.bind(this);
 
+        const currentChannelId = ChannelStore.getCurrentId();
         const channel = ChannelStore.getCurrent();
 
         this.state = {
-            currentChannelId: channel.id,
-            channels: [channel]
+            currentChannelId,
+            channels: channel ? [channel] : []
         };
     }
 
@@ -40,7 +41,7 @@ export default class PostViewCache extends React.Component {
         const channels = Object.assign([], this.state.channels);
         const currentChannel = ChannelStore.getCurrent();
 
-        if (currentChannel == null) {
+        if (!currentChannel) {
             return;
         }
 

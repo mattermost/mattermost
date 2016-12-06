@@ -440,6 +440,14 @@
     "translation": "명령어 토큰을 재생성할 권한 없음"
   },
   {
+    "id": "api.command.team_mismatch.app_error",
+    "translation": "Cannot update commands across teams"
+  },
+  {
+    "id": "api.command.update.app_error",
+    "translation": "삭제 명령 권한 없음"
+  },
+  {
     "id": "api.command_away.desc",
     "translation": "현재 상태를 자리비움으로 설정합니다."
   },
@@ -814,8 +822,20 @@
     "translation": "이모티콘을 만들 수 없습니다. PNG, JPEG, GIF 파일 이어야 합니다."
   },
   {
-    "id": "api.emoji.upload.large_image.app_error",
-    "translation": "이모티콘을 생성할 수 없습니다. 이미지 최대크기는 128px * 128px 입니다."
+    "id": "api.emoji.upload.large_image.decode_error",
+    "translation": "Unable to create emoji. An error occurred when trying to decode the image."
+  },
+  {
+    "id": "api.emoji.upload.large_image.encode_error",
+    "translation": "Unable to create emoji. An error occurred when trying to encode the image."
+  },
+  {
+    "id": "api.emoji.upload.large_image.gif_decode_error",
+    "translation": "Unable to create emoji. An error occurred when trying to decode the GIF image."
+  },
+  {
+    "id": "api.emoji.upload.large_image.gif_encode_error",
+    "translation": "Unable to create emoji. An error occurred when trying to encode the GIF image."
   },
   {
     "id": "api.file.get_file.public_disabled.app_error",
@@ -983,7 +1003,7 @@
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
-    "translation": "이미지 파일을 불러올 수 없습니다. 파일이 너무 큽니다."
+    "translation": "File above maximum dimensions could not be uploaded: {{.Filename}}"
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -1264,6 +1284,18 @@
   {
     "id": "api.post.delete_post_files.app_error.warn",
     "translation": "게시글에 대한 파일을 삭제할 때 에러가 발생되었습니다, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.post.disabled_all",
+    "translation": "@all has been disabled because the channel has more than {{.Users}} users."
+  },
+  {
+    "id": "api.post.disabled_channel",
+    "translation": "@channel has been disabled because the channel has more than {{.Users}} users."
+  },
+  {
+    "id": "api.post.disabled_here",
+    "translation": "@here has been disabled because the channel has more than {{.Users}} users."
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
@@ -1610,6 +1642,10 @@
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
     "translation": "기존 사용자 정보와 병합됩니다: {{.Email}}, {{.Username}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.merge_existing_failed",
+    "translation": "Tried to merge user with existing account: {{.Email}}, {{.Username}}, but failed to add the user to this team.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
@@ -2672,6 +2708,10 @@
     "translation": "사용자 정의 이모티콘 제한을 활성화 하려면 엔터프라이즈 라이센스가 필요합니다. 시스템 관리자에게 업그레이드를 문의해보세요."
   },
   {
+    "id": "ent.ldap.create_fail",
+    "translation": "Unable to create LDAP user."
+  },
+  {
     "id": "ent.ldap.disabled.app_error",
     "translation": "AD/LDAP 비활성화 되었거나 현재 라이센스에서 지원되지 않습니다."
   },
@@ -2726,6 +2766,14 @@
   {
     "id": "ent.ldap.validate_filter.app_error",
     "translation": "잘못된 AD/LDAP 필터"
+  },
+  {
+    "id": "ent.metrics.starting.info",
+    "translation": "Metrics and profiling server is listening on %v"
+  },
+  {
+    "id": "ent.metrics.stopping.info",
+    "translation": "Metrics and profiling server is stopping on %v"
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",
@@ -3302,6 +3350,10 @@
   {
     "id": "model.config.is_valid.max_file_size.app_error",
     "translation": "잘못된 파일 최대 용량 설정입니다. 0보다 큰 값이여야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.max_notify_per_channel.app_error",
+    "translation": "팀 설정에 대한 잘못된 팀 당 최대 채널 값입니다. 0보다 큰 값이여야 합니다."
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
@@ -4154,6 +4206,10 @@
   {
     "id": "store.sql_channel.save_member.save.app_error",
     "translation": "채널을 찾을 수 없습니다"
+  },
+  {
+    "id": "store.sql_channel.search.app_error",
+    "translation": "We encountered an error updating the channel"
   },
   {
     "id": "store.sql_channel.set_last_viewed_at.app_error",

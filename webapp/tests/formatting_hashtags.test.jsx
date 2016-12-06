@@ -73,12 +73,6 @@ describe('TextFormatting.Hashtags', function() {
             "<p><a class='mention-link' href='#' data-hashtag='#test'>#test</a>.</p>"
         );
 
-        // Known issue, trailing underscore is captured by the clientside regex but not the serverside one
-        assert.equal(
-            TextFormatting.formatText('#test_').trim(),
-            "<p><a class='mention-link' href='#' data-hashtag='#test_'>#test_</a></p>"
-        );
-
         assert.equal(
             TextFormatting.formatText('This is a sentence #test containing a hashtag').trim(),
             "<p>This is a sentence <a class='mention-link' href='#' data-hashtag='#test'>#test</a> containing a hashtag</p>"

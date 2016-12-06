@@ -476,6 +476,7 @@ export function applyTheme(theme) {
         changeCss('.sidebar--left .add-channel-btn:hover, .sidebar--left .add-channel-btn:focus', 'color:' + theme.sidebarText);
         changeCss('.sidebar--left .status .offline--icon', 'fill:' + theme.sidebarText);
         changeCss('@media(max-width: 768px){.app__body .modal .settings-modal .settings-table .nav>li>a, .app__body .sidebar--menu .divider', 'border-color:' + changeOpacity(theme.sidebarText, 0.2));
+        changeCss('@media(max-width: 768px){.sidebar--left .add-channel-btn:hover, .sidebar--left .add-channel-btn:focus', 'color:' + changeOpacity(theme.sidebarText, 0.6));
     }
 
     if (theme.sidebarUnreadText) {
@@ -484,7 +485,6 @@ export function applyTheme(theme) {
 
     if (theme.sidebarTextHoverBg) {
         changeCss('.sidebar--left .nav-pills__container li>a:hover, .app__body .modal .settings-modal .nav-pills>li:hover a', 'background:' + theme.sidebarTextHoverBg);
-        changeCss('@media(max-width: 768px){.app__body .modal .settings-modal .settings-table .nav>li:hover a', 'background:' + theme.sidebarTextHoverBg);
     }
 
     if (theme.sidebarTextActiveBorder) {
@@ -539,6 +539,7 @@ export function applyTheme(theme) {
     if (theme.mentionColor) {
         changeCss('.sidebar--left .nav-pills__unread-indicator', 'color:' + theme.mentionColor);
         changeCss('.sidebar--left .badge', 'color:' + theme.mentionColor + '!important;');
+        changeCss('.app__body .post-reaction--current-user', 'background-color:' + changeOpacity(theme.mentionColor, 0.4));
     }
 
     if (theme.centerChannelBg) {
@@ -629,6 +630,8 @@ export function applyTheme(theme) {
         changeCss('.app__body .post.post--comment.current--user .post__body', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .channel-header__info .status .offline--icon', 'fill:' + theme.centerChannelColor);
         changeCss('.app__body .navbar .status .offline--icon', 'fill:' + theme.centerChannelColor);
+        changeCss('.app__body .post-reaction:not(.post-reaction--current-user)', 'background-color:' + changeOpacity(theme.centerChannelColor, 0.2));
+        changeCss('.app__body .post-reaction', 'border-color:' + theme.centerChannelColor);
     }
 
     if (theme.newMessageSeparator) {
@@ -690,18 +693,22 @@ export function applyFont(fontName) {
 }
 
 export function changeCss(className, classValue) {
-    let styleEl = document.querySelector('style[data-class="' + className + classValue + '"]');
+    let styleEl = document.querySelector('style[data-class="' + className + '"]');
     if (!styleEl) {
         styleEl = document.createElement('style');
         styleEl.setAttribute('data-class', className);
+
+        // Append style element to head
+        document.head.appendChild(styleEl);
     }
 
-    // Append style element to head
-    document.head.appendChild(styleEl);
-
     // Grab style sheet
-    var styleSheet = styleEl.sheet;
-    styleSheet.insertRule(className + '{' + classValue + '}', styleSheet.cssRules.length);
+    const styleSheet = styleEl.sheet;
+    let mediaQuery = '';
+    if (className.indexOf('@media') >= 0) {
+        mediaQuery = '}';
+    }
+    styleSheet.insertRule(className + '{' + classValue + '}' + mediaQuery, styleSheet.cssRules.length);
 }
 
 export function updateCodeTheme(userTheme) {

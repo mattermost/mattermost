@@ -77,14 +77,22 @@ class UserSettingsModal extends React.Component {
         };
 
         this.requireConfirm = false;
+        this.mounted = false;
     }
 
     onUserChanged() {
-        this.setState({currentUser: UserStore.getCurrentUser()});
+        if (this.mounted) {
+            this.setState({currentUser: UserStore.getCurrentUser()});
+        }
     }
 
     componentDidMount() {
+        this.mounted = true;
         UserStore.addChangeListener(this.onUserChanged);
+    }
+
+    componentWillUnmount() {
+        this.mounted = false;
     }
 
     componentDidUpdate() {

@@ -2,7 +2,6 @@
 // See License.txt for license information.
 
 import IntegrationStore from 'stores/integration_store.jsx';
-import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
 import {loadTeamCommands} from 'actions/integration_actions.jsx';
@@ -12,8 +11,10 @@ import React from 'react';
 export default class CommandsContainer extends React.Component {
     static get propTypes() {
         return {
-            team: React.propTypes.object.isRequired,
-            children: React.propTypes.node.isRequired
+            team: React.PropTypes.object,
+            user: React.PropTypes.object,
+            children: React.PropTypes.node.isRequired,
+            isAdmin: React.PropTypes.bool
         };
     }
 
@@ -23,10 +24,10 @@ export default class CommandsContainer extends React.Component {
         this.handleIntegrationChange = this.handleIntegrationChange.bind(this);
         this.handleUserChange = this.handleUserChange.bind(this);
 
-        const teamId = TeamStore.getCurrentId();
+        const teamId = this.props.team ? this.props.team.id : '';
 
         this.state = {
-            commands: IntegrationStore.getCommands(teamId),
+            commands: IntegrationStore.getCommands(teamId) || [],
             loading: !IntegrationStore.hasReceivedCommands(teamId),
             users: UserStore.getProfiles()
         };
@@ -47,7 +48,7 @@ export default class CommandsContainer extends React.Component {
     }
 
     handleIntegrationChange() {
-        const teamId = TeamStore.getCurrentId();
+        const teamId = this.props.team.id;
 
         this.setState({
             commands: IntegrationStore.getCommands(teamId),
@@ -66,7 +67,9 @@ export default class CommandsContainer extends React.Component {
                     commands: this.state.commands,
                     users: this.state.users,
                     loading: this.state.loading,
-                    team: this.props.team
+                    team: this.props.team,
+                    user: this.props.user,
+                    isAdmin: this.props.isAdmin
                 })}
             </div>
         );

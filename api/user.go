@@ -59,6 +59,7 @@ func InitUser() {
 	BaseRoutes.NeedChannel.Handle("/users/not_in_channel/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getProfilesNotInChannel)).Methods("GET")
 	BaseRoutes.Users.Handle("/search", ApiUserRequired(searchUsers)).Methods("POST")
 	BaseRoutes.Users.Handle("/ids", ApiUserRequired(getProfilesByIds)).Methods("POST")
+	BaseRoutes.Users.Handle("/autocomplete", ApiUserRequired(autocompleteUsers)).Methods("GET")
 
 	BaseRoutes.NeedTeam.Handle("/users/autocomplete", ApiUserRequired(autocompleteUsersInTeam)).Methods("GET")
 	BaseRoutes.NeedChannel.Handle("/users/autocomplete", ApiUserRequired(autocompleteUsersInChannel)).Methods("GET")
@@ -466,7 +467,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.LogAuditWithUserId(id, "attempt")
 
 		if result := <-Srv.Store.User().Get(id); result.Err != nil {
-			c.LogAuditWithUserId(user.Id, "failure")
+			c.LogAuditWithUserId(id, "failure")
 			c.Err = result.Err
 			c.Err.StatusCode = http.StatusBadRequest
 			if einterfaces.GetMetricsInterface() != nil {
@@ -1556,9 +1557,10 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		user = result.Data.(*model.User)
 	}
 
-	UpdateUserRoles(c, user, newRoles)
-	if c.Err != nil {
+	if _, err := UpdateUserRoles(user, newRoles); err != nil {
 		return
+	} else {
+		c.LogAuditWithUserId(user.Id, "roles="+newRoles)
 	}
 
 	rdata := map[string]string{}
@@ -1566,7 +1568,7 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.MapToJson(rdata)))
 }
 
-func UpdateUserRoles(c *Context, user *model.User, newRoles string) *model.User {
+func UpdateUserRoles(user *model.User, newRoles string) (*model.User, *model.AppError) {
 
 	user.Roles = newRoles
 	uchan := Srv.Store.User().Update(user, true)
@@ -1574,10 +1576,8 @@ func UpdateUserRoles(c *Context, user *model.User, newRoles string) *model.User 
 
 	var ruser *model.User
 	if result := <-uchan; result.Err != nil {
-		c.Err = result.Err
-		return nil
+		return nil, result.Err
 	} else {
-		c.LogAuditWithUserId(user.Id, "roles="+newRoles)
 		ruser = result.Data.([2]*model.User)[0]
 	}
 
@@ -1588,7 +1588,7 @@ func UpdateUserRoles(c *Context, user *model.User, newRoles string) *model.User 
 
 	RemoveAllSessionsForUserId(user.Id)
 
-	return ruser
+	return ruser, nil
 }
 
 func updateActive(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1663,11 +1663,8 @@ func UpdateActive(user *model.User, active bool) (*model.User, *model.AppError) 
 	}
 }
 
-func PermanentDeleteUser(c *Context, user *model.User) *model.AppError {
+func PermanentDeleteUser(user *model.User) *model.AppError {
 	l4g.Warn(utils.T("api.user.permanent_delete_user.attempting.warn"), user.Email, user.Id)
-	c.Path = "/users/permanent_delete"
-	c.LogAuditWithUserId(user.Id, fmt.Sprintf("attempt userId=%v", user.Id))
-	c.LogAuditWithUserId("", fmt.Sprintf("attempt userId=%v", user.Id))
 	if user.IsInRole(model.ROLE_SYSTEM_ADMIN.Id) {
 		l4g.Warn(utils.T("api.user.permanent_delete_user.system_admin.warn"), user.Email)
 	}
@@ -1725,18 +1722,17 @@ func PermanentDeleteUser(c *Context, user *model.User) *model.AppError {
 	}
 
 	l4g.Warn(utils.T("api.user.permanent_delete_user.deleted.warn"), user.Email, user.Id)
-	c.LogAuditWithUserId("", fmt.Sprintf("success userId=%v", user.Id))
 
 	return nil
 }
 
-func PermanentDeleteAllUsers(c *Context) *model.AppError {
+func PermanentDeleteAllUsers() *model.AppError {
 	if result := <-Srv.Store.User().GetAll(); result.Err != nil {
 		return result.Err
 	} else {
 		users := result.Data.([]*model.User)
 		for _, user := range users {
-			PermanentDeleteUser(c, user)
+			PermanentDeleteUser(user)
 		}
 	}
 
@@ -2647,6 +2643,21 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	searchOptions := map[string]bool{}
 	searchOptions[store.USER_SEARCH_OPTION_ALLOW_INACTIVE] = props.AllowInactive
 
+	if !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
+		hideFullName := !utils.Cfg.PrivacySettings.ShowFullName
+		hideEmail := !utils.Cfg.PrivacySettings.ShowEmailAddress
+
+		if hideFullName && hideEmail {
+			searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
+		} else if hideFullName {
+			searchOptions[store.USER_SEARCH_OPTION_ALL_NO_FULL_NAME] = true
+		} else if hideEmail {
+			searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
+		}
+
+		c.Err = nil
+	}
+
 	var uchan store.StoreChannel
 	if props.InChannelId != "" {
 		uchan = Srv.Store.User().SearchInChannel(props.InChannelId, props.Term, searchOptions)
@@ -2710,10 +2721,17 @@ func autocompleteUsersInChannel(c *Context, w http.ResponseWriter, r *http.Reque
 	}
 
 	searchOptions := map[string]bool{}
-	searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
 
-	uchan := Srv.Store.User().SearchInChannel(channelId, term, map[string]bool{})
-	nuchan := Srv.Store.User().SearchNotInChannel(teamId, channelId, term, map[string]bool{})
+	hideFullName := !utils.Cfg.PrivacySettings.ShowFullName
+	if hideFullName && !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
+		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
+		c.Err = nil
+	} else {
+		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
+	}
+
+	uchan := Srv.Store.User().SearchInChannel(channelId, term, searchOptions)
+	nuchan := Srv.Store.User().SearchNotInChannel(teamId, channelId, term, searchOptions)
 
 	autocomplete := &model.UserAutocompleteInChannel{}
 
@@ -2758,7 +2776,17 @@ func autocompleteUsersInTeam(c *Context, w http.ResponseWriter, r *http.Request)
 		}
 	}
 
-	uchan := Srv.Store.User().Search(teamId, term, map[string]bool{})
+	searchOptions := map[string]bool{}
+
+	hideFullName := !utils.Cfg.PrivacySettings.ShowFullName
+	if hideFullName && !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
+		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
+		c.Err = nil
+	} else {
+		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
+	}
+
+	uchan := Srv.Store.User().Search(teamId, term, searchOptions)
 
 	autocomplete := &model.UserAutocompleteInTeam{}
 
@@ -2776,4 +2804,25 @@ func autocompleteUsersInTeam(c *Context, w http.ResponseWriter, r *http.Request)
 	}
 
 	w.Write([]byte(autocomplete.ToJson()))
+}
+
+func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
+	term := r.URL.Query().Get("term")
+
+	uchan := Srv.Store.User().Search("", term, map[string]bool{})
+
+	var profiles []*model.User
+
+	if result := <-uchan; result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		profiles = result.Data.([]*model.User)
+
+		for _, p := range profiles {
+			sanitizeProfile(c, p)
+		}
+	}
+
+	w.Write([]byte(model.UserListToJson(profiles)))
 }

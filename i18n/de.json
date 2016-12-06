@@ -101,7 +101,7 @@
   },
   {
     "id": "api.admin.test_email.reenter_password",
-    "translation": "Der SMTP Server, Port oder Benutzername wurde geändert. Bitte geben Sie das SMTP Passwort erneut ein um die Verbindung zu testen."
+    "translation": "Der SMTP Server, Port oder Benutzername wurde geändert. Bitte geben Sie das SMTP Passwort erneut ein, um die Verbindung zu testen."
   },
   {
     "id": "api.admin.test_email.subject",
@@ -273,7 +273,7 @@
   },
   {
     "id": "api.channel.init.debug",
-    "translation": "Initialisieren Kanal-Api-Routen"
+    "translation": "Initialisiere Kanal API Routen"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -289,7 +289,7 @@
   },
   {
     "id": "api.channel.leave.direct.app_error",
-    "translation": "Eine Direktnachricht kann nicht verlassen werden"
+    "translation": "Ein Direktnachrichtenkanal kann nicht verlassen werden"
   },
   {
     "id": "api.channel.leave.last_member.app_error",
@@ -309,7 +309,7 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
-    "translation": "Fehler beim Abrufen des Nutzers während des Sicherns der Kanal Überschrift %v"
+    "translation": "Fehler beim Abrufen des Nutzers während des Sicherns der Kanalüberschrift %v"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
@@ -357,7 +357,7 @@
   },
   {
     "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
-    "translation": "Konnte die Ungelesen-Zahl für user_id=%v und channel_id=%v abrufen, err=%v"
+    "translation": "Konnte die Ungelesen-Zahl für user_id=%v und channel_id=%v nicht abrufen, err=%v"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -405,7 +405,7 @@
   },
   {
     "id": "api.command.init.debug",
-    "translation": "Initialisieren der Datei-Api-Routen"
+    "translation": "Initialisiere Befehle API Routen"
   },
   {
     "id": "api.command.invite_people.desc",
@@ -438,6 +438,14 @@
   {
     "id": "api.command.regen.app_error",
     "translation": "Die Berechtigungen für die Erneuerung des Befehls-Tokens sind ungeeignet"
+  },
+  {
+    "id": "api.command.team_mismatch.app_error",
+    "translation": "Kann Befehle nicht über Teams hinweg aktualisieren"
+  },
+  {
+    "id": "api.command.update.app_error",
+    "translation": "Die Berechtigungen für den Aktualisierungsbefehl sind ungeeignet"
   },
   {
     "id": "api.command_away.desc",
@@ -501,7 +509,7 @@
   },
   {
     "id": "api.command_join.fail.app_error",
-    "translation": "Beim Beitreten zu einem Kanal ist ein Fehler aufgetreten."
+    "translation": "Beim Beitreten des Kanals ist ein Fehler aufgetreten."
   },
   {
     "id": "api.command_join.hint",
@@ -525,11 +533,11 @@
   },
   {
     "id": "api.command_logout.desc",
-    "translation": "Aus Mattermost ausloggen"
+    "translation": "Von Mattermost abmelden"
   },
   {
     "id": "api.command_logout.fail_message",
-    "translation": "Ausloggen fehlgeschlagen"
+    "translation": "Abmelden fehlgeschlagen"
   },
   {
     "id": "api.command_logout.name",
@@ -585,11 +593,11 @@
   },
   {
     "id": "api.command_offline.desc",
-    "translation": "Setzen Sie Ihren Status auf Offline"
+    "translation": "Setzen Sie Ihren Status auf offline"
   },
   {
     "id": "api.command_offline.name",
-    "translation": "Offline"
+    "translation": "offline"
   },
   {
     "id": "api.command_offline.success",
@@ -597,11 +605,11 @@
   },
   {
     "id": "api.command_online.desc",
-    "translation": "Setzen Sie Ihren Status auf Online"
+    "translation": "Setzen Sie Ihren Status auf online"
   },
   {
     "id": "api.command_online.name",
-    "translation": "Online"
+    "translation": "online"
   },
   {
     "id": "api.command_online.success",
@@ -609,11 +617,11 @@
   },
   {
     "id": "api.command_shortcuts.browser",
-    "translation": "#### Eingebaute Browser Befehle\n\nAlt+Links: Vorheriger Kanal in Ihrem Verlauf\nAlt+Rechts: Nächster Kanal in Ihrem Verlauf\nStrg+Plus: Schriftgröße vergrößern (hineinzoomen)\nStrg+Minus: Schriftgröße verkleinern (herauszoomen)\nShift+Hoch (im Eingabefeld): Text bis zur vorherigen Zeile markieren\nShift+Runter (im Eingabefeld): Text bis zur nächsten Zeile markieren\nShift+Enter (im Eingabefeld): Eine neue Zeile erstellen\n"
+    "translation": "#### Eingebaute Browser-Befehle\n\nAlt+Links: Vorheriger Kanal in Ihrem Verlauf\nAlt+Rechts: Nächster Kanal in Ihrem Verlauf\nStrg+Plus: Schriftgröße vergrößern (hineinzoomen)\nStrg+Minus: Schriftgröße verkleinern (herauszoomen)\nShift+Hoch (im Eingabefeld): Text bis zur vorherigen Zeile markieren\nShift+Runter (im Eingabefeld): Text bis zur nächsten Zeile markieren\nShift+Enter (im Eingabefeld): Eine neue Zeile erstellen\n"
   },
   {
     "id": "api.command_shortcuts.browser_mac",
-    "translation": "#### Eingebaute Browser Befehle\n\nCmd+[: Vorheriger Kanal in Ihrem Verlauf\nCmd+]: Nächster Kanal in Ihrem Verlauf\nCmd+Plus: Schriftgröße erhöhen (hineinzoomen)\nCmd+Minus: Schriftgröße verkleinern (herauszoomen)\nShift+Hoch (im Eingabefeld): Text bis zur vorherigen Zeile markieren\nShift+Runter (im Eingabefeld): Text bis zur nächsten Zeile markieren\nShift+Enter (im Eingabefeld): Eine neue Zeile erstellen\n"
+    "translation": "#### Eingebaute Browser-Befehle\n\nCmd+[: Vorheriger Kanal in Ihrem Verlauf\nCmd+]: Nächster Kanal in Ihrem Verlauf\nCmd+Plus: Schriftgröße erhöhen (hineinzoomen)\nCmd+Minus: Schriftgröße verkleinern (herauszoomen)\nShift+Hoch (im Eingabefeld): Text bis zur vorherigen Zeile markieren\nShift+Runter (im Eingabefeld): Text bis zur nächsten Zeile markieren\nShift+Enter (im Eingabefeld): Eine neue Zeile erstellen\n"
   },
   {
     "id": "api.command_shortcuts.desc",
@@ -629,11 +637,11 @@
   },
   {
     "id": "api.command_shortcuts.msgs",
-    "translation": "#### Mitteilungen\n\nEsc: Alle Mitteilungen im aktuellen Kanal als gelesen markieren\nStrg+Hoch (in leerem Eingabefeld): Vorherige Mitteilung oder Slash Befehl anzeigen\nStrg+Runter (in leerem Eingabefeld): Nächste Mitteilung oder Slash Befehl anzeigen\nHoch (in leerem Eingabefeld): Die letzte Nachricht im aktuellen Kanal bearbeiten\n@[Zeichen]+Tab: @Benutzername beginnend mit [Zeichen] vervollständigen\n#[Zeichen]+Tab: Kanal beginnend mit [Zeichen] vervollständigen\n:[Zeichen]+Tab: Emoji beginnend mit [Zeichen] vervollständigen\n\\\n"
+    "translation": "#### Mitteilungen\n\nEsc: Alle Mitteilungen im aktuellen Kanal als gelesen markieren\nStrg+Hoch (in leerem Eingabefeld): Vorherige Mitteilung oder Slash-Befehl anzeigen\nStrg+Runter (in leerem Eingabefeld): Nächste Mitteilung oder Slash-Befehl anzeigen\nHoch (in leerem Eingabefeld): Die letzte Nachricht im aktuellen Kanal bearbeiten\n@[Zeichen]+Tab: @Benutzername beginnend mit [Zeichen] vervollständigen\n~[Zeichen]+Tab: Kanal beginnend mit [Zeichen] vervollständigen\n:[Zeichen]+Tab: Emoji beginnend mit [Zeichen] vervollständigen\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs_mac",
-    "translation": "#### Nachrichten\n\nEsc: Alle Mitteilungen im aktuellen Kanal als gelesen markieren\nCmd+Hoch (in leerem Eingabefeld): Vorherige Mitteilung oder Slash Befehl anzeigen\nCmd+Runter (in leerem Eingabefeld): Nächste Mitteilung oder Slash Befehl anzeigen\nHoch (in leerem Eingabefeld): Ihre letzte Nachricht im aktuellen Kanal bearbeiten\n@[Zeichen]+Tab: @Benutzername beginnend mit [Zeichen] vervollständigen\n#[Zeichen]+Tab: Kanal beginnend mit [Zeichen] vervollständigen\n:[Zeichen]+Tab: Emoji beginnend mit [Zeichen] vervollständigen\n\n "
+    "translation": "#### Nachrichten\n\nEsc: Alle Mitteilungen im aktuellen Kanal als gelesen markieren\nCmd+Hoch (in leerem Eingabefeld): Vorherige Mitteilung oder Slash-Befehl anzeigen\nCmd+Runter (in leerem Eingabefeld): Nächste Mitteilung oder Slash-Befehl anzeigen\nHoch (in leerem Eingabefeld): Ihre letzte Nachricht im aktuellen Kanal bearbeiten\n@[Zeichen]+Tab: @Benutzername beginnend mit [Zeichen] vervollständigen\n~[Zeichen]+Tab: Kanal beginnend mit [Zeichen] vervollständigen\n:[Zeichen]+Tab: Emoji beginnend mit [Zeichen] vervollständigen\n\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -783,7 +791,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Das Emoji konnte nicht erstellt werden. Das Bild darf maximal 64 KB groß sein."
+    "translation": "Das Emoji konnte nicht erstellt werden. Das Bild darf maximal 1 MB groß sein."
   },
   {
     "id": "api.emoji.delete.permissions.app_error",
@@ -803,7 +811,7 @@
   },
   {
     "id": "api.emoji.init.debug",
-    "translation": "Initialisiere Emoji-Api-Routen"
+    "translation": "Initialisiere Emoji API Routen"
   },
   {
     "id": "api.emoji.storage.app_error",
@@ -814,8 +822,20 @@
     "translation": "Das Emoji kann nicht erstellt werden. Die Datei muss vom Typ PNG, JPEG oder GIF sein."
   },
   {
-    "id": "api.emoji.upload.large_image.app_error",
-    "translation": "Das Emoji konnte nicht erstellt werden. Das Bild darf maximal 128 x 128 pixel groß sein."
+    "id": "api.emoji.upload.large_image.decode_error",
+    "translation": "Konnte Emoji nicht erstellen. Es trat ein Fehler beim Dekodieren des Bildes auf."
+  },
+  {
+    "id": "api.emoji.upload.large_image.encode_error",
+    "translation": "Konnte Emoji nicht erstellen. Es trat ein Fehler beim Umwandeln des Bildes auf."
+  },
+  {
+    "id": "api.emoji.upload.large_image.gif_decode_error",
+    "translation": "Konnte Emoji nicht erstellen. Es trat ein Fehler beim Dekodieren des GIF auf."
+  },
+  {
+    "id": "api.emoji.upload.large_image.gif_encode_error",
+    "translation": "Konnte Emoji nicht erstellen. Es trat ein Fehler beim Umwandeln des GIF auf."
   },
   {
     "id": "api.file.get_file.public_disabled.app_error",
@@ -827,11 +847,11 @@
   },
   {
     "id": "api.file.get_file_preview.no_thumbnail.app_error",
-    "translation": "Datei hat kein Vorschaubild."
+    "translation": "Datei hat kein Vorschaubild"
   },
   {
     "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
-    "translation": "Datei hat kein Miniaturbild."
+    "translation": "Datei hat kein Miniaturbild"
   },
   {
     "id": "api.file.get_info_for_request.no_post.app_error",
@@ -879,7 +899,7 @@
   },
   {
     "id": "api.file.init.debug",
-    "translation": "Initialisieren Datei-Api-Routen"
+    "translation": "Initialisiere Datei API Routen"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.channel.app_error",
@@ -895,7 +915,7 @@
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.get_post_again.warn",
-    "translation": "Während der Migration zur Verwendung von FileInfos konnte die Nachricht abgerufen werdne, post_id=%v, err=%v"
+    "translation": "Während der Migration zur Verwendung von FileInfos konnte die Nachricht abgerufen werden, post_id=%v, err=%v"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.info.app_error",
@@ -983,7 +1003,7 @@
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
-    "translation": "Bildupload nicht möglich. Datei ist zu groß."
+    "translation": "Datei über den maximalen Dimensionen konnte nicht hochgeladen werden: {{.Filename}}"
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -999,7 +1019,7 @@
   },
   {
     "id": "api.file.write_file.s3.app_error",
-    "translation": "Beim schreiben zu S3 ist ein Fehler aufgetreten"
+    "translation": "Beim Schreiben zu S3 ist ein Fehler aufgetreten"
   },
   {
     "id": "api.file.write_file_locally.create_dir.app_error",
@@ -1011,7 +1031,7 @@
   },
   {
     "id": "api.general.init.debug",
-    "translation": "Initialisieren der Datei-API-Routen"
+    "translation": "Initialisiere allgemeine API Routen"
   },
   {
     "id": "api.import.import_post.saving.debug",
@@ -1019,7 +1039,7 @@
   },
   {
     "id": "api.import.import_user.join_team.error",
-    "translation": "Fehler beim Beitritt zum Team während des Imports Meldung=%v"
+    "translation": "Fehler beim Beitritt zum Team während des Imports err=%v"
   },
   {
     "id": "api.import.import_user.joining_default.error",
@@ -1031,7 +1051,7 @@
   },
   {
     "id": "api.import.import_user.set_email.error",
-    "translation": "Fehler beim setzen der E-Mail-Adresse als geprüft. Fehler=%v"
+    "translation": "Fehler beim Setzen der E-Mail-Adresse als geprüft. Fehler=%v"
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -1051,7 +1071,7 @@
   },
   {
     "id": "api.license.add_license.no_file.app_error",
-    "translation": "keine Datei unter 'licence' in der Anfrage"
+    "translation": "Keine Datei unter 'licence' in der Anfrage"
   },
   {
     "id": "api.license.add_license.open.app_error",
@@ -1071,7 +1091,7 @@
   },
   {
     "id": "api.license.init.debug",
-    "translation": "Initialisiere Datei-Api-Routen"
+    "translation": "Initialisiere Lizenz API Routen"
   },
   {
     "id": "api.license.remove_license.remove.app_error",
@@ -1099,11 +1119,11 @@
   },
   {
     "id": "api.oauth.allow_oauth.turn_off.app_error",
-    "translation": "Der Systemadministrator hat die OAuth2 Authentifizierung deaktiviert."
+    "translation": "Der Systemadministrator hat den OAuth2 Service Provider deaktiviert."
   },
   {
     "id": "api.oauth.authorize_oauth.disabled.app_error",
-    "translation": "Der Systemadministrator hat die OAuth2 Authentifizierung deaktiviert."
+    "translation": "Der Systemadministrator hat den OAuth2 Service Provider deaktiviert."
   },
   {
     "id": "api.oauth.authorize_oauth.missing.app_error",
@@ -1111,11 +1131,11 @@
   },
   {
     "id": "api.oauth.complete_oauth.missing_code.app_error",
-    "translation": "Der Dienstprovider {{.service}} übermittelte keinen Autorisationscode in der Weiterleitungsadresse.\n\nFür [Google Apps](https://docs.mattermost.com/deployment/sso-google.html) stellen Sie sicher das Ihr Administrator die Google+ API aktiviert hat.\n\nFür [Office 365](https://docs.mattermost.com/deployment/sso-office.html) stellen Sie sicher das der Administrator der Microsoft Organisation die Mattermost App aktiviert hat.\n\nFür [GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html) stellen Sie sicher das die Einrichtungsanleitung befolgt wurde.\n\nWenn Sie die oberen Informationen überprüft haben und immer noch Probleme mit der Konfiguration haben, können Sie in unserem [Troubleshooting forum](https://forum.mattermost.org/c/general/trouble-shoot) eine Nachricht hinterlassen und wir werden Ihnen gerne bei Ihrem Anliegen helfen."
+    "translation": "Der Dienstprovider {{.service}} übermittelte keinen Autorisationscode in der Weiterleitungsadresse.\n\nFür [Google Apps](https://docs.mattermost.com/deployment/sso-google.html) stellen Sie sicher, dass Ihr Administrator die Google+ API aktiviert hat.\n\nFür [Office 365](https://docs.mattermost.com/deployment/sso-office.html) stellen Sie sicher, dass der Administrator der Microsoft Organisation die Mattermost App aktiviert hat.\n\nFür [GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html) stellen Sie sicher, dass die Einrichtungsanleitung befolgt wurde.\n\nWenn Sie die oberen Informationen überprüft haben und immer noch Probleme mit der Konfiguration haben, können Sie in unserem [Troubleshooting forum](https://forum.mattermost.org/c/general/trouble-shoot) eine Nachricht hinterlassen und wir werden Ihnen gerne bei Ihrem Anliegen helfen."
   },
   {
     "id": "api.oauth.delete.permissions.app_error",
-    "translation": "Ungeeignete Berechtigungen um die OAth2 App zu entfernen"
+    "translation": "Ungeeignete Berechtigungen um die OAuth2 App zu entfernen"
   },
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
@@ -1135,11 +1155,11 @@
   },
   {
     "id": "api.oauth.get_access_token.disabled.app_error",
-    "translation": "Der Administrator hat die OAuth2 Authentifizierung deaktiviert."
+    "translation": "Der Administrator hat den OAuth2 Service Provider deaktiviert."
   },
   {
     "id": "api.oauth.get_access_token.expired_code.app_error",
-    "translation": "invalid_grant: Ungültiger oder abgelaufener Authorisationscode"
+    "translation": "invalid_grant: Ungültiger oder abgelaufener Autorisationscode"
   },
   {
     "id": "api.oauth.get_access_token.internal.app_error",
@@ -1167,7 +1187,7 @@
   },
   {
     "id": "api.oauth.get_access_token.redirect_uri.app_error",
-    "translation": "invalid_request: Angegebene redirect_uri entspricht nicht redirect_uri des Authorisationscodes"
+    "translation": "invalid_request: Angegebene redirect_uri entspricht nicht redirect_uri des Autorisationscodes"
   },
   {
     "id": "api.oauth.get_access_token.refresh_token.app_error",
@@ -1179,11 +1199,11 @@
   },
   {
     "id": "api.oauth.init.debug",
-    "translation": "Initialisiere OAuth-Api-Routen"
+    "translation": "Initialisiere OAuth API Routen"
   },
   {
     "id": "api.oauth.regenerate_secret.app_error",
-    "translation": "Ungeeignete Berechtigungen um den OAth2 App Schlüssel neu zu generieren"
+    "translation": "Ungeeignete Berechtigungen um den OAuth2 App Schlüssel neu zu generieren"
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
@@ -1215,11 +1235,11 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "{{.Usernames}} und {{.LastUsername}} wurden erwähnt, aber sie haben keine Benachrichtigung erhalten weil sie nicht im Kanal sind."
+    "translation": "{{.Usernames}} und {{.LastUsername}} wurden erwähnt, aber sie haben keine Benachrichtigung erhalten, weil sie nicht im Kanal sind."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "{{.Username}} wurde benachrichtigt, aber er hat keine Benachrichtigung erhalten, weil er nicht im Channel ist."
+    "translation": "{{.Username}} wurde benachrichtigt, aber er hat keine Benachrichtigung erhalten, weil er nicht im Kanal ist."
   },
   {
     "id": "api.post.create_post.attach_files.error",
@@ -1231,15 +1251,15 @@
   },
   {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
-    "translation": "Kann in gelöschten Kanal senden."
+    "translation": "Kann nicht in gelöschten Kanal senden."
   },
   {
     "id": "api.post.create_post.channel_root_id.app_error",
-    "translation": "Ungültige Kanal-ID für den Root-ID Parameter"
+    "translation": "Ungültige Kanal-ID für den Root-ID-Parameter"
   },
   {
     "id": "api.post.create_post.last_viewed.error",
-    "translation": "Fehler beim Aktualisieren der zuletzt aufgerufenen, channel_id=%s, user_id=%s, err=%v"
+    "translation": "Fehler beim Aktualisieren des Werts, Zuletzt aufgerufen“, channel_id=%s, user_id=%s, err=%v"
   },
   {
     "id": "api.post.create_post.parent_id.app_error",
@@ -1247,7 +1267,7 @@
   },
   {
     "id": "api.post.create_post.root_id.app_error",
-    "translation": "Ungültiger Root-ID Parameter"
+    "translation": "Ungültiger RootId Parameter"
   },
   {
     "id": "api.post.create_webhook_post.creating.app_error",
@@ -1255,7 +1275,7 @@
   },
   {
     "id": "api.post.delete_flagged_post.app_error.warn",
-    "translation": "Konnte markierte Nachrichten Einstellungen beim entfernen der Nachricht nicht löschen, err=%v"
+    "translation": "Konnte markierte Nachrichten Einstellungen beim Entfernen der Nachricht nicht löschen, err=%v"
   },
   {
     "id": "api.post.delete_post.permissions.app_error",
@@ -1264,6 +1284,18 @@
   {
     "id": "api.post.delete_post_files.app_error.warn",
     "translation": "Es trat ein Fehler beim Löschen von Dateien für die Nachricht auf, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.post.disabled_all",
+    "translation": "@all wurde deaktiviert, da der Kanal mehr als {{.Users}} Benutzer hat."
+  },
+  {
+    "id": "api.post.disabled_channel",
+    "translation": "@channel wurde deaktiviert, da der Kanal mehr als {{.Users}} Benutzer hat."
+  },
+  {
+    "id": "api.post.disabled_here",
+    "translation": "@here wurde deaktiviert, da der Kanal mehr als {{.Users}} Benutzer hat."
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
@@ -1325,7 +1357,7 @@
   },
   {
     "id": "api.post.init.debug",
-    "translation": "Initialisieren Datei-Api-Routen"
+    "translation": "Initialisiere API-Routen für Nachrichten"
   },
   {
     "id": "api.post.make_direct_channel_visible.get_2_members.error",
@@ -1457,7 +1489,7 @@
   },
   {
     "id": "api.preference.init.debug",
-    "translation": "Initialisieren Datei-Api-Routen"
+    "translation": "Initialisieren Einstellungen API Routen"
   },
   {
     "id": "api.preference.save_preferences.decode.app_error",
@@ -1481,7 +1513,7 @@
   },
   {
     "id": "api.server.start_server.listening.info",
-    "translation": "Server ist online auf %v"
+    "translation": "Server hört auf %v"
   },
   {
     "id": "api.server.start_server.rate.info",
@@ -1517,7 +1549,7 @@
   },
   {
     "id": "api.server.stop_server.stopping.info",
-    "translation": "Stoppe Server..."
+    "translation": "Server wird heruntergefahren..."
   },
   {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
@@ -1533,7 +1565,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.failed_to_add_user",
-    "translation": "Fehler beim hinzufügen des Benutzers zum Kanal: {{.Username}}\r\n"
+    "translation": "Fehler beim Hinzufügen des Benutzers zum Kanal: {{.Username}}\r\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.import_failed",
@@ -1610,6 +1642,10 @@
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
     "translation": "Benutzer mit vorhandenem Account verbunden: {{.Email}}, {{.Username}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.merge_existing_failed",
+    "translation": "Tried to merge user with existing account: {{.Email}}, {{.Username}}, but failed to add the user to this team.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
@@ -1689,7 +1725,7 @@
   },
   {
     "id": "api.status.init.debug",
-    "translation": "Initialisieren Status-Api-Routen"
+    "translation": "Initialisieren Status API Routen"
   },
   {
     "id": "api.status.last_activity.error",
@@ -1757,7 +1793,7 @@
   },
   {
     "id": "api.team.init.debug",
-    "translation": "Initialisieren Datei-Api-Routen"
+    "translation": "Initialisieren Team API Routen"
   },
   {
     "id": "api.team.invite_members.admin",
@@ -2201,7 +2237,7 @@
   },
   {
     "id": "api.user.init.debug",
-    "translation": "Initialisieren Datei-Api-Routen"
+    "translation": "Initialisiere Benutzer API Routen"
   },
   {
     "id": "api.user.ldap_to_email.not_available.app_error",
@@ -2461,7 +2497,7 @@
   },
   {
     "id": "api.web_socket.init.debug",
-    "translation": "Initialisieren Web-Socket-Api-Routen"
+    "translation": "Initialisiere WebSocket API Routen"
   },
   {
     "id": "api.web_socket_handler.log.error",
@@ -2533,7 +2569,7 @@
   },
   {
     "id": "api.webhook.init.debug",
-    "translation": "Initialisieren webhook-Api-Routen"
+    "translation": "Initialisiere Webhook API Routen"
   },
   {
     "id": "api.webhook.regen_outgoing_token.disabled.app_error",
@@ -2549,7 +2585,7 @@
   },
   {
     "id": "api.webrtc.init.debug",
-    "translation": "Initialisiere WebRTC-API-Routen"
+    "translation": "Initialisiere WebRTC API Routen"
   },
   {
     "id": "api.webrtc.register_token.app_error",
@@ -2672,6 +2708,10 @@
     "translation": "Benutzerdefinierte Emojireaktionen durch die aktuelle Lizenz deaktiviert. Bitte kontaktieren Sie Ihren Systemadministrator wegen eines Enterprise Lizenzupgrades."
   },
   {
+    "id": "ent.ldap.create_fail",
+    "translation": "Konnte LDAP Benutzer nicht erstellen."
+  },
+  {
     "id": "ent.ldap.disabled.app_error",
     "translation": "AD/LDAP deaktiviert oder Lizenz unterstützt kein AD/LDAP."
   },
@@ -2726,6 +2766,14 @@
   {
     "id": "ent.ldap.validate_filter.app_error",
     "translation": "Ungültiger AD/LDAP Filter"
+  },
+  {
+    "id": "ent.metrics.starting.info",
+    "translation": "Metrics and profiling server is listening on %v"
+  },
+  {
+    "id": "ent.metrics.stopping.info",
+    "translation": "Metrics and profiling server is stopping on %v"
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",
@@ -3302,6 +3350,10 @@
   {
     "id": "model.config.is_valid.max_file_size.app_error",
     "translation": "Ungültige maximale Dateigröße in Dateieinstellungen. Muss 0 oder eine positive Zahl sein."
+  },
+  {
+    "id": "model.config.is_valid.max_notify_per_channel.app_error",
+    "translation": "Ungültige maximale Anzahl an Benachrichtigungen pro Kanal in Teameinstellungen.  Muss eine positive Zahl sein."
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
@@ -4154,6 +4206,10 @@
   {
     "id": "store.sql_channel.save_member.save.app_error",
     "translation": "Wir konnten die Kanalmitglieder nicht speichern"
+  },
+  {
+    "id": "store.sql_channel.search.app_error",
+    "translation": "Es trat ein Fehler beim Suchen nach Kanälen auf"
   },
   {
     "id": "store.sql_channel.set_last_viewed_at.app_error",
@@ -5169,7 +5225,7 @@
   },
   {
     "id": "web.init.debug",
-    "translation": "Initialisieren Datei-Api-Routen"
+    "translation": "Initialisiere Web Routen"
   },
   {
     "id": "web.login.error",

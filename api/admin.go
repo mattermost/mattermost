@@ -399,9 +399,33 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 			rows[4].Value = float64(r.Data.(int64))
 		}
 
-		rows[5].Value = float64(TotalWebsocketConnections())
-		rows[6].Value = float64(Srv.Store.TotalMasterDbConnections())
-		rows[7].Value = float64(Srv.Store.TotalReadDbConnections())
+		// If in HA mode then aggregrate all the stats
+		if einterfaces.GetClusterInterface() != nil && *utils.Cfg.ClusterSettings.Enable {
+			stats, err := einterfaces.GetClusterInterface().GetClusterStats()
+			if err != nil {
+				c.Err = err
+				return
+			}
+
+			totalSockets := TotalWebsocketConnections()
+			totalMasterDb := Srv.Store.TotalMasterDbConnections()
+			totalReadDb := Srv.Store.TotalReadDbConnections()
+
+			for _, stat := range stats {
+				totalSockets = totalSockets + stat.TotalWebsocketConnections
+				totalMasterDb = totalMasterDb + stat.TotalMasterDbConnections
+				totalReadDb = totalReadDb + stat.TotalReadDbConnections
+			}
+
+			rows[5].Value = float64(totalSockets)
+			rows[6].Value = float64(totalMasterDb)
+			rows[7].Value = float64(totalReadDb)
+
+		} else {
+			rows[5].Value = float64(TotalWebsocketConnections())
+			rows[6].Value = float64(Srv.Store.TotalMasterDbConnections())
+			rows[7].Value = float64(Srv.Store.TotalReadDbConnections())
+		}
 
 		w.Write([]byte(rows.ToJson()))
 	} else if name == "post_counts_day" {

@@ -184,10 +184,15 @@ export default class Post extends React.Component {
             rootUser = '';
         }
 
+        let status = this.props.status;
+        if (post.props && post.props.from_webhook === 'true') {
+            status = null;
+        }
+
         let profilePic = (
             <ProfilePicture
                 src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
-                status={this.props.status}
+                status={status}
                 user={this.props.user}
             />
         );
@@ -255,6 +260,7 @@ export default class Post extends React.Component {
                             />
                             <PostBody
                                 post={post}
+                                currentUser={this.props.currentUser}
                                 sameRoot={this.props.sameRoot}
                                 parentPost={parentPost}
                                 handleCommentClick={this.handleCommentClick}

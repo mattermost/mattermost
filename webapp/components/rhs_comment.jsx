@@ -6,6 +6,7 @@ import FileAttachmentListContainer from './file_attachment_list_container.jsx';
 import PendingPostOptions from 'components/post_view/components/pending_post_options.jsx';
 import PostMessageContainer from 'components/post_view/components/post_message_container.jsx';
 import ProfilePicture from 'components/profile_picture.jsx';
+import ReactionListContainer from 'components/post_view/components/reaction_list_container.jsx';
 import RhsDropdown from 'components/rhs_dropdown.jsx';
 
 import TeamStore from 'stores/team_store.jsx';
@@ -263,10 +264,15 @@ export default class RhsComment extends React.Component {
             );
         }
 
+        let status = this.props.status;
+        if (post.props && post.props.from_webhook === 'true') {
+            status = null;
+        }
+
         let profilePic = (
             <ProfilePicture
                 src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
-                status={this.props.status}
+                status={status}
                 width='36'
                 height='36'
                 user={this.props.user}
@@ -280,7 +286,7 @@ export default class RhsComment extends React.Component {
             profilePic = (
                 <ProfilePicture
                     src=''
-                    status={this.props.status}
+                    status={status}
                     user={this.props.user}
                 />
             );
@@ -404,6 +410,10 @@ export default class RhsComment extends React.Component {
                                 {message}
                             </div>
                             {fileAttachment}
+                            <ReactionListContainer
+                                post={post}
+                                currentUserId={this.props.currentUser.id}
+                            />
                         </div>
                     </div>
                 </div>

@@ -59,8 +59,8 @@ class ChannelStoreClass extends EventEmitter {
         this.removeListener(STATS_EVENT, callback);
     }
 
-    emitLastViewed(lastViewed, ownNewMessage) {
-        this.emit(LAST_VIEVED_EVENT, lastViewed, ownNewMessage);
+    emitLastViewed() {
+        this.emit(LAST_VIEVED_EVENT);
     }
 
     addLastViewedListener(callback) {
@@ -234,11 +234,23 @@ class ChannelStoreClass extends EventEmitter {
     }
 
     storeMoreChannels(channels) {
-        this.moreChannels = channels;
+        const newChannels = {};
+        for (let i = 0; i < channels.length; i++) {
+            newChannels[channels[i].id] = channels[i];
+        }
+        this.moreChannels = Object.assign({}, this.moreChannels, newChannels);
+    }
+
+    removeMoreChannel(channelId) {
+        Reflect.deleteProperty(this.moreChannels, channelId);
     }
 
     getMoreChannels() {
-        return this.moreChannels;
+        return Object.assign({}, this.moreChannels);
+    }
+
+    getMoreChannelsList() {
+        return Object.keys(this.moreChannels).map((cid) => this.moreChannels[cid]);
     }
 
     storeStats(stats) {
@@ -373,6 +385,7 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         }
         ChannelStore.setUnreadCountsByMembers(action.members);
         ChannelStore.emitChange();
+        ChannelStore.emitLastViewed();
         break;
     case ActionTypes.RECEIVED_CHANNEL_MEMBER:
         ChannelStore.storeMyChannelMember(action.member);
@@ -382,6 +395,7 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         }
         ChannelStore.setUnreadCountsByCurrentMembers();
         ChannelStore.emitChange();
+        ChannelStore.emitLastViewed();
         break;
     case ActionTypes.RECEIVED_MORE_CHANNELS:
         ChannelStore.storeMoreChannels(action.channels);

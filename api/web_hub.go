@@ -102,6 +102,11 @@ func PublishSkipClusterSend(message *model.WebSocketEvent) {
 	}
 }
 
+func InvalidateCacheForChannel(channelId string) {
+	Srv.Store.User().InvalidateProfilesInChannelCache(channelId)
+	Srv.Store.Channel().InvalidateMemberCount(channelId)
+}
+
 func InvalidateCacheForUser(userId string) {
 	InvalidateCacheForUserSkipClusterSend(userId)
 
@@ -114,7 +119,9 @@ func InvalidateCacheForUserSkipClusterSend(userId string) {
 	Srv.Store.Channel().InvalidateAllChannelMembersForUser(userId)
 	Srv.Store.User().InvalidateProfilesInChannelCacheByUser(userId)
 
-	GetHubForUserId(userId).InvalidateUser(userId)
+	if len(hubs) != 0 {
+		GetHubForUserId(userId).InvalidateUser(userId)
+	}
 }
 
 func (h *Hub) Register(webConn *WebConn) {

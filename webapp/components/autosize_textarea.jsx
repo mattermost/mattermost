@@ -53,11 +53,17 @@ export default class AutosizeTextarea extends React.Component {
     }
 
     render() {
+        const props = {...this.props};
+
+        Reflect.deleteProperty(props, 'onHeightChange');
+        Reflect.deleteProperty(props, 'providers');
+        Reflect.deleteProperty(props, 'channelId');
+
         const {
             value,
             placeholder,
             ...otherProps
-        } = this.props;
+        } = props;
 
         const heightProps = {};
         if (this.height <= 0) {
@@ -72,7 +78,7 @@ export default class AutosizeTextarea extends React.Component {
                 <textarea
                     ref='textarea'
                     {...heightProps}
-                    {...this.props}
+                    {...props}
                 />
                 <div style={{height: 0, overflow: 'hidden'}}>
                     <textarea

@@ -440,6 +440,14 @@
     "translation": "Droits insuffisants pour regénérer la clé de commande"
   },
   {
+    "id": "api.command.team_mismatch.app_error",
+    "translation": "Cannot update commands across teams"
+  },
+  {
+    "id": "api.command.update.app_error",
+    "translation": "Droits insuffisants pour supprimer la commande"
+  },
+  {
     "id": "api.command_away.desc",
     "translation": "Changer votre état en « Absent »."
   },
@@ -814,8 +822,20 @@
     "translation": "Impossible de créer l'émoticône. Le fichier doit être un PNG, JPG ou GIF."
   },
   {
-    "id": "api.emoji.upload.large_image.app_error",
-    "translation": "Impossible de créer l'émoticône. L'image doit faire au plus 128x128 pixels."
+    "id": "api.emoji.upload.large_image.decode_error",
+    "translation": "Unable to create emoji. An error occurred when trying to decode the image."
+  },
+  {
+    "id": "api.emoji.upload.large_image.encode_error",
+    "translation": "Unable to create emoji. An error occurred when trying to encode the image."
+  },
+  {
+    "id": "api.emoji.upload.large_image.gif_decode_error",
+    "translation": "Unable to create emoji. An error occurred when trying to decode the GIF image."
+  },
+  {
+    "id": "api.emoji.upload.large_image.gif_encode_error",
+    "translation": "Unable to create emoji. An error occurred when trying to encode the GIF image."
   },
   {
     "id": "api.file.get_file.public_disabled.app_error",
@@ -983,7 +1003,7 @@
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
-    "translation": "Impossible d'envoyer le fichier image. Le fichier est trop volumineux."
+    "translation": "File above maximum dimensions could not be uploaded: {{.Filename}}"
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -1264,6 +1284,18 @@
   {
     "id": "api.post.delete_post_files.app_error.warn",
     "translation": "Une erreur s'est produite lors de la suppression des fichiers liés au message, post_id=%v, err=%v"
+  },
+  {
+    "id": "api.post.disabled_all",
+    "translation": "@all has been disabled because the channel has more than {{.Users}} users."
+  },
+  {
+    "id": "api.post.disabled_channel",
+    "translation": "@channel has been disabled because the channel has more than {{.Users}} users."
+  },
+  {
+    "id": "api.post.disabled_here",
+    "translation": "@here has been disabled because the channel has more than {{.Users}} users."
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
@@ -1610,6 +1642,10 @@
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
     "translation": "L'utilisateur a été fusionné avec le compte existant: {{.Email}}, {{.Username}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.merge_existing_failed",
+    "translation": "Tried to merge user with existing account: {{.Email}}, {{.Username}}, but failed to add the user to this team.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
@@ -2672,6 +2708,10 @@
     "translation": "Les émoticônes personnalisées sont désactivées par la licence actuellement utilisée. Veuillez contacter votre administrateur système à propos d'une mise à niveau vers la licence entreprise."
   },
   {
+    "id": "ent.ldap.create_fail",
+    "translation": "Impossible de créer l'utilisateur LDAP."
+  },
+  {
     "id": "ent.ldap.disabled.app_error",
     "translation": "AD/LDAP désactivé ou votre licence ne supporte pas AD/LDAP."
   },
@@ -2726,6 +2766,14 @@
   {
     "id": "ent.ldap.validate_filter.app_error",
     "translation": "Filtre LDAP Invalide"
+  },
+  {
+    "id": "ent.metrics.starting.info",
+    "translation": "Metrics and profiling server is listening on %v"
+  },
+  {
+    "id": "ent.metrics.stopping.info",
+    "translation": "Metrics and profiling server is stopping on %v"
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",
@@ -3302,6 +3350,10 @@
   {
     "id": "model.config.is_valid.max_file_size.app_error",
     "translation": "Taille de fichier max invalide pour les paramètres du fichier. Doit être zéro ou un entier positif."
+  },
+  {
+    "id": "model.config.is_valid.max_notify_per_channel.app_error",
+    "translation": "Le nombre maximum de canaux par équipe défini dans les paramètres d'équipe est invalide. Doit être un entier positif."
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
@@ -4154,6 +4206,10 @@
   {
     "id": "store.sql_channel.save_member.save.app_error",
     "translation": "Nous n'avons pas pu enregistrer le membre du canal"
+  },
+  {
+    "id": "store.sql_channel.search.app_error",
+    "translation": "Nous avons rencontré une erreur durant la mise à jour du canal"
   },
   {
     "id": "store.sql_channel.set_last_viewed_at.app_error",

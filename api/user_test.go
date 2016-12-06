@@ -523,10 +523,7 @@ func TestGetUser(t *testing.T) {
 		t.Fatal("shouldn't have accss")
 	}
 
-	c := &Context{}
-	c.RequestId = model.NewId()
-	c.IpAddress = "cmd_line"
-	UpdateUserRoles(c, ruser.Data.(*model.User), model.ROLE_SYSTEM_ADMIN.Id)
+	UpdateUserRoles(ruser.Data.(*model.User), model.ROLE_SYSTEM_ADMIN.Id)
 
 	Client.Login(user.Email, "passwd1")
 
@@ -1236,7 +1233,7 @@ func TestUserPermDelete(t *testing.T) {
 	c.RequestId = model.NewId()
 	c.IpAddress = "test"
 
-	err := PermanentDeleteUser(c, user1)
+	err := PermanentDeleteUser(user1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -2240,6 +2237,112 @@ func TestSearchUsers(t *testing.T) {
 		}
 	}
 
+	emailPrivacy := utils.Cfg.PrivacySettings.ShowEmailAddress
+	namePrivacy := utils.Cfg.PrivacySettings.ShowFullName
+	defer func() {
+		utils.Cfg.PrivacySettings.ShowEmailAddress = emailPrivacy
+		utils.Cfg.PrivacySettings.ShowFullName = namePrivacy
+	}()
+	utils.Cfg.PrivacySettings.ShowEmailAddress = false
+	utils.Cfg.PrivacySettings.ShowFullName = false
+
+	privacyEmailPrefix := strings.ToLower(model.NewId())
+	privacyUser := &model.User{Email: privacyEmailPrefix + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", FirstName: model.NewId(), LastName: "Jimmers"}
+	privacyUser = Client.Must(Client.CreateUser(privacyUser, "")).Data.(*model.User)
+	LinkUserToTeam(privacyUser, th.BasicTeam)
+
+	if result, err := Client.SearchUsers(model.UserSearch{Term: privacyUser.FirstName}); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.([]*model.User)
+
+		found := false
+		for _, user := range users {
+			if user.Id == privacyUser.Id {
+				found = true
+			}
+		}
+
+		if found {
+			t.Fatal("should not have found profile")
+		}
+	}
+
+	utils.Cfg.PrivacySettings.ShowEmailAddress = true
+
+	if result, err := Client.SearchUsers(model.UserSearch{Term: privacyUser.FirstName}); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.([]*model.User)
+
+		found := false
+		for _, user := range users {
+			if user.Id == privacyUser.Id {
+				found = true
+			}
+		}
+
+		if found {
+			t.Fatal("should not have found profile")
+		}
+	}
+
+	utils.Cfg.PrivacySettings.ShowEmailAddress = false
+	utils.Cfg.PrivacySettings.ShowFullName = true
+
+	if result, err := Client.SearchUsers(model.UserSearch{Term: privacyUser.FirstName}); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.([]*model.User)
+
+		found := false
+		for _, user := range users {
+			if user.Id == privacyUser.Id {
+				found = true
+			}
+		}
+
+		if !found {
+			t.Fatal("should have found profile")
+		}
+	}
+
+	if result, err := Client.SearchUsers(model.UserSearch{Term: privacyEmailPrefix}); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.([]*model.User)
+
+		found := false
+		for _, user := range users {
+			if user.Id == privacyUser.Id {
+				found = true
+			}
+		}
+
+		if found {
+			t.Fatal("should not have found profile")
+		}
+	}
+
+	utils.Cfg.PrivacySettings.ShowEmailAddress = true
+
+	if result, err := Client.SearchUsers(model.UserSearch{Term: privacyEmailPrefix}); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.([]*model.User)
+
+		found := false
+		for _, user := range users {
+			if user.Id == privacyUser.Id {
+				found = true
+			}
+		}
+
+		if !found {
+			t.Fatal("should have found profile")
+		}
+	}
+
 	th.LoginBasic2()
 
 	if result, err := Client.SearchUsers(model.UserSearch{Term: th.BasicUser.Username}); err != nil {
@@ -2274,6 +2377,44 @@ func TestSearchUsers(t *testing.T) {
 func TestAutocompleteUsers(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.BasicClient
+
+	if result, err := Client.AutocompleteUsers(th.BasicUser.Username); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.([]*model.User)
+		if len(users) != 1 {
+			t.Fatal("should have returned 1 user in")
+		}
+	}
+
+	if result, err := Client.AutocompleteUsers(""); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.([]*model.User)
+		if len(users) == 0 {
+			t.Fatal("should have many users")
+		}
+	}
+
+	notInTeamUser := th.CreateUser(Client)
+
+	if result, err := Client.AutocompleteUsers(notInTeamUser.Username); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.([]*model.User)
+		if len(users) != 1 {
+			t.Fatal("should have returned 1 user in")
+		}
+	}
+
+	if result, err := Client.AutocompleteUsersInTeam(notInTeamUser.Username); err != nil {
+		t.Fatal(err)
+	} else {
+		autocomplete := result.Data.(*model.UserAutocompleteInTeam)
+		if len(autocomplete.InTeam) != 0 {
+			t.Fatal("should have returned 0 users")
+		}
+	}
 
 	if result, err := Client.AutocompleteUsersInTeam(th.BasicUser.Username); err != nil {
 		t.Fatal(err)
@@ -2323,6 +2464,37 @@ func TestAutocompleteUsers(t *testing.T) {
 		autocomplete := result.Data.(*model.UserAutocompleteInTeam)
 		if len(autocomplete.InTeam) != 2 {
 			t.Fatal("should have returned 2 users in")
+		}
+	}
+
+	namePrivacy := utils.Cfg.PrivacySettings.ShowFullName
+	defer func() {
+		utils.Cfg.PrivacySettings.ShowFullName = namePrivacy
+	}()
+	utils.Cfg.PrivacySettings.ShowFullName = false
+
+	privacyUser := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", FirstName: model.NewId(), LastName: "Jimmers"}
+	privacyUser = Client.Must(Client.CreateUser(privacyUser, "")).Data.(*model.User)
+	LinkUserToTeam(privacyUser, th.BasicTeam)
+
+	if result, err := Client.AutocompleteUsersInChannel(privacyUser.FirstName, th.BasicChannel.Id); err != nil {
+		t.Fatal(err)
+	} else {
+		autocomplete := result.Data.(*model.UserAutocompleteInChannel)
+		if len(autocomplete.InChannel) != 0 {
+			t.Fatal("should have returned no users")
+		}
+		if len(autocomplete.OutOfChannel) != 0 {
+			t.Fatal("should have returned no users")
+		}
+	}
+
+	if result, err := Client.AutocompleteUsersInTeam(privacyUser.FirstName); err != nil {
+		t.Fatal(err)
+	} else {
+		autocomplete := result.Data.(*model.UserAutocompleteInTeam)
+		if len(autocomplete.InTeam) != 0 {
+			t.Fatal("should have returned no users")
 		}
 	}
 

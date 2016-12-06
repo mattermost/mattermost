@@ -15,7 +15,7 @@ import InstalledOAuthApp from './installed_oauth_app.jsx';
 export default class InstalledOAuthApps extends React.Component {
     static get propTypes() {
         return {
-            team: React.propTypes.object.isRequired
+            team: React.PropTypes.object
         };
     }
 

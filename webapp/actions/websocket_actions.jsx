@@ -11,6 +11,7 @@ import BrowserStore from 'stores/browser_store.jsx';
 import ErrorStore from 'stores/error_store.jsx';
 import NotificationStore from 'stores/notification_store.jsx'; //eslint-disable-line no-unused-vars
 
+import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import Client from 'client/web_client.jsx';
 import WebSocketClient from 'client/web_websocket_client.jsx';
 import * as WebrtcActions from './webrtc_actions.jsx';
@@ -18,12 +19,12 @@ import * as Utils from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
-import {handleNewPost, loadPosts} from 'actions/post_actions.jsx';
+import {handleNewPost, loadPosts, loadProfilesForPosts} from 'actions/post_actions.jsx';
 import {loadProfilesAndTeamMembersForDMSidebar} from 'actions/user_actions.jsx';
 import {loadChannelsForCurrentUser} from 'actions/channel_actions.jsx';
 import * as StatusActions from 'actions/status_actions.jsx';
 
-import {Constants, SocketEvents, UserStatuses} from 'utils/constants.jsx';
+import {ActionTypes, Constants, SocketEvents, UserStatuses} from 'utils/constants.jsx';
 
 import {browserHistory} from 'react-router/es6';
 
@@ -67,12 +68,13 @@ export function close() {
     WebSocketClient.close();
 }
 
-export function getStatuses() {
-    StatusActions.loadStatusesForChannelAndSidebar();
+export function reconnect() {
+    close();
+    initialize();
+    handleReconnect();
 }
 
 function handleFirstConnect() {
-    getStatuses();
     ErrorStore.clearLastError();
     ErrorStore.emitChange();
 }
@@ -83,7 +85,7 @@ function handleReconnect() {
         loadPosts(ChannelStore.getCurrentId());
     }
 
-    getStatuses();
+    StatusActions.loadStatusesForChannelAndSidebar();
     ErrorStore.clearLastError();
     ErrorStore.emitChange();
 }
@@ -164,6 +166,14 @@ function handleEvent(msg) {
         handleWebrtc(msg);
         break;
 
+    case SocketEvents.REACTION_ADDED:
+        handleReactionAddedEvent(msg);
+        break;
+
+    case SocketEvents.REACTION_REMOVED:
+        handleReactionRemovedEvent(msg);
+        break;
+
     default:
     }
 }
@@ -171,6 +181,10 @@ function handleEvent(msg) {
 function handleNewPostEvent(msg) {
     const post = JSON.parse(msg.data.post);
     handleNewPost(post, msg);
+
+    const posts = {};
+    posts[post.id] = post;
+    loadProfilesForPosts(posts);
 
     if (UserStore.getStatus(post.user_id) !== UserStatuses.ONLINE) {
         StatusActions.loadStatusesByIds([post.user_id]);
@@ -204,6 +218,11 @@ function handlePostDeleteEvent(msg) {
 function handleNewUserEvent(msg) {
     if (TeamStore.getCurrentId() === '') {
         // Any new users will be loaded when we switch into a context with a team
+        return;
+    }
+
+    if (msg.data.user_id === UserStore.getCurrentId()) {
+        // We should already have ourselves
         return;
     }
 
@@ -309,4 +328,24 @@ function handleHelloEvent(msg) {
 function handleWebrtc(msg) {
     const data = msg.data;
     return WebrtcActions.handle(data);
+}
+
+function handleReactionAddedEvent(msg) {
+    const reaction = JSON.parse(msg.data.reaction);
+
+    AppDispatcher.handleServerAction({
+        type: ActionTypes.ADDED_REACTION,
+        postId: reaction.post_id,
+        reaction
+    });
+}
+
+function handleReactionRemovedEvent(msg) {
+    const reaction = JSON.parse(msg.data.reaction);
+
+    AppDispatcher.handleServerAction({
+        type: ActionTypes.REMOVED_REACTION,
+        postId: reaction.post_id,
+        reaction
+    });
 }
