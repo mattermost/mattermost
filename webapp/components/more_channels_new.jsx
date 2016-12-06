@@ -27,7 +27,6 @@ export default class MoreChannelsNew extends React.Component {
         super(props);
 
         this.handleHide = this.handleHide.bind(this);
-        this.handleExit = this.handleExit.bind(this);
         this.onChange = this.onChange.bind(this);
         this.handleJoin = this.handleJoin.bind(this);
         this.nextPage = this.nextPage.bind(this);
@@ -52,11 +51,6 @@ export default class MoreChannelsNew extends React.Component {
     }
 
     handleHide() {
-        this.setState({show: false});
-        this.props.onModalDismissed();
-    }
-
-    handleExit() {
         this.setState({show: false});
         this.props.onModalDismissed();
     }
