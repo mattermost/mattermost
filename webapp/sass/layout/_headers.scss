@@ -320,9 +320,13 @@
 
         .header__info {
             @include clearfix;
+            @include display-flex;
+            @include flex-direction(column);
+            @include justify-content(center);
             color: $white;
             padding-left: 2px;
             position: relative;
+            min-height: 38px;
             z-index: 1;
         }
 
