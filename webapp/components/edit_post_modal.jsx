@@ -52,10 +52,13 @@ export default class EditPostModal extends React.Component {
     }
 
     handleEdit() {
-        var updatedPost = {};
-        updatedPost.message = this.state.editText.trim();
+        const updatedPost = {
+            message: this.state.editText,
+            id: this.state.post_id,
+            channel_id: this.state.channel_id
+        };
 
-        if (updatedPost.message === this.state.originalText.trim()) {
+        if (updatedPost.message === this.state.originalText) {
             // no changes so just close the modal
             $('#edit_post').modal('hide');
             return;
@@ -63,7 +66,7 @@ export default class EditPostModal extends React.Component {
 
         MessageHistoryStore.storeMessageInHistory(updatedPost.message);
 
-        if (updatedPost.message.length === 0) {
+        if (updatedPost.message.trim().length === 0) {
             var tempState = this.state;
             Reflect.deleteProperty(tempState, 'editText');
             BrowserStore.setItem('edit_state_transfer', tempState);
@@ -71,9 +74,6 @@ export default class EditPostModal extends React.Component {
             GlobalActions.showDeletePostModal(PostStore.getPost(this.state.channel_id, this.state.post_id), this.state.comments);
             return;
         }
-
-        updatedPost.id = this.state.post_id;
-        updatedPost.channel_id = this.state.channel_id;
 
         Client.updatePost(
             updatedPost,
