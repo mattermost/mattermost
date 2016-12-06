@@ -15,6 +15,7 @@ import {Constants, ActionTypes} from 'utils/constants.jsx';
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+import XRegExp from 'xregexp';
 
 class AtMentionSuggestion extends Suggestion {
     render() {
@@ -124,7 +125,7 @@ export default class AtMentionProvider {
     handlePretextChanged(suggestionId, pretext) {
         const hadSuggestions = this.clearTimeout(this.timeoutId);
 
-        const captured = (/(?:^|\W)@([a-z0-9\-._]*)$/i).exec(pretext.toLowerCase());
+        const captured = XRegExp.cache('(?:^|\\W)@([\\pL\\d\\-_.]*)$', 'i').exec(pretext.toLowerCase());
         if (captured) {
             const prefix = captured[1];
 
