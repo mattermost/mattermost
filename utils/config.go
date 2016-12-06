@@ -303,6 +303,8 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["IosAppUrlScheme"] = *c.NativeAppSettings.IosAppUrlScheme
 
 	props["EnableWebrtc"] = strconv.FormatBool(*c.WebrtcSettings.Enable)
+
+	props["PaginateMoreChannelsModal"] = strconv.FormatBool(*c.UchatConfig.PaginateMoreChannelsModal)
 	props["CustomOverride"] = strconv.FormatBool(*c.CustomOverride)
 
 	if IsLicensed {

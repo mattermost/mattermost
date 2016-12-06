@@ -250,5 +250,8 @@
         "TurnUsername": "",
         "TurnSharedKey": ""
     },
+    "UchatConfig": {
+        "PaginateMoreChannelsModal": true
+    },
     "CustomOverride": true
 }
