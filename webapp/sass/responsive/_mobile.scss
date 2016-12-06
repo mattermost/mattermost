@@ -5,23 +5,6 @@
         max-height: 145px;
     }
 
-    .modal {
-        .modal-dialog {
-            &.new-channel__modal {
-                position: fixed;
-                @include translate3d(0, 100%, 0);
-            }
-        }
-
-        &.in {
-            .modal-dialog {
-                &.new-channel__modal {
-                    @include translate3d(0, 0, 0);
-                }
-            }
-        }
-    }
-
     .webrtc__notification--rhs {
         left: auto;
         right: 0;
@@ -43,7 +26,7 @@
         @include box-shadow(none);
         background: alpha-color($black, .8);
         border: none;
-        height: calc(100% - 45px);
+        height: calc(100% - 40px);
         max-width: 100%;
         position: fixed;
         top: 47px;
@@ -598,6 +581,16 @@
                     min-height: 100%;
                 }
 
+                .nav-pills {
+                    > li {
+                        &:hover {
+                            a {
+                                background: transparent !important;
+                            }
+                        }
+                    }
+                }
+
                 &.display--content {
                     .modal-header {
                         display: none;
@@ -802,7 +795,7 @@
                 @include translate3d(0, 100%, 0);
                 background: alpha-color($black, .9);
                 display: block;
-                height: calc(100% - 45px);
+                height: calc(100% - 40px);
                 left: 0;
                 overflow: auto;
                 padding: 1.4em 0 0;
@@ -1011,11 +1004,11 @@
                     padding-bottom: 25px;
 
                     ul {
-                        clear: both;
-                        background: #ffffff;
+                        background: $white;
                         border-radius: 3px;
-                        top: 5px;
+                        clear: both;
                         position: relative;
+                        top: 5px;
 
                         li {
                             a {
@@ -1031,21 +1024,21 @@
 
                 > a {
                     font-size: 15px;
-                    margin: 0;
                     line-height: 2.5;
+                    margin: 0;
 
                     &:hover,
                     &:focus {
-                        background: transparent;
+                        background: transparent !important;
                     }
 
                     &.has-close {
                         .btn-close {
-                            width: 40px;
-                            text-align: center;
-                            right: 0;
-                            display: block;
                             @include opacity(.5);
+                            display: block;
+                            right: 0;
+                            text-align: center;
+                            width: 40px;
                         }
                     }
                 }

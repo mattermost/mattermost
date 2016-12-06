@@ -21,6 +21,11 @@
     width: 100%;
     z-index: 101;
 
+    .fa-user {
+        position: relative;
+        top: -1px;
+    }
+
     .mention--align {
         @include clearfix;
         text-overflow: ellipsis;

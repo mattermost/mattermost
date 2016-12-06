@@ -17,6 +17,7 @@
     }
 
     .popover-title {
+        @include border-radius(0);
         background: alpha-color($black, .05);
         max-width: 100%;
         overflow: hidden;
