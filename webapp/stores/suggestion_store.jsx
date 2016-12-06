@@ -232,6 +232,8 @@ class SuggestionStore extends EventEmitter {
                 this.clearSuggestions(id);
             }
 
+            other.pretext = other.pretext.toLowerCase();
+
             this.setPretext(id, other.pretext);
             this.emitPretextChanged(id, other.pretext);
 
