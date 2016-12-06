@@ -1234,6 +1234,7 @@ var specialUserSearchChar = []string{
 	"@",
 	":",
 	"*",
+	"\"",
 }
 
 func (us SqlUserStore) performSearch(searchQuery string, term string, options map[string]bool, parameters map[string]interface{}) StoreResult {
