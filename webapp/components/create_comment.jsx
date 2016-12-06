@@ -490,5 +490,5 @@ export default class CreateComment extends React.Component {
 CreateComment.propTypes = {
     channelId: React.PropTypes.string.isRequired,
     rootId: React.PropTypes.string.isRequired,
-    latestPostId: React.PropTypes.string.isRequired
+    latestPostId: React.PropTypes.string
 };
