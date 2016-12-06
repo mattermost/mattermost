@@ -61,7 +61,7 @@ class NewChannelFlow extends React.Component {
 
         this.state = {
             serverError: '',
-            channelType: 'O',
+            channelType: props.channelType || 'O',
             flowState: SHOW_NEW_CHANNEL,
             channelDisplayName: '',
             channelName: '',
