@@ -1509,7 +1509,7 @@
   },
   {
     "id": "api.reaction.delete_reaction.mismatched_channel_id.app_error",
-    "translation": "Failed to save reaction when channel id in URL doesn't match post id in URL"
+    "translation": "Failed to delete reaction when channel id in URL doesn't match post id in URL"
   },
   {
     "id": "api.reaction.list_reactions.mismatched_channel_id.app_error",
