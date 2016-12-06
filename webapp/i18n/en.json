@@ -2046,7 +2046,6 @@
   "user.settings.notifications.sounds_info": "Notification sounds are available on IE11, Edge, Safari, Chrome and Mattermost Desktop Apps.",
   "user.settings.notifications.teamWide": "Team-wide mentions \"@all\"",
   "user.settings.notifications.title": "Notification Settings",
-  "user.settings.notifications.usernameMention": "Your username mentioned \"@{username}\"",
   "user.settings.notifications.wordsTrigger": "Words that trigger mentions",
   "user.settings.push_notification.allActivity": "For all activity",
   "user.settings.push_notification.allActivityAway": "For all activity when away or offline",
