@@ -240,6 +240,7 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["RestrictTeamInvite"] = *c.TeamSettings.RestrictTeamInvite
 	props["RestrictPublicChannelManagement"] = *c.TeamSettings.RestrictPublicChannelManagement
 	props["RestrictPrivateChannelManagement"] = *c.TeamSettings.RestrictPrivateChannelManagement
+	props["RestrictChannelDeletion"] = *c.TeamSettings.RestrictChannelDeletion
 	props["DefaultTeamName"] = c.TeamSettings.DefaultTeamName
 
 	props["AndroidLatestVersion"] = c.ClientRequirements.AndroidLatestVersion
@@ -302,6 +303,8 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["IosAppUrlScheme"] = *c.NativeAppSettings.IosAppUrlScheme
 
 	props["EnableWebrtc"] = strconv.FormatBool(*c.WebrtcSettings.Enable)
+
+	props["PaginateMoreChannelsModal"] = strconv.FormatBool(*c.UchatConfig.PaginateMoreChannelsModal)
 	props["CustomOverride"] = strconv.FormatBool(*c.CustomOverride)
 
 	if IsLicensed {

@@ -11,8 +11,9 @@ import (
 )
 
 type StoreResult struct {
-	Data interface{}
-	Err  *model.AppError
+	Data  interface{}
+	Err   *model.AppError
+	Count int64
 }
 
 type StoreChannel chan StoreResult
@@ -91,6 +92,7 @@ type ChannelStore interface {
 	GetByName(team_id string, domain string) StoreChannel
 	GetChannels(teamId string, userId string) StoreChannel
 	GetMoreChannels(teamId string, userId string) StoreChannel
+	GetPaginatedChannels(teamId string, userId string, offset int, limit int, term string) StoreChannel
 	GetChannelCounts(teamId string, userId string) StoreChannel
 	GetTeamChannels(teamId string) StoreChannel
 	GetAll(teamId string) StoreChannel
@@ -103,7 +105,8 @@ type ChannelStore interface {
 	InvalidateAllChannelMembersForUser(userId string)
 	IsUserInChannelUseCache(userId string, channelId string) bool
 	GetMemberForPost(postId string, userId string) StoreChannel
-	GetMemberCount(channelId string) StoreChannel
+	InvalidateMemberCount(channelId string)
+	GetMemberCount(channelId string, allowFromCache bool) StoreChannel
 	RemoveMember(channelId string, userId string) StoreChannel
 	PermanentDeleteMembersByUser(userId string) StoreChannel
 	UpdateLastViewedAt(channelId string, userId string) StoreChannel

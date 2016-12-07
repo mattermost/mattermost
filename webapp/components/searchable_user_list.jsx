@@ -35,7 +35,9 @@ export default class SearchableUserList extends React.Component {
 
     componentDidMount() {
         if (this.props.focusOnMount) {
-            this.refs.filter.focus();
+            setTimeout(() => {
+                this.refs.filter.focus();
+            });
         }
     }
 

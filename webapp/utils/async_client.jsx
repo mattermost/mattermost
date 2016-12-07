@@ -239,6 +239,41 @@ export function getMoreChannels(force) {
     }
 }
 
+export function getPaginatedChannels(limit = Constants.CHANNELS_CHUNK_SIZE, term = '') {
+    getPaginatedChannelsNext(0, limit, term, ActionTypes.RECEIVED_PAGINATED_CHANNELS);
+}
+
+export function getPaginatedChannelsNext(
+    offset = UserStore.getPagingOffset(),
+    limit = Constants.CHANNELS_CHUNK_SIZE,
+    term = '',
+    actionType = ActionTypes.RECEIVED_PAGINATED_CHANNELS_NEXT
+) {
+    const callName = `getPaginatedChannels_${term}${offset}${limit}`;
+    if (isCallInProgress(callName)) {
+        return;
+    }
+
+    callTracker[callName] = utils.getTimestamp();
+    Client.getPaginatedChannels(
+        offset,
+        limit,
+        term,
+        (data) => {
+            callTracker[callName] = 0;
+            AppDispatcher.handleServerAction({
+                type: actionType,
+                channels: data.list,
+                count: data.count
+            });
+        },
+        (err) => {
+            callTracker[callName] = 0;
+            dispatchError(err, 'getPaginatedChannelsNext');
+        }
+    );
+}
+
 export function getChannelStats(channelId = ChannelStore.getCurrentId(), doVersionCheck = false) {
     if (isCallInProgress('getChannelStats' + channelId) || channelId == null) {
         return;

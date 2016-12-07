@@ -4,6 +4,7 @@
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import NewChannelFlow from './new_channel_flow.jsx';
+import MoreChannelsNew from './more_channels_new.jsx';
 import MoreDirectChannels from './more_direct_channels.jsx';
 import SidebarHeader from './sidebar_header.jsx';
 import UnreadChannelIndicator from './unread_channel_indicator.jsx';
@@ -71,6 +72,7 @@ export default class Sidebar extends React.Component {
         const state = this.getStateFromStores();
         state.newChannelModalType = '';
         state.showDirectChannelsModal = false;
+        state.showChannelsModal = false;
         state.loadingDMChannel = -1;
         this.state = state;
     }
@@ -339,8 +341,15 @@ export default class Sidebar extends React.Component {
     }
 
     showMoreChannelsModal() {
-        // manually show the modal because using data-toggle messes with keyboard focus when the modal is dismissed
-        $('#more_channels').modal({'data-channeltype': 'O'}).modal('show');
+        if (global.window.mm_config.PaginateMoreChannelsModal === 'true') {
+            this.setState({showChannelsModal: true});
+        } else {
+            $('#more_channels').modal({'data-channeltype': 'O'}).modal('show');
+        }
+    }
+
+    hideMoreChannelsModal() {
+        this.setState({showChannelsModal: false});
     }
 
     showNewChannelModal(type) {
@@ -629,11 +638,6 @@ export default class Sidebar extends React.Component {
             </li>
         );
 
-        let showChannelModal = false;
-        if (this.state.newChannelModalType !== '') {
-            showChannelModal = true;
-        }
-
         const createChannelTootlip = (
             <Tooltip
                 id='new-channel-tooltip'
@@ -722,6 +726,28 @@ export default class Sidebar extends React.Component {
             }
         }
 
+        let newChannelModal;
+        if (this.state.newChannelModalType !== '') {
+            newChannelModal = (
+                <NewChannelFlow
+                    show={true}
+                    channelType={this.state.newChannelModalType}
+                    onModalDismissed={this.hideNewChannelModal}
+                />
+            );
+        }
+
+        let moreChannelsModal;
+        if (this.state.showChannelsModal) {
+            moreChannelsModal = (
+                <MoreChannelsNew
+                    show={true}
+                    onModalDismissed={() => this.hideMoreChannelsModal()}
+                    showCreateChannelModal={() => this.showNewChannelModal(Constants.OPEN_CHANNEL)}
+                />
+            );
+        }
+
         let moreDirectChannelsModal;
         if (this.state.showDirectChannelsModal) {
             moreDirectChannelsModal = (
@@ -738,11 +764,8 @@ export default class Sidebar extends React.Component {
                 id='sidebar-left'
                 key='sidebar-left'
             >
-                <NewChannelFlow
-                    show={showChannelModal}
-                    channelType={this.state.newChannelModalType}
-                    onModalDismissed={this.hideNewChannelModal}
-                />
+                {newChannelModal}
+                {moreChannelsModal}
                 {moreDirectChannelsModal}
 
                 <SidebarHeader

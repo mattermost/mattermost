@@ -244,6 +244,23 @@ export default class Navbar extends React.Component {
         return true;
     }
 
+    showDeleteOption(channel, isAdmin, isSystemAdmin) {
+        const {RestrictChannelDeletion} = global.window.mm_config;
+        if (global.window.mm_license.IsLicensed !== 'true') {
+            return true;
+        }
+        if (!this.showManagementOptions(channel, isAdmin, isSystemAdmin)) {
+            return false;
+        }
+        if (RestrictChannelDeletion === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
+            return false;
+        }
+        if (RestrictChannelDeletion === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
+            return false;
+        }
+        return true;
+    }
+
     toggleFavorite = (e) => {
         e.preventDefault();
 
@@ -442,7 +459,7 @@ export default class Navbar extends React.Component {
                     );
                 }
 
-                if (this.showManagementOptions(channel, isAdmin, isSystemAdmin) || this.state.userCount === 1) {
+                if (this.showDeleteOption(channel, isAdmin, isSystemAdmin) || this.state.userCount === 1) {
                     if (!ChannelStore.isDefault(channel)) {
                         deleteChannelOption = (
                             <li role='presentation'>

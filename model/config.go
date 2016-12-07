@@ -219,8 +219,10 @@ type TeamSettings struct {
 	RestrictTeamInvite               *string
 	RestrictPublicChannelManagement  *string
 	RestrictPrivateChannelManagement *string
+	RestrictChannelDeletion          *string
 	UserStatusAwayTimeout            *int64
 	MaxChannelsPerTeam               *int64
+	MaxNotificationsPerChannel       *int64
 	DefaultTeamName                  string
 }
 
@@ -321,6 +323,10 @@ type WebrtcSettings struct {
 	TurnSharedKey       *string
 }
 
+type UchatConfig struct {
+	PaginateMoreChannelsModal *bool
+}
+
 type Config struct {
 	ServiceSettings      ServiceSettings
 	TeamSettings         TeamSettings
@@ -343,6 +349,7 @@ type Config struct {
 	NativeAppSettings    NativeAppSettings
 	ClusterSettings      ClusterSettings
 	WebrtcSettings       WebrtcSettings
+	UchatConfig          UchatConfig
 	CustomOverride       *bool
 }
 
@@ -508,6 +515,11 @@ func (o *Config) SetDefaults() {
 		*o.TeamSettings.RestrictPrivateChannelManagement = PERMISSIONS_ALL
 	}
 
+	if o.TeamSettings.RestrictChannelDeletion == nil {
+		o.TeamSettings.RestrictChannelDeletion = new(string)
+		*o.TeamSettings.RestrictChannelDeletion = PERMISSIONS_ALL
+	}
+
 	if o.TeamSettings.UserStatusAwayTimeout == nil {
 		o.TeamSettings.UserStatusAwayTimeout = new(int64)
 		*o.TeamSettings.UserStatusAwayTimeout = 300
@@ -516,6 +528,11 @@ func (o *Config) SetDefaults() {
 	if o.TeamSettings.MaxChannelsPerTeam == nil {
 		o.TeamSettings.MaxChannelsPerTeam = new(int64)
 		*o.TeamSettings.MaxChannelsPerTeam = 2000
+	}
+
+	if o.TeamSettings.MaxNotificationsPerChannel == nil {
+		o.TeamSettings.MaxNotificationsPerChannel = new(int64)
+		*o.TeamSettings.MaxNotificationsPerChannel = 1000
 	}
 
 	if o.EmailSettings.EnableSignInWithEmail == nil {
@@ -1004,8 +1021,16 @@ func (o *Config) IsValid() *AppError {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.max_channels.app_error", nil, "")
 	}
 
+	if *o.TeamSettings.MaxNotificationsPerChannel <= 0 {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.max_notify_per_channel.app_error", nil, "")
+	}
+
 	if !(*o.TeamSettings.RestrictDirectMessage == DIRECT_MESSAGE_ANY || *o.TeamSettings.RestrictDirectMessage == DIRECT_MESSAGE_TEAM) {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.restrict_direct_message.app_error", nil, "")
+	}
+
+	if !(*o.TeamSettings.RestrictChannelDeletion == PERMISSIONS_ALL || *o.TeamSettings.RestrictChannelDeletion == PERMISSIONS_TEAM_ADMIN || *o.TeamSettings.RestrictChannelDeletion == PERMISSIONS_SYSTEM_ADMIN) {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.restrict_channel_deletion.app_error", nil, "")
 	}
 
 	if len(o.SqlSettings.AtRestEncryptKey) < 32 {
