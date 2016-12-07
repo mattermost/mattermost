@@ -29,6 +29,7 @@ import monokaiCSS from '!!file?name=files/code_themes/[hash].[ext]!highlight.js/
 import monokaiIcon from 'images/themes/code_themes/monokai.png';
 
 import defaultThemeImage from 'images/themes/organization.png';
+import shiftThemeImage from 'images/themes/shift.png';
 import mattermostDarkThemeImage from 'images/themes/mattermost_dark.png';
 import mattermostThemeImage from 'images/themes/mattermost.png';
 import windows10ThemeImage from 'images/themes/windows_dark.png';
@@ -426,7 +427,8 @@ export const Constants = {
             sidebarTextActiveBorder: '#11939a',
             sidebarTextActiveColor: '#FFFFFF',
             sidebarTextHoverBg: '#494949',
-            sidebarUnreadText: '#fff'
+            sidebarUnreadText: '#fff',
+            image: shiftThemeImage
         },
         mattermost: {
             type: 'Mattermost',
