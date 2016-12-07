@@ -9,6 +9,8 @@ import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 
 import React from 'react';
 
+import downloadIcon from 'images/download_CTA.svg';
+
 export default class FileAttachment extends React.Component {
     constructor(props) {
         super(props);
@@ -63,31 +65,11 @@ export default class FileAttachment extends React.Component {
         const fileInfo = this.props.fileInfo;
         const fileName = fileInfo.name;
         const fileUrl = FileStore.getFileUrl(fileInfo.id);
+        const fileType = Utils.getFileType(fileInfo.extension);
 
         let thumbnail;
         if (this.state.loaded) {
-            const type = Utils.getFileType(fileInfo.extension);
-
-            if (type === 'image') {
-                let className = 'post-image';
-
-                if (fileInfo.width < Constants.THUMBNAIL_WIDTH && fileInfo.height < Constants.THUMBNAIL_HEIGHT) {
-                    className += ' small';
-                } else {
-                    className += ' normal';
-                }
-
-                thumbnail = (
-                    <div
-                        className={className}
-                        style={{
-                            backgroundImage: `url(${FileStore.getFileThumbnailUrl(fileInfo.id)})`
-                        }}
-                    />
-                );
-            } else {
-                thumbnail = <div className={'file-icon ' + Utils.getIconClassName(type)}/>;
-            }
+            thumbnail = <div className={'file-icon ' + Utils.getIconClassName(fileType)}/>;
         } else {
             thumbnail = <div className='post-image__load'/>;
         }
@@ -157,18 +139,20 @@ export default class FileAttachment extends React.Component {
             );
         }
 
-        return (
-            <div className='post-image__column'>
-                <a
-                    className='post-image__thumbnail'
-                    href='#'
-                    onClick={this.onAttachmentClick}
-                >
-                    {thumbnail}
-                </a>
-                <div className='post-image__details'>
-                    {filenameOverlay}
-                    <div>
+        let fileAttachment;
+        if (fileType === 'image' && !this.props.compactDisplay) {
+            fileAttachment = (
+                <div className='post-image__preview'>
+                    <a
+                        href='#'
+                        onClick={this.onAttachmentClick}
+                    >
+                        <img
+                            className='post-image__image'
+                            src={FileStore.getFileThumbnailUrl(fileInfo.id)}
+                        />
+                    </a>
+                    <div className='post-image__info'>
                         <a
                             href={fileUrl}
                             download={fileName}
@@ -176,12 +160,45 @@ export default class FileAttachment extends React.Component {
                             target='_blank'
                             rel='noopener noreferrer'
                         >
-                            <span className='fa fa-download'/>
+                            <img src={downloadIcon}/>
+                            {filenameOverlay}
+                            <span className='post-image__size'>{Utils.fileSizeToString(fileInfo.size)}</span>
                         </a>
-                        <span className='post-image__type'>{fileInfo.extension.toUpperCase()}</span>
-                        <span className='post-image__size'>{Utils.fileSizeToString(fileInfo.size)}</span>
                     </div>
                 </div>
+            );
+        } else {
+            fileAttachment = (
+                <div className='post-image__column'>
+                    <a
+                        className='post-image__thumbnail'
+                        href='#'
+                        onClick={this.onAttachmentClick}
+                    >
+                        {thumbnail}
+                    </a>
+                    <div className='post-image__details'>
+                        {filenameOverlay}
+                        <div>
+                            <a
+                                href={fileUrl}
+                                download={fileName}
+                                className='post-image__download'
+                                target='_blank'
+                                rel='noopener noreferrer'
+                            >
+                                <span className='fa fa-download'/>
+                            </a>
+                            <span className='post-image__type'>{fileInfo.extension.toUpperCase()}</span>
+                            <span className='post-image__size'>{Utils.fileSizeToString(fileInfo.size)}</span>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+        return (
+            <div>
+                {fileAttachment}
             </div>
         );
     }

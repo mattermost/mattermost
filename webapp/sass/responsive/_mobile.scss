@@ -1403,6 +1403,12 @@
     .integration__icon {
         display: none;
     }
+
+    .post-image__preview {
+        .post-image__image {
+            max-width: 100%;
+        }
+    }
 }
 
 @media screen and (max-height: 640px) {
