@@ -19,6 +19,7 @@ type ClusterInterface interface {
 	GetLogs() ([]string, *model.AppError)
 	GetClusterId() string
 	ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) *model.AppError
+	InvalidateAllCaches() *model.AppError
 }
 
 var theClusterInterface ClusterInterface

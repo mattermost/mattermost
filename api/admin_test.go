@@ -116,6 +116,18 @@ func TestReloadConfig(t *testing.T) {
 	*utils.Cfg.TeamSettings.EnableOpenServer = true
 }
 
+func TestInvalidateAllCache(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+
+	if _, err := th.BasicClient.InvalidateAllCaches(); err == nil {
+		t.Fatal("Shouldn't have permissions")
+	}
+
+	if _, err := th.SystemAdminClient.InvalidateAllCaches(); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestSaveConfig(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 

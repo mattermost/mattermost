@@ -974,6 +974,16 @@ func (c *Client) ReloadConfig() (bool, *AppError) {
 	}
 }
 
+func (c *Client) InvalidateAllCaches() (bool, *AppError) {
+	c.clearExtraProperties()
+	if r, err := c.DoApiGet("/admin/invalidate_all_caches", "", ""); err != nil {
+		return false, err
+	} else {
+		c.fillInExtraProperties(r)
+		return c.CheckStatusOK(r), nil
+	}
+}
+
 func (c *Client) SaveConfig(config *Config) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/admin/save_config", config.ToJson()); err != nil {
 		return nil, err

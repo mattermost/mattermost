@@ -31,6 +31,7 @@ func InitAdmin() {
 	BaseRoutes.Admin.Handle("/config", ApiAdminSystemRequired(getConfig)).Methods("GET")
 	BaseRoutes.Admin.Handle("/save_config", ApiAdminSystemRequired(saveConfig)).Methods("POST")
 	BaseRoutes.Admin.Handle("/reload_config", ApiAdminSystemRequired(reloadConfig)).Methods("GET")
+	BaseRoutes.Admin.Handle("/invalidate_all_caches", ApiAdminSystemRequired(invalidateAllCaches)).Methods("GET")
 	BaseRoutes.Admin.Handle("/test_email", ApiAdminSystemRequired(testEmail)).Methods("POST")
 	BaseRoutes.Admin.Handle("/recycle_db_conn", ApiAdminSystemRequired(recycleDatabaseConnection)).Methods("GET")
 	BaseRoutes.Admin.Handle("/analytics/{id:[A-Za-z0-9]+}/{name:[A-Za-z0-9_]+}", ApiAdminSystemRequired(getAnalytics)).Methods("GET")
@@ -140,6 +141,24 @@ func reloadConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// start/restart email batching job if necessary
 	InitEmailBatching()
+
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	ReturnStatusOK(w)
+}
+
+func invalidateAllCaches(c *Context, w http.ResponseWriter, r *http.Request) {
+	debug.FreeOSMemory()
+
+	InvalidateAllCaches()
+
+	if einterfaces.GetClusterInterface() != nil {
+		err := einterfaces.GetClusterInterface().InvalidateAllCaches()
+		if err != nil {
+			c.Err = err
+			return
+		}
+
+	}
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	ReturnStatusOK(w)
