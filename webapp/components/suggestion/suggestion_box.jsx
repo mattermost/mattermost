@@ -135,6 +135,17 @@ export default class SuggestionBox extends React.Component {
             this.props.onChange(e);
         }
 
+        if (this.props.onItemSelected) {
+            const items = SuggestionStore.getItems(this.suggestionId);
+            const selection = SuggestionStore.getSelection(this.suggestionId);
+            for (const i of items) {
+                if (i.name === selection) {
+                    this.props.onItemSelected(i);
+                    break;
+                }
+            }
+        }
+
         textbox.focus();
 
         // set the caret position after the next rendering
@@ -182,6 +193,8 @@ export default class SuggestionBox extends React.Component {
 
         // Don't pass props used by SuggestionBox
         Reflect.deleteProperty(props, 'providers');
+        Reflect.deleteProperty(props, 'preventDefaultSubmit');
+        Reflect.deleteProperty(props, 'onItemSelected');
 
         const childProps = {
             ref: 'textbox',
@@ -261,5 +274,6 @@ SuggestionBox.propTypes = {
 
     // explicitly name any input event handlers we override and need to manually call
     onChange: React.PropTypes.func,
-    onKeyDown: React.PropTypes.func
+    onKeyDown: React.PropTypes.func,
+    onItemSelected: React.PropTypes.func
 };
