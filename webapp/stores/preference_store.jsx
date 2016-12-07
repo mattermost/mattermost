@@ -109,7 +109,7 @@ class PreferenceStore extends EventEmitter {
     }
 
     getTheme(teamId) {
-        if (Constants.THEMES.shift) {
+        if (global.window.mm_config.EnableThemeSelection !== 'true' && Constants.THEMES.shift) {
             return Constants.THEMES.shift;
         }
 
