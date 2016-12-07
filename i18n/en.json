@@ -4476,6 +4476,10 @@
     "translation": "We couldn't get channel type counts"
   },
   {
+    "id": "store.sql_channel.analytics_deleted_type_count.app_error",
+    "translation": "We couldn't get deleted channel type counts"
+  },
+  {
     "id": "store.sql_channel.check_open_channel_permissions.app_error",
     "translation": "We couldn't check the permissions"
   },
@@ -5296,6 +5300,10 @@
     "translation": "We couldn't get the unique user count"
   },
   {
+    "id": "store.sql_user.analytics_get_system_admin_count.app_error",
+    "translation": "We couldn't get the system admin count"
+  },
+  {
     "id": "store.sql_user.get.app_error",
     "translation": "We encountered an error finding the account"
   },
@@ -5338,6 +5346,10 @@
   {
     "id": "store.sql_user.get_total_users_count.app_error",
     "translation": "We could not count the users"
+  },
+  {
+    "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
+    "translation": "We could not count the inactive users"
   },
   {
     "id": "store.sql_user.get_unread_count.app_error",
