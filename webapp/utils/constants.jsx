@@ -406,7 +406,7 @@ export const Constants = {
             image: defaultThemeImage
         },
         shift: {
-            type: 'Shift',
+            type: 'uChat Light',
             awayIndicator: '#ecab20',
             buttonBg: '#11939a',
             buttonColor: '#FFFFFF',
@@ -456,7 +456,7 @@ export const Constants = {
             image: mattermostThemeImage
         },
         mattermostDark: {
-            type: 'Mattermost Dark',
+            type: 'uChat Dark',
             sidebarBg: '#1B2C3E',
             sidebarText: '#fff',
             sidebarUnreadText: '#fff',
