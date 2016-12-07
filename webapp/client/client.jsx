@@ -607,6 +607,15 @@ export default class Client {
         end(this.handleResponse.bind(this, 'getMyTeamMembers', success, error));
     }
 
+    getMyTeamMembersUnread(success, error) {
+        request.
+        get(`${this.getTeamsRoute()}/unread`).
+        set(this.defaultHeaders).
+        type('application/json').
+        accept('application/json').
+        end(this.handleResponse.bind(this, 'getMyTeamMembersUnread', success, error));
+    }
+
     getTeamMembersByIds(teamId, userIds, success, error) {
         request.
             post(`${this.getTeamNeededRoute(teamId)}/members/ids`).

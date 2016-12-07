@@ -23,7 +23,6 @@ export default class NotLoggedIn extends React.Component {
                 <a
                     key='help_link'
                     id='help_link'
-                    key='help_link'
                     className='pull-right footer-link'
                     target='_blank'
                     rel='noopener noreferrer'
@@ -39,7 +38,6 @@ export default class NotLoggedIn extends React.Component {
                 <a
                     key='terms_link'
                     id='terms_link'
-                    key='terms_link'
                     className='pull-right footer-link'
                     target='_blank'
                     rel='noopener noreferrer'
@@ -55,7 +53,6 @@ export default class NotLoggedIn extends React.Component {
                 <a
                     key='privacy_link'
                     id='privacy_link'
-                    key='privacy_link'
                     className='pull-right footer-link'
                     target='_blank'
                     rel='noopener noreferrer'
@@ -71,7 +68,6 @@ export default class NotLoggedIn extends React.Component {
                 <a
                     key='about_link'
                     id='about_link'
-                    key='about_link'
                     className='pull-right footer-link'
                     target='_blank'
                     rel='noopener noreferrer'

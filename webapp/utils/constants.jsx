@@ -139,6 +139,7 @@ export const ActionTypes = keyMirror({
     RECEIVED_ALL_TEAMS: null,
     RECEIVED_ALL_TEAM_LISTINGS: null,
     RECEIVED_MY_TEAM_MEMBERS: null,
+    RECEIVED_MY_TEAM_MEMBERS_UNREAD: null,
     RECEIVED_MEMBERS_IN_TEAM: null,
     RECEIVED_TEAM_STATS: null,
 

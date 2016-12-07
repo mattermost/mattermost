@@ -9,13 +9,13 @@ import (
 )
 
 type InitialLoad struct {
-	User        *User              `json:"user"`
-	TeamMembers []*TeamMemberExtra `json:"team_members"`
-	Teams       []*Team            `json:"teams"`
-	Preferences Preferences        `json:"preferences"`
-	ClientCfg   map[string]string  `json:"client_cfg"`
-	LicenseCfg  map[string]string  `json:"license_cfg"`
-	NoAccounts  bool               `json:"no_accounts"`
+	User        *User             `json:"user"`
+	TeamMembers []*TeamMember     `json:"team_members"`
+	Teams       []*Team           `json:"teams"`
+	Preferences Preferences       `json:"preferences"`
+	ClientCfg   map[string]string `json:"client_cfg"`
+	LicenseCfg  map[string]string `json:"license_cfg"`
+	NoAccounts  bool              `json:"no_accounts"`
 }
 
 func (me *InitialLoad) ToJson() string {

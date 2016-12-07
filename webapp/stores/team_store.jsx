@@ -207,6 +207,21 @@ class TeamStoreClass extends EventEmitter {
         this.my_team_members.push(member);
     }
 
+    saveMyTeamMembersUnread(members) {
+        for (let i = 0; i < this.my_team_members.length; i++) {
+            const team = this.my_team_members[i];
+            const member = members[team.teamId];
+            if (member) {
+                this.my_team_members[i] = Object.assign({},
+                    team,
+                    {
+                        msg_count: member.msg_count,
+                        mention_count: member.mention_count
+                    });
+            }
+        }
+    }
+
     removeMyTeamMember(teamId) {
         for (let i = 0; i < this.my_team_members.length; i++) {
             if (this.my_team_members[i].team_id === teamId) {
@@ -316,6 +331,10 @@ TeamStore.dispatchToken = AppDispatcher.register((payload) => {
         break;
     case ActionTypes.RECEIVED_MY_TEAM_MEMBERS:
         TeamStore.saveMyTeamMembers(action.team_members);
+        TeamStore.emitChange();
+        break;
+    case ActionTypes.RECEIVED_MY_TEAM_MEMBERS_UNREAD:
+        TeamStore.saveMyTeamMembersUnread(action.team_members);
         TeamStore.emitChange();
         break;
     case ActionTypes.RECEIVED_ALL_TEAM_LISTINGS:

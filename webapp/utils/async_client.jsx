@@ -858,6 +858,34 @@ export function getMyTeamMembers() {
         (data) => {
             callTracker[callName] = 0;
 
+            const members = {};
+            for (const member of data) {
+                members[member.team_id] = member;
+            }
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_MY_TEAM_MEMBERS_UNREAD,
+                team_members: members
+            });
+        },
+        (err) => {
+            callTracker[callName] = 0;
+            dispatchError(err, 'getMyTeamMembers');
+        }
+    );
+}
+
+export function getMyTeamMembersUnread() {
+    const callName = 'getMyTeamMembersUnread';
+    if (isCallInProgress(callName)) {
+        return;
+    }
+
+    callTracker[callName] = utils.getTimestamp();
+    Client.getMyTeamMembersUnread(
+        (data) => {
+            callTracker[callName] = 0;
+
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_MY_TEAM_MEMBERS,
                 team_members: data
@@ -865,7 +893,7 @@ export function getMyTeamMembers() {
         },
         (err) => {
             callTracker[callName] = 0;
-            dispatchError(err, 'getMyTeamMembers');
+            dispatchError(err, 'getMyTeamMembersUnread');
         }
     );
 }

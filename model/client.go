@@ -1752,7 +1752,7 @@ func (c *Client) GetTeamMembers(teamId string, offset int, limit int) (*Result, 
 	}
 }
 
-// GetMyTeamMembers will return the team member extra objects that the current user
+// GetMyTeamMembers will return an array with team member objects that the current user
 // is a member of. Must be authenticated.
 func (c *Client) GetMyTeamMembers() (*Result, *AppError) {
 	if r, err := c.DoApiGet("/teams/members", "", ""); err != nil {
@@ -1760,7 +1760,19 @@ func (c *Client) GetMyTeamMembers() (*Result, *AppError) {
 	} else {
 		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), TeamMembersExtraFromJson(r.Body)}, nil
+			r.Header.Get(HEADER_ETAG_SERVER), TeamMembersFromJson(r.Body)}, nil
+	}
+}
+
+// GetMyTeamMembers will return an array with TeamMemberUnread objects that contain the amount of
+// unread messages and mentions the current user has for the teams it belongs to. Must be authenticated.
+func (c *Client) GetMyTeamMembersUnread() (*Result, *AppError) {
+	if r, err := c.DoApiGet("/teams/unread", "", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), TeamMembersUnreadFromJson(r.Body)}, nil
 	}
 }
 

@@ -80,6 +80,7 @@ function preNeedsTeam(nextState, replace, callback) {
     TeamStore.emitChange();
     loadProfilesAndTeamMembersForDMSidebar();
     AsyncClient.getMyTeamMembers();
+    AsyncClient.getMyTeamMembersUnread();
     AsyncClient.getMyChannelMembers();
 
     const d1 = $.Deferred(); //eslint-disable-line new-cap

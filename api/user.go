@@ -892,7 +892,8 @@ func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 		uchan := Srv.Store.User().Get(c.Session.UserId)
 		pchan := Srv.Store.Preference().GetAll(c.Session.UserId)
 		tchan := Srv.Store.Team().GetTeamsByUserId(c.Session.UserId)
-		tmchan := Srv.Store.Team().GetTeamsForUser(c.Session.UserId)
+
+		il.TeamMembers = c.Session.TeamMembers
 
 		if ru := <-uchan; ru.Err != nil {
 			c.Err = ru.Err
@@ -918,13 +919,6 @@ func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 			for _, team := range il.Teams {
 				team.Sanitize()
 			}
-		}
-
-		if rtm := <-tmchan; rtm.Err != nil {
-			c.Err = rtm.Err
-			return
-		} else {
-			il.TeamMembers = rtm.Data.([]*model.TeamMemberExtra)
 		}
 	}
 
