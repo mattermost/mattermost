@@ -30,6 +30,7 @@ import monokaiIcon from 'images/themes/code_themes/monokai.png';
 
 import defaultThemeImage from 'images/themes/organization.png';
 import shiftThemeImage from 'images/themes/shift.png';
+import monokaiThemeImage from 'images/themes/mattermost_dark.png';
 import mattermostDarkThemeImage from 'images/themes/mattermost_dark.png';
 import mattermostThemeImage from 'images/themes/mattermost.png';
 import windows10ThemeImage from 'images/themes/windows_dark.png';
@@ -430,6 +431,31 @@ export const Constants = {
             sidebarUnreadText: '#fff',
             image: shiftThemeImage
         },
+        monokai: {
+            type: 'uChat Dark',
+            sidebarBg: '#1c1b1b',
+            sidebarText: '#fff',
+            sidebarUnreadText: '#11939a',
+            sidebarTextHoverBg: '#FFFFFF',
+            sidebarTextActiveBorder: '#FFFFFF',
+            sidebarTextActiveColor: '#494949',
+            sidebarHeaderBg: '#11939a',
+            sidebarHeaderTextColor: '#FFFFFF',
+            onlineIndicator: '#629a41',
+            awayIndicator: '#ecab20',
+            mentionBj: '#f8f8f9',
+            mentionColor: '#11939a',
+            centerChannelBg: '#282727',
+            centerChannelColor: '#ffffff',
+            newMessageSeparator: '#11939a',
+            linkColor: '#e8fafa',
+            buttonBg: '#11939a',
+            buttonColor: '#11939a',
+            mentionHighlightBg: '#11939a',
+            mentionHighlightLink: '#FFFFFF',
+            codeTheme: 'monokai',
+            image: monokaiThemeImage
+        },
         mattermost: {
             type: 'Mattermost',
             sidebarBg: '#fafafa',
@@ -456,7 +482,7 @@ export const Constants = {
             image: mattermostThemeImage
         },
         mattermostDark: {
-            type: 'uChat Dark',
+            type: 'Mattermost Dark',
             sidebarBg: '#1B2C3E',
             sidebarText: '#fff',
             sidebarUnreadText: '#fff',

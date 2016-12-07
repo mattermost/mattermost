@@ -253,7 +253,10 @@
     "UchatConfig": {
         "PaginateMoreChannelsModal": true,
         "EnableThemeSelection": true,
-        "AllowedThemes": ["shift", "mattermostDark"]
+        "AllowedThemes": [
+            "shift",
+            "monokai"
+        ]
     },
     "CustomOverride": true
 }
