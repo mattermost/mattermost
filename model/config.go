@@ -325,8 +325,8 @@ type WebrtcSettings struct {
 
 type UchatConfig struct {
 	PaginateMoreChannelsModal *bool
-	EnableThemeSelection *bool
-	AllowedThemes []string
+	EnableThemeSelection      *bool
+	AllowedThemes             []string
 }
 
 type Config struct {
