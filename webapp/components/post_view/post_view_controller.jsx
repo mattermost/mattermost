@@ -37,9 +37,11 @@ export default class PostViewController extends React.Component {
         const profiles = UserStore.getProfiles();
 
         let lastViewed = Number.MAX_VALUE;
+        let lastViewedBottom = Number.MAX_VALUE;
         const member = ChannelStore.getMyMember(channel.id);
         if (member != null) {
             lastViewed = member.last_viewed_at;
+            lastViewedBottom = member.last_viewed_at;
         }
 
         const joinLeaveEnabled = PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'join_leave', true);
@@ -58,6 +60,7 @@ export default class PostViewController extends React.Component {
             statuses,
             atTop: PostStore.getVisibilityAtTop(channel.id),
             lastViewed,
+            lastViewedBottom,
             ownNewMessage: false,
             loading,
             scrollType: ScrollTypes.NEW_MESSAGE,
@@ -187,9 +190,11 @@ export default class PostViewController extends React.Component {
 
     onPostsViewJumpRequest(type, postId) {
         switch (type) {
-        case Constants.PostsViewJumpTypes.BOTTOM:
-            this.setState({scrollType: ScrollTypes.BOTTOM});
+        case Constants.PostsViewJumpTypes.BOTTOM: {
+            const lastPost = PostStore.getLatestPost(this.state.channel.id);
+            this.setState({scrollType: ScrollTypes.BOTTOM, lastViewedBottom: lastPost.create_at || new Date().getTime()});
             break;
+        }
         case Constants.PostsViewJumpTypes.POST:
             this.setState({
                 scrollType: ScrollTypes.POST,
@@ -213,7 +218,8 @@ export default class PostViewController extends React.Component {
 
     onPostListScroll(atBottom) {
         if (atBottom) {
-            this.setState({scrollType: ScrollTypes.BOTTOM});
+            const lastPost = PostStore.getLatestPost(this.state.channel.id);
+            this.setState({scrollType: ScrollTypes.BOTTOM, lastViewedBottom: lastPost.create_at || new Date().getTime()});
         } else {
             this.setState({scrollType: ScrollTypes.FREE});
         }
@@ -334,6 +340,7 @@ export default class PostViewController extends React.Component {
                     useMilitaryTime={this.state.useMilitaryTime}
                     flaggedPosts={this.state.flaggedPosts}
                     lastViewed={this.state.lastViewed}
+                    lastViewedBottom={this.state.lastViewedBottom}
                     ownNewMessage={this.state.ownNewMessage}
                     statuses={this.state.statuses}
                     isBusy={this.state.isBusy}

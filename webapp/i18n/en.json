@@ -1624,6 +1624,7 @@
   "post_info.reply": "Reply",
   "posts_view.loadMore": "Load more messages",
   "posts_view.newMsg": "New Messages",
+  "posts_view.newMsgBelow": "{count} new {count, plural, one {message} other {messages}} below",
   "reaction.clickToAdd": "(click to add)",
   "reaction.clickToRemove": "(click to remove)",
   "reaction.multipleReacted": "<b>{users} and {lastUser}</b> reacted with <b>:{emojiName}:</b>",

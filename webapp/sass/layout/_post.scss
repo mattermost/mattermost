@@ -258,6 +258,33 @@
         outline: none;
         text-align: center;
     }
+    .nav-pills__unread-indicator-bottom {
+      position: absolute;
+      bottom: -30px;
+      left: 0;
+      right: 0;
+
+      @include border-radius(50px);
+      font-size: 13.5px;
+      margin: 0 auto;
+      padding: 3px 0 4px;
+      text-align: center;
+      max-width: 250px;
+      z-index: 1;
+      cursor: pointer;
+      transition: bottom 0.2s ease-out;
+
+      .fa {
+        margin-right: 0.5rem;
+      }
+
+      &.visible {
+        bottom: 0;
+      }
+      &.disabled {
+        display: none;
+      }
+    }
 }
 
 .post-list__timestamp {
