@@ -251,7 +251,9 @@
         "TurnSharedKey": ""
     },
     "UchatConfig": {
-        "PaginateMoreChannelsModal": true
+        "PaginateMoreChannelsModal": true,
+        "EnableThemeSelection": true,
+        "AllowedThemes": ["shift", "mattermostDark"]
     },
     "CustomOverride": true
 }
