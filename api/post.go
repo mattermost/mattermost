@@ -572,6 +572,7 @@ func getExplicitMentions(message string, keywords map[string][]string) (map[stri
 func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *model.Channel) []string {
 	pchan := Srv.Store.User().GetProfilesInChannel(channel.Id, -1, -1, true)
 	fchan := Srv.Store.FileInfo().GetForPost(post.Id)
+	mchan := Srv.Store.Channel().GetMembers(post.ChannelId)
 
 	var profileMap map[string]*model.User
 	if result := <-pchan; result.Err != nil {
@@ -585,6 +586,18 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 	if _, ok := profileMap[post.UserId]; !ok {
 		l4g.Error(utils.T("api.post.send_notifications_and_forget.user_id.error"), post.UserId)
 		return nil
+	}
+	// using a map as a pseudo-set since we're checking for containment a lot
+	memberStringMap := make(map[string]string)
+	members := make(map[string]model.ChannelMember)
+	if result := <-mchan; result.Err != nil {
+		l4g.Error(utils.T("api.post.handle_post_events_and_forget.members.error"), post.ChannelId, result.Err)
+		return nil
+	} else {
+		for _, member := range result.Data.([]model.ChannelMember) {
+			memberStringMap[member.UserId] = member.UserId
+			members[member.UserId] = member
+		}
 	}
 
 	mentionedUserIds := make(map[string]bool)
@@ -644,6 +657,11 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 		// find which users in the channel are set up to always receive mobile notifications
 		for _, profile := range profileMap {
 			if profile.NotifyProps["push"] == model.USER_NOTIFY_ALL &&
+				(post.UserId != profile.Id || post.Props["from_webhook"] == "true") &&
+				!post.IsSystemMessage() {
+				allActivityPushUserIds = append(allActivityPushUserIds, profile.Id)
+			} else if _, inChannel := members[profile.Id]; inChannel &&
+				members[profile.Id].NotifyProps["push"] == model.CHANNEL_NOTIFY_ALL &&
 				(post.UserId != profile.Id || post.Props["from_webhook"] == "true") &&
 				!post.IsSystemMessage() {
 				allActivityPushUserIds = append(allActivityPushUserIds, profile.Id)
@@ -784,7 +802,22 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 			}
 
 			if DoesStatusAllowPushNotification(profileMap[id], status, post.ChannelId) {
-				go sendPushNotification(post, profileMap[id], channel, senderName, true)
+				if channel.Type == model.CHANNEL_DIRECT && profileMap[id].NotifyProps["push"] != model.CHANNEL_NOTIFY_NONE {
+					go sendPushNotification(post, profileMap[id], channel, senderName, true)
+				} else if _, inChannel := members[id]; inChannel {
+					notifyLevel := members[id].NotifyProps["push"]
+
+					// Check against channel member NotifyProps for mentioned users
+					if notifyLevel == model.CHANNEL_NOTIFY_DEFAULT && profileMap[id].NotifyProps["push"] != model.CHANNEL_NOTIFY_NONE {
+						go sendPushNotification(post, profileMap[id], channel, senderName, true)
+					} else if notifyLevel == model.CHANNEL_NOTIFY_ALL || notifyLevel == model.CHANNEL_NOTIFY_MENTION {
+						go sendPushNotification(post, profileMap[id], channel, senderName, true)
+					} else if notifyLevel == "" && profileMap[id].NotifyProps["push"] != model.CHANNEL_NOTIFY_NONE {
+						go sendPushNotification(post, profileMap[id], channel, senderName, true)
+					}
+				} else {
+					l4g.Warn(utils.T("api.send_notifications.get_channel_member.warn"), channel.Id, id)
+				}
 			}
 		}
 
@@ -797,7 +830,18 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 				}
 
 				if DoesStatusAllowPushNotification(profileMap[id], status, post.ChannelId) {
-					go sendPushNotification(post, profileMap[id], channel, senderName, false)
+					if _, inChannel := members[id]; inChannel {
+						notifyLevel := members[id].NotifyProps["push"]
+
+						// Check against channel member NotifyProps for always notify users
+						if notifyLevel == model.CHANNEL_NOTIFY_DEFAULT && profileMap[id].NotifyProps["push"] == model.CHANNEL_NOTIFY_ALL {
+							go sendPushNotification(post, profileMap[id], channel, senderName, false)
+						} else if notifyLevel == model.CHANNEL_NOTIFY_ALL || notifyLevel == "" {
+							go sendPushNotification(post, profileMap[id], channel, senderName, false)
+						}
+					} else {
+						l4g.Warn(utils.T("api.send_notifications.get_channel_member.warn"), channel.Id, id)
+					}
 				}
 			}
 		}

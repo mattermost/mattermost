@@ -86,6 +86,12 @@ func (o *ChannelMember) IsValid() *AppError {
 			nil, "notify_level="+notifyLevel)
 	}
 
+	pushLevel := o.NotifyProps["push"]
+	if len(pushLevel) > 20 || !IsChannelNotifyLevelValid(pushLevel) {
+		return NewLocAppError("ChannelMember.IsValid", "model.channel_member.is_valid.notify_level.app_error",
+			nil, "push_level="+pushLevel)
+	}
+
 	markUnreadLevel := o.NotifyProps["mark_unread"]
 	if len(markUnreadLevel) > 20 || !IsChannelMarkUnreadLevelValid(markUnreadLevel) {
 		return NewLocAppError("ChannelMember.IsValid", "model.channel_member.is_valid.unread_level.app_error",
@@ -121,6 +127,7 @@ func IsChannelMarkUnreadLevelValid(markUnreadLevel string) bool {
 func GetDefaultChannelNotifyProps() StringMap {
 	return StringMap{
 		"desktop":     CHANNEL_NOTIFY_DEFAULT,
+		"push":        CHANNEL_NOTIFY_DEFAULT,
 		"mark_unread": CHANNEL_MARK_UNREAD_ALL,
 	}
 }

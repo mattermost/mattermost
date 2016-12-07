@@ -54,6 +54,16 @@ func TestChannelMemberIsValid(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	o.NotifyProps["push"] = "123456789012345678901"
+	if err := o.IsValid(); err == nil {
+		t.Fatal("should be invalid")
+	}
+
+	o.NotifyProps["push"] = CHANNEL_NOTIFY_ALL
+	if err := o.IsValid(); err != nil {
+		t.Fatal(err)
+	}
+
 	o.NotifyProps["mark_unread"] = "123456789012345678901"
 	if err := o.IsValid(); err == nil {
 		t.Fatal("should be invalid")
