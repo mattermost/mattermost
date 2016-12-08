@@ -967,6 +967,10 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		data := &model.Channel{}
 		data = cresult.Data.(*model.Channel)
 
+		if !HasPermissionToChannelContext(c, data.Id, model.PERMISSION_READ_CHANNEL) {
+			return
+		}
+
 		if data.TeamId != c.TeamId && data.Type != model.CHANNEL_DIRECT {
 			c.Err = model.NewLocAppError("getChannel", "api.channel.get_channel.wrong_team.app_error", map[string]interface{}{"ChannelName": channelname, "TeamId": c.TeamId}, "")
 			return
