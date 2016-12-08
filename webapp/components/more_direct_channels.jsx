@@ -186,7 +186,9 @@ export default class MoreDirectChannels extends React.Component {
 
     render() {
         let teamToggle;
+        let noFilterClass = 'no-team-filter';
         if (config.RestrictDirectMessage === 'any' && !config.DefaultTeamName) {
+            noFilterClass = '';
             teamToggle = (
                 <div className='member-select__container'>
                     <select
@@ -223,7 +225,7 @@ export default class MoreDirectChannels extends React.Component {
 
         return (
             <Modal
-                dialogClassName='more-modal more-direct-channels'
+                dialogClassName={`more-modal more-direct-channels ${noFilterClass}`}
                 show={this.state.show}
                 onHide={this.handleHide}
                 onExited={this.handleExit}

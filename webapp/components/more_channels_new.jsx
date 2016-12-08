@@ -124,13 +124,17 @@ export default class MoreChannelsNew extends React.Component {
         const isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
         const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
 
+        let noNewChannelBtnClass = '';
+
         if (global.window.mm_license.IsLicensed === 'true') {
             if (config.RestrictPublicChannelManagement === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
                 createNewChannelButton = null;
                 createChannelHelpText = null;
+                noNewChannelBtnClass = 'no-new-channel-btn';
             } else if (config.RestrictPublicChannelManagement === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
                 createNewChannelButton = null;
                 createChannelHelpText = null;
+                noNewChannelBtnClass = 'no-new-channel-btn';
             }
         }
 
@@ -166,7 +170,7 @@ export default class MoreChannelsNew extends React.Component {
 
         return (
             <Modal
-                dialogClassName='more-modal more-channels'
+                dialogClassName={`more-modal more-channels ${noNewChannelBtnClass}`}
                 show={this.state.show}
                 onHide={this.handleHide}
                 onExited={this.props.onModalDismissed}

@@ -1326,6 +1326,11 @@
                     max-height: calc(100vh - 265px);
                 }
             }
+            &.no-team-filter, &.no-new-channel-btn {
+                .more-modal__list {
+                    max-height: calc(100vh - 260px);
+                }
+            }
         }
 
         .modal {
