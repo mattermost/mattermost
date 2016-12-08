@@ -5,6 +5,7 @@ import * as PostUtils from 'utils/post_utils.jsx';
 import UserStore from 'stores/user_store.jsx';
 import React from 'react';
 import {Popover, OverlayTrigger} from 'react-bootstrap';
+import ProfilePopover from 'components/profile_popover.jsx';
 
 export default class ProfilePicture extends React.Component {
     shouldComponentUpdate(nextProps) {
@@ -85,20 +86,30 @@ export default class ProfilePicture extends React.Component {
                     </div>
                 );
             }
+
+            dataContent = (
+                <ProfilePopover
+                    user={this.props.user}
+                    src={this.props.src}
+                    parent={this}
+                />
+            );
+
             return (
                 <OverlayTrigger
                     className='hidden-xs'
                     trigger='click'
                     placement='right'
                     rootClose={true}
+                    container={this}
                     overlay={
                         <Popover
                             title={'@' + this.props.user.username}
-                            id='user-profile-popover'
+                            id='user-profile-popover-new'
                         >
                             {dataContent}
                         </Popover>
-                }
+                    }
                 >
                     <span className={`status-wrapper ${statusClass}`}>
                         <img

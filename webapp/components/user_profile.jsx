@@ -12,6 +12,7 @@ const UserStatuses = Constants.UserStatuses;
 const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 
 import {Popover, OverlayTrigger} from 'react-bootstrap';
+import ProfilePopover from 'components/profile_popover.jsx';
 import {FormattedMessage} from 'react-intl';
 
 import React from 'react';
@@ -202,16 +203,25 @@ export default class UserProfile extends React.Component {
             );
         }
 
+        dataContent = (
+            <ProfilePopover
+                user={this.props.user}
+                src={profileImg}
+                parent={this}
+            />
+        );
+
         return (
             <OverlayTrigger
                 className='hidden-xs'
                 trigger='click'
                 placement='right'
                 rootClose={true}
+                container={this}
                 overlay={
                     <Popover
                         title={'@' + this.props.user.username}
-                        id='user-profile-popover'
+                        id='user-profile-popover-new'
                     >
                         {dataContent}
                     </Popover>
