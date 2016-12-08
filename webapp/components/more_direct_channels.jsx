@@ -35,6 +35,8 @@ export default class MoreDirectChannels extends React.Component {
         this.nextPage = this.nextPage.bind(this);
         this.search = this.search.bind(this);
 
+        this.searchTimeoutId = 0;
+
         this.state = {
             users: null,
             loadingDMChannel: -1,
@@ -168,19 +170,26 @@ export default class MoreDirectChannels extends React.Component {
             teamId = TeamStore.getCurrentId();
         }
 
-        searchUsers(
-            term,
-            teamId,
-            {},
-            (users) => {
-                for (let i = 0; i < users.length; i++) {
-                    if (users[i].id === UserStore.getCurrentId()) {
-                        users.splice(i, 1);
-                        break;
+        clearTimeout(this.searchTimeoutId);
+
+        this.searchTimeoutId = setTimeout(
+            () => {
+                searchUsers(
+                    term,
+                    teamId,
+                    {},
+                    (users) => {
+                        for (let i = 0; i < users.length; i++) {
+                            if (users[i].id === UserStore.getCurrentId()) {
+                                users.splice(i, 1);
+                                break;
+                            }
+                        }
+                        this.setState({search: true, users});
                     }
-                }
-                this.setState({search: true, users});
-            }
+                );
+            },
+            Constants.SEARCH_TIMEOUT_MILLISECONDS
         );
     }
 
