@@ -305,7 +305,7 @@ export default class RhsRootPost extends React.Component {
             profilePic = (
                 <ProfilePicture
                     src=''
-                    status={this.props.status}
+                    status={status}
                     user={this.props.user}
                 />
             );
