@@ -22,15 +22,17 @@ export default class SuggestionBox extends React.Component {
 
         this.handleCompleteWord = this.handleCompleteWord.bind(this);
         this.handleChange = this.handleChange.bind(this);
+        this.handleCompositionStart = this.handleCompositionStart.bind(this);
         this.handleCompositionUpdate = this.handleCompositionUpdate.bind(this);
+        this.handleCompositionEnd = this.handleCompositionEnd.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handlePretextChanged = this.handlePretextChanged.bind(this);
 
         this.suggestionId = Utils.generateId();
         SuggestionStore.registerSuggestionBox(this.suggestionId);
 
-        // Keep track of whether we're composing a CJK character so we can make suggetsions for partial characters
-        this.partialCharacter = '';
+        // Keep track of whether we're composing a CJK character so we can make suggestions for partial characters
+        this.composing = false;
     }
 
     componentDidMount() {
@@ -86,10 +88,9 @@ export default class SuggestionBox extends React.Component {
 
     handleChange(e) {
         const textbox = this.getTextbox();
-        const caret = Utils.getCaretPosition(textbox);
-        const pretext = textbox.value.substring(0, caret) + this.partialCharacter;
+        const pretext = textbox.value.substring(0, textbox.selectionEnd);
 
-        if (SuggestionStore.getPretext(this.suggestionId) !== pretext) {
+        if (!this.composing && SuggestionStore.getPretext(this.suggestionId) !== pretext) {
             GlobalActions.emitSuggestionPretextChanged(this.suggestionId, pretext);
         }
 
@@ -98,17 +99,33 @@ export default class SuggestionBox extends React.Component {
         }
     }
 
+    handleCompositionStart() {
+        this.composing = true;
+    }
+
     handleCompositionUpdate(e) {
-        // Save the currently composing character so that it can be used for autocomplete suggestions
-        // when handleChange is called immediately after this
-        this.partialCharacter = e.data;
+        if (!e.data) {
+            return;
+        }
+
+        // The caret appears before the CJK character currently being composed, so re-add it to the pretext
+        const textbox = this.getTextbox();
+        const pretext = textbox.value.substring(0, textbox.selectionStart) + e.data;
+
+        if (SuggestionStore.getPretext(this.suggestionId) !== pretext) {
+            GlobalActions.emitSuggestionPretextChanged(this.suggestionId, pretext);
+        }
+    }
+
+    handleCompositionEnd() {
+        this.composing = false;
     }
 
     handleCompleteWord(term, matchedPretext) {
         const textbox = this.getTextbox();
-        const caret = Utils.getCaretPosition(textbox);
+        const caret = textbox.selectionEnd;
         const text = this.props.value;
-        const pretext = text.substring(0, caret) + this.partialCharacter;
+        const pretext = textbox.value.substring(0, textbox.selectionEnd);
 
         let prefix;
         if (pretext.endsWith(matchedPretext)) {
@@ -186,7 +203,9 @@ export default class SuggestionBox extends React.Component {
         const childProps = {
             ref: 'textbox',
             onInput: this.handleChange,
+            onCompositionStart: this.handleCompositionStart,
             onCompositionUpdate: this.handleCompositionUpdate,
+            onCompositionEnd: this.handleCompositionEnd,
             onKeyDown: this.handleKeyDown
         };
 
