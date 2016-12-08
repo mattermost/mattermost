@@ -170,9 +170,11 @@ func TestCreateDirectChannel(t *testing.T) {
 	user := th.BasicUser
 	user2 := th.BasicUser2
 
-	rchannel, err := Client.CreateDirectChannel(th.BasicUser2.Id)
-	if err != nil {
+	var channel *model.Channel
+	if result, err := Client.CreateDirectChannel(th.BasicUser2.Id); err != nil {
 		t.Fatal(err)
+	} else {
+		channel = result.Data.(*model.Channel)
 	}
 
 	channelName := ""
@@ -182,17 +184,19 @@ func TestCreateDirectChannel(t *testing.T) {
 		channelName = user2.Id + "__" + user.Id
 	}
 
-	if rchannel.Data.(*model.Channel).Name != channelName {
+	if channel.Name != channelName {
 		t.Fatal("channel name didn't match")
 	}
 
-	if rchannel.Data.(*model.Channel).Type != model.CHANNEL_DIRECT {
+	if channel.Type != model.CHANNEL_DIRECT {
 		t.Fatal("channel type was not direct")
 	}
 
-	// don't fail on direct channels already existing
-	if _, err := Client.CreateDirectChannel(th.BasicUser2.Id); err != nil {
+	// Don't fail on direct channels already existing and return the original channel again
+	if result, err := Client.CreateDirectChannel(th.BasicUser2.Id); err != nil {
 		t.Fatal(err)
+	} else if result.Data.(*model.Channel).Id != channel.Id {
+		t.Fatal("didn't return original direct channel when saving a duplicate")
 	}
 
 	if _, err := Client.CreateDirectChannel("junk"); err == nil {
@@ -202,7 +206,6 @@ func TestCreateDirectChannel(t *testing.T) {
 	if _, err := Client.CreateDirectChannel("12345678901234567890123456"); err == nil {
 		t.Fatal("should have failed with non-existent user")
 	}
-
 }
 
 func TestUpdateChannel(t *testing.T) {
