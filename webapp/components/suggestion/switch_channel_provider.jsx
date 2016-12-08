@@ -7,7 +7,7 @@ import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
 import {autocompleteUsers} from 'actions/user_actions.jsx';
-
+import Client from 'client/web_client.jsx';
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import {Constants, ActionTypes} from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -25,7 +25,7 @@ class SwitchChannelSuggestion extends Suggestion {
 
         let displayName = '';
         if (item.type === Constants.DM_CHANNEL) {
-            displayName = item.display_name + ' ' + Utils.localizeMessage('channel_switch_modal.dm', '(Direct Message)');
+            displayName = item.display_name;
         } else {
             displayName = item.display_name + ' (' + item.name + ')';
         }
@@ -36,7 +36,14 @@ class SwitchChannelSuggestion extends Suggestion {
         } else if (item.type === Constants.PRIVATE_CHANNEL) {
             icon = <div className='status'><i className='fa fa-lock'/></div>;
         } else {
-            icon = <div className='status'><i className='fa fa-user'/></div>;
+            icon = (
+                <div className='pull-left'>
+                    <img
+                        className='mention__image'
+                        src={Client.getUsersRoute() + '/' + item.id + '/image?time=' + item.update_at}
+                    />
+                </div>
+            );
         }
 
         return (
@@ -81,14 +88,25 @@ export default class SwitchChannelProvider {
                         const userMap = {};
                         for (let i = 0; i < users.length; i++) {
                             const user = users[i];
+                            let displayName = `@${user.username} `;
 
                             if (user.id === currentId) {
                                 continue;
                             }
 
+                            if ((user.first_name || user.last_name) && user.nickname) {
+                                displayName += `- ${Utils.getFullName(user)} (${user.nickname})`;
+                            } else if (user.nickname) {
+                                displayName += `- (${user.nickname})`;
+                            } else if (user.first_name || user.last_name) {
+                                displayName += `- ${Utils.getFullName(user)}`;
+                            }
+
                             const newChannel = {
-                                display_name: user.username,
-                                name: user.username + ' ' + Utils.localizeMessage('channel_switch_modal.dm', '(Direct Message)'),
+                                display_name: displayName,
+                                name: user.username,
+                                id: user.id,
+                                update_at: user.update_at,
                                 type: Constants.DM_CHANNEL
                             };
                             channels.push(newChannel);

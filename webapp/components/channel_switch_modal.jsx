@@ -24,6 +24,7 @@ export default class SwitchChannelModal extends React.Component {
         super();
 
         this.onChange = this.onChange.bind(this);
+        this.onItemSelected = this.onItemSelected.bind(this);
         this.onShow = this.onShow.bind(this);
         this.onHide = this.onHide.bind(this);
         this.onExited = this.onExited.bind(this);
@@ -72,6 +73,10 @@ export default class SwitchChannelModal extends React.Component {
         this.setState({text: e.target.value});
     }
 
+    onItemSelected(item) {
+        this.selected = item;
+    }
+
     handleKeyDown(e) {
         this.setState({
             error: ''
@@ -82,13 +87,10 @@ export default class SwitchChannelModal extends React.Component {
     }
 
     handleSubmit() {
-        const name = this.state.text.trim();
         let channel = null;
 
-        // TODO: Replace this hack with something reasonable
-        if (name.indexOf(Utils.localizeMessage('channel_switch_modal.dm', '(Direct Message)')) > 0) {
-            const dmUsername = name.substr(0, name.indexOf(Utils.localizeMessage('channel_switch_modal.dm', '(Direct Message)')) - 1);
-            const user = UserStore.getProfileByUsername(dmUsername);
+        if (this.selected.type === Constants.DM_CHANNEL) {
+            const user = UserStore.getProfileByUsername(this.selected.name);
 
             if (user) {
                 openDirectChannelToUser(
@@ -104,7 +106,7 @@ export default class SwitchChannelModal extends React.Component {
                 );
             }
         } else {
-            channel = ChannelStore.getByName(this.state.text.trim());
+            channel = ChannelStore.getByName(this.selected.name);
             this.switchToChannel(channel);
         }
     }
@@ -155,10 +157,10 @@ export default class SwitchChannelModal extends React.Component {
                         onChange={this.onChange}
                         value={this.state.text}
                         onKeyDown={this.handleKeyDown}
+                        onItemSelected={this.onItemSelected}
                         listComponent={SuggestionList}
                         maxLength='64'
                         providers={this.suggestionProviders}
-                        preventDefaultSubmit={false}
                         listStyle='bottom'
                     />
                 </Modal.Body>
