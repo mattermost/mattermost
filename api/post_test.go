@@ -1267,7 +1267,7 @@ func TestGetMessageForNotification(t *testing.T) {
 
 	post.FileIds = model.StringArray{testPng.Id, testJpg1.Id}
 	store.Must(Srv.Store.FileInfo().AttachToPost(testJpg1.Id, post.Id))
-	if message := getMessageForNotification(post, translateFunc); message != "2 images sent: test1.png, test2.jpg" {
+	if message := getMessageForNotification(post, translateFunc); message != "2 images sent: test1.png, test2.jpg" && message != "2 images sent: test2.jpg, test1.png" {
 		t.Fatal("should've returned number of images:", message)
 	}
 
@@ -1280,7 +1280,7 @@ func TestGetMessageForNotification(t *testing.T) {
 
 	store.Must(Srv.Store.FileInfo().AttachToPost(testJpg2.Id, post.Id))
 	post.FileIds = model.StringArray{testFile.Id, testJpg2.Id}
-	if message := getMessageForNotification(post, translateFunc); message != "2 files sent: test1.go, test3.jpg" {
+	if message := getMessageForNotification(post, translateFunc); message != "2 files sent: test1.go, test3.jpg" && message != "2 files sent: test3.jpg, test1.go" {
 		t.Fatal("should've returned number of mixed files:", message)
 	}
 }
