@@ -679,6 +679,13 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 		}
 	}
 
+	var senderUsername string
+	if value, ok := post.Props["override_username"]; ok && post.Props["from_webhook"] == "true" {
+		senderUsername = value.(string)
+	} else {
+		senderUsername = profileMap[post.UserId].Username
+	}
+
 	if utils.Cfg.EmailSettings.SendEmailNotifications {
 		for _, id := range mentionedUsersList {
 			userAllowsEmails := profileMap[id].NotifyProps["email"] != "false"
@@ -815,7 +822,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 	message.Add("post", post.ToJson())
 	message.Add("channel_type", channel.Type)
 	message.Add("channel_display_name", channel.DisplayName)
-	message.Add("sender_name", senderName)
+	message.Add("sender_name", senderUsername)
 	message.Add("team_id", team.Id)
 
 	if len(post.FileIds) != 0 {
