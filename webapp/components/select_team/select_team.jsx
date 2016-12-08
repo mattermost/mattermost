@@ -8,6 +8,7 @@ import * as Utils from 'utils/utils.jsx';
 import ErrorBar from 'components/error_bar.jsx';
 import LoadingScreen from 'components/loading_screen.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 import SelectTeamItem from './components/select_team_item.jsx';
 
 import {Link} from 'react-router/es6';
@@ -186,7 +187,7 @@ export default class SelectTeam extends React.Component {
         }
 
         let headerButton;
-        if (isAlreadyMember.size) {
+        if (this.state.teamMembers.length) {
             headerButton = (
                 <Link to='/'>
                     <span className='fa fa-chevron-left'/>
@@ -195,10 +196,13 @@ export default class SelectTeam extends React.Component {
             );
         } else {
             headerButton = (
-                <Link to='/'>
+                <a
+                    href='#'
+                    onClick={GlobalActions.emitUserLoggedOutEvent}
+                >
                     <span className='fa fa-chevron-left'/>
                     <FormattedMessage id='web.header.logout'/>
-                </Link>
+                </a>
             );
         }
         return (
