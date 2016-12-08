@@ -684,6 +684,10 @@
     "translation": "不正なセッショントークンです token=%v、err=%v"
   },
   {
+    "id": "api.context.invalidate_all_caches",
+    "translation": "Purging all caches"
+  },
+  {
     "id": "api.context.last_activity_at.error",
     "translation": "LastActivityAtを更新できませんでした user_id=%v、session_id=%v、err=%v"
   },
@@ -791,7 +795,11 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "絵文字を作成できません。画像サイズは64KB未満でなければなりません。"
+    "translation": "絵文字を作成できません。画像サイズは1MB未満でなければなりません。"
+  },
+  {
+    "id": "api.emoji.delete.delete_reactions.app_error",
+    "translation": "Unable to delete reactions when deleting emoji with emoji name %v"
   },
   {
     "id": "api.emoji.delete.permissions.app_error",
@@ -879,7 +887,7 @@
   },
   {
     "id": "api.file.handle_images_forget.decode.error",
-    "translation": "画像をデコードできません  err=%v"
+    "translation": "画像をデコードできません err=%v"
   },
   {
     "id": "api.file.handle_images_forget.encode_jpeg.error",
@@ -1275,7 +1283,7 @@
   },
   {
     "id": "api.post.delete_flagged_post.app_error.warn",
-    "translation": "投稿を削除する際に、フラッグの付いた投稿の設定を削除できません。err=%v"
+    "translation": "投稿を削除する際に、フラグの付いた投稿の設定を削除できません。err=%v"
   },
   {
     "id": "api.post.delete_post.permissions.app_error",
@@ -1502,6 +1510,22 @@
   {
     "id": "api.preference.save_preferences.set_details.app_error",
     "translation": "session.user_id={{.SessionUserId}}, preference.user_id={{.PreferenceUserId}}"
+  },
+  {
+    "id": "api.reaction.delete_reaction.mismatched_channel_id.app_error",
+    "translation": "Failed to delete reaction when channel id in URL doesn't match post id in URL"
+  },
+  {
+    "id": "api.reaction.list_reactions.mismatched_channel_id.app_error",
+    "translation": "Failed to get reactions when channel id in URL doesn't match post id in URL"
+  },
+  {
+    "id": "api.reaction.save_reaction.mismatched_channel_id.app_error",
+    "translation": "Failed to save reaction when channel id in URL doesn't match post id in URL"
+  },
+  {
+    "id": "api.reaction.send_reaction_event.post.app_error",
+    "translation": "Failed to get post when sending websocket event for reaction"
   },
   {
     "id": "api.saml.save_certificate.app_error",
@@ -3353,7 +3377,7 @@
   },
   {
     "id": "model.config.is_valid.max_notify_per_channel.app_error",
-    "translation": "チーム設定のチーム毎の最大チャンネル数が不正です。正の数を指定してください。"
+    "translation": "チーム設定のチャンネル毎の最大通知数が不正です。  正の数を指定してください。"
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
@@ -3708,6 +3732,22 @@
     "translation": "値が長過ぎます"
   },
   {
+    "id": "model.reaction.is_valid.create_at.app_error",
+    "translation": "作成日時は有効な時刻にしてください"
+  },
+  {
+    "id": "model.reaction.is_valid.emoji_name.app_error",
+    "translation": "不正な絵文字名です"
+  },
+  {
+    "id": "model.reaction.is_valid.post_id.app_error",
+    "translation": "不正な投稿IDです"
+  },
+  {
+    "id": "model.reaction.is_valid.user_id.app_error",
+    "translation": "不正なユーザーIDです"
+  },
+  {
     "id": "model.team.is_valid.characters.app_error",
     "translation": "名前は2文字以上の小文字の英数字にしてください"
   },
@@ -3718,6 +3758,10 @@
   {
     "id": "model.team.is_valid.create_at.app_error",
     "translation": "作成日時は有効な時刻にしてください"
+  },
+  {
+    "id": "model.team.is_valid.description.app_error",
+    "translation": "不正な説明です"
   },
   {
     "id": "model.team.is_valid.domains.app_error",
@@ -4209,7 +4253,7 @@
   },
   {
     "id": "store.sql_channel.search.app_error",
-    "translation": "チャンネルを更新する際にエラーが発生しました"
+    "translation": "チャンネルを検索する際にエラーが発生しました"
   },
   {
     "id": "store.sql_channel.set_last_viewed_at.app_error",
@@ -4574,6 +4618,46 @@
   {
     "id": "store.sql_preference.update.app_error",
     "translation": "設定を更新できませんでした"
+  },
+  {
+    "id": "store.sql_reaction.delete.begin.app_error",
+    "translation": "Unable to open transaction while deleting reaction"
+  },
+  {
+    "id": "store.sql_reaction.delete.commit.app_error",
+    "translation": "Unable to commit transaction while deleting reaction"
+  },
+  {
+    "id": "store.sql_reaction.delete.save.app_error",
+    "translation": "Unable to delete reaction"
+  },
+  {
+    "id": "store.sql_reaction.delete_all_with_emoj_name.delete_reactions.app_error",
+    "translation": "Unable to delete reactions with the given emoji name"
+  },
+  {
+    "id": "store.sql_reaction.delete_all_with_emoj_name.get_reactions.app_error",
+    "translation": "Unable to get reactions with the given emoji name"
+  },
+  {
+    "id": "store.sql_reaction.delete_all_with_emoji_name.update_post.warn",
+    "translation": "Unable to update Post.HasReactions while removing reactions post_id=%v, error=%v"
+  },
+  {
+    "id": "store.sql_reaction.get_for_post.app_error",
+    "translation": "Unable to get reactions for post"
+  },
+  {
+    "id": "store.sql_reaction.save.begin.app_error",
+    "translation": "Unable to open transaction while saving reaction"
+  },
+  {
+    "id": "store.sql_reaction.save.commit.app_error",
+    "translation": "Unable to commit transaction while saving reaction"
+  },
+  {
+    "id": "store.sql_reaction.save.save.app_error",
+    "translation": "Unable to save reaction"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",

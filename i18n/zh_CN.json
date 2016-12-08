@@ -684,6 +684,10 @@
     "translation": "无效的会话令牌=%v，err=%v"
   },
   {
+    "id": "api.context.invalidate_all_caches",
+    "translation": "Purging all caches"
+  },
+  {
     "id": "api.context.last_activity_at.error",
     "translation": "不能更新LastActivityAt user_id=%v and session_id=%v, err=%v"
   },
@@ -791,7 +795,11 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "无法创建表情符。图片必须小于64KB。"
+    "translation": "无法创建表情符。图片必须小于 1MB。"
+  },
+  {
+    "id": "api.emoji.delete.delete_reactions.app_error",
+    "translation": "无法删除表情符 %v 时删除反应"
   },
   {
     "id": "api.emoji.delete.permissions.app_error",
@@ -823,19 +831,19 @@
   },
   {
     "id": "api.emoji.upload.large_image.decode_error",
-    "translation": "Unable to create emoji. An error occurred when trying to decode the image."
+    "translation": "无法创建表情符。解码图片时遇到错误。"
   },
   {
     "id": "api.emoji.upload.large_image.encode_error",
-    "translation": "Unable to create emoji. An error occurred when trying to encode the image."
+    "translation": "无法创建表情符。编码图片时遇到错误。"
   },
   {
     "id": "api.emoji.upload.large_image.gif_decode_error",
-    "translation": "Unable to create emoji. An error occurred when trying to decode the GIF image."
+    "translation": "无法创建表情符。解码 GIF 图片时遇到错误。"
   },
   {
     "id": "api.emoji.upload.large_image.gif_encode_error",
-    "translation": "Unable to create emoji. An error occurred when trying to encode the GIF image."
+    "translation": "无法创建表情符。编码 GIF 图片时遇到错误。"
   },
   {
     "id": "api.file.get_file.public_disabled.app_error",
@@ -1295,7 +1303,7 @@
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "@here has been disabled because the channel has more than {{.Users}} users."
+    "translation": "@here 已禁用因为频道超过 {{.Users}} 位用户。"
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
@@ -1504,6 +1512,22 @@
     "translation": "session.user_id={{.SessionUserId}}, preference.user_id={{.PreferenceUserId}}"
   },
   {
+    "id": "api.reaction.delete_reaction.mismatched_channel_id.app_error",
+    "translation": "当网址中的频道id和网址中的消息id不符时保存反应失败"
+  },
+  {
+    "id": "api.reaction.list_reactions.mismatched_channel_id.app_error",
+    "translation": "当网址中的频道id和网址中的消息id不符时获取反应失败"
+  },
+  {
+    "id": "api.reaction.save_reaction.mismatched_channel_id.app_error",
+    "translation": "当网址中的频道id和网址中的消息id不符时保存反应失败"
+  },
+  {
+    "id": "api.reaction.send_reaction_event.post.app_error",
+    "translation": "发送 websocket 反应事件时获取消息失败"
+  },
+  {
     "id": "api.saml.save_certificate.app_error",
     "translation": "证书没有正确保存。"
   },
@@ -1645,7 +1669,7 @@
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "Tried to merge user with existing account: {{.Email}}, {{.Username}}, but failed to add the user to this team.\r\n"
+    "translation": "尝试将用户合并到已存在的帐号：{{.Email}}，{{.Username}}，但是无法添加该用户到本团队。\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
@@ -2769,11 +2793,11 @@
   },
   {
     "id": "ent.metrics.starting.info",
-    "translation": "Metrics and profiling server is listening on %v"
+    "translation": "指标和分析服务端监听在 %v"
   },
   {
     "id": "ent.metrics.stopping.info",
-    "translation": "Metrics and profiling server is stopping on %v"
+    "translation": "指标和分析服务端在 %v 停止中"
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",
@@ -3353,7 +3377,7 @@
   },
   {
     "id": "model.config.is_valid.max_notify_per_channel.app_error",
-    "translation": "团队设置中频道最大用户数无效，必须是正整数。"
+    "translation": "无效团队设置中每频道最大通知数。必须是正整数。"
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
@@ -3708,6 +3732,22 @@
     "translation": "值过长"
   },
   {
+    "id": "model.reaction.is_valid.create_at.app_error",
+    "translation": "创建时必须是有效时间"
+  },
+  {
+    "id": "model.reaction.is_valid.emoji_name.app_error",
+    "translation": "无效的表情符名"
+  },
+  {
+    "id": "model.reaction.is_valid.post_id.app_error",
+    "translation": "无效消息id"
+  },
+  {
+    "id": "model.reaction.is_valid.user_id.app_error",
+    "translation": "无效用户id"
+  },
+  {
     "id": "model.team.is_valid.characters.app_error",
     "translation": "名称必须是2个或以上的小写字母"
   },
@@ -3718,6 +3758,10 @@
   {
     "id": "model.team.is_valid.create_at.app_error",
     "translation": "创建时必须是有效时间"
+  },
+  {
+    "id": "model.team.is_valid.description.app_error",
+    "translation": "无效的描述"
   },
   {
     "id": "model.team.is_valid.domains.app_error",
@@ -4209,7 +4253,7 @@
   },
   {
     "id": "store.sql_channel.search.app_error",
-    "translation": "我们无法更新这个频道"
+    "translation": "我们搜索频道时遇到错误"
   },
   {
     "id": "store.sql_channel.set_last_viewed_at.app_error",
@@ -4574,6 +4618,46 @@
   {
     "id": "store.sql_preference.update.app_error",
     "translation": "我们无法更新这个偏好设置"
+  },
+  {
+    "id": "store.sql_reaction.delete.begin.app_error",
+    "translation": "删除反应时无法打开事务"
+  },
+  {
+    "id": "store.sql_reaction.delete.commit.app_error",
+    "translation": "删除反应时无法提交事务"
+  },
+  {
+    "id": "store.sql_reaction.delete.save.app_error",
+    "translation": "无法删除反应"
+  },
+  {
+    "id": "store.sql_reaction.delete_all_with_emoj_name.delete_reactions.app_error",
+    "translation": "无法用提供的表情符删除反应"
+  },
+  {
+    "id": "store.sql_reaction.delete_all_with_emoj_name.get_reactions.app_error",
+    "translation": "无法用提供的表情符获取反应"
+  },
+  {
+    "id": "store.sql_reaction.delete_all_with_emoji_name.update_post.warn",
+    "translation": "无法删除反应时更新 Post.HasReactions post_id=%v, error=%v"
+  },
+  {
+    "id": "store.sql_reaction.get_for_post.app_error",
+    "translation": "无法获取消息的反应"
+  },
+  {
+    "id": "store.sql_reaction.save.begin.app_error",
+    "translation": "无法保存反应时打开事务"
+  },
+  {
+    "id": "store.sql_reaction.save.commit.app_error",
+    "translation": "无法保存反应时提交事务"
+  },
+  {
+    "id": "store.sql_reaction.save.save.app_error",
+    "translation": "无法保存反应"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",

@@ -684,6 +684,10 @@
     "translation": "Ungültiger Session token=%v, err=%v"
   },
   {
+    "id": "api.context.invalidate_all_caches",
+    "translation": "Purging all caches"
+  },
+  {
     "id": "api.context.last_activity_at.error",
     "translation": "Fehler beim Update von LastActivityAt von user_id=%v und session_id=%v, err=%v"
   },
@@ -792,6 +796,10 @@
   {
     "id": "api.emoji.create.too_large.app_error",
     "translation": "Das Emoji konnte nicht erstellt werden. Das Bild darf maximal 1 MB groß sein."
+  },
+  {
+    "id": "api.emoji.delete.delete_reactions.app_error",
+    "translation": "Unable to delete reactions when deleting emoji with emoji name %v"
   },
   {
     "id": "api.emoji.delete.permissions.app_error",
@@ -1259,7 +1267,7 @@
   },
   {
     "id": "api.post.create_post.last_viewed.error",
-    "translation": "Fehler beim Aktualisieren des Werts, Zuletzt aufgerufen“, channel_id=%s, user_id=%s, err=%v"
+    "translation": "Fehler beim Aktualisieren von zuletzt betrachteh, channel_id=%s, user_id=%s, err=%v"
   },
   {
     "id": "api.post.create_post.parent_id.app_error",
@@ -1504,6 +1512,22 @@
     "translation": "session.user_id={{.SessionUserId}}, preference.user_id={{.PreferenceUserId}}"
   },
   {
+    "id": "api.reaction.delete_reaction.mismatched_channel_id.app_error",
+    "translation": "Failed to delete reaction when channel id in URL doesn't match post id in URL"
+  },
+  {
+    "id": "api.reaction.list_reactions.mismatched_channel_id.app_error",
+    "translation": "Failed to get reactions when channel id in URL doesn't match post id in URL"
+  },
+  {
+    "id": "api.reaction.save_reaction.mismatched_channel_id.app_error",
+    "translation": "Failed to save reaction when channel id in URL doesn't match post id in URL"
+  },
+  {
+    "id": "api.reaction.send_reaction_event.post.app_error",
+    "translation": "Failed to get post when sending websocket event for reaction"
+  },
+  {
     "id": "api.saml.save_certificate.app_error",
     "translation": "Das Zertifikat konnte nicht korrekt gespeichert werden."
   },
@@ -1645,7 +1669,7 @@
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "Tried to merge user with existing account: {{.Email}}, {{.Username}}, but failed to add the user to this team.\r\n"
+    "translation": "Es wurde versucht den Benutzer mit bestehendem Zugang ({{.Email}}, {{.Username}}) zusammenzufassen, konnte den Benutzer aber zu diesem Team hinzufügen.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
@@ -1913,7 +1937,7 @@
   },
   {
     "id": "api.templates.find_teams_body.not_found",
-    "translation": "Wir konnten zur E-Mail-Adresse keine Teams finden."
+    "translation": "Zur E-Mail-Adresse konnte kein Team gefunden werden."
   },
   {
     "id": "api.templates.find_teams_body.title",
@@ -3708,6 +3732,22 @@
     "translation": "Wert ist zu lang"
   },
   {
+    "id": "model.reaction.is_valid.create_at.app_error",
+    "translation": "Erstellt am muss eine gültige Zeit sein"
+  },
+  {
+    "id": "model.reaction.is_valid.emoji_name.app_error",
+    "translation": "Ungültiger Emoji Name"
+  },
+  {
+    "id": "model.reaction.is_valid.post_id.app_error",
+    "translation": "Ungültige Nachrichten-ID"
+  },
+  {
+    "id": "model.reaction.is_valid.user_id.app_error",
+    "translation": "Ungültige Benutzer-ID"
+  },
+  {
     "id": "model.team.is_valid.characters.app_error",
     "translation": "Name muss aus 2 oder mehr Kleinbuchstaben bestehen"
   },
@@ -3718,6 +3758,10 @@
   {
     "id": "model.team.is_valid.create_at.app_error",
     "translation": "Erstellt am muss eine gültige Zeit sein"
+  },
+  {
+    "id": "model.team.is_valid.description.app_error",
+    "translation": "Ungültige Beschreibung"
   },
   {
     "id": "model.team.is_valid.domains.app_error",
@@ -4021,7 +4065,7 @@
   },
   {
     "id": "store.sql_audit.get.finding.app_error",
-    "translation": "Wir konnten die audits nicht finden"
+    "translation": "Es trat ein Fehler beim Suchen nach den Audits auf"
   },
   {
     "id": "store.sql_audit.get.limit.app_error",
@@ -4029,11 +4073,11 @@
   },
   {
     "id": "store.sql_audit.permanent_delete_by_user.app_error",
-    "translation": "Wir konnten die audits nicht löschen"
+    "translation": "Es trat ein Fehler beim Löschen der Audits auf"
   },
   {
     "id": "store.sql_audit.save.saving.app_error",
-    "translation": "Wir konnten die audits nicht speichern"
+    "translation": "Es trat ein Fehler beim Speichern der Audits auf"
   },
   {
     "id": "store.sql_channel.analytics_type_count.app_error",
@@ -4041,19 +4085,19 @@
   },
   {
     "id": "store.sql_channel.check_open_channel_permissions.app_error",
-    "translation": "Wir konnten die Berechtigungen nicht überprüfen"
+    "translation": "Die Berechtigungen konnten nicht überprüft werden"
   },
   {
     "id": "store.sql_channel.check_permissions.app_error",
-    "translation": "Wir konnten die Berechtigungen nicht überprüfen"
+    "translation": "Die Berechtigungen konnten nicht überprüft werden"
   },
   {
     "id": "store.sql_channel.check_permissions_by_name.app_error",
-    "translation": "Wir konnten die Berechtigungen nicht überprüfen"
+    "translation": "Die Berechtigungen konnten nicht überprüft werden"
   },
   {
     "id": "store.sql_channel.delete.channel.app_error",
-    "translation": "Wir konnten den Kanal nicht löschen"
+    "translation": "Der Kanal konnte nicht gelöscht werden"
   },
   {
     "id": "store.sql_channel.extra_updated.app_error",
@@ -4061,7 +4105,7 @@
   },
   {
     "id": "store.sql_channel.get.existing.app_error",
-    "translation": "Wir konnten den Kanal nicht finden"
+    "translation": "Der bestehende Kanal konnte nicht gefunden werden"
   },
   {
     "id": "store.sql_channel.get.find.app_error",
@@ -4069,11 +4113,11 @@
   },
   {
     "id": "store.sql_channel.get_all.app_error",
-    "translation": "Wir konnten nicht alle Kanäle laden"
+    "translation": "Es konnten nicht alle Kanäle abgerufen werden"
   },
   {
     "id": "store.sql_channel.get_by_name.existing.app_error",
-    "translation": "Wir konnten den Kanal nicht finden"
+    "translation": "Der bestehende Kanal konnte nicht gefunden werden"
   },
   {
     "id": "store.sql_channel.get_by_name.missing.app_error",
@@ -4085,7 +4129,7 @@
   },
   {
     "id": "store.sql_channel.get_channels.get.app_error",
-    "translation": "Wir konnten die Kanäle nicht finden"
+    "translation": "Es konnten nicht alle Kanäle abgerufen werden"
   },
   {
     "id": "store.sql_channel.get_channels.not_found.app_error",
@@ -4117,11 +4161,11 @@
   },
   {
     "id": "store.sql_channel.get_members.app_error",
-    "translation": "Wir konnten die Kanal Mitglieder nicht finden"
+    "translation": "Es konnten nicht alle Kanalmitglieder abgerufen werden"
   },
   {
     "id": "store.sql_channel.get_more_channels.get.app_error",
-    "translation": "Wir konnten die Kanäle nicht finden"
+    "translation": "Es konnten nicht alle Kanäle abgerufen werden"
   },
   {
     "id": "store.sql_channel.increment_mention_count.app_error",
@@ -4129,15 +4173,15 @@
   },
   {
     "id": "store.sql_channel.permanent_delete_by_team.app_error",
-    "translation": "Wir konnten die Kanäle nicht löschen"
+    "translation": "Die Kanäle konnten nicht gelöscht werden"
   },
   {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
-    "translation": "Wir konnten die Kanalmitglieder nicht entfernen"
+    "translation": "Die Kanalmitglieder konnten nicht entfernt werden"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
-    "translation": "Wir konnten die Kanalmitglieder nicht entfernen"
+    "translation": "Die Kanalmitglieder konnten nicht entfernt werden"
   },
   {
     "id": "store.sql_channel.save.commit_transaction.app_error",
@@ -4173,7 +4217,7 @@
   },
   {
     "id": "store.sql_channel.save_channel.save.app_error",
-    "translation": "Wir konnten den Kanal nicht speichern"
+    "translation": "Der Kanal konnte nicht gespeichert werden"
   },
   {
     "id": "store.sql_channel.save_direct_channel.add_members.app_error",
@@ -4205,7 +4249,7 @@
   },
   {
     "id": "store.sql_channel.save_member.save.app_error",
-    "translation": "Wir konnten die Kanalmitglieder nicht speichern"
+    "translation": "Die Kanalmitglieder konnten nicht gespeichert werden"
   },
   {
     "id": "store.sql_channel.search.app_error",
@@ -4217,7 +4261,7 @@
   },
   {
     "id": "store.sql_channel.update.app_error",
-    "translation": "Wir konnten den Kanal nicht updaten"
+    "translation": "Der Kanal konnte nicht aktualisiert werden"
   },
   {
     "id": "store.sql_channel.update.exists.app_error",
@@ -4229,7 +4273,7 @@
   },
   {
     "id": "store.sql_channel.update.updating.app_error",
-    "translation": "Wir konnten den Kanal nicht ändern"
+    "translation": "Es trat ein Fehler beim Aktualisieren des Kanals auf"
   },
   {
     "id": "store.sql_channel.update_last_viewed_at.app_error",
@@ -4237,31 +4281,31 @@
   },
   {
     "id": "store.sql_channel.update_member.app_error",
-    "translation": "Wir konnten das Kanal Mitglied nicht ändern"
+    "translation": "Es trat ein Fehler beim Aktualisieren der Kanalmitglieder auf"
   },
   {
     "id": "store.sql_command.analytics_command_count.app_error",
-    "translation": "Wir konnten die Kommandos nicht zählen"
+    "translation": "Die Befehle konnten nicht gezählt werden"
   },
   {
     "id": "store.sql_command.save.delete.app_error",
-    "translation": "Wir konnten das Kommando nicht löschen"
+    "translation": "Der Befehl konnte nicht gelöscht werden"
   },
   {
     "id": "store.sql_command.save.delete_perm.app_error",
-    "translation": "Wir konnten das Kommando nicht löschen"
+    "translation": "Der Befehl konnte nicht gelöscht werden"
   },
   {
     "id": "store.sql_command.save.get.app_error",
-    "translation": "Wir konnten das Kommando nicht bekommen"
+    "translation": "Der Befehl konnte nicht abgerufen werden"
   },
   {
     "id": "store.sql_command.save.get_team.app_error",
-    "translation": "Wir konnten die Kommandos nicht erhalten"
+    "translation": "Die Befehle konnten nicht abgerufen werden"
   },
   {
     "id": "store.sql_command.save.saving.app_error",
-    "translation": "Wir konnten das Kommando nicht speichern"
+    "translation": "Der Befehl konnte nicht gespeichert werden"
   },
   {
     "id": "store.sql_command.save.saving_overwrite.app_error",
@@ -4269,7 +4313,7 @@
   },
   {
     "id": "store.sql_command.save.update.app_error",
-    "translation": "Wir konnten das Kommando nicht aktualisieren"
+    "translation": "Der Befehl konnte nicht aktualisiert werden"
   },
   {
     "id": "store.sql_compliance.get.finding.app_error",
@@ -4281,27 +4325,27 @@
   },
   {
     "id": "store.sql_emoji.delete.app_error",
-    "translation": "Wir konnten das Emoji nicht löschen"
+    "translation": "Das Emoji konnte nicht gelöscht werden"
   },
   {
     "id": "store.sql_emoji.delete.no_results",
-    "translation": "Wir konnten das zu löschende Emoji nicht finden"
+    "translation": "Das zu löschende Emoji konnte nicht gefunden werden"
   },
   {
     "id": "store.sql_emoji.get.app_error",
-    "translation": "Wir konnten das Emoji nicht abrufen"
+    "translation": "Das Emoji konnte nicht abgerufen werden"
   },
   {
     "id": "store.sql_emoji.get_all.app_error",
-    "translation": "Wir konnten das Emoji nicht abrufen"
+    "translation": "Das Emoji konnte nicht abgerufen werden"
   },
   {
     "id": "store.sql_emoji.get_by_name.app_error",
-    "translation": "Wir konnten das Emoji nicht abrufen"
+    "translation": "Das Emoji konnte nicht abgerufen werden"
   },
   {
     "id": "store.sql_emoji.save.app_error",
-    "translation": "Wir konnten das Emoji nicht speichern"
+    "translation": "Das Emoji konnte nicht gespeichert werden"
   },
   {
     "id": "store.sql_file_info.attach_to_post.app_error",
@@ -4329,7 +4373,7 @@
   },
   {
     "id": "store.sql_license.get.app_error",
-    "translation": "Wir konnten die Lizenz nicht finden"
+    "translation": "Es trat ein Fehler beim Abruf der Lizenz auf"
   },
   {
     "id": "store.sql_license.get.missing.app_error",
@@ -4337,7 +4381,7 @@
   },
   {
     "id": "store.sql_license.save.app_error",
-    "translation": "Wir konnten die Lizenz nicht speichern"
+    "translation": "Es trat ein Fehler beim Speichern der Lizenz auf"
   },
   {
     "id": "store.sql_oauth.delete.commit_transaction.app_error",
@@ -4369,11 +4413,11 @@
   },
   {
     "id": "store.sql_oauth.get_app.finding.app_error",
-    "translation": "Wir konnten die App nicht finden"
+    "translation": "Es trat ein Fehler beim Auffinden der App auf"
   },
   {
     "id": "store.sql_oauth.get_app_by_user.find.app_error",
-    "translation": "Wir konnten keine Apps finden"
+    "translation": "Es konnten keine bestehenden Apps gefunden werden"
   },
   {
     "id": "store.sql_oauth.get_apps.find.app_error",
@@ -4393,15 +4437,15 @@
   },
   {
     "id": "store.sql_oauth.permanent_delete_auth_data_by_user.app_error",
-    "translation": "Wir konnten den Authorisationcode nicht entfernen"
+    "translation": "Der Autorisationscode konnte nicht entfernt werden"
   },
   {
     "id": "store.sql_oauth.remove_access_data.app_error",
-    "translation": "Wir konnten den Zugriffstoken nicht entfernen"
+    "translation": "Das Zugriffstoken konnte nicht entfernt werden"
   },
   {
     "id": "store.sql_oauth.remove_auth_data.app_error",
-    "translation": "Wir konnten den Authorisationcode nicht entfernen"
+    "translation": "Der Autorisationscode konnte nicht entfernt werden"
   },
   {
     "id": "store.sql_oauth.save_access_data.app_error",
@@ -4413,11 +4457,11 @@
   },
   {
     "id": "store.sql_oauth.save_app.save.app_error",
-    "translation": "Wir konnten die App nicht speichern."
+    "translation": "Die App konnte nicht gespeichert werden."
   },
   {
     "id": "store.sql_oauth.save_auth_data.app_error",
-    "translation": "Wir konnten den Authorisationcode nicht speichern."
+    "translation": "Der Autorisationcode konnte nicht gespeichert werden."
   },
   {
     "id": "store.sql_oauth.update_access_data.app_error",
@@ -4425,7 +4469,7 @@
   },
   {
     "id": "store.sql_oauth.update_app.find.app_error",
-    "translation": "Wir konnten die App zum updaten nicht finden"
+    "translation": "Die zu aktualisierende bestehende App konnte nicht gefunden werden"
   },
   {
     "id": "store.sql_oauth.update_app.finding.app_error",
@@ -4433,11 +4477,11 @@
   },
   {
     "id": "store.sql_oauth.update_app.update.app_error",
-    "translation": "Wir konnten die App nicht updaten"
+    "translation": "Die zu aktualisierende App konnte nicht gefunden werden"
   },
   {
     "id": "store.sql_oauth.update_app.updating.app_error",
-    "translation": "Wir konnten die App nicht ändern"
+    "translation": "Es trat ein Fehler beim Aktualisieren der App auf"
   },
   {
     "id": "store.sql_post.analytics_posts_count.app_error",
@@ -4453,15 +4497,15 @@
   },
   {
     "id": "store.sql_post.delete.app_error",
-    "translation": "Wir konnten die Nachricht nicht löschen"
+    "translation": "Die Nachricht konnte nicht gelöscht werden"
   },
   {
     "id": "store.sql_post.get.app_error",
-    "translation": "Wir konnten die Nachricht nicht finden"
+    "translation": "Die Nachricht konnte nicht abgerufen werden"
   },
   {
     "id": "store.sql_post.get_parents_posts.app_error",
-    "translation": "Wir konnten die vorgelagerte Nachricht zu diesem Kanal nicht erhalten"
+    "translation": "Die übergeordnete Nachricht zu diesem Kanal konnte nicht gefunden werden"
   },
   {
     "id": "store.sql_post.get_posts.app_error",
@@ -4469,27 +4513,27 @@
   },
   {
     "id": "store.sql_post.get_posts_around.get.app_error",
-    "translation": "Wir konnten die Nachrichten des Kanals nicht finden"
+    "translation": "Die Nachrichten für den Kanal konnten nicht abgerufen werden"
   },
   {
     "id": "store.sql_post.get_posts_around.get_parent.app_error",
-    "translation": "Wir konnten die übergeordneten Nachrichten des Kanals nicht finden"
+    "translation": "Die übergeordneten Nachrichten des Kanals konnten nicht abgerufen werden"
   },
   {
     "id": "store.sql_post.get_posts_since.app_error",
-    "translation": "Wir konnten die Nachrichten für den Kanal nicht finden"
+    "translation": "Die Nachrichten für den Kanal konnten nicht abgerufen werden"
   },
   {
     "id": "store.sql_post.get_root_posts.app_error",
-    "translation": "Wir konnten die Nachrichten des Kanals nicht finden"
+    "translation": "Die Nachrichten für den Kanal konnten nicht abgerufen werden"
   },
   {
     "id": "store.sql_post.permanent_delete.app_error",
-    "translation": "Wir konnten die Nachricht nicht löschen"
+    "translation": "Die Nachricht konnte nicht gelöscht werden"
   },
   {
     "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",
-    "translation": "Wir konnten die Kommentare des Benutzers nicht löschen"
+    "translation": "Die Kommentare des Benutzers konnten nicht gelöscht werden"
   },
   {
     "id": "store.sql_post.permanent_delete_by_user.app_error",
@@ -4501,7 +4545,7 @@
   },
   {
     "id": "store.sql_post.save.app_error",
-    "translation": "Wir konnten die Nachricht nicht speichern"
+    "translation": "Die Nachricht konnte nicht gespeichert werden"
   },
   {
     "id": "store.sql_post.save.existing.app_error",
@@ -4513,7 +4557,7 @@
   },
   {
     "id": "store.sql_post.update.app_error",
-    "translation": "Wir konnten die Nachricht nicht updaten"
+    "translation": "Die Nachricht konnte nicht aktualisiert werden"
   },
   {
     "id": "store.sql_preference.delete.app_error",
@@ -4525,15 +4569,15 @@
   },
   {
     "id": "store.sql_preference.get.app_error",
-    "translation": "Wir konnten die Voreinstellungen nicht finden"
+    "translation": "Es trat ein Fehler beim Sichen der Einstellungen auf"
   },
   {
     "id": "store.sql_preference.get_all.app_error",
-    "translation": "Wir konnten die Voreinstellungen nicht finden"
+    "translation": "Es trat ein Fehler beim Suchen nach den Einstellungen auf"
   },
   {
     "id": "store.sql_preference.get_category.app_error",
-    "translation": "Wir konnten die Voreinstellungen nicht finden"
+    "translation": "Es trat ein Fehler beim Suchen nach den Einstellungen auf"
   },
   {
     "id": "store.sql_preference.insert.exists.app_error",
@@ -4541,7 +4585,7 @@
   },
   {
     "id": "store.sql_preference.insert.save.app_error",
-    "translation": "Wir konnten die Einstellungen nicht speichern"
+    "translation": "Die Einstellungen konnten nicht gespeichert werden"
   },
   {
     "id": "store.sql_preference.is_feature_enabled.app_error",
@@ -4549,7 +4593,7 @@
   },
   {
     "id": "store.sql_preference.permanent_delete_by_user.app_error",
-    "translation": "Wir konnten die Voreinstellungen nicht löschen"
+    "translation": "Es trat ein Fehler beim Löschen von Einstellungen auf"
   },
   {
     "id": "store.sql_preference.save.commit_transaction.app_error",
@@ -4573,11 +4617,51 @@
   },
   {
     "id": "store.sql_preference.update.app_error",
-    "translation": "Wir konnten die Einstellungen nicht ändern"
+    "translation": "Die Einstellungen konnten nicht aktualisiert werden"
+  },
+  {
+    "id": "store.sql_reaction.delete.begin.app_error",
+    "translation": "Unable to open transaction while deleting reaction"
+  },
+  {
+    "id": "store.sql_reaction.delete.commit.app_error",
+    "translation": "Unable to commit transaction while deleting reaction"
+  },
+  {
+    "id": "store.sql_reaction.delete.save.app_error",
+    "translation": "Unable to delete reaction"
+  },
+  {
+    "id": "store.sql_reaction.delete_all_with_emoj_name.delete_reactions.app_error",
+    "translation": "Unable to delete reactions with the given emoji name"
+  },
+  {
+    "id": "store.sql_reaction.delete_all_with_emoj_name.get_reactions.app_error",
+    "translation": "Unable to get reactions with the given emoji name"
+  },
+  {
+    "id": "store.sql_reaction.delete_all_with_emoji_name.update_post.warn",
+    "translation": "Unable to update Post.HasReactions while removing reactions post_id=%v, error=%v"
+  },
+  {
+    "id": "store.sql_reaction.get_for_post.app_error",
+    "translation": "Unable to get reactions for post"
+  },
+  {
+    "id": "store.sql_reaction.save.begin.app_error",
+    "translation": "Unable to open transaction while saving reaction"
+  },
+  {
+    "id": "store.sql_reaction.save.commit.app_error",
+    "translation": "Unable to commit transaction while saving reaction"
+  },
+  {
+    "id": "store.sql_reaction.save.save.app_error",
+    "translation": "Unable to save reaction"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
-    "translation": "Wir konnten die sessions nicht zählen"
+    "translation": "Die Anzahl der Sitzungen konnten nicht gezählt werden"
   },
   {
     "id": "store.sql_session.cleanup_expired_sessions.app_error",
@@ -4585,7 +4669,7 @@
   },
   {
     "id": "store.sql_session.get.app_error",
-    "translation": "Wir konnten die Session nicht finden"
+    "translation": "Es trat ein Fehler beim Suchen nach Sitzungen auf"
   },
   {
     "id": "store.sql_session.get_sessions.app_error",
@@ -4601,15 +4685,15 @@
   },
   {
     "id": "store.sql_session.remove.app_error",
-    "translation": "Wir konnten die session nicht entfernen"
+    "translation": "Die Sitzung konnte nicht entfernt werden"
   },
   {
     "id": "store.sql_session.remove_all_sessions_for_team.app_error",
-    "translation": "Wir konnten nicht alle Sitzungen entfernen"
+    "translation": "Es konnten nicht alle Sitzungen entfernt werden"
   },
   {
     "id": "store.sql_session.save.app_error",
-    "translation": "Wir konnten die session nicht speichern"
+    "translation": "Die Sitzung konnte nicht gespeichert werden"
   },
   {
     "id": "store.sql_session.save.cleanup.error",
@@ -4621,7 +4705,7 @@
   },
   {
     "id": "store.sql_session.update_device_id.app_error",
-    "translation": "Wir konnten die Geräte ID nicht ändern"
+    "translation": "Die ID des Gerätes konnte nicht aktualisiert werden"
   },
   {
     "id": "store.sql_session.update_last_activity.app_error",
@@ -4629,7 +4713,7 @@
   },
   {
     "id": "store.sql_session.update_roles.app_error",
-    "translation": "Wir konnten die Rollen nicht ändern"
+    "translation": "Die Rollen konnten nicht aktualisiert werden"
   },
   {
     "id": "store.sql_status.get.app_error",
@@ -4653,7 +4737,7 @@
   },
   {
     "id": "store.sql_status.get_total_active_users_count.app_error",
-    "translation": "Wir konnten die aktiven Benutzer nicht zählen"
+    "translation": "Die Anzahl der aktiven Benutzer konnte nicht gezählt werden"
   },
   {
     "id": "store.sql_status.reset_all.app_error",
@@ -4689,11 +4773,11 @@
   },
   {
     "id": "store.sql_team.analytics_team_count.app_error",
-    "translation": "Wir konnten die Teams nicht zählen"
+    "translation": "Die Anzahl der Teams konnte nicht gezählt werden"
   },
   {
     "id": "store.sql_team.get.find.app_error",
-    "translation": "Wir konnten das Team nicht finden"
+    "translation": "Das existierende Team konnte nicht gefunden werden"
   },
   {
     "id": "store.sql_team.get.finding.app_error",
@@ -4709,19 +4793,19 @@
   },
   {
     "id": "store.sql_team.get_by_invite_id.find.app_error",
-    "translation": "Wir konnten das Team nicht finden"
+    "translation": "Das existierende Team konnte nicht gefunden werden"
   },
   {
     "id": "store.sql_team.get_by_invite_id.finding.app_error",
-    "translation": "Wir konnten das Team nicht finden"
+    "translation": "Das existierende Team konnte nicht gefunden werden"
   },
   {
     "id": "store.sql_team.get_by_name.app_error",
-    "translation": "Wir konnten das Team nicht finden"
+    "translation": "Das existierende Team konnte nicht gefunden werden"
   },
   {
     "id": "store.sql_team.get_member.app_error",
-    "translation": "Wir konnten das Teammitglied nicht finden"
+    "translation": "Das Teammitglied konnte nicht abgerufen werden"
   },
   {
     "id": "store.sql_team.get_member.missing.app_error",
@@ -4733,7 +4817,7 @@
   },
   {
     "id": "store.sql_team.get_members.app_error",
-    "translation": "Wir konnten die Kanal Mitglieder nicht finden"
+    "translation": "Die Teammitglieder konnten nicht abgerufen werden"
   },
   {
     "id": "store.sql_team.get_members_by_ids.app_error",
@@ -4745,15 +4829,15 @@
   },
   {
     "id": "store.sql_team.permanent_delete.app_error",
-    "translation": "Wir konnten das Team nicht löschen"
+    "translation": "Das existierende Team konnte nicht gelöscht werden"
   },
   {
     "id": "store.sql_team.remove_member.app_error",
-    "translation": "Wir konnten die Kanalmitglieder nicht entfernen"
+    "translation": "Das Teammitglied konnte nicht entfernt werden"
   },
   {
     "id": "store.sql_team.save.app_error",
-    "translation": "Wir konnten das Team nicht speichern"
+    "translation": "Das Team konnte nicht gespeichert werden"
   },
   {
     "id": "store.sql_team.save.domain_exists.app_error",
@@ -4769,15 +4853,15 @@
   },
   {
     "id": "store.sql_team.save_member.save.app_error",
-    "translation": "Wir konnten das Kanal Mitglied nicht speichern"
+    "translation": "Das Teammitglied konnte nicht gespeichert werden"
   },
   {
     "id": "store.sql_team.update.app_error",
-    "translation": "Wir konnten das Team nicht ändern"
+    "translation": "Das Team konnte nicht aktualisiert werden"
   },
   {
     "id": "store.sql_team.update.find.app_error",
-    "translation": "Wir konnten das Team zum ändern nicht finden"
+    "translation": "Das zu aktualisierende existierende Team konnte nicht gefunden werden"
   },
   {
     "id": "store.sql_team.update.finding.app_error",
@@ -4789,11 +4873,11 @@
   },
   {
     "id": "store.sql_team.update_display_name.app_error",
-    "translation": "Wir konnten den Teamnamen nicht ändern"
+    "translation": "Der Name des Teams konnte nicht aktualisiert werden"
   },
   {
     "id": "store.sql_user.analytics_unique_user_count.app_error",
-    "translation": "Wir konnten die Zahl der Benutzer nicht ermitteln"
+    "translation": "Die Anzahl der einzigartigen Benutzer konnte nicht gezählt werden"
   },
   {
     "id": "store.sql_user.get.app_error",
@@ -4837,7 +4921,7 @@
   },
   {
     "id": "store.sql_user.get_total_users_count.app_error",
-    "translation": "Wir konnten die Benutzer nicht zählen"
+    "translation": "Die Anzahl der Benutzer konnte nicht gezählt werden"
   },
   {
     "id": "store.sql_user.get_unread_count.app_error",
@@ -4857,7 +4941,7 @@
   },
   {
     "id": "store.sql_user.permanent_delete.app_error",
-    "translation": "Wir konnten den Account nicht löschen"
+    "translation": "Der existierende Zugang konnte nicht gelöscht werden"
   },
   {
     "id": "store.sql_user.save.app_error",
@@ -4901,7 +4985,7 @@
   },
   {
     "id": "store.sql_user.update.app_error",
-    "translation": "Wir konnten den Account nicht aktualisieren"
+    "translation": "Der Zugang konnte nicht aktualisiert werden"
   },
   {
     "id": "store.sql_user.update.can_not_change_ldap.app_error",
@@ -4913,15 +4997,15 @@
   },
   {
     "id": "store.sql_user.update.find.app_error",
-    "translation": "Wir konnten den Account zum ändern nicht finden"
+    "translation": "Der zu aktualisierende existierende Zugang konnte nicht gefunden werden"
   },
   {
     "id": "store.sql_user.update.finding.app_error",
-    "translation": "Wir konnten den Account nicht finden"
+    "translation": "Es trat ein Fehler bei der Suche nach dem Zugang auf"
   },
   {
     "id": "store.sql_user.update.updating.app_error",
-    "translation": "Wir konnten den Account nicht ändern"
+    "translation": "Es trat ein Fehler beim Aktualisieren des Zugangs auf"
   },
   {
     "id": "store.sql_user.update.username_taken.app_error",
@@ -4929,7 +5013,7 @@
   },
   {
     "id": "store.sql_user.update_auth_data.app_error",
-    "translation": "Wir konnten die Authentifikationsdaten nicht aktualisieren"
+    "translation": "Die Authentifikationsdaten konnten nicht aktualisiert werden"
   },
   {
     "id": "store.sql_user.update_auth_data.email_exists.app_error",
@@ -4945,7 +5029,7 @@
   },
   {
     "id": "store.sql_user.update_last_picture_update.app_error",
-    "translation": "Wir konnten das update_at nicht aktualisieren"
+    "translation": "update_at konnte nicht aktualisiert werden"
   },
   {
     "id": "store.sql_user.update_last_ping.app_error",
@@ -4977,11 +5061,11 @@
   },
   {
     "id": "store.sql_webhooks.delete_incoming.app_error",
-    "translation": "Wir konnten den webhook nicht löschen"
+    "translation": "Der Webhook konnte nicht gelöscht werden"
   },
   {
     "id": "store.sql_webhooks.delete_outgoing.app_error",
-    "translation": "Wir konnten den webhook nicht löschen"
+    "translation": "Der Webhook konnte nicht gelöscht werden"
   },
   {
     "id": "store.sql_webhooks.get_incoming.app_error",
@@ -4989,23 +5073,23 @@
   },
   {
     "id": "store.sql_webhooks.get_incoming_by_channel.app_error",
-    "translation": "Wir konnten den webhook nicht finden"
+    "translation": "Die Webhooks konnten nicht abgerufen werden"
   },
   {
     "id": "store.sql_webhooks.get_incoming_by_user.app_error",
-    "translation": "Wir konnten den webhook nicht finden"
+    "translation": "Der Webhook konnte nicht abgerufen werden"
   },
   {
     "id": "store.sql_webhooks.get_outgoing.app_error",
-    "translation": "Wir konnten den webhook nicht finden"
+    "translation": "Der Webhook konnte nicht abgerufen werden"
   },
   {
     "id": "store.sql_webhooks.get_outgoing_by_channel.app_error",
-    "translation": "Wir konnten den webhook nicht finden"
+    "translation": "Die Webhooks konnten nicht abgerufen werden"
   },
   {
     "id": "store.sql_webhooks.get_outgoing_by_team.app_error",
-    "translation": "Wir konnten den webhook nicht finden"
+    "translation": "Die Webhooks konnten nicht abgerufen werden"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
@@ -5013,7 +5097,7 @@
   },
   {
     "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
-    "translation": "Wir konnten den webhook nicht löschen"
+    "translation": "Der Webhook konnte nicht gelöscht werden"
   },
   {
     "id": "store.sql_webhooks.save_incoming.app_error",
@@ -5033,7 +5117,7 @@
   },
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",
-    "translation": "Wir konnten den webhook nicht ändern"
+    "translation": "Der Webhook konnte nicht aktualisiert werden"
   },
   {
     "id": "system.message.name",

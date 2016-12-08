@@ -3760,6 +3760,10 @@
     "translation": "Create at must be a valid time"
   },
   {
+    "id": "model.team.is_valid.description.app_error",
+    "translation": "Invalid description"
+  },
+  {
     "id": "model.team.is_valid.domains.app_error",
     "translation": "Invalid allowed domains"
   },
@@ -3774,10 +3778,6 @@
   {
     "id": "model.team.is_valid.name.app_error",
     "translation": "Invalid name"
-  },
-  {
-    "id": "model.team.is_valid.description.app_error",
-    "translation": "Invalid description"
   },
   {
     "id": "model.team.is_valid.reserved.app_error",
