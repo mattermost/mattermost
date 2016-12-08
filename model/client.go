@@ -1769,6 +1769,18 @@ func (c *Client) GetTeamStats(teamId string) (*Result, *AppError) {
 	}
 }
 
+// GetTeamStats will return a team stats object containing the number of users on the team
+// based on the team id provided. Must be authenticated.
+func (c *Client) GetTeamByName(teamName string) (*Result, *AppError) {
+	if r, err := c.DoApiGet(fmt.Sprintf("/teams/name/%v", teamName), "", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), TeamStatsFromJson(r.Body)}, nil
+	}
+}
+
 // GetTeamMembersByIds will return team member objects as an array based on the
 // team id and a list of user ids provided. Must be authenticated.
 func (c *Client) GetTeamMembersByIds(teamId string, userIds []string) (*Result, *AppError) {

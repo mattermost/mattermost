@@ -797,3 +797,72 @@ func TestUpdateTeamDescription(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestGetTeamByName(t *testing.T) {
+	th := Setup().InitSystemAdmin().InitBasic()
+	th.BasicClient.Logout()
+	Client := th.BasicClient
+
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_INVITE}
+	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+
+	team2 := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN}
+	team2 = Client.Must(Client.CreateTeam(team2)).Data.(*model.Team)
+
+	user := &model.User{Email: team.Email, Nickname: "My Testing", Password: "passwd1"}
+	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
+	LinkUserToTeam(user, team)
+	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+
+	Client.Login(user.Email, "passwd1")
+	if _, err := Client.GetTeamByName(team.Name); err != nil {
+		t.Fatal("Failed to get team")
+	}
+
+	if _, err := Client.GetTeamByName("InvalidTeamName"); err == nil {
+		t.Fatal("Should not exist this team")
+	}
+
+	if _, err := Client.GetTeamByName(team2.Name); err != nil {
+		t.Fatal("Failed to get team")
+	}
+
+	Client.Must(Client.Logout())
+
+	user2 := &model.User{Email: "success+" + model.NewId() + "@simulator.amazonses.com", Nickname: "Jabba the Hutt", Password: "passwd1"}
+	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
+
+	Client.Login(user2.Email, "passwd1")
+
+	// TEAM_INVITE and user is not part of the team
+	if _, err := Client.GetTeamByName(team.Name); err == nil {
+		t.Fatal("Should not fail dont have permissions to get the team")
+	}
+
+	if _, err := Client.GetTeamByName("InvalidTeamName"); err == nil {
+		t.Fatal("Should not exist this team")
+	}
+
+	// TEAM_OPEN and user is not part of the team
+	if _, err := Client.GetTeamByName(team2.Name); err != nil {
+		t.Fatal("Should not fail team is open")
+	}
+
+	Client.Must(Client.Logout())
+	th.BasicClient.Logout()
+	th.LoginSystemAdmin()
+
+	if _, err := th.SystemAdminClient.GetTeamByName(team.Name); err != nil {
+		t.Fatal("Should not failed to get team the user is admin")
+	}
+
+	if _, err := th.SystemAdminClient.GetTeamByName(team2.Name); err != nil {
+		t.Fatal("Should not failed to get team the user is admin and team is open")
+	}
+
+	if _, err := Client.GetTeamByName("InvalidTeamName"); err == nil {
+		t.Fatal("Should not exist this team")
+	}
+
+}

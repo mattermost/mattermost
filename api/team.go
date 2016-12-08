@@ -31,6 +31,7 @@ func InitTeam() {
 	BaseRoutes.Teams.Handle("/all_team_listings", ApiUserRequired(GetAllTeamListings)).Methods("GET")
 	BaseRoutes.Teams.Handle("/get_invite_info", ApiAppHandler(getInviteInfo)).Methods("POST")
 	BaseRoutes.Teams.Handle("/find_team_by_name", ApiAppHandler(findTeamByName)).Methods("POST")
+	BaseRoutes.Teams.Handle("/name/{team_name:[A-Za-z0-9\\-]+}", ApiAppHandler(getTeamByName)).Methods("GET")
 
 	BaseRoutes.NeedTeam.Handle("/me", ApiUserRequired(getMyTeam)).Methods("GET")
 	BaseRoutes.NeedTeam.Handle("/stats", ApiUserRequired(getTeamStats)).Methods("GET")
@@ -698,6 +699,27 @@ func findTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("true"))
 	} else {
 		w.Write([]byte("false"))
+	}
+}
+
+func getTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	teamname := params["team_name"]
+
+	if result := <-Srv.Store.Team().GetByName(teamname); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		team := result.Data.(*model.Team)
+
+		if team.Type != model.TEAM_OPEN && c.Session.GetTeamByTeamId(team.Id) == nil {
+			if !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
+				return
+			}
+		}
+
+		w.Write([]byte(team.ToJson()))
+		return
 	}
 }
 
