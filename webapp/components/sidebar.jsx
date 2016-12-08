@@ -5,6 +5,7 @@ import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import NewChannelFlow from './new_channel_flow.jsx';
 import MoreDirectChannels from './more_direct_channels.jsx';
+import MoreChannels from 'components/more_channels.jsx';
 import SidebarHeader from './sidebar_header.jsx';
 import UnreadChannelIndicator from './unread_channel_indicator.jsx';
 import TutorialTip from './tutorial/tutorial_tip.jsx';
@@ -53,6 +54,7 @@ export default class Sidebar extends React.Component {
         this.handleLeaveDirectChannel = this.handleLeaveDirectChannel.bind(this);
 
         this.showMoreChannelsModal = this.showMoreChannelsModal.bind(this);
+        this.hideMoreChannelsModal = this.hideMoreChannelsModal.bind(this);
         this.showNewChannelModal = this.showNewChannelModal.bind(this);
         this.hideNewChannelModal = this.hideNewChannelModal.bind(this);
         this.showMoreDirectChannelsModal = this.showMoreDirectChannelsModal.bind(this);
@@ -72,6 +74,7 @@ export default class Sidebar extends React.Component {
         const state = this.getStateFromStores();
         state.newChannelModalType = '';
         state.showDirectChannelsModal = false;
+        state.showMoreChannelsModal = false;
         state.loadingDMChannel = -1;
         this.state = state;
     }
@@ -340,13 +343,11 @@ export default class Sidebar extends React.Component {
     }
 
     showMoreChannelsModal() {
-        // manually show the modal because using data-toggle messes with keyboard focus when the modal is dismissed
-        $('#more_channels').modal({'data-channeltype': 'O'}).modal('show');
-        $('#more_channels').on('shown.bs.modal', () => {
-            if (!UserAgent.isMobile()) {
-                $('#more_channels input').focus();
-            }
-        });
+        this.setState({showMoreChannelsModal: true});
+    }
+
+    hideMoreChannelsModal() {
+        this.setState({showMoreChannelsModal: false});
     }
 
     showNewChannelModal(type) {
@@ -552,6 +553,7 @@ export default class Sidebar extends React.Component {
             </li>
         );
     }
+
     render() {
         // Check if we have all info needed to render
         if (this.state.currentTeam == null || this.state.currentUser == null) {
@@ -721,8 +723,20 @@ export default class Sidebar extends React.Component {
         if (this.state.showDirectChannelsModal) {
             moreDirectChannelsModal = (
                 <MoreDirectChannels
-                    show={true}
                     onModalDismissed={this.hideMoreDirectChannelsModal}
+                />
+            );
+        }
+
+        let moreChannelsModal;
+        if (this.state.showMoreChannelsModal) {
+            moreChannelsModal = (
+                <MoreChannels
+                    onModalDismissed={this.hideMoreChannelsModal}
+                    handleNewChannel={() => {
+                        this.hideMoreChannelsModal();
+                        this.showNewChannelModal(Constants.OPEN_CHANNEL);
+                    }}
                 />
             );
         }
@@ -739,6 +753,7 @@ export default class Sidebar extends React.Component {
                     onModalDismissed={this.hideNewChannelModal}
                 />
                 {moreDirectChannelsModal}
+                {moreChannelsModal}
 
                 <SidebarHeader
                     teamDisplayName={this.state.currentTeam.display_name}

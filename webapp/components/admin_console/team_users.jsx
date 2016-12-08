@@ -43,6 +43,8 @@ export default class UserList extends React.Component {
         this.search = this.search.bind(this);
         this.loadComplete = this.loadComplete.bind(this);
 
+        this.searchTimeoutId = 0;
+
         const stats = TeamStore.getStats(this.props.params.team);
 
         this.state = {
@@ -148,14 +150,21 @@ export default class UserList extends React.Component {
         const options = {};
         options[UserSearchOptions.ALLOW_INACTIVE] = true;
 
-        searchUsers(
-            term,
-            this.props.params.team,
-            options,
-            (users) => {
-                this.setState({loading: true, search: true, users});
-                loadTeamMembersForProfilesList(users, this.props.params.team, this.loadComplete);
-            }
+        clearTimeout(this.searchTimeoutId);
+
+        this.searchTimeoutId = setTimeout(
+            () => {
+                searchUsers(
+                    term,
+                    this.props.params.team,
+                    options,
+                    (users) => {
+                        this.setState({loading: true, search: true, users});
+                        loadTeamMembersForProfilesList(users, this.props.params.team, this.loadComplete);
+                    }
+                );
+            },
+            Constants.SEARCH_TIMEOUT_MILLISECONDS
         );
     }
 

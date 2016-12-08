@@ -27,6 +27,8 @@ export default class MemberListTeam extends React.Component {
         this.search = this.search.bind(this);
         this.loadComplete = this.loadComplete.bind(this);
 
+        this.searchTimeoutId = 0;
+
         const stats = TeamStore.getCurrentStats();
 
         this.state = {
@@ -86,14 +88,21 @@ export default class MemberListTeam extends React.Component {
             return;
         }
 
-        searchUsers(
-            term,
-            TeamStore.getCurrentId(),
-            {},
-            (users) => {
-                this.setState({loading: true, search: true, users, term, teamMembers: Object.assign([], TeamStore.getMembersInTeam())});
-                loadTeamMembersForProfilesList(users, TeamStore.getCurrentId(), this.loadComplete);
-            }
+        clearTimeout(this.searchTimeoutId);
+
+        this.searchTimeoutId = setTimeout(
+            () => {
+                searchUsers(
+                    term,
+                    TeamStore.getCurrentId(),
+                    {},
+                    (users) => {
+                        this.setState({loading: true, search: true, users, term, teamMembers: Object.assign([], TeamStore.getMembersInTeam())});
+                        loadTeamMembersForProfilesList(users, TeamStore.getCurrentId(), this.loadComplete);
+                    }
+                );
+            },
+            Constants.SEARCH_TIMEOUT_MILLISECONDS
         );
     }
 
