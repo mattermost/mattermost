@@ -458,12 +458,11 @@ func revokeAllSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 		if session.IsOAuth {
 			RevokeAccessToken(session.Token)
 		} else {
-			sessionCache.Remove(session.Token)
-
 			if result := <-Srv.Store.Session().Remove(session.Id); result.Err != nil {
 				c.Err = result.Err
 				return
 			} else {
+				RemoveAllSessionsForUserId(session.UserId)
 				w.Write([]byte(model.MapToJson(props)))
 				return
 			}

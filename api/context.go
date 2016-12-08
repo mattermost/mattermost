@@ -17,6 +17,7 @@ import (
 
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 )
 
@@ -513,4 +514,12 @@ func RemoveAllSessionsForUserIdSkipClusterSend(userId string) {
 
 func AddSessionToCache(session *model.Session) {
 	sessionCache.AddWithExpiresInSecs(session.Token, session, int64(*utils.Cfg.ServiceSettings.SessionCacheInMinutes*60))
+}
+
+func InvalidateAllCaches() {
+	l4g.Info(utils.T("api.context.invalidate_all_caches"))
+	sessionCache.Purge()
+	ClearStatusCache()
+	store.ClearChannelCaches()
+	store.ClearUserCaches()
 }

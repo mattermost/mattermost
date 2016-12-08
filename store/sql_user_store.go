@@ -35,6 +35,10 @@ type SqlUserStore struct {
 
 var profilesInChannelCache *utils.Cache = utils.NewLru(PROFILES_IN_CHANNEL_CACHE_SIZE)
 
+func ClearUserCaches() {
+	profilesInChannelCache.Purge()
+}
+
 func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 	us := &SqlUserStore{sqlStore}
 

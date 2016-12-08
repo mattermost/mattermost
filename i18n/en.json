@@ -684,6 +684,10 @@
     "translation": "Invalid session token=%v, err=%v"
   },
   {
+    "id": "api.context.invalidate_all_caches",
+    "translation": "Purging all caches"
+  },
+  {
     "id": "api.context.last_activity_at.error",
     "translation": "Failed to update LastActivityAt for user_id=%v and session_id=%v, err=%v"
   },

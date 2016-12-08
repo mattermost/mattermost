@@ -16,6 +16,10 @@ import (
 
 var statusCache *utils.Cache = utils.NewLru(model.STATUS_CACHE_SIZE)
 
+func ClearStatusCache() {
+	statusCache.Purge()
+}
+
 func AddStatusCacheSkipClusterSend(status *model.Status) {
 	statusCache.Add(status.UserId, status)
 }
