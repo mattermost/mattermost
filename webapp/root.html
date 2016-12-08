@@ -36,10 +36,40 @@
 
     <!-- CSS Should always go first -->
     <link rel='stylesheet' class='code_theme'>
+    <style>
+        .error-screen {
+            font-family: 'Open Sans', sans-serif;
+            text-align: center;
+            padding-top: 50px;
+            color: #90d0bd;
+            display: none;
+        }
 
+        .error-screen-visible {
+            display: block;
+        }
+
+        .error-message {
+            padding-bottom: 50px;
+        }
+
+        .retry-button,
+        .retry-button:hover,
+        .retry-button:active,
+        .retry-button:visited {
+            border: 2px solid #90d0bd;
+            text-decoration: none;
+            color: #90d0bd;
+            padding: 10px;
+        }
+    </style>
 </head>
 <body>
     <div id='root'>
+        <div class='error-screen'>
+            <h1 class='error-message'>Cannot connect to uChat.</h1>
+            <a class='retry-button' onClick='window.location.reload();'>Try Again</a>
+        </div>
         <div
             class='loading-screen'
             style='position: relative'
@@ -52,6 +82,9 @@
         </div>
     </div>
     <script>
+        if (typeof window.setup_root === 'undefined' && !window.setup_root) {
+            document.querySelector('.error-screen').classList.add('error-screen-visible');
+        }
         window.setup_root();
     </script>
     <noscript>
