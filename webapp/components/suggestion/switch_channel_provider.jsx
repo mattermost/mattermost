@@ -43,8 +43,7 @@ class SwitchChannelSuggestion extends Suggestion {
                         src={Client.getUsersRoute() + '/' + item.id + '/image?time=' + item.update_at}
                     />
                 </div>
-            )
-            ;
+            );
         }
 
         return (

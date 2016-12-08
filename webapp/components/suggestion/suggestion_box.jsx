@@ -193,7 +193,6 @@ export default class SuggestionBox extends React.Component {
 
         // Don't pass props used by SuggestionBox
         Reflect.deleteProperty(props, 'providers');
-        Reflect.deleteProperty(props, 'preventDefaultSubmit');
         Reflect.deleteProperty(props, 'onItemSelected');
 
         const childProps = {

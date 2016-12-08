@@ -161,7 +161,6 @@ export default class SwitchChannelModal extends React.Component {
                         listComponent={SuggestionList}
                         maxLength='64'
                         providers={this.suggestionProviders}
-                        preventDefaultSubmit={false}
                         listStyle='bottom'
                     />
                 </Modal.Body>
