@@ -218,7 +218,7 @@ export default class Post extends React.Component {
             profilePic = (
                 <ProfilePicture
                     src=''
-                    status={this.props.status}
+                    status={status}
                     user={this.props.user}
                 />
             );
