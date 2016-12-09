@@ -94,7 +94,7 @@ export default class SearchableUserList extends React.Component {
         } else if (this.state.search || this.props.users == null) {
             usersToDisplay = this.props.users;
 
-            if (this.props.total) {
+            if (this.props.total && !this.props.hidePageCounts) {
                 count = (
                     <FormattedMessage
                         id='filtered_user_list.countTotal'
@@ -128,7 +128,7 @@ export default class SearchableUserList extends React.Component {
                 );
             }
 
-            if (this.props.total) {
+            if (this.props.total && !this.props.hidePageCounts) {
                 const startCount = this.state.page * this.props.usersPerPage;
                 const endCount = startCount + usersToDisplay.length;
 
@@ -197,6 +197,7 @@ SearchableUserList.propTypes = {
     users: React.PropTypes.arrayOf(React.PropTypes.object),
     usersPerPage: React.PropTypes.number,
     total: React.PropTypes.number,
+    hidePageCounts: React.PropTypes.bool,
     extraInfo: React.PropTypes.object,
     nextPage: React.PropTypes.func.isRequired,
     search: React.PropTypes.func.isRequired,
