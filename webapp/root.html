@@ -82,7 +82,7 @@
         </div>
     </div>
     <script>
-        if (typeof window.setup_root === 'undefined' && !window.setup_root) {
+        if (typeof window.setup_root !== 'function') {
             document.querySelector('.error-screen').classList.add('error-screen-visible');
         }
         window.setup_root();
