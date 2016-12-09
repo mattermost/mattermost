@@ -1,8 +1,6 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
-
 import Constants from 'utils/constants.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import SuggestionStore from 'stores/suggestion_store.jsx';
@@ -18,7 +16,7 @@ export default class SuggestionBox extends React.Component {
     constructor(props) {
         super(props);
 
-        this.handleDocumentClick = this.handleDocumentClick.bind(this);
+        this.handleBlur = this.handleBlur.bind(this);
 
         this.handleCompleteWord = this.handleCompleteWord.bind(this);
         this.handleChange = this.handleChange.bind(this);
@@ -36,8 +34,6 @@ export default class SuggestionBox extends React.Component {
     }
 
     componentDidMount() {
-        $(document).on('click', this.handleDocumentClick);
-
         SuggestionStore.addCompleteWordListener(this.suggestionId, this.handleCompleteWord);
         SuggestionStore.addPretextChangedListener(this.suggestionId, this.handlePretextChanged);
     }
@@ -55,7 +51,6 @@ export default class SuggestionBox extends React.Component {
         SuggestionStore.removePretextChangedListener(this.suggestionId, this.handlePretextChanged);
 
         SuggestionStore.unregisterSuggestionBox(this.suggestionId);
-        $(document).off('click', this.handleDocumentClick);
     }
 
     getTextbox() {
@@ -72,18 +67,11 @@ export default class SuggestionBox extends React.Component {
         }
     }
 
-    handleDocumentClick(e) {
-        if (!SuggestionStore.hasSuggestions(this.suggestionId)) {
-            return;
-        }
-
-        const container = $(this.refs.container);
-
-        if (!(container.is(e.target) || container.has(e.target).length > 0)) {
-            // We can't just use blur for this because it fires and hides the children before
-            // their click handlers can be called
+    handleBlur() {
+        setTimeout(() => {
+            // Delay this slightly so that we don't clear the suggestions before we run click handlers on SuggestionList
             GlobalActions.emitClearSuggestions(this.suggestionId);
-        }
+        }, 100);
     }
 
     handleChange(e) {
@@ -214,6 +202,7 @@ export default class SuggestionBox extends React.Component {
 
         const childProps = {
             ref: 'textbox',
+            onBlur: this.handleBlur,
             onInput: this.handleChange,
             onCompositionStart: this.handleCompositionStart,
             onCompositionUpdate: this.handleCompositionUpdate,
