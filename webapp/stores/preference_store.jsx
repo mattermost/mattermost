@@ -109,8 +109,9 @@ class PreferenceStore extends EventEmitter {
     }
 
     getTheme(teamId) {
-        if (global.window.mm_config.EnableThemeSelection !== 'true' && Constants.THEMES.shift) {
-            return Constants.THEMES.shift;
+        const defaultTheme = Constants.THEMES.shift || Constants.THEMES.default;
+        if (global.window.mm_config.EnableThemeSelection !== 'true') {
+            return defaultTheme;
         }
 
         if (this.preferences.has(this.getKey(Constants.Preferences.CATEGORY_THEME, teamId))) {
@@ -121,7 +122,7 @@ class PreferenceStore extends EventEmitter {
             return this.getObject(Constants.Preferences.CATEGORY_THEME, '');
         }
 
-        return Constants.THEMES.default;
+        return defaultTheme;
     }
 
     handleEventPayload(payload) {
