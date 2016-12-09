@@ -12,6 +12,7 @@ export default class EmailConnectionTestButton extends React.Component {
     static get propTypes() {
         return {
             config: React.PropTypes.object.isRequired,
+            getConfigFromState: React.PropTypes.func.isRequired,
             disabled: React.PropTypes.bool.isRequired
         };
     }
@@ -37,8 +38,11 @@ export default class EmailConnectionTestButton extends React.Component {
             fail: null
         });
 
+        const config = JSON.parse(JSON.stringify(this.props.config));
+        this.props.getConfigFromState(config);
+
         Client.testEmail(
-            this.props.config,
+            config,
             () => {
                 this.setState({
                     testing: false,

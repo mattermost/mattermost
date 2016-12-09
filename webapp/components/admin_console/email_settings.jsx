@@ -272,7 +272,8 @@ export default class EmailSettings extends AdminSettings {
                     disabled={!this.state.sendEmailNotifications}
                 />
                 <EmailConnectionTest
-                    config={this.getConfigFromState(this.props.config)}
+                    config={this.props.config}
+                    getConfigFromState={this.getConfigFromState}
                     disabled={!this.state.sendEmailNotifications}
                 />
                 <BooleanSetting
