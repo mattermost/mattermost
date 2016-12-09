@@ -3,6 +3,7 @@
 
 import Constants from 'utils/constants.jsx';
 
+import {trackEvent} from 'actions/diagnostics_actions.jsx';
 import {switchTeams} from 'actions/team_actions.jsx';
 
 import React from 'react';
@@ -19,6 +20,7 @@ export default class TeamButton extends React.Component {
 
     handleSwitch(e) {
         e.preventDefault();
+        trackEvent('ui', 'ui_team_sidebar_switch_team');
         switchTeams(this.props.url);
     }
 

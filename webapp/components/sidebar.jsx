@@ -21,6 +21,7 @@ import * as Utils from 'utils/utils.jsx';
 import * as ChannelUtils from 'utils/channel_utils.jsx';
 import * as ChannelActions from 'actions/channel_actions.jsx';
 
+import {trackEvent} from 'actions/diagnostics_actions.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
@@ -363,6 +364,7 @@ export default class Sidebar extends React.Component {
 
     showMoreChannelsModal() {
         this.setState({showMoreChannelsModal: true});
+        trackEvent('ui', 'ui_channels_more_public');
     }
 
     hideMoreChannelsModal() {
@@ -378,6 +380,7 @@ export default class Sidebar extends React.Component {
     }
 
     showMoreDirectChannelsModal() {
+        trackEvent('ui', 'ui_channels_more_direct');
         this.setState({showDirectChannelsModal: true});
     }
 
@@ -448,6 +451,7 @@ export default class Sidebar extends React.Component {
                 placement='right'
                 screens={screens}
                 overlayClass='tip-overlay--sidebar'
+                diagnosticsTag='tutorial_tip_2_channels'
             />
         );
     }
@@ -566,6 +570,7 @@ export default class Sidebar extends React.Component {
                 <Link
                     to={link}
                     className={rowClass}
+                    onClick={this.trackChannelSelectedEvent}
                 >
                     {icon}
                     {channel.display_name}
@@ -575,6 +580,10 @@ export default class Sidebar extends React.Component {
                 {tutorialTip}
             </li>
         );
+    }
+
+    trackChannelSelectedEvent() {
+        trackEvent('ui', 'ui_channel_selected');
     }
 
     render() {

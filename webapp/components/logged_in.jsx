@@ -26,7 +26,6 @@ export default class LoggedIn extends React.Component {
         super(params);
 
         this.onUserChanged = this.onUserChanged.bind(this);
-        this.setupUser = this.setupUser.bind(this);
 
         // Because current CSS requires the root tag to have specific stuff
         $('#root').attr('class', 'channel-view');
@@ -45,9 +44,7 @@ export default class LoggedIn extends React.Component {
             user: UserStore.getCurrentUser()
         };
 
-        if (this.state.user) {
-            this.setupUser(this.state.user);
-        } else {
+        if (!this.state.user) {
             GlobalActions.emitUserLoggedOutEvent('/login');
         }
     }
@@ -56,21 +53,10 @@ export default class LoggedIn extends React.Component {
         return this.state.user != null;
     }
 
-    setupUser(user) {
-        // Update segment indentify
-        if (global.window.mm_config.SegmentDeveloperKey != null && global.window.mm_config.SegmentDeveloperKey !== '') {
-            global.window.analytics.identify(user.id, {
-                createdAt: user.create_at,
-                id: user.id
-            });
-        }
-    }
-
     onUserChanged() {
         // Grab the current user
         const user = UserStore.getCurrentUser();
         if (!Utils.areObjectsEqual(this.state.user, user)) {
-            this.setupUser(user);
             this.setState({
                 user
             });
