@@ -222,6 +222,11 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.Err == nil {
+		//check if teamId exist
+		c.CheckTeamId()
+	}
+
+	if c.Err == nil {
 		h.handleFunc(c, w, r)
 	}
 
@@ -565,4 +570,20 @@ func InvalidateAllCaches() {
 	store.ClearChannelCaches()
 	store.ClearUserCaches()
 	store.ClearPostCaches()
+}
+
+func (c *Context) CheckTeamId() {
+	if c.TeamId != "" && c.Session.GetTeamByTeamId(c.TeamId) == nil {
+		if HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
+			if result := <-Srv.Store.Team().Get(c.TeamId); result.Err != nil {
+				c.Err = result.Err
+				c.Err.StatusCode = http.StatusBadRequest
+				return
+			}
+		} else {
+			c.Err = model.NewLocAppError("", "api.context.teamid.app_error", nil, "TeamIdRequired")
+			c.Err.StatusCode = http.StatusBadRequest
+			return
+		}
+	}
 }
