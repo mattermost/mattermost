@@ -47,7 +47,7 @@ export default class TeamMembersModal extends React.Component {
 
         return (
             <Modal
-                dialogClassName='more-modal'
+                dialogClassName='more-modal list-members'
                 show={this.state.show}
                 onHide={this.onHide}
                 onExited={this.props.onHide}

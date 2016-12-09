@@ -1314,17 +1314,21 @@
             }
 
             .more-modal__list {
-                max-height: calc(100vh - 260px);
+                max-height: calc(100vh - 306px);
             }
-
             &.more-direct-channels {
                 .more-modal__list {
-                    max-height: calc(100vh - 245px);
+                    max-height: calc(100vh - 316px);
                 }
             }
-            &.more-channels {
+            &.list-members {
                 .more-modal__list {
-                    max-height: calc(100vh - 306px);
+                    max-height: calc(100vh - 265px);
+                }
+            }
+            &.no-team-filter, &.no-new-channel-btn {
+                .more-modal__list {
+                    max-height: calc(100vh - 260px);
                 }
             }
         }
