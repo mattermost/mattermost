@@ -158,6 +158,24 @@ export default class MoreChannelsList extends React.Component {
             );
         }
 
+        let channelsContent = '';
+        if (channelsToDisplay.length > 0) {
+            channelsContent = channelsToDisplay.map(this.createChannelRow);
+        } else {
+            if (this.props.isSearch) {
+                channelsContent = (
+                    <div className='no-channel-message'>
+                        <p className='primary-message'>
+                            <FormattedMessage
+                                id='more_channels.noChannelsFound'
+                                defaultMessage='No channels found'
+                            />
+                        </p>
+                    </div>
+                );
+            }
+        }
+
         return (
             <div className='filtered-user-list'>
                 <div className='filter-row'>
@@ -178,7 +196,7 @@ export default class MoreChannelsList extends React.Component {
                     ref='channelList'
                     className='more-modal__list'
                 >
-                    {channelsToDisplay.map(this.createChannelRow)}
+                    {channelsContent}
                     {nextButton}
                 </div>
             </div>
@@ -188,7 +206,8 @@ export default class MoreChannelsList extends React.Component {
 
 MoreChannelsList.defaultProps = {
     channels: [],
-    channelsPerPage: 50 //eslint-disable-line no-magic-numbers
+    channelsPerPage: 50, //eslint-disable-line no-magic-numbers
+    isSearch: false
 };
 
 MoreChannelsList.propTypes = {
@@ -197,5 +216,6 @@ MoreChannelsList.propTypes = {
     channelsPerPage: React.PropTypes.number,
     total: React.PropTypes.number,
     nextPage: React.PropTypes.func.isRequired,
-    search: React.PropTypes.func.isRequired
+    search: React.PropTypes.func.isRequired,
+    isSearch: React.PropTypes.bool
 };

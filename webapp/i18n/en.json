@@ -1506,6 +1506,7 @@
   "more_channels.createClick": "Click 'Create New Channel' to make a new one",
   "more_channels.join": "Join",
   "more_channels.noMore": "No more channels to join",
+  "more_channels.noChannelsFound": "No channels found",
   "more_channels.title": "More Channels",
   "more_direct_channels.close": "Close",
   "more_direct_channels.message": "Message",

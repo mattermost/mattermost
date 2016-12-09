@@ -150,6 +150,7 @@ export default class MoreChannelsNew extends React.Component {
                     channelsPerPage={Constants.CHANNELS_CHUNK_SIZE}
                     handleJoin={this.handleJoin}
                     search={this.search}
+                    isSearch={this.state.search !== ''}
                     nextPage={this.nextPage}
                     total={ChannelStore.getPaginatedChannelsCount()}
                 />

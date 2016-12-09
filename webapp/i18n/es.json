@@ -1503,6 +1503,7 @@
   "more_channels.createClick": "Haz clic en 'Crear Nuevo Canal' para crear uno nuevo",
   "more_channels.join": "Unirme",
   "more_channels.noMore": "No hay más canales para unirse",
+  "more_channels.noChannelsFound": "No se encontraron canales",
   "more_channels.title": "Más Canales",
   "more_direct_channels.close": "Cerrar",
   "more_direct_channels.message": "Mensaje",
