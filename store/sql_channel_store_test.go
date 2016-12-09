@@ -88,6 +88,23 @@ func TestChannelStoreSaveDirectChannel(t *testing.T) {
 		t.Fatal("shouldn't be able to update from save")
 	}
 
+	// Attempt to save a direct channel that already exists
+	o1a := model.Channel{
+		TeamId:      o1.TeamId,
+		DisplayName: o1.DisplayName,
+		Name:        o1.Name,
+		Type:        o1.Type,
+	}
+
+	if result := <-store.Channel().SaveDirectChannel(&o1a, &m1, &m2); result.Err == nil {
+		t.Fatal("should've failed to save a duplicate direct channel")
+	} else if result.Err.Id != CHANNEL_EXISTS_ERROR {
+		t.Fatal("should've returned CHANNEL_EXISTS_ERROR")
+	} else if returned := result.Data.(*model.Channel); returned.Id != o1.Id {
+		t.Fatal("should've returned original channel when saving a duplicate direct channel")
+	}
+
+	// Attempt to save a non-direct channel
 	o1.Id = ""
 	o1.Name = "a" + model.NewId() + "b"
 	o1.Type = model.CHANNEL_OPEN
