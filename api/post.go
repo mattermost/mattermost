@@ -279,6 +279,10 @@ func handlePostEvents(c *Context, post *model.Post, triggerWebhooks bool) {
 	if channel.Type == model.CHANNEL_DIRECT {
 		go makeDirectChannelVisible(post.ChannelId)
 	}
+
+	if triggerWebhooks && channel.Type == model.CHANNEL_DIRECT {
+		go MatterbotProcessPost(c, post)
+	}
 }
 
 func makeDirectChannelVisible(channelId string) {

@@ -159,6 +159,8 @@ func CreateDirectChannel(userId string, otherUserId string) (*model.Channel, *mo
 	}
 
 	if result := <-Srv.Store.Channel().CreateDirectChannel(userId, otherUserId); result.Err != nil {
+
+		// note: this may not actually give the existing channel, possible bug in sql_channel_store, saveChannelT()
 		if result.Err.Id == store.CHANNEL_EXISTS_ERROR {
 			return result.Data.(*model.Channel), nil
 		} else {
@@ -828,6 +830,8 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			if _, err := CreatePost(c, post, false); err != nil {
 				l4g.Error(utils.T("api.channel.delete_channel.failed_post.error"), err)
 			}
+
+			go MatterbotPostChannelDeletedMessage(c, channel, user)
 		}()
 
 		result := make(map[string]string)
@@ -1117,6 +1121,8 @@ func removeMember(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.LogAudit("name=" + channel.Name + " user_id=" + userIdToRemove)
 
 			go PostUserAddRemoveMessage(c, channel.Id, fmt.Sprintf(utils.T("api.channel.remove_member.removed"), oUser.Username), model.POST_ADD_REMOVE)
+
+			go MatterbotPostUserRemovedMessage(c, userIdToRemove, c.Session.UserId, channel)
 
 			result := make(map[string]string)
 			result["channel_id"] = channel.Id

@@ -22,6 +22,7 @@ func commandAndTest(t *testing.T, th *TestHelper, status string) {
 	channel := th.BasicChannel
 	user := th.BasicUser
 
+	Client.Login(user.Username, user.Password)
 	r1 := Client.Must(Client.Command(channel.Id, "/"+status, false)).Data.(*model.CommandResponse)
 	if r1 == nil {
 		t.Fatal("Command failed to execute")
