@@ -99,8 +99,9 @@ type ClusterSettings struct {
 }
 
 type MetricsSettings struct {
-	Enable        *bool
-	ListenAddress *string
+	Enable           *bool
+	BlockProfileRate *int
+	ListenAddress    *string
 }
 
 type SSOSettings struct {
@@ -972,6 +973,11 @@ func (o *Config) SetDefaults() {
 	if o.ServiceSettings.Forward80To443 == nil {
 		o.ServiceSettings.Forward80To443 = new(bool)
 		*o.ServiceSettings.Forward80To443 = false
+	}
+
+	if o.MetricsSettings.BlockProfileRate == nil {
+		o.MetricsSettings.BlockProfileRate = new(int)
+		*o.MetricsSettings.BlockProfileRate = 0
 	}
 
 	o.defaultWebrtcSettings()
