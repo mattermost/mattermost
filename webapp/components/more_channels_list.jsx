@@ -161,19 +161,17 @@ export default class MoreChannelsList extends React.Component {
         let channelsContent = '';
         if (channelsToDisplay.length > 0) {
             channelsContent = channelsToDisplay.map(this.createChannelRow);
-        } else {
-            if (this.props.isSearch) {
-                channelsContent = (
-                    <div className='no-channel-message'>
-                        <p className='primary-message'>
-                            <FormattedMessage
-                                id='more_channels.noChannelsFound'
-                                defaultMessage='No channels found'
-                            />
-                        </p>
-                    </div>
-                );
-            }
+        } else if (this.props.isSearch) {
+            channelsContent = (
+                <div className='no-channel-message'>
+                    <p className='primary-message'>
+                        <FormattedMessage
+                            id='more_channels.noChannelsFound'
+                            defaultMessage='No channels found'
+                        />
+                    </p>
+                </div>
+            );
         }
 
         return (
