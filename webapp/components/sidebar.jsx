@@ -19,6 +19,7 @@ import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as ChannelUtils from 'utils/channel_utils.jsx';
 import * as ChannelActions from 'actions/channel_actions.jsx';
+import * as UserAgent from 'utils/user_agent.jsx';
 
 import Constants from 'utils/constants.jsx';
 
@@ -341,6 +342,11 @@ export default class Sidebar extends React.Component {
     showMoreChannelsModal() {
         // manually show the modal because using data-toggle messes with keyboard focus when the modal is dismissed
         $('#more_channels').modal({'data-channeltype': 'O'}).modal('show');
+        $('#more_channels').on('shown.bs.modal', () => {
+            if (!UserAgent.isMobile()) {
+                $('#more_channels input').focus();
+            }
+        });
     }
 
     showNewChannelModal(type) {
