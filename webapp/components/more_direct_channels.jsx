@@ -244,6 +244,7 @@ export default class MoreDirectChannels extends React.Component {
                         key={'moreDirectChannelsList_' + this.state.listType}
                         users={this.state.users}
                         total={(this.state.users || []).length}
+                        hidePageCounts={true}
                         usersPerPage={USERS_PER_PAGE}
                         nextPage={this.nextPage}
                         search={this.search}
@@ -251,18 +252,6 @@ export default class MoreDirectChannels extends React.Component {
                         focusOnMount={!UserAgent.isMobile()}
                     />
                 </Modal.Body>
-                <Modal.Footer>
-                    <button
-                        type='button'
-                        className='btn btn-default'
-                        onClick={this.handleHide}
-                    >
-                        <FormattedMessage
-                            id='more_direct_channels.close'
-                            defaultMessage='Close'
-                        />
-                    </button>
-                </Modal.Footer>
             </Modal>
         );
     }

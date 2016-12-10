@@ -150,6 +150,7 @@ export default class MoreChannelsNew extends React.Component {
                     channelsPerPage={Constants.CHANNELS_CHUNK_SIZE}
                     handleJoin={this.handleJoin}
                     search={this.search}
+                    isSearch={this.state.search !== ''}
                     nextPage={this.nextPage}
                     total={ChannelStore.getPaginatedChannelsCount()}
                 />
@@ -190,18 +191,6 @@ export default class MoreChannelsNew extends React.Component {
                         <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>
                     }
                 </Modal.Body>
-                <Modal.Footer>
-                    <button
-                        type='button'
-                        className='btn btn-default'
-                        onClick={this.handleHide}
-                    >
-                        <FormattedMessage
-                            id='more_channels.close'
-                            defaultMessage='Close'
-                        />
-                    </button>
-                </Modal.Footer>
             </Modal>
         );
     }

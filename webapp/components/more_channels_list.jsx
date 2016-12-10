@@ -4,6 +4,7 @@
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import * as UserAgent from 'utils/user_agent.jsx';
+import SpinnerButton from 'components/spinner_button.jsx';
 
 import {localizeMessage} from 'utils/utils.jsx';
 import {FormattedMessage} from 'react-intl';
@@ -18,7 +19,6 @@ export default class MoreChannelsList extends React.Component {
         super(props);
 
         this.nextPage = this.nextPage.bind(this);
-        this.previousPage = this.previousPage.bind(this);
         this.handleFilterChange = this.handleFilterChange.bind(this);
         this.createChannelRow = this.createChannelRow.bind(this);
 
@@ -46,12 +46,6 @@ export default class MoreChannelsList extends React.Component {
         }
     }
 
-    componentDidUpdate(prevProps, prevState) {
-        if (this.state.page !== prevState.page) {
-            $(ReactDOM.findDOMNode(this.refs.channelList)).scrollTop(0);
-        }
-    }
-
     nextPage(e) {
         e.preventDefault();
         this.setState({page: this.state.page + 1, nextDisabled: true});
@@ -59,13 +53,14 @@ export default class MoreChannelsList extends React.Component {
         this.props.nextPage(this.state.page + 1);
     }
 
-    previousPage(e) {
-        e.preventDefault();
-        this.setState({page: this.state.page - 1});
-    }
-
     clearFilters(channels) {
         this.setState({filter: '', channels});
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        if (prevState.filter !== this.state.filter) {
+            $(ReactDOM.findDOMNode(this.refs.channelList)).scrollTop(0);
+        }
     }
 
     handleJoin(channel) {
@@ -119,42 +114,32 @@ export default class MoreChannelsList extends React.Component {
     handleFilterChange(e) {
         this.setState({page: 0, filter: e.target.value});
         this.props.search(e.target.value);
+        $(ReactDOM.findDOMNode(this.refs.channelList)).scrollTop(0);
     }
 
     render() {
         const channels = Object.values(this.state.channels);
 
         let nextButton;
-        let previousButton;
         let count;
-
-        const startCount = this.state.page * this.props.channelsPerPage;
-        let endCount = startCount + this.props.channelsPerPage;
-        if (this.props.total < endCount) {
-            endCount = this.props.total;
-        }
+        const startCount = 0;
+        const endCount = (this.state.page + 1) * this.props.channelsPerPage;
         const channelsToDisplay = channels.slice(startCount, endCount);
 
         if (endCount < this.props.total) {
             nextButton = (
-                <button
-                    className='btn btn-default filter-control filter-control__next'
-                    onClick={this.nextPage}
-                    disabled={this.state.nextDisabled}
-                >
-                    {'Next'}
-                </button>
-            );
-        }
-
-        if (this.state.page > 0) {
-            previousButton = (
-                <button
-                    className='btn btn-default filter-control filter-control__prev'
-                    onClick={this.previousPage}
-                >
-                    {'Previous'}
-                </button>
+                <div style={{'text-align': 'center'}}>
+                    <SpinnerButton
+                        className='btn btn-default filter-control filter-control__next'
+                        onClick={this.nextPage}
+                        spinning={this.state.nextDisabled}
+                    >
+                        <FormattedMessage
+                            id='more_direct_channels.load_more'
+                            defaultMessage='Load more'
+                        />
+                    </SpinnerButton>
+                </div>
             );
         }
 
@@ -170,6 +155,22 @@ export default class MoreChannelsList extends React.Component {
                         total: this.props.total
                     }}
                 />
+            );
+        }
+
+        let channelsContent = '';
+        if (channelsToDisplay.length > 0) {
+            channelsContent = channelsToDisplay.map(this.createChannelRow);
+        } else if (this.props.isSearch) {
+            channelsContent = (
+                <div className='no-channel-message'>
+                    <p className='primary-message'>
+                        <FormattedMessage
+                            id='more_channels.noChannelsFound'
+                            defaultMessage='No channels found'
+                        />
+                    </p>
+                </div>
             );
         }
 
@@ -193,10 +194,7 @@ export default class MoreChannelsList extends React.Component {
                     ref='channelList'
                     className='more-modal__list'
                 >
-                    {channelsToDisplay.map(this.createChannelRow)}
-                </div>
-                <div className='filter-controls'>
-                    {previousButton}
+                    {channelsContent}
                     {nextButton}
                 </div>
             </div>
@@ -206,7 +204,8 @@ export default class MoreChannelsList extends React.Component {
 
 MoreChannelsList.defaultProps = {
     channels: [],
-    channelsPerPage: 50 //eslint-disable-line no-magic-numbers
+    channelsPerPage: 50, //eslint-disable-line no-magic-numbers
+    isSearch: false
 };
 
 MoreChannelsList.propTypes = {
@@ -215,5 +214,6 @@ MoreChannelsList.propTypes = {
     channelsPerPage: React.PropTypes.number,
     total: React.PropTypes.number,
     nextPage: React.PropTypes.func.isRequired,
-    search: React.PropTypes.func.isRequired
+    search: React.PropTypes.func.isRequired,
+    isSearch: React.PropTypes.bool
 };
