@@ -251,6 +251,7 @@
         "TurnSharedKey": ""
     },
     "UchatConfig": {
+        "EnableLocaleSetting": false,
         "PaginateMoreChannelsModal": true,
         "EnableThemeSelection": true,
         "AllowedThemes": [
