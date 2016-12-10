@@ -47,7 +47,7 @@ export default class TeamMembersModal extends React.Component {
 
         return (
             <Modal
-                dialogClassName='more-modal'
+                dialogClassName='more-modal list-members'
                 show={this.state.show}
                 onHide={this.onHide}
                 onExited={this.props.onHide}
@@ -68,18 +68,6 @@ export default class TeamMembersModal extends React.Component {
                         isAdmin={this.props.isAdmin}
                     />
                 </Modal.Body>
-                <Modal.Footer>
-                    <button
-                        type='button'
-                        className='btn btn-default'
-                        onClick={this.onHide}
-                    >
-                        <FormattedMessage
-                            id='team_member_modal.close'
-                            defaultMessage='Close'
-                        />
-                    </button>
-                </Modal.Footer>
             </Modal>
         );
     }

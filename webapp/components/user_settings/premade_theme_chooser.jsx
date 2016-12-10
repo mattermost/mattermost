@@ -16,34 +16,36 @@ export default class PremadeThemeChooser extends React.Component {
         const theme = this.props.theme;
 
         const premadeThemes = [];
+        const allowedThemes = global.window.mm_config.AllowedThemes.split(',');
         for (const k in Constants.THEMES) {
             if (Constants.THEMES.hasOwnProperty(k)) {
-                const premadeTheme = $.extend(true, {}, Constants.THEMES[k]);
+                if (allowedThemes.indexOf(k) >= 0) {
+                    const premadeTheme = $.extend(true, {}, Constants.THEMES[k]);
+                    let activeClass = '';
+                    if (premadeTheme.type === theme.type) {
+                        activeClass = 'active';
+                    }
 
-                let activeClass = '';
-                if (premadeTheme.type === theme.type) {
-                    activeClass = 'active';
-                }
-
-                premadeThemes.push(
-                    <div
-                        className='col-xs-6 col-sm-3 premade-themes'
-                        key={'premade-theme-key' + k}
-                    >
+                    premadeThemes.push(
                         <div
-                            className={activeClass}
-                            onClick={() => this.props.updateTheme(premadeTheme)}
+                            className='col-xs-6 col-sm-3 premade-themes'
+                            key={'premade-theme-key' + k}
                         >
-                            <label>
-                                <img
-                                    className='img-responsive'
-                                    src={premadeTheme.image}
-                                />
-                                <div className='theme-label'>{Utils.toTitleCase(premadeTheme.type)}</div>
-                            </label>
+                            <div
+                                className={activeClass}
+                                onClick={() => this.props.updateTheme(premadeTheme)}
+                            >
+                                <label>
+                                    <img
+                                        className='img-responsive'
+                                        src={premadeTheme.image}
+                                    />
+                                    <div className='theme-label'>{Utils.toTitleCase(premadeTheme.type)}</div>
+                                </label>
+                            </div>
                         </div>
-                    </div>
-                );
+                    );
+                }
             }
         }
 

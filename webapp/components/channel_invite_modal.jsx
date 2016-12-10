@@ -152,7 +152,7 @@ export default class ChannelInviteModal extends React.Component {
 
         return (
             <Modal
-                dialogClassName='more-modal'
+                dialogClassName='more-modal list-members'
                 show={this.state.show}
                 onHide={this.onHide}
                 onExited={this.props.onHide}
@@ -170,18 +170,6 @@ export default class ChannelInviteModal extends React.Component {
                     {inviteError}
                     {content}
                 </Modal.Body>
-                <Modal.Footer>
-                    <button
-                        type='button'
-                        className='btn btn-default'
-                        onClick={this.onHide}
-                    >
-                        <FormattedMessage
-                            id='channel_invite.close'
-                            defaultMessage='Close'
-                        />
-                    </button>
-                </Modal.Footer>
             </Modal>
         );
     }

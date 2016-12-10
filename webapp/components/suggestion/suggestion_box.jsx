@@ -138,6 +138,8 @@ export default class SuggestionBox extends React.Component {
             } else if (e.which === KeyCodes.DOWN) {
                 GlobalActions.emitSelectNextSuggestion(this.suggestionId);
                 e.preventDefault();
+            } else if (this.props.overrideEnterKey && this.props.onKeyDown && e.which === KeyCodes.ENTER) {
+                this.props.onKeyDown(e, SuggestionStore.getSelection(this.suggestionId));
             } else if (e.which === KeyCodes.ENTER || e.which === KeyCodes.TAB) {
                 GlobalActions.emitCompleteWordSuggestion(this.suggestionId);
                 e.preventDefault();
@@ -242,6 +244,7 @@ SuggestionBox.propTypes = {
     providers: React.PropTypes.arrayOf(React.PropTypes.object),
     listStyle: React.PropTypes.string,
     renderDividers: React.PropTypes.bool,
+    overrideEnterKey: React.PropTypes.bool,
 
     // explicitly name any input event handlers we override and need to manually call
     onChange: React.PropTypes.func,

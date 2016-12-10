@@ -124,13 +124,17 @@ export default class MoreChannelsNew extends React.Component {
         const isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
         const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
 
+        let noNewChannelBtnClass = '';
+
         if (global.window.mm_license.IsLicensed === 'true') {
             if (config.RestrictPublicChannelManagement === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
                 createNewChannelButton = null;
                 createChannelHelpText = null;
+                noNewChannelBtnClass = 'no-new-channel-btn';
             } else if (config.RestrictPublicChannelManagement === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
                 createNewChannelButton = null;
                 createChannelHelpText = null;
+                noNewChannelBtnClass = 'no-new-channel-btn';
             }
         }
 
@@ -146,6 +150,7 @@ export default class MoreChannelsNew extends React.Component {
                     channelsPerPage={Constants.CHANNELS_CHUNK_SIZE}
                     handleJoin={this.handleJoin}
                     search={this.search}
+                    isSearch={this.state.search !== ''}
                     nextPage={this.nextPage}
                     total={ChannelStore.getPaginatedChannelsCount()}
                 />
@@ -166,7 +171,7 @@ export default class MoreChannelsNew extends React.Component {
 
         return (
             <Modal
-                dialogClassName='more-modal more-channels more-direct-channels'
+                dialogClassName={`more-modal more-channels ${noNewChannelBtnClass}`}
                 show={this.state.show}
                 onHide={this.handleHide}
                 onExited={this.props.onModalDismissed}
@@ -186,18 +191,6 @@ export default class MoreChannelsNew extends React.Component {
                         <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>
                     }
                 </Modal.Body>
-                <Modal.Footer>
-                    <button
-                        type='button'
-                        className='btn btn-default'
-                        onClick={this.handleHide}
-                    >
-                        <FormattedMessage
-                            id='more_channels.close'
-                            defaultMessage='Close'
-                        />
-                    </button>
-                </Modal.Footer>
             </Modal>
         );
     }

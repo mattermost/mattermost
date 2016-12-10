@@ -467,7 +467,7 @@ func (s SqlChannelStore) GetPaginatedChannels(teamId string, userId string, offs
 		if len(strings.TrimSpace(term)) == 0 {
 			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
 		} else {
-			searchClause := fmt.Sprintf("AND Name like :Term OR DisplayName like :Term")
+			searchClause := fmt.Sprintf("AND (Name like :Term OR DisplayName like :Term)")
 			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 		}
 
