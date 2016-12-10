@@ -49,11 +49,11 @@ func (me *CollapseProvider) GetCommand(c *Context) *model.Command {
 	}
 }
 
-func (me *ExpandProvider) DoCommand(c *Context, channelId string, message string) *model.CommandResponse {
+func (me *ExpandProvider) DoCommand(c *Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	return setCollapsePreference(c, "false")
 }
 
-func (me *CollapseProvider) DoCommand(c *Context, channelId string, message string) *model.CommandResponse {
+func (me *CollapseProvider) DoCommand(c *Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	return setCollapsePreference(c, "true")
 }
 

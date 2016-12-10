@@ -826,12 +826,9 @@ func (c *Client) EmailToLDAP(m map[string]string) (*Result, *AppError) {
 	}
 }
 
-func (c *Client) Command(channelId string, command string, suggest bool) (*Result, *AppError) {
-	m := make(map[string]string)
-	m["command"] = command
-	m["channelId"] = channelId
-	m["suggest"] = strconv.FormatBool(suggest)
-	if r, err := c.DoApiPost(c.GetTeamRoute()+"/commands/execute", MapToJson(m)); err != nil {
+func (c *Client) Command(channelId string, command string) (*Result, *AppError) {
+	args := &CommandArgs{ChannelId: channelId, Command: command}
+	if r, err := c.DoApiPost(c.GetTeamRoute()+"/commands/execute", args.ToJson()); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)

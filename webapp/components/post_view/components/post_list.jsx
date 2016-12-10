@@ -293,7 +293,7 @@ export default class PostList extends React.Component {
 
             if (commentRootId) {
                 for (const postId in posts) {
-                    if (posts[postId].root_id === commentRootId) {
+                    if (posts[postId].root_id === commentRootId && !PostUtils.isSystemMessage(posts[postId])) {
                         commentCount += 1;
                         if (posts[postId].user_id === userId) {
                             shouldHighlightThreads = true;

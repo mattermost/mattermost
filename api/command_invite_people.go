@@ -35,7 +35,7 @@ func (me *InvitePeopleProvider) GetCommand(c *Context) *model.Command {
 	}
 }
 
-func (me *InvitePeopleProvider) DoCommand(c *Context, channelId string, message string) *model.CommandResponse {
+func (me *InvitePeopleProvider) DoCommand(c *Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	if !utils.Cfg.EmailSettings.SendEmailNotifications {
 		return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: c.T("api.command.invite_people.email_off")}
 	}

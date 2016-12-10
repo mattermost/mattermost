@@ -31,7 +31,7 @@ func (me *AwayProvider) GetCommand(c *Context) *model.Command {
 	}
 }
 
-func (me *AwayProvider) DoCommand(c *Context, channelId string, message string) *model.CommandResponse {
+func (me *AwayProvider) DoCommand(c *Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	rmsg := c.T("api.command_away.success")
 	if len(message) > 0 {
 		rmsg = message + " " + rmsg

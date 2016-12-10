@@ -34,7 +34,7 @@ func (me *msgProvider) GetCommand(c *Context) *model.Command {
 	}
 }
 
-func (me *msgProvider) DoCommand(c *Context, channelId string, message string) *model.CommandResponse {
+func (me *msgProvider) DoCommand(c *Context, args *model.CommandArgs, message string) *model.CommandResponse {
 
 	splitMessage := strings.SplitN(message, " ", 2)
 

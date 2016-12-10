@@ -32,7 +32,7 @@ export function goToChannel(channel) {
     }
 }
 
-export function executeCommand(channelId, message, suggest, success, error) {
+export function executeCommand(message, args, success, error) {
     let msg = message;
 
     msg = msg.substring(0, msg.indexOf(' ')).toLowerCase() + msg.substring(msg.indexOf(' '), msg.length);
@@ -48,8 +48,7 @@ export function executeCommand(channelId, message, suggest, success, error) {
             msg = '/shortcuts';
         }
     }
-
-    Client.executeCommand(channelId, msg, suggest, success, error);
+    Client.executeCommand(msg, args, success, error);
 }
 
 export function setChannelAsRead(channelIdParam) {

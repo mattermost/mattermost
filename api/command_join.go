@@ -32,7 +32,7 @@ func (me *JoinProvider) GetCommand(c *Context) *model.Command {
 	}
 }
 
-func (me *JoinProvider) DoCommand(c *Context, channelId string, message string) *model.CommandResponse {
+func (me *JoinProvider) DoCommand(c *Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	if result := <-Srv.Store.Channel().GetByName(c.TeamId, message); result.Err != nil {
 		return &model.CommandResponse{Text: c.T("api.command_join.list.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	} else {

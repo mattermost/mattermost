@@ -32,7 +32,7 @@ func (me *ShrugProvider) GetCommand(c *Context) *model.Command {
 	}
 }
 
-func (me *ShrugProvider) DoCommand(c *Context, channelId string, message string) *model.CommandResponse {
+func (me *ShrugProvider) DoCommand(c *Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	rmsg := `¯\\\_(ツ)\_/¯`
 	if len(message) > 0 {
 		rmsg = message + " " + rmsg

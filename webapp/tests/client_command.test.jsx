@@ -38,10 +38,11 @@ describe('Client.Commands', function() {
 
     it('executeCommand', function(done) {
         TestHelper.initBasic(() => {
+            const args = {};
+            args.channel_id = TestHelper.basicChannel().id;
             TestHelper.basicClient().executeCommand(
-                TestHelper.basicChannel().id,
                 '/shrug',
-                null,
+                args,
                 function(data) {
                     assert.equal(data.response_type, 'in_channel');
                     done();

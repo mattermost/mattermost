@@ -1494,13 +1494,13 @@ export default class Client {
             end(this.handleResponse.bind(this, 'listCommands', success, error));
     }
 
-    executeCommand(channelId, command, suggest, success, error) {
+    executeCommand(command, commandArgs, success, error) {
         request.
             post(`${this.getCommandsRoute()}/execute`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
-            send({channelId, command, suggest: String(suggest)}).
+            send({command, ...commandArgs}).
             end(this.handleResponse.bind(this, 'executeCommand', success, error));
 
         this.track('api', 'api_integrations_used');

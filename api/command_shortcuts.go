@@ -35,7 +35,7 @@ func (me *ShortcutsProvider) GetCommand(c *Context) *model.Command {
 	}
 }
 
-func (me *ShortcutsProvider) DoCommand(c *Context, channelId string, message string) *model.CommandResponse {
+func (me *ShortcutsProvider) DoCommand(c *Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	shortcutIds := [4]string{
 		"api.command_shortcuts.nav",
 		"api.command_shortcuts.files",
