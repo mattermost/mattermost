@@ -684,6 +684,10 @@
     "translation": "Ongeldig sessie token=%v, fout=%v"
   },
   {
+    "id": "api.context.invalidate_all_caches",
+    "translation": "Purging all caches"
+  },
+  {
     "id": "api.context.last_activity_at.error",
     "translation": "Kan de laatste activiteit voor gebruiker met user_id=%v en sessie_id=%v niet bijwerkten met fout=%v"
   },
@@ -792,6 +796,10 @@
   {
     "id": "api.emoji.create.too_large.app_error",
     "translation": "Kon emoji niet aanmaken. Afbeelding moet minstens 64 KB groot zijn."
+  },
+  {
+    "id": "api.emoji.delete.delete_reactions.app_error",
+    "translation": "Unable to delete reactions when deleting emoji with emoji name %v"
   },
   {
     "id": "api.emoji.delete.permissions.app_error",
@@ -1502,6 +1510,22 @@
   {
     "id": "api.preference.save_preferences.set_details.app_error",
     "translation": "session.user_id={{.SessionUserId}}, preference.user_id={{.PreferenceUserId}}"
+  },
+  {
+    "id": "api.reaction.delete_reaction.mismatched_channel_id.app_error",
+    "translation": "Failed to delete reaction when channel id in URL doesn't match post id in URL"
+  },
+  {
+    "id": "api.reaction.list_reactions.mismatched_channel_id.app_error",
+    "translation": "Failed to get reactions when channel id in URL doesn't match post id in URL"
+  },
+  {
+    "id": "api.reaction.save_reaction.mismatched_channel_id.app_error",
+    "translation": "Failed to save reaction when channel id in URL doesn't match post id in URL"
+  },
+  {
+    "id": "api.reaction.send_reaction_event.post.app_error",
+    "translation": "Failed to get post when sending websocket event for reaction"
   },
   {
     "id": "api.saml.save_certificate.app_error",
@@ -3708,6 +3732,22 @@
     "translation": "Waarde it te lang"
   },
   {
+    "id": "model.reaction.is_valid.create_at.app_error",
+    "translation": "Aangemaakt op moet een geldige tijd zijn"
+  },
+  {
+    "id": "model.reaction.is_valid.emoji_name.app_error",
+    "translation": "Ongeldig emoji id"
+  },
+  {
+    "id": "model.reaction.is_valid.post_id.app_error",
+    "translation": "Ongeldig start id"
+  },
+  {
+    "id": "model.reaction.is_valid.user_id.app_error",
+    "translation": "Ongeldige gebruikers id"
+  },
+  {
     "id": "model.team.is_valid.characters.app_error",
     "translation": "Naam oet 2 of meer kleine letters bevatten"
   },
@@ -3718,6 +3758,10 @@
   {
     "id": "model.team.is_valid.create_at.app_error",
     "translation": "Aangemaakt op moet een geldige tijd zijn"
+  },
+  {
+    "id": "model.team.is_valid.description.app_error",
+    "translation": "Ongeldige beschrijving"
   },
   {
     "id": "model.team.is_valid.domains.app_error",
@@ -4574,6 +4618,46 @@
   {
     "id": "store.sql_preference.update.app_error",
     "translation": "De instelling kan niet bijgewerkt worden"
+  },
+  {
+    "id": "store.sql_reaction.delete.begin.app_error",
+    "translation": "Unable to open transaction while deleting reaction"
+  },
+  {
+    "id": "store.sql_reaction.delete.commit.app_error",
+    "translation": "Unable to commit transaction while deleting reaction"
+  },
+  {
+    "id": "store.sql_reaction.delete.save.app_error",
+    "translation": "Unable to delete reaction"
+  },
+  {
+    "id": "store.sql_reaction.delete_all_with_emoj_name.delete_reactions.app_error",
+    "translation": "Unable to delete reactions with the given emoji name"
+  },
+  {
+    "id": "store.sql_reaction.delete_all_with_emoj_name.get_reactions.app_error",
+    "translation": "Unable to get reactions with the given emoji name"
+  },
+  {
+    "id": "store.sql_reaction.delete_all_with_emoji_name.update_post.warn",
+    "translation": "Unable to update Post.HasReactions while removing reactions post_id=%v, error=%v"
+  },
+  {
+    "id": "store.sql_reaction.get_for_post.app_error",
+    "translation": "Unable to get reactions for post"
+  },
+  {
+    "id": "store.sql_reaction.save.begin.app_error",
+    "translation": "Unable to open transaction while saving reaction"
+  },
+  {
+    "id": "store.sql_reaction.save.commit.app_error",
+    "translation": "Unable to commit transaction while saving reaction"
+  },
+  {
+    "id": "store.sql_reaction.save.save.app_error",
+    "translation": "Unable to save reaction"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",

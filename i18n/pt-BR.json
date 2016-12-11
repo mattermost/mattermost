@@ -684,6 +684,10 @@
     "translation": "Sessão inválida token=%v, err=%v"
   },
   {
+    "id": "api.context.invalidate_all_caches",
+    "translation": "Purging all caches"
+  },
+  {
     "id": "api.context.last_activity_at.error",
     "translation": "Não foi possível atualizar LastActivityAt para user_id=%v e session_id=%v, err=%v"
   },
@@ -792,6 +796,10 @@
   {
     "id": "api.emoji.create.too_large.app_error",
     "translation": "Não foi possível criar o emoji. A imagem tem que ser menor que 1 MB em tamanho."
+  },
+  {
+    "id": "api.emoji.delete.delete_reactions.app_error",
+    "translation": "Não é possível excluir as reações ao excluir o emoji com nome %v"
   },
   {
     "id": "api.emoji.delete.permissions.app_error",
@@ -1504,6 +1512,22 @@
     "translation": "session.user_id={{.SessionUserId}}, preference.user_id={{.PreferenceUserId}}"
   },
   {
+    "id": "api.reaction.delete_reaction.mismatched_channel_id.app_error",
+    "translation": "Falha ao deletar a reação quando o id do canal na URL não coincide com o id do post na URL"
+  },
+  {
+    "id": "api.reaction.list_reactions.mismatched_channel_id.app_error",
+    "translation": "Falha ao obter as reações quando o id do canal na URL não coincide com o id do post na URL"
+  },
+  {
+    "id": "api.reaction.save_reaction.mismatched_channel_id.app_error",
+    "translation": "Falha ao salvar a reação quando o id do canal na URL não coincide com o id do post na URL"
+  },
+  {
+    "id": "api.reaction.send_reaction_event.post.app_error",
+    "translation": "Falha ao obter a postagem ao enviar evento websocket para reação"
+  },
+  {
     "id": "api.saml.save_certificate.app_error",
     "translation": "O certificado não foi salvo corretamente."
   },
@@ -1645,7 +1669,7 @@
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "Tried to merge user with existing account: {{.Email}}, {{.Username}}, but failed to add the user to this team.\r\n"
+    "translation": "Tentado mesclar o usuário com a conta existente: {{.Email}}, {{.Username}}, mas houve uma falha ao adicionar o usuário a essa equipe.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
@@ -3708,6 +3732,22 @@
     "translation": "Nome é muito longo"
   },
   {
+    "id": "model.reaction.is_valid.create_at.app_error",
+    "translation": "Create deve ser um tempo válido"
+  },
+  {
+    "id": "model.reaction.is_valid.emoji_name.app_error",
+    "translation": "Nome do emoji inválido"
+  },
+  {
+    "id": "model.reaction.is_valid.post_id.app_error",
+    "translation": "Id da postagem inválida"
+  },
+  {
+    "id": "model.reaction.is_valid.user_id.app_error",
+    "translation": "Id do usuário inválido"
+  },
+  {
     "id": "model.team.is_valid.characters.app_error",
     "translation": "Nome deve ter 2 ou mais caracteres alfanuméricos em minúsculas"
   },
@@ -3718,6 +3758,10 @@
   {
     "id": "model.team.is_valid.create_at.app_error",
     "translation": "Create deve ser um tempo válido"
+  },
+  {
+    "id": "model.team.is_valid.description.app_error",
+    "translation": "Descrição inválida"
   },
   {
     "id": "model.team.is_valid.domains.app_error",
@@ -4574,6 +4618,46 @@
   {
     "id": "store.sql_preference.update.app_error",
     "translation": "Não foi possível atualizar a preferência"
+  },
+  {
+    "id": "store.sql_reaction.delete.begin.app_error",
+    "translation": "Não é possível abrir a transação ao excluir a reação"
+  },
+  {
+    "id": "store.sql_reaction.delete.commit.app_error",
+    "translation": "Não é possível submeter a transação ao excluir a reação"
+  },
+  {
+    "id": "store.sql_reaction.delete.save.app_error",
+    "translation": "Não é possível deletar a reação"
+  },
+  {
+    "id": "store.sql_reaction.delete_all_with_emoj_name.delete_reactions.app_error",
+    "translation": "Não é possível excluir as reações com o nome de emoji fornecido"
+  },
+  {
+    "id": "store.sql_reaction.delete_all_with_emoj_name.get_reactions.app_error",
+    "translation": "Não é possível obter as reações com o nome emoji fornecido"
+  },
+  {
+    "id": "store.sql_reaction.delete_all_with_emoji_name.update_post.warn",
+    "translation": "Não é possível atualizar Post.HasReactions ao remover as reações post_id=%v, error=%v"
+  },
+  {
+    "id": "store.sql_reaction.get_for_post.app_error",
+    "translation": "Não é possível obter as reações para a postagem"
+  },
+  {
+    "id": "store.sql_reaction.save.begin.app_error",
+    "translation": "Não é possível abrir a transação ao salvar a reação"
+  },
+  {
+    "id": "store.sql_reaction.save.commit.app_error",
+    "translation": "Não é possível submeter a transação ao salvar a reação"
+  },
+  {
+    "id": "store.sql_reaction.save.save.app_error",
+    "translation": "Não é possível salvar a reação"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
