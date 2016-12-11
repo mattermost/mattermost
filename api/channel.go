@@ -374,7 +374,7 @@ func PostUpdateChannelDisplayNameMessage(c *Context, channelId string, oldChanne
 			Message:   message,
 			Type:      model.POST_DISPLAYNAME_CHANGE,
 			UserId:    c.Session.UserId,
-			Props:     model.StringInterface{
+			Props: model.StringInterface{
 				"old_displayname": oldChannelDisplayName,
 				"new_displayname": newChannelDisplayName,
 			},
