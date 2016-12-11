@@ -269,7 +269,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		} else {
 			if oldChannelDisplayName != channel.DisplayName {
-				go PostUpdateChannelDisplayName(c, channel.Id, oldChannelDisplayName, channel.DisplayName)
+				go PostUpdateChannelDisplayNameMessage(c, channel.Id, oldChannelDisplayName, channel.DisplayName)
 			}
 			c.LogAudit("name=" + channel.Name)
 			w.Write([]byte(oldChannel.ToJson()))
@@ -358,7 +358,7 @@ func PostUpdateChannelHeaderMessage(c *Context, channelId string, oldChannelHead
 	}
 }
 
-func PostUpdateChannelDisplayName(c *Context, channelId string, oldChannelDisplayName, newChannelDisplayName string) {
+func PostUpdateChannelDisplayNameMessage(c *Context, channelId string, oldChannelDisplayName, newChannelDisplayName string) {
 	uc := Srv.Store.User().Get(c.Session.UserId)
 
 	if uresult := <-uc; uresult.Err != nil {
