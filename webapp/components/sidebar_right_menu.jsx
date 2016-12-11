@@ -388,15 +388,17 @@ export default class SidebarRightMenu extends React.Component {
                         {teamSettingsLink}
                         {manageLink}
                         {consoleLink}
-                        <li>
-                            <Link to='/select_team'>
-                                <i className='icon fa fa-exchange'/>
-                                <FormattedMessage
-                                    id='sidebar_right_menu.switch_team'
-                                    defaultMessage='Team Selection'
-                                />
-                            </Link>
-                        </li>
+                        {global.window.mm_config.DefaultTeamName ? '' : (
+                            <li>
+                                <Link to='/select_team'>
+                                    <i className='icon fa fa-exchange'/>
+                                    <FormattedMessage
+                                        id='sidebar_right_menu.switch_team'
+                                        defaultMessage='Team Selection'
+                                    />
+                                </Link>
+                            </li>
+                        )}
                         <li className='divider'/>
                         {helpLink}
                         {reportLink}
