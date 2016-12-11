@@ -468,6 +468,10 @@
     "translation": "collapse"
   },
   {
+    "id": "api.command_collapse.success",
+    "translation": "Image links now collapse by default"
+  },
+  {
     "id": "api.command_echo.create.app_error",
     "translation": "Unable to create /echo post, err=%v"
   },
@@ -498,6 +502,10 @@
   {
     "id": "api.command_expand.name",
     "translation": "expand"
+  },
+  {
+    "id": "api.command_expand.success",
+    "translation": "Image links now expand by default"
   },
   {
     "id": "api.command_expand_collapse.fail.app_error",
