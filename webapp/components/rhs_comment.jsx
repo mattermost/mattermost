@@ -166,6 +166,29 @@ export default class RhsComment extends React.Component {
             </li>
         );
 
+        if (isOwner || isAdmin) {
+            dropdownContents.push(
+                <li
+                    role='presentation'
+                    key='delete-button'
+                >
+                    <a
+                        href='#'
+                        role='menuitem'
+                        onClick={(e) => {
+                            e.preventDefault();
+                            GlobalActions.showDeletePostModal(post, 0);
+                        }}
+                    >
+                        <FormattedMessage
+                            id='rhs_comment.del'
+                            defaultMessage='Delete'
+                        />
+                    </a>
+                </li>
+            );
+        }
+
         if (isOwner) {
             dropdownContents.push(
                 <li
@@ -186,29 +209,6 @@ export default class RhsComment extends React.Component {
                         <FormattedMessage
                             id='rhs_comment.edit'
                             defaultMessage='Edit'
-                        />
-                    </a>
-                </li>
-            );
-        }
-
-        if (isOwner || isAdmin) {
-            dropdownContents.push(
-                <li
-                    role='presentation'
-                    key='delete-button'
-                >
-                    <a
-                        href='#'
-                        role='menuitem'
-                        onClick={(e) => {
-                            e.preventDefault();
-                            GlobalActions.showDeletePostModal(post, 0);
-                        }}
-                    >
-                        <FormattedMessage
-                            id='rhs_comment.del'
-                            defaultMessage='Delete'
                         />
                     </a>
                 </li>

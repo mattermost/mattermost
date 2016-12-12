@@ -185,6 +185,26 @@ export default class RhsRootPost extends React.Component {
             </li>
         );
 
+        if (isOwner || isAdmin) {
+            dropdownContents.push(
+                <li
+                    key='rhs-root-delete'
+                    role='presentation'
+                >
+                    <a
+                        href='#'
+                        role='menuitem'
+                        onClick={() => GlobalActions.showDeletePostModal(post, this.props.commentCount)}
+                    >
+                        <FormattedMessage
+                            id='rhs_root.del'
+                            defaultMessage='Delete'
+                        />
+                    </a>
+                </li>
+            );
+        }
+
         if (isOwner && !isSystemMessage) {
             dropdownContents.push(
                 <li
@@ -205,26 +225,6 @@ export default class RhsRootPost extends React.Component {
                         <FormattedMessage
                             id='rhs_root.edit'
                             defaultMessage='Edit'
-                        />
-                    </a>
-                </li>
-            );
-        }
-
-        if (isOwner || isAdmin) {
-            dropdownContents.push(
-                <li
-                    key='rhs-root-delete'
-                    role='presentation'
-                >
-                    <a
-                        href='#'
-                        role='menuitem'
-                        onClick={() => GlobalActions.showDeletePostModal(post, this.props.commentCount)}
-                    >
-                        <FormattedMessage
-                            id='rhs_root.del'
-                            defaultMessage='Delete'
                         />
                     </a>
                 </li>
