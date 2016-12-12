@@ -241,10 +241,20 @@ export default class RhsComment extends React.Component {
 
         var timestamp = this.props.currentUser.update_at;
 
+        let status = this.props.status;
+        if (post.props && post.props.from_webhook === 'true') {
+            status = null;
+        }
+
         let botIndicator;
         let userProfile = (
-            <UserProfile user={this.props.user}/>
+            <UserProfile
+                user={this.props.user}
+                status={status}
+                isBusy={this.props.isBusy}
+            />
         );
+
         if (post.props && post.props.from_webhook) {
             if (post.props.override_username && global.window.mm_config.EnablePostUsernameOverride === 'true') {
                 userProfile = (
@@ -254,9 +264,17 @@ export default class RhsComment extends React.Component {
                         disablePopover={true}
                     />
                 );
+            } else {
+                userProfile = (
+                    <UserProfile
+                        user={this.props.user}
+                        disablePopover={true}
+                    />
+                );
             }
-            botIndicator = <li className='bot-indicator'>{Constants.BOT_NAME}</li>;
-        } else if (isSystemMessage) {
+
+            botIndicator = <li className='col col__name bot-indicator'>{'BOT'}</li>;
+        } else if (PostUtils.isSystemMessage(post)) {
             userProfile = (
                 <UserProfile
                     user={{}}
@@ -294,11 +312,6 @@ export default class RhsComment extends React.Component {
         let systemMessageClass = '';
         if (isSystemMessage) {
             systemMessageClass = 'post--system';
-        }
-
-        let status = this.props.status;
-        if (post.props && post.props.from_webhook === 'true') {
-            status = null;
         }
 
         let profilePic = (
@@ -345,7 +358,7 @@ export default class RhsComment extends React.Component {
                 profilePic = (
                     <ProfilePicture
                         src=''
-                        status=status
+                        status={status}
                         user={this.props.user}
                         isBusy={this.props.isBusy}
                     />
@@ -446,44 +459,6 @@ export default class RhsComment extends React.Component {
             minute: '2-digit',
             hour12: !this.props.useMilitaryTime
         };
-
-        let userProfile = (
-            <UserProfile
-                user={this.props.user}
-                status={status}
-                isBusy={this.props.isBusy}
-            />
-        );
-
-        if (post.props && post.props.from_webhook) {
-            if (post.props.override_username && global.window.mm_config.EnablePostUsernameOverride === 'true') {
-                userProfile = (
-                    <UserProfile
-                        user={this.props.user}
-                        overwriteName={post.props.override_username}
-                        disablePopover={true}
-                    />
-                );
-            } else {
-                userProfile = (
-                    <UserProfile
-                        user={this.props.user}
-                        disablePopover={true}
-                    />
-                );
-            }
-
-            botIndicator = <li className='col col__name bot-indicator'>{'BOT'}</li>;
-        } else if (PostUtils.isSystemMessage(post)) {
-            userProfile = (
-                <UserProfile
-                    user={{}}
-                    overwriteName={Constants.SYSTEM_MESSAGE_PROFILE_NAME}
-                    overwriteImage={Constants.SYSTEM_MESSAGE_PROFILE_IMAGE}
-                    disablePopover={true}
-                />
-            );
-        }
 
         return (
             <div className={'post post--thread ' + currentUserCss + ' ' + compactClass + ' ' + systemMessageClass}>
