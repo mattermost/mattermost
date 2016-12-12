@@ -532,12 +532,12 @@ export function applyTheme(theme) {
     }
 
     if (theme.mentionBj) {
-        changeCss('.sidebar--left .nav-pills__unread-indicator', 'background:' + theme.mentionBj);
+        changeCss('.sidebar--left .nav-pills__unread-indicator, .app__body .new-messages__button div', 'background:' + theme.mentionBj);
         changeCss('.sidebar--left .badge', 'background:' + theme.mentionBj + '!important;');
     }
 
     if (theme.mentionColor) {
-        changeCss('.sidebar--left .nav-pills__unread-indicator', 'color:' + theme.mentionColor);
+        changeCss('.sidebar--left .nav-pills__unread-indicator, .app__body .new-messages__button div', 'color:' + theme.mentionColor);
         changeCss('.sidebar--left .badge', 'color:' + theme.mentionColor + '!important;');
         changeCss('.app__body .post-reaction--current-user', 'background-color:' + changeOpacity(theme.mentionColor, 0.4));
     }
@@ -560,7 +560,6 @@ export function applyTheme(theme) {
         changeCss('body.app__body', 'scrollbar-face-color:' + theme.centerChannelBg);
         changeCss('body.app__body', 'scrollbar-track-color:' + theme.centerChannelBg);
         changeCss('.app__body .post-list__new-messages-below', 'color:' + theme.centerChannelBg);
-        changeCss('.app__body .nav-pills__unread-indicator-bottom', 'color:' + theme.centerChannelBg);
     }
 
     if (theme.centerChannelColor) {
@@ -645,8 +644,6 @@ export function applyTheme(theme) {
         changeCss('.app__body a, .app__body a:focus, .app__body a:hover, .app__body .btn, .app__body .btn:focus, .app__body .btn:hover', 'color:' + theme.linkColor);
         changeCss('.app__body .attachment .attachment__container', 'border-left-color:' + changeOpacity(theme.linkColor, 0.5));
         changeCss('.app__body .channel-header__links .icon:hover, .app__body .post .flag-icon__container.visible, .app__body .post .comment-icon__container, .app__body .post .post__reply', 'fill:' + theme.linkColor);
-        changeCss('.app__body .nav-pills__unread-indicator-bottom', 'background:' + theme.linkColor);
-        changeCss('.app__body .nav-pills__unread-indicator-bottom:hover', 'background:' + changeColor(theme.linkColor, 0.1));
     }
 
     if (theme.buttonBg) {
