@@ -20,7 +20,6 @@ import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as ChannelUtils from 'utils/channel_utils.jsx';
 import * as ChannelActions from 'actions/channel_actions.jsx';
-import * as UserAgent from 'utils/user_agent.jsx';
 
 import Constants from 'utils/constants.jsx';
 
