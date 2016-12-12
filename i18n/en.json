@@ -704,16 +704,16 @@
     "translation": "%v:%v code=%v rid=%v uid=%v ip=%v %v [details: %v]"
   },
   {
+    "id": "api.context.mfa_required.app_error",
+    "translation": "Multi-factor authentication is required on this server."
+  },
+  {
     "id": "api.context.permissions.app_error",
     "translation": "You do not have the appropriate permissions"
   },
   {
     "id": "api.context.session_expired.app_error",
     "translation": "Invalid or expired session, please login again."
-  },
-  {
-    "id": "api.context.mfa_required.app_error",
-    "translation": "Multi-factor authentication is required on this server."
   },
   {
     "id": "api.context.system_permissions.app_error",
@@ -1980,6 +1980,26 @@
     "translation": "{{ .SenderName }} invited you to join {{ .TeamDisplayName }} Team on {{.SiteName}}"
   },
   {
+    "id": "api.templates.mfa_activated_body.info",
+    "translation": "Multi-factor authentication has been added to your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you, please contact your system administrator."
+  },
+  {
+    "id": "api.templates.mfa_activated_body.title",
+    "translation": "Multi-factor authentication was added"
+  },
+  {
+    "id": "api.templates.mfa_change_subject",
+    "translation": "Your MFA has been updated on {{ .SiteName }}"
+  },
+  {
+    "id": "api.templates.mfa_deactivated_body.info",
+    "translation": "Multi-factor authentication has been removed from your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you, please contact your system administrator."
+  },
+  {
+    "id": "api.templates.mfa_deactivated_body.title",
+    "translation": "Multi-factor authentication was removed"
+  },
+  {
     "id": "api.templates.password_change_body.info",
     "translation": "Your password has been updated for {{.TeamDisplayName}} on {{ .TeamURL }} by {{.Method}}.<br>If this change wasn't initiated by you, please contact your system administrator."
   },
@@ -1990,26 +2010,6 @@
   {
     "id": "api.templates.password_change_subject",
     "translation": "Your password has been updated for {{.TeamDisplayName}} on {{ .SiteName }}"
-  },
-  {
-    "id": "api.templates.mfa_activated_body.info",
-    "translation": "Multi-factor authentication has been added to your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you, please contact your system administrator."
-  },
-  {
-    "id": "api.templates.mfa_deactivated_body.info",
-    "translation": "Multi-factor authentication has been removed from your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you, please contact your system administrator."
-  },
-  {
-    "id": "api.templates.mfa_activated_body.title",
-    "translation": "Multi-factor authentication was added"
-  },
-  {
-    "id": "api.templates.mfa_deactivated_body.title",
-    "translation": "Multi-factor authentication was removed"
-  },
-  {
-    "id": "api.templates.mfa_change_subject",
-    "translation": "Your MFA has been updated on {{ .SiteName }}"
   },
   {
     "id": "api.templates.post_body.button",

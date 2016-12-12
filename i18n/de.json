@@ -468,6 +468,10 @@
     "translation": "Schließen"
   },
   {
+    "id": "api.command_collapse.success",
+    "translation": "Image links now collapse by default"
+  },
+  {
     "id": "api.command_echo.create.app_error",
     "translation": "Die /echo-Nachricht konnte nicht erstellt werden, err=%v"
   },
@@ -498,6 +502,10 @@
   {
     "id": "api.command_expand.name",
     "translation": "Erweitern"
+  },
+  {
+    "id": "api.command_expand.success",
+    "translation": "Image links now expand by default"
   },
   {
     "id": "api.command_expand_collapse.fail.app_error",
@@ -694,6 +702,10 @@
   {
     "id": "api.context.log.error",
     "translation": "%v:%v code=%v rid=%v uid=%v ip=%v %v [Details: %v]"
+  },
+  {
+    "id": "api.context.mfa_required.app_error",
+    "translation": "Multi-factor authentication is required on this server."
   },
   {
     "id": "api.context.permissions.app_error",
@@ -1405,7 +1417,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.get_teams.error",
-    "translation": "Fehler beim Abrufen der Teams während des Senden von Teamübergreifender DM user_id=%v, err=%v"
+    "translation": "Fehler beim Abrufen der Teams während des Senden von teamübergreifender DM user_id=%v, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.mention_body",
@@ -1697,7 +1709,7 @@
   },
   {
     "id": "api.slackimport.slack_import.note1",
-    "translation": "- Einige Nachrichten wurden eventuell nicht importiert da sie nicht von diesem Importer unterstützt werden.\r\n"
+    "translation": "- Einige Nachrichten wurden eventuell nicht importiert, da sie nicht von diesem Importer unterstützt werden.\r\n"
   },
   {
     "id": "api.slackimport.slack_import.note2",
@@ -1721,35 +1733,35 @@
   },
   {
     "id": "api.slackimport.slack_import.zip.app_error",
-    "translation": "Zip Datei konnte nicht geöffnet werden"
+    "translation": "Zip-Datei konnte nicht geöffnet werden"
   },
   {
     "id": "api.slackimport.slack_parse_channels.error",
-    "translation": "Fehler beim verarbeiten der Slack Kanäle. Import könnte trotzdem funktionieren."
+    "translation": "Fehler beim Verarbeiten der Slack-Kanäle. Import könnte trotzdem funktionieren."
   },
   {
     "id": "api.slackimport.slack_parse_posts.error",
-    "translation": "Fehler beim Verarbeiten einiger Slach Nachrichten. Import könnte trotzdem funktionieren."
+    "translation": "Fehler beim Verarbeiten einiger Slack-Nachrichten. Import könnte trotzdem funktionieren."
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.display_name_too_long.warn",
-    "translation": "Slack Importer: Kanal {{.ChannelName}} hat einen zu langen Anzeigenamen. Er wird beim Import gekürzt."
+    "translation": "Slack-Importer: Kanal {{.ChannelName}} hat einen zu langen Anzeigenamen. Er wird beim Import gekürzt."
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.header_too_long.warn",
-    "translation": "Slack Importer: Kanal {{.ChannelName}} hat eine zu lange Überschrift. Sie wird beim Import gekürzt."
+    "translation": "Slack-Importer: Kanal {{.ChannelName}} hat eine zu lange Überschrift. Sie wird beim Import gekürzt."
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.name_too_long.warn",
-    "translation": "Slack Importer: Kanal {{.ChannelName}} hat einen zu langen Namen. Er wird beim Import gekürzt."
+    "translation": "Slack-Importer: Kanal {{.ChannelName}} hat einen zu langen Namen. Er wird beim Import gekürzt."
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.purpose_too_long.warn",
-    "translation": "Slack Importer: Kanal {{.ChannelName}} hat einen zu langen Zweck. Er wird beim Import gekürzt."
+    "translation": "Slack-Importer: Kanal {{.ChannelName}} hat einen zu langen Zweck. Er wird beim Import gekürzt."
   },
   {
     "id": "api.status.init.debug",
-    "translation": "Initialisieren Status API Routen"
+    "translation": "Initialisiere Status-API-Routen"
   },
   {
     "id": "api.status.last_activity.error",
@@ -1761,11 +1773,11 @@
   },
   {
     "id": "api.team.create_team.email_disabled.app_error",
-    "translation": "Team Anmeldung mit einer E-Mail Adresse ist ausgeschaltet."
+    "translation": "Anmeldung mit einer E-Mail-Adresse ist deaktiviert."
   },
   {
     "id": "api.team.create_team_from_signup.email_disabled.app_error",
-    "translation": "Team Anmeldung mit einer E-Mail Adresse ist ausgeschaltet."
+    "translation": "Anmeldung mit einer E-Mail Adresse ist deaktiviert."
   },
   {
     "id": "api.team.create_team_from_signup.expired_link.app_error",
@@ -1781,11 +1793,11 @@
   },
   {
     "id": "api.team.email_teams.sending.error",
-    "translation": "Fehler während dem Senden einer E-Mail ist aufgetreten: err=%v"
+    "translation": "Es ist ein Fehler beim Senden einer E-Mail aufgetreten: err=%v"
   },
   {
     "id": "api.team.get_invite_info.not_open_team",
-    "translation": "Die Einaldung ist ungültig, weil das ein offenes Team ist."
+    "translation": "Die Einladung ist ungültig, weil dies kein offenes Team ist."
   },
   {
     "id": "api.team.import_team.admin.app_error",
@@ -1801,7 +1813,7 @@
   },
   {
     "id": "api.team.import_team.no_file.app_error",
-    "translation": "keine Datei unter 'file' in der Anfrage"
+    "translation": "Keine Datei unter 'file' in der Anfrage"
   },
   {
     "id": "api.team.import_team.open.app_error",
@@ -1813,7 +1825,7 @@
   },
   {
     "id": "api.team.import_team.unavailable.app_error",
-    "translation": "Dateigröße nicht vorhanden"
+    "translation": "Dateigröße nicht verfügbar"
   },
   {
     "id": "api.team.init.debug",
@@ -1853,7 +1865,7 @@
   },
   {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
-    "translation": "Teamerstellung wurde ausgeschaltet. Bitte fragen bei Sie Ihren Administrator nach um Details zu erfahren."
+    "translation": "Teamerstellung wurde deaktiviert. Bitte fragen Sie Ihren Administrator, um Details zu erfahren."
   },
   {
     "id": "api.team.is_team_creation_allowed.domain.app_error",
@@ -1966,6 +1978,26 @@
   {
     "id": "api.templates.invite_subject",
     "translation": "{{ .SenderName }} hat Sie eingeladen dem Team {{ .TeamDisplayName }} auf {{.SiteName}} beizutreten"
+  },
+  {
+    "id": "api.templates.mfa_activated_body.info",
+    "translation": "Multi-factor authentication has been added to your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you, please contact your system administrator."
+  },
+  {
+    "id": "api.templates.mfa_activated_body.title",
+    "translation": "Multi-factor authentication was added"
+  },
+  {
+    "id": "api.templates.mfa_change_subject",
+    "translation": "Your MFA has been updated on {{ .SiteName }}"
+  },
+  {
+    "id": "api.templates.mfa_deactivated_body.info",
+    "translation": "Multi-factor authentication has been removed from your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you, please contact your system administrator."
+  },
+  {
+    "id": "api.templates.mfa_deactivated_body.title",
+    "translation": "Multi-factor authentication was removed"
   },
   {
     "id": "api.templates.password_change_body.info",

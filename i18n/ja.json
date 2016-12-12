@@ -441,7 +441,7 @@
   },
   {
     "id": "api.command.team_mismatch.app_error",
-    "translation": "Cannot update commands across teams"
+    "translation": "他チームのコマンドは更新できません"
   },
   {
     "id": "api.command.update.app_error",
@@ -466,6 +466,10 @@
   {
     "id": "api.command_collapse.name",
     "translation": "折りたたみ"
+  },
+  {
+    "id": "api.command_collapse.success",
+    "translation": "Image links now collapse by default"
   },
   {
     "id": "api.command_echo.create.app_error",
@@ -498,6 +502,10 @@
   {
     "id": "api.command_expand.name",
     "translation": "展開"
+  },
+  {
+    "id": "api.command_expand.success",
+    "translation": "Image links now expand by default"
   },
   {
     "id": "api.command_expand_collapse.fail.app_error",
@@ -685,7 +693,7 @@
   },
   {
     "id": "api.context.invalidate_all_caches",
-    "translation": "Purging all caches"
+    "translation": "全てのキャッシュを破棄しています"
   },
   {
     "id": "api.context.last_activity_at.error",
@@ -694,6 +702,10 @@
   {
     "id": "api.context.log.error",
     "translation": "%v:%v code=%v rid=%v uid=%v ip=%v %v [詳細: %v]"
+  },
+  {
+    "id": "api.context.mfa_required.app_error",
+    "translation": "Multi-factor authentication is required on this server."
   },
   {
     "id": "api.context.permissions.app_error",
@@ -799,7 +811,7 @@
   },
   {
     "id": "api.emoji.delete.delete_reactions.app_error",
-    "translation": "Unable to delete reactions when deleting emoji with emoji name %v"
+    "translation": "絵文字名 %v の絵文字を削除する際にリアクションを削除できません"
   },
   {
     "id": "api.emoji.delete.permissions.app_error",
@@ -831,19 +843,19 @@
   },
   {
     "id": "api.emoji.upload.large_image.decode_error",
-    "translation": "Unable to create emoji. An error occurred when trying to decode the image."
+    "translation": "絵文字を作成できません。画像をデコードする際にエラーが発生しました。"
   },
   {
     "id": "api.emoji.upload.large_image.encode_error",
-    "translation": "Unable to create emoji. An error occurred when trying to encode the image."
+    "translation": "絵文字を作成できません。画像をエンコードする際にエラーが発生しました。"
   },
   {
     "id": "api.emoji.upload.large_image.gif_decode_error",
-    "translation": "Unable to create emoji. An error occurred when trying to decode the GIF image."
+    "translation": "絵文字を作成できません。GIF画像をデコードする際にエラーが発生しました。"
   },
   {
     "id": "api.emoji.upload.large_image.gif_encode_error",
-    "translation": "Unable to create emoji. An error occurred when trying to encode the GIF image."
+    "translation": "絵文字を作成できません。GIF画像をエンコードする際にエラーが発生しました。"
   },
   {
     "id": "api.file.get_file.public_disabled.app_error",
@@ -1011,7 +1023,7 @@
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
-    "translation": "File above maximum dimensions could not be uploaded: {{.Filename}}"
+    "translation": "最大サイズ以上のファイルはアップロードできません: {{.Filename}}"
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -1295,15 +1307,15 @@
   },
   {
     "id": "api.post.disabled_all",
-    "translation": "@all has been disabled because the channel has more than {{.Users}} users."
+    "translation": "チャンネルに{{.Users}}以上のユーザーがいるため@allは無効化されています。"
   },
   {
     "id": "api.post.disabled_channel",
-    "translation": "@channel has been disabled because the channel has more than {{.Users}} users."
+    "translation": "チャンネルに{{.Users}}以上のユーザーがいるため@channelは無効化されています。"
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "@here has been disabled because the channel has more than {{.Users}} users."
+    "translation": "チャンネルに{{.Users}}以上のユーザーがいるため@hereは無効化されています。"
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
@@ -1513,19 +1525,19 @@
   },
   {
     "id": "api.reaction.delete_reaction.mismatched_channel_id.app_error",
-    "translation": "Failed to delete reaction when channel id in URL doesn't match post id in URL"
+    "translation": "URL内のチャンネルIDがURL内の投稿IDと一致しないため、リアクションを削除できませんでした"
   },
   {
     "id": "api.reaction.list_reactions.mismatched_channel_id.app_error",
-    "translation": "Failed to get reactions when channel id in URL doesn't match post id in URL"
+    "translation": "URL内のチャンネルIDとURL内の投稿IDが一致しないため、リアクションを取得できませんでした"
   },
   {
     "id": "api.reaction.save_reaction.mismatched_channel_id.app_error",
-    "translation": "Failed to save reaction when channel id in URL doesn't match post id in URL"
+    "translation": "URL内のチャンネルIDとURL内の投稿IDが一致しないため、リアクションを保存できませんでした"
   },
   {
     "id": "api.reaction.send_reaction_event.post.app_error",
-    "translation": "Failed to get post when sending websocket event for reaction"
+    "translation": "リアクションに対するウェブソケットイベントを送信する際に、投稿を取得することができませんでした"
   },
   {
     "id": "api.saml.save_certificate.app_error",
@@ -1669,7 +1681,7 @@
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "Tried to merge user with existing account: {{.Email}}, {{.Username}}, but failed to add the user to this team.\r\n"
+    "translation": "既存のアカウント{{.Email}}, {{.Username}} とユーザーをマージしようとしましたが、このチームにユーザーを追加できませんでした。\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
@@ -1966,6 +1978,26 @@
   {
     "id": "api.templates.invite_subject",
     "translation": "{{ .SenderName }}が{{.SiteName}}の{{ .TeamDisplayName }}に参加するように招待しています。"
+  },
+  {
+    "id": "api.templates.mfa_activated_body.info",
+    "translation": "Multi-factor authentication has been added to your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you, please contact your system administrator."
+  },
+  {
+    "id": "api.templates.mfa_activated_body.title",
+    "translation": "Multi-factor authentication was added"
+  },
+  {
+    "id": "api.templates.mfa_change_subject",
+    "translation": "Your MFA has been updated on {{ .SiteName }}"
+  },
+  {
+    "id": "api.templates.mfa_deactivated_body.info",
+    "translation": "Multi-factor authentication has been removed from your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you, please contact your system administrator."
+  },
+  {
+    "id": "api.templates.mfa_deactivated_body.title",
+    "translation": "Multi-factor authentication was removed"
   },
   {
     "id": "api.templates.password_change_body.info",
@@ -2793,11 +2825,11 @@
   },
   {
     "id": "ent.metrics.starting.info",
-    "translation": "Metrics and profiling server is listening on %v"
+    "translation": "メトリクスとプロファイリングのサーバーは%vで接続待ちです"
   },
   {
     "id": "ent.metrics.stopping.info",
-    "translation": "Metrics and profiling server is stopping on %v"
+    "translation": "メトリクスとプロファイリングのサーバーは%vで停止しています"
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",
@@ -4621,43 +4653,43 @@
   },
   {
     "id": "store.sql_reaction.delete.begin.app_error",
-    "translation": "Unable to open transaction while deleting reaction"
+    "translation": "リアクションの削除中はトランザクションを開けません"
   },
   {
     "id": "store.sql_reaction.delete.commit.app_error",
-    "translation": "Unable to commit transaction while deleting reaction"
+    "translation": "リアクションの削除中はトランザクションをコミットできません"
   },
   {
     "id": "store.sql_reaction.delete.save.app_error",
-    "translation": "Unable to delete reaction"
+    "translation": "リアクションを削除できません"
   },
   {
     "id": "store.sql_reaction.delete_all_with_emoj_name.delete_reactions.app_error",
-    "translation": "Unable to delete reactions with the given emoji name"
+    "translation": "指定された絵文字名のリアクションは削除できません"
   },
   {
     "id": "store.sql_reaction.delete_all_with_emoj_name.get_reactions.app_error",
-    "translation": "Unable to get reactions with the given emoji name"
+    "translation": "指定された絵文字名のリアクションを取得できません"
   },
   {
     "id": "store.sql_reaction.delete_all_with_emoji_name.update_post.warn",
-    "translation": "Unable to update Post.HasReactions while removing reactions post_id=%v, error=%v"
+    "translation": "リアクションの削除中にPost.HasReactionsは更新できません post_id=%v, error=%v"
   },
   {
     "id": "store.sql_reaction.get_for_post.app_error",
-    "translation": "Unable to get reactions for post"
+    "translation": "投稿に対するリアクションを取得できません"
   },
   {
     "id": "store.sql_reaction.save.begin.app_error",
-    "translation": "Unable to open transaction while saving reaction"
+    "translation": "リアクションの保存中はトランザクションを開けません"
   },
   {
     "id": "store.sql_reaction.save.commit.app_error",
-    "translation": "Unable to commit transaction while saving reaction"
+    "translation": "リアクションの保存中はトランザクションをコミットできません"
   },
   {
     "id": "store.sql_reaction.save.save.app_error",
-    "translation": "Unable to save reaction"
+    "translation": "リアクションを保存できません"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",

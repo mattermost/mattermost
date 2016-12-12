@@ -468,6 +468,10 @@
     "translation": "colapsar"
   },
   {
+    "id": "api.command_collapse.success",
+    "translation": "Image links now collapse by default"
+  },
+  {
     "id": "api.command_echo.create.app_error",
     "translation": "No se pudo crear el /echo mensaje, err=%v"
   },
@@ -498,6 +502,10 @@
   {
     "id": "api.command_expand.name",
     "translation": "expandir"
+  },
+  {
+    "id": "api.command_expand.success",
+    "translation": "Image links now expand by default"
   },
   {
     "id": "api.command_expand_collapse.fail.app_error",
@@ -685,7 +693,7 @@
   },
   {
     "id": "api.context.invalidate_all_caches",
-    "translation": "Purging all caches"
+    "translation": "Purgando todos los cachés"
   },
   {
     "id": "api.context.last_activity_at.error",
@@ -694,6 +702,10 @@
   {
     "id": "api.context.log.error",
     "translation": "%v:%v code=%v rid=%v uid=%v ip=%v %v [detalles: %v]"
+  },
+  {
+    "id": "api.context.mfa_required.app_error",
+    "translation": "Multi-factor authentication is required on this server."
   },
   {
     "id": "api.context.permissions.app_error",
@@ -1966,6 +1978,26 @@
   {
     "id": "api.templates.invite_subject",
     "translation": "{{ .SenderName }} te ha invitado a unirte al equipo {{ .TeamDisplayName }} en {{.SiteName}}"
+  },
+  {
+    "id": "api.templates.mfa_activated_body.info",
+    "translation": "Multi-factor authentication has been added to your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you, please contact your system administrator."
+  },
+  {
+    "id": "api.templates.mfa_activated_body.title",
+    "translation": "Multi-factor authentication was added"
+  },
+  {
+    "id": "api.templates.mfa_change_subject",
+    "translation": "Your MFA has been updated on {{ .SiteName }}"
+  },
+  {
+    "id": "api.templates.mfa_deactivated_body.info",
+    "translation": "Multi-factor authentication has been removed from your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you, please contact your system administrator."
+  },
+  {
+    "id": "api.templates.mfa_deactivated_body.title",
+    "translation": "Multi-factor authentication was removed"
   },
   {
     "id": "api.templates.password_change_body.info",
