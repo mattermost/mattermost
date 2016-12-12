@@ -94,7 +94,7 @@ class EmojiStore extends EventEmitter {
     }
 
     setCustomEmojis(customEmojis) {
-        customEmojis.sort((a, b) => a.name[0].localeCompare(b.name[0]));
+        customEmojis.sort((a, b) => a.name.localeCompare(b.name));
 
         this.customEmojis = new Map();
 
