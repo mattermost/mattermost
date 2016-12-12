@@ -4,6 +4,8 @@
 package api
 
 import (
+	"strconv"
+
 	"github.com/mattermost/platform/model"
 )
 
@@ -50,19 +52,19 @@ func (me *CollapseProvider) GetCommand(c *Context) *model.Command {
 }
 
 func (me *ExpandProvider) DoCommand(c *Context, args *model.CommandArgs, message string) *model.CommandResponse {
-	return setCollapsePreference(c, "false")
+	return setCollapsePreference(c, false)
 }
 
 func (me *CollapseProvider) DoCommand(c *Context, args *model.CommandArgs, message string) *model.CommandResponse {
-	return setCollapsePreference(c, "true")
+	return setCollapsePreference(c, true)
 }
 
-func setCollapsePreference(c *Context, value string) *model.CommandResponse {
+func setCollapsePreference(c *Context, isCollapse bool) *model.CommandResponse {
 	pref := model.Preference{
 		UserId:   c.Session.UserId,
 		Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
 		Name:     model.PREFERENCE_NAME_COLLAPSE_SETTING,
-		Value:    value,
+		Value:    strconv.FormatBool(isCollapse),
 	}
 
 	if result := <-Srv.Store.Preference().Save(&model.Preferences{pref}); result.Err != nil {
@@ -73,5 +75,12 @@ func setCollapsePreference(c *Context, value string) *model.CommandResponse {
 	socketMessage.Add("preference", pref.ToJson())
 	go Publish(socketMessage)
 
-	return &model.CommandResponse{}
+	var rmsg string
+
+	if isCollapse {
+		rmsg = c.T("api.command_collapse.success")
+	} else {
+		rmsg = c.T("api.command_expand.success")
+	}
+	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: rmsg}
 }
