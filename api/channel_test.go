@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 )
 
@@ -1630,5 +1631,32 @@ func TestAutocompleteChannels(t *testing.T) {
 
 	if _, err := Client.AutocompleteChannels("BadChannelD"); err == nil {
 		t.Fatal("should have failed - bad team id")
+	}
+}
+
+func TestGetChannelByName(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+
+	if _, err := Client.GetChannelByName(th.BasicChannel.Name); err != nil {
+		t.Fatal("Failed to get channel")
+	}
+
+	if _, err := Client.GetChannelByName("InvalidChannelName"); err == nil {
+		t.Fatal("Failed to get team")
+	}
+
+	Client.Must(Client.Logout())
+
+	user2 := &model.User{Email: "success+" + model.NewId() + "@simulator.amazonses.com", Nickname: "Jabba the Hutt", Password: "passwd1"}
+	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
+
+	Client.SetTeamId(th.BasicTeam.Id)
+
+	Client.Login(user2.Email, "passwd1")
+
+	if _, err := Client.GetChannelByName(th.BasicChannel.Name); err == nil {
+		t.Fatal("Should fail due not enough permissions")
 	}
 }

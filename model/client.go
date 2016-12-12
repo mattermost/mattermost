@@ -1252,6 +1252,16 @@ func (c *Client) GetChannels(etag string) (*Result, *AppError) {
 	}
 }
 
+func (c *Client) GetChannelByName(channelName string) (*Result, *AppError) {
+	if r, err := c.DoApiGet(c.GetChannelNameRoute(channelName), "", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), ChannelMemberFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) JoinChannel(id string) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetChannelRoute(id)+"/join", ""); err != nil {
 		return nil, err

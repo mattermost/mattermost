@@ -426,5 +426,20 @@ describe('Client.Channels', function() {
             );
         });
     });
+
+    it('getChannelByName', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().getChannelByName(
+                TestHelper.basicChannel().name,
+                function(data) {
+                    assert.equal(data.name, TestHelper.basicChannel().name);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
 });
 

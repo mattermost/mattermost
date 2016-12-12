@@ -31,6 +31,7 @@ func InitChannel() {
 	BaseRoutes.Channels.Handle("/update_purpose", ApiUserRequired(updateChannelPurpose)).Methods("POST")
 	BaseRoutes.Channels.Handle("/update_notify_props", ApiUserRequired(updateNotifyProps)).Methods("POST")
 	BaseRoutes.Channels.Handle("/autocomplete", ApiUserRequired(autocompleteChannels)).Methods("GET")
+	BaseRoutes.Channels.Handle("/name/{channel_name:[A-Za-z0-9_-]+}", ApiUserRequired(getChannelByName)).Methods("GET")
 
 	BaseRoutes.NeedChannelName.Handle("/join", ApiUserRequired(join)).Methods("POST")
 
@@ -951,6 +952,37 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+}
+
+func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	channelname := params["channel_name"]
+
+	cchan := Srv.Store.Channel().GetByName(c.TeamId, channelname)
+
+	if cresult := <-cchan; cresult.Err != nil {
+		c.Err = cresult.Err
+		return
+	} else {
+		data := &model.Channel{}
+		data = cresult.Data.(*model.Channel)
+
+		if !HasPermissionToChannelContext(c, data.Id, model.PERMISSION_READ_CHANNEL) {
+			return
+		}
+
+		if data.TeamId != c.TeamId && data.Type != model.CHANNEL_DIRECT {
+			c.Err = model.NewLocAppError("getChannel", "api.channel.get_channel.wrong_team.app_error", map[string]interface{}{"ChannelName": channelname, "TeamId": c.TeamId}, "")
+			return
+		}
+
+		if HandleEtag(data.Etag(), w, r) {
+			return
+		} else {
+			w.Header().Set(model.HEADER_ETAG_SERVER, data.Etag())
+			w.Write([]byte(data.ToJson()))
+		}
+	}
 }
 
 func getChannelStats(c *Context, w http.ResponseWriter, r *http.Request) {
