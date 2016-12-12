@@ -324,7 +324,7 @@ type WebrtcSettings struct {
 }
 
 type UchatConfig struct {
-	EnableLocaleSetting *bool
+	EnableLocaleSetting       *bool
 	PaginateMoreChannelsModal *bool
 	EnableThemeSelection      *bool
 	AllowedThemes             []string
