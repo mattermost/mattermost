@@ -258,32 +258,40 @@
         outline: none;
         text-align: center;
     }
-    .nav-pills__unread-indicator-bottom {
-      position: absolute;
-      bottom: -30px;
-      left: 0;
-      right: 0;
 
-      @include border-radius(50px);
-      font-size: 13.5px;
-      margin: 0 auto;
-      padding: 3px 0 4px;
-      text-align: center;
-      max-width: 250px;
-      z-index: 1;
-      cursor: pointer;
-      transition: bottom 0.2s ease-out;
-
-      .fa {
-        margin-right: 0.5rem;
-      }
-
-      &.visible {
+    .new-messages__button {
+        @include opacity(0);
         bottom: 0;
-      }
-      &.disabled {
-        display: none;
-      }
+        font-size: 13.5px;
+        left: 0;
+        margin: 0 auto;
+        position: absolute;
+        right: 0;
+        text-align: center;
+        z-index: 1;
+
+        .fa {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-right: .5rem;
+            position: relative;
+            top: 1px;
+        }
+
+        div {
+            @include border-radius(50px);
+            cursor: pointer;
+            display: inline-block;
+            padding: 5px 10px;
+        }
+
+        &.visible {
+            @include opacity(1);
+        }
+
+        &.disabled {
+            display: none;
+        }
     }
 }
 
@@ -451,20 +459,20 @@
               color: rgb(51, 51, 51);
               position: absolute;
               top: 4px;
-            }
-        }
-    }
+          }
+      }
+  }
 
-    .msg-typing {
-        @include opacity(.7);
-        display: block;
-        font-size: .95em;
-        height: 20px;
-        margin-bottom: 5px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
+  .msg-typing {
+    @include opacity(.7);
+    display: block;
+    font-size: .95em;
+    height: 20px;
+    margin-bottom: 5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 }
 
 .post-list__table {

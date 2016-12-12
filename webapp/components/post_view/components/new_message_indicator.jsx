@@ -21,7 +21,7 @@ export default class NewMessageIndicator extends React.Component {
         }
     }
     render() {
-        let className = 'nav-pills__unread-indicator-bottom';
+        let className = 'new-messages__button';
         if (this.state.visible > 0) {
             className += ' visible';
         }
@@ -31,20 +31,19 @@ export default class NewMessageIndicator extends React.Component {
         return (
             <div
                 className={className}
-                onClick={this.props.onClick}
                 onTransitionEnd={this.setRendered.bind(this)}
                 ref='indicator'
             >
-                <span>
+                <div onClick={this.props.onClick}>
                     <i
-                        className='fa fa-arrow-circle-o-down'
+                        className='fa fa-angle-down'
                     />
                     <FormattedMessage
                         id='posts_view.newMsgBelow'
                         defaultMessage='{count} new {count, plural, one {message} other {messages}} below'
                         values={{count: this.props.newMessages}}
                     />
-                </span>
+                </div>
             </div>
         );
     }
