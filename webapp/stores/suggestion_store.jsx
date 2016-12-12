@@ -87,7 +87,7 @@ class SuggestionStore extends EventEmitter {
     }
 
     clearSuggestions(id) {
-        const suggestion = this.suggestions.get(id);
+        const suggestion = this.getSuggestions(id);
 
         suggestion.matchedPretext = [];
         suggestion.terms = [];
@@ -96,23 +96,23 @@ class SuggestionStore extends EventEmitter {
     }
 
     clearSelection(id) {
-        const suggestion = this.suggestions.get(id);
+        const suggestion = this.getSuggestions(id);
 
         suggestion.selection = '';
     }
 
     hasSuggestions(id) {
-        return this.suggestions.get(id).terms.length > 0;
+        return this.getSuggestions(id).terms.length > 0;
     }
 
     setPretext(id, pretext) {
-        const suggestion = this.suggestions.get(id);
+        const suggestion = this.getSuggestions(id);
 
         suggestion.pretext = pretext;
     }
 
     addSuggestion(id, term, item, component, matchedPretext) {
-        const suggestion = this.suggestions.get(id);
+        const suggestion = this.getSuggestions(id);
 
         suggestion.terms.push(term);
         suggestion.items.push(item);
@@ -126,7 +126,7 @@ class SuggestionStore extends EventEmitter {
             return;
         }
 
-        const suggestion = this.suggestions.get(id);
+        const suggestion = this.getSuggestions(id);
 
         suggestion.terms.push(...terms);
         suggestion.items.push(...items);
@@ -139,7 +139,7 @@ class SuggestionStore extends EventEmitter {
 
     // make sure that if suggestions exist, then one of them is selected. return true if the selection changes.
     ensureSelectionExists(id) {
-        const suggestion = this.suggestions.get(id);
+        const suggestion = this.getSuggestions(id);
 
         if (suggestion.terms.length > 0) {
             // if the current selection is no longer in the map, select the first term in the list
@@ -158,11 +158,11 @@ class SuggestionStore extends EventEmitter {
     }
 
     getPretext(id) {
-        return this.suggestions.get(id).pretext;
+        return this.getSuggestions(id).pretext;
     }
 
     getSelectedMatchedPretext(id) {
-        const suggestion = this.suggestions.get(id);
+        const suggestion = this.getSuggestions(id);
 
         for (let i = 0; i < suggestion.terms.length; i++) {
             if (suggestion.terms[i] === suggestion.selection) {
@@ -174,23 +174,23 @@ class SuggestionStore extends EventEmitter {
     }
 
     getItems(id) {
-        return this.suggestions.get(id).items;
+        return this.getSuggestions(id).items;
     }
 
     getTerms(id) {
-        return this.suggestions.get(id).terms;
+        return this.getSuggestions(id).terms;
     }
 
     getComponents(id) {
-        return this.suggestions.get(id).components;
+        return this.getSuggestions(id).components;
     }
 
     getSuggestions(id) {
-        return this.suggestions.get(id);
+        return this.suggestions.get(id) || {};
     }
 
     getSelection(id) {
-        return this.suggestions.get(id).selection;
+        return this.getSuggestions(id).selection;
     }
 
     selectNext(id) {
