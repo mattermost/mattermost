@@ -251,7 +251,13 @@
         "TurnSharedKey": ""
     },
     "UchatConfig": {
-        "PaginateMoreChannelsModal": true
+        "EnableLocaleSetting": false,
+        "PaginateMoreChannelsModal": true,
+        "EnableThemeSelection": true,
+        "AllowedThemes": [
+            "shift",
+            "monokai"
+        ]
     },
     "CustomOverride": true
 }

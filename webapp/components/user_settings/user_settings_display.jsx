@@ -18,7 +18,7 @@ const Preferences = Constants.Preferences;
 
 import {FormattedMessage} from 'react-intl';
 
-const EnableThemeManagement = false;
+const EnableThemeManagement = (global.window.mm_config.EnableThemeSelection === 'true');
 const EnableFontManagement = false;
 const EnableDisplayNameManagement = false;
 
@@ -880,6 +880,9 @@ export default class UserSettingsDisplay extends React.Component {
                     />
                 </div>
             );
+        }
+        if (global.window.mm_config.EnableLocaleSetting !== 'true') {
+            languagesSection = null;
         }
 
         let themeSection;

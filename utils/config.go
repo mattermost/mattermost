@@ -304,7 +304,10 @@ func getClientConfig(c *model.Config) map[string]string {
 
 	props["EnableWebrtc"] = strconv.FormatBool(*c.WebrtcSettings.Enable)
 
+	props["EnableLocaleSetting"] = strconv.FormatBool(*c.UchatConfig.EnableLocaleSetting)
 	props["PaginateMoreChannelsModal"] = strconv.FormatBool(*c.UchatConfig.PaginateMoreChannelsModal)
+	props["EnableThemeSelection"] = strconv.FormatBool(*c.UchatConfig.EnableThemeSelection)
+	props["AllowedThemes"] = strings.Join(c.UchatConfig.AllowedThemes, ",")
 	props["CustomOverride"] = strconv.FormatBool(*c.CustomOverride)
 
 	if IsLicensed {
