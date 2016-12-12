@@ -6,13 +6,17 @@ import * as RouteUtils from 'routes/route_utils.jsx';
 import Root from 'components/root.jsx';
 
 import claimAccountRoute from 'routes/route_claim.jsx';
+import mfaRoute from 'routes/route_mfa.jsx';
 import createTeamRoute from 'routes/route_create_team.jsx';
 import teamRoute from 'routes/route_team.jsx';
 import helpRoute from 'routes/route_help.jsx';
 
 import BrowserStore from 'stores/browser_store.jsx';
 import ErrorStore from 'stores/error_store.jsx';
+import UserStore from 'stores/user_store.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
+
+import {browserHistory} from 'react-router/es6';
 
 function preLogin(nextState, replace, callback) {
     // redirect to the mobile landing page if the user hasn't seen it before
@@ -27,7 +31,30 @@ function preLogin(nextState, replace, callback) {
     callback();
 }
 
+const mfaPaths = [
+    '/mfa/setup',
+    '/mfa/confirm'
+];
+
+const mfaAuthServices = [
+    '',
+    'email',
+    'ldap'
+];
+
 function preLoggedIn(nextState, replace, callback) {
+    if (window.mm_license.MFA === 'true' &&
+            window.mm_config.EnableMultifactorAuthentication === 'true' &&
+            window.mm_config.EnforceMultifactorAuthentication === 'true' &&
+            mfaPaths.indexOf(nextState.location.pathname) === -1) {
+        const user = UserStore.getCurrentUser();
+        if (user && !user.mfa_active &&
+                mfaAuthServices.indexOf(user.auth_service) !== -1) {
+            browserHistory.push('/mfa/setup');
+            return;
+        }
+    }
+
     ErrorStore.clearLastError();
     callback();
 }
@@ -154,7 +181,8 @@ export default {
                                 ]
                             )
                         },
-                        teamRoute
+                        teamRoute,
+                        mfaRoute
                     ]
                 )
             },

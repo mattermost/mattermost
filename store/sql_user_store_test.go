@@ -756,7 +756,7 @@ func TestUserStoreUpdateAuthData(t *testing.T) {
 	service := "someservice"
 	authData := model.NewId()
 
-	if err := (<-store.User().UpdateAuthData(u1.Id, service, &authData, "")).Err; err != nil {
+	if err := (<-store.User().UpdateAuthData(u1.Id, service, &authData, "", true)).Err; err != nil {
 		t.Fatal(err)
 	}
 

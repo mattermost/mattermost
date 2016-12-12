@@ -275,7 +275,7 @@ func (us SqlUserStore) UpdateFailedPasswordAttempts(userId string, attempts int)
 	return storeChannel
 }
 
-func (us SqlUserStore) UpdateAuthData(userId string, service string, authData *string, email string) StoreChannel {
+func (us SqlUserStore) UpdateAuthData(userId string, service string, authData *string, email string, resetMfa bool) StoreChannel {
 
 	storeChannel := make(StoreChannel, 1)
 
@@ -299,6 +299,10 @@ func (us SqlUserStore) UpdateAuthData(userId string, service string, authData *s
 
 		if len(email) != 0 {
 			query += ", Email = :Email"
+		}
+
+		if resetMfa {
+			query += ", MfaActive = false, MfaSecret = ''"
 		}
 
 		query += " WHERE Id = :UserId"

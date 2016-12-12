@@ -65,8 +65,8 @@ func InitUser() {
 	BaseRoutes.NeedChannel.Handle("/users/autocomplete", ApiUserRequired(autocompleteUsersInChannel)).Methods("GET")
 
 	BaseRoutes.Users.Handle("/mfa", ApiAppHandler(checkMfa)).Methods("POST")
-	BaseRoutes.Users.Handle("/generate_mfa_secret", ApiUserRequiredTrustRequester(generateMfaSecret)).Methods("GET")
-	BaseRoutes.Users.Handle("/update_mfa", ApiUserRequired(updateMfa)).Methods("POST")
+	BaseRoutes.Users.Handle("/generate_mfa_secret", ApiUserRequiredMfa(generateMfaSecret)).Methods("GET")
+	BaseRoutes.Users.Handle("/update_mfa", ApiUserRequiredMfa(updateMfa)).Methods("POST")
 
 	BaseRoutes.Users.Handle("/claim/email_to_oauth", ApiAppHandler(emailToOAuth)).Methods("POST")
 	BaseRoutes.Users.Handle("/claim/oauth_to_email", ApiUserRequired(oauthToEmail)).Methods("POST")
@@ -1875,6 +1875,30 @@ func sendPasswordChangeEmail(c *Context, email, siteURL, method string) {
 	}
 }
 
+func sendMfaChangeEmail(c *Context, email string, siteURL string, activated bool) {
+	subject := c.T("api.templates.mfa_change_subject",
+		map[string]interface{}{"SiteName": utils.Cfg.TeamSettings.SiteName})
+
+	bodyPage := utils.NewHTMLTemplate("mfa_change_body", c.Locale)
+	bodyPage.Props["SiteURL"] = siteURL
+
+	bodyText := ""
+	if activated {
+		bodyText = "api.templates.mfa_activated_body.info"
+		bodyPage.Props["Title"] = c.T("api.templates.mfa_activated_body.title")
+	} else {
+		bodyText = "api.templates.mfa_deactivated_body.info"
+		bodyPage.Props["Title"] = c.T("api.templates.mfa_deactivated_body.title")
+	}
+
+	bodyPage.Html["Info"] = template.HTML(c.T(bodyText,
+		map[string]interface{}{"SiteURL": siteURL}))
+
+	if err := utils.SendMail(email, subject, bodyPage.Render()); err != nil {
+		l4g.Error(utils.T("api.user.send_mfa_change_email.error"), err)
+	}
+}
+
 func sendEmailChangeEmail(c *Context, oldEmail, newEmail, siteURL string) {
 	subject := fmt.Sprintf("[%v] %v", utils.Cfg.TeamSettings.SiteName, c.T("api.templates.email_change_subject",
 		map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName}))
@@ -2016,6 +2040,8 @@ func emailToOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	mfaToken := props["token"]
+
 	service := props["service"]
 	if len(service) == 0 {
 		c.SetInvalidParam("emailToOAuth", "service")
@@ -2039,7 +2065,7 @@ func emailToOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		user = result.Data.(*model.User)
 	}
 
-	if err := checkPasswordAndAllCriteria(user, password, ""); err != nil {
+	if err := checkPasswordAndAllCriteria(user, password, mfaToken); err != nil {
 		c.LogAuditWithUserId(user.Id, "failed - bad authentication")
 		c.Err = err
 		return
@@ -2147,6 +2173,8 @@ func emailToLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	token := props["token"]
+
 	c.LogAudit("attempt")
 
 	var user *model.User
@@ -2158,7 +2186,7 @@ func emailToLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		user = result.Data.(*model.User)
 	}
 
-	if err := checkPasswordAndAllCriteria(user, emailPassword, ""); err != nil {
+	if err := checkPasswordAndAllCriteria(user, emailPassword, token); err != nil {
 		c.LogAuditWithUserId(user.Id, "failed - bad authentication")
 		c.Err = err
 		return
@@ -2213,6 +2241,8 @@ func ldapToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	token := props["token"]
+
 	c.LogAudit("attempt")
 
 	var user *model.User
@@ -2238,6 +2268,12 @@ func ldapToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if err := ldapInterface.CheckPassword(*user.AuthData, ldapPassword); err != nil {
 		c.LogAuditWithUserId(user.Id, "fail - ldap authentication failed")
+		c.Err = err
+		return
+	}
+
+	if err := checkUserMfa(user, token); err != nil {
+		c.LogAuditWithUserId(user.Id, "fail - mfa token failed")
 		c.Err = err
 		return
 	}
@@ -2379,17 +2415,32 @@ func updateMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	c.LogAudit("attempt")
+
 	if activate {
 		if err := ActivateMfa(c.Session.UserId, token); err != nil {
 			c.Err = err
 			return
 		}
+		c.LogAudit("success - activated")
 	} else {
 		if err := DeactivateMfa(c.Session.UserId); err != nil {
 			c.Err = err
 			return
 		}
+		c.LogAudit("success - deactivated")
 	}
+
+	go func() {
+		var user *model.User
+		if result := <-Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
+			l4g.Warn(result.Err)
+		} else {
+			user = result.Data.(*model.User)
+		}
+
+		sendMfaChangeEmail(c, user.Email, c.GetSiteURL(), activate)
+	}()
 
 	rdata := map[string]string{}
 	rdata["status"] = "ok"
