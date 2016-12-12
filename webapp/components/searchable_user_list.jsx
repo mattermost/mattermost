@@ -140,7 +140,7 @@ export default class SearchableUserList extends React.Component {
         return (
             <div className='filtered-user-list'>
                 <div className='filter-row'>
-                    <div className='col-xs-9 col-sm-5'>
+                    <div className='col-xs-12'>
                         <input
                             ref='filter'
                             className='form-control filter-textbox'

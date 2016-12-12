@@ -163,7 +163,7 @@ export default class MoreChannels extends React.Component {
 
         return (
             <Modal
-                dialogClassName='more-modal more-direct-channels'
+                dialogClassName='more-modal more-public-channels'
                 show={this.state.show}
                 onHide={this.handleHide}
                 onExited={this.handleExit}
@@ -174,8 +174,8 @@ export default class MoreChannels extends React.Component {
                             id='more_channels.title'
                             defaultMessage='More Channels'
                         />
-                        {createNewChannelButton}
                     </Modal.Title>
+                    {createNewChannelButton}
                 </Modal.Header>
                 <Modal.Body>
                     <SearchableChannelList
