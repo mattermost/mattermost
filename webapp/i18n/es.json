@@ -1654,7 +1654,7 @@
   "sidebar.tutorialScreen3": "<h4>Creando y Uniéndose a Canales</h4><p>Haz clic en <strong>\"Más...\"</strong> para crear un nuevo canal o unirte a uno existente.</p><p>También puedes crear un nuevo canal o grupo privado al hacer clic en el símbolo de <strong>\"+\"</strong> que se encuentra al lado del encabezado de Canales o Grupos Privados.</p>",
   "sidebar.unreadAbove": "Mensaje(s) sin leer ▲",
   "sidebar.unreadBelow": "Mensaje(s) sin leer ▼",
-  "sidebar_header.tutorial": "<h4>Menú Principal</h4><p>El <strong>Menú Principal</strong> es donde puedes <strong>Invitar a nuevos miembros</strong>, podrás <strong>Configurar tu Cuenta</strong> y seleccionar un <strong>Tema</strong> para personalizar la apariencia.</p><p>Los administradores del Equipo podrán <strong>Configurar el Equipo</strong> desde este menú.</p><p>Los administradores del Sistema encontrarán una opción para ir a la <strong>Consola de Sistema</strong> para administrar el sistema completo.</p>",
+  "sidebar_header.tutorial": "<h4>Menú Principal</h4><p>El <strong>Menú Principal</strong> es donde podrás <strong>Configurar tu Cuenta</strong> y seleccionar un <strong>Tema</strong> para personalizar la apariencia.</p><p>Los administradores del Equipo podrán <strong>Configurar el Equipo</strong> desde este menú.</p><p>Los administradores del Sistema encontrarán una opción para ir a la <strong>Consola de Sistema</strong> para administrar el sistema completo.</p>",
   "sidebar_right_menu.accountSettings": "Configurar tu Cuenta",
   "sidebar_right_menu.console": "Consola del Sistema",
   "sidebar_right_menu.flagged": "Mensajes Marcados",

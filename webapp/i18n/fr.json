@@ -1654,7 +1654,7 @@
   "sidebar.tutorialScreen3": "<h4>Créer et rejoindre des canaux</h4><p>Cliquez sur <strong>\"Plus...\"</strong> pour créer un nouveau canal ou rejoindre un canal existant.</p><p>Vous pouvez aussi créer un nouveau canal ou un groupe privé en cliquant sur le symbole <strong>\"+\"</strong> à côté du nom du canal ou de l'en-tête du groupe privé.</p>",
   "sidebar.unreadAbove": "Message(s) non-lu(s) ci-dessus",
   "sidebar.unreadBelow": "Message(s) non-lu(s) ci-dessous",
-  "sidebar_header.tutorial": "<h4>Menu principal</h4><p>Le <strong>Menu Principal</strong> est l'endroit où vous pouvez <strong>inviter de nouveaux membres</strong>, accéder aux <strong>paramètres de votre compte</strong> et configurer les <strong>couleurs de votre thème</strong>.</p><p>Les administrateurs d'équipe peuvent aussi accéder aux <strong>paramètres de l'équipe</strong>.</p><p>Les administrateurs système trouveront la <strong>console système</strong> pour administrer tout le site.</p>",
+  "sidebar_header.tutorial": "<h4>Menu principal</h4><p>Le <strong>Menu Principal</strong> est l'endroit où vous pouvez accéder aux <strong>paramètres de votre compte</strong> et configurer les <strong>couleurs de votre thème</strong>.</p><p>Les administrateurs d'équipe peuvent aussi accéder aux <strong>paramètres de l'équipe</strong>.</p><p>Les administrateurs système trouveront la <strong>console système</strong> pour administrer tout le site.</p>",
   "sidebar_right_menu.accountSettings": "Paramètres du compte",
   "sidebar_right_menu.console": "Console système",
   "sidebar_right_menu.flagged": "Postes avec indicateur",

@@ -1652,7 +1652,7 @@
   "sidebar.tutorialScreen3": "<h4>Criando e participando de Canais</h4><p>Clique em <strong>\"Mais...\"</strong> para criar um novo canal ou participar de um já existente.</p><p>Você também pode criar um novo canal ou grupo privado ao clicar em <strong>no símbolo \"+\"</strong> ao lado do canal ou grupo privado no cabeçalho.</p>",
   "sidebar.unreadAbove": "Post(s) não lidos acima",
   "sidebar.unreadBelow": "Post(s) não lidos abaixo",
-  "sidebar_header.tutorial": "<h4>Menu Principal</h4><p>O <strong>Menu Principal</strong> é onde você pode <strong>Convidar Para Equipe</strong>, acessar sua <strong>Definição de Conta</strong> e ajustar o seu <strong>Tema de Cores</strong>.</p><p>Administradores de equipe podem também acessar suas <strong>Configurações de Equipe</strong> a partir deste menu.</p><p>Administradores de Sistema vão encontrar em <strong>Console do Sistema</strong> opções para administrar todo o sistema.</p>",
+  "sidebar_header.tutorial": "<h4>Menu Principal</h4><p>O <strong>Menu Principal</strong> é onde você pode acessar sua <strong>Definição de Conta</strong> e ajustar o seu <strong>Tema de Cores</strong>.</p><p>Administradores de equipe podem também acessar suas <strong>Configurações de Equipe</strong> a partir deste menu.</p><p>Administradores de Sistema vão encontrar em <strong>Console do Sistema</strong> opções para administrar todo o sistema.</p>",
   "sidebar_right_menu.accountSettings": "Definições de Conta",
   "sidebar_right_menu.console": "Console do Sistema",
   "sidebar_right_menu.flagged": "Posts Marcados",
