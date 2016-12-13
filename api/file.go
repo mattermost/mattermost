@@ -529,7 +529,7 @@ func writeFileResponse(filename string, contentType string, bytes []byte, w http
 		w.Header().Del("Content-Type") // Content-Type will be set automatically by the http writer
 	}
 
-	w.Header().Set("Content-Disposition", "attachment;filename=\""+filename+"\"")
+	w.Header().Set("Content-Disposition", "attachment;filename=\""+filename+"\"; filename*=UTF-8''"+url.QueryEscape(filename))
 
 	// prevent file links from being embedded in iframes
 	w.Header().Set("X-Frame-Options", "DENY")
