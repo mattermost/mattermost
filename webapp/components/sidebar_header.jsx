@@ -3,21 +3,26 @@
 
 import React from 'react';
 
-import Client from 'client/web_client.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import SidebarHeaderDropdown from './sidebar_header_dropdown.jsx';
+import SidebarHeaderStatusDropdown from './sidebar_header_status_dropdown.jsx';
 import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 
 import {Preferences, TutorialSteps} from 'utils/constants.jsx';
 import {createMenuTip} from 'components/tutorial/tutorial_tip.jsx';
+
+import statusAway from 'images/icons/IC_DM_Away.svg';
+import statusOnline from 'images/icons/IC_DM_Online.svg';
+import statusOffline from 'images/icons/IC_DM_Offline.svg';
 
 export default class SidebarHeader extends React.Component {
     constructor(props) {
         super(props);
 
         this.toggleDropdown = this.toggleDropdown.bind(this);
+        this.toggleStatusDropdown = this.toggleStatusDropdown.bind(this);
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
 
         this.state = this.getStateFromStores();
@@ -47,22 +52,18 @@ export default class SidebarHeader extends React.Component {
         this.refs.dropdown.toggleDropdown();
     }
 
+    toggleStatusDropdown(e) {
+        e.preventDefault();
+
+        this.refs.statusDropdown.toggleDropdown();
+    }
+
     render() {
         var me = this.props.currentUser;
         const fullName = Utils.getFullName(me);
-        var profilePicture = null;
 
         if (!me) {
             return null;
-        }
-
-        if (me.last_picture_update) {
-            profilePicture = (
-                <img
-                    className='user__picture'
-                    src={Client.getUsersRoute() + '/' + me.id + '/image?time=' + me.update_at}
-                />
-            );
         }
 
         let tutorialTip = null;
@@ -70,16 +71,35 @@ export default class SidebarHeader extends React.Component {
             tutorialTip = createMenuTip(this.toggleDropdown);
         }
 
+        let statusIconUrl;
+        switch (this.props.currentUserStatus) {
+        case 'away':
+            statusIconUrl = statusAway;
+            break;
+        case 'online':
+            statusIconUrl = statusOnline;
+            break;
+        case 'offline':
+            statusIconUrl = statusOffline;
+            break;
+        }
+
         return (
             <div className='team__header theme'>
                 {tutorialTip}
                 <a
                     href='#'
-                    onClick={this.toggleDropdown}
+                    onClick={this.toggleStatusDropdown}
                 >
-                    {profilePicture}
                     <div className='header__info'>
-                        <div className='user__name'>{'@' + me.username}</div>
+                        <div className='header__status-border'>
+                            <div
+                                className='header__status'
+                                style={{
+                                    backgroundImage: `url(${statusIconUrl})`
+                                }}
+                            />
+                        </div>
                         <OverlayTrigger
                             className='hidden-xs'
                             trigger={['hover', 'focus']}
@@ -106,6 +126,9 @@ export default class SidebarHeader extends React.Component {
                     teamName={this.props.teamName}
                     currentUser={this.props.currentUser}
                 />
+                <SidebarHeaderStatusDropdown
+                    ref='statusDropdown'
+                />
             </div>
         );
     }
@@ -119,5 +142,6 @@ SidebarHeader.propTypes = {
     teamDisplayName: React.PropTypes.string,
     teamName: React.PropTypes.string,
     teamType: React.PropTypes.string,
-    currentUser: React.PropTypes.object
+    currentUser: React.PropTypes.object,
+    currentUserStatus: React.PropTypes.string
 };

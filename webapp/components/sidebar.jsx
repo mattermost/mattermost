@@ -108,6 +108,7 @@ export default class Sidebar extends React.Component {
             showTutorialTip: tutorialStep === TutorialSteps.CHANNEL_POPOVER,
             currentTeam: TeamStore.getCurrent(),
             currentUser: UserStore.getCurrentUser(),
+            currentUserStatus: UserStore.getStatus(UserStore.getCurrentUser().id),
             townSquare: ChannelStore.getByName(Constants.DEFAULT_CHANNEL),
             offTopic: ChannelStore.getByName(Constants.OFFTOPIC_CHANNEL)
         };
@@ -773,6 +774,7 @@ export default class Sidebar extends React.Component {
                     teamName={this.state.currentTeam.name}
                     teamType={this.state.currentTeam.type}
                     currentUser={this.state.currentUser}
+                    currentUserStatus={this.state.currentUserStatus}
                 />
 
                 <UnreadChannelIndicator

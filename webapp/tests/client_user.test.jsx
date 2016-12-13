@@ -587,6 +587,20 @@ describe('Client.User', function() {
         });
     });
 
+    it('setStatus', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().setStatus(
+                'online',
+                function() {
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
     it('getStatusesByIds', function(done) {
         TestHelper.initBasic(() => {
             var ids = [];

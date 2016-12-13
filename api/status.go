@@ -32,6 +32,7 @@ func InitStatus() {
 	l4g.Debug(utils.T("api.status.init.debug"))
 
 	BaseRoutes.Users.Handle("/status", ApiUserRequired(getStatusesHttp)).Methods("GET")
+	BaseRoutes.Users.Handle("/status", ApiUserRequired(setStatusByHttp)).Methods("POST")
 	BaseRoutes.Users.Handle("/status/ids", ApiUserRequired(getStatusesByIdsHttp)).Methods("POST")
 	BaseRoutes.Users.Handle("/status/set_active_channel", ApiUserRequired(setActiveChannel)).Methods("POST")
 	BaseRoutes.WebSocket.Handle("get_statuses", ApiWebSocketHandler(getStatusesWebSocket))
@@ -71,6 +72,23 @@ func GetAllStatuses() (map[string]interface{}, *model.AppError) {
 
 		return statusMap, nil
 	}
+}
+
+func setStatusByHttp(c *Context, w http.ResponseWriter, r *http.Request) {
+	status := model.StringFromJson(r.Body)
+
+	if status == model.STATUS_ONLINE {
+		SetStatusOnline(c.Session.UserId, c.Session.Id, true)
+	} else if status == model.STATUS_AWAY {
+		SetStatusAwayIfNeeded(c.Session.UserId, true)
+	} else if status == model.STATUS_OFFLINE {
+		SetStatusOffline(c.Session.UserId, true)
+	} else {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	ReturnStatusOK(w)
 }
 
 func getStatusesByIdsHttp(c *Context, w http.ResponseWriter, r *http.Request) {
