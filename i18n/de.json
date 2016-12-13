@@ -1873,7 +1873,7 @@
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",
-    "translation": "Team Anmeldung mit einer E-Mailadresse ist ausgeschaltet."
+    "translation": "Team Anmeldung mit einer E-Mail-Adresse ist ausgeschaltet."
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
@@ -1909,11 +1909,11 @@
   },
   {
     "id": "api.templates.email_change_verify_subject",
-    "translation": "Bestätige neue E-Mailadresse für {{.TeamDisplayName}}"
+    "translation": "Bestätige neue E-Mail-Adresse für {{.TeamDisplayName}}"
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "Benachrichtigungseinstellungen können geändert werden wenn Sie sich in Ihrem Team anmelden und Account Einstellungen > Benachrichtigungen aufrufen."
+    "translation": "Benachrichtigungseinstellungen können geändert werden, wenn Sie sich in Ihrem Team anmelden und Account Einstellungen > Benachrichtigungen aufrufen."
   },
   {
     "id": "api.templates.email_info",
