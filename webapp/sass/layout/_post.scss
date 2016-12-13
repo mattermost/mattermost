@@ -1250,6 +1250,8 @@
     cursor: pointer;
     display: inline-block;
     padding: 1px 2px;
+    margin-right: 5px;
+    margin-bottom: 5px;
     @include user-select(none);
 
     .post-reaction__emoji {
@@ -1257,10 +1259,6 @@
         margin-top: 3px;
         width: 14px;
         vertical-align: top;
-    }
-
-    & + & {
-        margin-left: 5px;
     }
 
     &--current-user {
