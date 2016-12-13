@@ -155,7 +155,8 @@ type UserStore interface {
 	GetProfilesByUsernames(usernames []string, teamId string) StoreChannel
 	GetAllProfiles(offset int, limit int) StoreChannel
 	GetProfiles(teamId string, offset int, limit int) StoreChannel
-	GetProfileByIds(userId []string) StoreChannel
+	GetProfileByIds(userId []string, allowFromCache bool) StoreChannel
+	InvalidatProfileCacheForUser(userId string)
 	GetByEmail(email string) StoreChannel
 	GetByAuth(authData *string, authService string) StoreChannel
 	GetAllUsingAuthService(authService string) StoreChannel
