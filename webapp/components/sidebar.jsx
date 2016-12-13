@@ -48,6 +48,7 @@ export default class Sidebar extends React.Component {
         this.getStateFromStores = this.getStateFromStores.bind(this);
 
         this.onChange = this.onChange.bind(this);
+        this.onUpdate = this.onUpdate.bind(this);
         this.onScroll = this.onScroll.bind(this);
         this.updateUnreadIndicators = this.updateUnreadIndicators.bind(this);
         this.handleLeaveDirectChannel = this.handleLeaveDirectChannel.bind(this);
@@ -161,11 +162,21 @@ export default class Sidebar extends React.Component {
 
         // close the LHS on mobile when you change channels
         if (this.state.activeId !== prevState.activeId) {
-            $('.app__body .inner-wrap').removeClass('move--right');
-            $('.app__body .sidebar--left').removeClass('move--right');
-            $('.multi-teams .team-sidebar').removeClass('move--right');
+            if (this.state.closedDirectChannel) {
+                this.onUpdate(() => {
+                    this.setState({closedDirectChannel: false});
+                });
+            } else {
+                $('.app__body .inner-wrap').removeClass('move--right');
+                $('.app__body .sidebar--left').removeClass('move--right');
+                $('.multi-teams .team-sidebar').removeClass('move--right');
+            }
         }
     }
+
+    onUpdate = (cb) => {
+        cb();
+    };
 
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onChange);
@@ -349,6 +360,7 @@ export default class Sidebar extends React.Component {
         }
 
         if (channel.id === this.state.activeId) {
+            this.setState({closedDirectChannel: true});
             browserHistory.push('/' + this.state.currentTeam.name + '/channels/town-square');
         }
     }
