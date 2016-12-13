@@ -144,7 +144,7 @@ export default class Reaction extends React.Component {
                 placement='top'
                 shouldUpdatePosition={true}
                 overlay={
-                    <Tooltip>
+                    <Tooltip id={`${this.props.post.id}-${this.props.emojiName}-reaction`}>
                         {tooltip}
                         <br/>
                         {clickTooltip}
