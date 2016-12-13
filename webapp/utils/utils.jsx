@@ -1203,10 +1203,8 @@ export function canCreateCustomEmoji(user) {
         return false;
     } else if (window.mm_config.RestrictCustomEmojiCreation === 'admin') {
         // check whether the user is an admin on any of their teams
-        for (const member of TeamStore.getTeamMembers()) {
-            if (isAdmin(member.roles)) {
-                return true;
-            }
+        if (TeamStore.isTeamAdminForAnyTeam()) {
+            return true;
         }
 
         return false;
