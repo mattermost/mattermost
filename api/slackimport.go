@@ -560,6 +560,8 @@ func SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model
 		deactivateSlackBotUser(botUser)
 	}
 
+	InvalidateAllCaches()
+
 	log.WriteString(utils.T("api.slackimport.slack_import.notes"))
 	log.WriteString("=======\r\n\r\n")
 

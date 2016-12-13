@@ -37,14 +37,14 @@ func TestPostStoreGet(t *testing.T) {
 	o1.UserId = model.NewId()
 	o1.Message = "a" + model.NewId() + "b"
 
-	etag1 := (<-store.Post().GetEtag(o1.ChannelId)).Data.(string)
+	etag1 := (<-store.Post().GetEtag(o1.ChannelId, false)).Data.(string)
 	if strings.Index(etag1, model.CurrentVersion+".0.") != 0 {
 		t.Fatal("Invalid Etag")
 	}
 
 	o1 = (<-store.Post().Save(o1)).Data.(*model.Post)
 
-	etag2 := (<-store.Post().GetEtag(o1.ChannelId)).Data.(string)
+	etag2 := (<-store.Post().GetEtag(o1.ChannelId, false)).Data.(string)
 	if strings.Index(etag2, model.CurrentVersion+"."+o1.Id) != 0 {
 		t.Fatal("Invalid Etag")
 	}
@@ -59,6 +59,41 @@ func TestPostStoreGet(t *testing.T) {
 
 	if err := (<-store.Post().Get("123")).Err; err == nil {
 		t.Fatal("Missing id should have failed")
+	}
+}
+
+func TestGetEtagCache(t *testing.T) {
+	Setup()
+	o1 := &model.Post{}
+	o1.ChannelId = model.NewId()
+	o1.UserId = model.NewId()
+	o1.Message = "a" + model.NewId() + "b"
+
+	etag1 := (<-store.Post().GetEtag(o1.ChannelId, true)).Data.(string)
+	if strings.Index(etag1, model.CurrentVersion+".0.") != 0 {
+		t.Fatal("Invalid Etag")
+	}
+
+	// This one should come from the cache
+	etag2 := (<-store.Post().GetEtag(o1.ChannelId, true)).Data.(string)
+	if strings.Index(etag2, model.CurrentVersion+".0.") != 0 {
+		t.Fatal("Invalid Etag")
+	}
+
+	o1 = (<-store.Post().Save(o1)).Data.(*model.Post)
+
+	// We have not invalidated the cache so this should be the same as above
+	etag3 := (<-store.Post().GetEtag(o1.ChannelId, true)).Data.(string)
+	if strings.Index(etag3, model.CurrentVersion+".0.") != 0 {
+		t.Fatal("Invalid Etag")
+	}
+
+	store.Post().InvalidatePostEtagCache(o1.ChannelId)
+
+	// Invalidated cache so we should get a good result
+	etag4 := (<-store.Post().GetEtag(o1.ChannelId, true)).Data.(string)
+	if strings.Index(etag4, model.CurrentVersion+"."+o1.Id) != 0 {
+		t.Fatal("Invalid Etag")
 	}
 }
 
@@ -164,7 +199,7 @@ func TestPostStoreDelete(t *testing.T) {
 	o1.UserId = model.NewId()
 	o1.Message = "a" + model.NewId() + "b"
 
-	etag1 := (<-store.Post().GetEtag(o1.ChannelId)).Data.(string)
+	etag1 := (<-store.Post().GetEtag(o1.ChannelId, false)).Data.(string)
 	if strings.Index(etag1, model.CurrentVersion+".0.") != 0 {
 		t.Fatal("Invalid Etag")
 	}
@@ -188,7 +223,7 @@ func TestPostStoreDelete(t *testing.T) {
 		t.Fatal("Missing id should have failed")
 	}
 
-	etag2 := (<-store.Post().GetEtag(o1.ChannelId)).Data.(string)
+	etag2 := (<-store.Post().GetEtag(o1.ChannelId, false)).Data.(string)
 	if strings.Index(etag2, model.CurrentVersion+"."+o1.Id) != 0 {
 		t.Fatal("Invalid Etag")
 	}

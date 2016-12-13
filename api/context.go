@@ -564,4 +564,5 @@ func InvalidateAllCaches() {
 	ClearStatusCache()
 	store.ClearChannelCaches()
 	store.ClearUserCaches()
+	store.ClearPostCaches()
 }
