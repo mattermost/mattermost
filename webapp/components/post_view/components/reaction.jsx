@@ -42,11 +42,19 @@ export default class Reaction extends React.Component {
 
         let currentUserReacted = false;
         const users = [];
+        let otherUsers = 0;
         for (const reaction of this.props.reactions) {
             if (reaction.user_id === this.props.currentUserId) {
                 currentUserReacted = true;
             } else {
-                users.push(Utils.displayUsername(reaction.user_id));
+                const displayName = Utils.displayUsername(reaction.user_id);
+
+                if (displayName) {
+                    users.push(displayName);
+                } else {
+                    // Just count users that we don't have loaded
+                    otherUsers += 1;
+                }
             }
         }
 
@@ -57,7 +65,32 @@ export default class Reaction extends React.Component {
         }
 
         let tooltip;
-        if (users.length > 1) {
+        if (otherUsers > 0) {
+            if (users.length > 0) {
+                tooltip = (
+                    <FormattedHTMLMessage
+                        id='reaction.othersReacted'
+                        defaultMessage='<b>{users} and {otherUsers, number} other {otherUsers, plural, one {user} other {users}}</b> reacted with <b>:{emojiName}:</b>'
+                        values={{
+                            users,
+                            otherUsers,
+                            emojiName: this.props.emojiName
+                        }}
+                    />
+                );
+            } else {
+                tooltip = (
+                    <FormattedHTMLMessage
+                        id='reaction.justOthersReacted'
+                        defaultMessage='<b>{otherUsers, number} {otherUsers, plural, one {user} other {users}}</b> reacted with <b>:{emojiName}:</b>'
+                        values={{
+                            otherUsers,
+                            emojiName: this.props.emojiName
+                        }}
+                    />
+                );
+            }
+        } else if (users.length > 1) {
             tooltip = (
                 <FormattedHTMLMessage
                     id='reaction.multipleReacted'
