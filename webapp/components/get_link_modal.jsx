@@ -87,7 +87,7 @@ export default class GetLinkModal extends React.Component {
                     <i className='fa fa-check'/>
                     <FormattedMessage
                         id='get_link.clipboard'
-                        defaultMessage=' Link copied to clipboard.'
+                        defaultMessage=' Link copied'
                     />
                 </p>
             );
