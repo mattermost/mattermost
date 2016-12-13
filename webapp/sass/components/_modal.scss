@@ -31,6 +31,22 @@
         .suggestion-list__content {
             max-height: 150px;
         }
+
+        .edit-post-footer {
+            font-size: 13px;
+            padding: 3px 0 0;
+            position: relative;
+
+            .post-error {
+                font-weight: normal;
+                margin-bottom: 0;
+                display: inline-block;
+                font-size: .85em;
+                @include opacity(.55);
+                color: rgb(51, 51, 51);
+                top: 5px;
+            }
+        }
     }
 
     .row--invite {
