@@ -416,12 +416,12 @@
         .btn-file {
             @include opacity(.5);
             @include single-transition(all, .15s);
-            color: #444444;
             font-size: 16px;
             padding: 7px 9px 6px;
             position: absolute;
             right: 0;
             top: 1px;
+            z-index: 5;
 
             svg {
                 height: 18px;
