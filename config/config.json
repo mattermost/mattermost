@@ -186,12 +186,12 @@
         "UsernameAttribute": "",
         "NicknameAttribute": "",
         "IdAttribute": "",
+        "PositionAttribute": "",
         "SyncIntervalMinutes": 60,
         "SkipCertificateVerification": false,
         "QueryTimeout": 60,
         "MaxPageSize": 0,
-        "LoginFieldName": "",
-        "PositionAttribute": ""
+        "LoginFieldName": ""
     },
     "ComplianceSettings": {
         "Enable": false,
@@ -219,8 +219,8 @@
         "UsernameAttribute": "",
         "NicknameAttribute": "",
         "LocaleAttribute": "",
-        "LoginButtonText": "With SAML",
-        "PositionAttribute": ""
+        "PositionAttribute": "",
+        "LoginButtonText": "With SAML"
     },
     "NativeAppSettings": {
         "AppDownloadLink": "https://about.mattermost.com/downloads/",
