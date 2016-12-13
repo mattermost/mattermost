@@ -146,7 +146,7 @@ export default class MoreChannelsList extends React.Component {
         if (this.props.total) {
             count = (
                 <FormattedMessage
-                    id='filtered_user_list.countTotalPage'
+                    id='filtered_channels_list.countTotalPage'
                     defaultMessage='{startCount, number} - {endCount, number} {count, plural, =0 {0 channels} one {channel} other {channels}} of {total} total'
                     values={{
                         count: channelsToDisplay.length,
