@@ -214,17 +214,13 @@ func UpgradeDatabaseToVersion35(sqlStore *SqlStore) {
 }
 
 func UpgradeDatabaseToVersion36(sqlStore *SqlStore) {
+	// TODO uncomment me before release
 	//if shouldPerformUpgrade(sqlStore, VERSION_3_5_0, VERSION_3_6_0) {
 
 	sqlStore.CreateColumnIfNotExists("Posts", "HasReactions", "tinyint", "boolean", "0")
 
 	// Create Team Description column
 	sqlStore.CreateColumnIfNotExists("Teams", "Description", "varchar(255)", "varchar(255)", "")
-
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO FIXME UNCOMMENT WHEN WE DO RELEASE
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	//sqlStore.Session().RemoveAllSessions()
 
 	//saveSchemaVersion(sqlStore, VERSION_3_6_0)
 	//}
