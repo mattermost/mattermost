@@ -40,9 +40,9 @@ export default class ChannelInfoModal extends React.Component {
         }
 
         if (channel.type === 'O') {
-            channelIcon = (<span className='fa fa-globe'/>);
+            channelIcon = (<span className='fa uchat-icons-public_channel'/>);
         } else if (channel.type === 'P') {
-            channelIcon = (<span className='fa fa-lock'/>);
+            channelIcon = (<span className='fa uchat-icons-private_channel'/>);
         }
 
         const channelURL = TeamStore.getCurrentTeamUrl() + '/channels/' + channel.name;

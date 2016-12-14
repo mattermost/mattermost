@@ -487,9 +487,9 @@ export default class Sidebar extends React.Component {
 
         var icon = null;
         if (channel.type === Constants.OPEN_CHANNEL) {
-            icon = <div className='status'><i className='fa fa-globe'/></div>;
+            icon = <div className='status'><i className='uchat-icons-public_channel'/></div>;
         } else if (channel.type === Constants.PRIVATE_CHANNEL) {
-            icon = <div className='status'><i className='fa fa-lock'/></div>;
+            icon = <div className='status'><i className='uchat-icons-private_channel'/></div>;
         } else {
             // set up status icon for direct message channels (status is null for other channel types)
             icon = <StatusIcon status={channel.status}/>;

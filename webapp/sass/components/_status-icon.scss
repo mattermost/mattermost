@@ -2,10 +2,12 @@
 
 .status {
     display: inline-block;
-    margin-right: 6px;
+    margin-right: 8px;
     position: relative;
     top: 1px;
-    width: 12px;
+    width: 13px;
+    text-align: center;
+    font-size: 12px;
 
     svg {
         max-height: 14px;
