@@ -1265,7 +1265,6 @@
     padding: 0 4px 0 3px;
     margin-right: 5px;
     margin-bottom: 5px;
-    @include user-select(none);
 
     .post-reaction__emoji {
         height: 16px;
