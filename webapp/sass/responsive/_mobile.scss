@@ -46,8 +46,10 @@
             padding: 15px 20px 100px;
 
             > div {
-                height: calc(100vh - 150px);
-                overflow: auto;
+                &:first-child {
+                    height: calc(100vh - 150px);
+                    overflow: auto;
+                }
             }
         }
 
@@ -971,6 +973,10 @@
             bottom: 10px;
         }
 
+        .nav-pills__unread-indicator {
+            width: 260px;
+        }
+
         .badge {
             top: 13px;
         }
@@ -1463,6 +1469,10 @@
     .sidebar--left {
         @include translate3d(-260px, 0, 0);
         width: 260px;
+
+        .nav-pills__unread-indicator {
+            width: 230px;
+        }
     }
 
     .inner-wrap {
