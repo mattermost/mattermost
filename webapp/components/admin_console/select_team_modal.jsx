@@ -26,16 +26,7 @@ export default class SelectTeamModal extends React.Component {
     }
 
     compare(a, b) {
-        const teamA = a.display_name.toLowerCase();
-        const teamB = b.display_name.toLowerCase();
-
-        if (teamA < teamB) {
-            return -1;
-        }
-        if (teamA > teamB) {
-            return 1;
-        }
-        return 0;
+        return a.display_name.localeCompare(b.display_name);
     }
 
     render() {
