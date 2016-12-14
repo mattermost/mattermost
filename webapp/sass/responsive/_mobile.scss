@@ -46,8 +46,10 @@
             padding: 15px 20px 100px;
 
             > div {
-                height: calc(100vh - 150px);
-                overflow: auto;
+                &:first-child {
+                    height: calc(100vh - 150px);
+                    overflow: auto;
+                }
             }
         }
 
