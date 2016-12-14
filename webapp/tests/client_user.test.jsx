@@ -306,6 +306,7 @@ describe('Client.User', function() {
             TestHelper.basicClient().emailToOAuth(
                 user.email,
                 'new_password',
+                '',
                 'gitlab',
                 function() {
                     throw Error('shouldnt work');
@@ -345,6 +346,7 @@ describe('Client.User', function() {
             TestHelper.basicClient().emailToLdap(
                 user.email,
                 user.password,
+                '',
                 'unknown_id',
                 'unknown_pwd',
                 function() {
@@ -365,6 +367,7 @@ describe('Client.User', function() {
             TestHelper.basicClient().ldapToEmail(
                 user.email,
                 'new_password',
+                '',
                 'new_password',
                 function() {
                     throw Error('shouldnt work');

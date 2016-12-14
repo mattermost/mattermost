@@ -840,18 +840,13 @@ export default class Client {
         this.track('api', 'api_users_reset_password');
     }
 
-    emailToOAuth(email, password, service, success, error) {
-        var data = {};
-        data.password = password;
-        data.email = email;
-        data.service = service;
-
+    emailToOAuth(email, password, token, service, success, error) {
         request.
             post(`${this.getUsersRoute()}/claim/email_to_oauth`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
-            send(data).
+            send({password, email, token, service}).
             end(this.handleResponse.bind(this, 'emailToOAuth', success, error));
 
         this.track('api', 'api_users_email_to_oauth');
@@ -873,12 +868,13 @@ export default class Client {
         this.track('api', 'api_users_oauth_to_email');
     }
 
-    emailToLdap(email, password, ldapId, ldapPassword, success, error) {
+    emailToLdap(email, password, token, ldapId, ldapPassword, success, error) {
         var data = {};
         data.email_password = password;
         data.email = email;
         data.ldap_id = ldapId;
         data.ldap_password = ldapPassword;
+        data.token = token;
 
         request.
             post(`${this.getUsersRoute()}/claim/email_to_ldap`).
@@ -891,11 +887,12 @@ export default class Client {
         this.track('api', 'api_users_email_to_ldap');
     }
 
-    ldapToEmail(email, emailPassword, ldapPassword, success, error) {
+    ldapToEmail(email, emailPassword, token, ldapPassword, success, error) {
         var data = {};
         data.email = email;
         data.ldap_password = ldapPassword;
         data.email_password = emailPassword;
+        data.token = token;
 
         request.
             post(`${this.getUsersRoute()}/claim/ldap_to_email`).

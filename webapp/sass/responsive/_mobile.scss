@@ -44,6 +44,11 @@
             color: $white;
             font-size: 15px;
             padding: 15px 20px 100px;
+
+            > div {
+                height: calc(100vh - 150px);
+                overflow: auto;
+            }
         }
 
         .close {
@@ -367,13 +372,6 @@
     .post-image__column {
         height: 95px;
         width: 200px;
-    }
-
-    .textarea-wrapper {
-        .textbox-preview-link,
-        .textbox-help-link {
-            display: none;
-        }
     }
 
     .form-control {

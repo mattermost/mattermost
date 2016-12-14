@@ -182,6 +182,23 @@ export default class UserProfile extends React.Component {
 
         dataContent.push(webrtc);
 
+        const position = this.props.user.position.substring(0, Constants.MAX_POSITION_LENGTH);
+        if (position) {
+            dataContent.push(
+                <div
+                    data-toggle='tooltip'
+                    title={position}
+                    key='user-popover-position'
+                >
+                    <p
+                        className='text-nowrap'
+                    >
+                        {position}
+                    </p>
+                </div>
+            );
+        }
+
         if (global.window.mm_config.ShowEmailAddress === 'true' || UserStore.isSystemAdminForCurrentUser() || this.props.user === UserStore.getCurrentUser()) {
             dataContent.push(
                 <div

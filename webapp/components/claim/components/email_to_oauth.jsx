@@ -1,9 +1,13 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import LoginMfa from 'components/login/components/login_mfa.jsx';
+
 import * as Utils from 'utils/utils.jsx';
 import Client from 'client/web_client.jsx';
 import Constants from 'utils/constants.jsx';
+
+import {checkMfa} from 'actions/user_actions.jsx';
 
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -14,10 +18,12 @@ export default class EmailToOAuth extends React.Component {
         super(props);
 
         this.submit = this.submit.bind(this);
+        this.preSubmit = this.preSubmit.bind(this);
 
-        this.state = {};
+        this.state = {showMfa: false, password: ''};
     }
-    submit(e) {
+
+    preSubmit(e) {
         e.preventDefault();
         var state = {};
 
@@ -28,16 +34,18 @@ export default class EmailToOAuth extends React.Component {
             return;
         }
 
+        this.setState({password});
+
         state.error = null;
         this.setState(state);
 
-        Client.emailToOAuth(
+        checkMfa(
             this.props.email,
-            password,
-            this.props.newType,
-            (data) => {
-                if (data.follow_link) {
-                    window.location.href = data.follow_link;
+            (requiresMfa) => {
+                if (requiresMfa) {
+                    this.setState({showMfa: true});
+                } else {
+                    this.submit(this.props.email, password, '');
                 }
             },
             (err) => {
@@ -45,6 +53,24 @@ export default class EmailToOAuth extends React.Component {
             }
         );
     }
+
+    submit(loginId, password, token) {
+        Client.emailToOAuth(
+            loginId,
+            password,
+            token,
+            this.props.newType,
+            (data) => {
+                if (data.follow_link) {
+                    window.location.href = data.follow_link;
+                }
+            },
+            (err) => {
+                this.setState({error: err.message, showMfa: false});
+            }
+        );
+    }
+
     render() {
         var error = null;
         if (this.state.error) {
@@ -59,18 +85,18 @@ export default class EmailToOAuth extends React.Component {
         const type = (this.props.newType === Constants.SAML_SERVICE ? Constants.SAML_SERVICE.toUpperCase() : Utils.toTitleCase(this.props.newType));
         const uiType = `${type} SSO`;
 
-        return (
-            <div>
-                <h3>
-                    <FormattedMessage
-                        id='claim.email_to_oauth.title'
-                        defaultMessage='Switch Email/Password Account to {uiType}'
-                        values={{
-                            uiType
-                        }}
-                    />
-                </h3>
-                <form onSubmit={this.submit}>
+        let content;
+        if (this.state.showMfa) {
+            content = (
+                <LoginMfa
+                    loginId={this.props.email}
+                    password={this.state.password}
+                    submit={this.submit}
+                />
+            );
+        } else {
+            content = (
+                <form onSubmit={this.preSubmit}>
                     <p>
                         <FormattedMessage
                             id='claim.email_to_oauth.ssoType'
@@ -122,6 +148,21 @@ export default class EmailToOAuth extends React.Component {
                         />
                     </button>
                 </form>
+            );
+        }
+
+        return (
+            <div>
+                <h3>
+                    <FormattedMessage
+                        id='claim.email_to_oauth.title'
+                        defaultMessage='Switch Email/Password Account to {uiType}'
+                        values={{
+                            uiType
+                        }}
+                    />
+                </h3>
+                {content}
             </div>
         );
     }

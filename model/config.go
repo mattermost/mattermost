@@ -80,6 +80,7 @@ type ServiceSettings struct {
 	EnableSecurityFixAlert            *bool
 	EnableInsecureOutgoingConnections *bool
 	EnableMultifactorAuthentication   *bool
+	EnforceMultifactorAuthentication  *bool
 	AllowCorsFrom                     *string
 	SessionLengthWebInDays            *int
 	SessionLengthMobileInDays         *int
@@ -250,6 +251,7 @@ type LdapSettings struct {
 	UsernameAttribute  *string
 	NicknameAttribute  *string
 	IdAttribute        *string
+	PositionAttribute  *string
 
 	// Syncronization
 	SyncIntervalMinutes *int
@@ -296,6 +298,7 @@ type SamlSettings struct {
 	UsernameAttribute  *string
 	NicknameAttribute  *string
 	LocaleAttribute    *string
+	PositionAttribute  *string
 
 	LoginButtonText *string
 }
@@ -432,6 +435,11 @@ func (o *Config) SetDefaults() {
 	if o.ServiceSettings.EnableMultifactorAuthentication == nil {
 		o.ServiceSettings.EnableMultifactorAuthentication = new(bool)
 		*o.ServiceSettings.EnableMultifactorAuthentication = false
+	}
+
+	if o.ServiceSettings.EnforceMultifactorAuthentication == nil {
+		o.ServiceSettings.EnforceMultifactorAuthentication = new(bool)
+		*o.ServiceSettings.EnforceMultifactorAuthentication = false
 	}
 
 	if o.PasswordSettings.MinimumLength == nil {
@@ -684,6 +692,11 @@ func (o *Config) SetDefaults() {
 		*o.LdapSettings.IdAttribute = ""
 	}
 
+	if o.LdapSettings.PositionAttribute == nil {
+		o.LdapSettings.PositionAttribute = new(string)
+		*o.LdapSettings.PositionAttribute = ""
+	}
+
 	if o.LdapSettings.SyncIntervalMinutes == nil {
 		o.LdapSettings.SyncIntervalMinutes = new(int)
 		*o.LdapSettings.SyncIntervalMinutes = 60
@@ -903,6 +916,11 @@ func (o *Config) SetDefaults() {
 	if o.SamlSettings.NicknameAttribute == nil {
 		o.SamlSettings.NicknameAttribute = new(string)
 		*o.SamlSettings.NicknameAttribute = ""
+	}
+
+	if o.SamlSettings.PositionAttribute == nil {
+		o.SamlSettings.PositionAttribute = new(string)
+		*o.SamlSettings.PositionAttribute = ""
 	}
 
 	if o.SamlSettings.LocaleAttribute == nil {

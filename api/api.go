@@ -117,6 +117,7 @@ func InitApi() {
 func HandleEtag(etag string, w http.ResponseWriter, r *http.Request) bool {
 	if et := r.Header.Get(model.HEADER_ETAG_CLIENT); len(etag) > 0 {
 		if et == etag {
+			w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 			w.WriteHeader(http.StatusNotModified)
 			return true
 		}

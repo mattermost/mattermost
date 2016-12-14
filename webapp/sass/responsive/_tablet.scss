@@ -1,6 +1,13 @@
 @charset 'UTF-8';
 
 @media screen and (max-width: 960px) {
+    .textarea-wrapper {
+        .textbox-preview-link,
+        .textbox-help-link {
+            display: none;
+        }
+    }
+
     .channel-header {
         .search-bar__container {
             .search__form {
@@ -29,9 +36,9 @@
                 top: 0;
 
                 &.post-error {
-                  left: 32px;
-                  top: 0px;
-                  position: relative;
+                    left: 32px;
+                    position: relative;
+                    top: 0;
                 }
             }
         }
