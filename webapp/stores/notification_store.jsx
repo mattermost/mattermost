@@ -107,7 +107,8 @@ class NotificationStoreClass extends EventEmitter {
             // Notify if you're not looking in the right channel or when
             // the window itself is not active
             const activeChannel = ChannelStore.getCurrent();
-            const notify = activeChannel.id !== channel.id || !this.inFocus;
+            const channelId = channel ? channel.id : null;
+            const notify = activeChannel.id !== channelId || !this.inFocus;
 
             if (notify) {
                 Utils.notifyMe(title, body, channel, teamId, duration, !sound);
