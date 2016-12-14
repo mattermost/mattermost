@@ -602,7 +602,7 @@
             }
 
             p + p {
-                margin-top: 1em;
+                margin: 1em 0;
             }
 
             ol,
@@ -983,11 +983,20 @@
         word-wrap: break-word;
 
         p {
+            display: inline;
+        }
+
+        div {
             margin: 0 0 .4em;
         }
 
         p + p {
-            margin-top: 1.4em;
+            margin: 1.4em 0;
+            display: block;
+        }
+
+        p:last-of-type {
+            display: inline;
         }
 
         li {
@@ -1064,6 +1073,11 @@
             a {
                 color: white;
             }
+        }
+
+        span.edited {
+            color: #A3A3A3;
+            font-size: 0.87em;
         }
     }
 
