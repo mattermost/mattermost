@@ -1687,6 +1687,7 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	if HandleEtag(etag, w, r) {
 		return
 	} else {
+		w.Header().Set("Cache-Control", "max-age=2592000, public")
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 		w.Write([]byte(model.FileInfosToJson(infos)))
 	}
