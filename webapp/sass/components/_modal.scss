@@ -483,6 +483,7 @@
         .filter-row {
             @include clearfix;
             margin: 5px 0 10px;
+            width: 300px;
         }
 
         .member-count {
