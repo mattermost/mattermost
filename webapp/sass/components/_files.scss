@@ -1,9 +1,9 @@
 @charset 'UTF-8';
 
 .file-preview__container {
-    height: 100px;
-    margin: 1px 0 10px;
-    max-height: 100px;
+    height: 100%;
+    margin: 5px 0 10px;
+    max-height: 100%;
     overflow-x: auto;
     overflow-y: hidden;
     position: relative;
@@ -167,6 +167,12 @@
     position: relative;
     width: 240px;
 
+    &.preview {
+        display: inline-block;
+        float: none;
+        margin-right: 10px;
+    }
+
     &--placeholder {
         visibility: hidden;
     }
@@ -189,6 +195,8 @@
 }
 
 .post-image__preview {
+    display: inline-block;
+
     .post-image__image {
         max-width: 300px;
     }
@@ -213,6 +221,41 @@
     }
 }
 
+.post-image {
+    background-color: $white;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+    text-align: center;
+    width: 100%;
+
+    .spinner {
+        .file__loading {
+            left: 50%;
+            margin-left: -16px;
+            margin-top: -16px;
+            position: absolute;
+            top: 50%;
+        }
+    }
+
+    .file__loaded {
+        max-width: initial;
+
+        &.landscape,
+        &.quadrat {
+            height: 100px;
+        }
+
+        &.portrait {
+            width: 120px;
+        }
+    }
+}
+
 .post-image__details {
     @include clearfix;
     background: $white;
@@ -221,20 +264,27 @@
     float: left;
     font-size: 13px;
     height: 100%;
-    padding: 7px;
+    padding: 8px;
     width: 50%;
     word-break: break-word;
+    white-space: normal;
 
     .post-image__name {
         display: block;
         margin-bottom: 3px;
     }
 
+    .post-image__info {
+        position: absolute;
+        font-size: 12px;
+        bottom: 12px;
+    }
+
     .post-image__download {
-        @include opacity(.7);
+        position: absolute;
+        bottom: 10px;
+        right: 8px;
         cursor: pointer;
-        display: inline-block;
-        padding-right: 7px;
     }
 
     .post-image__type {
