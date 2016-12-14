@@ -34,18 +34,17 @@
 
         .edit-post-footer {
             font-size: 13px;
-            padding: 3px 0 0;
             position: relative;
-            max-width: 150px;
+            display: inline-block;
 
             .post-error {
+                position: relative;
                 font-weight: normal;
                 margin-bottom: 0;
-                display: inline-block;
                 font-size: .85em;
                 @include opacity(.55);
                 color: rgb(51, 51, 51);
-                top: 5px;
+                top: 3px;
             }
         }
     }
