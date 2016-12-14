@@ -59,6 +59,14 @@ export default class EditPostModal extends React.Component {
             channel_id: this.state.channel_id
         };
 
+        if (this.state.postError) {
+            this.setState({errorClass: 'animation--highlight'});
+            setTimeout(() => {
+                this.setState({errorClass: null});
+            }, Constants.ANIMATION_TIMEOUT);
+            return;
+        }
+
         if (updatedPost.message === this.state.originalText) {
             // no changes so just close the modal
             $('#edit_post').modal('hide');
@@ -215,7 +223,7 @@ export default class EditPostModal extends React.Component {
         const errorBoxClass = 'edit-post-footer' + (this.state.postError ? ' has-error' : '');
         let postError = null;
         if (this.state.postError) {
-            const postErrorClass = 'post-error' + (this.state.errorClass ? (' ' + this.state.ErrorClass) : '');
+            const postErrorClass = 'post-error' + (this.state.errorClass ? (' ' + this.state.errorClass) : '');
             postError = (<label className={postErrorClass}>{this.state.postError}</label>);
         }
 
