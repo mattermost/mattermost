@@ -186,6 +186,7 @@
         "UsernameAttribute": "",
         "NicknameAttribute": "",
         "IdAttribute": "",
+        "PositionAttribute": "",
         "SyncIntervalMinutes": 60,
         "SkipCertificateVerification": false,
         "QueryTimeout": 60,
@@ -218,6 +219,7 @@
         "UsernameAttribute": "",
         "NicknameAttribute": "",
         "LocaleAttribute": "",
+        "PositionAttribute": "",
         "LoginButtonText": "With SAML"
     },
     "NativeAppSettings": {

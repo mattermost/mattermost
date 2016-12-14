@@ -38,6 +38,7 @@ export default class LdapSettings extends AdminSettings {
         config.LdapSettings.NicknameAttribute = this.state.nicknameAttribute;
         config.LdapSettings.EmailAttribute = this.state.emailAttribute;
         config.LdapSettings.UsernameAttribute = this.state.usernameAttribute;
+        config.LdapSettings.PositionAttribute = this.state.positionAttribute;
         config.LdapSettings.IdAttribute = this.state.idAttribute;
         config.LdapSettings.SyncIntervalMinutes = this.parseIntNonZero(this.state.syncIntervalMinutes);
         config.LdapSettings.SkipCertificateVerification = this.state.skipCertificateVerification;
@@ -63,6 +64,7 @@ export default class LdapSettings extends AdminSettings {
             nicknameAttribute: config.LdapSettings.NicknameAttribute,
             emailAttribute: config.LdapSettings.EmailAttribute,
             usernameAttribute: config.LdapSettings.UsernameAttribute,
+            positionAttribute: config.LdapSettings.PositionAttribute,
             idAttribute: config.LdapSettings.IdAttribute,
             syncIntervalMinutes: config.LdapSettings.SyncIntervalMinutes,
             skipCertificateVerification: config.LdapSettings.SkipCertificateVerification,
@@ -296,6 +298,25 @@ export default class LdapSettings extends AdminSettings {
                         />
                     }
                     value={this.state.nicknameAttribute}
+                    onChange={this.handleChange}
+                    disabled={!this.state.enable}
+                />
+                <TextSetting
+                    id='positionAttribute'
+                    label={
+                        <FormattedMessage
+                            id='admin.ldap.positionAttrTitle'
+                            defaultMessage='Position Attribute:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.ldap.positionAttrEx', 'E.g.: "title"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.ldap.positionAttrDesc'
+                            defaultMessage='(Optional) The attribute in the AD/LDAP server that will be used to populate the position field in Mattermost.'
+                        />
+                    }
+                    value={this.state.positionAttribute}
                     onChange={this.handleChange}
                     disabled={!this.state.enable}
                 />

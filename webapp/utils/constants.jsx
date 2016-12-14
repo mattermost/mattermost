@@ -264,7 +264,8 @@ export const Constants = {
         FULLNAME: 'fullname',
         NICKNAME: 'nickname',
         EMAIL: 'email',
-        LANGUAGE: 'language'
+        LANGUAGE: 'language',
+        POSITION: 'position'
     },
 
     ScrollTypes: {
@@ -835,6 +836,7 @@ export const Constants = {
     MAX_NICKNAME_LENGTH: 22,
     MIN_PASSWORD_LENGTH: 5,
     MAX_PASSWORD_LENGTH: 64,
+    MAX_POSITION_LENGTH: 35,
     MIN_TRIGGER_LENGTH: 1,
     MAX_TRIGGER_LENGTH: 128,
     MAX_TEXTSETTING_LENGTH: 1024,

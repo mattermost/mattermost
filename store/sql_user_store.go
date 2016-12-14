@@ -66,6 +66,7 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 		table.ColMap("NotifyProps").SetMaxSize(2000)
 		table.ColMap("Locale").SetMaxSize(5)
 		table.ColMap("MfaSecret").SetMaxSize(128)
+		table.ColMap("Position").SetMaxSize(64)
 	}
 
 	return us

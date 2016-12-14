@@ -37,6 +37,7 @@ type User struct {
 	Nickname           string    `json:"nickname"`
 	FirstName          string    `json:"first_name"`
 	LastName           string    `json:"last_name"`
+	Position           string    `json:"position"`
 	Roles              string    `json:"roles"`
 	AllowMarketing     bool      `json:"allow_marketing,omitempty"`
 	Props              StringMap `json:"props,omitempty"`
@@ -76,6 +77,10 @@ func (u *User) IsValid() *AppError {
 
 	if utf8.RuneCountInString(u.Nickname) > 64 {
 		return NewLocAppError("User.IsValid", "model.user.is_valid.nickname.app_error", nil, "user_id="+u.Id)
+	}
+
+	if utf8.RuneCountInString(u.Position) > 35 {
+		return NewLocAppError("User.IsValid", "model.user.is_valid.position.app_error", nil, "user_id="+u.Id)
 	}
 
 	if utf8.RuneCountInString(u.FirstName) > 64 {
