@@ -546,17 +546,17 @@ export default class CreatePost extends React.Component {
                                 id='post_textbox'
                                 ref='textbox'
                             />
-                            <FileUpload
-                                ref='fileUpload'
-                                getFileCount={this.getFileCount}
-                                onClick={this.handleUploadClick}
-                                onUploadStart={this.handleUploadStart}
-                                onFileUpload={this.handleFileUploadComplete}
-                                onUploadError={this.handleUploadError}
-                                postType='post'
-                                channelId=''
-                            />
                         </div>
+                        <FileUpload
+                            ref='fileUpload'
+                            getFileCount={this.getFileCount}
+                            onClick={this.handleUploadClick}
+                            onUploadStart={this.handleUploadStart}
+                            onFileUpload={this.handleFileUploadComplete}
+                            onUploadError={this.handleUploadError}
+                            postType='post'
+                            channelId=''
+                        />
                         <a
                             className='send-button theme'
                             onClick={this.handleSubmit}

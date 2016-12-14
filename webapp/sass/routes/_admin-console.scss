@@ -258,11 +258,20 @@
         overflow: visible;
         padding: 5px 0;
 
+        .more-modal__list {
+            overflow: visible;
+        }
+
         .more-modal__row {
             &:last-child {
                 border: none;
             }
         }
+    }
+
+    .member-count {
+        @include opacity(.7);
+        margin-top: 8px;
     }
 }
 

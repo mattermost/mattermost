@@ -268,6 +268,7 @@
         position: absolute;
         right: 0;
         text-align: center;
+        visibility: hidden;
         z-index: 1;
 
         .fa {
@@ -287,6 +288,7 @@
 
         &.visible {
             @include opacity(1);
+            visibility: visible;
         }
 
         &.disabled {
@@ -416,12 +418,12 @@
         .btn-file {
             @include opacity(.5);
             @include single-transition(all, .15s);
-            color: #444444;
             font-size: 16px;
             padding: 7px 9px 6px;
             position: absolute;
             right: 0;
             top: 1px;
+            z-index: 5;
 
             svg {
                 height: 18px;
@@ -1257,18 +1259,26 @@
 }
 
 .post-reaction {
+    @include user-select(none);
+    @include border-radius(3px);
     border: 1px solid $primary-color;
-    border-radius: 3px;
     cursor: pointer;
     display: inline-block;
-    padding: 1px 2px;
-    @include user-select(none);
+    font-size: 11px;
+    height: 23px;
+    padding: 0 4px 0 3px;
 
     .post-reaction__emoji {
-        height: 14px;
-        margin-top: 3px;
-        width: 14px;
+        height: 16px;
+        margin: 2px 3px 0 0;
         vertical-align: top;
+        width: 16px;
+    }
+
+    .post-reaction__count {
+        line-height: 10px;
+        position: relative;
+        top: 3px;
     }
 
     & + & {
@@ -1276,6 +1286,8 @@
     }
 
     &--current-user {
-        // background-colour set by theme code
+        .post-reaction__count {
+            font-weight: 600;
+        }
     }
 }
