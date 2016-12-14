@@ -103,8 +103,28 @@ func PublishSkipClusterSend(message *model.WebSocketEvent) {
 }
 
 func InvalidateCacheForChannel(channelId string) {
+	InvalidateCacheForChannelSkipClusterSend(channelId)
+
+	if cluster := einterfaces.GetClusterInterface(); cluster != nil {
+		cluster.InvalidateCacheForChannel(channelId)
+	}
+}
+
+func InvalidateCacheForChannelSkipClusterSend(channelId string) {
 	Srv.Store.User().InvalidateProfilesInChannelCache(channelId)
 	Srv.Store.Channel().InvalidateMemberCount(channelId)
+}
+
+func InvalidateCacheForChannelPosts(channelId string) {
+	InvalidateCacheForChannelPostsSkipClusterSend(channelId)
+
+	if cluster := einterfaces.GetClusterInterface(); cluster != nil {
+		cluster.InvalidateCacheForChannelPosts(channelId)
+	}
+}
+
+func InvalidateCacheForChannelPostsSkipClusterSend(channelId string) {
+	Srv.Store.Post().InvalidatePostEtagCache(channelId)
 }
 
 func InvalidateCacheForUser(userId string) {

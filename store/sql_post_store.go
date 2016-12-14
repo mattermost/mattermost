@@ -17,6 +17,17 @@ type SqlPostStore struct {
 	*SqlStore
 }
 
+const (
+	POSTS_ETAG_CACHE_SIZE = 25000
+	POSTS_ETAG_CACHE_SEC  = 900 // 15 minutes
+)
+
+var postEtagCache = utils.NewLru(CHANNEL_MEMBERS_COUNTS_CACHE_SIZE)
+
+func ClearPostCaches() {
+	postEtagCache.Purge()
+}
+
 func NewSqlPostStore(sqlStore *SqlStore) PostStore {
 	s := &SqlPostStore{sqlStore}
 
@@ -210,11 +221,24 @@ type etagPosts struct {
 	UpdateAt int64
 }
 
-func (s SqlPostStore) GetEtag(channelId string) StoreChannel {
+func (s SqlPostStore) InvalidatePostEtagCache(channelId string) {
+	postEtagCache.Remove(channelId)
+}
+
+func (s SqlPostStore) GetEtag(channelId string, allowFromCache bool) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
+
+		if allowFromCache {
+			if cacheItem, ok := postEtagCache.Get(channelId); ok {
+				result.Data = cacheItem.(string)
+				storeChannel <- result
+				close(storeChannel)
+				return
+			}
+		}
 
 		var et etagPosts
 		err := s.GetReplica().SelectOne(&et, "SELECT Id, UpdateAt FROM Posts WHERE ChannelId = :ChannelId ORDER BY UpdateAt DESC LIMIT 1", map[string]interface{}{"ChannelId": channelId})
@@ -223,6 +247,8 @@ func (s SqlPostStore) GetEtag(channelId string) StoreChannel {
 		} else {
 			result.Data = fmt.Sprintf("%v.%v.%v", model.CurrentVersion, et.Id, et.UpdateAt)
 		}
+
+		postEtagCache.AddWithExpiresInSecs(channelId, result.Data.(string), POSTS_ETAG_CACHE_SEC)
 
 		storeChannel <- result
 		close(storeChannel)

@@ -166,6 +166,8 @@ func CreatePost(c *Context, post *model.Post, triggerWebhooks bool) (*model.Post
 		}
 	}
 
+	InvalidateCacheForChannelPosts(rpost.ChannelId)
+
 	handlePostEvents(c, rpost, triggerWebhooks)
 
 	return rpost, nil
@@ -1226,6 +1228,8 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		go Publish(message)
 
+		InvalidateCacheForChannelPosts(rpost.ChannelId)
+
 		w.Write([]byte(rpost.ToJson()))
 	}
 }
@@ -1278,7 +1282,7 @@ func getPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	etagChan := Srv.Store.Post().GetEtag(id)
+	etagChan := Srv.Store.Post().GetEtag(id, true)
 
 	if !HasPermissionToChannelContext(c, id, model.PERMISSION_CREATE_POST) {
 		return
@@ -1508,6 +1512,8 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		go DeletePostFiles(post)
 		go DeleteFlaggedPost(c.Session.UserId, post)
 
+		InvalidateCacheForChannelPosts(post.ChannelId)
+
 		result := make(map[string]string)
 		result["id"] = postId
 		w.Write([]byte(model.MapToJson(result)))
@@ -1567,7 +1573,7 @@ func getPostsBeforeOrAfter(c *Context, w http.ResponseWriter, r *http.Request, b
 	}
 
 	// We can do better than this etag in this situation
-	etagChan := Srv.Store.Post().GetEtag(id)
+	etagChan := Srv.Store.Post().GetEtag(id, true)
 
 	if !HasPermissionToChannelContext(c, id, model.PERMISSION_READ_CHANNEL) {
 		return
