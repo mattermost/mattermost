@@ -19,6 +19,8 @@ const (
 	MISSING_AUTH_ACCOUNT_ERROR                 = "store.sql_user.get_by_auth.missing_account.app_error"
 	PROFILES_IN_CHANNEL_CACHE_SIZE             = 5000
 	PROFILES_IN_CHANNEL_CACHE_SEC              = 900 // 15 mins
+	PROFILE_BY_IDS_CACHE_SIZE                  = 20000
+	PROFILE_BY_IDS_CACHE_SEC                   = 900 // 15 mins
 	USER_SEARCH_OPTION_NAMES_ONLY              = "names_only"
 	USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME = "names_only_no_full_name"
 	USER_SEARCH_OPTION_ALL_NO_FULL_NAME        = "all_no_full_name"
@@ -34,9 +36,15 @@ type SqlUserStore struct {
 }
 
 var profilesInChannelCache *utils.Cache = utils.NewLru(PROFILES_IN_CHANNEL_CACHE_SIZE)
+var profileByIdsCache *utils.Cache = utils.NewLru(PROFILE_BY_IDS_CACHE_SIZE)
 
 func ClearUserCaches() {
 	profilesInChannelCache.Purge()
+	profileByIdsCache.Purge()
+}
+
+func (us SqlUserStore) InvalidatProfileCacheForUser(userId string) {
+	profileByIdsCache.Remove(userId)
 }
 
 func NewSqlUserStore(sqlStore *SqlStore) UserStore {
@@ -776,7 +784,7 @@ func (us SqlUserStore) GetRecentlyActiveUsersForTeam(teamId string) StoreChannel
 	return storeChannel
 }
 
-func (us SqlUserStore) GetProfileByIds(userIds []string) StoreChannel {
+func (us SqlUserStore) GetProfileByIds(userIds []string, allowFromCache bool) StoreChannel {
 
 	storeChannel := make(StoreChannel, 1)
 
@@ -784,10 +792,33 @@ func (us SqlUserStore) GetProfileByIds(userIds []string) StoreChannel {
 		result := StoreResult{}
 
 		var users []*model.User
+		userMap := make(map[string]*model.User)
 		props := make(map[string]interface{})
 		idQuery := ""
+		remainingUserIds := make([]string, 0)
 
-		for index, userId := range userIds {
+		if allowFromCache {
+			for _, userId := range userIds {
+				if cacheItem, ok := profileByIdsCache.Get(userId); ok {
+					u := cacheItem.(*model.User)
+					userMap[u.Id] = u
+				} else {
+					remainingUserIds = append(remainingUserIds, userId)
+				}
+			}
+		} else {
+			remainingUserIds = userIds
+		}
+
+		// If everything came from the cache then just return
+		if len(remainingUserIds) == 0 {
+			result.Data = userMap
+			storeChannel <- result
+			close(storeChannel)
+			return
+		}
+
+		for index, userId := range remainingUserIds {
 			if len(idQuery) > 0 {
 				idQuery += ", "
 			}
@@ -800,13 +831,12 @@ func (us SqlUserStore) GetProfileByIds(userIds []string) StoreChannel {
 			result.Err = model.NewLocAppError("SqlUserStore.GetProfileByIds", "store.sql_user.get_profiles.app_error", nil, err.Error())
 		} else {
 
-			userMap := make(map[string]*model.User)
-
 			for _, u := range users {
 				u.Password = ""
 				u.AuthData = new(string)
 				*u.AuthData = ""
 				userMap[u.Id] = u
+				profileByIdsCache.AddWithExpiresInSecs(u.Id, u, PROFILE_BY_IDS_CACHE_SEC)
 			}
 
 			result.Data = userMap
