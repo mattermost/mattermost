@@ -332,10 +332,12 @@ export default class RhsThread extends React.Component {
                                         status = this.state.statuses[p.id] || 'offline';
                                     }
 
+                                    const keyPrefix = comPost.id ? comPost.id : comPost.pending_post_id;
+
                                     return (
                                         <Comment
                                             ref={comPost.id}
-                                            key={comPost.id + 'commentKey'}
+                                            key={keyPrefix + 'commentKey'}
                                             post={comPost}
                                             user={p}
                                             currentUser={this.props.currentUser}

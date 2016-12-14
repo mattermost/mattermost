@@ -280,6 +280,45 @@ export function removeReaction(channelId, postId, emojiName) {
     AsyncClient.deleteReaction(channelId, reaction);
 }
 
+const postQueue = [];
+
+export function queuePost(post, doLoadPost, success, error) {
+    postQueue.push(
+        createPost.bind(
+            this,
+            post,
+            doLoadPost,
+            (data) => {
+                if (success) {
+                    success(data);
+                }
+
+                postQueue.shift();
+                nextPostInQueue();
+            },
+            (err) => {
+                if (error) {
+                    error(err);
+                }
+
+                postQueue.shift();
+                nextPostInQueue();
+            }
+        )
+    );
+
+    if (postQueue.length === 1) {
+        nextPostInQueue();
+    }
+}
+
+function nextPostInQueue() {
+    const nextPostAction = postQueue[0];
+    if (nextPostAction) {
+        nextPostAction();
+    }
+}
+
 export function createPost(post, doLoadPost, success, error) {
     Client.createPost(post,
         (data) => {
