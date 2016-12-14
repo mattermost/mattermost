@@ -56,6 +56,10 @@ export default class SelectTeam extends React.Component {
         this.setState({loadingTeamId: team.id});
     }
 
+    teamContentsCompare(teamItemA, teamItemB) {
+        return teamItemA.props.team.display_name.localeCompare(teamItemB.props.team.display_name);
+    }
+
     render() {
         let content = null;
         let teamContents = [];
@@ -133,7 +137,7 @@ export default class SelectTeam extends React.Component {
                         />
                     </h4>
                     <div className='signup-team-all'>
-                        {teamContents}
+                        {teamContents.sort(this.teamContentsCompare)}
                     </div>
                 </div>
             );
@@ -150,7 +154,7 @@ export default class SelectTeam extends React.Component {
                         />
                     </h4>
                     <div className='signup-team-all'>
-                        {openTeamContents}
+                        {openTeamContents.sort(this.teamContentsCompare)}
                     </div>
                 </div>
             );
