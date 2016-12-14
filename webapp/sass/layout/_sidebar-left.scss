@@ -69,16 +69,13 @@
 
     .nav-pills__unread-indicator {
         @include border-radius(50px);
-        background: #2389d7;
-        color: #ffffff;
         font-size: 13.5px;
-        left: 0;
+        left: 15px;
         margin: 0 auto;
         padding: 3px 0 4px;
-        position: absolute;
-        right: 0;
+        position: fixed;
         text-align: center;
-        width: 72%;
+        width: 190px;
         z-index: 1;
     }
 
