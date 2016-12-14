@@ -98,7 +98,7 @@ const holders = defineMessages({
     },
     failedPassword: {
         id: 'audit_table.failedPassword',
-        defaultMessage: 'Failed to change password - tried to update user password who was logged in through oauth'
+        defaultMessage: 'Failed to change password - tried to update user password who was logged in through OAuth'
     },
     updatedRol: {
         id: 'audit_table.updatedRol',

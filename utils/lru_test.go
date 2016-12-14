@@ -73,7 +73,7 @@ func TestLRU(t *testing.T) {
 	}
 }
 
-// test that Add return true/false if an eviction occured
+// test that Add return true/false if an eviction occurred
 func TestLRUAdd(t *testing.T) {
 	evictCounter := 0
 	onEvicted := func(k interface{}, v interface{}) {
