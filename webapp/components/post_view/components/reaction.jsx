@@ -7,7 +7,7 @@ import EmojiStore from 'stores/emoji_store.jsx';
 import * as PostActions from 'actions/post_actions.jsx';
 import * as Utils from 'utils/utils.jsx';
 
-import {FormattedHTMLMessage, FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 
 export default class Reaction extends React.Component {
@@ -64,56 +64,89 @@ export default class Reaction extends React.Component {
             users.unshift(Utils.localizeMessage('reaction.you', 'You'));
         }
 
-        let tooltip;
+        let names;
         if (otherUsers > 0) {
             if (users.length > 0) {
-                tooltip = (
-                    <FormattedHTMLMessage
-                        id='reaction.othersReacted'
-                        defaultMessage='<b>{users} and {otherUsers, number} other {otherUsers, plural, one {user} other {users}}</b> reacted with <b>:{emojiName}:</b>'
+                names = (
+                    <FormattedMessage
+                        id='reaction.usersAndOthersReacted'
+                        defaultMessage='{users} and {otherUsers, number} other {otherUsers, plural, one {user} other {users}}'
                         values={{
-                            users,
-                            otherUsers,
-                            emojiName: this.props.emojiName
+                            users: users.join(', '),
+                            otherUsers
                         }}
                     />
                 );
             } else {
-                tooltip = (
-                    <FormattedHTMLMessage
-                        id='reaction.justOthersReacted'
-                        defaultMessage='<b>{otherUsers, number} {otherUsers, plural, one {user} other {users}}</b> reacted with <b>:{emojiName}:</b>'
+                names = (
+                    <FormattedMessage
+                        id='reaction.othersReacted'
+                        defaultMessage='{otherUsers, number} {otherUsers, plural, one {user} other {users}}'
                         values={{
-                            otherUsers,
-                            emojiName: this.props.emojiName
+                            otherUsers
                         }}
                     />
                 );
             }
         } else if (users.length > 1) {
-            tooltip = (
-                <FormattedHTMLMessage
-                    id='reaction.multipleReacted'
-                    defaultMessage='<b>{users} and {lastUser}</b> reacted with <b>:{emojiName}:</b>'
+            names = (
+                <FormattedMessage
+                    id='reaction.usersReacted'
+                    defaultMessage='{users} and {lastUser}'
                     values={{
                         users: users.slice(0, -1).join(', '),
-                        lastUser: users[users.length - 1],
-                        emojiName: this.props.emojiName
+                        lastUser: users[users.length - 1]
                     }}
                 />
             );
         } else {
-            tooltip = (
-                <FormattedHTMLMessage
-                    id='reaction.oneReacted'
-                    defaultMessage='<b>{user}</b> reacted with <b>:{emojiName}:</b>'
-                    values={{
-                        user: users[0],
-                        emojiName: this.props.emojiName
-                    }}
+            names = users[0];
+        }
+
+        let reactionVerb;
+        if (users.length + otherUsers > 1) {
+            if (currentUserReacted) {
+                reactionVerb = (
+                    <FormattedMessage
+                        id='reaction.reactionVerb.youAndUsers'
+                        defaultMessage='reacted'
+                    />
+                );
+            } else {
+                reactionVerb = (
+                    <FormattedMessage
+                        id='reaction.reactionVerb.users'
+                        defaultMessage='reacted'
+                    />
+                );
+            }
+        } else if (currentUserReacted) {
+            reactionVerb = (
+                <FormattedMessage
+                    id='reaction.reactionVerb.you'
+                    defaultMessage='reacted'
+                />
+            );
+        } else {
+            reactionVerb = (
+                <FormattedMessage
+                    id='reaction.reactionVerb.user'
+                    defaultMessage='reacted'
                 />
             );
         }
+
+        const tooltip = (
+            <FormattedMessage
+                id='reaction.reacted'
+                defaultMessage='{users} {reactionVerb} with {emoji}'
+                values={{
+                    users: <b>{names}</b>,
+                    reactionVerb,
+                    emoji: <b>{':' + this.props.emojiName + ':'}</b>
+                }}
+            />
+        );
 
         let handleClick;
         let clickTooltip;
