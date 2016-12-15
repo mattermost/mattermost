@@ -35,7 +35,7 @@ func LoadLicense() {
 	}
 
 	if len(licenseId) != 26 {
-		l4g.Warn(utils.T("mattermost.load_license.find.warn"))
+		l4g.Info(utils.T("mattermost.load_license.find.warn"))
 		return
 	}
 
@@ -43,7 +43,7 @@ func LoadLicense() {
 		record := result.Data.(*model.LicenseRecord)
 		utils.LoadLicense([]byte(record.Bytes))
 	} else {
-		l4g.Warn(utils.T("mattermost.load_license.find.warn"))
+		l4g.Info(utils.T("mattermost.load_license.find.warn"))
 	}
 }
 

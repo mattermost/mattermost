@@ -3037,7 +3037,7 @@
   },
   {
     "id": "mattermost.load_license.find.warn",
-    "translation": "Unable to find active license"
+    "translation": "License key from https://mattermost.com required to unlock enterprise features."
   },
   {
     "id": "mattermost.security_bulletin.error",
