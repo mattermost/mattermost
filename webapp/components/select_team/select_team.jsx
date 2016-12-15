@@ -24,6 +24,7 @@ export default class SelectTeam extends React.Component {
         super(props);
         this.onTeamChange = this.onTeamChange.bind(this);
         this.handleTeamClick = this.handleTeamClick.bind(this);
+        this.teamContentsCompare = this.teamContentsCompare.bind(this);
 
         const state = this.getStateFromStores(false);
         state.loadingTeamId = '';
@@ -109,6 +110,10 @@ export default class SelectTeam extends React.Component {
             );
         }
 
+        if (Array.isArray(openTeamContents)) {
+            openTeamContents = openTeamContents.sort(this.teamContentsCompare);
+        }
+
         let openContent = (
             <div className='signup__content'>
                 <h4>
@@ -118,7 +123,7 @@ export default class SelectTeam extends React.Component {
                     />
                 </h4>
                 <div className='signup-team-all'>
-                    {openTeamContents.sort(this.teamContentsCompare)}
+                    {openTeamContents}
                 </div>
             </div>
         );
@@ -138,7 +143,7 @@ export default class SelectTeam extends React.Component {
         }
 
         let teamSignUp;
-        if (isSystemAdmin || (global.window.mm_config.EnableTeamCreation === 'true' && !UserAgent.isMobileApp())) {
+        if (isSystemAdmin || global.window.mm_config.EnableTeamCreation === 'true') {
             teamSignUp = (
                 <div className='margin--extra'>
                     <Link
@@ -158,7 +163,7 @@ export default class SelectTeam extends React.Component {
         }
 
         let adminConsoleLink;
-        if (isSystemAdmin) {
+        if (isSystemAdmin && !UserAgent.isMobileApp()) {
             adminConsoleLink = (
                 <div className='margin--extra hidden-xs'>
                     <Link

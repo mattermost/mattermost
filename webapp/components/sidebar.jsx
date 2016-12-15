@@ -160,6 +160,7 @@ export default class Sidebar extends React.Component {
         if (this.state.activeId !== prevState.activeId) {
             $('.app__body .inner-wrap').removeClass('move--right');
             $('.app__body .sidebar--left').removeClass('move--right');
+            $('.multi-teams .team-sidebar').removeClass('move--right');
         }
     }
 
