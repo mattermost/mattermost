@@ -1301,7 +1301,7 @@
   "get_app.iosHeader": "Mattermost works best if you switch to our iPhone app",
   "get_app.mattermostInc": "Mattermost, Inc",
   "get_app.openMattermost": "Open Mattermost",
-  "get_link.clipboard": " Link copied to clipboard.",
+  "get_link.clipboard": " Link copied",
   "get_link.close": "Close",
   "get_link.copy": "Copy Link",
   "get_post_link_modal.help": "The link below allows authorized users to see your post.",
