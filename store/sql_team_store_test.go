@@ -552,13 +552,23 @@ func TestMyTeamMembersUnread(t *testing.T) {
 	cm2 := &model.ChannelMember{ChannelId: c2.Id, UserId: m2.UserId, NotifyProps: model.GetDefaultChannelNotifyProps()}
 	Must(store.Channel().SaveMember(cm2))
 
-	if r1 := <-store.Team().GetTeamsUnreadForUser(uid); r1.Err != nil {
+	if r1 := <-store.Team().GetTeamsUnreadForUser("", uid); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
-		ms := r1.Data.([]*model.TeamMemberUnread)
+		ms := r1.Data.([]*model.TeamUnread)
 
 		if len(ms) != 2 {
-			t.Fatal()
+			t.Fatal("Should be the unreads for all the teams")
+		}
+	}
+
+	if r2 := <-store.Team().GetTeamsUnreadForUser(teamId1, uid); r2.Err != nil {
+		t.Fatal(r2.Err)
+	} else {
+		ms := r2.Data.([]*model.TeamUnread)
+
+		if len(ms) != 1 {
+			t.Fatal("Should be the unreads for just one team")
 		}
 	}
 

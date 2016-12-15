@@ -123,8 +123,6 @@ export default class SignupController extends React.Component {
 
             if (userLoggedIn) {
                 GlobalActions.redirectUserToDefaultTeam();
-            } else {
-                BrowserStore.removeGlobalItem('team');
             }
         }
     }

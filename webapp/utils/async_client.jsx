@@ -138,12 +138,16 @@ export function getMyChannelMembers() {
     });
 }
 
-export function updateLastViewedAt(id, active) {
+export function updateLastViewedAt(id, name, active) {
     let channelId;
+    let channelName;
     if (id) {
         channelId = id;
+        channelName = name;
     } else {
-        channelId = ChannelStore.getCurrentId();
+        const channel = ChannelStore.getCurrent();
+        channelId = channel.id;
+        channelName = channel.name;
     }
 
     if (channelId == null) {
@@ -164,8 +168,18 @@ export function updateLastViewedAt(id, active) {
     callTracker[`updateLastViewed${channelId}`] = utils.getTimestamp();
     Client.updateLastViewedAt(
         channelId,
+        channelName,
         isActive,
         () => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_PREFERENCE,
+                preference: {
+                    category: 'last',
+                    name: TeamStore.getCurrentId(),
+                    value: channelName
+                }
+            });
+
             callTracker[`updateLastViewed${channelId}`] = 0;
             ErrorStore.clearLastError();
         },
@@ -178,12 +192,16 @@ export function updateLastViewedAt(id, active) {
     );
 }
 
-export function setLastViewedAt(lastViewedAt, id) {
+export function setLastViewedAt(lastViewedAt, id, name) {
     let channelId;
+    let channelName;
     if (id) {
         channelId = id;
+        channelName = name;
     } else {
-        channelId = ChannelStore.getCurrentId();
+        const channel = ChannelStore.getCurrent();
+        channelId = channel.id;
+        channelName = channel.name;
     }
 
     if (channelId == null) {
@@ -201,8 +219,17 @@ export function setLastViewedAt(lastViewedAt, id) {
     callTracker[`setLastViewedAt${channelId}${lastViewedAt}`] = utils.getTimestamp();
     Client.setLastViewedAt(
         channelId,
+        channelName,
         lastViewedAt,
         () => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_PREFERENCE,
+                preference: {
+                    category: 'last',
+                    name: TeamStore.getCurrentId(),
+                    value: channelName
+                }
+            });
             callTracker[`setLastViewedAt${channelId}${lastViewedAt}`] = 0;
             ErrorStore.clearLastError();
         },
@@ -875,27 +902,31 @@ export function getMyTeamMembers() {
     );
 }
 
-export function getMyTeamMembersUnread() {
-    const callName = 'getMyTeamMembersUnread';
-    if (isCallInProgress(callName)) {
-        return;
-    }
-
-    callTracker[callName] = utils.getTimestamp();
-    Client.getMyTeamMembersUnread(
-        (data) => {
-            callTracker[callName] = 0;
-
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_MY_TEAM_MEMBERS,
-                team_members: data
-            });
-        },
-        (err) => {
-            callTracker[callName] = 0;
-            dispatchError(err, 'getMyTeamMembersUnread');
+export function getMyTeamsUnread(teamId) {
+    const members = TeamStore.getMyTeamMembers();
+    if (members.length > 1) {
+        const callName = 'getMyTeamsUnread';
+        if (isCallInProgress(callName)) {
+            return;
         }
-    );
+
+        callTracker[callName] = utils.getTimestamp();
+        Client.getMyTeamsUnread(
+            teamId,
+            (data) => {
+                callTracker[callName] = 0;
+
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECEIVED_MY_TEAMS_UNREAD,
+                    team_members: data
+                });
+            },
+            (err) => {
+                callTracker[callName] = 0;
+                dispatchError(err, 'getMyTeamsUnread');
+            }
+        );
+    }
 }
 
 export function getTeamStats(teamId) {

@@ -16,7 +16,7 @@ type TeamMember struct {
 	DeleteAt int64  `json:"delete_at"`
 }
 
-type TeamMemberUnread struct {
+type TeamUnread struct {
 	TeamId       string `json:"team_id"`
 	MsgCount     int64  `json:"msg_count"`
 	MentionCount int64  `json:"mention_count"`
@@ -61,7 +61,7 @@ func TeamMembersFromJson(data io.Reader) []*TeamMember {
 	}
 }
 
-func TeamMembersUnreadToJson(o []*TeamMemberUnread) string {
+func TeamsUnreadToJson(o []*TeamUnread) string {
 	if b, err := json.Marshal(o); err != nil {
 		return "[]"
 	} else {
@@ -69,9 +69,9 @@ func TeamMembersUnreadToJson(o []*TeamMemberUnread) string {
 	}
 }
 
-func TeamMembersUnreadFromJson(data io.Reader) []*TeamMemberUnread {
+func TeamsUnreadFromJson(data io.Reader) []*TeamUnread {
 	decoder := json.NewDecoder(data)
-	var o []*TeamMemberUnread
+	var o []*TeamUnread
 	err := decoder.Decode(&o)
 	if err == nil {
 		return o

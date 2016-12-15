@@ -18,23 +18,27 @@ const ActionTypes = Constants.ActionTypes;
 const Preferences = Constants.Preferences;
 
 export function handleNewPost(post, msg) {
+    const teamId = TeamStore.getCurrentId();
+
     if (ChannelStore.getCurrentId() === post.channel_id) {
         if (window.isActive) {
-            AsyncClient.updateLastViewedAt(null, false);
+            AsyncClient.updateLastViewedAt(null, null, false);
         } else {
             AsyncClient.getChannel(post.channel_id);
         }
-    } else if (msg && (TeamStore.getCurrentId() === msg.data.team_id || msg.data.channel_type === Constants.DM_CHANNEL)) {
+    } else if (msg && (teamId === msg.data.team_id || msg.data.channel_type === Constants.DM_CHANNEL)) {
         if (Client.teamId) {
             AsyncClient.getChannel(post.channel_id);
         }
     }
 
-    AsyncClient.getMyTeamMembersUnread();
-
     let websocketMessageProps = null;
     if (msg) {
         websocketMessageProps = msg.data;
+    }
+
+    if (msg.data.team_id !== teamId) {
+        AsyncClient.getMyTeamsUnread(teamId);
     }
 
     if (post.root_id && PostStore.getPost(post.channel_id, post.root_id) == null) {

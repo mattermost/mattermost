@@ -28,8 +28,6 @@ export default class SignupEmail extends React.Component {
     constructor(props) {
         super(props);
 
-        BrowserStore.removeGlobalItem('team');
-
         this.handleSubmit = this.handleSubmit.bind(this);
 
         this.getInviteInfo = this.getInviteInfo.bind(this);

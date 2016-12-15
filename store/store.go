@@ -74,7 +74,7 @@ type TeamStore interface {
 	GetTotalMemberCount(teamId string) StoreChannel
 	GetActiveMemberCount(teamId string) StoreChannel
 	GetTeamsForUser(userId string) StoreChannel
-	GetTeamsUnreadForUser(userId string) StoreChannel
+	GetTeamsUnreadForUser(teamId, userId string) StoreChannel
 	RemoveMember(teamId string, userId string) StoreChannel
 	RemoveAllMembersByTeam(teamId string) StoreChannel
 	RemoveAllMembersByUser(userId string) StoreChannel
@@ -271,6 +271,7 @@ type PreferenceStore interface {
 	GetCategory(userId string, category string) StoreChannel
 	GetAll(userId string) StoreChannel
 	Delete(userId, category, name string) StoreChannel
+	DeleteCategory(userId string, category string) StoreChannel
 	PermanentDeleteByUser(userId string) StoreChannel
 	IsFeatureEnabled(feature, userId string) StoreChannel
 }

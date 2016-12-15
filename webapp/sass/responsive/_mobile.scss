@@ -1162,6 +1162,28 @@
     .post-comments {
         padding: 9px 21px 10px 10px !important;
     }
+
+    .multi-teams {
+        .app__content {
+            margin-left: 0;
+        }
+
+        .sidebar--left {
+            left: 0;
+            &.move--right {
+                left: 75px;
+            }
+        }
+
+        .team-sidebar {
+            display: none;
+
+            &.move--right {
+                display: block;
+                @include translate3d(0, 0, 0);
+            }
+        }
+    }
 }
 
 @media screen and (max-width: 640px) {

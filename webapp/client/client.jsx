@@ -607,13 +607,19 @@ export default class Client {
         end(this.handleResponse.bind(this, 'getMyTeamMembers', success, error));
     }
 
-    getMyTeamMembersUnread(success, error) {
+    getMyTeamsUnread(teamId, success, error) {
+        let url = `${this.getTeamsRoute()}/unread`;
+
+        if (teamId) {
+            url += `?id=${encodeURIComponent(teamId)}`;
+        }
+
         request.
-        get(`${this.getTeamsRoute()}/unread`).
+        get(url).
         set(this.defaultHeaders).
         type('application/json').
         accept('application/json').
-        end(this.handleResponse.bind(this, 'getMyTeamMembersUnread', success, error));
+        end(this.handleResponse.bind(this, 'getMyTeamsUnread', success, error));
     }
 
     getTeamMembersByIds(teamId, userIds, success, error) {
@@ -1360,23 +1366,23 @@ export default class Client {
         this.track('api', 'api_channels_delete');
     }
 
-    updateLastViewedAt(channelId, active, success, error) {
+    updateLastViewedAt(channelId, channelName = 'town-square', active, success, error) {
         request.
             post(`${this.getChannelNeededRoute(channelId)}/update_last_viewed_at`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
-            send({active}).
+            send({active, channel_name: channelName}).
             end(this.handleResponse.bind(this, 'updateLastViewedAt', success, error));
     }
 
-    setLastViewedAt(channelId, lastViewedAt, success, error) {
+    setLastViewedAt(channelId, channelName = 'town-square', lastViewedAt, success, error) {
         request.
         post(`${this.getChannelNeededRoute(channelId)}/set_last_viewed_at`).
         set(this.defaultHeaders).
         type('application/json').
         accept('application/json').
-        send({last_viewed_at: lastViewedAt}).
+        send({last_viewed_at: lastViewedAt, channel_name: channelName}).
         end(this.handleResponse.bind(this, 'setLastViewedAt', success, error));
     }
 

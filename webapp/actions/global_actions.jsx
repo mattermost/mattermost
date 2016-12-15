@@ -48,7 +48,7 @@ export function emitChannelClickEvent(channel) {
 
         getMyChannelMembersPromise.then(() => {
             AsyncClient.getChannelStats(chan.id, true);
-            AsyncClient.updateLastViewedAt(chan.id);
+            AsyncClient.updateLastViewedAt(chan.id, chan.name);
             loadPosts(chan.id);
             trackPage();
         });
@@ -542,17 +542,14 @@ export function emitBrowserFocus(focus) {
 export function redirectUserToDefaultTeam() {
     const teams = TeamStore.getAll();
     const teamMembers = TeamStore.getMyTeamMembers();
-    let teamId = BrowserStore.getGlobalItem('team');
+    let teamId = PreferenceStore.get('last', 'team');
 
-    if (!teamId && teamMembers.length > 0) {
+    if (!teams[teamId] && teamMembers.length > 0) {
         let myTeams = [];
         for (const index in teamMembers) {
             if (teamMembers.hasOwnProperty(index)) {
                 const teamMember = teamMembers[index];
-                myTeams.push(Object.assign({
-                    unread: teamMember.msg_count > 0,
-                    mentions: teamMember.mention_count
-                }, teams[teamMember.team_id]));
+                myTeams.push(teams[teamMember.team_id]);
             }
         }
 
@@ -562,8 +559,12 @@ export function redirectUserToDefaultTeam() {
         }
     }
 
-    if (teamId) {
-        browserHistory.push(`/${teams[teamId].name}`);
+    if (teams[teamId]) {
+        let channel = PreferenceStore.get(teamId, 'channel');
+        if (!channel) {
+            channel = 'town-square';
+        }
+        browserHistory.push(`/${teams[teamId].name}/channels/${channel}`);
     } else {
         browserHistory.push('/select_team');
     }

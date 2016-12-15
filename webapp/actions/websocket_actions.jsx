@@ -204,7 +204,7 @@ function handlePostEditEvent(msg) {
     // Update channel state
     if (ChannelStore.getCurrentId() === msg.broadcast.channel_id) {
         if (window.isActive) {
-            AsyncClient.updateLastViewedAt(null, false);
+            AsyncClient.updateLastViewedAt(null, null, false);
         }
     }
 }
@@ -243,12 +243,11 @@ function handleLeaveTeamEvent(msg) {
     if (UserStore.getCurrentId() === msg.data.user_id) {
         TeamStore.removeMyTeamMember(msg.data.team_id);
 
-        // if they are on the team being removed redirect them to the root
+        // if they are on the team being removed redirect them to default team
         if (TeamStore.getCurrentId() === msg.data.team_id) {
-            BrowserStore.removeGlobalItem('team');
             TeamStore.setCurrentId('');
             Client.setTeamId('');
-            browserHistory.push('/');
+            GlobalActions.redirectUserToDefaultTeam();
         }
     }
 }

@@ -210,7 +210,8 @@ class TeamStoreClass extends EventEmitter {
     saveMyTeamMembersUnread(members) {
         for (let i = 0; i < this.my_team_members.length; i++) {
             const team = this.my_team_members[i];
-            const member = members[team.teamId];
+            const member = members.filter((m) => m.team_id === team.team_id)[0];
+
             if (member) {
                 this.my_team_members[i] = Object.assign({},
                     team,
@@ -333,7 +334,7 @@ TeamStore.dispatchToken = AppDispatcher.register((payload) => {
         TeamStore.saveMyTeamMembers(action.team_members);
         TeamStore.emitChange();
         break;
-    case ActionTypes.RECEIVED_MY_TEAM_MEMBERS_UNREAD:
+    case ActionTypes.RECEIVED_MY_TEAMS_UNREAD:
         TeamStore.saveMyTeamMembersUnread(action.team_members);
         TeamStore.emitChange();
         break;

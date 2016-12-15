@@ -3,12 +3,11 @@
 
 import TeamButton from './components/team_button.jsx';
 
-import BrowserStore from 'stores/browser_store.jsx';
+import PreferenceStore from 'stores/preference_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
 import * as AsyncClient from 'utils/async_client.jsx';
-import * as UserAgent from 'utils/user_agent.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import $ from 'jquery';
@@ -36,7 +35,7 @@ export default class TeamSidebar extends React.Component {
             teamListings: TeamStore.getTeamListings(),
             teamMembers,
             currentTeamId,
-            show: teamMembers && teamMembers.length > 1 && (!UserAgent.isMobile() && !UserAgent.isMobileApp() && !Utils.isMobile())
+            show: teamMembers && teamMembers.length > 1
         };
     }
 
@@ -55,9 +54,7 @@ export default class TeamSidebar extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
-        if (!Utils.isMobile()) {
-            $('.team-wrapper').perfectScrollbar();
-        }
+        $('.team-wrapper').perfectScrollbar();
 
         // reset the scrollbar upon switching teams
         if (this.state.currentTeam !== prevState.currentTeam) {
@@ -73,7 +70,7 @@ export default class TeamSidebar extends React.Component {
 
     handleResize() {
         const teamMembers = this.state.teamMembers;
-        this.setState({show: teamMembers && teamMembers.length > 1 && (!UserAgent.isMobile() && !UserAgent.isMobileApp() && !Utils.isMobile())});
+        this.setState({show: teamMembers && teamMembers.length > 1});
         this.setStyles();
     }
 
@@ -120,7 +117,7 @@ export default class TeamSidebar extends React.Component {
         sort((a, b) => a.display_name.localeCompare(b.display_name)).
         map((team) => {
             let channel = 'town-square';
-            const prevChannel = BrowserStore.getGlobalItem(team.id);
+            const prevChannel = PreferenceStore.get(team.id, 'channel');
 
             if (prevChannel) {
                 channel = prevChannel;

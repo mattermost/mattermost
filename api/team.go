@@ -33,7 +33,7 @@ func InitTeam() {
 	BaseRoutes.Teams.Handle("/find_team_by_name", ApiAppHandler(findTeamByName)).Methods("POST")
 	BaseRoutes.Teams.Handle("/name/{team_name:[A-Za-z0-9\\-]+}", ApiAppHandler(getTeamByName)).Methods("GET")
 	BaseRoutes.Teams.Handle("/members", ApiUserRequired(getMyTeamMembers)).Methods("GET")
-	BaseRoutes.Teams.Handle("/unread", ApiUserRequired(getMyTeamMembersUnread)).Methods("GET")
+	BaseRoutes.Teams.Handle("/unread", ApiUserRequired(getMyTeamsUnread)).Methods("GET")
 
 	BaseRoutes.NeedTeam.Handle("/me", ApiUserRequired(getMyTeam)).Methods("GET")
 	BaseRoutes.NeedTeam.Handle("/stats", ApiUserRequired(getTeamStats)).Methods("GET")
@@ -358,6 +358,11 @@ func LeaveTeam(team *model.Team, user *model.User) *model.AppError {
 
 	if uua := <-Srv.Store.User().UpdateUpdateAt(user.Id); uua.Err != nil {
 		return uua.Err
+	}
+
+	// delete the preferences that set the last channel used in the team and other team specific preferences
+	if result := <-Srv.Store.Preference().DeleteCategory(user.Id, team.Id); result.Err != nil {
+		return result.Err
 	}
 
 	RemoveAllSessionsForUserId(user.Id)
@@ -735,13 +740,15 @@ func getMyTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getMyTeamMembersUnread(c *Context, w http.ResponseWriter, r *http.Request) {
-	if result := <-Srv.Store.Team().GetTeamsUnreadForUser(c.Session.UserId); result.Err != nil {
+func getMyTeamsUnread(c *Context, w http.ResponseWriter, r *http.Request) {
+	teamId := r.URL.Query().Get("id")
+
+	if result := <-Srv.Store.Team().GetTeamsUnreadForUser(teamId, c.Session.UserId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
-		data := result.Data.([]*model.TeamMemberUnread)
-		w.Write([]byte(model.TeamMembersUnreadToJson(data)))
+		data := result.Data.([]*model.TeamUnread)
+		w.Write([]byte(model.TeamsUnreadToJson(data)))
 	}
 }
 

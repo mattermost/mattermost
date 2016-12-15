@@ -583,19 +583,19 @@ func (s SqlTeamStore) GetTeamsForUser(userId string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlTeamStore) GetTeamsUnreadForUser(userId string) StoreChannel {
+func (s SqlTeamStore) GetTeamsUnreadForUser(teamId, userId string) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
 
-		var members []*model.TeamMemberUnread
+		var members []*model.TeamUnread
 		_, err := s.GetReplica().Select(&members,
 			`SELECT TeamMembers.TeamId, SUM(Channels.TotalMsgCount - ChannelMembers.MsgCount) as MsgCount, SUM(ChannelMembers.MentionCount) as MentionCount
 			FROM TeamMembers
 			LEFT JOIN Channels ON TeamMembers.UserId = :UserId AND TeamMembers.TeamId=Channels.TeamId AND TeamMembers.DeleteAt = 0
-			INNER JOIN ChannelMembers ON Channels.Id=ChannelMembers.ChannelId AND ChannelMembers.UserId=TeamMembers.UserId
-			GROUP BY TeamMembers.TeamId, TeamMembers.UserId`, map[string]interface{}{"UserId": userId})
+			INNER JOIN ChannelMembers ON Channels.Id=ChannelMembers.ChannelId AND ChannelMembers.UserId=TeamMembers.UserId AND TeamMembers.TeamId != :TeamId
+			GROUP BY TeamMembers.TeamId, TeamMembers.UserId`, map[string]interface{}{"UserId": userId, "TeamId": teamId})
 		if err != nil {
 			result.Err = model.NewLocAppError("SqlTeamStore.GetTeamsUnreadForUser", "store.sql_team.get_members.app_error", nil, "userId="+userId+" "+err.Error())
 		} else {

@@ -215,6 +215,10 @@ class ChannelStoreClass extends EventEmitter {
         return this.channels;
     }
 
+    getChannelById(id) {
+        return this.channels.filter((c) => c.id === id)[0];
+    }
+
     storeMyChannelMember(channelMember) {
         const members = Object.assign({}, this.getMyMembers());
         members[channelMember.channel_id] = channelMember;

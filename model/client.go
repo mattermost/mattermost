@@ -1329,9 +1329,10 @@ func (c *Client) RemoveChannelMember(id, user_id string) (*Result, *AppError) {
 // UpdateLastViewedAt will mark a channel as read.
 // The channelId indicates the channel to mark as read. If active is true, push notifications
 // will be cleared if there are unread messages. The default for active is true.
-func (c *Client) UpdateLastViewedAt(channelId string, active bool) (*Result, *AppError) {
+func (c *Client) UpdateLastViewedAt(channelId, channelName string, active bool) (*Result, *AppError) {
 	data := make(map[string]interface{})
 	data["active"] = active
+	data["channel_name"] = channelName
 	if r, err := c.DoApiPost(c.GetChannelRoute(channelId)+"/update_last_viewed_at", StringInterfaceToJson(data)); err != nil {
 		return nil, err
 	} else {
@@ -1764,15 +1765,21 @@ func (c *Client) GetMyTeamMembers() (*Result, *AppError) {
 	}
 }
 
-// GetMyTeamMembers will return an array with TeamMemberUnread objects that contain the amount of
-// unread messages and mentions the current user has for the teams it belongs to. Must be authenticated.
-func (c *Client) GetMyTeamMembersUnread() (*Result, *AppError) {
-	if r, err := c.DoApiGet("/teams/unread", "", ""); err != nil {
+// GetMyTeamsUnread will return an array with TeamUnread objects that contain the amount of
+// unread messages and mentions the current user has for the teams it belongs to.
+// An optional team ID can be set to exclude that team from the results. Must be authenticated.
+func (c *Client) GetMyTeamsUnread(teamId string) (*Result, *AppError) {
+	endpoint := "/teams/unread"
+
+	if teamId != "" {
+		endpoint += fmt.Sprintf("?id=%s", url.QueryEscape(teamId))
+	}
+	if r, err := c.DoApiGet(endpoint, "", ""); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), TeamMembersUnreadFromJson(r.Body)}, nil
+			r.Header.Get(HEADER_ETAG_SERVER), TeamsUnreadFromJson(r.Body)}, nil
 	}
 }
 

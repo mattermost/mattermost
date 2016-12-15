@@ -57,7 +57,6 @@ function doChannelChange(state, replace, callback) {
             return;
         }
     }
-    BrowserStore.setGlobalItem(TeamStore.getCurrentId(), channel.name);
     GlobalActions.emitChannelClickEvent(channel);
     callback();
 }
@@ -79,8 +78,7 @@ function preNeedsTeam(nextState, replace, callback) {
     BrowserStore.setGlobalItem('team', team.id);
     TeamStore.emitChange();
     loadProfilesAndTeamMembersForDMSidebar();
-    AsyncClient.getMyTeamMembers();
-    AsyncClient.getMyTeamMembersUnread();
+    AsyncClient.getMyTeamsUnread();
     AsyncClient.getMyChannelMembers();
 
     const d1 = $.Deferred(); //eslint-disable-line new-cap
