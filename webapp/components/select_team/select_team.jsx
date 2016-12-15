@@ -84,6 +84,8 @@ export default class SelectTeam extends React.Component {
             );
         }
 
+        teamContents = teamContents.sort(this.teamContentsCompare);
+
         var openTeamContents = [];
 
         for (const id in this.state.teamListings) {
@@ -137,7 +139,7 @@ export default class SelectTeam extends React.Component {
                         />
                     </h4>
                     <div className='signup-team-all'>
-                        {teamContents.sort(this.teamContentsCompare)}
+                        {teamContents}
                     </div>
                 </div>
             );
