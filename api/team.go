@@ -731,12 +731,16 @@ func getTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getMyTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
-	if result := <-Srv.Store.Team().GetTeamsForUser(c.Session.UserId); result.Err != nil {
-		c.Err = result.Err
-		return
+	if len(c.Session.TeamMembers) > 0 {
+		w.Write([]byte(model.TeamMembersToJson(c.Session.TeamMembers)))
 	} else {
-		data := result.Data.([]*model.TeamMember)
-		w.Write([]byte(model.TeamMembersToJson(data)))
+		if result := <-Srv.Store.Team().GetTeamsForUser(c.Session.UserId); result.Err != nil {
+			c.Err = result.Err
+			return
+		} else {
+			data := result.Data.([]*model.TeamMember)
+			w.Write([]byte(model.TeamMembersToJson(data)))
+		}
 	}
 }
 
