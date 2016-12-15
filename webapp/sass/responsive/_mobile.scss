@@ -75,12 +75,6 @@
     }
 
     .app__body {
-        .more-modal {
-            .filter-row {
-                width: 330px;
-            }
-        }
-
         .edit-modal-body {
             .custom-textarea {
                 max-height: 30vh;
@@ -1172,6 +1166,19 @@
 
 @media screen and (max-width: 640px) {
     .app__body {
+        .modal {
+            .more-modal {
+                .modal-body {
+                    max-height: calc(100vh - 62px);
+                    padding-bottom: 5px;
+                }
+
+                .more-modal__list {
+                    max-height: calc(100vh - 230px);
+                }
+            }
+        }
+
         .post {
             .open {
                 > .dropdown-menu__content {
@@ -1329,10 +1336,13 @@
 @media screen and (max-width: 550px) {
     .app__body {
         .more-modal {
+            .filter-row {
+                width: 100%;
+            }
+
             &.more-direct-channels {
                 .filter-row {
                     padding-bottom: 50px;
-                    width: 100%;
                 }
 
                 .member-show {
@@ -1391,22 +1401,6 @@
     }
 
     .app__body {
-        .more-modal {
-            .modal-body {
-                padding-bottom: 5px;
-            }
-
-            .more-modal__list {
-                max-height: calc(100vh - 260px);
-            }
-
-            &.more-direct-channels {
-                .more-modal__list {
-                    max-height: calc(100vh - 295px);
-                }
-            }
-        }
-
         .modal {
             &.more-channel__modal {
                 .more-modal__list {

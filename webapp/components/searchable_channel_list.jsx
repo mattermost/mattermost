@@ -167,7 +167,7 @@ export default class SearchableChannelList extends React.Component {
         return (
             <div className='filtered-user-list'>
                 <div className='filter-row'>
-                    <div className='col-sm-6'>
+                    <div className='col-sm-12'>
                         <input
                             ref='filter'
                             className='form-control filter-textbox'

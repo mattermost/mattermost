@@ -4,8 +4,6 @@
 import UserList from 'components/user_list.jsx';
 
 import * as Utils from 'utils/utils.jsx';
-import Constants from 'utils/constants.jsx';
-const KeyCodes = Constants.KeyCodes;
 
 import $ from 'jquery';
 import React from 'react';
@@ -21,8 +19,6 @@ export default class SearchableUserList extends React.Component {
         this.nextPage = this.nextPage.bind(this);
         this.previousPage = this.previousPage.bind(this);
         this.doSearch = this.doSearch.bind(this);
-        this.onSearchBoxKeyPress = this.onSearchBoxKeyPress.bind(this);
-        this.onSearchBoxChange = this.onSearchBoxChange.bind(this);
 
         this.nextTimeoutId = 0;
 
@@ -68,20 +64,6 @@ export default class SearchableUserList extends React.Component {
             this.setState({page: 0, search: false});
         } else {
             this.setState({search: true});
-        }
-    }
-
-    onSearchBoxKeyPress(e) {
-        if (e.charCode === KeyCodes.ENTER) {
-            e.preventDefault();
-            this.doSearch();
-        }
-    }
-
-    onSearchBoxChange(e) {
-        if (e.target.value === '') {
-            this.props.search(''); // clear search
-            this.setState({page: 0, search: false});
         }
     }
 
@@ -158,27 +140,13 @@ export default class SearchableUserList extends React.Component {
         return (
             <div className='filtered-user-list'>
                 <div className='filter-row'>
-                    <div className='col-xs-9 col-sm-5'>
+                    <div className='col-xs-12'>
                         <input
                             ref='filter'
                             className='form-control filter-textbox'
-                            placeholder={Utils.localizeMessage('filtered_user_list.search', 'Press enter to search')}
-                            onKeyPress={this.onSearchBoxKeyPress}
-                            onChange={this.onSearchBoxChange}
+                            placeholder={Utils.localizeMessage('filtered_user_list.search', 'Search users')}
+                            onInput={this.doSearch}
                         />
-                    </div>
-                    <div className='col-xs-3 col-sm-2 filter-button'>
-                        <button
-                            type='button'
-                            className='btn btn-primary'
-                            onClick={this.doSearch}
-                            disabled={this.props.users == null}
-                        >
-                            <FormattedMessage
-                                id='filtered_user_list.searchButton'
-                                defaultMessage='Search'
-                            />
-                        </button>
                     </div>
                     <div className='col-sm-12'>
                         <span className='member-count pull-left'>{count}</span>

@@ -863,7 +863,8 @@ export const Constants = {
     MENTION_SPECIAL: 'mention.special',
     DEFAULT_NOTIFICATION_DURATION: 5000,
     STATUS_INTERVAL: 60000,
-    AUTOCOMPLETE_TIMEOUT: 100
+    AUTOCOMPLETE_TIMEOUT: 100,
+    SEARCH_TIMEOUT_MILLISECONDS: 100
 };
 
 export default Constants;

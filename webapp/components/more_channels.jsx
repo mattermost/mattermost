@@ -1,8 +1,6 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
-import NewChannelFlow from './new_channel_flow.jsx';
 import SearchableChannelList from './searchable_channel_list.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
@@ -13,11 +11,11 @@ import Constants from 'utils/constants.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import {joinChannel, searchMoreChannels} from 'actions/channel_actions.jsx';
 
-import {FormattedMessage} from 'react-intl';
-import {browserHistory} from 'react-router/es6';
-
 import React from 'react';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
+import {Modal} from 'react-bootstrap';
+import {FormattedMessage} from 'react-intl';
+import {browserHistory} from 'react-router/es6';
 
 const CHANNELS_CHUNK_SIZE = 50;
 const CHANNELS_PER_PAGE = 50;
@@ -29,7 +27,8 @@ export default class MoreChannels extends React.Component {
 
         this.onChange = this.onChange.bind(this);
         this.handleJoin = this.handleJoin.bind(this);
-        this.handleNewChannel = this.handleNewChannel.bind(this);
+        this.handleHide = this.handleHide.bind(this);
+        this.handleExit = this.handleExit.bind(this);
         this.nextPage = this.nextPage.bind(this);
         this.search = this.search.bind(this);
 
@@ -38,8 +37,7 @@ export default class MoreChannels extends React.Component {
         this.searchTimeoutId = 0;
 
         this.state = {
-            channelType: '',
-            showNewChannelModal: false,
+            show: true,
             search: false,
             channels: null,
             serverError: null
@@ -47,21 +45,22 @@ export default class MoreChannels extends React.Component {
     }
 
     componentDidMount() {
-        const self = this;
         ChannelStore.addChangeListener(this.onChange);
-
-        $(this.refs.modal).on('shown.bs.modal', () => {
-            AsyncClient.getMoreChannelsPage(0, CHANNELS_CHUNK_SIZE * 2);
-        });
-
-        $(this.refs.modal).on('show.bs.modal', (e) => {
-            const button = e.relatedTarget;
-            self.setState({channelType: $(button).attr('data-channeltype')});
-        });
+        AsyncClient.getMoreChannelsPage(0, CHANNELS_CHUNK_SIZE * 2);
     }
 
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onChange);
+    }
+
+    handleHide() {
+        this.setState({show: false});
+    }
+
+    handleExit() {
+        if (this.props.onModalDismissed) {
+            this.props.onModalDismissed();
+        }
     }
 
     onChange(force) {
@@ -83,11 +82,12 @@ export default class MoreChannels extends React.Component {
         joinChannel(
             channel,
             () => {
-                $(this.refs.modal).modal('hide');
                 browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + channel.name);
                 if (done) {
                     done();
                 }
+
+                this.handleHide();
             },
             (err) => {
                 this.setState({serverError: err.message});
@@ -96,11 +96,6 @@ export default class MoreChannels extends React.Component {
                 }
             }
         );
-    }
-
-    handleNewChannel() {
-        $(this.refs.modal).modal('hide');
-        this.setState({showNewChannelModal: true});
     }
 
     search(term) {
@@ -135,7 +130,7 @@ export default class MoreChannels extends React.Component {
             <button
                 type='button'
                 className='btn btn-primary channel-create-btn'
-                onClick={this.handleNewChannel}
+                onClick={this.props.handleNewChannel}
             >
                 <FormattedMessage
                     id='more_channels.create'
@@ -167,58 +162,38 @@ export default class MoreChannels extends React.Component {
         }
 
         return (
-            <div
-                className='modal fade more-channel__modal'
-                id='more_channels'
-                ref='modal'
-                tabIndex='-1'
-                role='dialog'
-                aria-hidden='true'
+            <Modal
+                dialogClassName='more-modal more-public-channels'
+                show={this.state.show}
+                onHide={this.handleHide}
+                onExited={this.handleExit}
             >
-                <div className='modal-dialog'>
-                    <div className='modal-content'>
-                        <div className='modal-header'>
-                            <button
-                                type='button'
-                                className='close'
-                                data-dismiss='modal'
-                            >
-                                <span aria-hidden='true'>{'×'}</span>
-                                <span className='sr-only'>
-                                    <FormattedMessage
-                                        id='more_channels.close'
-                                        defaultMessage='Close'
-                                    />
-                                </span>
-                            </button>
-                            <h4 className='modal-title'>
-                                <FormattedMessage
-                                    id='more_channels.title'
-                                    defaultMessage='More Channels'
-                                />
-                            </h4>
-                            {createNewChannelButton}
-                            <NewChannelFlow
-                                show={this.state.showNewChannelModal}
-                                channelType={this.state.channelType}
-                                onModalDismissed={() => this.setState({showNewChannelModal: false})}
-                            />
-                        </div>
-                        <div className='modal-body'>
-                            <SearchableChannelList
-                                channels={this.state.channels}
-                                channelsPerPage={CHANNELS_PER_PAGE}
-                                nextPage={this.nextPage}
-                                search={this.search}
-                                handleJoin={this.handleJoin}
-                                noResultsText={createChannelHelpText}
-                            />
-                            {serverError}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+                <Modal.Header closeButton={true}>
+                    <Modal.Title>
+                        <FormattedMessage
+                            id='more_channels.title'
+                            defaultMessage='More Channels'
+                        />
+                    </Modal.Title>
+                    {createNewChannelButton}
+                </Modal.Header>
+                <Modal.Body>
+                    <SearchableChannelList
+                        channels={this.state.channels}
+                        channelsPerPage={CHANNELS_PER_PAGE}
+                        nextPage={this.nextPage}
+                        search={this.search}
+                        handleJoin={this.handleJoin}
+                        noResultsText={createChannelHelpText}
+                    />
+                    {serverError}
+                </Modal.Body>
+            </Modal>
         );
     }
 }
+
+MoreChannels.propTypes = {
+    onModalDismissed: React.PropTypes.func,
+    handleNewChannel: React.PropTypes.func
+};
