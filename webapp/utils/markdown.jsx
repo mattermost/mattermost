@@ -117,20 +117,21 @@ class MattermostMarkdownRenderer extends marked.Renderer {
     }
 
     image(href, title, text) {
+        let src = href;
         let dimensions = [];
-        let parts = href.split(' ');
+        const parts = href.split(' ');
         if (parts.length > 1) {
-            let lastPart = parts.pop();
-            href = parts.join(' ');
-            if (lastPart[0] == '=') {
+            const lastPart = parts.pop();
+            src = parts.join(' ');
+            if (lastPart[0] === '=') {
                 dimensions = lastPart.substr(1).split('x');
             }
         }
-        let out = '<img src="' + href + '" alt="' + text + '"';
+        let out = '<img src="' + src + '" alt="' + text + '"';
         if (title) {
             out += ' title="' + title + '"';
         }
-        if (dimensions.length == 2) {
+        if (dimensions.length === 2) {
             out += ' width="' + dimensions[0] + '" height="' + dimensions[1] + '"';
         }
         out += ' onload="window.markdownImageLoaded(this)" onerror="window.markdownImageLoaded(this)" class="markdown-inline-img"';
