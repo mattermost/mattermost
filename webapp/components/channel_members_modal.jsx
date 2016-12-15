@@ -143,11 +143,6 @@ export default class ChannelMembersModal extends React.Component {
         if (this.state.loading) {
             content = (<LoadingScreen/>);
         } else {
-            let removeButton = null;
-            if (this.props.isAdmin) {
-                removeButton = [this.createRemoveMemberButton];
-            }
-
             content = (
                 <SearchableUserList
                     users={this.state.users}
@@ -155,7 +150,7 @@ export default class ChannelMembersModal extends React.Component {
                     total={this.state.total}
                     nextPage={this.nextPage}
                     search={this.search}
-                    actions={removeButton}
+                    actions={[this.createRemoveMemberButton]}
                     focusOnMount={!UserAgent.isMobile()}
                 />
             );
@@ -205,6 +200,5 @@ export default class ChannelMembersModal extends React.Component {
 ChannelMembersModal.propTypes = {
     onModalDismissed: React.PropTypes.func.isRequired,
     showInviteModal: React.PropTypes.func.isRequired,
-    channel: React.PropTypes.object.isRequired,
-    isAdmin: React.PropTypes.bool.isRequired
+    channel: React.PropTypes.object.isRequired
 };
