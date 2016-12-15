@@ -221,7 +221,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		SetStatusOnline(c.Session.UserId, c.Session.Id, false)
 	}
 
-	if c.Err == nil {
+	if c.Err == nil && (h.requireUser || h.requireSystemAdmin) {
 		//check if teamId exist
 		c.CheckTeamId()
 	}
