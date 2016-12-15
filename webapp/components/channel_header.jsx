@@ -474,43 +474,23 @@ export default class ChannelHeader extends React.Component {
                     </li>
                 );
 
-                if (isAdmin) {
-                    dropdownContents.push(
-                        <li
-                            key='manage_members'
-                            role='presentation'
+                dropdownContents.push(
+                    <li
+                        key='manage_members'
+                        role='presentation'
+                    >
+                        <a
+                            role='menuitem'
+                            href='#'
+                            onClick={() => this.setState({showMembersModal: true})}
                         >
-                            <a
-                                role='menuitem'
-                                href='#'
-                                onClick={() => this.setState({showMembersModal: true})}
-                            >
-                                <FormattedMessage
-                                    id='channel_header.manageMembers'
-                                    defaultMessage='Manage Members'
-                                />
-                            </a>
-                        </li>
-                    );
-                } else {
-                    dropdownContents.push(
-                        <li
-                            key='view_members'
-                            role='presentation'
-                        >
-                            <a
-                                role='menuitem'
-                                href='#'
-                                onClick={() => this.setState({showMembersModal: true})}
-                            >
-                                <FormattedMessage
-                                    id='channel_header.viewMembers'
-                                    defaultMessage='View Members'
-                                />
-                            </a>
-                        </li>
-                    );
-                }
+                            <FormattedMessage
+                                id='channel_header.manageMembers'
+                                defaultMessage='Manage Members'
+                            />
+                        </a>
+                    </li>
+                );
             }
 
             dropdownContents.push(
@@ -687,7 +667,6 @@ export default class ChannelHeader extends React.Component {
                     onModalDismissed={() => this.setState({showMembersModal: false})}
                     showInviteModal={() => this.refs.channelInviteModalButton.show()}
                     channel={channel}
-                    isAdmin={isAdmin}
                 />
             );
         }
