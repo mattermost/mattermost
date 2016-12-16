@@ -399,7 +399,7 @@ func updateChannelPurpose(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.TeamId == "" {
-		c.Err = model.NewLocAppError("", "api.context.teamid.app_error", nil, "TeamIdRequired")
+		c.Err = model.NewLocAppError("", "api.context.missing_teamid.app_error", nil, "TeamIdRequired")
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}

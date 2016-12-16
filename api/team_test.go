@@ -175,7 +175,7 @@ func TestRemoveUserFromTeam(t *testing.T) {
 	if _, err := th.BasicClient.RemoveUserFromTeam(th.SystemAdminTeam.Id, th.SystemAdminUser.Id); err == nil {
 		t.Fatal("should fail not enough permissions")
 	} else {
-		if err.Id != "api.context.teamid.app_error" {
+		if err.Id != "api.context.permissions.app_error" {
 			t.Fatal("wrong error. Got: " + err.Id)
 		}
 	}

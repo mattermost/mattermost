@@ -581,8 +581,7 @@ func (c *Context) CheckTeamId() {
 				return
 			}
 		} else {
-			c.Err = model.NewLocAppError("", "api.context.teamid.app_error", nil, "TeamIdRequired")
-			c.Err.StatusCode = http.StatusBadRequest
+			// just return because it fail on the HasPermissionToContext and the error is already on the Context c.Err
 			return
 		}
 	}

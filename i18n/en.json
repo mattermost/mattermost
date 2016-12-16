@@ -708,7 +708,7 @@
     "translation": "You do not have the appropriate permissions"
   },
   {
-    "id": "api.context.teamid.app_error",
+    "id": "api.context.missing_teamid.app_error",
     "translation": "Missing Team Id"
   },
   {
