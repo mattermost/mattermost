@@ -494,7 +494,7 @@ export default class CreatePost extends React.Component {
 
         let postError = null;
         if (this.state.postError) {
-            const postErrorClass = 'control-label post-error' + (this.state.errorClass ? (' ' + this.state.errorClass) : '');
+            const postErrorClass = 'post-error' + (this.state.errorClass ? (' ' + this.state.errorClass) : '');
             postError = <label className={postErrorClass}>{this.state.postError}</label>;
         }
 
