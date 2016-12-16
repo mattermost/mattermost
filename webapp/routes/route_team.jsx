@@ -14,6 +14,7 @@ const ActionTypes = Constants.ActionTypes;
 import * as AsyncClient from 'utils/async_client.jsx';
 import Client from 'client/web_client.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
+import PreferenceStore from 'stores/preference_store.jsx';
 
 import emojiRoute from 'routes/route_emoji.jsx';
 import integrationsRoute from 'routes/route_integrations.jsx';
@@ -102,6 +103,20 @@ function preNeedsTeam(nextState, replace, callback) {
     });
 }
 
+function selectLastChannel(nextState, replace, callback) {
+    const team = TeamStore.getByName(nextState.params.team);
+    const channelId = PreferenceStore.get(team.id, 'channel');
+    const channel = ChannelStore.getChannelById(channelId);
+
+    let channelName = 'town-square';
+    if (channel) {
+        channelName = channel.name;
+    }
+
+    replace(`/${team.name}/channels/${channelName}`);
+    callback();
+}
+
 function onPermalinkEnter(nextState, replace, callback) {
     const postId = nextState.params.postid;
     GlobalActions.emitPostFocusEvent(
@@ -113,7 +128,7 @@ function onPermalinkEnter(nextState, replace, callback) {
 export default {
     path: ':team',
     onEnter: preNeedsTeam,
-    indexRoute: {onEnter: (nextState, replace) => replace('/' + nextState.params.team + '/channels/town-square')},
+    indexRoute: {onEnter: selectLastChannel},
     childRoutes: [
         integrationsRoute,
         emojiRoute,

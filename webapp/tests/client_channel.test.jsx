@@ -216,7 +216,6 @@ describe('Client.Channels', function() {
             var channel = TestHelper.basicChannel();
             TestHelper.basicClient().updateLastViewedAt(
                 channel.id,
-                'town-square',
                 true,
                 function(data) {
                     assert.equal(data.id, channel.id);

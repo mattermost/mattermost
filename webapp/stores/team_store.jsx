@@ -72,11 +72,13 @@ class TeamStoreClass extends EventEmitter {
     }
 
     getByName(name) {
-        var t = this.getAll();
+        const t = this.getAll();
 
-        for (var id in t) {
-            if (t[id].name === name) {
-                return t[id];
+        for (const id in t) {
+            if (t.hasOwnProperty(id)) {
+                if (t[id].name === name) {
+                    return t[id];
+                }
             }
         }
 

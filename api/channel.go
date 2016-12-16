@@ -843,7 +843,6 @@ func setLastViewedAt(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	data := model.StringInterfaceFromJson(r.Body)
 	newLastViewedAt := int64(data["last_viewed_at"].(float64))
-	channelName := data["channel_name"].(string)
 
 	Srv.Store.Channel().SetLastViewedAt(id, c.Session.UserId, newLastViewedAt)
 
@@ -851,7 +850,7 @@ func setLastViewedAt(c *Context, w http.ResponseWriter, r *http.Request) {
 		UserId:   c.Session.UserId,
 		Category: c.TeamId,
 		Name:     model.PREFERENCE_NAME_LAST_CHANNEL,
-		Value:    channelName,
+		Value:    id,
 	}
 
 	teamPref := model.Preference{
@@ -885,8 +884,6 @@ func updateLastViewedAt(c *Context, w http.ResponseWriter, r *http.Request) {
 		active = true
 	}
 
-	channelName := data["channel_name"].(string)
-
 	doClearPush := false
 	if *utils.Cfg.EmailSettings.SendPushNotifications && !c.Session.IsMobileApp() && active {
 		if result := <-Srv.Store.User().GetUnreadCountForChannel(c.Session.UserId, id); result.Err != nil {
@@ -915,7 +912,7 @@ func updateLastViewedAt(c *Context, w http.ResponseWriter, r *http.Request) {
 		UserId:   c.Session.UserId,
 		Category: c.TeamId,
 		Name:     model.PREFERENCE_NAME_LAST_CHANNEL,
-		Value:    channelName,
+		Value:    id,
 	}
 
 	teamPref := model.Preference{

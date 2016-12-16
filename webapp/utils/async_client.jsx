@@ -138,16 +138,12 @@ export function getMyChannelMembers() {
     });
 }
 
-export function updateLastViewedAt(id, name, active) {
+export function updateLastViewedAt(id, active) {
     let channelId;
-    let channelName;
     if (id) {
         channelId = id;
-        channelName = name;
     } else {
-        const channel = ChannelStore.getCurrent();
-        channelId = channel.id;
-        channelName = channel.name;
+        channelId = ChannelStore.getCurrentId();
     }
 
     if (channelId == null) {
@@ -168,7 +164,6 @@ export function updateLastViewedAt(id, name, active) {
     callTracker[`updateLastViewed${channelId}`] = utils.getTimestamp();
     Client.updateLastViewedAt(
         channelId,
-        channelName,
         isActive,
         () => {
             AppDispatcher.handleServerAction({
@@ -176,7 +171,7 @@ export function updateLastViewedAt(id, name, active) {
                 preference: {
                     category: 'last',
                     name: TeamStore.getCurrentId(),
-                    value: channelName
+                    value: channelId
                 }
             });
 
@@ -185,23 +180,19 @@ export function updateLastViewedAt(id, name, active) {
         },
         (err) => {
             callTracker[`updateLastViewed${channelId}`] = 0;
-            var count = ErrorStore.getConnectionErrorCount();
+            const count = ErrorStore.getConnectionErrorCount();
             ErrorStore.setConnectionErrorCount(count + 1);
             dispatchError(err, 'updateLastViewedAt');
         }
     );
 }
 
-export function setLastViewedAt(lastViewedAt, id, name) {
+export function setLastViewedAt(lastViewedAt, id) {
     let channelId;
-    let channelName;
     if (id) {
         channelId = id;
-        channelName = name;
     } else {
-        const channel = ChannelStore.getCurrent();
-        channelId = channel.id;
-        channelName = channel.name;
+        channelId = ChannelStore.getCurrentId();
     }
 
     if (channelId == null) {
@@ -219,7 +210,6 @@ export function setLastViewedAt(lastViewedAt, id, name) {
     callTracker[`setLastViewedAt${channelId}${lastViewedAt}`] = utils.getTimestamp();
     Client.setLastViewedAt(
         channelId,
-        channelName,
         lastViewedAt,
         () => {
             AppDispatcher.handleServerAction({
@@ -227,7 +217,7 @@ export function setLastViewedAt(lastViewedAt, id, name) {
                 preference: {
                     category: 'last',
                     name: TeamStore.getCurrentId(),
-                    value: channelName
+                    value: channelId
                 }
             });
             callTracker[`setLastViewedAt${channelId}${lastViewedAt}`] = 0;

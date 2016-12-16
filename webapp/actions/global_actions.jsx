@@ -48,7 +48,7 @@ export function emitChannelClickEvent(channel) {
 
         getMyChannelMembersPromise.then(() => {
             AsyncClient.getChannelStats(chan.id, true);
-            AsyncClient.updateLastViewedAt(chan.id, chan.name);
+            AsyncClient.updateLastViewedAt(chan.id);
             loadPosts(chan.id);
             trackPage();
         });
@@ -447,7 +447,7 @@ export function viewLoggedIn() {
     PostStore.clearPendingPosts();
 }
 
-var lastTimeTypingSent = 0;
+let lastTimeTypingSent = 0;
 export function emitLocalUserTypingEvent(channelId, parentId) {
     const t = Date.now();
     if ((t - lastTimeTypingSent) > Constants.UPDATE_TYPING_MS) {
@@ -560,7 +560,8 @@ export function redirectUserToDefaultTeam() {
     }
 
     if (teams[teamId]) {
-        let channel = PreferenceStore.get(teamId, 'channel');
+        const channelId = PreferenceStore.get(teamId, 'channel');
+        let channel = ChannelStore.getChannelById(channelId);
         if (!channel) {
             channel = 'town-square';
         }

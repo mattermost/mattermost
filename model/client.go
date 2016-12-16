@@ -1329,10 +1329,9 @@ func (c *Client) RemoveChannelMember(id, user_id string) (*Result, *AppError) {
 // UpdateLastViewedAt will mark a channel as read.
 // The channelId indicates the channel to mark as read. If active is true, push notifications
 // will be cleared if there are unread messages. The default for active is true.
-func (c *Client) UpdateLastViewedAt(channelId, channelName string, active bool) (*Result, *AppError) {
+func (c *Client) UpdateLastViewedAt(channelId string, active bool) (*Result, *AppError) {
 	data := make(map[string]interface{})
 	data["active"] = active
-	data["channel_name"] = channelName
 	if r, err := c.DoApiPost(c.GetChannelRoute(channelId)+"/update_last_viewed_at", StringInterfaceToJson(data)); err != nil {
 		return nil, err
 	} else {

@@ -1366,23 +1366,23 @@ export default class Client {
         this.track('api', 'api_channels_delete');
     }
 
-    updateLastViewedAt(channelId, channelName = 'town-square', active, success, error) {
+    updateLastViewedAt(channelId, active, success, error) {
         request.
             post(`${this.getChannelNeededRoute(channelId)}/update_last_viewed_at`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
-            send({active, channel_name: channelName}).
+            send({active}).
             end(this.handleResponse.bind(this, 'updateLastViewedAt', success, error));
     }
 
-    setLastViewedAt(channelId, channelName = 'town-square', lastViewedAt, success, error) {
+    setLastViewedAt(channelId, lastViewedAt, success, error) {
         request.
         post(`${this.getChannelNeededRoute(channelId)}/set_last_viewed_at`).
         set(this.defaultHeaders).
         type('application/json').
         accept('application/json').
-        send({last_viewed_at: lastViewedAt, channel_name: channelName}).
+        send({last_viewed_at: lastViewedAt}).
         end(this.handleResponse.bind(this, 'setLastViewedAt', success, error));
     }
 

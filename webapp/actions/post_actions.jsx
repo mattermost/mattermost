@@ -22,7 +22,7 @@ export function handleNewPost(post, msg) {
 
     if (ChannelStore.getCurrentId() === post.channel_id) {
         if (window.isActive) {
-            AsyncClient.updateLastViewedAt(null, null, false);
+            AsyncClient.updateLastViewedAt(null, false);
         } else {
             AsyncClient.getChannel(post.channel_id);
         }

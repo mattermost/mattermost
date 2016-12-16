@@ -3,7 +3,6 @@
 
 import TeamButton from './components/team_button.jsx';
 
-import PreferenceStore from 'stores/preference_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
@@ -116,20 +115,13 @@ export default class TeamSidebar extends React.Component {
         const teams = myTeams.
         sort((a, b) => a.display_name.localeCompare(b.display_name)).
         map((team) => {
-            let channel = 'town-square';
-            const prevChannel = PreferenceStore.get(team.id, 'channel');
-
-            if (prevChannel) {
-                channel = prevChannel;
-            }
-
             return (
                 <TeamButton
                     key={'switch_team_' + team.name}
-                    url={`/${team.name}/channels/${channel}`}
+                    url={`/${team.name}`}
                     tip={team.display_name}
                     active={team.id === this.state.currentTeamId}
-                    contents={team.display_name.substr(0, 1).toUpperCase()}
+                    contents={team.display_name.substring(0, 1).toUpperCase()}
                     unread={team.unread}
                     mentions={team.mentions}
                 />
