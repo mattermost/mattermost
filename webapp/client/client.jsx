@@ -265,6 +265,15 @@ export default class Client {
             end(this.handleResponse.bind(this, 'reloadConfig', success, error));
     }
 
+    invalidateAllCaches(success, error) {
+        return request.
+            get(`${this.getAdminRoute()}/invalidate_all_caches`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'invalidate_all_caches', success, error));
+    }
+
     recycleDatabaseConnection(success, error) {
         return request.
             get(`${this.getAdminRoute()}/recycle_db_conn`).
