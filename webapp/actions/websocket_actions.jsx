@@ -114,10 +114,6 @@ function handleEvent(msg) {
         handlePostDeleteEvent(msg);
         break;
 
-    case SocketEvents.NEW_USER:
-        handleNewUserEvent(msg);
-        break;
-
     case SocketEvents.LEAVE_TEAM:
         handleLeaveTeamEvent(msg);
         break;
@@ -213,22 +209,6 @@ function handlePostDeleteEvent(msg) {
     if (selectedPostId === post.id) {
         GlobalActions.emitCloseRightHandSide();
     }
-}
-
-function handleNewUserEvent(msg) {
-    if (TeamStore.getCurrentId() === '') {
-        // Any new users will be loaded when we switch into a context with a team
-        return;
-    }
-
-    if (msg.data.user_id === UserStore.getCurrentId()) {
-        // We should already have ourselves
-        return;
-    }
-
-    AsyncClient.getUser(msg.data.user_id);
-    AsyncClient.getChannelStats();
-    loadProfilesAndTeamMembersForDMSidebar();
 }
 
 function handleLeaveTeamEvent(msg) {
