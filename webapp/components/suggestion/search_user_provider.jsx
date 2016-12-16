@@ -8,7 +8,7 @@ import {autocompleteUsersInTeam} from 'actions/user_actions.jsx';
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import Client from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
-import {Constants, ActionTypes} from 'utils/constants.jsx';
+import {ActionTypes} from 'utils/constants.jsx';
 
 import React from 'react';
 
@@ -57,43 +57,26 @@ class SearchUserSuggestion extends Suggestion {
 }
 
 export default class SearchUserProvider {
-    constructor() {
-        this.timeoutId = '';
-    }
-
-    componentWillUnmount() {
-        clearTimeout(this.timeoutId);
-    }
-
     handlePretextChanged(suggestionId, pretext) {
-        clearTimeout(this.timeoutId);
-
         const captured = (/\bfrom:\s*(\S*)$/i).exec(pretext.toLowerCase());
         if (captured) {
             const usernamePrefix = captured[1];
 
-            function autocomplete() {
-                autocompleteUsersInTeam(
-                    usernamePrefix,
-                    (data) => {
-                        const users = data.in_team;
-                        const mentions = users.map((user) => user.username);
+            autocompleteUsersInTeam(
+                usernamePrefix,
+                (data) => {
+                    const users = data.in_team;
+                    const mentions = users.map((user) => user.username);
 
-                        AppDispatcher.handleServerAction({
-                            type: ActionTypes.SUGGESTION_RECEIVED_SUGGESTIONS,
-                            id: suggestionId,
-                            matchedPretext: usernamePrefix,
-                            terms: mentions,
-                            items: users,
-                            component: SearchUserSuggestion
-                        });
-                    }
-                );
-            }
-
-            this.timeoutId = setTimeout(
-                autocomplete.bind(this),
-                Constants.AUTOCOMPLETE_TIMEOUT
+                    AppDispatcher.handleServerAction({
+                        type: ActionTypes.SUGGESTION_RECEIVED_SUGGESTIONS,
+                        id: suggestionId,
+                        matchedPretext: usernamePrefix,
+                        terms: mentions,
+                        items: users,
+                        component: SearchUserSuggestion
+                    });
+                }
             );
         }
     }

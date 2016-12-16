@@ -59,94 +59,79 @@ class SwitchChannelSuggestion extends Suggestion {
 }
 
 export default class SwitchChannelProvider {
-    constructor() {
-        this.timeoutId = '';
-    }
-
-    componentWillUnmount() {
-        clearTimeout(this.timeoutId);
-    }
-
     handlePretextChanged(suggestionId, channelPrefix) {
         if (channelPrefix) {
             const allChannels = ChannelStore.getAll();
             const channels = [];
 
-            function autocomplete() {
-                autocompleteUsers(
-                    channelPrefix,
-                    (users) => {
-                        const currentId = UserStore.getCurrentId();
+            autocompleteUsers(
+                channelPrefix,
+                (users) => {
+                    const currentId = UserStore.getCurrentId();
 
-                        for (const id of Object.keys(allChannels)) {
-                            const channel = allChannels[id];
-                            if (channel.display_name.toLowerCase().indexOf(channelPrefix.toLowerCase()) !== -1) {
-                                channels.push(channel);
-                            }
+                    for (const id of Object.keys(allChannels)) {
+                        const channel = allChannels[id];
+                        if (channel.display_name.toLowerCase().indexOf(channelPrefix.toLowerCase()) !== -1) {
+                            channels.push(channel);
                         }
-
-                        const userMap = {};
-                        for (let i = 0; i < users.length; i++) {
-                            const user = users[i];
-                            let displayName = `@${user.username} `;
-
-                            if (user.id === currentId) {
-                                continue;
-                            }
-
-                            if ((user.first_name || user.last_name) && user.nickname) {
-                                displayName += `- ${Utils.getFullName(user)} (${user.nickname})`;
-                            } else if (user.nickname) {
-                                displayName += `- (${user.nickname})`;
-                            } else if (user.first_name || user.last_name) {
-                                displayName += `- ${Utils.getFullName(user)}`;
-                            }
-
-                            const newChannel = {
-                                display_name: displayName,
-                                name: user.username,
-                                id: user.id,
-                                update_at: user.update_at,
-                                type: Constants.DM_CHANNEL
-                            };
-                            channels.push(newChannel);
-                            userMap[user.id] = user;
-                        }
-
-                        channels.sort((a, b) => {
-                            if (a.display_name === b.display_name) {
-                                if (a.type !== Constants.DM_CHANNEL && b.type === Constants.DM_CHANNEL) {
-                                    return -1;
-                                } else if (a.type === Constants.DM_CHANNEL && b.type !== Constants.DM_CHANNEL) {
-                                    return 1;
-                                }
-                                return a.name.localeCompare(b.name);
-                            }
-                            return a.display_name.localeCompare(b.display_name);
-                        });
-
-                        const channelNames = channels.map((channel) => channel.name);
-
-                        AppDispatcher.handleServerAction({
-                            type: ActionTypes.SUGGESTION_RECEIVED_SUGGESTIONS,
-                            id: suggestionId,
-                            matchedPretext: channelPrefix,
-                            terms: channelNames,
-                            items: channels,
-                            component: SwitchChannelSuggestion
-                        });
-
-                        AppDispatcher.handleServerAction({
-                            type: ActionTypes.RECEIVED_PROFILES,
-                            profiles: userMap
-                        });
                     }
-                );
-            }
 
-            this.timeoutId = setTimeout(
-                autocomplete.bind(this),
-                Constants.AUTOCOMPLETE_TIMEOUT
+                    const userMap = {};
+                    for (let i = 0; i < users.length; i++) {
+                        const user = users[i];
+                        let displayName = `@${user.username} `;
+
+                        if (user.id === currentId) {
+                            continue;
+                        }
+
+                        if ((user.first_name || user.last_name) && user.nickname) {
+                            displayName += `- ${Utils.getFullName(user)} (${user.nickname})`;
+                        } else if (user.nickname) {
+                            displayName += `- (${user.nickname})`;
+                        } else if (user.first_name || user.last_name) {
+                            displayName += `- ${Utils.getFullName(user)}`;
+                        }
+
+                        const newChannel = {
+                            display_name: displayName,
+                            name: user.username,
+                            id: user.id,
+                            update_at: user.update_at,
+                            type: Constants.DM_CHANNEL
+                        };
+                        channels.push(newChannel);
+                        userMap[user.id] = user;
+                    }
+
+                    channels.sort((a, b) => {
+                        if (a.display_name === b.display_name) {
+                            if (a.type !== Constants.DM_CHANNEL && b.type === Constants.DM_CHANNEL) {
+                                return -1;
+                            } else if (a.type === Constants.DM_CHANNEL && b.type !== Constants.DM_CHANNEL) {
+                                return 1;
+                            }
+                            return a.name.localeCompare(b.name);
+                        }
+                        return a.display_name.localeCompare(b.display_name);
+                    });
+
+                    const channelNames = channels.map((channel) => channel.name);
+
+                    AppDispatcher.handleServerAction({
+                        type: ActionTypes.SUGGESTION_RECEIVED_SUGGESTIONS,
+                        id: suggestionId,
+                        matchedPretext: channelPrefix,
+                        terms: channelNames,
+                        items: channels,
+                        component: SwitchChannelSuggestion
+                    });
+
+                    AppDispatcher.handleServerAction({
+                        type: ActionTypes.RECEIVED_PROFILES,
+                        profiles: userMap
+                    });
+                }
             );
         }
     }

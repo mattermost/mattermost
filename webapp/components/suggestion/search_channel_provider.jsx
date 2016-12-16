@@ -33,63 +33,48 @@ class SearchChannelSuggestion extends Suggestion {
 }
 
 export default class SearchChannelProvider {
-    constructor() {
-        this.timeoutId = '';
-    }
-
-    componentWillUnmount() {
-        clearTimeout(this.timeoutId);
-    }
-
     handlePretextChanged(suggestionId, pretext) {
         const captured = (/\b(?:in|channel):\s*(\S*)$/i).exec(pretext.toLowerCase());
         if (captured) {
             const channelPrefix = captured[1];
 
-            function autocomplete() {
-                autocompleteChannels(
-                    channelPrefix,
-                    (data) => {
-                        const publicChannels = data;
+            autocompleteChannels(
+                channelPrefix,
+                (data) => {
+                    const publicChannels = data;
 
-                        const localChannels = ChannelStore.getAll();
-                        const privateChannels = [];
+                    const localChannels = ChannelStore.getAll();
+                    const privateChannels = [];
 
-                        for (const id of Object.keys(localChannels)) {
-                            const channel = localChannels[id];
-                            if (channel.name.startsWith(channelPrefix) && channel.type === Constants.PRIVATE_CHANNEL) {
-                                privateChannels.push(channel);
-                            }
+                    for (const id of Object.keys(localChannels)) {
+                        const channel = localChannels[id];
+                        if (channel.name.startsWith(channelPrefix) && channel.type === Constants.PRIVATE_CHANNEL) {
+                            privateChannels.push(channel);
                         }
-
-                        const filteredPublicChannels = [];
-                        publicChannels.forEach((item) => {
-                            if (item.name.startsWith(channelPrefix)) {
-                                filteredPublicChannels.push(item);
-                            }
-                        });
-
-                        privateChannels.sort((a, b) => a.name.localeCompare(b.name));
-                        filteredPublicChannels.sort((a, b) => a.name.localeCompare(b.name));
-
-                        const channels = filteredPublicChannels.concat(privateChannels);
-                        const channelNames = channels.map((channel) => channel.name);
-
-                        AppDispatcher.handleServerAction({
-                            type: ActionTypes.SUGGESTION_RECEIVED_SUGGESTIONS,
-                            id: suggestionId,
-                            matchedPretext: channelPrefix,
-                            terms: channelNames,
-                            items: channels,
-                            component: SearchChannelSuggestion
-                        });
                     }
-                );
-            }
 
-            this.timeoutId = setTimeout(
-                autocomplete.bind(this),
-                Constants.AUTOCOMPLETE_TIMEOUT
+                    const filteredPublicChannels = [];
+                    publicChannels.forEach((item) => {
+                        if (item.name.startsWith(channelPrefix)) {
+                            filteredPublicChannels.push(item);
+                        }
+                    });
+
+                    privateChannels.sort((a, b) => a.name.localeCompare(b.name));
+                    filteredPublicChannels.sort((a, b) => a.name.localeCompare(b.name));
+
+                    const channels = filteredPublicChannels.concat(privateChannels);
+                    const channelNames = channels.map((channel) => channel.name);
+
+                    AppDispatcher.handleServerAction({
+                        type: ActionTypes.SUGGESTION_RECEIVED_SUGGESTIONS,
+                        id: suggestionId,
+                        matchedPretext: channelPrefix,
+                        terms: channelNames,
+                        items: channels,
+                        component: SearchChannelSuggestion
+                    });
+                }
             );
         }
     }
