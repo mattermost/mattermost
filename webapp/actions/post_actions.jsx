@@ -37,7 +37,8 @@ export function handleNewPost(post, msg) {
         websocketMessageProps = msg.data;
     }
 
-    if (msg.data.team_id !== teamId) {
+    const myTeams = TeamStore.getMyTeamMembers();
+    if (msg.data.team_id !== teamId && myTeams.filter((m) => m.team_id === msg.data.team_id).length) {
         AsyncClient.getMyTeamsUnread(teamId);
     }
 

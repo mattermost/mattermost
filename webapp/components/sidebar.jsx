@@ -84,18 +84,20 @@ export default class Sidebar extends React.Component {
         const unreadCounts = this.state.unreadCounts;
         const teamMembers = this.state.teamMembers;
 
-        Object.keys(unreadCounts).forEach((chId) => {
-            const channel = ChannelStore.get(chId);
-
-            if (channel && channel.type === 'D' && (!channel.team_id || channel.team_id === this.state.currentTeam.id)) {
-                msgs += unreadCounts[chId].msgs;
-                mentions += unreadCounts[chId].mentions;
+        teamMembers.forEach((member) => {
+            if (member.team_id !== this.state.currentTeam.id) {
+                msgs += member.msg_count || 0;
+                mentions += member.mention_count || 0;
             }
         });
 
-        teamMembers.forEach((member) => {
-            msgs += member.msg_count || 0;
-            mentions += member.mention_count || 0;
+        Object.keys(unreadCounts).forEach((chId) => {
+            const channel = ChannelStore.get(chId);
+
+            if (channel && (channel.type === 'D' || channel.team_id === this.state.currentTeam.id)) {
+                msgs += unreadCounts[chId].msgs;
+                mentions += unreadCounts[chId].mentions;
+            }
         });
 
         return {msgs, mentions};
@@ -145,6 +147,7 @@ export default class Sidebar extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
+        this.updateTitle();
         this.updateUnreadIndicators();
         if (!Utils.isMobile()) {
             $('.sidebar--left .nav-pills__container').perfectScrollbar();

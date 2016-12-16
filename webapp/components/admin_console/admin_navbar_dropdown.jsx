@@ -54,10 +54,10 @@ export default class AdminNavbarDropdown extends React.Component {
         let switchTeams;
 
         if (this.state.teamMembers && this.state.teamMembers.length > 0) {
-            for (var index in this.state.teamMembers) {
+            for (const index in this.state.teamMembers) {
                 if (this.state.teamMembers.hasOwnProperty(index)) {
-                    var teamMember = this.state.teamMembers[index];
-                    var team = this.state.teams[teamMember.team_id];
+                    const teamMember = this.state.teamMembers[index];
+                    const team = this.state.teams[teamMember.team_id];
                     teams.push(
                         <li key={'team_' + team.name}>
                             <Link

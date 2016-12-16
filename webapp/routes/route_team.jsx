@@ -5,7 +5,6 @@ import $ from 'jquery';
 import * as RouteUtils from 'routes/route_utils.jsx';
 import {browserHistory} from 'react-router/es6';
 
-import BrowserStore from 'stores/browser_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {loadStatusesForChannelAndSidebar} from 'actions/status_actions.jsx';
@@ -33,7 +32,6 @@ function doChannelChange(state, replace, callback) {
         channel = ChannelStore.getByName(state.params.channel);
 
         if (!channel) {
-            BrowserStore.setGlobalItem(TeamStore.getCurrentId(), state.params.channel);
             Client.joinChannelByName(
                 state.params.channel,
                 (data) => {
@@ -75,7 +73,6 @@ function preNeedsTeam(nextState, replace, callback) {
     GlobalActions.emitCloseRightHandSide();
 
     TeamStore.saveMyTeam(team);
-    BrowserStore.setGlobalItem('team', team.id);
     TeamStore.emitChange();
     loadProfilesAndTeamMembersForDMSidebar();
     AsyncClient.getMyTeamsUnread();
