@@ -70,6 +70,7 @@ export default class Sidebar extends React.Component {
 
         this.isLeaving = new Map();
         this.isSwitchingChannel = false;
+        this.closedDirectChannel = false;
 
         const state = this.getStateFromStores();
         state.newChannelModalType = '';
@@ -162,10 +163,8 @@ export default class Sidebar extends React.Component {
 
         // close the LHS on mobile when you change channels
         if (this.state.activeId !== prevState.activeId) {
-            if (this.state.closedDirectChannel) {
-                this.onUpdate(() => {
-                    this.setState({closedDirectChannel: false});
-                });
+            if (this.closedDirectChannel) {
+                this.closedDirectChannel = false;
             } else {
                 $('.app__body .inner-wrap').removeClass('move--right');
                 $('.app__body .sidebar--left').removeClass('move--right');
@@ -360,7 +359,7 @@ export default class Sidebar extends React.Component {
         }
 
         if (channel.id === this.state.activeId) {
-            this.setState({closedDirectChannel: true});
+            this.closedDirectChannel = true;
             browserHistory.push('/' + this.state.currentTeam.name + '/channels/town-square');
         }
     }
