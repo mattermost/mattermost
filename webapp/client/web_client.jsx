@@ -38,7 +38,7 @@ class WebClientClass extends Client {
     }
 
     handleError(err, res) {
-        if (res.body.id === 'api.context.mfa_required.app_error') {
+        if (res && res.body && res.body.id === 'api.context.mfa_required.app_error') {
             window.location.reload();
             return;
         }

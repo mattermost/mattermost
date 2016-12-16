@@ -210,7 +210,7 @@ export default class Client {
         }
 
         if (successCallback) {
-            if (res && res.body) {
+            if (res && res.body !== undefined) { // eslint-disable-line no-undefined
                 successCallback(res.body, res);
             } else {
                 console.error('Missing response body for ' + methodName); // eslint-disable-line no-console
