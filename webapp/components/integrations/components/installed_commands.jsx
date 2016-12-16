@@ -37,8 +37,22 @@ export default class InstalledCommands extends React.Component {
         AsyncClient.deleteCommand(command.id);
     }
 
+    commandCompare(a, b) {
+        let nameA = a.display_name;
+        if (!nameA) {
+            nameA = Utils.localizeMessage('installed_commands.unnamed_command', 'Unnamed Slash Command');
+        }
+
+        let nameB = b.display_name;
+        if (!nameB) {
+            nameB = Utils.localizeMessage('installed_commands.unnamed_command', 'Unnamed Slash Command');
+        }
+
+        return nameA.localeCompare(nameB);
+    }
+
     render() {
-        const commands = this.props.commands.map((command) => {
+        const commands = this.props.commands.sort(this.commandCompare).map((command) => {
             const canChange = this.props.isAdmin || this.props.user.id === command.creator_id;
 
             return (

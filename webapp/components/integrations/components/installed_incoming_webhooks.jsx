@@ -4,6 +4,7 @@
 import BackstageList from 'components/backstage/components/backstage_list.jsx';
 import InstalledIncomingWebhook from './installed_incoming_webhook.jsx';
 
+import ChannelStore from 'stores/channel_store.jsx';
 import IntegrationStore from 'stores/integration_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
@@ -74,8 +75,32 @@ export default class InstalledIncomingWebhooks extends React.Component {
         AsyncClient.deleteIncomingHook(incomingWebhook.id);
     }
 
+    incomingWebhookCompare(a, b) {
+        let displayNameA = a.display_name;
+        if (!displayNameA) {
+            const channelA = ChannelStore.get(a.channel_id);
+            if (channelA) {
+                displayNameA = channelA.display_name;
+            } else {
+                displayNameA = Utils.localizeMessage('installed_incoming_webhooks.unknown_channel', 'A Private Webhook');
+            }
+        }
+
+        let displayNameB = b.display_name;
+        if (!displayNameB) {
+            const channelB = ChannelStore.get(b.channel_id);
+            if (channelB) {
+                displayNameB = channelB.display_name;
+            } else {
+                displayNameB = Utils.localizeMessage('installed_incoming_webhooks.unknown_channel', 'A Private Webhook');
+            }
+        }
+
+        return displayNameA.localeCompare(displayNameB);
+    }
+
     render() {
-        const incomingWebhooks = this.state.incomingWebhooks.map((incomingWebhook) => {
+        const incomingWebhooks = this.state.incomingWebhooks.sort(this.incomingWebhookCompare).map((incomingWebhook) => {
             const canChange = this.props.isAdmin || this.props.user.id === incomingWebhook.user_id;
 
             return (
