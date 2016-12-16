@@ -48,7 +48,6 @@ export default class Sidebar extends React.Component {
         this.getStateFromStores = this.getStateFromStores.bind(this);
 
         this.onChange = this.onChange.bind(this);
-        this.onUpdate = this.onUpdate.bind(this);
         this.onScroll = this.onScroll.bind(this);
         this.updateUnreadIndicators = this.updateUnreadIndicators.bind(this);
         this.handleLeaveDirectChannel = this.handleLeaveDirectChannel.bind(this);
@@ -172,10 +171,6 @@ export default class Sidebar extends React.Component {
             }
         }
     }
-
-    onUpdate = (cb) => {
-        cb();
-    };
 
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onChange);
