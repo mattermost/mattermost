@@ -47,6 +47,7 @@
 
             > div {
                 &:first-child {
+                    -webkit-overflow-scrolling: touch;
                     height: calc(100vh - 150px);
                     overflow: auto;
                 }
