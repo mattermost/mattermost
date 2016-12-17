@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -601,13 +602,25 @@ func (us SqlUserStore) GetProfilesInChannel(channelId string, offset int, limit 
 
 	go func() {
 		result := StoreResult{}
+		metrics := einterfaces.GetMetricsInterface()
 
 		if allowFromCache && offset == -1 && limit == -1 {
 			if cacheItem, ok := profilesInChannelCache.Get(channelId); ok {
+				if metrics != nil {
+					metrics.IncrementMemCacheHitCounter("Profiles in Channel")
+				}
 				result.Data = cacheItem.(map[string]*model.User)
 				storeChannel <- result
 				close(storeChannel)
 				return
+			} else {
+				if metrics != nil {
+					metrics.IncrementMemCacheMissCounter("Profiles in Channel")
+				}
+			}
+		} else {
+			if metrics != nil {
+				metrics.IncrementMemCacheMissCounter("Profiles in Channel")
 			}
 		}
 

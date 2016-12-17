@@ -19,6 +19,12 @@ type MetricsInterface interface {
 
 	IncrementLogin()
 	IncrementLoginFail()
+
+	IncrementEtagHitCounter(route string)
+	IncrementEtagMissCounter(route string)
+
+	IncrementMemCacheHitCounter(cacheName string)
+	IncrementMemCacheMissCounter(cacheName string)
 }
 
 var theMetricsInterface MetricsInterface

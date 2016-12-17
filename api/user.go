@@ -865,7 +865,7 @@ func getMe(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.RemoveSessionCookie(w, r)
 		l4g.Error(utils.T("api.user.get_me.getting.error"), c.Session.UserId)
 		return
-	} else if HandleEtag(result.Data.(*model.User).Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress), w, r) {
+	} else if HandleEtag(result.Data.(*model.User).Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress), "Get Me", w, r) {
 		return
 	} else {
 		result.Data.(*model.User).Sanitize(map[string]bool{})
@@ -952,7 +952,7 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	if result := <-Srv.Store.User().Get(id); result.Err != nil {
 		c.Err = result.Err
 		return
-	} else if HandleEtag(result.Data.(*model.User).Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress), w, r) {
+	} else if HandleEtag(result.Data.(*model.User).Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress), "Get User", w, r) {
 		return
 	} else {
 		user := sanitizeProfile(c, result.Data.(*model.User))
@@ -970,7 +970,7 @@ func getByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
 	if result := <-Srv.Store.User().GetByUsername(username); result.Err != nil {
 		c.Err = result.Err
 		return
-	} else if HandleEtag(result.Data.(*model.User).Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress), w, r) {
+	} else if HandleEtag(result.Data.(*model.User).Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress), "Get By Username", w, r) {
 		return
 	} else {
 		user := sanitizeProfile(c, result.Data.(*model.User))
@@ -997,7 +997,7 @@ func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	etag := (<-Srv.Store.User().GetEtagForAllProfiles()).Data.(string)
-	if HandleEtag(etag, w, r) {
+	if HandleEtag(etag, "Get Profiles", w, r) {
 		return
 	}
 
@@ -1039,7 +1039,7 @@ func getProfilesInTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	etag := (<-Srv.Store.User().GetEtagForProfiles(teamId)).Data.(string)
-	if HandleEtag(etag, w, r) {
+	if HandleEtag(etag, "Get Profiles In Team", w, r) {
 		return
 	}
 
@@ -1160,7 +1160,7 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 		audits := result.Data.(model.Audits)
 		etag := audits.Etag()
 
-		if HandleEtag(etag, w, r) {
+		if HandleEtag(etag, "Get Audits", w, r) {
 			return
 		}
 

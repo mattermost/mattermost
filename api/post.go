@@ -1290,7 +1290,7 @@ func getPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	etag := (<-etagChan).Data.(string)
 
-	if HandleEtag(etag, w, r) {
+	if HandleEtag(etag, "Get Posts", w, r) {
 		return
 	}
 
@@ -1364,7 +1364,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	if result := <-pchan; result.Err != nil {
 		c.Err = result.Err
 		return
-	} else if HandleEtag(result.Data.(*model.PostList).Etag(), w, r) {
+	} else if HandleEtag(result.Data.(*model.PostList).Etag(), "Get Post", w, r) {
 		return
 	} else {
 		list := result.Data.(*model.PostList)
@@ -1405,7 +1405,7 @@ func getPostById(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if HandleEtag(list.Etag(), w, r) {
+		if HandleEtag(list.Etag(), "Get Post By Id", w, r) {
 			return
 		}
 
@@ -1446,7 +1446,7 @@ func getPermalinkTmp(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if HandleEtag(list.Etag(), w, r) {
+		if HandleEtag(list.Etag(), "Get Permalink TMP", w, r) {
 			return
 		}
 
@@ -1580,7 +1580,7 @@ func getPostsBeforeOrAfter(c *Context, w http.ResponseWriter, r *http.Request, b
 	}
 
 	etag := (<-etagChan).Data.(string)
-	if HandleEtag(etag, w, r) {
+	if HandleEtag(etag, "Get Posts Before or After", w, r) {
 		return
 	}
 
@@ -1690,7 +1690,7 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	etag := model.GetEtagForFileInfos(infos)
 
-	if HandleEtag(etag, w, r) {
+	if HandleEtag(etag, "Get File Infos For Post", w, r) {
 		return
 	} else {
 		w.Header().Set("Cache-Control", "max-age=2592000, public")
