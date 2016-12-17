@@ -424,36 +424,41 @@ func (s SqlPostStore) GetPostsSince(channelId string, time int64) StoreChannel {
 		var posts []*model.Post
 		_, err := s.GetReplica().Select(&posts,
 			`(SELECT
-			    *
+				*
 			FROM
-			    Posts
+				Posts
 			WHERE
-			    (UpdateAt > :Time
-			        AND ChannelId = :ChannelId)
+				UpdateAt > :Time
+				AND ChannelId = :ChannelId
+				AND DeleteAt = 0
 			LIMIT 1000)
 			UNION
 			(SELECT
-			    *
+				*
 			FROM
-			    Posts
+				Posts
 			WHERE
-			    Id
-			IN
-			    (SELECT * FROM (SELECT
-			        RootId
-			    FROM
-			        Posts
-			    WHERE
-			        UpdateAt > :Time
-			            AND ChannelId = :ChannelId
-			    LIMIT 1000) temp_tab))
+				Id IN
+					(SELECT
+						*
+					FROM
+						(SELECT
+							RootId
+						FROM
+							Posts
+						WHERE
+							UpdateAt > :Time
+							AND ChannelId = :ChannelId
+							AND DeleteAt = 0
+						LIMIT 1000)
+					temp_tab)
+				AND DeleteAt = 0)
 			ORDER BY CreateAt DESC`,
 			map[string]interface{}{"ChannelId": channelId, "Time": time})
 
 		if err != nil {
 			result.Err = model.NewLocAppError("SqlPostStore.GetPostsSince", "store.sql_post.get_posts_since.app_error", nil, "channelId="+channelId+err.Error())
 		} else {
-
 			list := &model.PostList{Order: make([]string, 0, len(posts))}
 
 			for _, p := range posts {

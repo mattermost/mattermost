@@ -680,30 +680,53 @@ func TestPostStoreGetPostsSince(t *testing.T) {
 	o5.RootId = o4.Id
 	o5 = (<-store.Post().Save(o5)).Data.(*model.Post)
 
-	r1 := (<-store.Post().GetPostsSince(o1.ChannelId, o1.CreateAt)).Data.(*model.PostList)
-
-	if r1.Order[0] != o5.Id {
-		t.Fatal("invalid order")
-	}
-
-	if r1.Order[1] != o4.Id {
-		t.Fatal("invalid order")
-	}
-
-	if r1.Order[2] != o3.Id {
-		t.Fatal("invalid order")
-	}
-
-	if r1.Order[3] != o2a.Id {
-		t.Fatal("invalid order")
-	}
-
-	if len(r1.Posts) != 6 {
+	if result := <-store.Post().GetPostsSince(o1.ChannelId, o1.CreateAt); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if r1 := result.Data.(*model.PostList); r1.Order[0] != o5.Id {
+		t.Fatal("invalid order 5")
+	} else if r1.Order[1] != o4.Id {
+		t.Fatal("invalid order 4")
+	} else if r1.Order[2] != o3.Id {
+		t.Fatal("invalid order 3")
+	} else if r1.Order[3] != o2a.Id {
+		t.Fatal("invalid order 2")
+	} else if len(r1.Posts) != 6 {
 		t.Fatal("wrong size")
+	} else if r1.Posts[o1.Id].Message != o1.Message {
+		t.Fatal("Missing parent")
 	}
 
-	if r1.Posts[o1.Id].Message != o1.Message {
-		t.Fatal("Missing parent")
+	// Make sure getPostsSince cannot return deleted posts or their comments
+	o6 := Must(store.Post().Save(&model.Post{
+		ChannelId: model.NewId(),
+		UserId:    model.NewId(),
+		Message:   "a" + model.NewId() + "b",
+		DeleteAt:  1,
+	})).(*model.Post)
+	time.Sleep(2 * time.Millisecond)
+
+	o7 := Must(store.Post().Save(&model.Post{
+		ChannelId: o6.ChannelId,
+		UserId:    model.NewId(),
+		Message:   "a" + model.NewId() + "b",
+		DeleteAt:  1,
+	})).(*model.Post)
+	time.Sleep(2 * time.Millisecond)
+
+	Must(store.Post().Save(&model.Post{
+		ChannelId: o6.ChannelId,
+		UserId:    model.NewId(),
+		Message:   "a" + model.NewId() + "b",
+		ParentId:  o7.Id,
+		RootId:    o7.Id,
+		DeleteAt:  1,
+	}))
+	time.Sleep(2 * time.Millisecond)
+
+	if result := <-store.Post().GetPostsSince(o6.ChannelId, o6.CreateAt-1); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if data := result.Data.(*model.PostList); len(data.Posts) != 0 {
+		t.Fatalf("shouldn't have returned a deleted post: %v", data)
 	}
 }
 
