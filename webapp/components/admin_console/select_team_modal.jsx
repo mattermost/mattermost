@@ -24,6 +24,7 @@ export default class SelectTeamModal extends React.Component {
     doCancel() {
         this.props.onModalDismissed();
     }
+
     compare(a, b) {
         const teamA = a.display_name.toLowerCase();
         const teamB = b.display_name.toLowerCase();
