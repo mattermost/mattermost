@@ -599,7 +599,7 @@ func (s SqlTeamStore) GetTeamsUnreadForUser(teamId, userId string) StoreChannel 
 				Channels,
 				ChannelMembers
 			WHERE
-				Channels.Id = ChannelMembers.ChannelId AND
+				Channels.Id = ChannelMembers.ChannelId AND Channels.DeleteAt = 0 AND
 				ChannelMembers.UserId = :UserId AND Channels.TeamId != :TeamId
 			GROUP BY
 				Channels.TeamId`, map[string]interface{}{"UserId": userId, "TeamId": teamId})

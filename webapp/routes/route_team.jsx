@@ -70,37 +70,40 @@ function preNeedsTeam(nextState, replace, callback) {
         browserHistory.push('/');
         return;
     }
+    if (nextState.location.pathname.indexOf('/channels/') > -1) {
+        GlobalActions.emitCloseRightHandSide();
 
-    GlobalActions.emitCloseRightHandSide();
+        TeamStore.saveMyTeam(team);
+        TeamStore.emitChange();
+        loadProfilesAndTeamMembersForDMSidebar();
+        AsyncClient.getMyTeamsUnread();
+        AsyncClient.getMyChannelMembers();
 
-    TeamStore.saveMyTeam(team);
-    TeamStore.emitChange();
-    loadProfilesAndTeamMembersForDMSidebar();
-    AsyncClient.getMyTeamsUnread();
-    AsyncClient.getMyChannelMembers();
+        const d1 = $.Deferred(); //eslint-disable-line new-cap
 
-    const d1 = $.Deferred(); //eslint-disable-line new-cap
+        Client.getChannels(
+            (data) => {
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECEIVED_CHANNELS,
+                    channels: data
+                });
 
-    Client.getChannels(
-        (data) => {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_CHANNELS,
-                channels: data
-            });
+                loadStatusesForChannelAndSidebar();
 
-            loadStatusesForChannelAndSidebar();
+                d1.resolve();
+            },
+            (err) => {
+                AsyncClient.dispatchError(err, 'getChannels');
+                d1.resolve();
+            }
+        );
 
-            d1.resolve();
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'getChannels');
-            d1.resolve();
-        }
-    );
-
-    $.when(d1).done(() => {
+        $.when(d1).done(() => {
+            callback();
+        });
+    } else {
         callback();
-    });
+    }
 }
 
 function selectLastChannel(nextState, replace, callback) {
