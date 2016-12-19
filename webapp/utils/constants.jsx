@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import keyMirror from 'keymirror';
+import keyMirror from 'key-mirror/keyMirror.js';
 
 import audioIcon from 'images/icons/audio.png';
 import videoIcon from 'images/icons/video.png';
