@@ -211,6 +211,23 @@ describe('Client.Channels', function() {
         });
     });
 
+    it('viewChannel', function(done) {
+        TestHelper.initBasic(() => {
+            var channel = TestHelper.basicChannel();
+            TestHelper.basicClient().viewChannel(
+                channel.id,
+                '',
+                0,
+                function() {
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
     it('updateLastViewedAt', function(done) {
         TestHelper.initBasic(() => {
             var channel = TestHelper.basicChannel();

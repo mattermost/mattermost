@@ -32,7 +32,7 @@ export default class PostViewCache extends React.Component {
 
     componentWillUnmount() {
         if (UserStore.getCurrentUser()) {
-            AsyncClient.setActiveChannel('');
+            AsyncClient.viewChannel('');
         }
         ChannelStore.removeChangeListener(this.onChannelChange);
     }

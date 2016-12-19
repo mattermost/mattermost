@@ -53,7 +53,7 @@ export function executeCommand(message, args, success, error) {
 
 export function setChannelAsRead(channelIdParam) {
     const channelId = channelIdParam || ChannelStore.getCurrentId();
-    AsyncClient.updateLastViewedAt();
+    AsyncClient.viewChannel();
     ChannelStore.resetCounts(channelId);
     ChannelStore.emitChange();
     if (channelId === ChannelStore.getCurrentId()) {

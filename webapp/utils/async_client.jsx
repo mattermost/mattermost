@@ -138,33 +138,20 @@ export function getMyChannelMembers() {
     });
 }
 
-export function updateLastViewedAt(id, active) {
-    let channelId;
-    if (id) {
-        channelId = id;
-    } else {
-        channelId = ChannelStore.getCurrentId();
-    }
-
+export function viewChannel(channelId = ChannelStore.getCurrentId(), prevChannelId = '', time = 0) {
     if (channelId == null) {
         return;
     }
 
-    if (isCallInProgress(`updateLastViewed${channelId}`)) {
+    if (isCallInProgress(`viewChannel${channelId}`)) {
         return;
     }
 
-    let isActive;
-    if (active == null) {
-        isActive = true;
-    } else {
-        isActive = active;
-    }
-
-    callTracker[`updateLastViewed${channelId}`] = utils.getTimestamp();
-    Client.updateLastViewedAt(
+    callTracker[`viewChannel${channelId}`] = utils.getTimestamp();
+    Client.viewChannel(
         channelId,
-        isActive,
+        prevChannelId,
+        time,
         () => {
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_PREFERENCE,
@@ -175,59 +162,14 @@ export function updateLastViewedAt(id, active) {
                 }
             });
 
-            callTracker[`updateLastViewed${channelId}`] = 0;
+            callTracker[`viewChannel${channelId}`] = 0;
             ErrorStore.clearLastError();
         },
         (err) => {
-            callTracker[`updateLastViewed${channelId}`] = 0;
+            callTracker[`viewChannel${channelId}`] = 0;
             const count = ErrorStore.getConnectionErrorCount();
             ErrorStore.setConnectionErrorCount(count + 1);
-            dispatchError(err, 'updateLastViewedAt');
-        }
-    );
-}
-
-export function setLastViewedAt(lastViewedAt, id) {
-    let channelId;
-    if (id) {
-        channelId = id;
-    } else {
-        channelId = ChannelStore.getCurrentId();
-    }
-
-    if (channelId == null) {
-        return;
-    }
-
-    if (lastViewedAt == null) {
-        return;
-    }
-
-    if (isCallInProgress(`setLastViewedAt${channelId}${lastViewedAt}`)) {
-        return;
-    }
-
-    callTracker[`setLastViewedAt${channelId}${lastViewedAt}`] = utils.getTimestamp();
-    Client.setLastViewedAt(
-        channelId,
-        lastViewedAt,
-        () => {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_PREFERENCE,
-                preference: {
-                    category: 'last',
-                    name: TeamStore.getCurrentId(),
-                    value: channelId
-                }
-            });
-            callTracker[`setLastViewedAt${channelId}${lastViewedAt}`] = 0;
-            ErrorStore.clearLastError();
-        },
-        (err) => {
-            callTracker[`setLastViewedAt${channelId}${lastViewedAt}`] = 0;
-            var count = ErrorStore.getConnectionErrorCount();
-            ErrorStore.setConnectionErrorCount(count + 1);
-            dispatchError(err, 'setLastViewedAt');
+            dispatchError(err, 'viewChannel');
         }
     );
 }
@@ -791,24 +733,6 @@ export function getStatuses() {
         (err) => {
             callTracker.getStatuses = 0;
             dispatchError(err, 'getStatuses');
-        }
-    );
-}
-
-export function setActiveChannel(channelId) {
-    if (isCallInProgress(`setActiveChannel${channelId}`)) {
-        return;
-    }
-
-    callTracker[`setActiveChannel${channelId}`] = utils.getTimestamp();
-    Client.setActiveChannel(
-        channelId,
-        () => {
-            callTracker[`setActiveChannel${channelId}`] = 0;
-        },
-        (err) => {
-            callTracker[`setActiveChannel${channelId}`] = 0;
-            dispatchError(err, 'setActiveChannel');
         }
     );
 }
