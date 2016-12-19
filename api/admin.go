@@ -13,6 +13,8 @@ import (
 	"strings"
 	"time"
 
+	"runtime/debug"
+
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/einterfaces"
@@ -20,7 +22,6 @@ import (
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 	"github.com/mssola/user_agent"
-	"runtime/debug"
 )
 
 func InitAdmin() {
@@ -112,7 +113,7 @@ func getAllAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 		audits := result.Data.(model.Audits)
 		etag := audits.Etag()
 
-		if HandleEtag(etag, w, r) {
+		if HandleEtag(etag, "Get All Audits", w, r) {
 			return
 		}
 

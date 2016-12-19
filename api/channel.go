@@ -414,7 +414,7 @@ func getChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		c.Err = result.Err
 		return
-	} else if HandleEtag(result.Data.(*model.ChannelList).Etag(), w, r) {
+	} else if HandleEtag(result.Data.(*model.ChannelList).Etag(), "Get Channels", w, r) {
 		return
 	} else {
 		data := result.Data.(*model.ChannelList)
@@ -460,7 +460,7 @@ func getChannelCounts(c *Context, w http.ResponseWriter, r *http.Request) {
 	if result := <-Srv.Store.Channel().GetChannelCounts(c.TeamId, c.Session.UserId); result.Err != nil {
 		c.Err = model.NewLocAppError("getChannelCounts", "api.channel.get_channel_counts.app_error", nil, result.Err.Message)
 		return
-	} else if HandleEtag(result.Data.(*model.ChannelCounts).Etag(), w, r) {
+	} else if HandleEtag(result.Data.(*model.ChannelCounts).Etag(), "Get Channel Counts", w, r) {
 		return
 	} else {
 		data := result.Data.(*model.ChannelCounts)
@@ -958,7 +958,7 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if HandleEtag(data.Etag(), w, r) {
+		if HandleEtag(data.Etag(), "Get Channel", w, r) {
 			return
 		} else {
 			w.Header().Set(model.HEADER_ETAG_SERVER, data.Etag())
@@ -990,7 +990,7 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if HandleEtag(data.Etag(), w, r) {
+		if HandleEtag(data.Etag(), "Get Channel By Name", w, r) {
 			return
 		} else {
 			w.Header().Set(model.HEADER_ETAG_SERVER, data.Etag())

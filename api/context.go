@@ -508,9 +508,18 @@ func Handle404(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetSession(token string) *model.Session {
+	metrics := einterfaces.GetMetricsInterface()
+
 	var session *model.Session
 	if ts, ok := sessionCache.Get(token); ok {
 		session = ts.(*model.Session)
+		if metrics != nil {
+			metrics.IncrementMemCacheHitCounter("Session")
+		}
+	} else {
+		if metrics != nil {
+			metrics.IncrementMemCacheMissCounter("Session")
+		}
 	}
 
 	if session == nil {

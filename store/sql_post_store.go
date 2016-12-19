@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -227,16 +228,28 @@ func (s SqlPostStore) InvalidatePostEtagCache(channelId string) {
 
 func (s SqlPostStore) GetEtag(channelId string, allowFromCache bool) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
+	metrics := einterfaces.GetMetricsInterface()
 
 	go func() {
 		result := StoreResult{}
 
 		if allowFromCache {
 			if cacheItem, ok := postEtagCache.Get(channelId); ok {
+				if metrics != nil {
+					metrics.IncrementMemCacheHitCounter("Post Etag")
+				}
 				result.Data = cacheItem.(string)
 				storeChannel <- result
 				close(storeChannel)
 				return
+			} else {
+				if metrics != nil {
+					metrics.IncrementMemCacheMissCounter("Post Etag")
+				}
+			}
+		} else {
+			if metrics != nil {
+				metrics.IncrementMemCacheMissCounter("Post Etag")
 			}
 		}
 

@@ -177,7 +177,7 @@ func getClientLicenceConfig(c *Context, w http.ResponseWriter, r *http.Request) 
 	c.Err = nil
 
 	etag := utils.GetClientLicenseEtag(useSanitizedLicense)
-	if HandleEtag(etag, w, r) {
+	if HandleEtag(etag, "Get Client License Config", w, r) {
 		return
 	}
 

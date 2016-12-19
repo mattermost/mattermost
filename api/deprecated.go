@@ -29,7 +29,7 @@ func getMoreChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	if result := <-Srv.Store.Channel().GetMoreChannels(c.TeamId, c.Session.UserId, 0, 100000); result.Err != nil {
 		c.Err = result.Err
 		return
-	} else if HandleEtag(result.Data.(*model.ChannelList).Etag(), w, r) {
+	} else if HandleEtag(result.Data.(*model.ChannelList).Etag(), "Get More Channels (deprecated)", w, r) {
 		return
 	} else {
 		data := result.Data.(*model.ChannelList)

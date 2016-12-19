@@ -111,13 +111,20 @@ func getStatusesByIdsWebSocket(req *model.WebSocketRequest) (map[string]interfac
 
 func GetStatusesByIds(userIds []string) (map[string]interface{}, *model.AppError) {
 	statusMap := map[string]interface{}{}
+	metrics := einterfaces.GetMetricsInterface()
 
 	missingUserIds := []string{}
 	for _, userId := range userIds {
 		if result, ok := statusCache.Get(userId); ok {
 			statusMap[userId] = result.(*model.Status).Status
+			if metrics != nil {
+				metrics.IncrementMemCacheHitCounter("Status")
+			}
 		} else {
 			missingUserIds = append(missingUserIds, userId)
+			if metrics != nil {
+				metrics.IncrementMemCacheMissCounter("Status")
+			}
 		}
 	}
 

@@ -927,7 +927,7 @@ func getMyTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	if result := <-Srv.Store.Team().Get(c.TeamId); result.Err != nil {
 		c.Err = result.Err
 		return
-	} else if HandleEtag(result.Data.(*model.Team).Etag(), w, r) {
+	} else if HandleEtag(result.Data.(*model.Team).Etag(), "Get My Team", w, r) {
 		return
 	} else {
 		w.Header().Set(model.HEADER_ETAG_SERVER, result.Data.(*model.Team).Etag())
