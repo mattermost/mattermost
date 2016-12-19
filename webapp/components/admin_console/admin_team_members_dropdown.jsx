@@ -464,7 +464,10 @@ export default class AdminTeamMembersDropdown extends React.Component {
                     <br/>
                     <FormattedMessage
                         id='admin.user_item.confirmDemotionCmd'
-                        defaultMessage='platform -assign_role -team_name="yourteam" -email="name@yourcompany.com" -role="system_admin"'
+                        defaultMessage='platform roles system_admin {username}'
+                        values={{
+                            username: me.username
+                        }}
                     />
                     {serverError}
                 </div>

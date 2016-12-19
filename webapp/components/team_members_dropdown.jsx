@@ -326,7 +326,10 @@ export default class TeamMembersDropdown extends React.Component {
                     <br/>
                     <FormattedMessage
                         id='team_members_dropdown.confirmDemotionCmd'
-                        defaultMessage='platform -assign_role -team_name="yourteam" -email="name@yourcompany.com" -role="system_admin"'
+                        defaultMessage='platform roles system_admin {username}'
+                        vallues={{
+                            username: me.username
+                        }}
                     />
                     {serverError}
                 </div>
