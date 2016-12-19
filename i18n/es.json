@@ -469,7 +469,7 @@
   },
   {
     "id": "api.command_collapse.success",
-    "translation": "Image links now collapse by default"
+    "translation": "Los vínculos de imágenes se colapsarán de forma predeterminada"
   },
   {
     "id": "api.command_echo.create.app_error",
@@ -505,7 +505,7 @@
   },
   {
     "id": "api.command_expand.success",
-    "translation": "Image links now expand by default"
+    "translation": "Los vínculos de imágenes se expandirán de forma predeterminada"
   },
   {
     "id": "api.command_expand_collapse.fail.app_error",
@@ -705,7 +705,7 @@
   },
   {
     "id": "api.context.mfa_required.app_error",
-    "translation": "Multi-factor authentication is required on this server."
+    "translation": "La autenticación de múltiples factores es requerida en este servidor."
   },
   {
     "id": "api.context.permissions.app_error",
@@ -713,7 +713,7 @@
   },
   {
     "id": "api.context.session_expired.app_error",
-    "translation": "Sesión inválida o expirada, por favor inicia sesión otra vez."
+    "translation": "Sesión inválida o vencida, por favor inicia sesión otra vez."
   },
   {
     "id": "api.context.system_permissions.app_error",
@@ -1079,7 +1079,7 @@
   },
   {
     "id": "api.license.add_license.expired.app_error",
-    "translation": "La licencia ya expiró o todavía no ha comenzado."
+    "translation": "La licencia ya venció o todavía no ha comenzado."
   },
   {
     "id": "api.license.add_license.invalid.app_error",
@@ -1179,7 +1179,7 @@
   },
   {
     "id": "api.oauth.get_access_token.expired_code.app_error",
-    "translation": "invalid_grant: Código de autorización inválido o expirado"
+    "translation": "invalid_grant: Código de autorización inválido o vencido"
   },
   {
     "id": "api.oauth.get_access_token.internal.app_error",
@@ -1526,6 +1526,10 @@
   {
     "id": "api.reaction.delete_reaction.mismatched_channel_id.app_error",
     "translation": "Error al eliminar la reacción cuando el canal id en la URL no coincide con el id del mensaje en la URL"
+  },
+  {
+    "id": "api.reaction.init.debug",
+    "translation": "Initializing reactions api routes"
   },
   {
     "id": "api.reaction.list_reactions.mismatched_channel_id.app_error",
@@ -1981,23 +1985,23 @@
   },
   {
     "id": "api.templates.mfa_activated_body.info",
-    "translation": "Multi-factor authentication has been added to your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you, please contact your system administrator."
+    "translation": "La autenticación de múltiples factores ha sido añadida a ti cuenta en {{ .SiteURL }}.<br>Si este cambio no ha sido iniciado por ti, por favor contacta a un administrador del sistema."
   },
   {
     "id": "api.templates.mfa_activated_body.title",
-    "translation": "Multi-factor authentication was added"
+    "translation": "Autenticación de múltiples factores ha sido añadida"
   },
   {
     "id": "api.templates.mfa_change_subject",
-    "translation": "Your MFA has been updated on {{ .SiteName }}"
+    "translation": "tu MFA ha sido actualizado en {{ .SiteName }}"
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
-    "translation": "Multi-factor authentication has been removed from your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you, please contact your system administrator."
+    "translation": "La autenticación de múltiples factores ha sido removida de tu cuenta en {{ .SiteURL }}.<br>Si este cambio no ha sido iniciado por ti, por favor contacta a un administrador del sistema."
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",
-    "translation": "Multi-factor authentication was removed"
+    "translation": "Autenticación de múltiples factores ha sido removida"
   },
   {
     "id": "api.templates.password_change_body.info",
@@ -2669,7 +2673,7 @@
   },
   {
     "id": "cli.license.critical",
-    "translation": "La característica requiere una licencia enterprise. Por favor, póngase en contacto con su Administrador del Sistema acerca de la actualización de su licencia enterprise."
+    "translation": "La característica requiere una licencia de empresa. Por favor, póngase en contacto con su Administrador del Sistema acerca de la actualización de su licencia empresarial."
   },
   {
     "id": "ent.brand.save_brand_image.decode.app_error",
@@ -2717,7 +2721,7 @@
   },
   {
     "id": "ent.cluster.licence_disable.app_error",
-    "translation": "La funcionalidad de Agrupamiento de Servidores está deshabilitada por la licencia actual. Por favor, póngase en contacto con su administrador del sistema acerca de la actualización de su licencia enterprise."
+    "translation": "La funcionalidad de Agrupamiento de Servidores está deshabilitada por la licencia actual. Por favor, póngase en contacto con su administrador del sistema acerca de la actualización de su licencia empresarial."
   },
   {
     "id": "ent.cluster.ping_failed.info",
@@ -2741,7 +2745,7 @@
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
-    "translation": "La característica de Cumplimiento está deshabilitada para tu licencia actual. Por favor contacta a un administrador del sistema sobre como actualizar a una licencia enterprise."
+    "translation": "La característica de Cumplimiento está deshabilitada para tu licencia actual. Por favor contacta a un administrador del sistema sobre como actualizar a una licencia empresarial."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -2761,7 +2765,7 @@
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
-    "translation": "Las restricciones de los Emoticones Personalizados están desactivadas por la licencia actual. Por favor contacta a un Administrador del Sistema sobre como actualizar a una licencia enterprise."
+    "translation": "Las restricciones de los Emoticones Personalizados están desactivadas por la licencia actual. Por favor contacta a un Administrador del Sistema sobre como actualizar a una licencia empresarial."
   },
   {
     "id": "ent.ldap.create_fail",
@@ -2781,7 +2785,7 @@
   },
   {
     "id": "ent.ldap.do_login.licence_disable.app_error",
-    "translation": "Las funcionalidades de AD/LDAP están deshabilitadas con la licencia actual. Por favor contacta a un administrador del sistema acerca de mejorar la licencia enterprise."
+    "translation": "Las funcionalidades de AD/LDAP están deshabilitadas con la licencia actual. Por favor contacta a un administrador del sistema acerca de mejorar la licencia empresarial."
   },
   {
     "id": "ent.ldap.do_login.matched_to_many_users.app_error",
@@ -3037,7 +3041,7 @@
   },
   {
     "id": "mattermost.load_license.find.warn",
-    "translation": "No se encontró una licencia activa"
+    "translation": "Una licencia de https://mattermost.com es necesaria para desbloquear las funciones empresariales."
   },
   {
     "id": "mattermost.security_bulletin.error",
@@ -3101,7 +3105,7 @@
   },
   {
     "id": "model.authorize.is_valid.expires.app_error",
-    "translation": "Se debe asignar el tiempo de Expiración"
+    "translation": "Se debe asignar el tiempo de vencimiento"
   },
   {
     "id": "model.authorize.is_valid.redirect_uri.app_error",
@@ -3785,7 +3789,7 @@
   },
   {
     "id": "model.team.is_valid.company.app_error",
-    "translation": "Inválido nombre de la empresa"
+    "translation": "Nombre de empresa no válido"
   },
   {
     "id": "model.team.is_valid.create_at.app_error",
@@ -3874,6 +3878,10 @@
   {
     "id": "model.user.is_valid.nickname.app_error",
     "translation": "Sobrenombre no es válido"
+  },
+  {
+    "id": "model.user.is_valid.position.app_error",
+    "translation": "Cargo no válido: no debe ser más de 35 caracteres."
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
@@ -4049,7 +4057,7 @@
   },
   {
     "id": "store.sql.read_replicas_not_licensed.critical",
-    "translation": "La funcionalidad de más de 1 replica ha sido deshabilitada debido a la licencia actual. Por favor contacta a un administrador del sistema para realizar una actualización a la edición Enterprise."
+    "translation": "La funcionalidad de más de 1 replica ha sido deshabilitada debido a la licencia actual. Por favor contacta a un administrador del sistema para realizar una actualización de la licencia empresarial."
   },
   {
     "id": "store.sql.remove_index.critical",
@@ -4697,7 +4705,7 @@
   },
   {
     "id": "store.sql_session.cleanup_expired_sessions.app_error",
-    "translation": "Encontramos un error mientras se eliminaban las sesiones expiradas del usuario"
+    "translation": "Encontramos un error mientras se eliminaban las sesiones vencidas del usuario"
   },
   {
     "id": "store.sql_session.get.app_error",
@@ -4858,6 +4866,10 @@
   {
     "id": "store.sql_team.get_teams_for_email.app_error",
     "translation": "Encontramos un problema cuando buscabamos los equipos"
+  },
+  {
+    "id": "store.sql_team.get_unread.app_error",
+    "translation": "We couldn't get the teams unread messages"
   },
   {
     "id": "store.sql_team.permanent_delete.app_error",
@@ -5189,7 +5201,7 @@
   },
   {
     "id": "utils.license.load_license.invalid.warn",
-    "translation": "No se encontró una licencia enterprise válida"
+    "translation": "No se encontró una licencia empresarial válida"
   },
   {
     "id": "utils.license.remove_license.unable.error",
