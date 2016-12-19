@@ -1165,9 +1165,6 @@
     }
 
     .multi-teams {
-        .team-sidebar {
-            width: 75px;
-        }
 
         .app__content {
             margin-left: 0;
@@ -1177,7 +1174,7 @@
             left: 0;
 
             &.move--right {
-                left: 75px;
+                left: 65px;
             }
         }
 
@@ -1521,16 +1518,8 @@
 
 @media screen and (max-width: 320px) {
     .multi-teams {
-        .team-sidebar {
-            width: 65px;
-        }
-
         .sidebar--left {
             width: 220px;
-
-            &.move--right {
-                left: 65px;
-            }
         }
     }
 
