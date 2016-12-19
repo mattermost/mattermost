@@ -1163,6 +1163,33 @@
     .post-comments {
         padding: 9px 21px 10px 10px !important;
     }
+
+    .multi-teams {
+        .team-sidebar {
+            width: 75px;
+        }
+
+        .app__content {
+            margin-left: 0;
+        }
+
+        .sidebar--left {
+            left: 0;
+
+            &.move--right {
+                left: 75px;
+            }
+        }
+
+        .team-sidebar {
+            display: none;
+
+            &.move--right {
+                display: block;
+                @include translate3d(0, 0, 0);
+            }
+        }
+    }
 }
 
 @media screen and (max-width: 640px) {
@@ -1493,6 +1520,20 @@
 }
 
 @media screen and (max-width: 320px) {
+    .multi-teams {
+        .team-sidebar {
+            width: 65px;
+        }
+
+        .sidebar--left {
+            width: 220px;
+
+            &.move--right {
+                left: 65px;
+            }
+        }
+    }
+
     .post {
         .post__header {
             .col__name {

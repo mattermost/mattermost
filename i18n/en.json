@@ -4864,6 +4864,10 @@
     "translation": "We encountered a problem when looking up teams"
   },
   {
+    "id": "store.sql_team.get_unread.app_error",
+    "translation": "We couldn't get the teams unread messages"
+  },
+  {
     "id": "store.sql_team.permanent_delete.app_error",
     "translation": "We couldn't delete the existing team"
   },

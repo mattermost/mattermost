@@ -130,6 +130,20 @@ describe('Client.Team', function() {
         });
     });
 
+    it('getMyTeamMembers', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().getMyTeamMembers(
+                function(data) {
+                    assert.equal(data.length > 0, true);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
     it('getTeamMembers', function(done) {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().getTeamMembers(

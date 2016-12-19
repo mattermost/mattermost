@@ -139,6 +139,7 @@ export const ActionTypes = keyMirror({
     RECEIVED_ALL_TEAMS: null,
     RECEIVED_ALL_TEAM_LISTINGS: null,
     RECEIVED_MY_TEAM_MEMBERS: null,
+    RECEIVED_MY_TEAMS_UNREAD: null,
     RECEIVED_MEMBERS_IN_TEAM: null,
     RECEIVED_TEAM_STATS: null,
 
@@ -202,6 +203,7 @@ export const SocketEvents = {
     DIRECT_ADDED: 'direct_added',
     NEW_USER: 'new_user',
     LEAVE_TEAM: 'leave_team',
+    UPDATE_TEAM: 'update_team',
     USER_ADDED: 'user_added',
     USER_REMOVED: 'user_removed',
     USER_UPDATED: 'user_updated',

@@ -215,6 +215,10 @@ class ChannelStoreClass extends EventEmitter {
         return this.channels;
     }
 
+    getChannelById(id) {
+        return this.channels.filter((c) => c.id === id)[0];
+    }
+
     storeMyChannelMember(channelMember) {
         const members = Object.assign({}, this.getMyMembers());
         members[channelMember.channel_id] = channelMember;
@@ -348,7 +352,6 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
     switch (action.type) {
     case ActionTypes.CLICK_CHANNEL:
         ChannelStore.setCurrentId(action.id);
-        ChannelStore.resetCounts(action.id);
         ChannelStore.setPostMode(ChannelStore.POST_MODE_CHANNEL);
         ChannelStore.emitChange();
         break;

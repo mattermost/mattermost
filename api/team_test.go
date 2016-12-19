@@ -576,6 +576,41 @@ func TestGetTeamMembers(t *testing.T) {
 	}
 }
 
+func TestGetMyTeamMembers(t *testing.T) {
+	th := Setup().InitBasic()
+
+	if result, err := th.BasicClient.GetMyTeamMembers(); err != nil {
+		t.Fatal(err)
+	} else {
+		members := result.Data.([]*model.TeamMember)
+		if len(members) == 0 {
+			t.Fatal("should have results")
+		}
+	}
+}
+
+func TestGetMyTeamsUnread(t *testing.T) {
+	th := Setup().InitBasic()
+
+	if result, err := th.BasicClient.GetMyTeamsUnread(""); err != nil {
+		t.Fatal(err)
+	} else {
+		members := result.Data.([]*model.TeamUnread)
+		if len(members) == 0 {
+			t.Fatal("should have results")
+		}
+	}
+
+	if result, err := th.BasicClient.GetMyTeamsUnread(th.BasicTeam.Id); err != nil {
+		t.Fatal(err)
+	} else {
+		members := result.Data.([]*model.TeamUnread)
+		if len(members) != 0 {
+			t.Fatal("should not have results")
+		}
+	}
+}
+
 func TestGetTeamMember(t *testing.T) {
 	th := Setup().InitBasic()
 

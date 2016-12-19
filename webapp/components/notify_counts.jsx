@@ -3,14 +3,22 @@
 
 import * as utils from 'utils/utils.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
 
 function getCountsStateFromStores() {
-    var count = 0;
-    var channels = ChannelStore.getAll();
-    var members = ChannelStore.getMyMembers();
+    let count = 0;
+    const teamMembers = TeamStore.getMyTeamMembers();
+    const channels = ChannelStore.getAll();
+    const members = ChannelStore.getMyMembers();
+
+    teamMembers.forEach((member) => {
+        if (member.team_id !== TeamStore.getCurrentId()) {
+            count += ((member.msg_count || 0) + (member.mention_count || 0));
+        }
+    });
 
     channels.forEach((channel) => {
-        var channelMember = members[channel.id];
+        const channelMember = members[channel.id];
         if (channelMember == null) {
             return;
         }
@@ -41,10 +49,12 @@ export default class NotifyCounts extends React.Component {
     componentDidMount() {
         this.mounted = true;
         ChannelStore.addChangeListener(this.onListenerChange);
+        TeamStore.addChangeListener(this.onListenerChange);
     }
     componentWillUnmount() {
         this.mounted = false;
         ChannelStore.removeChangeListener(this.onListenerChange);
+        TeamStore.removeChangeListener(this.onListenerChange);
     }
     onListenerChange() {
         if (this.mounted) {

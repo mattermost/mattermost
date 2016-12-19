@@ -166,12 +166,21 @@ export function updateLastViewedAt(id, active) {
         channelId,
         isActive,
         () => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_PREFERENCE,
+                preference: {
+                    category: 'last',
+                    name: TeamStore.getCurrentId(),
+                    value: channelId
+                }
+            });
+
             callTracker[`updateLastViewed${channelId}`] = 0;
             ErrorStore.clearLastError();
         },
         (err) => {
             callTracker[`updateLastViewed${channelId}`] = 0;
-            var count = ErrorStore.getConnectionErrorCount();
+            const count = ErrorStore.getConnectionErrorCount();
             ErrorStore.setConnectionErrorCount(count + 1);
             dispatchError(err, 'updateLastViewedAt');
         }
@@ -203,6 +212,14 @@ export function setLastViewedAt(lastViewedAt, id) {
         channelId,
         lastViewedAt,
         () => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_PREFERENCE,
+                preference: {
+                    category: 'last',
+                    name: TeamStore.getCurrentId(),
+                    value: channelId
+                }
+            });
             callTracker[`setLastViewedAt${channelId}${lastViewedAt}`] = 0;
             ErrorStore.clearLastError();
         },
@@ -845,6 +862,61 @@ export function getTeamMember(teamId, userId) {
             dispatchError(err, 'getTeamMember');
         }
     );
+}
+
+export function getMyTeamMembers() {
+    const callName = 'getMyTeamMembers';
+    if (isCallInProgress(callName)) {
+        return;
+    }
+
+    callTracker[callName] = utils.getTimestamp();
+    Client.getMyTeamMembers(
+        (data) => {
+            callTracker[callName] = 0;
+
+            const members = {};
+            for (const member of data) {
+                members[member.team_id] = member;
+            }
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_MY_TEAM_MEMBERS_UNREAD,
+                team_members: members
+            });
+        },
+        (err) => {
+            callTracker[callName] = 0;
+            dispatchError(err, 'getMyTeamMembers');
+        }
+    );
+}
+
+export function getMyTeamsUnread(teamId) {
+    const members = TeamStore.getMyTeamMembers();
+    if (members.length > 1) {
+        const callName = 'getMyTeamsUnread';
+        if (isCallInProgress(callName)) {
+            return;
+        }
+
+        callTracker[callName] = utils.getTimestamp();
+        Client.getMyTeamsUnread(
+            teamId,
+            (data) => {
+                callTracker[callName] = 0;
+
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECEIVED_MY_TEAMS_UNREAD,
+                    team_members: data
+                });
+            },
+            (err) => {
+                callTracker[callName] = 0;
+                dispatchError(err, 'getMyTeamsUnread');
+            }
+        );
+    }
 }
 
 export function getTeamStats(teamId) {

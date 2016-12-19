@@ -32,6 +32,8 @@ func InitTeam() {
 	BaseRoutes.Teams.Handle("/get_invite_info", ApiAppHandler(getInviteInfo)).Methods("POST")
 	BaseRoutes.Teams.Handle("/find_team_by_name", ApiAppHandler(findTeamByName)).Methods("POST")
 	BaseRoutes.Teams.Handle("/name/{team_name:[A-Za-z0-9\\-]+}", ApiAppHandler(getTeamByName)).Methods("GET")
+	BaseRoutes.Teams.Handle("/members", ApiUserRequired(getMyTeamMembers)).Methods("GET")
+	BaseRoutes.Teams.Handle("/unread", ApiUserRequired(getMyTeamsUnread)).Methods("GET")
 
 	BaseRoutes.NeedTeam.Handle("/me", ApiUserRequired(getMyTeam)).Methods("GET")
 	BaseRoutes.NeedTeam.Handle("/stats", ApiUserRequired(getTeamStats)).Methods("GET")
@@ -356,6 +358,11 @@ func LeaveTeam(team *model.Team, user *model.User) *model.AppError {
 
 	if uua := <-Srv.Store.User().UpdateUpdateAt(user.Id); uua.Err != nil {
 		return uua.Err
+	}
+
+	// delete the preferences that set the last channel used in the team and other team specific preferences
+	if result := <-Srv.Store.Preference().DeleteCategory(user.Id, team.Id); result.Err != nil {
+		return result.Err
 	}
 
 	RemoveAllSessionsForUserId(user.Id)
@@ -723,6 +730,32 @@ func getTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func getMyTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
+	if len(c.Session.TeamMembers) > 0 {
+		w.Write([]byte(model.TeamMembersToJson(c.Session.TeamMembers)))
+	} else {
+		if result := <-Srv.Store.Team().GetTeamsForUser(c.Session.UserId); result.Err != nil {
+			c.Err = result.Err
+			return
+		} else {
+			data := result.Data.([]*model.TeamMember)
+			w.Write([]byte(model.TeamMembersToJson(data)))
+		}
+	}
+}
+
+func getMyTeamsUnread(c *Context, w http.ResponseWriter, r *http.Request) {
+	teamId := r.URL.Query().Get("id")
+
+	if result := <-Srv.Store.Team().GetTeamsUnreadForUser(teamId, c.Session.UserId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		data := result.Data.([]*model.TeamUnread)
+		w.Write([]byte(model.TeamsUnreadToJson(data)))
+	}
+}
+
 func InviteMembers(team *model.Team, senderName string, invites []string) {
 	for _, invite := range invites {
 		if len(invite) > 0 {
@@ -800,6 +833,10 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	oldTeam.Sanitize()
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_UPDATE_TEAM, "", "", "", nil)
+	message.Add("team", oldTeam.ToJson())
+	go Publish(message)
 
 	w.Write([]byte(oldTeam.ToJson()))
 }

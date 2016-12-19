@@ -50,13 +50,14 @@ export default class AdminNavbarDropdown extends React.Component {
     }
 
     render() {
-        var teams = [];
+        const teams = [];
+        let switchTeams;
 
         if (this.state.teamMembers && this.state.teamMembers.length > 0) {
-            for (var index in this.state.teamMembers) {
+            for (const index in this.state.teamMembers) {
                 if (this.state.teamMembers.hasOwnProperty(index)) {
-                    var teamMember = this.state.teamMembers[index];
-                    var team = this.state.teams[teamMember.team_id];
+                    const teamMember = this.state.teamMembers[index];
+                    const team = this.state.teams[teamMember.team_id];
                     teams.push(
                         <li key={'team_' + team.name}>
                             <Link
@@ -78,6 +79,20 @@ export default class AdminNavbarDropdown extends React.Component {
                     key='teamDiv'
                     className='divider'
                 />
+            );
+        } else {
+            switchTeams = (
+                <li>
+                    <Link
+                        to={'/select_team'}
+                    >
+                        <i className='fa fa-exchange'/>
+                        <FormattedMessage
+                            id='admin.nav.switch'
+                            defaultMessage='Team Selection'
+                        />
+                    </Link>
+                </li>
             );
         }
 
@@ -104,17 +119,7 @@ export default class AdminNavbarDropdown extends React.Component {
                         role='menu'
                     >
                         {teams}
-                        <li>
-                            <Link
-                                to={'/select_team'}
-                            >
-                                <i className='fa fa-exchange'/>
-                                <FormattedMessage
-                                    id='admin.nav.switch'
-                                    defaultMessage='Team Selection'
-                                />
-                            </Link>
-                        </li>
+                        {switchTeams}
                         <li
                             key='teamDiv'
                             className='divider'

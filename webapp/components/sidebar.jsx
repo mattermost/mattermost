@@ -82,11 +82,19 @@ export default class Sidebar extends React.Component {
         let msgs = 0;
         let mentions = 0;
         const unreadCounts = this.state.unreadCounts;
+        const teamMembers = this.state.teamMembers;
+
+        teamMembers.forEach((member) => {
+            if (member.team_id !== this.state.currentTeam.id) {
+                msgs += member.msg_count || 0;
+                mentions += member.mention_count || 0;
+            }
+        });
 
         Object.keys(unreadCounts).forEach((chId) => {
             const channel = ChannelStore.get(chId);
 
-            if (channel && (!channel.team_id || channel.team_id === this.state.currentTeam.id)) {
+            if (channel && (channel.type === 'D' || channel.team_id === this.state.currentTeam.id)) {
                 msgs += unreadCounts[chId].msgs;
                 mentions += unreadCounts[chId].mentions;
             }
@@ -97,6 +105,7 @@ export default class Sidebar extends React.Component {
 
     getStateFromStores() {
         const members = ChannelStore.getMyMembers();
+        const teamMembers = TeamStore.getMyTeamMembers();
         const currentChannelId = ChannelStore.getCurrentId();
         const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 999);
         const channelList = ChannelUtils.buildDisplayableChannelList(Object.assign([], ChannelStore.getAll()));
@@ -104,6 +113,7 @@ export default class Sidebar extends React.Component {
         return {
             activeId: currentChannelId,
             members,
+            teamMembers,
             ...channelList,
             unreadCounts: JSON.parse(JSON.stringify(ChannelStore.getUnreadCounts())),
             showTutorialTip: tutorialStep === TutorialSteps.CHANNEL_POPOVER,
@@ -153,6 +163,7 @@ export default class Sidebar extends React.Component {
         if (this.state.activeId !== prevState.activeId) {
             $('.app__body .inner-wrap').removeClass('move--right');
             $('.app__body .sidebar--left').removeClass('move--right');
+            $('.multi-teams .team-sidebar').removeClass('move--right');
         }
     }
 
@@ -169,6 +180,7 @@ export default class Sidebar extends React.Component {
 
     onChange() {
         this.setState(this.getStateFromStores());
+        this.updateTitle();
     }
 
     updateTitle() {

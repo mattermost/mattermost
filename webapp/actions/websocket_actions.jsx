@@ -6,6 +6,7 @@ import $ from 'jquery';
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import PostStore from 'stores/post_store.jsx';
+import PreferenceStore from 'stores/preference_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 import ErrorStore from 'stores/error_store.jsx';
@@ -122,6 +123,10 @@ function handleEvent(msg) {
         handleLeaveTeamEvent(msg);
         break;
 
+    case SocketEvents.UPDATE_TEAM:
+        handleUpdateTeamEvent(msg);
+        break;
+
     case SocketEvents.USER_ADDED:
         handleUserAddedEvent(msg);
         break;
@@ -229,19 +234,35 @@ function handleNewUserEvent(msg) {
     AsyncClient.getUser(msg.data.user_id);
     AsyncClient.getChannelStats();
     loadProfilesAndTeamMembersForDMSidebar();
+
+    if (msg.data.user_id === UserStore.getCurrentId()) {
+        AsyncClient.getMyTeamMembers();
+    }
 }
 
 function handleLeaveTeamEvent(msg) {
     if (UserStore.getCurrentId() === msg.data.user_id) {
         TeamStore.removeMyTeamMember(msg.data.team_id);
 
-        // if they are on the team being removed redirect them to the root
+        // if they are on the team being removed redirect them to default team
         if (TeamStore.getCurrentId() === msg.data.team_id) {
             TeamStore.setCurrentId('');
             Client.setTeamId('');
-            browserHistory.push('/');
+            PreferenceStore.deletePreference({
+                category: 'last',
+                name: 'team',
+                value: msg.data.team_id
+            });
+            GlobalActions.redirectUserToDefaultTeam();
         }
+    } else {
+        UserStore.removeProfileFromTeam(msg.data.team_id, msg.data.user_id);
+        TeamStore.removeMemberInTeam(msg.data.team_id, msg.data.user_id);
     }
+}
+
+function handleUpdateTeamEvent(msg) {
+    TeamStore.updateTeam(msg.data.team);
 }
 
 function handleDirectAddedEvent(msg) {

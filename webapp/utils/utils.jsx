@@ -104,7 +104,9 @@ export function notifyMe(title, body, channel, teamId, duration, silent) {
                     var notification = new Notification(title, {body, tag: body, icon: icon50, requireInteraction: notificationDuration === 0, silent});
                     notification.onclick = () => {
                         window.focus();
-                        if (channel) {
+                        if (channel && channel.type === Constants.DM_CHANNEL) {
+                            browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/' + channel.name);
+                        } else if (channel) {
                             browserHistory.push(TeamStore.getTeamUrl(teamId) + '/channels/' + channel.name);
                         } else if (teamId) {
                             browserHistory.push(TeamStore.getTeamUrl(teamId) + '/channels/town-square');
@@ -491,6 +493,8 @@ export function applyTheme(theme) {
         changeCss('.sidebar--left .nav li.active a:before, .app__body .modal .settings-modal .nav-pills>li.active a:before', 'background:' + theme.sidebarTextActiveBorder);
         changeCss('.sidebar--left .sidebar__divider:before', 'background:' + changeOpacity(theme.sidebarTextActiveBorder, 0.5));
         changeCss('.sidebar--left .sidebar__divider', 'color:' + theme.sidebarTextActiveBorder);
+        changeCss('.multi-teams .team-sidebar .team-wrapper .team-container.active:before', 'background:' + theme.sidebarTextActiveBorder);
+        changeCss('.multi-teams .team-sidebar .team-wrapper .team-container.unread:before', 'background:' + theme.sidebarTextActiveBorder);
     }
 
     if (theme.sidebarTextActiveColor) {
@@ -501,13 +505,13 @@ export function applyTheme(theme) {
     if (theme.sidebarHeaderBg) {
         changeCss('.sidebar--left .team__header, .app__body .sidebar--menu .team__header, .app__body .post-list__timestamp > div', 'background:' + theme.sidebarHeaderBg);
         changeCss('.app__body .modal .modal-header', 'background:' + theme.sidebarHeaderBg);
-        changeCss('.app__body #navbar .navbar-default', 'background:' + theme.sidebarHeaderBg);
+        changeCss('.app__body .multi-teams .team-sidebar, .app__body #navbar .navbar-default', 'background:' + theme.sidebarHeaderBg);
         changeCss('@media(max-width: 768px){.app__body .search-bar__container', 'background:' + theme.sidebarHeaderBg);
         changeCss('.app__body .attachment .attachment__container', 'border-left-color:' + theme.sidebarHeaderBg);
     }
 
     if (theme.sidebarHeaderTextColor) {
-        changeCss('.sidebar--left .team__header .header__info, .app__body .sidebar--menu .team__header .header__info, .app__body .post-list__timestamp > div', 'color:' + theme.sidebarHeaderTextColor);
+        changeCss('.multi-teams .team-sidebar .team-wrapper .team-container .team-btn, .sidebar--left .team__header .header__info, .app__body .sidebar--menu .team__header .header__info, .app__body .post-list__timestamp > div', 'color:' + theme.sidebarHeaderTextColor);
         changeCss('.app__body .sidebar-header-dropdown__icon', 'fill:' + theme.sidebarHeaderTextColor);
         changeCss('.sidebar--left .team__header .user__name, .app__body .sidebar--menu .team__header .user__name', 'color:' + changeOpacity(theme.sidebarHeaderTextColor, 0.8));
         changeCss('.sidebar--left .team__header:hover .user__name, .app__body .sidebar--menu .team__header:hover .user__name', 'color:' + theme.sidebarHeaderTextColor);
@@ -534,11 +538,13 @@ export function applyTheme(theme) {
     if (theme.mentionBj) {
         changeCss('.sidebar--left .nav-pills__unread-indicator, .app__body .new-messages__button div', 'background:' + theme.mentionBj);
         changeCss('.sidebar--left .badge', 'background:' + theme.mentionBj + '!important;');
+        changeCss('.multi-teams .team-sidebar .team-wrapper .team-container .team-btn .badge', 'background:' + theme.mentionBj + '!important;');
     }
 
     if (theme.mentionColor) {
         changeCss('.sidebar--left .nav-pills__unread-indicator, .app__body .new-messages__button div', 'color:' + theme.mentionColor);
         changeCss('.sidebar--left .badge', 'color:' + theme.mentionColor + '!important;');
+        changeCss('.multi-teams .team-sidebar .team-wrapper .team-container .team-btn .badge', 'color:' + theme.mentionColor + '!important;');
     }
 
     if (theme.centerChannelBg) {

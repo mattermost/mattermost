@@ -2,6 +2,8 @@
 // See License.txt for license information.
 
 import ErrorBar from 'components/error_bar.jsx';
+import ChannelStore from 'stores/channel_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
 
 import {FormattedMessage} from 'react-intl';
 import {browserHistory, Link} from 'react-router/es6';
@@ -47,11 +49,21 @@ export default class CreateTeamController extends React.Component {
             );
         }
 
+        let url = '/select_team';
+        const team = TeamStore.getCurrent();
+        const channel = ChannelStore.getCurrent();
+        if (team) {
+            url = `/${team.name}`;
+            if (channel) {
+                url += `/channels/${channel.name}`;
+            }
+        }
+
         return (
             <div>
                 <ErrorBar/>
                 <div className='signup-header'>
-                    <Link to='/select_team'>
+                    <Link to={url}>
                         <span className='fa fa-chevron-left'/>
                         <FormattedMessage
                             id='web.header.back'

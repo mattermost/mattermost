@@ -392,3 +392,38 @@ func TestPreferenceDelete(t *testing.T) {
 		t.Fatal("should've returned no preferences")
 	}
 }
+
+func TestPreferenceDeleteCategory(t *testing.T) {
+	Setup()
+
+	category := model.NewId()
+	userId := model.NewId()
+
+	preference1 := model.Preference{
+		UserId:   userId,
+		Category: category,
+		Name:     model.NewId(),
+		Value:    "value1a",
+	}
+
+	preference2 := model.Preference{
+		UserId:   userId,
+		Category: category,
+		Name:     model.NewId(),
+		Value:    "value1a",
+	}
+
+	Must(store.Preference().Save(&model.Preferences{preference1, preference2}))
+
+	if prefs := Must(store.Preference().GetAll(userId)).(model.Preferences); len([]model.Preference(prefs)) != 2 {
+		t.Fatal("should've returned 2 preferences")
+	}
+
+	if result := <-store.Preference().DeleteCategory(userId, category); result.Err != nil {
+		t.Fatal(result.Err)
+	}
+
+	if prefs := Must(store.Preference().GetAll(userId)).(model.Preferences); len([]model.Preference(prefs)) != 0 {
+		t.Fatal("should've returned no preferences")
+	}
+}

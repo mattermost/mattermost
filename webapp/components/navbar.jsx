@@ -146,6 +146,7 @@ export default class Navbar extends React.Component {
             if (e.target.className !== 'navbar-toggle' && e.target.className !== 'icon-bar') {
                 $('.app__body .inner-wrap').removeClass('move--right move--left move--left-small');
                 $('.app__body .sidebar--left').removeClass('move--right');
+                $('.multi-teams .team-sidebar').removeClass('move--right');
                 $('.app__body .sidebar--right').removeClass('move--left');
                 $('.app__body .sidebar--menu').removeClass('move--left');
             }
@@ -155,6 +156,7 @@ export default class Navbar extends React.Component {
     toggleLeftSidebar() {
         $('.app__body .inner-wrap').toggleClass('move--right');
         $('.app__body .sidebar--left').toggleClass('move--right');
+        $('.multi-teams .team-sidebar').toggleClass('move--right');
     }
 
     toggleRightSidebar() {

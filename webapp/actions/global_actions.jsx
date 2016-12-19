@@ -43,6 +43,7 @@ export function emitChannelClickEvent(channel) {
         );
     }
     function switchToChannel(chan) {
+        const channelMember = ChannelStore.getMyMember(chan.id);
         const getMyChannelMembersPromise = AsyncClient.getChannelMember(chan.id, UserStore.getCurrentId());
 
         getMyChannelMembersPromise.then(() => {
@@ -56,6 +57,9 @@ export function emitChannelClickEvent(channel) {
             type: ActionTypes.CLICK_CHANNEL,
             name: chan.name,
             id: chan.id,
+            team_id: chan.team_id,
+            total_msg_count: chan.total_msg_count,
+            channelMember,
             prev: ChannelStore.getCurrentId()
         });
     }
@@ -443,7 +447,7 @@ export function viewLoggedIn() {
     PostStore.clearPendingPosts();
 }
 
-var lastTimeTypingSent = 0;
+let lastTimeTypingSent = 0;
 export function emitLocalUserTypingEvent(channelId, parentId) {
     const t = Date.now();
     if ((t - lastTimeTypingSent) > Constants.UPDATE_TYPING_MS) {
@@ -533,4 +537,36 @@ export function emitBrowserFocus(focus) {
         type: ActionTypes.BROWSER_CHANGE_FOCUS,
         focus
     });
+}
+
+export function redirectUserToDefaultTeam() {
+    const teams = TeamStore.getAll();
+    const teamMembers = TeamStore.getMyTeamMembers();
+    let teamId = PreferenceStore.get('last', 'team');
+
+    if (!teams[teamId] && teamMembers.length > 0) {
+        let myTeams = [];
+        for (const index in teamMembers) {
+            if (teamMembers.hasOwnProperty(index)) {
+                const teamMember = teamMembers[index];
+                myTeams.push(teams[teamMember.team_id]);
+            }
+        }
+
+        if (myTeams.length > 0) {
+            myTeams = myTeams.sort((a, b) => a.display_name.localeCompare(b.display_name));
+            teamId = myTeams[0].id;
+        }
+    }
+
+    if (teams[teamId]) {
+        const channelId = PreferenceStore.get(teamId, 'channel');
+        let channel = ChannelStore.getChannelById(channelId);
+        if (!channel) {
+            channel = 'town-square';
+        }
+        browserHistory.push(`/${teams[teamId].name}/channels/${channel}`);
+    } else {
+        browserHistory.push('/select_team');
+    }
 }

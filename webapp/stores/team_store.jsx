@@ -10,6 +10,7 @@ const ActionTypes = Constants.ActionTypes;
 
 const CHANGE_EVENT = 'change';
 const STATS_EVENT = 'stats';
+const UNREAD_EVENT = 'unread';
 
 var Utils;
 
@@ -53,17 +54,31 @@ class TeamStoreClass extends EventEmitter {
         this.removeListener(STATS_EVENT, callback);
     }
 
+    emitUnreadChange() {
+        this.emit(UNREAD_EVENT);
+    }
+
+    addUnreadChangeListener(callback) {
+        this.on(UNREAD_EVENT, callback);
+    }
+
+    removeUnreadChangeListener(callback) {
+        this.removeListener(UNREAD_EVENT, callback);
+    }
+
     get(id) {
         var c = this.getAll();
         return c[id];
     }
 
     getByName(name) {
-        var t = this.getAll();
+        const t = this.getAll();
 
-        for (var id in t) {
-            if (t[id].name === name) {
-                return t[id];
+        for (const id in t) {
+            if (t.hasOwnProperty(id)) {
+                if (t[id].name === name) {
+                    return t[id];
+                }
             }
         }
 
@@ -158,6 +173,25 @@ class TeamStoreClass extends EventEmitter {
         this.teams = teams;
     }
 
+    updateTeam(team) {
+        const t = JSON.parse(team);
+        if (this.teams && this.teams[t.id]) {
+            this.teams[t.id] = t;
+        }
+
+        if (this.teamListings && this.teamListings[t.id]) {
+            if (t.allow_open_invite) {
+                this.teamListings[t.id] = t;
+            } else {
+                Reflect.deleteProperty(this.teamListings, t.id);
+            }
+        } else if (t.allow_open_invite) {
+            this.teamListings[t.id] = t;
+        }
+
+        this.emitChange();
+    }
+
     saveMyTeam(team) {
         this.saveTeam(team);
         this.currentTeamId = team.id;
@@ -175,12 +209,29 @@ class TeamStoreClass extends EventEmitter {
         this.my_team_members.push(member);
     }
 
+    saveMyTeamMembersUnread(members) {
+        for (let i = 0; i < this.my_team_members.length; i++) {
+            const team = this.my_team_members[i];
+            const member = members.filter((m) => m.team_id === team.team_id)[0];
+
+            if (member) {
+                this.my_team_members[i] = Object.assign({},
+                    team,
+                    {
+                        msg_count: member.msg_count,
+                        mention_count: member.mention_count
+                    });
+            }
+        }
+    }
+
     removeMyTeamMember(teamId) {
         for (let i = 0; i < this.my_team_members.length; i++) {
             if (this.my_team_members[i].team_id === teamId) {
                 this.my_team_members.splice(i, 1);
             }
         }
+        this.emitChange();
     }
 
     getMyTeamMembers() {
@@ -248,6 +299,14 @@ class TeamStoreClass extends EventEmitter {
 
         return false;
     }
+
+    updateUnreadCount(teamId, totalMsgCount, channelMember) {
+        const member = this.my_team_members.filter((m) => m.team_id === teamId)[0];
+        if (member) {
+            member.msg_count -= (totalMsgCount - channelMember.msg_count);
+            member.mention_count -= channelMember.mention_count;
+        }
+    }
 }
 
 var TeamStore = new TeamStoreClass();
@@ -277,6 +336,10 @@ TeamStore.dispatchToken = AppDispatcher.register((payload) => {
         TeamStore.saveMyTeamMembers(action.team_members);
         TeamStore.emitChange();
         break;
+    case ActionTypes.RECEIVED_MY_TEAMS_UNREAD:
+        TeamStore.saveMyTeamMembersUnread(action.team_members);
+        TeamStore.emitChange();
+        break;
     case ActionTypes.RECEIVED_ALL_TEAM_LISTINGS:
         TeamStore.saveTeamListings(action.teams);
         TeamStore.emitChange();
@@ -291,6 +354,12 @@ TeamStore.dispatchToken = AppDispatcher.register((payload) => {
     case ActionTypes.RECEIVED_TEAM_STATS:
         TeamStore.saveStats(action.team_id, action.stats);
         TeamStore.emitStatsChange();
+        break;
+    case ActionTypes.CLICK_CHANNEL:
+        if (action.channelMember) {
+            TeamStore.updateUnreadCount(action.team_id, action.total_msg_count, action.channelMember);
+            TeamStore.emitUnreadChange();
+        }
         break;
     default:
     }

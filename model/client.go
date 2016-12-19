@@ -1752,6 +1752,36 @@ func (c *Client) GetTeamMembers(teamId string, offset int, limit int) (*Result, 
 	}
 }
 
+// GetMyTeamMembers will return an array with team member objects that the current user
+// is a member of. Must be authenticated.
+func (c *Client) GetMyTeamMembers() (*Result, *AppError) {
+	if r, err := c.DoApiGet("/teams/members", "", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), TeamMembersFromJson(r.Body)}, nil
+	}
+}
+
+// GetMyTeamsUnread will return an array with TeamUnread objects that contain the amount of
+// unread messages and mentions the current user has for the teams it belongs to.
+// An optional team ID can be set to exclude that team from the results. Must be authenticated.
+func (c *Client) GetMyTeamsUnread(teamId string) (*Result, *AppError) {
+	endpoint := "/teams/unread"
+
+	if teamId != "" {
+		endpoint += fmt.Sprintf("?id=%s", url.QueryEscape(teamId))
+	}
+	if r, err := c.DoApiGet(endpoint, "", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), TeamsUnreadFromJson(r.Body)}, nil
+	}
+}
+
 // GetTeamMember will return a team member object based on the team id and user id provided.
 // Must be authenticated.
 func (c *Client) GetTeamMember(teamId string, userId string) (*Result, *AppError) {

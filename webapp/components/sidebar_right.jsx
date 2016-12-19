@@ -82,6 +82,7 @@ export default class SidebarRight extends React.Component {
         $('.app__body .inner-wrap').removeClass('.move--right');
         $('.app__body .inner-wrap').addClass('move--left');
         $('.app__body .sidebar--left').removeClass('move--right');
+        $('.multi-teams .team-sidebar').removeClass('move--right');
         $('.app__body .sidebar--right').addClass('move--left');
 
         //$('.sidebar--right').prepend('<div class="sidebar__overlay"></div>');
