@@ -316,6 +316,7 @@ class PostStoreClass extends EventEmitter {
     }
 
     deletePost(post) {
+        const userId = UserStore.getCurrentId();
         const postInfo = this.postsInfo[post.channel_id];
         if (!postInfo) {
             // the post that has been deleted is in a channel that we haven't seen so just ignore it
@@ -325,6 +326,12 @@ class PostStoreClass extends EventEmitter {
         const postList = this.postsInfo[post.channel_id].postList;
 
         if (isPostListNull(postList)) {
+            return;
+        }
+
+        //if current user is the post owner lets remove the whole post
+        if (userId === post.user_id) {
+            this.removePost(post);
             return;
         }
 
