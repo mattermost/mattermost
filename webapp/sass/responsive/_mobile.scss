@@ -1175,6 +1175,10 @@
 
             &.move--right {
                 left: 65px;
+
+                .nav-pills__unread-indicator {
+                    left: 15px;
+                }
             }
         }
 
@@ -1520,6 +1524,10 @@
     .multi-teams {
         .sidebar--left {
             width: 220px;
+
+            .nav-pills__unread-indicator {
+                width: 190px;
+            }
         }
     }
 

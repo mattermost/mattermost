@@ -81,6 +81,10 @@
 
     .sidebar--left {
         left: 65px;
+
+        .nav-pills__unread-indicator {
+            left: 80px;
+        }
     }
 
     .app__content {
