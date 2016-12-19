@@ -50,7 +50,8 @@ export default class AdminNavbarDropdown extends React.Component {
     }
 
     render() {
-        const teams = [];
+        var teamsArray = [];  // Array of team objects
+        var teams = [];  // Array of team components
         let switchTeams;
 
         if (this.state.teamMembers && this.state.teamMembers.length > 0) {
@@ -58,20 +59,29 @@ export default class AdminNavbarDropdown extends React.Component {
                 if (this.state.teamMembers.hasOwnProperty(index)) {
                     const teamMember = this.state.teamMembers[index];
                     const team = this.state.teams[teamMember.team_id];
-                    teams.push(
-                        <li key={'team_' + team.name}>
-                            <Link
-                                to={'/' + team.name + '/channels/town-square'}
-                            >
-                                <FormattedMessage
-                                    id='navbar_dropdown.switchTo'
-                                    defaultMessage='Switch to '
-                                />
-                                {team.display_name}
-                            </Link>
-                        </li>
-                    );
+                    teamsArray.push(team);
                 }
+            }
+
+            // Sort teams alphabetically with display_name
+            teamsArray.sort((teamA, teamB) =>
+                teamA.display_name.localeCompare(teamB.display_name)
+            );
+
+            for (const team of teamsArray) {
+                teams.push(
+                    <li key={'team_' + team.name}>
+                        <Link
+                            to={'/' + team.name + '/channels/town-square'}
+                        >
+                            <FormattedMessage
+                                id='navbar_dropdown.switchTo'
+                                defaultMessage='Switch to '
+                            />
+                            {team.display_name}
+                        </Link>
+                    </li>
+                );
             }
 
             teams.push(
