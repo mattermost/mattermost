@@ -4,7 +4,7 @@
         left: 0;
         position: fixed;
         text-align: center;
-        width: 75px;
+        width: 65px;
         z-index: 5;
 
         .team-wrapper {
@@ -14,41 +14,40 @@
             padding-top: 15px;
 
             .team-container {
-                width: 100%;
-                text-align: center;
                 display: table;
                 margin-bottom: 10px;
                 position: relative;
+                text-align: center;
+                width: 100%;
 
                 .team-btn {
-                    border: none;
-                    height: 42px;
-                    text-align: center;
-                    font-weight: bold;
-                    border-radius: 5px;
-                    position: relative;
-                    width: 42px;
-                    background-color: rgba(0, 0, 0, 0.3);
+                    @include border-radius(2px);
+                    background-color: alpha-color($black, .3);
                     display: table-cell;
+                    font-weight: bold;
+                    height: 35px;
+                    position: relative;
+                    text-align: center;
                     vertical-align: middle;
+                    width: 35px;
 
                     .badge {
-                        position: absolute;
-                        top: -3px;
-                        right: -6px;
                         font-size: 10px;
+                        position: absolute;
+                        right: -6px;
+                        top: -3px;
                     }
                 }
 
                 &.active {
                     .team-btn {
-                        border: 1px solid #fff;
                         background-color: transparent;
+                        border: 1px solid $white;
                     }
                 }
 
                 &.active:before {
-                    background: black;
+                    background: $black;
                     content: '';
                     height: 100%;
                     left: 0;
@@ -58,7 +57,7 @@
                 }
 
                 &.unread:before {
-                    background: black;
+                    background: $black;
                     border-radius: 50%;
                     content: '';
                     height: 5px;
@@ -69,8 +68,8 @@
                 }
 
                 a.team-disabled {
+                    @include opacity(.5);
                     cursor: not-allowed;
-                    opacity: 0.5;
                 }
             }
 
@@ -81,10 +80,14 @@
     }
 
     .sidebar--left {
-        left: 75px;
+        left: 65px;
+
+        .nav-pills__unread-indicator {
+            left: 80px;
+        }
     }
 
     .app__content {
-        margin-left: 295px;
+        margin-left: 285px;
     }
 }

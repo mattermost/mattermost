@@ -539,11 +539,11 @@ export default class Navbar extends React.Component {
                             role='menu'
                         >
                             {viewInfoOption}
+                            {notificationPreferenceOption}
                             {addMembersOption}
                             {manageMembersOption}
                             {setChannelHeaderOption}
                             {setChannelPurposeOption}
-                            {notificationPreferenceOption}
                             {renameChannelOption}
                             {deleteChannelOption}
                             {leaveChannelOption}

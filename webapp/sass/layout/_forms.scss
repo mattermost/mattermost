@@ -23,7 +23,7 @@
     .input__help {
         @include opacity(.8);
         color: inherit;
-        margin: 10px 0 0 10px;
+        margin: 10px 0 0 0;
         word-break: break-word;
 
         &.dark {
