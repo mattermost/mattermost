@@ -74,8 +74,10 @@
     }
 
     .sidebar--right & {
-        width: 83%;
+        width: 300px;
         float: left;
+        margin-left: 17px;
+        margin-right: 9px;
     }
 
     .search-bar {

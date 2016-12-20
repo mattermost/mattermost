@@ -208,7 +208,7 @@ export default class SearchBar extends React.Component {
             mentionBtn = (
                 <div
                     className='dropdown channel-header__links'
-                    style={{float: 'left'}}
+                    style={{float: 'left', marginTop: '1px'}}
                 >
                     <OverlayTrigger
                         delayShow={Constants.OVERLAY_TIME_DELAY}
@@ -229,7 +229,7 @@ export default class SearchBar extends React.Component {
             flagBtn = (
                 <div
                     className='dropdown channel-header__links'
-                    style={{float: 'left'}}
+                    style={{float: 'left', marginTop: '1px'}}
                 >
                     <OverlayTrigger
                         delayShow={Constants.OVERLAY_TIME_DELAY}

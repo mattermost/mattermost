@@ -728,7 +728,7 @@ export default class ChannelHeader extends React.Component {
                                     </OverlayTrigger>
                                 </div>
                             </th>
-                            <th>
+                            <th className='header-list__members'>
                                 {popoverListMembers}
                             </th>
                             <th className='search-bar__container'><NavbarSearchBox showMentionFlagBtns={false}/></th>

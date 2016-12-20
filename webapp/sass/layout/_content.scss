@@ -9,6 +9,10 @@
         .search-btns {
             display: none;
         }
+        .header-list__members {
+            margin-right: -18px;
+            float: right;
+        }
     }
 
     &.move--right {
@@ -17,6 +21,10 @@
         }
         .search-btns {
             display: none;
+        }
+        .header-list__members {
+            margin-right: -18px;
+            float: right;
         }
     }
 }
