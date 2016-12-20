@@ -8,6 +8,7 @@ import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 
 import {removeUserFromTeam} from 'actions/team_actions.jsx';
+import {updateActive} from 'actions/user_actions.jsx';
 
 import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
@@ -74,9 +75,8 @@ export default class TeamMembersDropdown extends React.Component {
     }
 
     handleMakeActive() {
-        Client.updateActive(this.props.user.id, true,
+        updateActive(this.props.user.id, true,
             () => {
-                AsyncClient.getUser(this.props.user.id);
                 AsyncClient.getChannelStats(ChannelStore.getCurrentId());
                 AsyncClient.getTeamStats(this.props.teamMember.team_id);
             },
@@ -87,9 +87,8 @@ export default class TeamMembersDropdown extends React.Component {
     }
 
     handleMakeNotActive() {
-        Client.updateActive(this.props.user.id, false,
+        updateActive(this.props.user.id, false,
             () => {
-                AsyncClient.getUser(this.props.user.id);
                 AsyncClient.getChannelStats(ChannelStore.getCurrentId());
                 AsyncClient.getTeamStats(this.props.teamMember.team_id);
             },
