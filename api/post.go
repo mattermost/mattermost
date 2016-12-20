@@ -705,7 +705,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 			}
 
 			if userAllowsEmails && status.Status != model.STATUS_ONLINE {
-				go sendNotificationEmail(c, post, profileMap[id], channel, team, senderName[id], sender)
+				sendNotificationEmail(c, post, profileMap[id], channel, team, senderName[id], sender)
 			}
 		}
 	}
@@ -801,7 +801,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 			}
 
 			if DoesStatusAllowPushNotification(profileMap[id], status, post.ChannelId) {
-				go sendPushNotification(post, profileMap[id], channel, senderName[id], true)
+				sendPushNotification(post, profileMap[id], channel, senderName[id], true)
 			}
 		}
 
@@ -814,7 +814,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 				}
 
 				if DoesStatusAllowPushNotification(profileMap[id], status, post.ChannelId) {
-					go sendPushNotification(post, profileMap[id], channel, senderName[id], false)
+					sendPushNotification(post, profileMap[id], channel, senderName[id], false)
 				}
 			}
 		}
