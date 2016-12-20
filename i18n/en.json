@@ -492,6 +492,10 @@
     "translation": "Unable to create /echo post, err=%v"
   },
   {
+    "id": "api.command_echo.message.app_error",
+    "translation": "A message must be provided with the /echo command."
+  },
+  {
     "id": "api.command_echo.delay.app_error",
     "translation": "Delays must be under 10000 seconds"
   },

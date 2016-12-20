@@ -40,6 +40,10 @@ func (me *EchoProvider) GetCommand(c *Context) *model.Command {
 }
 
 func (me *EchoProvider) DoCommand(c *Context, args *model.CommandArgs, message string) *model.CommandResponse {
+	if len(message) == 0 {
+		return &model.CommandResponse{Text: c.T("api.command_echo.message.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	}
+
 	maxThreads := 100
 
 	delay := 0
