@@ -4,7 +4,9 @@
 import * as Utils from 'utils/utils.jsx';
 import Client from 'client/web_client.jsx';
 import UserStore from 'stores/user_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
 import WebrtcStore from 'stores/webrtc_store.jsx';
+import {openDirectChannelToUser} from 'actions/channel_actions.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import * as WebrtcActions from 'actions/webrtc_actions.jsx';
 import Constants from 'utils/constants.jsx';
@@ -13,6 +15,7 @@ const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 
 import {Popover, OverlayTrigger, Tooltip} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
+import {browserHistory} from 'react-router/es6';
 
 import React from 'react';
 
@@ -21,8 +24,10 @@ export default class UserProfile extends React.Component {
         super(props);
 
         this.initWebrtc = this.initWebrtc.bind(this);
+        this.handleShowDirectChannel = this.handleShowDirectChannel.bind(this);
         this.state = {
-            currentUserId: UserStore.getCurrentId()
+            currentUserId: UserStore.getCurrentId(),
+            loadingDMChannel: -1
         };
     }
 
@@ -63,6 +68,31 @@ export default class UserProfile extends React.Component {
         }
 
         return false;
+    }
+
+    handleShowDirectChannel(e) {
+        e.preventDefault();
+
+        if (!this.props.user) {
+            return;
+        }
+
+        const user = this.props.user;
+
+        if (this.state.loadingDMChannel !== -1) {
+            return;
+        }
+
+        this.setState({loadingDMChannel: user.id});
+
+        openDirectChannelToUser(
+            user,
+            (channel) => {
+                this.setState({loadingDMChannel: -1});
+                this.refs.overlay.hide();
+                browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + channel.name);
+            }
+        );
     }
 
     render() {
@@ -216,8 +246,31 @@ export default class UserProfile extends React.Component {
             );
         }
 
+        if (this.props.user !== UserStore.getCurrentUser()) {
+            dataContent.push(
+                <div
+                    data-toggle='tooltip'
+                    key='user-popover-dm'
+                    className='popover-dm__content'
+                >
+                    <a
+                        href='#'
+                        className='text-nowrap text-lowercase user-popover__email'
+                        onClick={this.handleShowDirectChannel}
+                    >
+                        <i className='fa fa-paper-plane'/>
+                        <FormattedMessage
+                            id='user_profile.send.dm'
+                            defaultMessage='Send Message'
+                        />
+                    </a>
+                </div>
+            );
+        }
+
         return (
             <OverlayTrigger
+                ref='overlay'
                 trigger='click'
                 placement='right'
                 rootClose={true}

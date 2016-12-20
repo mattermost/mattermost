@@ -2,10 +2,23 @@
 // See License.txt for license information.
 import * as Utils from 'utils/utils.jsx';
 import UserStore from 'stores/user_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
+import {openDirectChannelToUser} from 'actions/channel_actions.jsx';
 import React from 'react';
 import {Popover, OverlayTrigger} from 'react-bootstrap';
+import {FormattedMessage} from 'react-intl';
+import {browserHistory} from 'react-router/es6';
 
 export default class ProfilePicture extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.handleShowDirectChannel = this.handleShowDirectChannel.bind(this);
+        this.state = {
+            loadingDMChannel: -1
+        };
+    }
+
     shouldComponentUpdate(nextProps) {
         if (nextProps.src !== this.props.src) {
             return true;
@@ -24,6 +37,31 @@ export default class ProfilePicture extends React.Component {
         }
 
         return false;
+    }
+
+    handleShowDirectChannel(e) {
+        e.preventDefault();
+
+        if (!this.props.user) {
+            return;
+        }
+
+        const user = this.props.user;
+
+        if (this.state.loadingDMChannel !== -1) {
+            return;
+        }
+
+        this.setState({loadingDMChannel: user.id});
+
+        openDirectChannelToUser(
+            user,
+            (channel) => {
+                this.setState({loadingDMChannel: -1});
+                this.refs.overlay.hide();
+                browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + channel.name);
+            }
+        );
     }
 
     render() {
@@ -76,8 +114,32 @@ export default class ProfilePicture extends React.Component {
                     </div>
                 );
             }
+
+            if (this.props.user.id !== UserStore.getCurrentId()) {
+                dataContent.push(
+                    <div
+                        data-toggle='tooltip'
+                        key='user-popover-dm'
+                        className='popover-dm__content'
+                    >
+                        <a
+                            href='#'
+                            className='text-nowrap text-lowercase user-popover__email'
+                            onClick={this.handleShowDirectChannel}
+                        >
+                            <i className='fa fa-paper-plane'/>
+                            <FormattedMessage
+                                id='user_profile.send.dm'
+                                defaultMessage='Send Message'
+                            />
+                        </a>
+                    </div>
+                );
+            }
+
             return (
                 <OverlayTrigger
+                    ref='overlay'
                     trigger='click'
                     placement='right'
                     rootClose={true}
