@@ -315,7 +315,7 @@ class PostStoreClass extends EventEmitter {
         this.postsInfo[id].atBottom = atBottom;
     }
 
-    deletePost(post, fromSocket = true) {
+    deletePost(post) {
         const postInfo = this.postsInfo[post.channel_id];
         if (!postInfo) {
             // the post that has been deleted is in a channel that we haven't seen so just ignore it
@@ -325,12 +325,6 @@ class PostStoreClass extends EventEmitter {
         const postList = this.postsInfo[post.channel_id].postList;
 
         if (isPostListNull(postList)) {
-            return;
-        }
-
-        //if the view directly called deletePost then remove post for the current user
-        if (!fromSocket) {
-            this.removePost(post);
             return;
         }
 
@@ -671,7 +665,7 @@ PostStore.dispatchToken = AppDispatcher.register((payload) => {
         PostStore.storeCommentDraft(action.post.root_id, null);
         break;
     case ActionTypes.POST_DELETED:
-        PostStore.deletePost(action.post, true);
+        PostStore.deletePost(action.post);
         PostStore.emitChange();
         break;
     case ActionTypes.REMOVE_POST:
