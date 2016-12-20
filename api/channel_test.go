@@ -370,6 +370,32 @@ func TestUpdateChannel(t *testing.T) {
 	}
 }
 
+func TestUpdateChannelDisplayName(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	Client := th.SystemAdminClient
+	team := th.SystemAdminTeam
+	user := th.CreateUser(Client)
+	LinkUserToTeam(user, team)
+
+	Client.Login(user.Email, user.Password)
+
+	channel1 := &model.Channel{DisplayName: "A Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
+
+	Client.AddChannelMember(channel1.Id, user.Id)
+
+	newDisplayName := "a" + channel1.DisplayName + "a"
+	channel1.DisplayName = newDisplayName
+	channel1 = Client.Must(Client.UpdateChannel(channel1)).Data.(*model.Channel)
+
+	time.Sleep(100 * time.Millisecond)
+
+	r1 := Client.Must(Client.GetPosts(channel1.Id, 0, 1, "")).Data.(*model.PostList)
+	if len(r1.Order) != 1 {
+		t.Fatal("Displayname update system message was not found")
+	}
+}
+
 func TestUpdateChannelHeader(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	Client := th.BasicClient

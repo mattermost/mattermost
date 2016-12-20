@@ -251,6 +251,8 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		oldChannel.Header = channel.Header
 		oldChannel.Purpose = channel.Purpose
 
+		oldChannelDisplayName := oldChannel.DisplayName
+
 		if len(channel.DisplayName) > 0 {
 			oldChannel.DisplayName = channel.DisplayName
 		}
@@ -267,6 +269,9 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = ucresult.Err
 			return
 		} else {
+			if oldChannelDisplayName != channel.DisplayName {
+				go PostUpdateChannelDisplayNameMessage(c, channel.Id, oldChannelDisplayName, channel.DisplayName)
+			}
 			c.LogAudit("name=" + channel.Name)
 			w.Write([]byte(oldChannel.ToJson()))
 		}
@@ -350,6 +355,34 @@ func PostUpdateChannelHeaderMessage(c *Context, channelId string, oldChannelHead
 
 		if _, err := CreatePost(c, post, false); err != nil {
 			l4g.Error(utils.T("api.channel.post_update_channel_header_message_and_forget.join_leave.error"), err)
+		}
+	}
+}
+
+func PostUpdateChannelDisplayNameMessage(c *Context, channelId string, oldChannelDisplayName, newChannelDisplayName string) {
+	uc := Srv.Store.User().Get(c.Session.UserId)
+
+	if uresult := <-uc; uresult.Err != nil {
+		l4g.Error(utils.T("api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error"), uresult.Err)
+		return
+	} else {
+		user := uresult.Data.(*model.User)
+
+		message := fmt.Sprintf(utils.T("api.channel.post_update_channel_displayname_message_and_forget.updated_from"), user.Username, oldChannelDisplayName, newChannelDisplayName)
+
+		post := &model.Post{
+			ChannelId: channelId,
+			Message:   message,
+			Type:      model.POST_DISPLAYNAME_CHANGE,
+			UserId:    c.Session.UserId,
+			Props: model.StringInterface{
+				"old_displayname": oldChannelDisplayName,
+				"new_displayname": newChannelDisplayName,
+			},
+		}
+
+		if _, err := CreatePost(c, post, false); err != nil {
+			l4g.Error(utils.T("api.channel.post_update_channel_displayname_message_and_forget.create_post.error"), err)
 		}
 	}
 }

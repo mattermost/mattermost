@@ -320,6 +320,18 @@
     "translation": "%s updated the channel header to: %s"
   },
   {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
+    "translation": "Failed to post displayname update message %v"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
+    "translation": "Failed to retrieve user while trying to save update channel displayname message %v"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
+    "translation": "%s updated the channel display name from: %s to: %s"
+  },
+  {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
     "translation": "Failed to post join/leave message %v"
   },
