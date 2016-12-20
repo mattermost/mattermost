@@ -191,6 +191,10 @@ export default class SidebarRight extends React.Component {
             );
         }
 
+        if (!content) {
+            expandedClass = '';
+        }
+
         return (
             <div
                 className={'sidebar--right ' + expandedClass}
