@@ -1269,10 +1269,6 @@
     min-width: 320px;
 }
 
-.post-reaction-list {
-    height: 24px;
-}
-
 .post-reaction {
     @include user-select(none);
     @include border-radius(3px);
@@ -1282,6 +1278,8 @@
     font-size: 11px;
     height: 23px;
     padding: 0 4px 0 3px;
+    margin-right: 5px;
+    margin-bottom: 5px;
 
     .post-reaction__emoji {
         height: 16px;
@@ -1294,10 +1292,6 @@
         line-height: 10px;
         position: relative;
         top: 3px;
-    }
-
-    & + & {
-        margin-left: 5px;
     }
 
     &--current-user {
