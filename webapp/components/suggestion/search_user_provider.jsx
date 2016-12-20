@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import Suggestion from './suggestion.jsx';
+import Provider from './provider.jsx';
 
 import {autocompleteUsersInTeam} from 'actions/user_actions.jsx';
 
@@ -56,15 +57,21 @@ class SearchUserSuggestion extends Suggestion {
     }
 }
 
-export default class SearchUserProvider {
+export default class SearchUserProvider extends Provider {
     handlePretextChanged(suggestionId, pretext) {
         const captured = (/\bfrom:\s*(\S*)$/i).exec(pretext.toLowerCase());
         if (captured) {
             const usernamePrefix = captured[1];
 
+            this.startNewRequest(usernamePrefix);
+
             autocompleteUsersInTeam(
                 usernamePrefix,
                 (data) => {
+                    if (this.shouldCancelDispatch(usernamePrefix)) {
+                        return;
+                    }
+
                     const users = data.in_team;
                     const mentions = users.map((user) => user.username);
 

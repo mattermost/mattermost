@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import Suggestion from './suggestion.jsx';
+import Provider from './provider.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
@@ -58,15 +59,21 @@ class SwitchChannelSuggestion extends Suggestion {
     }
 }
 
-export default class SwitchChannelProvider {
+export default class SwitchChannelProvider extends Provider {
     handlePretextChanged(suggestionId, channelPrefix) {
         if (channelPrefix) {
+            this.startNewRequest(channelPrefix);
+
             const allChannels = ChannelStore.getAll();
             const channels = [];
 
             autocompleteUsers(
                 channelPrefix,
                 (users) => {
+                    if (this.shouldCancelDispatch(channelPrefix)) {
+                        return;
+                    }
+
                     const currentId = UserStore.getCurrentId();
 
                     for (const id of Object.keys(allChannels)) {
