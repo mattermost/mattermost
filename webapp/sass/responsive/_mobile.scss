@@ -911,6 +911,7 @@
             height: 45px;
             padding: 7px 20px 0 49px;
             position: relative;
+            width: 100%;
 
             .icon--refresh {
                 @include opacity(.6);
@@ -926,6 +927,10 @@
                 color: $dark-gray;
                 padding: 0 10px 0 31px;
             }
+        }
+
+        .channel-header__links {
+            display: none;
         }
     }
 

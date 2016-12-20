@@ -6,10 +6,16 @@
         .search-bar__container {
             display: none;
         }
+        .search-btns {
+            display: none;
+        }
     }
 
     &.move--right {
         .search-bar__container {
+            display: none;
+        }
+        .search-btns {
             display: none;
         }
     }
