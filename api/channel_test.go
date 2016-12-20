@@ -745,10 +745,21 @@ func TestGetChannel(t *testing.T) {
 		t.Fatal("should have failed - bad channel id")
 	}
 
-	Client.SetTeamId(team2.Id)
+	th.BasicClient.SetTeamId(team2.Id)
 	if _, err := Client.GetChannel(channel2.Id, ""); err == nil {
 		t.Fatal("should have failed - wrong team")
 	}
+
+	//Test if a wrong team id is supplied should return error
+	if _, err := Client.CreateDirectChannel(th.BasicUser2.Id); err != nil {
+		t.Fatal(err)
+	}
+
+	th.BasicClient.SetTeamId("nonexitingteamid")
+	if _, err := Client.GetChannels(""); err == nil {
+		t.Fatal("should have failed - wrong team id")
+	}
+
 }
 
 func TestGetMoreChannelsPage(t *testing.T) {

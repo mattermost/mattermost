@@ -431,10 +431,13 @@ func updateChannelPurpose(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getChannels(c *Context, w http.ResponseWriter, r *http.Request) {
-
+	if c.TeamId == "" {
+		c.Err = model.NewLocAppError("", "api.context.missing_teamid.app_error", nil, "TeamIdRequired")
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
 	// user is already in the team
 	// Get's all channels the user is a member of
-
 	if result := <-Srv.Store.Channel().GetChannels(c.TeamId, c.Session.UserId); result.Err != nil {
 		if result.Err.Id == "store.sql_channel.get_channels.not_found.app_error" {
 			// lets make sure the user is valid

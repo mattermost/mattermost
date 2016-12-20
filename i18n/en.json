@@ -732,6 +732,10 @@
     "translation": "You do not have the appropriate permissions"
   },
   {
+    "id": "api.context.missing_teamid.app_error",
+    "translation": "Missing Team Id"
+  },
+  {
     "id": "api.context.session_expired.app_error",
     "translation": "Invalid or expired session, please login again."
   },
