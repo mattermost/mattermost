@@ -28,13 +28,12 @@ import {Link} from 'react-router/es6';
 import {createMenuTip} from 'components/tutorial/tutorial_tip.jsx';
 
 import React from 'react';
-import PureRenderMixin from 'react-addons-pure-render-mixin';
 
 export default class SidebarRightMenu extends React.Component {
     constructor(props) {
         super(props);
 
-        this.onPreferenceChange = this.onPreferenceChange.bind(this);
+        this.onChange = this.onChange.bind(this);
         this.handleClick = this.handleClick.bind(this);
         this.handleAboutModal = this.handleAboutModal.bind(this);
         this.searchMentions = this.searchMentions.bind(this);
@@ -44,8 +43,6 @@ export default class SidebarRightMenu extends React.Component {
         const state = this.getStateFromStores();
         state.showUserSettingsModal = false;
         state.showAboutModal = false;
-
-        this.shouldComponentUpdate = PureRenderMixin.shouldComponentUpdate.bind(this);
 
         this.state = state;
     }
@@ -72,11 +69,13 @@ export default class SidebarRightMenu extends React.Component {
     }
 
     componentDidMount() {
-        PreferenceStore.addChangeListener(this.onPreferenceChange);
+        TeamStore.addChangeListener(this.onChange);
+        PreferenceStore.addChangeListener(this.onChange);
     }
 
     componentWillUnmount() {
-        PreferenceStore.removeChangeListener(this.onPreferenceChange);
+        TeamStore.removeChangeListener(this.onChange);
+        PreferenceStore.removeChangeListener(this.onChange);
     }
 
     getStateFromStores() {
@@ -84,11 +83,13 @@ export default class SidebarRightMenu extends React.Component {
 
         return {
             currentUser: UserStore.getCurrentUser(),
+            teamMembers: TeamStore.getMyTeamMembers(),
+            teamListings: TeamStore.getTeamListings(),
             showTutorialTip: tutorialStep === TutorialSteps.MENU_POPOVER && Utils.isMobile()
         };
     }
 
-    onPreferenceChange() {
+    onChange() {
         this.setState(this.getStateFromStores());
     }
 
@@ -141,14 +142,15 @@ export default class SidebarRightMenu extends React.Component {
     }
 
     render() {
-        var teamLink = '';
-        var inviteLink = '';
-        var teamSettingsLink = '';
-        var manageLink = '';
-        var consoleLink = '';
-        var currentUser = UserStore.getCurrentUser();
-        var isAdmin = false;
-        var isSystemAdmin = false;
+        const currentUser = UserStore.getCurrentUser();
+        let teamLink;
+        let inviteLink;
+        let teamSettingsLink;
+        let manageLink;
+        let consoleLink;
+        let joinAnotherTeamLink;
+        let isAdmin = false;
+        let isSystemAdmin = false;
 
         if (currentUser != null) {
             isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
@@ -194,6 +196,33 @@ export default class SidebarRightMenu extends React.Component {
                     teamLink = null;
                     inviteLink = null;
                 }
+            }
+
+            let moreTeams = false;
+            const isAlreadyMember = this.state.teamMembers.reduce((result, item) => {
+                result[item.team_id] = true;
+                return result;
+            }, {});
+
+            for (const id in this.state.teamListings) {
+                if (this.state.teamListings.hasOwnProperty(id) && !isAlreadyMember[id]) {
+                    moreTeams = true;
+                    break;
+                }
+            }
+
+            if (moreTeams) {
+                joinAnotherTeamLink = (
+                    <li key='joinTeam_li'>
+                        <Link to='/select_team'>
+                            <i className='icon fa fa-plus-square'/>
+                            <FormattedMessage
+                                id='navbar_dropdown.join'
+                                defaultMessage='Join Another Team'
+                            />
+                        </Link>
+                    </li>
+                );
             }
         }
 
@@ -387,6 +416,7 @@ export default class SidebarRightMenu extends React.Component {
                         </li>
                         {inviteLink}
                         {teamLink}
+                        {joinAnotherTeamLink}
                         <li className='divider'/>
                         {teamSettingsLink}
                         {manageLink}
