@@ -12,8 +12,6 @@ import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-int
 import {createChannel} from 'actions/channel_actions.jsx';
 import {browserHistory} from 'react-router/es6';
 
-import Constants from 'utils/constants.jsx';
-
 const SHOW_NEW_CHANNEL = 1;
 const SHOW_EDIT_URL = 2;
 const SHOW_EDIT_URL_THEN_COMPLETE = 3;
