@@ -285,7 +285,7 @@ export function createChannel(channel, success, error) {
                         error(err);
                     }
                 }
-            )
+            );
         },
         (err) => {
             AsyncClient.dispatchError(err, 'createChannel');
