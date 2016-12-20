@@ -124,7 +124,7 @@ export function loadPosts(channelId = ChannelStore.getCurrentId()) {
         return;
     }
 
-    Client.getPosts(
+    Client.getPostsSince(
         channelId,
         latestPostTime,
         (data) => {

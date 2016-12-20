@@ -477,7 +477,7 @@ func TestGetPostsSince(t *testing.T) {
 
 	r3 := Client.Must(Client.GetPostsSince(channel1.Id, now)).Data.(*model.PostList)
 
-	if len(r3.Order) != 2 { // 2 because deleted post is returned as well
+	if len(r3.Order) != 1 {
 		t.Fatal("missing post update")
 	}
 }

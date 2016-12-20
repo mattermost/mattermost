@@ -1690,7 +1690,12 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getPostsPage', success, error));
     }
 
+    // SCHEDULED FOR DEPRECATION IN 3.7 - use getPostsSince instead
     getPosts(channelId, since, success, error) {
+        return this.getPostsSince(channelId, since, success, error);
+    }
+
+    getPostsSince(channelId, since, success, error) {
         request.
             get(`${this.getPostsRoute(channelId)}/since/${since}`).
             set(this.defaultHeaders).
