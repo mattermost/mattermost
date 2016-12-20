@@ -1003,23 +1003,22 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	channelname := params["channel_name"]
+	channelName := params["channel_name"]
 
-	cchan := Srv.Store.Channel().GetByName(c.TeamId, channelname)
+	cchan := Srv.Store.Channel().GetByName(c.TeamId, channelName)
 
 	if cresult := <-cchan; cresult.Err != nil {
 		c.Err = cresult.Err
 		return
 	} else {
-		data := &model.Channel{}
-		data = cresult.Data.(*model.Channel)
+		data := cresult.Data.(*model.Channel)
 
 		if !HasPermissionToChannelContext(c, data.Id, model.PERMISSION_READ_CHANNEL) {
 			return
 		}
 
 		if data.TeamId != c.TeamId && data.Type != model.CHANNEL_DIRECT {
-			c.Err = model.NewLocAppError("getChannel", "api.channel.get_channel.wrong_team.app_error", map[string]interface{}{"ChannelName": channelname, "TeamId": c.TeamId}, "")
+			c.Err = model.NewLocAppError("getChannel", "api.channel.get_channel.wrong_team.app_error", map[string]interface{}{"ChannelName": channelName, "TeamId": c.TeamId}, "")
 			return
 		}
 
@@ -1207,7 +1206,11 @@ func removeMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func RemoveUserFromChannel(userIdToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
 	if channel.DeleteAt > 0 {
-		return model.NewLocAppError("updateChannel", "api.channel.remove_user_from_channel.deleted.app_error", nil, "")
+		return model.NewLocAppError("RemoveUserFromChannel", "api.channel.remove_user_from_channel.deleted.app_error", nil, "")
+	}
+
+	if channel.Name == model.DEFAULT_CHANNEL {
+		return model.NewLocAppError("RemoveUserFromChannel", "api.channel.remove.default.app_error", map[string]interface{}{"Channel": model.DEFAULT_CHANNEL}, "")
 	}
 
 	if cmresult := <-Srv.Store.Channel().RemoveMember(channel.Id, userIdToRemove); cmresult.Err != nil {

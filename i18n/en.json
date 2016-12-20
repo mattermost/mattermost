@@ -288,6 +288,10 @@
     "translation": "Cannot leave the default channel {{.Channel}}"
   },
   {
+    "id": "api.channel.remove.default.app_error",
+    "translation": "Cannot remove user from the default channel {{.Channel}}"
+  },
+  {
     "id": "api.channel.leave.direct.app_error",
     "translation": "Cannot leave a direct message channel"
   },
