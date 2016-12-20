@@ -260,3 +260,18 @@ export function autocompleteChannels(term, success, error) {
         }
     );
 }
+
+export function updateChannelNotifyProps(data, success, error) {
+    Client.updateChannelNotifyProps(data,
+        () => {
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
