@@ -124,7 +124,7 @@ func InvalidateCacheForChannelPosts(channelId string) {
 }
 
 func InvalidateCacheForChannelPostsSkipClusterSend(channelId string) {
-	Srv.Store.Post().InvalidatePostEtagCache(channelId)
+	Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
 }
 
 func InvalidateCacheForUser(userId string) {

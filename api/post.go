@@ -1324,7 +1324,7 @@ func getPostsSince(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pchan := Srv.Store.Post().GetPostsSince(id, time)
+	pchan := Srv.Store.Post().GetPostsSince(id, time, true)
 
 	if !HasPermissionToChannelContext(c, id, model.PERMISSION_READ_CHANNEL) {
 		return
