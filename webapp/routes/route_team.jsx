@@ -14,7 +14,7 @@ const ActionTypes = Constants.ActionTypes;
 import * as AsyncClient from 'utils/async_client.jsx';
 import Client from 'client/web_client.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
-import PreferenceStore from 'stores/preference_store.jsx';
+import BrowserStore from 'stores/browser_store.jsx';
 
 import emojiRoute from 'routes/route_emoji.jsx';
 import integrationsRoute from 'routes/route_integrations.jsx';
@@ -72,6 +72,7 @@ function preNeedsTeam(nextState, replace, callback) {
     }
 
     TeamStore.saveMyTeam(team);
+    BrowserStore.setGlobalItem('team', team.id);
     TeamStore.emitChange();
     GlobalActions.emitCloseRightHandSide();
 
@@ -107,7 +108,7 @@ function preNeedsTeam(nextState, replace, callback) {
 
 function selectLastChannel(nextState, replace, callback) {
     const team = TeamStore.getByName(nextState.params.team);
-    const channelId = PreferenceStore.get(team.id, 'channel');
+    const channelId = BrowserStore.getGlobalItem(team.id);
     const channel = ChannelStore.getChannelById(channelId);
 
     let channelName = 'town-square';

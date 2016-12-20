@@ -59,7 +59,7 @@ export default class SignupController extends React.Component {
 
     componentDidMount() {
         AsyncClient.checkVersion();
-
+        BrowserStore.removeGlobalItem('team');
         if (this.props.location.query) {
             const hash = this.props.location.query.h;
             const data = this.props.location.query.d;
