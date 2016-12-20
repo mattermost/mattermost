@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import PreferenceStore from 'stores/preference_store.jsx';
-
+import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import Client from 'client/web_client.jsx';
 import Constants from 'utils/constants.jsx';
@@ -67,10 +67,15 @@ export default class EditChannelPurposeModal extends React.Component {
         Client.updateChannelPurpose(
             this.props.channel.id,
             this.refs.purpose.value.trim(),
-            () => {
+            (channel) => {
                 AsyncClient.getChannel(this.props.channel.id);
 
                 this.handleHide();
+
+                AppDispatcher.handleServerAction({
+                    type: Constants.ActionTypes.RECEIVED_CHANNEL,
+                    channel
+                });
             },
             (err) => {
                 if (err.id === 'api.context.invalid_param.app_error') {

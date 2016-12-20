@@ -385,14 +385,50 @@ func updateChannelPurpose(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		oldChannelPurpose := channel.Purpose
 		channel.Purpose = channelPurpose
 
 		if ucresult := <-Srv.Store.Channel().Update(channel); ucresult.Err != nil {
 			c.Err = ucresult.Err
 			return
 		} else {
+			go PostUpdateChannelPurposeMessage(c, channel.Id, oldChannelPurpose, channelPurpose)
 			c.LogAudit("name=" + channel.Name)
 			w.Write([]byte(channel.ToJson()))
+		}
+	}
+}
+
+func PostUpdateChannelPurposeMessage(c *Context, channelId string, oldChannelPurpose, newChannelPurpose string) {
+	uc := Srv.Store.User().Get(c.Session.UserId)
+
+	if uresult := <-uc; uresult.Err != nil {
+		l4g.Error(utils.T("api.channel.post_update_channel_purpose_message_and_forget.retrieve_user.error"), uresult.Err)
+		return
+	} else {
+		user := uresult.Data.(*model.User)
+
+		var message string
+		if oldChannelPurpose == "" {
+			message = fmt.Sprintf(utils.T("api.channel.post_update_channel_purpose_message_and_forget.updated_to"), user.Username, newChannelPurpose)
+		} else if newChannelPurpose == "" {
+			message = fmt.Sprintf(utils.T("api.channel.post_update_channel_purpose_message_and_forget.removed"), user.Username, oldChannelPurpose)
+		} else {
+			message = fmt.Sprintf(utils.T("api.channel.post_update_channel_purpose_message_and_forget.updated_from"), user.Username, oldChannelPurpose, newChannelPurpose)
+		}
+
+		post := &model.Post{
+			ChannelId: channelId,
+			Message:   message,
+			Type:      model.POST_PURPOSE_CHANGE,
+			UserId:    c.Session.UserId,
+			Props: model.StringInterface{
+				"old_purpose": oldChannelPurpose,
+				"new_purpose": newChannelPurpose,
+			},
+		}
+		if _, err := CreatePost(c, post, false); err != nil {
+			l4g.Error(utils.T("api.channel.post_update_channel_purpose_message_and_forget.join_leave.error"), err)
 		}
 	}
 }
