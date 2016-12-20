@@ -4,7 +4,6 @@
 import Suggestion from './suggestion.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
-import SuggestionStore from 'stores/suggestion_store.jsx';
 
 import {autocompleteUsersInChannel} from 'actions/user_actions.jsx';
 
@@ -104,79 +103,49 @@ class AtMentionSuggestion extends Suggestion {
 export default class AtMentionProvider {
     constructor(channelId) {
         this.channelId = channelId;
-        this.timeoutId = '';
-    }
-
-    componentWillUnmount() {
-        this.clearTimeout(this.timeoutId);
-    }
-
-    clearTimeout() {
-        if (this.timeoutId) {
-            clearTimeout(this.timeoutId);
-            this.timeoutId = '';
-
-            return true;
-        }
-
-        return false;
     }
 
     handlePretextChanged(suggestionId, pretext) {
-        const hadSuggestions = this.clearTimeout(this.timeoutId);
-
         const captured = XRegExp.cache('(?:^|\\W)@([\\pL\\d\\-_.]*)$', 'i').exec(pretext.toLowerCase());
         if (captured) {
             const prefix = captured[1];
 
-            function autocomplete() {
-                autocompleteUsersInChannel(
-                    prefix,
-                    this.channelId,
-                    (data) => {
-                        const members = data.in_channel;
-                        for (const id of Object.keys(members)) {
-                            members[id].type = Constants.MENTION_MEMBERS;
-                        }
+            autocompleteUsersInChannel(
+                prefix,
+                this.channelId,
+                (data) => {
+                    const members = data.in_channel;
+                    for (const id of Object.keys(members)) {
+                        members[id].type = Constants.MENTION_MEMBERS;
+                    }
 
-                        const nonmembers = data.out_of_channel;
-                        for (const id of Object.keys(nonmembers)) {
-                            nonmembers[id].type = Constants.MENTION_NONMEMBERS;
-                        }
+                    const nonmembers = data.out_of_channel;
+                    for (const id of Object.keys(nonmembers)) {
+                        nonmembers[id].type = Constants.MENTION_NONMEMBERS;
+                    }
 
-                        let specialMentions = [];
-                        if (!pretext.startsWith('/msg')) {
-                            specialMentions = ['here', 'channel', 'all'].filter((item) => {
-                                return item.startsWith(prefix);
-                            }).map((name) => {
-                                return {username: name, type: Constants.MENTION_SPECIAL};
-                            });
-                        }
-
-                        const users = members.concat(specialMentions).concat(nonmembers);
-                        const mentions = users.map((user) => '@' + user.username);
-
-                        AppDispatcher.handleServerAction({
-                            type: ActionTypes.SUGGESTION_RECEIVED_SUGGESTIONS,
-                            id: suggestionId,
-                            matchedPretext: `@${captured[1]}`,
-                            terms: mentions,
-                            items: users,
-                            component: AtMentionSuggestion
+                    let specialMentions = [];
+                    if (!pretext.startsWith('/msg')) {
+                        specialMentions = ['here', 'channel', 'all'].filter((item) => {
+                            return item.startsWith(prefix);
+                        }).map((name) => {
+                            return {username: name, type: Constants.MENTION_SPECIAL};
                         });
                     }
-                );
-            }
 
-            this.timeoutId = setTimeout(
-                autocomplete.bind(this),
-                Constants.AUTOCOMPLETE_TIMEOUT
+                    const users = members.concat(specialMentions).concat(nonmembers);
+                    const mentions = users.map((user) => '@' + user.username);
+
+                    AppDispatcher.handleServerAction({
+                        type: ActionTypes.SUGGESTION_RECEIVED_SUGGESTIONS,
+                        id: suggestionId,
+                        matchedPretext: `@${captured[1]}`,
+                        terms: mentions,
+                        items: users,
+                        component: AtMentionSuggestion
+                    });
+                }
             );
-        }
-
-        if (hadSuggestions) {
-            // Clear the suggestions since the user has now typed something invalid
-            SuggestionStore.clearSuggestions(suggestionId);
         }
     }
 }
