@@ -661,7 +661,7 @@ export default class ChannelHeader extends React.Component {
         );
 
         let channelMembersModal;
-        if (this.state.showMembersModal) {
+        if (this.state.showMembersModal && channel.name !== Constants.DEFAULT_CHANNEL) {
             channelMembersModal = (
                 <ChannelMembersModal
                     onModalDismissed={() => this.setState({showMembersModal: false})}

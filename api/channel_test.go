@@ -1318,6 +1318,11 @@ func TestRemoveChannelMember(t *testing.T) {
 		t.Fatal("Should have errored, channel deleted")
 	}
 
+	townSquare := Client.Must(Client.GetChannelByName("town-square")).Data.(*model.Channel)
+
+	if _, err := Client.RemoveChannelMember(townSquare.Id, userStd.Id); err == nil {
+		t.Fatal("should have errored, channel is default")
+	}
 }
 
 func TestUpdateNotifyProps(t *testing.T) {
@@ -1658,8 +1663,13 @@ func TestGetChannelByName(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.BasicClient
 
-	if _, err := Client.GetChannelByName(th.BasicChannel.Name); err != nil {
+	if result, err := Client.GetChannelByName(th.BasicChannel.Name); err != nil {
 		t.Fatal("Failed to get channel")
+	} else {
+		channel := result.Data.(*model.Channel)
+		if channel.Name != th.BasicChannel.Name {
+			t.Fatal("channel names did not match")
+		}
 	}
 
 	if _, err := Client.GetChannelByName("InvalidChannelName"); err == nil {
@@ -1677,6 +1687,6 @@ func TestGetChannelByName(t *testing.T) {
 	Client.Login(user2.Email, "passwd1")
 
 	if _, err := Client.GetChannelByName(th.BasicChannel.Name); err == nil {
-		t.Fatal("Should fail due not enough permissions")
+		t.Fatal("Should fail due to not enough permissions")
 	}
 }
