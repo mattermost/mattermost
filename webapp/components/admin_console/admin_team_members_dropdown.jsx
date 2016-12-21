@@ -92,7 +92,7 @@ export default class AdminTeamMembersDropdown extends React.Component {
 
     handleMakeActive(e) {
         e.preventDefault();
-        updateActive(this.props.user.id, true, false,
+        updateActive(this.props.user.id, true, null,
             (err) => {
                 this.setState({serverError: err.message});
             }
@@ -101,7 +101,7 @@ export default class AdminTeamMembersDropdown extends React.Component {
 
     handleMakeNotActive(e) {
         e.preventDefault();
-        updateActive(this.props.user.id, false, false,
+        updateActive(this.props.user.id, false, null,
             (err) => {
                 this.setState({serverError: err.message});
             }
