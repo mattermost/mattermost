@@ -25,11 +25,22 @@
                     background-color: alpha-color($black, .3);
                     display: table-cell;
                     font-weight: bold;
-                    height: 35px;
                     position: relative;
                     text-align: center;
                     vertical-align: middle;
-                    width: 35px;
+                    height: 40px;
+                    width: 40px;
+
+                    .team-btn__content {
+                        font-size: 9px;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        width: 40px;
+                        padding: 0 2px;
+                        white-space: nowrap;
+                        position: relative;
+                        top: -3px;
+                    }
 
                     .badge {
                         font-size: 10px;
@@ -43,6 +54,12 @@
                     .team-btn {
                         background-color: transparent;
                         border: 1px solid $white;
+                        height: 39px;
+                        width: 39px;
+
+                        .team-btn__content {
+                            width: 39px;
+                        }
                     }
                 }
 

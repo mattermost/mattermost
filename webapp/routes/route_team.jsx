@@ -76,7 +76,8 @@ function preNeedsTeam(nextState, replace, callback) {
     TeamStore.emitChange();
     GlobalActions.emitCloseRightHandSide();
 
-    if (nextState.location.pathname.indexOf('/channels/') > -1) {
+    if (nextState.location.pathname.indexOf('/channels/') > -1 ||
+        nextState.location.pathname.indexOf('/pl/') > -1) {
         loadProfilesAndTeamMembersForDMSidebar();
         AsyncClient.getMyTeamsUnread();
         AsyncClient.getMyChannelMembers();
