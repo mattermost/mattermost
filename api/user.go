@@ -1266,17 +1266,21 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		} else {
 			path := "users/" + id + "/profile.png"
+			readFailed := false
 
 			if data, err := ReadFile(path); err != nil {
+				readFailed = true
 
 				if img, err = createProfileImage(result.Data.(*model.User).Username, id); err != nil {
 					c.Err = err
 					return
 				}
 
-				if err := WriteFile(img, path); err != nil {
-					c.Err = err
-					return
+				if result.Data.(*model.User).LastPictureUpdate == 0 {
+					if err := WriteFile(img, path); err != nil {
+						c.Err = err
+						return
+					}
 				}
 
 			} else {
@@ -1284,7 +1288,7 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		if c.Session.UserId == id {
+		if c.Session.UserId == id || readFailed {
 			w.Header().Set("Cache-Control", "max-age=300, public") // 5 mins
 		} else {
 			w.Header().Set("Cache-Control", "max-age=86400, public") // 24 hrs
