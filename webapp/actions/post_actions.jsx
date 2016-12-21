@@ -293,26 +293,36 @@ export function queuePost(post, doLoadPost, success, error) {
                     success(data);
                 }
 
-                postQueue.shift();
-                nextPostInQueue();
+                postSendComplete();
             },
             (err) => {
                 if (error) {
                     error(err);
                 }
 
-                postQueue.shift();
-                nextPostInQueue();
+                postSendComplete();
             }
         )
     );
 
+    sendFirstPostInQueue();
+}
+
+// Remove the completed post from the queue and send the next one
+function postSendComplete() {
+    postQueue.shift();
+    sendNextPostInQueue();
+}
+
+// Start sending posts if a new queue has started
+function sendFirstPostInQueue() {
     if (postQueue.length === 1) {
-        nextPostInQueue();
+        sendNextPostInQueue();
     }
 }
 
-function nextPostInQueue() {
+// Send the next post in the queue if there is one
+function sendNextPostInQueue() {
     const nextPostAction = postQueue[0];
     if (nextPostAction) {
         nextPostAction();
