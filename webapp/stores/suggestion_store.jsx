@@ -121,11 +121,6 @@ class SuggestionStore extends EventEmitter {
     }
 
     addSuggestions(id, terms, items, component, matchedPretext) {
-        if (!this.getPretext(id).endsWith(matchedPretext)) {
-            // These suggestions are out of date since the pretext has changed
-            return;
-        }
-
         const suggestion = this.getSuggestions(id);
 
         suggestion.terms.push(...terms);
@@ -222,6 +217,11 @@ class SuggestionStore extends EventEmitter {
         suggestion.selection = suggestion.terms[selectionIndex];
     }
 
+    checkIfPretextMatches(id, matchedPretext) {
+        const pretext = this.getPretext(id) || '';
+        return pretext.endsWith(matchedPretext);
+    }
+
     handleEventPayload(payload) {
         const {type, id, ...other} = payload.action;
 
@@ -241,9 +241,12 @@ class SuggestionStore extends EventEmitter {
             this.emitSuggestionsChanged(id);
             break;
         case ActionTypes.SUGGESTION_RECEIVED_SUGGESTIONS:
-            this.clearSuggestions(id);
+            if (!this.checkIfPretextMatches(id, other.matchedPretext)) {
+                // These suggestions are out of date since the pretext has changed
+                return;
+            }
 
-            // ensure the matched pretext hasn't changed so that we don't receive suggestions for outdated pretext
+            this.clearSuggestions(id);
             this.addSuggestions(id, other.terms, other.items, other.component, other.matchedPretext);
 
             this.ensureSelectionExists(id);

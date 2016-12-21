@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import Suggestion from './suggestion.jsx';
+import Provider from './provider.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
 
@@ -100,8 +101,10 @@ class AtMentionSuggestion extends Suggestion {
     }
 }
 
-export default class AtMentionProvider {
+export default class AtMentionProvider extends Provider {
     constructor(channelId) {
+        super();
+
         this.channelId = channelId;
     }
 
@@ -110,10 +113,16 @@ export default class AtMentionProvider {
         if (captured) {
             const prefix = captured[1];
 
+            this.startNewRequest(prefix);
+
             autocompleteUsersInChannel(
                 prefix,
                 this.channelId,
                 (data) => {
+                    if (this.shouldCancelDispatch(prefix)) {
+                        return;
+                    }
+
                     const members = data.in_channel;
                     for (const id of Object.keys(members)) {
                         members[id].type = Constants.MENTION_MEMBERS;
