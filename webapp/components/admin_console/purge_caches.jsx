@@ -4,9 +4,8 @@
 import React from 'react';
 
 import Client from 'client/web_client.jsx';
-import * as Utils from 'utils/utils.jsx';
 
-import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 export default class PurgeCachesButton extends React.Component {
     constructor(props) {
@@ -65,7 +64,7 @@ export default class PurgeCachesButton extends React.Component {
         }
 
         const helpText = (
-            <FormattedHTMLMessage
+            <FormattedMessage
                 id='admin.purge.purgeDescription'
                 defaultMessage='This will purge all the in-memory caches for things like sessions, accounts, channels, etc. Deployments using High Availability will attempt to purge all the servers in the cluster.  Purging the caches may adversly impact performance.'
             />
@@ -76,7 +75,10 @@ export default class PurgeCachesButton extends React.Component {
             contents = (
                 <span>
                     <span className='fa fa-refresh icon--rotate'/>
-                    {Utils.localizeMessage('admin.purge.loading', ' Loading...')}
+                    <FormattedMessage
+                        id='admin.purge.loading'
+                        defaultMessage='Loading...'
+                    />
                 </span>
             );
         } else {
