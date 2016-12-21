@@ -63,8 +63,9 @@
         .post-create-footer {
             @include clearfix;
             font-size: 13px;
-            padding: 3px 0 0;
+            overflow: visible;
             position: relative;
+            clear: both;
 
             .post-error {
                 font-weight: normal;
@@ -73,9 +74,9 @@
                 font-size: .85em;
                 @include opacity(.55);
                 position: absolute;
-                top: 4px;
+                top: -25px;
           }
-      }
+       }
     }
 
     .help__format-text {

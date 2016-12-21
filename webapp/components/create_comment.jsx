@@ -439,7 +439,8 @@ export default class CreateComment extends React.Component {
 
         let postError = null;
         if (this.state.postError) {
-            postError = <label className='post-error'>{this.state.postError}</label>;
+            const postErrorClass = 'post-error' + (this.state.errorClass ? (' ' + this.state.errorClass) : '');
+            postError = <label className={postErrorClass}>{this.state.postError}</label>;
         }
 
         let preview = null;
@@ -454,9 +455,9 @@ export default class CreateComment extends React.Component {
         }
 
         let postFooterClassName = 'post-create-footer';
-        if (postError) {
-            postFooterClassName += ' has-error';
-        }
+        // if (postError) {
+        //     postFooterClassName += ' has-error';
+        // }
 
         let uploadsInProgressText = null;
         if (this.state.uploadsInProgress.length > 0) {
@@ -521,8 +522,8 @@ export default class CreateComment extends React.Component {
                             onClick={this.handleSubmit}
                         />
                         {uploadsInProgressText}
-                        {preview}
                         {postError}
+                        {preview}
                         {serverError}
                     </div>
                 </div>

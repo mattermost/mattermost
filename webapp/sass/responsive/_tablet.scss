@@ -42,6 +42,10 @@
                 top: 0;
                 left: 32px;
                 position: relative;
+
+                .sidebar--right & {
+                    left: 0;
+                }
             }
         }
 
