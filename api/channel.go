@@ -1255,22 +1255,6 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		chanPref := model.Preference{
-			UserId:   c.Session.UserId,
-			Category: c.TeamId,
-			Name:     model.PREFERENCE_NAME_LAST_CHANNEL,
-			Value:    view.ChannelId,
-		}
-
-		teamPref := model.Preference{
-			UserId:   c.Session.UserId,
-			Category: model.PREFERENCE_CATEGORY_LAST,
-			Name:     model.PREFERENCE_NAME_LAST_TEAM,
-			Value:    c.TeamId,
-		}
-
-		Srv.Store.Preference().Save(&model.Preferences{teamPref, chanPref})
-
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_VIEWED, c.TeamId, "", c.Session.UserId, nil)
 		message.Add("channel_id", view.ChannelId)
 	}
