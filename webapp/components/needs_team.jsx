@@ -94,7 +94,7 @@ export default class NeedsTeam extends React.Component {
         // Set up tracking for whether the window is active
         window.isActive = true;
         $(window).on('focus', () => {
-            AsyncClient.updateLastViewedAt();
+            AsyncClient.viewChannel();
             ChannelStore.resetCounts(ChannelStore.getCurrentId());
             ChannelStore.emitChange();
             window.isActive = true;
@@ -103,7 +103,7 @@ export default class NeedsTeam extends React.Component {
         $(window).on('blur', () => {
             window.isActive = false;
             if (UserStore.getCurrentUser()) {
-                AsyncClient.setActiveChannel('');
+                AsyncClient.viewChannel('');
             }
         });
 

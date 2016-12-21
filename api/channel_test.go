@@ -724,8 +724,9 @@ func TestGetChannel(t *testing.T) {
 		t.Fatal("cache should be empty")
 	}
 
-	if _, err := Client.UpdateLastViewedAt(channel2.Id, true); err != nil {
-		t.Fatal(err)
+	view := model.ChannelView{ChannelId: channel2.Id, PrevChannelId: channel1.Id}
+	if _, resp := Client.ViewChannel(view); resp.Error != nil {
+		t.Fatal(resp.Error)
 	}
 
 	if resp, err := Client.GetChannel(channel1.Id, ""); err != nil {
@@ -1733,5 +1734,46 @@ func TestGetChannelByName(t *testing.T) {
 
 	if _, err := Client.GetChannelByName(th.BasicChannel.Name); err == nil {
 		t.Fatal("Should fail due to not enough permissions")
+	}
+}
+
+func TestViewChannel(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+
+	view := model.ChannelView{
+		ChannelId: th.BasicChannel.Id,
+	}
+
+	if _, resp := Client.ViewChannel(view); resp.Error != nil {
+		t.Fatal(resp.Error)
+	}
+
+	view.PrevChannelId = th.BasicChannel.Id
+
+	if _, resp := Client.ViewChannel(view); resp.Error != nil {
+		t.Fatal(resp.Error)
+	}
+
+	view.PrevChannelId = ""
+	view.Time = 1234567890
+
+	if _, resp := Client.ViewChannel(view); resp.Error != nil {
+		t.Fatal(resp.Error)
+	}
+
+	view.PrevChannelId = "junk"
+	view.Time = 0
+
+	if _, resp := Client.ViewChannel(view); resp.Error != nil {
+		t.Fatal(resp.Error)
+	}
+
+	rdata := Client.Must(Client.GetChannel(th.BasicChannel.Id, "")).Data.(*model.ChannelData)
+
+	if rdata.Channel.TotalMsgCount != rdata.Member.MsgCount {
+		t.Log(rdata.Channel.TotalMsgCount)
+		t.Log(rdata.Member.MsgCount)
+		t.Fatal("message counts don't match")
 	}
 }

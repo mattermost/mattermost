@@ -48,7 +48,7 @@ export function emitChannelClickEvent(channel) {
 
         getMyChannelMembersPromise.then(() => {
             AsyncClient.getChannelStats(chan.id, true);
-            AsyncClient.updateLastViewedAt(chan.id);
+            AsyncClient.viewChannel(chan.id, ChannelStore.getCurrentId());
             loadPosts(chan.id);
             trackPage();
         });

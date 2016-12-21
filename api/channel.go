@@ -25,6 +25,7 @@ func InitChannel() {
 	BaseRoutes.Channels.Handle("/counts", ApiUserRequired(getChannelCounts)).Methods("GET")
 	BaseRoutes.Channels.Handle("/members", ApiUserRequired(getMyChannelMembers)).Methods("GET")
 	BaseRoutes.Channels.Handle("/create", ApiUserRequired(createChannel)).Methods("POST")
+	BaseRoutes.Channels.Handle("/view", ApiUserRequired(viewChannel)).Methods("POST")
 	BaseRoutes.Channels.Handle("/create_direct", ApiUserRequired(createDirectChannel)).Methods("POST")
 	BaseRoutes.Channels.Handle("/update", ApiUserRequired(updateChannel)).Methods("POST")
 	BaseRoutes.Channels.Handle("/update_header", ApiUserRequired(updateChannelHeader)).Methods("POST")
@@ -43,9 +44,6 @@ func InitChannel() {
 	BaseRoutes.NeedChannel.Handle("/delete", ApiUserRequired(deleteChannel)).Methods("POST")
 	BaseRoutes.NeedChannel.Handle("/add", ApiUserRequired(addMember)).Methods("POST")
 	BaseRoutes.NeedChannel.Handle("/remove", ApiUserRequired(removeMember)).Methods("POST")
-	BaseRoutes.NeedChannel.Handle("/update_last_viewed_at", ApiUserRequired(updateLastViewedAt)).Methods("POST")
-	BaseRoutes.NeedChannel.Handle("/set_last_viewed_at", ApiUserRequired(setLastViewedAt)).Methods("POST")
-
 }
 
 func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -873,103 +871,6 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func setLastViewedAt(c *Context, w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	id := params["channel_id"]
-
-	data := model.StringInterfaceFromJson(r.Body)
-	newLastViewedAt := int64(data["last_viewed_at"].(float64))
-
-	Srv.Store.Channel().SetLastViewedAt(id, c.Session.UserId, newLastViewedAt)
-
-	chanPref := model.Preference{
-		UserId:   c.Session.UserId,
-		Category: c.TeamId,
-		Name:     model.PREFERENCE_NAME_LAST_CHANNEL,
-		Value:    id,
-	}
-
-	teamPref := model.Preference{
-		UserId:   c.Session.UserId,
-		Category: model.PREFERENCE_CATEGORY_LAST,
-		Name:     model.PREFERENCE_NAME_LAST_TEAM,
-		Value:    c.TeamId,
-	}
-
-	Srv.Store.Preference().Save(&model.Preferences{teamPref, chanPref})
-
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_VIEWED, c.TeamId, "", c.Session.UserId, nil)
-	message.Add("channel_id", id)
-
-	go Publish(message)
-
-	result := make(map[string]string)
-	result["id"] = id
-	w.Write([]byte(model.MapToJson(result)))
-}
-
-func updateLastViewedAt(c *Context, w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	id := params["channel_id"]
-
-	data := model.StringInterfaceFromJson(r.Body)
-
-	var active bool
-	var ok bool
-	if active, ok = data["active"].(bool); !ok {
-		active = true
-	}
-
-	doClearPush := false
-	if *utils.Cfg.EmailSettings.SendPushNotifications && !c.Session.IsMobileApp() && active {
-		if result := <-Srv.Store.User().GetUnreadCountForChannel(c.Session.UserId, id); result.Err != nil {
-			l4g.Error(utils.T("api.channel.update_last_viewed_at.get_unread_count_for_channel.error"), c.Session.UserId, id, result.Err.Error())
-		} else {
-			if result.Data.(int64) > 0 {
-				doClearPush = true
-			}
-		}
-	}
-
-	go func() {
-		if err := SetActiveChannel(c.Session.UserId, id); err != nil {
-			l4g.Error(err.Error())
-		}
-	}()
-
-	Srv.Store.Channel().UpdateLastViewedAt(id, c.Session.UserId)
-
-	// Must be after update so that unread count is correct
-	if doClearPush {
-		go clearPushNotification(c.Session.UserId, id)
-	}
-
-	chanPref := model.Preference{
-		UserId:   c.Session.UserId,
-		Category: c.TeamId,
-		Name:     model.PREFERENCE_NAME_LAST_CHANNEL,
-		Value:    id,
-	}
-
-	teamPref := model.Preference{
-		UserId:   c.Session.UserId,
-		Category: model.PREFERENCE_CATEGORY_LAST,
-		Name:     model.PREFERENCE_NAME_LAST_TEAM,
-		Value:    c.TeamId,
-	}
-
-	Srv.Store.Preference().Save(&model.Preferences{teamPref, chanPref})
-
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_VIEWED, c.TeamId, "", c.Session.UserId, nil)
-	message.Add("channel_id", id)
-
-	go Publish(message)
-
-	result := make(map[string]string)
-	result["id"] = id
-	w.Write([]byte(model.MapToJson(result)))
-}
-
 func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["channel_id"]
@@ -1001,7 +902,27 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(data.ToJson()))
 		}
 	}
+}
 
+func SetActiveChannel(userId string, channelId string) *model.AppError {
+	status, err := GetStatus(userId)
+	if err != nil {
+		status = &model.Status{userId, model.STATUS_ONLINE, false, model.GetMillis(), channelId}
+	} else {
+		status.ActiveChannel = channelId
+		if !status.Manual {
+			status.Status = model.STATUS_ONLINE
+		}
+		status.LastActivityAt = model.GetMillis()
+	}
+
+	AddStatusCache(status)
+
+	if result := <-Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
+		return result.Err
+	}
+
+	return nil
 }
 
 func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1331,4 +1252,51 @@ func autocompleteChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(channels.ToJson()))
+}
+
+func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	view := model.ChannelViewFromJson(r.Body)
+
+	go func() {
+		if err := SetActiveChannel(c.Session.UserId, view.ChannelId); err != nil {
+			l4g.Error(err.Error())
+		}
+	}()
+
+	if len(view.ChannelId) > 0 {
+
+		if view.Time == 0 {
+			if result := <-Srv.Store.Channel().UpdateLastViewedAt(view.ChannelId, c.Session.UserId); result.Err != nil {
+				c.Err = result.Err
+				return
+			}
+		} else {
+			if result := <-Srv.Store.Channel().SetLastViewedAt(view.ChannelId, c.Session.UserId, view.Time); result.Err != nil {
+				c.Err = result.Err
+				return
+			}
+		}
+
+		if len(view.PrevChannelId) > 0 {
+			Srv.Store.Channel().UpdateLastViewedAt(view.PrevChannelId, c.Session.UserId)
+
+			// Only clear push notifications if a channel switch occured
+			if *utils.Cfg.EmailSettings.SendPushNotifications && !c.Session.IsMobileApp() {
+				go func() {
+					if result := <-Srv.Store.User().GetUnreadCountForChannel(c.Session.UserId, view.ChannelId); result.Err != nil {
+						l4g.Error(utils.T("api.channel.update_last_viewed_at.get_unread_count_for_channel.error"), c.Session.UserId, view.ChannelId, result.Err.Error())
+					} else {
+						if result.Data.(int64) > 0 {
+							clearPushNotification(c.Session.UserId, view.ChannelId)
+						}
+					}
+				}()
+			}
+		}
+
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_VIEWED, c.TeamId, "", c.Session.UserId, nil)
+		message.Add("channel_id", view.ChannelId)
+	}
+
+	ReturnStatusOK(w)
 }
