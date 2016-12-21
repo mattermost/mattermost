@@ -47,7 +47,8 @@ export default class EditPostModal extends React.Component {
             channel_id: '',
             comments: 0,
             refocusId: '',
-            ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter')
+            ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
+            postError: ''
         };
     }
 
@@ -57,6 +58,14 @@ export default class EditPostModal extends React.Component {
             id: this.state.post_id,
             channel_id: this.state.channel_id
         };
+
+        if (this.state.postError) {
+            this.setState({errorClass: 'animation--highlight'});
+            setTimeout(() => {
+                this.setState({errorClass: null});
+            }, Constants.ANIMATION_TIMEOUT);
+            return;
+        }
 
         if (updatedPost.message === this.state.originalText) {
             // no changes so just close the modal
@@ -90,9 +99,25 @@ export default class EditPostModal extends React.Component {
     }
 
     handleChange(e) {
+        const message = e.target.value;
         this.setState({
-            editText: e.target.value
+            editText: message
         });
+
+        if (message.length > Constants.CHARACTER_LIMIT) {
+            const errorMessage = (
+                <FormattedMessage
+                    id='create_post.error_message'
+                    defaultMessage='Your message is too long. Character count: {length}/{limit}'
+                    values={{
+                        length: message.length,
+                        limit: Constants.CHARACTER_LIMIT
+                    }}
+                />);
+            this.setState({postError: errorMessage});
+        } else {
+            this.setState({postError: ''});
+        }
     }
 
     handleEditKeyPress(e) {
@@ -195,9 +220,11 @@ export default class EditPostModal extends React.Component {
     }
 
     render() {
-        var error = (<div className='form-group'><br/></div>);
-        if (this.state.error) {
-            error = (<div className='form-group has-error'><br/><label className='control-label'>{this.state.error}</label></div>);
+        const errorBoxClass = 'edit-post-footer' + (this.state.postError ? ' has-error' : '');
+        let postError = null;
+        if (this.state.postError) {
+            const postErrorClass = 'post-error' + (this.state.errorClass ? (' ' + this.state.errorClass) : '');
+            postError = (<label className={postErrorClass}>{this.state.postError}</label>);
         }
 
         return (
@@ -242,7 +269,9 @@ export default class EditPostModal extends React.Component {
                                 id='edit_textbox'
                                 ref='editbox'
                             />
-                            {error}
+                            <div className={errorBoxClass}>
+                                {postError}
+                            </div>
                         </div>
                         <div className='modal-footer'>
                             <button

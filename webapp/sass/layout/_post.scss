@@ -448,20 +448,14 @@
         padding: 3px 0 0;
         position: relative;
 
-        .control-label {
+        .post-error {
             font-weight: normal;
             margin-bottom: 0;
-            position: relative;
-            top: -5px;
-
-            &.post-error {
-              display: inline-block;
-              font-size: .85em;
-              @include opacity(.55);
-              color: rgb(51, 51, 51);
-              position: absolute;
-              top: 4px;
-          }
+            display: inline-block;
+            font-size: .85em;
+            @include opacity(.55);
+            position: absolute;
+            top: 4px;
       }
   }
 
