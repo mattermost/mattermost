@@ -555,9 +555,15 @@ func TestMyTeamMembersUnread(t *testing.T) {
 	if r1 := <-store.Team().GetTeamsUnreadForUser("", uid); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
-		ms := r1.Data.([]*model.TeamUnread)
-
-		if len(ms) != 2 {
+		ms := r1.Data.([]*model.ChannelUnread)
+		membersMap := make(map[string]bool)
+		for i := range ms {
+			id := ms[i].TeamId
+			if _, ok := membersMap[id]; !ok {
+				membersMap[id] = true
+			}
+		}
+		if len(membersMap) != 2 {
 			t.Fatal("Should be the unreads for all the teams")
 		}
 	}
@@ -565,9 +571,16 @@ func TestMyTeamMembersUnread(t *testing.T) {
 	if r2 := <-store.Team().GetTeamsUnreadForUser(teamId1, uid); r2.Err != nil {
 		t.Fatal(r2.Err)
 	} else {
-		ms := r2.Data.([]*model.TeamUnread)
+		ms := r2.Data.([]*model.ChannelUnread)
+		membersMap := make(map[string]bool)
+		for i := range ms {
+			id := ms[i].TeamId
+			if _, ok := membersMap[id]; !ok {
+				membersMap[id] = true
+			}
+		}
 
-		if len(ms) != 1 {
+		if len(membersMap) != 1 {
 			t.Fatal("Should be the unreads for just one team")
 		}
 	}
