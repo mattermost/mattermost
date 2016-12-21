@@ -1251,6 +1251,7 @@ func createProfileImage(username string, userId string) ([]byte, *model.AppError
 func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["user_id"]
+	readFailed := false
 
 	if result := <-Srv.Store.User().Get(id); result.Err != nil {
 		c.Err = result.Err
@@ -1266,7 +1267,6 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		} else {
 			path := "users/" + id + "/profile.png"
-			readFailed := false
 
 			if data, err := ReadFile(path); err != nil {
 				readFailed = true
