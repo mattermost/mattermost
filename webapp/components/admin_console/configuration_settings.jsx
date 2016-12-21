@@ -10,6 +10,7 @@ import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
 import ReloadConfigButton from './reload_config.jsx';
+import PurgeCachesButton from './purge_caches.jsx';
 import WebserverModeDropdownSetting from './webserver_mode_dropdown_setting.jsx';
 import {ConnectionSecurityDropdownSettingWebserver} from './connection_security_dropdown_setting.jsx';
 import BooleanSetting from './boolean_setting.jsx';
@@ -252,6 +253,7 @@ export default class ConfigurationSettings extends AdminSettings {
                     disabled={false}
                 />
                 <ReloadConfigButton/>
+                <PurgeCachesButton/>
             </SettingsGroup>
         );
     }
