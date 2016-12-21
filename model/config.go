@@ -226,6 +226,10 @@ type TeamSettings struct {
 	RestrictTeamInvite               *string
 	RestrictPublicChannelManagement  *string
 	RestrictPrivateChannelManagement *string
+	RestrictPublicChannelCreation    *string
+	RestrictPrivateChannelCreation   *string
+	RestrictPublicChannelDeletion    *string
+	RestrictPrivateChannelDeletion   *string
 	UserStatusAwayTimeout            *int64
 	MaxChannelsPerTeam               *int64
 	MaxNotificationsPerChannel       *int64
@@ -505,6 +509,30 @@ func (o *Config) SetDefaults() {
 	if o.TeamSettings.RestrictPrivateChannelManagement == nil {
 		o.TeamSettings.RestrictPrivateChannelManagement = new(string)
 		*o.TeamSettings.RestrictPrivateChannelManagement = PERMISSIONS_ALL
+	}
+
+	if o.TeamSettings.RestrictPublicChannelCreation == nil {
+		o.TeamSettings.RestrictPublicChannelCreation = new(string)
+		// If this setting does not exist, assume migration from <3.6, so use management setting as default.
+		*o.TeamSettings.RestrictPublicChannelCreation = *o.TeamSettings.RestrictPublicChannelManagement
+	}
+
+	if o.TeamSettings.RestrictPrivateChannelCreation == nil {
+		o.TeamSettings.RestrictPrivateChannelCreation = new(string)
+		// If this setting does not exist, assume migration from <3.6, so use management setting as default.
+		*o.TeamSettings.RestrictPrivateChannelCreation = *o.TeamSettings.RestrictPrivateChannelManagement
+	}
+
+	if o.TeamSettings.RestrictPublicChannelDeletion == nil {
+		o.TeamSettings.RestrictPublicChannelDeletion = new(string)
+		// If this setting does not exist, assume migration from <3.6, so use management setting as default.
+		*o.TeamSettings.RestrictPublicChannelDeletion = *o.TeamSettings.RestrictPublicChannelManagement
+	}
+
+	if o.TeamSettings.RestrictPrivateChannelDeletion == nil {
+		o.TeamSettings.RestrictPrivateChannelDeletion = new(string)
+		// If this setting does not exist, assume migration from <3.6, so use management setting as default.
+		*o.TeamSettings.RestrictPrivateChannelDeletion = *o.TeamSettings.RestrictPrivateChannelManagement
 	}
 
 	if o.TeamSettings.UserStatusAwayTimeout == nil {

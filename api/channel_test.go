@@ -121,8 +121,8 @@ func TestCreateChannel(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	*utils.Cfg.TeamSettings.RestrictPublicChannelManagement = model.PERMISSIONS_TEAM_ADMIN
-	*utils.Cfg.TeamSettings.RestrictPrivateChannelManagement = model.PERMISSIONS_TEAM_ADMIN
+	*utils.Cfg.TeamSettings.RestrictPublicChannelCreation = model.PERMISSIONS_TEAM_ADMIN
+	*utils.Cfg.TeamSettings.RestrictPrivateChannelCreation = model.PERMISSIONS_TEAM_ADMIN
 	utils.SetDefaultRolesBasedOnConfig()
 
 	channel2.Name = "a" + model.NewId() + "a"
@@ -146,8 +146,8 @@ func TestCreateChannel(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	*utils.Cfg.TeamSettings.RestrictPublicChannelManagement = model.PERMISSIONS_SYSTEM_ADMIN
-	*utils.Cfg.TeamSettings.RestrictPrivateChannelManagement = model.PERMISSIONS_SYSTEM_ADMIN
+	*utils.Cfg.TeamSettings.RestrictPublicChannelCreation = model.PERMISSIONS_SYSTEM_ADMIN
+	*utils.Cfg.TeamSettings.RestrictPrivateChannelCreation = model.PERMISSIONS_SYSTEM_ADMIN
 	utils.SetDefaultRolesBasedOnConfig()
 
 	channel2.Name = "a" + model.NewId() + "a"
@@ -167,6 +167,10 @@ func TestCreateChannel(t *testing.T) {
 	if _, err := SystemAdminClient.CreateChannel(channel3); err != nil {
 		t.Fatal(err)
 	}
+
+	*utils.Cfg.TeamSettings.RestrictPublicChannelCreation = model.PERMISSIONS_ALL
+	*utils.Cfg.TeamSettings.RestrictPrivateChannelCreation = model.PERMISSIONS_ALL
+	utils.SetDefaultRolesBasedOnConfig()
 }
 
 func TestCreateDirectChannel(t *testing.T) {
@@ -1161,8 +1165,8 @@ func TestDeleteChannel(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	*utils.Cfg.TeamSettings.RestrictPublicChannelManagement = model.PERMISSIONS_TEAM_ADMIN
-	*utils.Cfg.TeamSettings.RestrictPrivateChannelManagement = model.PERMISSIONS_TEAM_ADMIN
+	*utils.Cfg.TeamSettings.RestrictPublicChannelDeletion = model.PERMISSIONS_TEAM_ADMIN
+	*utils.Cfg.TeamSettings.RestrictPrivateChannelDeletion = model.PERMISSIONS_TEAM_ADMIN
 	utils.SetDefaultRolesBasedOnConfig()
 
 	th.LoginSystemAdmin()
@@ -1193,8 +1197,8 @@ func TestDeleteChannel(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	*utils.Cfg.TeamSettings.RestrictPublicChannelManagement = model.PERMISSIONS_SYSTEM_ADMIN
-	*utils.Cfg.TeamSettings.RestrictPrivateChannelManagement = model.PERMISSIONS_SYSTEM_ADMIN
+	*utils.Cfg.TeamSettings.RestrictPublicChannelDeletion = model.PERMISSIONS_SYSTEM_ADMIN
+	*utils.Cfg.TeamSettings.RestrictPrivateChannelDeletion = model.PERMISSIONS_SYSTEM_ADMIN
 	utils.SetDefaultRolesBasedOnConfig()
 
 	th.LoginSystemAdmin()
@@ -1226,6 +1230,10 @@ func TestDeleteChannel(t *testing.T) {
 	if _, err := Client.DeleteChannel(channel3.Id); err != nil {
 		t.Fatal(err)
 	}
+
+	*utils.Cfg.TeamSettings.RestrictPublicChannelDeletion = model.PERMISSIONS_ALL
+	*utils.Cfg.TeamSettings.RestrictPrivateChannelDeletion = model.PERMISSIONS_ALL
+	utils.SetDefaultRolesBasedOnConfig()
 }
 
 func TestGetChannelStats(t *testing.T) {
