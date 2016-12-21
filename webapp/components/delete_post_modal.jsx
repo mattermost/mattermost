@@ -55,7 +55,7 @@ export default class DeletePostModal extends React.Component {
             this.state.post.id,
             () => {
                 PostStore.removePost(this.state.post);
-
+                PostStore.emitChange();
                 if (this.state.post.id === PostStore.getSelectedPostId()) {
                     AppDispatcher.handleServerAction({
                         type: ActionTypes.RECEIVED_POST_SELECTED,
