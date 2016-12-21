@@ -196,10 +196,7 @@ export default class CreateComment extends React.Component {
 
         GlobalActions.emitUserCommentedEvent(post);
 
-        PostActions.createPost(post, false,
-            () => {
-                // DO nothing.
-            },
+        PostActions.queuePost(post, false, null,
             (err) => {
                 if (err.id === 'api.post.create_post.root_id.app_error') {
                     this.showPostDeletedModal();
