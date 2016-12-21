@@ -125,14 +125,20 @@ class MattermostMarkdownRenderer extends marked.Renderer {
             src = parts.join(' ');
             if (lastPart[0] === '=') {
                 dimensions = lastPart.substr(1).split('x');
+                if (dimensions.length === 2 && dimensions[1] === '') {
+                    dimensions[1] = 'auto';
+                }
             }
         }
         let out = '<img src="' + src + '" alt="' + text + '"';
         if (title) {
             out += ' title="' + title + '"';
         }
-        if (dimensions.length === 2) {
-            out += ' width="' + dimensions[0] + '" height="' + dimensions[1] + '"';
+        if (dimensions.length > 0) {
+            out += ' width="' + dimensions[0] + '"';
+        }
+        if (dimensions.length > 1) {
+            out += ' height="' + dimensions[1] + '"';
         }
         out += ' onload="window.markdownImageLoaded(this)" onerror="window.markdownImageLoaded(this)" class="markdown-inline-img"';
         out += this.options.xhtml ? '/>' : '>';
