@@ -52,7 +52,7 @@ export default class EmailSettings extends AdminSettings {
             smtpPort: config.EmailSettings.SMTPPort,
             connectionSecurity: config.EmailSettings.ConnectionSecurity,
             enableEmailBatching: config.EmailSettings.EnableEmailBatching,
-            EmailNotificationContents: config.EmailSettings.EmailNotificationContents,
+            emailNotificationContents: config.EmailSettings.EmailNotificationContents,
             enableSecurityFixAlert: config.ServiceSettings.EnableSecurityFixAlert
         };
     }
