@@ -84,7 +84,7 @@ export default class WebrtcSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.webrtc.gatewayWebsocketUrlTitle'
-                            defaultMessage='Gateway Websocket URL:'
+                            defaultMessage='Gateway WebSocket URL:'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.webrtc.gatewayWebsocketUrlExample', 'Ex "wss://webrtc.mattermost.com:8189"')}
@@ -92,7 +92,7 @@ export default class WebrtcSettings extends AdminSettings {
                         <FormattedMessage
                             id='admin.webrtc.gatewayWebsocketUrlDescription'
                             defaultMessage='Enter wss://<mattermost-webrtc-gateway-url>:<port>. Make sure you use WS or WSS in your URL depending on your server configuration.
-                            This is the websocket used to signal and establish communication between the peers.'
+                            This is the WebSocket used to signal and establish communication between the peers.'
                         />
                     }
                     value={this.state.gatewayWebsocketUrl}

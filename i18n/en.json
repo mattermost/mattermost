@@ -73,7 +73,7 @@
   },
   {
     "id": "api.admin.init.debug",
-    "translation": "Initializing admin api routes"
+    "translation": "Initializing admin API routes"
   },
   {
     "id": "api.admin.recycle_db_end.warn",
@@ -197,7 +197,7 @@
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
-    "translation": "Must use createDirectChannel api service for direct message channel creation"
+    "translation": "Must use createDirectChannel API service for direct message channel creation"
   },
   {
     "id": "api.channel.create_channel.invalid_character.app_error",
@@ -217,7 +217,7 @@
   },
   {
     "id": "api.channel.create_direct_channel.invalid_user.app_error",
-    "translation": "Invalid other user id "
+    "translation": "Invalid other user ID "
   },
   {
     "id": "api.channel.delete_channel.archived",
@@ -273,7 +273,7 @@
   },
   {
     "id": "api.channel.init.debug",
-    "translation": "Initializing channel api routes"
+    "translation": "Initializing channel API routes"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -381,7 +381,7 @@
   },
   {
     "id": "api.command.delete.app_error",
-    "translation": "Inappropriate permissions to delete command"
+    "translation": "Invalid permissions to delete command"
   },
   {
     "id": "api.command.disabled.app_error",
@@ -421,7 +421,7 @@
   },
   {
     "id": "api.command.init.debug",
-    "translation": "Initializing command api routes"
+    "translation": "Initializing command API routes"
   },
   {
     "id": "api.command.invite_people.desc",
@@ -453,7 +453,7 @@
   },
   {
     "id": "api.command.regen.app_error",
-    "translation": "Inappropriate permissions to regenerate command token"
+    "translation": "Invalid permissions to regenerate command token"
   },
   {
     "id": "api.command.team_mismatch.app_error",
@@ -461,7 +461,7 @@
   },
   {
     "id": "api.command.update.app_error",
-    "translation": "Inappropriate permissions to update command"
+    "translation": "Invalid permissions to update command"
   },
   {
     "id": "api.command_away.desc",
@@ -529,7 +529,7 @@
   },
   {
     "id": "api.command_expand_collapse.fail.app_error",
-    "translation": "An error occured while expanding previews"
+    "translation": "An error occurred while expanding previews"
   },
   {
     "id": "api.command_join.desc",
@@ -537,7 +537,7 @@
   },
   {
     "id": "api.command_join.fail.app_error",
-    "translation": "An error occured while joining the channel."
+    "translation": "An error occurred while joining the channel."
   },
   {
     "id": "api.command_join.hint",
@@ -545,7 +545,7 @@
   },
   {
     "id": "api.command_join.list.app_error",
-    "translation": "An error occured while listing channels."
+    "translation": "An error occurred while listing channels."
   },
   {
     "id": "api.command_join.missing.app_error",
@@ -593,11 +593,11 @@
   },
   {
     "id": "api.command_msg.dm_fail.app_error",
-    "translation": "An error occured while creating the direct message."
+    "translation": "An error occurred while creating the direct message."
   },
   {
     "id": "api.command_msg.fail.app_error",
-    "translation": "An error occured while messaging the user."
+    "translation": "An error occurred while messaging the user."
   },
   {
     "id": "api.command_msg.hint",
@@ -605,7 +605,7 @@
   },
   {
     "id": "api.command_msg.list.app_error",
-    "translation": "An error occured while listing users."
+    "translation": "An error occurred while listing users."
   },
   {
     "id": "api.command_msg.missing.app_error",
@@ -705,7 +705,7 @@
   },
   {
     "id": "api.context.invalid_team_url.debug",
-    "translation": "TeamURL accessed when not valid. Team URL should not be used in api functions or those that are team independent"
+    "translation": "Team URL accessed when not valid. Team URL should not be used in API functions or those that are team independent"
   },
   {
     "id": "api.context.invalid_token.error",
@@ -827,7 +827,7 @@
   },
   {
     "id": "api.emoji.create.permissions.app_error",
-    "translation": "Inappropriate permissions to create emoji."
+    "translation": "Invalid permissions to create emoji."
   },
   {
     "id": "api.emoji.create.too_large.app_error",
@@ -839,7 +839,7 @@
   },
   {
     "id": "api.emoji.delete.permissions.app_error",
-    "translation": "Inappropriate permissions to delete emoji."
+    "translation": "Invalid permissions to delete emoji."
   },
   {
     "id": "api.emoji.disabled.app_error",
@@ -855,7 +855,7 @@
   },
   {
     "id": "api.emoji.init.debug",
-    "translation": "Initializing emoji api routes"
+    "translation": "Initializing emoji API routes"
   },
   {
     "id": "api.emoji.storage.app_error",
@@ -943,7 +943,7 @@
   },
   {
     "id": "api.file.init.debug",
-    "translation": "Initializing file api routes"
+    "translation": "Initializing file API routes"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.channel.app_error",
@@ -1075,7 +1075,7 @@
   },
   {
     "id": "api.general.init.debug",
-    "translation": "Initializing general api routes"
+    "translation": "Initializing general API routes"
   },
   {
     "id": "api.import.import_post.saving.debug",
@@ -1135,7 +1135,7 @@
   },
   {
     "id": "api.license.init.debug",
-    "translation": "Initializing license api routes"
+    "translation": "Initializing license API routes"
   },
   {
     "id": "api.license.remove_license.remove.app_error",
@@ -1179,7 +1179,7 @@
   },
   {
     "id": "api.oauth.delete.permissions.app_error",
-    "translation": "Inappropriate permissions to delete the OAuth2 App"
+    "translation": "Invalid permissions to delete the OAuth2 App"
   },
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
@@ -1243,11 +1243,11 @@
   },
   {
     "id": "api.oauth.init.debug",
-    "translation": "Initializing oauth api routes"
+    "translation": "Initializing OAuth API routes"
   },
   {
     "id": "api.oauth.regenerate_secret.app_error",
-    "translation": "Inappropriate permissions to regenerate the OAuth2 App Secret"
+    "translation": "Invalid permissions to regenerate the OAuth2 App Secret"
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
@@ -1401,7 +1401,7 @@
   },
   {
     "id": "api.post.init.debug",
-    "translation": "Initializing post api routes"
+    "translation": "Initializing post API routes"
   },
   {
     "id": "api.post.make_direct_channel_visible.get_2_members.error",
@@ -1533,7 +1533,7 @@
   },
   {
     "id": "api.preference.init.debug",
-    "translation": "Initializing preference api routes"
+    "translation": "Initializing preference API routes"
   },
   {
     "id": "api.preference.save_preferences.decode.app_error",
@@ -1549,7 +1549,7 @@
   },
   {
     "id": "api.reaction.delete_reaction.mismatched_channel_id.app_error",
-    "translation": "Failed to delete reaction when channel id in URL doesn't match post id in URL"
+    "translation": "Failed to delete reaction because channel ID does not match post ID in the URL"
   },
   {
     "id": "api.reaction.init.debug",
@@ -1557,11 +1557,11 @@
   },
   {
     "id": "api.reaction.list_reactions.mismatched_channel_id.app_error",
-    "translation": "Failed to get reactions when channel id in URL doesn't match post id in URL"
+    "translation": "Failed to get reactions because channel ID does not match post ID in the URL"
   },
   {
     "id": "api.reaction.save_reaction.mismatched_channel_id.app_error",
-    "translation": "Failed to save reaction when channel id in URL doesn't match post id in URL"
+    "translation": "Failed to save reaction because channel ID does not match post ID in the URL"
   },
   {
     "id": "api.reaction.send_reaction_event.post.app_error",
@@ -1789,7 +1789,7 @@
   },
   {
     "id": "api.status.init.debug",
-    "translation": "Initializing status api routes"
+    "translation": "Initializing status API routes"
   },
   {
     "id": "api.status.last_activity.error",
@@ -1853,11 +1853,11 @@
   },
   {
     "id": "api.team.import_team.unavailable.app_error",
-    "translation": "Filesize unavilable"
+    "translation": "Malformed request: filesize field is not present."
   },
   {
     "id": "api.team.init.debug",
-    "translation": "Initializing team api routes"
+    "translation": "Initializing team API routes"
   },
   {
     "id": "api.team.invite_members.admin",
@@ -2321,7 +2321,7 @@
   },
   {
     "id": "api.user.init.debug",
-    "translation": "Initializing user api routes"
+    "translation": "Initializing user API routes"
   },
   {
     "id": "api.user.ldap_to_email.not_available.app_error",
@@ -2345,7 +2345,7 @@
   },
   {
     "id": "api.user.login.not_provided.app_error",
-    "translation": "Either user id or team name and user email must be provided"
+    "translation": "Must provide either user ID, or team name and user email"
   },
   {
     "id": "api.user.login.not_verified.app_error",
@@ -2581,7 +2581,7 @@
   },
   {
     "id": "api.web_socket.init.debug",
-    "translation": "Initializing web socket api routes"
+    "translation": "Initializing web socket API routes"
   },
   {
     "id": "api.web_socket_handler.log.error",
@@ -2613,7 +2613,7 @@
   },
   {
     "id": "api.webhook.create_outgoing.permissions.app_error",
-    "translation": "Inappropriate permissions to create outcoming webhook."
+    "translation": "Invalid permissions to create outgoing webhook."
   },
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",
@@ -2625,7 +2625,7 @@
   },
   {
     "id": "api.webhook.delete_incoming.permissions.app_errror",
-    "translation": "Inappropriate permissions to delete incoming webhook"
+    "translation": "Invalid permissions to delete incoming webhook"
   },
   {
     "id": "api.webhook.delete_outgoing.disabled.app_error",
@@ -2633,7 +2633,7 @@
   },
   {
     "id": "api.webhook.delete_outgoing.permissions.app_error",
-    "translation": "Inappropriate permissions to delete outcoming webhook"
+    "translation": "Invalid permissions to delete outcoming webhook"
   },
   {
     "id": "api.webhook.get_incoming.disabled.app_error",
@@ -2653,7 +2653,7 @@
   },
   {
     "id": "api.webhook.init.debug",
-    "translation": "Initializing webhook api routes"
+    "translation": "Initializing webhook API routes"
   },
   {
     "id": "api.webhook.regen_outgoing_token.disabled.app_error",
@@ -2661,7 +2661,7 @@
   },
   {
     "id": "api.webhook.regen_outgoing_token.permissions.app_error",
-    "translation": "Inappropriate permissions to regenerate outcoming webhook token"
+    "translation": "Invalid permissions to regenerate outcoming webhook token"
   },
   {
     "id": "api.webrtc.disabled.app_error",
@@ -2669,7 +2669,7 @@
   },
   {
     "id": "api.webrtc.init.debug",
-    "translation": "Initializing WebRTC api routes"
+    "translation": "Initializing WebRTC API routes"
   },
   {
     "id": "api.webrtc.register_token.app_error",
@@ -2981,7 +2981,7 @@
   },
   {
     "id": "error.generic.message",
-    "translation": "An error has occoured."
+    "translation": "An error has occurred."
   },
   {
     "id": "error.generic.title",
@@ -3017,7 +3017,7 @@
   },
   {
     "id": "manaultesting.get_channel_id.no_found.debug",
-    "translation": "Could not find channel: %v, %v possibilites searched"
+    "translation": "Could not find channel: %v, %v possibilities searched"
   },
   {
     "id": "manaultesting.get_channel_id.unable.debug",
@@ -3037,7 +3037,7 @@
   },
   {
     "id": "manaultesting.manual_test.uid.debug",
-    "translation": "No uid in url"
+    "translation": "No uid in URL"
   },
   {
     "id": "manaultesting.test_autolink.info",
@@ -3249,7 +3249,7 @@
   },
   {
     "id": "model.command.is_valid.team_id.app_error",
-    "translation": "Invalid team id"
+    "translation": "Invalid team ID"
   },
   {
     "id": "model.command.is_valid.token.app_error",
@@ -3265,7 +3265,7 @@
   },
   {
     "id": "model.command.is_valid.url.app_error",
-    "translation": "Invalid url"
+    "translation": "Invalid URL"
   },
   {
     "id": "model.command.is_valid.url_http.app_error",
@@ -3533,15 +3533,15 @@
   },
   {
     "id": "model.config.is_valid.webrtc_gateway_admin_url.app_error",
-    "translation": "WebRTC Gateway Admin Url must be set a valid URL and start with http:// or https://."
+    "translation": "WebRTC Gateway Admin URL must be a valid URL starting with http:// or https://."
   },
   {
     "id": "model.config.is_valid.webrtc_gateway_ws_url.app_error",
-    "translation": "WebRTC Gateway Websocket Url must be a valid URL and start with ws:// or wss://."
+    "translation": "WebRTC Gateway Websocket URL must be a valid URL starting with ws:// or wss://."
   },
   {
     "id": "model.config.is_valid.webrtc_stun_uri.app_error",
-    "translation": "WebRTC STUN URI must be a valid URI and start with stun:"
+    "translation": "WebRTC STUN URI must be a valid URL starting with stun:"
   },
   {
     "id": "model.config.is_valid.webrtc_turn_shared_key.app_error",
@@ -3609,7 +3609,7 @@
   },
   {
     "id": "model.incoming_hook.team_id.app_error",
-    "translation": "Invalid team id"
+    "translation": "Invalid team ID"
   },
   {
     "id": "model.incoming_hook.update_at.app_error",
@@ -3661,7 +3661,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.callback.app_error",
-    "translation": "Invalid callback urls"
+    "translation": "Invalid callback URLs"
   },
   {
     "id": "model.outgoing_hook.is_valid.channel_id.app_error",
@@ -3685,7 +3685,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.team_id.app_error",
-    "translation": "Invalid team id"
+    "translation": "Invalid team ID"
   },
   {
     "id": "model.outgoing_hook.is_valid.token.app_error",
@@ -3757,7 +3757,7 @@
   },
   {
     "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "Invalid root id must be set if parent id set"
+    "translation": "Invalid root ID must be set if parent ID set"
   },
   {
     "id": "model.post.is_valid.type.app_error",
@@ -3861,7 +3861,7 @@
   },
   {
     "id": "model.team_member.is_valid.team_id.app_error",
-    "translation": "Invalid team id"
+    "translation": "Invalid team ID"
   },
   {
     "id": "model.team_member.is_valid.user_id.app_error",
@@ -3973,7 +3973,7 @@
   },
   {
     "id": "model.user.is_valid.team_id.app_error",
-    "translation": "Invalid team id"
+    "translation": "Invalid team ID"
   },
   {
     "id": "model.user.is_valid.update_at.app_error",
@@ -4065,19 +4065,19 @@
   },
   {
     "id": "store.sql.open_conn.critical",
-    "translation": "Failed to open sql connection to err:%v"
+    "translation": "Failed to open SQL connection to err:%v"
   },
   {
     "id": "store.sql.open_conn.panic",
-    "translation": "Failed to open sql connection %v"
+    "translation": "Failed to open SQL connection %v"
   },
   {
     "id": "store.sql.ping.critical",
-    "translation": "Failed to ping db err:%v"
+    "translation": "Failed to ping DB err:%v"
   },
   {
     "id": "store.sql.pinging.info",
-    "translation": "Pinging sql %v database"
+    "translation": "Pinging SQL %v database"
   },
   {
     "id": "store.sql.read_replicas_not_licensed.critical",
@@ -4213,7 +4213,7 @@
   },
   {
     "id": "store.sql_channel.get_member.missing.app_error",
-    "translation": "No channel member found for that user id and channel id"
+    "translation": "No channel member found for that user ID and channel ID"
   },
   {
     "id": "store.sql_channel.get_member_count.app_error",
@@ -4265,7 +4265,7 @@
   },
   {
     "id": "store.sql_channel.save_channel.existing.app_error",
-    "translation": "Must call update for exisiting channel"
+    "translation": "Must call update for existing channel"
   },
   {
     "id": "store.sql_channel.save_channel.exists.app_error",
@@ -4305,7 +4305,7 @@
   },
   {
     "id": "store.sql_channel.save_member.exists.app_error",
-    "translation": "A channel member with that id already exists"
+    "translation": "A channel member with that ID already exists"
   },
   {
     "id": "store.sql_channel.save_member.open_transaction.app_error",
@@ -4517,7 +4517,7 @@
   },
   {
     "id": "store.sql_oauth.save_app.existing.app_error",
-    "translation": "Must call update for exisiting app"
+    "translation": "Must call update for existing app"
   },
   {
     "id": "store.sql_oauth.save_app.save.app_error",
@@ -4873,7 +4873,7 @@
   },
   {
     "id": "store.sql_team.get_member.missing.app_error",
-    "translation": "No team member found for that user id and team id"
+    "translation": "No team member found for that user ID and team ID"
   },
   {
     "id": "store.sql_team.get_member_count.app_error",
@@ -4913,11 +4913,11 @@
   },
   {
     "id": "store.sql_team.save.existing.app_error",
-    "translation": "Must call update for exisiting team"
+    "translation": "Must call update for existing team"
   },
   {
     "id": "store.sql_team.save_member.exists.app_error",
-    "translation": "A team member with that id already exists"
+    "translation": "A team member with that ID already exists"
   },
   {
     "id": "store.sql_team.save_member.save.app_error",
@@ -5029,7 +5029,7 @@
   },
   {
     "id": "store.sql_user.save.existing.app_error",
-    "translation": "Must call update for exisiting user"
+    "translation": "Must call update for existing user"
   },
   {
     "id": "store.sql_user.save.max_accounts.app_error",
@@ -5277,7 +5277,7 @@
   },
   {
     "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "Failed to add email messsage data"
+    "translation": "Failed to add email message data"
   },
   {
     "id": "utils.mail.send_mail.sending.debug",
@@ -5305,7 +5305,7 @@
   },
   {
     "id": "web.check_browser_compatibility.app_error",
-    "translation": "Your current browser is not supported, please upgrade to one of the following browsers: Google Chrome 21 or higher, Internet Explorer 11 or higher, FireFox 14 or higher, Safari 9 or higher"
+    "translation": "Your current browser is not supported, please upgrade to one of the following browsers: Google Chrome 21 or higher, Internet Explorer 11 or higher, Firefox 14 or higher, Safari 9 or higher"
   },
   {
     "id": "web.claim_account.team.error",
