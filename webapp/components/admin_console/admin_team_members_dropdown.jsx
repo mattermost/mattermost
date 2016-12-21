@@ -10,7 +10,7 @@ import Client from 'client/web_client.jsx';
 import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
-import {updateUserRoles} from 'actions/user_actions.jsx';
+import {updateUserRoles, updateActive} from 'actions/user_actions.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
@@ -92,10 +92,7 @@ export default class AdminTeamMembersDropdown extends React.Component {
 
     handleMakeActive(e) {
         e.preventDefault();
-        Client.updateActive(this.props.user.id, true,
-            () => {
-                AsyncClient.getUser(this.props.user.id);
-            },
+        updateActive(this.props.user.id, true, null,
             (err) => {
                 this.setState({serverError: err.message});
             }
@@ -104,10 +101,7 @@ export default class AdminTeamMembersDropdown extends React.Component {
 
     handleMakeNotActive(e) {
         e.preventDefault();
-        Client.updateActive(this.props.user.id, false,
-            () => {
-                AsyncClient.getUser(this.props.user.id);
-            },
+        updateActive(this.props.user.id, false, null,
             (err) => {
                 this.setState({serverError: err.message});
             }
