@@ -20,12 +20,12 @@ import {FormattedMessage} from 'react-intl';
 
 const EnableThemeManagement = (global.window.mm_config.EnableThemeSelection === 'true');
 const EnableFontManagement = false;
-const EnableDisplayNameManagement = false;
+const EnableDisplayNameManagement = true;
 
 function getDisplayStateFromStores() {
     return {
         militaryTime: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'use_military_time', 'false'),
-        nameFormat: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'username'),
+        nameFormat: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'full_name'),
         selectedFont: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'selected_font', Constants.DEFAULT_FONT),
         channelDisplayMode: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT),
         messageDisplay: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT),
@@ -387,24 +387,19 @@ export default class UserSettingsDisplay extends React.Component {
         const showUsername = (
             <FormattedMessage
                 id='user.settings.display.showUsername'
-                defaultMessage='Show username (default)'
-            />
-        );
-        const showNickname = (
-            <FormattedMessage
-                id='user.settings.display.showNickname'
-                defaultMessage='Show nickname if one exists, otherwise show first and last name'
+                defaultMessage='Show username'
             />
         );
         const showFullName = (
             <FormattedMessage
                 id='user.settings.display.showFullname'
-                defaultMessage='Show first and last name'
+                defaultMessage='Show first and last name (default)'
             />
         );
         if (this.props.activeSection === 'name_format') {
             const nameFormat = [false, false, false];
             if (this.state.nameFormat === 'nickname_full_name') {
+                // we do not support nicknames so this case should not happen
                 nameFormat[0] = true;
             } else if (this.state.nameFormat === 'full_name') {
                 nameFormat[2] = true;
@@ -419,34 +414,22 @@ export default class UserSettingsDisplay extends React.Component {
                             <input
                                 type='radio'
                                 name='nameFormat'
-                                checked={nameFormat[1]}
-                                onChange={this.handleNameRadio.bind(this, 'username')}
-                            />
-                            {showUsername}
-                        </label>
-                        <br/>
-                    </div>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                type='radio'
-                                name='nameFormat'
-                                checked={nameFormat[0]}
-                                onChange={this.handleNameRadio.bind(this, 'nickname_full_name')}
-                            />
-                            {showNickname}
-                        </label>
-                        <br/>
-                    </div>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                type='radio'
-                                name='nameFormat'
                                 checked={nameFormat[2]}
                                 onChange={this.handleNameRadio.bind(this, 'full_name')}
                             />
                             {showFullName}
+                        </label>
+                        <br/>
+                    </div>
+                    <div className='radio'>
+                        <label>
+                            <input
+                                type='radio'
+                                name='nameFormat'
+                                checked={nameFormat[1]}
+                                onChange={this.handleNameRadio.bind(this, 'username')}
+                            />
+                            {showUsername}
                         </label>
                         <br/>
                     </div>
@@ -488,21 +471,14 @@ export default class UserSettingsDisplay extends React.Component {
                 describe = (
                     <FormattedMessage
                         id='user.settings.display.showUsername'
-                        defaultMessage='Show username (default)'
+                        defaultMessage='Show username'
                     />
                 );
             } else if (this.state.nameFormat === 'full_name') {
                 describe = (
                     <FormattedMessage
                         id='user.settings.display.showFullname'
-                        defaultMessage='Show first and last name'
-                    />
-                );
-            } else {
-                describe = (
-                    <FormattedMessage
-                        id='user.settings.display.showNickname'
-                        defaultMessage='Show nickname if one exists, otherwise show first and last name'
+                        defaultMessage='Show first and last name (default)'
                     />
                 );
             }
