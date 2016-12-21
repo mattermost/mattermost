@@ -79,12 +79,10 @@ export default class PostBodyAdditionalContent extends React.Component {
     }
 
     isLinkImage(link) {
-        for (let i = 0; i < Constants.IMAGE_TYPES.length; i++) {
-            const imageType = Constants.IMAGE_TYPES[i];
-            const suffix = link.substring(link.length - (imageType.length + 1));
-            if (suffix === '.' + imageType || suffix === '=' + imageType) {
-                return true;
-            }
+        const regex = /.+\/(.+\.(?:jpg|gif|bmp|png|jpeg))(?:\?.*)?$/i;
+        const match = link.match(regex);
+        if (match && match[1]) {
+            return true;
         }
 
         return false;
