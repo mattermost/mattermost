@@ -55,6 +55,7 @@ export default class CreateComment extends React.Component {
         this.focusTextbox = this.focusTextbox.bind(this);
         this.showPostDeletedModal = this.showPostDeletedModal.bind(this);
         this.hidePostDeletedModal = this.hidePostDeletedModal.bind(this);
+        this.checkMessageLength = this.checkMessageLength.bind(this);
 
         PostStore.clearCommentDraftUploads();
         MessageHistoryStore.resetHistoryIndex('comment');
@@ -74,6 +75,10 @@ export default class CreateComment extends React.Component {
     componentDidMount() {
         PreferenceStore.addChangeListener(this.onPreferenceChange);
         this.focusTextbox();
+    }
+
+    componentWillMount() {
+        this.checkMessageLength(this.state.message);
     }
 
     componentWillUnmount() {
@@ -109,16 +114,11 @@ export default class CreateComment extends React.Component {
 
         const message = this.state.message;
 
-        if (message.length > Constants.CHARACTER_LIMIT) {
-            this.setState({
-                postError: (
-                    <FormattedMessage
-                        id='create_comment.commentLength'
-                        defaultMessage='Comment length must be less than {max} characters.'
-                        values={{max: Constants.CHARACTER_LIMIT}}
-                    />
-                )
-            });
+        if (this.state.postError) {
+            this.setState({errorClass: 'animation--highlight'});
+            setTimeout(() => {
+                this.setState({errorClass: null});
+            }, Constants.ANIMATION_TIMEOUT);
             return;
         }
 
@@ -260,6 +260,25 @@ export default class CreateComment extends React.Component {
         $('.post-right__scroll').parent().scrollTop($('.post-right__scroll')[0].scrollHeight);
 
         this.setState({message});
+
+        this.checkMessageLength(message);
+    }
+
+    checkMessageLength(message) {
+        if (message.length > Constants.CHARACTER_LIMIT) {
+            const errorMessage = (
+                <FormattedMessage
+                    id='create_post.error_message'
+                    defaultMessage='Your message is too long. Character count: {length}/{limit}'
+                    values={{
+                        length: message.length,
+                        limit: Constants.CHARACTER_LIMIT
+                    }}
+                />);
+            this.setState({postError: errorMessage});
+        } else {
+            this.setState({postError: null});
+        }
     }
 
     handleKeyDown(e) {
@@ -420,7 +439,7 @@ export default class CreateComment extends React.Component {
 
         let postError = null;
         if (this.state.postError) {
-            postError = <label className='control-label'>{this.state.postError}</label>;
+            postError = <label className='post-error'>{this.state.postError}</label>;
         }
 
         let preview = null;
