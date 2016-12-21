@@ -86,7 +86,7 @@ export default class SwitchChannelProvider {
                             }
 
                             const newChannel = {
-                                display_name: user.username,
+                                display_name: Utils.getFullName(user) + ' - ' + user.username,
                                 name: user.username + ' ' + Utils.localizeMessage('channel_switch_modal.dm', '(Direct Message)'),
                                 type: Constants.DM_CHANNEL
                             };
