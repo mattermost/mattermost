@@ -159,27 +159,28 @@ type FileSettings struct {
 }
 
 type EmailSettings struct {
-	EnableSignUpWithEmail    bool
-	EnableSignInWithEmail    *bool
-	EnableSignInWithUsername *bool
-	SendEmailNotifications   bool
-	RequireEmailVerification bool
-	FeedbackName             string
-	FeedbackEmail            string
-	FeedbackOrganization     *string
-	SMTPUsername             string
-	SMTPPassword             string
-	SMTPServer               string
-	SMTPPort                 string
-	ConnectionSecurity       string
-	InviteSalt               string
-	PasswordResetSalt        string
-	SendPushNotifications    *bool
-	PushNotificationServer   *string
-	PushNotificationContents *string
-	EnableEmailBatching      *bool
-	EmailBatchingBufferSize  *int
-	EmailBatchingInterval    *int
+	EnableSignUpWithEmail     bool
+	EnableSignInWithEmail     *bool
+	EnableSignInWithUsername  *bool
+	SendEmailNotifications    bool
+	EmailNotificationContents *string
+	RequireEmailVerification  bool
+	FeedbackName              string
+	FeedbackEmail             string
+	FeedbackOrganization      *string
+	SMTPUsername              string
+	SMTPPassword              string
+	SMTPServer                string
+	SMTPPort                  string
+	ConnectionSecurity        string
+	InviteSalt                string
+	PasswordResetSalt         string
+	SendPushNotifications     *bool
+	PushNotificationServer    *string
+	PushNotificationContents  *string
+	EnableEmailBatching       *bool
+	EmailBatchingBufferSize   *int
+	EmailBatchingInterval     *int
 }
 
 type RateLimitSettings struct {
@@ -546,6 +547,11 @@ func (o *Config) SetDefaults() {
 		} else {
 			*o.EmailSettings.EnableSignInWithEmail = false
 		}
+	}
+
+	if o.EmailSettings.EmailNotificationContents == nil {
+		o.EmailSettings.EmailNotificationContents = new(string)
+		*o.EmailSettings.EmailNotificationContents = FULL_NOTIFICATION
 	}
 
 	if o.EmailSettings.EnableSignInWithUsername == nil {

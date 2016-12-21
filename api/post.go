@@ -913,8 +913,14 @@ func sendNotificationEmail(c *Context, post *model.Post, user *model.User, chann
 	subjectPage.Props["SiteName"] = utils.Cfg.TeamSettings.SiteName
 
 	bodyPage := utils.NewHTMLTemplate("post_body", user.Locale)
+
+	if *utils.Cfg.EmailSettings.EmailNotificationContents == model.FULL_NOTIFICATION {
+		bodyPage.Props["PostMessage"] = getMessageForNotification(post, userLocale)
+	} else {
+		bodyPage.Props["PostMessage"] = ""
+	}
+
 	bodyPage.Props["SiteURL"] = c.GetSiteURL()
-	bodyPage.Props["PostMessage"] = getMessageForNotification(post, userLocale)
 	bodyPage.Props["TeamLink"] = teamURL + "/pl/" + post.Id
 	bodyPage.Props["BodyText"] = bodyText
 	bodyPage.Props["Button"] = userLocale("api.templates.post_body.button")

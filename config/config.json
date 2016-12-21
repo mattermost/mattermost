@@ -115,6 +115,7 @@
         "EnableSignInWithEmail": true,
         "EnableSignInWithUsername": true,
         "SendEmailNotifications": false,
+        "EmailNotificationContents": "generic",
         "RequireEmailVerification": false,
         "FeedbackName": "",
         "FeedbackEmail": "",
