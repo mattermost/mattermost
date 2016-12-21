@@ -722,18 +722,12 @@ export default class Sidebar extends React.Component {
             </OverlayTrigger>
         );
 
-        if (global.window.mm_license.IsLicensed === 'true') {
-            if (global.window.mm_config.RestrictPublicChannelManagement === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
-                createPublicChannelIcon = null;
-            } else if (global.window.mm_config.RestrictPublicChannelManagement === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
-                createPublicChannelIcon = null;
-            }
+        if (!ChannelUtils.showCreateOption(Constants.OPEN_CHANNEL, isAdmin, isSystemAdmin)) {
+            createPublicChannelIcon = null;
+        }
 
-            if (global.window.mm_config.RestrictPrivateChannelManagement === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
-                createPrivateChannelIcon = null;
-            } else if (global.window.mm_config.RestrictPrivateChannelManagement === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
-                createPrivateChannelIcon = null;
-            }
+        if (!ChannelUtils.showCreateOption(Constants.PRIVATE_CHANNEL, isAdmin, isSystemAdmin)) {
+            createPrivateChannelIcon = null;
         }
 
         let moreDirectChannelsModal;
