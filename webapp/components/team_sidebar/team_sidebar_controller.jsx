@@ -131,6 +131,7 @@ export default class TeamSidebar extends React.Component {
         if (moreTeams) {
             teams.push(
                 <TeamButton
+                    btnClass='team-btn__add'
                     key='more_teams'
                     url='/select_team'
                     tip={
@@ -145,6 +146,7 @@ export default class TeamSidebar extends React.Component {
         } else if (global.window.mm_config.EnableTeamCreation === 'true' || isSystemAdmin) {
             teams.push(
                 <TeamButton
+                    btnClass='team-btn__add'
                     key='more_teams'
                     url='/create_team'
                     tip={

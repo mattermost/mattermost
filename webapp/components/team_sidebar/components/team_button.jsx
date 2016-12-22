@@ -23,6 +23,7 @@ export default class TeamButton extends React.Component {
 
     render() {
         let teamClass = this.props.active ? 'active' : '';
+        const btnClass = this.props.btnClass;
         const disabled = this.props.disabled ? 'team-disabled' : '';
         const handleClick = (this.props.active || this.props.disabled) ? this.handleDisabled : null;
         let badge;
@@ -41,7 +42,7 @@ export default class TeamButton extends React.Component {
         let content = this.props.content;
         if (!content) {
             content = (
-                <div>
+                <div className='team-btn__initials'>
                     {this.props.displayName.substring(0, 2)}
                     <div className='team-btn__content'>
                         {this.props.displayName}
@@ -60,7 +61,7 @@ export default class TeamButton extends React.Component {
                         </Tooltip>
                     }
                 >
-                    <div className='team-btn'>
+                    <div className={'team-btn ' + btnClass}>
                         {badge}
                         {content}
                     </div>
@@ -68,7 +69,7 @@ export default class TeamButton extends React.Component {
             );
         } else {
             btn = (
-                <div className='team-btn'>
+                <div className={'team-btn ' + btnClass}>
                     {badge}
                     {content}
                 </div>
@@ -92,6 +93,7 @@ export default class TeamButton extends React.Component {
 }
 
 TeamButton.defaultProps = {
+    btnClass: '',
     tip: '',
     placement: 'right',
     active: false,
@@ -101,6 +103,7 @@ TeamButton.defaultProps = {
 };
 
 TeamButton.propTypes = {
+    btnClass: React.PropTypes.string,
     url: React.PropTypes.string.isRequired,
     displayName: React.PropTypes.string,
     content: React.PropTypes.node,
