@@ -1295,7 +1295,7 @@ func getPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pchan := Srv.Store.Post().GetPosts(id, offset, limit)
+	pchan := Srv.Store.Post().GetPosts(id, offset, limit, true)
 
 	if result := <-pchan; result.Err != nil {
 		c.Err = result.Err
