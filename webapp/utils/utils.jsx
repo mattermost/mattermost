@@ -946,7 +946,7 @@ export function displayUsername(userId) {
 }
 
 export function displayUsernameForUser(user) {
-    const nameFormat = PreferenceStore.get(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'false');
+    const nameFormat = PreferenceStore.get(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', Constants.Preferences.DEFAULT_NAME_FORMAT);
 
     let username = '';
     if (user) {
