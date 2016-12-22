@@ -23,23 +23,28 @@
                 .team-btn {
                     @include border-radius(2px);
                     background-color: alpha-color($black, .3);
+                    border: 1px solid transparent;
                     display: table-cell;
+                    font-size: 12px;
                     font-weight: bold;
+                    padding: 4px 5px;
                     position: relative;
                     text-align: center;
-                    vertical-align: middle;
-                    height: 40px;
+                    vertical-align: top;
                     width: 40px;
 
+                    .team-btn__initials {
+                        text-align: left;
+                    }
+
                     .team-btn__content {
-                        font-size: 9px;
+                        bottom: 4px;
+                        font-size: 8.5px;
+                        font-weight: normal;
                         overflow: hidden;
                         text-overflow: ellipsis;
-                        width: 40px;
-                        padding: 0 2px;
                         white-space: nowrap;
-                        position: relative;
-                        top: -3px;
+                        width: 31px;
                     }
 
                     .badge {
@@ -48,18 +53,17 @@
                         right: -6px;
                         top: -3px;
                     }
+
+                    &.team-btn__add {
+                        height: 39px;
+                        vertical-align: middle;
+                    }
                 }
 
                 &.active {
                     .team-btn {
                         background-color: transparent;
-                        border: 1px solid $white;
-                        height: 39px;
-                        width: 39px;
-
-                        .team-btn__content {
-                            width: 39px;
-                        }
+                        border-color: $white;
                     }
                 }
 
