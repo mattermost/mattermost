@@ -39,6 +39,7 @@ func InitChannel() {
 	BaseRoutes.NeedChannel.Handle("/", ApiUserRequired(getChannel)).Methods("GET")
 	BaseRoutes.NeedChannel.Handle("/stats", ApiUserRequired(getChannelStats)).Methods("GET")
 	BaseRoutes.NeedChannel.Handle("/members/{user_id:[A-Za-z0-9]+}", ApiUserRequired(getChannelMember)).Methods("GET")
+	BaseRoutes.NeedChannel.Handle("/members/ids", ApiUserRequired(getChannelMembersByIds)).Methods("POST")
 	BaseRoutes.NeedChannel.Handle("/join", ApiUserRequired(join)).Methods("POST")
 	BaseRoutes.NeedChannel.Handle("/leave", ApiUserRequired(leave)).Methods("POST")
 	BaseRoutes.NeedChannel.Handle("/delete", ApiUserRequired(deleteChannel)).Methods("POST")
@@ -1299,4 +1300,28 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
+}
+
+func getChannelMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	channelId := params["channel_id"]
+
+	userIds := model.ArrayFromJson(r.Body)
+	if len(userIds) == 0 {
+		c.SetInvalidParam("getChannelMembersByIds", "user_ids")
+		return
+	}
+
+	if !HasPermissionToChannelContext(c, channelId, model.PERMISSION_READ_CHANNEL) {
+		return
+	}
+
+	if result := <-Srv.Store.Channel().GetMembersByIds(channelId, userIds); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		members := result.Data.(model.ChannelMembers)
+		w.Write([]byte(members.ToJson()))
+		return
+	}
 }

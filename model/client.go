@@ -1387,6 +1387,18 @@ func (c *Client) GetChannelMember(channelId string, userId string) (*Result, *Ap
 	}
 }
 
+// GetChannelMembersByIds will return channel member objects as an array based on the
+// channel id and a list of user ids provided. Must be authenticated.
+func (c *Client) GetChannelMembersByIds(channelId string, userIds []string) (*Result, *AppError) {
+	if r, err := c.DoApiPost(c.GetChannelRoute(channelId)+"/members/ids", ArrayToJson(userIds)); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), ChannelMembersFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) CreatePost(post *Post) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetChannelRoute(post.ChannelId)+"/posts/create", post.ToJson()); err != nil {
 		return nil, err

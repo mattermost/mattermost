@@ -1280,3 +1280,48 @@ func TestChannelStoreSearchInTeam(t *testing.T) {
 		}
 	}
 }
+
+func TestChannelStoreGetMembersByIds(t *testing.T) {
+	Setup()
+
+	o1 := model.Channel{}
+	o1.TeamId = model.NewId()
+	o1.DisplayName = "ChannelA"
+	o1.Name = "a" + model.NewId() + "b"
+	o1.Type = model.CHANNEL_OPEN
+	Must(store.Channel().Save(&o1))
+
+	m1 := &model.ChannelMember{ChannelId: o1.Id, UserId: model.NewId(), NotifyProps: model.GetDefaultChannelNotifyProps()}
+	Must(store.Channel().SaveMember(m1))
+
+	if r := <-store.Channel().GetMembersByIds(m1.ChannelId, []string{m1.UserId}); r.Err != nil {
+		t.Fatal(r.Err)
+	} else {
+		rm1 := r.Data.(model.ChannelMembers)[0]
+
+		if rm1.ChannelId != m1.ChannelId {
+			t.Fatal("bad team id")
+		}
+
+		if rm1.UserId != m1.UserId {
+			t.Fatal("bad user id")
+		}
+	}
+
+	m2 := &model.ChannelMember{ChannelId: o1.Id, UserId: model.NewId(), NotifyProps: model.GetDefaultChannelNotifyProps()}
+	Must(store.Channel().SaveMember(m2))
+
+	if r := <-store.Channel().GetMembersByIds(m1.ChannelId, []string{m1.UserId, m2.UserId, model.NewId()}); r.Err != nil {
+		t.Fatal(r.Err)
+	} else {
+		rm := r.Data.(model.ChannelMembers)
+
+		if len(rm) != 2 {
+			t.Fatal("return wrong number of results")
+		}
+	}
+
+	if r := <-store.Channel().GetMembersByIds(m1.ChannelId, []string{}); r.Err == nil {
+		t.Fatal("empty user ids - should have failed")
+	}
+}

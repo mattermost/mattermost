@@ -4176,6 +4176,10 @@
     "translation": "We encountered an error finding the channel"
   },
   {
+    "id": "store.sql_channel.get_members_by_ids.app_error",
+    "translation": "We couldn't get the channel members"
+  },
+  {
     "id": "store.sql_channel.get_all.app_error",
     "translation": "We couldn't get all the channels"
   },

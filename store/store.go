@@ -118,6 +118,7 @@ type ChannelStore interface {
 	GetMembersForUser(teamId string, userId string) StoreChannel
 	SearchInTeam(teamId string, term string) StoreChannel
 	SearchMore(userId string, teamId string, term string) StoreChannel
+	GetMembersByIds(channelId string, userIds []string) StoreChannel
 }
 
 type PostStore interface {
