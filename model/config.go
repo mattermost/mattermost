@@ -391,21 +391,30 @@ func (o *Config) SetDefaults() {
 		// Defaults to "s3.amazonaws.com"
 		o.FileSettings.AmazonS3Endpoint = "s3.amazonaws.com"
 	}
+
 	if o.FileSettings.AmazonS3Region == "" {
 		// Defaults to "us-east-1" region.
 		o.FileSettings.AmazonS3Region = "us-east-1"
 	}
+
 	if o.FileSettings.AmazonS3SSL == nil {
 		o.FileSettings.AmazonS3SSL = new(bool)
 		*o.FileSettings.AmazonS3SSL = true // Secure by default.
 	}
+
 	if o.FileSettings.MaxFileSize == nil {
 		o.FileSettings.MaxFileSize = new(int64)
 		*o.FileSettings.MaxFileSize = 52428800 // 50 MB
 	}
+
 	if len(*o.FileSettings.PublicLinkSalt) == 0 {
 		o.FileSettings.PublicLinkSalt = new(string)
 		*o.FileSettings.PublicLinkSalt = NewRandomString(32)
+	}
+
+	if len(*o.FileSettings.InitialFont) == nil {
+		o.FileSettings.InitialFont = new(string)
+		*o.FileSettings.InitialFont = "luximbi.ttf"
 	}
 
 	if len(o.EmailSettings.InviteSalt) == 0 {
