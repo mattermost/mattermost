@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	"net/http"
 	"testing"
 )
 
@@ -646,8 +647,54 @@ func TestIncomingWebhooks(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if _, err := Client.DoPost(url, "{\"text\":\"\"}", "application/json"); err == nil {
+	if _, err := Client.DoPost(url, "{\"text\":\"\"}", "application/json"); err == nil || err.StatusCode != http.StatusBadRequest {
 		t.Fatal("should have failed - no text")
+	}
+
+	tooLongText := ""
+	for i := 0; i < 8200; i++ {
+		tooLongText += "a"
+	}
+
+	if _, err := Client.DoPost(url, "{\"text\":\""+tooLongText+"\"}", "application/json"); err == nil || err.StatusCode != http.StatusBadRequest {
+		t.Fatal("should have failed - text too long")
+	}
+
+	attachmentPayload = `{
+        "text": "this is a test",
+        "attachments": [
+            {
+                "fallback": "Required plain-text summary of the attachment.",
+
+                "color": "#36a64f",
+
+                "pretext": "Optional text that appears above the attachment block",
+
+                "author_name": "Bobby Tables",
+                "author_link": "http://flickr.com/bobby/",
+                "author_icon": "http://flickr.com/icons/bobby.jpg",
+
+                "title": "Slack API Documentation",
+                "title_link": "https://api.slack.com/",
+
+                "text": "` + tooLongText + `",
+
+                "fields": [
+                    {
+                        "title": "Priority",
+                        "value": "High",
+                        "short": false
+                    }
+                ],
+
+                "image_url": "http://my-website.com/path/to/image.jpg",
+                "thumb_url": "http://example.com/path/to/thumb.png"
+            }
+        ]
+    }`
+
+	if _, err := Client.DoPost(url, attachmentPayload, "application/json"); err == nil || err.StatusCode != http.StatusBadRequest {
+		t.Fatal("should have failed with bad request - attachment too long")
 	}
 
 	utils.Cfg.ServiceSettings.EnableIncomingWebhooks = false
