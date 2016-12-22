@@ -61,6 +61,7 @@ export default class CreatePost extends React.Component {
         this.showPostDeletedModal = this.showPostDeletedModal.bind(this);
         this.hidePostDeletedModal = this.hidePostDeletedModal.bind(this);
         this.showShortcuts = this.showShortcuts.bind(this);
+        this.checkMessageLength = this.checkMessageLength.bind(this);
 
         PostStore.clearDraftUploads();
 
@@ -99,7 +100,7 @@ export default class CreatePost extends React.Component {
             this.setState({errorClass: 'animation--highlight'});
             setTimeout(() => {
                 this.setState({errorClass: null});
-            }, 1000);
+            }, Constants.ANIMATION_TIMEOUT);
             return;
         }
 
@@ -218,6 +219,10 @@ export default class CreatePost extends React.Component {
         draft.message = message;
         PostStore.storeCurrentDraft(draft);
 
+        this.checkMessageLength(message);
+    }
+
+    checkMessageLength(message) {
         if (message.length > Constants.CHARACTER_LIMIT) {
             const errorMessage = (
                 <FormattedMessage
@@ -330,6 +335,8 @@ export default class CreatePost extends React.Component {
             fullWidthTextBox: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN,
             showTutorialTip: tutorialStep === TutorialSteps.POST_POPOVER
         });
+
+        this.checkMessageLength(this.state.message);
     }
 
     componentDidMount() {
