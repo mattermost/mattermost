@@ -5376,6 +5376,14 @@
     "translation": "No text specified"
   },
   {
+    "id": "web.incoming_webhook.text.length.app_error",
+    "translation": "Maximum text length is {{.Max}} characters, received size is {{.Actual}}"
+  },
+  {
+    "id": "web.incoming_webhook.attachment.app_error",
+    "translation": "Maximum attachments length is {{.Max}} characters, received size is {{.Actual}}"
+  },
+  {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Couldn't find the user"
   },
