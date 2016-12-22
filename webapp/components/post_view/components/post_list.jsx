@@ -88,7 +88,8 @@ export default class PostList extends React.Component {
             unViewedCount = _.reduce(order, (count, orderId) => {
                 const post = posts[orderId];
                 if (post.create_at > nextProps.lastViewedBottom &&
-                    post.user_id !== nextProps.currentUser.id) {
+                    post.user_id !== nextProps.currentUser.id &&
+                    post.state !== Constants.POST_DELETED) {
                     return count + 1;
                 }
                 return count;
