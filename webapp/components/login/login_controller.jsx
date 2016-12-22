@@ -569,7 +569,7 @@ export default class LoginController extends React.Component {
                 >
                     <span className='icon fa fa-lock fa--margin-top'/>
                     <span>
-                        {window.mm_global.window.mm_config.SamlLoginButtonText}
+                        {global.window.mm_config.SamlLoginButtonText}
                     </span>
                 </a>
             );
