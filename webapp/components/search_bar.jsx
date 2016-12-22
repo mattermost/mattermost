@@ -313,5 +313,5 @@ SearchBar.defaultProps = {
 };
 
 SearchBar.propTypes = {
-    showMentionFlagBtns: React.PropTypes.func
+    showMentionFlagBtns: React.PropTypes.bool
 };
