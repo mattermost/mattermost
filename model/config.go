@@ -412,9 +412,9 @@ func (o *Config) SetDefaults() {
 		*o.FileSettings.PublicLinkSalt = NewRandomString(32)
 	}
 
-	if len(*o.FileSettings.InitialFont) == nil {
-		o.FileSettings.InitialFont = new(string)
-		*o.FileSettings.InitialFont = "luximbi.ttf"
+	if o.FileSettings.InitialFont == "" {
+		// Defaults to "luximbi.ttf"
+		o.FileSettings.InitialFont = "luximbi.ttf"
 	}
 
 	if len(o.EmailSettings.InviteSalt) == 0 {
