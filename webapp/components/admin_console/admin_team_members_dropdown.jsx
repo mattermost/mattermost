@@ -11,6 +11,7 @@ import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import {updateUserRoles, updateActive} from 'actions/user_actions.jsx';
+import {updateTeamMemberRoles} from 'actions/team_actions.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
@@ -52,13 +53,11 @@ export default class AdminTeamMembersDropdown extends React.Component {
             }
         );
 
-        Client.updateTeamMemberRoles(
+        updateTeamMemberRoles(
             this.props.teamMember.team_id,
             this.props.user.id,
             'team_user',
-            () => {
-                AsyncClient.getTeamMember(this.props.teamMember.team_id, this.props.user.id);
-            },
+            null,
             (err) => {
                 this.setState({serverError: err.message});
             }
@@ -109,13 +108,11 @@ export default class AdminTeamMembersDropdown extends React.Component {
     }
 
     doMakeTeamAdmin() {
-        Client.updateTeamMemberRoles(
+        updateTeamMemberRoles(
             this.props.teamMember.team_id,
             this.props.user.id,
             'team_user team_admin',
-            () => {
-                AsyncClient.getTeamMember(this.props.teamMember.team_id, this.props.user.id);
-            },
+            null,
             (err) => {
                 this.setState({serverError: err.message});
             }
