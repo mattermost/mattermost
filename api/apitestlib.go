@@ -171,6 +171,42 @@ func UpdateUserToTeamAdmin(user *model.User, team *model.Team) {
 	utils.EnableDebugLogForTest()
 }
 
+func MakeUserChannelAdmin(user *model.User, channel *model.Channel) {
+	utils.DisableDebugLogForTest()
+
+	if cmr := <-Srv.Store.Channel().GetMember(channel.Id, user.Id); cmr.Err == nil {
+		cm := cmr.Data.(model.ChannelMember)
+		cm.Roles = "channel_admin channel_user"
+		if sr := <-Srv.Store.Channel().UpdateMember(&cm); sr.Err != nil {
+			utils.EnableDebugLogForTest()
+			panic(sr.Err)
+		}
+	} else {
+		utils.EnableDebugLogForTest()
+		panic(cmr.Err)
+	}
+
+	utils.EnableDebugLogForTest()
+}
+
+func MakeUserChannelUser(user *model.User, channel *model.Channel) {
+	utils.DisableDebugLogForTest()
+
+	if cmr := <-Srv.Store.Channel().GetMember(channel.Id, user.Id); cmr.Err == nil {
+		cm := cmr.Data.(model.ChannelMember)
+		cm.Roles = "channel_user"
+		if sr := <-Srv.Store.Channel().UpdateMember(&cm); sr.Err != nil {
+			utils.EnableDebugLogForTest()
+			panic(sr.Err)
+		}
+	} else {
+		utils.EnableDebugLogForTest()
+		panic(cmr.Err)
+	}
+
+	utils.EnableDebugLogForTest()
+}
+
 func (me *TestHelper) CreateChannel(client *model.Client, team *model.Team) *model.Channel {
 	return me.createChannel(client, team, model.CHANNEL_OPEN)
 }

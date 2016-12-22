@@ -38,9 +38,10 @@ const (
 	DIRECT_MESSAGE_ANY  = "any"
 	DIRECT_MESSAGE_TEAM = "team"
 
-	PERMISSIONS_ALL          = "all"
-	PERMISSIONS_TEAM_ADMIN   = "team_admin"
-	PERMISSIONS_SYSTEM_ADMIN = "system_admin"
+	PERMISSIONS_ALL           = "all"
+	PERMISSIONS_CHANNEL_ADMIN = "channel_admin"
+	PERMISSIONS_TEAM_ADMIN    = "team_admin"
+	PERMISSIONS_SYSTEM_ADMIN  = "system_admin"
 
 	FAKE_SETTING = "********************************"
 

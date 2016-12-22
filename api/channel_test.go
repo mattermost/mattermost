@@ -330,6 +330,31 @@ func TestUpdateChannel(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	*utils.Cfg.TeamSettings.RestrictPublicChannelManagement = model.PERMISSIONS_CHANNEL_ADMIN
+	*utils.Cfg.TeamSettings.RestrictPrivateChannelManagement = model.PERMISSIONS_CHANNEL_ADMIN
+	utils.SetDefaultRolesBasedOnConfig()
+	MakeUserChannelUser(th.BasicUser, channel2)
+	MakeUserChannelUser(th.BasicUser, channel3)
+	store.ClearChannelCaches()
+
+	if _, err := Client.UpdateChannel(channel2); err == nil {
+		t.Fatal("should have errored not team admin")
+	}
+	if _, err := Client.UpdateChannel(channel3); err == nil {
+		t.Fatal("should have errored not team admin")
+	}
+
+	MakeUserChannelAdmin(th.BasicUser, channel2)
+	MakeUserChannelAdmin(th.BasicUser, channel3)
+	store.ClearChannelCaches()
+
+	if _, err := Client.UpdateChannel(channel2); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Client.UpdateChannel(channel3); err != nil {
+		t.Fatal(err)
+	}
+
 	*utils.Cfg.TeamSettings.RestrictPublicChannelManagement = model.PERMISSIONS_TEAM_ADMIN
 	*utils.Cfg.TeamSettings.RestrictPrivateChannelManagement = model.PERMISSIONS_TEAM_ADMIN
 	utils.SetDefaultRolesBasedOnConfig()
@@ -512,6 +537,31 @@ func TestUpdateChannelHeader(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	*utils.Cfg.TeamSettings.RestrictPublicChannelManagement = model.PERMISSIONS_CHANNEL_ADMIN
+	*utils.Cfg.TeamSettings.RestrictPrivateChannelManagement = model.PERMISSIONS_CHANNEL_ADMIN
+	utils.SetDefaultRolesBasedOnConfig()
+	MakeUserChannelUser(th.BasicUser, channel2)
+	MakeUserChannelUser(th.BasicUser, channel3)
+	store.ClearChannelCaches()
+
+	if _, err := Client.UpdateChannelHeader(data2); err == nil {
+		t.Fatal("should have errored not channel admin")
+	}
+	if _, err := Client.UpdateChannelHeader(data3); err == nil {
+		t.Fatal("should have errored not channel admin")
+	}
+
+	MakeUserChannelAdmin(th.BasicUser, channel2)
+	MakeUserChannelAdmin(th.BasicUser, channel3)
+	store.ClearChannelCaches()
+
+	if _, err := Client.UpdateChannelHeader(data2); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Client.UpdateChannelHeader(data3); err != nil {
+		t.Fatal(err)
+	}
+
 	*utils.Cfg.TeamSettings.RestrictPublicChannelManagement = model.PERMISSIONS_TEAM_ADMIN
 	*utils.Cfg.TeamSettings.RestrictPrivateChannelManagement = model.PERMISSIONS_TEAM_ADMIN
 	utils.SetDefaultRolesBasedOnConfig()
@@ -638,6 +688,31 @@ func TestUpdateChannelPurpose(t *testing.T) {
 	data3["channel_purpose"] = "new purpose"
 
 	Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+	if _, err := Client.UpdateChannelPurpose(data2); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Client.UpdateChannelPurpose(data3); err != nil {
+		t.Fatal(err)
+	}
+
+	*utils.Cfg.TeamSettings.RestrictPublicChannelManagement = model.PERMISSIONS_CHANNEL_ADMIN
+	*utils.Cfg.TeamSettings.RestrictPrivateChannelManagement = model.PERMISSIONS_CHANNEL_ADMIN
+	utils.SetDefaultRolesBasedOnConfig()
+	MakeUserChannelUser(th.BasicUser, channel2)
+	MakeUserChannelUser(th.BasicUser, channel3)
+	store.ClearChannelCaches()
+
+	if _, err := Client.UpdateChannelPurpose(data2); err == nil {
+		t.Fatal("should have errored not channel admin")
+	}
+	if _, err := Client.UpdateChannelPurpose(data3); err == nil {
+		t.Fatal("should have errored not channel admin")
+	}
+
+	MakeUserChannelAdmin(th.BasicUser, channel2)
+	MakeUserChannelAdmin(th.BasicUser, channel3)
+	store.ClearChannelCaches()
 
 	if _, err := Client.UpdateChannelPurpose(data2); err != nil {
 		t.Fatal(err)
@@ -1158,6 +1233,37 @@ func TestDeleteChannel(t *testing.T) {
 	Client.Must(Client.LeaveChannel(channel4.Id))
 
 	Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+	if _, err := Client.DeleteChannel(channel2.Id); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Client.DeleteChannel(channel3.Id); err != nil {
+		t.Fatal(err)
+	}
+
+	*utils.Cfg.TeamSettings.RestrictPublicChannelDeletion = model.PERMISSIONS_CHANNEL_ADMIN
+	*utils.Cfg.TeamSettings.RestrictPrivateChannelDeletion = model.PERMISSIONS_CHANNEL_ADMIN
+	utils.SetDefaultRolesBasedOnConfig()
+
+	th.LoginSystemAdmin()
+
+	channel2 = th.CreateChannel(Client, team)
+	channel3 = th.CreatePrivateChannel(Client, team)
+	Client.Must(Client.AddChannelMember(channel2.Id, th.BasicUser.Id))
+	Client.Must(Client.AddChannelMember(channel3.Id, th.BasicUser.Id))
+
+	Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+	if _, err := Client.DeleteChannel(channel2.Id); err == nil {
+		t.Fatal("should have errored not channel admin")
+	}
+	if _, err := Client.DeleteChannel(channel3.Id); err == nil {
+		t.Fatal("should have errored not channel admin")
+	}
+
+	MakeUserChannelAdmin(th.BasicUser, channel2)
+	MakeUserChannelAdmin(th.BasicUser, channel3)
+	store.ClearChannelCaches()
 
 	if _, err := Client.DeleteChannel(channel2.Id); err != nil {
 		t.Fatal(err)
