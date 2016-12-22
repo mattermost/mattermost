@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	"strconv"
 )
 
 const (
@@ -1269,4 +1270,38 @@ func (s SqlChannelStore) performSearch(searchQuery string, term string, paramete
 	}
 
 	return result
+}
+
+func (s SqlChannelStore) GetMembersByIds(channelId string, userIds []string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		var members model.ChannelMembers
+		props := make(map[string]interface{})
+		idQuery := ""
+
+		for index, userId := range userIds {
+			if len(idQuery) > 0 {
+				idQuery += ", "
+			}
+
+			props["userId"+strconv.Itoa(index)] = userId
+			idQuery += ":userId" + strconv.Itoa(index)
+		}
+
+		props["ChannelId"] = channelId
+
+		if _, err := s.GetReplica().Select(&members, "SELECT * FROM ChannelMembers WHERE ChannelId = :ChannelId AND UserId IN ("+idQuery+")", props); err != nil {
+			result.Err = model.NewLocAppError("SqlChannelStore.GetMembersByIds", "store.sql_channel.get_members_by_ids.app_error", nil, "channelId="+channelId+" "+err.Error())
+		} else {
+			result.Data = members
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
 }

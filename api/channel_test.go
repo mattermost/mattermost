@@ -1777,3 +1777,40 @@ func TestViewChannel(t *testing.T) {
 		t.Fatal("message counts don't match")
 	}
 }
+
+func TestGetChannelMembersByIds(t *testing.T) {
+	th := Setup().InitBasic()
+
+	if _, err := AddUserToChannel(th.BasicUser2, th.BasicChannel); err != nil {
+		t.Fatal("Could not add second user to channel")
+	}
+
+	if result, err := th.BasicClient.GetChannelMembersByIds(th.BasicChannel.Id, []string{th.BasicUser.Id}); err != nil {
+		t.Fatal(err)
+	} else {
+		member := (*result.Data.(*model.ChannelMembers))[0]
+		if member.UserId != th.BasicUser.Id {
+			t.Fatal("user id did not match")
+		}
+		if member.ChannelId != th.BasicChannel.Id {
+			t.Fatal("team id did not match")
+		}
+	}
+
+	if result, err := th.BasicClient.GetChannelMembersByIds(th.BasicChannel.Id, []string{th.BasicUser.Id, th.BasicUser2.Id, model.NewId()}); err != nil {
+		t.Fatal(err)
+	} else {
+		members := result.Data.(*model.ChannelMembers)
+		if len(*members) != 2 {
+			t.Fatal("length should have been 2, got ", len(*members))
+		}
+	}
+
+	if _, err := th.BasicClient.GetChannelMembersByIds("junk", []string{th.BasicUser.Id}); err == nil {
+		t.Fatal("should have errored - bad team id")
+	}
+
+	if _, err := th.BasicClient.GetChannelMembersByIds(th.BasicChannel.Id, []string{}); err == nil {
+		t.Fatal("should have errored - empty user ids")
+	}
+}
