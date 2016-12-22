@@ -6,7 +6,6 @@ import $ from 'jquery';
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import PostStore from 'stores/post_store.jsx';
-import PreferenceStore from 'stores/preference_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 import ErrorStore from 'stores/error_store.jsx';
@@ -224,11 +223,7 @@ function handleLeaveTeamEvent(msg) {
         if (TeamStore.getCurrentId() === msg.data.team_id) {
             TeamStore.setCurrentId('');
             Client.setTeamId('');
-            PreferenceStore.deletePreference({
-                category: 'last',
-                name: 'team',
-                value: msg.data.team_id
-            });
+            BrowserStore.removeGlobalItem(msg.data.team_id);
             GlobalActions.redirectUserToDefaultTeam();
         }
     } else {

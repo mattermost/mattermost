@@ -6,6 +6,7 @@ import ErrorBar from 'components/error_bar.jsx';
 import FormError from 'components/form_error.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
+import BrowserStore from 'stores/browser_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
 import Client from 'client/web_client.jsx';
@@ -52,7 +53,7 @@ export default class LoginController extends React.Component {
 
     componentDidMount() {
         document.title = global.window.mm_config.SiteName;
-
+        BrowserStore.removeGlobalItem('team');
         if (UserStore.getCurrentUser()) {
             GlobalActions.redirectUserToDefaultTeam();
         }

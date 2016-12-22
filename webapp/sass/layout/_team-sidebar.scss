@@ -23,13 +23,29 @@
                 .team-btn {
                     @include border-radius(2px);
                     background-color: alpha-color($black, .3);
+                    border: 1px solid transparent;
                     display: table-cell;
+                    font-size: 12px;
                     font-weight: bold;
-                    height: 35px;
+                    padding: 4px 5px;
                     position: relative;
                     text-align: center;
-                    vertical-align: middle;
-                    width: 35px;
+                    vertical-align: top;
+                    width: 40px;
+
+                    .team-btn__initials {
+                        text-align: left;
+                    }
+
+                    .team-btn__content {
+                        bottom: 4px;
+                        font-size: 8.5px;
+                        font-weight: normal;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                        width: 31px;
+                    }
 
                     .badge {
                         font-size: 10px;
@@ -37,12 +53,17 @@
                         right: -6px;
                         top: -3px;
                     }
+
+                    &.team-btn__add {
+                        height: 39px;
+                        vertical-align: middle;
+                    }
                 }
 
                 &.active {
                     .team-btn {
                         background-color: transparent;
-                        border: 1px solid $white;
+                        border-color: $white;
                     }
                 }
 

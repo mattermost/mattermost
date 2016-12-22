@@ -53,6 +53,8 @@ export function emitChannelClickEvent(channel) {
             trackPage();
         });
 
+        BrowserStore.setGlobalItem(chan.team_id, chan.id);
+
         AppDispatcher.handleViewAction({
             type: ActionTypes.CLICK_CHANNEL,
             name: chan.name,
@@ -542,7 +544,11 @@ export function emitBrowserFocus(focus) {
 export function redirectUserToDefaultTeam() {
     const teams = TeamStore.getAll();
     const teamMembers = TeamStore.getMyTeamMembers();
-    let teamId = PreferenceStore.get('last', 'team');
+    let teamId = BrowserStore.getGlobalItem('team');
+
+    function redirect(teamName, channelName) {
+        browserHistory.push(`/${teamName}/channels/${channelName}`);
+    }
 
     if (!teams[teamId] && teamMembers.length > 0) {
         let myTeams = [];
@@ -560,12 +566,24 @@ export function redirectUserToDefaultTeam() {
     }
 
     if (teams[teamId]) {
-        const channelId = PreferenceStore.get(teamId, 'channel');
-        let channel = ChannelStore.getChannelById(channelId);
-        if (!channel) {
-            channel = 'town-square';
+        const channelId = BrowserStore.getGlobalItem(teamId);
+        const channel = ChannelStore.getChannelById(channelId);
+        if (channel) {
+            redirect(teams[teamId].name, channel);
+        } else if (channelId) {
+            Client.setTeamId(teamId);
+            Client.getChannel(
+                channelId,
+                (data) => {
+                    redirect(teams[teamId].name, data.channel.name);
+                },
+                () => {
+                    redirect(teams[teamId].name, 'town-square');
+                }
+            );
+        } else {
+            redirect(teams[teamId].name, 'town-square');
         }
-        browserHistory.push(`/${teams[teamId].name}/channels/${channel}`);
     } else {
         browserHistory.push('/select_team');
     }
