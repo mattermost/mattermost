@@ -2208,6 +2208,64 @@ func TestSearchUsers(t *testing.T) {
 	}
 }
 
+func TestGetProfilesByUsernames(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+
+	user := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
+	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+
+	Client.Login(user.Email, "passwd1")
+	if _, err := Client.GetProfilesByUsernames(th.BasicTeam.Id, []string{}); err == nil {
+		t.Fatal("should not have access")
+	}
+
+	Client.Logout()
+	th.LoginBasic()
+	if _, err := Client.GetProfilesByUsernames(th.BasicTeam.Id, []string{}); err == nil {
+		t.Fatal("should have failed with invalid params")
+	}
+
+	Client.Logout()
+	th.LoginBasic()
+	if result, err := Client.GetProfilesByUsernames(th.BasicTeam.Id, []string{"abcd1234"}); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.(map[string]*model.User)
+
+		if len(users) != 0 {
+			t.Fatal("should have found no result")
+		}
+	}
+
+	if result, err := Client.GetProfilesByUsernames(th.BasicTeam.Id, []string{th.BasicUser2.Username}); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.(map[string]*model.User)
+
+		if len(users) < 1 {
+			t.Fatal("should have found one result")
+		} else if _, ok := users[th.BasicUser2.Username]; !ok {
+			t.Fatal("should have found matching username")
+		}
+	}
+
+	if result, err := Client.GetProfilesByUsernames(th.BasicTeam.Id, []string{th.BasicUser.Username, th.BasicUser2.Username}); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.(map[string]*model.User)
+
+		if len(users) < 2 {
+			t.Fatal("should have found one result")
+		} else if _, ok := users[th.BasicUser.Username]; !ok {
+			t.Fatal("should have found user 1")
+		} else if _, ok := users[th.BasicUser2.Username]; !ok {
+			t.Fatal("should have found user 2")
+		}
+	}
+}
+
 func TestAutocompleteUsers(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.BasicClient
