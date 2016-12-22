@@ -275,3 +275,39 @@ export function updateChannelNotifyProps(data, success, error) {
         }
     );
 }
+
+export function createChannel(channel, success, error) {
+    Client.createChannel(
+        channel,
+        (data) => {
+            Client.getChannel(
+                data.id,
+                (data2) => {
+                    AppDispatcher.handleServerAction({
+                        type: ActionTypes.RECEIVED_CHANNEL,
+                        channel: data2.channel,
+                        member: data2.channel
+                    });
+
+                    if (success) {
+                        success(data2);
+                    }
+                },
+                (err) => {
+                    AsyncClient.dispatchError(err, 'getChannel');
+
+                    if (error) {
+                        error(err);
+                    }
+                }
+            );
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'createChannel');
+
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
