@@ -6,6 +6,7 @@ package store
 import (
 	"database/sql"
 	"fmt"
+	"strconv"
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
@@ -13,7 +14,6 @@ import (
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	"strconv"
 )
 
 const (
@@ -961,13 +961,24 @@ func (s SqlChannelStore) SetLastViewedAt(channelId string, userId string, newLas
 	return storeChannel
 }
 
-func (s SqlChannelStore) UpdateLastViewedAt(channelId string, userId string) StoreChannel {
+func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
 
 		var query string
+		props := make(map[string]interface{})
+
+		idQuery := ""
+		for index, channelId := range channelIds {
+			if len(idQuery) > 0 {
+				idQuery += " OR "
+			}
+
+			props["channelId"+strconv.Itoa(index)] = channelId
+			idQuery += "ChannelId = :channelId" + strconv.Itoa(index)
+		}
 
 		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 			query = `UPDATE
@@ -982,7 +993,7 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelId string, userId string) Sto
 			WHERE
 			    Channels.Id = ChannelMembers.ChannelId
 			        AND UserId = :UserId
-			        AND ChannelId = :ChannelId`
+			        AND (` + idQuery + `)`
 		} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
 			query = `UPDATE
 				ChannelMembers, Channels
@@ -994,12 +1005,14 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelId string, userId string) Sto
 			WHERE
 			    Channels.Id = ChannelMembers.ChannelId
 			        AND UserId = :UserId
-			        AND ChannelId = :ChannelId`
+			        AND (` + idQuery + `)`
 		}
 
-		_, err := s.GetMaster().Exec(query, map[string]interface{}{"ChannelId": channelId, "UserId": userId})
+		props["UserId"] = userId
+
+		_, err := s.GetMaster().Exec(query, props)
 		if err != nil {
-			result.Err = model.NewLocAppError("SqlChannelStore.UpdateLastViewedAt", "store.sql_channel.update_last_viewed_at.app_error", nil, "channel_id="+channelId+", user_id="+userId+", "+err.Error())
+			result.Err = model.NewLocAppError("SqlChannelStore.UpdateLastViewedAt", "store.sql_channel.update_last_viewed_at.app_error", nil, "channel_ids="+strings.Join(channelIds, ",")+", user_id="+userId+", "+err.Error())
 		}
 
 		storeChannel <- result

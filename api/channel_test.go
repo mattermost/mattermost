@@ -1862,14 +1862,12 @@ func TestViewChannel(t *testing.T) {
 	}
 
 	view.PrevChannelId = ""
-	view.Time = 1234567890
 
 	if _, resp := Client.ViewChannel(view); resp.Error != nil {
 		t.Fatal(resp.Error)
 	}
 
 	view.PrevChannelId = "junk"
-	view.Time = 0
 
 	if _, resp := Client.ViewChannel(view); resp.Error != nil {
 		t.Fatal(resp.Error)
@@ -1878,6 +1876,8 @@ func TestViewChannel(t *testing.T) {
 	rdata := Client.Must(Client.GetChannel(th.BasicChannel.Id, "")).Data.(*model.ChannelData)
 
 	if rdata.Channel.TotalMsgCount != rdata.Member.MsgCount {
+		t.Log(rdata.Channel.Id)
+		t.Log(rdata.Member.UserId)
 		t.Log(rdata.Channel.TotalMsgCount)
 		t.Log(rdata.Member.MsgCount)
 		t.Fatal("message counts don't match")

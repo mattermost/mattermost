@@ -11,7 +11,6 @@ import (
 type ChannelView struct {
 	ChannelId     string `json:"channel_id"`
 	PrevChannelId string `json:"prev_channel_id"`
-	Time          int64  `json:"time"`
 }
 
 func (o *ChannelView) ToJson() string {

@@ -76,7 +76,7 @@ func updateLastViewedAt(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	Srv.Store.Channel().UpdateLastViewedAt(id, c.Session.UserId)
+	Srv.Store.Channel().UpdateLastViewedAt([]string{id}, c.Session.UserId)
 
 	// Must be after update so that unread count is correct
 	if doClearPush {
