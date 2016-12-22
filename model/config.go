@@ -105,6 +105,10 @@ type MetricsSettings struct {
 	ListenAddress    *string
 }
 
+type AnalyticsSettings struct {
+	MaxUsersForStatistics *int
+}
+
 type SSOSettings struct {
 	Enable          bool
 	Secret          string
@@ -345,6 +349,7 @@ type Config struct {
 	NativeAppSettings    NativeAppSettings
 	ClusterSettings      ClusterSettings
 	MetricsSettings      MetricsSettings
+	AnalyticsSettings    AnalyticsSettings
 	WebrtcSettings       WebrtcSettings
 }
 
@@ -843,6 +848,11 @@ func (o *Config) SetDefaults() {
 	if o.MetricsSettings.Enable == nil {
 		o.MetricsSettings.Enable = new(bool)
 		*o.MetricsSettings.Enable = false
+	}
+
+	if o.AnalyticsSettings.MaxUsersForStatistics == nil {
+		o.AnalyticsSettings.MaxUsersForStatistics = new(int)
+		*o.AnalyticsSettings.MaxUsersForStatistics = 2500
 	}
 
 	if o.ComplianceSettings.Enable == nil {
