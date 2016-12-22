@@ -237,6 +237,9 @@
         "BlockProfileRate": 0,
         "ListenAddress": ":8067"
     },
+    "AnalyticsSettings": {
+        "MaxUsersForStatistics": 2500
+    },
     "WebrtcSettings": {
         "Enable": false,
         "GatewayWebsocketUrl": "",
