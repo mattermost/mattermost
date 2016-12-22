@@ -566,6 +566,8 @@ func RemoveAllSessionsForUserIdSkipClusterSend(userId string) {
 		}
 	}
 
+	InvalidateWebConnSessionCacheForUser(userId)
+
 }
 
 func AddSessionToCache(session *model.Session) {

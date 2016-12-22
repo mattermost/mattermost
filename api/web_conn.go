@@ -27,6 +27,7 @@ type WebConn struct {
 	WebSocket                 *websocket.Conn
 	Send                      chan model.WebSocketMessage
 	SessionToken              string
+	SessionExpiresAt          int64
 	UserId                    string
 	T                         goi18n.TranslateFunc
 	Locale                    string
@@ -40,12 +41,13 @@ func NewWebConn(c *Context, ws *websocket.Conn) *WebConn {
 	}
 
 	return &WebConn{
-		Send:         make(chan model.WebSocketMessage, 256),
-		WebSocket:    ws,
-		UserId:       c.Session.UserId,
-		SessionToken: c.Session.Token,
-		T:            c.T,
-		Locale:       c.Locale,
+		Send:             make(chan model.WebSocketMessage, 256),
+		WebSocket:        ws,
+		UserId:           c.Session.UserId,
+		SessionToken:     c.Session.Token,
+		SessionExpiresAt: c.Session.ExpiresAt,
+		T:                c.T,
+		Locale:           c.Locale,
 	}
 }
 
@@ -144,16 +146,25 @@ func (c *WebConn) writePump() {
 func (webCon *WebConn) InvalidateCache() {
 	webCon.AllChannelMembers = nil
 	webCon.LastAllChannelMembersTime = 0
+	webCon.SessionExpiresAt = 0
 }
 
 func (webCon *WebConn) isAuthenticated() bool {
-	if webCon.SessionToken == "" {
-		return false
-	}
+	// Check the expiry to see if we need to check for a new session
+	if webCon.SessionExpiresAt < model.GetMillis() {
+		if webCon.SessionToken == "" {
+			return false
+		}
 
-	session := GetSession(webCon.SessionToken)
-	if session == nil || session.IsExpired() {
-		return false
+		session := GetSession(webCon.SessionToken)
+		if session == nil || session.IsExpired() {
+			webCon.SessionToken = ""
+			webCon.SessionExpiresAt = 0
+			return false
+		}
+
+		webCon.SessionToken = session.Token
+		webCon.SessionExpiresAt = session.ExpiresAt
 	}
 
 	return true
