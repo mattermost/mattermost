@@ -454,11 +454,6 @@ export default class CreateComment extends React.Component {
             );
         }
 
-        let postFooterClassName = 'post-create-footer';
-        // if (postError) {
-        //     postFooterClassName += ' has-error';
-        // }
-
         let uploadsInProgressText = null;
         if (this.state.uploadsInProgress.length > 0) {
             uploadsInProgressText = (
@@ -514,7 +509,7 @@ export default class CreateComment extends React.Component {
                         channelId={this.props.channelId}
                         parentId={this.props.rootId}
                     />
-                    <div className={postFooterClassName}>
+                    <div className='post-create-footer'>
                         <input
                             type='button'
                             className='btn btn-primary comment-btn pull-right'
