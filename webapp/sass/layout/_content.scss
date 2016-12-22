@@ -6,11 +6,27 @@
         .search-bar__container {
             display: none;
         }
+        .search-btns {
+            display: none;
+        }
+        .header-list__members {
+            margin-right: -18px;
+            float: right;
+            padding-right: 0px !important;
+        }
     }
 
     &.move--right {
         .search-bar__container {
             display: none;
+        }
+        .search-btns {
+            display: none;
+        }
+        .header-list__members {
+            margin-right: -18px;
+            float: right;
+            padding-right: 0px !important;
         }
     }
 }

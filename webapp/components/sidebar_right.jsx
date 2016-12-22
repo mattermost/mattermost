@@ -74,6 +74,12 @@ export default class SidebarRight extends React.Component {
         if (isOpen !== willOpen) {
             PostStore.jumpPostsViewSidebarOpen();
         }
+
+        if (!isOpen && willOpen) {
+            this.setState({
+                expanded: false
+            });
+        }
     }
 
     doStrangeThings() {
@@ -189,6 +195,10 @@ export default class SidebarRight extends React.Component {
                     shrink={this.onShrink}
                 />
             );
+        }
+
+        if (!content) {
+            expandedClass = '';
         }
 
         return (

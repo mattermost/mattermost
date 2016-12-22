@@ -347,4 +347,8 @@
     #videos.small {
         position: relative;
     }
+
+    .search__form {
+        width: calc(100% - 92px);
+    }
 }

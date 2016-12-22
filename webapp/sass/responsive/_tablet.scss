@@ -20,6 +20,12 @@
         }
     }
 
+    .search__form {
+        .sidebar--right & {
+            width: 300px;
+        }
+    }
+
     .post-create__container {
         form {
             padding: .5em 0;
