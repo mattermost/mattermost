@@ -11,6 +11,7 @@ import FileUploadOverlay from './file_upload_overlay.jsx';
 import PostStore from 'stores/post_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
+import WebrtcStore from 'stores/webrtc_store.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 
@@ -56,6 +57,7 @@ export default class RhsThread extends React.Component {
         this.forceUpdateInfo = this.forceUpdateInfo.bind(this);
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.onStatusChange = this.onStatusChange.bind(this);
+        this.onBusy = this.onBusy.bind(this);
         this.handleResize = this.handleResize.bind(this);
 
         const state = this.getPosts();
@@ -66,6 +68,7 @@ export default class RhsThread extends React.Component {
         state.flaggedPosts = PreferenceStore.getCategory(Constants.Preferences.CATEGORY_FLAGGED_POST);
         state.statuses = Object.assign({}, UserStore.getStatuses());
         state.previewsCollapsed = PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLLAPSE_DISPLAY, 'false');
+        state.isBusy = WebrtcStore.isBusy();
 
         this.state = state;
     }
@@ -76,6 +79,7 @@ export default class RhsThread extends React.Component {
         PreferenceStore.addChangeListener(this.onPreferenceChange);
         UserStore.addChangeListener(this.onUserChange);
         UserStore.addStatusesChangeListener(this.onStatusChange);
+        WebrtcStore.addBusyListener(this.onBusy);
 
         this.scrollToBottom();
         window.addEventListener('resize', this.handleResize);
@@ -89,6 +93,7 @@ export default class RhsThread extends React.Component {
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
         UserStore.removeChangeListener(this.onUserChange);
         UserStore.removeStatusesChangeListener(this.onStatusChange);
+        WebrtcStore.removeBusyListener(this.onBusy);
 
         window.removeEventListener('resize', this.handleResize);
 
@@ -147,6 +152,10 @@ export default class RhsThread extends React.Component {
             return true;
         }
 
+        if (nextState.isBusy !== this.state.isBusy) {
+            return true;
+        }
+
         return false;
     }
 
@@ -189,6 +198,10 @@ export default class RhsThread extends React.Component {
 
     onStatusChange() {
         this.setState({statuses: Object.assign({}, UserStore.getStatuses())});
+    }
+
+    onBusy(isBusy) {
+        this.setState({isBusy});
     }
 
     getPosts() {
@@ -312,6 +325,7 @@ export default class RhsThread extends React.Component {
                                 isFlagged={isRootFlagged}
                                 status={rootStatus}
                                 previewCollapsed={this.state.previewsCollapsed}
+                                isBusy={this.state.isBusy}
                             />
                             <div className='post-right-comments-container'>
                                 {postsArray.map((comPost) => {
@@ -345,6 +359,7 @@ export default class RhsThread extends React.Component {
                                             useMilitaryTime={this.props.useMilitaryTime}
                                             isFlagged={isFlagged}
                                             status={status}
+                                            isBusy={this.state.isBusy}
                                         />
                                     );
                                 })}
