@@ -7,6 +7,7 @@ import * as Utils from 'utils/utils.jsx';
 
 import AdminSettings from './admin_settings.jsx';
 import BooleanSetting from './boolean_setting.jsx';
+import DropdownSetting from './dropdown_setting.jsx';
 import {ConnectionSecurityDropdownSettingEmail} from './connection_security_dropdown_setting.jsx';
 import EmailConnectionTest from './email_connection_test.jsx';
 import {FormattedHTMLMessage, FormattedMessage} from 'react-intl';
@@ -33,6 +34,7 @@ export default class EmailSettings extends AdminSettings {
         config.EmailSettings.SMTPPort = this.state.smtpPort;
         config.EmailSettings.ConnectionSecurity = this.state.connectionSecurity;
         config.EmailSettings.EnableEmailBatching = this.state.enableEmailBatching;
+        config.EmailSettings.EmailNotificationContents = this.state.emailNotificationContents;
         config.ServiceSettings.EnableSecurityFixAlert = this.state.enableSecurityFixAlert;
 
         return config;
@@ -50,6 +52,7 @@ export default class EmailSettings extends AdminSettings {
             smtpPort: config.EmailSettings.SMTPPort,
             connectionSecurity: config.EmailSettings.ConnectionSecurity,
             enableEmailBatching: config.EmailSettings.EnableEmailBatching,
+            emailNotificationContents: config.EmailSettings.EmailNotificationContents,
             enableSecurityFixAlert: config.ServiceSettings.EnableSecurityFixAlert
         };
     }
@@ -274,6 +277,29 @@ export default class EmailSettings extends AdminSettings {
                 <EmailConnectionTest
                     config={this.getConfigFromState(this.props.config)}
                     disabled={!this.state.sendEmailNotifications}
+                />
+                <DropdownSetting
+                    id='emailNotificationContents'
+                    values={[
+                        {value: 'generic', text: Utils.localizeMessage('admin.email.genericEmailNotification', 'Send generic description with user and channel names')},
+                        {value: 'full', text: Utils.localizeMessage('admin.email.fullEmailNotification', 'Send full message snippet')}
+                    ]}
+                    label={
+                        <FormattedMessage
+                            id='admin.email.emailContentTitle'
+                            defaultMessage='Email Notification Contents:'
+                        />
+                    }
+                    value={this.state.emailNotificationContents}
+                    onChange={this.handleChange}
+                    disabled={!this.state.sendEmailNotifications}
+                    helpText={
+                        <FormattedHTMLMessage
+                            id='admin.email.emailContentDesc'
+                            defaultMessage='Selecting "Send generic description with user and channel names" provides email notifications with generic messages, including names of users and channels but no specific details from the message text.<br /><br />
+                            Selecting "Send full message snippet" sends excerpts from messages triggering notifications with specifics and may include confidential information sent in messages. If your Email Notification Service is outside your firewall, it is HIGHLY RECOMMENDED this option only be used with an "https" protocol to encrypt the connection.'
+                        />
+                    }
                 />
                 <BooleanSetting
                     id='enableSecurityFixAlert'

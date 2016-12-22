@@ -125,6 +125,7 @@ func trackConfig() {
 		"connection_security":          Cfg.EmailSettings.ConnectionSecurity,
 		"send_push_notifications":      *Cfg.EmailSettings.SendPushNotifications,
 		"push_notification_contents":   *Cfg.EmailSettings.PushNotificationContents,
+		"email_notification_contents":  *Cfg.EmailSettings.EmailNotificationContents,
 	})
 
 	SendDiagnostic(TRACK_CONFIG_PRIVACY, map[string]interface{}{
