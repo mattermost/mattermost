@@ -225,6 +225,9 @@ func UpgradeDatabaseToVersion36(sqlStore *SqlStore) {
 	// Add a Position column to users.
 	sqlStore.CreateColumnIfNotExists("Users", "Position", "varchar(64)", "varchar(64)", "")
 
+	// Remove ActiveChannel column from Status
+	sqlStore.RemoveColumnIfExists("Status", "ActiveChannel")
+
 	//saveSchemaVersion(sqlStore, VERSION_3_6_0)
 	//}
 }

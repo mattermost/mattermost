@@ -1397,7 +1397,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'updateLastViewedAt', success, error));
     }
 
-    // SCHEDULED FOR DEPRECATION IN 3.8 - use viewChannel instead
+    // SCHEDULED FOR DEPRECATION IN 3.8
     setLastViewedAt(channelId, lastViewedAt, success, error) {
         request.
         post(`${this.getChannelNeededRoute(channelId)}/set_last_viewed_at`).

@@ -1350,10 +1350,9 @@ func (c *Client) UpdateLastViewedAt(channelId string, active bool) (*Result, *Ap
 }
 
 // ViewChannel performs all the actions related to viewing a channel. This includes marking
-// the channel and the previous one as read, marking the channel as being actively viewed.
+// the channel and the previous one as read, and marking the channel as being actively viewed.
 // ChannelId is required but may be blank to indicate no channel is being viewed.
-// PrevChannelId is optional, populate to indicate a channel switch occurred. Optionally
-// provide a non-zero Time, in Unix milliseconds, to manually set the viewing time.
+// PrevChannelId is optional, populate to indicate a channel switch occurred.
 func (c *Client) ViewChannel(params ChannelView) (bool, *ResponseMetadata) {
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/channels/view", params.ToJson()); err != nil {
 		return false, &ResponseMetadata{StatusCode: r.StatusCode, Error: err}
