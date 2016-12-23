@@ -55,7 +55,7 @@ export default class CreateComment extends React.Component {
         this.focusTextbox = this.focusTextbox.bind(this);
         this.showPostDeletedModal = this.showPostDeletedModal.bind(this);
         this.hidePostDeletedModal = this.hidePostDeletedModal.bind(this);
-        this.checkMessageLength = this.checkMessageLength.bind(this);
+        this.handlePostError = this.handlePostError.bind(this);
 
         PostStore.clearCommentDraftUploads();
         MessageHistoryStore.resetHistoryIndex('comment');
@@ -77,10 +77,6 @@ export default class CreateComment extends React.Component {
         this.focusTextbox();
     }
 
-    componentWillMount() {
-        this.checkMessageLength(this.state.message);
-    }
-
     componentWillUnmount() {
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
     }
@@ -99,6 +95,10 @@ export default class CreateComment extends React.Component {
         if (prevProps.rootId !== this.props.rootId) {
             this.focusTextbox();
         }
+    }
+
+    handlePostError(postError) {
+        this.setState({postError});
     }
 
     handleSubmit(e) {
@@ -260,25 +260,6 @@ export default class CreateComment extends React.Component {
         $('.post-right__scroll').parent().scrollTop($('.post-right__scroll')[0].scrollHeight);
 
         this.setState({message});
-
-        this.checkMessageLength(message);
-    }
-
-    checkMessageLength(message) {
-        if (message.length > Constants.CHARACTER_LIMIT) {
-            const errorMessage = (
-                <FormattedMessage
-                    id='create_post.error_message'
-                    defaultMessage='Your message is too long. Character count: {length}/{limit}'
-                    values={{
-                        length: message.length,
-                        limit: Constants.CHARACTER_LIMIT
-                    }}
-                />);
-            this.setState({postError: errorMessage});
-        } else {
-            this.setState({postError: null});
-        }
     }
 
     handleKeyDown(e) {
@@ -485,6 +466,7 @@ export default class CreateComment extends React.Component {
                                 onChange={this.handleChange}
                                 onKeyPress={this.commentMsgKeyPress}
                                 onKeyDown={this.handleKeyDown}
+                                handlePostError={this.handlePostError}
                                 value={this.state.message}
                                 onBlur={this.handleBlur}
                                 createMessage={Utils.localizeMessage('create_comment.addComment', 'Add a comment...')}
