@@ -1999,7 +1999,7 @@
   "user.settings.general.notificationsExtra": "By default, you will receive mention notifications when someone types your first name. Go to {notify} settings to change this default.",
   "user.settings.general.notificationsLink": "Notifications",
   "user.settings.general.position": "Position",
-  "user.settings.general.positionExtra": "Tell your teammates what you do.",
+  "user.settings.general.positionExtra": "Use Position for your role or job title. This will be shown in your profile popover.",
   "user.settings.general.primaryEmail": "Primary Email",
   "user.settings.general.profilePicture": "Profile Picture",
   "user.settings.general.title": "General Settings",
