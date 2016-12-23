@@ -82,9 +82,7 @@ export default class CreatePost extends React.Component {
     }
 
     handlePostError(postError) {
-        if (this.state.postError !== postError) {
-            this.setState({postError});
-        }
+        this.setState({postError});
     }
 
     handleSubmit(e) {
@@ -322,8 +320,6 @@ export default class CreatePost extends React.Component {
             fullWidthTextBox: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN,
             showTutorialTip: tutorialStep === TutorialSteps.POST_POPOVER
         });
-
-        this.checkMessageLength(this.state.message);
     }
 
     componentDidMount() {
