@@ -60,6 +60,7 @@ func InitUser() {
 	BaseRoutes.Users.Handle("/search", ApiUserRequired(searchUsers)).Methods("POST")
 	BaseRoutes.Users.Handle("/ids", ApiUserRequired(getProfilesByIds)).Methods("POST")
 	BaseRoutes.NeedTeam.Handle("/users/usernames", ApiUserRequired(getProfilesByUsernames)).Methods("POST")
+	BaseRoutes.NeedTeam.Handle("/users/emails", ApiUserRequired(getProfilesByEmails)).Methods("POST")
 
 	BaseRoutes.NeedTeam.Handle("/users/autocomplete", ApiUserRequired(autocompleteUsersInTeam)).Methods("GET")
 	BaseRoutes.NeedChannel.Handle("/users/autocomplete", ApiUserRequired(autocompleteUsersInChannel)).Methods("GET")
@@ -2693,6 +2694,36 @@ func getProfilesByUsernames(c *Context, w http.ResponseWriter, r *http.Request) 
 		for _, u := range profileResults {
 			profiles[u.Username] = u
 		}
+
+		for _, p := range profiles {
+			sanitizeProfile(c, p)
+		}
+
+		w.Write([]byte(model.UserMapToJson(profiles)))
+	}
+}
+
+func getProfilesByEmails(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	teamId := params["team_id"]
+
+	if c.Session.GetTeamByTeamId(teamId) == nil {
+		if !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
+			return
+		}
+	}
+
+	emails := model.ArrayFromJson(r.Body)
+	if len(emails) == 0 {
+		c.SetInvalidParam("getProfilesByEmails", "emails")
+		return
+	}
+
+	if result := <-Srv.Store.User().GetProfilesByEmails(emails, teamId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		profiles := result.Data.(map[string]*model.User)
 
 		for _, p := range profiles {
 			sanitizeProfile(c, p)
