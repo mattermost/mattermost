@@ -8,6 +8,7 @@ import FileUpload from './file_upload.jsx';
 import FilePreview from './file_preview.jsx';
 import PostDeletedModal from './post_deleted_modal.jsx';
 import TutorialTip from './tutorial/tutorial_tip.jsx';
+import EmojiPicker from './emoji_picker/emoji_picker.jsx';
 
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
@@ -61,7 +62,9 @@ export default class CreatePost extends React.Component {
         this.showPostDeletedModal = this.showPostDeletedModal.bind(this);
         this.hidePostDeletedModal = this.hidePostDeletedModal.bind(this);
         this.showShortcuts = this.showShortcuts.bind(this);
-        this.handlePostError = this.handlePostError.bind(this);
+        this.checkMessageLength = this.checkMessageLength.bind(this);
+        this.handleEmojiClick = this.handleEmojiClick.bind(this);
+        this.handleEmojiPickerClick = this.handleEmojiPickerClick.bind(this);
 
         PostStore.clearDraftUploads();
 
@@ -76,7 +79,9 @@ export default class CreatePost extends React.Component {
             ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
             fullWidthTextBox: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN,
             showTutorialTip: false,
-            showPostDeletedModal: false
+            showPostDeletedModal: false,
+            lastBlurAt: 0,
+            showEmojiPicker: false
         };
 
         this.lastBlurAt = 0;
@@ -455,6 +460,31 @@ export default class CreatePost extends React.Component {
         });
     }
 
+    handleEmojiClick(emoji) {
+        const emojiAlias = (emoji.aliases.length > 0) ? emoji.aliases[0] : false;
+
+        if (!emojiAlias) {
+            //Oops.. There went something wrong
+            return;
+        }
+
+        if (this.state.message === '') {
+            this.setState({message: ':' + emojiAlias + ': ', showEmojiPicker: false});
+        } else {
+            //check whether there is already a blank at the end of the current message
+            const newMessage = (/\s+$/.test(this.state.message)) ?
+                this.state.message + ':' + emojiAlias + ': ' : this.state.message + ' :' + emojiAlias + ': ';
+
+            this.setState({message: newMessage, showEmojiPicker: false});
+        }
+
+        this.focusTextbox();
+    }
+
+    handleEmojiPickerClick() {
+        this.setState({showEmojiPicker: !this.state.showEmojiPicker});
+    }
+
     createTutorialTip() {
         const screens = [];
 
@@ -518,6 +548,19 @@ export default class CreatePost extends React.Component {
             centerClass = 'center';
         }
 
+        let emojiPicker = null;
+        if (this.state.showEmojiPicker) {
+            //TODO: get custom emojis
+            const customEmojis = [];
+
+            emojiPicker = (
+                <EmojiPicker
+                    customEmojis={customEmojis}
+                    onEmojiClick={this.handleEmojiClick}
+                />
+            );
+        }
+
         return (
             <form
                 id='create_post'
@@ -541,17 +584,22 @@ export default class CreatePost extends React.Component {
                                 id='post_textbox'
                                 ref='textbox'
                             />
+                            <FileUpload
+                                ref='fileUpload'
+                                getFileCount={this.getFileCount}
+                                onClick={this.handleUploadClick}
+                                onUploadStart={this.handleUploadStart}
+                                onFileUpload={this.handleFileUploadComplete}
+                                onUploadError={this.handleUploadError}
+                                postType='post'
+                                channelId=''
+                            />
+                            <span
+                                className='fa fa-smile-o icon__emoji_picker'
+                                onClick={this.handleEmojiPickerClick}
+                            />
+                            {emojiPicker}
                         </div>
-                        <FileUpload
-                            ref='fileUpload'
-                            getFileCount={this.getFileCount}
-                            onClick={this.handleUploadClick}
-                            onUploadStart={this.handleUploadStart}
-                            onFileUpload={this.handleFileUploadComplete}
-                            onUploadError={this.handleUploadError}
-                            postType='post'
-                            channelId=''
-                        />
                         <a
                             className='send-button theme'
                             onClick={this.handleSubmit}

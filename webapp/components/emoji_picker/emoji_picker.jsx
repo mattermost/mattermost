@@ -32,7 +32,7 @@ const CATEGORIES = [
 export default class EmojiPicker extends React.Component {
     static propTypes = {
         customEmojis: React.PropTypes.object.isRequired,
-        onEmojiClick: React.PropTypes.func.isRequred
+        onEmojiClick: React.PropTypes.func.isRequired
     }
 
     constructor(props) {
@@ -47,6 +47,7 @@ export default class EmojiPicker extends React.Component {
         this.handleItemOut = this.handleItemOut.bind(this);
         this.handleItemClick = this.handleItemClick.bind(this);
         this.handleScroll = this.handleScroll.bind(this);
+        this.handleItemUnmount = this.handleItemUnmount.bind(this);
 
         this.renderCategory = this.renderCategory.bind(this);
 
@@ -76,6 +77,13 @@ export default class EmojiPicker extends React.Component {
     }
 
     handleItemOut(emoji) {
+        if (this.state.selected === emoji) {
+            // this.setState({selected: null});
+        }
+    }
+
+    handleItemUnmount(emoji) {
+        //Prevent emoji preview from showing emoji which is not present anymore (due to filter)
         if (this.state.selected === emoji) {
             this.setState({selected: null});
         }
@@ -137,6 +145,7 @@ export default class EmojiPicker extends React.Component {
                     onItemOver={this.handleItemOver}
                     onItemOut={this.handleItemOut}
                     onItemClick={this.handleItemClick}
+                    onItemUnmount={this.handleItemUnmount}
                 />
             );
         }

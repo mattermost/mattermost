@@ -10,7 +10,8 @@ export default class EmojiPickerItem extends React.Component {
         emoji: React.PropTypes.object.isRequired,
         onItemOver: React.PropTypes.func.isRequired,
         onItemOut: React.PropTypes.func.isRequired,
-        onItemClick: React.PropTypes.func.isRequired
+        onItemClick: React.PropTypes.func.isRequired,
+        onItemUnmount: React.PropTypes.func.isRequired
     }
 
     constructor(props) {
@@ -19,6 +20,10 @@ export default class EmojiPickerItem extends React.Component {
         this.handleMouseOver = this.handleMouseOver.bind(this);
         this.handleMouseOut = this.handleMouseOut.bind(this);
         this.handleClick = this.handleClick.bind(this);
+    }
+
+    componentWillUnmount() {
+        this.props.onItemUnmount(this.props.emoji);
     }
 
     handleMouseOver() {
