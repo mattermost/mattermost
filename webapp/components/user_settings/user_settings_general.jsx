@@ -1010,7 +1010,7 @@ class UserSettingsGeneralTab extends React.Component {
                     <span>
                         <FormattedMessage
                             id='user.settings.general.positionExtra'
-                            defaultMessage='Use Position for your role or title within your organization. This will be shown in your profile popover.'
+                            defaultMessage='Use Position for your role or job title. This will be shown in your profile popover.'
                         />
                     </span>
                 );
