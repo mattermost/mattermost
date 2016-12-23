@@ -808,12 +808,12 @@ func TestChannelStoreUpdateLastViewedAt(t *testing.T) {
 	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
 	Must(store.Channel().SaveMember(&m1))
 
-	err := (<-store.Channel().UpdateLastViewedAt(m1.ChannelId, m1.UserId)).Err
+	err := (<-store.Channel().UpdateLastViewedAt([]string{m1.ChannelId}, m1.UserId)).Err
 	if err != nil {
 		t.Fatal("failed to update", err)
 	}
 
-	err = (<-store.Channel().UpdateLastViewedAt(m1.ChannelId, "missing id")).Err
+	err = (<-store.Channel().UpdateLastViewedAt([]string{m1.ChannelId}, "missing id")).Err
 	if err != nil {
 		t.Fatal("failed to update")
 	}
