@@ -65,8 +65,8 @@ export default class FileUploadProgress extends React.Component {
                          a ${radius}, ${radius} 0 1 1 0, -${2 * radius}`,
             pathStyle: {
                 strokeDasharray: `${len}px ${len}px`,
-                strokeDashoffset: `${100 - percent}px`,
-                transition: 'stroke-dashoffset 0.6s ease 0s, stroke 0.6s ease'
+                strokeDashoffset: `${(100 - percent) / 100 * len}px`,
+                transition: 'stroke-dashoffset 0.2s ease 0s, stroke 0.2s ease'
             }
         };
     }

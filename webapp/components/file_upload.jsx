@@ -137,6 +137,7 @@ class FileUpload extends React.Component {
     }
 
     handleDrop(e) {
+        e.preventDefault();
         this.props.onUploadError(null);
 
         var files = e.originalEvent.dataTransfer.files;
