@@ -223,6 +223,7 @@ function handleLeaveTeamEvent(msg) {
         if (TeamStore.getCurrentId() === msg.data.team_id) {
             TeamStore.setCurrentId('');
             Client.setTeamId('');
+            BrowserStore.removeGlobalItem('team');
             BrowserStore.removeGlobalItem(msg.data.team_id);
             GlobalActions.redirectUserToDefaultTeam();
         }

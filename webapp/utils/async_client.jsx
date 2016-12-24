@@ -139,7 +139,7 @@ export function getMyChannelMembers() {
 }
 
 export function viewChannel(channelId = ChannelStore.getCurrentId(), prevChannelId = '', time = 0) {
-    if (channelId == null) {
+    if (channelId == null || !Client.teamId) {
         return;
     }
 
