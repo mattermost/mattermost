@@ -24,13 +24,7 @@ class SwitchChannelSuggestion extends Suggestion {
             className += ' suggestion--selected';
         }
 
-        let displayName = '';
-        if (item.type === Constants.DM_CHANNEL) {
-            displayName = item.display_name;
-        } else {
-            displayName = item.display_name + ' (' + item.name + ')';
-        }
-
+        const displayName = item.display_name;
         let icon = null;
         if (item.type === Constants.OPEN_CHANNEL) {
             icon = <div className='status'><i className='fa fa-globe'/></div>;
