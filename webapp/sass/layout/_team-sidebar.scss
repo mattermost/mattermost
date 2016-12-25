@@ -23,7 +23,7 @@
                 .team-btn {
                     @include border-radius(2px);
                     background-color: alpha-color($black, .3);
-                    border: 1px solid transparent;
+                    border: 1px solid alpha-color($white, .2);
                     display: table-cell;
                     font-size: 12px;
                     font-weight: bold;
