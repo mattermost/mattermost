@@ -281,7 +281,7 @@
   "admin.email.smtpPasswordExample": "Ex: \"yourpassword\", \"jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY\"",
   "admin.email.smtpPasswordTitle": "SMTP Server Password:",
   "admin.email.smtpPortDescription": "Port of SMTP email server.",
-  "admin.email.smtpPortExample": "Ex: \"25\", \"465\"",
+  "admin.email.smtpPortExample": "Ex: \"25\", \"465\", \"587\"",
   "admin.email.smtpPortTitle": "SMTP Server Port:",
   "admin.email.smtpServerDescription": "Location of SMTP email server.",
   "admin.email.smtpServerExample": "Ex: \"smtp.yourcompany.com\", \"email-smtp.us-east-1.amazonaws.com\"",
