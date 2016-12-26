@@ -4,20 +4,56 @@ Link previews should embed previews of the contents of a hyperlink from a messag
 
 Post location variation: 
 
-1. Post as message in center channel with RHS closed (link preview should render under message) 
-2. Post as message in center channel with RHS open (link preview should render under message) 
+1. Post as message in center channel with RHS closed (preview of first link should render under message) 
+2. Post as message in center channel with RHS open (preview of first link should render under message) 
 3. Post as comment in RHS (link preview should not render) 
-4. View comment in center channel with RHS closed (link preview should render under message) 
-5. View comment in center channel with RHS open (link preview should render under message) 
+4. View comment in center channel with RHS closed (preview of first link should render under message) 
+5. View comment in center channel with RHS open (preview of first link should render under message) 
 6. Search for post in RHS with link
 
 Post the following links one per message in the above variations: 
 
-Twitter Link Preview: 
-https://twitter.com/mattermosthq/status/664928489078820865
 
-Vine: 
-https://vine.co/v/eDeVgbFrt9L
+```
+#### News: The Globe and Mail 
 
-Wikipedia
-https://en.wikipedia.org/wiki/Princess_Bubblegum
+Link 1 example: http://www.theglobeandmail.com/news/national/three-canadians-shortlisted-for-global-teacher-prize/article33429901/
+
+Link 2 example: http://www.theglobeandmail.com/news/toronto/a-last-minute-guide-for-made-in-toronto-gifts/article33426221/
+
+Link 3 example: http://www.theglobeandmail.com/opinion/as-2016-crashed-in-flames-libraries-were-the-last-good-place/article33427957/
+```
+
+```
+#### Twitter
+
+Link 1 example: https://twitter.com/mattermosthq/status/784382907896987648
+
+Link 2 example: https://twitter.com/ArchieComics/status/813007703861841920
+
+Link 3 example: https://twitter.com/ValiantComics/status/813066492187201536
+
+```
+
+
+```
+#### Wikipedia 
+
+Link 1 example: https://en.wikipedia.org/wiki/Olympus_Mons
+
+Link 2 example: https://en.wikipedia.org/wiki/Climate_of_Mars#Effect_of_dust_storms
+
+Link 3 example: https://en.wikipedia.org/wiki/Mars_Exploration_Rover
+
+```
+
+```
+#### YouTube 
+
+Link 1 example: https://www.youtube.com/watch?v=fDu1S-MMClw
+
+Link 2 example: https://www.youtube.com/watch?v=GaCjjda5v1o
+
+Link 3 example: https://www.youtube.com/watch?v=1Ui44_-N9y0
+
+```
