@@ -1,7 +1,5 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
-
-import _ from 'lodash';
 import $ from 'jquery';
 
 import Post from './post.jsx';
@@ -85,7 +83,7 @@ export default class PostList extends React.Component {
         // Only count if we're  not at the bottom, not in highlight view,
         // or anything else
         if (nextProps.scrollType === Constants.ScrollTypes.FREE) {
-            unViewedCount = _.reduce(order, (count, orderId) => {
+            unViewedCount = order.reduce((count, orderId) => {
                 const post = posts[orderId];
                 if (post.create_at > nextProps.lastViewedBottom &&
                     post.user_id !== nextProps.currentUser.id &&
