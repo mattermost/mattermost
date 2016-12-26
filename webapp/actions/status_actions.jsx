@@ -6,6 +6,7 @@ import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import PostStore from 'stores/post_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
+import UserStore from 'stores/user_store.jsx';
 
 import Client from 'client/web_client.jsx';
 
@@ -17,6 +18,7 @@ export function loadStatusesForChannel(channelId = ChannelStore.getCurrentId()) 
         return;
     }
 
+    const statuses = UserStore.getStatuses();
     const statusesToLoad = {};
     for (const pid in postList.posts) {
         if (!postList.posts.hasOwnProperty(pid)) {
@@ -24,7 +26,9 @@ export function loadStatusesForChannel(channelId = ChannelStore.getCurrentId()) 
         }
 
         const post = postList.posts[pid];
-        statusesToLoad[post.user_id] = true;
+        if (statuses[post.user_id] == null) {
+            statusesToLoad[post.user_id] = true;
+        }
     }
 
     loadStatusesByIds(Object.keys(statusesToLoad));
