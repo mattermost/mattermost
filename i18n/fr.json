@@ -300,6 +300,18 @@
     "translation": "%v a quitté le canal."
   },
   {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
+    "translation": "Failed to post displayname update message %v"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
+    "translation": "Impossible de récupérer l'utilisateur lors de l'enregistrement d'un nouveau message de canal %v"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
+    "translation": "%s a mis à jour l'en-tête du canal de : %s en : %s"
+  },
+  {
     "id": "api.channel.post_update_channel_header_message_and_forget.join_leave.error",
     "translation": "Erreur lors de l'envoi du message joindre/quitter %v"
   },
@@ -322,6 +334,10 @@
   {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
     "translation": "Impossible d'envoyer le message joindre/quitter %v"
+  },
+  {
+    "id": "api.channel.remove.default.app_error",
+    "translation": "Impossible de quitter le canal par défaut {{.Channel}}"
   },
   {
     "id": "api.channel.remove_member.permissions.app_error",
@@ -490,6 +506,10 @@
   {
     "id": "api.command_echo.hint",
     "translation": "'message' [délai en secondes]"
+  },
+  {
+    "id": "api.command_echo.message.app_error",
+    "translation": "A message must be provided with the /echo command."
   },
   {
     "id": "api.command_echo.name",
@@ -706,6 +726,10 @@
   {
     "id": "api.context.mfa_required.app_error",
     "translation": "Multi-factor authentication is required on this server."
+  },
+  {
+    "id": "api.context.missing_teamid.app_error",
+    "translation": "Missing Team Id"
   },
   {
     "id": "api.context.permissions.app_error",
@@ -1525,19 +1549,19 @@
   },
   {
     "id": "api.reaction.delete_reaction.mismatched_channel_id.app_error",
-    "translation": "Failed to delete reaction when channel id in URL doesn't match post id in URL"
+    "translation": "Failed to delete reaction because channel ID does not match post ID in the URL"
   },
   {
     "id": "api.reaction.init.debug",
-    "translation": "Initializing reactions api routes"
+    "translation": "Initialisation des routes API d'administration"
   },
   {
     "id": "api.reaction.list_reactions.mismatched_channel_id.app_error",
-    "translation": "Failed to get reactions when channel id in URL doesn't match post id in URL"
+    "translation": "Failed to get reactions because channel ID does not match post ID in the URL"
   },
   {
     "id": "api.reaction.save_reaction.mismatched_channel_id.app_error",
-    "translation": "Failed to save reaction when channel id in URL doesn't match post id in URL"
+    "translation": "Failed to save reaction because channel ID does not match post ID in the URL"
   },
   {
     "id": "api.reaction.send_reaction_event.post.app_error",
@@ -1829,7 +1853,7 @@
   },
   {
     "id": "api.team.import_team.unavailable.app_error",
-    "translation": "Taille de fichier indisponible"
+    "translation": "Malformed request: filesize field is not present."
   },
   {
     "id": "api.team.init.debug",
@@ -2321,7 +2345,7 @@
   },
   {
     "id": "api.user.login.not_provided.app_error",
-    "translation": "Veuillez entrer soit un identifiant utilisateur, soit le nom d'une équipe"
+    "translation": "Must provide either user ID, or team name and user email"
   },
   {
     "id": "api.user.login.not_verified.app_error",
@@ -3241,7 +3265,7 @@
   },
   {
     "id": "model.command.is_valid.url.app_error",
-    "translation": "Url invalide"
+    "translation": "Invalid URL"
   },
   {
     "id": "model.command.is_valid.url_http.app_error",
@@ -3837,7 +3861,7 @@
   },
   {
     "id": "model.team_member.is_valid.team_id.app_error",
-    "translation": "Id d'équipe invalide"
+    "translation": "Id équipe invalide"
   },
   {
     "id": "model.team_member.is_valid.user_id.app_error",
@@ -4201,6 +4225,10 @@
   },
   {
     "id": "store.sql_channel.get_members.app_error",
+    "translation": "Nous n'avons pas pu obtenir les membres du canal"
+  },
+  {
+    "id": "store.sql_channel.get_members_by_ids.app_error",
     "translation": "Nous n'avons pas pu obtenir les membres du canal"
   },
   {
@@ -5324,6 +5352,10 @@
     "translation": "Précédent"
   },
   {
+    "id": "web.incoming_webhook.attachment.app_error",
+    "translation": "Maximum attachments length is {{.Max}} characters, received size is {{.Actual}}"
+  },
+  {
     "id": "web.incoming_webhook.channel.app_error",
     "translation": "Nous n'avons pas pu trouver le canal"
   },
@@ -5346,6 +5378,10 @@
   {
     "id": "web.incoming_webhook.text.app_error",
     "translation": "Aucun texte indiqué"
+  },
+  {
+    "id": "web.incoming_webhook.text.length.app_error",
+    "translation": "Maximum text length is {{.Max}} characters, received size is {{.Actual}}"
   },
   {
     "id": "web.incoming_webhook.user.app_error",

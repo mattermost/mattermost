@@ -197,7 +197,7 @@
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
-    "translation": "Für die Erstellung eines Direktnachrichten-Kanals muss der createDirectChannel API Service verwendet werden"
+    "translation": "Für die Erstellung eines Direktnachrichten-Kanals muss der createDirectChannel-API-Service verwendet werden"
   },
   {
     "id": "api.channel.create_channel.invalid_character.app_error",
@@ -273,7 +273,7 @@
   },
   {
     "id": "api.channel.init.debug",
-    "translation": "Initialisiere Kanal API Routen"
+    "translation": "Initialisiere Kanal-API-Routen"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -281,7 +281,7 @@
   },
   {
     "id": "api.channel.join_channel.post_and_forget",
-    "translation": "Der Kanal wurde von %v betreten."
+    "translation": "%v hat den Kanal betreten."
   },
   {
     "id": "api.channel.leave.default.app_error",
@@ -298,6 +298,18 @@
   {
     "id": "api.channel.leave.left",
     "translation": "%v hat den Kanal verlassen."
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
+    "translation": "Fehler beim Senden der Anzeigenamen-Aktualisierungsnachricht %v"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
+    "translation": "Fehler beim Abrufen des Nutzers während des Sicherns der Mitteilung des Kanalanzeigennamen %v"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
+    "translation": "%s hat den Kanal-Anzeigenamen von %s nach %s aktualisiert"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.join_leave.error",
@@ -322,6 +334,10 @@
   {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
     "translation": "Die Begrüßungs-/Abschiedsnachricht %v konnte nicht gesendet werden"
+  },
+  {
+    "id": "api.channel.remove.default.app_error",
+    "translation": "Der Benutzer kann nicht vom Standard-Kanal {{.Channel}} entfernt werden"
   },
   {
     "id": "api.channel.remove_member.permissions.app_error",
@@ -365,7 +381,7 @@
   },
   {
     "id": "api.command.delete.app_error",
-    "translation": "Die Berechtigungen für den Lösch-Befehl sind ungeeignet"
+    "translation": "Ungültige Berechtigungen um den Befehl zu löschen"
   },
   {
     "id": "api.command.disabled.app_error",
@@ -405,7 +421,7 @@
   },
   {
     "id": "api.command.init.debug",
-    "translation": "Initialisiere Befehle API Routen"
+    "translation": "Initialisiere Befehle-API-Routen"
   },
   {
     "id": "api.command.invite_people.desc",
@@ -437,7 +453,7 @@
   },
   {
     "id": "api.command.regen.app_error",
-    "translation": "Die Berechtigungen für die Erneuerung des Befehls-Tokens sind ungeeignet"
+    "translation": "Ungültige Berechtigungen um das Befehls-Tokens zu regenerieren"
   },
   {
     "id": "api.command.team_mismatch.app_error",
@@ -445,7 +461,7 @@
   },
   {
     "id": "api.command.update.app_error",
-    "translation": "Die Berechtigungen für den Aktualisierungsbefehl sind ungeeignet"
+    "translation": "Ungültige Berechtigungen um den Befehl zu aktualisieren"
   },
   {
     "id": "api.command_away.desc",
@@ -469,7 +485,7 @@
   },
   {
     "id": "api.command_collapse.success",
-    "translation": "Image links now collapse by default"
+    "translation": "Links zu Bildern werden per Standard verkleinert"
   },
   {
     "id": "api.command_echo.create.app_error",
@@ -492,6 +508,10 @@
     "translation": "'Nachricht' [Verzögerung in Sekunden]"
   },
   {
+    "id": "api.command_echo.message.app_error",
+    "translation": "Es muss eine Nachricht für den /echo Befehl angegeben werden."
+  },
+  {
     "id": "api.command_echo.name",
     "translation": "Echo"
   },
@@ -505,11 +525,11 @@
   },
   {
     "id": "api.command_expand.success",
-    "translation": "Image links now expand by default"
+    "translation": "Links zu Bildern werden per Standard komplett angezeigt"
   },
   {
     "id": "api.command_expand_collapse.fail.app_error",
-    "translation": "Es ist ein Fehler beim Erweitern der Vorschauen aufgetreten"
+    "translation": "Es trat ein Fehler beim Erweitern der Vorschauen auf"
   },
   {
     "id": "api.command_join.desc",
@@ -517,7 +537,7 @@
   },
   {
     "id": "api.command_join.fail.app_error",
-    "translation": "Beim Beitreten des Kanals ist ein Fehler aufgetreten."
+    "translation": "Es trat ein Fehler beim Betreten des Kanals auf."
   },
   {
     "id": "api.command_join.hint",
@@ -525,7 +545,7 @@
   },
   {
     "id": "api.command_join.list.app_error",
-    "translation": "Beim Auflisten der Kanäle ist ein Fehler aufgetreten."
+    "translation": "Es trat ein Fehler beim Auflisten der Kanäle auf."
   },
   {
     "id": "api.command_join.missing.app_error",
@@ -573,11 +593,11 @@
   },
   {
     "id": "api.command_msg.dm_fail.app_error",
-    "translation": "Ein Fehler während dem Erstellen der Nachricht ist aufgetreten."
+    "translation": "Es ist ein Fehler beim Erstellen der Direktnachricht auf."
   },
   {
     "id": "api.command_msg.fail.app_error",
-    "translation": "Beim Senden der Nachricht ist ein Fehler aufgetreten."
+    "translation": "Es trat ein Fehler beim Benachrichtigen des Benutzers auf."
   },
   {
     "id": "api.command_msg.hint",
@@ -585,7 +605,7 @@
   },
   {
     "id": "api.command_msg.list.app_error",
-    "translation": "Beim Auflisten der Benutzer ist ein Fehler aufgetreten."
+    "translation": "Es trat ein Fehler beim Auflisten der Benutzer auf."
   },
   {
     "id": "api.command_msg.missing.app_error",
@@ -693,7 +713,7 @@
   },
   {
     "id": "api.context.invalidate_all_caches",
-    "translation": "Purging all caches"
+    "translation": "Alle Caches werden geleert"
   },
   {
     "id": "api.context.last_activity_at.error",
@@ -705,7 +725,11 @@
   },
   {
     "id": "api.context.mfa_required.app_error",
-    "translation": "Multi-factor authentication is required on this server."
+    "translation": "Multifaktor-Authenifikation ist auf diesem Server erforderlich."
+  },
+  {
+    "id": "api.context.missing_teamid.app_error",
+    "translation": "Fehlende Team ID"
   },
   {
     "id": "api.context.permissions.app_error",
@@ -803,7 +827,7 @@
   },
   {
     "id": "api.emoji.create.permissions.app_error",
-    "translation": "Keine passenden Berechtigungen um das Emoji zu erstellen."
+    "translation": "Ungültige Berechtigungen um Emoji zu erstellen."
   },
   {
     "id": "api.emoji.create.too_large.app_error",
@@ -811,11 +835,11 @@
   },
   {
     "id": "api.emoji.delete.delete_reactions.app_error",
-    "translation": "Unable to delete reactions when deleting emoji with emoji name %v"
+    "translation": "Konnte Reaktionen nicht löschen während Emoji mit dem Namen %v gelöscht wurde"
   },
   {
     "id": "api.emoji.delete.permissions.app_error",
-    "translation": "Keine passenden Berechtigungen um das Emoji zu löschen."
+    "translation": "Ungültige Berechtigungen um Emoji zu löschen."
   },
   {
     "id": "api.emoji.disabled.app_error",
@@ -831,7 +855,7 @@
   },
   {
     "id": "api.emoji.init.debug",
-    "translation": "Initialisiere Emoji API Routen"
+    "translation": "Initialisiere Emoji-API-Routen"
   },
   {
     "id": "api.emoji.storage.app_error",
@@ -919,7 +943,7 @@
   },
   {
     "id": "api.file.init.debug",
-    "translation": "Initialisiere Datei API Routen"
+    "translation": "Initialisiere Datei-API-Routen"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.channel.app_error",
@@ -1051,7 +1075,7 @@
   },
   {
     "id": "api.general.init.debug",
-    "translation": "Initialisiere allgemeine API Routen"
+    "translation": "Initialisiere allgemeine API-Routen"
   },
   {
     "id": "api.import.import_post.saving.debug",
@@ -1111,7 +1135,7 @@
   },
   {
     "id": "api.license.init.debug",
-    "translation": "Initialisiere Lizenz API Routen"
+    "translation": "Initialisiere Lizenz-API-Routen"
   },
   {
     "id": "api.license.remove_license.remove.app_error",
@@ -1155,7 +1179,7 @@
   },
   {
     "id": "api.oauth.delete.permissions.app_error",
-    "translation": "Ungeeignete Berechtigungen um die OAuth2 App zu entfernen"
+    "translation": "Ungültige Berechtigungen um die OAuth2 App zu entfernen"
   },
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
@@ -1219,11 +1243,11 @@
   },
   {
     "id": "api.oauth.init.debug",
-    "translation": "Initialisiere OAuth API Routen"
+    "translation": "Initialisiere OAuth-API-Routen"
   },
   {
     "id": "api.oauth.regenerate_secret.app_error",
-    "translation": "Ungeeignete Berechtigungen um den OAuth2 App Schlüssel neu zu generieren"
+    "translation": "Ungültige Berechtigungen um den OAuth2 App Schlüssel neu zu generieren"
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
@@ -1389,11 +1413,11 @@
   },
   {
     "id": "api.post.make_direct_channel_visible.save_pref.error",
-    "translation": "Fehler beim Speichern der Direkt-Kanal Einstellung user_id=%v other_user_id=%v err=%v"
+    "translation": "Fehler beim Speichern der Direktkanal-Einstellung user_id=%v other_user_id=%v err=%v"
   },
   {
     "id": "api.post.make_direct_channel_visible.update_pref.error",
-    "translation": "Fehler beim Speichern der Direkt-Kanal Einstellung user_id=%v other_user_id=%v err=%v"
+    "translation": "Fehler beim Speichern der Direktkanal-Einstellung user_id=%v other_user_id=%v err=%v"
   },
   {
     "id": "api.post.notification.here.warn",
@@ -1409,11 +1433,11 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.comment_thread.error",
-    "translation": "Fehler beim Abrufen der Kommentarthread Nachrichten in Benachrichtigung root_post_id=%v, err=%v"
+    "translation": "Fehler beim Abrufen der Nachrichten des Kommentarthreads in Benachrichtigung root_post_id=%v, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.files.error",
-    "translation": "Die Dateien für die Benachrichtigung konnten nicht abgerufen werden post_id=%v, err=%v"
+    "translation": "Fehler beim Abrufen der Dateien der Nachricht in Benachrichtigung post_id=%v, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.get_teams.error",
@@ -1509,7 +1533,7 @@
   },
   {
     "id": "api.preference.init.debug",
-    "translation": "Initialisieren Einstellungen API Routen"
+    "translation": "Initialisiere API-Routen für Einstellungen"
   },
   {
     "id": "api.preference.save_preferences.decode.app_error",
@@ -1525,23 +1549,23 @@
   },
   {
     "id": "api.reaction.delete_reaction.mismatched_channel_id.app_error",
-    "translation": "Failed to delete reaction when channel id in URL doesn't match post id in URL"
+    "translation": "Fehler beim Löschen der Reaktion da Kanal ID nicht der Nachrichten-ID in der URL entspricht"
   },
   {
     "id": "api.reaction.init.debug",
-    "translation": "Initializing reactions api routes"
+    "translation": "Initialisiere API-Routen für Reaktionen"
   },
   {
     "id": "api.reaction.list_reactions.mismatched_channel_id.app_error",
-    "translation": "Failed to get reactions when channel id in URL doesn't match post id in URL"
+    "translation": "Konnte Reaktionen nicht abrufen da Kanal ID nicht der Nachrichten-OD der URL entspricht"
   },
   {
     "id": "api.reaction.save_reaction.mismatched_channel_id.app_error",
-    "translation": "Failed to save reaction when channel id in URL doesn't match post id in URL"
+    "translation": "Konnte Reaktion nicht speichern da Kanal ID nicht der Nachrichten-ID der URL entspricht"
   },
   {
     "id": "api.reaction.send_reaction_event.post.app_error",
-    "translation": "Failed to get post when sending websocket event for reaction"
+    "translation": "Fehler beim Abrufen der Nachricht beim Senden des Websocket Events für Reaktion"
   },
   {
     "id": "api.saml.save_certificate.app_error",
@@ -1565,7 +1589,7 @@
   },
   {
     "id": "api.server.start_server.rate_limiting_memory_store",
-    "translation": "Konnte Rate Limiting Memory Store nicht initialisieren. Prüfen Sie die MemoryStoreSize Konfigurationseinstellung."
+    "translation": "Konnte Rate Limiting Memory Store nicht initialisieren. Prüfen Sie die MemoryStoreSize-Konfigurationseinstellung."
   },
   {
     "id": "api.server.start_server.rate_limiting_rate_limiter",
@@ -1613,7 +1637,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.import_failed.warn",
-    "translation": "Slack Importer: Kanal konnte nicht importiert werden: %s"
+    "translation": "Slack-Importer: Kanal konnte nicht importiert werden: %s"
   },
   {
     "id": "api.slackimport.slack_add_channels.merge",
@@ -1625,11 +1649,11 @@
   },
   {
     "id": "api.slackimport.slack_add_posts.bot.warn",
-    "translation": "Slack Bot Beiträge wurden noch nicht importiert"
+    "translation": "Slack-Bot-Beiträge wurden noch nicht importiert"
   },
   {
     "id": "api.slackimport.slack_add_posts.bot_user_no_exists.warn",
-    "translation": "Slack Importer: Bot Nachrichten werden nicht importiert da der bot-importing Benutzer nicht existiert."
+    "translation": "Slack-Importer: Bot-Nachrichten werden nicht importiert, da der Benutzer für den Bot-Import nicht existiert."
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_comment.debug",
@@ -1641,7 +1665,7 @@
   },
   {
     "id": "api.slackimport.slack_add_posts.no_bot_id.warn",
-    "translation": "Slack Importer: Bot Nachrichten werden nicht importiert da das BotId Feld fehlt."
+    "translation": "Slack-Importer: Bot-Nachrichten werden nicht importiert, da das BotId-Feld fehlt."
   },
   {
     "id": "api.slackimport.slack_add_posts.unsupported.warn",
@@ -1653,11 +1677,11 @@
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_not_in_json.warn",
-    "translation": "Kann Datei nicht importieren wenn kein \"file\" Bereich im Export existiert."
+    "translation": "Kann Datei nicht importieren, wenn kein \"file\" Bereich im Export existiert."
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_open_failed.warn",
-    "translation": "Die Datei mit der ID {{.FileId}} kann nicht aus dem Export Archiv geöffnet werden: {{.Error}}"
+    "translation": "Die Datei mit der ID {{.FileId}} kann nicht aus dem Export-Archiv geöffnet werden: {{.Error}}"
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_upload_failed.warn",
@@ -1681,11 +1705,11 @@
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "Benutzer mit vorhandenem Account verbunden: {{.Email}}, {{.Username}}\r\n"
+    "translation": "Benutzer mit vorhandenem Account zusammengeführt: {{.Email}}, {{.Username}}\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "Es wurde versucht den Benutzer mit bestehendem Zugang ({{.Email}}, {{.Username}}) zusammenzufassen, konnte den Benutzer aber zu diesem Team hinzufügen.\r\n"
+    "translation": "Es wurde versucht, den Benutzer mit existierendem Konto ({{.Email}}, {{.Username}}) zusammenzuführen, konnte den Benutzer aber nicht zu diesem Team hinzufügen.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
@@ -1693,7 +1717,7 @@
   },
   {
     "id": "api.slackimport.slack_convert_channel_mentions.compile_regexp_failed.warn",
-    "translation": "Konnte Regex Match für !channel für Slack Channel {{.ChannelID}} {{.ChannelName}} nicht erstellen"
+    "translation": "Konnte keinen zu !channel passenden regulären Ausdruck für Slack-Channel {{.ChannelID}} {{.ChannelName}} erstellen"
   },
   {
     "id": "api.slackimport.slack_convert_timestamp.bad.warn",
@@ -1701,11 +1725,11 @@
   },
   {
     "id": "api.slackimport.slack_convert_user_mentions.compile_regexp_failed.warn",
-    "translation": "Konnte Regex Match für @Erwähnung für Slack Benutzer {{.UserID}} {{.Username}} nicht erstellen"
+    "translation": "Konnte keinen zu @Erwähnung passenden regulären Ausdruck für Slack-Benutzer {{.UserID}} {{.Username}} erstellen"
   },
   {
     "id": "api.slackimport.slack_deactivate_bot_user.failed_to_deactivate",
-    "translation": "Slack Importer: Konnte bot-importing Benutzer nicht deaktivieren."
+    "translation": "Slack-Importer: Konnte den Benutzer für den Bot-Import nicht deaktivieren."
   },
   {
     "id": "api.slackimport.slack_import.log",
@@ -1717,11 +1741,11 @@
   },
   {
     "id": "api.slackimport.slack_import.note2",
-    "translation": "- Nachrichten vom Slack Bot werden aktuell nicht unterstützt.\r\n"
+    "translation": "- Nachrichten vom Slack-Bot werden aktuell nicht unterstützt.\r\n"
   },
   {
     "id": "api.slackimport.slack_import.note3",
-    "translation": "- Weitere Fehlermeldungen könnten in den Server Logs auffindbar sein.\r\n"
+    "translation": "- Weitere Fehlermeldungen könnten in den Server-Logs auffindbar sein.\r\n"
   },
   {
     "id": "api.slackimport.slack_import.notes",
@@ -1821,7 +1845,7 @@
   },
   {
     "id": "api.team.import_team.open.app_error",
-    "translation": "Die Datei konnte nicht geöffnet werden"
+    "translation": "Konnte Datei nicht öffnen"
   },
   {
     "id": "api.team.import_team.parse.app_error",
@@ -1829,11 +1853,11 @@
   },
   {
     "id": "api.team.import_team.unavailable.app_error",
-    "translation": "Dateigröße nicht verfügbar"
+    "translation": "Falsch gebildete Anfrage: Feld filesize fehlt."
   },
   {
     "id": "api.team.init.debug",
-    "translation": "Initialisieren Team API Routen"
+    "translation": "Initialisiere Team-API-Routen"
   },
   {
     "id": "api.team.invite_members.admin",
@@ -1873,11 +1897,11 @@
   },
   {
     "id": "api.team.is_team_creation_allowed.domain.app_error",
-    "translation": "Die E-Mail-Adresse muss von einer bestimmten Domain stammen (z.B. @example.com). Bitte die Systemverwalter kontaktieren."
+    "translation": "Die E-Mail-Adresse muss von einer bestimmten Domain stammen (z.B. @example.com). Bitte wenden Sie sich an Ihren Systemadministrator."
   },
   {
     "id": "api.team.permanent_delete_team.attempting.warn",
-    "translation": "Team permanent Löschen? %v id=%v"
+    "translation": "Team permanent löschen? %v id=%v"
   },
   {
     "id": "api.team.permanent_delete_team.deleted.warn",
@@ -1889,7 +1913,7 @@
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",
-    "translation": "Team Anmeldung mit einer E-Mailadresse ist ausgeschaltet."
+    "translation": "Team-Anmeldung mit einer E-Mail-Adresse ist deaktiviert."
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
@@ -1901,7 +1925,7 @@
   },
   {
     "id": "api.templates.email_change_body.info",
-    "translation": "Ihre E-Mail-Adresse für {{.TeamDisplayName}} wurde in {{.NewEmail}} geändert.<br>Wenn Sie diese Änderungen nicht durchgeführt haben kontaktierten Sie bitte den Systemadministrator."
+    "translation": "Ihre E-Mail-Adresse für {{.TeamDisplayName}} wurde in {{.NewEmail}} geändert.<br>Wenn Sie diese Änderungen nicht durchgeführt haben, kontaktieren Sie bitte den Systemadministrator."
   },
   {
     "id": "api.templates.email_change_body.title",
@@ -1909,7 +1933,7 @@
   },
   {
     "id": "api.templates.email_change_subject",
-    "translation": "Ihre E-Mail-Adresse wurde für {{.TeamDisplayName}} geändert"
+    "translation": "Ihre E-Mail-Adresse für {{.TeamDisplayName}} wurde geändert"
   },
   {
     "id": "api.templates.email_change_verify_body.button",
@@ -1917,7 +1941,7 @@
   },
   {
     "id": "api.templates.email_change_verify_body.info",
-    "translation": "Um Ihre E-Mail-Adresse für {{.TeamDisplayName}} zu ändern, klicken Sie bitte auf den unten stehenden Link."
+    "translation": "Um Ihre E-Mail-Adresse für {{.TeamDisplayName}} zu ändern, klicken Sie bitte auf den unten stehenden Link, um zu bestätigen, dass dies die richtige Adresse ist."
   },
   {
     "id": "api.templates.email_change_verify_body.title",
@@ -1925,15 +1949,15 @@
   },
   {
     "id": "api.templates.email_change_verify_subject",
-    "translation": "Bestätige neue E-Mailadresse für {{.TeamDisplayName}}"
+    "translation": "Bestätige neue E-Mail-Adresse für {{.TeamDisplayName}}"
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "Benachrichtigungseinstellungen können geändert werden wenn Sie sich in Ihrem Team anmelden und Account Einstellungen > Benachrichtigungen aufrufen."
+    "translation": "Um Ihre Benachrichtigungseinstellungen zu ändern, melden Sie sich an Ihrer Team-Site an und wählen dann Kontoeinstellungen > Benachrichtigungen."
   },
   {
     "id": "api.templates.email_info",
-    "translation": "Bei Fragen senden Sie uns jederzeit eine E-Mail an <a href='mailto:{{.SupportEmail}}' style='text-decoration: none; color:#2389D7;'>{{.SupportEmail}}</a>.<br>Beste Grüße, <br> Das {{.SiteName}} Team<br>"
+    "translation": "Bei Fragen senden Sie uns jederzeit eine E-Mail an <a href='mailto:{{.SupportEmail}}' style='text-decoration: none; color:#2389D7;'>{{.SupportEmail}}</a>.<br>Beste Grüße<br> Das {{.SiteName}} Team<br>"
   },
   {
     "id": "api.templates.email_organization",
@@ -1969,11 +1993,11 @@
   },
   {
     "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost lässt Sie Nachrichten und Dateien von Ihrem PC oder Smartphone teilen, mit Sofortsuche und Archivierung. Nach dem Sie <strong>{{.TeamDisplayName}}</strong> beigetreten sind können Sie sich in Ihr neues Team anmelden und all diese Features von folgender Webadresse abrufen:<br/><br/><a href='{{.TeamURL}}'>{{.TeamURL}}</a>"
+    "translation": "Mattermost lässt Sie Nachrichten und Dateien von Ihrem PC oder Smartphone teilen, mit Sofortsuche und Archivierung. Nach dem Sie <strong>{{.TeamDisplayName}}</strong> beigetreten sind, können Sie sich bei Ihrem neuen Team anmelden und auf all diese Features von folgender Webadresse aus zugreifen:<br/><br/><a href='{{.TeamURL}}'>{{.TeamURL}}</a>"
   },
   {
     "id": "api.templates.invite_body.info",
-    "translation": "Das Team {{.SenderStatus}} <strong>{{.SenderName}}</strong>, hat Sie eingeladen dem Team <strong>{{.TeamDisplayName}}</strong> beizutreten."
+    "translation": "Das Team {{.SenderStatus}} <strong>{{.SenderName}}</strong>, hat Sie eingeladen, dem Team <strong>{{.TeamDisplayName}}</strong> beizutreten."
   },
   {
     "id": "api.templates.invite_body.title",
@@ -1981,31 +2005,31 @@
   },
   {
     "id": "api.templates.invite_subject",
-    "translation": "{{ .SenderName }} hat Sie eingeladen dem Team {{ .TeamDisplayName }} auf {{.SiteName}} beizutreten"
+    "translation": "{{ .SenderName }} hat Sie eingeladen, dem Team {{ .TeamDisplayName }} auf {{.SiteName}} beizutreten"
   },
   {
     "id": "api.templates.mfa_activated_body.info",
-    "translation": "Multi-factor authentication has been added to your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you, please contact your system administrator."
+    "translation": "Multi-Faktor-Authentifizierung wurde Ihrem Zugang auf {{ .SiteURL }} hinzugefügt.<br>Wenn diese Änderung nicht durch Sie initiiert wurde kontaktieren Sie bitte Ihren Systemadministrator."
   },
   {
     "id": "api.templates.mfa_activated_body.title",
-    "translation": "Multi-factor authentication was added"
+    "translation": "Multi-Faktor-Authentifizierung wurde hinzugefügt"
   },
   {
     "id": "api.templates.mfa_change_subject",
-    "translation": "Your MFA has been updated on {{ .SiteName }}"
+    "translation": "Ihre MFA wurde auf {{ .SiteName }} aktualisiert"
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
-    "translation": "Multi-factor authentication has been removed from your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you, please contact your system administrator."
+    "translation": "Multi-Faktor-Authentifizierung wurde aus Ihrem Zugang auf {{ .SiteURL }} entfernt.<br>Wenn diese Änderung nicht durch Sie initiiert wurde kontaktieren Sie bitte Ihren Systemadministrator."
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",
-    "translation": "Multi-factor authentication was removed"
+    "translation": "Multi-Faktor-Authentifizierung wurde entfernt"
   },
   {
     "id": "api.templates.password_change_body.info",
-    "translation": "Ihr Passwort wurde aktualisiert für {{.TeamDisplayName}} bei {{ .TeamURL }} durch {{.Method}}.<br>Falls Sie diese Änderung nicht veranlasst haben wenden Sie sich bitte an den Systemadministrator."
+    "translation": "Ihr Passwort wurde aktualisiert für {{.TeamDisplayName}} bei {{ .TeamURL }} durch {{.Method}}.<br>Falls Sie diese Änderung nicht veranlasst haben, wenden Sie sich bitte an den Systemadministrator."
   },
   {
     "id": "api.templates.password_change_body.title",
@@ -2037,11 +2061,11 @@
   },
   {
     "id": "api.templates.reset_body.info",
-    "translation": "Um Ihr Passwort zu ändern, klicken Sie unten auf \"Passwort zurücksetzen\".<br>Wenn Sie Ihr Passwort nicht zurücksetzen möchten ignorieren Sie bitte diese E-Mail und das Passwort wird gleich bleiben. Der Passwortzurücksetzenlink wird in 24 Stunden ablaufen."
+    "translation": "Um Ihr Passwort zu ändern, klicken Sie unten auf \"Passwort zurücksetzen\".<br>Wenn Sie Ihr Passwort nicht zurücksetzen möchten, ignorieren Sie bitte diese E-Mail und das Passwort wird gleich bleiben. Der Passwortzurücksetzenlink wird in 24 Stunden ablaufen."
   },
   {
     "id": "api.templates.reset_body.title",
-    "translation": "Sie haben eine Passwort Zurücksetzung angerfordert"
+    "translation": "Sie haben eine Rücksetzung Ihres Passworts angefordert"
   },
   {
     "id": "api.templates.reset_subject",
@@ -2053,7 +2077,7 @@
   },
   {
     "id": "api.templates.signin_change_email.body.title",
-    "translation": "Sie haben Ihre Anmelde-Methode geändert"
+    "translation": "Sie haben Ihre Anmeldemethode geändert"
   },
   {
     "id": "api.templates.signup_team_body.button",
@@ -2061,7 +2085,7 @@
   },
   {
     "id": "api.templates.signup_team_body.info",
-    "translation": "{{ .SiteName }} ist der Platz für all Ihre Teamkommunikation, durchsuchbar und überall verfügbar.<br> Sie werden mehr aus {{ .SiteName }} herausholen wenn Ihr Team in regem Kontakt bleibt - laden Sie Ihr Team ein."
+    "translation": "{{ .SiteName }} ist der Platz für all Ihre Teamkommunikation, durchsuchbar und überall verfügbar.<br> Sie werden mehr aus {{ .SiteName }} herausholen, wenn Ihr Team in regem Kontakt bleibt - laden Sie Ihr Team ein."
   },
   {
     "id": "api.templates.signup_team_body.title",
@@ -2069,11 +2093,11 @@
   },
   {
     "id": "api.templates.signup_team_subject",
-    "translation": "{{ .SiteName }} Team Einrichtung"
+    "translation": "{{ .SiteName }} Team-Einrichtung"
   },
   {
     "id": "api.templates.singin_change_email.body.info",
-    "translation": "Sie haben Ihre Anmeldemethode für {{ .SiteName }} auf {{.Method}} geändert.<br>Falls Sie diese Änderung nicht veranlasst haben wenden Sie sich bitte an den Systemadministrator."
+    "translation": "Sie haben Ihre Anmeldemethode für {{ .SiteName }} auf {{.Method}} geändert.<br>Falls Sie diese Änderung nicht veranlasst haben, wenden Sie sich bitte an den Systemadministrator."
   },
   {
     "id": "api.templates.singin_change_email.subject",
@@ -2085,11 +2109,11 @@
   },
   {
     "id": "api.templates.upgrade_30_subject.info",
-    "translation": "[MATTERMOST] Änderung zu Ihrem Zugang durch die Mattermost 3.0 Aktualisierung"
+    "translation": "[MATTERMOST] Änderung zu Ihrem Zugang durch die Mattermost-3.0-Aktualisierung"
   },
   {
     "id": "api.templates.username_change_body.info",
-    "translation": "Ihr Benutzername für {{.TeamDisplayName}} wurde in {{.NewUsername}} geändert.<br>Wenn Sie diese Änderungen nicht durchgeführt haben kontaktieren Sie bitte den Systemadministrator."
+    "translation": "Ihr Benutzername für {{.TeamDisplayName}} wurde in {{.NewUsername}} geändert.<br>Wenn Sie diese Änderungen nicht durchgeführt haben, kontaktieren Sie bitte den Systemadministrator."
   },
   {
     "id": "api.templates.username_change_body.title",
@@ -2113,7 +2137,7 @@
   },
   {
     "id": "api.templates.verify_subject",
-    "translation": "[{{ .SiteName }}] E-Mail Bestätigung"
+    "translation": "[{{ .SiteName }}] E-Mail-Bestätigung"
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
@@ -2133,7 +2157,7 @@
   },
   {
     "id": "api.templates.welcome_body.info3",
-    "translation": "Mit Mattermost können die Nachrichten und Dateien von Ihrem PC oder Telefon aus teilen, suchen und archivieren."
+    "translation": "Mit Mattermost können Sie Nachrichten und Dateien von Ihrem PC oder Telefon aus teilen, suchen und archivieren."
   },
   {
     "id": "api.templates.welcome_body.title",
@@ -2157,7 +2181,7 @@
   },
   {
     "id": "api.user.authorize_oauth_user.bad_token.app_error",
-    "translation": "Falscher Token Typ"
+    "translation": "Falscher Tokentyp"
   },
   {
     "id": "api.user.authorize_oauth_user.invalid_state.app_error",
@@ -2181,15 +2205,15 @@
   },
   {
     "id": "api.user.authorize_oauth_user.unsupported.app_error",
-    "translation": "Nicht unterstützter OAuth Service Provider"
+    "translation": "Nicht unterstützter OAuth-Service-Provider"
   },
   {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
-    "translation": "Ihr Account ist gesperrt da es zu viele fehlerhafte Passworteingaben gab. Bitte setzen Sie Ihr Passwort zurück."
+    "translation": "Ihr Account ist gesperrt, da es zu viele fehlerhafte Passworteingaben gab. Bitte setzen Sie Ihr Passwort zurück."
   },
   {
     "id": "api.user.check_user_mfa.bad_code.app_error",
-    "translation": "Ungültiger MFA token."
+    "translation": "Ungültiger MFA-Token."
   },
   {
     "id": "api.user.check_user_mfa.not_available.app_error",
@@ -2205,7 +2229,7 @@
   },
   {
     "id": "api.user.complete_switch_with_oauth.parse.app_error",
-    "translation": "Konnte Authdaten aus {{.Service}} Benutzer Objekt nicht verarbeiten"
+    "translation": "Konnte Authentifizierungsdaten aus {{.Service}} Benutzerobjekt nicht verarbeiten"
   },
   {
     "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
@@ -2213,15 +2237,15 @@
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
-    "translation": "Mit dieser E-Mail-Adresse ist bereits ein Account verknüpft, der nicht die Anmeldemethode {{.Service}} verwendet. Bitte verwenden Sie {{.Auth}} zum anmelden."
+    "translation": "Mit dieser E-Mail-Adresse ist bereits ein Account verknüpft, der nicht die Anmeldemethode {{.Service}} verwendet. Bitte verwenden Sie {{.Auth}} zum Anmelden."
   },
   {
     "id": "api.user.create_oauth_user.already_used.app_error",
-    "translation": "Dieser {{.Service}} Account wurde bereits zur Registrierung verwenden"
+    "translation": "Dieser {{.Service}} Account wurde bereits zur Registrierung verwendet"
   },
   {
     "id": "api.user.create_oauth_user.create.app_error",
-    "translation": "Konnte keinen Benutzer aus {{.Service}} User Objekt erstellen"
+    "translation": "Konnte keinen Benutzer aus {{.Service}} Benutzerobjekt erstellen"
   },
   {
     "id": "api.user.create_oauth_user.not_available.app_error",
@@ -2229,11 +2253,11 @@
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
-    "translation": "Konnte Standard Profilbildschriftart nicht erstellen"
+    "translation": "Konnte Standard-Profilbildschriftart nicht erstellen"
   },
   {
     "id": "api.user.create_profile_image.encode.app_error",
-    "translation": "Konnte Standard Profilbild nicht codieren"
+    "translation": "Konnte Standardprofilbild nicht enkodieren"
   },
   {
     "id": "api.user.create_profile_image.initial.app_error",
@@ -2245,11 +2269,11 @@
   },
   {
     "id": "api.user.create_user.joining.error",
-    "translation": "Fehler beim Betreten des Standard Channels. user_id=%s, team_id=%s, err=%v"
+    "translation": "Fehler beim Betreten des Standardkanals user_id=%s, team_id=%s, err=%v"
   },
   {
     "id": "api.user.create_user.no_open_server",
-    "translation": "Dieser Server erlaubt keine offnen Registrierungen.  Bitte wenden Sie sich an Ihren Administrator um eine Einladung zu erhalten."
+    "translation": "Dieser Server erlaubt keine offenen Registrierungen.  Bitte wenden Sie sich an Ihren Administrator, um eine Einladung zu erhalten."
   },
   {
     "id": "api.user.create_user.save.error",
@@ -2257,15 +2281,15 @@
   },
   {
     "id": "api.user.create_user.signup_email_disabled.app_error",
-    "translation": "Team Anmeldung mit einer E-Mail Adresse ist ausgeschaltet."
+    "translation": "Benutzerregistrierung mit einer E-Mail-Adresse ist ausgeschaltet."
   },
   {
     "id": "api.user.create_user.signup_link_expired.app_error",
-    "translation": "Der Link ist abgelaufen"
+    "translation": "Der Registrierungslink ist abgelaufen"
   },
   {
     "id": "api.user.create_user.signup_link_invalid.app_error",
-    "translation": "Der Link scheint nicht gültig zu sein"
+    "translation": "Der Registrierungslink scheint nicht gültig zu sein"
   },
   {
     "id": "api.user.create_user.team_name.app_error",
@@ -2273,11 +2297,11 @@
   },
   {
     "id": "api.user.create_user.tutorial.error",
-    "translation": "Fehler beim Speichern der Tutorial Einstellungen, err=%v"
+    "translation": "Fehler beim Speichern der Tutorial-Einstellungen, err=%v"
   },
   {
     "id": "api.user.create_user.verified.error",
-    "translation": "Fehler beim setzen der E-Mail-Adresse als geprüft. Fehler=%v"
+    "translation": "Fehler beim Setzen der E-Mail-Adresse als geprüft err=%v"
   },
   {
     "id": "api.user.email_to_ldap.not_available.app_error",
@@ -2289,15 +2313,15 @@
   },
   {
     "id": "api.user.get_authorization_code.unsupported.app_error",
-    "translation": "Nicht unterstützter OAuth Service Provider"
+    "translation": "Nicht unterstützter OAuth-Service-Provider"
   },
   {
     "id": "api.user.get_me.getting.error",
-    "translation": "Fehler beim Abruf des Benutzerprofils mit id=%v. Erzwinge Abmeldung"
+    "translation": "Fehler beim Abruf des Benutzerprofils mit id=%v erzwingt Abmeldung"
   },
   {
     "id": "api.user.init.debug",
-    "translation": "Initialisiere Benutzer API Routen"
+    "translation": "Initialisiere Benutzer-API-Routen"
   },
   {
     "id": "api.user.ldap_to_email.not_available.app_error",
@@ -2313,7 +2337,7 @@
   },
   {
     "id": "api.user.login.inactive.app_error",
-    "translation": "Login nicht möglich weil Ihr Account inaktiv ist.   Bitte melden Sie sich bei einem Administrator."
+    "translation": "Anmeldung nicht möglich, weil Ihr Account inaktiv ist.  Bitte wenden Sie sich an einen Administrator."
   },
   {
     "id": "api.user.login.invalid_credentials",
@@ -2321,7 +2345,7 @@
   },
   {
     "id": "api.user.login.not_provided.app_error",
-    "translation": "Entweder Nutzername oder Teamname und E-Mail-Addresse müssen angegeben werden"
+    "translation": "Es muss entweder eine Benutzer ID, ein Team Name oder eine E-Mail-Adresse angegeben werden"
   },
   {
     "id": "api.user.login.not_verified.app_error",
@@ -2329,7 +2353,7 @@
   },
   {
     "id": "api.user.login.revoking.app_error",
-    "translation": "Ziehe sessionId=%v für userId=%v zurück, erneutes Anmelden mit gleicher Device ID"
+    "translation": "Ziehe sessionId=%v für userId=%v zurück, erneutes Anmelden mit gleicher Device-ID"
   },
   {
     "id": "api.user.login.use_auth_service.app_error",
@@ -2341,11 +2365,11 @@
   },
   {
     "id": "api.user.login_by_oauth.parse.app_error",
-    "translation": "Konnte Anmeldedaten nicht aus {{.Service}} Benutzer Objekt verarbeiten"
+    "translation": "Konnte Anmeldedaten nicht aus {{.Service}} Benutzerobjekt verarbeiten"
   },
   {
     "id": "api.user.login_ldap.blank_pwd.app_error",
-    "translation": "Passwort Feld darf nicht leer sin"
+    "translation": "Passwortfeld darf nicht leer sein"
   },
   {
     "id": "api.user.login_ldap.disabled.app_error",
@@ -2361,19 +2385,19 @@
   },
   {
     "id": "api.user.oauth_to_email.context.app_error",
-    "translation": "Aktualisieren des Passworts fehlgeschlagen da Kontext user_id nicht der user_id des Providers entsprach"
+    "translation": "Aktualisieren des Passworts fehlgeschlagen, da Kontext user_id nicht der user_id des Providers entsprach"
   },
   {
     "id": "api.user.permanent_delete_user.attempting.warn",
-    "translation": "Account permanent Löschen? %v id=%v"
+    "translation": "Versuche, Account %v id=%v permanent zu löschen"
   },
   {
     "id": "api.user.permanent_delete_user.deleted.warn",
-    "translation": "Account gelöscht %v id=%v"
+    "translation": "Account permanent gelöscht %v id=%v"
   },
   {
     "id": "api.user.permanent_delete_user.system_admin.warn",
-    "translation": "Sie möchten %v löschen, welcher ein Systemadministrator ist.  Eventuell müssen Sie einem anderen Account zum Systemadministrator über die Kommandozeilen Tools machen."
+    "translation": "Sie möchten %v löschen, welcher ein Systemadministrator ist.  Eventuell müssen Sie mithilfe der Kommandozeilentools einen anderen Account zum Systemadministrator machen."
   },
   {
     "id": "api.user.reset_password.invalid_link.app_error",
@@ -2385,11 +2409,11 @@
   },
   {
     "id": "api.user.reset_password.method",
-    "translation": "über einen Passwort zurücksetzten Link"
+    "translation": "über einen Passwort-zurücksetzen-Link"
   },
   {
     "id": "api.user.reset_password.sso.app_error",
-    "translation": "Kann Passwort für SSO Accounts nicht zurücksetzen"
+    "translation": "Kann Passwort für SSO-Accounts nicht zurücksetzen"
   },
   {
     "id": "api.user.reset_password.wrong_team.app_error",
@@ -2401,47 +2425,47 @@
   },
   {
     "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Die E-mail konnte nicht gesendet werden. err=%v"
+    "translation": "Die E-Mail konnte nicht gesendet werden err=%v"
   },
   {
     "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Die Änderung des Benutzernamens für die Benachrichtigungsmail konnte nicht gesendet werden. err=%v"
+    "translation": "Die Benachrichtigungs-E-Mail über die Änderung des Benutzernamens konnte nicht versandt werden err=%v"
   },
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
-    "translation": "Die E-mail konnte nicht gesendet werden. err=%v"
+    "translation": "Die Bestätigungs-E-Mail über die Änderung der E-Mail-Adresse konnte nicht versandt werden err=%v"
   },
   {
     "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Die E-Mail konnte nicht gesendet werden. err=%v"
+    "translation": "Die Bestätigungs-E-Mail über die Änderung des Passworts konnte nicht versandt werden err=%v"
   },
   {
     "id": "api.user.send_password_reset.find.app_error",
-    "translation": "Es konnte kein Account mit der Adresse gefunden werden."
+    "translation": "Es konnte kein Account mit dieser Adresse gefunden werden."
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
-    "translation": "Konnte die E-Mail zum Passwort zurücksetzen nicht senden"
+    "translation": "Konnte die E-Mail zum Zurücksetzen des Passworts nicht senden"
   },
   {
     "id": "api.user.send_password_reset.sso.app_error",
-    "translation": "Kann Passwort für SSO Accounts nicht zurücksetzen"
+    "translation": "Kann Passwort für SSO-Accounts nicht zurücksetzen"
   },
   {
     "id": "api.user.send_sign_in_change_email_and_forget.error",
-    "translation": "Die E-mail konnte nicht gesendet werden. err=%v"
+    "translation": "Die Bestätigungs-E-Mail über die Änderung des Passworts konnte nicht versandt werden err=%v"
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
-    "translation": "Die E-mail konnte nicht gesendet werden. err=%v"
+    "translation": "Die Bestätigungs-E-Mail konnte nicht versandt werden err=%v"
   },
   {
     "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Die E-mail konnte nicht gesendet werden. err=%v"
+    "translation": "Die Willkommens-E-Mail konnte nicht versandt werden err=%v"
   },
   {
     "id": "api.user.update_active.no_deactivate_ldap.app_error",
-    "translation": "Sie können den Aktivitätsstatus des AD/LDAP Accounts nicht ändern. Bitte ändern Sie diesen über den AD/LDAP Server."
+    "translation": "Sie können den Aktivitätsstatus des AD-/LDAP-Accounts nicht ändern. Bitte ändern Sie diesen über den AD-/LDAP-Server."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -2453,7 +2477,7 @@
   },
   {
     "id": "api.user.update_password.context.app_error",
-    "translation": "Aktualisieren des Passworts fehlgeschlagen da Kontext user_id nicht der props user_id entsprach"
+    "translation": "Aktualisieren des Passworts fehlgeschlagen, da Kontext user_id nicht der props user_id entsprach"
   },
   {
     "id": "api.user.update_password.failed.app_error",
@@ -2461,19 +2485,19 @@
   },
   {
     "id": "api.user.update_password.incorrect.app_error",
-    "translation": "Das eingegebene \"Aktuelle Kennwort\" ist nicht korrekt. Bitte prüfen Sie das Umschaltung deaktiviert ist und versuchen es erneut."
+    "translation": "Das eingegebene \"Aktuelle Kennwort\" ist nicht korrekt. Bitte prüfen Sie, dass die Umschalt-Taste deaktiviert ist und versuchen es erneut."
   },
   {
     "id": "api.user.update_password.menu",
-    "translation": "Benutze die Einstellungen"
+    "translation": "über das Einstellungsmenü"
   },
   {
     "id": "api.user.update_password.oauth.app_error",
-    "translation": "Aktualisieren des Password fehlgeschlagen da der Benutzer über einen OAuth Service angemeldet ist"
+    "translation": "Aktualisieren des Passworts fehlgeschlagen, da der Benutzer über einen OAuth-Service angemeldet ist"
   },
   {
     "id": "api.user.update_password.valid_account.app_error",
-    "translation": "Aktualisieren des Password fehlgeschlagen da kein gültiger Account gefunden werden konnte"
+    "translation": "Aktualisieren des Passworts fehlgeschlagen, da kein gültiger Account gefunden werden konnte"
   },
   {
     "id": "api.user.update_roles.one_admin.app_error",
@@ -2485,15 +2509,15 @@
   },
   {
     "id": "api.user.update_roles.system_admin_needed.app_error",
-    "translation": "Die Systemadministrator Rolle ist für diese Aktion erforderlich"
+    "translation": "Die Systemadministrator-Rolle ist für diese Aktion erforderlich"
   },
   {
     "id": "api.user.update_roles.system_admin_set.app_error",
-    "translation": "Die Systemadministrator Rolle kann nur durch einen anderen Systemadministrator gesetzt werden"
+    "translation": "Die Systemadministrator-Rolle kann nur durch einen anderen Systemadministrator gesetzt werden"
   },
   {
     "id": "api.user.update_roles.team_admin_needed.app_error",
-    "translation": "Die Teamadministrator Rolle ist für die Aktion erforderlich"
+    "translation": "Die Teamadministrator-Rolle ist für die Aktion erforderlich"
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
@@ -2505,7 +2529,7 @@
   },
   {
     "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Konnte Profilbild Einstellungen nicht dekodieren."
+    "translation": "Konnte Profilbild-Einstellungen nicht dekodieren."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -2513,11 +2537,11 @@
   },
   {
     "id": "api.user.upload_profile_user.no_file.app_error",
-    "translation": "keine Datei unter 'image' in der Anfrage"
+    "translation": "Keine Datei unter 'image' in der Anfrage"
   },
   {
     "id": "api.user.upload_profile_user.open.app_error",
-    "translation": "Bild konnte nicht geöffnet werden"
+    "translation": "Konnte Bild nicht öffnen"
   },
   {
     "id": "api.user.upload_profile_user.parse.app_error",
@@ -2525,7 +2549,7 @@
   },
   {
     "id": "api.user.upload_profile_user.storage.app_error",
-    "translation": "Die Datei kann nicht hochgeladen werden. Ein Foto Speicherort ist nicht eingerichtet."
+    "translation": "Die Datei kann nicht hochgeladen werden. Ein Foto-Speicherort ist nicht eingerichtet."
   },
   {
     "id": "api.user.upload_profile_user.too_large.app_error",
@@ -2537,51 +2561,51 @@
   },
   {
     "id": "api.user.verify_email.bad_link.app_error",
-    "translation": "Fehlerhafter E-Mail-Adresse Bestätigungslink."
+    "translation": "Fehlerhafter E-Mail-Adressen-Bestätigungslink."
   },
   {
     "id": "api.web_hub.start.starting.debug",
-    "translation": "Starte %v Websocket Hubs"
+    "translation": "Starte %v Websocket-Hubs"
   },
   {
     "id": "api.web_hub.start.stopping.debug",
-    "translation": "Beende Websocket Hub Verbindungen"
+    "translation": "beende Websocket-Hub-Verbindungen"
   },
   {
     "id": "api.web_socket.connect.error",
-    "translation": "Websocket Verbindungsfehler: %v"
+    "translation": "Websocket-Verbindungsfehler: %v"
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "Fehler beim Hochstufen der Websocket Verbindung"
+    "translation": "Fehler beim Hochstufen der Websocket-Verbindung"
   },
   {
     "id": "api.web_socket.init.debug",
-    "translation": "Initialisiere WebSocket API Routen"
+    "translation": "Initialisiere WebSocket-API-Routen"
   },
   {
     "id": "api.web_socket_handler.log.error",
-    "translation": "%v:%v seq=%v uid=%v %v [details: %v]"
+    "translation": "%v:%v seq=%v uid=%v %v [Details: %v]"
   },
   {
     "id": "api.web_socket_router.log.error",
-    "translation": "Websocket Routing Fehler: seq=%v uid=%v %v [details: %v]"
+    "translation": "Websocket-Routing-Fehler: seq=%v uid=%v %v [Details: %v]"
   },
   {
     "id": "api.web_team_hun.start.debug",
-    "translation": "Team Hub wird gestoppt für teamId=%v"
+    "translation": "Team-Hub wird gestoppt für teamId=%v"
   },
   {
     "id": "api.webhook.create_incoming.disabled.app_errror",
-    "translation": "Eingehende webhooks wurden vom System Administrator deaktiviert."
+    "translation": "Eingehende Webhooks wurden vom Systemadministrator deaktiviert."
   },
   {
     "id": "api.webhook.create_outgoing.disabled.app_error",
-    "translation": "Ausgehende webhooks wurden vom System Administrator deaktiviert."
+    "translation": "Ausgehende Webhooks wurden vom Systemadministrator deaktiviert."
   },
   {
     "id": "api.webhook.create_outgoing.intersect.app_error",
-    "translation": "Ausgehende Webhooks vom selben Kanal können nicht die selben Trigger Wörter/Callback URLs haben."
+    "translation": "Ausgehende Webhooks vom selben Kanal können nicht dieselben Triggerwörter/Callback-URLs haben."
   },
   {
     "id": "api.webhook.create_outgoing.not_open.app_error",
@@ -2589,7 +2613,7 @@
   },
   {
     "id": "api.webhook.create_outgoing.permissions.app_error",
-    "translation": "Die Berechtigungen für das Erstellen der ausgehenden Webhooks sind ungeeignet."
+    "translation": "Ungültige Berechtigungen um ausgehenden Webhook zu erstellen."
   },
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",
@@ -2597,19 +2621,19 @@
   },
   {
     "id": "api.webhook.delete_incoming.disabled.app_errror",
-    "translation": "Eingehende webhooks wurden vom System Administrator deaktiviert."
+    "translation": "Eingehende Webhooks wurden vom Systemadministrator deaktiviert."
   },
   {
     "id": "api.webhook.delete_incoming.permissions.app_errror",
-    "translation": "Die Berechtigungen für das Löschen der eingehenden Webhooks sind ungeeignet"
+    "translation": "Ungültige Berechtigungen um eingehenden Webhook zu löschen"
   },
   {
     "id": "api.webhook.delete_outgoing.disabled.app_error",
-    "translation": "Ausgehende webhooks wurden vom System Administrator deaktiviert."
+    "translation": "Ausgehende Webhooks wurden vom Systemadministrator deaktiviert."
   },
   {
     "id": "api.webhook.delete_outgoing.permissions.app_error",
-    "translation": "Die Berechtigungen für das Löschen der ausgehenden Webhooks sind ungeeignet"
+    "translation": "Ungültige Berechtigungen um ausgehenden Webhook zu löschen"
   },
   {
     "id": "api.webhook.get_incoming.disabled.app_error",
@@ -2629,7 +2653,7 @@
   },
   {
     "id": "api.webhook.init.debug",
-    "translation": "Initialisiere Webhook API Routen"
+    "translation": "Initialisiere Webhook-API-Routen"
   },
   {
     "id": "api.webhook.regen_outgoing_token.disabled.app_error",
@@ -2637,7 +2661,7 @@
   },
   {
     "id": "api.webhook.regen_outgoing_token.permissions.app_error",
-    "translation": "Die Berechtigungen für die Erneuerung des Webhooks-Tokens sind ungeeignet"
+    "translation": "Ungültige Berechtigungen um ausgehenden Webhook-Token zu regenerieren"
   },
   {
     "id": "api.webrtc.disabled.app_error",
@@ -2645,7 +2669,7 @@
   },
   {
     "id": "api.webrtc.init.debug",
-    "translation": "Initialisiere WebRTC API Routen"
+    "translation": "Initialisiere WebRTC-API-Routen"
   },
   {
     "id": "api.webrtc.register_token.app_error",
@@ -2829,11 +2853,11 @@
   },
   {
     "id": "ent.metrics.starting.info",
-    "translation": "Metrics and profiling server is listening on %v"
+    "translation": "Metriken- und Profilierungsserver hört auf %v"
   },
   {
     "id": "ent.metrics.stopping.info",
-    "translation": "Metrics and profiling server is stopping on %v"
+    "translation": "Metriken- und Profilierungsserver stoppt auf %v"
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",
@@ -3041,7 +3065,7 @@
   },
   {
     "id": "mattermost.load_license.find.warn",
-    "translation": "License key from https://mattermost.com required to unlock enterprise features."
+    "translation": "Lizenzschlüssel von https://mattermost.com benötigt um Enterprise Features freizuschalten."
   },
   {
     "id": "mattermost.security_bulletin.error",
@@ -3225,7 +3249,7 @@
   },
   {
     "id": "model.command.is_valid.team_id.app_error",
-    "translation": "Ungültige Team ID"
+    "translation": "Ungültige Team-ID"
   },
   {
     "id": "model.command.is_valid.token.app_error",
@@ -3241,7 +3265,7 @@
   },
   {
     "id": "model.command.is_valid.url.app_error",
-    "translation": "Ungültige URL"
+    "translation": "Ungültige Adresse"
   },
   {
     "id": "model.command.is_valid.url_http.app_error",
@@ -3509,15 +3533,15 @@
   },
   {
     "id": "model.config.is_valid.webrtc_gateway_admin_url.app_error",
-    "translation": "Die WebRTC-Gateway-Admin-URL muss gesetzt und eine gültige URL sein sowie mit http:// oder https:// beginnen."
+    "translation": "Die WebRTC-Gateway-Admin-URL muss eine gültige URL sein und mit http:// oder https:// beginnen."
   },
   {
     "id": "model.config.is_valid.webrtc_gateway_ws_url.app_error",
-    "translation": "Die WebRTC-Gateway-Websocket-URL muss gesetzt und eine gültige URL sein sowie mit ws:// oder wss:// beginnen."
+    "translation": "Die WebRTC-Gateway-Websocket-URL muss eine gültige URL sein und mit ws:// oder wss:// beginnen."
   },
   {
     "id": "model.config.is_valid.webrtc_stun_uri.app_error",
-    "translation": "Die WebRTC STUN URL muss eine gültige URL sein und mit stun: beginnen."
+    "translation": "Die WebRTC-STUN-URI muss eine gültige URL sein und mit stun: beginnen."
   },
   {
     "id": "model.config.is_valid.webrtc_turn_shared_key.app_error",
@@ -3881,7 +3905,7 @@
   },
   {
     "id": "model.user.is_valid.position.app_error",
-    "translation": "Invalid position: must not be longer than 35 characters."
+    "translation": "Ungültige Position: Darf nicht länger als 35 Zeichen sein."
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
@@ -4189,7 +4213,7 @@
   },
   {
     "id": "store.sql_channel.get_member.missing.app_error",
-    "translation": "Kein Kanalmitglied mit dieser Benutzer Id und Kanal Id gefunden"
+    "translation": "Kein Kanalmitglied mit dieser Benutzer-ID und Kanal-ID gefunden"
   },
   {
     "id": "store.sql_channel.get_member_count.app_error",
@@ -4202,6 +4226,10 @@
   {
     "id": "store.sql_channel.get_members.app_error",
     "translation": "Es konnten nicht alle Kanalmitglieder abgerufen werden"
+  },
+  {
+    "id": "store.sql_channel.get_members_by_ids.app_error",
+    "translation": "Kanalmitglieder konnten nicht abgerufen werden"
   },
   {
     "id": "store.sql_channel.get_more_channels.get.app_error",
@@ -4661,43 +4689,43 @@
   },
   {
     "id": "store.sql_reaction.delete.begin.app_error",
-    "translation": "Unable to open transaction while deleting reaction"
+    "translation": "Konnte Transaktion zum Löschen der Reaktion nicht öffnen"
   },
   {
     "id": "store.sql_reaction.delete.commit.app_error",
-    "translation": "Unable to commit transaction while deleting reaction"
+    "translation": "Konnte Transaktion zum Löschen der Reaktion nicht absenden"
   },
   {
     "id": "store.sql_reaction.delete.save.app_error",
-    "translation": "Unable to delete reaction"
+    "translation": "Konnte Reaktion nicht löschen"
   },
   {
     "id": "store.sql_reaction.delete_all_with_emoj_name.delete_reactions.app_error",
-    "translation": "Unable to delete reactions with the given emoji name"
+    "translation": "Konnte Reaktion mit dem angegebenen Emoji-Namen nicht löschen"
   },
   {
     "id": "store.sql_reaction.delete_all_with_emoj_name.get_reactions.app_error",
-    "translation": "Unable to get reactions with the given emoji name"
+    "translation": "Konnte Reaktionen mit dem gegebenen Emoji-Namen nicht abrufen"
   },
   {
     "id": "store.sql_reaction.delete_all_with_emoji_name.update_post.warn",
-    "translation": "Unable to update Post.HasReactions while removing reactions post_id=%v, error=%v"
+    "translation": "Konnte Post.HasReactions nicht aktualisieren während entfernen von Reaktionen post_id=%v, error=%v"
   },
   {
     "id": "store.sql_reaction.get_for_post.app_error",
-    "translation": "Unable to get reactions for post"
+    "translation": "Konnte Reaktionen für Nachricht nicht abrufen"
   },
   {
     "id": "store.sql_reaction.save.begin.app_error",
-    "translation": "Unable to open transaction while saving reaction"
+    "translation": "Konnte Transaktion zum Speichern der Reaktion nicht öffnen"
   },
   {
     "id": "store.sql_reaction.save.commit.app_error",
-    "translation": "Unable to commit transaction while saving reaction"
+    "translation": "Konnte Transaktion zum Speichern der Reaktion nicht absenden"
   },
   {
     "id": "store.sql_reaction.save.save.app_error",
-    "translation": "Unable to save reaction"
+    "translation": "Konnte Reaktion nicht speichern"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
@@ -4849,7 +4877,7 @@
   },
   {
     "id": "store.sql_team.get_member.missing.app_error",
-    "translation": "Kein Teammitglied mit dieser Benutzer ID und Team ID gefunden"
+    "translation": "Kein Teammitglied mit dieser Benutzer-ID und Team-ID gefunden"
   },
   {
     "id": "store.sql_team.get_member_count.app_error",
@@ -4869,7 +4897,7 @@
   },
   {
     "id": "store.sql_team.get_unread.app_error",
-    "translation": "We couldn't get the teams unread messages"
+    "translation": "Die ungelesenen Mitteilungen des Teams konnten nicht abgerufen werden"
   },
   {
     "id": "store.sql_team.permanent_delete.app_error",
@@ -5253,7 +5281,7 @@
   },
   {
     "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "Fehler bei Hinzufügen von E-Mail Daten"
+    "translation": "Fehler bei Hinzufügen der E-Mail Daten"
   },
   {
     "id": "utils.mail.send_mail.sending.debug",
@@ -5281,7 +5309,7 @@
   },
   {
     "id": "web.check_browser_compatibility.app_error",
-    "translation": "Ihr aktueller Browser wird nicht unterstützt. Folgende Browser werden unterstützt: Google Chrome 21 oder höher, Internet Explorer 11 oder höher, Firefox 14 oder höher, Safari 9 oder höher"
+    "translation": "Ihr aktueller Browser wird nicht unterstützt, bitte aktualisieren Sie zu einem der folgenden Browser: Google Chrome 21 oder höher, Internet Explorer 11 oder höher, Firefox 14 oder höher, Safari 9 oder höher"
   },
   {
     "id": "web.claim_account.team.error",
@@ -5324,6 +5352,10 @@
     "translation": "Zurück"
   },
   {
+    "id": "web.incoming_webhook.attachment.app_error",
+    "translation": "Maximale Anhangslänge sind {{.Max}} Zeichen, empfangene Größe ist {{.Actual}}"
+  },
+  {
     "id": "web.incoming_webhook.channel.app_error",
     "translation": "Der Kanal konnte nicht gefunden werden"
   },
@@ -5346,6 +5378,10 @@
   {
     "id": "web.incoming_webhook.text.app_error",
     "translation": "Kein Text angegeben"
+  },
+  {
+    "id": "web.incoming_webhook.text.length.app_error",
+    "translation": "Maximale Textlänge sind {{.Max}} Zeichen, empfangene Größe ist {{.Actual}}"
   },
   {
     "id": "web.incoming_webhook.user.app_error",
