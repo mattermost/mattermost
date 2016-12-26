@@ -2387,6 +2387,15 @@ func TestAutocompleteUsers(t *testing.T) {
 		}
 	}
 
+	if result, err := Client.AutocompleteUsers("amazonses"); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.([]*model.User)
+		if len(users) != 0 {
+			t.Fatal("should have returned 0 users - email should not autocomplete")
+		}
+	}
+
 	if result, err := Client.AutocompleteUsers(""); err != nil {
 		t.Fatal(err)
 	} else {

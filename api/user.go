@@ -2859,7 +2859,17 @@ func autocompleteUsersInTeam(c *Context, w http.ResponseWriter, r *http.Request)
 func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	term := r.URL.Query().Get("term")
 
-	uchan := Srv.Store.User().Search("", term, map[string]bool{})
+	searchOptions := map[string]bool{}
+
+	hideFullName := !utils.Cfg.PrivacySettings.ShowFullName
+	if hideFullName && !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
+		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
+		c.Err = nil
+	} else {
+		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
+	}
+
+	uchan := Srv.Store.User().Search("", term, searchOptions)
 
 	var profiles []*model.User
 
