@@ -57,3 +57,22 @@ Link 2 example: https://www.youtube.com/watch?v=GaCjjda5v1o
 Link 3 example: https://www.youtube.com/watch?v=1Ui44_-N9y0
 
 ```
+
+
+```
+#### GitHub
+
+Link 1 example: https://github.com/mattermost
+```
+
+```
+#### Webpage: Techmeme 
+
+Link 1 example: http://www.techmeme.com/
+```
+
+```
+#### StackOverflow 
+
+Link 1 example: http://stackoverflow.com/questions/36650437/using-mattermost-api-via-gitlab-oauth-as-an-end-user-with-username-and-password
+```
