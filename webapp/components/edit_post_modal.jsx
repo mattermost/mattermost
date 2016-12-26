@@ -38,6 +38,7 @@ export default class EditPostModal extends React.Component {
         this.onModalShown = this.onModalShown.bind(this);
         this.onModalHide = this.onModalHide.bind(this);
         this.onModalKeyDown = this.onModalKeyDown.bind(this);
+        this.handlePostError = this.handlePostError.bind(this);
 
         this.state = {
             editText: '',
@@ -50,6 +51,12 @@ export default class EditPostModal extends React.Component {
             ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
             postError: ''
         };
+    }
+
+    handlePostError(postError) {
+        if (this.state.postError !== postError) {
+            this.setState({postError});
+        }
     }
 
     handleEdit() {
@@ -103,21 +110,6 @@ export default class EditPostModal extends React.Component {
         this.setState({
             editText: message
         });
-
-        if (message.length > Constants.CHARACTER_LIMIT) {
-            const errorMessage = (
-                <FormattedMessage
-                    id='create_post.error_message'
-                    defaultMessage='Your message is too long. Character count: {length}/{limit}'
-                    values={{
-                        length: message.length,
-                        limit: Constants.CHARACTER_LIMIT
-                    }}
-                />);
-            this.setState({postError: errorMessage});
-        } else {
-            this.setState({postError: ''});
-        }
     }
 
     handleEditKeyPress(e) {
@@ -262,6 +254,7 @@ export default class EditPostModal extends React.Component {
                                 onChange={this.handleChange}
                                 onKeyPress={this.handleEditKeyPress}
                                 onKeyDown={this.handleKeyDown}
+                                handlePostError={this.handlePostError}
                                 value={this.state.editText}
                                 channelId={this.state.channel_id}
                                 createMessage={Utils.localizeMessage('edit_post.editPost', 'Edit the post...')}

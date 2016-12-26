@@ -55,6 +55,7 @@ export default class CreateComment extends React.Component {
         this.focusTextbox = this.focusTextbox.bind(this);
         this.showPostDeletedModal = this.showPostDeletedModal.bind(this);
         this.hidePostDeletedModal = this.hidePostDeletedModal.bind(this);
+        this.handlePostError = this.handlePostError.bind(this);
 
         PostStore.clearCommentDraftUploads();
         MessageHistoryStore.resetHistoryIndex('comment');
@@ -96,6 +97,10 @@ export default class CreateComment extends React.Component {
         }
     }
 
+    handlePostError(postError) {
+        this.setState({postError});
+    }
+
     handleSubmit(e) {
         e.preventDefault();
 
@@ -109,16 +114,11 @@ export default class CreateComment extends React.Component {
 
         const message = this.state.message;
 
-        if (message.length > Constants.CHARACTER_LIMIT) {
-            this.setState({
-                postError: (
-                    <FormattedMessage
-                        id='create_comment.commentLength'
-                        defaultMessage='Comment length must be less than {max} characters.'
-                        values={{max: Constants.CHARACTER_LIMIT}}
-                    />
-                )
-            });
+        if (this.state.postError) {
+            this.setState({errorClass: 'animation--highlight'});
+            setTimeout(() => {
+                this.setState({errorClass: null});
+            }, Constants.ANIMATION_TIMEOUT);
             return;
         }
 
@@ -420,7 +420,8 @@ export default class CreateComment extends React.Component {
 
         let postError = null;
         if (this.state.postError) {
-            postError = <label className='control-label'>{this.state.postError}</label>;
+            const postErrorClass = 'post-error' + (this.state.errorClass ? (' ' + this.state.errorClass) : '');
+            postError = <label className={postErrorClass}>{this.state.postError}</label>;
         }
 
         let preview = null;
@@ -432,11 +433,6 @@ export default class CreateComment extends React.Component {
                     uploadsInProgress={this.state.uploadsInProgress}
                 />
             );
-        }
-
-        let postFooterClassName = 'post-create-footer';
-        if (postError) {
-            postFooterClassName += ' has-error';
         }
 
         let uploadsInProgressText = null;
@@ -470,6 +466,7 @@ export default class CreateComment extends React.Component {
                                 onChange={this.handleChange}
                                 onKeyPress={this.commentMsgKeyPress}
                                 onKeyDown={this.handleKeyDown}
+                                handlePostError={this.handlePostError}
                                 value={this.state.message}
                                 onBlur={this.handleBlur}
                                 createMessage={Utils.localizeMessage('create_comment.addComment', 'Add a comment...')}
@@ -494,7 +491,7 @@ export default class CreateComment extends React.Component {
                         channelId={this.props.channelId}
                         parentId={this.props.rootId}
                     />
-                    <div className={postFooterClassName}>
+                    <div className='post-create-footer'>
                         <input
                             type='button'
                             className='btn btn-primary comment-btn pull-right'
@@ -502,8 +499,8 @@ export default class CreateComment extends React.Component {
                             onClick={this.handleSubmit}
                         />
                         {uploadsInProgressText}
-                        {preview}
                         {postError}
+                        {preview}
                         {serverError}
                     </div>
                 </div>
