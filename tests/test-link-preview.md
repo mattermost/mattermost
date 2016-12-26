@@ -11,11 +11,10 @@ Post location variation:
 5. View comment in center channel with RHS open (preview of first link should render under message) 
 6. Search for post in RHS with link
 
-Post the following links one per message in the above variations: 
-
+Test the above variations with the below sample messages (e.g. 1-A, 2-B, 3-C, 4-D, etc.) 
 
 ```
-#### News: The Globe and Mail 
+#### A) News: The Globe and Mail 
 
 Link 1 example: http://www.theglobeandmail.com/news/national/three-canadians-shortlisted-for-global-teacher-prize/article33429901/
 
@@ -25,7 +24,7 @@ Link 3 example: http://www.theglobeandmail.com/opinion/as-2016-crashed-in-flames
 ```
 
 ```
-#### Twitter
+#### B) Twitter
 
 Link 1 example: https://twitter.com/mattermosthq/status/784382907896987648
 
@@ -37,7 +36,7 @@ Link 3 example: https://twitter.com/ValiantComics/status/813066492187201536
 
 
 ```
-#### Wikipedia 
+#### C) Wikipedia 
 
 Link 1 example: https://en.wikipedia.org/wiki/Olympus_Mons
 
@@ -48,7 +47,7 @@ Link 3 example: https://en.wikipedia.org/wiki/Mars_Exploration_Rover
 ```
 
 ```
-#### YouTube 
+#### D) YouTube 
 
 Link 1 example: https://www.youtube.com/watch?v=fDu1S-MMClw
 
@@ -60,19 +59,19 @@ Link 3 example: https://www.youtube.com/watch?v=1Ui44_-N9y0
 
 
 ```
-#### GitHub
+#### E) GitHub
 
 Link 1 example: https://github.com/mattermost
 ```
 
 ```
-#### Webpage: Techmeme 
+#### F) Webpage: Techmeme 
 
 Link 1 example: http://www.techmeme.com/
 ```
 
 ```
-#### StackOverflow 
+#### G) StackOverflow 
 
 Link 1 example: http://stackoverflow.com/questions/36650437/using-mattermost-api-via-gitlab-oauth-as-an-end-user-with-username-and-password
 ```
