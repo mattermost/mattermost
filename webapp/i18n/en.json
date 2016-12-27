@@ -233,6 +233,8 @@
   "admin.email.allowSignupTitle": "Enable account creation with email: ",
   "admin.email.allowUsernameSignInDescription": "When true, uChat allows users to sign in using their username and password.  This setting is typically only used when email verification is disabled.",
   "admin.email.allowUsernameSignInTitle": "Enable sign-in with username: ",
+  "admin.email.hideEmailSignInTitle": "Hide sign-in with email: ",
+  "admin.email.hideUsernameSignInTitle": "Hide sign-in with username: ",
   "admin.email.connectionSecurityTest": "Test Connection",
   "admin.email.easHelp": "Learn more about compiling and deploying your own mobile apps from an <a href=\"http://docs.mattermost.com/deployment/push.html#enterprise-app-store-eas\" target=\"_blank\">Enterprise App Store</a>.",
   "admin.email.emailFail": "Connection unsuccessful: {error}",

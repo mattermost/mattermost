@@ -43,8 +43,8 @@ export default class LoginController extends React.Component {
 
         this.state = {
             ldapEnabled: global.window.mm_license.IsLicensed === 'true' && global.window.mm_config.EnableLdap === 'true',
-            usernameSigninEnabled: global.window.mm_config.EnableSignInWithUsername === 'true',
-            emailSigninEnabled: global.window.mm_config.EnableSignInWithEmail === 'true',
+            usernameSigninHidden: global.window.mm_config.UsernameSignInHidden === 'true',
+            emailSigninHidden: global.window.mm_config.EmailSignInHidden === 'true',
             samlEnabled: global.window.mm_license.IsLicensed === 'true' && global.window.mm_config.EnableSaml === 'true',
             loginId: '', // the browser will set a default for this
             password: '',
@@ -87,10 +87,10 @@ export default class LoginController extends React.Component {
         if (!loginId) {
             // it's slightly weird to be constructing the message ID, but it's a bit nicer than triply nested if statements
             let msgId = 'login.no';
-            if (this.state.emailSigninEnabled) {
+            if (!this.state.emailSigninHidden) {
                 msgId += 'Email';
             }
-            if (this.state.usernameSigninEnabled) {
+            if (!this.state.usernameSigninHidden) {
                 msgId += 'Username';
             }
             if (this.state.ldapEnabled) {
@@ -261,15 +261,15 @@ export default class LoginController extends React.Component {
             return 'Login with your email';
         }
         const ldapEnabled = this.state.ldapEnabled;
-        const usernameSigninEnabled = this.state.usernameSigninEnabled;
-        const emailSigninEnabled = this.state.emailSigninEnabled;
+        const usernameSigninHidden = this.state.usernameSigninHidden;
+        const emailSigninHidden = this.state.emailSigninHidden;
 
         const loginPlaceholders = [];
-        if (emailSigninEnabled) {
+        if (!emailSigninHidden) {
             loginPlaceholders.push(Utils.localizeMessage('login.email', 'Email'));
         }
 
-        if (usernameSigninEnabled) {
+        if (!usernameSigninHidden) {
             loginPlaceholders.push(Utils.localizeMessage('login.username', 'Username'));
         }
 
@@ -355,10 +355,10 @@ export default class LoginController extends React.Component {
         const googleSigninEnabled = global.window.mm_config.EnableSignUpWithGoogle === 'true';
         const office365SigninEnabled = global.window.mm_config.EnableSignUpWithOffice365 === 'true';
         const samlSigninEnabled = this.state.samlEnabled;
-        const usernameSigninEnabled = this.state.usernameSigninEnabled;
-        const emailSigninEnabled = this.state.emailSigninEnabled;
+        const usernameSigninHidden = this.state.usernameSigninHidden;
+        const emailSigninHidden = this.state.emailSigninHidden;
 
-        if (emailSigninEnabled || usernameSigninEnabled || ldapEnabled) {
+        if (!emailSigninHidden || !usernameSigninHidden || ldapEnabled) {
             let errorClass = '';
             if (this.state.serverError) {
                 errorClass = ' has-error';
@@ -453,7 +453,7 @@ export default class LoginController extends React.Component {
             );
         }
 
-        if (usernameSigninEnabled || emailSigninEnabled) {
+        if (!usernameSigninHidden || !emailSigninHidden) {
             loginControls.push(
                 <div
                     key='forgotPassword'
@@ -472,7 +472,7 @@ export default class LoginController extends React.Component {
             );
         }
 
-        if ((emailSigninEnabled || usernameSigninEnabled || ldapEnabled) && (gitlabSigninEnabled || googleSigninEnabled || samlSigninEnabled || office365SigninEnabled)) {
+        if ((!emailSigninHidden || !usernameSigninHidden || ldapEnabled) && (gitlabSigninEnabled || googleSigninEnabled || office365SigninEnabled)) {
             loginControls.push(
                 <div
                     key='divider'
@@ -495,7 +495,7 @@ export default class LoginController extends React.Component {
             );
         }
 
-        if (gitlabSigninEnabled || samlSigninEnabled || office365SigninEnabled || googleSigninEnabled || gitlabSigninEnabled) {
+        if (gitlabSigninEnabled || office365SigninEnabled || googleSigninEnabled || gitlabSigninEnabled) {
             loginControls.push(
                 <h5 key='oauthHeader'>
                     <FormattedMessage
@@ -561,9 +561,13 @@ export default class LoginController extends React.Component {
         }
 
         if (samlSigninEnabled) {
+            let samlClassname = 'btn btn-custom-login saml';
+            if (emailSigninHidden && usernameSigninHidden) {
+                samlClassname += ' email-username-hidden';
+            }
             loginControls.push(
                 <a
-                    className='btn btn-custom-login saml'
+                    className={samlClassname}
                     key='saml'
                     href={'/login/sso/saml' + this.props.location.search}
                 >
