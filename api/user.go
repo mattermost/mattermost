@@ -1990,6 +1990,12 @@ func IsUsernameTaken(name string) bool {
 func emailToOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 
+	if !*utils.Cfg.ServiceSettings.EnableAuthenticationTransfer {
+		c.Err = model.NewLocAppError("emailToOAuth", "api.user.email_to_oauth.not_available.app_error", nil, "")
+		c.Err.StatusCode = http.StatusForbidden
+		return
+	}
+
 	password := props["password"]
 	if len(password) == 0 {
 		c.SetInvalidParam("emailToOAuth", "password")
@@ -2049,6 +2055,12 @@ func emailToOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 func oauthToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 
+	if !*utils.Cfg.ServiceSettings.EnableAuthenticationTransfer {
+		c.Err = model.NewLocAppError("oauthToEmail", "api.user.oauth_to_email.not_available.app_error", nil, "")
+		c.Err.StatusCode = http.StatusForbidden
+		return
+	}
+
 	password := props["password"]
 	if err := utils.IsPasswordValid(password); err != nil {
 		c.Err = err
@@ -2102,6 +2114,12 @@ func oauthToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func emailToLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
+
+	if !*utils.Cfg.ServiceSettings.EnableAuthenticationTransfer {
+		c.Err = model.NewLocAppError("emailToLdap", "api.user.email_to_ldap.not_available.app_error", nil, "")
+		c.Err.StatusCode = http.StatusForbidden
+		return
+	}
 
 	email := props["email"]
 	if len(email) == 0 {
@@ -2174,6 +2192,12 @@ func emailToLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func ldapToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
+
+	if !*utils.Cfg.ServiceSettings.EnableAuthenticationTransfer {
+		c.Err = model.NewLocAppError("ldapToEmail", "api.user.ldap_to_email.not_available.app_error", nil, "")
+		c.Err.StatusCode = http.StatusForbidden
+		return
+	}
 
 	email := props["email"]
 	if len(email) == 0 {
