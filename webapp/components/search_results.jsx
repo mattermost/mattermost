@@ -110,10 +110,6 @@ export default class SearchResults extends React.Component {
         return false;
     }
 
-    componentDidUpdate() {
-        this.resize();
-    }
-
     componentWillUnmount() {
         this.mounted = false;
 
