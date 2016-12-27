@@ -245,38 +245,38 @@
 
     .more-modal__list {
         .filtered-user-list {
-             .filter-controls {
-                padding-bottom: 1em;
-             }
-        }
-
-        .filter-row {
-            margin: 10px 0;
-            overflow: hidden;
+           .filter-controls {
+            padding-bottom: 1em;
         }
     }
 
-    .member-list-holder {
-        background: $white;
-        margin-bottom: 4em;
+    .filter-row {
+        margin: 10px 0;
+        overflow: hidden;
+    }
+}
+
+.member-list-holder {
+    background: $white;
+    margin-bottom: 4em;
+    overflow: visible;
+    padding: 5px 0;
+
+    .more-modal__list {
         overflow: visible;
-        padding: 5px 0;
-
-        .more-modal__list {
-            overflow: visible;
-        }
-
-        .more-modal__row {
-            &:last-child {
-                border: none;
-            }
-        }
     }
 
-    .member-count {
-        @include opacity(.7);
-        margin-top: 8px;
+    .more-modal__row {
+        &:last-child {
+            border: none;
+        }
     }
+}
+
+.member-count {
+    @include opacity(.7);
+    margin-top: 8px;
+}
 }
 
 .brand-img {
@@ -299,8 +299,10 @@
     z-index: 5;
 
     .dropdown-menu {
+        max-height: 80vh;
         max-width: 200px;
         min-width: 200px;
+        overflow: auto;
     }
 
     .team__header {
