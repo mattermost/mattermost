@@ -2555,7 +2555,7 @@ func TestGetByEmail(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.BasicClient
 
-	if _, err := Client.GetByEmail(th.BasicUser.Email, ""); err != nil {
+	if _, respMetdata := Client.GetByEmail(th.BasicUser.Email, ""); respMetdata.Error != nil {
 		t.Fatal("Failed to get user by email")
 	}
 
@@ -2569,19 +2569,17 @@ func TestGetByEmail(t *testing.T) {
 	utils.Cfg.PrivacySettings.ShowEmailAddress = false
 	utils.Cfg.PrivacySettings.ShowFullName = false
 
-	if result, err := Client.GetByEmail(th.BasicUser2.Email, ""); err != nil {
-		t.Fatal(err)
+	if user, respMetdata := Client.GetByEmail(th.BasicUser2.Email, ""); respMetdata.Error != nil {
+		t.Fatal(respMetdata.Error)
 	} else {
-		u := result.Data.(*model.User)
-		if u.Password != "" {
+		if user.Password != "" {
 			t.Fatal("password must be empty")
 		}
-		if *u.AuthData != "" {
+		if *user.AuthData != "" {
 			t.Fatal("auth data must be empty")
 		}
-		if u.Email != "" {
+		if user.Email != "" {
 			t.Fatal("email should be sanitized")
 		}
 	}
-
 }
