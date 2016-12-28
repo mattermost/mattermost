@@ -273,8 +273,8 @@ export default class ProfilePopover extends React.Component {
 ProfilePopover.propTypes = Object.assign({
     src: React.PropTypes.string.isRequired,
     user: React.PropTypes.object.isRequired,
-    status: React.PropTypes.string.isRequired,
-    isBusy: React.PropTypes.bool.isRequired,
+    status: React.PropTypes.string,
+    isBusy: React.PropTypes.bool,
     hide: React.PropTypes.func
 }, Popover.propTypes);
 delete ProfilePopover.propTypes.id;
