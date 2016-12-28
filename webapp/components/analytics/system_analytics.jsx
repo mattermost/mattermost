@@ -23,7 +23,7 @@ const holders = defineMessages({
     },
     analyticsPrivateGroups: {
         id: 'analytics.system.privateGroups',
-        defaultMessage: 'Private Groups'
+        defaultMessage: 'Private Channels'
     },
     analyticsFilePosts: {
         id: 'analytics.system.totalFilePosts',
