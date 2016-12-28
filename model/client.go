@@ -1483,6 +1483,20 @@ func (c *Client) GetPost(channelId string, postId string, etag string) (*Result,
 	}
 }
 
+func (c *Client) GetPostById(postId string, etag string) (*PostList, *ResponseMetadata) {
+	if r, err := c.DoApiGet(c.GetTeamRoute()+fmt.Sprintf("/posts/%v", postId), "", etag); err != nil {
+		return nil, &ResponseMetadata{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return PostListFromJson(r.Body),
+			&ResponseMetadata{
+				StatusCode: r.StatusCode,
+				RequestId:  r.Header.Get(HEADER_REQUEST_ID),
+				Etag:       r.Header.Get(HEADER_ETAG_SERVER),
+			}
+	}
+}
+
 func (c *Client) DeletePost(channelId string, postId string) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetChannelRoute(channelId)+fmt.Sprintf("/posts/%v/delete", postId), ""); err != nil {
 		return nil, err
