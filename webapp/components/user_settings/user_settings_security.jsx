@@ -930,7 +930,8 @@ export default class SecurityTab extends React.Component {
 
         // If there are other sign-in methods and either email is enabled or the user's account is email, then allow switching
         let signInSection;
-        if ((config.EnableSignUpWithEmail === 'true' || user.auth_service === '') && numMethods > 0) {
+        if ((config.EnableSignUpWithEmail === 'true' || user.auth_service === '') &&
+            numMethods > 0 && config.EnableAuthenticationTransfer === 'true') {
             signInSection = this.createSignInSection();
         }
 
