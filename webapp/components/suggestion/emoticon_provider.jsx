@@ -9,7 +9,7 @@ import SuggestionStore from 'stores/suggestion_store.jsx';
 
 import Suggestion from './suggestion.jsx';
 
-const MAX_EMOTICON_SUGGESTIONS = 40;
+const MIN_EMOTICON_LENGTH = 2;
 
 class EmoticonSuggestion extends Suggestion {
     render() {
@@ -53,6 +53,11 @@ export default class EmoticonProvider {
             const text = captured[2];
             const partialName = captured[3];
 
+            if (partialName.length < MIN_EMOTICON_LENGTH) {
+                SuggestionStore.clearSuggestions(suggestionId);
+                return;
+            }
+
             const matched = [];
 
             // check for text emoticons if this isn't for an emoji reaction
@@ -70,10 +75,6 @@ export default class EmoticonProvider {
             for (const [name, emoji] of EmojiStore.getEmojis()) {
                 if (name.indexOf(partialName) !== -1) {
                     matched.push(emoji);
-
-                    if (matched.length >= MAX_EMOTICON_SUGGESTIONS) {
-                        break;
-                    }
                 }
             }
 

@@ -32,6 +32,7 @@ export default class Textbox extends React.Component {
         this.handleBlur = this.handleBlur.bind(this);
         this.handleHeightChange = this.handleHeightChange.bind(this);
         this.showPreview = this.showPreview.bind(this);
+        this.handleChange = this.handleChange.bind(this);
 
         this.state = {
             connection: ''
@@ -51,6 +52,10 @@ export default class Textbox extends React.Component {
         ErrorStore.addChangeListener(this.onRecievedError);
     }
 
+    componentWillMount() {
+        this.checkMessageLength(this.props.value);
+    }
+
     componentWillUnmount() {
         ErrorStore.removeChangeListener(this.onRecievedError);
     }
@@ -62,6 +67,30 @@ export default class Textbox extends React.Component {
             this.setState({connection: 'bad-connection'});
         } else {
             this.setState({connection: ''});
+        }
+    }
+
+    handleChange(e) {
+        this.checkMessageLength(e.target.value);
+        this.props.onChange(e);
+    }
+
+    checkMessageLength(message) {
+        if (this.props.handlePostError) {
+            if (message.length > Constants.CHARACTER_LIMIT) {
+                const errorMessage = (
+                    <FormattedMessage
+                        id='create_post.error_message'
+                        defaultMessage='Your message is too long. Character count: {length}/{limit}'
+                        values={{
+                            length: message.length,
+                            limit: Constants.CHARACTER_LIMIT
+                        }}
+                    />);
+                this.props.handlePostError(errorMessage);
+            } else {
+                this.props.handlePostError(null);
+            }
         }
     }
 
@@ -206,7 +235,7 @@ export default class Textbox extends React.Component {
                     type='textarea'
                     spellCheck='true'
                     placeholder={this.props.createMessage}
-                    onChange={this.props.onChange}
+                    onChange={this.handleChange}
                     onKeyPress={this.handleKeyPress}
                     onKeyDown={this.handleKeyDown}
                     onBlur={this.handleBlur}
@@ -257,5 +286,6 @@ Textbox.propTypes = {
     createMessage: React.PropTypes.string.isRequired,
     onKeyDown: React.PropTypes.func,
     onBlur: React.PropTypes.func,
-    supportsCommands: React.PropTypes.bool.isRequired
+    supportsCommands: React.PropTypes.bool.isRequired,
+    handlePostError: React.PropTypes.func
 };

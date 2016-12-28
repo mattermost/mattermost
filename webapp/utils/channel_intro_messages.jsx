@@ -12,6 +12,7 @@ import TeamStore from 'stores/team_store.jsx';
 import Constants from 'utils/constants.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import Client from 'client/web_client.jsx';
+import ProfilePicture from 'components/profile_picture.jsx';
 
 import React from 'react';
 import {FormattedMessage, FormattedHTMLMessage, FormattedDate} from 'react-intl';
@@ -46,18 +47,18 @@ export function createDMIntroMessage(channel, centeredIntro) {
         return (
             <div className={'channel-intro ' + centeredIntro}>
                 <div className='post-profile-img__container channel-intro-img'>
-                    <img
-                        className='post-profile-img'
+                    <ProfilePicture
                         src={Client.getUsersRoute() + '/' + teammate.id + '/image?time=' + teammate.update_at}
-                        height='50'
                         width='50'
+                        height='50'
+                        user={teammate}
                     />
                 </div>
                 <div className='channel-intro-profile'>
                     <strong>
                         <UserProfile
                             user={teammate}
-                            disablePopover={true}
+                            disablePopover={false}
                         />
                     </strong>
                 </div>

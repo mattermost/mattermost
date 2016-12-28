@@ -432,3 +432,20 @@ export function checkMfa(loginId, success, error) {
         }
     );
 }
+
+export function updateActive(userId, active, success, error) {
+    Client.updateActive(userId, active,
+        () => {
+            AsyncClient.getUser(userId);
+
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}

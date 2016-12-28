@@ -25,7 +25,7 @@ import PreferenceStore from 'stores/preference_store.jsx';
 
 import Constants from 'utils/constants.jsx';
 
-import {FormattedHTMLMessage, FormattedMessage} from 'react-intl';
+import {FormattedHTMLMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
 
 const Preferences = Constants.Preferences;
@@ -61,6 +61,7 @@ export default class CreatePost extends React.Component {
         this.showPostDeletedModal = this.showPostDeletedModal.bind(this);
         this.hidePostDeletedModal = this.hidePostDeletedModal.bind(this);
         this.showShortcuts = this.showShortcuts.bind(this);
+        this.handlePostError = this.handlePostError.bind(this);
 
         PostStore.clearDraftUploads();
 
@@ -78,6 +79,10 @@ export default class CreatePost extends React.Component {
             showPostDeletedModal: false,
             lastBlurAt: 0
         };
+    }
+
+    handlePostError(postError) {
+        this.setState({postError});
     }
 
     handleSubmit(e) {
@@ -99,7 +104,7 @@ export default class CreatePost extends React.Component {
             this.setState({errorClass: 'animation--highlight'});
             setTimeout(() => {
                 this.setState({errorClass: null});
-            }, 1000);
+            }, Constants.ANIMATION_TIMEOUT);
             return;
         }
 
@@ -161,10 +166,7 @@ export default class CreatePost extends React.Component {
 
         GlobalActions.emitUserPostedEvent(post);
 
-        PostActions.createPost(post, false,
-            () => {
-                // DO nothing.
-            },
+        PostActions.queuePost(post, false, null,
             (err) => {
                 if (err.id === 'api.post.create_post.root_id.app_error') {
                     // this should never actually happen since you can't reply from this textbox
@@ -220,21 +222,6 @@ export default class CreatePost extends React.Component {
         const draft = PostStore.getCurrentDraft();
         draft.message = message;
         PostStore.storeCurrentDraft(draft);
-
-        if (message.length > Constants.CHARACTER_LIMIT) {
-            const errorMessage = (
-                <FormattedMessage
-                    id='create_post.error_message'
-                    defaultMessage='Your message is too long. Character count: {length}/{limit}'
-                    values={{
-                        length: message.length,
-                        limit: Constants.CHARACTER_LIMIT
-                    }}
-                />);
-            this.setState({postError: errorMessage});
-        } else {
-            this.setState({postError: null});
-        }
     }
 
     handleUploadClick() {
@@ -494,7 +481,7 @@ export default class CreatePost extends React.Component {
 
         let postError = null;
         if (this.state.postError) {
-            const postErrorClass = 'control-label post-error' + (this.state.errorClass ? (' ' + this.state.errorClass) : '');
+            const postErrorClass = 'post-error' + (this.state.errorClass ? (' ' + this.state.errorClass) : '');
             postError = <label className={postErrorClass}>{this.state.postError}</label>;
         }
 
@@ -539,6 +526,7 @@ export default class CreatePost extends React.Component {
                                 onChange={this.handleChange}
                                 onKeyPress={this.postMsgKeyPress}
                                 onKeyDown={this.handleKeyDown}
+                                handlePostError={this.handlePostError}
                                 value={this.state.message}
                                 onBlur={this.handleBlur}
                                 createMessage={Utils.localizeMessage('create_post.write', 'Write a message...')}

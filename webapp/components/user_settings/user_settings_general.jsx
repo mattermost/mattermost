@@ -1010,7 +1010,7 @@ class UserSettingsGeneralTab extends React.Component {
                     <span>
                         <FormattedMessage
                             id='user.settings.general.positionExtra'
-                            defaultMessage='Tell your teammates what you do.'
+                            defaultMessage='Use Position for your role or job title. This will be shown in your profile popover.'
                         />
                     </span>
                 );

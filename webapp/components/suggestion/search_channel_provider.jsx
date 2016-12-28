@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import Suggestion from './suggestion.jsx';
+import Provider from './provider.jsx';
 
 import {autocompleteChannels} from 'actions/channel_actions.jsx';
 
@@ -32,15 +33,21 @@ class SearchChannelSuggestion extends Suggestion {
     }
 }
 
-export default class SearchChannelProvider {
+export default class SearchChannelProvider extends Provider {
     handlePretextChanged(suggestionId, pretext) {
         const captured = (/\b(?:in|channel):\s*(\S*)$/i).exec(pretext.toLowerCase());
         if (captured) {
             const channelPrefix = captured[1];
 
+            this.startNewRequest(channelPrefix);
+
             autocompleteChannels(
                 channelPrefix,
                 (data) => {
+                    if (this.shouldCancelDispatch(channelPrefix)) {
+                        return;
+                    }
+
                     const publicChannels = data;
 
                     const localChannels = ChannelStore.getAll();

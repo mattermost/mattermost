@@ -73,7 +73,7 @@ export default class DeveloperSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.service.developerDesc'
-                            defaultMessage='When true, Javascript errors are shown in a red bar at the top of the user interface. Not recommended for use in production. '
+                            defaultMessage='When true, JavaScript errors are shown in a red bar at the top of the user interface. Not recommended for use in production. '
                         />
                     }
                     value={this.state.enableDeveloper}

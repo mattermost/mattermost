@@ -121,7 +121,7 @@ export default class TeamSidebar extends React.Component {
                     url={`/${team.name}`}
                     tip={team.display_name}
                     active={team.id === this.state.currentTeamId}
-                    contents={team.display_name.substring(0, 1).toUpperCase()}
+                    displayName={team.display_name}
                     unread={team.unread}
                     mentions={team.mentions}
                 />
@@ -131,6 +131,7 @@ export default class TeamSidebar extends React.Component {
         if (moreTeams) {
             teams.push(
                 <TeamButton
+                    btnClass='team-btn__add'
                     key='more_teams'
                     url='/select_team'
                     tip={
@@ -139,12 +140,13 @@ export default class TeamSidebar extends React.Component {
                             defaultMessage='Other teams you can join.'
                         />
                     }
-                    contents={<i className='fa fa-plus'/>}
+                    content={<i className='fa fa-plus'/>}
                 />
             );
         } else if (global.window.mm_config.EnableTeamCreation === 'true' || isSystemAdmin) {
             teams.push(
                 <TeamButton
+                    btnClass='team-btn__add'
                     key='more_teams'
                     url='/create_team'
                     tip={
@@ -153,7 +155,7 @@ export default class TeamSidebar extends React.Component {
                             defaultMessage='Create a New Team'
                         />
                     }
-                    contents={<i className='fa fa-plus'/>}
+                    content={<i className='fa fa-plus'/>}
                 />
             );
         }

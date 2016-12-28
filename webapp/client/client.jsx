@@ -265,6 +265,15 @@ export default class Client {
             end(this.handleResponse.bind(this, 'reloadConfig', success, error));
     }
 
+    invalidateAllCaches(success, error) {
+        return request.
+            get(`${this.getAdminRoute()}/invalidate_all_caches`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'invalidate_all_caches', success, error));
+    }
+
     recycleDatabaseConnection(success, error) {
         return request.
             get(`${this.getAdminRoute()}/recycle_db_conn`).
@@ -965,6 +974,15 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getByUsername', success, error));
     }
 
+    getByEmail(email, success, error) {
+        request.
+            get(`${this.getUsersRoute()}/email/${email}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getByEmail', success, error));
+    }
+
     login(loginId, password, mfaToken, success, error) {
         this.doLogin({login_id: loginId, password, token: mfaToken}, success, error);
 
@@ -1187,6 +1205,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getStatuses', success, error));
     }
 
+    // SCHEDULED FOR DEPRECATION IN 3.8 - use viewChannel instead
     setActiveChannel(id, success, error) {
         request.
             post(`${this.getUsersRoute()}/status/set_active_channel`).
@@ -1366,6 +1385,17 @@ export default class Client {
         this.track('api', 'api_channels_delete');
     }
 
+    viewChannel(channelId, prevChannelId = '', time = 0, success, error) {
+        request.
+            post(`${this.getChannelsRoute()}/view`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send({channel_id: channelId, prev_channel_id: prevChannelId, time}).
+            end(this.handleResponse.bind(this, 'viewChannel', success, error));
+    }
+
+    // SCHEDULED FOR DEPRECATION IN 3.8 - use viewChannel instead
     updateLastViewedAt(channelId, active, success, error) {
         request.
             post(`${this.getChannelNeededRoute(channelId)}/update_last_viewed_at`).
@@ -1376,6 +1406,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'updateLastViewedAt', success, error));
     }
 
+    // SCHEDULED FOR DEPRECATION IN 3.8
     setLastViewedAt(channelId, lastViewedAt, success, error) {
         request.
         post(`${this.getChannelNeededRoute(channelId)}/set_last_viewed_at`).

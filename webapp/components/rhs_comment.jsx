@@ -66,6 +66,10 @@ export default class RhsComment extends React.Component {
             return true;
         }
 
+        if (nextProps.isBusy !== this.props.isBusy) {
+            return true;
+        }
+
         if (nextProps.compactDisplay !== this.props.compactDisplay) {
             return true;
         }
@@ -237,10 +241,20 @@ export default class RhsComment extends React.Component {
 
         var timestamp = this.props.currentUser.update_at;
 
+        let status = this.props.status;
+        if (post.props && post.props.from_webhook === 'true') {
+            status = null;
+        }
+
         let botIndicator;
         let userProfile = (
-            <UserProfile user={this.props.user}/>
+            <UserProfile
+                user={this.props.user}
+                status={status}
+                isBusy={this.props.isBusy}
+            />
         );
+
         if (post.props && post.props.from_webhook) {
             if (post.props.override_username && global.window.mm_config.EnablePostUsernameOverride === 'true') {
                 userProfile = (
@@ -250,9 +264,17 @@ export default class RhsComment extends React.Component {
                         disablePopover={true}
                     />
                 );
+            } else {
+                userProfile = (
+                    <UserProfile
+                        user={this.props.user}
+                        disablePopover={true}
+                    />
+                );
             }
-            botIndicator = <li className='bot-indicator'>{Constants.BOT_NAME}</li>;
-        } else if (isSystemMessage) {
+
+            botIndicator = <li className='col col__name bot-indicator'>{'BOT'}</li>;
+        } else if (PostUtils.isSystemMessage(post)) {
             userProfile = (
                 <UserProfile
                     user={{}}
@@ -292,11 +314,6 @@ export default class RhsComment extends React.Component {
             systemMessageClass = 'post--system';
         }
 
-        let status = this.props.status;
-        if (post.props && post.props.from_webhook === 'true') {
-            status = null;
-        }
-
         let profilePic = (
             <ProfilePicture
                 src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
@@ -304,10 +321,21 @@ export default class RhsComment extends React.Component {
                 width='36'
                 height='36'
                 user={this.props.user}
+                isBusy={this.props.isBusy}
             />
         );
 
-        if (isSystemMessage) {
+        if (post.props && post.props.from_webhook) {
+            profilePic = (
+                <ProfilePicture
+                    src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
+                    width='36'
+                    height='36'
+                />
+            );
+        }
+
+        if (PostUtils.isSystemMessage(post)) {
             profilePic = (
                 <span
                     className='icon'
@@ -320,13 +348,22 @@ export default class RhsComment extends React.Component {
         if (this.props.compactDisplay) {
             compactClass = 'post--compact';
 
-            profilePic = (
-                <ProfilePicture
-                    src=''
-                    status={status}
-                    user={this.props.user}
-                />
-            );
+            if (post.props && post.props.from_webhook) {
+                profilePic = (
+                    <ProfilePicture
+                        src=''
+                    />
+                );
+            } else {
+                profilePic = (
+                    <ProfilePicture
+                        src=''
+                        status={status}
+                        user={this.props.user}
+                        isBusy={this.props.isBusy}
+                    />
+                );
+            }
         }
 
         const profilePicContainer = (<div className='post__img'>{profilePic}</div>);
@@ -466,5 +503,6 @@ RhsComment.propTypes = {
     compactDisplay: React.PropTypes.bool,
     useMilitaryTime: React.PropTypes.bool.isRequired,
     isFlagged: React.PropTypes.bool,
-    status: React.PropTypes.string
+    status: React.PropTypes.string,
+    isBusy: React.PropTypes.bool
 };

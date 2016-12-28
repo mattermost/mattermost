@@ -18,6 +18,14 @@ const (
 	CHANNEL_MARK_UNREAD_MENTION = "mention"
 )
 
+type ChannelUnread struct {
+	TeamId        string
+	TotalMsgCount int64
+	MsgCount      int64
+	MentionCount  int64
+	NotifyProps   StringMap
+}
+
 type ChannelMember struct {
 	ChannelId    string    `json:"channel_id"`
 	UserId       string    `json:"user_id"`

@@ -40,7 +40,7 @@ export default class NewMessageIndicator extends React.Component {
                     />
                     <FormattedMessage
                         id='posts_view.newMsgBelow'
-                        defaultMessage='{count} new {count, plural, one {message} other {messages}} below'
+                        defaultMessage='New {count, plural, one {message} other {messages}} below'
                         values={{count: this.props.newMessages}}
                     />
                 </div>

@@ -40,6 +40,14 @@ export default class PostHeader extends React.Component {
                         disablePopover={true}
                     />
                 );
+            } else {
+                userProfile = (
+                    <UserProfile
+                        user={this.props.user}
+                        displayNameType={this.props.displayNameType}
+                        disablePopover={true}
+                    />
+                );
             }
 
             botIndicator = <li className='bot-indicator'>{Constants.BOT_NAME}</li>;

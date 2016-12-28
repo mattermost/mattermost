@@ -469,7 +469,7 @@
   },
   {
     "id": "api.command_collapse.success",
-    "translation": "Image links now collapse by default"
+    "translation": "画像のリンクはデフォルトで折りたたまれます"
   },
   {
     "id": "api.command_echo.create.app_error",
@@ -505,7 +505,7 @@
   },
   {
     "id": "api.command_expand.success",
-    "translation": "Image links now expand by default"
+    "translation": "画像リンクはデフォルトで展開されます"
   },
   {
     "id": "api.command_expand_collapse.fail.app_error",
@@ -705,7 +705,7 @@
   },
   {
     "id": "api.context.mfa_required.app_error",
-    "translation": "Multi-factor authentication is required on this server."
+    "translation": "このサーバーでは多要素認証が必要です。"
   },
   {
     "id": "api.context.permissions.app_error",
@@ -1528,6 +1528,10 @@
     "translation": "URL内のチャンネルIDがURL内の投稿IDと一致しないため、リアクションを削除できませんでした"
   },
   {
+    "id": "api.reaction.init.debug",
+    "translation": "Initializing reactions api routes"
+  },
+  {
     "id": "api.reaction.list_reactions.mismatched_channel_id.app_error",
     "translation": "URL内のチャンネルIDとURL内の投稿IDが一致しないため、リアクションを取得できませんでした"
   },
@@ -1897,7 +1901,7 @@
   },
   {
     "id": "api.templates.email_change_body.info",
-    "translation": "あなたの{{.TeamDisplayName}}用の電子メールアドレスが{{.NewEmail}}に変更されました。<br>あなたがこの変更をしていない場合には、システム管理者に問い合わせてください。"
+    "translation": "あなたの{{.TeamDisplayName}}用の電子メールアドレスが{{.NewEmail}}に変更されました。<br>あなたが変更したのでなければ、システム管理者に問い合わせてください。"
   },
   {
     "id": "api.templates.email_change_body.title",
@@ -1981,23 +1985,23 @@
   },
   {
     "id": "api.templates.mfa_activated_body.info",
-    "translation": "Multi-factor authentication has been added to your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you, please contact your system administrator."
+    "translation": "{{ .SiteURL }}のあなたのアカウントに多要素認証が追加されました。<br>あなたが変更したのでなければ、システム管理者に問い合わせてください。"
   },
   {
     "id": "api.templates.mfa_activated_body.title",
-    "translation": "Multi-factor authentication was added"
+    "translation": "多要素認証が追加されました"
   },
   {
     "id": "api.templates.mfa_change_subject",
-    "translation": "Your MFA has been updated on {{ .SiteName }}"
+    "translation": "{{ .SiteName }}のあなたの多要素認証がアップデートされました"
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
-    "translation": "Multi-factor authentication has been removed from your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you, please contact your system administrator."
+    "translation": "{{ .SiteURL }}のあなたのアカウントから多要素認証が削除されました。<br>あなたが変更したのでなければ、システム管理者に問い合わせてください。"
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",
-    "translation": "Multi-factor authentication was removed"
+    "translation": "多要素認証が削除されました"
   },
   {
     "id": "api.templates.password_change_body.info",
@@ -2141,7 +2145,7 @@
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
-    "translation": "MFAはこのアカウントタイプでは使用できません"
+    "translation": "多要素認証はこのアカウントタイプでは使用できません"
   },
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
@@ -2185,11 +2189,11 @@
   },
   {
     "id": "api.user.check_user_mfa.bad_code.app_error",
-    "translation": "不正なMFAトークンです。"
+    "translation": "不正な多要素認証トークンです。"
   },
   {
     "id": "api.user.check_user_mfa.not_available.app_error",
-    "translation": "MFAは設定されていないか、このサーバーではサポートされていません"
+    "translation": "多要素認証は設定されていないか、このサーバーではサポートされていません"
   },
   {
     "id": "api.user.check_user_password.invalid.app_error",
@@ -2281,7 +2285,7 @@
   },
   {
     "id": "api.user.generate_mfa_qr.not_available.app_error",
-    "translation": "このサーバーでは、MFAは設定されていないか利用できません"
+    "translation": "このサーバーでは、多要素認証は設定されていないか利用できません"
   },
   {
     "id": "api.user.get_authorization_code.unsupported.app_error",
@@ -2445,7 +2449,7 @@
   },
   {
     "id": "api.user.update_mfa.not_available.app_error",
-    "translation": "MFAはこのサーバーで設定されていないか利用できません"
+    "translation": "多要素認証はこのサーバーで設定されていないか利用できません"
   },
   {
     "id": "api.user.update_password.context.app_error",
@@ -2833,23 +2837,23 @@
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",
-    "translation": "MFAトークンを認証できません"
+    "translation": "多要素認証トークンを認証できません"
   },
   {
     "id": "ent.mfa.activate.bad_token.app_error",
-    "translation": "不正なMFAトークンです"
+    "translation": "不正な多要素認証トークンです"
   },
   {
     "id": "ent.mfa.activate.save_active.app_erro",
-    "translation": "ユーザーのMFAの活動状態を更新できませんでした"
+    "translation": "ユーザーの多要素認証の活動状態を更新できませんでした"
   },
   {
     "id": "ent.mfa.deactivate.save_active.app_erro",
-    "translation": "ユーザーのMFAの活動状態を更新できませんでした"
+    "translation": "ユーザーの多要素認証の活動状態を更新できませんでした"
   },
   {
     "id": "ent.mfa.deactivate.save_secret.app_error",
-    "translation": "MFAの秘密情報をクリアーできません"
+    "translation": "多要素認証の秘密情報をクリアーできません"
   },
   {
     "id": "ent.mfa.generate_qr_code.create_code.app_error",
@@ -2857,7 +2861,7 @@
   },
   {
     "id": "ent.mfa.generate_qr_code.save_secret.app_error",
-    "translation": "MFAの秘密情報を保存できません"
+    "translation": "多要素認証の秘密情報を保存できません"
   },
   {
     "id": "ent.mfa.license_disable.app_error",
@@ -2865,7 +2869,7 @@
   },
   {
     "id": "ent.mfa.validate_token.authenticate.app_error",
-    "translation": "MFAトークンを認証できません"
+    "translation": "多要素認証トークンを認証できません"
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -3037,7 +3041,7 @@
   },
   {
     "id": "mattermost.load_license.find.warn",
-    "translation": "有効なライセンスが見付かりません"
+    "translation": "エンタープライズ版の機能を利用するには https://mattermost.com から取得できるライセンスキーが必要です。"
   },
   {
     "id": "mattermost.security_bulletin.error",
@@ -3874,6 +3878,10 @@
   {
     "id": "model.user.is_valid.nickname.app_error",
     "translation": "不正なニックネームです"
+  },
+  {
+    "id": "model.user.is_valid.position.app_error",
+    "translation": "不正な役職: 35文字以上にはできません"
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
@@ -4860,6 +4868,10 @@
     "translation": "チームを検索中に問題が発生しました"
   },
   {
+    "id": "store.sql_team.get_unread.app_error",
+    "translation": "We couldn't get the teams unread messages"
+  },
+  {
     "id": "store.sql_team.permanent_delete.app_error",
     "translation": "既存のチームを削除できませんでした"
   },
@@ -5069,11 +5081,11 @@
   },
   {
     "id": "store.sql_user.update_mfa_active.app_error",
-    "translation": "ユーザーのMFAの活動状態を更新できませんでした"
+    "translation": "ユーザーの多要素認証の活動状態を更新できませんでした"
   },
   {
     "id": "store.sql_user.update_mfa_secret.app_error",
-    "translation": "ユーザーのMFA秘密情報を更新する際にエラーが発生しました"
+    "translation": "ユーザーの多要素認証秘密情報を更新する際にエラーが発生しました"
   },
   {
     "id": "store.sql_user.update_password.app_error",

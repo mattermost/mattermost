@@ -110,7 +110,7 @@ type ChannelStore interface {
 	GetMemberCount(channelId string, allowFromCache bool) StoreChannel
 	RemoveMember(channelId string, userId string) StoreChannel
 	PermanentDeleteMembersByUser(userId string) StoreChannel
-	UpdateLastViewedAt(channelId string, userId string) StoreChannel
+	UpdateLastViewedAt(channelIds []string, userId string) StoreChannel
 	SetLastViewedAt(channelId string, userId string, newLastViewedAt int64) StoreChannel
 	IncrementMentionCount(channelId string, userId string) StoreChannel
 	AnalyticsTypeCount(teamId string, channelType string) StoreChannel
@@ -118,6 +118,7 @@ type ChannelStore interface {
 	GetMembersForUser(teamId string, userId string) StoreChannel
 	SearchInTeam(teamId string, term string) StoreChannel
 	SearchMore(userId string, teamId string, term string) StoreChannel
+	GetMembersByIds(channelId string, userIds []string) StoreChannel
 }
 
 type PostStore interface {
@@ -126,7 +127,7 @@ type PostStore interface {
 	Get(id string) StoreChannel
 	Delete(postId string, time int64) StoreChannel
 	PermanentDeleteByUser(userId string) StoreChannel
-	GetPosts(channelId string, offset int, limit int) StoreChannel
+	GetPosts(channelId string, offset int, limit int, allowFromCache bool) StoreChannel
 	GetFlaggedPosts(userId string, offset int, limit int) StoreChannel
 	GetPostsBefore(channelId string, postId string, numPosts int, offset int) StoreChannel
 	GetPostsAfter(channelId string, postId string, numPosts int, offset int) StoreChannel

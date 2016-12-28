@@ -95,7 +95,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		// Update the LastViewAt only if the post does not have from_webhook prop set (eg. Zapier app)
 		if _, ok := post.Props["from_webhook"]; !ok {
-			if result := <-Srv.Store.Channel().UpdateLastViewedAt(post.ChannelId, c.Session.UserId); result.Err != nil {
+			if result := <-Srv.Store.Channel().UpdateLastViewedAt([]string{post.ChannelId}, c.Session.UserId); result.Err != nil {
 				l4g.Error(utils.T("api.post.create_post.last_viewed.error"), post.ChannelId, c.Session.UserId, result.Err)
 			}
 		}
@@ -705,7 +705,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 			}
 
 			if userAllowsEmails && status.Status != model.STATUS_ONLINE {
-				go sendNotificationEmail(c, post, profileMap[id], channel, team, senderName[id], sender)
+				sendNotificationEmail(c, post, profileMap[id], channel, team, senderName[id], sender)
 			}
 		}
 	}
@@ -801,7 +801,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 			}
 
 			if DoesStatusAllowPushNotification(profileMap[id], status, post.ChannelId) {
-				go sendPushNotification(post, profileMap[id], channel, senderName[id], true)
+				sendPushNotification(post, profileMap[id], channel, senderName[id], true)
 			}
 		}
 
@@ -814,7 +814,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 				}
 
 				if DoesStatusAllowPushNotification(profileMap[id], status, post.ChannelId) {
-					go sendPushNotification(post, profileMap[id], channel, senderName[id], false)
+					sendPushNotification(post, profileMap[id], channel, senderName[id], false)
 				}
 			}
 		}
@@ -1295,7 +1295,7 @@ func getPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pchan := Srv.Store.Post().GetPosts(id, offset, limit)
+	pchan := Srv.Store.Post().GetPosts(id, offset, limit, true)
 
 	if result := <-pchan; result.Err != nil {
 		c.Err = result.Err

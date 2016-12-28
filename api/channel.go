@@ -25,6 +25,7 @@ func InitChannel() {
 	BaseRoutes.Channels.Handle("/counts", ApiUserRequired(getChannelCounts)).Methods("GET")
 	BaseRoutes.Channels.Handle("/members", ApiUserRequired(getMyChannelMembers)).Methods("GET")
 	BaseRoutes.Channels.Handle("/create", ApiUserRequired(createChannel)).Methods("POST")
+	BaseRoutes.Channels.Handle("/view", ApiUserRequired(viewChannel)).Methods("POST")
 	BaseRoutes.Channels.Handle("/create_direct", ApiUserRequired(createDirectChannel)).Methods("POST")
 	BaseRoutes.Channels.Handle("/update", ApiUserRequired(updateChannel)).Methods("POST")
 	BaseRoutes.Channels.Handle("/update_header", ApiUserRequired(updateChannelHeader)).Methods("POST")
@@ -38,14 +39,12 @@ func InitChannel() {
 	BaseRoutes.NeedChannel.Handle("/", ApiUserRequired(getChannel)).Methods("GET")
 	BaseRoutes.NeedChannel.Handle("/stats", ApiUserRequired(getChannelStats)).Methods("GET")
 	BaseRoutes.NeedChannel.Handle("/members/{user_id:[A-Za-z0-9]+}", ApiUserRequired(getChannelMember)).Methods("GET")
+	BaseRoutes.NeedChannel.Handle("/members/ids", ApiUserRequired(getChannelMembersByIds)).Methods("POST")
 	BaseRoutes.NeedChannel.Handle("/join", ApiUserRequired(join)).Methods("POST")
 	BaseRoutes.NeedChannel.Handle("/leave", ApiUserRequired(leave)).Methods("POST")
 	BaseRoutes.NeedChannel.Handle("/delete", ApiUserRequired(deleteChannel)).Methods("POST")
 	BaseRoutes.NeedChannel.Handle("/add", ApiUserRequired(addMember)).Methods("POST")
 	BaseRoutes.NeedChannel.Handle("/remove", ApiUserRequired(removeMember)).Methods("POST")
-	BaseRoutes.NeedChannel.Handle("/update_last_viewed_at", ApiUserRequired(updateLastViewedAt)).Methods("POST")
-	BaseRoutes.NeedChannel.Handle("/set_last_viewed_at", ApiUserRequired(setLastViewedAt)).Methods("POST")
-
 }
 
 func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -431,10 +430,13 @@ func updateChannelPurpose(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getChannels(c *Context, w http.ResponseWriter, r *http.Request) {
-
+	if c.TeamId == "" {
+		c.Err = model.NewLocAppError("", "api.context.missing_teamid.app_error", nil, "TeamIdRequired")
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
 	// user is already in the team
 	// Get's all channels the user is a member of
-
 	if result := <-Srv.Store.Channel().GetChannels(c.TeamId, c.Session.UserId); result.Err != nil {
 		if result.Err.Id == "store.sql_channel.get_channels.not_found.app_error" {
 			// lets make sure the user is valid
@@ -672,11 +674,11 @@ func JoinDefaultChannels(teamId string, user *model.User, channelRole string) *m
 			UserId:    user.Id,
 		}
 
+		InvalidateCacheForChannel(result.Data.(*model.Channel).Id)
+
 		if _, err := CreatePost(fakeContext, post, false); err != nil {
 			l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
 		}
-
-		InvalidateCacheForChannel(result.Data.(*model.Channel).Id)
 	}
 
 	if result := <-Srv.Store.Channel().GetByName(teamId, "off-topic"); result.Err != nil {
@@ -696,11 +698,11 @@ func JoinDefaultChannels(teamId string, user *model.User, channelRole string) *m
 			UserId:    user.Id,
 		}
 
+		InvalidateCacheForChannel(result.Data.(*model.Channel).Id)
+
 		if _, err := CreatePost(fakeContext, post, false); err != nil {
 			l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
 		}
-
-		InvalidateCacheForChannel(result.Data.(*model.Channel).Id)
 	}
 
 	return err
@@ -802,11 +804,11 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		// Allow delete if user is the only member left in channel
 		if memberCount > 1 {
-			if channel.Type == model.CHANNEL_OPEN && !HasPermissionToTeamContext(c, channel.TeamId, model.PERMISSION_DELETE_PUBLIC_CHANNEL) {
+			if channel.Type == model.CHANNEL_OPEN && !HasPermissionToChannelContext(c, channel.Id, model.PERMISSION_DELETE_PUBLIC_CHANNEL) {
 				return
 			}
 
-			if channel.Type == model.CHANNEL_PRIVATE && !HasPermissionToTeamContext(c, channel.TeamId, model.PERMISSION_DELETE_PRIVATE_CHANNEL) {
+			if channel.Type == model.CHANNEL_PRIVATE && !HasPermissionToChannelContext(c, channel.Id, model.PERMISSION_DELETE_PRIVATE_CHANNEL) {
 				return
 			}
 		}
@@ -870,103 +872,6 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func setLastViewedAt(c *Context, w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	id := params["channel_id"]
-
-	data := model.StringInterfaceFromJson(r.Body)
-	newLastViewedAt := int64(data["last_viewed_at"].(float64))
-
-	Srv.Store.Channel().SetLastViewedAt(id, c.Session.UserId, newLastViewedAt)
-
-	chanPref := model.Preference{
-		UserId:   c.Session.UserId,
-		Category: c.TeamId,
-		Name:     model.PREFERENCE_NAME_LAST_CHANNEL,
-		Value:    id,
-	}
-
-	teamPref := model.Preference{
-		UserId:   c.Session.UserId,
-		Category: model.PREFERENCE_CATEGORY_LAST,
-		Name:     model.PREFERENCE_NAME_LAST_TEAM,
-		Value:    c.TeamId,
-	}
-
-	Srv.Store.Preference().Save(&model.Preferences{teamPref, chanPref})
-
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_VIEWED, c.TeamId, "", c.Session.UserId, nil)
-	message.Add("channel_id", id)
-
-	go Publish(message)
-
-	result := make(map[string]string)
-	result["id"] = id
-	w.Write([]byte(model.MapToJson(result)))
-}
-
-func updateLastViewedAt(c *Context, w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	id := params["channel_id"]
-
-	data := model.StringInterfaceFromJson(r.Body)
-
-	var active bool
-	var ok bool
-	if active, ok = data["active"].(bool); !ok {
-		active = true
-	}
-
-	doClearPush := false
-	if *utils.Cfg.EmailSettings.SendPushNotifications && !c.Session.IsMobileApp() && active {
-		if result := <-Srv.Store.User().GetUnreadCountForChannel(c.Session.UserId, id); result.Err != nil {
-			l4g.Error(utils.T("api.channel.update_last_viewed_at.get_unread_count_for_channel.error"), c.Session.UserId, id, result.Err.Error())
-		} else {
-			if result.Data.(int64) > 0 {
-				doClearPush = true
-			}
-		}
-	}
-
-	go func() {
-		if err := SetActiveChannel(c.Session.UserId, id); err != nil {
-			l4g.Error(err.Error())
-		}
-	}()
-
-	Srv.Store.Channel().UpdateLastViewedAt(id, c.Session.UserId)
-
-	// Must be after update so that unread count is correct
-	if doClearPush {
-		go clearPushNotification(c.Session.UserId, id)
-	}
-
-	chanPref := model.Preference{
-		UserId:   c.Session.UserId,
-		Category: c.TeamId,
-		Name:     model.PREFERENCE_NAME_LAST_CHANNEL,
-		Value:    id,
-	}
-
-	teamPref := model.Preference{
-		UserId:   c.Session.UserId,
-		Category: model.PREFERENCE_CATEGORY_LAST,
-		Name:     model.PREFERENCE_NAME_LAST_TEAM,
-		Value:    c.TeamId,
-	}
-
-	Srv.Store.Preference().Save(&model.Preferences{teamPref, chanPref})
-
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_VIEWED, c.TeamId, "", c.Session.UserId, nil)
-	message.Add("channel_id", id)
-
-	go Publish(message)
-
-	result := make(map[string]string)
-	result["id"] = id
-	w.Write([]byte(model.MapToJson(result)))
-}
-
 func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["channel_id"]
@@ -998,7 +903,23 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(data.ToJson()))
 		}
 	}
+}
 
+func SetActiveChannel(userId string, channelId string) *model.AppError {
+	status, err := GetStatus(userId)
+	if err != nil {
+		status = &model.Status{userId, model.STATUS_ONLINE, false, model.GetMillis(), channelId}
+	} else {
+		status.ActiveChannel = channelId
+		if !status.Manual {
+			status.Status = model.STATUS_ONLINE
+		}
+		status.LastActivityAt = model.GetMillis()
+	}
+
+	AddStatusCache(status)
+
+	return nil
 }
 
 func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1142,7 +1063,7 @@ func addMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 			go PostUserAddRemoveMessage(c, channel.Id, fmt.Sprintf(utils.T("api.channel.add_member.added"), nUser.Username, oUser.Username), model.POST_ADD_REMOVE)
 
-			<-Srv.Store.Channel().UpdateLastViewedAt(id, oUser.Id)
+			<-Srv.Store.Channel().UpdateLastViewedAt([]string{id}, oUser.Id)
 			w.Write([]byte(cm.ToJson()))
 		}
 	}
@@ -1328,4 +1249,76 @@ func autocompleteChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(channels.ToJson()))
+}
+
+func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	view := model.ChannelViewFromJson(r.Body)
+
+	if err := SetActiveChannel(c.Session.UserId, view.ChannelId); err != nil {
+		c.Err = err
+		return
+	}
+
+	if len(view.ChannelId) == 0 {
+		ReturnStatusOK(w)
+		return
+	}
+
+	channelIds := []string{view.ChannelId}
+
+	var pchan store.StoreChannel
+	if len(view.PrevChannelId) > 0 {
+		channelIds = append(channelIds, view.PrevChannelId)
+
+		if *utils.Cfg.EmailSettings.SendPushNotifications && !c.Session.IsMobileApp() {
+			pchan = Srv.Store.User().GetUnreadCountForChannel(c.Session.UserId, view.ChannelId)
+		}
+	}
+
+	uchan := Srv.Store.Channel().UpdateLastViewedAt(channelIds, c.Session.UserId)
+
+	if pchan != nil {
+		if result := <-pchan; result.Err != nil {
+			c.Err = result.Err
+			return
+		} else {
+			if result.Data.(int64) > 0 {
+				clearPushNotification(c.Session.UserId, view.ChannelId)
+			}
+		}
+	}
+
+	if result := <-uchan; result.Err != nil {
+		c.Err = result.Err
+		return
+	}
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_VIEWED, c.TeamId, "", c.Session.UserId, nil)
+	message.Add("channel_id", view.ChannelId)
+
+	ReturnStatusOK(w)
+}
+
+func getChannelMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	channelId := params["channel_id"]
+
+	userIds := model.ArrayFromJson(r.Body)
+	if len(userIds) == 0 {
+		c.SetInvalidParam("getChannelMembersByIds", "user_ids")
+		return
+	}
+
+	if !HasPermissionToChannelContext(c, channelId, model.PERMISSION_READ_CHANNEL) {
+		return
+	}
+
+	if result := <-Srv.Store.Channel().GetMembersByIds(channelId, userIds); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		members := result.Data.(model.ChannelMembers)
+		w.Write([]byte(members.ToJson()))
+		return
+	}
 }

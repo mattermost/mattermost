@@ -491,7 +491,7 @@ func TestPostStoreGetPostsWtihDetails(t *testing.T) {
 	o5.RootId = o4.Id
 	o5 = (<-store.Post().Save(o5)).Data.(*model.Post)
 
-	r1 := (<-store.Post().GetPosts(o1.ChannelId, 0, 4)).Data.(*model.PostList)
+	r1 := (<-store.Post().GetPosts(o1.ChannelId, 0, 4, false)).Data.(*model.PostList)
 
 	if r1.Order[0] != o5.Id {
 		t.Fatal("invalid order")
@@ -514,6 +514,32 @@ func TestPostStoreGetPostsWtihDetails(t *testing.T) {
 	}
 
 	if r1.Posts[o1.Id].Message != o1.Message {
+		t.Fatal("Missing parent")
+	}
+
+	r2 := (<-store.Post().GetPosts(o1.ChannelId, 0, 4, true)).Data.(*model.PostList)
+
+	if r2.Order[0] != o5.Id {
+		t.Fatal("invalid order")
+	}
+
+	if r2.Order[1] != o4.Id {
+		t.Fatal("invalid order")
+	}
+
+	if r2.Order[2] != o3.Id {
+		t.Fatal("invalid order")
+	}
+
+	if r2.Order[3] != o2a.Id {
+		t.Fatal("invalid order")
+	}
+
+	if len(r2.Posts) != 6 { //the last 4, + o1 (o2a and o3's parent) + o2 (in same thread as o2a and o3)
+		t.Fatal("wrong size")
+	}
+
+	if r2.Posts[o1.Id].Message != o1.Message {
 		t.Fatal("Missing parent")
 	}
 }

@@ -14,7 +14,7 @@ const ActionTypes = Constants.ActionTypes;
 import * as AsyncClient from 'utils/async_client.jsx';
 import Client from 'client/web_client.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
-import PreferenceStore from 'stores/preference_store.jsx';
+import BrowserStore from 'stores/browser_store.jsx';
 
 import emojiRoute from 'routes/route_emoji.jsx';
 import integrationsRoute from 'routes/route_integrations.jsx';
@@ -70,45 +70,46 @@ function preNeedsTeam(nextState, replace, callback) {
         browserHistory.push('/');
         return;
     }
-    if (nextState.location.pathname.indexOf('/channels/') > -1) {
-        GlobalActions.emitCloseRightHandSide();
 
-        TeamStore.saveMyTeam(team);
-        TeamStore.emitChange();
+    TeamStore.saveMyTeam(team);
+    BrowserStore.setGlobalItem('team', team.id);
+    TeamStore.emitChange();
+    GlobalActions.emitCloseRightHandSide();
+
+    if (nextState.location.pathname.indexOf('/channels/') > -1 ||
+        nextState.location.pathname.indexOf('/pl/') > -1) {
         loadProfilesAndTeamMembersForDMSidebar();
         AsyncClient.getMyTeamsUnread();
         AsyncClient.getMyChannelMembers();
-
-        const d1 = $.Deferred(); //eslint-disable-line new-cap
-
-        Client.getChannels(
-            (data) => {
-                AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECEIVED_CHANNELS,
-                    channels: data
-                });
-
-                loadStatusesForChannelAndSidebar();
-
-                d1.resolve();
-            },
-            (err) => {
-                AsyncClient.dispatchError(err, 'getChannels');
-                d1.resolve();
-            }
-        );
-
-        $.when(d1).done(() => {
-            callback();
-        });
-    } else {
-        callback();
     }
+
+    const d1 = $.Deferred(); //eslint-disable-line new-cap
+
+    Client.getChannels(
+        (data) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_CHANNELS,
+                channels: data
+            });
+
+            loadStatusesForChannelAndSidebar();
+
+            d1.resolve();
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'getChannels');
+            d1.resolve();
+        }
+    );
+
+    $.when(d1).done(() => {
+        callback();
+    });
 }
 
 function selectLastChannel(nextState, replace, callback) {
     const team = TeamStore.getByName(nextState.params.team);
-    const channelId = PreferenceStore.get(team.id, 'channel');
+    const channelId = BrowserStore.getGlobalItem(team.id);
     const channel = ChannelStore.getChannelById(channelId);
 
     let channelName = 'town-square';

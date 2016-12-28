@@ -6,7 +6,6 @@ import $ from 'jquery';
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import PostStore from 'stores/post_store.jsx';
-import PreferenceStore from 'stores/preference_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 import ErrorStore from 'stores/error_store.jsx';
@@ -115,10 +114,6 @@ function handleEvent(msg) {
         handlePostDeleteEvent(msg);
         break;
 
-    case SocketEvents.NEW_USER:
-        handleNewUserEvent(msg);
-        break;
-
     case SocketEvents.LEAVE_TEAM:
         handleLeaveTeamEvent(msg);
         break;
@@ -205,7 +200,7 @@ function handlePostEditEvent(msg) {
     // Update channel state
     if (ChannelStore.getCurrentId() === msg.broadcast.channel_id) {
         if (window.isActive) {
-            AsyncClient.updateLastViewedAt(null, false);
+            AsyncClient.viewChannel();
         }
     }
 }
@@ -220,26 +215,6 @@ function handlePostDeleteEvent(msg) {
     }
 }
 
-function handleNewUserEvent(msg) {
-    if (TeamStore.getCurrentId() === '') {
-        // Any new users will be loaded when we switch into a context with a team
-        return;
-    }
-
-    if (msg.data.user_id === UserStore.getCurrentId()) {
-        // We should already have ourselves
-        return;
-    }
-
-    AsyncClient.getUser(msg.data.user_id);
-    AsyncClient.getChannelStats();
-    loadProfilesAndTeamMembersForDMSidebar();
-
-    if (msg.data.user_id === UserStore.getCurrentId()) {
-        AsyncClient.getMyTeamMembers();
-    }
-}
-
 function handleLeaveTeamEvent(msg) {
     if (UserStore.getCurrentId() === msg.data.user_id) {
         TeamStore.removeMyTeamMember(msg.data.team_id);
@@ -248,11 +223,8 @@ function handleLeaveTeamEvent(msg) {
         if (TeamStore.getCurrentId() === msg.data.team_id) {
             TeamStore.setCurrentId('');
             Client.setTeamId('');
-            PreferenceStore.deletePreference({
-                category: 'last',
-                name: 'team',
-                value: msg.data.team_id
-            });
+            BrowserStore.removeGlobalItem('team');
+            BrowserStore.removeGlobalItem(msg.data.team_id);
             GlobalActions.redirectUserToDefaultTeam();
         }
     } else {

@@ -3,7 +3,7 @@
 
 import PostStore from 'stores/post_store.jsx';
 
-import {createPost} from 'actions/post_actions.jsx';
+import {queuePost} from 'actions/post_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 
@@ -22,10 +22,7 @@ export default class PendingPostOptions extends React.Component {
         e.preventDefault();
 
         var post = this.props.post;
-        createPost(post, true,
-            () => {
-                // DO nothing.
-            },
+        queuePost(post, true, null,
             (err) => {
                 if (err.id === 'api.post.create_post.root_id.app_error') {
                     this.showPostDeletedModal();

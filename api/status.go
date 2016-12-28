@@ -37,7 +37,6 @@ func InitStatus() {
 
 	BaseRoutes.Users.Handle("/status", ApiUserRequired(getStatusesHttp)).Methods("GET")
 	BaseRoutes.Users.Handle("/status/ids", ApiUserRequired(getStatusesByIdsHttp)).Methods("POST")
-	BaseRoutes.Users.Handle("/status/set_active_channel", ApiUserRequired(setActiveChannel)).Methods("POST")
 	BaseRoutes.WebSocket.Handle("get_statuses", ApiWebSocketHandler(getStatusesWebSocket))
 	BaseRoutes.WebSocket.Handle("get_statuses_by_ids", ApiWebSocketHandler(getStatusesByIdsWebSocket))
 }
@@ -304,43 +303,4 @@ func DoesStatusAllowPushNotification(user *model.User, status *model.Status, cha
 	}
 
 	return false
-}
-
-func setActiveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
-	data := model.MapFromJson(r.Body)
-
-	var channelId string
-	var ok bool
-	if channelId, ok = data["channel_id"]; !ok || len(channelId) > 26 {
-		c.SetInvalidParam("setActiveChannel", "channel_id")
-		return
-	}
-
-	if err := SetActiveChannel(c.Session.UserId, channelId); err != nil {
-		c.Err = err
-		return
-	}
-
-	ReturnStatusOK(w)
-}
-
-func SetActiveChannel(userId string, channelId string) *model.AppError {
-	status, err := GetStatus(userId)
-	if err != nil {
-		status = &model.Status{userId, model.STATUS_ONLINE, false, model.GetMillis(), channelId}
-	} else {
-		status.ActiveChannel = channelId
-		if !status.Manual {
-			status.Status = model.STATUS_ONLINE
-		}
-		status.LastActivityAt = model.GetMillis()
-	}
-
-	AddStatusCache(status)
-
-	if result := <-Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
-		return result.Err
-	}
-
-	return nil
 }

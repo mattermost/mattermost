@@ -766,15 +766,11 @@ func TestGetTeamStats(t *testing.T) {
 		}
 	}
 
-	if result, err := th.SystemAdminClient.GetTeamStats("junk"); err != nil {
-		t.Fatal(err)
+	if _, err := th.SystemAdminClient.GetTeamStats("junk"); err == nil {
+		t.Fatal("should fail invalid teamid")
 	} else {
-		if result.Data.(*model.TeamStats).TotalMemberCount != 0 {
-			t.Fatal("wrong count")
-		}
-
-		if result.Data.(*model.TeamStats).ActiveMemberCount != 0 {
-			t.Fatal("wrong count")
+		if err.Id != "store.sql_team.get.find.app_error" {
+			t.Fatal("wrong error. Got: " + err.Id)
 		}
 	}
 

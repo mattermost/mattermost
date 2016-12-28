@@ -38,9 +38,10 @@ const (
 	DIRECT_MESSAGE_ANY  = "any"
 	DIRECT_MESSAGE_TEAM = "team"
 
-	PERMISSIONS_ALL          = "all"
-	PERMISSIONS_TEAM_ADMIN   = "team_admin"
-	PERMISSIONS_SYSTEM_ADMIN = "system_admin"
+	PERMISSIONS_ALL           = "all"
+	PERMISSIONS_CHANNEL_ADMIN = "channel_admin"
+	PERMISSIONS_TEAM_ADMIN    = "team_admin"
+	PERMISSIONS_SYSTEM_ADMIN  = "system_admin"
 
 	FAKE_SETTING = "********************************"
 
@@ -103,6 +104,10 @@ type MetricsSettings struct {
 	Enable           *bool
 	BlockProfileRate *int
 	ListenAddress    *string
+}
+
+type AnalyticsSettings struct {
+	MaxUsersForStatistics *int
 }
 
 type SSOSettings struct {
@@ -226,6 +231,10 @@ type TeamSettings struct {
 	RestrictTeamInvite               *string
 	RestrictPublicChannelManagement  *string
 	RestrictPrivateChannelManagement *string
+	RestrictPublicChannelCreation    *string
+	RestrictPrivateChannelCreation   *string
+	RestrictPublicChannelDeletion    *string
+	RestrictPrivateChannelDeletion   *string
 	UserStatusAwayTimeout            *int64
 	MaxChannelsPerTeam               *int64
 	MaxNotificationsPerChannel       *int64
@@ -341,6 +350,7 @@ type Config struct {
 	NativeAppSettings    NativeAppSettings
 	ClusterSettings      ClusterSettings
 	MetricsSettings      MetricsSettings
+	AnalyticsSettings    AnalyticsSettings
 	WebrtcSettings       WebrtcSettings
 }
 
@@ -387,21 +397,30 @@ func (o *Config) SetDefaults() {
 		// Defaults to "s3.amazonaws.com"
 		o.FileSettings.AmazonS3Endpoint = "s3.amazonaws.com"
 	}
+
 	if o.FileSettings.AmazonS3Region == "" {
 		// Defaults to "us-east-1" region.
 		o.FileSettings.AmazonS3Region = "us-east-1"
 	}
+
 	if o.FileSettings.AmazonS3SSL == nil {
 		o.FileSettings.AmazonS3SSL = new(bool)
 		*o.FileSettings.AmazonS3SSL = true // Secure by default.
 	}
+
 	if o.FileSettings.MaxFileSize == nil {
 		o.FileSettings.MaxFileSize = new(int64)
 		*o.FileSettings.MaxFileSize = 52428800 // 50 MB
 	}
+
 	if len(*o.FileSettings.PublicLinkSalt) == 0 {
 		o.FileSettings.PublicLinkSalt = new(string)
 		*o.FileSettings.PublicLinkSalt = NewRandomString(32)
+	}
+
+	if o.FileSettings.InitialFont == "" {
+		// Defaults to "luximbi.ttf"
+		o.FileSettings.InitialFont = "luximbi.ttf"
 	}
 
 	if len(o.EmailSettings.InviteSalt) == 0 {
@@ -505,6 +524,30 @@ func (o *Config) SetDefaults() {
 	if o.TeamSettings.RestrictPrivateChannelManagement == nil {
 		o.TeamSettings.RestrictPrivateChannelManagement = new(string)
 		*o.TeamSettings.RestrictPrivateChannelManagement = PERMISSIONS_ALL
+	}
+
+	if o.TeamSettings.RestrictPublicChannelCreation == nil {
+		o.TeamSettings.RestrictPublicChannelCreation = new(string)
+		// If this setting does not exist, assume migration from <3.6, so use management setting as default.
+		*o.TeamSettings.RestrictPublicChannelCreation = *o.TeamSettings.RestrictPublicChannelManagement
+	}
+
+	if o.TeamSettings.RestrictPrivateChannelCreation == nil {
+		o.TeamSettings.RestrictPrivateChannelCreation = new(string)
+		// If this setting does not exist, assume migration from <3.6, so use management setting as default.
+		*o.TeamSettings.RestrictPrivateChannelCreation = *o.TeamSettings.RestrictPrivateChannelManagement
+	}
+
+	if o.TeamSettings.RestrictPublicChannelDeletion == nil {
+		o.TeamSettings.RestrictPublicChannelDeletion = new(string)
+		// If this setting does not exist, assume migration from <3.6, so use management setting as default.
+		*o.TeamSettings.RestrictPublicChannelDeletion = *o.TeamSettings.RestrictPublicChannelManagement
+	}
+
+	if o.TeamSettings.RestrictPrivateChannelDeletion == nil {
+		o.TeamSettings.RestrictPrivateChannelDeletion = new(string)
+		// If this setting does not exist, assume migration from <3.6, so use management setting as default.
+		*o.TeamSettings.RestrictPrivateChannelDeletion = *o.TeamSettings.RestrictPrivateChannelManagement
 	}
 
 	if o.TeamSettings.UserStatusAwayTimeout == nil {
@@ -806,6 +849,11 @@ func (o *Config) SetDefaults() {
 	if o.MetricsSettings.Enable == nil {
 		o.MetricsSettings.Enable = new(bool)
 		*o.MetricsSettings.Enable = false
+	}
+
+	if o.AnalyticsSettings.MaxUsersForStatistics == nil {
+		o.AnalyticsSettings.MaxUsersForStatistics = new(int)
+		*o.AnalyticsSettings.MaxUsersForStatistics = 2500
 	}
 
 	if o.ComplianceSettings.Enable == nil {

@@ -7,9 +7,9 @@ import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 
-import {removeUserFromTeam} from 'actions/team_actions.jsx';
+import {removeUserFromTeam, updateTeamMemberRoles} from 'actions/team_actions.jsx';
+import {updateActive} from 'actions/user_actions.jsx';
 
-import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
@@ -43,12 +43,11 @@ export default class TeamMembersDropdown extends React.Component {
         if (this.props.user.id === me.id && me.roles.includes('system_admin')) {
             this.handleDemote(this.props.user, 'team_user');
         } else {
-            Client.updateTeamMemberRoles(
+            updateTeamMemberRoles(
                 this.props.teamMember.team_id,
                 this.props.user.id,
                 'team_user',
                 () => {
-                    AsyncClient.getTeamMember(this.props.teamMember.team_id, this.props.user.id);
                     AsyncClient.getUser(this.props.user.id);
                 },
                 (err) => {
@@ -74,9 +73,8 @@ export default class TeamMembersDropdown extends React.Component {
     }
 
     handleMakeActive() {
-        Client.updateActive(this.props.user.id, true,
+        updateActive(this.props.user.id, true,
             () => {
-                AsyncClient.getUser(this.props.user.id);
                 AsyncClient.getChannelStats(ChannelStore.getCurrentId());
                 AsyncClient.getTeamStats(this.props.teamMember.team_id);
             },
@@ -87,9 +85,8 @@ export default class TeamMembersDropdown extends React.Component {
     }
 
     handleMakeNotActive() {
-        Client.updateActive(this.props.user.id, false,
+        updateActive(this.props.user.id, false,
             () => {
-                AsyncClient.getUser(this.props.user.id);
                 AsyncClient.getChannelStats(ChannelStore.getCurrentId());
                 AsyncClient.getTeamStats(this.props.teamMember.team_id);
             },
@@ -104,12 +101,11 @@ export default class TeamMembersDropdown extends React.Component {
         if (this.props.user.id === me.id && me.roles.includes('system_admin')) {
             this.handleDemote(this.props.user, 'team_user team_admin');
         } else {
-            Client.updateTeamMemberRoles(
+            updateTeamMemberRoles(
                 this.props.teamMember.team_id,
                 this.props.user.id,
                 'team_user team_admin',
                 () => {
-                    AsyncClient.getTeamMember(this.props.teamMember.team_id, this.props.user.id);
                     AsyncClient.getUser(this.props.user.id);
                 },
                 (err) => {
@@ -140,12 +136,11 @@ export default class TeamMembersDropdown extends React.Component {
     }
 
     handleDemoteSubmit() {
-        Client.updateTeamMemberRoles(
+        updateTeamMemberRoles(
             this.props.teamMember.team_id,
             this.props.user.id,
             this.state.newRole,
             () => {
-                AsyncClient.getTeamMember(this.props.teamMember.team_id, this.props.user.id);
                 AsyncClient.getUser(this.props.user.id);
 
                 const teamUrl = TeamStore.getCurrentTeamUrl();

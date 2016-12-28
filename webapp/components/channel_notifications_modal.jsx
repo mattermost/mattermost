@@ -4,13 +4,14 @@
 import SettingItemMin from 'components/setting_item_min.jsx';
 import SettingItemMax from 'components/setting_item_max.jsx';
 
-import Client from 'client/web_client.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 
 import $ from 'jquery';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
+
+import {updateChannelNotifyProps} from 'actions/channel_actions.jsx';
 
 export default class ChannelNotificationsModal extends React.Component {
     constructor(props) {
@@ -47,26 +48,28 @@ export default class ChannelNotificationsModal extends React.Component {
     }
 
     handleSubmitNotifyLevel() {
-        var channelId = this.props.channel.id;
-        var notifyLevel = this.state.notifyLevel;
+        const channelId = this.props.channel.id;
+        const notifyLevel = this.state.notifyLevel;
+        const currentUserId = this.props.currentUser.id;
 
         if (this.props.channelMember.notify_props.desktop === notifyLevel) {
             this.updateSection('');
             return;
         }
 
-        var data = {};
-        data.channel_id = channelId;
-        data.user_id = this.props.currentUser.id;
-        data.desktop = notifyLevel;
+        const data = {
+            channel_id: channelId,
+            user_id: currentUserId,
+            desktop: notifyLevel
+        };
 
-        //TODO: This should be moved to event_helpers
-        Client.updateChannelNotifyProps(data,
+        updateChannelNotifyProps(data,
             () => {
                 // YUCK
                 var member = ChannelStore.getMyMember(channelId);
                 member.notify_props.desktop = notifyLevel;
                 ChannelStore.storeMyChannelMember(member);
+
                 this.updateSection('');
             },
             (err) => {
@@ -257,8 +260,7 @@ export default class ChannelNotificationsModal extends React.Component {
             mark_unread: markUnreadLevel
         };
 
-        //TODO: This should be fixed, moved to actions
-        Client.updateChannelNotifyProps(data,
+        updateChannelNotifyProps(data,
             () => {
                 // Yuck...
                 var member = ChannelStore.getMyMember(channelId);

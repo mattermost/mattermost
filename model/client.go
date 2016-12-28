@@ -48,6 +48,13 @@ type Result struct {
 	Data      interface{}
 }
 
+type ResponseMetadata struct {
+	StatusCode int
+	Error      *AppError
+	RequestId  string
+	Etag       string
+}
+
 type Client struct {
 	Url           string       // The location of the server like "http://localhost:8065"
 	ApiUrl        string       // The api location of the server like "http://localhost:8065/api/v3"
@@ -508,6 +515,21 @@ func (c *Client) GetByUsername(username string, etag string) (*Result, *AppError
 		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), UserFromJson(r.Body)}, nil
+	}
+}
+
+// getByEmail returns a user based on a provided username string. Must be authenticated.
+func (c *Client) GetByEmail(email string, etag string) (*User, *ResponseMetadata) {
+	if r, err := c.DoApiGet(fmt.Sprintf("/users/email/%v", email), "", etag); err != nil {
+		return nil, &ResponseMetadata{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return UserFromJson(r.Body),
+			&ResponseMetadata{
+				StatusCode: r.StatusCode,
+				RequestId:  r.Header.Get(HEADER_REQUEST_ID),
+				Etag:       r.Header.Get(HEADER_ETAG_SERVER),
+			}
 	}
 }
 
@@ -1329,6 +1351,7 @@ func (c *Client) RemoveChannelMember(id, user_id string) (*Result, *AppError) {
 // UpdateLastViewedAt will mark a channel as read.
 // The channelId indicates the channel to mark as read. If active is true, push notifications
 // will be cleared if there are unread messages. The default for active is true.
+// SCHEDULED FOR DEPRECATION IN 3.8 - use ViewChannel instead
 func (c *Client) UpdateLastViewedAt(channelId string, active bool) (*Result, *AppError) {
 	data := make(map[string]interface{})
 	data["active"] = active
@@ -1338,6 +1361,23 @@ func (c *Client) UpdateLastViewedAt(channelId string, active bool) (*Result, *Ap
 		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), nil}, nil
+	}
+}
+
+// ViewChannel performs all the actions related to viewing a channel. This includes marking
+// the channel and the previous one as read, and marking the channel as being actively viewed.
+// ChannelId is required but may be blank to indicate no channel is being viewed.
+// PrevChannelId is optional, populate to indicate a channel switch occurred.
+func (c *Client) ViewChannel(params ChannelView) (bool, *ResponseMetadata) {
+	if r, err := c.DoApiPost(c.GetTeamRoute()+"/channels/view", params.ToJson()); err != nil {
+		return false, &ResponseMetadata{StatusCode: r.StatusCode, Error: err}
+	} else {
+		return c.CheckStatusOK(r),
+			&ResponseMetadata{
+				StatusCode: r.StatusCode,
+				RequestId:  r.Header.Get(HEADER_REQUEST_ID),
+				Etag:       r.Header.Get(HEADER_ETAG_SERVER),
+			}
 	}
 }
 
@@ -1358,6 +1398,18 @@ func (c *Client) GetChannelMember(channelId string, userId string) (*Result, *Ap
 		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), ChannelMemberFromJson(r.Body)}, nil
+	}
+}
+
+// GetChannelMembersByIds will return channel member objects as an array based on the
+// channel id and a list of user ids provided. Must be authenticated.
+func (c *Client) GetChannelMembersByIds(channelId string, userIds []string) (*Result, *AppError) {
+	if r, err := c.DoApiPost(c.GetChannelRoute(channelId)+"/members/ids", ArrayToJson(userIds)); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), ChannelMembersFromJson(r.Body)}, nil
 	}
 }
 
@@ -1718,6 +1770,7 @@ func (c *Client) GetStatusesByIds(userIds []string) (*Result, *AppError) {
 // SetActiveChannel sets the the channel id the user is currently viewing.
 // The channelId key is required but the value can be blank. Returns standard
 // response.
+// SCHEDULED FOR DEPRECATION IN 3.8 - use ViewChannel instead
 func (c *Client) SetActiveChannel(channelId string) (*Result, *AppError) {
 	data := map[string]string{}
 	data["channel_id"] = channelId

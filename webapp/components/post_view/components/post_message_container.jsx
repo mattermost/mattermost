@@ -89,7 +89,7 @@ export default class PostMessageContainer extends React.Component {
         return (
             <PostMessageView
                 options={this.props.options}
-                post={this.props.post}
+                message={this.props.post.message}
                 emojis={this.state.emojis}
                 enableFormatting={this.state.enableFormatting}
                 mentionKeys={this.state.mentionKeys}

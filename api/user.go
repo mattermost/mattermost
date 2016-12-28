@@ -75,6 +75,7 @@ func InitUser() {
 
 	BaseRoutes.NeedUser.Handle("/get", ApiUserRequired(getUser)).Methods("GET")
 	BaseRoutes.Users.Handle("/name/{username:[A-Za-z0-9_\\-.]+}", ApiUserRequired(getByUsername)).Methods("GET")
+	BaseRoutes.Users.Handle("/email/{email}", ApiUserRequired(getByEmail)).Methods("GET")
 	BaseRoutes.NeedUser.Handle("/sessions", ApiUserRequired(getSessions)).Methods("GET")
 	BaseRoutes.NeedUser.Handle("/audits", ApiUserRequired(getAudits)).Methods("GET")
 	BaseRoutes.NeedUser.Handle("/image", ApiUserRequiredTrustRequester(getProfileImage)).Methods("GET")
@@ -981,6 +982,24 @@ func getByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func getByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	email := params["email"]
+
+	if result := <-Srv.Store.User().GetByEmail(email); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else if HandleEtag(result.Data.(*model.User).Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress), "Get By Email", w, r) {
+		return
+	} else {
+		user := sanitizeProfile(c, result.Data.(*model.User))
+
+		w.Header().Set(model.HEADER_ETAG_SERVER, user.Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress))
+		w.Write([]byte(result.Data.(*model.User).ToJson()))
+		return
+	}
+}
+
 func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 
@@ -1251,6 +1270,7 @@ func createProfileImage(username string, userId string) ([]byte, *model.AppError
 func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["user_id"]
+	readFailed := false
 
 	if result := <-Srv.Store.User().Get(id); result.Err != nil {
 		c.Err = result.Err
@@ -1268,15 +1288,18 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 			path := "users/" + id + "/profile.png"
 
 			if data, err := ReadFile(path); err != nil {
+				readFailed = true
 
 				if img, err = createProfileImage(result.Data.(*model.User).Username, id); err != nil {
 					c.Err = err
 					return
 				}
 
-				if err := WriteFile(img, path); err != nil {
-					c.Err = err
-					return
+				if result.Data.(*model.User).LastPictureUpdate == 0 {
+					if err := WriteFile(img, path); err != nil {
+						c.Err = err
+						return
+					}
 				}
 
 			} else {
@@ -1284,7 +1307,7 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		if c.Session.UserId == id {
+		if c.Session.UserId == id || readFailed {
 			w.Header().Set("Cache-Control", "max-age=300, public") // 5 mins
 		} else {
 			w.Header().Set("Cache-Control", "max-age=86400, public") // 24 hrs
@@ -2855,7 +2878,17 @@ func autocompleteUsersInTeam(c *Context, w http.ResponseWriter, r *http.Request)
 func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	term := r.URL.Query().Get("term")
 
-	uchan := Srv.Store.User().Search("", term, map[string]bool{})
+	searchOptions := map[string]bool{}
+
+	hideFullName := !utils.Cfg.PrivacySettings.ShowFullName
+	if hideFullName && !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
+		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
+		c.Err = nil
+	} else {
+		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
+	}
+
+	uchan := Srv.Store.User().Search("", term, searchOptions)
 
 	var profiles []*model.User
 

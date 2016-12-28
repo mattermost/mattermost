@@ -53,7 +53,7 @@ export function executeCommand(message, args, success, error) {
 
 export function setChannelAsRead(channelIdParam) {
     const channelId = channelIdParam || ChannelStore.getCurrentId();
-    AsyncClient.updateLastViewedAt();
+    AsyncClient.viewChannel();
     ChannelStore.resetCounts(channelId);
     ChannelStore.emitChange();
     if (channelId === ChannelStore.getCurrentId()) {
@@ -253,6 +253,57 @@ export function autocompleteChannels(term, success, error) {
         },
         (err) => {
             AsyncClient.dispatchError(err, 'autocompleteChannels');
+
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
+export function updateChannelNotifyProps(data, success, error) {
+    Client.updateChannelNotifyProps(data,
+        () => {
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
+export function createChannel(channel, success, error) {
+    Client.createChannel(
+        channel,
+        (data) => {
+            Client.getChannel(
+                data.id,
+                (data2) => {
+                    AppDispatcher.handleServerAction({
+                        type: ActionTypes.RECEIVED_CHANNEL,
+                        channel: data2.channel,
+                        member: data2.channel
+                    });
+
+                    if (success) {
+                        success(data2);
+                    }
+                },
+                (err) => {
+                    AsyncClient.dispatchError(err, 'getChannel');
+
+                    if (error) {
+                        error(err);
+                    }
+                }
+            );
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'createChannel');
 
             if (error) {
                 error(err);

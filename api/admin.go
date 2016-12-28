@@ -367,6 +367,19 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 	teamId := params["id"]
 	name := params["name"]
 
+	skipIntensiveQueries := false
+	var systemUserCount int64
+	if r := <-Srv.Store.User().AnalyticsUniqueUserCount(""); r.Err != nil {
+		c.Err = r.Err
+		return
+	} else {
+		systemUserCount = r.Data.(int64)
+		if systemUserCount > int64(*utils.Cfg.AnalyticsSettings.MaxUsersForStatistics) {
+			l4g.Debug("More than %v users on the system, intensive queries skipped", *utils.Cfg.AnalyticsSettings.MaxUsersForStatistics)
+			skipIntensiveQueries = true
+		}
+	}
+
 	if name == "standard" {
 		var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 8)
 		rows[0] = &model.AnalyticsRow{"channel_open_count", 0}
@@ -380,9 +393,17 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		openChan := Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN)
 		privateChan := Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_PRIVATE)
-		postChan := Srv.Store.Post().AnalyticsPostCount(teamId, false, false)
-		userChan := Srv.Store.User().AnalyticsUniqueUserCount(teamId)
 		teamChan := Srv.Store.Team().AnalyticsTeamCount()
+
+		var userChan store.StoreChannel
+		if teamId != "" {
+			userChan = Srv.Store.User().AnalyticsUniqueUserCount(teamId)
+		}
+
+		var postChan store.StoreChannel
+		if !skipIntensiveQueries {
+			postChan = Srv.Store.Post().AnalyticsPostCount(teamId, false, false)
+		}
 
 		if r := <-openChan; r.Err != nil {
 			c.Err = r.Err
@@ -398,18 +419,26 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 			rows[1].Value = float64(r.Data.(int64))
 		}
 
-		if r := <-postChan; r.Err != nil {
-			c.Err = r.Err
-			return
+		if postChan == nil {
+			rows[2].Value = -1
 		} else {
-			rows[2].Value = float64(r.Data.(int64))
+			if r := <-postChan; r.Err != nil {
+				c.Err = r.Err
+				return
+			} else {
+				rows[2].Value = float64(r.Data.(int64))
+			}
 		}
 
-		if r := <-userChan; r.Err != nil {
-			c.Err = r.Err
-			return
+		if userChan == nil {
+			rows[3].Value = float64(systemUserCount)
 		} else {
-			rows[3].Value = float64(r.Data.(int64))
+			if r := <-userChan; r.Err != nil {
+				c.Err = r.Err
+				return
+			} else {
+				rows[3].Value = float64(r.Data.(int64))
+			}
 		}
 
 		if r := <-teamChan; r.Err != nil {
@@ -449,6 +478,12 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		w.Write([]byte(rows.ToJson()))
 	} else if name == "post_counts_day" {
+		if skipIntensiveQueries {
+			rows := model.AnalyticsRows{&model.AnalyticsRow{"", -1}}
+			w.Write([]byte(rows.ToJson()))
+			return
+		}
+
 		if r := <-Srv.Store.Post().AnalyticsPostCountsByDay(teamId); r.Err != nil {
 			c.Err = r.Err
 			return
@@ -456,6 +491,12 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(r.Data.(model.AnalyticsRows).ToJson()))
 		}
 	} else if name == "user_counts_with_posts_day" {
+		if skipIntensiveQueries {
+			rows := model.AnalyticsRows{&model.AnalyticsRow{"", -1}}
+			w.Write([]byte(rows.ToJson()))
+			return
+		}
+
 		if r := <-Srv.Store.Post().AnalyticsUserCountsWithPostsByDay(teamId); r.Err != nil {
 			c.Err = r.Err
 			return
@@ -471,25 +512,38 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 		rows[4] = &model.AnalyticsRow{"command_count", 0}
 		rows[5] = &model.AnalyticsRow{"session_count", 0}
 
-		fileChan := Srv.Store.Post().AnalyticsPostCount(teamId, true, false)
-		hashtagChan := Srv.Store.Post().AnalyticsPostCount(teamId, false, true)
 		iHookChan := Srv.Store.Webhook().AnalyticsIncomingCount(teamId)
 		oHookChan := Srv.Store.Webhook().AnalyticsOutgoingCount(teamId)
 		commandChan := Srv.Store.Command().AnalyticsCommandCount(teamId)
 		sessionChan := Srv.Store.Session().AnalyticsSessionCount()
 
-		if r := <-fileChan; r.Err != nil {
-			c.Err = r.Err
-			return
-		} else {
-			rows[0].Value = float64(r.Data.(int64))
+		var fileChan store.StoreChannel
+		var hashtagChan store.StoreChannel
+		if !skipIntensiveQueries {
+			fileChan = Srv.Store.Post().AnalyticsPostCount(teamId, true, false)
+			hashtagChan = Srv.Store.Post().AnalyticsPostCount(teamId, false, true)
 		}
 
-		if r := <-hashtagChan; r.Err != nil {
-			c.Err = r.Err
-			return
+		if fileChan == nil {
+			rows[0].Value = -1
 		} else {
-			rows[1].Value = float64(r.Data.(int64))
+			if r := <-fileChan; r.Err != nil {
+				c.Err = r.Err
+				return
+			} else {
+				rows[0].Value = float64(r.Data.(int64))
+			}
+		}
+
+		if hashtagChan == nil {
+			rows[1].Value = -1
+		} else {
+			if r := <-hashtagChan; r.Err != nil {
+				c.Err = r.Err
+				return
+			} else {
+				rows[1].Value = float64(r.Data.(int64))
+			}
 		}
 
 		if r := <-iHookChan; r.Err != nil {

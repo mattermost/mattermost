@@ -303,11 +303,6 @@ func JoinUserToTeam(team *model.Team, user *model.User) *model.AppError {
 	RemoveAllSessionsForUserId(user.Id)
 	InvalidateCacheForUser(user.Id)
 
-	// This message goes to everyone, so the teamId, channelId and userId are irrelevant
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_NEW_USER, "", "", "", nil)
-	message.Add("user_id", user.Id)
-	go Publish(message)
-
 	return nil
 }
 
@@ -751,8 +746,37 @@ func getMyTeamsUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = result.Err
 		return
 	} else {
-		data := result.Data.([]*model.TeamUnread)
-		w.Write([]byte(model.TeamsUnreadToJson(data)))
+		data := result.Data.([]*model.ChannelUnread)
+		var members []*model.TeamUnread
+		membersMap := make(map[string]*model.TeamUnread)
+
+		unreads := func(cu *model.ChannelUnread, tu *model.TeamUnread) *model.TeamUnread {
+			tu.MentionCount += cu.MentionCount
+
+			if cu.NotifyProps["mark_unread"] != model.CHANNEL_MARK_UNREAD_MENTION {
+				tu.MsgCount += (cu.TotalMsgCount - cu.MsgCount)
+			}
+
+			return tu
+		}
+
+		for i := range data {
+			id := data[i].TeamId
+			if mu, ok := membersMap[id]; ok {
+				membersMap[id] = unreads(data[i], mu)
+			} else {
+				membersMap[id] = unreads(data[i], &model.TeamUnread{
+					MsgCount:     0,
+					MentionCount: 0,
+					TeamId:       id,
+				})
+			}
+		}
+
+		for _, val := range membersMap {
+			members = append(members, val)
+		}
+		w.Write([]byte(model.TeamsUnreadToJson(members)))
 	}
 }
 

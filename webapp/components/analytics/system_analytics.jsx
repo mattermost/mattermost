@@ -137,7 +137,7 @@ class SystemAnalytics extends React.Component {
                         title={
                             <FormattedMessage
                                 id='analytics.system.totalWebsockets'
-                                defaultMessage='Websocket Conns'
+                                defaultMessage='WebSocket Conns'
                             />
                         }
                         icon='fa-user'

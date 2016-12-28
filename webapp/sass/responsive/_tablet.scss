@@ -20,6 +20,12 @@
         }
     }
 
+    .search__form {
+        .sidebar--right & {
+            width: 300px;
+        }
+    }
+
     .post-create__container {
         form {
             padding: .5em 0;
@@ -32,13 +38,13 @@
                 display: none;
             }
 
-            .control-label {
+            .post-error {
                 top: 0;
+                left: 32px;
+                position: relative;
 
-                &.post-error {
-                    left: 32px;
-                    position: relative;
-                    top: 0;
+                .sidebar--right & {
+                    left: 0;
                 }
             }
         }

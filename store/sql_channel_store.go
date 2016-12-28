@@ -6,6 +6,7 @@ package store
 import (
 	"database/sql"
 	"fmt"
+	"strconv"
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
@@ -960,13 +961,24 @@ func (s SqlChannelStore) SetLastViewedAt(channelId string, userId string, newLas
 	return storeChannel
 }
 
-func (s SqlChannelStore) UpdateLastViewedAt(channelId string, userId string) StoreChannel {
+func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
 
 		var query string
+		props := make(map[string]interface{})
+
+		idQuery := ""
+		for index, channelId := range channelIds {
+			if len(idQuery) > 0 {
+				idQuery += " OR "
+			}
+
+			props["channelId"+strconv.Itoa(index)] = channelId
+			idQuery += "ChannelId = :channelId" + strconv.Itoa(index)
+		}
 
 		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 			query = `UPDATE
@@ -981,7 +993,7 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelId string, userId string) Sto
 			WHERE
 			    Channels.Id = ChannelMembers.ChannelId
 			        AND UserId = :UserId
-			        AND ChannelId = :ChannelId`
+			        AND (` + idQuery + `)`
 		} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
 			query = `UPDATE
 				ChannelMembers, Channels
@@ -993,12 +1005,14 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelId string, userId string) Sto
 			WHERE
 			    Channels.Id = ChannelMembers.ChannelId
 			        AND UserId = :UserId
-			        AND ChannelId = :ChannelId`
+			        AND (` + idQuery + `)`
 		}
 
-		_, err := s.GetMaster().Exec(query, map[string]interface{}{"ChannelId": channelId, "UserId": userId})
+		props["UserId"] = userId
+
+		_, err := s.GetMaster().Exec(query, props)
 		if err != nil {
-			result.Err = model.NewLocAppError("SqlChannelStore.UpdateLastViewedAt", "store.sql_channel.update_last_viewed_at.app_error", nil, "channel_id="+channelId+", user_id="+userId+", "+err.Error())
+			result.Err = model.NewLocAppError("SqlChannelStore.UpdateLastViewedAt", "store.sql_channel.update_last_viewed_at.app_error", nil, "channel_ids="+strings.Join(channelIds, ",")+", user_id="+userId+", "+err.Error())
 		}
 
 		storeChannel <- result
@@ -1269,4 +1283,38 @@ func (s SqlChannelStore) performSearch(searchQuery string, term string, paramete
 	}
 
 	return result
+}
+
+func (s SqlChannelStore) GetMembersByIds(channelId string, userIds []string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		var members model.ChannelMembers
+		props := make(map[string]interface{})
+		idQuery := ""
+
+		for index, userId := range userIds {
+			if len(idQuery) > 0 {
+				idQuery += ", "
+			}
+
+			props["userId"+strconv.Itoa(index)] = userId
+			idQuery += ":userId" + strconv.Itoa(index)
+		}
+
+		props["ChannelId"] = channelId
+
+		if _, err := s.GetReplica().Select(&members, "SELECT * FROM ChannelMembers WHERE ChannelId = :ChannelId AND UserId IN ("+idQuery+")", props); err != nil {
+			result.Err = model.NewLocAppError("SqlChannelStore.GetMembersByIds", "store.sql_channel.get_members_by_ids.app_error", nil, "channelId="+channelId+" "+err.Error())
+		} else {
+			result.Data = members
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
 }

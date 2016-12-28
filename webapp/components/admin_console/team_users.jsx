@@ -73,14 +73,20 @@ export default class UserList extends React.Component {
     componentWillReceiveProps(nextProps) {
         if (nextProps.params.team !== this.props.params.team) {
             const stats = TeamStore.getStats(nextProps.params.team);
+
             this.setState({
                 team: AdminStore.getTeam(nextProps.params.team),
                 users: [],
                 teamMembers: TeamStore.getMembersInTeam(nextProps.params.team),
-                total: stats.total_member_count
+                total: stats.total_member_count,
+                serverError: null,
+                showPasswordModal: false,
+                loading: true,
+                user: null
             });
 
-            this.getTeamProfiles(nextProps.params.team);
+            loadProfilesAndTeamMembers(0, Constants.PROFILE_CHUNK_SIZE, nextProps.params.team, this.loadComplete);
+            getTeamStats(nextProps.params.team);
         }
     }
 

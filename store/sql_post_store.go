@@ -21,12 +21,17 @@ type SqlPostStore struct {
 const (
 	LAST_POST_TIME_CACHE_SIZE = 25000
 	LAST_POST_TIME_CACHE_SEC  = 900 // 15 minutes
+
+	LAST_POSTS_CACHE_SIZE = 1000
+	LAST_POSTS_CACHE_SEC  = 900 // 15 minutes
 )
 
 var lastPostTimeCache = utils.NewLru(LAST_POST_TIME_CACHE_SIZE)
+var lastPostsCache = utils.NewLru(LAST_POSTS_CACHE_SIZE)
 
 func ClearPostCaches() {
 	lastPostTimeCache.Purge()
+	lastPostsCache.Purge()
 }
 
 func NewSqlPostStore(sqlStore *SqlStore) PostStore {
@@ -224,6 +229,7 @@ type etagPosts struct {
 
 func (s SqlPostStore) InvalidateLastPostTimeCache(channelId string) {
 	lastPostTimeCache.Remove(channelId)
+	lastPostsCache.Remove(channelId)
 }
 
 func (s SqlPostStore) GetEtag(channelId string, allowFromCache bool) StoreChannel {
@@ -381,17 +387,39 @@ func (s SqlPostStore) PermanentDeleteByUser(userId string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlPostStore) GetPosts(channelId string, offset int, limit int) StoreChannel {
+func (s SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFromCache bool) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
+		metrics := einterfaces.GetMetricsInterface()
 
 		if limit > 1000 {
 			result.Err = model.NewLocAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_posts.app_error", nil, "channelId="+channelId)
 			storeChannel <- result
 			close(storeChannel)
 			return
+		}
+
+		if allowFromCache && offset == 0 && limit == 60 {
+			if cacheItem, ok := lastPostsCache.Get(channelId); ok {
+				if metrics != nil {
+					metrics.IncrementMemCacheHitCounter("Last Posts Cache")
+				}
+
+				result.Data = cacheItem.(*model.PostList)
+				storeChannel <- result
+				close(storeChannel)
+				return
+			} else {
+				if metrics != nil {
+					metrics.IncrementMemCacheMissCounter("Last Posts Cache")
+				}
+			}
+		} else {
+			if metrics != nil {
+				metrics.IncrementMemCacheMissCounter("Last Posts Cache")
+			}
 		}
 
 		rpc := s.getRootPosts(channelId, offset, limit)
@@ -417,6 +445,10 @@ func (s SqlPostStore) GetPosts(channelId string, offset int, limit int) StoreCha
 			}
 
 			list.MakeNonNil()
+
+			if offset == 0 && limit == 60 {
+				lastPostsCache.AddWithExpiresInSecs(channelId, list, LAST_POSTS_CACHE_SEC)
+			}
 
 			result.Data = list
 		}

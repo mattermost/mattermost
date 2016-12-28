@@ -145,6 +145,12 @@ func InvalidateCacheForUserSkipClusterSend(userId string) {
 	}
 }
 
+func InvalidateWebConnSessionCacheForUser(userId string) {
+	if len(hubs) != 0 {
+		GetHubForUserId(userId).InvalidateUser(userId)
+	}
+}
+
 func (h *Hub) Register(webConn *WebConn) {
 	h.register <- webConn
 

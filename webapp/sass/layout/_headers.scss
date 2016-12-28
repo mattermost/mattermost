@@ -25,6 +25,9 @@
 
         th {
             font-weight: normal !important;
+            &.header-list__members {
+                padding-right: 4px;
+            }
         }
 
         td {
