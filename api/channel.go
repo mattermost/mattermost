@@ -674,11 +674,11 @@ func JoinDefaultChannels(teamId string, user *model.User, channelRole string) *m
 			UserId:    user.Id,
 		}
 
+		InvalidateCacheForChannel(result.Data.(*model.Channel).Id)
+
 		if _, err := CreatePost(fakeContext, post, false); err != nil {
 			l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
 		}
-
-		InvalidateCacheForChannel(result.Data.(*model.Channel).Id)
 	}
 
 	if result := <-Srv.Store.Channel().GetByName(teamId, "off-topic"); result.Err != nil {
@@ -698,11 +698,11 @@ func JoinDefaultChannels(teamId string, user *model.User, channelRole string) *m
 			UserId:    user.Id,
 		}
 
+		InvalidateCacheForChannel(result.Data.(*model.Channel).Id)
+
 		if _, err := CreatePost(fakeContext, post, false); err != nil {
 			l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
 		}
-
-		InvalidateCacheForChannel(result.Data.(*model.Channel).Id)
 	}
 
 	return err
