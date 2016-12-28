@@ -86,6 +86,28 @@ func TestSetPreferences(t *testing.T) {
 	}
 }
 
+func TestSetPreferencesAdmin(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	Client := th.SystemAdminClient
+	user1 := th.BasicUser
+
+	// save 10 preferences
+	var preferences model.Preferences
+	for i := 0; i < 10; i++ {
+		preference := model.Preference{
+			UserId:   user1.Id,
+			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
+			Name:     model.NewId(),
+		}
+		preferences = append(preferences, preference)
+	}
+
+	th.LoginSystemAdmin()
+	if _, err := Client.SetPreferencesAdmin(&preferences); err != nil {
+		t.Fatal("should have been able to update another user's preferences")
+	}
+}
+
 func TestGetPreferenceCategory(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.BasicClient

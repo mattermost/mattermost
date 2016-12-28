@@ -15,7 +15,8 @@ func InitPreference() {
 	l4g.Debug(utils.T("api.preference.init.debug"))
 
 	BaseRoutes.Preferences.Handle("/", ApiUserRequired(getAllPreferences)).Methods("GET")
-	BaseRoutes.Preferences.Handle("/save", ApiUserRequired(savePreferences)).Methods("POST")
+	BaseRoutes.Preferences.Handle("/save", ApiUserRequired(savePreferencesUser)).Methods("POST")
+	BaseRoutes.Preferences.Handle("/admin/save", ApiAdminSystemRequired(savePreferencesAdmin)).Methods("POST")
 	BaseRoutes.Preferences.Handle("/delete", ApiUserRequired(deletePreferences)).Methods("POST")
 	BaseRoutes.Preferences.Handle("/{category:[A-Za-z0-9_]+}", ApiUserRequired(getPreferenceCategory)).Methods("GET")
 	BaseRoutes.Preferences.Handle("/{category:[A-Za-z0-9_]+}/{name:[A-Za-z0-9_]+}", ApiUserRequired(getPreference)).Methods("GET")
@@ -31,7 +32,15 @@ func getAllPreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func savePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
+func savePreferencesAdmin(c *Context, w http.ResponseWriter, r *http.Request) {
+	savePreferences(c, w, r, true)
+}
+
+func savePreferencesUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	savePreferences(c, w, r, false)
+}
+
+func savePreferences(c *Context, w http.ResponseWriter, r *http.Request, isAdmin bool) {
 	preferences, err := model.PreferencesFromJson(r.Body)
 	if err != nil {
 		c.Err = model.NewLocAppError("savePreferences", "api.preference.save_preferences.decode.app_error", nil, err.Error())
@@ -39,13 +48,15 @@ func savePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for _, preference := range preferences {
-		if c.Session.UserId != preference.UserId {
-			c.Err = model.NewLocAppError("savePreferences", "api.preference.save_preferences.set.app_error", nil,
-				c.T("api.preference.save_preferences.set_details.app_error",
-					map[string]interface{}{"SessionUserId": c.Session.UserId, "PreferenceUserId": preference.UserId}))
-			c.Err.StatusCode = http.StatusForbidden
-			return
+	if !isAdmin {
+		for _, preference := range preferences {
+			if c.Session.UserId != preference.UserId {
+				c.Err = model.NewLocAppError("savePreferences", "api.preference.save_preferences.set.app_error", nil,
+					c.T("api.preference.save_preferences.set_details.app_error",
+						map[string]interface{}{"SessionUserId": c.Session.UserId, "PreferenceUserId": preference.UserId}))
+				c.Err.StatusCode = http.StatusForbidden
+				return
+			}
 		}
 	}
 
