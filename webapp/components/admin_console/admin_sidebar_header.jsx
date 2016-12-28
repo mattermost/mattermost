@@ -48,15 +48,14 @@ export default class SidebarHeader extends React.Component {
         }
 
         return (
-            <div className='team__header theme'>
-                <a
-                    href='#'
-                    onClick={this.toggleDropdown}
-                >
+            <div
+                className='team__header theme'
+                onClick={this.toggleDropdown}
+            >
+                <a href='#'>
                     {profilePicture}
                     <div className='header__info'>
-                        <div className='user__name'>{'@' + me.username}</div>
-                        <div className='full__name'>
+                        <div className='system-console__label'>
                             <FormattedMessage
                                 id='admin.sidebarHeader.systemConsole'
                                 defaultMessage='System Console'

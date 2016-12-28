@@ -1124,6 +1124,16 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getStatuses', success, error));
     }
 
+    setStatus(status, success, error) {
+        request.
+            post(`${this.getUsersRoute()}/status`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(JSON.stringify(status)).
+            end(this.handleResponse.bind(this, 'setStatus', success, error));
+    }
+
     getStatusesByIds(userIds, success, error) {
         request.
             post(`${this.getUsersRoute()}/status/ids`).

@@ -628,6 +628,7 @@ export function applyTheme(theme) {
         changeCss('.app__body .post.post--comment.current--user .post__body', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
         changeCss('.app__body .channel-header__info .status .offline--icon', 'fill:' + theme.centerChannelColor, 1);
         changeCss('.app__body .navbar .status .offline--icon', 'fill:' + theme.centerChannelColor, 1);
+        changeCss('.sidebar--left .team__header .sidebar-header-status-dropdown ul li:not(:last-child)', 'border-bottom:1px solid ' + changeOpacity(theme.centerChannelColor, 0.2), 1);
     }
 
     if (theme.newMessageSeparator) {

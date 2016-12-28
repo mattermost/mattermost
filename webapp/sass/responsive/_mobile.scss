@@ -927,10 +927,6 @@
             height: 100%;
         }
 
-        > div {
-            padding-bottom: 70px;
-        }
-
         .nav-pills__unread-indicator-bottom {
             bottom: 10px;
         }
@@ -940,15 +936,20 @@
         }
 
         .team__header {
-            @include clearfix;
-            pointer-events: none;
-
             .team__name {
                 margin: 10px 0;
             }
 
             .sidebar-header-dropdown {
                 display: none;
+            }
+
+            .sidebar-header-status-dropdown {
+                ul {
+                    right: 0;
+                    width: 290px;
+                    max-width: 290px;
+                }
             }
         }
 
@@ -1404,6 +1405,15 @@
     .sidebar--left {
         @include translate3d(-260px, 0, 0);
         width: 260px;
+
+        .team__header {
+            .sidebar-header-status-dropdown {
+                ul {
+                    width: 260px;
+                    max-width: 260px;
+                }
+            }
+        }
     }
 
     .inner-wrap {

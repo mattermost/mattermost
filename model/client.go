@@ -1625,6 +1625,18 @@ func (c *Client) GetStatuses() (*Result, *AppError) {
 	}
 }
 
+// SetStatus sets the current user's status, and if the given string
+// does not match any of the existing statuses, then 400 is returned
+func (c *Client) SetStatus(status string) (*Result, *AppError) {
+	if r, err := c.DoApiPost("/users/status", StringToJson(status)); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
+	}
+}
+
 // GetStatusesByIds returns a map of string statuses using user id as the key,
 // based on the provided user ids
 func (c *Client) GetStatusesByIds(userIds []string) (*Result, *AppError) {

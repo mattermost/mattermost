@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="12px" height="12px" viewBox="0 0 12 12" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 41.2 (35397) - http://www.bohemiancoding.com/sketch -->
+    <title>profile</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Notification-Sidebar" transform="translate(-361.000000, -631.000000)" fill="#A6A5A5">
+            <g id="Left_Sidebar" transform="translate(345.000000, 138.000000)">
+                <g id="List" transform="translate(0.000000, 76.000000)">
+                    <g id="Profile_Default" transform="translate(0.000000, 408.000000)">
+                        <g id="profile" transform="translate(16.000000, 9.000000)">
+                            <path d="M8.95917045,2.98639015 C8.95917045,4.63587297 7.62226312,5.9727803 5.9727803,5.9727803 C4.32329747,5.9727803 2.98639015,4.63587297 2.98639015,2.98639015 C2.98639015,1.33690732 4.32329747,0 5.9727803,0 C7.62226312,0 8.95917045,1.33690732 8.95917045,2.98639015 L8.95917045,2.98639015 Z M6,7.5 C2.179,7.5 0,10.007 0,10.007 L0,11 C0,11.552 0.448,12 1,12 L11,12 C11.552,12 12,11.552 12,11 L12,10.007 C12,10.007 9.821,7.5 6,7.5 L6,7.5 Z"></path>
+                        </g>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

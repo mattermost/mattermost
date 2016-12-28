@@ -202,6 +202,38 @@ func TestStatuses(t *testing.T) {
 	WebSocketClient.Close()
 }
 
+func TestSetStatus(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+
+	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	rteam, _ := Client.CreateTeam(&team)
+
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
+	ruser := Client.Must(Client.CreateUser(&user, "")).Data.(*model.User)
+	LinkUserToTeam(ruser, rteam.Data.(*model.Team))
+	store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
+
+	Client.Login(user.Email, user.Password)
+	Client.SetTeamId(team.Id)
+
+	if _, err := Client.SetStatus("hello world"); err == nil {
+		t.Fatal("should fail when status string does not match existing")
+	}
+
+	if _, err := Client.SetStatus("online"); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := Client.SetStatus("away"); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := Client.SetStatus("offline"); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestGetStatusesByIds(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.BasicClient

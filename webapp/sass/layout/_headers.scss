@@ -230,8 +230,12 @@
 
     .team__header {
         @include legacy-pie-clearfix;
-        padding: 9px 10px;
+        @include display-flex;
+        @include align-items(center);
+        @include justify-content(space-between);
         position: relative;
+        height: 45px;
+        cursor: pointer;
 
         &:before {
             @include single-transition(all, .05s, linear);
@@ -264,19 +268,44 @@
                     @include opacity(1);
                 }
             }
+
+            .header__info {
+                .header__status-border {
+                    background: rgba($white, 0.7);
+                }
+            }
         }
 
         a {
             text-decoration: none;
+            width: 100%;
+        }
+
+        .sidebar-header-status-dropdown {
+            ul {
+                top: 22px;
+                right: 1px;
+                margin: 0;
+                padding: 0;
+                width: 220px;
+                max-width: 220px;
+
+                li {
+                    a {
+                        padding: 10px;
+                    }
+
+                    img {
+                        padding: 0 12px 0 6px;
+                    }
+                }
+            }
         }
 
         .sidebar-header-dropdown,
         .admin-navbar-dropdown {
             font-size: .85em;
-            position: absolute;
-            margin-right: -15px;
-            right: 22px;
-            top: 10px;
+            right: 1px;
             z-index: 5;
 
             .sidebar-header-dropdown__toggle,
@@ -287,14 +316,17 @@
                 color: $white;
                 float: right;
                 font-size: 1em;
-                line-height: 1.8;
-                padding: 10px;
+                padding: 13px 10px;
+            }
+
+            .admin-navbar-dropdown__toggle {
+                margin-left: 15px;
             }
 
             .dropdown-menu {
-                width: 199px;
-                margin-top: 4px;
-                margin-right: 3px;
+                width: 220px;
+                max-width: 220px;
+                margin-top: 0;
 
                 a {
                     overflow: hidden;
@@ -306,6 +338,12 @@
             .sidebar-header-dropdown__icon,
             .admin-navbar-dropdown__icon {
                 fill: $white;
+            }
+        }
+
+        .admin-navbar-dropdown {
+            .dropdown-menu {
+                right: 15px;
             }
         }
 
@@ -321,21 +359,36 @@
         .header__info {
             @include clearfix;
             @include display-flex;
-            @include flex-direction(column);
-            @include justify-content(center);
+            @include align-items(center);
             color: $white;
-            padding-left: 2px;
             position: relative;
             min-height: 38px;
             z-index: 1;
+
+            .header__status-border {
+                @include border-radius(100%);
+                margin: 0 6px 0 10px;
+
+                .header__status {
+                    @include border-radius(100%);
+                    width: 22px;
+                    height: 22px;
+                    margin: 2px;
+                    background-color: $white;
+                    background-repeat: no-repeat;
+                    background-position: center;
+                }
+            }
+
         }
 
         .full__name,
-        .user__name {
+        .user__name,
+        .system-console__label {
             display: block;
             font-size: 16px;
             font-weight: 600;
-            max-width: 85%;
+            width: 155px;
             overflow: hidden;
             text-decoration: none;
             text-overflow: ellipsis;
@@ -345,7 +398,6 @@
         .full__name {
             float: left;
             line-height: 22px;
-            margin-top: -2px;
         }
 
         .user__name {
@@ -354,6 +406,10 @@
             font-size: 14px;
             font-weight: 400;
             line-height: 18px;
+        }
+
+        .system-console__label {
+            padding-left: 10px;
         }
     }
 
