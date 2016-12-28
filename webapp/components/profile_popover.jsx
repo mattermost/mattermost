@@ -42,7 +42,9 @@ export default class ProfilePopover extends React.Component {
             (channel) => {
                 this.exitToDirectChannel = TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + channel.name;
                 this.setState({loadingDMChannel: false});
-                this.props.parent.refs.overlay.hide();
+                if (this.props.parent && this.props.parent.refs.overlay) {
+                    this.props.parent.refs.overlay.hide();
+                }
                 if (this.exitToDirectChannel) {
                     browserHistory.push(this.exitToDirectChannel);
                 }
