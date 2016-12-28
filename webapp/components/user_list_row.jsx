@@ -14,7 +14,7 @@ import React from 'react';
 import {FormattedHTMLMessage} from 'react-intl';
 
 export default function UserListRow({user, extraInfo, actions, actionProps, actionUserProps}) {
-    const nameFormat = PreferenceStore.get(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', '');
+    const nameFormat = PreferenceStore.get(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', Constants.Preferences.DEFAULT_NAME_FORMAT);
     let name = user.username;
     if (user.first_name || user.last_name) {
         name = `${Utils.getFullName(user)} - @${user.username}`;

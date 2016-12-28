@@ -57,7 +57,8 @@ export const Preferences = {
     CATEGORY_FLAGGED_POST: 'flagged_post',
     CATEGORY_NOTIFICATIONS: 'notifications',
     CATEGORY_FAVORITE_CHANNEL: 'favorite_channel',
-    EMAIL_INTERVAL: 'email_interval'
+    EMAIL_INTERVAL: 'email_interval',
+    DEFAULT_NAME_FORMAT: 'full_name'
 };
 
 export const ActionTypes = keyMirror({
