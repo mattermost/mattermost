@@ -33,6 +33,58 @@
             }
         }
     }
+
+    &#user-profile-popover-new {
+        text-align: center;
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        top: -145px !important;
+        .popover-title, .arrow {
+            display: none;
+        }
+
+        .popover-content {
+            padding: 5px;
+            height: auto;
+            overflow: auto;
+            .profile-popover-container {
+                background-color: #ffffff;
+                overflow: auto;
+                width: 200px;
+                -webkit-box-shadow: 0 0 10px 0 rgba(0,0,0,0.5);
+                -moz-box-shadow: 0 0 10px 0 rgba(0,0,0,0.5);
+                box-shadow: 0 0 10px 0 rgba(0,0,0,0.5);
+                .user-popover__image {
+                    padding: 12px;
+                    height: 100px;
+                    width: 100px;
+                    -webkit-border-radius: 100px;
+                    -moz-border-radius: 100px;
+                    -ms-border-radius: 100px;
+                    -o-border-radius: 100px;
+                    border-radius: 100px;
+                    margin: 0;
+                }
+                .profile-popover-name {
+                    padding: 0 12px;
+                    font-size: 14px;
+                    line-height: 15px;
+                    p {
+                        margin-bottom: 0;
+                    }
+                }
+                .profile-popover-icons {
+                    margin: 0 auto;
+                    .profile-popover-icon {
+                        margin: 13px 12px 12px;
+                        height: 32px;
+                        width: 32px;
+                    }
+                }
+            }
+        }
+    }
 }
 
 .channel-header__info {
