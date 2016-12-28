@@ -1,9 +1,9 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import FileStore from 'stores/file_store.jsx';
+import FileAttachment from 'components/file_attachment.jsx';
+
 import ReactDOM from 'react-dom';
-import * as Utils from 'utils/utils.jsx';
 
 import React from 'react';
 
@@ -29,35 +29,13 @@ export default class FilePreview extends React.Component {
     render() {
         var previews = [];
         this.props.fileInfos.forEach((info) => {
-            const type = Utils.getFileType(info.extension);
-
-            let className = 'file-preview';
-            let previewImage;
-            if (type === 'image') {
-                previewImage = (
-                    <img
-                        className='file-preview__image'
-                        src={FileStore.getFileUrl(info.id)}
-                    />
-                );
-            } else {
-                className += ' custom-file';
-                previewImage = <div className={'file-icon ' + Utils.getIconClassName(type)}/>;
-            }
-
             previews.push(
-                <div
+                <FileAttachment
                     key={info.id}
-                    className={className}
-                >
-                    {previewImage}
-                    <a
-                        className='file-preview__remove'
-                        onClick={this.handleRemove.bind(this, info.id)}
-                    >
-                        <i className='fa fa-remove'/>
-                    </a>
-                </div>
+                    fileInfo={info}
+                    displayType='preview'
+                    handleRemoveClick={this.handleRemove.bind(this, info.id)}
+                />
             );
         });
 
