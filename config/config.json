@@ -111,6 +111,8 @@
         "AmazonS3SSL": true
     },
     "EmailSettings": {
+        "EmailSignInHidden": true,
+        "UsernameSignInHidden": true,
         "EnableSignUpWithEmail": true,
         "EnableSignInWithEmail": true,
         "EnableSignInWithUsername": true,

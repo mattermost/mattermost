@@ -21,6 +21,8 @@ export default class EmailAuthenticationSettings extends AdminSettings {
         config.EmailSettings.EnableSignUpWithEmail = this.state.enableSignUpWithEmail;
         config.EmailSettings.EnableSignInWithEmail = this.state.enableSignInWithEmail;
         config.EmailSettings.EnableSignInWithUsername = this.state.enableSignInWithUsername;
+        config.EmailSettings.EmailSignInHidden = this.state.emailSigninHidden;
+        config.EmailSettings.UsernameSignInHidden = this.state.usernameSigninHidden;
 
         return config;
     }
@@ -29,7 +31,9 @@ export default class EmailAuthenticationSettings extends AdminSettings {
         return {
             enableSignUpWithEmail: config.EmailSettings.EnableSignUpWithEmail,
             enableSignInWithEmail: config.EmailSettings.EnableSignInWithEmail,
-            enableSignInWithUsername: config.EmailSettings.EnableSignInWithUsername
+            enableSignInWithUsername: config.EmailSettings.EnableSignInWithUsername,
+            emailSigninHidden: config.EmailSettings.EmailSignInHidden,
+            usernameSigninHidden: config.EmailSettings.UsernameSignInHidden
         };
     }
 
@@ -96,6 +100,28 @@ export default class EmailAuthenticationSettings extends AdminSettings {
                         />
                     }
                     value={this.state.enableSignInWithUsername}
+                    onChange={this.handleChange}
+                />
+                <BooleanSetting
+                    id='emailSigninHidden'
+                    label={
+                        <FormattedMessage
+                            id='admin.email.hideEmailSignInTitle'
+                            defaultMessage='Hide sign-in with email: '
+                        />
+                    }
+                    value={this.state.emailSigninHidden}
+                    onChange={this.handleChange}
+                />
+                <BooleanSetting
+                    id='usernameSigninHidden'
+                    label={
+                        <FormattedMessage
+                            id='admin.email.hideUsernameSignInTitle'
+                            defaultMessage='Hide sign-in with username: '
+                        />
+                    }
+                    value={this.state.usernameSigninHidden}
                     onChange={this.handleChange}
                 />
             </SettingsGroup>

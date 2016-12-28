@@ -161,7 +161,9 @@ type FileSettings struct {
 type EmailSettings struct {
 	EnableSignUpWithEmail     bool
 	EnableSignInWithEmail     *bool
+	EmailSignInHidden         *bool
 	EnableSignInWithUsername  *bool
+	UsernameSignInHidden      *bool
 	SendEmailNotifications    bool
 	EmailNotificationContents *string
 	RequireEmailVerification  bool
@@ -549,6 +551,16 @@ func (o *Config) SetDefaults() {
 		}
 	}
 
+	if o.EmailSettings.EmailSignInHidden == nil {
+		o.EmailSettings.EmailSignInHidden = new(bool)
+
+		if o.EmailSettings.EnableSignUpWithEmail == true {
+			*o.EmailSettings.EmailSignInHidden = true
+		} else {
+			*o.EmailSettings.EmailSignInHidden = false
+		}
+	}
+
 	if o.EmailSettings.EmailNotificationContents == nil {
 		o.EmailSettings.EmailNotificationContents = new(string)
 		*o.EmailSettings.EmailNotificationContents = FULL_NOTIFICATION
@@ -557,6 +569,11 @@ func (o *Config) SetDefaults() {
 	if o.EmailSettings.EnableSignInWithUsername == nil {
 		o.EmailSettings.EnableSignInWithUsername = new(bool)
 		*o.EmailSettings.EnableSignInWithUsername = false
+	}
+
+	if o.EmailSettings.UsernameSignInHidden == nil {
+		o.EmailSettings.UsernameSignInHidden = new(bool)
+		*o.EmailSettings.UsernameSignInHidden = false
 	}
 
 	if o.EmailSettings.SendPushNotifications == nil {
