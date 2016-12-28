@@ -75,6 +75,7 @@ func InitUser() {
 
 	BaseRoutes.NeedUser.Handle("/get", ApiUserRequired(getUser)).Methods("GET")
 	BaseRoutes.Users.Handle("/name/{username:[A-Za-z0-9_\\-.]+}", ApiUserRequired(getByUsername)).Methods("GET")
+	BaseRoutes.Users.Handle("/email/{email}", ApiUserRequired(getByEmail)).Methods("GET")
 	BaseRoutes.NeedUser.Handle("/sessions", ApiUserRequired(getSessions)).Methods("GET")
 	BaseRoutes.NeedUser.Handle("/audits", ApiUserRequired(getAudits)).Methods("GET")
 	BaseRoutes.NeedUser.Handle("/image", ApiUserRequiredTrustRequester(getProfileImage)).Methods("GET")
@@ -971,6 +972,24 @@ func getByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = result.Err
 		return
 	} else if HandleEtag(result.Data.(*model.User).Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress), "Get By Username", w, r) {
+		return
+	} else {
+		user := sanitizeProfile(c, result.Data.(*model.User))
+
+		w.Header().Set(model.HEADER_ETAG_SERVER, user.Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress))
+		w.Write([]byte(result.Data.(*model.User).ToJson()))
+		return
+	}
+}
+
+func getByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	email := params["email"]
+
+	if result := <-Srv.Store.User().GetByEmail(email); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else if HandleEtag(result.Data.(*model.User).Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress), "Get By Email", w, r) {
 		return
 	} else {
 		user := sanitizeProfile(c, result.Data.(*model.User))

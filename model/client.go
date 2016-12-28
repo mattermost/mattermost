@@ -518,6 +518,21 @@ func (c *Client) GetByUsername(username string, etag string) (*Result, *AppError
 	}
 }
 
+// getByEmail returns a user based on a provided username string. Must be authenticated.
+func (c *Client) GetByEmail(email string, etag string) (*User, *ResponseMetadata) {
+	if r, err := c.DoApiGet(fmt.Sprintf("/users/email/%v", email), "", etag); err != nil {
+		return nil, &ResponseMetadata{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return UserFromJson(r.Body),
+			&ResponseMetadata{
+				StatusCode: r.StatusCode,
+				RequestId:  r.Header.Get(HEADER_REQUEST_ID),
+				Etag:       r.Header.Get(HEADER_ETAG_SERVER),
+			}
+	}
+}
+
 // GetMe returns the current user.
 func (c *Client) GetMe(etag string) (*Result, *AppError) {
 	if r, err := c.DoApiGet("/users/me", "", etag); err != nil {
