@@ -570,3 +570,8 @@ export function redirectUserToDefaultTeam() {
         browserHistory.push('/select_team');
     }
 }
+
+export function removePostFromStore(post) {
+    PostStore.removePost(post);
+    PostStore.emitChange();
+}
