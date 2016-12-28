@@ -79,6 +79,7 @@ func trackConfig() {
 		"enable_post_username_override":        Cfg.ServiceSettings.EnablePostUsernameOverride,
 		"enable_post_icon_override":            Cfg.ServiceSettings.EnablePostIconOverride,
 		"enable_custom_emoji":                  *Cfg.ServiceSettings.EnableCustomEmoji,
+		"enable_authentication_transfer":       *Cfg.ServiceSettings.EnableAuthenticationTransfer,
 		"restrict_custom_emoji_creation":       *Cfg.ServiceSettings.RestrictCustomEmojiCreation,
 		"enable_testing":                       Cfg.ServiceSettings.EnableTesting,
 		"enable_developer":                     *Cfg.ServiceSettings.EnableDeveloper,

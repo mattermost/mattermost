@@ -90,6 +90,7 @@ type ServiceSettings struct {
 	WebserverMode                     *string
 	EnableCustomEmoji                 *bool
 	RestrictCustomEmojiCreation       *string
+	EnableAuthenticationTransfer      *bool
 }
 
 type ClusterSettings struct {
@@ -816,6 +817,11 @@ func (o *Config) SetDefaults() {
 	if o.ServiceSettings.RestrictCustomEmojiCreation == nil {
 		o.ServiceSettings.RestrictCustomEmojiCreation = new(string)
 		*o.ServiceSettings.RestrictCustomEmojiCreation = RESTRICT_EMOJI_CREATION_ALL
+	}
+
+	if o.ServiceSettings.EnableAuthenticationTransfer == nil {
+		o.ServiceSettings.EnableAuthenticationTransfer = new(bool)
+		*o.ServiceSettings.EnableAuthenticationTransfer = true
 	}
 
 	if o.ClusterSettings.InterNodeListenAddress == nil {

@@ -34,7 +34,8 @@
         "WebsocketPort": 80,
         "WebserverMode": "gzip",
         "EnableCustomEmoji": false,
-        "RestrictCustomEmojiCreation": "all"
+        "RestrictCustomEmojiCreation": "all",
+        "EnableAuthenticationTransfer": true 
     },
     "TeamSettings": {
         "SiteName": "uChat",
