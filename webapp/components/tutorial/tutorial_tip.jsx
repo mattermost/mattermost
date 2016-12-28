@@ -185,7 +185,7 @@ export function createMenuTip(toggleFunc, onBottom) {
             <FormattedHTMLMessage
                 id='sidebar_header.tutorial'
                 defaultMessage='<h4>Main Menu</h4>
-                <p>The <strong>Main Menu</strong> is where you can <strong>Invite New Members</strong>, access your <strong>Account Settings</strong> and set your <strong>Theme Color</strong>.</p>
+                <p>The <strong>Main Menu</strong> is where you can access your <strong>Account Settings</strong> and set your <strong>Theme Color</strong>.</p>
                 <p>Team administrators can also access their <strong>Team Settings</strong> from this menu.</p><p>System administrators will find a <strong>System Console</strong> option to administrate the entire system.</p>'
             />
         </div>
