@@ -1,8 +1,6 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import Constants from 'utils/constants.jsx';
-
 import React from 'react';
 
 export default class StatusIcon extends React.Component {
@@ -13,20 +11,19 @@ export default class StatusIcon extends React.Component {
             return null;
         }
 
-        let statusIcon = '';
+        let statusIcon;
         if (status === 'online') {
-            statusIcon = Constants.ONLINE_ICON_SVG;
+            statusIcon = <i className='uchat-icons-person_online online--icon'/>;
         } else if (status === 'away') {
-            statusIcon = Constants.AWAY_ICON_SVG;
+            statusIcon = <i className='uchat-icons-person_away away--icon'/>;
         } else {
-            statusIcon = Constants.OFFLINE_ICON_SVG;
+            statusIcon = <i className='uchat-icons-person_offline'/>;
         }
 
         return (
-            <span
-                className='status'
-                dangerouslySetInnerHTML={{__html: statusIcon}}
-            />
+            <span className='status'>
+                {statusIcon}
+            </span>
         );
     }
 

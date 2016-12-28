@@ -1,0 +1,46 @@
+@font-face {
+    font-family: 'uchat-icons';
+    src: url('../../fonts/uchat-icons.eot?9u73li');
+    src: url('../../fonts/uchat-icons.eot?9u73li#iefix') format('embedded-opentype'),
+      url('../../fonts/uchat-icons.ttf?9u73li') format('truetype'),
+      url('../../fonts/uchat-icons.woff?9u73li') format('woff'),
+      url('../../fonts/uchat-icons.svg?9u73li#uchat-icons') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+[class^="uchat-icons-"], [class*=" uchat-icons-"] {
+    /* use !important to prevent issues with browser extensions that change fonts */
+    font-family: 'uchat-icons' !important;
+    speak: none;
+    font-style: normal;
+    font-weight: normal;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+
+    /* Better Font Rendering =========== */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.uchat-icons-person_online:before {
+    content: "\e900";
+    color: #629A41;
+}
+.uchat-icons-person_offline:before {
+    content: "\e900";
+    color: #A6A5A5;
+}
+.uchat-icons-person_away:before {
+    content: "\e900";
+    color: #ECAB20;
+}
+.uchat-icons-public_channel:before {
+    content: "\e901";
+}
+.uchat-icons-private_channel:before {
+    content: "\e902";
+    padding-left: 2px;
+}
+

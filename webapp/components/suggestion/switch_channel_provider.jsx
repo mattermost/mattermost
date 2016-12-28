@@ -32,9 +32,9 @@ class SwitchChannelSuggestion extends Suggestion {
 
         let icon = null;
         if (item.type === Constants.OPEN_CHANNEL) {
-            icon = <div className='status'><i className='fa fa-globe'/></div>;
+            icon = <div className='status'><i className='uchat-icons-public_channel'/></div>;
         } else if (item.type === Constants.PRIVATE_CHANNEL) {
-            icon = <div className='status'><i className='fa fa-lock'/></div>;
+            icon = <div className='status'><i className='uchat-icons-private_channel'/></div>;
         }
 
         return (
