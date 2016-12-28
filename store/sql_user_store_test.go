@@ -4,10 +4,11 @@
 package store
 
 import (
-	"github.com/mattermost/platform/model"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/mattermost/platform/model"
 )
 
 func TestUserStoreSave(t *testing.T) {
@@ -557,7 +558,7 @@ func TestUserStoreGetProfilesByEmails(t *testing.T) {
 			t.Fatal("invalid returned users")
 		}
 
-		if users[u1.Id].Id != u1.Id {
+		if users[u1.Email].Id != u1.Id {
 			t.Fatal("invalid returned user")
 		}
 	}
@@ -570,7 +571,7 @@ func TestUserStoreGetProfilesByEmails(t *testing.T) {
 			t.Fatal("invalid returned users")
 		}
 
-		if users[u1.Id].Id != u1.Id {
+		if users[u1.Email].Id != u1.Id {
 			t.Fatal("invalid returned user")
 		}
 	}
