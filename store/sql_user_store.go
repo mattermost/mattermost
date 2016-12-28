@@ -713,6 +713,50 @@ func (us SqlUserStore) GetProfilesByUsernames(usernames []string, teamId string)
 	return storeChannel
 }
 
+func (us SqlUserStore) GetProfilesByEmails(emails []string, teamId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var users []*model.User
+		props := make(map[string]interface{})
+		idQuery := ""
+
+		for index, emails := range emails {
+			if len(idQuery) > 0 {
+				idQuery += ", "
+			}
+
+			props["email"+strconv.Itoa(index)] = emails
+			idQuery += ":email" + strconv.Itoa(index)
+		}
+
+		props["TeamId"] = teamId
+
+		if _, err := us.GetReplica().Select(&users, `SELECT Users.* FROM Users INNER JOIN TeamMembers ON
+			Users.Id = TeamMembers.UserId AND Users.Email IN (`+idQuery+`) AND TeamMembers.TeamId = :TeamId `, props); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.GetProfilesByEmails", "store.sql_user.get_profiles.app_error", nil, err.Error())
+		} else {
+			userMap := make(map[string]*model.User)
+
+			for _, u := range users {
+				u.Password = ""
+				u.AuthData = new(string)
+				*u.AuthData = ""
+				userMap[u.Email] = u
+			}
+
+			result.Data = userMap
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 type UserWithLastActivityAt struct {
 	model.User
 	LastActivityAt int64

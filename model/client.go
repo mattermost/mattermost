@@ -570,6 +570,30 @@ func (c *Client) GetProfilesByIds(userIds []string) (*Result, *AppError) {
 	}
 }
 
+// GetProfilesByUsernames returns a map of users based on the teamId and usernames provided. Must
+// be authenticated.
+func (c *Client) GetProfilesByUsernames(teamId string, usernames []string) (*Result, *AppError) {
+	if r, err := c.DoApiPost(fmt.Sprintf("/teams/%v/users/usernames", teamId), ArrayToJson(usernames)); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), UserMapFromJson(r.Body)}, nil
+	}
+}
+
+// GetProfilesByEmails returns a map of users based on the teamId and emails provided. Must
+// be authenticated.
+func (c *Client) GetProfilesByEmails(teamId string, emails []string) (*Result, *AppError) {
+	if r, err := c.DoApiPost(fmt.Sprintf("/teams/%v/users/emails", teamId), ArrayToJson(emails)); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), UserMapFromJson(r.Body)}, nil
+	}
+}
+
 // SearchUsers returns a list of users that have a username matching or similar to the search term. Must
 // be authenticated.
 func (c *Client) SearchUsers(params UserSearch) (*Result, *AppError) {

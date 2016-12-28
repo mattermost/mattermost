@@ -59,6 +59,8 @@ func InitUser() {
 	BaseRoutes.NeedChannel.Handle("/users/not_in_channel/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getProfilesNotInChannel)).Methods("GET")
 	BaseRoutes.Users.Handle("/search", ApiUserRequired(searchUsers)).Methods("POST")
 	BaseRoutes.Users.Handle("/ids", ApiUserRequired(getProfilesByIds)).Methods("POST")
+	BaseRoutes.NeedTeam.Handle("/users/usernames", ApiUserRequired(getProfilesByUsernames)).Methods("POST")
+	BaseRoutes.NeedTeam.Handle("/users/emails", ApiUserRequired(getProfilesByEmails)).Methods("POST")
 
 	BaseRoutes.NeedTeam.Handle("/users/autocomplete", ApiUserRequired(autocompleteUsersInTeam)).Methods("GET")
 	BaseRoutes.NeedChannel.Handle("/users/autocomplete", ApiUserRequired(autocompleteUsersInChannel)).Methods("GET")
@@ -2651,6 +2653,73 @@ func getProfilesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if result := <-Srv.Store.User().GetProfileByIds(userIds); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		profiles := result.Data.(map[string]*model.User)
+
+		for _, p := range profiles {
+			sanitizeProfile(c, p)
+		}
+
+		w.Write([]byte(model.UserMapToJson(profiles)))
+	}
+}
+
+func getProfilesByUsernames(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	teamId := params["team_id"]
+
+	if c.Session.GetTeamByTeamId(teamId) == nil {
+		if !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
+			return
+		}
+	}
+
+	usernames := model.ArrayFromJson(r.Body)
+	if len(usernames) == 0 {
+		c.SetInvalidParam("getProfilesByUsernames", "usernames")
+		return
+	}
+
+	if result := <-Srv.Store.User().GetProfilesByUsernames(usernames, teamId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		profileResults := result.Data.(map[string]*model.User)
+
+		// convert to map of username to model.User
+		profiles := make(map[string]*model.User)
+
+		for _, u := range profileResults {
+			profiles[u.Username] = u
+		}
+
+		for _, p := range profiles {
+			sanitizeProfile(c, p)
+		}
+
+		w.Write([]byte(model.UserMapToJson(profiles)))
+	}
+}
+
+func getProfilesByEmails(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	teamId := params["team_id"]
+
+	if c.Session.GetTeamByTeamId(teamId) == nil {
+		if !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
+			return
+		}
+	}
+
+	emails := model.ArrayFromJson(r.Body)
+	if len(emails) == 0 {
+		c.SetInvalidParam("getProfilesByEmails", "emails")
+		return
+	}
+
+	if result := <-Srv.Store.User().GetProfilesByEmails(emails, teamId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
