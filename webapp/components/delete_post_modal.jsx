@@ -9,7 +9,7 @@ import ModalStore from 'stores/modal_store.jsx';
 import {Modal} from 'react-bootstrap';
 import * as AsyncClient from 'utils/async_client.jsx';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
-import * as GlobalActions from 'actions/global_actions.jsx';
+import {removePostFromStore} from 'actions/post_actions.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {FormattedMessage} from 'react-intl';
@@ -55,7 +55,7 @@ export default class DeletePostModal extends React.Component {
             this.state.post.channel_id,
             this.state.post.id,
             () => {
-                GlobalActions.removePostFromStore(this.state.post);
+                removePostFromStore(this.state.post);
                 if (this.state.post.id === PostStore.getSelectedPostId()) {
                     AppDispatcher.handleServerAction({
                         type: ActionTypes.RECEIVED_POST_SELECTED,
