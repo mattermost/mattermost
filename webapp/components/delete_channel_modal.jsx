@@ -5,7 +5,6 @@ import * as AsyncClient from 'utils/async_client.jsx';
 import Client from 'client/web_client.jsx';
 import {Modal} from 'react-bootstrap';
 import TeamStore from 'stores/team_store.jsx';
-import Constants from 'utils/constants.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
@@ -47,20 +46,12 @@ export default class DeleteChannelModal extends React.Component {
     }
 
     render() {
-        let channelTerm = (
+        const channelTerm = (
             <FormattedMessage
                 id='delete_channel.channel'
                 defaultMessage='channel'
             />
         );
-        if (this.props.channel.type === Constants.PRIVATE_CHANNEL) {
-            channelTerm = (
-                <FormattedMessage
-                    id='delete_channel.group'
-                    defaultMessage='group'
-                />
-            );
-        }
 
         return (
             <Modal

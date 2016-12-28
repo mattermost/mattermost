@@ -113,7 +113,7 @@ export default class PolicySettings extends AdminSettings {
                     helpText={
                         <FormattedHTMLMessage
                             id='admin.general.policy.restrictPrivateChannelManagementDescription'
-                            defaultMessage='Set policy on who can create, delete, rename, and set the header or purpose for private groups.'
+                            defaultMessage='Set policy on who can create, delete, rename, and set the header or purpose for private channels.'
                         />
                     }
                 />

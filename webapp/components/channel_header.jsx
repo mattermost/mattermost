@@ -383,20 +383,12 @@ export default class ChannelHeader extends React.Component {
             }
         }
 
-        let channelTerm = (
+        const channelTerm = (
             <FormattedMessage
                 id='channel_header.channel'
                 defaultMessage='Channel'
             />
         );
-        if (channel.type === Constants.PRIVATE_CHANNEL) {
-            channelTerm = (
-                <FormattedMessage
-                    id='channel_header.group'
-                    defaultMessage='Group'
-                />
-            );
-        }
 
         let popoverListMembers;
         if (!isDirect) {

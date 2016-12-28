@@ -113,20 +113,12 @@ export default class EditChannelPurposeModal extends React.Component {
             );
         }
 
-        let channelType = (
+        const channelType = (
             <FormattedMessage
                 id='edit_channel_purpose_modal.channel'
                 defaultMessage='Channel'
             />
         );
-        if (this.props.channel.type === Constants.PRIVATE_CHANNEL) {
-            channelType = (
-                <FormattedMessage
-                    id='edit_channel_purpose_modal.group'
-                    defaultMessage='Group'
-                />
-            );
-        }
 
         return (
             <Modal

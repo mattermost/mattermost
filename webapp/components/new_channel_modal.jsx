@@ -168,15 +168,15 @@ class NewChannelModal extends React.Component {
         case 'P':
             channelTerm = (
                 <FormattedMessage
-                    id='channel_modal.group'
-                    defaultMessage='Group'
+                    id='channel_modal.channel'
+                    defaultMessage='Channel'
                 />
             );
             channelSwitchText = (
                 <div className='modal-intro'>
                     <FormattedMessage
                         id='channel_modal.privateGroup1'
-                        defaultMessage='Create a new private group with restricted membership. '
+                        defaultMessage='Create a new private channel with restricted membership. '
                     />
                     {createPublicChannelLink}
                 </div>
