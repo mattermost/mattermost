@@ -477,7 +477,7 @@ export default class SidebarHeaderDropdown extends React.Component {
                     <li>
                         <a
                             href='#'
-                            onClick={GlobalActions.emitUserLoggedOutEvent}
+                            onClick={() => GlobalActions.emitUserLoggedOutEvent()}
                         >
                             <FormattedMessage
                                 id='navbar_dropdown.logout'

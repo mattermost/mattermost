@@ -442,7 +442,7 @@ export default class SidebarRightMenu extends React.Component {
                         <li>
                             <a
                                 href='#'
-                                onClick={GlobalActions.emitUserLoggedOutEvent}
+                                onClick={() => GlobalActions.emitUserLoggedOutEvent()}
                             >
                                 <i className='icon fa fa-sign-out'/>
                                 <FormattedMessage

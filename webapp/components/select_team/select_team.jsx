@@ -203,7 +203,7 @@ export default class SelectTeam extends React.Component {
             headerButton = (
                 <a
                     href='#'
-                    onClick={GlobalActions.emitUserLoggedOutEvent}
+                    onClick={() => GlobalActions.emitUserLoggedOutEvent()}
                 >
                     <span className='fa fa-chevron-left'/>
                     <FormattedMessage id='web.header.logout'/>

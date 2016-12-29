@@ -59,7 +59,6 @@ export function initialize() {
 
     WebSocketClient.setEventCallback(handleEvent);
     WebSocketClient.setFirstConnectCallback(handleFirstConnect);
-    WebSocketClient.setReconnectCallback(handleReconnect);
     WebSocketClient.setCloseCallback(handleClose);
     WebSocketClient.initialize(connUrl);
 }
@@ -71,21 +70,18 @@ export function close() {
 export function reconnect() {
     close();
     initialize();
-    handleReconnect();
-}
 
-function handleFirstConnect() {
+    if (Client.teamId) {
+        loadChannelsForCurrentUser();
+        loadPosts(ChannelStore.getCurrentId());
+        StatusActions.loadStatusesForChannelAndSidebar();
+    }
+
     ErrorStore.clearLastError();
     ErrorStore.emitChange();
 }
 
-function handleReconnect() {
-    if (Client.teamId) {
-        loadChannelsForCurrentUser();
-        loadPosts(ChannelStore.getCurrentId());
-    }
-
-    StatusActions.loadStatusesForChannelAndSidebar();
+function handleFirstConnect() {
     ErrorStore.clearLastError();
     ErrorStore.emitChange();
 }
