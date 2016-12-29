@@ -177,8 +177,10 @@
     .post {
         &:not(.compact-view) {
             .bot-indicator {
+                background: transparent;
                 left: 6px;
                 position: absolute;
+                top: 31px;
             }
         }
 
