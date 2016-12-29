@@ -24,12 +24,14 @@ export default class Logs extends React.Component {
     componentDidMount() {
         AdminStore.addLogChangeListener(this.onLogListenerChange);
         AsyncClient.getLogs();
+        this.refs.logPanel.focus();
     }
 
     componentDidUpdate() {
         // Scroll Down to get the latest logs
         var node = this.refs.logPanel;
         node.scrollTop = node.scrollHeight;
+        node.focus();
     }
 
     componentWillUnmount() {
@@ -100,6 +102,7 @@ export default class Logs extends React.Component {
                     />
                 </button>
                 <div
+                    tabIndex='-1'
                     ref='logPanel'
                     className='log__panel'
                 >
