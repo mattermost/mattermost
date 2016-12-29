@@ -5,6 +5,7 @@ import Suggestion from './suggestion.jsx';
 import Provider from './provider.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
+import UserStore from 'stores/user_store.jsx';
 
 import {autocompleteUsersInChannel} from 'actions/user_actions.jsx';
 
@@ -142,7 +143,12 @@ export default class AtMentionProvider extends Provider {
                         });
                     }
 
-                    const users = members.concat(specialMentions).concat(nonmembers);
+                    let users = members.concat(specialMentions).concat(nonmembers);
+                    const me = UserStore.getCurrentUser();
+                    users = users.filter((user) => {
+                        return user.id !== me.id;
+                    });
+
                     const mentions = users.map((user) => '@' + user.username);
 
                     AppDispatcher.handleServerAction({
