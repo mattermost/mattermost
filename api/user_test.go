@@ -1301,7 +1301,9 @@ func TestResetPassword(t *testing.T) {
 		t.Fatal("Wrong To recipient")
 	} else {
 		if resultsEmail, err := utils.GetMessageFromMailbox(user.Email, resultsMailbox[0].ID); err == nil {
-			if !strings.ContainsAny(resultsEmail.Body.Text, recovery.Code) {
+			if !strings.Contains(resultsEmail.Body.Text, recovery.Code) {
+				t.Log(resultsEmail.Body.Text)
+				t.Log(recovery.Code)
 				t.Fatal("Received wrong recovery code")
 			}
 		}
