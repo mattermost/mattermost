@@ -45,6 +45,7 @@ export default class PostList extends React.Component {
         this.scrollToBottom = this.scrollToBottom.bind(this);
         this.scrollToBottomAnimated = this.scrollToBottomAnimated.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
+        this.childComponentDidUpdate = this.childComponentDidUpdate.bind(this);
 
         this.jumpToPostNode = null;
         this.wasAtBottom = true;
@@ -347,6 +348,7 @@ export default class PostList extends React.Component {
                     isFlagged={isFlagged}
                     status={status}
                     isBusy={this.props.isBusy}
+                    childComponentDidUpdateFunction={this.childComponentDidUpdate}
                 />
             );
 
@@ -492,6 +494,12 @@ export default class PostList extends React.Component {
         );
     }
 
+    checkAndUpdateScrolling() {
+        if (this.props.postList != null && this.refs.postlist) {
+            this.updateScrolling();
+        }
+    }
+
     componentDidMount() {
         if (this.props.postList != null) {
             this.updateScrolling();
@@ -509,9 +517,11 @@ export default class PostList extends React.Component {
     }
 
     componentDidUpdate() {
-        if (this.props.postList != null && this.refs.postlist) {
-            this.updateScrolling();
-        }
+        this.checkAndUpdateScrolling();
+    }
+
+    childComponentDidUpdate() {
+        this.checkAndUpdateScrolling();
     }
 
     render() {

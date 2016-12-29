@@ -5,6 +5,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -1296,5 +1297,35 @@ func TestGetPermalinkTmp(t *testing.T) {
 		t.Fatal(respMetadata.Error)
 	} else if results == nil {
 		t.Fatal("should not be empty")
+	}
+}
+
+func TestGetOpenGraphMetadata(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/og-data/" {
+			fmt.Fprintln(w, `
+				<html><head><meta property="og:type" content="article" />
+		  		<meta property="og:title" content="Test Title" />
+		  		<meta property="og:url" content="http://example.com/" />
+				</head><body></body></html>
+			`)
+		} else if r.URL.Path == "/no-og-data/" {
+			fmt.Fprintln(w, `<html><head></head><body></body></html>`)
+		}
+	}))
+
+	for _, data := range [](map[string]string){{"path": "/og-data/", "title": "Test Title"}, {"path": "/no-og-data/", "title": ""}} {
+		res, err := Client.DoApiPost("/get_opengraph_metadata", fmt.Sprintf("{\"url\":\"%s\"}", ts.URL+data["path"]))
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		ogData := model.StringInterfaceFromJson(res.Body)
+		if strings.Compare(ogData["title"].(string), data["title"]) != 0 {
+			t.Fatal(fmt.Sprintf("OG data title mismatch for path \"%s\". Expected title: \"%s\". Actual title: \"%s\"", data["path"], data["title"], ogData["title"]))
+		}
 	}
 }

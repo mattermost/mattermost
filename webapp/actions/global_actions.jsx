@@ -596,3 +596,27 @@ export function redirectUserToDefaultTeam() {
         browserHistory.push('/select_team');
     }
 }
+
+requestOpenGraphMetadata.openGraphMetadataOnGoingRequests = {};  // Format: {<url>: true}
+export function requestOpenGraphMetadata(url) {
+    const onself = requestOpenGraphMetadata;
+
+    if (!onself.openGraphMetadataOnGoingRequests[url]) {
+        onself.openGraphMetadataOnGoingRequests[url] = true;
+
+        Client.getOpenGraphMetadata(url,
+            (data) => {
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECIVED_OPEN_GRAPH_METADATA,
+                    url,
+                    data
+                });
+                delete onself.openGraphMetadataOnGoingRequests[url];
+            },
+            (err) => {
+                AsyncClient.dispatchError(err, 'getOpenGraphMetadata');
+                delete onself.openGraphMetadataOnGoingRequests[url];
+            }
+        );
+    }
+}

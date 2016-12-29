@@ -1767,6 +1767,16 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getFileInfosForPost', success, error));
     }
 
+    getOpenGraphMetadata(url, success, error) {
+        request.
+            post(`${this.getBaseRoute()}/get_opengraph_metadata`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send({url}).
+            end(this.handleResponse.bind(this, 'getOpenGraphMetadata', success, error));
+    }
+
     // Routes for Files
 
     uploadFile(file, filename, channelId, clientId, success, error) {

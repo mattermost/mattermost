@@ -88,3 +88,7 @@ import:
 - package: github.com/prometheus/procfs
 - package: github.com/spf13/cobra
 - package: github.com/spf13/pflag
+- package: github.com/dyatlov/go-opengraph
+  version: 41a3523719dfbe7e8f853fbd4061867543db5270
+  subpackages:
+  - opengraph
