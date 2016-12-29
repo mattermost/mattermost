@@ -553,12 +553,57 @@ func SlackConvertChannelMentions(channels []SlackChannel, posts map[string][]Sla
 }
 
 func SlackConvertPostsMarkup(posts map[string][]SlackPost) map[string][]SlackPost {
-	// Convert URLs in Slack's format to Markdown format.
-	regex := regexp.MustCompile(`<([^|<>]+)\|([^|<>]+)>`)
+	regexReplaceAllString := []struct {
+		regex *regexp.Regexp
+		rpl   string
+	}{
+		// URL
+		{
+			regexp.MustCompile(`<([^|<>]+)\|([^|<>]+)>`),
+			"[$2]($1)",
+		},
+		// bold
+		{
+			regexp.MustCompile(`\*([^*]+)\*`),
+			"*$0*",
+		},
+		// strikethrough
+		{
+			regexp.MustCompile(`~([^~])+~`),
+			"~$0~",
+		},
+	}
+
+	regexReplaceAllStringFunc := []struct {
+		regex *regexp.Regexp
+		fn    func(string) string
+	}{
+		// blockquotes
+		{
+			regexp.MustCompile(`(?sm)^>>>(.+)$`),
+			func(src string) string {
+				// remove >>> prefix, might has leading \n
+				prefixRegexp := regexp.MustCompile(`^([\n])?>>>(.*)`)
+				src = prefixRegexp.ReplaceAllString(src, "$1$2")
+				// append > to start of line
+				appendRegexp := regexp.MustCompile(`(?m)^`)
+				return appendRegexp.ReplaceAllString(src, ">$0")
+			},
+		},
+	}
 
 	for channelName, channelPosts := range posts {
 		for postIdx, post := range channelPosts {
-			posts[channelName][postIdx].Text = regex.ReplaceAllString(post.Text, "[$2]($1)")
+			result := post.Text
+
+			for _, rule := range regexReplaceAllString {
+				result = rule.regex.ReplaceAllString(result, rule.rpl)
+			}
+
+			for _, rule := range regexReplaceAllStringFunc {
+				result = rule.regex.ReplaceAllStringFunc(result, rule.fn)
+			}
+			posts[channelName][postIdx].Text = result
 		}
 	}
 

@@ -227,14 +227,47 @@ func TestSlackConvertPostsMarkup(t *testing.T) {
 		{
 			Text: "This message contains a mailto link to <mailto:me@example.com|me@example.com> in it.",
 		},
+		{
+			Text: "This message contains a *bold* word.",
+		},
+		{
+			Text: "This message contains a ~strikethrough~ word.",
+		},
+		{
+			Text: `This message contains multiple paragraphs blockquotes
+>>>first
+second
+third`,
+		},
 	}
 
-	output := SlackConvertPostsMarkup(input)
-
-	if output["test"][0].Text != "This message contains a link to [Google](https://google.com)." {
-		t.Fatalf("Unexpected message after markup translation: %v", output["test"][0].Text)
+	expectedOutput := make(map[string][]SlackPost)
+	expectedOutput["test"] = []SlackPost{
+		{
+			Text: "This message contains a link to [Google](https://google.com).",
+		},
+		{
+			Text: "This message contains a mailto link to [me@example.com](mailto:me@example.com) in it.",
+		},
+		{
+			Text: "This message contains a **bold** word.",
+		},
+		{
+			Text: "This message contains a ~~strikethrough~~ word.",
+		},
+		{
+			Text: `This message contains multiple paragraphs blockquotes
+>first
+>second
+>third`,
+		},
 	}
-	if output["test"][1].Text != "This message contains a mailto link to [me@example.com](mailto:me@example.com) in it." {
-		t.Fatalf("Unexpected message after markup translation: %v", output["test"][0].Text)
+
+	actualOutput := SlackConvertPostsMarkup(input)
+
+	for i := range actualOutput["test"] {
+		if actualOutput["test"][i].Text != expectedOutput["test"][i].Text {
+			t.Fatalf("Unexpected message after markup translation: %v", actualOutput["test"][i].Text)
+		}
 	}
 }
