@@ -632,9 +632,12 @@ PostStore.dispatchToken = AppDispatcher.register((payload) => {
 
     switch (action.type) {
     case ActionTypes.RECEIVED_POSTS: {
-        const id = PostStore.currentFocusedPostId !== null && action.isPost ? PostStore.currentFocusedPostId : action.id;
-        PostStore.storePosts(id, makePostListNonNull(action.post_list), action.checkLatest);
-        PostStore.checkBounds(id, action.numRequested, makePostListNonNull(action.post_list), action.before);
+        if (PostStore.currentFocusedPostId !== null && action.isPost) {
+            PostStore.storePosts(PostStore.currentFocusedPostId, makePostListNonNull(action.post_list), action.checkLatest);
+            PostStore.checkBounds(PostStore.currentFocusedPostId, action.numRequested, makePostListNonNull(action.post_list), action.before);
+        }
+        PostStore.storePosts(action.id, makePostListNonNull(action.post_list), action.checkLatest);
+        PostStore.checkBounds(action.id, action.numRequested, makePostListNonNull(action.post_list), action.before);
         PostStore.emitChange();
         break;
     }
