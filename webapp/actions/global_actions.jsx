@@ -15,6 +15,8 @@ import SearchStore from 'stores/search_store.jsx';
 import {handleNewPost, loadPosts, loadPostsBefore, loadPostsAfter} from 'actions/post_actions.jsx';
 import {loadProfilesAndTeamMembersForDMSidebar} from 'actions/user_actions.jsx';
 import {loadChannelsForCurrentUser} from 'actions/channel_actions.jsx';
+import {stopPeriodicStatusUpdates} from 'actions/status_actions.jsx';
+import * as WebsocketActions from 'actions/websocket_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
@@ -480,6 +482,8 @@ export function emitUserLoggedOutEvent(redirectTo = '/', shouldSignalLogout = tr
             UserStore.clear();
             TeamStore.clear();
             newLocalizationSelected(global.window.mm_config.DefaultClientLocale);
+            stopPeriodicStatusUpdates();
+            WebsocketActions.close();
             browserHistory.push(redirectTo);
         },
         () => {

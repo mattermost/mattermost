@@ -137,7 +137,7 @@ export default class AdminNavbarDropdown extends React.Component {
                         <li>
                             <a
                                 href='#'
-                                onClick={GlobalActions.emitUserLoggedOutEvent}
+                                onClick={() => GlobalActions.emitUserLoggedOutEvent()}
                             >
                                 <FormattedMessage
                                     id='admin.nav.logout'
