@@ -168,7 +168,7 @@ export default class ChannelMembersModal extends React.Component {
         return (
             <div>
                 <Modal
-                    dialogClassName='more-modal'
+                    dialogClassName='more-modal more-modal--action'
                     show={this.state.show}
                     onHide={this.onHide}
                     onExited={this.props.onModalDismissed}
