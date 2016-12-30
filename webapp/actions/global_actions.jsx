@@ -476,20 +476,24 @@ export function emitUserLoggedOutEvent(redirectTo = '/', shouldSignalLogout = tr
                 BrowserStore.signalLogout();
             }
 
-            BrowserStore.clear();
-            ErrorStore.clearLastError();
-            PreferenceStore.clear();
-            UserStore.clear();
-            TeamStore.clear();
-            newLocalizationSelected(global.window.mm_config.DefaultClientLocale);
-            stopPeriodicStatusUpdates();
-            WebsocketActions.close();
-            browserHistory.push(redirectTo);
+            clientLogout(redirectTo);
         },
         () => {
             browserHistory.push(redirectTo);
         }
     );
+}
+
+export function clientLogout(redirectTo = '/') {
+    BrowserStore.clear();
+    ErrorStore.clearLastError();
+    PreferenceStore.clear();
+    UserStore.clear();
+    TeamStore.clear();
+    newLocalizationSelected(global.window.mm_config.DefaultClientLocale);
+    stopPeriodicStatusUpdates();
+    WebsocketActions.close();
+    browserHistory.push(redirectTo);
 }
 
 export function emitSearchMentionsEvent(user) {

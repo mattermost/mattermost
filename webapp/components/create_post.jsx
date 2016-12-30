@@ -125,6 +125,11 @@ export default class CreatePost extends React.Component {
                 (data) => {
                     this.setState({submitting: false});
 
+                    if (post.message.trim() === '/logout') {
+                        GlobalActions.clientLogout(data.goto_location);
+                        return;
+                    }
+
                     if (data.goto_location && data.goto_location.length > 0) {
                         browserHistory.push(data.goto_location);
                     }
