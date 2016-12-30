@@ -288,10 +288,6 @@
     "translation": "Cannot leave the default channel {{.Channel}}"
   },
   {
-    "id": "api.channel.remove.default.app_error",
-    "translation": "Cannot remove user from the default channel {{.Channel}}"
-  },
-  {
     "id": "api.channel.leave.direct.app_error",
     "translation": "Cannot leave a direct message channel"
   },
@@ -302,6 +298,18 @@
   {
     "id": "api.channel.leave.left",
     "translation": "%v has left the channel."
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
+    "translation": "Failed to post displayname update message %v"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
+    "translation": "Failed to retrieve user while trying to save update channel displayname message %v"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
+    "translation": "%s updated the channel display name from: %s to: %s"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.join_leave.error",
@@ -324,20 +332,12 @@
     "translation": "%s updated the channel header to: %s"
   },
   {
-    "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
-    "translation": "Failed to post displayname update message %v"
-  },
-  {
-    "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
-    "translation": "Failed to retrieve user while trying to save update channel displayname message %v"
-  },
-  {
-    "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
-    "translation": "%s updated the channel display name from: %s to: %s"
-  },
-  {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
     "translation": "Failed to post join/leave message %v"
+  },
+  {
+    "id": "api.channel.remove.default.app_error",
+    "translation": "Cannot remove user from the default channel {{.Channel}}"
   },
   {
     "id": "api.channel.remove_member.permissions.app_error",
@@ -492,10 +492,6 @@
     "translation": "Unable to create /echo post, err=%v"
   },
   {
-    "id": "api.command_echo.message.app_error",
-    "translation": "A message must be provided with the /echo command."
-  },
-  {
     "id": "api.command_echo.delay.app_error",
     "translation": "Delays must be under 10000 seconds"
   },
@@ -510,6 +506,10 @@
   {
     "id": "api.command_echo.hint",
     "translation": "'message' [delay in seconds]"
+  },
+  {
+    "id": "api.command_echo.message.app_error",
+    "translation": "A message must be provided with the /echo command."
   },
   {
     "id": "api.command_echo.name",
@@ -828,12 +828,12 @@
     "translation": "Multi-factor authentication is required on this server."
   },
   {
-    "id": "api.context.permissions.app_error",
-    "translation": "You do not have the appropriate permissions"
-  },
-  {
     "id": "api.context.missing_teamid.app_error",
     "translation": "Missing Team Id"
+  },
+  {
+    "id": "api.context.permissions.app_error",
+    "translation": "You do not have the appropriate permissions"
   },
   {
     "id": "api.context.session_expired.app_error",
@@ -4276,10 +4276,6 @@
     "translation": "We encountered an error finding the channel"
   },
   {
-    "id": "store.sql_channel.get_members_by_ids.app_error",
-    "translation": "We couldn't get the channel members"
-  },
-  {
     "id": "store.sql_channel.get_all.app_error",
     "translation": "We couldn't get all the channels"
   },
@@ -4329,6 +4325,10 @@
   },
   {
     "id": "store.sql_channel.get_members.app_error",
+    "translation": "We couldn't get the channel members"
+  },
+  {
+    "id": "store.sql_channel.get_members_by_ids.app_error",
     "translation": "We couldn't get the channel members"
   },
   {
@@ -5452,6 +5452,10 @@
     "translation": "Back"
   },
   {
+    "id": "web.incoming_webhook.attachment.app_error",
+    "translation": "Maximum attachments length is {{.Max}} characters, received size is {{.Actual}}"
+  },
+  {
     "id": "web.incoming_webhook.channel.app_error",
     "translation": "Couldn't find the channel"
   },
@@ -5478,10 +5482,6 @@
   {
     "id": "web.incoming_webhook.text.length.app_error",
     "translation": "Maximum text length is {{.Max}} characters, received size is {{.Actual}}"
-  },
-  {
-    "id": "web.incoming_webhook.attachment.app_error",
-    "translation": "Maximum attachments length is {{.Max}} characters, received size is {{.Actual}}"
   },
   {
     "id": "web.incoming_webhook.user.app_error",

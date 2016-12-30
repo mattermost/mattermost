@@ -300,6 +300,18 @@
     "translation": "%v heeft het kanaal verlaten."
   },
   {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
+    "translation": "Failed to post displayname update message %v"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
+    "translation": "Kon de gebruiker niet ophalen tijdens het bewaren van de nieuwe kanaalkoptekst %v"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
+    "translation": "%s heeft de kanaalkoptekst veranderd van \"%s\" naar \"%s\""
+  },
+  {
     "id": "api.channel.post_update_channel_header_message_and_forget.join_leave.error",
     "translation": "Plaatsen van bericht over binnenkomen/verlaten %v is mislukt"
   },
@@ -322,6 +334,10 @@
   {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
     "translation": "Het plaatsen van een komen/gaan bericht %v is mislukt"
+  },
+  {
+    "id": "api.channel.remove.default.app_error",
+    "translation": "Kan het standaardkanaal {{.Channel}} niet verlaten"
   },
   {
     "id": "api.channel.remove_member.permissions.app_error",
@@ -490,6 +506,10 @@
   {
     "id": "api.command_echo.hint",
     "translation": "'message' [vertraging in seconden]"
+  },
+  {
+    "id": "api.command_echo.message.app_error",
+    "translation": "A message must be provided with the /echo command."
   },
   {
     "id": "api.command_echo.name",
@@ -706,6 +726,10 @@
   {
     "id": "api.context.mfa_required.app_error",
     "translation": "Multi-factor authentication is required on this server."
+  },
+  {
+    "id": "api.context.missing_teamid.app_error",
+    "translation": "Missing Team Id"
   },
   {
     "id": "api.context.permissions.app_error",
@@ -1525,19 +1549,19 @@
   },
   {
     "id": "api.reaction.delete_reaction.mismatched_channel_id.app_error",
-    "translation": "Failed to delete reaction when channel id in URL doesn't match post id in URL"
+    "translation": "Failed to delete reaction because channel ID does not match post ID in the URL"
   },
   {
     "id": "api.reaction.init.debug",
-    "translation": "Initializing reactions api routes"
+    "translation": "Initialisatie van de admin-api-routes"
   },
   {
     "id": "api.reaction.list_reactions.mismatched_channel_id.app_error",
-    "translation": "Failed to get reactions when channel id in URL doesn't match post id in URL"
+    "translation": "Failed to get reactions because channel ID does not match post ID in the URL"
   },
   {
     "id": "api.reaction.save_reaction.mismatched_channel_id.app_error",
-    "translation": "Failed to save reaction when channel id in URL doesn't match post id in URL"
+    "translation": "Failed to save reaction because channel ID does not match post ID in the URL"
   },
   {
     "id": "api.reaction.send_reaction_event.post.app_error",
@@ -1829,7 +1853,7 @@
   },
   {
     "id": "api.team.import_team.unavailable.app_error",
-    "translation": "Bestandsgroote is niet beschikbaar"
+    "translation": "Malformed request: filesize field is not present."
   },
   {
     "id": "api.team.init.debug",
@@ -2321,7 +2345,7 @@
   },
   {
     "id": "api.user.login.not_provided.app_error",
-    "translation": "Een gebruikers id of een team naam en een e-mail adres moeten opgegeven worden"
+    "translation": "Must provide either user ID, or team name and user email"
   },
   {
     "id": "api.user.login.not_verified.app_error",
@@ -3241,7 +3265,7 @@
   },
   {
     "id": "model.command.is_valid.url.app_error",
-    "translation": "Ongeldige url"
+    "translation": "Invalid URL"
   },
   {
     "id": "model.command.is_valid.url_http.app_error",
@@ -3517,7 +3541,7 @@
   },
   {
     "id": "model.config.is_valid.webrtc_stun_uri.app_error",
-    "translation": "WebRTC STUN URI must be a valid URI and start with stun:"
+    "translation": "WebRTC STUN URI must be a valid URL starting with stun:"
   },
   {
     "id": "model.config.is_valid.webrtc_turn_shared_key.app_error",
@@ -3585,7 +3609,7 @@
   },
   {
     "id": "model.incoming_hook.team_id.app_error",
-    "translation": "Ongeldige team id"
+    "translation": "Ongeldig team id"
   },
   {
     "id": "model.incoming_hook.update_at.app_error",
@@ -4201,6 +4225,10 @@
   },
   {
     "id": "store.sql_channel.get_members.app_error",
+    "translation": "We kunnen de kanaal leden niet ophalen"
+  },
+  {
+    "id": "store.sql_channel.get_members_by_ids.app_error",
     "translation": "We kunnen de kanaal leden niet ophalen"
   },
   {
@@ -5324,6 +5352,10 @@
     "translation": "Terug"
   },
   {
+    "id": "web.incoming_webhook.attachment.app_error",
+    "translation": "Maximum attachments length is {{.Max}} characters, received size is {{.Actual}}"
+  },
+  {
     "id": "web.incoming_webhook.channel.app_error",
     "translation": "Het kanaal kan niet gevonden worden"
   },
@@ -5346,6 +5378,10 @@
   {
     "id": "web.incoming_webhook.text.app_error",
     "translation": "Geen tekst gespecifieerd"
+  },
+  {
+    "id": "web.incoming_webhook.text.length.app_error",
+    "translation": "Maximum text length is {{.Max}} characters, received size is {{.Actual}}"
   },
   {
     "id": "web.incoming_webhook.user.app_error",
