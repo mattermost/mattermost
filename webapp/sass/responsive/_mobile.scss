@@ -1206,16 +1206,22 @@
 }
 
 @media screen and (max-width: 640px) {
+    .filtered-user-list {
+        height: calc(100vh - 80px);
+    }
+
+    .more-modal--action {
+        .filtered-user-list {
+            height: calc(100vh - 110px);
+        }
+    }
+
     .app__body {
         .modal {
             .more-modal {
                 .modal-body {
                     max-height: calc(100vh - 62px);
                     padding-bottom: 5px;
-                }
-
-                .more-modal__list {
-                    max-height: calc(100vh - 230px);
                 }
             }
         }
@@ -1377,15 +1383,14 @@
 @media screen and (max-width: 550px) {
     .app__body {
         .more-modal {
-            .filter-row {
-                width: 100%;
+            &.more-system-members {
+                .filter-row {
+                    min-height: 80px;
+                    width: 100%;
+                }
             }
 
             &.more-direct-channels {
-                .filter-row {
-                    padding-bottom: 50px;
-                }
-
                 .member-show {
                     display: none;
                 }
@@ -1443,16 +1448,6 @@
 
     .app__body {
         .modal {
-            &.more-channel__modal {
-                .more-modal__list {
-                    max-height: calc(100vh - 250px);
-                }
-
-                .modal-body {
-                    padding-bottom: 35px;
-                }
-            }
-
             .settings-modal {
                 &.display--content {
                     .modal-body {

@@ -49,7 +49,7 @@ export default class SettingItemMax extends React.Component {
             submit = (
                 <input
                     type='submit'
-                    className='btn btn-sm btn-primary'
+                    className='btn btn-sm btn-primary pull-right'
                     href='#'
                     onClick={this.props.submit}
                     value={Utils.localizeMessage('setting_item_max.save', 'Save')}
@@ -88,7 +88,7 @@ export default class SettingItemMax extends React.Component {
                             {clientError}
                             {submit}
                             <a
-                                className='btn btn-sm theme'
+                                className='btn btn-sm pull-right'
                                 href='#'
                                 onClick={this.props.updateSection}
                             >
