@@ -1360,3 +1360,33 @@ func TestSendNotifications(t *testing.T) {
 		t.Fatal("user should have been mentioned")
 	}
 }
+
+func TestGetPostById(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+	channel1 := th.BasicChannel
+
+	time.Sleep(10 * time.Millisecond)
+	post1 := &model.Post{ChannelId: channel1.Id, Message: "yommamma" + model.NewId() + "a"}
+	post1 = Client.Must(Client.CreatePost(post1)).Data.(*model.Post)
+
+	if post, respMetadata := Client.GetPostById(post1.Id, ""); respMetadata.Error != nil {
+		t.Fatal(respMetadata.Error)
+	} else {
+		if len(post.Order) != 1 {
+			t.Fatal("should be just one post")
+		}
+
+		if post.Order[0] != post1.Id {
+			t.Fatal("wrong order")
+		}
+
+		if post.Posts[post.Order[0]].Message != post1.Message {
+			t.Fatal("wrong message from post")
+		}
+	}
+
+	if _, respMetadata := Client.GetPostById("45345435345345", ""); respMetadata.Error == nil {
+		t.Fatal(respMetadata.Error)
+	}
+}
