@@ -4,12 +4,12 @@ Link previews should embed previews of the contents of a hyperlink from a messag
 
 Post location variation: 
 
-1. Post as message in center channel with RHS closed (preview of first link should render under message) 
-2. Post as message in center channel with RHS open (preview of first link should render under message) 
-3. Post as comment in RHS (link preview should not render) 
-4. View comment in center channel with RHS closed (preview of first link should render under message) 
-5. View comment in center channel with RHS open (preview of first link should render under message) 
-6. Search for post in RHS with link
+1. Post message in center channel with RHS closed (Expected: preview of first link renders under message) 
+2. Post message in center channel with RHS open (Expected: preview of first link renders under message) 
+3. Post comment in RHS (Expected: link preview does not render) 
+4. View comment in center channel with RHS closed (Expected: preview of first link renders under message) 
+5. View comment in center channel with RHS open (Expected: preview of first link renders under message) 
+6. Search for post in RHS with link (Expected: no previews render in search results) 
 
 Test the above variations with the below sample messages (e.g. 1-A, 2-B, 3-C, 4-D, etc.) 
 
