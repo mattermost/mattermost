@@ -10,6 +10,11 @@ import {OverlayTrigger} from 'react-bootstrap';
 import React from 'react';
 
 export default class UserProfile extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.hideProfilePopover = this.hideProfilePopover.bind(this);
+    }
     shouldComponentUpdate(nextProps) {
         if (!Utils.areObjectsEqual(nextProps.user, this.props.user)) {
             return true;
@@ -42,6 +47,10 @@ export default class UserProfile extends React.Component {
         return false;
     }
 
+    hideProfilePopover() {
+        this.refs.overlay.hide();
+    }
+
     render() {
         let name = '...';
         let profileImg = '';
@@ -60,6 +69,7 @@ export default class UserProfile extends React.Component {
 
         return (
             <OverlayTrigger
+                ref='overlay'
                 trigger='click'
                 placement='right'
                 rootClose={true}
@@ -69,6 +79,7 @@ export default class UserProfile extends React.Component {
                         src={profileImg}
                         status={this.props.status}
                         isBusy={this.props.isBusy}
+                        hide={this.hideProfilePopover}
                     />
                 }
             >

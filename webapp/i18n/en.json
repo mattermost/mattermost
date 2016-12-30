@@ -2162,6 +2162,7 @@
   "user.settings.security.title": "Security Settings",
   "user.settings.security.viewHistory": "View Access History",
   "user_list.notFound": "No users found",
+  "user_profile.send.dm": "Send Message",
   "user_profile.webrtc.call": "Start Video Call",
   "user_profile.webrtc.offline": "The user is offline",
   "user_profile.webrtc.unavailable": "New call unavailable until your existing call ends",
