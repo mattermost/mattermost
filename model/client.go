@@ -1483,6 +1483,7 @@ func (c *Client) GetPost(channelId string, postId string, etag string) (*Result,
 	}
 }
 
+// GetPostById returns a post and any posts in the same thread by post id
 func (c *Client) GetPostById(postId string, etag string) (*PostList, *ResponseMetadata) {
 	if r, err := c.DoApiGet(c.GetTeamRoute()+fmt.Sprintf("/posts/%v", postId), "", etag); err != nil {
 		return nil, &ResponseMetadata{StatusCode: r.StatusCode, Error: err}
