@@ -62,7 +62,7 @@ func Setup() *TestHelper {
 		utils.Cfg.EmailSettings.SendEmailNotifications = true
 		utils.Cfg.EmailSettings.SMTPServer = "dockerhost"
 		utils.Cfg.EmailSettings.SMTPPort = "2500"
-		utils.Cfg.EmailSettings.FeedbackEmail = "yomamma@example.com"
+		utils.Cfg.EmailSettings.FeedbackEmail = "test@example.com"
 		utils.DisableDebugLogForTest()
 		app.NewServer()
 		app.InitStores()

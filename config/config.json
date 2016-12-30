@@ -112,7 +112,7 @@
         "SendEmailNotifications": true,
         "RequireEmailVerification": false,
         "FeedbackName": "",
-        "FeedbackEmail": "yomamma@example.com",
+        "FeedbackEmail": "test@example.com",
         "FeedbackOrganization": "",
         "SMTPUsername": "",
         "SMTPPassword": "",
