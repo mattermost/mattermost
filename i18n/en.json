@@ -572,10 +572,6 @@
     "translation": "logout"
   },
   {
-    "id": "api.command_logout.success_message",
-    "translation": "Logging out..."
-  },
-  {
     "id": "api.command_me.desc",
     "translation": "Do an action"
   },
