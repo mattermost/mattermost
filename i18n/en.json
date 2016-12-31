@@ -3112,6 +3112,38 @@
     "translation": "Yes"
   },
   {
+    "id": "log_test.debug",
+    "translation": "Testing debug logging"
+  },
+  {
+    "id": "log_test.debug_param",
+    "translation": "Testing debug logging, param=%v"
+  },
+  {
+    "id": "log_test.info",
+    "translation": "Testing info logging"
+  },
+  {
+    "id": "log_test.info_param",
+    "translation": "Testing info logging, param=%v"
+  },
+  {
+    "id": "log_test.warn",
+    "translation": "Testing warning logging"
+  },
+  {
+    "id": "log_test.warn_param",
+    "translation": "Testing warning logging, param=%v"
+  },
+  {
+    "id": "log_test.error",
+    "translation": "Testing error logging"
+  },
+  {
+    "id": "log_test.error_param",
+    "translation": "Testing error logging, param=%v"
+  },
+  {
     "id": "manaultesting.get_channel_id.no_found.debug",
     "translation": "Could not find channel: %v, %v possibilities searched"
   },
