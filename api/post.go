@@ -1217,6 +1217,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	*newPost = *oldPost
 
 	newPost.Message = post.Message
+	newPost.EditAt = model.GetMillis()
 	newPost.Hashtags, _ = model.ParseHashtags(post.Message)
 
 	if result := <-Srv.Store.Post().Update(newPost, oldPost); result.Err != nil {

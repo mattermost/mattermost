@@ -47,6 +47,10 @@ func TestCreatePost(t *testing.T) {
 		t.Fatal("shouldn't have files")
 	}
 
+	if rpost1.Data.(*model.Post).EditAt != 0 {
+		t.Fatal("Newly craeted post shouldn't have EditAt set")
+	}
+
 	post2 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a", RootId: rpost1.Data.(*model.Post).Id}
 	rpost2, err := Client.CreatePost(post2)
 	if err != nil {
@@ -326,6 +330,10 @@ func TestUpdatePost(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	if rpost2.Data.(*model.Post).EditAt != 0 {
+		t.Fatal("Newly craeted post shouldn't have EditAt set")
+	}
+
 	msg2 := "a" + model.NewId() + " update post 1"
 	rpost2.Data.(*model.Post).Message = msg2
 	if rupost2, err := Client.UpdatePost(rpost2.Data.(*model.Post)); err != nil {
@@ -333,6 +341,9 @@ func TestUpdatePost(t *testing.T) {
 	} else {
 		if rupost2.Data.(*model.Post).Message != msg2 {
 			t.Fatal("failed to updates")
+		}
+		if rupost2.Data.(*model.Post).EditAt == 0 {
+			t.Fatal("EditAt not updated for post")
 		}
 	}
 

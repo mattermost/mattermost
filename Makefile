@@ -218,7 +218,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	tail -n +2 csaml.out >> ecover.out
 	tail -n +2 ccluster.out >> ecover.out
 	tail -n +2 cmetrics.out >> ecover.out
-	tail -n +2 caccount_migration.out >> ecover.out	
+	tail -n +2 caccount_migration.out >> ecover.out
 	rm -f cldap.out ccompliance.out cmfa.out cemoji.out csaml.out ccluster.out cmetrics.out caccount_migration.out
 	rm -r ldap.test
 	rm -r compliance.test
@@ -394,7 +394,7 @@ else
 		echo stopping mattermost $$PID; \
 		kill $$PID; \
 	done
-endif 
+endif
 
 stop-client:
 	@echo Stopping mattermost client

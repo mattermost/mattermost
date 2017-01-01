@@ -31,6 +31,7 @@ type Post struct {
 	Id            string          `json:"id"`
 	CreateAt      int64           `json:"create_at"`
 	UpdateAt      int64           `json:"update_at"`
+	EditAt        int64           `json:"edit_at"`
 	DeleteAt      int64           `json:"delete_at"`
 	UserId        string          `json:"user_id"`
 	ChannelId     string          `json:"channel_id"`
