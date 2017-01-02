@@ -1085,7 +1085,6 @@ export default class WebrtcController extends React.Component {
         let remoteVideoHiddenLocal = 'full';
         let error;
         let remoteMute;
-        let videoClass = '';
         let localImageHidden = 'webrtc__local-image hidden';
         let remoteImageHidden = 'webrtc__remote-image';
 
@@ -1180,8 +1179,6 @@ export default class WebrtcController extends React.Component {
                 remoteVideoHiddenLocal = '';
                 remoteImageHidden = 'webrtc__remote-image hidden';
             }
-        } else {
-            videoClass = 'small';
         }
 
         return (
@@ -1194,10 +1191,7 @@ export default class WebrtcController extends React.Component {
                         toggleSize={this.props.toggleSize}
                     />
                     <div className='post-right__scroll'>
-                        <div
-                            id='videos'
-                            className={videoClass}
-                        >
+                        <div id='videos'>
                             {remoteMute}
                             <div
                                 id='main-video'

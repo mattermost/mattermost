@@ -141,7 +141,7 @@
         &.full {
             background: $black;
             border: none;
-            height: 80%;
+            height: 100%;
             max-width: 100% !important;
             right: 0;
             top: 0;
@@ -319,7 +319,7 @@
 
 .sidebar--right--expanded {
     #videos {
-        height: 100%;
+        height: calc(100% - 90px);
         position: absolute;
 
         #main-video {
@@ -333,7 +333,7 @@
     }
 
     .webrtc-buttons {
-        bottom: 5px;
+        bottom: 15px;
         position: absolute;
         width: 100%;
     }
