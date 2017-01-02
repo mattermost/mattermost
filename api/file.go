@@ -584,7 +584,7 @@ func migrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 		return []*model.FileInfo{}
 	}
 
-	cchan := Srv.Store.Channel().Get(post.ChannelId)
+	cchan := Srv.Store.Channel().Get(post.ChannelId, true)
 
 	// There's a weird bug that rarely happens where a post ends up with duplicate Filenames so remove those
 	filenames := utils.RemoveDuplicatesFromStringArray(post.Filenames)

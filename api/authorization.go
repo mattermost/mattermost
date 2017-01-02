@@ -79,7 +79,7 @@ func HasPermissionToChannelContext(c *Context, channelId string, permission *mod
 		}
 	}
 
-	cc := Srv.Store.Channel().Get(channelId)
+	cc := Srv.Store.Channel().Get(channelId, true)
 	if ccresult := <-cc; ccresult.Err == nil {
 		channel := ccresult.Data.(*model.Channel)
 

@@ -55,7 +55,7 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cchan := Srv.Store.Channel().Get(hook.ChannelId)
+	cchan := Srv.Store.Channel().Get(hook.ChannelId, true)
 
 	hook.UserId = c.Session.UserId
 	hook.TeamId = c.TeamId
@@ -174,7 +174,7 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	hook.TeamId = c.TeamId
 
 	if len(hook.ChannelId) != 0 {
-		cchan := Srv.Store.Channel().Get(hook.ChannelId)
+		cchan := Srv.Store.Channel().Get(hook.ChannelId, true)
 
 		var channel *model.Channel
 		if result := <-cchan; result.Err != nil {
@@ -447,7 +447,7 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		cchan = Srv.Store.Channel().GetByName(hook.TeamId, channelName)
 	} else {
-		cchan = Srv.Store.Channel().Get(hook.ChannelId)
+		cchan = Srv.Store.Channel().Get(hook.ChannelId, true)
 	}
 
 	overrideUsername := parsedRequest.Username
