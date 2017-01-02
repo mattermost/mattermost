@@ -9,6 +9,7 @@ import TeamStore from 'stores/team_store.jsx';
 
 import Constants from 'utils/constants.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
+import * as ChannelUtils from 'utils/channel_utils.jsx';
 import {joinChannel, searchMoreChannels} from 'actions/channel_actions.jsx';
 
 import React from 'react';
@@ -151,14 +152,9 @@ export default class MoreChannels extends React.Component {
         const isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
         const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
 
-        if (global.window.mm_license.IsLicensed === 'true') {
-            if (global.window.mm_config.RestrictPublicChannelManagement === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
-                createNewChannelButton = null;
-                createChannelHelpText = null;
-            } else if (global.window.mm_config.RestrictPublicChannelManagement === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
-                createNewChannelButton = null;
-                createChannelHelpText = null;
-            }
+        if (!ChannelUtils.showCreateOption(Constants.OPEN_CHANNEL, isAdmin, isSystemAdmin)) {
+            createNewChannelButton = null;
+            createChannelHelpText = null;
         }
 
         return (

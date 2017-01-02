@@ -206,30 +206,6 @@ export default class ChannelHeader extends React.Component {
         });
     }
 
-    showManagementOptions(channel, isAdmin, isSystemAdmin) {
-        if (global.window.mm_license.IsLicensed !== 'true') {
-            return true;
-        }
-
-        if (channel.type === Constants.OPEN_CHANNEL) {
-            if (global.window.mm_config.RestrictPublicChannelManagement === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
-                return false;
-            }
-            if (global.window.mm_config.RestrictPublicChannelManagement === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
-                return false;
-            }
-        } else if (channel.type === Constants.PRIVATE_CHANNEL) {
-            if (global.window.mm_config.RestrictPrivateChannelManagement === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
-                return false;
-            }
-            if (global.window.mm_config.RestrictPrivateChannelManagement === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
     initWebrtc(contactId, isOnline) {
         if (isOnline && !this.state.isBusy) {
             GlobalActions.emitCloseRightHandSide();
@@ -521,7 +497,7 @@ export default class ChannelHeader extends React.Component {
                 </li>
             );
 
-            if (this.showManagementOptions(channel, isAdmin, isSystemAdmin)) {
+            if (ChannelUtils.showManagementOptions(channel, isAdmin, isSystemAdmin)) {
                 dropdownContents.push(
                     <li
                         key='set_channel_header'
@@ -584,7 +560,9 @@ export default class ChannelHeader extends React.Component {
                         </a>
                     </li>
                 );
+            }
 
+            if (ChannelUtils.showDeleteOption(channel, isAdmin, isSystemAdmin)) {
                 if (!ChannelStore.isDefault(channel)) {
                     dropdownContents.push(deleteOption);
                 }
