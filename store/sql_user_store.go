@@ -804,6 +804,7 @@ func (us SqlUserStore) GetProfileByIds(userIds []string, allowFromCache bool) St
 
 	go func() {
 		result := StoreResult{}
+		metrics := einterfaces.GetMetricsInterface()
 
 		var users []*model.User
 		userMap := make(map[string]*model.User)
@@ -820,8 +821,15 @@ func (us SqlUserStore) GetProfileByIds(userIds []string, allowFromCache bool) St
 					remainingUserIds = append(remainingUserIds, userId)
 				}
 			}
+			if metrics != nil {
+				metrics.AddMemCacheHitCounter("Profile By Ids", float64(len(userMap)))
+				metrics.AddMemCacheMissCounter("Profile By Ids", float64(len(remainingUserIds)))
+			}
 		} else {
 			remainingUserIds = userIds
+			if metrics != nil {
+				metrics.AddMemCacheMissCounter("Profile By Ids", float64(len(remainingUserIds)))
+			}
 		}
 
 		// If everything came from the cache then just return

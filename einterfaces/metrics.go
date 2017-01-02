@@ -25,6 +25,9 @@ type MetricsInterface interface {
 
 	IncrementMemCacheHitCounter(cacheName string)
 	IncrementMemCacheMissCounter(cacheName string)
+
+	AddMemCacheHitCounter(cacheName string, amount float64)
+	AddMemCacheMissCounter(cacheName string, amount float64)
 }
 
 var theMetricsInterface MetricsInterface
