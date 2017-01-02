@@ -572,10 +572,6 @@
     "translation": "выйти"
   },
   {
-    "id": "api.command_logout.success_message",
-    "translation": "Выход из системы..."
-  },
-  {
     "id": "api.command_me.desc",
     "translation": "Выполнить действие"
   },
@@ -644,44 +640,144 @@
     "translation": "Вы сейчас в сети"
   },
   {
-    "id": "api.command_shortcuts.browser",
-    "translation": "#### Встроенные команды браузера\n\nALT+LEFT: Предыдущий канал в вашей истории\nALT+RIGHT: Следующий канал в вашей истории\nCTRL+PLUS: Увеличить размер шрифта (приблизить)\nCTRL+MINUS: Уменьшить размер шрифта (отдалить)\nSHIFT+UP (в поле ввода): Подсветить текст до предыдущей строки\nSHIFT+DOWN (в поле ввода): Подсветить текст до следующей строки\nSHIFT+ENTER (в поле ввода): Создать новую линию\n"
+    "id": "api.command_shortcuts.browser.channel_next",
+    "translation": "{{.ChannelNextCmd}}: Next channel in your history\n"
   },
   {
-    "id": "api.command_shortcuts.browser_mac",
-    "translation": "#### Встроенные команды браузера\n\nCMD+[: Предыдущий канал в вашей истории\nCMD+]: Следующий канал в вашей истории\nCMD+PLUS: Увеличить размер шрифта (приблизить)\nCMD+MINUS: Уменьшить размер шрифта (отдалить)\nSHIFT+UP (в поле ввода): Подсветить текст до предыдущей строки\nSHIFT+DOWN (в поле ввода): Подсветить текст до следующей строки\nSHIFT+ENTER (в поле ввода): Создать новую линию\n"
+    "id": "api.command_shortcuts.browser.channel_next.cmd",
+    "translation": "ALT+RIGHT"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_next.cmd_mac",
+    "translation": "CMD+]"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_prev",
+    "translation": "{{.ChannelPrevCmd}}: Previous channel in your history\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_prev.cmd",
+    "translation": "ALT+LEFT"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_prev.cmd_mac",
+    "translation": "CMD+["
+  },
+  {
+    "id": "api.command_shortcuts.browser.font_decrease",
+    "translation": "{{.CmdOrCtrl}}+MINUS: Decrease font size (zoom out)\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.font_increase",
+    "translation": "{{.CmdOrCtrl}}+PLUS: Increase font size (zoom in)\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.header",
+    "translation": "#### Built-in Browser Commands\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.highlight_next",
+    "translation": "SHIFT+DOWN (in input field): Highlight text to the next line\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.highlight_prev",
+    "translation": "SHIFT+UP (in input field): Highlight text to the previous line\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.newline",
+    "translation": "SHIFT+ENTER (in input field): Create a new line\n"
+  },
+  {
+    "id": "api.command_shortcuts.cmd",
+    "translation": "CMD"
+  },
+  {
+    "id": "api.command_shortcuts.ctrl",
+    "translation": "CTRL"
   },
   {
     "id": "api.command_shortcuts.desc",
     "translation": "Отображает список сочетаний клавиш"
   },
   {
-    "id": "api.command_shortcuts.files",
-    "translation": "#### Файлы\n\nCTRL+U: Загрузить файл(-ы)\n\n"
+    "id": "api.command_shortcuts.files.header",
+    "translation": "#### Файлы\n\n"
   },
   {
-    "id": "api.command_shortcuts.files_mac",
-    "translation": "#### Файлы\n\nCMD+U: Загрузить файл(ы)\n\n"
+    "id": "api.command_shortcuts.files.upload",
+    "translation": "{{.CmdOrCtrl}}+U: Upload file(s)\n\n"
   },
   {
-    "id": "api.command_shortcuts.msgs",
-    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCTRL+UP (in empty input field): Reprint the previous message or slash command you entered\nCTRL+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n~[character]+TAB: Autocomplete channel beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
+    "id": "api.command_shortcuts.header",
+    "translation": "### Горячие клавиши\n\n"
   },
   {
-    "id": "api.command_shortcuts.msgs_mac",
-    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCMD+UP (in empty input field): Reprint the previous message or slash command you entered\nCMD+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n~[character]+TAB: Autocomplete channel beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
+    "id": "api.command_shortcuts.msgs.comp_channel",
+    "translation": "~[character]+TAB: Autocomplete channel beginning with [character]\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.comp_emoji",
+    "translation": ":[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.comp_username",
+    "translation": "@[character]+TAB: Autocomplete @username beginning with [character]\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.edit",
+    "translation": "UP (in empty input field): Edit your last message in the current channel\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.header",
+    "translation": "#### Сообщения\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.mark_as_read",
+    "translation": "ESC: Mark all messages in the current channel as read\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.reprint_next",
+    "translation": "{{.CmdOrCtrl}}+DOWN (in empty input field): Reprint the next message or slash command you entered\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.reprint_prev",
+    "translation": "{{.CmdOrCtrl}}+UP (in empty input field): Reprint the previous message or slash command you entered\n"
   },
   {
     "id": "api.command_shortcuts.name",
     "translation": "комбинации клавиш"
   },
   {
-    "id": "api.command_shortcuts.nav",
-    "translation": "### Сочетания клавиш\n\n#### Навигация\n\nALT+UP: Предыдущий канал или личное сообщение в левой боковой панели\nALT+DOWN: Следующий канал или личное сообщение в левой боковой панели\nALT+SHIFT+UP: Предыдущий канал или личное сообщение в левой боковой панели с непрочитанными сообщениями\nALT+SHIFT+DOWN: Следующий канал или личное сообщение в левой боковой панели с непрочитанными сообщениями\nCTRL+K: Открыть диалог быстрого переключения каналов\nCTRL+SHIFT+A: Открыть настройки учетной записи\nCTRL+SHIFT+M: Открыть последние упоминания\n\n"
+    "id": "api.command_shortcuts.nav.header",
+    "translation": "#### Навигация\n\n"
   },
   {
-    "id": "api.command_shortcuts.nav_mac",
-    "translation": "### Сочетания клавиш\n\n#### Навигация\n\nALT+UP: Предыдущий канал или личное сообщение в левой боковой панели\nALT+DOWN: Следующий канал или личное сообщение в левой боковой панели\nALT+SHIFT+UP: Предыдущий канал или личное сообщение в левой боковой панели с непрочитанными сообщениями\nALT+SHIFT+DOWN: Следующий канал или личное сообщение в левой боковой панели с непрочитанными сообщениями\nCMD+K: Открыть диалог быстрого переключения каналов\nCMD+SHIFT+A: Открыть настройки учетной записи\nCMD+SHIFT+M: Открыть последние упоминания\n\n"
+    "id": "api.command_shortcuts.nav.next",
+    "translation": "ALT+DOWN: Next channel or direct message in left hand sidebar\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.prev",
+    "translation": "ALT+UP: Previous channel or direct message in left hand sidebar\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.recent_mentions",
+    "translation": "{{.CmdOrCtrl}}+SHIFT+M: Open recent mentions\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.settings",
+    "translation": "{{.CmdOrCtrl}}+SHIFT+A: Open account settings\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.switcher",
+    "translation": "{{.CmdOrCtrl}}+K: Open a quick channel switcher dialog\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.unread_next",
+    "translation": "ALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.unread_prev",
+    "translation": "ALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\n"
   },
   {
     "id": "api.command_shrug.desc",
@@ -4077,7 +4173,7 @@
   },
   {
     "id": "store.sql.pinging.info",
-    "translation": "Проверка sql-соединения c базой данных %v"
+    "translation": "Проверка соединения c базой данных %v"
   },
   {
     "id": "store.sql.read_replicas_not_licensed.critical",

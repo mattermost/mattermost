@@ -572,10 +572,6 @@
     "translation": "ログアウト"
   },
   {
-    "id": "api.command_logout.success_message",
-    "translation": "ログアウト中です…"
-  },
-  {
     "id": "api.command_me.desc",
     "translation": "アクションを実行する"
   },
@@ -644,44 +640,144 @@
     "translation": "あなたはオンライン状態です"
   },
   {
-    "id": "api.command_shortcuts.browser",
-    "translation": "#### 内蔵ブラウザーコマンド\n\nALT+左: 履歴の前のチャンネル\nALT+右: 履歴の次のチャンネル\nCTRL+プラス: フォントを大きくする(ズームイン)\nCTRL+マイナス: フォントを小さくする(ズームアウト)\nSHIFT+UP (入力欄で): 一つ上の行のテキストをハイライトする\nSHIFT+DOWN (入力欄で): 一つ下の行のテキストをハイライトする\nSHIFT+ENTER (入力欄で): 改行する\n"
+    "id": "api.command_shortcuts.browser.channel_next",
+    "translation": "{{.ChannelNextCmd}}: 履歴の次のチャンネル\n"
   },
   {
-    "id": "api.command_shortcuts.browser_mac",
-    "translation": "#### 内蔵ブラウザーコマンド\n\nCMD+[: 履歴の前のチャンネル\nCMD+]: 履歴の次のチャンネル\nCMD+プラス: フォントを大きくする(ズームイン)\nCMD+マイナス: フォントを小さくする(ズームアウト)\nSHIFT+UP (入力欄で): 一つ上の行のテキストをハイライトする\nSHIFT+DOWN (入力欄で): 一つ下の行のテキストをハイライトする\nSHIFT+ENTER (入力欄で): 改行する\n"
+    "id": "api.command_shortcuts.browser.channel_next.cmd",
+    "translation": "ALT+右"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_next.cmd_mac",
+    "translation": "CMD+]"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_prev",
+    "translation": "{{.ChannelPrevCmd}}: 履歴の前のチャンネル\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_prev.cmd",
+    "translation": "ALT+左"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_prev.cmd_mac",
+    "translation": "CMD+["
+  },
+  {
+    "id": "api.command_shortcuts.browser.font_decrease",
+    "translation": "{{.CmdOrCtrl}}+マイナス: フォントを小さくする(ズームアウト)\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.font_increase",
+    "translation": "{{.CmdOrCtrl}}+プラス: フォントを大きくする(ズームイン)\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.header",
+    "translation": "#### 内蔵ブラウザーコマンド\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.highlight_next",
+    "translation": "SHIFT+DOWN (入力欄で): 一つ下の行のテキストをハイライトする\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.highlight_prev",
+    "translation": "SHIFT+UP (入力欄で): 一つ上の行のテキストをハイライトする\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.newline",
+    "translation": "SHIFT+ENTER (入力欄で): 改行する\n"
+  },
+  {
+    "id": "api.command_shortcuts.cmd",
+    "translation": "CMD"
+  },
+  {
+    "id": "api.command_shortcuts.ctrl",
+    "translation": "CTRL"
   },
   {
     "id": "api.command_shortcuts.desc",
     "translation": "キーボードショートカットのリストを表示する"
   },
   {
-    "id": "api.command_shortcuts.files",
-    "translation": "#### ファイル\n\nCTRL+U: ファイルをアップロードする\n\n"
+    "id": "api.command_shortcuts.files.header",
+    "translation": "#### ファイル\n\n"
   },
   {
-    "id": "api.command_shortcuts.files_mac",
-    "translation": "#### ファイル\n\nCMD+U: ファイルをアップロードする\n\n"
+    "id": "api.command_shortcuts.files.upload",
+    "translation": "{{.CmdOrCtrl}}+U: ファイルをアップロードする\n\n"
   },
   {
-    "id": "api.command_shortcuts.msgs",
-    "translation": "#### メッセージ\n\nESC: 現在のチャンネルの全てのメッセージを既読にする\nCTRL+UP (空白の入力欄で): 一つ前に入力したメッセージやスラッシュコマンドを呼び出す\nCTRL+DOWN (空白の入力欄で): 一つ次に入力したメッセージやスラッシュコマンドを呼び出す\nUP (空白の入力欄で): 現在のチャンネルの最新のメッセージを修正する\n@[文字]+TAB: [文字]で始まる@usernameを自動補完する\n~[文字]+TAB: [文字]で始まるチャンネルを自動補完する\n:[文字]+TAB: [文字]で始まる絵文字を自動補完する\n\n"
+    "id": "api.command_shortcuts.header",
+    "translation": "### キーボードショートカット\n\n"
   },
   {
-    "id": "api.command_shortcuts.msgs_mac",
-    "translation": "#### メッセージ\n\nESC: 現在のチャンネルの全てのメッセージを既読にする\nCMD+UP (空白の入力欄で): 一つ前に入力したメッセージやスラッシュコマンドを呼び出す\nCMD+DOWN (空白の入力欄で): 一つ次に入力したメッセージやスラッシュコマンドを呼び出す\nUP (空白の入力欄で): 現在のチャンネルの最新のメッセージを修正する\n@[文字]+TAB: [文字]で始まる@usernameを自動補完する\n~[文字]+TAB: [文字]で始まるチャンネルを自動補完する\n:[文字]+TAB: [文字]で始まる絵文字を自動補完する\n\n"
+    "id": "api.command_shortcuts.msgs.comp_channel",
+    "translation": "~[文字]+TAB: [文字]で始まるチャンネルを自動補完する\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.comp_emoji",
+    "translation": ":[文字]+TAB: [文字]で始まる絵文字を自動補完する\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.comp_username",
+    "translation": "@[文字]+TAB: [文字]で始まる @ユーザー名 を自動補完する\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.edit",
+    "translation": "UP (空白の入力欄で): 現在のチャンネルの最新のメッセージを修正する\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.header",
+    "translation": "#### メッセージ\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.mark_as_read",
+    "translation": "ESC: 現在のチャンネルの全てのメッセージを既読にする\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.reprint_next",
+    "translation": "{{.CmdOrCtrl}}+DOWN (空白の入力欄で): 一つ次に入力したメッセージやスラッシュコマンドを呼び出す\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.reprint_prev",
+    "translation": "{{.CmdOrCtrl}}+UP (空白の入力欄で): 一つ前に入力したメッセージやスラッシュコマンドを呼び出す\n"
   },
   {
     "id": "api.command_shortcuts.name",
     "translation": "ショートカット"
   },
   {
-    "id": "api.command_shortcuts.nav",
-    "translation": "### キーボードショートカット\n\n#### 移動\n\nALT+UP: 左側のサイドバーの前のチャンネルまたはダイレクトメッセージに移動する\nALT+DOWN: 左側のサイドバーの次のチャンネルまたはダイレクトメッセージに移動する\nALT+SHIFT+UP: 左側のサイドバーの未読のメッセージのある前のチャンネルまたはダイレクトメッセージに移動する\nALT+SHIFT+DOWN: 左側のサイドバーの未読のメッセージのある次のチャンネルまたはダイレクトメッセージに移動する\nCTRL+K: 高速チャンネル切り替えダイアログボックスを開く\nCTRL+SHIFT+A: アカウント設定を開く\nCTRL+SHIFT+M: 最近の自分についての投稿を開く\n\n"
+    "id": "api.command_shortcuts.nav.header",
+    "translation": "#### 移動\n\n"
   },
   {
-    "id": "api.command_shortcuts.nav_mac",
-    "translation": "### キーボードショートカット\n\n#### 移動\n\nALT+UP: 左側のサイドバーの前のチャンネルまたはダイレクトメッセージに移動する\nALT+DOWN: 左側のサイドバーの次のチャンネルまたはダイレクトメッセージに移動する\nALT+SHIFT+UP: 左側のサイドバーの未読のメッセージのある前のチャンネルまたはダイレクトメッセージに移動する\nALT+SHIFT+DOWN: 左側のサイドバーの未読のメッセージのある次のチャンネルまたはダイレクトメッセージに移動する\nCMD+K: 高速チャンネル切り替えダイアログボックスを開く\nCMD+SHIFT+A: アカウント設定を開く\nCMD+SHIFT+M: 最近の自分についての投稿を開く\n\n"
+    "id": "api.command_shortcuts.nav.next",
+    "translation": "ALT+DOWN: 左側のサイドバーの次のチャンネルまたはダイレクトメッセージに移動する\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.prev",
+    "translation": "ALT+UP: 左側のサイドバーの前のチャンネルまたはダイレクトメッセージに移動する\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.recent_mentions",
+    "translation": "{{.CmdOrCtrl}}+SHIFT+M: 最近の自分についての投稿を開く\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.settings",
+    "translation": "{{.CmdOrCtrl}}+SHIFT+A: アカウント設定を開く\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.switcher",
+    "translation": "{{.CmdOrCtrl}}+K: 高速チャンネル切り替えダイアログボックスを開く\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.unread_next",
+    "translation": "ALT+SHIFT+DOWN: 左側のサイドバーの未読のメッセージのある次のチャンネルまたはダイレクトメッセージに移動する\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.unread_prev",
+    "translation": "ALT+SHIFT+UP: 左側のサイドバーの未読のメッセージのある前のチャンネルまたはダイレクトメッセージに移動する\n"
   },
   {
     "id": "api.command_shrug.desc",

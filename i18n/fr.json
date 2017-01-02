@@ -572,10 +572,6 @@
     "translation": "quitter"
   },
   {
-    "id": "api.command_logout.success_message",
-    "translation": "Déconnexion en cours..."
-  },
-  {
     "id": "api.command_me.desc",
     "translation": "Effectuer une action"
   },
@@ -644,44 +640,144 @@
     "translation": "Vous êtes maintenant en ligne"
   },
   {
-    "id": "api.command_shortcuts.browser",
-    "translation": "#### Intégré dans le navigateur de commandes\n\nALT+GAUCHE: Chaîne précédente dans votre histoire\nALT+DROITE: Canal suivant dans votre histoire\nCTRL+PLUS: Augmentation de la taille de la police (zoom avant)\nCTRL+MOINS: Diminution de la taille de la police (zoom arrière)\nMAJ+HAUT (dans le champ de saisie): Sélectionner le texte à la ligne précédente\nMAJ+BAS (dans le champ de saisie): Sélectionner le texte à la ligne suivante\nMAJ+ENTRÉE (dans le champ de saisie): Créer une nouvelle ligne\n"
+    "id": "api.command_shortcuts.browser.channel_next",
+    "translation": "{{.ChannelNextCmd}}: Next channel in your history\n"
   },
   {
-    "id": "api.command_shortcuts.browser_mac",
-    "translation": "#### Intégré dans le navigateur de commandes\n\nCMD+[: Canal précédent dans votre histoire\nCMD+]: Canal suivant dans votre histoire\nCMD+PLUS: Augmentation de la taille de la police (zoom avant)\nCMD+MOINS: Diminution de la taille de la police (zoom arrière)\nMAJ+HAUT (dans le champ de saisie): Sélectionner le texte à la ligne précédente\nMAJ+flèche vers le BAS (dans le champ de saisie): Sélectionner le texte à la ligne suivante\nMAJ+ENTRÉE (dans le champ de saisie): Créer une nouvelle ligne\n"
+    "id": "api.command_shortcuts.browser.channel_next.cmd",
+    "translation": "ALT+RIGHT"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_next.cmd_mac",
+    "translation": "CMD+]"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_prev",
+    "translation": "{{.ChannelPrevCmd}}: Previous channel in your history\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_prev.cmd",
+    "translation": "ALT+LEFT"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_prev.cmd_mac",
+    "translation": "CMD+["
+  },
+  {
+    "id": "api.command_shortcuts.browser.font_decrease",
+    "translation": "{{.CmdOrCtrl}}+MINUS: Decrease font size (zoom out)\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.font_increase",
+    "translation": "{{.CmdOrCtrl}}+PLUS: Increase font size (zoom in)\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.header",
+    "translation": "#### Built-in Browser Commands\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.highlight_next",
+    "translation": "SHIFT+DOWN (in input field): Highlight text to the next line\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.highlight_prev",
+    "translation": "SHIFT+UP (in input field): Highlight text to the previous line\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.newline",
+    "translation": "SHIFT+ENTER (in input field): Create a new line\n"
+  },
+  {
+    "id": "api.command_shortcuts.cmd",
+    "translation": "CMD"
+  },
+  {
+    "id": "api.command_shortcuts.ctrl",
+    "translation": "CTRL"
   },
   {
     "id": "api.command_shortcuts.desc",
     "translation": "Raccourcis clavier"
   },
   {
-    "id": "api.command_shortcuts.files",
-    "translation": "#### Fichiers\n\nCTRL+U: Télécharger des fichiers\n\n"
+    "id": "api.command_shortcuts.files.header",
+    "translation": "#### Files\n\n"
   },
   {
-    "id": "api.command_shortcuts.files_mac",
-    "translation": "#### Fichiers\n\nCMD+U: Télécharger des fichiers\n\n"
+    "id": "api.command_shortcuts.files.upload",
+    "translation": "{{.CmdOrCtrl}}+U: Upload file(s)\n\n"
   },
   {
-    "id": "api.command_shortcuts.msgs",
-    "translation": "#### Messages\n\nESC : Marque tous les messages du canal actuel comme lus\nCTRL+HAUT (dans un champ de saisie vide) : Affiche le message précédent ou la commande slash précédemment saisis\nCTRL+BAS (dans un champ de saisie vide): Affiche le message suivant ou la commande slash que vous avez précédemment saisis\nHAUT (dans un champ de saisie vide): Édite votre dernier message du canal actuel\n@[caractère]+TAB: Complète automatiquement le nom d'@utilisateur commençant par [caractère]\n#[caractère]+TAB: Complète automatiquement le nom de canal commençant par [caractère]\n:[caractère]+TAB: Complète automatiquement l'émoticône commençant par [caractère]\n\n"
+    "id": "api.command_shortcuts.header",
+    "translation": "### Keyboard Shortcuts\n\n"
   },
   {
-    "id": "api.command_shortcuts.msgs_mac",
-    "translation": "#### Messages\n\nESC : Marque tous les messages du canal actuel comme lus\nCTRL+HAUT (dans un champ de saisie vide) : Affiche le message précédent ou la commande slash précédemment saisis\nCTRL+BAS (dans un champ de saisie vide): Affiche le message suivant ou la commande slash que vous avez précédemment saisis\nHAUT (dans un champ de saisie vide): Édite votre dernier message du canal actuel\n@[caractère]+TAB: Complète automatiquement le nom d'@utilisateur commençant par [caractère]\n#[caractère]+TAB: Complète automatiquement le nom de canal commençant par [caractère]\n:[caractère]+TAB: Complète automatiquement l'émoticône commençant par [caractère]\n\n"
+    "id": "api.command_shortcuts.msgs.comp_channel",
+    "translation": "~[character]+TAB: Autocomplete channel beginning with [character]\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.comp_emoji",
+    "translation": ":[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.comp_username",
+    "translation": "@[character]+TAB: Autocomplete @username beginning with [character]\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.edit",
+    "translation": "UP (in empty input field): Edit your last message in the current channel\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.header",
+    "translation": "#### Messages\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.mark_as_read",
+    "translation": "ESC: Mark all messages in the current channel as read\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.reprint_next",
+    "translation": "{{.CmdOrCtrl}}+DOWN (in empty input field): Reprint the next message or slash command you entered\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.reprint_prev",
+    "translation": "{{.CmdOrCtrl}}+UP (in empty input field): Reprint the previous message or slash command you entered\n"
   },
   {
     "id": "api.command_shortcuts.name",
     "translation": "raccourcis clavier"
   },
   {
-    "id": "api.command_shortcuts.nav",
-    "translation": "### Raccourcis clavier\n\n#### Navigation\n\nALT+HAUT : Canal ou message privé dans la barre latérale gauche\nALT+BAS : Canal ou message privé suivant dans la barre latérale gauche\nALT+MAJ+HAUT : Canal ou message privé précédent dans la barre latérale de gauche comportant des messages non lus\nALT+MAJ+BAS : Canal ou message privé suivant dans la barre latérale de gauche comportant des messages non lus\nCMD+K : Ouvre une boîte de dialogue permettant de changer de canal rapidement\nCMD+MAJ+A : Ouvre les paramètres du compte\nCMD+MAJ+M : Ouvre les mentions récentes\n\n"
+    "id": "api.command_shortcuts.nav.header",
+    "translation": "#### Navigation\n\n"
   },
   {
-    "id": "api.command_shortcuts.nav_mac",
-    "translation": "### Raccourcis clavier\n\n#### Navigation\n\nALT+HAUT : Canal ou message privé dans la barre latérale gauche\nALT+BAS : Canal ou message privé suivant dans la barre latérale gauche\nALT+MAJ+HAUT : Canal ou message privé précédent dans la barre latérale de gauche comportant des messages non lus\nALT+MAJ+BAS : Canal ou message privé suivant dans la barre latérale de gauche comportant des messages non lus\nCMD+K : Ouvre une boîte de dialogue permettant de changer de canal rapidement\nCMD+MAJ+A : Ouvre les paramètres du compte\nCMD+MAJ+M : Ouvre les mentions récentes\n\n"
+    "id": "api.command_shortcuts.nav.next",
+    "translation": "ALT+DOWN: Next channel or direct message in left hand sidebar\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.prev",
+    "translation": "ALT+UP: Previous channel or direct message in left hand sidebar\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.recent_mentions",
+    "translation": "{{.CmdOrCtrl}}+SHIFT+M: Open recent mentions\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.settings",
+    "translation": "{{.CmdOrCtrl}}+SHIFT+A: Open account settings\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.switcher",
+    "translation": "{{.CmdOrCtrl}}+K: Open a quick channel switcher dialog\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.unread_next",
+    "translation": "ALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.unread_prev",
+    "translation": "ALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\n"
   },
   {
     "id": "api.command_shrug.desc",

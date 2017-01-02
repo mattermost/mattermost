@@ -572,10 +572,6 @@
     "translation": "Abmelden"
   },
   {
-    "id": "api.command_logout.success_message",
-    "translation": "Abmeldung läuft..."
-  },
-  {
     "id": "api.command_me.desc",
     "translation": "Führe eine Aktion aus"
   },
@@ -644,44 +640,144 @@
     "translation": "Sie sind nun online"
   },
   {
-    "id": "api.command_shortcuts.browser",
-    "translation": "#### Eingebaute Browser-Befehle\n\nAlt+Links: Vorheriger Kanal in Ihrem Verlauf\nAlt+Rechts: Nächster Kanal in Ihrem Verlauf\nStrg+Plus: Schriftgröße vergrößern (hineinzoomen)\nStrg+Minus: Schriftgröße verkleinern (herauszoomen)\nShift+Hoch (im Eingabefeld): Text bis zur vorherigen Zeile markieren\nShift+Runter (im Eingabefeld): Text bis zur nächsten Zeile markieren\nShift+Enter (im Eingabefeld): Eine neue Zeile erstellen\n"
+    "id": "api.command_shortcuts.browser.channel_next",
+    "translation": "{{.ChannelNextCmd}}: Nächster Kanal in Ihrem Verlauf\n"
   },
   {
-    "id": "api.command_shortcuts.browser_mac",
-    "translation": "#### Eingebaute Browser-Befehle\n\nCmd+[: Vorheriger Kanal in Ihrem Verlauf\nCmd+]: Nächster Kanal in Ihrem Verlauf\nCmd+Plus: Schriftgröße erhöhen (hineinzoomen)\nCmd+Minus: Schriftgröße verkleinern (herauszoomen)\nShift+Hoch (im Eingabefeld): Text bis zur vorherigen Zeile markieren\nShift+Runter (im Eingabefeld): Text bis zur nächsten Zeile markieren\nShift+Enter (im Eingabefeld): Eine neue Zeile erstellen\n"
+    "id": "api.command_shortcuts.browser.channel_next.cmd",
+    "translation": "ALT+RECHTS"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_next.cmd_mac",
+    "translation": "CMD+RECHTS"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_prev",
+    "translation": "{{.ChannelPrevCmd}}: Vorheriger Kanal in Ihrem Verlauf\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_prev.cmd",
+    "translation": "ALT+LINKS"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_prev.cmd_mac",
+    "translation": "CMD+LINKS"
+  },
+  {
+    "id": "api.command_shortcuts.browser.font_decrease",
+    "translation": "{{.CmdOrCtrl}}+MINUS: Schriftgröße verkleinern (herauszoomen)\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.font_increase",
+    "translation": "{{.CmdOrCtrl}}+PLUS: Schriftgröße erhöhen (hineinzoomen)\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.header",
+    "translation": "#### Eingebaute Browser-Befehle\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.highlight_next",
+    "translation": "SHIFT+RUNTER (im Eingabefeld): Text bis zur nächsten Zeile auswählen\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.highlight_prev",
+    "translation": "SHIFT+HOCH (im Eingabefeld): Text bis zur vorherigen Zeile auswählen\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.newline",
+    "translation": "SHIFT+ENTER (im Eingabefeld): Einen Zeilenumbruch einfügen\n"
+  },
+  {
+    "id": "api.command_shortcuts.cmd",
+    "translation": "CMD"
+  },
+  {
+    "id": "api.command_shortcuts.ctrl",
+    "translation": "STRG"
   },
   {
     "id": "api.command_shortcuts.desc",
     "translation": "Eine Liste der Tastaturkürzel anzeigen"
   },
   {
-    "id": "api.command_shortcuts.files",
-    "translation": "#### Dateien\n\nStrg+U: Datei(en) hochladen\n\n"
+    "id": "api.command_shortcuts.files.header",
+    "translation": "#### Dateien\n\n"
   },
   {
-    "id": "api.command_shortcuts.files_mac",
-    "translation": "#### Dateien\n\nCmd+U: Datei(en) hochladen\n\n"
+    "id": "api.command_shortcuts.files.upload",
+    "translation": "{{.CmdOrCtrl}}+U: Datei(en) hochladen\n\n"
   },
   {
-    "id": "api.command_shortcuts.msgs",
-    "translation": "#### Mitteilungen\n\nEsc: Alle Mitteilungen im aktuellen Kanal als gelesen markieren\nStrg+Hoch (in leerem Eingabefeld): Vorherige Mitteilung oder Slash-Befehl anzeigen\nStrg+Runter (in leerem Eingabefeld): Nächste Mitteilung oder Slash-Befehl anzeigen\nHoch (in leerem Eingabefeld): Die letzte Nachricht im aktuellen Kanal bearbeiten\n@[Zeichen]+Tab: @Benutzername beginnend mit [Zeichen] vervollständigen\n~[Zeichen]+Tab: Kanal beginnend mit [Zeichen] vervollständigen\n:[Zeichen]+Tab: Emoji beginnend mit [Zeichen] vervollständigen\n\n"
+    "id": "api.command_shortcuts.header",
+    "translation": "### Tastenkombinationen\n\n"
   },
   {
-    "id": "api.command_shortcuts.msgs_mac",
-    "translation": "#### Nachrichten\n\nEsc: Alle Mitteilungen im aktuellen Kanal als gelesen markieren\nCmd+Hoch (in leerem Eingabefeld): Vorherige Mitteilung oder Slash-Befehl anzeigen\nCmd+Runter (in leerem Eingabefeld): Nächste Mitteilung oder Slash-Befehl anzeigen\nHoch (in leerem Eingabefeld): Ihre letzte Nachricht im aktuellen Kanal bearbeiten\n@[Zeichen]+Tab: @Benutzername beginnend mit [Zeichen] vervollständigen\n~[Zeichen]+Tab: Kanal beginnend mit [Zeichen] vervollständigen\n:[Zeichen]+Tab: Emoji beginnend mit [Zeichen] vervollständigen\n\n"
+    "id": "api.command_shortcuts.msgs.comp_channel",
+    "translation": "~[Zeichen]+TAB: Den Kanal beginnend mit [Zeichen] autovervollständigen\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.comp_emoji",
+    "translation": ":[Zeichen]+TAB: Emoji beginnend mit [Zeichen] autovervollständigen\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.comp_username",
+    "translation": "@[Zeichen]+TAB: @Benutzername beginnend mit [Zeichen] autovervollständigen\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.edit",
+    "translation": "HOCH (im leeren Eingabefeld): Editieren Sie Ihre letzte Nachricht im aktuellen Kanal\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.header",
+    "translation": "#### Mitteilungen\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.mark_as_read",
+    "translation": "ESC: Alle Nachrichten im aktuellen Kanal als gelesen markieren\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.reprint_next",
+    "translation": "{{.CmdOrCtrl}}+HOCH (im leeren Eingabefeld): Die letzte Nachricht oder den letzten Slash-Befehl anzeigen\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.reprint_prev",
+    "translation": "{{.CmdOrCtrl}}+HOCH (im leeren Eingabefeld): Die letzte Nachricht oder den letzten Slash-Befehl anzeigen\n"
   },
   {
     "id": "api.command_shortcuts.name",
     "translation": "Tastenkürzel"
   },
   {
-    "id": "api.command_shortcuts.nav",
-    "translation": "#### Tastenkürzel\n\n#### Navigation\n\nAlt+Hoch: Vorheriger Kanal oder Direktnachricht in der linken Seitenleiste\nAlt+Runter: Nächster Kanal oder Direktnachricht in der linken Seitenleiste\nAlt+Shift+Hoch: Vorheriger Kanal oder Direktnachricht in der linken Seitenleiste mit ungelesenen Nachrichten\nAlt+Shift+Runter: Nächster Kanal oder Direktnachricht in der linken Seitenleiste mit ungelesenen Nachrichten\nStrg+K: Einen Kanal-Schnellwechseldialog anzeigen\nStrg+Shift+A: Benutzereinstellungen öffnen\nStrg+Shift+M: Die letzten Erwähnungen öffnen\n\n"
+    "id": "api.command_shortcuts.nav.header",
+    "translation": "#### Navigation\n\n"
   },
   {
-    "id": "api.command_shortcuts.nav_mac",
-    "translation": "#### Tastenkürzel\n\n#### Navigation\n\nAlt+Hoch: Vorheriger Kanal oder Direktnachricht in der linken Seitenleiste\nAlt+Runter: Nächster Kanal oder Direktnachricht in der linken Seitenleiste\nAlt+Shift+Hoch: Vorheriger Kanal oder Direktnachricht in der linken Seitenleiste mit ungelesenen Nachrichten\nAlt+Shift+Runter: Nächster Kanal oder Direktnachricht in der linken Seitenleiste mit ungelesenen Nachrichten\nCmd+K: Einen Kanal-Schnellwechseldialog anzeigen\nCmd+Shift+A: Benutzereinstellungen öffnen\nCmd+Shift+M: Die letzten Erwähnungen öffnen\n\n"
+    "id": "api.command_shortcuts.nav.next",
+    "translation": "ALT+RUNTER: Nächsten Kanal oder Direktnachricht in der linken Seitenleiste\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.prev",
+    "translation": "ALT+HOCH: Vorheriger Kanal oder Direktnachricht in der linken Seitenleiste\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.recent_mentions",
+    "translation": "{{.CmdOrCtrl}}+SHIFT+M: Letzten Erwähnungen öffnen\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.settings",
+    "translation": "{{.CmdOrCtrl}}+SHIFT+A: Kontoeinstellungen öffnen\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.switcher",
+    "translation": "{{.CmdOrCtrl}}+K: Den Kanalschnellwechsler öffnen\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.unread_next",
+    "translation": "ALT+SHIFT+RUNTER: Nächster Kanal oder Direktnachricht mit ungelesenen Nachrichten in der linken Seitenleiste\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.unread_prev",
+    "translation": "ALT+SHIFT+HOCH: Vorheriger Kanal oder Direktnachricht mit ungelesenen Nachrichten in der linken Seitenleiste\n"
   },
   {
     "id": "api.command_shrug.desc",

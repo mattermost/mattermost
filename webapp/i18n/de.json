@@ -2162,6 +2162,7 @@
   "user.settings.security.title": "Sicherheitseinstellungen",
   "user.settings.security.viewHistory": "Zeige Zugriffshistorie",
   "user_list.notFound": "Keine Benutzer gefunden",
+  "user_profile.send.dm": "Nachricht versenden",
   "user_profile.webrtc.call": "Videoanruf starten",
   "user_profile.webrtc.offline": "Der Benutzer ist offline",
   "user_profile.webrtc.unavailable": "Neuer Anruf nicht möglich bis ihr bestehender Anruf beendet ist",
