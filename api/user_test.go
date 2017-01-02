@@ -712,7 +712,15 @@ func TestUserCreateImage(t *testing.T) {
 
 	Client.Login(user.Email, "passwd1")
 
-	Client.DoApiGet("/users/"+user.Id+"/image", "", "")
+	if resp, err := Client.DoApiGet("/users/"+user.Id+"/image", "", ""); err != nil {
+		t.Fatal(err)
+	} else {
+		etag := resp.Header.Get(model.HEADER_ETAG_SERVER)
+		resp2, _ := Client.DoApiGet("/users/"+user.Id+"/image", "", etag)
+		if resp2.StatusCode != 304 {
+			t.Fatal("Should have hit etag")
+		}
+	}
 
 	if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
 		endpoint := utils.Cfg.FileSettings.AmazonS3Endpoint
