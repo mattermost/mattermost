@@ -214,7 +214,7 @@ func sendBatchedEmailNotification(userId string, notifications []*batchedNotific
 
 func renderBatchedPost(template *utils.HTMLTemplate, post *model.Post, teamName string, displayNameFormat string, translateFunc i18n.TranslateFunc) string {
 	schan := Srv.Store.User().Get(post.UserId)
-	cchan := Srv.Store.Channel().Get(post.ChannelId)
+	cchan := Srv.Store.Channel().Get(post.ChannelId, true)
 
 	template.Props["Button"] = translateFunc("api.email_batching.render_batched_post.go_to_post")
 	template.Props["PostMessage"] = getMessageForNotification(post, translateFunc)

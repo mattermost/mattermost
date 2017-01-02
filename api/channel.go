@@ -216,7 +216,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sc := Srv.Store.Channel().Get(channel.Id)
+	sc := Srv.Store.Channel().Get(channel.Id, true)
 	cmc := Srv.Store.Channel().GetMember(channel.Id, c.Session.UserId)
 
 	if cresult := <-sc; cresult.Err != nil {
@@ -264,6 +264,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			oldChannel.Type = channel.Type
 		}
 
+		InvalidateCacheForChannel(oldChannel.Id)
 		if ucresult := <-Srv.Store.Channel().Update(oldChannel); ucresult.Err != nil {
 			c.Err = ucresult.Err
 			return
@@ -292,7 +293,7 @@ func updateChannelHeader(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sc := Srv.Store.Channel().Get(channelId)
+	sc := Srv.Store.Channel().Get(channelId, true)
 	cmc := Srv.Store.Channel().GetMember(channelId, c.Session.UserId)
 
 	if cresult := <-sc; cresult.Err != nil {
@@ -312,6 +313,7 @@ func updateChannelHeader(c *Context, w http.ResponseWriter, r *http.Request) {
 		oldChannelHeader := channel.Header
 		channel.Header = channelHeader
 
+		InvalidateCacheForChannel(channel.Id)
 		if ucresult := <-Srv.Store.Channel().Update(channel); ucresult.Err != nil {
 			c.Err = ucresult.Err
 			return
@@ -400,7 +402,7 @@ func updateChannelPurpose(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sc := Srv.Store.Channel().Get(channelId)
+	sc := Srv.Store.Channel().Get(channelId, true)
 	cmc := Srv.Store.Channel().GetMember(channelId, c.Session.UserId)
 
 	if cresult := <-sc; cresult.Err != nil {
@@ -419,6 +421,7 @@ func updateChannelPurpose(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		channel.Purpose = channelPurpose
 
+		InvalidateCacheForChannel(channel.Id)
 		if ucresult := <-Srv.Store.Channel().Update(channel); ucresult.Err != nil {
 			c.Err = ucresult.Err
 			return
@@ -542,7 +545,7 @@ func JoinChannelByName(c *Context, userId string, teamId string, channelName str
 }
 
 func JoinChannelById(c *Context, userId string, channelId string) (*model.AppError, *model.Channel) {
-	channelChannel := Srv.Store.Channel().Get(channelId)
+	channelChannel := Srv.Store.Channel().Get(channelId, true)
 	userChannel := Srv.Store.User().Get(userId)
 
 	return joinChannel(c, channelChannel, userChannel)
@@ -713,7 +716,7 @@ func leave(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["channel_id"]
 
-	sc := Srv.Store.Channel().Get(id)
+	sc := Srv.Store.Channel().Get(id, true)
 	uc := Srv.Store.User().Get(c.Session.UserId)
 	ccm := Srv.Store.Channel().GetMemberCount(id, false)
 
@@ -769,7 +772,7 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["channel_id"]
 
-	sc := Srv.Store.Channel().Get(id)
+	sc := Srv.Store.Channel().Get(id, true)
 	scm := Srv.Store.Channel().GetMember(id, c.Session.UserId)
 	cmc := Srv.Store.Channel().GetMemberCount(id, false)
 	uc := Srv.Store.User().Get(c.Session.UserId)
@@ -842,6 +845,7 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			}()
 		}
 
+		InvalidateCacheForChannel(channel.Id)
 		if dresult := <-Srv.Store.Channel().Delete(channel.Id, model.GetMillis()); dresult.Err != nil {
 			c.Err = dresult.Err
 			return
@@ -876,7 +880,7 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["channel_id"]
 
-	cchan := Srv.Store.Channel().Get(id)
+	cchan := Srv.Store.Channel().Get(id, true)
 	cmchan := Srv.Store.Channel().GetMember(id, c.Session.UserId)
 
 	if cresult := <-cchan; cresult.Err != nil {
@@ -956,7 +960,7 @@ func getChannelStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["channel_id"]
 
-	sc := Srv.Store.Channel().Get(id)
+	sc := Srv.Store.Channel().Get(id, true)
 	var channel *model.Channel
 	if result := <-sc; result.Err != nil {
 		c.Err = result.Err
@@ -1026,7 +1030,7 @@ func addMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sc := Srv.Store.Channel().Get(id)
+	sc := Srv.Store.Channel().Get(id, true)
 	ouc := Srv.Store.User().Get(c.Session.UserId)
 	nuc := Srv.Store.User().Get(userId)
 	if nresult := <-nuc; nresult.Err != nil {
@@ -1081,7 +1085,7 @@ func removeMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sc := Srv.Store.Channel().Get(channelId)
+	sc := Srv.Store.Channel().Get(channelId, true)
 	cmc := Srv.Store.Channel().GetMember(channelId, c.Session.UserId)
 	ouc := Srv.Store.User().Get(userIdToRemove)
 

@@ -119,7 +119,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		chanChan := Srv.Store.Channel().Get(commandArgs.ChannelId)
+		chanChan := Srv.Store.Channel().Get(commandArgs.ChannelId, true)
 		teamChan := Srv.Store.Team().Get(c.TeamId)
 		userChan := Srv.Store.User().Get(c.Session.UserId)
 
