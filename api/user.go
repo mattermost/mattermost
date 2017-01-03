@@ -8,10 +8,6 @@ import (
 	b64 "encoding/base64"
 	"fmt"
 	"html/template"
-	"image"
-	_ "image/gif"
-	_ "image/jpeg"
-	"image/png"
 	"io"
 	"net/http"
 	"net/url"
@@ -20,7 +16,6 @@ import (
 	"time"
 
 	l4g "github.com/alecthomas/log4go"
-	"github.com/disintegration/imaging"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/einterfaces"
@@ -362,21 +357,10 @@ func doLogin(c *Context, w http.ResponseWriter, r *http.Request, user *model.Use
 		maxAge = *utils.Cfg.ServiceSettings.SessionLengthMobileInDays * 60 * 60 * 24
 
 		// A special case where we logout of all other sessions with the same Id
-		if result := <-app.Srv.Store.Session().GetSessions(user.Id); result.Err != nil {
-			c.Err = result.Err
+		if err := app.RevokeSessionsForDeviceId(user.Id, deviceId, ""); err != nil {
+			c.Err = err
 			c.Err.StatusCode = http.StatusInternalServerError
 			return
-		} else {
-			sessions := result.Data.([]*model.Session)
-			for _, session := range sessions {
-				if session.DeviceId == deviceId {
-					l4g.Debug(utils.T("api.user.login.revoking.app_error"), session.Id, user.Id)
-					if err := app.RevokeSessionById(session.Id); err != nil {
-						c.LogError(err)
-						c.Err = nil
-					}
-				}
-			}
 		}
 	} else {
 		session.SetExpireInDays(*utils.Cfg.ServiceSettings.SessionLengthWebInDays)
@@ -399,10 +383,6 @@ func doLogin(c *Context, w http.ResponseWriter, r *http.Request, user *model.Use
 		bname = "unknown"
 	}
 
-	if strings.Contains(r.UserAgent(), "Mattermost") {
-		bname = "Desktop App"
-	}
-
 	if bversion == "" {
 		bversion = "0.0"
 	}
@@ -411,13 +391,11 @@ func doLogin(c *Context, w http.ResponseWriter, r *http.Request, user *model.Use
 	session.AddProp(model.SESSION_PROP_OS, os)
 	session.AddProp(model.SESSION_PROP_BROWSER, fmt.Sprintf("%v/%v", bname, bversion))
 
-	if result := <-app.Srv.Store.Session().Save(session); result.Err != nil {
-		c.Err = result.Err
+	var err *model.AppError
+	if session, err = app.CreateSession(session); err != nil {
+		c.Err = err
 		c.Err.StatusCode = http.StatusInternalServerError
 		return
-	} else {
-		session = result.Data.(*model.Session)
-		app.AddSessionToCache(session)
 	}
 
 	w.Header().Set(model.HEADER_TOKEN, session.Token)
@@ -476,7 +454,7 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.RemoveAllSessionsForUserId(c.Session.UserId)
+	app.ClearSessionCacheForUser(c.Session.UserId)
 	c.Session.SetExpireInDays(*utils.Cfg.ServiceSettings.SessionLengthMobileInDays)
 
 	maxAge := *utils.Cfg.ServiceSettings.SessionLengthMobileInDays * 60 * 60 * 24
@@ -507,58 +485,6 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.MapToJson(props)))
 }
 
-// IF YOU UPDATE THIS PLEASE UPDATE BELOW
-func RevokeAllSession(c *Context, userId string) {
-	if result := <-app.Srv.Store.Session().GetSessions(userId); result.Err != nil {
-		c.Err = result.Err
-		return
-	} else {
-		sessions := result.Data.([]*model.Session)
-
-		for _, session := range sessions {
-			c.LogAuditWithUserId(userId, "session_id="+session.Id)
-			if session.IsOAuth {
-				app.RevokeAccessToken(session.Token)
-			} else {
-				if result := <-app.Srv.Store.Session().Remove(session.Id); result.Err != nil {
-					c.Err = result.Err
-					return
-				}
-			}
-
-			app.RevokeWebrtcToken(session.Id)
-		}
-	}
-
-	app.RemoveAllSessionsForUserId(userId)
-}
-
-// UGH...
-// If you update this please update above
-func RevokeAllSessionsNoContext(userId string) *model.AppError {
-	if result := <-app.Srv.Store.Session().GetSessions(userId); result.Err != nil {
-		return result.Err
-	} else {
-		sessions := result.Data.([]*model.Session)
-
-		for _, session := range sessions {
-			if session.IsOAuth {
-				app.RevokeAccessToken(session.Token)
-			} else {
-				if result := <-app.Srv.Store.Session().Remove(session.Id); result.Err != nil {
-					return result.Err
-				}
-			}
-
-			app.RevokeWebrtcToken(session.Id)
-		}
-	}
-
-	app.RemoveAllSessionsForUserId(userId)
-
-	return nil
-}
-
 func getSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
@@ -568,11 +494,10 @@ func getSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-app.Srv.Store.Session().GetSessions(id); result.Err != nil {
-		c.Err = result.Err
+	if sessions, err := app.GetSessions(id); err != nil {
+		c.Err = err
 		return
 	} else {
-		sessions := result.Data.([]*model.Session)
 		for _, session := range sessions {
 			session.Sanitize()
 		}
@@ -990,62 +915,9 @@ func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	imageData := imageArray[0]
 
-	file, err := imageData.Open()
-	defer file.Close()
-	if err != nil {
-		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.open.app_error", nil, err.Error())
+	if err := app.SetProfileImage(c.Session.UserId, imageData); err != nil {
+		c.Err = err
 		return
-	}
-
-	// Decode image config first to check dimensions before loading the whole thing into memory later on
-	config, _, err := image.DecodeConfig(file)
-	if err != nil {
-		c.Err = model.NewLocAppError("uploadProfileFile", "api.user.upload_profile_user.decode_config.app_error", nil, err.Error())
-		return
-	} else if config.Width*config.Height > MaxImageSize {
-		c.Err = model.NewLocAppError("uploadProfileFile", "api.user.upload_profile_user.too_large.app_error", nil, err.Error())
-		return
-	}
-
-	file.Seek(0, 0)
-
-	// Decode image into Image object
-	img, _, err := image.Decode(file)
-	if err != nil {
-		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.decode.app_error", nil, err.Error())
-		return
-	}
-
-	// Scale profile image
-	img = imaging.Resize(img, utils.Cfg.FileSettings.ProfileWidth, utils.Cfg.FileSettings.ProfileHeight, imaging.Lanczos)
-
-	buf := new(bytes.Buffer)
-	err = png.Encode(buf, img)
-	if err != nil {
-		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.encode.app_error", nil, err.Error())
-		return
-	}
-
-	path := "users/" + c.Session.UserId + "/profile.png"
-
-	if err := app.WriteFile(buf.Bytes(), path); err != nil {
-		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.upload_profile.app_error", nil, "")
-		return
-	}
-
-	app.Srv.Store.User().UpdateLastPictureUpdate(c.Session.UserId)
-
-	if result := <-app.Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
-		l4g.Error(utils.T("api.user.get_me.getting.error"), c.Session.UserId)
-	} else {
-		user := result.Data.(*model.User)
-		user = sanitizeProfile(c, user)
-		omitUsers := make(map[string]bool, 1)
-		omitUsers[user.Id] = true
-		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", omitUsers)
-		message.Add("user", user)
-
-		go app.Publish(message)
 	}
 
 	c.LogAudit("")
@@ -1241,7 +1113,7 @@ func UpdateUserRoles(user *model.User, newRoles string) (*model.User, *model.App
 		l4g.Error(result.Err)
 	}
 
-	app.RemoveAllSessionsForUserId(user.Id)
+	app.ClearSessionCacheForUser(user.Id)
 
 	return ruser, nil
 }
@@ -1280,7 +1152,7 @@ func updateActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if ruser, err := UpdateActive(user, active); err != nil {
+	if ruser, err := app.UpdateActive(user, active); err != nil {
 		c.Err = err
 	} else {
 		if !active {
@@ -1292,39 +1164,13 @@ func updateActive(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func UpdateActive(user *model.User, active bool) (*model.User, *model.AppError) {
-	if active {
-		user.DeleteAt = 0
-	} else {
-		user.DeleteAt = model.GetMillis()
-	}
-
-	if result := <-app.Srv.Store.User().Update(user, true); result.Err != nil {
-		return nil, result.Err
-	} else {
-		if user.DeleteAt > 0 {
-			RevokeAllSessionsNoContext(user.Id)
-		}
-
-		if extra := <-app.Srv.Store.Channel().ExtraUpdateByUser(user.Id, model.GetMillis()); extra.Err != nil {
-			return nil, extra.Err
-		}
-
-		ruser := result.Data.([2]*model.User)[0]
-		options := utils.Cfg.GetSanitizeOptions()
-		options["passwordupdate"] = false
-		ruser.Sanitize(options)
-		return ruser, nil
-	}
-}
-
 func PermanentDeleteUser(user *model.User) *model.AppError {
 	l4g.Warn(utils.T("api.user.permanent_delete_user.attempting.warn"), user.Email, user.Id)
 	if user.IsInRole(model.ROLE_SYSTEM_ADMIN.Id) {
 		l4g.Warn(utils.T("api.user.permanent_delete_user.system_admin.warn"), user.Email)
 	}
 
-	if _, err := UpdateActive(user, false); err != nil {
+	if _, err := app.UpdateActive(user, false); err != nil {
 		return err
 	}
 
@@ -1777,7 +1623,12 @@ func oauthToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	go sendSignInChangeEmail(c, user.Email, c.GetSiteURL(), c.T("api.templates.signin_change_email.body.method_email"))
 
-	RevokeAllSession(c, c.Session.UserId)
+	if err := app.RevokeAllSessions(c.Session.UserId); err != nil {
+		c.Err = err
+		return
+	}
+	c.LogAuditWithUserId(c.Session.UserId, "Revoked all sessions for user")
+
 	c.RemoveSessionCookie(w, r)
 	if c.Err != nil {
 		return
@@ -1836,7 +1687,12 @@ func emailToLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	RevokeAllSession(c, user.Id)
+	if err := app.RevokeAllSessions(user.Id); err != nil {
+		c.Err = err
+		return
+	}
+	c.LogAuditWithUserId(user.Id, "Revoked all sessions for user")
+
 	c.RemoveSessionCookie(w, r)
 	if c.Err != nil {
 		return
@@ -1928,7 +1784,12 @@ func ldapToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	RevokeAllSession(c, user.Id)
+	if err := app.RevokeAllSessions(user.Id); err != nil {
+		c.Err = err
+		return
+	}
+	c.LogAuditWithUserId(user.Id, "Revoked all sessions for user")
+
 	c.RemoveSessionCookie(w, r)
 	if c.Err != nil {
 		return
@@ -2214,7 +2075,11 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 			break
 		case model.OAUTH_ACTION_EMAIL_TO_SSO:
-			RevokeAllSession(c, user.Id)
+			if err := app.RevokeAllSessions(user.Id); err != nil {
+				c.Err = err
+				return
+			}
+			c.LogAuditWithUserId(user.Id, "Revoked all sessions for user")
 			go sendSignInChangeEmail(c, user.Email, c.GetSiteURL(), strings.Title(model.USER_AUTH_SERVICE_SAML)+" SSO")
 			break
 		}

@@ -148,7 +148,7 @@ func LeaveTeam(team *model.Team, user *model.User) *model.AppError {
 		return result.Err
 	}
 
-	app.RemoveAllSessionsForUserId(user.Id)
+	app.ClearSessionCacheForUser(user.Id)
 	app.InvalidateCacheForUser(user.Id)
 
 	return nil
@@ -257,7 +257,7 @@ func revokeAllSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 				c.Err = result.Err
 				return
 			} else {
-				app.RemoveAllSessionsForUserId(session.UserId)
+				app.ClearSessionCacheForUser(session.UserId)
 				w.Write([]byte(model.MapToJson(props)))
 				return
 			}
@@ -706,7 +706,7 @@ func updateMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.RemoveAllSessionsForUserId(userId)
+	app.ClearSessionCacheForUser(userId)
 
 	rdata := map[string]string{}
 	rdata["status"] = "ok"

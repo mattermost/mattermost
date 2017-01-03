@@ -22,7 +22,7 @@ func TestCache(t *testing.T) {
 		t.Fatal("should have items")
 	}
 
-	RemoveAllSessionsForUserId(session.UserId)
+	ClearSessionCacheForUser(session.UserId)
 
 	rkeys := sessionCache.Keys()
 	if len(rkeys) != len(keys)-1 {

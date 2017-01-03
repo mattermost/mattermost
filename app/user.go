@@ -15,11 +15,13 @@ import (
 	"image/png"
 	"io"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 	"strconv"
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
+	"github.com/disintegration/imaging"
 	"github.com/golang/freetype"
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
@@ -478,4 +480,89 @@ func GetProfileImage(user *model.User) ([]byte, *model.AppError) {
 	}
 
 	return img, nil
+}
+
+func SetProfileImage(userId string, imageData *multipart.FileHeader) *model.AppError {
+	file, err := imageData.Open()
+	defer file.Close()
+	if err != nil {
+		return model.NewLocAppError("SetProfileImage", "api.user.upload_profile_user.open.app_error", nil, err.Error())
+	}
+
+	// Decode image config first to check dimensions before loading the whole thing into memory later on
+	config, _, err := image.DecodeConfig(file)
+	if err != nil {
+		return model.NewLocAppError("SetProfileImage", "api.user.upload_profile_user.decode_config.app_error", nil, err.Error())
+	} else if config.Width*config.Height > model.MaxImageSize {
+		return model.NewLocAppError("SetProfileImage", "api.user.upload_profile_user.too_large.app_error", nil, err.Error())
+	}
+
+	file.Seek(0, 0)
+
+	// Decode image into Image object
+	img, _, err := image.Decode(file)
+	if err != nil {
+		return model.NewLocAppError("SetProfileImage", "api.user.upload_profile_user.decode.app_error", nil, err.Error())
+	}
+
+	// Scale profile image
+	img = imaging.Resize(img, utils.Cfg.FileSettings.ProfileWidth, utils.Cfg.FileSettings.ProfileHeight, imaging.Lanczos)
+
+	buf := new(bytes.Buffer)
+	err = png.Encode(buf, img)
+	if err != nil {
+		return model.NewLocAppError("SetProfileImage", "api.user.upload_profile_user.encode.app_error", nil, err.Error())
+	}
+
+	path := "users/" + userId + "/profile.png"
+
+	if err := WriteFile(buf.Bytes(), path); err != nil {
+		return model.NewLocAppError("SetProfileImage", "api.user.upload_profile_user.upload_profile.app_error", nil, "")
+	}
+
+	Srv.Store.User().UpdateLastPictureUpdate(userId)
+
+	if user, err := GetUser(userId); err != nil {
+		l4g.Error(utils.T("api.user.get_me.getting.error"), userId)
+	} else {
+		options := utils.Cfg.GetSanitizeOptions()
+		user.SanitizeProfile(options)
+
+		omitUsers := make(map[string]bool, 1)
+		omitUsers[userId] = true
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", omitUsers)
+		message.Add("user", user)
+
+		Publish(message)
+	}
+
+	return nil
+}
+
+func UpdateActive(user *model.User, active bool) (*model.User, *model.AppError) {
+	if active {
+		user.DeleteAt = 0
+	} else {
+		user.DeleteAt = model.GetMillis()
+	}
+
+	if result := <-Srv.Store.User().Update(user, true); result.Err != nil {
+		return nil, result.Err
+	} else {
+		if user.DeleteAt > 0 {
+			if err := RevokeAllSessions(user.Id); err != nil {
+				return nil, err
+			}
+		}
+
+		if extra := <-Srv.Store.Channel().ExtraUpdateByUser(user.Id, model.GetMillis()); extra.Err != nil {
+			return nil, extra.Err
+		}
+
+		ruser := result.Data.([2]*model.User)[0]
+		options := utils.Cfg.GetSanitizeOptions()
+		options["passwordupdate"] = false
+		ruser.Sanitize(options)
+		return ruser, nil
+	}
 }
