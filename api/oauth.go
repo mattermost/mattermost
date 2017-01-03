@@ -252,7 +252,7 @@ func getAuthorizedApps(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func RevokeAccessToken(token string) *model.AppError {
 
-	session := app.GetSession(token)
+	session, _ := app.GetSession(token)
 	schan := app.Srv.Store.Session().Remove(token)
 
 	if result := <-app.Srv.Store.OAuth().GetAccessData(token); result.Err != nil {

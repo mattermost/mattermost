@@ -48,9 +48,9 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 			return
 		}
 
-		session := GetSession(token)
+		session, err := GetSession(token)
 
-		if session == nil || session.IsExpired() {
+		if err != nil {
 			conn.WebSocket.Close()
 		} else {
 			go SetStatusOnline(session.UserId, session.Id, false)

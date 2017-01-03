@@ -73,49 +73,60 @@ func CreatePost(post *model.Post, teamId string, triggerWebhooks bool) (*model.P
 	InvalidateCacheForChannel(rpost.ChannelId)
 	InvalidateCacheForChannelPosts(rpost.ChannelId)
 
-	handlePostEvents(rpost, teamId, triggerWebhooks)
+	if err := handlePostEvents(rpost, teamId, triggerWebhooks); err != nil {
+		return nil, err
+	}
 
 	return rpost, nil
 }
 
-func handlePostEvents(post *model.Post, teamId string, triggerWebhooks bool) {
+func handlePostEvents(post *model.Post, teamId string, triggerWebhooks bool) *model.AppError {
 	tchan := Srv.Store.Team().Get(teamId)
 	cchan := Srv.Store.Channel().Get(post.ChannelId, true)
 	uchan := Srv.Store.User().Get(post.UserId)
 
 	var team *model.Team
 	if result := <-tchan; result.Err != nil {
-		l4g.Error(utils.T("api.post.handle_post_events_and_forget.team.error"), teamId, result.Err)
-		return
+		return result.Err
 	} else {
 		team = result.Data.(*model.Team)
 	}
 
 	var channel *model.Channel
 	if result := <-cchan; result.Err != nil {
-		l4g.Error(utils.T("api.post.handle_post_events_and_forget.channel.error"), post.ChannelId, result.Err)
-		return
+		return result.Err
 	} else {
 		channel = result.Data.(*model.Channel)
 	}
 
-	SendNotifications(post, team, channel)
+	if _, err := SendNotifications(post, team, channel); err != nil {
+		return err
+	}
 
 	var user *model.User
 	if result := <-uchan; result.Err != nil {
-		l4g.Error(utils.T("api.post.handle_post_events_and_forget.user.error"), post.UserId, result.Err)
-		return
+		return result.Err
 	} else {
 		user = result.Data.(*model.User)
 	}
 
 	if triggerWebhooks {
-		go handleWebhookEvents(post, team, channel, user)
+		go func() {
+			if err := handleWebhookEvents(post, team, channel, user); err != nil {
+				l4g.Error(err.Error())
+			}
+		}()
 	}
 
 	if channel.Type == model.CHANNEL_DIRECT {
-		go MakeDirectChannelVisible(post.ChannelId)
+		go func() {
+			if err := MakeDirectChannelVisible(post.ChannelId); err != nil {
+				l4g.Error(err.Error())
+			}
+		}()
 	}
+
+	return nil
 }
 
 var linkWithTextRegex *regexp.Regexp = regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
@@ -162,7 +173,7 @@ func parseSlackLinksToMarkdown(text string) string {
 	return linkWithTextRegex.ReplaceAllString(text, "[${2}](${1})")
 }
 
-func SendEphemeralPost(teamId, userId string, post *model.Post) {
+func SendEphemeralPost(teamId, userId string, post *model.Post) *model.Post {
 	post.Type = model.POST_EPHEMERAL
 
 	// fill in fields which haven't been specified which have sensible defaults
@@ -180,4 +191,6 @@ func SendEphemeralPost(teamId, userId string, post *model.Post) {
 	message.Add("post", post.ToJson())
 
 	go Publish(message)
+
+	return post
 }

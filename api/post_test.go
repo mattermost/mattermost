@@ -905,7 +905,9 @@ func TestMakeDirectChannelVisible(t *testing.T) {
 
 	channel := Client.Must(Client.CreateDirectChannel(user2.Id)).Data.(*model.Channel)
 
-	app.MakeDirectChannelVisible(channel.Id)
+	if err := app.MakeDirectChannelVisible(channel.Id); err != nil {
+		t.Fatal(err)
+	}
 
 	if result, err := Client.GetPreference(model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW, user2.Id); err != nil {
 		t.Fatal("Errored trying to set direct channel to be visible for user1")
@@ -1346,8 +1348,10 @@ func TestSendNotifications(t *testing.T) {
 		Message:   "@" + th.BasicUser2.Username,
 	})).Data.(*model.Post)
 
-	mentions := app.SendNotifications(post1, th.BasicTeam, th.BasicChannel)
-	if mentions == nil {
+	mentions, err := app.SendNotifications(post1, th.BasicTeam, th.BasicChannel)
+	if err != nil {
+		t.Fatal(err)
+	} else if mentions == nil {
 		t.Log(mentions)
 		t.Fatal("user should have been mentioned")
 	} else if mentions[0] != th.BasicUser2.Id {

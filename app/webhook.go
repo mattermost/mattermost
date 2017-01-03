@@ -20,30 +20,29 @@ const (
 	TRIGGERWORDS_STARTSWITH = 1
 )
 
-func handleWebhookEvents(post *model.Post, team *model.Team, channel *model.Channel, user *model.User) {
+func handleWebhookEvents(post *model.Post, team *model.Team, channel *model.Channel, user *model.User) *model.AppError {
 	if !utils.Cfg.ServiceSettings.EnableOutgoingWebhooks {
-		return
+		return nil
 	}
 
 	if channel.Type != model.CHANNEL_OPEN {
-		return
+		return nil
 	}
 
 	hchan := Srv.Store.Webhook().GetOutgoingByTeam(team.Id)
 	result := <-hchan
 	if result.Err != nil {
-		l4g.Error(utils.T("api.post.handle_webhook_events_and_forget.getting.error"), result.Err)
-		return
+		return result.Err
 	}
 
 	hooks := result.Data.([]*model.OutgoingWebhook)
 	if len(hooks) == 0 {
-		return
+		return nil
 	}
 
 	splitWords := strings.Fields(post.Message)
 	if len(splitWords) == 0 {
-		return
+		return nil
 	}
 	firstWord := splitWords[0]
 
@@ -114,6 +113,8 @@ func handleWebhookEvents(post *model.Post, team *model.Team, channel *model.Chan
 
 		}(hook)
 	}
+
+	return nil
 }
 
 func CreateWebhookPost(userId, teamId, channelId, text, overrideUsername, overrideIconUrl string, props model.StringInterface, postType string) (*model.Post, *model.AppError) {

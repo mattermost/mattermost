@@ -166,9 +166,10 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(token) != 0 {
-		session := app.GetSession(token)
+		session, err := app.GetSession(token)
 
-		if session == nil || session.IsExpired() {
+		if err != nil {
+			l4g.Error(utils.T("api.context.invalid_session.error"), err.Error())
 			c.RemoveSessionCookie(w, r)
 			if h.requireUser || h.requireSystemAdmin {
 				c.Err = model.NewLocAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token)

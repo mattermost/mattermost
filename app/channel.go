@@ -11,18 +11,16 @@ import (
 	"github.com/mattermost/platform/utils"
 )
 
-func MakeDirectChannelVisible(channelId string) {
+func MakeDirectChannelVisible(channelId string) *model.AppError {
 	var members []model.ChannelMember
 	if result := <-Srv.Store.Channel().GetMembers(channelId); result.Err != nil {
-		l4g.Error(utils.T("api.post.make_direct_channel_visible.get_members.error"), channelId, result.Err.Message)
-		return
+		return result.Err
 	} else {
 		members = result.Data.([]model.ChannelMember)
 	}
 
 	if len(members) != 2 {
-		l4g.Error(utils.T("api.post.make_direct_channel_visible.get_2_members.error"), channelId)
-		return
+		return model.NewLocAppError("MakeDirectChannelVisible", "api.post.make_direct_channel_visible.get_2_members.error", map[string]interface{}{"ChannelId": channelId}, "")
 	}
 
 	// make sure the channel is visible to both members
@@ -39,7 +37,7 @@ func MakeDirectChannelVisible(channelId string) {
 			}
 
 			if saveResult := <-Srv.Store.Preference().Save(&model.Preferences{*preference}); saveResult.Err != nil {
-				l4g.Error(utils.T("api.post.make_direct_channel_visible.save_pref.error"), member.UserId, otherUserId, saveResult.Err.Message)
+				return saveResult.Err
 			} else {
 				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PREFERENCE_CHANGED, "", "", member.UserId, nil)
 				message.Add("preference", preference.ToJson())
@@ -54,7 +52,7 @@ func MakeDirectChannelVisible(channelId string) {
 				preference.Value = "true"
 
 				if updateResult := <-Srv.Store.Preference().Save(&model.Preferences{preference}); updateResult.Err != nil {
-					l4g.Error(utils.T("api.post.make_direct_channel_visible.update_pref.error"), member.UserId, otherUserId, updateResult.Err.Message)
+					return updateResult.Err
 				} else {
 					message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PREFERENCE_CHANGED, "", "", member.UserId, nil)
 					message.Add("preference", preference.ToJson())
@@ -64,6 +62,8 @@ func MakeDirectChannelVisible(channelId string) {
 			}
 		}
 	}
+
+	return nil
 }
 
 func CreateDefaultChannels(teamId string) ([]*model.Channel, *model.AppError) {

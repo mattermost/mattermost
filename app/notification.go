@@ -24,7 +24,7 @@ import (
 	"github.com/nicksnyder/go-i18n/i18n"
 )
 
-func SendNotifications(post *model.Post, team *model.Team, channel *model.Channel) []string {
+func SendNotifications(post *model.Post, team *model.Team, channel *model.Channel) ([]string, *model.AppError) {
 	mentionedUsersList := make([]string, 0)
 	var fchan store.StoreChannel
 	var senderUsername string
@@ -37,16 +37,15 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 
 		var profileMap map[string]*model.User
 		if result := <-pchan; result.Err != nil {
-			l4g.Error(utils.T("api.post.handle_post_events_and_forget.profiles.error"), team.Id, result.Err)
-			return nil
+			return nil, result.Err
 		} else {
 			profileMap = result.Data.(map[string]*model.User)
 		}
 
 		// If the user who made the post isn't in the channel don't send a notification
 		if _, ok := profileMap[post.UserId]; !ok {
-			l4g.Error(utils.T("api.post.send_notifications_and_forget.user_id.error"), post.UserId)
-			return nil
+			l4g.Debug(utils.T("api.post.send_notifications.user_id.debug"), post.Id, channel.Id, post.UserId)
+			return []string{}, nil
 		}
 
 		mentionedUserIds := make(map[string]bool)
@@ -77,8 +76,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 			// get users that have comment thread mentions enabled
 			if len(post.RootId) > 0 {
 				if result := <-Srv.Store.Post().Get(post.RootId); result.Err != nil {
-					l4g.Error(utils.T("api.post.send_notifications_and_forget.comment_thread.error"), post.RootId, result.Err)
-					return nil
+					return nil, result.Err
 				} else {
 					list := result.Data.(*model.PostList)
 
@@ -161,8 +159,10 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 					}
 				}
 
-				if userAllowsEmails && status.Status != model.STATUS_ONLINE {
-					sendNotificationEmail(post, profileMap[id], channel, team, senderName[id], sender)
+				if userAllowsEmails && status.Status != model.STATUS_ONLINE && profileMap[id].DeleteAt == 0 {
+					if err := sendNotificationEmail(post, profileMap[id], channel, team, senderName[id], sender); err != nil {
+						l4g.Error(err.Error())
+					}
 				}
 			}
 		}
@@ -255,7 +255,9 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 				}
 
 				if DoesStatusAllowPushNotification(profileMap[id], status, post.ChannelId) {
-					sendPushNotification(post, profileMap[id], channel, senderName[id], true)
+					if err := sendPushNotification(post, profileMap[id], channel, senderName[id], true); err != nil {
+						l4g.Error(err.Error())
+					}
 				}
 			}
 
@@ -268,7 +270,9 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 					}
 
 					if DoesStatusAllowPushNotification(profileMap[id], status, post.ChannelId) {
-						sendPushNotification(post, profileMap[id], channel, senderName[id], false)
+						if err := sendPushNotification(post, profileMap[id], channel, senderName[id], false); err != nil {
+							l4g.Error(err.Error())
+						}
 					}
 				}
 			}
@@ -306,20 +310,15 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 	}
 
 	Publish(message)
-	return mentionedUsersList
+	return mentionedUsersList, nil
 }
 
-func sendNotificationEmail(post *model.Post, user *model.User, channel *model.Channel, team *model.Team, senderName string, sender *model.User) {
-	// skip if inactive
-	if user.DeleteAt > 0 {
-		return
-	}
+func sendNotificationEmail(post *model.Post, user *model.User, channel *model.Channel, team *model.Team, senderName string, sender *model.User) *model.AppError {
 
 	if channel.Type == model.CHANNEL_DIRECT && channel.TeamId != team.Id {
 		// this message is a cross-team DM so it we need to find a team that the recipient is on to use in the link
 		if result := <-Srv.Store.Team().GetTeamsByUserId(user.Id); result.Err != nil {
-			l4g.Error(utils.T("api.post.send_notifications_and_forget.get_teams.error"), user.Id, result.Err)
-			return
+			return result.Err
 		} else {
 			// if the recipient isn't in the current user's team, just pick one
 			teams := result.Data.([]*model.Team)
@@ -356,7 +355,7 @@ func sendNotificationEmail(post *model.Post, user *model.User, channel *model.Ch
 
 		if sendBatched {
 			if err := AddNotificationEmailToBatch(user, post, team); err == nil {
-				return
+				return nil
 			}
 		}
 
@@ -415,12 +414,14 @@ func sendNotificationEmail(post *model.Post, user *model.User, channel *model.Ch
 			"TimeZone": zone, "Month": month, "Day": day}))
 
 	if err := utils.SendMail(user.Email, html.UnescapeString(subject), bodyPage.Render()); err != nil {
-		l4g.Error(utils.T("api.post.send_notifications_and_forget.send.error"), user.Email, err)
+		return err
 	}
 
 	if einterfaces.GetMetricsInterface() != nil {
 		einterfaces.GetMetricsInterface().IncrementPostSentEmail()
 	}
+
+	return nil
 }
 
 func GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
@@ -458,11 +459,10 @@ func GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFun
 	}
 }
 
-func sendPushNotification(post *model.Post, user *model.User, channel *model.Channel, senderName string, wasMentioned bool) {
-	sessions := getMobileAppSessions(user.Id)
-
-	if sessions == nil {
-		return
+func sendPushNotification(post *model.Post, user *model.User, channel *model.Channel, senderName string, wasMentioned bool) *model.AppError {
+	sessions, err := getMobileAppSessions(user.Id)
+	if err != nil {
+		return err
 	}
 
 	var channelName string
@@ -510,17 +510,21 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 	for _, session := range sessions {
 		tmpMessage := *model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
 		tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
-		sendToPushProxy(tmpMessage)
+		if err := sendToPushProxy(tmpMessage); err != nil {
+			l4g.Error(err.Error)
+		}
 		if einterfaces.GetMetricsInterface() != nil {
 			einterfaces.GetMetricsInterface().IncrementPostSentPush()
 		}
 	}
+
+	return nil
 }
 
-func ClearPushNotification(userId string, channelId string) {
-	sessions := getMobileAppSessions(userId)
-	if sessions == nil {
-		return
+func ClearPushNotification(userId string, channelId string) *model.AppError {
+	sessions, err := getMobileAppSessions(userId)
+	if err != nil {
+		return err
 	}
 
 	msg := model.PushNotification{}
@@ -538,11 +542,15 @@ func ClearPushNotification(userId string, channelId string) {
 	for _, session := range sessions {
 		tmpMessage := *model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
 		tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
-		sendToPushProxy(tmpMessage)
+		if err := sendToPushProxy(tmpMessage); err != nil {
+			l4g.Error(err.Error)
+		}
 	}
+
+	return nil
 }
 
-func sendToPushProxy(msg model.PushNotification) {
+func sendToPushProxy(msg model.PushNotification) *model.AppError {
 	msg.ServerId = utils.CfgDiagnosticId
 
 	tr := &http.Transport{
@@ -552,25 +560,26 @@ func sendToPushProxy(msg model.PushNotification) {
 	request, _ := http.NewRequest("POST", *utils.Cfg.EmailSettings.PushNotificationServer+model.API_URL_SUFFIX_V1+"/send_push", strings.NewReader(msg.ToJson()))
 
 	if resp, err := httpClient.Do(request); err != nil {
-		l4g.Error(utils.T("api.post.send_notifications_and_forget.push_notification.error"), msg.DeviceId, err)
+		return model.NewLocAppError("sendToPushProxy", "api.post.send_notifications_and_forget.push_notification.error", map[string]interface{}{"DeviceId": msg.DeviceId, "Error": err.Error()}, "")
 	} else {
 		ioutil.ReadAll(resp.Body)
 		resp.Body.Close()
 	}
+
+	return nil
 }
 
-func getMobileAppSessions(userId string) []*model.Session {
+func getMobileAppSessions(userId string) ([]*model.Session, *model.AppError) {
 	if result := <-Srv.Store.Session().GetSessionsWithActiveDeviceIds(userId); result.Err != nil {
-		l4g.Error(utils.T("api.post.send_notifications_and_forget.sessions.error"), userId, result.Err)
-		return nil
+		return nil, result.Err
 	} else {
-		return result.Data.([]*model.Session)
+		return result.Data.([]*model.Session), nil
 	}
 }
 
-func sendOutOfChannelMentions(post *model.Post, teamId string, profiles map[string]*model.User) {
+func sendOutOfChannelMentions(post *model.Post, teamId string, profiles map[string]*model.User) *model.AppError {
 	if len(profiles) == 0 {
-		return
+		return nil
 	}
 
 	var usernames []string
@@ -602,6 +611,8 @@ func sendOutOfChannelMentions(post *model.Post, teamId string, profiles map[stri
 			CreateAt:  post.CreateAt + 1,
 		},
 	)
+
+	return nil
 }
 
 // Given a message and a map mapping mention keywords to the users who use them, returns a map of mentioned

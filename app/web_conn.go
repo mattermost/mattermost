@@ -156,8 +156,9 @@ func (webCon *WebConn) IsAuthenticated() bool {
 			return false
 		}
 
-		session := GetSession(webCon.SessionToken)
-		if session == nil || session.IsExpired() {
+		session, err := GetSession(webCon.SessionToken)
+		if err != nil {
+			l4g.Error(utils.T("api.websocket.invalid_session.error"), err.Error())
 			webCon.SessionToken = ""
 			webCon.SessionExpiresAt = 0
 			return false
@@ -237,8 +238,9 @@ func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 }
 
 func (webCon *WebConn) IsMemberOfTeam(teamId string) bool {
-	session := GetSession(webCon.SessionToken)
-	if session == nil {
+	session, err := GetSession(webCon.SessionToken)
+	if err != nil {
+		l4g.Error(utils.T("api.websocket.invalid_session.error"), err.Error())
 		return false
 	} else {
 		member := session.GetTeamByTeamId(teamId)

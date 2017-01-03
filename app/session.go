@@ -14,7 +14,7 @@ import (
 
 var sessionCache *utils.Cache = utils.NewLru(model.SESSION_CACHE_SIZE)
 
-func GetSession(token string) *model.Session {
+func GetSession(token string) (*model.Session, *model.AppError) {
 	metrics := einterfaces.GetMetricsInterface()
 
 	var session *model.Session
@@ -31,20 +31,24 @@ func GetSession(token string) *model.Session {
 
 	if session == nil {
 		if sessionResult := <-Srv.Store.Session().Get(token); sessionResult.Err != nil {
-			l4g.Error(utils.T("api.context.invalid_token.error"), token, sessionResult.Err.DetailedError)
+			return nil, model.NewLocAppError("GetSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token, "Error": sessionResult.Err.DetailedError}, "")
 		} else {
 			session = sessionResult.Data.(*model.Session)
 
 			if session.IsExpired() || session.Token != token {
-				return nil
+				return nil, model.NewLocAppError("GetSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token, "Error": sessionResult.Err.DetailedError}, "")
 			} else {
 				AddSessionToCache(session)
-				return session
+				return session, nil
 			}
 		}
 	}
 
-	return session
+	if session == nil || session.IsExpired() {
+		return nil, model.NewLocAppError("GetSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token}, "")
+	}
+
+	return session, nil
 }
 
 func RemoveAllSessionsForUserId(userId string) {
