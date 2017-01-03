@@ -343,9 +343,10 @@ function Janus(gatewayCallbacks) {
         }
     }
     var iceServers = gatewayCallbacks.iceServers;
-    if(iceServers === undefined || iceServers === null || iceServers.length === 0)
+    if(iceServers === undefined || iceServers === null || iceServers.length === 0) {
         iceServers = [{urls: "stun:stun.l.google.com:19302"}];
-        console.log('using ice', iceServers);
+        Janus.log('using ice', iceServers);
+    }
     var iceTransportPolicy = gatewayCallbacks.iceTransportPolicy;
     // Whether IPv6 candidates should be gathered
     var ipv6Support = gatewayCallbacks.ipv6;
@@ -2020,7 +2021,7 @@ function Janus(gatewayCallbacks) {
                 Janus.warn("No video track");
                 return false;
             }
-            config.myStream.getVideoTracks()[0].enabled = mute ? false : true;
+            config.myStream.getVideoTracks()[0].enabled = mute;
             return true;
         } else {
             // Mute/unmute audio track
@@ -2030,7 +2031,7 @@ function Janus(gatewayCallbacks) {
                 Janus.warn("No audio track");
                 return false;
             }
-            config.myStream.getAudioTracks()[0].enabled = mute ? false : true;
+            config.myStream.getAudioTracks()[0].enabled = mute;
             return true;
         }
     }
