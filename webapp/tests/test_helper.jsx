@@ -106,78 +106,64 @@ class TestHelperClass {
     initBasic = (callback, connectWS) => {
         this.basicc = this.createClient();
 
+        function throwerror(err) {
+            throw err;
+        }
+
         var d1 = jqd.Deferred();
         var email = this.fakeEmail();
-        var outer = this;  // eslint-disable-line consistent-this
+        var user = this.fakeUser();
+        var team = this.fakeTeam();
+        team.email = email;
+        user.email = email;
+        var self = this;
 
-        this.basicClient().signupTeam(
-            email,
-            function(rsignUp) {
-                var teamSignup = {};
-                teamSignup.invites = [];
-                teamSignup.data = decodeURIComponent(rsignUp.follow_link.split('&h=')[0].replace('/signup_team_complete/?d=', ''));
-                teamSignup.hash = decodeURIComponent(rsignUp.follow_link.split('&h=')[1]);
-
-                teamSignup.user = outer.fakeUser();
-                teamSignup.team = outer.fakeTeam();
-                teamSignup.team.email = email;
-                teamSignup.user.email = email;
-                var password = teamSignup.user.password;
-
-                outer.basicClient().createTeamFromSignup(
-                    teamSignup,
-                    function(rteamSignup) {
-                        outer.basict = rteamSignup.team;
-                        outer.basicu = rteamSignup.user;
-                        outer.basicu.password = password;
-                        outer.basicClient().setTeamId(outer.basict.id);
-                        outer.basicClient().login(
-                            rteamSignup.user.email,
-                            password,
-                            null,
-                            function(data, res) {
-                                if (connectWS) {
-                                    outer.basicwsc = outer.createWebSocketClient(res.header[HEADER_TOKEN]);
-                                }
-                                outer.basicClient().useHeaderToken();
-                                var channel = outer.fakeChannel();
-                                channel.team_id = outer.basicTeam().id;
-                                outer.basicClient().createChannel(
+        this.basicClient().createUser(
+            user,
+            function(ruser) {
+                self.basicu = ruser;
+                self.basicu.password = user.password;
+                self.basicClient().login(
+                    self.basicu.email,
+                    self.basicu.password,
+                    null,
+                    function(data, res) {
+                        if (connectWS) {
+                            self.basicwsc = self.createWebSocketClient(res.header[HEADER_TOKEN]);
+                        }
+                        self.basicClient().useHeaderToken();
+                        self.basicClient().createTeam(team,
+                            function(rteam) {
+                                self.basict = rteam;
+                                self.basicClient().setTeamId(rteam.id);
+                                var channel = self.fakeChannel();
+                                channel.team_id = self.basicTeam().id;
+                                self.basicClient().createChannel(
                                     channel,
                                     function(rchannel) {
-                                        outer.basicch = rchannel;
-                                        var post = outer.fakePost();
+                                        self.basicch = rchannel;
+                                        var post = self.fakePost();
                                         post.channel_id = rchannel.id;
 
-                                        outer.basicClient().createPost(
+                                        self.basicClient().createPost(
                                             post,
                                             function(rpost) {
-                                                outer.basicp = rpost;
+                                                self.basicp = rpost;
                                                 d1.resolve();
                                             },
-                                            function(err) {
-                                                throw err;
-                                            }
+                                            throwerror
                                         );
                                     },
-                                    function(err) {
-                                        throw err;
-                                    }
+                                    throwerror
                                 );
                             },
-                            function(err) {
-                                throw err;
-                            }
+                            throwerror
                         );
                     },
-                    function(err) {
-                        throw err;
-                    }
+                    throwerror
                 );
             },
-            function(err) {
-                throw err;
-            }
+            throwerror
         );
 
         jqd.when(d1).done(() => {

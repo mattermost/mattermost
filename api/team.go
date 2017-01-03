@@ -25,7 +25,6 @@ func InitTeam() {
 	l4g.Debug(utils.T("api.team.init.debug"))
 
 	BaseRoutes.Teams.Handle("/create", ApiAppHandler(createTeam)).Methods("POST")
-	BaseRoutes.Teams.Handle("/create_from_signup", ApiAppHandler(createTeamFromSignup)).Methods("POST")
 	BaseRoutes.Teams.Handle("/signup", ApiAppHandler(signupTeam)).Methods("POST")
 	BaseRoutes.Teams.Handle("/all", ApiAppHandler(getAll)).Methods("GET")
 	BaseRoutes.Teams.Handle("/all_team_listings", ApiUserRequired(GetAllTeamListings)).Methods("GET")
@@ -102,94 +101,6 @@ func signupTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Access-Control-Allow-Origin", " *")
 	w.Write([]byte(model.MapToJson(m)))
-}
-
-func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !utils.Cfg.EmailSettings.EnableSignUpWithEmail {
-		c.Err = model.NewLocAppError("createTeamFromSignup", "api.team.create_team_from_signup.email_disabled.app_error", nil, "")
-		c.Err.StatusCode = http.StatusNotImplemented
-		return
-	}
-
-	teamSignup := model.TeamSignupFromJson(r.Body)
-
-	if teamSignup == nil {
-		c.SetInvalidParam("createTeam", "teamSignup")
-		return
-	}
-
-	props := model.MapFromJson(strings.NewReader(teamSignup.Data))
-	teamSignup.Team.Email = props["email"]
-	teamSignup.User.Email = props["email"]
-
-	teamSignup.Team.PreSave()
-
-	if err := teamSignup.Team.IsValid(); err != nil {
-		c.Err = err
-		return
-	}
-
-	if !isTeamCreationAllowed(c, teamSignup.Team.Email) {
-		return
-	}
-
-	teamSignup.Team.Id = ""
-
-	password := teamSignup.User.Password
-	teamSignup.User.PreSave()
-	if err := teamSignup.User.IsValid(); err != nil {
-		c.Err = err
-		return
-	}
-	teamSignup.User.Id = ""
-	teamSignup.User.Password = password
-
-	if !model.ComparePassword(teamSignup.Hash, fmt.Sprintf("%v:%v", teamSignup.Data, utils.Cfg.EmailSettings.InviteSalt)) {
-		c.Err = model.NewLocAppError("createTeamFromSignup", "api.team.create_team_from_signup.invalid_link.app_error", nil, "")
-		return
-	}
-
-	t, err := strconv.ParseInt(props["time"], 10, 64)
-	if err != nil || model.GetMillis()-t > 1000*60*60 { // one hour
-		c.Err = model.NewLocAppError("createTeamFromSignup", "api.team.create_team_from_signup.expired_link.app_error", nil, "")
-		return
-	}
-
-	found := FindTeamByName(teamSignup.Team.Name)
-
-	if found {
-		c.Err = model.NewLocAppError("createTeamFromSignup", "api.team.create_team_from_signup.unavailable.app_error", nil, "d="+teamSignup.Team.Name)
-		return
-	}
-
-	if result := <-Srv.Store.Team().Save(&teamSignup.Team); result.Err != nil {
-		c.Err = result.Err
-		return
-	} else {
-		rteam := result.Data.(*model.Team)
-
-		if _, err := CreateDefaultChannels(c, rteam.Id); err != nil {
-			c.Err = nil
-			return
-		}
-
-		teamSignup.User.EmailVerified = true
-
-		ruser, err := CreateUser(&teamSignup.User)
-		if err != nil {
-			c.Err = err
-			return
-		}
-
-		JoinUserToTeam(rteam, ruser)
-
-		InviteMembers(rteam, ruser.GetDisplayName(), teamSignup.Invites)
-
-		teamSignup.Team = *rteam
-		teamSignup.User = *ruser
-
-		w.Write([]byte(teamSignup.ToJson()))
-	}
 }
 
 func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -374,6 +285,7 @@ func isTeamCreationAllowed(c *Context, email string) bool {
 		c.Err = model.NewLocAppError("isTeamCreationAllowed", "api.team.is_team_creation_allowed.disabled.app_error", nil, "")
 		return false
 	}
+	c.Err = nil
 
 	if result := <-Srv.Store.User().GetByEmail(email); result.Err == nil {
 		user := result.Data.(*model.User)

@@ -507,16 +507,6 @@ export default class Client {
 
     // Team Routes Section
 
-    createTeamFromSignup(teamSignup, success, error) {
-        request.
-            post(`${this.getTeamsRoute()}/create_from_signup`).
-            set(this.defaultHeaders).
-            type('application/json').
-            accept('application/json').
-            send(teamSignup).
-            end(this.handleResponse.bind(this, 'createTeamFromSignup', success, error));
-    }
-
     findTeamByName(teamName, success, error) {
         request.
             post(`${this.getTeamsRoute()}/find_team_by_name`).
