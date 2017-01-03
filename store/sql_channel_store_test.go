@@ -419,6 +419,14 @@ func TestChannelMemberStore(t *testing.T) {
 		t.Fatal("should have saved 2 members")
 	}
 
+	if store.Channel().GetMemberCountFromCache(o1.ChannelId) != 2 {
+		t.Fatal("should have saved 2 members")
+	}
+
+	if store.Channel().GetMemberCountFromCache("junk") != 0 {
+		t.Fatal("should have saved 0 members")
+	}
+
 	count = (<-store.Channel().GetMemberCount(o1.ChannelId, false)).Data.(int64)
 	if count != 2 {
 		t.Fatal("should have saved 2 members")

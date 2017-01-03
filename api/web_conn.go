@@ -200,13 +200,8 @@ func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 
 		// Only broadcast typing messages if less than 1K people in channel
 		if msg.Event == model.WEBSOCKET_EVENT_TYPING {
-			if result := <-Srv.Store.Channel().GetMemberCount(msg.Broadcast.ChannelId, true); result.Err != nil {
-				l4g.Error("webhub.shouldSendEvent: " + result.Err.Error())
+			if Srv.Store.Channel().GetMemberCountFromCache(msg.Broadcast.ChannelId) > *utils.Cfg.TeamSettings.MaxNotificationsPerChannel {
 				return false
-			} else {
-				if result.Data.(int64) > *utils.Cfg.TeamSettings.MaxNotificationsPerChannel {
-					return false
-				}
 			}
 		}
 
