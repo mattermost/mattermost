@@ -1,7 +1,7 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-package api
+package app
 
 import (
 	"database/sql"
@@ -217,7 +217,7 @@ func renderBatchedPost(template *utils.HTMLTemplate, post *model.Post, teamName 
 	cchan := Srv.Store.Channel().Get(post.ChannelId, true)
 
 	template.Props["Button"] = translateFunc("api.email_batching.render_batched_post.go_to_post")
-	template.Props["PostMessage"] = getMessageForNotification(post, translateFunc)
+	template.Props["PostMessage"] = GetMessageForNotification(post, translateFunc)
 	template.Props["PostLink"] = *utils.Cfg.ServiceSettings.SiteURL + "/" + teamName + "/pl/" + post.Id
 
 	tm := time.Unix(post.CreateAt/1000, 0)

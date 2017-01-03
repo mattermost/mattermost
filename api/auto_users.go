@@ -4,6 +4,7 @@
 package api
 
 import (
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
@@ -49,8 +50,8 @@ func CreateBasicUser(client *model.Client) *model.AppError {
 			return err
 		}
 		ruser := result.Data.(*model.User)
-		store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
-		store.Must(Srv.Store.Team().SaveMember(&model.TeamMember{TeamId: basicteam.Id, UserId: ruser.Id}))
+		store.Must(app.Srv.Store.User().VerifyEmail(ruser.Id))
+		store.Must(app.Srv.Store.Team().SaveMember(&model.TeamMember{TeamId: basicteam.Id, UserId: ruser.Id}))
 	}
 	return nil
 }
@@ -81,14 +82,14 @@ func (cfg *AutoUserCreator) createRandomUser() (*model.User, bool) {
 	ruser := result.Data.(*model.User)
 
 	status := &model.Status{ruser.Id, model.STATUS_ONLINE, false, model.GetMillis(), ""}
-	if result := <-Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
+	if result := <-app.Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
 		result.Err.Translate(utils.T)
 		l4g.Error(result.Err.Error())
 		return nil, false
 	}
 
 	// We need to cheat to verify the user's email
-	store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
+	store.Must(app.Srv.Store.User().VerifyEmail(ruser.Id))
 
 	return result.Data.(*model.User), true
 }

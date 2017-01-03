@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
@@ -333,7 +334,7 @@ func TestGetPostCount(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 
 	// manually update creation time, since it's always set to 0 upon saving and we only retrieve posts < today
-	Srv.Store.(*store.SqlStore).GetMaster().Exec("UPDATE Posts SET CreateAt = :CreateAt WHERE ChannelId = :ChannelId",
+	app.Srv.Store.(*store.SqlStore).GetMaster().Exec("UPDATE Posts SET CreateAt = :CreateAt WHERE ChannelId = :ChannelId",
 		map[string]interface{}{"ChannelId": th.BasicChannel.Id, "CreateAt": utils.MillisFromTime(utils.Yesterday())})
 
 	if _, err := th.BasicClient.GetTeamAnalytics(th.BasicTeam.Id, "post_counts_day"); err == nil {
@@ -375,7 +376,7 @@ func TestUserCountsWithPostsByDay(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 
 	// manually update creation time, since it's always set to 0 upon saving and we only retrieve posts < today
-	Srv.Store.(*store.SqlStore).GetMaster().Exec("UPDATE Posts SET CreateAt = :CreateAt WHERE ChannelId = :ChannelId",
+	app.Srv.Store.(*store.SqlStore).GetMaster().Exec("UPDATE Posts SET CreateAt = :CreateAt WHERE ChannelId = :ChannelId",
 		map[string]interface{}{"ChannelId": th.BasicChannel.Id, "CreateAt": utils.MillisFromTime(utils.Yesterday())})
 
 	if _, err := th.BasicClient.GetTeamAnalytics(th.BasicTeam.Id, "user_counts_with_posts_day"); err == nil {
@@ -579,7 +580,7 @@ func TestAdminResetPassword(t *testing.T) {
 	user := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	LinkUserToTeam(user, team)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+	store.Must(app.Srv.Store.User().VerifyEmail(user.Id))
 
 	if _, err := Client.AdminResetPassword("", "newpwd1"); err == nil {
 		t.Fatal("Should have errored - empty user id")
@@ -601,7 +602,7 @@ func TestAdminResetPassword(t *testing.T) {
 	user2 := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", AuthData: &authData, AuthService: "random"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
 	LinkUserToTeam(user2, team)
-	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
+	store.Must(app.Srv.Store.User().VerifyEmail(user2.Id))
 
 	if _, err := Client.AdminResetPassword(user.Id, "newpwd1"); err != nil {
 		t.Fatal(err)

@@ -27,6 +27,7 @@ import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/disintegration/imaging"
 	"github.com/gorilla/mux"
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"github.com/rwcarlsen/goexif/exif"
@@ -185,7 +186,7 @@ func doUploadFile(teamId string, channelId string, userId string, rawFilename st
 		return nil, err
 	}
 
-	if result := <-Srv.Store.FileInfo().Save(info); result.Err != nil {
+	if result := <-app.Srv.Store.FileInfo().Save(info); result.Err != nil {
 		return nil, result.Err
 	}
 
@@ -436,7 +437,7 @@ func getFileInfoForRequest(c *Context, r *http.Request, requireFileVisible bool)
 	}
 
 	var info *model.FileInfo
-	if result := <-Srv.Store.FileInfo().Get(fileId); result.Err != nil {
+	if result := <-app.Srv.Store.FileInfo().Get(fileId); result.Err != nil {
 		return nil, result.Err
 	} else {
 		info = result.Data.(*model.FileInfo)
@@ -497,7 +498,7 @@ func getPublicFileOld(c *Context, w http.ResponseWriter, r *http.Request) {
 	path := "teams/" + teamId + "/channels/" + channelId + "/users/" + userId + "/" + filename
 
 	var info *model.FileInfo
-	if result := <-Srv.Store.FileInfo().GetByPath(path); result.Err != nil {
+	if result := <-app.Srv.Store.FileInfo().GetByPath(path); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -584,7 +585,7 @@ func migrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 		return []*model.FileInfo{}
 	}
 
-	cchan := Srv.Store.Channel().Get(post.ChannelId, true)
+	cchan := app.Srv.Store.Channel().Get(post.ChannelId, true)
 
 	// There's a weird bug that rarely happens where a post ends up with duplicate Filenames so remove those
 	filenames := utils.RemoveDuplicatesFromStringArray(post.Filenames)
@@ -625,12 +626,12 @@ func migrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	fileMigrationLock.Lock()
 	defer fileMigrationLock.Unlock()
 
-	if result := <-Srv.Store.Post().Get(post.Id); result.Err != nil {
+	if result := <-app.Srv.Store.Post().Get(post.Id); result.Err != nil {
 		l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.get_post_again.app_error"), post.Id, result.Err)
 		return []*model.FileInfo{}
 	} else if newPost := result.Data.(*model.PostList).Posts[post.Id]; len(newPost.Filenames) != len(post.Filenames) {
 		// Another thread has already created FileInfos for this post, so just return those
-		if result := <-Srv.Store.FileInfo().GetForPost(post.Id); result.Err != nil {
+		if result := <-app.Srv.Store.FileInfo().GetForPost(post.Id); result.Err != nil {
 			l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.get_post_file_infos_again.app_error"), post.Id, result.Err)
 			return []*model.FileInfo{}
 		} else {
@@ -644,7 +645,7 @@ func migrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	savedInfos := make([]*model.FileInfo, 0, len(infos))
 	fileIds := make([]string, 0, len(filenames))
 	for _, info := range infos {
-		if result := <-Srv.Store.FileInfo().Save(info); result.Err != nil {
+		if result := <-app.Srv.Store.FileInfo().Save(info); result.Err != nil {
 			l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.save_file_info.app_error"), post.Id, info.Id, info.Path, result.Err)
 			continue
 		}
@@ -661,7 +662,7 @@ func migrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	newPost.FileIds = fileIds
 
 	// Update Posts to clear Filenames and set FileIds
-	if result := <-Srv.Store.Post().Update(newPost, post); result.Err != nil {
+	if result := <-app.Srv.Store.Post().Update(newPost, post); result.Err != nil {
 		l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.save_post.app_error"), post.Id, newPost.FileIds, post.Filenames, result.Err)
 		return []*model.FileInfo{}
 	} else {
@@ -675,7 +676,7 @@ func findTeamIdForFilename(post *model.Post, filename string) string {
 	name, _ := url.QueryUnescape(split[4])
 
 	// This post is in a direct channel so we need to figure out what team the files are stored under.
-	if result := <-Srv.Store.Team().GetTeamsByUserId(post.UserId); result.Err != nil {
+	if result := <-app.Srv.Store.Team().GetTeamsByUserId(post.UserId); result.Err != nil {
 		l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.teams.app_error"), post.Id, result.Err)
 	} else if teams := result.Data.([]*model.Team); len(teams) == 1 {
 		// The user has only one team so the post must've been sent from it

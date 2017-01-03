@@ -16,6 +16,7 @@ import (
 	"unicode/utf8"
 
 	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -137,7 +138,7 @@ func SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Buffer) map
 
 	// Need the team
 	var team *model.Team
-	if result := <-Srv.Store.Team().Get(teamId); result.Err != nil {
+	if result := <-app.Srv.Store.Team().Get(teamId); result.Err != nil {
 		log.WriteString(utils.T("api.slackimport.slack_import.team_fail"))
 		return addedUsers
 	} else {
@@ -159,10 +160,10 @@ func SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Buffer) map
 		password := model.NewId()
 
 		// Check for email conflict and use existing user if found
-		if result := <-Srv.Store.User().GetByEmail(email); result.Err == nil {
+		if result := <-app.Srv.Store.User().GetByEmail(email); result.Err == nil {
 			existingUser := result.Data.(*model.User)
 			addedUsers[sUser.Id] = existingUser
-			if err := JoinUserToTeam(team, addedUsers[sUser.Id]); err != nil {
+			if err := app.JoinUserToTeam(team, addedUsers[sUser.Id]); err != nil {
 				log.WriteString(utils.T("api.slackimport.slack_add_users.merge_existing_failed", map[string]interface{}{"Email": existingUser.Email, "Username": existingUser.Username}))
 			} else {
 				log.WriteString(utils.T("api.slackimport.slack_add_users.merge_existing", map[string]interface{}{"Email": existingUser.Email, "Username": existingUser.Username}))
@@ -191,7 +192,7 @@ func SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Buffer) map
 
 func SlackAddBotUser(teamId string, log *bytes.Buffer) *model.User {
 	var team *model.Team
-	if result := <-Srv.Store.Team().Get(teamId); result.Err != nil {
+	if result := <-app.Srv.Store.Team().Get(teamId); result.Err != nil {
 		log.WriteString(utils.T("api.slackimport.slack_import.team_fail"))
 		return nil
 	} else {
@@ -244,7 +245,7 @@ func SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, use
 			}
 			ImportPost(&newPost)
 			for _, fileId := range newPost.FileIds {
-				if result := <-Srv.Store.FileInfo().AttachToPost(fileId, newPost.Id); result.Err != nil {
+				if result := <-app.Srv.Store.FileInfo().AttachToPost(fileId, newPost.Id); result.Err != nil {
 					l4g.Error(utils.T("api.slackimport.slack_add_posts.attach_files.error"), newPost.Id, newPost.FileIds, result.Err)
 				}
 			}
@@ -425,7 +426,7 @@ func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[str
 		mChannel := ImportChannel(&newChannel)
 		if mChannel == nil {
 			// Maybe it already exists?
-			if result := <-Srv.Store.Channel().GetByName(teamId, sChannel.Name); result.Err != nil {
+			if result := <-app.Srv.Store.Channel().GetByName(teamId, sChannel.Name); result.Err != nil {
 				l4g.Warn(utils.T("api.slackimport.slack_add_channels.import_failed.warn"), newChannel.DisplayName)
 				log.WriteString(utils.T("api.slackimport.slack_add_channels.import_failed", map[string]interface{}{"DisplayName": newChannel.DisplayName}))
 				continue
@@ -560,7 +561,7 @@ func SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model
 		deactivateSlackBotUser(botUser)
 	}
 
-	InvalidateAllCaches()
+	app.InvalidateAllCaches()
 
 	log.WriteString(utils.T("api.slackimport.slack_import.notes"))
 	log.WriteString("=======\r\n\r\n")

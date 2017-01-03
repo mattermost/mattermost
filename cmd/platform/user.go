@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/mattermost/platform/api"
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -220,7 +221,7 @@ func userCreateCmdF(cmd *cobra.Command, args []string) error {
 		Locale:    locale,
 	}
 
-	ruser, err := api.CreateUser(user)
+	ruser, err := app.CreateUser(user)
 	if err != nil {
 		return errors.New("Unable to create user. Error: " + err.Error())
 	}
@@ -277,7 +278,7 @@ func resetUserPasswordCmdF(cmd *cobra.Command, args []string) error {
 	}
 	password := args[1]
 
-	if result := <-api.Srv.Store.User().UpdatePassword(user.Id, model.HashPassword(password)); result.Err != nil {
+	if result := <-app.Srv.Store.User().UpdatePassword(user.Id, model.HashPassword(password)); result.Err != nil {
 		return result.Err
 	}
 
@@ -423,7 +424,7 @@ func verifyUserCmdF(cmd *cobra.Command, args []string) error {
 		if user == nil {
 			CommandPrintErrorln("Unable to find user '" + args[i] + "'")
 		}
-		if cresult := <-api.Srv.Store.User().VerifyEmail(user.Id); cresult.Err != nil {
+		if cresult := <-app.Srv.Store.User().VerifyEmail(user.Id); cresult.Err != nil {
 			CommandPrintErrorln("Unable to verify '" + args[i] + "' email. Error: " + cresult.Err.Error())
 		}
 	}

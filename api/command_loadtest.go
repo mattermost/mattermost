@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -185,7 +186,7 @@ func (me *LoadTestProvider) SetupCommand(c *Context, channelId string, message s
 	} else {
 
 		var team *model.Team
-		if tr := <-Srv.Store.Team().Get(c.TeamId); tr.Err != nil {
+		if tr := <-app.Srv.Store.Team().Get(c.TeamId); tr.Err != nil {
 			return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		} else {
 			team = tr.Data.(*model.Team)
@@ -220,7 +221,7 @@ func (me *LoadTestProvider) UsersCommand(c *Context, channelId string, message s
 	}
 
 	var team *model.Team
-	if tr := <-Srv.Store.Team().Get(c.TeamId); tr.Err != nil {
+	if tr := <-app.Srv.Store.Team().Get(c.TeamId); tr.Err != nil {
 		return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	} else {
 		team = tr.Data.(*model.Team)
@@ -250,7 +251,7 @@ func (me *LoadTestProvider) ChannelsCommand(c *Context, channelId string, messag
 	}
 
 	var team *model.Team
-	if tr := <-Srv.Store.Team().Get(c.TeamId); tr.Err != nil {
+	if tr := <-app.Srv.Store.Team().Get(c.TeamId); tr.Err != nil {
 		return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	} else {
 		team = tr.Data.(*model.Team)
@@ -289,7 +290,7 @@ func (me *LoadTestProvider) PostsCommand(c *Context, channelId string, message s
 	}
 
 	var usernames []string
-	if result := <-Srv.Store.User().GetProfiles(c.TeamId, 0, 1000); result.Err == nil {
+	if result := <-app.Srv.Store.User().GetProfiles(c.TeamId, 0, 1000); result.Err == nil {
 		profileUsers := result.Data.(map[string]*model.User)
 		usernames = make([]string, len(profileUsers))
 		i := 0
@@ -358,7 +359,7 @@ func (me *LoadTestProvider) UrlCommand(c *Context, channelId string, message str
 		post.ChannelId = channelId
 		post.UserId = c.Session.UserId
 
-		if _, err := CreatePost(c, post, false); err != nil {
+		if _, err := app.CreatePost(post, c.TeamId, false); err != nil {
 			return &model.CommandResponse{Text: "Unable to create post", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		}
 	}
@@ -397,7 +398,7 @@ func (me *LoadTestProvider) JsonCommand(c *Context, channelId string, message st
 		post.Message = message
 	}
 
-	if _, err := CreatePost(c, post, false); err != nil {
+	if _, err := app.CreatePost(post, c.TeamId, false); err != nil {
 		return &model.CommandResponse{Text: "Unable to create post", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 	return &model.CommandResponse{Text: "Loaded data", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}

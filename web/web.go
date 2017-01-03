@@ -11,6 +11,7 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/api"
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"github.com/mssola/user_agent"
@@ -19,7 +20,7 @@ import (
 func InitWeb() {
 	l4g.Debug(utils.T("web.init.debug"))
 
-	mainrouter := api.Srv.Router
+	mainrouter := app.Srv.Router
 
 	if *utils.Cfg.ServiceSettings.WebserverMode != "disabled" {
 		staticDir := utils.FindDir(model.CLIENT_DIR)

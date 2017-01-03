@@ -4,6 +4,7 @@
 package api
 
 import (
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -39,13 +40,13 @@ func doubleCheckPassword(user *model.User, password string) *model.AppError {
 
 func checkUserPassword(user *model.User, password string) *model.AppError {
 	if !model.ComparePassword(user.Password, password) {
-		if result := <-Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); result.Err != nil {
+		if result := <-app.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); result.Err != nil {
 			return result.Err
 		}
 
 		return model.NewLocAppError("checkUserPassword", "api.user.check_user_password.invalid.app_error", nil, "user_id="+user.Id)
 	} else {
-		if result := <-Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, 0); result.Err != nil {
+		if result := <-app.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, 0); result.Err != nil {
 			return result.Err
 		}
 

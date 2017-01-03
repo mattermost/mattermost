@@ -10,6 +10,7 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -21,7 +22,7 @@ func InitGeneral() {
 	BaseRoutes.General.Handle("/log_client", ApiAppHandler(logClient)).Methods("POST")
 	BaseRoutes.General.Handle("/ping", ApiAppHandler(ping)).Methods("GET")
 
-	BaseRoutes.WebSocket.Handle("ping", ApiWebSocketHandler(webSocketPing))
+	app.Srv.WebSocketRouter.Handle("ping", ApiWebSocketHandler(webSocketPing))
 }
 
 func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {

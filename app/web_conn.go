@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-package api
+package app
 
 import (
 	"fmt"
@@ -35,32 +35,32 @@ type WebConn struct {
 	LastAllChannelMembersTime int64
 }
 
-func NewWebConn(c *Context, ws *websocket.Conn) *WebConn {
-	if len(c.Session.UserId) > 0 {
-		go SetStatusOnline(c.Session.UserId, c.Session.Id, false)
+func NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.TranslateFunc, locale string) *WebConn {
+	if len(session.UserId) > 0 {
+		go SetStatusOnline(session.UserId, session.Id, false)
 	}
 
 	return &WebConn{
 		Send:             make(chan model.WebSocketMessage, 256),
 		WebSocket:        ws,
-		UserId:           c.Session.UserId,
-		SessionToken:     c.Session.Token,
-		SessionExpiresAt: c.Session.ExpiresAt,
-		T:                c.T,
-		Locale:           c.Locale,
+		UserId:           session.UserId,
+		SessionToken:     session.Token,
+		SessionExpiresAt: session.ExpiresAt,
+		T:                t,
+		Locale:           locale,
 	}
 }
 
-func (c *WebConn) readPump() {
+func (c *WebConn) ReadPump() {
 	defer func() {
 		HubUnregister(c)
 		c.WebSocket.Close()
 	}()
-	c.WebSocket.SetReadLimit(SOCKET_MAX_MESSAGE_SIZE_KB)
+	c.WebSocket.SetReadLimit(model.SOCKET_MAX_MESSAGE_SIZE_KB)
 	c.WebSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
 	c.WebSocket.SetPongHandler(func(string) error {
 		c.WebSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
-		if c.isAuthenticated() {
+		if c.IsAuthenticated() {
 			go SetStatusAwayIfNeeded(c.UserId, false)
 		}
 		return nil
@@ -78,12 +78,12 @@ func (c *WebConn) readPump() {
 
 			return
 		} else {
-			BaseRoutes.WebSocket.ServeWebSocket(c, &req)
+			Srv.WebSocketRouter.ServeWebSocket(c, &req)
 		}
 	}
 }
 
-func (c *WebConn) writePump() {
+func (c *WebConn) WritePump() {
 	ticker := time.NewTicker(PING_PERIOD)
 	authTicker := time.NewTicker(AUTH_TIMEOUT)
 
@@ -149,7 +149,7 @@ func (webCon *WebConn) InvalidateCache() {
 	webCon.SessionExpiresAt = 0
 }
 
-func (webCon *WebConn) isAuthenticated() bool {
+func (webCon *WebConn) IsAuthenticated() bool {
 	// Check the expiry to see if we need to check for a new session
 	if webCon.SessionExpiresAt < model.GetMillis() {
 		if webCon.SessionToken == "" {
@@ -179,7 +179,7 @@ func (webCon *WebConn) SendHello() {
 
 func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	// IMPORTANT: Do not send event if WebConn does not have a session
-	if !webCon.isAuthenticated() {
+	if !webCon.IsAuthenticated() {
 		return false
 	}
 

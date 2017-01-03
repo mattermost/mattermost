@@ -1,7 +1,7 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-package api
+package app
 
 import (
 	l4g "github.com/alecthomas/log4go"
@@ -10,30 +10,34 @@ import (
 	"github.com/mattermost/platform/utils"
 )
 
+type webSocketHandler interface {
+	ServeWebSocket(*WebConn, *model.WebSocketRequest)
+}
+
 type WebSocketRouter struct {
-	handlers map[string]*webSocketHandler
+	handlers map[string]webSocketHandler
 }
 
 func NewWebSocketRouter() *WebSocketRouter {
 	router := &WebSocketRouter{}
-	router.handlers = make(map[string]*webSocketHandler)
+	router.handlers = make(map[string]webSocketHandler)
 	return router
 }
 
-func (wr *WebSocketRouter) Handle(action string, handler *webSocketHandler) {
+func (wr *WebSocketRouter) Handle(action string, handler webSocketHandler) {
 	wr.handlers[action] = handler
 }
 
 func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketRequest) {
 	if r.Action == "" {
 		err := model.NewLocAppError("ServeWebSocket", "api.web_socket_router.no_action.app_error", nil, "")
-		wr.ReturnWebSocketError(conn, r, err)
+		ReturnWebSocketError(conn, r, err)
 		return
 	}
 
 	if r.Seq <= 0 {
 		err := model.NewLocAppError("ServeWebSocket", "api.web_socket_router.bad_seq.app_error", nil, "")
-		wr.ReturnWebSocketError(conn, r, err)
+		ReturnWebSocketError(conn, r, err)
 		return
 	}
 
@@ -63,16 +67,16 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 		return
 	}
 
-	if !conn.isAuthenticated() {
+	if !conn.IsAuthenticated() {
 		err := model.NewLocAppError("ServeWebSocket", "api.web_socket_router.not_authenticated.app_error", nil, "")
-		wr.ReturnWebSocketError(conn, r, err)
+		ReturnWebSocketError(conn, r, err)
 		return
 	}
 
-	var handler *webSocketHandler
+	var handler webSocketHandler
 	if h, ok := wr.handlers[r.Action]; !ok {
 		err := model.NewLocAppError("ServeWebSocket", "api.web_socket_router.bad_action.app_error", nil, "")
-		wr.ReturnWebSocketError(conn, r, err)
+		ReturnWebSocketError(conn, r, err)
 		return
 	} else {
 		handler = h
@@ -81,7 +85,7 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 	handler.ServeWebSocket(conn, r)
 }
 
-func (wr *WebSocketRouter) ReturnWebSocketError(conn *WebConn, r *model.WebSocketRequest, err *model.AppError) {
+func ReturnWebSocketError(conn *WebConn, r *model.WebSocketRequest, err *model.AppError) {
 	l4g.Error(utils.T("api.web_socket_router.log.error"), r.Seq, conn.UserId, err.SystemMessage(utils.T), err.DetailedError)
 
 	err.DetailedError = ""

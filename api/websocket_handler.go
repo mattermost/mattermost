@@ -6,22 +6,23 @@ package api
 import (
 	l4g "github.com/alecthomas/log4go"
 
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
 
-func ApiWebSocketHandler(wh func(*model.WebSocketRequest) (map[string]interface{}, *model.AppError)) *webSocketHandler {
-	return &webSocketHandler{wh}
+func ApiWebSocketHandler(wh func(*model.WebSocketRequest) (map[string]interface{}, *model.AppError)) webSocketHandler {
+	return webSocketHandler{wh}
 }
 
 type webSocketHandler struct {
 	handlerFunc func(*model.WebSocketRequest) (map[string]interface{}, *model.AppError)
 }
 
-func (wh *webSocketHandler) ServeWebSocket(conn *WebConn, r *model.WebSocketRequest) {
+func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketRequest) {
 	l4g.Debug("/api/v3/users/websocket:%s", r.Action)
 
-	r.Session = *GetSession(conn.SessionToken)
+	r.Session = *app.GetSession(conn.SessionToken)
 	r.T = conn.T
 	r.Locale = conn.Locale
 

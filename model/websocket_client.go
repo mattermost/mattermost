@@ -8,6 +8,10 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+const (
+	SOCKET_MAX_MESSAGE_SIZE_KB = 8 * 1024 // 8KB
+)
+
 type WebSocketClient struct {
 	Url             string          // The location of the server like "ws://localhost:8065"
 	ApiUrl          string          // The api location of the server like "ws://localhost:8065/api/v3"

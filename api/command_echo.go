@@ -9,6 +9,7 @@ import (
 	"time"
 
 	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 )
 
@@ -87,7 +88,7 @@ func (me *EchoProvider) DoCommand(c *Context, args *model.CommandArgs, message s
 
 		time.Sleep(time.Duration(delay) * time.Second)
 
-		if _, err := CreatePost(c, post, true); err != nil {
+		if _, err := app.CreatePost(post, c.TeamId, true); err != nil {
 			l4g.Error(c.T("api.command_echo.create.app_error"), err)
 		}
 	}()

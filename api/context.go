@@ -5,7 +5,6 @@ package api
 
 import (
 	"fmt"
-	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -15,22 +14,11 @@ import (
 	"github.com/gorilla/mux"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 )
-
-var sessionCache *utils.Cache = utils.NewLru(model.SESSION_CACHE_SIZE)
-
-var allowedMethods []string = []string{
-	"POST",
-	"GET",
-	"OPTIONS",
-	"PUT",
-	"PATCH",
-	"DELETE",
-}
 
 type Context struct {
 	Session      model.Session
@@ -116,7 +104,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c := &Context{}
 	c.T, c.Locale = utils.GetTranslationsAndLocale(w, r)
 	c.RequestId = model.NewId()
-	c.IpAddress = GetIpAddress(r)
+	c.IpAddress = utils.GetIpAddress(r)
 	c.TeamId = mux.Vars(r)["team_id"]
 
 	token := ""
@@ -153,9 +141,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		isTokenFromQueryString = true
 	}
 
-	if *utils.Cfg.ServiceSettings.SiteURL != "" {
-		c.SetSiteURL(*utils.Cfg.ServiceSettings.SiteURL)
-	} else {
+	if utils.GetSiteURL() == "" {
 		protocol := GetProtocol(r)
 		c.SetSiteURL(protocol + "://" + r.Host)
 	}
@@ -180,7 +166,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(token) != 0 {
-		session := GetSession(token)
+		session := app.GetSession(token)
 
 		if session == nil || session.IsExpired() {
 			c.RemoveSessionCookie(w, r)
@@ -218,7 +204,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.Err == nil && h.isUserActivity && token != "" && len(c.Session.UserId) > 0 {
-		SetStatusOnline(c.Session.UserId, c.Session.Id, false)
+		app.SetStatusOnline(c.Session.UserId, c.Session.Id, false)
 	}
 
 	if c.Err == nil && (h.requireUser || h.requireSystemAdmin) {
@@ -269,31 +255,6 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (cw *CorsWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if len(*utils.Cfg.ServiceSettings.AllowCorsFrom) > 0 {
-		origin := r.Header.Get("Origin")
-		if *utils.Cfg.ServiceSettings.AllowCorsFrom == "*" || strings.Contains(*utils.Cfg.ServiceSettings.AllowCorsFrom, origin) {
-			w.Header().Set("Access-Control-Allow-Origin", origin)
-
-			if r.Method == "OPTIONS" {
-				w.Header().Set(
-					"Access-Control-Allow-Methods",
-					strings.Join(allowedMethods, ", "))
-
-				w.Header().Set(
-					"Access-Control-Allow-Headers",
-					r.Header.Get("Access-Control-Request-Headers"))
-			}
-		}
-	}
-
-	if r.Method == "OPTIONS" {
-		return
-	}
-
-	cw.router.ServeHTTP(w, r)
-}
-
 func GetProtocol(r *http.Request) string {
 	if r.Header.Get(model.HEADER_FORWARDED_PROTO) == "https" {
 		return "https"
@@ -304,7 +265,7 @@ func GetProtocol(r *http.Request) string {
 
 func (c *Context) LogAudit(extraInfo string) {
 	audit := &model.Audit{UserId: c.Session.UserId, IpAddress: c.IpAddress, Action: c.Path, ExtraInfo: extraInfo, SessionId: c.Session.Id}
-	if r := <-Srv.Store.Audit().Save(audit); r.Err != nil {
+	if r := <-app.Srv.Store.Audit().Save(audit); r.Err != nil {
 		c.LogError(r.Err)
 	}
 }
@@ -316,7 +277,7 @@ func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 	}
 
 	audit := &model.Audit{UserId: userId, IpAddress: c.IpAddress, Action: c.Path, ExtraInfo: extraInfo, SessionId: c.Session.Id}
-	if r := <-Srv.Store.Audit().Save(audit); r.Err != nil {
+	if r := <-app.Srv.Store.Audit().Save(audit); r.Err != nil {
 		c.LogError(r.Err)
 	}
 }
@@ -356,7 +317,7 @@ func (c *Context) MfaRequired() {
 		return
 	}
 
-	if result := <-Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
+	if result := <-app.Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
 		c.Err = model.NewLocAppError("", "api.context.session_expired.app_error", nil, "MfaRequired")
 		c.Err.StatusCode = http.StatusUnauthorized
 		return
@@ -422,7 +383,7 @@ func (c *Context) setTeamURL(url string, valid bool) {
 }
 
 func (c *Context) SetTeamURLFromSession() {
-	if result := <-Srv.Store.Team().Get(c.TeamId); result.Err == nil {
+	if result := <-app.Srv.Store.Team().Get(c.TeamId); result.Err == nil {
 		c.setTeamURL(c.GetSiteURL()+"/"+result.Data.(*model.Team).Name, true)
 	}
 }
@@ -457,20 +418,6 @@ func IsApiCall(r *http.Request) bool {
 	return strings.Index(r.URL.Path, "/api/") == 0
 }
 
-func GetIpAddress(r *http.Request) string {
-	address := r.Header.Get(model.HEADER_FORWARDED)
-
-	if len(address) == 0 {
-		address = r.Header.Get(model.HEADER_REAL_IP)
-	}
-
-	if len(address) == 0 {
-		address, _, _ = net.SplitHostPort(r.RemoteAddr)
-	}
-
-	return address
-}
-
 func RenderWebError(err *model.AppError, w http.ResponseWriter, r *http.Request) {
 	T, _ := utils.GetTranslationsAndLocale(w, r)
 
@@ -501,7 +448,7 @@ func Handle404(w http.ResponseWriter, r *http.Request) {
 	err.Translate(utils.T)
 	err.StatusCode = http.StatusNotFound
 
-	l4g.Debug("%v: code=404 ip=%v", r.URL.Path, GetIpAddress(r))
+	l4g.Debug("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r))
 
 	if IsApiCall(r) {
 		w.WriteHeader(err.StatusCode)
@@ -512,81 +459,10 @@ func Handle404(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func GetSession(token string) *model.Session {
-	metrics := einterfaces.GetMetricsInterface()
-
-	var session *model.Session
-	if ts, ok := sessionCache.Get(token); ok {
-		session = ts.(*model.Session)
-		if metrics != nil {
-			metrics.IncrementMemCacheHitCounter("Session")
-		}
-	} else {
-		if metrics != nil {
-			metrics.IncrementMemCacheMissCounter("Session")
-		}
-	}
-
-	if session == nil {
-		if sessionResult := <-Srv.Store.Session().Get(token); sessionResult.Err != nil {
-			l4g.Error(utils.T("api.context.invalid_token.error"), token, sessionResult.Err.DetailedError)
-		} else {
-			session = sessionResult.Data.(*model.Session)
-
-			if session.IsExpired() || session.Token != token {
-				return nil
-			} else {
-				AddSessionToCache(session)
-				return session
-			}
-		}
-	}
-
-	return session
-}
-
-func RemoveAllSessionsForUserId(userId string) {
-
-	RemoveAllSessionsForUserIdSkipClusterSend(userId)
-
-	if einterfaces.GetClusterInterface() != nil {
-		einterfaces.GetClusterInterface().RemoveAllSessionsForUserId(userId)
-	}
-}
-
-func RemoveAllSessionsForUserIdSkipClusterSend(userId string) {
-	keys := sessionCache.Keys()
-
-	for _, key := range keys {
-		if ts, ok := sessionCache.Get(key); ok {
-			session := ts.(*model.Session)
-			if session.UserId == userId {
-				sessionCache.Remove(key)
-			}
-		}
-	}
-
-	InvalidateWebConnSessionCacheForUser(userId)
-
-}
-
-func AddSessionToCache(session *model.Session) {
-	sessionCache.AddWithExpiresInSecs(session.Token, session, int64(*utils.Cfg.ServiceSettings.SessionCacheInMinutes*60))
-}
-
-func InvalidateAllCaches() {
-	l4g.Info(utils.T("api.context.invalidate_all_caches"))
-	sessionCache.Purge()
-	ClearStatusCache()
-	store.ClearChannelCaches()
-	store.ClearUserCaches()
-	store.ClearPostCaches()
-}
-
 func (c *Context) CheckTeamId() {
 	if c.TeamId != "" && c.Session.GetTeamByTeamId(c.TeamId) == nil {
 		if HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
-			if result := <-Srv.Store.Team().Get(c.TeamId); result.Err != nil {
+			if result := <-app.Srv.Store.Team().Get(c.TeamId); result.Err != nil {
 				c.Err = result.Err
 				c.Err.StatusCode = http.StatusBadRequest
 				return

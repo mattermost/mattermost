@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
@@ -1832,7 +1833,7 @@ func TestGetChannelByName(t *testing.T) {
 
 	user2 := &model.User{Email: "success+" + model.NewId() + "@simulator.amazonses.com", Nickname: "Jabba the Hutt", Password: "passwd1"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
+	store.Must(app.Srv.Store.User().VerifyEmail(user2.Id))
 
 	Client.SetTeamId(th.BasicTeam.Id)
 
