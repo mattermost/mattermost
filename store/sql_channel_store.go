@@ -839,6 +839,27 @@ func (us SqlChannelStore) InvalidateMemberCount(channelId string) {
 	channelMemberCountsCache.Remove(channelId)
 }
 
+func (s SqlChannelStore) GetMemberCountFromCache(channelId string) int64 {
+	metrics := einterfaces.GetMetricsInterface()
+
+	if cacheItem, ok := channelMemberCountsCache.Get(channelId); ok {
+		if metrics != nil {
+			metrics.IncrementMemCacheHitCounter("Channel Member Counts")
+		}
+		return cacheItem.(int64)
+	} else {
+		if metrics != nil {
+			metrics.IncrementMemCacheMissCounter("Channel Member Counts")
+		}
+	}
+
+	if result := <-s.GetMemberCount(channelId, true); result.Err != nil {
+		return 0
+	} else {
+		return result.Data.(int64)
+	}
+}
+
 func (s SqlChannelStore) GetMemberCount(channelId string, allowFromCache bool) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 	metrics := einterfaces.GetMetricsInterface()
