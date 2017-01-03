@@ -3,6 +3,7 @@
 
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
+import * as UserAgent from 'utils/user_agent.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 
@@ -412,7 +413,7 @@ export default class SidebarHeaderDropdown extends React.Component {
 
         let nativeAppDivider = null;
         let nativeAppLink = null;
-        if (global.window.mm_config.AppDownloadLink) {
+        if (global.window.mm_config.AppDownloadLink && !UserAgent.isMobileApp()) {
             nativeAppDivider = <li className='divider'/>;
             nativeAppLink = (
                 <li>
