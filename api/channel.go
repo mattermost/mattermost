@@ -634,15 +634,13 @@ func AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelM
 		return nil, model.NewLocAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil, "")
 	}
 
-	go func() {
-		InvalidateCacheForUser(user.Id)
-		InvalidateCacheForChannel(channel.Id)
+	InvalidateCacheForUser(user.Id)
+	InvalidateCacheForChannel(channel.Id)
 
-		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_ADDED, "", channel.Id, "", nil)
-		message.Add("user_id", user.Id)
-		message.Add("team_id", channel.TeamId)
-		go Publish(message)
-	}()
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_ADDED, "", channel.Id, "", nil)
+	message.Add("user_id", user.Id)
+	message.Add("team_id", channel.TeamId)
+	go Publish(message)
 
 	return newMember, nil
 }
