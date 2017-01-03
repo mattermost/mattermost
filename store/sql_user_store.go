@@ -1291,14 +1291,34 @@ var specialUserSearchChar = []string{
 	"(",
 	")",
 	"~",
-	"@",
 	":",
 	"*",
 	"\"",
+	"!",
+	"@",
+}
+
+var postgresSearchChar = []string{
+	"(",
+	")",
+	":",
+	"!",
 }
 
 func (us SqlUserStore) performSearch(searchQuery string, term string, options map[string]bool, parameters map[string]interface{}) StoreResult {
 	result := StoreResult{}
+
+	// Special handling for emails
+	originalTerm := term
+	postgresUseOriginalTerm := false
+	if strings.Contains(term, "@") && strings.Contains(term, ".") {
+		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+			postgresUseOriginalTerm = true
+		} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
+			lastIndex := strings.LastIndex(term, ".")
+			term = term[0:lastIndex]
+		}
+	}
 
 	// these chars have special meaning and can be treated as spaces
 	for _, c := range specialUserSearchChar {
@@ -1323,16 +1343,24 @@ func (us SqlUserStore) performSearch(searchQuery string, term string, options ma
 	if term == "" {
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
 	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
-		splitTerm := strings.Fields(term)
-		for i, t := range strings.Fields(term) {
-			if i == len(splitTerm)-1 {
-				splitTerm[i] = t + ":*"
-			} else {
-				splitTerm[i] = t + ":* &"
+		if postgresUseOriginalTerm {
+			term = originalTerm
+			// these chars will break the query and must be removed
+			for _, c := range postgresSearchChar {
+				term = strings.Replace(term, c, "", -1)
 			}
-		}
+		} else {
+			splitTerm := strings.Fields(term)
+			for i, t := range strings.Fields(term) {
+				if i == len(splitTerm)-1 {
+					splitTerm[i] = t + ":*"
+				} else {
+					splitTerm[i] = t + ":* &"
+				}
+			}
 
-		term = strings.Join(splitTerm, " ")
+			term = strings.Join(splitTerm, " ")
+		}
 
 		searchType = convertMySQLFullTextColumnsToPostgres(searchType)
 		searchClause := fmt.Sprintf("AND (%s) @@  to_tsquery('simple', :Term)", searchType)

@@ -986,7 +986,7 @@ func TestUserStoreSearch(t *testing.T) {
 	u1.FirstName = "Tim"
 	u1.LastName = "Bill"
 	u1.Nickname = "Rob"
-	u1.Email = "harold" + model.NewId()
+	u1.Email = "harold" + model.NewId() + "@simulator.amazonses.com"
 	Must(store.User().Save(u1))
 
 	u2 := &model.User{}
@@ -1032,6 +1032,26 @@ func TestUserStoreSearch(t *testing.T) {
 			t.Fatal("should not have found inactive user")
 		}
 	}
+
+	searchOptions[USER_SEARCH_OPTION_NAMES_ONLY] = false
+
+	if r1 := <-store.User().Search(tid, u1.Email, searchOptions); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		profiles := r1.Data.([]*model.User)
+		found1 := false
+		for _, profile := range profiles {
+			if profile.Id == u1.Id {
+				found1 = true
+			}
+		}
+
+		if !found1 {
+			t.Fatal("should have found user")
+		}
+	}
+
+	searchOptions[USER_SEARCH_OPTION_NAMES_ONLY] = true
 
 	// * should be treated as a space
 	if r1 := <-store.User().Search(tid, "jimb*", searchOptions); r1.Err != nil {
