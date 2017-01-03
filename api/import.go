@@ -50,6 +50,8 @@ func ImportPost(post *model.Post) {
 func ImportUser(team *model.Team, user *model.User) *model.User {
 	user.MakeNonNil()
 
+	user.Roles = model.ROLE_SYSTEM_USER.Id
+
 	if result := <-Srv.Store.User().Save(user); result.Err != nil {
 		l4g.Error(utils.T("api.import.import_user.saving.error"), result.Err)
 		return nil
