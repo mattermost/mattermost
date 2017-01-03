@@ -32,7 +32,7 @@
     "superagent": "2.3.0",
     "twemoji": "2.2.0",
     "velocity-animate": "1.3.1",
-    "webrtc-adapter": "2.0.8",
+    "webrtc-adapter": "2.1.0",
     "xregexp": "3.1.1"
   },
   "devDependencies": {
