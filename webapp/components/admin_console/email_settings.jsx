@@ -255,7 +255,7 @@ export default class EmailSettings extends AdminSettings {
                             defaultMessage='SMTP Server Port:'
                         />
                     }
-                    placeholder={Utils.localizeMessage('admin.email.smtpPortExample', 'Ex: "25", "465"')}
+                    placeholder={Utils.localizeMessage('admin.email.smtpPortExample', 'Ex: "25", "465", "587"')}
                     helpText={
                         <FormattedMessage
                             id='admin.email.smtpPortDescription'
