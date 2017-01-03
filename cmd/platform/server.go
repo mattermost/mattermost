@@ -24,6 +24,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var MaxNotificationsPerChannelDefault int64 = 1000000
+
 var serverCmd = &cobra.Command{
 	Use:   "server",
 	Short: "Run the Mattermost server",
@@ -74,6 +76,10 @@ func runServer(configFileLocation string) {
 	if !utils.IsLicensed && len(utils.Cfg.SqlSettings.DataSourceReplicas) > 1 {
 		l4g.Warn(utils.T("store.sql.read_replicas_not_licensed.critical"))
 		utils.Cfg.SqlSettings.DataSourceReplicas = utils.Cfg.SqlSettings.DataSourceReplicas[:1]
+	}
+
+	if !utils.IsLicensed {
+		utils.Cfg.TeamSettings.MaxNotificationsPerChannel = &MaxNotificationsPerChannelDefault
 	}
 
 	resetStatuses()
