@@ -72,8 +72,8 @@ func runServer(configFileLocation string) {
 	}
 
 	if !utils.IsLicensed && len(utils.Cfg.SqlSettings.DataSourceReplicas) > 1 {
-		l4g.Critical(utils.T("store.sql.read_replicas_not_licensed.critical"))
-		return
+		l4g.Warn(utils.T("store.sql.read_replicas_not_licensed.critical"))
+		utils.Cfg.SqlSettings.DataSourceReplicas = utils.Cfg.SqlSettings.DataSourceReplicas[:1]
 	}
 
 	resetStatuses()
