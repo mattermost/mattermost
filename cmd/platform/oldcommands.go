@@ -1033,7 +1033,7 @@ func cmdActivateUser() {
 			l4g.Error("%v", utils.T("api.user.update_active.no_deactivate_ldap.app_error"))
 		}
 
-		if _, err := api.UpdateActive(user, !flagUserSetInactive); err != nil {
+		if _, err := app.UpdateActive(user, !flagUserSetInactive); err != nil {
 			l4g.Error("%v", err)
 		}
 

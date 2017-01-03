@@ -175,7 +175,7 @@ func changeUserActiveStatus(user *model.User, userArg string, activate bool) {
 		CommandPrintErrorln(utils.T("api.user.update_active.no_deactivate_ldap.app_error"))
 		return
 	}
-	if _, err := api.UpdateActive(user, activate); err != nil {
+	if _, err := app.UpdateActive(user, activate); err != nil {
 		CommandPrintErrorln("Unable to change activation status of user: " + userArg)
 	}
 }

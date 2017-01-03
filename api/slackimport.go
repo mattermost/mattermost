@@ -365,7 +365,7 @@ func SlackUploadFile(sPost SlackPost, uploads map[string]*zip.File, teamId strin
 }
 
 func deactivateSlackBotUser(user *model.User) {
-	_, err := UpdateActive(user, false)
+	_, err := app.UpdateActive(user, false)
 	if err != nil {
 		l4g.Warn(utils.T("api.slackimport.slack_deactivate_bot_user.failed_to_deactivate", err))
 	}

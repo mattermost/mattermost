@@ -75,7 +75,7 @@ func JoinUserToTeam(team *model.Team, user *model.User) *model.AppError {
 		l4g.Error(utils.T("api.user.create_user.joining.error"), user.Id, team.Id, err)
 	}
 
-	RemoveAllSessionsForUserId(user.Id)
+	ClearSessionCacheForUser(user.Id)
 	InvalidateCacheForUser(user.Id)
 
 	return nil
