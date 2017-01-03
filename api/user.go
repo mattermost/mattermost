@@ -1272,11 +1272,17 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	id := params["user_id"]
 	readFailed := false
 
+	var etag string
+
 	if result := <-Srv.Store.User().Get(id); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
 		var img []byte
+		etag = strconv.FormatInt(result.Data.(*model.User).LastPictureUpdate, 10)
+		if HandleEtag(etag, "Profile Image", w, r) {
+			return
+		}
 
 		if len(utils.Cfg.FileSettings.DriverName) == 0 {
 			var err *model.AppError
@@ -1314,6 +1320,7 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.Header().Set("Content-Type", "image/png")
+		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 		w.Write(img)
 	}
 }
