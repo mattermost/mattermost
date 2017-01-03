@@ -1080,9 +1080,8 @@ export default class WebrtcController extends React.Component {
         const currentId = UserStore.getCurrentId();
         const remoteImage = (<img src={this.state.remoteUserImage}/>);
         let localImage;
-        let localVideoHidden;
+        let localVideoHidden = '';
         let remoteVideoHidden = 'hidden';
-        let remoteVideoHiddenLocal = 'full';
         let error;
         let remoteMute;
         let videoClass = '';
@@ -1173,11 +1172,9 @@ export default class WebrtcController extends React.Component {
 
             if (this.state.isRemotePaused) {
                 remoteVideoHidden = 'hidden';
-                remoteVideoHiddenLocal = 'full';
                 remoteImageHidden = 'webrtc__remote-image';
             } else {
                 remoteVideoHidden = '';
-                remoteVideoHiddenLocal = '';
                 remoteImageHidden = 'webrtc__remote-image hidden';
             }
         } else {
@@ -1211,7 +1208,7 @@ export default class WebrtcController extends React.Component {
                             </div>
                             <div
                                 id='local-video'
-                                className={localVideoHidden + ' ' + remoteVideoHiddenLocal}
+                                className={localVideoHidden}
                             >
                                 <video
                                     ref='local-video'
