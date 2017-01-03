@@ -362,3 +362,8 @@ export function createPost(post, doLoadPost, success, error) {
         }
     );
 }
+
+export function removePostFromStore(post) {
+    PostStore.removePost(post);
+    PostStore.emitChange();
+}
