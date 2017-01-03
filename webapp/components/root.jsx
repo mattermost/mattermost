@@ -38,6 +38,7 @@ export default class Root extends React.Component {
         // Fastclick
         FastClick.attach(document.body);
     }
+
     localizationChanged() {
         const locale = LocalizationStore.getLocale();
 
@@ -56,13 +57,16 @@ export default class Root extends React.Component {
             }
         }
     }
+
     componentWillReceiveProps(newProps) {
         this.redirectIfNecessary(newProps);
     }
+
     componentWillMount() {
         // Redirect if Necessary
         this.redirectIfNecessary(this.props);
     }
+
     componentDidMount() {
         // Setup localization listener
         LocalizationStore.addChangeListener(this.localizationChanged);
@@ -70,9 +74,11 @@ export default class Root extends React.Component {
         // Get our localizaiton
         GlobalActions.loadDefaultLocale();
     }
+
     componentWillUnmount() {
         LocalizationStore.removeChangeListener(this.localizationChanged);
     }
+
     render() {
         if (this.state.translations == null || this.props.children == null) {
             return <div/>;

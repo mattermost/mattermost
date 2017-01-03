@@ -162,12 +162,10 @@ export default class Client {
 
     handleResponse(methodName, successCallback, errorCallback, err, res) {
         if (res && res.header) {
-            this.serverVersion = res.header[HEADER_X_VERSION_ID];
             if (res.header[HEADER_X_VERSION_ID]) {
                 this.serverVersion = res.header[HEADER_X_VERSION_ID];
             }
 
-            this.clusterId = res.header[HEADER_X_CLUSTER_ID];
             if (res.header[HEADER_X_CLUSTER_ID]) {
                 this.clusterId = res.header[HEADER_X_CLUSTER_ID];
             }

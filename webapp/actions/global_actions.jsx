@@ -190,15 +190,11 @@ export function emitPostFocusEvent(postId, onSuccess) {
 }
 
 export function emitCloseRightHandSide() {
-    AppDispatcher.handleServerAction({
-        type: ActionTypes.RECEIVED_SEARCH,
-        results: null
-    });
+    SearchStore.storeSearchResults(null, false, false);
+    SearchStore.emitSearchChange();
 
-    AppDispatcher.handleServerAction({
-        type: ActionTypes.RECEIVED_POST_SELECTED,
-        postId: null
-    });
+    PostStore.storeSelectedPostId(null);
+    PostStore.emitSelectedPostChange(false, false);
 }
 
 export function emitPostFocusRightHandSideFromSearch(post, isMentionSearch) {
