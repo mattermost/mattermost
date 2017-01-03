@@ -299,22 +299,6 @@ func (c *Client) GetPing() (map[string]string, *AppError) {
 
 // Team Routes Section
 
-// SignupTeam sends an email with a team sign-up link to the provided address if email
-// verification is enabled, otherwise it returns a map with a "follow_link" entry
-// containing the team sign-up link.
-func (c *Client) SignupTeam(email string, displayName string) (*Result, *AppError) {
-	m := make(map[string]string)
-	m["email"] = email
-	m["display_name"] = displayName
-	if r, err := c.DoApiPost("/teams/signup", MapToJson(m)); err != nil {
-		return nil, err
-	} else {
-		defer closeBody(r)
-		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
-	}
-}
-
 // CreateTeam creates a team based on the provided Team struct. On success it returns
 // the Team struct with the Id, CreateAt and other server-decided fields populated.
 func (c *Client) CreateTeam(team *Team) (*Result, *AppError) {

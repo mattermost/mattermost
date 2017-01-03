@@ -89,7 +89,7 @@ func InitUser() {
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !utils.Cfg.EmailSettings.EnableSignUpWithEmail || !utils.Cfg.TeamSettings.EnableUserCreation {
-		c.Err = model.NewLocAppError("signupTeam", "api.user.create_user.signup_email_disabled.app_error", nil, "")
+		c.Err = model.NewLocAppError("createUser", "api.user.create_user.signup_email_disabled.app_error", nil, "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}

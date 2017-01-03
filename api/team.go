@@ -25,7 +25,6 @@ func InitTeam() {
 	l4g.Debug(utils.T("api.team.init.debug"))
 
 	BaseRoutes.Teams.Handle("/create", ApiAppHandler(createTeam)).Methods("POST")
-	BaseRoutes.Teams.Handle("/signup", ApiAppHandler(signupTeam)).Methods("POST")
 	BaseRoutes.Teams.Handle("/all", ApiAppHandler(getAll)).Methods("GET")
 	BaseRoutes.Teams.Handle("/all_team_listings", ApiUserRequired(GetAllTeamListings)).Methods("GET")
 	BaseRoutes.Teams.Handle("/get_invite_info", ApiAppHandler(getInviteInfo)).Methods("POST")
@@ -50,57 +49,6 @@ func InitTeam() {
 	// These should be moved to the global admin console
 	BaseRoutes.NeedTeam.Handle("/import_team", ApiUserRequired(importTeam)).Methods("POST")
 	BaseRoutes.Teams.Handle("/add_user_to_team_from_invite", ApiUserRequired(addUserToTeamFromInvite)).Methods("POST")
-}
-
-func signupTeam(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !utils.Cfg.EmailSettings.EnableSignUpWithEmail {
-		c.Err = model.NewLocAppError("signupTeam", "api.team.signup_team.email_disabled.app_error", nil, "")
-		c.Err.StatusCode = http.StatusNotImplemented
-		return
-	}
-
-	m := model.MapFromJson(r.Body)
-	email := strings.ToLower(strings.TrimSpace(m["email"]))
-
-	if len(email) == 0 {
-		c.SetInvalidParam("signupTeam", "email")
-		return
-	}
-
-	if !isTeamCreationAllowed(c, email) {
-		return
-	}
-
-	subject := c.T("api.templates.signup_team_subject",
-		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"]})
-
-	bodyPage := utils.NewHTMLTemplate("signup_team_body", c.Locale)
-	bodyPage.Props["SiteURL"] = c.GetSiteURL()
-	bodyPage.Props["Title"] = c.T("api.templates.signup_team_body.title")
-	bodyPage.Props["Button"] = c.T("api.templates.signup_team_body.button")
-	bodyPage.Html["Info"] = template.HTML(c.T("api.templates.signup_team_body.info",
-		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"]}))
-
-	props := make(map[string]string)
-	props["email"] = email
-	props["time"] = fmt.Sprintf("%v", model.GetMillis())
-
-	data := model.MapToJson(props)
-	hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
-
-	bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_team_complete/?d=%s&h=%s", c.GetSiteURL(), url.QueryEscape(data), url.QueryEscape(hash))
-
-	if err := utils.SendMail(email, subject, bodyPage.Render()); err != nil {
-		c.Err = err
-		return
-	}
-
-	if !utils.Cfg.EmailSettings.RequireEmailVerification {
-		m["follow_link"] = fmt.Sprintf("/signup_team_complete/?d=%s&h=%s", url.QueryEscape(data), url.QueryEscape(hash))
-	}
-
-	w.Header().Set("Access-Control-Allow-Origin", " *")
-	w.Write([]byte(model.MapToJson(m)))
 }
 
 func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {

@@ -22,22 +22,6 @@ describe('Client.Team', function() {
         });
     });
 
-    it('signupTeam', function(done) {
-        var client = TestHelper.createClient();
-        var email = TestHelper.fakeEmail();
-
-        client.signupTeam(
-            email,
-            function(data) {
-                assert.equal(data.email, email);
-                done();
-            },
-            function(err) {
-                done(new Error(err.message));
-            }
-        );
-    });
-
     it('createTeam', function(done) {
         var client = TestHelper.createClient();
         var team = TestHelper.fakeTeam();
