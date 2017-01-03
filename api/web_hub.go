@@ -38,7 +38,8 @@ func NewWebHub() *Hub {
 }
 
 func TotalWebsocketConnections() int {
-	// XXX TODO FIXME, this is racy and needs to be fixed
+	// This is racy, but it's only used for reporting information
+	// so it's probably OK
 	count := 0
 	for _, hub := range hubs {
 		count = count + len(hub.connections)
