@@ -490,6 +490,7 @@ export function clientLogout(redirectTo = '/') {
     PreferenceStore.clear();
     UserStore.clear();
     TeamStore.clear();
+    ChannelStore.clear();
     newLocalizationSelected(global.window.mm_config.DefaultClientLocale);
     stopPeriodicStatusUpdates();
     WebsocketActions.close();

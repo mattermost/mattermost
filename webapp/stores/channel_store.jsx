@@ -17,9 +17,11 @@ const LAST_VIEVED_EVENT = 'last_viewed';
 class ChannelStoreClass extends EventEmitter {
     constructor(props) {
         super(props);
-
         this.setMaxListeners(600);
+        this.clear();
+    }
 
+    clear() {
         this.currentId = null;
         this.postMode = this.POST_MODE_CHANNEL;
         this.channels = [];
