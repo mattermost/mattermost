@@ -258,16 +258,15 @@ describe('Client.User', function() {
         });
     });
 
-    /* TODO: FIX THIS TEST
     it('updateActive', function(done) {
         TestHelper.initBasic(() => {
-            var user = TestHelper.basicUser();
+            const user = TestHelper.basicUser();
 
             TestHelper.basicClient().updateActive(
                 user.id,
                 false,
                 function(data) {
-                    assert.equal(data.last_activity_at > 0, true);
+                    assert.ok(data.delete_at > 0);
                     done();
                 },
                 function(err) {
@@ -275,7 +274,7 @@ describe('Client.User', function() {
                 }
             );
         });
-        });*/
+    });
 
     it('sendPasswordReset', function(done) {
         TestHelper.initBasic(() => {
