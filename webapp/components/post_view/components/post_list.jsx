@@ -68,7 +68,6 @@ export default class PostList extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        // TODO: Clean-up intro text creation
         if (this.props.channel && this.props.channel.type === Constants.DM_CHANNEL) {
             const teammateId = Utils.getUserIdFromChannelName(this.props.channel);
             if (!this.props.profiles[teammateId] && nextProps.profiles[teammateId]) {

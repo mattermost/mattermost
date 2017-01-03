@@ -1323,7 +1323,6 @@ func TestGetFileInfosForPost(t *testing.T) {
 	}
 }
 
-// TODO: Needs to be vastly fleshed out
 func TestSendNotifications(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.BasicClient

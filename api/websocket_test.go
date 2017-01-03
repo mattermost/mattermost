@@ -13,7 +13,6 @@ import (
 	"github.com/mattermost/platform/model"
 )
 
-// XXX FIXME
 /*func TestWebSocketAuthentication(t *testing.T) {
 	th := Setup().InitBasic()
 	WebSocketClient, err := th.CreateWebSocketClient()
