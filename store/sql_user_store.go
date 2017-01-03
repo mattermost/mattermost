@@ -1295,6 +1295,7 @@ var specialUserSearchChar = []string{
 	"*",
 	"\"",
 	"!",
+	"@",
 }
 
 var postgresSearchChar = []string{
