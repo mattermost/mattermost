@@ -35,6 +35,12 @@ func ImportPost(post *model.Post) {
 			l4g.Debug(utils.T("api.import.import_post.saving.debug"), post.UserId, post.Message)
 		}
 
+		for _, fileId := range post.FileIds {
+			if result := <-Srv.Store.FileInfo().AttachToPost(fileId, post.Id); result.Err != nil {
+				l4g.Error(utils.T("api.import.import_post.attach_files.error"), post.Id, post.FileIds, result.Err)
+			}
+		}
+
 		post.Id = ""
 		post.CreateAt++
 		post.Message = remainder
