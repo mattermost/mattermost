@@ -175,6 +175,14 @@
     }
 
     .post {
+        &:not(.post--compact) {
+            .bot-indicator {
+                left: 6px;
+                position: absolute;
+                top: 31px;
+            }
+        }
+
         .post__dropdown {
             display: inline-block;
             height: 28px;
