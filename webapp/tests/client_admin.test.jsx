@@ -290,22 +290,5 @@ describe('Client.Admin', function() {
             );
         });
     });*/
-
-    // TODO XXX FIX ME - this test depends on make dist
-
-    // it('General.getTranslations', function(done) {
-    //     TestHelper.initBasic(() => {
-    //         TestHelper.basicClient().getTranslations(
-    //             'http://localhost:8065/static/i18n/es.json',
-    //             function(data) {
-    //                 assert.equal(data['login.or'], 'o');
-    //                 done();
-    //             },
-    //             function(err) {
-    //                 done(new Error(err.message));
-    //             }
-    //         );
-    //     });
-    // });
 });
 
