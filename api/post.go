@@ -61,7 +61,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	post.UserId = c.Session.UserId
 
-	cchan := Srv.Store.Channel().Get(post.ChannelId)
+	cchan := Srv.Store.Channel().Get(post.ChannelId, true)
 
 	if !HasPermissionToChannelContext(c, post.ChannelId, model.PERMISSION_CREATE_POST) {
 		return
@@ -166,6 +166,7 @@ func CreatePost(c *Context, post *model.Post, triggerWebhooks bool) (*model.Post
 		}
 	}
 
+	InvalidateCacheForChannel(rpost.ChannelId)
 	InvalidateCacheForChannelPosts(rpost.ChannelId)
 
 	handlePostEvents(c, rpost, triggerWebhooks)
@@ -245,7 +246,7 @@ func CreateWebhookPost(c *Context, channelId, text, overrideUsername, overrideIc
 
 func handlePostEvents(c *Context, post *model.Post, triggerWebhooks bool) {
 	tchan := Srv.Store.Team().Get(c.TeamId)
-	cchan := Srv.Store.Channel().Get(post.ChannelId)
+	cchan := Srv.Store.Channel().Get(post.ChannelId, true)
 	uchan := Srv.Store.User().Get(post.UserId)
 
 	var team *model.Team

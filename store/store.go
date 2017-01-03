@@ -85,7 +85,8 @@ type ChannelStore interface {
 	CreateDirectChannel(userId string, otherUserId string) StoreChannel
 	SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) StoreChannel
 	Update(channel *model.Channel) StoreChannel
-	Get(id string) StoreChannel
+	Get(id string, allowFromCache bool) StoreChannel
+	InvalidateChannel(id string)
 	GetFromMaster(id string) StoreChannel
 	Delete(channelId string, time int64) StoreChannel
 	SetDeleteAt(channelId string, deleteAt int64, updateAt int64) StoreChannel

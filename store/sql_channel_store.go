@@ -26,6 +26,9 @@ const (
 
 	CHANNEL_MEMBERS_COUNTS_CACHE_SIZE = 20000
 	CHANNEL_MEMBERS_COUNTS_CACHE_SEC  = 900 // 15 mins
+
+	CHANNEL_CACHE_SIZE = 5000
+	CHANNEL_CACHE_SEC  = 900 // 15 mins
 )
 
 type SqlChannelStore struct {
@@ -34,10 +37,12 @@ type SqlChannelStore struct {
 
 var channelMemberCountsCache = utils.NewLru(CHANNEL_MEMBERS_COUNTS_CACHE_SIZE)
 var allChannelMembersForUserCache = utils.NewLru(ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SIZE)
+var channelCache = utils.NewLru(CHANNEL_CACHE_SIZE)
 
 func ClearChannelCaches() {
 	channelMemberCountsCache.Purge()
 	allChannelMembersForUserCache.Purge()
+	channelCache.Purge()
 }
 
 func NewSqlChannelStore(sqlStore *SqlStore) ChannelStore {
@@ -297,19 +302,24 @@ func (s SqlChannelStore) extraUpdated(channel *model.Channel) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlChannelStore) Get(id string) StoreChannel {
-	return s.get(id, false)
+func (us SqlChannelStore) InvalidateChannel(id string) {
+	channelCache.Remove(id)
+}
+
+func (s SqlChannelStore) Get(id string, allowFromCache bool) StoreChannel {
+	return s.get(id, false, allowFromCache)
 }
 
 func (s SqlChannelStore) GetFromMaster(id string) StoreChannel {
-	return s.get(id, true)
+	return s.get(id, true, false)
 }
 
-func (s SqlChannelStore) get(id string, master bool) StoreChannel {
+func (s SqlChannelStore) get(id string, master bool, allowFromCache bool) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
+		metrics := einterfaces.GetMetricsInterface()
 
 		var db *gorp.DbMap
 		if master {
@@ -318,12 +328,33 @@ func (s SqlChannelStore) get(id string, master bool) StoreChannel {
 			db = s.GetReplica()
 		}
 
+		if allowFromCache {
+			if cacheItem, ok := channelCache.Get(id); ok {
+				if metrics != nil {
+					metrics.IncrementMemCacheHitCounter("Channel")
+				}
+				result.Data = cacheItem.(*model.Channel)
+				storeChannel <- result
+				close(storeChannel)
+				return
+			} else {
+				if metrics != nil {
+					metrics.IncrementMemCacheMissCounter("Channel")
+				}
+			}
+		} else {
+			if metrics != nil {
+				metrics.IncrementMemCacheMissCounter("Channel")
+			}
+		}
+
 		if obj, err := db.Get(model.Channel{}, id); err != nil {
 			result.Err = model.NewLocAppError("SqlChannelStore.Get", "store.sql_channel.get.find.app_error", nil, "id="+id+", "+err.Error())
 		} else if obj == nil {
 			result.Err = model.NewLocAppError("SqlChannelStore.Get", "store.sql_channel.get.existing.app_error", nil, "id="+id)
 		} else {
 			result.Data = obj.(*model.Channel)
+			channelCache.AddWithExpiresInSecs(id, obj.(*model.Channel), CHANNEL_MEMBERS_COUNTS_CACHE_SEC)
 		}
 
 		storeChannel <- result
@@ -869,7 +900,7 @@ func (s SqlChannelStore) RemoveMember(channelId string, userId string) StoreChan
 		result := StoreResult{}
 
 		// Grab the channel we are saving this member to
-		if cr := <-s.Get(channelId); cr.Err != nil {
+		if cr := <-s.Get(channelId, true); cr.Err != nil {
 			result.Err = cr.Err
 		} else {
 			channel := cr.Data.(*model.Channel)

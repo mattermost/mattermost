@@ -113,6 +113,7 @@ func InvalidateCacheForChannel(channelId string) {
 func InvalidateCacheForChannelSkipClusterSend(channelId string) {
 	Srv.Store.User().InvalidateProfilesInChannelCache(channelId)
 	Srv.Store.Channel().InvalidateMemberCount(channelId)
+	Srv.Store.Channel().InvalidateChannel(channelId)
 }
 
 func InvalidateCacheForChannelPosts(channelId string) {
