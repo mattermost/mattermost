@@ -6,7 +6,6 @@ package model
 import (
 	"bytes"
 	"fmt"
-	l4g "github.com/alecthomas/log4go"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -15,6 +14,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	l4g "github.com/alecthomas/log4go"
 )
 
 const (
@@ -311,18 +312,6 @@ func (c *Client) SignupTeam(email string, displayName string) (*Result, *AppErro
 		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
-	}
-}
-
-// CreateTeamFromSignup creates a team based on the provided TeamSignup struct. On success
-// it returns the TeamSignup struct.
-func (c *Client) CreateTeamFromSignup(teamSignup *TeamSignup) (*Result, *AppError) {
-	if r, err := c.DoApiPost("/teams/create_from_signup", teamSignup.ToJson()); err != nil {
-		return nil, err
-	} else {
-		defer closeBody(r)
-		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), TeamSignupFromJson(r.Body)}, nil
 	}
 }
 
