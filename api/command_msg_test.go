@@ -38,4 +38,7 @@ func TestMsgCommands(t *testing.T) {
 	if !strings.HasSuffix(rs3.GotoLocation, "/"+team.Name+"/channels/"+user1.Id+"__"+user2.Id) && !strings.HasSuffix(rs3.GotoLocation, "/"+team.Name+"/channels/"+user2.Id+"__"+user1.Id) {
 		t.Fatal("failed to go back to existing direct channel")
 	}
+
+	Client.Must(Client.Command("", "/msg "+th.BasicUser.Username+" foobar"))
+	Client.Must(Client.Command("", "/msg junk foobar"))
 }
