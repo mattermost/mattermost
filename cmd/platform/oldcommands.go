@@ -781,7 +781,7 @@ func cmdResetMfa() {
 			}
 		}
 
-		if err := api.DeactivateMfa(user.Id); err != nil {
+		if err := app.DeactivateMfa(user.Id); err != nil {
 			l4g.Error("%v", err)
 			flushLogAndExit(1)
 		}

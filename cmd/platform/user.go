@@ -298,7 +298,7 @@ func resetUserMfaCmdF(cmd *cobra.Command, args []string) error {
 			return errors.New("Unable to find user '" + args[i] + "'")
 		}
 
-		if err := api.DeactivateMfa(user.Id); err != nil {
+		if err := app.DeactivateMfa(user.Id); err != nil {
 			return err
 		}
 	}

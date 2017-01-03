@@ -92,3 +92,55 @@ func InvalidateAllCaches() {
 func SessionCacheLength() int {
 	return sessionCache.Len()
 }
+
+func RevokeSessionsForDeviceId(userId string, deviceId string, currentSessionId string) *model.AppError {
+	if result := <-Srv.Store.Session().GetSessions(userId); result.Err != nil {
+		return result.Err
+	} else {
+		sessions := result.Data.([]*model.Session)
+		for _, session := range sessions {
+			if session.DeviceId == deviceId && session.Id != currentSessionId {
+				l4g.Debug(utils.T("api.user.login.revoking.app_error"), session.Id, userId)
+				if err := RevokeSession(session); err != nil {
+					// Soft error so we still remove the other sessions
+					l4g.Error(err.Error())
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+func RevokeSessionById(sessionId string) *model.AppError {
+	if result := <-Srv.Store.Session().Get(sessionId); result.Err != nil {
+		return result.Err
+	} else {
+		return RevokeSession(result.Data.(*model.Session))
+	}
+}
+
+func RevokeSession(session *model.Session) *model.AppError {
+	if session.IsOAuth {
+		if err := RevokeAccessToken(session.Token); err != nil {
+			return err
+		}
+	} else {
+		if result := <-Srv.Store.Session().Remove(session.Id); result.Err != nil {
+			return result.Err
+		}
+	}
+
+	RevokeWebrtcToken(session.Id)
+	RemoveAllSessionsForUserId(session.UserId)
+
+	return nil
+}
+
+func AttachDeviceId(sessionId string, deviceId string, expiresAt int64) *model.AppError {
+	if result := <-Srv.Store.Session().UpdateDeviceId(sessionId, deviceId, expiresAt); result.Err != nil {
+		return result.Err
+	}
+
+	return nil
+}

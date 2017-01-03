@@ -248,7 +248,10 @@ func revokeAllSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.LogAudit("revoked_all=" + id)
 
 		if session.IsOAuth {
-			RevokeAccessToken(session.Token)
+			if err := app.RevokeAccessToken(session.Token); err != nil {
+				c.Err = err
+				return
+			}
 		} else {
 			if result := <-app.Srv.Store.Session().Remove(session.Id); result.Err != nil {
 				c.Err = result.Err

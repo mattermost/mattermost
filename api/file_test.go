@@ -508,7 +508,7 @@ func TestGetPublicFileOld(t *testing.T) {
 }
 
 func generatePublicLinkOld(siteURL, teamId, channelId, userId, filename string) string {
-	hash := generatePublicLinkHash(filename, *utils.Cfg.FileSettings.PublicLinkSalt)
+	hash := app.GeneratePublicLinkHash(filename, *utils.Cfg.FileSettings.PublicLinkSalt)
 	return fmt.Sprintf("%s%s/public/files/get/%s/%s/%s/%s?h=%s", siteURL, model.API_URL_SUFFIX, teamId, channelId, userId, filename, hash)
 }
 
@@ -578,29 +578,6 @@ func TestGetPublicLink(t *testing.T) {
 
 	if err := cleanupTestFile(store.Must(app.Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo)); err != nil {
 		t.Fatal(err)
-	}
-}
-
-func TestGeneratePublicLinkHash(t *testing.T) {
-	filename1 := model.NewId() + "/" + model.NewRandomString(16) + ".txt"
-	filename2 := model.NewId() + "/" + model.NewRandomString(16) + ".txt"
-	salt1 := model.NewRandomString(32)
-	salt2 := model.NewRandomString(32)
-
-	hash1 := generatePublicLinkHash(filename1, salt1)
-	hash2 := generatePublicLinkHash(filename2, salt1)
-	hash3 := generatePublicLinkHash(filename1, salt2)
-
-	if hash1 != generatePublicLinkHash(filename1, salt1) {
-		t.Fatal("hash should be equal for the same file name and salt")
-	}
-
-	if hash1 == hash2 {
-		t.Fatal("hashes for different files should not be equal")
-	}
-
-	if hash1 == hash3 {
-		t.Fatal("hashes for the same file with different salts should not be equal")
 	}
 }
 
@@ -740,7 +717,7 @@ func TestFindTeamIdForFilename(t *testing.T) {
 		Filenames: []string{fmt.Sprintf("/%s/%s/%s/%s", channel1.Id, user1.Id, fileId1, "test.png")},
 	})).(*model.Post)
 
-	if teamId := findTeamIdForFilename(post1, post1.Filenames[0]); teamId != team1.Id {
+	if teamId := app.FindTeamIdForFilename(post1, post1.Filenames[0]); teamId != team1.Id {
 		t.Fatal("file should've been found under team1")
 	}
 
@@ -753,7 +730,7 @@ func TestFindTeamIdForFilename(t *testing.T) {
 	})).(*model.Post)
 	Client.SetTeamId(team1.Id)
 
-	if teamId := findTeamIdForFilename(post2, post2.Filenames[0]); teamId != team2.Id {
+	if teamId := app.FindTeamIdForFilename(post2, post2.Filenames[0]); teamId != team2.Id {
 		t.Fatal("file should've been found under team2")
 	}
 }
@@ -795,7 +772,7 @@ func TestGetInfoForFilename(t *testing.T) {
 		Filenames: []string{fmt.Sprintf("/%s/%s/%s/%s", channel1.Id, user1.Id, fileId1, "test.png")},
 	})).(*model.Post)
 
-	if info := getInfoForFilename(post1, team1.Id, post1.Filenames[0]); info == nil {
+	if info := app.GetInfoForFilename(post1, team1.Id, post1.Filenames[0]); info == nil {
 		t.Fatal("info shouldn't be nil")
 	} else if info.Id == "" {
 		t.Fatal("info.Id shouldn't be empty")

@@ -66,7 +66,7 @@ func (me *msgProvider) DoCommand(c *Context, args *model.CommandArgs, message st
 	targetChannelId := ""
 	if channel := <-app.Srv.Store.Channel().GetByName(c.TeamId, channelName); channel.Err != nil {
 		if channel.Err.Id == "store.sql_channel.get_by_name.missing.app_error" {
-			if directChannel, err := CreateDirectChannel(c.Session.UserId, userProfile.Id); err != nil {
+			if directChannel, err := app.CreateDirectChannel(c.Session.UserId, userProfile.Id); err != nil {
 				c.Err = err
 				return &model.CommandResponse{Text: c.T("api.command_msg.dm_fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 			} else {

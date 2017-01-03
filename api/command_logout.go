@@ -4,6 +4,7 @@
 package api
 
 import (
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 )
 
@@ -38,8 +39,7 @@ func (me *LogoutProvider) DoCommand(c *Context, args *model.CommandArgs, message
 
 	// We can't actually remove the user's cookie from here so we just dump their session and let the browser figure it out
 	if c.Session.Id != "" {
-		RevokeSessionById(c, c.Session.Id)
-		if c.Err != nil {
+		if err := app.RevokeSessionById(c.Session.Id); err != nil {
 			return FAIL
 		}
 		return SUCCESS

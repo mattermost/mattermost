@@ -5,6 +5,7 @@ package api
 
 import (
 	"fmt"
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"testing"
@@ -39,5 +40,5 @@ func TestWebrtcToken(t *testing.T) {
 		fmt.Println("Turn Password", result["turn_password"])
 	}
 
-	RevokeWebrtcToken(sessionId)
+	app.RevokeWebrtcToken(sessionId)
 }

@@ -80,3 +80,11 @@ func JoinUserToTeam(team *model.Team, user *model.User) *model.AppError {
 
 	return nil
 }
+
+func GetTeamsForUser(userId string) ([]*model.Team, *model.AppError) {
+	if result := <-Srv.Store.Team().GetTeamsByUserId(userId); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.([]*model.Team), nil
+	}
+}
