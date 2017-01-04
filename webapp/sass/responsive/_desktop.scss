@@ -85,6 +85,14 @@
             }
         }
     }
+
+    .channel-header {
+        .search-bar__container {
+            .search__form {
+                width: 150px;
+            }
+        }
+    }
 }
 
 @media (min-width: 992px) {
