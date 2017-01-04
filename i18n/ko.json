@@ -572,10 +572,6 @@
     "translation": "로그아웃"
   },
   {
-    "id": "api.command_logout.success_message",
-    "translation": "로그아웃하는 중..."
-  },
-  {
     "id": "api.command_me.desc",
     "translation": "액션 실행"
   },
@@ -644,44 +640,144 @@
     "translation": "이제 온라인 상태입니다."
   },
   {
-    "id": "api.command_shortcuts.browser",
-    "translation": "#### 브라우저 단축키\n\nALT+LEFT: 이전 채널\nALT+RIGHT: 다음 채널\nCTRL+PLUS: 폰트 사이즈 키우기 (zoom in)\nCTRL+MINUS: 폰트 사이즈 줄이기 (zoom out)\n(입력란에서)SHIFT+UP: 이전 줄까지 선택\n(입력란에서)SHIFT+DOWN: 다음 줄 까지 선택\n(입력란에서)SHIFT+ENTER: 줄 바꿈\n"
+    "id": "api.command_shortcuts.browser.channel_next",
+    "translation": "{{.ChannelNextCmd}}: Next channel in your history\n"
   },
   {
-    "id": "api.command_shortcuts.browser_mac",
-    "translation": "#### 브라우저 단축키\n\nCMD+[: 이전 채널\nCMD+]: 다음 채널\nCMD+PLUS: 폰트 사이즈 키우기 (zoom in)\nCMD+MINUS: 폰트 사이즈 줄이기 (zoom out)\n(입력란에서)SHIFT+UP: 이전 줄까지 선택\n(입력란에서)SHIFT+DOWN: 다음 줄 까지 선택\n(입력란에서)SHIFT+ENTER: 줄 바꿈\n"
+    "id": "api.command_shortcuts.browser.channel_next.cmd",
+    "translation": "ALT+RIGHT"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_next.cmd_mac",
+    "translation": "CMD+]"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_prev",
+    "translation": "{{.ChannelPrevCmd}}: Previous channel in your history\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_prev.cmd",
+    "translation": "ALT+LEFT"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_prev.cmd_mac",
+    "translation": "CMD+["
+  },
+  {
+    "id": "api.command_shortcuts.browser.font_decrease",
+    "translation": "{{.CmdOrCtrl}}+MINUS: Decrease font size (zoom out)\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.font_increase",
+    "translation": "{{.CmdOrCtrl}}+PLUS: Increase font size (zoom in)\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.header",
+    "translation": "#### Built-in Browser Commands\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.highlight_next",
+    "translation": "SHIFT+DOWN (in input field): Highlight text to the next line\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.highlight_prev",
+    "translation": "SHIFT+UP (in input field): Highlight text to the previous line\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.newline",
+    "translation": "SHIFT+ENTER (in input field): Create a new line\n"
+  },
+  {
+    "id": "api.command_shortcuts.cmd",
+    "translation": "CMD"
+  },
+  {
+    "id": "api.command_shortcuts.ctrl",
+    "translation": "CTRL"
   },
   {
     "id": "api.command_shortcuts.desc",
     "translation": "단축키 목록을 표시합니다."
   },
   {
-    "id": "api.command_shortcuts.files",
-    "translation": "#### 파일\n\nCTRL+U: 파일 업로드\n\n"
+    "id": "api.command_shortcuts.files.header",
+    "translation": "#### Files\n\n"
   },
   {
-    "id": "api.command_shortcuts.files_mac",
-    "translation": "#### 파일\n\nCMD+U: 파일 업로드\n\n"
+    "id": "api.command_shortcuts.files.upload",
+    "translation": "{{.CmdOrCtrl}}+U: Upload file(s)\n\n"
   },
   {
-    "id": "api.command_shortcuts.msgs",
-    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCTRL+UP (in empty input field): Reprint the previous message or slash command you entered\nCTRL+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n~[character]+TAB: Autocomplete channel beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
+    "id": "api.command_shortcuts.header",
+    "translation": "### Keyboard Shortcuts\n\n"
   },
   {
-    "id": "api.command_shortcuts.msgs_mac",
-    "translation": "#### Messages\n\nESC: Mark all messages in the current channel as read\nCMD+UP (in empty input field): Reprint the previous message or slash command you entered\nCMD+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n~[character]+TAB: Autocomplete channel beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
+    "id": "api.command_shortcuts.msgs.comp_channel",
+    "translation": "~[character]+TAB: Autocomplete channel beginning with [character]\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.comp_emoji",
+    "translation": ":[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.comp_username",
+    "translation": "@[character]+TAB: Autocomplete @username beginning with [character]\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.edit",
+    "translation": "UP (in empty input field): Edit your last message in the current channel\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.header",
+    "translation": "#### Messages\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.mark_as_read",
+    "translation": "ESC: Mark all messages in the current channel as read\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.reprint_next",
+    "translation": "{{.CmdOrCtrl}}+DOWN (in empty input field): Reprint the next message or slash command you entered\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.reprint_prev",
+    "translation": "{{.CmdOrCtrl}}+UP (in empty input field): Reprint the previous message or slash command you entered\n"
   },
   {
     "id": "api.command_shortcuts.name",
     "translation": "단축키"
   },
   {
-    "id": "api.command_shortcuts.nav",
-    "translation": "### 키보드 단축키\n\n#### 탐색\n\nALT+UP: 왼쪽 사이드바의 이전 채널이나 개인 메시지\nALT+DOWN: 왼쪽 사이드바의 다음 채널이나 개인 메시지\nALT+SHIFT+UP: 왼쪽 사이드바의 읽지 않은 이전 채널이나 개인 메시지\nALT+SHIFT+DOWN: 왼쪽 사이드바의 읽지 않은 다음 채널이나 개인 메시지\nCTRL+K: 빠른 채널 변경 창 열기\nCTRL+SHIFT+A: 계정 설정 열기\nCTRL+SHIFT+M: 최근 멘션 열기\n\n"
+    "id": "api.command_shortcuts.nav.header",
+    "translation": "#### Navigation\n\n"
   },
   {
-    "id": "api.command_shortcuts.nav_mac",
-    "translation": "### 키보드 단축키\n\n#### 탐색\n\nALT+UP: 왼쪽 사이드바의 이전 채널이나 개인 메시지\nALT+DOWN: 왼쪽 사이드바의 다음 채널이나 개인 메시지\nALT+SHIFT+UP: 왼쪽 사이드바의 읽지 않은 이전 채널이나 개인 메시지\nALT+SHIFT+DOWN: 왼쪽 사이드바의 읽지 않은 다음 채널이나 개인 메시지\nCMD+K: 빠른 채널 변경 창 열기\nCMD+SHIFT+A: 계정 설정 열기\nCMD+SHIFT+M: 최근 멘션 열기\n\n"
+    "id": "api.command_shortcuts.nav.next",
+    "translation": "ALT+DOWN: Next channel or direct message in left hand sidebar\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.prev",
+    "translation": "ALT+UP: Previous channel or direct message in left hand sidebar\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.recent_mentions",
+    "translation": "{{.CmdOrCtrl}}+SHIFT+M: Open recent mentions\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.settings",
+    "translation": "{{.CmdOrCtrl}}+SHIFT+A: Open account settings\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.switcher",
+    "translation": "{{.CmdOrCtrl}}+K: Open a quick channel switcher dialog\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.unread_next",
+    "translation": "ALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.unread_prev",
+    "translation": "ALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\n"
   },
   {
     "id": "api.command_shrug.desc",

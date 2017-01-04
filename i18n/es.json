@@ -572,10 +572,6 @@
     "translation": "salir"
   },
   {
-    "id": "api.command_logout.success_message",
-    "translation": "Cerrando sesión..."
-  },
-  {
     "id": "api.command_me.desc",
     "translation": "Hacer una acción"
   },
@@ -644,44 +640,144 @@
     "translation": "Ahora estás disponible"
   },
   {
-    "id": "api.command_shortcuts.browser",
-    "translation": "#### Comandos incluidos en el Navegador\n\nALT+IZQ: Canal anterior en tu historial\nALT+DER: Canal siguiente en tu historial\nCTRL+MAS: Incrementa el tamaño de las letras (hace zoom)\nCTRL+MENOS: Reduce el tamaño de las letras (quita zoom)\nSHIFT+ARRIBA (en el cuadro de texto): Selecciona el texto en las lineas de arriba\nSHIFT+ABAJO (en el cuadro de texto): Selecciona el texto en las lineas de abajo\nSHIFT+RETORNO (en el cuadro de texto): Crea una nueva línea\n"
+    "id": "api.command_shortcuts.browser.channel_next",
+    "translation": "{{.ChannelNextCmd}}: canal Siguiente en el historial\n"
   },
   {
-    "id": "api.command_shortcuts.browser_mac",
-    "translation": "#### Comandos incluidos en el Navegador\n\nCMD+[: Canal anterior en tu historial\nCMD+]: Canal siguiente en tu historial\nCMD+MAS: Incrementa el tamaño de las letras (hace zoom)\nCMD+MENOS: Reduce el tamaño de las letras (quita zoom)\nSHIFT+ARRIBA (en el cuadro de texto): Selecciona el texto en las lineas de arriba\nSHIFT+ABAJO (en el cuadro de texto): Selecciona el texto en las lineas de abajo\nSHIFT+RETORNO (en el cuadro de texto): Crea una nueva línea\n"
+    "id": "api.command_shortcuts.browser.channel_next.cmd",
+    "translation": "ALT+DER"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_next.cmd_mac",
+    "translation": "CMD+]"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_prev",
+    "translation": "{{.ChannelPrevCmd}}: canal Anterior en el historial\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_prev.cmd",
+    "translation": "ALT+IZQ"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_prev.cmd_mac",
+    "translation": "CMD+["
+  },
+  {
+    "id": "api.command_shortcuts.browser.font_decrease",
+    "translation": "{{.CmdOrCtrl}}+MENOS: Disminuir tamaño de la fuente (alejar)\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.font_increase",
+    "translation": "{{.CmdOrCtrl}}+MAS: Aumentar tamaño de la fuente (acercar)\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.header",
+    "translation": "#### Comandos incluidos en el Navegador\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.highlight_next",
+    "translation": "MAYUS+ABAJO (en el cuadro de texto): Selecciona el texto de las linea siguiente\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.highlight_prev",
+    "translation": "MAYUS+ARRIBA (en el cuadro de texto): Selecciona el texto de las línea anterior\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.newline",
+    "translation": "MAYUS+RETORNO (en el cuadro de texto): Crea una nueva línea\n"
+  },
+  {
+    "id": "api.command_shortcuts.cmd",
+    "translation": "CMD"
+  },
+  {
+    "id": "api.command_shortcuts.ctrl",
+    "translation": "CTRL"
   },
   {
     "id": "api.command_shortcuts.desc",
     "translation": "Muestra una lista de los accesos rápidos de teclado"
   },
   {
-    "id": "api.command_shortcuts.files",
-    "translation": "#### Archivos\n\nCTRL+U: Subir archivo(s)\n\n"
+    "id": "api.command_shortcuts.files.header",
+    "translation": "#### Archivos\n\n"
   },
   {
-    "id": "api.command_shortcuts.files_mac",
-    "translation": "#### Archivos\n\nCMD+U: Subir archivo(s)\n\n"
+    "id": "api.command_shortcuts.files.upload",
+    "translation": "{{.CmdOrCtrl}}+U: Subir archivo(s)\n\n"
   },
   {
-    "id": "api.command_shortcuts.msgs",
-    "translation": "#### Mensajes\n\nESC: Marca todos los mensajes como leídos en el canal actual\nCTRL+ARRIBA (con el cuadro de texto vacío): Reimprime el último mensaje o comando de barra que ingresaste\nCTRL+ABAJO (con el cuadro de texto vacío): Reimprime el siguiente mensaje o comando de barra que ingresaste\nARRIBA (con el cuadro de texto vacío): Edita tu último mensaje en el canal en el que te encuentras\n@[carácter]+TAB: Auto completa @nombre que comience por [carácter]\n~[carácter]+TAB: Autocompleta el canal que comience por [carácter]\n:[carácter]+TAB: Auto completa el emoji que comience por [carácter]\n\n"
+    "id": "api.command_shortcuts.header",
+    "translation": "### Atajos de Teclado\n\n"
   },
   {
-    "id": "api.command_shortcuts.msgs_mac",
-    "translation": "#### Mensajes\n\nESC: Marca todos los mensajes como leídos en el canal actual\nCMD+ARRIBA (con el cuadro de texto vacío): Reimprime el último mensaje o comando de barra que ingresaste\nCMD+ABAJO (con el cuadro de texto vacío): Reimprime el siguiente mensaje o comando de barra que ingresaste\nARRIBA (con el cuadro de texto vacío): Edita tu último mensaje en el canal en el que te encuentras\n@[carácter]+TAB: Auto completa @nombre que comience por [carácter]\n~[carácter]+TAB: Autocompleta el canal que comience por [carácter]\n:[carácter]+TAB: Auto completa el emoji que comience por [carácter]\n\n"
+    "id": "api.command_shortcuts.msgs.comp_channel",
+    "translation": "~[carácter]+TAB: Auto completa el canal que comience por [carácter]\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.comp_emoji",
+    "translation": ":[carácter]+TAB: Auto completa el emoticon que comience por [carácter]\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.comp_username",
+    "translation": "@[carácter]+TAB: Auto completa @nombre que comience por [carácter]\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.edit",
+    "translation": "ARRIBA (con el cuadro de texto vacío): Edita el último mensaje en el canal actual\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.header",
+    "translation": "#### Mensajes\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.mark_as_read",
+    "translation": "ESC: Marca todos los mensajes como leídos en el canal actual\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.reprint_next",
+    "translation": "{{.CmdOrCtrl}}+ABAJO (con el cuadro de texto vacío): Reimprime el siguiente mensaje o comando de barra que ingresaste\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.reprint_prev",
+    "translation": "{{.CmdOrCtrl}}+ARRIBA (con el cuadro de texto vacío): Reimprime el último mensaje o comando de barra que ingresaste\n"
   },
   {
     "id": "api.command_shortcuts.name",
     "translation": "accesos rápidos de teclado"
   },
   {
-    "id": "api.command_shortcuts.nav",
-    "translation": "### Atajos de Teclado\n\n#### Navegación\n\nALT+ARRIBA: Canal o mensaje directo previo en la barra lateral izquierda\nALT+ABAJO: Canal o mensaje directo siguiente en la barra lateral izquierda\nALT+MAYUS+ARRIBA: Canal o mensaje directo previo en la barra lateral izquierda con mensajes no leídos\nALT+MAYUS+ABAJO: Canal o mensaje directo siguiente en la barra lateral izquierda con mensajes no leídos\nCTRL+K: Abre un cuadro de dialogo para cambiar rápidamente de canal\nCTRL+MAYUS+A: Abre la configuración de la cuenta\nCTRL+MAYUS+M: Abre las menciones recientes\n\n"
+    "id": "api.command_shortcuts.nav.header",
+    "translation": "#### Navegación\n\n"
   },
   {
-    "id": "api.command_shortcuts.nav_mac",
-    "translation": "### Atajos de Teclado\n\n#### Navegación\n\nALT+ARRIBA: Canal o mensaje directo previo en la barra lateral izquierda\nALT+ABAJO: Canal o mensaje directo siguiente en la barra lateral izquierda\nALT+MAYUS+ARRIBA: Canal o mensaje directo previo en la barra lateral izquierda con mensajes no leídos\nALT+MAYUS+ABAJO: Canal o mensaje directo siguiente en la barra lateral izquierda con mensajes no leídos\nCMD+K: Abre un cuadro de dialogo para cambiar rápidamente de canal\nCMD+MAYUS+A: Abre la configuración de la cuenta\nCMD+MAYUS+M: Abre las menciones recientes\n\n"
+    "id": "api.command_shortcuts.nav.next",
+    "translation": "ALT+ABAJO: Canal o mensaje directo siguiente en la barra lateral izquierda\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.prev",
+    "translation": "ALT+ARRIBA: Canal o mensaje directo previo en la barra lateral izquierda\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.recent_mentions",
+    "translation": "{{.CmdOrCtrl}}+MAYUS+M: Abre las menciones recientes\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.settings",
+    "translation": "{{.CmdOrCtrl}}+MAYUS+A: Abre la configuración de la cuenta\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.switcher",
+    "translation": "{{.CmdOrCtrl}}+K: Abre un cuadro de dialogo para cambiar rápidamente de canal\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.unread_next",
+    "translation": "ALT+MAYUS+ABAJO: Canal o mensaje directo siguiente en la barra lateral izquierda con mensajes no leídos\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.unread_prev",
+    "translation": "ALT+MAYUS+ARRIBA: Canal o mensaje directo previo en la barra lateral izquierda con mensajes no leídos\n"
   },
   {
     "id": "api.command_shrug.desc",

@@ -572,10 +572,6 @@
     "translation": "注销"
   },
   {
-    "id": "api.command_logout.success_message",
-    "translation": "注销中..."
-  },
-  {
     "id": "api.command_me.desc",
     "translation": "执行一个操作"
   },
@@ -644,44 +640,144 @@
     "translation": "您现在在线了"
   },
   {
-    "id": "api.command_shortcuts.browser",
-    "translation": "#### 浏览器自带命令\n\nALT+向左键：您历史里的上一个频道\nALT+向右键：您历史里的下一个频道\nCTRL+加号：加大字体大小 (放大)\nCTRL+减号：减小字体大小 (缩小)\nSHIFT+向上键 (在输入框)：高亮字到上一行\nSHIFT+向下键 (在输入框)：高亮字到下一行\nSHIFT+回车 (在输入框)：创建新一行\n"
+    "id": "api.command_shortcuts.browser.channel_next",
+    "translation": "{{.ChannelNextCmd}}: Next channel in your history\n"
   },
   {
-    "id": "api.command_shortcuts.browser_mac",
-    "translation": "#### 浏览器自带命令\n\nCMD +[：您历史里的上一个频道\nCMD +]：您历史里的下一个频道\nCMD +加号：加大字体大小 (放大)\nCMD +减号：减小字体大小 (缩小)\nSHIFT+向上键 (在输入框)：高亮字到上一行\nSHIFT+向下键 (在输入框)：高亮字到下一行\nSHIFT+回车 (在输入框)：创建新一行\n"
+    "id": "api.command_shortcuts.browser.channel_next.cmd",
+    "translation": "ALT+RIGHT"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_next.cmd_mac",
+    "translation": "CMD+]"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_prev",
+    "translation": "{{.ChannelPrevCmd}}: Previous channel in your history\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_prev.cmd",
+    "translation": "ALT+LEFT"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_prev.cmd_mac",
+    "translation": "CMD+["
+  },
+  {
+    "id": "api.command_shortcuts.browser.font_decrease",
+    "translation": "{{.CmdOrCtrl}}+MINUS: Decrease font size (zoom out)\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.font_increase",
+    "translation": "{{.CmdOrCtrl}}+PLUS: Increase font size (zoom in)\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.header",
+    "translation": "#### Built-in Browser Commands\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.highlight_next",
+    "translation": "SHIFT+DOWN (in input field): Highlight text to the next line\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.highlight_prev",
+    "translation": "SHIFT+UP (in input field): Highlight text to the previous line\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.newline",
+    "translation": "SHIFT+ENTER (in input field): Create a new line\n"
+  },
+  {
+    "id": "api.command_shortcuts.cmd",
+    "translation": "CMD"
+  },
+  {
+    "id": "api.command_shortcuts.ctrl",
+    "translation": "CTRL"
   },
   {
     "id": "api.command_shortcuts.desc",
     "translation": "显示快捷键列表"
   },
   {
-    "id": "api.command_shortcuts.files",
-    "translation": "#### 文件\n\nCTRL+U：上传文件\n\n"
+    "id": "api.command_shortcuts.files.header",
+    "translation": "#### Files\n\n"
   },
   {
-    "id": "api.command_shortcuts.files_mac",
-    "translation": "#### 文件\n\nCMD+U：上传文件\n\n"
+    "id": "api.command_shortcuts.files.upload",
+    "translation": "{{.CmdOrCtrl}}+U: Upload file(s)\n\n"
   },
   {
-    "id": "api.command_shortcuts.msgs",
-    "translation": "#### 消息\n\nESC：标当前频道所有消息为已读\nCTRL+向上键 (在空输入栏)：重用您输入的上一条消息或斜杠命令\nCTRL+向下键 (在空输入栏)：重用您输入的下一条消息或斜杠命令\n向上键 (在空输入栏)：修改您当前频道的上一条消息\n@[字符]+TAB：自动完成以[字符]开头的 @用户名\n~[字符]+TAB：自动完成以[字符]开头的频道\n:[字符]+TAB：自动完成以[字符]开头的表情符\n\n"
+    "id": "api.command_shortcuts.header",
+    "translation": "### Keyboard Shortcuts\n\n"
   },
   {
-    "id": "api.command_shortcuts.msgs_mac",
-    "translation": "#### 消息\n\nESC：标当前频道所有消息为已读\nCMD+向上键 (在空输入栏)：重用您输入的上一条消息或斜杠命令\nCMD+向下键 (在空输入栏)：重用您输入的下一条消息或斜杠命令\n向上键 (在空输入栏)：修改您当前频道的上一条消息\n@[字符]+TAB：自动完成以[字符]开头的 @用户名\n~[字符]+TAB：自动完成以[字符]开头的频道\n:[字符]+TAB：自动完成以[字符]开头的表情符\n\n"
+    "id": "api.command_shortcuts.msgs.comp_channel",
+    "translation": "~[character]+TAB: Autocomplete channel beginning with [character]\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.comp_emoji",
+    "translation": ":[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.comp_username",
+    "translation": "@[character]+TAB: Autocomplete @username beginning with [character]\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.edit",
+    "translation": "UP (in empty input field): Edit your last message in the current channel\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.header",
+    "translation": "#### Messages\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.mark_as_read",
+    "translation": "ESC: Mark all messages in the current channel as read\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.reprint_next",
+    "translation": "{{.CmdOrCtrl}}+DOWN (in empty input field): Reprint the next message or slash command you entered\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.reprint_prev",
+    "translation": "{{.CmdOrCtrl}}+UP (in empty input field): Reprint the previous message or slash command you entered\n"
   },
   {
     "id": "api.command_shortcuts.name",
     "translation": "快捷键"
   },
   {
-    "id": "api.command_shortcuts.nav",
-    "translation": "### 键盘快捷键\n\n#### 导航\n\nALT+向上键：左栏中上一频道或私信\nALT+向下键：左栏中下一频道或私信\nALT+SHIFT+向上键：左栏中上一个有未读消息的频道或私信\nALT+SHIFT+向下键：左栏中下一个有未读消息的频道或私信\nCTRL+K：打开快速频道切换对话框\nCTRL+SHIFT+A：打开帐号设定\nCTRL+SHIFT+M：打开最近提及\n\n"
+    "id": "api.command_shortcuts.nav.header",
+    "translation": "#### Navigation\n\n"
   },
   {
-    "id": "api.command_shortcuts.nav_mac",
-    "translation": "### 键盘快捷键\n\n#### 导航\n\nALT+向上键：左栏中上一频道或私信\nALT+向下键：左栏中下一频道或私信\nALT+SHIFT+向上键：左栏中上一个有未读消息的频道或私信\nALT+SHIFT+向下键：左栏中下一个有未读消息的频道或私信\nCMD +K：打开快速频道切换对话框\nCMD +SHIFT+A：打开帐号设定\nCMD +SHIFT+M：打开最近提及\n\n"
+    "id": "api.command_shortcuts.nav.next",
+    "translation": "ALT+DOWN: Next channel or direct message in left hand sidebar\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.prev",
+    "translation": "ALT+UP: Previous channel or direct message in left hand sidebar\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.recent_mentions",
+    "translation": "{{.CmdOrCtrl}}+SHIFT+M: Open recent mentions\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.settings",
+    "translation": "{{.CmdOrCtrl}}+SHIFT+A: Open account settings\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.switcher",
+    "translation": "{{.CmdOrCtrl}}+K: Open a quick channel switcher dialog\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.unread_next",
+    "translation": "ALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.unread_prev",
+    "translation": "ALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\n"
   },
   {
     "id": "api.command_shrug.desc",

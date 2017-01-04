@@ -2162,6 +2162,7 @@
   "user.settings.security.title": "安全设置",
   "user.settings.security.viewHistory": "查看访问历史",
   "user_list.notFound": "没有找到用户",
+  "user_profile.send.dm": "Send Message",
   "user_profile.webrtc.call": "开始视频通话",
   "user_profile.webrtc.offline": "此用户已离线",
   "user_profile.webrtc.unavailable": "不能在结束当前通话前开新通话",

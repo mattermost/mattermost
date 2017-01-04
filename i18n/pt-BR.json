@@ -73,7 +73,7 @@
   },
   {
     "id": "api.admin.init.debug",
-    "translation": "Inicializando admin api routes"
+    "translation": "Inicializando as rotas da API admin"
   },
   {
     "id": "api.admin.recycle_db_end.warn",
@@ -197,7 +197,7 @@
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
-    "translation": "Deve usar a api de serviço createDirectChannel para criação do canal de mensagens diretas"
+    "translation": "Deve-se usar a API de serviço createDirectChannel para criação do canal de mensagens diretas"
   },
   {
     "id": "api.channel.create_channel.invalid_character.app_error",
@@ -217,7 +217,7 @@
   },
   {
     "id": "api.channel.create_direct_channel.invalid_user.app_error",
-    "translation": "Inválido outro id de usuário "
+    "translation": "ID do outro usuário inválida  "
   },
   {
     "id": "api.channel.delete_channel.archived",
@@ -273,7 +273,7 @@
   },
   {
     "id": "api.channel.init.debug",
-    "translation": "Inicializando channel api routes"
+    "translation": "Inicializando as rotas da API channel"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -381,7 +381,7 @@
   },
   {
     "id": "api.command.delete.app_error",
-    "translation": "Permissões inadequadas para deletar o comando"
+    "translation": "Permissões inadequadas para o comando de deletar"
   },
   {
     "id": "api.command.disabled.app_error",
@@ -421,7 +421,7 @@
   },
   {
     "id": "api.command.init.debug",
-    "translation": "Inicializando command api routes"
+    "translation": "Inicializando as rotas da API command"
   },
   {
     "id": "api.command.invite_people.desc",
@@ -453,7 +453,7 @@
   },
   {
     "id": "api.command.regen.app_error",
-    "translation": "Permissões inadequadas para re-gerar o token de comando"
+    "translation": "Permissões inadequadas para re-gerar o token de comandos"
   },
   {
     "id": "api.command.team_mismatch.app_error",
@@ -461,7 +461,7 @@
   },
   {
     "id": "api.command.update.app_error",
-    "translation": "Permissões inadequadas para atualizar o comando"
+    "translation": "Permissões inadequadas para o comando atualizar"
   },
   {
     "id": "api.command_away.desc",
@@ -529,7 +529,7 @@
   },
   {
     "id": "api.command_expand_collapse.fail.app_error",
-    "translation": "Um erro ocorreu ao expandir o preview"
+    "translation": "Um erro ocorreu ao expandir as visualizações"
   },
   {
     "id": "api.command_join.desc",
@@ -537,7 +537,7 @@
   },
   {
     "id": "api.command_join.fail.app_error",
-    "translation": "Ocorreu um erro enquanto juntava ao canal."
+    "translation": "Ocorreu um erro enquanto conectava ao canal."
   },
   {
     "id": "api.command_join.hint",
@@ -572,10 +572,6 @@
     "translation": "logout"
   },
   {
-    "id": "api.command_logout.success_message",
-    "translation": "Saindo..."
-  },
-  {
     "id": "api.command_me.desc",
     "translation": "Fazer uma ação"
   },
@@ -593,11 +589,11 @@
   },
   {
     "id": "api.command_msg.dm_fail.app_error",
-    "translation": "Ocorreu um erro durante a criação da mensagem direta."
+    "translation": "Um erro ocorreu durante a criação da mensagem direta."
   },
   {
     "id": "api.command_msg.fail.app_error",
-    "translation": "Ocorreu um erro durante a mensagem do usuário."
+    "translation": "Um erro ocorreu durante o envio da mensagem ao usuário."
   },
   {
     "id": "api.command_msg.hint",
@@ -644,44 +640,144 @@
     "translation": "Você está agora conectado"
   },
   {
-    "id": "api.command_shortcuts.browser",
-    "translation": "#### Comandos Nativos do Navegador\n\nALT+ESQUERDA: Canal anterior no seu histórico\nALT+DIREITA: Próximo canal no seu histórico\nCTRL+MAIS: Aumenta o tamanho da fonte (zoom in)\nCTRL+MENOS: Diminui o tamanho da fonte (zoom out)\nSHIFT+CIMA (no campo de entrada): Seleciona o texto até a linha anterior\nSHIFT+BAIXO (no campo de entrada): Seleciona o texto até a próxima linha\nSHIFT+ENTER (no campo de entrada): Cria nova linha\n"
+    "id": "api.command_shortcuts.browser.channel_next",
+    "translation": "{{.ChannelNextCmd}}: Próximo canal no seu histórico\n"
   },
   {
-    "id": "api.command_shortcuts.browser_mac",
-    "translation": "#### Comandos Nativos do Navegador\n\nCMD+[: Canal anterior no seu histórico\nCMD+]: Próximo canal no seu histórico\nCMD+MAIS: Aumenta o tamanho da fonte (zoom in)\nCMD+MENOS: Diminui o tamanho da fonte (zoom out)\nSHIFT+CIMA (no campo de entrada): Seleciona o texto até a linha anterior\nSHIFT+BAIXO (no campo de entrada): Seleciona o texto até a próxima linha\nSHIFT+ENTER (no campo de entrada): Cria nova linha\n"
+    "id": "api.command_shortcuts.browser.channel_next.cmd",
+    "translation": "ALT+DIR"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_next.cmd_mac",
+    "translation": "CMD+]"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_prev",
+    "translation": "{{.ChannelPrevCmd}}: Canal anterior no seu histórico\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_prev.cmd",
+    "translation": "ALT+ESQ"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_prev.cmd_mac",
+    "translation": "CMD+["
+  },
+  {
+    "id": "api.command_shortcuts.browser.font_decrease",
+    "translation": "{{.CmdOrCtrl}}+MENOS: Reduz o tamanho da fonte (zoom out)\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.font_increase",
+    "translation": "{{.CmdOrCtrl}}+MAIS: Aumenta o tamanho da fonte (zoom in)\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.header",
+    "translation": "#### Comandos Nativos do Navegador\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.highlight_next",
+    "translation": "SHIFT+BAIXO (no campo de entrada): Seleciona o texto da próxima linha\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.highlight_prev",
+    "translation": "SHIFT+CIMA (no campo de entrada): Seleciona o texto da linha anterior\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.newline",
+    "translation": "SHIFT+ENTER (no campo de entrada): Cria uma nova linha\n"
+  },
+  {
+    "id": "api.command_shortcuts.cmd",
+    "translation": "CMD"
+  },
+  {
+    "id": "api.command_shortcuts.ctrl",
+    "translation": "CTRL"
   },
   {
     "id": "api.command_shortcuts.desc",
     "translation": "Mostrar a lista de atalhos"
   },
   {
-    "id": "api.command_shortcuts.files",
-    "translation": "#### Arquivos\n\nCTRL+U: Enviar arquivo(s)\n\n"
+    "id": "api.command_shortcuts.files.header",
+    "translation": "#### Arquivos\n\n"
   },
   {
-    "id": "api.command_shortcuts.files_mac",
-    "translation": "#### Arquivos\n\nCMD+U: Enviar arquivo(s)\n\n"
+    "id": "api.command_shortcuts.files.upload",
+    "translation": "{{.CmdOrCtrl}}+U: Envia arquivo(s)\n\n"
   },
   {
-    "id": "api.command_shortcuts.msgs",
-    "translation": "#### Mensagens\n\nESC: Marcar todas as mensagens do canal atual como lidas\nCTRL+CIMA (no campo de entrada vazio): Mostra a última mensagem ou comando digitado\nCTRL+BAIXO (no campo de entrada vazio): Mostra a próxima mensagem ou comando digitado\nCIMA (no campo de entrada vazio): Edita sua última mensagem no canal atual\n@[caractere]+TAB: Autocompleta o @usuário começado com [caractere]\n~[caractere]+TAB: Autocompleta o canal começado com [caractere]\n:[caractere]+TAB: Autocompleta o emoji começado com [caractere]\n\n"
+    "id": "api.command_shortcuts.header",
+    "translation": "### Atalhos do Teclado\n\n"
   },
   {
-    "id": "api.command_shortcuts.msgs_mac",
-    "translation": "#### Mensagens\n\nESC: Marcar todas as mensagens do canal atual como lidas\nCMD+CIMA (no campo vazio de entrada): Mostra a última mensagem ou comando digitado\nCMD+BAIXO (no campo vazio de entrada): Mostra a próxima mensagem ou comando digitado\nCIMA (no campo vazio de entrada): Edita sua última mensagem no canal atual\n@[caractere]+TAB: Autocompleta @usuário começado com [caractere]\n~[caractere]+TAB: Autocompleta o canal começado com [caractere]\n:[caractere]+TAB: Autocompleta o emoji começado com [caractere]\n\n"
+    "id": "api.command_shortcuts.msgs.comp_channel",
+    "translation": "~[caractere]+TAB: Autocompleta o canal começado com o [caractere]\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.comp_emoji",
+    "translation": ":[caractere]+TAB: Autocompleta o emoji começado com o [caractere]\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.comp_username",
+    "translation": "@[caractere]+TAB: Autocompleta @usuário começado com o [caractere]\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.edit",
+    "translation": "CIMA (no campo de entrada vazio): Edita sua última mensagem no canal atual\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.header",
+    "translation": "#### Mensagens\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.mark_as_read",
+    "translation": "ESC: Marca todas as mensagens no canal atual como lida\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.reprint_next",
+    "translation": "{{.CmdOrCtrl}}+BAIXO (no campo de entrada vazio): Reimprime a próxima mensagem ou o comando slash inserido\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.reprint_prev",
+    "translation": "{{.CmdOrCtrl}}+CIMA (no campo de entrada vazio): Reimprime a mensagem anterior ou o comando slash inserido\n"
   },
   {
     "id": "api.command_shortcuts.name",
     "translation": "atalhos"
   },
   {
-    "id": "api.command_shortcuts.nav",
-    "translation": "### Atalhos do Teclado\n\n#### Navegação\n\nALT+CIMA: Canal ou mensagem direta anterior na barra lateral esquerda\nALT+BAIXO: Próximo canal ou mensagem direta na barra lateral esquerda\nALT+SHIFT+CIMA: Canal anterior ou mensagem direta na barra lateral esquerda com mensagens não lidas\nALT+SHIFT+BAIXO: Próximo canal ou mensagem direta na barra lateral esquerda com mensagens não lidas\nCTRL+K: Abra uma janela de troca rápida de canal\nCTRL+SHIFT+A: Abre as configurações de conta\nCTRL+SHIFT+M: Abre as menções recentes\n\n"
+    "id": "api.command_shortcuts.nav.header",
+    "translation": "#### Navegação\n\n"
   },
   {
-    "id": "api.command_shortcuts.nav_mac",
-    "translation": "### Atalhos do Teclado\n\n#### Navegação\n\nALT+CIMA: Canal ou mensagem direta anterior na barra lateral esquerda\nALT+BAIXO: Próximo canal ou mensagem direta na barra lateral esquerda\nALT+SHIFT+CIMA: Canal anterior ou mensagem direta na barra lateral esquerda com mensagens não lidas\nALT+SHIFT+BAIXO: Próximo canal ou mensagem direta na barra lateral esquerda com mensagens não lidas\nCMD+K: Abra uma janela de troca rápida de canal\nCMD+SHIFT+A: Abre as configurações de conta\nCMD+SHIFT+M: Abre as menções recentes\n\n"
+    "id": "api.command_shortcuts.nav.next",
+    "translation": "ALT+BAIXO: Próximo canal ou mensagem direta na barra lateral esquerda\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.prev",
+    "translation": "ALT+CIMA: Canal ou mensagem direta anterior na barra lateral esquerda\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.recent_mentions",
+    "translation": "{{.CmdOrCtrl}}+SHIFT+M: Abre as menções recentes\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.settings",
+    "translation": "{{.CmdOrCtrl}}+SHIFT+A: Abre as configurações de conta\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.switcher",
+    "translation": "{{.CmdOrCtrl}}+K: Abra uma janela de troca rápida de canal\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.unread_next",
+    "translation": "ALT+SHIFT+DOWN: Próximo canal ou mensagem direta na barra lateral esquerda com mensagens não lidas\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.unread_prev",
+    "translation": "ALT+SHIFT+UP: Canal anterior ou mensagem direta na barra lateral esquerda com mensagens não lidas\n"
   },
   {
     "id": "api.command_shrug.desc",
@@ -705,7 +801,7 @@
   },
   {
     "id": "api.context.invalid_team_url.debug",
-    "translation": "TeamURL acessado quando não é válido. Equipe de URL não devem ser usados em funções de api ou aqueles que são de equipes independentes"
+    "translation": "A URL da equipe foi acessada de forma inválida. A URL da equipe não deve ser utilizada em funções de API ou aquelas funções que são independente da equipe."
   },
   {
     "id": "api.context.invalid_token.error",
@@ -855,7 +951,7 @@
   },
   {
     "id": "api.emoji.init.debug",
-    "translation": "Inicializando emoji api routes"
+    "translation": "Inicializando as rotas de API emoji"
   },
   {
     "id": "api.emoji.storage.app_error",
@@ -943,7 +1039,7 @@
   },
   {
     "id": "api.file.init.debug",
-    "translation": "Inicializando file api routes"
+    "translation": "Inicializando as rotas de API file"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.channel.app_error",
@@ -1075,7 +1171,7 @@
   },
   {
     "id": "api.general.init.debug",
-    "translation": "Inicializando as rotas gerais da api"
+    "translation": "Inicializando as rotas de API general"
   },
   {
     "id": "api.import.import_post.saving.debug",
@@ -1135,7 +1231,7 @@
   },
   {
     "id": "api.license.init.debug",
-    "translation": "Inicializando license api routes"
+    "translation": "Inicializando as rotas de API license"
   },
   {
     "id": "api.license.remove_license.remove.app_error",
@@ -1179,7 +1275,7 @@
   },
   {
     "id": "api.oauth.delete.permissions.app_error",
-    "translation": "Permissão inapropriada para deletar o App OAuth2"
+    "translation": "Permissões inadequadas para deletar o App OAuth2"
   },
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
@@ -1243,11 +1339,11 @@
   },
   {
     "id": "api.oauth.init.debug",
-    "translation": "Inicializando oauth api routes"
+    "translation": "Inicializando as rotas de API oauth"
   },
   {
     "id": "api.oauth.regenerate_secret.app_error",
-    "translation": "Permissão inapropriada para gerar novo OAuth2 App Secret"
+    "translation": "Permissões inadequadas para gerar novo OAuth2 App Secret"
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
@@ -1401,7 +1497,7 @@
   },
   {
     "id": "api.post.init.debug",
-    "translation": "Inicializando post api routes"
+    "translation": "Inicializando as rotas de API post"
   },
   {
     "id": "api.post.make_direct_channel_visible.get_2_members.error",
@@ -1533,7 +1629,7 @@
   },
   {
     "id": "api.preference.init.debug",
-    "translation": "Inicializando preference api routes"
+    "translation": "Inicializando as rotas de API preference"
   },
   {
     "id": "api.preference.save_preferences.decode.app_error",
@@ -1549,19 +1645,19 @@
   },
   {
     "id": "api.reaction.delete_reaction.mismatched_channel_id.app_error",
-    "translation": "Failed to delete reaction because channel ID does not match post ID in the URL"
+    "translation": "Falha ao deletar a reação devido ao ID do canal não corresponder com o ID do post na URL"
   },
   {
     "id": "api.reaction.init.debug",
-    "translation": "Inicializando reactions api routes"
+    "translation": "Inicializando as rotas de API reactions"
   },
   {
     "id": "api.reaction.list_reactions.mismatched_channel_id.app_error",
-    "translation": "Failed to get reactions because channel ID does not match post ID in the URL"
+    "translation": "Falha ao obter as reações devido ao ID do canal não corresponder com o ID do post na URL"
   },
   {
     "id": "api.reaction.save_reaction.mismatched_channel_id.app_error",
-    "translation": "Failed to save reaction because channel ID does not match post ID in the URL"
+    "translation": "Falha ao salvar a reação devido ao ID do canal não corresponder com o ID do post na URL"
   },
   {
     "id": "api.reaction.send_reaction_event.post.app_error",
@@ -1789,7 +1885,7 @@
   },
   {
     "id": "api.status.init.debug",
-    "translation": "Inicializando status api routes"
+    "translation": "Inicializando as rotas de API status"
   },
   {
     "id": "api.status.last_activity.error",
@@ -1853,11 +1949,11 @@
   },
   {
     "id": "api.team.import_team.unavailable.app_error",
-    "translation": "Malformed request: filesize field is not present."
+    "translation": "Requisição mal formada: campo filesize não está presente."
   },
   {
     "id": "api.team.init.debug",
-    "translation": "Inicializando team api routes"
+    "translation": "Inicializando as rotas de API team"
   },
   {
     "id": "api.team.invite_members.admin",
@@ -2321,7 +2417,7 @@
   },
   {
     "id": "api.user.init.debug",
-    "translation": "Inicializando user api routes"
+    "translation": "Inicializando as rotas de API user"
   },
   {
     "id": "api.user.ldap_to_email.not_available.app_error",
@@ -2345,7 +2441,7 @@
   },
   {
     "id": "api.user.login.not_provided.app_error",
-    "translation": "Must provide either user ID, or team name and user email"
+    "translation": "Deve fornecer o ID do usuário ou o nome da equipe e o e-mail do usuário"
   },
   {
     "id": "api.user.login.not_verified.app_error",
@@ -2581,7 +2677,7 @@
   },
   {
     "id": "api.web_socket.init.debug",
-    "translation": "Inicializando web socket api routes"
+    "translation": "Inicializando as rotas de API web socket"
   },
   {
     "id": "api.web_socket_handler.log.error",
@@ -2653,7 +2749,7 @@
   },
   {
     "id": "api.webhook.init.debug",
-    "translation": "Inicializando webhook api routes"
+    "translation": "Inicializando as rotas de API webhook"
   },
   {
     "id": "api.webhook.regen_outgoing_token.disabled.app_error",
@@ -2661,7 +2757,7 @@
   },
   {
     "id": "api.webhook.regen_outgoing_token.permissions.app_error",
-    "translation": "Permissões inadequadas para re-gerar o token do webhook de saída"
+    "translation": "Permissões inadequadas para gerar novo token do webhook de saída"
   },
   {
     "id": "api.webrtc.disabled.app_error",
@@ -2669,7 +2765,7 @@
   },
   {
     "id": "api.webrtc.init.debug",
-    "translation": "Inicializando WebRTC api routes"
+    "translation": "Inicializando as rotas de API WebRTC"
   },
   {
     "id": "api.webrtc.register_token.app_error",
@@ -3037,7 +3133,7 @@
   },
   {
     "id": "manaultesting.manual_test.uid.debug",
-    "translation": "Sem uid na url"
+    "translation": "Sem uid na URL"
   },
   {
     "id": "manaultesting.test_autolink.info",
@@ -3249,7 +3345,7 @@
   },
   {
     "id": "model.command.is_valid.team_id.app_error",
-    "translation": "Inválido equipe id"
+    "translation": "ID da equipe inválido"
   },
   {
     "id": "model.command.is_valid.token.app_error",
@@ -3265,7 +3361,7 @@
   },
   {
     "id": "model.command.is_valid.url.app_error",
-    "translation": "Invalid URL"
+    "translation": "URL inválida"
   },
   {
     "id": "model.command.is_valid.url_http.app_error",
@@ -3609,7 +3705,7 @@
   },
   {
     "id": "model.incoming_hook.team_id.app_error",
-    "translation": "Inválido equipe id"
+    "translation": "ID da equipe inválido"
   },
   {
     "id": "model.incoming_hook.update_at.app_error",
@@ -3661,7 +3757,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.callback.app_error",
-    "translation": "Urls de retorno de chamada inválidas"
+    "translation": "URLs de retorno de chamada inválidas"
   },
   {
     "id": "model.outgoing_hook.is_valid.channel_id.app_error",
@@ -3685,7 +3781,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.team_id.app_error",
-    "translation": "Inválido equipe id"
+    "translation": "ID da equipe inválido"
   },
   {
     "id": "model.outgoing_hook.is_valid.token.app_error",
@@ -3757,7 +3853,7 @@
   },
   {
     "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "Inválido root id deve ser definido se parent id for"
+    "translation": "ID raiz inválida deve ser definida se o ID pai for definido"
   },
   {
     "id": "model.post.is_valid.type.app_error",
@@ -3861,7 +3957,7 @@
   },
   {
     "id": "model.team_member.is_valid.team_id.app_error",
-    "translation": "Inválido equipe id"
+    "translation": "ID da equipe inválido"
   },
   {
     "id": "model.team_member.is_valid.user_id.app_error",
@@ -3973,7 +4069,7 @@
   },
   {
     "id": "model.user.is_valid.team_id.app_error",
-    "translation": "Inválido equipe id"
+    "translation": "ID da equipe inválido"
   },
   {
     "id": "model.user.is_valid.update_at.app_error",
@@ -4065,19 +4161,19 @@
   },
   {
     "id": "store.sql.open_conn.critical",
-    "translation": "Falha ao abrir a conexão sql err:%v"
+    "translation": "Falha ao abrir a conexão SQL err:%v"
   },
   {
     "id": "store.sql.open_conn.panic",
-    "translation": "Falha ao abrir a conexão sql %v"
+    "translation": "Falha ao abrir a conexão SQL %v"
   },
   {
     "id": "store.sql.ping.critical",
-    "translation": "Falha para ping db err:%v"
+    "translation": "Falha ao pingar no DB err:%v"
   },
   {
     "id": "store.sql.pinging.info",
-    "translation": "Pingando banco de dados sql %v"
+    "translation": "Pingando banco de dados SQL %v"
   },
   {
     "id": "store.sql.read_replicas_not_licensed.critical",
@@ -4213,7 +4309,7 @@
   },
   {
     "id": "store.sql_channel.get_member.missing.app_error",
-    "translation": "Nenhum membro canal encontrado para esse id de usuário e id de canal"
+    "translation": "Nenhum membro canal encontrado para esse ID de usuário e ID de canal"
   },
   {
     "id": "store.sql_channel.get_member_count.app_error",
@@ -4309,7 +4405,7 @@
   },
   {
     "id": "store.sql_channel.save_member.exists.app_error",
-    "translation": "Um membro do canal com este id já existe"
+    "translation": "Um membro do canal com este ID já existe"
   },
   {
     "id": "store.sql_channel.save_member.open_transaction.app_error",
@@ -4877,7 +4973,7 @@
   },
   {
     "id": "store.sql_team.get_member.missing.app_error",
-    "translation": "Nenhum membro encontrado para esse id de usuário e id de equipe"
+    "translation": "Nenhum membro encontrado para esse ID de usuário e ID de equipe"
   },
   {
     "id": "store.sql_team.get_member_count.app_error",
@@ -4921,7 +5017,7 @@
   },
   {
     "id": "store.sql_team.save_member.exists.app_error",
-    "translation": "Um membro do canal com este id já existe"
+    "translation": "Um membro da equipe com este ID já existe"
   },
   {
     "id": "store.sql_team.save_member.save.app_error",
@@ -5033,7 +5129,7 @@
   },
   {
     "id": "store.sql_user.save.existing.app_error",
-    "translation": "Deve chamar update para o usuário existente"
+    "translation": "Deve chamar atualização para o usuário existente"
   },
   {
     "id": "store.sql_user.save.max_accounts.app_error",
@@ -5309,7 +5405,7 @@
   },
   {
     "id": "web.check_browser_compatibility.app_error",
-    "translation": "Seu navegador atual não é suportado, por favor atualize para um dos seguintes browsers: Google Chrome 21 ou superior, Internet Explorer 11 ou superior, FireFox 14 ou superior, Safari 9 ou superior"
+    "translation": "Seu navegador atual não é suportado, por favor atualize para um dos seguintes browsers: Google Chrome 21 ou superior, Internet Explorer 11 ou superior, Firefox 14 ou superior, Safari 9 ou superior"
   },
   {
     "id": "web.claim_account.team.error",
@@ -5353,7 +5449,7 @@
   },
   {
     "id": "web.incoming_webhook.attachment.app_error",
-    "translation": "Maximum attachments length is {{.Max}} characters, received size is {{.Actual}}"
+    "translation": "Máximo tamanho dos anexos é de {{.Max}} caracteres, tamanho recebido é de {{.Actual}}"
   },
   {
     "id": "web.incoming_webhook.channel.app_error",
@@ -5381,7 +5477,7 @@
   },
   {
     "id": "web.incoming_webhook.text.length.app_error",
-    "translation": "Maximum text length is {{.Max}} characters, received size is {{.Actual}}"
+    "translation": "Tamanho máximo do texto é de {{.Max}} caracteres, tamanho recebido é de {{.Actual}}"
   },
   {
     "id": "web.incoming_webhook.user.app_error",

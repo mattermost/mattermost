@@ -640,18 +640,6 @@
     "translation": "You are now online"
   },
   {
-    "id": "api.command_shortcuts.browser.channel_prev",
-    "translation": "{{.ChannelPrevCmd}}: Previous channel in your history\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev.cmd",
-    "translation": "ALT+LEFT"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev.cmd_mac",
-    "translation": "CMD+["
-  },
-  {
     "id": "api.command_shortcuts.browser.channel_next",
     "translation": "{{.ChannelNextCmd}}: Next channel in your history\n"
   },
@@ -664,24 +652,36 @@
     "translation": "CMD+]"
   },
   {
-    "id": "api.command_shortcuts.browser.font_increase",
-    "translation": "{{.CmdOrCtrl}}+PLUS: Increase font size (zoom in)\n"
+    "id": "api.command_shortcuts.browser.channel_prev",
+    "translation": "{{.ChannelPrevCmd}}: Previous channel in your history\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_prev.cmd",
+    "translation": "ALT+LEFT"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_prev.cmd_mac",
+    "translation": "CMD+["
   },
   {
     "id": "api.command_shortcuts.browser.font_decrease",
     "translation": "{{.CmdOrCtrl}}+MINUS: Decrease font size (zoom out)\n"
   },
   {
+    "id": "api.command_shortcuts.browser.font_increase",
+    "translation": "{{.CmdOrCtrl}}+PLUS: Increase font size (zoom in)\n"
+  },
+  {
     "id": "api.command_shortcuts.browser.header",
     "translation": "#### Built-in Browser Commands\n\n"
   },
   {
-    "id": "api.command_shortcuts.browser.highlight_prev",
-    "translation": "SHIFT+UP (in input field): Highlight text to the previous line\n"
-  },
-  {
     "id": "api.command_shortcuts.browser.highlight_next",
     "translation": "SHIFT+DOWN (in input field): Highlight text to the next line\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.highlight_prev",
+    "translation": "SHIFT+UP (in input field): Highlight text to the previous line\n"
   },
   {
     "id": "api.command_shortcuts.browser.newline",
@@ -736,12 +736,12 @@
     "translation": "ESC: Mark all messages in the current channel as read\n"
   },
   {
-    "id": "api.command_shortcuts.msgs.reprint_prev",
-    "translation": "{{.CmdOrCtrl}}+UP (in empty input field): Reprint the previous message or slash command you entered\n"
-  },
-  {
     "id": "api.command_shortcuts.msgs.reprint_next",
     "translation": "{{.CmdOrCtrl}}+DOWN (in empty input field): Reprint the next message or slash command you entered\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.reprint_prev",
+    "translation": "{{.CmdOrCtrl}}+UP (in empty input field): Reprint the previous message or slash command you entered\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -772,12 +772,12 @@
     "translation": "{{.CmdOrCtrl}}+K: Open a quick channel switcher dialog\n"
   },
   {
-    "id": "api.command_shortcuts.nav.unread_prev",
-    "translation": "ALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\n"
-  },
-  {
     "id": "api.command_shortcuts.nav.unread_next",
     "translation": "ALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.unread_prev",
+    "translation": "ALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\n"
   },
   {
     "id": "api.command_shrug.desc",
