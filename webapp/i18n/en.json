@@ -922,6 +922,7 @@
   "analytics.chart.loading": "Loading...",
   "analytics.chart.meaningful": "Not enough data for a meaningful representation.",
   "analytics.system.activeUsers": "Active Users With Posts",
+  "analytics.system.skippedIntensiveQueries": "Some statistics have been omitted because they put too much load on the system to calculate. See <a href='https://docs.mattermost.com/administration/statistics.html' target='_blank'>https://docs.mattermost.com/administration/statistics.html</a> for more details.",
   "analytics.system.channelTypes": "Channel Types",
   "analytics.system.expiredBanner": "The Enterprise license expired on {date}. You have 15 days from this date to renew the license, please contact <a href='mailto:commercial@mattermost.com'>commercial@mattermost.com</a>.",
   "analytics.system.expiringBanner": "The Enterprise license is expiring on {date}. To renew your license, please contact <a href='mailto:commercial@mattermost.com'>commercial@mattermost.com</a>.",
