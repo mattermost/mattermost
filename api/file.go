@@ -833,11 +833,12 @@ func ReadFile(path string) ([]byte, *model.AppError) {
 			return nil, model.NewLocAppError("ReadFile", "api.file.read_file.s3.app_error", nil, err.Error())
 		}
 		bucket := utils.Cfg.FileSettings.AmazonS3Bucket
-		reader, err := s3Clnt.GetObject(bucket, path)
+		minioObject, err := s3Clnt.GetObject(bucket, path)
+		defer minioObject.Close()
 		if err != nil {
 			return nil, model.NewLocAppError("ReadFile", "api.file.read_file.s3.app_error", nil, err.Error())
 		}
-		if f, err := ioutil.ReadAll(reader); err != nil {
+		if f, err := ioutil.ReadAll(minioObject); err != nil {
 			return nil, model.NewLocAppError("ReadFile", "api.file.read_file.s3.app_error", nil, err.Error())
 		} else {
 			return f, nil
