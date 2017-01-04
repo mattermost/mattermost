@@ -364,6 +364,18 @@
         max-width: 1028px;
     }
 
+    .post-create {
+        &.scroll {
+            .btn-file {
+                right: 10px;
+            }
+
+            .custom-textarea {
+                padding-right: 43px;
+            }
+        }
+    }
+
     .post-create-body {
         padding: 0 0 2px;
         position: relative;
@@ -371,16 +383,6 @@
         .post-body__cell {
             position: relative;
             vertical-align: top;
-
-            &.scroll {
-                .btn-file {
-                    right: 15px;
-                }
-
-                .custom-textarea {
-                    padding-right: 43px;
-                }
-            }
         }
 
         .send-button {
@@ -403,7 +405,7 @@
         .custom-textarea {
             bottom: 0;
             max-height: 162px !important;
-            padding-right: 28px;
+            padding-right: 35px;
             padding-top: 8px;
         }
 
@@ -456,19 +458,19 @@
             @include opacity(.55);
             position: absolute;
             top: 4px;
-      }
-  }
+        }
+    }
 
-  .msg-typing {
-    @include opacity(.7);
-    display: block;
-    font-size: .95em;
-    height: 20px;
-    margin-bottom: 5px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
+    .msg-typing {
+        @include opacity(.7);
+        display: block;
+        font-size: .95em;
+        height: 20px;
+        margin-bottom: 5px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 }
 
 .post-list__table {
