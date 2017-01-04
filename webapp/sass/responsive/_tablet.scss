@@ -9,14 +9,8 @@
     }
 
     .channel-header {
-        .search-bar__container {
-            .search__form {
-                width: 150px;
-            }
-        }
-
         .heading {
-            max-width: 110px;
+            max-width: 100px;
         }
     }
 
@@ -39,9 +33,9 @@
             }
 
             .post-error {
-                top: 0;
                 left: 32px;
                 position: relative;
+                top: 0;
 
                 .sidebar--right & {
                     left: 0;

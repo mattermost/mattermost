@@ -824,6 +824,7 @@ export const Constants = {
             description: 'Enable WebRTC one on one calls'
         }
     },
+    OVERLAY_TIME_DELAY_SMALL: 100,
     OVERLAY_TIME_DELAY: 400,
     WEBRTC_TIME_DELAY: 750,
     WEBRTC_CLEAR_ERROR_DELAY: 15000,
