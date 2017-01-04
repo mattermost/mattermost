@@ -184,11 +184,6 @@ export default class ChannelHeader extends React.Component {
                 e.preventDefault();
                 this.searchMentions(e);
             }
-
-          //@TODO create shortcut for toggling flagged posts
-          // else if (e.keyCode == Constants.KeyCodes.<keycode>) {
-          //   this.toggleFlagged();
-          // }
         }
     }
 
