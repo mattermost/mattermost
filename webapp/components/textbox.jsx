@@ -21,6 +21,24 @@ const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 import React from 'react';
 
 export default class Textbox extends React.Component {
+    static propTypes = {
+        id: React.PropTypes.string.isRequired,
+        channelId: React.PropTypes.string,
+        value: React.PropTypes.string.isRequired,
+        onChange: React.PropTypes.func.isRequired,
+        onKeyPress: React.PropTypes.func.isRequired,
+        createMessage: React.PropTypes.string.isRequired,
+        onKeyDown: React.PropTypes.func,
+        onBlur: React.PropTypes.func,
+        supportsCommands: React.PropTypes.bool.isRequired,
+        handlePostError: React.PropTypes.func,
+        suggestionListStyle: React.PropTypes.string
+    };
+
+    static defaultProps = {
+        supportsCommands: true
+    };
+
     constructor(props) {
         super(props);
 
@@ -242,6 +260,7 @@ export default class Textbox extends React.Component {
                     onHeightChange={this.handleHeightChange}
                     style={{visibility: this.state.preview ? 'hidden' : 'visible'}}
                     listComponent={SuggestionList}
+                    listStyle={this.props.suggestionListStyle}
                     providers={this.suggestionProviders}
                     channelId={this.props.channelId}
                     value={this.props.value}
@@ -272,20 +291,3 @@ export default class Textbox extends React.Component {
         );
     }
 }
-
-Textbox.defaultProps = {
-    supportsCommands: true
-};
-
-Textbox.propTypes = {
-    id: React.PropTypes.string.isRequired,
-    channelId: React.PropTypes.string,
-    value: React.PropTypes.string.isRequired,
-    onChange: React.PropTypes.func.isRequired,
-    onKeyPress: React.PropTypes.func.isRequired,
-    createMessage: React.PropTypes.string.isRequired,
-    onKeyDown: React.PropTypes.func,
-    onBlur: React.PropTypes.func,
-    supportsCommands: React.PropTypes.bool.isRequired,
-    handlePostError: React.PropTypes.func
-};

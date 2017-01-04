@@ -24,10 +24,6 @@
             min-height: 8em;
         }
 
-        .suggestion-list {
-            bottom: -149px;
-        }
-
         .suggestion-list__content {
             max-height: 150px;
         }
@@ -667,5 +663,11 @@
     .filter-button {
         margin-left: 0;
         padding-left: 0;
+    }
+}
+
+.channel-switch-modal {
+    .modal-body {
+        overflow: visible;
     }
 }
