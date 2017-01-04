@@ -460,10 +460,24 @@
                 float: right;
                 margin-top: 5px;
             }
+
+            .more-modal__list {
+                max-height: calc(100vh - 270px);
+            }
         }
     }
 
     .more-modal {
+        .more-modal__list {
+            height: 100vh;
+            max-height: calc(100vh - 340px);
+        }
+
+        &.more-direct-channels {
+            .more-modal__list {
+                max-height: calc(100vh - 325px);
+            }
+        }
 
         .user-list {
             margin-top: 10px;
@@ -478,6 +492,7 @@
         }
 
         .filter-row {
+            @include clearfix;
             margin: 5px 0 10px;
             width: 300px;
         }
@@ -542,11 +557,7 @@
 .more-modal__list {
     display: flex;
     flex-direction: column;
-
-    > div {
-        min-height: 100%;
-        overflow: auto;
-    }
+    overflow: auto;
 
     .popover & {
         font-size: .95em;
@@ -591,7 +602,6 @@
     .more-modal__actions {
         flex-grow: 0;
         flex-shrink: 0;
-        margin: 5px 0 10px;
         padding-left: 20px;
     }
 
@@ -614,7 +624,8 @@
     .more-modal__row {
         border-bottom: 1px solid $light-gray;
         display: flex;
-        padding: 10px 15px;
+        min-height: 70px;
+        padding: 8px 15px;
     }
 
     p {
@@ -635,15 +646,16 @@
 .filtered-user-list {
     display: flex;
     flex-direction: column;
-    height: calc(90vh - 120px);
     width: 100%;
 
-    > div {
-        flex: 1;
+    .filter-row {
+        flex-grow: 0;
+        flex-shrink: 0;
     }
 
-    .more-modal__list {
-        flex-grow: 500;
+    .user-list {
+        flex-grow: 1;
+        flex-shrink: 1;
     }
 
     .filter-button {
@@ -653,6 +665,9 @@
     }
 
     .filter-controls {
+        @include clearfix;
+        flex-grow: 0;
+        flex-shrink: 0;
         padding: 1em 1.5em 0;
 
         .filter-control__next {
