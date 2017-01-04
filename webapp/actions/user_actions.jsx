@@ -338,9 +338,10 @@ export function autocompleteUsers(username, success, error) {
     );
 }
 
-export function updateUser(username, success, error) {
+export function updateUser(username, type, success, error) {
     Client.updateUser(
         username,
+        type,
         (data) => {
             if (success) {
                 success(data);
