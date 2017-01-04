@@ -11,17 +11,6 @@ import (
 	"github.com/mattermost/platform/utils"
 )
 
-func TestSignupTeam(t *testing.T) {
-	th := Setup().InitBasic()
-	th.BasicClient.Logout()
-	Client := th.BasicClient
-
-	_, err := Client.SignupTeam("test@nowhere.com", "name")
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
 func TestCreateTeam(t *testing.T) {
 	th := Setup().InitBasic()
 	th.BasicClient.Logout()

@@ -446,18 +446,6 @@ export default class Client {
             end(this.handleResponse.bind(this, 'exportTeam', success, error));
     }
 
-    signupTeam(email, success, error) {
-        request.
-            post(`${this.getTeamsRoute()}/signup`).
-            set(this.defaultHeaders).
-            type('application/json').
-            accept('application/json').
-            send({email}).
-            end(this.handleResponse.bind(this, 'signupTeam', success, error));
-
-        this.track('api', 'api_teams_signup');
-    }
-
     adminResetMfa(userId, success, error) {
         const data = {};
         data.user_id = userId;
