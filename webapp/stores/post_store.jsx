@@ -316,13 +316,18 @@ class PostStoreClass extends EventEmitter {
     }
 
     deletePost(post) {
-        const postInfo = this.postsInfo[post.channel_id];
+        let postInfo = null;
+        if (this.currentFocusedPostId == null) {
+            postInfo = this.postsInfo[post.channel_id];
+        } else {
+            postInfo = this.postsInfo[this.currentFocusedPostId];
+        }
         if (!postInfo) {
             // the post that has been deleted is in a channel that we haven't seen so just ignore it
             return;
         }
 
-        const postList = this.postsInfo[post.channel_id].postList;
+        const postList = postInfo.postList;
 
         if (isPostListNull(postList)) {
             return;
