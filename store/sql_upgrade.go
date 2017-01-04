@@ -214,20 +214,18 @@ func UpgradeDatabaseToVersion35(sqlStore *SqlStore) {
 }
 
 func UpgradeDatabaseToVersion36(sqlStore *SqlStore) {
-	// TODO uncomment me before release
-	//if shouldPerformUpgrade(sqlStore, VERSION_3_5_0, VERSION_3_6_0) {
+	if shouldPerformUpgrade(sqlStore, VERSION_3_5_0, VERSION_3_6_0) {
+		sqlStore.CreateColumnIfNotExists("Posts", "HasReactions", "tinyint", "boolean", "0")
 
-	sqlStore.CreateColumnIfNotExists("Posts", "HasReactions", "tinyint", "boolean", "0")
+		// Create Team Description column
+		sqlStore.CreateColumnIfNotExists("Teams", "Description", "varchar(255)", "varchar(255)", "")
 
-	// Create Team Description column
-	sqlStore.CreateColumnIfNotExists("Teams", "Description", "varchar(255)", "varchar(255)", "")
+		// Add a Position column to users.
+		sqlStore.CreateColumnIfNotExists("Users", "Position", "varchar(64)", "varchar(64)", "")
 
-	// Add a Position column to users.
-	sqlStore.CreateColumnIfNotExists("Users", "Position", "varchar(64)", "varchar(64)", "")
+		// Remove ActiveChannel column from Status
+		sqlStore.RemoveColumnIfExists("Status", "ActiveChannel")
 
-	// Remove ActiveChannel column from Status
-	sqlStore.RemoveColumnIfExists("Status", "ActiveChannel")
-
-	//saveSchemaVersion(sqlStore, VERSION_3_6_0)
-	//}
+		saveSchemaVersion(sqlStore, VERSION_3_6_0)
+	}
 }
