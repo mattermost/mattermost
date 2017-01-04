@@ -259,6 +259,7 @@ export default class EditPostModal extends React.Component {
                                 channelId={this.state.channel_id}
                                 createMessage={Utils.localizeMessage('edit_post.editPost', 'Edit the post...')}
                                 supportsCommands={false}
+                                suggestionListStyle='bottom'
                                 id='edit_textbox'
                                 ref='editbox'
                             />
