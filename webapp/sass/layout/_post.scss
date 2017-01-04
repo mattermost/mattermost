@@ -364,6 +364,18 @@
         max-width: 1028px;
     }
 
+    .post-create {
+        &.scroll {
+            .btn-file {
+                right: 10px;
+            }
+
+            .custom-textarea {
+                padding-right: 43px;
+            }
+        }
+    }
+
     .post-create-body {
         padding: 0 0 2px;
         position: relative;
@@ -371,16 +383,6 @@
         .post-body__cell {
             position: relative;
             vertical-align: top;
-
-            &.scroll {
-                .btn-file {
-                    right: 15px;
-                }
-
-                .custom-textarea {
-                    padding-right: 43px;
-                }
-            }
         }
 
         .send-button {
@@ -403,7 +405,7 @@
         .custom-textarea {
             bottom: 0;
             max-height: 162px !important;
-            padding-right: 28px;
+            padding-right: 35px;
             padding-top: 8px;
         }
 
@@ -449,26 +451,26 @@
         position: relative;
 
         .post-error {
-            font-weight: normal;
-            margin-bottom: 0;
+            @include opacity(.55);
             display: inline-block;
             font-size: .85em;
-            @include opacity(.55);
+            font-weight: normal;
+            margin-bottom: 0;
             position: absolute;
             top: 4px;
-      }
-  }
+        }
+    }
 
-  .msg-typing {
-    @include opacity(.7);
-    display: block;
-    font-size: .95em;
-    height: 20px;
-    margin-bottom: 5px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
+    .msg-typing {
+        @include opacity(.7);
+        display: block;
+        font-size: .95em;
+        height: 20px;
+        margin-bottom: 5px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 }
 
 .post-list__table {
@@ -1048,16 +1050,17 @@
         }
 
         .pending-post-actions {
+            background: alpha-property($black, .7);
+            color: $white;
+            font-size: .9em;
+            padding: 5px 7px;
             position: absolute;
             right: 0;
             top: 0;
-            padding: 5px 7px;
-            background: rgba(0, 0, 0, .7);
-            color: white;
-            font-size: .9em;
+            z-index: 100;
 
             a {
-                color: white;
+                color: $white;
             }
         }
     }

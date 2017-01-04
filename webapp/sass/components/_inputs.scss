@@ -41,6 +41,7 @@ fieldset {
 input {
     &[type='radio'],
     &[type='checkbox'] {
-        margin-top: 1px;
+        font-size: 14px;
+        margin-top: 3px;
     }
 }

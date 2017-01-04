@@ -115,9 +115,9 @@ export default class Textbox extends React.Component {
 
         // Move over attachment icon to compensate for the scrollbar
         if (height > maxHeight) {
-            wrapper.closest('.post-body__cell').addClass('scroll');
+            wrapper.closest('.post-create').addClass('scroll');
         } else {
-            wrapper.closest('.post-body__cell').removeClass('scroll');
+            wrapper.closest('.post-create').removeClass('scroll');
         }
     }
 
